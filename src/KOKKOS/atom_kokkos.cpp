@@ -73,6 +73,19 @@ AtomKokkos::~AtomKokkos()
   memory->destroy_kokkos(k_improper_atom2, improper_atom2);
   memory->destroy_kokkos(k_improper_atom3, improper_atom3);
   memory->destroy_kokkos(k_improper_atom4, improper_atom4);
+
+  // USER-DPD package
+  memory->destroy_kokkos(k_uCond,uCond);
+  memory->destroy_kokkos(k_uMech,uMech);
+  memory->destroy_kokkos(k_uChem,uChem);
+  memory->destroy_kokkos(k_uCG,uCG);
+  memory->destroy_kokkos(k_uCGnew,uCGnew);
+  memory->destroy_kokkos(k_rho,rho);
+  memory->destroy_kokkos(k_dpdTheta,dpdTheta);
+  memory->destroy_kokkos(k_duChem,duChem);
+
+  memory->destroy_kokkos(k_dvector,dvector);
+  dvector = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -69,7 +69,6 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   id_fix_species_old(NULL), fix_species(NULL), fix_species_old(NULL)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
-  restart_peratom = 1;
   nevery = 1;
 
   nreactions = maxparam = 0;
@@ -366,6 +365,7 @@ void FixRX::post_constructor()
 
   modify->add_fix(nspecies+5,newarg);
   fix_species = (FixPropertyAtom *) modify->fix[modify->nfix-1];
+  restartFlag = modify->fix[modify->nfix-1]->restart_reset;
 
   modify->add_fix(nspecies+5,newarg2);
   fix_species_old = (FixPropertyAtom *) modify->fix[modify->nfix-1];
@@ -647,34 +647,38 @@ void FixRX::setup_pre_force(int vflag)
   double tmp;
   int ii;
 
-  if(localTempFlag){
-    int count = nlocal + (newton_pair ? nghost : 0);
-    dpdThetaLocal = new double[count];
-    memset(dpdThetaLocal, 0, sizeof(double)*count);
-    computeLocalTemperature();
+  if(restartFlag){
+    restartFlag = 0;
+  } else {
+    if(localTempFlag){
+      int count = nlocal + (newton_pair ? nghost : 0);
+      dpdThetaLocal = new double[count];
+      memset(dpdThetaLocal, 0, sizeof(double)*count);
+      computeLocalTemperature();
+    }
+  
+    for (int id = 0; id < nlocal; id++)
+      for (int ispecies=0; ispecies<nspecies; ispecies++){
+        tmp = atom->dvector[ispecies][id];
+        atom->dvector[ispecies+nspecies][id] = tmp;
+      }
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit){
+
+        // Set the reaction rate constants to zero:  no reactions occur at step 0
+        for(int irxn=0;irxn<nreactions;irxn++)
+	  kR[irxn] = 0.0;
+
+        if (odeIntegrationFlag == ODE_LAMMPS_RK4)
+	  rk4(i,NULL);
+        else if (odeIntegrationFlag == ODE_LAMMPS_RKF45)
+	  rkf45(i,NULL);
+      }
+  
+    // Communicate the updated momenta and velocities to all nodes
+    comm->forward_comm_fix(this);
+    if(localTempFlag) delete [] dpdThetaLocal;
   }
-
-  for (int id = 0; id < nlocal; id++)
-    for (int ispecies=0; ispecies<nspecies; ispecies++){
-      tmp = atom->dvector[ispecies][id];
-      atom->dvector[ispecies+nspecies][id] = tmp;
-    }
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
-
-      // Set the reaction rate constants to zero:  no reactions occur at step 0
-      for(int irxn=0;irxn<nreactions;irxn++)
-        kR[irxn] = 0.0;
-
-      if (odeIntegrationFlag == ODE_LAMMPS_RK4)
-        rk4(i,NULL);
-      else if (odeIntegrationFlag == ODE_LAMMPS_RKF45)
-        rkf45(i,NULL);
-    }
-
-  // Communicate the updated momenta and velocities to all nodes
-  comm->forward_comm_fix(this);
-  if(localTempFlag) delete [] dpdThetaLocal;
 }
 
 /* ---------------------------------------------------------------------- */

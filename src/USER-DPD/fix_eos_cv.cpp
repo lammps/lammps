@@ -70,8 +70,8 @@ void FixEOScv::init()
       if (mask[i] & groupbit) {
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
-        uCond[i] = 0.5*cvEOS*dpdTheta[i];
-        uMech[i] = 0.5*cvEOS*dpdTheta[i];
+        uCond[i] = 0.0;
+        uMech[i] = cvEOS*dpdTheta[i];
       }
   }
 }

@@ -14,7 +14,7 @@ python func keyword args ... :pre
 
 func = name of Python function :ulb,l
 one or more keyword/args pairs must be appended :l
-keyword = {invoke} or {input} or {return} or {format} or {file} or {here} or {exists}
+keyword = {invoke} or {input} or {return} or {format} or {length} or {file} or {here} or {exists}
   {invoke} arg = none = invoke the previously defined Python function
   {input} args = N i1 i2 ... iN
     N = # of inputs to function
@@ -29,6 +29,8 @@ keyword = {invoke} or {input} or {return} or {format} or {file} or {here} or {ex
     M = N+1 if there is a return value
     fstring = each character (i,f,s,p) corresponds in order to an input or return value
     'i' = integer, 'f' = floating point, 's' = string, 'p' = SELF
+  {length} arg = Nlen
+    Nlen = max length of string returned from Python function
   {file} arg = filename
     filename = file of Python code, which defines func
   {here} arg = inline
@@ -164,6 +166,17 @@ variable"_variable.html in a LAMMPS command that allows for an
 equal-style variable as an argument, but only if the output of the
 Python function is flagged as a numeric value ("i" or "f") via the
 {format} keyword.
+
+If the {return} keyword is used and the {format} keyword specifies the
+output as a string, then the default maximum length of that string is
+63 characters (64-1 for the string terminator).  If you want to return
+a longer string, the {length} keyword can be specified with its {Nlen}
+value set to a larger number (the code allocates space for Nlen+1 to
+include the string terminator).  If the Python function generates a
+string longer than the default 63 or the specified {Nlen}, it will be
+trunctated.
+
+:line
 
 Either the {file}, {here}, or {exists} keyword must be used, but only
 one of them.  These keywords specify what Python code to load into the

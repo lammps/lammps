@@ -526,7 +526,7 @@ double FixShearHistory::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
-  bytes += nmax * sizeof(int *);
+  bytes += nmax * sizeof(tagint *);
   bytes += nmax * sizeof(double *);
 
   int nmypage = comm->nthreads;

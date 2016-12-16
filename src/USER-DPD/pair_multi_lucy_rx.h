@@ -18,7 +18,7 @@ PairStyle(multi/lucy/rx,PairMultiLucyRX)
 #else
 
 #ifndef LMP_PAIR_MULTI_LUCY_RX_H
-#define LMP_PAIR_MUTLI_LUCY_RX_H
+#define LMP_PAIR_MULTI_LUCY_RX_H
 
 #include "pair.h"
 

@@ -33,7 +33,7 @@ methods:
                      minchunk <= N <= maxchunk required
    put(index) = return indexed chunk to pool (same index returned by get)
    int size() = return total size of allocated pages in bytes
-public varaibles:
+public variables:
    ndatum = total # of stored datums
    nchunk = total # of stored chunks
    size = total size of all allocated pages in daums

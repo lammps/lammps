@@ -38,7 +38,7 @@ class Python {
   void invoke_function(int, char *) {}
   int find(char *) {return -1;}
   int variable_match(char *, char *, int) {return -1;}
-
+  char *long_string(int) {return NULL;}
 };
 
 }

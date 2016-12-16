@@ -28,9 +28,10 @@ class Python : protected Pointers {
   void invoke_function(int, char *);
   int find(char *);
   int variable_match(char *, char *, int);
+  char *long_string(int);
 
  private:
-  int ninput,noutput;
+  int ninput,noutput,length_longstr;
   char **istr;
   char *ostr,*format;
   void *pyMain;
@@ -44,6 +45,8 @@ class Python : protected Pointers {
     char **svalue;
     int otype;
     char *ovarname;
+    char *longstr;
+    int length_longstr;
     void *pFunc;
   };
 

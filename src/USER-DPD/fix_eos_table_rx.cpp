@@ -164,13 +164,15 @@ void FixEOStableRX::setup(int vflag)
   double *uCG   = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
-      duChem = uCG[i] - uCGnew[i];
-      uChem[i] += duChem;
-      uCG[i] = 0.0;
-      uCGnew[i] = 0.0;
-    }
+  if(!this->restart_reset){
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit){
+        duChem = uCG[i] - uCGnew[i];
+        uChem[i] += duChem;
+        uCG[i] = 0.0;
+        uCGnew[i] = 0.0;
+      }
+  }
 
   // Communicate the updated momenta and velocities to all nodes
   comm->forward_comm_fix(this);
@@ -202,8 +204,8 @@ void FixEOStableRX::init()
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(i,dpdTheta[i],tmp);
-        uCond[i] = tmp / 2.0;
-        uMech[i] = tmp / 2.0;
+        uCond[i] = 0.0;
+        uMech[i] = tmp;
         uChem[i] = 0.0;
       }
   }

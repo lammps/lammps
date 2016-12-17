@@ -254,7 +254,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
           mu_ij *= force->ftm2v;
 
           uTmp = gamma_ij*wd*rinv*rinv*dot*dot
-                        - 0.5*sigma[itype][jtype]*sigma[itype][jtype]*mu_ij*wd;
+                 - 0.5*sigma[itype][jtype]*sigma[itype][jtype]*mu_ij*wd;
           uTmp -= sigma[itype][jtype]*wr*rinv*dot*randnum*dtinvsqrt;
           uTmp *= 0.5;
 

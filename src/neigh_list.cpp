@@ -187,20 +187,16 @@ void NeighList::setup_pages(int pgsize_caller, int oneatom_caller)
 
 /* ----------------------------------------------------------------------
    grow per-atom data to allow for nlocal/nall atoms
-   skipped if a copy list
    for parent lists:
      also trigger grow in child list(s) which are not built themselves
      gran calls grow() in granhistory
      respaouter calls grow() in respainner, respamiddle
    triggered by neighbor list build
+   not called if a copy list
 ------------------------------------------------------------------------- */
 
 void NeighList::grow(int nlocal, int nall)
 {
-  // skip if a copy list
-
-  if (copy) return;
-
   // trigger grow() in children before possible return
 
   if (listgranhistory) listgranhistory->grow(nlocal,nall);

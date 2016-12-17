@@ -122,8 +122,8 @@ void FixEOStable::init()
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(dpdTheta[i],tmp);
-        uCond[i] = tmp / 2.0;
-        uMech[i] = tmp / 2.0;
+        uCond[i] = 0.0;
+        uMech[i] = tmp;
       }
   }
 }

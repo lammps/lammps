@@ -206,7 +206,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
           if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
           rinv = 1.0/r;
           wr = 1.0 - r/cut[itype][jtype];
-	  wd = wr*wr;
+          wd = wr*wr;
 
           delvx = vxtmp - v[j][0];
           delvy = vytmp - v[j][1];
@@ -214,11 +214,11 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
           dot = delx*delvx + dely*delvy + delz*delvz;
           randnum = random->gaussian();
 
-	  // Compute the current temperature
-	  theta_ij = 0.5*(1.0/dpdTheta[i] + 1.0/dpdTheta[j]);
-	  theta_ij = 1.0/theta_ij;
-	
-	  gamma_ij = sigma[itype][jtype]*sigma[itype][jtype]
+          // Compute the current temperature
+          theta_ij = 0.5*(1.0/dpdTheta[i] + 1.0/dpdTheta[j]);
+          theta_ij = 1.0/theta_ij;
+
+          gamma_ij = sigma[itype][jtype]*sigma[itype][jtype]
                      / (2.0*force->boltz*theta_ij);
 
           // conservative force = a0 * wr
@@ -239,44 +239,44 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
             f[j][2] -= delz*fpair;
           }
 
-	  if (rmass) {
-	    mass_i = rmass[i];
-	    mass_j = rmass[j];
-	  } else {
-	    mass_i = mass[itype];
-	    mass_j = mass[jtype];
-	  }
-	  massinv_i = 1.0 / mass_i;
-	  massinv_j = 1.0 / mass_j;
+          if (rmass) {
+            mass_i = rmass[i];
+            mass_j = rmass[j];
+          } else {
+            mass_i = mass[itype];
+            mass_j = mass[jtype];
+          }
+          massinv_i = 1.0 / mass_i;
+          massinv_j = 1.0 / mass_j;
 
-	  // Compute the mechanical and conductive energy, uMech and uCond
-	  mu_ij = massinv_i + massinv_j;
-	  mu_ij *= force->ftm2v;
+          // Compute the mechanical and conductive energy, uMech and uCond
+          mu_ij = massinv_i + massinv_j;
+          mu_ij *= force->ftm2v;
 
-	  uTmp = gamma_ij*wd*rinv*rinv*dot*dot
-                 - 0.5*sigma[itype][jtype]*sigma[itype][jtype]*mu_ij*wd;
-	  uTmp -= sigma[itype][jtype]*wr*rinv*dot*randnum*dtinvsqrt;
-	  uTmp *= 0.5;
+          uTmp = gamma_ij*wd*rinv*rinv*dot*dot
+                        - 0.5*sigma[itype][jtype]*sigma[itype][jtype]*mu_ij*wd;
+          uTmp -= sigma[itype][jtype]*wr*rinv*dot*randnum*dtinvsqrt;
+          uTmp *= 0.5;
 
-	  duMech[i] += uTmp;
-	  if (newton_pair || j < nlocal) {
-	    duMech[j] += uTmp;
-	  }
-	
-	  // Compute uCond
-	  randnum = random->gaussian();
-	  kappa_ij = kappa[itype][jtype];
-	  alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
-	  randPair = alpha_ij*wr*randnum*dtinvsqrt;
+          duMech[i] += uTmp;
+          if (newton_pair || j < nlocal) {
+            duMech[j] += uTmp;
+          }
 
-	  uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
-	  uTmp += randPair;
-	
-	  duCond[i] += uTmp;
-	  if (newton_pair || j < nlocal) {
-	    duCond[j] -= uTmp;
-	  }
-	
+          // Compute uCond
+          randnum = random->gaussian();
+          kappa_ij = kappa[itype][jtype];
+          alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
+          randPair = alpha_ij*wr*randnum*dtinvsqrt;
+
+          uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
+          uTmp += randPair;
+
+          duCond[i] += uTmp;
+          if (newton_pair || j < nlocal) {
+            duCond[j] -= uTmp;
+          }
+
           if (eflag) {
             // unshifted eng of conservative term:
             // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);

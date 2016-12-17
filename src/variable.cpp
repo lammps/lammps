@@ -888,6 +888,10 @@ char *Variable::retrieve(char *name)
       error->all(FLERR,"Python variable does not match Python function");
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
+    // if Python func returns a string longer than VALUELENGTH
+    // then the Python class stores the result, query it via long_string()
+    char *strlong = python->long_string(ifunc);
+    if (strlong) str = strlong;
   } else if (style[ivar] == INTERNAL) {
     sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
     str = data[ivar][0];

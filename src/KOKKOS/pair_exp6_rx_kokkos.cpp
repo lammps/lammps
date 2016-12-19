@@ -187,8 +187,10 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
-  if (k_error_flag.h_view())
+  if (k_error_flag.h_view() == 1)
     error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
+  else if (k_error_flag.h_view() == 2)
+    error->all(FLERR,"Computed fraction less than -1.0e-10");
 
   int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
@@ -432,13 +434,13 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-          win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-          aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+          aRep = win1*powint(rin1,nRep)/nRep;
 
           uin1rep = aRep/powint(rin1,nRep);
 
-          forceExp6 = -double(nRep)*aRep/powint(r,nRep);
+          forceExp6 = double(nRep)*aRep/powint(r,nRep);
           fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
           evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -472,13 +474,13 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-          win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-          aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+          aRep = win1*powint(rin1,nRep)/nRep;
 
           uin1rep = aRep/powint(rin1,nRep);
 
-          forceExp6 = -double(nRep)*aRep/powint(r,nRep);
+          forceExp6 = double(nRep)*aRep/powint(r,nRep);
           fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
           evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -527,9 +529,9 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-          win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-          aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+          aRep = win1*powint(rin1,nRep)/nRep;
 
           uin1rep = aRep/powint(rin1,nRep);
 
@@ -559,9 +561,9 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-          win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-          aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+          aRep = win1*powint(rin1,nRep)/nRep;
 
           uin1rep = aRep/powint(rin1,nRep);
 
@@ -1014,6 +1016,32 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       rm2 *= pow(nTotalOFA,fuchslinR);
       rm2_old *= pow(nTotalOFA_old,fuchslinR);
     }
+  }
+
+  // Check that no fractions are less than zero
+  if(fraction1 < 0.0){
+    if(fraction1 < -1.0e-10){
+      k_error_flag.d_view() = 2;
+    }
+    fraction1 = 0.0;
+  }
+  if(fraction2 < 0.0){
+    if(fraction2 < -1.0e-10){
+      k_error_flag.d_view() = 2;
+    }
+    fraction2 = 0.0;
+  }
+  if(fraction1_old < 0.0){
+    if(fraction1_old < -1.0e-10){
+      k_error_flag.d_view() = 2;
+    }
+    fraction1_old = 0.0;
+  }
+  if(fraction2_old < 0.0){
+    if(fraction2_old < -1.0e-10){
+      k_error_flag.d_view() = 2;
+    }
+    fraction2_old = 0.0;
   }
 }
 

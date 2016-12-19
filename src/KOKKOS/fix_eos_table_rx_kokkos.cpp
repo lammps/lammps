@@ -85,7 +85,8 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
   atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
   atomKK->modified(execution_space,UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK);
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
+  if (!this->restart_reset)
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
 
   // Communicate the updated momenta and velocities to all nodes
   comm->forward_comm_fix(this);
@@ -154,8 +155,8 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int
     if(dpdTheta[i] <= 0.0)
       k_error_flag.d_view() = 1;
     energy_lookup(i,dpdTheta[i],tmp);
-    uCond[i] = tmp / 2.0;
-    uMech[i] = tmp / 2.0;
+    uCond[i] = 0.0;
+    uMech[i] = tmp;
     uChem[i] = 0.0;
   }
 }

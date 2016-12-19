@@ -155,6 +155,10 @@ E:  eos/table/rx values are not increasing
 
 The equation-of-state must an increasing function
 
+E:  FixEOStableRX requires atom_style with internal temperature and energies (e.g. dpd)
+
+Self-explanatory.
+
 E:  Internal temperature <= zero.
 
 Self-explanatory.

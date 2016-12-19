@@ -23,6 +23,7 @@ FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>)
 #define LMP_FIX_MOMENTUM_KOKKOS_H
 
 #include "fix_momentum.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
@@ -31,11 +32,15 @@ class FixMomentumKokkos : public FixMomentum {
  public:
   typedef ArrayTypes<DeviceType> AT;
 
-  FixMomentum(class LAMMPS *, int, char **);
+  FixMomentumKokkos(class LAMMPS *, int, char **);
   void init();
   void end_of_step();
 
  private:
+  double get_kinetic_energy(
+      int nlocal,
+      typename AT::t_v_array_randomread v,
+      typename AT::t_int_1d_randomread mask);
 };
 
 }

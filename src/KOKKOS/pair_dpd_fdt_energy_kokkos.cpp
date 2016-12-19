@@ -12,15 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: James Larentzos (U.S. Army Research Laboratory)
+   Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pair_dpd_fdt_energy_kokkos.h"
-#include "kokkos.h"
 #include "atom_kokkos.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -31,30 +29,26 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "random_mars.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair_dpd_fdt_energy_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-
-#define KOKKOS_CUDA_MAX_THREADS 256
-#define KOKKOS_CUDA_MIN_BLOCKS 8
 
 #define EPSILON 1.0e-10
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) : PairDPDfdtEnergy(lmp)
+PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) :
+  PairDPDfdtEnergy(lmp),rand_pool(seed + comm->me /** , lmp/**/)
 {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | TAG_MASK | ENERGY_MASK | VIRIAL_MASK;
-  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,26 +56,49 @@ PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) : PairDP
 template<class DeviceType>
 PairDPDfdtEnergyKokkos<DeviceType>::~PairDPDfdtEnergyKokkos()
 {
+  if (copymode) return;
+
   if (allocated) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
+    memory->destroy_kokkos(k_duCond,duCond);
+    memory->destroy_kokkos(k_duMech,duMech);
   }
+
+  memory->destroy_kokkos(k_cutsq,cutsq);
+
+  /** rand_pool.destroy();/**/
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairDPDfdtEnergyKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
+{
+  PairDPDfdtEnergy::init_style();
+
+  // irequest = neigh request made by parent class
+
+  neighflag = lmp->kokkos->neighflag;
+  int irequest = neighbor->nrequest - 1;
+
+  neighbor->requests[irequest]->
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
+    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+  neighbor->requests[irequest]->
+    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+
+  if (neighflag == FULL) {
+    neighbor->requests[irequest]->full = 1;
+    neighbor->requests[irequest]->half = 0;
+  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
+    neighbor->requests[irequest]->full = 0;
+    neighbor->requests[irequest]->half = 1;
+  } else {
+    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+  }
+
+  /** rand_pool.init(random,seed);/**/
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,9 +106,12 @@ void PairDPDfdtEnergyKokkos<DeviceType>::cleanup_copy() {
 template<class DeviceType>
 void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
+  copymode = 1;
+
   eflag = eflag_in;
   vflag = vflag_in;
 
+  if (neighflag == FULL) no_virial_fdotr_compute = 1;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -100,35 +120,115 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memory->destroy_kokkos(k_eatom,eatom);
     memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = k_eatom.d_view;
   }
   if (vflag_atom) {
     memory->destroy_kokkos(k_vatom,vatom);
     memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = k_vatom.d_view;
   }
 
-  atomKK->sync(execution_space,datamask_read);
-  k_cutsq.template sync<DeviceType>();
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
-
   x = atomKK->k_x.view<DeviceType>();
-  c_x = atomKK->k_x.view<DeviceType>();
+  v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
+  mass = atomKK->k_mass.view<DeviceType>();
+  rmass = atomKK->rmass;
+  dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
+
+  k_cutsq.template sync<DeviceType>();
+  k_params.template sync<DeviceType>();
+  atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDTHETA_MASK | RMASS_MASK);
+  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
+  else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
+  atomKK->k_mass.sync<DeviceType>();
+
   nlocal = atom->nlocal;
-  nall = atom->nlocal + atom->nghost;
-  newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  int nghost = atom->nghost;
+  int newton_pair = force->newton_pair;
+  dtinvsqrt = 1.0/sqrt(update->dt);
+
+  int inum = list->inum;
+  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  d_numneigh = k_list->d_numneigh;
+  d_neighbors = k_list->d_neighbors;
+  d_ilist = k_list->d_ilist;
+
+  boltz = force->boltz;
+
+  int STACKPARAMS = 0; // optimize
 
   // loop over neighbors of my atoms
 
-  EV_FLOAT ev = pair_compute<PairDPDfdtEnergyKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
+  EV_FLOAT ev;
+
+  if (splitFDT_flag) {
+    if (neighflag == HALF) {
+      if (newton_pair) {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,0> >(0,inum),*this);
+      } else {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,0> >(0,inum),*this);
+      }
+    } else if (neighflag == HALFTHREAD) {
+      if (newton_pair) {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,0> >(0,inum),*this);
+      } else {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,0> >(0,inum),*this);
+      }
+    }
+  } else {
+
+    // Allocate memory for duCond and duMech
+    if (allocated) {
+      memory->destroy_kokkos(k_duCond,duCond);
+      memory->destroy_kokkos(k_duMech,duMech);
+    }
+    memory->create_kokkos(k_duCond,duCond,nlocal+nghost,"pair:duCond");
+    memory->create_kokkos(k_duMech,duMech,nlocal+nghost,"pair:duMech");
+    d_duCond = k_duCond.view<DeviceType>();
+    d_duMech = k_duMech.view<DeviceType>();
+    h_duCond = k_duCond.h_view;
+    h_duMech = k_duMech.h_view;
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyZero>(0,nlocal+nghost),*this);
+
+    atomKK->sync(execution_space,V_MASK);
+
+    // loop over neighbors of my atoms
+
+    if (neighflag == HALF) {
+      if (newton_pair) {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,0> >(0,inum),*this);
+      } else {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,0> >(0,inum),*this);
+      }
+    } else if (neighflag == HALFTHREAD) {
+      if (newton_pair) {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,0> >(0,inum),*this);
+      } else {
+        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,0> >(0,inum),*this);
+      }
+    }
+
+    // Communicate the ghost delta energies to the locally owned atoms
+
+    k_duCond.template modify<DeviceType>();
+    k_duCond.template sync<LMPHostType>();
+    k_duMech.template modify<DeviceType>();
+    k_duMech.template sync<LMPHostType>();
+    comm->reverse_comm_pair(this);
+    //k_duCond.template modify<LMPHostType>();
+    //k_duCond.template sync<DeviceType>();
+    //k_duMech.template modify<LMPHostType>();
+    //k_duMech.template sync<DeviceType>();
+  }
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -151,125 +251,262 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
+
+  copymode = 0;
 }
 
 template<class DeviceType>
-template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairDPDfdtEnergyKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
-  const F_FLOAT r = sqrt(rsq);
- if (r < EPSILON) return 0;     // r can be 0.0 in DPD systems
-  const F_FLOAT rinv = 1.0/r;
-  const F_FLOAT wr = 1.0 - r/cut[itype][jtype];
-  const F_FLOAT wd = wr*wr;
-
- // conservative force = a0 * wr
-  return  a0[itype][jtype]*wr*rinv;
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyZero, const int &ii) const {
+  d_duCond[ii] = 0.0;
+  d_duMech[ii] = 0.0;
 }
 
 template<class DeviceType>
-template<bool STACKPARAMS, class Specialisation>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairDPDfdtEnergyKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
-  const F_FLOAT r = sqrt(rsq);
-  if (r < EPSILON) return 0;     // r can be 0.0 in DPD systems
-  const F_FLOAT rinv = 1.0/r;
-  const F_FLOAT wr = 1.0 - r/cut[itype][jtype];
-  const F_FLOAT wd = wr*wr;
-     // unshifted eng of conservative term:
-     // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-     // eng shifted to 0.0 at cutoff
-  return 0.5*a0[itype][jtype]*cut[itype][jtype] * wd;
-}
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
+  // The f array is atomic for Half/Thread neighbor style
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
-/*
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,rinv,wd,wr,factor_dpd;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
+  double rsq,r,rinv,wd,wr,factor_dpd,uTmp;
+  double dot,randnum;
 
-  evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  double kappa_ij, alpha_ij, theta_ij, gamma_ij;
+  double mass_i, mass_j;
+  double massinv_i, massinv_j;
+  double randPair, mu_ij;
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
+  i = d_ilist[ii];
+  xtmp = x(i,0);
+  ytmp = x(i,1);
+  ztmp = x(i,2);
+  itype = type[i];
+  jnum = d_numneigh[i];
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
+  double fx_i = 0.0;
+  double fy_i = 0.0;
+  double fz_i = 0.0;
 
-  // loop over neighbors of my atoms
+  for (jj = 0; jj < jnum; jj++) {
+    j = d_neighbors(i,jj);
+    factor_dpd = special_lj[sbmask(j)];
+    j &= NEIGHMASK;
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+    delx = xtmp - x(j,0);
+    dely = ytmp - x(j,1);
+    delz = ztmp - x(j,2);
+    rsq = delx*delx + dely*dely + delz*delz;
+    jtype = type[j];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_dpd = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
+    double cutsq_ij = STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype);
+    if (rsq < cutsq_ij) {
+      r = sqrt(rsq);
+      if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
+      rinv = 1.0/r;
+      double cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
+      wr = 1.0 - r/cut_ij;
+      wd = wr*wr;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
+      // conservative force = a0 * wr
+      double a0_ij = STACKPARAMS?m_params[itype][jtype].a0:params(itype,jtype).a0;
+      fpair = a0_ij*wr;
+      fpair *= factor_dpd*rinv;
 
-      if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);
-        if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-        rinv = 1.0/r;
-        wr = 1.0 - r/cut[itype][jtype];
-        wd = wr*wr;
-
-        // conservative force = a0 * wr
-        fpair = a0[itype][jtype]*wr;
-        fpair *= factor_dpd*rinv;
-
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
-        }
-
-        if (eflag) {
-          // unshifted eng of conservative term:
-          // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-          // eng shifted to 0.0 at cutoff
-          evdwl = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd;
-          evdwl *= factor_dpd;
-        }
-
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+      fx_i += delx*fpair;
+      fy_i += dely*fpair;
+      fz_i += delz*fpair;
+      if (NEWTON_PAIR || j < nlocal) {
+        a_f(j,0) -= delx*fpair;
+        a_f(j,1) -= dely*fpair;
+        a_f(j,2) -= delz*fpair;
       }
+
+      if (eflag) {
+        // unshifted eng of conservative term:
+        // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/d_cut(itype,jtype));
+        // eng shifted to 0.0 at cutoff
+        evdwl = 0.5*a0_ij*cut_ij * wd;
+        evdwl *= factor_dpd;
+        ev.evdwl += evdwl;
+      }
+
+        if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
 
-  if (vflag_fdotr) virial_fdotr_compute();
+  a_f(i,0) += fx_i;
+  a_f(i,1) += fy_i;
+  a_f(i,2) += fz_i;
 }
-*/
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+  EV_FLOAT ev;
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+
+  // These array are atomic for Half/Thread neighbor style
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duCond = d_duCond;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duMech = d_duMech;
+
+  int i,j,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
+  double rsq,r,rinv,wd,wr,factor_dpd,uTmp;
+  double dot,randnum;
+
+  double kappa_ij, alpha_ij, theta_ij, gamma_ij;
+  double mass_i, mass_j;
+  double massinv_i, massinv_j;
+  double randPair, mu_ij;
+
+  rand_type rand_gen = rand_pool.get_state();
+
+  i = d_ilist[ii];
+  xtmp = x(i,0);
+  ytmp = x(i,1);
+  ztmp = x(i,2);
+  vxtmp = v(i,0);
+  vytmp = v(i,1);
+  vztmp = v(i,2);
+  itype = type[i];
+  jnum = d_numneigh[i];
+
+  double fx_i = 0.0;
+  double fy_i = 0.0;
+  double fz_i = 0.0;
+
+  for (jj = 0; jj < jnum; jj++) {
+    j = d_neighbors(i,jj);
+    factor_dpd = special_lj[sbmask(j)];
+    j &= NEIGHMASK;
+
+    delx = xtmp - x(j,0);
+    dely = ytmp - x(j,1);
+    delz = ztmp - x(j,2);
+    rsq = delx*delx + dely*dely + delz*delz;
+    jtype = type[j];
+
+    double cutsq_ij = STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype);
+    if (rsq < cutsq_ij) {
+      r = sqrt(rsq);
+      if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
+      rinv = 1.0/r;
+      double cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
+      wr = 1.0 - r/cut_ij;
+      wd = wr*wr;
+
+      delvx = vxtmp - v(j,0);
+      delvy = vytmp - v(j,1);
+      delvz = vztmp - v(j,2);
+      dot = delx*delvx + dely*delvy + delz*delvz;
+      randnum = rand_gen.normal();
+
+      // Compute the current temperature
+      theta_ij = 0.5*(1.0/dpdTheta[i] + 1.0/dpdTheta[j]);
+      theta_ij = 1.0/theta_ij;
+
+      double sigma_ij = STACKPARAMS?m_params[itype][jtype].sigma:params(itype,jtype).sigma;
+      gamma_ij = sigma_ij*sigma_ij
+                 / (2.0*boltz*theta_ij);
+
+      // conservative force = a0 * wr
+      // drag force = -gamma * wr^2 * (delx dot delv) / r
+      // random force = sigma * wr * rnd * dtinvsqrt;
+
+      double a0_ij = STACKPARAMS?m_params[itype][jtype].a0:params(itype,jtype).a0;
+      fpair = a0_ij*wr;
+      fpair -= gamma_ij*wd*dot*rinv;
+      fpair += sigma_ij*wr*randnum*dtinvsqrt;
+      fpair *= factor_dpd*rinv;
+
+      fx_i += delx*fpair;
+      fy_i += dely*fpair;
+      fz_i += delz*fpair;
+      if (NEWTON_PAIR || j < nlocal) {
+        f(j,0) -= delx*fpair;
+        f(j,1) -= dely*fpair;
+        f(j,2) -= delz*fpair;
+      }
+
+      if (rmass) {
+        mass_i = rmass[i];
+        mass_j = rmass[j];
+      } else {
+        mass_i = mass[itype];
+        mass_j = mass[jtype];
+      }
+      massinv_i = 1.0 / mass_i;
+      massinv_j = 1.0 / mass_j;
+
+      // Compute the mechanical and conductive energy, uMech and uCond
+      mu_ij = massinv_i + massinv_j;
+      mu_ij *= force->ftm2v;
+
+      uTmp = gamma_ij*wd*rinv*rinv*dot*dot
+             - 0.5*sigma_ij*sigma_ij*mu_ij*wd;
+      uTmp -= sigma_ij*wr*rinv*dot*randnum*dtinvsqrt;
+      uTmp *= 0.5;
+
+      a_duMech[i] += uTmp;
+      if (NEWTON_PAIR || j < nlocal) {
+        a_duMech[j] += uTmp;
+      }
+
+      // Compute uCond
+      randnum = rand_gen.normal();
+      kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
+      alpha_ij = sqrt(2.0*boltz*kappa_ij);
+      randPair = alpha_ij*wr*randnum*dtinvsqrt;
+
+      uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
+      uTmp += randPair;
+
+      a_duCond[i] += uTmp;
+      if (NEWTON_PAIR || j < nlocal) {
+        a_duCond[j] -= uTmp;
+      }
+
+      if (eflag) {
+        // unshifted eng of conservative term:
+        // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/d_cut(itype,jtype));
+        // eng shifted to 0.0 at cutoff
+        evdwl = 0.5*a0_ij*cut_ij * wd;
+        evdwl *= factor_dpd;
+        ev.evdwl += evdwl;
+      }
+
+      if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
+    }
+  }
+
+  a_f(i,0) += fx_i;
+  a_f(i,1) += fy_i;
+  a_f(i,2) += fz_i;
+
+  rand_pool.free_state(rand_gen);
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+  EV_FLOAT ev;
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
+}
 
 /* ----------------------------------------------------------------------
    allocate all arrays
@@ -281,69 +518,26 @@ void PairDPDfdtEnergyKokkos<DeviceType>::allocate()
   PairDPDfdtEnergy::allocate();
 
   int n = atom->ntypes;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+
   memory->destroy(cutsq);
   memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-}
 
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
+  k_params = Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType>("PairDPDfdtEnergy::params",n+1,n+1);
+  params = k_params.d_view;
 
-template<class DeviceType>
-void PairDPDfdtEnergyKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
-
-  PairDPDfdtEnergy::settings(2,arg);
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
-{
-  PairDPDfdtEnergy::init_style();
-
-  neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with dpd/fdt/energy/kk");
+  if (!splitFDT_flag) {
+    memory->destroy(duCond);
+    memory->destroy(duMech);
+    memory->create_kokkos(k_duCond,duCond,nlocal+nghost+1,"pair:duCond");
+    memory->create_kokkos(k_duMech,duMech,nlocal+nghost+1,"pair:duMech");
+    d_duCond = k_duCond.view<DeviceType>();
+    d_duMech = k_duMech.view<DeviceType>();
+    h_duCond = k_duCond.h_view;
+    h_duMech = k_duMech.h_view;
   }
-
-/*
-  if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair dpd/fdt/energy requires ghost atoms store velocity");
-
-  // if newton off, forces between atoms ij will be double computed
-  // using different random numbers
-
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
-      "Pair dpd/fdt/energy requires newton pair on");
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->ssa = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shardlow") == 0)
-      neighbor->requests[irequest]->ssa = 1;
-
-  bool eos_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos",3) == 0) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS to be specified");
-*/
 }
 
 /* ----------------------------------------------------------------------
@@ -355,16 +549,125 @@ double PairDPDfdtEnergyKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairDPDfdtEnergy::init_one(i,j);
 
+  k_params.h_view(i,j).cut = cut[i][j];
+  k_params.h_view(i,j).a0 = a0[i][j];
+  k_params.h_view(i,j).sigma = sigma[i][j];
+  k_params.h_view(i,j).kappa = kappa[i][j];
+  k_params.h_view(j,i) = k_params.h_view(i,j);
   if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
+
   k_cutsq.h_view(i,j) = cutone*cutone;
   k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
   k_cutsq.template modify<LMPHostType>();
+  k_params.template modify<LMPHostType>();
 
   return cutone;
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR>
+KOKKOS_INLINE_FUNCTION
+void PairDPDfdtEnergyKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
+                const F_FLOAT &dely, const F_FLOAT &delz) const
+{
+  const int EFLAG = eflag;
+  const int VFLAG = vflag_either;
+
+  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+
+  if (EFLAG) {
+    if (eflag_atom) {
+      const E_FLOAT epairhalf = 0.5 * epair;
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
+        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
+      } else {
+        v_eatom[i] += epairhalf;
+      }
+    }
+  }
+
+  if (VFLAG) {
+    const E_FLOAT v0 = delx*delx*fpair;
+    const E_FLOAT v1 = dely*dely*fpair;
+    const E_FLOAT v2 = delz*delz*fpair;
+    const E_FLOAT v3 = delx*dely*fpair;
+    const E_FLOAT v4 = delx*delz*fpair;
+    const E_FLOAT v5 = dely*delz*fpair;
+
+    if (vflag_global) {
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+        if (NEWTON_PAIR || j < nlocal) {
+        ev.v[0] += 0.5*v0;
+        ev.v[1] += 0.5*v1;
+        ev.v[2] += 0.5*v2;
+        ev.v[3] += 0.5*v3;
+        ev.v[4] += 0.5*v4;
+        ev.v[5] += 0.5*v5;
+        }
+      } else {
+        ev.v[0] += 0.5*v0;
+        ev.v[1] += 0.5*v1;
+        ev.v[2] += 0.5*v2;
+        ev.v[3] += 0.5*v3;
+        ev.v[4] += 0.5*v4;
+        ev.v[5] += 0.5*v5;
+      }
+    }
+
+    if (vflag_atom) {
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) {
+          v_vatom(i,0) += 0.5*v0;
+          v_vatom(i,1) += 0.5*v1;
+          v_vatom(i,2) += 0.5*v2;
+          v_vatom(i,3) += 0.5*v3;
+          v_vatom(i,4) += 0.5*v4;
+          v_vatom(i,5) += 0.5*v5;
+        }
+        if (NEWTON_PAIR || j < nlocal) {
+        v_vatom(j,0) += 0.5*v0;
+        v_vatom(j,1) += 0.5*v1;
+        v_vatom(j,2) += 0.5*v2;
+        v_vatom(j,3) += 0.5*v3;
+        v_vatom(j,4) += 0.5*v4;
+        v_vatom(j,5) += 0.5*v5;
+        }
+      } else {
+        v_vatom(i,0) += 0.5*v0;
+        v_vatom(i,1) += 0.5*v1;
+        v_vatom(i,2) += 0.5*v2;
+        v_vatom(i,3) += 0.5*v3;
+        v_vatom(i,4) += 0.5*v4;
+        v_vatom(i,5) += 0.5*v5;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int PairDPDfdtEnergyKokkos<DeviceType>::sbmask(const int& j) const {
+  return j >> SBBITS & 3;
+}
 
 namespace LAMMPS_NS {
 template class PairDPDfdtEnergyKokkos<LMPDeviceType>;
@@ -372,4 +675,3 @@ template class PairDPDfdtEnergyKokkos<LMPDeviceType>;
 template class PairDPDfdtEnergyKokkos<LMPHostType>;
 #endif
 }
-

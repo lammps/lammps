@@ -22,67 +22,115 @@ PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 #define LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 
-#include "pair_kokkos.h"
 #include "pair_dpd_fdt_energy.h"
-#include "neigh_list_kokkos.h"
+#include "pair_kokkos.h"
+#include "kokkos_type.h"
+#include "Kokkos_Random.hpp"
+#include "rand_pool_wrap.h"
 
 namespace LAMMPS_NS {
+
+struct TagPairDPDfdtEnergyZero{};
+
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct TagPairDPDfdtEnergyComputeSplit{};
+
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct TagPairDPDfdtEnergyComputeNoSplit{};
 
 template<class DeviceType>
 class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
  public:
-  enum {EnabledNeighFlags=HALFTHREAD|HALF};
-  enum {COUL_FLAG=0};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typedef EV_FLOAT value_type;
+
   PairDPDfdtEnergyKokkos(class LAMMPS *);
   virtual ~PairDPDfdtEnergyKokkos();
   virtual void compute(int, int);
-  virtual void settings(int, char **);
   void init_style();
   double init_one(int, int);
 
+  void operator()(TagPairDPDfdtEnergyZero, const int&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR>
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
+                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+
+  KOKKOS_INLINE_FUNCTION
+  int sbmask(const int& j) const;
+
+  struct params_dpd {
+    params_dpd(){cut=0;a0=0;sigma=0;kappa=0;};
+    params_dpd(int i){cut=0;a0=0;sigma=0;kappa=0;};
+    F_FLOAT cut,a0,sigma,kappa;
+  };
+
  protected:
-  void cleanup_copy();
+  int eflag,vflag;
+  int nlocal,neighflag;
+  int STACKPARAMS;
+  double dtinvsqrt;
+  double boltz;
 
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  virtual void allocate();
 
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType> k_params;
+  typename Kokkos::DualView<params_dpd**,
+    Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
+  // hardwired to space for 15 atom types
+  params_dpd m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  F_FLOAT m_cut[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array c_x;
+  typename ArrayTypes<DeviceType>::t_v_array_randomread v;
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
+  double *rmass;
+  typename AT::t_efloat_1d dpdTheta;
+  DAT::tdual_efloat_1d k_duCond,k_duMech;
+  typename AT::t_efloat_1d d_duCond,d_duMech;
+  HAT::t_efloat_1d h_duCond,h_duMech;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
+  DAT::t_efloat_1d d_eatom;
+  DAT::t_virial_array d_vatom;
 
-  int newton_pair;
-  double special_lj[4];
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
 
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
+  /**/Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;/**/
 
-  int neighflag;
-  int nlocal,nall,eflag,vflag;
+  /**RandPoolWrap rand_pool;
+  typedef RandWrap rand_type;/**/
 
-  void allocate();
-
-  friend class PairComputeFunctor<PairDPDfdtEnergyKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairDPDfdtEnergyKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairDPDfdtEnergyKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairDPDfdtEnergyKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairDPDfdtEnergyKokkos,HALF,void>(PairDPDfdtEnergyKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairDPDfdtEnergyKokkos,HALFTHREAD,void>(PairDPDfdtEnergyKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairDPDfdtEnergyKokkos,void>(PairDPDfdtEnergyKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairDPDfdtEnergyKokkos>(PairDPDfdtEnergyKokkos*);
 };
 

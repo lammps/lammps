@@ -54,6 +54,8 @@ PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
 
 PairDPDfdtEnergy::~PairDPDfdtEnergy()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

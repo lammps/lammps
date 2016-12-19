@@ -31,8 +31,8 @@ class PairDPDfdtEnergy : public Pair {
   virtual void compute(int, int);
   virtual void settings(int, char **);
   virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  virtual void init_style();
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
@@ -53,7 +53,7 @@ class PairDPDfdtEnergy : public Pair {
   int seed;
   bool splitFDT_flag;
 
-  void allocate();
+  virtual void allocate();
 
 };
 

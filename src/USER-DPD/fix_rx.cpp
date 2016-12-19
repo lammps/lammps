@@ -363,11 +363,11 @@ void FixRX::post_constructor()
   newarg2[nspecies+3] = (char *) "ghost";
   newarg2[nspecies+4] = (char *) "yes";
 
-  modify->add_fix(nspecies+5,newarg);
+  modify->add_fix(nspecies+5,newarg,1);
   fix_species = (FixPropertyAtom *) modify->fix[modify->nfix-1];
   restartFlag = modify->fix[modify->nfix-1]->restart_reset;
 
-  modify->add_fix(nspecies+5,newarg2);
+  modify->add_fix(nspecies+5,newarg2,1);
   fix_species_old = (FixPropertyAtom *) modify->fix[modify->nfix-1];
 
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");

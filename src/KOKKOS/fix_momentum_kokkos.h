@@ -50,4 +50,8 @@ class FixMomentumKokkos : public FixMomentum {
 
 /* ERROR/WARNING messages:
 
+E: Kokkos+CUDA fix momentum doesn't support angular
+
+Self-explanatory.
+
 */

@@ -34,6 +34,9 @@ template<class DeviceType>
 FixMomentumKokkos<DeviceType>::FixMomentumKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixMomentum(lmp, narg, arg)
 {
+#ifdef KOKKOS_HAVE_CUDA
+  if (angular) error->all(FLERR, "Kokkos+CUDA fix momentum doesn't support angular");
+#endif
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -60,12 +63,13 @@ double FixMomentumKokkos<DeviceType>::get_kinetic_energy(
     typename AT::t_int_1d_randomread mask)
 {
   double ke=0.0;
-  // D.I. : does this rmass check make sense in Kokkos mode ?
+  auto groupbit2 = groupbit;
+  // D.I. : does this atom->rmass check make sense in Kokkos mode ?
   if (atom->rmass) {
     atomKK->sync(execution_space, RMASS_MASK);
     typename AT::t_float_1d_randomread rmass = atomKK->k_rmass.view<DeviceType>();
     Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
-      if (mask(i) & groupbit)
+      if (mask(i) & groupbit2)
         update += rmass(i) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
     }, ke);
@@ -75,7 +79,7 @@ double FixMomentumKokkos<DeviceType>::get_kinetic_energy(
     typename AT::t_int_1d_randomread type = atomKK->k_type.view<DeviceType>();
     typename AT::t_float_1d_randomread mass = atomKK->k_mass.view<DeviceType>();
     Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
-      if (mask(i) & groupbit)
+      if (mask(i) & groupbit2)
         update += mass(type(i)) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
     }, ke);
@@ -108,22 +112,28 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
   if (rescale) ekin_old = get_kinetic_energy(nlocal, v, mask);
 
+  auto groupbit2 = groupbit;
   if (linear) {
     double vcm[3];
     group->vcm(igroup,masstotal,vcm); // will need to change when Group has Kokkos
 
     // adjust velocities by vcm to zero linear momentum
     // only adjust a component if flag is set
+    
+    auto xflag2 = xflag;
+    auto yflag2 = yflag;
+    auto zflag2 = zflag;
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
-      if (mask(i) & groupbit) {
-        if (xflag) v(i,0) -= vcm[0];
-        if (yflag) v(i,1) -= vcm[1];
-        if (zflag) v(i,2) -= vcm[2];
+      if (mask(i) & groupbit2) {
+        if (xflag2) v(i,0) -= vcm[0];
+        if (yflag2) v(i,1) -= vcm[1];
+        if (zflag2) v(i,2) -= vcm[2];
       }
     });
   }
 
+#ifndef KOKKOS_HAVE_CUDA
   if (angular) {
     double xcm[3],angmom[3],inertia[3][3],omega[3];
     group->xcm(igroup,masstotal,xcm); // change when Group has Kokkos ?
@@ -141,10 +151,10 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     int nlocal = atom->nlocal;
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
-      if (mask[i] & groupbit) {
+      if (mask[i] & groupbit2) {
         double dx,dy,dz;
         double unwrap[3];
-        domain->unmap(&x(i,0),image(i),unwrap); // this will not work in CUDA !!!
+        domain->unmap(&x(i,0),image(i),unwrap); // this will not work in CUDA
         dx = unwrap[0] - xcm[0];
         dy = unwrap[1] - xcm[1];
         dz = unwrap[2] - xcm[2];
@@ -154,6 +164,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
       }
     });
   }
+#endif
 
   // compute kinetic energy after momentum removal, if needed
 
@@ -164,7 +175,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     double factor = 1.0;
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
-      if (mask(i) & groupbit) {
+      if (mask(i) & groupbit2) {
         v(i,0) *= factor;
         v(i,1) *= factor;
         v(i,2) *= factor;

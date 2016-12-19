@@ -119,7 +119,6 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   //  double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
   //};
 
-  int tabstyle,tablength;
   /*struct TableDeviceConst {
     typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread cutsq;
     typename ArrayTypes<DeviceType>::t_int_2d_randomread tabindex;

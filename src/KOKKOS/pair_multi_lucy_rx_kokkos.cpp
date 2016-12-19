@@ -72,8 +72,6 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
   datamask_modify = EMPTY_MASK;
 
   update_table = 0;
-  ntables = 0;
-  tables = NULL;
   h_table = new TableHost();
   d_table = new TableDevice();
 
@@ -112,11 +110,9 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->ghost = 1;
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-    neighbor->requests[irequest]->ghost = 1;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with multi/lucy/rx/kk");
   }

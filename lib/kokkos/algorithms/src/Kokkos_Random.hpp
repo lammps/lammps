@@ -670,8 +670,8 @@ namespace Kokkos {
       double S = 2.0;
       double U;
       while(S>=1.0) {
-        U = drand();
-        const double V = drand();
+        U = 2.0*drand() - 1.0;
+        const double V = 2.0*drand() - 1.0;
         S = U*U+V*V;
       }
       return U*sqrt(-2.0*log(S)/S);

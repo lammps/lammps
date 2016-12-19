@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "comm.h"
-#include "rand_pool_wrap.h"
+#include "rand_pool_wrap_kokkos.h"
 #include "lammps.h"
 #include "kokkos.h"
 #include "random_mars.h"

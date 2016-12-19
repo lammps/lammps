@@ -26,7 +26,7 @@ PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
 #include "pair_kokkos.h"
 #include "kokkos_type.h"
 #include "Kokkos_Random.hpp"
-#include "rand_pool_wrap.h"
+#include "rand_pool_wrap_kokkos.h"
 
 namespace LAMMPS_NS {
 

@@ -53,6 +53,37 @@ void FixMomentumKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+double FixMomentumKokkos<DeviceType>::get_kinetic_energy(
+    typename AT::t_v_array_randomread v,
+    typename AT::t_int_1d_randomread mask)
+{
+  double ke=0.0;
+  // D.I. : does this rmass check make sense in Kokkos mode ?
+  if (atom->rmass) {
+    atomKK->sync(execution_space, RMASS_MASK);
+    typename AT::t_float_1d_randomread rmass = atomKK->k_rmass;
+    Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
+      if (mask(i) & groupbit)
+        update += rmass(i) *
+          (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
+    }, ke);
+  } else {
+    // D.I. : why is there no MASS_MASK ?
+    atomKK->sync(execution_space, TYPE_MASK);
+    typename AT::t_int_1d_randomread type = atomKK->k_type;
+    typename AT::t_float_1d_randomread mass = atomKK->k_mass;
+    Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
+      if (mask(i) & groupbit)
+        update += mass(type(i)) *
+          (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
+    }, ke);
+  }
+  double ke_total;
+  MPI_Allreduce(&ke,&ke_total,1,MPI_DOUBLE,MPI_SUM,world);
+  return ke_total;
+}
+
+template<class DeviceType>
 void FixMomentumKokkos<DeviceType>::end_of_step()
 {
   atomKK->sync(execution_space, V_MASK | MASK_MASK);
@@ -73,31 +104,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
   // compute kinetic energy before momentum removal, if needed
 
-  if (rescale) {
-    
-    atomKK->sync(execution_space, TYPE_MASK);
-
-    typename AT::t_int_1d_randomread type = atomKK->k_type;
-    double ke=0.0;
-
-    // D.I. : does this rmass check make sense in Kokkos mode ?
-    if (atom->rmass) {
-      atomKK->sync(execution_space, RMASS_MASK);
-      typename AT::t_float_1d_randomread rmass = atomKK->k_rmass;
-//    for (int i = 0; i < nlocal; i++)
-//      if (mask[i] & groupbit)
-//        ke += rmass[i] *
-//          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-    } else {
-      // D.I. : why is there no MASS_MASK ?
-      typename AT::t_float_1d_randomread mass = atomKK->k_mass;
-//    for (int i = 0; i < nlocal; i++)
-//      if (mask[i] & groupbit)
-//        ke +=  mass[type[i]] *
-//          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-    }
-    MPI_Allreduce(&ke,&ekin_old,1,MPI_DOUBLE,MPI_SUM,world);
-  }
+  if (rescale) ekin_old = get_kinetic_energy(v, mask);
 
   if (linear) {
     double vcm[3];
@@ -106,12 +113,13 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     // adjust velocities by vcm to zero linear momentum
     // only adjust a component if flag is set
 
-//  for (int i = 0; i < nlocal; i++)
-//    if (mask[i] & groupbit) {
-//      if (xflag) v[i][0] -= vcm[0];
-//      if (yflag) v[i][1] -= vcm[1];
-//      if (zflag) v[i][2] -= vcm[2];
-//    }
+    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+      if (mask(i) & groupbit) {
+        if (xflag) v(i,0) -= vcm(0);
+        if (yflag) v(i,1) -= vcm(1);
+        if (zflag) v(i,2) -= vcm(2);
+      }
+    });
   }
 
   if (angular) {
@@ -130,52 +138,36 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     typename AT::t_imageint_1d_randomread image = atomKK->k_image.view<DeviceType>();
     int nlocal = atom->nlocal;
 
-//  for (int i = 0; i < nlocal; i++)
-//    if (mask[i] & groupbit) {
-//      double dx,dy,dz;
-//      double unwrap[3];
-//      domain->unmap(x[i],image[i],unwrap);
-//      dx = unwrap[0] - xcm[0];
-//      dy = unwrap[1] - xcm[1];
-//      dz = unwrap[2] - xcm[2];
-//      v[i][0] -= omega[1]*dz - omega[2]*dy;
-//      v[i][1] -= omega[2]*dx - omega[0]*dz;
-//      v[i][2] -= omega[0]*dy - omega[1]*dx;
-//    }
+    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+      if (mask[i] & groupbit) {
+        double dx,dy,dz;
+        double unwrap[3];
+        domain->unmap(x[i],image[i],unwrap);
+        dx = unwrap[0] - xcm[0];
+        dy = unwrap[1] - xcm[1];
+        dz = unwrap[2] - xcm[2];
+        v(i,0) -= omega[1]*dz - omega[2]*dy;
+        v(i,1) -= omega[2]*dx - omega[0]*dz;
+        v(i,2) -= omega[0]*dy - omega[1]*dx;
+      }
+    });
   }
 
   // compute kinetic energy after momentum removal, if needed
 
   if (rescale) {
 
-    double ke=0.0, factor=1.0;
-    typename AT::t_int_1d_randomread type = atomKK->k_type;
+    ekin_new = get_kinetic_energy(v, mask);
 
-    if (atom->rmass) {
-      atomKK->sync(execution_space, RMASS_MASK);
-      typename AT::t_float_1d_randomread rmass = atomKK->k_rmass;
-//    for (int i = 0; i < nlocal; i++)
-//      if (mask[i] & groupbit)
-//        ke += rmass[i] *
-//          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-    } else {
-      // D.I. : why is there no MASS_MASK ?
-      typename AT::t_float_1d_randomread mass = atomKK->k_mass;
-//    for (int i = 0; i < nlocal; i++)
-//      if (mask[i] & groupbit)
-//        ke +=  mass[type[i]] *
-//          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-    }
-    MPI_Allreduce(&ke,&ekin_new,1,MPI_DOUBLE,MPI_SUM,world);
-
+    double factor = 1.0;
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);
-//  for (int i = 0; i < nlocal; i++) {
-//    if (mask[i] & groupbit) {
-//      v[i][0] *= factor;
-//      v[i][1] *= factor;
-//      v[i][2] *= factor;
-//    }
-//  }
+    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+      if (mask(i) & groupbit) {
+        v(i,0) *= factor;
+        v(i,1) *= factor;
+        v(i,2) *= factor;
+      }
+    });
   }
 }
 

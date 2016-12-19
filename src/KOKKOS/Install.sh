@@ -91,6 +91,8 @@ action fix_reaxc_species_kokkos.cpp fix_reaxc_species.cpp
 action fix_reaxc_species_kokkos.h fix_reaxc_species.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
+action fix_momentum_kokkos.cpp
+action fix_momentum_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
 action gridcomm_kokkos.cpp gridcomm.cpp

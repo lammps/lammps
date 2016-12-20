@@ -47,16 +47,6 @@ FixMomentumKokkos<DeviceType>::FixMomentumKokkos(LAMMPS *lmp, int narg, char **a
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixMomentumKokkos<DeviceType>::init()
-{
-//this is done in FixMomentum::init(), but will need to change
-//once Group is ported to Kokkos
-//masstotal = group->mass(igroup);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
 double FixMomentumKokkos<DeviceType>::get_kinetic_energy(
     int nlocal,
     typename AT::t_v_array_randomread v,

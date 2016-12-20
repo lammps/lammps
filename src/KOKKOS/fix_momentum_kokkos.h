@@ -33,7 +33,6 @@ class FixMomentumKokkos : public FixMomentum {
   typedef ArrayTypes<DeviceType> AT;
 
   FixMomentumKokkos(class LAMMPS *, int, char **);
-  void init();
   void end_of_step();
 
  private:

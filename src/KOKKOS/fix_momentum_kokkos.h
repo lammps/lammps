@@ -34,12 +34,6 @@ class FixMomentumKokkos : public FixMomentum {
 
   FixMomentumKokkos(class LAMMPS *, int, char **);
   void end_of_step();
-
- private:
-  double get_kinetic_energy(
-      int nlocal,
-      typename AT::t_v_array_randomread v,
-      typename AT::t_int_1d_randomread mask);
 };
 
 }

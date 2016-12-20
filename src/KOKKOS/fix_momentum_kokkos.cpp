@@ -20,6 +20,7 @@
 #include "group.h"
 #include "error.h"
 #include "force.h"
+#include "kokkos_few.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,19 +48,20 @@ FixMomentumKokkos<DeviceType>::FixMomentumKokkos(LAMMPS *lmp, int narg, char **a
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-double FixMomentumKokkos<DeviceType>::get_kinetic_energy(
+static double get_kinetic_energy(
+    int groupbit,
     int nlocal,
-    typename AT::t_v_array_randomread v,
-    typename AT::t_int_1d_randomread mask)
+    typename ArrayTypes<DeviceType>::t_v_array_randomread v,
+    typename ArrayTypes<DeviceType>::t_int_1d_randomread mask)
 {
+  using AT = ArrayTypes<DeviceType>;
   double ke=0.0;
-  auto groupbit2 = groupbit;
   // D.I. : does this atom->rmass check make sense in Kokkos mode ?
   if (atom->rmass) {
     atomKK->sync(execution_space, RMASS_MASK);
     typename AT::t_float_1d_randomread rmass = atomKK->k_rmass.view<DeviceType>();
     Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
-      if (mask(i) & groupbit2)
+      if (mask(i) & groupbit)
         update += rmass(i) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
     }, ke);
@@ -69,7 +71,7 @@ double FixMomentumKokkos<DeviceType>::get_kinetic_energy(
     typename AT::t_int_1d_randomread type = atomKK->k_type.view<DeviceType>();
     typename AT::t_float_1d_randomread mass = atomKK->k_mass.view<DeviceType>();
     Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
-      if (mask(i) & groupbit2)
+      if (mask(i) & groupbit)
         update += mass(type(i)) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
     }, ke);
@@ -100,7 +102,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
   // compute kinetic energy before momentum removal, if needed
 
-  if (rescale) ekin_old = get_kinetic_energy(nlocal, v, mask);
+  if (rescale) ekin_old = get_kinetic_energy<DeviceType>(groupbit, nlocal, v, mask);
 
   auto groupbit2 = groupbit;
   if (linear) {
@@ -160,7 +162,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
   if (rescale) {
 
-    ekin_new = get_kinetic_energy(nlocal, v, mask);
+    ekin_new = get_kinetic_energy<DeviceType>(groupbit, nlocal, v, mask);
 
     double factor = 1.0;
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);

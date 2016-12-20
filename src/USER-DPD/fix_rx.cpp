@@ -60,12 +60,12 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), mol2param(NULL), nreactions(0), 
-  params(NULL), Arr(NULL), nArr(NULL), Ea(NULL), tempExp(NULL), 
-  stoich(NULL), stoichReactants(NULL), stoichProducts(NULL), kR(NULL), 
-  pairDPDE(NULL), dpdThetaLocal(NULL), sumWeights(NULL), sparseKinetics_nu(NULL), 
-  sparseKinetics_nuk(NULL), sparseKinetics_inu(NULL), sparseKinetics_isIntegralReaction(NULL), 
-  kineticsFile(NULL), id_fix_species(NULL), 
+  Fix(lmp, narg, arg), mol2param(NULL), nreactions(0),
+  params(NULL), Arr(NULL), nArr(NULL), Ea(NULL), tempExp(NULL),
+  stoich(NULL), stoichReactants(NULL), stoichProducts(NULL), kR(NULL),
+  pairDPDE(NULL), dpdThetaLocal(NULL), sumWeights(NULL), sparseKinetics_nu(NULL),
+  sparseKinetics_nuk(NULL), sparseKinetics_inu(NULL), sparseKinetics_isIntegralReaction(NULL),
+  kineticsFile(NULL), id_fix_species(NULL),
   id_fix_species_old(NULL), fix_species(NULL), fix_species_old(NULL)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
@@ -656,7 +656,7 @@ void FixRX::setup_pre_force(int vflag)
       memset(dpdThetaLocal, 0, sizeof(double)*count);
       computeLocalTemperature();
     }
-  
+
     for (int id = 0; id < nlocal; id++)
       for (int ispecies=0; ispecies<nspecies; ispecies++){
         tmp = atom->dvector[ispecies][id];
@@ -667,14 +667,14 @@ void FixRX::setup_pre_force(int vflag)
 
         // Set the reaction rate constants to zero:  no reactions occur at step 0
         for(int irxn=0;irxn<nreactions;irxn++)
-	  kR[irxn] = 0.0;
+          kR[irxn] = 0.0;
 
         if (odeIntegrationFlag == ODE_LAMMPS_RK4)
-	  rk4(i,NULL);
+          rk4(i,NULL);
         else if (odeIntegrationFlag == ODE_LAMMPS_RKF45)
-	  rkf45(i,NULL);
+          rkf45(i,NULL);
       }
-  
+
     // Communicate the updated momenta and velocities to all nodes
     comm->forward_comm_fix(this);
     if(localTempFlag) delete [] dpdThetaLocal;

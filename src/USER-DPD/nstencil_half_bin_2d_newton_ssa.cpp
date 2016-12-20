@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: 
+   Contributing authors:
    James Larentzos and Timothy I. Mattox (Engility Corporation)
 ------------------------------------------------------------------------- */
 
@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin2dNewtonSSA::NStencilHalfBin2dNewtonSSA(LAMMPS *lmp) : 
+NStencilHalfBin2dNewtonSSA::NStencilHalfBin2dNewtonSSA(LAMMPS *lmp) :
   NStencilSSA(lmp) {}
 
 /* ----------------------------------------------------------------------

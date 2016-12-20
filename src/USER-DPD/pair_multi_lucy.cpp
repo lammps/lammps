@@ -182,7 +182,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
-        		     0.0,0.0,fpair,delx,dely,delz);
+                             0.0,0.0,fpair,delx,dely,delz);
       }
     }
 
@@ -201,7 +201,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
     evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
 
     if (evflag) ev_tally(0,0,nlocal,newton_pair,
-        		 evdwl,0.0,0.0,0.0,0.0,0.0);
+                         evdwl,0.0,0.0,0.0,0.0,0.0);
   }
 
  if (vflag_fdotr) virial_fdotr_compute();

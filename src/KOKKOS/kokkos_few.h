@@ -6,38 +6,38 @@
 namespace Kokkos {
 namespace Experimental {
 
-template <typename T, Int n>
+template <typename T, std::size_t n>
 class Few {
   alignas(T) char array_[n * sizeof(T)];
 
  public:
   enum { size = n };
   Few(std::initializer_list<T> l) {
-    Int i = 0;
+    std::size_t i = 0;
     for (auto it = l.begin(); it != l.end(); ++it) {
       new (data() + (i++)) T(*it);
     }
   }
   KOKKOS_INLINE_FUNCTION Few() {
-    for (Int i = 0; i < n; ++i) new (data() + i) T();
+    for (std::size_t i = 0; i < n; ++i) new (data() + i) T();
   }
   KOKKOS_INLINE_FUNCTION ~Few() {
-    for (Int i = 0; i < n; ++i) (data()[i]).~T();
+    for (std::size_t i = 0; i < n; ++i) (data()[i]).~T();
   }
   KOKKOS_INLINE_FUNCTION Few(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
+    for (std::size_t i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
   KOKKOS_INLINE_FUNCTION Few(Few<T, n> const volatile& rhs) {
-    for (Int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
+    for (std::size_t i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
   KOKKOS_INLINE_FUNCTION void operator=(Few<T, n> const& rhs) volatile {
-    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
+    for (std::size_t i = 0; i < n; ++i) data()[i] = rhs[i];
   }
   KOKKOS_INLINE_FUNCTION void operator=(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
+    for (std::size_t i = 0; i < n; ++i) data()[i] = rhs[i];
   }
   KOKKOS_INLINE_FUNCTION void operator=(Few<T, n> const volatile& rhs) {
-    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
+    for (std::size_t i = 0; i < n; ++i) data()[i] = rhs[i];
   }
   KOKKOS_INLINE_FUNCTION T* data() {
     return reinterpret_cast<T*>(array_);
@@ -51,16 +51,16 @@ class Few {
   KOKKOS_INLINE_FUNCTION T const volatile* data() const volatile {
     return reinterpret_cast<T const volatile*>(array_);
   }
-  KOKKOS_INLINE_FUNCTION T& operator[](Int i) {
+  KOKKOS_INLINE_FUNCTION T& operator[](std::size_t i) {
     return data()[i];
   }
-  KOKKOS_INLINE_FUNCTION T const& operator[](Int i) const {
+  KOKKOS_INLINE_FUNCTION T const& operator[](std::size_t i) const {
     return data()[i];
   }
-  KOKKOS_INLINE_FUNCTION T volatile& operator[](Int i) volatile {
+  KOKKOS_INLINE_FUNCTION T volatile& operator[](std::size_t i) volatile {
     return data()[i];
   }
-  KOKKOS_INLINE_FUNCTION T const volatile& operator[](Int i) const volatile {
+  KOKKOS_INLINE_FUNCTION T const volatile& operator[](std::size_t i) const volatile {
     return data()[i];
   }
 };

@@ -102,6 +102,7 @@ action improper_harmonic_kokkos.h improper_harmonic.h
 action kokkos.cpp
 action kokkos.h
 action kokkos_type.h
+action kokkos_few.h
 action memory_kokkos.h
 action modify_kokkos.cpp
 action modify_kokkos.h

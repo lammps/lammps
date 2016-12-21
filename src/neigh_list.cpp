@@ -192,6 +192,7 @@ void NeighList::setup_pages(int pgsize_caller, int oneatom_caller)
      gran calls grow() in granhistory
      respaouter calls grow() in respainner, respamiddle
    triggered by neighbor list build
+   not called if a copy list
 ------------------------------------------------------------------------- */
 
 void NeighList::grow(int nlocal, int nall)

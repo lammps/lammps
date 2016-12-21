@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: 
+   Contributing authors:
    James Larentzos and Timothy I. Mattox (Engility Corporation)
 ------------------------------------------------------------------------- */
 
@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin3dNewtonSSA::NStencilHalfBin3dNewtonSSA(LAMMPS *lmp) : 
+NStencilHalfBin3dNewtonSSA::NStencilHalfBin3dNewtonSSA(LAMMPS *lmp) :
   NStencilSSA(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -62,7 +62,7 @@ void NStencilHalfBin3dNewtonSSA::create()
 
   // For k==0, make sure to skip already included bins
 
-  k = 0; 
+  k = 0;
   for (j = -sy; j <= 0; j++)
     for (i = -sx; i <= sx; i++) {
       if (j == 0 && i > 0) continue;

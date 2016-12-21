@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "domain.h"
+#include "domain_kokkos.h"
 #include "group.h"
 #include "error.h"
 #include "force.h"
@@ -131,11 +132,12 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
 #ifndef KOKKOS_HAVE_CUDA
   if (angular) {
-    double xcm[3],angmom[3],inertia[3][3],omega[3];
-    group->xcm(igroup,masstotal,xcm); // change when Group has Kokkos ?
-    group->angmom(igroup,xcm,angmom);
-    group->inertia(igroup,xcm,inertia);
-    group->omega(angmom,inertia,omega);
+    Few<double, 3> xcm, angmom, omega;
+    double inertia[3][3];
+    group->xcm(igroup,masstotal,&xcm[0]);
+    group->angmom(igroup,&xcm[0],&angmom[0]);
+    group->inertia(igroup,&xcm[0],inertia);
+    group->omega(&angmom[0],inertia,&omega[0]);
 
     // adjust velocities to zero omega
     // vnew_i = v_i - w x r_i
@@ -146,11 +148,16 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     typename AT::t_imageint_1d_randomread image = atomKK->k_image.view<DeviceType>();
     int nlocal = atom->nlocal;
 
+    auto prd = Few<double,3>(domain->prd);
+    auto h = Few<double,6>(domain->h);
+    auto triclinic = domain->triclinic;
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
       if (mask[i] & groupbit2) {
         double dx,dy,dz;
-        double unwrap[3];
-        domain->unmap(&x(i,0),image(i),unwrap); // this will not work in CUDA
+        auto x_i = Few<double,3>(&x(i,0));
+        auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,image(i));
+      //double unwrap[3];
+      //domain->unmap(&x(i,0),image(i),unwrap); // this will not work in CUDA
         dx = unwrap[0] - xcm[0];
         dy = unwrap[1] - xcm[1];
         dz = unwrap[2] - xcm[2];

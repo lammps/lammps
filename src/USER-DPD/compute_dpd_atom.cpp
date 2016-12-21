@@ -43,7 +43,7 @@ ComputeDpdAtom::ComputeDpdAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 4;
 
   nmax = 0;
-  
+
   if (atom->dpd_flag != 1) error->all(FLERR,"compute dpd requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 

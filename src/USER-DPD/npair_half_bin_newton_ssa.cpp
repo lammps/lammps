@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: 
+   Contributing authors:
    James Larentzos and Timothy I. Mattox (Engility Corporation)
 ------------------------------------------------------------------------- */
 
@@ -147,7 +147,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     // loop over all local atoms in other bins in "half" stencil
 
     for (k = 0; k < nstencil_half; k++) {
-      for (j = binhead_ssa[ibin+stencil[k]]; j >= 0; 
+      for (j = binhead_ssa[ibin+stencil[k]]; j >= 0;
            j = bins_ssa[j]) {
 
         jtype = type[j];
@@ -183,7 +183,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     // Note2: only non-pure locals can have ghosts as neighbors
 
     if (ssaAIR[i] == 1) for (k = 0; k < nstencil_full; k++) {
-      for (j = gbinhead_ssa[ibin+stencil[k]]; j >= 0; 
+      for (j = gbinhead_ssa[ibin+stencil[k]]; j >= 0;
            j = bins_ssa[j]) {
 
         jtype = type[j];

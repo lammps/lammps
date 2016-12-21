@@ -645,7 +645,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
   int params_per_line = 5;
   char **words = new char*[params_per_line+1];
 
-  memory->sfree(params);
+  memory->destroy_kokkos(k_params,params);
   params = NULL;
   nparams = maxparam = 0;
 
@@ -723,6 +723,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     // load up parameter settings and error check their values
 
     if (nparams == maxparam) {
+      k_params.template modify<LMPHostType>();
       maxparam += DELTA;
       memory->grow_kokkos(k_params,params,maxparam,
                           "pair:params");
@@ -823,7 +824,7 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
     nTotal += dvector(ispecies,id);
     nTotal_old += dvector(ispecies+nspecies,id);
 
-    iparam = mol2param[ispecies];
+    iparam = d_mol2param[ispecies];
 
     if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
@@ -840,7 +841,7 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
   fractionOFA = nTotalOFA / nTotal;
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    iparam = mol2param[ispecies];
+    iparam = d_mol2param[ispecies];
     if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
 
     // If Site1 matches a pure species, then grab the parameters
@@ -881,7 +882,7 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       xMolei_old = dvector(ispecies+nspecies,id)/nTotalOFA_old;
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
-        jparam = mol2param[jspecies];
+        jparam = d_mol2param[jspecies];
         if (jparam < 0 || d_params[jparam].potentialType != exp6PotentialType ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
         rmj = d_params[jparam].rm;

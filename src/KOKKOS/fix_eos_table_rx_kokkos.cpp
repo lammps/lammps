@@ -49,6 +49,13 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
 
   k_error_flag = DAT::tdual_int_scalar("fix:error_flag");
   k_warning_flag = DAT::tdual_int_scalar("fix:warning_flag");
+
+  k_dHf = DAT::tdual_float_1d("fix:dHf",nspecies);
+  for (int n = 0; n < nspecies; n++)
+    k_dHf.h_view(n) = dHf[n];
+  k_dHf.modify<LMPHostType>();
+  k_dHf.sync<DeviceType>();
+  d_dHf = k_dHf.view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,6 +80,7 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
   copymode = 1;
 
   int nlocal = atom->nlocal;
+  double boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
@@ -82,16 +90,20 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
   dvector = atomKK->k_dvector.view<DeviceType>();
 
-  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
-  atomKK->modified(execution_space,UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK);
-
-  if (!this->restart_reset)
+  if (!this->restart_reset) {
+    atomKK->sync(execution_space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
+    atomKK->modified(execution_space,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+  }
 
   // Communicate the updated momenta and velocities to all nodes
+  atomKK->sync(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
   comm->forward_comm_fix(this);
+  atomKK->modified(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
+  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
+  atomKK->modified(execution_space,DPDTHETA_MASK);
 
   error_check();
 
@@ -127,6 +139,7 @@ void FixEOStableRXKokkos<DeviceType>::init()
   copymode = 1;
 
   int nlocal = atom->nlocal;
+  double boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
@@ -134,13 +147,15 @@ void FixEOStableRXKokkos<DeviceType>::init()
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
   dvector = atomKK->k_dvector.view<DeviceType>();
 
-  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
-  atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK);
-
-  if (this->restart_reset)
+  if (this->restart_reset) {
+    atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
-  else
+    atomKK->modified(execution_space,DPDTHETA_MASK);
+  } else {
+    atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXInit>(0,nlocal),*this);
+    atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK);
+  }
 
   error_check();
 
@@ -172,6 +187,7 @@ void FixEOStableRXKokkos<DeviceType>::post_integrate()
   copymode = 1;
 
   int nlocal = atom->nlocal;
+  double boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
@@ -210,6 +226,7 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
   copymode = 1;
 
   int nlocal = atom->nlocal;
+  double boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
@@ -219,18 +236,24 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
   dvector = atomKK->k_dvector.view<DeviceType>();
 
-  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
-  atomKK->modified(execution_space,UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK);
 
   // Communicate the ghost uCGnew
+  atomKK->sync(Host,UCG_MASK | UCGNEW_MASK);
   comm->reverse_comm_fix(this);
+  atomKK->modified(Host,UCG_MASK | UCGNEW_MASK);
 
+  atomKK->sync(execution_space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
+  atomKK->modified(execution_space,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
   // Communicate the updated momenta and velocities to all nodes
+  atomKK->sync(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
   comm->forward_comm_fix(this);
+  atomKK->modified(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
+  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
+  atomKK->modified(execution_space,DPDTHETA_MASK);
 
   error_check();
 
@@ -265,13 +288,13 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, double thetai, doubl
       //uTmp = tb->e[itable] + fraction*tb->de[itable];
       uTmp = d_table_const.e(ispecies,itable) + fraction*d_table_const.de(ispecies,itable);
 
-      uTmp += dHf[ispecies];
+      uTmp += d_dHf[ispecies];
       // mol fraction form:
       ui += dvector(ispecies,id)*uTmp;
       nTotal += dvector(ispecies,id);
     }
   }
-  ui = ui - double(nTotal+1.5)*force->boltz*thetai; // need class variable
+  ui = ui - double(nTotal+1.5)*boltz*thetai;
 }
 
 /* ----------------------------------------------------------------------
@@ -344,13 +367,16 @@ template<class DeviceType>
 int FixEOStableRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int ii,jj,m;
+  HAT::t_efloat_1d h_uChem = atomKK->k_uChem.h_view;
+  HAT::t_efloat_1d h_uCG = atomKK->k_uCG.h_view;
+  HAT::t_efloat_1d h_uCGnew = atomKK->k_uCGnew.h_view;
 
   m = 0;
   for (ii = 0; ii < n; ii++) {
     jj = list[ii];
-    buf[m++] = uChem[jj];
-    buf[m++] = uCG[jj];
-    buf[m++] = uCGnew[jj];
+    buf[m++] = h_uChem[jj];
+    buf[m++] = h_uCG[jj];
+    buf[m++] = h_uCGnew[jj];
   }
   return m;
 }
@@ -361,13 +387,16 @@ template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   int ii,m,last;
+  HAT::t_efloat_1d h_uChem = atomKK->k_uChem.h_view;
+  HAT::t_efloat_1d h_uCG = atomKK->k_uCG.h_view;
+  HAT::t_efloat_1d h_uCGnew = atomKK->k_uCGnew.h_view;
 
   m = 0;
   last = first + n ;
   for (ii = first; ii < last; ii++){
-    uChem[ii]  = buf[m++];
-    uCG[ii]    = buf[m++];
-    uCGnew[ii] = buf[m++];
+    h_uChem[ii]  = buf[m++];
+    h_uCG[ii]    = buf[m++];
+    h_uCGnew[ii] = buf[m++];
   }
 }
 
@@ -377,12 +406,14 @@ template<class DeviceType>
 int FixEOStableRXKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
+  HAT::t_efloat_1d h_uCG = atomKK->k_uCG.h_view;
+  HAT::t_efloat_1d h_uCGnew = atomKK->k_uCGnew.h_view;
 
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    buf[m++] = uCG[i];
-    buf[m++] = uCGnew[i];
+    buf[m++] = h_uCG[i];
+    buf[m++] = h_uCGnew[i];
   }
   return m;
 }
@@ -393,13 +424,15 @@ template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
+  HAT::t_efloat_1d h_uCG = atomKK->k_uCG.h_view;
+  HAT::t_efloat_1d h_uCGnew = atomKK->k_uCGnew.h_view;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
 
-    uCG[j] += buf[m++];
-    uCGnew[j] += buf[m++];
+    h_uCG[j] += buf[m++];
+    h_uCGnew[j] += buf[m++];
   }
 }
 

@@ -36,9 +36,6 @@ template<class DeviceType>
 FixMomentumKokkos<DeviceType>::FixMomentumKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixMomentum(lmp, narg, arg)
 {
-#ifdef KOKKOS_HAVE_CUDA
-  if (angular) error->all(FLERR, "Kokkos+CUDA fix momentum doesn't support angular");
-#endif
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -130,7 +127,6 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     });
   }
 
-#ifndef KOKKOS_HAVE_CUDA
   if (angular) {
     Few<double, 3> xcm, angmom, omega;
     double inertia[3][3];
@@ -156,8 +152,6 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
         double dx,dy,dz;
         auto x_i = Few<double,3>(&x(i,0));
         auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,image(i));
-      //double unwrap[3];
-      //domain->unmap(&x(i,0),image(i),unwrap); // this will not work in CUDA
         dx = unwrap[0] - xcm[0];
         dy = unwrap[1] - xcm[1];
         dz = unwrap[2] - xcm[2];
@@ -167,7 +161,6 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
       }
     });
   }
-#endif
 
   // compute kinetic energy after momentum removal, if needed
 

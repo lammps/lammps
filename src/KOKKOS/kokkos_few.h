@@ -3,9 +3,6 @@
 
 #include <Kokkos_Core.hpp>
 
-namespace Kokkos {
-namespace Experimental {
-
 template <typename T, std::size_t n>
 class Few {
   alignas(T) char array_[n * sizeof(T)];
@@ -64,8 +61,5 @@ class Few {
     return data()[i];
   }
 };
-
-}
-}
 
 #endif

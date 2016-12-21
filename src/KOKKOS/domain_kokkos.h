@@ -35,6 +35,10 @@ class DomainKokkos : public Domain {
   void image_flip(int, int, int);
   void x2lamda(int);
   void lamda2x(int);
+  // these lines bring in the x2lamda signatures from Domain
+  // that are not overloaded here
+  using Domain::x2lamda;
+  using Domain::lamda2x;
 
   int closest_image(const int, int) const;
 

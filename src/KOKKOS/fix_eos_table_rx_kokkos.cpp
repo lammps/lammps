@@ -80,7 +80,7 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
   copymode = 1;
 
   int nlocal = atom->nlocal;
-  double boltz = force->boltz;
+  boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
@@ -139,7 +139,7 @@ void FixEOStableRXKokkos<DeviceType>::init()
   copymode = 1;
 
   int nlocal = atom->nlocal;
-  double boltz = force->boltz;
+  boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
@@ -187,7 +187,7 @@ void FixEOStableRXKokkos<DeviceType>::post_integrate()
   copymode = 1;
 
   int nlocal = atom->nlocal;
-  double boltz = force->boltz;
+  boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
@@ -226,7 +226,7 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
   copymode = 1;
 
   int nlocal = atom->nlocal;
-  double boltz = force->boltz;
+  boltz = force->boltz;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();

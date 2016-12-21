@@ -89,7 +89,8 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   int nlocal,neighflag;
   int STACKPARAMS;
   double dtinvsqrt;
-  double boltz;
+  double boltz,ftm2v;
+  double special_lj[4];
 
   virtual void allocate();
 

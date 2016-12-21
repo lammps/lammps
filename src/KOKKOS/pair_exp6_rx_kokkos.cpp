@@ -148,10 +148,6 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   special_lj[1] = force->special_lj[1];
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
   newton_pair = force->newton_pair;
 
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
@@ -595,6 +591,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         if (newton_pair || j < nlocal)
           a_uCGnew[j] += 0.5*evdwl;
         evdwl = evdwlOld;
+        ev.evdwl += evdwl;
         //if (vflag_either || eflag_atom) 
         if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
       }

@@ -138,10 +138,14 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   k_cutsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
-  atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDTHETA_MASK | RMASS_MASK);
+  atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK);
   if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
-  else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
-  atomKK->k_mass.sync<DeviceType>();
+  else atomKK->modified(execution_space,F_MASK);
+
+  special_lj[0] = force->special_lj[0];
+  special_lj[1] = force->special_lj[1];
+  special_lj[2] = force->special_lj[2];
+  special_lj[3] = force->special_lj[3];
 
   nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -155,6 +159,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
 
   boltz = force->boltz;
+  ftm2v = force->ftm2v;
 
   int STACKPARAMS = 0; // optimize
 
@@ -195,7 +200,8 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     h_duMech = k_duMech.h_view;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyZero>(0,nlocal+nghost),*this);
 
-    atomKK->sync(execution_space,V_MASK);
+    atomKK->sync(execution_space,V_MASK | DPDTHETA_MASK | RMASS_MASK);
+    atomKK->k_mass.sync<DeviceType>();
 
     // loop over neighbors of my atoms
 
@@ -219,15 +225,12 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     // Communicate the ghost delta energies to the locally owned atoms
 
+    // this memory transfer can be removed when fix_dpd_fdt_energy_kokkos is added
     k_duCond.template modify<DeviceType>();
     k_duCond.template sync<LMPHostType>();
     k_duMech.template modify<DeviceType>();
     k_duMech.template sync<LMPHostType>();
     comm->reverse_comm_pair(this);
-    //k_duCond.template modify<LMPHostType>();
-    //k_duCond.template sync<DeviceType>();
-    //k_duMech.template modify<LMPHostType>();
-    //k_duMech.template sync<DeviceType>();
   }
 
   if (eflag_global) eng_vdwl += ev.evdwl;
@@ -335,7 +338,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSp
         ev.evdwl += evdwl;
       }
 
-        if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
+      if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
 
@@ -437,9 +440,9 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
       fy_i += dely*fpair;
       fz_i += delz*fpair;
       if (NEWTON_PAIR || j < nlocal) {
-        f(j,0) -= delx*fpair;
-        f(j,1) -= dely*fpair;
-        f(j,2) -= delz*fpair;
+        a_f(j,0) -= delx*fpair;
+        a_f(j,1) -= dely*fpair;
+        a_f(j,2) -= delz*fpair;
       }
 
       if (rmass) {
@@ -454,7 +457,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
 
       // Compute the mechanical and conductive energy, uMech and uCond
       mu_ij = massinv_i + massinv_j;
-      mu_ij *= force->ftm2v;
+      mu_ij *= ftm2v;
 
       uTmp = gamma_ij*wd*rinv*rinv*dot*dot
              - 0.5*sigma_ij*sigma_ij*mu_ij*wd;

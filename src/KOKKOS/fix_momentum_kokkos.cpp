@@ -49,15 +49,17 @@ FixMomentumKokkos<DeviceType>::FixMomentumKokkos(LAMMPS *lmp, int narg, char **a
 
 template<class DeviceType>
 static double get_kinetic_energy(
+    AtomKokkos* atomKK,
+    MPI_Comm world,
     int groupbit,
     int nlocal,
     typename ArrayTypes<DeviceType>::t_v_array_randomread v,
     typename ArrayTypes<DeviceType>::t_int_1d_randomread mask)
 {
   using AT = ArrayTypes<DeviceType>;
+  auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   double ke=0.0;
-  // D.I. : does this atom->rmass check make sense in Kokkos mode ?
-  if (atom->rmass) {
+  if (atomKK->rmass) {
     atomKK->sync(execution_space, RMASS_MASK);
     typename AT::t_float_1d_randomread rmass = atomKK->k_rmass.view<DeviceType>();
     Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
@@ -102,12 +104,14 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
   // compute kinetic energy before momentum removal, if needed
 
-  if (rescale) ekin_old = get_kinetic_energy<DeviceType>(groupbit, nlocal, v, mask);
+  if (rescale) {
+    ekin_old = get_kinetic_energy<DeviceType>(atomKK, world, groupbit, nlocal, v, mask);
+  }
 
   auto groupbit2 = groupbit;
   if (linear) {
-    double vcm[3];
-    group->vcm(igroup,masstotal,vcm); // will need to change when Group has Kokkos
+    Few<double, 3> vcm;
+    group->vcm(igroup,masstotal,&vcm[0]);
 
     // adjust velocities by vcm to zero linear momentum
     // only adjust a component if flag is set
@@ -162,7 +166,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
   if (rescale) {
 
-    ekin_new = get_kinetic_energy<DeviceType>(groupbit, nlocal, v, mask);
+    ekin_new = get_kinetic_energy<DeviceType>(atomKK, world, groupbit, nlocal, v, mask);
 
     double factor = 1.0;
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);

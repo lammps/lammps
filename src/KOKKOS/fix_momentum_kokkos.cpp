@@ -180,6 +180,8 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
       }
     });
   }
+
+  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, V_MASK);
 }
 
 namespace LAMMPS_NS {

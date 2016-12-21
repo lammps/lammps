@@ -149,12 +149,14 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     auto triclinic = domain->triclinic;
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
       if (mask[i] & groupbit2) {
-        double dx,dy,dz;
-        auto x_i = Few<double,3>(&x(i,0));
+        Few<double,3> x_i;
+        x_i[0] = x(i,0);
+        x_i[1] = x(i,1);
+        x_i[2] = x(i,2);
         auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,image(i));
-        dx = unwrap[0] - xcm[0];
-        dy = unwrap[1] - xcm[1];
-        dz = unwrap[2] - xcm[2];
+        auto dx = unwrap[0] - xcm[0];
+        auto dy = unwrap[1] - xcm[1];
+        auto dz = unwrap[2] - xcm[2];
         v(i,0) -= omega[1]*dz - omega[2]*dy;
         v(i,1) -= omega[2]*dx - omega[0]*dz;
         v(i,2) -= omega[0]*dy - omega[1]*dx;

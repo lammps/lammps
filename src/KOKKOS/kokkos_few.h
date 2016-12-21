@@ -15,6 +15,9 @@ class Few {
       new (data() + (i++)) T(*it);
     }
   }
+  Few(T const a[]) {
+    for (std::size_t i = 0; i < n; ++i) new (data() + i) T(a[i]);
+  }
   KOKKOS_INLINE_FUNCTION Few() {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T();
   }

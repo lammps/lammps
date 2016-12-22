@@ -181,6 +181,8 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     });
   }
 
+  atomKK->modified(execution_space, V_MASK);
+  // the following sync should not be needed once everything supports Kokkos
   atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, V_MASK);
 }
 

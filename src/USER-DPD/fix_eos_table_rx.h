@@ -67,7 +67,7 @@ class FixEOStableRX : public Fix {
 
   void read_file(char *);
 
-  double *dHf;
+  double *dHf,*energyCorr,*tempCorrCoeff,*moleculeCorrCoeff;
 
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
@@ -76,6 +76,7 @@ class FixEOStableRX : public Fix {
 
   int *eosSpecies;
   int ncolumn;
+  bool rx_flag;
   };
 }
 

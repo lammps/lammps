@@ -22,7 +22,7 @@ PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
 #ifndef LMP_PAIR_TABLE_KOKKOS_H
 #define LMP_PAIR_TABLE_KOKKOS_H
 
-#include "pair_table.h"
+#include "pair.h"
 #include "pair_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "atom_kokkos.h"
@@ -38,7 +38,7 @@ template <class DeviceType, int NEIGHFLAG, int TABSTYLE>
 class PairTableComputeFunctor;
 
 template<class DeviceType>
-class PairTableKokkos : public PairTable {
+class PairTableKokkos : public Pair {
  public:
 
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
@@ -59,8 +59,17 @@ class PairTableKokkos : public PairTable {
                         const NeighListKokkos<DeviceType> &list) const;
 */
   void settings(int, char **);
+  void coeff(int, char **);
   double init_one(int, int);
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  double single(int, int, int, int, double, double, double, double &);
+  void *extract(const char *, int &);
+
   void init_style();
+
 
  protected:
   enum{LOOKUP,LINEAR,SPLINE,BITMAP};
@@ -98,6 +107,17 @@ class PairTableKokkos : public PairTable {
     typename ArrayTypes<LMPHostType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
   };
 
+  struct Table {
+    int ninput,rflag,fpflag,match,ntablebits;
+    int nshiftbits,nmask;
+    double rlo,rhi,fplo,fphi,cut;
+    double *rfile,*efile,*ffile;
+    double *e2file,*f2file;
+    double innersq,delta,invdelta,deltasq6;
+    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
+  };
+  int ntables;
+  Table *tables;
   TableDeviceConst d_table_const;
   TableDevice* d_table;
   TableHost* h_table;
@@ -108,6 +128,15 @@ class PairTableKokkos : public PairTable {
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
   void allocate();
+  void read_table(Table *, char *, char *);
+  void param_extract(Table *, char *);
+  void bcast_table(Table *);
+  void spline_table(Table *);
+  void compute_table(Table *);
+  void null_table(Table *);
+  void free_table(Table *);
+  void spline(double *, double *, int, double, double, double *);
+  double splint(double *, double *, double *, int, double);
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array_const c_x;
@@ -175,6 +204,11 @@ class PairTableKokkos : public PairTable {
 
   friend void pair_virial_fdotr_compute<PairTableKokkos>(PairTableKokkos*);
 };
+
+
+
+
+
 
 }
 
@@ -255,10 +289,4 @@ E: Cannot use chosen neighbor list style with lj/cut/kk
 
 That style is not supported by Kokkos.
 
-
-
-
 */
-
-
-

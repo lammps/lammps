@@ -20,14 +20,14 @@
 #include "respa.h"
 #include "modify.h"
 #include "error.h"
-#include "pair_dpd_fdt_energy.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixDPDenergyKokkos::FixDPDenergyKokkos(LAMMPS *lmp, int narg, char **arg) :
+template <typename DeviceType>
+FixDPDenergyKokkos<DeviceType>::FixDPDenergyKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixDPDenergy(lmp, narg, arg)
 {
   kokkosable = 1;
@@ -35,43 +35,55 @@ FixDPDenergyKokkos::FixDPDenergyKokkos(LAMMPS *lmp, int narg, char **arg) :
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
-}
-
-/* ----------------------------------------------------------------------
-   allow for both per-type and per-atom mass
-------------------------------------------------------------------------- */
-
-void FixDPDenergyKokkos::initial_integrate(int vflag)
-{
-  int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-
-  t_efloat_1d uCond = atomKK
-  double *uCond = atom->uCond;
-  double *uMech = atom->uMech;
-  double *duCond = pairDPDE->duCond;
-  double *duMech = pairDPDE->duMech;
-
-  for (int i = 0; i < nlocal; i++){
-    uCond[i] += 0.5*update->dt*duCond[i];
-    uMech[i] += 0.5*update->dt*duMech[i];
-  }
+  pairDPDEKK = dynamic_cast<decltype(pairDPDEKK)>(pairDPDE);
+  if (!pairDPDEKK)
+    error->all(FLERR,"Must use pair_style dpd/fdt/energy/kk with fix dpd/energy/kk");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixDPDenergyKokkos::final_integrate()
+template <typename DeviceType>
+void FixDPDenergyKokkos<DeviceType>::take_half_step()
 {
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  double *uCond = atom->uCond;
-  double *uMech = atom->uMech;
-  double *duCond = pairDPDE->duCond;
-  double *duMech = pairDPDE->duMech;
+  atomKK->sync(execution_space, UCOND_MASK);
+  t_efloat_1d uCond = atomKK->k_uCond.view<DeviceType>();
+  atomKK->sync(execution_space, UMECH_MASK);
+  t_efloat_1d uMech = atomKK->k_uMech.view<DeviceType>();
 
-  for (int i = 0; i < nlocal; i++){
-    uCond[i] += 0.5*update->dt*duCond[i];
-    uMech[i] += 0.5*update->dt*duMech[i];
-  }
+  pairDPDEKK->k_duCond.sync<DeviceType>();
+  t_efloat_1d_const duCond = pairDPDEKK->k_duCond.view<DeviceType>();
+  pairDPDEKK->k_duMech.sync<DeviceType>();
+  t_efloat_1d_const duMech = pairDPDEKK->k_duMech.view<DeviceType>();
+
+  auto dt = update->dt;
+
+  Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+    uCond(i) += 0.5*dt*duCond(i);
+    uMech(i) += 0.5*dt*duMech(i);
+  });
+
+  atomKK->modified(execution_space, UCOND_MASK);
+  atomKK->modified(execution_space, UMECH_MASK);
+  //should not be needed once everything is Kokkos
+  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>, UCOND_MASK);
+  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>, UMECH_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <typename DeviceType>
+void FixDPDenergyKokkos<DeviceType>::initial_integrate(int)
+{
+  take_half_step();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <typename DeviceType>
+void FixDPDenergyKokkos<DeviceType>::final_integrate()
+{
+  take_half_step();
 }

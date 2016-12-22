@@ -23,15 +23,21 @@ FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
 #define LMP_FIX_DPDE_H
 
 #include "fix_dpd_energy.h"
+#include "pair_dpd_dft_energy_kokkos.h"
 
 namespace LAMMPS_NS {
 
+template <typename DeviceType>
 class FixDPDenergyKokkos : public FixDPDEnergy {
  public:
   FixDPDenergyKokkos(class LAMMPS *, int, char **);
   virtual ~FixDPDenergyKokkos() {}
   virtual void initial_integrate(int);
   virtual void final_integrate();
+
+ protected:
+  void take_half_step();
+  PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
 };
 
 }
@@ -40,5 +46,9 @@ class FixDPDenergyKokkos : public FixDPDEnergy {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Must use pair_style dpd/fdt/energy/kk with fix dpd/energy/kk
+
+Self-explanatory.
 
 */

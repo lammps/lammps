@@ -58,6 +58,9 @@ PairDPDfdtEnergyKokkos<DeviceType>::~PairDPDfdtEnergyKokkos()
 {
   if (copymode) return;
 
+  memory->destroy_kokkos(k_eatom,eatom);
+  memory->destroy_kokkos(k_vatom,vatom);
+
   if (allocated) {
     memory->destroy_kokkos(k_duCond,duCond);
     memory->destroy_kokkos(k_duMech,duMech);
@@ -335,7 +338,8 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSp
         // eng shifted to 0.0 at cutoff
         evdwl = 0.5*a0_ij*cut_ij * wd;
         evdwl *= factor_dpd;
-        ev.evdwl += evdwl;
+        if (EVFLAG)
+          ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
       }
 
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
@@ -489,7 +493,8 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
         // eng shifted to 0.0 at cutoff
         evdwl = 0.5*a0_ij*cut_ij * wd;
         evdwl *= factor_dpd;
-        ev.evdwl += evdwl;
+        if (EVFLAG)
+          ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
       }
 
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);

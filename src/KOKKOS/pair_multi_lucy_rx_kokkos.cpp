@@ -71,7 +71,7 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  update_table = 0;
+  update_table = 1;
   h_table = new TableHost();
   d_table = new TableDevice();
 
@@ -85,8 +85,14 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
 {
   if (copymode) return;
 
+  memory->destroy_kokkos(k_eatom,eatom);
+  memory->destroy_kokkos(k_vatom,vatom);
+
+  memory->destroy_kokkos(k_cutsq,cutsq);
+
   delete h_table;
   delete d_table;
+  tabindex = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,6 +129,8 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
 template<class DeviceType>
 void PairMultiLucyRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
+  copymode = 1;
+
   if (update_table)
     create_kokkos_tables();
 
@@ -130,6 +138,8 @@ void PairMultiLucyRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     compute_style<LOOKUP>(eflag_in,vflag_in);
   else if(tabstyle == LINEAR)
     compute_style<LINEAR>(eflag_in,vflag_in);
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -138,15 +148,9 @@ template<class DeviceType>
 template<int TABSTYLE>
 void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 {
-  copymode = 1;
-
   eflag = eflag_in;
   vflag = vflag_in;
 
-  double evdwl,evdwlOld;
-
-  evdwlOld = 0.0;
-  evdwl = 0.0;
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -175,6 +179,7 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDRHO_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
   if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
   else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
+  k_cutsq.template sync<DeviceType>();
 
   nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -250,8 +255,6 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
-
-  copymode = 0;
 }
 
 template<class DeviceType>
@@ -316,10 +319,12 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 
       //tb = &tables[tabindex[itype][jtype]];
       const int tidx = d_table_const.tabindex(itype,jtype);
+
       //if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
       if (rho[i]*rho[i] < d_table_const.innersq(tidx) || rho[j]*rho[j] < d_table_const.innersq(tidx)){
         k_error_flag.d_view() = 1;
       }
+
       if (TABSTYLE == LOOKUP) {
         //itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
         itable = static_cast<int> (((rho[i]*rho[i]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
@@ -338,6 +343,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         fpair /= sqrt(rsq);
 
       } else if (TABSTYLE == LINEAR) {
+
         //itable = static_cast<int> ((rho[i]*rho[i] - tb->innersq) * tb->invdelta);
         itable = static_cast<int> ((rho[i]*rho[i] - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
         //jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
@@ -395,8 +401,9 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   //itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
   itable = static_cast<int> (((rho[i]*rho[i]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
   //if (TABSTYLE == LOOKUP) evdwl = tb->e[itable];
-  if (TABSTYLE == LOOKUP) evdwl = d_table_const.e(tidx,itable);
-  else if (TABSTYLE == LINEAR){
+  if (TABSTYLE == LOOKUP) {
+    evdwl = d_table_const.e(tidx,itable);
+  } else if (TABSTYLE == LINEAR) {
     if (itable >= tlm1){
       k_error_flag.d_view() = 2;
     }
@@ -404,7 +411,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
     //else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
     else fraction_i = (((rho[i]*rho[i]) - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx));
     //evdwl = tb->e[itable] + fraction_i*tb->de[itable];
-    evdwl = d_table_const.e(tidx,itable); + fraction_i*d_table_const.de(tidx,itable);
+    evdwl = d_table_const.e(tidx,itable) + fraction_i*d_table_const.de(tidx,itable);
   } else k_error_flag.d_view() = 3;
 
   evdwl *=(pi*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
@@ -417,7 +424,8 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   evdwl = evdwlOld;
 
   //if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
-  if (EVFLAG) ev.evdwl += evdwl;
+  if (EVFLAG)
+    ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
 }
 
 template<class DeviceType>
@@ -433,8 +441,6 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 template<class DeviceType>
 void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
 {
-  copymode = 1;
-
   x = atomKK->k_x.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   rho = atomKK->k_rho.view<DeviceType>();
@@ -491,8 +497,6 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   }
 
   comm->forward_comm_pair(this);
-
-  copymode = 0;
 }
 
 template<class DeviceType>
@@ -505,6 +509,7 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR>, const int &ii) const {
+
 
   // The rho array is atomic for Half/Thread neighbor style
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
@@ -564,6 +569,7 @@ void PairMultiLucyRXKokkos<DeviceType>::getParams(int id, double &fractionOld1, 
 {
   double fractionOld, fraction;
   double nTotal, nTotalOld;
+
 
   nTotal = 0.0;
   nTotalOld = 0.0;
@@ -796,7 +802,6 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
 
   memory->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
   memory->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
-  memory->create_kokkos(d_table->deltasq6,h_table->deltasq6,ntables,"Table::deltasq6");
 
   if(tabstyle == LOOKUP) {
     memory->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
@@ -816,12 +821,9 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
 
     h_table->innersq[i] = tb->innersq;
     h_table->invdelta[i] = tb->invdelta;
-    h_table->deltasq6[i] = tb->deltasq6;
 
     for(int j = 0; j<h_table->rsq.dimension_1(); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j<h_table->drsq.dimension_1(); j++)
-      h_table->drsq(i,j) = tb->drsq[j];
     for(int j = 0; j<h_table->e.dimension_1(); j++)
       h_table->e(i,j) = tb->e[j];
     for(int j = 0; j<h_table->de.dimension_1(); j++)
@@ -830,40 +832,26 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
       h_table->f(i,j) = tb->f[j];
     for(int j = 0; j<h_table->df.dimension_1(); j++)
       h_table->df(i,j) = tb->df[j];
-    for(int j = 0; j<h_table->e2.dimension_1(); j++)
-      h_table->e2(i,j) = tb->e2[j];
-    for(int j = 0; j<h_table->f2.dimension_1(); j++)
-      h_table->f2(i,j) = tb->f2[j];
   }
 
 
   Kokkos::deep_copy(d_table->innersq,h_table->innersq);
   Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
-  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
   Kokkos::deep_copy(d_table->rsq,h_table->rsq);
-  Kokkos::deep_copy(d_table->drsq,h_table->drsq);
   Kokkos::deep_copy(d_table->e,h_table->e);
   Kokkos::deep_copy(d_table->de,h_table->de);
   Kokkos::deep_copy(d_table->f,h_table->f);
   Kokkos::deep_copy(d_table->df,h_table->df);
-  Kokkos::deep_copy(d_table->e2,h_table->e2);
-  Kokkos::deep_copy(d_table->f2,h_table->f2);
   Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
 
   d_table_const.innersq = d_table->innersq;
   d_table_const.invdelta = d_table->invdelta;
-  d_table_const.deltasq6 = d_table->deltasq6;
   d_table_const.rsq = d_table->rsq;
-  d_table_const.drsq = d_table->drsq;
   d_table_const.e = d_table->e;
   d_table_const.de = d_table->de;
   d_table_const.f = d_table->f;
   d_table_const.df = d_table->df;
-  d_table_const.e2 = d_table->e2;
-  d_table_const.f2 = d_table->f2;
 
-
-  Kokkos::deep_copy(d_table->cutsq,h_table->cutsq);
   update_table = 0;
 }
 
@@ -878,11 +866,14 @@ void PairMultiLucyRXKokkos<DeviceType>::allocate()
   const int nt = atom->ntypes + 1;
 
   memory->create(setflag,nt,nt,"pair:setflag");
-  memory->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
-  memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
 
-  d_table_const.cutsq = d_table->cutsq;
+  memory->create_kokkos(k_cutsq,cutsq,nt,nt,"pair:cutsq");
+  d_cutsq = k_cutsq.template view<DeviceType>();
+  k_cutsq.template modify<LMPHostType>();
+
+  memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
   d_table_const.tabindex = d_table->tabindex;
+
   memset(&setflag[0][0],0,nt*nt*sizeof(int));
   memset(&cutsq[0][0],0,nt*nt*sizeof(double));
   memset(&tabindex[0][0],0,nt*nt*sizeof(int));
@@ -916,9 +907,6 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
 
     d_table_const.tabindex = d_table->tabindex = typename ArrayTypes<DeviceType>::t_int_2d();
     h_table->tabindex = typename ArrayTypes<LMPHostType>::t_int_2d();
-
-    d_table_const.cutsq = d_table->cutsq = typename ArrayTypes<DeviceType>::t_ffloat_2d();
-    h_table->cutsq = typename ArrayTypes<LMPHostType>::t_ffloat_2d();
   }
   allocated = 0;
 

@@ -120,44 +120,38 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   //};
 
   /*struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d_randomread tabindex;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_int_2d_randomread tabindex;
+    typename AT::t_ffloat_1d_randomread innersq,invdelta;
+    typename AT::t_ffloat_2d_randomread rsq,e,de,f,df;
   };*/
  //Its faster not to use texture fetch if the number of tables is less than 32!
   struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_int_2d tabindex;
+    typename AT::t_ffloat_1d innersq,invdelta;
+    typename AT::t_ffloat_2d_randomread rsq,e,de,f,df;
   };
 
   struct TableDevice {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_int_2d tabindex;
+    typename AT::t_ffloat_1d innersq,invdelta;
+    typename AT::t_ffloat_2d rsq,e,de,f,df;
   };
 
   struct TableHost {
-    typename ArrayTypes<LMPHostType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<LMPHostType>::t_int_2d tabindex;
-    typename ArrayTypes<LMPHostType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<LMPHostType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+    HAT::t_int_2d tabindex;
+    HAT::t_ffloat_1d innersq,invdelta;
+    HAT::t_ffloat_2d rsq,e,de,f,df;
   };
 
   TableDeviceConst d_table_const;
   TableDevice* d_table;
   TableHost* h_table;
 
-  int **tabindex;
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   void allocate();
   int update_table;
   void create_kokkos_tables();
-  void cleanup_copy();
 
   KOKKOS_INLINE_FUNCTION
   void getParams(int, double &, double &, double &, double &) const;

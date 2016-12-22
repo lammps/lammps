@@ -153,6 +153,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
   if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
   else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
+  k_cutsq.template sync<DeviceType>();
 
   // Initialize the Exp6 parameter data for both the local
   // and ghost atoms. Make the parameter data persistent
@@ -495,7 +496,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         evdwlOld *= factor_lj;
 
         uCG_i += 0.5*evdwlOld;
-        if (newton_pair || j < nlocal)
+        if (NEWTON_PAIR || j < nlocal)
           a_uCG[j] += 0.5*evdwlOld;
       }
 
@@ -577,7 +578,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         fx_i += delx*fpair;
         fy_i += dely*fpair;
         fz_i += delz*fpair;
-        if (newton_pair || j < nlocal) {
+        if (NEWTON_PAIR || j < nlocal) {
           a_f(j,0) -= delx*fpair;
           a_f(j,1) -= dely*fpair;
           a_f(j,2) -= delz*fpair;
@@ -588,10 +589,11 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         evdwl *= factor_lj;
 
         uCGnew_i   += 0.5*evdwl;
-        if (newton_pair || j < nlocal)
+        if (NEWTON_PAIR || j < nlocal)
           a_uCGnew[j] += 0.5*evdwl;
         evdwl = evdwlOld;
-        ev.evdwl += evdwl;
+        if (EVFLAG)
+          ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
         //if (vflag_either || eflag_atom) 
         if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
       }
@@ -630,6 +632,7 @@ void PairExp6rxKokkos<DeviceType>::allocate()
 
   memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
+  k_cutsq.template modify<LMPHostType>();
 
   memory->create(cut,n+1,n+1,"pair:cut_lj");
 }

@@ -94,6 +94,8 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   pairDPDE = NULL;
   pairDPD = (PairDPDfdt *) force->pair_match("dpd/fdt",1);
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
+  if (pairDPDE == NULL)
+    pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
   if(pairDPDE){
     comm_forward = 3;

@@ -19,16 +19,16 @@ FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
 
 #else
 
-#ifndef LMP_FIX_DPDE_H
-#define LMP_FIX_DPDE_H
+#ifndef LMP_FIX_DPDE_KOKKOS_H
+#define LMP_FIX_DPDE_KOKKOS_H
 
 #include "fix_dpd_energy.h"
-#include "pair_dpd_dft_energy_kokkos.h"
+#include "pair_dpd_fdt_energy_kokkos.h"
 
 namespace LAMMPS_NS {
 
 template <typename DeviceType>
-class FixDPDenergyKokkos : public FixDPDEnergy {
+class FixDPDenergyKokkos : public FixDPDenergy {
  public:
   FixDPDenergyKokkos(class LAMMPS *, int, char **);
   virtual ~FixDPDenergyKokkos() {}

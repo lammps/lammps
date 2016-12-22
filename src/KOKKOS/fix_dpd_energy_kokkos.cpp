@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "fix_dpd_energy_kokkos.h"
+#include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "update.h"
@@ -48,15 +49,17 @@ void FixDPDenergyKokkos<DeviceType>::take_half_step()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  atomKK->sync(execution_space, UCOND_MASK);
-  t_efloat_1d uCond = atomKK->k_uCond.view<DeviceType>();
-  atomKK->sync(execution_space, UMECH_MASK);
-  t_efloat_1d uMech = atomKK->k_uMech.view<DeviceType>();
+  using AT = ArrayTypes<DeviceType>;
 
-  pairDPDEKK->k_duCond.sync<DeviceType>();
-  t_efloat_1d_const duCond = pairDPDEKK->k_duCond.view<DeviceType>();
-  pairDPDEKK->k_duMech.sync<DeviceType>();
-  t_efloat_1d_const duMech = pairDPDEKK->k_duMech.view<DeviceType>();
+  atomKK->sync(execution_space, UCOND_MASK);
+  typename AT::t_efloat_1d uCond = atomKK->k_uCond.view<DeviceType>();
+  atomKK->sync(execution_space, UMECH_MASK);
+  typename AT::t_efloat_1d uMech = atomKK->k_uMech.view<DeviceType>();
+
+  pairDPDEKK->k_duCond.template sync<DeviceType>();
+  typename AT::t_efloat_1d_const duCond = pairDPDEKK->k_duCond.template view<DeviceType>();
+  pairDPDEKK->k_duMech.template sync<DeviceType>();
+  typename AT::t_efloat_1d_const duMech = pairDPDEKK->k_duMech.template view<DeviceType>();
 
   auto dt = update->dt;
 
@@ -68,8 +71,8 @@ void FixDPDenergyKokkos<DeviceType>::take_half_step()
   atomKK->modified(execution_space, UCOND_MASK);
   atomKK->modified(execution_space, UMECH_MASK);
   //should not be needed once everything is Kokkos
-  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>, UCOND_MASK);
-  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>, UMECH_MASK);
+  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, UCOND_MASK);
+  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, UMECH_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,4 +89,11 @@ template <typename DeviceType>
 void FixDPDenergyKokkos<DeviceType>::final_integrate()
 {
   take_half_step();
+}
+
+namespace LAMMPS_NS {
+template class FixDPDenergyKokkos<LMPDeviceType>;
+#ifdef KOKKOS_HAVE_CUDA
+template class FixDPDenergyKokkos<LMPHostType>;
+#endif
 }

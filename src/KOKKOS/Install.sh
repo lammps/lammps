@@ -99,6 +99,8 @@ action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
+action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
+action fix_dpd_energy_kokkos.h fix_dpd_energy.h
 action gridcomm_kokkos.cpp gridcomm.cpp
 action gridcomm_kokkos.h gridcomm.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp

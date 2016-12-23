@@ -262,5 +262,5 @@ void CommTiledKokkos::forward_comm_array(int nsize, double **array)
 
 int CommTiledKokkos::exchange_variable(int n, double *inbuf, double *&outbuf)
 {
-  CommTiled::exchange_variable(n,inbuf,outbuf);
+  return CommTiled::exchange_variable(n,inbuf,outbuf);
 }

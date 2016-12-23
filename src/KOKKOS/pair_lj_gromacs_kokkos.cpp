@@ -314,9 +314,9 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
     m_cut_inner_sq[j][i] = m_cut_inner_sq[i][j] = cut_inner_sqm;
   }
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
-  k_cut_inner_sq.h_view(i,j) = cut_inner_sqm;
+  k_cut_inner_sq.h_view(i,j) = k_cut_inner_sq.h_view(j,i) = cut_inner_sqm;
   k_cut_inner_sq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 

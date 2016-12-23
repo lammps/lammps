@@ -276,7 +276,8 @@ double PairLJCutKokkos<DeviceType>::init_one(int i, int j)
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
-  k_cutsq.h_view(i,j) = cutone*cutone;
+
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 

@@ -936,32 +936,32 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
 
     // Fuchslin-Like Exp-6 Scaling
     double powfuch = 0.0;
-    if(fuchslinEpsilon < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinEpsilon);
+    if(exponentEpsilon < 0.0){
+      powfuch = pow(nTotalOFA,-exponentEpsilon);
       if(powfuch<1e-15) epsilon1 = 0.0;
       else epsilon1 *= 1.0/powfuch;
 
-      powfuch = pow(nTotalOFA_old,-fuchslinEpsilon);
+      powfuch = pow(nTotalOFA_old,-exponentEpsilon);
       if(powfuch<1e-15) epsilon1_old = 0.0;
       else epsilon1_old *= 1.0/powfuch;
 
     } else {
-      epsilon1 *= pow(nTotalOFA,fuchslinEpsilon);
-      epsilon1_old *= pow(nTotalOFA_old,fuchslinEpsilon);
+      epsilon1 *= pow(nTotalOFA,exponentEpsilon);
+      epsilon1_old *= pow(nTotalOFA_old,exponentEpsilon);
     }
 
-    if(fuchslinR < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinR);
+    if(exponentR < 0.0){
+      powfuch = pow(nTotalOFA,-exponentR);
       if(powfuch<1e-15) rm1 = 0.0;
       else rm1 *= 1.0/powfuch;
 
-      powfuch = pow(nTotalOFA_old,-fuchslinR);
+      powfuch = pow(nTotalOFA_old,-exponentR);
       if(powfuch<1e-15) rm1_old = 0.0;
       else rm1_old *= 1.0/powfuch;
 
     } else {
-      rm1 *= pow(nTotalOFA,fuchslinR);
-      rm1_old *= pow(nTotalOFA_old,fuchslinR);
+      rm1 *= pow(nTotalOFA,exponentR);
+      rm1_old *= pow(nTotalOFA_old,exponentR);
     }
   }
 
@@ -990,32 +990,32 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
 
     // Fuchslin-Like Exp-6 Scaling
     double powfuch = 0.0;
-    if(fuchslinEpsilon < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinEpsilon);
+    if(exponentEpsilon < 0.0){
+      powfuch = pow(nTotalOFA,-exponentEpsilon);
       if(powfuch<1e-15) epsilon2 = 0.0;
       else epsilon2 *= 1.0/powfuch;
 
-      powfuch = pow(nTotalOFA_old,-fuchslinEpsilon);
+      powfuch = pow(nTotalOFA_old,-exponentEpsilon);
       if(powfuch<1e-15) epsilon2_old = 0.0;
       else epsilon2_old *= 1.0/powfuch;
 
     } else {
-      epsilon2 *= pow(nTotalOFA,fuchslinEpsilon);
-      epsilon2_old *= pow(nTotalOFA_old,fuchslinEpsilon);
+      epsilon2 *= pow(nTotalOFA,exponentEpsilon);
+      epsilon2_old *= pow(nTotalOFA_old,exponentEpsilon);
     }
 
-    if(fuchslinR < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinR);
+    if(exponentR < 0.0){
+      powfuch = pow(nTotalOFA,-exponentR);
       if(powfuch<1e-15) rm2 = 0.0;
       else rm2 *= 1.0/powfuch;
 
-      powfuch = pow(nTotalOFA_old,-fuchslinR);
+      powfuch = pow(nTotalOFA_old,-exponentR);
       if(powfuch<1e-15) rm2_old = 0.0;
       else rm2_old *= 1.0/powfuch;
 
     } else {
-      rm2 *= pow(nTotalOFA,fuchslinR);
-      rm2_old *= pow(nTotalOFA_old,fuchslinR);
+      rm2 *= pow(nTotalOFA,exponentR);
+      rm2_old *= pow(nTotalOFA_old,exponentR);
     }
   }
 

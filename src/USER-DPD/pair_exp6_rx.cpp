@@ -1276,9 +1276,9 @@ void PairExp6rx::polynomialScaling(double phi, double &alpha, double &epsilon, d
     double phi4 = phi2*phi2;
     double phi5 = phi2*phi3;
 
-    alpha = coeffAlpha[0]*phi5 + coeffAlpha[1]*phi4 + coeffAlpha[2]*phi3 + coeffAlpha[3]*phi2 + coeffAlpha[4]*phi + coeffAlpha[5];
-    epsilon = coeffEps[0]*phi5 + coeffEps[1]*phi4 + coeffEps[2]*phi3 + coeffEps[3]*phi2 + coeffEps[4]*phi + coeffEps[5];
-    rm = coeffRm[0]*phi5 + coeffRm[1]*phi4 + coeffRm[2]*phi3 + coeffRm[3]*phi2 + coeffRm[4]*phi + coeffRm[5];
+    alpha = (coeffAlpha[0]*phi5 + coeffAlpha[1]*phi4 + coeffAlpha[2]*phi3 + coeffAlpha[3]*phi2 + coeffAlpha[4]*phi + coeffAlpha[5]);
+    epsilon *= (coeffEps[0]*phi5 + coeffEps[1]*phi4 + coeffEps[2]*phi3 + coeffEps[3]*phi2 + coeffEps[4]*phi + coeffEps[5]);
+    rm *= (coeffRm[0]*phi5 + coeffRm[1]*phi4 + coeffRm[2]*phi3 + coeffRm[3]*phi2 + coeffRm[4]*phi + coeffRm[5]);
 }
 
 /* ---------------------------------------------------------------------- */

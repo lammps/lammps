@@ -239,6 +239,10 @@ E: Pair tersoff/zbl/kk requires metal or real units
 
 This is a current restriction of this pair potential.
 
+E: Cannot (yet) use full neighbor list style with tersoff/zbl/kk
+
+Self-explanatory.
+
 E: Cannot use chosen neighbor list style with tersoff/zbl/kk
 
 Self-explanatory.

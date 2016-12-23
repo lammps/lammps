@@ -225,6 +225,10 @@ class PairTersoffKokkos : public PairTersoff {
 
 /* ERROR/WARNING messages:
 
+E: Cannot (yet) use full neighbor list style with tersoff/kk
+
+Self-explanatory.
+
 E: Cannot use chosen neighbor list style with tersoff/kk
 
 Self-explanatory.

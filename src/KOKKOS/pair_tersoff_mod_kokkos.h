@@ -225,7 +225,11 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
 
 /* ERROR/WARNING messages:
 
-E: Cannot use chosen neighbor list style with tersoff/kk
+E: Cannot (yet) use full neighbor list style with tersoff/mod/kk
+
+Self-explanatory.
+
+E: Cannot use chosen neighbor list style with tersoff/mod/kk
 
 Self-explanatory.
 

@@ -54,8 +54,6 @@ PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg),
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style pppm/cg command");
 
-  triclinic_support = 0;
-
   if (narg == 2) smallq = fabs(force->numeric(FLERR,arg[1]));
   else smallq = SMALLQ;
 
@@ -90,6 +88,17 @@ void PPPMCG::compute(int eflag, int vflag)
     cg_peratom->ghost_notify();
     cg_peratom->setup();
   }
+
+  // if atom count has changed, update qsum and qsqsum
+
+  if (atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+
+  // return if there are no charges
+
+  if (qsqsum == 0.0) return;
 
   // convert atoms from box to lamda coords
 
@@ -206,13 +215,6 @@ void PPPMCG::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) fieldforce_peratom();
-
-  // update qsum and qsqsum, if atom count has changed and energy needed
-
-  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
-    qsum_qsq();
-    natoms_original = atom->natoms;
-  }
 
   // sum global energy across procs and add in volume-dependent term
 

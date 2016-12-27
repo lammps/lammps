@@ -314,6 +314,9 @@ colvar::colvar(std::string const &conf)
       enable(f_cv_extended_Lagrangian);
       provide(f_cv_Langevin);
 
+      // The extended mass will apply forces
+      enable(f_cv_gradient);
+
       xr.type(value());
       vr.type(value());
       fr.type(value());
@@ -1208,6 +1211,10 @@ cvm::real colvar::update_forces_energy()
   // extended variable if there is one
 
   if (is_enabled(f_cv_extended_Lagrangian)) {
+
+    if (cvm::debug()) {
+      cvm::log("Updating extended-Lagrangian degrees of freedom.\n");
+    }
 
     cvm::real dt = cvm::dt();
     colvarvalue f_ext(fr.type());

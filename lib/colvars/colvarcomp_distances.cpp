@@ -621,6 +621,7 @@ colvar::gyration::gyration(std::string const &conf)
   } else {
     atoms->b_center = true;
     atoms->ref_pos.assign(1, cvm::atom_pos(0.0, 0.0, 0.0));
+    atoms->fit_gradients.assign(atoms->size(), cvm::rvector(0.0, 0.0, 0.0));
   }
 
   x.type(colvarvalue::type_scalar);

@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -91,6 +98,9 @@ void colvar::distance::apply_force(colvarvalue const &force)
 }
 
 
+simple_scalar_dist_functions(distance)
+
+
 
 colvar::distance_vec::distance_vec(std::string const &conf)
   : distance(conf)
@@ -135,6 +145,27 @@ void colvar::distance_vec::apply_force(colvarvalue const &force)
 
   if (!group2->noforce)
     group2->apply_force(       force.rvector_value);
+}
+
+
+cvm::real colvar::distance_vec::dist2(colvarvalue const &x1,
+                                      colvarvalue const &x2) const
+{
+  return cvm::position_dist2(x1.rvector_value, x2.rvector_value);
+}
+
+
+colvarvalue colvar::distance_vec::dist2_lgrad(colvarvalue const &x1,
+                                              colvarvalue const &x2) const
+{
+  return 2.0 * cvm::position_distance(x2.rvector_value, x1.rvector_value);
+}
+
+
+colvarvalue colvar::distance_vec::dist2_rgrad(colvarvalue const &x1,
+                                              colvarvalue const &x2) const
+{
+  return 2.0 * cvm::position_distance(x2.rvector_value, x1.rvector_value);
 }
 
 
@@ -191,6 +222,7 @@ colvar::distance_z::distance_z(std::string const &conf)
 
 }
 
+
 colvar::distance_z::distance_z()
 {
   function_type = "distance_z";
@@ -199,6 +231,7 @@ colvar::distance_z::distance_z()
   provide(f_cvc_com_based);
   x.type(colvarvalue::type_scalar);
 }
+
 
 void colvar::distance_z::calc_value()
 {
@@ -227,6 +260,7 @@ void colvar::distance_z::calc_value()
   this->wrap(x);
 }
 
+
 void colvar::distance_z::calc_gradients()
 {
   main->set_weighted_gradient( axis );
@@ -248,6 +282,7 @@ void colvar::distance_z::calc_gradients()
   }
 }
 
+
 void colvar::distance_z::calc_force_invgrads()
 {
   main->read_total_forces();
@@ -260,10 +295,12 @@ void colvar::distance_z::calc_force_invgrads()
   }
 }
 
+
 void colvar::distance_z::calc_Jacobian_derivative()
 {
   jd.real_value = 0.0;
 }
+
 
 void colvar::distance_z::apply_force(colvarvalue const &force)
 {
@@ -278,6 +315,56 @@ void colvar::distance_z::apply_force(colvarvalue const &force)
 }
 
 
+// Differences should always be wrapped around 0 (ignoring wrap_center)
+cvm::real colvar::distance_z::dist2(colvarvalue const &x1,
+                                    colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  if (b_periodic) {
+    cvm::real shift = std::floor(diff/period + 0.5);
+    diff -= shift * period;
+  }
+  return diff * diff;
+}
+
+
+colvarvalue colvar::distance_z::dist2_lgrad(colvarvalue const &x1,
+                                            colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  if (b_periodic) {
+    cvm::real shift = std::floor(diff/period + 0.5);
+    diff -= shift * period;
+  }
+  return 2.0 * diff;
+}
+
+
+colvarvalue colvar::distance_z::dist2_rgrad(colvarvalue const &x1,
+                                            colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  if (b_periodic) {
+    cvm::real shift = std::floor(diff/period + 0.5);
+    diff -= shift * period;
+  }
+  return (-2.0) * diff;
+}
+
+
+void colvar::distance_z::wrap(colvarvalue &x) const
+{
+  if (!b_periodic) {
+    // don't wrap if the period has not been set
+    return;
+  }
+
+  cvm::real shift = std::floor((x.real_value - wrap_center) / period + 0.5);
+  x.real_value -= shift * period;
+  return;
+}
+
+
 
 colvar::distance_xy::distance_xy(std::string const &conf)
   : distance_z(conf)
@@ -289,6 +376,7 @@ colvar::distance_xy::distance_xy(std::string const &conf)
   x.type(colvarvalue::type_scalar);
 }
 
+
 colvar::distance_xy::distance_xy()
   : distance_z()
 {
@@ -298,6 +386,7 @@ colvar::distance_xy::distance_xy()
   provide(f_cvc_com_based);
   x.type(colvarvalue::type_scalar);
 }
+
 
 void colvar::distance_xy::calc_value()
 {
@@ -320,6 +409,7 @@ void colvar::distance_xy::calc_value()
   dist_v_ortho = dist_v - (dist_v * axis) * axis;
   x.real_value = dist_v_ortho.norm();
 }
+
 
 void colvar::distance_xy::calc_gradients()
 {
@@ -348,6 +438,7 @@ void colvar::distance_xy::calc_gradients()
   }
 }
 
+
 void colvar::distance_xy::calc_force_invgrads()
 {
   main->read_total_forces();
@@ -360,10 +451,12 @@ void colvar::distance_xy::calc_force_invgrads()
   }
 }
 
+
 void colvar::distance_xy::calc_Jacobian_derivative()
 {
   jd.real_value = x.real_value ? (1.0 / x.real_value) : 0.0;
 }
+
 
 void colvar::distance_xy::apply_force(colvarvalue const &force)
 {
@@ -376,6 +469,9 @@ void colvar::distance_xy::apply_force(colvarvalue const &force)
   if (!main->noforce)
     main->apply_colvar_force(force.real_value);
 }
+
+
+simple_scalar_dist_functions(distance_xy)
 
 
 
@@ -403,7 +499,7 @@ void colvar::distance_dir::calc_value()
     dist_v = group2->center_of_mass() - group1->center_of_mass();
   } else {
     dist_v = cvm::position_distance(group1->center_of_mass(),
-                                     group2->center_of_mass());
+                                    group2->center_of_mass());
   }
   x.rvector_value = dist_v.unit();
 }
@@ -460,12 +556,14 @@ colvar::distance_inv::distance_inv(std::string const &conf)
   x.type(colvarvalue::type_scalar);
 }
 
+
 colvar::distance_inv::distance_inv()
 {
   function_type = "distance_inv";
   exponent = 6;
   x.type(colvarvalue::type_scalar);
 }
+
 
 void colvar::distance_inv::calc_value()
 {
@@ -504,6 +602,7 @@ void colvar::distance_inv::calc_value()
   x.real_value = std::pow(x.real_value, -1.0/(cvm::real(exponent)));
 }
 
+
 void colvar::distance_inv::calc_gradients()
 {
   cvm::real const dxdsum = (-1.0/(cvm::real(exponent))) * std::pow(x.real_value, exponent+1) / cvm::real(group1->size() * group2->size());
@@ -515,6 +614,7 @@ void colvar::distance_inv::calc_gradients()
   }
 }
 
+
 void colvar::distance_inv::apply_force(colvarvalue const &force)
 {
   if (!group1->noforce)
@@ -523,6 +623,9 @@ void colvar::distance_inv::apply_force(colvarvalue const &force)
   if (!group2->noforce)
     group2->apply_colvar_force(force.real_value);
 }
+
+
+simple_scalar_dist_functions(distance_inv)
 
 
 
@@ -579,10 +682,12 @@ void colvar::distance_pairs::calc_value()
   }
 }
 
+
 void colvar::distance_pairs::calc_gradients()
 {
   // will be calculated on the fly in apply_force()
 }
+
 
 void colvar::distance_pairs::apply_force(colvarvalue const &force)
 {
@@ -606,6 +711,7 @@ void colvar::distance_pairs::apply_force(colvarvalue const &force)
     }
   }
 }
+
 
 
 colvar::gyration::gyration(std::string const &conf)
@@ -682,6 +788,9 @@ void colvar::gyration::apply_force(colvarvalue const &force)
 }
 
 
+simple_scalar_dist_functions(gyration)
+
+
 
 colvar::inertia::inertia(std::string const &conf)
   : gyration(conf)
@@ -720,6 +829,10 @@ void colvar::inertia::apply_force(colvarvalue const &force)
   if (!atoms->noforce)
     atoms->apply_colvar_force(force.real_value);
 }
+
+
+simple_scalar_dist_functions(inertia_z)
+
 
 
 colvar::inertia_z::inertia_z(std::string const &conf)
@@ -770,6 +883,10 @@ void colvar::inertia_z::apply_force(colvarvalue const &force)
   if (!atoms->noforce)
     atoms->apply_colvar_force(force.real_value);
 }
+
+
+simple_scalar_dist_functions(inertia)
+
 
 
 
@@ -970,6 +1087,8 @@ void colvar::rmsd::calc_Jacobian_derivative()
   jd.real_value = x.real_value > 0.0 ? (3.0 * atoms->size() - 4.0 - divergence) / x.real_value : 0.0;
 }
 
+
+simple_scalar_dist_functions(rmsd)
 
 
 
@@ -1253,6 +1372,10 @@ void colvar::eigenvector::calc_Jacobian_derivative()
 
   jd.real_value = sum * std::sqrt(eigenvec_invnorm2);
 }
+
+
+simple_scalar_dist_functions(eigenvector)
+
 
 
 colvar::cartesian::cartesian(std::string const &conf)

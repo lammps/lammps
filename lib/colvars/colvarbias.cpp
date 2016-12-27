@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarbias.h"
@@ -29,6 +36,7 @@ colvarbias::colvarbias(char const *key)
   has_data = false;
   b_output_energy = false;
   reset();
+  state_file_step = 0;
 
   // Start in active state by default
   enable(f_cvb_active);
@@ -141,19 +149,24 @@ int colvarbias::clear()
 int colvarbias::add_colvar(std::string const &cv_name)
 {
   if (colvar *cv = cvm::colvar_by_name(cv_name)) {
-    // Removed this as nor all biases apply forces eg histogram
-    // cv->enable(colvar::task_gradients);
+
     if (cvm::debug()) {
       cvm::log("Applying this bias to collective variable \""+
                cv->name+"\".\n");
     }
+
     colvars.push_back(cv);
 
     colvar_forces.push_back(colvarvalue());
     colvar_forces.back().type(cv->value()); // make sure each force is initialized to zero
+    colvar_forces.back().is_derivative(); // colvar constraints are not applied to the force
     colvar_forces.back().reset();
 
     cv->biases.push_back(this); // add back-reference to this bias to colvar
+
+    if (is_enabled(f_cvb_apply_force)) {
+      cv->enable(f_cv_gradient);
+    }
 
     // Add dependency link.
     // All biases need at least the value of each colvar
@@ -165,6 +178,7 @@ int colvarbias::add_colvar(std::string const &cv_name)
                cv_name+"\".\n", INPUT_ERROR);
     return INPUT_ERROR;
   }
+
   return COLVARS_OK;
 }
 
@@ -190,16 +204,19 @@ void colvarbias::communicate_forces()
 }
 
 
-void colvarbias::change_configuration(std::string const &conf)
+int colvarbias::change_configuration(std::string const &conf)
 {
-  cvm::error("Error: change_configuration() not implemented.\n");
+  cvm::error("Error: change_configuration() not implemented.\n",
+             COLVARS_NOT_IMPLEMENTED);
+  return COLVARS_NOT_IMPLEMENTED;
 }
 
 
 cvm::real colvarbias::energy_difference(std::string const &conf)
 {
-  cvm::error("Error: energy_difference() not implemented.\n");
-  return 0.;
+  cvm::error("Error: energy_difference() not implemented.\n",
+             COLVARS_NOT_IMPLEMENTED);
+  return 0.0;
 }
 
 
@@ -224,6 +241,118 @@ int colvarbias::replica_share()
   cvm::error("Error: replica_share() not implemented.\n");
   return COLVARS_NOT_IMPLEMENTED;
 }
+
+
+std::string const colvarbias::get_state_params() const
+{
+  std::ostringstream os;
+  os << "step " << cvm::step_absolute() << "\n"
+     << "name " << this->name << "\n";
+  return os.str();
+}
+
+
+int colvarbias::set_state_params(std::string const &conf)
+{
+  std::string new_name = "";
+  if (colvarparse::get_keyval(conf, "name", new_name,
+                              std::string(""), colvarparse::parse_silent) &&
+      (new_name != this->name)) {
+    cvm::error("Error: in the state file, the "
+               "\""+bias_type+"\" block has a different name, \""+new_name+
+               "\": different system?\n", INPUT_ERROR);
+  }
+
+  if (name.size() == 0) {
+    cvm::error("Error: \""+bias_type+"\" block within the restart file "
+               "has no identifiers.\n", INPUT_ERROR);
+  }
+
+  colvarparse::get_keyval(conf, "step", state_file_step,
+                          cvm::step_absolute(), colvarparse::parse_silent);
+
+  return COLVARS_OK;
+}
+
+
+std::ostream & colvarbias::write_state(std::ostream &os)
+{
+  if (cvm::debug()) {
+    cvm::log("Writing state file for bias \""+name+"\"\n");
+  }
+  os.setf(std::ios::scientific, std::ios::floatfield);
+  os.precision(cvm::cv_prec);
+  os << bias_type << " {\n"
+     << "  configuration {\n";
+  std::istringstream is(get_state_params());
+  std::string line;
+  while (std::getline(is, line)) {
+    os << "    " << line << "\n";
+  }
+  os << "  }\n";
+  write_state_data(os);
+  os << "}\n\n";
+  return os;
+}
+
+
+std::istream & colvarbias::read_state(std::istream &is)
+{
+  size_t const start_pos = is.tellg();
+
+  std::string key, brace, conf;
+  if ( !(is >> key)   || !(key == bias_type) ||
+       !(is >> brace) || !(brace == "{") ||
+       !(is >> colvarparse::read_block("configuration", conf)) ||
+       (set_state_params(conf) != COLVARS_OK) ) {
+    cvm::error("Error: in reading state configuration for \""+bias_type+"\" bias \""+
+               this->name+"\" at position "+
+               cvm::to_str(is.tellg())+" in stream.\n", INPUT_ERROR);
+    is.clear();
+    is.seekg(start_pos, std::ios::beg);
+    is.setstate(std::ios::failbit);
+    return is;
+  }
+
+  if (!read_state_data(is)) {
+    cvm::error("Error: in reading state data for \""+bias_type+"\" bias \""+
+               this->name+"\" at position "+
+               cvm::to_str(is.tellg())+" in stream.\n", INPUT_ERROR);
+    is.clear();
+    is.seekg(start_pos, std::ios::beg);
+    is.setstate(std::ios::failbit);
+  }
+
+  is >> brace;
+  if (brace != "}") {
+    cvm::error("Error: corrupt restart information for \""+bias_type+"\" bias \""+
+               this->name+"\": no matching brace at position "+
+               cvm::to_str(is.tellg())+" in stream.\n");
+    is.setstate(std::ios::failbit);
+  }
+
+  return is;
+}
+
+
+std::istream & colvarbias::read_state_data_key(std::istream &is, char const *key)
+{
+  size_t const start_pos = is.tellg();
+  std::string key_in;
+  if ( !(is >> key_in) ||
+       !(key_in == to_lower_cppstr(std::string(key))) ) {
+    cvm::error("Error: in reading restart configuration for "+
+               bias_type+" bias \""+this->name+"\" at position "+
+               cvm::to_str(is.tellg())+" in stream.\n", INPUT_ERROR);
+    is.clear();
+    is.seekg(start_pos, std::ios::beg);
+    is.setstate(std::ios::failbit);
+    return is;
+  }
+  return is;
+}
+
+
 
 std::ostream & colvarbias::write_traj_label(std::ostream &os)
 {

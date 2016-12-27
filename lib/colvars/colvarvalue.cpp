@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <vector>
 #include <sstream>
 #include <iostream>
@@ -72,6 +79,7 @@ void colvarvalue::set_elem(int const icv, colvarvalue const &x)
 
 void colvarvalue::set_random()
 {
+  size_t ic;
   switch (this->type()) {
   case colvarvalue::type_scalar:
     this->real_value = cvm::rand_gaussian();
@@ -91,7 +99,7 @@ void colvarvalue::set_random()
     this->quaternion_value.q3 = cvm::rand_gaussian();
     break;
   case colvarvalue::type_vector:
-    for (size_t ic = 0; ic < this->vector1d_value.size(); ic++) {
+    for (ic = 0; ic < this->vector1d_value.size(); ic++) {
       this->vector1d_value[ic] = cvm::rand_gaussian();
     }
     break;
@@ -100,56 +108,6 @@ void colvarvalue::set_random()
     undef_op();
     break;
   }
-}
-
-
-colvarvalue colvarvalue::inverse() const
-{
-  switch (value_type) {
-  case colvarvalue::type_scalar:
-    return colvarvalue(1.0/real_value);
-    break;
-  case colvarvalue::type_3vector:
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    return colvarvalue(cvm::rvector(1.0/rvector_value.x,
-                                    1.0/rvector_value.y,
-                                    1.0/rvector_value.z));
-    break;
-  case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
-    return colvarvalue(cvm::quaternion(1.0/quaternion_value.q0,
-                                       1.0/quaternion_value.q1,
-                                       1.0/quaternion_value.q2,
-                                       1.0/quaternion_value.q3));
-    break;
-  case colvarvalue::type_vector:
-    {
-      cvm::vector1d<cvm::real> result(vector1d_value);
-      if (elem_types.size() > 0) {
-        // if we have information about non-scalar types, use it
-        size_t i;
-        for (i = 0; i < elem_types.size(); i++) {
-          result.sliceassign(elem_indices[i], elem_indices[i]+elem_sizes[i],
-                             cvm::vector1d<cvm::real>((this->get_elem(i)).inverse()));
-        }
-      } else {
-        size_t i;
-        for (i = 0; i < result.size(); i++) {
-          if (result[i] != 0.0) {
-            result = 1.0/result[i];
-          }
-        }
-      }
-      return colvarvalue(result, type_vector);
-    }
-    break;
-  case colvarvalue::type_notset:
-  default:
-    undef_op();
-    break;
-  }
-  return colvarvalue();
 }
 
 
@@ -321,7 +279,7 @@ colvarvalue colvarvalue::dist2_grad(colvarvalue const &x2) const
                                        (-1.0) * sin_t * v2.z +
                                        cos_t/sin_t * (v1.z - cos_t*v2.z)
                                        ),
-                          colvarvalue::type_unit3vector );
+                          colvarvalue::type_unit3vectorderiv );
     }
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:

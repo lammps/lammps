@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #ifndef COLVARGRID_H
 #define COLVARGRID_H
 
@@ -378,6 +385,13 @@ public:
     return value_to_bin_scalar(actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
   }
 
+  /// \brief Report the bin corresponding to the current value of variable i
+  /// and assign first or last bin if out of boundaries
+  inline int current_bin_scalar_bound(int const i) const
+  {
+    return value_to_bin_scalar_bound(actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
+  }
+
   /// \brief Report the bin corresponding to the current value of item iv in variable i
   inline int current_bin_scalar(int const i, int const iv) const
   {
@@ -391,6 +405,16 @@ public:
   inline int value_to_bin_scalar(colvarvalue const &value, const int i) const
   {
     return (int) std::floor( (value.real_value - lower_boundaries[i].real_value) / widths[i] );
+  }
+
+  /// \brief Use the lower boundary and the width to report which bin
+  /// the provided value is in and assign first or last bin if out of boundaries
+  inline int value_to_bin_scalar_bound(colvarvalue const &value, const int i) const
+  {
+    int bin_index = std::floor( (value.real_value - lower_boundaries[i].real_value) / widths[i] );
+    if (bin_index < 0) bin_index=0;
+    if (bin_index >=int(nx[i])) bin_index=int(nx[i])-1;
+    return (int) bin_index;
   }
 
   /// \brief Same as the standard version, but uses another grid definition
@@ -514,6 +538,13 @@ public:
       data[i] *= a;
   }
 
+  /// \brief Assign all zero elements a scalar constant (fast loop)
+  inline void remove_zeros(cvm::real const &a)
+  {
+    for (size_t i = 0; i < nt; i++)
+      if(data[i]==0) data[i] = a;
+  }
+
 
   /// \brief Get the bin indices corresponding to the provided values of
   /// the colvars
@@ -533,6 +564,17 @@ public:
     std::vector<int> index = new_index();
     for (size_t i = 0; i < nd; i++) {
       index[i] = current_bin_scalar(i);
+    }
+    return index;
+  }
+
+  /// \brief Get the bin indices corresponding to the provided values of
+  /// the colvars and assign first or last bin if out of boundaries
+  inline std::vector<int> const get_colvars_index_bound() const
+  {
+    std::vector<int> index = new_index();
+    for (size_t i = 0; i < nd; i++) {
+      index[i] = current_bin_scalar_bound(i);
     }
     return index;
   }
@@ -1169,42 +1211,46 @@ public:
   inline cvm::real log_gradient_finite_diff(const std::vector<int> &ix0,
                                             int n = 0)
   {
-    cvm::real A0, A1;
-    std::vector<int> ix;
-
-    // factor for mesh width, 2.0 for central finite difference
-    // but only 1.0 on edges for non-PBC coordinates
-    cvm::real factor;
+    int A0, A1, A2;
+    std::vector<int> ix = ix0;
 
     if (periodic[n]) {
-      factor = 2.;
-      ix = ix0;
       ix[n]--; wrap(ix);
       A0 = data[address(ix)];
       ix = ix0;
       ix[n]++; wrap(ix);
       A1 = data[address(ix)];
-    } else {
-      factor = 0.;
-      ix = ix0;
-      if (ix[n] > 0) { // not left edge
-        ix[n]--;
-        factor += 1.;
+      if (A0 * A1 == 0) {
+        return 0.; // can't handle empty bins
+      } else {
+        return (std::log((cvm::real)A1) - std::log((cvm::real)A0))
+          / (widths[n] * 2.);
       }
+    } else if (ix[n] > 0 && ix[n] < nx[n]-1) { // not an edge
+      ix[n]--;
       A0 = data[address(ix)];
       ix = ix0;
-      if (ix[n]+1 < nx[n]) { // not right edge
-        ix[n]++;
-        factor += 1.;
-      }
+      ix[n]++;
       A1 = data[address(ix)];
-    }
-    if (A0 == 0 || A1 == 0) {
-      // can't handle empty bins
-      return 0.;
+      if (A0 * A1 == 0) {
+        return 0.; // can't handle empty bins
+      } else {
+        return (std::log((cvm::real)A1) - std::log((cvm::real)A0))
+          / (widths[n] * 2.);
+      }
     } else {
-      return (std::log((cvm::real)A1) - std::log((cvm::real)A0))
-        / (widths[n] * factor);
+      // edge: use 2nd order derivative
+      int increment = (ix[n] == 0 ? 1 : -1);
+      // move right from left edge, or the other way around
+      A0 = data[address(ix)];
+      ix[n] += increment; A1 = data[address(ix)];
+      ix[n] += increment; A2 = data[address(ix)];
+      if (A0 * A1 * A2 == 0) {
+        return 0.; // can't handle empty bins
+      } else {
+        return (-1.5 * std::log((cvm::real)A0) + 2. * std::log((cvm::real)A1)
+          - 0.5 * std::log((cvm::real)A2)) * increment / widths[n];
+      }
     }
   }
 };
@@ -1321,6 +1367,9 @@ public:
 
   /// \brief Return the lowest value
   cvm::real minimum_value() const;
+
+  /// \brief Return the lowest positive value
+  cvm::real minimum_pos_value() const;
 
   /// \brief Calculates the integral of the map (uses widths if they are defined)
   cvm::real integral() const;

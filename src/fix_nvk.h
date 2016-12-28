@@ -56,7 +56,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix nvk currently only supports group all
+E: Fix nvk only supports group all
 
 Self-explanatory.
 

@@ -34,7 +34,7 @@ FixNVK::FixNVK(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 3)
     error->all(FLERR,"Illegal fix nvk command");
-  if (igroup) error->all(FLERR,"Fix nvk currently only supports group all");
+  if (igroup) error->all(FLERR,"Fix nvk only supports group all");
 
   dynamic_group_allow = 1;
   time_integrate = 1;

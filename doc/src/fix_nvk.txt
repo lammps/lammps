@@ -30,6 +30,11 @@ The equations of motion used are those of Minary et al in
 "(Minary)"_#nvk-Minary, a variant of those initially given by Zhang in 
 "(Zhang)"_#nvk-Zhang.
 
+The kinetic energy will be held constant at its value given when fix
+nvk is initiated. If a different kinetic energy is desired, the
+"velocity"_velocity.html command should be used to change the kinetic
+energy prior to this fix.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]

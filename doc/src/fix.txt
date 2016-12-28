@@ -217,6 +217,7 @@ of "this page"_Section_commands.html#cmd_5.
 "nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
 "nve/sphere"_fix_nve_sphere.html - NVE for spherical particles
 "nve/tri"_fix_nve_tri.html - NVE for triangles
+"nvk"_fix_nvk.html - constant kinetic energy time integration
 "nvt"_fix_nh.html - constant NVT time integration via Nose/Hoover
 "nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
 "nvt/body"_fix_nve_body.html - NVT for body particles

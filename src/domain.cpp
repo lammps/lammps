@@ -947,19 +947,19 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      if (fabs(dx) > xprd_half) {
+      while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > yprd_half) {
+      while (fabs(dy) > yprd_half) {
         if (dy < 0.0) dy += yprd;
         else dy -= yprd;
       }
     }
     if (zperiodic) {
-      if (fabs(dz) > zprd_half) {
+      while (fabs(dz) > zprd_half) {
         if (dz < 0.0) dz += zprd;
         else dz -= zprd;
       }
@@ -967,7 +967,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
   } else {
     if (zperiodic) {
-      if (fabs(dz) > zprd_half) {
+      while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
           dy += yz;
@@ -980,7 +980,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > yprd_half) {
+      while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
           dx += xy;
@@ -991,7 +991,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (xperiodic) {
-      if (fabs(dx) > xprd_half) {
+      while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }

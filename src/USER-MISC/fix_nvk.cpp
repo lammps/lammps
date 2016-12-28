@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+     Contributing author: Efrem Braun (UC Berkeley)
+------------------------------------------------------------------------- */
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,8 +30,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-/* ---------------------------------------------------------------------- */
 
 FixNVK::FixNVK(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)

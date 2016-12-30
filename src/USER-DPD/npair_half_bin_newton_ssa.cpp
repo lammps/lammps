@@ -32,12 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-// allocate space for static class variable
-// prototype for non-class function
-
-static int *ssaAIRptr;
-static int cmp_ssaAIR(const void *, const void *);
-
 /* ---------------------------------------------------------------------- */
 
 NPairHalfBinNewtonSSA::NPairHalfBinNewtonSSA(LAMMPS *lmp) : NPair(lmp) {}
@@ -64,9 +58,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   if (includegroup) nlocal = atom->nfirst;
-  int *ssaAIR = atom->ssaAIR;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
@@ -89,16 +81,18 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   if (!nb_ssa) error->one(FLERR, "NBin wasn't a NBinSSA object");
   int *bins_ssa = nb_ssa->bins_ssa;
   int *binhead_ssa = nb_ssa->binhead_ssa;
-  int *gbinhead_ssa = nb_ssa->gbinhead_ssa;
+  int *gairhead_ssa = &(nb_ssa->gairhead_ssa[0]);
 
   int inum = 0;
+  int gnum = 0;
+  int xbin,ybin,zbin,xbin2,ybin2,zbin2;
+  int **stencilxyz = ns_ssa->stencilxyz;
 
   ipage->reset();
 
   // loop over owned atoms, storing half of the neighbors
 
   for (i = 0; i < nlocal; i++) {
-    int AIRct[8] = { 0 };
     n = 0;
     neighptr = ipage->vget();
 
@@ -175,51 +169,6 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
         }
       }
     }
-    AIRct[0] = n;
-
-    // loop over AIR ghost atoms in all bins in "full" stencil
-    // Note: the non-AIR ghost atoms have already been filtered out
-    // That is a significant time savings because of the "full" stencil
-    // Note2: only non-pure locals can have ghosts as neighbors
-
-    if (ssaAIR[i] == 1) for (k = 0; k < nstencil_full; k++) {
-      for (j = gbinhead_ssa[ibin+stencil[k]]; j >= 0;
-           j = bins_ssa[j]) {
-
-        jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
-
-        if (rsq <= cutneighsq[itype][jtype]) {
-          if (molecular) {
-            if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >= 0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) {
-              neighptr[n++] = j;
-              ++(AIRct[ssaAIR[j] - 1]);
-            } else if (domain->minimum_image_check(delx,dely,delz)) {
-              neighptr[n++] = j;
-              ++(AIRct[ssaAIR[j] - 1]);
-            } else if (which > 0) {
-              neighptr[n++] = j ^ (which << SBBITS);
-              ++(AIRct[ssaAIR[j] - 1]);
-            }
-          } else {
-            neighptr[n++] = j;
-            ++(AIRct[ssaAIR[j] - 1]);
-          }
-        }
-      }
-    }
 
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
@@ -227,34 +176,74 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
-
-    // sort the ghosts in the neighbor list by their ssaAIR number
-
-    ssaAIRptr = atom->ssaAIR;
-    qsort(&(neighptr[AIRct[0]]), n - AIRct[0], sizeof(int), cmp_ssaAIR);
-
-    // do a prefix sum on the counts to turn them into indexes
-
-    list->ndxAIR_ssa[i][0] = AIRct[0];
-    for (int ndx = 1; ndx < 8; ++ndx) {
-      list->ndxAIR_ssa[i][ndx] = AIRct[ndx] + list->ndxAIR_ssa[i][ndx - 1];
-    }
   }
 
   list->inum = inum;
+
+  // loop over AIR ghost atoms, storing their local neighbors
+  // since these are ghosts, must check if stencil bin is out of bounds
+  for (int airnum = 2; airnum <= 8; airnum++) {
+    for (i = gairhead_ssa[airnum]; i >= 0; i = bins_ssa[i]) {
+      n = 0;
+      neighptr = ipage->vget();
+
+      itype = type[i];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      if (moltemplate) {
+        imol = molindex[i];
+        iatom = molatom[i];
+        tagprev = tag[i] - iatom - 1;
+      }
+
+      ibin = coord2bin(x[i],xbin,ybin,zbin);
+
+      // loop over AIR ghost atoms in all bins in "full" stencil
+      // Note: the non-AIR ghost atoms have already been filtered out
+      for (k = 0; k < nstencil_full; k++) {
+        xbin2 = xbin + stencilxyz[k][0];
+        ybin2 = ybin + stencilxyz[k][1];
+        zbin2 = zbin + stencilxyz[k][2];
+        // since we only care about ghost to local neighbors, these "bounds" could be inset
+        if (xbin2 < 0 || xbin2 >= mbinx ||
+            ybin2 < 0 || ybin2 >= mbiny ||
+            zbin2 < 0 || zbin2 >= mbinz) continue;
+        for (j = binhead_ssa[ibin+stencil[k]]; j >= 0; j = bins_ssa[j]) {
+
+          jtype = type[j];
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+
+          if (rsq <= cutneighsq[itype][jtype]) {
+            if (molecular) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            } else neighptr[n++] = j;
+          }
+        }
+      }
+
+      if (n > 0) ilist[inum + (gnum++)] = i;
+      firstneigh[i] = neighptr;
+      numneigh[i] = n;
+      ipage->vgot(n);
+      if (ipage->status())
+        error->one(FLERR,"Neighbor (ghost) list overflow, boost neigh_modify one");
+    }
+  }
+  list->gnum = gnum;
 }
-
-/* ----------------------------------------------------------------------
-   comparison function invoked by qsort()
-   accesses static class member ssaAIRptr, set before call to qsort()
-------------------------------------------------------------------------- */
-
-static int cmp_ssaAIR(const void *iptr, const void *jptr)
-{
-  int i = NEIGHMASK & *((int *) iptr);
-  int j = NEIGHMASK & *((int *) jptr);
-  if (ssaAIRptr[i] < ssaAIRptr[j]) return -1;
-  if (ssaAIRptr[i] > ssaAIRptr[j]) return 1;
-  return 0;
-}
-

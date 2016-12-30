@@ -32,7 +32,7 @@ class NBinSSA : public NBinStandard {
   int *bins_ssa;             // index of next atom in each bin
   int maxbin_ssa;            // size of bins_ssa array
   int *binhead_ssa;          // index of 1st local atom in each bin
-  int *gbinhead_ssa;         // index of 1st ghost atom in each bin
+  int gairhead_ssa[9];       // index of 1st ghost atom in each AIR
   int maxhead_ssa;           // size of binhead_ssa and gbinhead_ssa arrays
 
   NBinSSA(class LAMMPS *);

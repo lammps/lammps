@@ -64,6 +64,10 @@ void NPairHalffullNewtonSSA::build(NeighList *list)
   int inum_full = list->listfull->inum;
 
   int inum = 0;
+
+  error->one(FLERR,"NPairHalffullNewtonSSA not yet implemented for ghosts with neighbors.");
+  return;
+
   ipage->reset();
 
   // loop over parent full list

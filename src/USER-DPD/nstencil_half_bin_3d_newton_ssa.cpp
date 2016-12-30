@@ -47,8 +47,12 @@ void NStencilHalfBin3dNewtonSSA::create()
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)
         if (k > 0 || j > 0 || (j == 0 && i > 0))
-          if (bin_distance(i,j,k) < cutneighmaxsq)
+          if (bin_distance(i,j,k) < cutneighmaxsq) {
+            stencilxyz[pos][0] = i;
+            stencilxyz[pos][1] = j;
+            stencilxyz[pos][2] = k;
             stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
+          }
 
   nstencil_half = pos; // record where normal half stencil ends
 
@@ -57,8 +61,12 @@ void NStencilHalfBin3dNewtonSSA::create()
   for (k = -sz; k < 0; k++)
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)
-        if (bin_distance(i,j,k) < cutneighmaxsq)
+        if (bin_distance(i,j,k) < cutneighmaxsq) {
+          stencilxyz[pos][0] = i;
+          stencilxyz[pos][1] = j;
+          stencilxyz[pos][2] = k;
           stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
+        }
 
   // For k==0, make sure to skip already included bins
 
@@ -66,8 +74,12 @@ void NStencilHalfBin3dNewtonSSA::create()
   for (j = -sy; j <= 0; j++)
     for (i = -sx; i <= sx; i++) {
       if (j == 0 && i > 0) continue;
-      if (bin_distance(i,j,k) < cutneighmaxsq)
+      if (bin_distance(i,j,k) < cutneighmaxsq) {
+        stencilxyz[pos][0] = i;
+        stencilxyz[pos][1] = j;
+        stencilxyz[pos][2] = k;
         stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
+      }
     }
 
   nstencil = pos; // record where full stencil ends

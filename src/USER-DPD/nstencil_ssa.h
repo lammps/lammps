@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class NStencilSSA : public NStencil {
  public:
-  NStencilSSA(class LAMMPS *lmp) : NStencil(lmp) { }
+  NStencilSSA(class LAMMPS *lmp) : NStencil(lmp) { xyzflag = 1; }
   ~NStencilSSA() {}
   virtual void create() = 0;
 

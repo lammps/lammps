@@ -15,7 +15,7 @@
 
 NStencilStyle(half/bin/2d/newton/ssa,
               NStencilHalfBin2dNewtonSSA,
-              NS_HALF | NS_BIN | NS_2D | NS_NEWTON | NS_SSA | NS_ORTHO)
+              NS_HALF | NS_BIN | NS_2D | NS_NEWTON | NS_SSA | NS_ORTHO | NS_GHOST)
 
 #else
 

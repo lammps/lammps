@@ -33,14 +33,13 @@ NBinSSA::NBinSSA(LAMMPS *lmp) : NBinStandard(lmp)
   bins_ssa = NULL;
   maxhead_ssa = 0;
   binhead_ssa = NULL;
-  gbinhead_ssa = NULL;
+  for (int i = 0; i < 9; i++) gairhead_ssa[i] = -1;
 }
 
 NBinSSA::~NBinSSA()
 {
   memory->destroy(bins_ssa);
   memory->destroy(binhead_ssa);
-  memory->destroy(gbinhead_ssa);
 }
 
 /* ----------------------------------------------------------------------
@@ -62,8 +61,11 @@ void NBinSSA::bin_atoms()
 
   last_bin = update->ntimestep;
 
+  for (i = 0; i < 9; i++) {
+    gairhead_ssa[i] = -1;
+  }
+
   for (i = 0; i < mbins; i++) {
-    gbinhead_ssa[i] = -1;
     binhead_ssa[i] = -1;
   }
 
@@ -73,19 +75,19 @@ void NBinSSA::bin_atoms()
     int bitmask = group->bitmask[includegroup];
     int nowned = atom->nlocal; // NOTE: nlocal was set to atom->nfirst above
     for (i = nall-1; i >= nowned; i--) {
-      if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
+      ibin = ssaAIR[i];
+      if (ibin < 2) continue; // skip ghost atoms not in AIR
       if (mask[i] & bitmask) {
-        ibin = coord2bin(x[i]);
-        bins_ssa[i] = gbinhead_ssa[ibin];
-        gbinhead_ssa[ibin] = i;
+        bins_ssa[i] = gairhead_ssa[ibin];
+        gairhead_ssa[ibin] = i;
       }
     }
   } else {
     for (i = nall-1; i >= nlocal; i--) {
-      if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
-      ibin = coord2bin(x[i]);
-      bins_ssa[i] = gbinhead_ssa[ibin];
-      gbinhead_ssa[ibin] = i;
+      ibin = ssaAIR[i];
+      if (ibin < 2) continue; // skip ghost atoms not in AIR
+      bins_ssa[i] = gairhead_ssa[ibin];
+      gairhead_ssa[ibin] = i;
     }
   }
   for (i = nlocal-1; i >= 0; i--) {
@@ -103,10 +105,8 @@ void NBinSSA::bin_atoms_setup(int nall)
 
   if (mbins > maxhead_ssa) {
     maxhead_ssa = mbins;
-    memory->destroy(gbinhead_ssa);
     memory->destroy(binhead_ssa);
     memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
-    memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
   }
 
   if (nall > maxbin_ssa) {
@@ -125,7 +125,6 @@ bigint NBinSSA::memory_usage()
   if (maxbin_ssa) bytes += memory->usage(bins_ssa,maxbin_ssa);
   if (maxhead_ssa) {
     bytes += memory->usage(binhead_ssa,maxhead_ssa);
-    bytes += memory->usage(gbinhead_ssa,maxhead_ssa);
   }
   return bytes;
 }

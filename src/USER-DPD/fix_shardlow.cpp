@@ -148,6 +148,7 @@ void FixShardlow::init()
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
+  neighbor->requests[irequest]->ghost= 1;
   neighbor->requests[irequest]->ssa  = 1;
 }
 
@@ -498,7 +499,7 @@ void FixShardlow::ssa_update_dpde(
 
 void FixShardlow::initial_integrate(int vflag)
 {
-  int i,ii,inum;
+  int i,ii,inum,anum;
   int *ilist;
 
   int nlocal = atom->nlocal;
@@ -531,10 +532,12 @@ void FixShardlow::initial_integrate(int vflag)
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
   inum = list->inum;
+  anum = inum + list->gnum;
   ilist = list->ilist;
 
   dtsqrt = sqrt(update->dt);
 
+  ii = 0;
   //Loop over all 14 directions (8 stages)
   for (airnum = 1; airnum <=8; airnum++){
 
@@ -549,15 +552,16 @@ void FixShardlow::initial_integrate(int vflag)
       }
     }
 
-    // Loop over neighbors of my atoms
-    for (ii = 0; ii < inum; ii++) {
+    // process neighbors in this AIR
+    while (ii < anum) {
       i = ilist[ii];
-      int start = (airnum < 2) ? 0 : list->ndxAIR_ssa[i][airnum - 2];
-      int len = list->ndxAIR_ssa[i][airnum - 1] - start;
+      if (atom->ssaAIR[i] > airnum) break; /* done with curent AIR */
+      int len = list->numneigh[i];
       if (len > 0) {
-        if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][start]), len);
-        else ssa_update_dpd(i, &(list->firstneigh[i][start]), len);
+        if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
+        else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
       }
+      ii++;
     }
 
     // Communicate the ghost deltas to the atom owners

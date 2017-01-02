@@ -185,6 +185,9 @@ You will notice some that some checks are performed automatically:
 
 :c,image(JPG/tutorial_automated_checks.png)
 
+If all is fine, you will see this:
+
+:c,image(JPG/tutorial_automated_checks_passed.png)
 
 
 :line

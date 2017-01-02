@@ -85,18 +85,20 @@ test them without interfering with the repository on Github.
 To pull changes from upstream into this copy, you can go to the directory
 and use git pull:
 
-  $ cd mylammps :pre
+  $ cd mylammps
+  $ git checkout master
   $ git pull https://github.com/lammps/lammps :pre
 
 You can also add this url as a remote:
 
   $ git remote add lammps_upstream https://www.github.com/lammps/lammps :pre
 
-At this point, you typically make a feature branch for the feature you
-want to work on. This tutorial contains the workflow that updated this
-tutorial, and hence we will call the branch "github-tutorial-update":
+At this point, you typically make a feature branch from the updated master
+branch for the feature you want to work on. This tutorial contains the
+workflow that updated this tutorial, and hence we will call the branch
+"github-tutorial-update":
 
-  $ git checkout -b github-tutorial-update :pre
+  $ git checkout -b github-tutorial-update master :pre
 
 Now that we have changed branches, we can make our changes to our local
 repository. Just remember that if you want to start working on another,
@@ -111,15 +113,14 @@ After everything is done, add the files to the branch and commit them:
 
 [Warning]
 
-{"Do not use "git commit -a".  the -a flag will automatically include
-*all* modified or new files.  mercurial does that and it find it
-hugely annoying and often leading to accidental commits of files you
-don't want.  use git add, git rm, git mv for adding, removing,
-renaming and then git commit to finalize the commit.  personally, i
-find it very convenient to use the bundled gui for commits, i.e. git
-gui.  typically, i will do git add and other operations, but then
-verify and review them with git gui.  git gui also allows to do
-line-by-line unstaging and other convenient operations." - Axel}
+{Do not use `git commit -a`.  The -a flag will automatically include
+_all_ modified or new files and that is rarely the behavior you want.
+It can easily create to accidentally adding unrelated and unwanted
+changes into the repository. It is highly preferable to explicitly
+use `git add`, `git rm`, `git mv` for adding, removing, renaming files,
+respectively, and then `git commit` to finalize the commit.  If you
+find doing this on the command line too tedious, consider using a GUI,
+the one included in git distributions written in Tk, i.e. use `git gui`.}
 
 After adding all files, the change can be commited with some useful message
 that explains the change.

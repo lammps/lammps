@@ -169,13 +169,14 @@ request" button, see image.
 
 :c,image(JPG/tutorial_create_new_pull_request1.png)
 
-After this you have to specify a short title and a comment with
-details about your pull request. I guess here you write what your
-modifications do and why they should be incorporated upstream. After
-that, click the "Create pull request" button, see image below.
+Before creating the pull request, make sure the short title is accurate
+and add a comment with details about your pull request.
+I guess here you write what your modifications do and why they should
+be incorporated upstream. After that, click the "Create pull request"
+button, see image below.
 
-Now just write some nice comments, click "Comment", and that is it. It
-is now up to the maintainer(s) of the upstream repository to
+Now just write some nice comments, click on "Create pull request", and that is it.
+It is now up to the maintainer(s) of the upstream repository to
 incorporate the changes into the repository and to close the pull
 request.
 

@@ -174,14 +174,18 @@ details about your pull request. I guess here you write what your
 modifications do and why they should be incorporated upstream. After
 that, click the "Create pull request" button, see image below.
 
-:c,image(JPG/tutorial_create_new_pull_request2.png)
-
 Now just write some nice comments, click "Comment", and that is it. It
 is now up to the maintainer(s) of the upstream repository to
 incorporate the changes into the repository and to close the pull
 request.
 
-:c,image(JPG/tutorial_create_new_pull_request3.png)
+:c,image(JPG/tutorial_create_new_pull_request2.png)
+
+You will notice some that some checks are performed automatically:
+
+:c,image(JPG/tutorial_automated_checks.png)
+
+
 
 :line
 

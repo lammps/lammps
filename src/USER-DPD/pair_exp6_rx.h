@@ -30,7 +30,7 @@ class PairExp6rx : public Pair {
   virtual ~PairExp6rx();
   virtual void compute(int, int);
   void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);

@@ -45,6 +45,9 @@ class NBin : protected Pointers {
   virtual void setup_bins(int) = 0;
   virtual void bin_atoms() = 0;
 
+  int coord2bin(double *);                     // mapping atom coord to a bin
+  int coord2bin(double *, int &, int &, int&); // ditto
+
  protected:
 
   // data from Neighbor class
@@ -64,9 +67,6 @@ class NBin : protected Pointers {
   int maxbin;                       // size of binhead array
   int maxatom;                      // size of bins array
 
-  // methods
-
-  int coord2bin(double *);
 };
 
 }

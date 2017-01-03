@@ -15,6 +15,7 @@
 #define LMP_NPAIR_H
 
 #include "pointers.h"
+#include "nbin.h"
 
 namespace LAMMPS_NS {
 
@@ -99,8 +100,6 @@ class NPair : protected Pointers {
 
   int exclusion(int, int, int,
                 int, int *, tagint *) const;   // test for pair exclusion
-  int coord2bin(double *);                     // mapping atom coord to a bin
-  int coord2bin(double *, int &, int &, int&); // ditto
 
   // find_special: determine if atom j is in special list of atom i
   // if it is not, return 0

@@ -130,7 +130,7 @@ void NPairHalfBinNewtonOmp::build(NeighList *list)
 
     // loop over all atoms in other bins in stencil, store every pair
 
-    ibin = coord2bin(x[i]);
+    ibin = nb->coord2bin(x[i]);
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];

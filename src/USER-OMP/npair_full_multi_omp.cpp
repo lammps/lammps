@@ -94,7 +94,7 @@ void NPairFullMultiOmp::build(NeighList *list)
     // skip if i,j neighbor cutoff is less than bin distance
     // skip i = j
 
-    ibin = coord2bin(x[i]);
+    ibin = nb->coord2bin(x[i]);
     s = stencil_multi[itype];
     distsq = distsq_multi[itype];
     cutsq = cutneighsq[itype];

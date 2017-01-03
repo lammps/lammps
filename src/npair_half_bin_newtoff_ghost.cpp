@@ -92,7 +92,7 @@ void NPairHalfBinNewtoffGhost::build(NeighList *list)
     // no molecular test when i = ghost atom
 
     if (i < nlocal) {
-      ibin = coord2bin(x[i]);
+      ibin = nb->coord2bin(x[i]);
 
       for (k = 0; k < nstencil; k++) {
         for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
@@ -125,7 +125,7 @@ void NPairHalfBinNewtoffGhost::build(NeighList *list)
       }
 
     } else {
-      ibin = coord2bin(x[i],xbin,ybin,zbin);
+      ibin = nb->coord2bin(x[i],xbin,ybin,zbin);
       for (k = 0; k < nstencil; k++) {
         xbin2 = xbin + stencilxyz[k][0];
         ybin2 = ybin + stencilxyz[k][1];

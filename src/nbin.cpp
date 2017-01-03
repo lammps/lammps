@@ -132,6 +132,45 @@ int NBin::coord2bin(double *x)
   return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
 }
 
+/* ----------------------------------------------------------------------
+   same as coord2bin, but also return ix,iy,iz offsets in each dim
+------------------------------------------------------------------------- */
+
+int NBin::coord2bin(double *x, int &ix, int &iy, int &iz)
+{
+  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+    error->one(FLERR,"Non-numeric positions - simulation unstable");
+
+  if (x[0] >= bboxhi[0])
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
+  else if (x[0] >= bboxlo[0]) {
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx);
+    ix = MIN(ix,nbinx-1);
+  } else
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - 1;
+
+  if (x[1] >= bboxhi[1])
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny;
+  else if (x[1] >= bboxlo[1]) {
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy);
+    iy = MIN(iy,nbiny-1);
+  } else
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - 1;
+
+  if (x[2] >= bboxhi[2])
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz;
+  else if (x[2] >= bboxlo[2]) {
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz);
+    iz = MIN(iz,nbinz-1);
+  } else
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - 1;
+
+  ix -= mbinxlo;
+  iy -= mbinylo;
+  iz -= mbinzlo;
+  return iz*mbiny*mbinx + iy*mbinx + ix;
+}
+
 /* ---------------------------------------------------------------------- */
 
 bigint NBin::memory_usage()

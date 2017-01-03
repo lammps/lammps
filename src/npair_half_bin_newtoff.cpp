@@ -84,7 +84,7 @@ void NPairHalfBinNewtoff::build(NeighList *list)
     // stores own/own pairs only once
     // stores own/ghost pairs on both procs
 
-    ibin = coord2bin(x[i]);
+    ibin = nb->coord2bin(x[i]);
 
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {

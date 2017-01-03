@@ -84,6 +84,8 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
     F_FLOAT cut,a0,sigma,kappa;
   };
 
+  DAT::tdual_efloat_1d k_duCond,k_duMech;
+
  protected:
   int eflag,vflag;
   int nlocal,neighflag;
@@ -110,7 +112,6 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
   double *rmass;
   typename AT::t_efloat_1d dpdTheta;
-  DAT::tdual_efloat_1d k_duCond,k_duMech;
   typename AT::t_efloat_1d d_duCond,d_duMech;
   HAT::t_efloat_1d h_duCond,h_duMech;
 

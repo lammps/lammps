@@ -938,7 +938,7 @@ void Domain::subbox_too_small_check(double thresh)
 }
 
 /* ----------------------------------------------------------------------
-   minimum image convention
+   minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
@@ -1000,7 +1000,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 }
 
 /* ----------------------------------------------------------------------
-   minimum image convention
+   minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
@@ -1984,7 +1984,7 @@ void Domain::subbox_corners()
 
 /* ----------------------------------------------------------------------
    compute 8 corner pts of any triclinic box with lo/hi in lamda coords
-   8 output conners are ordered with x changing fastest, then y, finally z
+   8 output corners are ordered with x changing fastest, then y, finally z
    could be more efficient if just coded with xy,yz,xz explicitly
 ------------------------------------------------------------------------- */
 

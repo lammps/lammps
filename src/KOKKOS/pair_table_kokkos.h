@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 
 template<class Device,int TABSTYLE>
 struct S_TableCompute {
-  enum {TabStyle = TABSTYLE};
+  static constexpr int TabStyle = TABSTYLE;
 };
 
 template <class DeviceType, int NEIGHFLAG, int TABSTYLE>

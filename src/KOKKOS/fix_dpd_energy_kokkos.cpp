@@ -70,9 +70,6 @@ void FixDPDenergyKokkos<DeviceType>::take_half_step()
 
   atomKK->modified(execution_space, UCOND_MASK);
   atomKK->modified(execution_space, UMECH_MASK);
-  //should not be needed once everything is Kokkos
-  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, UCOND_MASK);
-  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, UMECH_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

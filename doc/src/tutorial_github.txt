@@ -111,16 +111,14 @@ After everything is done, add the files to the branch and commit them:
   $ git add doc/src/tutorial_github.txt
   $ git add doc/src/JPG/tutorial_*.png :pre
 
-[Warning]
-
-{Do not use `git commit -a`.  The -a flag will automatically include
-_all_ modified or new files and that is rarely the behavior you want.
-It can easily create to accidentally adding unrelated and unwanted
-changes into the repository. It is highly preferable to explicitly
-use `git add`, `git rm`, `git mv` for adding, removing, renaming files,
-respectively, and then `git commit` to finalize the commit.  If you
-find doing this on the command line too tedious, consider using a GUI,
-the one included in git distributions written in Tk, i.e. use `git gui`.}
+IMPORTANT NOTE: Do not use `git commit -a`.  The -a flag will automatically
+include _all_ modified or new files and that is rarely the behavior you want.
+It can easily create to accidentally adding unrelated and unwanted changes into
+the repository. It is highly preferable to explicitly use `git add`, `git rm`,
+`git mv` for adding, removing, renaming files, respectively, and then `git
+commit` to finalize the commit.  If you find doing this on the command line too
+tedious, consider using a GUI, the one included in git distributions written in
+Tk, i.e. use `git gui`.
 
 After adding all files, the change can be commited with some useful message
 that explains the change.

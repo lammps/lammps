@@ -37,11 +37,12 @@ class PairTable : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual double single(int, int, int, int, double, double, double, double &);
   void *extract(const char *, int &);
 
  protected:
   enum{LOOKUP,LINEAR,SPLINE,BITMAP};
+  enum{NONE,RLINEAR,RSQ,BMP};
 
   int tabstyle,tablength;
   struct Table {
@@ -66,8 +67,8 @@ class PairTable : public Pair {
   void compute_table(Table *);
   void null_table(Table *);
   void free_table(Table *);
-  void spline(double *, double *, int, double, double, double *);
-  double splint(double *, double *, double *, int, double);
+  static void spline(double *, double *, int, double, double, double *);
+  static double splint(double *, double *, double *, int, double);
 };
 
 }

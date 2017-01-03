@@ -29,8 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,RLINEAR,RSQ,BMP};
-
 #define MAXLINE 1024
 #define EPSILONR 1.0e-6
 
@@ -46,6 +44,8 @@ PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 
 PairTable::~PairTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

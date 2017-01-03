@@ -2004,6 +2004,6 @@ void Domain::lamda_box_corners(double *lo, double *hi)
   lamda2x(corners[5],corners[5]);
   corners[6][0] = lo[0]; corners[6][1] = hi[1]; corners[6][2] = hi[2];
   lamda2x(corners[6],corners[6]);
-  corners[7][0] = hi[0]; corners[7][1] = hi[1]; corners[7][2] = subhi_lamda[2];
+  corners[7][0] = hi[0]; corners[7][1] = hi[1]; corners[7][2] = hi[2];
   lamda2x(corners[7],corners[7]);
 }

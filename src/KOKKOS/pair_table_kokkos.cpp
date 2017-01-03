@@ -219,7 +219,7 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
     rsq_lookup.f = rsq;
     int itable = rsq_lookup.i & d_table_const.nmask(tidx);
     itable >>= d_table_const.nshiftbits(tidx);
-    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
+    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   }
   return fpair;
@@ -264,7 +264,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
     rsq_lookup.f = rsq;
     int itable = rsq_lookup.i & d_table_const.nmask(tidx);
     itable >>= d_table_const.nshiftbits(tidx);
-    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
+    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
     evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
   }
   return evdwl;
@@ -1182,7 +1182,7 @@ double PairTableKokkos<DeviceType>::single(int i, int j, int itype, int jtype, d
     rsq_lookup.f = rsq;
     itable = rsq_lookup.i & tb->nmask;
     itable >>= tb->nshiftbits;
-    fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+    fraction = (rsq - tb->rsq[itable]) * tb->drsq[itable];
     value = tb->f[itable] + fraction*tb->df[itable];
     fforce = factor_lj * value;
   }

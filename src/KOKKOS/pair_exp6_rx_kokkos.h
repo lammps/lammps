@@ -38,18 +38,21 @@ struct PairExp6ParamDataTypeKokkos
   typedef ArrayTypes<DeviceType> AT;
 
    int n;
-   typename AT::t_float_1d epsilon1, alpha1, rm1, fraction1,
-          epsilon2, alpha2, rm2, fraction2,
-          epsilonOld1, alphaOld1, rmOld1, fractionOld1,
-          epsilonOld2, alphaOld2, rmOld2, fractionOld2;
+   typename AT::t_float_1d epsilon1, alpha1, rm1, mixWtSite1,
+          epsilon2, alpha2, rm2, mixWtSite2,
+          epsilonOld1, alphaOld1, rmOld1, mixWtSite1old,
+          epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
 
    // Default constructor -- nullify everything.
    PairExp6ParamDataTypeKokkos<DeviceType>(void)
-      : n(0)
+      : n(0), epsilon1(NULL), alpha1(NULL), rm1(NULL), mixWtSite1(NULL),
+              epsilon2(NULL), alpha2(NULL), rm2(NULL), mixWtSite2(NULL),
+              epsilonOld1(NULL), alphaOld1(NULL), rmOld1(NULL), mixWtSite1old(NULL),
+              epsilonOld2(NULL), alphaOld2(NULL), rmOld2(NULL), mixWtSite2old(NULL)
    {}
 };
 
-struct TagPairExp6rxgetParamsEXP6{};
+struct TagPairExp6rxgetMixingWeights{};
 
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairExp6rxCompute{};
@@ -64,10 +67,11 @@ class PairExp6rxKokkos : public PairExp6rx {
   PairExp6rxKokkos(class LAMMPS *);
   virtual ~PairExp6rxKokkos();
   void compute(int, int);
+  void coeff(int, char **);
   void init_style();
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairExp6rxgetParamsEXP6, const int&) const;
+  void operator()(TagPairExp6rxgetMixingWeights, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -127,7 +131,15 @@ class PairExp6rxKokkos : public PairExp6rx {
   void setup();
 
   KOKKOS_INLINE_FUNCTION
-  void getParamsEXP6(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
+  void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void exponentScaling(double, double &, double &) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void polynomialScaling(double, double &, double &, double &) const;
+
+  double s_coeffAlpha[6],s_coeffEps[6],s_coeffRm[6];
 
   KOKKOS_INLINE_FUNCTION
   double func_rin(const double &) const;
@@ -196,7 +208,7 @@ E:  Potential file has duplicate entry.
 
 Self-explanatory
 
-E:  The number of molecules in CG particle is less than 1e-8.
+E:  The number of molecules in CG particle is less than 10*DBL_EPSILON.
 
 Self-explanatory.  Check the species concentrations have been properly set
 and check the reaction kinetic solver parameters in fix rx to more for

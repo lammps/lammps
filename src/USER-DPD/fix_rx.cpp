@@ -45,6 +45,12 @@ enum{LUCY};
 #define MAXLINE 1024
 #define DELTA 4
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
 #define SparseKinetics_enableIntegralReactions (true)
 #define SparseKinetics_invalidIndex (-1)
 
@@ -693,7 +699,6 @@ void FixRX::pre_force(int vflag)
   int *mask = atom->mask;
   double *dpdTheta = atom->dpdTheta;
   int newton_pair = force->newton_pair;
-  int ii;
   double theta;
 
   if(localTempFlag){
@@ -996,9 +1001,9 @@ void FixRX::rk4(int id, double *rwork)
 
   // Store the solution back in atom->dvector.
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
-    if(y[ispecies] < -1.0e-10)
-      error->one(FLERR,"Computed concentration in RK4 solver is < -1.0e-10");
-    else if(y[ispecies] < 1e-15)
+    if(y[ispecies] < -MY_EPSILON)
+      error->one(FLERR,"Computed concentration in RK4 solver is < -10*DBL_EPSILON");
+    else if(y[ispecies] < MY_EPSILON)
       y[ispecies] = 0.0;
     atom->dvector[ispecies][id] = y[ispecies];
   }
@@ -1515,7 +1520,7 @@ void FixRX::rkf45(int id, double *rwork)
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
     if(y[ispecies] < -1.0e-10)
       error->one(FLERR,"Computed concentration in RKF45 solver is < -1.0e-10");
-    else if(y[ispecies] < 1e-20)
+    else if(y[ispecies] < MY_EPSILON)
       y[ispecies] = 0.0;
     atom->dvector[ispecies][id] = y[ispecies];
   }

@@ -41,6 +41,12 @@ using namespace MathSpecial;
 #define MAXLINE 1024
 #define DELTA 4
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
 #define oneFluidApproxParameter (-1)
 #define isOneFluidApprox(_site) ( (_site) == oneFluidApproxParameter )
 
@@ -165,29 +171,29 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
      PairExp6ParamData.epsilon1     = typename AT::t_float_1d("PairExp6ParamData.epsilon1"    ,np_total);
      PairExp6ParamData.alpha1       = typename AT::t_float_1d("PairExp6ParamData.alpha1"      ,np_total);
      PairExp6ParamData.rm1          = typename AT::t_float_1d("PairExp6ParamData.rm1"         ,np_total);
-     PairExp6ParamData.fraction1    = typename AT::t_float_1d("PairExp6ParamData.fraction1"   ,np_total);
+     PairExp6ParamData.mixWtSite1    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1"   ,np_total);
      PairExp6ParamData.epsilon2     = typename AT::t_float_1d("PairExp6ParamData.epsilon2"    ,np_total);
      PairExp6ParamData.alpha2       = typename AT::t_float_1d("PairExp6ParamData.alpha2"      ,np_total);
      PairExp6ParamData.rm2          = typename AT::t_float_1d("PairExp6ParamData.rm2"         ,np_total);
-     PairExp6ParamData.fraction2    = typename AT::t_float_1d("PairExp6ParamData.fraction2"   ,np_total);
+     PairExp6ParamData.mixWtSite2    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2"   ,np_total);
      PairExp6ParamData.epsilonOld1  = typename AT::t_float_1d("PairExp6ParamData.epsilonOld1" ,np_total);
      PairExp6ParamData.alphaOld1    = typename AT::t_float_1d("PairExp6ParamData.alphaOld1"   ,np_total);
      PairExp6ParamData.rmOld1       = typename AT::t_float_1d("PairExp6ParamData.rmOld1"      ,np_total);
-     PairExp6ParamData.fractionOld1 = typename AT::t_float_1d("PairExp6ParamData.fractionOld1",np_total);
+     PairExp6ParamData.mixWtSite1old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1old",np_total);
      PairExp6ParamData.epsilonOld2  = typename AT::t_float_1d("PairExp6ParamData.epsilonOld2" ,np_total);
      PairExp6ParamData.alphaOld2    = typename AT::t_float_1d("PairExp6ParamData.alphaOld2"   ,np_total);
      PairExp6ParamData.rmOld2       = typename AT::t_float_1d("PairExp6ParamData.rmOld2"      ,np_total);
-     PairExp6ParamData.fractionOld2 = typename AT::t_float_1d("PairExp6ParamData.fractionOld2",np_total);
+     PairExp6ParamData.mixWtSite2old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2old",np_total);
 
-     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxgetParamsEXP6>(0,np_total),*this);
+     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxgetMixingWeights>(0,np_total),*this);
   }
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
   if (k_error_flag.h_view() == 1)
-    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
+    error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
   else if (k_error_flag.h_view() == 2)
-    error->all(FLERR,"Computed fraction less than -1.0e-10");
+    error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
 
   int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
@@ -249,23 +255,23 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxgetParamsEXP6, const int &i) const {
-  getParamsEXP6 (i, PairExp6ParamData.epsilon1[i],
+void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxgetMixingWeights, const int &i) const {
+  getMixingWeights (i, PairExp6ParamData.epsilon1[i],
                     PairExp6ParamData.alpha1[i],
                     PairExp6ParamData.rm1[i],
-                    PairExp6ParamData.fraction1[i],
+                    PairExp6ParamData.mixWtSite1[i],
                     PairExp6ParamData.epsilon2[i],
                     PairExp6ParamData.alpha2[i],
                     PairExp6ParamData.rm2[i],
-                    PairExp6ParamData.fraction2[i],
+                    PairExp6ParamData.mixWtSite2[i],
                     PairExp6ParamData.epsilonOld1[i],
                     PairExp6ParamData.alphaOld1[i],
                     PairExp6ParamData.rmOld1[i],
-                    PairExp6ParamData.fractionOld1[i],
+                    PairExp6ParamData.mixWtSite1old[i],
                     PairExp6ParamData.epsilonOld2[i],
                     PairExp6ParamData.alphaOld2[i],
                     PairExp6ParamData.rmOld2[i],
-                    PairExp6ParamData.fractionOld2[i]);
+                    PairExp6ParamData.mixWtSite2old[i]);
 }
 
 template<class DeviceType>
@@ -300,10 +306,10 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   double epsilon2_j,alpha2_j,rm2_j;
   double evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
   double evdwlEXP6_12, evdwlEXP6_21;
-  double fractionOld1_i, fractionOld1_j;
-  double fractionOld2_i, fractionOld2_j;
-  double fraction1_i, fraction1_j;
-  double fraction2_i, fraction2_j;
+  double mixWtSite1old_i, mixWtSite1old_j;
+  double mixWtSite2old_i, mixWtSite2old_j;
+  double mixWtSite1_i, mixWtSite1_j;
+  double mixWtSite2_i, mixWtSite2_j;
 
   const int nRep = 12;
   const double shift = 1.05;
@@ -329,19 +335,19 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
      epsilon1_i     = PairExp6ParamData.epsilon1[i];
      alpha1_i       = PairExp6ParamData.alpha1[i];
      rm1_i          = PairExp6ParamData.rm1[i];
-     fraction1_i    = PairExp6ParamData.fraction1[i];
+     mixWtSite1_i    = PairExp6ParamData.mixWtSite1[i];
      epsilon2_i     = PairExp6ParamData.epsilon2[i];
      alpha2_i       = PairExp6ParamData.alpha2[i];
      rm2_i          = PairExp6ParamData.rm2[i];
-     fraction2_i    = PairExp6ParamData.fraction2[i];
+     mixWtSite2_i    = PairExp6ParamData.mixWtSite2[i];
      epsilonOld1_i  = PairExp6ParamData.epsilonOld1[i];
      alphaOld1_i    = PairExp6ParamData.alphaOld1[i];
      rmOld1_i       = PairExp6ParamData.rmOld1[i];
-     fractionOld1_i = PairExp6ParamData.fractionOld1[i];
+     mixWtSite1old_i = PairExp6ParamData.mixWtSite1old[i];
      epsilonOld2_i  = PairExp6ParamData.epsilonOld2[i];
      alphaOld2_i    = PairExp6ParamData.alphaOld2[i];
      rmOld2_i       = PairExp6ParamData.rmOld2[i];
-     fractionOld2_i = PairExp6ParamData.fractionOld2[i];
+     mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
   }
 
   for (jj = 0; jj < jnum; jj++) {
@@ -376,19 +382,19 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
          epsilon1_j     = PairExp6ParamData.epsilon1[j];
          alpha1_j       = PairExp6ParamData.alpha1[j];
          rm1_j          = PairExp6ParamData.rm1[j];
-         fraction1_j    = PairExp6ParamData.fraction1[j];
+         mixWtSite1_j    = PairExp6ParamData.mixWtSite1[j];
          epsilon2_j     = PairExp6ParamData.epsilon2[j];
          alpha2_j       = PairExp6ParamData.alpha2[j];
          rm2_j          = PairExp6ParamData.rm2[j];
-         fraction2_j    = PairExp6ParamData.fraction2[j];
+         mixWtSite2_j    = PairExp6ParamData.mixWtSite2[j];
          epsilonOld1_j  = PairExp6ParamData.epsilonOld1[j];
          alphaOld1_j    = PairExp6ParamData.alphaOld1[j];
          rmOld1_j       = PairExp6ParamData.rmOld1[j];
-         fractionOld1_j = PairExp6ParamData.fractionOld1[j];
+         mixWtSite1old_j = PairExp6ParamData.mixWtSite1old[j];
          epsilonOld2_j  = PairExp6ParamData.epsilonOld2[j];
          alphaOld2_j    = PairExp6ParamData.alphaOld2[j];
          rmOld2_j       = PairExp6ParamData.rmOld2[j];
-         fractionOld2_j = PairExp6ParamData.fractionOld2[j];
+         mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
       }
 
       // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
@@ -489,9 +495,9 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         }
 
         if (isite1 == isite2)
-          evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12;
+          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
         else
-          evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*evdwlOldEXP6_21;
+          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
 
         evdwlOld *= factor_lj;
 
@@ -572,8 +578,8 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         //
         // Apply Mixing Rule to get the overall force for the CG pair
         //
-        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12;
-        else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairOldEXP6_21;
+        if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+        else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
 
         fx_i += delx*fpair;
         fy_i += dely*fpair;
@@ -584,8 +590,8 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
           a_f(j,2) -= delz*fpair;
         }
 
-        if (isite1 == isite2) evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12;
-        else evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12 + sqrt(fraction2_i*fraction1_j)*evdwlEXP6_21;
+        if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+        else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
         evdwl *= factor_lj;
 
         uCGnew_i   += 0.5*evdwl;
@@ -635,6 +641,24 @@ void PairExp6rxKokkos<DeviceType>::allocate()
   k_cutsq.template modify<LMPHostType>();
 
   memory->create(cut,n+1,n+1,"pair:cut_lj");
+}
+
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  PairExp6rx::coeff(narg,arg);
+  
+  if (scalingFlag == POLYNOMIAL)
+    for (int i = 0; i < 6; i++) {
+      s_coeffAlpha[i] = coeffAlpha[i];
+      s_coeffEps[i] = coeffEps[i];
+      s_coeffRm[i] = coeffRm[i];
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -793,7 +817,7 @@ void PairExp6rxKokkos<DeviceType>::setup()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm1, double &fraction1,double &epsilon2,double &alpha2,double &rm2,double &fraction2,double &epsilon1_old,double &alpha1_old,double &rm1_old, double &fraction1_old,double &epsilon2_old,double &alpha2_old,double &rm2_old,double &fraction2_old) const
+void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,double &alpha1,double &rm1, double &mixWtSite1,double &epsilon2,double &alpha2,double &rm2,double &mixWtSite2,double &epsilon1_old,double &alpha1_old,double &rm1_old, double &mixWtSite1old,double &epsilon2_old,double &alpha2_old,double &rm2_old,double &mixWtSite2old) const
 {
   int iparam, jparam;
   double rmi, rmj, rmij, rm3ij;
@@ -801,10 +825,15 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
   double alphai, alphaj, alphaij;
   double epsilon_old, rm3_old, alpha_old;
   double epsilon, rm3, alpha;
-  double fractionOFA, fractionOFA_old;
-  double nTotalOFA, nTotalOFA_old;
-  double nTotal, nTotal_old;
   double xMolei, xMolej, xMolei_old, xMolej_old;
+
+  double fractionOFAold, fractionOFA;
+  double fractionOld1, fraction1;
+  double fractionOld2, fraction2;
+  double nMoleculesOFAold, nMoleculesOFA;
+  double nMoleculesOld1, nMolecules1;
+  double nMoleculesOld2, nMolecules2;
+  double nTotal, nTotalold;
 
   rm3 = 0.0;
   epsilon = 0.0;
@@ -813,32 +842,32 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
   rm3_old = 0.0;
   alpha_old = 0.0;
   fractionOFA = 0.0;
-  fractionOFA_old = 0.0;
-  nTotalOFA = 0.0;
-  nTotalOFA_old = 0.0;
+  fractionOFAold = 0.0;
+  nMoleculesOFA = 0.0;
+  nMoleculesOFAold = 0.0;
   nTotal = 0.0;
-  nTotal_old = 0.0;
+  nTotalold = 0.0;
 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
     nTotal += dvector(ispecies,id);
-    nTotal_old += dvector(ispecies+nspecies,id);
+    nTotalold += dvector(ispecies+nspecies,id);
 
     iparam = d_mol2param[ispecies];
 
     if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
-      nTotalOFA_old += dvector(ispecies+nspecies,id);
-      nTotalOFA += dvector(ispecies,id);
+      nMoleculesOFAold += dvector(ispecies+nspecies,id);
+      nMoleculesOFA += dvector(ispecies,id);
     }
   }
-  if(nTotal < 1e-8 || nTotal_old < 1e-8)
+  if(nTotal < MY_EPSILON || nTotalold < MY_EPSILON)
     k_error_flag.d_view() = 1;
 
   // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
-  fractionOFA_old = nTotalOFA_old / nTotal_old;
-  fractionOFA = nTotalOFA / nTotal;
+  fractionOFAold = nMoleculesOFAold / nTotalold;
+  fractionOFA = nMoleculesOFA / nTotal;
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     iparam = d_mol2param[ispecies];
@@ -854,8 +883,10 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       alpha1 = d_params[iparam].alpha;
 
       // Compute the mole fraction of Site1
-      fraction1_old = dvector(ispecies+nspecies,id)/nTotal_old;
-      fraction1 = dvector(ispecies,id)/nTotal;
+      nMoleculesOld1 = dvector(ispecies+nspecies,id);
+      nMolecules1 = dvector(ispecies,id);
+      fractionOld1 = nMoleculesOld1/nTotalold;
+      fraction1 = nMolecules1/nTotal;
     }
 
     // If Site2 matches a pure species, then grab the parameters
@@ -868,8 +899,9 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       alpha2 = d_params[iparam].alpha;
 
       // Compute the mole fraction of Site2
-      fraction2_old = dvector(ispecies+nspecies,id)/nTotal_old;
-      fraction2 = dvector(ispecies,id)/nTotal;
+      nMoleculesOld2 = dvector(ispecies+nspecies,id);
+      nMolecules2 = dvector(ispecies,id);
+      fractionOld2 = dvector(ispecies+nspecies,id)/nTotalold;
     }
 
     // If Site1 or Site2 matches is a fluid, then compute the paramters
@@ -878,8 +910,10 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       rmi = d_params[iparam].rm;
       epsiloni = d_params[iparam].epsilon;
       alphai = d_params[iparam].alpha;
-      xMolei = dvector(ispecies,id)/nTotalOFA;
-      xMolei_old = dvector(ispecies+nspecies,id)/nTotalOFA_old;
+      if(nMoleculesOFA<MY_EPSILON) xMolei = 0.0;
+      else xMolei = dvector(ispecies,id)/nMoleculesOFA;
+      if(nMoleculesOFAold<MY_EPSILON) xMolei_old = 0.0;
+      else xMolei_old = dvector(ispecies+nspecies,id)/nMoleculesOFAold;
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
         jparam = d_mol2param[jspecies];
@@ -888,15 +922,17 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
         rmj = d_params[jparam].rm;
         epsilonj = d_params[jparam].epsilon;
         alphaj = d_params[jparam].alpha;
-        xMolej = dvector(jspecies,id)/nTotalOFA;
-        xMolej_old = dvector(jspecies+nspecies,id)/nTotalOFA_old;
+        if(nMoleculesOFA<MY_EPSILON) xMolej = 0.0;
+        else xMolej = dvector(jspecies,id)/nMoleculesOFA;
+        if(nMoleculesOFAold<MY_EPSILON) xMolej_old = 0.0;
+        else xMolej_old = dvector(jspecies+nspecies,id)/nMoleculesOFAold;
 
         rmij = (rmi+rmj)/2.0;
         rm3ij = rmij*rmij*rmij;
         epsilonij = sqrt(epsiloni*epsilonj);
         alphaij = sqrt(alphai*alphaj);
 
-        if(fractionOFA_old > 0.0){
+        if(fractionOFAold > 0.0){
           rm3_old += xMolei_old*xMolej_old*rm3ij;
           epsilon_old += xMolei_old*xMolej_old*rm3ij*epsilonij;
           alpha_old += xMolei_old*xMolej_old*rm3ij*epsilonij*alphaij;
@@ -912,7 +948,7 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
 
   if (isOneFluidApprox(isite1)){
     rm1 = cbrt(rm3);
-    if(rm1 < 1e-16) {
+    if(rm1 < MY_EPSILON) {
       rm1 = 0.0;
       epsilon1 = 0.0;
       alpha1 = 0.0;
@@ -920,11 +956,11 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       epsilon1 = epsilon / rm3;
       alpha1 = alpha / epsilon1 / rm3;
     }
-
+    nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
     fraction1 = fractionOFA;
 
     rm1_old = cbrt(rm3_old);
-    if(rm1_old < 1e-16) {
+    if(rm1_old < MY_EPSILON) {
       rm1_old = 0.0;
       epsilon1_old = 0.0;
       alpha1_old = 0.0;
@@ -932,42 +968,21 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       epsilon1_old = epsilon_old / rm3_old;
       alpha1_old = alpha_old / epsilon1_old / rm3_old;
     }
-    fraction1_old = fractionOFA_old;
+    nMoleculesOld1 = 1.0-(nTotalold-nMoleculesOFAold);
+    fractionOld1 = fractionOFAold;
 
-    // Fuchslin-Like Exp-6 Scaling
-    double powfuch = 0.0;
-    if(fuchslinEpsilon < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon1 = 0.0;
-      else epsilon1 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon1_old = 0.0;
-      else epsilon1_old *= 1.0/powfuch;
-
-    } else {
-      epsilon1 *= pow(nTotalOFA,fuchslinEpsilon);
-      epsilon1_old *= pow(nTotalOFA_old,fuchslinEpsilon);
-    }
-
-    if(fuchslinR < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinR);
-      if(powfuch<1e-15) rm1 = 0.0;
-      else rm1 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinR);
-      if(powfuch<1e-15) rm1_old = 0.0;
-      else rm1_old *= 1.0/powfuch;
-
-    } else {
-      rm1 *= pow(nTotalOFA,fuchslinR);
-      rm1_old *= pow(nTotalOFA_old,fuchslinR);
+    if(scalingFlag == EXPONENT){
+      exponentScaling(nMoleculesOFA,epsilon1,rm1);
+      exponentScaling(nMoleculesOFAold,epsilon1_old,rm1_old);
+    } else if(scalingFlag == POLYNOMIAL){
+      polynomialScaling(nMoleculesOFA,alpha1,epsilon1,rm1);
+      polynomialScaling(nMoleculesOFAold,alpha1_old,epsilon1_old,rm1_old);
     }
   }
 
   if (isOneFluidApprox(isite2)){
     rm2 = cbrt(rm3);
-    if(rm2 < 1e-16) {
+    if(rm2 < MY_EPSILON) {
       rm2 = 0.0;
       epsilon2 = 0.0;
       alpha2 = 0.0;
@@ -975,10 +990,11 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       epsilon2 = epsilon / rm3;
       alpha2 = alpha / epsilon2 / rm3;
     }
+    nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
     fraction2 = fractionOFA;
 
     rm2_old = cbrt(rm3_old);
-    if(rm2_old < 1e-16) {
+    if(rm2_old < MY_EPSILON) {
       rm2_old = 0.0;
       epsilon2_old = 0.0;
       alpha2_old = 0.0;
@@ -986,64 +1002,100 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
       epsilon2_old = epsilon_old / rm3_old;
       alpha2_old = alpha_old / epsilon2_old / rm3_old;
     }
-    fraction2_old = fractionOFA_old;
+    nMoleculesOld2 = 1.0-(nTotalold-nMoleculesOFAold);
+    fractionOld2 = fractionOFAold;
 
-    // Fuchslin-Like Exp-6 Scaling
-    double powfuch = 0.0;
-    if(fuchslinEpsilon < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon2 = 0.0;
-      else epsilon2 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon2_old = 0.0;
-      else epsilon2_old *= 1.0/powfuch;
-
-    } else {
-      epsilon2 *= pow(nTotalOFA,fuchslinEpsilon);
-      epsilon2_old *= pow(nTotalOFA_old,fuchslinEpsilon);
-    }
-
-    if(fuchslinR < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinR);
-      if(powfuch<1e-15) rm2 = 0.0;
-      else rm2 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinR);
-      if(powfuch<1e-15) rm2_old = 0.0;
-      else rm2_old *= 1.0/powfuch;
-
-    } else {
-      rm2 *= pow(nTotalOFA,fuchslinR);
-      rm2_old *= pow(nTotalOFA_old,fuchslinR);
+    if(scalingFlag == EXPONENT){
+      exponentScaling(nMoleculesOFA,epsilon2,rm2);
+      exponentScaling(nMoleculesOFAold,epsilon2_old,rm2_old);
+    } else if(scalingFlag == POLYNOMIAL){
+      polynomialScaling(nMoleculesOFA,alpha2,epsilon2,rm2);
+      polynomialScaling(nMoleculesOFAold,alpha2_old,epsilon2_old,rm2_old);
     }
   }
 
   // Check that no fractions are less than zero
-  if(fraction1 < 0.0){
-    if(fraction1 < -1.0e-10){
+  if(fraction1 < 0.0 || nMolecules1 < 0.0){
+    if(fraction1 < -MY_EPSILON || nMolecules1 < -MY_EPSILON){
       k_error_flag.d_view() = 2;
     }
+    nMolecules1 = 0.0;
     fraction1 = 0.0;
   }
-  if(fraction2 < 0.0){
-    if(fraction2 < -1.0e-10){
+  if(fraction2 < 0.0 || nMolecules2 < 0.0){
+    if(fraction2 < -MY_EPSILON || nMolecules2 < -MY_EPSILON){
       k_error_flag.d_view() = 2;
     }
+    nMolecules2 = 0.0;
     fraction2 = 0.0;
   }
-  if(fraction1_old < 0.0){
-    if(fraction1_old < -1.0e-10){
+  if(fractionOld1 < 0.0 || nMoleculesOld1 < 0.0){
+    if(fractionOld1 < -MY_EPSILON || nMoleculesOld1 < -MY_EPSILON){
       k_error_flag.d_view() = 2;
     }
-    fraction1_old = 0.0;
+    nMoleculesOld1 = 0.0;
+    fractionOld1 = 0.0;
   }
-  if(fraction2_old < 0.0){
-    if(fraction2_old < -1.0e-10){
+  if(fractionOld2 < 0.0 || nMoleculesOld2 < 0.0){
+    if(fractionOld2 < -MY_EPSILON || nMoleculesOld2 < -MY_EPSILON){
       k_error_flag.d_view() = 2;
     }
-    fraction2_old = 0.0;
+    nMoleculesOld2 = 0.0;
+    fractionOld2 = 0.0;
   }
+
+  if(fractionalWeighting){
+    mixWtSite1old = fractionOld1;
+    mixWtSite1 = fraction1;
+    mixWtSite2old = fractionOld2;
+    mixWtSite2 = fraction2;
+  } else {
+    mixWtSite1old = nMoleculesOld1;
+    mixWtSite1 = nMolecules1;
+    mixWtSite2old = nMoleculesOld2;
+    mixWtSite2 = nMolecules2;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::exponentScaling(double phi, double &epsilon, double &rm) const
+{
+  double powfuch;
+
+  if(exponentEpsilon < 0.0){
+    powfuch = pow(phi,-exponentEpsilon);
+    if(powfuch<MY_EPSILON) epsilon = 0.0;
+    else epsilon *= 1.0/powfuch;
+  } else {
+    epsilon *= pow(phi,exponentEpsilon);
+  }
+
+  if(exponentR < 0.0){
+    powfuch = pow(phi,-exponentR);
+    if(powfuch<MY_EPSILON) rm = 0.0;
+    else rm *= 1.0/powfuch;
+  } else {
+    rm *= pow(phi,exponentR);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::polynomialScaling(double phi, double &alpha, double &epsilon, double &rm) const
+{
+    double phi2 = phi*phi;
+    double phi3 = phi2*phi;
+    double phi4 = phi2*phi2;
+    double phi5 = phi2*phi3;
+
+    alpha = (s_coeffAlpha[0]*phi5 + s_coeffAlpha[1]*phi4 + s_coeffAlpha[2]*phi3 + s_coeffAlpha[3]*phi2 + s_coeffAlpha[4]*phi + s_coeffAlpha[5]);
+    epsilon *= (s_coeffEps[0]*phi5 + s_coeffEps[1]*phi4 + s_coeffEps[2]*phi3 + s_coeffEps[3]*phi2 + s_coeffEps[4]*phi + s_coeffEps[5]);
+    rm *= (s_coeffEps[0]*phi5 + s_coeffEps[1]*phi4 + s_coeffEps[2]*phi3 + s_coeffEps[3]*phi2 + s_coeffEps[4]*phi + s_coeffEps[5]);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -112,8 +112,8 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   int update_table;
   void create_kokkos_tables();
 
-  DAT::tdual_float_1d k_dHf;
-  typename AT::t_float_1d d_dHf;
+  DAT::tdual_float_1d k_dHf,k_energyCorr,k_tempCorrCoeff,k_moleculeCorrCoeff;
+  typename AT::t_float_1d d_dHf,d_energyCorr,d_tempCorrCoeff,d_moleculeCorrCoeff;
 
   typename AT::t_int_1d mask;
   typename AT::t_efloat_1d uCond,uMech,uChem,uCG,uCGnew,rho,dpdTheta,duChem;

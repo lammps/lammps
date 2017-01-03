@@ -35,8 +35,8 @@ class FixDPDenergyKokkos : public FixDPDenergy {
   virtual void initial_integrate(int);
   virtual void final_integrate();
 
- protected:
   void take_half_step();
+ protected:
   PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
 };
 

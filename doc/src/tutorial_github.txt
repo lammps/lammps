@@ -53,17 +53,18 @@ can include changes from upstream into your repository.
 
 [Adding changes to your own fork]
 
-Additions to the upstream version of LAMMPS are handled using {feature branches}.
-For every new feature, a so-called feature branch is created, which contains only
-those modification relevant to one specific feature. For example, adding a single
-fix would consist of creating a branch with only the fix header and source file
-and nothing else.
-It is explained in more detail here: "feature branch
+Additions to the upstream version of LAMMPS are handled using {feature
+branches}.  For every new feature, a so-called feature branch is
+created, which contains only those modification relevant to one specific
+feature. For example, adding a single fix would consist of creating a
+branch with only the fix header and source file and nothing else.  It is
+explained in more detail here: "feature branch
 workflow"_https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow.
 
 [Feature branches]
 
-First of all, create a clone of your version on github on your local machine via HTTPS
+First of all, create a clone of your version on github on your local
+machine via HTTPS
 
   $ git clone https://github.com/<your user name>/lammps.git <some name> :pre
 
@@ -111,17 +112,19 @@ After everything is done, add the files to the branch and commit them:
   $ git add doc/src/tutorial_github.txt
   $ git add doc/src/JPG/tutorial_*.png :pre
 
-IMPORTANT NOTE: Do not use `git commit -a`.  The -a flag will automatically
-include _all_ modified or new files and that is rarely the behavior you want.
-It can easily create to accidentally adding unrelated and unwanted changes into
-the repository. It is highly preferable to explicitly use `git add`, `git rm`,
-`git mv` for adding, removing, renaming files, respectively, and then `git
-commit` to finalize the commit.  If you find doing this on the command line too
-tedious, consider using a GUI, the one included in git distributions written in
-Tk, i.e. use `git gui`.
+IMPORTANT NOTE: Do not use `git commit -a`.  The -a flag will
+automatically include _all_ modified or new files and that is rarely the
+behavior you want.  It can easily lead to accidentally adding unrelated
+and unwanted changes into the repository.  Instead it is preferable to
+explicitly use `git add`, `git rm`, `git mv` for adding, removing,
+renaming files, respectively, and then `git commit` to finalize the
+commit.  If you find doing this on the command line too tedious,
+consider using a GUI, for example the one included in git distributions
+written in Tk, i.e. use `git gui` (on some Linux distributions it may
+be required to install an additional package to use it).
 
-After adding all files, the change can be committed with some useful message
-that explains the change.
+After adding all files, the change set can be committed with some
+useful message that explains the change.
 
   $ git commit -m 'Finally updated the github tutorial' :pre
 
@@ -213,23 +216,26 @@ repository will automatically become part of the pull request:
 
 :c,image(JPG/tutorial_additional_changes.png)
 
-This means  you can add changes that should be part of the feature after filing the pull request,
-which is useful in case you have forgotten them,
-or if a developer has ruled that something needs to change before the feature can be accepted upstream.
-After each push, the automated checks are run again.
+This means you can add changes that should be part of the feature after
+filing the pull request, which is useful in case you have forgotten
+them, or if a developer has ruled that something needs to change before
+the feature can be accepted upstream.  After each push, the automated
+checks are run again.
 
 [Assignees]
 
-There is also now an assignee label. If the request has not been reviewed
-by any developer yet, it is not assigned to anyone. After revision, a developer
-can choose to assign it to either a) you, b) a LAMMPS developer
-(including him/herself) or c) Steve Plimpton (sjplimp).
+There is an assignee label for pull requests. If the request has not
+been reviewed by any developer yet, it is not assigned to anyone. After
+revision, a developer can choose to assign it to either a) you, b) a
+LAMMPS developer (including him/herself) or c) Steve Plimpton (sjplimp).
 
-Case a) happens if changes are required on your part.
-Case b) means that at the moment, it is being tested and reviewed by a LAMMPS developer.
-After review, the developer can choose to implement changes or suggest them to you.
-Case c) means that the pull request has been assigned to the lead developer Steve Plimpton,
-and means it is considered ready for merging.
+Case a) happens if changes are required on your part :ulb,l
+Case b) means that at the moment, it is being tested and reviewed by a
+LAMMPS developer.  After review, the developer can choose to implement
+changes or suggest them to you. :l
+Case c) means that the pull request has been assigned to the lead
+developer Steve Plimpton, and means it is considered ready for
+merging. :ule,l
 
 In this case, Axel assigned the tutorial to Steve:
 

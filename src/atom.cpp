@@ -390,6 +390,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 {
   delete [] atom_style;
   if (avec) delete avec;
+  atom_style = NULL;
+  avec = NULL;
 
   // unset atom style and array existence flags
   // may have been set by old avec

@@ -454,6 +454,7 @@ pair_multi_lucy_rx.html
 pair_nb3b_harmonic.html
 pair_nm.html
 pair_none.html
+pair_oxdna_excv.html
 pair_peri.html
 pair_polymorphic.html
 pair_quip.html
@@ -492,6 +493,7 @@ pair_zero.html
 bond_class2.html
 bond_fene.html
 bond_fene_expand.html
+bond_oxdna_fene.html
 bond_harmonic.html
 bond_harmonic_shift.html
 bond_harmonic_shift_cut.html

@@ -1301,9 +1301,10 @@ See these doc pages to get started:
 
 "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
 
-Supporting info: /src/USER-CGDNA/README
+Supporting info: /src/USER-CGDNA/README, "bond_style oxdna_fene"_bond_oxdna_fene.html,
+"pair_style oxdna_excv"_pair_oxdna_excv.html, "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
 
-Author: Oliver Henrich at the University of Edinburgh, UK (ohenrich
+Author: Oliver Henrich at the University of Edinburgh, UK (o.henrich
 at epcc.ed.ac.uk or ohenrich at ph.ed.ac.uk). Contact him directly 
 if you have any questions. 
 

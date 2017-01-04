@@ -997,12 +997,12 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    if (EVFLAG) {
               xH1 = x[iH1];
               xH2 = x[iH2];
-	      v[0] = x[i].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] = x[i].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] = x[i].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] = x[i].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] = x[i].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] = x[i].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+	      v[0] = x[i].x*fO[0] + xH1.x*fH[0] + xH2.x*fH[0];
+	      v[1] = x[i].y*fO[1] + xH1.y*fH[1] + xH2.y*fH[1];
+	      v[2] = x[i].z*fO[2] + xH1.z*fH[2] + xH2.z*fH[2];
+	      v[3] = x[i].x*fO[1] + xH1.x*fH[1] + xH2.x*fH[1];
+	      v[4] = x[i].x*fO[2] + xH1.x*fH[2] + xH2.x*fH[2];
+	      v[5] = x[i].y*fO[2] + xH1.y*fH[2] + xH2.y*fH[2];
 	    }
 	    vlist[n++] = i;
 	    vlist[n++] = iH1;
@@ -1054,12 +1054,12 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    if (EVFLAG) {
               xH1 = x[jH1];
               xH2 = x[jH2];
-	      v[0] += x[j].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] += x[j].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] += x[j].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] += x[j].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] += x[j].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] += x[j].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+	      v[0] += x[j].x*fO[0] + xH1.x*fH[0] + xH2.x*fH[0];
+	      v[1] += x[j].y*fO[1] + xH1.y*fH[1] + xH2.y*fH[1];
+	      v[2] += x[j].z*fO[2] + xH1.z*fH[2] + xH2.z*fH[2];
+	      v[3] += x[j].x*fO[1] + xH1.x*fH[1] + xH2.x*fH[1];
+	      v[4] += x[j].x*fO[2] + xH1.x*fH[2] + xH2.x*fH[2];
+	      v[5] += x[j].y*fO[2] + xH1.y*fH[2] + xH2.y*fH[2];
             }
       	    vlist[n++] = j;
 	    vlist[n++] = jH1;

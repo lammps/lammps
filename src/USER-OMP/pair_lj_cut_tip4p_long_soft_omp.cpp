@@ -131,7 +131,8 @@ void PairLJCutTIP4PLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
   double denc, denlj, r4sig6;
   double v[6];
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
-  dbl3_t x1,x2,xH1,xH2;
+  dbl3_t x1,x2;
+  double *xH1,*xH2;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
   int i,j,ii,jj,jnum,itype,jtype,key;

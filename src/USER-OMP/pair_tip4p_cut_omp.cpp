@@ -321,12 +321,12 @@ void PairTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (VFLAG) {
               xH1 = x[iH1];
               xH2 = x[iH2];
-              v[0] = x[i].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
-              v[1] = x[i].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
-              v[2] = x[i].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
-              v[3] = x[i].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
-              v[4] = x[i].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
-              v[5] = x[i].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              v[0] = x[i].x*fOx + xH1.x*fHx + xH2.x*fHx;
+              v[1] = x[i].y*fOy + xH1.y*fHy + xH2.y*fHy;
+              v[2] = x[i].z*fOz + xH1.z*fHz + xH2.z*fHz;
+              v[3] = x[i].x*fOy + xH1.x*fHy + xH2.x*fHy;
+              v[4] = x[i].x*fOz + xH1.x*fHz + xH2.x*fHz;
+              v[5] = x[i].y*fOz + xH1.y*fHz + xH2.y*fHz;
             }
             if (EVFLAG) {
               vlist[n++] = i;
@@ -380,12 +380,12 @@ void PairTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (VFLAG) {
               xH1 = x[jH1];
               xH2 = x[jH2];
-              v[0] += x[j].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
-              v[1] += x[j].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
-              v[2] += x[j].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
-              v[3] += x[j].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
-              v[4] += x[j].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
-              v[5] += x[j].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              v[0] += x[j].x*fOx + xH1.x*fHx + xH2.x*fHx;
+              v[1] += x[j].y*fOy + xH1.y*fHy + xH2.y*fHy;
+              v[2] += x[j].z*fOz + xH1.z*fHz + xH2.z*fHz;
+              v[3] += x[j].x*fOy + xH1.x*fHy + xH2.x*fHy;
+              v[4] += x[j].x*fOz + xH1.x*fHz + xH2.x*fHz;
+              v[5] += x[j].y*fOz + xH1.y*fHz + xH2.y*fHz;
             }
             if (EVFLAG) {
               vlist[n++] = j;

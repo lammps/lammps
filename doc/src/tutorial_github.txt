@@ -120,7 +120,7 @@ commit` to finalize the commit.  If you find doing this on the command line too
 tedious, consider using a GUI, the one included in git distributions written in
 Tk, i.e. use `git gui`.
 
-After adding all files, the change can be commited with some useful message
+After adding all files, the change can be committed with some useful message
 that explains the change.
 
   $ git commit -m 'Finally updated the github tutorial' :pre
@@ -172,17 +172,31 @@ request" button, see image.
 Before creating the pull request, make sure the short title is accurate
 and add a comment with details about your pull request.
 I guess here you write what your modifications do and why they should
-be incorporated upstream. After that, click the "Create pull request"
-button, see image below.
+be incorporated upstream.
 
-Now just write some nice comments, click on "Create pull request".
+Note the checkbox that says "Allow edits from maintainers".
+This is checked by default checkbox (although in my version of Firefox, only the checkmark is visible):
+
+:c,image(JPG/tutorial_edits_maintainers.png)
+
+If it is checked, maintainers can immediately add their own edits to the pull request.
+This helps the inclusion of your branch significantly, as simple/trivial changes can be made by the maintainers directly.
+The alternative would be that they make changes on their own version of the branch and file a reverse pull request to you.
+Just leave this box checked unless you have a very good reason not to.
+
+Now just write some nice comments and click on "Create pull request".
 
 :c,image(JPG/tutorial_create_new_pull_request2.png)
 
+:line
+
 [After filing a pull request]
 
-You will notice some that after filing the pull request,
-some checks are performed automatically:
+NOTE: When you submit a pull request (or ask for a pull request), you will receive an
+invitation to become a LAMMPS project collaborator. This will simplify certain
+administrative tasks and will probably speed up the merging of your feature.
+
+You will notice that after filing the pull request, some checks are performed automatically:
 
 :c,image(JPG/tutorial_automated_checks.png)
 
@@ -190,18 +204,21 @@ If all is fine, you will see this:
 
 :c,image(JPG/tutorial_automated_checks_passed.png)
 
-A few further interesting things (can) happen to pull requests before
-they are included.
+A few further interesting things (can) happen to pull requests before they are included.
+
+[Additional changes]
 
 First of all, any additional changes you push into your branch in your
 repository will automatically become part of the pull request:
 
 :c,image(JPG/tutorial_additional_changes.png)
 
-This is useful because it allows you to add parts that should be part of
-the feature after filing the pull request in case you have forgotten them,
-or after a developer has ruled that something needs to change.
+This means  you can add changes that should be part of the feature after filing the pull request,
+which is useful in case you have forgotten them,
+or if a developer has ruled that something needs to change before the feature can be accepted upstream.
 After each push, the automated checks are run again.
+
+[Assignees]
 
 There is also now an assignee label. If the request has not been reviewed
 by any developer yet, it is not assigned to anyone. After revision, a developer
@@ -211,33 +228,25 @@ can choose to assign it to either a) you, b) a LAMMPS developer
 Case a) happens if changes are required on your part.
 Case b) means that at the moment, it is being tested and reviewed by a LAMMPS developer.
 After review, the developer can choose to implement changes or suggest them to you.
-Case c) means that the pull request has been assigned to the lead developer, and means
-it is considered ready for merging.
+Case c) means that the pull request has been assigned to the lead developer Steve Plimpton,
+and means it is considered ready for merging.
 
-NOTE: When you submit a pull request (or ask for a pull request), you will receive an
-invitation to become a LAMMPS project collaborator. This will simplify certain
-administrative tasks and will probably speed up the merging of your feature.
-If you allow LAMMPS maintainers to push into your branch, they can, at the time
-of review, push changes they deem necessary into your branch. This can significantly
-speed up the procedure if only small fixes are required. In this case, akohlmey and
-rbberger made use of this to add some changes to improve this feature even before it
-is merged into the main distribution:
-
-:c,image(JPG/tutorial_changes_others.png)
-
-After the developers review the pull request, they typically assign
-it to someone, the {assignee}. For this pull request, the assignee is
-sjplimp.
+In this case, Axel assigned the tutorial to Steve:
 
 :c,image(JPG/tutorial_steve_assignee.png)
 
+[Edits from LAMMPS maintainers]
+
+If you allowed edits from maintainers (the default), any LAMMPS maintainer can add changes to your pull request.
+In this case, both Axel and Richard made changes to the tutorial:
+
+:c,image(JPG/tutorial_changes_others.png)
 
 :line
 
 [After a merge]
 
-When everything is fine the feature branch is merged into the LAMMPS
-repositories:
+When everything is fine, the feature branch is merged into the master branch.
 
 :c,image(JPG/tutorial_merged.png)
 

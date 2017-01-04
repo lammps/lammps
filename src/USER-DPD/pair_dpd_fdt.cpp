@@ -182,7 +182,7 @@ void PairDPDfdt::compute(int eflag, int vflag)
           wr = 1.0 - r/cut[itype][jtype];
           wd = wr*wr;
           randnum = random->gaussian();
-	  gamma_ij = sigma[itype][jtype]*sigma[itype][jtype]
+          gamma_ij = sigma[itype][jtype]*sigma[itype][jtype]
                      / (2.0*force->boltz*temperature);
 
           // conservative force = a0 * wd

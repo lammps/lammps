@@ -1369,6 +1369,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
                "with ghost neighbors");
 
   // flags for settings the request + system requires of NPair class
+  // some are set to 0/1, others are set to mask bit
+  // comparisons below in loop over classes reflect that
   //   copyflag = no/yes copy request
   //   skipflag = no/yes skip request
   //   halfflag = half request (gran and respa are also half lists)
@@ -1402,7 +1404,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
   // NOTE: exactly one of these request flags is set (see neigh_request.h)
   //       this requires gran/respaouter also set halfflag
   //       can simplify this logic, if follow NOTE in neigh_request.h
-  //       all why do size/off2on and size/off2on/oneside set NP_HALF
+  //       why do size/off2on and size/off2on/oneside set NP_HALF
   //         either should set both half & full, or half should be in file name
   //         to be consistent with how other NP classes use "half"
 
@@ -1433,9 +1435,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
   else if (rq->newton == 1) newtflag = 1;
   else if (rq->newton == 2) newtflag = 0;
 
-  // use flags to match exactly one of NPair class masks, bit by bit
-  // copyflag match returns with no further checks
-  // exactly one of halfflag,fullflag,halffullflag is set and thus must match
+  // use flags to match exactly one of NPair class masks
+  // sequence of checks is bit by bit in NeighConst
 
   int mask;
 
@@ -1447,12 +1448,20 @@ int Neighbor::choose_pair(NeighRequest *rq)
   for (int i = 0; i < npclass; i++) {
     mask = pairmasks[i];
 
-    if (copyflag && (mask & NP_COPY)) {
+    // if copyflag set, return or continue with no further checks
+
+    if (copyflag) {
+      if (!(mask & NP_COPY)) continue;
       if (kokkos_device_flag != (mask & NP_KOKKOS_DEVICE)) continue;
       if (kokkos_host_flag != (mask & NP_KOKKOS_HOST)) continue;
       return i+1;
     }
+
+    // skipflag must match along with other flags, so do not return
+
     if (skipflag != (mask & NP_SKIP)) continue;
+
+    // exactly one of halfflag,fullflag,halffullflag is set and must match
 
     if (halfflag) {
       if (!(mask & NP_HALF)) continue;
@@ -1470,18 +1479,37 @@ int Neighbor::choose_pair(NeighRequest *rq)
     if (ssaflag != (mask & NP_SSA)) continue;
     if (ompflag != (mask & NP_OMP)) continue;
     if (intelflag != (mask & NP_INTEL)) continue;
+
+    // style is one of NSQ,BIN,MULTI and must match
+
+    if (style == NSQ) {
+      if (!(mask & NP_NSQ)) continue;
+    } else if (style == BIN) {
+      if (!(mask & NP_BIN)) continue;
+    } else if (style == MULTI) {
+      if (!(mask & NP_MULTI)) continue;
+    }
+
+    // newtflag is on or off and must match
+
+    if (newtflag) {
+      if (!(mask & NP_NEWTON)) continue;
+    } else if (!newtflag) {
+      if (!(mask & NP_NEWTOFF)) continue;
+    }
+
+    // triclinic flag is on or off and must match
+
+    if (triclinic) {
+      if (!(mask & NP_TRI)) continue;
+    } else if (!triclinic) {
+      if (!(mask & NP_ORTHO)) continue;
+    }
+
+    // Kokkos flags
+
     if (kokkos_device_flag != (mask & NP_KOKKOS_DEVICE)) continue;
     if (kokkos_host_flag != (mask & NP_KOKKOS_HOST)) continue;
-
-    if (style == NSQ && !(mask & NP_NSQ)) continue;
-    if (style == BIN && !(mask & NP_BIN)) continue;
-    if (style == MULTI && !(mask & NP_MULTI)) continue;
-
-    if (newtflag && !(mask & NP_NEWTON)) continue;
-    if (!newtflag && !(mask & NP_NEWTOFF)) continue;
-
-    if (!triclinic && !(mask & NP_ORTHO)) continue;
-    if (triclinic && !(mask & NP_TRI)) continue;
 
     return i+1;
   }

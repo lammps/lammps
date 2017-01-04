@@ -54,6 +54,7 @@ PairTableKokkos<DeviceType>::~PairTableKokkos()
 {
   delete h_table;
   delete d_table;
+  copymode = true; //prevents base class destructor from running
 }
 
 /* ---------------------------------------------------------------------- */
@@ -345,10 +346,18 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
 template<class DeviceType>
 void PairTableKokkos<DeviceType>::allocate()
 {
-  PairTable::allocate();
+  allocated = 1;
+  const int nt = atom->ntypes + 1;
+
+  memory->create(setflag,nt,nt,"pair:setflag");
+  memory->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
+  memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
 
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
+  memset(&setflag[0][0],0,nt*nt*sizeof(int));
+  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
+  memset(&tabindex[0][0],0,nt*nt*sizeof(int));
 }
 
 /* ----------------------------------------------------------------------

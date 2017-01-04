@@ -93,15 +93,6 @@ class PairTableKokkos : public PairTable {
     typename ArrayTypes<LMPHostType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
   };
 
-  struct Table {
-    int ninput,rflag,fpflag,match,ntablebits;
-    int nshiftbits,nmask;
-    double rlo,rhi,fplo,fphi,cut;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double innersq,delta,invdelta,deltasq6;
-    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
-  };
   TableDeviceConst d_table_const;
   TableDevice* d_table;
   TableHost* h_table;

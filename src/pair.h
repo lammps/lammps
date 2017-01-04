@@ -32,6 +32,8 @@ class Pair : protected Pointers {
   friend class Info;
 
  public:
+  enum{NONE,RLINEAR,RSQ,BMP};
+
   static int instance_total;     // # of Pair classes ever instantiated
 
   double eng_vdwl,eng_coul;      // accumulated energies

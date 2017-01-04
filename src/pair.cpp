@@ -43,8 +43,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{NONE,RLINEAR,RSQ,BMP};
-
 // allocate space for static class instance variable and initialize it
 
 int Pair::instance_total = 0;

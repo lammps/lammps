@@ -148,6 +148,7 @@ or using an explicit URL:
 $ git push git@github.com:Pakketeretet2/lammps.git :pre
 
 [Filing a pull request]
+
 Up to this point in the tutorial, all changes were to {your} clones of LAMMPS.
 Eventually, however, you want this feature to be included again upstream.
 To do this, you will want to file a pull request by clicking on the
@@ -174,14 +175,14 @@ I guess here you write what your modifications do and why they should
 be incorporated upstream. After that, click the "Create pull request"
 button, see image below.
 
-Now just write some nice comments, click on "Create pull request", and that is it.
-It is now up to the maintainer(s) of the upstream repository to
-incorporate the changes into the repository and to close the pull
-request.
+Now just write some nice comments, click on "Create pull request".
 
 :c,image(JPG/tutorial_create_new_pull_request2.png)
 
-You will notice some that some checks are performed automatically:
+[After filing a pull request]
+
+You will notice some that after filing the pull request,
+some checks are performed automatically:
 
 :c,image(JPG/tutorial_automated_checks.png)
 
@@ -189,14 +190,47 @@ If all is fine, you will see this:
 
 :c,image(JPG/tutorial_automated_checks_passed.png)
 
+A few further interesting things (can) happen to pull requests before
+they are included.
 
-:line
+First of all, any additional changes you push into your branch in your
+repository will automatically become part of the pull request:
 
-[Additional changes]
+:c,image(JPG/tutorial_additional_changes.png)
 
-Before the pull request is accepted, any additional changes you push
-into your repository will automatically become part of the pull
-request.
+This is useful because it allows you to add parts that should be part of
+the feature after filing the pull request in case you have forgotten them,
+or after a developer has ruled that something needs to change.
+After each push, the automated checks are run again.
+
+There is also now an assignee label. If the request has not been reviewed
+by any developer yet, it is not assigned to anyone. After revision, a developer
+can choose to assign it to either a) you, b) a LAMMPS developer
+(including him/herself) or c) Steve Plimpton (sjplimp).
+
+Case a) happens if changes are required on your part.
+Case b) means that at the moment, it is being tested and reviewed by a LAMMPS developer.
+After review, the developer can choose to implement changes or suggest them to you.
+Case c) means that the pull request has been assigned to the lead developer, and means
+it is considered ready for merging.
+
+NOTE: When you submit a pull request (or ask for a pull request), you will receive an
+invitation to become a LAMMPS project collaborator. This will simplify certain
+administrative tasks and will probably speed up the merging of your feature.
+If you allow LAMMPS maintainers to push into your branch, they can, at the time
+of review, push changes they deem necessary into your branch. This can significantly
+speed up the procedure if only small fixes are required. In this case, akohlmey and
+rbberger made use of this to add some changes to improve this feature even before it
+is merged into the main distribution:
+
+:c,image(JPG/tutorial_changes_others.png)
+
+After the developers review the pull request, they typically assign
+it to someone, the {assignee}. For this pull request, the assignee is
+sjplimp.
+
+:c,image(JPG/tutorial_steve_assignee.png)
+
 
 :line
 

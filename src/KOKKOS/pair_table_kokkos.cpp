@@ -52,8 +52,11 @@ PairTableKokkos<DeviceType>::PairTableKokkos(LAMMPS *lmp) : PairTable(lmp)
 template<class DeviceType>
 PairTableKokkos<DeviceType>::~PairTableKokkos()
 {
+  if (copymode) return;
   delete h_table;
+  h_table = nullptr;
   delete d_table;
+  d_table = nullptr;
   copymode = true; //prevents base class destructor from running
 }
 
@@ -306,34 +309,61 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
 
 
   Kokkos::deep_copy(d_table->nshiftbits,h_table->nshiftbits);
-  Kokkos::deep_copy(d_table->nmask,h_table->nmask);
-  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
-  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
-  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
-  Kokkos::deep_copy(d_table->rsq,h_table->rsq);
-  Kokkos::deep_copy(d_table->drsq,h_table->drsq);
-  Kokkos::deep_copy(d_table->e,h_table->e);
-  Kokkos::deep_copy(d_table->de,h_table->de);
-  Kokkos::deep_copy(d_table->f,h_table->f);
-  Kokkos::deep_copy(d_table->df,h_table->df);
-  Kokkos::deep_copy(d_table->e2,h_table->e2);
-  Kokkos::deep_copy(d_table->f2,h_table->f2);
-  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
-
   d_table_const.nshiftbits = d_table->nshiftbits;
+  Kokkos::deep_copy(d_table->nmask,h_table->nmask);
   d_table_const.nmask = d_table->nmask;
+  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
   d_table_const.innersq = d_table->innersq;
+  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
   d_table_const.invdelta = d_table->invdelta;
+  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
   d_table_const.deltasq6 = d_table->deltasq6;
-  d_table_const.rsq = d_table->rsq;
-  d_table_const.drsq = d_table->drsq;
-  d_table_const.e = d_table->e;
-  d_table_const.de = d_table->de;
-  d_table_const.f = d_table->f;
-  d_table_const.df = d_table->df;
-  d_table_const.e2 = d_table->e2;
-  d_table_const.f2 = d_table->f2;
 
+  if(tabstyle == LOOKUP) {
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+  }
+
+  if(tabstyle == LINEAR) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->de,h_table->de);
+    Kokkos::deep_copy(d_table->df,h_table->df);
+  }
+
+  if(tabstyle == SPLINE) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->e2,h_table->e2);
+    d_table_const.e2 = d_table->e2;
+    Kokkos::deep_copy(d_table->f2,h_table->f2);
+    d_table_const.f2 = d_table->f2;
+  }
+
+  if(tabstyle == BITMAP) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->de,h_table->de);
+    d_table_const.de = d_table->de;
+    Kokkos::deep_copy(d_table->df,h_table->df);
+    d_table_const.df = d_table->df;
+    Kokkos::deep_copy(d_table->drsq,h_table->drsq);
+    d_table_const.drsq = d_table->drsq;
+  }
 
   Kokkos::deep_copy(d_table->cutsq,h_table->cutsq);
   update_table = 0;

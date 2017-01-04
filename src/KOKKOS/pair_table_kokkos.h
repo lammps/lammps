@@ -54,7 +54,6 @@ class PairTableKokkos : public PairTable {
   void compute_style(int, int);
 
   void settings(int, char **);
-  void coeff(int, char **);
   double init_one(int, int);
 
   void init_style();
@@ -112,14 +111,7 @@ class PairTableKokkos : public PairTable {
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
   virtual void allocate();
-  void param_extract(Table *, char *);
-  void bcast_table(Table *);
-  void spline_table(Table *);
   void compute_table(Table *);
-  void null_table(Table *);
-  void free_table(Table *);
-  void spline(double *, double *, int, double, double, double *);
-  double splint(double *, double *, double *, int, double);
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array_const c_x;

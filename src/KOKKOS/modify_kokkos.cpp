@@ -151,7 +151,7 @@ void ModifyKokkos::setup_pre_force(int vflag)
    called from Verlet, RESPA, Min
 ------------------------------------------------------------------------- */
 
-void Modify::setup_pre_reverse(int eflag, int vflag)
+void ModifyKokkos::setup_pre_reverse(int eflag, int vflag)
 {
   if (update->whichflag == 1)
     for (int i = 0; i < n_pre_reverse; i++) {
@@ -257,6 +257,23 @@ void ModifyKokkos::pre_force(int vflag)
     lmp->kokkos->auto_sync = 0;
     atomKK->modified(fix[list_pre_force[i]]->execution_space,
                      fix[list_pre_force[i]]->datamask_modify);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pre_reverse call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::pre_reverse(int eflag, int vflag)
+{
+  for (int i = 0; i < n_pre_reverse; i++) {
+    atomKK->sync(fix[list_pre_reverse[i]]->execution_space,
+                 fix[list_pre_reverse[i]]->datamask_read);
+    if (!fix[list_pre_reverse[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_pre_reverse[i]]->pre_reverse(eflag,vflag);
+    lmp->kokkos->auto_sync = 0;
+    atomKK->modified(fix[list_pre_reverse[i]]->execution_space,
+                     fix[list_pre_reverse[i]]->datamask_modify);
   }
 }
 
@@ -502,6 +519,23 @@ void ModifyKokkos::min_pre_force(int vflag)
     lmp->kokkos->auto_sync = 0;
     atomKK->modified(fix[list_min_pre_force[i]]->execution_space,
                      fix[list_min_pre_force[i]]->datamask_modify);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   minimizer pre-reverse call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::min_pre_reverse(int eflag, int vflag)
+{
+  for (int i = 0; i < n_min_pre_reverse; i++) {
+    atomKK->sync(fix[list_min_pre_reverse[i]]->execution_space,
+                 fix[list_min_pre_reverse[i]]->datamask_read);
+    if (!fix[list_min_pre_reverse[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_min_pre_reverse[i]]->min_pre_reverse(eflag,vflag);
+    lmp->kokkos->auto_sync = 0;
+    atomKK->modified(fix[list_min_pre_reverse[i]]->execution_space,
+                     fix[list_min_pre_reverse[i]]->datamask_modify);
   }
 }
 

@@ -29,6 +29,13 @@
 
 #define MAXLINE 1024
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -51,11 +58,31 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
   k_warning_flag = DAT::tdual_int_scalar("fix:warning_flag");
 
   k_dHf = DAT::tdual_float_1d("fix:dHf",nspecies);
-  for (int n = 0; n < nspecies; n++)
+  k_energyCorr = DAT::tdual_float_1d("fix:energyCorr",nspecies);
+  k_tempCorrCoeff = DAT::tdual_float_1d("fix:tempCorrCoeff",nspecies);
+  k_moleculeCorrCoeff = DAT::tdual_float_1d("fix:moleculeCorrCoeff",nspecies);
+  for (int n = 0; n < nspecies; n++) {
     k_dHf.h_view(n) = dHf[n];
+    k_energyCorr.h_view(n) = energyCorr[n];
+    k_tempCorrCoeff.h_view(n) = tempCorrCoeff[n];
+    k_moleculeCorrCoeff.h_view(n) = moleculeCorrCoeff[n];
+  }
+
   k_dHf.modify<LMPHostType>();
   k_dHf.sync<DeviceType>();
   d_dHf = k_dHf.view<DeviceType>();
+
+  k_energyCorr.modify<LMPHostType>();
+  k_energyCorr.sync<DeviceType>();
+  d_energyCorr = k_energyCorr.view<DeviceType>();
+
+  k_tempCorrCoeff.modify<LMPHostType>();
+  k_tempCorrCoeff.sync<DeviceType>();
+  d_tempCorrCoeff = k_tempCorrCoeff.view<DeviceType>();
+
+  k_moleculeCorrCoeff.modify<LMPHostType>();
+  k_moleculeCorrCoeff.sync<DeviceType>();
+  d_moleculeCorrCoeff = k_moleculeCorrCoeff.view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,11 +295,27 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, double thetai, double &ui) const
 {
-  int itable;
-  double fraction, uTmp, nTotal;
+  int itable, nPG;
+  double fraction, uTmp, nMolecules, nTotal, nTotalPG;
+  double tolerance = 1.0e-10;
 
   ui = 0.0;
   nTotal = 0.0;
+  nTotalPG = 0.0;
+  nPG = 0;
+
+  if (rx_flag) {
+    for (int ispecies = 0; ispecies < nspecies; ispecies++ ) {
+      nTotal += dvector(ispecies,id);
+      if (fabs(d_moleculeCorrCoeff[ispecies]) > tolerance) {
+        nPG++;
+        nTotalPG += dvector(ispecies,id);
+      }
+    }
+  } else {
+    nTotal = 1.0;
+  }
+
   for(int ispecies=0;ispecies<nspecies;ispecies++){
     //Table *tb = &tables[ispecies];
     //thetai = MAX(thetai,tb->lo);
@@ -289,9 +332,13 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, double thetai, doubl
       uTmp = d_table_const.e(ispecies,itable) + fraction*d_table_const.de(ispecies,itable);
 
       uTmp += d_dHf[ispecies];
-      // mol fraction form:
-      ui += dvector(ispecies,id)*uTmp;
-      nTotal += dvector(ispecies,id);
+      uTmp += d_tempCorrCoeff[ispecies]*thetai; // temperature correction
+      uTmp += d_energyCorr[ispecies]; // energy correction
+      if (nPG > 0) ui += d_moleculeCorrCoeff[ispecies]*nTotalPG/double(nPG); // molecule correction
+
+      if (rx_flag) nMolecules = dvector(ispecies,id);
+      else nMolecules = 1.0;
+      ui += nMolecules*uTmp;
     }
   }
   ui = ui - double(nTotal+1.5)*boltz*thetai;
@@ -312,6 +359,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   double maxit = 100;
   double temp;
   double delta = 0.001;
+  double tolerance = 1.0e-10;
   int lo = d_table_const.lo(0);
   int hi = d_table_const.hi(0);
 
@@ -337,7 +385,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
 
   // Apply the Secant Method
   for(it=0; it<maxit; it++){
-    if(fabs(f2-f1)<1e-15){
+    if(fabs(f2-f1) < MY_EPSILON){
       if(isnan(f1) || isnan(f2)) k_error_flag.d_view() = 2;
       temp = t1;
       temp = MAX(temp,lo);
@@ -346,7 +394,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
-    if(fabs(temp-t2) < 1e-6) break;
+    if(fabs(temp-t2) < tolerance) break;
     f1 = f2;
     t1 = t2;
     t2 = temp;

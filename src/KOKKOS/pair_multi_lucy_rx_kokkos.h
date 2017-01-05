@@ -32,7 +32,7 @@ namespace LAMMPS_NS {
 struct TagPairMultiLucyRXPackForwardComm{};
 struct TagPairMultiLucyRXUnpackForwardComm{};
 
-struct TagPairMultiLucyRXgetParams{};
+struct TagPairMultiLucyRXgetMixingWeights{};
 
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
 struct TagPairMultiLucyRXCompute{};
@@ -75,7 +75,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   void operator()(TagPairMultiLucyRXUnpackForwardComm, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairMultiLucyRXgetParams, const int&) const;
+  void operator()(TagPairMultiLucyRXgetMixingWeights, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
   KOKKOS_INLINE_FUNCTION
@@ -154,9 +154,9 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   void create_kokkos_tables();
 
   KOKKOS_INLINE_FUNCTION
-  void getParams(int, double &, double &, double &, double &) const;
+  void getMixingWeights(int, double &, double &, double &, double &) const;
 
-  typename AT::t_float_1d d_fractionOld1,d_fractionOld2,d_fraction1,d_fraction2;
+  typename AT::t_float_1d d_mixWtSite1old,d_mixWtSite2old,d_mixWtSite1,d_mixWtSite2;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;

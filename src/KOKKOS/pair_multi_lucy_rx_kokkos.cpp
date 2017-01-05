@@ -45,6 +45,12 @@ enum{NONE,RLINEAR,RSQ};
 
 #define MAXLINE 1024
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
 #define oneFluidParameter (-1)
 #define isOneFluid(_site) ( (_site) == oneFluidParameter )
 
@@ -187,12 +193,12 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
 
   {
     const int ntotal = nlocal + nghost;
-    d_fractionOld1 = typename AT::t_float_1d("PairMultiLucyRX::fractionOld1",ntotal);
-    d_fractionOld2 = typename AT::t_float_1d("PairMultiLucyRX::fractionOld2",ntotal);
-    d_fraction1 = typename AT::t_float_1d("PairMultiLucyRX::fraction1",ntotal);
-    d_fraction2 = typename AT::t_float_1d("PairMultiLucyRX::fraction2",ntotal);
+    d_mixWtSite1old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1old",ntotal);
+    d_mixWtSite2old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2old",ntotal);
+    d_mixWtSite1 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1",ntotal);
+    d_mixWtSite2 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2",ntotal);
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXgetParams>(0,ntotal),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXgetMixingWeights>(0,ntotal),*this);
   }
 
   const int inum = list->inum;
@@ -259,8 +265,8 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXgetParams, const int &i) const {
-  getParams(i, d_fractionOld1[i], d_fractionOld2[i], d_fraction1[i], d_fraction2[i]);
+void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXgetMixingWeights, const int &i) const {
+  getMixingWeights(i, d_mixWtSite1old[i], d_mixWtSite2old[i], d_mixWtSite1[i], d_mixWtSite2[i]);
 }
 
 template<class DeviceType>
@@ -275,9 +281,9 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
   double rsq;
 
-  double fractionOld1_i,fractionOld1_j;
-  double fractionOld2_i,fractionOld2_j;
-  double fraction1_i;
+  double mixWtSite1old_i,mixWtSite1old_j;
+  double mixWtSite2old_i,mixWtSite2old_j;
+  double mixWtSite1_i;
 
   double pi = MathConst::MY_PI;
   double A_i, A_j;
@@ -297,9 +303,9 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   double fy_i = 0.0;
   double fz_i = 0.0;
 
-  fractionOld1_i = d_fractionOld1[i];
-  fractionOld2_i = d_fractionOld2[i];
-  fraction1_i = d_fraction1[i];
+  mixWtSite1old_i = d_mixWtSite1old[i];
+  mixWtSite2old_i = d_mixWtSite2old[i];
+  mixWtSite1_i = d_mixWtSite1[i];
 
   for (jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -314,8 +320,8 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
     if (rsq < d_cutsq(itype,jtype)) { // optimize
       fpair = 0.0;
 
-      fractionOld1_j = d_fractionOld1[j];
-      fractionOld2_j = d_fractionOld2[j];
+      mixWtSite1old_j = d_mixWtSite1old[j];
+      mixWtSite2old_j = d_mixWtSite2old[j];
 
       //tb = &tables[tabindex[itype][jtype]];
       const int tidx = d_table_const.tabindex(itype,jtype);
@@ -376,8 +382,8 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 
       } else k_error_flag.d_view() = 3;
 
-      if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
-      else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
+      if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpair;
+      else fpair = (sqrt(mixWtSite1old_i*mixWtSite2old_j) + sqrt(mixWtSite2old_i*mixWtSite1old_j))*fpair;
 
       fx_i += delx*fpair;
       fy_i += dely*fpair;
@@ -415,8 +421,8 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   } else k_error_flag.d_view() = 3;
 
   evdwl *=(pi*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
-  evdwlOld = fractionOld1_i*evdwl;
-  evdwl = fraction1_i*evdwl;
+  evdwlOld = mixWtSite1old_i*evdwl;
+  evdwl = mixWtSite1_i*evdwl;
 
   uCG[i] += evdwlOld;
   uCGnew[i] += evdwl;
@@ -565,9 +571,14 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::getParams(int id, double &fractionOld1, double &fractionOld2, double &fraction1, double &fraction2) const
+void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSite1old, double &mixWtSite2old, double &mixWtSite1, double &mixWtSite2) const
 {
-  double fractionOld, fraction;
+  double fractionOFAold, fractionOFA;
+  double fractionOld1, fraction1;
+  double fractionOld2, fraction2;
+  double nMoleculesOFAold, nMoleculesOFA;
+  double nMoleculesOld1, nMolecules1;
+  double nMoleculesOld2, nMolecules2;
   double nTotal, nTotalOld;
 
 
@@ -579,31 +590,55 @@ void PairMultiLucyRXKokkos<DeviceType>::getParams(int id, double &fractionOld1, 
   }
 
   if (isOneFluid(isite1) == false){
-    fractionOld1 = dvector(isite1+nspecies,id)/nTotalOld;
-    fraction1 = dvector(isite1,id)/nTotal;
+    nMoleculesOld1 = dvector(isite1+nspecies,id);
+    nMolecules1 = dvector(isite1,id);
+    fractionOld1 = nMoleculesOld1/nTotalOld;
+    fraction1 = nMolecules1/nTotal;
   }
   if (isOneFluid(isite2) == false){
-    fractionOld2 = dvector(isite2+nspecies,id)/nTotalOld;
-    fraction2 = dvector(isite2,id)/nTotal;
+    nMoleculesOld2 = dvector(isite2+nspecies,id);
+    nMolecules2 = dvector(isite2,id);
+    fractionOld2 = nMoleculesOld2/nTotalOld;
+    fraction2 = nMolecules2/nTotal;
   }
 
   if (isOneFluid(isite1) || isOneFluid(isite2)){
-    fractionOld  = 0.0;
-    fraction  = 0.0;
+    nMoleculesOFAold  = 0.0;
+    nMoleculesOFA  = 0.0;
+    fractionOFAold  = 0.0;
+    fractionOFA  = 0.0;
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++){
       if (isite1 == ispecies || isite2 == ispecies) continue;
-      fractionOld += dvector(ispecies+nspecies,id) / nTotalOld;
-      fraction += dvector(ispecies,id) / nTotal;
+      nMoleculesOFAold += dvector(ispecies+nspecies,id);
+      nMoleculesOFA += dvector(ispecies,id);
+      fractionOFAold += dvector(ispecies+nspecies,id) / nTotalOld;
+      fractionOFA += dvector(ispecies,id) / nTotal;
     }
     if (isOneFluid(isite1)){
-      fractionOld1 = fractionOld;
-      fraction1 = fraction;
+      nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld1 = fractionOFAold;
+      fraction1 = fractionOFA;
     }
     if (isOneFluid(isite2)){
-      fractionOld2 = fractionOld;
-      fraction2 = fraction;
+      nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld2 = fractionOFAold;
+      fraction2 = fractionOFA;
     }
+  }
+
+  if(fractionalWeighting){
+    mixWtSite1old = fractionOld1;
+    mixWtSite1 = fraction1;
+    mixWtSite2old = fractionOld2;
+    mixWtSite2 = fraction2;
+  } else {
+    mixWtSite1old = nMoleculesOld1;
+    mixWtSite1 = nMolecules1;
+    mixWtSite2old = nMoleculesOld2;
+    mixWtSite2 = nMolecules2;
   }
 }
 
@@ -896,6 +931,16 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
 
   tablength = force->inumeric(FLERR,arg[1]);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
+
+  // optional keywords
+
+  int iarg = 2;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"fractional") == 0)   fractionalWeighting = true;
+    else if (strcmp(arg[iarg],"molecular") == 0)   fractionalWeighting = false;
+    else error->all(FLERR,"Illegal pair_style command");
+    iarg++;
+  }
 
   // delete old tables, since cannot just change settings
 

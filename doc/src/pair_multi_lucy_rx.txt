@@ -13,11 +13,14 @@ pair_style multi/lucy/rx command :h3
 pair_style multi/lucy/rx style N keyword ... :pre
 
 style = {lookup} or {linear} = method of interpolation
-N = use N values in {lookup}, {linear} tables :ul
+N = use N values in {lookup}, {linear} tables
+weighting = fractional or molecular (optional) :ul
 
 [Examples:]
 
 pair_style multi/lucy/rx linear 1000
+pair_style multi/lucy/rx linear 1000 fractional
+pair_style multi/lucy/rx linear 1000 molecular
 pair_coeff * * multibody.table ENTRY1 h2o h2o 7.0
 pair_coeff * * multibody.table ENTRY1 h2o 1fluid 7.0 :pre
 
@@ -94,8 +97,10 @@ tags must either correspond to the species defined in the reaction
 kinetics files specified with the "fix rx"_fix_rx.html command or they
 must correspond to the tag "1fluid", signifying interaction with a
 product species mixture determined through a one-fluid approximation.
-The interaction potential is weighted by the geometric average of the
-concentrations of the two species.  The coarse-grained potential is
+The interaction potential is weighted by the geometric average of 
+either the mole fraction concentrations or the number of molecules 
+associated with the interacting coarse-grained particles (see the 
+{fractional} or {molecular} weighting pair style options). The coarse-grained potential is
 stored before and after the reaction kinetics solver is applied, where
 the difference is defined to be the internal chemical energy (uChem).
 
@@ -205,7 +210,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 "pair_coeff"_pair_coeff.html
 
-[Default:] none
+[Default:] fractional weighting
 
 :line
 

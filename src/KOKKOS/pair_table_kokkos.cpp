@@ -334,7 +334,9 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
     Kokkos::deep_copy(d_table->f,h_table->f);
     d_table_const.f = d_table->f;
     Kokkos::deep_copy(d_table->de,h_table->de);
+    d_table_const.de = d_table->de;
     Kokkos::deep_copy(d_table->df,h_table->df);
+    d_table_const.df = d_table->df;
   }
 
   if(tabstyle == SPLINE) {
@@ -366,6 +368,10 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
   }
 
   Kokkos::deep_copy(d_table->cutsq,h_table->cutsq);
+  d_table_const.cutsq = d_table->cutsq;
+  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
+  d_table_const.tabindex = d_table->tabindex;
+
   update_table = 0;
 }
 
@@ -382,9 +388,9 @@ void PairTableKokkos<DeviceType>::allocate()
   memory->create(setflag,nt,nt,"pair:setflag");
   memory->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
   memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
-
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
+
   memset(&setflag[0][0],0,nt*nt*sizeof(int));
   memset(&cutsq[0][0],0,nt*nt*sizeof(double));
   memset(&tabindex[0][0],0,nt*nt*sizeof(int));

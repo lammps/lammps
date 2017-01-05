@@ -24,17 +24,23 @@ The {oxdna_fene} bond style uses the potential
 :c,image(Eqs/bond_oxdna_fene.jpg)
 
 to define a modified finite extensible nonlinear elastic (FENE) potential
-"(Ouldridge)"_#oxdna_fene, which is used to model the connectivity of the phosphate backbone
-in the oxDNA model for simulation of coarse-grained DNA. 
+"(Ouldridge)"_#oxdna_fene to model the connectivity of the phosphate backbone
+in the oxDNA force field for coarse-grained modelling of DNA. 
 
 The following coefficients must be defined for the bond type via the
-"bond_coeff"_bond_coeff.html command exactly as in the example above, or in
+"bond_coeff"_bond_coeff.html command exactly as given in the example above, or in
 the data file or restart files read by the "read_data"_read_data.html
 or "read_restart"_read_restart.html commands:
 
 epsilon (energy)
 Delta (distance)
 r0 (distance) :ul
+
+An example input file and data files can be found in /examples/USER/cgdna/input/.
+A simple python setup tool which creates single straight or helical DNA strands as well as 
+DNA duplexes and arrays of duplexes can be found in /examples/USER/cgdna/util/.
+A technical report with details on the structure of the input file 
+can be found in /examples/USER/cgdna/doc/.
 
 NOTE: This bond style should always be used together with the related oxDNA pair styles
 for excluded volume, hydrogen-bonding, stacking, cross-stacking

@@ -2,7 +2,7 @@ This package contains a LAMMPS implementation of coarse-grained
 models of DNA, which can be used to model sequence-specific
 DNA strands.
 
-See the doc pages and [1] for the individual bond and pair styles. 
+See the doc pages and [1,2] for the individual bond and pair styles. 
 The packages contains also a new Langevin-type rigid-body integrator,
 which has also its own doc page and is explained in [2].
 
@@ -10,12 +10,20 @@ which has also its own doc page and is explained in [2].
 and thermodynamic properties of a coarse-grained DNA model",
 J. Chem. Phys. 134, 085101 (2011).
 
-[2] R. Davidchack, T. Ouldridge, M. Tretyakov, "New Langevin and 
+[2] T.E. Ouldridge, Coarse-grained modelling of DNA and DNA 
+self-assembly, DPhil. University of Oxford (2011).
+
+[3] R. Davidchack, T. Ouldridge, M. Tretyakov, "New Langevin and 
 gradient thermostats for rigid body dynamics", J. Chem. Phys. 142, 
 144114 (2015).
 
-There are example scripts for using this package in
-examples/USER/cgdna.
+An example input file and data files can be found in 
+/examples/USER/cgdna/input/.
+A simple python setup tool which creates single straight or helical DNA 
+strands as well as DNA duplexes and arrays of duplexes can be found in 
+/examples/USER/cgdna/util/.
+A technical report with details on the structure of the input file can be found in 
+/examples/USER/cgdna/doc/.
 
 IMPORTANT NOTE: This package can only be used if LAMMPS is compiled
 with the MOLECULE and ASPHERE packages.  These should be included 

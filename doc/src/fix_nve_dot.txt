@@ -6,34 +6,27 @@
 
 :line
 
-fix nve/dotc/langevin command :h3
+fix nve/dot command :h3
 
 [Syntax:]
 
-fix ID group-ID nve/dotc/langevin Tstart Tstop damp seed keyword value :pre
+fix ID group-ID nve/dot :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-nve/dotc/langevin = style name of this fix command :l
-Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
-Tstart and Tstop have to be constant and equal :l
-damp = damping parameter (time units) :l
-seed = random number seed to use for white noise (positive integer) :l
-keyword = {angmom} :l
-  {angmom} value = factor
-    factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below :pre
+nve/dot = style name of this fix command :l
 :ule
 
 [Examples:]
 
-fix 1 all   nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10 :pre
+fix 1 all   nve/dot :pre
 
 [Description:]
 
-Apply a rigid-body Langevin-type integrator of the kind "Langevin C" 
-as described in "(Davidchack)"_#Davidchack
-to a group of atoms which models an interaction with a background
-implicit solvent.  This command performs Brownian Dynamics (BD). 
-It has been closely modelled on the 
+Apply a rigid-body integrator as described in "(Davidchack)"_#Davidchack
+to a group of atoms.  This command performs Molecular Dynamics (MD)
+via a velocity-Verlet algorithm and a rotation of the quaternion degrees
+of freedom. 
+This command is equivalent to the  
 "fix langevin"_fix_langevin.html and its {angmom} option, but combines 
 the "fix nve"_fix_nve.html and the "fix langevin"_fix_langevin.html in 
 one single command. It features improved stability permitting larger 

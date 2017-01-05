@@ -31,22 +31,31 @@ pair_coeff * * oxdna_coaxstk 46.0 0.4 0.6 0.22 0.58 2.0 2.541592653589793 0.65 1
 
 [Description:]
 
-The {oxdna} pair styles compute the pairwise-additive part of the oxDNA force field 
+The {oxdna} pair styles compute the pairwise-additive parts of the oxDNA force field 
 for coarse-grained modelling of DNA. The compound interaction consists of potentials for the 
-excluded volume interaction {oxdna_excv}, stacking {oxdna_stk}, cross-stacking {oxdna_xstk}
-and coaxial stacking interaction {oxdna_coaxstk} between nucleotides as well
+excluded volume interaction between nucleotides {oxdna_excv}, the stacking interaction between 
+nucleotides on the same DNA strand {oxdna_stk}, the cross-stacking {oxdna_xstk}
+and coaxial stacking interaction {oxdna_coaxstk} between nucleotides on other strands as well
 as the hydrogen-bonding interaction {oxdna_hbond} between complementary pairs of nucleotides on
 opposite strands.
 
-The exact functional form is rather complex, which is why we refer to 
-"(Ouldridge-DPhil)"_#Ouldridge-DPhil and "(Ouldridge)"_#Ouldridge
-for a full description.
+The exact functional form of the pair styles is rather complex, which is evident from the 144 coefficients 
+that are set in the example above. The individual potentials contain products of modulation factors, 
+which in turn consist of a number of more basic potentials 
+(Morse, Lennard-Jones, harmonic angle and distance) as well as quadratic smoothing and modulation terms. 
+We refer to "(Ouldridge-DPhil)"_#Ouldridge-DPhil and "(Ouldridge)"_#Ouldridge
+for a detailed description of the oxDNA force field.
 
-NOTE: These pair styles should always be used together with the related oxDNA bond style
-for the connectivity of the phosphate backbone (see also documentation of
+An example input file and data files can be found in /examples/USER/cgdna/input/.
+A simple python setup tool which creates single straight or helical DNA strands as well as 
+complementary DNA duplexes and arrays of duplexes can be found in /examples/USER/cgdna/util/.
+A technical report with more information on the model, the structure of the input file 
+and the performance of the LAMMPS-implementation of oxDNA can be found in /examples/USER/cgdna/doc/.
+
+NOTE: These pair styles have to be used together with the related oxDNA bond style
+{oxdna_fene} for the connectivity of the phosphate backbone (see also documentation of
 "bond_style oxdna_fene"_bond_oxdna_fene.html). The coefficients
-in the example above cannot be changed without
-reparametrizing the entire model.
+in the example above cannot be changed without reparametrizing the entire model.
 
 :line
 

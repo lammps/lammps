@@ -49,6 +49,7 @@ PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) :
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
+  STACKPARAMS = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -164,8 +165,6 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   boltz = force->boltz;
   ftm2v = force->ftm2v;
 
-  int STACKPARAMS = 0; // optimize
-
   // loop over neighbors of my atoms
 
   EV_FLOAT ev;
@@ -278,14 +277,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSp
 
   int i,j,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,wd,wr,factor_dpd,uTmp;
-  double dot,randnum;
-
-  double kappa_ij, alpha_ij, theta_ij, gamma_ij;
-  double mass_i, mass_j;
-  double massinv_i, massinv_j;
-  double randPair, mu_ij;
+  double rsq,r,rinv,wd,wr,factor_dpd;
 
   i = d_ilist[ii];
   xtmp = x(i,0);
@@ -369,7 +361,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duCond = d_duCond;
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duMech = d_duMech;
 
-  int i,j,jj,inum,jnum,itype,jtype;
+  int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
   double rsq,r,rinv,wd,wr,factor_dpd,uTmp;

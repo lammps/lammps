@@ -51,6 +51,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   void init_style();
   double init_one(int, int);
 
+  KOKKOS_INLINE_FUNCTION
   void operator()(TagPairDPDfdtEnergyZero, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>

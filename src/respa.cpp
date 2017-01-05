@@ -45,7 +45,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg),
-step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL), newton(NULL), fix_respa(NULL)
+step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL), 
+newton(NULL), fix_respa(NULL)
 {
   nhybrid_styles = 0;
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
@@ -473,7 +474,7 @@ void Respa::setup()
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
 
-    modify->pre_reverse(eflag,vflag);
+    modify->setup_pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -549,7 +550,7 @@ void Respa::setup_minimal(int flag)
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
 
-    modify->pre_reverse(eflag,vflag);
+    modify->setup_pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }

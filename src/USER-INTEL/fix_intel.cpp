@@ -356,6 +356,13 @@ void FixIntel::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixIntel::setup_pre_reverse(int eflag, int vflag)
+{
+  pre_reverse(eflag,vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixIntel::pair_init_check(const bool cdmessage)
 {
   #ifdef INTEL_VMASK

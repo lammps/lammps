@@ -37,7 +37,8 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 /* ---------------------------------------------------------------------- */
 
 FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), randomx(NULL), randomt(NULL), basistype(NULL), 
+  spatialid(NULL), gfactor1(NULL), gfactor2(NULL)
 {
   force_reneighbor = 1;
   next_reneighbor = -1;

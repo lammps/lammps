@@ -51,7 +51,10 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
-CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
+CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp),
+  sendnum(NULL), recvnum(NULL), sendproc(NULL), recvproc(NULL), size_forward_recv(NULL),
+  size_reverse_send(NULL), size_reverse_recv(NULL), slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
+  cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL), sendlist(NULL), maxsendlist(NULL), buf_send(NULL), buf_recv(NULL)
 {
   style = 0;
   layout = LAYOUT_UNIFORM;

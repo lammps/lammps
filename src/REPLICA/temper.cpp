@@ -84,6 +84,8 @@ void Temper::command(int narg, char **arg)
 
   my_set_temp = universe->iworld;
   if (narg == 7) my_set_temp = force->inumeric(FLERR,arg[6]);
+  if ((my_set_temp < 0) || (my_set_temp >= universe->nworlds))
+    error->universe_one(FLERR,"Illegal temperature index");
 
   // swap frequency must evenly divide total # of timesteps
 

@@ -37,6 +37,8 @@ class ComputeAngleLocal : public Compute {
   int ncount;
 
   int nmax;
+  double *vlocal;
+  double **alocal;
 
   int compute_angles(int);
   void reallocate(int);

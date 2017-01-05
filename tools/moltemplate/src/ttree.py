@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 
 # Authors: Andrew Jewett (jewett.aij at g mail)
+#         http://www.moltemplate.org
 #         http://www.chem.ucsb.edu/~sheagroup
 # License: 3-clause BSD License  (See LICENSE.TXT)
 # Copyright (c) 2011, Regents of the University of California
 # All rights reserved.
 
 """
-ttree Ttree is a simple program for recursively composing and generating  
-      large redundant text files from small template files.
+      ttree.py is a simple program for recursively generating large redundant
+      text files (such as data files read by molecular simulation programs)
+      from small (non-redundant) text files (such as molecule definitions 
+      and force-field parameters).
 
       By default, the large number of unique template variables generated 
       in the process are automatically substituted with integers 
       (or other numeric counters, all of which can be overridden),
       rendered, and the rendered templates are written to a file.  
-
-      ttree was designed to be useful for generating input files for
-      molecular simulation software like LAMMPS or NAMD.
 
 BasicUI  This section of the code contains the user interface for ttree
          when run as a stand-alone program, as described above.  (This
@@ -57,7 +57,7 @@ except NameError:
 
 
 #   -- ttree_lex.py --
-# TtreeShlex is a backwards-compatible version of python's standard shlex module.
+# TtreeShlex is a backwards-compatible version of python's standard shlex module
 # It has the additional member: "self.wordterminators", which overrides 
 # the "self.wordchars" member.  This enables better handling of unicode 
 # characters by allowing a much larger variety of characters to appear 
@@ -73,7 +73,7 @@ elif sys.version < '2.7':
                      '----------------- WARNING: OLD PYTHON VERSION ----------\n'
                      '  This program is untested on your python version ('+sys.version+').\n'
                      '  PLEASE LET ME KNOW IF THIS PROGRAM CRASHES (and upgrade python).\n'
-                     '    -Andrew   2014-11-28\n'
+                     '    -Andrew   2016-9-21\n'
                      '--------------------------------------------------------\n'
                      '--------------------------------------------------------\n')
     from ordereddict import OrderedDict
@@ -94,8 +94,8 @@ g_filename    = __file__.split('/')[-1]
 g_module_name  = g_filename
 if g_filename.rfind('.py') != -1:
     g_module_name = g_filename[:g_filename.rfind('.py')]
-g_date_str     = '2015-10-14'
-g_version_str  = '0.81'
+g_date_str     = '2016-9-21'
+g_version_str  = '0.84'
 
 
 
@@ -117,7 +117,7 @@ class ClassReference(object):
     traits (consisting of write() and new commands) from one or more 
     "class_parents" (also StaticObjs).  A list of these parents is stored in the 
     "StaticObj.class_parents" attribute.  In both cases (self.instance_commands 
-    or self.class_parents) we need to storea pointer to the StaticObj(s) 
+    or self.class_parents) we need to store a pointer to the StaticObj(s) 
     corresponding to the instance-childen or class-parents.
     (This stored in self.statobj).
     However, for the purposes of debugging and interactivity, it is also 
@@ -1605,8 +1605,6 @@ def DescrToCatLeafNodes(descr_str,
 
 
 
-
-
 def DescrToVarBinding(descr_str, context_node, dbg_loc):
     """ DescrToVarBinding() is identical to LookupVar(), but it has a name 
     that is harder to remember.  See comment for LookupVar() below.
@@ -1959,6 +1957,13 @@ class StaticObj(object):
          to a "TemplateLexer" object (similar to the python's built-in shlex lexer).
         """
 
+        # The next two variables store a stack of commands the user wants
+        # to manually add to the list of stackable instance_commands.
+        # (Allowing the users to directly manipulate the transformation stack
+        #  is an experimental feature as of 2015-  Most users don't need this.)
+        user_push_left_commands = []
+        user_push_right_commands = []
+
         #sys.stdout.write(' -- Parse() invoked --\n')
 
         # Keep track of the location in the users' input files where this
@@ -1983,7 +1988,7 @@ class StaticObj(object):
             if ((cmd_token == 'write') or 
                 (cmd_token == 'write_once') or
                 (cmd_token == 'create_var') or
-                (cmd_token == 'create_vars')):
+                (cmd_token == 'replace')):
                 open_paren  = lex.get_token()
 
                 #print('Parse():     open_paren=\"'+open_paren+'\"')
@@ -1994,7 +1999,7 @@ class StaticObj(object):
                     open_curly     = open_paren[0]
                     open_paren     = ''
                     close_paren    = ''
-                    tmpl_filename = ''
+                    tmpl_filename  = ''
                     srcloc  = lex.GetSrcLoc()
                 else:
                     tmpl_filename = lex.get_token()
@@ -2006,12 +2011,14 @@ class StaticObj(object):
                     open_curly     = lex.get_token()
                     srcloc        = lex.GetSrcLoc()
 
-                if ((cmd_token == 'create_var') or
-                    (cmd_token == 'create_vars')):
+                if (cmd_token == 'create_var'):
                     tmpl_filename = None
                     # This means: define the template without attaching 
                     # a file name to it. (IE., don't write the contents
                     # of what's enclosed in the curly brackets { } to a file.)
+
+                if (cmd_token == 'replace'):
+                    tmpl_filename = "ttree_replacements.txt"
                 
                 if ((open_curly != '{') or 
                     ((open_paren == '')  and (close_paren != '')) or
@@ -2032,30 +2039,34 @@ class StaticObj(object):
                 #sys.stdout.write('\n----------------\n')
 
                         
-                if cmd_token == 'write_once':
+                if (cmd_token == 'write_once' or
+                    cmd_token == 'replace'):
+
                     # Check for a particular bug:
                     #    Ordinary instance variables (preceded by a '$')
                     #    should never appear in a write_once() statement.
                     for entry in tmpl_contents:
                         if (isinstance(entry, VarRef) and 
                             (entry.prefix[0]=='$')):
-                            raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
+                            err_msg = ('Error('+g_module_name+'.StaticObj.Parse()):\n'+
                                              '       Error near '+ErrorLeader(entry.srcloc.infile,
-                                                                       entry.srcloc.lineno)+'\n'
-                                             '       Illegal variable: \"'+entry.prefix+entry.descr_str+entry.suffix+'\"\n'
-                                             '       All variables in a \"write_once()\" statement must be statically\n'
-                                             '       defined, and hence they must begin with a \'@\' prefix character.\n'
-                                             '       (not a \'$\' character).\n'
-                                             '       Suggestion: Use the \"write()\" command instead.\n')
+                                                                       entry.srcloc.lineno)+'\n'+
+                                             '       Illegal variable: \"'+entry.prefix+entry.descr_str+entry.suffix+'\"\n'+
+                                             '       All variables in a \"'+cmd_token+'\" statement must be statically\n'+
+                                             '       defined, and hence they must begin with a \'@\' prefix character.\n'+
+                                             '       (not a \'$\' character).\n')
+                            if (cmd_token == 'write_once'):
+                                err_msg += '       Suggestion: Use the \"write()\" command instead.\n'
+                            raise InputError(err_msg)
 
 
 
                 if cmd_token == 'write':
                     commands = self.instance_commands
-                elif cmd_token == 'write_once':
+                elif (cmd_token == 'write_once' or
+                      cmd_token == 'replace'):
                     commands = self.commands
-                elif ((cmd_token == 'create_var') or 
-                      (cmd_token == 'create_vars')):
+                elif (cmd_token == 'create_var'):
                     commands = self.instance_commands
                 else:
                     assert(False) 
@@ -2188,7 +2199,60 @@ class StaticObj(object):
                 # The "TtreeShlex" class (from which "lex" inherits) handles 
                 # "include" statements (ie. "source" statements) automatically.
 
+            elif ((cmd_token == 'push') or 
+                  (cmd_token == 'push_left') or
+                  (cmd_token == 'push_right')):
+
+                push_cmd_src_loc = lex.GetSrcLoc()
+                push_cmd_text = lex.GetParenExpr()
+                if ((len(push_cmd_text) < 2) or
+                    (push_cmd_text[0] != '(') or
+                    (push_cmd_text[-1] != ')')):
+                    raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
+                                     '      Error near '+lex.error_leader()+'\n'
+                                     '      Bad \"push\" command.  Expected an expression in parenthesis.\n')
+                push_cmd_text = push_cmd_text[1:-1]
+
+                if (cmd_token == 'push_right'):
+                    push_command = PushRightCommand(push_cmd_text, 
+                                                    push_cmd_src_loc)
+                    user_push_right_commands.append(push_command)
+                else:
+                    push_command = PushLeftCommand(push_cmd_text, 
+                                                   push_cmd_src_loc)
+                    user_push_left_commands.append(push_command)
+                self.instance_commands.append(push_command)
+                
+            elif ((cmd_token == 'pop') or 
+                  (cmd_token == 'pop_left') or
+                  (cmd_token == 'pop_right')):
+
+                pop_cmd_text = lex.GetParenExpr()
+                pop_cmd_src_loc = lex.GetSrcLoc()
+                if (cmd_token == 'pop_right'):
+                    if len(user_push_right_commands) > 0:
+                        push_command = user_push_right_commands.pop()
+                    else:
+                        raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
+                                         '      Error near '+lex.error_leader()+'\n'
+                                         '      Too many \"pop_right\" commands.\n')
+                    pop_command = PopRightCommand(push_command,
+                                                  pop_cmd_src_loc)
+                else:
+                    if len(user_push_left_commands) > 0:
+                        push_command = user_push_left_commands.pop()
+                    else:
+                        raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
+                                         '      Error near '+lex.error_leader()+'\n'
+                                         '      Too many pop, (or pop_left) commands.\n')
+                    pop_command = PopLeftCommand(push_command,
+                                                 pop_cmd_src_loc)
+                self.instance_commands.append(pop_command)
+                
+
+
             else:
+
                 # Otherwise, 'cmd_token' is not a command at all.
                 # Instead it's the name of an object which needs to be
                 # defined or instantiated.
@@ -2783,7 +2847,7 @@ class StaticObj(object):
                             else:
                                 #sys.stderr.write('DEBUG: Adding '+str(push_command)+' to '+
                                 #                 staticobj.name+'.instance_commands_push\n')
-                                # CONTINUEHERE: should I make these PushRight commands and
+                                #     Question: Should I make these PushRight commands and
                                 #               append them in the opposite order?
                                 #               If so I also have to worry about the case above.
                                 staticobj.instance_commands_push.append(push_mod_command)
@@ -2791,7 +2855,7 @@ class StaticObj(object):
 
                     else:
                         # Otherwise, the cmd_token is not any of these:
-                        # "write", "write_once", "create_vars"
+                        # "write", "write_once", "replace", "create_vars"
                         # "delete", or "category".
                         # ... and it is ALSO not any of these:
                         # the name of a class (StaticObj), or
@@ -2806,6 +2870,23 @@ class StaticObj(object):
         # Keep track of the location in the user's input files 
         # where the definition of this object ends.
         self.srcloc_end = lex.GetSrcLoc()
+
+
+
+
+        # Finally, if there are any remaining user_push_left_commands or 
+        # user_push_right_commands, deal with them (by popping them).
+        for push_command in user_push_left_commands:
+            push_command = user_push_left_commands.pop()
+            pop_command = PopLeftCommand(push_command,
+                                         self.srcloc_end)
+            self.instance_commands.append(pop_command)
+
+        for push_command in user_push_right_commands:
+            push_command = user_push_right_commands.pop()
+            pop_command = PopRightCommand(push_command,
+                                          self.srcloc_end)
+            self.instance_commands.append(pop_command)
 
 
 
@@ -4019,6 +4100,7 @@ class InstanceObj(InstanceObjBasic):
 
 
 
+
 def AssignTemplateVarPtrs(tmpl_list, context_node):
     """ 
        Now scan through all the variables within the templates defined 
@@ -4247,7 +4329,7 @@ def AutoAssignVals(cat_node,
                    reserved_values = None,
                    ignore_prior_values = False):
     """
-    This function automatically assigns all the variables 
+    This function automatically assigns values to all the variables 
     belonging to all the categories in cat_node.categories.
     Each category has its own internal counter.  For every variable in that
     category, query the counter (which usually returns an integer), 
@@ -4314,7 +4396,8 @@ def AutoAssignVals(cat_node,
 
                 else:
 
-                    if (not var_binding.nptr.leaf_node.IsDeleted()):
+                    if ((not var_binding.nptr.leaf_node.IsDeleted()) and
+                        (len(var_binding.refs) > 0)):
 
                         # For each (regular) variable, query this category's counter
                         # (convert it to a string), and see if it is already in use
@@ -4416,7 +4499,161 @@ def Render(tmpl_list, substitute_vars=True):
 
     return ''.join(out_str_list)
 
+def IgnoreThis(a):
+    pass
 
+
+
+
+def FindReplacementVarPairs(context_node,
+                            replace_var_pairs):
+                            #search_instance_commands = False):
+
+    #####################
+    #if search_instance_commands:
+    #    assert(isinstance(context_node, StaticObj))
+    #    commands = context_node.instance_commands
+    #else:
+    #    # Note: Leaf nodes contain no commands, so skip them
+    #    if (not hasattr(context_node, 'commands')):
+    #        return
+    #    # Otherwise process their commands
+    #    commands = context_node.commands
+    #####################
+
+    commands = context_node.commands
+
+    for command in commands:
+
+        if (isinstance(command, WriteFileCommand) and
+            command.filename == 'ttree_replacements.txt'):
+            tmpl_list = command.tmpl_list
+            var_alias = None
+            for entry in tmpl_list:
+                # Each successive pair of variables indicates a 
+                # variable you wish to replace.
+                # (Any ordinary text in between variable names is ignored.)
+                if isinstance(entry, VarRef):
+                    if var_alias == None:
+                        var_alias = (entry.nptr.cat_name,
+                                     entry.nptr.cat_node,
+                                     entry.nptr.leaf_node)
+                    else:
+                        var_replace = (entry.nptr.cat_name,
+                                       entry.nptr.cat_node,
+                                       entry.nptr.leaf_node)
+
+                        replace_var_pairs[var_alias] = var_replace
+                        var_alias = None
+                    
+    # Recursively invoke AssignVarPtrs() on all (non-leaf) child nodes:
+    for child in context_node.children.values():
+        FindReplacementVarPairs(child,
+                                replace_var_pairs)
+                                #search_instance_commands)
+
+
+
+
+
+def ReplaceVars(context_node,
+                replace_var_pairs,
+                search_instance_commands = False):
+
+    if len(replace_var_pairs) == 0:
+        return
+
+    #sys.stdout.write('AssignVarPtrs() invoked on node: \"'+NodeToStr(context_node)+'\"\n')
+
+    if search_instance_commands:
+        assert(isinstance(context_node, StaticObj))
+        commands = context_node.instance_commands
+    else:
+        # Note: Leaf nodes contain no commands, so skip them
+        if (not hasattr(context_node, 'commands')):
+            return
+        # Otherwise process their commands
+        commands = context_node.commands
+
+
+    if len(replace_var_pairs) > 0:
+        for command in commands:
+            if isinstance(command, WriteFileCommand):
+                ReplaceVarsInTmpl(command.tmpl_list, 
+                                  replace_var_pairs)
+
+    # Recursively invoke ReplaceVars() on all (non-leaf) child nodes:
+    for child in context_node.children.values():
+        ReplaceVars(child,
+                    replace_var_pairs,
+                    search_instance_commands)
+
+
+
+
+
+def ReplaceVarsInTmpl(tmpl_list, replace_var_pairs):
+    """ replace any references to specific variables with other variables """
+
+    if len(replace_var_pairs) == 0:
+        return
+
+    i = 0
+    while i < len(tmpl_list):
+        entry = tmpl_list[i]
+        if isinstance(entry, VarRef):
+            var_ref = entry
+            #full_name = var_bindings[var_ref.nptr.leaf_node].full_name
+            if (var_ref.nptr.cat_name,
+                var_ref.nptr.cat_node,
+                var_ref.nptr.leaf_node) in replace_var_pairs:
+                # optional: (since we will eventually delete the variable)
+                #          delete the reference to this variable from "bindings"
+
+                nptr_old = var_ref.nptr
+
+                # swap the old variable with the new one
+                (nptr_new_cat_name, nptr_new_cat_node, nptr_new_leaf_node) = \
+                     replace_var_pairs[(nptr_old.cat_name,
+                                        nptr_old.cat_node,
+                                        nptr_old.leaf_node)]
+
+                var_bindings = var_ref.nptr.cat_node.categories[nptr_old.cat_name].bindings
+
+                assert(nptr_new_leaf_node in var_bindings)
+
+                # Copy the things we need from the old variable.
+                # References to the old variable should be added to the new one
+                # (since they are the same variable)
+                #for ref in var_bindings[nptr_old.leaf_node].refs:
+                #    ref.nptr.cat_name = nptr_new_cat_name
+                #    ref.nptr.cat_node = nptr_new_cat_node
+                #    ref.nptr.leaf_node = nptr_new_leaf_node
+                if nptr_old.leaf_node in var_bindings:
+                    var_bindings[nptr_new_leaf_node].refs += var_bindings[nptr_old.leaf_node].refs
+                    del var_bindings[nptr_old.leaf_node]
+                
+                var_ref.nptr.cat_name = nptr_new_cat_name
+                var_ref.nptr.cat_node = nptr_new_cat_node
+                var_ref.nptr.leaf_node = nptr_new_leaf_node  # <-- this will...
+                # ... update all places where that nptr is used, including
+                #     all of the varrefs from the old variable.  In other words,
+                #     there is no need to manually update the leaf_nodes in
+                #     the var_bindings[nptr_new_leaf_node].refs
+                #     (It's better to do it this way instead.)
+
+                #var_ref.prefix = (...no need to modify)
+                #var_ref.suffix = (...no need to modify)
+
+                var_ref.descr_str = \
+                            CanonicalDescrStr(var_ref.nptr.cat_name,
+                                              var_ref.nptr.cat_node,
+                                              var_ref.nptr.leaf_node,
+                                              var_ref.srcloc)
+
+                var_bindings[nptr_new_leaf_node].full_name = var_ref.prefix[0] + var_ref.descr_str
+
+        i += 1
 
 
 
@@ -4425,7 +4662,7 @@ def MergeWriteCommands(command_list):
     """ Write commands are typically to the same file.
     We can improve performance by appending all of
     commands that write to the same file together before
-    carrying out the write commands.
+    carrying out the write operation.
 
     """
     file_templates = defaultdict(list)
@@ -4528,6 +4765,9 @@ def WriteVarBindingsFile(node):
             if nd.IsDeleted():
                 continue   # In that case, skip this variable
 
+            if len(var_binding.refs) == 0: #check2016-6-07
+                continue
+
             #if type(node) is type(nd):
             if ((isinstance(node, InstanceObjBasic) and isinstance(nd, InstanceObjBasic))
                 or
@@ -4551,9 +4791,12 @@ def WriteVarBindingsFile(node):
 
 
 
+
+
+
 def CustomizeBindings(bindings,
-                      g_objectdefs,
-                      g_objects):
+                      objectdefs,
+                      objects):
 
     var_assignments = set()
 
@@ -4567,11 +4810,12 @@ def CustomizeBindings(bindings,
 
         if prefix == '@':
             var_binding = LookupVar(var_descr_str,
-                                    g_objectdefs, 
+                                    objectdefs, 
                                     dbg_loc)
+
         elif prefix == '$':
             var_binding = LookupVar(var_descr_str, 
-                                    g_objects,
+                                    objects,
                                     dbg_loc)
         else:
             # If the user neglected a prefix, this should have generated
@@ -4588,6 +4832,47 @@ def CustomizeBindings(bindings,
     return var_assignments
 
 
+
+def ReplaceVarsInCustomBindings(bindings,
+                                objectdefs,
+                                objects,
+                                replace_var_pairs):
+
+    if len(replace_var_pairs) == 0:
+        return
+
+    list_of_pairs = bindings.items()
+
+    for name,vlpair in list_of_pairs:
+
+        prefix = name[0]
+        var_descr_str = name[1:]
+
+        value   = vlpair.val
+        dbg_loc = vlpair.loc
+
+        if prefix == '@':
+            # At this point, we have probably already binding associated
+            # with any replaced variables.  Instead lookup the nodes directly:
+
+            cat_name, cat_node, leaf_node = DescrToCatLeafNodes(var_descr_str, 
+                                                                objectdefs,
+                                                                dbg_loc)
+            # If this triplet corresponds to a variable we want to replace
+            # then lookup the corrected triplet
+            if (cat_name, cat_node, leaf_node) in replace_var_pairs:
+                (new_cat_name,
+                 new_cat_node,
+                 new_leaf_node) = replace_var_pairs[(cat_name,
+                                                     cat_node,
+                                                     leaf_node)]
+
+                # now reconstruct the string representing that variable
+                new_name = prefix + CanonicalDescrStr(new_cat_name,
+                                                      new_cat_node,
+                                                      new_leaf_node)
+                bindings[new_name] = bindings[name]
+                del bindings[name]
 
 
 ##############################################################
@@ -4919,10 +5204,23 @@ def BasicUI(settings,
     #         and replace the (static) variable references to pointers
     #         to nodes in the StaticObj tree:
     sys.stderr.write(' done\nlooking up @variables...')
-    # Here we assign pointers for variables in "write_once(){text}" templates:
+
+    # Step 3a)
+    # Here we assign pointers for @variables in "write_once(){text}" templates:
     AssignStaticVarPtrs(static_tree_root, search_instance_commands=False)
-    # Here we assign pointers for variables in "write(){text}" templates:
+
+    # Step 3b) Replace any @variables with their equivalents (if applicable)
+    replace_var_pairs = {}
+    FindReplacementVarPairs(static_tree_root, replace_var_pairs)
+    ReplaceVars(static_tree_root, replace_var_pairs,
+                search_instance_commands=False)
+
+    # Step 3c)
+    # Here we assign pointers for @variables in "write(){text}" templates:
     AssignStaticVarPtrs(static_tree_root, search_instance_commands=True)
+    ReplaceVars(static_tree_root, replace_var_pairs,
+                search_instance_commands=True)
+
     sys.stderr.write(' done\nconstructing the tree of class definitions...')
     sys.stderr.write(' done\n\nclass_def_tree = ' + str(static_tree_root) + '\n\n')
     #gc.collect()
@@ -4952,7 +5250,11 @@ def BasicUI(settings,
     #sys.stderr.write('instance_commands = '+str(instance_commands)+'\n')
 
 
-    # Step 6: We are about to assign numbers to the variables.
+    # Step 6: Replace any $variables with their equivalents (if applicable)
+    ReplaceVars(instance_tree_root, replace_var_pairs)
+
+
+    # Step 7: We are about to assign numbers to the variables.
     #         We need to decide the order in which to assign them.
     #         By default static variables (@) are assigned in the order 
     #         they appear in the file.
@@ -4963,10 +5265,15 @@ def BasicUI(settings,
     AssignVarOrderByCommand(instance_commands, '$')
 
 
-    # Step 7: Assign the variables.
+    # Step 8: Assign the variables.
     #         (If the user requested any customized variable bindings,
     #          load those now.)
     if len(settings.user_bindings_x) > 0:
+        if len(replace_var_pairs) > 0:
+            ReplaceVarsInCustomBindings(settings.user_bindings_x,
+                                        static_tree_root,
+                                        instance_tree_root,
+                                        replace_var_pairs)
         reserved_values = CustomizeBindings(settings.user_bindings_x,
                                             static_tree_root,
                                             instance_tree_root)
@@ -4983,6 +5290,11 @@ def BasicUI(settings,
                    reserved_values)
                         
     if len(settings.user_bindings) > 0:
+        if len(replace_var_pairs) > 0:
+            ReplaceVarsInCustomBindings(settings.user_bindings,
+                                        static_tree_root,
+                                        instance_tree_root,
+                                        replace_var_pairs)
         CustomizeBindings(settings.user_bindings,
                           static_tree_root,
                           instance_tree_root)

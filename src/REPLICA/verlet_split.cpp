@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
-  Verlet(lmp, narg, arg)
+  Verlet(lmp, narg, arg), qsize(NULL), qdisp(NULL), xsize(NULL), xdisp(NULL), f_kspace(NULL)
 {
   // error checks on partitions
 

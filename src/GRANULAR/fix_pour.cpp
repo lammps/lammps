@@ -47,7 +47,10 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 /* ---------------------------------------------------------------------- */
 
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL), 
+  idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL), 
+  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL), 
+  displs(NULL), random(NULL), random2(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 

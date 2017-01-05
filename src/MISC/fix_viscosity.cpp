@@ -37,7 +37,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  pos_index(NULL), neg_index(NULL), pos_delta(NULL), neg_delta(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix viscosity command");
 

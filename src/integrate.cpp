@@ -59,9 +59,8 @@ void Integrate::init()
   // in case input script has reset the run or minimize style explicitly
   // e.g. invalid to have kokkos pair style with non-kokkos verlet
   // but OK to have kokkos verlet with non kokkos pair style (just warn)
-  // ditto for USER-CUDA package verlet with their pair, fix, etc
   // making these checks would require all the pair, fix, etc styles have
-  //   cuda, kokkos, intel flags
+  //   kokkos, intel flags
 }
 
 /* ----------------------------------------------------------------------

@@ -361,8 +361,8 @@ ComputePropertyAtom::~ComputePropertyAtom()
 {
   delete [] pack_choice;
   delete [] index;
-  memory->destroy(vector);
-  memory->destroy(array);
+  memory->destroy(vector_atom);
+  memory->destroy(array_atom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -386,23 +386,21 @@ void ComputePropertyAtom::compute_peratom()
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     if (nvalues == 1) {
-      memory->destroy(vector);
-      memory->create(vector,nmax,"property/atom:vector");
-      vector_atom = vector;
+      memory->destroy(vector_atom);
+      memory->create(vector_atom,nmax,"property/atom:vector");
     } else {
-      memory->destroy(array);
-      memory->create(array,nmax,nvalues,"property/atom:array");
-      array_atom = array;
+      memory->destroy(array_atom);
+      memory->create(array_atom,nmax,nvalues,"property/atom:array");
     }
   }
 
   // fill vector or array with per-atom values
 
   if (nvalues == 1) {
-    buf = vector;
+    buf = vector_atom;
     (this->*pack_choice[0])(0);
   } else {
-    if (nmax) buf = &array[0][0];
+    if (nmax) buf = &array_atom[0][0];
     else buf = NULL;
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);

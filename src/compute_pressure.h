@@ -28,9 +28,9 @@ class ComputePressure : public Compute {
  public:
   ComputePressure(class LAMMPS *, int, char **);
   virtual ~ComputePressure();
-  void init();
-  double compute_scalar();
-  void compute_vector();
+  virtual void init();
+  virtual double compute_scalar();
+  virtual void compute_vector();
   void reset_extra_compute_fix(const char *);
 
  protected:

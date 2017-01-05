@@ -34,7 +34,6 @@ class PairVashishta : public Pair {
   double init_one(int, int);
   void init_style();
 
- protected:
   struct Param {
     double bigb,gamma,r0,bigc,costheta;
     double bigh,eta,zi,zj;
@@ -45,7 +44,7 @@ class PairVashishta : public Pair {
     double lam1rc,lam4rc,vrcc2,vrcc3,vrc,dvrc,c0;
     int ielement,jelement,kelement;
   };
-
+ protected:
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

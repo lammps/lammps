@@ -31,15 +31,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
+PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
+  styles(NULL), keywords(NULL), multiple(NULL), nmap(NULL),
+  map(NULL), special_lj(NULL), special_coul(NULL)
 {
   nstyles = 0;
-  styles = NULL;
-  keywords = NULL;
-  multiple = NULL;
-  special_lj = NULL;
-  special_coul = NULL;
-
+  
   outerflag = 0;
   respaflag = 0;
 

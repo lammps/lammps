@@ -8,6 +8,7 @@
 
 pair_style vashishta command :h3
 pair_style vashishta/omp command :h3
+pair_style vashishta/kk command :h3
 pair_style vashishta/table command :h3
 pair_style vashishta/table/omp command :h3
 

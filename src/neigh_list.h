@@ -21,14 +21,21 @@ namespace LAMMPS_NS {
 
 class NeighList : protected Pointers {
  public:
-  int index;                       // index of which neigh list it is
-                                   // needed when a class invokes it directly
-                                   // also indexes the request it came from
+  int index;                   // index of which neigh list this is
+                               // also indexes the request it came from
+                               // and the npair list of NPair classes
 
-  int buildflag;                   // 1 if pair_build invoked every reneigh
-  int growflag;                    // 1 if stores atom-based arrays & pages
-  int stencilflag;                 // 1 if stores stencil arrays
-  int ghostflag;                   // 1 if it stores neighbors of ghosts
+  int bin_method;        // 0 if no binning, else 1-N index into binnames
+  int stencil_method;    // 0 if no stencil, else 1-N index into stencilnames
+  int pair_method;       // 0 if no pair, else 1-N index into pairnames
+
+  // settings from NeighRequest
+
+  int occasional;                  // 0 if build every reneighbor, 1 if not
+  int ghost;                       // 1 if list stores neighbors of ghosts
+  int ssa;                         // 1 if list stores Shardlow data
+  int copy;                        // 1 if this list copied from another list
+  int dnum;                        // # of doubles per neighbor, 0 if none
 
   // data structs to store neighbor pairs I,J and associated values
 
@@ -41,14 +48,11 @@ class NeighList : protected Pointers {
 
   int pgsize;                      // size of each page
   int oneatom;                     // max size for one atom
-  int dnum;                        // # of doubles per neighbor, 0 if none
   MyPage<int> *ipage;              // pages of neighbor indices
   MyPage<double> *dpage;           // pages of neighbor doubles, if dnum > 0
 
-  bigint last_build;           // timestep of last build for occasional lists
-
   // atom types to skip when building list
-  // iskip,ijskip are just ptrs to corresponding request
+  // copied info from corresponding request into realloced vec/array
 
   int *iskip;         // iskip[i] = 1 if atoms of type I are not in list
   int **ijskip;       // ijskip[i][j] = 1 if pairs of type I,J are not in list
@@ -65,40 +69,28 @@ class NeighList : protected Pointers {
   NeighList *listcopy;          // me = copy list, point to list I copy from
   NeighList *listskip;          // me = skip list, point to list I skip from
 
+  // Kokkos package
+
+  int kokkos;                   // 1 if list stores Kokkos data
+  ExecutionSpace execution_space;
+
   // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
 
-  int ssaflag;               // 1 if the list has the ndxAIR_ssa array
   uint16_t (*ndxAIR_ssa)[8]; // for each atom, last neighbor index of each AIR
-  int *bins_ssa;             // index of next atom in each bin
-  int maxbin_ssa;            // size of bins_ssa array
-  int *binhead_ssa;          // index of 1st local atom in each bin
-  int *gbinhead_ssa;         // index of 1st ghost atom in each bin
-  int maxhead_ssa;           // size of binhead_ssa and gbinhead_ssa arrays
 
-  // stencils of bin indices for neighbor finding
-
-  int maxstencil;                  // max size of stencil
-  int nstencil;                    // # of bins in stencil
-  int *stencil;                    // list of bin offsets
-  int **stencilxyz;                // bin offsets in xyz dims
-
-  int maxstencil_multi;            // max sizes of stencils
-  int *nstencil_multi;             // # bins in each type-based multi stencil
-  int **stencil_multi;             // list of bin offsets in each stencil
-  double **distsq_multi;           // sq distances to bins in each stencil
+  // methods
 
   NeighList(class LAMMPS *);
   virtual ~NeighList();
-  void setup_pages(int, int, int);      // setup page data structures
-  void grow(int);                       // grow maxlocal
-  void stencil_allocate(int, int);      // allocate stencil arrays
-  void copy_skip_info(int *, int **);   // copy skip info from a neigh request
+  void post_constructor(class NeighRequest *);
+  void setup_pages(int, int);           // setup page data structures
+  void grow(int,int);                   // grow all data structs
   void print_attributes();              // debug routine
-  int get_maxlocal() {return maxatoms;}
+  int get_maxlocal() {return maxatom;}
   bigint memory_usage();
 
  protected:
-  int maxatoms;                    // size of allocated atom arrays
+  int maxatom;                    // size of allocated per-atom arrays
 };
 
 }

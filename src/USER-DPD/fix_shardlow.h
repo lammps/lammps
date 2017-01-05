@@ -37,7 +37,6 @@ class FixShardlow : public Fix {
   virtual void initial_integrate(int);
   void setup_pre_exchange();
   void pre_exchange();
-  void min_setup_pre_exchange();
   void min_pre_exchange();
 
   void grow_arrays(int);

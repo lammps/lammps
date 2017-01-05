@@ -1098,6 +1098,7 @@ int Domain::closest_image(int i, int j)
       closest = j;
     }
   }
+
   return closest;
 }
 

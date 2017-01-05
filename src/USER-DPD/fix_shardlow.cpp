@@ -445,7 +445,12 @@ void FixShardlow::initial_integrate(int vflag)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
 
   if(rcut >= bbx || rcut >= bby || rcut>= bbz )
-    error->all(FLERR,"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin\n");
+  {
+    char fmt[] = {"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin: rcut= %e bbx= %e bby= %e bbz= %e\n"};
+    char *msg = (char *) malloc(sizeof(fmt) + 4*15);
+    sprintf(msg, fmt, rcut, bbx, bby, bbz);
+    error->one(FLERR, msg);
+  }
 
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");

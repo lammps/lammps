@@ -35,7 +35,6 @@ class PairTableRX : public PairTable {
   virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
 
   int nspecies;
   char *site1, *site2;

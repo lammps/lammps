@@ -417,7 +417,7 @@ void Finish::end(int flag)
 
   // HYPER stats using PAIR,BOND,KSPACE for dynamics,quench
 
-  if (prdflag) {
+  if (hyperflag) {
     if (me == 0) {
       if (screen) fprintf(screen,"\nHyper stats:\n");
       if (logfile) fprintf(logfile,"\nHyper stats:\n");

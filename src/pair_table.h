@@ -42,6 +42,7 @@ class PairTable : public Pair {
 
  protected:
   enum{LOOKUP,LINEAR,SPLINE,BITMAP};
+  enum{NONE,RLINEAR,RSQ,BMP};
 
   int tabstyle,tablength;
   struct Table {

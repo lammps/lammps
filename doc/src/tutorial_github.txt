@@ -242,6 +242,44 @@ In this case, both Axel and Richard made changes to the tutorial:
 
 :c,image(JPG/tutorial_changes_others.png)
 
+[Reverse pull requests]
+
+Sometimes, however, you might not feel comfortable having other people push changes into your own branch,
+or maybe the maintainers are not sure their idea was the right one.
+In such a case, they can make changes, reassign you as the assignee, and file a reverse pull request.
+In that case, you can choose to merge their changes back into your branch, and proceed from there.
+It looks something like this:
+
+:c,image(JPG/tutorial_reverse_pull_request.png)
+
+For some reason, the highlighted button didn't work in my case, but I can go to my own
+repository and merge the pull request from there:
+
+:c,image(JPG/tutorial_reverse_pull_request2.png)
+
+Be sure to check the changes to see if you agree with them by clicking on the tab button:
+
+:c,image(JPG/tutorial_reverse_pull_request3.png)
+
+In this case, most of it is changes in the markup and a short rewrite of Axel's explanation
+of the "git gui" and "git add" commands.
+
+:c,image(JPG/tutorial_reverse_pull_request4.png)
+
+Because the changes are OK with us, we are going to merge by clicking on "Merge pull request".
+After a merge it looks like this:
+
+:c,image(JPG/tutorial_reverse_pull_request5.png)
+
+Now, since in the meantime our local text for the tutorial also changed, we need to pull
+Axel's change back into our branch, and merge them:
+
+ $ git add tutorial_github.txt
+ $ git add JPG/tutorial_*.png
+ $ git commit -m "Updated part on reverse pull requests"
+ $ git pull
+
+
 :line
 
 [After a merge]

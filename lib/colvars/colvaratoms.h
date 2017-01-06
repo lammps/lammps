@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #ifndef COLVARATOMS_H
 #define COLVARATOMS_H
 
@@ -64,7 +71,7 @@ public:
 
   /// \brief Initialize an atom for collective variable calculation
   /// and get its internal identifier \param atom_number Atom index in
-  /// the system topology (starting from 1)
+  /// the system topology (1-based)
   atom(int atom_number);
 
   /// \brief Initialize an atom for collective variable calculation
@@ -453,6 +460,8 @@ public:
   /// are not used, either because they were not defined (e.g because
   /// the colvar has not a scalar value) or the biases require to
   /// micromanage the force.
+  /// This function will be phased out eventually, in favor of
+  /// apply_colvar_force() once that is implemented for non-scalar values
   void apply_force(cvm::rvector const &force);
 
 };

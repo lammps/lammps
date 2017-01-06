@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvarbias_abf.h"
@@ -23,6 +30,8 @@ int colvarbias_abf::init(std::string const &conf)
 {
   colvarbias::init(conf);
 
+  provide(f_cvb_scalar_variables);
+  enable(f_cvb_scalar_variables);
   provide(f_cvb_history_dependent);
 
   // TODO relax this in case of VMD plugin
@@ -590,15 +599,9 @@ void colvarbias_abf::read_gradients_samples()
 }
 
 
-std::ostream & colvarbias_abf::write_restart(std::ostream& os)
+std::ostream & colvarbias_abf::write_state_data(std::ostream& os)
 {
-
   std::ios::fmtflags flags(os.flags());
-
-  os << "abf {\n"
-     << "  configuration {\n"
-     << "    name " << this->name << "\n";
-  os << "  }\n";
 
   os.setf(std::ios::fmtflags(0), std::ios::floatfield); // default floating-point format
   os << "\nsamples\n";
@@ -617,117 +620,47 @@ std::ostream & colvarbias_abf::write_restart(std::ostream& os)
     z_gradients->write_raw(os, 8);
   }
 
-  os << "}\n\n";
-
   os.flags(flags);
   return os;
 }
 
 
-std::istream & colvarbias_abf::read_restart(std::istream& is)
+std::istream & colvarbias_abf::read_state_data(std::istream& is)
 {
   if ( input_prefix.size() > 0 ) {
     cvm::error("ERROR: cannot provide both inputPrefix and a colvars state file.\n", INPUT_ERROR);
   }
 
-  size_t const start_pos = is.tellg();
-
-  cvm::log("Restarting ABF bias \""+
-            this->name+"\".\n");
-  std::string key, brace, conf;
-
-  if ( !(is >> key)   || !(key == "abf") ||
-       !(is >> brace) || !(brace == "{") ||
-       !(is >> colvarparse::read_block("configuration", conf)) ) {
-    cvm::log("Error: in reading restart configuration for ABF bias \""+
-              this->name+"\" at position "+
-              cvm::to_str(is.tellg())+" in stream.\n");
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
-    return is;
-  }
-
-  std::string name = "";
-  if ( (colvarparse::get_keyval(conf, "name", name, std::string(""), colvarparse::parse_silent)) &&
-         (name != this->name) )
-    cvm::error("Error: in the restart file, the "
-                      "\"abf\" block has wrong name(" + name + ")\n");
-  if ( name == "" ) {
-    cvm::error("Error: \"abf\" block in the restart file has no name.\n");
-  }
-
-  if ( !(is >> key)   || !(key == "samples")) {
-    cvm::log("Error: in reading restart configuration for ABF bias \""+
-              this->name+"\" at position "+
-              cvm::to_str(is.tellg())+" in stream.\n");
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
+  if (! read_state_data_key(is, "samples")) {
     return is;
   }
   if (! samples->read_raw(is)) {
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
     return is;
   }
 
-  if ( !(is >> key)   || !(key == "gradient")) {
-    cvm::log("Error: in reading restart configuration for ABF bias \""+
-              this->name+"\" at position "+
-              cvm::to_str(is.tellg())+" in stream.\n");
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
+  if (! read_state_data_key(is, "gradient")) {
     return is;
   }
   if (! gradients->read_raw(is)) {
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
     return is;
   }
 
   if (z_gradients) {
-    if ( !(is >> key) || !(key == "z_samples")) {
-      cvm::log("Error: in reading restart configuration for ABF bias \""+
-                this->name+"\" at position "+
-                cvm::to_str(is.tellg())+" in stream.\n");
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
+
+    if (! read_state_data_key(is, "z_samples")) {
       return is;
     }
     if (! z_samples->read_raw(is)) {
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
       return is;
     }
 
-    if ( !(is >> key)   || !(key == "z_gradient")) {
-      cvm::log("Error: in reading restart configuration for ABF bias \""+
-                this->name+"\" at position "+
-                cvm::to_str(is.tellg())+" in stream.\n");
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
+    if (! read_state_data_key(is, "z_gradient")) {
       return is;
     }
     if (! z_gradients->read_raw(is)) {
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
       return is;
     }
   }
-  is >> brace;
-  if (brace != "}") {
-    cvm::error("Error: corrupt restart information for ABF bias \""+
-                      this->name+"\": no matching brace at position "+
-                      cvm::to_str(is.tellg())+" in the restart file.\n");
-    is.setstate(std::ios::failbit);
-  }
+
   return is;
 }

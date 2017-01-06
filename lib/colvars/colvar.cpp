@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarparse.h"
@@ -163,38 +170,38 @@ colvar::colvar(std::string const &conf)
     }
     feature_states[f_cv_homogeneous]->enabled = homogeneous;
   }
-  // Colvar is deemed periodic iff:
+
+  // Colvar is deemed periodic if:
   // - it is homogeneous
   // - all cvcs are periodic
   // - all cvcs have the same period
-
-  b_periodic = cvcs[0]->b_periodic && is_enabled(f_cv_homogeneous);
-  period = cvcs[0]->period;
-  for (i = 1; i < cvcs.size(); i++) {
-    if (!cvcs[i]->b_periodic || cvcs[i]->period != period) {
-      b_periodic = false;
-      period = 0.0;
+  if (cvcs[0]->b_periodic) { // TODO make this a CVC feature
+    bool b_periodic = true;
+    period = cvcs[0]->period;
+    for (i = 1; i < cvcs.size(); i++) {
+      if (!cvcs[i]->b_periodic || cvcs[i]->period != period) {
+        b_periodic = false;
+        period = 0.0;
+        cvm::log("Warning: although one component is periodic, this colvar will "
+                 "not be treated as periodic, either because the exponent is not "
+                 "1, or because components of different periodicity are defined.  "
+                 "Make sure that you know what you are doing!");
+      }
     }
+    feature_states[f_cv_periodic]->enabled = b_periodic;
   }
-  feature_states[f_cv_periodic]->enabled = b_periodic;
 
   // check that cvcs are compatible
 
   for (i = 0; i < cvcs.size(); i++) {
-    if ((cvcs[i])->b_periodic && !b_periodic) {
-        cvm::log("Warning: although this component is periodic, the colvar will "
-                  "not be treated as periodic, either because the exponent is not "
-                  "1, or because multiple components are present. Make sure that "
-                  "you know what you are doing!");
-    }
 
     // components may have different types only for scripted functions
     if (!is_enabled(f_cv_scripted) && (colvarvalue::check_types(cvcs[i]->value(),
-                                                           cvcs[0]->value())) ) {
+                                                                cvcs[0]->value())) ) {
       cvm::error("ERROR: you are definining this collective variable "
                  "by using components of different types. "
                  "You must use the same type in order to "
-                 " sum them together.\n", INPUT_ERROR);
+                 "sum them together.\n", INPUT_ERROR);
       return;
     }
   }
@@ -207,15 +214,14 @@ colvar::colvar(std::string const &conf)
   // at this point, the colvar's type is defined
   f.type(value());
   f_accumulated.type(value());
-  fb.type(value());
+
+  reset_bias_force();
 
   get_keyval(conf, "width", width, 1.0);
   if (width <= 0.0) {
     cvm::error("Error: \"width\" must be positive.\n", INPUT_ERROR);
+    return;
   }
-
-  // NOTE: not porting wall stuff to new deps, as this will change to a separate bias
-  // the grid functions will wait a little as well
 
   lower_boundary.type(value());
   lower_wall.type(value());
@@ -308,6 +314,9 @@ colvar::colvar(std::string const &conf)
       enable(f_cv_extended_Lagrangian);
       provide(f_cv_Langevin);
 
+      // The extended mass will apply forces
+      enable(f_cv_gradient);
+
       xr.type(value());
       vr.type(value());
       fr.type(value());
@@ -399,6 +408,9 @@ colvar::colvar(std::string const &conf)
   ft_reported.type(value());
   f_old.type(value());
   f_old.reset();
+
+  x_restart.type(value());
+  after_restart = false;
 
   if (cvm::b_analysis)
     parse_analysis(conf);
@@ -761,9 +773,13 @@ int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
     return error_code;
   }
 
+  if (cvm::step_relative() > 0) {
+    // Total force depends on Jacobian derivative from previous timestep
+    error_code |= calc_cvc_total_force(first_cvc, num_cvcs);
+  }
+  // atom coordinates are updated by the next line
   error_code |= calc_cvc_values(first_cvc, num_cvcs);
   error_code |= calc_cvc_gradients(first_cvc, num_cvcs);
-  error_code |= calc_cvc_total_force(first_cvc, num_cvcs);
   error_code |= calc_cvc_Jacobians(first_cvc, num_cvcs);
 
   if (cvm::debug())
@@ -780,9 +796,12 @@ int colvar::collect_cvc_data()
 
   int error_code = COLVARS_OK;
 
+  if (cvm::step_relative() > 0) {
+    // Total force depends on Jacobian derivative from previous timestep
+    error_code |= collect_cvc_total_forces();
+  }
   error_code |= collect_cvc_values();
   error_code |= collect_cvc_gradients();
-  error_code |= collect_cvc_total_forces();
   error_code |= collect_cvc_Jacobians();
   error_code |= calc_colvar_properties();
 
@@ -871,6 +890,22 @@ int colvar::collect_cvc_values()
   if (cvm::debug())
     cvm::log("Colvar \""+this->name+"\" has value "+
               cvm::to_str(x, cvm::cv_width, cvm::cv_prec)+".\n");
+
+  if (after_restart) {
+    after_restart = false;
+    if (cvm::proxy->simulation_running()) {
+      cvm::real const jump2 = dist2(x, x_restart) / (width*width);
+      if (jump2 > 0.25) {
+        cvm::error("Error: the calculated value of colvar \""+name+
+                   "\":\n"+cvm::to_str(x)+"\n differs greatly from the value "
+                   "last read from the state file:\n"+cvm::to_str(x_restart)+
+                   "\nPossible causes are changes in configuration, "
+                   "wrong state file, or how PBC wrapping is handled.\n",
+                   INPUT_ERROR);
+        return INPUT_ERROR;
+      }
+    }
+  }
 
   return COLVARS_OK;
 }
@@ -979,22 +1014,17 @@ int colvar::calc_cvc_total_force(int first_cvc, size_t num_cvcs)
     if (cvm::debug())
       cvm::log("Calculating total force of colvar \""+this->name+"\".\n");
 
-    // if (!tasks[task_extended_lagrangian] && (cvm::step_relative() > 0)) {
-   // Disabled check to allow for explicit total force calculation
-    // even with extended Lagrangian
+    cvm::increase_depth();
 
-    if (cvm::step_relative() > 0) {
-      cvm::increase_depth();
-      // get from the cvcs the total forces from the PREVIOUS step
-      for (i = first_cvc, cvc_count = 0;
-          (i < cvcs.size()) && (cvc_count < cvc_max_count);
-          i++) {
-        if (!cvcs[i]->is_enabled()) continue;
-        cvc_count++;
-        (cvcs[i])->calc_force_invgrads();
-      }
-      cvm::decrease_depth();
+    for (i = first_cvc, cvc_count = 0;
+        (i < cvcs.size()) && (cvc_count < cvc_max_count);
+        i++) {
+      if (!cvcs[i]->is_enabled()) continue;
+      cvc_count++;
+      (cvcs[i])->calc_force_invgrads();
     }
+    cvm::decrease_depth();
+
 
     if (cvm::debug())
       cvm::log("Done calculating total force of colvar \""+this->name+"\".\n");
@@ -1013,6 +1043,11 @@ int colvar::collect_cvc_total_forces()
       // get from the cvcs the total forces from the PREVIOUS step
       for (size_t i = 0; i < cvcs.size();  i++) {
         if (!cvcs[i]->is_enabled()) continue;
+            if (cvm::debug())
+            cvm::log("Colvar component no. "+cvm::to_str(i+1)+
+                " within colvar \""+this->name+"\" has total force "+
+                cvm::to_str((cvcs[i])->total_force(),
+                cvm::cv_width, cvm::cv_prec)+".\n");
         // linear combination is assumed
         ft += (cvcs[i])->total_force() * (cvcs[i])->sup_coeff / active_cvc_square_norm;
       }
@@ -1056,6 +1091,11 @@ int colvar::collect_cvc_Jacobians()
     fj.reset();
     for (size_t i = 0; i < cvcs.size(); i++) {
       if (!cvcs[i]->is_enabled()) continue;
+        if (cvm::debug())
+          cvm::log("Colvar component no. "+cvm::to_str(i+1)+
+            " within colvar \""+this->name+"\" has Jacobian derivative"+
+            cvm::to_str((cvcs[i])->Jacobian_derivative(),
+            cvm::cv_width, cvm::cv_prec)+".\n");
       // linear combination is assumed
       fj += (cvcs[i])->Jacobian_derivative() * (cvcs[i])->sup_coeff / active_cvc_square_norm;
     }
@@ -1085,7 +1125,7 @@ int colvar::calc_colvar_properties()
     // TODO: put it in the restart information
     if (cvm::step_relative() == 0) {
       xr = x;
-      vr = 0.0; // (already 0; added for clarity)
+      vr.reset(); // (already 0; added for clarity)
     }
 
     // report the restraint center as "value"
@@ -1128,15 +1168,16 @@ cvm::real colvar::update_forces_energy()
   if (is_enabled(f_cv_Jacobian)) {
     // the instantaneous Jacobian force was not included in the reported total force;
     // instead, it is subtracted from the applied force (silent Jacobian correction)
+    // This requires the Jacobian term for the *current* timestep
     if (is_enabled(f_cv_hide_Jacobian))
       f -= fj;
   }
 
-  if (is_enabled(f_cv_lower_wall) || is_enabled(f_cv_upper_wall)) {
+  // Wall force
+  colvarvalue fw(x);
+  fw.reset();
 
-    // Wall force
-    colvarvalue fw(x);
-    fw.reset();
+  if (is_enabled(f_cv_lower_wall) || is_enabled(f_cv_upper_wall)) {
 
     if (cvm::debug())
       cvm::log("Calculating wall forces for colvar \""+this->name+"\".\n");
@@ -1144,12 +1185,11 @@ cvm::real colvar::update_forces_energy()
     // For a periodic colvar, both walls may be applicable at the same time
     // in which case we pick the closer one
     if ( (!is_enabled(f_cv_upper_wall)) ||
-         (this->dist2(x_reported, lower_wall) < this->dist2(x_reported, upper_wall)) ) {
+         (this->dist2(x, lower_wall) < this->dist2(x, upper_wall)) ) {
 
-      cvm::real const grad = this->dist2_lgrad(x_reported, lower_wall);
+      cvm::real const grad = this->dist2_lgrad(x, lower_wall);
       if (grad < 0.0) {
         fw = -0.5 * lower_wall_k * grad;
-        f += fw;
         if (cvm::debug())
           cvm::log("Applying a lower wall force("+
                     cvm::to_str(fw)+") to \""+this->name+"\".\n");
@@ -1157,10 +1197,9 @@ cvm::real colvar::update_forces_energy()
 
     } else {
 
-      cvm::real const grad = this->dist2_lgrad(x_reported, upper_wall);
+      cvm::real const grad = this->dist2_lgrad(x, upper_wall);
       if (grad > 0.0) {
         fw = -0.5 * upper_wall_k * grad;
-        f += fw;
         if (cvm::debug())
           cvm::log("Applying an upper wall force("+
                     cvm::to_str(fw)+") to \""+this->name+"\".\n");
@@ -1168,17 +1207,26 @@ cvm::real colvar::update_forces_energy()
     }
   }
 
+  // At this point f is the force f from external biases that will be applied to the
+  // extended variable if there is one
+
   if (is_enabled(f_cv_extended_Lagrangian)) {
 
+    if (cvm::debug()) {
+      cvm::log("Updating extended-Lagrangian degrees of freedom.\n");
+    }
+
     cvm::real dt = cvm::dt();
-    cvm::real f_ext;
+    colvarvalue f_ext(fr.type());
+    f_ext.reset();
 
     // the total force is applied to the fictitious mass, while the
-    // atoms only feel the harmonic force
+    // atoms only feel the harmonic force + wall force
     // fr: bias force on extended variable (without harmonic spring), for output in trajectory
     // f_ext: total force on extended variable (including harmonic spring)
-    // f: - initially, external biasing force (including wall forces)
-    //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    // f: - initially, external biasing force
+    //    - after this code block, colvar force to be applied to atomic coordinates
+    //      ie. spring force + wall force
     fr    = f;
     f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
     f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
@@ -1200,15 +1248,24 @@ cvm::real colvar::update_forces_energy()
     potential_energy = 0.5 * ext_force_k * this->dist2(xr, x);
     // leap to v_(i+1/2)
     if (is_enabled(f_cv_Langevin)) {
-      vr -= dt * ext_gamma * vr.real_value;
-      vr += dt * ext_sigma * cvm::rand_gaussian() / ext_mass;
+      vr -= dt * ext_gamma * vr;
+      colvarvalue rnd(x);
+      rnd.set_random();
+      vr += dt * ext_sigma * rnd / ext_mass;
     }
     vr  += (0.5 * dt) * f_ext / ext_mass;
     xr  += dt * vr;
     xr.apply_constraints();
-    if (this->b_periodic) this->wrap(xr);
+    if (this->is_enabled(f_cv_periodic)) this->wrap(xr);
   }
 
+  // TODO remove the wall force
+  f += fw;
+  // Now adding the force on the actual colvar (for those biases who
+  // bypass the extended Lagrangian mass)
+  f += fb_actual;
+
+  // Store force to be applied, possibly summed over several timesteps
   f_accumulated += f;
 
   if (is_enabled(f_cv_fdiff_velocity)) {
@@ -1425,14 +1482,15 @@ std::istream & colvar::read_restart(std::istream &is)
     }
   }
 
-  if ( !(get_keyval(conf, "x", x,
-                    colvarvalue(x.type()), colvarparse::parse_silent)) ) {
+  if ( !(get_keyval(conf, "x", x, x, colvarparse::parse_silent)) ) {
     cvm::log("Error: restart file does not contain "
              "the value of the colvar \""+
              name+"\" .\n");
   } else {
     cvm::log("Restarting collective variable \""+name+"\" from value: "+
              cvm::to_str(x)+"\n");
+    x_restart = x;
+    after_restart = true;
   }
 
   if (is_enabled(f_cv_extended_Lagrangian)) {

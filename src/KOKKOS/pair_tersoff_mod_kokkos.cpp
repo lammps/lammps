@@ -99,6 +99,9 @@ void PairTersoffMODKokkos<DeviceType>::init_style()
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
 
+  if (neighflag == FULL)
+    error->all(FLERR,"Cannot (yet) use full neighbor list style with tersoff/mod/kk");
+
   if (neighflag == FULL || neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
@@ -107,7 +110,7 @@ void PairTersoffMODKokkos<DeviceType>::init_style()
     else
       neighbor->requests[irequest]->ghost = 0;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with tersoff/kk");
+    error->all(FLERR,"Cannot use chosen neighbor list style with tersoff/mod/kk");
   }
 }
 

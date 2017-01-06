@@ -58,12 +58,12 @@ class PairTable : public Pair {
 
   int **tabindex;
 
-  void allocate();
+  virtual void allocate();
   void read_table(Table *, char *, char *);
   void param_extract(Table *, char *);
   void bcast_table(Table *);
   void spline_table(Table *);
-  void compute_table(Table *);
+  virtual void compute_table(Table *);
   void null_table(Table *);
   void free_table(Table *);
   void spline(double *, double *, int, double, double, double *);

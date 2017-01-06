@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <sstream>
 #include <string.h>
 
@@ -296,6 +303,9 @@ int colvarmodule::parse_biases(std::string const &conf)
   /// initialize harmonic restraints
   parse_biases_type<colvarbias_restraint_harmonic>(conf, "harmonic", n_rest_biases);
 
+  /// initialize harmonic walls restraints
+  parse_biases_type<colvarbias_restraint_harmonic_walls>(conf, "harmonicWalls", n_rest_biases);
+
   /// initialize histograms
   parse_biases_type<colvarbias_histogram>(conf, "histogram", n_histo_biases);
 
@@ -562,7 +572,6 @@ int colvarmodule::calc_colvars()
     colvars_smp_items.reserve(colvars.size());
 
     // set up a vector containing all components
-    size_t num_colvar_items = 0;
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
 
@@ -576,8 +585,6 @@ int colvarmodule::calc_colvars()
         colvars_smp.push_back(*cvi);
         colvars_smp_items.push_back(icvc);
       }
-
-      num_colvar_items += num_items;
     }
     cvm::decrease_depth();
 
@@ -641,7 +648,7 @@ int colvarmodule::calc_biases()
     for (bi = biases.begin(); bi != biases.end(); bi++) {
       error_code |= (*bi)->update();
       if (cvm::get_error()) {
-        return COLVARS_ERROR;
+        return error_code;
       }
     }
     cvm::decrease_depth();
@@ -1007,7 +1014,7 @@ std::istream & colvarmodule::read_restart(std::istream &is)
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    if (!((*bi)->read_restart(is))) {
+    if (!((*bi)->read_state(is))) {
       cvm::error("Error: in reading restart configuration for bias \""+
                  (*bi)->name+"\".\n",
                  INPUT_ERROR);
@@ -1070,15 +1077,15 @@ continue the previous simulation.\n\n");
     cvm::log(cvm::line_marker);
 
     // update this ahead of time in this special case
-    output_prefix = proxy->output_prefix();
+    output_prefix = proxy->input_prefix();
     cvm::log("All output files will now be saved with the prefix \""+output_prefix+".tmp.*\".\n");
-    output_prefix = output_prefix+".tmp";
-    write_output_files();
     cvm::log(cvm::line_marker);
     cvm::log("Please review the important warning above. After that, you may rename:\n\
 \""+output_prefix+".tmp.colvars.state\"\n\
 to:\n\
-\""+output_prefix+".colvars.state\"\n");
+\""+ proxy->input_prefix()+".colvars.state\"\n");
+    output_prefix = output_prefix+".tmp";
+    write_output_files();
     cvm::error("Exiting with error until issue is addressed.\n", FATAL_ERROR);
   }
 
@@ -1120,6 +1127,7 @@ int colvarmodule::write_output_files()
        bi != biases.end();
        bi++) {
     (*bi)->write_output_files();
+    (*bi)->write_state_to_replicas();
   }
   cvm::decrease_depth();
 
@@ -1212,19 +1220,29 @@ std::ostream & colvarmodule::write_restart(std::ostream &os)
      << "  version " << std::string(COLVARS_VERSION) << "\n"
      << "}\n\n";
 
+  int error_code = COLVARS_OK;
+
   cvm::increase_depth();
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end();
        cvi++) {
     (*cvi)->write_restart(os);
+    error_code |= (*cvi)->write_output_files();
   }
 
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    (*bi)->write_restart(os);
+    (*bi)->write_state(os);
+    error_code |= (*bi)->write_state_to_replicas();
+    error_code |= (*bi)->write_output_files();
   }
   cvm::decrease_depth();
+
+  if (error_code != COLVARS_OK) {
+    // TODO make this function return an int instead
+    os.setstate(std::ios::failbit);
+  }
 
   return os;
 }

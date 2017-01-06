@@ -72,7 +72,8 @@ class PairTableRX : public Pair {
   int nspecies;
   char *site1, *site2;
   int isite1, isite2;
-  void getParams(int, double &, double &, double &, double &);
+  void getMixingWeights(int, double &, double &, double &, double &);
+  bool fractionalWeighting;
 
 };
 
@@ -163,7 +164,7 @@ When using pair style table with a long-range KSpace solver, the
 cutoffs for all atom type pairs must all be the same, since the
 long-range solver starts at that cutoff.
 
-E:  The number of molecules in CG particle is less than 1e-8
+E:  The number of molecules in CG particle is less than 10*DBL_EPSILON
 
 Self-explanatory.  Check the species concentrations have been properly set
 and check the reaction kinetic solver parameters in fix rx to more for

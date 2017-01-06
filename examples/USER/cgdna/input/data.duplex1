@@ -11,6 +11,7 @@
 -20.000000 20.000000 ylo yhi
 -20.000000 20.000000 zlo zhi
 
+# Atom masses for each atom type
 Masses
 
 1 3.1575

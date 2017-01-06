@@ -275,8 +275,8 @@ Now, since in the meantime our local text for the tutorial also changed, we need
 Axel's change back into our branch, and merge them:
 
  $ git add tutorial_github.txt
- $ git add JPG/tutorial_*.png
- $ git commit -m "Updated part on reverse pull requests"
+ $ git add JPG/tutorial_reverse_pull_request*.png
+ $ git commit -m "Updated text and images on reverse pull requests"
  $ git pull
 
 

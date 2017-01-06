@@ -31,6 +31,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{NONE,RLINEAR,RSQ,BMP};
+
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
 #else

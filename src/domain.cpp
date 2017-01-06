@@ -938,28 +938,31 @@ void Domain::subbox_too_small_check(double thresh)
 }
 
 /* ----------------------------------------------------------------------
-   minimum image convention
+   minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
+   changed "if" to "while" to enable distance to
+     far-away ghost atom returned by atom->map() to be wrapped back into box
+     could be problem for looking up atom IDs when cutoff > boxsize
 ------------------------------------------------------------------------- */
 
 void Domain::minimum_image(double &dx, double &dy, double &dz)
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      if (fabs(dx) > xprd_half) {
+      while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > yprd_half) {
+      while (fabs(dy) > yprd_half) {
         if (dy < 0.0) dy += yprd;
         else dy -= yprd;
       }
     }
     if (zperiodic) {
-      if (fabs(dz) > zprd_half) {
+      while (fabs(dz) > zprd_half) {
         if (dz < 0.0) dz += zprd;
         else dz -= zprd;
       }
@@ -967,7 +970,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
   } else {
     if (zperiodic) {
-      if (fabs(dz) > zprd_half) {
+      while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
           dy += yz;
@@ -980,7 +983,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > yprd_half) {
+      while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
           dx += xy;
@@ -991,7 +994,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (xperiodic) {
-      if (fabs(dx) > xprd_half) {
+      while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
@@ -1000,28 +1003,31 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 }
 
 /* ----------------------------------------------------------------------
-   minimum image convention
+   minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
+   changed "if" to "while" to enable distance to
+     far-away ghost atom returned by atom->map() to be wrapped back into box
+     could be problem for looking up atom IDs when cutoff > boxsize
 ------------------------------------------------------------------------- */
 
 void Domain::minimum_image(double *delta)
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
+      while (fabs(delta[0]) > xprd_half) {
         if (delta[0] < 0.0) delta[0] += xprd;
         else delta[0] -= xprd;
       }
     }
     if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
+      while (fabs(delta[1]) > yprd_half) {
         if (delta[1] < 0.0) delta[1] += yprd;
         else delta[1] -= yprd;
       }
     }
     if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
+      while (fabs(delta[2]) > zprd_half) {
         if (delta[2] < 0.0) delta[2] += zprd;
         else delta[2] -= zprd;
       }
@@ -1029,7 +1035,7 @@ void Domain::minimum_image(double *delta)
 
   } else {
     if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
+      while (fabs(delta[2]) > zprd_half) {
         if (delta[2] < 0.0) {
           delta[2] += zprd;
           delta[1] += yz;
@@ -1042,7 +1048,7 @@ void Domain::minimum_image(double *delta)
       }
     }
     if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
+      while (fabs(delta[1]) > yprd_half) {
         if (delta[1] < 0.0) {
           delta[1] += yprd;
           delta[0] += xy;
@@ -1053,7 +1059,7 @@ void Domain::minimum_image(double *delta)
       }
     }
     if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
+      while (fabs(delta[0]) > xprd_half) {
         if (delta[0] < 0.0) delta[0] += xprd;
         else delta[0] -= xprd;
       }
@@ -1092,12 +1098,16 @@ int Domain::closest_image(int i, int j)
       closest = j;
     }
   }
+
   return closest;
 }
 
 /* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
+   not currently used (Jan 2017):
+     used to be called by pair TIP4P styles but no longer,
+       due to use of other closest_image() method
 ------------------------------------------------------------------------- */
 
 void Domain::closest_image(const double * const xi, const double * const xj,
@@ -1984,7 +1994,7 @@ void Domain::subbox_corners()
 
 /* ----------------------------------------------------------------------
    compute 8 corner pts of any triclinic box with lo/hi in lamda coords
-   8 output conners are ordered with x changing fastest, then y, finally z
+   8 output corners are ordered with x changing fastest, then y, finally z
    could be more efficient if just coded with xy,yz,xz explicitly
 ------------------------------------------------------------------------- */
 

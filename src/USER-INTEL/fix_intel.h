@@ -43,6 +43,8 @@ class FixIntel : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
+  void setup_pre_reverse(int eflag = 0, int vflag = 0);
+
   void pair_init_check(const bool cdmessage=false);
   void bond_init_check();
   void kspace_init_check();

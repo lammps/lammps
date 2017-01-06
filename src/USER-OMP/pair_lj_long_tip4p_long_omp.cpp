@@ -737,8 +737,8 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double r,r2inv,forcecoul,forcelj,cforce;
   double factor_coul;
   double grij,expm2,prefactor,t,erfc;
-  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
-  dbl3_t x1,x2;
+  double fO[3],fH[3],fd[3],v[6];
+  dbl3_t x1,x2,xH1,xH2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
@@ -763,14 +763,20 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     itype = type[i];
     if (itype == typeO) {
       if (hneigh_thr[i].a < 0) {
-        hneigh_thr[i].a = iH1 = atom->map(atom->tag[i] + 1);
-        hneigh_thr[i].b = iH2 = atom->map(atom->tag[i] + 2);
-        hneigh_thr[i].t = 1;
+        iH1 = atom->map(atom->tag[i] + 1);
+        iH2 = atom->map(atom->tag[i] + 2);
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        // set iH1,iH2 to index of closest image to O
+        iH1 = domain->closest_image(i,iH1);
+        iH2 = domain->closest_image(i,iH2);
         compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
+        hneigh_thr[i].a = iH1;
+        hneigh_thr[i].b = iH2;
+        hneigh_thr[i].t = 1;
+
       } else {
         iH1 = hneigh_thr[i].a;
         iH2 = hneigh_thr[i].b;
@@ -871,14 +877,20 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh_thr[j].a < 0) {
-              hneigh_thr[j].a = jH1 = atom->map(atom->tag[j] + 1);
-              hneigh_thr[j].b = jH2 = atom->map(atom->tag[j] + 2);
-              hneigh_thr[j].t = 1;
+              jH1 = atom->map(atom->tag[j] + 1);
+              jH2 = atom->map(atom->tag[j] + 2);
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              // set jH1,jH2 to closest image to O
+              jH1 = domain->closest_image(j,jH1);
+              jH2 = domain->closest_image(j,jH2);
               compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
+              hneigh_thr[j].a = jH1;
+              hneigh_thr[j].b = jH2;
+              hneigh_thr[j].t = 1;
+
             } else {
               jH1 = hneigh_thr[j].a;
               jH2 = hneigh_thr[j].b;
@@ -983,15 +995,14 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             f[iH2][2] += fH[2];
 
 	    if (EVFLAG) {
-	      domain->closest_image(&x[i].x,&x[iH1].x,xH1);
-	      domain->closest_image(&x[i].x,&x[iH2].x,xH2);
-
-	      v[0] = x[i].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] = x[i].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] = x[i].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] = x[i].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] = x[i].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] = x[i].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+              xH1 = x[iH1];
+              xH2 = x[iH2];
+	      v[0] = x[i].x*fO[0] + xH1.x*fH[0] + xH2.x*fH[0];
+	      v[1] = x[i].y*fO[1] + xH1.y*fH[1] + xH2.y*fH[1];
+	      v[2] = x[i].z*fO[2] + xH1.z*fH[2] + xH2.z*fH[2];
+	      v[3] = x[i].x*fO[1] + xH1.x*fH[1] + xH2.x*fH[1];
+	      v[4] = x[i].x*fO[2] + xH1.x*fH[2] + xH2.x*fH[2];
+	      v[5] = x[i].y*fO[2] + xH1.y*fH[2] + xH2.y*fH[2];
 	    }
 	    vlist[n++] = i;
 	    vlist[n++] = iH1;
@@ -1041,15 +1052,14 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    f[jH2][2] += fH[2];
 
 	    if (EVFLAG) {
-	      domain->closest_image(&x[j].x,&x[jH1].x,xH1);
-	      domain->closest_image(&x[j].x,&x[jH2].x,xH2);
-
-	      v[0] += x[j].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] += x[j].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] += x[j].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] += x[j].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] += x[j].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] += x[j].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+              xH1 = x[jH1];
+              xH2 = x[jH2];
+	      v[0] += x[j].x*fO[0] + xH1.x*fH[0] + xH2.x*fH[0];
+	      v[1] += x[j].y*fO[1] + xH1.y*fH[1] + xH2.y*fH[1];
+	      v[2] += x[j].z*fO[2] + xH1.z*fH[2] + xH2.z*fH[2];
+	      v[3] += x[j].x*fO[1] + xH1.x*fH[1] + xH2.x*fH[1];
+	      v[4] += x[j].x*fO[2] + xH1.x*fH[2] + xH2.x*fH[2];
+	      v[5] += x[j].y*fO[2] + xH1.y*fH[2] + xH2.y*fH[2];
             }
       	    vlist[n++] = j;
 	    vlist[n++] = jH1;
@@ -1981,12 +1991,10 @@ void PairLJLongTIP4PLongOMP::compute_newsite_thr(const dbl3_t &xO,
   double delx1 = xH1.x - xO.x;
   double dely1 = xH1.y - xO.y;
   double delz1 = xH1.z - xO.z;
-  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = xH2.x - xO.x;
   double dely2 = xH2.y - xO.y;
   double delz2 = xH2.z - xO.z;
-  domain->minimum_image(delx2,dely2,delz2);
 
   const double prefac = alpha * 0.5;
   xM.x = xO.x + prefac * (delx1 + delx2);

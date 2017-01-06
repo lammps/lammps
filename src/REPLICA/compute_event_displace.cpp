@@ -48,7 +48,7 @@ ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;
 
-  // fix event ID will be set later by PRD
+  // fix event ID will be set later by accelerated dynamics method
 
   id_event = NULL;
 }
@@ -75,7 +75,8 @@ void ComputeEventDisplace::init()
     fix_event = (FixEvent*) modify->fix[ifix];
 
     if (strcmp(fix_event->style,"EVENT/PRD") != 0 &&
-        strcmp(fix_event->style,"EVENT/TAD") != 0)
+        strcmp(fix_event->style,"EVENT/TAD") != 0 &&
+        strcmp(fix_event->style,"EVENT/HYPER") != 0)
       error->all(FLERR,"Compute event/displace has invalid fix event assigned");
   }
 

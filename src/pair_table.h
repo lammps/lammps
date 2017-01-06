@@ -58,7 +58,7 @@ class PairTable : public Pair {
 
   int **tabindex;
 
-  void allocate();
+  virtual void allocate();
   void read_table(Table *, char *, char *);
   void param_extract(Table *, char *);
   void bcast_table(Table *);

@@ -310,13 +310,6 @@ void FixQEq::setup_pre_force_respa(int vflag, int ilevel)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::min_setup_pre_force(int vflag)
-{
-  setup_pre_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixQEq::init_storage()
 {
   nlocal = atom->nlocal;

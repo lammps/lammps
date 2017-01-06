@@ -52,7 +52,6 @@ namespace LAMMPS_NS {
        and is called before domain->pbc() and comm->exchange().  */
     void setup_pre_exchange();
     void pre_exchange();
-    void min_setup_pre_exchange();
     void min_pre_exchange();
 
     double memory_usage();
@@ -84,7 +83,6 @@ namespace LAMMPS_NS {
        neighbor->build().  */
     void pre_neighbor();
     void setup_pre_neighbor();
-    void min_setup_pre_neighbor();
 
     /** pre/post_force is used to modify fix-specific data
         and is before/after the various force computations. */

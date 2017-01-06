@@ -283,7 +283,19 @@ Axel's change back into our branch, and merge them:
  $ git add tutorial_github.txt
  $ git add JPG/tutorial_reverse_pull_request*.png
  $ git commit -m "Updated text and images on reverse pull requests"
- $ git pull
+ $ git pull :pre
+
+In this case, the merge was painless because github could auto-merge:
+
+:c,image(JPG/tutorial_reverse_pull_request6.png)
+
+With Axel's changes merged in and some final text updates, our feature branch is
+now perfect as far as we are concerned, so we are going to commit and push again:
+
+ $ git add tutorial_github.txt
+ $ git add JPG/tutorial_reverse_pull_request6.png
+ $ git commit -m "Merged Axel's suggestions and updated text"
+ $ git push git@github.com:Pakketeretet2/lammps :pre
 
 
 :line

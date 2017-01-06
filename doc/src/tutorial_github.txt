@@ -285,7 +285,7 @@ Axel's change back into our branch, and merge them:
  $ git commit -m "Updated text and images on reverse pull requests"
  $ git pull :pre
 
-In this case, the merge was painless because github could auto-merge:
+In this case, the merge was painless because git could auto-merge:
 
 :c,image(JPG/tutorial_reverse_pull_request6.png)
 

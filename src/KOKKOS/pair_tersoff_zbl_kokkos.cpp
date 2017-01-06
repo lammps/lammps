@@ -110,6 +110,9 @@ void PairTersoffZBLKokkos<DeviceType>::init_style()
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
 
+  if (neighflag == FULL)
+    error->all(FLERR,"Cannot (yet) use full neighbor list style with tersoff/zbl/kk");
+
   if (neighflag == FULL || neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;

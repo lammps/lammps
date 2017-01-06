@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #ifndef COLVARBIAS_META_H
 #define COLVARBIAS_META_H
 
@@ -31,10 +38,16 @@ public:
   virtual int init(std::string const &conf);
   virtual ~colvarbias_meta();
   virtual int update();
-  virtual std::istream & read_restart(std::istream &is);
-  virtual std::ostream & write_restart(std::ostream &os);
+
+  virtual std::string const get_state_params() const;
+  virtual int set_state_params(std::string const &state_conf);
+  virtual std::ostream & write_state_data(std::ostream &os);
+  virtual std::istream & read_state_data(std::istream &os);
+
   virtual int setup_output();
+  virtual int write_output_files();
   virtual void write_pmf();
+  virtual int write_state_to_replicas();
 
   class hill;
   typedef std::list<hill>::iterator hill_iter;
@@ -76,13 +89,6 @@ protected:
 
   /// Read a hill from a file
   std::istream & read_hill(std::istream &is);
-
-  /// \brief step present in a state file
-  ///
-  /// When using grids and reading state files containing them
-  /// (multiple replicas), this is used to check whether a hill is
-  /// newer or older than the grids
-  size_t                   state_file_step;
 
   /// \brief Add a new hill; if a .hills trajectory is written,
   /// write it there; if there is more than one replica, communicate
@@ -187,7 +193,7 @@ protected:
   virtual void read_replica_files();
 
   /// \brief Write data to other replicas
-  virtual void write_replica_state_file();
+  virtual int write_replica_state_file();
 
   /// \brief Additional, "mirror" metadynamics biases, to collect info
   /// from the other replicas

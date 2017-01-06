@@ -33,6 +33,15 @@
 
 using namespace LAMMPS_NS;
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
+#define OneFluidValue (-1)
+#define isOneFluid(_site_) ( (_site_) == OneFluidValue )
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -514,6 +523,79 @@ void PairTableRXKokkos<DeviceType>::cleanup_copy() {
   eatom = NULL;
   vatom = NULL;
   h_table=NULL; d_table=NULL;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairTableRXKokkos<DeviceType>::getMixingWeights(typename DAT::t_float_2d_randomread dvector, int, double &, double &, double &, double &) {
+  double fractionOFAold, fractionOFA;
+  double fractionOld1, fraction1;
+  double fractionOld2, fraction2;
+  double nMoleculesOFAold, nMoleculesOFA;
+  double nMoleculesOld1, nMolecules1;
+  double nMoleculesOld2, nMolecules2;
+  double nTotal, nTotalOld;
+
+  nTotal = 0.0;
+  nTotalOld = 0.0;
+  for (int ispecies = 0; ispecies < nspecies; ++ispecies){
+    nTotal += dvector(ispecies,id);
+    nTotalOld += dvector(ispecies+nspecies,id);
+  }
+  if(nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+    error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
+
+  if (isOneFluid(isite1) == false){
+    nMoleculesOld1 = dvector(isite1+nspecies,id);
+    nMolecules1 = dvector(isite1,id);
+    fractionOld1 = nMoleculesOld1/nTotalOld;
+    fraction1 = nMolecules1/nTotal;
+  }
+  if (isOneFluid(isite2) == false){
+    nMoleculesOld2 = dvector(isite2+nspecies,id);
+    nMolecules2 = dvector(isite2,id);
+    fractionOld2 = nMoleculesOld2/nTotalOld;
+    fraction2 = nMolecules2/nTotal;
+  }
+
+  if (isOneFluid(isite1) || isOneFluid(isite2)){
+    nMoleculesOFAold  = 0.0;
+    nMoleculesOFA  = 0.0;
+    fractionOFAold  = 0.0;
+    fractionOFA  = 0.0;
+
+    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+      if (isite1 == ispecies || isite2 == ispecies) continue;
+      nMoleculesOFAold += dvector(ispecies+nspecies,id);
+      nMoleculesOFA += dvector(ispecies,id);
+      fractionOFAold += dvector(ispecies+nspecies,id)/nTotalOld;
+      fractionOFA += dvector(ispecies,id)/nTotal;
+    }
+    if(isOneFluid(isite1)){
+      nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld1 = fractionOFAold;
+      fraction1 = fractionOFA;
+    }
+    if(isOneFluid(isite2)){
+      nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld2 = fractionOFAold;
+      fraction2 = fractionOFA;
+    }
+  }
+
+  if(fractionalWeighting){
+    mixWtSite1old = fractionOld1;
+    mixWtSite1 = fraction1;
+    mixWtSite2old = fractionOld2;
+    mixWtSite2 = fraction2;
+  } else {
+    mixWtSite1old = nMoleculesOld1;
+    mixWtSite1 = nMolecules1;
+    mixWtSite2old = nMoleculesOld2;
+    mixWtSite2 = nMolecules2;
+  }
 }
 
 namespace LAMMPS_NS {

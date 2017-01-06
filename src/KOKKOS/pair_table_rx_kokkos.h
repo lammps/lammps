@@ -30,6 +30,8 @@ template<class DeviceType>
 class PairTableRXKokkos : public PairTable {
  public:
 
+  using DAT = ArrayTypes<DeviceType>;
+
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
@@ -150,6 +152,9 @@ class PairTableRXKokkos : public PairTable {
   friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,BITMAP> >;
 
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
+
+  KOKKOS_INLINE_FUNCTION
+  void getMixingWeights(typename DAT::t_float_2d_randomread dvector, int, double &, double &, double &, double &);
 };
 
 }

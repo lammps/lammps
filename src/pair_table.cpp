@@ -29,6 +29,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{NONE,RLINEAR,RSQ,BMP};
+
 #define MAXLINE 1024
 #define EPSILONR 1.0e-6
 

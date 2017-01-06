@@ -13,29 +13,27 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(momentum,FixMomentum)
+FixStyle(momentum/kk,FixMomentumKokkos<LMPDeviceType>)
+FixStyle(momentum/kk/device,FixMomentumKokkos<LMPDeviceType>)
+FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>)
 
 #else
 
-#ifndef LMP_FIX_MOMENTUM_H
-#define LMP_FIX_MOMENTUM_H
+#ifndef LMP_FIX_MOMENTUM_KOKKOS_H
+#define LMP_FIX_MOMENTUM_KOKKOS_H
 
-#include "fix.h"
+#include "fix_momentum.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class FixMomentum : public Fix {
+template<class DeviceType>
+class FixMomentumKokkos : public FixMomentum {
  public:
-  FixMomentum(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void end_of_step();
+  typedef ArrayTypes<DeviceType> AT;
 
- protected:
-  int linear,angular,rescale;
-  int xflag,yflag,zflag;
-  int dynamic;
-  double masstotal;
+  FixMomentumKokkos(class LAMMPS *, int, char **);
+  void end_of_step();
 };
 
 }
@@ -44,15 +42,5 @@ class FixMomentum : public Fix {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix momentum group has no atoms
-
-Self-explanatory.
 
 */

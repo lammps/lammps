@@ -24,6 +24,7 @@
 /kokkos.cpp
 /kokkos.h
 /kokkos_type.h
+/kokkos_few.h
 
 /manifold*.cpp
 /manifold*.h

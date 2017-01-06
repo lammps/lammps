@@ -1451,7 +1451,7 @@ void Domain::unmap(double *x, imageint image)
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::unmap(double *x, imageint image, double *y)
+void Domain::unmap(const double *x, imageint image, double *y)
 {
   int xbox = (image & IMGMASK) - IMGMAX;
   int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;

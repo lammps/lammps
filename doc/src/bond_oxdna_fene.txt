@@ -28,7 +28,7 @@ to define a modified finite extensible nonlinear elastic (FENE) potential
 in the oxDNA force field for coarse-grained modelling of DNA. 
 
 The following coefficients must be defined for the bond type via the
-"bond_coeff"_bond_coeff.html command exactly as given in the example above, or in
+"bond_coeff"_bond_coeff.html command as given in the above example, or in
 the data file or restart files read by the "read_data"_read_data.html
 or "read_restart"_read_restart.html commands:
 
@@ -36,31 +36,31 @@ epsilon (energy)
 Delta (distance)
 r0 (distance) :ul
 
-An example input file and data files can be found in /examples/USER/cgdna/input/.
-A simple python setup tool which creates single straight or helical DNA strands as well as 
-DNA duplexes and arrays of duplexes can be found in /examples/USER/cgdna/util/.
-A technical report with details on the structure of the input file 
-can be found in /examples/USER/cgdna/doc/.
+NOTE: This bond style has to be used together with the corresponding oxDNA pair styles
+for excluded volume interaction {oxdna_excv}, stacking {oxdna_stk}, cross-stacking {oxdna_xstk}
+and coaxial stacking interaction {oxdna_coaxstk} as well as hydrogen-bonding interaction {oxdna_hbond} (see also documentation of 
+"pair_style oxdna_excv"_pair_oxdna_excv.html). The coefficients 
+in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
 
-NOTE: This bond style should always be used together with the related oxDNA pair styles
-for excluded volume, hydrogen-bonding, stacking, cross-stacking
-and coaxial stacking interactions (see also documentation of 
-"pair_style oxdna_excv"_pair_oxdna_excv.html). The coefficients
-in the example above cannot be changed without 
-reparametrizing the entire model.
+An example input file and data files can be found in /examples/USER/cgdna/input/.
+A simple python setup tool which creates single straight or helical DNA strands,
+DNA duplexes or arrays of DNA duplexes can be found in /examples/USER/cgdna/util/.
+A technical report with more information on the model, the structure of the input file,
+the setup tool and the performance of the LAMMPS-implementation of oxDNA
+can be found in /examples/USER/cgdna/doc/.
 
 :line
 
 [Restrictions:]
 
 This bond style can only be used if LAMMPS was built with the
-MOLECULE and ASPHERE package.  See the "Making
+USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 
 [Related commands:]
 
-"bond_coeff"_bond_coeff.html, "pair_style oxdna_excv"_pair_oxdna_excv.html
+"pair_style oxdna_excv"_pair_oxdna_excv.html, "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html, "bond_coeff"_bond_coeff.html 
 
 [Default:] none
 

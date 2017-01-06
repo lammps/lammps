@@ -18,89 +18,34 @@ nve/dot = style name of this fix command :l
 
 [Examples:]
 
-fix 1 all   nve/dot :pre
+fix 1 all nve/dot :pre
 
 [Description:]
 
 Apply a rigid-body integrator as described in "(Davidchack)"_#Davidchack
-to a group of atoms.  This command performs Molecular Dynamics (MD)
-via a velocity-Verlet algorithm and a rotation of the quaternion degrees
-of freedom. 
-This command is equivalent to the  
-"fix langevin"_fix_langevin.html and its {angmom} option, but combines 
-the "fix nve"_fix_nve.html and the "fix langevin"_fix_langevin.html in 
-one single command. It features improved stability permitting larger 
-timestep sizes.
+to a group of atoms, but without Langevin dynamics. 
+This command performs Molecular dynamics (MD)
+via a velocity-Verlet algorithm and an evolution operator that rotates 
+the quaternion degrees of freedom, similar to the scheme outlined in "(Miller)"_#Miller. 
 
-The total force on each atom will have the form:
-
-F = Fc + Ff + Fr
-Ff = - (m / damp) v
-Fr is proportional to sqrt(Kb T m / (dt damp)) :pre
-
-Fc is the conservative force computed via the usual inter-particle
-interactions ("pair_style"_pair_style.html,
-"bond_style"_bond_style.html, etc).
-
-The Ff and Fr terms are implicitely added by this fix on a per-particle basis.
-
-Ff is a frictional drag or viscous damping term proportional to the
-particle's velocity.  The proportionality constant for each atom is
-computed as m/damp, where m is the mass of the particle and damp is
-the damping factor specified by the user.
-
-Fr is a force due to solvent atoms at a temperature T randomly bumping
-into the particle.  As derived from the fluctuation/dissipation
-theorem, its magnitude as shown above is proportional to sqrt(Kb T m /
-dt damp), where Kb is the Boltzmann constant, T is the desired
-temperature, m is the mass of the particle, dt is the timestep size,
-and damp is the damping factor.  Random numbers are used to randomize
-the direction and magnitude of this force as described in
-"(Dunweg)"_#Dunweg, where a uniform random number is used (instead of
-a Gaussian random number) for speed.
-
-This fix has to be used together with the {angmom} keyword. The 
-particles are always considered to have a finite size, hence
-the rotational degrees of freedom are also being thermostatted.
-
-NOTE: Unlike the "fix langevin"_fix_langevin.html this command performs
-also time integration of the translational and quaternion degrees of freedom.
-
-The desired temperature at each timestep has to be a constant value during the
-run, therefore {Tstart} has to be equal to {Tstop}.
-
-The {damp} parameter is specified in time units and determines how
-rapidly the temperature is relaxed.  For example, a value of 0.03
-means to relax the temperature in a timespan of (roughly) 0.03 time
-units (tau - see the "units"_units.html command).
-The damp factor can be thought of as inversely related to the
-viscosity of the solvent. I.e. a small relaxation time implies a
-hi-viscosity solvent and vice versa.  See the discussion about gamma
-and viscosity in the documentation for the "fix
-viscous"_fix_viscous.html command for more details.
-
-The random # {seed} must be a positive integer. A Marsaglia random
-number generator is used.  Each processor uses the input seed to
-generate its own unique seed and its own stream of random numbers.
-Thus the dynamics of the system will not be identical on two runs on
-different numbers of processors.
+This command is the equivalent of the "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
+without damping and noise and can be used to determine the stability range 
+in a NVE ensemble prior to using the Langevin-type DOTC-integrator
+(see also "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html).
+The command is equivalent to the "fix nve"_fix_nve.html.
+The particles are always considered to have a finite size.
 
 :line
 
-The keyword/value option has to be used in the following way:
+[Restrictions:]
 
-The keyword {angmom} enables thermostatting of the rotational degrees of 
-freedom in addition to the usual translational degrees of freedom. 
-Hence, this fix can only be used for finite-size particles.
-
-The scale factor With the {angmom} keyword gives the ratio of the rotational to 
-translational friction coefficient.
-
-[Restrictions:] none
+These pair styles can only be used if LAMMPS was built with the
+USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]
 
-"fix nve/dot"_fix_nve_dot.html, "fix nve"_fix_nve.html, "fix langevin"_fix_langevin.html
+"fix nve/dotc/langevin"_fix_nve_dotc_langevin.html, "fix nve"_fix_nve.html
 
 [Default:] none
 
@@ -108,3 +53,5 @@ translational friction coefficient.
 
 :link(Davidchack)
 [(Davidchack)] R.L Davidchack, T.E. Ouldridge, and M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
+:link(Miller)
+[(Miller)] T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).

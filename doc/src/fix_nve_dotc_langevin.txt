@@ -25,19 +25,25 @@ keyword = {angmom} :l
 
 [Examples:]
 
-fix 1 all   nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10 :pre
+fix 1 all nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10 :pre
 
 [Description:]
 
 Apply a rigid-body Langevin-type integrator of the kind "Langevin C" 
 as described in "(Davidchack)"_#Davidchack
-to a group of atoms which models an interaction with a background
-implicit solvent.  This command performs Brownian Dynamics (BD). 
-It has been closely modelled on the 
-"fix langevin"_fix_langevin.html and its {angmom} option, but combines 
+to a group of atoms, which models an interaction with an implicit background
+solvent.  This command performs Brownian dynamics (BD)
+via a technique that splits the integration into a deterministic Hamiltonian 
+part and the Ornstein-Uhlenbeck process for noise and damping. 
+The quaternion degrees of freedom are updated though an evolution
+operator which performs a rotation in quaternion space, preserves
+the quaternion norm and is akin to "(Miller)"_#Miller.
+
+In terms of syntax this command has been closely modelled on the 
+"fix langevin"_fix_langevin.html and its {angmom} option. But it combines 
 the "fix nve"_fix_nve.html and the "fix langevin"_fix_langevin.html in 
-one single command. It features improved stability permitting larger 
-timestep sizes.
+one single command. The main feature is improved stability 
+over the standard integrator, permitting slightly larger timestep sizes.
 
 The total force on each atom will have the form:
 
@@ -49,7 +55,8 @@ Fc is the conservative force computed via the usual inter-particle
 interactions ("pair_style"_pair_style.html,
 "bond_style"_bond_style.html, etc).
 
-The Ff and Fr terms are implicitely added by this fix on a per-particle basis.
+The Ff and Fr terms are implicitly taken into account by this fix 
+on a per-particle basis.
 
 Ff is a frictional drag or viscous damping term proportional to the
 particle's velocity.  The proportionality constant for each atom is
@@ -66,22 +73,19 @@ the direction and magnitude of this force as described in
 "(Dunweg)"_#Dunweg, where a uniform random number is used (instead of
 a Gaussian random number) for speed.
 
-This fix has to be used together with the {angmom} keyword. The 
-particles are always considered to have a finite size, hence
-the rotational degrees of freedom are also being thermostatted.
 
 NOTE: Unlike the "fix langevin"_fix_langevin.html this command performs
 also time integration of the translational and quaternion degrees of freedom.
 
-The desired temperature at each timestep has to be a constant value during the
-run, therefore {Tstart} has to be equal to {Tstop}.
+At the moment the desired temperature at each timestep has to be a constant value 
+during the run. Therefore {Tstart} has to be equal to {Tstop}.
 
 The {damp} parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 0.03
 means to relax the temperature in a timespan of (roughly) 0.03 time
-units (tau - see the "units"_units.html command).
+units tau (see the "units"_units.html command).
 The damp factor can be thought of as inversely related to the
-viscosity of the solvent. I.e. a small relaxation time implies a
+viscosity of the solvent, i.e. a small relaxation time implies a
 hi-viscosity solvent and vice versa.  See the discussion about gamma
 and viscosity in the documentation for the "fix
 viscous"_fix_viscous.html command for more details.
@@ -96,22 +100,33 @@ different numbers of processors.
 
 The keyword/value option has to be used in the following way:
 
+This fix has to be used together with the {angmom} keyword. The 
+particles are always considered to have a finite size. 
 The keyword {angmom} enables thermostatting of the rotational degrees of 
 freedom in addition to the usual translational degrees of freedom. 
-Hence, this fix can only be used for finite-size particles.
 
-The scale factor With the {angmom} keyword gives the ratio of the rotational to 
-translational friction coefficient.
+The scale factor after the {angmom} keyword gives the ratio of the rotational to 
+the translational friction coefficient.
 
-[Restrictions:] none
+:line
+
+[Restrictions:]
+
+These pair styles can only be used if LAMMPS was built with the
+USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]
 
-"fix nve/dot"_fix_nve_dot.html, "fix nve"_fix_nve.html, "fix langevin"_fix_langevin.html
+"fix nve"_fix_nve.html, "fix langevin"_fix_langevin.html, "fix nve/dot"_fix_nve_dot.html,  
 
 [Default:] none
 
 :line
 
 :link(Davidchack)
-[(Davidchack)] R.L Davidchack, T.E. Ouldridge, and M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
+[(Davidchack)] R.L Davidchack, T.E. Ouldridge, M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
+:link(Miller)
+[(Miller)] T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
+:link(Dunweg)
+[(Dunweg)] B. Dunweg, W. Paul, Int. J. Mod. Phys. C, 2, 817-27 (1991).

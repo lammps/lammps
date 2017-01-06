@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
+   Contributing author: Dan Ibanez (SNL)
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -33,20 +33,13 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,RLINEAR,RSQ,BMP};
-enum{FULL,HALFTHREAD,HALF};
-
-#define MAXLINE 1024
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTableRX(lmp)
+PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
 {
   update_table = 0;
   atomKK = (AtomKokkos *) atom;
-  ntables = 0;
-  tables = NULL;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -59,17 +52,12 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTableRX(lmp)
 template<class DeviceType>
 PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
 {
-/*  for (int m = 0; m < ntables; m++) free_table(&tables[m]);
-  memory->sfree(tables);
-
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
-    memory->destroy(tabindex);
-  }*/
+  if (copymode) return;
   delete h_table;
+  h_table = nullptr;
   delete d_table;
-
+  d_table = nullptr;
+  copymode = true; //prevents base class destructor from running
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,7 +86,6 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -124,44 +111,44 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   EV_FLOAT ev;
   if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == FULL) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,false,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,false,S_TableCompute<DeviceType,TABSTYLE> >
         ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
     } else if (neighflag == HALFTHREAD) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,false,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,false,S_TableCompute<DeviceType,TABSTYLE> >
         ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
     } else if (neighflag == HALF) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,false,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,false,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,false,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,false,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
     }
   } else {
     if (neighflag == FULL) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,true,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == HALFTHREAD) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,true,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == HALF) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,true,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,true,S_TableRXCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
@@ -191,27 +178,15 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   union_int_float_t rsq_lookup;
   double fpair;
   const int tidx = d_table_const.tabindex(itype,jtype);
-  //const Table* const tb = &tables[tabindex[itype][jtype]];
-
-  //if (rsq < d_table_const.innersq(tidx))
-  //  error->one(FLERR,"Pair distance < table inner cutoff");
-
-
   if (Specialisation::TabStyle == LOOKUP) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     fpair = d_table_const.f(tidx,itable);
   } else if (Specialisation::TabStyle == LINEAR) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   } else if (Specialisation::TabStyle == SPLINE) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     const double a = 1.0 - b;
     fpair = a * d_table_const.f(tidx,itable) + b * d_table_const.f(tidx,itable+1) +
@@ -237,26 +212,15 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   double evdwl;
   union_int_float_t rsq_lookup;
   const int tidx = d_table_const.tabindex(itype,jtype);
-  //const Table* const tb = &tables[tabindex[itype][jtype]];
-
-  //if (rsq < d_table_const.innersq(tidx))
-  //  error->one(FLERR,"Pair distance < table inner cutoff");
-
   if (Specialisation::TabStyle == LOOKUP) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     evdwl = d_table_const.e(tidx,itable);
   } else if (Specialisation::TabStyle == LINEAR) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
   } else if (Specialisation::TabStyle == SPLINE) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     const double a = 1.0 - b;
     evdwl = a * d_table_const.e(tidx,itable) + b * d_table_const.e(tidx,itable+1) +
@@ -314,6 +278,8 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     memory->create_kokkos(d_table->drsq,h_table->drsq,ntables,ntable,"Table::drsq");
   }
 
+
+
   for(int i=0; i < ntables; i++) {
     Table* tb = &tables[i];
 
@@ -343,36 +309,69 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
 
 
   Kokkos::deep_copy(d_table->nshiftbits,h_table->nshiftbits);
-  Kokkos::deep_copy(d_table->nmask,h_table->nmask);
-  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
-  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
-  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
-  Kokkos::deep_copy(d_table->rsq,h_table->rsq);
-  Kokkos::deep_copy(d_table->drsq,h_table->drsq);
-  Kokkos::deep_copy(d_table->e,h_table->e);
-  Kokkos::deep_copy(d_table->de,h_table->de);
-  Kokkos::deep_copy(d_table->f,h_table->f);
-  Kokkos::deep_copy(d_table->df,h_table->df);
-  Kokkos::deep_copy(d_table->e2,h_table->e2);
-  Kokkos::deep_copy(d_table->f2,h_table->f2);
-  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
-
   d_table_const.nshiftbits = d_table->nshiftbits;
+  Kokkos::deep_copy(d_table->nmask,h_table->nmask);
   d_table_const.nmask = d_table->nmask;
+  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
   d_table_const.innersq = d_table->innersq;
+  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
   d_table_const.invdelta = d_table->invdelta;
+  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
   d_table_const.deltasq6 = d_table->deltasq6;
-  d_table_const.rsq = d_table->rsq;
-  d_table_const.drsq = d_table->drsq;
-  d_table_const.e = d_table->e;
-  d_table_const.de = d_table->de;
-  d_table_const.f = d_table->f;
-  d_table_const.df = d_table->df;
-  d_table_const.e2 = d_table->e2;
-  d_table_const.f2 = d_table->f2;
 
+  if(tabstyle == LOOKUP) {
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+  }
+
+  if(tabstyle == LINEAR) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->de,h_table->de);
+    d_table_const.de = d_table->de;
+    Kokkos::deep_copy(d_table->df,h_table->df);
+    d_table_const.df = d_table->df;
+  }
+
+  if(tabstyle == SPLINE) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->e2,h_table->e2);
+    d_table_const.e2 = d_table->e2;
+    Kokkos::deep_copy(d_table->f2,h_table->f2);
+    d_table_const.f2 = d_table->f2;
+  }
+
+  if(tabstyle == BITMAP) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->de,h_table->de);
+    d_table_const.de = d_table->de;
+    Kokkos::deep_copy(d_table->df,h_table->df);
+    d_table_const.df = d_table->df;
+    Kokkos::deep_copy(d_table->drsq,h_table->drsq);
+    d_table_const.drsq = d_table->drsq;
+  }
 
   Kokkos::deep_copy(d_table->cutsq,h_table->cutsq);
+  d_table_const.cutsq = d_table->cutsq;
+  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
+  d_table_const.tabindex = d_table->tabindex;
+
   update_table = 0;
 }
 
@@ -389,9 +388,9 @@ void PairTableRXKokkos<DeviceType>::allocate()
   memory->create(setflag,nt,nt,"pair:setflag");
   memory->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
   memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
-
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
+
   memset(&setflag[0][0],0,nt*nt*sizeof(int));
   memset(&cutsq[0][0],0,nt*nt*sizeof(double));
   memset(&tabindex[0][0],0,nt*nt*sizeof(int));
@@ -469,6 +468,17 @@ double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
   return tables[tabindex[i][j]].cut;
 }
 
+/* ----------------------------------------------------------------------
+   compute r,e,f vectors from splined values
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairTableRXKokkos<DeviceType>::compute_table(Table *tb)
+{
+  update_table = 1;
+  PairTable::compute_table(tb);
+}
+
 template<class DeviceType>
 void PairTableRXKokkos<DeviceType>::init_style()
 {
@@ -496,91 +506,6 @@ void PairTableRXKokkos<DeviceType>::init_style()
   }
 }
 
-/*
-template <class DeviceType> template<int NEIGHFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairTableRXKokkos<DeviceType>::
-ev_tally(EV_FLOAT &ev, const int &i, const int &j, const F_FLOAT &fpair,
-         const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
-{
-  const int EFLAG = eflag;
-  const int NEWTON_PAIR = newton_pair;
-  const int VFLAG = vflag_either;
-
-  if (EFLAG) {
-    if (eflag_atom) {
-      E_FLOAT epairhalf = 0.5 * (ev.evdwl + ev.ecoul);
-      if (NEWTON_PAIR || i < nlocal) eatom[i] += epairhalf;
-      if (NEWTON_PAIR || j < nlocal) eatom[j] += epairhalf;
-    }
-  }
-
-  if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
-
-    if (vflag_global) {
-      if (NEIGHFLAG) {
-        if (NEWTON_PAIR) {
-          ev.v[0] += v0;
-          ev.v[1] += v1;
-          ev.v[2] += v2;
-          ev.v[3] += v3;
-          ev.v[4] += v4;
-          ev.v[5] += v5;
-        } else {
-          if (i < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-          if (j < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-        }
-      } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
-    }
-
-    if (vflag_atom) {
-      if (NEWTON_PAIR || i < nlocal) {
-        d_vatom(i,0) += 0.5*v0;
-        d_vatom(i,1) += 0.5*v1;
-        d_vatom(i,2) += 0.5*v2;
-        d_vatom(i,3) += 0.5*v3;
-        d_vatom(i,4) += 0.5*v4;
-        d_vatom(i,5) += 0.5*v5;
-      }
-      if (NEWTON_PAIR || (NEIGHFLAG && j < nlocal)) {
-        d_vatom(j,0) += 0.5*v0;
-        d_vatom(j,1) += 0.5*v1;
-        d_vatom(j,2) += 0.5*v2;
-        d_vatom(j,3) += 0.5*v3;
-        d_vatom(j,4) += 0.5*v4;
-        d_vatom(j,5) += 0.5*v5;
-      }
-    }
-  }
-}
-*/
 template<class DeviceType>
 void PairTableRXKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays

@@ -195,8 +195,8 @@ action pair_vashishta_kokkos.cpp pair_vashishta.cpp
 action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
-#action pair_table_rx_kokkos.cpp pair_table_rx.cpp
-#action pair_table_rx_kokkos.h pair_table_rx.h  
+action pair_table_rx_kokkos.cpp pair_table_rx.cpp
+action pair_table_rx_kokkos.h pair_table_rx.h  
 action pair_tersoff_kokkos.cpp pair_tersoff.cpp
 action pair_tersoff_kokkos.h pair_tersoff.h
 action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp

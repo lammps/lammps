@@ -13,32 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(table/rx/kk,PairTableRXKokkos<LMPDeviceType>)
-PairStyle(table/rx/kk/device,PairTableRXKokkos<LMPDeviceType>)
-PairStyle(table/rx/kk/host,PairTableRXKokkos<LMPHostType>)
+PairStyle(table/rx/kk,PairTableKokkos<LMPDeviceType>)
+PairStyle(table/rx/kk/device,PairTableKokkos<LMPDeviceType>)
+PairStyle(table/rx/kk/host,PairTableKokkos<LMPHostType>)
 
 #else
 
 #ifndef LMP_PAIR_TABLE_RX_KOKKOS_H
 #define LMP_PAIR_TABLE_RX_KOKKOS_H
 
-#include "pair_table_rx.h"
-#include "pair_kokkos.h"
-#include "neigh_list_kokkos.h"
-#include "atom_kokkos.h"
+#include "pair_table_kokkos.h"
 
 namespace LAMMPS_NS {
 
-template<class Device,int TABSTYLE>
-struct S_TableRXCompute {
-  enum {TabStyle = TABSTYLE};
-};
-
-template <class DeviceType, int NEIGHFLAG, int TABSTYLE>
-class PairTableRXComputeFunctor;
-
 template<class DeviceType>
-class PairTableRXKokkos : public PairTableRX {
+class PairTableRXKokkos : public PairTable {
  public:
 
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
@@ -53,27 +42,14 @@ class PairTableRXKokkos : public PairTableRX {
   template<int TABSTYLE>
   void compute_style(int, int);
 
-  /*template<int EVFLAG, int NEIGHFLAG, int NEWTON_PAIR, int TABSTYLE>
-  KOKKOS_FUNCTION
-  EV_FLOAT compute_item(const int& i,
-                        const NeighListKokkos<DeviceType> &list) const;
-*/
   void settings(int, char **);
   double init_one(int, int);
+
   void init_style();
 
- protected:
-  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
 
-  int tabstyle,tablength;
-  /*struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d_randomread tabindex;
-    typename ArrayTypes<DeviceType>::t_int_1d_randomread nshiftbits,nmask;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
-  };*/
- //Its faster not to use texture fetch if the number of tables is less than 32!
+ protected:
+
   struct TableDeviceConst {
     typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
     typename ArrayTypes<DeviceType>::t_int_2d tabindex;
@@ -102,12 +78,12 @@ class PairTableRXKokkos : public PairTableRX {
   TableDevice* d_table;
   TableHost* h_table;
 
-  int **tabindex;
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
-  void allocate();
+  virtual void allocate();
+  void compute_table(Table *);
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array_const c_x;
@@ -137,41 +113,41 @@ class PairTableRXKokkos : public PairTableRX {
     return 0;
   }
 
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,LOOKUP> >;
 
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,LINEAR> >;
 
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,SPLINE> >;
 
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,BITMAP> >;
 
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
 };
@@ -183,79 +159,4 @@ class PairTableRXKokkos : public PairTableRX {
 
 /* ERROR/WARNING messages:
 
-E: Pair distance < table inner cutoff
-
-Two atoms are closer together than the pairwise table allows.
-
-E: Pair distance > table outer cutoff
-
-Two atoms are further apart than the pairwise table allows.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Unknown table style in pair_style command
-
-Style of table is invalid for use with pair_style table command.
-
-E: Illegal number of pair table entries
-
-There must be at least 2 table entries.
-
-E: Invalid pair table length
-
-Length of read-in pair table is invalid
-
-E: Invalid pair table cutoff
-
-Cutoffs in pair_coeff command are not valid with read-in pair table.
-
-E: Bitmapped table in file does not match requested table
-
-Setting for bitmapped table in pair_coeff command must match table
-in file exactly.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-E: Did not find keyword in table file
-
-Keyword used in pair_coeff command was not found in table file.
-
-E: Bitmapped table is incorrect length in table file
-
-Number of table entries is not a correct power of 2.
-
-E: Invalid keyword in pair table parameters
-
-Keyword used in list of table parameters is not recognized.
-
-E: Pair table parameters did not set N
-
-List of pair table parameters must include N setting.
-
-E: Pair table cutoffs must all be equal to use with KSpace
-
-When using pair style table with a long-range KSpace solver, the
-cutoffs for all atom type pairs must all be the same, since the
-long-range solver starts at that cutoff.
-
-E: Cannot use chosen neighbor list style with lj/cut/kk
-
-That style is not supported by Kokkos.
-
-
-
-
-*/
+ */

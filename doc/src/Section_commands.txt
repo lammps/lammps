@@ -581,7 +581,7 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "indent"_fix_indent.html,
 "langevin (k)"_fix_langevin.html,
 "lineforce"_fix_lineforce.html,
-"momentum"_fix_momentum.html,
+"momentum (k)"_fix_momentum.html,
 "move"_fix_move.html,
 "msst"_fix_msst.html,
 "neb"_fix_neb.html,

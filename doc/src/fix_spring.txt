@@ -89,11 +89,7 @@ NOTE: The center of mass of a group of atoms is calculated in
 group can straddle a periodic boundary.  See the "dump"_dump.html doc
 page for a discussion of unwrapped coordinates.  It also means that a
 spring connecting two groups or a group and the tether point can cross
-a periodic boundary and its length be calculated correctly.  One
-exception is for rigid bodies, which should not be used with the fix
-spring command, if the rigid body will cross a periodic boundary.
-This is because image flags for rigid bodies are used in a different
-way, as explained on the "fix rigid"_fix_rigid.html doc page.
+a periodic boundary and its length be calculated correctly.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

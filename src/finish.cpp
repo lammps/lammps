@@ -247,7 +247,7 @@ void Finish::end(int flag)
     }
   }
 
-  // PRD stats using PAIR,BOND,KSPACE for dephase,dynamics,quench
+  // PRD stats
 
   if (prdflag) {
     if (me == 0) {
@@ -329,7 +329,7 @@ void Finish::end(int flag)
     }
   }
 
-  // TAD stats using PAIR,BOND,KSPACE for neb,dynamics,quench
+  // TAD stats
 
   if (tadflag) {
     if (me == 0) {
@@ -415,7 +415,7 @@ void Finish::end(int flag)
     }
   }
 
-  // HYPER stats using PAIR,BOND,KSPACE for dynamics,quench
+  // HYPER stats
 
   if (hyperflag) {
     if (me == 0) {

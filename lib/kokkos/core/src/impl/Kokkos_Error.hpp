@@ -46,7 +46,7 @@
 
 #include <string>
 #include <iosfwd>
-#include <KokkosCore_config.h>
+#include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_HAVE_CUDA
 #include <Cuda/Kokkos_Cuda_abort.hpp>
 #endif
@@ -68,12 +68,18 @@ std::string human_memory_size(size_t arg_bytes);
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+
 namespace Kokkos {
-inline
-void abort( const char * const message ) { Kokkos::Impl::host_abort(message); }
+KOKKOS_INLINE_FUNCTION
+void abort( const char * const message ) {
+#ifdef __CUDA_ARCH__
+  Kokkos::Impl::cuda_abort(message);
+#else
+  Kokkos::Impl::host_abort(message);
+#endif
 }
-#endif /* defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) */
+
+}
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

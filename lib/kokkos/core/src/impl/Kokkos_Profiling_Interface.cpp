@@ -48,6 +48,11 @@
 
 namespace Kokkos {
   namespace Profiling {
+
+    SpaceHandle::SpaceHandle(const char* space_name) {
+      strncpy(name,space_name,64);
+    }
+
     bool profileLibraryLoaded() {
        	return (NULL != initProfileLibrary);
     }
@@ -94,6 +99,33 @@ namespace Kokkos {
         }
     }
     
+
+    void pushRegion(const std::string& kName) {
+      if( NULL != pushRegionCallee ) {
+        Kokkos::fence();
+        (*pushRegionCallee)(kName.c_str());
+      }
+    }
+
+    void popRegion() {
+      if( NULL != popRegionCallee ) {
+        Kokkos::fence();
+        (*popRegionCallee)();
+      }
+    }
+
+    void allocateData(const SpaceHandle space, const std::string label, const void* ptr, const uint64_t size) {
+        if(NULL != allocateDataCallee) {
+            (*allocateDataCallee)(space,label.c_str(),ptr,size);
+        }
+    }
+
+    void deallocateData(const SpaceHandle space, const std::string label, const void* ptr, const uint64_t size) {
+        if(NULL != allocateDataCallee) {
+            (*deallocateDataCallee)(space,label.c_str(),ptr,size);
+        }
+    }
+
     void initialize() {
 
         // Make sure initialize calls happens only once
@@ -145,6 +177,17 @@ namespace Kokkos {
                 initProfileLibrary = *((initFunction*) &p7);
                 auto p8 = dlsym(firstProfileLibrary, "kokkosp_finalize_library");
                 finalizeProfileLibrary = *((finalizeFunction*) &p8);
+
+                auto p9 = dlsym(firstProfileLibrary, "kokkosp_push_profile_region");
+                pushRegionCallee = *((pushFunction*) &p9);
+                auto p10 = dlsym(firstProfileLibrary, "kokkosp_pop_profile_region");
+                popRegionCallee = *((popFunction*) &p10);
+
+                auto p11 = dlsym(firstProfileLibrary, "kokkosp_allocate_data");
+                allocateDataCallee = *((allocateDataFunction*) &p11);
+                auto p12 = dlsym(firstProfileLibrary, "kokkosp_deallocate_data");
+                deallocateDataCallee = *((deallocateDataFunction*) &p12);
+
             }
         }
 
@@ -170,14 +213,22 @@ namespace Kokkos {
         // Set all profile hooks to NULL to prevent
         // any additional calls. Once we are told to
         // finalize, we mean it
+        initProfileLibrary = NULL;
+        finalizeProfileLibrary = NULL;
+
         beginForCallee = NULL;
         beginScanCallee = NULL;
         beginReduceCallee = NULL;
         endScanCallee = NULL;
         endForCallee = NULL;
         endReduceCallee = NULL;
-        initProfileLibrary = NULL;
-        finalizeProfileLibrary = NULL;
+
+        pushRegionCallee = NULL;
+        popRegionCallee = NULL;
+
+        allocateDataCallee = NULL;
+        deallocateDataCallee = NULL;
+
       }
     }
   }

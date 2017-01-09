@@ -55,8 +55,6 @@
 
 namespace Test {
 
-#if KOKKOS_USING_EXP_VIEW
-
 template< class T , class ... P >
 size_t allocation_count( const Kokkos::View<T,P...> & view )
 {
@@ -67,19 +65,6 @@ size_t allocation_count( const Kokkos::View<T,P...> & view )
 
   return (card <= alloc && memory_span == 400) ? alloc : 0 ;
 }
-
-#else
-
-template< class T , class L , class D , class M , class S >
-size_t allocation_count( const Kokkos::View<T,L,D,M,S> & view )
-{
-  const size_t card  = Kokkos::Impl::cardinality_count( view.shape() );
-  const size_t alloc = view.capacity();
-
-  return card <= alloc ? alloc : 0 ;
-}
-
-#endif
 
 /*--------------------------------------------------------------------------*/
 
@@ -657,7 +642,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
       if ( & right(i0,i1,i2) != & right_stride(i0,i1,i2) ) { update |= 8 ; }
     }
 
-#if KOKKOS_USING_EXP_VIEW
     for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
     for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
@@ -665,7 +649,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
       if ( & left(i0,i1,i2)  != & left(i0,i1,i2,0,0,0,0,0) )  { update |= 3 ; }
       if ( & right(i0,i1,i2) != & right(i0,i1,i2,0,0,0,0,0) ) { update |= 3 ; }
     }
-#endif
   }
 };
 
@@ -742,14 +725,12 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
       offset = j ;
     }
 
-#if KOKKOS_USING_EXP_VIEW
     for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
     {
       if ( & left(i0,i1)  != & left(i0,i1,0,0,0,0,0,0) )  { update |= 3 ; }
       if ( & right(i0,i1) != & right(i0,i1,0,0,0,0,0,0) ) { update |= 3 ; }
     }
-#endif
   }
 };
 
@@ -813,10 +794,8 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
   {
     for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
-#if KOKKOS_USING_EXP_VIEW
       if ( & left(i0)  != & left(i0,0,0,0,0,0,0,0) )  { update |= 3 ; }
       if ( & right(i0) != & right(i0,0,0,0,0,0,0,0) ) { update |= 3 ; }
-#endif
       if ( & left(i0)  != & left_stride(i0) ) { update |= 4 ; }
       if ( & right(i0) != & right_stride(i0) ) { update |= 8 ; }
     }
@@ -1021,18 +1000,10 @@ public:
     dx = dView4( "dx" , N0 );
     dy = dView4( "dy" , N0 );
 
-    #if KOKKOS_USING_EXP_VIEW
     ASSERT_EQ( dx.use_count() , size_t(1) );
-    #else
-    ASSERT_EQ( dx.tracker().ref_count() , size_t(1) );
-    #endif
 
     dView4_unmanaged unmanaged_dx = dx;
-    #if KOKKOS_USING_EXP_VIEW
     ASSERT_EQ( dx.use_count() , size_t(1) );
-    #else
-    ASSERT_EQ( dx.tracker().ref_count() , size_t(1) );
-    #endif
 
     dView4_unmanaged unmanaged_from_ptr_dx = dView4_unmanaged(dx.ptr_on_device(),
                                                               dx.dimension_0(),
@@ -1050,48 +1021,24 @@ public:
     }
 
     const_dView4 const_dx = dx ;
-    #if KOKKOS_USING_EXP_VIEW
     ASSERT_EQ( dx.use_count() , size_t(2) );
-    #else
-    ASSERT_EQ( dx.tracker().ref_count() , size_t(2) );
-    #endif
 
     {
       const_dView4 const_dx2;
       const_dx2 = const_dx;
-      #if KOKKOS_USING_EXP_VIEW
       ASSERT_EQ( dx.use_count() , size_t(3) );
-      #else
-      ASSERT_EQ( dx.tracker().ref_count() , size_t(3) );
-      #endif
 
       const_dx2 = dy;
-      #if KOKKOS_USING_EXP_VIEW
       ASSERT_EQ( dx.use_count() , size_t(2) );
-      #else
-      ASSERT_EQ( dx.tracker().ref_count() , size_t(2) );
-      #endif
 
       const_dView4 const_dx3(dx);
-      #if KOKKOS_USING_EXP_VIEW
       ASSERT_EQ( dx.use_count() , size_t(3) );
-      #else
-      ASSERT_EQ( dx.tracker().ref_count() , size_t(3) );
-      #endif
       
       dView4_unmanaged dx4_unmanaged(dx);
-      #if KOKKOS_USING_EXP_VIEW
       ASSERT_EQ( dx.use_count() , size_t(3) );
-      #else
-      ASSERT_EQ( dx.tracker().ref_count() , size_t(3) );
-      #endif
     }
 
-    #if KOKKOS_USING_EXP_VIEW
     ASSERT_EQ( dx.use_count() , size_t(2) );
-    #else
-    ASSERT_EQ( dx.tracker().ref_count() , size_t(2) );
-    #endif
 
 
     ASSERT_FALSE( dx.ptr_on_device() == 0 );
@@ -1120,7 +1067,6 @@ public:
     // T v2 = hx(0,0) ; // Generates compile error as intended
     // hx(0,0) = v2 ;   // Generates compile error as intended
 
-#if ! KOKKOS_USING_EXP_VIEW
     // Testing with asynchronous deep copy with respect to device
     {
       size_t count = 0 ;
@@ -1185,7 +1131,6 @@ public:
         { ASSERT_EQ( hx(ip,i1,i2,i3) , T(0) ); }
       }}}}
     }
-#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
     // Testing with synchronous deep copy
     {

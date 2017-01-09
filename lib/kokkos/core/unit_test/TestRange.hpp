@@ -185,7 +185,7 @@ struct TestRange {
       },error);
       ASSERT_EQ(error,0);
 
-      if( ( ExecSpace::concurrency()>(int)1) && (N>static_cast<const size_t>(4*ExecSpace::concurrency())) ) {
+      if( ( ExecSpace::concurrency()>(int)1) && (N>static_cast<size_t>(4*ExecSpace::concurrency())) ) {
         size_t min = N;
         size_t max = 0;
         for(int t=0; t<ExecSpace::concurrency(); t++) {
@@ -219,7 +219,7 @@ struct TestRange {
       },error);
       ASSERT_EQ(error,0);
 
-      if( ( ExecSpace::concurrency()>(int)1) && (N>static_cast<const size_t>(4*ExecSpace::concurrency())) ) {
+      if( ( ExecSpace::concurrency()>(int)1) && (N>static_cast<size_t>(4*ExecSpace::concurrency())) ) {
         size_t min = N;
         size_t max = 0;
         for(int t=0; t<ExecSpace::concurrency(); t++) {

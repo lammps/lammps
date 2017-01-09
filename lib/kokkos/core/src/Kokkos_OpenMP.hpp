@@ -58,7 +58,7 @@
 #endif
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_Parallel.hpp>
-#include <Kokkos_TaskPolicy.hpp>
+#include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
@@ -159,6 +159,17 @@ public:
 
 namespace Kokkos {
 namespace Impl {
+
+template<>
+struct MemorySpaceAccess 
+  < Kokkos::OpenMP::memory_space
+  , Kokkos::OpenMP::scratch_memory_space
+  >
+{
+  enum { assignable = false };
+  enum { accessible = true };
+  enum { deepcopy   = false };
+};
 
 template<>
 struct VerifyExecutionCanAccessMemorySpace

@@ -114,11 +114,11 @@
 #error "#include <cuda.h> did not define CUDA_VERSION"
 #endif
 
-#if ( CUDA_VERSION < 6050 )
-// CUDA supports (inofficially) C++11 in device code starting with
-// version 6.5. This includes auto type and device code internal
+#if ( CUDA_VERSION < 7000 )
+// CUDA supports C++11 in device code starting with
+// version 7.0. This includes auto type and device code internal
 // lambdas.
-#error "Cuda version 6.5 or greater required"
+#error "Cuda version 7.0 or greater required"
 #endif
 
 #if defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ < 300 )
@@ -127,16 +127,19 @@
 #endif
 
 #ifdef KOKKOS_CUDA_USE_LAMBDA
-#if ( CUDA_VERSION < 7000 )
-// CUDA supports C++11 lambdas generated in host code to be given
-// to the device starting with version 7.5. But the release candidate (7.5.6)
-// still identifies as 7.0
-#error "Cuda version 7.5 or greater required for host-to-device Lambda support"
+#if ( CUDA_VERSION < 7050 )
+  // CUDA supports C++11 lambdas generated in host code to be given
+  // to the device starting with version 7.5. But the release candidate (7.5.6)
+  // still identifies as 7.0
+  #error "Cuda version 7.5 or greater required for host-to-device Lambda support"
 #endif
-#if ( CUDA_VERSION < 8000 )
-#define KOKKOS_LAMBDA [=]__device__
+#if ( CUDA_VERSION < 8000 ) && defined(__NVCC__)
+  #define KOKKOS_LAMBDA [=]__device__
 #else
-#define KOKKOS_LAMBDA [=]__host__ __device__
+  #define KOKKOS_LAMBDA [=]__host__ __device__
+  #if defined( KOKKOS_HAVE_CXX1Z )
+    #define KOKKOS_CLASS_LAMBDA        [=,*this] __host__ __device__
+  #endif
 #endif
 #define KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA 1
 #endif
@@ -145,7 +148,7 @@
 
 #if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
    // Cuda version 8.0 still needs the functor wrapper
-   #if (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA /* && (CUDA_VERSION < 8000) */ )
+   #if (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA /* && (CUDA_VERSION < 8000) */ ) && defined(__NVCC__)
       #define KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
    #endif
 #endif
@@ -153,13 +156,12 @@
 /*--------------------------------------------------------------------------*/
 /* Language info: C++, CUDA, OPENMP */
 
-#if defined( __CUDA_ARCH__ ) && defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_HAVE_CUDA )
   // Compiling Cuda code to 'ptx'
 
   #define KOKKOS_FORCEINLINE_FUNCTION  __device__  __host__  __forceinline__
   #define KOKKOS_INLINE_FUNCTION       __device__  __host__  inline
   #define KOKKOS_FUNCTION              __device__  __host__
-
 #endif /* #if defined( __CUDA_ARCH__ ) */
 
 #if defined( _OPENMP )
@@ -184,10 +186,12 @@
 
 #else
 #if defined( KOKKOS_HAVE_CXX11 ) && ! defined( KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA )
+    #if !defined (KOKKOS_HAVE_CUDA) // Compiling with clang for Cuda does not work with LAMBDAs either
     // CUDA (including version 6.5) does not support giving lambdas as
     // arguments to global functions. Thus its not currently possible
     // to dispatch lambdas from the host.
     #define KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA 1
+    #endif
   #endif
 #endif /* #if defined( __NVCC__ ) */
 
@@ -195,7 +199,11 @@
   #define KOKKOS_LAMBDA [=]
 #endif
 
-#if ! defined( __CUDA_ARCH__ ) /* Not compiling Cuda code to 'ptx'. */
+#if defined( KOKKOS_HAVE_CXX1Z ) && !defined (KOKKOS_CLASS_LAMBDA)
+  #define KOKKOS_CLASS_LAMBDA [=,*this]
+#endif
+
+//#if ! defined( __CUDA_ARCH__ ) /* Not compiling Cuda code to 'ptx'. */
 
 /* Intel compiler for host code */
 
@@ -243,7 +251,7 @@
   #endif
 #endif
 
-#endif /* #if ! defined( __CUDA_ARCH__ ) */
+//#endif /* #if ! defined( __CUDA_ARCH__ ) */
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
@@ -257,6 +265,20 @@
   #define KOKKOS_HAVE_PRAGMA_VECTOR 1
   #define KOKKOS_HAVE_PRAGMA_SIMD 1
 
+  #define KOKKOS_RESTRICT __restrict__
+
+  #ifndef KOKKOS_ALIGN
+  #define KOKKOS_ALIGN(size) __attribute__((aligned(size)))
+  #endif
+
+  #ifndef KOKKOS_ALIGN_PTR
+  #define KOKKOS_ALIGN_PTR(size) __attribute__((align_value(size)))
+  #endif
+
+  #ifndef KOKKOS_ALIGN_SIZE
+  #define KOKKOS_ALIGN_SIZE 64
+  #endif
+
   #if ( 1400 > KOKKOS_COMPILER_INTEL )
     #if ( 1300 > KOKKOS_COMPILER_INTEL )
       #error "Compiling with Intel version earlier than 13.0 is not supported. Official minimal version is 14.0."
@@ -264,11 +286,11 @@
       #warning "Compiling with Intel version 13.x probably works but is not officially supported. Official minimal version is 14.0."
     #endif
   #endif
-  #if ( 1200 <= KOKKOS_COMPILER_INTEL ) && ! defined( KOKKOS_ENABLE_ASM ) && ! defined( _WIN32 )
+  #if ! defined( KOKKOS_ENABLE_ASM ) && ! defined( _WIN32 )
     #define KOKKOS_ENABLE_ASM 1
   #endif
 
-  #if ( 1200 <= KOKKOS_COMPILER_INTEL ) && ! defined( KOKKOS_FORCEINLINE_FUNCTION )
+  #if ! defined( KOKKOS_FORCEINLINE_FUNCTION )
     #if !defined (_WIN32)
       #define KOKKOS_FORCEINLINE_FUNCTION  inline __attribute__((always_inline))
     #else
@@ -335,14 +357,11 @@
     #define KOKKOS_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
   #endif
 
-  #if ! defined( KOKKOS_ENABLE_ASM ) && \
-      ! ( defined( __powerpc) || \
-          defined(__powerpc__) || \
-          defined(__powerpc64__) || \
-          defined(__POWERPC__) || \
-          defined(__ppc__) || \
-          defined(__ppc64__) || \
-          defined(__PGIC__) )
+  #if ! defined( KOKKOS_ENABLE_ASM ) && ! defined( __PGIC__ ) && \
+      ( defined( __amd64 ) || \
+        defined( __amd64__ ) || \
+        defined( __x86_64 ) || \
+        defined( __x86_64__ ) )
     #define KOKKOS_ENABLE_ASM 1
   #endif
 
@@ -385,10 +404,30 @@
 #define KOKKOS_FUNCTION /**/
 #endif
 
+
+//----------------------------------------------------------------------------
+///** Define empty macro for restrict if necessary: */
+
+#if ! defined(KOKKOS_RESTRICT)
+#define KOKKOS_RESTRICT
+#endif
+
 //----------------------------------------------------------------------------
 /** Define Macro for alignment: */
+#if ! defined KOKKOS_ALIGN_SIZE
+#define KOKKOS_ALIGN_SIZE 16
+#endif
+
+#if ! defined(KOKKOS_ALIGN)
+#define KOKKOS_ALIGN(size) __attribute__((aligned(size)))
+#endif
+
+#if ! defined(KOKKOS_ALIGN_PTR)
+#define KOKKOS_ALIGN_PTR(size) __attribute__((aligned(size)))
+#endif
+
 #if ! defined(KOKKOS_ALIGN_16)
-#define KOKKOS_ALIGN_16 __attribute__((aligned(16)))
+#define KOKKOS_ALIGN_16 KOKKOS_ALIGN(16)
 #endif
 
 //----------------------------------------------------------------------------
@@ -455,10 +494,6 @@
 /* Transitional macro to change between old and new View
  * are no longer supported.
  */
-
-#if defined( KOKKOS_USING_DEPRECATED_VIEW )
-#error "Kokkos deprecated View has been removed"
-#endif
 
 #define KOKKOS_USING_EXP_VIEW 1
 #define KOKKOS_USING_EXPERIMENTAL_VIEW

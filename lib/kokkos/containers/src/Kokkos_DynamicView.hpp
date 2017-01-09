@@ -56,7 +56,7 @@ namespace Experimental {
  *         Subviews are not allowed.
  */
 template< typename DataType , typename ... P >
-class DynamicView : public Kokkos::Experimental::ViewTraits< DataType , P ... >
+class DynamicView : public Kokkos::ViewTraits< DataType , P ... >
 { 
 public:
 
@@ -74,6 +74,15 @@ private:
   static_assert( std::is_trivial< typename traits::value_type >::value &&
                  std::is_same< typename traits::specialize , void >::value
                , "DynamicView must have trivial data type" );
+
+
+  template< class Space , bool = Kokkos::Impl::MemorySpaceAccess< Space , typename traits::memory_space >::accessible > struct verify_space
+    { KOKKOS_FORCEINLINE_FUNCTION static void check() {} };
+
+  template< class Space > struct verify_space<Space,false>
+    { KOKKOS_FORCEINLINE_FUNCTION static void check()
+        { Kokkos::abort("Kokkos::DynamicView ERROR: attempt to access inaccessible memory space"); };
+    };
 
 public:
 
@@ -117,10 +126,10 @@ public:
   KOKKOS_INLINE_FUNCTION constexpr size_t size() const
     {
       return
-        Kokkos::Impl::VerifyExecutionCanAccessMemorySpace
+        Kokkos::Impl::MemorySpaceAccess
           < Kokkos::Impl::ActiveExecutionMemorySpace
           , typename traits::memory_space
-          >::value 
+          >::accessible 
         ? // Runtime size is at the end of the chunk pointer array
           (*reinterpret_cast<const uintptr_t*>( m_chunks + m_chunk_max ))
           << m_chunk_shift
@@ -179,10 +188,7 @@ public:
       static_assert( Kokkos::Impl::are_integral<I0,Args...>::value
                    , "Indices must be integral type" );
 
-      Kokkos::Impl::VerifyExecutionCanAccessMemorySpace
-        < Kokkos::Impl::ActiveExecutionMemorySpace
-        , typename traits::memory_space
-        >::verify();
+      DynamicView::template verify_space< Kokkos::Impl::ActiveExecutionMemorySpace >::check();
 
       // Which chunk is being indexed.
       const uintptr_t ic = uintptr_t( i0 >> m_chunk_shift );
@@ -223,15 +229,13 @@ public:
     {
       typedef typename traits::value_type value_type ;
 
-      Kokkos::Impl::VerifyExecutionCanAccessMemorySpace
-        < Kokkos::Impl::ActiveExecutionMemorySpace
-        , typename traits::memory_space >::verify();
+      DynamicView::template verify_space< Kokkos::Impl::ActiveExecutionMemorySpace >::check();
 
       const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ;
 
       if ( m_chunk_max < NC ) {
 #if defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
-        printf("DynamicView::resize_parallel(%lu) m_chunk_max(%lu) NC(%lu)\n"
+        printf("DynamicView::resize_parallel(%lu) m_chunk_max(%u) NC(%lu)\n"
               , n , m_chunk_max , NC );
 #endif
         Kokkos::abort("DynamicView::resize_parallel exceeded maximum size");
@@ -269,9 +273,7 @@ public:
   inline
   void resize_serial( size_t n )
     {
-      Kokkos::Impl::VerifyExecutionCanAccessMemorySpace
-        < Kokkos::Impl::ActiveExecutionMemorySpace
-        , typename traits::memory_space >::verify();
+      DynamicView::template verify_space< Kokkos::Impl::ActiveExecutionMemorySpace >::check();
 
       const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ;
 
@@ -398,9 +400,7 @@ public:
     , m_chunk_mask( ( 1 << m_chunk_shift ) - 1 )
     , m_chunk_max( ( arg_size_max + m_chunk_mask ) >> m_chunk_shift )
     {
-      Kokkos::Impl::VerifyExecutionCanAccessMemorySpace
-        < Kokkos::Impl::ActiveExecutionMemorySpace
-        , typename traits::memory_space >::verify();
+      DynamicView::template verify_space< Kokkos::Impl::ActiveExecutionMemorySpace >::check();
 
       // A functor to deallocate all of the chunks upon final destruction
 
@@ -452,7 +452,7 @@ void deep_copy( const View<T,DP...> & dst
   typedef typename ViewTraits<T,SP...>::memory_space     src_memory_space ;
 
   enum { DstExecCanAccessSrc =
-   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename dst_execution_space::memory_space , src_memory_space >::value };
+   Kokkos::Impl::SpaceAccessibility< dst_execution_space , src_memory_space >::accessible };
 
   if ( DstExecCanAccessSrc ) {
     // Copying data between views in accessible memory spaces and either non-contiguous or incompatible shape.
@@ -476,7 +476,7 @@ void deep_copy( const DynamicView<T,DP...> & dst
   typedef typename ViewTraits<T,SP...>::memory_space     src_memory_space ;
 
   enum { DstExecCanAccessSrc =
-   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename dst_execution_space::memory_space , src_memory_space >::value };
+   Kokkos::Impl::SpaceAccessibility< dst_execution_space , src_memory_space >::accessible };
 
   if ( DstExecCanAccessSrc ) {
     // Copying data between views in accessible memory spaces and either non-contiguous or incompatible shape.

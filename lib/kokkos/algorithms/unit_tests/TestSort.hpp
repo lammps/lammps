@@ -131,6 +131,10 @@ void test_1D_sort(unsigned int n,bool force_kokkos) {
   typedef Kokkos::View<KeyType*,ExecutionSpace> KeyViewType;
   KeyViewType keys("Keys",n);
 
+  // Test sorting array with all numbers equal
+  Kokkos::deep_copy(keys,KeyType(1));
+  Kokkos::sort(keys,force_kokkos);
+
   Kokkos::Random_XorShift64_Pool<ExecutionSpace> g(1931);
   Kokkos::fill_random(keys,g,Kokkos::Random_XorShift64_Pool<ExecutionSpace>::generator_type::MAX_URAND);
 
@@ -174,7 +178,7 @@ void test_3D_sort(unsigned int n) {
   typename KeyViewType::value_type min[3] = {0,0,0};
   typename KeyViewType::value_type max[3] = {100,100,100};
 
-  typedef Kokkos::SortImpl::DefaultBinOp3D< KeyViewType > BinOp;
+  typedef Kokkos::BinOp3D< KeyViewType > BinOp;
   BinOp bin_op(bin_max,min,max);
   Kokkos::BinSort< KeyViewType , BinOp >
     Sorter(keys,bin_op,false);

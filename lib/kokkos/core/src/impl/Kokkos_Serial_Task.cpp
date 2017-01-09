@@ -43,8 +43,9 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_SERIAL ) && defined( KOKKOS_ENABLE_TASKPOLICY )
+#if defined( KOKKOS_HAVE_SERIAL ) && defined( KOKKOS_ENABLE_TASKDAG )
 
+#include <impl/Kokkos_Serial_Task.hpp>
 #include <impl/Kokkos_TaskQueue_impl.hpp>
 
 //----------------------------------------------------------------------------
@@ -143,5 +144,5 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
 
 }} /* namespace Kokkos::Impl */
 
-#endif /* #if defined( KOKKOS_HAVE_SERIAL ) && defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif /* #if defined( KOKKOS_HAVE_SERIAL ) && defined( KOKKOS_ENABLE_TASKDAG ) */
 

@@ -919,7 +919,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "dpd (go)"_pair_dpd.html,
 "dpd/tstat (go)"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
-"eam (gkot)"_pair_eam.html,
+"eam (gkiot)"_pair_eam.html,
 "eam/alloy (gkot)"_pair_eam.html,
 "eam/fs (gkot)"_pair_eam.html,
 "eim (o)"_pair_eim.html,

@@ -45,7 +45,9 @@ class PairTableRXKokkos : public PairTable {
   void compute_style(int, int);
 
   void settings(int, char **);
+  void coeff(int, char **);
   double init_one(int, int);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
   void init_style();
 
@@ -160,8 +162,10 @@ class PairTableRXKokkos : public PairTable {
   int isite1, isite2;
   bool fractionalWeighting;
 
+  template <class ExecDevice>
   KOKKOS_INLINE_FUNCTION
-  void getMixingWeights(typename DAT::t_float_2d_randomread, int, double &, double &, double &, double &);
+  void getMixingWeights(typename ArrayTypes<ExecDevice>::t_float_2d_randomread,
+      int, double &, double &, double &, double &);
 };
 
 }

@@ -30,8 +30,11 @@
 #include "memory.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "fix.h"
 
 using namespace LAMMPS_NS;
+
+enum{NONE,RLINEAR,RSQ,BMP};
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -54,6 +57,7 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   h_table = new TableHost();
   d_table = new TableDevice();
+  fractionalWeighting = true;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -435,6 +439,8 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"msm") == 0) msmflag = 1;
     else if (strcmp(arg[iarg],"dispersion") == 0) dispersionflag = 1;
     else if (strcmp(arg[iarg],"tip4p") == 0) tip4pflag = 1;
+    else if (strcmp(arg[iarg],"fractional") == 0) fractionalWeighting = true;
+    else if (strcmp(arg[iarg],"molecular") == 0) fractionalWeighting = false;
     else error->all(FLERR,"Illegal pair_style command");
     iarg++;
   }
@@ -460,6 +466,148 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
+  if (!allocated) allocate();
+
+  bool rx_flag = false;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strncmp(modify->fix[i]->style,"rx",2) == 0) rx_flag = true;
+  if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
+
+  int ilo,ihi,jlo,jhi;
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+
+  int me;
+  MPI_Comm_rank(world,&me);
+  tables = (Table *)
+    memory->srealloc(tables,(ntables+1)*sizeof(Table),"pair:tables");
+  Table *tb = &tables[ntables];
+  null_table(tb);
+  if (me == 0) read_table(tb,arg[2],arg[3]);
+  bcast_table(tb);
+
+  nspecies = atom->nspecies_dpd;
+  if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
+  int n;
+  n = strlen(arg[3]) + 1;
+  site1 = new char[n];
+  strcpy(site1,arg[4]);
+
+  int ispecies;
+  for (ispecies = 0; ispecies < nspecies; ispecies++){
+    if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
+  }
+  if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
+    error->all(FLERR,"Site1 name not recognized in pair coefficients");
+
+  n = strlen(arg[4]) + 1;
+  site2 = new char[n];
+  strcpy(site2,arg[5]);
+
+  for (ispecies = 0; ispecies < nspecies; ispecies++){
+    if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
+  }
+  if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
+    error->all(FLERR,"Site2 name not recognized in pair coefficients");
+
+  // set table cutoff
+
+  if (narg == 7) tb->cut = force->numeric(FLERR,arg[6]);
+  else if (tb->rflag) tb->cut = tb->rhi;
+  else tb->cut = tb->rfile[tb->ninput-1];
+
+  // error check on table parameters
+  // insure cutoff is within table
+  // for BITMAP tables, file values can be in non-ascending order
+
+  if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
+  double rlo,rhi;
+  if (tb->rflag == 0) {
+    rlo = tb->rfile[0];
+    rhi = tb->rfile[tb->ninput-1];
+  } else {
+    rlo = tb->rlo;
+    rhi = tb->rhi;
+  }
+  if (tb->cut <= rlo || tb->cut > rhi)
+    error->all(FLERR,"Invalid pair table cutoff");
+  if (rlo <= 0.0) error->all(FLERR,"Invalid pair table cutoff");
+
+  // match = 1 if don't need to spline read-in tables
+  // this is only the case if r values needed by final tables
+  //   exactly match r values read from file
+  // for tabstyle SPLINE, always need to build spline tables
+
+  tb->match = 0;
+  if (tabstyle == LINEAR && tb->ninput == tablength &&
+      tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
+  if (tabstyle == BITMAP && tb->ninput == 1 << tablength &&
+      tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
+  if (tb->rflag == BMP && tb->match == 0)
+    error->all(FLERR,"Bitmapped table in file does not match requested table");
+
+  // spline read-in values and compute r,e,f vectors within table
+
+  if (tb->match == 0) spline_table(tb);
+  compute_table(tb);
+
+  // store ptr to table in tabindex
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      tabindex[i][j] = ntables;
+      setflag[i][j] = 1;
+      count++;
+    }
+  }
+
+  if (count == 0) error->all(FLERR,"Illegal pair_coeff command");
+  ntables++;
+
+  {
+     if ( strcmp(site1,"1fluid") == 0 )
+       isite1 = OneFluidValue;
+     else {
+       isite1 = nspecies;
+
+       for (int k = 0; k < nspecies; k++){
+         if (strcmp(site1, atom->dname[k]) == 0){
+           isite1 = k;
+           break;
+         }
+       }
+
+       if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
+     }
+
+     if ( strcmp(site2,"1fluid") == 0 )
+       isite2 = OneFluidValue;
+     else {
+       isite2 = nspecies;
+
+       for (int k = 0; k < nspecies; k++){
+         if (strcmp(site2, atom->dname[k]) == 0){
+           isite2 = ispecies;
+           break;
+         }
+       }
+
+       if (isite2 == nspecies)
+         error->all(FLERR,"isite2 == nspecies");
+     }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -475,6 +623,82 @@ double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
   }
 
   return tables[tabindex[i][j]].cut;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype, double rsq,
+                         double factor_coul, double factor_lj,
+                         double &fforce)
+{
+  int itable;
+  double fraction,value,a,b,phi;
+  int tlm1 = tablength - 1;
+
+  Table *tb = &tables[tabindex[itype][jtype]];
+  double mixWtSite1_i, mixWtSite1_j;
+  double mixWtSite2_i, mixWtSite2_j;
+  double mixWtSite1old_i, mixWtSite1old_j;
+  double mixWtSite2old_i, mixWtSite2old_j;
+
+  fraction = 0.0;
+  a = 0.0;
+  b = 0.0;
+
+  typename ArrayTypes<LMPHostType>::t_float_2d_randomread h_dvector =
+    atomKK->k_dvector.view<LMPHostType>();
+  getMixingWeights<LMPHostType>(h_dvector,i,mixWtSite1old_i,mixWtSite2old_i,
+      mixWtSite1_i,mixWtSite2_i);
+  getMixingWeights<LMPHostType>(h_dvector,j,mixWtSite1old_j,mixWtSite2old_j,
+      mixWtSite1_j,mixWtSite2_j);
+
+  if (rsq < tb->innersq) error->one(FLERR,"Pair distance < table inner cutoff");
+
+  if (tabstyle == LOOKUP) {
+    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
+    fforce = factor_lj * tb->f[itable];
+  } else if (tabstyle == LINEAR) {
+    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
+    fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
+    value = tb->f[itable] + fraction*tb->df[itable];
+    fforce = factor_lj * value;
+  } else if (tabstyle == SPLINE) {
+    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
+    b = (rsq - tb->rsq[itable]) * tb->invdelta;
+    a = 1.0 - b;
+    value = a * tb->f[itable] + b * tb->f[itable+1] +
+      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
+      tb->deltasq6;
+    fforce = factor_lj * value;
+  } else {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    itable = rsq_lookup.i & tb->nmask;
+    itable >>= tb->nshiftbits;
+    fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+    value = tb->f[itable] + fraction*tb->df[itable];
+    fforce = factor_lj * value;
+  }
+
+  if (isite1 == isite2) fforce = sqrt(mixWtSite1_i*mixWtSite2_j)*fforce;
+  else fforce = (sqrt(mixWtSite1_i*mixWtSite2_j) + sqrt(mixWtSite2_i*mixWtSite1_j))*fforce;
+
+  if (tabstyle == LOOKUP)
+    phi = tb->e[itable];
+  else if (tabstyle == LINEAR || tabstyle == BITMAP)
+    phi = tb->e[itable] + fraction*tb->de[itable];
+  else
+    phi = a * tb->e[itable] + b * tb->e[itable+1] +
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
+
+  if (isite1 == isite2) phi = sqrt(mixWtSite1_i*mixWtSite2_j)*phi;
+  else phi = (sqrt(mixWtSite1_i*mixWtSite2_j) + sqrt(mixWtSite2_i*mixWtSite1_j))*phi;
+
+  return factor_lj*phi;
 }
 
 /* ----------------------------------------------------------------------
@@ -526,9 +750,11 @@ void PairTableRXKokkos<DeviceType>::cleanup_copy() {
 }
 
 template<class DeviceType>
+template<class ExecDevice>
 KOKKOS_INLINE_FUNCTION
 void PairTableRXKokkos<DeviceType>::getMixingWeights(
-    typename DAT::t_float_2d_randomread dvector, int id,
+    typename ArrayTypes<ExecDevice>::t_float_2d_randomread dvector,
+    int id,
     double &mixWtSite1old, double &mixWtSite2old,
     double &mixWtSite1, double &mixWtSite2) {
   double fractionOFAold, fractionOFA;

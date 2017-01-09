@@ -153,8 +153,15 @@ class PairTableRXKokkos : public PairTable {
 
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
 
+  /* PairTableRX members */
+
+  int nspecies;
+  char *site1, *site2;
+  int isite1, isite2;
+  bool fractionalWeighting;
+
   KOKKOS_INLINE_FUNCTION
-  void getMixingWeights(typename DAT::t_float_2d_randomread dvector, int, double &, double &, double &, double &);
+  void getMixingWeights(typename DAT::t_float_2d_randomread, int, double &, double &, double &, double &);
 };
 
 }

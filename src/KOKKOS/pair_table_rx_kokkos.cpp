@@ -527,7 +527,10 @@ void PairTableRXKokkos<DeviceType>::cleanup_copy() {
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTableRXKokkos<DeviceType>::getMixingWeights(typename DAT::t_float_2d_randomread dvector, int, double &, double &, double &, double &) {
+void PairTableRXKokkos<DeviceType>::getMixingWeights(
+    typename DAT::t_float_2d_randomread dvector, int id,
+    double &mixWtSite1old, double &mixWtSite2old,
+    double &mixWtSite1, double &mixWtSite2) {
   double fractionOFAold, fractionOFA;
   double fractionOld1, fraction1;
   double fractionOld2, fraction2;

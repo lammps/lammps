@@ -920,4 +920,10 @@ void memset_kokkos (ViewType &view) {
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
+#ifdef KOKKOS_HAVE_CUDA
+#define LAMMPS_LAMBDA [=] __device__
+#else
+#define LAMMPS_LAMBDA [=]
+#endif
+
 #endif

@@ -45,14 +45,13 @@ namespace LAMMPS_NS {
     }
 
     KOKKOS_INLINE_FUNCTION
-    volatile s_CTEMP& operator+=(const volatile s_CTEMP &rhs) volatile {
+    void operator+=(const volatile s_CTEMP &rhs) volatile {
       t0 += rhs.t0;
       t1 += rhs.t1;
       t2 += rhs.t2;
       t3 += rhs.t3;
       t4 += rhs.t4;
       t5 += rhs.t5;
-      return *this;
     }
   };
   typedef s_CTEMP CTEMP;

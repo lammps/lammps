@@ -632,16 +632,6 @@ void FixATC::min_pre_exchange()
     throw;
   }
 }
-void FixATC::min_setup_pre_exchange()
-{
-  try {
-    atc_->setup_pre_exchange();
-  }
-  catch (ATC::ATC_Error& atcError) {
-    ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
-    throw;
-  }
-}
 
 double FixATC::memory_usage()
 {
@@ -884,19 +874,6 @@ void FixATC::post_run()
 }
 /* ---------------------------------------------------------------------- */
 void FixATC::setup_pre_neighbor()
-{
-  if (atc_->is_initialized()) {
-    try {
-      atc_->pre_neighbor();
-    }
-    catch (ATC::ATC_Error& atcError) {
-      ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
-      throw;
-    }
-  }
-}
-/* ---------------------------------------------------------------------- */
-void FixATC::min_setup_pre_neighbor()
 {
   if (atc_->is_initialized()) {
     try {

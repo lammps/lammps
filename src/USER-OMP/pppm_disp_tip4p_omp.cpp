@@ -1852,17 +1852,20 @@ void PPPMDispTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
+  // set iH1,iH2 to index of closest image to O
+
+  iH1 = domain->closest_image(i,iH1);
+  iH2 = domain->closest_image(i,iH2);
+
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
 
   double delx1 = x[iH1].x - x[i].x;
   double dely1 = x[iH1].y - x[i].y;
   double delz1 = x[iH1].z - x[i].z;
-  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = x[iH2].x - x[i].x;
   double dely2 = x[iH2].y - x[i].y;
   double delz2 = x[iH2].z - x[i].z;
-  domain->minimum_image(delx2,dely2,delz2);
 
   xM.x = x[i].x + alpha * 0.5 * (delx1 + delx2);
   xM.y = x[i].y + alpha * 0.5 * (dely1 + dely2);

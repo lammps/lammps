@@ -127,9 +127,9 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
-  double v[6],xH1[3],xH2[3];
+  double v[6];
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
-  dbl3_t x1,x2;
+  dbl3_t x1,x2,xH1,xH2;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
   int i,j,ii,jj,jnum,itype,jtype,key;
@@ -179,10 +179,14 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        // set iH1,iH2 to index of closest image to O
+        iH1 = domain->closest_image(i,iH1);
+        iH2 = domain->closest_image(i,iH2);
         compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
         hneigh_thr[i].t = 1;
         hneigh_thr[i].b = iH2;
         hneigh_thr[i].a = iH1;
+
       } else {
         iH1 = hneigh_thr[i].a;
         iH2 = hneigh_thr[i].b;
@@ -256,6 +260,9 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              // set jH1,jH2 to closest image to O
+              jH1 = domain->closest_image(j,jH1);
+              jH2 = domain->closest_image(j,jH2);
               compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
               hneigh_thr[j].t = 1;
               hneigh_thr[j].b = jH2;
@@ -341,15 +348,14 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
             f[iH2].z += fHz;
 
             if (VFLAG) {
-              domain->closest_image(&x[i].x,&x[iH1].x,xH1);
-              domain->closest_image(&x[i].x,&x[iH2].x,xH2);
-
-              v[0] = x[i].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
-              v[1] = x[i].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
-              v[2] = x[i].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
-              v[3] = x[i].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
-              v[4] = x[i].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
-              v[5] = x[i].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              xH1 = x[iH1];
+              xH2 = x[iH2];
+              v[0] = x[i].x*fOx + xH1.x*fHx + xH2.x*fHx;
+              v[1] = x[i].y*fOy + xH1.y*fHy + xH2.y*fHy;
+              v[2] = x[i].z*fOz + xH1.z*fHz + xH2.z*fHz;
+              v[3] = x[i].x*fOy + xH1.x*fHy + xH2.x*fHy;
+              v[4] = x[i].x*fOz + xH1.x*fHz + xH2.x*fHz;
+              v[5] = x[i].y*fOz + xH1.y*fHz + xH2.y*fHz;
             }
             if (EVFLAG) {
               vlist[n++] = i;
@@ -401,15 +407,14 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
             f[jH2].z += fHz;
 
             if (VFLAG) {
-              domain->closest_image(&x[j].x,&x[jH1].x,xH1);
-              domain->closest_image(&x[j].x,&x[jH2].x,xH2);
-
-              v[0] += x[j].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
-              v[1] += x[j].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
-              v[2] += x[j].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
-              v[3] += x[j].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
-              v[4] += x[j].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
-              v[5] += x[j].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              xH1 = x[jH1];
+              xH2 = x[jH2];
+              v[0] += x[j].x*fOx + xH1.x*fHx + xH2.x*fHx;
+              v[1] += x[j].y*fOy + xH1.y*fHy + xH2.y*fHy;
+              v[2] += x[j].z*fOz + xH1.z*fHz + xH2.z*fHz;
+              v[3] += x[j].x*fOy + xH1.x*fHy + xH2.x*fHy;
+              v[4] += x[j].x*fOz + xH1.x*fHz + xH2.x*fHz;
+              v[5] += x[j].y*fOz + xH1.y*fHz + xH2.y*fHz;
             }
             if (EVFLAG) {
               vlist[n++] = j;
@@ -446,12 +451,10 @@ void PairLJCutTIP4PCutOMP::compute_newsite_thr(const dbl3_t &xO,
   double delx1 = xH1.x - xO.x;
   double dely1 = xH1.y - xO.y;
   double delz1 = xH1.z - xO.z;
-  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = xH2.x - xO.x;
   double dely2 = xH2.y - xO.y;
   double delz2 = xH2.z - xO.z;
-  domain->minimum_image(delx2,dely2,delz2);
 
   const double prefac = alpha * 0.5;
   xM.x = xO.x + prefac * (delx1 + delx2);

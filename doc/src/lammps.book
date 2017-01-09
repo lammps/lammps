@@ -214,6 +214,7 @@ fix_nve_manifold_rattle.html
 fix_nve_noforce.html
 fix_nve_sphere.html
 fix_nve_tri.html
+fix_nvk.html
 fix_nvt_asphere.html
 fix_nvt_body.html
 fix_nvt_manifold_rattle.html

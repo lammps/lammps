@@ -207,6 +207,8 @@ fix_nve.html
 fix_nve_asphere.html
 fix_nve_asphere_noforce.html
 fix_nve_body.html
+fix_nve_dot.html
+fix_nve_dotc_langevin.html
 fix_nve_eff.html
 fix_nve_limit.html
 fix_nve_line.html

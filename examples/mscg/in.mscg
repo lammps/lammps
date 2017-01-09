@@ -1,0 +1,22 @@
+units real
+atom_style full
+pair_style zero 10.0
+
+read_data data.meoh
+pair_coeff * *
+
+thermo 1
+thermo_style custom step
+
+# Test 1a: range finder functionality
+fix 1 all mscg 1 range on
+rerun dump.meoh first 0 last 4500 every 250 dump x y z fx fy fz
+print "TEST_1a mscg range finder"
+unfix 1
+
+# Test 1b: force matching functionality
+fix 1 all mscg 1
+rerun dump.meoh first 0 last 4500 every 250 dump x y z fx fy fz
+print "TEST_1b mscg force matching"
+
+print TEST_DONE

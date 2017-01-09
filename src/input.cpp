@@ -350,15 +350,15 @@ void Input::parse()
     }
     if (quoteflag == 0) {
       if (strstr(ptr,"\"\"\"") == ptr) {
-	quoteflag = 3;
-	ptr += 2;
+        quoteflag = 3;
+        ptr += 2;
       }
       else if (*ptr == '"') quoteflag = 2;
       else if (*ptr == '\'') quoteflag = 1;
     } else {
       if (quoteflag == 3 && strstr(ptr,"\"\"\"") == ptr) {
-	quoteflag = 0;
-	ptr += 2;
+        quoteflag = 0;
+        ptr += 2;
       }
       else if (quoteflag == 2 && *ptr == '"') quoteflag = 0;
       else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;

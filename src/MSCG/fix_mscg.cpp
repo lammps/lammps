@@ -49,6 +49,9 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
   if (nprocs > 1) error->all(FLERR,"Fix mscg does not yet support "
                              "parallel use via MPI");
 
+  if (sizeof(tagint) != sizeof(smallint))
+    error->all(FLERR,"Fix mscg must be used with 32-bit atom IDs");
+
   // initialize
 
   int natoms = atom->natoms;

@@ -53,7 +53,7 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
   update_table = 0;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DVECTOR_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   h_table = new TableHost();
   d_table = new TableDevice();
@@ -121,6 +121,19 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   d_cutsq = d_table->cutsq;
   // loop over neighbors of my atoms
 
+  const int ntotal = atom->nlocal + atom->nghost;
+  mixWtSite1old_ = Kokkos::View<double*, DeviceType>("PairTableRxKokkos::mixWtSite1old", ntotal);
+  mixWtSite2old_ = Kokkos::View<double*, DeviceType>("PairTableRxKokkos::mixWtSite2old", ntotal);
+  mixWtSite1_ = Kokkos::View<double*, DeviceType>("PairTableRxKokkos::mixWtSite1", ntotal);
+  mixWtSite2_ = Kokkos::View<double*, DeviceType>("PairTableRxKokkos::mixWtSite2", ntotal);
+
+  typename DAT::t_float_2d_randomread d_dvector = atomKK->k_dvector.view<DeviceType>();
+
+  Kokkos::parallel_for(ntotal, LAMMPS_LAMBDA(int i) {
+    getMixingWeights<DeviceType>(d_dvector, i, mixWtSite1old_(i), mixWtSite2old_(i),
+        mixWtSite1_(i), mixWtSite2_(i));
+  });
+
   EV_FLOAT ev;
   if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == FULL) {
@@ -186,8 +199,6 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairTableRXKokkos<DeviceType>::
 compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
   union_int_float_t rsq_lookup;
   double fpair;
   const int tidx = d_table_const.tabindex(itype,jtype);
@@ -212,6 +223,9 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
     const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   }
+  if (isite1 == isite2) fpair *= sqrt(mixWtSite1old_(i) * mixWtSite2old_(j));
+  else fpair *= (sqrt(mixWtSite1old_(i) * mixWtSite2old_(j)) +
+                 sqrt(mixWtSite2old_(i) * mixWtSite1old_(j)));
   return fpair;
 }
 
@@ -646,6 +660,7 @@ double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype,
   a = 0.0;
   b = 0.0;
 
+  atomKK->k_dvector.template sync<LMPHostType>();
   typename ArrayTypes<LMPHostType>::t_float_2d_randomread h_dvector =
     atomKK->k_dvector.view<LMPHostType>();
   getMixingWeights<LMPHostType>(h_dvector,i,mixWtSite1old_i,mixWtSite2old_i,

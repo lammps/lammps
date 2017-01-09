@@ -166,6 +166,11 @@ class PairTableRXKokkos : public PairTable {
   KOKKOS_INLINE_FUNCTION
   void getMixingWeights(typename ArrayTypes<ExecDevice>::t_float_2d_randomread,
       int, double &, double &, double &, double &);
+
+  Kokkos::View<double*, DeviceType> mixWtSite1old_;
+  Kokkos::View<double*, DeviceType> mixWtSite2old_;
+  Kokkos::View<double*, DeviceType> mixWtSite1_;
+  Kokkos::View<double*, DeviceType> mixWtSite2_;
 };
 
 }

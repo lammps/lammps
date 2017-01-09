@@ -102,11 +102,11 @@ class PairTableRXKokkos : public PairTable {
   void create_kokkos_tables();
   void cleanup_copy();
 
-  template<bool STACKPARAMS, class Specialisation>
+  template<bool STACKPARAMS, int TABSTYLE>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
-  template<bool STACKPARAMS, class Specialisation>
+  template<bool STACKPARAMS, int TABSTYLE>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
@@ -150,12 +150,12 @@ class PairTableRXKokkos : public PairTable {
     }
     template<int EVFLAG, int NEWTON_PAIR>
     KOKKOS_INLINE_FUNCTION
-    EV_FLOAT compute_item(const int&,
-                          const NeighListKokkos<device_type>&, const NoCoulTag&) const;
+    EV_FLOAT compute_item(const int&) const;
     KOKKOS_INLINE_FUNCTION
+    void
     ev_tally(EV_FLOAT &ev, const int &i, const int &j,
              const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-             const F_FLOAT &dely, const F_FLOAT &delz) const
+             const F_FLOAT &dely, const F_FLOAT &delz) const;
     KOKKOS_INLINE_FUNCTION
     void operator()(const int) const;
     KOKKOS_INLINE_FUNCTION

@@ -92,14 +92,14 @@ void PairTableRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
-PairTableRXKokkos<DeviceType>::Full<NEIGHFLAG,STACKPARAMS,TABSTYLE>::Functor(
+PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::Functor(
     PairTableRXKokkos* c_ptr, NeighListKokkos<device_type>* list_ptr):
   c(*c_ptr),f(c.f),list(*list_ptr)
 {}
 
 template<class DeviceType>
 template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
-PairTableRXKokkos<DeviceType>::Full<NEIGHFLAG,STACKPARAMS,TABSTYLE>::~Functor() {
+PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::~Functor() {
   c.cleanup_copy();
   list.clean_copy();
 }
@@ -110,7 +110,7 @@ template<int EVFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 EV_FLOAT
 PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::
-compute_item(const int& ii) {
+compute_item(const int& ii) const {
   EV_FLOAT ev;
   const int i = list.d_ilist[ii];
   const X_FLOAT xtmp = c.x(i,0);
@@ -125,10 +125,10 @@ compute_item(const int& ii) {
   double uCGnew_i = 0.0;
   double fx_i = 0.0, fy_i = 0.0, fz_i = 0.0;
 
-  double mixWtSite1old_i = mixWtSite1old(i);
-  double mixWtSite2old_i = mixWtSite2old(i);
-  double mixWtSite1_i = mixWtSite1(i);
-  double mixWtSite2_i = mixWtSite2(i);
+  double mixWtSite1old_i = c.mixWtSite1old_(i);
+  double mixWtSite2old_i = c.mixWtSite2old_(i);
+  double mixWtSite1_i = c.mixWtSite1_(i);
+  double mixWtSite2_i = c.mixWtSite2_(i);
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = jlist(jj);
@@ -142,12 +142,12 @@ compute_item(const int& ii) {
     const int jtype = c.type(j);
 
     if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
-      double mixWtSite1old_j = mixWtSite1old[j];
-      double mixWtSite2old_j = mixWtSite2old[j];
-      double mixWtSite1_j = mixWtSite1[j];
-      double mixWtSite2_j = mixWtSite2[j];
+      double mixWtSite1old_j = c.mixWtSite1old_(j);
+      double mixWtSite2old_j = c.mixWtSite2old_(j);
+      double mixWtSite1_j = c.mixWtSite1_(j);
+      double mixWtSite2_j = c.mixWtSite2_(j);
 
-      const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+      const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,TABSTYLE>(rsq,i,j,itype,jtype);
 
       fx_i += delx*fpair;
       fy_i += dely*fpair;
@@ -164,7 +164,7 @@ compute_item(const int& ii) {
       auto evdwl = c.template compute_evdwl<STACKPARAMS,TABSTYLE>(rsq,i,j,itype,jtype);
 
       double evdwlOld;
-      if (isite1 == isite2) {
+      if (c.isite1 == c.isite2) {
         evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwl;
         evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwl;
       } else {
@@ -324,48 +324,42 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         mixWtSite1_(i), mixWtSite2_(i));
   });
 
+  if (neighflag == N2) error->all(FLERR,"pair table/rx/kk can't handle N2 yet\n");
+
   EV_FLOAT ev;
   if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == FULL) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,false,S_TableCompute<DeviceType,TABSTYLE> >
-        ff(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<FULL,false,TABSTYLE> ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
     } else if (neighflag == HALFTHREAD) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,false,S_TableCompute<DeviceType,TABSTYLE> >
-        ff(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<HALFTHREAD,false,TABSTYLE> ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
     } else if (neighflag == HALF) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,false,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<HALF,false,TABSTYLE> f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,false,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<N2,false,TABSTYLE> f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
     }
   } else {
     if (neighflag == FULL) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,true,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<FULL,true,TABSTYLE> f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == HALFTHREAD) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,true,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<HALFTHREAD,true,TABSTYLE> f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == HALF) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,true,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<HALF,true,TABSTYLE> f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,true,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
+      Functor<N2,true,TABSTYLE> f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
     }

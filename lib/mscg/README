@@ -1,6 +1,6 @@
 This directory contains links to the Multi-scale Coarse-graining
-(MS-CG) library which is required to use the MS-CG package and its fix
-commands in a LAMMPS input script.
+(MS-CG) library which is required to use the MSCG package and its fix
+command in a LAMMPS input script.
 
 The MS-CG library is available at
 https://github.com/uchicago-voth/MSCG-release and was developed by

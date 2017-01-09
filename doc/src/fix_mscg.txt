@@ -1,0 +1,108 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix mscg command :h3
+
+[Syntax:]
+
+fix ID group-ID mscg N keyword args ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+mscg = style name of this fix command :l
+N = envoke this fix every this many timesteps :l
+zero or more keyword/value pairs may be appended :l
+keyword = {range} or {name} or {max} :l
+  {range} arg = {on} or {off}
+    {on} = range finding functionality is performed
+    {off} = force matching functionality is performed
+  {name} args = name1 ... nameN
+    name1,...,nameN = string names for all atom types (1-N)
+  {max} args = maxb maxa maxd
+    maxb,maxa,maxd = maximum bonds/angles/dihedrals per atom :pre
+:ule
+
+[Examples:]
+
+fix 1 all mscg 1
+fix 1 all mscg 1 range name A B
+fix 1 all mscg 1 max 4 8 20 :pre
+
+[Description:]
+
+This fix applies the Multi-Scale Coarse-Graining (MSCG) package to snapshots
+from a dump file to generates potentials for coarse-grained simulations from
+all-atom simulations using a force-matching technique ("Izvekov"_#Izvekov,
+"Noid"_#Noid).
+
+The general workflow for the MSCG package is as follows: (1) Perform all-atom
+simulations on the system to be coarse grianed. (2) Generate a trajectory
+mapped to the coarse-grained model. (3) Create input files for the MSCG code.
+(4) Run the range finder functionality of the MSCG package. (5) Run the force
+matching functionality of the MSCG package. (6) Check the results of the force
+matching. (7) Run coarse-grained simulations using the generated coarse-grained
+potentials.
+
+This fix is set up to run the range finding and force matching functions
+(steps 4 and 5) of the above workflow using the "rerun"_rerun.html command.
+The dump file provided for the rerun should contain the positions and forces
+of the coarse-grained beads mapped from an all-atom trajectory. An additional
+input file (control.in) is needed by the MSCG package to set the parameters
+for the range finding and force matching functionalities. See the documentation
+provided with the MSCG package for more info.
+
+The MSCG package also provides additional output files when using this fix.
+The range finder functionality outputs files defining pair and bonded
+interaction ranges. The force matching functionality outputs tabulated force
+files for every interaction in the system. Other diagnostic files can also be
+output depending on the paramters in the input script. See the documentation
+provided with the MSCG package for more info.
+
+This fix makes use of the MSCG library, which is maintained by Gregory Voth's
+group at the University of Chicago. See instructions on obtaining and installing
+the MSCG library in the src/USER-MSCG/README file.
+
+:line
+
+The {range} keyword specifies which MSCG functionality should be performed. If
+{on}, the range finder functionality is performed. If {off}, the force matching
+functionality is performed.
+
+If the {name} keyword is used, string names are defined to associate with the
+integer atom types in LAMMPS. A list of space separated names should be
+provided for each atom type (1-N).
+
+The {max} keyword specifies the maximum number of bonds, angles, and dihedrals
+a bead can have in the current coarse-grained model.
+
+[Restrictions:]
+
+This fix is part of the USER-MSCG package. It is only enabled if LAMMPS was
+built with that package. See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
+
+The MSCG library uses C++11, which may not be supported by older compilers. The
+MSCG library also has some dependencies, which are describd in the documentation
+included with that package.
+
+Currently, the MSCG library is not set up to run with mpi, so this fix can only
+be used with serial runs.
+
+[Related commands:]
+
+none
+
+[Default:] {range} off, {max} 4 12 36
+
+:line
+
+:link(Izvekov)
+[(Izvekov)] Izvekov, Voth, J Chem Phys 123, 134105 (2005).
+
+:link(Noid)
+[(Noid)] Noid, Chu, Ayton, Krishna, Izvekov, Voth, Das, Andersen, J Chem Phys
+128, 134105 (2008).

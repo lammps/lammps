@@ -33,7 +33,6 @@ class PairTableRXKokkos : public PairTable {
   using DAT = ArrayTypes<DeviceType>;
 
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
-  enum {COUL_FLAG=0};
   typedef DeviceType device_type;
 
   PairTableRXKokkos(class LAMMPS *);
@@ -111,48 +110,6 @@ class PairTableRXKokkos : public PairTable {
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
-
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,LOOKUP> >;
-
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,LINEAR> >;
-
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,SPLINE> >;
-
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableCompute<DeviceType,BITMAP> >;
-
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
 
   /* PairTableRX members */
@@ -171,6 +128,39 @@ class PairTableRXKokkos : public PairTable {
   Kokkos::View<double*, DeviceType> mixWtSite2old_;
   Kokkos::View<double*, DeviceType> mixWtSite1_;
   Kokkos::View<double*, DeviceType> mixWtSite2_;
+
+  /* a duplicate of PairComputeFunctor to deal with uCG */
+  template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
+  struct Functor {
+    using device_type = DeviceType;
+    typedef EV_FLOAT value_type;
+    PairTableRXKokkos c;
+    // arrays are atomic for Half(Thread) neighbor style
+    Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
+                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
+    Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
+                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG;
+    Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
+                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
+    NeighListKokkos<device_type> list;
+    Functor(PairTableRXKokkos* c_ptr, NeighListKokkos<device_type>* list_ptr);
+    ~Functor();
+    KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
+      return j >> SBBITS & 3;
+    }
+    template<int EVFLAG, int NEWTON_PAIR>
+    KOKKOS_INLINE_FUNCTION
+    EV_FLOAT compute_item(const int&,
+                          const NeighListKokkos<device_type>&, const NoCoulTag&) const;
+    KOKKOS_INLINE_FUNCTION
+    ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+             const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
+             const F_FLOAT &dely, const F_FLOAT &delz) const
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int) const;
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int, value_type&) const;
+  };
 };
 
 }

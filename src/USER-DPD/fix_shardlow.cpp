@@ -178,13 +178,6 @@ void FixShardlow::min_pre_exchange()
 
 /* ---------------------------------------------------------------------- */
 
-void FixShardlow::min_setup_pre_exchange()
-{
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixShardlow::setup(int vflag)
 {
   bool fixShardlow = false;

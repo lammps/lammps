@@ -440,13 +440,6 @@ void FixQEqReax::setup_pre_force_respa(int vflag, int ilevel)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReax::min_setup_pre_force(int vflag)
-{
-  setup_pre_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixQEqReax::init_storage()
 {
   int NN;

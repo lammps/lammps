@@ -43,6 +43,7 @@ void Run::command(int narg, char **arg)
     error->all(FLERR,"Run command before simulation box is defined");
 
   // ignore run command, if walltime limit was already reached
+
   if (timer->is_timeout()) return;
 
   bigint nsteps_input = force->bnumeric(FLERR,arg[0]);

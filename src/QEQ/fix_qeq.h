@@ -33,7 +33,6 @@ class FixQEq : public Fix {
   void setup_pre_force(int);
   void setup_pre_force_respa(int, int);
   void pre_force_respa(int, int, int);
-  void min_setup_pre_force(int);
   void min_pre_force(int);
 
   // derived child classes must provide these functions

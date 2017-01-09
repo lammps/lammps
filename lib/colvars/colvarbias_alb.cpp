@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -32,6 +39,9 @@ colvarbias_alb::colvarbias_alb(char const *key)
 int colvarbias_alb::init(std::string const &conf)
 {
   colvarbias::init(conf);
+
+  provide(f_cvb_scalar_variables);
+  enable(f_cvb_scalar_variables);
 
   provide(f_cvb_history_dependent);
 
@@ -239,37 +249,8 @@ int colvarbias_alb::update()
 }
 
 
-std::istream & colvarbias_alb::read_restart(std::istream &is)
+int colvarbias_alb::set_state_params(std::string const &conf)
 {
-  size_t const start_pos = is.tellg();
-
-  cvm::log("Restarting adaptive linear bias \""+
-            this->name+"\".\n");
-
-  std::string key, brace, conf;
-  if ( !(is >> key)   || !(key == "ALB") ||
-       !(is >> brace) || !(brace == "{") ||
-       !(is >> colvarparse::read_block("configuration", conf)) ) {
-
-    cvm::log("Error: in reading restart configuration for restraint bias \""+
-              this->name+"\" at position "+
-              cvm::to_str(is.tellg())+" in stream.\n");
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
-    return is;
-  }
-
-  std::string name = "";
-  if ( (colvarparse::get_keyval(conf, "name", name, std::string(""), colvarparse::parse_silent)) &&
-       (name != this->name) )
-    cvm::fatal_error("Error: in the restart file, the "
-                      "\"ALB\" block has a wrong name\n");
-  if (name.size() == 0) {
-    cvm::fatal_error("Error: \"ALB\" block in the restart file "
-                      "has no identifiers.\n");
-  }
-
   if (!get_keyval(conf, "setCoupling", set_coupling))
     cvm::fatal_error("Error: current setCoupling  is missing from the restart.\n");
 
@@ -299,23 +280,13 @@ std::istream & colvarbias_alb::read_restart(std::istream &is)
   if (!get_keyval(conf, "b_equilibration", b_equilibration))
     cvm::fatal_error("Error: current updateCalls is missing from the restart.\n");
 
-  is >> brace;
-  if (brace != "}") {
-    cvm::fatal_error("Error: corrupt restart information for adaptive linear bias \""+
-                      this->name+"\": no matching brace at position "+
-                      cvm::to_str(is.tellg())+" in the restart file.\n");
-    is.setstate(std::ios::failbit);
-  }
-
-  return is;
+  return COLVARS_OK;
 }
 
 
-std::ostream & colvarbias_alb::write_restart(std::ostream &os)
+std::string const colvarbias_alb::get_state_params() const
 {
-  os << "ALB {\n"
-     << "  configuration {\n"
-     << "    name " << this->name << "\n";
+  std::ostringstream os;
   os << "    setCoupling ";
   size_t i;
   for (i = 0; i < colvars.size(); i++) {
@@ -358,10 +329,7 @@ std::ostream & colvarbias_alb::write_restart(std::ostream &os)
   else
     os << "    b_equilibration no\n";
 
-  os << "  }\n"
-     << "}\n\n";
-
-  return os;
+  return os.str();
 }
 
 

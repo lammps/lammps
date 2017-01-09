@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -123,6 +130,27 @@ void colvar::orientation::apply_force(colvarvalue const &force)
 }
 
 
+cvm::real colvar::orientation::dist2(colvarvalue const &x1,
+                                     colvarvalue const &x2) const
+{
+  return x1.quaternion_value.dist2(x2);
+}
+
+
+colvarvalue colvar::orientation::dist2_lgrad(colvarvalue const &x1,
+                                             colvarvalue const &x2) const
+{
+  return x1.quaternion_value.dist2_grad(x2);
+}
+
+
+colvarvalue colvar::orientation::dist2_rgrad(colvarvalue const &x1,
+                                             colvarvalue const &x2) const
+{
+  return x2.quaternion_value.dist2_grad(x1);
+}
+
+
 
 colvar::orientation_angle::orientation_angle(std::string const &conf)
   : orientation(conf)
@@ -176,6 +204,9 @@ void colvar::orientation_angle::apply_force(colvarvalue const &force)
 }
 
 
+simple_scalar_dist_functions(orientation_angle)
+
+
 
 colvar::orientation_proj::orientation_proj(std::string const &conf)
   : orientation(conf)
@@ -218,6 +249,9 @@ void colvar::orientation_proj::apply_force(colvarvalue const &force)
     atoms->apply_colvar_force(fw);
   }
 }
+
+
+simple_scalar_dist_functions(orientation_proj)
 
 
 
@@ -276,6 +310,9 @@ void colvar::tilt::apply_force(colvarvalue const &force)
     atoms->apply_colvar_force(fw);
   }
 }
+
+
+simple_scalar_dist_functions(tilt)
 
 
 
@@ -338,4 +375,47 @@ void colvar::spin_angle::apply_force(colvarvalue const &force)
   if (!atoms->noforce) {
     atoms->apply_colvar_force(fw);
   }
+}
+
+
+cvm::real colvar::spin_angle::dist2(colvarvalue const &x1,
+                                    colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return diff * diff;
+}
+
+
+colvarvalue colvar::spin_angle::dist2_lgrad(colvarvalue const &x1,
+                                            colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return 2.0 * diff;
+}
+
+
+colvarvalue colvar::spin_angle::dist2_rgrad(colvarvalue const &x1,
+                                            colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return (-2.0) * diff;
+}
+
+
+void colvar::spin_angle::wrap(colvarvalue &x) const
+{
+  if ((x.real_value - wrap_center) >= 180.0) {
+    x.real_value -= 360.0;
+    return;
+  }
+
+  if ((x.real_value - wrap_center) < -180.0) {
+    x.real_value += 360.0;
+    return;
+  }
+
+  return;
 }

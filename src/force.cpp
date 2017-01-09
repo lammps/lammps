@@ -195,6 +195,8 @@ void Force::create_pair(const char *style, int trysuffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
+  pair_style = NULL;
+  pair = NULL;
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);

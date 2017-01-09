@@ -97,6 +97,8 @@ action fix_reaxc_species_kokkos.cpp fix_reaxc_species.cpp
 action fix_reaxc_species_kokkos.h fix_reaxc_species.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
+action fix_momentum_kokkos.cpp
+action fix_momentum_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
 action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
@@ -108,6 +110,7 @@ action improper_harmonic_kokkos.h improper_harmonic.h
 action kokkos.cpp
 action kokkos.h
 action kokkos_type.h
+action kokkos_few.h
 action memory_kokkos.h
 action modify_kokkos.cpp
 action modify_kokkos.h

@@ -65,7 +65,8 @@ void Finish::end(int flag)
 {
   int i,m,nneigh,nneighfull;
   int histo[10];
-  int minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
+  int minflag,prdflag,tadflag,hyperflag;
+  int timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min;
   double time_loop,time_other,cpu_loop;
 
@@ -86,9 +87,11 @@ void Finish::end(int flag)
   // flag = 1 = dynamics or minimization
   // flag = 2 = PRD
   // flag = 3 = TAD
+  // flag = 4 = HYPER
   // turn off neighflag for Kspace partition of verlet/split integrator
 
-  minflag = prdflag = tadflag = timeflag = fftflag = histoflag = neighflag = 0;
+  minflag = prdflag = tadflag = hyperflag = 0;
+  timeflag = fftflag = histoflag = neighflag = 0;
   time_loop = cpu_loop = time_other = 0.0;
 
   if (flag == 1) {
@@ -103,6 +106,7 @@ void Finish::end(int flag)
   }
   if (flag == 2) prdflag = timeflag = histoflag = neighflag = 1;
   if (flag == 3) tadflag = histoflag = neighflag = 1;
+  if (flag == 4) hyperflag = timeflag = histoflag = neighflag = 1;
 
   // loop stats
 
@@ -161,8 +165,10 @@ void Finish::end(int flag)
       if (lmp->kokkos) {
         const char fmt2[] =
           "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
-        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
-        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
+        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,
+                            lmp->kokkos->num_threads);
+        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,
+                             lmp->kokkos->num_threads);
       } else {
 #if defined(_OPENMP)
         const char fmt2[] =
@@ -409,12 +415,61 @@ void Finish::end(int flag)
     }
   }
 
+  // HYPER stats using PAIR,BOND,KSPACE for dynamics,quench
+
+  if (hyperflag) {
+    if (me == 0) {
+      if (screen) fprintf(screen,"\nHyper stats:\n");
+      if (logfile) fprintf(logfile,"\nHyper stats:\n");
+    }
+
+    time = timer->get_wall(Timer::DYNAMICS);
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen)
+        fprintf(screen,"  Dynamics time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Dynamics time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+    }
+
+    time = timer->get_wall(Timer::QUENCH);
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen)
+        fprintf(screen,"  Quench   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Quench   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+    }
+
+    time = time_other;
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen)
+        fprintf(screen,"  Other    time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Other    time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+    }
+  }
+
+  // further timing breakdowns
+
   if (timeflag && timer->has_normal()) {
 
     if (timer->has_full()) {
       const char hdr[] = "\nMPI task timing breakdown:\n"
-        "Section |  min time  |  avg time  |  max time  |%varavg|  %CPU | %total\n"
-        "-----------------------------------------------------------------------\n";
+        "Section |  min time  |  avg time  |  max time  "
+        "|%varavg|  %CPU | %total\n"
+        "-----------------------------------------------"
+        "------------------------\n";
       if (me == 0) {
         if (screen)  fputs(hdr,screen);
         if (logfile) fputs(hdr,logfile);
@@ -516,8 +571,10 @@ void Finish::end(int flag)
   if (lmp->kokkos && lmp->kokkos->ngpu > 0)
     if (const char* env_clb = getenv("CUDA_LAUNCH_BLOCKING"))
       if (!(strcmp(env_clb,"1") == 0)) {
-        error->warning(FLERR,"Timing breakdown may not be accurate since GPU/CPU overlap is enabled. "
-          "Using 'export CUDA_LAUNCH_BLOCKING=1' will give an accurate timing breakdown but will reduce performance");
+        error->warning(FLERR,"Timing breakdown may not be accurate "
+                       "since GPU/CPU overlap is enabled\n"
+                       "Using 'export CUDA_LAUNCH_BLOCKING=1' will give an "
+                       "accurate timing breakdown but will reduce performance");
       }
 
   // FFT timing statistics

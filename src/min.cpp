@@ -284,7 +284,7 @@ void Min::setup()
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
-  modify->pre_reverse(eflag,vflag);
+  modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   // update per-atom minimization variables stored by pair styles
@@ -365,7 +365,7 @@ void Min::setup_minimal(int flag)
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
-  modify->pre_reverse(eflag,vflag);
+  modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   // update per-atom minimization variables stored by pair styles
@@ -493,6 +493,11 @@ double Min::energy_force(int resetflag)
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(Timer::COMM);
+    if (modify->n_min_pre_neighbor) {
+      timer->stamp();
+      modify->min_pre_neighbor();
+      timer->stamp(Timer::MODIFY);
+    }
     neighbor->build();
     timer->stamp(Timer::NEIGH);
   }
@@ -525,8 +530,8 @@ double Min::energy_force(int resetflag)
     timer->stamp(Timer::KSPACE);
   }
 
-  if (modify->n_pre_reverse) {
-    modify->pre_reverse(eflag,vflag);
+  if (modify->n_min_pre_reverse) {
+    modify->min_pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
 

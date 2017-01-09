@@ -73,7 +73,8 @@ static const char cite_neigh_multi[] =
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
+Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
+pairclass(NULL), pairnames(NULL), pairmasks(NULL)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

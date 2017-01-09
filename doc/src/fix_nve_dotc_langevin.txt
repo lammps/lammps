@@ -73,7 +73,6 @@ the direction and magnitude of this force as described in
 "(Dunweg)"_#Dunweg, where a uniform random number is used (instead of
 a Gaussian random number) for speed.
 
-
 NOTE: Unlike the "fix langevin"_fix_langevin.html this command performs
 also time integration of the translational and quaternion degrees of freedom.
 
@@ -107,6 +106,9 @@ freedom in addition to the usual translational degrees of freedom.
 
 The scale factor after the {angmom} keyword gives the ratio of the rotational to 
 the translational friction coefficient.
+
+Example input and data files can be found in /examples/USER/cgdna/duplex1/ and /duplex2.
+A technical report with more information on this integrator can be found in /examples/USER/cgdna/doc/.
 
 :line
 

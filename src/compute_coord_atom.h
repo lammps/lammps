@@ -34,6 +34,7 @@ class ComputeCoordAtom : public Compute {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
+  enum {NONE,CUTOFF,ORIENT};
 
  private:
   int nmax,ncol;
@@ -45,10 +46,10 @@ class ComputeCoordAtom : public Compute {
   double **carray;
 
   class ComputeOrientOrderAtom *c_orientorder;
-  char *cstyle,*id_orientorder;
+  char *id_orientorder;
   double threshold;
   double **normv;
-  int nqlist,l;
+  int cstyle,nqlist,l;
 };
 
 }

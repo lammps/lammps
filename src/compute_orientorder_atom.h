@@ -49,7 +49,7 @@ class ComputeOrientOrderAtom : public Compute {
   double **qnm_i;
 
   void select3(int, int, double *, int *, double **);
-  void calc_boop(double **rlist, int numNeighbors, 
+  void calc_boop(double **rlist, int numNeighbors,
 		 double qn[], int nlist[], int nnlist);
   double dist(const double r[]);
 

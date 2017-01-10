@@ -36,16 +36,15 @@ using namespace LAMMPS_NS;
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  cstyle(NULL), id_orientorder(NULL), typelo(NULL), typehi(NULL), cvec(NULL), carray(NULL)
+  typelo(NULL), typehi(NULL), cvec(NULL), carray(NULL),
+  id_orientorder(NULL), normv(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute coord/atom command");
 
-  int n = strlen(arg[3]) + 1;
-  cstyle = new char[n];
-  strcpy(cstyle,arg[3]);
+  cstyle = NONE;
 
-  if (strcmp(cstyle,"cutoff") == 0) {
-
+  if (strcmp(arg[3],"cutoff") == 0) {
+    cstyle = CUTOFF;
     double cutoff = force->numeric(FLERR,arg[4]);
     cutsq = cutoff*cutoff;
 
@@ -68,34 +67,33 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
         ncol++;
         iarg++;
       }
-
     }
 
-    } else if (strcmp(cstyle,"orientorder") == 0) {
+  } else if (strcmp(arg[3],"orientorder") == 0) {
+    cstyle = ORIENT;
+    if (narg != 6) error->all(FLERR,"Illegal compute coord/atom command");
 
-      if (narg != 6) error->all(FLERR,"Illegal compute coord/atom command");
+    int n = strlen(arg[4]) + 1;
+    id_orientorder = new char[n];
+    strcpy(id_orientorder,arg[4]);
 
-      n = strlen(arg[4]) + 1;
-      id_orientorder = new char[n];
-      strcpy(id_orientorder,arg[4]);
+    int iorientorder = modify->find_compute(id_orientorder);
+    if (iorientorder < 0)
+      error->all(FLERR,"Could not find compute coord/atom compute ID");
+    if (strcmp(modify->compute[iorientorder]->style,"orientorder/atom") != 0)
+      error->all(FLERR,"Compute coord/atom compute ID does not compute orientorder/atom");
 
-      int iorientorder = modify->find_compute(id_orientorder);
-      if (iorientorder < 0)
-        error->all(FLERR,"Could not find compute coord/atom compute ID");
-      if (strcmp(modify->compute[iorientorder]->style,"orientorder/atom") != 0)
-        error->all(FLERR,"Compute coord/atom compute ID does not compute orientorder/atom");
+    threshold = force->numeric(FLERR,arg[5]);
+    if (threshold <= -1.0 || threshold >= 1.0)
+      error->all(FLERR,"Compute coord/atom threshold value must lie between -1 and 1");
 
-      threshold = force->numeric(FLERR,arg[5]);
-      if (threshold <= -1.0 || threshold >= 1.0)
-        error->all(FLERR,"Compute coord/atom threshold value must lie between -1 and 1");
+    ncol = 1;
+    typelo = new int[ncol];
+    typehi = new int[ncol];
+    typelo[0] = 1;
+    typehi[0] = atom->ntypes;
 
-      ncol = 1;
-      typelo = new int[ncol];
-      typehi = new int[ncol];
-      typelo[0] = 1;
-      typehi[0] = atom->ntypes;
-
-    } else error->all(FLERR,"Invalid cstyle in compute coord/atom");
+  } else error->all(FLERR,"Invalid cstyle in compute coord/atom");
 
   peratom_flag = 1;
   if (ncol == 1) size_peratom_cols = 0;
@@ -112,21 +110,23 @@ ComputeCoordAtom::~ComputeCoordAtom()
   delete [] typehi;
   memory->destroy(cvec);
   memory->destroy(carray);
+  delete [] id_orientorder;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeCoordAtom::init()
 {
-  if (strcmp(cstyle,"orientorder") == 0) {
+  if (cstyle == ORIENT) {
     int iorientorder = modify->find_compute(id_orientorder);
     c_orientorder = (ComputeOrientOrderAtom*)(modify->compute[iorientorder]);
     cutsq = c_orientorder->cutsq;
     l = c_orientorder->qlcomp;
-  //  communicate real and imaginary 2*l+1 components of the normalized vector
+    //  communicate real and imaginary 2*l+1 components of the normalized vector
     comm_forward = 2*(2*l+1);
     if (c_orientorder->iqlcomp < 0)
-      error->all(FLERR,"Compute coord/atom requires components option in compute orientorder/atom be defined");
+      error->all(FLERR,"Compute coord/atom requires components "
+                 "option in compute orientorder/atom be defined");
   }
 
   if (force->pair == NULL)
@@ -188,7 +188,7 @@ void ComputeCoordAtom::compute_peratom()
     }
   }
 
-  if (strcmp(cstyle,"orientorder") == 0) {
+  if (cstyle == ORIENT) {
     if (!(c_orientorder->invoked_flag & INVOKED_PERATOM)) {
       c_orientorder->compute_peratom();
       c_orientorder->invoked_flag |= INVOKED_PERATOM;
@@ -217,7 +217,7 @@ void ComputeCoordAtom::compute_peratom()
   int *type = atom->type;
   int *mask = atom->mask;
 
-  if (strcmp(cstyle,"cutoff") == 0) {
+  if (cstyle == CUTOFF) {
 
     if (ncol == 1) {
 
@@ -241,7 +241,7 @@ void ComputeCoordAtom::compute_peratom()
             delz = ztmp - x[j][2];
             rsq = delx*delx + dely*dely + delz*delz;
             if (rsq < cutsq && jtype >= typelo[0] && jtype <= typehi[0])
-	      n++;
+              n++;
           }
 
           cvec[i] = n;
@@ -281,37 +281,36 @@ void ComputeCoordAtom::compute_peratom()
       }
     }
 
-  } else if (strcmp(cstyle,"orientorder") == 0) {
+  } else if (cstyle == ORIENT) {
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    if (mask[i] & groupbit) {
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-      
-      n = 0;
-      for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
-	j &= NEIGHMASK;
-	
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq < cutsq) {
-	  double dot_product = 0.0;
-	  for (int m=0; m < 2*(2*l+1); m++) {
-	    dot_product += normv[i][nqlist+m]*normv[j][nqlist+m];
-	  }
-	  if (dot_product > threshold) n++;
-	}
-      }
-      cvec[i] = n;
-    } else cvec[i] = 0.0;
-  }
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
+      if (mask[i] & groupbit) {
+        xtmp = x[i][0];
+        ytmp = x[i][1];
+        ztmp = x[i][2];
+        jlist = firstneigh[i];
+        jnum = numneigh[i];
+
+        n = 0;
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          j &= NEIGHMASK;
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq < cutsq) {
+            double dot_product = 0.0;
+            for (int m=0; m < 2*(2*l+1); m++) {
+              dot_product += normv[i][nqlist+m]*normv[j][nqlist+m];
+            }
+            if (dot_product > threshold) n++;
+          }
+        }
+        cvec[i] = n;
+      } else cvec[i] = 0.0;
+    }
   }
 }
 

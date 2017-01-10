@@ -54,6 +54,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
   nnn = 12;
   cutsq = 0.0;
+  qlcompflag = 0;
 
   // specify which orders to request
  
@@ -96,6 +97,20 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 	if (qlist[iw] > qmax) qmax = qlist[iw];
       }
       iarg += nqlist;
+      if (strcmp(arg[iarg],"components") == 0) {
+	qlcompflag = 1;
+        if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+        qlcomp = force->numeric(FLERR,arg[iarg+1]);
+        if (qlcomp <= 0) error->all(FLERR,"Illegal compute orientorder/atom command");
+	iqlcomp = -1;
+        for (int iw = 0; iw < nqlist; iw++)
+          if (qlcomp == qlist[iw]) {
+	    iqlcomp = iw;
+	    break;
+	  }
+        if (iqlcomp < 0) error->all(FLERR,"Illegal compute orientorder/atom command");
+        iarg += 2;
+      }
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
       double cutoff = force->numeric(FLERR,arg[iarg+1]);
@@ -105,7 +120,9 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else error->all(FLERR,"Illegal compute orientorder/atom command");
   }
 
-  ncol = nqlist;
+  if (qlcompflag) ncol = nqlist + 2*(2*qlcomp+1);
+  else ncol = nqlist;
+
   peratom_flag = 1;
   size_peratom_cols = ncol;
 
@@ -434,6 +451,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   }
 
   double fac = sqrt(MY_4PI) / ncount;
+  double normfac = 0.0;
   for (int iw = 0; iw < nqlist; iw++) {
     int n = qlist[iw];
     double qm_sum = 0.0;
@@ -443,6 +461,18 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       //	     qnm_r[iw][m]*qnm_r[iw][m] + qnm_i[iw][m]*qnm_i[iw][m]);
     }
     qn[iw] = fac * sqrt(qm_sum / (2*n+1));
+    if (qlcompflag && iqlcomp == iw) normfac = 1.0/sqrt(qm_sum);
+
+  }
+  
+  // output of the complex vector
+  
+  if (qlcompflag) {
+    int j = nqlist;
+    for(int m = 0; m < 2*qlcomp+1; m++) {
+      qn[j++] = qnm_r[iqlcomp][m] * normfac;
+      qn[j++] = qnm_i[iqlcomp][m] * normfac;
+    }
   }
 }
 

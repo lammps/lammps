@@ -32,6 +32,10 @@ class ComputeOrientOrderAtom : public Compute {
   void init_list(int, class NeighList *);
   void compute_peratom();
   double memory_usage();
+  double cutsq;
+  int iqlcomp, qlcomp, qlcompflag;
+  int *qlist;
+  int nqlist;
 
  private:
   int nmax,maxneigh,ncol,nnn;
@@ -39,11 +43,8 @@ class ComputeOrientOrderAtom : public Compute {
   double *distsq;
   int *nearest;
   double **rlist;
-  int *qlist;
-  int nqlist;
   int qmax;
   double **qnarray;
-  double cutsq;
   double **qnm_r;
   double **qnm_i;
 

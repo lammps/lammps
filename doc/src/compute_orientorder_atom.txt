@@ -15,17 +15,19 @@ compute ID group-ID orientorder/atom keyword values ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 orientorder/atom = style name of this compute command :l
 one or more keyword/value pairs may be appended :l
-keyword = {cutoff} or {nnn} or {degrees}
+keyword = {cutoff} or {nnn} or {degrees} or {components}
   {cutoff} value = distance cutoff
   {nnn} value = number of nearest neighbors
-  {degrees} values = nlvalues, l1, l2,...  :pre
+  {degrees} values = nlvalues, l1, l2,...
+  {components} value = l  :pre
 
 :ule
 
 [Examples:]
 
 compute 1 all orientorder/atom
-compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5 :pre
+compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5
+compute 1 all orientorder/atom degrees 4 6 components 6 nnn NULL cutoff 3.0 :pre
 
 [Description:]
 
@@ -71,6 +73,13 @@ The numerical values of all order parameters up to {Q}12
 for a range of commonly encountered high-symmetry structures are given
 in Table I of "Mickel et al."_#Mickel.
 
+The optional keyword {components} will output the components of
+the normalized complex vector {Ybar_lm} of degree {l}, which must be
+explicitly included in the keyword {degrees}. This option can be used
+in conjunction with "compute coord_atom"_compute_coord_atom.html to
+calculate the ten Wolde's criterion to identify crystal-like particles
+(see "ten Wolde et al."_#tenWolde96).
+
 The value of {Ql} is set to zero for atoms not in the
 specified compute group, as well as for atoms that have less than
 {nnn} neighbors within the distance cutoff.
@@ -98,6 +107,12 @@ the neighbor list.
 This compute calculates a per-atom array with {nlvalues} columns, giving the
 {Ql} values for each atom, which are real numbers on the range 0 <= {Ql} <= 1.
 
+If the keyword {components} is set, then the real and imaginary parts of each
+component of (normalized) {Ybar_lm} will be added to the output array in the
+following order:
+Re({Ybar_-m}) Im({Ybar_-m}) Re({Ybar_-m+1}) Im({Ybar_-m+1}) ... Re({Ybar_m}) Im({Ybar_m}).
+This way, the per-atom array will have a total of {nlvalues}+2*(2{l}+1) columns.
+
 These values can be accessed by any command that uses
 per-atom values from a compute as input.  See "Section
 6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
@@ -117,5 +132,9 @@ The option defaults are {cutoff} = pair style cutoff, {nnn} = 12, {degrees} = 5 
 
 :link(Steinhardt)
 [(Steinhardt)] P. Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983).
+
 :link(Mickel)
 [(Mickel)] W. Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke, J. Chem. Phys. 138, 044501 (2013).
+
+:link(tenWolde96)
+[(tenWolde)] P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel, J. Chem. Phys. 104, 9932 (1996).

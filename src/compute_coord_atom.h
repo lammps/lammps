@@ -31,6 +31,8 @@ class ComputeCoordAtom : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_peratom();
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   double memory_usage();
 
  private:
@@ -41,6 +43,12 @@ class ComputeCoordAtom : public Compute {
   int *typelo,*typehi;
   double *cvec;
   double **carray;
+
+  class ComputeOrientOrderAtom *c_orientorder;
+  char *cstyle,*id_orientorder;
+  double threshold;
+  double **normv;
+  int nqlist,l;
 };
 
 }

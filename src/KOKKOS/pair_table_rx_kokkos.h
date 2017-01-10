@@ -50,9 +50,6 @@ class PairTableRXKokkos : public PairTable {
 
   void init_style();
 
-
- protected:
-
   struct TableDeviceConst {
     typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
     typename ArrayTypes<DeviceType>::t_int_2d tabindex;
@@ -97,7 +94,6 @@ class PairTableRXKokkos : public PairTable {
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
- protected:
   int nlocal,nall,eflag,vflag,neighflag,newton_pair;
 
   int update_table;
@@ -163,6 +159,7 @@ class PairTableRXKokkos : public PairTable {
     KOKKOS_INLINE_FUNCTION
     void operator()(const int, value_type&) const;
   };
+
 };
 
 }

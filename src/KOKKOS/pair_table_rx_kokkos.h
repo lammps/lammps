@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(table/rx/kk,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/rx/kk/device,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/rx/kk/host,PairTableKokkos<LMPHostType>)
+PairStyle(table/rx/kk,PairTableRXKokkos<LMPDeviceType>)
+PairStyle(table/rx/kk/device,PairTableRXKokkos<LMPDeviceType>)
+PairStyle(table/rx/kk/host,PairTableRXKokkos<LMPHostType>)
 
 #else
 

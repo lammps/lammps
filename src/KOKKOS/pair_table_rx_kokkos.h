@@ -92,6 +92,8 @@ class PairTableRXKokkos : public PairTable {
   typename ArrayTypes<DeviceType>::t_x_array_const c_x;
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+  typename ArrayTypes<DeviceType>::t_efloat_1d uCG;
+  typename ArrayTypes<DeviceType>::t_efloat_1d uCGnew;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 

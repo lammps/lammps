@@ -53,8 +53,9 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
   update_table = 0;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DVECTOR_MASK;
-  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK |
+                  DVECTOR_MASK | UCG_MASK | UCGNEW_MASK;
+  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK;
   h_table = new TableHost();
   d_table = new TableDevice();
   fractionalWeighting = true;
@@ -94,7 +95,7 @@ template<class DeviceType>
 template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
 PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::Functor(
     PairTableRXKokkos* c_ptr, NeighListKokkos<device_type>* list_ptr):
-  c(*c_ptr),f(c.f),list(*list_ptr)
+  c(*c_ptr),f(c.f),uCG(c.uCG),uCGnew(c.uCGnew),list(*list_ptr)
 {}
 
 template<class DeviceType>
@@ -301,6 +302,8 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   x = c_x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
+  uCG = atomKK->k_uCG.view<DeviceType>();
+  uCGnew = atomKK->k_uCGnew.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   special_lj[0] = force->special_lj[0];

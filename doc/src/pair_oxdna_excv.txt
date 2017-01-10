@@ -50,7 +50,7 @@ NOTE: These pair styles have to be used together with the related oxDNA bond sty
 "bond_style oxdna_fene"_bond_oxdna_fene.html). The coefficients
 in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
 
-Example input and data files can be found in /examples/USER/cgdna/duplex1/ and /duplex2.
+Example input and data files can be found in /examples/USER/cgdna/examples/duplex1/ and /duplex2/.
 A simple python setup tool which creates single straight or helical DNA strands, 
 DNA duplexes or arrays of DNA duplexes can be found in /examples/USER/cgdna/util/.
 A technical report with more information on the model, the structure of the input file,

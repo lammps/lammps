@@ -35,6 +35,10 @@ in a NVE ensemble prior to using the Langevin-type DOTC-integrator
 The command is equivalent to the "fix nve"_fix_nve.html.
 The particles are always considered to have a finite size.
 
+An example input file can be found in /examples/USER/cgdna/examples/duplex1/.
+A technical report with more information on this integrator can be found in
+/examples/USER/cgdna/doc/.
+
 :line
 
 [Restrictions:]

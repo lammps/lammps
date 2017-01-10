@@ -1,4 +1,4 @@
-variable number	equal 2
+variable number	equal 8
 variable ofreq	equal 1000
 variable efreq	equal 1000
 
@@ -8,7 +8,7 @@ dimension 3
 
 newton off
 
-processors 2 2 2
+processors 1 1 1
 
 boundary  p p p
 
@@ -52,12 +52,12 @@ timestep 1e-5
 #compute mychunk all vcm/chunk mol
 #fix 4 all ave/time 10000 1 10000 c_mychunk[1] c_mychunk[2] c_mychunk[3] file vcm.txt mode vector
 
-dump pos all xyz ${ofreq} traj.${number}.xyz
+#dump pos all xyz ${ofreq} traj.${number}.xyz
 
-compute quat all property/atom quatw quati quatj quatk
-dump quat all custom ${ofreq} quat.${number}.txt id c_quat[1] c_quat[2] c_quat[3] c_quat[4]
-dump_modify quat sort id
-dump_modify quat format line "%d  %13.6le  %13.6le  %13.6le  %13.6le"
+#compute quat all property/atom quatw quati quatj quatk
+#dump quat all custom ${ofreq} quat.${number}.txt id c_quat[1] c_quat[2] c_quat[3] c_quat[4]
+#dump_modify quat sort id
+#dump_modify quat format line "%d  %13.6le  %13.6le  %13.6le  %13.6le"
 
 compute erot all erotate/asphere
 compute ekin all ke

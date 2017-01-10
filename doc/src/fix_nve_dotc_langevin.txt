@@ -15,7 +15,6 @@ fix ID group-ID nve/dotc/langevin Tstart Tstop damp seed keyword value :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 nve/dotc/langevin = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
-Tstart and Tstop have to be constant and equal :l
 damp = damping parameter (time units) :l
 seed = random number seed to use for white noise (positive integer) :l
 keyword = {angmom} :l
@@ -45,6 +44,9 @@ the "fix nve"_fix_nve.html and the "fix langevin"_fix_langevin.html in
 one single command. The main feature is improved stability 
 over the standard integrator, permitting slightly larger timestep sizes.
 
+NOTE: Unlike the "fix langevin"_fix_langevin.html this command performs
+also time integration of the translational and quaternion degrees of freedom.
+
 The total force on each atom will have the form:
 
 F = Fc + Ff + Fr
@@ -73,11 +75,10 @@ the direction and magnitude of this force as described in
 "(Dunweg)"_#Dunweg, where a uniform random number is used (instead of
 a Gaussian random number) for speed.
 
-NOTE: Unlike the "fix langevin"_fix_langevin.html this command performs
-also time integration of the translational and quaternion degrees of freedom.
+:line
 
-At the moment the desired temperature at each timestep has to be a constant value 
-during the run. Therefore {Tstart} has to be equal to {Tstop}.
+{Tstart} and {Tstop} have to be constant values, i.e. they cannot 
+be variables.
 
 The {damp} parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 0.03
@@ -95,8 +96,6 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors.
 
-:line
-
 The keyword/value option has to be used in the following way:
 
 This fix has to be used together with the {angmom} keyword. The 
@@ -107,8 +106,9 @@ freedom in addition to the usual translational degrees of freedom.
 The scale factor after the {angmom} keyword gives the ratio of the rotational to 
 the translational friction coefficient.
 
-Example input and data files can be found in /examples/USER/cgdna/duplex1/ and /duplex2.
-A technical report with more information on this integrator can be found in /examples/USER/cgdna/doc/.
+An example input file can be found in /examples/USER/cgdna/examples/duplex2/.
+A technical report with more information on this integrator can be found in 
+/examples/USER/cgdna/doc/.
 
 :line
 

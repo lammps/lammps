@@ -2,7 +2,7 @@ This directory contains example data and input files
 and utility scripts for the oxDNA coarse-grained model 
 for DNA.
 
-duplex1:
+/examples/duplex1:
 Input, data and log files for a DNA duplex (double-stranded DNA) 
 consisiting of 5 base pairs. The duplex contains two strands with 
 complementary base pairs. The topology is
@@ -11,7 +11,7 @@ A - A - A - A - A
 |   |   |   |   |
 T - T - T - T - T     
 
-duplex2:
+/examples/duplex2:
 Input, data and log files for a nicked DNA duplex (double-stranded DNA) 
 consisiting of 8 base pairs. The duplex contains strands with 
 complementary base pairs, but the backbone on one side is not continuous: 
@@ -22,12 +22,12 @@ A - A - A - A - A - A - A - A
 |   |   |   |   |   |   |   |
 T - T - T   T - T - T - T - T
 
-util:
+/util:
 This directory contains a simple python setup tool which creates 
 single straight or helical DNA strands, DNA duplexes or arrays of DNA 
 duplexes.
 
-doc:
+/doc:
 This directory contains a technical report, which provides more information
 about the model, the structure of the input and data files, the parallel 
 performance of oxDNA and the syntax of the setup tools.

@@ -52,11 +52,12 @@ class FixNVEDotcLangevin : public FixNVE {
  protected:
   int seed;
   class AtomVecEllipsoid *avec;
-  double t_start,t_stop,t_period,tsqrt;
+  double t_start,t_stop,t_period,t_target,tsqrt;
   double gamma,Gamma,ascale;
   double M,gfactor1,gfactor2;
   double gfactor3[3],gfactor4[3],gfactor5[3];
   class RanMars *random;
+  void compute_target();
 };
 
 }

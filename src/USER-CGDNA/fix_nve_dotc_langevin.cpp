@@ -43,10 +43,13 @@ FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 9) error->all(FLERR,"Illegal fix nve/dotc/langevin command");
 
   t_start = force->numeric(FLERR,arg[3]);
+  t_target = t_start;
   t_stop = force->numeric(FLERR,arg[4]);
   t_period = force->numeric(FLERR,arg[5]);
+  if (t_period <= 0.0) error->all(FLERR,"Fix nve/dotc/langevin period must be > 0.0");
   gamma = 1.0/t_period;
   seed = force->inumeric(FLERR,arg[6]);
+  if (seed <= 0) error->all(FLERR,"Illegal fix nve/dotc/langevin command");
 
   if (strcmp(arg[7],"angmom") == 0) {
     if (9 > narg) error->all(FLERR,"Illegal fix nve/dotc/langevin command");
@@ -100,12 +103,27 @@ void FixNVEDotcLangevin::init()
   // set prefactor
   gfactor1 = exp(-gamma*update->dt);
 
-  // set square root of constant temperature 
-  // no temperature gradients for the moment
-  tsqrt = sqrt(t_start);
+  // set square root of temperature 
+  compute_target();
 
   FixNVE::init();
 }
+
+/* ----------------------------------------------------------------------
+   set current t_target and t_sqrt
+------------------------------------------------------------------------- */
+
+void FixNVEDotcLangevin::compute_target()
+{
+  double delta = update->ntimestep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
+
+  // Only homogeneous temperature supported
+  t_target = t_start + delta * (t_stop-t_start);
+  tsqrt = sqrt(t_target);
+
+}
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -133,6 +151,9 @@ void FixNVEDotcLangevin::initial_integrate(int vflag)
   dt = update->dt;
   dthlf = 0.5 * dt;
   dtqrt = 0.25 * dt;
+
+  // set square root of temperature 
+  compute_target();
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

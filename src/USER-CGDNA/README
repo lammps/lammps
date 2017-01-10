@@ -17,8 +17,8 @@ self-assembly, DPhil. University of Oxford (2011).
 gradient thermostats for rigid body dynamics", J. Chem. Phys. 142, 
 144114 (2015).
 
-An example input file and data files can be found in 
-/examples/USER/cgdna/input/.
+Example input and data files can be found in 
+/examples/USER/cgdna/examples/duplex1/ and /duplex2/.
 A simple python setup tool which creates single straight or helical DNA 
 strands as well as DNA duplexes and arrays of duplexes can be found in 
 /examples/USER/cgdna/util/.

@@ -1,3 +1,13 @@
+// -*- c++ -*-
+
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
+
 #include "colvardeps.h"
 
 
@@ -219,6 +229,9 @@ void colvardeps::init_cvb_requires() {
 
   f_description(f_cvb_history_dependent, "history-dependent");
 
+  f_description(f_cvb_scalar_variables, "require scalar variables");
+  f_req_children(f_cvb_scalar_variables, f_cv_scalar);
+
   // Initialize feature_states for each instance
   feature_states.reserve(f_cvb_ntot);
   for (i = 0; i < f_cvb_ntot; i++) {
@@ -229,6 +242,9 @@ void colvardeps::init_cvb_requires() {
 
   // some biases are not history-dependent
   feature_states[f_cvb_history_dependent]->available = false;
+
+  // by default, biases should work with vector variables, too
+  feature_states[f_cvb_scalar_variables]->available = false;
 }
 
 
@@ -321,6 +337,7 @@ void colvardeps::init_cv_requires() {
     // The features below are set programmatically
     f_description(f_cv_scripted, "scripted");
     f_description(f_cv_periodic, "periodic");
+    f_req_self(f_cv_periodic, f_cv_homogeneous);
     f_description(f_cv_scalar, "scalar");
     f_description(f_cv_linear, "linear");
     f_description(f_cv_homogeneous, "homogeneous");
@@ -407,6 +424,11 @@ void colvardeps::init_cvc_requires() {
   // Each cvc specifies what other features are available
   feature_states[f_cvc_active]->available = true;
   feature_states[f_cvc_gradient]->available = true;
+
+  // Features that are implemented by default if their requirements are
+  feature_states[f_cvc_one_site_total_force]->available = true;
+
+  // Features That are implemented only for certain simulation engine configurations
   feature_states[f_cvc_scalable_com]->available = (cvm::proxy->scalable_group_coms() == COLVARS_OK);
   feature_states[f_cvc_scalable]->available = feature_states[f_cvc_scalable_com]->available;
 }

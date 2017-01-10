@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -119,6 +126,7 @@ colvar::alpha_angles::alpha_angles()
   x.type(colvarvalue::type_scalar);
 }
 
+
 colvar::alpha_angles::~alpha_angles()
 {
   while (theta.size() != 0) {
@@ -130,6 +138,7 @@ colvar::alpha_angles::~alpha_angles()
     hb.pop_back();
   }
 }
+
 
 void colvar::alpha_angles::calc_value()
 {
@@ -220,6 +229,10 @@ void colvar::alpha_angles::apply_force(colvarvalue const &force)
     }
   }
 }
+
+
+simple_scalar_dist_functions(alpha_angles)
+
 
 
 //////////////////////////////////////////////////////////////////////
@@ -337,14 +350,22 @@ colvar::dihedPC::dihedPC(std::string const &conf)
   for (size_t i = 0; i < residues.size()-1; i++) {
     // Psi
     theta.push_back(new colvar::dihedral(cvm::atom(r[i  ], "N", sid),
-                                           cvm::atom(r[i  ], "CA", sid),
-                                           cvm::atom(r[i  ], "C", sid),
-                                           cvm::atom(r[i+1], "N", sid)));
+                                         cvm::atom(r[i  ], "CA", sid),
+                                         cvm::atom(r[i  ], "C", sid),
+                                         cvm::atom(r[i+1], "N", sid)));
+    atom_groups.push_back(theta.back()->atom_groups[0]);
+    atom_groups.push_back(theta.back()->atom_groups[1]);
+    atom_groups.push_back(theta.back()->atom_groups[2]);
+    atom_groups.push_back(theta.back()->atom_groups[3]);
     // Phi (next res)
     theta.push_back(new colvar::dihedral(cvm::atom(r[i  ], "C", sid),
-                                           cvm::atom(r[i+1], "N", sid),
-                                           cvm::atom(r[i+1], "CA", sid),
-                                           cvm::atom(r[i+1], "C", sid)));
+                                         cvm::atom(r[i+1], "N", sid),
+                                         cvm::atom(r[i+1], "CA", sid),
+                                         cvm::atom(r[i+1], "C", sid)));
+    atom_groups.push_back(theta.back()->atom_groups[0]);
+    atom_groups.push_back(theta.back()->atom_groups[1]);
+    atom_groups.push_back(theta.back()->atom_groups[2]);
+    atom_groups.push_back(theta.back()->atom_groups[3]);
   }
 
   if (cvm::debug())
@@ -400,3 +421,6 @@ void colvar::dihedPC::apply_force(colvarvalue const &force)
                            coeffs[2*i+1] * dsindt) * force);
   }
 }
+
+
+simple_scalar_dist_functions(dihedPC)

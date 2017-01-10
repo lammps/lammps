@@ -191,7 +191,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ters***,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um paramskk;
-  // hardwired to space for 15 atom types
+  // hardwired to space for 12 atom types
   //params_ters m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   int inum; 
@@ -238,6 +238,10 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 E: Pair tersoff/zbl/kk requires metal or real units
 
 This is a current restriction of this pair potential.
+
+E: Cannot (yet) use full neighbor list style with tersoff/zbl/kk
+
+Self-explanatory.
 
 E: Cannot use chosen neighbor list style with tersoff/zbl/kk
 

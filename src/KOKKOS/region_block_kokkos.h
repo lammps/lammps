@@ -52,7 +52,7 @@ class RegBlockKokkos : public RegBlock {
   typename AT::t_int_1d_randomread mask;
 
   KOKKOS_INLINE_FUNCTION
-  int inside(double, double, double) const;
+  int k_inside(double, double, double) const;
   KOKKOS_INLINE_FUNCTION
   int match(double, double, double) const;
   KOKKOS_INLINE_FUNCTION

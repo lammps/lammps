@@ -6,15 +6,16 @@
 # PROGRESS: https://github.com/losalamos/qmd-progress
 # METIS: http://glaros.dtc.umn.edu/gkhome/metis/metis/download 
 
-latte_PATH = ${HOME}/exaalt/LATTE_dev
+latte_PATH = ${HOME}/latte_dev
 progress_PATH = ${HOME}/qmd-progress
 bml_PATH = ${HOME}/bml
 metis_PATH = ${HOME}/Programs/metis-5.1.0
 
 latte_SYSINC  = -I${latte_PATH}/src -I${bml_PATH}/install/include -I${progress_PATH}/install/include
-latte_SYSLIB  = -fopenmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte.a -lgfortran \
-								-lm -Wl,--no-as-needed -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64 -lmkl_gf_lp64 \
-								-lmkl_gnu_thread -lmkl_core -lmkl_gnu_thread -lmkl_core -ldl -lpthread -lm 
+
+#latte_SYSLIB  = -fopenmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte.a -lgfortran \
+#								-lm -Wl,--no-as-needed -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64 -lmkl_gf_lp64 \
+#								-lmkl_gnu_thread -lmkl_core -lmkl_gnu_thread -lmkl_core -ldl -lpthread -lm 
 
 latte_SYSLIB  = -fopenmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte.a -lgfortran \
 								-llapack -lblas 

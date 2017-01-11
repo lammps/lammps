@@ -40,9 +40,9 @@ class PairTable : public Pair {
   virtual double single(int, int, int, int, double, double, double, double &);
   void *extract(const char *, int &);
 
- protected:
   enum{LOOKUP,LINEAR,SPLINE,BITMAP};
 
+ protected:
   int tabstyle,tablength;
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;

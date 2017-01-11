@@ -100,10 +100,6 @@ class PairTableRXKokkos : public PairTable {
 
   template<bool STACKPARAMS, int TABSTYLE>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
-
-  template<bool STACKPARAMS, int TABSTYLE>
-  KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);

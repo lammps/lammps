@@ -198,6 +198,40 @@ KOKKOS_INLINE_FUNCTION static int sbmask(const int& j) const
   return j >> SBBITS & 3;
 }
 
+template <class DeviceType, int TABSTYLE>
+KOKKOS_INLINE_FUNCTION
+static F_FLOAT
+compute_fpair(F_FLOAT rsq,
+              int itype, int jtype,
+              PairTableRXKokkos<DeviceType>::TableDeviceConst d_table_const,
+              ) {
+  union_int_float_t rsq_lookup;
+  double fpair;
+  const int tidx = d_table_const.tabindex(itype,jtype);
+  if (TABSTYLE == LOOKUP) {
+    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    fpair = d_table_const.f(tidx,itable);
+  } else if (TABSTYLE == LINEAR) {
+    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
+  } else if (TABSTYLE == SPLINE) {
+    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const double a = 1.0 - b;
+    fpair = a * d_table_const.f(tidx,itable) + b * d_table_const.f(tidx,itable+1) +
+      ((a*a*a-a)*d_table_const.f2(tidx,itable) + (b*b*b-b)*d_table_const.f2(tidx,itable+1)) *
+      d_table_const.deltasq6(tidx);
+  } else {
+    rsq_lookup.f = rsq;
+    int itable = rsq_lookup.i & d_table_const.nmask(tidx);
+    itable >>= d_table_const.nshiftbits(tidx);
+    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
+    fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
+  }
+  return fpair;
+}
+
 template <class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE,
           int EVFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
@@ -222,6 +256,8 @@ static EV_FLOAT compute_item(int ii,
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG;
     Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
+    int isite1, int isite2,
+    PairTableRXKokkos<DeviceType>::TableDeviceConst d_table_const,
     ) {
   EV_FLOAT ev;
   auto i = d_ilist(ii);
@@ -260,8 +296,12 @@ static EV_FLOAT compute_item(int ii,
       auto mixWtSite1_j = mixWtSite1_(j);
       auto mixWtSite2_j = mixWtSite2_(j);
 
-      auto fpair = factor_lj * compute_fpair<STACKPARAMS,TABSTYLE>(
-          rsq,i,j,itype,jtype);
+      auto fpair = factor_lj * compute_fpair<DeviceType,TABSTYLE>(
+          rsq,itype,jtype,d_table_const);
+
+      if (isite1 == isite2) fpair *= sqrt(mixWtSite1old_i * mixWtSite2old_j);
+      else fpair *= (sqrt(mixWtSite1old_i * mixWtSite2old_j) +
+                     sqrt(mixWtSite2old_i * mixWtSite1old_j));
 
       fx_i += delx*fpair;
       fy_i += dely*fpair;
@@ -279,7 +319,7 @@ static EV_FLOAT compute_item(int ii,
           rsq,i,j,itype,jtype);
 
       double evdwlOld;
-      if (c.isite1 == c.isite2) {
+      if (isite1 == isite2) {
         evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwl;
         evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwl;
       } else {
@@ -548,41 +588,6 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
-}
-
-template<class DeviceType>
-template<bool STACKPARAMS, int TABSTYLE>
-KOKKOS_INLINE_FUNCTION
-F_FLOAT PairTableRXKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  union_int_float_t rsq_lookup;
-  double fpair;
-  const int tidx = d_table_const.tabindex(itype,jtype);
-  if (TABSTYLE == LOOKUP) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    fpair = d_table_const.f(tidx,itable);
-  } else if (TABSTYLE == LINEAR) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
-    fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
-  } else if (TABSTYLE == SPLINE) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
-    const double a = 1.0 - b;
-    fpair = a * d_table_const.f(tidx,itable) + b * d_table_const.f(tidx,itable+1) +
-      ((a*a*a-a)*d_table_const.f2(tidx,itable) + (b*b*b-b)*d_table_const.f2(tidx,itable+1)) *
-      d_table_const.deltasq6(tidx);
-  } else {
-    rsq_lookup.f = rsq;
-    int itable = rsq_lookup.i & d_table_const.nmask(tidx);
-    itable >>= d_table_const.nshiftbits(tidx);
-    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
-    fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
-  }
-  if (isite1 == isite2) fpair *= sqrt(mixWtSite1old_(i) * mixWtSite2old_(j));
-  else fpair *= (sqrt(mixWtSite1old_(i) * mixWtSite2old_(j)) +
-                 sqrt(mixWtSite2old_(i) * mixWtSite1old_(j)));
-  return fpair;
 }
 
 template<class DeviceType>

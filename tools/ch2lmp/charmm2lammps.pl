@@ -43,10 +43,10 @@
 #    General    Many thanks to Paul S. Crozier for checking script validity
 #               against his projects.
 #               Also thanks to Xiaohu Hu (hux2@ornl.gov) and Robert A. Latour
-#                 (latourr@clemson.edu), David Hyde-Volpe, and Tigran Abramyan,
-#                 Clemson University and Chris Lorenz (chris.lorenz@kcl.ac.uk),
-#                 King's College London for their efforts to add CMAP sections,
-#                 which is implemented using the option flag "-cmap".
+#               (latourr@clemson.edu), David Hyde-Volpe, and Tigran Abramyan,
+#               Clemson University and Chris Lorenz (chris.lorenz@kcl.ac.uk),
+#               King's College London for their efforts to add CMAP sections,
+#               which is implemented using the option flag "-cmap".
 
 # Initialization
 

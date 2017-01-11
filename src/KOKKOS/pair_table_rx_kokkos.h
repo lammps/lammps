@@ -85,10 +85,8 @@ class PairTableRXKokkos : public PairTable {
   virtual void allocate();
   void compute_table(Table *);
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array_const c_x;
   typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_efloat_1d uCG;
   typename ArrayTypes<DeviceType>::t_efloat_1d uCGnew;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
@@ -116,11 +114,6 @@ class PairTableRXKokkos : public PairTable {
   char *site1, *site2;
   int isite1, isite2;
   bool fractionalWeighting;
-
-  template <class ExecDevice>
-  KOKKOS_INLINE_FUNCTION
-  void getMixingWeights(typename ArrayTypes<ExecDevice>::t_float_2d_randomread,
-      int, double &, double &, double &, double &);
 
   Kokkos::View<double*, DeviceType> mixWtSite1old_;
   Kokkos::View<double*, DeviceType> mixWtSite2old_;

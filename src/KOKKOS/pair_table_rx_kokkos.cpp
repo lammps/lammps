@@ -31,6 +31,7 @@
 #include "error.h"
 #include "atom_masks.h"
 #include "fix.h"
+#include "kokkos_few.h"
 #include <cassert>
 
 using namespace LAMMPS_NS;
@@ -192,99 +193,165 @@ PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::~Functor
 //list.clean_copy();
 }
 
-template<class DeviceType>
-template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
-template<int EVFLAG, int NEWTON_PAIR>
+KOKKOS_INLINE_FUNCTION static int sbmask(const int& j) const
+{
+  return j >> SBBITS & 3;
+}
+
+template <class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE,
+          int EVFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-EV_FLOAT
-PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::
-compute_item(const int& ii) const {
+static EV_FLOAT compute_item(int ii,
+    typename ArrayTypes<DeviceType>::t_in_1d_const d_ilist,
+    typename ArrayTypes<Device>::t_neighbors_2d_const d_neighbors,
+    typename ArrayTypes<DeviceType>::t_in_1d_const d_numneigh,
+    typename ArrayTypes<DeviceType>::t_x_array_randomread x,
+    typename ArrayTypes<DeviceType>::t_int_1d_randomread type,
+    Kokkos::View<double*, DeviceType> mixWtSite1old,
+    Kokkos::View<double*, DeviceType> mixWtSite2old,
+    Kokkos::View<double*, DeviceType> mixWtSite1,
+    Kokkos::View<double*, DeviceType> mixWtSite2,
+    Few<int, 4> special_lj,
+    Few<Few<F_FLOAT, MAX_TYPES_STACKPARAMS+1>, MAX_TYPES_STACKPARAMS+1> m_cutsq,
+    typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq,
+    Kokkos::View<F_FLOAT*[3],
+      typename ArrayTypes<DeviceType>::t_f_array::array_layout,
+      DeviceType,
+      Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
+    Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
+                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG;
+    Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
+                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
+    ) {
   EV_FLOAT ev;
-//const int i = list.d_ilist[ii];
-//const X_FLOAT xtmp = c.x(i,0);
-//const X_FLOAT ytmp = c.x(i,1);
-//const X_FLOAT ztmp = c.x(i,2);
-//const int itype = c.type(i);
+  auto i = d_ilist(ii);
+  auto xtmp = x(i,0);
+  auto ytmp = x(i,1);
+  auto ztmp = x(i,2);
+  auto itype = type(i);
 
-//const AtomNeighborsConst jlist = list.get_neighbors_const(i);
-//const int jnum = list.d_numneigh[i];
+  auto jlist = NeighListKokkos<DeviceType>::static_neighbors_const(i,
+      d_neighbors, d_numneigh);
+  auto jnum = d_numneigh(i);
 
-//double uCG_i = 0.0;
-//double uCGnew_i = 0.0;
-//double fx_i = 0.0, fy_i = 0.0, fz_i = 0.0;
+  double uCG_i = 0.0;
+  double uCGnew_i = 0.0;
+  double fx_i = 0.0, fy_i = 0.0, fz_i = 0.0;
 
-//double mixWtSite1old_i = c.mixWtSite1old_(i);
-//double mixWtSite2old_i = c.mixWtSite2old_(i);
-//double mixWtSite1_i = c.mixWtSite1_(i);
-//double mixWtSite2_i = c.mixWtSite2_(i);
+  auto mixWtSite1old_i = mixWtSite1old(i);
+  auto mixWtSite2old_i = mixWtSite2old(i);
+  auto mixWtSite1_i = mixWtSite1(i);
+  auto mixWtSite2_i = mixWtSite2(i);
 
-//for (int jj = 0; jj < jnum; jj++) {
-//  int j = jlist(jj);
-//  const F_FLOAT factor_lj = c.special_lj[sbmask(j)];
-//  j &= NEIGHMASK;
+  for (int jj = 0; jj < jnum; jj++) {
+    auto j = jlist(jj);
+    const F_FLOAT factor_lj = special_lj[sbmask(j)];
+    j &= NEIGHMASK;
 
-//  const X_FLOAT delx = xtmp - c.x(j,0);
-//  const X_FLOAT dely = ytmp - c.x(j,1);
-//  const X_FLOAT delz = ztmp - c.x(j,2);
-//  const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-//  const int jtype = c.type(j);
+    auto delx = xtmp - x(j,0);
+    auto dely = ytmp - x(j,1);
+    auto delz = ztmp - x(j,2);
+    auto rsq = delx*delx + dely*dely + delz*delz;
+    auto jtype = type(j);
 
-//  if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
-//    double mixWtSite1old_j = c.mixWtSite1old_(j);
-//    double mixWtSite2old_j = c.mixWtSite2old_(j);
-//    double mixWtSite1_j = c.mixWtSite1_(j);
-//    double mixWtSite2_j = c.mixWtSite2_(j);
+    if(rsq < (STACKPARAMS ? m_cutsq[itype][jtype] : d_cutsq(itype,jtype))) {
+      auto mixWtSite1old_j = mixWtSite1old_(j);
+      auto mixWtSite2old_j = mixWtSite2old_(j);
+      auto mixWtSite1_j = mixWtSite1_(j);
+      auto mixWtSite2_j = mixWtSite2_(j);
 
-//    const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,TABSTYLE>(rsq,i,j,itype,jtype);
+      auto fpair = factor_lj * compute_fpair<STACKPARAMS,TABSTYLE>(
+          rsq,i,j,itype,jtype);
 
-//    fx_i += delx*fpair;
-//    fy_i += dely*fpair;
-//    fz_i += delz*fpair;
+      fx_i += delx*fpair;
+      fy_i += dely*fpair;
+      fz_i += delz*fpair;
 
-//    bool do_half = (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) &&
-//                   (NEWTON_PAIR || j < c.nlocal);
-//    if (do_half) {
-//      f(j,0) -= delx*fpair;
-//      f(j,1) -= dely*fpair;
-//      f(j,2) -= delz*fpair;
-//    }
+      auto do_half = (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) &&
+                     (NEWTON_PAIR || j < c.nlocal);
+      if (do_half) {
+        f(j,0) -= delx*fpair;
+        f(j,1) -= dely*fpair;
+        f(j,2) -= delz*fpair;
+      }
 
-//    auto evdwl = c.template compute_evdwl<STACKPARAMS,TABSTYLE>(rsq,i,j,itype,jtype);
+      auto evdwl = compute_evdwl<STACKPARAMS,TABSTYLE>(
+          rsq,i,j,itype,jtype);
 
-//    double evdwlOld;
-//    if (c.isite1 == c.isite2) {
-//      evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwl;
-//      evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwl;
-//    } else {
-//      evdwlOld = (sqrt(mixWtSite1old_i*mixWtSite2old_j) +
-//                  sqrt(mixWtSite2old_i*mixWtSite1old_j))*evdwl;
-//      evdwl = (sqrt(mixWtSite1_i*mixWtSite2_j) +
-//               sqrt(mixWtSite2_i*mixWtSite1_j))*evdwl;
-//    }
-//    evdwlOld *= factor_lj;
-//    evdwl *= factor_lj;
+      double evdwlOld;
+      if (c.isite1 == c.isite2) {
+        evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwl;
+        evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwl;
+      } else {
+        evdwlOld = (sqrt(mixWtSite1old_i*mixWtSite2old_j) +
+                    sqrt(mixWtSite2old_i*mixWtSite1old_j))*evdwl;
+        evdwl = (sqrt(mixWtSite1_i*mixWtSite2_j) +
+                 sqrt(mixWtSite2_i*mixWtSite1_j))*evdwl;
+      }
+      evdwlOld *= factor_lj;
+      evdwl *= factor_lj;
 
-//    uCG_i += 0.5*evdwlOld;
-//    if (do_half) uCG(j) += 0.5*evdwlOld;
+      uCG_i += 0.5*evdwlOld;
+      if (do_half) uCG(j) += 0.5*evdwlOld;
 
-//    uCGnew_i += 0.5*evdwl;
-//    if (do_half) uCGnew(j) += 0.5*evdwl;
-//    evdwl = evdwlOld;
+      uCGnew_i += 0.5*evdwl;
+      if (do_half) uCGnew(j) += 0.5*evdwl;
+      evdwl = evdwlOld;
 
-//    ev.evdwl += (do_half ? 1.0 : 0.5)*evdwl;
+      ev.evdwl += (do_half ? 1.0 : 0.5)*evdwl;
 
-//    if (EVFLAG) ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
-//  }
-//}
+      if (EVFLAG) {
+        ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
+      }
+    }
+  }
 
-//uCG(i) += uCG_i;
-//uCGnew(i) += uCGnew_i;
+  uCG(i) += uCG_i;
+  uCGnew(i) += uCGnew_i;
 
-//f(i,0) += fx_i;
-//f(i,1) += fy_i;
-//f(i,2) += fz_i;
+  f(i,0) += fx_i;
+  f(i,1) += fy_i;
+  f(i,2) += fz_i;
 
   return ev;
+}
+
+template<class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
+static void compute_all_items(
+    int eflag, int vflag,
+    int newton_pair,
+    EV_FLOAT& ev,
+    Kokkos::View<double*, DeviceType> mixWtSite1old,
+    Kokkos::View<double*, DeviceType> mixWtSite2old,
+    Kokkos::View<double*, DeviceType> mixWtSite1,
+    Kokkos::View<double*, DeviceType> mixWtSite2,
+    int inum,
+  if (eflag || vflag) {
+    Kokkos::parallel_reduce(inum,
+    LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
+      if (newton_pair) {
+        energy_virial +=
+          compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,1>(
+            );
+      } else {
+        energy_virial +=
+          compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,0>(
+            );
+        energy_virial += compute_item<1,0>(i);
+      }
+    }, ev);
+  } else {
+    Kokkos::parallel_for(inum,
+    LAMMPS_LAMBDA(int i) {
+      if (newton_pair) {
+        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,1>(
+          );
+      } else {
+        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,0>(
+          );
+      }
+    }, ev);
+  }
 }
 
 template<class DeviceType>

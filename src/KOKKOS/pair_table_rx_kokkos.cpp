@@ -410,7 +410,7 @@ compute_item(
         f(j,2) -= delz*fpair;
       }
 
-      auto evdwl = compute_evdwl<STACKPARAMS,TABSTYLE>(
+      auto evdwl = compute_evdwl<DeviceType,TABSTYLE>(
           rsq,itype,jtype,d_table_const);
 
       double evdwlOld;

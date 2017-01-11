@@ -31,6 +31,7 @@
 #include "error.h"
 #include "atom_masks.h"
 #include "fix.h"
+#include <cassert>
 
 using namespace LAMMPS_NS;
 
@@ -44,6 +45,92 @@ enum{NONE,RLINEAR,RSQ,BMP};
 
 #define OneFluidValue (-1)
 #define isOneFluid(_site_) ( (_site_) == OneFluidValue )
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void getMixingWeights(
+    typename ArrayTypes<DeviceType>::t_float_2d_randomread dvector,
+    int nspecies,
+    int isite1, int isite2,
+    bool fractionalWeighting,
+    int id,
+    double &mixWtSite1old, double &mixWtSite2old,
+    double &mixWtSite1, double &mixWtSite2) {
+  double fractionOFAold, fractionOFA;
+  double fractionOld1, fraction1;
+  double fractionOld2, fraction2;
+  double nMoleculesOFAold, nMoleculesOFA;
+  double nMoleculesOld1, nMolecules1;
+  double nMoleculesOld2, nMolecules2;
+  double nTotal, nTotalOld;
+
+  nTotal = 0.0;
+  nTotalOld = 0.0;
+  assert(id >= 0);
+  assert(id < dvector.dimension_1());
+  for (int ispecies = 0; ispecies < nspecies; ++ispecies){
+    assert(ispecies < dvector.dimension_0());
+    nTotal += dvector(ispecies,id);
+    assert(ispecies+nspecies < dvector.dimension_0());
+    nTotalOld += dvector(ispecies+nspecies,id);
+  }
+
+  assert(isite1 >= 0);
+  assert(isite1 < nspecies);
+  assert(isite2 >= 0);
+  assert(isite2 < nspecies);
+  if (isOneFluid(isite1) == false){
+    nMoleculesOld1 = dvector(isite1+nspecies,id);
+    nMolecules1 = dvector(isite1,id);
+    fractionOld1 = nMoleculesOld1/nTotalOld;
+    fraction1 = nMolecules1/nTotal;
+  }
+  if (isOneFluid(isite2) == false){
+    nMoleculesOld2 = dvector(isite2+nspecies,id);
+    nMolecules2 = dvector(isite2,id);
+    fractionOld2 = nMoleculesOld2/nTotalOld;
+    fraction2 = nMolecules2/nTotal;
+  }
+
+  if (isOneFluid(isite1) || isOneFluid(isite2)){
+    nMoleculesOFAold  = 0.0;
+    nMoleculesOFA  = 0.0;
+    fractionOFAold  = 0.0;
+    fractionOFA  = 0.0;
+
+    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+      if (isite1 == ispecies || isite2 == ispecies) continue;
+      nMoleculesOFAold += dvector(ispecies+nspecies,id);
+      nMoleculesOFA += dvector(ispecies,id);
+      fractionOFAold += dvector(ispecies+nspecies,id)/nTotalOld;
+      fractionOFA += dvector(ispecies,id)/nTotal;
+    }
+    if(isOneFluid(isite1)){
+      nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld1 = fractionOFAold;
+      fraction1 = fractionOFA;
+    }
+    if(isOneFluid(isite2)){
+      nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld2 = fractionOFAold;
+      fraction2 = fractionOFA;
+    }
+  }
+
+  if(fractionalWeighting){
+    mixWtSite1old = fractionOld1;
+    mixWtSite1 = fraction1;
+    mixWtSite2old = fractionOld2;
+    mixWtSite2 = fraction2;
+  } else {
+    mixWtSite1old = nMoleculesOld1;
+    mixWtSite1 = nMolecules1;
+    mixWtSite2old = nMoleculesOld2;
+    mixWtSite2 = nMolecules2;
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -281,6 +368,24 @@ operator()(const int i, value_type &energy_virial) const {
 }
 
 template<class DeviceType>
+static void getAllMixingWeights(
+    int ntotal,
+    typename ArrayTypes<DeviceType>::t_float_2d_randomread dvector,
+    int nspecies,
+    int isite1, int isite2,
+    bool fractionalWeighting,
+    Kokkos::View<double*, DeviceType> mixWtSite1old,
+    Kokkos::View<double*, DeviceType> mixWtSite2old,
+    Kokkos::View<double*, DeviceType> mixWtSite1,
+    Kokkos::View<double*, DeviceType> mixWtSite2) {
+  Kokkos::parallel_for(ntotal,
+  LAMMPS_LAMBDA(int i) {
+      getMixingWeights<DeviceType>(dvector,nspecies,isite1,isite2,fractionalWeighting,
+        i, mixWtSite1old(i), mixWtSite2old(i), mixWtSite1(i), mixWtSite2(i));
+  });
+}
+
+template<class DeviceType>
 template<int TABSTYLE>
 void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 {
@@ -320,12 +425,9 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   mixWtSite1_ = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1", ntotal);
   mixWtSite2_ = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2", ntotal);
 
-  typename DAT::t_float_2d_randomread d_dvector = atomKK->k_dvector.view<DeviceType>();
-
-//Kokkos::parallel_for(ntotal, LAMMPS_LAMBDA(int i) {
-//  getMixingWeights<DeviceType>(d_dvector, i, mixWtSite1old_(i), mixWtSite2old_(i),
-//      mixWtSite1_(i), mixWtSite2_(i));
-//});
+  getAllMixingWeights(ntotal, atomKK->k_dvector.template view<DeviceType>(),
+      nspecies, isite1, isite2, fractionalWeighting,
+      mixWtSite1old_, mixWtSite2old_, mixWtSite1_, mixWtSite2_);
 
   if (neighflag == N2) error->all(FLERR,"pair table/rx/kk can't handle N2 yet\n");
 
@@ -848,9 +950,13 @@ double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype,
   atomKK->k_dvector.template sync<LMPHostType>();
   typename ArrayTypes<LMPHostType>::t_float_2d_randomread h_dvector =
     atomKK->k_dvector.view<LMPHostType>();
-  getMixingWeights<LMPHostType>(h_dvector,i,mixWtSite1old_i,mixWtSite2old_i,
+  getMixingWeights<LMPHostType>(h_dvector,
+      nspecies, isite1, isite2, fractionalWeighting,
+      i,mixWtSite1old_i,mixWtSite2old_i,
       mixWtSite1_i,mixWtSite2_i);
-  getMixingWeights<LMPHostType>(h_dvector,j,mixWtSite1old_j,mixWtSite2old_j,
+  getMixingWeights<LMPHostType>(h_dvector,
+      nspecies, isite1, isite2, fractionalWeighting,
+      j,mixWtSite1old_j,mixWtSite2old_j,
       mixWtSite1_j,mixWtSite2_j);
 
   if (rsq < tb->innersq) error->one(FLERR,"Pair distance < table inner cutoff");
@@ -948,83 +1054,6 @@ void PairTableRXKokkos<DeviceType>::cleanup_copy() {
   vatom = NULL;
   h_table=NULL; d_table=NULL;
 }
-
-template<class DeviceType>
-template<class ExecDevice>
-KOKKOS_INLINE_FUNCTION
-void PairTableRXKokkos<DeviceType>::getMixingWeights(
-    typename ArrayTypes<ExecDevice>::t_float_2d_randomread dvector,
-    int id,
-    double &mixWtSite1old, double &mixWtSite2old,
-    double &mixWtSite1, double &mixWtSite2) {
-  double fractionOFAold, fractionOFA;
-  double fractionOld1, fraction1;
-  double fractionOld2, fraction2;
-  double nMoleculesOFAold, nMoleculesOFA;
-  double nMoleculesOld1, nMolecules1;
-  double nMoleculesOld2, nMolecules2;
-  double nTotal, nTotalOld;
-
-  nTotal = 0.0;
-  nTotalOld = 0.0;
-  for (int ispecies = 0; ispecies < nspecies; ++ispecies){
-    nTotal += dvector(ispecies,id);
-    nTotalOld += dvector(ispecies+nspecies,id);
-  }
-
-  if (isOneFluid(isite1) == false){
-    nMoleculesOld1 = dvector(isite1+nspecies,id);
-    nMolecules1 = dvector(isite1,id);
-    fractionOld1 = nMoleculesOld1/nTotalOld;
-    fraction1 = nMolecules1/nTotal;
-  }
-  if (isOneFluid(isite2) == false){
-    nMoleculesOld2 = dvector(isite2+nspecies,id);
-    nMolecules2 = dvector(isite2,id);
-    fractionOld2 = nMoleculesOld2/nTotalOld;
-    fraction2 = nMolecules2/nTotal;
-  }
-
-  if (isOneFluid(isite1) || isOneFluid(isite2)){
-    nMoleculesOFAold  = 0.0;
-    nMoleculesOFA  = 0.0;
-    fractionOFAold  = 0.0;
-    fractionOFA  = 0.0;
-
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
-      if (isite1 == ispecies || isite2 == ispecies) continue;
-      nMoleculesOFAold += dvector(ispecies+nspecies,id);
-      nMoleculesOFA += dvector(ispecies,id);
-      fractionOFAold += dvector(ispecies+nspecies,id)/nTotalOld;
-      fractionOFA += dvector(ispecies,id)/nTotal;
-    }
-    if(isOneFluid(isite1)){
-      nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
-      nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
-      fractionOld1 = fractionOFAold;
-      fraction1 = fractionOFA;
-    }
-    if(isOneFluid(isite2)){
-      nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
-      nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
-      fractionOld2 = fractionOFAold;
-      fraction2 = fractionOFA;
-    }
-  }
-
-  if(fractionalWeighting){
-    mixWtSite1old = fractionOld1;
-    mixWtSite1 = fraction1;
-    mixWtSite2old = fractionOld2;
-    mixWtSite2 = fraction2;
-  } else {
-    mixWtSite1old = nMoleculesOld1;
-    mixWtSite1 = nMolecules1;
-    mixWtSite2old = nMoleculesOld2;
-    mixWtSite2 = nMolecules2;
-  }
-}
-
 namespace LAMMPS_NS {
 template class PairTableRXKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA

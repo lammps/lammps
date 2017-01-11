@@ -149,7 +149,7 @@ void NPair::build_setup()
 ------------------------------------------------------------------------- */
 
 int NPair::exclusion(int i, int j, int itype, int jtype,
-                          int *mask, tagint *molecule) const {
+                     int *mask, tagint *molecule) const {
   int m;
 
   if (nex_type && ex_type[itype][jtype]) return 1;

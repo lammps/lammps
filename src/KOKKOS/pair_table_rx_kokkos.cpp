@@ -267,6 +267,62 @@ compute_evdwl(
   return evdwl;
 }
 
+template<class DeviceType, int NEIGHFLAG, int TABSTYLE, int NEWTON_PAIR>
+KOKKOS_INLINE_FUNCTION
+void
+ev_tally(
+    int vflag_global,
+    int nlocal,
+    EV_FLOAT& ev,
+    F_FLOAT epair, F_FLOAT fpair,
+    F_FLOAT delx, F_FLOAT dely, F_FLOAT delz)
+{
+  if (vflag_global) {
+    auto v0 = delx*delx*fpair;
+    auto v1 = dely*dely*fpair;
+    auto v2 = delz*delz*fpair;
+    auto v3 = delx*dely*fpair;
+    auto v4 = delx*delz*fpair;
+    auto v5 = dely*delz*fpair;
+
+    if (NEIGHFLAG!=FULL) {
+      if (NEWTON_PAIR) {
+        ev.v[0] += v0;
+        ev.v[1] += v1;
+        ev.v[2] += v2;
+        ev.v[3] += v3;
+        ev.v[4] += v4;
+        ev.v[5] += v5;
+      } else {
+        if (i < c.nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+        if (j < c.nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+      }
+    } else {
+      ev.v[0] += 0.5*v0;
+      ev.v[1] += 0.5*v1;
+      ev.v[2] += 0.5*v2;
+      ev.v[3] += 0.5*v3;
+      ev.v[4] += 0.5*v4;
+      ev.v[5] += 0.5*v5;
+    }
+  }
+}
+}
+
 template <class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE,
           int EVFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
@@ -296,6 +352,7 @@ compute_item(
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
     int isite1, int isite2,
     PairTableRXKokkos<DeviceType>::TableDeviceConst d_table_const,
+    int vflag_global
     ) {
   EV_FLOAT ev;
   auto i = d_ilist(ii);
@@ -379,7 +436,8 @@ compute_item(
       ev.evdwl += (do_half ? 1.0 : 0.5)*evdwl;
 
       if (EVFLAG) {
-        ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
+        ev_tally<DeviceType,NEIGHFLAG,TABSTYLE,NEWTON_PAIR>(
+            vflag_global,nlocal,ev,evdwl,fpair,delx,dely,delz);
       }
     }
   }
@@ -422,7 +480,8 @@ static void compute_all_items(
     Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
     int isite1, int isite2,
-    PairTableRXKokkos<DeviceType>::TableDeviceConst d_table_const) {
+    PairTableRXKokkos<DeviceType>::TableDeviceConst d_table_const,
+    int vflag_global) {
   if (eflag || vflag) {
     Kokkos::parallel_reduce(inum,
     LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
@@ -432,95 +491,34 @@ static void compute_all_items(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-            d_table_const);
+            d_table_const, vflag_global);
       } else {
         energy_virial +=
           compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,0>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-            d_table_const);
-        energy_virial += compute_item<1,0>(i);
+            d_table_const, vflag_global);
       }
     }, ev);
   } else {
     Kokkos::parallel_for(inum,
     LAMMPS_LAMBDA(int i) {
       if (newton_pair) {
-        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,1>(
+        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,1>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-            d_table_const);
+            d_table_const, vflag_global);
       } else {
-        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,0>(
+        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,0>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-            d_table_const);
+            d_table_const, vflag_global);
       }
     }, ev);
   }
-}
-
-template<class DeviceType>
-template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
-KOKKOS_INLINE_FUNCTION
-void
-PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::
-ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-         const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-         const F_FLOAT &dely, const F_FLOAT &delz) const
-{
-//const int EFLAG = c.eflag;
-//const int NEWTON_PAIR = c.newton_pair;
-//const int VFLAG = c.vflag_either;
-
-//if (VFLAG) {
-//  const E_FLOAT v0 = delx*delx*fpair;
-//  const E_FLOAT v1 = dely*dely*fpair;
-//  const E_FLOAT v2 = delz*delz*fpair;
-//  const E_FLOAT v3 = delx*dely*fpair;
-//  const E_FLOAT v4 = delx*delz*fpair;
-//  const E_FLOAT v5 = dely*delz*fpair;
-
-//  if (c.vflag_global) {
-//    if (NEIGHFLAG!=FULL) {
-//      if (NEWTON_PAIR) {
-//        ev.v[0] += v0;
-//        ev.v[1] += v1;
-//        ev.v[2] += v2;
-//        ev.v[3] += v3;
-//        ev.v[4] += v4;
-//        ev.v[5] += v5;
-//      } else {
-//        if (i < c.nlocal) {
-//          ev.v[0] += 0.5*v0;
-//          ev.v[1] += 0.5*v1;
-//          ev.v[2] += 0.5*v2;
-//          ev.v[3] += 0.5*v3;
-//          ev.v[4] += 0.5*v4;
-//          ev.v[5] += 0.5*v5;
-//        }
-//        if (j < c.nlocal) {
-//          ev.v[0] += 0.5*v0;
-//          ev.v[1] += 0.5*v1;
-//          ev.v[2] += 0.5*v2;
-//          ev.v[3] += 0.5*v3;
-//          ev.v[4] += 0.5*v4;
-//          ev.v[5] += 0.5*v5;
-//        }
-//      }
-//    } else {
-//      ev.v[0] += 0.5*v0;
-//      ev.v[1] += 0.5*v1;
-//      ev.v[2] += 0.5*v2;
-//      ev.v[3] += 0.5*v3;
-//      ev.v[4] += 0.5*v4;
-//      ev.v[5] += 0.5*v5;
-//    }
-//  }
-//}
 }
 
 template<class DeviceType>
@@ -598,14 +596,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
           l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-          d_table_const);
+          d_table_const, vflag_global);
     } else if (neighflag == HALF) {
       compute_all_items<DeviceType,HALF,false,TABSTYLE>(
           eflag, vflag, newton_pair, ev, nlocal,
           l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-          d_table_const);
+          d_table_const, vflag_global);
     }
   } else {
     if (neighflag == HALFTHREAD) {
@@ -614,14 +612,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
           l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-          d_table_const);
+          d_table_const, vflag_global);
     } else if (neighflag == HALF) {
       compute_all_items<DeviceType,HALFT,true,TABSTYLE>(
           eflag, vflag, newton_pair, ev, nlocal,
           l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-          d_table_const);
+          d_table_const, vflag_global);
     }
   }
 

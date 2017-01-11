@@ -1727,7 +1727,7 @@ thermodynamic state and a total run time for the simulation.  It then
 appends statistics about the CPU time and storage requirements for the
 simulation.  An example set of statistics is shown here:
 
-Loop time of 2.81192 on 4 procs for 300 steps with 2004 atoms
+Loop time of 2.81192 on 4 procs for 300 steps with 2004 atoms :pre
 
 Performance: 18.436 ns/day  1.302 hours/ns  106.689 timesteps/s
 97.0% CPU use with 4 MPI tasks x no OpenMP threads :pre
@@ -1757,14 +1757,14 @@ Ave special neighs/atom = 2.34032
 Neighbor list builds = 26
 Dangerous builds = 0 :pre
 
-The first section provides a global loop timing summary. The loop time
+The first section provides a global loop timing summary. The {loop time}
 is the total wall time for the section.  The {Performance} line is
 provided for convenience to help predicting the number of loop
-continuations required and for comparing performance with other
-similar MD codes.  The CPU use line provides the CPU utilzation per
+continuations required and for comparing performance with other,
+similar MD codes.  The {CPU use} line provides the CPU utilzation per
 MPI task; it should be close to 100% times the number of OpenMP
-threads (or 1). Lower numbers correspond to delays due to file I/O or
-insufficient thread utilization.
+threads (or 1 of no OpenMP). Lower numbers correspond to delays due
+to file I/O or insufficient thread utilization.
 
 The MPI task section gives the breakdown of the CPU run time (in
 seconds) into major categories:
@@ -1791,7 +1791,7 @@ is present that also prints the CPU utilization in percent. In
 addition, when using {timer full} and the "package omp"_package.html
 command are active, a similar timing summary of time spent in threaded
 regions to monitor thread utilization and load balance is provided. A
-new entry is the {Reduce} section, which lists the time spend in
+new entry is the {Reduce} section, which lists the time spent in
 reducing the per-thread data elements to the storage for non-threaded
 computation. These thread timings are taking from the first MPI rank
 only and and thus, as the breakdown for MPI tasks can change from MPI

@@ -92,15 +92,11 @@ class PairTableRXKokkos : public PairTable {
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
-  int nlocal,nall,eflag,vflag,neighflag,newton_pair;
+  int neighflag;
 
   int update_table;
   void create_kokkos_tables();
   void cleanup_copy();
-
-  template<bool STACKPARAMS, int TABSTYLE>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
 
@@ -110,11 +106,6 @@ class PairTableRXKokkos : public PairTable {
   char *site1, *site2;
   int isite1, isite2;
   bool fractionalWeighting;
-
-  Kokkos::View<double*, DeviceType> mixWtSite1old_;
-  Kokkos::View<double*, DeviceType> mixWtSite2old_;
-  Kokkos::View<double*, DeviceType> mixWtSite1_;
-  Kokkos::View<double*, DeviceType> mixWtSite2_;
 
   /* a duplicate of PairComputeFunctor to deal with uCG */
   template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>

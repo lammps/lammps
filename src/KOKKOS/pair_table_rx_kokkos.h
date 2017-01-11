@@ -132,7 +132,7 @@ class PairTableRXKokkos : public PairTable {
   struct Functor {
     using device_type = DeviceType;
     typedef EV_FLOAT value_type;
-    PairTableRXKokkos c;
+  //PairTableRXKokkos<device_type> c;
     // arrays are atomic for Half(Thread) neighbor style
     Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
@@ -140,7 +140,7 @@ class PairTableRXKokkos : public PairTable {
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG;
     Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
-    NeighListKokkos<device_type> list;
+  //NeighListKokkos<device_type> list;
     Functor(PairTableRXKokkos* c_ptr, NeighListKokkos<device_type>* list_ptr);
     ~Functor();
     KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {

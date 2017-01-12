@@ -179,20 +179,6 @@ void PairTableRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     compute_style<BITMAP>(eflag_in,vflag_in);
 }
 
-template<class DeviceType>
-template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
-PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::Functor(
-    PairTableRXKokkos* c_ptr, NeighListKokkos<DeviceType>* list_ptr)//:
-//c(*c_ptr),f(c.f),uCG(c.uCG),uCGnew(c.uCGnew),list(*list_ptr)
-{}
-
-template<class DeviceType>
-template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
-PairTableRXKokkos<DeviceType>::Functor<NEIGHFLAG,STACKPARAMS,TABSTYLE>::~Functor() {
-//c.cleanup_copy();
-//list.clean_copy();
-}
-
 KOKKOS_INLINE_FUNCTION static int sbmask(const int& j)
 {
   return j >> SBBITS & 3;

@@ -28,8 +28,8 @@ action () {
 
 # force rebuild of files with LMP_KOKKOS switch
 
-#touch ../accelerator_kokkos.h
-#touch ../memory.h
+touch ../accelerator_kokkos.h
+touch ../memory.h
 
 # list of files with optional dependcies
 
@@ -196,7 +196,7 @@ action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
 action pair_table_rx_kokkos.cpp pair_table_rx.cpp
-action pair_table_rx_kokkos.h pair_table_rx.h  
+action pair_table_rx_kokkos.h pair_table_rx.h
 action pair_tersoff_kokkos.cpp pair_tersoff.cpp
 action pair_tersoff_kokkos.h pair_tersoff.h
 action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp

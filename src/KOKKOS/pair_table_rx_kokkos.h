@@ -23,6 +23,7 @@ PairStyle(table/rx/kk/host,PairTableRXKokkos<LMPHostType>)
 #define LMP_PAIR_TABLE_RX_KOKKOS_H
 
 #include "pair_table_kokkos.h"
+#include "kokkos_few.h"
 
 namespace LAMMPS_NS {
 
@@ -78,7 +79,7 @@ class PairTableRXKokkos : public PairTable {
   TableDevice* d_table;
   TableHost* h_table;
 
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  Few<Few<F_FLOAT, MAX_TYPES_STACKPARAMS+1>, MAX_TYPES_STACKPARAMS+1> m_cutsq;
 
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
@@ -86,27 +87,15 @@ class PairTableRXKokkos : public PairTable {
   void compute_table(Table *);
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_x_array_const c_x;
   typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_efloat_1d uCG;
-  typename ArrayTypes<DeviceType>::t_efloat_1d uCGnew;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
-  int nlocal,nall,eflag,vflag,neighflag,newton_pair;
+  int neighflag;
 
   int update_table;
   void create_kokkos_tables();
   void cleanup_copy();
-
-  template<bool STACKPARAMS, int TABSTYLE>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
-
-  template<bool STACKPARAMS, int TABSTYLE>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
 
@@ -117,22 +106,12 @@ class PairTableRXKokkos : public PairTable {
   int isite1, isite2;
   bool fractionalWeighting;
 
-  template <class ExecDevice>
-  KOKKOS_INLINE_FUNCTION
-  void getMixingWeights(typename ArrayTypes<ExecDevice>::t_float_2d_randomread,
-      int, double &, double &, double &, double &);
-
-  Kokkos::View<double*, DeviceType> mixWtSite1old_;
-  Kokkos::View<double*, DeviceType> mixWtSite2old_;
-  Kokkos::View<double*, DeviceType> mixWtSite1_;
-  Kokkos::View<double*, DeviceType> mixWtSite2_;
-
   /* a duplicate of PairComputeFunctor to deal with uCG */
   template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
   struct Functor {
     using device_type = DeviceType;
     typedef EV_FLOAT value_type;
-    PairTableRXKokkos c;
+  //PairTableRXKokkos<device_type> c;
     // arrays are atomic for Half(Thread) neighbor style
     Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
@@ -140,7 +119,7 @@ class PairTableRXKokkos : public PairTable {
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG;
     Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
                  device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
-    NeighListKokkos<device_type> list;
+  //NeighListKokkos<device_type> list;
     Functor(PairTableRXKokkos* c_ptr, NeighListKokkos<device_type>* list_ptr);
     ~Functor();
     KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {

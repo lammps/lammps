@@ -25,7 +25,6 @@ PairStyle(lj/cut/coul/dsf/kk/host,PairLJCutCoulDSFKokkos<LMPHostType>)
 #include "pair_kokkos.h"
 #include "pair_lj_cut_coul_dsf.h"
 #include "neigh_list_kokkos.h"
-#include "params_lj_coul.h"
 
 namespace LAMMPS_NS {
 

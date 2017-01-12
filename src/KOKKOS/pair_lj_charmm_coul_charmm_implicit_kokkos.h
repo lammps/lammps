@@ -25,7 +25,6 @@ PairStyle(lj/charmm/coul/charmm/implicit/kk/host,PairLJCharmmCoulCharmmImplicitK
 #include "pair_kokkos.h"
 #include "pair_lj_charmm_coul_charmm_implicit.h"
 #include "neigh_list_kokkos.h"
-#include "params_lj_coul.h"
 
 namespace LAMMPS_NS {
 

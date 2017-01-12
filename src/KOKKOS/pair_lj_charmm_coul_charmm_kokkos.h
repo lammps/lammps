@@ -25,7 +25,6 @@ PairStyle(lj/charmm/coul/charmm/kk/host,PairLJCharmmCoulCharmmKokkos<LMPHostType
 #include "pair_kokkos.h"
 #include "pair_lj_charmm_coul_charmm.h"
 #include "neigh_list_kokkos.h"
-#include "params_lj_coul.h"
 
 namespace LAMMPS_NS {
 

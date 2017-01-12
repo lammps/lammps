@@ -44,11 +44,11 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
   void init_style();
   double init_one(int, int);
 
-  struct params_lj_coul{
+  struct params_lj_coul_gromacs{
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj_coul_gromacs(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj_coul_gromacs(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset,ljsw1,ljsw2,ljsw3,ljsw4,ljsw5;
   };
 
@@ -75,11 +75,11 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
   F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
                         const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
 
-  Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
-  typename Kokkos::DualView<params_lj_coul**,
+  Kokkos::DualView<params_lj_coul_gromacs**,Kokkos::LayoutRight,DeviceType> k_params;
+  typename Kokkos::DualView<params_lj_coul_gromacs**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   // hardwired to space for 12 atom types
-  params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  params_lj_coul_gromacs m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];

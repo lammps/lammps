@@ -20,7 +20,7 @@ KOKKOS_OPTIONS ?= ""
 
 #Default settings specific options
 #Options: force_uvm,use_ldg,rdc,enable_lambda
-KOKKOS_CUDA_OPTIONS ?= ""
+KOKKOS_CUDA_OPTIONS ?= "enable_lambda"
 
 # Check for general settings
 

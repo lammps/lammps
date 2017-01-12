@@ -106,39 +106,6 @@ class PairTableRXKokkos : public PairTable {
   int isite1, isite2;
   bool fractionalWeighting;
 
-  /* a duplicate of PairComputeFunctor to deal with uCG */
-  template <int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
-  struct Functor {
-    using device_type = DeviceType;
-    typedef EV_FLOAT value_type;
-  //PairTableRXKokkos<device_type> c;
-    // arrays are atomic for Half(Thread) neighbor style
-    Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
-                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
-    Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
-                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG;
-    Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
-                 device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew;
-  //NeighListKokkos<device_type> list;
-    Functor(PairTableRXKokkos* c_ptr, NeighListKokkos<device_type>* list_ptr);
-    ~Functor();
-    KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
-      return j >> SBBITS & 3;
-    }
-    template<int EVFLAG, int NEWTON_PAIR>
-    KOKKOS_INLINE_FUNCTION
-    EV_FLOAT compute_item(const int&) const;
-    KOKKOS_INLINE_FUNCTION
-    void
-    ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-             const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-             const F_FLOAT &dely, const F_FLOAT &delz) const;
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const int) const;
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const int, value_type&) const;
-  };
-
 };
 
 }

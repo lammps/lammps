@@ -138,6 +138,8 @@ int NeighRequest::identical(NeighRequest *other)
   if (ghost != other->ghost) same = 0;
   if (omp != other->omp) same = 0;
   if (intel != other->intel) same = 0;
+  if (kokkos_host != other->kokkos_host) same = 0;
+  if (kokkos_device != other->kokkos_device) same = 0;
   if (ssa != other->ssa) same = 0;
 
   if (copy != other->copy_original) same = 0;

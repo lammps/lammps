@@ -30,9 +30,6 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairTableRXKokkos : public PairTable {
  public:
-
-  using DAT = ArrayTypes<DeviceType>;
-
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
   typedef DeviceType device_type;
 

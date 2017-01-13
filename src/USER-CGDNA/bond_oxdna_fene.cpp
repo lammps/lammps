@@ -14,8 +14,8 @@
    Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_oxdna_fene.h"
 #include "atom.h"
 #include "neighbor.h"

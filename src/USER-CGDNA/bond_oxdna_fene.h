@@ -23,7 +23,6 @@ BondStyle(oxdna_fene,BondOxdnaFene)
 #ifndef LMP_BOND_OXDNA_FENE_H
 #define LMP_BOND_OXDNA_FENE_H
 
-#include "stdio.h"
 #include "bond.h"
 
 namespace LAMMPS_NS {

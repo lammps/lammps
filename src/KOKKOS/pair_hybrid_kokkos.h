@@ -13,19 +13,19 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(hybrid,PairHybrid)
+PairStyle(hybrid/kk,PairHybridKokkos)
 
 #else
 
-#ifndef LMP_PAIR_HYBRID_H
-#define LMP_PAIR_HYBRID_H
+#ifndef LMP_PAIR_HYBRID_KOKKOS_H
+#define LMP_PAIR_HYBRID_KOKKOS_H
 
 #include <stdio.h>
-#include "pair.h"
+#include "pair_hybrid.h"
 
 namespace LAMMPS_NS {
 
-class PairHybrid : public Pair {
+class PairHybridKokkos : public PairHybrid {
   friend class FixGPU;
   friend class FixIntel;
   friend class FixOMP;
@@ -33,52 +33,9 @@ class PairHybrid : public Pair {
   friend class Respa;
   friend class Info;
  public:
-  PairHybrid(class LAMMPS *);
-  virtual ~PairHybrid();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void setup();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void modify_params(int narg, char **arg);
-  double memory_usage();
-
-  void compute_inner();
-  void compute_middle();
-  void compute_outer(int, int);
-  void *extract(const char *, int &);
-  void reset_dt();
-
-  int check_ijtype(int, int, char *);
-
- protected:
-  int nstyles;                  // # of sub-styles
-  Pair **styles;                // list of Pair style classes
-  char **keywords;              // style name of each Pair style
-  int *multiple;                // 0 if style used once, else Mth instance
-
-  int outerflag;                // toggle compute() when invoked by outer()
-  int respaflag;                // 1 if different substyles are assigned to
-                                // different r-RESPA levels
-
-  int **nmap;                   // # of sub-styles itype,jtype points to
-  int ***map;                   // list of sub-styles itype,jtype points to
-  double **special_lj;          // list of per style LJ exclusion factors
-  double **special_coul;        // list of per style Coulomb exclusion factors
-
-  void allocate();
-  void flags();
-
-  void modify_special(int, int, char**);
-  double *save_special();
-  void set_special(int);
-  void restore_special(double *);
-
-  virtual void modify_requests();
+  PairHybridKokkos(class LAMMPS *);
+  virtual ~PairHybridKokkos();
+  void compute(int, int);
 };
 
 }

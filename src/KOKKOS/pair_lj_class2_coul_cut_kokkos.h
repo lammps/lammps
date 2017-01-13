@@ -43,11 +43,6 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
   void init_style();
   double init_one(int, int);
 
-  struct params_lj_coul{
-    params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
-    params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
-    F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
-  };
 
  protected:
   void cleanup_copy();

@@ -915,6 +915,14 @@ void memset_kokkos (ViewType &view) {
   ViewType::execution_space::fence();
 }
 
+struct params_lj_coul {
+  KOKKOS_INLINE_FUNCTION
+  params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};   
+  KOKKOS_INLINE_FUNCTION
+  params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+  F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
+};
+
 #if defined(KOKKOS_HAVE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)

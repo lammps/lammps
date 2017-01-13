@@ -20,14 +20,18 @@ PairStyle(hybrid/overlay/kk,PairHybridOverlayKokkos)
 #ifndef LMP_PAIR_HYBRID_OVERLAY_KOKKOS_H
 #define LMP_PAIR_HYBRID_OVERLAY_KOKKOS_H
 
-#include "pair_hybrid_overlay.h"
+#include "pair_hybrid_kokkos.h"
 
 namespace LAMMPS_NS {
 
-class PairHybridOverlayKokkos : public PairHybridOverlay {
+class PairHybridOverlayKokkos : public PairHybridKokkos {
  public:
   PairHybridOverlayKokkos(class LAMMPS *);
   virtual ~PairHybridOverlayKokkos() {}
+  void coeff(int, char **);
+
+ private:
+  void modify_requests();
 };
 
 }

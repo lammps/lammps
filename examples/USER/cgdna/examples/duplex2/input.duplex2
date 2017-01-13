@@ -8,8 +8,6 @@ dimension 3
 
 newton off
 
-processors 1 1 1
-
 boundary  p p p
 
 atom_style hybrid bond ellipsoid

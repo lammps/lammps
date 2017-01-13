@@ -263,7 +263,7 @@ void FixNVEDotcLangevin::initial_integrate(int vflag)
 void FixNVEDotcLangevin::final_integrate()
 {
 
-  double *shape,*quat;
+  double *quat;
   double fquat[4],conjqm[4];
   double conjqm_dot_quat;
 
@@ -288,7 +288,6 @@ void FixNVEDotcLangevin::final_integrate()
 
       dthlfm = dthlf / rmass[i];
       quat = bonus[ellipsoid[i]].quat;
-      shape = bonus[ellipsoid[i]].shape;
 
       // update momentum by 1/2 step
       v[i][0] += dthlfm * f[i][0];

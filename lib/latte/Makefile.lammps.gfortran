@@ -21,7 +21,7 @@ latte_SYSLIB  = -fopenmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte
 								-llapack -lblas 
 
 # Uncomment the following line to use PROGRESS/BML and metis.
-latte_SYSLIB  += -L${progress_PATH}/install/lib -lprogress -L${bml_PATH}/install/lib -lbml -L${metis_PATH}/install -lmetis 
+latte_SYSLIB  += -L${progress_PATH}/install/lib -lprogress -L${bml_PATH}/install/lib -lbml 
 #latte_SYSLIB  += -L${metis_PATH}/install -lmetis 
 
 

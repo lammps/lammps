@@ -49,11 +49,11 @@ class PairOxdnaExcv : public Pair {
   // s=sugar-phosphate backbone site, b=base site, st=stacking site
 
   // excluded volume interaction
-  double **epsilon_ss, **sigma_ss, **cut_ss_ast, **cutsq_ss_ast; 
+  double **epsilon_ss, **sigma_ss, **cut_ss_ast, **cutsq_ss_ast;
   double **lj1_ss, **lj2_ss, **b_ss, **cut_ss_c, **cutsq_ss_c;
-  double **epsilon_sb, **sigma_sb, **cut_sb_ast, **cutsq_sb_ast; 
+  double **epsilon_sb, **sigma_sb, **cut_sb_ast, **cutsq_sb_ast;
   double **lj1_sb, **lj2_sb, **b_sb, **cut_sb_c, **cutsq_sb_c;
-  double **epsilon_bb, **sigma_bb, **cut_bb_ast, **cutsq_bb_ast; 
+  double **epsilon_bb, **sigma_bb, **cut_bb_ast, **cutsq_bb_ast;
   double **lj1_bb, **lj2_bb, **b_bb, **cut_bb_c, **cutsq_bb_c;
 
   virtual void allocate();

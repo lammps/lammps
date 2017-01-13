@@ -58,7 +58,7 @@ class PairOxdnaStk : public Pair {
   double **a_st6, **theta_st6_0, **dtheta_st6_ast;
   double **b_st6, **dtheta_st6_c;
   double **a_st1, **cosphi_st1_ast, **b_st1, **cosphi_st1_c;
-  double **a_st2, **cosphi_st2_ast, **b_st2, **cosphi_st2_c;  
+  double **a_st2, **cosphi_st2_ast, **b_st2, **cosphi_st2_c;
 
   virtual void allocate();
 };

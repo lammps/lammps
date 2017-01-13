@@ -102,7 +102,7 @@ void FixNVEDot::initial_integrate(int vflag)
       x[i][1] += dt * v[i][1];
       x[i][2] += dt * v[i][2];
 
-      // convert angular momentum and torque in space frame into 
+      // convert angular momentum and torque in space frame into
       // quaternion 4-momentum and 1/2 of 4-torque in body frame
       vec3_to_vec4(quat,angmom[i],conjqm);
       conjqm[0] *= 2.0;
@@ -178,7 +178,7 @@ void FixNVEDot::final_integrate()
       v[i][1] += dthlfm * f[i][1];
       v[i][2] += dthlfm * f[i][2];
 
-      // convert angular momentum and torque in space frame into 
+      // convert angular momentum and torque in space frame into
       // quaternion 4-momentum and 1/2 of 4-torque in body frame
       vec3_to_vec4(quat,angmom[i],conjqm);
       conjqm[0] *= 2.0;
@@ -196,10 +196,10 @@ void FixNVEDot::final_integrate()
       // subtract component parallel to quaternion for improved numerical accuracy
       conjqm_dot_quat = conjqm[0]*quat[0] + conjqm[1]*quat[1] + conjqm[2]*quat[2] + conjqm[3]*quat[3];
 
-      conjqm[0] -= conjqm_dot_quat * quat[0]; 
-      conjqm[1] -= conjqm_dot_quat * quat[1]; 
-      conjqm[2] -= conjqm_dot_quat * quat[2]; 
-      conjqm[3] -= conjqm_dot_quat * quat[3]; 
+      conjqm[0] -= conjqm_dot_quat * quat[0];
+      conjqm[1] -= conjqm_dot_quat * quat[1];
+      conjqm[2] -= conjqm_dot_quat * quat[2];
+      conjqm[3] -= conjqm_dot_quat * quat[3];
 
       // convert quaternion 4-momentum in body frame back to angular momentum in space frame
       vec4_to_vec3(quat,conjqm,angmom[i]);

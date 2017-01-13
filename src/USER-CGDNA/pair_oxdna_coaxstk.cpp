@@ -177,7 +177,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
     ra_cst[0] = d_cst*ax[0];
     ra_cst[1] = d_cst*ax[1];
     ra_cst[2] = d_cst*ax[2];
-  
+
     // vector COM a - backbone site a
     ra_cs[0] = d_cs*ax[0];
     ra_cs[1] = d_cs*ax[1];
@@ -240,9 +240,9 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       theta1p = 2 * MY_PI - theta1;
 
       f4t1 = F4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-	     b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype]) +
-	     F4(theta1p, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-	     b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype]);
+             b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype]) +
+             F4(theta1p, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
+             b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype]);
 
       // early rejection criterium
       if (f4t1) {
@@ -253,7 +253,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       theta4 = acos(cost4);
 
       f4t4 = F4(theta4, a_cxst4[atype][btype], theta_cxst4_0[atype][btype], dtheta_cxst4_ast[atype][btype],
-	     b_cxst4[atype][btype], dtheta_cxst4_c[atype][btype]);
+             b_cxst4[atype][btype], dtheta_cxst4_c[atype][btype]);
 
       // early rejection criterium
       if (f4t4) {
@@ -265,9 +265,9 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       theta5p = MY_PI - theta5;
 
       f4t5 = F4(theta5, a_cxst5[atype][btype], theta_cxst5_0[atype][btype], dtheta_cxst5_ast[atype][btype],
-	     b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype]) +
-	     F4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype], dtheta_cxst5_ast[atype][btype],
-	     b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype]);
+             b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype]) +
+             F4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype], dtheta_cxst5_ast[atype][btype],
+             b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype]);
 
       // early rejection criterium
       if (f4t5) {
@@ -279,9 +279,9 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       theta6p = MY_PI - theta6;
 
       f4t6 = F4(theta6, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
-	     b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype]) + 
-	     F4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
-	     b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype]);
+             b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype]) +
+             F4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
+             b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype]);
 
       MathExtra::cross3(delr_ss_norm,ax,v1tmp);
       cosphi3 = MathExtra::dot3(delr_st_norm,v1tmp);
@@ -289,12 +289,12 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       if (cosphi3 < -1.0) cosphi3 = -1.0;
 
       f2 = F2(r_st, k_cxst[atype][btype], cut_cxst_0[atype][btype],
-	   cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype], cut_cxst_hi[atype][btype],
-	   b_cxst_lo[atype][btype], b_cxst_hi[atype][btype], cut_cxst_c[atype][btype]);
+           cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype], cut_cxst_hi[atype][btype],
+           b_cxst_lo[atype][btype], b_cxst_hi[atype][btype], cut_cxst_c[atype][btype]);
 
 
       f5c3 = F5(cosphi3, a_cxst3p[atype][btype], cosphi_cxst3p_ast[atype][btype], b_cxst3p[atype][btype],
-	     cosphi_cxst3p_c[atype][btype]);
+             cosphi_cxst3p_c[atype][btype]);
 
       evdwl = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
 
@@ -302,34 +302,34 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       if (evdwl) {
 
       df2 = DF2(r_st, k_cxst[atype][btype], cut_cxst_0[atype][btype],
-	    cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype], cut_cxst_hi[atype][btype],
-	    b_cxst_lo[atype][btype], b_cxst_hi[atype][btype]);
+            cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype], cut_cxst_hi[atype][btype],
+            b_cxst_lo[atype][btype], b_cxst_hi[atype][btype]);
 
       rsint = 1.0/sin(theta1);
       df4t1 = DF4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-	      b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype])*rsint - 
-	      DF4(theta1p, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-	      b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype])*rsint; 
+              b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype])*rsint -
+              DF4(theta1p, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
+              b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype])*rsint;
 
       df4t4 = DF4(theta4, a_cxst4[atype][btype], theta_cxst4_0[atype][btype], dtheta_cxst4_ast[atype][btype],
-	      b_cxst4[atype][btype], dtheta_cxst4_c[atype][btype])/sin(theta4); 
+              b_cxst4[atype][btype], dtheta_cxst4_c[atype][btype])/sin(theta4);
 
       rsint = 1.0/sin(theta5);
       df4t5 = DF4(theta5, a_cxst5[atype][btype], theta_cxst5_0[atype][btype], dtheta_cxst5_ast[atype][btype],
-	      b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype])*rsint -
-	      DF4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype], dtheta_cxst5_ast[atype][btype],
+              b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype])*rsint -
+              DF4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype], dtheta_cxst5_ast[atype][btype],
               b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype])*rsint;
 
       rsint = 1.0/sin(theta6);
       df4t6 = DF4(theta6, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
-	      b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint -
-	      DF4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
+              b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint -
+              DF4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
               b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint;
 
       df5c3 = DF5(cosphi3, a_cxst3p[atype][btype], cosphi_cxst3p_ast[atype][btype], b_cxst3p[atype][btype],
-	      cosphi_cxst3p_c[atype][btype]);
+              cosphi_cxst3p_c[atype][btype]);
 
- 
+
      // force, torque and virial contribution for forces between stacking sites
 
       fpair = 0.0;
@@ -357,24 +357,24 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta5 force
       if (theta5 && theta5p) {
 
-	finc   = -f2 * f4t1 * f4t4 * df4t5 * f4t6 * f5c3 * f5c3 * rinv_st * factor_lj;
-	fpair += finc;
+        finc   = -f2 * f4t1 * f4t4 * df4t5 * f4t6 * f5c3 * f5c3 * rinv_st * factor_lj;
+        fpair += finc;
 
-	delf[0] += (delr_st_norm[0]*cost5 - az[0]) * finc;
-	delf[1] += (delr_st_norm[1]*cost5 - az[1]) * finc;
-	delf[2] += (delr_st_norm[2]*cost5 - az[2]) * finc;
+        delf[0] += (delr_st_norm[0]*cost5 - az[0]) * finc;
+        delf[1] += (delr_st_norm[1]*cost5 - az[1]) * finc;
+        delf[2] += (delr_st_norm[2]*cost5 - az[2]) * finc;
 
       }
 
       // theta6 force
       if (theta6 && theta6p) {
 
-	finc   = -f2 * f4t1* f4t4 * f4t5 * df4t6 * f5c3 * f5c3 * rinv_st * factor_lj;
-	fpair += finc;
+        finc   = -f2 * f4t1* f4t4 * f4t5 * df4t6 * f5c3 * f5c3 * rinv_st * factor_lj;
+        fpair += finc;
 
-	delf[0] += (delr_st_norm[0]*cost6 - bz[0]) * finc;
-	delf[1] += (delr_st_norm[1]*cost6 - bz[1]) * finc;
-	delf[2] += (delr_st_norm[2]*cost6 - bz[2]) * finc;
+        delf[0] += (delr_st_norm[0]*cost6 - bz[0]) * finc;
+        delf[1] += (delr_st_norm[1]*cost6 - bz[1]) * finc;
+        delf[2] += (delr_st_norm[2]*cost6 - bz[2]) * finc;
 
       }
 
@@ -382,36 +382,36 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // cosphi3 and cosphi4 (=cosphi3) force and virial
       if (cosphi3) {
 
-	finc   = -f2 * f4t1* f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
-	fpair += finc;
+        finc   = -f2 * f4t1* f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
+        fpair += finc;
 
-	gamma = d_cs - d_cst;
-	gammacub = gamma * gamma * gamma;
-	rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
-	aybx = MathExtra::dot3(ay,bx);
-	azbx = MathExtra::dot3(az,bx);
-	rax = MathExtra::dot3(delr_st_norm,ax);
-	ray = MathExtra::dot3(delr_st_norm,ay);
-	raz = MathExtra::dot3(delr_st_norm,az);
-	rbx = MathExtra::dot3(delr_st_norm,bx);
+        gamma = d_cs - d_cst;
+        gammacub = gamma * gamma * gamma;
+        rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
+        aybx = MathExtra::dot3(ay,bx);
+        azbx = MathExtra::dot3(az,bx);
+        rax = MathExtra::dot3(delr_st_norm,ax);
+        ray = MathExtra::dot3(delr_st_norm,ay);
+        raz = MathExtra::dot3(delr_st_norm,az);
+        rbx = MathExtra::dot3(delr_st_norm,bx);
 
-	fac = (raz * aybx - ray * azbx);
+        fac = (raz * aybx - ray * azbx);
 
-	dcdr    = -gamma * fac * (gamma * (rax - rbx) + r_st) * rinv_ss_cub;
-	dcdaxbx =  gammacub * fac * rinv_ss_cub;
-	dcdaybx =  gamma * raz * rinv_ss;
-	dcdazbx = -gamma * ray * rinv_ss;
-	dcdrax  = -gamma*gamma * fac * r_st * rinv_ss_cub;
-	dcdray  = -gamma * azbx * rinv_ss;
-	dcdraz  =  gamma * aybx * rinv_ss;
+        dcdr    = -gamma * fac * (gamma * (rax - rbx) + r_st) * rinv_ss_cub;
+        dcdaxbx =  gammacub * fac * rinv_ss_cub;
+        dcdaybx =  gamma * raz * rinv_ss;
+        dcdazbx = -gamma * ray * rinv_ss;
+        dcdrax  = -gamma*gamma * fac * r_st * rinv_ss_cub;
+        dcdray  = -gamma * azbx * rinv_ss;
+        dcdraz  =  gamma * aybx * rinv_ss;
         dcdrbx  =  gamma*gamma * fac * r_st * rinv_ss_cub;
 
         delf[0] += (delr_st_norm[0] * dcdr + ((ax[0] - delr_st_norm[0] * rax) * dcdrax +
                                               (ay[0] - delr_st_norm[0] * ray) * dcdray +
                                               (az[0] - delr_st_norm[0] * raz) * dcdraz +
                                               (bx[0] - delr_st_norm[0] * rbx) * dcdrbx) * rinv_st) * finc * factor_lj;
-      
-	delf[1] += (delr_st_norm[1] * dcdr + ((ax[1] - delr_st_norm[1] * rax) * dcdrax +
+
+        delf[1] += (delr_st_norm[1] * dcdr + ((ax[1] - delr_st_norm[1] * rax) * dcdrax +
                                               (ay[1] - delr_st_norm[1] * ray) * dcdray +
                                               (az[1] - delr_st_norm[1] * raz) * dcdraz +
                                               (bx[1] - delr_st_norm[1] * rbx) * dcdrbx) * rinv_st) * finc * factor_lj;
@@ -437,22 +437,22 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
 
       if (newton_pair || b < nlocal) {
 
-	f[b][0] -= delf[0];
-	f[b][1] -= delf[1];
-	f[b][2] -= delf[2];
+        f[b][0] -= delf[0];
+        f[b][1] -= delf[1];
+        f[b][2] -= delf[2];
 
-	MathExtra::cross3(rb_cst,delf,deltb);
+        MathExtra::cross3(rb_cst,delf,deltb);
 
-	torque[b][0] -= deltb[0];
-	torque[b][1] -= deltb[1];
-	torque[b][2] -= deltb[2];
+        torque[b][0] -= deltb[0];
+        torque[b][1] -= deltb[1];
+        torque[b][2] -= deltb[2];
 
       }
 
       // increment energy and virial
       if (evflag) ev_tally(a,b,nlocal,newton_pair,evdwl,0.0,fpair,delr_st[0],delr_st[1],delr_st[2]);
- 
-      // pure torques not expressible as r x f 
+
+      // pure torques not expressible as r x f
 
       delta[0] = 0.0;
       delta[1] = 0.0;
@@ -464,113 +464,113 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta1 torque
       if (theta1 && theta1p) {
 
-	tpair = -f2 * df4t1 * f4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
-	MathExtra::cross3(ax,bx,t1dir);
+        tpair = -f2 * df4t1 * f4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
+        MathExtra::cross3(ax,bx,t1dir);
 
-	delta[0] += t1dir[0]*tpair;
-	delta[1] += t1dir[1]*tpair;
-	delta[2] += t1dir[2]*tpair;
+        delta[0] += t1dir[0]*tpair;
+        delta[1] += t1dir[1]*tpair;
+        delta[2] += t1dir[2]*tpair;
 
-	deltb[0] += t1dir[0]*tpair;
-	deltb[1] += t1dir[1]*tpair;
-	deltb[2] += t1dir[2]*tpair;
+        deltb[0] += t1dir[0]*tpair;
+        deltb[1] += t1dir[1]*tpair;
+        deltb[2] += t1dir[2]*tpair;
 
       }
 
       // theta4 torque
       if (theta4) {
 
-	tpair = -f2 * f4t1 * df4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
-	MathExtra::cross3(bz,az,t4dir);
+        tpair = -f2 * f4t1 * df4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
+        MathExtra::cross3(bz,az,t4dir);
 
-	delta[0] += t4dir[0]*tpair;
-	delta[1] += t4dir[1]*tpair;
-	delta[2] += t4dir[2]*tpair;
+        delta[0] += t4dir[0]*tpair;
+        delta[1] += t4dir[1]*tpair;
+        delta[2] += t4dir[2]*tpair;
 
-	deltb[0] += t4dir[0]*tpair;
-	deltb[1] += t4dir[1]*tpair;
-	deltb[2] += t4dir[2]*tpair;
+        deltb[0] += t4dir[0]*tpair;
+        deltb[1] += t4dir[1]*tpair;
+        deltb[2] += t4dir[2]*tpair;
 
       }
 
       // theta5 torque
       if (theta5 && theta5p) {
 
-	tpair = -f2 * f4t1 * f4t4 * df4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
-	MathExtra::cross3(delr_st_norm,az,t5dir);
+        tpair = -f2 * f4t1 * f4t4 * df4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
+        MathExtra::cross3(delr_st_norm,az,t5dir);
 
-	delta[0] += t5dir[0] * tpair;
-	delta[1] += t5dir[1] * tpair;
-	delta[2] += t5dir[2] * tpair;
+        delta[0] += t5dir[0] * tpair;
+        delta[1] += t5dir[1] * tpair;
+        delta[2] += t5dir[2] * tpair;
 
       }
 
       // theta6 torque
       if (theta6 && theta6p) {
 
-	tpair = -f2 * f4t1 * f4t4 * f4t5 * df4t6 * f5c3 * f5c3 * factor_lj;
-	MathExtra::cross3(delr_st_norm,bz,t6dir);
+        tpair = -f2 * f4t1 * f4t4 * f4t5 * df4t6 * f5c3 * f5c3 * factor_lj;
+        MathExtra::cross3(delr_st_norm,bz,t6dir);
 
-	deltb[0] -= t6dir[0] * tpair;
-	deltb[1] -= t6dir[1] * tpair;
-	deltb[2] -= t6dir[2] * tpair;
+        deltb[0] -= t6dir[0] * tpair;
+        deltb[1] -= t6dir[1] * tpair;
+        deltb[2] -= t6dir[2] * tpair;
 
       }
 
       // Full cosphi3 and cosphi4 (=cosphi3) contribution to the torque
       if (cosphi3) {
 
-	gamma = d_cs - d_cst;
-	gammacub = gamma * gamma * gamma;
-	rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
-	aybx = MathExtra::dot3(ay,bx);
-	azbx = MathExtra::dot3(az,bx);
-	rax = MathExtra::dot3(delr_st_norm,ax);
-	ray = MathExtra::dot3(delr_st_norm,ay);
-	raz = MathExtra::dot3(delr_st_norm,az);
-	rbx = MathExtra::dot3(delr_st_norm,bx);
+        gamma = d_cs - d_cst;
+        gammacub = gamma * gamma * gamma;
+        rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
+        aybx = MathExtra::dot3(ay,bx);
+        azbx = MathExtra::dot3(az,bx);
+        rax = MathExtra::dot3(delr_st_norm,ax);
+        ray = MathExtra::dot3(delr_st_norm,ay);
+        raz = MathExtra::dot3(delr_st_norm,az);
+        rbx = MathExtra::dot3(delr_st_norm,bx);
 
-	fac = (raz * aybx - ray * azbx);
+        fac = (raz * aybx - ray * azbx);
 
-	dcdr    = -gamma * fac * (gamma * (rax - rbx) + r_st) * rinv_ss_cub;
-	dcdaxbx =  gammacub * fac * rinv_ss_cub;
-	dcdaybx =  gamma * raz * rinv_ss;
-	dcdazbx = -gamma * ray * rinv_ss;
-	dcdrax  = -gamma*gamma * fac * r_st * rinv_ss_cub;
-	dcdray  = -gamma * azbx * rinv_ss;
-	dcdraz  =  gamma * aybx * rinv_ss;
+        dcdr    = -gamma * fac * (gamma * (rax - rbx) + r_st) * rinv_ss_cub;
+        dcdaxbx =  gammacub * fac * rinv_ss_cub;
+        dcdaybx =  gamma * raz * rinv_ss;
+        dcdazbx = -gamma * ray * rinv_ss;
+        dcdrax  = -gamma*gamma * fac * r_st * rinv_ss_cub;
+        dcdray  = -gamma * azbx * rinv_ss;
+        dcdraz  =  gamma * aybx * rinv_ss;
         dcdrbx  =  gamma*gamma * fac * r_st * rinv_ss_cub;
 
-	tpair   = -f2 * f4t1 * f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
+        tpair   = -f2 * f4t1 * f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
 
-	MathExtra::cross3(ax,bx,v1tmp);
-	MathExtra::cross3(ay,bx,v2tmp);
-	MathExtra::cross3(az,bx,v3tmp);
+        MathExtra::cross3(ax,bx,v1tmp);
+        MathExtra::cross3(ay,bx,v2tmp);
+        MathExtra::cross3(az,bx,v3tmp);
 
-	delt[0] = (v1tmp[0] * dcdaxbx + v2tmp[0] * dcdaybx + v3tmp[0] * dcdazbx) * tpair;
-	delt[1] = (v1tmp[1] * dcdaxbx + v2tmp[1] * dcdaybx + v3tmp[1] * dcdazbx) * tpair;
-	delt[2] = (v1tmp[2] * dcdaxbx + v2tmp[2] * dcdaybx + v3tmp[2] * dcdazbx) * tpair;
+        delt[0] = (v1tmp[0] * dcdaxbx + v2tmp[0] * dcdaybx + v3tmp[0] * dcdazbx) * tpair;
+        delt[1] = (v1tmp[1] * dcdaxbx + v2tmp[1] * dcdaybx + v3tmp[1] * dcdazbx) * tpair;
+        delt[2] = (v1tmp[2] * dcdaxbx + v2tmp[2] * dcdaybx + v3tmp[2] * dcdazbx) * tpair;
 
-	delta[0] += delt[0];
-	delta[1] += delt[1];
-	delta[2] += delt[2];
-	deltb[0] += delt[0];
-	deltb[1] += delt[1];
-	deltb[2] += delt[2];
+        delta[0] += delt[0];
+        delta[1] += delt[1];
+        delta[2] += delt[2];
+        deltb[0] += delt[0];
+        deltb[1] += delt[1];
+        deltb[2] += delt[2];
 
         MathExtra::cross3(ax,delr_st_norm,v1tmp);
         MathExtra::cross3(ay,delr_st_norm,v2tmp);
         MathExtra::cross3(az,delr_st_norm,v3tmp);
 
-	delta[0] += (v1tmp[0] * dcdrax + v2tmp[0] * dcdray + v3tmp[0] * dcdraz) * tpair;
-	delta[1] += (v1tmp[1] * dcdrax + v2tmp[1] * dcdray + v3tmp[1] * dcdraz) * tpair;
-	delta[2] += (v1tmp[2] * dcdrax + v2tmp[2] * dcdray + v3tmp[2] * dcdraz) * tpair;
+        delta[0] += (v1tmp[0] * dcdrax + v2tmp[0] * dcdray + v3tmp[0] * dcdraz) * tpair;
+        delta[1] += (v1tmp[1] * dcdrax + v2tmp[1] * dcdray + v3tmp[1] * dcdraz) * tpair;
+        delta[2] += (v1tmp[2] * dcdrax + v2tmp[2] * dcdray + v3tmp[2] * dcdraz) * tpair;
 
         MathExtra::cross3(bx,delr_st_norm,v1tmp);
 
-	deltb[0] -= v1tmp[0] * dcdrbx * tpair;
-	deltb[1] -= v1tmp[1] * dcdrbx * tpair;
-	deltb[2] -= v1tmp[2] * dcdrbx * tpair;
+        deltb[0] -= v1tmp[0] * dcdrbx * tpair;
+        deltb[1] -= v1tmp[1] * dcdrbx * tpair;
+        deltb[2] -= v1tmp[2] * dcdrbx * tpair;
 
       }
 
@@ -582,16 +582,16 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
 
       if (newton_pair || b < nlocal) {
 
-	torque[b][0] -= deltb[0];
-	torque[b][1] -= deltb[1];
-	torque[b][2] -= deltb[2];
+        torque[b][0] -= deltb[0];
+        torque[b][1] -= deltb[1];
+        torque[b][2] -= deltb[2];
 
       }
 
       }
       }
       }
-      }// end early rejection criteria 
+      }// end early rejection criteria
 
 
     }
@@ -736,14 +736,14 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
   cosphi_cxst4p_ast_one = force->numeric(FLERR,arg[22]);
 
   b_cxst_lo_one = 0.25 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one)/
-	(0.5 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one) - 
-	k_cxst_one * 0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one)/k_cxst_one);
- 
+        (0.5 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one) -
+        k_cxst_one * 0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one)/k_cxst_one);
+
   cut_cxst_lc_one = cut_cxst_lo_one - 0.5 * (cut_cxst_lo_one - cut_cxst_0_one)/b_cxst_lo_one;;
 
   b_cxst_hi_one = 0.25 * (cut_cxst_hi_one - cut_cxst_0_one) * (cut_cxst_hi_one - cut_cxst_0_one)/
-	(0.5 * (cut_cxst_hi_one - cut_cxst_0_one) * (cut_cxst_hi_one - cut_cxst_0_one) - 
-	k_cxst_one * 0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one)/k_cxst_one);
+        (0.5 * (cut_cxst_hi_one - cut_cxst_0_one) * (cut_cxst_hi_one - cut_cxst_0_one) -
+        k_cxst_one * 0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one)/k_cxst_one);
 
   cut_cxst_hc_one = cut_cxst_hi_one - 0.5* (cut_cxst_hi_one - cut_cxst_0_one)/b_cxst_hi_one;
 
@@ -830,7 +830,7 @@ void PairOxdnaCoaxstk::init_style()
 {
   int irequest;
 
-  // request regular neighbor lists 
+  // request regular neighbor lists
 
   irequest = neighbor->request(this,instance_me);
 
@@ -860,7 +860,7 @@ double PairOxdnaCoaxstk::init_one(int i, int j)
   }
   if (offset_flag) {
     error->all(FLERR,"Offset not supported in oxDNA");
-  } 
+  }
 
   k_cxst[j][i] = k_cxst[i][j];
   cut_cxst_0[j][i] = cut_cxst_0[i][j];
@@ -1121,17 +1121,17 @@ void PairOxdnaCoaxstk::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d\
-	 %g %g %g %g %g\
-	 %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g\
-	 %g %g %g %g\
-	 \n",i,
-	k_cxst[i][i],cut_cxst_0[i][i],cut_cxst_c[i][i],cut_cxst_lo[i][i],cut_cxst_hi[i][i],
-	cut_cxst_lc[i][i],cut_cxst_hc[i][i],b_cxst_lo[i][i],b_cxst_hi[i][i],
+         %g %g %g %g %g\
+         %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g\
+         %g %g %g %g\
+         \n",i,
+        k_cxst[i][i],cut_cxst_0[i][i],cut_cxst_c[i][i],cut_cxst_lo[i][i],cut_cxst_hi[i][i],
+        cut_cxst_lc[i][i],cut_cxst_hc[i][i],b_cxst_lo[i][i],b_cxst_hi[i][i],
         a_cxst1[i][i],theta_cxst1_0[i][i],dtheta_cxst1_ast[i][i],b_cxst1[i][i],dtheta_cxst1_c[i][i],
         a_cxst4[i][i],theta_cxst4_0[i][i],dtheta_cxst4_ast[i][i],b_cxst4[i][i],dtheta_cxst4_c[i][i],
         a_cxst5[i][i],theta_cxst5_0[i][i],dtheta_cxst5_ast[i][i],b_cxst5[i][i],dtheta_cxst5_c[i][i],
@@ -1149,17 +1149,17 @@ void PairOxdnaCoaxstk::write_data_all(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d\
-	 %g %g %g %g %g\
-	 %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g\
-	 %g %g %g %g\
-	 \n",i,j,
-	k_cxst[i][j],cut_cxst_0[i][j],cut_cxst_c[i][j],cut_cxst_lo[i][j],cut_cxst_hi[i][j],
-	cut_cxst_lc[i][j],cut_cxst_hc[i][j],b_cxst_lo[i][j],b_cxst_hi[i][j],
+         %g %g %g %g %g\
+         %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g\
+         %g %g %g %g\
+         \n",i,j,
+        k_cxst[i][j],cut_cxst_0[i][j],cut_cxst_c[i][j],cut_cxst_lo[i][j],cut_cxst_hi[i][j],
+        cut_cxst_lc[i][j],cut_cxst_hc[i][j],b_cxst_lo[i][j],b_cxst_hi[i][j],
         a_cxst1[i][j],theta_cxst1_0[i][j],dtheta_cxst1_ast[i][j],b_cxst1[i][j],dtheta_cxst1_c[i][j],
         a_cxst4[i][j],theta_cxst4_0[i][j],dtheta_cxst4_ast[i][j],b_cxst4[i][j],dtheta_cxst4_c[i][j],
         a_cxst5[i][j],theta_cxst5_0[i][j],dtheta_cxst5_ast[i][j],b_cxst5[i][j],dtheta_cxst5_c[i][j],
@@ -1174,7 +1174,7 @@ void PairOxdnaCoaxstk::write_data_all(FILE *fp)
 void *PairOxdnaCoaxstk::extract(const char *str, int &dim)
 {
   dim = 2;
-  
+
   if (strcmp(str,"k_cxst") == 0) return (void *) k_cxst;
   if (strcmp(str,"cut_cxst_0") == 0) return (void *) cut_cxst_0;
   if (strcmp(str,"cut_cxst_c") == 0) return (void *) cut_cxst_c;

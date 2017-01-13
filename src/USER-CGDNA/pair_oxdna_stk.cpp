@@ -116,7 +116,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
   double cosphi1,cosphi2,cosphi1dir[3],cosphi2dir[3];
 
   // distances COM-backbone site, COM-stacking site
-  double d_cs=-0.24, d_cst=0.5; 
+  double d_cs=-0.24, d_cst=0.5;
   // vectors COM-backbone site, COM-stacking site in lab frame
   double ra_cs[3],ra_cst[3];
   double rb_cs[3],rb_cst[3];
@@ -149,7 +149,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  // loop over stacking interaction neighours using bond topology 
+  // loop over stacking interaction neighours using bond topology
 
   for (in = 0; in < nbondlist; in++) {
 
@@ -176,7 +176,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     delr_st[1] = x[a][1] + ra_cst[1] - x[b][1] - rb_cst[1];
     delr_st[2] = x[a][2] + ra_cst[2] - x[b][2] - rb_cst[2];
 
-    // test for directionality of vector b to a 
+    // test for directionality of vector b to a
     tptofp = MFOxdna::is_3pto5p(delr_st,bz);
 
     // if b to a is 5' to 3' we need to swap roles of a and b
@@ -228,9 +228,9 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     delr_ss_norm[1] = delr_ss[1] * rinv_ss;
     delr_ss_norm[2] = delr_ss[2] * rinv_ss;
 
-    f1 = F1(r_st, epsilon_st[atype][btype], a_st[atype][btype], cut_st_0[atype][btype], 
-	cut_st_lc[atype][btype], cut_st_hc[atype][btype], cut_st_lo[atype][btype], cut_st_hi[atype][btype], 
-	b_st_lo[atype][btype], b_st_hi[atype][btype], shift_st[atype][btype]);
+    f1 = F1(r_st, epsilon_st[atype][btype], a_st[atype][btype], cut_st_0[atype][btype],
+        cut_st_lc[atype][btype], cut_st_hc[atype][btype], cut_st_lo[atype][btype], cut_st_hi[atype][btype],
+        b_st_lo[atype][btype], b_st_hi[atype][btype], shift_st[atype][btype]);
 
     // early rejection criterium
     if (f1) {
@@ -241,8 +241,8 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     if (cost4 < -1.0) cost4 = -1.0;
     theta4 = acos(cost4);
 
-    f4t4 = F4(theta4, a_st4[atype][btype], theta_st4_0[atype][btype], dtheta_st4_ast[atype][btype], 
-	b_st4[atype][btype], dtheta_st4_c[atype][btype]);  
+    f4t4 = F4(theta4, a_st4[atype][btype], theta_st4_0[atype][btype], dtheta_st4_ast[atype][btype],
+        b_st4[atype][btype], dtheta_st4_c[atype][btype]);
 
     // early rejection criterium
     if (f4t4) {
@@ -253,8 +253,8 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     if (cost5p < -1.0) cost5p = -1.0;
     theta5p = acos(cost5p);
 
-    f4t5 = F4(theta5p, a_st5[atype][btype], theta_st5_0[atype][btype], dtheta_st5_ast[atype][btype], 
-	b_st5[atype][btype], dtheta_st5_c[atype][btype]);  
+    f4t5 = F4(theta5p, a_st5[atype][btype], theta_st5_0[atype][btype], dtheta_st5_ast[atype][btype],
+        b_st5[atype][btype], dtheta_st5_c[atype][btype]);
 
     // early rejection criterium
     if (f4t5) {
@@ -272,14 +272,14 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     if (cosphi2 >  1.0) cosphi2 =  1.0;
     if (cosphi2 < -1.0) cosphi2 = -1.0;
 
-    f4t6 = F4(theta6p, a_st6[atype][btype], theta_st6_0[atype][btype], dtheta_st6_ast[atype][btype], 
-	b_st6[atype][btype], dtheta_st6_c[atype][btype]);  
+    f4t6 = F4(theta6p, a_st6[atype][btype], theta_st6_0[atype][btype], dtheta_st6_ast[atype][btype],
+        b_st6[atype][btype], dtheta_st6_c[atype][btype]);
 
-    f5c1 = F5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype], 
-	cosphi_st1_c[atype][btype]); 
+    f5c1 = F5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype],
+        cosphi_st1_c[atype][btype]);
 
-    f5c2 = F5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype], 
-	cosphi_st2_c[atype][btype]);
+    f5c2 = F5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype],
+        cosphi_st2_c[atype][btype]);
 
 
     evdwl = f1 * f4t4 * f4t5 * f4t6 * f5c1 * f5c2;
@@ -290,24 +290,24 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     // increment energy
     if (evflag) ev_tally(a,b,nlocal,newton_bond,evdwl,0.0,0.0,0.0,0.0,0.0);
 
-    df1 = DF1(r_st, epsilon_st[atype][btype], a_st[atype][btype], cut_st_0[atype][btype], 
-	cut_st_lc[atype][btype], cut_st_hc[atype][btype], cut_st_lo[atype][btype], cut_st_hi[atype][btype], 
-	b_st_lo[atype][btype], b_st_hi[atype][btype]);
+    df1 = DF1(r_st, epsilon_st[atype][btype], a_st[atype][btype], cut_st_0[atype][btype],
+        cut_st_lc[atype][btype], cut_st_hc[atype][btype], cut_st_lo[atype][btype], cut_st_hi[atype][btype],
+        b_st_lo[atype][btype], b_st_hi[atype][btype]);
 
-    df4t4 = DF4(theta4, a_st4[atype][btype], theta_st4_0[atype][btype], dtheta_st4_ast[atype][btype], 
-	b_st4[atype][btype], dtheta_st4_c[atype][btype])/sin(theta4);  
+    df4t4 = DF4(theta4, a_st4[atype][btype], theta_st4_0[atype][btype], dtheta_st4_ast[atype][btype],
+        b_st4[atype][btype], dtheta_st4_c[atype][btype])/sin(theta4);
 
-    df4t5 = DF4(theta5p, a_st5[atype][btype], theta_st5_0[atype][btype], dtheta_st5_ast[atype][btype], 
-	b_st5[atype][btype], dtheta_st5_c[atype][btype])/sin(theta5p);  
+    df4t5 = DF4(theta5p, a_st5[atype][btype], theta_st5_0[atype][btype], dtheta_st5_ast[atype][btype],
+        b_st5[atype][btype], dtheta_st5_c[atype][btype])/sin(theta5p);
 
-    df4t6 = DF4(theta6p, a_st6[atype][btype], theta_st6_0[atype][btype], dtheta_st6_ast[atype][btype], 
-	b_st6[atype][btype], dtheta_st6_c[atype][btype])/sin(theta6p);  
+    df4t6 = DF4(theta6p, a_st6[atype][btype], theta_st6_0[atype][btype], dtheta_st6_ast[atype][btype],
+        b_st6[atype][btype], dtheta_st6_c[atype][btype])/sin(theta6p);
 
-    df5c1 = DF5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype], 
-	cosphi_st1_c[atype][btype]); 
+    df5c1 = DF5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype],
+        cosphi_st1_c[atype][btype]);
 
-    df5c2 = DF5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype], 
-	cosphi_st2_c[atype][btype]);
+    df5c2 = DF5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype],
+        cosphi_st2_c[atype][btype]);
 
 
     // force, torque and virial contribution for forces between stacking sites
@@ -475,7 +475,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     if (evflag) ev_tally(a,b,nlocal,newton_bond,0.0,0.0,fpair,delr_ss[0],delr_ss[1],delr_ss[2]);
 
 
-    // pure torques not expressible as r x f 
+    // pure torques not expressible as r x f
 
     delta[0] = 0.0;
     delta[1] = 0.0;
@@ -564,7 +564,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
     }
 
-    } 
+    }
     }
     }
     }
@@ -700,28 +700,28 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   cosphi_st2_ast_one = force->numeric(FLERR,arg[20]);
 
   b_st_lo_one = 2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
-	2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
-	(1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))*
-	(1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))/
-	(4*((1-exp(-a_st_one*(cut_st_lo_one -cut_st_0_one)))*
-	(1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))-
-	(1-exp(-a_st_one*(cut_st_c_one -cut_st_0_one)))*
-	(1-exp(-a_st_one*(cut_st_c_one-cut_st_0_one)))));
+        2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
+        (1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))*
+        (1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))/
+        (4*((1-exp(-a_st_one*(cut_st_lo_one -cut_st_0_one)))*
+        (1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))-
+        (1-exp(-a_st_one*(cut_st_c_one -cut_st_0_one)))*
+        (1-exp(-a_st_one*(cut_st_c_one-cut_st_0_one)))));
 
   cut_st_lc_one = cut_st_lo_one - a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
-	(1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))/b_st_lo_one;
+        (1-exp(-a_st_one*(cut_st_lo_one-cut_st_0_one)))/b_st_lo_one;
 
   b_st_hi_one = 2*a_st_one*exp(-a_st_one*(cut_st_hi_one-cut_st_0_one))*
-	2*a_st_one*exp(-a_st_one*(cut_st_hi_one-cut_st_0_one))*
-	(1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))*
-	(1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))/
-	(4*((1-exp(-a_st_one*(cut_st_hi_one -cut_st_0_one)))*
-	(1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))-
-	(1-exp(-a_st_one*(cut_st_c_one -cut_st_0_one)))*
-	(1-exp(-a_st_one*(cut_st_c_one-cut_st_0_one)))));
+        2*a_st_one*exp(-a_st_one*(cut_st_hi_one-cut_st_0_one))*
+        (1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))*
+        (1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))/
+        (4*((1-exp(-a_st_one*(cut_st_hi_one -cut_st_0_one)))*
+        (1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))-
+        (1-exp(-a_st_one*(cut_st_c_one -cut_st_0_one)))*
+        (1-exp(-a_st_one*(cut_st_c_one-cut_st_0_one)))));
 
   cut_st_hc_one = cut_st_hi_one - a_st_one*exp(-a_st_one*(cut_st_hi_one-cut_st_0_one))*
-	(1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))/b_st_hi_one;
+        (1-exp(-a_st_one*(cut_st_hi_one-cut_st_0_one)))/b_st_hi_one;
 
   tmp = 1 - exp(-(cut_st_c_one-cut_st_0_one) * a_st_one);
   shift_st_one = epsilon_st_one * tmp * tmp;
@@ -802,7 +802,7 @@ void PairOxdnaStk::init_style()
 {
   int irequest;
 
-  // request regular neighbor lists 
+  // request regular neighbor lists
 
   irequest = neighbor->request(this,instance_me);
 
@@ -832,9 +832,9 @@ double PairOxdnaStk::init_one(int i, int j)
   }
   if (offset_flag) {
     error->all(FLERR,"Offset not supported in oxDNA");
-  } 
+  }
 
-  epsilon_st[j][i] = epsilon_st[i][j]; 
+  epsilon_st[j][i] = epsilon_st[i][j];
   a_st[j][i] = a_st[i][j];
   b_st_lo[j][i] = b_st_lo[i][j];
   b_st_hi[j][i] = b_st_hi[i][j];
@@ -847,7 +847,7 @@ double PairOxdnaStk::init_one(int i, int j)
   shift_st[j][i] = shift_st[i][j];
 
   a_st4[j][i] = a_st4[i][j];
-  theta_st4_0[j][i] = theta_st4_0[i][j]; 
+  theta_st4_0[j][i] = theta_st4_0[i][j];
   dtheta_st4_ast[j][i] = dtheta_st4_ast[i][j];
   b_st4[j][i] = b_st4[i][j];
   dtheta_st4_c[j][i] = dtheta_st4_c[i][j];
@@ -969,32 +969,32 @@ void PairOxdnaStk::read_restart(FILE *fp)
           fread(&b_st_hi[i][j],sizeof(double),1,fp);
           fread(&shift_st[i][j],sizeof(double),1,fp);
 
-	  fread(&a_st4[i][j],sizeof(double),1,fp);
-	  fread(&theta_st4_0[i][j],sizeof(double),1,fp);
-	  fread(&dtheta_st4_ast[i][j],sizeof(double),1,fp);
-	  fread(&b_st4[i][j],sizeof(double),1,fp);
-	  fread(&dtheta_st4_c[i][j],sizeof(double),1,fp);
+          fread(&a_st4[i][j],sizeof(double),1,fp);
+          fread(&theta_st4_0[i][j],sizeof(double),1,fp);
+          fread(&dtheta_st4_ast[i][j],sizeof(double),1,fp);
+          fread(&b_st4[i][j],sizeof(double),1,fp);
+          fread(&dtheta_st4_c[i][j],sizeof(double),1,fp);
 
-	  fread(&a_st5[i][j],sizeof(double),1,fp);
-	  fread(&theta_st5_0[i][j],sizeof(double),1,fp);
-	  fread(&dtheta_st5_ast[i][j],sizeof(double),1,fp);
-	  fread(&b_st5[i][j],sizeof(double),1,fp);
-	  fread(&dtheta_st5_c[i][j],sizeof(double),1,fp);
+          fread(&a_st5[i][j],sizeof(double),1,fp);
+          fread(&theta_st5_0[i][j],sizeof(double),1,fp);
+          fread(&dtheta_st5_ast[i][j],sizeof(double),1,fp);
+          fread(&b_st5[i][j],sizeof(double),1,fp);
+          fread(&dtheta_st5_c[i][j],sizeof(double),1,fp);
 
-	  fread(&a_st6[i][j],sizeof(double),1,fp);
-	  fread(&theta_st6_0[i][j],sizeof(double),1,fp);
-	  fread(&dtheta_st6_ast[i][j],sizeof(double),1,fp);
-	  fread(&b_st6[i][j],sizeof(double),1,fp);
-	  fread(&dtheta_st6_c[i][j],sizeof(double),1,fp);
+          fread(&a_st6[i][j],sizeof(double),1,fp);
+          fread(&theta_st6_0[i][j],sizeof(double),1,fp);
+          fread(&dtheta_st6_ast[i][j],sizeof(double),1,fp);
+          fread(&b_st6[i][j],sizeof(double),1,fp);
+          fread(&dtheta_st6_c[i][j],sizeof(double),1,fp);
 
-	  fread(&a_st1[i][j],sizeof(double),1,fp);
-	  fread(&cosphi_st1_ast[i][j],sizeof(double),1,fp);
-	  fread(&b_st1[i][j],sizeof(double),1,fp);
-	  fread(&cosphi_st1_c[i][j],sizeof(double),1,fp);
-	  fread(&a_st2[i][j],sizeof(double),1,fp);
-	  fread(&cosphi_st2_ast[i][j],sizeof(double),1,fp);
-	  fread(&b_st2[i][j],sizeof(double),1,fp);
-	  fread(&cosphi_st2_c[i][j],sizeof(double),1,fp);
+          fread(&a_st1[i][j],sizeof(double),1,fp);
+          fread(&cosphi_st1_ast[i][j],sizeof(double),1,fp);
+          fread(&b_st1[i][j],sizeof(double),1,fp);
+          fread(&cosphi_st1_c[i][j],sizeof(double),1,fp);
+          fread(&a_st2[i][j],sizeof(double),1,fp);
+          fread(&cosphi_st2_ast[i][j],sizeof(double),1,fp);
+          fread(&b_st2[i][j],sizeof(double),1,fp);
+          fread(&cosphi_st2_c[i][j],sizeof(double),1,fp);
 
         }
 
@@ -1077,21 +1077,21 @@ void PairOxdnaStk::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d\
-	 %g %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g\
-	 %g %g %g %g\
-	 \n",i,
-	epsilon_st[i][i],a_st[i][i],cut_st_0[i][i],cut_st_c[i][i],cut_st_lo[i][i],cut_st_hi[i][i],
-	cut_st_lc[i][i],cut_st_hc[i][i],b_st_lo[i][i],b_st_hi[i][i],shift_st[i][i],
-	a_st4[i][i],theta_st4_0[i][i],dtheta_st4_ast[i][i],b_st4[i][i],dtheta_st4_c[i][i],
-	a_st5[i][i],theta_st5_0[i][i],dtheta_st5_ast[i][i],b_st5[i][i],dtheta_st5_c[i][i],
-	a_st6[i][i],theta_st6_0[i][i],dtheta_st6_ast[i][i],b_st6[i][i],dtheta_st6_c[i][i],
-	a_st1[i][i],cosphi_st1_ast[i][i],b_st1[i][i], cosphi_st1_c[i][i],
-	a_st2[i][i],cosphi_st2_ast[i][i],b_st2[i][i], cosphi_st2_c[i][i]);
+         %g %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g\
+         %g %g %g %g\
+         \n",i,
+        epsilon_st[i][i],a_st[i][i],cut_st_0[i][i],cut_st_c[i][i],cut_st_lo[i][i],cut_st_hi[i][i],
+        cut_st_lc[i][i],cut_st_hc[i][i],b_st_lo[i][i],b_st_hi[i][i],shift_st[i][i],
+        a_st4[i][i],theta_st4_0[i][i],dtheta_st4_ast[i][i],b_st4[i][i],dtheta_st4_c[i][i],
+        a_st5[i][i],theta_st5_0[i][i],dtheta_st5_ast[i][i],b_st5[i][i],dtheta_st5_c[i][i],
+        a_st6[i][i],theta_st6_0[i][i],dtheta_st6_ast[i][i],b_st6[i][i],dtheta_st6_c[i][i],
+        a_st1[i][i],cosphi_st1_ast[i][i],b_st1[i][i], cosphi_st1_c[i][i],
+        a_st2[i][i],cosphi_st2_ast[i][i],b_st2[i][i], cosphi_st2_c[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1103,21 +1103,21 @@ void PairOxdnaStk::write_data_all(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d\
-	 %g %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g\
-	 %g %g %g %g\
-	 \n",i,j,
-	epsilon_st[i][j],a_st[i][j],cut_st_0[i][j],cut_st_c[i][j],cut_st_lo[i][j],cut_st_hi[i][j],
-	cut_st_lc[i][j],cut_st_hc[i][j],b_st_lo[i][j],b_st_hi[i][j],shift_st[i][j],
-	a_st4[i][j],theta_st4_0[i][j],dtheta_st4_ast[i][j],b_st4[i][j],dtheta_st4_c[i][j],
-	a_st5[i][j],theta_st5_0[i][j],dtheta_st5_ast[i][j],b_st5[i][j],dtheta_st5_c[i][j],
-	a_st6[i][j],theta_st6_0[i][j],dtheta_st6_ast[i][j],b_st6[i][j],dtheta_st6_c[i][j],
-	a_st1[i][j],cosphi_st1_ast[i][j],b_st1[i][j],cosphi_st1_c[i][j],
-	a_st2[i][j],cosphi_st2_ast[i][j],b_st2[i][j],cosphi_st2_c[i][j]);
+         %g %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g\
+         %g %g %g %g\
+         \n",i,j,
+        epsilon_st[i][j],a_st[i][j],cut_st_0[i][j],cut_st_c[i][j],cut_st_lo[i][j],cut_st_hi[i][j],
+        cut_st_lc[i][j],cut_st_hc[i][j],b_st_lo[i][j],b_st_hi[i][j],shift_st[i][j],
+        a_st4[i][j],theta_st4_0[i][j],dtheta_st4_ast[i][j],b_st4[i][j],dtheta_st4_c[i][j],
+        a_st5[i][j],theta_st5_0[i][j],dtheta_st5_ast[i][j],b_st5[i][j],dtheta_st5_c[i][j],
+        a_st6[i][j],theta_st6_0[i][j],dtheta_st6_ast[i][j],b_st6[i][j],dtheta_st6_c[i][j],
+        a_st1[i][j],cosphi_st1_ast[i][j],b_st1[i][j],cosphi_st1_c[i][j],
+        a_st2[i][j],cosphi_st2_ast[i][j],b_st2[i][j],cosphi_st2_c[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1125,7 +1125,7 @@ void PairOxdnaStk::write_data_all(FILE *fp)
 void *PairOxdnaStk::extract(const char *str, int &dim)
 {
   dim = 2;
-  
+
   if (strcmp(str,"epsilon_st") == 0) return (void *) epsilon_st;
   if (strcmp(str,"a_st") == 0) return (void *) a_st;
   if (strcmp(str,"cut_st_0") == 0) return (void *) cut_st_0;

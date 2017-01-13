@@ -63,7 +63,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   double rsq,Deltasq,rlogarg;
   double r,rr0,rr0sq;
   // distances COM-backbone site
-  double d_cs=-0.24; 
+  double d_cs=-0.24;
   // vectors COM-backbone site in lab frame
   double ra_cs[3],rb_cs[3];
 
@@ -86,7 +86,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 
-  // loop over FENE bonds 
+  // loop over FENE bonds
 
   for (in = 0; in < nbondlist; in++) {
 
@@ -125,7 +125,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
     if (rlogarg < 0.1) {
       char str[128];
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " " 
+      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[a],atom->tag[b],r);
       error->warning(FLERR,str,0);
@@ -232,8 +232,8 @@ void BondOxdnaFene::coeff(int narg, char **arg)
 
 void BondOxdnaFene::init_style()
 {
-  /* special bonds have to be lj = 0 1 1 and coul = 1 1 1 to exclude 
-     the ss excluded volume interaction between nearest neighbours   */ 
+  /* special bonds have to be lj = 0 1 1 and coul = 1 1 1 to exclude
+     the ss excluded volume interaction between nearest neighbours   */
 
   force->special_lj[1] = 0.0;
   force->special_lj[2] = 1.0;
@@ -243,13 +243,13 @@ void BondOxdnaFene::init_style()
   force->special_coul[3] = 1.0;
 
   fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-		 " Special bond factors lj:   %-10g %-10g %-10g\n"
-		 " Special bond factors coul: %-10g %-10g %-10g\n",
-		 force->special_lj[1],force->special_lj[2],force->special_lj[3],
-		 force->special_coul[1],force->special_coul[2],force->special_coul[3]);
+                 " Special bond factors lj:   %-10g %-10g %-10g\n"
+                 " Special bond factors coul: %-10g %-10g %-10g\n",
+                 force->special_lj[1],force->special_lj[2],force->special_lj[3],
+                 force->special_coul[1],force->special_coul[2],force->special_coul[3]);
 
-  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||  
-      force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)  
+  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
+      force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
   {
     if (comm->me == 0)
       error->warning(FLERR,"Use special bonds lj = 0,1,1 and coul = 1,1,1 with bond style oxdna_fene");

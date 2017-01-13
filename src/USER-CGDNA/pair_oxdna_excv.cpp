@@ -103,7 +103,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   double delr_bs[3],rsq_bs,delr_bb[3],rsq_bb;
 
   // distances COM-backbone site, COM-base site
-  double d_cs=-0.24, d_cb=0.56; 
+  double d_cs=-0.24, d_cb=0.56;
   // vectors COM-backbone site, COM-base site in lab frame
   double ra_cs[3],ra_cb[3];
   double rb_cs[3],rb_cb[3];
@@ -212,30 +212,30 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
       // backbone-backbone
       if (rsq_ss < cutsq_ss_c[atype][btype]) {
 
-	evdwl = F3(rsq_ss,cutsq_ss_ast[atype][btype],cut_ss_c[atype][btype],lj1_ss[atype][btype],
-			lj2_ss[atype][btype],epsilon_ss[atype][btype],b_ss[atype][btype],fpair);
+        evdwl = F3(rsq_ss,cutsq_ss_ast[atype][btype],cut_ss_c[atype][btype],lj1_ss[atype][btype],
+                        lj2_ss[atype][btype],epsilon_ss[atype][btype],b_ss[atype][btype],fpair);
 
-	// knock out nearest-neighbour interaction between ss
-	fpair *= factor_lj;
-	evdwl *= factor_lj;
+        // knock out nearest-neighbour interaction between ss
+        fpair *= factor_lj;
+        evdwl *= factor_lj;
 
-	// increment energy and virial
-	if (evflag) ev_tally(a,b,nlocal,newton_pair,
-		evdwl,0.0,fpair,delr_ss[0],delr_ss[1],delr_ss[2]);
+        // increment energy and virial
+        if (evflag) ev_tally(a,b,nlocal,newton_pair,
+                evdwl,0.0,fpair,delr_ss[0],delr_ss[1],delr_ss[2]);
 
-	delf[0] = delr_ss[0]*fpair; 
-	delf[1] = delr_ss[1]*fpair; 
-	delf[2] = delr_ss[2]*fpair; 
+        delf[0] = delr_ss[0]*fpair;
+        delf[1] = delr_ss[1]*fpair;
+        delf[2] = delr_ss[2]*fpair;
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
         f[a][2] += delf[2];
 
-	MathExtra::cross3(ra_cs,delf,delta);
+        MathExtra::cross3(ra_cs,delf,delta);
 
-	torque[a][0] += delta[0];
-	torque[a][1] += delta[1];
-	torque[a][2] += delta[2];
+        torque[a][0] += delta[0];
+        torque[a][1] += delta[1];
+        torque[a][2] += delta[2];
 
         if (newton_pair || b < nlocal) {
 
@@ -243,11 +243,11 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
           f[b][1] -= delf[1];
           f[b][2] -= delf[2];
 
-	  MathExtra::cross3(rb_cs,delf,deltb);
+          MathExtra::cross3(rb_cs,delf,deltb);
 
-	  torque[b][0] -= deltb[0];
-	  torque[b][1] -= deltb[1];
-	  torque[b][2] -= deltb[2];
+          torque[b][0] -= deltb[0];
+          torque[b][1] -= deltb[1];
+          torque[b][2] -= deltb[2];
 
         }
 
@@ -257,120 +257,120 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
       // backbone-base
       if (rsq_sb < cutsq_sb_c[atype][btype]) {
 
-	evdwl = F3(rsq_sb,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
-			lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
+        evdwl = F3(rsq_sb,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
+                        lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
 
-	// increment energy and virial
-	if (evflag) ev_tally(a,b,nlocal,newton_pair,
-		evdwl,0.0,fpair,delr_sb[0],delr_sb[1],delr_sb[2]);
+        // increment energy and virial
+        if (evflag) ev_tally(a,b,nlocal,newton_pair,
+                evdwl,0.0,fpair,delr_sb[0],delr_sb[1],delr_sb[2]);
 
-	delf[0] = delr_sb[0]*fpair; 
-	delf[1] = delr_sb[1]*fpair; 
-	delf[2] = delr_sb[2]*fpair; 
+        delf[0] = delr_sb[0]*fpair;
+        delf[1] = delr_sb[1]*fpair;
+        delf[2] = delr_sb[2]*fpair;
 
-	f[a][0] += delf[0];
-	f[a][1] += delf[1];
-	f[a][2] += delf[2];
+        f[a][0] += delf[0];
+        f[a][1] += delf[1];
+        f[a][2] += delf[2];
 
-	MathExtra::cross3(ra_cs,delf,delta);
+        MathExtra::cross3(ra_cs,delf,delta);
 
-	torque[a][0] += delta[0];
-	torque[a][1] += delta[1];
-	torque[a][2] += delta[2];
+        torque[a][0] += delta[0];
+        torque[a][1] += delta[1];
+        torque[a][2] += delta[2];
 
-	if (newton_pair || b < nlocal) {
+        if (newton_pair || b < nlocal) {
 
-	  f[b][0] -= delf[0];
-	  f[b][1] -= delf[1];
-	  f[b][2] -= delf[2];
+          f[b][0] -= delf[0];
+          f[b][1] -= delf[1];
+          f[b][2] -= delf[2];
 
-	  MathExtra::cross3(rb_cb,delf,deltb);
+          MathExtra::cross3(rb_cb,delf,deltb);
 
-	  torque[b][0] -= deltb[0];
-	  torque[b][1] -= deltb[1];
-	  torque[b][2] -= deltb[2];
+          torque[b][0] -= deltb[0];
+          torque[b][1] -= deltb[1];
+          torque[b][2] -= deltb[2];
 
-	}
+        }
 
       }
 
       // base-backbone
       if (rsq_bs < cutsq_sb_c[atype][btype]) {
 
-	evdwl = F3(rsq_bs,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
-			lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
+        evdwl = F3(rsq_bs,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
+                        lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
 
-	// increment energy and virial
-	if (evflag) ev_tally(a,b,nlocal,newton_pair,
-		evdwl,0.0,fpair,delr_bs[0],delr_bs[1],delr_bs[2]);
+        // increment energy and virial
+        if (evflag) ev_tally(a,b,nlocal,newton_pair,
+                evdwl,0.0,fpair,delr_bs[0],delr_bs[1],delr_bs[2]);
 
-	delf[0] = delr_bs[0]*fpair; 
-	delf[1] = delr_bs[1]*fpair; 
-	delf[2] = delr_bs[2]*fpair; 
+        delf[0] = delr_bs[0]*fpair;
+        delf[1] = delr_bs[1]*fpair;
+        delf[2] = delr_bs[2]*fpair;
 
-	f[a][0] += delf[0];
-	f[a][1] += delf[1];
-	f[a][2] += delf[2];
- 
-	MathExtra::cross3(ra_cb,delf,delta);
+        f[a][0] += delf[0];
+        f[a][1] += delf[1];
+        f[a][2] += delf[2];
 
-	torque[a][0] += delta[0];
-	torque[a][1] += delta[1];
-	torque[a][2] += delta[2];
+        MathExtra::cross3(ra_cb,delf,delta);
 
-	if (newton_pair || b < nlocal) {
+        torque[a][0] += delta[0];
+        torque[a][1] += delta[1];
+        torque[a][2] += delta[2];
 
-	  f[b][0] -= delf[0];
-	  f[b][1] -= delf[1];
-	  f[b][2] -= delf[2];
+        if (newton_pair || b < nlocal) {
 
-	  MathExtra::cross3(rb_cs,delf,deltb);
+          f[b][0] -= delf[0];
+          f[b][1] -= delf[1];
+          f[b][2] -= delf[2];
 
-	  torque[b][0] -= deltb[0];
-	  torque[b][1] -= deltb[1];
-	  torque[b][2] -= deltb[2];
+          MathExtra::cross3(rb_cs,delf,deltb);
 
-	}
+          torque[b][0] -= deltb[0];
+          torque[b][1] -= deltb[1];
+          torque[b][2] -= deltb[2];
+
+        }
 
       }
 
       // base-base
       if (rsq_bb < cutsq_bb_c[atype][btype]) {
 
-	evdwl = F3(rsq_bb,cutsq_bb_ast[atype][btype],cut_bb_c[atype][btype],lj1_bb[atype][btype],
-			lj2_bb[atype][btype],epsilon_bb[atype][btype],b_bb[atype][btype],fpair);
+        evdwl = F3(rsq_bb,cutsq_bb_ast[atype][btype],cut_bb_c[atype][btype],lj1_bb[atype][btype],
+                        lj2_bb[atype][btype],epsilon_bb[atype][btype],b_bb[atype][btype],fpair);
 
-	// increment energy and virial
-	if (evflag) ev_tally(a,b,nlocal,newton_pair,
-		evdwl,0.0,fpair,delr_bb[0],delr_bb[1],delr_bb[2]);
+        // increment energy and virial
+        if (evflag) ev_tally(a,b,nlocal,newton_pair,
+                evdwl,0.0,fpair,delr_bb[0],delr_bb[1],delr_bb[2]);
 
-	delf[0] = delr_bb[0]*fpair; 
-	delf[1] = delr_bb[1]*fpair; 
-	delf[2] = delr_bb[2]*fpair; 
+        delf[0] = delr_bb[0]*fpair;
+        delf[1] = delr_bb[1]*fpair;
+        delf[2] = delr_bb[2]*fpair;
 
-	f[a][0] += delf[0];
-	f[a][1] += delf[1];
-	f[a][2] += delf[2];
+        f[a][0] += delf[0];
+        f[a][1] += delf[1];
+        f[a][2] += delf[2];
 
-	MathExtra::cross3(ra_cb,delf,delta);
+        MathExtra::cross3(ra_cb,delf,delta);
 
-	torque[a][0] += delta[0];
-	torque[a][1] += delta[1];
-	torque[a][2] += delta[2];
+        torque[a][0] += delta[0];
+        torque[a][1] += delta[1];
+        torque[a][2] += delta[2];
 
-	if (newton_pair || b < nlocal) {
+        if (newton_pair || b < nlocal) {
 
-	  f[b][0] -= delf[0];
-	  f[b][1] -= delf[1];
-	  f[b][2] -= delf[2];
+          f[b][0] -= delf[0];
+          f[b][1] -= delf[1];
+          f[b][2] -= delf[2];
 
-	  MathExtra::cross3(rb_cb,delf,deltb);
+          MathExtra::cross3(rb_cb,delf,deltb);
 
-	  torque[b][0] -= deltb[0];
-	  torque[b][1] -= deltb[1];
-	  torque[b][2] -= deltb[2];
+          torque[b][0] -= deltb[0];
+          torque[b][1] -= deltb[1];
+          torque[b][2] -= deltb[2];
 
-	}
+        }
 
       }
       // end excluded volume interaction
@@ -478,7 +478,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
       *4.0/sigma_ss_one*(6.0*pow(sigma_ss_one/cut_ss_ast_one,7)-12.0*pow(sigma_ss_one/cut_ss_ast_one,13))
       /4.0/(4.0*(pow(sigma_ss_one/cut_ss_ast_one,12)-pow(sigma_ss_one/cut_ss_ast_one,6)));
 
-  cut_ss_c_one = cut_ss_ast_one 
+  cut_ss_c_one = cut_ss_ast_one
       - 2.0*4.0*(pow(sigma_ss_one/cut_ss_ast_one,12)-pow(sigma_ss_one/cut_ss_ast_one,6))
       /(4.0/sigma_ss_one*(6.0*pow(sigma_ss_one/cut_ss_ast_one,7)-12.0*pow(sigma_ss_one/cut_ss_ast_one,13)));
 
@@ -503,13 +503,13 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   sigma_sb_one = force->numeric(FLERR,arg[6]);
   cut_sb_ast_one = force->numeric(FLERR,arg[7]);
 
-  // smoothing - determined through continuity and differentiability 
+  // smoothing - determined through continuity and differentiability
   b_sb_one = 4.0/sigma_sb_one
       *(6.0*pow(sigma_sb_one/cut_sb_ast_one,7)-12.0*pow(sigma_sb_one/cut_sb_ast_one,13))
       *4.0/sigma_sb_one*(6.0*pow(sigma_sb_one/cut_sb_ast_one,7)-12.0*pow(sigma_sb_one/cut_sb_ast_one,13))
       /4.0/(4.0*(pow(sigma_sb_one/cut_sb_ast_one,12)-pow(sigma_sb_one/cut_sb_ast_one,6)));
 
-  cut_sb_c_one = cut_sb_ast_one 
+  cut_sb_c_one = cut_sb_ast_one
       - 2.0*4.0*(pow(sigma_sb_one/cut_sb_ast_one,12)-pow(sigma_sb_one/cut_sb_ast_one,6))
       /(4.0/sigma_sb_one*(6.0*pow(sigma_sb_one/cut_sb_ast_one,7)-12.0*pow(sigma_sb_one/cut_sb_ast_one,13)));
 
@@ -528,19 +528,19 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
 
   count = 0;
-  
+
   // LJ parameters
   epsilon_bb_one = force->numeric(FLERR,arg[8]);
   sigma_bb_one = force->numeric(FLERR,arg[9]);
   cut_bb_ast_one = force->numeric(FLERR,arg[10]);
 
-  // smoothing - determined through continuity and differentiability 
+  // smoothing - determined through continuity and differentiability
   b_bb_one = 4.0/sigma_bb_one
       *(6.0*pow(sigma_bb_one/cut_bb_ast_one,7)-12.0*pow(sigma_bb_one/cut_bb_ast_one,13))
       *4.0/sigma_bb_one*(6.0*pow(sigma_bb_one/cut_bb_ast_one,7)-12.0*pow(sigma_bb_one/cut_bb_ast_one,13))
       /4.0/(4.0*(pow(sigma_bb_one/cut_bb_ast_one,12)-pow(sigma_bb_one/cut_bb_ast_one,6)));
 
-  cut_bb_c_one = cut_bb_ast_one 
+  cut_bb_c_one = cut_bb_ast_one
       - 2.0*4.0*(pow(sigma_bb_one/cut_bb_ast_one,12)-pow(sigma_bb_one/cut_bb_ast_one,6))
       /(4.0/sigma_bb_one*(6.0*pow(sigma_bb_one/cut_bb_ast_one,7)-12.0*pow(sigma_bb_one/cut_bb_ast_one,13)));
 
@@ -568,7 +568,7 @@ void PairOxdnaExcv::init_style()
 {
   int irequest;
 
-  // request regular neighbor lists 
+  // request regular neighbor lists
 
   irequest = neighbor->request(this,instance_me);
 
@@ -598,10 +598,10 @@ double PairOxdnaExcv::init_one(int i, int j)
   }
   if (offset_flag) {
     error->all(FLERR,"Offset not supported in oxDNA");
-  } 
+  }
 
   epsilon_ss[j][i] = epsilon_ss[i][j];
-  sigma_ss[j][i] = sigma_ss[i][j]; 
+  sigma_ss[j][i] = sigma_ss[i][j];
   cut_ss_ast[j][i] = cut_ss_ast[i][j];
   cut_ss_c[j][i] = cut_ss_c[i][j];
   b_ss[j][i] = b_ss[i][j];
@@ -734,17 +734,17 @@ void PairOxdnaExcv::read_restart(FILE *fp)
         MPI_Bcast(&epsilon_ss[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma_ss[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_ss_ast[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&b_ss[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&b_ss[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_ss_c[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&epsilon_sb[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma_sb[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_sb_ast[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&b_sb[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&b_sb[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_sb_c[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&epsilon_bb[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma_bb[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_bb_ast[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&b_bb[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&b_bb[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_bb_c[i][j],1,MPI_DOUBLE,0,world);
 
       }
@@ -787,13 +787,13 @@ void PairOxdnaExcv::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 \n",i,
-	epsilon_ss[i][i],sigma_ss[i][i],cut_ss_ast[i][i],b_ss[i][i],cut_ss_c[i][i],
-	epsilon_sb[i][i],sigma_sb[i][i],cut_sb_ast[i][i],b_sb[i][i],cut_sb_c[i][i],
-	epsilon_bb[i][i],sigma_bb[i][i],cut_bb_ast[i][i],b_bb[i][i],cut_bb_c[i][i]);
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         \n",i,
+        epsilon_ss[i][i],sigma_ss[i][i],cut_ss_ast[i][i],b_ss[i][i],cut_ss_c[i][i],
+        epsilon_sb[i][i],sigma_sb[i][i],cut_sb_ast[i][i],b_sb[i][i],cut_sb_c[i][i],
+        epsilon_bb[i][i],sigma_bb[i][i],cut_bb_ast[i][i],b_bb[i][i],cut_bb_c[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -805,13 +805,13 @@ void PairOxdnaExcv::write_data_all(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 %g %g %g %g %g\
-	 \n",i,j,
-	epsilon_ss[i][j],sigma_ss[i][j],cut_ss_ast[i][j],b_ss[i][j],cut_ss_c[i][j],
-	epsilon_sb[i][j],sigma_sb[i][j],cut_sb_ast[i][j],b_sb[i][j],cut_sb_c[i][j],
-	epsilon_bb[i][j],sigma_bb[i][j],cut_bb_ast[i][j],b_bb[i][j],cut_bb_c[i][j]);
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         %g %g %g %g %g\
+         \n",i,j,
+        epsilon_ss[i][j],sigma_ss[i][j],cut_ss_ast[i][j],b_ss[i][j],cut_ss_c[i][j],
+        epsilon_sb[i][j],sigma_sb[i][j],cut_sb_ast[i][j],b_sb[i][j],cut_sb_c[i][j],
+        epsilon_bb[i][j],sigma_bb[i][j],cut_bb_ast[i][j],b_bb[i][j],cut_bb_c[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

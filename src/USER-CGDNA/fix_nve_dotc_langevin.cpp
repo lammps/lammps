@@ -38,7 +38,7 @@ using namespace MathExtra;
 /* ---------------------------------------------------------------------- */
 
 FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg) 
+  FixNVE(lmp, narg, arg)
 {
   if (narg != 9) error->all(FLERR,"Illegal fix nve/dotc/langevin command");
 
@@ -61,7 +61,7 @@ FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
       ascale = force->numeric(FLERR,arg[8]);
       Gamma = gamma * ascale;
     }
-    
+
   }
 
   // initialize Marsaglia RNG with processor-unique seed
@@ -98,12 +98,12 @@ void FixNVEDotcLangevin::init()
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix nve/dotc/langevin requires extended particles");
-  
+
 
   // set prefactor
   gfactor1 = exp(-gamma*update->dt);
 
-  // set square root of temperature 
+  // set square root of temperature
   compute_target();
 
   FixNVE::init();
@@ -152,7 +152,7 @@ void FixNVEDotcLangevin::initial_integrate(int vflag)
   dthlf = 0.5 * dt;
   dtqrt = 0.25 * dt;
 
-  // set square root of temperature 
+  // set square root of temperature
   compute_target();
 
   for (int i = 0; i < nlocal; i++)
@@ -172,7 +172,7 @@ void FixNVEDotcLangevin::initial_integrate(int vflag)
       x[i][1] += dthlf * v[i][1];
       x[i][2] += dthlf * v[i][2];
 
-      // convert angular momentum and torque in space frame into 
+      // convert angular momentum and torque in space frame into
       // quaternion 4-momentum and 1/2 of 4-torque in body frame
       vec3_to_vec4(quat,angmom[i],conjqm);
       conjqm[0] *= 2.0;
@@ -200,9 +200,9 @@ void FixNVEDotcLangevin::initial_integrate(int vflag)
       // var = 1/12*(b-a)^2
       gfactor2 = sqrt(12.0*(1.0-gfactor1*gfactor1)/rmass[i])*tsqrt;
 
-      gfactor3[0] = exp(-Gamma*M*dt/inertia[0]); 
-      gfactor3[1] = exp(-Gamma*M*dt/inertia[1]); 
-      gfactor3[2] = exp(-Gamma*M*dt/inertia[2]); 
+      gfactor3[0] = exp(-Gamma*M*dt/inertia[0]);
+      gfactor3[1] = exp(-Gamma*M*dt/inertia[1]);
+      gfactor3[2] = exp(-Gamma*M*dt/inertia[2]);
 
       gfactor4[0] = sqrt(48.0*inertia[0]*(1.0-gfactor3[0]*gfactor3[0]))*tsqrt;
       gfactor4[1] = sqrt(48.0*inertia[1]*(1.0-gfactor3[1]*gfactor3[1]))*tsqrt;
@@ -218,7 +218,7 @@ void FixNVEDotcLangevin::initial_integrate(int vflag)
       // apply stochastic force to velocities
       v[i][0] = v[i][0] * gfactor1 + gfactor2 * (random->uniform()-0.5);
       v[i][1] = v[i][1] * gfactor1 + gfactor2 * (random->uniform()-0.5);
-      v[i][2] = v[i][2] * gfactor1 + gfactor2 * (random->uniform()-0.5); 
+      v[i][2] = v[i][2] * gfactor1 + gfactor2 * (random->uniform()-0.5);
 
       // update position by 1/2 step
       x[i][0] += dthlf * v[i][0];
@@ -230,9 +230,9 @@ void FixNVEDotcLangevin::initial_integrate(int vflag)
       slq_conjqm[1] = -quat[2]*conjqm[0] - quat[3]*conjqm[1] + quat[0]*conjqm[2] + quat[1]*conjqm[3];
       slq_conjqm[2] = -quat[3]*conjqm[0] + quat[2]*conjqm[1] - quat[1]*conjqm[2] + quat[0]*conjqm[3];
 
-      gfactor5[0] = gfactor3[0] * slq_conjqm[0] + gfactor4[0] * (random->uniform()-0.5); 
-      gfactor5[1] = gfactor3[1] * slq_conjqm[1] + gfactor4[1] * (random->uniform()-0.5); 
-      gfactor5[2] = gfactor3[2] * slq_conjqm[2] + gfactor4[2] * (random->uniform()-0.5); 
+      gfactor5[0] = gfactor3[0] * slq_conjqm[0] + gfactor4[0] * (random->uniform()-0.5);
+      gfactor5[1] = gfactor3[1] * slq_conjqm[1] + gfactor4[1] * (random->uniform()-0.5);
+      gfactor5[2] = gfactor3[2] * slq_conjqm[2] + gfactor4[2] * (random->uniform()-0.5);
 
       conjqm[0] = -quat[1] * gfactor5[0] - quat[2] * gfactor5[1] - quat[3] * gfactor5[2];
       conjqm[1] =  quat[0] * gfactor5[0] - quat[3] * gfactor5[1] + quat[2] * gfactor5[2];
@@ -295,7 +295,7 @@ void FixNVEDotcLangevin::final_integrate()
       v[i][1] += dthlfm * f[i][1];
       v[i][2] += dthlfm * f[i][2];
 
-      // convert angular momentum and torque in space frame into 
+      // convert angular momentum and torque in space frame into
       // quaternion 4-momentum and 1/2 of 4-torque in body frame
       vec3_to_vec4(quat,angmom[i],conjqm);
       conjqm[0] *= 2.0;
@@ -314,10 +314,10 @@ void FixNVEDotcLangevin::final_integrate()
 
       conjqm_dot_quat = conjqm[0]*quat[0] + conjqm[1]*quat[1] + conjqm[2]*quat[2] + conjqm[3]*quat[3];
 
-      conjqm[0] -= conjqm_dot_quat * quat[0]; 
-      conjqm[1] -= conjqm_dot_quat * quat[1]; 
-      conjqm[2] -= conjqm_dot_quat * quat[2]; 
-      conjqm[3] -= conjqm_dot_quat * quat[3]; 
+      conjqm[0] -= conjqm_dot_quat * quat[0];
+      conjqm[1] -= conjqm_dot_quat * quat[1];
+      conjqm[2] -= conjqm_dot_quat * quat[2];
+      conjqm[3] -= conjqm_dot_quat * quat[3];
 
       // convert quaternion 4-momentum in body frame back to angular momentum in space frame
       vec4_to_vec3(quat,conjqm,angmom[i]);

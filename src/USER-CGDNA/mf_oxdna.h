@@ -36,11 +36,12 @@ namespace MFOxdna {
 }
 
 /* ----------------------------------------------------------------------
-   f1 modulation factor 
-------------------------------------------------------------------------- */
+   f1 modulation factor
+   ------------------------------------------------------------------------- */
 inline double MFOxdna::F1(double r, double eps, double a, double cut_0,
-	double cut_lc, double cut_hc, double cut_lo, double cut_hi, 
-	double b_lo, double b_hi, double shift) 
+                          double cut_lc, double cut_hc, double cut_lo,
+                          double cut_hi, double b_lo, double b_hi,
+                          double shift)
 {
 
   if (r > cut_hc) {
@@ -63,11 +64,11 @@ inline double MFOxdna::F1(double r, double eps, double a, double cut_0,
 }
 
 /* ----------------------------------------------------------------------
-   derivative of f1 modulation factor 
-------------------------------------------------------------------------- */
+   derivative of f1 modulation factor
+   ------------------------------------------------------------------------- */
 inline double MFOxdna::DF1(double r, double eps, double a, double cut_0,
-	double cut_lc, double cut_hc, double cut_lo, double cut_hi, 
-	double b_lo, double b_hi) 
+                           double cut_lc, double cut_hc, double cut_lo,
+                           double cut_hi, double b_lo, double b_hi)
 {
 
   if (r > cut_hc) {
@@ -90,11 +91,11 @@ inline double MFOxdna::DF1(double r, double eps, double a, double cut_0,
 }
 
 /* ----------------------------------------------------------------------
-   f2 modulation factor 
-------------------------------------------------------------------------- */
-inline double MFOxdna::F2(double r, double k, double cut_0,
-	double cut_lc, double cut_hc, double cut_lo, double cut_hi, 
-	double b_lo, double b_hi, double cut_c) 
+   f2 modulation factor
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::F2(double r, double k, double cut_0, double cut_lc,
+                          double cut_hc, double cut_lo, double cut_hi,
+                          double b_lo, double b_hi, double cut_c)
 {
 
   if(r < cut_lc || r > cut_hc){
@@ -113,11 +114,11 @@ inline double MFOxdna::F2(double r, double k, double cut_0,
 }
 
 /* ----------------------------------------------------------------------
-   derivative of f2 modulation factor 
-------------------------------------------------------------------------- */
-inline double MFOxdna::DF2(double r, double k, double cut_0,
-	double cut_lc, double cut_hc, double cut_lo, double cut_hi, 
-	double b_lo, double b_hi) 
+   derivative of f2 modulation factor
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::DF2(double r, double k, double cut_0, double cut_lc,
+                           double cut_hc, double cut_lo, double cut_hi,
+                           double b_lo, double b_hi)
 {
   if(r < cut_lc || r > cut_hc){
     return 0;
@@ -136,9 +137,10 @@ inline double MFOxdna::DF2(double r, double k, double cut_0,
 
 /* ----------------------------------------------------------------------
    f3 modulation factor, force and energy calculation
-------------------------------------------------------------------------- */
-inline double MFOxdna::F3(double rsq, double cutsq_ast, double cut_c, 
-	double lj1, double lj2, double eps, double b, double & fpair) 
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::F3(double rsq, double cutsq_ast, double cut_c,
+                          double lj1, double lj2, double eps, double b,
+                          double & fpair)
 {
   double evdwl = 0.0;
 
@@ -158,10 +160,10 @@ inline double MFOxdna::F3(double rsq, double cutsq_ast, double cut_c,
 }
 
 /* ----------------------------------------------------------------------
-   f4 modulation factor 
-------------------------------------------------------------------------- */
-inline double MFOxdna::F4(double theta, double a, double theta_0, 
-	double dtheta_ast, double b, double dtheta_c) 
+   f4 modulation factor
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::F4(double theta, double a, double theta_0,
+                          double dtheta_ast, double b, double dtheta_c)
 {
   double dtheta = theta-theta_0;
 
@@ -183,13 +185,13 @@ inline double MFOxdna::F4(double theta, double a, double theta_0,
 /* ----------------------------------------------------------------------
    derivative of f4 modulation factor
 
-   NOTE: We handle the sin(theta) factor from the partial derivative 
-	 of d(cos(theta))/dtheta externally. The reason for this is
-	 because the sign of DF4 depends on the sign of theta in the 
-	 function call. It is also more efficient to store sin(theta).  
-------------------------------------------------------------------------- */
+   NOTE: We handle the sin(theta) factor from the partial derivative
+   of d(cos(theta))/dtheta externally. The reason for this is
+   because the sign of DF4 depends on the sign of theta in the
+   function call. It is also more efficient to store sin(theta).
+   ------------------------------------------------------------------------- */
 inline double MFOxdna::DF4(double theta, double a, double theta_0,
-        double dtheta_ast, double b, double dtheta_c) 
+                           double dtheta_ast, double b, double dtheta_c)
 {
   double dtheta = theta-theta_0;
 
@@ -204,15 +206,15 @@ inline double MFOxdna::DF4(double theta, double a, double theta_0,
   }
   else {
     return 2*b* (dtheta+dtheta_c);
-  } 
+  }
 
 }
 
 /* ----------------------------------------------------------------------
-   f5 modulation factor 
-------------------------------------------------------------------------- */
-inline double MFOxdna::F5(double x, double a, double x_ast, 
-	double b, double x_c) 
+   f5 modulation factor
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::F5(double x, double a, double x_ast,
+                          double b, double x_c)
 {
 
   if (x >= 0) {
@@ -230,10 +232,10 @@ inline double MFOxdna::F5(double x, double a, double x_ast,
 }
 
 /* ----------------------------------------------------------------------
-   derivative of f5 modulation factor 
-------------------------------------------------------------------------- */
-inline double MFOxdna::DF5(double x, double a, double x_ast, 
-	double b, double x_c) 
+   derivative of f5 modulation factor
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::DF5(double x, double a, double x_ast,
+                           double b, double x_c)
 {
   if(x >= 0) {
     return 0.0;
@@ -252,10 +254,10 @@ inline double MFOxdna::DF5(double x, double a, double x_ast,
 
 /* ----------------------------------------------------------------------
    test for directionality by projecting base normal n onto delr,
-   returns 1 if nucleotide a to nucleotide b is 3' to 5', otherwise -1 
-------------------------------------------------------------------------- */
+   returns 1 if nucleotide a to nucleotide b is 3' to 5', otherwise -1
+   ------------------------------------------------------------------------- */
 inline double MFOxdna::is_3pto5p(const double * delr, const double * n)
 {
   return copysign(1.0,MathExtra::dot3(delr,n));
-} 
+}
 #endif

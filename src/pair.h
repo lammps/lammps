@@ -211,10 +211,12 @@ class Pair : protected Pointers {
   double tabinner;                     // inner cutoff for Coulomb table
   double tabinner_disp;                 // inner cutoff for dispersion table
 
+ public:
   // custom data type for accessing Coulomb tables
 
   typedef union {int i; float f;} union_int_float_t;
 
+ protected:
   int vflag_fdotr;
   int maxeatom,maxvatom;
 

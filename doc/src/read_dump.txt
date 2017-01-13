@@ -15,11 +15,12 @@ read_dump file Nstep field1 field2 ... keyword values ... :pre
 file = name of dump file to read :ulb,l
 Nstep = snapshot timestep to read from file :l
 one or more fields may be appended :l
-field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {q} or {ix} or {iy} or {iz}
+field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {q} or {ix} or {iy} or {iz} or {fx} or {fy} or {fz}
   {x},{y},{z} = atom coordinates
   {vx},{vy},{vz} = velocity components
   {q} = charge
-  {ix},{iy},{iz} = image flags in each dimension :pre
+  {ix},{iy},{iz} = image flags in each dimension
+  {fx},{fy},{fz} = force components :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled} or {wrapped} or {format} :l
   {box} value = {yes} or {no} = replace simulation box with dump box

@@ -24,7 +24,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPair::NPair(LAMMPS *lmp) : Pointers(lmp)
+NPair::NPair(LAMMPS *lmp)
+  : Pointers(lmp), nb(NULL), ns(NULL), bins(NULL), stencil(NULL)
 {
   last_build = -1;
   last_copy_bin_setup = last_copy_bin = last_copy_stencil = -1;
@@ -130,11 +131,11 @@ void NPair::build_setup()
     copy_bin_setup_info();
     last_copy_bin_setup = update->ntimestep;
   }
-  if (nb && last_copy_bin < nb->last_bin_memory) {
+  if (nb && ((last_copy_bin < nb->last_bin_memory) || (bins != nb->bins))) {
     copy_bin_info();
     last_copy_bin = update->ntimestep;
   }
-  if (ns && last_copy_stencil < ns->last_create) {
+  if (ns && ((last_copy_stencil < ns->last_create) || (stencil != ns->stencil))) {
     copy_stencil_info();
     last_copy_stencil = update->ntimestep;
   }

@@ -67,7 +67,7 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // zero
   for (int i = 0; i < atom->nmax; i++)
-    for (int m = 0; m < 3; m++)
+    for (int m = 0; m < 2; m++)
       array[i][m] = 0.0;
 }
 
@@ -170,7 +170,7 @@ void FixSRP::setup_pre_force(int zz)
     xold[i][2] = x[i][2];
     tagold[i]=tag[i];
     dlist[i] = (type[i] == bptype) ? 1 : 0;
-    for (n = 0; n < 3; n++)
+    for (n = 0; n < 2; n++)
       array[i][n] = 0.0;
   }
 

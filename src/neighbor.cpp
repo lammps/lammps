@@ -714,6 +714,8 @@ void Neighbor::init_pair()
       if (requests[i]->kokkos_host != requests[j]->kokkos_host) continue;
 
       if (requests[i]->ssa != requests[j]->ssa) continue;
+      // newton 2 and newton 0 both are newton off
+      if ((requests[i]->newton & 2) != (requests[j]->newton & 2)) continue;
 
       if (requests[i]->half && requests[j]->pair && 
           !requests[j]->skip && requests[j]->half && !requests[j]->copy)

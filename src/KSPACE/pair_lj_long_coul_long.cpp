@@ -247,7 +247,7 @@ void PairLJLongCoulLong::init_style()
   // setup force tables
 
   if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
-  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_buck_global);
+  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_lj_global);
 
   // request regular or rRESPA neighbor lists if neighrequest_flag != 0
 

@@ -219,6 +219,9 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
 
   // create instance of Irregular class
   irregular = new Irregular(lmp);
+  
+  // yet, we have not assigned a socket
+  socketflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -248,9 +251,12 @@ int FixIPI::setmask()
 void FixIPI::init()
 {
   //only opens socket on master process
-  if (master) open_socket(ipisock, inet, port, host, error);
-  else ipisock=0;
+  if (master) {
+	if (!socketflag) open_socket(ipisock, inet, port, host, error);
+  } else ipisock=0;
   //! should check for success in socket opening -- but the current open_socket routine dies brutally if unsuccessful
+  // tell lammps we have assigned a socket
+  socketflag = 1;
 
   // asks for evaluation of PE at first step
   modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;

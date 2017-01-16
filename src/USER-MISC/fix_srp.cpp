@@ -264,14 +264,11 @@ void FixSRP::setup_pre_force(int zz)
   if (cutghostmin > comm->cutghost[2])
     cutghostmin = comm->cutghost[2];
 
-  // reset cutghost if needed
+  // stop if cutghost is insufficient
   if (cutneighmax_srp > cutghostmin){
-    if(comm->me == 0){
-      sprintf(str, "Extending ghost comm cutoff. New %f, old %f.", cutneighmax_srp, cutghostmin);
-      error->message(FLERR,str);
-    }
-    // cutghost updated by comm->setup
-    comm->cutghostuser = cutneighmax_srp;
+    sprintf(str, "Communication cutoff too small for fix srp. "
+            "Need %f, current %f.", cutneighmax_srp, cutghostmin);
+    error->all(FLERR,str);
   }
 
   // assign tags for new atoms, update map

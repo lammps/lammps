@@ -53,7 +53,8 @@ struct is_reducer_type {
 
 template<class T>
 struct is_reducer_type<T,typename std::enable_if<
-                       std::is_same<T,typename T::reducer_type>::value
+                       std::is_same<typename std::remove_cv<T>::type,
+                                    typename std::remove_cv<typename T::reducer_type>::type>::value
                       >::type> {
   enum { value = 1 };
 };
@@ -726,6 +727,119 @@ public:
   }
 };
 
+template<class Scalar>
+struct MinMaxScalar {
+  Scalar min_val,max_val;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator = (const MinMaxScalar& rhs) {
+    min_val = rhs.min_val;
+    max_val = rhs.max_val;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator = (const volatile MinMaxScalar& rhs) volatile {
+    min_val = rhs.min_val;
+    max_val = rhs.max_val;
+  }
+};
+
+template<class Scalar, class Space = HostSpace>
+struct MinMax {
+private:
+  typedef typename std::remove_cv<Scalar>::type scalar_type;
+
+public:
+  //Required
+  typedef MinMax reducer_type;
+  typedef MinMaxScalar<scalar_type> value_type;
+
+  typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
+
+  scalar_type min_init_value;
+  scalar_type max_init_value;
+
+private:
+  result_view_type result;
+
+  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
+  struct MinInitWrapper;
+
+  template<class ValueType >
+  struct MinInitWrapper<ValueType,true> {
+    static ValueType value() {
+      return std::numeric_limits<scalar_type>::max();
+    }
+  };
+
+  template<class ValueType >
+  struct MinInitWrapper<ValueType,false> {
+    static ValueType value() {
+      return scalar_type();
+    }
+  };
+
+  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
+  struct MaxInitWrapper;
+
+  template<class ValueType >
+  struct MaxInitWrapper<ValueType,true> {
+    static ValueType value() {
+      return std::numeric_limits<scalar_type>::min();
+    }
+  };
+
+  template<class ValueType >
+  struct MaxInitWrapper<ValueType,false> {
+    static ValueType value() {
+      return scalar_type();
+    }
+  };
+
+public:
+
+  MinMax(value_type& result_):
+    min_init_value(MinInitWrapper<scalar_type>::value()),max_init_value(MaxInitWrapper<scalar_type>::value()),result(&result_) {}
+  MinMax(const result_view_type& result_):
+    min_init_value(MinInitWrapper<scalar_type>::value()),max_init_value(MaxInitWrapper<scalar_type>::value()),result(result_) {}
+  MinMax(value_type& result_, const scalar_type& min_init_value_, const scalar_type& max_init_value_):
+    min_init_value(min_init_value_),max_init_value(max_init_value_),result(&result_) {}
+  MinMax(const result_view_type& result_, const scalar_type& min_init_value_, const scalar_type& max_init_value_):
+    min_init_value(min_init_value_),max_init_value(max_init_value_),result(result_) {}
+
+  //Required
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type& dest, const value_type& src)  const {
+    if ( src.min_val < dest.min_val ) {
+      dest.min_val = src.min_val;
+    }
+    if ( src.max_val > dest.max_val ) {
+      dest.max_val = src.max_val;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(volatile value_type& dest, const volatile value_type& src) const {
+    if ( src.min_val < dest.min_val ) {
+      dest.min_val = src.min_val;
+    }
+    if ( src.max_val > dest.max_val ) {
+      dest.max_val = src.max_val;
+    }
+  }
+
+  //Optional
+  KOKKOS_INLINE_FUNCTION
+  void init( value_type& val)  const {
+    val.min_val = min_init_value;
+    val.max_val = max_init_value;
+  }
+
+  result_view_type result_view() const {
+    return result;
+  }
+};
+
 template<class Scalar, class Index>
 struct MinMaxLocScalar {
   Scalar min_val,max_val;
@@ -1124,7 +1238,8 @@ void parallel_reduce(const PolicyType& policy,
                      typename Impl::enable_if<
                        Kokkos::Impl::is_execution_policy<PolicyType>::value
                      >::type * = 0) {
-  Impl::ParallelReduceAdaptor<PolicyType,FunctorType,const ReturnType>::execute("",policy,functor,return_value);
+  ReturnType return_value_impl = return_value;
+  Impl::ParallelReduceAdaptor<PolicyType,FunctorType,ReturnType>::execute("",policy,functor,return_value_impl);
 }
 
 template< class FunctorType, class ReturnType >
@@ -1133,8 +1248,8 @@ void parallel_reduce(const size_t& policy,
                      const FunctorType& functor,
                      const ReturnType& return_value) {
   typedef typename Impl::ParallelReducePolicyType<void,size_t,FunctorType>::policy_type policy_type;
-
-  Impl::ParallelReduceAdaptor<policy_type,FunctorType,const ReturnType>::execute("",policy_type(0,policy),functor,return_value);
+  ReturnType return_value_impl = return_value;
+  Impl::ParallelReduceAdaptor<policy_type,FunctorType,ReturnType>::execute("",policy_type(0,policy),functor,return_value_impl);
 }
 
 template< class FunctorType, class ReturnType >
@@ -1144,7 +1259,8 @@ void parallel_reduce(const std::string& label,
                      const FunctorType& functor,
                      const ReturnType& return_value) {
   typedef typename Impl::ParallelReducePolicyType<void,size_t,FunctorType>::policy_type policy_type;
-  Impl::ParallelReduceAdaptor<policy_type,FunctorType,const ReturnType>::execute(label,policy_type(0,policy),functor,return_value);
+  ReturnType return_value_impl = return_value;
+  Impl::ParallelReduceAdaptor<policy_type,FunctorType,ReturnType>::execute(label,policy_type(0,policy),functor,return_value_impl);
 }
 
 // No Return Argument

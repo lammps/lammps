@@ -48,7 +48,8 @@ namespace Kokkos {
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_ATOMICS_USE_CUDA )
+#if defined( KOKKOS_HAVE_CUDA )
+#if defined(__CUDA_ARCH__) || defined(KOKKOS_CUDA_CLANG_WORKAROUND)
 
 __inline__ __device__
 int atomic_exchange( volatile int * const dest , const int val )
@@ -99,22 +100,26 @@ T atomic_exchange(
 template < typename T >
 __inline__ __device__
 T atomic_exchange( volatile T * const dest ,
-    typename ::Kokkos::Impl::enable_if<
+    typename Kokkos::Impl::enable_if<
                   ( sizeof(T) != 4 )
                && ( sizeof(T) != 8 )
              , const T >::type& val )
 {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
-  int done = 1;
-  while ( done > 0 ) {
-    done++;
-    if( Impl::lock_address_cuda_space( (void*) dest ) ) {
-      return_val = *dest;
-      *dest = val;
-      Impl::unlock_address_cuda_space( (void*) dest );
-      done = 0;
+  int done = 0;
+  unsigned int active = __ballot(1);
+  unsigned int done_active = 0;
+  while (active!=done_active) {
+    if(!done) {
+      if( Impl::lock_address_cuda_space( (void*) dest ) ) {
+        return_val = *dest;
+        *dest = val;
+        Impl::unlock_address_cuda_space( (void*) dest );
+        done = 1;
+      }
     }
+    done_active = __ballot(done);
   }
   return return_val;
 }
@@ -152,12 +157,16 @@ void atomic_assign(
   (void) atomic_exchange(dest,val);
 }
 
+#endif
+#endif
+
 //----------------------------------------------------------------------------
 
-#elif defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
+#if !defined(__CUDA_ARCH__) || defined(KOKKOS_CUDA_CLANG_WORKAROUND)
+#if defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
 
 template< typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 T atomic_exchange( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) || sizeof(T) == sizeof(long)
                                   , const T & >::type val )
@@ -172,7 +181,7 @@ T atomic_exchange( volatile T * const dest ,
   union U {
     T val_T ;
     type val_type ;
-    KOKKOS_INLINE_FUNCTION U() {};
+    inline U() {};
   } old ;
 #else
   union { T val_T ; type val_type ; } old ;
@@ -190,7 +199,7 @@ T atomic_exchange( volatile T * const dest ,
 
 #if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
 template< typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 T atomic_exchange( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(Impl::cas128_t)
                                   , const T & >::type val )
@@ -198,7 +207,7 @@ T atomic_exchange( volatile T * const dest ,
   union U {
     Impl::cas128_t i ;
     T t ;
-    KOKKOS_INLINE_FUNCTION U() {};
+    inline U() {};
   } assume , oldval , newval ;
 
   oldval.t = *dest ;
@@ -218,7 +227,7 @@ T atomic_exchange( volatile T * const dest ,
 template < typename T >
 inline
 T atomic_exchange( volatile T * const dest ,
-    typename ::Kokkos::Impl::enable_if<
+    typename Kokkos::Impl::enable_if<
                   ( sizeof(T) != 4 )
                && ( sizeof(T) != 8 )
               #if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
@@ -247,7 +256,7 @@ T atomic_exchange( volatile T * const dest ,
 }
 
 template< typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 void atomic_assign( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) || sizeof(T) == sizeof(long)
                                   , const T & >::type val )
@@ -262,7 +271,7 @@ void atomic_assign( volatile T * const dest ,
   union U {
     T val_T ;
     type val_type ;
-    KOKKOS_INLINE_FUNCTION U() {};
+    inline U() {};
   } old ;
 #else
   union { T val_T ; type val_type ; } old ;
@@ -278,7 +287,7 @@ void atomic_assign( volatile T * const dest ,
 
 #if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_USE_ISA_X86_64 )
 template< typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 void atomic_assign( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(Impl::cas128_t)
                                   , const T & >::type val )
@@ -286,7 +295,7 @@ void atomic_assign( volatile T * const dest ,
   union U {
     Impl::cas128_t i ;
     T t ;
-    KOKKOS_INLINE_FUNCTION U() {};
+    inline U() {};
   } assume , oldval , newval ;
 
   oldval.t = *dest ;
@@ -301,7 +310,7 @@ void atomic_assign( volatile T * const dest ,
 template < typename T >
 inline
 void atomic_assign( volatile T * const dest ,
-    typename ::Kokkos::Impl::enable_if<
+    typename Kokkos::Impl::enable_if<
                   ( sizeof(T) != 4 )
                && ( sizeof(T) != 8 )
               #if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
@@ -325,7 +334,7 @@ void atomic_assign( volatile T * const dest ,
 #elif defined( KOKKOS_ATOMICS_USE_OMP31 )
 
 template < typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 T atomic_exchange( volatile T * const dest , const T val )
 {
   T retval;
@@ -339,7 +348,7 @@ T atomic_exchange( volatile T * const dest , const T val )
 }
 
 template < typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 void atomic_assign( volatile T * const dest , const T val )
 {
 //#pragma omp atomic
@@ -350,7 +359,7 @@ void atomic_assign( volatile T * const dest , const T val )
 }
 
 #endif
-
+#endif
 } // namespace Kokkos
 
 #endif

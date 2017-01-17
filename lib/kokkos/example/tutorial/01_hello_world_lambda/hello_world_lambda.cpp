@@ -98,11 +98,14 @@ int main (int argc, char* argv[]) {
   //
   // You may notice that the printed numbers do not print out in
   // order.  Parallel for loops may execute in any order.
+  // We also need to protect the usage of a lambda against compiling
+  // with a backend which doesn't support it (i.e. Cuda 6.5/7.0).
+#if (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
   Kokkos::parallel_for (15, KOKKOS_LAMBDA (const int i) {
       // printf works in a CUDA parallel kernel; std::ostream does not.
       printf ("Hello from i = %i\n", i);
     });
-
+#endif
   // You must call finalize() after you are done using Kokkos.
   Kokkos::finalize ();
 }

@@ -17,12 +17,33 @@ TRIBITS_ADD_LIBRARY(
 #
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
 
 IF(Kokkos_ENABLE_Serial)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_Serial
-    SOURCES UnitTestMain.cpp TestSerial.cpp
+    SOURCES
+      UnitTestMain.cpp
+      serial/TestSerial_Atomics.cpp
+      serial/TestSerial_Other.cpp
+      serial/TestSerial_Reductions.cpp
+      serial/TestSerial_SubView_a.cpp
+      serial/TestSerial_SubView_b.cpp
+      serial/TestSerial_SubView_c01.cpp
+      serial/TestSerial_SubView_c02.cpp
+      serial/TestSerial_SubView_c03.cpp
+      serial/TestSerial_SubView_c04.cpp
+      serial/TestSerial_SubView_c05.cpp
+      serial/TestSerial_SubView_c06.cpp
+      serial/TestSerial_SubView_c07.cpp
+      serial/TestSerial_SubView_c08.cpp
+      serial/TestSerial_SubView_c09.cpp
+      serial/TestSerial_SubView_c10.cpp
+      serial/TestSerial_SubView_c11.cpp
+      serial/TestSerial_SubView_c12.cpp
+      serial/TestSerial_Team.cpp
+      serial/TestSerial_ViewAPI_a.cpp
+      serial/TestSerial_ViewAPI_b.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -33,7 +54,28 @@ ENDIF()
 IF(Kokkos_ENABLE_Pthread)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_Threads
-    SOURCES UnitTestMain.cpp TestThreads.cpp
+    SOURCES
+      UnitTestMain.cpp
+      threads/TestThreads_Atomics.cpp
+      threads/TestThreads_Other.cpp
+      threads/TestThreads_Reductions.cpp
+      threads/TestThreads_SubView_a.cpp
+      threads/TestThreads_SubView_b.cpp
+      threads/TestThreads_SubView_c01.cpp
+      threads/TestThreads_SubView_c02.cpp
+      threads/TestThreads_SubView_c03.cpp
+      threads/TestThreads_SubView_c04.cpp
+      threads/TestThreads_SubView_c05.cpp
+      threads/TestThreads_SubView_c06.cpp
+      threads/TestThreads_SubView_c07.cpp
+      threads/TestThreads_SubView_c08.cpp
+      threads/TestThreads_SubView_c09.cpp
+      threads/TestThreads_SubView_c10.cpp
+      threads/TestThreads_SubView_c11.cpp
+      threads/TestThreads_SubView_c12.cpp
+      threads/TestThreads_Team.cpp
+      threads/TestThreads_ViewAPI_a.cpp
+      threads/TestThreads_ViewAPI_b.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -44,7 +86,28 @@ ENDIF()
 IF(Kokkos_ENABLE_OpenMP)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_OpenMP
-    SOURCES UnitTestMain.cpp TestOpenMP.cpp TestOpenMP_a.cpp TestOpenMP_b.cpp TestOpenMP_c.cpp
+    SOURCES
+      UnitTestMain.cpp
+      openmp/TestOpenMP_Atomics.cpp
+      openmp/TestOpenMP_Other.cpp
+      openmp/TestOpenMP_Reductions.cpp
+      openmp/TestOpenMP_SubView_a.cpp
+      openmp/TestOpenMP_SubView_b.cpp
+      openmp/TestOpenMP_SubView_c01.cpp
+      openmp/TestOpenMP_SubView_c02.cpp
+      openmp/TestOpenMP_SubView_c03.cpp
+      openmp/TestOpenMP_SubView_c04.cpp
+      openmp/TestOpenMP_SubView_c05.cpp
+      openmp/TestOpenMP_SubView_c06.cpp
+      openmp/TestOpenMP_SubView_c07.cpp
+      openmp/TestOpenMP_SubView_c08.cpp
+      openmp/TestOpenMP_SubView_c09.cpp
+      openmp/TestOpenMP_SubView_c10.cpp
+      openmp/TestOpenMP_SubView_c11.cpp
+      openmp/TestOpenMP_SubView_c12.cpp
+      openmp/TestOpenMP_Team.cpp
+      openmp/TestOpenMP_ViewAPI_a.cpp
+      openmp/TestOpenMP_ViewAPI_b.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -66,7 +129,36 @@ ENDIF()
 IF(Kokkos_ENABLE_Cuda)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_Cuda
-    SOURCES UnitTestMain.cpp TestCuda.cpp TestCuda_a.cpp TestCuda_b.cpp TestCuda_c.cpp
+    SOURCES
+      UnitTestMain.cpp
+      cuda/TestCuda_Atomics.cpp
+      cuda/TestCuda_Other.cpp
+      cuda/TestCuda_Reductions_a.cpp
+      cuda/TestCuda_Reductions_b.cpp
+      cuda/TestCuda_Spaces.cpp
+      cuda/TestCuda_SubView_a.cpp
+      cuda/TestCuda_SubView_b.cpp
+      cuda/TestCuda_SubView_c01.cpp
+      cuda/TestCuda_SubView_c02.cpp
+      cuda/TestCuda_SubView_c03.cpp
+      cuda/TestCuda_SubView_c04.cpp
+      cuda/TestCuda_SubView_c05.cpp
+      cuda/TestCuda_SubView_c06.cpp
+      cuda/TestCuda_SubView_c07.cpp
+      cuda/TestCuda_SubView_c08.cpp
+      cuda/TestCuda_SubView_c09.cpp
+      cuda/TestCuda_SubView_c10.cpp
+      cuda/TestCuda_SubView_c11.cpp
+      cuda/TestCuda_SubView_c12.cpp
+      cuda/TestCuda_Team.cpp
+      cuda/TestCuda_ViewAPI_a.cpp
+      cuda/TestCuda_ViewAPI_b.cpp
+      cuda/TestCuda_ViewAPI_c.cpp
+      cuda/TestCuda_ViewAPI_d.cpp
+      cuda/TestCuda_ViewAPI_e.cpp
+      cuda/TestCuda_ViewAPI_f.cpp
+      cuda/TestCuda_ViewAPI_g.cpp
+      cuda/TestCuda_ViewAPI_h.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "

@@ -29,7 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 //#undef _WIN32_WINNT
 //#define _WIN32_WINNT 0x0602
 
-#if defined(__powerpc__) || defined(__ppc__) || defined(__PPC__) || defined(__APPLE__)
+#if defined(__powerpc__) || defined(__ppc__) || defined(__PPC__) || defined(__APPLE__) || defined(__ARM_ARCH_8A)
 
 // Skip for now
 

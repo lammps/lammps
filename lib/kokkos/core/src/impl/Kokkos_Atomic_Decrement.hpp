@@ -44,6 +44,8 @@
 #if defined( KOKKOS_ATOMIC_HPP) && ! defined( KOKKOS_ATOMIC_DECREMENT )
 #define KOKKOS_ATOMIC_DECREMENT
 
+#include "impl/Kokkos_Atomic_Fetch_Sub.hpp"
+
 namespace Kokkos {
 
 // Atomic increment
@@ -58,7 +60,7 @@ void atomic_decrement<char>(volatile char* a) {
       : "memory"
     );
 #else
-  Kokkos::atomic_fetch_add(a,-1);
+  Kokkos::atomic_fetch_sub(a, 1);
 #endif
 }
 
@@ -73,7 +75,7 @@ void atomic_decrement<short>(volatile short* a) {
       : "memory"
     );
 #else
-  Kokkos::atomic_fetch_add(a,-1);
+  Kokkos::atomic_fetch_sub(a, 1);
 #endif
 }
 
@@ -88,7 +90,7 @@ void atomic_decrement<int>(volatile int* a) {
       : "memory"
     );
 #else
-  Kokkos::atomic_fetch_add(a,-1);
+  Kokkos::atomic_fetch_sub(a, 1);
 #endif
 }
 
@@ -103,14 +105,14 @@ void atomic_decrement<long long int>(volatile long long int* a) {
       : "memory"
     );
 #else
-  Kokkos::atomic_fetch_add(a,-1);
+  Kokkos::atomic_fetch_sub(a, 1);
 #endif
 }
 
 template<typename T>
 KOKKOS_INLINE_FUNCTION
 void atomic_decrement(volatile T* a) {
-  Kokkos::atomic_fetch_add(a,-1);
+  Kokkos::atomic_fetch_sub(a, 1);
 }
 
 } // End of namespace Kokkos

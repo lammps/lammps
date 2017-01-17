@@ -55,21 +55,28 @@
 //#define TESTMEMORYPOOL_PRINT
 //#define TESTMEMORYPOOL_PRINT_STATUS
 
-#ifdef KOKKOS_HAVE_CUDA
-#define STRIDE 32
-#else
 #define STRIDE 1
+#ifdef KOKKOS_HAVE_CUDA
+#define STRIDE_ALLOC 32
+#else
+#define STRIDE_ALLOC 1
 #endif
 
 namespace TestMemoryPool {
 
 struct pointer_obj {
   uint64_t *  ptr;
+
+  KOKKOS_INLINE_FUNCTION
+  pointer_obj() : ptr( 0 ) {}
 };
 
 struct pointer_obj2 {
   void *  ptr;
   size_t  size;
+
+  KOKKOS_INLINE_FUNCTION
+  pointer_obj2() : ptr( 0 ), size( 0 ) {}
 };
 
 template < typename PointerView, typename Allocator >
@@ -86,14 +93,14 @@ struct allocate_memory {
     : m_pointers( ptrs ), m_chunk_size( cs ), m_mempool( m )
   {
     // Initialize the view with the out degree of each vertex.
-    Kokkos::parallel_for( num_ptrs * STRIDE, *this );
+    Kokkos::parallel_for( num_ptrs * STRIDE_ALLOC, *this );
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( size_type i ) const
   {
-    if ( i % STRIDE == 0 ) {
-      m_pointers[i / STRIDE].ptr =
+    if ( i % STRIDE_ALLOC == 0 ) {
+      m_pointers[i / STRIDE_ALLOC].ptr =
         static_cast< uint64_t * >( m_mempool.allocate( m_chunk_size ) );
     }
   }
@@ -231,14 +238,14 @@ struct allocate_deallocate_memory {
       m_mempool( m )
   {
     // Initialize the view with the out degree of each vertex.
-    Kokkos::parallel_for( work_size * STRIDE, *this );
+    Kokkos::parallel_for( work_size * STRIDE_ALLOC, *this );
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( size_type i ) const
   {
-    if ( i % STRIDE == 0 ) {
-      unsigned my_work = m_work[i / STRIDE];
+    if ( i % STRIDE_ALLOC == 0 ) {
+      unsigned my_work = m_work[i / STRIDE_ALLOC];
 
       if ( ( my_work & 1 ) == 0 ) {
         // Allocation.
@@ -303,7 +310,7 @@ bool test_mempool( size_t chunk_size, size_t total_size )
   typedef Kokkos::View< pointer_obj *, device_type >       pointer_view;
   typedef Kokkos::Experimental::MemoryPool< device_type >  pool_memory_space;
 
-  uint64_t result;
+  uint64_t result = 0;
   size_t num_chunks = total_size / chunk_size;
   bool return_val = true;
 
@@ -805,16 +812,9 @@ void test_memory_exhaustion()
 
 }
 
-#ifdef TESTMEMORYPOOL_PRINT
 #undef TESTMEMORYPOOL_PRINT
-#endif
-
-#ifdef TESTMEMORYPOOL_PRINT_STATUS
 #undef TESTMEMORYPOOL_PRINT_STATUS
-#endif
-
-#ifdef STRIDE
 #undef STRIDE
-#endif
+#undef STRIDE_ALLOC
 
 #endif

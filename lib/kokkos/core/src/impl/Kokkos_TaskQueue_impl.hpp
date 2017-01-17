@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#if defined( KOKKOS_ENABLE_TASKDAG )
 
 namespace Kokkos {
 namespace Impl {
@@ -67,6 +67,7 @@ TaskQueue< ExecSpace >::TaskQueue
             , arg_memory_pool_superblock_capacity_log2 )
   , m_ready()
   , m_accum_alloc(0)
+  , m_count_alloc(0)
   , m_max_alloc(0)
   , m_ready_count(0)
 {
@@ -122,7 +123,7 @@ void TaskQueue< ExecSpace >::decrement
     task->m_queue->deallocate( task , task->m_alloc_size );
   }   
   else if ( count <= 1 ) { 
-    Kokkos::abort("TaskPolicy task has negative reference count or is incomplete" );
+    Kokkos::abort("TaskScheduler task has negative reference count or is incomplete" );
   }   
 }
 
@@ -565,5 +566,5 @@ void TaskQueue< ExecSpace >::complete
 } /* namespace Kokkos */
 
 
-#endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 

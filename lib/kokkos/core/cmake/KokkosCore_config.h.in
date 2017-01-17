@@ -45,6 +45,16 @@
 #define KOKKOS_ENABLE_PROFILING 0
 #endif
 
+#cmakedefine KOKKOS_HAVE_CUDA_RDC
+#ifdef KOKKOS_HAVE_CUDA_RDC
+#define KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE 1
+#endif
+
+#cmakedefine KOKKOS_HAVE_CUDA_LAMBDA
+#ifdef KOKKOS_HAVE_CUDA_LAMBDA
+#define KOKKOS_CUDA_USE_LAMBDA 1
+#endif
+
 // Don't forbid users from defining this macro on the command line,
 // but still make sure that CMake logic can control its definition.
 #if ! defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)

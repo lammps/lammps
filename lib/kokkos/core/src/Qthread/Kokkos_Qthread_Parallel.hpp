@@ -511,6 +511,7 @@ public:
 };
 
 } // namespace Impl
+
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -518,25 +519,23 @@ public:
 
 namespace Kokkos {
 
-template<typename iType>
+template< typename iType >
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>
-TeamThreadRange(const Impl::QthreadTeamPolicyMember& thread, const iType& count)
+Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadTeamPolicyMember >
+TeamThreadRange( const Impl::QthreadTeamPolicyMember& thread, const iType& count )
 {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>(thread,count);
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadTeamPolicyMember >( thread, count );
 }
 
-template<typename iType>
+template< typename iType1, typename iType2 >
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>
-TeamThreadRange( const Impl::QthreadTeamPolicyMember& thread
-               , const iType & begin
-               , const iType & end
-               )
+Impl::TeamThreadRangeBoundariesStruct< typename std::common_type< iType1, iType2 >::type,
+                                       Impl::QthreadTeamPolicyMember >
+TeamThreadRange( const Impl::QthreadTeamPolicyMember& thread, const iType1 & begin, const iType2 & end )
 {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>(thread,begin,end);
+  typedef typename std::common_type< iType1, iType2 >::type iType;
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadTeamPolicyMember >( thread, iType(begin), iType(end) );
 }
-
 
 template<typename iType>
 KOKKOS_INLINE_FUNCTION
@@ -544,7 +543,6 @@ Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >
   ThreadVectorRange(const Impl::QthreadTeamPolicyMember& thread, const iType& count) {
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >(thread,count);
 }
-
 
 KOKKOS_INLINE_FUNCTION
 Impl::ThreadSingleStruct<Impl::QthreadTeamPolicyMember> PerTeam(const Impl::QthreadTeamPolicyMember& thread) {
@@ -556,14 +554,10 @@ Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember> PerThread(const Impl::Qt
   return Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember>(thread);
 }
 
-} // namespace Kokkos
-
-namespace Kokkos {
-
-  /** \brief  Inter-thread parallel_for. Executes lambda(iType i) for each i=0..N-1.
-   *
-   * The range i=0..N-1 is mapped to all threads of the the calling thread team.
-   * This functionality requires C++11 support.*/
+/** \brief  Inter-thread parallel_for. Executes lambda(iType i) for each i=0..N-1.
+ *
+ * The range i=0..N-1 is mapped to all threads of the the calling thread team.
+ * This functionality requires C++11 support.*/
 template<typename iType, class Lambda>
 KOKKOS_INLINE_FUNCTION
 void parallel_for(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>& loop_boundaries, const Lambda& lambda) {
@@ -618,9 +612,6 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Qth
 
 #endif /* #if defined( KOKKOS_HAVE_CXX11 ) */
 
-} // namespace Kokkos
-
-namespace Kokkos {
 /** \brief  Intra-thread vector parallel_for. Executes lambda(iType i) for each i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all vector lanes of the the calling thread.
@@ -707,10 +698,6 @@ void parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Qth
   }
 }
 
-} // namespace Kokkos
-
-namespace Kokkos {
-
 template<class FunctorType>
 KOKKOS_INLINE_FUNCTION
 void single(const Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember>& single_struct, const FunctorType& lambda) {
@@ -740,6 +727,4 @@ void single(const Impl::ThreadSingleStruct<Impl::QthreadTeamPolicyMember>& singl
 
 } // namespace Kokkos
 
-
 #endif /* #define KOKKOS_QTHREAD_PARALLEL_HPP */
-

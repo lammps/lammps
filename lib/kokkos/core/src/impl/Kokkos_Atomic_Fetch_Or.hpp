@@ -48,7 +48,8 @@ namespace Kokkos {
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_ATOMICS_USE_CUDA )
+#if defined( KOKKOS_HAVE_CUDA )
+#if defined(__CUDA_ARCH__) || defined(KOKKOS_CUDA_CLANG_WORKAROUND)
 
 // Support for int, unsigned int, unsigned long long int, and float
 
@@ -66,26 +67,27 @@ unsigned long long int atomic_fetch_or( volatile unsigned long long int * const 
                                          const unsigned long long int val )
 { return atomicOr((unsigned long long int*)dest,val); }
 #endif
-
+#endif
+#endif
 //----------------------------------------------------------------------------
+#if !defined(__CUDA_ARCH__) || defined(KOKKOS_CUDA_CLANG_WORKAROUND)
+#if defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
 
-#elif defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
-
-KOKKOS_INLINE_FUNCTION
+inline
 int atomic_fetch_or( volatile int * const dest , const int val )
 { return __sync_fetch_and_or(dest,val); }
 
-KOKKOS_INLINE_FUNCTION
+inline
 long int atomic_fetch_or( volatile long int * const dest , const long int val )
 { return __sync_fetch_and_or(dest,val); }
 
 #if defined( KOKKOS_ATOMICS_USE_GCC )
 
-KOKKOS_INLINE_FUNCTION
+inline
 unsigned int atomic_fetch_or( volatile unsigned int * const dest , const unsigned int val )
 { return __sync_fetch_and_or(dest,val); }
 
-KOKKOS_INLINE_FUNCTION
+inline
 unsigned long int atomic_fetch_or( volatile unsigned long int * const dest , const unsigned long int val )
 { return __sync_fetch_and_or(dest,val); }
 
@@ -108,7 +110,7 @@ T atomic_fetch_or( volatile T * const dest , const T val )
 }
 
 #endif
-
+#endif
 //----------------------------------------------------------------------------
 
 // Simpler version of atomic_fetch_or without the fetch

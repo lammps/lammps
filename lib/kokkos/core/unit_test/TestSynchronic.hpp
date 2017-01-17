@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <impl/Kokkos_Synchronic.hpp>
 #include <mutex>
+#include <cmath>
 
 namespace Test {
 

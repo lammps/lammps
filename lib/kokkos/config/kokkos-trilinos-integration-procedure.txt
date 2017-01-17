@@ -91,9 +91,20 @@ Step 3:
 
 // -------------------------------------------------------------------------------- //
 
-Step 4:
-  4.1. Once all Trilinos tests pass promote Kokkos develop branch to master on Github
+Step 4: Once all Trilinos tests pass promote Kokkos develop branch to master on Github
+  4.1. Generate Changelog (You need a github API token)
+    
+       Close all Open issues with "InDevelop" tag on github
+   
+       (Not from kokkos directory)
+       gitthub_changelog_generator kokkos/kokkos --token TOKEN --no-pull-requests --include-labels 'InDevelop' --enhancement-labels 'enhancement,Feature Request' --future-release 'NEWTAG' --between-tags 'NEWTAG,OLDTAG'
+       
+       (Copy the new section from the generated CHANGELOG.md to the kokkos/CHANGELOG.md)
+       (Make desired changes to CHANGELOG.md to enhance clarity)
+       (Commit and push the CHANGELOG to develop)
 
+  4.2 Merge develop into Master
+              
        - DO NOT fast-forward the merge!!!!
 
        (From kokkos directory):
@@ -103,7 +114,7 @@ Step 4:
        git reset --hard origin/master
        git merge --no-ff origin/develop
 
-  4.2. Update the tag in kokkos/config/master_history.txt
+  4.3. Update the tag in kokkos/config/master_history.txt
        Tag description: MajorNumber.MinorNumber.WeeksSinceMinorNumberUpdate
        Tag format: #.#.##
 

@@ -150,6 +150,24 @@ class PairExp6rxKokkos : public PairExp6rx {
   friend void pair_virial_fdotr_compute<PairExp6rxKokkos>(PairExp6rxKokkos*);
 };
 
+
+// optimized version of pow(x,n) with n being integer
+// up to 10x faster than pow(x,y)
+
+KOKKOS_INLINE_FUNCTION
+static double powint(const double &x, const int n) {
+  double yy,ww;
+
+  if (x == 0.0) return 0.0;
+  int nn = (n > 0) ? n : -n;
+  ww = x;
+
+  for (yy = 1.0; nn != 0; nn >>= 1, ww *=ww)
+    if (nn & 1) yy *= ww;
+
+  return (n > 0) ? yy : 1.0/yy;
+};
+
 }
 
 #endif

@@ -10,21 +10,17 @@ EXAMPLE_HEADERS = $(wildcard $(SRC_DIR)/../common/*.hpp ${SRC_DIR}/../fixture/*.
 default: build_all
 	echo "End Build"
 
-include $(KOKKOS_PATH)/Makefile.kokkos
-
-# KOKKOS_INTERNAL_USE_CUDA is not exported to installed Makefile.kokkos
-# use KOKKOS_DEVICE here
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-	CXX = $(NVCC_WRAPPER)
-	CXXFLAGS ?= -O3
-	LINK = $(CXX)
-	LDFLAGS ?= -lpthread
+  CXX = $(KOKKOS_PATH)/bin/nvcc_wrapper
 else
-	CXX ?= g++
-	CXXFLAGS ?= -O3
-	LINK ?= $(CXX)
-	LDFLAGS ?= -lpthread
+  CXX = g++
 endif
+
+CXXFLAGS = -O3
+LINK ?= $(CXX)
+LDFLAGS ?=
+
+include $(KOKKOS_PATH)/Makefile.kokkos
 
 KOKKOS_CXXFLAGS +=	\
 	-I${SRC_DIR}/../common	\

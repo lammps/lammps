@@ -147,7 +147,7 @@ struct RShiftOper {
 template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
+  typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
   union { unsigned long long int i ; T t ; } oldval , assume , newval ;
@@ -157,7 +157,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   do {
     assume.i = oldval.i ;
     newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (unsigned long long int*)dest , assume.i , newval.i );
+    oldval.i = Kokkos::atomic_compare_exchange( (unsigned long long int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
   return oldval.t ;
@@ -166,7 +166,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
 template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
+  typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
   union { unsigned long long int i ; T t ; } oldval , assume , newval ;
@@ -176,7 +176,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   do {
     assume.i = oldval.i ;
     newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (unsigned long long int*)dest , assume.i , newval.i );
+    oldval.i = Kokkos::atomic_compare_exchange( (unsigned long long int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
   return newval.t ;
@@ -185,7 +185,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
 template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
+  typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
   union { int i ; T t ; } oldval , assume , newval ;
 
@@ -194,7 +194,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   do {
     assume.i = oldval.i ;
     newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (int*)dest , assume.i , newval.i );
+    oldval.i = Kokkos::atomic_compare_exchange( (int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
   return oldval.t ;
@@ -203,7 +203,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
 template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) == sizeof(int), const T >::type val )
+  typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int), const T >::type val )
 {
   union { int i ; T t ; } oldval , assume , newval ;
 
@@ -212,7 +212,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   do {
     assume.i = oldval.i ;
     newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (int*)dest , assume.i , newval.i );
+    oldval.i = Kokkos::atomic_compare_exchange( (int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
   return newval.t ;
@@ -221,7 +221,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
 template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if<
+  typename Kokkos::Impl::enable_if<
                 ( sizeof(T) != 4 )
              && ( sizeof(T) != 8 )
           #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
@@ -238,15 +238,20 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   return return_val;
 #else
   // This is a way to (hopefully) avoid dead lock in a warp
-  int done = 1;
-  while ( done>0 ) {
-    done++;
-    if( Impl::lock_address_cuda_space( (void*) dest ) ) {
-      T return_val = *dest;
-      *dest = Oper::apply(return_val, val);;
-      Impl::unlock_address_cuda_space( (void*) dest );
-      done=0;
+  T return_val;
+  int done = 0;
+  unsigned int active = __ballot(1);
+  unsigned int done_active = 0;
+  while (active!=done_active) {
+    if(!done) {
+      if( Impl::lock_address_cuda_space( (void*) dest ) ) {
+        return_val = *dest;
+        *dest = Oper::apply(return_val, val);;
+        Impl::unlock_address_cuda_space( (void*) dest );
+        done=1;
+      }
     }
+    done_active = __ballot(done);
   }
   return return_val;
 #endif
@@ -255,7 +260,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
 template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if<
+  typename Kokkos::Impl::enable_if<
                 ( sizeof(T) != 4 )
              && ( sizeof(T) != 8 )
           #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
@@ -271,16 +276,21 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   Impl::unlock_address_host_space( (void*) dest );
   return return_val;
 #else
+  T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
-  int done = 1;
-  while ( done>0 ) {
-    done++;
-    if( Impl::lock_address_cuda_space( (void*) dest ) ) {
-      T return_val = Oper::apply(*dest, val);
-      *dest = return_val;
-      Impl::unlock_address_cuda_space( (void*) dest );
-      done=0;
+  int done = 0;
+  unsigned int active = __ballot(1);
+  unsigned int done_active = 0;
+  while (active!=done_active) {
+    if(!done) {
+      if( Impl::lock_address_cuda_space( (void*) dest ) ) {
+        return_val = Oper::apply(*dest, val);
+        *dest = return_val;
+        Impl::unlock_address_cuda_space( (void*) dest );
+        done=1;
+      }
     }
+    done_active = __ballot(done);
   }
   return return_val;
 #endif

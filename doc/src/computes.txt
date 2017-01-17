@@ -35,6 +35,7 @@ Computes :h1
    compute_erotate_sphere_atom
    compute_event_displace
    compute_fep
+   compute_global_atom
    compute_group_group
    compute_gyration
    compute_gyration_chunk

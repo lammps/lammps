@@ -58,7 +58,7 @@
 #include <Kokkos_Atomic.hpp>
 #include <Qthread/Kokkos_Qthread_TaskPolicy.hpp>
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#if defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
 
@@ -196,7 +196,7 @@ void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
   static const char msg_error_dependences[] = ": destroy task that has dependences" ;
   static const char msg_error_exception[]   = ": caught internal exception" ;
 
-  if ( rhs ) { Kokkos::atomic_fetch_add( & (*rhs).m_ref_count , 1 ); }
+  if ( rhs ) { Kokkos::atomic_increment( &(*rhs).m_ref_count ); }
 
   Task * const lhs_val = Kokkos::atomic_exchange( lhs , rhs );
 
@@ -486,6 +486,6 @@ void wait( Kokkos::Experimental::TaskPolicy< Kokkos::Qthread > & policy )
 } // namespace Experimental
 } // namespace Kokkos
 
-#endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #if defined( KOKKOS_HAVE_QTHREAD ) */
 

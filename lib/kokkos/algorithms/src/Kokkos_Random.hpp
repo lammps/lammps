@@ -476,54 +476,54 @@ namespace Kokkos {
   };
 
   template<class Generator>
-  struct rand<Generator, ::Kokkos::complex<float> > {
+  struct rand<Generator, Kokkos::complex<float> > {
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> max () {
-      return ::Kokkos::complex<float> (1.0, 1.0);
+    static Kokkos::complex<float> max () {
+      return Kokkos::complex<float> (1.0, 1.0);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> draw (Generator& gen) {
+    static Kokkos::complex<float> draw (Generator& gen) {
       const float re = gen.frand ();
       const float im = gen.frand ();
-      return ::Kokkos::complex<float> (re, im);
+      return Kokkos::complex<float> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> draw (Generator& gen, const ::Kokkos::complex<float>& range) {
+    static Kokkos::complex<float> draw (Generator& gen, const Kokkos::complex<float>& range) {
       const float re = gen.frand (real (range));
       const float im = gen.frand (imag (range));
-      return ::Kokkos::complex<float> (re, im);
+      return Kokkos::complex<float> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> draw (Generator& gen, const ::Kokkos::complex<float>& start, const ::Kokkos::complex<float>& end) {
+    static Kokkos::complex<float> draw (Generator& gen, const Kokkos::complex<float>& start, const Kokkos::complex<float>& end) {
       const float re = gen.frand (real (start), real (end));
       const float im = gen.frand (imag (start), imag (end));
-      return ::Kokkos::complex<float> (re, im);
+      return Kokkos::complex<float> (re, im);
     }
   };
 
   template<class Generator>
-  struct rand<Generator, ::Kokkos::complex<double> > {
+  struct rand<Generator, Kokkos::complex<double> > {
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> max () {
-      return ::Kokkos::complex<double> (1.0, 1.0);
+    static Kokkos::complex<double> max () {
+      return Kokkos::complex<double> (1.0, 1.0);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> draw (Generator& gen) {
+    static Kokkos::complex<double> draw (Generator& gen) {
       const double re = gen.drand ();
       const double im = gen.drand ();
-      return ::Kokkos::complex<double> (re, im);
+      return Kokkos::complex<double> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> draw (Generator& gen, const ::Kokkos::complex<double>& range) {
+    static Kokkos::complex<double> draw (Generator& gen, const Kokkos::complex<double>& range) {
       const double re = gen.drand (real (range));
       const double im = gen.drand (imag (range));
-      return ::Kokkos::complex<double> (re, im);
+      return Kokkos::complex<double> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> draw (Generator& gen, const ::Kokkos::complex<double>& start, const ::Kokkos::complex<double>& end) {
+    static Kokkos::complex<double> draw (Generator& gen, const Kokkos::complex<double>& start, const Kokkos::complex<double>& end) {
       const double re = gen.drand (real (start), real (end));
       const double im = gen.drand (imag (start), imag (end));
-      return ::Kokkos::complex<double> (re, im);
+      return Kokkos::complex<double> (re, im);
     }
   };
 

@@ -12,26 +12,19 @@ OBJ = $(SRC:$(SRC_DIR)/%.cpp=%.o)
 default: build
 	echo "Start Build"
 
-# use installed Makefile.kokkos
-include $(KOKKOS_PATH)/Makefile.kokkos
-
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-CXX = $(NVCC_WRAPPER)
-CXXFLAGS = -I$(SRC_DIR) -O3
-LINK = $(CXX)
-LINKFLAGS = 
-EXE = $(addsuffix .cuda, $(shell basename $(SRC_DIR)))
-#KOKKOS_DEVICES = "Cuda,OpenMP"
-#KOKKOS_ARCH = "SNB,Kepler35"
+  CXX = $(KOKKOS_PATH)/bin/nvcc_wrapper
+  EXE = $(addsuffix .cuda, $(shell basename $(SRC_DIR)))
 else
-CXX = g++
-CXXFLAGS = -I$(SRC_DIR) -O3
-LINK = $(CXX)
-LINKFLAGS =  
-EXE = $(addsuffix .host, $(shell basename $(SRC_DIR)))
-#KOKKOS_DEVICES = "OpenMP"
-#KOKKOS_ARCH = "SNB"
+  CXX = g++
+  EXE = $(addsuffix .host, $(shell basename $(SRC_DIR)))
 endif
+
+CXXFLAGS = -O3 -I$(SRC_DIR)
+LINK ?= $(CXX)
+LDFLAGS ?=
+
+include $(KOKKOS_PATH)/Makefile.kokkos
 
 DEPFLAGS = -M
 

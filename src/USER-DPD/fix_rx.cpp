@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
 
@@ -643,6 +644,20 @@ void FixRX::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"eos/table/rx") == 0) eos_flag = true;
   if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
+
+  // need a half neighbor list
+  // built whenever re-neighboring occurs
+
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->fix = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRX::init_list(int, class NeighList* ptr)
+{
+  this->list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1688,10 +1703,10 @@ void FixRX::computeLocalTemperature()
   sumWeights = new double[sumWeightsCt];
   memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
 
-  inum = pairDPDE->list->inum;
-  ilist = pairDPDE->list->ilist;
-  numneigh = pairDPDE->list->numneigh;
-  firstneigh = pairDPDE->list->firstneigh;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {

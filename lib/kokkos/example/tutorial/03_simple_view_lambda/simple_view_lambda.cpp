@@ -97,6 +97,9 @@ int main (int argc, char* argv[]) {
   // pointers, not like std::vector.  Passing them by value does a
   // shallow copy.  A deep copy never happens unless you explicitly
   // ask for one.
+  // We also need to protect the usage of a lambda against compiling
+  // with a backend which doesn't support it (i.e. Cuda 6.5/7.0).
+  #if (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
   Kokkos::parallel_for (10, KOKKOS_LAMBDA (const int i) {
     // Acesss the View just like a Fortran array.  The layout depends
     // on the View's memory space, so don't rely on the View's
@@ -111,6 +114,7 @@ int main (int argc, char* argv[]) {
     lsum += a(i,0)*a(i,1)/(a(i,2)+0.1);
   }, sum);
   printf ("Result: %f\n", sum);
+  #endif
   Kokkos::finalize ();
 }
 

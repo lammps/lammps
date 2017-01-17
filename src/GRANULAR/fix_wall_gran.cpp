@@ -149,7 +149,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = ZCYLINDER;
     lo = hi = 0.0;
-    cylradius = force->numeric(FLERR,arg[iarg+3]);
+    cylradius = force->numeric(FLERR,arg[iarg+1]);
     iarg += 2;
   } else if (strcmp(arg[iarg],"region") == 0) {
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");

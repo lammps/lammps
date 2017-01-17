@@ -91,6 +91,7 @@ Commands :h1
    suffix
    tad
    temper
+   temper_grem
    thermo
    thermo_modify
    thermo_style

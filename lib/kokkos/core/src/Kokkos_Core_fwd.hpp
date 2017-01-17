@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -49,6 +49,7 @@
 // and compiler environment then sets a collection of #define macros.
 
 #include <Kokkos_Macros.hpp>
+#include <impl/Kokkos_Utilities.hpp>
 
 //----------------------------------------------------------------------------
 // Have assumed a 64bit build (8byte pointers) throughout the code base.
@@ -207,7 +208,7 @@ namespace Impl {
 
 template< class Functor
         , class Policy
-        , class EnableFunctor = void 
+        , class EnableFunctor = void
 	      , class EnablePolicy = void
         >
 struct FunctorPolicyExecutionSpace;
@@ -220,7 +221,7 @@ struct FunctorPolicyExecutionSpace;
 /// This is an implementation detail of parallel_for.  Users should
 /// skip this and go directly to the nonmember function parallel_for.
 template< class FunctorType , class ExecPolicy , class ExecutionSpace =
-          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space 
+          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space
         > class ParallelFor ;
 
 /// \class ParallelReduce
@@ -229,7 +230,7 @@ template< class FunctorType , class ExecPolicy , class ExecutionSpace =
 /// This is an implementation detail of parallel_reduce.  Users should
 /// skip this and go directly to the nonmember function parallel_reduce.
 template< class FunctorType , class ExecPolicy , class ReducerType = InvalidType, class ExecutionSpace =
-          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space 
+          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space
         > class ParallelReduce ;
 
 /// \class ParallelScan
@@ -238,8 +239,8 @@ template< class FunctorType , class ExecPolicy , class ReducerType = InvalidType
 /// This is an implementation detail of parallel_scan.  Users should
 /// skip this and go directly to the documentation of the nonmember
 /// template function Kokkos::parallel_scan.
-template< class FunctorType , class ExecPolicy , class ExecutionSapce = 
-          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space 
+template< class FunctorType , class ExecPolicy , class ExecutionSapce =
+          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space
         > class ParallelScan ;
 
 }}

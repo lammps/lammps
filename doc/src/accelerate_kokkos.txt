@@ -110,14 +110,14 @@ mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis :p
 [Required hardware/software:]
 
 Kokkos support within LAMMPS must be built with a C++11 compatible
-compiler.  If using gcc, version 4.8.1 or later is required.
+compiler.  If using gcc, version 4.7.2 or later is required.
 
 To build with Kokkos support for CPUs, your compiler must support the
 OpenMP interface.  You should have one or more multi-core CPUs so that
 multiple threads can be launched by each MPI task running on a CPU.
 
 To build with Kokkos support for NVIDIA GPUs, NVIDIA Cuda software
-version 6.5 or later must be installed on your system.  See the
+version 7.5 or later must be installed on your system.  See the
 discussion for the "GPU"_accelerate_gpu.html package for details of
 how to check and do this.
 

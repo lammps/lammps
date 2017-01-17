@@ -44,7 +44,7 @@ enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,BONDED_HISTORY};
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), ncontact(NULL), 
+  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), ncontact(NULL),
   walls(NULL), shearmany(NULL), c2r(NULL)
 {
   restart_global = 1;
@@ -57,13 +57,13 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   region_style = new char[strlen(region->style)+1];
   strcpy(region_style,region->style);
   nregion = region->nregion;
-  
+
   tmax = domain->regions[iregion]->tmax;
   c2r = new int[tmax];
 
   // re-allocate atom-based arrays with nshear
   // do not register with Atom class, since parent class did that
-  
+
   memory->destroy(shearone);
   shearone = NULL;
 
@@ -71,7 +71,7 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   walls = NULL;
   shearmany = NULL;
   grow_arrays(atom->nmax);
-  
+
   // initialize shear history as if particle is not touching region
 
   if (history) {
@@ -117,7 +117,7 @@ void FixWallGranRegion::init()
     region->reset_vel();
   }
 
-  if (motion_resetflag){    
+  if (motion_resetflag){
     char str[256];
     sprintf(str,"Region properties for region %s are inconsistent "
             "with restart file, resetting its motion",idregion);
@@ -180,15 +180,15 @@ void FixWallGranRegion::post_force(int vflag)
 
   if (regiondynamic) {
     region->prematch();
-    region->set_velocity(); 
+    region->set_velocity();
   }
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;
-      
+
       nc = region->surface(x[i][0],x[i][1],x[i][2],radius[i]);
-      if (nc > tmax) 
+      if (nc > tmax)
         error->one(FLERR,"Too many wall/gran/region contacts for one particle");
 
       // shear history maintenance
@@ -210,7 +210,7 @@ void FixWallGranRegion::post_force(int vflag)
             walls[i][0] = iwall;
             for (m = 0; m < sheardim; m++)
               shearmany[i][0][m] = 0.0;
-          } else if (ncontact[i] > 1 || iwall != walls[i][0]) 
+          } else if (ncontact[i] > 1 || iwall != walls[i][0])
             update_contacts(i,nc);
         } else update_contacts(i,nc);
       }
@@ -233,12 +233,12 @@ void FixWallGranRegion::post_force(int vflag)
 
         // meff = effective mass of sphere
         // if I is part of rigid body, use body mass
-          
+
         meff = rmass[i];
         if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
         // invoke sphere/wall interaction
-        
+
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
                 omega[i],torque[i],radius[i],meff);
@@ -453,11 +453,11 @@ void FixWallGranRegion::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
-  
+
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;
-  
+
   int count = ncontact[nlocal] = (int) ubuf(extra[nlocal][m++]).i;
   for (int iwall = 0; iwall < count; iwall++) {
     walls[nlocal][iwall] = (int) ubuf(extra[nlocal][m++]).i;
@@ -506,5 +506,5 @@ void FixWallGranRegion::write_restart(FILE *fp)
 void FixWallGranRegion::restart(char *buf)
 {
   int n = 0;
-  if (!region->restart(buf,n)) motion_resetflag = 1;  
+  if (!region->restart(buf,n)) motion_resetflag = 1;
 }

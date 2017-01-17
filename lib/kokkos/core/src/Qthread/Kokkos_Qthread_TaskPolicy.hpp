@@ -43,8 +43,8 @@
 
 // Experimental unified task-data parallel manycore LDRD
 
-#ifndef KOKKOS_QTHREAD_TASKPOLICY_HPP
-#define KOKKOS_QTHREAD_TASKPOLICY_HPP
+#ifndef KOKKOS_QTHREAD_TASKSCHEDULER_HPP
+#define KOKKOS_QTHREAD_TASKSCHEDULER_HPP
 
 #include <string>
 #include <typeinfo>
@@ -64,12 +64,12 @@
 //----------------------------------------------------------------------------
 
 #include <Kokkos_Qthread.hpp>
-#include <Kokkos_TaskPolicy.hpp>
+#include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_View.hpp>
 
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#if defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
 
@@ -154,7 +154,7 @@ public:
   KOKKOS_FUNCTION static
   TaskMember * verify_type( TaskMember * t )
     {
-      enum { check_type = ! Kokkos::Impl::is_same< ResultType , void >::value };
+      enum { check_type = ! std::is_same< ResultType , void >::value };
 
       if ( check_type && t != 0 ) {
 
@@ -298,7 +298,7 @@ public:
 
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
-  void apply_single( typename Kokkos::Impl::enable_if< ! Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
+  void apply_single( typename std::enable_if< ! std::is_same< ResultType , void >::value , TaskMember * >::type t )
     {
       typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
 
@@ -314,7 +314,7 @@ public:
 
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
-  void apply_single( typename Kokkos::Impl::enable_if< Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
+  void apply_single( typename std::enable_if< std::is_same< ResultType , void >::value , TaskMember * >::type t )
     {
       typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
 
@@ -332,7 +332,7 @@ public:
 
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
-  void apply_team( typename Kokkos::Impl::enable_if< ! Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t
+  void apply_team( typename std::enable_if< ! std::is_same< ResultType , void >::value , TaskMember * >::type t
                  , Kokkos::Impl::QthreadTeamPolicyMember & member )
     {
       typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
@@ -344,7 +344,7 @@ public:
 
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
-  void apply_team( typename Kokkos::Impl::enable_if< Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t
+  void apply_team( typename std::enable_if< std::is_same< ResultType , void >::value , TaskMember * >::type t
                  , Kokkos::Impl::QthreadTeamPolicyMember & member )
     {
       typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
@@ -575,10 +575,10 @@ public:
   template< class A1 , class A2 , class A3 , class A4 >
   void add_dependence( const Future<A1,A2> & after
                      , const Future<A3,A4> & before
-                     , typename Kokkos::Impl::enable_if
-                        < Kokkos::Impl::is_same< typename Future<A1,A2>::execution_space , execution_space >::value
+                     , typename std::enable_if
+                        < std::is_same< typename Future<A1,A2>::execution_space , execution_space >::value
                           &&
-                          Kokkos::Impl::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
+                          std::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
                         >::type * = 0
                       )
     {
@@ -621,8 +621,8 @@ public:
   template< class FunctorType , class A3 , class A4 >
   void add_dependence( FunctorType * task_functor
                      , const Future<A3,A4> & before
-                     , typename Kokkos::Impl::enable_if
-                        < Kokkos::Impl::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
+                     , typename std::enable_if
+                        < std::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
                         >::type * = 0
                       )
     {
@@ -659,6 +659,6 @@ public:
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #define KOKKOS_QTHREAD_TASK_HPP */
 

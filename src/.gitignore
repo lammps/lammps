@@ -374,6 +374,8 @@
 /fix_meso.h
 /fix_meso_stationary.cpp
 /fix_meso_stationary.h
+/fix_mscg.cpp
+/fix_mscg.h
 /fix_msst.cpp
 /fix_msst.h
 /fix_neb.cpp
@@ -394,6 +396,8 @@
 /fix_nph_body.h
 /fix_npt_body.cpp
 /fix_npt_body.h
+/fix_nvk.cpp
+/fix_nvk.h
 /fix_nvt_body.cpp
 /fix_nvt_body.h
 /fix_nve_body.cpp

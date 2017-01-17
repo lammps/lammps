@@ -43,6 +43,7 @@
 #define TEST_TILE_HPP
 
 #include <Kokkos_Core.hpp>
+#include <impl/Kokkos_ViewTile.hpp>
 
 namespace TestTile {
 
@@ -102,7 +103,7 @@ struct ReduceTileErrors
 
     if ( jtile < tile_dim1 ) {
 
-      tile_type tile = Kokkos::tile_subview( m_array , itile , jtile );
+      tile_type tile = Kokkos::Experimental::tile_subview( m_array , itile , jtile );
 
       if ( tile(0,0) != ptrdiff_t(( itile + jtile * tile_dim0 ) * TileLayout::N0 * TileLayout::N1 ) ) {
         ++errors ;

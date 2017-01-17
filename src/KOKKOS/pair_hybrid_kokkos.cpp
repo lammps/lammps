@@ -35,6 +35,11 @@ using namespace LAMMPS_NS;
 PairHybridKokkos::PairHybridKokkos(LAMMPS *lmp) : PairHybrid(lmp)
 {
   atomKK = (AtomKokkos *) atom;
+
+ // prevent overlapping host/device computation, which isn't
+ //  yet supported by pair_hybrid_kokkos
+ execution_space = Device;
+
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 }

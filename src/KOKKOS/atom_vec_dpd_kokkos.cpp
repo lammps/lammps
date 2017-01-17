@@ -86,12 +86,12 @@ void AtomVecDPDKokkos::grow(int n)
   memory->grow_kokkos(atomKK->k_uCGnew,atomKK->uCGnew,nmax,"atom:uCGnew");
   memory->grow_kokkos(atomKK->k_duChem,atomKK->duChem,nmax,"atom:duChem");
 
-  grow_reset();
-  sync(Host,ALL_MASK);
-
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+
+  grow_reset();
+  sync(Host,ALL_MASK);
 }
 
 /* ----------------------------------------------------------------------

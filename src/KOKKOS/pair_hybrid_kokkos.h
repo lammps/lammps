@@ -22,6 +22,8 @@ PairStyle(hybrid/kk,PairHybridKokkos)
 
 #include <stdio.h>
 #include "pair_hybrid.h"
+#include "pair_kokkos.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
@@ -33,9 +35,16 @@ class PairHybridKokkos : public PairHybrid {
   friend class Respa;
   friend class Info;
  public:
+  typedef LMPDeviceType device_type;
+
   PairHybridKokkos(class LAMMPS *);
   virtual ~PairHybridKokkos();
   void compute(int, int);
+
+ private:
+  DAT::t_x_array_randomread x;
+  DAT::t_f_array f;
+  friend void pair_virial_fdotr_compute<PairHybridKokkos>(PairHybridKokkos*);
 };
 
 }

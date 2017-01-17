@@ -81,10 +81,12 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
 {
   if (narg != 3 && narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  ewald_off = 0;
   ewald_order = 0;
-  options(arg, 6);
-  options(++arg, 1);
+  ewald_off = 0;
+
+  options(arg,6);
+  options(++arg,1);
+
   if (!comm->me && ewald_order == ((1<<1) | (1<<6)))
     error->warning(FLERR,"Using largest cutoff for lj/long/coul/long");
   if (!*(++arg))
@@ -226,7 +228,26 @@ void PairLJLongCoulLong::init_style()
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(FLERR,
-        "Invoking coulombic in pair style lj/coul requires atom attribute q");
+        "Invoking coulombic in pair style lj/long/coul/long requires atom attribute q");
+
+  // ensure use of KSpace long-range solver, set two g_ewalds
+
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requires a KSpace style");
+  if (ewald_order&(1<<1)) g_ewald = force->kspace->g_ewald;
+  if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
+
+  // set rRESPA cutoffs
+
+  if (strstr(update->integrate_style,"respa") &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;
+
+  // setup force tables
+
+  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
+  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_lj_global);
 
   // request regular or rRESPA neighbor lists if neighrequest_flag != 0
 
@@ -265,27 +286,8 @@ void PairLJLongCoulLong::init_style()
 
     } else irequest = neighbor->request(this,instance_me);
   }
+
   cut_coulsq = cut_coul * cut_coul;
-
-  // set rRESPA cutoffs
-
-  if (strstr(update->integrate_style,"respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;
-
-  // ensure use of KSpace long-range solver, set g_ewald
-
-  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
-  if (force->kspace) g_ewald = force->kspace->g_ewald;
-  if (force->kspace) g_ewald_6 = force->kspace->g_ewald_6;
-
-  // setup force tables
-
-  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
-  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_lj_global);
-
 }
 
 /* ----------------------------------------------------------------------

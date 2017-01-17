@@ -909,9 +909,10 @@ void Neighbor::init_pair()
     done = 1;
     for (i = 0; i < npair_perpetual; i++) {
       ptr = NULL;
-      if (lists[plist[i]]->listcopy) ptr = lists[plist[i]]->listcopy;
-      if (lists[plist[i]]->listskip) ptr = lists[plist[i]]->listskip;
       if (lists[plist[i]]->listfull) ptr = lists[plist[i]]->listfull;
+      if (lists[plist[i]]->listcopy) ptr = lists[plist[i]]->listcopy;
+      // listskip check must be after listfull check
+      if (lists[plist[i]]->listskip) ptr = lists[plist[i]]->listskip;
       if (ptr == NULL) continue;
       for (m = 0; m < nrequest; m++)
         if (ptr == lists[m]) break;

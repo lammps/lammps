@@ -1,23 +1,24 @@
-KOKKOS_PATH = ../..
+ifndef KOKKOS_PATH
+  MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+  KOKKOS_PATH = $(subst Makefile,,$(MAKEFILE_PATH))../..
+endif
 
 PREFIX ?= /usr/local/lib/kokkos
 
 default: messages build-lib
 	echo "End Build"
 
-include $(KOKKOS_PATH)/Makefile.kokkos
-
-ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	CXX = $(NVCC_WRAPPER)
-	CXXFLAGS ?= -O3
-	LINK = $(NVCC_WRAPPER)
-	LINKFLAGS ?= 
+ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
+  CXX = $(KOKKOS_PATH)/config/nvcc_wrapper
 else
-	CXX ?= g++
-	CXXFLAGS ?= -O3
-	LINK ?= g++
-	LINKFLAGS ?=  
+  CXX = g++
 endif
+
+CXXFLAGS = -O3
+LINK ?= $(CXX)
+LDFLAGS ?= 
+
+include $(KOKKOS_PATH)/Makefile.kokkos
 
 PWD = $(shell pwd)
 
@@ -49,6 +50,16 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	CONDITIONAL_COPIES += copy-openmp
 endif
 
+ifeq ($(KOKKOS_OS),CYGWIN)
+  COPY_FLAG = -u
+endif
+ifeq ($(KOKKOS_OS),Linux)
+  COPY_FLAG = -u
+endif
+ifeq ($(KOKKOS_OS),Darwin)
+  COPY_FLAG =
+endif
+
 messages: 
 	echo "Start Build"
 
@@ -77,6 +88,15 @@ build-makefile-kokkos:
 	echo "KOKKOS_LINK_DEPENDS  = $(KOKKOS_LINK_DEPENDS)" >> Makefile.kokkos
 	echo "KOKKOS_LIBS = $(KOKKOS_LIBS)" >> Makefile.kokkos
 	echo "KOKKOS_LDFLAGS = $(KOKKOS_LDFLAGS)" >> Makefile.kokkos
+	echo "" >> Makefile.kokkos
+	echo "#Internal settings which need to propagated for Kokkos examples" >> Makefile.kokkos
+	echo "KOKKOS_INTERNAL_USE_CUDA = ${KOKKOS_INTERNAL_USE_CUDA}" >> Makefile.kokkos
+	echo "KOKKOS_INTERNAL_USE_OPENMP = ${KOKKOS_INTERNAL_USE_OPENMP}" >> Makefile.kokkos
+	echo "KOKKOS_INTERNAL_USE_PTHREADS = ${KOKKOS_INTERNAL_USE_PTHREADS}" >> Makefile.kokkos
+	echo "" >> Makefile.kokkos
+	echo "#Fake kokkos-clean target" >> Makefile.kokkos
+	echo "kokkos-clean:" >> Makefile.kokkos
+	echo "" >> Makefile.kokkos
 	sed \
 		-e 's|$(KOKKOS_PATH)/core/src|$(PREFIX)/include|g' \
 		-e 's|$(KOKKOS_PATH)/containers/src|$(PREFIX)/include|g' \
@@ -98,27 +118,27 @@ mkdir:
 
 copy-cuda: mkdir
 	mkdir -p $(PREFIX)/include/Cuda
-	cp $(KOKKOS_HEADERS_CUDA) $(PREFIX)/include/Cuda
+	cp $(COPY_FLAG) $(KOKKOS_HEADERS_CUDA) $(PREFIX)/include/Cuda
 
 copy-threads: mkdir
 	mkdir -p $(PREFIX)/include/Threads
-	cp $(KOKKOS_HEADERS_THREADS) $(PREFIX)/include/Threads
+	cp $(COPY_FLAG) $(KOKKOS_HEADERS_THREADS) $(PREFIX)/include/Threads
 
 copy-qthread: mkdir
 	mkdir -p $(PREFIX)/include/Qthread
-	cp $(KOKKOS_HEADERS_QTHREAD) $(PREFIX)/include/Qthread
+	cp $(COPY_FLAG) $(KOKKOS_HEADERS_QTHREAD) $(PREFIX)/include/Qthread
 
 copy-openmp: mkdir
 	mkdir -p $(PREFIX)/include/OpenMP
-	cp $(KOKKOS_HEADERS_OPENMP) $(PREFIX)/include/OpenMP
+	cp $(COPY_FLAG) $(KOKKOS_HEADERS_OPENMP) $(PREFIX)/include/OpenMP
 
 install: mkdir $(CONDITIONAL_COPIES) build-lib 
-	cp $(NVCC_WRAPPER) $(PREFIX)/bin
-	cp $(KOKKOS_HEADERS_INCLUDE) $(PREFIX)/include
-	cp $(KOKKOS_HEADERS_INCLUDE_IMPL) $(PREFIX)/include/impl
-	cp Makefile.kokkos $(PREFIX)
-	cp libkokkos.a $(PREFIX)/lib
-	cp KokkosCore_config.h $(PREFIX)/include
+	cp $(COPY_FLAG) $(NVCC_WRAPPER) $(PREFIX)/bin
+	cp $(COPY_FLAG) $(KOKKOS_HEADERS_INCLUDE) $(PREFIX)/include
+	cp $(COPY_FLAG) $(KOKKOS_HEADERS_INCLUDE_IMPL) $(PREFIX)/include/impl
+	cp $(COPY_FLAG) Makefile.kokkos $(PREFIX)
+	cp $(COPY_FLAG) libkokkos.a $(PREFIX)/lib
+	cp $(COPY_FLAG) KokkosCore_config.h $(PREFIX)/include
 
 clean: kokkos-clean
 	rm -f Makefile.kokkos

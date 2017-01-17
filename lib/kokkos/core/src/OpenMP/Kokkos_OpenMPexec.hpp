@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -180,7 +180,7 @@ public:
     bool success = false;
     while(!success) {
       work_range_new = Kokkos::atomic_compare_exchange(&m_work_range,work_range_old,work_range_new);
-      success = ( (work_range_new == work_range_old) || 
+      success = ( (work_range_new == work_range_old) ||
                   (work_range_new.first>=work_range_new.second));
       work_range_old = work_range_new;
       work_range_new.first+=1;
@@ -393,12 +393,14 @@ public:
     typedef typename if_c< sizeof(ValueType) < TEAM_REDUCE_SIZE
                          , ValueType , void >::type type ;
 
-    type * const local_value = ((type*) m_exec.scratch_thread());
-    if(team_rank() == thread_id)
-      *local_value = value;
+    type volatile * const shared_value =
+      ((type*) m_exec.pool_rev( m_team_base_rev )->scratch_thread());
+
+    if ( team_rank() == thread_id ) *shared_value = value;
     memory_fence();
-    team_barrier();
-    value = *local_value;
+    team_barrier(); // Wait for 'thread_id' to write
+    value = *shared_value ;
+    team_barrier(); // Wait for team members to read
 #endif
   }
 
@@ -655,8 +657,6 @@ public:
   static inline int team_reduce_size() { return TEAM_REDUCE_SIZE ; }
 };
 
-
-
 template< class ... Properties >
 class TeamPolicyInternal< Kokkos::OpenMP, Properties ... >: public PolicyTraits<Properties ...>
 {
@@ -740,9 +740,9 @@ public:
 
   inline int team_size()   const { return m_team_size ; }
   inline int league_size() const { return m_league_size ; }
+
   inline size_t scratch_size(const int& level, int team_size_ = -1) const {
-    if(team_size_ < 0)
-      team_size_ = m_team_size;
+    if(team_size_ < 0) team_size_ = m_team_size;
     return m_team_scratch_size[level] + team_size_*m_thread_scratch_size[level] ;
   }
 
@@ -840,7 +840,6 @@ public:
 };
 } // namespace Impl
 
-
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -864,29 +863,26 @@ int OpenMP::thread_pool_rank()
 #endif
 }
 
-} // namespace Kokkos
-
-
-namespace Kokkos {
-
-template<typename iType>
+template< typename iType >
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember>
-  TeamThreadRange(const Impl::OpenMPexecTeamMember& thread, const iType& count) {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember>(thread,count);
+Impl::TeamThreadRangeBoundariesStruct< iType, Impl::OpenMPexecTeamMember >
+TeamThreadRange( const Impl::OpenMPexecTeamMember& thread, const iType& count ) {
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::OpenMPexecTeamMember >( thread, count );
 }
 
-template<typename iType>
+template< typename iType1, typename iType2 >
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember>
-  TeamThreadRange(const Impl::OpenMPexecTeamMember& thread, const iType& begin, const iType& end) {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember>(thread,begin,end);
+Impl::TeamThreadRangeBoundariesStruct< typename std::common_type< iType1, iType2 >::type,
+                                       Impl::OpenMPexecTeamMember >
+TeamThreadRange( const Impl::OpenMPexecTeamMember& thread, const iType1& begin, const iType2& end ) {
+  typedef typename std::common_type< iType1, iType2 >::type iType;
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::OpenMPexecTeamMember >( thread, iType(begin), iType(end) );
 }
 
 template<typename iType>
 KOKKOS_INLINE_FUNCTION
 Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember >
-  ThreadVectorRange(const Impl::OpenMPexecTeamMember& thread, const iType& count) {
+ThreadVectorRange(const Impl::OpenMPexecTeamMember& thread, const iType& count) {
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember >(thread,count);
 }
 
@@ -899,6 +895,7 @@ KOKKOS_INLINE_FUNCTION
 Impl::VectorSingleStruct<Impl::OpenMPexecTeamMember> PerThread(const Impl::OpenMPexecTeamMember& thread) {
   return Impl::VectorSingleStruct<Impl::OpenMPexecTeamMember>(thread);
 }
+
 } // namespace Kokkos
 
 namespace Kokkos {
@@ -958,7 +955,6 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Ope
 }
 
 } //namespace Kokkos
-
 
 namespace Kokkos {
 /** \brief  Intra-thread vector parallel_for. Executes lambda(iType i) for each i=0..N-1.
@@ -1080,4 +1076,3 @@ void single(const Impl::ThreadSingleStruct<Impl::OpenMPexecTeamMember>& single_s
 }
 
 #endif /* #ifndef KOKKOS_OPENMPEXEC_HPP */
-

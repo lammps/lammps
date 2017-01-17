@@ -70,8 +70,10 @@ struct AddFunctor {
 #ifdef KOKKOS_HAVE_PRAGMA_LOOPCOUNT
     #pragma loop count(128)
 #endif
+#ifndef KOKKOS_HAVE_DEBUG
 #ifdef KOKKOS_HAVE_PRAGMA_SIMD
     #pragma simd
+#endif
 #endif
     for(int j=0;j<length;j++)
       a(i,j) += b(i,j);

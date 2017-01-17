@@ -10,22 +10,34 @@ compute coord/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID coord/atom cutoff type1 type2 ... :pre
+compute ID group-ID coord/atom cstyle args ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 coord/atom = style name of this compute command
-cutoff = distance within which to count coordination neighbors (distance units)
-typeN = atom type for Nth coordination count (see asterisk form below) :ul
+one cstyle must be appended :ul
+
+cstyle = {cutoff} or {orientorder}
+
+{cutoff} args = cutoff typeN
+  cutoff = distance within which to count coordination neighbors (distance units)
+  typeN = atom type for Nth coordination count (see asterisk form below) :pre
+
+{orientorder} args = orientorderID threshold
+  orientorderID = ID of a previously defined orientorder/atom compute
+  threshold = minimum value of the scalar product between two 'connected' atoms (see text for explanation) :pre
 
 [Examples:]
 
-compute 1 all coord/atom 2.0
-compute 1 all coord/atom 6.0 1 2
-compute 1 all coord/atom 6.0 2*4 5*8 * :pre
+compute 1 all coord/atom cutoff 2.0
+compute 1 all coord/atom cutoff 6.0 1 2
+compute 1 all coord/atom cutoff 6.0 2*4 5*8 *
+compute 1 all coord/atom orientorder 2 0.5 :pre
 
 [Description:]
 
-Define a computation that calculates one or more coordination numbers
+This compute performs generic calculations between neighboring atoms. So far,
+there are two cstyles implemented: {cutoff} and {orientorder}.
+The {cutoff} cstyle calculates one or more coordination numbers
 for each atom in a group.
 
 A coordination number is defined as the number of neighbor atoms with
@@ -48,6 +60,14 @@ from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
+
+The {orientorder} cstyle calculates the number of 'connected' atoms j 
+around each atom i. The atom j is connected to i if the scalar product
+({Ybar_lm(i)},{Ybar_lm(j)}) is larger than {threshold}. Thus, this cstyle
+will work only if a "compute orientorder/atom"_compute_orientorder_atom.html
+has been previously defined. This cstyle allows one to apply the 
+ten Wolde's criterion to identify cristal-like atoms in a system 
+(see "ten Wolde et al."_#tenWolde).
 
 The value of all coordination numbers will be 0.0 for atoms not in the
 specified compute group.
@@ -83,10 +103,19 @@ options.
 The per-atom vector or array values will be a number >= 0.0, as
 explained above.
 
-[Restrictions:] none
+[Restrictions:]
+The cstyle {orientorder} can only be used if a 
+"compute orientorder/atom"_compute_orientorder_atom.html command
+was previously defined. Otherwise, an error message will be issued.
 
 [Related commands:]
 
 "compute cluster/atom"_compute_cluster_atom.html
+"compute orientorder/atom"_compute_orientorder_atom.html
 
 [Default:] none
+
+:line
+
+:link(tenWolde)
+[(tenWolde)] P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel, J. Chem. Phys. 104, 9932 (1996).

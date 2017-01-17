@@ -51,6 +51,8 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   writedata = 1;
+  ftable = NULL;
+  fdisptable = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -230,7 +232,27 @@ void PairBuckLongCoulLong::init_style()
   // require an atom style with charge defined
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
-    error->all(FLERR,"Pair style buck/long/coul/long requires atom attribute q");
+    error->all(FLERR,
+        "Invoking coulombic in pair style buck/long/coul/long requires atom attribute q");
+
+  // ensure use of KSpace long-range solver, set two g_ewalds
+
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requires a KSpace style");
+  if (ewald_order&(1<<1)) g_ewald = force->kspace->g_ewald;
+  if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
+
+  // set rRESPA cutoffs
+
+  if (strstr(update->integrate_style,"respa") &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;
+
+  // setup force tables
+
+  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
+  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_buck_global);
 
   // request regular or rRESPA neighbor lists if neighrequest_flag != 0
 
@@ -271,24 +293,6 @@ void PairBuckLongCoulLong::init_style()
   }
 
   cut_coulsq = cut_coul * cut_coul;
-
-  // set rRESPA cutoffs
-
-  if (strstr(update->integrate_style,"respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;
-
-  // ensure use of KSpace long-range solver, set two g_ewalds
-
-  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
-  if (ewald_order&(1<<1)) g_ewald = force->kspace->g_ewald;
-  if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
-  // setup force tables
-
-  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
-  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_buck_global);
 }
 
 /* ----------------------------------------------------------------------

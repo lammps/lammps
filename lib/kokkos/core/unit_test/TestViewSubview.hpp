@@ -144,7 +144,7 @@ void test_auto_1d ()
   }
 
   for (size_type j = 0; j < numCols; ++j) {
-    auto X_j = Kokkos::subview (X, Kokkos::ALL(), j);
+    auto X_j = Kokkos::subview (X, Kokkos::ALL, j);
 
     fill_1D<decltype(X_j),Space> f4(X_j, ZERO);
     Kokkos::parallel_for(X_j.dimension_0(),f4);
@@ -154,7 +154,7 @@ void test_auto_1d ()
     }
 
     for (size_type jj = 0; jj < numCols; ++jj) {
-      auto X_jj = Kokkos::subview (X, Kokkos::ALL(), jj);
+      auto X_jj = Kokkos::subview (X, Kokkos::ALL, jj);
       fill_1D<decltype(X_jj),Space> f5(X_jj, ONE);
       Kokkos::parallel_for(X_jj.dimension_0(),f5);
       Kokkos::deep_copy (X_h, X);
@@ -172,9 +172,9 @@ void test_1d_strided_assignment_impl(bool a, bool b, bool c, bool d, int n, int 
   int col = n>2?2:0;
   int row = m>2?2:0;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
   if(a) {
-    Kokkos::View<double*,LD,Space> l1da = Kokkos::subview(l2d,Kokkos::ALL(),row);
+    Kokkos::View<double*,LD,Space> l1da = Kokkos::subview(l2d,Kokkos::ALL,row);
     ASSERT_TRUE( & l1da(0) == & l2d(0,row) );
     if(n>1)
       ASSERT_TRUE( & l1da(1) == & l2d(1,row) );
@@ -185,7 +185,7 @@ void test_1d_strided_assignment_impl(bool a, bool b, bool c, bool d, int n, int 
     ASSERT_TRUE( & l1db(1) == & l2d(3,row) );
   }
   if(c) {
-    Kokkos::View<double*,LD,Space> l1dc = Kokkos::subview(l2d,col,Kokkos::ALL());
+    Kokkos::View<double*,LD,Space> l1dc = Kokkos::subview(l2d,col,Kokkos::ALL);
     ASSERT_TRUE( & l1dc(0) == & l2d(col,0) );
     if(m>1)
       ASSERT_TRUE( & l1dc(1) == & l2d(col,1) );
@@ -226,7 +226,7 @@ void test_left_0()
   typedef Kokkos::View< int [2][3][4][5][2][3][4][5] , Kokkos::LayoutLeft , Space >
     view_static_8_type ;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
 
   view_static_8_type  x_static_8("x_static_left_8");
 
@@ -290,7 +290,7 @@ void test_left_1()
   typedef Kokkos::View< int ****[2][3][4][5] , Kokkos::LayoutLeft , Space >
     view_type ;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
 
   view_type  x8("x_left_8",2,3,4,5);
 
@@ -353,7 +353,7 @@ void test_left_2()
 {
   typedef Kokkos::View< int **** , Kokkos::LayoutLeft , Space > view_type ;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
 
   view_type  x4("x4",2,3,4,5);
 
@@ -417,7 +417,7 @@ void test_left_3()
 {
   typedef Kokkos::View< int ** , Kokkos::LayoutLeft , Space > view_type ;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
 
   view_type  xm("x4",10,5);
 
@@ -429,7 +429,7 @@ void test_left_3()
   ASSERT_TRUE( & x0() == & xm(5,3) );
 
   Kokkos::View<int*,Kokkos::LayoutLeft,Space> x1 =
-    Kokkos::subview( xm, Kokkos::ALL(), 3 );
+    Kokkos::subview( xm, Kokkos::ALL, 3 );
 
   ASSERT_TRUE( x1.is_contiguous() );
   for ( int i = 0 ; i < int(xm.dimension_0()) ; ++i ) {
@@ -437,7 +437,7 @@ void test_left_3()
   }
 
   Kokkos::View<int**,Kokkos::LayoutLeft,Space> x2 =
-    Kokkos::subview( xm, Kokkos::pair<int,int>(1,9), Kokkos::ALL() );
+    Kokkos::subview( xm, Kokkos::pair<int,int>(1,9), Kokkos::ALL );
 
   ASSERT_TRUE( ! x2.is_contiguous() );
   for ( int j = 0 ; j < int(x2.dimension_1()) ; ++j )
@@ -446,7 +446,7 @@ void test_left_3()
   }
 
   Kokkos::View<int**,Kokkos::LayoutLeft,Space> x2c =
-    Kokkos::subview( xm, Kokkos::ALL(), std::pair<int,int>(2,4) );
+    Kokkos::subview( xm, Kokkos::ALL, std::pair<int,int>(2,4) );
 
   ASSERT_TRUE( x2c.is_contiguous() );
   for ( int j = 0 ; j < int(x2c.dimension_1()) ; ++j )
@@ -455,13 +455,13 @@ void test_left_3()
   }
 
   Kokkos::View<int**,Kokkos::LayoutLeft,Space> x2_n1 =
-    Kokkos::subview( xm , std::pair<int,int>(1,1) , Kokkos::ALL() );
+    Kokkos::subview( xm , std::pair<int,int>(1,1) , Kokkos::ALL );
 
   ASSERT_TRUE( x2_n1.dimension_0() == 0 );
   ASSERT_TRUE( x2_n1.dimension_1() == xm.dimension_1() );
 
   Kokkos::View<int**,Kokkos::LayoutLeft,Space> x2_n2 =
-    Kokkos::subview( xm , Kokkos::ALL() , std::pair<int,int>(1,1) );
+    Kokkos::subview( xm , Kokkos::ALL , std::pair<int,int>(1,1) );
 
   ASSERT_TRUE( x2_n2.dimension_0() == xm.dimension_0() );
   ASSERT_TRUE( x2_n2.dimension_1() == 0 );
@@ -477,7 +477,7 @@ void test_right_0()
   typedef Kokkos::View< int [2][3][4][5][2][3][4][5] , Kokkos::LayoutRight , Space >
     view_static_8_type ;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
 
   view_static_8_type  x_static_8("x_static_right_8");
 
@@ -542,7 +542,7 @@ void test_right_1()
   typedef Kokkos::View< int ****[2][3][4][5] , Kokkos::LayoutRight , Space >
     view_type ;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
 
   view_type  x8("x_right_8",2,3,4,5);
 
@@ -597,7 +597,7 @@ void test_right_3()
 {
   typedef Kokkos::View< int ** , Kokkos::LayoutRight , Space > view_type ;
 
-  if(Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,Space>::value) {
+  if(Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,typename Space::memory_space>::accessible) {
 
   view_type  xm("x4",10,5);
 
@@ -609,7 +609,7 @@ void test_right_3()
   ASSERT_TRUE( & x0() == & xm(5,3) );
 
   Kokkos::View<int*,Kokkos::LayoutRight,Space> x1 =
-    Kokkos::subview( xm, 3, Kokkos::ALL() );
+    Kokkos::subview( xm, 3, Kokkos::ALL );
 
   ASSERT_TRUE( x1.is_contiguous() );
   for ( int i = 0 ; i < int(xm.dimension_1()) ; ++i ) {
@@ -617,7 +617,7 @@ void test_right_3()
   }
 
   Kokkos::View<int**,Kokkos::LayoutRight,Space> x2c =
-    Kokkos::subview( xm, Kokkos::pair<int,int>(1,9), Kokkos::ALL() );
+    Kokkos::subview( xm, Kokkos::pair<int,int>(1,9), Kokkos::ALL );
 
   ASSERT_TRUE( x2c.is_contiguous() );
   for ( int j = 0 ; j < int(x2c.dimension_1()) ; ++j )
@@ -626,7 +626,7 @@ void test_right_3()
   }
 
   Kokkos::View<int**,Kokkos::LayoutRight,Space> x2 =
-    Kokkos::subview( xm, Kokkos::ALL(), std::pair<int,int>(2,4) );
+    Kokkos::subview( xm, Kokkos::ALL, std::pair<int,int>(2,4) );
 
   ASSERT_TRUE( ! x2.is_contiguous() );
   for ( int j = 0 ; j < int(x2.dimension_1()) ; ++j )
@@ -635,13 +635,13 @@ void test_right_3()
   }
 
   Kokkos::View<int**,Kokkos::LayoutRight,Space> x2_n1 =
-    Kokkos::subview( xm , std::pair<int,int>(1,1) , Kokkos::ALL() );
+    Kokkos::subview( xm , std::pair<int,int>(1,1) , Kokkos::ALL );
 
   ASSERT_TRUE( x2_n1.dimension_0() == 0 );
   ASSERT_TRUE( x2_n1.dimension_1() == xm.dimension_1() );
 
   Kokkos::View<int**,Kokkos::LayoutRight,Space> x2_n2 =
-    Kokkos::subview( xm , Kokkos::ALL() , std::pair<int,int>(1,1) );
+    Kokkos::subview( xm , Kokkos::ALL , std::pair<int,int>(1,1) );
 
   ASSERT_TRUE( x2_n2.dimension_0() == xm.dimension_0() );
   ASSERT_TRUE( x2_n2.dimension_1() == 0 );
@@ -711,20 +711,21 @@ void test_Check3D5D(SubView a, View b, int i0, int i1, std::pair<int,int> range2
   ASSERT_TRUE( errors == 0 );
 }
 
-template<class Space, class LayoutSub, class Layout, class LayoutOrg>
+template<class Space, class LayoutSub, class Layout, class LayoutOrg, class MemTraits>
 void test_1d_assign_impl() {
 
   { //Breaks
-    Kokkos::View<int*,LayoutOrg,Space> a("A",N0);
+    Kokkos::View<int*,LayoutOrg,Space> a_org("A",N0);
+    Kokkos::View<int*,LayoutOrg,Space,MemTraits> a(a_org);
     Kokkos::fence();
     for(int i=0; i<N0; i++)
-      a(i) = i;
+      a_org(i) = i;
 
-    Kokkos::View<int[N0],Layout,Space> a1(a);
+    Kokkos::View<int[N0],Layout,Space,MemTraits> a1(a);
     Kokkos::fence();
     test_Check1D(a1,a,std::pair<int,int>(0,N0));
 
-    Kokkos::View<int[N0],LayoutSub,Space> a2(a1);
+    Kokkos::View<int[N0],LayoutSub,Space,MemTraits> a2(a1);
     Kokkos::fence();
     test_Check1D(a2,a,std::pair<int,int>(0,N0));
     a1 = a;
@@ -738,8 +739,8 @@ void test_1d_assign_impl() {
   }
 
   { // Works
-    Kokkos::View<int[N0],LayoutOrg,Space> a("A");
-    Kokkos::View<int*,Layout,Space> a1(a);
+    Kokkos::View<int[N0],LayoutOrg,Space,MemTraits> a("A");
+    Kokkos::View<int*,Layout,Space,MemTraits> a1(a);
     Kokkos::fence();
     test_Check1D(a1,a,std::pair<int,int>(0,N0));
     a1 = a;
@@ -748,126 +749,490 @@ void test_1d_assign_impl() {
   }
 }
 
-template<class Space, class Type, class TypeSub,class LayoutSub, class Layout, class LayoutOrg>
+template<class Space, class Type, class TypeSub,class LayoutSub, class Layout, class LayoutOrg,class MemTraits>
 void test_2d_subview_3d_impl_type() {
   Kokkos::View<int***,LayoutOrg,Space> a_org("A",N0,N1,N2);
-  Kokkos::View<Type,Layout,Space> a(a_org);
+  Kokkos::View<Type,Layout,Space,MemTraits> a(a_org);
   for(int i0=0; i0<N0; i0++)
     for(int i1=0; i1<N1; i1++)
       for(int i2=0; i2<N2; i2++)
-        a(i0,i1,i2) = i0*1000000+i1*1000+i2;
-  Kokkos::View<TypeSub,LayoutSub,Space> a1;
-  a1 = Kokkos::subview(a,3,Kokkos::ALL(),Kokkos::ALL());
+        a_org(i0,i1,i2) = i0*1000000+i1*1000+i2;
+  Kokkos::View<TypeSub,LayoutSub,Space,MemTraits> a1;
+  a1 = Kokkos::subview(a,3,Kokkos::ALL,Kokkos::ALL);
   Kokkos::fence();
   test_Check2D3D(a1,a,3,std::pair<int,int>(0,N1),std::pair<int,int>(0,N2));
 
-  Kokkos::View<TypeSub,LayoutSub,Space> a2(a,3,Kokkos::ALL(),Kokkos::ALL());
+  Kokkos::View<TypeSub,LayoutSub,Space,MemTraits> a2(a,3,Kokkos::ALL,Kokkos::ALL);
   Kokkos::fence();
   test_Check2D3D(a2,a,3,std::pair<int,int>(0,N1),std::pair<int,int>(0,N2));
 }
 
-template<class Space, class LayoutSub, class Layout, class LayoutOrg>
+template<class Space, class LayoutSub, class Layout, class LayoutOrg, class MemTraits>
 void test_2d_subview_3d_impl_layout() {
-  test_2d_subview_3d_impl_type<Space,int[N0][N1][N2],int[N1][N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int[N0][N1][N2],int*   [N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int[N0][N1][N2],int**      ,LayoutSub, Layout, LayoutOrg>();
+  test_2d_subview_3d_impl_type<Space,int[N0][N1][N2],int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int[N0][N1][N2],int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int[N0][N1][N2],int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_3d_impl_type<Space,int*   [N1][N2],int[N1][N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int*   [N1][N2],int*   [N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int*   [N1][N2],int**      ,LayoutSub, Layout, LayoutOrg>();
+  test_2d_subview_3d_impl_type<Space,int*   [N1][N2],int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int*   [N1][N2],int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int*   [N1][N2],int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_3d_impl_type<Space,int**      [N2],int[N1][N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int**      [N2],int*   [N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int**      [N2],int**      ,LayoutSub, Layout, LayoutOrg>();
+  test_2d_subview_3d_impl_type<Space,int**      [N2],int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int**      [N2],int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int**      [N2],int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_3d_impl_type<Space,int***         ,int[N1][N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int***         ,int*   [N2],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_3d_impl_type<Space,int***         ,int**      ,LayoutSub, Layout, LayoutOrg>();
+  test_2d_subview_3d_impl_type<Space,int***         ,int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int***         ,int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,int***         ,int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_2d_subview_3d_impl_type<Space,const int[N0][N1][N2],const int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int[N0][N1][N2],const int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int[N0][N1][N2],const int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_2d_subview_3d_impl_type<Space,const int*   [N1][N2],const int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int*   [N1][N2],const int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int*   [N1][N2],const int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_2d_subview_3d_impl_type<Space,const int**      [N2],const int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int**      [N2],const int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int**      [N2],const int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_2d_subview_3d_impl_type<Space,const int***         ,const int[N1][N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int***         ,const int*   [N2],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_2d_subview_3d_impl_type<Space,const int***         ,const int**      ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 }
 
-template<class Space, class Type, class TypeSub,class LayoutSub, class Layout, class LayoutOrg>
-void test_2d_subview_5d_impl_type() {
+template<class Space, class Type, class TypeSub,class LayoutSub, class Layout, class LayoutOrg, class MemTraits>
+void test_3d_subview_5d_impl_type() {
   Kokkos::View<int*****,LayoutOrg,Space> a_org("A",N0,N1,N2,N3,N4);
-  Kokkos::View<Type,Layout,Space> a(a_org);
+  Kokkos::View<Type,Layout,Space,MemTraits> a(a_org);
   for(int i0=0; i0<N0; i0++)
     for(int i1=0; i1<N1; i1++)
       for(int i2=0; i2<N2; i2++)
         for(int i3=0; i3<N3; i3++)
           for(int i4=0; i4<N4; i4++)
-            a(i0,i1,i2,i3,i4) = i0*1000000+i1*10000+i2*100+i3*10+i4;
-  Kokkos::View<TypeSub,LayoutSub,Space> a1;
-  a1 = Kokkos::subview(a,3,5,Kokkos::ALL(),Kokkos::ALL(),Kokkos::ALL());
+            a_org(i0,i1,i2,i3,i4) = i0*1000000+i1*10000+i2*100+i3*10+i4;
+  Kokkos::View<TypeSub,LayoutSub,Space,MemTraits> a1;
+  a1 = Kokkos::subview(a,3,5,Kokkos::ALL,Kokkos::ALL,Kokkos::ALL);
   Kokkos::fence();
   test_Check3D5D(a1,a,3,5,std::pair<int,int>(0,N2),std::pair<int,int>(0,N3),std::pair<int,int>(0,N4));
 
-  Kokkos::View<TypeSub,LayoutSub,Space> a2(a,3,5,Kokkos::ALL(),Kokkos::ALL(),Kokkos::ALL());
+  Kokkos::View<TypeSub,LayoutSub,Space,MemTraits> a2(a,3,5,Kokkos::ALL,Kokkos::ALL,Kokkos::ALL);
   Kokkos::fence();
   test_Check3D5D(a2,a,3,5,std::pair<int,int>(0,N2),std::pair<int,int>(0,N3),std::pair<int,int>(0,N4));
 }
 
-template<class Space, class LayoutSub, class Layout, class LayoutOrg>
-void test_2d_subview_5d_impl_layout() {
-  test_2d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int***         ,LayoutSub, Layout, LayoutOrg>();
+template<class Space, class LayoutSub, class Layout, class LayoutOrg, class MemTraits>
+void test_3d_subview_5d_impl_layout() {
+  test_3d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int[N0][N1][N2][N3][N4],int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int***         ,LayoutSub, Layout, LayoutOrg>();
+  test_3d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int*   [N1][N2][N3][N4],int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int***         ,LayoutSub, Layout, LayoutOrg>();
+  test_3d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int**      [N2][N3][N4],int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_5d_impl_type<Space, int***         [N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int***         [N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int***         [N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int***         [N3][N4],int***         ,LayoutSub, Layout, LayoutOrg>();
+  test_3d_subview_5d_impl_type<Space, int***         [N3][N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int***         [N3][N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int***         [N3][N4],int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int***         [N3][N4],int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_5d_impl_type<Space, int****            [N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int****            [N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int****            [N4],int**      [N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int****            [N4],int***         ,LayoutSub, Layout, LayoutOrg>();
+  test_3d_subview_5d_impl_type<Space, int****            [N4],int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int****            [N4],int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int****            [N4],int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int****            [N4],int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 
-  test_2d_subview_5d_impl_type<Space, int*****               ,int[N2][N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int*****               ,int*   [N3][N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int*****               ,int**      [N4],LayoutSub, Layout, LayoutOrg>();
-  test_2d_subview_5d_impl_type<Space, int*****               ,int***         ,LayoutSub, Layout, LayoutOrg>();
+  test_3d_subview_5d_impl_type<Space, int*****               ,int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int*****               ,int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int*****               ,int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, int*****               ,int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_3d_subview_5d_impl_type<Space, const int[N0][N1][N2][N3][N4],const int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int[N0][N1][N2][N3][N4],const int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int[N0][N1][N2][N3][N4],const int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int[N0][N1][N2][N3][N4],const int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_3d_subview_5d_impl_type<Space, const int*   [N1][N2][N3][N4],const int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int*   [N1][N2][N3][N4],const int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int*   [N1][N2][N3][N4],const int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int*   [N1][N2][N3][N4],const int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_3d_subview_5d_impl_type<Space, const int**      [N2][N3][N4],const int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int**      [N2][N3][N4],const int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int**      [N2][N3][N4],const int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int**      [N2][N3][N4],const int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_3d_subview_5d_impl_type<Space, const int***         [N3][N4],const int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int***         [N3][N4],const int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int***         [N3][N4],const int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int***         [N3][N4],const int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_3d_subview_5d_impl_type<Space, const int****            [N4],const int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int****            [N4],const int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int****            [N4],const int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int****            [N4],const int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
+
+  test_3d_subview_5d_impl_type<Space, const int*****               ,const int[N2][N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int*****               ,const int*   [N3][N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int*****               ,const int**      [N4],LayoutSub, Layout, LayoutOrg, MemTraits>();
+  test_3d_subview_5d_impl_type<Space, const int*****               ,const int***         ,LayoutSub, Layout, LayoutOrg, MemTraits>();
 }
+
+inline
+void test_subview_legal_args_right() {
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutRight,Kokkos::LayoutRight,3,3,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
 }
 
-template< class Space >
+inline
+void test_subview_legal_args_left() {
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,int>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,int,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,int,Kokkos::Impl::ALL_t>::value));
+
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,5,0,int,int,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(1,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::Impl::ALL_t,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::Impl::ALL_t>::value));
+  ASSERT_EQ(0,(Kokkos::Experimental::Impl::SubviewLegalArgsCompileTime<Kokkos::LayoutLeft,Kokkos::LayoutLeft,3,3,0,Kokkos::pair<int,int>,Kokkos::pair<int,int>,Kokkos::pair<int,int>>::value));
+}
+
+}
+
+template< class Space, class MemTraits = void>
 void test_1d_assign() {
-  Impl::test_1d_assign_impl<Space,Kokkos::LayoutLeft  ,Kokkos::LayoutLeft  ,Kokkos::LayoutLeft  >();
+  Impl::test_1d_assign_impl<Space,Kokkos::LayoutLeft  ,Kokkos::LayoutLeft  ,Kokkos::LayoutLeft, MemTraits>();
   //Impl::test_1d_assign_impl<Space,Kokkos::LayoutRight ,Kokkos::LayoutLeft  ,Kokkos::LayoutLeft  >();
-  Impl::test_1d_assign_impl<Space,Kokkos::LayoutStride,Kokkos::LayoutLeft  ,Kokkos::LayoutLeft  >();
+  Impl::test_1d_assign_impl<Space,Kokkos::LayoutStride,Kokkos::LayoutLeft  ,Kokkos::LayoutLeft, MemTraits>();
   //Impl::test_1d_assign_impl<Space,Kokkos::LayoutLeft  ,Kokkos::LayoutRight ,Kokkos::LayoutLeft  >();
-  Impl::test_1d_assign_impl<Space,Kokkos::LayoutRight ,Kokkos::LayoutRight ,Kokkos::LayoutRight  >();
-  Impl::test_1d_assign_impl<Space,Kokkos::LayoutStride,Kokkos::LayoutRight ,Kokkos::LayoutRight  >();
+  Impl::test_1d_assign_impl<Space,Kokkos::LayoutRight ,Kokkos::LayoutRight ,Kokkos::LayoutRight, MemTraits>();
+  Impl::test_1d_assign_impl<Space,Kokkos::LayoutStride,Kokkos::LayoutRight ,Kokkos::LayoutRight, MemTraits>();
   //Impl::test_1d_assign_impl<Space,Kokkos::LayoutLeft  ,Kokkos::LayoutStride,Kokkos::LayoutLeft  >();
   //Impl::test_1d_assign_impl<Space,Kokkos::LayoutRight ,Kokkos::LayoutStride,Kokkos::LayoutLeft  >();
-  Impl::test_1d_assign_impl<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutLeft  >();
+  Impl::test_1d_assign_impl<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutLeft, MemTraits>();
 }
 
-template<class Space >
+template<class Space, class MemTraits = void>
 void test_2d_subview_3d() {
-  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutRight ,Kokkos::LayoutRight, Kokkos::LayoutRight>();
-  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutRight, Kokkos::LayoutRight>();
-  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutRight>();
-  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutLeft,  Kokkos::LayoutLeft>();
-  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutLeft>();
+  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutRight ,Kokkos::LayoutRight, Kokkos::LayoutRight, MemTraits>();
+  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutRight, Kokkos::LayoutRight, MemTraits>();
+  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutRight, MemTraits>();
+  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutLeft,  Kokkos::LayoutLeft,  MemTraits>();
+  Impl::test_2d_subview_3d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutLeft,  MemTraits>();
 }
 
-template<class Space >
-void test_2d_subview_5d() {
-  Impl::test_2d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutRight, Kokkos::LayoutRight>();
-  Impl::test_2d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutRight>();
-  Impl::test_2d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutLeft,  Kokkos::LayoutLeft>();
-  Impl::test_2d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutLeft>();
+template<class Space, class MemTraits = void>
+void test_3d_subview_5d_right() {
+  Impl::test_3d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutRight, Kokkos::LayoutRight, MemTraits>();
+  Impl::test_3d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutRight, MemTraits>();
 }
+
+template<class Space, class MemTraits = void>
+void test_3d_subview_5d_left() {
+  Impl::test_3d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutLeft,  Kokkos::LayoutLeft,  MemTraits>();
+  Impl::test_3d_subview_5d_impl_layout<Space,Kokkos::LayoutStride,Kokkos::LayoutStride,Kokkos::LayoutLeft,  MemTraits>();
+}
+
+
+
+namespace Impl {
+
+  template<class Layout, class Space>
+  struct FillView_3D {
+    Kokkos::View<int***,Layout,Space> a;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator() (const int& ii) const {
+      const int i = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+        ii % a.dimension_0(): ii / (a.dimension_1()*a.dimension_2());
+      const int j = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+        (ii / a.dimension_0()) % a.dimension_1() : (ii / a.dimension_2()) % a.dimension_1();
+      const int k = std::is_same<Layout,Kokkos::LayoutRight>::value ?
+        ii / (a.dimension_0() * a.dimension_1()) : ii % a.dimension_2();
+      a(i,j,k) = 1000000 * i + 1000 * j + k;
+    }
+  };
+
+  template<class Layout, class Space>
+  struct FillView_4D {
+    Kokkos::View<int****,Layout,Space> a;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator() (const int& ii) const {
+      const int i = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+         ii % a.dimension_0(): ii / (a.dimension_1()*a.dimension_2()*a.dimension_3());
+      const int j = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+        (ii / a.dimension_0()) % a.dimension_1() : (ii / (a.dimension_2()*a.dimension_3()) % a.dimension_1());
+      const int k = std::is_same<Layout,Kokkos::LayoutRight>::value ?
+        (ii / (a.dimension_0() * a.dimension_1())) % a.dimension_2() : (ii / a.dimension_3()) % a.dimension_2();
+      const int l = std::is_same<Layout,Kokkos::LayoutRight>::value ?
+         ii / (a.dimension_0() * a.dimension_1() * a.dimension_2()) : ii % a.dimension_3();
+      a(i,j,k,l) = 1000000 * i + 10000 * j + 100 * k + l;
+    }
+  }; 
+
+  template<class Layout, class Space, class MemTraits>
+  struct CheckSubviewCorrectness_3D_3D {
+    Kokkos::View<const int***,Layout,Space,MemTraits> a;
+    Kokkos::View<const int***,Layout,Space,MemTraits> b;
+    int offset_0,offset_2;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator() (const int& ii) const {
+      const int i = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+        ii % b.dimension_0(): ii / (b.dimension_1()*b.dimension_2());
+      const int j = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+        (ii / b.dimension_0()) % b.dimension_1() : (ii / b.dimension_2()) % b.dimension_1();
+      const int k = std::is_same<Layout,Kokkos::LayoutRight>::value ?
+        ii / (b.dimension_0() * b.dimension_1()) : ii % b.dimension_2();
+      if( a(i+offset_0,j,k+offset_2) != b(i,j,k))
+        Kokkos::abort("Error: check_subview_correctness 3D-3D (LayoutLeft -> LayoutLeft or LayoutRight -> LayoutRight)");
+    }
+  };
+
+  template<class Layout, class Space, class MemTraits>
+  struct CheckSubviewCorrectness_3D_4D {
+    Kokkos::View<const int****,Layout,Space,MemTraits> a;
+    Kokkos::View<const int***,Layout,Space,MemTraits> b;
+    int offset_0,offset_2,index;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator() (const int& ii) const {
+      const int i = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+        ii % b.dimension_0(): ii / (b.dimension_1()*b.dimension_2());
+      const int j = std::is_same<Layout,Kokkos::LayoutLeft>::value ?
+        (ii / b.dimension_0()) % b.dimension_1() : (ii / b.dimension_2()) % b.dimension_1();
+      const int k = std::is_same<Layout,Kokkos::LayoutRight>::value ?
+        ii / (b.dimension_0() * b.dimension_1()) : ii % b.dimension_2();
+
+      int i0,i1,i2,i3;
+      if(std::is_same<Layout,Kokkos::LayoutLeft>::value) {
+        i0 = i + offset_0;
+        i1 = j;
+        i2 = k + offset_2;
+        i3 = index;
+      } else {
+        i0 = index;
+        i1 = i + offset_0;
+        i2 = j;
+        i3 = k + offset_2;
+      }
+      if( a(i0,i1,i2,i3) != b(i,j,k))
+        Kokkos::abort("Error: check_subview_correctness 3D-4D (LayoutLeft -> LayoutLeft or LayoutRight -> LayoutRight)");
+    }
+  };
+}
+
+template<class Space, class MemTraits = void>
+void test_layoutleft_to_layoutleft() {
+  Impl::test_subview_legal_args_left();
+
+  {
+    Kokkos::View<int***,Kokkos::LayoutLeft,Space> a("A",100,4,3);
+    Kokkos::View<int***,Kokkos::LayoutLeft,Space> b(a,Kokkos::pair<int,int>(16,32),Kokkos::ALL,Kokkos::ALL);
+
+    Impl::FillView_3D<Kokkos::LayoutLeft,Space> fill;
+    fill.a = a;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,a.extent(0)*a.extent(1)*a.extent(2)), fill);  
+
+    Impl::CheckSubviewCorrectness_3D_3D<Kokkos::LayoutLeft,Space,MemTraits> check;
+    check.a = a;
+    check.b = b;
+    check.offset_0 = 16;
+    check.offset_2 = 0;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,b.extent(0)*b.extent(1)*b.extent(2)), check);
+  }
+  {
+    Kokkos::View<int***,Kokkos::LayoutLeft,Space> a("A",100,4,5);
+    Kokkos::View<int***,Kokkos::LayoutLeft,Space> b(a,Kokkos::pair<int,int>(16,32),Kokkos::ALL,Kokkos::pair<int,int>(1,3));
+
+    Impl::FillView_3D<Kokkos::LayoutLeft,Space> fill;
+    fill.a = a;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,a.extent(0)*a.extent(1)*a.extent(2)), fill);
+
+    Impl::CheckSubviewCorrectness_3D_3D<Kokkos::LayoutLeft,Space,MemTraits> check;
+    check.a = a;
+    check.b = b;
+    check.offset_0 = 16;
+    check.offset_2 = 1;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,b.extent(0)*b.extent(1)*b.extent(2)), check);
+  }
+  {
+    Kokkos::View<int****,Kokkos::LayoutLeft,Space> a("A",100,4,5,3); 
+    Kokkos::View<int***,Kokkos::LayoutLeft,Space> b(a,Kokkos::pair<int,int>(16,32),Kokkos::ALL,Kokkos::pair<int,int>(1,3),1);
+
+    Impl::FillView_4D<Kokkos::LayoutLeft,Space> fill;
+    fill.a = a;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,a.extent(0)*a.extent(1)*a.extent(2)*a.extent(3)), fill);
+
+    Impl::CheckSubviewCorrectness_3D_4D<Kokkos::LayoutLeft,Space,MemTraits> check;
+    check.a = a;
+    check.b = b;
+    check.offset_0 = 16;
+    check.offset_2 = 1;
+    check.index = 1;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,b.extent(0)*b.extent(1)*b.extent(2)), check);
+  }
+}
+
+template<class Space, class MemTraits = void>
+void test_layoutright_to_layoutright() {
+  Impl::test_subview_legal_args_right();
+
+  {
+    Kokkos::View<int***,Kokkos::LayoutRight,Space> a("A",100,4,3);
+    Kokkos::View<int***,Kokkos::LayoutRight,Space> b(a,Kokkos::pair<int,int>(16,32),Kokkos::ALL,Kokkos::ALL);
+
+    Impl::FillView_3D<Kokkos::LayoutRight,Space> fill;
+    fill.a = a;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,a.extent(0)*a.extent(1)*a.extent(2)), fill);
+
+    Impl::CheckSubviewCorrectness_3D_3D<Kokkos::LayoutRight,Space,MemTraits> check;
+    check.a = a;
+    check.b = b;
+    check.offset_0 = 16;
+    check.offset_2 = 0;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,b.extent(0)*b.extent(1)*b.extent(2)), check);
+  }
+  {
+    Kokkos::View<int****,Kokkos::LayoutRight,Space> a("A",3,4,5,100);
+    Kokkos::View<int***,Kokkos::LayoutRight,Space> b(a,1,Kokkos::pair<int,int>(1,3),Kokkos::ALL,Kokkos::ALL);
+
+
+    Impl::FillView_4D<Kokkos::LayoutRight,Space> fill;
+    fill.a = a;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,a.extent(0)*a.extent(1)*a.extent(2)*a.extent(3)), fill);
+
+    Impl::CheckSubviewCorrectness_3D_4D<Kokkos::LayoutRight,Space,MemTraits> check;
+    check.a = a;
+    check.b = b;
+    check.offset_0 = 1;
+    check.offset_2 = 0;
+    check.index = 1;
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(0,b.extent(0)*b.extent(1)*b.extent(2)), check);
+  }
+}
+
 
 }
 //----------------------------------------------------------------------------

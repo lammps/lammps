@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef KOKKOS_IMPL_CUDA_TASK_HPP
 #define KOKKOS_IMPL_CUDA_TASK_HPP
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#if defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ public:
 extern template class TaskQueue< Kokkos::Cuda > ;
 
 //----------------------------------------------------------------------------
-/**\brief  Impl::TaskExec<Cuda> is the TaskPolicy<Cuda>::member_type
+/**\brief  Impl::TaskExec<Cuda> is the TaskScheduler<Cuda>::member_type
  *         passed to tasks running in a Cuda space.
  *
  *  Cuda thread blocks for tasking are dimensioned:
@@ -234,19 +234,23 @@ namespace Kokkos {
 
 template<typename iType>
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >
-TeamThreadRange( const Impl::TaskExec< Kokkos::Cuda > & thread
-               , const iType & count )
+Impl::TeamThreadRangeBoundariesStruct< iType, Impl::TaskExec< Kokkos::Cuda > >
+TeamThreadRange( const Impl::TaskExec< Kokkos::Cuda > & thread, const iType & count )
 {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >(thread,count);
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::TaskExec< Kokkos::Cuda > >( thread, count );
 }
 
-template<typename iType>
+template<typename iType1, typename iType2>
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >
-TeamThreadRange( const Impl::TaskExec< Kokkos::Cuda > & thread, const iType & start , const iType & end )
+Impl::TeamThreadRangeBoundariesStruct
+  < typename std::common_type<iType1,iType2>::type
+  , Impl::TaskExec< Kokkos::Cuda > >
+TeamThreadRange( const Impl::TaskExec< Kokkos::Cuda > & thread
+               , const iType1 & begin, const iType2 & end )
 {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl:: TaskExec< Kokkos::Cuda > >(thread,start,end);
+  typedef typename std::common_type< iType1, iType2 >::type iType;
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::TaskExec< Kokkos::Cuda > >(
+           thread, iType(begin), iType(end) );
 }
 
 template<typename iType>
@@ -315,7 +319,7 @@ ValueType shfl_warp_broadcast
 }
 
 // all-reduce across corresponding vector lanes between team members within warp
-// assume vec_length*team_size == warp_size 
+// assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
@@ -344,7 +348,7 @@ void parallel_reduce
 
 // all-reduce across corresponding vector lanes between team members within warp
 // if no join() provided, use sum
-// assume vec_length*team_size == warp_size 
+// assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
@@ -372,7 +376,7 @@ void parallel_reduce
 }
 
 // all-reduce within team members within warp
-// assume vec_length*team_size == warp_size 
+// assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
@@ -397,7 +401,7 @@ void parallel_reduce
 
 // all-reduce within team members within warp
 // if no join() provided, use sum
-// assume vec_length*team_size == warp_size 
+// assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
@@ -426,7 +430,7 @@ void parallel_reduce
 }
 
 // scan across corresponding vector lanes between team members within warp
-// assume vec_length*team_size == warp_size 
+// assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
@@ -469,7 +473,7 @@ void parallel_scan
 }
 
 // scan within team member (vector) within warp
-// assume vec_length*team_size == warp_size 
+// assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
@@ -514,6 +518,6 @@ void parallel_scan
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #ifndef KOKKOS_IMPL_CUDA_TASK_HPP */
 

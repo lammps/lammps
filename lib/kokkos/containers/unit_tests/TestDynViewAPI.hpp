@@ -715,9 +715,9 @@ public:
   typedef Kokkos::Experimental::DynRankView< T, device, Kokkos::MemoryUnmanaged > dView0_unmanaged ;
   typedef typename dView0::host_mirror_space host_drv_space ;
 
-  typedef Kokkos::Experimental::View< T , device >        View0 ;
-  typedef Kokkos::Experimental::View< T* , device >       View1 ;
-  typedef Kokkos::Experimental::View< T******* , device > View7 ;
+  typedef Kokkos::View< T , device >        View0 ;
+  typedef Kokkos::View< T* , device >       View1 ;
+  typedef Kokkos::View< T******* , device > View7 ;
 
   typedef typename View0::host_mirror_space  host_view_space ;
 
@@ -1127,8 +1127,7 @@ public:
     // T v2 = hx(0,0) ; // Generates compile error as intended
     // hx(0,0) = v2 ;   // Generates compile error as intended
 
-/*
-#if ! KOKKOS_USING_EXP_VIEW
+#if 0 /* Asynchronous deep copies not implemented for dynamic rank view */
     // Testing with asynchronous deep copy with respect to device
     {
       size_t count = 0 ;
@@ -1193,7 +1192,7 @@ public:
         { ASSERT_EQ( hx(ip,i1,i2,i3) , T(0) ); }
       }}}}
     }
-#endif */ // #if ! KOKKOS_USING_EXP_VIEW
+#endif
 
     // Testing with synchronous deep copy
     {

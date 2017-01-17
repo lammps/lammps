@@ -59,10 +59,12 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestDynamicView.hpp>
-#include <TestSegmentedView.hpp>
 
 #include <Kokkos_DynRankView.hpp>
 #include <TestDynViewAPI.hpp>
+
+#include <Kokkos_ErrorReporter.hpp>
+#include <TestErrorReporter.hpp>
 
 //----------------------------------------------------------------------------
 
@@ -133,11 +135,6 @@ void cuda_test_dualview_combinations(unsigned int size)
   test_dualview_combinations<int,Kokkos::Cuda>(size);
 }
 
-void cuda_test_segmented_view(unsigned int size)
-{
-  test_segmented_view<double,Kokkos::Cuda>(size);
-}
-
 void cuda_test_bitset()
 {
   test_bitset<Kokkos::Cuda>();
@@ -184,11 +181,6 @@ void cuda_test_bitset()
       cuda_test_dualview_combinations(size);                     \
   }
 
-#define CUDA_SEGMENTEDVIEW_TEST( size )                             \
-  TEST_F( cuda, segmentedview_##size##x) {       \
-      cuda_test_segmented_view(size);                     \
-  }
-
 CUDA_DUALVIEW_COMBINE_TEST( 10 )
 CUDA_VECTOR_COMBINE_TEST( 10 )
 CUDA_VECTOR_COMBINE_TEST( 3057 )
@@ -198,7 +190,6 @@ CUDA_INSERT_TEST(close,               100000, 90000, 100, 500)
 CUDA_INSERT_TEST(far,                 100000, 90000, 100, 500)
 CUDA_DEEP_COPY( 10000, 1 )
 CUDA_FAILED_INSERT_TEST( 10000, 1000 )
-CUDA_SEGMENTEDVIEW_TEST( 200 )
 
 
 #undef CUDA_INSERT_TEST
@@ -207,7 +198,6 @@ CUDA_SEGMENTEDVIEW_TEST( 200 )
 #undef CUDA_DEEP_COPY
 #undef CUDA_VECTOR_COMBINE_TEST
 #undef CUDA_DUALVIEW_COMBINE_TEST
-#undef CUDA_SEGMENTEDVIEW_TEST
 
 
 TEST_F( cuda , dynamic_view )
@@ -220,6 +210,18 @@ TEST_F( cuda , dynamic_view )
   }
 }
 
+
+#if defined(KOKKOS_CLASS_LAMBDA)
+TEST_F(cuda, ErrorReporterViaLambda)
+{
+  TestErrorReporter<ErrorReporterDriverUseLambda<Kokkos::Cuda>>();
+}
+#endif
+
+TEST_F(cuda, ErrorReporter)
+{
+  TestErrorReporter<ErrorReporterDriver<Kokkos::Cuda>>();
+}
 
 }
 

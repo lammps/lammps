@@ -59,6 +59,10 @@ public:
 private:
   void test_compile_time_parameters() {
     {
+      Kokkos::Impl::expand_variadic();
+      Kokkos::Impl::expand_variadic(1,2,3);
+    }
+    {
       typedef Kokkos::RangePolicy<> policy_t;
       typedef typename policy_t::execution_space execution_space;
       typedef typename policy_t::index_type      index_type;

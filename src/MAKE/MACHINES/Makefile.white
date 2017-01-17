@@ -23,7 +23,6 @@ ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = Cuda, OpenMP
 KOKKOS_ARCH =   Kepler35
-KOKKOS_CUDA_OPTIONS = enable_lambda
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

@@ -27,10 +27,10 @@ and the performance of the LAMMPS-implementation of oxDNA can be found
 in /doc/src/PDF/USER-CGDNA-overview.pdf.
 
 IMPORTANT NOTE: This package can only be used if LAMMPS is compiled
-with the MOLECULE and ASPHERE packages.  These should be included 
-in the LAMMPS build by typing "make yes-asphere yes-molecule" prior 
-to the usual compilation (see the "Including/excluding packages" 
-section of the LAMMPS manual).
+with the MOLECULE and ASPHERE packages.  These should be included in
+the LAMMPS build by typing "make yes-asphere yes-molecule" prior to
+the usual compilation (see the "Including/excluding packages" section
+of the LAMMPS manual).
 
 The creator of this package is:
 

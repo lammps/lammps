@@ -1095,7 +1095,7 @@ void PairExp6rxKokkos<DeviceType>::polynomialScaling(double phi, double &alpha, 
 
     alpha = (s_coeffAlpha[0]*phi5 + s_coeffAlpha[1]*phi4 + s_coeffAlpha[2]*phi3 + s_coeffAlpha[3]*phi2 + s_coeffAlpha[4]*phi + s_coeffAlpha[5]);
     epsilon *= (s_coeffEps[0]*phi5 + s_coeffEps[1]*phi4 + s_coeffEps[2]*phi3 + s_coeffEps[3]*phi2 + s_coeffEps[4]*phi + s_coeffEps[5]);
-    rm *= (s_coeffEps[0]*phi5 + s_coeffEps[1]*phi4 + s_coeffEps[2]*phi3 + s_coeffEps[3]*phi2 + s_coeffEps[4]*phi + s_coeffEps[5]);
+    rm *= (s_coeffRm[0]*phi5 + s_coeffRm[1]*phi4 + s_coeffRm[2]*phi3 + s_coeffRm[3]*phi2 + s_coeffRm[4]*phi + s_coeffRm[5]);
 }
 
 /* ---------------------------------------------------------------------- */

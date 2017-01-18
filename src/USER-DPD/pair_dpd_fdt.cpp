@@ -44,6 +44,7 @@ PairDPDfdt::PairDPDfdt(LAMMPS *lmp) : Pair(lmp)
 {
   random = NULL;
   splitFDT_flag = false;
+  a0_is_zero = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,7 +96,7 @@ void PairDPDfdt::compute(int eflag, int vflag)
   // loop over neighbors of my atoms
 
   if (splitFDT_flag) {
-    for (ii = 0; ii < inum; ii++) {
+    if (!a0_is_zero) for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -288,6 +289,8 @@ void PairDPDfdt::coeff(int narg, char **arg)
   double sigma_one = force->numeric(FLERR,arg[3]);
   double cut_one = cut_global;
 
+  a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
+
   if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;
@@ -372,6 +375,7 @@ void PairDPDfdt::read_restart(FILE *fp)
 
   allocate();
 
+  a0_is_zero = true; // start with assumption that a0 is zero
   int i,j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
@@ -387,6 +391,7 @@ void PairDPDfdt::read_restart(FILE *fp)
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        a0_is_zero = a0_is_zero && (a0[i][j] == 0.0); // verify the zero assumption
       }
     }
 }

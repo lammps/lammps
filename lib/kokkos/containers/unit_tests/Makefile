@@ -7,20 +7,17 @@ vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests
 default: build_all
 	echo "End Build"
 
+ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
+  CXX = $(KOKKOS_PATH)/config/nvcc_wrapper
+else
+  CXX = g++
+endif
+
+CXXFLAGS = -O3
+LINK ?= $(CXX)
+LDFLAGS ?= -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
-
-ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	CXX = $(NVCC_WRAPPER)
-	CXXFLAGS ?= -O3
-	LINK = $(CXX)
-	LDFLAGS ?= -lpthread
-else
-	CXX ?= g++
-	CXXFLAGS ?= -O3
-	LINK ?= $(CXX)
-	LDFLAGS ?= -lpthread
-endif
 
 KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/containers/unit_tests
 

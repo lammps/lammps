@@ -247,7 +247,7 @@ void Finish::end(int flag)
     }
   }
 
-  // PRD stats using PAIR,BOND,KSPACE for dephase,dynamics,quench
+  // PRD stats
 
   if (prdflag) {
     if (me == 0) {
@@ -329,7 +329,7 @@ void Finish::end(int flag)
     }
   }
 
-  // TAD stats using PAIR,BOND,KSPACE for neb,dynamics,quench
+  // TAD stats
 
   if (tadflag) {
     if (me == 0) {
@@ -415,7 +415,7 @@ void Finish::end(int flag)
     }
   }
 
-  // HYPER stats using PAIR,BOND,KSPACE for dynamics,quench
+  // HYPER stats
 
   if (hyperflag) {
     if (me == 0) {
@@ -912,7 +912,7 @@ void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
   time_cpu = tmp/nprocs*100.0;
 
   // % variance from the average as measure of load imbalance
-  if ((time_sq/time - time) > 1.0e-10)
+  if ((time > 0.001) && ((time_sq/time - time) > 1.0e-10))
     time_sq = sqrt(time_sq/time - time)*100.0;
   else
     time_sq = 0.0;
@@ -964,7 +964,7 @@ void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
   time_std /= nthreads;
   time_total /= nthreads;
 
-  if ((time_std/time_avg -time_avg) > 1.0e-10)
+  if ((time_avg > 0.001) && ((time_std/time_avg -time_avg) > 1.0e-10))
     time_std = sqrt(time_std/time_avg - time_avg)*100.0;
   else
     time_std = 0.0;

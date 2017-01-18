@@ -55,12 +55,13 @@ LAMMPS errors are detected at setup time; others like a bond
 stretching too far may not occur until the middle of a run.
 
 LAMMPS tries to flag errors and print informative error messages so
-you can fix the problem.  Of course, LAMMPS cannot figure out your
-physics or numerical mistakes, like choosing too big a timestep,
-specifying erroneous force field coefficients, or putting 2 atoms on
-top of each other!  If you run into errors that LAMMPS doesn't catch
-that you think it should flag, please send an email to the
-"developers"_http://lammps.sandia.gov/authors.html.
+you can fix the problem.  For most errors it will also print the last
+input script command that it was processing.  Of course, LAMMPS cannot
+figure out your physics or numerical mistakes, like choosing too big a
+timestep, specifying erroneous force field coefficients, or putting 2
+atoms on top of each other!  If you run into errors that LAMMPS
+doesn't catch that you think it should flag, please send an email to
+the "developers"_http://lammps.sandia.gov/authors.html.
 
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by

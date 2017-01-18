@@ -714,6 +714,8 @@ void Neighbor::init_pair()
       if (requests[i]->kokkos_host != requests[j]->kokkos_host) continue;
 
       if (requests[i]->ssa != requests[j]->ssa) continue;
+      // newton 2 and newton 0 both are newton off
+      if ((requests[i]->newton & 2) != (requests[j]->newton & 2)) continue;
 
       if (requests[i]->half && requests[j]->pair && 
           !requests[j]->skip && requests[j]->half && !requests[j]->copy)
@@ -909,9 +911,10 @@ void Neighbor::init_pair()
     done = 1;
     for (i = 0; i < npair_perpetual; i++) {
       ptr = NULL;
-      if (lists[plist[i]]->listcopy) ptr = lists[plist[i]]->listcopy;
-      if (lists[plist[i]]->listskip) ptr = lists[plist[i]]->listskip;
       if (lists[plist[i]]->listfull) ptr = lists[plist[i]]->listfull;
+      if (lists[plist[i]]->listcopy) ptr = lists[plist[i]]->listcopy;
+      // listskip check must be after listfull check
+      if (lists[plist[i]]->listskip) ptr = lists[plist[i]]->listskip;
       if (ptr == NULL) continue;
       for (m = 0; m < nrequest; m++)
         if (ptr == lists[m]) break;

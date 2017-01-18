@@ -43,7 +43,9 @@
 
 #include <algorithm>
 #include <Kokkos_Macros.hpp>
-
+#if (KOKKOS_ENABLE_PROFILING)
+#include <impl/Kokkos_Profiling_Interface.hpp>
+#endif
 /*--------------------------------------------------------------------------*/
 
 #if defined( __INTEL_COMPILER ) && ! defined ( KOKKOS_HAVE_CUDA )
@@ -333,13 +335,15 @@ void HostSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_
   }
 }
 
+constexpr const char* HostSpace::name() {
+  return m_name;
+}
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 SharedAllocationRecord< void , void >
@@ -355,6 +359,14 @@ deallocate( SharedAllocationRecord< void , void > * arg_rec )
 SharedAllocationRecord< Kokkos::HostSpace , void >::
 ~SharedAllocationRecord()
 {
+  #if (KOKKOS_ENABLE_PROFILING)
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::deallocateData(
+      Kokkos::Profiling::SpaceHandle(Kokkos::HostSpace::name()),RecordBase::m_alloc_ptr->m_label,
+      data(),size());
+  }
+  #endif
+
   m_space.deallocate( SharedAllocationRecord< void , void >::m_alloc_ptr
                     , SharedAllocationRecord< void , void >::m_alloc_size
                     );
@@ -376,6 +388,11 @@ SharedAllocationRecord( const Kokkos::HostSpace & arg_space
       )
   , m_space( arg_space )
 {
+#if (KOKKOS_ENABLE_PROFILING)
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::allocateData(Kokkos::Profiling::SpaceHandle(arg_space.name()),arg_label,data(),arg_alloc_size);
+   }
+#endif
   // Fill in the Header information
   RecordBase::m_alloc_ptr->m_record = static_cast< SharedAllocationRecord< void , void > * >( this );
 
@@ -438,7 +455,7 @@ SharedAllocationRecord< Kokkos::HostSpace , void >::get_record( void * alloc_ptr
   RecordHost                   * const record = head ? static_cast< RecordHost * >( head->m_record ) : (RecordHost *) 0 ;
 
   if ( ! alloc_ptr || record->m_alloc_ptr != head ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void >::get_record ERROR" ) );
+    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Impl::SharedAllocationRecord< Kokkos::HostSpace , void >::get_record ERROR" ) );
   }
 
   return record ;
@@ -452,55 +469,6 @@ print_records( std::ostream & s , const Kokkos::HostSpace & space , bool detail 
 }
 
 } // namespace Impl
-} // namespace Experimental
-} // namespace Kokkos
-
-/*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-namespace Experimental {
-namespace Impl {
-
-template< class >
-struct ViewOperatorBoundsErrorAbort ;
-
-template<>
-struct ViewOperatorBoundsErrorAbort< Kokkos::HostSpace > {
- static void apply( const size_t rank
-                  , const size_t n0 , const size_t n1
-                  , const size_t n2 , const size_t n3
-                  , const size_t n4 , const size_t n5
-                  , const size_t n6 , const size_t n7
-                  , const size_t i0 , const size_t i1
-                  , const size_t i2 , const size_t i3
-                  , const size_t i4 , const size_t i5
-                  , const size_t i6 , const size_t i7 );
-};
-
-void ViewOperatorBoundsErrorAbort< Kokkos::HostSpace >::
-apply( const size_t rank
-     , const size_t n0 , const size_t n1
-     , const size_t n2 , const size_t n3
-     , const size_t n4 , const size_t n5
-     , const size_t n6 , const size_t n7
-     , const size_t i0 , const size_t i1
-     , const size_t i2 , const size_t i3
-     , const size_t i4 , const size_t i5
-     , const size_t i6 , const size_t i7 )
-{
-  char buffer[512];
-
-  snprintf( buffer , sizeof(buffer)
-          , "View operator bounds error : rank(%lu) dim(%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu) index(%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu)"
-          , rank , n0 , n1 , n2 , n3 , n4 , n5 , n6 , n7
-                 , i0 , i1 , i2 , i3 , i4 , i5 , i6 , i7 );
-
-  Kokkos::Impl::throw_runtime_exception( buffer );
-}
-
-} // namespace Impl
-} // namespace Experimental
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/

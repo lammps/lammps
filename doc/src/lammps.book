@@ -23,6 +23,7 @@ Section_history.html
 
 tutorial_drude.html
 tutorial_github.html
+tutorial_pylammps.html
 
 body.html
 manifolds.html
@@ -113,6 +114,7 @@ special_bonds.html
 suffix.html
 tad.html
 temper.html
+temper_grem.html
 thermo.html
 thermo_modify.html
 thermo_style.html

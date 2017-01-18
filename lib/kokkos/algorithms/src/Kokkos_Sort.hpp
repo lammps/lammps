@@ -51,7 +51,7 @@
 
 namespace Kokkos {
 
-  namespace SortImpl {
+  namespace Impl {
 
   template<class ValuesViewType, int Rank=ValuesViewType::Rank>
   struct CopyOp;
@@ -199,7 +199,7 @@ public:
 
     parallel_for(values.dimension_0(),
         bin_sort_sort_functor<ValuesViewType, offset_type,
-                              SortImpl::CopyOp<ValuesViewType> >(values,sorted_values,sort_order));
+                              Impl::CopyOp<ValuesViewType> >(values,sorted_values,sort_order));
 
     deep_copy(values,sorted_values);
   }
@@ -262,17 +262,15 @@ public:
   }
 };
 
-namespace SortImpl {
-
 template<class KeyViewType>
-struct DefaultBinOp1D {
+struct BinOp1D {
   const int max_bins_;
   const double mul_;
   typename KeyViewType::const_value_type range_;
   typename KeyViewType::const_value_type min_;
 
   //Construct BinOp with number of bins, minimum value and maxuimum value
-  DefaultBinOp1D(int max_bins__, typename KeyViewType::const_value_type min,
+  BinOp1D(int max_bins__, typename KeyViewType::const_value_type min,
                                typename KeyViewType::const_value_type max )
      :max_bins_(max_bins__+1),mul_(1.0*max_bins__/(max-min)),range_(max-min),min_(min) {}
 
@@ -298,13 +296,13 @@ struct DefaultBinOp1D {
 };
 
 template<class KeyViewType>
-struct DefaultBinOp3D {
+struct BinOp3D {
   int max_bins_[3];
   double mul_[3];
   typename KeyViewType::non_const_value_type range_[3];
   typename KeyViewType::non_const_value_type min_[3];
 
-  DefaultBinOp3D(int max_bins__[], typename KeyViewType::const_value_type min[],
+  BinOp3D(int max_bins__[], typename KeyViewType::const_value_type min[],
                                typename KeyViewType::const_value_type max[] )
   {
     max_bins_[0] = max_bins__[0]+1;
@@ -348,109 +346,11 @@ struct DefaultBinOp3D {
   }
 };
 
-template<typename Scalar>
-struct min_max {
-  Scalar min;
-  Scalar max;
-  bool init;
-
-  KOKKOS_INLINE_FUNCTION
-  min_max() {
-    min = 0;
-    max = 0;
-    init = 0;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  min_max (const min_max& val) {
-    min = val.min;
-    max = val.max;
-    init = val.init;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  min_max operator = (const min_max& val) {
-    min = val.min;
-    max = val.max;
-    init = val.init;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+= (const Scalar& val) {
-    if(init) {
-      min = min<val?min:val;
-      max = max>val?max:val;
-    } else {
-      min = val;
-      max = val;
-      init = 1;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+= (const min_max& val) {
-    if(init && val.init) {
-      min = min<val.min?min:val.min;
-      max = max>val.max?max:val.max;
-    } else {
-      if(val.init) {
-        min = val.min;
-        max = val.max;
-        init = 1;
-      }
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+= (volatile const Scalar& val) volatile {
-    if(init) {
-      min = min<val?min:val;
-      max = max>val?max:val;
-    } else {
-      min = val;
-      max = val;
-      init = 1;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+= (volatile const min_max& val) volatile {
-    if(init && val.init) {
-      min = min<val.min?min:val.min;
-      max = max>val.max?max:val.max;
-    } else {
-      if(val.init) {
-        min = val.min;
-        max = val.max;
-        init = 1;
-      }
-    }
-  }
-};
-
-
-template<class ViewType>
-struct min_max_functor {
-  typedef typename ViewType::execution_space execution_space;
-  ViewType view;
-  typedef min_max<typename ViewType::non_const_value_type> value_type;
-  min_max_functor (const ViewType view_):view(view_) {
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const size_t& i, value_type& val) const {
-    val += view(i);
-  }
-};
+namespace Impl {
 
 template<class ViewType>
 bool try_std_sort(ViewType view) {
   bool possible = true;
-#if ! KOKKOS_USING_EXP_VIEW
-  size_t stride[8];
-  view.stride(stride);
-#else
   size_t stride[8] = { view.stride_0()
                      , view.stride_1()
                      , view.stride_2()
@@ -460,8 +360,7 @@ bool try_std_sort(ViewType view) {
                      , view.stride_6()
                      , view.stride_7()
                      };
-#endif
-  possible  = possible && Impl::is_same<typename ViewType::memory_space, HostSpace>::value;
+  possible  = possible && std::is_same<typename ViewType::memory_space, HostSpace>::value;
   possible  = possible && (ViewType::Rank == 1);
   possible  = possible && (stride[0] == 1);
   if(possible)  {
@@ -470,26 +369,38 @@ bool try_std_sort(ViewType view) {
   return possible;
 }
 
+template<class ViewType>
+struct min_max_functor {
+  typedef Kokkos::Experimental::MinMaxScalar<typename ViewType::non_const_value_type> minmax_scalar;
+
+  ViewType view;
+  min_max_functor(const ViewType& view_):view(view_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const size_t& i, minmax_scalar& minmax) const {
+    if(view(i) < minmax.min_val) minmax.min_val = view(i);
+    if(view(i) > minmax.max_val) minmax.max_val = view(i);
+  }
+};
+
 }
 
 template<class ViewType>
 void sort(ViewType view, bool always_use_kokkos_sort = false) {
   if(!always_use_kokkos_sort) {
-    if(SortImpl::try_std_sort(view)) return;
+    if(Impl::try_std_sort(view)) return;
   }
+  typedef BinOp1D<ViewType> CompType;
 
-  typedef SortImpl::DefaultBinOp1D<ViewType> CompType;
-  SortImpl::min_max<typename ViewType::non_const_value_type> val;
-  parallel_reduce(view.dimension_0(),SortImpl::min_max_functor<ViewType>(view),val);
-  BinSort<ViewType, CompType> bin_sort(view,CompType(view.dimension_0()/2,val.min,val.max),true);
+  Kokkos::Experimental::MinMaxScalar<typename ViewType::non_const_value_type> result;
+  Kokkos::Experimental::MinMax<typename ViewType::non_const_value_type> reducer(result);
+  parallel_reduce(Kokkos::RangePolicy<typename ViewType::execution_space>(0,view.dimension_0()),
+                  Impl::min_max_functor<ViewType>(view),reducer);
+  if(result.min_val == result.max_val) return;
+  BinSort<ViewType, CompType> bin_sort(view,CompType(view.dimension_0()/2,result.min_val,result.max_val),true);
   bin_sort.create_permute_vector();
   bin_sort.sort(view);
 }
-
-/*template<class ViewType, class Comparator>
-void sort(ViewType view, Comparator comp, bool always_use_kokkos_sort = false) {
-
-}*/
 
 }
 

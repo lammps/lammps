@@ -76,8 +76,6 @@ void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
     bincount = k_bincount.view<DeviceType>();
     last_bin_memory = update->ntimestep;
   }
-
-  last_bin = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,6 +85,8 @@ void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
 template<class DeviceType>
 void NBinKokkos<DeviceType>::bin_atoms()
 {
+  last_bin = update->ntimestep;
+
   h_resize() = 1;
 
   while(h_resize() > 0) {

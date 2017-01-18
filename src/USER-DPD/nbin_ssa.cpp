@@ -59,6 +59,8 @@ void NBinSSA::bin_atoms()
   int *mask = atom->mask;
   int *ssaAIR = atom->ssaAIR;
 
+  last_bin = update->ntimestep;
+
   for (i = 0; i < mbins; i++) {
     gbinhead_ssa[i] = -1;
     binhead_ssa[i] = -1;
@@ -104,12 +106,14 @@ void NBinSSA::bin_atoms_setup(int nall)
     memory->destroy(binhead_ssa);
     memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
     memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
+    last_bin_memory = update->ntimestep;
   }
 
   if (nall > maxbin_ssa) {
     maxbin_ssa = nall;
     memory->destroy(bins_ssa);
     memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
+    last_bin_memory = update->ntimestep;
   }
 }
 
@@ -126,4 +130,3 @@ bigint NBinSSA::memory_usage()
   }
   return bytes;
 }
-

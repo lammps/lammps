@@ -130,8 +130,6 @@ void NBinIntel::bin_atoms_setup(int nall)
 
     last_bin_memory = update->ntimestep;
   }
-
-  last_bin = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -140,6 +138,8 @@ void NBinIntel::bin_atoms_setup(int nall)
 
 void NBinIntel::bin_atoms()
 {
+  last_bin = update->ntimestep;
+
   if (_precision_mode == FixIntel::PREC_MODE_MIXED)
     bin_atoms(_fix->get_mixed_buffers());
   else if (_precision_mode == FixIntel::PREC_MODE_SINGLE)

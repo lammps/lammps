@@ -46,6 +46,7 @@ PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
   duCond = NULL;
   duMech = NULL;
   splitFDT_flag = false;
+  a0_is_zero = false;
 
   comm_reverse = 2;
 }
@@ -112,7 +113,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
   // loop over neighbors of my atoms
 
   if (splitFDT_flag) {
-    for (ii = 0; ii < inum; ii++) {
+    if (!a0_is_zero) for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -375,6 +376,8 @@ void PairDPDfdtEnergy::coeff(int narg, char **arg)
   double cut_one = cut_global;
   double kappa_one;
 
+  a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
+
   kappa_one = force->numeric(FLERR,arg[4]);
   if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
 
@@ -468,6 +471,7 @@ void PairDPDfdtEnergy::read_restart(FILE *fp)
 
   allocate();
 
+  a0_is_zero = true; // start with assumption that a0 is zero
   int i,j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
@@ -485,6 +489,7 @@ void PairDPDfdtEnergy::read_restart(FILE *fp)
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&kappa[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        a0_is_zero = a0_is_zero && (a0[i][j] == 0.0); // verify the zero assumption
       }
     }
 }

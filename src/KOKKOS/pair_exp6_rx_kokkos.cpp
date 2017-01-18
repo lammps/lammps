@@ -659,6 +659,10 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
       s_coeffEps[i] = coeffEps[i];
       s_coeffRm[i] = coeffRm[i];
     }
+
+  k_params.template modify<LMPHostType>();
+  k_params.template sync<DeviceType>();
+  d_params = k_params.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -776,10 +780,6 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
   }
 
   delete [] words;
-
-  k_params.template modify<LMPHostType>();
-  k_params.template sync<DeviceType>();
-  d_params = k_params.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

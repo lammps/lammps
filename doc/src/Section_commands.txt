@@ -702,6 +702,8 @@ package"_Section_start.html#start_3.
 "meso"_fix_meso.html,
 "manifoldforce"_fix_manifoldforce.html,
 "meso/stationary"_fix_meso_stationary.html,
+"nve/dot"_fix_nve_dot.html,
+"nve/dotc/langevin"_fix_nve_dotc_langevin.html,
 "nve/manifold/rattle"_fix_nve_manifold_rattle.html,
 "nvk"_fix_nvk.html,
 "nvt/manifold/rattle"_fix_nvt_manifold_rattle.html,
@@ -1035,6 +1037,11 @@ package"_Section_start.html#start_3.
 "morse/soft"_pair_morse.html,
 "multi/lucy"_pair_multi_lucy.html,
 "multi/lucy/rx"_pair_multi_lucy_rx.html,
+"oxdna/coaxstk"_pair_oxdna.html,
+"oxdna/excv"_pair_oxdna.html,
+"oxdna/hbond"_pair_oxdna.html,
+"oxdna/stk"_pair_oxdna.html,
+"oxdna/xstk"_pair_oxdna.html,
 "quip"_pair_quip.html,
 "reax/c (k)"_pair_reax_c.html,
 "smd/hertz"_pair_smd_hertz.html,
@@ -1083,7 +1090,8 @@ if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
 "harmonic/shift (o)"_bond_harmonic_shift.html,
-"harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
+"harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
+"oxdna/fene (o)"_bond_oxdna_fene.html :tb(c=4,ea=c)
 
 :line
 

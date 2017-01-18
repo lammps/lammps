@@ -43,6 +43,7 @@ using namespace LAMMPS_NS;
 PairDPDfdt::PairDPDfdt(LAMMPS *lmp) : Pair(lmp)
 {
   random = NULL;
+  splitFDT_flag = false;
 }
 
 /* ---------------------------------------------------------------------- */

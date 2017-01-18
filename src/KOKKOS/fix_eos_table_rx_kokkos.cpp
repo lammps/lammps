@@ -404,7 +404,8 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   if(it==maxit){
     if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2))
       k_error_flag.d_view() = 2;
-    k_error_flag.d_view() = 3;
+    else
+      k_error_flag.d_view() = 3;
   }
   thetai = temp;
 }

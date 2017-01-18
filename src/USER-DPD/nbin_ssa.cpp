@@ -100,20 +100,21 @@ void NBinSSA::bin_atoms_setup(int nall)
 {
   NBinStandard::bin_atoms_setup(nall); // Setup the parent class's data too
 
+  // do not need to set last_bin_memory for these reallocs
+  // since SSA Npair styles copy the ptrs every rebuild
+
   if (mbins > maxhead_ssa) {
     maxhead_ssa = mbins;
     memory->destroy(gbinhead_ssa);
     memory->destroy(binhead_ssa);
     memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
     memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
-    last_bin_memory = update->ntimestep;
   }
 
   if (nall > maxbin_ssa) {
     maxbin_ssa = nall;
     memory->destroy(bins_ssa);
     memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
-    last_bin_memory = update->ntimestep;
   }
 }
 

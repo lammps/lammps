@@ -311,6 +311,9 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   double mixWtSite1_i, mixWtSite1_j;
   double mixWtSite2_i, mixWtSite2_j;
 
+  fpairOldEXP6_12 = 0.0;
+  fpairOldEXP6_21 = 0.0;
+
   const int nRep = 12;
   const double shift = 1.05;
   double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;

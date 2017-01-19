@@ -16,6 +16,9 @@
 
 #define pclose _pclose
 
+// workaround for aligned memory allocation on windows, which doesn't have posix_memalign()
+#define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ?0 :errno)
+
 // the following functions ared defined to get rid of
 // 'ambiguous call to overloaded function' error in VSS for mismathched type arguments
 #if !defined(__MINGW32__)

@@ -18,6 +18,7 @@
 
 #include "nbin_ssa.h"
 #include "atom.h"
+#include "update.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"
@@ -99,9 +100,6 @@ void NBinSSA::bin_atoms()
 void NBinSSA::bin_atoms_setup(int nall)
 {
   NBinStandard::bin_atoms_setup(nall); // Setup the parent class's data too
-
-  // do not need to set last_bin_memory for these reallocs
-  // since SSA Npair styles copy the ptrs every rebuild
 
   if (mbins > maxhead_ssa) {
     maxhead_ssa = mbins;

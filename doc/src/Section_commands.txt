@@ -1091,7 +1091,7 @@ package"_Section_start.html#start_3.
 
 "harmonic/shift (o)"_bond_harmonic_shift.html,
 "harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
-"oxdna/fene (o)"_bond_oxdna_fene.html :tb(c=4,ea=c)
+"oxdna/fene"_bond_oxdna_fene.html :tb(c=4,ea=c)
 
 :line
 

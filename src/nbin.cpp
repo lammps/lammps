@@ -82,8 +82,6 @@ void NBin::bin_atoms_setup(int nall)
     memory->create(bins,maxatom,"neigh:bins");
     last_bin_memory = update->ntimestep;
   }
-
-  last_bin = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------

@@ -48,6 +48,7 @@ depend () {
 if (test $1 = "ASPHERE") then
   depend GPU
   depend USER-OMP
+  depend USER-CGDNA
   depend USER-INTEL
 fi
 
@@ -97,6 +98,7 @@ if (test $1 = "MOLECULE") then
   depend USER-MISC
   depend USER-OMP
   depend USER-FEP
+  depend USER-CGDNA
   depend USER-INTEL
 fi
 

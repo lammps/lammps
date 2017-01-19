@@ -131,14 +131,18 @@ void NPair::build_setup()
     copy_bin_setup_info();
     last_copy_bin_setup = update->ntimestep;
   }
-  if (nb && ((last_copy_bin < nb->last_bin_memory) || (bins != nb->bins))) {
+  if (nb && ((last_copy_bin < nb->last_bin_memory) || 
+             (bins != nb->bins))) {
     copy_bin_info();
     last_copy_bin = update->ntimestep;
   }
-  if (ns && ((last_copy_stencil < ns->last_create) || (stencil != ns->stencil))) {
+  if (ns && ((last_copy_stencil < ns->last_create) || 
+             (stencil != ns->stencil))) {
     copy_stencil_info();
     last_copy_stencil = update->ntimestep;
   }
+
+  // set here, since build_setup() always called before build()
 
   last_build = update->ntimestep;
 }

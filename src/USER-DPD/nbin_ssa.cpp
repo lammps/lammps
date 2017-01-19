@@ -59,6 +59,8 @@ void NBinSSA::bin_atoms()
   int *mask = atom->mask;
   int *ssaAIR = atom->ssaAIR;
 
+  last_bin = update->ntimestep;
+
   for (i = 0; i < mbins; i++) {
     gbinhead_ssa[i] = -1;
     binhead_ssa[i] = -1;
@@ -98,6 +100,9 @@ void NBinSSA::bin_atoms_setup(int nall)
 {
   NBinStandard::bin_atoms_setup(nall); // Setup the parent class's data too
 
+  // do not need to set last_bin_memory for these reallocs
+  // since SSA Npair styles copy the ptrs every rebuild
+
   if (mbins > maxhead_ssa) {
     maxhead_ssa = mbins;
     memory->destroy(gbinhead_ssa);
@@ -126,4 +131,3 @@ bigint NBinSSA::memory_usage()
   }
   return bytes;
 }
-

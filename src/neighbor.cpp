@@ -1889,6 +1889,7 @@ void Neighbor::set(int narg, char **arg)
 /* ----------------------------------------------------------------------
    reset timestamps in all NeignBin, NStencil, NPair classes
    so that neighbor lists will rebuild properly with timestep change
+   ditto for lastcall and last_setup_bins
 ------------------------------------------------------------------------- */
 
 void Neighbor::reset_timestep(bigint ntimestep)
@@ -1901,6 +1902,9 @@ void Neighbor::reset_timestep(bigint ntimestep)
     if (!neigh_pair[i]) continue;
     neigh_pair[i]->last_build = -1;
   }
+
+  lastcall = -1;
+  last_setup_bins = -1;
 }
 
 /* ----------------------------------------------------------------------

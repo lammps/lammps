@@ -60,6 +60,8 @@ void NBinSSA::bin_atoms()
   int *mask = atom->mask;
   int *ssaAIR = atom->ssaAIR;
 
+  last_bin = update->ntimestep;
+
   for (i = 0; i < mbins; i++) {
     gbinhead_ssa[i] = -1;
     binhead_ssa[i] = -1;
@@ -127,4 +129,3 @@ bigint NBinSSA::memory_usage()
   }
   return bytes;
 }
-

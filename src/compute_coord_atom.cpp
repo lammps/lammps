@@ -81,11 +81,11 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     if (iorientorder < 0)
       error->all(FLERR,"Could not find compute coord/atom compute ID");
     if (strcmp(modify->compute[iorientorder]->style,"orientorder/atom") != 0)
-      error->all(FLERR,"Compute coord/atom compute ID does not compute orientorder/atom");
+      error->all(FLERR,"Compute coord/atom compute ID is not orientorder/atom");
 
     threshold = force->numeric(FLERR,arg[5]);
     if (threshold <= -1.0 || threshold >= 1.0)
-      error->all(FLERR,"Compute coord/atom threshold value must lie between -1 and 1");
+      error->all(FLERR,"Compute coord/atom threshold not between -1 and 1");
 
     ncol = 1;
     typelo = new int[ncol];
@@ -126,7 +126,7 @@ void ComputeCoordAtom::init()
     comm_forward = 2*(2*l+1);
     if (c_orientorder->iqlcomp < 0)
       error->all(FLERR,"Compute coord/atom requires components "
-                 "option in compute orientorder/atom be defined");
+                 "option in compute orientorder/atom");
   }
 
   if (force->pair == NULL)
@@ -169,9 +169,6 @@ void ComputeCoordAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
 
-//  printf("Number of degrees %i components degree %i",nqlist,l);
-//  printf("Particle \t %i \t Norm \t %g \n",0,norm[0][0]);
-
   // grow coordination array if necessary
 
   if (atom->nmax > nmax) {
@@ -195,8 +192,6 @@ void ComputeCoordAtom::compute_peratom()
     }
     nqlist = c_orientorder->nqlist;
     int ltmp = l;
-//    l = c_orientorder->qlcomp;
-    if (ltmp != l) error->all(FLERR,"Debug error, ltmp != l\n");
     normv = c_orientorder->array_atom;
     comm->forward_comm_compute(this);
   }
@@ -317,7 +312,7 @@ void ComputeCoordAtom::compute_peratom()
 /* ---------------------------------------------------------------------- */
 
 int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                        int pbc_flag, int *pbc)
 {
   int i,m=0,j;
   for (i = 0; i < n; ++i) {
@@ -340,7 +335,6 @@ void ComputeCoordAtom::unpack_forward_comm(int n, int first, double *buf)
       normv[i][j] = buf[m++];
     }
   }
-
 }
 
 /* ----------------------------------------------------------------------

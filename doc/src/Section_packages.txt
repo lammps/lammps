@@ -84,6 +84,7 @@ Package, Description, Author(s), Doc page, Example, Library
 "PERI"_#PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 "POEMS"_#POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 "PYTHON"_#PYTHON, embed Python code in an input script, -, "python"_python.html, python, lib/python
+"REAX"_#REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax, lib/reax
 "REPLICA"_#REPLICA, multi-replica methods, -, "Section 6.6.5"_Section_howto.html#howto_5, tad, -
 "RIGID"_#RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
 "SHOCK"_#SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
@@ -1286,27 +1287,26 @@ him directly if you have questions.
 
 USER-CGDNA package :link(USER-CGDNA),h5
 
-Contents: The CGDNA package implements coarse-grained force fields
-for single- and double-stranded DNA. This is at the moment mainly
-the oxDNA model, developed by Doye, Louis and Ouldridge at the 
-University of Oxford. 
-The package also contains Langevin-type rigid-body integrators
-with improved stability.
+Contents: The CGDNA package implements coarse-grained force fields for
+single- and double-stranded DNA. This is at the moment mainly the
+oxDNA model, developed by Doye, Louis and Ouldridge at the University
+of Oxford.  The package also contains Langevin-type rigid-body
+integrators with improved stability.
 
 See these doc pages to get started:
 
 "bond_style oxdna_fene"_bond_oxdna_fene.html
-
 "pair_style oxdna_excv"_pair_oxdna_excv.html
+"fix nve/dotc/langevin"_fix_nve_dotc_langevin.html :ul
 
-"fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
-
-Supporting info: /src/USER-CGDNA/README, "bond_style oxdna_fene"_bond_oxdna_fene.html,
-"pair_style oxdna_excv"_pair_oxdna_excv.html, "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
+Supporting info: /src/USER-CGDNA/README, "bond_style
+oxdna_fene"_bond_oxdna_fene.html, "pair_style
+oxdna_excv"_pair_oxdna_excv.html, "fix
+nve/dotc/langevin"_fix_nve_dotc_langevin.html
 
 Author: Oliver Henrich at the University of Edinburgh, UK (o.henrich
-at epcc.ed.ac.uk or ohenrich at ph.ed.ac.uk). Contact him directly 
-if you have any questions. 
+at epcc.ed.ac.uk or ohenrich at ph.ed.ac.uk).  Contact him directly if
+you have any questions.
 
 :line
 

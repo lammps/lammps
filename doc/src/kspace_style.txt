@@ -229,11 +229,16 @@ dramatically in z.  For example, for a triclinic system with all three
 tilt factors set to the maximum limit, the PPPM grid should be
 increased roughly by a factor of 1.5 in the y direction and 2.0 in the
 z direction as compared to the same system using a cubic orthogonal
-simulation cell. One way to ensure the accuracy requirement is being
-met is to run a short simulation at the maximum expected tilt or
-length, note the required grid size, and then use the
+simulation cell.  One way to handle this issue if you have a long
+simulation where the box size changes dramatically, is to break it
+into shorter simulations (multiple "run"_run.html commands).  This
+works because the grid size is re-computed at the beginning of each
+run.  Another way to ensure the descired accuracy requirement is met
+is to run a short simulation at the maximum expected tilt or length,
+note the required grid size, and then use the
 "kspace_modify"_kspace_modify.html {mesh} command to manually set the
-PPPM grid size to this value.
+PPPM grid size to this value for the long run.  The simulation then
+will be "too accurate" for some portion of the run.
 
 RMS force errors in real space for {ewald} and {pppm} are estimated
 using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as
@@ -284,6 +289,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
+
+:line
 
 [Restrictions:]
 

@@ -29,7 +29,7 @@ Bond Styles: fene, harmonic :l
 Dihedral Styles: charmm, harmonic, opls :l
 Fixes: nve, npt, nvt, nvt/sllod :l
 Improper Styles: cvff, harmonic :l
-Pair Styles: buck/coul/cut, buck/coul/long, buck, gayberne,
+Pair Styles: buck/coul/cut, buck/coul/long, buck, eam, gayberne,
 charmm/coul/long, lj/cut, lj/cut/coul/long, sw, tersoff :l
 K-Space Styles: pppm :l
 :ule

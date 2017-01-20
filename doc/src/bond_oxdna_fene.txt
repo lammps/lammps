@@ -1,0 +1,70 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+bond_style oxdna_fene command :h3
+
+[Syntax:]
+
+bond_style oxdna_fene :pre
+
+[Examples:]
+
+bond_style oxdna_fene
+bond_coeff * 2.0 0.25 0.7525 :pre
+
+[Description:]
+
+The {oxdna_fene} bond style uses the potential
+
+:c,image(Eqs/bond_oxdna_fene.jpg)
+
+to define a modified finite extensible nonlinear elastic (FENE) potential
+"(Ouldridge)"_#oxdna_fene to model the connectivity of the phosphate backbone
+in the oxDNA force field for coarse-grained modelling of DNA. 
+
+The following coefficients must be defined for the bond type via the
+"bond_coeff"_bond_coeff.html command as given in the above example, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+epsilon (energy)
+Delta (distance)
+r0 (distance) :ul
+
+NOTE: This bond style has to be used together with the corresponding oxDNA pair styles
+for excluded volume interaction {oxdna_excv}, stacking {oxdna_stk}, cross-stacking {oxdna_xstk}
+and coaxial stacking interaction {oxdna_coaxstk} as well as hydrogen-bonding interaction {oxdna_hbond} (see also documentation of 
+"pair_style oxdna_excv"_pair_oxdna_excv.html). The coefficients 
+in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
+
+Example input and data files can be found in /examples/USER/cgdna/examples/duplex1/ and /duplex2/.
+A simple python setup tool which creates single straight or helical DNA strands,
+DNA duplexes or arrays of DNA duplexes can be found in /examples/USER/cgdna/util/.
+A technical report with more information on the model, the structure of the input file,
+the setup tool and the performance of the LAMMPS-implementation of oxDNA
+can be found "here"_PDF/USER-CGDNA-overview.pdf.
+
+:line
+
+[Restrictions:]
+
+This bond style can only be used if LAMMPS was built with the
+USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
+
+
+[Related commands:]
+
+"pair_style oxdna_excv"_pair_oxdna_excv.html, "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html, "bond_coeff"_bond_coeff.html 
+
+[Default:] none
+
+:line
+
+:link(oxdna_fene)
+[(Ouldridge)] T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).

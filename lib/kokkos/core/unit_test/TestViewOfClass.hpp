@@ -122,42 +122,10 @@ void view_nested_view()
   }
   Kokkos::deep_copy( host_tracking , tracking );
 
-#if KOKKOS_USING_EXP_VIEW
   ASSERT_EQ( 0 , host_tracking(0) );
-#endif
-
 }
 
 }
-
-#if ! KOKKOS_USING_EXP_VIEW
-
-namespace Kokkos {
-namespace Impl {
-
-template< class ExecSpace , class S >
-struct ViewDefaultConstruct< ExecSpace , Test::NestedView<S> , true >
-{
-  typedef Test::NestedView<S> type ;
-  type * const m_ptr ;
-
-  KOKKOS_FORCEINLINE_FUNCTION
-  void operator()( const typename ExecSpace::size_type& i ) const
-    { new(m_ptr+i) type(); }
-
-  ViewDefaultConstruct( type * pointer , size_t capacity )
-    : m_ptr( pointer )
-    {
-      Kokkos::RangePolicy< ExecSpace > range( 0 , capacity );
-      parallel_for( range , *this );
-      ExecSpace::fence();
-    }
-};
-
-} // namespace Impl
-} // namespace Kokkos
-
-#endif
 
 /*--------------------------------------------------------------------------*/
 

@@ -129,14 +129,14 @@ struct FunctorValueTraits< FunctorType , ArgTag , true /* == exists FunctorType:
   // Number of values if single value
   template< class F >
   KOKKOS_FORCEINLINE_FUNCTION static
-  typename Impl::enable_if< Impl::is_same<F,FunctorType>::value && StaticValueSize , unsigned >::type
+  typename Impl::enable_if< std::is_same<F,FunctorType>::value && StaticValueSize , unsigned >::type
     value_count( const F & ) { return 1 ; }
 
   // Number of values if an array, protect via templating because 'f.value_count'
   // will only exist when the functor declares the value_type to be an array.
   template< class F >
   KOKKOS_FORCEINLINE_FUNCTION static
-  typename Impl::enable_if< Impl::is_same<F,FunctorType>::value && ! StaticValueSize , unsigned >::type
+  typename Impl::enable_if< std::is_same<F,FunctorType>::value && ! StaticValueSize , unsigned >::type
     value_count( const F & f ) { return f.value_count ; }
 
   // Total size of the value
@@ -157,7 +157,7 @@ private:
   struct REJECTTAG {}; // Reject tagged operator() when using non-tagged execution policy.
 
   typedef typename
-    Impl::if_c< Impl::is_same< ArgTag , void >::value , VOIDTAG , ArgTag >::type tag_type ;
+    Impl::if_c< std::is_same< ArgTag , void >::value , VOIDTAG , ArgTag >::type tag_type ;
 
   //----------------------------------------
   // parallel_for operator without a tag:
@@ -339,8 +339,8 @@ private:
 
   typedef decltype( deduce_reduce_type( tag_type() , & FunctorType::operator() ) ) ValueType ;
 
-  enum { IS_VOID   = Impl::is_same<VOIDTAG  ,ValueType>::value };
-  enum { IS_REJECT = Impl::is_same<REJECTTAG,ValueType>::value };
+  enum { IS_VOID   = std::is_same<VOIDTAG  ,ValueType>::value };
+  enum { IS_REJECT = std::is_same<REJECTTAG,ValueType>::value };
 
 public:
 

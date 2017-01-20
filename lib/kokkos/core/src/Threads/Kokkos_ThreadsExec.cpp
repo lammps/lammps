@@ -714,12 +714,12 @@ void ThreadsExec::initialize( unsigned thread_count ,
   }
 
   // Check for over-subscription
-  if( Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node() ) {
-    std::cout << "Kokkos::Threads::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
-    std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
-    std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
-    std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
-  }
+  //if( Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node() ) {
+  //  std::cout << "Kokkos::Threads::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
+  //  std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
+  //  std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
+  //  std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
+  //}
 
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();

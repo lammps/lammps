@@ -50,7 +50,7 @@ namespace Kokkos {
 KOKKOS_FORCEINLINE_FUNCTION
 void memory_fence()
 {
-#if defined( KOKKOS_ATOMICS_USE_CUDA )
+#if defined( __CUDA_ARCH__ )
   __threadfence();
 #elif defined( KOKKOS_ATOMICS_USE_GCC ) || \
       ( defined( KOKKOS_COMPILER_NVCC ) && defined( KOKKOS_ATOMICS_USE_INTEL ) )

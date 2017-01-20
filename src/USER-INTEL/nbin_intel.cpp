@@ -86,7 +86,6 @@ void NBinIntel::bin_atoms_setup(int nall)
          nocopy(binhead:length(maxbin+1) alloc_if(1) free_if(0))
     }
     #endif
-    last_bin_memory = update->ntimestep;
   }
 
   // bins = per-atom vector
@@ -127,11 +126,7 @@ void NBinIntel::bin_atoms_setup(int nall)
       _fix->get_single_buffers()->set_bininfo(_atombin,_binpacked);
     else
       _fix->get_double_buffers()->set_bininfo(_atombin,_binpacked);
-
-    last_bin_memory = update->ntimestep;
   }
-
-  last_bin = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -140,6 +135,8 @@ void NBinIntel::bin_atoms_setup(int nall)
 
 void NBinIntel::bin_atoms()
 {
+  last_bin = update->ntimestep;
+
   if (_precision_mode == FixIntel::PREC_MODE_MIXED)
     bin_atoms(_fix->get_mixed_buffers());
   else if (_precision_mode == FixIntel::PREC_MODE_SINGLE)

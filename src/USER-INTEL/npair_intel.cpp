@@ -46,9 +46,7 @@ NPairIntel::~NPairIntel() {
   #endif
 }
 
-/* ----------------------------------------------------------------------
-   copy needed info from NStencil class to this build class
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 #ifdef _LMP_INTEL_OFFLOAD
 void NPairIntel::grow_stencil()

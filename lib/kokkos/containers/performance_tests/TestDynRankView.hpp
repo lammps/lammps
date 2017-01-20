@@ -180,8 +180,8 @@ void test_dynrankview_op_perf( const int par_size )
 
   typedef DeviceType execution_space;
   typedef typename execution_space::size_type size_type;
-  const size_type dim2 = 900;
-  const size_type dim3 = 300;
+  const size_type dim2 = 90;
+  const size_type dim3 = 30;
 
   double elapsed_time_view = 0;
   double elapsed_time_compview = 0;

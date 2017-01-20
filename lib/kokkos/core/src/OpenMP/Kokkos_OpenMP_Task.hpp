@@ -44,7 +44,7 @@
 #ifndef KOKKOS_IMPL_OPENMP_TASK_HPP
 #define KOKKOS_IMPL_OPENMP_TASK_HPP
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#if defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -156,21 +156,30 @@ template<typename iType>
 KOKKOS_INLINE_FUNCTION
 Impl::TeamThreadRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::OpenMP > >
 TeamThreadRange
-  ( Impl::TaskExec< Kokkos::OpenMP > & thread
-  , const iType & count )
+  ( Impl::TaskExec< Kokkos::OpenMP > & thread, const iType & count )
 {
   return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::OpenMP > >(thread,count);
 }
 
+template<typename iType1, typename iType2>
+KOKKOS_INLINE_FUNCTION
+Impl::TeamThreadRangeBoundariesStruct< typename std::common_type< iType1, iType2 >::type,
+                                       Impl::TaskExec< Kokkos::OpenMP > >
+TeamThreadRange
+  ( Impl:: TaskExec< Kokkos::OpenMP > & thread, const iType1 & begin, const iType2 & end )
+{
+  typedef typename std::common_type<iType1, iType2>::type iType;
+  return Impl::TeamThreadRangeBoundariesStruct<iType, Impl::TaskExec< Kokkos::OpenMP > >(thread, begin, end);
+}
+
 template<typename iType>
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl:: TaskExec< Kokkos::OpenMP > >
-TeamThreadRange
-  ( Impl:: TaskExec< Kokkos::OpenMP > & thread
-  , const iType & start
-  , const iType & end )
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::OpenMP > >
+ThreadVectorRange
+  ( Impl::TaskExec< Kokkos::OpenMP > & thread
+  , const iType & count )
 {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl:: TaskExec< Kokkos::OpenMP > >(thread,start,end);
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::OpenMP > >(thread,count);
 }
 
 /** \brief  Inter-thread parallel_for. Executes lambda(iType i) for each i=0..N-1.
@@ -351,6 +360,6 @@ void parallel_scan
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #ifndef KOKKOS_IMPL_OPENMP_TASK_HPP */
 

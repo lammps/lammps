@@ -227,6 +227,148 @@ bool MinAtomicTest(T i0, T i1)
 }
 
 //---------------------------------------------------
+//--------------atomic_increment---------------------
+//---------------------------------------------------
+
+template<class T,class DEVICE_TYPE>
+struct IncFunctor{
+  typedef DEVICE_TYPE execution_space;
+  typedef Kokkos::View<T,execution_space> type;
+  type data;
+  T i0;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int) const {
+    Kokkos::atomic_increment(&data());
+  }
+  IncFunctor( T _i0 ) : i0(_i0) {}
+};
+
+template<class T, class execution_space >
+T IncAtomic(T i0) {
+  struct InitFunctor<T,execution_space> f_init(i0);
+  typename InitFunctor<T,execution_space>::type data("Data");
+  typename InitFunctor<T,execution_space>::h_type h_data("HData");
+  f_init.data = data;
+  Kokkos::parallel_for(1,f_init);
+  execution_space::fence();
+
+  struct IncFunctor<T,execution_space> f(i0);
+  f.data = data;
+  Kokkos::parallel_for(1,f);
+  execution_space::fence();
+
+  Kokkos::deep_copy(h_data,data);
+  T val = h_data();
+  return val;
+}
+
+template<class T>
+T IncAtomicCheck(T i0) {
+  T* data = new T[1];
+  data[0] = 0;
+
+  *data = i0 + 1;
+
+  T val = *data;
+  delete [] data;
+  return val;
+}
+
+template<class T,class DeviceType>
+bool IncAtomicTest(T i0)
+{
+  T res       = IncAtomic<T,DeviceType>(i0);
+  T resSerial = IncAtomicCheck<T>(i0);
+
+  bool passed = true;
+
+  if ( resSerial != res ) {
+    passed = false;
+
+    std::cout << "Loop<"
+              << typeid(T).name()
+              << ">( test = IncAtomicTest"
+              << " FAILED : "
+              << resSerial << " != " << res
+              << std::endl ;
+  }
+
+  return passed ;
+}
+
+//---------------------------------------------------
+//--------------atomic_decrement---------------------
+//---------------------------------------------------
+
+template<class T,class DEVICE_TYPE>
+struct DecFunctor{
+  typedef DEVICE_TYPE execution_space;
+  typedef Kokkos::View<T,execution_space> type;
+  type data;
+  T i0;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int) const {
+    Kokkos::atomic_decrement(&data());
+  }
+  DecFunctor( T _i0 ) : i0(_i0) {}
+};
+
+template<class T, class execution_space >
+T DecAtomic(T i0) {
+  struct InitFunctor<T,execution_space> f_init(i0);
+  typename InitFunctor<T,execution_space>::type data("Data");
+  typename InitFunctor<T,execution_space>::h_type h_data("HData");
+  f_init.data = data;
+  Kokkos::parallel_for(1,f_init);
+  execution_space::fence();
+
+  struct DecFunctor<T,execution_space> f(i0);
+  f.data = data;
+  Kokkos::parallel_for(1,f);
+  execution_space::fence();
+
+  Kokkos::deep_copy(h_data,data);
+  T val = h_data();
+  return val;
+}
+
+template<class T>
+T DecAtomicCheck(T i0) {
+  T* data = new T[1];
+  data[0] = 0;
+
+  *data = i0 - 1;
+
+  T val = *data;
+  delete [] data;
+  return val;
+}
+
+template<class T,class DeviceType>
+bool DecAtomicTest(T i0)
+{
+  T res       = DecAtomic<T,DeviceType>(i0);
+  T resSerial = DecAtomicCheck<T>(i0);
+
+  bool passed = true;
+
+  if ( resSerial != res ) {
+    passed = false;
+
+    std::cout << "Loop<"
+              << typeid(T).name()
+              << ">( test = DecAtomicTest"
+              << " FAILED : "
+              << resSerial << " != " << res
+              << std::endl ;
+  }
+
+  return passed ;
+}
+
+//---------------------------------------------------
 //--------------atomic_fetch_mul---------------------
 //---------------------------------------------------
 
@@ -821,6 +963,8 @@ bool AtomicOperationsTestIntegralType( int i0 , int i1 , int test )
     case 8: return XorAtomicTest<T,DeviceType>( (T)i0 , (T)i1 );
     case 9: return LShiftAtomicTest<T,DeviceType>( (T)i0 , (T)i1 );
     case 10: return RShiftAtomicTest<T,DeviceType>( (T)i0 , (T)i1 );
+    case 11: return IncAtomicTest<T,DeviceType>( (T)i0 );
+    case 12: return DecAtomicTest<T,DeviceType>( (T)i0 );
   }
   return 0;
 }

@@ -1,0 +1,4 @@
+single 0,0,0:0.6:AAAAA
+single_helix 0,0,0:0.6:AAAAA
+duplex 0,0,0:0.6:AAAAA
+duplex_array 10,10:-112.0:0.6:AAAAA

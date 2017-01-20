@@ -154,6 +154,8 @@
 /bond_morse.h
 /bond_nonlinear.cpp
 /bond_nonlinear.h
+/bond_oxdna_fene.cpp
+/bond_oxdna_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
 /bond_table.cpp
@@ -374,6 +376,8 @@
 /fix_meso.h
 /fix_meso_stationary.cpp
 /fix_meso_stationary.h
+/fix_mscg.cpp
+/fix_mscg.h
 /fix_msst.cpp
 /fix_msst.h
 /fix_neb.cpp
@@ -388,12 +392,18 @@
 /fix_nve_asphere.h
 /fix_nve_asphere_noforce.cpp
 /fix_nve_asphere_noforce.h
+/fix_nve_dot.cpp
+/fix_nve_dot.h
+/fix_nve_dotc_langevin.cpp
+/fix_nve_dotc_langevin.h
 /fix_nh_body.cpp
 /fix_nh_body.h
 /fix_nph_body.cpp
 /fix_nph_body.h
 /fix_npt_body.cpp
 /fix_npt_body.h
+/fix_nvk.cpp
+/fix_nvk.h
 /fix_nvt_body.cpp
 /fix_nvt_body.h
 /fix_nve_body.cpp
@@ -747,6 +757,9 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
+/pair_oxdna_*.cpp
+/pair_oxdna_*.h
+/mf_oxdna.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h
 /pair_peri_lps.cpp

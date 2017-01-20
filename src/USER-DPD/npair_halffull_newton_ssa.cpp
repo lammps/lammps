@@ -123,8 +123,8 @@ void NPairHalffullNewtonSSA::build(NeighList *list)
 
 static int cmp_ssaAIR(const void *iptr, const void *jptr)
 {
-  int i = *((int *) iptr);
-  int j = *((int *) jptr);
+  int i = NEIGHMASK & *((int *) iptr);
+  int j = NEIGHMASK & *((int *) jptr);
   if (ssaAIRptr[i] < ssaAIRptr[j]) return -1;
   if (ssaAIRptr[i] > ssaAIRptr[j]) return 1;
   return 0;

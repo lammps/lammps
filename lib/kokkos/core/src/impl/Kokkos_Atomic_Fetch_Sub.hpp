@@ -48,7 +48,8 @@ namespace Kokkos {
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_ATOMICS_USE_CUDA )
+#if defined( KOKKOS_HAVE_CUDA )
+#if defined(__CUDA_ARCH__) || defined(KOKKOS_CUDA_CLANG_WORKAROUND)
 
 // Support for int, unsigned int, unsigned long long int, and float
 
@@ -103,7 +104,7 @@ T atomic_fetch_sub( volatile T * const dest ,
 template < typename T >
 __inline__ __device__
 T atomic_fetch_sub( volatile T * const dest ,
-    typename ::Kokkos::Impl::enable_if<
+    typename Kokkos::Impl::enable_if<
                   ( sizeof(T) != 4 )
                && ( sizeof(T) != 8 )
              , const T >::type& val )
@@ -111,44 +112,49 @@ T atomic_fetch_sub( volatile T * const dest ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  while ( done>0 ) {
-    done++;
-    if( Impl::lock_address_cuda_space( (void*) dest ) ) {
-      return_val = *dest;
-      *dest = return_val - val;
-      Impl::unlock_address_cuda_space( (void*) dest );
-      done = 0;
+  unsigned int active = __ballot(1);
+  unsigned int done_active = 0;
+  while (active!=done_active) {
+    if(!done) {
+      if( Impl::lock_address_cuda_space( (void*) dest ) ) {
+        return_val = *dest;
+        *dest = return_val - val;
+        Impl::unlock_address_cuda_space( (void*) dest );
+        done = 1;
+      }
     }
+    done_active = __ballot(done);
   }
   return return_val;
 }
-
+#endif
+#endif
 //----------------------------------------------------------------------------
+#if !defined(__CUDA_ARCH__) || defined(KOKKOS_CUDA_CLANG_WORKAROUND)
+#if defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
 
-#elif defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
-
-KOKKOS_INLINE_FUNCTION
+inline
 int atomic_fetch_sub( volatile int * const dest , const int val )
 { return __sync_fetch_and_sub(dest,val); }
 
-KOKKOS_INLINE_FUNCTION
+inline
 long int atomic_fetch_sub( volatile long int * const dest , const long int val )
 { return __sync_fetch_and_sub(dest,val); }
 
 #if defined( KOKKOS_ATOMICS_USE_GCC )
 
-KOKKOS_INLINE_FUNCTION
+inline
 unsigned int atomic_fetch_sub( volatile unsigned int * const dest , const unsigned int val )
 { return __sync_fetch_and_sub(dest,val); }
 
-KOKKOS_INLINE_FUNCTION
+inline
 unsigned long int atomic_fetch_sub( volatile unsigned long int * const dest , const unsigned long int val )
 { return __sync_fetch_and_sub(dest,val); }
 
 #endif
 
 template < typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 T atomic_fetch_sub( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
@@ -166,7 +172,7 @@ T atomic_fetch_sub( volatile T * const dest ,
 }
 
 template < typename T >
-KOKKOS_INLINE_FUNCTION
+inline
 T atomic_fetch_sub( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(long) , const T >::type val )
@@ -190,7 +196,7 @@ T atomic_fetch_sub( volatile T * const dest ,
 template < typename T >
 inline
 T atomic_fetch_sub( volatile T * const dest ,
-    typename ::Kokkos::Impl::enable_if<
+    typename Kokkos::Impl::enable_if<
                   ( sizeof(T) != 4 )
                && ( sizeof(T) != 8 )
              , const T >::type& val )
@@ -219,7 +225,7 @@ T atomic_fetch_sub( volatile T * const dest , const T val )
 }
 
 #endif
-
+#endif
 // Simpler version of atomic_fetch_sub without the fetch
 template <typename T>
 KOKKOS_INLINE_FUNCTION

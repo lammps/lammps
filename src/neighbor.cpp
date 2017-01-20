@@ -695,25 +695,38 @@ void Neighbor::init_pair()
   }
       
   // (C) rule: 
-  // for fix/compute requests, occasional or not does not matter
+  // for fix/compute requests to be copied:
   // 1st check:
+  // occasional or not does not matter
+  // Kokkos host/device flags must match
+  // SSA flag must match
+  // newton setting must match (else list has different neighbors in it)
+  // 2nd check:
   // if request = half and non-skip/copy pair half/respaouter request exists,
   // or if request = full and non-skip/copy pair full request exists,
   // or if request = gran and non-skip/copy pair gran request exists,
   // then morph to copy of the matching parent list
-  // 2nd check: only if no match to 1st check
+  // 3rd check: only if no match to 1st check
   // if request = half and non-skip/copy pair full request exists,
   // then morph to half_from_full of the matching parent list
   // for 1st or 2nd check, parent can be copy list or pair or fix
   
+  int inewton,jnewton;
+
   for (i = 0; i < nrequest; i++) {
     if (!requests[i]->fix && !requests[i]->compute) continue;
     for (j = 0; j < nrequest; j++) {
-      // Kokkos flags must match
       if (requests[i]->kokkos_device != requests[j]->kokkos_device) continue;
       if (requests[i]->kokkos_host != requests[j]->kokkos_host) continue;
 
       if (requests[i]->ssa != requests[j]->ssa) continue;
+
+      // IJ newton = 1 for newton on, 2 for newton off
+      inewton = requests[i]->newton;
+      if (inewton == 0) inewton = force->newton_pair ? 1 : 2; 
+      jnewton = requests[i]->newton;
+      if (jnewton == 0) jnewton = force->newton_pair ? 1 : 2;
+      if (inewton != jnewton) continue;
 
       if (requests[i]->half && requests[j]->pair && 
           !requests[j]->skip && requests[j]->half && !requests[j]->copy)
@@ -897,32 +910,37 @@ void Neighbor::init_pair()
   }
 
   // reorder plist vector if necessary
-  // relevant for lists that copy/skip/half-full from parent
+  // relevant for lists that are derived from a parent list:
+  //   half-full,copy,skip
   // the child index must appear in plist after the parent index
   // swap two indices within plist when dependency is mis-ordered
-  // done when entire pass thru plist results in no swaps
-  
+  // start double loop check again whenever a swap is made
+  // done when entire double loop test results in no swaps
+
   NeighList *ptr;
 
   int done = 0;
   while (!done) {
     done = 1;
     for (i = 0; i < npair_perpetual; i++) {
-      ptr = NULL;
-      if (lists[plist[i]]->listcopy) ptr = lists[plist[i]]->listcopy;
-      if (lists[plist[i]]->listskip) ptr = lists[plist[i]]->listskip;
-      if (lists[plist[i]]->listfull) ptr = lists[plist[i]]->listfull;
-      if (ptr == NULL) continue;
-      for (m = 0; m < nrequest; m++)
-        if (ptr == lists[m]) break;
-      for (j = 0; j < npair_perpetual; j++)
-        if (m == plist[j]) break;
-      if (j < i) continue;
-      int tmp = plist[i];     // swap I,J indices
-      plist[i] = plist[j];
-      plist[j] = tmp;
-      done = 0;
-      break;
+      for (k = 0; k < 3; k++) {
+        ptr = NULL;
+        if (k == 0) ptr = lists[plist[i]]->listcopy;
+        if (k == 1) ptr = lists[plist[i]]->listskip;
+        if (k == 2) ptr = lists[plist[i]]->listfull;
+        if (ptr == NULL) continue;
+        for (m = 0; m < nrequest; m++)
+          if (ptr == lists[m]) break;
+        for (j = 0; j < npair_perpetual; j++)
+          if (m == plist[j]) break;
+        if (j < i) continue;
+        int tmp = plist[i];     // swap I,J indices
+        plist[i] = plist[j];
+        plist[j] = tmp;
+        done = 0;
+        break;
+      }
+      if (!done) break;
     }
   }
 
@@ -1838,7 +1856,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // create stencil if hasn't been created since last setup_bins() call
 
   NStencil *ns = np->ns;
-  if (ns && ns->last_create < last_setup_bins) {
+  if (ns && ns->last_stencil < last_setup_bins) {
     ns->create_setup();
     ns->create();
   }
@@ -1871,29 +1889,22 @@ void Neighbor::set(int narg, char **arg)
 /* ----------------------------------------------------------------------
    reset timestamps in all NeignBin, NStencil, NPair classes
    so that neighbor lists will rebuild properly with timestep change
+   ditto for lastcall and last_setup_bins
 ------------------------------------------------------------------------- */
 
 void Neighbor::reset_timestep(bigint ntimestep)
 {
-  for (int i = 0; i < nbin; i++) {
-    neigh_bin[i]->last_setup = -1;
+  for (int i = 0; i < nbin; i++)
     neigh_bin[i]->last_bin = -1;
-    neigh_bin[i]->last_bin_memory = -1;
-  }
-
-  for (int i = 0; i < nstencil; i++) {
-    neigh_stencil[i]->last_create = -1;
-    neigh_stencil[i]->last_stencil_memory = -1;
-    neigh_stencil[i]->last_copy_bin = -1;
-  }
-
+  for (int i = 0; i < nstencil; i++)
+    neigh_stencil[i]->last_stencil = -1;
   for (int i = 0; i < nlist; i++) {
     if (!neigh_pair[i]) continue;
     neigh_pair[i]->last_build = -1;
-    neigh_pair[i]->last_copy_bin_setup = -1;
-    neigh_pair[i]->last_copy_bin = -1;
-    neigh_pair[i]->last_copy_stencil = -1;
   }
+
+  lastcall = -1;
+  last_setup_bins = -1;
 }
 
 /* ----------------------------------------------------------------------

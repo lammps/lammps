@@ -44,74 +44,19 @@
 #ifndef KOKKOS_IMPLWALLTIME_HPP
 #define KOKKOS_IMPLWALLTIME_HPP
 
-#include <stddef.h>
-
-#ifdef _MSC_VER
-#undef KOKKOS_USE_LIBRT
-#include <gettimeofday.c>
-#else
-#ifdef KOKKOS_USE_LIBRT
-#include <ctime>
-#else
-#include <sys/time.h>
-#endif
-#endif
+#include <Kokkos_Timer.hpp>
 
 namespace Kokkos {
 namespace Impl {
 
-/** \brief  Time since construction */
+/** \brief  Time since construction 
+ *   Timer promoted from Impl to Kokkos ns
+ *   This file included for backwards compatibility
+ */
 
-class Timer {
-private:
-  #ifdef KOKKOS_USE_LIBRT
-	struct timespec m_old;
-  #else
-	struct timeval m_old ;
-  #endif
-  Timer( const Timer & );
-  Timer & operator = ( const Timer & );
-public:
-
-  inline
-  void reset() {
-    #ifdef KOKKOS_USE_LIBRT
-	  clock_gettime(CLOCK_REALTIME, &m_old);
-    #else
-	  gettimeofday( & m_old , ((struct timezone *) NULL ) );
-    #endif
-  }
-
-  inline
-  ~Timer() {}
-
-  inline
-  Timer() { reset(); }
-
-  inline
-  double seconds() const
-  {
-    #ifdef KOKKOS_USE_LIBRT
-      struct timespec m_new;
-      clock_gettime(CLOCK_REALTIME, &m_new);
-
-      return ( (double) ( m_new.tv_sec  - m_old.tv_sec ) ) +
-             ( (double) ( m_new.tv_nsec - m_old.tv_nsec ) * 1.0e-9 );
-    #else
-      struct timeval m_new ;
-
-      ::gettimeofday( & m_new , ((struct timezone *) NULL ) );
-
-      return ( (double) ( m_new.tv_sec  - m_old.tv_sec ) ) +
-             ( (double) ( m_new.tv_usec - m_old.tv_usec ) * 1.0e-6 );
-    #endif
-  }
-};
+  using Kokkos::Timer ;
 
 } // namespace Impl
-
-  using Kokkos::Impl::Timer ;
-
 } // namespace Kokkos
 
 #endif /* #ifndef KOKKOS_IMPLWALLTIME_HPP */

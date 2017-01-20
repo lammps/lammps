@@ -337,11 +337,7 @@ struct LumpElemToNode {
   // In this example we know that the ViewElemValue
   // array specification is < double*[nNode][nValue] >
 
-#if KOKKOS_USING_EXP_VIEW
   enum { value_count = ViewElemValue::dimension::N2 };
-#else
-  enum { value_count = ViewElemValue::shape_type::N2 };
-#endif
 
   ViewNodeValue             m_node_value ; ///< Integrated values at nodes
   ViewElemValue             m_elem_value ; ///< Values apportioned to nodes

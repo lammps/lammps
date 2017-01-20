@@ -52,6 +52,7 @@ class PairDPDfdtEnergy : public Pair {
   double cut_global;
   int seed;
   bool splitFDT_flag;
+  bool a0_is_zero;
 
   void allocate();
 

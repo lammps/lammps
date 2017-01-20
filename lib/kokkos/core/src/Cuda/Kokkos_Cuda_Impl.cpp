@@ -384,10 +384,10 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
   const bool ok_id   = 0 <= cuda_device_id &&
                             cuda_device_id < dev_info.m_cudaDevCount ;
 
-  // Need device capability 2.0 or better
+  // Need device capability 3.0 or better
 
   const bool ok_dev = ok_id &&
-    ( 2 <= dev_info.m_cudaProp[ cuda_device_id ].major &&
+    ( 3 <= dev_info.m_cudaProp[ cuda_device_id ].major &&
       0 <= dev_info.m_cudaProp[ cuda_device_id ].minor );
 
   if ( ok_init && ok_dev ) {
@@ -444,7 +444,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     //----------------------------------
     // Maximum number of blocks:
 
-    m_maxBlock = m_cudaArch < 300 ? 65535 : cudaProp.maxGridSize[0] ;
+    m_maxBlock = cudaProp.maxGridSize[0] ;
 
     //----------------------------------
 
@@ -495,7 +495,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
       msg << dev_info.m_cudaProp[ cuda_device_id ].major ;
       msg << "." ;
       msg << dev_info.m_cudaProp[ cuda_device_id ].minor ;
-      msg << " has insufficient capability, required 2.0 or better" ;
+      msg << " has insufficient capability, required 3.0 or better" ;
     }
     Kokkos::Impl::throw_runtime_exception( msg.str() );
   }

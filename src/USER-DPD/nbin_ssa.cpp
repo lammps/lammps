@@ -18,6 +18,7 @@
 
 #include "nbin_ssa.h"
 #include "atom.h"
+#include "update.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"

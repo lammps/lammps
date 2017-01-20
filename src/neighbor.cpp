@@ -1856,7 +1856,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // create stencil if hasn't been created since last setup_bins() call
 
   NStencil *ns = np->ns;
-  if (ns && ns->last_create < last_setup_bins) {
+  if (ns && ns->last_stencil < last_setup_bins) {
     ns->create_setup();
     ns->create();
   }
@@ -1889,29 +1889,22 @@ void Neighbor::set(int narg, char **arg)
 /* ----------------------------------------------------------------------
    reset timestamps in all NeignBin, NStencil, NPair classes
    so that neighbor lists will rebuild properly with timestep change
+   ditto for lastcall and last_setup_bins
 ------------------------------------------------------------------------- */
 
 void Neighbor::reset_timestep(bigint ntimestep)
 {
-  for (int i = 0; i < nbin; i++) {
-    neigh_bin[i]->last_setup = -1;
+  for (int i = 0; i < nbin; i++)
     neigh_bin[i]->last_bin = -1;
-    neigh_bin[i]->last_bin_memory = -1;
-  }
-
-  for (int i = 0; i < nstencil; i++) {
-    neigh_stencil[i]->last_create = -1;
-    neigh_stencil[i]->last_stencil_memory = -1;
-    neigh_stencil[i]->last_copy_bin = -1;
-  }
-
+  for (int i = 0; i < nstencil; i++)
+    neigh_stencil[i]->last_stencil = -1;
   for (int i = 0; i < nlist; i++) {
     if (!neigh_pair[i]) continue;
     neigh_pair[i]->last_build = -1;
-    neigh_pair[i]->last_copy_bin_setup = -1;
-    neigh_pair[i]->last_copy_bin = -1;
-    neigh_pair[i]->last_copy_stencil = -1;
   }
+
+  lastcall = -1;
+  last_setup_bins = -1;
 }
 
 /* ----------------------------------------------------------------------

@@ -22,10 +22,7 @@ class NStencil : protected Pointers {
  public:
   int istyle;                      // 1-N index into binnames
   class NBin *nb;                  // ptr to NBin instance I depend on
-
-  bigint last_create;              // timesteps for last operations performed
-  bigint last_stencil_memory;
-  bigint last_copy_bin;
+  bigint last_stencil;             // last timestep stencil was created
 
   int nstencil;                    // # of bins in stencil
   int *stencil;                    // list of bin offsets

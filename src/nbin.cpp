@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 {
-  last_setup = last_bin = last_bin_memory = -1;
+  last_bin = -1;
   maxbin = maxatom = 0;
   binhead = NULL;
   bins = NULL;
@@ -71,7 +71,6 @@ void NBin::bin_atoms_setup(int nall)
     maxbin = mbins;
     memory->destroy(binhead);
     memory->create(binhead,maxbin,"neigh:binhead");
-    last_bin_memory = update->ntimestep;
   }
 
   // bins = per-atom vector
@@ -80,7 +79,6 @@ void NBin::bin_atoms_setup(int nall)
     maxatom = nall;
     memory->destroy(bins);
     memory->create(bins,maxatom,"neigh:bins");
-    last_bin_memory = update->ntimestep;
   }
 }
 

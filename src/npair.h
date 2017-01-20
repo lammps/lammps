@@ -23,11 +23,7 @@ class NPair : protected Pointers {
   int istyle;                   // 1-N index into pairnames
   class NBin *nb;               // ptr to NBin instance I depend on
   class NStencil *ns;           // ptr to NStencil instance I depend on
-
   bigint last_build;            // last timestep build performed
-  bigint last_copy_bin_setup;   // last timestep I invoked copy_bin_setup_info()
-  bigint last_copy_bin;         // last step I invoked copy_bin_info()
-  bigint last_copy_stencil;     // last step I invoked copy_bin_stencil_info()
 
   NPair(class LAMMPS *);
   virtual ~NPair() {}
@@ -93,7 +89,6 @@ class NPair : protected Pointers {
 
   // methods for all NPair variants
 
-  void copy_bin_setup_info();
   virtual void copy_bin_info();
   virtual void copy_stencil_info();
 

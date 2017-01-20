@@ -1100,9 +1100,8 @@ void Neighbor::init_topology()
 
 void Neighbor::print_pairwise_info()
 {
-  int i,j,m;
+  int i,m;
   char str[128];
-  const char *kind;
   FILE *out;
 
   const double cutghost = MAX(cutneighmax,comm->cutghostuser);
@@ -1161,14 +1160,6 @@ void Neighbor::print_pairwise_info()
         }
         fprintf(out,"%s",str);
 
-        if (requests[i]->half) kind = "half";
-        else if (requests[i]->full) kind = "full";
-        else if (requests[i]->gran) kind = "size";
-        else if (requests[i]->granhistory) kind = "size/history";
-        else if (requests[i]->respainner) kind = "respa/inner";
-        else if (requests[i]->respamiddle) kind = "respa/middle";
-        else if (requests[i]->respaouter) kind = "respa/outer";
-        else if (requests[i]->half_from_full) kind = "half/from/full";
         if (requests[i]->occasional) fprintf(out,", occasional");
         else fprintf(out,", perpetual");
         if (requests[i]->ghost) fprintf(out,", ghost");

@@ -724,7 +724,7 @@ void Neighbor::init_pair()
       // IJ newton = 1 for newton on, 2 for newton off
       inewton = requests[i]->newton;
       if (inewton == 0) inewton = force->newton_pair ? 1 : 2; 
-      jnewton = requests[i]->newton;
+      jnewton = requests[j]->newton;
       if (jnewton == 0) jnewton = force->newton_pair ? 1 : 2;
       if (inewton != jnewton) continue;
 

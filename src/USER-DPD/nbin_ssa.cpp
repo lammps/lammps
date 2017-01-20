@@ -18,6 +18,7 @@
 
 #include "nbin_ssa.h"
 #include "atom.h"
+#include "update.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"
@@ -58,6 +59,8 @@ void NBinSSA::bin_atoms()
   double **x = atom->x;
   int *mask = atom->mask;
   int *ssaAIR = atom->ssaAIR;
+
+  last_bin = update->ntimestep;
 
   for (i = 0; i < mbins; i++) {
     gbinhead_ssa[i] = -1;
@@ -126,4 +129,3 @@ bigint NBinSSA::memory_usage()
   }
   return bytes;
 }
-

@@ -360,9 +360,7 @@ void ModifyKokkos::post_run()
   for (int i = 0; i < nfix; i++) {
     atomKK->sync(fix[i]->execution_space,
                  fix[i]->datamask_read);
-    if (!fix[i]->kokkosable) lmp->kokkos->auto_sync = 1;
     fix[i]->post_run();
-    lmp->kokkos->auto_sync = 0;
     atomKK->modified(fix[i]->execution_space,
                      fix[i]->datamask_modify);
   }

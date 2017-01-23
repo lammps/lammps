@@ -75,6 +75,7 @@ class FixRxKokkos : public FixRX {
 
  protected:
   PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
+  double VDPD;
 
   void solve_reactions(void);
 
@@ -100,13 +101,21 @@ class FixRxKokkos : public FixRX {
   template <typename KokkosDeviceType>
   struct KineticsType
   {
+    // Arrhenius rate coefficients.
     typename ArrayTypes<KokkosDeviceType>::t_float_1d Arr, nArr, Ea;
+
+    // Dense versions.
     typename ArrayTypes<KokkosDeviceType>::t_float_2d stoich, stoichReactants, stoichProducts;
+
+    // Sparse versions.
+    typename ArrayTypes<KokkosDeviceType>::t_int_2d   nuk, inu;
+    typename ArrayTypes<KokkosDeviceType>::t_float_2d nu;
+    typename ArrayTypes<KokkosDeviceType>::t_int_1d   isIntegral;
   };
 
   //!< Kokkos versions of the kinetics data.
-  KineticsType<LMPHostType> h_kinetics_data;
-  KineticsType<DeviceType>  d_kinetics_data;
+  KineticsType<LMPHostType> h_kineticsData;
+  KineticsType<DeviceType>  d_kineticsData;
 
   bool update_kinetics_data;
 

@@ -475,8 +475,8 @@ int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, 
   double *rxnRateLaw = userData->rxnRateLaw;
   double *kFor       = userData->kFor;
 
-  const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
-  const int nspecies = atom->nspecies_dpd;
+  //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
+  //const int nspecies = atom->nspecies_dpd;
 
   for(int ispecies=0; ispecies<nspecies; ispecies++)
     dydt[ispecies] = 0.0;
@@ -487,7 +487,7 @@ int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, 
 
     for(int ispecies=0; ispecies<nspecies; ispecies++){
       const double concentration = y[ispecies]/VDPD;
-      rxnRateLawForward *= pow( concentration, d_kinetics_data.stoichReactants(jrxn,ispecies) );
+      rxnRateLawForward *= pow( concentration, d_kineticsData.stoichReactants(jrxn,ispecies) );
       //rxnRateLawForward *= pow(concentration,stoichReactants[jrxn][ispecies]);
     }
     rxnRateLaw[jrxn] = rxnRateLawForward;
@@ -497,7 +497,7 @@ int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, 
   for(int ispecies=0; ispecies<nspecies; ispecies++)
     for(int jrxn=0; jrxn<nreactions; jrxn++)
     {
-      dydt[ispecies] += d_kinetics_data.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
+      dydt[ispecies] += d_kineticsData.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
       //dydt[ispecies] += stoich[jrxn][ispecies]*VDPD*rxnRateLaw[jrxn];
     }
 
@@ -511,7 +511,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
 {
    UserRHSData *userData = (UserRHSData *) v_params;
 
-   const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
+   //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 
    #define kFor         (userData->kFor)
    #define kRev         (NULL)
@@ -519,11 +519,11 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
    #define conc         (dydt)
    #define maxReactants (this->sparseKinetics_maxReactants)
    #define maxSpecies   (this->sparseKinetics_maxSpecies)
-   #define nuk          (this->sparseKinetics_nuk)
-   #define nu           (this->sparseKinetics_nu)
-   #define inu          (this->sparseKinetics_inu)
-   #define isIntegral(idx) (SparseKinetics_enableIntegralReactions \
-                             && this->sparseKinetics_isIntegralReaction[idx])
+   #define nuk          (this->d_kineticsData.nuk)
+   #define nu           (this->d_kineticsData.nu)
+   #define inu          (this->d_kineticsData.inu)
+   #define isIntegral(idx) ( SparseKinetics_enableIntegralReactions \
+                             && this->d_kineticsData.isIntegral(idx) )
 
    for (int k = 0; k < nspecies; ++k)
       conc[k] = y[k] / VDPD;
@@ -533,20 +533,20 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
    {
       double rxnRateLawForward;
       if (isIntegral(i)){
-         rxnRateLawForward = kFor[i] * powint( conc[ nuk[i][0] ], inu[i][0]);
+         rxnRateLawForward = kFor[i] * powint( conc[ nuk(i,0) ], inu(i,0) );
          for (int kk = 1; kk < maxReactants; ++kk){
-            const int k = nuk[i][kk];
+            const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
-               rxnRateLawForward *= powint( conc[k], inu[i][kk] );
+               rxnRateLawForward *= powint( conc[k], inu(i,kk) );
          }
       } else {
-         rxnRateLawForward = kFor[i] * pow( conc[ nuk[i][0] ], nu[i][0]);
+         rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], nu(i,0) );
          for (int kk = 1; kk < maxReactants; ++kk){
-            const int k = nuk[i][kk];
+            const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
-               rxnRateLawForward *= pow( conc[k], nu[i][kk] );
+               rxnRateLawForward *= pow( conc[k], nu(i,kk) );
          }
       }
 
@@ -560,21 +560,21 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
 
    for (int i = 0; i < nreactions; ++i){
       // Reactants ...
-      dydt[ nuk[i][0] ] -= nu[i][0] * rxnRateLaw[i];
+      dydt[ nuk(i,0) ] -= nu(i,0) * rxnRateLaw[i];
       for (int kk = 1; kk < maxReactants; ++kk){
-         const int k = nuk[i][kk];
+         const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
-            dydt[k] -= nu[i][kk] * rxnRateLaw[i];
+            dydt[k] -= nu(i,kk) * rxnRateLaw[i];
       }
 
       // Products ...
-      dydt[ nuk[i][maxReactants] ] += nu[i][maxReactants] * rxnRateLaw[i];
+      dydt[ nuk(i,maxReactants) ] += nu(i,maxReactants) * rxnRateLaw[i];
       for (int kk = maxReactants+1; kk < maxSpecies; ++kk){
-         const int k = nuk[i][kk];
+         const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
-            dydt[k] += nu[i][kk] * rxnRateLaw[i];
+            dydt[k] += nu(i,kk) * rxnRateLaw[i];
       }
    }
 
@@ -674,34 +674,76 @@ void FixRxKokkos<DeviceType>::create_kinetics_data(void)
 {
   printf("Inside FixRxKokkos::create_kinetics_data\n");
 
-  memory->create_kokkos( d_kinetics_data.Arr, h_kinetics_data.Arr, nreactions, "KineticsType::Arr");
-  memory->create_kokkos( d_kinetics_data.nArr, h_kinetics_data.nArr, nreactions, "KineticsType::nArr");
-  memory->create_kokkos( d_kinetics_data.Ea, h_kinetics_data.Ea, nreactions, "KineticsType::Ea");
-
-  memory->create_kokkos( d_kinetics_data.stoich, h_kinetics_data.stoich, nreactions, nspecies, "KineticsType::stoich");
-  memory->create_kokkos( d_kinetics_data.stoichReactants, h_kinetics_data.stoichReactants, nreactions, nspecies, "KineticsType::stoichReactants");
-  memory->create_kokkos( d_kinetics_data.stoichProducts, h_kinetics_data.stoichProducts, nreactions, nspecies, "KineticsType::stoichProducts");
+  memory->create_kokkos( d_kineticsData.Arr, h_kineticsData.Arr, nreactions, "KineticsType::Arr");
+  memory->create_kokkos( d_kineticsData.nArr, h_kineticsData.nArr, nreactions, "KineticsType::nArr");
+  memory->create_kokkos( d_kineticsData.Ea, h_kineticsData.Ea, nreactions, "KineticsType::Ea");
 
   for (int i = 0; i < nreactions; ++i)
   {
-    h_kinetics_data.Arr[i]  = Arr[i];
-    h_kinetics_data.nArr[i] = nArr[i];
-    h_kinetics_data.Ea[i]   = Ea[i];
+    h_kineticsData.Arr[i]  = Arr[i];
+    h_kineticsData.nArr[i] = nArr[i];
+    h_kineticsData.Ea[i]   = Ea[i];
+  }
 
-    for (int k = 0; k < nspecies; ++k)
+  Kokkos::deep_copy( d_kineticsData.Arr, h_kineticsData.Arr );
+  Kokkos::deep_copy( d_kineticsData.nArr, h_kineticsData.nArr );
+  Kokkos::deep_copy( d_kineticsData.Ea, h_kineticsData.Ea );
+
+  if (useSparseKinetics)
+  {
+
+    memory->create_kokkos( d_kineticsData.nu , h_kineticsData.nu , nreactions, sparseKinetics_maxSpecies, "KineticsType::nu");
+    memory->create_kokkos( d_kineticsData.nuk, h_kineticsData.nuk, nreactions, sparseKinetics_maxSpecies, "KineticsType::nuk");
+
+    for (int i = 0; i < nreactions; ++i)
+      for (int k = 0; k < sparseKinetics_maxSpecies; ++k)
+      {
+        h_kineticsData.nu (i,k) = sparseKinetics_nu [i][k];
+        h_kineticsData.nuk(i,k) = sparseKinetics_nuk[i][k];
+      }
+
+    Kokkos::deep_copy( d_kineticsData.nu, h_kineticsData.nu );
+    Kokkos::deep_copy( d_kineticsData.nuk, h_kineticsData.nuk );
+
+    if (SparseKinetics_enableIntegralReactions)
     {
-      h_kinetics_data.stoich(i,k) = stoich[i][k];
-      h_kinetics_data.stoichReactants(i,k) = stoichReactants[i][k];
-      h_kinetics_data.stoichProducts(i,k) = stoichProducts[i][k];
+      memory->create_kokkos( d_kineticsData.inu, h_kineticsData.inu, nreactions, sparseKinetics_maxSpecies, "KineticsType::inu");
+      memory->create_kokkos( d_kineticsData.isIntegral, h_kineticsData.isIntegral, nreactions, "KineticsType::isIntegral");
+
+      for (int i = 0; i < nreactions; ++i)
+      {
+        h_kineticsData.isIntegral(i) = sparseKinetics_isIntegralReaction[i];
+
+        for (int k = 0; k < sparseKinetics_maxSpecies; ++k)
+          h_kineticsData.inu(i,k) = sparseKinetics_inu[i][k];
+      }
+
+      Kokkos::deep_copy( d_kineticsData.inu, h_kineticsData.inu );
+      Kokkos::deep_copy( d_kineticsData.isIntegral, h_kineticsData.isIntegral );
     }
   }
 
-  Kokkos::deep_copy( d_kinetics_data.Arr, h_kinetics_data.Arr );
-  Kokkos::deep_copy( d_kinetics_data.nArr, h_kinetics_data.nArr );
-  Kokkos::deep_copy( d_kinetics_data.Ea, h_kinetics_data.Ea );
-  Kokkos::deep_copy( d_kinetics_data.stoich, h_kinetics_data.stoich );
-  Kokkos::deep_copy( d_kinetics_data.stoichReactants, h_kinetics_data.stoichReactants );
-  Kokkos::deep_copy( d_kinetics_data.stoichProducts, h_kinetics_data.stoichProducts );
+  //else
+  //{
+
+    // Dense option
+    memory->create_kokkos( d_kineticsData.stoich, h_kineticsData.stoich, nreactions, nspecies, "KineticsType::stoich");
+    memory->create_kokkos( d_kineticsData.stoichReactants, h_kineticsData.stoichReactants, nreactions, nspecies, "KineticsType::stoichReactants");
+    memory->create_kokkos( d_kineticsData.stoichProducts, h_kineticsData.stoichProducts, nreactions, nspecies, "KineticsType::stoichProducts");
+
+    for (int i = 0; i < nreactions; ++i)
+      for (int k = 0; k < nspecies; ++k)
+      {
+        h_kineticsData.stoich(i,k) = stoich[i][k];
+        h_kineticsData.stoichReactants(i,k) = stoichReactants[i][k];
+        h_kineticsData.stoichProducts(i,k) = stoichProducts[i][k];
+      }
+
+    Kokkos::deep_copy( d_kineticsData.stoich, h_kineticsData.stoich );
+    Kokkos::deep_copy( d_kineticsData.stoichReactants, h_kineticsData.stoichReactants );
+    Kokkos::deep_copy( d_kineticsData.stoichProducts, h_kineticsData.stoichProducts );
+
+  //}
 
   update_kinetics_data = false;
 }
@@ -743,6 +785,9 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
   const double boltz = force->boltz;
   const double t_stop = update->dt; // DPD time-step and integration length.
 
+  // Average DPD volume. Used in the RHS function.
+  this->VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
+
   /*if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
   {
     memory->create( diagnosticCounterPerODE[StepSum], nlocal, "FixRX::diagnosticCounterPerODE");
@@ -771,9 +816,9 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
             userData.kFor[irxn] = 0.0;
           else
           {
-            userData.kFor[irxn] = d_kinetics_data.Arr(irxn) *
-                                   pow(theta, d_kinetics_data.nArr(irxn)) *
-                                   exp(-d_kinetics_data.Ea(irxn) / boltz / theta);
+            userData.kFor[irxn] = d_kineticsData.Arr(irxn) *
+                                   pow(theta, d_kineticsData.nArr(irxn)) *
+                                   exp(-d_kineticsData.Ea(irxn) / boltz / theta);
             //userData.kFor[irxn] = Arr[irxn]*pow(theta,nArr[irxn])*exp(-Ea[irxn]/boltz/theta);
           }
         }

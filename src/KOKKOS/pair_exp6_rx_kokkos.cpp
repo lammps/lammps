@@ -311,9 +311,6 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   double mixWtSite1_i, mixWtSite1_j;
   double mixWtSite2_i, mixWtSite2_j;
 
-  fpairOldEXP6_12 = 0.0;
-  fpairOldEXP6_21 = 0.0;
-
   const int nRep = 12;
   const double shift = 1.05;
   double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
@@ -414,6 +411,13 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       alpha21_ij = sqrt(alpha2_i*alpha1_j);
       rm21_ij = 0.5*(rm2_i + rm1_j);
       epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+
+      evdwlOldEXP6_12 = 0.0;
+      evdwlOldEXP6_21 = 0.0;
+      evdwlEXP6_12 = 0.0;
+      evdwlEXP6_21 = 0.0;
+      fpairOldEXP6_12 = 0.0;
+      fpairOldEXP6_21 = 0.0;
 
       if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
         if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
@@ -577,35 +581,35 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         } else {
           evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
-
-        //
-        // Apply Mixing Rule to get the overall force for the CG pair
-        //
-        if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
-        else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
-
-        fx_i += delx*fpair;
-        fy_i += dely*fpair;
-        fz_i += delz*fpair;
-        if (NEWTON_PAIR || j < nlocal) {
-          a_f(j,0) -= delx*fpair;
-          a_f(j,1) -= dely*fpair;
-          a_f(j,2) -= delz*fpair;
-        }
-
-        if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
-        else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
-        evdwl *= factor_lj;
-
-        uCGnew_i   += 0.5*evdwl;
-        if (NEWTON_PAIR || j < nlocal)
-          a_uCGnew[j] += 0.5*evdwl;
-        evdwl = evdwlOld;
-        if (EVFLAG)
-          ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
-        //if (vflag_either || eflag_atom) 
-        if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
       }
+
+      //
+      // Apply Mixing Rule to get the overall force for the CG pair
+      //
+      if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+      else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+
+      fx_i += delx*fpair;
+      fy_i += dely*fpair;
+      fz_i += delz*fpair;
+      if (NEWTON_PAIR || j < nlocal) {
+        a_f(j,0) -= delx*fpair;
+        a_f(j,1) -= dely*fpair;
+        a_f(j,2) -= delz*fpair;
+      }
+
+      if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+      else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+      evdwl *= factor_lj;
+
+      uCGnew_i   += 0.5*evdwl;
+      if (NEWTON_PAIR || j < nlocal)
+        a_uCGnew[j] += 0.5*evdwl;
+      evdwl = evdwlOld;
+      if (EVFLAG)
+        ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
+      //if (vflag_either || eflag_atom) 
+      if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
 

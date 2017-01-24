@@ -45,6 +45,8 @@ template<class DeviceType>
 FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixEOStableRX(lmp, narg, arg)
 {
+  int kokkosable = 1;
+
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
@@ -181,7 +183,7 @@ void FixEOStableRXKokkos<DeviceType>::init()
   } else {
     atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXInit>(0,nlocal),*this);
-    atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK);
+    atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK | UCHEM_MASK);
   }
 
   error_check();
@@ -223,9 +225,8 @@ void FixEOStableRXKokkos<DeviceType>::post_integrate()
   dvector = atomKK->k_dvector.view<DeviceType>();
 
   atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
-  atomKK->modified(execution_space,DPDTHETA_MASK);
-
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
+  atomKK->modified(execution_space,DPDTHETA_MASK);
 
   error_check();
 

@@ -366,13 +366,12 @@ struct fft_plan_3d *fft_3d_create_plan(
 {
   struct fft_plan_3d *plan;
   int me,nprocs;
-  int i,num,flag,remapflag,fftflag;
+  int flag,remapflag;
   int first_ilo,first_ihi,first_jlo,first_jhi,first_klo,first_khi;
   int second_ilo,second_ihi,second_jlo,second_jhi,second_klo,second_khi;
   int third_ilo,third_ihi,third_jlo,third_jhi,third_klo,third_khi;
   int out_size,first_size,second_size,third_size,copy_size,scratch_size;
   int np1,np2,ip1,ip2;
-  int list[50];
 
   // system specific variables
 
@@ -694,6 +693,9 @@ struct fft_plan_3d *fft_3d_create_plan(
 #elif defined(FFT_INTEL)
 
   flag = 0;
+
+  int i,num,fftflag;
+  int list[50];
 
   num = 0;
   factor(nfast,&num,list);

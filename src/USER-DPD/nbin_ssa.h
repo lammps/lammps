@@ -111,6 +111,42 @@ class NBinSSA : public NBinStandard {
     return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
   }
 
+  inline
+  int coord2bin(const double & x,const double & y,const double & z, int &ixo, int &iyo, int &izo) const
+  {
+    int ix,iy,iz;
+
+    if (x >= bboxhi_[0])
+      ix = static_cast<int> ((x-bboxhi_[0])*bininvx) + nbinx;
+    else if (x >= bboxlo_[0]) {
+      ix = static_cast<int> ((x-bboxlo_[0])*bininvx);
+      ix = MIN(ix,nbinx-1);
+    } else
+      ix = static_cast<int> ((x-bboxlo_[0])*bininvx) - 1;
+
+    if (y >= bboxhi_[1])
+      iy = static_cast<int> ((y-bboxhi_[1])*bininvy) + nbiny;
+    else if (y >= bboxlo_[1]) {
+      iy = static_cast<int> ((y-bboxlo_[1])*bininvy);
+      iy = MIN(iy,nbiny-1);
+    } else
+      iy = static_cast<int> ((y-bboxlo_[1])*bininvy) - 1;
+
+    if (z >= bboxhi_[2])
+      iz = static_cast<int> ((z-bboxhi_[2])*bininvz) + nbinz;
+    else if (z >= bboxlo_[2]) {
+      iz = static_cast<int> ((z-bboxlo_[2])*bininvz);
+      iz = MIN(iz,nbinz-1);
+    } else
+      iz = static_cast<int> ((z-bboxlo_[2])*bininvz) - 1;
+
+    ixo = ix - mbinxlo;
+    iyo = iy - mbinylo;
+    izo = iz - mbinzlo;
+
+    return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
+  }
+
  private:
   double bboxlo_[3],bboxhi_[3];
 

@@ -2997,7 +2997,6 @@ void PPPMKokkos<DeviceType>::slabcorr()
 
   // sum local contributions to get global dipole moment
 
-  dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
   // need to make non-neutral systems and/or

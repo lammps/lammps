@@ -24,6 +24,7 @@ namespace LAMMPS_NS {
 struct RandWrap {
   class RanMars* rng;
 
+  KOKKOS_INLINE_FUNCTION
   RandWrap() {
     rng = NULL;
   }

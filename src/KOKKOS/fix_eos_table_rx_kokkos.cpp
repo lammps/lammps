@@ -45,7 +45,7 @@ template<class DeviceType>
 FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixEOStableRX(lmp, narg, arg)
 {
-  int kokkosable = 1;
+  kokkosable = 1;
 
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;

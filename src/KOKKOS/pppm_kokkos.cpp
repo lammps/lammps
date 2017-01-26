@@ -2827,8 +2827,8 @@ void PPPMKokkos<DeviceType>::unpack_reverse_kokkos(int flag, Kokkos::DualView<FF
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
   d_buf = k_buf.view<DeviceType>();
 
-  int nx = (nxhi_out-nxlo_out+1);
-  int ny = (nyhi_out-nylo_out+1);
+  nx = (nxhi_out-nxlo_out+1);
+  ny = (nyhi_out-nylo_out+1);
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_unpack_reverse>(0,nlist),*this);

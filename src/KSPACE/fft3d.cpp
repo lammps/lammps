@@ -67,7 +67,10 @@
 void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 {
   int i,total,length,offset,num;
-  FFT_SCALAR norm, *out_ptr;
+  FFT_SCALAR norm;
+#if defined(FFT_FFTW3)
+  FFT_SCALAR *out_ptr;
+#endif
   FFT_DATA *data,*copy;
 
   // system specific constants
@@ -296,7 +299,9 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   if (flag == 1 && plan->scaled) {
     norm = plan->norm;
     num = plan->normnum;
+#if defined(FFT_FFTW3)
     out_ptr = (FFT_SCALAR *)out;
+#endif
     for (i = 0; i < num; i++) {
 #if defined(FFT_FFTW3)
       *(out_ptr++) *= norm;

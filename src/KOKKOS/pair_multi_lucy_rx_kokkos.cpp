@@ -183,8 +183,6 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   dvector = atomKK->k_dvector.view<DeviceType>();
 
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDRHO_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
-  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
-  else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
   k_cutsq.template sync<DeviceType>();
 
   nlocal = atom->nlocal;
@@ -230,6 +228,9 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
       else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<HALFTHREAD,0,0,TABSTYLE> >(0,inum),*this);
     }
   }
+
+  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
+  else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
@@ -454,7 +455,6 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   nlocal = atom->nlocal;
 
   atomKK->sync(execution_space,X_MASK | TYPE_MASK | DPDRHO_MASK);
-  atomKK->modified(execution_space,DPDRHO_MASK);
 
   const int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
@@ -492,14 +492,14 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,0> >(0,inum),*this);
   }
 
+  atomKK->modified(execution_space,DPDRHO_MASK);
+
   // communicate and sum densities (on the host)
 
   if (newton_pair) {
-    atomKK->modified(execution_space,DPDRHO_MASK);
     atomKK->sync(Host,DPDRHO_MASK);
     comm->reverse_comm_pair(this);
     atomKK->modified(Host,DPDRHO_MASK);
-    atomKK->sync(execution_space,DPDRHO_MASK);
   }
 
   comm->forward_comm_pair(this);
@@ -687,6 +687,8 @@ int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, doubl
 {
   int i,j,m;
 
+  atomKK->sync(Host,DPDRHO_MASK);
+
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
@@ -705,6 +707,8 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, do
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) h_rho[i] = buf[m++];
+
+  atomKK->modified(Host,DPDRHO_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

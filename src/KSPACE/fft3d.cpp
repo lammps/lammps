@@ -1093,7 +1093,7 @@ void bifactor(int n, int *factor1, int *factor2)
 
 void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 {
-  int i,offset,num;
+  int i,num;
   FFT_SCALAR norm, *data_ptr;
 
   // system specific constants
@@ -1139,20 +1139,20 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   // data is just an array of 0.0
 
 #ifdef FFT_SGI
-  for (offset = 0; offset < total1; offset += length1)
+  for (int offset = 0; offset < total1; offset += length1)
     FFT_1D(flag,length1,&data[offset],1,plan->coeff1);
-  for (offset = 0; offset < total2; offset += length2)
+  for (int offset = 0; offset < total2; offset += length2)
     FFT_1D(flag,length2,&data[offset],1,plan->coeff2);
-  for (offset = 0; offset < total3; offset += length3)
+  for (int offset = 0; offset < total3; offset += length3)
     FFT_1D(flag,length3,&data[offset],1,plan->coeff3);
 #elif defined(FFT_SCSL)
-  for (offset = 0; offset < total1; offset += length1)
+  for (int offset = 0; offset < total1; offset += length1)
     FFT_1D(flag,length1,scalef,&data[offset],&data[offset],plan->coeff1,
            plan->work1,&isys);
-  for (offset = 0; offset < total2; offset += length2)
+  for (int offset = 0; offset < total2; offset += length2)
     FFT_1D(flag,length2,scalef,&data[offset],&data[offset],plan->coeff2,
            plan->work2,&isys);
-  for (offset = 0; offset < total3; offset += length3)
+  for (int offset = 0; offset < total3; offset += length3)
     FFT_1D(flag,length3,scalef,&data[offset],&data[offset],plan->coeff3,
            plan->work3,&isys);
 #elif defined(FFT_ACML)
@@ -1164,11 +1164,11 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   num=total3/length3;
   FFT_1D(&flag,&num,&length3,data,plan->coeff3,&info);
 #elif defined(FFT_INTEL)
-  for (offset = 0; offset < total1; offset += length1)
+  for (int offset = 0; offset < total1; offset += length1)
     FFT_1D(&data[offset],&length1,&flag,plan->coeff1);
-  for (offset = 0; offset < total2; offset += length2)
+  for (int offset = 0; offset < total2; offset += length2)
     FFT_1D(&data[offset],&length2,&flag,plan->coeff2);
-  for (offset = 0; offset < total3; offset += length3)
+  for (int offset = 0; offset < total3; offset += length3)
     FFT_1D(&data[offset],&length3,&flag,plan->coeff3);
 #elif defined(FFT_MKL)
   if (flag == -1) {
@@ -1182,28 +1182,28 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   }
 #elif defined(FFT_DEC)
   if (flag == -1) {
-    for (offset = 0; offset < total1; offset += length1)
+    for (int offset = 0; offset < total1; offset += length1)
       FFT_1D(&c,&c,&f,&data[offset],&data[offset],&length1,&one);
-    for (offset = 0; offset < total2; offset += length2)
+    for (int offset = 0; offset < total2; offset += length2)
       FFT_1D(&c,&c,&f,&data[offset],&data[offset],&length2,&one);
-    for (offset = 0; offset < total3; offset += length3)
+    for (int offset = 0; offset < total3; offset += length3)
       FFT_1D(&c,&c,&f,&data[offset],&data[offset],&length3,&one);
   } else {
-    for (offset = 0; offset < total1; offset += length1)
+    for (int offset = 0; offset < total1; offset += length1)
       FFT_1D(&c,&c,&b,&data[offset],&data[offset],&length1,&one);
-    for (offset = 0; offset < total2; offset += length2)
+    for (int offset = 0; offset < total2; offset += length2)
       FFT_1D(&c,&c,&b,&data[offset],&data[offset],&length2,&one);
-    for (offset = 0; offset < total3; offset += length3)
+    for (int offset = 0; offset < total3; offset += length3)
       FFT_1D(&c,&c,&b,&data[offset],&data[offset],&length3,&one);
   }
 #elif defined(FFT_T3E)
-  for (offset = 0; offset < total1; offset += length1)
+  for (int offset = 0; offset < total1; offset += length1)
     FFT_1D(&flag,&length1,&scalef,&data[offset],&data[offset],plan->coeff1,
            plan->work1,&isys);
-  for (offset = 0; offset < total2; offset += length2)
+  for (int offset = 0; offset < total2; offset += length2)
     FFT_1D(&flag,&length2,&scalef,&data[offset],&data[offset],plan->coeff2,
            plan->work2,&isys);
-  for (offset = 0; offset < total3; offset += length3)
+  for (int offset = 0; offset < total3; offset += length3)
     FFT_1D(&flag,&length3,&scalef,&data[offset],&data[offset],plan->coeff3,
            plan->work3,&isys);
 #elif defined(FFT_FFTW2)
@@ -1235,18 +1235,18 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   FFTW_API(execute_dft)(theplan,data,data);
 #else
   if (flag == -1) {
-    for (offset = 0; offset < total1; offset += length1)
+    for (int offset = 0; offset < total1; offset += length1)
       kiss_fft(plan->cfg_fast_forward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total2; offset += length2)
+    for (int offset = 0; offset < total2; offset += length2)
       kiss_fft(plan->cfg_mid_forward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total3; offset += length3)
+    for (int offset = 0; offset < total3; offset += length3)
       kiss_fft(plan->cfg_slow_forward,&data[offset],&data[offset]);
   } else {
-    for (offset = 0; offset < total1; offset += length1)
+    for (int offset = 0; offset < total1; offset += length1)
       kiss_fft(plan->cfg_fast_backward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total2; offset += length2)
+    for (int offset = 0; offset < total2; offset += length2)
       kiss_fft(plan->cfg_mid_backward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total3; offset += length3)
+    for (int offset = 0; offset < total3; offset += length3)
       kiss_fft(plan->cfg_slow_backward,&data[offset],&data[offset]);
   }
 #endif

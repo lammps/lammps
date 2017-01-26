@@ -1094,7 +1094,10 @@ void bifactor(int n, int *factor1, int *factor2)
 void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 {
   int i,num;
-  FFT_SCALAR norm, *data_ptr;
+  FFT_SCALAR norm;
+#if defined(FFT_FFTW3)
+  FFT_SCALAR *data_ptr;
+#endif
 
   // system specific constants
 
@@ -1258,7 +1261,9 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   if (flag == 1 && plan->scaled) {
     norm = plan->norm;
     num = MIN(plan->normnum,nsize);
+#if defined(FFT_FFTW3)
     data_ptr = (FFT_SCALAR *)data;
+#endif
     for (i = 0; i < num; i++) {
 #if defined(FFT_FFTW3)
       *(data_ptr++) *= norm;

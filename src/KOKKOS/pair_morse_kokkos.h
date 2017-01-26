@@ -131,7 +131,7 @@ E: Cannot use Kokkos pair style with rRESPA inner/middle
 
 Self-explanatory.
 
-E: Cannot use chosen neighbor list style with lj/cut/kk
+E: Cannot use chosen neighbor list style with morse/kk
 
 That style is not supported by Kokkos.
 

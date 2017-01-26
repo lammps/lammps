@@ -1093,7 +1093,7 @@ void bifactor(int n, int *factor1, int *factor2)
 
 void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 {
-  int i,total,length,offset,num;
+  int i,offset,num;
   FFT_SCALAR norm, *data_ptr;
 
   // system specific constants

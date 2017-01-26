@@ -30,22 +30,24 @@ using namespace LAMMPS_NS;
 NBinSSA::NBinSSA(LAMMPS *lmp) : NBinStandard(lmp)
 {
   maxbin_ssa = 0;
-  bins_ssa = NULL;
-  maxhead_ssa = 0;
-  binhead_ssa = NULL;
-  for (int i = 0; i < 9; i++) gairhead_ssa[i] = -1;
+  binlist_ssa = NULL;
+  binct_ssa = NULL;
+  for (int i = 0; i < 9; i++) {
+    gairhead_ssa[i] = -1;
+    gairct_ssa[i] = 0;
+  }
 }
 
 NBinSSA::~NBinSSA()
 {
-  memory->destroy(bins_ssa);
-  memory->destroy(binhead_ssa);
+  memory->destroy(binlist_ssa);
+  memory->destroy(binct_ssa);
 }
 
 /* ----------------------------------------------------------------------
    bin owned and ghost atoms for the Shardlow Splitting Algorithm (SSA)
-   local atoms are in distinct bins (binhead_ssa) from the ghosts
-   ghost atoms are in distinct bins (gbinhead_ssa) from the locals
+   local atoms are in distinct bins (binhead[]) from the ghosts
+   ghost atoms are "binned" in gairhead_ssa[] instead
      ghosts which are not in an Active Interaction Region (AIR) are skipped
 ------------------------------------------------------------------------- */
 
@@ -58,6 +60,7 @@ void NBinSSA::bin_atoms()
   double **x = atom->x;
   int *mask = atom->mask;
   int *ssaAIR = atom->ssaAIR;
+  int xbin,ybin,zbin;
 
   last_bin = update->ntimestep;
 
@@ -66,10 +69,13 @@ void NBinSSA::bin_atoms()
 
   for (i = 0; i < 9; i++) {
     gairhead_ssa[i] = -1;
+    gairct_ssa[i] = 0;
   }
 
   for (i = 0; i < mbins; i++) {
-    binhead_ssa[i] = -1;
+    binhead[i] = -1;
+    binlist_ssa[i] = -1;
+    binct_ssa[i] = 0;
   }
 
   // bin in reverse order so linked list will be in forward order
@@ -81,23 +87,34 @@ void NBinSSA::bin_atoms()
       ibin = ssaAIR[i];
       if (ibin < 2) continue; // skip ghost atoms not in AIR
       if (mask[i] & bitmask) {
-        bins_ssa[i] = gairhead_ssa[ibin];
+        bins[i] = gairhead_ssa[ibin];
         gairhead_ssa[ibin] = i;
+        ++(gairct_ssa[ibin]);
       }
     }
   } else {
     for (i = nall-1; i >= nlocal; i--) {
       ibin = ssaAIR[i];
       if (ibin < 2) continue; // skip ghost atoms not in AIR
-      bins_ssa[i] = gairhead_ssa[ibin];
+      bins[i] = gairhead_ssa[ibin];
       gairhead_ssa[ibin] = i;
+      ++(gairct_ssa[ibin]);
     }
   }
   for (i = nlocal-1; i >= 0; i--) {
-    ibin = coord2bin(x[i][0], x[i][1], x[i][2]);
-    bins_ssa[i] = binhead_ssa[ibin];
-    binhead_ssa[ibin] = i;
+    ibin = coord2bin(x[i][0], x[i][1], x[i][2], xbin, ybin, zbin);
+    // Find the bounding box of the local atoms in the bins
+    if (xbin < lbinxlo) lbinxlo = xbin;
+    if (xbin >= lbinxhi) lbinxhi = xbin + 1;
+    if (ybin < lbinylo) lbinylo = ybin;
+    if (ybin >= lbinyhi) lbinyhi = ybin + 1;
+    if (zbin < lbinzlo) lbinzlo = zbin;
+    if (zbin >= lbinzhi) lbinzhi = zbin + 1;
+    bins[i] = binhead[ibin];
+    binhead[ibin] = i;
+    ++(binct_ssa[ibin]);
   }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,17 +123,21 @@ void NBinSSA::bin_atoms_setup(int nall)
 {
   NBinStandard::bin_atoms_setup(nall); // Setup the parent class's data too
 
-  if (mbins > maxhead_ssa) {
-    maxhead_ssa = mbins;
-    memory->destroy(binhead_ssa);
-    memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
+  if (mbins > maxbin_ssa) {
+    maxbin_ssa = mbins;
+    memory->destroy(binlist_ssa);
+    memory->destroy(binct_ssa);
+    memory->create(binlist_ssa,maxbin_ssa,"binlist_ssa");
+    memory->create(binct_ssa,maxbin_ssa,"binct_ssa");
   }
 
-  if (nall > maxbin_ssa) {
-    maxbin_ssa = nall;
-    memory->destroy(bins_ssa);
-    memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
-  }
+  // Clear the local bin extent bounding box.
+  lbinxlo = mbinx - 1; // Safe to = stencil->sx + 1
+  lbinylo = mbiny - 1; // Safe to = stencil->sy + 1
+  lbinzlo = mbinz - 1; // Safe to = stencil->sz + 1
+  lbinxhi = 0; // Safe to = mbinx - stencil->sx - 1
+  lbinyhi = 0; // Safe to = mbiny - stencil->sy - 1
+  lbinzhi = 0; // Safe to = mbinz - stencil->sz - 1
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,9 +146,9 @@ bigint NBinSSA::memory_usage()
 {
   bigint bytes = NBinStandard::memory_usage(); // Count the parent's usage too
 
-  if (maxbin_ssa) bytes += memory->usage(bins_ssa,maxbin_ssa);
-  if (maxhead_ssa) {
-    bytes += memory->usage(binhead_ssa,maxhead_ssa);
+  if (maxbin_ssa) {
+    bytes += memory->usage(binlist_ssa,maxbin_ssa);
+    bytes += memory->usage(binct_ssa,maxbin_ssa);
   }
   return bytes;
 }

@@ -80,6 +80,7 @@ class NeighList : protected Pointers {
 
   // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
 
+  int AIRct_ssa[8]; // count of how many atoms in each AIR
   uint16_t (*ndxAIR_ssa)[8]; // for each atom, last neighbor index of each AIR
 
   // methods

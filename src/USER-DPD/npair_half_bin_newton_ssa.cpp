@@ -79,20 +79,32 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
 
   NBinSSA *nb_ssa = dynamic_cast<NBinSSA*>(nb);
   if (!nb_ssa) error->one(FLERR, "NBin wasn't a NBinSSA object");
-  int *bins_ssa = nb_ssa->bins_ssa;
-  int *binhead_ssa = nb_ssa->binhead_ssa;
+  int *bins = nb_ssa->bins;
+  int *binhead = nb_ssa->binhead;
+  int *binlist_ssa = nb_ssa->binlist_ssa;
+  int *binct_ssa = nb_ssa->binct_ssa;
   int *gairhead_ssa = &(nb_ssa->gairhead_ssa[0]);
 
   int inum = 0;
   int gnum = 0;
   int xbin,ybin,zbin,xbin2,ybin2,zbin2;
   int **stencilxyz = ns_ssa->stencilxyz;
+  int lbinxlo = nb_ssa->lbinxlo;
+  int lbinxhi = nb_ssa->lbinxhi;
+  int lbinylo = nb_ssa->lbinylo;
+  int lbinyhi = nb_ssa->lbinyhi;
+  int lbinzlo = nb_ssa->lbinzlo;
+  int lbinzhi = nb_ssa->lbinzhi;
 
   ipage->reset();
 
-  // loop over owned atoms, storing half of the neighbors
-
-  for (i = 0; i < nlocal; i++) {
+  // loop over bins with local atoms, storing half of the neighbors
+  for (zbin = lbinzlo; zbin < lbinzhi; zbin++) {
+  for (ybin = lbinylo; ybin < lbinyhi; ybin++) {
+  for (xbin = lbinxlo; xbin < lbinxhi; xbin++) {
+  ibin = zbin*mbiny*mbinx + ybin*mbinx + xbin;
+  binlist_ssa[ibin] = inum; // record where ibin starts in ilist
+  for (i = binhead[ibin]; i >= 0; i = bins[i]) {
     n = 0;
     neighptr = ipage->vget();
 
@@ -109,7 +121,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     // loop over rest of local atoms in i's bin
     // just store them, since j is beyond i in linked list
 
-    for (j = bins_ssa[i]; j >= 0; j = bins_ssa[j]) {
+    for (j = bins[i]; j >= 0; j = bins[j]) {
 
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
@@ -136,13 +148,11 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
       }
     }
 
-    ibin = coord2bin(x[i]);
-
     // loop over all local atoms in other bins in "half" stencil
 
     for (k = 0; k < nstencil_half; k++) {
-      for (j = binhead_ssa[ibin+stencil[k]]; j >= 0;
-           j = bins_ssa[j]) {
+      for (j = binhead[ibin+stencil[k]]; j >= 0;
+           j = bins[j]) {
 
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
@@ -177,13 +187,20 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
+  // verify count of atoms in ibin
+  if (binct_ssa[ibin] != (inum - binlist_ssa[ibin]))
+    error->one(FLERR,"binct_ssa didn't agree with lenght in ilist");
+  }
+  }
+  }
 
   list->inum = inum;
 
   // loop over AIR ghost atoms, storing their local neighbors
   // since these are ghosts, must check if stencil bin is out of bounds
   for (int airnum = 2; airnum <= 8; airnum++) {
-    for (i = gairhead_ssa[airnum]; i >= 0; i = bins_ssa[i]) {
+    list->AIRct_ssa[airnum - 1] = nb_ssa->gairct_ssa[airnum];
+    for (i = gairhead_ssa[airnum]; i >= 0; i = bins[i]) {
       n = 0;
       neighptr = ipage->vget();
 
@@ -205,11 +222,11 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
         xbin2 = xbin + stencilxyz[k][0];
         ybin2 = ybin + stencilxyz[k][1];
         zbin2 = zbin + stencilxyz[k][2];
-        // since we only care about ghost to local neighbors, these "bounds" could be inset
-        if (xbin2 < 0 || xbin2 >= mbinx ||
-            ybin2 < 0 || ybin2 >= mbiny ||
-            zbin2 < 0 || zbin2 >= mbinz) continue;
-        for (j = binhead_ssa[ibin+stencil[k]]; j >= 0; j = bins_ssa[j]) {
+        // Skip it if this bin is outside the extent of local bins
+        if (xbin2 < lbinxlo || xbin2 >= lbinxhi ||
+            ybin2 < lbinylo || ybin2 >= lbinyhi ||
+            zbin2 < lbinzlo || zbin2 >= lbinzhi) continue;
+        for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

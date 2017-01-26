@@ -61,6 +61,9 @@ void NBinSSA::bin_atoms()
 
   last_bin = update->ntimestep;
 
+  bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
+  bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
+
   for (i = 0; i < 9; i++) {
     gairhead_ssa[i] = -1;
   }
@@ -91,7 +94,7 @@ void NBinSSA::bin_atoms()
     }
   }
   for (i = nlocal-1; i >= 0; i--) {
-    ibin = coord2bin(x[i]);
+    ibin = coord2bin(x[i][0], x[i][1], x[i][2]);
     bins_ssa[i] = binhead_ssa[ibin];
     binhead_ssa[ibin] = i;
   }

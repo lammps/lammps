@@ -54,17 +54,6 @@ enum{NONE,RLINEAR,RSQ};
 #define oneFluidParameter (-1)
 #define isOneFluid(_site) ( (_site) == oneFluidParameter )
 
-static const char cite_pair_multi_lucy_rx[] =
-  "pair_style multi/lucy/rx command:\n\n"
-  "@Article{Moore16,\n"
-  " author = {J.D. Moore, B.C. Barnes, S. Izvekov, M. Lisal, M.S. Sellers, D.E. Taylor and J. K. Brennan},\n"
-  " title = {A coarse-grain force field for RDX:  Density dependent and energy conserving},\n"
-  " journal = {J. Chem. Phys.},\n"
-  " year =    2016,\n"
-  " volume =  144\n"
-  " pages =   {104501}\n"
-  "}\n\n";
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -278,7 +267,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   // The f array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
-  int i,jj,inum,jnum,itype,jtype,itable;
+  int i,jj,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
   double rsq;
 

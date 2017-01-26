@@ -277,7 +277,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSp
   // The f array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
-  int i,j,jj,inum,jnum,itype,jtype;
+  int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,rinv,wd,wr,factor_dpd;
 

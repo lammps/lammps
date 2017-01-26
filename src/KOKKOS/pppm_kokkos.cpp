@@ -374,7 +374,6 @@ void PPPMKokkos<DeviceType>::setup()
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
-  int i,j,k,n;
   double *prd;
 
   // volume-dependent factors
@@ -416,10 +415,6 @@ void PPPMKokkos<DeviceType>::setup()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup3>(nzlo_fft,nzhi_fft+1),*this);
   DeviceType::fence();
   copymode = 0;
-
-  // virial coefficients
-
-  double sqk,vterm;
 
   // merge three outer loops into one for better threading
 
@@ -615,7 +610,7 @@ void PPPMKokkos<DeviceType>::setup_grid()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 {
-  int i,j;
+  int i;
 
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
@@ -977,7 +972,6 @@ void PPPMKokkos<DeviceType>::set_grid_global()
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
-  double h;
   bigint natoms = atomKK->natoms;
 
   if (!gewaldflag) {
@@ -1639,9 +1633,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_particle_map, const int &i) cons
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::make_rho()
 {
-  int l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0;
-
   // clear 3d density array
 
   //memset(&(density_brick(nzlo_out,nylo_out,nxlo_out)),0,
@@ -1848,8 +1839,7 @@ void PPPMKokkos<DeviceType>::poisson()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_ik()
 {
-  int i,j,k,n;
-  double eng;
+  int j;
 
   // transform charge density (r -> k)
 
@@ -1880,7 +1870,6 @@ void PPPMKokkos<DeviceType>::poisson_ik()
       for (j = 0; j < 6; j++) virial[j] += ev.v[j];
       energy += ev.ecoul;
     } else {
-      n = 0;
       copymode = 1;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik3>(0,nfft),*this,ev);
       DeviceType::fence();
@@ -2217,8 +2206,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic6, const int
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_peratom()
 {
-  int i,j,k,n;
-
   // merge three outer loops into one for better threading
 
   numz_inout = (nzhi_in-nzlo_out)-(nzlo_in-nzlo_out) + 1;
@@ -2570,21 +2557,16 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_fieldforce_ik, const int &i) const
 {
   int l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR x0,y0,z0;
   FFT_SCALAR ekx,eky,ekz;
 
   nx = d_part2grid(i,0);
   ny = d_part2grid(i,1);
   nz = d_part2grid(i,2);
-  dx = nx+shiftone - (x(i,0)-boxlo[0])*delxinv;
-  dy = ny+shiftone - (x(i,1)-boxlo[1])*delyinv;
-  dz = nz+shiftone - (x(i,2)-boxlo[2])*delzinv;
 
   nz -= nzlo_out;
   ny -= nylo_out;
   nx -= nxlo_out;
-
-  //compute_rho1d(i,dx,dy,dz); // hasn't changed from make_rho
 
   ekx = eky = ekz = ZEROF;
   for (n = nlower; n <= nupper; n++) {

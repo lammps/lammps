@@ -25,7 +25,7 @@
 #include "force.h"
 #include "neigh_list.h"
 #include "math_const.h"
-#include "math_special.h"
+#include "math_special_kokkos.h"
 #include "memory.h"
 #include "error.h"
 #include "modify.h"
@@ -36,7 +36,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
+using namespace MathSpecialKokkos;
 
 #define MAXLINE 1024
 #define DELTA 4

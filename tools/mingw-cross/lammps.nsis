@@ -68,7 +68,7 @@ Section "${LAMMPS}"
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\README.lnk"         "$INSTDIR\README.txt"             "" ""
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\LAMMPS Manual.lnk"  "$INSTDIR\doc\LAMMPS-Manual.pdf"  "" ""
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\Colvars Manual.lnk" "$INSTDIR\doc\Colvars-Manual.pdf" "" ""
-  CreateShortCut  "$SMPROGRAMS\${LAMMPS}\CreatAtoms Manual.lnk" "$INSTDIR\doc\CreateAtoms-Manual.pdf" "" ""
+  CreateShortCut  "$SMPROGRAMS\${LAMMPS}\CreateAtoms Manual.lnk" "$INSTDIR\doc\CreateAtoms-Manual.pdf" "" ""
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\Benchmarks.lnk"     "$WINDIR\explorer.exe"  \
                                                              '/e,"$INSTDIR\Benchmarks"'  ""
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\Examples.lnk"       "$WINDIR\explorer.exe"    \

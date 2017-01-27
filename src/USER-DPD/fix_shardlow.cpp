@@ -538,24 +538,34 @@ void FixShardlow::initial_integrate(int vflag)
   dtsqrt = sqrt(update->dt);
 
   ii = 0;
-  //Loop over all 14 directions (8 stages)
-  for (airnum = 1; airnum <=8; airnum++){
+  // process neighbors in the local AIR
+  while (ii < inum) {
+    i = ilist[ii];
+    int len = list->numneigh[i];
+    if (len > 0) {
+      if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
+      else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
+    }
+    ii++;
+  }
 
-    if (airnum > 1) {
-      // Communicate the updated velocities to all nodes
-      comm->forward_comm_fix(this);
+  ii = inum;
+  //Loop over all 13 outward directions (7 stages)
+  for (airnum = 1; airnum <=7; airnum++){
+    int ct = list->AIRct_ssa[airnum];
 
-      if(useDPDE){
-        // Zero out the ghosts' uCond & uMech to be used as delta accumulators
-        memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
-        memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
-      }
+    // Communicate the updated velocities to all nodes
+    comm->forward_comm_fix(this);
+
+    if(useDPDE){
+      // Zero out the ghosts' uCond & uMech to be used as delta accumulators
+      memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
+      memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
     }
 
     // process neighbors in this AIR
-    while (ii < anum) {
+    while (ct-- > 0) {
       i = ilist[ii];
-      if (atom->ssaAIR[i] > airnum) break; /* done with curent AIR */
       int len = list->numneigh[i];
       if (len > 0) {
         if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
@@ -565,7 +575,7 @@ void FixShardlow::initial_integrate(int vflag)
     }
 
     // Communicate the ghost deltas to the atom owners
-    if (airnum > 1) comm->reverse_comm_fix(this);
+    comm->reverse_comm_fix(this);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 

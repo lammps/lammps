@@ -199,7 +199,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   // loop over AIR ghost atoms, storing their local neighbors
   // since these are ghosts, must check if stencil bin is out of bounds
   for (int airnum = 2; airnum <= 8; airnum++) {
-    list->AIRct_ssa[airnum - 1] = nb_ssa->gairct_ssa[airnum];
+    int locAIRct = 0;
     for (i = gairhead_ssa[airnum]; i >= 0; i = bins[i]) {
       n = 0;
       neighptr = ipage->vget();
@@ -254,13 +254,17 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
         }
       }
 
-      if (n > 0) ilist[inum + (gnum++)] = i;
+      if (n > 0) {
+        ilist[inum + (gnum++)] = i;
+        ++locAIRct;
+      }
       firstneigh[i] = neighptr;
       numneigh[i] = n;
       ipage->vgot(n);
       if (ipage->status())
         error->one(FLERR,"Neighbor (ghost) list overflow, boost neigh_modify one");
     }
+    list->AIRct_ssa[airnum - 1] = locAIRct;
   }
   list->gnum = gnum;
 }

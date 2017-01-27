@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "update.h"
 #include "group.h"
+#include "domain.h"
 #include "memory.h"
 #include "error.h"
 
@@ -58,7 +59,6 @@ void NBinSSA::bin_atoms()
   if (includegroup) nlocal = atom->nfirst;
   double **x = atom->x;
   int *mask = atom->mask;
-  int *ssaAIR = atom->ssaAIR;
   int xbin,ybin,zbin;
 
   last_bin = update->ntimestep;
@@ -82,7 +82,7 @@ void NBinSSA::bin_atoms()
     int bitmask = group->bitmask[includegroup];
     int nowned = atom->nlocal; // NOTE: nlocal was set to atom->nfirst above
     for (i = nall-1; i >= nowned; i--) {
-      ibin = ssaAIR[i];
+      ibin = coord2ssaAIR(x[i]);
       if (ibin < 2) continue; // skip ghost atoms not in AIR
       if (mask[i] & bitmask) {
         bins[i] = gairhead_ssa[ibin];
@@ -91,7 +91,7 @@ void NBinSSA::bin_atoms()
     }
   } else {
     for (i = nall-1; i >= nlocal; i--) {
-      ibin = ssaAIR[i];
+      ibin = coord2ssaAIR(x[i]);
       if (ibin < 2) continue; // skip ghost atoms not in AIR
       bins[i] = gairhead_ssa[ibin];
       gairhead_ssa[ibin] = i;
@@ -147,4 +147,38 @@ bigint NBinSSA::memory_usage()
     bytes += memory->usage(binct_ssa,maxbin_ssa);
   }
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   convert atom coords into the ssa active interaction region number
+------------------------------------------------------------------------- */
+int NBinSSA::coord2ssaAIR(const double *x)
+{
+  int ix, iy, iz;
+
+  ix = iy = iz = 0;
+  if (x[2] < domain->sublo[2]) iz = -1;
+  if (x[2] >= domain->subhi[2]) iz = 1;
+  if (x[1] < domain->sublo[1]) iy = -1;
+  if (x[1] >= domain->subhi[1]) iy = 1;
+  if (x[0] < domain->sublo[0]) ix = -1;
+  if (x[0] >= domain->subhi[0]) ix = 1;
+
+  if(iz < 0){
+    return -1;
+  } else if(iz == 0){
+    if( iy<0 ) return -1; // bottom left/middle/right
+    if( (iy==0) && (ix<0)  ) return -1; // left atoms
+    if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
+    if( (iy==0) && (ix>0)  ) return 3; // Right atoms
+    if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
+    if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
+  } else { // iz > 0
+    if((ix==0) && (iy==0)) return 5; // Back atoms
+    if((ix==0) && (iy!=0)) return 6; // Top-back and bottom-back atoms
+    if((ix!=0) && (iy==0)) return 7; // Left-back and right-back atoms
+    if((ix!=0) && (iy!=0)) return 8; // Back corner atoms
+  }
+
+  return -2;
 }

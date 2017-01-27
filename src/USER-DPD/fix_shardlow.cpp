@@ -109,26 +109,12 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   if(pairDPD == NULL && pairDPDE == NULL)
     error->all(FLERR,"Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow");
 
-  // Setup the ssaAIR array
-  atom->ssaAIR = NULL;
-  grow_arrays(atom->nmax);
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-
-  // Setup callbacks for maintaining atom->ssaAIR[]
-  atom->add_callback(0); // grow (aka exchange)
-  atom->add_callback(1); // restart
-  atom->add_callback(2); // border
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixShardlow::~FixShardlow()
 {
-  atom->delete_callback(id, 0);
-  atom->delete_callback(id, 1);
-  atom->delete_callback(id, 2);
-
-  memory->destroy(atom->ssaAIR);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,7 +123,6 @@ int FixShardlow::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
-  mask |= PRE_EXCHANGE | MIN_PRE_EXCHANGE;
   return mask;
 }
 
@@ -157,27 +142,6 @@ void FixShardlow::init()
 void FixShardlow::init_list(int id, NeighList *ptr)
 {
   list = ptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::pre_exchange()
-{
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::setup_pre_exchange()
-{
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::min_pre_exchange()
-{
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -659,91 +623,11 @@ void FixShardlow::unpack_reverse_comm(int n, int *list, double *buf)
   }
 }
 
-/* ----------------------------------------------------------------------
-   convert atom coords into the ssa active interaction region number
-------------------------------------------------------------------------- */
-
-int FixShardlow::coord2ssaAIR(double *x)
-{
-  int ix, iy, iz;
-
-  ix = iy = iz = 0;
-  if (x[2] < domain->sublo[2]) iz = -1;
-  if (x[2] >= domain->subhi[2]) iz = 1;
-  if (x[1] < domain->sublo[1]) iy = -1;
-  if (x[1] >= domain->subhi[1]) iy = 1;
-  if (x[0] < domain->sublo[0]) ix = -1;
-  if (x[0] >= domain->subhi[0]) ix = 1;
-
-  if(iz < 0){
-    return -1;
-  } else if(iz == 0){
-    if( iy<0 ) return -1; // bottom left/middle/right
-    if( (iy==0) && (ix<0)  ) return -1; // left atoms
-    if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
-    if( (iy==0) && (ix>0)  ) return 3; // Right atoms
-    if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
-    if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
-  } else { // iz > 0
-    if((ix==0) && (iy==0)) return 5; // Back atoms
-    if((ix==0) && (iy!=0)) return 6; // Top-back and bottom-back atoms
-    if((ix!=0) && (iy==0)) return 7; // Left-back and right-back atoms
-    if((ix!=0) && (iy!=0)) return 8; // Back corner atoms
-  }
-
-  return -2;
-}
-
 /* ---------------------------------------------------------------------- */
-
-void FixShardlow::grow_arrays(int nmax)
-{
-  memory->grow(atom->ssaAIR,nmax,"fix_shardlow:ssaAIR");
-}
-
-void FixShardlow::copy_arrays(int i, int j, int delflag)
-{
-  atom->ssaAIR[j] = atom->ssaAIR[i];
-}
-
-void FixShardlow::set_arrays(int i)
-{
-  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
-}
-
-int FixShardlow::pack_border(int n, int *list, double *buf)
-{
-  for (int i = 0; i < n; i++) {
-    int j = list[i];
-    if (atom->ssaAIR[j] == 0) atom->ssaAIR[j] = 1; // not purely local anymore
-  }
-  return 0;
-}
-
-int FixShardlow::unpack_border(int n, int first, double *buf)
-{
-  int i,last = first + n;
-  for (i = first; i < last; i++) {
-    atom->ssaAIR[i] = coord2ssaAIR(atom->x[i]);
-  }
-  return 0;
-}
-
-int FixShardlow::unpack_exchange(int i, double *buf)
-{
-  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
-  return 0;
-}
-
-void FixShardlow::unpack_restart(int i, int nth)
-{
-  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
-}
 
 double FixShardlow::memory_usage()
 {
   double bytes = 0.0;
-  bytes += memory->usage(atom->ssaAIR,atom->nmax);
   bytes += sizeof(double)*3*atom->nghost; // v_t0[]
   return bytes;
 }

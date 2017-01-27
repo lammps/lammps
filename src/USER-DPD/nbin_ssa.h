@@ -155,6 +155,7 @@ class NBinSSA : public NBinStandard {
   }
 
  private:
+  int coord2ssaAIR(const double *);  // map atom coord to an AIR number
   double bboxlo_[3],bboxhi_[3];
 
 };

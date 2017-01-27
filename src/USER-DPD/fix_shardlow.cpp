@@ -499,7 +499,7 @@ void FixShardlow::ssa_update_dpde(
 
 void FixShardlow::initial_integrate(int vflag)
 {
-  int i,ii,inum,anum;
+  int i,ii,inum;
   int *ilist;
 
   int nlocal = atom->nlocal;
@@ -532,7 +532,6 @@ void FixShardlow::initial_integrate(int vflag)
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
   inum = list->inum;
-  anum = inum + list->gnum;
   ilist = list->ilist;
 
   dtsqrt = sqrt(update->dt);
@@ -542,10 +541,8 @@ void FixShardlow::initial_integrate(int vflag)
   while (ii < inum) {
     i = ilist[ii];
     int len = list->numneigh[i];
-    if (len > 0) {
-      if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
-      else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
-    }
+    if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
+    else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
     ii++;
   }
 
@@ -567,10 +564,8 @@ void FixShardlow::initial_integrate(int vflag)
     while (ct-- > 0) {
       i = ilist[ii];
       int len = list->numneigh[i];
-      if (len > 0) {
-        if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
-        else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
-      }
+      if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
+      else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
       ii++;
     }
 

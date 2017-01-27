@@ -32,7 +32,6 @@ class NBinSSA : public NBinStandard {
   int *binlist_ssa;          // index in neighlist of 1st local atom in each bin
   int *binct_ssa;            // count of local atoms in each bin
   int gairhead_ssa[9];       // index of 1st ghost atom in each AIR
-  int gairct_ssa[9];         // count of ghost atoms in each AIR
   int maxbin_ssa;            // size of binlist_ssa and binct_ssa arrays
 
   // Bounds of the local atoms in the binhead array

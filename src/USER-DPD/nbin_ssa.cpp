@@ -34,7 +34,6 @@ NBinSSA::NBinSSA(LAMMPS *lmp) : NBinStandard(lmp)
   binct_ssa = NULL;
   for (int i = 0; i < 9; i++) {
     gairhead_ssa[i] = -1;
-    gairct_ssa[i] = 0;
   }
 }
 
@@ -69,7 +68,6 @@ void NBinSSA::bin_atoms()
 
   for (i = 0; i < 9; i++) {
     gairhead_ssa[i] = -1;
-    gairct_ssa[i] = 0;
   }
 
   for (i = 0; i < mbins; i++) {
@@ -89,7 +87,6 @@ void NBinSSA::bin_atoms()
       if (mask[i] & bitmask) {
         bins[i] = gairhead_ssa[ibin];
         gairhead_ssa[ibin] = i;
-        ++(gairct_ssa[ibin]);
       }
     }
   } else {
@@ -98,7 +95,6 @@ void NBinSSA::bin_atoms()
       if (ibin < 2) continue; // skip ghost atoms not in AIR
       bins[i] = gairhead_ssa[ibin];
       gairhead_ssa[ibin] = i;
-      ++(gairct_ssa[ibin]);
     }
   }
   for (i = nlocal-1; i >= 0; i--) {

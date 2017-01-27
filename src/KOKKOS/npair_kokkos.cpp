@@ -24,8 +24,8 @@ namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST>
-NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI>
+NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
 
 }
 
@@ -33,8 +33,8 @@ NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) 
    copy needed info from Neighbor class to this build class
    ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::copy_neighbor_info()
+template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI>
+void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::copy_neighbor_info()
 {
   NPair::copy_neighbor_info();
 
@@ -62,8 +62,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::copy_neighbor_info()
  copy per-atom and per-bin vectors from NBin class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::copy_bin_info()
+template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI>
+void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::copy_bin_info()
 {
   NPair::copy_bin_info();
 
@@ -78,8 +78,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::copy_bin_info()
  copy needed info from NStencil class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::copy_stencil_info()
+template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI>
+void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::copy_stencil_info()
 {
   NPair::copy_stencil_info();
 
@@ -106,8 +106,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::copy_stencil_info()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::build(NeighList *list_)
+template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI>
+void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
 {
   NeighListKokkos<DeviceType>* list = (NeighListKokkos<DeviceType>*) list_;
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
@@ -196,14 +196,18 @@ if (GHOST) {
   Kokkos::parallel_for(nall, f);
 } else {
   if (newton_pair) {
-    NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,1> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+    NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+    if (TRI) // CUDA specializations don't yet support triclinic 
+      Kokkos::parallel_for(nall, f);
+    else {
 #ifdef KOKKOS_HAVE_CUDA
-    Kokkos::parallel_for(config, f);
+      Kokkos::parallel_for(config, f);
 #else
-    Kokkos::parallel_for(nall, f);
+      Kokkos::parallel_for(nall, f);
 #endif
+    }
   } else {
-    NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+    NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef KOKKOS_HAVE_CUDA
     Kokkos::parallel_for(config, f);
 #else
@@ -293,7 +297,7 @@ int NeighborKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType> template<int HalfNeigh,int Newton>
+template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
 void NeighborKokkosExecute<DeviceType>::
    build_Item(const int &i) const
 {
@@ -317,7 +321,7 @@ void NeighborKokkosExecute<DeviceType>::
     = d_stencil;
 
   // loop over all bins in neighborhood (includes ibin)
-  if(HalfNeigh)
+  if(HalfNeigh && !Tri)
   for(int m = 0; m < c_bincount(ibin); m++) {
     const int j = c_bins(ibin,m);
     const int jtype = type(j);
@@ -365,7 +369,7 @@ void NeighborKokkosExecute<DeviceType>::
     const int jbin = ibin + stencil[k];
 
     // get subview of jbin
-    if(HalfNeigh&&(ibin==jbin)) continue;
+    if(HalfNeigh && !Tri && (ibin==jbin)) continue;
     //const ArrayTypes<DeviceType>::t_int_1d_const_um =Kokkos::subview<t_int_1d_const_um>(bins,jbin,ALL);
       for(int m = 0; m < c_bincount(jbin); m++) {
 
@@ -374,6 +378,16 @@ void NeighborKokkosExecute<DeviceType>::
 
         if(HalfNeigh && !Newton && (j < i)) continue;
         if(!HalfNeigh && j==i) continue;
+        if(Tri && Newton) {
+          if (x(j,2) < ztmp) continue;
+          if (x(j,2) == ztmp) {
+            if (x(j,1) < ytmp) continue;
+            if (x(j,1) == ytmp) {
+              if (x(j,0) < xtmp) continue;
+              if (x(j,0) == xtmp && j <= i) continue;
+            }
+          }
+        }
         if(exclude && exclusion(i,j,itype,jtype)) continue;
 
         const X_FLOAT delx = xtmp - x(j, 0);
@@ -428,7 +442,7 @@ extern __shared__ X_FLOAT sharedmem[];
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType> template<int HalfNeigh,int Newton>
+template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
 __device__ inline
 void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
 {
@@ -736,14 +750,16 @@ void NeighborKokkosExecute<DeviceType>::
 }
 
 namespace LAMMPS_NS {
-template class NPairKokkos<LMPDeviceType,0,0>;
-template class NPairKokkos<LMPDeviceType,0,1>;
-template class NPairKokkos<LMPDeviceType,1,0>;
-template class NPairKokkos<LMPDeviceType,1,1>;
+template class NPairKokkos<LMPDeviceType,0,0,0>;
+template class NPairKokkos<LMPDeviceType,0,1,0>;
+template class NPairKokkos<LMPDeviceType,1,0,0>;
+template class NPairKokkos<LMPDeviceType,1,1,0>;
+template class NPairKokkos<LMPDeviceType,1,0,1>;
 #ifdef KOKKOS_HAVE_CUDA
-template class NPairKokkos<LMPHostType,0,0>;
-template class NPairKokkos<LMPHostType,0,1>;
-template class NPairKokkos<LMPHostType,1,0>;
-template class NPairKokkos<LMPHostType,1,1>;
+template class NPairKokkos<LMPHostType,0,0,0>;
+template class NPairKokkos<LMPHostType,0,1,0>;
+template class NPairKokkos<LMPHostType,1,0,0>;
+template class NPairKokkos<LMPHostType,1,1,0>;
+template class NPairKokkos<LMPHostType,1,0,1>;
 #endif
 }

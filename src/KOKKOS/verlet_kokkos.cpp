@@ -170,7 +170,7 @@ void VerletKokkos::setup()
 
   modify->setup(vflag);
   output->setup();
-  lmp->kokkos->auto_sync = 0;
+  lmp->kokkos->auto_sync = 1;
   update->setupflag = 1;
 }
 

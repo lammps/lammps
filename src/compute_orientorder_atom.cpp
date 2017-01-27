@@ -73,7 +73,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nnn") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iarg+2 > narg) 
+        error->all(FLERR,"Illegal compute orientorder/atom command");
       if (strcmp(arg[iarg+1],"NULL") == 0) {
         nnn = 0;
       } else {
@@ -91,7 +92,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       memory->destroy(qlist);
       memory->create(qlist,nqlist,"orientorder/atom:qlist");
       iarg += 2;
-      if (iarg+nqlist > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iarg+nqlist > narg) 
+        error->all(FLERR,"Illegal compute orientorder/atom command");
       qmax = 0;
       for (int iw = 0; iw < nqlist; iw++) {
         qlist[iw] = force->numeric(FLERR,arg[iarg+iw]);
@@ -157,11 +159,12 @@ ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 void ComputeOrientOrderAtom::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR,"Compute orientorder/atom requires a pair style be defined");
+    error->all(FLERR,"Compute orientorder/atom requires a "
+               "pair style be defined");
   if (cutsq == 0.0) cutsq = force->pair->cutforce * force->pair->cutforce;
   else if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,
-               "Compute orientorder/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute orientorder/atom cutoff is "
+               "longer than pairwise cutoff");
 
   memory->create(qnm_r,qmax,2*qmax+1,"orientorder/atom:qnm_r");
   memory->create(qnm_i,qmax,2*qmax+1,"orientorder/atom:qnm_i");
@@ -488,7 +491,8 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
    calculate scalar distance
 ------------------------------------------------------------------------- */
 
-double ComputeOrientOrderAtom::dist(const double r[]) {
+double ComputeOrientOrderAtom::dist(const double r[])
+{
   return sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
 }
 
@@ -497,8 +501,8 @@ double ComputeOrientOrderAtom::dist(const double r[]) {
    Y_l^m (theta, phi) = prefactor(l, m, cos(theta)) * exp(i*m*phi)
 ------------------------------------------------------------------------- */
 
-double ComputeOrientOrderAtom::
-polar_prefactor(int l, int m, double costheta) {
+double ComputeOrientOrderAtom::polar_prefactor(int l, int m, double costheta) 
+{
   const int mabs = abs(m);
 
   double prefactor = 1.0;
@@ -517,8 +521,8 @@ polar_prefactor(int l, int m, double costheta) {
    associated legendre polynomial
 ------------------------------------------------------------------------- */
 
-double ComputeOrientOrderAtom::
-associated_legendre(int l, int m, double x) {
+double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x) 
+{
   if (l < m) return 0.0;
 
   double p(1.0), pm1(0.0), pm2(0.0);

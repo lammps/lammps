@@ -267,6 +267,7 @@ namespace NeighConst {
   static const int NP_TRI      = 1<<19;
   static const int NP_KOKKOS_DEVICE = 1<<20;
   static const int NP_KOKKOS_HOST   = 1<<21;
+  static const int NP_BOND     = 1<<22;
 }
 
 }

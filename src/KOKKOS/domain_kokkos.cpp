@@ -354,7 +354,6 @@ void DomainKokkos::pbc()
   }
 
   atomKK->sync(Device,X_MASK|V_MASK|MASK_MASK|IMAGE_MASK);
-  atomKK->modified(Device,X_MASK|V_MASK|IMAGE_MASK);
 
   if (xperiodic || yperiodic || zperiodic) {
     if (deform_vremap) {
@@ -385,8 +384,9 @@ void DomainKokkos::pbc()
       Kokkos::parallel_for(nlocal,f);
     }
   }
-
   LMPDeviceType::fence();
+
+  atomKK->modified(Device,X_MASK|V_MASK|IMAGE_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -402,7 +402,6 @@ void DomainKokkos::pbc()
 void DomainKokkos::remap_all()
 {
   atomKK->sync(Device,X_MASK | IMAGE_MASK);
-  atomKK->modified(Device,X_MASK | IMAGE_MASK);
 
   x = atomKK->k_x.view<LMPDeviceType>();
   image = atomKK->k_image.view<LMPDeviceType>();
@@ -427,6 +426,8 @@ void DomainKokkos::remap_all()
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_remap_all>(0,nlocal),*this);
   LMPDeviceType::fence();
   copymode = 0;
+
+  atomKK->modified(Device,X_MASK | IMAGE_MASK);
 
   if (triclinic) lamda2x(nlocal);
 }
@@ -521,7 +522,6 @@ void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
   p_flip = p_in;
 
   atomKK->sync(Device,IMAGE_MASK);
-  atomKK->modified(Device,IMAGE_MASK);
 
   image = atomKK->k_image.view<LMPDeviceType>();
   int nlocal = atomKK->nlocal;
@@ -530,6 +530,8 @@ void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_image_flip>(0,nlocal),*this);
   LMPDeviceType::fence();
   copymode = 0;
+
+  atomKK->modified(Device,IMAGE_MASK);
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -554,7 +556,6 @@ void DomainKokkos::operator()(TagDomain_image_flip, const int &i) const {
 void DomainKokkos::lamda2x(int n)
 {
   atomKK->sync(Device,X_MASK);
-  atomKK->modified(Device,X_MASK);
 
   x = atomKK->k_x.view<LMPDeviceType>();
 
@@ -562,6 +563,8 @@ void DomainKokkos::lamda2x(int n)
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_lamda2x>(0,n),*this);
   LMPDeviceType::fence();
   copymode = 0;
+
+  atomKK->modified(Device,X_MASK);
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -579,7 +582,6 @@ void DomainKokkos::operator()(TagDomain_lamda2x, const int &i) const {
 void DomainKokkos::x2lamda(int n)
 {
   atomKK->sync(Device,X_MASK);
-  atomKK->modified(Device,X_MASK);
 
   x = atomKK->k_x.view<LMPDeviceType>();
 
@@ -587,6 +589,8 @@ void DomainKokkos::x2lamda(int n)
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_x2lamda>(0,n),*this);
   LMPDeviceType::fence();
   copymode = 0;
+
+  atomKK->modified(Device,X_MASK);
 }
 
 KOKKOS_INLINE_FUNCTION

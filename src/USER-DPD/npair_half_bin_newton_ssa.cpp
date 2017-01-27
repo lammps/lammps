@@ -189,7 +189,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   }
   // verify count of atoms in ibin
   if (binct_ssa[ibin] != (inum - binlist_ssa[ibin]))
-    error->one(FLERR,"binct_ssa didn't agree with lenght in ilist");
+    error->one(FLERR,"binct_ssa didn't agree with length in ilist");
   }
   }
   }

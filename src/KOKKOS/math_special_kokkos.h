@@ -42,12 +42,11 @@ namespace MathSpecialKokkos {
   {
     x *= x;
     x *= 1.4426950408889634074; // log_2(e)
-#if defined(__BYTE_ORDER__)
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#if defined(__BYTE_ORDER__) &&  __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return (x < 1023.0) ? exp2_x86(-x) : 0.0;
-#endif
-#endif
+#else
     return (x < 1023.0) ? exp2(-x) : 0.0;
+#endif
   }
 
   // x**2, use instead of pow(x,2.0)

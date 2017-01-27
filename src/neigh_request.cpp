@@ -45,7 +45,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   command_style = NULL;
 
   // combination of settings, mutiple can be set to 1
-  // default is every reneighboring
+  // default is every reneighboring, not occasional
   // default is use newton_pair setting in force
   // default is no size history (when gran = 1)
   // default is no one-sided sphere/surface interactions (when gran = 1)
@@ -54,6 +54,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default is no multi-threaded neighbor list build
   // default is no Kokkos neighbor list build
   // default is no Shardlow Splitting Algorithm (SSA) neighbor list build
+  // default is neighbors of atoms, not bonds
 
   occasional = 0;
   newton = 0;
@@ -64,6 +65,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   intel = 0;
   kokkos_host = kokkos_device = 0;
   ssa = 0;
+  bond = 0;
 
   // copy/skip/derive info, default is no copy or skip
   // none or only one option is set
@@ -141,6 +143,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (kokkos_host != other->kokkos_host) same = 0;
   if (kokkos_device != other->kokkos_device) same = 0;
   if (ssa != other->ssa) same = 0;
+  if (bond != other->bond) same = 0;
 
   if (copy != other->copy_original) same = 0;
   if (same_skip(other) == 0) same = 0;
@@ -181,6 +184,7 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (kokkos_host != other->kokkos_host) same = 0;
   if (kokkos_device != other->kokkos_device) same = 0;
   if (ssa != other->ssa) same = 0;
+  if (bond != other->bond) same = 0;
 
   // copy/skip/derive info does not need to be the same
 
@@ -236,4 +240,5 @@ void NeighRequest::copy_request(NeighRequest *other)
   kokkos_host = other->kokkos_host;
   kokkos_device = other->kokkos_device;
   ssa = other->ssa;
+  bond = other->bond;
 }

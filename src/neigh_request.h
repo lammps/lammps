@@ -94,6 +94,10 @@ class NeighRequest : protected Pointers {
   
   int ssa;
 
+  // 1 if bond neighbors, not atom neighbors
+  
+  int bond;
+
   // -----------------
   // end of optional settings
   // -----------------

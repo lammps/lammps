@@ -196,16 +196,12 @@ if (GHOST) {
   Kokkos::parallel_for(nall, f);
 } else {
   if (newton_pair) {
-    NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-    if (TRI) // CUDA specializations don't yet support triclinic 
-      Kokkos::parallel_for(nall, f);
-    else {
+      NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef KOKKOS_HAVE_CUDA
-      Kokkos::parallel_for(config, f);
+    Kokkos::parallel_for(config, f);
 #else
-      Kokkos::parallel_for(nall, f);
+    Kokkos::parallel_for(nall, f);
 #endif
-    }
   } else {
     NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef KOKKOS_HAVE_CUDA
@@ -321,7 +317,7 @@ void NeighborKokkosExecute<DeviceType>::
     = d_stencil;
 
   // loop over all bins in neighborhood (includes ibin)
-  if(HalfNeigh && !Tri)
+  if(HalfNeigh)
   for(int m = 0; m < c_bincount(ibin); m++) {
     const int j = c_bins(ibin,m);
     const int jtype = type(j);
@@ -369,7 +365,7 @@ void NeighborKokkosExecute<DeviceType>::
     const int jbin = ibin + stencil[k];
 
     // get subview of jbin
-    if(HalfNeigh && !Tri && (ibin==jbin)) continue;
+    if(HalfNeigh && (ibin==jbin)) continue;
     //const ArrayTypes<DeviceType>::t_int_1d_const_um =Kokkos::subview<t_int_1d_const_um>(bins,jbin,ALL);
       for(int m = 0; m < c_bincount(jbin); m++) {
 
@@ -378,7 +374,7 @@ void NeighborKokkosExecute<DeviceType>::
 
         if(HalfNeigh && !Newton && (j < i)) continue;
         if(!HalfNeigh && j==i) continue;
-        if(Tri && Newton) {
+        if(Tri) {
           if (x(j,2) < ztmp) continue;
           if (x(j,2) == ztmp) {
             if (x(j,1) < ytmp) continue;
@@ -505,6 +501,16 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
             ((j >= nlocal) && ((x(j, 2) < ztmp) || (x(j, 2) == ztmp && x(j, 1) < ytmp) ||
               (x(j, 2) == ztmp && x(j, 1)  == ytmp && x(j, 0) < xtmp)))))
         ) continue;
+        if(Tri) {
+          if (x(j,2) < ztmp) continue;
+          if (x(j,2) == ztmp) {
+            if (x(j,1) < ytmp) continue;
+            if (x(j,1) == ytmp) {
+              if (x(j,0) < xtmp) continue;
+              if (x(j,0) == xtmp && j <= i) continue;
+            }
+          }
+        }
       if(exclude && exclusion(i,j,itype,jtype)) continue;
       const X_FLOAT delx = xtmp - other_x[m];
       const X_FLOAT dely = ytmp - other_x[m + atoms_per_bin];
@@ -572,6 +578,16 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
         //if(HalfNeigh && (j < i))  continue;
         if(HalfNeigh && !Newton && (j < i)) continue;
         if(!HalfNeigh && j==i) continue;
+        if(Tri) {
+          if (x(j,2) < ztmp) continue;
+          if (x(j,2) == ztmp) {
+            if (x(j,1) < ytmp) continue;
+            if (x(j,1) == ytmp) {
+              if (x(j,0) < xtmp) continue;
+              if (x(j,0) == xtmp && j <= i) continue;
+            }
+          }
+        }
         if(exclude && exclusion(i,j,itype,jtype)) continue;
 
         const X_FLOAT delx = xtmp - other_x[m];

@@ -121,6 +121,9 @@ class FixRxKokkos : public FixRX {
 
   void create_kinetics_data(void);
 
+  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool IS_NEWTON_PAIR>
+  void computeLocalTemperature();
+
 };
 
 }

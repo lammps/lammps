@@ -39,6 +39,10 @@ using namespace MathSpecial;
 #define SparseKinetics_enableIntegralReactions (true)
 #define SparseKinetics_invalidIndex (-1)
 
+// From fix_rx.cpp ... this should be lifted into fix_rx.h or fix_rx_kokkos.h?
+enum{NONE,HARMONIC};
+enum{LUCY};
+
 namespace /* anonymous */
 {
 
@@ -770,7 +774,19 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
     int count = nlocal + (newton_pair ? nghost : 0);
     dpdThetaLocal = new double[count];
     memset(dpdThetaLocal, 0, sizeof(double)*count);
-    computeLocalTemperature();
+    //FixRx::computeLocalTemperature();
+
+    // Are there is no other options than wtFlag = (0)LUCY and localTempFlag = NONE : HARMONIC?
+    if (localTempFlag == HARMONIC)
+      if (newton_pair)
+        computeLocalTemperature<LUCY, HARMONIC, true > ();
+      else
+        computeLocalTemperature<LUCY, HARMONIC, false> ();
+    else
+      if (newton_pair)
+        computeLocalTemperature<LUCY, NONE    , true > ();
+      else
+        computeLocalTemperature<LUCY, NONE    , false> ();
   }
 
   TimerType timer_localTemperature = getTimeStamp();
@@ -834,7 +850,8 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
         }
 
         // Update ConcOld and initialize the ODE solution vector y[].
-        for (int ispecies = 0; ispecies < nspecies; ispecies++){
+        for (int ispecies = 0; ispecies < nspecies; ispecies++)
+        {
           const double tmp = d_dvector(ispecies, i);
           d_dvector(ispecies+nspecies, i) = tmp;
           y[ispecies] = tmp;
@@ -844,50 +861,41 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
         if (odeIntegrationFlag == ODE_LAMMPS_RK4)
         {
           rk4(t_stop, y, rwork, &userData);
-
-          /* This should be a duplicate of the copy-out in the 
-             rkf45 block but for the MY_EPSILON v. -1e-10 (literal)
-             difference. Can these be merged? */
-
-          // Store the solution back in atom->dvector.
-          for (int ispecies = 0; ispecies < nspecies; ispecies++){
-            if(y[ispecies] < -MY_EPSILON)
-              error->one(FLERR,"Computed concentration in RK4 solver is < -10*DBL_EPSILON");
-            else if(y[ispecies] < MY_EPSILON)
-              y[ispecies] = 0.0;
-            d_dvector(ispecies,i) = y[ispecies];
-          }
         }
         else if (odeIntegrationFlag == ODE_LAMMPS_RKF45)
         {
           rkf45(nspecies, t_stop, y, rwork, &userData, counter_i);
 
-          // Store the solution back in atom->dvector.
-          for (int ispecies = 0; ispecies < nspecies; ispecies++){
-            if(y[ispecies] < -1.0e-10)
-              error->one(FLERR,"Computed concentration in RKF45 solver is < -1.0e-10");
-            else if(y[ispecies] < MY_EPSILON)
-              y[ispecies] = 0.0;
-            d_dvector(ispecies,i) = y[ispecies];
-          }
-
           //if (diagnosticFrequency == 1 && diagnosticCounterPerODE[StepSum] != NULL)
-          if (diagnosticCounterPerODE[StepSum] != NULL)
-          {
-            diagnosticCounterPerODE[StepSum][i] = counter_i.nSteps;
-            diagnosticCounterPerODE[FuncSum][i] = counter_i.nFuncs;
-          }
+          //if (diagnosticCounterPerODE[StepSum] != NULL)
+          //{
+          //  diagnosticCounterPerODE[StepSum][i] = counter_i.nSteps;
+          //  diagnosticCounterPerODE[FuncSum][i] = counter_i.nFuncs;
+          //}
+        }
+
+        // Store the solution back in dvector.
+        for (int ispecies = 0; ispecies < nspecies; ispecies++)
+        {
+          if (y[ispecies] < -MY_EPSILON)
+            error->one(FLERR,"Computed concentration in RK solver is < -10*DBL_EPSILON");
+          else if (y[ispecies] < MY_EPSILON)
+            y[ispecies] = 0.0;
+
+          d_dvector(ispecies,i) = y[ispecies];
         }
 
         delete [] y;
         delete [] userData.kFor;
         delete [] userData.rxnRateLaw;
 
+        // Update the iteration statistics counter. Is this unique for each iteration?
         counter += counter_i;
+
       } // if
     } // parallel_for lambda-body
 
-    , TotalCounters // reduction value
+    , TotalCounters // reduction value for all iterations.
   );
 
   TimerType timer_ODE = getTimeStamp();
@@ -940,6 +948,101 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
       if (diagnosticCounterPerODE[i])
         memory->destroy( diagnosticCounterPerODE[i] );
   } */
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <typename DeviceType>
+  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool IS_NEWTON_PAIR>
+void FixRxKokkos<DeviceType>::computeLocalTemperature()
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double rsq;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+  //int newton_pair = force->newton_pair;
+
+  // local temperature variables
+  double wij=0.0;
+  double *dpdTheta = atom->dpdTheta;
+
+  // Initialize the local temperature weight array
+  int sumWeightsCt = nlocal + (IS_NEWTON_PAIR ? nghost : 0);
+  sumWeights = new double[sumWeightsCt];
+  memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // loop over neighbors of my atoms
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < pairDPDE->cutsq[itype][jtype]) {
+        double rcut = sqrt(pairDPDE->cutsq[itype][jtype]);
+        double rij = sqrt(rsq);
+        double ratio = rij/rcut;
+
+        // Lucy's Weight Function
+        if (WT_FLAG == LUCY)
+	{
+          wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
+          dpdThetaLocal[i] += wij/dpdTheta[j];
+          if (IS_NEWTON_PAIR || j < nlocal)
+            dpdThetaLocal[j] += wij/dpdTheta[i];
+        }
+
+        sumWeights[i] += wij;
+        if (IS_NEWTON_PAIR || j < nlocal)
+          sumWeights[j] += wij;
+      }
+    }
+  }
+  if (IS_NEWTON_PAIR) comm->reverse_comm_fix(this);
+
+  // self-interaction for local temperature
+  for (i = 0; i < nlocal; i++){
+
+    // Lucy Weight Function
+    if (WT_FLAG == LUCY)
+    {
+      wij = 1.0;
+      dpdThetaLocal[i] += wij / dpdTheta[i];
+    }
+    sumWeights[i] += wij;
+
+    // Normalized local temperature
+    dpdThetaLocal[i] = dpdThetaLocal[i] / sumWeights[i];
+
+    if (LOCAL_TEMP_FLAG == HARMONIC)
+      dpdThetaLocal[i] = 1.0 / dpdThetaLocal[i];
+
+  }
+
+  delete [] sumWeights;
 }
 
 namespace LAMMPS_NS {

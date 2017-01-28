@@ -147,7 +147,8 @@ class NeighborKokkosExecute
   // data from Atom class
 
   const typename AT::t_x_array_randomread x;
-  const typename AT::t_int_1d_const type,mask,molecule;
+  const typename AT::t_int_1d_const type,mask;
+  const typename AT::t_tagint_1d_const molecule;
   const typename AT::t_tagint_1d_const tag;
   const typename AT::t_tagint_2d_const special;
   const typename AT::t_int_2d_const nspecial;
@@ -184,7 +185,7 @@ class NeighborKokkosExecute
                         const typename AT::t_x_array_randomread &_x,
                         const typename AT::t_int_1d_const &_type,
                         const typename AT::t_int_1d_const &_mask,
-                        const typename AT::t_int_1d_const &_molecule,
+                        const typename AT::t_tagint_1d_const &_molecule,
                         const typename AT::t_tagint_1d_const &_tag,
                         const typename AT::t_tagint_2d_const &_special,
                         const typename AT::t_int_2d_const &_nspecial,

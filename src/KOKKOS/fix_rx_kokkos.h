@@ -121,7 +121,11 @@ class FixRxKokkos : public FixRX {
 
   void create_kinetics_data(void);
 
-  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool IS_NEWTON_PAIR>
+  // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
+  DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;
+  typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
+
+  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR>
   void computeLocalTemperature();
 
 };

@@ -95,6 +95,15 @@ void FixRxKokkos<DeviceType>::init()
 
 /* ---------------------------------------------------------------------- */
 
+//template <typename DeviceType>
+//void FixRXKokkos<DeviceType>::init_list(int, class NeighList* ptr)
+//{
+//  printf("Inside FixRxKokkos::init_list\n");
+//  this->list = ptr;
+//}
+
+/* ---------------------------------------------------------------------- */
+
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::rk4(const double t_stop, double *y, double *rwork, void* v_params) const
 {
@@ -770,11 +779,16 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
 
   const bool setToZero = false; // don't set the forward rates to zero.
 
-  if(localTempFlag){
-    int count = nlocal + (newton_pair ? nghost : 0);
-    dpdThetaLocal = new double[count];
-    memset(dpdThetaLocal, 0, sizeof(double)*count);
+  if (localTempFlag)
+  {
+    const int count = nlocal + (newton_pair ? nghost : 0);
+
+    //dpdThetaLocal = new double[count];
+    //memset(dpdThetaLocal, 0, sizeof(double)*count);
     //FixRx::computeLocalTemperature();
+
+    memory->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
+    d_dpdThetaLocal = k_dpdThetaLocal.d_view;
 
     // Are there is no other options than wtFlag = (0)LUCY and localTempFlag = NONE : HARMONIC?
     if (localTempFlag == HARMONIC)
@@ -802,8 +816,8 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
 
   // Local references to the atomKK objects.
   typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
-  typename ArrayTypes<DeviceType>::t_float_2d d_dvector   = atomKK->k_dvector.view<DeviceType>();
-  typename ArrayTypes<DeviceType>::t_int_1d   d_mask      = atomKK->k_mask.view<DeviceType>();
+  typename ArrayTypes<DeviceType>::t_float_2d  d_dvector  = atomKK->k_dvector.view<DeviceType>();
+  typename ArrayTypes<DeviceType>::t_int_1d    d_mask     = atomKK->k_mask.view<DeviceType>();
 
   // Get up-to-date data.
   atomKK->sync( execution_space, MASK_MASK | DVECTOR_MASK | DPDTHETA_MASK );
@@ -834,7 +848,8 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
 
         CounterType counter_i;
 
-        const double theta = (localTempFlag) ? dpdThetaLocal[i] : d_dpdTheta(i);
+        //const double theta = (localTempFlag) ? dpdThetaLocal[i] : d_dpdTheta(i);
+        const double theta = (localTempFlag) ? d_dpdThetaLocal(i) : d_dpdTheta(i);
 
         //Compute the reaction rate constants
         for (int irxn = 0; irxn < nreactions; irxn++)
@@ -910,7 +925,11 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
 
   atomKK->modified ( Host, DVECTOR_MASK );
 
-  if(localTempFlag) delete [] dpdThetaLocal;
+  if (localTempFlag)
+  {
+    //delete [] dpdThetaLocal;
+    memory->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
+  }
 
   TimerType timer_stop = getTimeStamp();
 
@@ -953,96 +972,179 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool IS_NEWTON_PAIR>
+  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR>
 void FixRxKokkos<DeviceType>::computeLocalTemperature()
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  printf("Inside FixRxKokkos::computeLocalTemperature: %d %d %d %d\n", WT_FLAG, LOCAL_TEMP_FLAG, NEWTON_PAIR, (int)lmp->kokkos->neighflag);
 
-  double **x = atom->x;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
-  //int newton_pair = force->newton_pair;
+  //int inum,jnum,itype,jtype;
+  //double xtmp,ytmp,ztmp,delx,dely,delz;
+  //double rsq;
+  //int *ilist,*jlist,*numneigh,**firstneigh;
+
+  //double **x = atom->x;
+  //int *type = atom->type;
+  //double *dpdTheta = atom->dpdTheta;
+
+  typename ArrayTypes<DeviceType>::t_x_array_randomread d_x        = atomKK->k_x.view<DeviceType>();
+  typename ArrayTypes<DeviceType>::t_int_1d_randomread  d_type     = atomKK->k_type.view<DeviceType>();
+  typename ArrayTypes<DeviceType>::t_efloat_1d          d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+
+  atomKK->sync(execution_space, X_MASK | TYPE_MASK | DPDTHETA_MASK );
+
+  const int nlocal = atom->nlocal;
+  const int nghost = atom->nghost;
+  //const int newton_pair = force->newton_pair;
 
   // local temperature variables
-  double wij=0.0;
-  double *dpdTheta = atom->dpdTheta;
+  //double wij=0.0;
+
+  // Pull from pairDPDE. The pairDPDEKK objects are producted so recreate here for now.
+  //pairDPDEKK->k_cutsq.template sync<DeviceType>();
+  //typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq = pairDPDEKK->k_cutsq.template view<DeviceType();
+
+  //!< Copies pulled from pairDPDE for local use since pairDPDEKK's objects are protected.
+  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
+  typename ArrayTypes<DeviceType>::t_ffloat_2d     d_cutsq;
+  double **h_cutsq;
+
+  {
+    const int ntypes = atom->ntypes;
+
+    memory->create_kokkos (k_cutsq, h_cutsq, ntypes+1, ntypes+1, "pair:cutsq");
+    d_cutsq = k_cutsq.template view<DeviceType>();
+
+    for (int i = 1; i <= ntypes; ++i)
+      for (int j = i; j <= ntypes; ++j)
+      {
+        k_cutsq.h_view(i,j) = pairDPDE->cutsq[i][j];
+        k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
+      }
+
+    k_cutsq.template modify<LMPHostType>();
+    k_cutsq.template sync<DeviceType>();
+  }
 
   // Initialize the local temperature weight array
-  int sumWeightsCt = nlocal + (IS_NEWTON_PAIR ? nghost : 0);
-  sumWeights = new double[sumWeightsCt];
-  memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
+  int sumWeightsCt = nlocal + (NEWTON_PAIR ? nghost : 0);
+  //sumWeights = new double[sumWeightsCt];
+  //memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
+  memory->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
+  d_sumWeights = k_sumWeights.d_view;
+
+  // Initialize the accumulator to zero ...
+  Kokkos::parallel_for(nlocal,
+		  LAMMPS_LAMBDA(int i)
+		  {
+		    d_sumWeights(i) = 0.0;
+		  }
+		  );
+
+  const int inum = list->inum;
+
+  // Local list views. (This isn't working!)
+  //NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  //if (not(list->kokkos))
+  //{
+  //  error->one(FLERR,"list is not a Kokkos list\n");
+  //}
+
+  //typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors = k_list->d_neighbors;
+  //typename ArrayTypes<DeviceType>::t_int_1d       d_ilist     = k_list->d_ilist;
+  //typename ArrayTypes<DeviceType>::t_int_1d       d_numneigh  = k_list->d_numneigh;
+
+  int* ilist = list->ilist;
+  int* numneigh = list->numneigh;
+  int** firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+  for (int ii = 0; ii < inum; ii++)
+  {
+    const int i = ilist[ii];
+    //const int i = d_ilist(ii);
+ 
+    //const double xtmp = x[i][0];
+    //const double ytmp = x[i][1];
+    //const double ztmp = x[i][2];
+    //const int itype = type[i];
+    const double xtmp = d_x(i,0);
+    const double ytmp = d_x(i,1);
+    const double ztmp = d_x(i,2);
+    const int itype = d_type(i);
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtype = type[j];
+    int *jlist = firstneigh[i];
+    const int jnum = numneigh[i];
+    //const int jnum = d_numneigh(i);
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+    for (int jj = 0; jj < jnum; jj++)
+    {
+      const int j = (jlist[jj] & NEIGHMASK);
+      //const int j = (d_neighbors(i,jj) & NEIGHMASK);
+      //const int jtype = type[j];
+      const int jtype = d_type(j);
 
-      if (rsq < pairDPDE->cutsq[itype][jtype]) {
-        double rcut = sqrt(pairDPDE->cutsq[itype][jtype]);
+      //const double delx = xtmp - x[j][0];
+      //const double dely = ytmp - x[j][1];
+      //const double delz = ztmp - x[j][2];
+      const double delx = xtmp - d_x(j,0);
+      const double dely = ytmp - d_x(j,1);
+      const double delz = ztmp - d_x(j,2);
+      const double rsq = delx*delx + dely*dely + delz*delz;
+
+      const double cutsq_ij = d_cutsq(itype,jtype);
+
+      if (rsq < cutsq_ij)
+      {
+        const double rcut = sqrt( cutsq_ij );
         double rij = sqrt(rsq);
         double ratio = rij/rcut;
+
+        double wij = 0.0;
 
         // Lucy's Weight Function
         if (WT_FLAG == LUCY)
 	{
           wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
-          dpdThetaLocal[i] += wij/dpdTheta[j];
-          if (IS_NEWTON_PAIR || j < nlocal)
-            dpdThetaLocal[j] += wij/dpdTheta[i];
+          d_dpdThetaLocal(i) += wij / d_dpdTheta(j);
+          if (NEWTON_PAIR || j < nlocal)
+            d_dpdThetaLocal(j) += wij / d_dpdTheta(i);
         }
 
-        sumWeights[i] += wij;
-        if (IS_NEWTON_PAIR || j < nlocal)
-          sumWeights[j] += wij;
+        d_sumWeights(i) += wij;
+        if (NEWTON_PAIR || j < nlocal)
+          d_sumWeights(j) += wij;
       }
     }
   }
-  if (IS_NEWTON_PAIR) comm->reverse_comm_fix(this);
+
+  if (NEWTON_PAIR) comm->reverse_comm_fix(this);
 
   // self-interaction for local temperature
-  for (i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++)
+  {
+    double wij = 0.0;
 
     // Lucy Weight Function
     if (WT_FLAG == LUCY)
     {
       wij = 1.0;
-      dpdThetaLocal[i] += wij / dpdTheta[i];
+      d_dpdThetaLocal(i) += wij / d_dpdTheta(i);
     }
-    sumWeights[i] += wij;
+    d_sumWeights(i) += wij;
 
     // Normalized local temperature
-    dpdThetaLocal[i] = dpdThetaLocal[i] / sumWeights[i];
+    d_dpdThetaLocal(i) = d_dpdThetaLocal(i) / d_sumWeights(i);
 
     if (LOCAL_TEMP_FLAG == HARMONIC)
-      dpdThetaLocal[i] = 1.0 / dpdThetaLocal[i];
-
+      d_dpdThetaLocal(i) = 1.0 / d_dpdThetaLocal(i);
   }
 
-  delete [] sumWeights;
+  // Clean up the local kokkos data.
+  memory->destroy_kokkos(k_cutsq, h_cutsq);
+  memory->destroy_kokkos(k_sumWeights, sumWeights);
+
+  //delete [] sumWeights;
 }
 
 namespace LAMMPS_NS {

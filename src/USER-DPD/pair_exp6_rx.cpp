@@ -297,6 +297,13 @@ void PairExp6rx::compute(int eflag, int vflag)
         rm21_ij = 0.5*(rm2_i + rm1_j);
         epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
 
+        evdwlOldEXP6_12 = 0.0;
+        evdwlOldEXP6_21 = 0.0;
+        evdwlEXP6_12 = 0.0;
+        evdwlEXP6_21 = 0.0;
+        fpairOldEXP6_12 = 0.0;
+        fpairOldEXP6_21 = 0.0;
+
         if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
           if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
             error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
@@ -459,33 +466,33 @@ void PairExp6rx::compute(int eflag, int vflag)
           } else {
             evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
-
-          //
-          // Apply Mixing Rule to get the overall force for the CG pair
-          //
-          if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
-          else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
-
-          f[i][0] += delx*fpair;
-          f[i][1] += dely*fpair;
-          f[i][2] += delz*fpair;
-          if (newton_pair || j < nlocal) {
-            f[j][0] -= delx*fpair;
-            f[j][1] -= dely*fpair;
-            f[j][2] -= delz*fpair;
-          }
-
-          if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
-          else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
-          evdwl *= factor_lj;
-
-          uCGnew[i]   += 0.5*evdwl;
-          if (newton_pair || j < nlocal)
-            uCGnew[j] += 0.5*evdwl;
-          evdwl = evdwlOld;
-          if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                               evdwl,0.0,fpair,delx,dely,delz);
         }
+
+        //
+        // Apply Mixing Rule to get the overall force for the CG pair
+        //
+        if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+        else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+        else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+        evdwl *= factor_lj;
+
+        uCGnew[i]   += 0.5*evdwl;
+        if (newton_pair || j < nlocal)
+          uCGnew[j] += 0.5*evdwl;
+        evdwl = evdwlOld;
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }

@@ -74,7 +74,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
 
   NStencilSSA *ns_ssa = dynamic_cast<NStencilSSA*>(ns);
   if (!ns_ssa) error->one(FLERR, "NStencil wasn't a NStencilSSA object");
-  int nstencil_half = ns_ssa->nstencil_half;
+  int *nstencil_ssa = &(ns_ssa->nstencil_ssa[0]);
   int nstencil_full = ns_ssa->nstencil;
 
   NBinSSA *nb_ssa = dynamic_cast<NBinSSA*>(nb);
@@ -150,34 +150,38 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
 
     // loop over all local atoms in other bins in "half" stencil
 
-    for (k = 0; k < nstencil_half; k++) {
-      for (j = binhead[ibin+stencil[k]]; j >= 0;
-           j = bins[j]) {
+    k = 0;
+    for (int subphase = 0; subphase < 4; subphase++) {
+      for (; k < nstencil_ssa[subphase]; k++) {
+        for (j = binhead[ibin+stencil[k]]; j >= 0;
+             j = bins[j]) {
 
-        jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          jtype = type[j];
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq <= cutneighsq[itype][jtype]) {
-          if (molecular) {
-            if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >= 0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) neighptr[n++] = j;
-            else if (domain->minimum_image_check(delx,dely,delz))
-              neighptr[n++] = j;
-            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-          } else neighptr[n++] = j;
+          if (rsq <= cutneighsq[itype][jtype]) {
+            if (molecular) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            } else neighptr[n++] = j;
+          }
         }
       }
+      list->ndxAIR_ssa[i][subphase] = n; // record end of this subphase
     }
 
     if (n > 0) {

@@ -504,9 +504,14 @@ void FixShardlow::initial_integrate(int vflag)
   // process neighbors in the local AIR
   while (ii < inum) {
     i = ilist[ii];
-    int len = list->numneigh[i];
-    if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
-    else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
+    for (int subphase = 0; subphase < 4; subphase++) {
+      int start = (subphase > 0) ? list->ndxAIR_ssa[i][subphase - 1] : 0;
+      int len = list->ndxAIR_ssa[i][subphase] - start;
+      if (len > 0) {
+        if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][start]), len);
+        else ssa_update_dpd(i, &(list->firstneigh[i][start]), len);
+      }
+    }
     ii++;
   }
 

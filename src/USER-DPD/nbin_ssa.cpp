@@ -33,7 +33,7 @@ NBinSSA::NBinSSA(LAMMPS *lmp) : NBinStandard(lmp)
   maxbin_ssa = 0;
   binlist_ssa = NULL;
   binct_ssa = NULL;
-  for (int i = 0; i < 9; i++) {
+  for (int i = 0; i < 8; i++) {
     gairhead_ssa[i] = -1;
   }
 }
@@ -66,7 +66,7 @@ void NBinSSA::bin_atoms()
   bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
   bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
 
-  for (i = 0; i < 9; i++) {
+  for (i = 0; i < 8; i++) {
     gairhead_ssa[i] = -1;
   }
 
@@ -83,7 +83,7 @@ void NBinSSA::bin_atoms()
     int nowned = atom->nlocal; // NOTE: nlocal was set to atom->nfirst above
     for (i = nall-1; i >= nowned; i--) {
       ibin = coord2ssaAIR(x[i]);
-      if (ibin < 2) continue; // skip ghost atoms not in AIR
+      if (ibin < 1) continue; // skip ghost atoms not in AIR
       if (mask[i] & bitmask) {
         bins[i] = gairhead_ssa[ibin];
         gairhead_ssa[ibin] = i;
@@ -92,7 +92,7 @@ void NBinSSA::bin_atoms()
   } else {
     for (i = nall-1; i >= nlocal; i--) {
       ibin = coord2ssaAIR(x[i]);
-      if (ibin < 2) continue; // skip ghost atoms not in AIR
+      if (ibin < 1) continue; // skip ghost atoms not in AIR
       bins[i] = gairhead_ssa[ibin];
       gairhead_ssa[ibin] = i;
     }
@@ -170,14 +170,14 @@ int NBinSSA::coord2ssaAIR(const double *x)
     if( iy<0 ) return -1; // bottom left/middle/right
     if( (iy==0) && (ix<0)  ) return -1; // left atoms
     if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
-    if( (iy==0) && (ix>0)  ) return 3; // Right atoms
-    if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
-    if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
+    if( (iy==0) && (ix>0)  ) return 2; // Right atoms
+    if( (iy>0)  && (ix==0) ) return 1; // Top-middle atoms
+    if( (iy>0)  && (ix!=0) ) return 3; // Top-right and top-left atoms
   } else { // iz > 0
-    if((ix==0) && (iy==0)) return 5; // Back atoms
-    if((ix==0) && (iy!=0)) return 6; // Top-back and bottom-back atoms
-    if((ix!=0) && (iy==0)) return 7; // Left-back and right-back atoms
-    if((ix!=0) && (iy!=0)) return 8; // Back corner atoms
+    if((ix==0) && (iy==0)) return 4; // Back atoms
+    if((ix==0) && (iy!=0)) return 5; // Top-back and bottom-back atoms
+    if((ix!=0) && (iy==0)) return 6; // Left-back and right-back atoms
+    if((ix!=0) && (iy!=0)) return 7; // Back corner atoms
   }
 
   return -2;

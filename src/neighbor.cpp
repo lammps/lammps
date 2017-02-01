@@ -1411,11 +1411,11 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   int copyflag,skipflag,halfflag,fullflag,halffullflag,sizeflag,respaflag,
     ghostflag,off2onflag,onesideflag,ssaflag,ompflag,intelflag,
-    kokkos_device_flag,kokkos_host_flag;
+    kokkos_device_flag,kokkos_host_flag,bondflag;
 
   copyflag = skipflag = halfflag = fullflag = halffullflag = sizeflag = 
     ghostflag = respaflag = off2onflag = onesideflag = ssaflag = 
-    ompflag = intelflag = kokkos_device_flag = kokkos_host_flag = 0;
+    ompflag = intelflag = kokkos_device_flag = kokkos_host_flag = bondflag = 0;
 
   if (rq->copy) copyflag = NP_COPY;
   if (rq->skip) skipflag = NP_SKIP;
@@ -1447,6 +1447,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
   if (rq->intel) intelflag = NP_INTEL;
   if (rq->kokkos_device) kokkos_device_flag = NP_KOKKOS_DEVICE;
   if (rq->kokkos_host) kokkos_host_flag = NP_KOKKOS_HOST;
+  if (rq->bond) bondflag = NP_BOND;
 
   int newtflag;
   if (rq->newton == 0 && newton_pair) newtflag = 1;
@@ -1459,10 +1460,10 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   int mask;
 
-  //printf("FLAGS: %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+  //printf("FLAGS: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
   //       copyflag,skipflag,halfflag,fullflag,halffullflag,
   //       sizeflag,respaflag,ghostflag,off2onflag,onesideflag,ssaflag,
-  //       ompflag,intelflag,newtflag);
+  //       ompflag,intelflag,newtflag,bondflag);
 
   for (int i = 0; i < npclass; i++) {
     mask = pairmasks[i];
@@ -1496,6 +1497,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
     if (off2onflag != (mask & NP_OFF2ON)) continue;
     if (onesideflag != (mask & NP_ONESIDE)) continue;
     if (ssaflag != (mask & NP_SSA)) continue;
+    if (bondflag != (mask & NP_BOND)) continue;
     if (ompflag != (mask & NP_OMP)) continue;
     if (intelflag != (mask & NP_INTEL)) continue;
 

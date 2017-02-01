@@ -646,10 +646,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   q = atomKK->k_q.view<DeviceType>();
- 
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
- 
+
   //nlocal = atomKK->nlocal;
   //nall = atomKK->nlocal + atomKK->nghost;
   //newton_pair = force->newton_pair;

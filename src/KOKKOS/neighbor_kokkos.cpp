@@ -147,9 +147,9 @@ void NeighborKokkos::init_ex_mol_bit_kokkos()
 int NeighborKokkos::check_distance()
 {
   if (device_flag)
-    check_distance_kokkos<LMPDeviceType>();
+    return check_distance_kokkos<LMPDeviceType>();
   else
-    check_distance_kokkos<LMPHostType>();
+    return check_distance_kokkos<LMPHostType>();
 }
 
 template<class DeviceType>
@@ -157,7 +157,7 @@ int NeighborKokkos::check_distance_kokkos()
 {
   typedef DeviceType device_type;
 
-  double delx,dely,delz,rsq;
+  double delx,dely,delz;
   double delta,delta1,delta2;
 
   if (boxcheck) {

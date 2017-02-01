@@ -191,7 +191,6 @@ void ComputeCoordAtom::compute_peratom()
       c_orientorder->invoked_flag |= INVOKED_PERATOM;
     }
     nqlist = c_orientorder->nqlist;
-    int ltmp = l;
     normv = c_orientorder->array_atom;
     comm->forward_comm_compute(this);
   }

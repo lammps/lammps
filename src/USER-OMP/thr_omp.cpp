@@ -170,9 +170,8 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   switch (thr_style) {
 
   case THR_PAIR: {
-    Pair * const pair = lmp->force->pair;
 
-    if (pair->vflag_fdotr) {
+    if (lmp->force->pair->vflag_fdotr) {
 
       // this is a non-hybrid pair style. compute per thread fdotr
       if (fix->last_pair_hybrid == NULL) {
@@ -192,6 +191,8 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     }
 
     if (evflag) {
+      Pair * const pair = (Pair *)style;
+
 #if defined(_OPENMP)
 #pragma omp critical
 #endif

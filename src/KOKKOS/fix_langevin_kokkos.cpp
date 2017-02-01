@@ -177,11 +177,12 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
 
   // account for bias velocity
   if(tbiasflag == BIAS){
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
     temperature->compute_scalar();
     temperature->remove_bias_all(); // modifies velocities
     // if temeprature compute is kokkosized host-devcie comm won't be needed
-    atomKK->modified(Host,V_MASK);
-    atomKK->sync(execution_space,V_MASK);
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
   }
 
   // compute langevin force in parallel on the device
@@ -508,8 +509,10 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
   DeviceType::fence();
 
   if(tbiasflag == BIAS){
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
     temperature->restore_bias_all(); // modifies velocities
-    atomKK->modified(Host,V_MASK);
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
   }
 
   // set modify flags for the views modified in post_force functor

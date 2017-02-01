@@ -43,7 +43,9 @@ class PairBuckKokkos : public PairBuck {
   double init_one(int, int);
 
   struct params_buck{
+    KOKKOS_INLINE_FUNCTION
     params_buck(){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    KOKKOS_INLINE_FUNCTION
     params_buck(int i){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     F_FLOAT cutsq,a,c,rhoinv,buck1,buck2,offset;
   };

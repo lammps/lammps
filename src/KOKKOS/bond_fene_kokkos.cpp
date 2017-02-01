@@ -85,13 +85,10 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_vatom = k_vatom.d_view;
   }
 
-  atomKK->sync(execution_space,datamask_read);
   k_k.template sync<DeviceType>();
   k_r0.template sync<DeviceType>();
   k_epsilon.template sync<DeviceType>();
   k_sigma.template sync<DeviceType>();
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();

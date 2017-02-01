@@ -38,7 +38,7 @@ class PairMorseKokkos : public PairMorse {
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   PairMorseKokkos(class LAMMPS *);
-  ~PairMorseKokkos();
+  virtual ~PairMorseKokkos();
 
   void compute(int, int);
 

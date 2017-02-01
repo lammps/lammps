@@ -286,7 +286,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::allocate()
   memory->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
 
-  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJGromacsCoulGromacs::params",n+1,n+1);
+  k_params = Kokkos::DualView<params_lj_coul_gromacs**,Kokkos::LayoutRight,DeviceType>("PairLJGromacsCoulGromacs::params",n+1,n+1);
   params = k_params.d_view;
 }
 
@@ -478,11 +478,11 @@ double PairLJGromacsCoulGromacsKokkos<DeviceType>::init_one(int i, int j)
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
   }
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
-  k_cut_ljsq.h_view(i,j) = cut_ljsqm;
+  k_cut_ljsq.h_view(i,j) = k_cut_ljsq.h_view(j,i) = cut_ljsqm;
   k_cut_ljsq.template modify<LMPHostType>();
-  k_cut_coulsq.h_view(i,j) = cut_coulsqm;
+  k_cut_coulsq.h_view(i,j) = k_cut_coulsq.h_view(j,i) = cut_coulsqm;
   k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 

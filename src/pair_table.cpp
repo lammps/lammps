@@ -46,6 +46,8 @@ PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 
 PairTable::~PairTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

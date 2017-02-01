@@ -144,7 +144,7 @@ void Verlet::setup()
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
-  modify->pre_reverse(eflag,vflag);
+  modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
@@ -205,7 +205,7 @@ void Verlet::setup_minimal(int flag)
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
-  modify->pre_reverse(eflag,vflag);
+  modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);

@@ -395,7 +395,7 @@ void FixNEB::inter_replica_comm()
   // -----------------------------------------------------
 
   // single proc per replica
-  // all atoms are NEB atoms and no atom sorting
+  // all atoms are NEB atoms and no atom sorting is enabled
   // direct comm of x -> xprev and x -> xnext
 
   if (cmode == SINGLE_PROC_DIRECT) {

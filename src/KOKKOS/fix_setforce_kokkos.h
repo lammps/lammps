@@ -43,11 +43,10 @@ struct s_double_3 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  volatile s_double_3& operator+=(const volatile s_double_3 &rhs) volatile {
+  void operator+=(const volatile s_double_3 &rhs) volatile {
     d0 += rhs.d0;
     d1 += rhs.d1;
     d2 += rhs.d2;
-    return *this;
   }
 };
 typedef s_double_3 double_3;

@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
 
@@ -44,6 +45,12 @@ enum{LUCY};
 
 #define MAXLINE 1024
 #define DELTA 4
+
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
 
 #define SparseKinetics_enableIntegralReactions (true)
 #define SparseKinetics_invalidIndex (-1)
@@ -634,6 +641,20 @@ void FixRX::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"eos/table/rx") == 0) eos_flag = true;
   if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
+
+  // need a half neighbor list
+  // built whenever re-neighboring occurs
+
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->fix = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRX::init_list(int, class NeighList* ptr)
+{
+  this->list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -690,7 +711,6 @@ void FixRX::pre_force(int vflag)
   int *mask = atom->mask;
   double *dpdTheta = atom->dpdTheta;
   int newton_pair = force->newton_pair;
-  int ii;
   double theta;
 
   if(localTempFlag){
@@ -993,9 +1013,9 @@ void FixRX::rk4(int id, double *rwork)
 
   // Store the solution back in atom->dvector.
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
-    if(y[ispecies] < -1.0e-10)
-      error->one(FLERR,"Computed concentration in RK4 solver is < -1.0e-10");
-    else if(y[ispecies] < 1e-15)
+    if(y[ispecies] < -MY_EPSILON)
+      error->one(FLERR,"Computed concentration in RK4 solver is < -10*DBL_EPSILON");
+    else if(y[ispecies] < MY_EPSILON)
       y[ispecies] = 0.0;
     atom->dvector[ispecies][id] = y[ispecies];
   }
@@ -1512,7 +1532,7 @@ void FixRX::rkf45(int id, double *rwork)
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
     if(y[ispecies] < -1.0e-10)
       error->one(FLERR,"Computed concentration in RKF45 solver is < -1.0e-10");
-    else if(y[ispecies] < 1e-20)
+    else if(y[ispecies] < MY_EPSILON)
       y[ispecies] = 0.0;
     atom->dvector[ispecies][id] = y[ispecies];
   }
@@ -1680,10 +1700,10 @@ void FixRX::computeLocalTemperature()
   sumWeights = new double[sumWeightsCt];
   memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
 
-  inum = pairDPDE->list->inum;
-  ilist = pairDPDE->list->ilist;
-  numneigh = pairDPDE->list->numneigh;
-  firstneigh = pairDPDE->list->firstneigh;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {

@@ -44,7 +44,9 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   double init_one(int, int);
 
   struct params_lj{
+    KOKKOS_INLINE_FUNCTION
     params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    KOKKOS_INLINE_FUNCTION
     params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
   };
@@ -75,7 +77,7 @@ class PairLJClass2Kokkos : public PairLJClass2 {
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  params_lj m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 15 atom types
+  params_lj m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array c_x;

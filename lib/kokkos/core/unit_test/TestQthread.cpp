@@ -46,11 +46,8 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Qthread.hpp>
 
-#include <Qthread/Kokkos_Qthread_TaskPolicy.hpp>
-
 //----------------------------------------------------------------------------
 
-#include <TestViewImpl.hpp>
 #include <TestAtomic.hpp>
 
 #include <TestViewAPI.hpp>
@@ -62,7 +59,7 @@
 #include <TestScan.hpp>
 #include <TestAggregate.hpp>
 #include <TestCompilerMacros.hpp>
-#include <TestTaskPolicy.hpp>
+#include <TestTaskScheduler.hpp>
 // #include <TestTeamVector.hpp>
 
 namespace Test {
@@ -274,14 +271,14 @@ TEST_F( qthread , team_vector )
 
 TEST_F( qthread , task_policy )
 {
-  TestTaskPolicy::test_task_dep< Kokkos::Qthread >( 10 );
-  for ( long i = 0 ; i < 25 ; ++i ) TestTaskPolicy::test_fib< Kokkos::Qthread >(i);
-  for ( long i = 0 ; i < 35 ; ++i ) TestTaskPolicy::test_fib2< Kokkos::Qthread >(i);
+  TestTaskScheduler::test_task_dep< Kokkos::Qthread >( 10 );
+  for ( long i = 0 ; i < 25 ; ++i ) TestTaskScheduler::test_fib< Kokkos::Qthread >(i);
+  for ( long i = 0 ; i < 35 ; ++i ) TestTaskScheduler::test_fib2< Kokkos::Qthread >(i);
 }
 
 TEST_F( qthread , task_team )
 {
-  TestTaskPolicy::test_task_team< Kokkos::Qthread >(1000);
+  TestTaskScheduler::test_task_team< Kokkos::Qthread >(1000);
 }
 
 //----------------------------------------------------------------------------

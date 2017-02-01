@@ -52,7 +52,7 @@
 
 /*--------------------------------------------------------------------------*/
 
-#include <impl/KokkosExp_ViewArray.hpp>
+#include <impl/Kokkos_ViewArray.hpp>
 
 namespace Test {
 

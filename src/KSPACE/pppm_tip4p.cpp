@@ -42,7 +42,7 @@ using namespace MathConst;
 PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
   PPPM(lmp, narg, arg)
 {
-  triclinic_support = 0;
+  triclinic_support = 1;
   tip4pflag = 1;
 }
 
@@ -479,9 +479,9 @@ void PPPMTIP4P::fieldforce_peratom()
 }
 
 /* ----------------------------------------------------------------------
-  find 2 H atoms bonded to O atom i
-  compute position xM of fictitious charge site for O atom
-  also return local indices iH1,iH2 of H atoms
+   find 2 H atoms bonded to O atom i
+   compute position xM of fictitious charge site for O atom
+   also return local indices iH1,iH2 of H atoms
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
@@ -493,19 +493,63 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
+  // set iH1,iH2 to index of closest image to O
+
+  iH1 = domain->closest_image(i,iH1);
+  iH2 = domain->closest_image(i,iH2);
+
+  if (triclinic) {
+    find_M_triclinic(i,iH1,iH2,xM);
+    return;
+  }
+
   double **x = atom->x;
 
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];
   double delz1 = x[iH1][2] - x[i][2];
-  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = x[iH2][0] - x[i][0];
   double dely2 = x[iH2][1] - x[i][1];
   double delz2 = x[iH2][2] - x[i][2];
-  domain->minimum_image(delx2,dely2,delz2);
 
   xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
   xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
   xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
+}
+
+/* ----------------------------------------------------------------------
+   triclinic version of find_M()
+   calculation of M coords done in real space
+------------------------------------------------------------------------- */
+
+void PPPMTIP4P::find_M_triclinic(int i, int iH1, int iH2, double *xM)
+{
+  double **x = atom->x;
+
+  // convert from lamda to real space
+  // may be possible to do this more efficiently in lamda space
+
+  domain->lamda2x(x[i],x[i]);
+  domain->lamda2x(x[iH1],x[iH1]);
+  domain->lamda2x(x[iH2],x[iH2]);
+
+  double delx1 = x[iH1][0] - x[i][0];
+  double dely1 = x[iH1][1] - x[i][1];
+  double delz1 = x[iH1][2] - x[i][2];
+
+  double delx2 = x[iH2][0] - x[i][0];
+  double dely2 = x[iH2][1] - x[i][1];
+  double delz2 = x[iH2][2] - x[i][2];
+
+  xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
+  xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
+  xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
+
+  // convert back to lamda space
+
+  domain->x2lamda(x[i],x[i]);
+  domain->x2lamda(x[iH1],x[iH1]);
+  domain->x2lamda(x[iH2],x[iH2]);
+  domain->x2lamda(xM,xM);
 }

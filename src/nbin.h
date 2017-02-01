@@ -21,9 +21,7 @@ namespace LAMMPS_NS {
 class NBin : protected Pointers {
  public:
   int istyle;                      // 1-N index into binnames
-
-  bigint last_setup,last_bin;      // timesteps for last operations performed
-  bigint last_bin_memory;
+  bigint last_bin;                 // last timestep atoms were binned
 
   int nbinx,nbiny,nbinz;           // # of global bins
   int mbins;                       // # of local bins and offset on this proc

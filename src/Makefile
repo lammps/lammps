@@ -44,18 +44,18 @@ endif
 # Package variables
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim \
-	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
+	  granular kim kokkos kspace manybody mc meam misc molecule \
+	  mpiio mscg opt peri poems \
 	  python qeq reax replica rigid shock snap srd voronoi
 
-PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
+PACKUSER = user-atc user-awpmd user-cg-cmm user-cgdna user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-mgpt user-misc user-molfile \
 	   user-nc-dump user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-vtk
 
-PACKLIB = compress gpu kim kokkos meam mpiio poems python reax voronoi \
+PACKLIB = compress gpu kim kokkos meam mpiio mscg poems python reax voronoi \
 	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-nc-dump user-qmmm user-quip user-smd user-vtk
 

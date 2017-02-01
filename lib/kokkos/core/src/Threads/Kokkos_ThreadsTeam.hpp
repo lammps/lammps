@@ -406,6 +406,8 @@ public:
           m_exec->barrier();
         }
       }
+      else
+      { m_invalid_thread = 1; }
     }
 
   ThreadsExecTeamMember()
@@ -460,7 +462,7 @@ public:
 
     if(m_league_chunk_end > m_league_size) m_league_chunk_end = m_league_size;
 
-    if(m_league_rank>=0)
+    if((m_league_rank>=0) && (m_league_rank < m_league_chunk_end))
       return true;
     return false;
   }
@@ -704,23 +706,22 @@ public:
 
 namespace Kokkos {
 
-template<typename iType>
+template< typename iType >
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>
-TeamThreadRange(const Impl::ThreadsExecTeamMember& thread, const iType& count)
+Impl::TeamThreadRangeBoundariesStruct< iType, Impl::ThreadsExecTeamMember >
+TeamThreadRange( const Impl::ThreadsExecTeamMember& thread, const iType& count )
 {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>(thread,count);
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::ThreadsExecTeamMember >( thread, count );
 }
 
-template<typename iType>
+template< typename iType1, typename iType2 >
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>
-TeamThreadRange( const Impl::ThreadsExecTeamMember& thread
-               , const iType & begin
-               , const iType & end
-               )
+Impl::TeamThreadRangeBoundariesStruct< typename std::common_type< iType1, iType2 >::type,
+                                       Impl::ThreadsExecTeamMember>
+TeamThreadRange( const Impl::ThreadsExecTeamMember& thread, const iType1 & begin, const iType2 & end )
 {
-  return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>(thread,begin,end);
+  typedef typename std::common_type< iType1, iType2 >::type iType;
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::ThreadsExecTeamMember >( thread, iType(begin), iType(end) );
 }
 
 

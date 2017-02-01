@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include "colvarmodule.h"
 #include "colvarparse.h"
 #include "colvaratoms.h"
@@ -171,7 +178,10 @@ int cvm::atom_group::remove_atom(cvm::atom_iter ai)
 
 int cvm::atom_group::init()
 {
-  if (!key.size()) key = "atoms";
+  if (!key.size()) key = "unnamed";
+  description = "atom group " + key;
+  // These will be overwritten by parse(), if initializing from a config string
+
   atoms.clear();
 
   // TODO: check with proxy whether atom forces etc are available
@@ -179,6 +189,7 @@ int cvm::atom_group::init()
 
   index = -1;
 
+  b_dummy = false;
   b_center = false;
   b_rotate = false;
   b_user_defined_fit = false;
@@ -440,6 +451,7 @@ int cvm::atom_group::parse(std::string const &conf)
 
   if (b_print_atom_ids) {
     cvm::log("Internal definition of the atom group:\n");
+    cvm::log(print_atom_ids());
   }
 
   cvm::decrease_depth();

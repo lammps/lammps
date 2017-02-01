@@ -44,7 +44,9 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   double init_one(int, int);
 
   struct params_coul{
+    KOKKOS_INLINE_FUNCTION
     params_coul(){cutsq=0,scale=0;};
+    KOKKOS_INLINE_FUNCTION
     params_coul(int i){cutsq=0,scale=0;};
     F_FLOAT cutsq, scale;
   };
@@ -79,7 +81,7 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   Kokkos::DualView<params_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_coul**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  // hardwired to space for 15 atom types
+  // hardwired to space for 12 atom types
   params_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];

@@ -82,7 +82,7 @@ struct LayoutLeft {
   LayoutLeft & operator = ( LayoutLeft && ) = default ;
 
   KOKKOS_INLINE_FUNCTION
-  constexpr
+  explicit constexpr
   LayoutLeft( size_t N0 = 0 , size_t N1 = 0 , size_t N2 = 0 , size_t N3 = 0
             , size_t N4 = 0 , size_t N5 = 0 , size_t N6 = 0 , size_t N7 = 0 )
     : dimension { N0 , N1 , N2 , N3 , N4 , N5 , N6 , N7 } {}
@@ -114,7 +114,7 @@ struct LayoutRight {
   LayoutRight & operator = ( LayoutRight && ) = default ;
 
   KOKKOS_INLINE_FUNCTION
-  constexpr
+  explicit constexpr
   LayoutRight( size_t N0 = 0 , size_t N1 = 0 , size_t N2 = 0 , size_t N3 = 0
              , size_t N4 = 0 , size_t N5 = 0 , size_t N6 = 0 , size_t N7 = 0 )
     : dimension { N0 , N1 , N2 , N3 , N4 , N5 , N6 , N7 } {}
@@ -131,6 +131,11 @@ struct LayoutStride {
 
   size_t dimension[ ARRAY_LAYOUT_MAX_RANK ] ;
   size_t stride[ ARRAY_LAYOUT_MAX_RANK ] ; 
+
+  LayoutStride( LayoutStride const & ) = default ;
+  LayoutStride( LayoutStride && ) = default ;
+  LayoutStride & operator = ( LayoutStride const & ) = default ;
+  LayoutStride & operator = ( LayoutStride && ) = default ;
 
   /** \brief  Compute strides from ordered dimensions.
    *
@@ -164,7 +169,8 @@ struct LayoutStride {
       return tmp ;
     }
 
-  KOKKOS_INLINE_FUNCTION constexpr
+  KOKKOS_INLINE_FUNCTION
+  explicit constexpr
   LayoutStride( size_t N0 = 0 , size_t S0 = 0
               , size_t N1 = 0 , size_t S1 = 0
               , size_t N2 = 0 , size_t S2 = 0
@@ -220,7 +226,7 @@ struct LayoutTileLeft {
   LayoutTileLeft & operator = ( LayoutTileLeft && ) = default ;
 
   KOKKOS_INLINE_FUNCTION
-  constexpr
+  explicit constexpr
   LayoutTileLeft( size_t argN0 = 0 , size_t argN1 = 0 , size_t argN2 = 0 , size_t argN3 = 0
                 , size_t argN4 = 0 , size_t argN5 = 0 , size_t argN6 = 0 , size_t argN7 = 0
                 )

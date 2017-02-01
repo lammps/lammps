@@ -1,10 +1,18 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #ifndef COLVARBIAS_ALB_H
 #define COLVARBIAS_ALB_H
 
 #include "colvar.h"
-#include "colvarbias_restraint.h"
+#include "colvarbias.h"
+
 
 class colvarbias_alb : public colvarbias {
 
@@ -15,8 +23,8 @@ public:
   virtual int init(std::string const &conf);
   virtual int update();
 
-  virtual std::istream & read_restart(std::istream &is);
-  virtual std::ostream & write_restart(std::ostream &os);
+  virtual std::string const get_state_params() const;
+  virtual int set_state_params(std::string const &conf);
   virtual std::ostream & write_traj_label(std::ostream &os);
   virtual std::ostream & write_traj(std::ostream &os);
 

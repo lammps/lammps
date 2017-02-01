@@ -24,11 +24,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPair::NPair(LAMMPS *lmp) : Pointers(lmp)
+NPair::NPair(LAMMPS *lmp)
+  : Pointers(lmp), nb(NULL), ns(NULL), bins(NULL), stencil(NULL)
 {
   last_build = -1;
-  last_copy_bin_setup = last_copy_bin = last_copy_stencil = -1;
-
   molecular = atom->molecular;
 }
 
@@ -75,10 +74,10 @@ void NPair::copy_neighbor_info()
 }
 
 /* ----------------------------------------------------------------------
-   copy bin geometry info from NBin class to this build class
+   copy info from NBin class to this build class
 ------------------------------------------------------------------------- */
 
-void NPair::copy_bin_setup_info()
+void NPair::copy_bin_info()
 {
   nbinx = nb->nbinx;
   nbiny = nb->nbiny;
@@ -94,20 +93,13 @@ void NPair::copy_bin_setup_info()
   bininvx = nb->bininvx;
   bininvy = nb->bininvy;
   bininvz = nb->bininvz;
-}
 
-/* ----------------------------------------------------------------------
-   copy per-atom and per-bin vectors from NBin class to this build class
-------------------------------------------------------------------------- */
-
-void NPair::copy_bin_info()
-{
   bins = nb->bins;
   binhead = nb->binhead;
 }
 
 /* ----------------------------------------------------------------------
-   copy needed info from NStencil class to this build class
+   copy info from NStencil class to this build class
 ------------------------------------------------------------------------- */
 
 void NPair::copy_stencil_info()
@@ -121,23 +113,15 @@ void NPair::copy_stencil_info()
 }
 
 /* ----------------------------------------------------------------------
-   copy needed info from NStencil class to this build class
+   copy info from NBin and NStencil classes to this build class
 ------------------------------------------------------------------------- */
 
 void NPair::build_setup()
 {
-  if (nb && last_copy_bin_setup < nb->last_setup) {
-    copy_bin_setup_info();
-    last_copy_bin_setup = update->ntimestep;
-  }
-  if (nb && last_copy_bin < nb->last_bin_memory) {
-    copy_bin_info();
-    last_copy_bin = update->ntimestep;
-  }
-  if (ns && last_copy_stencil < ns->last_create) {
-    copy_stencil_info();
-    last_copy_stencil = update->ntimestep;
-  }
+  if (nb) copy_bin_info();
+  if (ns) copy_stencil_info();
+
+  // set here, since build_setup() always called before build()
 
   last_build = update->ntimestep;
 }
@@ -149,7 +133,7 @@ void NPair::build_setup()
 ------------------------------------------------------------------------- */
 
 int NPair::exclusion(int i, int j, int itype, int jtype,
-                          int *mask, tagint *molecule) const {
+                     int *mask, tagint *molecule) const {
   int m;
 
   if (nex_type && ex_type[itype][jtype]) return 1;

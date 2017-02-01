@@ -84,7 +84,7 @@ Package, Description, Author(s), Doc page, Example, Library
 "PERI"_#PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 "POEMS"_#POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 "PYTHON"_#PYTHON, embed Python code in an input script, -, "python"_python.html, python, lib/python
-"REAX"_#REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
+"REAX"_#REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax, lib/reax
 "REPLICA"_#REPLICA, multi-replica methods, -, "Section 6.6.5"_Section_howto.html#howto_5, tad, -
 "RIGID"_#RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
 "SHOCK"_#SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
@@ -1140,6 +1140,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-ATC"_#USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (1), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 "USER-AWPMD"_#USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 "USER-CG-CMM"_#USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
+"USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, Oliver Henrich (U Edinburgh), src/USER-CGDNA/README, USER/cgdna, -, -
 "USER-COLVARS"_#USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 "USER-DIFFRACTION"_#USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
 "USER-DPD"_#USER-DPD, reactive dissipative particle dynamics (DPD), Larentzos & Mattox & Brennan (5), src/USER-DPD/README, USER/dpd, -, -
@@ -1153,7 +1154,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 "USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surface, Stefan Paquay (Eindhoven U of Technology), "fix manifoldforce"_fix_manifoldforce.html, USER/manifold, "manifold"_manifold, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
-"USER-NC-DUMP"_#USER-NC-DUMP, dump output via NetCDF, Lars Pastewka (Karlsruhe Institute of Technology, KIT), "dump nc, dump nc/mpiio"_dump_nc.html, -, -, lib/netcdf
+"USER-NC-DUMP"_#USER-NC-DUMP, dump output via NetCDF, Lars Pastewka (Karlsruhe Institute of Technology, KIT), "dump nc / dump nc/mpiio"_dump_nc.html, -, -, lib/netcdf
 "USER-OMP"_#USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section 5.3.4"_accelerate_omp.html, -, -, -
 "USER-PHONON"_#USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
 "USER-QMMM"_#USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
@@ -1281,6 +1282,31 @@ examples/USER/cg-cmm
 
 Author: Axel Kohlmeyer at Temple U (akohlmey at gmail.com).  Contact
 him directly if you have questions.
+
+:line
+
+USER-CGDNA package :link(USER-CGDNA),h5
+
+Contents: The CGDNA package implements coarse-grained force fields for
+single- and double-stranded DNA. This is at the moment mainly the
+oxDNA model, developed by Doye, Louis and Ouldridge at the University
+of Oxford.  The package also contains Langevin-type rigid-body
+integrators with improved stability.
+
+See these doc pages to get started:
+
+"bond_style oxdna_fene"_bond_oxdna_fene.html
+"pair_style oxdna_excv"_pair_oxdna_excv.html
+"fix nve/dotc/langevin"_fix_nve_dotc_langevin.html :ul
+
+Supporting info: /src/USER-CGDNA/README, "bond_style
+oxdna_fene"_bond_oxdna_fene.html, "pair_style
+oxdna_excv"_pair_oxdna_excv.html, "fix
+nve/dotc/langevin"_fix_nve_dotc_langevin.html
+
+Author: Oliver Henrich at the University of Edinburgh, UK (o.henrich
+at epcc.ed.ac.uk or ohenrich at ph.ed.ac.uk).  Contact him directly if
+you have any questions.
 
 :line
 
@@ -1610,11 +1636,12 @@ and a "dump nc/mpiio"_dump_nc.html command to output LAMMPS snapshots
 in this format.  See src/USER-NC-DUMP/README for more details.
 
 NetCDF files can be directly visualized with the following tools:
+
 Ovito (http://www.ovito.org/). Ovito supports the AMBER convention
-  and all of the above extensions. :ulb,l
+and all of the above extensions. :ulb,l
 VMD (http://www.ks.uiuc.edu/Research/vmd/) :l
 AtomEye (http://www.libatoms.org/). The libAtoms version of AtomEye contains
-  a NetCDF reader that is not present in the standard distribution of AtomEye :l,ule
+a NetCDF reader that is not present in the standard distribution of AtomEye :l,ule
 
 The person who created these files is Lars Pastewka at
 Karlsruhe Institute of Technology (lars.pastewka at kit.edu).

@@ -241,9 +241,9 @@ public:
   typedef UnorderedMap<const_key_type,value_type,execution_space,hasher_type,equal_to_type>             modifiable_map_type;
   typedef UnorderedMap<const_key_type,const_value_type,execution_space,hasher_type,equal_to_type>       const_map_type;
 
-  static const bool is_set = Impl::is_same<void,value_type>::value;
-  static const bool has_const_key = Impl::is_same<const_key_type,declared_key_type>::value;
-  static const bool has_const_value = is_set || Impl::is_same<const_value_type,declared_value_type>::value;
+  static const bool is_set = std::is_same<void,value_type>::value;
+  static const bool has_const_key = std::is_same<const_key_type,declared_key_type>::value;
+  static const bool has_const_value = is_set || std::is_same<const_value_type,declared_value_type>::value;
 
   static const bool is_insertable_map = !has_const_key && (is_set || !has_const_value);
   static const bool is_modifiable_map = has_const_key && !has_const_value;
@@ -735,8 +735,8 @@ public:
   }
 
   template <typename SKey, typename SValue, typename SDevice>
-  typename Impl::enable_if< Impl::is_same< typename Impl::remove_const<SKey>::type, key_type>::value &&
-                            Impl::is_same< typename Impl::remove_const<SValue>::type, value_type>::value
+  typename Impl::enable_if< std::is_same< typename Impl::remove_const<SKey>::type, key_type>::value &&
+                            std::is_same< typename Impl::remove_const<SValue>::type, value_type>::value
                           >::type
   create_copy_view( UnorderedMap<SKey, SValue, SDevice, Hasher,EqualTo> const& src)
   {

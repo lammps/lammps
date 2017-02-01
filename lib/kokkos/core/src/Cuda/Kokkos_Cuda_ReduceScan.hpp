@@ -139,6 +139,7 @@ bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , ArgT
                                  typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type const result,
                                  Cuda::size_type * const m_scratch_flags,
                                  const int max_active_thread = blockDim.y) {
+#ifdef __CUDA_ARCH__
   typedef typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type pointer_type;
   typedef typename FunctorValueTraits< FunctorType , ArgTag >::value_type value_type;
 
@@ -213,6 +214,9 @@ bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , ArgT
 
   //The last block has in its thread=0 the global reduction value through "value"
   return last_block;
+#else
+  return true;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -290,10 +294,10 @@ void cuda_intra_block_reduce_scan( const FunctorType & functor ,
 
         if ( ! ( rtid_inter + n < blockDim.y ) ) n = 0 ;
 
-        BLOCK_SCAN_STEP(tdata_inter,n,8)
-        BLOCK_SCAN_STEP(tdata_inter,n,7)
-        BLOCK_SCAN_STEP(tdata_inter,n,6)
-        BLOCK_SCAN_STEP(tdata_inter,n,5)
+        __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,8)
+        __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,7)
+        __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,6)
+        __threadfence_block(); BLOCK_SCAN_STEP(tdata_inter,n,5)
       }
     }
   }
@@ -308,12 +312,19 @@ void cuda_intra_block_reduce_scan( const FunctorType & functor ,
             ( rtid_intra & 16 ) ? 16 : 0 ))));
 
     if ( ! ( rtid_intra + n < blockDim.y ) ) n = 0 ;
-
+    #ifdef KOKKOS_CUDA_CLANG_WORKAROUND
+    BLOCK_SCAN_STEP(tdata_intra,n,4) __syncthreads();//__threadfence_block();
+    BLOCK_SCAN_STEP(tdata_intra,n,3) __syncthreads();//__threadfence_block();
+    BLOCK_SCAN_STEP(tdata_intra,n,2) __syncthreads();//__threadfence_block();
+    BLOCK_SCAN_STEP(tdata_intra,n,1) __syncthreads();//__threadfence_block();
+    BLOCK_SCAN_STEP(tdata_intra,n,0) __syncthreads();
+    #else
     BLOCK_SCAN_STEP(tdata_intra,n,4) __threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,3) __threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,2) __threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,1) __threadfence_block();
-    BLOCK_SCAN_STEP(tdata_intra,n,0)
+    BLOCK_SCAN_STEP(tdata_intra,n,0) __threadfence_block();
+    #endif
   }
 
 #undef BLOCK_SCAN_STEP

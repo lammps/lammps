@@ -113,13 +113,14 @@ class Domain : protected Pointers {
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
   int closest_image(int, int);
+  int closest_image(double *, int);
   void closest_image(const double * const, const double * const,
                      double * const);
   void remap(double *, imageint &);
   void remap(double *);
   void remap_near(double *, double *);
   void unmap(double *, imageint);
-  void unmap(double *, imageint, double *);
+  void unmap(const double *, imageint, double *);
   void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);
   

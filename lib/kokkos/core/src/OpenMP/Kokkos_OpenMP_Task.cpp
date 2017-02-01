@@ -43,7 +43,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_OPENMP ) && defined( KOKKOS_ENABLE_TASKPOLICY )
+#if defined( KOKKOS_HAVE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG )
 
 #include <impl/Kokkos_TaskQueue_impl.hpp>
 
@@ -324,6 +324,6 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
 
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_HAVE_OPENMP ) && defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif /* #if defined( KOKKOS_HAVE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG ) */
 
 

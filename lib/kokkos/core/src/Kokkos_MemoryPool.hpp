@@ -49,7 +49,7 @@
 #include <Kokkos_Atomic.hpp>
 #include <impl/Kokkos_BitOps.hpp>
 #include <impl/Kokkos_Error.hpp>
-#include <impl/KokkosExp_SharedAlloc.hpp>
+#include <impl/Kokkos_SharedAlloc.hpp>
 
 #include <limits>
 #include <algorithm>
@@ -69,12 +69,6 @@
 //#define KOKKOS_MEMPOOL_PRINT_ACTIVE_SUPERBLOCKS
 //#define KOKKOS_MEMPOOL_PRINT_PAGE_INFO
 //#define KOKKOS_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
-
-// A superblock is considered full when this percentage of its pages are full.
-#define KOKKOS_MEMPOOL_SB_FULL_FRACTION 0.80
-
-// A page is considered full when this percentage of its blocks are full.
-#define KOKKOS_MEMPOOL_PAGE_FULL_FRACTION 0.875  // 28 / 32
 
 //----------------------------------------------------------------------------
 
@@ -128,7 +122,7 @@ struct bitset_count
   { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()( size_type i, value_type & count) const
+  void operator()( size_type i, value_type & count ) const
   {
     count += Kokkos::Impl::bit_count( m_words[i] );
   }
@@ -183,7 +177,7 @@ public:
 
   size_type count() const
   {
-    size_type val;
+    size_type val = 0;
     bitset_count< Bitset > bc( m_words, m_num_words, val );
     return val;
   }
@@ -234,6 +228,20 @@ public:
 
   KOKKOS_FORCEINLINE_FUNCTION
   Kokkos::pair< bool, word_type >
+  fetch_word_set( size_type i ) const
+  {
+    size_type word_pos = i >> LG_WORD_SIZE;
+    word_type mask = word_type(1) << ( i & WORD_MASK );
+
+    Kokkos::pair<bool, word_type> result;
+    result.second = atomic_fetch_or( &m_words[ word_pos ], mask );
+    result.first = !( result.second & mask );
+
+    return result;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  Kokkos::pair< bool, word_type >
   fetch_word_reset( size_type i ) const
   {
     size_type word_pos = i >> LG_WORD_SIZE;
@@ -247,12 +255,10 @@ public:
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  Kokkos::pair< bool, size_type >
-  set_any_in_word( size_type i, word_type & prev_val ) const
+  Kokkos::pair< bool, word_type >
+  set_any_in_word( size_type & pos ) const
   {
-    prev_val = 0;
-
-    size_type word_pos = i >> LG_WORD_SIZE;
+    size_type word_pos = pos >> LG_WORD_SIZE;
     word_type word = volatile_load( &m_words[ word_pos ] );
 
     // Loop until there are no more unset bits in the word.
@@ -261,28 +267,26 @@ public:
       size_type bit = Kokkos::Impl::bit_scan_forward( ~word );
 
       // Try to set the bit.
-			word_type mask = word_type(1) << bit;
+      word_type mask = word_type(1) << bit;
       word = atomic_fetch_or( &m_words[ word_pos ], mask );
 
       if ( !( word & mask ) ) {
         // Successfully set the bit.
-        prev_val = word;
+        pos = ( word_pos << LG_WORD_SIZE ) + bit;
 
-        return Kokkos::pair<bool, size_type>( true, ( word_pos << LG_WORD_SIZE ) + bit );
+        return Kokkos::pair<bool, word_type>( true, word );
       }
     }
 
     // Didn't find a free bit in this word.
-    return Kokkos::pair<bool, size_type>( false, i );
+    return Kokkos::pair<bool, word_type>( false, word_type(0) );
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  Kokkos::pair< bool, size_type >
-  set_any_in_word( size_type i, word_type & prev_val, word_type word_mask ) const
+  Kokkos::pair< bool, word_type >
+  set_any_in_word( size_type & pos, word_type word_mask ) const
   {
-    prev_val = 0;
-
-    size_type word_pos = i >> LG_WORD_SIZE;
+    size_type word_pos = pos >> LG_WORD_SIZE;
     word_type word = volatile_load( &m_words[ word_pos ] );
     word = ( ~word ) & word_mask;
 
@@ -292,30 +296,28 @@ public:
       size_type bit = Kokkos::Impl::bit_scan_forward( word );
 
       // Try to set the bit.
-			word_type mask = word_type(1) << bit;
+      word_type mask = word_type(1) << bit;
       word = atomic_fetch_or( &m_words[ word_pos ], mask );
 
       if ( !( word & mask ) ) {
         // Successfully set the bit.
-        prev_val = word;
+        pos = ( word_pos << LG_WORD_SIZE ) + bit;
 
-        return Kokkos::pair<bool, size_type>( true, ( word_pos << LG_WORD_SIZE ) + bit );
+        return Kokkos::pair<bool, word_type>( true, word );
       }
 
       word = ( ~word ) & word_mask;
     }
 
     // Didn't find a free bit in this word.
-    return Kokkos::pair<bool, size_type>( false, i );
+    return Kokkos::pair<bool, word_type>( false, word_type(0) );
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  Kokkos::pair< bool, size_type >
-  reset_any_in_word( size_type i, word_type & prev_val ) const
+  Kokkos::pair< bool, word_type >
+  reset_any_in_word( size_type & pos ) const
   {
-    prev_val = 0;
-
-    size_type word_pos = i >> LG_WORD_SIZE;
+    size_type word_pos = pos >> LG_WORD_SIZE;
     word_type word = volatile_load( &m_words[ word_pos ] );
 
     // Loop until there are no more set bits in the word.
@@ -324,28 +326,26 @@ public:
       size_type bit = Kokkos::Impl::bit_scan_forward( word );
 
       // Try to reset the bit.
-			word_type mask = word_type(1) << bit;
+      word_type mask = word_type(1) << bit;
       word = atomic_fetch_and( &m_words[ word_pos ], ~mask );
 
       if ( word & mask ) {
         // Successfully reset the bit.
-        prev_val = word;
+        pos = ( word_pos << LG_WORD_SIZE ) + bit;
 
-        return Kokkos::pair<bool, size_type>( true, ( word_pos << LG_WORD_SIZE ) + bit );
+        return Kokkos::pair<bool, word_type>( true, word );
       }
     }
 
     // Didn't find a free bit in this word.
-    return Kokkos::pair<bool, size_type>( false, i );
+    return Kokkos::pair<bool, word_type>( false, word_type(0) );
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  Kokkos::pair< bool, size_type >
-  reset_any_in_word( size_type i, word_type & prev_val, word_type word_mask ) const
+  Kokkos::pair< bool, word_type >
+  reset_any_in_word( size_type & pos, word_type word_mask ) const
   {
-    prev_val = 0;
-
-    size_type word_pos = i >> LG_WORD_SIZE;
+    size_type word_pos = pos >> LG_WORD_SIZE;
     word_type word = volatile_load( &m_words[ word_pos ] );
     word = word & word_mask;
 
@@ -355,21 +355,21 @@ public:
       size_type bit = Kokkos::Impl::bit_scan_forward( word );
 
       // Try to reset the bit.
-			word_type mask = word_type(1) << bit;
+      word_type mask = word_type(1) << bit;
       word = atomic_fetch_and( &m_words[ word_pos ], ~mask );
 
       if ( word & mask ) {
         // Successfully reset the bit.
-        prev_val = word;
+        pos = ( word_pos << LG_WORD_SIZE ) + bit;
 
-        return Kokkos::pair<bool, size_type>( true, ( word_pos << LG_WORD_SIZE ) + bit );
+        return Kokkos::pair<bool, word_type>( true, word );
       }
 
       word = word & word_mask;
     }
 
     // Didn't find a free bit in this word.
-    return Kokkos::pair<bool, size_type>( false, i );
+    return Kokkos::pair<bool, word_type>( false, word_type(0) );
   }
 };
 
@@ -442,7 +442,7 @@ struct create_histogram {
 
         total_allocated_blocks += page_allocated_blocks;
 
-        atomic_fetch_add( &m_page_histogram(page_allocated_blocks), 1 );
+        atomic_increment( &m_page_histogram(page_allocated_blocks) );
       }
 
       r.first += double(total_allocated_blocks) / blocks_per_sb;
@@ -609,7 +609,7 @@ public:
   };
 
 private:
-  typedef Impl::SharedAllocationTracker            Tracker;
+  typedef Kokkos::Impl::SharedAllocationTracker    Tracker;
   typedef View< uint32_t *, device_type >          UInt32View;
   typedef View< SuperblockHeader *, device_type >  SBHeaderView;
 
@@ -726,11 +726,11 @@ public:
 
     // Allocate memory for Views.  This is done here instead of at construction
     // so that the runtime checks can be performed before allocating memory.
-    resize(m_active, m_num_block_size );
-    resize(m_sb_header, m_num_sb );
+    resize( m_active, m_num_block_size );
+    resize( m_sb_header, m_num_sb );
 
     // Allocate superblock memory.
-    typedef Impl::SharedAllocationRecord< backend_memory_space, void >  SharedRecord;
+    typedef Kokkos::Impl::SharedAllocationRecord< backend_memory_space, void >  SharedRecord;
     SharedRecord * rec =
       SharedRecord::allocate( memspace, "mempool", m_total_size );
 
@@ -751,10 +751,15 @@ public:
                         m_ceil_num_sb * m_num_block_size );
 
     // Initialize all active superblocks to be invalid.
-    typename UInt32View::HostMirror host_active = create_mirror_view(m_active);
-    for (size_t i = 0; i < m_num_block_size; ++i) host_active(i) = INVALID_SUPERBLOCK;
+    typename UInt32View::HostMirror host_active = create_mirror_view( m_active );
+    for ( size_t i = 0; i < m_num_block_size; ++i ) host_active(i) = INVALID_SUPERBLOCK;
+    deep_copy( m_active, host_active );
 
-    deep_copy(m_active, host_active);
+    // A superblock is considered full when this percentage of its pages are full.
+    const double superblock_full_fraction = .8;
+
+    // A page is considered full when this percentage of its blocks are full.
+    const double page_full_fraction = .875;
 
     // Initialize the blocksize info.
     for ( size_t i = 0; i < m_num_block_size; ++i ) {
@@ -767,7 +772,7 @@ public:
 
       // Set the full level for the superblock.
       m_blocksize_info[i].m_sb_full_level =
-        static_cast<uint32_t>( pages_per_sb * KOKKOS_MEMPOOL_SB_FULL_FRACTION );
+        static_cast<uint32_t>( pages_per_sb * superblock_full_fraction );
 
       if ( m_blocksize_info[i].m_sb_full_level == 0 ) {
         m_blocksize_info[i].m_sb_full_level = 1;
@@ -778,7 +783,7 @@ public:
         blocks_per_sb < BLOCKS_PER_PAGE ? blocks_per_sb : BLOCKS_PER_PAGE;
 
       m_blocksize_info[i].m_page_full_level =
-        static_cast<uint32_t>( blocks_per_page * KOKKOS_MEMPOOL_PAGE_FULL_FRACTION );
+        static_cast<uint32_t>( blocks_per_page * page_full_fraction );
 
       if ( m_blocksize_info[i].m_page_full_level == 0 ) {
         m_blocksize_info[i].m_page_full_level = 1;
@@ -820,7 +825,7 @@ public:
   /// \brief  The actual block size allocated given alloc_size.
   KOKKOS_INLINE_FUNCTION
   size_t allocate_block_size( const size_t alloc_size ) const
-  { return size_t(1) << ( get_block_size_index( alloc_size ) + LG_MIN_BLOCK_SIZE); }
+  { return size_t(1) << ( get_block_size_index( alloc_size ) + LG_MIN_BLOCK_SIZE ); }
 
   /// \brief Allocate a chunk of memory.
   /// \param alloc_size Size of the requested allocated in number of bytes.
@@ -834,27 +839,41 @@ public:
 
     // Only support allocations up to the superblock size.  Just return 0
     // (failed allocation) for any size above this.
-    if (alloc_size <= m_sb_size )
+    if ( alloc_size <= m_sb_size )
     {
       int block_size_id = get_block_size_index( alloc_size );
       uint32_t blocks_per_sb = m_blocksize_info[block_size_id].m_blocks_per_sb;
       uint32_t pages_per_sb = m_blocksize_info[block_size_id].m_pages_per_sb;
+
+#ifdef KOKKOS_CUDA_CLANG_WORKAROUND
+      // Without this test it looks like pages_per_sb might come back wrong.
+      if ( pages_per_sb == 0 ) return NULL;
+#endif
+
       unsigned word_size = blocks_per_sb > 32 ? 32 : blocks_per_sb;
       unsigned word_mask = ( uint64_t(1) << word_size ) - 1;
 
+      // Instead of forcing an atomic read to guarantee the updated value,
+      // reading the old value is actually beneficial because more threads will
+      // attempt allocations on the old active superblock instead of waiting on
+      // the new active superblock.  This will help hide the latency of
+      // switching the active superblock.
       uint32_t sb_id = volatile_load( &m_active(block_size_id) );
 
-      // If the active is locked, keep reading it until the lock is released.
+      // If the active is locked, keep reading it atomically until the lock is
+      // released.
       while ( sb_id == SUPERBLOCK_LOCK ) {
-        sb_id = volatile_load( &m_active(block_size_id) );
+        sb_id = atomic_fetch_or( &m_active(block_size_id), uint32_t(0) );
       }
+
+      load_fence();
 
       bool allocation_done = false;
 
-      while (!allocation_done) {
+      while ( !allocation_done ) {
         bool need_new_sb = false;
 
-        if (sb_id != INVALID_SUPERBLOCK) {
+        if ( sb_id != INVALID_SUPERBLOCK ) {
           // Use the value from the clock register as the hash value.
           uint64_t hash_val = get_clock_register();
 
@@ -875,12 +894,11 @@ public:
 
           bool search_done = false;
 
-          while (!search_done) {
-            bool success;
-            unsigned prev_val;
+          while ( !search_done ) {
+            bool success = false;
+            unsigned prev_val = 0;
 
-            Kokkos::tie( success, pos ) =
-              m_sb_blocks.set_any_in_word( pos, prev_val, word_mask );
+            Kokkos::tie( success, prev_val ) = m_sb_blocks.set_any_in_word( pos, word_mask );
 
             if ( !success ) {
               if ( ++pages_searched >= pages_per_sb ) {
@@ -905,6 +923,8 @@ public:
             }
             else {
               // Reserved a memory location to allocate.
+              memory_fence();
+
               search_done = true;
               allocation_done = true;
 
@@ -918,7 +938,7 @@ public:
               if ( used_bits == 0 ) {
                 // This page was empty.  Decrement the number of empty pages for
                 // the superblock.
-                atomic_fetch_sub( &m_sb_header(sb_id).m_empty_pages, 1 );
+                atomic_decrement( &m_sb_header(sb_id).m_empty_pages );
               }
               else if ( used_bits == m_blocksize_info[block_size_id].m_page_full_level - 1 )
               {
@@ -962,7 +982,7 @@ public:
 #ifdef KOKKOS_MEMPOOL_PRINT_INFO
     else {
       printf( "** Requested allocation size (%zu) larger than superblock size (%lu). **\n",
-              alloc_size, m_sb_size);
+              alloc_size, m_sb_size );
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
       fflush( stdout );
 #endif
@@ -997,8 +1017,10 @@ public:
       uint32_t block_size_id = lg_block_size - LG_MIN_BLOCK_SIZE;
       uint32_t pos_rel = offset >> lg_block_size;
 
-      bool success;
-      unsigned prev_val;
+      bool success = false;
+      unsigned prev_val = 0;
+
+      memory_fence();
 
       Kokkos::tie( success, prev_val ) = m_sb_blocks.fetch_word_reset( pos_base + pos_rel );
 
@@ -1023,7 +1045,7 @@ public:
               volatile_store( &m_sb_header(sb_id).m_empty_pages, uint32_t(0) );
               volatile_store( &m_sb_header(sb_id).m_lg_block_size, uint32_t(0) );
 
-              memory_fence();
+              store_fence();
 
               m_empty_sb.set( sb_id );
             }
@@ -1088,7 +1110,7 @@ public:
     printf( "\n" );
 
 #ifdef KOKKOS_MEMPOOL_PRINT_SUPERBLOCK_INFO
-    typename SBHeaderView::HostMirror host_sb_header = create_mirror_view(m_sb_header);
+    typename SBHeaderView::HostMirror host_sb_header = create_mirror_view( m_sb_header );
     deep_copy( host_sb_header, m_sb_header );
 
     UInt32View num_allocated_blocks( "Allocated Blocks", m_num_sb );
@@ -1101,7 +1123,7 @@ public:
     }
 
     typename UInt32View::HostMirror host_num_allocated_blocks =
-      create_mirror_view(num_allocated_blocks);
+      create_mirror_view( num_allocated_blocks );
     deep_copy( host_num_allocated_blocks, num_allocated_blocks );
 
     // Print header info of all superblocks.
@@ -1135,7 +1157,7 @@ public:
              m_lg_max_sb_blocks, LG_MIN_BLOCK_SIZE, BLOCKS_PER_PAGE, result );
     }
 
-    typename UInt32View::HostMirror host_page_histogram = create_mirror_view(page_histogram);
+    typename UInt32View::HostMirror host_page_histogram = create_mirror_view( page_histogram );
     deep_copy( host_page_histogram, page_histogram );
 
     // Find the used and total pages and blocks.
@@ -1158,8 +1180,8 @@ public:
     double percent_used_blocks = total_blocks == 0 ? 0.0 : double(used_blocks) / total_blocks;
 
     // Count active superblocks.
-    typename UInt32View::HostMirror host_active = create_mirror_view(m_active);
-    deep_copy(host_active, m_active);
+    typename UInt32View::HostMirror host_active = create_mirror_view( m_active );
+    deep_copy( host_active, m_active );
 
     unsigned num_active_sb = 0;
     for ( size_t i = 0; i < m_num_block_size; ++i ) {
@@ -1224,6 +1246,7 @@ public:
     // Print the blocks used for each page of a few individual superblocks.
     for ( uint32_t i = 0; i < num_sb_id; ++i ) {
       uint32_t lg_block_size = host_sb_header(sb_id[i]).m_lg_block_size;
+
       if ( lg_block_size != 0 ) {
         printf( "SB_ID    BLOCK ID    USED_BLOCKS\n" );
 
@@ -1249,16 +1272,16 @@ public:
 #endif
 
     printf( "   Used blocks: %10u / %10u = %10.6lf\n", used_blocks, total_blocks,
-           percent_used_blocks );
+            percent_used_blocks );
     printf( "    Used pages: %10u / %10u = %10.6lf\n", used_pages, total_pages,
-           percent_used_pages );
+            percent_used_pages );
     printf( "       Used SB: %10zu / %10zu = %10.6lf\n", m_num_sb - num_empty_sb, m_num_sb,
-           percent_used_sb );
+            percent_used_sb );
     printf( "     Active SB: %10u\n", num_active_sb );
     printf( "      Empty SB: %10u\n", num_empty_sb );
     printf( "   Partfull SB: %10u\n", num_partfull_sb );
     printf( "       Full SB: %10lu\n",
-           m_num_sb - num_active_sb - num_empty_sb - num_partfull_sb );
+            m_num_sb - num_active_sb - num_empty_sb - num_partfull_sb );
     printf( "Ave. SB Full %%: %10.6lf\n", ave_sb_full );
     printf( "\n" );
     fflush( stdout );
@@ -1316,6 +1339,8 @@ private:
     uint32_t lock_sb =
       Kokkos::atomic_compare_exchange( &m_active(block_size_id), old_sb, SUPERBLOCK_LOCK );
 
+    load_fence();
+
     // Initialize the new superblock to be the previous one so the previous
     // superblock is returned if a new superblock can't be found.
     uint32_t new_sb = lock_sb;
@@ -1334,11 +1359,11 @@ private:
       // size's bitset.
       unsigned pos = block_size_id * m_ceil_num_sb;
 
-      while (!search_done) {
+      while ( !search_done ) {
         bool success = false;
-        unsigned prev_val;
+        unsigned prev_val = 0;
 
-        Kokkos::tie( success, pos ) = m_partfull_sb.reset_any_in_word( pos, prev_val );
+        Kokkos::tie( success, prev_val ) = m_partfull_sb.reset_any_in_word( pos );
 
         if ( !success ) {
           if ( ++tries >= max_tries ) {
@@ -1351,21 +1376,20 @@ private:
         }
         else {
           // Found a superblock.
+
+          // It is possible that the newly found superblock is the same as the
+          // old superblock.  In this case putting the old value back in yields
+          // correct behavior.  This could happen as follows.  This thread
+          // grabs the lock and transitions the superblock to the full state.
+          // Before it searches for a new superblock, other threads perform
+          // enough deallocations to transition the superblock to the partially
+          // full state.  This thread then searches for a partially full
+          // superblock and finds the one it removed.  There's potential for
+          // this to cause a performance issue if the same superblock keeps
+          // being removed and added due to the right mix and ordering of
+          // allocations and deallocations.
           search_done = true;
           new_sb = pos - block_size_id * m_ceil_num_sb;
-
-          // Assertions:
-          //   1. A different superblock than the current should be found.
-#ifdef KOKKOS_MEMPOOL_PRINTERR
-          if ( new_sb == lock_sb ) {
-            printf( "\n** MemoryPool::find_superblock() FOUND_SAME_SUPERBLOCK: %u **\n",
-                    new_sb);
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-            fflush( stdout );
-#endif
-            Kokkos::abort( "" );
-          }
-#endif
 
           // Set the head status for the superblock.
           volatile_store( &m_sb_header(new_sb).m_is_active, uint32_t(true) );
@@ -1376,7 +1400,7 @@ private:
             volatile_store( &m_sb_header(lock_sb).m_is_active, uint32_t(false) );
           }
 
-          memory_fence();
+          store_fence();
         }
       }
 
@@ -1389,11 +1413,11 @@ private:
         // size's bitset.
         pos = 0;
 
-        while (!search_done) {
+        while ( !search_done ) {
           bool success = false;
-          unsigned prev_val;
+          unsigned prev_val = 0;
 
-          Kokkos::tie( success, pos ) = m_empty_sb.reset_any_in_word( pos, prev_val );
+          Kokkos::tie( success, prev_val ) = m_empty_sb.reset_any_in_word( pos );
 
           if ( !success ) {
             if ( ++tries >= max_tries ) {
@@ -1406,21 +1430,21 @@ private:
           }
           else {
             // Found a superblock.
+
+            // It is possible that the newly found superblock is the same as
+            // the old superblock.  In this case putting the old value back in
+            // yields correct behavior.  This could happen as follows.  This
+            // thread grabs the lock and transitions the superblock to the full
+            // state.  Before it searches for a new superblock, other threads
+            // perform enough deallocations to transition the superblock to the
+            // partially full state and then the empty state.  This thread then
+            // searches for a partially full superblock and none exist.  This
+            // thread then searches for an empty superblock and finds the one
+            // it removed.  The likelihood of this happening is so remote that
+            // the potential for this to cause a performance issue is
+            // infinitesimal.
             search_done = true;
             new_sb = pos;
-
-            // Assertions:
-            //   1. A different superblock than the current should be found.
-#ifdef KOKKOS_MEMPOOL_PRINTERR
-            if ( new_sb == lock_sb ) {
-              printf( "\n** MemoryPool::find_superblock() FOUND_SAME_SUPERBLOCK: %u **\n",
-                      new_sb);
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-              fflush( stdout );
-#endif
-              Kokkos::abort( "" );
-            }
-#endif
 
             // Set the empty pages, block size, and head status for the
             // superblock.
@@ -1436,7 +1460,7 @@ private:
               volatile_store( &m_sb_header(lock_sb).m_is_active, uint32_t(false) );
             }
 
-            memory_fence();
+            store_fence();
           }
         }
       }
@@ -1445,13 +1469,16 @@ private:
       atomic_exchange( &m_active(block_size_id), new_sb );
     }
     else {
-      // Either another thread has the lock and is switching the active superblock for
-      // this block size or another thread has already changed the active superblock
-      // since this thread read its value.  Keep reading the active superblock until
-      // it isn't locked to get the new active superblock.
+      // Either another thread has the lock and is switching the active
+      // superblock for this block size or another thread has already changed
+      // the active superblock since this thread read its value.  Keep
+      // atomically reading the active superblock until it isn't locked to get
+      // the new active superblock.
       do {
-        new_sb = volatile_load( &m_active(block_size_id) );
+        new_sb = atomic_fetch_or( &m_active(block_size_id), uint32_t(0) );
       } while ( new_sb == SUPERBLOCK_LOCK );
+
+      load_fence();
 
       // Assertions:
       //   1. An invalid superblock should never be found here.
@@ -1477,14 +1504,25 @@ private:
   {
 #if defined( __CUDA_ARCH__ )
     // Return value of 64-bit hi-res clock register.
-	  return clock64();
+    return clock64();
 #elif defined( __i386__ ) || defined( __x86_64 )
     // Return value of 64-bit hi-res clock register.
-    unsigned a, d;
-    __asm__ volatile("rdtsc" : "=a" (a), "=d" (d));
-    return ( (uint64_t) a) | ( ( (uint64_t) d ) << 32 );
+    unsigned a = 0, d = 0;
+
+    __asm__ volatile( "rdtsc" : "=a" (a), "=d" (d) );
+
+    return ( (uint64_t) a ) | ( ( (uint64_t) d ) << 32 );
+#elif defined( __powerpc )   || defined( __powerpc__ ) || defined( __powerpc64__ ) || \
+      defined( __POWERPC__ ) || defined( __ppc__ )     || defined( __ppc64__ )
+  unsigned int cycles = 0;
+
+  asm volatile( "mftb %0" : "=r" (cycles) );
+
+  return (uint64_t) cycles;
 #else
-    const uint64_t ticks = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    const uint64_t ticks =
+      std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
     return ticks;
 #endif
   }
@@ -1516,8 +1554,5 @@ private:
 #ifdef KOKKOS_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
 #undef KOKKOS_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
 #endif
-
-#undef KOKKOS_MEMPOOL_SB_FULL_FRACTION
-#undef KOKKOS_MEMPOOL_PAGE_FULL_FRACTION
 
 #endif // KOKKOS_MEMORYPOOL_HPP

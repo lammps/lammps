@@ -43,14 +43,6 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   void init_style();
   double init_one(int, int);
 
-  struct params_lj_coul{
-    KOKKOS_INLINE_FUNCTION
-    params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
-    KOKKOS_INLINE_FUNCTION
-    params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
-    F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
-  };
-
  protected:
   void cleanup_copy();
 
@@ -77,7 +69,7 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  // hardwired to space for 15 atom types
+  // hardwired to space for 12 atom types
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];

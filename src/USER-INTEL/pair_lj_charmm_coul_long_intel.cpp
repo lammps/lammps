@@ -354,10 +354,9 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 
           #ifdef INTEL_ALLOW_TABLE
 	  } else {
-	    float rsq_lookup = rsq;
 	    const int itable = (__intel_castf32_u32(rsq_lookup) &
 	                        ncoulmask) >> ncoulshiftbits;
-	    const flt_t fraction = (rsq_lookup - table[itable].r) *
+	    const flt_t fraction = (rsq - table[itable].r) *
 	      table[itable].dr;
 
 	    const flt_t tablet = table[itable].f +

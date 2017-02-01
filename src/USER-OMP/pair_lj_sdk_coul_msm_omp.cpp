@@ -152,7 +152,7 @@ void PairLJSDKCoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const thr
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
             const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-            const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            const double fraction = (rsq - rtable[itable]) * drtable[itable];
             const double table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);

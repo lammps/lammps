@@ -260,7 +260,7 @@ void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & ncoulmask;
           itable >>= ncoulshiftbits;
-          fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+          fraction = (rsq - rtable[itable]) * drtable[itable];
           table = ftable[itable] + fraction*dftable[itable];
           forcecoul = qtmp*q[j] * table;
           if (factor_coul < 1.0) {

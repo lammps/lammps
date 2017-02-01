@@ -279,7 +279,7 @@ void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist,
             rsq_lookup.f = rsq;
             int itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            const double fraction = (rsq_lookup.f - rtable[itable]) *
+            const double fraction = (rsq - rtable[itable]) *
                                      drtable[itable];
             const double table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;

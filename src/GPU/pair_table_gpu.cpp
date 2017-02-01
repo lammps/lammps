@@ -315,7 +315,7 @@ void PairTableGPU::cpu_compute(int start, int inum, int eflag, int vflag,
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & tb->nmask;
           itable >>= tb->nshiftbits;
-          fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+          fraction = (rsq - tb->rsq[itable]) * tb->drsq[itable];
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         }

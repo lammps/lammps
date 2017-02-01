@@ -28,8 +28,8 @@ class PairMorse : public Pair {
  public:
   PairMorse(class LAMMPS *);
   virtual ~PairMorse();
-
   virtual void compute(int, int);
+	
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -49,7 +49,7 @@ class PairMorse : public Pair {
   double **morse1;
   double **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

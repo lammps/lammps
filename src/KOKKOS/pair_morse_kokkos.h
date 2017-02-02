@@ -9,9 +9,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
--------------------------------------------------------------------------
-   Contributed by Stefan Paquay @ Eindhoven University of Technology
-   Based on pair lj/cut/kokkos.
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS

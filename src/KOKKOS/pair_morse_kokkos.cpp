@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Stefan Paquay (Eindhoven University of Technology)
+------------------------------------------------------------------------- */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

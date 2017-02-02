@@ -118,10 +118,10 @@ class PairVashishtaKokkos : public PairVashishta {
   void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                  F_FLOAT *) const;
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_f_array f;
+  typename AT::t_tagint_1d tag;
+  typename AT::t_int_1d_randomread type;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
@@ -132,9 +132,9 @@ class PairVashishtaKokkos : public PairVashishta {
   DAT::t_int_2d_randomread d_type2rhor;
   DAT::t_int_2d_randomread d_type2z2r;
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
   //NeighListKokkos<DeviceType> k_list;
 
   int neighflag,newton_pair;

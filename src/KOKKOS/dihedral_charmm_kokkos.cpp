@@ -80,22 +80,22 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    if(k_eatom.dimension_0()<maxeatom) {
+    //if(k_eatom.dimension_0()<maxeatom) { // won't work without adding zero functor
       memory->destroy_kokkos(k_eatom,eatom);
       memory->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
       d_eatom = k_eatom.d_view;
       k_eatom_pair = Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType>("dihedral:eatom_pair",maxeatom);
       d_eatom_pair = k_eatom.d_view;
-    }
+    //}
   }
   if (vflag_atom) {
-    if(k_vatom.dimension_0()<maxvatom) {
+    //if(k_vatom.dimension_0()<maxvatom) { // won't work without adding zero functor
       memory->destroy_kokkos(k_vatom,vatom);
       memory->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
       d_vatom = k_vatom.d_view;
       k_vatom_pair = Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType>("dihedral:vatom_pair",maxvatom);
       d_vatom_pair = k_vatom.d_view;
-    }
+    //}
   }
 
   x = atomKK->k_x.view<DeviceType>();

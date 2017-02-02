@@ -413,7 +413,7 @@ uses (for performing 1d FFTs) when running the particle-particle
 particle-mesh (PPPM) option for long-range Coulombics via the
 "kspace_style"_kspace_style.html command.
 
-LAMMPS supports various open-source or vendor-supplied FFT libraries
+LAMMPS supports common open-source or vendor-supplied FFT libraries
 for this purpose.  If you leave these 3 variables blank, LAMMPS will
 use the open-source "KISS FFT library"_http://kissfft.sf.net, which is
 included in the LAMMPS distribution.  This library is portable to all
@@ -423,10 +423,9 @@ package in your build, you can also leave the 3 variables blank.
 
 Otherwise, select which kinds of FFTs to use as part of the FFT_INC
 setting by a switch of the form -DFFT_XXX.  Recommended values for XXX
-are: MKL, SCSL, FFTW2, and FFTW3.  Legacy options are: INTEL, SGI,
-ACML, and T3E.  For backward compatability, using -DFFT_FFTW will use
-the FFTW2 library.  Using -DFFT_NONE will use the KISS library
-described above.
+are: MKL or FFTW3.  FFTW2 and NONE are supported as legacy options.
+Selecting -DFFT_FFTW will use the FFTW3 library and -DFFT_NONE will
+use the KISS library described above.
 
 You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
 so the compiler and linker can find the needed FFT header and library

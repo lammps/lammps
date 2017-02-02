@@ -51,7 +51,7 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =       -DFFT_FFTW2
 FFT_PATH = 	
 FFT_LIB =	-lfftw
 

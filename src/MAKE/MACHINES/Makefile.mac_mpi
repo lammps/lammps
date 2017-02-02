@@ -53,7 +53,7 @@ MPI_LIB =
 
 FFTW =	/usr/local
 
-FFT_INC =       -DFFT_FFTW -I${FFTW}/include
+FFT_INC =       -DFFT_FFTW2 -I${FFTW}/include
 FFT_PATH =	-L${FFTW}/lib
 FFT_LIB =	-lfftw
 

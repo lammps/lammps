@@ -34,6 +34,7 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   PairLJCutCoulDebyeKokkos(class LAMMPS *);
   ~PairLJCutCoulDebyeKokkos();
 

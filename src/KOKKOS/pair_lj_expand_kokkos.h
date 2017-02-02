@@ -34,6 +34,7 @@ class PairLJExpandKokkos : public PairLJExpand {
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   PairLJExpandKokkos(class LAMMPS *);
   ~PairLJExpandKokkos();
 

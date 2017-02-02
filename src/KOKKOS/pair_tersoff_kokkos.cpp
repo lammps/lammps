@@ -314,7 +314,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
 
   F_FLOAT fi[3], fj[3], fk[3];
 
@@ -331,7 +331,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
     int j = d_neighbors_short(i,jj);
     j &= NEIGHMASK;
     const int jtype = type(j);
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
 
     if (itag > jtag) {
       if ((itag+jtag) % 2 == 0) continue;

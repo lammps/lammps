@@ -124,7 +124,7 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulCutKokkos,HALFTHREAD,void>(PairBuckCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairBuckCoulCutKokkos,void>(PairBuckCoulCutKokkos*,
                                                             NeighListKokkos<DeviceType>*);
-  friend void pair_virial_fdotr_compute<PairBuckCoulCutKokkos>(PairBuckCoulLongKokkos*);
+  friend void pair_virial_fdotr_compute<PairBuckCoulCutKokkos>(PairBuckCoulCutKokkos*);
 
 };
 

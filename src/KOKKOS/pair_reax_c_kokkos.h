@@ -392,7 +392,7 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_efloat_1d v_eatom;
 
   DAT::tdual_virial_array k_vatom;
-  DAT::t_virial_array d_vatom;
+  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
   typename AT::t_virial_array v_vatom;
   HAT::t_virial_array h_vatom;
 

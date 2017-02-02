@@ -115,6 +115,7 @@ class PairLJCutCoulDSFKokkos : public PairLJCutCoulDSF {
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulDSFKokkos,HALFTHREAD,void>(PairLJCutCoulDSFKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJCutCoulDSFKokkos,void>(PairLJCutCoulDSFKokkos*,
                                                             NeighListKokkos<DeviceType>*);
+  friend void pair_virial_fdotr_compute<PairLJCutCoulDSFKokkos>(PairLJCutCoulDSFKokkos*);
 
 };
 

@@ -128,6 +128,7 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,HALFTHREAD,void>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairCoulDebyeKokkos,void>(PairCoulDebyeKokkos*,
                                                             NeighListKokkos<DeviceType>*);
+  friend void pair_virial_fdotr_compute<PairCoulDebyeKokkos>(PairCoulDebyeKokkos*);
 
 };
 

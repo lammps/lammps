@@ -62,11 +62,11 @@ class PairCoulDSFKokkos : public PairCoulDSF {
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
- protected:
-
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_float_1d_randomread q;
+
+ protected:
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;

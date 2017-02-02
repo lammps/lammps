@@ -73,14 +73,14 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.dimension_0()<maxeatom) { // won't work without adding zero functor
       memory->destroy_kokkos(k_eatom,eatom);
       memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.d_view;
+      d_eatom = k_eatom.template view<DeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.dimension_0()<maxvatom) { // won't work without adding zero functor
       memory->destroy_kokkos(k_vatom,vatom);
       memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-      d_vatom = k_vatom.d_view;
+      d_vatom = k_vatom.template view<DeviceType>();
     //}
   }
 

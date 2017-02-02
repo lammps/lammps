@@ -125,8 +125,8 @@ class PairVashishtaKokkos : public PairVashishta {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
+  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
   DAT::t_int_1d_randomread d_type2frho;
   DAT::t_int_2d_randomread d_type2rhor;

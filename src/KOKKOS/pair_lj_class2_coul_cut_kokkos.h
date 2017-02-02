@@ -116,6 +116,7 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulCutKokkos,HALFTHREAD,void>(PairLJClass2CoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJClass2CoulCutKokkos,void>(PairLJClass2CoulCutKokkos*,
                                                             NeighListKokkos<DeviceType>*);
+  friend void pair_virial_fdotr_compute<PairLJClass2CoulCutKokkos>(PairLJClass2CoulCutKokkos*);
 
 };
 

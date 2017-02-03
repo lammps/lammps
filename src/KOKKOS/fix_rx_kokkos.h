@@ -40,6 +40,8 @@ class FixRxKokkos : public FixRX {
   FixRxKokkos(class LAMMPS *, int, char **);
   virtual ~FixRxKokkos();
   virtual void init();
+  void post_constructor();
+  virtual void setup_pre_force(int);
   virtual void pre_force(int);
 
   //template <typename SolverTag>
@@ -124,10 +126,18 @@ class FixRxKokkos : public FixRX {
   // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
   DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
+  typename HAT::t_efloat_1d h_dpdThetaLocal, h_sumWeights;
 
-  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR>
+  template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
   void computeLocalTemperature();
 
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
+  int pack_forward_comm(int , int *, double *, int, int *);
+  void unpack_forward_comm(int , int , double *);
+
+ private: // replicate a few from FixRX
+  int my_restartFlag;
 };
 
 }

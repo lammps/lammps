@@ -76,7 +76,6 @@ void FixReaxCBondsKokkos::init()
 void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 {
-  int i, j;
   int nbuf_local;
   int nlocal_max, numbonds, numbonds_max;
   double *buf;

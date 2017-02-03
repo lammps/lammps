@@ -67,7 +67,10 @@
 void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 {
   int i,total,length,offset,num;
-  FFT_SCALAR norm, *out_ptr;
+  FFT_SCALAR norm;
+#if defined(FFT_FFTW3)
+  FFT_SCALAR *out_ptr;
+#endif
   FFT_DATA *data,*copy;
 
   // system specific constants
@@ -210,7 +213,9 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   if (flag == 1 && plan->scaled) {
     norm = plan->norm;
     num = plan->normnum;
+#if defined(FFT_FFTW3)
     out_ptr = (FFT_SCALAR *)out;
+#endif
     for (i = 0; i < num; i++) {
 #if defined(FFT_FFTW3)
       *(out_ptr++) *= norm;
@@ -256,13 +261,12 @@ struct fft_plan_3d *fft_3d_create_plan(
 {
   struct fft_plan_3d *plan;
   int me,nprocs;
-  int i,num,flag,remapflag,fftflag;
+  int flag,remapflag;
   int first_ilo,first_ihi,first_jlo,first_jhi,first_klo,first_khi;
   int second_ilo,second_ihi,second_jlo,second_jhi,second_klo,second_khi;
   int third_ilo,third_ihi,third_jlo,third_jhi,third_klo,third_khi;
   int out_size,first_size,second_size,third_size,copy_size,scratch_size;
   int np1,np2,ip1,ip2;
-  int list[50];
 
   // query MPI info
 
@@ -756,8 +760,11 @@ void bifactor(int n, int *factor1, int *factor2)
 
 void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 {
-  int i,total,length,offset,num;
-  FFT_SCALAR norm, *data_ptr;
+  int i,num;
+  FFT_SCALAR norm;
+#if defined(FFT_FFTW3)
+  FFT_SCALAR *data_ptr;
+#endif
 
   // total = size of data needed in each dim
   // length = length of 1d FFT in each dim
@@ -823,18 +830,18 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   FFTW_API(execute_dft)(theplan,data,data);
 #else
   if (flag == -1) {
-    for (offset = 0; offset < total1; offset += length1)
+    for (int offset = 0; offset < total1; offset += length1)
       kiss_fft(plan->cfg_fast_forward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total2; offset += length2)
+    for (int offset = 0; offset < total2; offset += length2)
       kiss_fft(plan->cfg_mid_forward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total3; offset += length3)
+    for (int offset = 0; offset < total3; offset += length3)
       kiss_fft(plan->cfg_slow_forward,&data[offset],&data[offset]);
   } else {
-    for (offset = 0; offset < total1; offset += length1)
+    for (int offset = 0; offset < total1; offset += length1)
       kiss_fft(plan->cfg_fast_backward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total2; offset += length2)
+    for (int offset = 0; offset < total2; offset += length2)
       kiss_fft(plan->cfg_mid_backward,&data[offset],&data[offset]);
-    for (offset = 0; offset < total3; offset += length3)
+    for (int offset = 0; offset < total3; offset += length3)
       kiss_fft(plan->cfg_slow_backward,&data[offset],&data[offset]);
   }
 #endif
@@ -845,7 +852,9 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   if (flag == 1 && plan->scaled) {
     norm = plan->norm;
     num = MIN(plan->normnum,nsize);
+#if defined(FFT_FFTW3)
     data_ptr = (FFT_SCALAR *)data;
+#endif
     for (i = 0; i < num; i++) {
 #if defined(FFT_FFTW3)
       *(data_ptr++) *= norm;

@@ -159,7 +159,8 @@ class FixQEqReaxKokkos : public FixQEqReax {
   //typename ArrayTypes<DeviceType>::t_float_1d_randomread mass, q;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
   typename ArrayTypes<DeviceType>::t_float_1d q;
-  typename ArrayTypes<DeviceType>::t_int_1d type, tag, mask;
+  typename ArrayTypes<DeviceType>::t_int_1d type, mask;
+  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
 
   DAT::tdual_float_1d k_q;
   typename AT::t_float_1d d_q;

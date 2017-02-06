@@ -13,6 +13,7 @@ pair_style morse/opt command :h3
 pair_style morse/smooth/linear command :h3
 pair_style morse/smooth/linear/omp command :h3
 pair_style morse/soft command :h3
+pair_style morse/kk command :h3
 
 [Syntax:]
 

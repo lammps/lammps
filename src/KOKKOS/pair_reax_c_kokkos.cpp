@@ -1046,7 +1046,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
   const X_FLOAT ztmp = x(i,2);
   const F_FLOAT qi = q(i);
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT fxtmp, fytmp, fztmp;
@@ -1056,7 +1056,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const int jtype = type(j);
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
     const F_FLOAT qj = q(j);
 
     if (NEIGHFLAG != FULL) {
@@ -1201,7 +1201,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
   const X_FLOAT ztmp = x(i,2);
   const F_FLOAT qi = q(i);
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT fxtmp, fytmp, fztmp;
@@ -1211,7 +1211,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const int jtype = type(j);
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
     const F_FLOAT qj = q(j);
 
     if (NEIGHFLAG != FULL) {
@@ -1580,7 +1580,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
@@ -1605,7 +1605,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
 
     d_bo_first[j] = j*maxbo;
     d_hb_first[j] = j*maxhb;
@@ -1802,7 +1802,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
@@ -1826,7 +1826,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
 
     d_bo_first[j] = j*maxbo;
     d_hb_first[j] = j*maxhb;
@@ -2752,7 +2752,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
 
   const int i = d_ilist[ii];
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
@@ -2768,7 +2768,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
     const int jtype = type(j);
     const int j_index = jj - j_start;
 
@@ -3113,7 +3113,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
 
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
@@ -3140,7 +3140,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
   for (int kk = k_start; kk < k_end; kk++) {
     int k = d_hb_list[kk];
     k &= NEIGHMASK;
-    const int ktag = tag(k);
+    const tagint ktag = tag(k);
     const int ktype = type(k);
 
     delik[0] = x(k,0) - xtmp;
@@ -3153,7 +3153,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
       const int jj = hblist[itr];
       int j = d_bo_list[jj];
       j &= NEIGHMASK;
-      const int jtag = tag(j);
+      const tagint jtag = tag(j);
       if (jtag == ktag) continue;
 
       const int jtype = type(j);
@@ -3247,14 +3247,14 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxUpdateBond<NEIGHFLAG>, cons
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
 
   const int i = d_ilist[ii];
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
 
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
     const int j_index = jj - j_start;
     const F_FLOAT Cdbo_i = d_Cdbo(i,j_index);
     const F_FLOAT Cdbopi_i = d_Cdbopi(i,j_index);
@@ -3302,7 +3302,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const F_FLOAT imass = paramssing(itype).mass;
   const F_FLOAT val_i = paramssing(itype).valency;
   const int j_start = d_bo_first[i];
@@ -3313,7 +3313,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
 
     if (itag > jtag) {
       if ((itag+jtag) % 2 == 0) continue;
@@ -3438,7 +3438,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
-  const int itag = tag(i);
+  const tagint itag = tag(i);
   const F_FLOAT imass = paramssing(itype).mass;
   const F_FLOAT val_i = paramssing(itype).valency;
   const int j_start = d_bo_first[i];
@@ -3451,7 +3451,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
-    const int jtag = tag(j);
+    const tagint jtag = tag(j);
 
     if (itag > jtag) {
       if ((itag+jtag) % 2 == 0) continue;

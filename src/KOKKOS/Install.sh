@@ -189,6 +189,8 @@ action pair_lj_gromacs_kokkos.cpp
 action pair_lj_gromacs_kokkos.h
 action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_morse_kokkos.cpp
+action pair_morse_kokkos.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
 action pair_multi_lucy_rx_kokkos.h pair_multi_lucy_rx.h
 action pair_reax_c_kokkos.cpp pair_reax_c.cpp

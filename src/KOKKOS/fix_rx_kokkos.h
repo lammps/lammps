@@ -25,14 +25,10 @@ FixStyle(rx/kk/host,FixRxKokkos<LMPHostType>)
 #include "fix_rx.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
 #include "kokkos_type.h"
+#include "neigh_list.h"
+#include "neigh_list_kokkos.h"
 
 namespace LAMMPS_NS {
-
-template <bool _setToZero>
-struct TagFixRxKokkosSolver
-{
-  enum { setToZero = (_setToZero == true) ? 1 : 0 };
-};
 
 template <typename DeviceType>
 class FixRxKokkos : public FixRX {
@@ -40,6 +36,7 @@ class FixRxKokkos : public FixRX {
   FixRxKokkos(class LAMMPS *, int, char **);
   virtual ~FixRxKokkos();
   virtual void init();
+  void init_list(int, class NeighList *);
   void post_constructor();
   virtual void setup_pre_force(int);
   virtual void pre_force(int);
@@ -79,7 +76,7 @@ class FixRxKokkos : public FixRX {
   PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
   double VDPD;
 
-  void solve_reactions(void);
+  void solve_reactions(const int vflag, const bool isPreForce = true);
 
   int rhs(double, const double *, double *, void *) const;
   int rhs_dense (double, const double *, double *, void *) const;

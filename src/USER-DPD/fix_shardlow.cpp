@@ -55,6 +55,7 @@
 #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy.h"
 #include "pair.h"
+#include "npair_half_bin_newton_ssa.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -500,19 +501,30 @@ void FixShardlow::initial_integrate(int vflag)
 
   dtsqrt = sqrt(update->dt);
 
-  ii = 0;
+  NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
+  if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
+  int ssa_phaseCt = np_ssa->ssa_phaseCt;
+  int *ssa_phaseLen = np_ssa->ssa_phaseLen;
+  int **ssa_itemLoc = np_ssa->ssa_itemLoc;
+  int **ssa_itemLen = np_ssa->ssa_itemLen;
+
   // process neighbors in the local AIR
-  while (ii < inum) {
-    i = ilist[ii];
-    for (int subphase = 0; subphase < 4; subphase++) {
-      int start = (subphase > 0) ? list->ndxAIR_ssa[i][subphase - 1] : 0;
-      int len = list->ndxAIR_ssa[i][subphase] - start;
-      if (len > 0) {
-        if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][start]), len);
-        else ssa_update_dpd(i, &(list->firstneigh[i][start]), len);
+  for (int workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
+    int workItemCt = ssa_phaseLen[workPhase];
+
+    for (int workItem = 0; workItem < workItemCt; ++workItem) {
+      int ct = ssa_itemLen[workPhase][workItem];
+      ii = ssa_itemLoc[workPhase][workItem];
+
+      while (ct-- > 0) {
+        int len = list->numneigh[ii];
+        if (len > 0) {
+          if (useDPDE) ssa_update_dpde(ilist[ii], list->firstneigh[ii], len);
+          else ssa_update_dpd(ilist[ii], list->firstneigh[ii], len);
+        }
+        ii++;
       }
     }
-    ii++;
   }
 
   ii = inum;
@@ -531,10 +543,9 @@ void FixShardlow::initial_integrate(int vflag)
 
     // process neighbors in this AIR
     while (ct-- > 0) {
-      i = ilist[ii];
-      int len = list->numneigh[i];
-      if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][0]), len);
-      else ssa_update_dpd(i, &(list->firstneigh[i][0]), len);
+      int len = list->numneigh[ii];
+      if (useDPDE) ssa_update_dpde(ilist[ii], list->firstneigh[ii], len);
+      else ssa_update_dpd(ilist[ii], list->firstneigh[ii], len);
       ii++;
     }
 

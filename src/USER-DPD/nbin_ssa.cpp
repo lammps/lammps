@@ -30,9 +30,6 @@ using namespace LAMMPS_NS;
 
 NBinSSA::NBinSSA(LAMMPS *lmp) : NBinStandard(lmp)
 {
-  maxbin_ssa = 0;
-  binlist_ssa = NULL;
-  binct_ssa = NULL;
   for (int i = 0; i < 8; i++) {
     gairhead_ssa[i] = -1;
   }
@@ -40,8 +37,6 @@ NBinSSA::NBinSSA(LAMMPS *lmp) : NBinStandard(lmp)
 
 NBinSSA::~NBinSSA()
 {
-  memory->destroy(binlist_ssa);
-  memory->destroy(binct_ssa);
 }
 
 /* ----------------------------------------------------------------------
@@ -72,8 +67,6 @@ void NBinSSA::bin_atoms()
 
   for (i = 0; i < mbins; i++) {
     binhead[i] = -1;
-    binlist_ssa[i] = -1;
-    binct_ssa[i] = 0;
   }
 
   // bin in reverse order so linked list will be in forward order
@@ -108,7 +101,6 @@ void NBinSSA::bin_atoms()
     if (zbin >= lbinzhi) lbinzhi = zbin + 1;
     bins[i] = binhead[ibin];
     binhead[ibin] = i;
-    ++(binct_ssa[ibin]);
   }
 
 }
@@ -118,14 +110,6 @@ void NBinSSA::bin_atoms()
 void NBinSSA::bin_atoms_setup(int nall)
 {
   NBinStandard::bin_atoms_setup(nall); // Setup the parent class's data too
-
-  if (mbins > maxbin_ssa) {
-    maxbin_ssa = mbins;
-    memory->destroy(binlist_ssa);
-    memory->destroy(binct_ssa);
-    memory->create(binlist_ssa,maxbin_ssa,"binlist_ssa");
-    memory->create(binct_ssa,maxbin_ssa,"binct_ssa");
-  }
 
   // Clear the local bin extent bounding box.
   lbinxlo = mbinx - 1; // Safe to = stencil->sx + 1
@@ -142,10 +126,6 @@ bigint NBinSSA::memory_usage()
 {
   bigint bytes = NBinStandard::memory_usage(); // Count the parent's usage too
 
-  if (maxbin_ssa) {
-    bytes += memory->usage(binlist_ssa,maxbin_ssa);
-    bytes += memory->usage(binct_ssa,maxbin_ssa);
-  }
   return bytes;
 }
 

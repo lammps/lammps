@@ -29,10 +29,7 @@ namespace LAMMPS_NS {
 class NBinSSA : public NBinStandard {
  public:
 
-  int *binlist_ssa;          // index in neighlist of 1st local atom in each bin
-  int *binct_ssa;            // count of local atoms in each bin
   int gairhead_ssa[8];       // index of 1st ghost atom in each AIR
-  int maxbin_ssa;            // size of binlist_ssa and binct_ssa arrays
 
   // Bounds of the local atoms in the binhead array
   int lbinxlo;               // lowest local bin x-dim coordinate

@@ -34,7 +34,27 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBinNewtonSSA::NPairHalfBinNewtonSSA(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfBinNewtonSSA::NPairHalfBinNewtonSSA(LAMMPS *lmp) : NPair(lmp)
+{
+  ssa_maxPhaseCt = 0;
+  ssa_maxPhaseLen = 0;
+  ssa_phaseCt = 0;
+  ssa_phaseLen = NULL;
+  ssa_itemLoc = NULL;
+  ssa_itemLen = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+NPairHalfBinNewtonSSA::~NPairHalfBinNewtonSSA()
+{
+  ssa_maxPhaseCt = 0;
+  ssa_maxPhaseLen = 0;
+  ssa_phaseCt = 0;
+  memory->destroy(ssa_phaseLen);
+  memory->destroy(ssa_itemLoc);
+  memory->destroy(ssa_itemLen);
+}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with full Newton's 3rd law
@@ -81,8 +101,6 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   if (!nb_ssa) error->one(FLERR, "NBin wasn't a NBinSSA object");
   int *bins = nb_ssa->bins;
   int *binhead = nb_ssa->binhead;
-  int *binlist_ssa = nb_ssa->binlist_ssa;
-  int *binct_ssa = nb_ssa->binct_ssa;
   int *gairhead_ssa = &(nb_ssa->gairhead_ssa[0]);
 
   int inum = 0;
@@ -96,74 +114,81 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   int lbinzlo = nb_ssa->lbinzlo;
   int lbinzhi = nb_ssa->lbinzhi;
 
+  int sx1 = ns_ssa->sx + 1;
+  int sy1 = ns_ssa->sy + 1;
+  int sz1 = ns_ssa->sz + 1;
+
+  ssa_phaseCt = sz1*sy1*sx1;
+
+  xbin = (lbinxhi - lbinxlo + sx1 - 1) / sx1 + 1;
+  ybin = (lbinyhi - lbinylo + sy1 - 1) / sy1 + 1;
+  zbin = (lbinzhi - lbinzlo + sz1 - 1) / sz1 + 1;
+
+  int phaseLenEstimate = xbin*ybin*zbin;
+
+  if (ssa_phaseCt > ssa_maxPhaseCt) {
+    ssa_maxPhaseCt = ssa_phaseCt;
+    ssa_maxPhaseLen = 0;
+    memory->destroy(ssa_phaseLen);
+    memory->destroy(ssa_itemLoc);
+    memory->destroy(ssa_itemLen);
+    memory->create(ssa_phaseLen,ssa_maxPhaseCt,"NPairHalfBinNewtonSSA:ssa_phaseLen");
+  }
+
+  if (phaseLenEstimate > ssa_maxPhaseLen) {
+    ssa_maxPhaseLen = phaseLenEstimate;
+    memory->destroy(ssa_itemLoc);
+    memory->destroy(ssa_itemLen);
+    memory->create(ssa_itemLoc,ssa_maxPhaseCt,ssa_maxPhaseLen,"NPairHalfBinNewtonSSA:ssa_itemLoc");
+    memory->create(ssa_itemLen,ssa_maxPhaseCt,ssa_maxPhaseLen,"NPairHalfBinNewtonSSA:ssa_itemLen");
+  }
+
   ipage->reset();
 
+  int workPhase = 0;
   // loop over bins with local atoms, storing half of the neighbors
-  for (zbin = lbinzlo; zbin < lbinzhi; zbin++) {
-  for (ybin = lbinylo; ybin < lbinyhi; ybin++) {
-  for (xbin = lbinxlo; xbin < lbinxhi; xbin++) {
-  ibin = zbin*mbiny*mbinx + ybin*mbinx + xbin;
-  binlist_ssa[ibin] = inum; // record where ibin starts in ilist
-  for (i = binhead[ibin]; i >= 0; i = bins[i]) {
-    n = 0;
-    neighptr = ipage->vget();
+  for (int zoff = ns_ssa->sz; zoff >= 0; --zoff) {
+  for (int yoff = ns_ssa->sy; yoff >= 0; --yoff) {
+  for (int xoff = ns_ssa->sx; xoff >= 0; --xoff) {
+    int workItem = 0;
+  for (zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
+  for (ybin = lbinylo + yoff - ns_ssa->sy; ybin < lbinyhi; ybin += sy1) {
+  for (xbin = lbinxlo + xoff - ns_ssa->sx; xbin < lbinxhi; xbin += sz1) {
+    if (workItem >= phaseLenEstimate) error->one(FLERR,"phaseLenEstimate was too small");
+    ssa_itemLoc[workPhase][workItem] = inum; // record where workItem starts in ilist
 
-    itype = type[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    if (moltemplate) {
-      imol = molindex[i];
-      iatom = molatom[i];
-      tagprev = tag[i] - iatom - 1;
-    }
-
-    // loop over rest of local atoms in i's bin
-    // just store them, since j is beyond i in linked list
-
-    for (j = bins[i]; j >= 0; j = bins[j]) {
-
-      jtype = type[j];
-      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq <= cutneighsq[itype][jtype]) {
-        if (molecular) {
-          if (!moltemplate)
-            which = find_special(special[i],nspecial[i],tag[j]);
-          else if (imol >= 0)
-            which = find_special(onemols[imol]->special[iatom],
-                                 onemols[imol]->nspecial[iatom],
-                                 tag[j]-tagprev);
-          else which = 0;
-          if (which == 0) neighptr[n++] = j;
-          else if (domain->minimum_image_check(delx,dely,delz))
-            neighptr[n++] = j;
-          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-        } else neighptr[n++] = j;
-      }
-    }
-
-    // loop over all local atoms in other bins in "half" stencil
-
-    k = 0;
     for (int subphase = 0; subphase < 4; subphase++) {
-      for (; k < nstencil_ssa[subphase]; k++) {
-        for (j = binhead[ibin+stencil[k]]; j >= 0;
-             j = bins[j]) {
+      int s_ybin = ybin + ((subphase & 0x2) ? ns_ssa->sy : 0);
+      int s_xbin = xbin + ((subphase & 0x1) ? ns_ssa->sx : 0);
+      int ibin, ct;
 
+      if ((s_ybin < lbinylo) || (s_ybin >= lbinyhi)) continue;
+      if ((s_xbin < lbinxlo) || (s_xbin >= lbinxhi)) continue;
+      ibin = zbin*nb_ssa->mbiny*nb_ssa->mbinx
+           + s_ybin*nb_ssa->mbinx
+           + s_xbin;
+
+      for (i = binhead[ibin]; i >= 0; i = bins[i]) {
+        n = 0;
+        neighptr = ipage->vget();
+        itype = type[i];
+        xtmp = x[i][0];
+        ytmp = x[i][1];
+        ztmp = x[i][2];
+        if (moltemplate) {
+          imol = molindex[i];
+          iatom = molatom[i];
+          tagprev = tag[i] - iatom - 1;
+        }
+        // loop over rest of local atoms in i's bin if this is subphase 0
+        // just store them, since j is beyond i in linked list
+        if (subphase == 0) for (j = bins[i]; j >= 0; j = bins[j]) {
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
           rsq = delx*delx + dely*dely + delz*delz;
-
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular) {
               if (!moltemplate)
@@ -180,22 +205,59 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
             } else neighptr[n++] = j;
           }
         }
-      }
-      list->ndxAIR_ssa[i][subphase] = n; // record end of this subphase
-    }
 
-    if (n > 0) {
-      ilist[inum++] = i;
+        // loop over all local atoms in other bins in "subphase" of stencil
+        k = (subphase > 0) ? nstencil_ssa[subphase - 1] : 0;
+        for (; k < nstencil_ssa[subphase]; k++) {
+          for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
+            jtype = type[j];
+            if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+            delx = xtmp - x[j][0];
+            dely = ytmp - x[j][1];
+            delz = ztmp - x[j][2];
+            rsq = delx*delx + dely*dely + delz*delz;
+            if (rsq <= cutneighsq[itype][jtype]) {
+              if (molecular) {
+                if (!moltemplate)
+                  which = find_special(special[i],nspecial[i],tag[j]);
+                else if (imol >= 0)
+                  which = find_special(onemols[imol]->special[iatom],
+                                       onemols[imol]->nspecial[iatom],
+                                       tag[j]-tagprev);
+                else which = 0;
+                if (which == 0) neighptr[n++] = j;
+                else if (domain->minimum_image_check(delx,dely,delz))
+                  neighptr[n++] = j;
+                else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+              } else neighptr[n++] = j;
+            }
+          }
+        }
+
+        if (n > 0) {
+          firstneigh[inum] = neighptr;
+          numneigh[inum] = n;
+          ilist[inum++] = i;
+        }
+        ipage->vgot(n);
+        if (ipage->status())
+          error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+      }
     }
-    firstneigh[i] = neighptr;
-    numneigh[i] = n;
-    ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    // record where workItem ends in ilist
+    ssa_itemLen[workPhase][workItem] = inum - ssa_itemLoc[workPhase][workItem];
+    if (ssa_itemLen[workPhase][workItem] > 0) workItem++;
   }
   }
   }
+
+    // record where workPhase ends
+    ssa_phaseLen[workPhase++] = workItem;
   }
+  }
+  }
+
+  if (ssa_phaseCt != workPhase) error->one(FLERR,"ssa_phaseCt was wrong");
 
   list->AIRct_ssa[0] = list->inum = inum;
 
@@ -258,11 +320,11 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
       }
 
       if (n > 0) {
+        firstneigh[inum + gnum] = neighptr;
+        numneigh[inum + gnum] = n;
         ilist[inum + (gnum++)] = i;
         ++locAIRct;
       }
-      firstneigh[i] = neighptr;
-      numneigh[i] = n;
       ipage->vgot(n);
       if (ipage->status())
         error->one(FLERR,"Neighbor (ghost) list overflow, boost neigh_modify one");

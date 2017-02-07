@@ -65,10 +65,10 @@ void NStencilHalfBin2dNewtonSSA::create()
       }
   nstencil_ssa[1] = pos;
 
-  // Subphase 2: lower left front bins (blue)
+  // Subphase 2: lower right front bins (yellow)
   nstencil_ssa[2] = pos;
 
-  // Subphase 3: lower right front bins (yellow)
+  // Subphase 3: lower left front bins (blue)
   nstencil_ssa[3] = pos;
 
   // Now include additional bins for AIR ghosts, and impure-to-pure locals
@@ -78,9 +78,9 @@ void NStencilHalfBin2dNewtonSSA::create()
   // Subphase 5: upper left back bins (light green)
   nstencil_ssa[5] = pos;
 
-  // Subphase 6: lower left back bins (purple)
-  for (j = -sy; j <= 0; j++)
-    for (i = -sx; i < 0; i++)
+  // Subphase 6: lower right back bins (white)
+  for (j = -sy; j < 0; j++)
+    for (i = 0; i <= sx; i++)
       if (bin_distance(i,j,0) < cutneighmaxsq) {
         stencilxyz[pos][0] = i;
         stencilxyz[pos][1] = j;
@@ -89,9 +89,9 @@ void NStencilHalfBin2dNewtonSSA::create()
       }
   nstencil_ssa[6] = pos;
 
-  // Subphase 7: lower right back bins (white)
-  for (j = -sy; j < 0; j++)
-    for (i = 0; i <= sx; i++)
+  // Subphase 7: lower left back bins (purple)
+  for (j = -sy; j <= 0; j++)
+    for (i = -sx; i < 0; i++)
       if (bin_distance(i,j,0) < cutneighmaxsq) {
         stencilxyz[pos][0] = i;
         stencilxyz[pos][1] = j;

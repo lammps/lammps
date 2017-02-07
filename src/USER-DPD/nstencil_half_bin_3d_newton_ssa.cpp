@@ -67,10 +67,10 @@ void NStencilHalfBin3dNewtonSSA::create()
         }
   nstencil_ssa[1] = pos;
 
-  // Subphase 2: lower left front bins (blue)
+  // Subphase 2: lower right front bins (yellow)
   for (k = 1; k <= sz; k++)
-    for (j = -sy; j <= 0; j++)
-      for (i = -sx; i < 0; i++)
+    for (j = -sy; j < 0; j++)
+      for (i = 0; i <= sx; i++)
         if (bin_distance(i,j,k) < cutneighmaxsq) {
           stencilxyz[pos][0] = i;
           stencilxyz[pos][1] = j;
@@ -79,10 +79,10 @@ void NStencilHalfBin3dNewtonSSA::create()
         }
   nstencil_ssa[2] = pos;
 
-  // Subphase 3: lower right front bins (yellow)
+  // Subphase 3: lower left front bins (blue)
   for (k = 1; k <= sz; k++)
-    for (j = -sy; j < 0; j++)
-      for (i = 0; i <= sx; i++)
+    for (j = -sy; j <= 0; j++)
+      for (i = -sx; i < 0; i++)
         if (bin_distance(i,j,k) < cutneighmaxsq) {
           stencilxyz[pos][0] = i;
           stencilxyz[pos][1] = j;
@@ -116,10 +116,10 @@ void NStencilHalfBin3dNewtonSSA::create()
         }
   nstencil_ssa[5] = pos;
 
-  // Subphase 6: lower left back bins (purple)
+  // Subphase 6: lower right back bins (white)
   for (k = -sz; k <= 0; k++)
-    for (j = -sy; j <= 0; j++)
-      for (i = -sx; i < 0; i++)
+    for (j = -sy; j < 0; j++)
+      for (i = 0; i <= sx; i++)
         if (bin_distance(i,j,k) < cutneighmaxsq) {
           stencilxyz[pos][0] = i;
           stencilxyz[pos][1] = j;
@@ -128,10 +128,10 @@ void NStencilHalfBin3dNewtonSSA::create()
         }
   nstencil_ssa[6] = pos;
 
-  // Subphase 7: lower right back bins (white)
+  // Subphase 7: lower left back bins (purple)
   for (k = -sz; k <= 0; k++)
-    for (j = -sy; j < 0; j++)
-      for (i = 0; i <= sx; i++)
+    for (j = -sy; j <= 0; j++)
+      for (i = -sx; i < 0; i++)
         if (bin_distance(i,j,k) < cutneighmaxsq) {
           stencilxyz[pos][0] = i;
           stencilxyz[pos][1] = j;

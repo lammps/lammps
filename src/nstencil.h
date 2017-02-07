@@ -30,6 +30,7 @@ class NStencil : protected Pointers {
   int *nstencil_multi;             // # bins in each type-based multi stencil
   int **stencil_multi;             // list of bin offsets in each stencil
   double **distsq_multi;           // sq distances to bins in each stencil
+  int sx,sy,sz;                    // extent of stencil in each dim
 
   double cutoff_custom;            // cutoff set by requestor
 
@@ -64,7 +65,6 @@ class NStencil : protected Pointers {
   int xyzflag;                     // 1 if stencilxyz is allocated
   int maxstencil;                  // max size of stencil
   int maxstencil_multi;            // max sizes of stencils
-  int sx,sy,sz;                    // extent of stencil in each dim
 
   int dimension;
 

@@ -792,43 +792,7 @@ void FixRxKokkos<DeviceType>::setup_pre_force(int vflag)
   if (my_restartFlag)
     my_restartFlag = 0;
   else
-  {
-#if 1
     this->solve_reactions( vflag, false );
-#else
-    const int nlocal = atom->nlocal;
-    //const int nghost = atom->nghost;
-    //const int *mask = atom->mask;
-    //const int newton_pair = force->newton_pair;
-
-    typename ArrayTypes<DeviceType>::t_float_2d  d_dvector = atomKK->k_dvector.view<DeviceType>();
-
-    // Get up-to-date data.
-    atomKK->sync( execution_space, DVECTOR_MASK );
-
-    // The only net effect from fix_rx.cpp is to set dvector[nspecies:2*nspecies]
-    // since the reactions are set to zero for step 0.
-    Kokkos::parallel_for ( nlocal,
-        LAMMPS_LAMBDA(const int i)
-        {
-          for (int ispecies = 0; ispecies < nspecies; ispecies++)
-            d_dvector(ispecies+nspecies,i) = d_dvector(ispecies,i);
-        }
-      );
-
-    // Signal that dvector has been modified on this execution space.
-    atomKK->modified( execution_space, DVECTOR_MASK );
-
-    // Communicate the updated species data to all nodes
-    atomKK->sync ( Host, DVECTOR_MASK );
-
-    // Communicate the dvector to all nodes
-    comm->forward_comm_fix(this);
-
-    // Flag that dvector was updated on the host in the comm.
-    atomKK->modified ( Host, DVECTOR_MASK );
-#endif
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -856,16 +820,12 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   const int nghost = atom->nghost;
   const int newton_pair = force->newton_pair;
 
-  //const bool setToZero = false; // don't set the forward rates to zero.
-  const bool setToZero = isPreForce == false; // Set the forward rates to zero if acting as setup_pre_force.
+  // Set the forward rates to zero if acting as setup_pre_force.
+  const bool setRatesToZero = (isPreForce == false);
 
   if (localTempFlag)
   {
     const int count = nlocal + (newton_pair ? nghost : 0);
-
-    //dpdThetaLocal = new double[count];
-    //memset(dpdThetaLocal, 0, sizeof(double)*count);
-    //FixRx::computeLocalTemperature();
 
     memory->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
     d_dpdThetaLocal = k_dpdThetaLocal.d_view;
@@ -904,9 +864,6 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   // Set data needed in the operators.
   // ...
 
-  //int *mask = atom->mask;
-  //double *dpdTheta = atom->dpdTheta;
-
   // Local references to the atomKK objects.
   typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
   typename ArrayTypes<DeviceType>::t_float_2d  d_dvector  = atomKK->k_dvector.view<DeviceType>();
@@ -941,13 +898,12 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 
         CounterType counter_i;
 
-        //const double theta = (localTempFlag) ? dpdThetaLocal[i] : d_dpdTheta(i);
         const double theta = (localTempFlag) ? d_dpdThetaLocal(i) : d_dpdTheta(i);
 
         //Compute the reaction rate constants
         for (int irxn = 0; irxn < nreactions; irxn++)
         {
-          if (setToZero)
+          if (setRatesToZero)
             userData.kFor[irxn] = 0.0;
           else
           {
@@ -1068,16 +1024,6 @@ template <typename DeviceType>
   template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
 void FixRxKokkos<DeviceType>::computeLocalTemperature()
 {
-
-  //int inum,jnum,itype,jtype;
-  //double xtmp,ytmp,ztmp,delx,dely,delz;
-  //double rsq;
-  //int *ilist,*jlist,*numneigh,**firstneigh;
-
-  //double **x = atom->x;
-  //int *type = atom->type;
-  //double *dpdTheta = atom->dpdTheta;
-
   typename ArrayTypes<DeviceType>::t_x_array_randomread d_x        = atomKK->k_x.view<DeviceType>();
   typename ArrayTypes<DeviceType>::t_int_1d_randomread  d_type     = atomKK->k_type.view<DeviceType>();
   typename ArrayTypes<DeviceType>::t_efloat_1d          d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
@@ -1086,12 +1032,8 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   const int nlocal = atom->nlocal;
   const int nghost = atom->nghost;
-  //const int newton_pair = force->newton_pair;
 
-  printf("Inside FixRxKokkos::computeLocalTemperature: %d %d %d %d %d\n", WT_FLAG, LOCAL_TEMP_FLAG, NEWTON_PAIR, (int)lmp->kokkos->neighflag, NEIGHFLAG, nlocal, nghost);
-
-  // local temperature variables
-  //double wij=0.0;
+  printf("Inside FixRxKokkos::computeLocalTemperature: %d %d %d %d %d %d %d\n", WT_FLAG, LOCAL_TEMP_FLAG, NEWTON_PAIR, (int)lmp->kokkos->neighflag, NEIGHFLAG, nlocal, nghost);
 
   // Pull from pairDPDE. The pairDPDEKK objects are protected so recreate here for now.
   //pairDPDEKK->k_cutsq.template sync<DeviceType>();
@@ -1121,8 +1063,6 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   // Initialize the local temperature weight array
   int sumWeightsCt = nlocal + (NEWTON_PAIR ? nghost : 0);
-  //sumWeights = new double[sumWeightsCt];
-  //memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
 
   memory->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
   d_sumWeights = k_sumWeights.d_view;
@@ -1136,77 +1076,16 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
         }
      );
 
-  const int inum = list->inum;
-
-  bool useKokkosLists = false;
-
   // Local list views. (This isn't working!)
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   if (not(list->kokkos))
-  {
-     //error->one(FLERR,"list is not a Kokkos list\n");
-     printf("list is NOT a Kokkos list\n");
+     error->one(FLERR,"list is not a Kokkos list\n");
 
-     int* ilist = list->ilist;
-     int* numneigh = list->numneigh;
-     int** firstneigh = list->firstneigh;
-     printf("inum= %d ilist= %x\n", inum, ilist);
-     for (int ii = 0; ii < std::min(inum,10); ++ii)
-     {
-        const int i = ilist[ii];
-        int *jlist = firstneigh[i];
-        const int jnum = numneigh[i];
-        const int j = (jlist[0] & NEIGHMASK);
-        printf("  ilist[%d]= %d j= %d jnum= %d\n", ii, i, j, jnum);
-     }
-  }
-  else
-  {
-     printf("It's a kokkos list\n");
+  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors = k_list->d_neighbors;
+  typename ArrayTypes<DeviceType>::t_int_1d       d_ilist     = k_list->d_ilist;
+  typename ArrayTypes<DeviceType>::t_int_1d       d_numneigh  = k_list->d_numneigh;
 
-     useKokkosLists = true;
-
-     typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors = k_list->d_neighbors;
-     typename ArrayTypes<DeviceType>::t_int_1d       d_ilist     = k_list->d_ilist;
-     typename ArrayTypes<DeviceType>::t_int_1d       d_numneigh  = k_list->d_numneigh;
-
-     static FILE *fp1 = NULL;
-
-     //if (fp1 == NULL)
-     //   fp1 = fopen("kokkos_list.txt","w");
-
-     if (fp1 != NULL)
-     {
-        const int inum = list->inum;
-        fprintf(fp1, "inum= %d\n", inum);
-        for (int ii = 0; ii < inum; ++ii)
-        {
-           const int i = d_ilist[ii];
-           const int jnum = d_numneigh[i];
-           fprintf(fp1, "  %d %d %d\n", ii, i, jnum);
-           for (int jj = 0; jj < jnum; ++jj)
-           {
-              const int j = (d_neighbors(i,jj) & NEIGHMASK);
-              fprintf(fp1, "    %d %d\n", jj, j);
-           }
-        }
-     }
-  }
-
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d       d_ilist;
-  typename ArrayTypes<DeviceType>::t_int_1d       d_numneigh;
-
-  if (useKokkosLists)
-  {
-     d_neighbors = k_list->d_neighbors;
-     d_ilist     = k_list->d_ilist;
-     d_numneigh  = k_list->d_numneigh;
-  }
-
-  int* ilist = list->ilist;
-  int* numneigh = list->numneigh;
-  int** firstneigh = list->firstneigh;
+  const int inum = list->inum;
 
   // loop over neighbors of my atoms
   Kokkos::parallel_for ( inum,
@@ -1223,25 +1102,18 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
           double i_dpdThetaLocal = 0.0;
           double i_sumWeights    = 0.0;
 
-          //const int i = ilist[ii];
-          //const int i = d_ilist(ii);
-          const int i = (useKokkosLists) ? d_ilist(ii) : ilist[ii];
+          const int i = d_ilist(ii);
  
           const double xtmp = d_x(i,0);
           const double ytmp = d_x(i,1);
           const double ztmp = d_x(i,2);
           const int itype = d_type(i);
 
-          int *jlist = firstneigh[i];
-          //const int jnum = numneigh[i];
-          //const int jnum = d_numneigh(i);
-          const int jnum = (useKokkosLists) ? d_numneigh(i) : numneigh[i];
+          const int jnum = d_numneigh(i);
 
           for (int jj = 0; jj < jnum; jj++)
           {
-            //const int j = (jlist[jj] & NEIGHMASK);
-            //const int j = (d_neighbors(i,jj) & NEIGHMASK);
-            const int j = (useKokkosLists) ? (d_neighbors(i,jj) & NEIGHMASK) : (jlist[jj] & NEIGHMASK);
+            const int j = (d_neighbors(i,jj) & NEIGHMASK);
             const int jtype = d_type(j);
 
             const double delx = xtmp - d_x(j,0);
@@ -1313,23 +1185,9 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
         }
      );
 
-  if (false)
-  {
-     static FILE *fp = NULL;
-
-     if (fp == NULL)
-        fp = fopen("kokkos_temp.txt","w");
-
-     fprintf(fp, "nlocal= %d %d\n", nlocal, nghost);
-     for (int i = 0; i < nlocal; ++i)
-        fprintf(fp, "%d %15.9e %15.9e\n", i, d_dpdThetaLocal[i], d_sumWeights[i]);
-  }
-
   // Clean up the local kokkos data.
   memory->destroy_kokkos(k_cutsq, h_cutsq);
   memory->destroy_kokkos(k_sumWeights, sumWeights);
-
-  //delete [] sumWeights;
 }
 
 /* ---------------------------------------------------------------------- */

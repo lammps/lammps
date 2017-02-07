@@ -79,6 +79,7 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   // USER-DPD package
 
   ndxAIR_ssa = NULL;
+  np = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

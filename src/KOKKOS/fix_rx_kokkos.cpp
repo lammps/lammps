@@ -879,11 +879,22 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   // Average DPD volume. Used in the RHS function.
   this->VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 
-  /*if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
+  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
   {
-    memory->create( diagnosticCounterPerODE[StepSum], nlocal, "FixRX::diagnosticCounterPerODE");
-    memory->create( diagnosticCounterPerODE[FuncSum], nlocal, "FixRX::diagnosticCounterPerODE");
-  }*/
+    memory->create_kokkos (k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps, nlocal, "FixRxKokkos::diagnosticCounterPerODEnSteps");
+    memory->create_kokkos (k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs, nlocal, "FixRxKokkos::diagnosticCounterPerODEnFuncs");
+
+    d_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.d_view;
+    d_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.d_view;
+
+    Kokkos::parallel_for ( nlocal,
+          LAMMPS_LAMBDA(const int i)
+          {
+             d_diagnosticCounterPerODEnSteps(i) = 0;
+             d_diagnosticCounterPerODEnFuncs(i) = 0;
+          }
+       );
+  }
 
   Kokkos::parallel_reduce( nlocal, LAMMPS_LAMBDA(int i, CounterType &counter)
     {
@@ -930,12 +941,11 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
         {
           rkf45(nspecies, t_stop, y, rwork, &userData, counter_i);
 
-          //if (diagnosticFrequency == 1 && diagnosticCounterPerODE[StepSum] != NULL)
-          //if (diagnosticCounterPerODE[StepSum] != NULL)
-          //{
-          //  diagnosticCounterPerODE[StepSum][i] = counter_i.nSteps;
-          //  diagnosticCounterPerODE[FuncSum][i] = counter_i.nFuncs;
-          //}
+          if (diagnosticFrequency == 1)
+          {
+            d_diagnosticCounterPerODEnSteps(i) = counter_i.nSteps;
+            d_diagnosticCounterPerODEnFuncs(i) = counter_i.nFuncs;
+          }
         }
 
         // Store the solution back in dvector.
@@ -975,10 +985,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   atomKK->modified ( Host, DVECTOR_MASK );
 
   if (localTempFlag)
-  {
-    //delete [] dpdThetaLocal;
     memory->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
-  }
 
   TimerType timer_stop = getTimeStamp();
 
@@ -997,12 +1004,12 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
     error->warning(FLERR, sbuf);
   }
 
-/*
   // Compute and report ODE diagnostics, if requested.
-  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency != 0){
+  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency != 0)
+  {
     // Update the counters.
-    diagnosticCounter[StepSum] += nSteps;
-    diagnosticCounter[FuncSum] += nFuncs;
+    diagnosticCounter[StepSum] += TotalCounters.nSteps;
+    diagnosticCounter[FuncSum] += TotalCounters.nFuncs;
     diagnosticCounter[TimeSum] += time_ODE;
     diagnosticCounter[AtomSum] += nlocal;
     diagnosticCounter[numDiagnosticCounters-1] ++;
@@ -1011,11 +1018,193 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
                ((update->ntimestep - update->firststep) % diagnosticFrequency) == 0) ||
          (diagnosticFrequency < 0 && update->ntimestep == update->laststep) )
       this->odeDiagnostics();
+  }
+}
 
-    for (int i = 0; i < numDiagnosticCounters; ++i)
-      if (diagnosticCounterPerODE[i])
-        memory->destroy( diagnosticCounterPerODE[i] );
-  } */
+/* ---------------------------------------------------------------------- */
+
+template <typename DeviceType>
+void FixRxKokkos<DeviceType>::odeDiagnostics(void)
+{
+  TimerType timer_start = getTimeStamp();
+
+  // Compute:
+  // 1) Average # of ODE integrator steps and RHS evaluations per atom globally.
+  // 2) RMS     # of  ...
+  // 3) Average # of ODE steps and RHS evaluations per MPI task.
+  // 4) RMS     # of ODE steps and RHS evaluations per MPI task.
+  // 5) MAX     # of ODE steps and RHS evaluations per MPI task.
+  //
+  // ... 1,2 are for ODE control diagnostics.
+  // ... 3-5 are for load balancing diagnostics.
+  //
+  // To do this, we'll need to
+  // a) Allreduce (sum) the sum of nSteps / nFuncs. Dividing by atom->natoms
+  //    gives the avg # of steps/funcs per atom globally.
+  // b) Reduce (sum) to root the sum of squares of the differences.
+  //    i) Sum_i (steps_i - avg_steps_global)^2
+  //   ii) Sum_i (funcs_i - avg_funcs_global)^2
+  //  iii) (avg_steps_local - avg_steps_global)^2
+  //   iv) (avg_funcs_local - avg_funcs_global)^2
+
+  const int numCounters = numDiagnosticCounters-1;
+
+  // # of time-steps for averaging.
+  const int nTimes = this->diagnosticCounter[numDiagnosticCounters-1];
+
+  // # of ODE's per time-step (on average).
+  //const int nODEs  = this->diagnosticCounter[AtomSum] / nTimes;
+
+  // Sum up the sums from each task.
+  double sums[numCounters];
+  double my_vals[numCounters];
+  double max_per_proc[numCounters];
+  double min_per_proc[numCounters];
+
+  // Compute counters per dpd time-step.
+  for (int i = 0; i < numCounters; ++i){
+    my_vals[i] = this->diagnosticCounter[i] / nTimes;
+    //printf("my sum[%d] = %f %d\n", i, my_vals[i], comm->me);
+  }
+
+  MPI_Allreduce (my_vals, sums, numCounters, MPI_DOUBLE, MPI_SUM, world);
+
+  MPI_Reduce (my_vals, max_per_proc, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
+  MPI_Reduce (my_vals, min_per_proc, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
+
+  const double nODEs = sums[numCounters-1];
+
+  double avg_per_atom[numCounters], avg_per_proc[numCounters];
+
+  // Averages per-ODE and per-proc per time-step.
+  for (int i = 0; i < numCounters; ++i){
+    avg_per_atom[i] = sums[i] / nODEs;
+    avg_per_proc[i] = sums[i] / comm->nprocs;
+  }
+
+  // Sum up the differences from each task.
+  double sum_sq[2*numCounters];
+  double my_sum_sq[2*numCounters];
+  for (int i = 0; i < numCounters; ++i){
+    double diff_i = my_vals[i] - avg_per_proc[i];
+    my_sum_sq[i] = diff_i * diff_i;
+  }
+
+  double max_per_ODE[numCounters], min_per_ODE[numCounters];
+
+  // Process the per-ODE RMS of the # of steps/funcs
+  if (diagnosticFrequency == 1)
+  {
+    h_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.h_view;
+    h_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.h_view;
+
+    Kokkos::deep_copy( h_diagnosticCounterPerODEnSteps, d_diagnosticCounterPerODEnSteps );
+    Kokkos::deep_copy( h_diagnosticCounterPerODEnFuncs, d_diagnosticCounterPerODEnFuncs );
+
+    double my_max[numCounters], my_min[numCounters];
+
+    const int nlocal = atom->nlocal;
+    HAT::t_int_1d h_mask = atomKK->k_mask.h_view;
+
+    for (int i = 0; i < numCounters; ++i)
+    {
+      my_sum_sq[i+numCounters] = 0;
+      my_max[i] = 0;
+      my_min[i] = DBL_MAX;
+    }
+
+    for (int j = 0; j < nlocal; ++j)
+      if (h_mask(j) & groupbit)
+      {
+        int nSteps = h_diagnosticCounterPerODEnSteps(j);
+        double diff_nSteps = double( nSteps ) - avg_per_atom[StepSum];
+        my_sum_sq[StepSum+numCounters] += diff_nSteps*diff_nSteps;
+        my_max[StepSum] = std::max( my_max[StepSum], (double)nSteps );
+        my_min[StepSum] = std::min( my_min[StepSum], (double)nSteps );
+
+        int nFuncs = h_diagnosticCounterPerODEnFuncs(j);
+        double diff_nFuncs = double( nFuncs ) - avg_per_atom[FuncSum];
+        my_sum_sq[FuncSum+numCounters] += diff_nFuncs*diff_nFuncs;
+
+        my_max[FuncSum] = std::max( my_max[FuncSum], (double)nFuncs );
+        my_min[FuncSum] = std::min( my_min[FuncSum], (double)nFuncs );
+      }
+
+    memory->destroy_kokkos( k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps );
+    memory->destroy_kokkos( k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs );
+
+    MPI_Reduce (my_sum_sq, sum_sq, 2*numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
+
+    MPI_Reduce (my_max, max_per_ODE, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
+    MPI_Reduce (my_min, min_per_ODE, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
+  }
+  else
+    MPI_Reduce (my_sum_sq, sum_sq, numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
+
+  TimerType timer_stop = getTimeStamp();
+  double time_local = getElapsedTime( timer_start, timer_stop );
+
+  if (comm->me == 0){
+    char smesg[128];
+
+#define print_mesg(smesg) {\
+    if (screen)  fprintf(screen,"%s\n", smesg); \
+    if (logfile) fprintf(logfile,"%s\n", smesg); }
+
+    sprintf(smesg, "FixRX::ODE Diagnostics:  # of iters  |# of rhs evals| run-time (sec) | # atoms");
+    print_mesg(smesg);
+
+    sprintf(smesg, "         AVG per ODE  : %-12.5g | %-12.5g | %-12.5g", avg_per_atom[0], avg_per_atom[1], avg_per_atom[2]);
+    print_mesg(smesg);
+
+    // only valid for single time-step!
+    if (diagnosticFrequency == 1){
+      double rms_per_ODE[numCounters];
+      for (int i = 0; i < numCounters; ++i)
+        rms_per_ODE[i] = sqrt( sum_sq[i+numCounters] / nODEs );
+
+      sprintf(smesg, "         RMS per ODE  : %-12.5g | %-12.5g ", rms_per_ODE[0], rms_per_ODE[1]);
+      print_mesg(smesg);
+
+      sprintf(smesg, "         MAX per ODE  : %-12.5g | %-12.5g ", max_per_ODE[0], max_per_ODE[1]);
+      print_mesg(smesg);
+
+      sprintf(smesg, "         MIN per ODE  : %-12.5g | %-12.5g ", min_per_ODE[0], min_per_ODE[1]);
+      print_mesg(smesg);
+    }
+
+    sprintf(smesg, "         AVG per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", avg_per_proc[StepSum], avg_per_proc[FuncSum], avg_per_proc[TimeSum], avg_per_proc[AtomSum]);
+    print_mesg(smesg);
+
+    if (comm->nprocs > 1){
+      double rms_per_proc[numCounters];
+      for (int i = 0; i < numCounters; ++i)
+        rms_per_proc[i] = sqrt( sum_sq[i] / comm->nprocs );
+
+      sprintf(smesg, "         RMS per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", rms_per_proc[0], rms_per_proc[1], rms_per_proc[2], rms_per_proc[AtomSum]);
+      print_mesg(smesg);
+
+      sprintf(smesg, "         MAX per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", max_per_proc[0], max_per_proc[1], max_per_proc[2], max_per_proc[AtomSum]);
+      print_mesg(smesg);
+
+      sprintf(smesg, "         MIN per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", min_per_proc[0], min_per_proc[1], min_per_proc[2], min_per_proc[AtomSum]);
+      print_mesg(smesg);
+    }
+
+    sprintf(smesg, "  AVG'd over %d time-steps", nTimes);
+    print_mesg(smesg);
+    sprintf(smesg, "  AVG'ing took %g sec", time_local);
+    print_mesg(smesg);
+
+#undef print_mesg
+
+  }
+
+  // Reset the counters.
+  for (int i = 0; i < numDiagnosticCounters; ++i)
+    diagnosticCounter[i] = 0;
+
+  return;
 }
 
 /* ---------------------------------------------------------------------- */

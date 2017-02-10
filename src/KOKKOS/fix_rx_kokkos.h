@@ -97,6 +97,19 @@ class FixRxKokkos : public FixRX {
                      const double hmin, const double hmax,
                      double& h0, double y[], double rwk[], void *v_params) const;
 
+  //!< ODE Solver diagnostics.
+  void odeDiagnostics(void);
+
+  //!< Special counters per-ode.
+  int *diagnosticCounterPerODEnSteps;
+  int *diagnosticCounterPerODEnFuncs;
+  DAT::tdual_int_1d k_diagnosticCounterPerODEnSteps;
+  DAT::tdual_int_1d k_diagnosticCounterPerODEnFuncs;
+  typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnSteps;
+  typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnFuncs;
+  typename HAT::t_int_1d h_diagnosticCounterPerODEnSteps;
+  typename HAT::t_int_1d h_diagnosticCounterPerODEnFuncs;
+
   template <typename KokkosDeviceType>
   struct KineticsType
   {

@@ -314,7 +314,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeHalf<N
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
-  const int tagitag = tag(i);
+  const tagint itag = tag(i);
 
   F_FLOAT fi[3], fj[3], fk[3];
 

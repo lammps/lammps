@@ -2104,6 +2104,9 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   double F12[3],F23[3],F34[3],F31[3],F24[3];
   double fi[3],fj[3],fk[3],fl[3],f1[3],f2[3],f3[3],f4[4];
   double rji[3],rki[3],rlj[3],r13[3],r43[3];
+  double realrij[3], realrijmag;
+  double rjkmag, rilmag, dctdjk, dctdik, dctdil, dctdjl;
+  double fjk[3], fil[3], rijmbr;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -2130,11 +2133,9 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   Stb = 0.0;
   dStb = 0.0;
 
-  double realrij[3];
   realrij[0] = x[atomi][0] - x[atomj][0];
   realrij[1] = x[atomi][1] - x[atomj][1];
   realrij[2] = x[atomi][2] - x[atomj][2];
-  double realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1] + realrij[2] * realrij[2]);
 
   REBO_neighs = REBO_firstneigh[i];
   for (k = 0; k < REBO_numneigh[i]; k++) {
@@ -2325,18 +2326,17 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         lamdajik = 4.0*kronecker(itype,1) *
           ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
         wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-        double rjk[3];
         rjk[0] = rik[0] - rij[0];
         rjk[1] = rik[1] - rij[1];
         rjk[2] = rik[2] - rij[2];
-        double rjkmag = sqrt(rjk[0] * rjk[0] + rjk[1] * rjk[1] + rjk[2] * rjk[2]);
-        double rijrik = 2 * rijmag * rikmag;
-        double rr = rijmag * rijmag - rikmag * rikmag;
+        rjkmag = sqrt(rjk[0] * rjk[0] + rjk[1] * rjk[1] + rjk[2] * rjk[2]);
+        rijrik = 2 * rijmag * rikmag;
+        rr = rijmag * rijmag - rikmag * rikmag;
         cosjik = (rr + rikmag * rikmag - rjkmag * rjkmag) / rijrik;
         cosjik = MIN(cosjik,1.0);
         cosjik = MAX(cosjik,-1.0);
-        double dctdjk = -2 / rijrik;
-        double dctdik = (-rr + rjkmag * rjkmag) / (rijrik * rikmag * rikmag);
+        dctdjk = -2 / rijrik;
+        dctdik = (-rr + rjkmag * rjkmag) / (rijrik * rikmag * rikmag);
         // evaluate splines g and derivatives dg
 
         g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
@@ -2352,7 +2352,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fj[0] = 0;
         fj[1] = 0;
         fj[2] = 0;
-        double fjk[3];
         fjk[0] = tmp2 * dctdjk * rjk[0];
         fjk[1] = tmp2 * dctdjk * rjk[1];
         fjk[2] = tmp2 * dctdjk * rjk[2];
@@ -2362,7 +2361,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fk[0] -= fjk[0];
         fk[1] -= fjk[1];
         fk[2] -= fjk[2];
-        double rijmbr = rcmin[itype][jtype] / realrijmag;
+        rijmbr = rcmin[itype][jtype] / realrijmag;
         fj[0] += rijmbr * (fjk[0] - (realrij[0] * realrij[0] * fjk[0] + realrij[0] * realrij[1] * fjk[1] + realrij[0] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
         fj[1] += rijmbr * (fjk[1] - (realrij[1] * realrij[0] * fjk[0] + realrij[1] * realrij[1] * fjk[1] + realrij[1] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
         fj[2] += rijmbr * (fjk[2] - (realrij[2] * realrij[0] * fjk[0] + realrij[2] * realrij[1] * fjk[1] + realrij[2] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
@@ -2438,18 +2437,17 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         lamdaijl = 4.0*kronecker(jtype,1) *
           ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
         wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-        double ril[3];
         ril[0] = rij[0] + rjl[0];
         ril[1] = rij[1] + rjl[1];
         ril[2] = rij[2] + rjl[2];
-        double rilmag = sqrt(ril[0] * ril[0] + ril[1] * ril[1] + ril[2] * ril[2]);
-        double rijrjl = 2 * rijmag * rjlmag;
-        double rr = rijmag * rijmag - rjlmag * rjlmag;
+        rilmag = sqrt(ril[0] * ril[0] + ril[1] * ril[1] + ril[2] * ril[2]);
+        rijrjl = 2 * rijmag * rjlmag;
+        rr = rijmag * rijmag - rjlmag * rjlmag;
         cosijl = (rr + rjlmag * rjlmag - rilmag * rilmag) / rijrjl;
         cosijl = MIN(cosijl,1.0);
         cosijl = MAX(cosijl,-1.0);
-        double dctdil = -2 / rijrjl;
-        double dctdjl = (-rr + rilmag * rilmag) / (rijrjl * rjlmag * rjlmag);
+        dctdil = -2 / rijrjl;
+        dctdjl = (-rr + rilmag * rilmag) / (rijrjl * rjlmag * rjlmag);
 
         // evaluate splines g and derivatives dg
 
@@ -2464,7 +2462,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fi[0] = 0;
         fi[1] = 0;
         fi[2] = 0;
-        double fil[3];
         fil[0] = tmp2 * dctdil * ril[0];
         fil[1] = tmp2 * dctdil * ril[1];
         fil[2] = tmp2 * dctdil * ril[2];
@@ -2474,7 +2471,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fl[0] -= fil[0];
         fl[1] -= fil[1];
         fl[2] -= fil[2];
-        double rijmbr = rcmin[itype][jtype] / realrijmag;
+        rijmbr = rcmin[itype][jtype] / realrijmag;
         fi[0] += rijmbr * (fil[0] - (realrij[0] * realrij[0] * fil[0] + realrij[0] * realrij[1] * fil[1] + realrij[0] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
         fi[1] += rijmbr * (fil[1] - (realrij[1] * realrij[0] * fil[0] + realrij[1] * realrij[1] * fil[1] + realrij[1] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
         fi[2] += rijmbr * (fil[2] - (realrij[2] * realrij[0] * fil[0] + realrij[2] * realrij[1] * fil[1] + realrij[2] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
@@ -2818,7 +2815,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   f4[1] = -F34[1]-F24[1];
                   f4[2] = -F34[2]-F24[2];
 
-                  double rijmbr = rcmin[itype][jtype] / realrijmag;
+                  rijmbr = rcmin[itype][jtype] / realrijmag;
                   f2[0] += rijmbr * (F24[0] - (realrij[0] * realrij[0] * F24[0] + realrij[0] * realrij[1] * F24[1] + realrij[0] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
                   f2[1] += rijmbr * (F24[1] - (realrij[1] * realrij[0] * F24[0] + realrij[1] * realrij[1] * F24[1] + realrij[1] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
                   f2[2] += rijmbr * (F24[2] - (realrij[2] * realrij[0] * F24[0] + realrij[2] * realrij[1] * F24[1] + realrij[2] * realrij[2] * F24[2]) / (realrijmag * realrijmag));

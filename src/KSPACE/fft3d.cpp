@@ -78,7 +78,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #if defined(FFT_FFTW3)
   FFTW_API(plan) theplan;
 #else
-  // nothing to do for other FFTs.
+  // nothing to do for other FFTs
 #endif
 
   // pre-remap to prepare for 1st FFTs if needed
@@ -87,8 +87,8 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   if (plan->pre_plan) {
     if (plan->pre_target == 0) copy = out;
     else copy = plan->copy;
-    remap_3d((FFT_SCALAR *) in, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
-             plan->pre_plan);
+    remap_3d((FFT_SCALAR *) in, (FFT_SCALAR *) copy, 
+             (FFT_SCALAR *) plan->scratch, plan->pre_plan);
     data = copy;
   }
   else
@@ -129,8 +129,8 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   if (plan->mid1_target == 0) copy = out;
   else copy = plan->copy;
-  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
-           plan->mid1_plan);
+  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, 
+           (FFT_SCALAR *) plan->scratch, plan->mid1_plan);
   data = copy;
 
   // 1d FFTs along mid axis
@@ -168,8 +168,8 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   if (plan->mid2_target == 0) copy = out;
   else copy = plan->copy;
-  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
-           plan->mid2_plan);
+  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, 
+           (FFT_SCALAR *) plan->scratch, plan->mid2_plan);
   data = copy;
 
   // 1d FFTs along slow axis
@@ -206,8 +206,8 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   // destination is always out
 
   if (plan->post_plan)
-    remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) out, (FFT_SCALAR *) plan->scratch,
-             plan->post_plan);
+    remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) out, 
+             (FFT_SCALAR *) plan->scratch, plan->post_plan);
 
   // scaling if required
   if (flag == 1 && plan->scaled) {
@@ -337,7 +337,8 @@ struct fft_plan_3d *fft_3d_create_plan(
                            first_ilo,first_ihi,first_jlo,first_jhi,
                            first_klo,first_khi,
                            second_ilo,second_ihi,second_jlo,second_jhi,
-                           second_klo,second_khi,2,1,0,FFT_PRECISION,usecollective);
+                           second_klo,second_khi,2,1,0,FFT_PRECISION,
+                           usecollective);
   if (plan->mid1_plan == NULL) return NULL;
 
   // 1d FFTs along mid axis
@@ -413,7 +414,8 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   // configure plan memory pointers and allocate work space
   // out_size = amount of memory given to FFT by user
-  // first/second/third_size = amount of memory needed after pre,mid1,mid2 remaps
+  // first/second/third_size = 
+  //   amount of memory needed after pre,mid1,mid2 remaps
   // copy_size = amount needed internally for extra copy of data
   // scratch_size = amount needed internally for remap scratch space
   // for each remap:
@@ -482,22 +484,28 @@ struct fft_plan_3d *fft_3d_create_plan(
   // and scaling normalization
 
 #if defined(FFT_MKL)
-  DftiCreateDescriptor( &(plan->handle_fast), FFT_MKL_PREC, DFTI_COMPLEX, 1, (MKL_LONG)nfast);
-  DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_TRANSFORMS, (MKL_LONG)plan->total1/nfast);
+  DftiCreateDescriptor( &(plan->handle_fast), FFT_MKL_PREC, DFTI_COMPLEX, 1, 
+                        (MKL_LONG)nfast);
+  DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_TRANSFORMS, 
+               (MKL_LONG)plan->total1/nfast);
   DftiSetValue(plan->handle_fast, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_fast, DFTI_INPUT_DISTANCE, (MKL_LONG)nfast);
   DftiSetValue(plan->handle_fast, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nfast);
   DftiCommitDescriptor(plan->handle_fast);
 
-  DftiCreateDescriptor( &(plan->handle_mid), FFT_MKL_PREC, DFTI_COMPLEX, 1, (MKL_LONG)nmid);
-  DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_TRANSFORMS, (MKL_LONG)plan->total2/nmid);
+  DftiCreateDescriptor( &(plan->handle_mid), FFT_MKL_PREC, DFTI_COMPLEX, 1, 
+                        (MKL_LONG)nmid);
+  DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_TRANSFORMS, 
+               (MKL_LONG)plan->total2/nmid);
   DftiSetValue(plan->handle_mid, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_mid, DFTI_INPUT_DISTANCE, (MKL_LONG)nmid);
   DftiSetValue(plan->handle_mid, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nmid);
   DftiCommitDescriptor(plan->handle_mid);
 
-  DftiCreateDescriptor( &(plan->handle_slow), FFT_MKL_PREC, DFTI_COMPLEX, 1, (MKL_LONG)nslow);
-  DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_TRANSFORMS, (MKL_LONG)plan->total3/nslow);
+  DftiCreateDescriptor( &(plan->handle_slow), FFT_MKL_PREC, DFTI_COMPLEX, 1, 
+                        (MKL_LONG)nslow);
+  DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_TRANSFORMS, 
+               (MKL_LONG)plan->total3/nslow);
   DftiSetValue(plan->handle_slow, DFTI_PLACEMENT,DFTI_INPLACE);
   DftiSetValue(plan->handle_slow, DFTI_INPUT_DISTANCE, (MKL_LONG)nslow);
   DftiSetValue(plan->handle_slow, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nslow);

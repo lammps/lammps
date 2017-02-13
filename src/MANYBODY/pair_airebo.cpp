@@ -2750,8 +2750,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
                   om1234 = cwnum/cwnom;
                   cw = om1234;
-                  Etmp += ((1.0-square(om1234))*w21*w34) *
-                    (1.0-tspjik)*(1.0-tspijl);
 
                   dt1dik = (rik2i)-(dctik*sink2i*cos321);
                   dt1djk = (-dctjk*sink2i*cos321);

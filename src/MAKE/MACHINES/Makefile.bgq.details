@@ -101,7 +101,7 @@ MPI_LIB += #/home/jhammond/OSPRI/branches/marpn/wrap/libmpiarbrpn.a
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC  = -I/soft/libraries/alcf/current/xl/FFTW2/include -DFFT_FFTW -DFFTW_SIZE
+FFT_INC  = -I/soft/libraries/alcf/current/xl/FFTW2/include -DFFT_FFTW2 -DFFTW_SIZE
 FFT_PATH = #/soft/libraries/alcf/current/xl/FFTW2
 FFT_LIB  = -L/soft/libraries/alcf/current/xl/FFTW2/lib -ldfftw
 

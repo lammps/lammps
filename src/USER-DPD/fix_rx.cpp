@@ -220,7 +220,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
 
 FixRX::~FixRX()
 {
-  printf("Inside FixRX::~FixRX copymode= %d\n", copymode);
+  //printf("Inside FixRX::~FixRX copymode= %d\n", copymode);
   if (copymode) return;
 
   // De-Allocate memory to prevent memory leak
@@ -756,8 +756,8 @@ void FixRX::pre_force(int vflag)
     memory->create( diagnosticCounterPerODE[FuncSum], nlocal, "FixRX::diagnosticCounterPerODE");
   }
 
-  #pragma omp parallel \
-     reduction(+: nSteps, nIters, nFuncs, nFails )
+  //#pragma omp parallel \
+  //   reduction(+: nSteps, nIters, nFuncs, nFails )
   {
     double *rwork = new double[8*nspecies];
 
@@ -767,7 +767,7 @@ void FixRX::pre_force(int vflag)
 
     int ode_counter[4] = { 0 };
 
-    #pragma omp for schedule(runtime)
+    //#pragma omp for schedule(runtime)
     for (int i = 0; i < nlocal; i++)
     {
       if (mask[i] & groupbit)
@@ -810,11 +810,11 @@ void FixRX::pre_force(int vflag)
 
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
-  printf("me= %d total= %g temp= %g ode= %g comm= %g nlocal= %d nfc= %d %d\n", comm->me,
-                         getElapsedTime(timer_start, timer_stop),
-                         getElapsedTime(timer_start, timer_localTemperature),
-                         getElapsedTime(timer_localTemperature, timer_ODE),
-                         getElapsedTime(timer_ODE, timer_stop), nlocal, nFuncs, nSteps);
+  //printf("me= %d total= %g temp= %g ode= %g comm= %g nlocal= %d nfc= %d %d\n", comm->me,
+  //                       getElapsedTime(timer_start, timer_stop),
+  //                       getElapsedTime(timer_start, timer_localTemperature),
+  //                       getElapsedTime(timer_localTemperature, timer_ODE),
+  //                       getElapsedTime(timer_ODE, timer_stop), nlocal, nFuncs, nSteps);
 
   // Warn the user if a failure was detected in the ODE solver.
   if (nFails > 0){

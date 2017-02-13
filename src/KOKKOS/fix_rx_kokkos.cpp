@@ -71,13 +71,13 @@ FixRxKokkos<DeviceType>::FixRxKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   k_error_flag = DAT::tdual_int_scalar("FixRxKokkos::k_error_flag");
 
-  printf("Inside FixRxKokkos::FixRxKokkos\n");
+  //printf("Inside FixRxKokkos::FixRxKokkos\n");
 }
 
 template <typename DeviceType>
 FixRxKokkos<DeviceType>::~FixRxKokkos()
 {
-  printf("Inside FixRxKokkos::~FixRxKokkos copymode= %d\n", copymode);
+  //printf("Inside FixRxKokkos::~FixRxKokkos copymode= %d\n", copymode);
   if (copymode) return;
 }
 
@@ -98,7 +98,7 @@ void FixRxKokkos<DeviceType>::post_constructor()
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::init()
 {
-  printf("Inside FixRxKokkos::init\n");
+  //printf("Inside FixRxKokkos::init\n");
 
   // Call the parent's version.
   //FixRX::init();
@@ -153,7 +153,7 @@ void FixRxKokkos<DeviceType>::init()
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::init_list(int, class NeighList* ptr)
 {
-  printf("Inside FixRxKokkos::init_list\n");
+  //printf("Inside FixRxKokkos::init_list\n");
   this->list = ptr;
 }
 
@@ -1220,7 +1220,7 @@ void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::create_kinetics_data(void)
 {
-  printf("Inside FixRxKokkos::create_kinetics_data\n");
+  //printf("Inside FixRxKokkos::create_kinetics_data\n");
 
   memory->create_kokkos( d_kineticsData.Arr, h_kineticsData.Arr, nreactions, "KineticsType::Arr");
   memory->create_kokkos( d_kineticsData.nArr, h_kineticsData.nArr, nreactions, "KineticsType::nArr");
@@ -1301,7 +1301,7 @@ void FixRxKokkos<DeviceType>::create_kinetics_data(void)
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::setup_pre_force(int vflag)
 {
-  printf("Inside FixRxKokkos<DeviceType>::setup_pre_force restartFlag= %d\n", my_restartFlag);
+  //printf("Inside FixRxKokkos<DeviceType>::setup_pre_force restartFlag= %d\n", my_restartFlag);
 
   if (my_restartFlag)
     my_restartFlag = 0;
@@ -1314,7 +1314,7 @@ void FixRxKokkos<DeviceType>::setup_pre_force(int vflag)
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::pre_force(int vflag)
 {
-  printf("Inside FixRxKokkos<DeviceType>::pre_force localTempFlag= %d\n", localTempFlag);
+  //printf("Inside FixRxKokkos<DeviceType>::pre_force localTempFlag= %d\n", localTempFlag);
 
   this->solve_reactions( vflag, true );
 }
@@ -1412,7 +1412,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreForce)
 {
-  printf("Inside FixRxKokkos<DeviceType>::solve_reactions localTempFlag= %d isPreForce= %s\n", localTempFlag, isPreForce ? "True" : "false");
+  //printf("Inside FixRxKokkos<DeviceType>::solve_reactions localTempFlag= %d isPreForce= %s\n", localTempFlag, isPreForce ? "True" : "false");
 
   copymode = 1;
 
@@ -1653,11 +1653,11 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
-  printf("me= %d kokkos total= %g temp= %g ode= %g comm= %g nlocal= %d nfc= %d %d\n", comm->me,
-                         getElapsedTime(timer_start, timer_stop),
-                         getElapsedTime(timer_start, timer_localTemperature),
-                         getElapsedTime(timer_localTemperature, timer_ODE),
-                         getElapsedTime(timer_ODE, timer_stop), nlocal, TotalCounters.nFuncs, TotalCounters.nSteps);
+  //printf("me= %d kokkos total= %g temp= %g ode= %g comm= %g nlocal= %d nfc= %d %d\n", comm->me,
+  //                       getElapsedTime(timer_start, timer_stop),
+  //                       getElapsedTime(timer_start, timer_localTemperature),
+  //                       getElapsedTime(timer_localTemperature, timer_ODE),
+  //                       getElapsedTime(timer_ODE, timer_stop), nlocal, TotalCounters.nFuncs, TotalCounters.nSteps);
 
   // Warn the user if a failure was detected in the ODE solver.
   if (TotalCounters.nFails > 0){
@@ -1992,7 +1992,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   nlocal = atom->nlocal;
   const int nghost = atom->nghost;
 
-  printf("Inside FixRxKokkos::computeLocalTemperature: %d %d %d %d %d %d %d\n", WT_FLAG, LOCAL_TEMP_FLAG, NEWTON_PAIR, (int)lmp->kokkos->neighflag, NEIGHFLAG, nlocal, nghost);
+  //printf("Inside FixRxKokkos::computeLocalTemperature: %d %d %d %d %d %d %d\n", WT_FLAG, LOCAL_TEMP_FLAG, NEWTON_PAIR, (int)lmp->kokkos->neighflag, NEIGHFLAG, nlocal, nghost);
 
   // Pull from pairDPDE. The pairDPDEKK objects are protected so recreate here for now.
   //pairDPDEKK->k_cutsq.template sync<DeviceType>();

@@ -799,3 +799,14 @@ double PairGranHookeHistory::memory_usage()
   double bytes = nmax * sizeof(double);
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to FixShearHistory class
+   called by Neighbor when setting up neighbor lists
+------------------------------------------------------------------------- */
+
+void *PairGranHookeHistory::extract(const char *str, int &dim)
+{
+  if (strcmp(str,"history") == 0) return (void *) fix_history;
+  return NULL;
+}

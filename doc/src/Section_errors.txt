@@ -22,7 +22,7 @@ either conceptually, or as printed out by the program.
 
 12.1 Common problems :link(err_1),h4
 
-If two LAMMPS runs do not produce the same answer on different
+If two LAMMPS runs do not produce the exact same answer on different
 machines or different numbers of processors, this is typically not a
 bug.  In theory you should get identical answers on any number of
 processors and on any machine.  In practice, numerical round-off can
@@ -80,12 +80,24 @@ order.  If you mess this up, LAMMPS will often flag the error, but it
 may also simply read a bogus argument and assign a value that is
 valid, but not what you wanted.  E.g. trying to read the string "abc"
 as an integer value of 0.  Careful reading of the associated doc page
-for the command should allow you to fix these problems.  Note that
-some commands allow for variables to be specified in place of numeric
-constants so that the value can be evaluated and change over the
-course of a run.  This is typically done with the syntax {v_name} for
-a parameter, where name is the name of the variable.  This is only
-allowed if the command documentation says it is.
+for the command should allow you to fix these problems. In most cases,
+where LAMMPS expects to read a number, either integer or floating point,
+it performs a stringent test on whether the provided input actually
+is an integer or floating-point number, respectively, and reject the
+input with an error message (for instance, when an integer is required,
+but a floating-point number 1.0 is provided):
+
+ERROR: Expected integer parameter in input script or data file :pre
+
+Some commands allow for using variable references in place of numeric
+constants so that the value can be evaluated and may change over the
+course of a run.  This is typically done with the syntax {v_name} for a
+parameter, where name is the name of the variable. On the other hand,
+immediate variable expansion with the syntax ${name} is performed while
+reading the input and before parsing commands,
+
+NOTE: Using a variable reference (i.e. {v_name}) is only allowed if
+the documentation of the corresponding command explicitly says it is.
 
 Generally, LAMMPS will print a message to the screen and logfile and
 exit gracefully when it encounters a fatal error.  Sometimes it will

@@ -969,7 +969,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "lubricateU/poly"_pair_lubricateU.html,
 "meam"_pair_meam.html,
 "mie/cut (o)"_pair_mie.html,
-"morse (got)"_pair_morse.html,
+"morse (gkot)"_pair_morse.html,
 "nb3b/harmonic (o)"_pair_nb3b_harmonic.html,
 "nm/cut (o)"_pair_nm.html,
 "nm/cut/coul/cut (o)"_pair_nm.html,

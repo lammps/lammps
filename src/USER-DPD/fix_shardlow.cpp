@@ -61,6 +61,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define EPSILON 1.0e-10
+#define EPSILON_SQUARED ((EPSILON) * (EPSILON))
 
 static const char cite_fix_shardlow[] =
   "fix shardlow command:\n\n"
@@ -199,212 +200,129 @@ void FixShardlow::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   Perform the stochastic integration and Shardlow update
+   Perform the stochastic integration and Shardlow update for constant temperature
    Allow for both per-type and per-atom mass
 
    NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
-void FixShardlow::ssa_update(
+void FixShardlow::ssa_update_dpd(
   int i,
   int *jlist,
-  int jlen,
-  class RanMars *pRNG
+  int jlen
 )
 {
-  int j,jj,itype,jtype;
-
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double delvx,delvy,delvz;
-  double rsq,r,rinv;
-  double dot,wd,wr,randnum,factor_dpd,factor_dpd1;
-  double dpx,dpy,dpz;
-  double denom, mu_ij;
-
+  class RanMars *pRNG;
   double **x = atom->x;
   double **v = atom->v;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
 
-  int newton_pair = force->newton_pair;
-  double randPair;
-
-  double *uCond = atom->uCond;
-  double *uMech = atom->uMech;
-  double *dpdTheta = atom->dpdTheta;
-  double kappa_ij, alpha_ij, theta_ij, gamma_ij, sigma_ij;
-  double vxi, vyi, vzi, vxj, vyj, vzj;
-  double vx0i, vy0i, vz0i, vx0j, vy0j, vz0j;
-  double dot1, dot2, dot3, dot4;
-  double mass_i, mass_j;
-  double massinv_i, massinv_j;
   double *cut_i, *cut2_i, *sigma_i;
-  double theta_i_inv;
+  double theta_ij_inv;
+  const double boltz_inv = 1.0/force->boltz;
+  const double ftm2v = force->ftm2v;
 
   const double dt     = update->dt;
 
-  xtmp = x[i][0];
-  ytmp = x[i][1];
-  ztmp = x[i][2];
+  const double xtmp = x[i][0];
+  const double ytmp = x[i][1];
+  const double ztmp = x[i][2];
 
   // load velocity for i from memory
-  vxi = v[i][0];
-  vyi = v[i][1];
-  vzi = v[i][2];
+  double vxi = v[i][0];
+  double vyi = v[i][1];
+  double vzi = v[i][2];
 
-  itype = type[i];
+  int itype = type[i];
 
-  if(pairDPDE){
-    cut2_i = pairDPDE->cutsq[itype];
-    cut_i  = pairDPDE->cut[itype];
-    sigma_i = pairDPDE->sigma[itype];
-    theta_i_inv = 1.0/dpdTheta[i];
-  } else {
-    cut2_i = pairDPD->cutsq[itype];
-    cut_i  = pairDPD->cut[itype];
-    sigma_i = pairDPD->sigma[itype];
-    theta_ij = pairDPD->temperature; // independent of i,j
-  }
-  mass_i = (rmass) ? rmass[i] : mass[itype];
-  massinv_i = 1.0 / mass_i;
+  pRNG = pairDPD->random;
+  cut2_i = pairDPD->cutsq[itype];
+  cut_i  = pairDPD->cut[itype];
+  sigma_i = pairDPD->sigma[itype];
+  theta_ij_inv = 1.0/pairDPD->temperature; // independent of i,j
+
+  const double mass_i = (rmass) ? rmass[i] : mass[itype];
+  const double massinv_i = 1.0 / mass_i;
 
   // Loop over Directional Neighbors only
-  for (jj = 0; jj < jlen; jj++) {
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
+  for (int jj = 0; jj < jlen; jj++) {
+    int j = jlist[jj] & NEIGHMASK;
+    int jtype = type[j];
 
-    delx = xtmp - x[j][0];
-    dely = ytmp - x[j][1];
-    delz = ztmp - x[j][2];
-    rsq = delx*delx + dely*dely + delz*delz;
+    double delx = xtmp - x[j][0];
+    double dely = ytmp - x[j][1];
+    double delz = ztmp - x[j][2];
+    double rsq = delx*delx + dely*dely + delz*delz;
 
-    if (rsq < cut2_i[jtype]) {
-      r = sqrt(rsq);
-      if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-      rinv = 1.0/r;
+    // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
+    if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
+      double r = sqrt(rsq);
+      double rinv = 1.0/r;
+      double delx_rinv = delx*rinv;
+      double dely_rinv = dely*rinv;
+      double delz_rinv = delz*rinv;
 
-      // Keep a copy of the velocities from previous Shardlow step
-      vx0i = vxi;
-      vy0i = vyi;
-      vz0i = vzi;
+      double wr = 1.0 - r/cut_i[jtype];
+      double wdt = wr*wr*dt;
 
-      vx0j = vxj = v[j][0];
-      vy0j = vyj = v[j][1];
-      vz0j = vzj = v[j][2];
+      double halfsigma_ij = 0.5*sigma_i[jtype];
+      double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-      // Compute the velocity difference between atom i and atom j
-      delvx = vx0i - vx0j;
-      delvy = vy0i - vy0j;
-      delvz = vz0i - vz0j;
+      double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * pRNG->gaussian();
 
-      dot = (delx*delvx + dely*delvy + delz*delvz);
-      wr = 1.0 - r/cut_i[jtype];
-      wd = wr*wr;
+      double mass_j = (rmass) ? rmass[j] : mass[jtype];
+      double massinv_j = 1.0 / mass_j;
 
-      if(pairDPDE){
-        // Compute the current temperature
-        theta_ij = 2.0/(theta_i_inv + 1.0/dpdTheta[j]);
-      } // else theta_ij = pairDPD->temperature;
-      sigma_ij = sigma_i[jtype];
-      randnum = pRNG->gaussian();
+      double gammaFactor = halfgamma_ij*wdt*ftm2v;
+      double inv_1p_mu_gammaFactor = 1.0/(1.0 + (massinv_i + massinv_j)*gammaFactor);
 
-      gamma_ij = sigma_ij*sigma_ij / (2.0*force->boltz*theta_ij);
-      randPair = sigma_ij*wr*randnum*dtsqrt;
+      double vxj = v[j][0];
+      double vyj = v[j][1];
+      double vzj = v[j][2];
 
-      factor_dpd = -dt*gamma_ij*wd*dot*rinv;
-      factor_dpd += randPair;
-      factor_dpd *= 0.5;
+      // Compute the initial velocity difference between atom i and atom j
+      double delvx = vxi - vxj;
+      double delvy = vyi - vyj;
+      double delvz = vzi - vzj;
+      double dot_rinv = (delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz);
 
       // Compute momentum change between t and t+dt
-      dpx  = factor_dpd*delx*rinv;
-      dpy  = factor_dpd*dely*rinv;
-      dpz  = factor_dpd*delz*rinv;
-
-      mass_j = (rmass) ? rmass[j] : mass[jtype];
-      massinv_j = 1.0 / mass_j;
+      double factorA = sigmaRand - gammaFactor*dot_rinv;
 
       // Update the velocity on i
-      vxi += dpx*force->ftm2v*massinv_i;
-      vyi += dpy*force->ftm2v*massinv_i;
-      vzi += dpz*force->ftm2v*massinv_i;
+      vxi += delx_rinv*factorA*massinv_i;
+      vyi += dely_rinv*factorA*massinv_i;
+      vzi += delz_rinv*factorA*massinv_i;
 
-      if (newton_pair || j < nlocal) {
-        // Update the velocity on j
-        vxj -= dpx*force->ftm2v*massinv_j;
-        vyj -= dpy*force->ftm2v*massinv_j;
-        vzj -= dpz*force->ftm2v*massinv_j;
-      }
+      // Update the velocity on j
+      vxj -= delx_rinv*factorA*massinv_j;
+      vyj -= dely_rinv*factorA*massinv_j;
+      vzj -= delz_rinv*factorA*massinv_j;
 
-      //ii.   Compute the velocity diff
+      //ii.   Compute the new velocity diff
       delvx = vxi - vxj;
       delvy = vyi - vyj;
       delvz = vzi - vzj;
+      dot_rinv = delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz;
 
-      dot = delx*delvx + dely*delvy + delz*delvz;
-
-      //iii.    Compute dpi again
-      mu_ij = massinv_i + massinv_j;
-      denom = 1.0 + 0.5*mu_ij*gamma_ij*wd*dt*force->ftm2v;
-      factor_dpd = -0.5*dt*gamma_ij*wd*force->ftm2v/denom;
-      factor_dpd1 = factor_dpd*(mu_ij*randPair);
-      factor_dpd1 += randPair;
-      factor_dpd1 *= 0.5;
-
-      // Compute the momentum change between t and t+dt
-      dpx  = (factor_dpd*dot*rinv/force->ftm2v + factor_dpd1)*delx*rinv;
-      dpy  = (factor_dpd*dot*rinv/force->ftm2v + factor_dpd1)*dely*rinv;
-      dpz  = (factor_dpd*dot*rinv/force->ftm2v + factor_dpd1)*delz*rinv;
+      // Compute the new momentum change between t and t+dt
+      double factorB = (sigmaRand - gammaFactor*dot_rinv)*inv_1p_mu_gammaFactor;
 
       // Update the velocity on i
-      vxi += dpx*force->ftm2v*massinv_i;
-      vyi += dpy*force->ftm2v*massinv_i;
-      vzi += dpz*force->ftm2v*massinv_i;
+      vxi += delx_rinv*factorB*massinv_i;
+      vyi += dely_rinv*factorB*massinv_i;
+      vzi += delz_rinv*factorB*massinv_i;
 
-      if (newton_pair || j < nlocal) {
-        // Update the velocity on j
-        vxj -= dpx*force->ftm2v*massinv_j;
-        vyj -= dpy*force->ftm2v*massinv_j;
-        vzj -= dpz*force->ftm2v*massinv_j;
-        // Store updated velocity for j
-        v[j][0] = vxj;
-        v[j][1] = vyj;
-        v[j][2] = vzj;
-      }
+      // Update the velocity on j
+      vxj -= delx_rinv*factorB*massinv_j;
+      vyj -= dely_rinv*factorB*massinv_j;
+      vzj -= delz_rinv*factorB*massinv_j;
 
-      if(pairDPDE){
-        // Compute uCond
-        randnum = pRNG->gaussian();
-        kappa_ij = pairDPDE->kappa[itype][jtype];
-        alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
-        randPair = alpha_ij*wr*randnum*dtsqrt;
-
-        factor_dpd = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd*dt;
-        factor_dpd += randPair;
-
-        uCond[i] += factor_dpd;
-        if (newton_pair || j < nlocal) {
-          uCond[j] -= factor_dpd;
-        }
-
-        // Compute uMech
-        dot1 = vxi*vxi + vyi*vyi + vzi*vzi;
-        dot2 = vxj*vxj + vyj*vyj + vzj*vzj;
-        dot3 = vx0i*vx0i + vy0i*vy0i + vz0i*vz0i;
-        dot4 = vx0j*vx0j + vy0j*vy0j + vz0j*vz0j;
-
-        dot1 = dot1*mass_i;
-        dot2 = dot2*mass_j;
-        dot3 = dot3*mass_i;
-        dot4 = dot4*mass_j;
-
-        factor_dpd = 0.25*(dot1+dot2-dot3-dot4)/force->ftm2v;
-        uMech[i] -= factor_dpd;
-        if (newton_pair || j < nlocal) {
-          uMech[j] -= factor_dpd;
-        }
-      }
+      // Store updated velocity for j
+      v[j][0] = vxj;
+      v[j][1] = vyj;
+      v[j][2] = vzj;
     }
   }
   // store updated velocity for i
@@ -413,6 +331,170 @@ void FixShardlow::ssa_update(
   v[i][2] = vzi;
 }
 
+/* ----------------------------------------------------------------------
+   Perform the stochastic integration and Shardlow update for constant energy
+   Allow for both per-type and per-atom mass
+
+   NOTE: only implemented for orthogonal boxes, not triclinic
+------------------------------------------------------------------------- */
+void FixShardlow::ssa_update_dpde(
+  int i,
+  int *jlist,
+  int jlen
+)
+{
+  class RanMars *pRNG;
+  double **x = atom->x;
+  double **v = atom->v;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *type = atom->type;
+  double *uCond = atom->uCond;
+  double *uMech = atom->uMech;
+  double *dpdTheta = atom->dpdTheta;
+
+  double *cut_i, *cut2_i, *sigma_i, *kappa_i;
+  double theta_ij_inv, theta_i_inv;
+  const double boltz2 = 2.0*force->boltz;
+  const double boltz_inv = 1.0/force->boltz;
+  const double ftm2v = force->ftm2v;
+
+  const double dt     = update->dt;
+
+  const double xtmp = x[i][0];
+  const double ytmp = x[i][1];
+  const double ztmp = x[i][2];
+
+  // load velocity for i from memory
+  double vxi = v[i][0];
+  double vyi = v[i][1];
+  double vzi = v[i][2];
+
+  double uMech_i = uMech[i];
+  double uCond_i = uCond[i];
+  int itype = type[i];
+
+  pRNG = pairDPDE->random;
+  cut2_i = pairDPDE->cutsq[itype];
+  cut_i  = pairDPDE->cut[itype];
+  sigma_i = pairDPDE->sigma[itype];
+  kappa_i = pairDPDE->kappa[itype];
+  theta_i_inv = 1.0/dpdTheta[i];
+  const double mass_i = (rmass) ? rmass[i] : mass[itype];
+  const double massinv_i = 1.0 / mass_i;
+  const double mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
+
+  // Loop over Directional Neighbors only
+  for (int jj = 0; jj < jlen; jj++) {
+    int j = jlist[jj] & NEIGHMASK;
+    int jtype = type[j];
+
+    double delx = xtmp - x[j][0];
+    double dely = ytmp - x[j][1];
+    double delz = ztmp - x[j][2];
+    double rsq = delx*delx + dely*dely + delz*delz;
+
+    // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
+    if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
+      double r = sqrt(rsq);
+      double rinv = 1.0/r;
+      double delx_rinv = delx*rinv;
+      double dely_rinv = dely*rinv;
+      double delz_rinv = delz*rinv;
+
+      double wr = 1.0 - r/cut_i[jtype];
+      double wdt = wr*wr*dt;
+
+      // Compute the current temperature
+      double theta_j_inv = 1.0/dpdTheta[j];
+      theta_ij_inv = 0.5*(theta_i_inv + theta_j_inv);
+
+      double halfsigma_ij = 0.5*sigma_i[jtype];
+      double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
+
+      double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * pRNG->gaussian();
+
+      double mass_j = (rmass) ? rmass[j] : mass[jtype];
+      double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
+      double massinv_j = 1.0 / mass_j;
+
+      // Compute uCond
+      double kappa_ij = kappa_i[jtype];
+      double alpha_ij = sqrt(boltz2*kappa_ij);
+      double del_uCond = alpha_ij*wr*dtsqrt * pRNG->gaussian();
+
+      del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
+      uCond[j] -= del_uCond;
+      uCond_i += del_uCond;
+
+      double gammaFactor = halfgamma_ij*wdt*ftm2v;
+      double inv_1p_mu_gammaFactor = 1.0/(1.0 + (massinv_i + massinv_j)*gammaFactor);
+
+      double vxj = v[j][0];
+      double vyj = v[j][1];
+      double vzj = v[j][2];
+      double dot4 = vxj*vxj + vyj*vyj + vzj*vzj;
+      double dot3 = vxi*vxi + vyi*vyi + vzi*vzi;
+
+      // Compute the initial velocity difference between atom i and atom j
+      double delvx = vxi - vxj;
+      double delvy = vyi - vyj;
+      double delvz = vzi - vzj;
+      double dot_rinv = (delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz);
+
+      // Compute momentum change between t and t+dt
+      double factorA = sigmaRand - gammaFactor*dot_rinv;
+
+      // Update the velocity on i
+      vxi += delx_rinv*factorA*massinv_i;
+      vyi += dely_rinv*factorA*massinv_i;
+      vzi += delz_rinv*factorA*massinv_i;
+
+      // Update the velocity on j
+      vxj -= delx_rinv*factorA*massinv_j;
+      vyj -= dely_rinv*factorA*massinv_j;
+      vzj -= delz_rinv*factorA*massinv_j;
+
+      //ii.   Compute the new velocity diff
+      delvx = vxi - vxj;
+      delvy = vyi - vyj;
+      delvz = vzi - vzj;
+      dot_rinv = delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz;
+
+      // Compute the new momentum change between t and t+dt
+      double factorB = (sigmaRand - gammaFactor*dot_rinv)*inv_1p_mu_gammaFactor;
+
+      // Update the velocity on i
+      vxi += delx_rinv*factorB*massinv_i;
+      vyi += dely_rinv*factorB*massinv_i;
+      vzi += delz_rinv*factorB*massinv_i;
+      double partial_uMech = (vxi*vxi + vyi*vyi + vzi*vzi - dot3)*massinv_j;
+
+      // Update the velocity on j
+      vxj -= delx_rinv*factorB*massinv_j;
+      vyj -= dely_rinv*factorB*massinv_j;
+      vzj -= delz_rinv*factorB*massinv_j;
+      partial_uMech += (vxj*vxj + vyj*vyj + vzj*vzj - dot4)*massinv_i;
+
+      // Store updated velocity for j
+      v[j][0] = vxj;
+      v[j][1] = vyj;
+      v[j][2] = vzj;
+
+      // Compute uMech
+      double del_uMech = partial_uMech*mass_ij_div_neg4_ftm2v;
+      uMech_i += del_uMech;
+      uMech[j] += del_uMech;
+    }
+  }
+  // store updated velocity for i
+  v[i][0] = vxi;
+  v[i][1] = vyi;
+  v[i][2] = vzi;
+  // store updated uMech and uCond for i
+  uMech[i] = uMech_i;
+  uCond[i] = uCond_i;
+}
 
 void FixShardlow::initial_integrate(int vflag)
 {
@@ -423,7 +505,7 @@ void FixShardlow::initial_integrate(int vflag)
   int nghost = atom->nghost;
 
   int airnum;
-  class RanMars *pRNG;
+  const bool useDPDE = (pairDPDE != NULL);
 
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
 
@@ -448,12 +530,6 @@ void FixShardlow::initial_integrate(int vflag)
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
-  // Define pointers to access the RNG
-  if(pairDPDE){
-    pRNG = pairDPDE->random;
-  } else {
-    pRNG = pairDPD->random;
-  }
   inum = list->inum;
   ilist = list->ilist;
 
@@ -466,7 +542,7 @@ void FixShardlow::initial_integrate(int vflag)
       // Communicate the updated velocities to all nodes
       comm->forward_comm_fix(this);
 
-      if(pairDPDE){
+      if(useDPDE){
         // Zero out the ghosts' uCond & uMech to be used as delta accumulators
         memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
         memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
@@ -478,7 +554,10 @@ void FixShardlow::initial_integrate(int vflag)
       i = ilist[ii];
       int start = (airnum < 2) ? 0 : list->ndxAIR_ssa[i][airnum - 2];
       int len = list->ndxAIR_ssa[i][airnum - 1] - start;
-      if (len > 0) ssa_update(i, &(list->firstneigh[i][start]), len, pRNG);
+      if (len > 0) {
+        if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][start]), len);
+        else ssa_update_dpd(i, &(list->firstneigh[i][start]), len);
+      }
     }
 
     // Communicate the ghost deltas to the atom owners

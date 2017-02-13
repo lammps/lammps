@@ -129,23 +129,23 @@ class FixRxKokkos : public FixRX {
                      double& h0, double y[], double rwk[], void *v_params) const;
 
   //!< Classic Runge-Kutta 4th-order stepper.
-  template <typename UserDataType>
-  void k_rk4(const double t_stop, double *y, double *rwork, UserDataType& userData) const;
+  template <typename VectorType, typename UserDataType>
+  void k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const;
 
   //!< Runge-Kutta-Fehlberg ODE Solver.
-  template <typename UserDataType>
-  void k_rkf45(const int neq, const double t_stop, double *y, double *rwork, UserDataType& userData, CounterType& counter) const;
+  template <typename VectorType, typename UserDataType>
+  void k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const;
 
   //!< Runge-Kutta-Fehlberg ODE stepper function.
-  template <typename UserDataType>
-  void k_rkf45_step (const int neq, const double h, double y[], double y_out[],
-                     double rwk[], UserDataType& userData) const;
+  template <typename VectorType, typename UserDataType>
+  void k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out,
+                     VectorType& rwk, UserDataType& userData) const;
 
   //!< Initial step size estimation for the Runge-Kutta-Fehlberg ODE solver.
-  template <typename UserDataType>
+  template <typename VectorType, typename UserDataType>
   int k_rkf45_h0 (const int neq, const double t, const double t_stop,
                   const double hmin, const double hmax,
-                  double& h0, double y[], double rwk[], UserDataType& userData) const;
+                  double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const;
 
   //!< ODE Solver diagnostics.
   void odeDiagnostics(void);

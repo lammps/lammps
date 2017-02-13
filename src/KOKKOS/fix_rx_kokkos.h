@@ -30,6 +30,47 @@ FixStyle(rx/kk/host,FixRxKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
+struct Tag_FixRxKokkos_zeroTemperatureViews {};
+struct Tag_FixRxKokkos_zeroCounterViews {};
+
+template <int WT_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
+struct Tag_FixRxKokkos_firstPairOperator {};
+
+template <int WT_FLAG, int LOCAL_TEMP_FLAG>
+struct Tag_FixRxKokkos_2ndPairOperator {};
+
+template <bool ZERO_RATES>
+struct Tag_FixRxKokkos_solveSystems {};
+
+struct s_CounterType
+{
+  int nSteps, nIters, nFuncs, nFails;
+
+  KOKKOS_INLINE_FUNCTION
+  s_CounterType() : nSteps(0), nIters(0), nFuncs(0), nFails(0) {};
+
+  KOKKOS_INLINE_FUNCTION
+  s_CounterType& operator+=(const s_CounterType &rhs)
+  {
+    nSteps += rhs.nSteps;
+    nIters += rhs.nIters;
+    nFuncs += rhs.nFuncs;
+    nFails += rhs.nFails;
+    return *this;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  volatile s_CounterType& operator+=(const volatile s_CounterType &rhs) volatile
+  {
+    nSteps += rhs.nSteps;
+    nIters += rhs.nIters;
+    nFuncs += rhs.nFuncs;
+    nFails += rhs.nFails;
+    return *this;
+  }
+};
+typedef struct s_CounterType CounterType;
+
 template <typename DeviceType>
 class FixRxKokkos : public FixRX {
  public:
@@ -41,41 +82,33 @@ class FixRxKokkos : public FixRX {
   virtual void setup_pre_force(int);
   virtual void pre_force(int);
 
-  //template <typename SolverTag>
-  //  KOKKOS_INLINE_FUNCTION
-  //void operator()(SolverTag, const int&) const;
+  // Define a value_type here for the reduction operator on CounterType.
+  typedef CounterType value_type;
 
-  struct CounterType
-  {
-    int nSteps, nIters, nFuncs, nFails;
+  KOKKOS_INLINE_FUNCTION
+  void operator()(Tag_FixRxKokkos_zeroCounterViews, const int&) const;
 
-    KOKKOS_INLINE_FUNCTION
-    CounterType() : nSteps(0), nIters(0), nFuncs(0), nFails(0) {};
+  KOKKOS_INLINE_FUNCTION
+  void operator()(Tag_FixRxKokkos_zeroTemperatureViews, const int&) const;
 
-    KOKKOS_INLINE_FUNCTION
-    CounterType& operator+=(const CounterType &rhs)
-    {
-      nSteps += rhs.nSteps;
-      nIters += rhs.nIters;
-      nFuncs += rhs.nFuncs;
-      nFails += rhs.nFails;
-      return *this;
-    }
+  template <int WT_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(Tag_FixRxKokkos_firstPairOperator<WT_FLAG,NEWTON_PAIR,NEIGHFLAG>, const int&) const;
 
-    KOKKOS_INLINE_FUNCTION
-    volatile CounterType& operator+=(const volatile CounterType &rhs) volatile
-    {
-      nSteps += rhs.nSteps;
-      nIters += rhs.nIters;
-      nFuncs += rhs.nFuncs;
-      nFails += rhs.nFails;
-      return *this;
-    }
-  };
+  template <int WT_FLAG, int LOCAL_TEMP_FLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(Tag_FixRxKokkos_2ndPairOperator<WT_FLAG,LOCAL_TEMP_FLAG>, const int&) const;
+
+  template <bool ZERO_RATES>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES>, const int&, CounterType&) const;
 
  //protected:
   PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
   double VDPD;
+
+  double boltz;
+  double t_stop;
 
   template <typename T, int stride = 1>
   struct StridedArrayType
@@ -203,6 +236,27 @@ class FixRxKokkos : public FixRX {
   typename DAT::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
   typename HAT::t_efloat_1d h_dpdThetaLocal, h_sumWeights;
 
+  typename ArrayTypes<DeviceType>::t_x_array_randomread d_x       ;
+  typename ArrayTypes<DeviceType>::t_int_1d_randomread  d_type    ;
+  typename ArrayTypes<DeviceType>::t_efloat_1d          d_dpdTheta;
+
+  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
+  typename ArrayTypes<DeviceType>::t_ffloat_2d     d_cutsq;
+  //double **h_cutsq;
+
+  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
+  typename ArrayTypes<DeviceType>::t_int_1d       d_ilist    ;
+  typename ArrayTypes<DeviceType>::t_int_1d       d_numneigh ;
+
+  typename ArrayTypes<DeviceType>::t_float_2d  d_dvector;
+  typename ArrayTypes<DeviceType>::t_int_1d    d_mask   ;
+
+  typename ArrayTypes<DeviceType>::t_double_1d d_scratchSpace;
+  size_t scratchSpaceSize;
+
+  // Error flag for any failures.
+  DAT::tdual_int_scalar k_error_flag;
+
   template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
   void computeLocalTemperature();
 
@@ -213,6 +267,7 @@ class FixRxKokkos : public FixRX {
 
  //private: // replicate a few from FixRX
   int my_restartFlag;
+  int nlocal;
 };
 
 }

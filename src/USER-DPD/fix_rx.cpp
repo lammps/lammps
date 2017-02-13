@@ -220,6 +220,9 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
 
 FixRX::~FixRX()
 {
+  printf("Inside FixRX::~FixRX copymode= %d\n", copymode);
+  if (copymode) return;
+
   // De-Allocate memory to prevent memory leak
   for (int ii = 0; ii < nreactions; ii++){
     delete [] stoich[ii];

@@ -51,7 +51,7 @@
 #include <impl/Kokkos_CPUDiscovery.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
 
 namespace Kokkos {
 namespace Impl {
@@ -346,10 +346,10 @@ void OpenMP::print_configuration( std::ostream & s , const bool detail )
 
   s << "Kokkos::OpenMP" ;
 
-#if defined( KOKKOS_HAVE_OPENMP )
-  s << " KOKKOS_HAVE_OPENMP" ;
+#if defined( KOKKOS_ENABLE_OPENMP )
+  s << " KOKKOS_ENABLE_OPENMP" ;
 #endif
-#if defined( KOKKOS_HAVE_HWLOC )
+#if defined( KOKKOS_ENABLE_HWLOC )
 
   const unsigned numa_count_       = Kokkos::hwloc::get_available_numa_count();
   const unsigned cores_per_numa   = Kokkos::hwloc::get_available_cores_per_numa();
@@ -405,4 +405,4 @@ int OpenMP::concurrency() {
 
 } // namespace Kokkos
 
-#endif //KOKKOS_HAVE_OPENMP
+#endif //KOKKOS_ENABLE_OPENMP

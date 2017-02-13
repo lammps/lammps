@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 #include <string>
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 
 #include <mpi.h>
 
@@ -73,10 +73,10 @@ double all_reduce_max( double value , MPI_Comm comm )
 } // namespace Example
 } // namespace Kokkos
 
-#elif ! defined( KOKKOS_HAVE_MPI )
+#elif ! defined( KOKKOS_ENABLE_MPI )
 
 /* Wrap the the MPI_Comm type and heavily used MPI functions
- * to reduce the number of '#if defined( KOKKOS_HAVE_MPI )'
+ * to reduce the number of '#if defined( KOKKOS_ENABLE_MPI )'
  * blocks which have to be sprinkled throughout the examples.
  */
 
@@ -98,6 +98,6 @@ double all_reduce_max( double value , MPI_Comm ) { return value ; }
 } // namespace Example
 } // namespace Kokkos
 
-#endif /* ! defined( KOKKOS_HAVE_MPI ) */
+#endif /* ! defined( KOKKOS_ENABLE_MPI ) */
 #endif /* #ifndef KOKKOS_EXAMPLE_WRAP_MPI */
 

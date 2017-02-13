@@ -72,7 +72,7 @@ private:
 
 
 public:
-#ifdef KOKKOS_CUDA_USE_UVM
+#ifdef KOKKOS_ENABLE_CUDA_UVM
   KOKKOS_INLINE_FUNCTION Scalar& operator() (int i) const {return DV::h_view(i);};
   KOKKOS_INLINE_FUNCTION Scalar& operator[] (int i) const {return DV::h_view(i);};
 #else

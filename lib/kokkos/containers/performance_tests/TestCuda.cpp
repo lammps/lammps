@@ -52,7 +52,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 #include <TestDynRankView.hpp>
 
@@ -106,4 +106,4 @@ TEST_F( cuda, unordered_map_performance_far)
 
 }
 
-#endif  /* #if defined( KOKKOS_HAVE_CUDA ) */
+#endif  /* #if defined( KOKKOS_ENABLE_CUDA ) */

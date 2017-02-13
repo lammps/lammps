@@ -48,8 +48,8 @@
 #include <Kokkos_Parallel.hpp>
 #include <initializer_list>
 
-#if defined(KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION) && defined(KOKKOS_HAVE_PRAGMA_IVDEP) && !defined(__CUDA_ARCH__)
-#define KOKKOS_MDRANGE_IVDEP
+#if defined(KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION) && defined(KOKKOS_ENABLE_PRAGMA_IVDEP) && !defined(__CUDA_ARCH__)
+#define KOKKOS_IMPL_MDRANGE_IVDEP
 #endif
 
 namespace Kokkos { namespace Experimental {
@@ -350,7 +350,7 @@ struct MDForFunctor
 
     if (  MDRange::inner_direction == MDRange::Right ) {
       for (int i0=b0; i0<e0; ++i0) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i1=b1; i1<e1; ++i1) {
@@ -358,7 +358,7 @@ struct MDForFunctor
       }}
     } else {
       for (int i1=b1; i1<e1; ++i1) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i0=b0; i0<e0; ++i0) {
@@ -396,7 +396,7 @@ struct MDForFunctor
 
     if (  MDRange::inner_direction == MDRange::Right ) {
       for (int i0=b0; i0<e0; ++i0) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i1=b1; i1<e1; ++i1) {
@@ -404,7 +404,7 @@ struct MDForFunctor
       }}
     } else {
       for (int i1=b1; i1<e1; ++i1) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i0=b0; i0<e0; ++i0) {
@@ -501,7 +501,7 @@ struct MDForFunctor
     if (  MDRange::inner_direction == MDRange::Right ) {
       for (int i0=b0; i0<e0; ++i0) {
       for (int i1=b1; i1<e1; ++i1) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i2=b2; i2<e2; ++i2) {
@@ -510,7 +510,7 @@ struct MDForFunctor
     } else {
       for (int i2=b2; i2<e2; ++i2) {
       for (int i1=b1; i1<e1; ++i1) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i0=b0; i0<e0; ++i0) {
@@ -555,7 +555,7 @@ struct MDForFunctor
     if (  MDRange::inner_direction == MDRange::Right ) {
       for (int i0=b0; i0<e0; ++i0) {
       for (int i1=b1; i1<e1; ++i1) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i2=b2; i2<e2; ++i2) {
@@ -564,7 +564,7 @@ struct MDForFunctor
     } else {
       for (int i2=b2; i2<e2; ++i2) {
       for (int i1=b1; i1<e1; ++i1) {
-      #if defined(KOKKOS_MDRANGE_IVDEP)
+      #if defined(KOKKOS_IMPL_MDRANGE_IVDEP)
       #pragma ivdep
       #endif
       for (int i0=b0; i0<e0; ++i0) {

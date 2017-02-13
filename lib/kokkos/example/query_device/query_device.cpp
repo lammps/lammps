@@ -46,7 +46,7 @@
 
 #include <Kokkos_Macros.hpp>
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 #include <mpi.h>
 #endif
 
@@ -59,7 +59,7 @@ int main( int argc , char ** argv )
 {
   std::ostringstream msg ;
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 
   MPI_Init( & argc , & argv );
 
@@ -81,7 +81,7 @@ int main( int argc , char ** argv )
         << std::endl ;
   }
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   Kokkos::Cuda::print_configuration( msg );
 #endif
 
@@ -89,7 +89,7 @@ int main( int argc , char ** argv )
 
   std::cout << msg.str();
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 
   MPI_Finalize();
 

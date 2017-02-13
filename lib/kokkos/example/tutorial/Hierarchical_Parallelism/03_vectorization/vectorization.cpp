@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -45,7 +45,6 @@
 #include <Kokkos_Random.hpp>
 #include <cstdio>
 
-#ifdef KOKKOS_HAVE_CXX11
 
 // The TeamPolicy actually supports 3D parallelism: Teams, Threads, Vector
 // Kokkos::parallel_{for/reduce/scan} calls can be completely free nested.
@@ -159,4 +158,3 @@ int main(int narg, char* args[]) {
   Kokkos::finalize();
 }
 
-#endif //KOKKOS_HAVE_CXX11

@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 
 /* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 
@@ -197,6 +197,6 @@ struct CudaGetOptBlockSize<DriverType,false> {
 
 }} // namespace Kokkos::Impl
 
-#endif // KOKKOS_HAVE_CUDA
+#endif // KOKKOS_ENABLE_CUDA
 #endif /* #ifndef KOKKOS_CUDA_INTERNAL_HPP */
 

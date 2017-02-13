@@ -41,27 +41,42 @@
 //@HEADER
 */
 
+#include <gtest/gtest.h>
+
 #include <Kokkos_Core.hpp>
+#include <stdexcept>
+#include <sstream>
+#include <iostream>
 
-#if defined( KOKKOS_ENABLE_CUDA )
+/*--------------------------------------------------------------------------*/
 
-#include <feint.hpp>
+namespace Test {
 
-namespace Kokkos {
-namespace Example {
+template< typename SpaceDst , typename SpaceSrc >
+void view_space_assign()
+{
+  Kokkos::View<double*,SpaceDst> a =
+  Kokkos::View<double*,SpaceSrc>("a",1);
 
-template void feint<Kokkos::Cuda,false>(
-  const unsigned global_elem_nx ,
-  const unsigned global_elem_ny ,
-  const unsigned global_elem_nz );
+  Kokkos::View<double*,Kokkos::LayoutLeft,SpaceDst> b =
+  Kokkos::View<double*,Kokkos::LayoutLeft,SpaceSrc>("b",1);
 
-template void feint<Kokkos::Cuda,true>(
-  const unsigned global_elem_nx ,
-  const unsigned global_elem_ny ,
-  const unsigned global_elem_nz );
+  Kokkos::View<double*,Kokkos::LayoutRight,SpaceDst> c =
+  Kokkos::View<double*,Kokkos::LayoutRight,SpaceSrc>("c",1);
 
-} /* namespace Example */
-} /* namespace Kokkos */
+  Kokkos::View<double*,SpaceDst,Kokkos::MemoryRandomAccess> d =
+  Kokkos::View<double*,SpaceSrc>("d",1);
 
-#endif
+  Kokkos::View<double*,Kokkos::LayoutLeft,SpaceDst,Kokkos::MemoryRandomAccess> e =
+  Kokkos::View<double*,Kokkos::LayoutLeft,SpaceSrc>("e",1);
+
+  // Rank-one layout can assign:
+  Kokkos::View<double*,Kokkos::LayoutRight,SpaceDst> f =
+  Kokkos::View<double*,Kokkos::LayoutLeft,SpaceSrc>("f",1);
+}
+
+
+} // namespace Test
+
+/*--------------------------------------------------------------------------*/
 

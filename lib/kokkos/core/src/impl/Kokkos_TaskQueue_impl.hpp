@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -117,14 +117,14 @@ void TaskQueue< ExecSpace >::decrement
   }
 #endif
 
-  if ( ( 1 == count ) && 
+  if ( ( 1 == count ) &&
        ( task->m_next == (task_root_type *) task_root_type::LockTag ) ) {
     // Reference count is zero and task is complete, deallocate.
     task->m_queue->deallocate( task , task->m_alloc_size );
-  }   
-  else if ( count <= 1 ) { 
+  }
+  else if ( count <= 1 ) {
     Kokkos::abort("TaskScheduler task has negative reference count or is incomplete" );
-  }   
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -375,7 +375,7 @@ void TaskQueue< ExecSpace >::schedule
 
     task_root_type * dep = Kokkos::atomic_exchange( & task->m_next , zero );
 
-    const bool is_ready = 
+    const bool is_ready =
       ( 0 == dep ) || ( ! push_task( & dep->m_wait , task ) );
 
     // Reference count for dep was incremented when assigned
@@ -478,6 +478,28 @@ void TaskQueue< ExecSpace >::schedule
 
 template< typename ExecSpace >
 KOKKOS_FUNCTION
+void TaskQueue< ExecSpace >::reschedule( task_root_type * task )
+{
+  // Precondition:
+  //   task is in Executing state
+  //   task->m_next == LockTag
+  //
+  // Postcondition:
+  //   task is in Executing-Respawn state
+  //   task->m_next == 0 (no dependence)
+
+  task_root_type * const zero = (task_root_type *) 0 ;
+  task_root_type * const lock = (task_root_type *) task_root_type::LockTag ;
+
+  if ( lock != Kokkos::atomic_exchange( & task->m_next, zero ) ) {
+    Kokkos::abort("TaskScheduler::respawn ERROR: already respawned");
+  }
+}
+
+//----------------------------------------------------------------------------
+
+template< typename ExecSpace >
+KOKKOS_FUNCTION
 void TaskQueue< ExecSpace >::complete
   ( TaskQueue< ExecSpace >::task_root_type * task )
 {
@@ -565,6 +587,4 @@ void TaskQueue< ExecSpace >::complete
 } /* namespace Impl */
 } /* namespace Kokkos */
 
-
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
-

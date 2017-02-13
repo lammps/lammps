@@ -40,8 +40,8 @@
 // ************************************************************************
 //@HEADER
 */
-#ifndef KOKKOS_TEST_THREADSHPP
-#define KOKKOS_TEST_THREADSHPP
+#ifndef KOKKOS_TEST_THREADS_HPP
+#define KOKKOS_TEST_THREADS_HPP
 #include <gtest/gtest.h>
 
 #include <Kokkos_Macros.hpp>
@@ -65,6 +65,7 @@
 #include <TestViewSubview.hpp>
 #include <TestAtomic.hpp>
 #include <TestAtomicOperations.hpp>
+#include <TestAtomicViews.hpp>
 #include <TestRange.hpp>
 #include <TestTeam.hpp>
 #include <TestReduce.hpp>

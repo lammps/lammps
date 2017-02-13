@@ -79,7 +79,7 @@ int main (int narg, char* args[]) {
   int sum = 0;
   // We also need to protect the usage of a lambda against compiling
   // with a backend which doesn't support it (i.e. Cuda 6.5/7.0).
-  #if (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
+  #if (KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   parallel_reduce (policy, KOKKOS_LAMBDA (const team_member& thread, int& lsum) {
       lsum += 1;
       // TeamPolicy<>::member_type provides functions to query the

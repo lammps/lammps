@@ -78,6 +78,12 @@ KOKKOS_INTERNAL_COMPILER_PGI   := $(shell $(CXX) --version        2>&1 | grep PG
 KOKKOS_INTERNAL_COMPILER_XL    := $(shell $(CXX) -qversion        2>&1 | grep XL    | wc -l)
 KOKKOS_INTERNAL_COMPILER_CRAY  := $(shell $(CXX) -craype-verbose  2>&1 | grep "CC-" | wc -l)
 KOKKOS_INTERNAL_COMPILER_NVCC  := $(shell $(CXX) --version        2>&1 | grep "nvcc" | wc -l)
+ifneq ($(OMPI_CXX),)
+  KOKKOS_INTERNAL_COMPILER_NVCC  := $(shell $(OMPI_CXX) --version   2>&1 | grep "nvcc" | wc -l)
+endif
+ifneq ($(MPICH_CXX),)
+  KOKKOS_INTERNAL_COMPILER_NVCC  := $(shell $(MPICH_CXX) --version  2>&1 | grep "nvcc" | wc -l)
+endif
 KOKKOS_INTERNAL_COMPILER_CLANG := $(shell $(CXX) --version        2>&1 | grep "clang" | wc -l)
 
 ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 2)

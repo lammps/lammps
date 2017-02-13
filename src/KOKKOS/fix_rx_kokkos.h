@@ -76,11 +76,42 @@ class FixRxKokkos : public FixRX {
   PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
   double VDPD;
 
+  template <typename T, int stride = 1>
+  struct StridedArrayType
+  {
+    typedef T value_type;
+    enum { Stride = stride };
+
+    value_type *m_data;
+
+    StridedArrayType() : m_data(NULL) {}
+    StridedArrayType(value_type *ptr) : m_data(ptr) {}
+
+    inline       value_type& operator()(const int idx)       { return m_data[Stride*idx]; }
+    inline const value_type& operator()(const int idx) const { return m_data[Stride*idx]; }
+    inline       value_type& operator[](const int idx)       { return m_data[Stride*idx]; }
+    inline const value_type& operator[](const int idx) const { return m_data[Stride*idx]; }
+  };
+
+  template <int stride = 1>
+  struct UserRHSDataKokkos
+  {
+    StridedArrayType<double,1> kFor;
+    StridedArrayType<double,1> rxnRateLaw;
+  };
+
   void solve_reactions(const int vflag, const bool isPreForce = true);
 
-  int rhs(double, const double *, double *, void *) const;
+  int rhs       (double, const double *, double *, void *) const;
   int rhs_dense (double, const double *, double *, void *) const;
   int rhs_sparse(double, const double *, double *, void *) const;
+
+  template <typename VectorType, typename UserDataType>
+  int k_rhs       (double, const VectorType&, VectorType&, UserDataType& ) const;
+  template <typename VectorType, typename UserDataType>
+  int k_rhs_dense (double, const VectorType&, VectorType&, UserDataType& ) const;
+  template <typename VectorType, typename UserDataType>
+  int k_rhs_sparse(double, const VectorType&, VectorType&, UserDataType& ) const;
 
   //!< Classic Runge-Kutta 4th-order stepper.
   void rk4(const double t_stop, double *y, double *rwork, void *v_params) const;
@@ -96,6 +127,25 @@ class FixRxKokkos : public FixRX {
   int rkf45_h0 (const int neq, const double t, const double t_stop,
                      const double hmin, const double hmax,
                      double& h0, double y[], double rwk[], void *v_params) const;
+
+  //!< Classic Runge-Kutta 4th-order stepper.
+  template <typename UserDataType>
+  void k_rk4(const double t_stop, double *y, double *rwork, UserDataType& userData) const;
+
+  //!< Runge-Kutta-Fehlberg ODE Solver.
+  template <typename UserDataType>
+  void k_rkf45(const int neq, const double t_stop, double *y, double *rwork, UserDataType& userData, CounterType& counter) const;
+
+  //!< Runge-Kutta-Fehlberg ODE stepper function.
+  template <typename UserDataType>
+  void k_rkf45_step (const int neq, const double h, double y[], double y_out[],
+                     double rwk[], UserDataType& userData) const;
+
+  //!< Initial step size estimation for the Runge-Kutta-Fehlberg ODE solver.
+  template <typename UserDataType>
+  int k_rkf45_h0 (const int neq, const double t, const double t_stop,
+                  const double hmin, const double hmax,
+                  double& h0, double y[], double rwk[], UserDataType& userData) const;
 
   //!< ODE Solver diagnostics.
   void odeDiagnostics(void);

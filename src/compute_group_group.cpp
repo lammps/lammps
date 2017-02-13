@@ -216,7 +216,7 @@ void ComputeGroupGroup::pair_contribution()
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

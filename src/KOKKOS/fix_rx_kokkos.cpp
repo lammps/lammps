@@ -25,13 +25,13 @@
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "error.h"
-#include "math_special.h"
+#include "math_special_kokkos.h"
 
 #include <float.h> // DBL_EPSILON
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathSpecial;
+using namespace MathSpecialKokkos;
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -425,8 +425,8 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0
       // should we accept this?
       if (hnew_is_ok || iter == max_iters){
          hnew = hg;
-         if (iter == max_iters)
-            fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
+         //if (iter == max_iters)
+         //   fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
          break;
       }
 
@@ -1407,6 +1407,14 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
        );
   }
 
+  // Error flag for any failures.
+  DAT::tdual_int_scalar k_error_flag("pair:error_flag");
+
+  // Initialize and sync the device flag.
+  k_error_flag.h_view() = 0;
+  k_error_flag.template modify<LMPHostType>();
+  k_error_flag.template sync<DeviceType>();
+
   // Create scratch array space.
   const size_t scratchSpaceSize = (8*nspecies + 2*nreactions);
   //double *scratchSpace = new double[ scratchSpaceSize * nlocal ];
@@ -1483,7 +1491,11 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
         for (int ispecies = 0; ispecies < nspecies; ispecies++)
         {
           if (y[ispecies] < -MY_EPSILON)
-            error->one(FLERR,"Computed concentration in RK solver is < -10*DBL_EPSILON");
+          {
+            //error->one(FLERR,"Computed concentration in RK solver is < -10*DBL_EPSILON");
+            k_error_flag.d_view() = 2;
+            // This should be an atomic update.
+          }
           else if (y[ispecies] < MY_EPSILON)
             y[ispecies] = 0.0;
 
@@ -1506,6 +1518,12 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   //delete [] scratchSpace;
 
   TimerType timer_ODE = getTimeStamp();
+
+  // Check the error flag for any failures.
+  k_error_flag.template modify<DeviceType>();
+  k_error_flag.template sync<LMPHostType>();
+  if (k_error_flag.h_view() == 2)
+    error->one(FLERR,"Computed concentration in RK solver is < -10*DBL_EPSILON");
 
   // Signal that dvector has been modified on this execution space.
   atomKK->modified( execution_space, DVECTOR_MASK );
@@ -1815,7 +1833,8 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
         {
           // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
           // for Half/thread scenarios.
-          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+          //typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename DAT::t_efloat_1d::device_type, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
 
           AtomicViewType a_dpdThetaLocal = d_dpdThetaLocal;
           AtomicViewType a_sumWeights    = d_sumWeights;

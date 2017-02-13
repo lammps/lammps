@@ -49,6 +49,7 @@ class FixRxKokkos : public FixRX {
   {
     int nSteps, nIters, nFuncs, nFails;
 
+    KOKKOS_INLINE_FUNCTION
     CounterType() : nSteps(0), nIters(0), nFuncs(0), nFails(0) {};
 
     KOKKOS_INLINE_FUNCTION
@@ -72,7 +73,7 @@ class FixRxKokkos : public FixRX {
     }
   };
 
- protected:
+ //protected:
   PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
   double VDPD;
 
@@ -84,13 +85,15 @@ class FixRxKokkos : public FixRX {
 
     value_type *m_data;
 
+    KOKKOS_INLINE_FUNCTION
     StridedArrayType() : m_data(NULL) {}
+    KOKKOS_INLINE_FUNCTION
     StridedArrayType(value_type *ptr) : m_data(ptr) {}
 
-    inline       value_type& operator()(const int idx)       { return m_data[Stride*idx]; }
-    inline const value_type& operator()(const int idx) const { return m_data[Stride*idx]; }
-    inline       value_type& operator[](const int idx)       { return m_data[Stride*idx]; }
-    inline const value_type& operator[](const int idx) const { return m_data[Stride*idx]; }
+    KOKKOS_INLINE_FUNCTION       value_type& operator()(const int idx)       { return m_data[Stride*idx]; }
+    KOKKOS_INLINE_FUNCTION const value_type& operator()(const int idx) const { return m_data[Stride*idx]; }
+    KOKKOS_INLINE_FUNCTION       value_type& operator[](const int idx)       { return m_data[Stride*idx]; }
+    KOKKOS_INLINE_FUNCTION const value_type& operator[](const int idx) const { return m_data[Stride*idx]; }
   };
 
   template <int stride = 1>
@@ -100,17 +103,22 @@ class FixRxKokkos : public FixRX {
     StridedArrayType<double,1> rxnRateLaw;
   };
 
-  void solve_reactions(const int vflag, const bool isPreForce = true);
+  void solve_reactions(const int vflag, const bool isPreForce);
 
   int rhs       (double, const double *, double *, void *) const;
   int rhs_dense (double, const double *, double *, void *) const;
   int rhs_sparse(double, const double *, double *, void *) const;
 
   template <typename VectorType, typename UserDataType>
+    KOKKOS_INLINE_FUNCTION
   int k_rhs       (double, const VectorType&, VectorType&, UserDataType& ) const;
+
   template <typename VectorType, typename UserDataType>
+    KOKKOS_INLINE_FUNCTION
   int k_rhs_dense (double, const VectorType&, VectorType&, UserDataType& ) const;
+
   template <typename VectorType, typename UserDataType>
+    KOKKOS_INLINE_FUNCTION
   int k_rhs_sparse(double, const VectorType&, VectorType&, UserDataType& ) const;
 
   //!< Classic Runge-Kutta 4th-order stepper.
@@ -130,19 +138,23 @@ class FixRxKokkos : public FixRX {
 
   //!< Classic Runge-Kutta 4th-order stepper.
   template <typename VectorType, typename UserDataType>
+    KOKKOS_INLINE_FUNCTION
   void k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const;
 
   //!< Runge-Kutta-Fehlberg ODE Solver.
   template <typename VectorType, typename UserDataType>
+    KOKKOS_INLINE_FUNCTION
   void k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const;
 
   //!< Runge-Kutta-Fehlberg ODE stepper function.
   template <typename VectorType, typename UserDataType>
+    KOKKOS_INLINE_FUNCTION
   void k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out,
                      VectorType& rwk, UserDataType& userData) const;
 
   //!< Initial step size estimation for the Runge-Kutta-Fehlberg ODE solver.
   template <typename VectorType, typename UserDataType>
+    KOKKOS_INLINE_FUNCTION
   int k_rkf45_h0 (const int neq, const double t, const double t_stop,
                   const double hmin, const double hmax,
                   double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const;
@@ -155,8 +167,10 @@ class FixRxKokkos : public FixRX {
   int *diagnosticCounterPerODEnFuncs;
   DAT::tdual_int_1d k_diagnosticCounterPerODEnSteps;
   DAT::tdual_int_1d k_diagnosticCounterPerODEnFuncs;
-  typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnSteps;
-  typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnFuncs;
+  //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnSteps;
+  //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnFuncs;
+  typename DAT::t_int_1d d_diagnosticCounterPerODEnSteps;
+  typename DAT::t_int_1d d_diagnosticCounterPerODEnFuncs;
   typename HAT::t_int_1d h_diagnosticCounterPerODEnSteps;
   typename HAT::t_int_1d h_diagnosticCounterPerODEnFuncs;
 
@@ -185,7 +199,8 @@ class FixRxKokkos : public FixRX {
 
   // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
   DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
+  //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
+  typename DAT::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
   typename HAT::t_efloat_1d h_dpdThetaLocal, h_sumWeights;
 
   template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
@@ -196,7 +211,7 @@ class FixRxKokkos : public FixRX {
   int pack_forward_comm(int , int *, double *, int, int *);
   void unpack_forward_comm(int , int , double *);
 
- private: // replicate a few from FixRX
+ //private: // replicate a few from FixRX
   int my_restartFlag;
 };
 

@@ -2910,7 +2910,7 @@ Phys, 79, 926 (1983).
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
 :link(MitchellFincham)
-[(Mitchell and Fincham)] Mitchell, Finchham, J Phys Condensed Matter,
+[(Mitchell and Fincham)] Mitchell, Fincham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
 
 :link(MitchellFincham2)

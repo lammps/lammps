@@ -13,24 +13,23 @@
 
 #ifdef NPAIR_CLASS
 
-NPairStyle(halffull/newton/ssa,
-           NPairHalffullNewtonSSA,
-           NP_HALF_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON |
-           NP_ORTHO | NP_TRI | NP_SSA)
+NPairStyle(half/bin/atomonly/newton,
+           NPairHalfBinAtomonlyNewton,
+           NP_HALF | NP_BIN | NP_ATOMONLY | NP_NEWTON | NP_ORTHO)
 
 #else
 
-#ifndef LMP_NPAIR_HALFFULL_NEWTON_SSA_H
-#define LMP_NPAIR_HALFFULL_NEWTON_SSA_H
+#ifndef LMP_NPAIR_HALF_BIN_ATOMONLY_NEWTON_H
+#define LMP_NPAIR_HALF_BIN_ATOMONLY_NEWTON_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalffullNewtonSSA : public NPair {
+class NPairHalfBinAtomonlyNewton : public NPair {
  public:
-  NPairHalffullNewtonSSA(class LAMMPS *);
-  ~NPairHalffullNewtonSSA() {}
+  NPairHalfBinAtomonlyNewton(class LAMMPS *);
+  ~NPairHalfBinAtomonlyNewton() {}
   void build(class NeighList *);
 };
 

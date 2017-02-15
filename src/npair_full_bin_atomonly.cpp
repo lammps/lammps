@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_skip.h"
+#include "npair_full_bin_atomonly.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "domain.h"
 #include "my_page.h"
 #include "error.h"
@@ -25,63 +24,63 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkip::NPairSkip(LAMMPS *lmp) : NPair(lmp) {}
+NPairFullBinAtomonly::NPairFullBinAtomonly(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   build skip list for subset of types from parent list
-   works for half and full lists
-   works for owned (non-ghost) list, also for ghost list
-   iskip and ijskip flag which atom types and type pairs to skip
-   if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
+   binned neighbor list construction for all neighbors
+   every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void NPairSkip::build(NeighList *list)
+void NPairFullBinAtomonly::build(NeighList *list)
 {
-  int i,j,ii,jj,n,itype,jnum,joriginal;
-  int *neighptr,*jlist;
+  int i,j,k,n,itype,jtype,ibin;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr;
 
+  double **x = atom->x;
   int *type = atom->type;
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  int *ilist_skip = list->listskip->ilist;
-  int *numneigh_skip = list->listskip->numneigh;
-  int **firstneigh_skip = list->listskip->firstneigh;
-  int num_skip = list->listskip->inum;
-  if (list->ghost) num_skip += list->listskip->gnum;
-
-  int *iskip = list->iskip;
-  int **ijskip = list->ijskip;
-
   int inum = 0;
   ipage->reset();
 
-  // loop over atoms in other list
-  // skip I atom entirely if iskip is set for type[I]
-  // skip I,J pair if ijskip is set for type[I],type[J]
-
-  for (ii = 0; ii < num_skip; ii++) {
-    i = ilist_skip[ii];
-    itype = type[i];
-    if (iskip[itype]) continue;
-
+  for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
 
-    // loop over parent non-skip list
+    itype = type[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
 
-    jlist = firstneigh_skip[i];
-    jnum = numneigh_skip[i];
+    // loop over all atoms in surrounding bins in stencil including self
+    // skip i = j
 
-    for (jj = 0; jj < jnum; jj++) {
-      joriginal = jlist[jj];
-      j = joriginal & NEIGHMASK;
-      if (ijskip[itype][type[j]]) continue;
-      neighptr[n++] = joriginal;
+    ibin = coord2bin(x[i]);
+
+    for (k = 0; k < nstencil; k++) {
+      for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
+        if (i == j) continue;
+
+        jtype = type[j];
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+
+        if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+      }
     }
 
     ilist[inum++] = i;
@@ -93,12 +92,5 @@ void NPairSkip::build(NeighList *list)
   }
 
   list->inum = inum;
-  if (list->ghost) {
-    int num = 0;
-    for (i = 0; i < inum; i++)
-      if (ilist[i] < nlocal) num++;
-      else break;
-    list->inum = num;
-    list->gnum = inum - num;
-  }
+  list->gnum = 0;
 }

@@ -72,8 +72,8 @@ void FixShearHistoryOMP::pre_exchange()
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    firsttouch = list->listgranhistory->firstneigh;
-    firstshear = list->listgranhistory->firstdouble;
+    firsttouch = list->listhistory->firstneigh;
+    firstshear = list->listhistory->firstdouble;
 
     int nlocal_neigh = 0;
     if (inum) nlocal_neigh = ilist[inum-1] + 1;

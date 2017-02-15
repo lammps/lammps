@@ -137,8 +137,8 @@ void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = listgranhistory->firstneigh;
-  firstshear = listgranhistory->firstdouble;
+  firsttouch = listhistory->firstneigh;
+  firstshear = listhistory->firstdouble;
 
   // loop over neighbors of my atoms
 

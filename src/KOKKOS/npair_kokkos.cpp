@@ -170,7 +170,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
   data.special_flag[2] = special_flag[2];
   data.special_flag[3] = special_flag[3];
 
-  if(list->d_neighbors.dimension_0()<nall) {
+  if(list->d_neighbors.dimension_0()<nall) { // Can this EVER be true??? - TIM 20170215
     list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", nall*1.1, list->maxneighs);
     list->d_numneigh = typename ArrayTypes<DeviceType>::t_int_1d("numneigh", nall*1.1);
     data.neigh_list.d_neighbors = list->d_neighbors;
@@ -179,10 +179,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
   data.h_resize()=1;
   while(data.h_resize()) {
     data.h_new_maxneighs() = list->maxneighs;
-  data.h_resize() = 0;
+    data.h_resize() = 0;
 
-  Kokkos::deep_copy(data.resize, data.h_resize);
-  Kokkos::deep_copy(data.new_maxneighs, data.h_new_maxneighs);
+    Kokkos::deep_copy(data.resize, data.h_resize);
+    Kokkos::deep_copy(data.new_maxneighs, data.h_new_maxneighs);
 #ifdef KOKKOS_HAVE_CUDA
     #define BINS_PER_BLOCK 2
     const int factor = atoms_per_bin<64?2:1;
@@ -191,27 +191,27 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
     const int factor = 1;
 #endif
 
-if (GHOST) {
-  NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-  Kokkos::parallel_for(nall, f);
-} else {
-  if (newton_pair) {
-    NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+    if (GHOST) {
+      NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+      Kokkos::parallel_for(nall, f);
+    } else {
+      if (newton_pair) {
+        NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef KOKKOS_HAVE_CUDA
-    Kokkos::parallel_for(config, f);
+        Kokkos::parallel_for(config, f);
 #else
-    Kokkos::parallel_for(nall, f);
+        Kokkos::parallel_for(nall, f);
 #endif
-  } else {
-    NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+      } else {
+        NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef KOKKOS_HAVE_CUDA
-    Kokkos::parallel_for(config, f);
+        Kokkos::parallel_for(config, f);
 #else
-    Kokkos::parallel_for(nall, f);
+        Kokkos::parallel_for(nall, f);
 #endif
-  }
-}
-  DeviceType::fence();
+      }
+    }
+    DeviceType::fence();
     deep_copy(data.h_resize, data.resize);
 
     if(data.h_resize()) {

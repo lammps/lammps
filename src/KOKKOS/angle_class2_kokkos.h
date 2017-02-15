@@ -35,6 +35,7 @@ class AngleClass2Kokkos : public AngleClass2 {
 
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
   AngleClass2Kokkos(class LAMMPS *);
@@ -61,29 +62,29 @@ class AngleClass2Kokkos : public AngleClass2 {
 
   class NeighborKokkos *neighborKK;
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_2d anglelist;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_f_array f;
+  typename AT::t_int_2d anglelist;
 
-  typename ArrayTypes<DeviceType>::tdual_efloat_1d k_eatom;
-  typename ArrayTypes<DeviceType>::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::tdual_efloat_1d k_eatom;
+  typename AT::tdual_virial_array k_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_theta0;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k2, k_k3, k_k4;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_bb_k, k_bb_r1, k_bb_r2;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_ba_k1, k_ba_k2, k_ba_r1, k_ba_r2;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_setflag, k_setflag_a, k_setflag_bb, k_setflag_ba;
+  typename AT::tdual_ffloat_1d k_theta0;
+  typename AT::tdual_ffloat_1d k_k2, k_k3, k_k4;
+  typename AT::tdual_ffloat_1d k_bb_k, k_bb_r1, k_bb_r2;
+  typename AT::tdual_ffloat_1d k_ba_k1, k_ba_k2, k_ba_r1, k_ba_r2;
+  typename AT::tdual_ffloat_1d k_setflag, k_setflag_a, k_setflag_bb, k_setflag_ba;
 
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_theta0;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k2, d_k3, d_k4;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_bb_k, d_bb_r1, d_bb_r2;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_ba_k1, d_ba_k2, d_ba_r1, d_ba_r2;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_setflag, d_setflag_a, d_setflag_bb, d_setflag_ba;
+  typename AT::t_ffloat_1d d_theta0;
+  typename AT::t_ffloat_1d d_k2, d_k3, d_k4;
+  typename AT::t_ffloat_1d d_bb_k, d_bb_r1, d_bb_r2;
+  typename AT::t_ffloat_1d d_ba_k1, d_ba_k2, d_ba_r1, d_ba_r2;
+  typename AT::t_ffloat_1d d_setflag, d_setflag_a, d_setflag_bb, d_setflag_ba;
 
   virtual void allocate();
 };

@@ -35,6 +35,7 @@ class BondClass2Kokkos : public BondClass2 {
 
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
   BondClass2Kokkos(class LAMMPS *);
@@ -60,7 +61,6 @@ class BondClass2Kokkos : public BondClass2 {
 
   class NeighborKokkos *neighborKK;
 
-  typedef ArrayTypes<DeviceType> AT;
   typename AT::t_x_array_randomread x;
   typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d bondlist;

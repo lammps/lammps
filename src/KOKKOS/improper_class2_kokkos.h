@@ -79,8 +79,8 @@ class ImproperClass2Kokkos : public ImproperClass2 {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
@@ -89,13 +89,13 @@ class ImproperClass2Kokkos : public ImproperClass2 {
   typename AT::t_int_scalar d_warning_flag;
   HAT::t_int_scalar h_warning_flag;
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k0,k_chi0;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_aa_k1,k_aa_k2,k_aa_k3,k_aa_theta0_1,k_aa_theta0_2,k_aa_theta0_3;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_setflag_i,k_setflag_aa,k_setflag;
+  typename AT::tdual_ffloat_1d k_k0,k_chi0;
+  typename AT::tdual_ffloat_1d k_aa_k1,k_aa_k2,k_aa_k3,k_aa_theta0_1,k_aa_theta0_2,k_aa_theta0_3;
+  typename AT::tdual_ffloat_1d k_setflag_i,k_setflag_aa,k_setflag;
 
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k0,d_chi0;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_aa_k1,d_aa_k2,d_aa_k3,d_aa_theta0_1,d_aa_theta0_2,d_aa_theta0_3;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_setflag_i,d_setflag_aa,d_setflag;
+  typename AT::t_ffloat_1d d_k0,d_chi0;
+  typename AT::t_ffloat_1d d_aa_k1,d_aa_k2,d_aa_k3,d_aa_theta0_1,d_aa_theta0_2,d_aa_theta0_3;
+  typename AT::t_ffloat_1d d_setflag_i,d_setflag_aa,d_setflag;
 
   virtual void allocate();
 };

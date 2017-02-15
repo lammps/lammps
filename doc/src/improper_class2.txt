@@ -8,6 +8,7 @@
 
 improper_style class2 command :h3
 improper_style class2/omp command :h3
+improper_style class2/kk command :h3
 
 [Syntax:]
 

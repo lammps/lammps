@@ -2136,6 +2136,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   realrij[0] = x[atomi][0] - x[atomj][0];
   realrij[1] = x[atomi][1] - x[atomj][1];
   realrij[2] = x[atomi][2] - x[atomj][2];
+  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1] 
+                                            + realrij[2] * realrij[2]);
 
   REBO_neighs = REBO_firstneigh[i];
   for (k = 0; k < REBO_numneigh[i]; k++) {
@@ -2332,7 +2334,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         rjkmag = sqrt(rjk[0] * rjk[0] + rjk[1] * rjk[1] + rjk[2] * rjk[2]);
         rijrik = 2 * rijmag * rikmag;
         rr = rijmag * rijmag - rikmag * rikmag;
-        cosjik = (rr + rikmag * rikmag - rjkmag * rjkmag) / rijrik;
+        cosjik = (rijmag * rijmag + rikmag * rikmag - rjkmag * rjkmag) / rijrik;
         cosjik = MIN(cosjik,1.0);
         cosjik = MAX(cosjik,-1.0);
         dctdjk = -2 / rijrik;
@@ -2343,18 +2345,18 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
         tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
 
-        fi[0] =  tmp2 * dctdik * rik[0];
-        fi[1] =  tmp2 * dctdik * rik[1];
-        fi[2] =  tmp2 * dctdik * rik[2];
-        fk[0] = -tmp2 * dctdik * rik[0];
-        fk[1] = -tmp2 * dctdik * rik[1];
-        fk[2] = -tmp2 * dctdik * rik[2];
+        fi[0] = -tmp2 * dctdik * rik[0];
+        fi[1] = -tmp2 * dctdik * rik[1];
+        fi[2] = -tmp2 * dctdik * rik[2];
+        fk[0] =  tmp2 * dctdik * rik[0];
+        fk[1] =  tmp2 * dctdik * rik[1];
+        fk[2] =  tmp2 * dctdik * rik[2];
         fj[0] = 0;
         fj[1] = 0;
         fj[2] = 0;
-        fjk[0] = tmp2 * dctdjk * rjk[0];
-        fjk[1] = tmp2 * dctdjk * rjk[1];
-        fjk[2] = tmp2 * dctdjk * rjk[2];
+        fjk[0] = -tmp2 * dctdjk * rjk[0];
+        fjk[1] = -tmp2 * dctdjk * rjk[1];
+        fjk[2] = -tmp2 * dctdjk * rjk[2];
         fi[0] += fjk[0];
         fi[1] += fjk[1];
         fi[2] += fjk[2];
@@ -2443,7 +2445,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         rilmag = sqrt(ril[0] * ril[0] + ril[1] * ril[1] + ril[2] * ril[2]);
         rijrjl = 2 * rijmag * rjlmag;
         rr = rijmag * rijmag - rjlmag * rjlmag;
-        cosijl = (rr + rjlmag * rjlmag - rilmag * rilmag) / rijrjl;
+        cosijl = (rijmag * rijmag + rjlmag * rjlmag - rilmag * rilmag) / rijrjl;
         cosijl = MIN(cosijl,1.0);
         cosijl = MAX(cosijl,-1.0);
         dctdil = -2 / rijrjl;
@@ -2453,18 +2455,18 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
         g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
         tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
-        fj[0] =  tmp2 * dctdjl * rjl[0];
-        fj[1] =  tmp2 * dctdjl * rjl[1];
-        fj[2] =  tmp2 * dctdjl * rjl[2];
-        fl[0] = -tmp2 * dctdjl * rjl[0];
-        fl[1] = -tmp2 * dctdjl * rjl[1];
-        fl[2] = -tmp2 * dctdjl * rjl[2];
+        fj[0] = -tmp2 * dctdjl * rjl[0];
+        fj[1] = -tmp2 * dctdjl * rjl[1];
+        fj[2] = -tmp2 * dctdjl * rjl[2];
+        fl[0] =  tmp2 * dctdjl * rjl[0];
+        fl[1] =  tmp2 * dctdjl * rjl[1];
+        fl[2] =  tmp2 * dctdjl * rjl[2];
         fi[0] = 0;
         fi[1] = 0;
         fi[2] = 0;
-        fil[0] = tmp2 * dctdil * ril[0];
-        fil[1] = tmp2 * dctdil * ril[1];
-        fil[2] = tmp2 * dctdil * ril[2];
+        fil[0] = -tmp2 * dctdil * ril[0];
+        fil[1] = -tmp2 * dctdil * ril[1];
+        fil[2] = -tmp2 * dctdil * ril[2];
         fj[0] += fil[0];
         fj[1] += fil[1];
         fj[2] += fil[2];

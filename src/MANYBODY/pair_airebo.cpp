@@ -753,7 +753,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
         tee = drij / swidth;
         tee2 = tee*tee;
         slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
-        dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
+        dslw = -6.0 * tee * (1.0 - tee) / swidth;
       } else {
         slw = 1.0;
         dslw = 0.0;

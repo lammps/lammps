@@ -45,6 +45,8 @@ ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp)
 
 ImproperClass2::~ImproperClass2()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(setflag_i);

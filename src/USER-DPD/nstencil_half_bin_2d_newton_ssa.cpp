@@ -43,6 +43,14 @@ void NStencilHalfBin2dNewtonSSA::create()
 {
   int i,j,pos = 0;
   nstencil_ssa[0] = 0; // redundant info, but saves a conditional
+
+  // Include the centroid at the start.
+  // It will be handled as part of Subphase 0.
+  stencilxyz[pos][0] = 0;
+  stencilxyz[pos][1] = 0;
+  stencilxyz[pos][2] = 0;
+  stencil[pos++] = 0;
+
   // Subphase 0: upper right front bins (red)
   for (j = 0; j <= sy; j++)
     for (i = 0; i <= sx; i++)
@@ -100,12 +108,6 @@ void NStencilHalfBin2dNewtonSSA::create()
         stencil[pos++] = j*mbinx + i;
       }
   // nstencil_ssa[8] = pos;
-
-  // Also, include the centroid for the AIR ghosts.
-  stencilxyz[pos][0] = 0;
-  stencilxyz[pos][1] = 0;
-  stencilxyz[pos][2] = 0;
-  stencil[pos++] = 0;
 
   nstencil = pos; // record where full stencil ends
 }

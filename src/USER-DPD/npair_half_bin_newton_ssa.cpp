@@ -180,35 +180,13 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
           iatom = molatom[i];
           tagprev = tag[i] - iatom - 1;
         }
-        // loop over rest of local atoms in i's bin if this is subphase 0
-        // just store them, since j is beyond i in linked list
-        if (subphase == 0) for (j = bins[i]; j >= 0; j = bins[j]) {
-          jtype = type[j];
-          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          delx = xtmp - x[j][0];
-          dely = ytmp - x[j][1];
-          delz = ztmp - x[j][2];
-          rsq = delx*delx + dely*dely + delz*delz;
-          if (rsq <= cutneighsq[itype][jtype]) {
-            if (molecular) {
-              if (!moltemplate)
-                which = find_special(special[i],nspecial[i],tag[j]);
-              else if (imol >= 0)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom],
-                                     tag[j]-tagprev);
-              else which = 0;
-              if (which == 0) neighptr[n++] = j;
-              else if (domain->minimum_image_check(delx,dely,delz))
-                neighptr[n++] = j;
-              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-            } else neighptr[n++] = j;
-          }
-        }
 
-        // loop over all local atoms in other bins in "subphase" of stencil
+        // loop over all local atoms in the current stencil "subphase"
         for (k = nstencil_ssa[subphase]; k < nstencil_ssa[subphase+1]; k++) {
-          for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
+          const int jbin = ibin+stencil[k];
+          if (jbin != ibin) j = binhead[jbin];
+          else j = bins[i]; // same bin as i, so start just past i in the bin
+          for (; j >= 0; j = bins[j]) {
             jtype = type[j];
             if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
             delx = xtmp - x[j][0];

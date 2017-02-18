@@ -207,8 +207,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
         }
 
         // loop over all local atoms in other bins in "subphase" of stencil
-        k = (subphase > 0) ? nstencil_ssa[subphase - 1] : 0;
-        for (; k < nstencil_ssa[subphase]; k++) {
+        for (k = nstencil_ssa[subphase]; k < nstencil_ssa[subphase+1]; k++) {
           for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
             jtype = type[j];
             if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

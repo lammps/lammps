@@ -24,7 +24,8 @@ class NStencilSSA : public NStencil {
   ~NStencilSSA() {}
   virtual void create() = 0;
 
-  int nstencil_ssa[8];  // last stencil index for each subphase
+  // first stencil index for each subphase, with last index at end
+  int nstencil_ssa[5];
 };
 
 }

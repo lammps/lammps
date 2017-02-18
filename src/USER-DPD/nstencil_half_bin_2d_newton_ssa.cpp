@@ -42,6 +42,7 @@ NStencilHalfBin2dNewtonSSA::NStencilHalfBin2dNewtonSSA(LAMMPS *lmp) :
 void NStencilHalfBin2dNewtonSSA::create()
 {
   int i,j,pos = 0;
+  nstencil_ssa[0] = 0; // redundant info, but saves a conditional
   // Subphase 0: upper right front bins (red)
   for (j = 0; j <= sy; j++)
     for (i = 0; i <= sx; i++)
@@ -52,8 +53,8 @@ void NStencilHalfBin2dNewtonSSA::create()
           stencilxyz[pos][2] = 0;
           stencil[pos++] = j*mbinx + i;
         }
-  nstencil_ssa[0] = pos;
 
+  nstencil_ssa[1] = pos;
   // Subphase 1: upper left front bins (light blue)
   for (j = 1; j <= sy; j++)
     for (i = -sx; i < 0; i++)
@@ -63,21 +64,21 @@ void NStencilHalfBin2dNewtonSSA::create()
         stencilxyz[pos][2] = 0;
         stencil[pos++] = j*mbinx + i;
       }
-  nstencil_ssa[1] = pos;
 
-  // Subphase 2: lower right front bins (yellow)
   nstencil_ssa[2] = pos;
+  // Subphase 2: lower right front bins (yellow)
 
-  // Subphase 3: lower left front bins (blue)
   nstencil_ssa[3] = pos;
+  // Subphase 3: lower left front bins (blue)
 
+  nstencil_ssa[4] = pos; // record end of half stencil
   // Now include additional bins for AIR ghosts, and impure-to-pure locals
   // Subphase 4: upper right back bins (pink)
-  nstencil_ssa[4] = pos;
 
+  // nstencil_ssa[5] = pos;
   // Subphase 5: upper left back bins (light green)
-  nstencil_ssa[5] = pos;
 
+  // nstencil_ssa[6] = pos;
   // Subphase 6: lower right back bins (white)
   for (j = -sy; j < 0; j++)
     for (i = 0; i <= sx; i++)
@@ -87,8 +88,8 @@ void NStencilHalfBin2dNewtonSSA::create()
         stencilxyz[pos][2] = 0;
         stencil[pos++] = j*mbinx + i;
       }
-  nstencil_ssa[6] = pos;
 
+  // nstencil_ssa[7] = pos;
   // Subphase 7: lower left back bins (purple)
   for (j = -sy; j <= 0; j++)
     for (i = -sx; i < 0; i++)
@@ -98,7 +99,7 @@ void NStencilHalfBin2dNewtonSSA::create()
         stencilxyz[pos][2] = 0;
         stencil[pos++] = j*mbinx + i;
       }
-  nstencil_ssa[7] = pos;
+  // nstencil_ssa[8] = pos;
 
   // Also, include the centroid for the AIR ghosts.
   stencilxyz[pos][0] = 0;

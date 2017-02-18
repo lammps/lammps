@@ -422,10 +422,10 @@ void NeighborKokkosExecute<DeviceType>::
 
   neigh_list.d_numneigh(i) = n;
 
-  if(n >= neigh_list.maxneighs) {
+  if(n > neigh_list.maxneighs) {
     resize() = 1;
 
-    if(n >= new_maxneighs()) new_maxneighs() = n;
+    if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
   }
 
   neigh_list.d_ilist(i) = i;
@@ -632,10 +632,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
     neigh_list.d_ilist(i) = i;
   }
 
-  if(n >= neigh_list.maxneighs) {
+  if(n > neigh_list.maxneighs) {
     resize() = 1;
 
-    if(n >= new_maxneighs()) new_maxneighs() = n;
+    if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
   }
   }
 }
@@ -755,10 +755,10 @@ void NeighborKokkosExecute<DeviceType>::
 
   neigh_list.d_numneigh(i) = n;
 
-  if(n >= neigh_list.maxneighs) {
+  if(n > neigh_list.maxneighs) {
     resize() = 1;
 
-    if(n >= new_maxneighs()) new_maxneighs() = n;
+    if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
   }
   neigh_list.d_ilist(i) = i;
 }

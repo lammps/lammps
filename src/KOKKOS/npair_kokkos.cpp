@@ -724,9 +724,9 @@ void NeighborKokkosExecute<DeviceType>::
     const int ybin = binxyz[1];
     const int zbin = binxyz[2];
     for (int k = 0; k < nstencil; k++) {
-      const X_FLOAT xbin2 = xbin + stencilxyz(k,0);
-      const X_FLOAT ybin2 = ybin + stencilxyz(k,1);
-      const X_FLOAT zbin2 = zbin + stencilxyz(k,2);
+      const int xbin2 = xbin + stencilxyz(k,0);
+      const int ybin2 = ybin + stencilxyz(k,1);
+      const int zbin2 = zbin + stencilxyz(k,2);
       if (xbin2 < 0 || xbin2 >= mbinx ||
           ybin2 < 0 || ybin2 >= mbiny ||
           zbin2 < 0 || zbin2 >= mbinz) continue;

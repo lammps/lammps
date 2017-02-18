@@ -153,7 +153,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     int workItem = 0;
   for (zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
   for (ybin = lbinylo + yoff - ns_ssa->sy; ybin < lbinyhi; ybin += sy1) {
-  for (xbin = lbinxlo + xoff - ns_ssa->sx; xbin < lbinxhi; xbin += sz1) {
+  for (xbin = lbinxlo + xoff - ns_ssa->sx; xbin < lbinxhi; xbin += sx1) {
     if (workItem >= phaseLenEstimate) error->one(FLERR,"phaseLenEstimate was too small");
     ssa_itemLoc[workPhase][workItem] = inum; // record where workItem starts in ilist
 

@@ -122,9 +122,17 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     subhi_[1] = domain->subhi[1];
     subhi_[2] = domain->subhi[2];
 
-    NPairSSAKokkosBinGhostsFunctor<DeviceType> f(*this);
-
-    Kokkos::parallel_for(atom->nghost, f);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(atom->nlocal,atom->nlocal+atom->nghost), KOKKOS_LAMBDA (const int i) {
+      const int iAIR = coord2ssaAIR(x(i, 0), x(i, 1), x(i, 2));
+      if (iAIR > 0) { // include only ghost atoms in an AIR
+        const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
+        if(ac < (int) gbins.dimension_1()) {
+          gbins(iAIR, ac) = i;
+        } else {
+          d_resize() = 1;
+        }
+      }
+    });
     DeviceType::fence();
 
     deep_copy(h_resize, d_resize);
@@ -180,24 +188,6 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   deep_copy(h_lbinyhi, d_lbinyhi);
   deep_copy(h_lbinzhi, d_lbinzhi);
   c_bins = bins; // bins won't change until the next bin_atoms
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::binGhostsItem(const int &i_) const
-{
-  const int i = i_ + atom->nlocal;
-  const int iAIR = coord2ssaAIR(x(i, 0), x(i, 1), x(i, 2));
-  if (iAIR > 0) { // include only ghost atoms in an AIR
-    const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
-    if(ac < (int) gbins.dimension_1()) {
-      gbins(iAIR, ac) = i;
-    } else {
-      d_resize() = 1;
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */

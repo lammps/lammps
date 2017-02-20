@@ -77,9 +77,6 @@ class NBinSSAKokkos : public NBinStandard {
   KOKKOS_INLINE_FUNCTION
   void binAtomsItem(const int &i) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void binGhostsItem(const int &i) const;
-
 /* ----------------------------------------------------------------------
    convert atom coords into the ssa active interaction region number
 ------------------------------------------------------------------------- */
@@ -151,21 +148,6 @@ class NBinSSAKokkos : public NBinStandard {
  private:
   double bboxlo_[3],bboxhi_[3];
   double sublo_[3], subhi_[3];
-};
-
-template<class DeviceType>
-struct NPairSSAKokkosBinGhostsFunctor {
-  typedef DeviceType device_type;
-
-  const NBinSSAKokkos<DeviceType> c;
-
-  NPairSSAKokkosBinGhostsFunctor(const NBinSSAKokkos<DeviceType> &_c):
-    c(_c) {};
-  ~NPairSSAKokkosBinGhostsFunctor() {}
-  KOKKOS_INLINE_FUNCTION
-  void operator() (const int & i) const {
-    c.binGhostsItem(i);
-  }
 };
 
 template<class DeviceType>

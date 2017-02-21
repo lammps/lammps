@@ -68,7 +68,7 @@
 
 namespace Test {
 
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
 class openmp : public ::testing::Test {
 protected:
   static void SetUpTestCase()
@@ -109,6 +109,18 @@ TEST_F( openmp , staticcrsgraph )
 {
   TestStaticCrsGraph::run_test_graph< Kokkos::OpenMP >();
   TestStaticCrsGraph::run_test_graph2< Kokkos::OpenMP >();
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(1, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(1, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(1, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(1, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(3, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(3, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(3, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(3, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(75, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(75, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(75, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::OpenMP >(75, 100000);
 }
 
 #define OPENMP_INSERT_TEST( name, num_nodes, num_inserts, num_duplicates, repeat, near )                                \

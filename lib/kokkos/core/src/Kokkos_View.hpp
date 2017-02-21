@@ -623,13 +623,13 @@ private:
 
 #if defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
 
-#define KOKKOS_VIEW_OPERATOR_VERIFY( ARG ) \
+#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( ARG ) \
   View::template verify_space< Kokkos::Impl::ActiveExecutionMemorySpace >::check(); \
   Kokkos::Impl::view_verify_operator_bounds ARG ;
 
 #else
 
-#define KOKKOS_VIEW_OPERATOR_VERIFY( ARG ) \
+#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( ARG ) \
   View::template verify_space< Kokkos::Impl::ActiveExecutionMemorySpace >::check();
 
 #endif
@@ -647,9 +647,9 @@ public:
   operator()( Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,args...) )
       #endif
 
       return m_map.reference();
@@ -670,9 +670,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,args...) )
       #endif
 
       return m_map.reference(i0);
@@ -692,9 +692,9 @@ public:
     {
 
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,args...) )
       #endif
 
       return m_map.m_handle[ i0 ];
@@ -713,9 +713,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,args...) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset.m_stride.S0 * i0 ];
@@ -734,9 +734,9 @@ public:
   operator[]( const I0 & i0 ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0) )
       #endif
 
       return m_map.reference(i0);
@@ -753,9 +753,9 @@ public:
   operator[]( const I0 & i0 ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0) )
       #endif
 
       return m_map.m_handle[ i0 ];
@@ -772,9 +772,9 @@ public:
   operator[]( const I0 & i0 ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset.m_stride.S0 * i0 ];
@@ -795,9 +795,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
       #endif
 
       return m_map.reference(i0,i1);
@@ -816,9 +816,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
       #endif
 
       return m_map.m_handle[ i0 + m_map.m_offset.m_dim.N0 * i1 ];
@@ -837,9 +837,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
       #endif
 
       return m_map.m_handle[ i0 + m_map.m_offset.m_stride * i1 ];
@@ -858,9 +858,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
       #endif
 
       return m_map.m_handle[ i1 + m_map.m_offset.m_dim.N1 * i0 ];
@@ -879,9 +879,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
       #endif
 
       return m_map.m_handle[ i1 + m_map.m_offset.m_stride * i0 ];
@@ -900,9 +900,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,args...) )
       #endif
 
       return m_map.m_handle[ i0 * m_map.m_offset.m_stride.S0 +
@@ -924,9 +924,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,args...) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset(i0,i1,i2) ];
@@ -944,9 +944,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,args...) )
       #endif
 
       return m_map.reference(i0,i1,i2);
@@ -967,9 +967,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,args...) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset(i0,i1,i2,i3) ];
@@ -987,9 +987,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,args...) )
       #endif
 
       return m_map.reference(i0,i1,i2,i3);
@@ -1012,9 +1012,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,args...) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset(i0,i1,i2,i3,i4) ];
@@ -1034,9 +1034,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,args...) )
       #endif
 
       return m_map.reference(i0,i1,i2,i3,i4);
@@ -1059,9 +1059,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,args...) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset(i0,i1,i2,i3,i4,i5) ];
@@ -1081,9 +1081,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,args...) )
       #endif
 
       return m_map.reference(i0,i1,i2,i3,i4,i5);
@@ -1106,9 +1106,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset(i0,i1,i2,i3,i4,i5,i6) ];
@@ -1128,9 +1128,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,args...) )
       #endif
 
       return m_map.reference(i0,i1,i2,i3,i4,i5,i6);
@@ -1153,9 +1153,9 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
       #endif
 
       return m_map.m_handle[ m_map.m_offset(i0,i1,i2,i3,i4,i5,i6,i7) ];
@@ -1175,15 +1175,15 @@ public:
             , Args ... args ) const
     {
       #ifndef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-        KOKKOS_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (NULL,m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
       #else
-        KOKKOS_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
+        KOKKOS_IMPL_VIEW_OPERATOR_VERIFY( (m_track.template get_label<typename traits::memory_space>().c_str(),m_map,i0,i1,i2,i3,i4,i5,i6,i7,args...) )
       #endif
 
       return m_map.reference(i0,i1,i2,i3,i4,i5,i6,i7);
     }
 
-#undef KOKKOS_VIEW_OPERATOR_VERIFY
+#undef KOKKOS_IMPL_VIEW_OPERATOR_VERIFY
 
   //----------------------------------------
   // Standard destructor, constructors, and assignment operators
@@ -1322,7 +1322,7 @@ public:
       alloc_prop prop( arg_prop );
 
 //------------------------------------------------------------
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
       // If allocating in CudaUVMSpace must fence before and after
       // the allocation to protect against possible concurrent access
       // on the CPU and the GPU.
@@ -1338,7 +1338,7 @@ public:
         record = m_map.allocate_shared( prop , arg_layout );
 
 //------------------------------------------------------------
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
       if ( std::is_same< Kokkos::CudaUVMSpace , typename traits::device_type::memory_space >::value ) {
         traits::device_type::memory_space::execution_space::fence();
       }

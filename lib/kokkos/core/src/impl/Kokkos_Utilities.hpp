@@ -359,7 +359,7 @@ template <typename IntegerSequence>
 struct exclusive_scan_integer_sequence
 {
   using value_type = typename IntegerSequence::value_type;
-  using helper = 
+  using helper =
     exclusive_scan_integer_sequence_helper
        < reverse_integer_sequence<IntegerSequence>
        , std::integral_constant< value_type , 0 >
@@ -399,7 +399,7 @@ template <typename IntegerSequence>
 struct inclusive_scan_integer_sequence
 {
   using value_type = typename IntegerSequence::value_type;
-  using helper = 
+  using helper =
     inclusive_scan_integer_sequence_helper
        < reverse_integer_sequence<IntegerSequence>
        , std::integral_constant< value_type , 0 >
@@ -411,4 +411,4 @@ struct inclusive_scan_integer_sequence
 }} // namespace Kokkos::Impl
 
 
-#endif //KOKKOS_CORE_IMPL_UTILITIES
+#endif //KOKKOS_CORE_IMPL_UTILITIES_HPP

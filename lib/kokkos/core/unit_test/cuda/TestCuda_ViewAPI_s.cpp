@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,32 +36,18 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
+#include <cuda/TestCuda.hpp>
 
-#include <Kokkos_Core.hpp>
+namespace Test {
 
-#if defined( KOKKOS_ENABLE_CUDA )
+TEST_F( cuda , view_space_assign ) {
+  view_space_assign< Kokkos::HostSpace , Kokkos::CudaHostPinnedSpace >();
+  view_space_assign< Kokkos::CudaSpace , Kokkos::CudaUVMSpace >();
+}
 
-#include <feint.hpp>
-
-namespace Kokkos {
-namespace Example {
-
-template void feint<Kokkos::Cuda,false>(
-  const unsigned global_elem_nx ,
-  const unsigned global_elem_ny ,
-  const unsigned global_elem_nz );
-
-template void feint<Kokkos::Cuda,true>(
-  const unsigned global_elem_nx ,
-  const unsigned global_elem_ny ,
-  const unsigned global_elem_nz );
-
-} /* namespace Example */
-} /* namespace Kokkos */
-
-#endif
+} // namespace test
 

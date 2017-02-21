@@ -47,7 +47,7 @@
 #include <string>
 #include <iosfwd>
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 #include <Cuda/Kokkos_Cuda_abort.hpp>
 #endif
 

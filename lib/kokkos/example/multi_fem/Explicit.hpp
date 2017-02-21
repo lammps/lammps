@@ -190,7 +190,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
 
   perf_data.number_of_steps = total_num_steps ;
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 
   typedef typename
     fields_type::geom_state_array_type::value_type  comm_value_type ;
@@ -208,7 +208,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
     wall_clock.reset();
 
     //------------------------------------------------------------------------
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
     {
       // Communicate "send" nodes' displacement and velocity next_state
       // to the ghosted nodes.

@@ -282,7 +282,7 @@ class AsyncExchange ;
 //
 //----------------------------------------------------------------------------
 
-#ifdef KOKKOS_HAVE_MPI
+#ifdef KOKKOS_ENABLE_MPI
 
 namespace Kokkos {
 
@@ -476,7 +476,7 @@ public:
 
 } // namespace Kokkos
 
-#else /* ! #ifdef KOKKOS_HAVE_MPI */
+#else /* ! #ifdef KOKKOS_ENABLE_MPI */
 
 namespace Kokkos {
 
@@ -508,7 +508,7 @@ public:
 
 } // namespace Kokkos
 
-#endif /* ! #ifdef KOKKOS_HAVE_MPI */
+#endif /* ! #ifdef KOKKOS_ENABLE_MPI */
 
 //----------------------------------------------------------------------------
 

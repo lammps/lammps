@@ -48,7 +48,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 #include <impl/Kokkos_Timer.hpp>
 
@@ -185,5 +185,5 @@ TEST_F( cuda, texture_double )
 
 } // namespace Test
 
-#endif /* #if defined( KOKKOS_HAVE_CUDA ) */
+#endif /* #if defined( KOKKOS_ENABLE_CUDA ) */
 

@@ -69,15 +69,17 @@ create_mirror( const StaticCrsGraph<DataType,Arg1Type,Arg2Type,SizeType > & view
 
   typename staticcrsgraph_type::HostMirror               tmp ;
   typename staticcrsgraph_type::row_map_type::HostMirror tmp_row_map = create_mirror( view.row_map);
+  typename staticcrsgraph_type::row_block_type::HostMirror tmp_row_block_offsets = create_mirror( view.row_block_offsets);
 
   // Allocation to match:
   tmp.row_map = tmp_row_map ; // Assignment of 'const' from 'non-const'
   tmp.entries = create_mirror( view.entries );
-
+  tmp.row_block_offsets = tmp_row_block_offsets ; // Assignment of 'const' from 'non-const'
 
   // Deep copy:
   deep_copy( tmp_row_map , view.row_map );
   deep_copy( tmp.entries , view.entries );
+  deep_copy( tmp_row_block_offsets , view.row_block_offsets );
 
   return tmp ;
 }

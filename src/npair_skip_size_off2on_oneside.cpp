@@ -51,7 +51,7 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
   double **firstshear;
   MyPage<int> *ipage_touch;
   MyPage<double> *dpage_shear;
-  NeighList *listgranhistory;
+  NeighList *listhistory;
 
   tagint *tag = atom->tag;
   int *type = atom->type;
@@ -73,19 +73,19 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
   if (domain->dimension == 2) surf = atom->line;
   else surf = atom->tri;
 
-  FixShearHistory *fix_history = list->fix_history;
+  FixShearHistory *fix_history = (FixShearHistory *) list->fix_history;
   if (fix_history) {
     fix_history->nlocal_neigh = nlocal;
     fix_history->nall_neigh = nlocal + atom->nghost;
     npartner = fix_history->npartner;
     partner = fix_history->partner;
     shearpartner = fix_history->shearpartner;
-    listgranhistory = list->listgranhistory;
-    firsttouch = listgranhistory->firstneigh;
-    firstshear = listgranhistory->firstdouble;
-    ipage_touch = listgranhistory->ipage;
-    dpage_shear = listgranhistory->dpage;
-    dnum = listgranhistory->dnum;
+    listhistory = list->listhistory;
+    firsttouch = listhistory->firstneigh;
+    firstshear = listhistory->firstdouble;
+    ipage_touch = listhistory->ipage;
+    dpage_shear = listhistory->dpage;
+    dnum = listhistory->dnum;
     dnumbytes = dnum * sizeof(double);
   }
 

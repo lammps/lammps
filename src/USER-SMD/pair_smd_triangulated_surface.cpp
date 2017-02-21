@@ -419,8 +419,7 @@ void PairTriSurf::init_style() {
 
 	// old: half list
 	int irequest = neighbor->request(this);
-	neighbor->requests[irequest]->half = 0;
-	neighbor->requests[irequest]->gran = 1;
+	neighbor->requests[irequest]->size = 1;
 
 	// need a full neighbor list
 //	int irequest = neighbor->request(this);

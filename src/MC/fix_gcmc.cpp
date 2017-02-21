@@ -2246,7 +2246,11 @@ void FixGCMC::update_gas_atoms_list()
         double com[3];
         com[0] = com[1] = com[2] = 0.0;
         group->xcm(molecule_group,gas_mass,com);
-        comx[imolecule] = com[0];
+
+	// remap unwrapped com into periodic box
+	
+	domain->remap(com);
+	comx[imolecule] = com[0];
         comy[imolecule] = com[1];
         comz[imolecule] = com[2];
       }

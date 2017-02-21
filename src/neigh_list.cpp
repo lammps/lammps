@@ -147,7 +147,6 @@ void NeighList::post_constructor(NeighRequest *nq)
     int tmp;
     neighbor->lists[nq->historylist]->fix_history = 
       (Fix *) ((Pair *) nq->requestor)->extract("history",tmp);
-    printf("FH neighlist %p\n",neighbor->lists[nq->historylist]->fix_history);
   }
   
   if (nq->respaouter) {

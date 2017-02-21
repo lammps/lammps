@@ -35,13 +35,15 @@ class PPPMGPU : public PPPM {
   int timing_3d(int, double &);
   double memory_usage();
 
+  virtual void compute_group_group(int, int, int);
+
  protected:
   FFT_SCALAR ***density_brick_gpu, ***vd_brick;
   bool kspace_split, im_real_space;
   int old_nlocal;
   double poisson_time;
 
-  void brick2fft();
+  void brick2fft_gpu();
   virtual void poisson_ik();
 
   void pack_forward(int, FFT_SCALAR *, int, int *);

@@ -421,9 +421,6 @@ void PairMEAM::init_style()
   neighbor->requests[irequest_full]->full = 1;
   int irequest_half = neighbor->request(this,instance_me);
   neighbor->requests[irequest_half]->id = 2;
-  neighbor->requests[irequest_half]->half = 0;
-  neighbor->requests[irequest_half]->half_from_full = 1;
-  neighbor->requests[irequest_half]->otherlist = irequest_full;
 
   // setup Fortran-style mapping array needed by MEAM package
   // fmap is indexed from 1:ntypes by Fortran and stores a Fortran index

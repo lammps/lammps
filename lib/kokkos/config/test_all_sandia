@@ -10,12 +10,18 @@ set -o pipefail
 
 MACHINE=""
 HOSTNAME=$(hostname)
+PROCESSOR=`uname -p`
+
 if [[ "$HOSTNAME" =~ (white|ride).* ]]; then
     MACHINE=white
 elif [[ "$HOSTNAME" =~ .*bowman.* ]]; then
     MACHINE=bowman
 elif [[ "$HOSTNAME" =~ node.* ]]; then # Warning: very generic name
-    MACHINE=shepard
+    if [[ "$PROCESSOR" = "aarch64" ]]; then
+        MACHINE=sullivan
+    else
+        MACHINE=shepard
+    fi
 elif [[ "$HOSTNAME" =~ apollo ]]; then
     MACHINE=apollo
 elif [ ! -z "$SEMS_MODULEFILES_ROOT" ]; then
@@ -27,6 +33,7 @@ fi
 
 GCC_BUILD_LIST="OpenMP,Pthread,Serial,OpenMP_Serial,Pthread_Serial"
 IBM_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
+ARM_GCC_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
 INTEL_BUILD_LIST="OpenMP,Pthread,Serial,OpenMP_Serial,Pthread_Serial"
 CLANG_BUILD_LIST="Pthread,Serial,Pthread_Serial"
 CUDA_BUILD_LIST="Cuda_OpenMP,Cuda_Pthread,Cuda_Serial"
@@ -200,6 +207,23 @@ elif [ "$MACHINE" = "bowman" ]; then
     if [ -z "$ARCH_FLAG" ]; then
       ARCH_FLAG="--arch=KNL"
     fi
+
+    NUM_JOBS_TO_RUN_IN_PARALLEL=2
+
+elif [ "$MACHINE" = "sullivan" ]; then
+    source /etc/profile.d/modules.sh
+    SKIP_HWLOC=True
+    export SLURM_TASKS_PER_NODE=96
+
+    BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
+
+    # Format: (compiler module-list build-list exe-name warning-flag)
+    COMPILERS=("gcc/5.3.0 $BASE_MODULE_LIST $ARM_GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS")
+
+    if [ -z "$ARCH_FLAG" ]; then
+      ARCH_FLAG="--arch=ARMv8-ThunderX"
+    fi
+
     NUM_JOBS_TO_RUN_IN_PARALLEL=2
 
 elif [ "$MACHINE" = "shepard" ]; then
@@ -297,7 +321,8 @@ echo "    Defaults to root repo containing this script"
 echo "--debug: Run tests in debug. Defaults to False"
 echo "--test-script: Test this script, not Kokkos"
 echo "--skip-hwloc: Do not do hwloc tests"
-echo "--num=N: Number of jobs to run in parallel "
+echo "--num=N: Number of jobs to run in parallel"
+echo "--spot-check: Minimal test set to issue pull request"
 echo "--dry-run: Just print what would be executed"
 echo "--build-only: Just do builds, don't run anything"
 echo "--opt-flag=FLAG: Optimization flag (default: -O3)"

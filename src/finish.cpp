@@ -687,10 +687,7 @@ void Finish::end(int flag)
     // allow it to be Kokkos neigh list as well
 
     for (m = 0; m < neighbor->old_nrequest; m++)
-      if ((neighbor->old_requests[m]->half ||
-           neighbor->old_requests[m]->gran ||
-           neighbor->old_requests[m]->respaouter ||
-           neighbor->old_requests[m]->half_from_full) &&
+      if (neighbor->old_requests[m]->half &&
           neighbor->old_requests[m]->skip == 0 &&
           neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
 

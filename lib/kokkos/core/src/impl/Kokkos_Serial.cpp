@@ -47,7 +47,7 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
 
-#if defined( KOKKOS_HAVE_SERIAL )
+#if defined( KOKKOS_ENABLE_SERIAL )
 
 /*--------------------------------------------------------------------------*/
 
@@ -114,6 +114,6 @@ void * Serial::scratch_memory_resize( unsigned reduce_size , unsigned shared_siz
 
 } // namespace Kokkos
 
-#endif // defined( KOKKOS_HAVE_SERIAL )
+#endif // defined( KOKKOS_ENABLE_SERIAL )
 
 

@@ -73,7 +73,7 @@ TEST_F( cuda , team_shared_request) {
 //  TestScratchTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >();
 //}
 
-#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
+#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 TEST_F( cuda , team_lambda_shared_request) {
   TestLambdaSharedTeam< Kokkos::CudaSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();
   TestLambdaSharedTeam< Kokkos::CudaUVMSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();

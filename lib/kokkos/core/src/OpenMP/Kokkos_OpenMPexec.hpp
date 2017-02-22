@@ -83,7 +83,7 @@ private:
   // Which thread am I stealing from currently
   int m_current_steal_target;
   // This thread's owned work_range
-  Kokkos::pair<long,long> m_work_range KOKKOS_ALIGN_16;
+  Kokkos::pair<long,long> m_work_range KOKKOS_ALIGN(16);
   // Team Offset if one thread determines work_range for others
   long m_team_work_index;
 
@@ -404,7 +404,6 @@ public:
 #endif
   }
 
-#ifdef KOKKOS_HAVE_CXX11
   template< class ValueType, class JoinOp >
   KOKKOS_INLINE_FUNCTION ValueType
     team_reduce( const ValueType & value
@@ -417,18 +416,6 @@ public:
       typedef ValueType value_type;
       const JoinLambdaAdapter<value_type,JoinOp> op(op_in);
   #endif
-#else // KOKKOS_HAVE_CXX11
-  template< class JoinOp >
-  KOKKOS_INLINE_FUNCTION typename JoinOp::value_type
-    team_reduce( const typename JoinOp::value_type & value
-               , const JoinOp & op ) const
-  #if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    { return typename JoinOp::value_type(); }
-  #else
-    {
-      typedef typename JoinOp::value_type value_type;
-  #endif
-#endif // KOKKOS_HAVE_CXX11
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
       // Make sure there is enough scratch space:
       typedef typename if_c< sizeof(value_type) < TEAM_REDUCE_SIZE
@@ -965,7 +952,7 @@ template<typename iType, class Lambda>
 KOKKOS_INLINE_FUNCTION
 void parallel_for(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember >&
     loop_boundaries, const Lambda& lambda) {
-  #ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+  #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
   #pragma ivdep
   #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment)
@@ -981,7 +968,7 @@ KOKKOS_INLINE_FUNCTION
 void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPexecTeamMember >&
       loop_boundaries, const Lambda & lambda, ValueType& result) {
   result = ValueType();
-#ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
@@ -1004,7 +991,7 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::O
       loop_boundaries, const Lambda & lambda, const JoinType& join, ValueType& init_result) {
 
   ValueType result = init_result;
-#ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
@@ -1035,7 +1022,7 @@ void parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Ope
 
   value_type scan_val = value_type();
 
-#ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {

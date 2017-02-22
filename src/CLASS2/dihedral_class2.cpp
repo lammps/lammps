@@ -46,6 +46,8 @@ DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralClass2::~DihedralClass2()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(setflag_d);

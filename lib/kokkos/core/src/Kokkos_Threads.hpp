@@ -46,7 +46,7 @@
 
 #include <Kokkos_Core_fwd.hpp>
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_PTHREAD )
 
 #include <cstddef>
 #include <iosfwd>
@@ -227,7 +227,7 @@ struct VerifyExecutionCanAccessMemorySpace
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) */
+#endif /* #if defined( KOKKOS_ENABLE_PTHREAD ) */
 #endif /* #define KOKKOS_THREADS_HPP */
 
 

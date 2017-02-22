@@ -7,7 +7,7 @@ CXXFLAGS=$(CCFLAGS)
 #Options: OpenMP,Serial,Pthreads,Cuda
 KOKKOS_DEVICES ?= "OpenMP"
 #KOKKOS_DEVICES ?= "Pthreads"
-#Options: KNC,SNB,HSW,Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal61,ARMv80,ARMv81,ARMv8-ThunderX,BGQ,Power7,Power8,KNL,BDW,SKX
+#Options: KNC,SNB,HSW,Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal61,ARMv80,ARMv81,ARMv8-ThunderX,BGQ,Power7,Power8,Power9,KNL,BDW,SKX
 KOKKOS_ARCH ?= ""
 #Options: yes,no
 KOKKOS_DEBUG ?= "no"
@@ -192,7 +192,8 @@ KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX := $(strip $(shell echo $(KOKKOS_ARCH) |
 KOKKOS_INTERNAL_USE_ARCH_BGQ := $(strip $(shell echo $(KOKKOS_ARCH) | grep BGQ | wc -l))
 KOKKOS_INTERNAL_USE_ARCH_POWER7 := $(strip $(shell echo $(KOKKOS_ARCH) | grep Power7 | wc -l))
 KOKKOS_INTERNAL_USE_ARCH_POWER8 := $(strip $(shell echo $(KOKKOS_ARCH) | grep Power8 | wc -l))
-KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_BGQ)+$(KOKKOS_INTERNAL_USE_ARCH_POWER7)+$(KOKKOS_INTERNAL_USE_ARCH_POWER8) | bc))
+KOKKOS_INTERNAL_USE_ARCH_POWER9 := $(strip $(shell echo $(KOKKOS_ARCH) | grep Power9 | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_BGQ)+$(KOKKOS_INTERNAL_USE_ARCH_POWER7)+$(KOKKOS_INTERNAL_USE_ARCH_POWER8)+$(KOKKOS_INTERNAL_USE_ARCH_POWER9) | bc))
 
 #AMD based
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(strip $(shell echo $(KOKKOS_ARCH) | grep AMDAVX | wc -l))
@@ -206,7 +207,7 @@ KOKKOS_INTERNAL_USE_ARCH_AVX512XEON := $(strip $(shell echo $(KOKKOS_INTERNAL_US
 # Decide what ISA level we are able to support
 KOKKOS_INTERNAL_USE_ISA_X86_64     := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_SNB)+$(KOKKOS_INTERNAL_USE_ARCH_HSW)+$(KOKKOS_INTERNAL_USE_ARCH_BDW)+$(KOKKOS_INTERNAL_USE_ARCH_KNL)+$(KOKKOS_INTERNAL_USE_ARCH_SKX) | bc ))
 KOKKOS_INTERNAL_USE_ISA_KNC        := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_KNC) | bc ))
-KOKKOS_INTERNAL_USE_ISA_POWERPCLE  := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_POWER8) | bc ))
+KOKKOS_INTERNAL_USE_ISA_POWERPCLE  := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_POWER8)+$(KOKKOS_INTERNAL_USE_ARCH_POWER9) | bc ))
 
 #Incompatible flags?
 KOKKOS_INTERNAL_USE_ARCH_MULTIHOST := $(strip $(shell echo "$(KOKKOS_INTERNAL_USE_ARCH_AVX)+$(KOKKOS_INTERNAL_USE_ARCH_AVX2)+$(KOKKOS_INTERNAL_USE_ARCH_KNC)+$(KOKKOS_INTERNAL_USE_ARCH_IBM)+$(KOKKOS_INTERNAL_USE_ARCH_AMDAVX)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV80)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV81)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX)>1" | bc ))
@@ -450,6 +451,17 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER8), 1)
 		# Assume that this is a really a GNU compiler or it could be XL on P8
 		KOKKOS_CXXFLAGS += -mcpu=power8 -mtune=power8
 		KOKKOS_LDFLAGS  += -mcpu=power8 -mtune=power8
+	endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER9), 1)
+    tmp := $(shell echo "\#define KOKKOS_ARCH_POWER9 1" >> KokkosCore_config.tmp )
+	ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1) 
+
+	else
+		# Assume that this is a really a GNU compiler or it could be XL on P9
+		KOKKOS_CXXFLAGS += -mcpu=power9 -mtune=power9
+		KOKKOS_LDFLAGS  += -mcpu=power9 -mtune=power9
 	endif
 endif
 

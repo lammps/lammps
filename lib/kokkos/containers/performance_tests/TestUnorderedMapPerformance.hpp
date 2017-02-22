@@ -1,12 +1,12 @@
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,7 +35,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
@@ -164,12 +164,10 @@ struct UnorderedMapTest
 
 };
 
-//#define KOKKOS_COLLECT_UNORDERED_MAP_METRICS
-
 template <typename Device, bool Near>
 void run_performance_tests(std::string const & base_file_name)
 {
-#if defined(KOKKOS_COLLECT_UNORDERED_MAP_METRICS)
+#if 0
   std::string metrics_file_name = base_file_name + std::string("-metrics.csv");
   std::string length_file_name = base_file_name  + std::string("-length.csv");
   std::string distance_file_name = base_file_name + std::string("-distance.csv");

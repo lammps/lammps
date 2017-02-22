@@ -43,7 +43,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_PTHREAD )
 
 #include <feint.hpp>
 
@@ -63,4 +63,4 @@ template void feint< Kokkos::Threads ,true>(
 } /* namespace Example */
 } /* namespace Kokkos */
 
-#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) */
+#endif /* #if defined( KOKKOS_ENABLE_PTHREAD ) */

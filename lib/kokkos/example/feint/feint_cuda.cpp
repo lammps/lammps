@@ -43,7 +43,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 #include <feint.hpp>
 

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -168,7 +168,7 @@ template<class Scalar, class ExecutionSpace>
 void TestTemplateMetaFunctions() {
   typedef typename Kokkos::View<Scalar*,ExecutionSpace> type;
   type a("A",100);
-/*  #ifdef KOKKOS_HAVE_CXX11
+/*
   int sum_plain_has_init_arg = Kokkos::Impl::FunctorHasInit<SumPlain<Scalar,ExecutionSpace>, Scalar& >::value;
   ASSERT_EQ(sum_plain_has_init_arg,0);
   int sum_initjoinfinalvaluetype_has_init_arg = Kokkos::Impl::FunctorHasInit<SumInitJoinFinalValueType<Scalar,ExecutionSpace>, Scalar >::value;
@@ -181,20 +181,8 @@ void TestTemplateMetaFunctions() {
   //int sum_initjoinfinalvaluetypearray_has_init_arg = Kokkos::Impl::FunctorHasInit<SumInitJoinFinalValueTypeArray<Scalar,ExecutionSpace>, Scalar[] >::value;
   //ASSERT_EQ(sum_initjoinfinalvaluetypearray_has_init_arg,1);
 
-  #else
-
-  int sum_plain_has_init_arg = Kokkos::Impl::FunctorHasInit<SumPlain<Scalar,ExecutionSpace>, Scalar& >::value;
-  ASSERT_EQ(sum_plain_has_init_arg,0);
-  int sum_initjoinfinalvaluetype_has_init_arg = Kokkos::Impl::FunctorHasInit<SumInitJoinFinalValueType<Scalar,ExecutionSpace>, Scalar& >::value;
-  ASSERT_EQ(sum_initjoinfinalvaluetype_has_init_arg,1);
-  int sum_wronginitjoinfinalvaluetype_has_init_arg = Kokkos::Impl::FunctorHasInit<SumWrongInitJoinFinalValueType<Scalar,ExecutionSpace>, Scalar& >::value;
-  ASSERT_EQ(sum_wronginitjoinfinalvaluetype_has_init_arg,1);
-
-  #endif
-
   //printf("Values Init: %i %i %i\n",sum_plain_has_init_arg,sum_initjoinfinalvaluetype_has_init_arg,sum_wronginitjoinfinalvaluetype_has_init_arg);
 
-#ifdef KOKKOS_HAVE_CXX11
   int sum_plain_has_join_arg = Kokkos::Impl::FunctorHasJoin<SumPlain<Scalar,ExecutionSpace>, Scalar >::value;
   ASSERT_EQ(sum_plain_has_join_arg,0);
   int sum_initjoinfinalvaluetype_has_join_arg = Kokkos::Impl::FunctorHasJoin<SumInitJoinFinalValueType<Scalar,ExecutionSpace>, Scalar >::value;
@@ -203,16 +191,7 @@ void TestTemplateMetaFunctions() {
   ASSERT_EQ(sum_initjoinfinalvaluetype_has_join_arg2,1);
   int sum_wronginitjoinfinalvaluetype_has_join_arg = Kokkos::Impl::FunctorHasJoin<SumWrongInitJoinFinalValueType<Scalar,ExecutionSpace>, Scalar >::value;
   ASSERT_EQ(sum_wronginitjoinfinalvaluetype_has_join_arg,0);
-#else
-  int sum_plain_has_join_arg = Kokkos::Impl::FunctorHasJoin<SumPlain<Scalar,ExecutionSpace>, Scalar& >::value;
-  ASSERT_EQ(sum_plain_has_join_arg,0);
-  int sum_initjoinfinalvaluetype_has_join_arg = Kokkos::Impl::FunctorHasJoin<SumInitJoinFinalValueType<Scalar,ExecutionSpace>, Scalar& >::value;
-  ASSERT_EQ(sum_initjoinfinalvaluetype_has_join_arg,1);
-  int sum_initjoinfinalvaluetype_has_join_arg2 = Kokkos::Impl::FunctorHasJoin<SumInitJoinFinalValueType2<Scalar,ExecutionSpace>, Scalar& >::value;
-  ASSERT_EQ(sum_initjoinfinalvaluetype_has_join_arg2,1);
-  int sum_wronginitjoinfinalvaluetype_has_join_arg = Kokkos::Impl::FunctorHasJoin<SumWrongInitJoinFinalValueType<Scalar,ExecutionSpace>, Scalar& >::value;
-  ASSERT_EQ(sum_wronginitjoinfinalvaluetype_has_join_arg,1);
-#endif*/
+*/
   //printf("Values Join: %i %i %i\n",sum_plain_has_join_arg,sum_initjoinfinalvaluetype_has_join_arg,sum_wronginitjoinfinalvaluetype_has_join_arg);
 }
 

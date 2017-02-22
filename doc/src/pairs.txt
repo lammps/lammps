@@ -65,7 +65,7 @@ Pair Styles :h1
    pair_nb3b_harmonic
    pair_nm
    pair_none
-   pair_oxdna_excv
+   pair_oxdna
    pair_peri
    pair_polymorphic
    pair_quip

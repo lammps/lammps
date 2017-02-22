@@ -206,8 +206,8 @@ void FixShearHistory::pre_exchange_onesided()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -302,8 +302,8 @@ void FixShearHistory::pre_exchange_newton()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -430,8 +430,8 @@ void FixShearHistory::pre_exchange_no_newton()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

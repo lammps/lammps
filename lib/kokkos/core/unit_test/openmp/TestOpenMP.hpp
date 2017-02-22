@@ -40,8 +40,8 @@
 // ************************************************************************
 //@HEADER
 */
-#ifndef KOKKOS_TEST_OPENMPHPP
-#define KOKKOS_TEST_OPENMPHPP
+#ifndef KOKKOS_TEST_OPENMP_HPP
+#define KOKKOS_TEST_OPENMP_HPP
 #include <gtest/gtest.h>
 
 #include <Kokkos_Macros.hpp>
@@ -65,6 +65,7 @@
 #include <TestViewSubview.hpp>
 #include <TestAtomic.hpp>
 #include <TestAtomicOperations.hpp>
+#include <TestAtomicViews.hpp>
 #include <TestRange.hpp>
 #include <TestTeam.hpp>
 #include <TestReduce.hpp>

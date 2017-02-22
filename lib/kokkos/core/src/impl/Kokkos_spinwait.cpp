@@ -54,7 +54,7 @@
     /* Pause instruction to prevent excess processor bus usage */
     #define YIELD   asm volatile("pause\n":::"memory")
   #endif
-#elif defined ( KOKKOS_HAVE_WINTHREAD )
+#elif defined ( KOKKOS_ENABLE_WINTHREAD )
   #include <process.h>
   #define YIELD  Sleep(0)
 #elif defined ( _WIN32)  && defined (_MSC_VER)

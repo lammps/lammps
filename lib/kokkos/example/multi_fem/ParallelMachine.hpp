@@ -54,7 +54,7 @@
 
 //------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 #include <mpi.h>
 #else
   typedef int MPI_Comm ;

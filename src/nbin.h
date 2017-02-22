@@ -34,9 +34,12 @@ class NBin : protected Pointers {
   int *binhead;                    // index of first atom in each bin
   int *bins;                       // index of next atom in same bin
 
+  double cutoff_custom;            // cutoff set by requestor
+
   NBin(class LAMMPS *);
   ~NBin();
-  void copy_neighbor_info();
+  void post_constructor(class NeighRequest *);
+  virtual void copy_neighbor_info();
   virtual void bin_atoms_setup(int);
   bigint memory_usage();
 

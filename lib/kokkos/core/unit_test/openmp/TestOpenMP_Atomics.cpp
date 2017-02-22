@@ -164,5 +164,41 @@ TEST_F( openmp , atomic_operations )
 
 }
 
+
+TEST_F( openmp , atomic_views_integral )
+{
+  const long length = 1000000;
+  {
+    //Integral Types
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 8 ) ) );
+
+  }
+}
+
+TEST_F( openmp , atomic_views_nonintegral )
+{
+  const long length = 1000000;
+  {
+    //Non-Integral Types
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 4 ) ) );
+
+  }
+}
+
+TEST_F( openmp , atomic_view_api )
+{
+  TestAtomicViews::TestAtomicViewAPI<int, Kokkos::OpenMP>();
+}
+
 } // namespace test
 

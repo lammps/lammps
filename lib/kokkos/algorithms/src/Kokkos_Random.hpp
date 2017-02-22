@@ -1014,7 +1014,7 @@ namespace Kokkos {
     }
   };
 
-#if defined(KOKKOS_HAVE_CUDA) && defined(__CUDACC__)
+#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)
 
   template<>
   class Random_XorShift1024<Kokkos::Cuda> {

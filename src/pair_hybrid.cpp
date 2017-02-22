@@ -486,12 +486,12 @@ void PairHybrid::init_style()
   for (istyle = 0; istyle < nstyles; istyle++) styles[istyle]->init_style();
 
   // create skip lists inside each pair neigh request
-  // any kind of list can have its skip flag set at this stage
+  // any kind of list can have its skip flag set in this loop
 
   for (i = 0; i < neighbor->nrequest; i++) {
     if (!neighbor->requests[i]->pair) continue;
 
-    // istyle = associated sub-style for that request
+    // istyle = associated sub-style for the request
 
     for (istyle = 0; istyle < nstyles; istyle++)
       if (styles[istyle] == neighbor->requests[i]->requestor) break;
@@ -549,10 +549,6 @@ void PairHybrid::init_style()
       memory->destroy(ijskip);
     }
   }
-
-  // combine sub-style neigh list requests and create new ones if needed
-
-  modify_requests();
 }
 
 /* ----------------------------------------------------------------------
@@ -610,110 +606,6 @@ double PairHybrid::init_one(int i, int j)
 void PairHybrid::setup()
 {
   for (int m = 0; m < nstyles; m++) styles[m]->setup();
-}
-
-/* ----------------------------------------------------------------------
-   examine sub-style neigh list requests
-   create new parent requests if needed, to derive sub-style requests from
-------------------------------------------------------------------------- */
-
-void PairHybrid::modify_requests()
-{
-  int i,j;
-  NeighRequest *irq,*jrq;
-
-  // loop over pair requests only, including those added during looping
-
-  int nrequest_original = neighbor->nrequest;
-
-  for (i = 0; i < neighbor->nrequest; i++) {
-    if (!neighbor->requests[i]->pair) continue;
-
-    // nothing more to do if this request:
-    //   is not a skip list
-    //   is a copy or half_from_full or granhistory list
-    // copy list setup is from pair style = hybrid/overlay
-    //   which invokes this method at end of its modify_requests()
-    // if granhistory, turn off skip, since each gran sub-style
-    //   its own history list, parent gran list does not have history
-    // if half_from_full, turn off skip, since it will derive 
-    //   from its full parent and its skip status
-
-    irq = neighbor->requests[i];
-    if (irq->skip == 0) continue;
-    if (irq->copy) continue;
-    if (irq->granhistory || irq->half_from_full) {
-      irq->skip = 0;
-      continue;
-    }
-
-    // look for another list that matches via same_kind() and is not a skip list
-    // if one exists, point at that one via otherlist
-    // else make new parent request via copy_request() and point at that one
-    //   new parent list is not a skip list
-    //   parent does not need its ID set, since pair hybrid does not use it
-
-    for (j = 0; j < neighbor->nrequest; j++) {
-      if (!neighbor->requests[j]->pair) continue;
-      jrq = neighbor->requests[j];
-      if (irq->same_kind(jrq) && jrq->skip == 0) break;
-    }
-
-    if (j < neighbor->nrequest) irq->otherlist = j;
-    else {
-      int newrequest = neighbor->request(this,instance_me);
-      neighbor->requests[newrequest]->copy_request(irq);
-      irq->otherlist = newrequest;
-    }
-
-    // for rRESPA inner/middle lists,
-    //   which just created or set otherlist to parent:
-    // unset skip flag and otherlist
-    //   this prevents neighbor from treating them as skip lists
-
-    if (irq->respainner || irq->respamiddle) {
-      irq->skip = 0;
-      irq->otherlist = -1;
-    }
-  }
-
-  // adjustments to newly added granular parent requests (gran = 1)
-  // set parent newton = 2 if has children with granonesided = 0 and 1
-  //   else newton = 0 = setting of children
-  //   if 2, also set child off2on for both granonesided kinds of children
-  // set parent gran onesided = 0 if has children with granonesided = 0 and 1
-  //   else onesided = setting of children
-
-  for (i = nrequest_original; i < neighbor->nrequest; i++) {
-    if (!neighbor->requests[i]->pair) continue;
-    if (!neighbor->requests[i]->gran) continue;
-    irq = neighbor->requests[i];
-
-    int onesided = -1;
-    for (j = 0; j < nrequest_original; j++) {
-      if (!neighbor->requests[j]->pair) continue;
-      if (!neighbor->requests[j]->gran) continue;
-      if (neighbor->requests[j]->otherlist != i) continue;
-      jrq = neighbor->requests[j];
-      
-      if (onesided < 0) onesided = jrq->granonesided;
-      else if (onesided != jrq->granonesided) onesided = 2;
-      if (onesided == 2) break;
-    }
-
-    if (onesided == 2) {
-      irq->newton = 2;
-      irq->granonesided = 0;
-
-      for (j = 0; j < nrequest_original; j++) {
-        if (!neighbor->requests[j]->pair) continue;
-        if (!neighbor->requests[j]->gran) continue;
-        if (neighbor->requests[j]->otherlist != i) continue;
-        jrq = neighbor->requests[j];
-        jrq->off2on = 1;
-      }
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

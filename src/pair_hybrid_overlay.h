@@ -29,9 +29,6 @@ class PairHybridOverlay : public PairHybrid {
   PairHybridOverlay(class LAMMPS *);
   virtual ~PairHybridOverlay() {}
   void coeff(int, char **);
-
- private:
-  void modify_requests();
 };
 
 }

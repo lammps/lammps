@@ -1,5 +1,27 @@
 # Change Log
 
+## [2.02.15](https://github.com/kokkos/kokkos/tree/2.02.15) (2017-02-10)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.02.07...2.02.15)
+
+**Implemented enhancements:**
+
+- Containers: Adding block partitioning to StaticCrsGraph [\#625](https://github.com/kokkos/kokkos/issues/625)
+- Kokkos Make System can induce Errors on Cray Volta System [\#610](https://github.com/kokkos/kokkos/issues/610)
+- OpenMP: error out if KOKKOS\_HAVE\_OPENMP is defined but not \_OPENMP [\#605](https://github.com/kokkos/kokkos/issues/605)
+- CMake: fix standalone build with tests [\#604](https://github.com/kokkos/kokkos/issues/604)
+- Change README \(that GitHub shows when opening Kokkos project page\) to tell users how to submit PRs [\#597](https://github.com/kokkos/kokkos/issues/597)
+- Add correctness testing for all operators of Atomic View [\#420](https://github.com/kokkos/kokkos/issues/420)
+- Allow assignment of Views with compatible memory spaces [\#290](https://github.com/kokkos/kokkos/issues/290)
+- Build only one version of Kokkos library for tests [\#213](https://github.com/kokkos/kokkos/issues/213)
+- Clean out old KOKKOS\_HAVE\_CXX11 macros clauses [\#156](https://github.com/kokkos/kokkos/issues/156)
+- Harmonize Macro names [\#150](https://github.com/kokkos/kokkos/issues/150)
+
+**Fixed bugs:**
+
+- Cray and PGI: Kokkos\_Parallel\_Reduce [\#634](https://github.com/kokkos/kokkos/issues/634)
+- Kokkos Make System can induce Errors on Cray Volta System [\#610](https://github.com/kokkos/kokkos/issues/610)
+- Normal\(\) function random number generator doesn't give the expected distribution [\#592](https://github.com/kokkos/kokkos/issues/592)
+
 ## [2.02.07](https://github.com/kokkos/kokkos/tree/2.02.07) (2016-12-16)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.02.01...2.02.07)
 

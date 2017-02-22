@@ -72,8 +72,7 @@ void ComputeContactAtom::init()
   // need an occasional neighbor list
 
   int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->gran = 1;
+  neighbor->requests[irequest]->size = 1;
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -91,7 +91,7 @@ private:
   inline
   void set_team_shared()
     { new( & m_team_shared ) space( ((char *) (*m_team_base)->scratch_memory()) + TEAM_REDUCE_SIZE , m_team_shared_size ); }
-  
+
 public:
 
   // Fan-in and wait until the matching fan-out is called.
@@ -201,7 +201,6 @@ public:
     }
 #endif
 
-#ifdef KOKKOS_HAVE_CXX11
   template< class ValueType, class JoinOp >
   KOKKOS_INLINE_FUNCTION ValueType
     team_reduce( const ValueType & value
@@ -213,18 +212,6 @@ public:
       typedef ValueType value_type;
       const JoinLambdaAdapter<value_type,JoinOp> op(op_in);
   #endif
-#else // KOKKOS_HAVE_CXX11
-  template< class JoinOp >
-  KOKKOS_INLINE_FUNCTION typename JoinOp::value_type
-    team_reduce( const typename JoinOp::value_type & value
-               , const JoinOp & op ) const
-  #if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    { return typename JoinOp::value_type(); }
-  #else
-    {
-      typedef typename JoinOp::value_type value_type;
-  #endif
-#endif // KOKKOS_HAVE_CXX11
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
       // Make sure there is enough scratch space:
       typedef typename if_c< sizeof(value_type) < TEAM_REDUCE_SIZE
@@ -514,7 +501,7 @@ private:
   int m_chunk_size;
 
   inline
-  void init( const int league_size_request 
+  void init( const int league_size_request
            , const int team_size_request )
    {
       const int pool_size  = traits::execution_space::thread_pool_size(0);
@@ -777,8 +764,6 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Thr
   result = loop_boundaries.thread.team_reduce(result,Impl::JoinAdd<ValueType>());
 }
 
-#if defined( KOKKOS_HAVE_CXX11 )
-
 /** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a reduction of
@@ -802,8 +787,6 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Thr
   init_result = loop_boundaries.thread.team_reduce(result,Impl::JoinLambdaAdapter<ValueType,JoinType>(join));
 }
 
-#endif /* #if defined( KOKKOS_HAVE_CXX11 ) */
-
 } //namespace Kokkos
 
 
@@ -816,7 +799,7 @@ template<typename iType, class Lambda>
 KOKKOS_INLINE_FUNCTION
 void parallel_for(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember >&
     loop_boundaries, const Lambda& lambda) {
-  #ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+  #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
   #pragma ivdep
   #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment)
@@ -832,7 +815,7 @@ KOKKOS_INLINE_FUNCTION
 void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember >&
       loop_boundaries, const Lambda & lambda, ValueType& result) {
   result = ValueType();
-#ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
@@ -855,7 +838,7 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::T
       loop_boundaries, const Lambda & lambda, const JoinType& join, ValueType& init_result) {
 
   ValueType result = init_result;
-#ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
@@ -886,7 +869,7 @@ void parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Thr
 
   value_type scan_val = value_type();
 
-#ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {

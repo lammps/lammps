@@ -279,7 +279,7 @@ void FixWallGranRegion::update_contacts(int i, int nc)
   while (iold < ncontact[i]) {
     for (m = 0; m < nc; m++)
       if (region->contact[m].iwall == walls[i][iold]) break;
-    if (m < nc) {
+    if (m >= nc) {
       ilast = ncontact[i]-1;
       for (j = 0; j < sheardim; j++)
         shearmany[i][iold][j] = shearmany[i][ilast][j];

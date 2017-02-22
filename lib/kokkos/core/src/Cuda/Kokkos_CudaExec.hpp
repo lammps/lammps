@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 
 /* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 #include <string>
 #include <Kokkos_Parallel.hpp>
@@ -112,7 +112,7 @@ CudaSpace::size_type * cuda_internal_scratch_unified( const CudaSpace::size_type
 #if defined( __CUDACC__ )
 
 /** \brief  Access to constant memory on the device */
-#ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 
 __device__ __constant__
 extern unsigned long kokkos_impl_cuda_constant_memory_buffer[] ;
@@ -135,7 +135,7 @@ namespace Impl {
 }
 }
 __device__ __constant__
-#ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 extern
 #endif
 Kokkos::Impl::CudaLockArraysStruct kokkos_impl_cuda_lock_arrays ;
@@ -245,7 +245,7 @@ struct CudaParallelLaunch< DriverType , true > {
       // Copy functor to constant memory on the device
       cudaMemcpyToSymbol( kokkos_impl_cuda_constant_memory_buffer , & driver , sizeof(DriverType) );
 
-      #ifndef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+      #ifndef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
       Kokkos::Impl::CudaLockArraysStruct locks;
       locks.atomic = atomic_lock_array_cuda_space_ptr(false);
       locks.scratch = scratch_lock_array_cuda_space_ptr(false);
@@ -287,7 +287,7 @@ struct CudaParallelLaunch< DriverType , false > {
       }
       #endif
 
-      #ifndef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+      #ifndef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
       Kokkos::Impl::CudaLockArraysStruct locks;
       locks.atomic = atomic_lock_array_cuda_space_ptr(false);
       locks.scratch = scratch_lock_array_cuda_space_ptr(false);
@@ -314,5 +314,5 @@ struct CudaParallelLaunch< DriverType , false > {
 //----------------------------------------------------------------------------
 
 #endif /* defined( __CUDACC__ ) */
-#endif /* defined( KOKKOS_HAVE_CUDA ) */
+#endif /* defined( KOKKOS_ENABLE_CUDA ) */
 #endif /* #ifndef KOKKOS_CUDAEXEC_HPP */

@@ -49,7 +49,7 @@ using namespace MathConst;
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
-enum{REVERSE_RHO};
+enum{REVERSE_RHO_GPU,REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 #ifdef FFT_SINGLE
@@ -254,8 +254,8 @@ void PPPMGPU::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg->reverse_comm(this,REVERSE_RHO);
-  brick2fft();
+  cg->reverse_comm(this,REVERSE_RHO_GPU);
+  brick2fft_gpu();
 
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
@@ -355,7 +355,7 @@ void PPPMGPU::compute(int eflag, int vflag)
    remap density from 3d brick decomposition to FFT decomposition
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::brick2fft()
+void PPPMGPU::brick2fft_gpu()
 {
   int n,ix,iy,iz;
 
@@ -619,8 +619,12 @@ void PPPMGPU::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 
 void PPPMGPU::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
-  if (flag == REVERSE_RHO) {
+  if (flag == REVERSE_RHO_GPU) {
     FFT_SCALAR *src = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+  } else if (flag == REVERSE_RHO) {
+    FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
   }
@@ -632,8 +636,12 @@ void PPPMGPU::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 
 void PPPMGPU::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
-  if (flag == REVERSE_RHO) {
+  if (flag == REVERSE_RHO_GPU) {
     FFT_SCALAR *dest = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] += buf[i];
+  } else if (flag == REVERSE_RHO) {
+    FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
   }
@@ -736,3 +744,117 @@ void PPPMGPU::setup()
   if (im_real_space) return;
   PPPM::setup();
 }
+
+/* ----------------------------------------------------------------------
+   group-group interactions
+ ------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   compute the PPPM total long-range force and energy for groups A and B
+ ------------------------------------------------------------------------- */
+
+void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
+{
+  if (slabflag && triclinic)
+    error->all(FLERR,"Cannot (yet) use K-space slab "
+               "correction with compute group/group for triclinic systems");
+
+  if (differentiation_flag)
+    error->all(FLERR,"Cannot (yet) use kspace_modify "
+               "diff ad with compute group/group");
+
+  if (!group_allocate_flag) allocate_groups();
+
+  // convert atoms from box to lamda coords
+
+  if (triclinic == 0) boxlo = domain->boxlo;
+  else {
+    boxlo = domain->boxlo_lamda;
+    domain->x2lamda(atom->nlocal);
+  }
+
+  // extend size of per-atom arrays if necessary
+  // part2grid needs to be allocated
+ 
+  if (atom->nmax > nmax || part2grid == NULL) {
+    memory->destroy(part2grid);
+    nmax = atom->nmax;
+    memory->create(part2grid,nmax,3,"pppm:part2grid");
+  }
+
+  particle_map();
+
+  e2group = 0.0; //energy
+  f2group[0] = 0.0; //force in x-direction
+  f2group[1] = 0.0; //force in y-direction
+  f2group[2] = 0.0; //force in z-direction
+
+  // map my particle charge onto my local 3d density grid
+
+  make_rho_groups(groupbit_A,groupbit_B,AA_flag);
+
+  // all procs communicate density values from their ghost cells
+  //   to fully sum contribution in their 3d bricks
+  // remap from 3d decomposition to FFT decomposition
+
+  // temporarily store and switch pointers so we can
+  //  use brick2fft() for groups A and B (without
+  //  writing an additional function)
+
+  FFT_SCALAR ***density_brick_real = density_brick;
+  FFT_SCALAR *density_fft_real = density_fft;
+
+  // group A
+
+  density_brick = density_A_brick;
+  density_fft = density_A_fft;
+
+  cg->reverse_comm(this,REVERSE_RHO);
+  brick2fft();
+
+  // group B
+
+  density_brick = density_B_brick;
+  density_fft = density_B_fft;
+
+  cg->reverse_comm(this,REVERSE_RHO);
+  brick2fft();
+
+  // switch back pointers
+
+  density_brick = density_brick_real;
+  density_fft = density_fft_real;
+
+  // compute potential gradient on my FFT grid and
+  //   portion of group-group energy/force on this proc's FFT grid
+
+  poisson_groups(AA_flag);
+
+  const double qscale = qqrd2e * scale;
+
+  // total group A <--> group B energy
+  // self and boundary correction terms are in compute_group_group.cpp
+
+  double e2group_all;
+  MPI_Allreduce(&e2group,&e2group_all,1,MPI_DOUBLE,MPI_SUM,world);
+  e2group = e2group_all;
+
+  e2group *= qscale*0.5*volume;
+
+  // total group A <--> group B force
+
+  double f2group_all[3];
+  MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
+
+  f2group[0] = qscale*volume*f2group_all[0];
+  f2group[1] = qscale*volume*f2group_all[1];
+  if (slabflag != 2) f2group[2] = qscale*volume*f2group_all[2];
+
+  // convert atoms back from lamda to box coords
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
+  if (slabflag == 1)
+    slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
+}
+

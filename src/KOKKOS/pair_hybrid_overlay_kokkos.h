@@ -29,9 +29,6 @@ class PairHybridOverlayKokkos : public PairHybridKokkos {
   PairHybridOverlayKokkos(class LAMMPS *);
   virtual ~PairHybridOverlayKokkos() {}
   void coeff(int, char **);
-
- private:
-  void modify_requests();
 };
 
 }

@@ -38,10 +38,28 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
   atoms_per_bin = ghosts_per_gbin = 16;
 
   d_resize = typename AT::t_int_scalar("NBinSSAKokkos::d_resize");
+  d_lbinxlo = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinxlo");
+  d_lbinylo = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinylo");
+  d_lbinzlo = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinzlo");
+  d_lbinxhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinxhi");
+  d_lbinyhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinyhi");
+  d_lbinzhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinzhi");
 #ifndef KOKKOS_USE_CUDA_UVM
   h_resize = Kokkos::create_mirror_view(d_resize);
+  h_lbinxlo = Kokkos::create_mirror_view(d_lbinxlo);
+  h_lbinylo = Kokkos::create_mirror_view(d_lbinylo);
+  h_lbinzlo = Kokkos::create_mirror_view(d_lbinzlo);
+  h_lbinxhi = Kokkos::create_mirror_view(d_lbinxhi);
+  h_lbinyhi = Kokkos::create_mirror_view(d_lbinyhi);
+  h_lbinzhi = Kokkos::create_mirror_view(d_lbinzhi);
 #else
   h_resize = d_resize;
+  h_lbinxlo = d_lbinxlo;
+  h_lbinylo = d_lbinylo;
+  h_lbinzlo = d_lbinzlo;
+  h_lbinxhi = d_lbinxhi;
+  h_lbinyhi = d_lbinyhi;
+  h_lbinzhi = d_lbinzhi;
 #endif
   h_resize() = 1;
 

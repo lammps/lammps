@@ -338,6 +338,12 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   k_ssa_phaseLen.modify<DeviceType>();
   k_ssa_itemLoc.modify<DeviceType>();
   k_ssa_itemLen.modify<DeviceType>();
+  k_ssa_gphaseLen.modify<DeviceType>();
+  k_ssa_gitemLoc.modify<DeviceType>();
+  k_ssa_gitemLen.modify<DeviceType>();
+
+  list->inum = data.neigh_list.inum; //FIXME once the above is in a parallel_for
+  list->gnum = data.neigh_list.gnum; // it will need a deep_copy or something
 
   list->k_ilist.template modify<DeviceType>();
 }
@@ -450,7 +456,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals()
 
 //FIXME  if (ssa_phaseCt != workPhase) error->one(FLERR,"ssa_phaseCt was wrong");
 
-  neigh_list.inum = inum; //FIXME
+  neigh_list.inum = inum;
 }
 
 
@@ -545,7 +551,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts()
     d_ssa_gitemLen(workPhase,workItem) = inum + gnum - d_ssa_gitemLoc(workPhase,workItem);
     if (d_ssa_gitemLen(workPhase,workItem) > 0) workItem++;
   }
-  neigh_list.gnum = gnum; //FIXME
+  neigh_list.gnum = gnum;
 }
 
 }

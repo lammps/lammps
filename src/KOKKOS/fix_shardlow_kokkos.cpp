@@ -179,6 +179,7 @@ void FixShardlowKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixShardlowKokkos<DeviceType>::init_list(int id, NeighList *ptr)
 {
+  FixShardlow::init_list(id, ptr);
   k_list = static_cast<NeighListKokkos<DeviceType>*>(ptr);
 }
 

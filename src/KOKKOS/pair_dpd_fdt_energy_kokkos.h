@@ -89,6 +89,15 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 
   DAT::tdual_efloat_1d k_duCond,k_duMech;
 
+  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+
+  // RandPoolWrap rand_pool;
+  // typedef RandWrap rand_type;
+
+  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
+  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+
  protected:
   int eflag,vflag;
   int nlocal,neighflag;
@@ -124,15 +133,6 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
-
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
-
-  /**/Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
-  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;/**/
-
-  /**RandPoolWrap rand_pool;
-  typedef RandWrap rand_type;/**/
 
   friend void pair_virial_fdotr_compute<PairDPDfdtEnergyKokkos>(PairDPDfdtEnergyKokkos*);
 };

@@ -36,6 +36,7 @@ class FixLatte : public Fix {
   void initial_integrate(int);
   void pre_reverse(int, int);
   void post_force(int);
+  void min_post_force(int);
   void final_integrate();
   void reset_dt();
   double compute_scalar();

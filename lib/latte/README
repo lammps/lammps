@@ -20,7 +20,7 @@ follow these steps:
 - Set the MAKELIB flag to ON in makefile.CHOICES and finally, build the 
   code with the make command. 
 
-Note that if you unpack and build LATTE in this directory, if you
+Note that if you unpack and build LATTE in this directory and you
 download a new LAMMPS tarball, the files you have added here will be
 lost. So you likely want to build it somewhere else. The recommended 
 place is the home directory.
@@ -28,7 +28,7 @@ place is the home directory.
 To build LAMMPS with the LATTE library you should follow the following 
 instructions:
 
-- makefile.lammps.* to makefile.lammps in the /lammps/lib/latte directory. 
+- copy makefile.lammps.* to makefile.lammps in the /lammps/lib/latte directory. 
 
 - Change the path, flags and compilers on the makefile.lammps according 
   to your compilers, architecture and the LATTE location.

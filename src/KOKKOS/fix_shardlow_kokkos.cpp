@@ -71,7 +71,7 @@ using namespace FixConst;
 
 template<class DeviceType>
 FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0)
+  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0), rand_pool(comm->me)
 {
   kokkosable = 1;
 //  atomKK = (AtomKokkos *) atom;
@@ -85,12 +85,12 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //  k_pairDPD = NULL;
   k_pairDPDE = NULL;
 //  k_pairDPD = (PairDPDfdtKokkos *) force->pair_match("dpd/fdt",1);
-  k_pairDPDE = (PairDPDfdtEnergyKokkos<DeviceType> *) force->pair_match("dpd/fdt/energy/kk",1);
+  k_pairDPDE = dynamic_cast<PairDPDfdtEnergyKokkos<DeviceType> *>(force->pair_match("dpd/fdt/energy",0));
 
 //   if(k_pairDPDE){
     comm_forward = 3;
     comm_reverse = 5;
-    p_rand_pool = &(k_pairDPDE->rand_pool);
+//    p_rand_pool = &(k_pairDPDE->rand_pool);
 //   } else {
 //     comm_forward = 3;
 //     comm_reverse = 3;
@@ -263,7 +263,8 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
   int start_ii, int count
 )
 {
-  rand_type rand_gen = p_rand_pool->get_state();
+  rand_type rand_gen = rand_pool.get_state();
+//  rand_type rand_gen = p_rand_pool->get_state();
 
   const double theta_ij_inv = 1.0/k_pairDPD->temperature; // independent of i,j
   const double boltz_inv = 1.0/force->boltz;
@@ -377,7 +378,8 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
     v(i, 2) = vzi;
   }
 
-  p_rand_pool->free_state(rand_gen);
+//  p_rand_pool->free_state(rand_gen);
+  rand_pool.free_state(rand_gen);
 }
 #endif
 
@@ -390,16 +392,24 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
 template<class DeviceType>
 template<bool STACKPARAMS>
 void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
-  int start_ii, int count
+  int start_ii, int count, int id
 )
 {
-  rand_type rand_gen = p_rand_pool->get_state();
+  rand_type rand_gen = rand_pool.get_state();
+//  rand_type rand_gen = p_rand_pool->get_state();
+
+//fprintf(stderr, "ssa_update_dpde(%d,%d,%d)\n", start_ii, count, id);
 
   const double boltz_inv = 1.0/force->boltz;
   const double ftm2v = force->ftm2v;
   const double dt     = update->dt;
   int ct = count;
   int ii = start_ii;
+
+//  double randnum1 = rand_gen.normal();
+//fprintf(stderr, "randnum1 = %g\n", randnum1);
+//  double randnum2 = rand_gen.normal();
+//fprintf(stderr, "randnum2 = %g\n", randnum2);
 
   while (ct-- > 0) {
     const int i = d_ilist(ii);
@@ -453,6 +463,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
         double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * rand_gen.normal();
+//        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * randnum1;//rand_gen.normal();
 
         const double mass_j = masses(massPerI ? j : jtype);
         double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
@@ -462,6 +473,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         double kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
         double alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
         double del_uCond = alpha_ij*wr*dtsqrt * rand_gen.normal();
+//        double del_uCond = alpha_ij*wr*dtsqrt * randnum2;//rand_gen.normal();
 
         del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
         uCond[j] -= del_uCond;
@@ -537,7 +549,8 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
     ii++;
   }
 
-  p_rand_pool->free_state(rand_gen);
+  rand_pool.free_state(rand_gen);
+//  p_rand_pool->free_state(rand_gen);
 }
 
 
@@ -573,13 +586,13 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
       Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
         int ct = ssa_itemLen(workPhase, workItem);
         int ii = ssa_itemLoc(workPhase, workItem);
-        ssa_update_dpde<false>(ii, ct);
+        ssa_update_dpde<false>(ii, ct, workItem);
       });
     } else {
       Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
         int ct = ssa_itemLen(workPhase, workItem);
         int ii = ssa_itemLoc(workPhase, workItem);
-        ssa_update_dpde<true>(ii, ct);
+        ssa_update_dpde<true>(ii, ct, workItem);
       });
     }
   }
@@ -609,13 +622,13 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
       Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
         int ct = ssa_gitemLen(workPhase, workItem);
         int ii = ssa_gitemLoc(workPhase, workItem);
-        ssa_update_dpde<false>(ii, ct);
+        ssa_update_dpde<false>(ii, ct, workItem);
       });
     } else {
       Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
         int ct = ssa_gitemLen(workPhase, workItem);
         int ii = ssa_gitemLoc(workPhase, workItem);
-        ssa_update_dpde<true>(ii, ct);
+        ssa_update_dpde<true>(ii, ct, workItem);
       });
     }
 

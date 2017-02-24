@@ -63,7 +63,8 @@ class FixShardlowKokkos : public FixShardlow {
  protected:
 //  class PairDPDfdt *pairDPD;
   PairDPDfdtEnergyKokkos<DeviceType> *k_pairDPDE;
-  Kokkos::Random_XorShift64_Pool<DeviceType> *p_rand_pool;
+  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+//  Kokkos::Random_XorShift64_Pool<DeviceType> *p_rand_pool;
   typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 
   Kokkos::DualView<params_ssa**,Kokkos::LayoutRight,DeviceType> k_params;
@@ -108,7 +109,7 @@ class FixShardlowKokkos : public FixShardlow {
 //  template<bool STACKPARAMS>
 //  void ssa_update_dpd(int, int);  // Constant Temperature
   template<bool STACKPARAMS>
-  void ssa_update_dpde(int, int); // Constant Energy
+  void ssa_update_dpde(int, int, int); // Constant Energy
 
 };
 

@@ -563,10 +563,10 @@ int AtomVecDPDKokkos::pack_comm(int n, int *list, double *buf,
       buf[m++] = h_x(j,0);
       buf[m++] = h_x(j,1);
       buf[m++] = h_x(j,2);
-      buf[m++] = dpdTheta[j];
-      buf[m++] = uCond[j];
-      buf[m++] = uMech[j];
-      buf[m++] = uChem[j];
+      buf[m++] = h_dpdTheta[j];
+      buf[m++] = h_uCond[j];
+      buf[m++] = h_uMech[j];
+      buf[m++] = h_uChem[j];
     }
   } else {
     if (domain->triclinic == 0) {

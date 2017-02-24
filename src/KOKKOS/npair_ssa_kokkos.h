@@ -47,6 +47,14 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_itemLoc;
   typename AT::t_int_2d ssa_itemLen;
 
+  const int ssa_gphaseCt;
+  DAT::tdual_int_1d k_ssa_gphaseLen;
+  DAT::tdual_int_2d k_ssa_gitemLoc;
+  DAT::tdual_int_2d k_ssa_gitemLen;
+  typename AT::t_int_1d ssa_gphaseLen;
+  typename AT::t_int_2d ssa_gitemLoc;
+  typename AT::t_int_2d ssa_gitemLen;
+
   NPairSSAKokkos(class LAMMPS *);
   ~NPairSSAKokkos() {}
   void copy_neighbor_info();
@@ -169,6 +177,10 @@ class NPairSSAKokkosExecute
   typename AT::t_int_1d d_ssa_phaseLen;
   typename AT::t_int_2d d_ssa_itemLoc;
   typename AT::t_int_2d d_ssa_itemLen;
+  int ssa_gphaseCt;
+  typename AT::t_int_1d d_ssa_gphaseLen;
+  typename AT::t_int_2d d_ssa_gitemLoc;
+  typename AT::t_int_2d d_ssa_gitemLen;
 
   NPairSSAKokkosExecute(
         const NeighListKokkos<DeviceType> &_neigh_list,
@@ -188,6 +200,10 @@ class NPairSSAKokkosExecute
         const typename AT::t_int_1d &_d_ssa_phaseLen,
         const typename AT::t_int_2d &_d_ssa_itemLoc,
         const typename AT::t_int_2d &_d_ssa_itemLen,
+        const int _ssa_gphaseCt,
+        const typename AT::t_int_1d &_d_ssa_gphaseLen,
+        const typename AT::t_int_2d &_d_ssa_gitemLoc,
+        const typename AT::t_int_2d &_d_ssa_gitemLen,
         const int _nlocal,
         const typename AT::t_x_array_randomread &_x,
         const typename AT::t_int_1d_const &_type,
@@ -228,6 +244,10 @@ class NPairSSAKokkosExecute
     d_ssa_phaseLen(_d_ssa_phaseLen),
     d_ssa_itemLoc(_d_ssa_itemLoc),
     d_ssa_itemLen(_d_ssa_itemLen),
+    ssa_gphaseCt(_ssa_gphaseCt),
+    d_ssa_gphaseLen(_d_ssa_gphaseLen),
+    d_ssa_gitemLoc(_d_ssa_gitemLoc),
+    d_ssa_gitemLen(_d_ssa_gitemLen),
     nlocal(_nlocal),
     x(_x),type(_type),mask(_mask),molecule(_molecule),
     tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),

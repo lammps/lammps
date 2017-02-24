@@ -32,10 +32,10 @@ namespace LAMMPS_NS {
 
 struct TagPairDPDfdtEnergyZero{};
 
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
 struct TagPairDPDfdtEnergyComputeSplit{};
 
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
 struct TagPairDPDfdtEnergyComputeNoSplit{};
 
 template<class DeviceType>
@@ -54,21 +54,21 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairDPDfdtEnergyZero, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
+  void operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int&, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+  void operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
+  void operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int&, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+  void operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
@@ -92,7 +92,6 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
  protected:
   int eflag,vflag;
   int nlocal,neighflag;
-  int STACKPARAMS;
   double dtinvsqrt;
   double boltz,ftm2v;
   double special_lj[4];
@@ -102,11 +101,10 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_dpd**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  // hardwired to space for 15 atom types
+  // hardwired to space for MAX_TYPES_STACKPARAMS (12) atom types
   params_dpd m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array c_x;
   typename ArrayTypes<DeviceType>::t_v_array_randomread v;

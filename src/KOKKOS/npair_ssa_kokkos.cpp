@@ -472,84 +472,88 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts()
   // since these are ghosts, must check if stencil bin is out of bounds
   for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
     int airnum = workPhase + 1;
-    int workItem = 0; //FIXME for now, there is only 1 workItem for each ghost AIR
-    d_ssa_gitemLoc(workPhase, workItem) = inum + gnum; // record where workItem starts in ilist
-    for (int il = 0; il < c_gbincount(airnum); ++il) {
-      const int i = c_gbins(airnum, il);
-      n = 0;
+    //FIXME for now, there is only 1 workItem for each ghost AIR
+    int workItem;
+    for (workItem = 0; workItem < 1; ++workItem) {
+      d_ssa_gitemLoc(workPhase, workItem) = inum + gnum; // record where workItem starts in ilist
+      for (int il = 0; il < c_gbincount(airnum); ++il) {
+        const int i = c_gbins(airnum, il);
+        n = 0;
 
-      const AtomNeighbors neighbors_i = neigh_list.get_neighbors(inum + gnum);
-      const X_FLOAT xtmp = x(i, 0);
-      const X_FLOAT ytmp = x(i, 1);
-      const X_FLOAT ztmp = x(i, 2);
-      const int itype = type(i);
+        const AtomNeighbors neighbors_i = neigh_list.get_neighbors(inum + gnum);
+        const X_FLOAT xtmp = x(i, 0);
+        const X_FLOAT ytmp = x(i, 1);
+        const X_FLOAT ztmp = x(i, 2);
+        const int itype = type(i);
 
-      const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
-        = d_stencil;
+        const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
+          = d_stencil;
 
-      int loc[3];
-      const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2), &(loc[0]));
+        int loc[3];
+        const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2), &(loc[0]));
 
-      // loop over AIR ghost atoms in all bins in "full" stencil
-      // Note: the non-AIR ghost atoms have already been filtered out
-      for (int k = 0; k < nstencil; k++) {
-        int xbin2 = loc[0] + d_stencilxyz(k,0);
-        int ybin2 = loc[1] + d_stencilxyz(k,1);
-        int zbin2 = loc[2] + d_stencilxyz(k,2);
-        // Skip it if this bin is outside the extent of local bins
-        if (xbin2 < lbinxlo || xbin2 >= lbinxhi ||
-            ybin2 < lbinylo || ybin2 >= lbinyhi ||
-            zbin2 < lbinzlo || zbin2 >= lbinzhi) continue;
-        const int jbin = ibin+stencil(k);
-        for (int jl = 0; jl < c_bincount(jbin); ++jl) {
-          const int j = c_bins(jbin, jl);
-          const int jtype = type(j);
-          if(exclude && exclusion(i,j,itype,jtype)) continue;
+        // loop over AIR ghost atoms in all bins in "full" stencil
+        // Note: the non-AIR ghost atoms have already been filtered out
+        for (int k = 0; k < nstencil; k++) {
+          int xbin2 = loc[0] + d_stencilxyz(k,0);
+          int ybin2 = loc[1] + d_stencilxyz(k,1);
+          int zbin2 = loc[2] + d_stencilxyz(k,2);
+          // Skip it if this bin is outside the extent of local bins
+          if (xbin2 < lbinxlo || xbin2 >= lbinxhi ||
+              ybin2 < lbinylo || ybin2 >= lbinyhi ||
+              zbin2 < lbinzlo || zbin2 >= lbinzhi) continue;
+          const int jbin = ibin+stencil(k);
+          for (int jl = 0; jl < c_bincount(jbin); ++jl) {
+            const int j = c_bins(jbin, jl);
+            const int jtype = type(j);
+            if(exclude && exclusion(i,j,itype,jtype)) continue;
 
-          const X_FLOAT delx = xtmp - x(j, 0);
-          const X_FLOAT dely = ytmp - x(j, 1);
-          const X_FLOAT delz = ztmp - x(j, 2);
-          const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-          if(rsq <= cutneighsq(itype,jtype)) {
-            if (molecular) {
-              if (!moltemplate)
-                which = find_special(i,j);
-                  /* else if (imol >= 0) */
-                  /*   which = find_special(onemols[imol]->special[iatom], */
-                  /*                        onemols[imol]->nspecial[iatom], */
-                  /*                        tag[j]-tagprev); */
-                  /* else which = 0; */
-              if (which == 0){
-                if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
-                else n++;
-              }else if (minimum_image_check(delx,dely,delz)){
+            const X_FLOAT delx = xtmp - x(j, 0);
+            const X_FLOAT dely = ytmp - x(j, 1);
+            const X_FLOAT delz = ztmp - x(j, 2);
+            const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+            if(rsq <= cutneighsq(itype,jtype)) {
+              if (molecular) {
+                if (!moltemplate)
+                  which = find_special(i,j);
+                    /* else if (imol >= 0) */
+                    /*   which = find_special(onemols[imol]->special[iatom], */
+                    /*                        onemols[imol]->nspecial[iatom], */
+                    /*                        tag[j]-tagprev); */
+                    /* else which = 0; */
+                if (which == 0){
+                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                  else n++;
+                }else if (minimum_image_check(delx,dely,delz)){
+                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                  else n++;
+                }
+                else if (which > 0) {
+                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+                  else n++;
+                }
+              } else {
                 if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
                 else n++;
               }
-              else if (which > 0) {
-                if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
-                else n++;
-              }
-            } else {
-              if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
-              else n++;
             }
           }
         }
-      }
 
-      if (n > 0) {
-        neigh_list.d_numneigh(inum + gnum) = n;
-        neigh_list.d_ilist(inum + (gnum++)) = i;
-        if(n > neigh_list.maxneighs) {
-          resize() = 1;
-          if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+        if (n > 0) {
+          neigh_list.d_numneigh(inum + gnum) = n;
+          neigh_list.d_ilist(inum + (gnum++)) = i;
+          if(n > neigh_list.maxneighs) {
+            resize() = 1;
+            if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+          }
         }
       }
+      // record where workItem ends in ilist
+      d_ssa_gitemLen(workPhase,workItem) = inum + gnum - d_ssa_gitemLoc(workPhase,workItem);
+      // if (d_ssa_gitemLen(workPhase,workItem) > 0) workItem++;
     }
-    // record where workItem ends in ilist
-    d_ssa_gitemLen(workPhase,workItem) = inum + gnum - d_ssa_gitemLoc(workPhase,workItem);
-    if (d_ssa_gitemLen(workPhase,workItem) > 0) workItem++;
+    d_ssa_gphaseLen(workPhase) = workItem;
   }
   neigh_list.gnum = gnum;
 }

@@ -71,7 +71,7 @@ using namespace FixConst;
 
 template<class DeviceType>
 FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0), rand_pool(comm->me)
+  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0), rand_pool(1234567 + comm->me)
 {
   kokkosable = 1;
 //  atomKK = (AtomKokkos *) atom;

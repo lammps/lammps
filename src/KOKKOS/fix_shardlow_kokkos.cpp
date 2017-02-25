@@ -299,7 +299,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
-      if ((rsq < STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype))
+      if ((rsq < (STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype)))
         && (rsq >= EPSILON_SQUARED)) {
         double r = sqrt(rsq);
         double rinv = 1.0/r;
@@ -432,7 +432,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
-      if ((rsq < STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype))
+      if ((rsq < (STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype)))
         && (rsq >= EPSILON_SQUARED)) {
         double r = sqrt(rsq);
         double rinv = 1.0/r;

@@ -90,11 +90,9 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //   if(k_pairDPDE){
     comm_forward = 3;
     comm_reverse = 5;
-//    p_rand_pool = &(k_pairDPDE->rand_pool);
 //   } else {
 //     comm_forward = 3;
 //     comm_reverse = 3;
-//     p_rand_pool = &(k_pairDPD->rand_pool);
 //   }
 
 
@@ -264,7 +262,6 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
 )
 {
   rand_type rand_gen = rand_pool.get_state();
-//  rand_type rand_gen = p_rand_pool->get_state();
 
   const double theta_ij_inv = 1.0/k_pairDPD->temperature; // independent of i,j
   const double boltz_inv = 1.0/force->boltz;
@@ -378,7 +375,6 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
     v(i, 2) = vzi;
   }
 
-//  p_rand_pool->free_state(rand_gen);
   rand_pool.free_state(rand_gen);
 }
 #endif
@@ -396,20 +392,12 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
 )
 {
   rand_type rand_gen = rand_pool.get_state();
-//  rand_type rand_gen = p_rand_pool->get_state();
-
-//fprintf(stderr, "ssa_update_dpde(%d,%d,%d)\n", start_ii, count, id);
 
   const double boltz_inv = 1.0/force->boltz;
   const double ftm2v = force->ftm2v;
   const double dt     = update->dt;
   int ct = count;
   int ii = start_ii;
-
-//  double randnum1 = rand_gen.normal();
-//fprintf(stderr, "randnum1 = %g\n", randnum1);
-//  double randnum2 = rand_gen.normal();
-//fprintf(stderr, "randnum2 = %g\n", randnum2);
 
   while (ct-- > 0) {
     const int i = d_ilist(ii);
@@ -463,7 +451,6 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
         double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * rand_gen.normal();
-//        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * randnum1;//rand_gen.normal();
 
         const double mass_j = masses(massPerI ? j : jtype);
         double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
@@ -473,7 +460,6 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         double kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
         double alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
         double del_uCond = alpha_ij*wr*dtsqrt * rand_gen.normal();
-//        double del_uCond = alpha_ij*wr*dtsqrt * randnum2;//rand_gen.normal();
 
         del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
         uCond[j] -= del_uCond;
@@ -550,7 +536,6 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
   }
 
   rand_pool.free_state(rand_gen);
-//  p_rand_pool->free_state(rand_gen);
 }
 
 

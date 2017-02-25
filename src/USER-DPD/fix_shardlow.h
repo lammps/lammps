@@ -38,6 +38,11 @@ class FixShardlow : public Fix {
 
   double memory_usage();
 
+#ifdef DEBUG_PAIR_CT
+  int counters[2][3];
+  int hist[32];
+#endif
+
  protected:
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);

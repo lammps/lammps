@@ -211,6 +211,10 @@ void FixShardlow::ssa_update_dpd(
   const double mass_i = (rmass) ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
 
+#ifdef DEBUG_PAIR_CT
+  const int nlocal = atom->nlocal;
+#endif
+
   // Loop over Directional Neighbors only
   for (int jj = 0; jj < jlen; jj++) {
     int j = jlist[jj] & NEIGHMASK;
@@ -220,9 +224,23 @@ void FixShardlow::ssa_update_dpd(
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
+#ifdef DEBUG_PAIR_CT
+    if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
+    else ++(counters[0][1]);
+    ++(counters[0][2]);
+    int rsqi = rsq / 8;
+    if (rsqi < 0) rsqi = 0;
+    else if (rsqi > 31) rsqi = 31;
+    ++(hist[rsqi]);
+#endif
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
+#ifdef DEBUG_PAIR_CT
+      if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
+      else ++(counters[1][1]);
+      ++(counters[1][2]);
+#endif
       double r = sqrt(rsq);
       double rinv = 1.0/r;
       double delx_rinv = delx*rinv;
@@ -350,6 +368,10 @@ void FixShardlow::ssa_update_dpde(
   const double massinv_i = 1.0 / mass_i;
   const double mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
 
+#ifdef DEBUG_PAIR_CT
+  const int nlocal = atom->nlocal;
+#endif
+
   // Loop over Directional Neighbors only
   for (int jj = 0; jj < jlen; jj++) {
     int j = jlist[jj] & NEIGHMASK;
@@ -359,9 +381,23 @@ void FixShardlow::ssa_update_dpde(
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
+#ifdef DEBUG_PAIR_CT
+    if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
+    else ++(counters[0][1]);
+    ++(counters[0][2]);
+    int rsqi = rsq / 8;
+    if (rsqi < 0) rsqi = 0;
+    else if (rsqi > 31) rsqi = 31;
+    ++(hist[rsqi]);
+#endif
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
+#ifdef DEBUG_PAIR_CT
+      if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
+      else ++(counters[1][1]);
+      ++(counters[1][2]);
+#endif
       double r = sqrt(rsq);
       double rinv = 1.0/r;
       double delx_rinv = delx*rinv;
@@ -493,6 +529,13 @@ void FixShardlow::initial_integrate(int vflag)
     error->one(FLERR, msg);
   }
 
+#ifdef DEBUG_PAIR_CT
+  for (int i = 0; i < 2; ++i)
+    for (int j = 0; j < 3; ++j)
+      counters[i][j] = 0;
+  for (int i = 0; i < 32; ++i) hist[i] = 0;
+#endif
+
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
@@ -553,6 +596,16 @@ void FixShardlow::initial_integrate(int vflag)
     comm->reverse_comm_fix(this);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
+
+#ifdef DEBUG_PAIR_CT
+for (int i = 0; i < 32; ++i) fprintf(stdout, "%8d", hist[i]);
+fprintf(stdout, "\n%6d %6d,%6d %6d: "
+  ,counters[0][2]
+  ,counters[1][2]
+  ,counters[0][1]
+  ,counters[1][1]
+);
+#endif
 
   memory->sfree(v_t0);
   v_t0 = NULL;

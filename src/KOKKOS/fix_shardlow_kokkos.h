@@ -60,6 +60,13 @@ class FixShardlowKokkos : public FixShardlow {
     F_FLOAT cutinv,halfsigma,kappa,alpha;
   };
 
+#ifdef DEBUG_PAIR_CT
+  typename AT::t_int_2d d_counters;
+  typename HAT::t_int_2d h_counters;
+  typename AT::t_int_1d d_hist;
+  typename HAT::t_int_1d h_hist;
+#endif
+
  protected:
 //  class PairDPDfdt *pairDPD;
   PairDPDfdtEnergyKokkos<DeviceType> *k_pairDPDE;

@@ -90,7 +90,12 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //   if(k_pairDPDE){
     comm_forward = 3;
     comm_reverse = 5;
+#ifdef USE_RAND_MARS
+    maxRNG = 0;
+    pp_random = NULL;
+#else
     p_rand_pool = &(k_pairDPDE->rand_pool);
+#endif
 //   } else {
 //     comm_forward = 3;
 //     comm_reverse = 3;
@@ -119,6 +124,11 @@ template<class DeviceType>
 FixShardlowKokkos<DeviceType>::~FixShardlowKokkos()
 {
   ghostmax = 0;
+  if (pp_random) {
+    for (int i = 1; i < maxRNG; ++i) delete pp_random[i];
+    delete[] pp_random;
+    pp_random = NULL;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -418,7 +428,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
 )
 {
 #ifdef USE_RAND_MARS
-  class RanMars *pRNG = k_pairDPDE->random;
+  class RanMars *pRNG = pp_random[id];
 #else
   rand_type rand_gen = p_rand_pool->get_state();
 #endif
@@ -617,6 +627,21 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   ssa_gphaseLen = np_ssa->ssa_gphaseLen;
   ssa_gitemLoc = np_ssa->ssa_gitemLoc;
   ssa_gitemLen = np_ssa->ssa_gitemLen;
+
+  int maxWorkItemCt = (int) ssa_itemLoc.dimension_1();
+  if (maxWorkItemCt > maxRNG) {
+    if (pp_random) {
+      for (int i = 1; i < maxRNG; ++i) delete pp_random[i];
+      delete[] pp_random;
+      pp_random = NULL;
+    }
+    maxRNG = maxWorkItemCt;
+    pp_random = new RanMars*[maxRNG];
+    for (int i = 1; i < maxRNG; ++i) {
+      pp_random[i] = new RanMars(lmp, k_pairDPDE->seed + comm->me + comm->nprocs*i);
+    }
+    pp_random[0] = k_pairDPDE->random;
+  }
 
 #ifdef DEBUG_PAIR_CT
   for (int i = 0; i < 2; ++i)

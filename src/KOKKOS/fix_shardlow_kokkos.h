@@ -75,8 +75,10 @@ class FixShardlowKokkos : public FixShardlow {
 //  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
 //  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 
-  RandPoolWrap *p_rand_pool;
-  typedef RandWrap rand_type;
+//  RandPoolWrap *p_rand_pool;
+//  typedef RandWrap rand_type;
+  int maxRNG;
+  class RanMars **pp_random;
 
   Kokkos::DualView<params_ssa**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ssa**,

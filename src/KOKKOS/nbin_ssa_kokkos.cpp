@@ -140,7 +140,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     subhi_[1] = domain->subhi[1];
     subhi_[2] = domain->subhi[2];
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(atom->nlocal,atom->nlocal+atom->nghost), KOKKOS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(atom->nlocal,atom->nlocal+atom->nghost), KOKKOS_LAMBDA (const int i) {
       const int iAIR = coord2ssaAIR(x(i, 0), x(i, 1), x(i, 2));
       if (iAIR > 0) { // include only ghost atoms in an AIR
         const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
@@ -188,7 +188,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
 
-    Kokkos::parallel_for(atom->nlocal, f);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, atom->nlocal), f);
     DeviceType::fence();
 
     deep_copy(h_resize, d_resize);

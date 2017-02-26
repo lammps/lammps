@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 template<class DeviceType>
 PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) :
-  PairDPDfdtEnergy(lmp),rand_pool(seed + comm->me /** , lmp/**/)
+  PairDPDfdtEnergy(lmp),rand_pool(12345 /* not actually used, seed + comm->me */, lmp)
 {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -68,7 +68,7 @@ PairDPDfdtEnergyKokkos<DeviceType>::~PairDPDfdtEnergyKokkos()
 
   memory->destroy_kokkos(k_cutsq,cutsq);
 
-  /** rand_pool.destroy();/**/
+  rand_pool.destroy();
 }
 
 /* ----------------------------------------------------------------------
@@ -101,7 +101,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
     error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
   }
 
-  /** rand_pool.init(random,seed);/**/
+  rand_pool.init(random,seed);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -89,11 +89,11 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 
   DAT::tdual_efloat_1d k_duCond,k_duMech;
 
-  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
-  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+  // Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+  // typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 
-  // RandPoolWrap rand_pool;
-  // typedef RandWrap rand_type;
+  RandPoolWrap rand_pool;
+  typedef RandWrap rand_type;
 
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;

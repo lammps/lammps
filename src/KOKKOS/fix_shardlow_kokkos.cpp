@@ -71,7 +71,7 @@ using namespace FixConst;
 
 template<class DeviceType>
 FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0), rand_pool(1234567 + comm->me)
+  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0)
 {
   kokkosable = 1;
 //  atomKK = (AtomKokkos *) atom;
@@ -90,6 +90,7 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //   if(k_pairDPDE){
     comm_forward = 3;
     comm_reverse = 5;
+    p_rand_pool = &(k_pairDPDE->rand_pool);
 //   } else {
 //     comm_forward = 3;
 //     comm_reverse = 3;
@@ -272,7 +273,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
   int start_ii, int count
 )
 {
-  rand_type rand_gen = rand_pool.get_state();
+  rand_type rand_gen = p_rand_pool->get_state();
 
   const double theta_ij_inv = 1.0/k_pairDPD->temperature; // independent of i,j
   const double boltz_inv = 1.0/force->boltz;
@@ -400,7 +401,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
     v(i, 2) = vzi;
   }
 
-  rand_pool.free_state(rand_gen);
+  p_rand_pool->free_state(rand_gen);
 }
 #endif
 
@@ -416,7 +417,11 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
   int start_ii, int count, int id
 )
 {
-  rand_type rand_gen = rand_pool.get_state();
+#ifdef USE_RAND_MARS
+  class RanMars *pRNG = k_pairDPDE->random;
+#else
+  rand_type rand_gen = p_rand_pool->get_state();
+#endif
 
   const double boltz_inv = 1.0/force->boltz;
   const double ftm2v = force->ftm2v;
@@ -490,7 +495,11 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         double halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
         double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
+#ifdef USE_RAND_MARS
+        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * pRNG->gaussian();
+#else
         double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * rand_gen.normal();
+#endif
 
         const double mass_j = masses(massPerI ? j : jtype);
         double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
@@ -499,7 +508,11 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         // Compute uCond
         double kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
         double alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
+#ifdef USE_RAND_MARS
+        double del_uCond = alpha_ij*wr*dtsqrt * pRNG->gaussian();
+#else
         double del_uCond = alpha_ij*wr*dtsqrt * rand_gen.normal();
+#endif
 
         del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
         uCond[j] -= del_uCond;
@@ -575,7 +588,9 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
     ii++;
   }
 
-  rand_pool.free_state(rand_gen);
+#ifndef USE_RAND_MARS
+  p_rand_pool->free_state(rand_gen);
+#endif
 }
 
 

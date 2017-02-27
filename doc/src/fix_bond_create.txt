@@ -118,8 +118,8 @@ of new bonds, angles, etc.
 
 NOTE: One data structure that is not updated when a bond breaks are
 the molecule IDs stored by each atom.  Even though two molecules
-become one moleclue due to the created bond, all atoms in the new
-moleclue retain their original molecule IDs.
+become one molecule due to the created bond, all atoms in the new
+molecule retain their original molecule IDs.
 
 If the {atype} keyword is used and if an angle potential is defined
 via the "angle_style"_angle_style.html command, then any new 3-body

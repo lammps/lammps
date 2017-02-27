@@ -616,6 +616,7 @@ void ComputeChunkAtom::setup()
 {
   if (nchunkflag == ONCE) setup_chunks();
   if (idsflag == ONCE) compute_ichunk();
+  else invoked_ichunk = -1;
 }
 
 /* ----------------------------------------------------------------------

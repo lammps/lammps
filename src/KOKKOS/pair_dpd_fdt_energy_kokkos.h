@@ -22,11 +22,25 @@ PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 #define LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 
+
+#ifndef ALLOW_NON_DETERMINISTIC_DPD
+#ifdef KOKKOS_HAVE_CUDA
+//FIXME print some warning
+#endif
+#ifndef DPD_USE_RAN_MARS
+#define DPD_USE_RAN_MARS
+#endif
+#endif
+
+
 #include "pair_dpd_fdt_energy.h"
 #include "pair_kokkos.h"
 #include "kokkos_type.h"
-#include "Kokkos_Random.hpp"
+#ifdef DPD_USE_RAN_MARS
 #include "rand_pool_wrap_kokkos.h"
+#else
+#include "Kokkos_Random.hpp"
+#endif
 
 namespace LAMMPS_NS {
 
@@ -89,11 +103,13 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 
   DAT::tdual_efloat_1d k_duCond,k_duMech;
 
-  // Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
-  // typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
-
+#ifdef DPD_USE_RAN_MARS
   RandPoolWrap rand_pool;
   typedef RandWrap rand_type;
+#else
+  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+#endif
 
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;

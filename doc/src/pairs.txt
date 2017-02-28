@@ -39,6 +39,7 @@ Pair Styles :h1
    pair_hbond_dreiding
    pair_hybrid
    pair_kim
+   pair_kolmogorov_crespi_z
    pair_lcbop
    pair_line_lj
    pair_list

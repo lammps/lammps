@@ -50,7 +50,7 @@
 #include <Kokkos_Macros.hpp>
 
 /* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Cuda.hpp>
@@ -910,5 +910,5 @@ void* cuda_resize_scratch_space(size_t bytes, bool force_shrink) {
 
 }
 }
-#endif // KOKKOS_HAVE_CUDA
+#endif // KOKKOS_ENABLE_CUDA
 

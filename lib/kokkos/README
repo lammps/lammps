@@ -5,6 +5,9 @@ Kokkos is designed to target complex node architectures with N-level memory
 hierarchies and multiple types of execution resources. It currently can use
 OpenMP, Pthreads and CUDA as backend programming models.
 
+Kokkos is licensed under standard 3-clause BSD terms of use. For specifics
+see the LICENSE file contained in the repository or distribution.
+
 The core developers of Kokkos are Carter Edwards and Christian Trott
 at the Computer Science Research Institute of the Sandia National
 Laboratories.
@@ -151,4 +154,12 @@ MPI rank of an application uses a single GPU [can be the same GPU for
 multiple MPI ranks]) you can set CUDA_MANAGED_FORCE_DEVICE_ALLOC=1.
 This will enforce proper UVM allocations, but can lead to errors if 
 more than a single GPU is used by a single process.
- 
+
+===========================================================================
+====Contributing===========================================================
+===========================================================================
+
+Contributions to Kokkos are welcome. In order to do so, please open an issue
+where a feature request or bug can be discussed. Then issue a pull request
+with your contribution. Pull requests must be issued against the develop branch. 
+

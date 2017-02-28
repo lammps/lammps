@@ -1731,8 +1731,7 @@ void PairTlsph::init_style() {
 
 // request a granular neighbor list
 	int irequest = neighbor->request(this);
-	neighbor->requests[irequest]->half = 0;
-	neighbor->requests[irequest]->gran = 1;
+	neighbor->requests[irequest]->size = 1;
 
 // set maxrad_dynamic and maxrad_frozen for each type
 // include future Fix pour particles as dynamic

@@ -1,0 +1,12 @@
+# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. to appear in arxiv Feb2017
+# 
+# required
+rcutfac 4.73442
+twojmax 8
+
+# optional
+
+gamma 1
+rfac0 0.99363
+rmin0 0
+diagonalstyle 3

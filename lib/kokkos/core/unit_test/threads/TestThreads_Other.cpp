@@ -136,7 +136,7 @@ TEST_F( threads , task_team )
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
+#if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
 TEST_F( threads , cxx11 )
 {
   if ( std::is_same< Kokkos::DefaultExecutionSpace , Kokkos::Threads >::value ) {

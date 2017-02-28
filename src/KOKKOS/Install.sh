@@ -35,6 +35,8 @@ touch ../memory.h
 
 action angle_charmm_kokkos.cpp angle_charmm.cpp 
 action angle_charmm_kokkos.h angle_charmm.h
+action angle_class2_kokkos.cpp angle_class2.cpp 
+action angle_class2_kokkos.h angle_class2.h
 action angle_harmonic_kokkos.cpp angle_harmonic.cpp 
 action angle_harmonic_kokkos.h angle_harmonic.h 
 action atom_kokkos.cpp
@@ -53,6 +55,8 @@ action atom_vec_kokkos.cpp
 action atom_vec_kokkos.h
 action atom_vec_molecular_kokkos.cpp atom_vec_molecular.cpp
 action atom_vec_molecular_kokkos.h atom_vec_molecular.h
+action bond_class2_kokkos.cpp bond_class2.cpp 
+action bond_class2_kokkos.h bond_class2.h
 action bond_fene_kokkos.cpp bond_fene.cpp
 action bond_fene_kokkos.h bond_fene.h
 action bond_harmonic_kokkos.cpp bond_harmonic.cpp
@@ -65,6 +69,8 @@ action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
+action dihedral_class2_kokkos.cpp dihedral_class2.cpp 
+action dihedral_class2_kokkos.h dihedral_class2.h
 action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action domain_kokkos.cpp
@@ -97,6 +103,8 @@ action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
 action gridcomm_kokkos.cpp gridcomm.cpp
 action gridcomm_kokkos.h gridcomm.h
+action improper_class2_kokkos.cpp improper_class2.cpp 
+action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
 action kokkos.cpp

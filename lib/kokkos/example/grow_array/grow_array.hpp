@@ -50,7 +50,7 @@
 
 #include <algorithm>
 
-#if defined(KOKKOS_HAVE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA)
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
 #endif
@@ -69,7 +69,7 @@ struct SortView {
     }
 };
 
-#if defined(KOKKOS_HAVE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA)
 template<>
 struct SortView< Kokkos::Cuda > {
   template< typename ValueType >

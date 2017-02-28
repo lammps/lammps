@@ -50,7 +50,7 @@
 
 //------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 
 #include <mpi.h>
 #include <string>
@@ -117,7 +117,7 @@ std::string command_line( Machine machine , const int argc , const char * const 
 
 }
 
-#else /* ! defined( KOKKOS_HAVE_MPI ) */
+#else /* ! defined( KOKKOS_ENABLE_MPI ) */
 
 #include <string>
 
@@ -158,7 +158,7 @@ std::string command_line( Machine machine , const int argc , const char * const 
 
 }
 
-#endif /* ! defined( KOKKOS_HAVE_MPI ) */
+#endif /* ! defined( KOKKOS_ENABLE_MPI ) */
 
 //------------------------------------------------------------------------
 

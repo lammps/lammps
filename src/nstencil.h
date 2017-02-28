@@ -31,8 +31,11 @@ class NStencil : protected Pointers {
   int **stencil_multi;             // list of bin offsets in each stencil
   double **distsq_multi;           // sq distances to bins in each stencil
 
+  double cutoff_custom;            // cutoff set by requestor
+
   NStencil(class LAMMPS *);
   virtual ~NStencil();
+  void post_constructor(class NeighRequest *);
   void copy_neighbor_info();
   virtual void create_setup();
   bigint memory_usage();

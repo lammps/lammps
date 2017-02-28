@@ -2,7 +2,7 @@
 # polarizer.py - add Drude oscillators to LAMMPS data file.
 # Agilio Padua <agilio.padua@univ-bpclermont.fr>
 # Alain Dequidt <alain.dequidt@univ-bpclermont.fr>
-# version 2015/07/17
+# version 2017/02/03
 
 import sys
 import argparse
@@ -560,17 +560,17 @@ class Data(object):
 
         print("# Commands to include in the LAMMPS input script\n")
 
-        print("# adapt the pair_style line as needed")
-        print("pair_style hybrid/overlay ... coul/long {0:.1f} "\
+        print("# adapt the pair_style command as needed")
+        print("pair_style hybrid/overlay ... coul/long/cs {0:.1f} "\
               "thole {1:.3f} {0:.1f}\n".format(cutoff, thole))
 
         print("read_data {0}\n".format(outfile))
 
-        print("# add interactions between any atoms and Drude particles")
-        print("pair_coeff    *   {0}* coul/long".format(att['id']))
+        print("# add interactions between atoms and Drude particles")
+        print("pair_coeff    * {0:3d}* coul/long/cs".format(att['id']))
 
         # Thole parameters for I,J pairs
-        print("# add Thole screening if more than 1 Drude per molecule")
+        print("# add Thole damping if more than 1 Drude per molecule")
         ifound = False
         for atti in self.atomtypes:
             itype = atti['type'].split()[0]
@@ -596,9 +596,14 @@ class Data(object):
                 if ifound and jfound:
                     alphaij = (alphai * alphaj)**0.5
                     tholeij = (tholei + tholej) / 2.0
-                    print("pair_coeff {0:4} {1:4} thole {2:7.3f} "\
-                          "{3:7.3f}".format(atti['id'], attj['id'],
-                                            alphaij, tholeij))
+                    if tholeij == thole:
+                        print("pair_coeff {0:4} {1:4} thole {2:7.3f}".format(
+                            atti['id'], attj['id'], alphaij))
+                    else:
+                        print("pair_coeff {0:4} {1:4} thole {2:7.3f} "\
+                              "{3:7.3f}".format(atti['id'],attj['id'],
+                                                    alphaij, tholeij))
+
                 jfound = False
             ifound = False
         print("")
@@ -627,11 +632,18 @@ class Data(object):
 
         print("# ATTENTION!")
         print("#  * special_bonds may need 'extra' keyword, LAMMPS will exit "
-              "with a message")
-        print("#  * give all I<=J pair interactions, no mixing")
-        print("#  * if using fix shake the group-ID must not include "
-              "Drude particles")
-        print("#    use group ATOMS for example")
+              "with a message.")
+        print("#  * If using fix shake the group-ID must not include "
+              "Drude particles.")
+        print("#    Use group ATOMS for example.")
+        print("#  * Give all I<=J pair interactions, no mixing.")
+        print("#  * Pair style coul/long/cs from CORESHELL package is used "\
+              "for interactions")
+        print("#    of Drude particles. Alternatively pair lj/cut/thole/long "\
+              "could be used,")
+        print("#    avoiding hybrid/overlay and allowing mixing. See doc "\
+              "pages.")
+
 
 # --------------------------------------
 

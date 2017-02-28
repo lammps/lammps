@@ -200,7 +200,7 @@ struct ErrorReporterDriverUseLambda : public ErrorReporterDriverBase<DeviceType>
 #endif
 
 
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
 struct ErrorReporterDriverNativeOpenMP : public ErrorReporterDriverBase<Kokkos::OpenMP>
 {
   typedef ErrorReporterDriverBase<Kokkos::OpenMP>  driver_base;

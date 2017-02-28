@@ -13,6 +13,7 @@
 
 #include "nbin.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "domain.h"
 #include "update.h"
 #include "memory.h"
@@ -43,6 +44,14 @@ NBin::~NBin()
   memory->destroy(bins);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void NBin::post_constructor(NeighRequest *nrq)
+{
+  cutoff_custom = 0.0;
+  if (nrq->cut) cutoff_custom = nrq->cutoff;
+}
+
 /* ----------------------------------------------------------------------
    copy needed info from Neighbor class
 ------------------------------------------------------------------------- */
@@ -56,6 +65,11 @@ void NBin::copy_neighbor_info()
   binsize_user = neighbor->binsize_user;
   bboxlo = neighbor->bboxlo;
   bboxhi = neighbor->bboxhi;
+
+  // overwrite Neighbor cutoff with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) cutneighmax = cutoff_custom;
 }
 
 /* ----------------------------------------------------------------------

@@ -155,7 +155,7 @@ void run( MPI_Comm comm , const int cmd[] )
 {
   int comm_rank = 0 ;
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
   MPI_Comm_rank( comm , & comm_rank );
 #else
   comm = 0 ;
@@ -254,7 +254,7 @@ int main( int argc , char ** argv )
 {
   int comm_rank = 0 ;
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
   MPI_Init( & argc , & argv );
   MPI_Comm comm = MPI_COMM_WORLD ;
   MPI_Comm_rank( comm , & comm_rank );
@@ -326,7 +326,7 @@ int main( int argc , char ** argv )
     if ( cmdline[ CMD_ECHO ] && 0 == comm_rank ) { print_cmdline( std::cout , cmdline ); }
   }
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
   MPI_Bcast( cmdline , CMD_COUNT , MPI_INT , 0 , comm );
 #endif
 
@@ -356,7 +356,7 @@ int main( int argc , char ** argv )
       cmdline[ CMD_USE_FIXTURE_Z ] = 2 ;
     }
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_PTHREAD )
 
     if ( cmdline[ CMD_USE_THREADS ] ) {
 
@@ -376,7 +376,7 @@ int main( int argc , char ** argv )
 
 #endif
 
-#if defined( KOKKOS_HAVE_OPENMP )
+#if defined( KOKKOS_ENABLE_OPENMP )
 
     if ( cmdline[ CMD_USE_OPENMP ] ) {
 
@@ -396,7 +396,7 @@ int main( int argc , char ** argv )
 
 #endif
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
     if ( cmdline[ CMD_USE_CUDA ] ) {
       // Use the last device:
 
@@ -413,7 +413,7 @@ int main( int argc , char ** argv )
 
   }
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
   MPI_Finalize();
 #endif
 

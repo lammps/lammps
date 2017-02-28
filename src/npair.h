@@ -25,13 +25,17 @@ class NPair : protected Pointers {
   class NStencil *ns;           // ptr to NStencil instance I depend on
   bigint last_build;            // last timestep build performed
 
+  double cutoff_custom;         // cutoff set by requestor
+
   NPair(class LAMMPS *);
-  virtual ~NPair() {}
+  virtual ~NPair();
+  void post_constructor(class NeighRequest *);
   virtual void copy_neighbor_info();
   void build_setup();
   virtual void build(class NeighList *) = 0;
 
  protected:
+  double **mycutneighsq;         // per-type cutoffs when user specified
 
   // data from Neighbor class
 

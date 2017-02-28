@@ -51,6 +51,80 @@
 
 namespace Kokkos {
 
+namespace Impl {
+  template<class RowOffsetsType, class RowBlockOffsetsType>
+  struct StaticCrsGraphBalancerFunctor {
+    typedef typename RowOffsetsType::non_const_value_type int_type;
+    RowOffsetsType row_offsets;
+    RowBlockOffsetsType row_block_offsets;
+
+    int_type cost_per_row, num_blocks;
+
+    StaticCrsGraphBalancerFunctor(RowOffsetsType row_offsets_,
+                                  RowBlockOffsetsType row_block_offsets_,
+                                  int_type cost_per_row_, int_type num_blocks_):
+                                    row_offsets(row_offsets_),
+                                    row_block_offsets(row_block_offsets_),
+                                    cost_per_row(cost_per_row_),
+                                    num_blocks(num_blocks_){}
+
+    KOKKOS_INLINE_FUNCTION
+    void operator() (const int_type& iRow) const {
+      const int_type num_rows = row_offsets.dimension_0()-1;
+      const int_type num_entries = row_offsets(num_rows);
+      const int_type total_cost = num_entries + num_rows*cost_per_row;
+
+      const double cost_per_workset = 1.0*total_cost/num_blocks;
+
+      const int_type row_cost = row_offsets(iRow+1)-row_offsets(iRow) + cost_per_row;
+
+      int_type count = row_offsets(iRow+1) + cost_per_row*iRow;
+
+      if(iRow == num_rows-1) row_block_offsets(num_blocks) = num_rows;
+
+      if(true) {
+        int_type current_block = (count-row_cost-cost_per_row)/cost_per_workset;
+        int_type end_block = count/cost_per_workset;
+
+        // Handle some corner cases for the last two blocks.
+        if(current_block >= num_blocks-2) {
+          if((current_block == num_blocks-2) && (count >= (current_block + 1) * cost_per_workset)) {
+            int_type row = iRow;
+            int_type cc = count-row_cost-cost_per_row;
+            int_type block = cc/cost_per_workset;
+            while((block>0) && (block==current_block)) {
+              cc = row_offsets(row)+row*cost_per_row;
+              block = cc/cost_per_workset;
+              row--;
+            }
+            if((count-cc-row_cost-cost_per_row) < num_entries-row_offsets(iRow+1)) {
+              row_block_offsets(current_block+1) = iRow+1;
+            } else {
+              row_block_offsets(current_block+1) = iRow;
+            }
+          }
+        } else {
+          if((count >= (current_block + 1) * cost_per_workset) ||
+             (iRow+2 == row_offsets.dimension_0())) {
+            if(end_block>current_block+1) {
+              int_type num_block = end_block-current_block;
+              row_block_offsets(current_block+1) = iRow;
+              for(int_type block = current_block+2; block <= end_block; block++)
+                if((block<current_block+2+(num_block-1)/2))
+                  row_block_offsets(block) = iRow;
+                else
+                  row_block_offsets(block) = iRow+1;
+            } else {
+              row_block_offsets(current_block+1) = iRow+1;
+            }
+          }
+        }
+
+      }
+    }
+  };
+}
+
 /// \class StaticCrsGraph
 /// \brief Compressed row storage array.
 ///
@@ -100,19 +174,23 @@ public:
   typedef StaticCrsGraph< DataType , array_layout , typename traits::host_mirror_space , SizeType > HostMirror;
   typedef View< const size_type* , array_layout, device_type >  row_map_type;
   typedef View<       DataType*  , array_layout, device_type >  entries_type;
+  typedef View< const size_type* , array_layout, device_type >  row_block_type;
 
   entries_type entries;
   row_map_type row_map;
+  row_block_type row_block_offsets;
 
   //! Construct an empty view.
-  StaticCrsGraph () : entries(), row_map() {}
+  StaticCrsGraph () : entries(), row_map(), row_block_offsets() {}
 
   //! Copy constructor (shallow copy).
-  StaticCrsGraph (const StaticCrsGraph& rhs) : entries (rhs.entries), row_map (rhs.row_map)
+  StaticCrsGraph (const StaticCrsGraph& rhs) : entries (rhs.entries), row_map (rhs.row_map),
+                                               row_block_offsets(rhs.row_block_offsets)
   {}
 
   template<class EntriesType, class RowMapType>
-  StaticCrsGraph (const EntriesType& entries_,const RowMapType& row_map_) : entries (entries_), row_map (row_map_)
+  StaticCrsGraph (const EntriesType& entries_,const RowMapType& row_map_) : entries (entries_), row_map (row_map_),
+  row_block_offsets()
   {}
 
   /** \brief  Assign to a view of the rhs array.
@@ -122,6 +200,7 @@ public:
   StaticCrsGraph& operator= (const StaticCrsGraph& rhs) {
     entries = rhs.entries;
     row_map = rhs.row_map;
+    row_block_offsets = rhs.row_block_offsets;
     return *this;
   }
 
@@ -130,11 +209,29 @@ public:
    */
   ~StaticCrsGraph() {}
 
+  /**  \brief  Return number of rows in the graph
+   */
   KOKKOS_INLINE_FUNCTION
   size_type numRows() const {
     return (row_map.dimension_0 () != 0) ?
       row_map.dimension_0 () - static_cast<size_type> (1) :
       static_cast<size_type> (0);
+  }
+
+  /**  \brief  Create a row partitioning into a given number of blocks
+   *           balancing non-zeros + a fixed cost per row.
+   */
+  void create_block_partitioning(size_type num_blocks, size_type fix_cost_per_row = 4) {
+    View< size_type* , array_layout, device_type >
+      block_offsets("StatisCrsGraph::load_balance_offsets",num_blocks+1);
+
+    Impl::StaticCrsGraphBalancerFunctor<row_map_type,View< size_type* , array_layout, device_type > >
+      partitioner(row_map,block_offsets,fix_cost_per_row,num_blocks);
+
+    Kokkos::parallel_for(Kokkos::RangePolicy<execution_space>(0,numRows()),partitioner);
+    Kokkos::fence();
+
+    row_block_offsets = block_offsets;
   }
 };
 

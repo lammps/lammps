@@ -55,7 +55,7 @@
 
 namespace Test {
 
-#ifdef KOKKOS_HAVE_PTHREAD
+#ifdef KOKKOS_ENABLE_PTHREAD
 class threads : public ::testing::Test {
 protected:
   static void SetUpTestCase()

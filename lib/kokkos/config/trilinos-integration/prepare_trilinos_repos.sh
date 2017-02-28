@@ -27,13 +27,13 @@ cd ${TRILINOS_UPDATED_PATH}
 echo ""
 echo ""
 echo "Trilinos State:"
-git log --pretty=oneline --since=2.days
-SHA=`git log --pretty=oneline --since=2.days | head -n 2 | tail -n 1 | awk '{print $1}'`
+git log --pretty=oneline --since=7.days
+SHA=`git log --pretty=oneline --since=7.days | head -n 2 | tail -n 1 | awk '{print $1}'`
 cd ..
 
 cd ${TRILINOS_PRISTINE_PATH}
 git status
-git log --pretty=oneline --since=2.days
+git log --pretty=oneline --since=7.days
 echo "Checkout develop"
 git checkout develop
 echo "Pull"
@@ -46,5 +46,5 @@ cd ${TRILINOS_PRISTINE_PATH}
 echo ""
 echo ""
 echo "Trilinos Pristine State:"
-git log --pretty=oneline --since=2.days
+git log --pretty=oneline --since=7.days
 cd ..

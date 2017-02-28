@@ -13,6 +13,7 @@
 
 #include "nstencil.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "nbin.h"
 #include "atom.h"
 #include "update.h"
@@ -88,6 +89,14 @@ NStencil::~NStencil()
   delete [] distsq_multi;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void NStencil::post_constructor(NeighRequest *nrq)
+{
+  cutoff_custom = 0.0;
+  if (nrq->cut) cutoff_custom = nrq->cutoff;
+}
+
 /* ----------------------------------------------------------------------
    copy needed info from Neighbor class to this stencil class
 ------------------------------------------------------------------------- */
@@ -98,6 +107,14 @@ void NStencil::copy_neighbor_info()
   cutneighmax = neighbor->cutneighmax;
   cutneighmaxsq = neighbor->cutneighmaxsq;
   cuttypesq = neighbor->cuttypesq;
+
+  // overwrite Neighbor cutoff with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) {
+    cutneighmax = cutoff_custom;
+    cutneighmaxsq = cutneighmax * cutneighmax;
+  }
 }
 
 /* ----------------------------------------------------------------------

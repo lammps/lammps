@@ -47,7 +47,7 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 #include "Kokkos_Macros.hpp"
-#if defined( __CUDACC__ ) && defined( KOKKOS_HAVE_CUDA )
+#if defined( __CUDACC__ ) && defined( KOKKOS_ENABLE_CUDA )
 
 #include <cuda.h>
 
@@ -82,6 +82,6 @@ void cuda_abort( const char * const message )
 
 } // namespace Impl
 } // namespace Kokkos
-#endif /* #if defined(__CUDACC__) && defined( KOKKOS_HAVE_CUDA ) */
+#endif /* #if defined(__CUDACC__) && defined( KOKKOS_ENABLE_CUDA ) */
 #endif /* #ifndef KOKKOS_CUDA_ABORT_HPP */
 

@@ -54,7 +54,8 @@ reset_timestep  0
 variable         pxy equal pxy
 variable         pxx equal pxx-press
 
-fix              avstress all ave/time $s $p $d v_pxy v_pxx ave one file einstein.dat
+fix              avstress all ave/time $s $p $d v_pxy v_pxx ave one &
+                 file profile.einstein.2d
 
 # Diagonal components of SS are larger by factor 2-2/d,
 # which is 4/3 for d=3, but 1 for d=2.

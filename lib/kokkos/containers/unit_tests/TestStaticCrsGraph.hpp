@@ -144,6 +144,44 @@ void run_test_graph2()
   }
 }
 
+template< class Space >
+void run_test_graph3(size_t B, size_t N)
+{
+  srand(10310);
+
+  typedef Kokkos::StaticCrsGraph< int , Space > dView ;
+  typedef typename dView::HostMirror hView ;
+
+  const unsigned LENGTH = 2000 ;
+
+  std::vector< size_t > sizes( LENGTH );
+
+  size_t total_length = 0 ;
+
+  for ( size_t i = 0 ; i < LENGTH ; ++i ) {
+    sizes[i] = rand()%1000;
+  }
+
+  sizes[1] = N;
+  sizes[1998] = N;
+
+  for ( size_t i = 0 ; i < LENGTH ; ++i ) {
+    total_length += sizes[i];
+  }
+
+  int C = 0;
+  dView dx = Kokkos::create_staticcrsgraph<dView>( "test" , sizes );
+  dx.create_block_partitioning(B,C);
+  hView hx = Kokkos::create_mirror( dx );
+
+  for( size_t i = 0; i<B; i++) {
+    size_t ne = 0;
+    for(size_t j = hx.row_block_offsets(i); j<hx.row_block_offsets(i+1); j++)
+      ne += hx.row_map(j+1)-hx.row_map(j)+C;
+
+    ASSERT_FALSE((ne>2*((hx.row_map(hx.numRows())+C*hx.numRows())/B))&&(hx.row_block_offsets(i+1)>hx.row_block_offsets(i)+1));
+  }
+}
 } /* namespace TestStaticCrsGraph */
 
 

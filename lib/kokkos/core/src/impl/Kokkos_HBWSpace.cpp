@@ -58,7 +58,7 @@
 #include <Kokkos_HBWSpace.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Kokkos_Atomic.hpp>
-#ifdef KOKKOS_HAVE_HBWSPACE
+#ifdef KOKKOS_ENABLE_HBWSPACE
 #include <memkind.h>
 #endif
 
@@ -68,7 +68,7 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-#ifdef KOKKOS_HAVE_HBWSPACE
+#ifdef KOKKOS_ENABLE_HBWSPACE
 #define MEMKIND_TYPE MEMKIND_HBW //hbw_get_kind(HBW_PAGESIZE_4KB)
 
 namespace Kokkos {

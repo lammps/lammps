@@ -48,7 +48,7 @@
 
 int main()
 {
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_PTHREAD )
   {
     // Use 4 cores per NUMA region, unless fewer available
 
@@ -67,7 +67,7 @@ int main()
   }
 #endif
 
-#if defined( KOKKOS_HAVE_OPENMP )
+#if defined( KOKKOS_ENABLE_OPENMP )
   {
     // Use 4 cores per NUMA region, unless fewer available
 
@@ -86,7 +86,7 @@ int main()
   }
 #endif
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   {
     // Initialize Host mirror device
     Kokkos::HostSpace::execution_space::initialize(1);

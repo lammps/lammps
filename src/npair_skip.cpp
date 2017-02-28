@@ -29,8 +29,9 @@ NPairSkip::NPairSkip(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
+   works for half and full lists
+   works for owned (non-ghost) list, also for ghost list
    iskip and ijskip flag which atom types and type pairs to skip
-   this is for half and full lists
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 

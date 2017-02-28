@@ -57,18 +57,18 @@
 
 // How should errors be handled?  In general, production code should return a
 // value indicating failure so the user can decide how the error is handled.
-// While experimental, code can abort instead.  If KOKKOS_MEMPOOL_PRINTERR is
+// While experimental, code can abort instead.  If KOKKOS_ENABLE_MEMPOOL_PRINTERR is
 // defined, the code will abort with an error message.  Otherwise, the code will
 // return with a value indicating failure when possible, or do nothing instead.
-//#define KOKKOS_MEMPOOL_PRINTERR
+//#define KOKKOS_ENABLE_MEMPOOL_PRINTERR
 
-//#define KOKKOS_MEMPOOL_PRINT_INFO
-//#define KOKKOS_MEMPOOL_PRINT_CONSTRUCTOR_INFO
-//#define KOKKOS_MEMPOOL_PRINT_BLOCKSIZE_INFO
-//#define KOKKOS_MEMPOOL_PRINT_SUPERBLOCK_INFO
-//#define KOKKOS_MEMPOOL_PRINT_ACTIVE_SUPERBLOCKS
-//#define KOKKOS_MEMPOOL_PRINT_PAGE_INFO
-//#define KOKKOS_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
+//#define KOKKOS_ENABLE_MEMPOOL_PRINT_INFO
+//#define KOKKOS_ENABLE_MEMPOOL_PRINT_CONSTRUCTOR_INFO
+//#define KOKKOS_ENABLE_MEMPOOL_PRINT_BLOCKSIZE_INFO
+//#define KOKKOS_ENABLE_MEMPOOL_PRINT_SUPERBLOCK_INFO
+//#define KOKKOS_ENABLE_MEMPOOL_PRINT_ACTIVE_SUPERBLOCKS
+//#define KOKKOS_ENABLE_MEMPOOL_PRINT_PAGE_INFO
+//#define KOKKOS_ENABLE_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
 
 //----------------------------------------------------------------------------
 
@@ -451,7 +451,7 @@ struct create_histogram {
   }
 };
 
-#ifdef KOKKOS_MEMPOOL_PRINT_SUPERBLOCK_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_SUPERBLOCK_INFO
 template < typename UInt32View, typename SBHeaderView, typename MempoolBitset >
 struct count_allocated_blocks {
   typedef typename UInt32View::execution_space  execution_space;
@@ -790,7 +790,7 @@ public:
       }
     }
 
-#ifdef KOKKOS_MEMPOOL_PRINT_CONSTRUCTOR_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_CONSTRUCTOR_INFO
     printf( "\n" );
     printf( "      m_lg_sb_size: %12lu\n", m_lg_sb_size );
     printf( "         m_sb_size: %12lu\n", m_sb_size );
@@ -810,7 +810,7 @@ public:
     fflush( stdout );
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_BLOCKSIZE_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_BLOCKSIZE_INFO
     // Print the blocksize info for all the block sizes.
     printf( "SIZE    BLOCKS_PER_SB    PAGES_PER_SB    SB_FULL_LEVEL    PAGE_FULL_LEVEL\n" );
     for ( size_t i = 0; i < m_num_block_size; ++i ) {
@@ -845,7 +845,7 @@ public:
       uint32_t blocks_per_sb = m_blocksize_info[block_size_id].m_blocks_per_sb;
       uint32_t pages_per_sb = m_blocksize_info[block_size_id].m_pages_per_sb;
 
-#ifdef KOKKOS_CUDA_CLANG_WORKAROUND
+#ifdef KOKKOS_IMPL_CUDA_CLANG_WORKAROUND
       // Without this test it looks like pages_per_sb might come back wrong.
       if ( pages_per_sb == 0 ) return NULL;
 #endif
@@ -966,7 +966,7 @@ public:
 
           if ( new_sb_id == sb_id ) {
             allocation_done = true;
-#ifdef KOKKOS_MEMPOOL_PRINT_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_INFO
             printf( "** No superblocks available. **\n" );
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
             fflush( stdout );
@@ -979,7 +979,7 @@ public:
         }
       }
     }
-#ifdef KOKKOS_MEMPOOL_PRINT_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_INFO
     else {
       printf( "** Requested allocation size (%zu) larger than superblock size (%lu). **\n",
               alloc_size, m_sb_size );
@@ -1068,7 +1068,7 @@ public:
         }
       }
     }
-#ifdef KOKKOS_MEMPOOL_PRINTERR
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINTERR
     else {
       printf( "\n** MemoryPool::deallocate() ADDRESS_OUT_OF_RANGE(0x%llx) **\n",
               reinterpret_cast<uint64_t>( alloc_ptr ) );
@@ -1109,7 +1109,7 @@ public:
   {
     printf( "\n" );
 
-#ifdef KOKKOS_MEMPOOL_PRINT_SUPERBLOCK_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_SUPERBLOCK_INFO
     typename SBHeaderView::HostMirror host_sb_header = create_mirror_view( m_sb_header );
     deep_copy( host_sb_header, m_sb_header );
 
@@ -1188,7 +1188,7 @@ public:
       num_active_sb += host_active(i) != INVALID_SUPERBLOCK;
     }
 
-#ifdef KOKKOS_MEMPOOL_PRINT_ACTIVE_SUPERBLOCKS
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_ACTIVE_SUPERBLOCKS
     // Print active superblocks.
     printf( "BS_ID      SB_ID\n" );
     for ( size_t i = 0; i < m_num_block_size; ++i ) {
@@ -1208,7 +1208,7 @@ public:
     fflush( stdout );
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_PAGE_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_PAGE_INFO
     // Print the summary page histogram.
     printf( "USED_BLOCKS    PAGE_COUNT\n" );
     for ( uint32_t i = 0; i < 33; ++i ) {
@@ -1217,7 +1217,7 @@ public:
     printf( "\n" );
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
     // Print the page histogram for a few individual superblocks.
 //    const uint32_t num_sb_id = 2;
 //    uint32_t sb_id[num_sb_id] = { 0, 10 };
@@ -1484,7 +1484,7 @@ private:
       //   1. An invalid superblock should never be found here.
       //   2. If the new superblock is the same as the previous superblock, the
       //      allocator is empty.
-#ifdef KOKKOS_MEMPOOL_PRINTERR
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINTERR
       if ( new_sb == INVALID_SUPERBLOCK ) {
         printf( "\n** MemoryPool::find_superblock() FOUND_INACTIVE_SUPERBLOCK **\n" );
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
@@ -1531,28 +1531,28 @@ private:
 } // namespace Experimental
 } // namespace Kokkos
 
-#ifdef KOKKOS_MEMPOOL_PRINTERR
-#undef KOKKOS_MEMPOOL_PRINTERR
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINTERR
+#undef KOKKOS_ENABLE_MEMPOOL_PRINTERR
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_INFO
-#undef KOKKOS_MEMPOOL_PRINT_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_INFO
+#undef KOKKOS_ENABLE_MEMPOOL_PRINT_INFO
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_BLOCKSIZE_INFO
-#undef KOKKOS_MEMPOOL_PRINT_BLOCKSIZE_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_BLOCKSIZE_INFO
+#undef KOKKOS_ENABLE_MEMPOOL_PRINT_BLOCKSIZE_INFO
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_SUPERBLOCK_INFO
-#undef KOKKOS_MEMPOOL_PRINT_SUPERBLOCK_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_SUPERBLOCK_INFO
+#undef KOKKOS_ENABLE_MEMPOOL_PRINT_SUPERBLOCK_INFO
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_PAGE_INFO
-#undef KOKKOS_MEMPOOL_PRINT_PAGE_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_PAGE_INFO
+#undef KOKKOS_ENABLE_MEMPOOL_PRINT_PAGE_INFO
 #endif
 
-#ifdef KOKKOS_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
-#undef KOKKOS_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
+#ifdef KOKKOS_ENABLE_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
+#undef KOKKOS_ENABLE_MEMPOOL_PRINT_INDIVIDUAL_PAGE_INFO
 #endif
 
 #endif // KOKKOS_MEMORYPOOL_HPP

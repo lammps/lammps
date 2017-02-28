@@ -299,7 +299,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
 
   for(;;) { // Nonlinear loop
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 
     { //------------------------------------
       // Import off-processor nodal solution values

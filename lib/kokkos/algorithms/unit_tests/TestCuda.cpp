@@ -49,7 +49,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 #include <TestRandom.hpp>
 #include <TestSort.hpp>
@@ -106,5 +106,5 @@ CUDA_SORT_UNSIGNED(171)
 #undef CUDA_SORT_UNSIGNED
 }
 
-#endif  /* #ifdef KOKKOS_HAVE_CUDA */
+#endif  /* #ifdef KOKKOS_ENABLE_CUDA */
 

@@ -46,7 +46,7 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_PTHREAD )
 
 /* Standard 'C' Linux libraries */
 
@@ -148,11 +148,11 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value )
 } // namespace Impl
 } // namespace Kokkos
 
-/* end #if defined( KOKKOS_HAVE_PTHREAD ) */
+/* end #if defined( KOKKOS_ENABLE_PTHREAD ) */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#elif defined( KOKKOS_HAVE_WINTHREAD )
+#elif defined( KOKKOS_ENABLE_WINTHREAD )
 
 /* Windows libraries */
 #include <winsock2.h>
@@ -247,7 +247,7 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value ) {}
 } // namespace Impl
 } // namespace Kokkos
 
-#endif /* end #elif defined( KOKKOS_HAVE_WINTHREAD ) */
+#endif /* end #elif defined( KOKKOS_ENABLE_WINTHREAD ) */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 

@@ -49,7 +49,7 @@ namespace Example {
 
 template void test_fixture< Kokkos::HostSpace::execution_space >();
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 template void test_fixture<Kokkos::Cuda>();
 #endif
 

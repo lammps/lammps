@@ -77,8 +77,6 @@ class PairHybrid : public Pair {
   double *save_special();
   void set_special(int);
   void restore_special(double *);
-
-  virtual void modify_requests();
 };
 
 }

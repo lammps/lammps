@@ -134,7 +134,7 @@ TEST_F( cuda , task_team )
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_CUDA )
+#if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA )
 TEST_F( cuda , cxx11 )
 {
   if ( std::is_same< Kokkos::DefaultExecutionSpace , Kokkos::Cuda >::value ) {
@@ -171,7 +171,7 @@ TEST_F( cuda, tile_layout )
   TestTile::test< Kokkos::Cuda , 8 , 8 >( 9 , 11 );
 }
 
-#if defined (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
+#if defined (KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 #if defined (KOKKOS_COMPILER_CLANG)
 TEST_F( cuda , dispatch )
 {

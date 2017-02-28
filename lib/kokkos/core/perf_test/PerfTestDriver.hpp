@@ -51,8 +51,8 @@
 // macro, so I'm commenting out the macro to avoid compiler complaints
 // about an unused macro.
 
-// #define KOKKOS_MACRO_IMPL_TO_STRING( X ) #X
-// #define KOKKOS_MACRO_TO_STRING( X )  KOKKOS_MACRO_IMPL_TO_STRING( X )
+// #define KOKKOS_IMPL_MACRO_TO_STRING( X ) #X
+// #define KOKKOS_MACRO_TO_STRING( X )  KOKKOS_IMPL_MACRO_TO_STRING( X )
 
 //------------------------------------------------------------------------
 

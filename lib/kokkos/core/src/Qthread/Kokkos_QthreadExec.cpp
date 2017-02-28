@@ -43,7 +43,7 @@
 
 #include <Kokkos_Core_fwd.hpp>
 
-#if defined( KOKKOS_HAVE_QTHREAD )
+#if defined( KOKKOS_ENABLE_QTHREAD )
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -507,5 +507,5 @@ QthreadTeamPolicyMember::QthreadTeamPolicyMember( const QthreadTeamPolicyMember:
 
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_HAVE_QTHREAD ) */
+#endif /* #if defined( KOKKOS_ENABLE_QTHREAD ) */
 

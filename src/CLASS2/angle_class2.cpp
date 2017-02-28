@@ -41,6 +41,8 @@ AngleClass2::AngleClass2(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleClass2::~AngleClass2()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(setflag_a);

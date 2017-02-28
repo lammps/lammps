@@ -84,7 +84,7 @@ private:
             , const Member ibeg , const Member iend )
     {
       #if defined( KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION ) && \
-          defined( KOKKOS_HAVE_PRAGMA_IVDEP )
+          defined( KOKKOS_ENABLE_PRAGMA_IVDEP )
       #pragma ivdep
       #endif
       for ( Member i = ibeg ; i < iend ; ++i ) {
@@ -100,7 +100,7 @@ private:
     {
       const TagType t{} ;
       #if defined( KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION ) && \
-          defined( KOKKOS_HAVE_PRAGMA_IVDEP )
+          defined( KOKKOS_ENABLE_PRAGMA_IVDEP )
       #pragma ivdep
       #endif
       for ( Member i = ibeg ; i < iend ; ++i ) {
@@ -309,7 +309,7 @@ private:
             , reference_type update )
     {
       #if defined( KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION ) && \
-          defined( KOKKOS_HAVE_PRAGMA_IVDEP )
+          defined( KOKKOS_ENABLE_PRAGMA_IVDEP )
       #pragma ivdep
       #endif
       for ( Member i = ibeg ; i < iend ; ++i ) {
@@ -326,7 +326,7 @@ private:
     {
       const TagType t{} ;
       #if defined( KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION ) && \
-          defined( KOKKOS_HAVE_PRAGMA_IVDEP )
+          defined( KOKKOS_ENABLE_PRAGMA_IVDEP )
       #pragma ivdep
       #endif
       for ( Member i = ibeg ; i < iend ; ++i ) {
@@ -585,7 +585,7 @@ private:
             , reference_type update , const bool final )
     {
       #if defined( KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION ) && \
-          defined( KOKKOS_HAVE_PRAGMA_IVDEP )
+          defined( KOKKOS_ENABLE_PRAGMA_IVDEP )
       #pragma ivdep
       #endif
       for ( Member i = ibeg ; i < iend ; ++i ) {
@@ -602,7 +602,7 @@ private:
     {
       const TagType t{} ;
       #if defined( KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION ) && \
-          defined( KOKKOS_HAVE_PRAGMA_IVDEP )
+          defined( KOKKOS_ENABLE_PRAGMA_IVDEP )
       #pragma ivdep
       #endif
       for ( Member i = ibeg ; i < iend ; ++i ) {

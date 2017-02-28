@@ -4,7 +4,6 @@ units		metal
 atom_style	full
 atom_modify     sort 0 0.0    # turn off sorting of the coordinates
 
-#read_data       data.water
 read_data       data.sucrose_non_opt.lmp
 
 # replicate system if requested
@@ -39,4 +38,6 @@ thermo_style    custom step temp pe etotal
 
 thermo          1
 min_style cg
-minimize        1.0e-9 1.0e-9 1000 1000
+min_modify dmax 0.1
+min_modify line quadratic
+minimize        1.0e-6 1.0e-6 10000 10000

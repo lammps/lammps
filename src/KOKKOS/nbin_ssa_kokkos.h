@@ -41,6 +41,11 @@ class NBinSSAKokkos : public NBinStandard {
   void bin_atoms_setup(int);
   void bin_atoms();
 
+   // temporary array to hold the binID for each atom
+  DAT::tdual_int_1d k_binID;
+  typename AT::t_int_1d binID;
+  typename AT::t_int_1d_const c_binID;
+
   int atoms_per_bin;
   DAT::tdual_int_1d k_bincount;
   DAT::tdual_int_2d k_bins;
@@ -76,6 +81,12 @@ class NBinSSAKokkos : public NBinStandard {
 
   KOKKOS_INLINE_FUNCTION
   void binAtomsItem(const int &i) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void binIDAtomsItem(const int &i, int &update) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void binIDGhostsItem(const int &i, int &update) const;
 
 /* ----------------------------------------------------------------------
    convert atom coords into the ssa active interaction region number
@@ -162,6 +173,60 @@ struct NPairSSAKokkosBinAtomsFunctor {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.binAtomsItem(i);
+  }
+};
+
+template<class DeviceType>
+struct NPairSSAKokkosBinIDAtomsFunctor {
+  typedef DeviceType device_type;
+  typedef int value_type;
+
+  const NBinSSAKokkos<DeviceType> c;
+
+  NPairSSAKokkosBinIDAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c):
+    c(_c) {};
+  ~NPairSSAKokkosBinIDAtomsFunctor() {}
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int & i, value_type& update) const {
+    c.binIDAtomsItem(i, update);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join (volatile value_type& dst,
+             const volatile value_type& src) const {
+    if (dst < src) dst = src;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void init (value_type& dst) const {
+    dst = INT_MIN;
+  }
+};
+
+template<class DeviceType>
+struct NPairSSAKokkosBinIDGhostsFunctor {
+  typedef DeviceType device_type;
+  typedef int value_type;
+
+  const NBinSSAKokkos<DeviceType> c;
+
+  NPairSSAKokkosBinIDGhostsFunctor(const NBinSSAKokkos<DeviceType> &_c):
+    c(_c) {};
+  ~NPairSSAKokkosBinIDGhostsFunctor() {}
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int & i, value_type& update) const {
+    c.binIDGhostsItem(i, update);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join (volatile value_type& dst,
+             const volatile value_type& src) const {
+    if (dst < src) dst = src;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void init (value_type& dst) const {
+    dst = INT_MIN;
   }
 };
 

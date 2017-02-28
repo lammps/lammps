@@ -115,89 +115,31 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   last_bin = update->ntimestep;
 
   int i;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+  int nall = nlocal + nghost;
 
-  // bin the ghost atoms
-  h_resize() = 1;
-  while(h_resize() > 0) {
-    h_resize() = 0;
-    deep_copy(d_resize, h_resize);
+  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
+  x = atomKK->k_x.view<DeviceType>();
 
-    for (int i = 0; i < 8; i++) {
-      k_gbincount.h_view(i) = 0;
-    }
-    k_gbincount.modify<LMPHostType>();
-    k_gbincount.sync<DeviceType>();
-    DeviceType::fence(); // FIXME?
+  sublo_[0] = domain->sublo[0];
+  sublo_[1] = domain->sublo[1];
+  sublo_[2] = domain->sublo[2];
+  subhi_[0] = domain->subhi[0];
+  subhi_[1] = domain->subhi[1];
+  subhi_[2] = domain->subhi[2];
 
-    atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
-    x = atomKK->k_x.view<DeviceType>();
+  bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
+  bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
 
-    // I don't think these two lines need to be repeated here... - TIM 20170216
-    sublo_[0] = domain->sublo[0];
-    sublo_[1] = domain->sublo[1];
-    sublo_[2] = domain->sublo[2];
-    subhi_[0] = domain->subhi[0];
-    subhi_[1] = domain->subhi[1];
-    subhi_[2] = domain->subhi[2];
+  k_binID = DAT::tdual_int_1d("NBinSSAKokkos::binID",nall);
+  binID = k_binID.view<DeviceType>();
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(atom->nlocal,atom->nlocal+atom->nghost), KOKKOS_LAMBDA (const int i) {
-      const int iAIR = coord2ssaAIR(x(i, 0), x(i, 1), x(i, 2));
-      if (iAIR > 0) { // include only ghost atoms in an AIR
-        const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
-        if(ac < (int) gbins.dimension_1()) {
-          gbins(iAIR, ac) = i;
-        } else {
-          d_resize() = 1;
-        }
-      }
-    });
-    DeviceType::fence();
-
-    deep_copy(h_resize, d_resize);
-    if(h_resize()) {
-      k_gbincount.modify<DeviceType>();
-      k_gbincount.sync<DeviceType>();
-      for (i = 1; i < 8; i++) {
-        if (k_gbincount.h_view(i) > ghosts_per_gbin) {
-          ghosts_per_gbin = k_gbincount.h_view(i);
-        }
-      }
-      k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
-      gbins = k_gbins.view<DeviceType>();
-    }
-  }
-  c_gbins = gbins; // gbins won't change until the next bin_atoms
-
-  // bin the local atoms
-  h_resize() = 1;
-  while(h_resize() > 0) {
-    h_resize() = 0;
-    deep_copy(d_resize, h_resize);
-
-    MemsetZeroFunctor<DeviceType> f_zero;
-    f_zero.ptr = (void*) k_bincount.view<DeviceType>().ptr_on_device();
-    Kokkos::parallel_for(mbins, f_zero);
-    DeviceType::fence();
-
-    atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
-    x = atomKK->k_x.view<DeviceType>();
-
-    // I don't think these two lines need to be repeated here... - TIM 20170216
-    bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
-    bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
-
-    NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
-
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, atom->nlocal), f);
-    DeviceType::fence();
-
-    deep_copy(h_resize, d_resize);
-    if(h_resize()) {
-
-      atoms_per_bin += 16;
-      k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
-      bins = k_bins.view<DeviceType>();
-    }
+  // find each local atom's binID
+  {
+    atoms_per_bin = 0;
+    NPairSSAKokkosBinIDAtomsFunctor<DeviceType> f(*this);
+    Kokkos::parallel_reduce(nlocal, f, atoms_per_bin);
   }
   deep_copy(h_lbinxlo, d_lbinxlo);
   deep_copy(h_lbinylo, d_lbinylo);
@@ -205,7 +147,72 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   deep_copy(h_lbinxhi, d_lbinxhi);
   deep_copy(h_lbinyhi, d_lbinyhi);
   deep_copy(h_lbinzhi, d_lbinzhi);
+
+  // find each ghost's binID (AIR number)
+  {
+    for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
+    k_gbincount.modify<LMPHostType>();
+    k_gbincount.sync<DeviceType>();
+    DeviceType::fence(); // FIXME?
+    ghosts_per_gbin = 0;
+    NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nlocal,nall), f, ghosts_per_gbin);
+  }
+
+  // actually bin the ghost atoms
+  {
+    if(ghosts_per_gbin > (int) gbins.dimension_1()) {
+      k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
+      gbins = k_gbins.view<DeviceType>();
+    }
+    for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
+    k_gbincount.modify<LMPHostType>();
+    k_gbincount.sync<DeviceType>();
+    DeviceType::fence(); // FIXME?
+
+    Kokkos::parallel_for(
+#ifdef ALLOW_NON_DETERMINISTIC_SSA
+      Kokkos::RangePolicy<DeviceType>(nlocal,nall)
+#else
+      Kokkos::RangePolicy<Kokkos::Serial>(nlocal,nall)
+#endif
+      , KOKKOS_LAMBDA (const int i) {
+      const int iAIR = binID(i);
+      if (iAIR > 0) { // include only ghost atoms in an AIR
+        const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
+        gbins(iAIR, ac) = i;
+      }
+    });
+    DeviceType::fence();
+  }
+  c_gbins = gbins; // gbins won't change until the next bin_atoms
+
+  // actually bin the local atoms
+  {
+    if ((mbins > (int) bins.dimension_0()) ||
+        (atoms_per_bin > (int) bins.dimension_1())) {
+      k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
+      bins = k_bins.view<DeviceType>();
+    }
+    MemsetZeroFunctor<DeviceType> f_zero;
+    f_zero.ptr = (void*) k_bincount.view<DeviceType>().ptr_on_device();
+    Kokkos::parallel_for(mbins, f_zero);
+    DeviceType::fence();
+
+    NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
+#ifdef ALLOW_NON_DETERMINISTIC_SSA
+    Kokkos::parallel_for(nlocal, f);
+#else
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, nlocal), f);
+#endif
+    DeviceType::fence();
+
+  }
   c_bins = bins; // bins won't change until the next bin_atoms
+
+//now dispose of the k_binID array
+  k_binID = DAT::tdual_int_1d("NBinSSAKokkos::binID",0);
+  binID = k_binID.view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -214,8 +221,18 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::binAtomsItem(const int &i) const
 {
+  const int ibin = binID(i);
+  const int ac = Kokkos::atomic_fetch_add(&(bincount[ibin]), (int)1);
+  bins(ibin, ac) = i;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
+{
   int loc[3];
   const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2), &(loc[0]));
+  binID(i) = ibin;
 
   // Find the bounding box of the local atoms in the bins
   if (loc[0] < d_lbinxlo()) Kokkos::atomic_fetch_min(&d_lbinxlo(),loc[0]);
@@ -226,10 +243,18 @@ void NBinSSAKokkos<DeviceType>::binAtomsItem(const int &i) const
   if (loc[2] >= d_lbinzhi()) Kokkos::atomic_fetch_max(&d_lbinzhi(),loc[2] + 1);
 
   const int ac = Kokkos::atomic_fetch_add(&(bincount[ibin]), (int)1);
-  if(ac < (int) bins.dimension_1()) {
-    bins(ibin, ac) = i;
-  } else {
-    d_resize() = 1;
+  if (update <= ac) update = ac + 1;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
+{
+  const int iAIR = coord2ssaAIR(x(i, 0), x(i, 1), x(i, 2));
+  binID(i) = iAIR;
+  if (iAIR > 0) { // include only ghost atoms in an AIR
+    const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
+    if (update <= ac) update = ac + 1;
   }
 }
 

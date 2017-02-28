@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Jaap Kroes (Radboud Universiteit)
+   e-mail: jaapkroes at gmail dot com
    based on previous versions by Merel van Wijk and by Marco Raguzzoni
   
    This is a simplified version of the potential described in

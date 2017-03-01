@@ -1048,8 +1048,6 @@ int AtomVecDPDKokkos::pack_comm_hybrid(int n, int *list, double *buf)
     buf[m++] = h_uCond[j];
     buf[m++] = h_uMech[j];
     buf[m++] = h_uChem[j];
-    buf[m++] = h_uCG[j];
-    buf[m++] = h_uCGnew[j];
   }
   return m;
 }
@@ -1245,8 +1243,6 @@ int AtomVecDPDKokkos::unpack_comm_hybrid(int n, int first, double *buf)
     h_uCond(i) = buf[m++];
     h_uMech(i) = buf[m++];
     h_uChem(i) = buf[m++];
-    h_uCG(i) = buf[m++];
-    h_uCGnew(i) = buf[m++];
   }
 
   modified(Host,DPDTHETA_MASK | UCOND_MASK |

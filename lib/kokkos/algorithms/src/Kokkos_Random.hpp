@@ -1204,8 +1204,8 @@ Random_XorShift64<Kokkos::Cuda> Random_XorShift64_Pool<Kokkos::Cuda>::get_state(
 template<>
 KOKKOS_INLINE_FUNCTION
 void Random_XorShift64_Pool<Kokkos::Cuda>::free_state(const Random_XorShift64<Kokkos::Cuda> &state) const {
-#ifdef __CUDA_ARCH__
   state_(state.state_idx_) = state.state_;
+#ifdef __CUDA_ARCH__
   locks_(state.state_idx_) = 0;
   return;
 #endif
@@ -1240,9 +1240,9 @@ Random_XorShift1024<Kokkos::Cuda> Random_XorShift1024_Pool<Kokkos::Cuda>::get_st
 template<>
 KOKKOS_INLINE_FUNCTION
 void Random_XorShift1024_Pool<Kokkos::Cuda>::free_state(const Random_XorShift1024<Kokkos::Cuda> &state) const {
-#ifdef __CUDA_ARCH__
   for(int i=0; i<16; i++)
     state_(state.state_idx_,i) = state.state_[i];
+#ifdef __CUDA_ARCH__
   locks_(state.state_idx_) = 0;
   return;
 #endif

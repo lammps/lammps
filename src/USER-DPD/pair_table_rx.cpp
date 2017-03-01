@@ -315,7 +315,7 @@ void PairTableRX::coeff(int narg, char **arg)
   nspecies = atom->nspecies_dpd;
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
   int n;
-  n = strlen(arg[3]) + 1;
+  n = strlen(arg[4]) + 1;
   site1 = new char[n];
   strcpy(site1,arg[4]);
 
@@ -326,7 +326,7 @@ void PairTableRX::coeff(int narg, char **arg)
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
 
-  n = strlen(arg[4]) + 1;
+  n = strlen(arg[5]) + 1;
   site2 = new char[n];
   strcpy(site2,arg[5]);
 

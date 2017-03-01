@@ -50,7 +50,6 @@
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "domain.h"
 #include "modify.h"
@@ -632,6 +631,9 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
 #ifdef DPD_USE_RAN_MARS
   int maxWorkItemCt = (int) ssa_itemLoc.dimension_1();
+  if (maxWorkItemCt < (int) ssa_gitemLoc.dimension_1()) {
+    maxWorkItemCt = (int) ssa_gitemLoc.dimension_1();
+  }
   if (maxWorkItemCt > maxRNG) {
     if (pp_random) {
       for (int i = 1; i < maxRNG; ++i) delete pp_random[i];

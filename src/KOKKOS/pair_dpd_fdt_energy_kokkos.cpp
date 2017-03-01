@@ -28,7 +28,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
 #include "pair_dpd_fdt_energy_kokkos.h"

@@ -71,11 +71,14 @@ class FixShardlowKokkos : public FixShardlow {
 //  class PairDPDfdt *pairDPD;
   PairDPDfdtEnergyKokkos<DeviceType> *k_pairDPDE;
 
-#ifdef DPD_USE_RAN_MARS
   int maxRNG;
+#ifdef DPD_USE_RAN_MARS
   class RanMars **pp_random;
+#elif defined(DPD_USE_Random_XorShift1024)
+  Kokkos::Random_XorShift1024_Pool<DeviceType> rand_pool;
+  typedef typename Kokkos::Random_XorShift1024_Pool<DeviceType>::generator_type rand_type;
 #else
-  Kokkos::Random_XorShift64_Pool<DeviceType> *p_rand_pool;
+  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
   typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 #endif
 

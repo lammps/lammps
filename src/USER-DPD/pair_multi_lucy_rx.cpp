@@ -387,11 +387,11 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 
   nspecies = atom->nspecies_dpd;
   int n;
-  n = strlen(arg[3]) + 1;
+  n = strlen(arg[4]) + 1;
   site1 = new char[n];
   strcpy(site1,arg[4]);
 
-  n = strlen(arg[4]) + 1;
+  n = strlen(arg[5]) + 1;
   site2 = new char[n];
   strcpy(site2,arg[5]);
 

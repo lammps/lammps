@@ -158,11 +158,12 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = -p.A*p.z06/r6+ exp1*sumCff+offset[itype][jtype];
+          evdwl = -p.A*p.z06/r6+ exp1*sumCff - offset[itype][jtype];
         }
 
         if (evflag){
-          ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
+          ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
+                       fsum,fsum,fpair,delx,dely,delz);
         }
       }
     }
@@ -286,7 +287,8 @@ double PairKolmogorovCrespiZ::init_one(int i, int j)
 
   if (offset_flag) {
     int iparam_ij = elem2param[map[i]][map[j]];
-    offset[i][j] = params[iparam_ij].A*pow(params[iparam_ij].z0/cut[i][j],6);
+    Param& p = params[iparam_ij];
+    offset[i][j] = -p.A*pow(p.z0/cut[i][j],6);
   } else offset[i][j] = 0.0;
   offset[j][i] = offset[i][j];
 

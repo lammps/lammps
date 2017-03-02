@@ -16,6 +16,9 @@ style_region.h
 style_neigh_bin.h
 style_neigh_pair.h
 style_neigh_stencil.h
+# deleted on 01 Mar 2017
+npair_halffull_newton_ssa.cpp
+npair_halffull_newton_ssa.h
 # deleted on ## XXX 2016
 accelerator_intel.h
 neigh_bond.cpp

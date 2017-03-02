@@ -103,6 +103,8 @@ action fix_reaxc_species_kokkos.cpp fix_reaxc_species.cpp
 action fix_reaxc_species_kokkos.h fix_reaxc_species.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
+action fix_shardlow_kokkos.cpp fix_shardlow.cpp
+action fix_shardlow_kokkos.h fix_shardlow.h
 action fix_momentum_kokkos.cpp
 action fix_momentum_kokkos.h
 action fix_wall_lj93_kokkos.cpp
@@ -136,8 +138,12 @@ action npair_copy_kokkos.cpp
 action npair_copy_kokkos.h
 action npair_kokkos.cpp
 action npair_kokkos.h
+action npair_ssa_kokkos.cpp npair_half_bin_newton_ssa.cpp
+action npair_ssa_kokkos.h npair_half_bin_newton_ssa.h
 action nbin_kokkos.cpp
 action nbin_kokkos.h
+action nbin_ssa_kokkos.cpp nbin_ssa.cpp
+action nbin_ssa_kokkos.h nbin_ssa.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
 action pair_buck_coul_cut_kokkos.cpp

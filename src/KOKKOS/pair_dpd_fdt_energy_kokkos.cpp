@@ -28,7 +28,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
@@ -43,13 +42,17 @@ using namespace LAMMPS_NS;
 
 template<class DeviceType>
 PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) :
-  PairDPDfdtEnergy(lmp),rand_pool(seed + comm->me /** , lmp/**/)
+  PairDPDfdtEnergy(lmp),
+#ifdef DPD_USE_RAN_MARS
+  rand_pool(0 /* unused */, lmp)
+#else
+  rand_pool()
+#endif
 {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
-  STACKPARAMS = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,7 +72,9 @@ PairDPDfdtEnergyKokkos<DeviceType>::~PairDPDfdtEnergyKokkos()
 
   memory->destroy_kokkos(k_cutsq,cutsq);
 
-  /** rand_pool.destroy();/**/
+#ifdef DPD_USE_RAN_MARS
+  rand_pool.destroy();
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -102,7 +107,11 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
     error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
   }
 
-  /** rand_pool.init(random,seed);/**/
+#ifdef DPD_USE_RAN_MARS
+  rand_pool.init(random,seed);
+#else
+  rand_pool.init(seed + comm->me,DeviceType::max_hardware_threads());
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,21 +180,41 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (splitFDT_flag) {
     if (!a0_is_zero) {
-      if (neighflag == HALF) {
-        if (newton_pair) {
-          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,1> >(0,inum),*this,ev);
-          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,0> >(0,inum),*this);
-        } else {
-          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,1> >(0,inum),*this,ev);
-          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,0> >(0,inum),*this);
+      if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
+        if (neighflag == HALF) {
+          if (newton_pair) {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,1,false> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,0,false> >(0,inum),*this);
+          } else {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,1,false> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,0,false> >(0,inum),*this);
+          }
+        } else if (neighflag == HALFTHREAD) {
+          if (newton_pair) {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,1,false> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,0,false> >(0,inum),*this);
+          } else {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,1,false> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,0,false> >(0,inum),*this);
+          }
         }
-      } else if (neighflag == HALFTHREAD) {
-        if (newton_pair) {
-          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,1> >(0,inum),*this,ev);
-          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,0> >(0,inum),*this);
-        } else {
-          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,1> >(0,inum),*this,ev);
-          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,0> >(0,inum),*this);
+      } else {
+        if (neighflag == HALF) {
+          if (newton_pair) {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,1,true> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,0,true> >(0,inum),*this);
+          } else {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,1,true> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,0,0,true> >(0,inum),*this);
+          }
+        } else if (neighflag == HALFTHREAD) {
+          if (newton_pair) {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,1,true> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,1,0,true> >(0,inum),*this);
+          } else {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,1,true> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,0,true> >(0,inum),*this);
+          }
         }
       }
     }
@@ -209,21 +238,41 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     // loop over neighbors of my atoms
 
-    if (neighflag == HALF) {
-      if (newton_pair) {
-        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,1> >(0,inum),*this,ev);
-        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,0> >(0,inum),*this);
-      } else {
-        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,1> >(0,inum),*this,ev);
-        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,0> >(0,inum),*this);
+    if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
+      if (neighflag == HALF) {
+        if (newton_pair) {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,0,false> >(0,inum),*this);
+        } else {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,0,false> >(0,inum),*this);
+        }
+      } else if (neighflag == HALFTHREAD) {
+        if (newton_pair) {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,0,false> >(0,inum),*this);
+        } else {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,0,false> >(0,inum),*this);
+        }
       }
-    } else if (neighflag == HALFTHREAD) {
-      if (newton_pair) {
-        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,1> >(0,inum),*this,ev);
-        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,0> >(0,inum),*this);
-      } else {
-        if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,1> >(0,inum),*this,ev);
-        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,0> >(0,inum),*this);
+    } else {
+      if (neighflag == HALF) {
+        if (newton_pair) {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,0,false> >(0,inum),*this);
+        } else {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,0,0,false> >(0,inum),*this);
+        }
+      } else if (neighflag == HALFTHREAD) {
+        if (newton_pair) {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,1,0,false> >(0,inum),*this);
+        } else {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,0,false> >(0,inum),*this);
+        }
       }
     }
 
@@ -270,9 +319,9 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyZero, con
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
-void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
@@ -346,17 +395,17 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSp
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
-void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int &ii) const {
   EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(), ii, ev);
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
-void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int &ii, EV_FLOAT& ev) const {
 
   // These array are atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
@@ -503,11 +552,11 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
-void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int &ii) const {
   EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(), ii, ev);
 }
 
 /* ----------------------------------------------------------------------

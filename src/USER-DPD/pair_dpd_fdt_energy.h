@@ -46,11 +46,11 @@ class PairDPDfdtEnergy : public Pair {
   double **sigma,**kappa;
   double *duCond,*duMech;
 
+  int seed;
   class RanMars *random;
 
  protected:
   double cut_global;
-  int seed;
   bool splitFDT_flag;
   bool a0_is_zero;
 

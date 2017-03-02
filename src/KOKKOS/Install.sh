@@ -105,6 +105,8 @@ action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
 action fix_momentum_kokkos.cpp
 action fix_momentum_kokkos.h
+action fix_wall_lj93_kokkos.cpp
+action fix_wall_lj93_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
 action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp

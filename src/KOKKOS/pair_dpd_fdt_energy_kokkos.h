@@ -22,9 +22,6 @@ PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 #define LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 
-//#define DPD_USE_RAN_MARS
-#define DPD_USE_Random_XorShift64
-
 #if !defined(DPD_USE_RAN_MARS) && !defined(DPD_USE_Random_XorShift64) && !defined(Random_XorShift1024)
 #define DPD_USE_Random_XorShift64
 #endif

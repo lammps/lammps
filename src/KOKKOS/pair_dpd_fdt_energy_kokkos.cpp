@@ -114,6 +114,42 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
 #endif
 }
 
+#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)
+// CUDA specialization of init_style to properly call rand_pool.init()
+template<>
+void PairDPDfdtEnergyKokkos<Kokkos::Cuda>::init_style()
+{
+  PairDPDfdtEnergy::init_style();
+
+  // irequest = neigh request made by parent class
+
+  neighflag = lmp->kokkos->neighflag;
+  int irequest = neighbor->nrequest - 1;
+
+  neighbor->requests[irequest]->
+    kokkos_host = Kokkos::Impl::is_same<Kokkos::Cuda,LMPHostType>::value &&
+    !Kokkos::Impl::is_same<Kokkos::Cuda,LMPDeviceType>::value;
+  neighbor->requests[irequest]->
+    kokkos_device = Kokkos::Impl::is_same<Kokkos::Cuda,LMPDeviceType>::value;
+
+  if (neighflag == FULL) {
+    neighbor->requests[irequest]->full = 1;
+    neighbor->requests[irequest]->half = 0;
+  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
+    neighbor->requests[irequest]->full = 0;
+    neighbor->requests[irequest]->half = 1;
+  } else {
+    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+  }
+
+#ifdef DPD_USE_RAN_MARS
+  rand_pool.init(random,seed);
+#else
+  rand_pool.init(seed + comm->me,4*32768 /*fake max_hardware_threads()*/);
+#endif
+}
+#endif
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

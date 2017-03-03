@@ -538,15 +538,15 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
         rho_i_contrib += factor;
         if (NEWTON_PAIR || j < nlocal)
           a_rho[j] += factor;
-      } else if (rsq < d_cutsq(itype,jtype)) {
-        const double rcut = sqrt(d_cutsq(itype,jtype));
-        const double tmpFactor = 1.0-sqrt(rsq)/rcut;
-        const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-        const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
-        rho_i_contrib += factor;
-        if (NEWTON_PAIR || j < nlocal)
-          a_rho[j] += factor;
       }
+    } else if (rsq < d_cutsq(itype,jtype)) {
+      const double rcut = sqrt(d_cutsq(itype,jtype));
+      const double tmpFactor = 1.0-sqrt(rsq)/rcut;
+      const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+      const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+      rho_i_contrib += factor;
+      if (NEWTON_PAIR || j < nlocal)
+        a_rho[j] += factor;
     }
   }
 

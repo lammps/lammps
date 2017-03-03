@@ -177,9 +177,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
         gbins(iAIR, ac) = i;
       }
     });
-#ifndef ALLOW_NON_DETERMINISTIC_DPD
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(1,8), KOKKOS_LAMBDA (const int i) { sortGhostBin(i); });
-#endif
     DeviceType::fence();
   }
   c_gbins = gbins; // gbins won't change until the next bin_atoms
@@ -198,9 +196,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_for(nlocal, f);
-#ifndef ALLOW_NON_DETERMINISTIC_DPD
     Kokkos::parallel_for(mbins, KOKKOS_LAMBDA (const int i) { sortAtomBin(i); });
-#endif
     DeviceType::fence();
   }
   c_bins = bins; // bins won't change until the next bin_atoms

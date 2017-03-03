@@ -39,7 +39,7 @@ struct TagPairMultiLucyRXCompute{};
 
 struct TagPairMultiLucyRXZero{};
 
-template<int NEIGHFLAG, int NEWTON_PAIR>
+template<int NEIGHFLAG, int NEWTON_PAIR, bool ONE_TYPE>
 struct TagPairMultiLucyRXComputeLocalDensity{};
 
 template<class DeviceType>
@@ -88,9 +88,9 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXZero, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR>
+  template<int NEIGHFLAG, int NEWTON_PAIR, bool ONE_TYPE>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR>, const int&) const;
+  void operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR,ONE_TYPE>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
@@ -103,7 +103,6 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   int neighflag;
   int eflag,vflag;
 
-  bool one_type;
   double cutsq_type11;
   double rcut_type11;
   double factor_type11;

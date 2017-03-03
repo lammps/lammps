@@ -454,7 +454,7 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   const double pi = MathConst::MY_PI;
 
   const bool newton_pair = force->newton_pair;
-  one_type = (atom->ntypes == 1);
+  const bool one_type = (atom->ntypes == 1);
 
   // Special cut-off values for when there's only one type.
   cutsq_type11 = cutsq[1][1];
@@ -471,14 +471,26 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
 
   if (neighflag == HALF) {
     if (newton_pair)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALF,1> >(0,inum),*this);
+      if (one_type)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALF,1,true> >(0,inum),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALF,1,false> >(0,inum),*this);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALF,0> >(0,inum),*this);
+      if (one_type)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALF,0,true> >(0,inum),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALF,0,false> >(0,inum),*this);
   } else if (neighflag == HALFTHREAD) {
     if (newton_pair)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,1> >(0,inum),*this);
+      if (one_type)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,1,true> >(0,inum),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,1,false> >(0,inum),*this);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,0> >(0,inum),*this);
+      if (one_type)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,0,true> >(0,inum),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,0,false> >(0,inum),*this);
   }
 
   atomKK->modified(execution_space,DPDRHO_MASK);
@@ -498,9 +510,9 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXZero, const
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR>
+template<int NEIGHFLAG, int NEWTON_PAIR, bool ONE_TYPE>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR>, const int &ii) const {
+void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR,ONE_TYPE>, const int &ii) const {
 
 
   // The rho array is atomic for Half/Thread neighbor style
@@ -528,7 +540,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
     const double delz = ztmp - x(j,2);
     const double rsq = delx*delx + dely*dely + delz*delz;
 
-    if (one_type) {
+    if (ONE_TYPE) {
       if (rsq < cutsq_type11) {
         const double rcut = rcut_type11;
         const double r_over_rcut = sqrt(rsq) / rcut;

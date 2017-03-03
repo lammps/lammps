@@ -114,7 +114,6 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 {
   last_bin = update->ntimestep;
 
-  int i;
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
@@ -170,19 +169,17 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.sync<DeviceType>();
     DeviceType::fence(); // FIXME?
 
-    Kokkos::parallel_for(
-#ifdef ALLOW_NON_DETERMINISTIC_SSA
-      Kokkos::RangePolicy<DeviceType>(nlocal,nall)
-#else
-      Kokkos::RangePolicy<Kokkos::Serial>(nlocal,nall)
-#endif
-      , KOKKOS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nall),
+      KOKKOS_LAMBDA (const int i) {
       const int iAIR = binID(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
         const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
         gbins(iAIR, ac) = i;
       }
     });
+#ifndef ALLOW_NON_DETERMINISTIC_DPD
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(1,8), KOKKOS_LAMBDA (const int i) { sortGhostBin(i); });
+#endif
     DeviceType::fence();
   }
   c_gbins = gbins; // gbins won't change until the next bin_atoms
@@ -200,13 +197,11 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     DeviceType::fence();
 
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
-#ifdef ALLOW_NON_DETERMINISTIC_SSA
     Kokkos::parallel_for(nlocal, f);
-#else
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, nlocal), f);
+#ifndef ALLOW_NON_DETERMINISTIC_DPD
+    Kokkos::parallel_for(mbins, KOKKOS_LAMBDA (const int i) { sortAtomBin(i); });
 #endif
     DeviceType::fence();
-
   }
   c_bins = bins; // bins won't change until the next bin_atoms
 
@@ -256,6 +251,72 @@ void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
     const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
     if (update <= ac) update = ac + 1;
   }
+}
+
+// An implementation of heapsort without recursion
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void NBinSSAKokkos<DeviceType>::sortAtomBin(const int &ibin) const
+{
+  int n = bincount(ibin);
+  int i = n/2;
+  int t;
+
+  do { /* Loops until bin is sorted */
+    if (i > 0) { /* First stage - Sorting the heap */
+      i--;           /* Save its index to i */
+      t = bins(ibin, i);    /* Save parent value to t */
+    } else {     /* Second stage - Extracting elements in-place */
+      if ((--n) <= 0) return; /* When the heap is empty, we are done */
+      t = bins(ibin, n);    /* Save last value (it will be overwritten) */
+      bins(ibin, n) = bins(ibin, 0); /* Save largest value at the end of the bin */
+    }
+    int parent = i; /* We will start pushing down t from parent */
+    int child = i*2 + 1; /* parent's left child */
+    /* Sift operation - pushing the value of t down the heap */
+    while (child < n) {
+      /* Choose the largest child */
+      if ((child + 1 < n) && (bins(ibin, child + 1) > bins(ibin, child))) ++child;
+      if (bins(ibin, child) <= t) break; /* t's place is found */
+      bins(ibin, parent) = bins(ibin, child); /* Move the largest child up */
+      parent = child; /* Move parent pointer to this child */
+      child = parent*2+1; /* Find the next child */
+    }
+    bins(ibin, parent) = t; /* We save t in the heap */
+  } while(1);
+}
+
+// An implementation of heapsort without recursion
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void NBinSSAKokkos<DeviceType>::sortGhostBin(const int &ibin) const
+{
+  int n = gbincount(ibin);
+  int i = n/2;
+  int t;
+
+  do { /* Loops until bin is sorted */
+    if (i > 0) { /* First stage - Sorting the heap */
+      i--;           /* Save its index to i */
+      t = gbins(ibin, i);    /* Save parent value to t */
+    } else {     /* Second stage - Extracting elements in-place */
+      if (--n <= 0) return; /* When the heap is empty, we are done */
+      t = gbins(ibin, n);    /* Save last value (it will be overwritten) */
+      gbins(ibin, n) = gbins(ibin, 0); /* Save largest value at the end of the bin */
+    }
+    int parent = i; /* We will start pushing down t from parent */
+    int child = i*2 + 1; /* parent's left child */
+    /* Sift operation - pushing the value of t down the heap */
+    while (child < n) {
+      /* Choose the largest child */
+      if ((child + 1 < n) && (gbins(ibin, child + 1) > gbins(ibin, child))) ++child;
+      if (gbins(ibin, child) <= t) break; /* t's place is found */
+      gbins(ibin, parent) = gbins(ibin, child); /* Move the largest child up */
+      parent = child; /* Move parent pointer to this child */
+      child = parent*2+1; /* Find the next child */
+    }
+    gbins(ibin, parent) = t; /* We save t in the heap */
+  } while(1);
 }
 
 namespace LAMMPS_NS {

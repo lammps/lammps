@@ -88,6 +88,12 @@ class NBinSSAKokkos : public NBinStandard {
   KOKKOS_INLINE_FUNCTION
   void binIDGhostsItem(const int &i, int &update) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void sortAtomBin(const int &ibin) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void sortGhostBin(const int &ibin) const;
+
 /* ----------------------------------------------------------------------
    convert atom coords into the ssa active interaction region number
 ------------------------------------------------------------------------- */

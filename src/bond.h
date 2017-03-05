@@ -27,7 +27,7 @@ class Bond : protected Pointers {
   int *setflag;
   int writedata;                  // 1 if writes coeffs to data file
   double energy;                  // accumulated energies
-  double virial[6];               // accumlated virial
+  double virial[6];               // accumulated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
 
   // KOKKOS host/device flag and data masks

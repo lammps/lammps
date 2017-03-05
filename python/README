@@ -23,7 +23,7 @@ of LAMMPS:
 >>> from lammps import lammps
 >>> lmp = lammps()
 
-If that gives no errors, you have succesfully wrapped LAMMPS with
+If that gives no errors, you have successfully wrapped LAMMPS with
 Python.  See doc/Section_python.html#py_7 for tests you can then use
 to run LAMMPS both in serial or parallel thru Python.
 

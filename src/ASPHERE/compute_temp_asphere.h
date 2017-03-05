@@ -65,7 +65,7 @@ Self-explanatory.
 
 E: Compute temp/asphere requires extended particles
 
-This compute cannot be used with point paritlces.
+This compute cannot be used with point particles.
 
 E: Could not find compute ID for temperature bias
 

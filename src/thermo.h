@@ -236,7 +236,7 @@ E: Lost atoms: original %ld current %ld
 Lost atoms are checked for each time thermo output is done.  See the
 thermo_modify lost command for options.  Lost atoms usually indicate
 bad dynamics, e.g. atoms have been blown far out of the simulation
-box, or moved futher than one processor's sub-domain away before
+box, or moved further than one processor's sub-domain away before
 reneighboring.
 
 W: Lost atoms: original %ld current %ld
@@ -244,7 +244,7 @@ W: Lost atoms: original %ld current %ld
 Lost atoms are checked for each time thermo output is done.  See the
 thermo_modify lost command for options.  Lost atoms usually indicate
 bad dynamics, e.g. atoms have been blown far out of the simulation
-box, or moved futher than one processor's sub-domain away before
+box, or moved further than one processor's sub-domain away before
 reneighboring.
 
 E: Thermo style does not use temp

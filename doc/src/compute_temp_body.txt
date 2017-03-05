@@ -120,7 +120,7 @@ This compute is part of the BODY package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-This compute requires that atoms store angular momementum and a
+This compute requires that atoms store angular momentum and a
 quaternion as defined by the "atom_style body"_atom_style.html
 command.
 

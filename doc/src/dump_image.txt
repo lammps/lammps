@@ -638,7 +638,7 @@ pipe:: Input/output error :pre
 which can be safely ignored. Other warnings
 and errors have to be addressed according to the FFmpeg documentation.
 One known issue is that certain movie file formats (e.g. MPEG level 1
-and 2 format streams) have video bandwith limits that can be crossed
+and 2 format streams) have video bandwidth limits that can be crossed
 when rendering too large of image sizes. Typical warnings look like
 this:
 

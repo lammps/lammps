@@ -285,7 +285,7 @@ region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL :pre
 
 Note that the initial displacemet is 0.0, though that is not required.
 
-Either of these varaibles would "wiggle" the region back and forth in
+Either of these variables would "wiggle" the region back and forth in
 the y direction:
 
 variable dy equal swiggle(0,5,100)

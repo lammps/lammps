@@ -47,7 +47,7 @@ enables a longer timestep.
 [SHAKE vs RATTLE:]
 
 The SHAKE algorithm was invented for schemes such as standard Verlet
-timesteppnig, where only the coordinates are integrated and the
+timestepping, where only the coordinates are integrated and the
 velocities are approximated as finite differences to the trajectories
 ("Ryckaert et al. (1977)"_#Ryckaert).  If the velocities are
 integrated explicitly, as with velocity Verlet which is what LAMMPS

@@ -574,11 +574,11 @@ group of atoms correctly. :dd
 
 {Bad quadratic solve for particle/line collision} :dt
 
-This is an internal error.  It should nornally not occur. :dd
+This is an internal error.  It should normally not occur. :dd
 
 {Bad quadratic solve for particle/tri collision} :dt
 
-This is an internal error.  It should nornally not occur. :dd
+This is an internal error.  It should normally not occur. :dd
 
 {Bad real space Coulomb cutoff in fix tune/kspace} :dt
 
@@ -912,7 +912,7 @@ Atoms can not be added afterwards to this fix option. :dd
 
 {Cannot append atoms to a triclinic box} :dt
 
-The simulation box must be defined with edges alligned with the
+The simulation box must be defined with edges aligned with the
 Cartesian axes. :dd
 
 {Cannot balance in z dimension for 2d simulation} :dt
@@ -1327,7 +1327,7 @@ Self-explanatory. :dd
 
 This file is created when you use some LAMMPS features, to indicate
 what paper you should cite on behalf of those who implemented
-the feature.  Check that you have write priveleges into the directory
+the feature.  Check that you have write privileges into the directory
 you are running in. :dd
 
 {Cannot open log.lammps for writing} :dt
@@ -2088,7 +2088,7 @@ Self-explanatory. :dd
 
 {Cannot use lines with fix srd unless overlap is set} :dt
 
-This is because line segements are connected to each other. :dd
+This is because line segments are connected to each other. :dd
 
 {Cannot use multiple fix wall commands with pair brownian} :dt
 
@@ -2790,7 +2790,7 @@ Self-explanatory. :dd
 
 {Compute erotate/asphere requires extended particles} :dt
 
-This compute cannot be used with point paritlces. :dd
+This compute cannot be used with point particles. :dd
 
 {Compute erotate/rigid with non-rigid fix-ID} :dt
 
@@ -3079,7 +3079,7 @@ Self-explanatory. :dd
 
 {Compute temp/asphere requires extended particles} :dt
 
-This compute cannot be used with point paritlces. :dd
+This compute cannot be used with point particles. :dd
 
 {Compute temp/body requires atom style body} :dt
 
@@ -3524,12 +3524,12 @@ path and name are correct. :dd
 
 {Could not process Python file} :dt
 
-The Python code in the specified file was not run sucessfully by
+The Python code in the specified file was not run successfully by
 Python, probably due to errors in the Python code. :dd
 
 {Could not process Python string} :dt
 
-The Python code in the here string was not run sucessfully by Python,
+The Python code in the here string was not run successfully by Python,
 probably due to errors in the Python code. :dd
 
 {Coulomb PPPMDisp order has been reduced below minorder} :dt
@@ -4385,7 +4385,7 @@ Self-explanatory. :dd
 
 {Fix ave/chunk does not use chunk/atom compute} :dt
 
-The specified conpute is not for a compute chunk/atom command. :dd
+The specified compute is not for a compute chunk/atom command. :dd
 
 {Fix ave/chunk fix does not calculate a per-atom array} :dt
 
@@ -4970,7 +4970,7 @@ Self-explanatory. :dd
 
 {Fix langevin angmom requires extended particles} :dt
 
-This fix option cannot be used with point paritlces. :dd
+This fix option cannot be used with point particles. :dd
 
 {Fix langevin omega is not yet implemented with kokkos} :dt
 
@@ -7361,7 +7361,7 @@ This should not occur.  Report the problem to the developers. :dd
 Lost atoms are checked for each time thermo output is done.  See the
 thermo_modify lost command for options.  Lost atoms usually indicate
 bad dynamics, e.g. atoms have been blown far out of the simulation
-box, or moved futher than one processor's sub-domain away before
+box, or moved further than one processor's sub-domain away before
 reneighboring. :dd
 
 {MEAM library error %d} :dt
@@ -9166,7 +9166,7 @@ Self-explanatory. :dd
 
 {Python function evaluation failed} :dt
 
-The Python function did not run succesfully and/or did not return a
+The Python function did not run successfully and/or did not return a
 value (if it is supposed to return a value).  This is probably due to
 some error condition in the function. :dd
 
@@ -10654,7 +10654,7 @@ Only atom-style variables can be used. :dd
 
 {Variable for region cylinder is invalid style} :dt
 
-Only equal-style varaibles are allowed. :dd
+Only equal-style variables are allowed. :dd
 
 {Variable for region is invalid style} :dt
 
@@ -10666,7 +10666,7 @@ Self-explanatory. :dd
 
 {Variable for region sphere is invalid style} :dt
 
-Only equal-style varaibles are allowed. :dd
+Only equal-style variables are allowed. :dd
 
 {Variable for restart is invalid style} :dt
 
@@ -11414,7 +11414,7 @@ The command options you have used caused atoms to be lost. :dd
 Lost atoms are checked for each time thermo output is done.  See the
 thermo_modify lost command for options.  Lost atoms usually indicate
 bad dynamics, e.g. atoms have been blown far out of the simulation
-box, or moved futher than one processor's sub-domain away before
+box, or moved further than one processor's sub-domain away before
 reneighboring. :dd
 
 {MSM mesh too small, increasing to 2 points in each direction} :dt

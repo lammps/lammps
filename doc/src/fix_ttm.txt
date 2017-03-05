@@ -300,7 +300,7 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more
 info.
 
 These fixes can only be used for 3d simulations and orthogonal
-simlulation boxes.  You must also use periodic
+simulation boxes.  You must also use periodic
 "boundary"_boundary.html conditions.
 
 [Related commands:]

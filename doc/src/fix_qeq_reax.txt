@@ -40,7 +40,7 @@ charge equilibration performed by fix qeq/reax, see the
 
 The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
-with their neighbors.  It reqires some parameters for each atom type.
+with their neighbors.  It requires some parameters for each atom type.
 If the {params} setting above is the word "reax/c", then these are
 extracted from the "pair_style reax/c"_pair_reax_c.html command and
 the ReaxFF force field file it reads in.  If a file name is specified

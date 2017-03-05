@@ -476,7 +476,7 @@ IMPORTANT NOTE: the angletype option has one additional affect, namely
   since they will not be SHAKEn but neither will the angle force by computed
 for style region, a coeff of INF means + or - infinity (all the way 
   to the boundary)
-an atom can be assigned to multiple constraints, the contraints will be
+an atom can be assigned to multiple constraints, the constraints will be
   applied in the reverse order they are assigned to that atom
   (e.g. each timestep, the last fix assigned to an atom will be applied 
   to it first, then the next-to-last applied second, etc)
@@ -1263,7 +1263,7 @@ when using constraints with the minimizer, fixes are
   applied when atoms move except for the following
 fixes associated with temperature control are not allowed
   (rescale, hoover/drag, langevin)
-the minimizer does not invoke the &quot;fix style shake&quot; contraints on
+the minimizer does not invoke the &quot;fix style shake&quot; constraints on
   bond lengths
 the minimizer does not invoke pressure control or volume control settings
 for good convergence, should specify use of smooth nonbond force fields 

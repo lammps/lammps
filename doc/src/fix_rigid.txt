@@ -129,7 +129,7 @@ number of small rigid bodies.  Each body is assigned to the atom
 closest to the geometrical center of the body.  The fix operates using
 local lists of rigid bodies owned by each processor and information is
 exchanged and summed via local communication between neighboring
-processors when ghost atom info is accumlated.
+processors when ghost atom info is accumulated.
 
 NOTE: To use the {rigid/small} styles the ghost atom cutoff must be
 large enough to span the distance between the atom that owns the body
@@ -262,7 +262,7 @@ and bond interactions within each rigid body, as they no longer
 contribute to the motion.  The "neigh_modify
 exclude"_neigh_modify.html and "delete_bonds"_delete_bonds.html
 commands are used to do this.  If the rigid bodies have strongly
-overalapping atoms, you may need to turn off these interactions to
+overlapping atoms, you may need to turn off these interactions to
 avoid numerical problems due to large equal/opposite intra-body forces
 swamping the contribution of small inter-body forces.
 
@@ -530,7 +530,7 @@ back into the box.
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
 around its center of mass.  The values are with respect to the
-simulation box XYZ axes, not with respect to the prinicpal axes of the
+simulation box XYZ axes, not with respect to the principal axes of the
 rigid body itself.  LAMMPS performs the latter calculation internally.
 
 The (vxcm,vycm,vzcm) values are the velocity of the center of mass.
@@ -580,7 +580,7 @@ also accounted for by this fix.
 
 :line
 
-If your simlulation is a hybrid model with a mixture of rigid bodies
+If your simulation is a hybrid model with a mixture of rigid bodies
 and non-rigid particles (e.g. solvent) there are several ways these
 rigid fixes can be used in tandem with "fix nve"_fix_nve.html, "fix
 nvt"_fix_nh.html, "fix npt"_fix_nh.html, and "fix nph"_fix_nh.html.

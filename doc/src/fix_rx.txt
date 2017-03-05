@@ -63,7 +63,7 @@ control on the error. For error control, use the rkf45 ODE solver.
 
 The rkf45 method adjusts the step-size so that the local truncation error is held
 within the specified absolute and relative tolerances. The initial step-size {h0}
-can be specified by the user or estimated internally. It is recommeded that the user
+can be specified by the user or estimated internally. It is recommended that the user
 specify {h0} since this will generally reduced the number of ODE integration steps
 required. {h0} is defined as {dt / min_steps} if min_steps >= 1. If min_steps == 0,
 {h0} is estimated such that an explicit Euler method would likely produce

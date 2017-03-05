@@ -62,7 +62,7 @@ as a (Ns+1 x Ns+1) matrix in inverse time units. Matrices that are
 optimal for a given application and the system of choice can be
 obtained from "(GLE4MD)"_#GLE4MD.
 
-Equilibrium sampling a temperature T is obtained by specifiying the
+Equilibrium sampling a temperature T is obtained by specifying the
 target value as the {Tstart} and {Tstop} arguments, so that the diffusion
 matrix that gives canonical sampling for a given A is computed automatically.
 However, the GLE framework also allow for non-equilibrium sampling, that

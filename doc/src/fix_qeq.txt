@@ -81,7 +81,7 @@ are the same.  Eventually the fix qeq/reax command will be deprecated.
 The QEq method minimizes the electrostatic energy of the system (or
 equalizes the derivative of energy with respect to charge of all the
 atoms) by adjusting the partial charge on individual atoms based on
-interactions with their neighbors within {cutoff}.  It reqires a few
+interactions with their neighbors within {cutoff}.  It requires a few
 parameters, in {metal} units, for each atom type which provided in a
 file specified by {qfile}.  The file has the following format
 
@@ -91,7 +91,7 @@ file specified by {qfile}.  The file has the following format
 Ntype chi eta gamma zeta qcore :pre
 
 There is one line per atom type with the following parameters.
-Only a subset of the parameters is used by each QEq style as descibed
+Only a subset of the parameters is used by each QEq style as described
 below, thus the others can be set to 0.0 if desired.
 
 {chi} = electronegativity in energy units

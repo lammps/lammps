@@ -433,6 +433,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
 ------------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS>
+KOKKOS_INLINE_FUNCTION
 void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
   int start_ii, int count, int id
 )

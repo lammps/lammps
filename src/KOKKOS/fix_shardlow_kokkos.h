@@ -124,6 +124,7 @@ class FixShardlowKokkos : public FixShardlow {
 //  template<bool STACKPARAMS>
 //  void ssa_update_dpd(int, int);  // Constant Temperature
   template<bool STACKPARAMS>
+  KOKKOS_INLINE_FUNCTION
   void ssa_update_dpde(int, int, int); // Constant Energy
 
 };

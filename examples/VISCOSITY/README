@@ -74,7 +74,7 @@ eta = 0.997 = running average output as last log file column
 
 eta is computed directly within the script, by performing a time
 integration of the formula discussed in Section 6.21 of the manual,
-analagous to the formula for thermal conductivity given on the compute
+analogous to the formula for thermal conductivity given on the compute
 heat/flux doc page - the resulting value prints at the end of the run
 and is in the log file
 
@@ -84,7 +84,7 @@ eta = 1.07
 
 eta is computed directly within the script, by performing a time
 integration of the formula discussed in Section 6.21 of the manual,
-analagous to the formula for thermal conductivity given on the compute
+analogous to the formula for thermal conductivity given on the compute
 heat/flux doc page - the resulting value prints at the end of the run
 and is in the log file
 

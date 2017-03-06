@@ -58,7 +58,7 @@ group FluidAtoms type 2
 #---------------------------------------------------------------------------
 # Create a lattice-Boltzmann fluid covering the simulation domain.
 # This fluid feels a force due to the particles specified through FluidAtoms 
-#   (however, this fix does not explicity apply a force back on to these 
+#   (however, this fix does not explicitly apply a force back on to these 
 #    particles. This is accomplished through the use of the lb/viscous
 #    fix).
 # Uses the standard LB integration scheme, fluid viscosity = 0.023333333, 

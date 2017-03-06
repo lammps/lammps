@@ -72,7 +72,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
 template<class DeviceType>
 void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
 {
-  if (mbins > (int) k_bins.d_view.dimension_0()) {
+  if (mbins > (int) k_bins.h_view.dimension_0()) {
     k_bins = DAT::tdual_int_2d("NBinSSAKokkos::bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
@@ -82,7 +82,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
 
   ghosts_per_gbin = atom->nghost / 7; // estimate needed size
 
-  if (ghosts_per_gbin > (int) k_gbins.d_view.dimension_1()) {
+  if (ghosts_per_gbin > (int) k_gbins.h_view.dimension_1()) {
     k_gbins = DAT::tdual_int_2d("NBinSSAKokkos::gbins",8,ghosts_per_gbin);
     gbins = k_gbins.view<DeviceType>();
   }

@@ -155,7 +155,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     DeviceType::fence(); // FIXME?
     ghosts_per_gbin = 0;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nlocal,nall), f, ghosts_per_gbin);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall), f, ghosts_per_gbin);
   }
 
   // actually bin the ghost atoms
@@ -169,15 +169,15 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.sync<DeviceType>();
     DeviceType::fence(); // FIXME?
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nall),
-      KOKKOS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall),
+      LAMMPS_LAMBDA (const int i) {
       const int iAIR = binID(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
         const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
         gbins(iAIR, ac) = i;
       }
     });
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(1,8), KOKKOS_LAMBDA (const int i) { sortGhostBin(i); });
+    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(1,8), LAMMPS_LAMBDA (const int i) { sortGhostBin(i); });
     DeviceType::fence();
   }
   c_gbins = gbins; // gbins won't change until the next bin_atoms
@@ -196,7 +196,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_for(nlocal, f);
-    Kokkos::parallel_for(mbins, KOKKOS_LAMBDA (const int i) { sortAtomBin(i); });
+    Kokkos::parallel_for(mbins, LAMMPS_LAMBDA (const int i) { sortAtomBin(i); });
     DeviceType::fence();
   }
   c_bins = bins; // bins won't change until the next bin_atoms

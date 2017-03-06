@@ -28,8 +28,8 @@ action () {
 
 # force rebuild of files with LMP_KOKKOS switch
 
-touch ../accelerator_kokkos.h
-touch ../memory.h
+#touch ../accelerator_kokkos.h
+#touch ../memory.h
 
 # list of files with optional dependcies
 

@@ -83,12 +83,12 @@ void NPairSSAKokkos<DeviceType>::copy_bin_info()
   k_gbincount = nbKK->k_gbincount;
   k_gbins = nbKK->k_gbins;
 
-  lbinxlo = nbKK->d_lbinxlo();
-  lbinxhi = nbKK->d_lbinxhi();
-  lbinylo = nbKK->d_lbinylo();
-  lbinyhi = nbKK->d_lbinyhi();
-  lbinzlo = nbKK->d_lbinzlo();
-  lbinzhi = nbKK->d_lbinzhi();
+  lbinxlo = nbKK->h_lbinxlo();
+  lbinxhi = nbKK->h_lbinxhi();
+  lbinylo = nbKK->h_lbinylo();
+  lbinyhi = nbKK->h_lbinyhi();
+  lbinzlo = nbKK->h_lbinzlo();
+  lbinzhi = nbKK->h_lbinzhi();
 }
 
 /* ----------------------------------------------------------------------

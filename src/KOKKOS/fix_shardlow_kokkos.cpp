@@ -677,13 +677,13 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
     int workItemCt = ssa_phaseLen[workPhase];
 
     if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
-      Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
+      Kokkos::parallel_for(workItemCt, LAMMPS_LAMBDA (const int workItem ) {
         int ct = ssa_itemLen(workPhase, workItem);
         int ii = ssa_itemLoc(workPhase, workItem);
         ssa_update_dpde<false>(ii, ct, workItem);
       });
     } else {
-      Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
+      Kokkos::parallel_for(workItemCt, LAMMPS_LAMBDA (const int workItem ) {
         int ct = ssa_itemLen(workPhase, workItem);
         int ii = ssa_itemLoc(workPhase, workItem);
         ssa_update_dpde<true>(ii, ct, workItem);
@@ -704,7 +704,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 //      memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
 //      memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
 
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nlocal+nghost), KOKKOS_LAMBDA (const int i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
         uCond(i) = 0.0;
         uMech(i) = 0.0;
       });
@@ -713,13 +713,13 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
     // process neighbors in this AIR
     if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
-      Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
+      Kokkos::parallel_for(workItemCt, LAMMPS_LAMBDA (const int workItem ) {
         int ct = ssa_gitemLen(workPhase, workItem);
         int ii = ssa_gitemLoc(workPhase, workItem);
         ssa_update_dpde<false>(ii, ct, workItem);
       });
     } else {
-      Kokkos::parallel_for(workItemCt, KOKKOS_LAMBDA (const int workItem ) {
+      Kokkos::parallel_for(workItemCt, LAMMPS_LAMBDA (const int workItem ) {
         int ct = ssa_gitemLen(workPhase, workItem);
         int ii = ssa_gitemLoc(workPhase, workItem);
         ssa_update_dpde<true>(ii, ct, workItem);

@@ -91,8 +91,11 @@ class NBinSSAKokkos : public NBinStandard {
   KOKKOS_INLINE_FUNCTION
   void sortAtomBin(const int &ibin) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void sortGhostBin(const int &ibin) const;
+  static KOKKOS_INLINE_FUNCTION
+  void sortGhostBin(
+      typename AT::t_int_1d gbincount,
+      typename AT::t_int_2d gbins,
+      const int &ibin);
 
 /* ----------------------------------------------------------------------
    convert atom coords into the ssa active interaction region number

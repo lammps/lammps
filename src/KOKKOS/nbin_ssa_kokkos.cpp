@@ -169,16 +169,22 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.sync<DeviceType>();
     DeviceType::fence(); // FIXME?
 
+    auto binID_ = binID;
+    auto gbincount_ = gbincount;
+    auto gbins_ = gbins;
+
     Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall),
       LAMMPS_LAMBDA (const int i) {
-      const int iAIR = binID(i);
+      const int iAIR = binID_(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
-        const int ac = Kokkos::atomic_fetch_add(&gbincount[iAIR], (int)1);
-        gbins(iAIR, ac) = i;
+        const int ac = Kokkos::atomic_fetch_add(&gbincount_[iAIR], (int)1);
+        gbins_(iAIR, ac) = i;
       }
     });
-    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(1,8), LAMMPS_LAMBDA (const int i) { sortGhostBin(i); });
-    DeviceType::fence();
+    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(1,8),
+      LAMMPS_LAMBDA (const int i) {
+      sortGhostBin(gbincount_, gbins_, i);
+    });
   }
   c_gbins = gbins; // gbins won't change until the next bin_atoms
 
@@ -285,7 +291,10 @@ void NBinSSAKokkos<DeviceType>::sortAtomBin(const int &ibin) const
 // An implementation of heapsort without recursion
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::sortGhostBin(const int &ibin) const
+void NBinSSAKokkos<DeviceType>::sortGhostBin(
+      typename AT::t_int_1d gbincount,
+      typename AT::t_int_2d gbins,
+      const int &ibin)
 {
   int n = gbincount(ibin);
   int i = n/2;

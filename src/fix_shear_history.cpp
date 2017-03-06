@@ -38,7 +38,7 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   npartner(NULL), partner(NULL), shearpartner(NULL), pair(NULL), 
   ipage(NULL), dpage(NULL)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY commmand");
+  if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY command");
 
   restart_peratom = 1;
   create_attribute = 1;

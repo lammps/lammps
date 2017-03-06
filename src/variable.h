@@ -355,7 +355,7 @@ Self-explanatory.
 
 E: Non digit character between brackets in variable
 
-Self-explantory.
+Self-explanatory.
 
 E: Mismatched brackets in variable
 

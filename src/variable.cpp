@@ -1004,7 +1004,7 @@ void Variable::compute_atom(int ivar, int igroup,
    return length of vector and result pointer to vector values
      if length == 0 or -1 (mismatch), generate an error
    if variable already computed on this timestep, just return
-   else evaulate the formula and its length, store results in VecVar entry
+   else evaluate the formula and its length, store results in VecVar entry
 ------------------------------------------------------------------------- */
 
 int Variable::compute_vector(int ivar, double **result)
@@ -2747,7 +2747,7 @@ double Variable::collapse_tree(Tree *tree)
 /* ----------------------------------------------------------------------
    evaluate an atom-style or vector-style variable parse tree
    index I = atom I or vector index I
-   tree was created by one-time parsing of formula string via evaulate()
+   tree was created by one-time parsing of formula string via evaluate()
    customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),

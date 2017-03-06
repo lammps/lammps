@@ -62,7 +62,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute hexorder/atom requires a pair style be defined
 
-Self-explantory.
+Self-explanatory.
 
 E: Compute hexorder/atom cutoff is longer than pairwise cutoff
 

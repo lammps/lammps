@@ -95,9 +95,9 @@ private:
   // AWPMD- specific:
   ///\en electron tag: must be the same for the WPs belonging to the same electron
   int *etag;
-  ///\en wavepacket split coeffcients: cre, cim, size is 2*N
+  ///\en wavepacket split coefficients: cre, cim, size is 2*N
   double *cs;
-  ///\en force on wavepacket split coeffcients: re, im, size is 2*N
+  ///\en force on wavepacket split coefficients: re, im, size is 2*N
   double *csforce;
   ///\en (generalized) force on velocity, size is 3*N
   double *vforce;

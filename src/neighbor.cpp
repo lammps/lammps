@@ -918,7 +918,7 @@ void Neighbor::morph_other()
       requests[i-1]->historylist = i;
     }
 
-    // if respaouter, point all asociated rRESPA lists at each other
+    // if respaouter, point all associated rRESPA lists at each other
 
     if (irq->respaouter) {
       if (requests[i-1]->respainner) {

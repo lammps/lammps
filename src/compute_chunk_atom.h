@@ -248,11 +248,11 @@ The lo/hi values are inconsistent.
 
 E: Compute chunk/atom bin/sphere radius is too large for periodic box
 
-Radius cannot be bigger than 1/2 of any periodic dimention.
+Radius cannot be bigger than 1/2 of any periodic dimension.
 
 E: Compute chunk/atom bin/cylinder radius is too large for periodic box
 
-Radius cannot be bigger than 1/2 of a non-axis  periodic dimention.
+Radius cannot be bigger than 1/2 of a non-axis  periodic dimension.
 
 E: Cannot use compute chunk/atom bin z for 2d model
 

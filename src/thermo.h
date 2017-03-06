@@ -95,7 +95,7 @@ class Thermo : protected Pointers {
   char **id_fix;               // their IDs
   class Fix **fixes;           // list of ptrs to the Fix objects
 
-  int nvariable;               // # of variables evaulated by thermo
+  int nvariable;               // # of variables evaluated by thermo
   char **id_variable;          // list of variable names
   int *variables;              // list of Variable indices
 

@@ -54,7 +54,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute pair must use group all
 
-Pair styles accumlate energy on all atoms.
+Pair styles accumulate energy on all atoms.
 
 E: Unrecognized pair style in compute pair command
 

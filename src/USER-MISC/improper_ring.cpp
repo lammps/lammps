@@ -26,7 +26,7 @@
                     (2002)
                   This potential does not affect small amplitude vibrations
                   but is used in an ad hoc way to prevent the onset of
-                  accidentially large amplitude fluctuations leading to
+                  accidentally large amplitude fluctuations leading to
                   the occurrence of a planar conformation of the three
                   bonds i, i + 1 and i', an intermediate conformation
                   toward the chiral inversion of a methine carbon.

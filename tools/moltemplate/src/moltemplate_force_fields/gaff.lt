@@ -44,7 +44,7 @@ GAFF {
   # ----------------------------------------------------------------------
   # The basic atom nomenclature and conventions are explained here:
   #   http://ambermd.org/antechamber/gaff.pdf
-  # For reference, the original gaff.dat file and format documenation are here:
+  # For reference, the original gaff.dat file and format documentation are here:
   #   http://ambermd.org/AmberTools-get.html
   #   http://ambermd.org/formats.html#parm.dat
   # ----------------------------------------------------------------------

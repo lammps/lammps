@@ -5177,7 +5177,7 @@ def BasicUI(settings,
 
     # Parsing, and compiling is a multi-pass process.
 
-    # Step 1: Read in the StaticObj (class) defintions, without checking
+    # Step 1: Read in the StaticObj (class) definitions, without checking
     # whether or not the instance_children refer to valid StaticObj types.
     sys.stderr.write('parsing the class definitions...')
     static_tree_root.Parse(settings.lex)

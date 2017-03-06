@@ -283,7 +283,7 @@ velocity:
 variable dx equal ramp(0,10)
 region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL :pre
 
-Note that the initial displacemet is 0.0, though that is not required.
+Note that the initial displacement is 0.0, though that is not required.
 
 Either of these variables would "wiggle" the region back and forth in
 the y direction:

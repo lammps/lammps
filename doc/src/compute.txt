@@ -235,7 +235,7 @@ section of "this page"_Section_commands.html#cmd_5.
 "temp/ramp"_compute_temp_ramp.html - temperature excluding ramped velocity component
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
 "temp/sphere"_compute_temp_sphere.html - temperature of spherical particles
-"ti"_compute_ti.html - thermodyanmic integration free energy values
+"ti"_compute_ti.html - thermodynamic integration free energy values
 "torque/chunk"_compute_torque_chunk.html - torque applied on each chunk
 "vacf"_compute_vacf.html - velocity-autocorrelation function of group of atoms
 "vcm/chunk"_compute_vcm_chunk.html - velocity of center-of-mass for each chunk

@@ -15,12 +15,12 @@ fix ID group-ID balance Nfreq thresh style args keyword args ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 balance = style name of this fix command :l
 Nfreq = perform dynamic load balancing every this many steps :l
-thresh = imbalance threshhold that must be exceeded to perform a re-balance :l
+thresh = imbalance threshold that must be exceeded to perform a re-balance :l
 style = {shift} or {rcb} :l
   shift args = dimstr Niter stopthresh
     dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
     Niter = # of times to iterate within each dimension of dimstr sequence
-    stopthresh = stop balancing when this imbalance threshhold is reached
+    stopthresh = stop balancing when this imbalance threshold is reached
   {rcb} args = none :pre
 zero or more keyword/arg pairs may be appended :l
 keyword = {weight} or {out} :l
@@ -78,7 +78,7 @@ The balancing can be performed with or without per-particle weighting.
 With no weighting, the balancing attempts to assign an equal number of
 particles to each processor.  With weighting, the balancing attempts
 to assign an equal aggregate computational weight to each processor,
-which typically inducces a diffrent number of atoms assigned to each
+which typically inducces a different number of atoms assigned to each
 processor.
 
 NOTE: The weighting options listed above are documented with the
@@ -249,7 +249,7 @@ typically be positioned to better than 1 part in 1000 accuracy
 be accurate to better than 1 part in a million.  Thus there is no need
 to set {Niter} to a large value.  This is especially true if you are
 rebalancing often enough that each time you expect only an incremental
-adjustement in the cutting planes is necessary.  LAMMPS will check if
+adjustment in the cutting planes is necessary.  LAMMPS will check if
 the threshold accuracy is reached (in a dimension) is less iterations
 than {Niter} and exit early.
 

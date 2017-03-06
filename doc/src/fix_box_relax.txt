@@ -103,7 +103,7 @@ far. In all cases, the particle positions at each iteration are
 unaffected by the chosen value, except that all particles are
 displaced by the same amount, different on each iteration.
 
-NOTE: Appling an external pressure to tilt dimensions {xy}, {xz}, {yz}
+NOTE: Applying an external pressure to tilt dimensions {xy}, {xz}, {yz}
 can sometimes result in arbitrarily large values of the tilt factors,
 i.e. a dramatically deformed simulation box.  This typically indicates
 that there is something badly wrong with how the simulation was

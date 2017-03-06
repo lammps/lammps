@@ -182,7 +182,7 @@ can be used to scale down their effective collision radius by an
 amount {rfactor}, so that SRD particle will only collide with one big
 particle at a time.  For example, in a Lennard-Jones system at a
 temperature of 1.0 (in reduced LJ units), the minimum separation
-bewteen two big particles is as small as about 0.88 sigma.  Thus an
+between two big particles is as small as about 0.88 sigma.  Thus an
 {rfactor} value of 0.85 should prevent dual collisions.
 
 The {bounce} keyword can be used to limit the maximum number of
@@ -241,7 +241,7 @@ box shape changes.  This re-binning is always done so as to fit an
 integer number of bins in the current box dimension, whether it be a
 fixed, shrink-wrapped, or periodic boundary, as set by the
 "boundary"_boundary.html command.  If the box size or shape changes,
-then the size of the search bins must be recalculated avery
+then the size of the search bins must be recalculated every
 reneighboring.  Note that changing the SRD bin size may alter the
 properties of the SRD fluid, such as its viscosity.
 
@@ -345,15 +345,15 @@ commands"_Section_howto.html#howto_15.  The vector values calculated
 by this fix are "intensive", meaning they do not scale with the size
 of the simulation.  Technically, the first 8 do scale with the size of
 the simulation, but treating them as intensive means they are not
-scaled when printed as part of thermodyanmic output.
+scaled when printed as part of thermodynamic output.
 
 These are the 12 quantities.  All are values for the current timestep,
 except for quantity 5 and the last three, each of which are
-cummulative quantities since the beginning of the run.
+cumulative quantities since the beginning of the run.
 
 (1) # of SRD/big collision checks performed
 (2) # of SRDs which had a collision
-(3) # of SRD/big colllisions (including multiple bounces)
+(3) # of SRD/big collisions (including multiple bounces)
 (4) # of SRD particles inside a big particle
 (5) # of SRD particles whose velocity was rescaled to be < Vmax
 (6) # of bins for collision searching

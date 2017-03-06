@@ -781,7 +781,7 @@ is for a vector-style variable where "name" is replaced by the name of
 the variable.
 
 These functions operate on a global vector of inputs and reduce it to
-a single scalar value.  This is analagous to the operation of the
+a single scalar value.  This is analogous to the operation of the
 "compute reduce"_compute_reduce.html command, which performs similar
 operations on per-atom and local vectors.
 

@@ -33,7 +33,7 @@ keyword = {mode} or {file} or {ave} or {start} or {off} or {overwrite} or {title
     vector = all input values are global vectors or global arrays
   {ave} args = {one} or {running} or {window M}
     one = output a new average value every Nfreq steps
-    running = output cummulative average of all previous Nfreq steps
+    running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
   {start} args = Nstart
     Nstart = start averaging on this timestep
@@ -223,7 +223,7 @@ output as-is without further averaging.
 
 If the {ave} setting is {running}, then the values produced on
 timesteps that are multiples of {Nfreq} are summed and averaged in a
-cummulative sense before being output.  Each output value is thus the
+cumulative sense before being output.  Each output value is thus the
 average of the value produced on that timestep with all preceding
 values.  This running average begins when the fix is defined; it can
 only be restarted by deleting the fix via the "unfix"_unfix.html

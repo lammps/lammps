@@ -25,7 +25,7 @@ Perform updates of position and orientation, but not velocity or
 angular momentum for atoms in the group each timestep.  In other
 words, the force and torque on the atoms is ignored and their velocity
 and angular momentum are not updated.  The atom velocities and
-angularm momenta are used to update their positions and orientation.
+angular momenta are used to update their positions and orientation.
 
 This is useful as an implicit time integrator for Fast Lubrication
 Dynamics, since the velocity and angular momentum are updated by the

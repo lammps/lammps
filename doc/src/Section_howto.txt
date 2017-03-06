@@ -618,7 +618,7 @@ any of the parameters above, though it becomes a different model in
 that mode of usage.
 
 The SPC/E (extended) water model is the same, except
-the partial charge assignemnts change:
+the partial charge assignments change:
 
 O charge = -0.8476
 H charge = 0.4238 :all(b),p
@@ -982,10 +982,10 @@ used with non-orthogonal basis vectors to define a lattice that will
 tile a triclinic simulation box via the
 "create_atoms"_create_atoms.html command.
 
-A second use is to run Parinello-Rahman dyanamics via the "fix
+A second use is to run Parinello-Rahman dynamics via the "fix
 npt"_fix_nh.html command, which will adjust the xy, xz, yz tilt
 factors to compensate for off-diagonal components of the pressure
-tensor.  The analalog for an "energy minimization"_minimize.html is
+tensor.  The analog for an "energy minimization"_minimize.html is
 the "fix box/relax"_fix_box_relax.html command.
 
 A third use is to shear a bulk solid to study the response of the
@@ -1392,7 +1392,7 @@ custom"_dump.html command.
 
 There is also a "dump local"_dump.html format where the user specifies
 what local values to output.  A pre-defined index keyword can be
-specified to enumuerate the local values.  Two additional kinds of
+specified to enumerate the local values.  Two additional kinds of
 keywords can also be specified (c_ID, f_ID), where a
 "compute"_compute.html or "fix"_fix.html or "variable"_variable.html
 provides the values to be output.  In each case, the compute or fix
@@ -1640,14 +1640,14 @@ nvt/asphere"_fix_nvt_asphere.html thermostat not only translation
 velocities but also rotational velocities for spherical and aspherical
 particles.
 
-DPD thermostatting alters pairwise interactions in a manner analagous
+DPD thermostatting alters pairwise interactions in a manner analogous
 to the per-particle thermostatting of "fix
 langevin"_fix_langevin.html.
 
 Any of the thermostatting fixes can use temperature computes that
 remove bias which has two effects.  First, the current calculated
 temperature, which is compared to the requested target temperature, is
-caluclated with the velocity bias removed.  Second, the thermostat
+calculated with the velocity bias removed.  Second, the thermostat
 adjusts only the thermal temperature component of the particle's
 velocities, which are the velocities with the bias removed.  The
 removed bias is then added back to the adjusted velocities.  See the
@@ -2013,7 +2013,7 @@ a simple Lennard-Jones fluid model.  Also, see "this
 section"_Section_howto.html#howto_21 of the manual for an analogous
 discussion for viscosity.
 
-The thermal conducitivity tensor kappa is a measure of the propensity
+The thermal conductivity tensor kappa is a measure of the propensity
 of a material to transmit heat energy in a diffusive manner as given
 by Fourier's law
 
@@ -2099,7 +2099,7 @@ and grad(Vstream) is the spatial gradient of the velocity of the fluid
 moving in another direction, normal to the area through which the
 momentum flows.  Viscosity thus has units of pressure-time.
 
-The first method is to perform a non-equlibrium MD (NEMD) simulation
+The first method is to perform a non-equilibrium MD (NEMD) simulation
 by shearing the simulation box via the "fix deform"_fix_deform.html
 command, and using the "fix nvt/sllod"_fix_nvt_sllod.html command to
 thermostat the fluid via the SLLOD equations of motion.
@@ -2125,7 +2125,7 @@ the rNEMD algorithm of Muller-Plathe.  Momentum in one dimension is
 swapped between atoms in two different layers of the simulation box in
 a different dimension.  This induces a velocity gradient which can be
 monitored with the "fix ave/chunk"_fix_ave_chunk.html command.
-The fix tallies the cummulative momentum transfer that it performs.
+The fix tallies the cumulative momentum transfer that it performs.
 See the "fix viscosity"_fix_viscosity.html command for details.
 
 The fourth method is based on the Green-Kubo (GK) formula which
@@ -2353,7 +2353,7 @@ largest cluster or fastest diffusing molecule. :l
 
 Example calculations with chunks :h5
 
-Here are eaxmples using chunk commands to calculate various
+Here are examples using chunk commands to calculate various
 properties:
 
 (1) Average velocity in each of 1000 2d spatial bins:
@@ -2424,7 +2424,7 @@ which both have their up- and downsides.
 The first approach is to set desired real-space an kspace accuracies
 via the {kspace_modify force/disp/real} and {kspace_modify
 force/disp/kspace} commands. Note that the accuracies have to be
-specified in force units and are thus dependend on the chosen unit
+specified in force units and are thus dependent on the chosen unit
 settings. For real units, 0.0001 and 0.002 seem to provide reasonable
 accurate and efficient computations for the real-space and kspace
 accuracies.  0.002 and 0.05 work well for most systems using lj
@@ -2478,7 +2478,7 @@ arithmetic mixing rule substantially increases the computational cost.
 The computational overhead can be reduced using the {kspace_modify
 mix/disp geom} and {kspace_modify splittol} commands. The first
 command simply enforces geometric mixing of the dispersion
-coeffiecients in kspace computations.  This introduces some error in
+coefficients in kspace computations.  This introduces some error in
 the computations but will also significantly speed-up the
 simulations. The second keyword sets the accuracy with which the
 dispersion coefficients are approximated using a matrix factorization
@@ -2497,7 +2497,7 @@ to specify this command explicitly.
 6.25 Polarizable models :link(howto_25),h4
 
 In polarizable force fields the charge distributions in molecules and
-materials respond to their electrostatic environements. Polarizable
+materials respond to their electrostatic environments. Polarizable
 systems can be simulated in LAMMPS using three methods:
 
 the fluctuating charge method, implemented in the "QEQ"_fix_qeq.html
@@ -2738,7 +2738,7 @@ the core/shell particles, but only assign a center-of-mass velocity to
 the pairs.  This can be done by using the {bias} keyword of the
 "velocity create"_velocity.html command and assigning the "compute
 temp/cs"_compute_temp_cs.html command to the {temp} keyword of the
-"velocity"_velocity.html commmand, e.g.
+"velocity"_velocity.html command, e.g.
 
 velocity all create 1427 134 bias yes temp CSequ
 velocity all scale 1427 temp CSequ :pre

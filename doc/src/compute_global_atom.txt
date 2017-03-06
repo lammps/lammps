@@ -55,7 +55,7 @@ M is the actual length of the input vector, then an output value of
 0.0 is assigned to the atom.
 
 An example of how this command is useful, is in the context of
-"chunks" which are static or dyanmic subsets of atoms.  The "compute
+"chunks" which are static or dynamic subsets of atoms.  The "compute
 chunk/atom"_compute_chunk_atom.html command assigns unique chunk IDs
 to each atom.  It's output can be used as the {index} parameter for
 this command.  Various other computes with "chunk" in their style
@@ -192,7 +192,7 @@ reference thermodynamic keywords and various other attributes of
 atoms, or invoke other computes, fixes, or variables when they are
 evaluated, so this is a very general means of generating a vector of
 global quantities which the {index} parameter will reference for
-assignement of global values to atoms.
+assignment of global values to atoms.
 
 :line
 
@@ -207,7 +207,7 @@ See "Section 6.15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
 The per-atom vector or array values will be in whatever units the
-corresponsing input values are in.
+corresponding input values are in.
 
 [Restrictions:] none
 

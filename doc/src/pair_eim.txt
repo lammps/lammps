@@ -107,7 +107,7 @@ This can be used when an {eim} potential is used as part of the
 that will be used with other potentials.
 
 The ffield.eim file in the {potentials} directory of the LAMMPS
-distribution is formated as follows:
+distribution is formatted as follows:
 
 Lines starting with # are comments and are ignored by LAMMPS.  Lines
 starting with "global:" include three global values. The first value

@@ -74,7 +74,7 @@ are relevant to this fix.
 
 This fix computes a global scalar, which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative number of deleted atoms.  The scalar value calculated by
+cumulative number of deleted atoms.  The scalar value calculated by
 this fix is "intensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of

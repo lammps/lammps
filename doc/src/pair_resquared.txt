@@ -68,7 +68,7 @@ A12 specifies the energy prefactor which depends on the types of the
 two interacting particles.
 
 For ellipsoid/ellipsoid interactions, the interaction is computed by
-the formulas in the supplementary docuement referenced above.  A12 is
+the formulas in the supplementary document referenced above.  A12 is
 the Hamaker constant as described in "(Everaers)"_#Everaers. In LJ
 units:
 
@@ -79,7 +79,7 @@ composing the ellipsoids and epsilon_LJ determines the interaction
 strength of the spherical particles.
 
 For ellipsoid/LJ sphere interactions, the interaction is also computed
-by the formulas in the supplementary docuement referenced above.  A12
+by the formulas in the supplementary document referenced above.  A12
 has a modifed form (see "here"_PDF/pair_resquared_extra.pdf for
 details):
 

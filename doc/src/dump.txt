@@ -545,7 +545,7 @@ that the coordinate values may be far outside the box bounds printed
 with the snapshot.  Using {xsu}, {ysu}, {zsu} is similar to using
 {xu}, {yu}, {zu}, except that the unwrapped coordinates are scaled by
 the box size. Atoms that have passed through a periodic boundary will
-have the corresponding cooordinate increased or decreased by 1.0.
+have the corresponding coordinate increased or decreased by 1.0.
 
 The image flags can be printed directly using the {ix}, {iy}, {iz}
 attributes.  For periodic dimensions, they specify which image of the

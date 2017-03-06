@@ -58,7 +58,7 @@ nve"_fix_nve.html command).  It is up to you to decide whether
 periodic boundaries are appropriate with the kind of atom motion you
 are prescribing with this fix.
 
-NOTE: As dicsussed below, atoms are moved relative to their initial
+NOTE: As discussed below, atoms are moved relative to their initial
 position at the time the fix is specified.  These initial coordinates
 are stored by the fix in "unwrapped" form, by using the image flags
 associated with each atom.  See the "dump custom"_dump.html command

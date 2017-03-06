@@ -78,8 +78,8 @@ levels of the recursive representations for both the sigma and the pi
 bond-orders. Bond-order terms can be understood in terms of molecular
 orbital hopping paths based upon the Cyrot-Lackmann theorem
 ("Pettifor_1"_#Pettifor_1).  The sigma bond-order with a half-full
-valence shell is used to interpolate the bond-order expressiont that
-incorporated explicite valance band filling.  This pi bond-order
+valence shell is used to interpolate the bond-order expression that
+incorporated explicit valance band filling.  This pi bond-order
 expression also contains also contains a three-member ring term that
 allows implementation of an asymmetric density of states, which helps
 to either stabilize or destabilize close-packed structures.  The pi

@@ -179,7 +179,7 @@ The first non-blank, non-comment line should have
 Px Py Py :pre
 
 These must be compatible with the total number of processors
-and the Px, Py, Pz settings of the processors commmand.
+and the Px, Py, Pz settings of the processors command.
 
 This line should be immediately followed by
 P = Px*Py*Pz lines of the form:
@@ -244,7 +244,7 @@ The {part} keyword affects the factorization of P into Px,Py,Pz.
 
 It can be useful when running in multi-partition mode, e.g. with the
 "run_style verlet/split"_run_style.html command.  It specifies a
-dependency bewteen a sending partition {Psend} and a receiving
+dependency between a sending partition {Psend} and a receiving
 partition {Precv} which is enforced when each is setting up their own
 mapping of their processors to the simulation box.  Each of {Psend}
 and {Precv} must be integers from 1 to Np, where Np is the number of

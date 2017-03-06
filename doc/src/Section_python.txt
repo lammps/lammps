@@ -662,7 +662,7 @@ or integers (int **) is returned.  You need to specify the appropriate
 data type via the type argument.
 
 For extract_compute() and extract_fix(), the global, per-atom, or
-local data calulated by the compute or fix can be accessed.  What is
+local data calculated by the compute or fix can be accessed.  What is
 returned depends on whether the compute or fix calculates a scalar or
 vector or array.  For a scalar, a single double value is returned.  If
 the compute or fix calculates a vector or array, a pointer to the

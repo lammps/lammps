@@ -48,7 +48,7 @@ Examples of the use of this type of Coulomb interaction include implicit
 solvent simulations of salt ions
 "(Lenart)"_#Lenart and of ionic surfactants "(Jusufi)"_#Jusufi.
 Note that this potential is only reasonable for implicit solvent simulations
-and in combiantion with coul/cut or coul/long. It is also usually combined
+and in combination with coul/cut or coul/long. It is also usually combined
 with gauss/cut, see "(Lenart)"_#Lenart or "(Jusufi)"_#Jusufi.
 
 The following coefficients must be defined for each pair of atom

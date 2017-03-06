@@ -159,17 +159,17 @@ pack_comm_vel: add velocity info to communication buffer (required)
 pack_comm_hybrid: store extra info unique to this atom style (optional)
 unpack_comm: retrieve an atom's info from the buffer (required)
 unpack_comm_vel: also retrieve velocity info (required)
-unpack_comm_hybrid: retreive extra info unique to this atom style (optional)
+unpack_comm_hybrid: retrieve extra info unique to this atom style (optional)
 pack_reverse: store an atom's info in a buffer communicating partial forces  (required)
 pack_reverse_hybrid: store extra info unique to this atom style (optional)
 unpack_reverse: retrieve an atom's info from the buffer (required)
-unpack_reverse_hybrid: retreive extra info unique to this atom style (optional)
+unpack_reverse_hybrid: retrieve extra info unique to this atom style (optional)
 pack_border: store an atom's info in a buffer communicated on neighbor re-builds (required)
 pack_border_vel: add velocity info to buffer (required)
 pack_border_hybrid: store extra info unique to this atom style (optional)
 unpack_border: retrieve an atom's info from the buffer (required)
 unpack_border_vel: also retrieve velocity info (required)
-unpack_border_hybrid: retreive extra info unique to this atom style (optional)
+unpack_border_hybrid: retrieve extra info unique to this atom style (optional)
 pack_exchange: store all an atom's info to migrate to another processor (required)
 unpack_exchange: retrieve an atom's info from the buffer (required)
 size_restart: number of restart quantities associated with proc's atoms (required)
@@ -517,7 +517,7 @@ class.  See region.h for details.
 inside: determine whether a point is in the region
 surface_interior: determine if a point is within a cutoff distance inside of surc
 surface_exterior: determine if a point is within a cutoff distance outside of surf
-shape_update : change region shape if set by time-depedent variable :tb(s=:)
+shape_update : change region shape if set by time-dependent variable :tb(s=:)
 
 :line
 
@@ -601,16 +601,16 @@ Adding keywords for the "thermo_style custom"_thermo_style.html command
 "here"_Section_modify.html#mod_13 on this page.
 
 Adding a new math function of one or two arguments can be done by
-editing one section of the Variable::evaulate() method.  Search for
+editing one section of the Variable::evaluate() method.  Search for
 the word "customize" to find the appropriate location.
 
 Adding a new group function can be done by editing one section of the
-Variable::evaulate() method.  Search for the word "customize" to find
+Variable::evaluate() method.  Search for the word "customize" to find
 the appropriate location.  You may need to add a new method to the
 Group class as well (see the group.cpp file).
 
 Accessing a new atom-based vector can be done by editing one section
-of the Variable::evaulate() method.  Search for the word "customize"
+of the Variable::evaluate() method.  Search for the word "customize"
 to find the appropriate location.
 
 Adding new "compute styles"_compute.html (whose calculated values can
@@ -740,7 +740,7 @@ entry to add to the USER-MISC/README file in that dir, along with the
 contribute several individual features.  :l
 
 If you want your contribution to be added as a user-contribution and
-it is several related featues, it is probably best to make it a user
+it is several related features, it is probably best to make it a user
 package directory with a name like USER-FOO.  In addition to your new
 files, the directory should contain a README text file.  The README
 should contain your name and contact information and a brief

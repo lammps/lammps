@@ -140,5 +140,5 @@ for more info.
 
 :link(Lenosky)
 [(Lenosky)] Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
-Kress, Modelling Simulation Materials Science Enginerring, 8, 825
+Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).

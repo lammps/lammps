@@ -52,7 +52,7 @@ procsessors.  The {full} setting adds information about CPU
 utilization and thread utilization, when multi-threading is enabled.
 
 With the {sync} setting, all MPI tasks are synchronized at each timer
-call which measures load imbalance for each section more accuractly,
+call which measures load imbalance for each section more accurately,
 though it can also slow down the simulation by prohibiting overlapping
 independent computations on different MPI ranks  Using the {nosync}
 setting (which is the default) turns this synchronization off.

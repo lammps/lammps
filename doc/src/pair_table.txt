@@ -180,7 +180,7 @@ NOTE: If you use "R" or "RSQ", the tabulated distance values in the
 file are effectively ignored, and replaced by new values as described
 in the previous paragraph.  If the distance value in the table is not
 very close to the new value (i.e. round-off difference), then you will
-be assingning energy/force values to a different distance, which is
+be assigning energy/force values to a different distance, which is
 probably not what you want.  LAMMPS will warn if this is occurring.
 
 If used, the parameter "BITMAP" is also followed by 2 values {rlo} and

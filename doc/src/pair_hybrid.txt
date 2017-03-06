@@ -189,7 +189,7 @@ potentials.
 
 Different force fields (e.g. CHARMM vs AMBER) may have different rules
 for applying weightings that change the strength of pairwise
-interactions bewteen pairs of atoms that are also 1-2, 1-3, and 1-4
+interactions between pairs of atoms that are also 1-2, 1-3, and 1-4
 neighbors in the molecular bond topology, as normally set by the
 "special_bonds"_special_bonds.html command.  Different weights can be
 assigned to different pair hybrid sub-styles via the "pair_modify

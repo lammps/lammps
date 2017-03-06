@@ -99,7 +99,7 @@ included in the image or movie and how it appears.  A series of such
 images can easily be manually converted into an animated movie of your
 simulation or the process can be automated without writing the
 intermediate files using the dump movie style; see further details
-below.  Other dump styles store snapshots of numerical data asociated
+below.  Other dump styles store snapshots of numerical data associated
 with atoms in various formats, as discussed on the "dump"_dump.html
 doc page.
 
@@ -261,7 +261,7 @@ the input script defines, e.g. Angstroms.
 The {bond} keyword allows to you to alter how bonds are drawn.  A bond
 is only drawn if both atoms in the bond are being drawn due to being
 in the specified group and due to other selection criteria
-(e.g. region, threshhold settings of the
+(e.g. region, threshold settings of the
 "dump_modify"_dump_modify.html command).  By default, bonds are drawn
 if they are defined in the input data file as read by the
 "read_data"_read_data.html command.  Using {none} for both the bond
@@ -356,7 +356,7 @@ is used to define body particles with internal state
 body style.  If this keyword is not used, such particles will be drawn
 as spheres, the same as if they were regular atoms.
 
-The "body"_body.html doc page descibes the body styles LAMMPS
+The "body"_body.html doc page describes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body
 particles they represent and how they are drawn by this dump image
 command.  For all the body styles, individual atoms can be either a

@@ -211,7 +211,7 @@ charge.
 There are several options for outputting atom coordinates.  The {x},
 {y}, {z} attributes are used to write atom coordinates "unscaled", in
 the appropriate distance "units"_units.html (Angstroms, sigma, etc).
-Additionaly, you can use {xs}, {ys}, {zs} if you want to also save the
+Additionally, you can use {xs}, {ys}, {zs} if you want to also save the
 coordinates "scaled" to the box size, so that each value is 0.0 to
 1.0.  If the simulation box is triclinic (tilted), then all atom
 coords will still be between 0.0 and 1.0.  Use {xu}, {yu}, {zu} if you
@@ -224,7 +224,7 @@ values may be far outside the box bounds printed with the snapshot.
 Using {xsu}, {ysu}, {zsu} is similar to using {xu}, {yu}, {zu}, except
 that the unwrapped coordinates are scaled by the box size. Atoms that
 have passed through a periodic boundary will have the corresponding
-cooordinate increased or decreased by 1.0.
+coordinate increased or decreased by 1.0.
 
 The image flags can be printed directly using the {ix}, {iy}, {iz}
 attributes.  For periodic dimensions, they specify which image of the

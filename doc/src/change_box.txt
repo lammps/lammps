@@ -289,7 +289,7 @@ the create_box command is encountered in the input script.
 The {remap} keyword remaps atom coordinates from the last saved box
 size/shape to the current box state.  For example, if you stretch the
 box in the x dimension or tilt it in the xy plane via the {x} and {xy}
-keywords, then the {remap} commmand will dilate or tilt the atoms to
+keywords, then the {remap} command will dilate or tilt the atoms to
 conform to the new box size/shape, as if the atoms moved with the box
 as it deformed.
 

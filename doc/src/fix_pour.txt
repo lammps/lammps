@@ -175,7 +175,7 @@ some other way.
 The {vol} option specifies what volume fraction of the insertion
 volume will be filled with particles.  For particles with a size
 specified by the {diam range} keyword, they are assumed to all be of
-maximum diamter {Dhi} for purposes of computing their contribution to
+maximum diameter {Dhi} for purposes of computing their contribution to
 the volume fraction.
 
 The higher the volume fraction value, the more particles are inserted

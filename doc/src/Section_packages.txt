@@ -462,7 +462,7 @@ options you are optimizing for: CPU acceleration via OpenMP, GPU
 acceleration, or Intel Xeon Phi.  (You can build multiple times to
 create LAMMPS executables for different hardware.)  It also requires a
 C++11 compatible compiler.  For GPUs, the NVIDIA "nvcc" compiler is
-used, and an appopriate KOKKOS_ARCH setting should be made in your
+used, and an appropriate KOKKOS_ARCH setting should be made in your
 Makefile.machine for your GPU hardware and NVIDIA software.
 
 The simplest way to do this is to use Makefile.kokkos_cuda or
@@ -1848,7 +1848,7 @@ See this doc page to get started:
 
 The persons who created the USER-SMTBQ package are Nicolas Salles,
 Emile Maras, Olivier Politano, Robert Tetot, who can be contacted at
-these email addreses: lammps@u-bourgogne.fr, nsalles@laas.fr.  Contact
+these email addresses: lammps@u-bourgogne.fr, nsalles@laas.fr.  Contact
 them directly if you have any questions.
 
 Examples: examples/USER/smtbq

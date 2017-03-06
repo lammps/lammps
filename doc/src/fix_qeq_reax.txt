@@ -33,7 +33,7 @@ typically used in conjunction with the ReaxFF force field model as
 implemented in the "pair_style reax/c"_pair_reax_c.html command, but
 it can be used with any potential in LAMMPS, so long as it defines and
 uses charges on each atom.  The "fix qeq/comb"_fix_qeq_comb.html
-command should be used to perform charge equliibration with the "COMB
+command should be used to perform charge equilibration with the "COMB
 potential"_pair_comb.html.  For more technical details about the
 charge equilibration performed by fix qeq/reax, see the
 "(Aktulga)"_#Aktulga paper.

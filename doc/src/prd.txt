@@ -133,7 +133,7 @@ event.
 
 The event check is performed by a compute with the specified
 {compute-ID}.  Currently there is only one compute that works with the
-PRD commmand, which is the "compute
+PRD command, which is the "compute
 event/displace"_compute_event_displace.html command.  Other
 event-checking computes may be added.  "Compute
 event/displace"_compute_event_displace.html checks whether any atom in
@@ -230,7 +230,7 @@ files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For
 the PRD command, these contain the thermodynamic output for each
 replica.  You will see short runs and minimizations corresponding to
 the dynamics and quench operations of the loop listed above.  The
-timestep will be reset aprpopriately depending on whether the
+timestep will be reset appropriately depending on whether the
 operation advances time or not.
 
 After the PRD command completes, timing statistics for the PRD run are

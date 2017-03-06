@@ -108,7 +108,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 The MS-CG library uses C++11, which may not be supported by older
 compilers. The MS-CG library also has some additional numeric library
-dependencies, which are describd in its documentation.
+dependencies, which are described in its documentation.
 
 Currently, the MS-CG library is not setup to run in parallel with MPI,
 so this fix can only be used in a serial LAMMPS build and run

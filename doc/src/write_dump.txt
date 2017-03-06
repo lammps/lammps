@@ -53,7 +53,7 @@ support optional arguments and thus LAMMPS needs to be able to cleanly
 separate the two sets of args.
 
 Note that if the specified filename uses wildcard characters "*" or
-"%", as supported by the "dump"_dump.html commmand, they will operate
+"%", as supported by the "dump"_dump.html command, they will operate
 in the same fashion to create the new filename(s).  Normally, "dump
 image"_dump_image.html files require a filename with a "*" character
 for the timestep.  That is not the case for the write_dump command; no

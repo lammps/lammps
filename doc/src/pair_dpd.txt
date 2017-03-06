@@ -88,7 +88,7 @@ cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the "pair_style"_pair_style.html
 command so it does not need to be specified.
 
-For style {dpd/tstat}, the coefficiencts defined for each pair of
+For style {dpd/tstat}, the coefficients defined for each pair of
 atoms types via the "pair_coeff"_pair_coeff.html command is the same,
 except that A is not included.
 

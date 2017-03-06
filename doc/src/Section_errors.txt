@@ -992,7 +992,7 @@ file. :dd
 
 LAMMPS failed to compute an initial guess for the PPPM_disp g_ewald_6
 factor that partitions the computation between real space and k-space
-for Disptersion interactions. :dd
+for Dispersion interactions. :dd
 
 {Cannot create an atom map unless atoms have IDs} :dt
 
@@ -2005,7 +2005,7 @@ Self-explanatory. :dd
 
 {Cannot use fix reax/bonds without pair_style reax} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Cannot use fix rigid npt/nph and fix deform on same component of stress tensor} :dt
 
@@ -2131,7 +2131,7 @@ Self-explanatory. :dd
 
 {Cannot use newton pair with born/gpu pair style} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Cannot use newton pair with buck/coul/cut/gpu pair style} :dt
 
@@ -2291,7 +2291,7 @@ Self-explanatory. :dd
 
 {Cannot use newton pair with zbl/gpu pair style} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Cannot use non-zero forces in an energy minimization} :dt
 
@@ -2641,11 +2641,11 @@ uses a pairwise neighbor list. :dd
 
 {Compute chunk/atom bin/cylinder radius is too large for periodic box} :dt
 
-Radius cannot be bigger than 1/2 of a non-axis  periodic dimention. :dd
+Radius cannot be bigger than 1/2 of a non-axis  periodic dimension. :dd
 
 {Compute chunk/atom bin/sphere radius is too large for periodic box} :dt
 
-Radius cannot be bigger than 1/2 of any periodic dimention. :dd
+Radius cannot be bigger than 1/2 of any periodic dimension. :dd
 
 {Compute chunk/atom compute array is accessed out-of-range} :dt
 
@@ -2706,15 +2706,15 @@ It will only store IDs if its compress option is enabled. :dd
 
 {Compute chunk/atom stores no coord1 for compute property/chunk} :dt
 
-Only certain binning options for comptue chunk/atom store coordinates. :dd
+Only certain binning options for compute chunk/atom store coordinates. :dd
 
 {Compute chunk/atom stores no coord2 for compute property/chunk} :dt
 
-Only certain binning options for comptue chunk/atom store coordinates. :dd
+Only certain binning options for compute chunk/atom store coordinates. :dd
 
 {Compute chunk/atom stores no coord3 for compute property/chunk} :dt
 
-Only certain binning options for comptue chunk/atom store coordinates. :dd
+Only certain binning options for compute chunk/atom store coordinates. :dd
 
 {Compute chunk/atom variable is not atom-style variable} :dt
 
@@ -2735,11 +2735,11 @@ is used to find clusters. :dd
 
 {Compute cna/atom cutoff is longer than pairwise cutoff} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute cna/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute com/chunk does not use chunk/atom compute} :dt
 
@@ -2747,7 +2747,7 @@ The style of the specified compute is not chunk/atom. :dd
 
 {Compute contact/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute contact/atom requires atom style sphere} :dt
 
@@ -2760,7 +2760,7 @@ since those atoms are not in the neighbor list. :dd
 
 {Compute coord/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute damage/atom requires peridynamic potential} :dt
 
@@ -2835,7 +2835,7 @@ Cannot compute order parameter beyond cutoff. :dd
 
 {Compute hexorder/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute improper/local used when impropers are not allowed} :dt
 
@@ -2881,11 +2881,11 @@ Cannot compute order parameter beyond cutoff. :dd
 
 {Compute orientorder/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute pair must use group all} :dt
 
-Pair styles accumlate energy on all atoms. :dd
+Pair styles accumulate energy on all atoms. :dd
 
 {Compute pe must use group all} :dt
 
@@ -2935,7 +2935,7 @@ The style of the specified compute is not chunk/atom. :dd
 {Compute property/local cannot use these inputs together} :dt
 
 Only inputs that generate the same number of datums can be used
-togther.  E.g. bond and angle quantities cannot be mixed. :dd
+together.  E.g. bond and angle quantities cannot be mixed. :dd
 
 {Compute property/local does not (yet) work with atom_style template} :dt
 
@@ -3638,7 +3638,7 @@ Self-explanatory. :dd
 
 {Cutoffs missing in pair_style buck/long/coul/long} :dt
 
-Self-exlanatory. :dd
+Self-explanatory. :dd
 
 {Cutoffs missing in pair_style lj/long/coul/long} :dt
 
@@ -4617,11 +4617,11 @@ An index for the array is out of bounds. :dd
 
 {Fix ave/time compute does not calculate a scalar} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Fix ave/time compute does not calculate a vector} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Fix ave/time compute does not calculate an array} :dt
 
@@ -6171,7 +6171,7 @@ map command will force an atom map to be created. :dd
 
 {Initial temperatures not all set in fix ttm} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Input line quote not followed by whitespace} :dt
 
@@ -6199,7 +6199,7 @@ Eigensolve for rigid body was not sufficiently accurate. :dd
 
 {Insufficient Jacobi rotations for triangle} :dt
 
-The calculation of the intertia tensor of the triangle failed.  This
+The calculation of the inertia tensor of the triangle failed.  This
 should not happen if it is a reasonably shaped triangle. :dd
 
 {Insufficient memory on accelerator} :dt
@@ -6463,15 +6463,15 @@ Self-explanatory. :dd
 
 {Invalid attribute in dump custom command} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid attribute in dump local command} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid attribute in dump modify command} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid basis setting in create_atoms command} :dt
 
@@ -6737,7 +6737,7 @@ or cause multiple files to be written. :dd
 Filenames used with the dump xyz style cannot be binary or cause files
 to be written by each processor. :dd
 
-{Invalid dump_modify threshhold operator} :dt
+{Invalid dump_modify threshold operator} :dt
 
 Operator keyword used for threshold specification in not recognized. :dd
 
@@ -6751,7 +6751,7 @@ The fix is not recognized. :dd
 
 {Invalid fix ave/time off column} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid fix box/relax command for a 2d simulation} :dt
 
@@ -7313,7 +7313,7 @@ Self-explanatory. Check the input script or data file. :dd
 
 {LJ6 off not supported in pair_style buck/long/coul/long} :dt
 
-Self-exlanatory. :dd
+Self-explanatory. :dd
 
 {Label wasn't found in input script} :dt
 
@@ -7526,7 +7526,7 @@ Self-explanatory. :dd
 
 {Molecule template ID for create_atoms does not exist} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Molecule template ID for fix deposit does not exist} :dt
 
@@ -7792,7 +7792,7 @@ Self-explanatory. :dd
 
 {Must use variable energy with fix addforce} :dt
 
-Must define an energy vartiable when applyting a dynamic
+Must define an energy variable when applying a dynamic
 force during minimization. :dd
 
 {Must use variable energy with fix efield} :dt
@@ -8042,7 +8042,7 @@ Self-explanatory. :dd
 
 {Non digit character between brackets in variable} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Non integer # of swaps in temper command} :dt
 
@@ -8663,7 +8663,7 @@ not be invoked by bond_style quartic. :dd
 {Pair style does not support compute group/group} :dt
 
 The pair_style does not have a single() function, so it cannot be
-invokded by the compute group/group command. :dd
+invoked by the compute group/group command. :dd
 
 {Pair style does not support compute pair/local} :dt
 
@@ -8948,11 +8948,11 @@ Self-explanatory. :dd
 
 {Pair yukawa/colloid requires atom style sphere} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Pair yukawa/colloid requires atoms with same type have same radius} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Pair yukawa/colloid/gpu requires atom style sphere} :dt
 
@@ -10025,7 +10025,7 @@ make sense in between runs. :dd
 
 {Threshhold for an atom property that isn't allocated} :dt
 
-A dump threshhold has been requested on a quantity that is
+A dump threshold has been requested on a quantity that is
 not defined by the atom style used in this simulation. :dd
 
 {Timestep must be >= 0} :dt
@@ -10087,7 +10087,7 @@ to a large size. :dd
 {Too many atom triplets for pair bop} :dt
 
 The number of three atom groups for angle determinations exceeds the
-expected number.  Check your atomic structrure to ensure that it is
+expected number.  Check your atomic structure to ensure that it is
 realistic. :dd
 
 {Too many atoms for dump dcd} :dt
@@ -10155,7 +10155,7 @@ to a large size. :dd
 
 {Too many timesteps} :dt
 
-The cummulative timesteps must fit in a 64-bit integer. :dd
+The cumulative timesteps must fit in a 64-bit integer. :dd
 
 {Too many timesteps for NEB} :dt
 
@@ -10796,7 +10796,7 @@ Self-explanatory. :dd
 
 {Variable name for fix deform does not exist} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Variable name for fix efield does not exist} :dt
 
@@ -11083,7 +11083,7 @@ for a dihedral) and adding a small amount of stretch. :dd
 
 {Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Calling write_dump before a full system init.} :dt
 
@@ -11537,7 +11537,7 @@ neigh_modify exclude command. :dd
 
 If a thermo_style command is used after a thermo_modify command, the
 settings changed by the thermo_modify command will be reset to their
-default values.  This is because the thermo_modify commmand acts on
+default values.  This is because the thermo_modify command acts on
 the currently defined thermo style, and a thermo_style command creates
 a new style. :dd
 
@@ -11886,7 +11886,7 @@ Self-explanatory. :dd
 
 {Using largest cutoff for buck/long/coul/long} :dt
 
-Self-exlanatory. :dd
+Self-explanatory. :dd
 
 {Using largest cutoff for lj/long/coul/long} :dt
 

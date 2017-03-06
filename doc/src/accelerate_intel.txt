@@ -428,7 +428,7 @@ to the card.  This allows for overlap of MPI communication of forces
 with computation on the coprocessor when the "newton"_newton.html
 setting is "on".  The default is dependent on the style being used,
 however, better performance may be achieved by setting this option
-explictly.
+explicitly.
 
 When using offload with CPU Hyper-Threading disabled, it may help
 performance to use fewer MPI tasks and OpenMP threads than available

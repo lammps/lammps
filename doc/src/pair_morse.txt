@@ -80,7 +80,7 @@ the {morse} and {morse/smooth/linear} styles.
 The {morse/soft} variant is similar to the {lj/cut/soft} pair style
 in that it modifies the potential at short range to have a soft core.
 This helps to avoid singularities during free energy calculation in
-which sites are created or anihilated. The formula differs from that
+which sites are created or annihilated. The formula differs from that
 of {lj/cut/soft}, and is instead given by:
 
 :c,image(Eqs/pair_morse_soft.jpg)

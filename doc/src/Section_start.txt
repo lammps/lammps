@@ -362,7 +362,7 @@ installed on your platform.  If MPI is installed on your system in the
 usual place (under /usr/local), you also may not need to specify these
 3 variables, assuming /usr/local is in your path.  On some large
 parallel machines which use "modules" for their compile/link
-environements, you may simply need to include the correct module in
+environments, you may simply need to include the correct module in
 your build environment, before building LAMMPS.  Or the parallel
 machine may have a vendor-provided MPI which the compiler has no
 trouble finding.
@@ -430,7 +430,7 @@ use the KISS library described above.
 You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
 so the compiler and linker can find the needed FFT header and library
 files.  Note that on some large parallel machines which use "modules"
-for their compile/link environements, you may simply need to include
+for their compile/link environments, you may simply need to include
 the correct module in your build environment.  Or the parallel machine
 may have a vendor-provided FFT library which the compiler has no
 trouble finding.
@@ -450,7 +450,7 @@ you must also manually specify the correct library, namely -lsfftw or
 
 The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
 use single-precision FFTs with PPPM, which can speed-up long-range
-calulations, particularly in parallel or on GPUs.  Fourier transform
+calculations, particularly in parallel or on GPUs.  Fourier transform
 and related PPPM operations are somewhat insensitive to floating point
 truncation errors and thus do not always need to be performed in
 double precision.  Using the -DFFT_SINGLE setting trades off a little
@@ -1008,7 +1008,7 @@ Instead, it creates src/MAKE/MINE/Makefile.auto, which you can save or
 rename if desired.  Likewise it creates an executable named
 src/lmp_auto, which you can rename using the -o switch if desired.
 
-The most recently executed Make.py commmand is saved in
+The most recently executed Make.py command is saved in
 src/Make.py.last.  You can use the "-r" switch (for redo) to re-invoke
 the last command, or you can save a sequence of one or more Make.py
 commands to a file and invoke the file of commands using "-r".  You
@@ -1064,7 +1064,7 @@ src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
 -fPIC flag which is required for inclusion in a shared library.  The
 build will create the file liblammps_foo.so which another application
-can link to dyamically.  It will also create a soft link liblammps.so,
+can link to dynamically.  It will also create a soft link liblammps.so,
 which will point to the most recently built shared library.  This is
 the file the Python wrapper loads by default.
 

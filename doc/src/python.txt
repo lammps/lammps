@@ -143,7 +143,7 @@ numeric or string value, as specified by the {format} keyword.
 As explained on the "variable"_variable.html doc page, the definition
 of a python-style variable associates a Python function name with the
 variable.  This must match the {func} setting for this command.  For
-exampe these two commands would be self-consistent:
+example these two commands would be self-consistent:
 
 variable foo python myMultiply
 python myMultiply return v_foo format f file funcs.py :pre
@@ -356,7 +356,7 @@ python          loop invoke :pre
 This has the effect of looping over a series of 10 short runs (10
 timesteps each) where the pair style cutoff is increased from a value
 of 1.0 in distance units, in increments of 0.1.  The looping stops
-when the per-atom potential energy falls below a threshhold of -4.0 in
+when the per-atom potential energy falls below a threshold of -4.0 in
 energy units.  More generally, Python can be used to implement a loop
 with complex logic, much more so than can be created using the LAMMPS
 "jump"_jump.html and "if"_if.html commands.
@@ -384,7 +384,7 @@ file() functions, so long as the command would work if it were
 executed in the LAMMPS input script directly at the same point.
 
 However, a Python function can also be invoked during a run, whenever
-an associated LAMMPS variable it is assigned to is evaluted.  If the
+an associated LAMMPS variable it is assigned to is evaluated.  If the
 variable is an input argument to another LAMMPS command (e.g. "fix
 setforce"_fix_setforce.html), then the Python function will be invoked
 inside the class for that command, in one of its methods that is

@@ -112,16 +112,16 @@ partition yes 1 processors 3 4 5
 partition yes 2 processors 3 1 5 :pre
 
 When you run in 2-partition mode with the {verlet/split} style, the
-thermodyanmic data for the entire simulation will be output to the log
+thermodynamic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
 screen.0 by default; see the "-plog and -pscreen command-line
 switches"_Section_start.html#start_7 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
-output beyone the 1st timestep of the run.
+output beyond the 1st timestep of the run.
 
 See "Section 5"_Section_accelerate.html of the manual for
 performance details of the speed-up offered by the {verlet/split}
-style.  One important performance consideration is the assignemnt of
+style.  One important performance consideration is the assignment of
 logical processors in the 2 partitions to the physical cores of a
 parallel machine.  The "processors"_processors.html command has
 options to support this, and strategies are discussed in

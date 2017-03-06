@@ -175,7 +175,7 @@ equal-style versus internal-style variable interchangeably.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-Currenlty, no information about this fix is written to "binary restart
+Currently, no information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 

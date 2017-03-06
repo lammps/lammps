@@ -14,7 +14,7 @@ compute ID group-ID event/displace threshold :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 event/displace = style name of this compute command
-threshold = minimum distance anyparticle must move to trigger an event (distance units) :ul
+threshold = minimum distance any particle must move to trigger an event (distance units) :ul
 
 [Examples:]
 

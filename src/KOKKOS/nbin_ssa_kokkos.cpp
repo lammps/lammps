@@ -183,7 +183,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     });
     Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(1,8),
       LAMMPS_LAMBDA (const int i) {
-      sortGhostBin(gbincount_, gbins_, i);
+      sortBin(gbincount_, gbins_, i);
     });
   }
   c_gbins = gbins; // gbins won't change until the next bin_atoms
@@ -200,9 +200,16 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     Kokkos::parallel_for(mbins, f_zero);
     DeviceType::fence();
 
+    auto bincount_ = bincount;
+    auto bins_ = bins;
+
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_for(nlocal, f);
-    Kokkos::parallel_for(mbins, LAMMPS_LAMBDA (const int i) { sortAtomBin(i); });
+
+    Kokkos::parallel_for(mbins,
+      LAMMPS_LAMBDA (const int i) {
+      sortBin(bincount_, bins_, i);
+    });
     DeviceType::fence();
   }
   c_bins = bins; // bins won't change until the next bin_atoms
@@ -258,40 +265,7 @@ void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
 // An implementation of heapsort without recursion
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::sortAtomBin(const int &ibin) const
-{
-  int n = bincount(ibin);
-  int i = n/2;
-  int t;
-
-  do { /* Loops until bin is sorted */
-    if (i > 0) { /* First stage - Sorting the heap */
-      i--;           /* Save its index to i */
-      t = bins(ibin, i);    /* Save parent value to t */
-    } else {     /* Second stage - Extracting elements in-place */
-      if ((--n) <= 0) return; /* When the heap is empty, we are done */
-      t = bins(ibin, n);    /* Save last value (it will be overwritten) */
-      bins(ibin, n) = bins(ibin, 0); /* Save largest value at the end of the bin */
-    }
-    int parent = i; /* We will start pushing down t from parent */
-    int child = i*2 + 1; /* parent's left child */
-    /* Sift operation - pushing the value of t down the heap */
-    while (child < n) {
-      /* Choose the largest child */
-      if ((child + 1 < n) && (bins(ibin, child + 1) > bins(ibin, child))) ++child;
-      if (bins(ibin, child) <= t) break; /* t's place is found */
-      bins(ibin, parent) = bins(ibin, child); /* Move the largest child up */
-      parent = child; /* Move parent pointer to this child */
-      child = parent*2+1; /* Find the next child */
-    }
-    bins(ibin, parent) = t; /* We save t in the heap */
-  } while(1);
-}
-
-// An implementation of heapsort without recursion
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::sortGhostBin(
+void NBinSSAKokkos<DeviceType>::sortBin(
       typename AT::t_int_1d gbincount,
       typename AT::t_int_2d gbins,
       const int &ibin)
@@ -305,7 +279,7 @@ void NBinSSAKokkos<DeviceType>::sortGhostBin(
       i--;           /* Save its index to i */
       t = gbins(ibin, i);    /* Save parent value to t */
     } else {     /* Second stage - Extracting elements in-place */
-      if (--n <= 0) return; /* When the heap is empty, we are done */
+      if ((--n) <= 0) return; /* When the heap is empty, we are done */
       t = gbins(ibin, n);    /* Save last value (it will be overwritten) */
       gbins(ibin, n) = gbins(ibin, 0); /* Save largest value at the end of the bin */
     }

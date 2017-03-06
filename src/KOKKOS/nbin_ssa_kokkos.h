@@ -88,11 +88,8 @@ class NBinSSAKokkos : public NBinStandard {
   KOKKOS_INLINE_FUNCTION
   void binIDGhostsItem(const int &i, int &update) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void sortAtomBin(const int &ibin) const;
-
   static KOKKOS_INLINE_FUNCTION
-  void sortGhostBin(
+  void sortBin(
       typename AT::t_int_1d gbincount,
       typename AT::t_int_2d gbins,
       const int &ibin);

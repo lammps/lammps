@@ -4,7 +4,7 @@
  *		Also contains quaternion structures and operations
  *
  *    Cartesian point of doubles: cPt
- *    Cartesian point of intergers: iPt
+ *    Cartesian point of integers: iPt
  *    Vector of doubles: vectorPt
  *    Color of doubles:   colorPt
  *    Quaternion: Quaternion

@@ -57,7 +57,7 @@ ERR_INTERNAL()
   echo "    !!!!!!   Possible internal error  !!!!!!" >&2
   echo "This could be a bug in moltemplate." >&2
   echo "Please report this error." >&2
-  echo "(And please include the last few lines of moltemplate output preceeding this.)" >&2
+  echo "(And please include the last few lines of moltemplate output preceding this.)" >&2
   echo "  Thank you." >&2
   exit 100
 }

@@ -99,7 +99,7 @@ included in the image or movie and how it appears.  A series of such
 images can easily be manually converted into an animated movie of your
 simulation or the process can be automated without writing the
 intermediate files using the dump movie style; see further details
-below.  Other dump styles store snapshots of numerical data asociated
+below.  Other dump styles store snapshots of numerical data associated
 with atoms in various formats, as discussed on the "dump"_dump.html
 doc page.
 
@@ -237,7 +237,7 @@ diameter, which can be used as the {diameter} setting.
 
 :line
 
-The various kewords listed above control how the image is rendered.
+The various keywords listed above control how the image is rendered.
 As listed below, all of the keywords have defaults, most of which you
 will likely not need to change.  The "dump modify"_dump_modify.html
 also has options specific to the dump image style, particularly for
@@ -261,7 +261,7 @@ the input script defines, e.g. Angstroms.
 The {bond} keyword allows to you to alter how bonds are drawn.  A bond
 is only drawn if both atoms in the bond are being drawn due to being
 in the specified group and due to other selection criteria
-(e.g. region, threshhold settings of the
+(e.g. region, threshold settings of the
 "dump_modify"_dump_modify.html command).  By default, bonds are drawn
 if they are defined in the input data file as read by the
 "read_data"_read_data.html command.  Using {none} for both the bond
@@ -356,7 +356,7 @@ is used to define body particles with internal state
 body style.  If this keyword is not used, such particles will be drawn
 as spheres, the same as if they were regular atoms.
 
-The "body"_body.html doc page descibes the body styles LAMMPS
+The "body"_body.html doc page describes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body
 particles they represent and how they are drawn by this dump image
 command.  For all the body styles, individual atoms can be either a
@@ -442,7 +442,7 @@ degrees.
 
 The {center} keyword determines the point in simulation space that
 will be at the center of the image.  {Cx}, {Cy}, and {Cz} are
-speficied as fractions of the box dimensions, so that (0.5,0.5,0.5) is
+specified as fractions of the box dimensions, so that (0.5,0.5,0.5) is
 the center of the simulation box.  These values do not have to be
 between 0.0 and 1.0, if you want the simulation box to be offset from
 the center of the image.  Note, however, that if you choose strange
@@ -476,8 +476,8 @@ smaller.  {Zfactor} must be a value > 0.0.
 The {persp} keyword determines how much depth perspective is present
 in the image.  Depth perspective makes lines that are parallel in
 simulation space appear non-parallel in the image.  A {pfactor} value
-of 0.0 means that parallel lines will meet at infininty (1.0/pfactor),
-which is an orthographic rendering with no persepctive.  A {pfactor}
+of 0.0 means that parallel lines will meet at infinity (1.0/pfactor),
+which is an orthographic rendering with no perspective.  A {pfactor}
 value between 0.0 and 1.0 will introduce more perspective.  A {pfactor}
 value > 1 will create a highly skewed image with a large amount of
 perspective.
@@ -638,7 +638,7 @@ pipe:: Input/output error :pre
 which can be safely ignored. Other warnings
 and errors have to be addressed according to the FFmpeg documentation.
 One known issue is that certain movie file formats (e.g. MPEG level 1
-and 2 format streams) have video bandwith limits that can be crossed
+and 2 format streams) have video bandwidth limits that can be crossed
 when rendering too large of image sizes. Typical warnings look like
 this:
 

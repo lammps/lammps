@@ -131,7 +131,7 @@ reduce force aliasing errors and increase the accuracy of the method
 for a given mesh size.  Or a coarser mesh can be used for the same
 target accuracy, which saves CPU time.  However, there is a trade-off
 since FFTs on two meshes are now performed which increases the
-compuation required.  See "(Cerutti)"_#Cerutti, "(Neelov)"_#Neelov,
+computation required.  See "(Cerutti)"_#Cerutti, "(Neelov)"_#Neelov,
 and "(Hockney)"_#Hockney for details of the method.
 
 For high relative accuracy, using staggered PPPM allows the mesh size
@@ -174,7 +174,7 @@ using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
 lo-level Makefile.  This setting also changes some of the PPPM
 operations (e.g. mapping charge to mesh and interpolating electric
 fields to particles) to be performed in single precision.  This option
-can speed-up long-range calulations, particularly in parallel or on
+can speed-up long-range calculations, particularly in parallel or on
 GPUs.  The use of the -DFFT_SINGLE flag is discussed in "this
 section"_Section_start.html#start_2_4 of the manual. MSM does not
 currently support the -DFFT_SINGLE compiler switch.
@@ -233,7 +233,7 @@ simulation cell.  One way to handle this issue if you have a long
 simulation where the box size changes dramatically, is to break it
 into shorter simulations (multiple "run"_run.html commands).  This
 works because the grid size is re-computed at the beginning of each
-run.  Another way to ensure the descired accuracy requirement is met
+run.  Another way to ensure the described accuracy requirement is met
 is to run a short simulation at the maximum expected tilt or length,
 note the required grid size, and then use the
 "kspace_modify"_kspace_modify.html {mesh} command to manually set the
@@ -255,7 +255,7 @@ are estimated using equations 33 and 46 of "(Wang)"_#Wang.
 
 See the "kspace_modify"_kspace_modify.html command for additional
 options of the K-space solvers that can be set, including a {force}
-option for setting an absoulte RMS error in forces, as opposed to a
+option for setting an absolute RMS error in forces, as opposed to a
 relative RMS error.
 
 :line
@@ -341,7 +341,7 @@ kspace_style none :pre
 Adam Hilger, NY (1989).
 
 :link(Kolafa)
-[(Kolafa)] Kolafa and Perram, Molecular Simualtion, 9, 351 (1992).
+[(Kolafa)] Kolafa and Perram, Molecular Simulation, 9, 351 (1992).
 
 :link(Petersen)
 [(Petersen)] Petersen, J Chem Phys, 103, 3668 (1995).

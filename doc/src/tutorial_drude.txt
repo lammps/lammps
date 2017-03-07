@@ -72,17 +72,17 @@ In both these force fields hydrogen atoms are treated as non-polarizable. :l
 
 
 The motion of of the Drude particles can be calculated by minimizing
-the energy of the induced dipoles at each timestep, by an interative,
+the energy of the induced dipoles at each timestep, by an iterative,
 self-consistent procedure. The Drude particles can be massless and
 therefore do not contribute to the kinetic energy. However, the
-relaxed method is computationall slow. An extended-lagrangian method
+relaxed method is computational slow. An extended-lagrangian method
 can be used to calculate the positions of the Drude particles, but
 this requires them to have mass. It is important in this case to
 decouple the degrees of freedom associated with the Drude oscillators
 from those of the normal atoms. Thermalizing the Drude dipoles at
 temperatures comparable to the rest of the simulation leads to several
 problems (kinetic energy transfer, very short timestep, etc.), which
-can be remediated by the "cold Drude" technique ("Lamoureux and
+can be remediate by the "cold Drude" technique ("Lamoureux and
 Roux"_#Lamoureux).
 
 Two closely related models are used to represent polarization through
@@ -270,7 +270,7 @@ be stable, for example if the atomic polarizability is too high for
 instance, a DP can escape from its DC and be captured by another DC,
 which makes the force and energy diverge and the simulation
 crash. Even without reaching this extreme case, the correlation
-between nearby dipoles on the same molecule may be exagerated.  Often,
+between nearby dipoles on the same molecule may be exaggerated.  Often,
 special bond relations prevent bonded neighboring atoms to see the
 charge of each other's DP, so that the problem does not always appear.
 It is possible to use screened dipole dipole interactions by using the

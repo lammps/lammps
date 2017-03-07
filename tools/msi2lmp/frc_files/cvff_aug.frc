@@ -209,7 +209,7 @@
 
 #define cvff_aug
 
-> This specifes the use of the ionic parameter types    
+> This specifies the use of the ionic parameter types    
 
 !Ver  Ref               Function                Label
 !---- ---   ---------------------------------   ------

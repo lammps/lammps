@@ -42,7 +42,7 @@ triangle, for purposes of this pair style, are generated in the
 following manner.  Assume the triangle is of type I, and sigma_II has
 been specified.  We want a set of spheres with centers in the plane of
 the triangle, none of them larger in diameter than sigma_II, which
-completely cover the triangle's area, but with minimial overlap and a
+completely cover the triangle's area, but with minimal overlap and a
 minimal total number of spheres.  This is done in a recursive manner.
 Place a sphere at the centroid of the original triangle.  Calculate
 what diameter it must have to just cover all 3 corner points of the

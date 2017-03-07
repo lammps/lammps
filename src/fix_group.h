@@ -77,10 +77,10 @@ The variable must be an atom-style variable.
 
 W: One or more dynamic groups may not be updated at correct point in timestep
 
-If there are other fixes that act immediately after the intitial stage
+If there are other fixes that act immediately after the initial stage
 of time integration within a timestep (i.e. after atoms move), then
 the command that sets up the dynamic group should appear after those
-fixes.  This will insure that dynamic group assignements are made
+fixes.  This will insure that dynamic group assignments are made
 after all atoms have moved.
 
 */

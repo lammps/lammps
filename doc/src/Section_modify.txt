@@ -159,17 +159,17 @@ pack_comm_vel: add velocity info to communication buffer (required)
 pack_comm_hybrid: store extra info unique to this atom style (optional)
 unpack_comm: retrieve an atom's info from the buffer (required)
 unpack_comm_vel: also retrieve velocity info (required)
-unpack_comm_hybrid: retreive extra info unique to this atom style (optional)
+unpack_comm_hybrid: retrieve extra info unique to this atom style (optional)
 pack_reverse: store an atom's info in a buffer communicating partial forces  (required)
 pack_reverse_hybrid: store extra info unique to this atom style (optional)
 unpack_reverse: retrieve an atom's info from the buffer (required)
-unpack_reverse_hybrid: retreive extra info unique to this atom style (optional)
+unpack_reverse_hybrid: retrieve extra info unique to this atom style (optional)
 pack_border: store an atom's info in a buffer communicated on neighbor re-builds (required)
 pack_border_vel: add velocity info to buffer (required)
 pack_border_hybrid: store extra info unique to this atom style (optional)
 unpack_border: retrieve an atom's info from the buffer (required)
 unpack_border_vel: also retrieve velocity info (required)
-unpack_border_hybrid: retreive extra info unique to this atom style (optional)
+unpack_border_hybrid: retrieve extra info unique to this atom style (optional)
 pack_exchange: store all an atom's info to migrate to another processor (required)
 unpack_exchange: retrieve an atom's info from the buffer (required)
 size_restart: number of restart quantities associated with proc's atoms (required)
@@ -369,7 +369,7 @@ pre_force_respa: same as pre_force, but for rRESPA (optional)
 post_force_respa: same as post_force, but for rRESPA (optional)
 final_integrate_respa: same as final_integrate, but for rRESPA (optional)
 min_pre_force: called after pair & molecular forces are computed in minimizer (optional)
-min_post_force: called after pair & molecular forces are computed and communicated in minmizer (optional)
+min_post_force: called after pair & molecular forces are computed and communicated in minimizer (optional)
 min_store: store extra data for linesearch based minimization on a LIFO stack (optional)
 min_pushstore: push the minimization LIFO stack one element down (optional)
 min_popstore: pop the minimization LIFO stack one element up (optional)
@@ -517,7 +517,7 @@ class.  See region.h for details.
 inside: determine whether a point is in the region
 surface_interior: determine if a point is within a cutoff distance inside of surc
 surface_exterior: determine if a point is within a cutoff distance outside of surf
-shape_update : change region shape if set by time-depedent variable :tb(s=:)
+shape_update : change region shape if set by time-dependent variable :tb(s=:)
 
 :line
 
@@ -601,16 +601,16 @@ Adding keywords for the "thermo_style custom"_thermo_style.html command
 "here"_Section_modify.html#mod_13 on this page.
 
 Adding a new math function of one or two arguments can be done by
-editing one section of the Variable::evaulate() method.  Search for
+editing one section of the Variable::evaluate() method.  Search for
 the word "customize" to find the appropriate location.
 
 Adding a new group function can be done by editing one section of the
-Variable::evaulate() method.  Search for the word "customize" to find
+Variable::evaluate() method.  Search for the word "customize" to find
 the appropriate location.  You may need to add a new method to the
 Group class as well (see the group.cpp file).
 
 Accessing a new atom-based vector can be done by editing one section
-of the Variable::evaulate() method.  Search for the word "customize"
+of the Variable::evaluate() method.  Search for the word "customize"
 to find the appropriate location.
 
 Adding new "compute styles"_compute.html (whose calculated values can
@@ -740,7 +740,7 @@ entry to add to the USER-MISC/README file in that dir, along with the
 contribute several individual features.  :l
 
 If you want your contribution to be added as a user-contribution and
-it is several related featues, it is probably best to make it a user
+it is several related features, it is probably best to make it a user
 package directory with a name like USER-FOO.  In addition to your new
 files, the directory should contain a README text file.  The README
 should contain your name and contact information and a brief
@@ -785,10 +785,10 @@ file for how to format the cite itself.  The "Restrictions" section of
 the doc page should indicate that your command is only available if
 LAMMPS is built with the appropriate USER-MISC or USER-FOO package.
 See other user package doc files for examples of how to do this. The
-prerequiste for building the HTML format files are Python 3.x and
+prerequisite for building the HTML format files are Python 3.x and
 virtualenv, the requirement for generating the PDF format manual
 is the "htmldoc"_http://www.htmldoc.org/ software. Please run at least
-"make html" and carefully inspect and proofread the resuling HTML format
+"make html" and carefully inspect and proofread the resulting HTML format
 doc page before submitting your code. :l
 
 For a new package (or even a single command) you should include one or

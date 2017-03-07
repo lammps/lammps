@@ -70,15 +70,15 @@ Self-explanatory.
 
 W: Using largest cutoff for buck/long/coul/long
 
-Self-exlanatory.
+Self-explanatory.
 
 E: Cutoffs missing in pair_style buck/long/coul/long
 
-Self-exlanatory.
+Self-explanatory.
 
 E: LJ6 off not supported in pair_style buck/long/coul/long
 
-Self-exlanatory.
+Self-explanatory.
 
 E: Coulomb cut not supported in pair_style buck/long/coul/coul
 

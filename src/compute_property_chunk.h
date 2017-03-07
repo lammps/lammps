@@ -81,15 +81,15 @@ It will only store IDs if its compress option is enabled.
 
 E: Compute chunk/atom stores no coord1 for compute property/chunk
 
-Only certain binning options for comptue chunk/atom store coordinates.
+Only certain binning options for compute chunk/atom store coordinates.
 
 E: Compute chunk/atom stores no coord2 for compute property/chunk
 
-Only certain binning options for comptue chunk/atom store coordinates.
+Only certain binning options for compute chunk/atom store coordinates.
 
 E: Compute chunk/atom stores no coord3 for compute property/chunk
 
-Only certain binning options for comptue chunk/atom store coordinates.
+Only certain binning options for compute chunk/atom store coordinates.
 
 E: Invalid keyword in compute property/chunk command
 

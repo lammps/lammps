@@ -56,6 +56,6 @@ Self-explanatory.
 
 E: Compute erotate/asphere requires extended particles
 
-This compute cannot be used with point paritlces.
+This compute cannot be used with point particles.
 
 */

@@ -158,7 +158,7 @@
  1.0  1   op      15.99940      O          2        sp2 aromatic in 5 membered ring 
  3.0 10   osh     15.99491      O          2        oxygen atom in terminal hydroxyl group on silicon
  1.0  1   osi     16.00000      O          2        siloxane oxygen
- 3.0 10   oss     15.99491      O          2        oxygen atom betweem two silicons
+ 3.0 10   oss     15.99491      O          2        oxygen atom between two silicons
  2.0  5   oz      15.99940      O          2        ester oxygen in carbonate
  1.0  1   p       30.97380      P          4        general phosphorous atom
  1.0  1   p=      30.97380      P          5        phosphazene phosphorous atom

@@ -17,7 +17,7 @@ eos/table = style name of this fix command
 style = {linear} = method of interpolation
 file = filename containing the tabulated equation of state
 N = use N values in {linear} tables
-keyword = name of table keyword correponding to table file :ul
+keyword = name of table keyword corresponding to table file :ul
 
 [Examples:]
 

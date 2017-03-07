@@ -35,7 +35,7 @@ any command that uses per-particle values from a compute as input.
 See "Section 6.15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
-The per-particle values will be given dimentionless, see "units"_units.html.
+The per-particle values will be given dimensionless, see "units"_units.html.
 
 [Restrictions:]
 

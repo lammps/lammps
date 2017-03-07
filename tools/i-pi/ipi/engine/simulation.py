@@ -49,7 +49,7 @@ class Simulation(dobject):
    """Main simulation object.
 
    Contains all the references and the main dynamics loop. Also handles the
-   initialisation and output.
+   initialization and output.
 
    Attributes:
       beads: A beads object giving the atom positions.

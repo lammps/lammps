@@ -1,6 +1,6 @@
 #AtC Thermal Coupling
 # This benchmark tests heat conducting into and out of the MD region.  The
-# temperature is intially 20 everywhere and the left boundary BC is fixed at
+# temperature is initially 20 everywhere and the left boundary BC is fixed at
 # 40.# The result should show heat diffusing through the FEM to the MD and back
 # out # to the FEM on the right.  Insufficient time is captured to reach the
 # linear # steady state, but heat crossing both boundaries should be observed.

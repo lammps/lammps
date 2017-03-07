@@ -116,7 +116,7 @@ cutoff distance for truncating interactions, and s00 and alpha are
 used as a bond breaking criteria. m_lambdai and m_taubi are the
 viscoelastic relaxation parameter and time constant,
 respectively. m_lambdai varies within zero to one. For very small
-values of m_lambdai the viscoelsatic model responds very similar to a
+values of m_lambdai the viscoelastic model responds very similar to a
 linear elastic model. For details please see the description in
 "(Mtchell2011)".
 

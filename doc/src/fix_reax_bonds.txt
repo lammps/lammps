@@ -34,7 +34,7 @@ written to {filename} on timesteps that are multiples of {Nevery},
 including timestep 0.  For time-averaged chemical species analysis,
 please see the "fix reaxc/c/species"_fix_reaxc_species.html command.
 
-The format of the output file should be self-explantory.
+The format of the output file should be self-explanatory.
 
 :line
 

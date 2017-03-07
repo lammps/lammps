@@ -67,7 +67,7 @@ timestep 0.0006
 #---------------------------------------------------------------------------
 # Create a lattice-Boltzmann fluid covering the simulation domain.
 # This fluid feels a force due to the particles specified through FluidAtoms 
-#   (however, this fix does not explicity apply a force back on to these 
+#   (however, this fix does not explicitly apply a force back on to these 
 #    particles...this is accomplished through the use of the viscous_lb fix).
 # Use the standard LB integration scheme, a fluid density = 1.0, 
 #   fluid viscosity = 1.0, lattice spacing dx=0.06, and mass unit, dm=0.00003.

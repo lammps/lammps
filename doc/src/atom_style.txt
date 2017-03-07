@@ -115,7 +115,7 @@ particle.
 For the {ellipsoid} style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
 a point particle.  If it is an ellipsoid, it also stores a shape
-vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
+vector with the 3 diameters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
 For the {dipole} style, a point dipole is defined for each point
@@ -149,7 +149,7 @@ Hydrodynamics.  Both fluids and solids can be modeled.  Particles
 store the mass and volume of an integration point, a kernel diameter
 used for calculating the field variables (e.g. stress and deformation)
 and a contact radius for calculating repulsive forces which prevent
-individual physical bodies from penetretating each other.
+individual physical bodies from penetrating each other.
 
 The {wavepacket} style is similar to {electron}, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
@@ -165,7 +165,7 @@ For the {tri} style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 
-The {template} style allows molecular topolgy (bonds,angles,etc) to be
+The {template} style allows molecular topology (bonds,angles,etc) to be
 defined via a molecule template using the "molecule"_molecule.html
 command.  The template stores one or more molecules with a single copy
 of the topology info (bonds,angles,etc) of each.  Individual atoms
@@ -195,7 +195,7 @@ the {bstyle} argument.  Body particles can represent complex entities,
 such as surface meshes of discrete points, collections of
 sub-particles, deformable objects, etc.
 
-The "body"_body.html doc page descibes the body styles LAMMPS
+The "body"_body.html doc page describes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body
 particles they represent.  For all styles, each body particle stores
 moments of inertia and a quaternion 4-vector, so that its orientation
@@ -280,7 +280,7 @@ The {dpd} style is part of the USER-DPD package for dissipative
 particle dynamics (DPD).
 
 The {meso} style is part of the USER-SPH package for smoothed particle
-hydrodyanmics (SPH).  See "this PDF
+hydrodynamics (SPH).  See "this PDF
 guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.
 
 The {wavepacket} style is part of the USER-AWPMD package for the

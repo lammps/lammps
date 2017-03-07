@@ -273,7 +273,7 @@ style.  However the DYNAMO {setfl} file must has two
 lines added to it, at the end of the file:
 
 line 1: Comment line (ignored)
-line 2: N Coefficient0 Coefficient1 ... CoeffincientN :ul
+line 2: N Coefficient0 Coefficient1 ... CoefficientN :ul
 
 The last line begins with the degree {N} of the polynomial function
 {h(x)} that modifies the cross interaction between A and B elements.

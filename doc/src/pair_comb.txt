@@ -86,7 +86,7 @@ For style {comb}, the provided potential file {ffield.comb} contains
 all currently-available 2nd generation COMB parameterizations: for Si,
 Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
 {comb3}, the potential file {ffield.comb3} contains all
-currently-available 3rd generation COMB paramterizations: O, Cu, N, C,
+currently-available 3rd generation COMB parameterizations: O, Cu, N, C,
 H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
 example Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the
 following table:

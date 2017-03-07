@@ -63,7 +63,7 @@ Note that an individual pair style can be used multiple times as a
 sub-style.  For efficiency this should only be done if your model
 requires it.  E.g. if you have different regions of Si and C atoms and
 wish to use a Tersoff potential for pure Si for one set of atoms, and
-a Tersoff potetnial for pure C for the other set (presumably with some
+a Tersoff potential for pure C for the other set (presumably with some
 3rd potential for Si-C interactions), then the sub-style {tersoff}
 could be listed twice.  But if you just want to use a Lennard-Jones or
 other pairwise potential for several different atom type pairs in your
@@ -189,7 +189,7 @@ potentials.
 
 Different force fields (e.g. CHARMM vs AMBER) may have different rules
 for applying weightings that change the strength of pairwise
-interactions bewteen pairs of atoms that are also 1-2, 1-3, and 1-4
+interactions between pairs of atoms that are also 1-2, 1-3, and 1-4
 neighbors in the molecular bond topology, as normally set by the
 "special_bonds"_special_bonds.html command.  Different weights can be
 assigned to different pair hybrid sub-styles via the "pair_modify

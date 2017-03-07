@@ -165,7 +165,7 @@ def LttreeParseArgs(argv, settings):
         elif ((argv[i][0] == '-') and (__name__ == "__main__")):
             #elif (__name__ == "__main__"):
             raise InputError('Error('+g_program_name+'):\n'
-                             'Unrecogized command line argument \"'+argv[i]+'\"\n')
+                             'Unrecognized command line argument \"'+argv[i]+'\"\n')
         else:
             i += 1
 

@@ -162,7 +162,7 @@ Self-explanatory.
 
 E: Fix ave/chunk does not use chunk/atom compute
 
-The specified conpute is not for a compute chunk/atom command.
+The specified compute is not for a compute chunk/atom command.
 
 E: Error writing file header
 

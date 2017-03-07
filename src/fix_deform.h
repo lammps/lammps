@@ -107,7 +107,7 @@ Only one fix deform can be defined at a time.
 
 E: Variable name for fix deform does not exist
 
-Self-explantory.
+Self-explanatory.
 
 E: Variable for fix deform is invalid style
 

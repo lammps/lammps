@@ -43,7 +43,7 @@ fix 1 all phonon 10 5000 500000 GAMMA EAM0D nasr 100 :pre
 Calculate the dynamical matrix from molecular dynamics simulations
 based on fluctuation-dissipation theory for a group of atoms.
 
-Consider a crystal with \(N\) unit cells in three dimensions labelled
+Consider a crystal with \(N\) unit cells in three dimensions labeled
 \(l = (l_1, l_2, l_3)\) where \(l_i\) are integers.  Each unit cell is
 defined by three linearly independent vectors \(\mathbf\{a\}_1\),
 \(\mathbf\{a\}_2\), \(\mathbf\{a\}_3\) forming a parallelipiped,
@@ -183,7 +183,7 @@ This fix requires LAMMPS be built with an FFT library.  See the
 
 [Default:]
 
-The option defaults are sysdim = the same dimemsion as specified by
+The option defaults are sysdim = the same dimension as specified by
 the "dimension"_dimension.html command, and nasr = 20.
 
 :line

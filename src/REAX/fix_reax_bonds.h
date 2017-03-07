@@ -63,7 +63,7 @@ Check that the path and name are correct.
 
 E: Cannot use fix reax/bonds without pair_style reax
 
-Self-explantory.
+Self-explanatory.
 
 E: Fix reax/bonds numbonds > nsbmax_most
 

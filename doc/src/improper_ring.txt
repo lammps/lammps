@@ -36,7 +36,7 @@ j,k, and l.
 The "ring" improper style implements the improper potential introduced
 by Destree et al., in Equation (9) of "(Destree)"_#Destree.  This
 potential does not affect small amplitude vibrations but is used in an
-ad-hoc way to prevent the onset of accidentially large amplitude
+ad-hoc way to prevent the onset of accidentally large amplitude
 fluctuations leading to the occurrence of a planar conformation of the
 three bonds i-j, j-k and j-l, an intermediate conformation toward the
 chiral inversion of a methine carbon.  In the "Impropers" section of

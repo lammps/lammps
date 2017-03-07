@@ -1034,7 +1034,7 @@ void PairEDIP::setup_params()
     if (rtmp > cutmax) cutmax = rtmp;
   }
 
-  // this should be removed for multi species parametrizations
+  // this should be removed for multi species parameterization
 
   A = params[0].A;
   B = params[0].B;

@@ -218,7 +218,7 @@ by this fix are "intensive".
 These are the 2 quantities:
 
 (1) # of bonds created on the most recent creation timestep
-(2) cummulative # of bonds created :ul
+(2) cumulative # of bonds created :ul
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

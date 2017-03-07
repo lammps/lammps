@@ -126,7 +126,7 @@ namespace LAMMPS_NS {
       int lmps_maxalloc;              // max allocated memory value
       int* kim_particleSpecies;       // array of KIM particle species
       double** lmps_force_tmp;        // temp storage for f, when running in
-                                      // hybrid mode needed to avoid reseting
+                                      // hybrid mode needed to avoid resetting
                                       // f to zero in each object
       int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
                                       // is in molecular mode

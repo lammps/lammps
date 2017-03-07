@@ -168,7 +168,7 @@ void PairGauss::settings(int narg, char **arg)
 
   cut_global = force->numeric(FLERR,arg[0]);
 
-  // reset cutoffs that have been explicity set
+  // reset cutoffs that have been explicitly set
 
   if (allocated) {
     int i,j;

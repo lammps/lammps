@@ -60,7 +60,7 @@ Self-explanatory.
 
 E: Compute contact/atom requires a pair style be defined
 
-Self-explantory.
+Self-explanatory.
 
 W: More than one compute contact/atom
 

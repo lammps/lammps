@@ -460,7 +460,7 @@ class Properties(dobject):
          key: A string contained in property_dict.
 
       Returns:
-         The property labelled by the keyword key, along with its unit
+         The property labeled by the keyword key, along with its unit
          keyword, and the argument lists for the function used to calculate
          the property specified by the keyword key.
       """
@@ -1216,7 +1216,7 @@ class Trajectories(dobject):
          key: A string contained in trajectory_dict.
 
       Returns:
-         The trajectory labelled by the keyword key, along with its unit
+         The trajectory labeled by the keyword key, along with its unit
          keyword, and the argument lists for the function used to calculate
          the trajectory specified by the keyword key.
       """

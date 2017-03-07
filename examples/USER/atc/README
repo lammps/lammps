@@ -65,7 +65,7 @@ elastic:
     in.bar1d_ghost_flux - Quasi-1D elastic wave propagation with coupling using boundary stresses from ghost atoms
     in.bar1d_thermo_elastic - Quasi-1D finite temperature elastic wave propagation
     in.cnt_electrostatic - Mechanical response of CNT with fixed charge density in an electric field
-    in.cnt_electrostatic2 - Mechanical reponse of CNT with self-consistent charge density and electric field
+    in.cnt_electrostatic2 - Mechanical response of CNT with self-consistent charge density and electric field
     in.cnt_fixed_charge - Mechancial response of CNT with fixed atomic charges in an electric field
     in.eam_energy - Quasi-static/quasi-1D coupling and transfer extraction of energy density for EAM gold
     in.electron_density - Mechanical response of differnt CNT models with a self-consistent electron density and electric field
@@ -146,7 +146,7 @@ elastic:
     in.bar1d_ghost_flux - Quasi-1D elastic wave propagation with coupling using boundary stresses from ghost atoms
     in.bar1d_thermo_elastic - Quasi-1D finite temperature elastic wave propagation
     in.cnt_electrostatic - Mechanical response of CNT with fixed charge density in an electric field
-    in.cnt_electrostatic2 - Mechanical reponse of CNT with self-consistent charge density and electric field
+    in.cnt_electrostatic2 - Mechanical response of CNT with self-consistent charge density and electric field
     in.cnt_fixed_charge - Mechancial response of CNT with fixed atomic charges in an electric field
     in.eam_energy - Quasi-static/quasi-1D coupling and transfer extraction of energy density for EAM gold
     in.electron_density - Mechanical response of differnt CNT models with a self-consistent electron density and electric field

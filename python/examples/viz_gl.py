@@ -1,5 +1,5 @@
 #!/usr/bin/env python -i
-# preceeding line should have path for Python on your machine
+# preceding line should have path for Python on your machine
 
 # viz_gl.py
 # Purpose: viz running LAMMPS simulation via GL tool in Pizza.py

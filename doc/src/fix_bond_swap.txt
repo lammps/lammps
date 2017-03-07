@@ -81,7 +81,7 @@ by this processor on this timestep.
 The criterion for matching molecule IDs is how bond swaps performed by
 this fix conserve chain length.  To use this features you must setup
 the molecule IDs for your polymer chains in a certain way, typically
-in the data file, read by the "read_data"_read_data.html comand.
+in the data file, read by the "read_data"_read_data.html command.
 Consider a system of 6-mer chains.  You have 2 choices.  If the
 molecule IDs for monomers on each chain are set to 1,2,3,4,5,6 then
 swaps will conserve chain length.  For a particular momoner there will
@@ -124,7 +124,7 @@ the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
 "compute_modify"_compute_modify.html command or print this temperature
-during thermodyanmic output via the "thermo_style
+during thermodynamic output via the "thermo_style
 custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} will have no
 effect on this fix.
@@ -151,8 +151,8 @@ the Boltzmann criterion.
 This fix computes two statistical quantities as a global 2-vector of
 output, which can be accessed by various "output
 commands"_Section_howto.html#howto_15.  The first component of the
-vector is the cummulative number of swaps performed by all processors.
-The second component of the vector is the cummulative number of swaps
+vector is the cumulative number of swaps performed by all processors.
+The second component of the vector is the cumulative number of swaps
 attempted (whether accepted or rejected).  Note that a swap "attempt"
 only occurs when swap partners meeting the criteria described above
 are found on a particular timestep.  The vector values calculated by
@@ -168,7 +168,7 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The setings of the "special_bond" command must be 0,1,1 in order to
+The settings of the "special_bond" command must be 0,1,1 in order to
 use this fix, which is typical of bead-spring chains with FENE or
 harmonic bonds.  This means that pairwise interactions between bonded
 atoms are turned off, but are turned on between atoms two or three

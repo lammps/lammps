@@ -68,7 +68,7 @@ See the "pair_coeff"_pair_coeff.html doc page for alternate ways to
 specify the path for the potential file.
 
 As an example, the potentials/AlCu.adp file, included in the
-potentials directory of the LAMMPS distrbution, is an extended {setfl}
+potentials directory of the LAMMPS distribution, is an extended {setfl}
 file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
 and you want the 1st 3 to be Al, and the 4th to be Cu, you would use

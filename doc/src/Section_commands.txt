@@ -361,7 +361,7 @@ Settings:
 "timer"_timer.html,
 "timestep"_timestep.html
 
-Operations within timestepping (fixes) and diagnositics (computes):
+Operations within timestepping (fixes) and diagnostics (computes):
 
 "compute"_compute.html,
 "compute_modify"_compute_modify.html,

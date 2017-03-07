@@ -43,10 +43,10 @@ class PairYukawaColloid : public PairYukawa {
 
 E: Pair yukawa/colloid requires atom style sphere
 
-Self-explantory.
+Self-explanatory.
 
 E: Pair yukawa/colloid requires atoms with same type have same radius
 
-Self-explantory.
+Self-explanatory.
 
 */

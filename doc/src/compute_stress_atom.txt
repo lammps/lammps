@@ -92,7 +92,7 @@ The KSpace contribution is calculated using the method in
 "(Heyes)"_#Heyes for the Ewald method and by the methodology described
 in "(Sirk)"_#Sirk for PPPM.  The choice of KSpace solver is specified
 by the "kspace_style pppm"_kspace_style.html command.  Note that for
-PPPM, the calcluation requires 6 extra FFTs each timestep that
+PPPM, the calculation requires 6 extra FFTs each timestep that
 per-atom stress is calculated.  Thus it can significantly increase the
 cost of the PPPM calculation if it is needed on a large fraction of
 the simulation timesteps.

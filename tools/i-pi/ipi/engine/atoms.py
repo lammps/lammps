@@ -120,7 +120,7 @@ class Atoms(dobject):
 
       Each replica and the centroid coordinate are all held as Atoms objects,
       and so slices of the global position and momentum arrays must be used in
-      the initialisation so that they always agree with each other.
+      the initialization so that they always agree with each other.
 
       Args:
          natoms: An integer giving the number of atoms.

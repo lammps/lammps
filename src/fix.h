@@ -89,7 +89,7 @@ class Fix : protected Pointers {
   int comm_reverse;              // size of reverse communication (0 if none)
   int comm_border;               // size of border communication (0 if none)
 
-  double virial[6];              // accumlated virial
+  double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
 
   int restart_reset;             // 1 if restart just re-initialized fix

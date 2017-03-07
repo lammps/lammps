@@ -97,7 +97,7 @@ pair_coeff * * Na Cl ffield.eim Na Na Na Cl :pre
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The filename is the EIM potential file.  The Na and Cl arguments
 (before the file name) are the two elements for which info will be
-extracted from the potentail file.  The first three trailing Na
+extracted from the potential file.  The first three trailing Na
 arguments map LAMMPS atom types 1,2,3 to the EIM Na element.  The
 final Cl argument maps LAMMPS atom type 4 to the EIM Cl element.
 
@@ -107,7 +107,7 @@ This can be used when an {eim} potential is used as part of the
 that will be used with other potentials.
 
 The ffield.eim file in the {potentials} directory of the LAMMPS
-distribution is formated as follows:
+distribution is formatted as follows:
 
 Lines starting with # are comments and are ignored by LAMMPS.  Lines
 starting with "global:" include three global values. The first value

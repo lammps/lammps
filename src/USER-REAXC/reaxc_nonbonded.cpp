@@ -139,7 +139,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       }
 
       if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
-        { // innner wall
+        { // inner wall
           e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
           data->my_en.e_vdW += Tap * e_core;
 
@@ -398,7 +398,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
   }
 
   if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
-    { // innner wall
+    { // inner wall
       e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
       lr->e_vdW += Tap * e_core;
 

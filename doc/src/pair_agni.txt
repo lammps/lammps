@@ -34,7 +34,7 @@ non-linear regression model.
 The method implements the recently proposed machine learning access to
 atomic forces as discussed extensively in the following publications -
 "(Botu1)"_#Botu2015adaptive and "(Botu2)"_#Botu2015learning. The premise
-of the method is to map the atomic enviornment numerically into a
+of the method is to map the atomic environment numerically into a
 fingerprint, and use machine learning methods to create a mapping to the
 vectorial atomic forces.
 

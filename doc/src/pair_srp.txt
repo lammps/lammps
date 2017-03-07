@@ -86,7 +86,7 @@ the beginning of a run. This means you must specify the number of
 types in your system accordingly; usually to be one larger than what
 would normally be the case, e.g. via the "create_box"_create_box.html
 or by changing the header in your "data file"_read_data.html.  The
-ficitious "bond particles" are inserted at the beginning of the run,
+fictitious "bond particles" are inserted at the beginning of the run,
 and serve as placeholders that define the position of the bonds.  This
 allows neighbor lists to be constructed and pairwise interactions to
 be computed in almost the same way as is done for actual particles.

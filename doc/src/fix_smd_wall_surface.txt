@@ -27,7 +27,7 @@ fix stl_surf all smd/wall_surface tool.stl 2 65535 :pre
 
 [Description:]
 
-This fix creates reads a traingulated surface from a file in .STL format.
+This fix creates reads a triangulated surface from a file in .STL format.
 For each triangle, a new particle is created which stores the barycenter of the triangle and the vertex positions.
 The radius of the new particle is that of the minimum circle which encompasses the triangle vertices.
 

@@ -243,7 +243,7 @@ class DriverSocket(socket.socket):
          return np.fromstring(self._buf[0:blen], dest.dtype).reshape(dest.shape)
 
    def initialize(self, rid, pars):
-      """Sends the initialisation string to the driver.
+      """Sends the initialization string to the driver.
 
       Args:
          rid: The index of the request, i.e. the replica that
@@ -456,13 +456,13 @@ class InterfaceSocket(object):
       """Adds a request.
 
       Note that the pars dictionary need to be sent as a string of a
-      standard format so that the initialisation of the driver can be done.
+      standard format so that the initialization of the driver can be done.
 
       Args:
          atoms: An Atoms object giving the atom positions.
          cell: A Cell object giving the system box.
          pars: An optional dictionary giving the parameters to be sent to the
-            driver for initialisation. Defaults to {}.
+            driver for initialization. Defaults to {}.
          reqid: An optional integer that identifies requests of the same type,
             e.g. the bead index
 

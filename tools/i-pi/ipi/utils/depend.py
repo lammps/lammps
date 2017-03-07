@@ -115,7 +115,7 @@ class depend_base(object):
    def __init__(self, name, synchro=None, func=None, dependants=None, dependencies=None, tainted=None):
       """Initialises depend_base.
 
-      An unusual initialisation routine, as it has to be able to deal with the
+      An unusual initialization routine, as it has to be able to deal with the
       depend array mechanism for returning slices as new depend arrays.
 
       This is the reason for the penultimate if statement; it automatically

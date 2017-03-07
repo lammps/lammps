@@ -24,7 +24,7 @@ mass 1 183.84
 
 # choose potential
 
-include W_2940_2017_2.pot.snap
+include W_2940_2017_2.snap
 
 # Setup output
 

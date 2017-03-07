@@ -166,7 +166,7 @@ pairclass(NULL), pairnames(NULL), pairmasks(NULL)
   ex1_group = ex2_group = ex1_bit = ex2_bit = NULL;
 
   nex_mol = maxex_mol = 0;
-  ex_mol_group = ex_mol_bit = NULL;
+  ex_mol_group = ex_mol_bit = ex_mol_intra = NULL;
 
   // Kokkos setting
 
@@ -234,6 +234,7 @@ Neighbor::~Neighbor()
 
   memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
+  memory->destroy(ex_mol_intra);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2323,7 +2324,8 @@ void Neighbor::modify_params(int narg, char **arg)
         nex_group++;
         iarg += 4;
 
-      } else if (strcmp(arg[iarg+1],"molecule") == 0) {
+      } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||
+		 strcmp(arg[iarg+1],"molecule/intra") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal neigh_modify command");
         if (atom->molecule_flag == 0)
           error->all(FLERR,"Neigh_modify exclude molecule "
@@ -2331,13 +2333,21 @@ void Neighbor::modify_params(int narg, char **arg)
         if (nex_mol == maxex_mol) {
           maxex_mol += EXDELTA;
           memory->grow(ex_mol_group,maxex_mol,"neigh:ex_mol_group");
+          if (lmp->kokkos)
+            grow_ex_mol_intra_kokkos();
+          else
+            memory->grow(ex_mol_intra,maxex_mol,"neigh:ex_mol_intra");
         }
         ex_mol_group[nex_mol] = group->find(arg[iarg+2]);
         if (ex_mol_group[nex_mol] == -1)
           error->all(FLERR,"Invalid group ID in neigh_modify command");
+	if (strcmp(arg[iarg+1],"molecule/intra") == 0)
+	  ex_mol_intra[nex_mol] = 1;
+	else
+	  ex_mol_intra[nex_mol] = 0;
         nex_mol++;
         iarg += 3;
-
+	
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         nex_type = nex_group = nex_mol = 0;
         iarg += 2;

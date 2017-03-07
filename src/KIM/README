@@ -1,5 +1,3 @@
--*- fill-column: 70; -*-
-
 This package provides a pair_style kim command which is a wrapper on
 the Knowledge Base for Interatomic Models (KIM) repository of
 interatomic potentials, so that they can be used by LAMMPS scripts.

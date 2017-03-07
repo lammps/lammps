@@ -54,6 +54,7 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
+  DAT::tdual_int_1d k_ex_mol_intra;
 
   NeighBondKokkos<LMPHostType> neighbond_host;
   NeighBondKokkos<LMPDeviceType> neighbond_device;
@@ -76,6 +77,7 @@ class NeighborKokkos : public Neighbor {
   void init_ex_type_kokkos(int);
   void init_ex_bit_kokkos();
   void init_ex_mol_bit_kokkos();
+  void grow_ex_mol_intra_kokkos();
   virtual int check_distance();
   template<class DeviceType> int check_distance_kokkos();
   virtual void build(int);
@@ -84,6 +86,7 @@ class NeighborKokkos : public Neighbor {
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();
   void modify_mol_group_grow_kokkos();
+  void modify_mol_intra_grow_kokkos();
 };
 
 }

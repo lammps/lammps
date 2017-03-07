@@ -31,9 +31,9 @@ fix 1 solvent evaporate 1000 10 surface 38277 molecule yes :pre
 [Description:]
 
 Remove M atoms from the simulation every N steps.  This can be used,
-for example, to model evaporation of solvent particles or moleclues
+for example, to model evaporation of solvent particles or molecules
 (i.e. drying) of a system.  Every N steps, the number of atoms in the
-fix group and within the specifed region are counted.  M of these are
+fix group and within the specified region are counted.  M of these are
 chosen at random and deleted.  If there are less than M eligible
 particles, then all of them are deleted.
 
@@ -74,7 +74,7 @@ are relevant to this fix.
 
 This fix computes a global scalar, which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative number of deleted atoms.  The scalar value calculated by
+cumulative number of deleted atoms.  The scalar value calculated by
 this fix is "intensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of

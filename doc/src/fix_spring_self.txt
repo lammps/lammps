@@ -30,7 +30,7 @@ location at the time the fix command was issued.  At each timestep,
 the magnitude of the force on each atom is -Kr, where r is the
 displacement of the atom from its current position to its initial
 position.  The distance r correctly takes into account any crossings
-of periodic boundary by the atom since it was in its intitial
+of periodic boundary by the atom since it was in its initial
 position.
 
 With the (optional) dir flag, one can select in which direction the

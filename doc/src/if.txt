@@ -37,7 +37,7 @@ if "$\{eng\} > $\{eng_previous\}" then "jump file1" else "jump file2" :pre
 [Description:]
 
 This command provides an if-then-else capability within an input
-script.  A Boolean expression is evaluted and the result is TRUE or
+script.  A Boolean expression is evaluated and the result is TRUE or
 FALSE.  Note that as in the examples above, the expression can contain
 variables, as defined by the "variable"_variable.html command, which
 will be evaluated as part of the expression.  Thus a user-defined
@@ -93,7 +93,7 @@ system temperature has reached a certain value, and if so, breaks out
 of the loop to finish the run.  Note that any variable could be
 checked, so long as it is current on the timestep when the run
 completes.  As explained on the "variable"_variable.html doc page,
-this can be insured by includig the variable in thermodynamic output.
+this can be insured by including the variable in thermodynamic output.
 
 variable myTemp equal temp
 label loop

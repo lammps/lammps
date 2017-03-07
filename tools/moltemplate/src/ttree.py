@@ -2489,7 +2489,7 @@ class StaticObj(object):
                             raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
                                              '      Error near '+lex.error_leader()+'\n'
                                              '      new '+class_name_str+'\n'
-                                             'Bracketed number should be preceeded by a class name.')
+                                             'Bracketed number should be preceded by a class name.')
                         class_names = []
                         weights = []
                         num_by_type = []
@@ -2979,7 +2979,7 @@ class StaticObj(object):
         # Dots in class names can appear for 2 reasons:
         #   1) as part of a path like "../" describing the location 
         #      where this class was defined relative to the caller.
-        #      In that case it will be preceeded or followed by
+        #      In that case it will be preceded or followed by
         #      either another dot '.', or a slash '/'
         #   2) as part of a "suffix" which appears after the name
         #      containing instructions which modify how to
@@ -4434,7 +4434,7 @@ def ExtractFormattingCommands(suffix):
     if suffix[-1] != ')': # Format functions are always followed by parens
         return None, None
     else:
-        idot = suffix.find('.') # Format functions usually preceeded by '.'
+        idot = suffix.find('.') # Format functions usually preceded by '.'
         ioparen = suffix.find('(')
         icparen = suffix.find(')')
         format_fname = suffix[idot+1:ioparen]
@@ -5113,7 +5113,7 @@ def BasicUIParseArgs(argv, settings):
         elif ((argv[i][0] == '-') and (__name__ == "__main__")):
             #elif (__name__ == "__main__"):
             raise InputError('Error('+g_filename+'):\n'
-                             'Unrecogized command line argument \"'+argv[i]+'\"\n')
+                             'Unrecognized command line argument \"'+argv[i]+'\"\n')
         else:
             i += 1
 
@@ -5177,7 +5177,7 @@ def BasicUI(settings,
 
     # Parsing, and compiling is a multi-pass process.
 
-    # Step 1: Read in the StaticObj (class) defintions, without checking
+    # Step 1: Read in the StaticObj (class) definitions, without checking
     # whether or not the instance_children refer to valid StaticObj types.
     sys.stderr.write('parsing the class definitions...')
     static_tree_root.Parse(settings.lex)

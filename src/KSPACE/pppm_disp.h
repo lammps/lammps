@@ -513,7 +513,7 @@ E: Cannot compute initial g_ewald_disp
 
 LAMMPS failed to compute an initial guess for the PPPM_disp g_ewald_6
 factor that partitions the computation between real space and k-space
-for Disptersion interactions.
+for Dispersion interactions.
 
 E: Could not compute grid size for Dispersion
 

@@ -107,7 +107,7 @@ When choosing the values of the four constants, it is best to first
 pick a value and sign for {alpha} that is consistent with the
 magnitudes and signs of {pvar} and {cvar}.  The magnitude of {Kp}
 should then be tested over a large positive range keeping {Ki}={Kd}=0.
-A good value for {Kp} will produce a fast reponse in {pvar}, without
+A good value for {Kp} will produce a fast response in {pvar}, without
 overshooting the {setpoint}.  For many applications, proportional
 feedback is sufficient, and so {Ki}={Kd}=0 can be used. In cases where
 there is a substantial lag time in the response of {pvar} to a change
@@ -175,7 +175,7 @@ equal-style versus internal-style variable interchangeably.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-Currenlty, no information about this fix is written to "binary restart
+Currently, no information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 

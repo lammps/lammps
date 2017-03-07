@@ -25,7 +25,7 @@ Define a computation that calculates the center-of-mass of the group
 of atoms, including all effects due to atoms passing thru periodic
 boundaries.
 
-A vector of three quantites is calculated by this compute, which
+A vector of three quantities is calculated by this compute, which
 are the x,y,z coordinates of the center of mass.
 
 NOTE: The coordinates of an atom contribute to the center-of-mass in

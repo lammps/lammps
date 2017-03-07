@@ -77,7 +77,7 @@ in energy directly.
 
 E: Must use variable energy with fix grem
 
-Must define an energy vartiable when applyting a dynamic
+Must define an energy variable when applying a dynamic
 force during minimization.
 
 */

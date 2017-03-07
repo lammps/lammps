@@ -76,7 +76,7 @@ Specifically, this style performs all computation except the
 "kspace_style"_kspace_style.html portion of the force field on the 1st
 partition.  This include the "pair style"_pair_style.html, "bond
 style"_bond_style.html, "neighbor list building"_neighbor.html,
-"fixes"_fix.html including time intergration, and output.  The
+"fixes"_fix.html including time integration, and output.  The
 "kspace_style"_kspace_style.html portion of the calculation is
 performed on the 2nd partition.
 
@@ -105,23 +105,23 @@ to control this, e.g.
 procssors * * * part 1 2 multiple :pre
 
 You can also use the "partition"_partition.html command to explicitly
-specity the processor layout on each partition.  E.g. for 2 partitions
+specify the processor layout on each partition.  E.g. for 2 partitions
 of 60 and 15 processors each:
 
 partition yes 1 processors 3 4 5
 partition yes 2 processors 3 1 5 :pre
 
 When you run in 2-partition mode with the {verlet/split} style, the
-thermodyanmic data for the entire simulation will be output to the log
+thermodynamic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
 screen.0 by default; see the "-plog and -pscreen command-line
 switches"_Section_start.html#start_7 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
-output beyone the 1st timestep of the run.
+output beyond the 1st timestep of the run.
 
 See "Section 5"_Section_accelerate.html of the manual for
 performance details of the speed-up offered by the {verlet/split}
-style.  One important performance consideration is the assignemnt of
+style.  One important performance consideration is the assignment of
 logical processors in the 2 partitions to the physical cores of a
 parallel machine.  The "processors"_processors.html command has
 options to support this, and strategies are discussed in
@@ -182,7 +182,7 @@ for hybrid coarse-grained/all-atom models.  The {hybrid} keyword
 requires as many level assignments as there are hybrid substyles,
 which assigns each sub-style to a rRESPA level, following their order
 of definition in the pair_style command. Since the {hybrid} keyword
-operates on pair style computations, it is mututally exclusive with
+operates on pair style computations, it is mutually exclusive with
 either the {pair} or the {inner}/{middle}/{outer} keywords.
 
 When using rRESPA (or for any MD simulation) care must be taken to

@@ -86,6 +86,7 @@ void NPair::copy_neighbor_info()
   nex_mol = neighbor->nex_mol;
   ex_mol_group = neighbor->ex_mol_group;
   ex_mol_bit = neighbor->ex_mol_bit;
+  ex_mol_intra = neighbor->ex_mol_intra;
 
   // special info
 
@@ -180,8 +181,17 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
 
   if (nex_mol) {
     for (m = 0; m < nex_mol; m++)
-      if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
-          molecule[i] == molecule[j]) return 1;
+
+      // intra-chain: exclude i-j pair if in same molecule 
+      // inter-chain: exclude i-j pair if in different molecules 
+
+      if (ex_mol_intra[m]) {
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+	    molecule[i] == molecule[j]) return 1;
+      } else {
+	if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+	    molecule[i] != molecule[j]) return 1;
+      }
   }
 
   return 0;

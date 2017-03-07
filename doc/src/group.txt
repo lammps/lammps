@@ -144,7 +144,7 @@ or exclude from a group.
 
 For example, these lines define a variable "eatom" that calculates the
 potential energy of each atom and includes it in the group if its
-potential energy is above the threshhold value -3.0.
+potential energy is above the threshold value -3.0.
 
 compute         1 all pe/atom
 compute         2 all reduce sum c_1
@@ -165,7 +165,7 @@ group command invokes it.  Because the eatom variable computes the
 per-atom energy via the pe/atom compute, it will only be current if a
 run has been performed which evaluated pairwise energies, and the
 pe/atom compute was actually invoked during the run.  Printing the
-thermodyanmic info for compute 2 insures that this is the case, since
+thermodynamic info for compute 2 insures that this is the case, since
 it sums the pe/atom compute values (in the reduce compute) to output
 them to the screen.  See the "Variable Accuracy" section of the
 "variable"_variable.html doc page for more details on insuring that

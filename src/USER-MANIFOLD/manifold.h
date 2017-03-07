@@ -65,7 +65,7 @@ namespace user_manifold {
     virtual int nparams() = 0;
     double **get_params(){ return &params; };
 
-    // Overload if any initialisation depends on params:
+    // Overload if any initialization depends on params:
     virtual void post_param_init(){}
     virtual void checkup(){} // Some diagnostics...
    protected:

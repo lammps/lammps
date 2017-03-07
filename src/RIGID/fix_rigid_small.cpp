@@ -2488,7 +2488,7 @@ void FixRigidSmall::write_restart_file(char *file)
 {
   FILE *fp;
 
-  // do not write file if bodies have not yet been intialized
+  // do not write file if bodies have not yet been initialized
 
   if (!setupflag) return;
 

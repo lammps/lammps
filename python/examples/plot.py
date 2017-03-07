@@ -1,5 +1,5 @@
 #!/usr/bin/env python -i
-# preceeding line should have path for Python on your machine
+# preceding line should have path for Python on your machine
 
 # plot.py
 # Purpose: plot Temp of running LAMMPS simulation via GnuPlot in Pizza.py

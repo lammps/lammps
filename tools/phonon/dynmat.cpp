@@ -3,7 +3,7 @@
 #include "version.h"
 #include "global.h"
 
-// to intialize the class
+// to initialize the class
 DynMat::DynMat(int narg, char **arg)
 {
   attyp = NULL;

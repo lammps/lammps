@@ -155,7 +155,7 @@ The mass and center-of-mass coordinates (Xc,Yc,Zc) are
 self-explanatory.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
 should be the values consistent with the current orientation of the
 rigid body around its center of mass.  The values are with respect to
-the simulation box XYZ axes, not with respect to the prinicpal axes of
+the simulation box XYZ axes, not with respect to the principal axes of
 the rigid body itself.  LAMMPS performs the latter calculation
 internally.
 

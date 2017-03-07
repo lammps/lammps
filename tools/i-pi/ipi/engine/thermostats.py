@@ -691,7 +691,7 @@ class ThermoNMGLE(Thermostat):
    """
 
    def get_C(self):
-      """Calculates C from temp (if C is not set explicitely)."""
+      """Calculates C from temp (if C is not set explicitly)."""
 
       rv = np.ndarray((self.nb, self.ns+1, self.ns+1), float)
       for b in range(0,self.nb):

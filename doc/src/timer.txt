@@ -16,7 +16,7 @@ timer args :pre
   {off} = do not collect or print any timing information
   {loop} = collect only the total time for the simulation loop
   {normal} = collect timer information broken down by sections (default)
-  {full} = like {normal} but also include CPU and thread utilzation
+  {full} = like {normal} but also include CPU and thread utilization
   {sync} = explicitly synchronize MPI tasks between sections
   {nosync} = do not synchronize MPI tasks between sections (default)
   {timeout} elapse = set walltime limit to {elapse}
@@ -48,11 +48,11 @@ detailed per section information.  With the {normal} setting, timing
 information for portions of the timestep (pairwise calculations,
 neighbor list construction, output, etc) are collected as well as
 information about load imbalances for those sections across
-procsessors.  The {full} setting adds information about CPU
+processors.  The {full} setting adds information about CPU
 utilization and thread utilization, when multi-threading is enabled.
 
 With the {sync} setting, all MPI tasks are synchronized at each timer
-call which measures load imbalance for each section more accuractly,
+call which measures load imbalance for each section more accurately,
 though it can also slow down the simulation by prohibiting overlapping
 independent computations on different MPI ranks  Using the {nosync}
 setting (which is the default) turns this synchronization off.

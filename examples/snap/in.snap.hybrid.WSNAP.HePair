@@ -27,7 +27,7 @@ group	tungsten type 1
 group	helium	type 2
 # choose potential
 
-include W.SNAP_HePair.pot
+include W_2940_2017_2_He_JW2013.snap
 
 # Setup output
 

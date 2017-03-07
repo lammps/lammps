@@ -63,7 +63,7 @@ reaction kinetics solver is applied, where the difference is defined
 to be the internal chemical energy (uChem).
 
 The fourth argument specifies the type of scaling that will be used 
-to scale the EXP-6 paramters as reactions occur.  Currently, there
+to scale the EXP-6 parameters as reactions occur.  Currently, there
 are three scaling options:  {exponent}, {polynomial} and {none}.
 
 Exponent scaling requires two additional arguments for scaling 
@@ -72,7 +72,7 @@ is computed by phi^exponent, where phi is the number of molecules
 represented by the coarse-grain particle and exponent is specified 
 as a pair coefficient argument for {Rm} and {epsilon}, respectively.
 The {Rm} and {epsilon} parameters are multiplied by the scaling 
-factor to give the scaled interaction paramters for the CG particle.
+factor to give the scaled interaction parameters for the CG particle.
 
 Polynomial scaling requires a filename to be specified as a pair 
 coeff argument.  The file contains the coefficients to a fifth order

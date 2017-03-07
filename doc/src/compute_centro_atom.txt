@@ -18,8 +18,8 @@ lattice = {fcc} or {bcc} or N = # of neighbors per atom to include :l
 zero or more keyword/value pairs may be appended :l
 keyword = {axes} :l
   {axes} value = {no} or {yes}
-    {no} = do not calulate 3 symmetry axes
-    {yes} = calulate 3 symmetry axes :pre
+    {no} = do not calculate 3 symmetry axes
+    {yes} = calculate 3 symmetry axes :pre
 :ule
 
 [Examples:]
@@ -108,7 +108,7 @@ symmetry axis, followed by the second, and third symmetry axes in
 columns 5-7 and 8-10.
 
 The centrosymmetry values are unitless values >= 0.0.  Their magnitude
-depends on the lattice style due to the number of contibuting neighbor
+depends on the lattice style due to the number of contributing neighbor
 pairs in the summation in the formula above.  And it depends on the
 local defects surrounding the central atom, as described above.  For
 the {axes yes} case, the vector components are also unitless, since

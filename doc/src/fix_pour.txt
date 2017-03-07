@@ -107,7 +107,7 @@ atoms in the molecule.
 
 If the molecule template contains more than one molecule, the relative
 probability of depositing each molecule can be specified by the
-{molfrac} keyword.  N relative probablities, each from 0.0 to 1.0, are
+{molfrac} keyword.  N relative probabilities, each from 0.0 to 1.0, are
 specified, where N is the number of molecules in the template.  Each
 time a molecule is inserted, a random number is used to sample from
 the list of relative probabilities.  The N values must sum to 1.0.
@@ -144,7 +144,7 @@ command for the temperature compute you are using.
 
 All other keywords are optional with defaults as shown below.
 
-The {diam} option is only used when inserting atoms and specifes the
+The {diam} option is only used when inserting atoms and specifies the
 diameters of inserted particles.  There are 3 styles: {one}, {range},
 or {poly}.  For {one}, all particles will have diameter {D}.  For
 {range}, the diameter of each particle will be chosen randomly and
@@ -175,7 +175,7 @@ some other way.
 The {vol} option specifies what volume fraction of the insertion
 volume will be filled with particles.  For particles with a size
 specified by the {diam range} keyword, they are assumed to all be of
-maximum diamter {Dhi} for purposes of computing their contribution to
+maximum diameter {Dhi} for purposes of computing their contribution to
 the volume fraction.
 
 The higher the volume fraction value, the more particles are inserted

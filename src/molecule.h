@@ -406,7 +406,7 @@ The number of bond, angle, etc types in the molecule exceeds the
 system setting.  See the create_box command for how to specify these
 values.
 
-E: Molecule toplogy/atom exceeds system topology/atom
+E: Molecule topology/atom exceeds system topology/atom
 
 The number of bonds, angles, etc per-atom in the molecule exceeds the
 system setting.  See the create_box command for how to specify these

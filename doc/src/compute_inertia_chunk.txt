@@ -35,7 +35,7 @@ chunk/atom"_compute_chunk_atom.html doc page and "Section
 defined and examples of how they can be used to measure properties of
 a system.
 
-This compute calculates the 6 components of the symmetric intertia
+This compute calculates the 6 components of the symmetric inertia
 tensor for each chunk, ordered Ixx,Iyy,Izz,Ixy,Iyz,Ixz.  The
 calculation includes all effects due to atoms passing thru periodic
 boundaries.

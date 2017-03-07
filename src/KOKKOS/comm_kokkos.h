@@ -59,6 +59,11 @@ class CommKokkos : public CommBrick {
   //double *buf_send;                 // send buffer for all comm
   //double *buf_recv;                 // recv buffer for all comm
 
+  int max_buf_pair;
+  DAT::tdual_xfloat_1d k_buf_send_pair;
+  DAT::tdual_xfloat_1d k_buf_recv_pair;
+  void grow_buf_pair(int);
+
   void grow_send(int, int);
   void grow_recv(int);
   void grow_send_kokkos(int, int, ExecutionSpace space = Host);

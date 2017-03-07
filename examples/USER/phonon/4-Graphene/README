@@ -1,5 +1,5 @@
 This directory illustrates the usage of fix-phonon to calculate the dynamical
-matrix as well as phonon dispersion curve for Graphene based on a Tersoff potentail.
+matrix as well as phonon dispersion curve for Graphene based on a Tersoff potential.
 
 The files under this directory:
 

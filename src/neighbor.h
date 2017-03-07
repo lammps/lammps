@@ -71,6 +71,8 @@ class Neighbor : protected Pointers {
   int nex_mol;                     // # of entries in molecule exclusion list
   int *ex_mol_group;               // molecule group #'s to exclude
   int *ex_mol_bit;                 // molecule group bits to exclude
+  int *ex_mol_intra;               // 0 = exclude if in 2 molecules (inter)
+                                   // 1 = exclude if in same molecule (intra)
 
   // special info, used by NeighPair
 
@@ -229,6 +231,7 @@ class Neighbor : protected Pointers {
   virtual void init_ex_type_kokkos(int) {}
   virtual void init_ex_bit_kokkos() {}
   virtual void init_ex_mol_bit_kokkos() {}
+  virtual void grow_ex_mol_intra_kokkos() {}
 };
 
 namespace NeighConst {

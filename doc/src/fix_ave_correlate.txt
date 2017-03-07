@@ -64,7 +64,7 @@ fix 1 all ave/correlate 1 50 10000 c_thermo_press\[*\]
 [Description:]
 
 Use one or more global scalar values as inputs every few timesteps,
-calculate time correlations bewteen them at varying time intervals,
+calculate time correlations between them at varying time intervals,
 and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
 "variables"_variable.html or used by other "output
@@ -219,7 +219,7 @@ to {upper} then each input value is correlated with every succeeding
 value.  I.e. Cij = Vi*Vj, for i < j, so Npair = N*(N-1)/2. :l
 
 If {type} is set
-to {lower} then each input value is correlated with every preceeding
+to {lower} then each input value is correlated with every preceding
 value.  I.e. Cij = Vi*Vj, for i > j, so Npair = N*(N-1)/2. :l
 
 If {type} is set to {auto/upper} then each input value is correlated

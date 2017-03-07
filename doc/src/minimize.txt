@@ -48,7 +48,7 @@ soft"_pair_soft.html potential can be used to un-overlap atoms while
 running dynamics.
 
 Note that you can minimize some atoms in the system while holding the
-coordiates of other atoms fixed by applying "fix
+coordinates of other atoms fixed by applying "fix
 setforce"_fix_setforce.html to the other atoms.  See a fuller
 discussion of using fixes while minimizing below.
 
@@ -58,7 +58,7 @@ which atom coordinates are changed.  An inner iteration is then
 performed using a line search algorithm.  The line search typically
 evaluates forces and energies several times to set new coordinates.
 Currently, a backtracking algorithm is used which may not be optimal
-in terms of the number of force evaulations performed, but appears to
+in terms of the number of force evaluations performed, but appears to
 be more robust than previous line searches we've tried.  The
 backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
@@ -201,7 +201,7 @@ minimum to the specified energy or force tolerance.
 Note that a cutoff Lennard-Jones potential (and others) can be shifted
 so that its energy is 0.0 at the cutoff via the
 "pair_modify"_pair_modify.html command.  See the doc pages for
-inidividual "pair styles"_pair_style.html for details.  Note that
+individual "pair styles"_pair_style.html for details.  Note that
 Coulombic potentials always have a cutoff, unless versions with a
 long-range component are used (e.g. "pair_style
 lj/cut/coul/long"_pair_lj.html).  The CHARMM potentials go to 0.0 at

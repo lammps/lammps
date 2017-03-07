@@ -149,7 +149,7 @@ command.
 
 :line
 
-The {limit/eradius} and {pressure/evirials} keywrods are optional.
+The {limit/eradius} and {pressure/evirials} keywords are optional.
 Neither or both must be specified.  If not specified they are unset.
 
 The {limit/eradius} keyword is used to restrain electron size from
@@ -197,7 +197,7 @@ partitioning changes, the total energy remains similar).
 
 :line
 
-NOTE: This implemention of eFF gives a reasonably accurate description
+NOTE: This implementation of eFF gives a reasonably accurate description
 for systems containing nuclei from Z = 1-6 in "all electron"
 representations.  For systems with increasingly non-spherical
 electrons, Users should use the ECP representations.  ECPs are now
@@ -284,7 +284,7 @@ that package.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
 
 These pair styles require that particles store electron attributes
-such as radius, radial velocity, and radital force, as defined by the
+such as radius, radial velocity, and radial force, as defined by the
 "atom_style"_atom_style.html.  The {electron} atom style does all of
 this.
 

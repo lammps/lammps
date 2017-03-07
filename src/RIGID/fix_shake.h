@@ -184,7 +184,7 @@ Self-explanatory.
 
 W: Molecule template for fix shake has multiple molecules
 
-The fix shake command will only recoginze molecules of a single
+The fix shake command will only recognize molecules of a single
 type, i.e. the first molecule in the template.
 
 E: Fix shake molecule template must have shake info

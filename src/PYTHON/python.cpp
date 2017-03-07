@@ -146,7 +146,7 @@ void Python::command(int narg, char **arg)
 
   int ifunc = create_entry(arg[0]);
 
-  // one-time intitialization of Python interpreter
+  // one-time initialization of Python interpreter
   // Py_SetArgv() enables finding of *.py module files in current dir
   //   only needed for module load, not for direct file read into __main__
   // pymain stores pointer to main module

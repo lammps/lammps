@@ -206,7 +206,7 @@ output to dump file.
 
 E: Invalid attribute in dump custom command
 
-Self-explantory.
+Self-explanatory.
 
 E: Dump_modify format string is too short
 
@@ -314,7 +314,7 @@ Number of element names must equal number of atom types.
 
 E: Invalid attribute in dump modify command
 
-Self-explantory.
+Self-explanatory.
 
 E: Could not find dump modify compute ID
 

@@ -178,7 +178,7 @@ typedef struct {
  * linked list functions
  ************************************************************************/
 
-/* allocate and intitialize linked list */
+/* allocate and initialize linked list */
 static llist_t *llist_init()
 {
     llist_t *ll;

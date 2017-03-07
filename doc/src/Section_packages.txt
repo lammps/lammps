@@ -1295,13 +1295,13 @@ integrators with improved stability.
 
 See these doc pages to get started:
 
-"bond_style oxdna_fene"_bond_oxdna_fene.html
-"pair_style oxdna_excv"_pair_oxdna_excv.html
+"bond_style oxdna/fene"_bond_oxdna.html
+"pair_style oxdna/..."_pair_oxdna.html
 "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html :ul
 
 Supporting info: /src/USER-CGDNA/README, "bond_style
-oxdna_fene"_bond_oxdna_fene.html, "pair_style
-oxdna_excv"_pair_oxdna_excv.html, "fix
+oxdna/fene"_bond_oxdna.html, "pair_style
+oxdna/..."_pair_oxdna.html, "fix
 nve/dotc/langevin"_fix_nve_dotc_langevin.html
 
 Author: Oliver Henrich at the University of Edinburgh, UK (o.henrich

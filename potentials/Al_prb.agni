@@ -1,4 +1,5 @@
 # DATE: 2016-11-11 CONTRIBUTOR: Venkatesh Botu <botuvenkatesh@gmail.com> CITATION: Botu, V. and Ramprasad, R., Phys. Rev. B, 92, 094306 (2015)
+# This potential is deprecated. Please use Al_jpc.agni instead.
 # This potential file is parameterized for metal units
 
 generation 1

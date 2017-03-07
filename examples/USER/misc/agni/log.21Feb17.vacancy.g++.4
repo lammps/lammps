@@ -1,0 +1,87 @@
+LAMMPS (21 Feb 2017)
+  using 1 OpenMP thread(s) per MPI task
+
+units metal
+boundary p p p
+read_data vacancy.data
+  orthogonal box = (0 0 0) to (8.07113 8.07113 8.07113)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  31 atoms
+
+pair_style agni
+pair_coeff * * Al_jpc.agni Al
+Reading potential file Al_jpc.agni with DATE: 2017-02-24
+neighbor 0.3 bin
+neigh_modify delay 2 check yes
+
+
+timestep 0.0005
+velocity all create 1000 12345
+fix 1 all nvt temp 900 900 200
+fix 5 all momentum 1 linear 1 1 1
+
+
+thermo 100
+thermo_style custom step ke etotal temp
+
+# dump MyDump all custom 250 dump.atoms id type x y z vx vy vz fx fy fz
+
+run 1000
+Neighbor list info ...
+  update every 1 steps, delay 2 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.3
+  ghost atom cutoff = 8.3
+  binsize = 4.15, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair agni, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Memory usage per processor = 2.72175 Mbytes
+Step KinEng TotEng Temp 
+       0    3.8778044    3.8778044         1000 
+     100    2.9986263    2.9986263    773.27942 
+     200    3.6860315    3.6860315    950.54602 
+     300    3.8133145    3.8133145     983.3695 
+     400    3.7330282    3.7330282    962.66543 
+     500    3.5875466    3.5875466    925.14895 
+     600    3.5331523    3.5331523    911.12186 
+     700    2.6509448    2.6509448    683.62005 
+     800    3.3763493    3.3763493    870.68584 
+     900    3.9036733    3.9036733     1006.671 
+    1000    3.0884818    3.0884818    796.45116 
+Loop time of 2.46785 on 4 procs for 1000 steps with 31 atoms
+
+Performance: 17.505 ns/day, 1.371 hours/ns, 405.212 timesteps/s
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.0737     | 2.299      | 2.3902     |   8.7 | 93.16
+Neigh   | 0.0025222  | 0.0027327  | 0.0028174  |   0.2 |  0.11
+Comm    | 0.059817   | 0.15141    | 0.37684    |  33.8 |  6.14
+Output  | 0.0001502  | 0.00016767 | 0.00021219 |   0.0 |  0.01
+Modify  | 0.0098755  | 0.010248   | 0.010664   |   0.3 |  0.42
+Other   |            | 0.004321   |            |       |  0.18
+
+Nlocal:    7.75 ave 8 max 7 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    617.25 ave 621 max 612 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  1090 ave 1131 max 993 min
+Histogram: 1 0 0 0 0 0 0 0 1 2
+
+Total # of neighbors = 4360
+Ave neighs/atom = 140.645
+Neighbor list builds = 53
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:02

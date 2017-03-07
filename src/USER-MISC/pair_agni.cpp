@@ -60,6 +60,14 @@ static const char cite_pair_agni[] =
   " pages     = {094306},\n"
   " year      = {2015},\n"
   " publisher = {APS}\n"
+  "}\n\n"
+  "@article{botu2017jpc,\n"
+  " author    = {Botu, V. and Batra, R. and Chapman, J. and Ramprasad, Rampi},\n"
+  " journal   = {J. Phys. Chem. C},\n"
+  " volume    = {121},\n"
+  " number    = {1},\n"
+  " pages     = {511},\n"
+  " year      = {2017},\n"
   "}\n\n";
 
 #define AGNI_VERSION 1

@@ -153,7 +153,7 @@ material.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-Similiar to "fix wall/gran"_fix_wall_gran.html command, this fix
+Similar to "fix wall/gran"_fix_wall_gran.html command, this fix
 writes the shear friction state of atoms interacting with the wall to
 "binary restart files"_restart.html, so that a simulation can continue
 correctly if granular potentials with shear "history" effects are
@@ -169,7 +169,7 @@ So you must re-define your region and if it is a moving region, define
 its motion attributes in a way that is consistent with the simulation
 that wrote the restart file.  In particular, if you want to change the
 region motion attributes (e.g. its velocity), then you should ensure
-the postition/orientation of the region at the initial restart
+the position/orientation of the region at the initial restart
 timestep is the same as it was on the timestep the restart file was
 written.  If this is not possible, you may need to ignore info in the
 restart file by defining a new fix wall/gran/region command in your

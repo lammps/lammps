@@ -99,7 +99,7 @@ command-line option when running LAMMPS to see the offending line.
 E: Compute property/local cannot use these inputs together
 
 Only inputs that generate the same number of datums can be used
-togther.  E.g. bond and angle quantities cannot be mixed.
+together.  E.g. bond and angle quantities cannot be mixed.
 
 E: Invalid keyword in compute property/local command
 

@@ -70,7 +70,7 @@ class InitBase(dobject):
       Args:
          value: A string which specifies what value to initialize the
             simulation property to.
-         mode: A string specifiying what style of initialization should be
+         mode: A string specifying what style of initialization should be
             used to read the data.
          units: A string giving which unit the value is in.
       """
@@ -97,7 +97,7 @@ class InitIndexed(InitBase):
       Args:
          value: A string which specifies what value to initialize the
             simulation property to.
-         mode: A string specifiying what style of initialization should be
+         mode: A string specifying what style of initialization should be
             used to read the data.
          units: A string giving which unit the value is in.
          index: Which atom to initialize the value of.

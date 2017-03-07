@@ -580,10 +580,10 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 You cannot apply x, y, or z deformations to a dimension that is
-shrink-wrapped via the "boundary"_boundary.html comamnd.
+shrink-wrapped via the "boundary"_boundary.html command.
 
 You cannot apply xy, yz, or xz deformations to a 2nd dimension (y in
-xy) that is shrink-wrapped via the "boundary"_boundary.html comamnd.
+xy) that is shrink-wrapped via the "boundary"_boundary.html command.
 
 [Related commands:]
 

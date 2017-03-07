@@ -226,7 +226,7 @@ simulation time, also in time "units"_units.html, which is simply
 not been reset.  If the timestep has changed (e.g. via "fix
 dt/reset"_fix_dt_reset.html) or the timestep has been reset (e.g. via
 the "reset_timestep" command), then the simulation time is effectively
-a cummulative value up to the current point.
+a cumulative value up to the current point.
 
 The {cpu} keyword is elapsed CPU seconds since the beginning of this
 run.  The {tpcpu} and {spcpu} keywords are measures of how fast your
@@ -236,7 +236,7 @@ time per CPU second, where simulation time is in time
 picoseconds per CPU second.  The {spcpu} keyword is the number of
 timesteps per CPU second.  Both quantities are on-the-fly metrics,
 measured relative to the last time they were invoked.  Thus if you are
-printing out thermodyamic output every 100 timesteps, the two keywords
+printing out thermodynamic output every 100 timesteps, the two keywords
 will continually output the time and timestep rate for the last 100
 steps.  The {tpcpu} keyword does not attempt to track any changes in
 timestep size, e.g. due to using the "fix dt/reset"_fix_dt_reset.html
@@ -289,7 +289,7 @@ The keywords {cella}, {cellb}, {cellc}, {cellalpha}, {cellbeta},
 {cellgamma}, correspond to the usual crystallographic quantities that
 define the periodic unit cell of a crystal.  See "this
 section"_Section_howto.html#howto_12 of the doc pages for a geometric
-description of triclinic periodic cells, including a precise defintion
+description of triclinic periodic cells, including a precise definition
 of these quantities in terms of the internal LAMMPS cell dimensions
 {lx}, {ly}, {lz}, {yz}, {xz}, {xy}.
 

@@ -124,7 +124,7 @@ void Rerun::command(int narg, char **arg)
   if (nremain) rd->setup_reader(nremain,&arg[narg-nremain]);
   else rd->setup_reader(0,NULL);
 
-  // perform the psuedo run
+  // perform the pseudo run
   // invoke lmp->init() only once
   // read all relevant snapshots
   // use setup_minimal() since atoms are already owned by correct procs

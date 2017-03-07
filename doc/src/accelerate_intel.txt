@@ -20,7 +20,7 @@ coprocessors via offloading neighbor list and non-bonded force
 calculations to the Phi.  The same C++ code is used in both cases.
 When offloading to a coprocessor from a CPU, the same routine is run
 twice, once on the CPU and once with an offload flag. This allows
-LAMMPS to run on the CPU cores and coprocessor cores simulataneously.
+LAMMPS to run on the CPU cores and coprocessor cores simultaneously.
 
 [Currently Available USER-INTEL Styles:]
 
@@ -115,7 +115,7 @@ coprocessor and an Intel compiler are required. For this, the
 recommended version of the Intel compiler is 14.0.1.106 or
 versions 15.0.2.044 and higher.
 
-Although any compiler can be used with the USER-INTEL pacakge,
+Although any compiler can be used with the USER-INTEL package,
 currently, vectorization directives are disabled by default when
 not using Intel compilers due to lack of standard support and
 observations of decreased performance. The OpenMP standard now
@@ -428,7 +428,7 @@ to the card.  This allows for overlap of MPI communication of forces
 with computation on the coprocessor when the "newton"_newton.html
 setting is "on".  The default is dependent on the style being used,
 however, better performance may be achieved by setting this option
-explictly.
+explicitly.
 
 When using offload with CPU Hyper-Threading disabled, it may help
 performance to use fewer MPI tasks and OpenMP threads than available

@@ -69,7 +69,7 @@ bench/in.lj input script.
 
 For all the benchmarks, a useful metric is the CPU cost per atom per
 timestep.  Since performance scales roughly linearly with problem size
-and timesteps for all LAMMPS models (i.e. inteatomic or coarse-grained
+and timesteps for all LAMMPS models (i.e. interatomic or coarse-grained
 potentials), the run time of any problem using the same model (atom
 style, force field, cutoff, etc) can then be estimated.
 

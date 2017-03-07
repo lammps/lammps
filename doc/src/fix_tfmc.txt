@@ -41,7 +41,7 @@ can be used to extend the time scale of atomistic simulations, in
 particular when long time scale relaxation effects must be considered;
 some interesting examples are given in the review by "(Neyts)"_#Neyts.
 An example of a typical use case would be the modelling of chemical
-vapour deposition (CVD) processes on a surface, in which impacts by
+vapor deposition (CVD) processes on a surface, in which impacts by
 gas-phase species can be performed using MD, but subsequent relaxation
 of the surface is too slow to be done using MD only. Using tfMC can
 allow for a much faster relaxation of the surface, so that higher

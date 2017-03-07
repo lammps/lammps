@@ -1,5 +1,5 @@
 #!/usr/bin/env python -i
-# preceeding line should have path for Python on your machine
+# preceding line should have path for Python on your machine
 
 # split.py
 # Purpose: similar to simple.py, but first the world communicator

@@ -132,7 +132,7 @@ One of the particles has radius 0.0.
 
 E: Fix langevin angmom requires extended particles
 
-This fix option cannot be used with point paritlces.
+This fix option cannot be used with point particles.
 
 E: Cannot zero Langevin force of 0 atoms
 

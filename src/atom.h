@@ -96,7 +96,7 @@ class Atom : protected Pointers {
 
   // molecular info
 
-  int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
+  int **nspecial;               // 0,1,2 = cumulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
   int maxspecial;               // special[nlocal][maxspecial]
 

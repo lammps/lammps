@@ -20,7 +20,7 @@ pair_coeff * * 1.0 2.4 :pre
 [Description:]
 
 The sph/heatconduction style computes heat transport between SPH particles.
-The transport model is the diffusion euqation for the internal energy.
+The transport model is the diffusion equation for the internal energy.
 
 See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
 LAMMPS.

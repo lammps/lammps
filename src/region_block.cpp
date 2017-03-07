@@ -401,7 +401,7 @@ double RegBlock::find_closest_point(int i, double *x,
       zc = p[2];
     }
 
-    point_on_line_segment(corners[i][3],corners[i][4],x,p);
+    point_on_line_segment(corners[i][3],corners[i][0],x,p);
     d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) +
       (p[2]-x[2])*(p[2]-x[2]);
     if (d2 < d2min) {

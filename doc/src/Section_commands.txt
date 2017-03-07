@@ -281,12 +281,12 @@ the "minimize"_minimize.html command.  A parallel tempering
 
 3.4 Commands listed by category :link(cmd_4),h4
 
-This section lists all LAMMPS commands, grouped by category.  The
-"next section"_#cmd_5 lists the same commands alphabetically.  The
+This section lists core LAMMPS commands, grouped by category.
+The "next section"_#cmd_5 lists all commands alphabetically.  The
 next section also includes (long) lists of style options for entries
 that appear in the following categories as a single command (fix,
 compute, pair, etc).  Commands that are added by user packages are not
-included in these categories, but they are in the next section.
+included in the categories here, but they are in the next section.
 
 Initialization:
 
@@ -361,7 +361,7 @@ Settings:
 "timer"_timer.html,
 "timestep"_timestep.html
 
-Operations within timestepping (fixes) and diagnositics (computes):
+Operations within timestepping (fixes) and diagnostics (computes):
 
 "compute"_compute.html,
 "compute_modify"_compute_modify.html,
@@ -1016,6 +1016,7 @@ package"_Section_start.html#start_3.
 "eff/cut"_pair_eff.html,
 "exp6/rx"_pair_exp6_rx.html,
 "gauss/cut"_pair_gauss.html,
+"kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "lennard/mdf"_pair_mdf.html,
 "list"_pair_list.html,
 "lj/charmm/coul/long/soft (o)"_pair_charmm.html,
@@ -1091,7 +1092,7 @@ package"_Section_start.html#start_3.
 
 "harmonic/shift (o)"_bond_harmonic_shift.html,
 "harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
-"oxdna/fene"_bond_oxdna_fene.html :tb(c=4,ea=c)
+"oxdna/fene"_bond_oxdna.html :tb(c=4,ea=c)
 
 :line
 

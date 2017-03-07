@@ -82,7 +82,7 @@ internal stress that induces fragmentation :ul
 then the interaction between pairs of particles is likely to be more
 complex than the summation of simple sub-particle interactions.  An
 example is contact or frictional forces between particles with planar
-sufaces that inter-penetrate.
+surfaces that inter-penetrate.
 
 These are additional LAMMPS commands that can be used with body
 particles of different styles
@@ -105,7 +105,7 @@ in the sections below.
 
 The {nparticle} body style represents body particles as a rigid body
 with a variable number N of sub-particles.  It is provided as a
-vanillia, prototypical example of a body particle, although as
+vanilla, prototypical example of a body particle, although as
 mentioned above, the "fix rigid"_fix_rigid.html command already
 duplicates its functionality.
 
@@ -140,7 +140,7 @@ for more details.
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
 around its center of mass.  The values are with respect to the
-simulation box XYZ axes, not with respect to the prinicpal axes of the
+simulation box XYZ axes, not with respect to the principal axes of the
 rigid body itself.  LAMMPS performs the latter calculation internally.
 The coordinates of each sub-particle are specified as its x,y,z
 displacement from the center-of-mass of the body particle.  The
@@ -218,7 +218,7 @@ wish; see the "read_data"_read_data.html command for more details.
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
 around its center of mass.  The values are with respect to the
-simulation box XYZ axes, not with respect to the prinicpal axes of the
+simulation box XYZ axes, not with respect to the principal axes of the
 rigid body itself.  LAMMPS performs the latter calculation internally.
 The coordinates of each vertex are specified as its x,y,z displacement
 from the center-of-mass of the body particle.  The center-of-mass

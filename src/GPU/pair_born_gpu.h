@@ -54,6 +54,6 @@ package
 
 E: Cannot use newton pair with born/gpu pair style
 
-Self-explantory.
+Self-explanatory.
 
 */

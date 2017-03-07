@@ -172,7 +172,7 @@ extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
 extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
 extern int    forcefield;    /* BitMask: the value FF_TYPE_COMMON is set for common components of the options below,
                               * FF_TYPE_CLASS1 = ClassI,  FF_TYPE_CLASS2 = ClassII, FF_TYPE_OPLSAA = OPLS-AA*/
-extern int    ljtypeflag;    /* how LJ paramters are stored: 0 = A-B, 1 = r-eps */
+extern int    ljtypeflag;    /* how LJ parameters are stored: 0 = A-B, 1 = r-eps */
 extern int    centerflag;    /* 1= center box  0= keep box */
 extern int    hintflag;      /* 1= print style hint comments  0= no hints */
 extern int    pflag;         /* print level: 0, 1, 2, 3 */

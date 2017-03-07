@@ -1102,7 +1102,7 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
       fraction2 = atom->dvector[ispecies][id]/nTotal;
     }
 
-    // If Site1 or Site2 matches is a fluid, then compute the paramters
+    // If Site1 or Site2 matches is a fluid, then compute the parameters
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == params[iparam].ispecies || isite2 == params[iparam].ispecies) continue;
       rmi = params[iparam].rm;

@@ -71,6 +71,10 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
     maxsendlist[i] = BUFMIN;
   }
   memory->create_kokkos(k_sendlist,sendlist,maxswap,BUFMIN,"comm:sendlist");
+
+  max_buf_pair = 0;
+  k_buf_send_pair = DAT::tdual_xfloat_1d("comm:k_buf_send_pair",1);
+  k_buf_recv_pair = DAT::tdual_xfloat_1d("comm:k_recv_send_pair",1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -300,9 +304,13 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
   int nsize = pair->comm_forward;
 
   for (iswap = 0; iswap < nswap; iswap++) {
+    int n = MAX(max_buf_pair,nsize*sendnum[iswap]);
+    n = MAX(n,nsize*recvnum[iswap]);
+    if (n > max_buf_pair)
+      grow_buf_pair(n);
+  }
 
-    DAT::tdual_xfloat_1d k_buf_send_pair = DAT::tdual_xfloat_1d("comm:k_buf_send_pair",nsize*sendnum[iswap]);
-    DAT::tdual_xfloat_1d k_buf_recv_pair = DAT::tdual_xfloat_1d("comm:k_recv_send_pair",nsize*recvnum[iswap]);
+  for (iswap = 0; iswap < nswap; iswap++) {
 
     // pack buffer
 
@@ -325,6 +333,12 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 
     pair->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
   }
+}
+
+void CommKokkos::grow_buf_pair(int n) {
+  max_buf_pair = n * BUFFACTOR;
+  k_buf_send_pair.resize(max_buf_pair);
+  k_buf_recv_pair.resize(max_buf_pair);
 }
 
 void CommKokkos::reverse_comm_pair(Pair *pair)

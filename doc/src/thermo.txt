@@ -30,7 +30,7 @@ The content and format of what is printed is controlled by the
 "thermo_style"_thermo_style.html and
 "thermo_modify"_thermo_modify.html commands.
 
-Instead of a numeric value, N can be specifed as an "equal-style
+Instead of a numeric value, N can be specified as an "equal-style
 variable"_variable.html, which should be specified as v_name, where
 name is the variable name.  In this case, the variable is evaluated at
 the beginning of a run to determine the next timestep at which

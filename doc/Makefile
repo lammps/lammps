@@ -22,7 +22,7 @@ endif
 SOURCES=$(wildcard src/*.txt)
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub html pdf old venv
+.PHONY: help clean-all clean epub html pdf old venv spelling
 
 # ------------------------------------------
 
@@ -44,6 +44,10 @@ clean-all:
 
 clean:
 	rm -rf $(RSTDIR) html
+	rm -rf spelling
+
+clean-spelling:
+	rm -rf spelling
 
 html: $(OBJECTS)
 	@(\
@@ -63,6 +67,17 @@ html: $(OBJECTS)
 	@rm -rf html/USER/*/.[sg]*
 	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
+
+spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
+	@(\
+		. $(VENV)/bin/activate ;\
+		pip install sphinxcontrib-spelling ;\
+		cp -r src/* $(RSTDIR)/ ;\
+        cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		deactivate ;\
+	)
+	@echo "Spell check finished."
 
 epub: $(OBJECTS)
 	@mkdir -p epub

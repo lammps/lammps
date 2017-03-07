@@ -5,7 +5,7 @@ NOTE: THE "oplsaa_moltemplate.py" SCRIPT HAS MOVED TO THE "../src/" DIRECTORY.
 Description:
 
 Unfortunately, moltemplate does not come with a file containing OPLSAA 
-paramters which is ready to use.  You must build it yourself.
+parameters which is ready to use.  You must build it yourself.
 This directory has tools and instructions to explain how to do this.
 
 -----------------------------

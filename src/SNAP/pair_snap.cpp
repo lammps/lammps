@@ -700,7 +700,7 @@ double PairSNAP::extra_cutoff()
 
 // Note that at most one atom is exchanged per processor pair.
 
-// Also note that the local atom assignement
+// Also note that the local atom assignment
 // doesn't change. This load balancer will cause
 // some ghost atoms to have full neighborlists
 // which are unique to PairSNAP.

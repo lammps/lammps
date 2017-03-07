@@ -60,7 +60,7 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 Unlike other improper styles, the hybrid improper style does not store
 improper coefficient info for individual sub-styles in a "binary
-restart files"_restart.html.  Thus when retarting a simulation from a
+restart files"_restart.html.  Thus when restarting a simulation from a
 restart file, you need to re-specify improper_coeff commands.
 
 [Related commands:]

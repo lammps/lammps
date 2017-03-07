@@ -274,7 +274,7 @@ atomic structure to ensure that it is realistic.
 E: Too many atom triplets for pair bop
 
 The number of three atom groups for angle determinations exceeds the
-expected number.  Check your atomic structrure to ensure that it is
+expected number.  Check your atomic structure to ensure that it is
 realistic.
 
 E: Cannot open BOP potential file %s

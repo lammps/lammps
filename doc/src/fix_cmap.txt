@@ -44,7 +44,7 @@ lammps/potentials directory: charmm22.cmap and charmm36.cmap.
 
 The data file read by the "read_data" must contain the topology of all
 the CMAP interactions, similar to the topology data for bonds, angles,
-dihedrals, etc.  Specically it should have a line like this
+dihedrals, etc.  Specially it should have a line like this
 in its header section:
 
 N crossterms :pre

@@ -57,7 +57,7 @@ cutoff specified in the pair_style command is used.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the mie/cut pair styles can be mixed.
-If not explicity defined, both the repulsive and attractive gamma
+If not explicitly defined, both the repulsive and attractive gamma
 exponents for different atoms will be calculated following the same
 mixing rule defined for distances.  The default mix value is
 {geometric}. See the "pair_modify" command for details.

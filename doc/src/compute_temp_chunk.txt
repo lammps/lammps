@@ -44,7 +44,7 @@ compute 1 fluid temp/chunk molchunk bias tpartial adof 2.0 :pre
 Define a computation that calculates the temperature of a group of
 atoms that are also in chunks, after optionally subtracting out the
 center-of-mass velocity of each chunk.  By specifying optional values,
-it can also calulate the per-chunk temperature or energies of the
+it can also calculate the per-chunk temperature or energies of the
 multiple chunks of atoms.
 
 In LAMMPS, chunks are collections of atoms defined by a "compute
@@ -122,7 +122,7 @@ concept is somewhat ill-defined.  In some cases, you can use the
 {adof} and {cdof} keywords to adjust the calculated degress of freedom
 appropriately, as explained below.
 
-Note that the per-chunk temperature calulated by this compute and the
+Note that the per-chunk temperature calculated by this compute and the
 "fix ave/chunk temp"_fix_ave_chunk.html command can be different.
 This compute calculates the temperature for each chunk for a single
 snapshot.  Fix ave/chunk can do that but can also time average those
@@ -208,7 +208,7 @@ This compute also optionally calculates a global array, if one or more
 of the optional values are specified.  The number of rows in the array
 = the number of chunks {Nchunk} as calculated by the specified
 "compute chunk/atom"_compute_chunk_atom.html command.  The number of
-columns is the number of specifed values (1 or more).  These values
+columns is the number of specified values (1 or more).  These values
 can be accessed by any command that uses global array values from a
 compute as input.  Again, see "Section
 6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output

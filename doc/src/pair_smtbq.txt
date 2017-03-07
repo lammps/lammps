@@ -36,7 +36,7 @@ atoms. This interactions depend on interatomic distance
 
 The parameters appearing in the upper expressions are set in the
 ffield.SMTBQ.Syst file where Syst corresponds to the selected system
-(e.g. field.SMTBQ.Al2O3). Exemples for TiO<sub>2</sub>,
+(e.g. field.SMTBQ.Al2O3). Examples for TiO<sub>2</sub>,
 Al<sub>2</sub>O<sub>3</sub> are provided.  A single pair_coeff command
 is used with the SMTBQ styles which provides the path to the potential
 file with parameters for needed elements. These are mapped to LAMMPS

@@ -14,7 +14,7 @@ compute ID group-ID event/displace threshold :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 event/displace = style name of this compute command
-threshold = minimum distance anyparticle must move to trigger an event (distance units) :ul
+threshold = minimum distance any particle must move to trigger an event (distance units) :ul
 
 [Examples:]
 
@@ -37,7 +37,7 @@ further than the threshold distance.
 NOTE: If the system is undergoing significant center-of-mass motion,
 due to thermal motion, an external force, or an initial net momentum,
 then this compute will not be able to distinguish that motion from
-local atom displacements and may generate "false postives."
+local atom displacements and may generate "false positives."
 
 [Output info:]
 

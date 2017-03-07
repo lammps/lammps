@@ -1107,7 +1107,7 @@ def _DeleteLineFromTemplate(tmpl_list,
     tmpl_list is an alternating list of VarRefs and TextBlocks.
     To identify the line, the index corresponding to one of the
     entries in the tmpl_list is used. (Usually it is a VarRef)
-    The text after the preceeding newline, and the text up to the next newline 
+    The text after the preceding newline, and the text up to the next newline 
        (starting from the beginning of the current entry, if a TextBlock)
     is deleted, including any VarRef (variables) located in between.
 
@@ -1505,7 +1505,7 @@ class TemplateLexer(TtreeShlex):
     new member function (ReadTemplate()), which can read in a block of raw text,
     (halting at an (non-escaped) terminal character), and split the text into
     alternating blocks of text and variables.  (As far as this lexer is 
-    concerned, "variables" are simply tokens preceeded by $ or @ characters,
+    concerned, "variables" are simply tokens preceded by $ or @ characters,
     and surrounded by optional curly-brackets {}.)
 
     """
@@ -1652,7 +1652,7 @@ class TemplateLexer(TtreeShlex):
         (for example, '}' in "\}" does not cause terminate parsing).
         In that case, the text is considered normal text.  (However the 
         '\' character is also stripped out.  It is also stripped out if it
-        preceeds any characters in "other_esc_chars", which is 
+        precedes any characters in "other_esc_chars", which is 
         the second argument.  Otherwise it is left in the text block.)
 
         """

@@ -24,7 +24,7 @@ mass 1 180.88
 
 # choose potential
 
-include Ta06A_pot.snap
+include Ta06A.snap
 
 # Setup output
 

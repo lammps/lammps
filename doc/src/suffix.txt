@@ -91,7 +91,7 @@ a disabled suffix is turned back on.  The use of these 2 commands lets
 your input script use a standard LAMMPS style (i.e. a non-accelerated
 variant), which can be useful for testing or benchmarking purposes.
 Of course this is also possible by not using any suffix commands, and
-explictly appending or not appending the suffix to the relevant
+explicitly appending or not appending the suffix to the relevant
 commands in your input script.
 
 NOTE: The default "run_style"_run_style.html verlet is invoked prior to

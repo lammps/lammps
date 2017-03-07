@@ -88,7 +88,7 @@ conformation.  You may need to experiment to determine what value of K
 works best for a given application.
 
 For the case of finding a minimum energy structure for a single
-molecule with particular restratins (e.g. for fitting forcefield
+molecule with particular restraints (e.g. for fitting forcefield
 parameters or constructing a potential energy surface), commands such
 as the following may be useful:
 

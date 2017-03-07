@@ -216,7 +216,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 
   best_factors(numapossible,numafactors,numagrid,1,1,1);
 
-  // user_nodegrid = implied user contraints on nodes
+  // user_nodegrid = implied user constraints on nodes
 
   int user_nodegrid[3];
   user_nodegrid[0] = user_procgrid[0] / numagrid[0];

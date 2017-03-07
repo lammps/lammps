@@ -37,7 +37,7 @@ pitfalls or alternatives.
 
 Please see some of the closed issues for examples of how to
 suggest code enhancements, submit proposed changes, or report
-possible bugs and how they are resoved.
+possible bugs and how they are resolved.
 
 As an alternative to using GitHub, you may e-mail the
 "core developers"_http://lammps.sandia.gov/authors.html or send

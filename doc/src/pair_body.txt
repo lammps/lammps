@@ -59,7 +59,7 @@ computed and summed.  If the distance is not within the cutoff, no
 interactions between the body and point particle are computed.
 
 The interaction between two sub-particles, or a sub-particle and point
-particle, or betwee two point particles is computed as a Lennard-Jones
+particle, or between two point particles is computed as a Lennard-Jones
 interaction, using the standard formula
 
 :c,image(Eqs/pair_lj.jpg)

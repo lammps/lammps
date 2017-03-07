@@ -1,4 +1,4 @@
-# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. to appear in arxiv Feb2017, W-He and He-He from Juslin, N. and Wirth, B. D. Journal of Nuclear Materials, 423, (2013) p61-63
+# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
 #
 # Definition of SNAP+ZBL+Tabulated potential.
 variable zblcutinner equal 4

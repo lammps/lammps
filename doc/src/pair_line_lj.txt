@@ -39,7 +39,7 @@ function of the line segment length and the specified sub-particle
 size for that particle type.  If a line segment has a length L and is
 of type I, then the number of spheres N that represent the segment is
 calculated as N = L/sizeI, rounded up to an integer value.  Thus if L
-is not evenly divisibly by sizeI, N is incremented to include one
+is not evenly divisible by sizeI, N is incremented to include one
 extra sphere.  The centers of the spheres are spaced equally along the
 line segment.  Imagine N+1 equally-space points, which include the 2
 end points of the segment.  The sphere centers are halfway between
@@ -48,7 +48,7 @@ each pair of points.
 The LJ interaction between 2 spheres on different line segments (or a
 sphere on a line segment and a point particles) is computed with
 sub-particle epsilon, sigma, and cutoff values that are set by the
-pair_coeff command, as described below.  If the distance bewteen the 2
+pair_coeff command, as described below.  If the distance between the 2
 spheres is greater than the sub-particle cutoff, there is no
 interaction.  This means that some pairs of sub-particles on 2 line
 segments may interact, but others may not.
@@ -90,7 +90,7 @@ The {sizeI} and {sizeJ} coefficients are the sub-particle sizes for
 line particles of type I and type J.  They are used to define the N
 sub-particles per segment as described above.  These coefficients are
 actually stored on a per-type basis.  Thus if there are multiple
-pair_coeff commmands that involve type I, as either the first or
+pair_coeff commands that involve type I, as either the first or
 second atom type, you should use consistent values for sizeI or sizeJ
 in all of them.  If you do not do this, the last value specified for
 sizeI will apply to all segments of type I.  If typeI or typeJ refers
@@ -112,7 +112,7 @@ cutoff is used.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-For atom type pairs I,J and I != J, coeffiecients must be specified.
+For atom type pairs I,J and I != J, coefficients must be specified.
 No default mixing rules are used.
 
 This pair style does not support the "pair_modify"_pair_modify.html

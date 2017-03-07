@@ -23,11 +23,11 @@ pair_coeff 1 4 78. 1.375 0.112 :pre
 
 [Description:]
 
-Style {coul/diel} computes a Coulomb correction for implict solvent
-ion interactions in which the dielectric perimittivity is distance dependent.
+Style {coul/diel} computes a Coulomb correction for implicit solvent
+ion interactions in which the dielectric permittivity is distance dependent.
 The dielectric permittivity epsilon_D(r) connects to limiting regimes:
 One limit is defined by a small dielectric permittivity (close to vacuum)
-at or close to contact seperation between the ions. At larger separations
+at or close to contact separation between the ions. At larger separations
 the dielectric permittivity reaches a bulk value used in the regular Coulomb
 interaction coul/long or coul/cut.
 The transition is modeled by a hyperbolic function which is incorporated

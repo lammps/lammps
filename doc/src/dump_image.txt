@@ -237,7 +237,7 @@ diameter, which can be used as the {diameter} setting.
 
 :line
 
-The various kewords listed above control how the image is rendered.
+The various keywords listed above control how the image is rendered.
 As listed below, all of the keywords have defaults, most of which you
 will likely not need to change.  The "dump modify"_dump_modify.html
 also has options specific to the dump image style, particularly for
@@ -442,7 +442,7 @@ degrees.
 
 The {center} keyword determines the point in simulation space that
 will be at the center of the image.  {Cx}, {Cy}, and {Cz} are
-speficied as fractions of the box dimensions, so that (0.5,0.5,0.5) is
+specified as fractions of the box dimensions, so that (0.5,0.5,0.5) is
 the center of the simulation box.  These values do not have to be
 between 0.0 and 1.0, if you want the simulation box to be offset from
 the center of the image.  Note, however, that if you choose strange
@@ -476,8 +476,8 @@ smaller.  {Zfactor} must be a value > 0.0.
 The {persp} keyword determines how much depth perspective is present
 in the image.  Depth perspective makes lines that are parallel in
 simulation space appear non-parallel in the image.  A {pfactor} value
-of 0.0 means that parallel lines will meet at infininty (1.0/pfactor),
-which is an orthographic rendering with no persepctive.  A {pfactor}
+of 0.0 means that parallel lines will meet at infinity (1.0/pfactor),
+which is an orthographic rendering with no perspective.  A {pfactor}
 value between 0.0 and 1.0 will introduce more perspective.  A {pfactor}
 value > 1 will create a highly skewed image with a large amount of
 perspective.

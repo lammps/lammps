@@ -167,7 +167,7 @@ zero net charge.
 NOTE: Developing QEq parameters (chi, eta, gamma, zeta, and qcore) is
 non-trivial.  Charges on atoms are not guaranteed to equilibrate with
 arbitrary choices of these parameters.  We do not develop these QEq
-paramters.  See the examples/qeq directory for some examples.
+parameters.  See the examples/qeq directory for some examples.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

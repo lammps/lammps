@@ -33,7 +33,7 @@ pair_coeff * 3 morse.table ENTRY1 7.0 :pre
 
 Style {table} creates interpolation tables from potential energy and
 force values listed in a file(s) as a function of distance.  When
-performing dynamics or minimation, the interpolation tables are used
+performing dynamics or minimization, the interpolation tables are used
 to evaluate energy and forces for pairwise interactions between
 particles, similar to how analytic formulas are used for other pair
 styles.

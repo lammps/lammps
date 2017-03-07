@@ -24,7 +24,7 @@ to the Lennard-Jones equation of state, which is computed according to
 Ree's 1980 polynomial fit "(Ree)"_#Ree. The Lennard-Jones parameters
 epsilon and sigma are set to unity.  This pair style also computes
 Monaghan's artificial viscosity to prevent particles from
-interpentrating "(Monaghan)"_#Monoghan.
+interpenetrating "(Monaghan)"_#Monoghan.
 
 See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
 LAMMPS.

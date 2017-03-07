@@ -217,7 +217,7 @@ best performance its CCFLAGS setting should use -O3 and have a
 KOKKOS_ARCH setting that matches the compute capability of your NVIDIA
 hardware and software installation, e.g. KOKKOS_ARCH=Kepler30.  Note
 the minimal required compute capability is 2.0, but this will give
-signicantly reduced performance compared to Kepler generation GPUs
+significantly reduced performance compared to Kepler generation GPUs
 with compute capability 3.x.  For the LINK setting, "nvcc" should not
 be used; instead use g++ or another compiler suitable for linking C++
 applications.  Often you will want to use your MPI compiler wrapper

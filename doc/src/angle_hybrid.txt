@@ -81,7 +81,7 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 Unlike other angle styles, the hybrid angle style does not store angle
 coefficient info for individual sub-styles in a "binary restart
-files"_restart.html.  Thus when retarting a simulation from a restart
+files"_restart.html.  Thus when restarting a simulation from a restart
 file, you need to re-specify angle_coeff commands.
 
 [Related commands:]

@@ -76,7 +76,7 @@ Specifically, this style performs all computation except the
 "kspace_style"_kspace_style.html portion of the force field on the 1st
 partition.  This include the "pair style"_pair_style.html, "bond
 style"_bond_style.html, "neighbor list building"_neighbor.html,
-"fixes"_fix.html including time intergration, and output.  The
+"fixes"_fix.html including time integration, and output.  The
 "kspace_style"_kspace_style.html portion of the calculation is
 performed on the 2nd partition.
 
@@ -105,7 +105,7 @@ to control this, e.g.
 procssors * * * part 1 2 multiple :pre
 
 You can also use the "partition"_partition.html command to explicitly
-specity the processor layout on each partition.  E.g. for 2 partitions
+specify the processor layout on each partition.  E.g. for 2 partitions
 of 60 and 15 processors each:
 
 partition yes 1 processors 3 4 5
@@ -182,7 +182,7 @@ for hybrid coarse-grained/all-atom models.  The {hybrid} keyword
 requires as many level assignments as there are hybrid substyles,
 which assigns each sub-style to a rRESPA level, following their order
 of definition in the pair_style command. Since the {hybrid} keyword
-operates on pair style computations, it is mututally exclusive with
+operates on pair style computations, it is mutually exclusive with
 either the {pair} or the {inner}/{middle}/{outer} keywords.
 
 When using rRESPA (or for any MD simulation) care must be taken to

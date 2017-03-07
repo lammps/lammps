@@ -44,7 +44,7 @@ ramped value between the {Tstart} and {Tstop} temperatures at the
 beginning and end of the run.
 
 NOTE: This thermostat will generate an error if the current
-temperature is zero at the end of a timestep it is inovoked on.  It
+temperature is zero at the end of a timestep it is invoked on.  It
 cannot rescale a zero temperature.
 
 {Tstart} can be specified as an equal-style "variable"_variable.html.

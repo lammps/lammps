@@ -120,14 +120,14 @@ are the charges on the 2 atoms, and epsilon is the dielectric constant
 which can be set by the "dielectric"_dielectric.html command.
 
 The coefficient lambda is an activation parameter. When lambda = 1 the
-pair potentiel is identical to a Lennard-Jones term or a Coulomb term
+pair potential is identical to a Lennard-Jones term or a Coulomb term
 or a combination of both. When lambda = 0 the interactions are
 deactivated. The transition between these two extrema is smoothed by a
 soft repulsive core in order to avoid singularities in potential
 energy and forces when sites are created or annihilated and can overlap
 "(Beutler)"_#Beutler.
 
-The paratemers n, alpha_LJ and alpha_C are set in the
+The parameters n, alpha_LJ and alpha_C are set in the
 "pair_style"_pair_style.html command, before the cutoffs.  Usual
 choices for the exponent are n = 2 or n = 1. For the remaining
 coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
@@ -164,7 +164,7 @@ Style {lj/cut/tip4p/long/soft} implements a soft-core version of the
 TIP4P water model. The usage of this pair style is documented in the
 "pair_lj"_pair_lj.html styles. The soft-core version introduces the
 lambda parameter to the list of arguments, after epsilon and sigma in
-the "pair_coeff"_pair_coeff.html command. The paratemers n, alpha_LJ
+the "pair_coeff"_pair_coeff.html command. The parameters n, alpha_LJ
 and alpha_C are set in the "pair_style"_pair_style.html command,
 before the cutoffs.
 
@@ -175,7 +175,7 @@ an inner and outer cutoff. The usage of this pair style is documented
 in the "pair_charmm"_pair_charmm.html styles. The soft-core version
 introduces the lambda parameter to the list of arguments, after
 epsilon and sigma in the "pair_coeff"_pair_coeff.html command (and
-before the optional eps14 and sigma14). The paratemers n,
+before the optional eps14 and sigma14). The parameters n,
 alpha_LJ and alpha_C are set in the "pair_style"_pair_style.html
 command, before the cutoffs.
 

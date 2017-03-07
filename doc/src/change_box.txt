@@ -258,8 +258,8 @@ command.
 :line
 
 The {ortho} and {triclinic} keywords convert the simulation box to be
-orthogonal or triclinic (non-orthongonal).  See "this
-section"_Section_howto#howto_13 for a discussion of how non-orthongal
+orthogonal or triclinic (non-orthogonal).  See "this
+section"_Section_howto#howto_13 for a discussion of how non-orthogonal
 boxes are represented in LAMMPS.
 
 The simulation box is defined as either orthogonal or triclinic when

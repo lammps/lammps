@@ -110,7 +110,7 @@ USER-OMP.
 If this command is specified in an input script, it must be near the
 top of the script, before the simulation box has been defined.  This
 is because it specifies settings that the accelerator packages use in
-their intialization, before a simultion is defined.
+their initialization, before a simulation is defined.
 
 This command can also be specified from the command-line when
 launching LAMMPS, using the "-pk" "command-line
@@ -199,7 +199,7 @@ the default.
 The {split} keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < {split} <
 1.0, a fixed fraction of particles is offloaded to the GPU while force
-calculation for the other particles occurs simulataneously on the CPU.
+calculation for the other particles occurs simultaneously on the CPU.
 If {split} < 0.0, the optimal fraction (based on CPU and GPU timings)
 is calculated every 25 timesteps, i.e. dynamic load-balancing across
 the CPU and GPU is performed.  If {split} = 1.0, all force
@@ -295,7 +295,7 @@ For more details, including examples of how to set the OMP_NUM_THREADS
 environment variable, see the discussion of the {Nthreads} setting on
 this doc page for the "package omp" command.  Nthreads is a required
 argument for the USER-OMP package.  Its meaning is exactly the same
-for the USER-INTEL pacakge.
+for the USER-INTEL package.
 
 NOTE: If you build LAMMPS with both the USER-INTEL and USER-OMP
 packages, be aware that both packages allow setting of the {Nthreads}
@@ -347,7 +347,7 @@ automatically throughout the run.  This typically give performance
 within 5 to 10 percent of the optimal fixed fraction.
 
 The {ghost} keyword determines whether or not ghost atoms, i.e. atoms
-at the boundaries of proessor sub-domains, are offloaded for neighbor
+at the boundaries of processor sub-domains, are offloaded for neighbor
 and force calculations.  When the value = "no", ghost atoms are not
 offloaded.  This option can reduce the amount of data transfer with
 the coprocessor and can also overlap MPI communication of forces with
@@ -516,7 +516,7 @@ for OpenMPI.  Check your MPI documentation for additional details.
 What combination of threads and MPI tasks gives the best performance
 is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
-USER-OMP packaage and the parallel efficiency can be very different,
+USER-OMP package and the parallel efficiency can be very different,
 too.
 
 Optional keyword/value pairs can also be specified.  Each has a
@@ -527,7 +527,7 @@ multi-threaded in addition to force calculations.  If {neigh} is set
 to {no} then neighbor list calculation is performed only by MPI tasks
 with no OpenMP threading.  If {mode} is {yes} (the default), a
 multi-threaded neighbor list build is used.  Using {neigh} = {yes} is
-almost always faster and should produce idential neighbor lists at the
+almost always faster and should produce identical neighbor lists at the
 expense of using more memory.  Specifically, neighbor list pages are
 allocated for all threads at the same time and each thread works
 within its own pages.

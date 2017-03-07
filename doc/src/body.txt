@@ -82,7 +82,7 @@ internal stress that induces fragmentation :ul
 then the interaction between pairs of particles is likely to be more
 complex than the summation of simple sub-particle interactions.  An
 example is contact or frictional forces between particles with planar
-sufaces that inter-penetrate.
+surfaces that inter-penetrate.
 
 These are additional LAMMPS commands that can be used with body
 particles of different styles
@@ -105,7 +105,7 @@ in the sections below.
 
 The {nparticle} body style represents body particles as a rigid body
 with a variable number N of sub-particles.  It is provided as a
-vanillia, prototypical example of a body particle, although as
+vanilla, prototypical example of a body particle, although as
 mentioned above, the "fix rigid"_fix_rigid.html command already
 duplicates its functionality.
 

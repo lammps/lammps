@@ -7552,7 +7552,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Molecule toplogy/atom exceeds system topology/atom} :dt
+{Molecule topology/atom exceeds system topology/atom} :dt
 
 The number of bonds, angles, etc per-atom in the molecule exceeds the
 system setting.  See the create_box command for how to specify these
@@ -10707,7 +10707,7 @@ Self-explanatory. :dd
 {Variable has circular dependency} :dt
 
 A circular dependency is when variable "a" in used by variable "b" and
-variable "b" is also used by varaible "a".  Circular dependencies with
+variable "b" is also used by variable "a".  Circular dependencies with
 longer chains of dependence are also not allowed. :dd
 
 {Variable name between brackets must be alphanumeric or underscore characters} :dt
@@ -11452,7 +11452,7 @@ i.e. the first molecule in the template. :dd
 
 {Molecule template for fix shake has multiple molecules} :dt
 
-The fix shake command will only recoginze molecules of a single
+The fix shake command will only recognize molecules of a single
 type, i.e. the first molecule in the template. :dd
 
 {More than one compute centro/atom} :dt
@@ -11589,7 +11589,7 @@ This may not be what you intended. :dd
 
 {One or more dynamic groups may not be updated at correct point in timestep} :dt
 
-If there are other fixes that act immediately after the intitial stage
+If there are other fixes that act immediately after the initial stage
 of time integration within a timestep (i.e. after atoms move), then
 the command that sets up the dynamic group should appear after those
 fixes.  This will insure that dynamic group assignments are made

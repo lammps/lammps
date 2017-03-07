@@ -58,10 +58,10 @@ cutoff (distance units) :ul
 
 The parameters used depend on the type of the interacting particles,
 i.e. ellipsoids or LJ spheres.  The type of a particle is determined
-by the diameters specified for its 3 shape paramters.  If all 3 shape
+by the diameters specified for its 3 shape parameters.  If all 3 shape
 parameters = 0.0, then the particle is treated as an LJ sphere.  The
 epsilon_i_* or epsilon_j_* parameters are ignored for LJ spheres.  If
-the 3 shape paraemters are > 0.0, then the particle is treated as an
+the 3 shape parameters are > 0.0, then the particle is treated as an
 ellipsoid (even if the 3 parameters are equal to each other).
 
 A12 specifies the energy prefactor which depends on the types of the
@@ -80,7 +80,7 @@ strength of the spherical particles.
 
 For ellipsoid/LJ sphere interactions, the interaction is also computed
 by the formulas in the supplementary document referenced above.  A12
-has a modifed form (see "here"_PDF/pair_resquared_extra.pdf for
+has a modified form (see "here"_PDF/pair_resquared_extra.pdf for
 details):
 
 :c,image(Eqs/pair_resquared2.jpg)

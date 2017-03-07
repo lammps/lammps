@@ -58,7 +58,7 @@ would see with one or more physical processors per replica.  See
 discussion.
 
 NOTE: As explained below, a NEB calculation perfoms a damped dynamics
-minimization across all the replicas.  The mimimizer uses whatever
+minimization across all the replicas.  The minimizer uses whatever
 timestep you have defined in your input script, via the
 "timestep"_timestep.html command.  Often NEB will converge more
 quickly if you use a timestep about 10x larger than you would normally
@@ -81,7 +81,7 @@ inter-replica springs and the forces they feel and their motion is
 computed in the usual way due only to other atoms within their
 replica.  Conceptually, the non-NEB atoms provide a background force
 field for the NEB atoms.  They can be allowed to move during the NEB
-minimiation procedure (which will typically induce different
+minimization procedure (which will typically induce different
 coordinates for non-NEB atoms in different replicas), or held fixed
 using other LAMMPS commands such as "fix setforce"_fix_setforce.html.
 Note that the "partition"_partition.html command can be used to invoke
@@ -97,7 +97,7 @@ Conceptually, the initial configuration for the first replica should
 be a state with all the atoms (NEB and non-NEB) having coordinates on
 one side of the energy barrier.  A perfect energy minimum is not
 required, since atoms in the first replica experience no spring forces
-from the 2nd replica.  Thus the damped dynamics minimizaiton will
+from the 2nd replica.  Thus the damped dynamics minimization will
 drive the first replica to an energy minimum if it is not already
 there.  However, you will typically get better convergence if the
 initial state is already at a minimum.  For example, for a system with
@@ -366,7 +366,7 @@ parameters.
 There are 2 Python scripts provided in the tools/python directory,
 neb_combine.py and neb_final.py, which are useful in analyzing output
 from a NEB calculation.  Assume a NEB simulation with M replicas, and
-the NEB atoms labelled with a specific atom type.
+the NEB atoms labeled with a specific atom type.
 
 The neb_combine.py script extracts atom coords for the NEB atoms from
 all M dump files and creates a single dump file where each snapshot

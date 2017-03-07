@@ -131,7 +131,7 @@ This style also sets the velocity of each atom to (omega cross Rperp)
 where omega is its angular velocity around the rotation axis and Rperp
 is a perpendicular vector from the rotation axis to the atom.  If the
 defined "atom_style"_atom_style.html assigns an angular velocity or
-angular moementum or orientation to each atom ("atom
+angular momentum or orientation to each atom ("atom
 styles"_atom_style.html sphere, ellipsoid, line, tri, body), then
 those properties are also updated appropriately to correspond to the
 atom's motion and rotation over time.

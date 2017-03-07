@@ -54,18 +54,18 @@ fix 1 srd srd 10 big 0.5 0.25 482984 collision slip search 0.5 :pre
 
 [Description:]
 
-Treat a group of partilces as stochastic rotation dynamics (SRD)
+Treat a group of particles as stochastic rotation dynamics (SRD)
 particles that serve as a background solvent when interacting with big
 (colloidal) particles in groupbig-ID.  The SRD formalism is described
 in "(Hecht)"_#Hecht.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
 can be spheroids, ellipsoids, or line segments, or triangles, or rigid
-bodies containing multiple spherioids or ellipsoids or line segments
+bodies containing multiple spheriods or ellipsoids or line segments
 or triangles.  The collision and rotation properties of the model
 imbue the SRD particles with fluid-like properties, including an
 effective viscosity.  Thus simulations with large solute particles can
-be run more quickly, to measure solute propoerties like diffusivity
+be run more quickly, to measure solute properties like diffusivity
 and viscosity in a background fluid.  The usual LAMMPS fixes for such
 simulations, such as "fix deform"_fix_deform.html, "fix
 viscosity"_fix_viscosity.html, and "fix nvt/sllod"_fix_nvt_sllod.html,
@@ -230,7 +230,7 @@ error or warning is generated.  Similarly, if the ratio of any bin
 dimension with {hgrid} exceeds (1 +/- tolerance), then an error or
 warning is generated.
 
-NOTE: The fix srd command can be used with simluations the size and/or
+NOTE: The fix srd command can be used with simulations the size and/or
 shape of the simulation box changes.  This can be due to non-periodic
 boundary conditions or the use of fixes such as the "fix
 deform"_fix_deform.html or "fix wall/srd"_fix_wall_srd.html commands

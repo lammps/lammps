@@ -83,7 +83,7 @@ produces additional output files.  The range finder functionality
 (step 4) outputs files defining pair and bonded interaction ranges.
 The force matching functionality (step 5) outputs tabulated force
 files for every interaction in the system. Other diagnostic files can
-also be output depending on the paramters in the MS-CG library input
+also be output depending on the parameters in the MS-CG library input
 script.  Again, see the documentation provided with the MS-CG library
 for more info.
 

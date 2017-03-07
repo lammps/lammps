@@ -91,7 +91,7 @@ molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
 See the "howto section"_Section_howto.html#howto_8 for more
 information on how to use the TIP4P pair style.  Note that the
-neighobr list cutoff for Coulomb interactions is effectively extended
+neighbor list cutoff for Coulomb interactions is effectively extended
 by a distance 2*qdist when using the TIP4P pair style, to account for
 the offset distance of the fictitious charges on O atoms in water
 molecules.  Thus it is typically best in an efficiency sense to use a

@@ -1683,6 +1683,7 @@ ohenrich
 ok
 OKeefe
 OKeefe
+O'Keefe
 oldlace
 Oleinik
 Olfason
@@ -1747,6 +1748,8 @@ parallelization
 parallelized
 parallelizing
 param
+parameterization
+parameterizations
 parameterize
 parameterized
 parametrization
@@ -1785,6 +1788,7 @@ peridynamic
 Peridynamic
 peridynamics
 Peridynamics
+permittivity
 Perram
 persp
 Persp
@@ -2129,7 +2133,7 @@ Silbert
 Silling
 Simul
 simulataneous
-simulatoins
+simulations
 Sinnott
 sinusoid
 sinusoidally

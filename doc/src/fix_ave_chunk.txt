@@ -301,7 +301,7 @@ sample values" divided by {Nrepeat}.  In other words it is an average
 of an average.
 
 If the {norm} setting is {none}, a similar computation as for the
-{sample} seting is done, except the individual "average sample values"
+{sample} setting is done, except the individual "average sample values"
 are "summed sample values".  A summed sample value is simply the chunk
 value summed over atoms in the sample, without dividing by the number
 of atoms in the sample.  The output value for the chunk on the

@@ -101,7 +101,7 @@ positions.
 For the {random} style, N particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
-speficied random number {seed}, resulting in the same set of particles
+specified random number {seed}, resulting in the same set of particles
 coordinates, independent of how many processors are being used in the
 simulation.  If the {region-ID} argument is specified as NULL, then
 the created particles will be anywhere in the simulation box.  If a

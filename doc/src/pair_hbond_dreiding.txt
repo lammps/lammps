@@ -101,7 +101,7 @@ pair_coeff settings for all possible I,J type pairs.  Only I,J type
 pairs for atoms which act as joint donors/acceptors need to be
 specified; all other type pairs are assumed to be inactive.
 
-NOTE: A "pair_coeff"_pair_coeff.html command can be speficied multiple
+NOTE: A "pair_coeff"_pair_coeff.html command can be specified multiple
 times for the same donor/acceptor type pair.  This enables multiple
 hydrogen types to be assigned to the same donor/acceptor type pair.
 For other pair_styles, if the pair_coeff command is re-used for the

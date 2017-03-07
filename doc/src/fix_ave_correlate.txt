@@ -219,7 +219,7 @@ to {upper} then each input value is correlated with every succeeding
 value.  I.e. Cij = Vi*Vj, for i < j, so Npair = N*(N-1)/2. :l
 
 If {type} is set
-to {lower} then each input value is correlated with every preceeding
+to {lower} then each input value is correlated with every preceding
 value.  I.e. Cij = Vi*Vj, for i > j, so Npair = N*(N-1)/2. :l
 
 If {type} is set to {auto/upper} then each input value is correlated

@@ -212,7 +212,7 @@ both of the spheres.
 
 The {units} keyword determines the meaning of the distance units used
 to define the region for any argument above listed as having distance
-units.  It also affects the scaling of the velocity vector specfied
+units.  It also affects the scaling of the velocity vector specified
 with the {vel} keyword, the amplitude vector specified with the
 {wiggle} keyword, and the rotation point specified with the {rotate}
 keyword, since they each involve a distance metric.
@@ -352,7 +352,7 @@ high-coordinate flat end cap, and index 3 is the curved cone surface.
 In the last example above, a {cone} region is defined along the z-axis
 that is open at the zlo value (e.g. for use as a funnel).
 
-For all other styles, the {open} keyword is ignored.  As inidcated
+For all other styles, the {open} keyword is ignored.  As indicated
 above, this includes the {intersect} and {union} regions, though their
 sub-regions can be defined with the {open} keyword.
 

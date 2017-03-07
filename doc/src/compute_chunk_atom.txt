@@ -386,7 +386,7 @@ If {compress yes} is set, and the {compress} keyword comes before the
 {limit} keyword, the compression operation is performed first, as
 described below, which resets {Nchunk}.  The {limit} keyword is then
 applied to the new {Nchunk} value, exactly as described in the
-preceeding paragraph.  Note that in this case, all atoms will end up
+preceding paragraph.  Note that in this case, all atoms will end up
 with chunk IDs <= {Nc}, but their original values (e.g. molecule ID or
 compute/fix/variable value) may have been > {Nc}, because of the
 compression operation.

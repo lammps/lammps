@@ -328,7 +328,7 @@ fix must be used in conjunction with the
 "lb/viscous"_fix_lb_viscous.html fix if the force coupling constant is
 set by default, or either the "lb/viscous"_fix_lb_viscous.html fix or
 one of the "lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html or
-"lb/pc"_fix_lb_pc.html integrators, if the user chooses to specifiy
+"lb/pc"_fix_lb_pc.html integrators, if the user chooses to specify
 their own value for the force coupling constant.
 
 [Related commands:]

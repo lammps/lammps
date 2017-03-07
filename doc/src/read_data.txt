@@ -574,7 +574,7 @@ spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e.
 template-atom = which atom within a template molecule the atom is
 template-index = which molecule within the molecule template the atom is part of
 theta = internal temperature of a DPD particle
-triangleflag = 1 for triangular particles, 0 for point or sperhical particles
+triangleflag = 1 for triangular particles, 0 for point or spherical particles
 volume = volume of Peridynamic particle (distance^3 units)
 x,y,z = coordinates of atom (distance units) :ul
 

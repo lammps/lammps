@@ -43,7 +43,7 @@ style van der Waals interaction or not) is tallied in {evdwl}.  If
 as a global scalar by this compute.  This is useful when using
 "pair_style hybrid"_pair_hybrid.html if you want to know the portion
 of the total energy contributed by one sub-style.  If {evalue} is
-specfied as {evdwl} or {ecoul}, then just that portion of the energy
+specified as {evdwl} or {ecoul}, then just that portion of the energy
 is stored as a global scalar.
 
 NOTE: The energy returned by the {evdwl} keyword does not include tail

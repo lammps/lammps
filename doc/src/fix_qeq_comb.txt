@@ -42,12 +42,12 @@ Only charges on the atoms in the specified group are equilibrated.
 The fix relies on the pair style (COMB in this case) to calculate the
 per-atom electronegativity (effective force on the charges).  An
 electronegativity equalization calculation (or QEq) is performed in an
-interative fashion, which in parallel requires communication at each
+iterative fashion, which in parallel requires communication at each
 iteration for processors to exchange charge information about nearby
 atoms with each other.  See "Rappe_and_Goddard"_#Rappe_and_Goddard and
 "Rick_and_Stuart"_#Rick_and_Stuart for details.
 
-During a run, charge equilibration is peformed every {Nevery} time
+During a run, charge equilibration is performed every {Nevery} time
 steps.  Charge equilibration is also always enforced on the first step
 of each run.  The {precision} argument controls the tolerance for the
 difference in electronegativity for all atoms during charge
@@ -55,7 +55,7 @@ equilibration.  {Precision} is a trade-off between the cost of
 performing charge equilibration (more iterations) and accuracy.
 
 If the {file} keyword is used, then information about each
-equilibration calculation is written to the specifed file.
+equilibration calculation is written to the specified file.
 
 :line
 

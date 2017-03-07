@@ -208,7 +208,7 @@ This compute also optionally calculates a global array, if one or more
 of the optional values are specified.  The number of rows in the array
 = the number of chunks {Nchunk} as calculated by the specified
 "compute chunk/atom"_compute_chunk_atom.html command.  The number of
-columns is the number of specifed values (1 or more).  These values
+columns is the number of specified values (1 or more).  These values
 can be accessed by any command that uses global array values from a
 compute as input.  Again, see "Section
 6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output

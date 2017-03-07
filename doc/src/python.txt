@@ -174,7 +174,7 @@ a longer string, the {length} keyword can be specified with its {Nlen}
 value set to a larger number (the code allocates space for Nlen+1 to
 include the string terminator).  If the Python function generates a
 string longer than the default 63 or the specified {Nlen}, it will be
-trunctated.
+truncated.
 
 :line
 
@@ -372,7 +372,7 @@ LAMMPS, more than the single value that can be passed back via a
 return statement.  This cutoff value in the "cut" variable is then
 substituted (by LAMMPS) in the pair_style command that is executed
 next.  Alternatively, the "LAMMPS command option" line could be used
-in place of the 2 preceeding lines, to have Python insert the value
+in place of the 2 preceding lines, to have Python insert the value
 into the LAMMPS command string.
 
 NOTE: When using the callback mechanism just described, recognize that

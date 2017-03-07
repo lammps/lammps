@@ -80,7 +80,7 @@ This section has the following sub-sections:
 
 Read this first :h5,link(start_2_1)
 
-If you want to avoid building LAMMPS yourself, read the preceeding
+If you want to avoid building LAMMPS yourself, read the preceding
 section about options available for downloading and installing
 executables.  Details are discussed on the "download"_download page.
 
@@ -251,7 +251,7 @@ re-compile, after typing "make clean" (which will describe different
 clean options).
 
 The LMP_INC variable is used to include options that turn on ifdefs
-within the LAMMPS code.  The options that are currently recogized are:
+within the LAMMPS code.  The options that are currently recognized are:
 
 -DLAMMPS_GZIP
 -DLAMMPS_JPEG
@@ -682,7 +682,7 @@ various make commands that can be used to manipulate packages.
 If you use a command in a LAMMPS input script that is part of a
 package, you must have built LAMMPS with that package, else you will
 get an error that the style is invalid or the command is unknown.
-Every command's doc page specfies if it is part of a package.  You can
+Every command's doc page specifies if it is part of a package.  You can
 also type
 
 lmp_machine -h :pre
@@ -1416,8 +1416,8 @@ LAMMPS is compiled with CUDA=yes.
 numa Nm :pre
 
 This option is only relevant when using pthreads with hwloc support.
-In this case Nm defines the number of NUMA regions (typicaly sockets)
-on a node which will be utilizied by a single MPI rank.  By default Nm
+In this case Nm defines the number of NUMA regions (typically sockets)
+on a node which will be utilized by a single MPI rank.  By default Nm
 = 1.  If this option is used the total number of worker-threads per
 MPI rank is threads*numa.  Currently it is always almost better to
 assign at least one MPI rank per NUMA region, and leave numa set to
@@ -1481,7 +1481,7 @@ replica runs on on one or a few processors.  Note that with MPI
 installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.
 
-To run multiple independent simulatoins from one input script, using
+To run multiple independent simulations from one input script, using
 multiple partitions, see "Section 6.4"_Section_howto.html#howto_4
 of the manual.  World- and universe-style "variables"_variable.html
 are useful in this context.
@@ -1760,7 +1760,7 @@ The first section provides a global loop timing summary. The {loop time}
 is the total wall time for the section.  The {Performance} line is
 provided for convenience to help predicting the number of loop
 continuations required and for comparing performance with other,
-similar MD codes.  The {CPU use} line provides the CPU utilzation per
+similar MD codes.  The {CPU use} line provides the CPU utilization per
 MPI task; it should be close to 100% times the number of OpenMP
 threads (or 1 of no OpenMP). Lower numbers correspond to delays due
 to file I/O or insufficient thread utilization.

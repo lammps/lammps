@@ -94,7 +94,7 @@ Style {lubricate} requires monodisperse spherical particles; style
 {lubricate/poly} allows for polydisperse spherical particles.
 
 The viscosity {mu} can be varied in a time-dependent manner over the
-course of a simluation, in which case in which case the pair_style
+course of a simulation, in which case in which case the pair_style
 setting for {mu} will be overridden.  See the "fix adapt"_fix_adapt.html
 command for details.
 

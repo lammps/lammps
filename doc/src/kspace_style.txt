@@ -341,7 +341,7 @@ kspace_style none :pre
 Adam Hilger, NY (1989).
 
 :link(Kolafa)
-[(Kolafa)] Kolafa and Perram, Molecular Simualtion, 9, 351 (1992).
+[(Kolafa)] Kolafa and Perram, Molecular Simulation, 9, 351 (1992).
 
 :link(Petersen)
 [(Petersen)] Petersen, J Chem Phys, 103, 3668 (1995).

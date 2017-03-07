@@ -149,7 +149,7 @@ Hydrodynamics.  Both fluids and solids can be modeled.  Particles
 store the mass and volume of an integration point, a kernel diameter
 used for calculating the field variables (e.g. stress and deformation)
 and a contact radius for calculating repulsive forces which prevent
-individual physical bodies from penetretating each other.
+individual physical bodies from penetrating each other.
 
 The {wavepacket} style is similar to {electron}, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
@@ -165,7 +165,7 @@ For the {tri} style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 
-The {template} style allows molecular topolgy (bonds,angles,etc) to be
+The {template} style allows molecular topology (bonds,angles,etc) to be
 defined via a molecule template using the "molecule"_molecule.html
 command.  The template stores one or more molecules with a single copy
 of the topology info (bonds,angles,etc) of each.  Individual atoms

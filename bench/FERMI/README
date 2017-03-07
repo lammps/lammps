@@ -14,7 +14,7 @@ lmp_linux_mixed
 lmp_linux_double
 
 The precision (single, mixed, double) refers to the GPU and USER-CUDA
-pacakge precision.  See the README files in the lib/gpu and lib/cuda
+package precision.  See the README files in the lib/gpu and lib/cuda
 directories for instructions on how to build the packages with
 different precisions.  The GPU and USER-CUDA sub-sections of the
 doc/Section_accelerate.html file also describes this process.

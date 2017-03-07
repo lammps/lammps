@@ -24,7 +24,7 @@ times; the G-K and Einstein systems need to run longer to generate good statisti
 
 The scripts were all run on a single processor.  They all run in a
 minute or so and produce the accompanying log files and profile files
-(for velocity or momemtum flux).
+(for velocity or momentum flux).
 
 See the Movies page of the LAMMPS web site
 (http://lammps.sandia.gov/movies.html), for animations of the NEMD

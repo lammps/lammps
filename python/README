@@ -43,7 +43,7 @@ simple.py	    parallel example, mimicing examples/COUPLE/simple/simple.cpp
 split.py            parallel example
 mc.py               Monte Carlo energy relaxation wrapper on LAMMPS
 gui.py		    GUI go/stop/temperature-slider to control LAMMPS
-plot.py		    real-time temeperature plot with GnuPlot via Pizza.py
+plot.py		    real-time temperature plot with GnuPlot via Pizza.py
 viz_tool.py	    real-time viz via some viz package
 vizplotgui_tool.py  combination of viz.py and plot.py and gui.py
 

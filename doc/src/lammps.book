@@ -434,6 +434,7 @@ pair_gromacs.html
 pair_hbond_dreiding.html
 pair_hybrid.html
 pair_kim.html
+pair_kolmogorov_crespi_z.html
 pair_lcbop.html
 pair_line_lj.html
 pair_list.html

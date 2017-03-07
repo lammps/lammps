@@ -1298,7 +1298,7 @@ int ComputeChunkAtom::setup_sphere_bins()
   }
 
   // if pbcflag set, sradmax must be < 1/2 box in any periodic dim
-  // treat orthongonal and triclinic the same
+  // treat orthogonal and triclinic the same
   // check every time bins are created
 
   if (pbcflag) {
@@ -1363,7 +1363,7 @@ int ComputeChunkAtom::setup_cylinder_bins()
   }
 
   // if pbcflag set, sradmax must be < 1/2 box in any periodic non-axis dim
-  // treat orthongonal and triclinic the same
+  // treat orthogonal and triclinic the same
   // check every time bins are created
 
   if (pbcflag) {

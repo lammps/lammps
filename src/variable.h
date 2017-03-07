@@ -210,7 +210,7 @@ This is to insure they stay in sync.
 E: Variable has circular dependency
 
 A circular dependency is when variable "a" in used by variable "b" and
-variable "b" is also used by varaible "a".  Circular dependencies with
+variable "b" is also used by variable "a".  Circular dependencies with
 longer chains of dependence are also not allowed.
 
 E: Python variable does not match Python function

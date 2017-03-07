@@ -140,7 +140,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 /* ----------------------------------------------------------------------
    create an instance of LAMMPS and return pointer to it
    caller doesn't know MPI communicator, so use MPI_COMM_WORLD
-   intialize MPI if needed
+   initialize MPI if needed
 ------------------------------------------------------------------------- */
 
 void lammps_open_no_mpi(int argc, char **argv, void **ptr)
@@ -646,7 +646,7 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 /* ----------------------------------------------------------------------
    reset simulation box parameters
    see domain.h for definition of these arguments
-   assumes domain->set_intiial_box() has been invoked previously
+   assumes domain->set_initial_box() has been invoked previously
 ------------------------------------------------------------------------- */
 
 void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,

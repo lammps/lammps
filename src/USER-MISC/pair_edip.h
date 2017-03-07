@@ -64,7 +64,7 @@ class PairEDIP : public Pair {
   double *tauFunctionGrid;
   double *tauFunctionDerivedGrid;
 
-  // this should be removed for multi species parametrizations
+  // this should be removed for multi species parameterization
   // since these parameters should be addressed through indexes
   // see also the PairEDIP::setup()
 

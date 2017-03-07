@@ -104,7 +104,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   }
 
 
-  // Perform any further initialisation for the manifold that depends on params:
+  // Perform any further initialization for the manifold that depends on params:
   ptr_m->post_param_init();
 }
 

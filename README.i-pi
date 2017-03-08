@@ -1,0 +1,8 @@
+# Instructions for compiling lammps with i-pi
+git pull https://github.com/cosmo-epfl/lammps.git
+cd lammps/src
+make yes-CLASS2 yes-KSPACE yes-MANYBODY yes-MISC yes-MOLECULE yes-REPLICA yes-RIGID yes-XTC yes-USER-MISC
+cd STUBS
+make
+cd ..
+make serial

@@ -405,7 +405,7 @@ static int imd_recv_fcoords(void *, int32, float *);
 /** Prepare IMD data packet header */
 static void imd_fill_header(IMDheader *header, IMDType type, int32 length);
 /** Write data to socket */
-static int32 imd_written(void *s, const char *ptr, int32 n);
+static int32 imd_writen(void *s, const char *ptr, int32 n);
 
 /* part 2: abstracts platform-dependent routines/APIs for using sockets */
 
@@ -794,7 +794,7 @@ void FixIMD::ioworker()
     } else if (buf_has_data > 0) {
       /* send coordinate data, if client is able to accept */
       if (clientsock && imdsock_selwrite(clientsock,0)) {
-        imd_written(clientsock, msgdata, msglen);
+        imd_writen(clientsock, msgdata, msglen);
       }
       delete[] msgdata;
       buf_has_data=0;
@@ -1097,7 +1097,7 @@ void FixIMD::post_force(int vflag)
 #else
     /* send coordinate data, if client is able to accept */
     if (clientsock && imdsock_selwrite(clientsock,0)) {
-      imd_written(clientsock, msgdata, msglen);
+      imd_writen(clientsock, msgdata, msglen);
     }
     delete[] msgdata;
 #endif
@@ -1401,7 +1401,7 @@ static int32 imd_readn(void *s, char *ptr, int32 n) {
   return n-nleft;
 }
 
-static int32 imd_written(void *s, const char *ptr, int32 n) {
+static int32 imd_writen(void *s, const char *ptr, int32 n) {
   int32 nleft;
   int32 nwritten;
 
@@ -1423,7 +1423,7 @@ int imd_handshake(void *s) {
   IMDheader header;
   imd_fill_header(&header, IMD_HANDSHAKE, 1);
   header.length = IMDVERSION;   /* Not byteswapped! */
-  return (imd_written(s, (char *)&header, IMDHEADERSIZE) != IMDHEADERSIZE);
+  return (imd_writen(s, (char *)&header, IMDHEADERSIZE) != IMDHEADERSIZE);
 }
 
 /* The IMD receive functions */

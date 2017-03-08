@@ -69,7 +69,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = 0;
 
   // insure pair->ev_tally() will use 1-4 virial contribution

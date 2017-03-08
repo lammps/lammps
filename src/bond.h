@@ -60,7 +60,7 @@ class Bond : protected Pointers {
   int vflag_either,vflag_global,vflag_atom;
   int maxeatom,maxvatom;
 
-  void ev_setup(int, int);
+  void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, double, double, double, double, double);
 };
 

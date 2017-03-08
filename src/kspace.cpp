@@ -206,7 +206,7 @@ void KSpace::pair_check()
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
 ------------------------------------------------------------------------- */
 
-void KSpace::ev_setup(int eflag, int vflag)
+void KSpace::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
@@ -227,25 +227,29 @@ void KSpace::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->destroy(eatom);
-    memory->create(eatom,maxeatom,"kspace:eatom");
+    if (alloc) {
+      memory->destroy(eatom);
+      memory->create(eatom,maxeatom,"kspace:eatom");
+    }
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"kspace:vatom");
+    if (alloc) {
+      memory->destroy(vatom);
+      memory->create(vatom,maxvatom,6,"kspace:vatom");
+    }
   }
 
   // zero accumulators
 
   if (eflag_global) energy = 0.0;
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
-  if (eflag_atom) {
+  if (eflag_atom && alloc) {
     n = atom->nlocal;
     if (tip4pflag) n += atom->nghost;
     for (i = 0; i < n; i++) eatom[i] = 0.0;
   }
-  if (vflag_atom) {
+  if (vflag_atom && alloc) {
     n = atom->nlocal;
     if (tip4pflag) n += atom->nghost;
     for (i = 0; i < n; i++) {

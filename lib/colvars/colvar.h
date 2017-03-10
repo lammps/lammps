@@ -227,10 +227,22 @@ public:
 
 
   /// Constructor
-  colvar(std::string const &conf);
+  colvar();
+
+  /// Main init function
+  int init(std::string const &conf);
 
   /// Parse the CVC configuration and allocate their data
   int init_components(std::string const &conf);
+
+  /// Init defaults for grid options
+  int init_grid_parameters(std::string const &conf);
+
+  /// Init extended Lagrangian parameters
+  int init_extended_Lagrangian(std::string const &conf);
+
+  /// Init output flags
+  int init_output_flags(std::string const &conf);
 
 private:
   /// Parse the CVC configuration for all components of a certain type

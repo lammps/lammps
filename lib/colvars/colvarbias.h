@@ -32,17 +32,39 @@ public:
   /// Add a new collective variable to this bias
   int add_colvar(std::string const &cv_name);
 
-  /// Add a new collective variable to this bias
-  size_t number_of_colvars() const
+  /// How many variables are defined for this bias
+  inline size_t num_variables() const
   {
     return colvars.size();
+  }
+
+  /// Access the variables vector
+  inline std::vector<colvar *> *variables()
+  {
+    return &colvars;
+  }
+
+  /// Access the i-th variable
+  inline colvar * variables(int i) const
+  {
+    return colvars[i];
   }
 
   /// Retrieve colvar values and calculate their biasing forces
   /// Return bias energy
   virtual int update();
 
-  // TODO: move update_bias here (share with metadynamics)
+  /// \brief Compute the energy of the bias with alternative values of the
+  /// collective variables (suitable for bias exchange)
+  virtual int calc_energy(std::vector<colvarvalue> const &values = 
+                          std::vector<colvarvalue>(0))
+  {
+    cvm::error("Error: calc_energy() not implemented.\n", COLVARS_NOT_IMPLEMENTED);
+    return COLVARS_NOT_IMPLEMENTED;
+  }
+
+  /// Send forces to the collective variables
+  virtual void communicate_forces();
 
   /// Load new configuration - force constant and/or centers only
   virtual int change_configuration(std::string const &conf);
@@ -51,19 +73,19 @@ public:
   virtual cvm::real energy_difference(std::string const &conf);
 
   /// Give the total number of bins for a given bias.
+  // FIXME this is currently 1D only
   virtual int bin_num();
   /// Calculate the bin index for a given bias.
+  // FIXME this is currently 1D only
   virtual int current_bin();
   //// Give the count at a given bin index.
+  // FIXME this is currently 1D only
   virtual int bin_count(int bin_index);
   //// Share information between replicas, whatever it may be.
   virtual int replica_share();
 
   /// Perform analysis tasks
   virtual void analyze() {}
-
-  /// Send forces to the collective variables
-  virtual void communicate_forces();
 
   /// \brief Constructor
   colvarbias(char const *key);
@@ -135,6 +157,9 @@ public:
     return COLVARS_OK;
   }
 
+  /// Use this prefix for all output files
+  std::string output_prefix;
+
   /// If this bias is communicating with other replicas through files, send it to them
   virtual int write_state_to_replicas()
   {
@@ -162,7 +187,7 @@ protected:
   /// through each colvar object
   std::vector<colvar *>    colvars;
 
-  /// \brief Current forces from this bias to the colvars
+  /// \brief Current forces from this bias to the variables
   std::vector<colvarvalue> colvar_forces;
 
   /// \brief Current energy of this bias (colvar_forces should be obtained by deriving this)

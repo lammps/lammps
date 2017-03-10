@@ -42,6 +42,7 @@ class RCB : protected Pointers {
   RCB(class LAMMPS *);
   ~RCB();
   void compute(int, int, double **, double *, double *, double *);
+  void compute_old(int, int, double **, double *, double *, double *);
   void invert(int sortflag = 0);
   bigint memory_usage();
 
@@ -99,6 +100,7 @@ class RCB : protected Pointers {
   int maxlist;
   int *dotlist;
   int *dotmark;
+  int *dotmark_select;
 
   int maxbuf;
   Dot *buf;

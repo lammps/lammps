@@ -134,6 +134,17 @@ not overlap existing atoms inappropriately, especially if molecules
 are being added.  The "delete_atoms"_delete_atoms.html command can be
 used to remove overlapping atoms or molecules.
 
+NOTE: You cannot use any of the styles explained above to create atoms
+that are outside the simulation box; they will just be ignored by
+LAMMPS.  This is true even if you are using shrink-wrapped box
+boundaries, as specified by the "boundary"_boundary.html command.
+However, you can first use the "change_box"_change_box.html command to
+temporarily expand the box, then add atoms via create_atoms, then
+finally use change_box command again if needed to re-shrink-wrap the
+new atoms.  See the "change_box"_change_box.html doc page for an
+example of how to do this, using the create_atoms {single} style to
+insert a new atom outside the current simulation box.
+
 :line
 
 Individual atoms are inserted by this command, unless the {mol}

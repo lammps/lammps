@@ -35,11 +35,13 @@ class FixHalt : public Fix {
   void post_run();
 
  private:
-  int attribute,operation,eflag,ivar;
-  double value;
+  int attribute,operation,eflag,msgflag,ivar;
+  bigint nextstep;
+  double value,tratio;
   char *idvar;
 
   double bondmax();
+  double tlimit();
 };
 
 }

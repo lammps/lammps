@@ -101,11 +101,11 @@ Instead you could do something like this, assuming the simulation box
 is non-periodic and atoms extend from 0 to 20 in all dimensions:
 
 change_box all x final -10 20
-create_atoms 1 single -5 5 5   # this will fail to insert an atom :pre
+create_atoms 1 single -5 5 5       # this will fail to insert an atom :pre
 
 change_box all x final -10 20 boundary f s s
 create_atoms 1 single -5 5 5
-change_box boundary s s s      # this will work :pre
+change_box all boundary s s s      # this will work :pre
 
 NOTE: Unlike the earlier "displace_box" version of this command, atom
 remapping is NOT performed by default.  This command allows remapping

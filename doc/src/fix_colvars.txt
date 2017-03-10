@@ -59,7 +59,7 @@ always apply to the entire system and there can only be one instance
 of the colvars fix at a time. The colvars fix will only communicate
 the minimum information necessary and the colvars library supports
 multiple, completely independent collective variables, so there is
-no restriction to functionality by limiting the number of colvars fixes.
+no restriction to functionaliry by limiting the number of colvars fixes.
 
 The {input} keyword allows to specify a state file that would contain
 the restart information required in order to continue a calculation from
@@ -100,7 +100,7 @@ output"_thermo_style.html.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cumulative energy change due to this fix.  The scalar value
+cummulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".
 
 [Restrictions:]

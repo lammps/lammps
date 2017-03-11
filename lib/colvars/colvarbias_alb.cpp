@@ -40,10 +40,7 @@ int colvarbias_alb::init(std::string const &conf)
 {
   colvarbias::init(conf);
 
-  provide(f_cvb_scalar_variables);
   enable(f_cvb_scalar_variables);
-
-  provide(f_cvb_history_dependent);
 
   size_t i;
 
@@ -138,8 +135,6 @@ int colvarbias_alb::init(std::string const &conf)
 
 colvarbias_alb::~colvarbias_alb()
 {
-  if (cvm::n_rest_biases > 0)
-    cvm::n_rest_biases -= 1;
 }
 
 

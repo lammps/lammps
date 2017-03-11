@@ -52,7 +52,7 @@ output"_thermo_style.html.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative energy change due to this fix.  The scalar value
+cumulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the

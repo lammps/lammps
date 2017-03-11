@@ -230,7 +230,7 @@ void FixCMAP::min_setup(int vflag)
 
 void FixCMAP::pre_neighbor()
 {
-  int i,m,itype,atom1,atom2,atom3,atom4,atom5;
+  int i,m,atom1,atom2,atom3,atom4,atom5;
 
   // guesstimate initial length of local crossterm list
   // if ncmap was not set (due to read_restart, no read_data),
@@ -842,7 +842,7 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
   // use the bicubic spline to calculate the derivatives
 
   int i, j, k, ii, jj, xm, p;
-  double phi, psi, y, d1y, d2y, d12y, tyyk,tdyk;
+  double phi, psi, d1y, d2y, d12y, tyyk,tdyk;
   double *tmp_y, *tmp_dy, *tmp_ddy, **tmap, **tddmap;
   int ix;
   double a,b,a1,b1,a2,b2;
@@ -850,7 +850,6 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
   xm = CMAPDIM/2;
   p = CMAPDIM;
 
-  y = 0.;
   d1y = 0.;
   d2y = 0.;
   d12y = 0.;
@@ -907,8 +906,6 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
       b1 = b*b*b-b;
       a2 = 3.0*a*a-1.0;
       b2 = 3.0*b*b-1.0;
-      y = a*tmp_y[ix]+b*tmp_y[ix+1]+
-        (a1*tmp_ddy[ix]+b1*tmp_ddy[ix+1])*(CMAPDX*CMAPDX)/6.0;
       d1y = (tmp_y[ix+1]-tmp_y[ix])/CMAPDX-
         a2/6.0*CMAPDX*tmp_ddy[ix]+b2/6.0*CMAPDX*tmp_ddy[ix+1];
       spline(tmp_dy,tmp_ddy,CMAPDIM+xm+xm);
@@ -1015,8 +1012,8 @@ void FixCMAP::bc_interpol(double x1, double x2, int low1, int low2, double *gs,
   //   gradients and cross-derivatives
   // calculate the interpolated value of the point of interest (POI)
 
-  int i, p=12;
-  double t, u, fac, gs1l, gs2l, gs1u, gs2u;
+  int i;
+  double t, u, gs1l, gs2l;
 
   // set the interpolation coefficients
 

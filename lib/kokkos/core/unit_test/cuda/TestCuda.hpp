@@ -40,8 +40,8 @@
 // ************************************************************************
 //@HEADER
 */
-#ifndef KOKKOS_TEST_CUDAHPP
-#define KOKKOS_TEST_CUDAHPP
+#ifndef KOKKOS_TEST_CUDA_HPP
+#define KOKKOS_TEST_CUDA_HPP
 #include <gtest/gtest.h>
 
 #include <Kokkos_Macros.hpp>
@@ -59,8 +59,12 @@
 #include <TestViewAPI.hpp>
 #include <TestViewOfClass.hpp>
 #include <TestViewSubview.hpp>
+#include <TestViewSpaceAssign.hpp>
 #include <TestAtomic.hpp>
 #include <TestAtomicOperations.hpp>
+
+#include <TestAtomicViews.hpp>
+
 #include <TestRange.hpp>
 #include <TestTeam.hpp>
 #include <TestReduce.hpp>

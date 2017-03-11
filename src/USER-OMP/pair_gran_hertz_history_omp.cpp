@@ -134,8 +134,8 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   // loop over neighbors of my atoms
 

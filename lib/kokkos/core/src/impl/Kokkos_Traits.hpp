@@ -440,7 +440,7 @@ unsigned power_of_two_if_valid( const unsigned N )
 {
   unsigned p = ~0u ;
   if ( N && ! ( N & ( N - 1 ) ) ) {
-#if defined( __CUDA_ARCH__ ) && defined( KOKKOS_HAVE_CUDA )
+#if defined( __CUDA_ARCH__ ) && defined( KOKKOS_ENABLE_CUDA )
     p = __ffs(N) - 1 ;
 #elif defined( __GNUC__ ) || defined( __GNUG__ )
     p = __builtin_ffs(N) - 1 ;

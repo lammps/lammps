@@ -38,7 +38,7 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   npartner(NULL), partner(NULL), shearpartner(NULL), pair(NULL), 
   ipage(NULL), dpage(NULL)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY commmand");
+  if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY command");
 
   restart_peratom = 1;
   create_attribute = 1;
@@ -206,8 +206,8 @@ void FixShearHistory::pre_exchange_onesided()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -302,8 +302,8 @@ void FixShearHistory::pre_exchange_newton()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -430,8 +430,8 @@ void FixShearHistory::pre_exchange_no_newton()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

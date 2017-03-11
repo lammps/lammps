@@ -45,7 +45,7 @@
 #define KOKKOS_EXPERIMENTAL_CUDA_VIEW_HPP
 
 /* only compile this file if CUDA is enabled for Kokkos */
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -144,7 +144,7 @@ struct CudaTextureFetch {
     {}
 };
 
-#if defined( KOKKOS_CUDA_USE_LDG_INTRINSIC )
+#if defined( KOKKOS_ENABLE_CUDA_LDG_INTRINSIC )
 
 template< typename ValueType , typename AliasType >
 struct CudaLDGFetch {
@@ -261,7 +261,7 @@ public:
                      >::type
                      >::type ;
 
-#if defined( KOKKOS_CUDA_USE_LDG_INTRINSIC )
+#if defined( KOKKOS_ENABLE_CUDA_LDG_INTRINSIC )
   using handle_type = Kokkos::Experimental::Impl::CudaLDGFetch< value_type , alias_type > ;
 #else
   using handle_type = Kokkos::Experimental::Impl::CudaTextureFetch< value_type , alias_type > ;
@@ -301,6 +301,6 @@ public:
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_HAVE_CUDA ) */
+#endif /* #if defined( KOKKOS_ENABLE_CUDA ) */
 #endif /* #ifndef KOKKOS_CUDA_VIEW_HPP */
 

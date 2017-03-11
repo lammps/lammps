@@ -202,8 +202,8 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
+  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
   typedef Kokkos::DualView<F_FLOAT**[7],Kokkos::LayoutRight,DeviceType> tdual_ffloat_2d_n7;
   typedef typename tdual_ffloat_2d_n7::t_dev_const_randomread t_ffloat_2d_n7_randomread;

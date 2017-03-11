@@ -75,7 +75,7 @@ proceeds.  After each time step, the atomic volume should be updated
 by the code as Omega = V/N.  In addition, the volume term E_vol and
 the potentials v_2, v_3 and v_4 have to be removed at the end of the
 time step, and then respecified at the new value of Omega.  In all
-smulations, Omega must remain within the defined volume range for
+simulations, Omega must remain within the defined volume range for
 E_vol and the potentials for the given material.
 
 The default option volpress yes in the "pair_coeff"_pair_coeff.html

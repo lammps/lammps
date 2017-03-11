@@ -1,5 +1,5 @@
 #!/usr/bin/env python -i
-# preceeding line should have path for Python on your machine
+# preceding line should have path for Python on your machine
 
 # gui.py
 # Purpose: control a continuously running LAMMPS simulation via a Tkinter GUI

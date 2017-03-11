@@ -54,7 +54,7 @@ velocity       all set 0.0 0.0 0.0 units box
 #----------------------------------------------------------------------------
 # Create a lattice-Boltzmann fluid covering the simulation domain.
 # All of the particles in the simulation apply a force to the fluid.
-#   (however, this fix does not explicity apply a force back on to these 
+#   (however, this fix does not explicitly apply a force back on to these 
 #    particles...this is accomplished through the use of the viscous_lb fix.
 # Use the standard LB integration scheme, a fluid density = 1.0, 
 #   fluid viscosity = 1.0, lattice spacing dx=4.0, and mass unit, dm=10.0.

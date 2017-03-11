@@ -136,7 +136,7 @@ of 1/volume.
 The {wall/colloid} interaction is derived by integrating over
 constituent LJ particles of size {sigma} within the colloid particle
 and a 3d half-lattice of Lennard-Jones 12/6 particles of size {sigma}
-in the wall.  As mentioned in the preceeding paragraph, the density of
+in the wall.  As mentioned in the preceding paragraph, the density of
 particles in the wall and colloid can be different, as specified by
 the {epsilon} pre-factor.
 

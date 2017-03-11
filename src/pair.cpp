@@ -749,7 +749,7 @@ void Pair::del_tally_callback(Compute *ptr)
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
 ------------------------------------------------------------------------- */
 
-void Pair::ev_setup(int eflag, int vflag)
+void Pair::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
@@ -767,13 +767,17 @@ void Pair::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->destroy(eatom);
-    memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
+    if (alloc) {
+      memory->destroy(eatom);
+      memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
+    }
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy(vatom);
-    memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
+    if (alloc) {
+      memory->destroy(vatom);
+      memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
+    }
   }
 
   // zero accumulators
@@ -782,12 +786,12 @@ void Pair::ev_setup(int eflag, int vflag)
 
   if (eflag_global) eng_vdwl = eng_coul = 0.0;
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
-  if (eflag_atom) {
+  if (eflag_atom && alloc) {
     n = atom->nlocal;
     if (force->newton) n += atom->nghost;
     for (i = 0; i < n; i++) eatom[i] = 0.0;
   }
-  if (vflag_atom) {
+  if (vflag_atom && alloc) {
     n = atom->nlocal;
     if (force->newton) n += atom->nghost;
     for (i = 0; i < n; i++) {
@@ -1534,7 +1538,7 @@ void Pair::virial_fdotr_compute()
 
 void Pair::write_file(int narg, char **arg)
 {
-  if (narg < 8) error->all(FLERR,"Illegal pair_write command");
+  if (narg != 8 && narg != 10) error->all(FLERR,"Illegal pair_write command");
   if (single_enable == 0)
     error->all(FLERR,"Pair style does not support pair_write");
 

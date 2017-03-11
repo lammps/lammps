@@ -58,20 +58,20 @@ struct AddFunctor {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(int i) const {
-#ifdef KOKKOS_HAVE_PRAGMA_UNROLL
+#ifdef KOKKOS_ENABLE_PRAGMA_UNROLL
     #pragma unroll
 #endif
-#ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
     #pragma ivdep
 #endif
-#ifdef KOKKOS_HAVE_PRAGMA_VECTOR
+#ifdef KOKKOS_ENABLE_PRAGMA_VECTOR
     #pragma vector always
 #endif
-#ifdef KOKKOS_HAVE_PRAGMA_LOOPCOUNT
+#ifdef KOKKOS_ENABLE_PRAGMA_LOOPCOUNT
     #pragma loop count(128)
 #endif
-#ifndef KOKKOS_HAVE_DEBUG
-#ifdef KOKKOS_HAVE_PRAGMA_SIMD
+#ifndef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_PRAGMA_SIMD
     #pragma simd
 #endif
 #endif

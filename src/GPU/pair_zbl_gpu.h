@@ -53,6 +53,6 @@ package
 
 E: Cannot use newton pair with zbl/gpu pair style
 
-Self-explantory.
+Self-explanatory.
 
 */

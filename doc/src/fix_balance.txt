@@ -15,12 +15,12 @@ fix ID group-ID balance Nfreq thresh style args keyword args ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 balance = style name of this fix command :l
 Nfreq = perform dynamic load balancing every this many steps :l
-thresh = imbalance threshhold that must be exceeded to perform a re-balance :l
+thresh = imbalance threshold that must be exceeded to perform a re-balance :l
 style = {shift} or {rcb} :l
   shift args = dimstr Niter stopthresh
     dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
     Niter = # of times to iterate within each dimension of dimstr sequence
-    stopthresh = stop balancing when this imbalance threshhold is reached
+    stopthresh = stop balancing when this imbalance threshold is reached
   {rcb} args = none :pre
 zero or more keyword/arg pairs may be appended :l
 keyword = {weight} or {out} :l
@@ -63,14 +63,14 @@ perform "static" balancing, before or between runs, see the
 
 Load-balancing is typically most useful if the particles in the
 simulation box have a spatially-varying density distribution or
-where the computational cost varies signficantly between different
+where the computational cost varies significantly between different
 atoms. E.g. a model of a vapor/liquid interface, or a solid with
 an irregular-shaped geometry containing void regions, or
 "hybrid pair style simulations"_pair_hybrid.html which combine
 pair styles with different computational cost.  In these cases, the
 LAMMPS default of dividing the simulation box volume into a
 regular-spaced grid of 3d bricks, with one equal-volume sub-domain
-per procesor, may assign numbers of particles per processor in a
+per processor, may assign numbers of particles per processor in a
 way that the computational effort varies significantly.  This can
 lead to poor performance when the simulation is run in parallel.
 
@@ -78,7 +78,7 @@ The balancing can be performed with or without per-particle weighting.
 With no weighting, the balancing attempts to assign an equal number of
 particles to each processor.  With weighting, the balancing attempts
 to assign an equal aggregate computational weight to each processor,
-which typically inducces a diffrent number of atoms assigned to each
+which typically induces a different number of atoms assigned to each
 processor.
 
 NOTE: The weighting options listed above are documented with the
@@ -216,7 +216,7 @@ for a single value, except that the bounds used for each bisectioning
 take advantage of information from neighboring cuts if possible, as
 well as counts of particles at the bounds on either side of each cuts,
 which themselves were cuts in previous iterations.  The latter is used
-to infer a density of pariticles near each of the current cuts.  At
+to infer a density of particles near each of the current cuts.  At
 each iteration, the count of particles on either side of each plane is
 tallied.  If the counts do not match the target value for the plane,
 the position of the cut is adjusted based on the local density.  The
@@ -239,7 +239,7 @@ assigned, particles migrate to their new owning processor as part of
 the normal reneighboring procedure.
 
 NOTE: At each rebalance operation, the bisectioning for each cutting
-plane (line in 2d) typcially starts with low and high bounds separated
+plane (line in 2d) typically starts with low and high bounds separated
 by the extent of a processor's sub-domain in one dimension.  The size
 of this bracketing region shrinks based on the local density, as
 described above, which should typically be 1/2 or more every
@@ -249,7 +249,7 @@ typically be positioned to better than 1 part in 1000 accuracy
 be accurate to better than 1 part in a million.  Thus there is no need
 to set {Niter} to a large value.  This is especially true if you are
 rebalancing often enough that each time you expect only an incremental
-adjustement in the cutting planes is necessary.  LAMMPS will check if
+adjustment in the cutting planes is necessary.  LAMMPS will check if
 the threshold accuracy is reached (in a dimension) is less iterations
 than {Niter} and exit early.
 
@@ -275,7 +275,7 @@ at each iteration.
 That is the procedure for the first cut.  Subsequent cuts are made
 recursively, in exactly the same manner.  The subset of processors
 assigned to each box make a new cut in the longest dimension of that
-box, splitting the box, the subset of processsors, and the atoms in
+box, splitting the box, the subset of processors, and the atoms in
 the box in two.  The recursion continues until every processor is
 assigned a sub-box of the entire simulation domain, and owns the atoms
 in that sub-box.

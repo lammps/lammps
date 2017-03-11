@@ -25,13 +25,17 @@ class NPair : protected Pointers {
   class NStencil *ns;           // ptr to NStencil instance I depend on
   bigint last_build;            // last timestep build performed
 
+  double cutoff_custom;         // cutoff set by requestor
+
   NPair(class LAMMPS *);
-  virtual ~NPair() {}
+  virtual ~NPair();
+  void post_constructor(class NeighRequest *);
   virtual void copy_neighbor_info();
   void build_setup();
   virtual void build(class NeighList *) = 0;
 
  protected:
+  double **mycutneighsq;         // per-type cutoffs when user specified
 
   // data from Neighbor class
 
@@ -57,8 +61,10 @@ class NPair : protected Pointers {
   int *ex1_bit,*ex2_bit;           // pairs of group bits to exclude
 
   int nex_mol;                     // # of entries in molecule exclusion list
-  int *ex_mol_group;               // molecule group #'s to exclude
   int *ex_mol_bit;                 // molecule group bits to exclude
+  int *ex_mol_group;               // molecule group #'s to exclude
+  int *ex_mol_intra;               // 0 = exclude if in 2 molecules (inter)
+                                   // 1 = exclude if in same molecule (intra)
 
   // special data from Neighbor class
 

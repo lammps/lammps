@@ -52,12 +52,10 @@ void ImbalanceNeigh::compute(double *weight)
 
   // find suitable neighbor list
   // can only use certain conventional neighbor lists
-
+  // NOTE: why not full list, if half does not exist?
+  
   for (req = 0; req < neighbor->old_nrequest; ++req) {
-    if ((neighbor->old_requests[req]->half ||
-         neighbor->old_requests[req]->gran ||
-         neighbor->old_requests[req]->respaouter ||
-         neighbor->old_requests[req]->half_from_full) &&
+    if (neighbor->old_requests[req]->half &&
         neighbor->old_requests[req]->skip == 0 &&
         neighbor->lists[req] && neighbor->lists[req]->numneigh) break;
   }

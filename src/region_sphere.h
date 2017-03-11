@@ -69,6 +69,6 @@ Self-explanatory.
 
 E: Variable for region sphere is invalid style
 
-Only equal-style varaibles are allowed.
+Only equal-style variables are allowed.
 
 */

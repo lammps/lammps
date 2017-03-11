@@ -315,7 +315,7 @@ if __name__ == "__main__":
 
             elif argv[i][0] == '-':
                 raise ttree_lex.InputError('Error('+g_program_name+'):\n'
-                                 'Unrecogized command line argument \"'+argv[i]+'\"\n')
+                                 'Unrecognized command line argument \"'+argv[i]+'\"\n')
             else:
                 i += 1
 

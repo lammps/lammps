@@ -464,7 +464,7 @@ int MolfileInterface::load_plugin(const char *filename)
     return E_SYMBOL;
   }
 
-  // intialize plugin. skip plugin if it fails.
+  // initialize plugin. skip plugin if it fails.
   if (((initfunc)(ifunc))()) {
     my_dlclose(dso);
     return E_SYMBOL;

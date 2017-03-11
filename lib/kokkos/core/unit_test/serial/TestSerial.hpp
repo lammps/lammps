@@ -40,8 +40,8 @@
 // ************************************************************************
 //@HEADER
 */
-#ifndef KOKKOS_TEST_SERIALHPP
-#define KOKKOS_TEST_SERIALHPP
+#ifndef KOKKOS_TEST_SERIAL_HPP
+#define KOKKOS_TEST_SERIAL_HPP
 #include <gtest/gtest.h>
 
 #include <Kokkos_Macros.hpp>
@@ -65,6 +65,9 @@
 #include <TestViewSubview.hpp>
 #include <TestAtomic.hpp>
 #include <TestAtomicOperations.hpp>
+
+#include <TestAtomicViews.hpp>
+
 #include <TestRange.hpp>
 #include <TestTeam.hpp>
 #include <TestReduce.hpp>

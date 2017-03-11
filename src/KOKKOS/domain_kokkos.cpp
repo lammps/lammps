@@ -250,7 +250,7 @@ struct DomainPBCFunctor {
         x(i,0) += period[0];
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) += h_rate[0];
         imageint idim = image[i] & IMGMASK;
-        const int otherdims = image[i] ^ idim;
+        const imageint otherdims = image[i] ^ idim;
         idim--;
         idim &= IMGMASK;
         image[i] = otherdims | idim;
@@ -260,7 +260,7 @@ struct DomainPBCFunctor {
         x(i,0) = MAX(x(i,0),lo[0]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) -= h_rate[0];
         imageint idim = image[i] & IMGMASK;
-        const int otherdims = image[i] ^ idim;
+        const imageint otherdims = image[i] ^ idim;
         idim++;
         idim &= IMGMASK;
         image[i] = otherdims | idim;

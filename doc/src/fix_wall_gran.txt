@@ -85,7 +85,7 @@ versions used Kn and Kt from the pairwise interaction and hardwired
 dampflag to 1, rather than letting them be specified directly.  This
 means you can set the values of the wall/particle coefficients
 appropriately in the current code to reproduce the results of a
-prevoius Hertzian monodisperse calculation.  For example, for the
+previous Hertzian monodisperse calculation.  For example, for the
 common case of a monodisperse system with particles of diameter 1, Kn,
 Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
 previously.

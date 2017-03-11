@@ -47,7 +47,7 @@ force cutoff distance for that interaction, as defined by the
 "pair_style"_pair_style.html and "pair_coeff"_pair_coeff.html
 commands.
 
-The value {dist} is the distance bewteen the pair of atoms.
+The value {dist} is the distance between the pair of atoms.
 
 The value {eng} is the interaction energy for the pair of atoms.
 

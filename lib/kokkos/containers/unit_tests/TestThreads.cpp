@@ -45,7 +45,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_PTHREAD )
 
 #include <Kokkos_Bitset.hpp>
 #include <Kokkos_UnorderedMap.hpp>
@@ -106,6 +106,18 @@ TEST_F( threads , staticcrsgraph )
 {
   TestStaticCrsGraph::run_test_graph< Kokkos::Threads >();
   TestStaticCrsGraph::run_test_graph2< Kokkos::Threads >();
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 100000);
 }
 
 /*TEST_F( threads, bitset )
@@ -190,5 +202,5 @@ TEST_F(threads, ErrorReporter)
 } // namespace Test
 
 
-#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) */
+#endif /* #if defined( KOKKOS_ENABLE_PTHREAD ) */
 

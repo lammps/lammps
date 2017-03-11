@@ -148,7 +148,7 @@ Self-explanatory.
 
 E: Initial temperatures not all set in fix ttm
 
-Self-explantory.
+Self-explanatory.
 
 W: Too many inner timesteps in fix ttm
 

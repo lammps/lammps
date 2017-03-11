@@ -92,7 +92,7 @@ class Pair : protected Pointers {
   class NeighList *list;         // standard neighbor list used by most pairs
   class NeighList *listhalf;     // half list used by some pairs
   class NeighList *listfull;     // full list used by some pairs
-  class NeighList *listgranhistory;  // granular history list used by some pairs
+  class NeighList *listhistory;  // neighbor history list used by some pairs
   class NeighList *listinner;    // rRESPA lists used by some pairs
   class NeighList *listmiddle;
   class NeighList *listouter;
@@ -221,7 +221,7 @@ class Pair : protected Pointers {
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
 
-  virtual void ev_setup(int, int);
+  virtual void ev_setup(int, int, int alloc = 1);
   void ev_unset();
   void ev_tally_full(int, double, double, double, double, double, double);
   void ev_tally_xyz_full(int, double, double,

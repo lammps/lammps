@@ -161,8 +161,43 @@ TEST_F( cuda , atomic_operations )
     ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::Cuda>(start, end-i, 3 ) ) );
     ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::Cuda>(start, end-i, 4 ) ) );
   }
-
 }
+
+TEST_F( cuda , atomic_views_integral )
+{
+  const long length = 1000000;
+  {
+    //Integral Types
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Cuda>(length, 8 ) ) );
+  }
+}
+
+TEST_F( cuda , atomic_views_nonintegral )
+{
+  const long length = 1000000;
+  {
+    //Non-Integral Types
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Cuda>(length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Cuda>(length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Cuda>(length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Cuda>(length, 4 ) ) );
+
+  }
+}
+
+
+TEST_F( cuda , atomic_view_api )
+{
+  TestAtomicViews::TestAtomicViewAPI<int, Kokkos::Cuda>();
+}
+
 
 } // namespace test
 

@@ -43,7 +43,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if defined( KOKKOS_HAVE_CUDA ) && defined( KOKKOS_ENABLE_TASKDAG )
+#if defined( KOKKOS_ENABLE_CUDA ) && defined( KOKKOS_ENABLE_TASKDAG )
 
 #include <impl/Kokkos_TaskQueue_impl.hpp>
 
@@ -174,6 +174,6 @@ printf("cuda_task_queue_execute after\n");
 
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_HAVE_CUDA ) && defined( KOKKOS_ENABLE_TASKDAG ) */
+#endif /* #if defined( KOKKOS_ENABLE_CUDA ) && defined( KOKKOS_ENABLE_TASKDAG ) */
 
 

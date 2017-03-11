@@ -39,7 +39,7 @@ sizes and shapes.  Again there is one tile per processor.  To acquire
 information for nearby atoms, communication must now be done with a
 more complex pattern of neighboring processors.
 
-Note that this command does not actually define a partitoining of the
+Note that this command does not actually define a partitioning of the
 simulation box (a domain decomposition), rather it determines what
 kinds of decompositions are allowed and the pattern of communication
 used to enable the decomposition.  A decomposition is created when the

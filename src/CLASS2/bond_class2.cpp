@@ -36,6 +36,8 @@ BondClass2::BondClass2(LAMMPS *lmp) : Bond(lmp) {}
 
 BondClass2::~BondClass2()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(r0);

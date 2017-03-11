@@ -45,7 +45,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if ! defined(KOKKOS_HAVE_SERIAL)
+#if ! defined(KOKKOS_ENABLE_SERIAL)
 #  error "It doesn't make sense to build this file unless the Kokkos::Serial device is enabled.  If you see this message, it probably means that there is an error in Kokkos' CMake build infrastructure."
 #else
 
@@ -91,6 +91,18 @@ TEST_F( serial , staticcrsgraph )
 {
   TestStaticCrsGraph::run_test_graph< Kokkos::Serial >();
   TestStaticCrsGraph::run_test_graph2< Kokkos::Serial >();
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(1, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(1, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(1, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(1, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(3, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(3, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(3, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(3, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(75, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(75, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(75, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(75, 100000);
 }
 
 TEST_F( serial, complex )
@@ -178,6 +190,6 @@ TEST_F(serial, ErrorReporter)
 
 } // namespace Test
 
-#endif // KOKKOS_HAVE_SERIAL
+#endif // KOKKOS_ENABLE_SERIAL
 
 

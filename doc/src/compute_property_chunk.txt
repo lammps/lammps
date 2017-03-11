@@ -64,7 +64,7 @@ can only be used if the {compress} keyword was set to {yes} for the
 "compute chunk/atom"_compute_chunk_atom.html command referenced by
 chunkID.  This means that the original chunk IDs (e.g. molecule IDs)
 will have been compressed to remove chunk IDs with no atoms assigned
-to them.  Thus a compresed chunk ID of 3 may correspond to an original
+to them.  Thus a compressed chunk ID of 3 may correspond to an original
 chunk ID (molecule ID in this case) of 415.  The {id} attribute will
 then be 415 for the 3rd chunk.
 

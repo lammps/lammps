@@ -48,8 +48,6 @@ colvar::cvc::cvc(std::string const &conf)
   get_keyval(conf, "period", period, 0.0);
   get_keyval(conf, "wrapAround", wrap_center, 0.0);
 
-  // All cvcs implement this
-  provide(f_cvc_debug_gradient);
   get_keyval_feature((colvarparse *)this, conf, "debugGradients",
                      f_cvc_debug_gradient, false, parse_silent);
 
@@ -63,6 +61,8 @@ colvar::cvc::cvc(std::string const &conf)
 
 int colvar::cvc::init_total_force_params(std::string const &conf)
 {
+  if (cvm::get_error()) return COLVARS_ERROR;
+
   if (get_keyval_feature(this, conf, "oneSiteSystemForce",
                          f_cvc_one_site_total_force, is_enabled(f_cvc_one_site_total_force))) {
     cvm::log("Warning: keyword \"oneSiteSystemForce\" is deprecated: "
@@ -72,6 +72,19 @@ int colvar::cvc::init_total_force_params(std::string const &conf)
                          f_cvc_one_site_total_force, is_enabled(f_cvc_one_site_total_force))) {
     cvm::log("Computing total force on group 1 only");
   }
+
+  if (! is_enabled(f_cvc_one_site_total_force)) {
+    // check whether any of the other atom groups is dummy
+    std::vector<cvm::atom_group *>::iterator agi = atom_groups.begin();
+    agi++;
+    for ( ; agi != atom_groups.end(); agi++) {
+      if ((*agi)->b_dummy) {
+        provide(f_cvc_inv_gradient, false);
+        provide(f_cvc_Jacobian, false);
+      }
+    }
+  }
+
   return COLVARS_OK;
 }
 
@@ -87,8 +100,7 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
     group->key = group_key;
 
     if (b_try_scalable) {
-      // TODO rewrite this logic in terms of dependencies
-      if (is_available(f_cvc_scalable_com) && is_available(f_cvc_com_based)) {
+      if (is_available(f_cvc_scalable_com) && is_enabled(f_cvc_com_based)) {
         enable(f_cvc_scalable_com);
         enable(f_cvc_scalable);
         // The CVC makes the feature available;

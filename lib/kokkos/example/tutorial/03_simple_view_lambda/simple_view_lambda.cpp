@@ -99,7 +99,7 @@ int main (int argc, char* argv[]) {
   // ask for one.
   // We also need to protect the usage of a lambda against compiling
   // with a backend which doesn't support it (i.e. Cuda 6.5/7.0).
-  #if (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
+  #if (KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   Kokkos::parallel_for (10, KOKKOS_LAMBDA (const int i) {
     // Acesss the View just like a Fortran array.  The layout depends
     // on the View's memory space, so don't rely on the View's

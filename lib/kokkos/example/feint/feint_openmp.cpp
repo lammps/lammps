@@ -43,7 +43,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
 
 #include <feint.hpp>
 

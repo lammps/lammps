@@ -39,6 +39,8 @@ using namespace MathConst;
 
 #define SMALL 0.00001
 
+enum{OFF,INTER,INTRA};
+
 /* ---------------------------------------------------------------------- */
 
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
@@ -64,6 +66,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   pairflag = 1;
   kspaceflag = 0;
   boundaryflag = 1;
+  molflag = OFF;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -87,6 +90,16 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) boundaryflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) boundaryflag  = 0;
       else error->all(FLERR,"Illegal compute group/group command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"molecule") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute group/group command");
+      if (strcmp(arg[iarg+1],"off") == 0) molflag = OFF;
+      else if (strcmp(arg[iarg+1],"inter") == 0) molflag = INTER;
+      else if (strcmp(arg[iarg+1],"intra") == 0) molflag  = INTRA;
+      else error->all(FLERR,"Illegal compute group/group command");
+      if (molflag != OFF && atom->molecule_flag == 0)
+        error->all(FLERR,"Compute group/group molecule requires molecule IDs");
       iarg += 2;
     } else error->all(FLERR,"Illegal compute group/group command");
   }
@@ -203,6 +216,7 @@ void ComputeGroupGroup::pair_contribution()
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -243,13 +257,27 @@ void ComputeGroupGroup::pair_contribution()
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
-      if (!(mask[j] & groupbit || mask[j] & jgroupbit)) continue; // skip if atom J is not in either group
+      // skip if atom J is not in either group
+
+      if (!(mask[j] & groupbit || mask[j] & jgroupbit)) continue; 
+
+      // skip if atoms I,J are only in the same group
 
       int ij_flag = 0;
       int ji_flag = 0;
       if (mask[i] & groupbit && mask[j] & jgroupbit) ij_flag = 1;
       if (mask[j] & groupbit && mask[i] & jgroupbit) ji_flag = 1;
-      if (!ij_flag && !ji_flag) continue; // skip if atoms I,J are only in the same group
+      if (!ij_flag && !ji_flag) continue; 
+      
+      // skip if molecule IDs of atoms I,J do not satisfy molflag setting
+
+      if (molflag != OFF) {
+        if (molflag == INTER) {
+          if (molecule[i] == molecule[j]) continue;
+        } else {
+          if (molecule[i] != molecule[j]) continue;
+        }
+      }
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

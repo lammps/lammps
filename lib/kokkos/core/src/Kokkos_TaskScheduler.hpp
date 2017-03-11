@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -52,9 +52,9 @@
 // and use relocateable device code to enable the task policy.
 // nvcc relocatable device code option: --relocatable-device-code=true
 
-#if ( defined( KOKKOS_HAVE_CUDA ) )
+#if ( defined( KOKKOS_ENABLE_CUDA ) )
   #if ( 8000 <= CUDA_VERSION ) && \
-      defined( KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE )
+      defined( KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE )
 
   #define KOKKOS_ENABLE_TASKDAG
 
@@ -62,7 +62,6 @@
 #else
   #define KOKKOS_ENABLE_TASKDAG
 #endif
-
 
 #if defined( KOKKOS_ENABLE_TASKDAG )
 
@@ -88,6 +87,34 @@ class TaskScheduler ;
 #include <impl/Kokkos_TaskQueue.hpp>
 
 //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+namespace Impl {
+
+/*\brief  Implementation data for task data management, access, and execution.
+ *
+ *  CRTP Inheritance structure to allow static_cast from the
+ *  task root type and a task's FunctorType.
+ *
+ *    TaskBase< Space , ResultType , FunctorType >
+ *      : TaskBase< Space , ResultType , void >
+ *      , FunctorType
+ *      { ... };
+ *
+ *    TaskBase< Space , ResultType , void >
+ *      : TaskBase< Space , void , void >
+ *      { ... };
+ */
+template< typename Space , typename ResultType , typename FunctorType >
+class TaskBase ;
+
+template< typename Space >
+class TaskExec ;
+
+} // namespace Impl
+} // namespace Kokkos
+
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
@@ -308,14 +335,6 @@ void wait( TaskScheduler< Space > const & );
 
 namespace Kokkos {
 
-
-
-} // namespace Kokkos
-
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-
 template< typename ExecSpace >
 class TaskScheduler
 {
@@ -360,23 +379,10 @@ private:
   template< typename A1 , typename A2 , typename ... Options >
   KOKKOS_INLINE_FUNCTION static
   void assign( task_base * const task
-             , Future< A1 , A2 > const & arg 
+             , Future< A1 , A2 > const & arg
              , Options const & ... opts )
     {
-      // Assign dependence to task->m_next
-      // which will be processed within subsequent call to schedule.
-      // Error if the dependence is reset.
-
-      if ( 0 != Kokkos::atomic_exchange(& task->m_next, arg.m_task) ) {
-        Kokkos::abort("TaskScheduler ERROR: resetting task dependence");
-      }
-
-      if ( 0 != arg.m_task ) {
-        // The future may be destroyed upon returning from this call
-        // so increment reference count to track this assignment.
-	Kokkos::atomic_increment( &(arg.m_task->m_ref_count) );
-      }
-
+      task->add_dependence( arg.m_task );
       assign( task , opts ... );
     }
 
@@ -463,7 +469,7 @@ public:
   template< typename FunctorType , typename ... Options >
   KOKKOS_FUNCTION
   Future< typename FunctorType::value_type , ExecSpace >
-  task_spawn( FunctorType const & arg_functor 
+  task_spawn( FunctorType const & arg_functor
             , Options const & ... arg_options
             ) const
     {
@@ -521,7 +527,7 @@ public:
   template< typename FunctorType , typename ... Options >
   inline
   Future< typename FunctorType::value_type , ExecSpace >
-  host_spawn( FunctorType const & arg_functor 
+  host_spawn( FunctorType const & arg_functor
             , Options const & ... arg_options
             ) const
     {
@@ -538,7 +544,7 @@ public:
       future_type f ;
 
       // Allocate task from memory pool
-      f.m_task = 
+      f.m_task =
         reinterpret_cast<task_type*>( m_queue->allocate(sizeof(task_type)) );
 
       if ( f.m_task ) {
@@ -558,8 +564,7 @@ public:
         // Potentially spawning outside execution space so the
         // apply function pointer must be obtained from execution space.
         // Required for Cuda execution space function pointer.
-        queue_type::specialization::template
-          proc_set_apply< FunctorType >( & f.m_task->m_apply );
+        m_queue->template proc_set_apply< FunctorType >( & f.m_task->m_apply );
 
         m_queue->schedule( f.m_task );
       }
@@ -612,7 +617,7 @@ public:
         for ( int i = 0 ; i < narg ; ++i ) {
           task_base * const t = dep[i] = arg[i].m_task ;
           if ( 0 != t ) {
-	    Kokkos::atomic_increment( &(t->m_ref_count) );
+            Kokkos::atomic_increment( &(t->m_ref_count) );
           }
         }
 
@@ -638,25 +643,13 @@ public:
                                         , value_type
                                         , FunctorType > ;
 
-      task_base * const zero = (task_base *) 0 ;
-      task_base * const lock = (task_base *) task_base::LockTag ;
       task_type * const task = static_cast< task_type * >( task_self );
 
-      // Precondition:
-      //   task is in Executing state
-      //   therefore  m_next == LockTag
-      //
-      // Change to m_next == 0 for no dependence
+      // Reschedule task with no dependences.
+      m_queue->reschedule( task );
 
-      if ( lock != Kokkos::atomic_exchange( & task->m_next, zero ) ) {
-        Kokkos::abort("TaskScheduler::respawn ERROR: already respawned");
-      }
-
+      // Dependences, if requested, are added here through parsing the arguments.
       assign( task , arg_options... );
-
-      // Postcondition:
-      //   task is in Executing-Respawn state
-      //   therefore  m_next == dependece or 0
     }
 
   //----------------------------------------
@@ -697,4 +690,3 @@ void wait( TaskScheduler< ExecSpace > const & policy )
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #ifndef KOKKOS_TASKSCHEDULER_HPP */
-

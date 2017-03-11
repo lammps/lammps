@@ -45,7 +45,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#if !defined(KOKKOS_HAVE_CUDA) || defined(__CUDACC__)
+#if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 //----------------------------------------------------------------------------
 
 #include <TestReduce.hpp>

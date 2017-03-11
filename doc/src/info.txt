@@ -94,7 +94,7 @@ The {time} category prints the accumulated CPU and wall time for the
 process that writes output (usually MPI rank 0).
 
 The {configuration} command prints some information about the LAMMPS
-version and architection and OS it is run on. Where supported, also
+version and architecture and OS it is run on. Where supported, also
 information about the memory consumption provided by the OS is
 reported.
 

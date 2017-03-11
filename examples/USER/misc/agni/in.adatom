@@ -5,7 +5,7 @@ boundary p p f
 read_data adatom.data
 
 pair_style agni
-pair_coeff * * Al_prb.agni Al
+pair_coeff * * Al_jpc.agni Al
 
 neighbor 0.3 bin 
 neigh_modify delay 2 check yes 

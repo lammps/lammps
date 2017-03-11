@@ -121,7 +121,7 @@ TEST_F( serial , task_team )
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL )
+#if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
 TEST_F( serial , cxx11 )
 {
   if ( std::is_same< Kokkos::DefaultExecutionSpace , Kokkos::Serial >::value ) {

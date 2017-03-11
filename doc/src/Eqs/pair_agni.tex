@@ -1,0 +1,13 @@
+\documentclass[12pt]{article}
+
+\pagestyle{empty}
+\begin{document}
+
+\begin{eqnarray*}
+  F_i^u & = &\sum_{t}^{N_t} {\alpha_t \cdot \textrm{exp}{\left[-\frac{\left({d_{i,t}^u}\right)^2}{2l^2}\right]}} \\
+  d_{i,t}^u & = & ||V_i^u(\eta) - V_t^u(\eta)|| \\
+  V_i^u(\eta) & = & \sum\limits_{j \neq i} \frac{r_{ij}^u}{r_{ij}} \cdot e^{-{\left(\frac{r_{ij}}{\eta}\right)}^2} \cdot f_d{(r_{ij})} \\
+  f_d(r_{ij}) & = & 0.5\left[\cos\left(\frac{\pi r_{ij}}{R_c}\right)+1\right]
+\end{eqnarray*}                           
+
+\end{document}

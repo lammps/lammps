@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 
 /* only compile this file if CUDA is enabled for Kokkos */
-#if defined( __CUDACC__ ) && defined( KOKKOS_HAVE_CUDA )
+#if defined( __CUDACC__ ) && defined( KOKKOS_ENABLE_CUDA )
 
 #include <utility>
 
@@ -312,7 +312,7 @@ void cuda_intra_block_reduce_scan( const FunctorType & functor ,
             ( rtid_intra & 16 ) ? 16 : 0 ))));
 
     if ( ! ( rtid_intra + n < blockDim.y ) ) n = 0 ;
-    #ifdef KOKKOS_CUDA_CLANG_WORKAROUND
+    #ifdef KOKKOS_IMPL_CUDA_CLANG_WORKAROUND
     BLOCK_SCAN_STEP(tdata_intra,n,4) __syncthreads();//__threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,3) __syncthreads();//__threadfence_block();
     BLOCK_SCAN_STEP(tdata_intra,n,2) __syncthreads();//__threadfence_block();

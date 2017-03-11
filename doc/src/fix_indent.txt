@@ -107,7 +107,7 @@ fashion.  For the latter, see the {start} and {stop} keywords of the
 "run"_run.html command and the {elaplong} keyword of "thermo_style
 custom"_thermo_style.html for details.
 
-For example, if a spherical indenter's x-position is specfied as v_x,
+For example, if a spherical indenter's x-position is specified as v_x,
 then this variable definition will keep it's center at a relative
 position in the simulation box, 1/4 of the way from the left edge to
 the right edge, even if the box size changes:
@@ -121,7 +121,7 @@ variable x equal "2.5 + 5*elaplong*dt"
 variable x equal vdisplace(2.5,5) :pre
 
 If a spherical indenter's radius is specified as v_r, then these
-variable definitions will grow the size of the indenter at a specfied
+variable definitions will grow the size of the indenter at a specified
 rate.
 
 variable r0 equal 0.0

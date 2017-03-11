@@ -50,7 +50,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   //  where: nevery:            call this fix every nevery timesteps.
   //		                 (keep this set to 1 for now).
   //         typeLB:            there are two different integrators
-  //                             in the code labelled "1" and "2".
+  //                             in the code labeled "1" and "2".
   //         viscosity:         the viscosity of the fluid.
   //         densityinit_real:  the density of the fluid.
   //

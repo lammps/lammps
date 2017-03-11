@@ -73,18 +73,18 @@
 
 //----------------------------------------------------------------------------
 #if defined(_WIN32)
-#define KOKKOS_ATOMICS_USE_WINDOWS
+#define KOKKOS_ENABLE_WINDOWS_ATOMICS
 #else
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 // Compiling NVIDIA device code, must use Cuda atomics:
 
-#define KOKKOS_ATOMICS_USE_CUDA
+#define KOKKOS_ENABLE_CUDA_ATOMICS
 #endif
 
-#if ! defined( KOKKOS_ATOMICS_USE_GCC ) && \
-    ! defined( KOKKOS_ATOMICS_USE_INTEL ) && \
-    ! defined( KOKKOS_ATOMICS_USE_OMP31 )
+#if ! defined( KOKKOS_ENABLE_GNU_ATOMICS ) && \
+    ! defined( KOKKOS_ENABLE_INTEL_ATOMICS ) && \
+    ! defined( KOKKOS_ENABLE_OPENMP_ATOMICS )
 
 // Compiling for non-Cuda atomic implementation has not been pre-selected.
 // Choose the best implementation for the detected compiler.
@@ -94,16 +94,16 @@
     defined( KOKKOS_COMPILER_CLANG ) || \
     ( defined ( KOKKOS_COMPILER_NVCC ) )
 
-#define KOKKOS_ATOMICS_USE_GCC
+#define KOKKOS_ENABLE_GNU_ATOMICS
 
 #elif defined( KOKKOS_COMPILER_INTEL ) || \
       defined( KOKKOS_COMPILER_CRAYC )
 
-#define KOKKOS_ATOMICS_USE_INTEL
+#define KOKKOS_ENABLE_INTEL_ATOMICS
 
 #elif defined( _OPENMP ) && ( 201107 <= _OPENMP )
 
-#define KOKKOS_ATOMICS_USE_OMP31
+#define KOKKOS_ENABLE_OPENMP_ATOMICS
 
 #else
 
@@ -119,7 +119,7 @@
 // Forward decalaration of functions supporting arbitrary sized atomics
 // This is necessary since Kokkos_Atomic.hpp is internally included very early
 // through Kokkos_HostSpace.hpp as well as the allocation tracker.
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 namespace Kokkos {
 namespace Impl {
 /// \brief Aquire a lock for the address
@@ -127,7 +127,7 @@ namespace Impl {
 /// This function tries to aquire the lock for the hash value derived
 /// from the provided ptr. If the lock is successfully aquired the
 /// function returns true. Otherwise it returns false.
-#ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 extern
 #endif
 __device__ inline
@@ -139,7 +139,7 @@ bool lock_address_cuda_space(void* ptr);
 /// from the provided ptr. This function should only be called
 /// after previously successfully aquiring a lock with
 /// lock_address.
-#ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 extern
 #endif
 __device__ inline
@@ -170,16 +170,16 @@ namespace Kokkos {
 inline
 const char * atomic_query_version()
 {
-#if defined( KOKKOS_ATOMICS_USE_CUDA )
-  return "KOKKOS_ATOMICS_USE_CUDA" ;
-#elif defined( KOKKOS_ATOMICS_USE_GCC )
-  return "KOKKOS_ATOMICS_USE_GCC" ;
-#elif defined( KOKKOS_ATOMICS_USE_INTEL )
-  return "KOKKOS_ATOMICS_USE_INTEL" ;
-#elif defined( KOKKOS_ATOMICS_USE_OMP31 )
-  return "KOKKOS_ATOMICS_USE_OMP31" ;
-#elif defined( KOKKOS_ATOMICS_USE_WINDOWS )
-  return "KOKKOS_ATOMICS_USE_WINDOWS";
+#if defined( KOKKOS_ENABLE_CUDA_ATOMICS )
+  return "KOKKOS_ENABLE_CUDA_ATOMICS" ;
+#elif defined( KOKKOS_ENABLE_GNU_ATOMICS )
+  return "KOKKOS_ENABLE_GNU_ATOMICS" ;
+#elif defined( KOKKOS_ENABLE_INTEL_ATOMICS )
+  return "KOKKOS_ENABLE_INTEL_ATOMICS" ;
+#elif defined( KOKKOS_ENABLE_OPENMP_ATOMICS )
+  return "KOKKOS_ENABLE_OPENMP_ATOMICS" ;
+#elif defined( KOKKOS_ENABLE_WINDOWS_ATOMICS )
+  return "KOKKOS_ENABLE_WINDOWS_ATOMICS";
 #endif
 }
 

@@ -815,7 +815,7 @@ void SNA::compute_dbidrj()
   //        for mb1 = 0,...,j1mid
   //          for ma1 = 0,...,j1
   //            zdb +=
-  //              Conj(dudr(j1,ma1,mb1))*z(j1,j2,j,ma1,mb1)
+  //              Conj(dudr(j1,ma1,mb1))*z(j,j2,j1,ma1,mb1)
   //        dbdr(j1,j2,j) += 2*zdb*(j+1)/(j1+1)
   //        zdb = 0
   //        for mb2 = 0,...,j2mid

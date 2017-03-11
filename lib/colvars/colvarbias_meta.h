@@ -36,8 +36,20 @@ public:
 
   colvarbias_meta(char const *key);
   virtual int init(std::string const &conf);
+  virtual int init_well_tempered_params(std::string const &conf);
+  virtual int init_ebmeta_params(std::string const &conf);
   virtual ~colvarbias_meta();
+
   virtual int update();
+  virtual int update_grid_params();
+  virtual int update_bias();
+  virtual int update_grid_data();
+  virtual int replica_share();
+
+  virtual int calc_energy(std::vector<colvarvalue> const &values =
+                          std::vector<colvarvalue>(0));
+  virtual int calc_forces(std::vector<colvarvalue> const &values =
+                          std::vector<colvarvalue>(0));
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &state_conf);
@@ -102,18 +114,18 @@ protected:
   /// \brief Calculate the values of the hills, incrementing
   /// bias_energy
   virtual void calc_hills(hill_iter  h_first,
-                           hill_iter  h_last,
-                           cvm::real &energy,
-                           std::vector<colvarvalue> const &values = std::vector<colvarvalue> (0));
+                          hill_iter  h_last,
+                          cvm::real &energy,
+                          std::vector<colvarvalue> const &values = std::vector<colvarvalue>(0));
 
   /// \brief Calculate the forces acting on the i-th colvar,
   /// incrementing colvar_forces[i]; must be called after calc_hills
   /// each time the values of the colvars are changed
   virtual void calc_hills_force(size_t const &i,
-                                 hill_iter h_first,
-                                 hill_iter h_last,
-                                 std::vector<colvarvalue> &forces,
-                                 std::vector<colvarvalue> const &values = std::vector<colvarvalue> (0));
+                                hill_iter h_first,
+                                hill_iter h_last,
+                                std::vector<colvarvalue> &forces,
+                                std::vector<colvarvalue> const &values = std::vector<colvarvalue>(0));
 
 
   /// Height of new hills

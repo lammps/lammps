@@ -15,7 +15,7 @@
 
 NPairStyle(halffull/newton/ssa,
            NPairHalffullNewtonSSA,
-           NP_HALFFULL | NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON |
+           NP_HALF_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON |
            NP_ORTHO | NP_TRI | NP_SSA)
 
 #else

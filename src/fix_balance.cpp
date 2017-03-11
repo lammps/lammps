@@ -189,7 +189,7 @@ void FixBalance::setup_pre_exchange()
   domain->reset_box();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // perform a rebalance if threshhold exceeded
+  // perform a rebalance if threshold exceeded
 
   balance->set_weights();
   imbnow = balance->imbalance_factor(maxloadperproc);
@@ -224,7 +224,7 @@ void FixBalance::pre_exchange()
   domain->reset_box();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // perform a rebalance if threshhold exceeded
+  // perform a rebalance if threshold exceeded
   // if weight variable is used, wrap weight setting in clear/add compute
 
   if (balance->varflag) modify->clearstep_compute();

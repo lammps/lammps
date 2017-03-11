@@ -78,6 +78,6 @@ Self-explanatory.
 
 E: Variable for region cylinder is invalid style
 
-Only equal-style varaibles are allowed.
+Only equal-style variables are allowed.
 
 */

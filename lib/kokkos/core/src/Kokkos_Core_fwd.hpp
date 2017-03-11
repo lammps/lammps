@@ -83,25 +83,25 @@ namespace Kokkos {
 
 class HostSpace ; ///< Memory space for main process and CPU execution spaces
 
-#ifdef KOKKOS_HAVE_HBWSPACE
+#ifdef KOKKOS_ENABLE_HBWSPACE
 namespace Experimental {
 class HBWSpace ; /// Memory space for hbw_malloc from memkind (e.g. for KNL processor)
 }
 #endif
 
-#if defined( KOKKOS_HAVE_SERIAL )
+#if defined( KOKKOS_ENABLE_SERIAL )
 class Serial ;    ///< Execution space main process on CPU
-#endif // defined( KOKKOS_HAVE_SERIAL )
+#endif // defined( KOKKOS_ENABLE_SERIAL )
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_PTHREAD )
 class Threads ;  ///< Execution space with pthreads back-end
 #endif
 
-#if defined( KOKKOS_HAVE_OPENMP )
+#if defined( KOKKOS_ENABLE_OPENMP )
 class OpenMP ; ///< OpenMP execution space
 #endif
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 class CudaSpace ;            ///< Memory space on Cuda GPU
 class CudaUVMSpace ;         ///< Memory space on Cuda GPU with UVM
 class CudaHostPinnedSpace ;  ///< Memory space on Host accessible to Cuda GPU
@@ -122,29 +122,29 @@ struct Device;
 
 namespace Kokkos {
 
-#if   defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_CUDA )
+#if   defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA )
   typedef Cuda DefaultExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
   typedef OpenMP DefaultExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
   typedef Threads DefaultExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL )
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
   typedef Serial DefaultExecutionSpace ;
 #else
 #  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::OpenMP, Kokkos::Serial, or Kokkos::Threads."
 #endif
 
-#if defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
+#if defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
   typedef OpenMP DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
   typedef Threads DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL )
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
   typedef Serial DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_OPENMP )
+#elif defined ( KOKKOS_ENABLE_OPENMP )
   typedef OpenMP DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_PTHREAD )
+#elif defined ( KOKKOS_ENABLE_PTHREAD )
   typedef Threads DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_HAVE_SERIAL )
+#elif defined ( KOKKOS_ENABLE_SERIAL )
   typedef Serial DefaultHostExecutionSpace ;
 #else
 #  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Serial, or Kokkos::Threads."
@@ -161,7 +161,7 @@ namespace Kokkos {
 namespace Kokkos {
 namespace Impl {
 
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) && defined (KOKKOS_HAVE_CUDA)
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) && defined (KOKKOS_ENABLE_CUDA)
 typedef Kokkos::CudaSpace  ActiveExecutionMemorySpace ;
 #elif defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 typedef Kokkos::HostSpace  ActiveExecutionMemorySpace ;

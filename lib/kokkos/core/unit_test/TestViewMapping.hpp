@@ -993,7 +993,7 @@ void test_view_mapping()
     ASSERT_EQ( a.use_count() , 1 );
     ASSERT_EQ( b.use_count() , 0 );
 
-#if ! defined ( KOKKOS_CUDA_USE_LAMBDA )
+#if ! defined ( KOKKOS_ENABLE_CUDA_LAMBDA )
     /* Cannot launch host lambda when CUDA lambda is enabled */
 
     typedef typename Kokkos::Impl::HostMirror< Space >::Space::execution_space
@@ -1011,7 +1011,7 @@ void test_view_mapping()
         ASSERT_EQ( a.use_count() , 2 );
         ASSERT_EQ( x.use_count() , 2 );
       });
-#endif /* #if ! defined ( KOKKOS_CUDA_USE_LAMBDA ) */
+#endif /* #if ! defined ( KOKKOS_ENABLE_CUDA_LAMBDA ) */
   }
 }
 
@@ -1370,6 +1370,16 @@ struct TestViewMappingAtomic {
       long error_count = -1 ;
       Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , TagVerify >(0,N) , self , error_count );
       ASSERT_EQ( 0 , error_count );
+      typename TestViewMappingAtomic::T_atom::HostMirror x_host = Kokkos::create_mirror_view(self.x);
+      Kokkos::deep_copy(x_host,self.x);
+      error_count = -1;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< Kokkos::DefaultHostExecutionSpace, TagVerify>(0,N), 
+        [=] ( const TagVerify & , const int i , long & tmp_error_count ) {
+        if ( i < 2 ) { if ( x_host(i) != int(i + N / 2) ) ++tmp_error_count ; }
+        else         { if ( x_host(i) != int(i) ) ++tmp_error_count ; }
+      }, error_count);
+      ASSERT_EQ( 0 , error_count );
+      Kokkos::deep_copy(self.x,x_host);
     }
 };
 

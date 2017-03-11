@@ -125,7 +125,7 @@ Every column of output must be the same length.
 
 E: Invalid attribute in dump local command
 
-Self-explantory.
+Self-explanatory.
 
 E: Dump local compute does not compute local info
 

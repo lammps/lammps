@@ -45,7 +45,7 @@
 
 #include <Kokkos_Core_fwd.hpp>
 
-#if defined( KOKKOS_HAVE_QTHREAD )
+#if defined( KOKKOS_ENABLE_QTHREAD )
 
 #include <stdio.h>
 
@@ -487,5 +487,5 @@ void wait( Kokkos::Experimental::TaskPolicy< Kokkos::Qthread > & policy )
 } // namespace Kokkos
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
-#endif /* #if defined( KOKKOS_HAVE_QTHREAD ) */
+#endif /* #if defined( KOKKOS_ENABLE_QTHREAD ) */
 

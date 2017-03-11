@@ -44,11 +44,11 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
 #include <omp.h>
 #endif
 
-#if !defined(KOKKOS_HAVE_CUDA) || defined(__CUDACC__)
+#if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 //----------------------------------------------------------------------------
 
 namespace Test {
@@ -72,7 +72,7 @@ namespace Impl {
     if(do_threads) {
       int nthreads = 3;
 
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
       if(omp_get_max_threads() < 3)
         nthreads = omp_get_max_threads();
 #endif
@@ -83,7 +83,7 @@ namespace Impl {
                        * Kokkos::hwloc::get_available_numa_count();
       }
 
-#ifdef KOKKOS_HAVE_SERIAL
+#ifdef KOKKOS_ENABLE_SERIAL
       if(std::is_same<Kokkos::Serial,Kokkos::DefaultExecutionSpace>::value ||
          std::is_same<Kokkos::Serial,Kokkos::DefaultHostExecutionSpace>::value ) {
         nthreads = 1;
@@ -97,7 +97,7 @@ namespace Impl {
       int numa = 1;
       if(Kokkos::hwloc::available())
         numa = Kokkos::hwloc::get_available_numa_count();
-#ifdef KOKKOS_HAVE_SERIAL
+#ifdef KOKKOS_ENABLE_SERIAL
       if(std::is_same<Kokkos::Serial,Kokkos::DefaultExecutionSpace>::value ||
          std::is_same<Kokkos::Serial,Kokkos::DefaultHostExecutionSpace>::value ) {
         numa = 1;
@@ -131,7 +131,7 @@ namespace Impl {
     if(do_threads) {
       int nthreads = 3;
 
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
       if(omp_get_max_threads() < 3)
         nthreads = omp_get_max_threads();
 #endif
@@ -141,7 +141,7 @@ namespace Impl {
             nthreads =   Kokkos::hwloc::get_available_threads_per_core()
                        * Kokkos::hwloc::get_available_numa_count();
       }
-#ifdef KOKKOS_HAVE_SERIAL
+#ifdef KOKKOS_ENABLE_SERIAL
       if(std::is_same<Kokkos::Serial,Kokkos::DefaultExecutionSpace>::value ||
          std::is_same<Kokkos::Serial,Kokkos::DefaultHostExecutionSpace>::value ) {
         nthreads = 1;
@@ -155,7 +155,7 @@ namespace Impl {
       int numa = 1;
       if(Kokkos::hwloc::available())
         numa = Kokkos::hwloc::get_available_numa_count();
-#ifdef KOKKOS_HAVE_SERIAL
+#ifdef KOKKOS_ENABLE_SERIAL
       if(std::is_same<Kokkos::Serial,Kokkos::DefaultExecutionSpace>::value ||
          std::is_same<Kokkos::Serial,Kokkos::DefaultHostExecutionSpace>::value ) {
         numa = 1;
@@ -183,7 +183,7 @@ namespace Impl {
                           * Kokkos::hwloc::get_available_cores_per_numa()
                           * Kokkos::hwloc::get_available_threads_per_core();
       } else {
-        #ifdef KOKKOS_HAVE_OPENMP
+        #ifdef KOKKOS_ENABLE_OPENMP
         if(std::is_same<Kokkos::HostSpace::execution_space,Kokkos::OpenMP>::value) {
           expected_nthreads = omp_get_max_threads();
         } else
@@ -191,7 +191,7 @@ namespace Impl {
           expected_nthreads = 1;
 
       }
-      #ifdef KOKKOS_HAVE_SERIAL
+      #ifdef KOKKOS_ENABLE_SERIAL
       if(std::is_same<Kokkos::DefaultExecutionSpace,Kokkos::Serial>::value ||
          std::is_same<Kokkos::DefaultHostExecutionSpace,Kokkos::Serial>::value ) 
         expected_nthreads = 1;
@@ -205,7 +205,7 @@ namespace Impl {
       } else {
         expected_numa = 1;
       }
-      #ifdef KOKKOS_HAVE_SERIAL
+      #ifdef KOKKOS_ENABLE_SERIAL
       if(std::is_same<Kokkos::DefaultExecutionSpace,Kokkos::Serial>::value ||
          std::is_same<Kokkos::DefaultHostExecutionSpace,Kokkos::Serial>::value )
         expected_numa = 1;
@@ -213,7 +213,7 @@ namespace Impl {
     }
     ASSERT_EQ(Kokkos::HostSpace::execution_space::thread_pool_size(),expected_nthreads);
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
     if(std::is_same<Kokkos::DefaultExecutionSpace,Kokkos::Cuda>::value) {
       int device;
       cudaGetDevice( &device );

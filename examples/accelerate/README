@@ -130,7 +130,7 @@ lmp_kokkos_omp -k on t 1 -sf kk -pk kokkos neigh half < in.lj
 mpirun -np 2 lmp_kokkos_omp -k on t 4 -sf kk < in.lj  # 2 MPI, 4 thread/MPI
 
 Note that when running with just 1 thread/MPI, "-pk kokkos neigh half"
-was speficied to use half neighbor lists which are faster when running
+was specified to use half neighbor lists which are faster when running
 on just 1 thread.
 
 ** KOKKOS package for CUDA

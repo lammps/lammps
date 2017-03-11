@@ -68,7 +68,7 @@ struct SortView {
 
 }
 
-#if defined(KOKKOS_HAVE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA)
 
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
@@ -102,7 +102,7 @@ void sort_array( const size_t array_length /* length of spans of array to sort *
   typedef Device execution_space ;
   typedef Kokkos::View<int*,Device>  device_array_type ;
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
   typedef typename
     Kokkos::Impl::if_c< std::is_same< Device , Kokkos::Cuda >::value

@@ -84,7 +84,7 @@ group           sds subtract all cions
 velocity        all create 1. 87287 dist gaussian
 
 neighbor        1.5 multi
-neigh_modify    exclude molecule sds
+neigh_modify    exclude molecule/intra sds
 neigh_modify    every 5 delay 0 check yes
 
 fix             1 all nve/limit 0.2

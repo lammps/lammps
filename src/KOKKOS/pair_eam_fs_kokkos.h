@@ -125,8 +125,8 @@ class PairEAMFSKokkos : public PairEAM {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
+  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
   DAT::tdual_ffloat_1d k_rho;
   DAT::tdual_ffloat_1d k_fp;
@@ -154,9 +154,9 @@ class PairEAMFSKokkos : public PairEAM {
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
   void read_file(char *);
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
   //NeighListKokkos<DeviceType> k_list;
 
   int iswap;

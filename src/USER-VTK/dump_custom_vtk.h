@@ -147,7 +147,7 @@ output to dump file.
 
 E: Invalid attribute in dump custom command
 
-Self-explantory.
+Self-explanatory.
 
 E: Dump_modify format string is too short
 
@@ -186,7 +186,7 @@ cannot be used in a dump between runs.
 
 E: Threshhold for an atom property that isn't allocated
 
-A dump threshhold has been requested on a quantity that is
+A dump threshold has been requested on a quantity that is
 not defined by the atom style used in this simulation.
 
 E: Dumping an atom property that isn't allocated
@@ -255,7 +255,7 @@ Number of element names must equal number of atom types.
 
 E: Invalid attribute in dump modify command
 
-Self-explantory.
+Self-explanatory.
 
 E: Could not find dump modify compute ID
 
@@ -313,7 +313,7 @@ E: Could not find dump modify custom atom integer property ID
 
 Self-explanatory.
 
-E: Invalid dump_modify threshhold operator
+E: Invalid dump_modify threshold operator
 
 Operator keyword used for threshold specification in not recognized.
 

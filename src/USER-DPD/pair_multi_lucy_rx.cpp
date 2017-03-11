@@ -385,11 +385,11 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 
   nspecies = atom->nspecies_dpd;
   int n;
-  n = strlen(arg[3]) + 1;
+  n = strlen(arg[4]) + 1;
   site1 = new char[n];
   strcpy(site1,arg[4]);
 
-  n = strlen(arg[4]) + 1;
+  n = strlen(arg[5]) + 1;
   site2 = new char[n];
   strcpy(site2,arg[5]);
 
@@ -923,15 +923,15 @@ void PairMultiLucyRX::computeLocalDensity()
           rho_i += factor;
           if (newton_pair || j < nlocal)
             rho[j] += factor;
-        } else if (rsq < cutsq[itype][jtype]) {
-          const double rcut = sqrt(cutsq[itype][jtype]);
-          const double tmpFactor = 1.0-sqrt(rsq)/rcut;
-          const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-          const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
-          rho_i += factor;
-          if (newton_pair || j < nlocal)
-            rho[j] += factor;
         }
+      } else if (rsq < cutsq[itype][jtype]) {
+        const double rcut = sqrt(cutsq[itype][jtype]);
+        const double tmpFactor = 1.0-sqrt(rsq)/rcut;
+        const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+        const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+        rho_i += factor;
+        if (newton_pair || j < nlocal)
+          rho[j] += factor;
       }
     }
 

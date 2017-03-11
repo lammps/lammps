@@ -164,5 +164,41 @@ TEST_F( threads , atomic_operations )
 
 }
 
+
+TEST_F( threads , atomic_views_integral )
+{
+  const long length = 1000000;
+  {
+    //Integral Types
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::Threads>(length, 8 ) ) );
+
+  }
+}
+
+TEST_F( threads , atomic_views_nonintegral )
+{
+  const long length = 1000000;
+  {
+    //Non-Integral Types
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Threads>(length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Threads>(length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Threads>(length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::Threads>(length, 4 ) ) );
+
+  }
+}
+
+TEST_F( threads , atomic_view_api )
+{
+  TestAtomicViews::TestAtomicViewAPI<int, Kokkos::Threads>();
+}
+
 } // namespace test
 

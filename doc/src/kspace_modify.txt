@@ -98,7 +98,7 @@ Coulombics.
 
 The {overlap} keyword can be used in conjunction with the {minorder}
 keyword with the PPPM styles to adjust the amount of communication
-that occurs when values on the FFT grid are exchangeed between
+that occurs when values on the FFT grid are exchanged between
 processors.  This communication is distinct from the communication
 inherent in the parallel FFTs themselves, and is required because
 processors interpolate charge and field values using grid point values
@@ -122,7 +122,7 @@ neighbor processors.  The {minorder} keyword limits how small the
 {order} setting can become.  The minimum allowed value for PPPM is 2,
 which is the default.  If {minorder} is set to the same value as
 {order} then no reduction is allowed, and LAMMPS will generate an
-error if the grid communcation is non-nearest-neighbor and {overlap}
+error if the grid communication is non-nearest-neighbor and {overlap}
 is set to {no}. The {minorder} keyword is not currently supported in
 MSM.
 
@@ -284,7 +284,7 @@ of pppm/disp. As shown in "(Isele-Holder)"_#Isele-Holder, optimal
 performance and accuracy in the results is obtained when these values
 are different.
 
-The {disp/auto} option controlls whether the pppm/disp is allowed to
+The {disp/auto} option controls whether the pppm/disp is allowed to
 generate PPPM parameters automatically. If set to {no}, parameters have
 to be specified using the {gewald/disp}, {mesh/disp},
 {force/disp/real} or {force/disp/kspace} keywords, or

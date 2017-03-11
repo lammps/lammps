@@ -101,7 +101,7 @@ temperature (nvt or npt).
 
 E: Too many timesteps
 
-The cummulative timesteps must fit in a 64-bit integer.
+The cumulative timesteps must fit in a 64-bit integer.
 
 E: Grem could not find thermo_pe compute
 

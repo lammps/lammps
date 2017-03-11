@@ -44,6 +44,7 @@ else
 endif
 	OBJ_CUDA += TestCuda_ViewAPI_a.o TestCuda_ViewAPI_b.o  TestCuda_ViewAPI_c.o TestCuda_ViewAPI_d.o
 	OBJ_CUDA += TestCuda_ViewAPI_e.o TestCuda_ViewAPI_f.o  TestCuda_ViewAPI_g.o TestCuda_ViewAPI_h.o
+	OBJ_CUDA += TestCuda_ViewAPI_s.o
 	OBJ_CUDA += UnitTestMain.o gtest-all.o
 	TARGETS += KokkosCore_UnitTest_Cuda
 	TEST_TARGETS += test-cuda

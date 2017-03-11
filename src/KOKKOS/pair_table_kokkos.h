@@ -44,6 +44,7 @@ class PairTableKokkos : public PairTable {
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
   PairTableKokkos(class LAMMPS *);
   virtual ~PairTableKokkos();
@@ -62,27 +63,27 @@ class PairTableKokkos : public PairTable {
  protected:
 
   /*struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d_randomread tabindex;
-    typename ArrayTypes<DeviceType>::t_int_1d_randomread nshiftbits,nmask;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_ffloat_2d_randomread cutsq;
+    typename AT::t_int_2d_randomread tabindex;
+    typename AT::t_int_1d_randomread nshiftbits,nmask;
+    typename AT::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
+    typename AT::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
   };*/
  //Its faster not to use texture fetch if the number of tables is less than 32!
   struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
-    typename ArrayTypes<DeviceType>::t_int_1d nshiftbits,nmask;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_ffloat_2d cutsq;
+    typename AT::t_int_2d tabindex;
+    typename AT::t_int_1d nshiftbits,nmask;
+    typename AT::t_ffloat_1d innersq,invdelta,deltasq6;
+    typename AT::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
   };
 
   struct TableDevice {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
-    typename ArrayTypes<DeviceType>::t_int_1d nshiftbits,nmask;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_ffloat_2d cutsq;
+    typename AT::t_int_2d tabindex;
+    typename AT::t_int_1d nshiftbits,nmask;
+    typename AT::t_ffloat_1d innersq,invdelta,deltasq6;
+    typename AT::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
   };
 
   struct TableHost {
@@ -99,17 +100,20 @@ class PairTableKokkos : public PairTable {
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+  typename AT::t_ffloat_2d d_cutsq;
 
   virtual void allocate();
   void compute_table(Table *);
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_x_array_const c_x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_x_array_const c_x;
+  typename AT::t_f_array f;
+  typename AT::t_int_1d_randomread type;
+
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
  protected:
   int nlocal,nall,eflag,vflag,neighflag,newton_pair;

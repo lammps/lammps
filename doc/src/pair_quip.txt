@@ -45,12 +45,12 @@ See the "pair_coeff"_pair_coeff.html doc page for alternate ways
 to specify the path for the potential file.
 
 A QUIP potential is fully specified by the filename which contains the
-parameters of the potential in XML format, the initialisation string,
+parameters of the potential in XML format, the initialization string,
 and the map of atomic numbers.
 
 GAP potentials can be obtained from the Data repository section of
 "http://www.libatoms.org"_http://www.libatoms.org, where the
-appropriate initialisation strings are also advised. The list of
+appropriate initialization strings are also advised. The list of
 atomic numbers must be matched to the LAMMPS atom types specified in
 the LAMMPS data file or elsewhere.
 

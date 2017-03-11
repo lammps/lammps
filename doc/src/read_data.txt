@@ -180,7 +180,7 @@ used appropriately when each data file is read, the values in those
 sections will be stored correctly in the larger data structures
 allocated by the use of the {extra} keywords.  E.g. the substrate file
 can list mass and pair coefficients for type 1 silicon atoms.  The
-water file can list mass and pair coeffcients for type 1 and type 2
+water file can list mass and pair coefficients for type 1 and type 2
 hydrogen and oxygen atoms.  Use of the {extra} and {offset} keywords
 will store those mass and pair coefficient values appropriately in
 data structures that allow for 3 atom types (Si, H, O).  Of course,
@@ -574,7 +574,7 @@ spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e.
 template-atom = which atom within a template molecule the atom is
 template-index = which molecule within the molecule template the atom is part of
 theta = internal temperature of a DPD particle
-triangleflag = 1 for triangular particles, 0 for point or sperhical particles
+triangleflag = 1 for triangular particles, 0 for point or spherical particles
 volume = volume of Peridynamic particle (distance^3 units)
 x,y,z = coordinates of atom (distance units) :ul
 

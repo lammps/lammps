@@ -47,7 +47,7 @@
 #include <Kokkos_Core.hpp>
 
 /* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 #include <Cuda/Kokkos_Cuda_Internal.hpp>
@@ -64,7 +64,7 @@
 #include <sstream>
 #include <string>
 
-#ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 
 __device__ __constant__
 unsigned long kokkos_impl_cuda_constant_memory_buffer[ Kokkos::Impl::CudaTraits::ConstantMemoryUsage / sizeof(unsigned long) ] ;
@@ -299,8 +299,8 @@ void CudaInternal::print_configuration( std::ostream & s ) const
 {
   const CudaInternalDevices & dev_info = CudaInternalDevices::singleton();
 
-#if defined( KOKKOS_HAVE_CUDA )
-    s << "macro  KOKKOS_HAVE_CUDA      : defined" << std::endl ;
+#if defined( KOKKOS_ENABLE_CUDA )
+    s << "macro  KOKKOS_ENABLE_CUDA      : defined" << std::endl ;
 #endif
 #if defined( CUDA_VERSION )
     s << "macro  CUDA_VERSION          = " << CUDA_VERSION
@@ -500,7 +500,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     Kokkos::Impl::throw_runtime_exception( msg.str() );
   }
 
-  #ifdef KOKKOS_CUDA_USE_UVM
+  #ifdef KOKKOS_ENABLE_CUDA_UVM
     if(!cuda_launch_blocking()) {
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
@@ -531,7 +531,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_arrays_cuda_space();
 
-  #ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+  #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
   Kokkos::Impl::CudaLockArraysStruct locks;
   locks.atomic = atomic_lock_array_cuda_space_ptr(false);
   locks.scratch = scratch_lock_array_cuda_space_ptr(false);
@@ -773,6 +773,6 @@ void Cuda::fence()
 
 } // namespace Kokkos
 
-#endif // KOKKOS_HAVE_CUDA
+#endif // KOKKOS_ENABLE_CUDA
 //----------------------------------------------------------------------------
 

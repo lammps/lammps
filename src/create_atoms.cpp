@@ -806,7 +806,7 @@ void CreateAtoms::add_molecule(double *center, double *quat_user)
   onemol->quat_external = quat;
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0
-  // reset in caller after all moleclues created by all procs
+  // reset in caller after all molecules created by all procs
   // pass add_molecule_atom an offset of 0 since don't know
   //   max tag of atoms in previous molecules at this point
 

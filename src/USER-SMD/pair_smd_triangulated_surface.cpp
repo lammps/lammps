@@ -249,7 +249,7 @@ void PairTriSurf::compute(int eflag, int vflag) {
 					}
 
 					/*
-					 * if particle comes too close to triangle, reflect its velocity and explicitely move it away
+					 * if particle comes too close to triangle, reflect its velocity and explicitly move it away
 					 */
 
 					touch_distance = 1.0 * radius[particle];
@@ -419,8 +419,7 @@ void PairTriSurf::init_style() {
 
 	// old: half list
 	int irequest = neighbor->request(this);
-	neighbor->requests[irequest]->half = 0;
-	neighbor->requests[irequest]->gran = 1;
+	neighbor->requests[irequest]->size = 1;
 
 	// need a full neighbor list
 //	int irequest = neighbor->request(this);

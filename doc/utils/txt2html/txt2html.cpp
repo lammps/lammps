@@ -561,7 +561,7 @@ void substitute(string &s)
   string punctuation = ".,?!;:()";
 
   // substitute for bold & italic markers
-  // if preceeded by \ char, then leave markers in text
+  // if preceded by \ char, then leave markers in text
 
   n = s.find_first_of("[]{}");
   while (n != string::npos) {

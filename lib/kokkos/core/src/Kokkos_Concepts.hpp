@@ -185,15 +185,15 @@ public:
 
   typedef typename std::conditional
     < std::is_same< memory_space , Kokkos::HostSpace >::value
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
       || std::is_same< memory_space , Kokkos::CudaUVMSpace >::value
       || std::is_same< memory_space , Kokkos::CudaHostPinnedSpace >::value
-#endif /* #if defined( KOKKOS_HAVE_CUDA ) */
+#endif /* #if defined( KOKKOS_ENABLE_CUDA ) */
     , memory_space
     , Kokkos::HostSpace
     >::type  host_memory_space ;
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   typedef typename std::conditional
     < std::is_same< execution_space , Kokkos::Cuda >::value
     , Kokkos::DefaultHostExecutionSpace , execution_space

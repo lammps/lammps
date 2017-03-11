@@ -89,7 +89,7 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
 
   // reallocate per-atom arrays if necessary
@@ -138,8 +138,6 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
-
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
@@ -149,6 +147,9 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
+
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+
 }
 
 template<class DeviceType>

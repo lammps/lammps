@@ -86,7 +86,7 @@ namespace Impl {
   __attribute__ (( __aligned__( 16 ) ));
 
 
-  #if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_USE_ISA_X86_64 )
+  #if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_ENABLE_ISA_X86_64 )
   inline cas128_t cas128( volatile cas128_t * ptr, cas128_t cmp,  cas128_t swap )
   {
       bool swapped = false;

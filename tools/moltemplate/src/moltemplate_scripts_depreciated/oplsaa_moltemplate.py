@@ -109,7 +109,7 @@ atom_lookup={} #this dictionary contains all the atom ffid's as a key and the nu
 #atom=[[10000,10000] for i in range(906)]  <- don't assume there are 906 atoms
 atom=[[-10000,-10000] for i in range(0,max_atomType+1)]
 #charge_by_type={} # lookup charge by atom type
-#vdw_by_type={}    # lookup epsilon & sigma paramters by atom type
+#vdw_by_type={}    # lookup epsilon & sigma parameters by atom type
 charge_by_type=[0.0 for i in range(0,max_atomType+1)]    # lookup charge by atom
 vdw_by_type=[(0.0,0.0) for i in range(0,max_atomType+1)] # lookup epsilon & sigma
 

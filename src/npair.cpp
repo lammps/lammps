@@ -14,10 +14,12 @@
 #include <math.h>
 #include "npair.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "nbin.h"
 #include "nstencil.h"
 #include "atom.h"
 #include "update.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -28,11 +30,28 @@ NPair::NPair(LAMMPS *lmp)
   : Pointers(lmp), nb(NULL), ns(NULL), bins(NULL), stencil(NULL)
 {
   last_build = -1;
+  mycutneighsq = NULL;
   molecular = atom->molecular;
+}
+
+/* ---------------------------------------------------------------------- */
+
+NPair::~NPair()
+{
+  memory->destroy(mycutneighsq);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NPair::post_constructor(NeighRequest *nrq)
+{
+  cutoff_custom = 0.0;
+  if (nrq->cut) cutoff_custom = nrq->cutoff;
 }
 
 /* ----------------------------------------------------------------------
    copy needed info from Neighbor class to this build class
+   done once per run
 ------------------------------------------------------------------------- */
 
 void NPair::copy_neighbor_info()
@@ -67,10 +86,25 @@ void NPair::copy_neighbor_info()
   nex_mol = neighbor->nex_mol;
   ex_mol_group = neighbor->ex_mol_group;
   ex_mol_bit = neighbor->ex_mol_bit;
+  ex_mol_intra = neighbor->ex_mol_intra;
 
   // special info
 
   special_flag = neighbor->special_flag;
+
+  // overwrite per-type Neighbor cutoffs with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) {
+    memory->destroy(mycutneighsq);
+    int n = atom->ntypes;
+    memory->create(mycutneighsq,n+1,n+1,"npair:cutneighsq");
+    int i,j;
+    for (i = 1; i <= n; i++)
+      for (j = 1; j <= n; j++)
+        mycutneighsq[i][j] = cutoff_custom * cutoff_custom;
+    cutneighsq = mycutneighsq;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -147,8 +181,17 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
 
   if (nex_mol) {
     for (m = 0; m < nex_mol; m++)
-      if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
-          molecule[i] == molecule[j]) return 1;
+
+      // intra-chain: exclude i-j pair if in same molecule 
+      // inter-chain: exclude i-j pair if in different molecules 
+
+      if (ex_mol_intra[m]) {
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+	    molecule[i] == molecule[j]) return 1;
+      } else {
+	if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+	    molecule[i] != molecule[j]) return 1;
+      }
   }
 
   return 0;

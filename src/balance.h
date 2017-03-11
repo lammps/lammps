@@ -53,6 +53,7 @@ class Balance : protected Pointers {
   int style;                                        // style of LB
   int xflag,yflag,zflag;                            // xyz LB flags
   double *user_xsplit,*user_ysplit,*user_zsplit;    // params for xyz LB
+  int oldrcb;                                    // use old-style RCB compute
 
   int nitermax;              // params for shift LB
   double stopthresh;

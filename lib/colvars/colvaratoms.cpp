@@ -98,7 +98,7 @@ cvm::atom_group::atom_group()
 
 cvm::atom_group::~atom_group()
 {
-  if (is_enabled(f_ag_scalable)) {
+  if (is_enabled(f_ag_scalable) && !b_dummy) {
     (cvm::proxy)->clear_atom_group(index);
     index = -1;
   }
@@ -418,7 +418,7 @@ int cvm::atom_group::parse(std::string const &conf)
   // We need to know the fitting options to decide whether the group is scalable
   parse_error |= parse_fitting_options(group_conf);
 
-  if (is_available(f_ag_scalable_com) && !b_rotate) {
+  if (is_available(f_ag_scalable_com) && !b_rotate && !b_center) {
     enable(f_ag_scalable_com);
     enable(f_ag_scalable);
   }
@@ -500,14 +500,16 @@ int cvm::atom_group::add_atom_numbers(std::string const &numbers_conf)
 
 int cvm::atom_group::add_index_group(std::string const &index_group_name)
 {
-  std::list<std::string>::iterator names_i = cvm::index_group_names.begin();
-  std::list<std::vector<int> >::iterator index_groups_i = cvm::index_groups.begin();
-  for ( ; names_i != cvm::index_group_names.end() ; ++names_i, ++index_groups_i) {
+  colvarmodule *cv = cvm::main();
+
+  std::list<std::string>::iterator names_i = cv->index_group_names.begin();
+  std::list<std::vector<int> >::iterator index_groups_i = cv->index_groups.begin();
+  for ( ; names_i != cv->index_group_names.end() ; ++names_i, ++index_groups_i) {
     if (*names_i == index_group_name)
       break;
   }
 
-  if (names_i == cvm::index_group_names.end()) {
+  if (names_i == cv->index_group_names.end()) {
     cvm::error("Error: could not find index group "+
                index_group_name+" among those provided by the index file.\n",
                INPUT_ERROR);

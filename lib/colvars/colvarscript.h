@@ -51,6 +51,10 @@ private:
   /// Run subcommands on bias
   int proc_bias(int argc, char const *argv[]);
 
+  /// Run subcommands on base colvardeps object (colvar, bias, ...)
+  int proc_features(colvardeps *obj,
+                    int argc, char const *argv[]);
+
   /// Builds and return a short help
   std::string help_string(void);
 };

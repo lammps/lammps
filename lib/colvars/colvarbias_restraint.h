@@ -260,6 +260,12 @@ protected:
   /// \brief Location of the upper walls
   std::vector<colvarvalue> upper_walls;
 
+  /// \brief If both walls are defined, use this k for the lower
+  cvm::real lower_wall_k;
+
+  /// \brief If both walls are defined, use this k for the upper
+  cvm::real upper_wall_k;
+
   virtual cvm::real colvar_distance(size_t i) const;
   virtual cvm::real restraint_potential(size_t i) const;
   virtual colvarvalue const restraint_force(size_t i) const;

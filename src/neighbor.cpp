@@ -1129,6 +1129,11 @@ void Neighbor::morph_halffull()
 
     if (!irq->half) continue;
 
+    // Kokkos doesn't yet support half from full
+
+    if (irq->kokkos_host) continue;
+    if (irq->kokkos_device) continue;
+
     // these lists are created other ways, no need for halffull
     // do want to process skip lists
 
@@ -1154,8 +1159,6 @@ void Neighbor::morph_halffull()
       // this includes custom cutoff set by requestor
       // no need to check respaouter b/c it stores same pairs
       // no need to check dnum b/c only set for history
-      // NOTE: need check for 2 Kokkos flags?
-      //       Kokkos doesn't yet support half from full?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;

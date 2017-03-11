@@ -30,9 +30,8 @@ int colvarbias_abf::init(std::string const &conf)
 {
   colvarbias::init(conf);
 
-  provide(f_cvb_scalar_variables);
   enable(f_cvb_scalar_variables);
-  provide(f_cvb_history_dependent);
+  enable(f_cvb_calc_pmf);
 
   // TODO relax this in case of VMD plugin
   if (cvm::temperature() == 0.0)
@@ -221,9 +220,6 @@ colvarbias_abf::~colvarbias_abf()
     delete [] system_force;
     system_force = NULL;
   }
-
-  if (cvm::n_abf_biases > 0)
-    cvm::n_abf_biases -= 1;
 }
 
 
@@ -319,11 +315,11 @@ int colvarbias_abf::update()
   }
 
   // update the output prefix; TODO: move later to setup_output() function
-  if ( cvm::n_abf_biases == 1 && cvm::n_meta_biases == 0 ) {
-    // This is the only ABF bias
-    output_prefix = cvm::output_prefix;
+  if (cvm::num_biases_feature(colvardeps::f_cvb_calc_pmf) == 1) {
+    // This is the only bias computing PMFs
+    output_prefix = cvm::output_prefix();
   } else {
-    output_prefix = cvm::output_prefix + "." + this->name;
+    output_prefix = cvm::output_prefix() + "." + this->name;
   }
 
   if (output_freq && (cvm::step_absolute() % output_freq) == 0) {

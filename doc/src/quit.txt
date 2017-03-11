@@ -17,7 +17,7 @@ status = numerical exit status (optional)
 [Examples:]
 
 quit
-if "$n > 10000" then "quit 1":pre
+if "$n > 10000" then "quit 1" :pre
 
 [Description:]
 

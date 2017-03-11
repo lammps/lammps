@@ -11,7 +11,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2016-12-27"
+#define COLVARS_VERSION "2017-03-09"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -161,12 +161,37 @@ public:
   /// dt)
   static real debug_gradients_step_size;
 
-  /// Prefix for all output files for this run
-  static std::string output_prefix;
+private:
 
+  /// Prefix for all output files for this run
+  std::string cvm_output_prefix;
+
+public:
+  /// Accessor for the above
+  static inline std::string &output_prefix()
+  {
+    colvarmodule *cv = colvarmodule::main();
+    return cv->cvm_output_prefix;
+  }
+
+private:
 
   /// Array of collective variables
-  static std::vector<colvar *>     colvars;
+  std::vector<colvar *> colvars;
+
+  /// Array of collective variables
+  std::vector<colvar *> colvars_active;
+
+  /// Collective variables to be calculated on different threads;
+  /// colvars with multple items (e.g. multiple active CVCs) are duplicated
+  std::vector<colvar *> colvars_smp;
+  /// Indexes of the items to calculate for each colvar
+  std::vector<int> colvars_smp_items;
+
+public:
+
+  /// Array of collective variables
+  std::vector<colvar *> *variables();
 
   /* TODO: implement named CVCs
   /// Array of named (reusable) collective variable components
@@ -177,26 +202,31 @@ public:
   }
   */
 
+  /// Collective variables with the active flag on
+  std::vector<colvar *> *variables_active();
+
   /// Collective variables to be calculated on different threads;
   /// colvars with multple items (e.g. multiple active CVCs) are duplicated
-  std::vector<colvar *> colvars_smp;
+  std::vector<colvar *> *variables_active_smp();
+
   /// Indexes of the items to calculate for each colvar
-  std::vector<int> colvars_smp_items;
+  std::vector<int> *variables_active_smp_items();
 
   /// Array of collective variable biases
-  static std::vector<colvarbias *> biases;
-  /// \brief Number of ABF biases initialized (in normal conditions
-  /// should be 1)
-  static size_t n_abf_biases;
-  /// \brief Number of metadynamics biases initialized (in normal
-  /// conditions should be 1)
-  static size_t n_meta_biases;
-  /// \brief Number of restraint biases initialized (no limit on the
-  /// number)
-  static size_t n_rest_biases;
-  /// \brief Number of histograms initialized (no limit on the
-  /// number)
-  static size_t n_histo_biases;
+  std::vector<colvarbias *> biases;
+
+  /// Energy of built-in and scripted biases, summed per time-step
+  real total_bias_energy;
+
+private:
+
+  /// Array of active collective variable biases
+  std::vector<colvarbias *> biases_active_;
+
+public:
+
+  /// Array of active collective variable biases
+  std::vector<colvarbias *> *biases_active();
 
   /// \brief Whether debug output should be enabled (compile-time option)
   static inline bool debug()
@@ -205,10 +235,7 @@ public:
   }
 
   /// \brief How many objects are configured yet?
-  inline size_t size() const
-  {
-    return colvars.size() + biases.size();
-  }
+  size_t size() const;
 
   /// \brief Constructor \param config_name Configuration file name
   /// \param restart_name (optional) Restart file name
@@ -230,8 +257,11 @@ public:
   /// \brief Parse a "clean" config string (no comments)
   int parse_config(std::string &conf);
 
-
   // Parse functions (setup internal data based on a string)
+
+  /// Allow reading from Windows text files using using std::getline
+  /// (which can still be used when the text is produced by Colvars itself)
+  static std::istream & getline(std::istream &is, std::string &line);
 
   /// Parse the few module's global parameters
   int parse_global_params(std::string const &conf);
@@ -242,13 +272,32 @@ public:
   /// Parse and initialize collective variable biases
   int parse_biases(std::string const &conf);
 
+  /// \brief Add new configuration during parsing (e.g. to implement
+  /// back-compatibility); cannot be nested, i.e. conf should not contain
+  /// anything that triggers another call
+  int append_new_config(std::string const &conf);
+
+private:
+
+  /// Auto-generated configuration during parsing (e.g. to implement
+  /// back-compatibility)
+  std::string extra_conf;
+
   /// Parse and initialize collective variable biases of a specific type
   template <class bias_type>
-  int parse_biases_type(std::string const &conf, char const *keyword, size_t &bias_count);
+  int parse_biases_type(std::string const &conf, char const *keyword);
 
   /// Test error condition and keyword parsing
   /// on error, delete new bias
   bool check_new_bias(std::string &conf, char const *key);
+
+public:
+
+  /// Return how many biases have this feature enabled
+  static int num_biases_feature(int feature_id);
+
+  /// Return how many biases are defined with this type
+  static int num_biases_type(std::string const &type);
 
 private:
   /// Useful wrapper to interrupt parsing if any error occurs
@@ -449,13 +498,13 @@ public:
 
 
   /// \brief Names of groups from a Gromacs .ndx file to be read at startup
-  static std::list<std::string> index_group_names;
+  std::list<std::string> index_group_names;
 
   /// \brief Groups from a Gromacs .ndx file read at startup
-  static std::list<std::vector<int> > index_groups;
+  std::list<std::vector<int> > index_groups;
 
   /// \brief Read a Gromacs .ndx file
-  static int read_index_file(char const *filename);
+  int read_index_file(char const *filename);
 
 
   /// \brief Create atoms from a file \param filename name of the file
@@ -515,13 +564,13 @@ protected:
   /// Output restart file
   colvarmodule::ofstream restart_out_os;
 
-protected:
+private:
 
   /// Counter for the current depth in the object hierarchy (useg e.g. in output)
-  static size_t depth_s;
+  size_t depth_s;
 
   /// Thread-specific depth
-  static std::vector<size_t> depth_v;
+  std::vector<size_t> depth_v;
 
 public:
 
@@ -552,6 +601,10 @@ public:
   /// from the hosting program; it is static in order to be accessible
   /// from static functions in the colvarmodule class
   static colvarproxy *proxy;
+
+  /// \brief Accessor for the above
+  static colvarmodule *main();
+
 };
 
 

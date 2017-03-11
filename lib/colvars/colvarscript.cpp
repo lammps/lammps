@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "colvarscript.h"
+#include "colvardeps.h"
 
 
 colvarscript::colvarscript(colvarproxy *p)
@@ -221,6 +222,16 @@ int colvarscript::run(int argc, char const *argv[]) {
     }
   }
 
+  if (cmd == "addenergy") {
+    if (argc == 3) {
+      colvars->total_bias_energy += strtod(argv[2], NULL);
+      return COLVARS_OK;
+    } else {
+      result = "Wrong arguments to command \"addenergy\"\n" + help_string();
+      return COLVARSCRIPT_ERROR;
+    }
+  }
+
   result = "Syntax error\n" + help_string();
   return COLVARSCRIPT_ERROR;
 }
@@ -263,10 +274,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if (subcmd == "delete") {
-    if (cv->biases.size() > 0) {
-      result = "Cannot delete a colvar currently used by biases, delete those biases first";
-      return COLVARSCRIPT_ERROR;
+    size_t i;
+    for (i = 0; i < cv->biases.size(); i++) {
+      delete cv->biases[i];
     }
+    cv->biases.resize(0);
     // colvar destructor is tasked with the cleanup
     delete cv;
     // TODO this could be done by the destructors
@@ -338,9 +350,8 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     return COLVARS_OK;
   }
 
-  if (subcmd == "state") {
-    cv->print_state();
-    return COLVARS_OK;
+  if ((subcmd == "get") || (subcmd == "set") || (subcmd == "state")) {
+    return proc_features(cv, argc, argv);
   }
 
   result = "Syntax error\n" + help_string();
@@ -376,11 +387,6 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
 
   if (subcmd == "getconfig") {
     result = b->get_config();
-    return COLVARS_OK;
-  }
-
-  if (subcmd == "state") {
-    b->print_state();
     return COLVARS_OK;
   }
 
@@ -420,6 +426,10 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
     return COLVARS_OK;
   }
 
+  if ((subcmd == "get") || (subcmd == "set") || (subcmd == "state")) {
+    return proc_features(b, argc, argv);
+  }
+
   if (argc >= 4) {
     std::string param = argv[3];
     if (subcmd == "count") {
@@ -434,6 +444,83 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
 
     result = "Syntax error\n" + help_string();
     return COLVARSCRIPT_ERROR;
+  }
+
+  result = "Syntax error\n" + help_string();
+  return COLVARSCRIPT_ERROR;
+}
+
+
+int colvarscript::proc_features(colvardeps *obj,
+                                int argc, char const *argv[]) {
+  // size was already checked before calling
+  std::string subcmd = argv[2];
+
+  if (argc == 3) {
+    if (subcmd == "state") {
+      // TODO make this returned as result?
+      obj->print_state();
+      return COLVARS_OK;
+    }
+
+    // get and set commands require more arguments
+    result = "Syntax error\n" + help_string();
+    return COLVARSCRIPT_ERROR;
+  }
+
+  if ((subcmd == "get") || (subcmd == "set")) {
+    std::vector<colvardeps::feature *> &features = obj->features();
+    std::string const req_feature(argv[3]);
+    colvardeps::feature *f = NULL;
+    int fid = 0;
+    for (fid = 0; fid < int(features.size()); fid++) {
+      if (features[fid]->description ==
+          colvarparse::to_lower_cppstr(req_feature)) {
+        f = features[fid];
+        break;
+      }
+    }
+
+    if (f == NULL) {
+
+      result = "Error: feature \""+req_feature+"\" does not exist.\n";
+      return COLVARSCRIPT_ERROR;
+
+    } else {
+
+      if (! obj->is_available(fid)) {
+        result = "Error: feature \""+req_feature+"\" is unavailable.\n";
+        return COLVARSCRIPT_ERROR;
+      }
+
+      if (subcmd == "get") {
+        result = cvm::to_str(obj->is_enabled(fid) ? 1 : 0);
+        return COLVARS_OK;
+      }
+
+      if (subcmd == "set") {
+        if (argc == 5) {
+          std::string const yesno =
+            colvarparse::to_lower_cppstr(std::string(argv[4]));
+          if ((yesno == std::string("yes")) ||
+              (yesno == std::string("on")) ||
+              (yesno == std::string("1"))) {
+            obj->enable(fid);
+            return COLVARS_OK;
+          } else if ((yesno == std::string("no")) ||
+              (yesno == std::string("off")) ||
+              (yesno == std::string("0"))) {
+            // TODO disable() function does not exist yet,
+            // dependencies will not be resolved
+            // obj->disable(fid);
+            obj->set_enabled(fid, false);
+            return COLVARS_OK;
+          }
+        }
+        result = "Syntax error\n" + help_string();
+        return COLVARSCRIPT_ERROR;
+      }
+    }
   }
 
   result = "Syntax error\n" + help_string();
@@ -459,6 +546,7 @@ Input and output:\n\
   load <file name>            -- load a state file (requires configuration)\n\
   save <file name>            -- save a state file (requires configuration)\n\
   update                      -- recalculate colvars and biases\n\
+  addenergy <E>               -- add <E> to the total bias energy\n\
   printframe                  -- return a summary of the current frame\n\
   printframelabels            -- return labels to annotate printframe's output\n";
 
@@ -478,12 +566,17 @@ Accessing collective variables:\n\
   colvar <name> addforce <F>  -- apply given force on colvar <name>\n\
   colvar <name> getconfig     -- return config string of colvar <name>\n\
   colvar <name> cvcflags <fl> -- enable or disable cvcs according to 0/1 flags\n\
+  colvar <name> get <f>       -- get the value of the colvar feature <f>\n\
+  colvar <name> set <f> <val> -- set the value of the colvar feature <f>\n\
 \n\
 Accessing biases:\n\
   bias <name> energy          -- return the current energy of bias <name>\n\
   bias <name> update          -- recalculate bias <name>\n\
   bias <name> delete          -- delete bias <name>\n\
-  bias <name> getconfig       -- return config string of bias <name>\n";
+  bias <name> getconfig       -- return config string of bias <name>\n\
+  bias <name> get <f>         -- get the value of the bias feature <f>\n\
+  bias <name> set <f> <val>   -- set the value of the bias feature <f>\n\
+";
 
   return buf;
 }

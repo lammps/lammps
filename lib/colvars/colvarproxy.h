@@ -336,8 +336,6 @@ public:
   /// Are total forces being used?
   virtual bool total_forces_enabled() const
   {
-    cvm::error("Error: total forces are currently not implemented.\n",
-               COLVARS_NOT_IMPLEMENTED);
     return false;
   }
 

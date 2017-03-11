@@ -352,12 +352,17 @@ int colvarproxy_lammps::smp_enabled()
 int colvarproxy_lammps::smp_colvars_loop()
 {
   colvarmodule *cv = this->colvars;
+  colvarproxy_lammps *proxy = (colvarproxy_lammps *) cv->proxy;
 #pragma omp parallel for
-  for (size_t i = 0; i < cv->colvars_smp.size(); i++) {
+  for (size_t i = 0; i < cv->variables_active_smp()->size(); i++) {
+    colvar *x = (*(cv->variables_active_smp()))[i];
+    int x_item = (*(cv->variables_active_smp_items()))[i];
     if (cvm::debug()) {
-      cvm::log("Calculating colvar \""+cv->colvars_smp[i]->name+"\" on thread "+cvm::to_str(smp_thread_id())+"\n");
+      cvm::log("["+cvm::to_str(proxy->smp_thread_id())+"/"+cvm::to_str(proxy->smp_num_threads())+
+               "]: calc_colvars_items_smp(), i = "+cvm::to_str(i)+", cv = "+
+               x->name+", cvc = "+cvm::to_str(x_item)+"\n");
     }
-    cv->colvars_smp[i]->calc_cvcs(cv->colvars_smp_items[i], 1);
+    x->calc_cvcs(x_item, 1);
   }
   return cvm::get_error();
 }
@@ -367,11 +372,13 @@ int colvarproxy_lammps::smp_biases_loop()
 {
   colvarmodule *cv = this->colvars;
 #pragma omp parallel for
-  for (size_t i = 0; i < cv->biases.size(); i++) {
+  for (size_t i = 0; i < cv->biases_active()->size(); i++) {
+    colvarbias *b = (*(cv->biases_active()))[i];
     if (cvm::debug()) {
-      cvm::log("Calculating bias \""+cv->biases[i]->name+"\" on thread "+cvm::to_str(smp_thread_id())+"\n");
+      cvm::log("Calculating bias \""+b->name+"\" on thread "+
+               cvm::to_str(smp_thread_id())+"\n");
     }
-    cv->biases[i]->update();
+    b->update();
   }
   return cvm::get_error();
 }

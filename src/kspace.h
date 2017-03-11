@@ -197,7 +197,7 @@ class KSpace : protected Pointers {
   int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
 
   void pair_check();
-  void ev_setup(int, int);
+  void ev_setup(int, int, int alloc = 1);
   double estimate_table_accuracy(double, double);
 };
 

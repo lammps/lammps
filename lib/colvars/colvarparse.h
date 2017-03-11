@@ -304,8 +304,7 @@ public:
   /// \brief Works as std::getline() but also removes everything
   /// between a comment character and the following newline
   static std::istream & getline_nocomments(std::istream &is,
-                                           std::string &s,
-                                           char const delim = '\n');
+                                           std::string &s);
 
   /// Check if the content of the file has matching braces
   bool brace_check(std::string const &conf,

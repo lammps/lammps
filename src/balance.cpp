@@ -456,6 +456,7 @@ void Balance::options(int iarg, int narg, char **arg)
 
   wtflag = 0;
   varflag = 0;
+  oldrcb = 0;
   outflag = 0;
   int outarg = 0;
   fp = NULL;
@@ -491,6 +492,9 @@ void Balance::options(int iarg, int narg, char **arg)
       }
       iarg += 2+nopt;
 
+    } else if (strcmp(arg[iarg],"old") == 0) {
+      oldrcb = 1;
+      iarg++;
     } else if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal (fix) balance command");
       outflag = 1;
@@ -641,12 +645,21 @@ int *Balance::bisection(int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
+  // NOTE: (3/2017) can remove undocumented "old" option at some point
+  //       ditto in rcb.cpp
 
-  if (wtflag) {
-    weight = fixstore->vstore;
-    rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-  } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
-
+  if (oldrcb) {
+    if (wtflag) {
+      weight = fixstore->vstore;
+      rcb->compute_old(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
+    } else rcb->compute_old(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+  } else {
+    if (wtflag) {
+      weight = fixstore->vstore;
+      rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
+    } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+  }
+    
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed

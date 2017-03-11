@@ -19,20 +19,6 @@ colvarbias::colvarbias(char const *key)
 
   rank = 1;
 
-  if (bias_type == std::string("abf")) {
-    rank = cvm::n_abf_biases+1;
-  }
-  if (bias_type == std::string("harmonic") ||
-      bias_type == std::string("linear")) {
-    rank = cvm::n_rest_biases+1;
-  }
-  if (bias_type == std::string("histogram")) {
-    rank = cvm::n_histo_biases+1;
-  }
-  if (bias_type == std::string("metadynamics")) {
-    rank = cvm::n_meta_biases+1;
-  }
-
   has_data = false;
   b_output_energy = false;
   reset();
@@ -48,7 +34,11 @@ int colvarbias::init(std::string const &conf)
   colvarparse::init(conf);
 
   if (name.size() == 0) {
+
+    // first initialization
+
     cvm::log("Initializing a new \""+bias_type+"\" instance.\n");
+    rank = cvm::num_biases_type(bias_type);
     get_keyval(conf, "name", name, bias_type+cvm::to_str(rank));
 
     {
@@ -69,7 +59,7 @@ int colvarbias::init(std::string const &conf)
       // lookup the associated colvars
       std::vector<std::string> colvar_names;
       if (get_keyval(conf, "colvars", colvar_names)) {
-        if (colvars.size()) {
+        if (num_variables()) {
           cvm::error("Error: cannot redefine the colvars that a bias was already defined on.\n",
                      INPUT_ERROR);
           return INPUT_ERROR;
@@ -80,7 +70,7 @@ int colvarbias::init(std::string const &conf)
       }
     }
 
-    if (!colvars.size()) {
+    if (!num_variables()) {
       cvm::error("Error: no collective variables specified.\n", INPUT_ERROR);
       return INPUT_ERROR;
     }
@@ -88,6 +78,8 @@ int colvarbias::init(std::string const &conf)
   } else {
     cvm::log("Reinitializing bias \""+name+"\".\n");
   }
+
+  output_prefix = cvm::output_prefix();
 
   get_keyval(conf, "outputEnergy", b_output_energy, b_output_energy);
 
@@ -98,7 +90,7 @@ int colvarbias::init(std::string const &conf)
 int colvarbias::reset()
 {
   bias_energy = 0.0;
-  for (size_t i = 0; i < colvars.size(); i++) {
+  for (size_t i = 0; i < num_variables(); i++) {
     colvar_forces[i].reset();
   }
   return COLVARS_OK;
@@ -132,12 +124,13 @@ int colvarbias::clear()
     }
   }
 
+  colvarmodule *cv = cvm::main();
   // ...and from the colvars module
-  for (std::vector<colvarbias *>::iterator bi = cvm::biases.begin();
-       bi != cvm::biases.end();
+  for (std::vector<colvarbias *>::iterator bi = cv->biases.begin();
+       bi != cv->biases.end();
        ++bi) {
     if ( *bi == this) {
-      cvm::biases.erase(bi);
+      cv->biases.erase(bi);
       break;
     }
   }
@@ -185,21 +178,29 @@ int colvarbias::add_colvar(std::string const &cv_name)
 
 int colvarbias::update()
 {
-  // Note: if anything is added here, it should be added also in the SMP block of calc_biases()
-  // TODO move here debug msg of bias update
+  if (cvm::debug()) {
+    cvm::log("Updating the "+bias_type+" bias \""+this->name+"\".\n");
+  }
+
   has_data = true;
+
+  bias_energy = 0.0;
+  for (size_t ir = 0; ir < num_variables(); ir++) {
+    colvar_forces[ir].reset();
+  }
+
   return COLVARS_OK;
 }
 
 
 void colvarbias::communicate_forces()
 {
-  for (size_t i = 0; i < colvars.size(); i++) {
+  for (size_t i = 0; i < num_variables(); i++) {
     if (cvm::debug()) {
       cvm::log("Communicating a force to colvar \""+
-               colvars[i]->name+"\".\n");
+               variables(i)->name+"\".\n");
     }
-    colvars[i]->add_bias_force(colvar_forces[i]);
+    variables(i)->add_bias_force(colvar_forces[i]);
   }
 }
 

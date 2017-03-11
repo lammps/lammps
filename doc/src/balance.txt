@@ -286,24 +286,32 @@ above.  It performs a recursive coordinate bisectioning (RCB) of the
 simulation domain. The basic idea is as follows.
 
 The simulation domain is cut into 2 boxes by an axis-aligned cut in
-the longest dimension, leaving one new box on either side of the cut.
-All the processors are also partitioned into 2 groups, half assigned
-to the box on the lower side of the cut, and half to the box on the
-upper side.  (If the processor count is odd, one side gets an extra
-processor.)  The cut is positioned so that the number of particles in
-the lower box is exactly the number that the processors assigned to
-that box should own for load balance to be perfect.  This also makes
-load balance for the upper box perfect.  The positioning is done
-iteratively, by a bisectioning method.  Note that counting particles
-on either side of the cut requires communication between all
-processors at each iteration.
+one of the dimensions, leaving one new sub-box on either side of the
+cut.  Which dimension is chosen for the cut depends on the particle
+(weight) distribution within the parent box.  Normally the longest
+dimension of the box is cut, but if all (or most) of the particles are
+at one end of the box, a cut may be performed in another dimension to
+induce sub-boxes that are more cube-ish (3d) or square-ish (2d) in
+shape.
+
+After the cut is made, all the processors are also partitioned into 2
+groups, half assigned to the box on the lower side of the cut, and
+half to the box on the upper side.  (If the processor count is odd,
+one side gets an extra processor.)  The cut is positioned so that the
+number of (weighted) particles in the lower box is exactly the number
+that the processors assigned to that box should own for load balance
+to be perfect.  This also makes load balance for the upper box
+perfect.  The positioning of the cut is done iteratively, by a
+bisectioning method (median search).  Note that counting particles on
+either side of the cut requires communication between all processors
+at each iteration.
 
 That is the procedure for the first cut.  Subsequent cuts are made
 recursively, in exactly the same manner.  The subset of processors
-assigned to each box make a new cut in the longest dimension of that
-box, splitting the box, the subset of processors, and the particles
-in the box in two.  The recursion continues until every processor is
-assigned a sub-box of the entire simulation domain, and owns the
+assigned to each box make a new cut in one dimension of that box,
+splitting the box, the subset of processors, and the particles in the
+box in two.  The recursion continues until every processor is assigned
+a sub-box of the entire simulation domain, and owns the (weighted)
 particles in that sub-box.
 
 :line

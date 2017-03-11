@@ -761,6 +761,10 @@ void lammps_gather_atoms(void *ptr, char *name,
 
     int i,j,offset;
     void *vptr = lmp->atom->extract(name);
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
+        return;
+    }
 
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy
@@ -857,6 +861,10 @@ void lammps_scatter_atoms(void *ptr, char *name,
 
     int i,j,m,offset;
     void *vptr = lmp->atom->extract(name);
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,"lammps_scatter_atoms: unknown property name");
+        return;
+    }
 
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy

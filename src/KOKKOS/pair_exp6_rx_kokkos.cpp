@@ -112,7 +112,7 @@ void PairExp6rxKokkos<DeviceType>::init_style()
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+    error->all(FLERR,"Cannot use chosen neighbor list style with exp6/rx/kk");
   }
 }
 

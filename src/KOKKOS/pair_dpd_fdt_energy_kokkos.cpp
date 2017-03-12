@@ -104,7 +104,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+    error->all(FLERR,"Cannot use chosen neighbor list style with dpd/fdt/energy/kk");
   }
 
 #ifdef DPD_USE_RAN_MARS
@@ -139,7 +139,7 @@ void PairDPDfdtEnergyKokkos<Kokkos::Cuda>::init_style()
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+    error->all(FLERR,"Cannot use chosen neighbor list style with dpd/fdt/energy/kk");
   }
 
 #ifdef DPD_USE_RAN_MARS

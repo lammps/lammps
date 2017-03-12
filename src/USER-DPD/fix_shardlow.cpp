@@ -132,10 +132,11 @@ int FixShardlow::setmask()
 void FixShardlow::init()
 {
   int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->ghost= 1;
-  neighbor->requests[irequest]->ssa  = 1;
+  neighbor->requests[irequest]->pair   = 0;
+  neighbor->requests[irequest]->fix    = 1;
+  neighbor->requests[irequest]->ghost  = 1;
+  neighbor->requests[irequest]->ssa    = 1;
+  neighbor->requests[irequest]->newton = 1; // SSA requires newton on
 }
 
 /* ---------------------------------------------------------------------- */

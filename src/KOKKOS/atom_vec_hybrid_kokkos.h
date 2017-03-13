@@ -21,7 +21,7 @@ AtomStyle(hybrid/kk,AtomVecHybridKokkos)
 #define LMP_ATOM_VEC_HYBRID_KOKKOS_H
 
 #include <stdio.h>
-#include "atom_vec.h"
+#include "atom_vec_kokkos.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {

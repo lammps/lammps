@@ -693,6 +693,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+    } else if (neighflag == FULL) {
+      compute_all_items<DeviceType,FULL,false,TABSTYLE>(
+          newton_pair, ev, nlocal,
+          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
     }
   } else {
     if (neighflag == HALFTHREAD) {
@@ -705,6 +713,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
     } else if (neighflag == HALF) {
       compute_all_items<DeviceType,HALF,true,TABSTYLE>(
+          newton_pair, ev, nlocal,
+          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+    } else if (neighflag == FULL) {
+      compute_all_items<DeviceType,FULL,true,TABSTYLE>(
           newton_pair, ev, nlocal,
           l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,

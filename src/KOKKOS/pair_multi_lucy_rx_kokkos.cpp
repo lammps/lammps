@@ -216,6 +216,14 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
       if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<HALFTHREAD,0,1,TABSTYLE> >(0,inum),*this,ev);
       else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<HALFTHREAD,0,0,TABSTYLE> >(0,inum),*this);
     }
+  } else if (neighflag == FULL) {
+    if (newton_pair) {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<FULL,1,1,TABSTYLE> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<FULL,1,0,TABSTYLE> >(0,inum),*this);
+    } else {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<FULL,0,1,TABSTYLE> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<FULL,0,0,TABSTYLE> >(0,inum),*this);
+    }
   }
 
   if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
@@ -378,7 +386,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
       fx_i += delx*fpair;
       fy_i += dely*fpair;
       fz_i += delz*fpair;
-      if (NEWTON_PAIR || j < nlocal) {
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         a_f(j,0) -= delx*fpair;
         a_f(j,1) -= dely*fpair;
         a_f(j,2) -= delz*fpair;
@@ -421,7 +429,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 
   //if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
   if (EVFLAG)
-    ev.evdwl += (NEWTON_PAIR?1.0:0.5)*evdwl;
+    ev.evdwl += ((/*FIXME??? (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && */ NEWTON_PAIR)?1.0:0.5)*evdwl;
 }
 
 template<class DeviceType>
@@ -491,6 +499,17 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,0,true> >(0,inum),*this);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<HALFTHREAD,0,false> >(0,inum),*this);
+  } else if (neighflag == FULL) {
+    if (newton_pair)
+      if (one_type)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<FULL,1,true> >(0,inum),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<FULL,1,false> >(0,inum),*this);
+    else
+      if (one_type)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<FULL,0,true> >(0,inum),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<FULL,0,false> >(0,inum),*this);
   }
 
   atomKK->modified(execution_space,DPDRHO_MASK);
@@ -548,7 +567,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
         const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
         const double factor = factor_type11*(1.0 + 1.5*r_over_rcut)*tmpFactor4;
         rho_i_contrib += factor;
-        if (NEWTON_PAIR || j < nlocal)
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
           a_rho[j] += factor;
       }
     } else if (rsq < d_cutsq(itype,jtype)) {
@@ -557,7 +576,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
       const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
       const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
       rho_i_contrib += factor;
-      if (NEWTON_PAIR || j < nlocal)
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_rho[j] += factor;
     }
   }

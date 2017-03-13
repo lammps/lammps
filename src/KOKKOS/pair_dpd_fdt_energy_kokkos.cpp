@@ -233,6 +233,14 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
             if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,1,false> >(0,inum),*this,ev);
             else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,0,false> >(0,inum),*this);
           }
+        } else if (neighflag == FULL) {
+          if (newton_pair) {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,1,1,false> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,1,0,false> >(0,inum),*this);
+          } else {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,0,1,false> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,0,0,false> >(0,inum),*this);
+          }
         }
       } else {
         if (neighflag == HALF) {
@@ -250,6 +258,14 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
           } else {
             if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,1,true> >(0,inum),*this,ev);
             else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALFTHREAD,0,0,true> >(0,inum),*this);
+          }
+        } else if (neighflag == FULL) {
+          if (newton_pair) {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,1,1,true> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,1,0,true> >(0,inum),*this);
+          } else {
+            if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,0,1,true> >(0,inum),*this,ev);
+            else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<FULL,0,0,true> >(0,inum),*this);
           }
         }
       }
@@ -291,6 +307,14 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
           if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,1,false> >(0,inum),*this,ev);
           else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,0,false> >(0,inum),*this);
         }
+      } else if (neighflag == FULL) {
+        if (newton_pair) {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,1,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,1,0,false> >(0,inum),*this);
+        } else {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,0,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,0,0,false> >(0,inum),*this);
+        }
       }
     } else {
       if (neighflag == HALF) {
@@ -308,6 +332,14 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         } else {
           if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,1,false> >(0,inum),*this,ev);
           else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALFTHREAD,0,0,false> >(0,inum),*this);
+        }
+      } else if (neighflag == FULL) {
+        if (newton_pair) {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,1,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,1,0,false> >(0,inum),*this);
+        } else {
+          if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,0,1,false> >(0,inum),*this,ev);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<FULL,0,0,false> >(0,inum),*this);
         }
       }
     }
@@ -405,7 +437,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSp
       fx_i += delx*fpair;
       fy_i += dely*fpair;
       fz_i += delz*fpair;
-      if (NEWTON_PAIR || j < nlocal) {
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         a_f(j,0) -= delx*fpair;
         a_f(j,1) -= dely*fpair;
         a_f(j,2) -= delz*fpair;
@@ -418,7 +450,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSp
         evdwl = 0.5*a0_ij*cut_ij * wd;
         evdwl *= factor_dpd;
         if (EVFLAG)
-          ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
+          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
       }
 
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
@@ -522,7 +554,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
       fx_i += delx*fpair;
       fy_i += dely*fpair;
       fz_i += delz*fpair;
-      if (NEWTON_PAIR || j < nlocal) {
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         a_f(j,0) -= delx*fpair;
         a_f(j,1) -= dely*fpair;
         a_f(j,2) -= delz*fpair;
@@ -548,7 +580,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
       uTmp *= 0.5;
 
       a_duMech[i] += uTmp;
-      if (NEWTON_PAIR || j < nlocal) {
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         a_duMech[j] += uTmp;
       }
 
@@ -562,7 +594,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
       uTmp += randPair;
 
       a_duCond[i] += uTmp;
-      if (NEWTON_PAIR || j < nlocal) {
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         a_duCond[j] -= uTmp;
       }
 
@@ -573,7 +605,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
         evdwl = 0.5*a0_ij*cut_ij * wd;
         evdwl *= factor_dpd;
         if (EVFLAG)
-          ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
+          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
       }
 
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);

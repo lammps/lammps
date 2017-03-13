@@ -221,6 +221,14 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALFTHREAD,0,1> >(0,inum),*this,ev);
       else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALFTHREAD,0,0> >(0,inum),*this);
     }
+  } else if (neighflag == FULL) {
+    if (newton_pair) {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<FULL,1,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<FULL,1,0> >(0,inum),*this);
+    } else {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<FULL,0,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<FULL,0,0> >(0,inum),*this);
+    }
   }
 
   k_error_flag.template modify<DeviceType>();
@@ -509,7 +517,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         evdwlOld *= factor_lj;
 
         uCG_i += 0.5*evdwlOld;
-        if (NEWTON_PAIR || j < nlocal)
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
           a_uCG[j] += 0.5*evdwlOld;
       }
 
@@ -592,7 +600,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       fx_i += delx*fpair;
       fy_i += dely*fpair;
       fz_i += delz*fpair;
-      if (NEWTON_PAIR || j < nlocal) {
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         a_f(j,0) -= delx*fpair;
         a_f(j,1) -= dely*fpair;
         a_f(j,2) -= delz*fpair;
@@ -603,11 +611,11 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       evdwl *= factor_lj;
 
       uCGnew_i   += 0.5*evdwl;
-      if (NEWTON_PAIR || j < nlocal)
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_uCGnew[j] += 0.5*evdwl;
       evdwl = evdwlOld;
       if (EVFLAG)
-        ev.evdwl += ((NEWTON_PAIR||(j<nlocal))?1.0:0.5)*evdwl;
+        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
       //if (vflag_either || eflag_atom) 
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }

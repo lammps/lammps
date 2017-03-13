@@ -1450,6 +1450,11 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
              computeLocalTemperature<_wtflag, _localTempFlag, true , HALFTHREAD> (); \
           else \
              computeLocalTemperature<_wtflag, _localTempFlag, false, HALFTHREAD> (); \
+       else if (neighflag == FULL) \
+          if (newton_pair) \
+             computeLocalTemperature<_wtflag, _localTempFlag, true , FULL> (); \
+          else \
+             computeLocalTemperature<_wtflag, _localTempFlag, false, FULL> (); \
     }
 
     // Are there is no other options than wtFlag = (0)LUCY and localTempFlag = NONE : HARMONIC?
@@ -1934,12 +1939,12 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
       {
         wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
         i_dpdThetaLocal += wij / d_dpdTheta(j);
-        if (NEWTON_PAIR || j < nlocal)
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
           a_dpdThetaLocal(j) += wij / d_dpdTheta(i);
       }
 
       i_sumWeights += wij;
-      if (NEWTON_PAIR || j < nlocal)
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_sumWeights(j) += wij;
     }
   }

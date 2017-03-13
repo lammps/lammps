@@ -514,9 +514,8 @@ compute_item(
   return ev;
 }
 
-template<class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE>
+template<class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE, int NEWTON_PAIR>
 static void compute_all_items(
-    int newton_pair,
     EV_FLOAT& ev,
     int nlocal,
     int inum,
@@ -560,42 +559,23 @@ static void compute_all_items(
   if (eflag || vflag) {
     Kokkos::parallel_reduce(inum,
     LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
-      if (newton_pair) {
         energy_virial +=
-          compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,1>(
+          compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
             d_table_const, eflag, eflag_atom,
             vflag, vflag_global, vflag_atom, v_vatom, v_eatom);
-      } else {
-        energy_virial +=
-          compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,0>(
-            i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
-            mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
-            special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-            d_table_const, eflag, eflag_atom,
-            vflag, vflag_global, vflag_atom, v_vatom, v_eatom);
-      }
     }, ev);
   } else {
     Kokkos::parallel_for(inum,
     LAMMPS_LAMBDA(int i) {
-      if (newton_pair) {
-        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,1>(
+        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
             d_table_const, eflag, eflag_atom,
             vflag, vflag_global, vflag_atom, v_vatom, v_eatom);
-      } else {
-        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,0>(
-            i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
-            mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
-            special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
-            d_table_const, eflag, eflag_atom,
-            vflag, vflag_global, vflag_atom, v_vatom, v_eatom);
-      }
     });
   }
 }
@@ -678,55 +658,103 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   EV_FLOAT ev;
   if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == HALFTHREAD) {
-      compute_all_items<DeviceType,HALFTHREAD,false,TABSTYLE>(
-          newton_pair, ev, nlocal,
-          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+      if (newton_pair) {
+        compute_all_items<DeviceType,HALFTHREAD,false,TABSTYLE,1>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      } else {
+        compute_all_items<DeviceType,HALFTHREAD,false,TABSTYLE,0>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      }
     } else if (neighflag == HALF) {
-      compute_all_items<DeviceType,HALF,false,TABSTYLE>(
-          newton_pair, ev, nlocal,
-          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+      if (newton_pair) {
+        compute_all_items<DeviceType,HALF,false,TABSTYLE,1>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      } else {
+        compute_all_items<DeviceType,HALF,false,TABSTYLE,0>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      }
     } else if (neighflag == FULL) {
-      compute_all_items<DeviceType,FULL,false,TABSTYLE>(
-          newton_pair, ev, nlocal,
-          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+      if (newton_pair) {
+        compute_all_items<DeviceType,FULL,false,TABSTYLE,1>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      } else {
+        compute_all_items<DeviceType,FULL,false,TABSTYLE,0>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      }
     }
   } else {
     if (neighflag == HALFTHREAD) {
-      compute_all_items<DeviceType,HALFTHREAD,true,TABSTYLE>(
-          newton_pair, ev, nlocal,
-          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+      if (newton_pair) {
+        compute_all_items<DeviceType,HALFTHREAD,true,TABSTYLE,1>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      } else {
+        compute_all_items<DeviceType,HALFTHREAD,true,TABSTYLE,0>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      }
     } else if (neighflag == HALF) {
-      compute_all_items<DeviceType,HALF,true,TABSTYLE>(
-          newton_pair, ev, nlocal,
-          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+      if (newton_pair) {
+        compute_all_items<DeviceType,HALF,true,TABSTYLE,1>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      } else {
+        compute_all_items<DeviceType,HALF,true,TABSTYLE,0>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      }
     } else if (neighflag == FULL) {
-      compute_all_items<DeviceType,FULL,true,TABSTYLE>(
-          newton_pair, ev, nlocal,
-          l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+      if (newton_pair) {
+        compute_all_items<DeviceType,FULL,true,TABSTYLE,1>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      } else {
+        compute_all_items<DeviceType,FULL,true,TABSTYLE,0>(
+          ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
+          x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
+          special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
+          d_table_const, eflag, eflag_atom,
+          vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
+      }
     }
   }
 

@@ -29,7 +29,7 @@ def single():
 
   strandstart=len(nucleotide)+1
 
-  for letter in strand[2]:
+  for letter in strand[1]:
     temp=[]
 
     temp.append(nt2num[letter])
@@ -58,7 +58,7 @@ def single_helix():
   strand = inp[1].split(':')
 
   com_start=strand[0].split(',')
-  twist=float(strand[1])
+  twist=0.6
 
   posx = float(com_start[0])
   posy = float(com_start[1])
@@ -79,7 +79,7 @@ def single_helix():
   qrot2=0
   qrot3=math.sin(0.5*twist)
 
-  for letter in strand[2]:
+  for letter in strand[1]:
     temp=[]
 
     temp.append(nt2num[letter])
@@ -114,7 +114,7 @@ def duplex():
   strand = inp[1].split(':')
 
   com_start=strand[0].split(',')
-  twist=float(strand[1])
+  twist=0.6
 
   compstrand=[]
   comptopo=[]
@@ -145,7 +145,7 @@ def duplex():
   qrot2=0
   qrot3=math.sin(0.5*twist)
 
-  for letter in strand[2]:
+  for letter in strand[1]:
     temp1=[]
     temp2=[]
 
@@ -189,7 +189,7 @@ def duplex():
 
     if (len(nucleotide)+1 > strandstart):
       topology.append([1,len(nucleotide),len(nucleotide)+1])
-      comptopo.append([1,len(nucleotide)+len(strand[2]),len(nucleotide)+len(strand[2])+1])
+      comptopo.append([1,len(nucleotide)+len(strand[1]),len(nucleotide)+len(strand[1])+1])
 
     nucleotide.append(temp1)
     compstrand.append(temp2)
@@ -208,7 +208,7 @@ def duplex_array():
   strand = inp[1].split(':')
   number=strand[0].split(',')
   posz1_0 = float(strand[1])
-  twist=float(strand[2])
+  twist=0.6
 
   nx = int(number[0])
   ny = int(number[1])
@@ -249,7 +249,7 @@ def duplex_array():
       qrot2=0
       qrot3=math.sin(0.5*twist)
 
-      for letter in strand[3]:
+      for letter in strand[2]:
 	temp1=[]
 	temp2=[]
 
@@ -293,7 +293,7 @@ def duplex_array():
 
 	if (len(nucleotide)+1 > strandstart):
 	  topology.append([1,len(nucleotide),len(nucleotide)+1])
-	  comptopo.append([1,len(nucleotide)+len(strand[3]),len(nucleotide)+len(strand[3])+1])
+	  comptopo.append([1,len(nucleotide)+len(strand[2]),len(nucleotide)+len(strand[2])+1])
 
 	nucleotide.append(temp1)
 	compstrand.append(temp2)

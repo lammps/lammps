@@ -73,7 +73,7 @@ post-process a dump file to calculate it.  This is because using the
 which may slow down your simulation.  If you specify a {Rcut} <= force
 cutoff, you will force an additional neighbor list to be built at
 every timestep this command is invoked (or every reneighboring
-timestep, whichever is less frequent), which is inefficent.  LAMMPS
+timestep, whichever is less frequent), which is inefficient.  LAMMPS
 will warn you if this is the case.  If you specify a {Rcut} > force
 cutoff, you must insure ghost atom information out to {Rcut} + {skin}
 is communicated, via the "comm_modify cutoff"_comm_modify.html

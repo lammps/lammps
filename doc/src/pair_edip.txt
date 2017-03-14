@@ -95,7 +95,7 @@ entries would be required, etc.
 
 At the moment, only a single element parametrization is
 implemented. However, the author is not aware of other
-multi-element EDIP parametrizations. If you know any and
+multi-element EDIP parameterization. If you know any and
 you are interest in that, please contact the author of
 the EDIP package.
 

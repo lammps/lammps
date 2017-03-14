@@ -127,15 +127,15 @@ summation method, described in "Wolf"_#Wolf, given by:
 :c,image(Eqs/pair_coul_wolf.jpg)
 
 where {alpha} is the damping parameter, and erc() and erfc() are
-error-fuction and complementary error-function terms.  This potential
+error-function and complementary error-function terms.  This potential
 is essentially a short-range, spherically-truncated,
 charge-neutralized, shifted, pairwise {1/r} summation.  With a
-manipulation of adding and substracting a self term (for i = j) to the
+manipulation of adding and subtracting a self term (for i = j) to the
 first and second term on the right-hand-side, respectively, and a
 small enough {alpha} damping parameter, the second term shrinks and
 the potential becomes a rapidly-converging real-space summation.  With
 a long enough cutoff and small enough alpha parameter, the energy and
-forces calcluated by the Wolf summation method approach those of the
+forces calculated by the Wolf summation method approach those of the
 Ewald sum.  So it is a means of getting effective long-range
 interactions with a short-range potential.
 
@@ -188,7 +188,7 @@ but there is no conceptual problem with extending it to nitrides and
 carbides (such as SiC, TiN).  Pair coul/strietz used by itself or with
 any other pair style such as EAM, MEAM, Tersoff, or LJ in
 hybrid/overlay mode.  To do this, you would need to provide a
-Streitz-Mintmire parameterizaion for the material being modeled.
+Streitz-Mintmire parameterization for the material being modeled.
 
 :line
 
@@ -222,7 +222,7 @@ molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
 See the "howto section"_Section_howto.html#howto_8 for more
 information on how to use the TIP4P pair styles and lists of
-parameters to set.  Note that the neighobr list cutoff for Coulomb
+parameters to set.  Note that the neighbor list cutoff for Coulomb
 interactions is effectively extended by a distance 2*qdist when using
 the TIP4P pair style, to account for the offset distance of the
 fictitious charges on O atoms in water molecules.  Thus it is

@@ -93,7 +93,7 @@ parameters will denote the z1=h, z2=k, and z3=l (in a global since)
 zone axis of an intersecting Ewald sphere.  Diffraction intensities
 will only be computed at the intersection of the reciprocal lattice
 mesh and a {dR_Ewald} thick surface of the Ewald sphere.  See the
-example 3D intestiety data and the intersection of a \[010\] zone axis
+example 3D intensity data and the intersection of a \[010\] zone axis
 in the below image.
 
 :c,image(JPG/saed_ewald_intersect_small.jpg,JPG/saed_ewald_intersect.jpg)

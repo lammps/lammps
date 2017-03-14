@@ -448,7 +448,7 @@ class dump:
 
   # --------------------------------------------------------------------
   # scale coords to 0-1 for all snapshots or just one
-  # use 6 params as h-matrix to treat orthongonal or triclinic boxes
+  # use 6 params as h-matrix to treat orthogonal or triclinic boxes
 
   def scale(self,*list):
     if len(list) == 0:
@@ -512,7 +512,7 @@ class dump:
         
   # --------------------------------------------------------------------
   # unscale coords from 0-1 to box size for all snapshots or just one
-  # use 6 params as h-matrix to treat orthongonal or triclinic boxes
+  # use 6 params as h-matrix to treat orthogonal or triclinic boxes
 
   def unscale(self,*list):
     if len(list) == 0:

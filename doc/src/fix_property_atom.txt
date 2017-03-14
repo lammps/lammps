@@ -121,7 +121,7 @@ as described below.
 Per-atom properties that are defined by the "atom
 style"_atom_style.html are initialized when atoms are created, e.g. by
 the "read_data"_read_data.html or "create_atoms"_create_atoms.html
-commands.  The per-atom properaties defined by this fix are not.  So
+commands.  The per-atom properties defined by this fix are not.  So
 you need to initialize them explicitly.  This can be done by the
 "read_data"_read_data.html command, using its {fix} keyword and
 passing it the fix-ID of this fix.

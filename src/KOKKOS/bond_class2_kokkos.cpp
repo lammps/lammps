@@ -60,7 +60,7 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = 0;
 
   // reallocate per-atom arrays if necessary

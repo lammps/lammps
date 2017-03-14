@@ -225,7 +225,7 @@ This bounding box is convenient for many visualization programs.  The
 meaning of the 6 character flags for "xx yy zz" is the same as above.
 
 Note that the first two numbers on each line are now xlo_bound instead
-of xlo, etc, since they repesent a bounding box.  See "this
+of xlo, etc, since they represent a bounding box.  See "this
 section"_Section_howto.html#howto_12 of the doc pages for a geometric
 description of triclinic boxes, as defined by LAMMPS, simple formulas
 for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
@@ -545,7 +545,7 @@ that the coordinate values may be far outside the box bounds printed
 with the snapshot.  Using {xsu}, {ysu}, {zsu} is similar to using
 {xu}, {yu}, {zu}, except that the unwrapped coordinates are scaled by
 the box size. Atoms that have passed through a periodic boundary will
-have the corresponding cooordinate increased or decreased by 1.0.
+have the corresponding coordinate increased or decreased by 1.0.
 
 The image flags can be printed directly using the {ix}, {iy}, {iz}
 attributes.  For periodic dimensions, they specify which image of the

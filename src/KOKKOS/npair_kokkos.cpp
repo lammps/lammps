@@ -56,6 +56,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::copy_neighbor_info()
   k_ex2_bit = neighborKK->k_ex2_bit;
   k_ex_mol_group = neighborKK->k_ex_mol_group;
   k_ex_mol_bit = neighborKK->k_ex_mol_bit;
+  k_ex_mol_intra = neighborKK->k_ex_mol_intra;
 }
 
 /* ----------------------------------------------------------------------
@@ -147,6 +148,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
          nex_mol,
          k_ex_mol_group.view<DeviceType>(),
          k_ex_mol_bit.view<DeviceType>(),
+         k_ex_mol_intra.view<DeviceType>(),
          bboxhi,bboxlo,
          domain->xperiodic,domain->yperiodic,domain->zperiodic,
          domain->xprd_half,domain->yprd_half,domain->zprd_half);
@@ -161,6 +163,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
   k_ex2_bit.sync<DeviceType>();
   k_ex_mol_group.sync<DeviceType>();
   k_ex_mol_bit.sync<DeviceType>();
+  k_ex_mol_intra.sync<DeviceType>();
   k_bincount.sync<DeviceType>(),
   k_bins.sync<DeviceType>(),
   atomKK->sync(Device,X_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
@@ -284,8 +287,12 @@ int NeighborKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 
   if (nex_mol) {
     for (m = 0; m < nex_mol; m++)
-      if (mask(i) & ex_mol_bit(m) && mask(j) & ex_mol_bit(m) &&
-          molecule(i) == molecule(j)) return 1;
+      if (ex_mol_intra[m]) { // intra-chain: exclude i-j pair if on same molecule 
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+	    molecule[i] == molecule[j]) return 1;
+      } else                 // exclude i-j pair if on different molecules 
+	if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+	    molecule[i] != molecule[j]) return 1;
   }
 
   return 0;

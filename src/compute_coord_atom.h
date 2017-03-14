@@ -67,7 +67,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute coord/atom requires a pair style be defined
 
-Self-explantory.
+Self-explanatory.
 
 E: Compute coord/atom cutoff is longer than pairwise cutoff
 

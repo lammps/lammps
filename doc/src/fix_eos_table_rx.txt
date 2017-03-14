@@ -17,7 +17,7 @@ eos/table/rx = style name of this fix command
 style = {linear} = method of interpolation
 file1 = filename containing the tabulated equation of state
 N = use N values in {linear} tables
-keyword = name of table keyword correponding to table file
+keyword = name of table keyword corresponding to table file
 file2 = filename containing the heats of formation of each species (optional)
 deltaHf = heat of formation for a single species in energy units (optional)
 energyCorr = energy correction in energy units (optional)

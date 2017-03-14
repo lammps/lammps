@@ -103,7 +103,7 @@ turns off the {first} option.
 
 It is OK to use the {first} keyword with a group that has not yet been
 defined, e.g. to use the atom_modify first command at the beginning of
-your input script.  LAMMPS does not use the group until a simullation
+your input script.  LAMMPS does not use the group until a simulation
 is run.
 
 The {sort} keyword turns on a spatial sorting or reordering of atoms
@@ -116,7 +116,7 @@ various other factors.  As a general rule, sorting is typically more
 effective at speeding up simulations of liquids as opposed to solids.
 In tests we have done, the speed-up can range from zero to 3-4x.
 
-Reordering is peformed every {Nfreq} timesteps during a dynamics run
+Reordering is performed every {Nfreq} timesteps during a dynamics run
 or iterations during a minimization.  More precisely, reordering
 occurs at the first reneighboring that occurs after the target
 timestep.  The reordering is performed locally by each processor,
@@ -130,7 +130,7 @@ the processor's 1d list of atoms.
 The goal of this procedure is for atoms to put atoms close to each
 other in the processor's one-dimensional list of atoms that are also
 near to each other spatially.  This can improve cache performance when
-pairwise intereractions and neighbor lists are computed.  Note that if
+pairwise interactions and neighbor lists are computed.  Note that if
 bins are too small, there will be few atoms/bin.  Likewise if bins are
 too large, there will be many atoms/bin.  In both cases, the goal of
 cache locality will be undermined.
@@ -138,7 +138,7 @@ cache locality will be undermined.
 NOTE: Running a simulation with sorting on versus off should not
 change the simulation results in a statistical sense.  However, a
 different ordering will induce round-off differences, which will lead
-to diverging trajectories over time when comparing two simluations.
+to diverging trajectories over time when comparing two simulations.
 Various commands, particularly those which use random numbers
 (e.g. "velocity create"_velocity.html, and "fix
 langevin"_fix_langevin.html), may generate (statistically identical)

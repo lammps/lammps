@@ -217,7 +217,7 @@ best performance its CCFLAGS setting should use -O3 and have a
 KOKKOS_ARCH setting that matches the compute capability of your NVIDIA
 hardware and software installation, e.g. KOKKOS_ARCH=Kepler30.  Note
 the minimal required compute capability is 2.0, but this will give
-signicantly reduced performance compared to Kepler generation GPUs
+significantly reduced performance compared to Kepler generation GPUs
 with compute capability 3.x.  For the LINK setting, "nvcc" should not
 be used; instead use g++ or another compiler suitable for linking C++
 applications.  Often you will want to use your MPI compiler wrapper
@@ -234,7 +234,7 @@ provides alternative methods via environment variables for binding
 threads to hardware cores.  More info on binding threads to cores is
 given in "Section 5.3"_Section_accelerate.html#acc_3.
 
-KOKKOS_ARCH=KNC enables compiler switches needed when compling for an
+KOKKOS_ARCH=KNC enables compiler switches needed when compiling for an
 Intel Phi processor.
 
 KOKKOS_USE_TPLS=librt enables use of a more accurate timer mechanism
@@ -272,7 +272,7 @@ coprocessor support you need to insure there are one or more MPI tasks
 per coprocessor, and choose the number of coprocessor threads to use
 per MPI task (via the "-k" command-line switch discussed below).  The
 product of MPI tasks * coprocessor threads/task should not exceed the
-maximum number of threads the coproprocessor is designed to run,
+maximum number of threads the coprocessor is designed to run,
 otherwise performance will suffer.  This value is 240 for current
 generation Xeon Phi(TM) chips, which is 60 physical cores * 4
 threads/core.  Note that with the KOKKOS package you do not need to
@@ -333,7 +333,7 @@ device=CUDA are the same.
 
 You must still use the "-k on" "command-line
 switch"_Section_start.html#start_7 to enable the KOKKOS package, and
-specify its additional arguments for hardware options appopriate to
+specify its additional arguments for hardware options appropriate to
 your system, as documented above.
 
 Use the "suffix kk"_suffix.html command, or you can explicitly add a

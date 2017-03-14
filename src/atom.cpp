@@ -1634,7 +1634,7 @@ int Atom::find_molecule(char *id)
 
 /* ----------------------------------------------------------------------
    add info to current atom ilocal from molecule template onemol and its iatom
-   offset = atom ID preceeding IDs of atoms in this molecule
+   offset = atom ID preceding IDs of atoms in this molecule
    called by fixes and commands that add molecules
 ------------------------------------------------------------------------- */
 

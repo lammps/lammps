@@ -22,7 +22,7 @@ compute 1 fluid angmom/chunk molchunk :pre
 
 [Description:]
 
-Define a computation that calculates the angular momemtum of multiple
+Define a computation that calculates the angular momentum of multiple
 chunks of atoms.
 
 In LAMMPS, chunks are collections of atoms defined by a "compute

@@ -53,7 +53,7 @@ default method for computing P.
 For fixes that calculate a contribution to the potential energy of the
 system, the {energy} keyword will include that contribution in
 thermodynamic output of potential energy.  This is because the {energy
-yes} setting must be specfied to include the fix's global or per-atom
+yes} setting must be specified to include the fix's global or per-atom
 energy in the calculation performed by the "compute
 pe"_compute_pe.html or "compute pe/atom"_compute_pe_atom.html
 commands.  See the "thermo_style"_thermo_style.html command for info

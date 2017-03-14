@@ -1395,7 +1395,7 @@ void Molecule::check_attributes(int flag)
       if (atom->maxspecial < onemol->maxspecial) mismatch = 1;
 
       if (mismatch)
-        error->all(FLERR,"Molecule toplogy/atom exceeds system topology/atom");
+        error->all(FLERR,"Molecule topology/atom exceeds system topology/atom");
     }
 
     // warn if molecule topology defined but no special settings

@@ -20,7 +20,7 @@ velocity	all create 1.4 109345
 group		rods type 2	
 group		tethers	subtract all rods
 
-neigh_modify 	exclude	molecule rods delay 0 every 1
+neigh_modify 	exclude	molecule/intra rods delay 0 every 1
 
 # Specify the pair potentials
 

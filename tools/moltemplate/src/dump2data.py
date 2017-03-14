@@ -458,7 +458,7 @@ def ParseArgs(argv,
             del(argv[i:i+2])
 
         elif ((argv[i][0] == '-') and (__name__ == "__main__")):
-            raise InputError('Error(dump2data): Unrecogized command line argument \"'+argv[i]+'\"\n')
+            raise InputError('Error(dump2data): Unrecognized command line argument \"'+argv[i]+'\"\n')
         else:
             i += 1
 

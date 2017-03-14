@@ -13,7 +13,7 @@
 
 // define integer data types used by LAMMPS and associated size limits
 
-// smallint = variables for on-procesor system (nlocal, nmax, etc)
+// smallint = variables for on-processor system (nlocal, nmax, etc)
 // imageint = variables for atom image flags (image)
 // tagint = variables for atom IDs and molecule IDs (tag,molecule)
 // bigint = variables for total system (natoms, ntimestep, etc)

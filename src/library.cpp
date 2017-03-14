@@ -140,7 +140,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 /* ----------------------------------------------------------------------
    create an instance of LAMMPS and return pointer to it
    caller doesn't know MPI communicator, so use MPI_COMM_WORLD
-   intialize MPI if needed
+   initialize MPI if needed
 ------------------------------------------------------------------------- */
 
 void lammps_open_no_mpi(int argc, char **argv, void **ptr)
@@ -646,7 +646,7 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 /* ----------------------------------------------------------------------
    reset simulation box parameters
    see domain.h for definition of these arguments
-   assumes domain->set_intiial_box() has been invoked previously
+   assumes domain->set_initial_box() has been invoked previously
 ------------------------------------------------------------------------- */
 
 void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
@@ -761,6 +761,10 @@ void lammps_gather_atoms(void *ptr, char *name,
 
     int i,j,offset;
     void *vptr = lmp->atom->extract(name);
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
+        return;
+    }
 
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy
@@ -857,6 +861,10 @@ void lammps_scatter_atoms(void *ptr, char *name,
 
     int i,j,m,offset;
     void *vptr = lmp->atom->extract(name);
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,"lammps_scatter_atoms: unknown property name");
+        return;
+    }
 
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy

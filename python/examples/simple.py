@@ -1,5 +1,5 @@
 #!/usr/bin/env python -i
-# preceeding line should have path for Python on your machine
+# preceding line should have path for Python on your machine
 
 # simple.py
 # Purpose: mimic operation of examples/COUPLE/simple/simple.cpp via Python

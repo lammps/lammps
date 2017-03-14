@@ -130,7 +130,7 @@ transition event.
 
 The event check is performed by a compute with the specified
 {compute-ID}.  Currently there is only one compute that works with the
-TAD commmand, which is the "compute
+TAD command, which is the "compute
 event/displace"_compute_event_displace.html command.  Other
 event-checking computes may be added.  "Compute
 event/displace"_compute_event_displace.html checks whether any atom in
@@ -144,7 +144,7 @@ NEB is determined by the {neb_style} keyword and must be a damped
 dynamics minimizer.  The tolerances and limits for each NEB
 calculation can be set by the {neb} keyword.  As discussed on the
 "neb"_neb.html, it is often advantageous to use a larger timestep for
-NEB than for normal dyanmics.  Since the size of the timestep set by
+NEB than for normal dynamics.  Since the size of the timestep set by
 the "timestep"_timestep.html command is used by TAD for performing
 dynamics, there is a {neb_step} keyword which can be used to set a
 larger timestep for each NEB calculation if desired.
@@ -258,7 +258,7 @@ number of replicas or processors.
 
 Note that within a single state, the dynamics will typically
 temporarily continue beyond the event that is ultimately chosen, until
-the stopping criterionis satisfied.  When the event is eventually
+the stopping criterion is satisfied.  When the event is eventually
 executed, the timestep counter is reset to the value when the event
 was detected. Similarly, after each quench and NEB minimization, the
 timestep counter is reset to the value at the start of the

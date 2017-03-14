@@ -52,7 +52,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute bond must use group all
 
-Bond styles accumlate energy on all atoms.
+Bond styles accumulate energy on all atoms.
 
 E: Unrecognized bond style in compute bond command
 

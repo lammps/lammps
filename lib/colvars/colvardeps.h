@@ -13,17 +13,16 @@
 #include "colvarmodule.h"
 #include "colvarparse.h"
 
-/// Parent class for a member object of a bias, cv or cvc etc. containing dependencies
-/// (features) and handling dependency resolution
-
-// Some features like colvar::f_linear have no dependencies, require() doesn't enable anything but fails if unavailable
-// Policy: those features are unavailable at all times
-// Other features are under user control
-// They are unavailable unless requested by the user, then they may be enabled subject to
-// satisfied dependencies
-
-// It seems important to have available default to false (for safety) and enabled to false (for efficiency)
-
+/// \brief Parent class for a member object of a bias, cv or cvc etc. containing features and
+/// their dependencies, and handling dependency resolution
+///
+/// There are 3 kinds of features:
+/// 1. Dynamic features are under the control of the dependency resolution
+/// system. They may be enabled or disabled depending on dependencies.
+/// 2. User features may be enabled based on user input (they may trigger a failure upon dependency resolution, though)
+/// 3. Static features are static properties of the object, determined
+///   programatically at initialization time.
+///
 class colvardeps {
 public:
 
@@ -39,12 +38,7 @@ public:
     feature_state(bool a, bool e)
     : available(a), enabled(e) {}
 
-    /// Available means: supported, subject to dependencies as listed,
-    /// MAY BE ENABLED AS A RESULT OF DEPENDENCY SOLVING
-    /// Remains false for passive flags that are set based on other object properties,
-    /// eg. f_cv_linear
-    /// Is set to true upon user request for features that are implemented by the user
-    /// or under his/her direct control, e.g. f_cv_scripted or f_cv_extended_Lagrangian
+    /// Feature may be enabled, subject to possible dependencies
     bool available;
     /// Currently enabled - this flag is subject to change dynamically
     /// TODO consider implications for dependency solving: anyone who disables
@@ -53,8 +47,22 @@ public:
     // bool enabledOnce; // this should trigger an update when object is evaluated
   };
 
-  /// List of the state of all features
-  std::vector<feature_state *> feature_states;
+
+private:
+  /// List of the states of all features
+  std::vector<feature_state> feature_states;
+
+  /// Enum of possible feature types
+  enum feature_type {
+    f_type_not_set,
+    f_type_dynamic,
+    f_type_user,
+    f_type_static
+  };
+
+public:
+  /// Pair a numerical feature ID with a description and type
+  void init_feature(int feature_id, const char *description, feature_type type = f_type_not_set);
 
   /// Describes a feature and its dependecies
   /// used in a static array within each subclass
@@ -83,7 +91,17 @@ public:
 
     // features that this feature requires in children
     std::vector<int> requires_children;
+
+    inline bool is_dynamic() { return type == f_type_dynamic; }
+    inline bool is_static() { return type == f_type_static; }
+    inline bool is_user() { return type == f_type_user; }
+    /// Type of this feature, from the enum feature_type
+    feature_type type;
   };
+
+  inline bool is_dynamic(int id) { return features()[id]->type == f_type_dynamic; }
+  inline bool is_static(int id) { return features()[id]->type == f_type_static; }
+  inline bool is_user(int id) { return features()[id]->type == f_type_user; }
 
   // Accessor to array of all features with deps, static in most derived classes
   // Subclasses with dynamic dependency trees may override this
@@ -100,9 +118,8 @@ public:
   /// (useful for cvcs because their children are member objects)
   void remove_all_children();
 
-
-
 private:
+
   // pointers to objects this object depends on
   // list should be maintained by any code that modifies the object
   // this could be secured by making lists of colvars / cvcs / atom groups private and modified through accessor functions
@@ -130,22 +147,36 @@ public:
   // Checks whether given feature is enabled
   // Defaults to querying f_*_active
   inline bool is_enabled(int f = f_cv_active) const {
-    return feature_states[f]->enabled;
+    return feature_states[f].enabled;
   }
 
   // Checks whether given feature is available
   // Defaults to querying f_*_active
   inline bool is_available(int f = f_cv_active) const {
-    return feature_states[f]->available;
+    return feature_states[f].available;
   }
 
-  void provide(int feature_id); // set the feature's flag to available in local object
+  /// Set the feature's available flag, without checking
+  /// To be used for dynamic properties
+  /// dependencies will be checked by enable()
+  void provide(int feature_id, bool truefalse = true);
+
+  /// Set the feature's enabled flag, without dependency check or resolution
+  /// To be used for static properties only
+  /// Checking for availability is up to the caller
+  void set_enabled(int feature_id, bool truefalse = true);
+
+protected:
+
+
 
   /// Parse a keyword and enable a feature accordingly
   bool get_keyval_feature(colvarparse *cvp,
                           std::string const &conf, char const *key,
                           int feature_id, bool const &def_value,
                           colvarparse::Parse_Mode const parse_mode = colvarparse::parse_normal);
+
+public:
 
   int enable(int f, bool dry_run = false, bool toplevel = true);  // enable a feature and recursively solve its dependencies
   // dry_run is set to true to recursively test if a feature is available, without enabling it
@@ -165,6 +196,7 @@ public:
     f_cvb_get_total_force, // requires total forces
     f_cvb_history_dependent, // depends on simulation history
     f_cvb_scalar_variables, // requires scalar colvars
+    f_cvb_calc_pmf, // whether this bias will compute a PMF
     f_cvb_ntot
   };
 
@@ -216,12 +248,6 @@ public:
     /// be used by the biases or in analysis (needs lower and upper
     /// boundary)
     f_cv_grid,
-    /// \brief Apply a restraining potential (|x-xb|^2) to the colvar
-    /// when it goes below the lower wall
-    f_cv_lower_wall,
-    /// \brief Apply a restraining potential (|x-xb|^2) to the colvar
-    /// when it goes above the upper wall
-    f_cv_upper_wall,
     /// \brief Compute running average
     f_cv_runave,
     /// \brief Compute time correlation function

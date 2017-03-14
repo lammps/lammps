@@ -55,7 +55,8 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, part, timeremain
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, 
+// part, timeremain
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
@@ -394,6 +395,11 @@ void Thermo::compute(int flag)
       if (flushflag) fflush(logfile);
     }
   }
+
+  // set to 1, so that subsequent invocations of CPU time will be non-zero
+  // e.g. via variables in print command
+
+  firststep = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1054,7 +1060,7 @@ int Thermo::add_variable(const char *id)
    compute a single thermodynamic value, word is any keyword in custom list
    called when a variable is evaluated by Variable class
    return value as double in answer
-   return 0 if str is recoginzed keyword, 1 if unrecognized
+   return 0 if str is recognized keyword, 1 if unrecognized
    customize a new keyword by adding to if statement
 ------------------------------------------------------------------------- */
 

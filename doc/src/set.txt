@@ -374,7 +374,7 @@ header of the data file read by the "read_data"_read_data.html
 command.  These keywords do not allow use of an atom-style variable.
 
 Keywords {meso/e}, {meso/cv}, and {meso/rho} set the energy, heat
-capacity, and density of smmothed particle hydrodynamics (SPH)
+capacity, and density of smoothed particle hydrodynamics (SPH)
 particles.  See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to
 using SPH in LAMMPS.
 

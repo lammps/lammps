@@ -122,7 +122,7 @@ void PairLubricateUPoly::compute(int eflag, int vflag)
   }
 
   // Stage one of Midpoint method
-  // Solve for velocities based on intial positions
+  // Solve for velocities based on initial positions
 
   iterate(atom->x,1);
 
@@ -421,7 +421,7 @@ void PairLubricateUPoly::compute_Fh(double **x)
     pre[0] *= 6.0;
 
     // Find the contribution to stress from isotropic RS0
-    // Set psuedo force to obtain the required contribution
+    // Set pseudo force to obtain the required contribution
     // need to set delx  and fy only
 
     fx = 0.0; delx = radi;

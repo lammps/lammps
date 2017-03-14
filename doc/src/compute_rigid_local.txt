@@ -123,7 +123,7 @@ The {vx}, {vy}, {vz}, {fx}, {fy}, {fz} attributes are components of
 the COM velocity and force on the COM of the body.
 
 The {omegax}, {omegay}, and {omegaz} attributes are the angular
-velocity componennts of the body around its COM.
+velocity components of the body around its COM.
 
 The {angmomx}, {angmomy}, and {angmomz} attributes are the angular
 momentum components of the body around its COM.

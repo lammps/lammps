@@ -97,7 +97,7 @@ current LAMMPS library interface and how to call them from Python.
 Section 11.8 gives some examples of coupling LAMMPS to other tools via
 Python.  For example, LAMMPS can easily be coupled to a GUI or other
 visualization tools that display graphs or animations in real time as
-LAMMPS runs.  Examples of such scripts are inlcluded in the python
+LAMMPS runs.  Examples of such scripts are included in the python
 directory.
 
 Two advantages of using Python to run LAMMPS are how concise the
@@ -177,7 +177,7 @@ of Python and your machine to successfully build LAMMPS.  See the
 lib/python/README file for more info.
 
 If you want to write Python code with callbacks to LAMMPS, then you
-must also follow the steps overviewed in the preceeding section (11.1)
+must also follow the steps overviewed in the preceding section (11.1)
 for running LAMMPS from Python.  I.e. you must build LAMMPS as a
 shared library and insure that Python can find the python/lammps.py
 file and the shared library.
@@ -325,7 +325,7 @@ sudo python setup.py install :pre
 Again, the "sudo" is only needed if required to copy PyPar files into
 your Python distribution's site-packages directory.
 
-If you have successully installed PyPar, you should be able to run
+If you have successfully installed PyPar, you should be able to run
 Python and type
 
 import pypar :pre
@@ -369,7 +369,7 @@ user privilege into the user local directory type
 
 python setup.py install --user :pre
 
-If you have successully installed mpi4py, you should be able to run
+If you have successfully installed mpi4py, you should be able to run
 Python and type
 
 from mpi4py import MPI :pre
@@ -610,7 +610,7 @@ lmp = lammps() :pre
 
 create an instance of LAMMPS, wrapped in a Python class by the lammps
 Python module, and return an instance of the Python class as lmp.  It
-is used to make all subequent calls to the LAMMPS library.
+is used to make all subsequent calls to the LAMMPS library.
 
 Additional arguments to lammps() can be used to tell Python the name
 of the shared library to load or to pass arguments to the LAMMPS
@@ -662,7 +662,7 @@ or integers (int **) is returned.  You need to specify the appropriate
 data type via the type argument.
 
 For extract_compute() and extract_fix(), the global, per-atom, or
-local data calulated by the compute or fix can be accessed.  What is
+local data calculated by the compute or fix can be accessed.  What is
 returned depends on whether the compute or fix calculates a scalar or
 vector or array.  For a scalar, a single double value is returned.  If
 the compute or fix calculates a vector or array, a pointer to the
@@ -774,7 +774,7 @@ demo.py, invoke various LAMMPS library interface routines,
 simple.py, run in parallel, similar to examples/COUPLE/simple/simple.cpp,
 split.py, same as simple.py but running in parallel on a subset of procs,
 gui.py, GUI go/stop/temperature-slider to control LAMMPS,
-plot.py, real-time temeperature plot with GnuPlot via Pizza.py,
+plot.py, real-time temperature plot with GnuPlot via Pizza.py,
 viz_tool.py, real-time viz via some viz package,
 vizplotgui_tool.py, combination of viz_tool.py and plot.py and gui.py :tb(c=2)
 

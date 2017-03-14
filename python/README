@@ -23,7 +23,7 @@ of LAMMPS:
 >>> from lammps import lammps
 >>> lmp = lammps()
 
-If that gives no errors, you have succesfully wrapped LAMMPS with
+If that gives no errors, you have successfully wrapped LAMMPS with
 Python.  See doc/Section_python.html#py_7 for tests you can then use
 to run LAMMPS both in serial or parallel thru Python.
 
@@ -43,7 +43,7 @@ simple.py	    parallel example, mimicing examples/COUPLE/simple/simple.cpp
 split.py            parallel example
 mc.py               Monte Carlo energy relaxation wrapper on LAMMPS
 gui.py		    GUI go/stop/temperature-slider to control LAMMPS
-plot.py		    real-time temeperature plot with GnuPlot via Pizza.py
+plot.py		    real-time temperature plot with GnuPlot via Pizza.py
 viz_tool.py	    real-time viz via some viz package
 vizplotgui_tool.py  combination of viz.py and plot.py and gui.py
 

@@ -172,7 +172,7 @@ W: New thermo_style command, previous thermo_modify settings will be lost
 
 If a thermo_style command is used after a thermo_modify command, the
 settings changed by the thermo_modify command will be reset to their
-default values.  This is because the thermo_modify commmand acts on
+default values.  This is because the thermo_modify command acts on
 the currently defined thermo style, and a thermo_style command creates
 a new style.
 

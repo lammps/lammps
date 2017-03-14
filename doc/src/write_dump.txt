@@ -53,7 +53,7 @@ support optional arguments and thus LAMMPS needs to be able to cleanly
 separate the two sets of args.
 
 Note that if the specified filename uses wildcard characters "*" or
-"%", as supported by the "dump"_dump.html commmand, they will operate
+"%", as supported by the "dump"_dump.html command, they will operate
 in the same fashion to create the new filename(s).  Normally, "dump
 image"_dump_image.html files require a filename with a "*" character
 for the timestep.  That is not the case for the write_dump command; no
@@ -78,7 +78,7 @@ else LAMMPS will generate an error message.
 For example, it is not possible to dump per-atom energy with this
 command before a run has been performed, since no energies and forces
 have yet been calculated.  See the "variable"_variable.html doc page
-sectinn on Variable Accuracy for more information on this topic.
+section on Variable Accuracy for more information on this topic.
 
 [Related commands:]
 

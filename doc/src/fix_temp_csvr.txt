@@ -39,7 +39,7 @@ scaling factor from a suitably chosen (gaussian) distribution rather
 than having it determined from the time constant directly. In the case
 of {temp/csld} the velocities are updated to a linear combination of
 the current velocities with a gaussian distribution of velocities at
-the desired temperature.  Both termostats are applied every timestep.
+the desired temperature.  Both thermostats are applied every timestep.
 
 The thermostat is applied to only the translational degrees of freedom
 for the particles, which is an important consideration for finite-size
@@ -136,7 +136,7 @@ These fixes are not invoked during "energy minimization"_minimize.html.
 
 These fixes compute a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative energy change due to the fix.  The scalar value
+cumulative energy change due to the fix.  The scalar value
 calculated by this fix is "extensive".
 
 [Restrictions:]

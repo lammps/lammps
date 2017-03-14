@@ -21,7 +21,7 @@ solver = {lammps_rk4,rkf45} = rk4 is an explicit 4th order Runge-Kutta method; r
 minSteps = # of steps for rk4 solver or minimum # of steps for rkf45 (rk4 or rkf45)
 maxSteps = maximum number of steps for the rkf45 solver (rkf45 only)
 relTol = relative tolerance for the rkf45 solver (rkf45 only)
-absTol = absolute tolernace for the rkf45 solver (rkf45 only)
+absTol = absolute tolerance for the rkf45 solver (rkf45 only)
 diag   = Diagnostics frequency for the rkf45 solver (optional, rkf45 only) :ul
 
 [Examples:]
@@ -63,7 +63,7 @@ control on the error. For error control, use the rkf45 ODE solver.
 
 The rkf45 method adjusts the step-size so that the local truncation error is held
 within the specified absolute and relative tolerances. The initial step-size {h0}
-can be specified by the user or estimated internally. It is recommeded that the user
+can be specified by the user or estimated internally. It is recommended that the user
 specify {h0} since this will generally reduced the number of ODE integration steps
 required. {h0} is defined as {dt / min_steps} if min_steps >= 1. If min_steps == 0,
 {h0} is estimated such that an explicit Euler method would likely produce

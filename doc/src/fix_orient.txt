@@ -31,7 +31,7 @@ The fix applies an orientation-dependent force to atoms near a planar
 grain boundary which can be used to induce grain boundary migration
 (in the direction perpendicular to the grain boundary plane).  The
 motivation and explanation of this force and its application are
-described in "(Janssens)"_#Janssens. The adaptiation to bcc crystals
+described in "(Janssens)"_#Janssens. The adaptation to bcc crystals
 is described in "(Wicaksono1)"_#Wicaksono1. The computed force is only
 applied to atoms in the fix group.
 

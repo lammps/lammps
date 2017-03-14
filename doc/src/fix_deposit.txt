@@ -15,7 +15,7 @@ fix ID group-ID deposit N type M seed keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 deposit = style name of this fix command :l
 N = # of atoms or molecules to insert :l
-type = atom type to assign to inserted atoms (offset for moleclue insertion) :l
+type = atom type to assign to inserted atoms (offset for molecule insertion) :l
 M = insert a single atom or molecule every M steps :l
 seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
@@ -140,7 +140,7 @@ the molecule.
 
 If the molecule template contains more than one molecule, the relative
 probability of depositing each molecule can be specified by the
-{molfrac} keyword.  N relative probablities, each from 0.0 to 1.0, are
+{molfrac} keyword.  N relative probabilities, each from 0.0 to 1.0, are
 specified, where N is the number of molecules in the template.  Each
 time a molecule is deposited, a random number is used to sample from
 the list of relative probabilities.  The N values must sum to 1.0.
@@ -192,7 +192,7 @@ LAMMPS prints a warning message.
 NOTE: If you are inserting finite size particles or a molecule or
 rigid body consisting of finite-size particles, then you should
 typically set R larger than the distance at which any inserted
-particle may overlap with either a previouly inserted particle or an
+particle may overlap with either a previously inserted particle or an
 existing particle.  LAMMPS will issue a warning if R is smaller than
 this value, based on the radii of existing and inserted particles.
 

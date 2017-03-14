@@ -88,7 +88,7 @@ is the number of atom types.
 
 E: Molecule template ID for create_atoms does not exist
 
-Self-explantory.
+Self-explanatory.
 
 W: Molecule template for create_atoms has multiple molecules
 

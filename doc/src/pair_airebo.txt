@@ -53,7 +53,7 @@ The {rebo} pair style computes the Reactive Empirical Bond Order (REBO)
 Potential of "(Brenner)"_#Brenner. Note that this is the so-called
 2nd generation REBO from 2002, not the original REBO from 1990.
 As discussed below, 2nd generation REBO is closely related to the
-intial AIREBO; it is just a subset of the potential energy terms.
+initial AIREBO; it is just a subset of the potential energy terms.
 
 The AIREBO potential consists of three terms:
 

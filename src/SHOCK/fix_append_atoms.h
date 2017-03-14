@@ -94,7 +94,7 @@ type p (periodic).
 
 E: Cannot append atoms to a triclinic box
 
-The simulation box must be defined with edges alligned with the
+The simulation box must be defined with edges aligned with the
 Cartesian axes.
 
 E: Fix ID for fix ave/spatial does not exist

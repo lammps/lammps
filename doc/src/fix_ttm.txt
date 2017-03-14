@@ -106,7 +106,7 @@ electron stopping coupling parameter.  C_e, rho_e, and kappa_e are
 specified as parameters to the fix.  The other quantities are derived.
 The form of the heat diffusion equation used here is almost the same
 as that in equation 6 of "(Duffy)"_#Duffy, with the exception that the
-electronic density is explicitly reprensented, rather than being part
+electronic density is explicitly represented, rather than being part
 of the specific heat parameter.
 
 Currently, fix ttm assumes that none of the user-supplied parameters
@@ -151,7 +151,7 @@ output timestep.  The timestep itself is given in the first column.
 The next Nx*Ny*Nz columns contain the temperatures for the atomic
 subsystem, and the final Nx*Ny*Nz columns contain the temperatures for
 the electronic subsystem.  The ordering of the Nx*Ny*Nz columns is
-with the z index varing fastest, y the next fastest, and x the
+with the z index varying fastest, y the next fastest, and x the
 slowest.
 
 These fixes do not change the coordinates of their atoms; they only
@@ -300,7 +300,7 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more
 info.
 
 These fixes can only be used for 3d simulations and orthogonal
-simlulation boxes.  You must also use periodic
+simulation boxes.  You must also use periodic
 "boundary"_boundary.html conditions.
 
 [Related commands:]

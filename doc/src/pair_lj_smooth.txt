@@ -51,7 +51,7 @@ commands, or by mixing as described below:
 
 epsilon (energy units)
 sigma (distance units)
-innner (distance units)
+inner (distance units)
 outer (distance units) :ul
 
 The last 2 coefficients are optional inner and outer cutoffs.  If not

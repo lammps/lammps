@@ -157,6 +157,6 @@ Self-explanatory.
 
 E: Maxit exceeded in secant solver
 
-The maximum number of interations was exceeded in the secant solver
+The maximum number of iterations was exceeded in the secant solver
 
 */

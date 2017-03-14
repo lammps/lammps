@@ -72,7 +72,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute orientorder/atom requires a pair style be defined
 
-Self-explantory.
+Self-explanatory.
 
 E: Compute orientorder/atom cutoff is longer than pairwise cutoff
 

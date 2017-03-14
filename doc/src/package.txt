@@ -403,6 +403,7 @@ is the default setting.  However, when running in MPI-only mode with 1
 thread per MPI task, {half} neighbor lists will typically be faster,
 just as it is for non-accelerated pair styles. Similarly, the {neigh/qeq}
 keyword determines how neighbor lists are built for "fix qeq/reax/kk"_fix_qeq_reax.html.
+If not explicitly set, the value of {neigh/qeq} will match {neigh}.
 
 The {newton} keyword sets the Newton flags for pairwise and bonded
 interactions to {off} or {on}, the same as the "newton"_newton.html
@@ -573,9 +574,9 @@ is used.  If it is not used, you must invoke the package intel
 command in your input script or or via the "-pk intel" "command-line
 switch"_Section_start.html#start_7.
 
-For the KOKKOS package, the option defaults neigh = full, newton =
-off, binsize = 0.0, and comm = device.  These settings are made
-automatically by the required "-k on" "command-line
+For the KOKKOS package, the option defaults neigh = full, neigh/qeq
+ = full, newton = off, binsize = 0.0, and comm = device.  These settings
+ are made automatically by the required "-k on" "command-line
 switch"_Section_start.html#start_7.  You can change them bu using the
 package kokkos command in your input script or via the "-pk kokkos"
 "command-line switch"_Section_start.html#start_7.

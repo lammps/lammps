@@ -82,7 +82,7 @@ void FixQEqReaxKokkos<DeviceType>::init()
 
   FixQEqReax::init();
 
-  neighflag = lmp->kokkos->neighflag;
+  neighflag = lmp->kokkos->neighflag_qeq;
   int irequest = neighbor->nrequest - 1;
   
   neighbor->requests[irequest]->

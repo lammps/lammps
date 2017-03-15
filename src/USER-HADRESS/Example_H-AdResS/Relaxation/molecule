@@ -1,0 +1,70 @@
+# molecule
+
+3 atoms
+2 bonds
+1 angles
+0 dihedrals
+0 impropers
+
+Coords
+
+1 0 0 0
+2 0.790422368 0.612562225 0
+3 -0.790422368 0.612562225 0
+
+Types
+
+1 1
+2 2
+3 2
+
+moltypeH
+1 1
+2 1
+3 1
+
+replambdaH
+
+1 1
+2 0
+3 0
+
+Charges
+
+1 -0.8472
+2 0.4236
+3 0.4236
+
+Masses
+
+1 15.9994
+2 1.00794
+3 1.00794
+
+Diameters
+
+1 1.563111282
+2 0.622023675
+3 0.622023675
+
+Bonds
+
+1 1 1 2
+2 1 1 3
+
+Angles
+
+1 1 2 1 3
+
+Special Bond Counts
+
+1 2 0 0
+2 1 0 0
+3 1 0 0
+
+Special Bonds
+
+1 2 3
+2 1
+3 1
+

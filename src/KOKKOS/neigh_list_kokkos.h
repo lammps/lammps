@@ -89,8 +89,8 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   static AtomNeighborsConst static_neighbors_const(int i,
-           typename ArrayTypes<Device>::t_neighbors_2d_const d_neighbors,
-           typename ArrayTypes<Device>::t_int_1d_const d_numneigh) {
+           typename ArrayTypes<Device>::t_neighbors_2d_const const& d_neighbors,
+           typename ArrayTypes<Device>::t_int_1d_const const& d_numneigh) {
     return AtomNeighborsConst(&d_neighbors(i,0),d_numneigh(i),
                               &d_neighbors(i,1)-&d_neighbors(i,0));
   }

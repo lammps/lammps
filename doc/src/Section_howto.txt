@@ -1032,6 +1032,10 @@ profile consistent with the applied shear strain rate.
 An alternative method for calculating viscosities is provided via the
 "fix viscosity"_fix_viscosity.html command.
 
+NEMD simulations can also be used to measure transport properties of a fluid
+through a pore or channel. Simulations of steady-state flow can be performed
+using the "fix flow/gauss"_fix_flow_gauss.html command.
+
 :line
 
 6.14 Finite-size spherical and aspherical particles :link(howto_14),h4

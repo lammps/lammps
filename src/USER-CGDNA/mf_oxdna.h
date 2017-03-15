@@ -253,8 +253,8 @@ inline double MFOxdna::DF5(double x, double a, double x_ast,
 }
 
 /* ----------------------------------------------------------------------
-   test for directionality by projecting base normal n onto delr,
-   returns 1 if nucleotide a to nucleotide b is 3' to 5', otherwise -1
+   test for directionality by projecting base normal n onto delr = a - b,
+   returns 1 if nucleotide b to nucleotide a is 3' to 5', otherwise -1
    ------------------------------------------------------------------------- */
 inline double MFOxdna::is_3pto5p(const double * delr, const double * n)
 {

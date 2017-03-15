@@ -1,0 +1,36 @@
+
+units           real
+neigh_modify    delay 2 every 1
+
+include         system.in.init
+
+read_data       4pti.data
+
+special_bonds   charmm
+
+
+# ------------- MINIMIZE ----------
+
+minimize 	1e-4 1e-6 1000 10000
+
+
+# ------------- RUN ---------------
+
+thermo          100
+thermo_style    multi
+timestep	8
+
+run_style respa 3 2 8 bond 1 pair 2 kspace 3
+
+velocity        all create 200.0 12345678 dist uniform
+dump            dump1 all atom 100 4pti.dump
+
+fix             1 all nvt temp 200 300 25
+fix             cor all filter/corotate m 1.0
+
+run             10000
+
+unfix           cor
+unfix           1
+
+write_restart   BPTI_equil

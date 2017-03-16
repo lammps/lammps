@@ -236,7 +236,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   } else { // No atomics
 
   num_threads = lmp->kokkos->num_threads;
-  int nmax = f.dimension_1();
+  int nmax = f.dimension_0();
   if (nmax > t_f.dimension_1()) {
     t_f = t_f_array_thread("pair_exp6_rx:t_f",num_threads,nmax);
     t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",num_threads,nmax);

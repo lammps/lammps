@@ -48,26 +48,26 @@ using namespace FixConst;
 
 // allocate space for static class variable
 
-FixFilterCorotate *FixFilterCorotate::fsptr;
+FixFilterCorotate *FixFilterCorotate::fsptr = NULL;
 
 #define BIG 1.0e20
 #define MASSDELTA 0.1
 
 static const char cite_filter_corotate[] =
-"Mollified Impulse Method with Corotational Filter:\n\n"
-"@Article{Fath2017,\n"
-" Title ="
-"{A fast mollified impulse method for biomolecular atomistic simulations},\n"
-" Author = {L. Fath and M. Hochbruck and C.V. Singh},\n"
-" Journal = {Journal of Computational Physics},\n"
-" Year = {2017},\n"
-" Pages = {180 - 198},\n"
-" Volume = {333},\n\n"
-" Doi = {http://dx.doi.org/10.1016/j.jcp.2016.12.024},\n"
-" ISSN = {0021-9991},\n"
-" Keywords = {Mollified impulse method},\n"
-" Url = {http://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"
-"}\n\n";
+  "Mollified Impulse Method with Corotational Filter:\n\n"
+  "@Article{Fath2017,\n"
+  " Title ="
+  "{A fast mollified impulse method for biomolecular atomistic simulations},\n"
+  " Author = {L. Fath and M. Hochbruck and C.V. Singh},\n"
+  " Journal = {Journal of Computational Physics},\n"
+  " Year = {2017},\n"
+  " Pages = {180 - 198},\n"
+  " Volume = {333},\n\n"
+  " Doi = {http://dx.doi.org/10.1016/j.jcp.2016.12.024},\n"
+  " ISSN = {0021-9991},\n"
+  " Keywords = {Mollified impulse method},\n"
+  " Url = {http://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -1260,29 +1260,6 @@ void FixFilterCorotate::find_clusters()
   memory->destroy(partner_nshake);
 
   // -----------------------------------------------------
-  // set bond_type and angle_type negative for SHAKE clusters
-  // must set for all SHAKE bonds and angles stored by each atom
-  // -----------------------------------------------------
-
-  /* for (i = 0; i < nlocal; i++) {
-   *    if (shake_flag[i] == 0) continue;
-   *    else if (shake_flag[i] == 1) {
-   *      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],-1);
-   *      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],-1);
-   *      angletype_findset(i,shake_atom[i][1],shake_atom[i][2],-1);
-} else if (shake_flag[i] == 2) {
-  bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],-1);
-} else if (shake_flag[i] == 3) {
-  bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],-1);
-  bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],-1);
-} else if (shake_flag[i] == 4) {
-  bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],-1);
-  bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],-1);
-  bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],-1);
-}
-}*/
-
-  // -----------------------------------------------------
   // print info on SHAKE clusters
   // -----------------------------------------------------
 
@@ -1427,7 +1404,7 @@ void FixFilterCorotate::ring_shake(int ndatum, char *cbuf)
 
 int FixFilterCorotate::masscheck(double massone)
 {
-  for (int i = 0; i < nmass; i++){
+  for (int i = 0; i < nmass; i++) {
     if (fabs(mass_list[i]-massone) <= MASSDELTA) return 1;
   }
   return 0;
@@ -1441,35 +1418,34 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 {
   //index: shake index, index_in_list: corresponding index in list
   //get q0, nselect:
+
   double *q0  = clist_q0[index_in_list];
   int nselect1  = clist_nselect1[index_in_list];
   int nselect2  = clist_nselect2[index_in_list];
   int *select1  = clist_select1[index_in_list];
   int *select2  = clist_select2[index_in_list];
 
-  int N = shake_flag[index];    //number of atoms in cluster
-  if (N == 1) N = 3;      //angle cluster
+  int N = shake_flag[index];      //number of atoms in cluster
+  if (N == 1) N = 3;              //angle cluster
 
   double**x = atom->x;
   double norm1, norm2, norm3;
 
-  int* list_cluster = new int[N];  // contains local IDs of cluster atoms,
-                                   // 0 = center
-  double* m = new double[N];    //contains local mass
-  double *r = new double[N];    //contains r[i] = 1/||del[i]||
+  int* list_cluster = new int[N]; // contains local IDs of cluster atoms,
+                                  // 0 = center
+  double* m = new double[N];      //contains local mass
+  double *r = new double[N];      //contains r[i] = 1/||del[i]||
   double** del = new double*[N];  //contains del[i] = x_i-x_0
   for (int i = 0; i<N; i++)
     del[i] = new double[3];
 
-  for (int i = 0; i < N; i++)
-  {
+  for (int i = 0; i < N; i++) {
     list_cluster[i] = atom->map(shake_atom[index][i]);
     m[i] = atom->mass[atom->type[list_cluster[i]]];
   }
 
   //%CALC r_i:
-  for (int i = 1; i < N; i++)
-  {
+  for (int i = 1; i < N; i++) {
     del[i][0] = x[list_cluster[i]][0] - x[list_cluster[0]][0];
     del[i][1] = x[list_cluster[i]][1] - x[list_cluster[0]][1];
     del[i][2] = x[list_cluster[i]][2] - x[list_cluster[0]][2];
@@ -1484,8 +1460,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
   n1[0] = n1[1] = n1[2] = 0.0;
 
   int k;
-  for (int i = 0; i < nselect1; i++)
-  {
+  for (int i = 0; i < nselect1; i++) {
     k = select1[i];
     n1[0] += del[k][0]*r[k];
     n1[1] += del[k][1]*r[k];
@@ -1500,8 +1475,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
   //calc n2:
   n2[0] = n2[1] = n2[2] = 0.0;
 
-  for (int i = 0; i < nselect2; i++)
-  {
+  for (int i = 0; i < nselect2; i++) {
     k = select2[i];
     n2[0] += del[k][0]*r[k];
     n2[1] += del[k][1]*r[k];
@@ -1533,8 +1507,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
   n3[2] *= norm3;
 
   //%x_filter:
-  for (int i = 0; i < N; i++)
-  {
+  for (int i = 0; i < N; i++) {
     k = list_cluster[i];
     array_atom[k][0] = x[k][0]+q0[3*i]*n1[0]+q0[3*i+1]*n2[0]+q0[3*i+2]*n3[0];
     array_atom[k][1] = x[k][1]+q0[3*i]*n1[1]+q0[3*i+1]*n2[1]+q0[3*i+2]*n3[1];
@@ -1547,11 +1520,9 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 
   //%x+X_center
 
-  for (int i = 0; i<N; i++)
-  {
+  for (int i = 0; i<N; i++) {
     k = list_cluster[i];
-    for (int j = 0; j < N; j++)
-    {
+    for (int j = 0; j < N; j++) {
       array_atom[k][0] += m[j]/m_all*(del[j][0]-del[i][0]);
       array_atom[k][1] += m[j]/m_all*(del[j][1]-del[i][1]);
       array_atom[k][2] += m[j]/m_all*(del[j][2]-del[i][2]);
@@ -1566,20 +1537,18 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       sum1[i][j] = 0;
 
   double I3mn1n1T[3][3];   //(I_3 - n1n1T)
-  for (int i=0; i<3; i++)
-  {
+  for (int i=0; i<3; i++) {
     for (int j=0; j<3; j++)
       I3mn1n1T[i][j] = -n1[i]*n1[j];
     I3mn1n1T[i][i] += 1.0;
   }
+
   // sum1 part of dn1dx:
-  for (int l = 0; l < nselect1; l++)
-  {
+
+  for (int l = 0; l < nselect1; l++) {
     k = select1[l];
-    for (int i=0; i<3; i++)
-    {
-      for (int j=0; j<3; j++)
-      {
+    for (int i=0; i<3; i++) {
+      for (int j=0; j<3; j++) {
         double help = del[k][i]*del[k][j]*r[k]*r[k]*r[k];
         sum1[i][j+3*k] -= help;
         sum1[i][j] += help;
@@ -1588,11 +1557,11 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       sum1[i][i] -= r[k];
     }
   }
+
   //dn1dx = norm1 * I3mn1n1T * sum1
-  for (int i=0; i<3; i++)
-  {
-    for (int j=0; j<3*N; j++)
-    {
+
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<3*N; j++) {
       double sum = 0;
       for (int l = 0; l<3; l++)
         sum += I3mn1n1T[i][l]*sum1[l][j];
@@ -1601,27 +1570,25 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
   }
 
   //dn2dx: norm2 * I3mn2n2T * (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
+
   double sum2[3][3*N];
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++)
       sum2[i][j] = 0;
 
   double I3mn2n2T[3][3];   //(I_3 - n2n2T)
-  for (int i=0; i<3; i++)
-  {
+  for (int i=0; i<3; i++) {
     for (int j=0; j<3; j++)
       I3mn2n2T[i][j] = -n2[i]*n2[j];
     I3mn2n2T[i][i] += 1.0;
   }
 
   // sum2 part of dn1dx:
-  for (int l = 0; l < nselect2; l++)
-  {
+
+  for (int l = 0; l < nselect2; l++) {
     k = select2[l];
-    for (int i=0; i<3; i++)
-    {
-      for (int j=0; j<3; j++)
-      {
+    for (int i=0; i<3; i++) {
+      for (int j=0; j<3; j++) {
         double help = del[k][i]*del[k][j]*r[k]*r[k]*r[k];
         sum2[i][j+3*k] -= help;
         sum2[i][j] += help;
@@ -1631,54 +1598,51 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
     }
   }
 
-  //prefaktor:
+  //prefactor:
+
   double rkn1pn1rk[3][3];
   double rk[3]; rk[0] = rk[1] = rk[2] = 0.0;
 
-  for (int i = 0; i < nselect2; i++)
-  {
+  for (int i = 0; i < nselect2; i++) {
     k = select2[i];
     rk[0] += del[k][0]*r[k];
     rk[1] += del[k][1]*r[k];
     rk[2] += del[k][2]*r[k];
   }
+
   //rkn1pn1rk = rkT*n1*I3 + n1*rkT
+
   double scalar = rk[0]*n1[0]+rk[1]*n1[1]+rk[2]*n1[2];
-  for (int i=0; i<3; i++)
-  {
+  for (int i=0; i<3; i++) {
     for (int j=0; j<3; j++)
       rkn1pn1rk[i][j] = n1[i]*rk[j];
     rkn1pn1rk[i][i] += scalar;
   }
+
   //dn2dx: norm2 * I3mn2n2T * (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
   //sum3 = (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
+
   double sum3[3][3*N];
   for (int i=0; i<3; i++)
-  {
-    for (int j=0; j<3*N; j++)
-    {
+    for (int j=0; j<3*N; j++) {
       double sum = 0;
       for (int l = 0; l<3; l++)
         sum += I3mn1n1T[i][l]*sum2[l][j] - rkn1pn1rk[i][l]*dn1dx[l][j];
       sum3[i][j] = sum;
     }
-  }
+
   //dn2dx = norm2 * I3mn2n2T * sum3
   for (int i=0; i<3; i++)
-  {
-    for (int j=0; j<3*N; j++)
-    {
+    for (int j=0; j<3*N; j++) {
       double sum = 0;
       for (int l = 0; l<3; l++)
         sum += I3mn2n2T[i][l]*sum3[l][j];
       dn2dx[i][j] = norm2*sum;
     }
-  }
 
   //dn3dx = norm3 * I3mn3n3T * cross
   double I3mn3n3T[3][3];   //(I_3 - n3n3T)
-  for (int i=0; i<3; i++)
-  {
+  for (int i=0; i<3; i++) {
     for (int j=0; j<3; j++)
       I3mn3n3T[i][j] = -n3[i]*n3[j];
     I3mn3n3T[i][i] += 1.0;
@@ -1686,8 +1650,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 
   double cross[3][3*N];
 
-  for (int j=0; j<3*N; j++)
-  {
+  for (int j=0; j<3*N; j++) {
     cross[0][j] = dn1dx[1][j]*n2[2] -dn1dx[2][j]*n2[1] +
       n1[1]*dn2dx[2][j]-n1[2]*dn2dx[1][j];
     cross[1][j] = dn1dx[2][j]*n2[0] -dn1dx[0][j]*n2[2] +
@@ -1697,15 +1660,12 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
   }
 
   for (int i=0; i<3; i++)
-  {
-    for (int j=0; j<3*N; j++)
-    {
+    for (int j=0; j<3*N; j++) {
       double sum = 0;
       for (int l = 0; l<3; l++)
         sum += I3mn3n3T[i][l]*cross[l][j];
       dn3dx[i][j] = norm3*sum;
     }
-  }
 
   for (int l=0; l<N; l++)
     for (int i=0; i<3; i++)
@@ -1738,8 +1698,7 @@ int FixFilterCorotate::pack_forward_comm(int n, int *list, double *buf,
   int i,j,m;
   double**f = atom->f;
   m = 0;
-  for (i = 0; i < n; i++)
-  {
+  for (i = 0; i < n; i++) {
     j = list[i];
 
     buf[m++] = f[j][0];
@@ -1865,10 +1824,6 @@ double FixFilterCorotate::memory_usage()
   int nt = atom->ntypes+1;
   bytes += (nb+na+nt)*sizeof(int);
   bytes += (nt-1+nb+na+15*15+18+10*15)*sizeof(double);
-
-  //output:
-  //bytes += (2*nb+2*na)*sizeof(int);
-  //bytes += (6*na+6*nb)*sizeof(double);
 
   return bytes;
 }

@@ -42,6 +42,7 @@ Fixes :h1
    fix_eos_table_rx
    fix_evaporate
    fix_external
+   fix_filter_corotate
    fix_flow_gauss
    fix_freeze
    fix_gcmc

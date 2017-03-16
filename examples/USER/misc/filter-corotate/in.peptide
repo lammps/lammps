@@ -1,4 +1,4 @@
-# Solvated 5-mer peptide, run for 20ps in NVT
+# Solvated 5-mer peptide, run for 8ps in NVT
 
 units           real
 atom_style      full
@@ -16,7 +16,7 @@ neighbor        2.0 bin
 neigh_modify    delay 5
 
 thermo          50
-dump            dump1 all atom 100 peptide.dump
+#dump            dump1 all atom 100 peptide.dump
 
 timestep        8
 
@@ -24,7 +24,7 @@ run_style respa 3 2 8 bond 1 pair 2 kspace 3
 
 fix             1 all nvt temp 250.0 250.0 100.0 tchain 1
 fix             cor all filter/corotate m 1.0
-run             2500
+run             1000
 unfix           cor
 unfix           1
 

@@ -379,10 +379,10 @@ class lammps(object):
     type_lmp[:] = type
     self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,shrinkexceed)
 
-  # document this?
-    
+
   @property
   def uses_exceptions(self):
+    """ Return whether the LAMMPS shared library was compiled with C++ exceptions handling enabled """
     try:
       if self.lib.lammps_has_error:
         return True

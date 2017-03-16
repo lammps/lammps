@@ -362,14 +362,22 @@ class lammps(object):
   #   e.g. for Python list or NumPy, etc
   #   ditto for gather_atoms() above
 
-  def create_atoms(self,n,id,type,x,v):
+  def create_atoms(self,n,id,type,x,v,image=None,shrinkexceed=False):
     if id:
       id_lmp = (c_int * n)()
       id_lmp[:] = id
-    else: id_lmp = id
+    else:
+      id_lmp = id
+
+    if image:
+      image_lmp = (c_int * n)()
+      image_lmp[:] = image
+    else:
+      image_lmp = image
+
     type_lmp = (c_int * n)()
     type_lmp[:] = type
-    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v)
+    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,shrinkexceed)
 
   # document this?
     

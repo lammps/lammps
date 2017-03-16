@@ -54,6 +54,7 @@ index,time,flag = p.iterator(1)
 
 # History
 #   8/05, Steve Plimpton (SNL): original version
+#   3/17, Richard Berger (Temple U): improve Python 3 compatibility
 
 # ToDo list
 #   for generic PDB file (no template) from a LJ unit system,
@@ -68,6 +69,12 @@ index,time,flag = p.iterator(1)
 # Imports and external programs
 
 import sys, types, glob, urllib
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    string_types = str,
+else:
+    string_types = basestring
 
 # Class definition
 
@@ -77,7 +84,7 @@ class pdbfile:
 
   def __init__(self,*args):
     if len(args) == 1:
-      if type(args[0]) is types.StringType:
+      if type(args[0]) is string_types:
         filestr = args[0]
         self.data = None
       else:

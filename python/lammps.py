@@ -190,12 +190,15 @@ class lammps(object):
   # send a list of commands
 
   def commands_list(self,cmdlist):
-    args = (c_char_p * len(cmdlist))(*cmdlist)
+    cmds = [x.encode() for x in cmdlist if type(x) is str]
+    args = (c_char_p * len(cmdlist))(*cmds)
     self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
     
   # send a string of commands
 
   def commands_string(self,multicmd):
+    if type(multicmd) is str:
+        multicmd = multicmd.encode()
     self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
     
   # extract global info

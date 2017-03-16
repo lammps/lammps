@@ -42,7 +42,7 @@ lmp = lammps()
 
 lmp.file(infile)
 lmp.command("thermo %d" % nfreq)
-lmp.command("dump python all cfg %d tmp.cfg.* id type xs ys zs" % nfreq)
+lmp.command("dump python all cfg %d tmp.cfg.* mass type xs ys zs id" % nfreq)
 
 # initial 0-step run to generate dump file and image
 

@@ -348,8 +348,8 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 0;
 
-  TimerType t_stop = getTimeStamp();
-  printf("PairExp6rxKokkos::compute %f %f\n", getElapsedTime(t_start, t_stop), getElapsedTime(t_mix_start, t_mix_stop));
+  //TimerType t_stop = getTimeStamp();
+  //printf("PairExp6rxKokkos::compute %f %f\n", getElapsedTime(t_start, t_stop), getElapsedTime(t_mix_start, t_mix_stop));
 }
 
 template<class DeviceType>
@@ -379,10 +379,17 @@ KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   {
+    const bool one_type = (atom->ntypes == 1);
     if (isite1 == isite2)
-      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, true>(ii, ev);
+      if (one_type)
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, true, true>(ii, ev);
+      else
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, true,false>(ii, ev);
     else
-      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,true>(ii, ev);
+      if (one_type)
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,true, true>(ii, ev);
+      else
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,true,false>(ii, ev);
     return;
   }
 
@@ -743,10 +750,17 @@ KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   {
+    const bool one_type = (atom->ntypes == 1);
     if (isite1 == isite2)
-      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, false>(ii, ev);
+      if (one_type)
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, false, true>(ii, ev);
+      else
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, false,false>(ii, ev);
     else
-      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,false>(ii, ev);
+      if (one_type)
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,false, true>(ii, ev);
+      else
+        this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,false,false>(ii, ev);
     return;
   }
 
@@ -1109,7 +1123,7 @@ double __powint(const double& x, const int)
 }
 
 template<class DeviceType>
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics, bool OneType>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& ev) const
 {
@@ -1157,6 +1171,12 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   const double rmOld2_i        = PairExp6ParamData.rmOld2[i];
   const double mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
 
+  const double cutsq_type11 = d_cutsq(1,1);
+  const double rCut2inv_type11 = 1.0/ cutsq_type11;
+  const double rCut6inv_type11 = rCut2inv_type11*rCut2inv_type11*rCut2inv_type11;
+  const double rCut_type11 = sqrt( cutsq_type11 );
+  const double rCutInv_type11 = 1.0/rCut_type11;
+
   // Do error testing locally.
   bool hasError = false;
 
@@ -1171,22 +1191,6 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   double dely_j[batchSize];
   double delz_j[batchSize];
   double cutsq_j[batchSize];
-  //double j_epsilon1[batchSize]      ;
-  //double j_alpha1[batchSize]        ;
-  //double j_rm1[batchSize]           ;
-  //double j_mixWtSite1[batchSize]    ;
-  //double j_epsilon2[batchSize]      ;
-  //double j_alpha2[batchSize]        ;
-  //double j_rm2[batchSize]           ;
-  //double j_mixWtSite2[batchSize]    ;
-  //double j_epsilonOld1[batchSize]   ;
-  //double j_alphaOld1[batchSize]     ;
-  //double j_rmOld1[batchSize]        ;
-  //double j_mixWtSite1old[batchSize] ;
-  //double j_epsilonOld2[batchSize]   ;
-  //double j_alphaOld2[batchSize]     ;
-  //double j_rmOld2[batchSize]        ;
-  //double j_mixWtSite2old[batchSize] ;
 
   for (int jptr = 0; jptr < jnum; )
   {
@@ -1217,31 +1221,17 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
       const double rsq = delx*delx + dely*dely + delz*delz;
       const int jtype = type[j];
 
-      if (rsq < d_cutsq(itype,jtype))
+      const double cutsq_ij = (OneType) ? cutsq_type11 : d_cutsq(itype,jtype);
+
+      if (rsq < cutsq_ij)
       {
         delx_j [niters] = delx;
         dely_j [niters] = dely;
         delz_j [niters] = delz;
-        cutsq_j[niters] = d_cutsq(itype,jtype);
+        if (OneType == false)
+          cutsq_j[niters] = cutsq_ij;
 
         neigh_j[niters] = d_neighbors(i,jptr);
-
-        //j_epsilon1[niters]      = PairExp6ParamData.epsilon1[j];
-        //j_alpha1[niters]        = PairExp6ParamData.alpha1[j];
-        //j_rm1[niters]           = PairExp6ParamData.rm1[j];
-        //j_mixWtSite1[niters]    = PairExp6ParamData.mixWtSite1[j];
-        //j_epsilon2[niters]      = PairExp6ParamData.epsilon2[j];
-        //j_alpha2[niters]        = PairExp6ParamData.alpha2[j];
-        //j_rm2[niters]           = PairExp6ParamData.rm2[j];
-        //j_mixWtSite2[niters]    = PairExp6ParamData.mixWtSite2[j];
-        //j_epsilonOld1[niters]   = PairExp6ParamData.epsilonOld1[j];
-        //j_alphaOld1[niters]     = PairExp6ParamData.alphaOld1[j];
-        //j_rmOld1[niters]        = PairExp6ParamData.rmOld1[j];
-        //j_mixWtSite1old[niters] = PairExp6ParamData.mixWtSite1old[j];
-        //j_epsilonOld2[niters]   = PairExp6ParamData.epsilonOld2[j];
-        //j_alphaOld2[niters]     = PairExp6ParamData.alphaOld2[j];
-        //j_rmOld2[niters]        = PairExp6ParamData.rmOld2[j];
-        //j_mixWtSite2old[niters] = PairExp6ParamData.mixWtSite2old[j];
 
         ++niters;
       }
@@ -1268,10 +1258,10 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         const double r6inv = r2inv*r2inv*r2inv;
 
         const double r = sqrt(rsq);
-        const double rCut2inv = 1.0/ cutsq_j[jlane];
-        const double rCut6inv = rCut2inv*rCut2inv*rCut2inv;
-        const double rCut = sqrt( cutsq_j[jlane] );
-        const double rCutInv = 1.0/rCut;
+        const double rCut2inv = (OneType) ? rCut2inv_type11 : (1.0/ cutsq_j[jlane]);
+        const double rCut6inv = (OneType) ? rCut6inv_type11 : (rCut2inv*rCut2inv*rCut2inv);
+        const double rCut =     (OneType) ? rCut_type11     : (sqrt( cutsq_j[jlane] ));
+        const double rCutInv =  (OneType) ? rCutInv_type11  : (1.0/rCut);
 
         //
         // A. Compute the exp-6 potential
@@ -1295,22 +1285,6 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         const double alphaOld2_j     = PairExp6ParamData.alphaOld2[j];
         const double rmOld2_j        = PairExp6ParamData.rmOld2[j];
         const double mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
-        //const double epsilon1_j      = j_epsilon1[jlane];
-        //const double alpha1_j        = j_alpha1[jlane];
-        //const double rm1_j           = j_rm1[jlane];
-        //const double mixWtSite1_j    = j_mixWtSite1[jlane];
-        //const double epsilon2_j      = j_epsilon2[jlane];
-        //const double alpha2_j        = j_alpha2[jlane];
-        //const double rm2_j           = j_rm2[jlane];
-        //const double mixWtSite2_j    = j_mixWtSite2[jlane];
-        //const double epsilonOld1_j   = j_epsilonOld1[jlane];
-        //const double alphaOld1_j     = j_alphaOld1[jlane];
-        //const double rmOld1_j        = j_rmOld1[jlane];
-        //const double mixWtSite1old_j = j_mixWtSite1old[jlane];
-        //const double epsilonOld2_j   = j_epsilonOld2[jlane];
-        //const double alphaOld2_j     = j_alphaOld2[jlane];
-        //const double rmOld2_j        = j_rmOld2[jlane];
-        //const double mixWtSite2old_j = j_mixWtSite2old[jlane];
 
         // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
         const double alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);

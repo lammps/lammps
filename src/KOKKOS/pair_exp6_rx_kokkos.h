@@ -91,7 +91,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics, bool OneType>
   KOKKOS_INLINE_FUNCTION
   void vectorized_operator(const int&, EV_FLOAT&) const;
 

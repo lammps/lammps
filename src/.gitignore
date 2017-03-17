@@ -328,6 +328,8 @@
 /fix_eos_table.h
 /fix_evaporate.cpp
 /fix_evaporate.h
+/fix_filter_corotate.cpp
+/fix_filter_corotate.h
 /fix_viscosity.cpp
 /fix_viscosity.h
 /fix_ehex.cpp

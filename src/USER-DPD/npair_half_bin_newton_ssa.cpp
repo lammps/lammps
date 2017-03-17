@@ -250,11 +250,6 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
-      if (moltemplate) {
-        imol = molindex[i];
-        iatom = molatom[i];
-        tagprev = tag[i] - iatom - 1;
-      }
 
       ibin = coord2bin(x[i],xbin,ybin,zbin);
 
@@ -281,12 +276,16 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular) {
               if (!moltemplate)
-                which = find_special(special[i],nspecial[i],tag[j]);
-              else if (imol >= 0)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom],
-                                     tag[j]-tagprev);
-              else which = 0;
+                which = find_special(special[j],nspecial[j],tag[i]);
+              else {
+                int jmol = molindex[j];
+                if (jmol >= 0) {
+                  int jatom = molatom[j];
+                  which = find_special(onemols[jmol]->special[jatom],
+                                     onemols[jmol]->nspecial[jatom],
+                                     tag[i] - (tag[j] - jatom - 1));
+                } else which = 0;
+              }
               if (which == 0) neighptr[n++] = j;
               else if (domain->minimum_image_check(delx,dely,delz))
                 neighptr[n++] = j;

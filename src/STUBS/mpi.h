@@ -89,6 +89,7 @@ int MPI_Finalize();
 double MPI_Wtime();
 
 int MPI_Type_size(int, int *);
+int MPI_Request_free(MPI_Request *request);
 
 int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm);

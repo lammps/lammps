@@ -687,6 +687,7 @@ package"_Section_start.html#start_3.
 "eos/cv"_fix_eos_cv.html,
 "eos/table"_fix_eos_table.html,
 "eos/table/rx"_fix_eos_table_rx.html,
+"filter/corotate"_fix_filter_corotate.html,
 "flow/gauss"_fix_flow_gauss.html,
 "gle"_fix_gle.html,
 "grem"_fix_grem.html,

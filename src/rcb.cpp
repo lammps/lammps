@@ -1176,7 +1176,6 @@ void median_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
 
 void RCB::invert(int sortflag)
 {
-
   // only create Irregular if not previously created
   // allows Irregular to persist for multiple RCB calls by fix balance
 

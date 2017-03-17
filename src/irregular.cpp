@@ -297,11 +297,9 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
 
   // setup for collective comm
   // work1 = 1 for procs I send a message to, not including self
-  // work2 = 1 for all procs, used for ReduceScatter
 
   for (i = 0; i < nprocs; i++) {
     work1[i] = 0;
-    work2[i] = 1;
   }
   for (i = 0; i < n; i++) work1[proclist[i]] = 1;
   work1[me] = 0;
@@ -318,7 +316,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
   MPI_Allreduce(work1,work2,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work2[me];
 #else
-  MPI_Reduce_scatter(work1,&nrecv_proc,work2,MPI_INT,MPI_SUM,world);
+  MPI_Reduce_scatter_block(work1,&nrecv_proc,1,MPI_INT,MPI_SUM,world);
 #endif
 #endif
 
@@ -545,11 +543,9 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
   // setup for collective comm
   // work1 = 1 for procs I send a message to, not including self
-  // work2 = 1 for all procs, used for ReduceScatter
 
   for (i = 0; i < nprocs; i++) {
     work1[i] = 0;
-    work2[i] = 1;
   }
   for (i = 0; i < n; i++) work1[proclist[i]] = 1;
   work1[me] = 0;
@@ -566,7 +562,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
   MPI_Allreduce(work1,work2,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work2[me];
 #else
-  MPI_Reduce_scatter(work1,&nrecv_proc,work2,MPI_INT,MPI_SUM,world);
+  MPI_Reduce_scatter_block(work1,&nrecv_proc,1,MPI_INT,MPI_SUM,world);
 #endif
 #endif
 

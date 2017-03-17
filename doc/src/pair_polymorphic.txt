@@ -52,7 +52,7 @@ to Stillinger-Weber potential ("SW"_#SW) if we set
 :c,image(Eqs/polymorphic4.jpg)
 
 The potential reduces to Tersoff types of potential
-("Tersoff"_#Tersoff or "Albe"_#Albe) if we set
+("Tersoff"_#Tersoff or "Albe"_#poly-Albe) if we set
 
 :c,image(Eqs/polymorphic5.jpg)
 :c,image(Eqs/polymorphic6.jpg)
@@ -63,7 +63,7 @@ The potential reduces to Rockett-Tersoff ("Wang"_#Wang) type if we set
 :c,image(Eqs/polymorphic6.jpg)
 :c,image(Eqs/polymorphic8.jpg)
 
-The potential becomes embedded atom method ("Daw"_#Daw) if we set
+The potential becomes embedded atom method ("Daw"_#poly-Daw) if we set
 
 :c,image(Eqs/polymorphic9.jpg)
 
@@ -218,12 +218,12 @@ F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 :link(Tersoff)
 [(Tersoff)] J. Tersoff, Phys. Rev. B, 39, 5566 (1989).
 
-:link(Albe)
+:link(poly-Albe)
 [(Albe)] K. Albe, K. Nordlund, J. Nord, and A. Kuronen, Phys. Rev. B,
 66, 035205 (2002).
 
 :link(Wang)
 [(Wang)] J. Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
 
-:link(Daw)
+:link(poly-Daw)
 [(Daw)] M. S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).

@@ -395,7 +395,9 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
 
   sendmax_proc = 0;
   for (i = 0; i < nsend_proc; i++) {
-    MPI_Send(&length_send[i],1,MPI_INT,proc_send[i],0,world);
+    MPI_Request tmpReq; // Use non-blocking send to avoid possible deadlock
+    MPI_Isend(&length_send[i],1,MPI_INT,proc_send[i],0,world,&tmpReq);
+    MPI_Request_free(&tmpReq); // the MPI_Barrier below marks completion
     sendmax_proc = MAX(sendmax_proc,length_send[i]);
   }
 
@@ -641,7 +643,9 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
   sendmax_proc = 0;
   for (i = 0; i < nsend_proc; i++) {
-    MPI_Send(&num_send[i],1,MPI_INT,proc_send[i],0,world);
+    MPI_Request tmpReq; // Use non-blocking send to avoid possible deadlock
+    MPI_Isend(&num_send[i],1,MPI_INT,proc_send[i],0,world,&tmpReq);
+    MPI_Request_free(&tmpReq); // the MPI_Barrier below marks completion
     sendmax_proc = MAX(sendmax_proc,num_send[i]);
   }
 

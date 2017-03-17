@@ -36,9 +36,9 @@ def main():
                 if m:
                     label = m.group(1)
                     if label in anchors:
-                        anchors[label].append((filename, line_number))
+                        anchors[label].append((filename, line_number+1))
                     else:
-                        anchors[label] = [(filename, line_number)]
+                        anchors[label] = [(filename, line_number+1)]
 
     count = 0
 

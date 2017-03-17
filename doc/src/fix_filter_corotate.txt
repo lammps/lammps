@@ -31,26 +31,29 @@ fix cor all filter/corotate b 4 19 a 3 5 2 :pre
 
 [Description:]
 
-This fix implements a corotational filter for a mollified impulse method. In 
-biomolecular simulations, it allows the usage of larger timesteps for  
-long-range electrostatic interactions. For details, see "(Fath)"_#Fath2017.
+This fix implements a corotational filter for a mollified impulse
+method. In biomolecular simulations, it allows the usage of larger
+timesteps for long-range electrostatic interactions.  For details, see
+"(Fath)"_#Fath2017.
 
-When using "run_style respa"_run_style.html for a biomolecular simulation with high-frequency covalent 
-bonds, the outer time-step is restricted to below ~ 4fs due to resonance 
-problems. This fix filters the outer stage of the respa and thus a larger 
-(outer) time-step can be used. Since in large biomolecular simulations the 
-computation of the long-range electrostatic contributions poses a major 
-bottleneck, this can significantly accelerate the simulation.
+When using "run_style respa"_run_style.html for a biomolecular
+simulation with high-frequency covalent bonds, the outer time-step is
+restricted to below ~ 4fs due to resonance problems. This fix filters
+the outer stage of the respa and thus a larger (outer) time-step can
+be used. Since in large biomolecular simulations the computation of
+the long-range electrostatic contributions poses a major bottleneck,
+this can significantly accelerate the simulation.
 
-The filter computes a cluster decomposition of the molecular structure following 
-the criteria indicated by the options a, b, t and m. This process is similar to 
-the approach in "fix shake"_fix_shake.html, however, the clusters are not kept 
-contrained. Instead, the position is slightly modified only for the computation 
-of long-range forces. A good cluster decomposition constitutes in building 
-clusters which contain the fastest covalent bonds inside clusters.
+The filter computes a cluster decomposition of the molecular structure
+following the criteria indicated by the options a, b, t and m. This
+process is similar to the approach in "fix shake"_fix_shake.html,
+however, the clusters are not kept contrained. Instead, the position
+is slightly modified only for the computation of long-range forces. A
+good cluster decomposition constitutes in building clusters which
+contain the fastest covalent bonds inside clusters.
 
-If the clusters are chosen suitably, the "run_style respa"_run_style.html is stable for outer 
-time-steps of at least 8fs.
+If the clusters are chosen suitably, the "run_style
+respa"_run_style.html is stable for outer time-steps of at least 8fs.
 
 :line
 

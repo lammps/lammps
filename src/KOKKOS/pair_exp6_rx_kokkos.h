@@ -133,6 +133,9 @@ class PairExp6rxKokkos : public PairExp6rx {
   KOKKOS_INLINE_FUNCTION
   void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
 
+  template <class ArrayT>
+  void getMixingWeightsVect(const int, int, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &) const;
+
   KOKKOS_INLINE_FUNCTION
   void exponentScaling(double, double &, double &) const;
 

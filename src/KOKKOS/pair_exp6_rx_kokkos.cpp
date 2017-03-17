@@ -53,6 +53,22 @@ using namespace MathSpecialKokkos;
 #define exp6PotentialType (1)
 #define isExp6PotentialType(_type) ( (_type) == exp6PotentialType )
 
+namespace /* anonymous */
+{
+
+//typedef double TimerType;
+//TimerType getTimeStamp(void) { return MPI_Wtime(); }
+//double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
+
+typedef struct timespec TimerType;
+TimerType getTimeStamp(void) { TimerType tick; clock_gettime( CLOCK_MONOTONIC, &tick); return tick; }
+double getElapsedTime( const TimerType &t0, const TimerType &t1)
+{
+   return (t1.tv_sec - t0.tv_sec) + 1e-9*(t1.tv_nsec - t0.tv_nsec);
+}
+
+} // end namespace
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -121,6 +137,8 @@ void PairExp6rxKokkos<DeviceType>::init_style()
 template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
+  TimerType t_start = getTimeStamp();
+
   copymode = 1;
 
   eflag = eflag_in;
@@ -165,6 +183,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // and ghost atoms. Make the parameter data persistent
   // and exchange like any other atom property later.
 
+  TimerType t_mix_start = getTimeStamp();
   {
      const int np_total = nlocal + atom->nghost;
 
@@ -185,8 +204,77 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
      PairExp6ParamData.rmOld2       = typename AT::t_float_1d("PairExp6ParamData.rmOld2"      ,np_total);
      PairExp6ParamData.mixWtSite2old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2old",np_total);
 
-     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxgetMixingWeights>(0,np_total),*this);
+     //Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxgetMixingWeights>(0,np_total),*this);
+
+     //typename AT::t_float_1d epsilon1     ("epsilon1"    ,np_total);
+     //typename AT::t_float_1d alpha1       ("alpha1"      ,np_total);
+     //typename AT::t_float_1d rm1          ("rm1"         ,np_total);
+     //typename AT::t_float_1d mixWtSite1   ("mixWtSite1"   ,np_total);
+     //typename AT::t_float_1d epsilon2     ("epsilon2"    ,np_total);
+     //typename AT::t_float_1d alpha2       ("alpha2"      ,np_total);
+     //typename AT::t_float_1d rm2          ("rm2"         ,np_total);
+     //typename AT::t_float_1d mixWtSite2   ("mixWtSite2"   ,np_total);
+     //typename AT::t_float_1d epsilonOld1  ("epsilonOld1" ,np_total);
+     //typename AT::t_float_1d alphaOld1    ("alphaOld1"   ,np_total);
+     //typename AT::t_float_1d rmOld1       ("rmOld1"      ,np_total);
+     //typename AT::t_float_1d mixWtSite1old("mixWtSite1old",np_total);
+     //typename AT::t_float_1d epsilonOld2  ("epsilonOld2" ,np_total);
+     //typename AT::t_float_1d alphaOld2    ("alphaOld2"   ,np_total);
+     //typename AT::t_float_1d rmOld2       ("rmOld2"      ,np_total);
+     //typename AT::t_float_1d mixWtSite2old("mixWtSite2old",np_total);
+
+     int errorFlag = 0;
+     getMixingWeightsVect (np_total, errorFlag, PairExp6ParamData.epsilon1,
+                                                PairExp6ParamData.alpha1,
+                                                PairExp6ParamData.rm1,
+                                                PairExp6ParamData.mixWtSite1,
+                                                PairExp6ParamData.epsilon2,
+                                                PairExp6ParamData.alpha2,
+                                                PairExp6ParamData.rm2,
+                                                PairExp6ParamData.mixWtSite2,
+                                                PairExp6ParamData.epsilonOld1,
+                                                PairExp6ParamData.alphaOld1,
+                                                PairExp6ParamData.rmOld1,
+                                                PairExp6ParamData.mixWtSite1old,
+                                                PairExp6ParamData.epsilonOld2,
+                                                PairExp6ParamData.alphaOld2,
+                                                PairExp6ParamData.rmOld2,
+                                                PairExp6ParamData.mixWtSite2old);
+     if (errorFlag == 1)
+       error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
+     else if (errorFlag == 2)
+       error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
+
+     //#define _test_var(var) { \
+     //  double ref2 = 0, err2 = 0; \
+     //  for (int id = 0; id < np_total; ++id) \
+     //  { \
+     //     double ref = PairExp6ParamData. var [id]; \
+     //     double diff = ref - var[id]; \
+     //     ref2 += ref*ref; \
+     //     err2 += diff*diff; \
+     //  } \
+     //  if (ref2 < 1e-20) ref2 = 1.0; \
+     //  if (sqrt(err2)/sqrt(ref2) > 1e-12) \
+     //     printf("%s: %e %e %e\n", # var, sqrt(ref2), sqrt(err2), sqrt(err2)/sqrt(ref2)); \
+     //}
+     //_test_var( epsilon1);
+     //_test_var( alpha1);
+     //_test_var( rm1);
+     //_test_var( epsilon2);
+     //_test_var( alpha2);
+     //_test_var( rm2);
+     //_test_var( mixWtSite2);
+     //_test_var( epsilonOld1);
+     //_test_var( alphaOld1);
+     //_test_var( rmOld1);
+     //_test_var( mixWtSite1old);
+     //_test_var( epsilonOld2);
+     //_test_var( alphaOld2);
+     //_test_var( rmOld2);
+     //_test_var( mixWtSite2old);
   }
+  TimerType t_mix_stop = getTimeStamp();
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
@@ -259,6 +347,9 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   copymode = 0;
+
+  TimerType t_stop = getTimeStamp();
+  printf("PairExp6rxKokkos::compute %f %f\n", getElapsedTime(t_start, t_stop), getElapsedTime(t_mix_start, t_mix_stop));
 }
 
 template<class DeviceType>
@@ -917,6 +1008,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,doub
       nMoleculesOld2 = dvector(ispecies+nspecies,id);
       nMolecules2 = dvector(ispecies,id);
       fractionOld2 = dvector(ispecies+nspecies,id)/nTotalold;
+      fraction2 = nMolecules2/nTotal;
     }
 
     // If Site1 or Site2 matches is a fluid, then compute the paramters
@@ -1070,6 +1162,385 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,doub
     mixWtSite2old = nMoleculesOld2;
     mixWtSite2 = nMolecules2;
   }
+}
+
+#ifdef _OPENMP
+void partition_range( const int begin, const int end, int &thread_begin, int &thread_end, const int chunkSize = 1)
+{
+   int threadId = omp_get_thread_num();
+   int nThreads = omp_get_num_threads();
+
+   const int len = end - begin;
+   const int nBlocks = (len + (chunkSize - 1)) / chunkSize;
+   const int nBlocksPerThread = nBlocks / nThreads;
+   const int nRemaining = nBlocks - nBlocksPerThread * nThreads;
+   int block_lo, block_hi;
+   if (threadId < nRemaining)
+   {
+      block_lo = threadId * nBlocksPerThread + threadId;
+      block_hi = block_lo + nBlocksPerThread + 1;
+   }
+   else
+   {
+      block_lo = threadId * nBlocksPerThread + nRemaining;
+      block_hi = block_lo + nBlocksPerThread;
+   }
+
+   thread_begin = std::min(begin + block_lo * chunkSize, end);
+   thread_end   = std::min(begin + block_hi * chunkSize, end);
+   //printf("tid: %d %d %d %d %d\n", threadId, block_lo, block_hi, thread_begin, thread_end);
+}
+#endif
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+  template<class ArrayT>
+void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag, 
+                          ArrayT &epsilon1, ArrayT &alpha1, ArrayT &rm1,  ArrayT &mixWtSite1, ArrayT &epsilon2, ArrayT &alpha2, ArrayT &rm2, ArrayT &mixWtSite2, ArrayT &epsilon1_old, ArrayT &alpha1_old, ArrayT &rm1_old,  ArrayT &mixWtSite1old, ArrayT &epsilon2_old, ArrayT &alpha2_old, ArrayT &rm2_old, ArrayT &mixWtSite2old) const
+{
+  ArrayT epsilon("PairExp6ParamData.epsilon",  np_total);
+  ArrayT rm3("PairExp6ParamData.rm3",  np_total);
+  ArrayT alpha("PairExp6ParamData.alpha",  np_total);
+  ArrayT xMolei("PairExp6ParamData.xMolei",  np_total);
+
+  ArrayT epsilon_old("PairExp6ParamData.epsilon_old",  np_total);
+  ArrayT rm3_old("PairExp6ParamData.rm3_old",  np_total);
+  ArrayT alpha_old("PairExp6ParamData.alpha_old",  np_total);
+  ArrayT xMolei_old("PairExp6ParamData.xMolei_old",  np_total);
+
+  ArrayT fractionOFA("PairExp6ParamData.fractionOFA",  np_total);
+  ArrayT fraction1("PairExp6ParamData.fraction1",  np_total);
+  ArrayT fraction2("PairExp6ParamData.fraction2",  np_total);
+  ArrayT nMoleculesOFA("PairExp6ParamData.nMoleculesOFA",  np_total);
+  ArrayT nMolecules1("PairExp6ParamData.nMolecules1",  np_total);
+  ArrayT nMolecules2("PairExp6ParamData.nMolecules2",  np_total);
+  ArrayT nTotal("PairExp6ParamData.nTotal",  np_total);
+
+  ArrayT fractionOFAold("PairExp6ParamData.fractionOFAold",  np_total);
+  ArrayT fractionOld1("PairExp6ParamData.fractionOld1",  np_total);
+  ArrayT fractionOld2("PairExp6ParamData.fractionOld2",  np_total);
+  ArrayT nMoleculesOFAold("PairExp6ParamData.nMoleculesOFAold",  np_total);
+  ArrayT nMoleculesOld1("PairExp6ParamData.nMoleculesOld1",  np_total);
+  ArrayT nMoleculesOld2("PairExp6ParamData.nMoleculesOld2",  np_total);
+  ArrayT nTotalold("PairExp6ParamData.nTotalold",  np_total);
+
+  int errorFlag1 = 0, errorFlag2 = 0;
+
+#ifdef _OPENMP
+  #pragma omp parallel reduction(+: errorFlag1, errorFlag2)
+#endif
+  {
+    int idx_begin = 0, idx_end = np_total;
+#ifdef _OPENMP
+    partition_range( 0, np_total, idx_begin, idx_end, 16 );
+#endif
+
+  // Zero out all of the terms first.
+  #pragma ivdep
+  for (int id = idx_begin; id < idx_end; ++id)
+  {
+     rm3[id] = 0.0;
+     epsilon[id] = 0.0;
+     alpha[id] = 0.0;
+     epsilon_old[id] = 0.0;
+     rm3_old[id] = 0.0;
+     alpha_old[id] = 0.0;
+     fractionOFA[id] = 0.0;
+     fractionOFAold[id] = 0.0;
+     nMoleculesOFA[id] = 0.0;
+     nMoleculesOFAold[id] = 0.0;
+     nTotal[id] = 0.0;
+     nTotalold[id] = 0.0;
+  }
+
+  // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
+  for (int ispecies = 0; ispecies < nspecies; ispecies++)
+  {
+    #pragma ivdep
+    for (int id = idx_begin; id < idx_end; ++id)
+    {
+      nTotal[id] += dvector(ispecies,id);
+      nTotalold[id] += dvector(ispecies+nspecies,id);
+    }
+
+    const int iparam = d_mol2param[ispecies];
+
+    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
+      if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
+
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        nMoleculesOFAold[id] += dvector(ispecies+nspecies,id);
+        nMoleculesOFA[id] += dvector(ispecies,id);
+      }
+    }
+  }
+
+  // Make a reduction.
+  #pragma omp simd reduction(+:errorFlag1)
+  for (int id = idx_begin; id < idx_end; ++id)
+  {
+    if ( nTotal[id] < MY_EPSILON || nTotalold[id] < MY_EPSILON )
+      errorFlag1 = 1;
+
+    // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
+    fractionOFAold[id] = nMoleculesOFAold[id] / nTotalold[id];
+    fractionOFA[id] = nMoleculesOFA[id] / nTotal[id];
+  }
+
+  for (int ispecies = 0; ispecies < nspecies; ispecies++) {
+    const int iparam = d_mol2param[ispecies];
+    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+
+    // If Site1 matches a pure species, then grab the parameters
+    if (isite1 == d_params[iparam].ispecies)
+    {
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        rm1_old[id] = d_params[iparam].rm;
+        rm1[id] = d_params[iparam].rm;
+        epsilon1_old[id] = d_params[iparam].epsilon;
+        epsilon1[id] = d_params[iparam].epsilon;
+        alpha1_old[id] = d_params[iparam].alpha;
+        alpha1[id] = d_params[iparam].alpha;
+
+        // Compute the mole fraction of Site1
+        nMoleculesOld1[id] = dvector(ispecies+nspecies,id);
+        nMolecules1[id] = dvector(ispecies,id);
+        fractionOld1[id] = nMoleculesOld1[id]/nTotalold[id];
+        fraction1[id] = nMolecules1[id]/nTotal[id];
+      }
+    }
+
+    // If Site2 matches a pure species, then grab the parameters
+    if (isite2 == d_params[iparam].ispecies)
+    {
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        rm2_old[id] = d_params[iparam].rm;
+        rm2[id] = d_params[iparam].rm;
+        epsilon2_old[id] = d_params[iparam].epsilon;
+        epsilon2[id] = d_params[iparam].epsilon;
+        alpha2_old[id] = d_params[iparam].alpha;
+        alpha2[id] = d_params[iparam].alpha;
+
+        // Compute the mole fraction of Site2
+        nMoleculesOld2[id] = dvector(ispecies+nspecies,id);
+        nMolecules2[id] = dvector(ispecies,id);
+        fractionOld2[id] = nMoleculesOld2[id]/nTotalold[id];
+        fraction2[id] = nMolecules2[id]/nTotal[id];
+      }
+    }
+
+    // If Site1 or Site2 matches is a fluid, then compute the paramters
+    if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
+      if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
+
+      const double rmi = d_params[iparam].rm;
+      const double epsiloni = d_params[iparam].epsilon;
+      const double alphai = d_params[iparam].alpha;
+
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        if(nMoleculesOFA[id]<MY_EPSILON) xMolei[id] = 0.0;
+        else xMolei[id] = dvector(ispecies,id)/nMoleculesOFA[id];
+        if(nMoleculesOFAold[id]<MY_EPSILON) xMolei_old[id] = 0.0;
+        else xMolei_old[id] = dvector(ispecies+nspecies,id)/nMoleculesOFAold[id];
+      }
+
+      for (int jspecies = 0; jspecies < nspecies; jspecies++) {
+        const int jparam = d_mol2param[jspecies];
+        if (jparam < 0 || d_params[jparam].potentialType != exp6PotentialType ) continue;
+        if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
+
+        const double rmj = d_params[jparam].rm;
+        const double epsilonj = d_params[jparam].epsilon;
+        const double alphaj = d_params[jparam].alpha;
+
+        const double rmij = (rmi+rmj)/2.0;
+        const double rm3ij = rmij*rmij*rmij;
+        const double epsilonij = sqrt(epsiloni*epsilonj);
+        const double alphaij = sqrt(alphai*alphaj);
+
+        #pragma ivdep
+        for (int id = idx_begin; id < idx_end; ++id)
+        {
+          double xMolej, xMolej_old;
+          if(nMoleculesOFA[id]<MY_EPSILON) xMolej = 0.0;
+          else xMolej = dvector(jspecies,id)/nMoleculesOFA[id];
+          if(nMoleculesOFAold[id]<MY_EPSILON) xMolej_old = 0.0;
+          else xMolej_old = dvector(jspecies+nspecies,id)/nMoleculesOFAold[id];
+
+          if(fractionOFAold[id] > 0.0){
+            rm3_old[id] += xMolei_old[id]*xMolej_old*rm3ij;
+            epsilon_old[id] += xMolei_old[id]*xMolej_old*rm3ij*epsilonij;
+            alpha_old[id] += xMolei_old[id]*xMolej_old*rm3ij*epsilonij*alphaij;
+          }
+          if(fractionOFA[id] > 0.0){
+            rm3[id] += xMolei[id]*xMolej*rm3ij;
+            epsilon[id] += xMolei[id]*xMolej*rm3ij*epsilonij;
+            alpha[id] += xMolei[id]*xMolej*rm3ij*epsilonij*alphaij;
+          }
+        }
+      }
+    }
+  }
+
+  if (isOneFluidApprox(isite1))
+  {
+    #pragma ivdep
+    for (int id = idx_begin; id < idx_end; ++id)
+    {
+      rm1[id] = cbrt(rm3[id]);
+      if(rm1[id] < MY_EPSILON) {
+        rm1[id] = 0.0;
+        epsilon1[id] = 0.0;
+        alpha1[id] = 0.0;
+      } else {
+        epsilon1[id] = epsilon[id] / rm3[id];
+        alpha1[id] = alpha[id] / epsilon1[id] / rm3[id];
+      }
+      nMolecules1[id] = 1.0-(nTotal[id]-nMoleculesOFA[id]);
+      fraction1[id] = fractionOFA[id];
+
+      rm1_old[id] = cbrt(rm3_old[id]);
+      if(rm1_old[id] < MY_EPSILON) {
+        rm1_old[id] = 0.0;
+        epsilon1_old[id] = 0.0;
+        alpha1_old[id] = 0.0;
+      } else {
+        epsilon1_old[id] = epsilon_old[id] / rm3_old[id];
+        alpha1_old[id] = alpha_old[id] / epsilon1_old[id] / rm3_old[id];
+      }
+      nMoleculesOld1[id] = 1.0-(nTotalold[id]-nMoleculesOFAold[id]);
+      fractionOld1[id] = fractionOFAold[id];
+    }
+
+    if(scalingFlag == EXPONENT) {
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        exponentScaling(nMoleculesOFA[id],epsilon1[id],rm1[id]);
+        exponentScaling(nMoleculesOFAold[id],epsilon1_old[id],rm1_old[id]);
+      }
+    }
+    else if(scalingFlag == POLYNOMIAL){
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        polynomialScaling(nMoleculesOFA[id],alpha1[id],epsilon1[id],rm1[id]);
+        polynomialScaling(nMoleculesOFAold[id],alpha1_old[id],epsilon1_old[id],rm1_old[id]);
+      }
+    }
+  }
+
+  if (isOneFluidApprox(isite2))
+  {
+    #pragma ivdep
+    for (int id = idx_begin; id < idx_end; ++id)
+    {
+      rm2[id] = cbrt(rm3[id]);
+      if(rm2[id] < MY_EPSILON) {
+        rm2[id] = 0.0;
+        epsilon2[id] = 0.0;
+        alpha2[id] = 0.0;
+      } else {
+        epsilon2[id] = epsilon[id] / rm3[id];
+        alpha2[id] = alpha[id] / epsilon2[id] / rm3[id];
+      }
+      nMolecules2[id] = 1.0-(nTotal[id]-nMoleculesOFA[id]);
+      fraction2[id] = fractionOFA[id];
+
+      rm2_old[id] = cbrt(rm3_old[id]);
+      if(rm2_old[id] < MY_EPSILON) {
+        rm2_old[id] = 0.0;
+        epsilon2_old[id] = 0.0;
+        alpha2_old[id] = 0.0;
+      } else {
+        epsilon2_old[id] = epsilon_old[id] / rm3_old[id];
+        alpha2_old[id] = alpha_old[id] / epsilon2_old[id] / rm3_old[id];
+      }
+      nMoleculesOld2[id] = 1.0-(nTotalold[id]-nMoleculesOFAold[id]);
+      fractionOld2[id] = fractionOFAold[id];
+    }
+
+    if(scalingFlag == EXPONENT){
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        exponentScaling(nMoleculesOFA[id],epsilon2[id],rm2[id]);
+        exponentScaling(nMoleculesOFAold[id],epsilon2_old[id],rm2_old[id]);
+      }
+    }
+    else if(scalingFlag == POLYNOMIAL){
+      #pragma ivdep
+      for (int id = idx_begin; id < idx_end; ++id)
+      {
+        polynomialScaling(nMoleculesOFA[id],alpha2[id],epsilon2[id],rm2[id]);
+        polynomialScaling(nMoleculesOFAold[id],alpha2_old[id],epsilon2_old[id],rm2_old[id]);
+      }
+    }
+  }
+
+  // Check that no fractions are less than zero
+  #pragma omp simd reduction(+:errorFlag2)
+  for (int id = idx_begin; id < idx_end; ++id)
+  {
+    if(fraction1[id] < 0.0 || nMolecules1[id] < 0.0){
+      if(fraction1[id] < -MY_EPSILON || nMolecules1[id] < -MY_EPSILON){
+        errorFlag2 = 2;
+      }
+      nMolecules1[id] = 0.0;
+      fraction1[id] = 0.0;
+    }
+    if(fraction2[id] < 0.0 || nMolecules2[id] < 0.0){
+      if(fraction2[id] < -MY_EPSILON || nMolecules2[id] < -MY_EPSILON){
+        errorFlag2 = 2;
+      }
+      nMolecules2[id] = 0.0;
+      fraction2[id] = 0.0;
+    }
+    if(fractionOld1[id] < 0.0 || nMoleculesOld1[id] < 0.0){
+      if(fractionOld1[id] < -MY_EPSILON || nMoleculesOld1[id] < -MY_EPSILON){
+        errorFlag2 = 2;
+      }
+      nMoleculesOld1[id] = 0.0;
+      fractionOld1[id] = 0.0;
+    }
+    if(fractionOld2[id] < 0.0 || nMoleculesOld2[id] < 0.0){
+      if(fractionOld2[id] < -MY_EPSILON || nMoleculesOld2[id] < -MY_EPSILON){
+        errorFlag2 = 2;
+      }
+      nMoleculesOld2[id] = 0.0;
+      fractionOld2[id] = 0.0;
+    }
+
+    if(fractionalWeighting){
+      mixWtSite1old[id] = fractionOld1[id];
+      mixWtSite1[id] = fraction1[id];
+      mixWtSite2old[id] = fractionOld2[id];
+      mixWtSite2[id] = fraction2[id];
+    } else {
+      mixWtSite1old[id] = nMoleculesOld1[id];
+      mixWtSite1[id] = nMolecules1[id];
+      mixWtSite2old[id] = nMoleculesOld2[id];
+      mixWtSite2[id] = nMolecules2[id];
+    }
+  }
+
+  } // end parallel region
+
+  if (errorFlag1 > 0)
+    errorFlag = 1;
+
+  if (errorFlag2 > 0)
+    errorFlag = 2;
 }
 
 /* ---------------------------------------------------------------------- */

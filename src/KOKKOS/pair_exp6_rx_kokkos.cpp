@@ -349,7 +349,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 0;
 
   TimerType t_stop = getTimeStamp();
-  //printf("PairExp6rxKokkos::compute %f %f\n", getElapsedTime(t_start, t_stop), getElapsedTime(t_mix_start, t_mix_stop));
+  printf("PairExp6rxKokkos::compute %f %f\n", getElapsedTime(t_start, t_stop), getElapsedTime(t_mix_start, t_mix_stop));
 }
 
 template<class DeviceType>
@@ -377,6 +377,14 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+
+  {
+    if (isite1 == isite2)
+      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, true>(ii, ev);
+    else
+      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,true>(ii, ev);
+    return;
+  }
 
   // These arrays are atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
@@ -734,6 +742,14 @@ template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
+  {
+    if (isite1 == isite2)
+      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, false>(ii, ev);
+    else
+      this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,false,false>(ii, ev);
+    return;
+  }
+
   int tid = 0;
 #ifndef KOKKOS_HAVE_CUDA
   tid = DeviceType::hardware_thread_id();
@@ -1073,6 +1089,506 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   t_f(tid,i,2) += fz_i;
   t_uCG(tid,i) += uCG_i;
   t_uCGnew(tid,i) += uCGnew_i;
+}
+
+// Experimental thread-safe approach using duplicated data instead of atomics and
+// temporary local short vector arrays for the inner j-loop to increase vectorization.
+
+template<int n>
+  KOKKOS_INLINE_FUNCTION
+double __powint(const double& x, const int)
+{
+   static_assert(n == 12, "__powint<> only supports specific integer powers.");
+
+   if (n == 12)
+   {
+     // Do x^12 here ... x^12 = (x^3)^4
+     double x3 = x*x*x;
+     return x3*x3*x3*x3;
+   }
+}
+
+template<class DeviceType>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& ev) const
+{
+  // These arrays are atomic for Half/Thread neighbor style
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCG = uCG;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
+
+  int tid = 0;
+#ifndef KOKKOS_HAVE_CUDA
+  tid = DeviceType::hardware_thread_id();
+#endif
+
+  const int nRep = 12;
+  const double shift = 1.05;
+
+  const int i = d_ilist[ii];
+  const double xtmp = x(i,0);
+  const double ytmp = x(i,1);
+  const double ztmp = x(i,2);
+  const int itype = type[i];
+  const int jnum = d_numneigh[i];
+
+  double fx_i = 0.0;
+  double fy_i = 0.0;
+  double fz_i = 0.0;
+  double uCG_i = 0.0;
+  double uCGnew_i = 0.0;
+
+  // Constant values for this atom.
+  const double epsilon1_i      = PairExp6ParamData.epsilon1[i];
+  const double alpha1_i        = PairExp6ParamData.alpha1[i];
+  const double rm1_i           = PairExp6ParamData.rm1[i];
+  const double mixWtSite1_i    = PairExp6ParamData.mixWtSite1[i];
+  const double epsilon2_i      = PairExp6ParamData.epsilon2[i];
+  const double alpha2_i        = PairExp6ParamData.alpha2[i];
+  const double rm2_i           = PairExp6ParamData.rm2[i];
+  const double mixWtSite2_i    = PairExp6ParamData.mixWtSite2[i];
+  const double epsilonOld1_i   = PairExp6ParamData.epsilonOld1[i];
+  const double alphaOld1_i     = PairExp6ParamData.alphaOld1[i];
+  const double rmOld1_i        = PairExp6ParamData.rmOld1[i];
+  const double mixWtSite1old_i = PairExp6ParamData.mixWtSite1old[i];
+  const double epsilonOld2_i   = PairExp6ParamData.epsilonOld2[i];
+  const double alphaOld2_i     = PairExp6ParamData.alphaOld2[i];
+  const double rmOld2_i        = PairExp6ParamData.rmOld2[i];
+  const double mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
+
+  // Do error testing locally.
+  bool hasError = false;
+
+  // Process this many neighbors concurrently -- if possible.
+  const int batchSize = 8;
+
+  int neigh_j[batchSize];
+  double evdwlOld_j[batchSize];
+  double uCGnew_j[batchSize];
+  double fpair_j[batchSize];
+  double delx_j[batchSize];
+  double dely_j[batchSize];
+  double delz_j[batchSize];
+  double cutsq_j[batchSize];
+  //double j_epsilon1[batchSize]      ;
+  //double j_alpha1[batchSize]        ;
+  //double j_rm1[batchSize]           ;
+  //double j_mixWtSite1[batchSize]    ;
+  //double j_epsilon2[batchSize]      ;
+  //double j_alpha2[batchSize]        ;
+  //double j_rm2[batchSize]           ;
+  //double j_mixWtSite2[batchSize]    ;
+  //double j_epsilonOld1[batchSize]   ;
+  //double j_alphaOld1[batchSize]     ;
+  //double j_rmOld1[batchSize]        ;
+  //double j_mixWtSite1old[batchSize] ;
+  //double j_epsilonOld2[batchSize]   ;
+  //double j_alphaOld2[batchSize]     ;
+  //double j_rmOld2[batchSize]        ;
+  //double j_mixWtSite2old[batchSize] ;
+
+  for (int jptr = 0; jptr < jnum; )
+  {
+    // The core computation here is very expensive so let's only bother with
+    // those that pass rsq < cutsq.
+
+    for (int j = 0; j < batchSize; ++j)
+    {
+      evdwlOld_j[j] = 0.0;
+      uCGnew_j[j] = 0.0;
+      fpair_j[j] = 0.0;
+      //delx_j[j] = 0.0;
+      //dely_j[j] = 0.0;
+      //delz_j[j] = 0.0;
+      //cutsq_j[j] = 0.0;
+    }
+
+    int niters = 0;
+
+    for (; (jptr < jnum) && (niters < batchSize); ++jptr)
+    {
+      const int j = d_neighbors(i,jptr) & NEIGHMASK;
+
+      const double delx = xtmp - x(j,0);
+      const double dely = ytmp - x(j,1);
+      const double delz = ztmp - x(j,2);
+
+      const double rsq = delx*delx + dely*dely + delz*delz;
+      const int jtype = type[j];
+
+      if (rsq < d_cutsq(itype,jtype))
+      {
+        delx_j [niters] = delx;
+        dely_j [niters] = dely;
+        delz_j [niters] = delz;
+        cutsq_j[niters] = d_cutsq(itype,jtype);
+
+        neigh_j[niters] = d_neighbors(i,jptr);
+
+        //j_epsilon1[niters]      = PairExp6ParamData.epsilon1[j];
+        //j_alpha1[niters]        = PairExp6ParamData.alpha1[j];
+        //j_rm1[niters]           = PairExp6ParamData.rm1[j];
+        //j_mixWtSite1[niters]    = PairExp6ParamData.mixWtSite1[j];
+        //j_epsilon2[niters]      = PairExp6ParamData.epsilon2[j];
+        //j_alpha2[niters]        = PairExp6ParamData.alpha2[j];
+        //j_rm2[niters]           = PairExp6ParamData.rm2[j];
+        //j_mixWtSite2[niters]    = PairExp6ParamData.mixWtSite2[j];
+        //j_epsilonOld1[niters]   = PairExp6ParamData.epsilonOld1[j];
+        //j_alphaOld1[niters]     = PairExp6ParamData.alphaOld1[j];
+        //j_rmOld1[niters]        = PairExp6ParamData.rmOld1[j];
+        //j_mixWtSite1old[niters] = PairExp6ParamData.mixWtSite1old[j];
+        //j_epsilonOld2[niters]   = PairExp6ParamData.epsilonOld2[j];
+        //j_alphaOld2[niters]     = PairExp6ParamData.alphaOld2[j];
+        //j_rmOld2[niters]        = PairExp6ParamData.rmOld2[j];
+        //j_mixWtSite2old[niters] = PairExp6ParamData.mixWtSite2old[j];
+
+        ++niters;
+      }
+    }
+
+    // reduction here.
+    #pragma simd reduction(+: fx_i, fy_i, fz_i, uCG_i, uCGnew_i) reduction(|: hasError)
+    for (int jlane = 0; jlane < niters; jlane++)
+    {
+      int j = neigh_j[jlane];
+      const double factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
+      const double delx = delx_j[jlane];
+      const double dely = dely_j[jlane];
+      const double delz = delz_j[jlane];
+
+      const double rsq = delx*delx + dely*dely + delz*delz;
+      // const int jtype = type[j];
+
+      // if (rsq < d_cutsq(itype,jtype)) // optimize
+      {
+        const double r2inv = 1.0/rsq;
+        const double r6inv = r2inv*r2inv*r2inv;
+
+        const double r = sqrt(rsq);
+        const double rCut2inv = 1.0/ cutsq_j[jlane];
+        const double rCut6inv = rCut2inv*rCut2inv*rCut2inv;
+        const double rCut = sqrt( cutsq_j[jlane] );
+        const double rCutInv = 1.0/rCut;
+
+        //
+        // A. Compute the exp-6 potential
+        //
+
+        // A1.  Get alpha, epsilon and rm for particle j
+
+        const double epsilon1_j      = PairExp6ParamData.epsilon1[j];
+        const double alpha1_j        = PairExp6ParamData.alpha1[j];
+        const double rm1_j           = PairExp6ParamData.rm1[j];
+        const double mixWtSite1_j    = PairExp6ParamData.mixWtSite1[j];
+        const double epsilon2_j      = PairExp6ParamData.epsilon2[j];
+        const double alpha2_j        = PairExp6ParamData.alpha2[j];
+        const double rm2_j           = PairExp6ParamData.rm2[j];
+        const double mixWtSite2_j    = PairExp6ParamData.mixWtSite2[j];
+        const double epsilonOld1_j   = PairExp6ParamData.epsilonOld1[j];
+        const double alphaOld1_j     = PairExp6ParamData.alphaOld1[j];
+        const double rmOld1_j        = PairExp6ParamData.rmOld1[j];
+        const double mixWtSite1old_j = PairExp6ParamData.mixWtSite1old[j];
+        const double epsilonOld2_j   = PairExp6ParamData.epsilonOld2[j];
+        const double alphaOld2_j     = PairExp6ParamData.alphaOld2[j];
+        const double rmOld2_j        = PairExp6ParamData.rmOld2[j];
+        const double mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
+        //const double epsilon1_j      = j_epsilon1[jlane];
+        //const double alpha1_j        = j_alpha1[jlane];
+        //const double rm1_j           = j_rm1[jlane];
+        //const double mixWtSite1_j    = j_mixWtSite1[jlane];
+        //const double epsilon2_j      = j_epsilon2[jlane];
+        //const double alpha2_j        = j_alpha2[jlane];
+        //const double rm2_j           = j_rm2[jlane];
+        //const double mixWtSite2_j    = j_mixWtSite2[jlane];
+        //const double epsilonOld1_j   = j_epsilonOld1[jlane];
+        //const double alphaOld1_j     = j_alphaOld1[jlane];
+        //const double rmOld1_j        = j_rmOld1[jlane];
+        //const double mixWtSite1old_j = j_mixWtSite1old[jlane];
+        //const double epsilonOld2_j   = j_epsilonOld2[jlane];
+        //const double alphaOld2_j     = j_alphaOld2[jlane];
+        //const double rmOld2_j        = j_rmOld2[jlane];
+        //const double mixWtSite2old_j = j_mixWtSite2old[jlane];
+
+        // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
+        const double alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
+        const double rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
+        const double epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
+        const double alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
+        const double rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
+        const double epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
+
+        const double alpha12_ij = sqrt(alpha1_i*alpha2_j);
+        const double rm12_ij = 0.5*(rm1_i + rm2_j);
+        const double epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
+        const double alpha21_ij = sqrt(alpha2_i*alpha1_j);
+        const double rm21_ij = 0.5*(rm2_i + rm1_j);
+        const double epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+
+        double evdwlOldEXP6_12 = 0.0;
+        double evdwlOldEXP6_21 = 0.0;
+        double evdwlEXP6_12 = 0.0;
+        double evdwlEXP6_21 = 0.0;
+        double fpairOldEXP6_12 = 0.0;
+        double fpairOldEXP6_21 = 0.0;
+
+        if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0)
+        {
+          hasError |= (alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0);
+
+          // A3.  Compute some convenient quantities for evaluating the force
+          double rminv = 1.0/rmOld12_ij;
+          double buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
+          double rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
+          double rm2ij = rmOld12_ij*rmOld12_ij;
+          double rm6ij = rm2ij*rm2ij*rm2ij;
+
+          // Compute the shifted potential
+          double rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
+          double buck2 = 6.0*alphaOld12_ij;
+          double urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
+          double durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
+          double rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
+
+          if(r < rin1){
+            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const double rin6inv = 1.0/rin6;
+
+            const double rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
+
+            const double uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+
+            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+
+            const double forceExp6 = double(nRep)*aRep/__powint<12>(r,nRep);
+            fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
+
+            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+          } else {
+            const double forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
+
+            evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          }
+
+          // A3.  Compute some convenient quantities for evaluating the force
+          rminv = 1.0/rmOld21_ij;
+          buck1 = epsilonOld21_ij / (alphaOld21_ij - 6.0);
+          buck2 = 6.0*alphaOld21_ij;
+          rexp = expValue(alphaOld21_ij*(1.0-r*rminv));
+          rm2ij = rmOld21_ij*rmOld21_ij;
+          rm6ij = rm2ij*rm2ij*rm2ij;
+
+          // Compute the shifted potential
+          rCutExp = expValue(alphaOld21_ij*(1.0-rCut*rminv));
+          buck2 = 6.0*alphaOld21_ij;
+          urc = buck1*(6.0*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
+          durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
+          rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
+
+          if(r < rin1){
+            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const double rin6inv = 1.0/rin6;
+
+            const double rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
+
+            const double uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+
+            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+
+            const double forceExp6 = double(nRep)*aRep/__powint<12>(r,nRep);
+            fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
+
+            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+          } else {
+            const double forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
+
+            evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          }
+
+          double evdwlOld;
+          if (Site1EqSite2)
+            evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
+          else
+            evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
+
+          evdwlOld *= factor_lj;
+
+          uCG_i += 0.5*evdwlOld;
+
+          evdwlOld_j[jlane] = evdwlOld;
+        }
+
+        if(rm12_ij!=0.0 && rm21_ij!=0.0)
+        {
+          hasError |= (alpha21_ij == 6.0 || alpha12_ij == 6.0);
+
+          // A3.  Compute some convenient quantities for evaluating the force
+          double rminv = 1.0/rm12_ij;
+          double buck1 = epsilon12_ij / (alpha12_ij - 6.0);
+          double buck2 = 6.0*alpha12_ij;
+          double rexp = expValue(alpha12_ij*(1.0-r*rminv));
+          double rm2ij = rm12_ij*rm12_ij;
+          double rm6ij = rm2ij*rm2ij*rm2ij;
+
+          // Compute the shifted potential
+          double rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
+          double urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
+          double durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
+          double rin1 = shift*rm12_ij*func_rin(alpha12_ij);
+
+          if(r < rin1){
+            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const double rin6inv = 1.0/rin6;
+
+            const double rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
+
+            const double uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+
+            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+
+            evdwlEXP6_12 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+          } else {
+            evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          }
+
+          rminv = 1.0/rm21_ij;
+          buck1 = epsilon21_ij / (alpha21_ij - 6.0);
+          buck2 = 6.0*alpha21_ij;
+          rexp = expValue(alpha21_ij*(1.0-r*rminv));
+          rm2ij = rm21_ij*rm21_ij;
+          rm6ij = rm2ij*rm2ij*rm2ij;
+
+          // Compute the shifted potential
+          rCutExp = expValue(alpha21_ij*(1.0-rCut*rminv));
+          urc = buck1*(6.0*rCutExp - alpha21_ij*rm6ij*rCut6inv);
+          durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
+          rin1 = shift*rm21_ij*func_rin(alpha21_ij);
+
+          if(r < rin1){
+            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const double rin6inv = 1.0/rin6;
+
+            const double rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
+
+            const double uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+
+            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+
+            evdwlEXP6_21 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+          } else {
+            evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          }
+        }
+
+        //
+        // Apply Mixing Rule to get the overall force for the CG pair
+        //
+        double fpair;
+        if (Site1EqSite2)
+          fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+        else
+          fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+
+        double evdwl;
+        if (Site1EqSite2)
+          evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+        else
+          evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+
+        evdwl *= factor_lj;
+
+        fpair_j[jlane] = fpair;
+
+        fx_i += delx*fpair;
+        fy_i += dely*fpair;
+        fz_i += delz*fpair;
+
+        uCGnew_i += 0.5*evdwl;
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD))
+          uCGnew_j[jlane] = 0.5*evdwl;
+
+      } // if rsq < cutsq
+
+    } // end jlane loop.
+
+    for (int jlane = 0; jlane < niters; jlane++)
+    {
+      const int j = neigh_j[jlane] & NEIGHMASK;
+
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
+        if (UseAtomics)
+          a_uCG(j) += 0.5*evdwlOld_j[jlane];
+        else
+          t_uCG(tid,j) += 0.5*evdwlOld_j[jlane];
+
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
+        if (UseAtomics)
+          a_uCGnew(j) += uCGnew_j[jlane];
+        else
+          t_uCGnew(tid,j) += uCGnew_j[jlane];
+
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+        if (UseAtomics)
+        {
+          a_f(j,0) -= delx_j[jlane]*fpair_j[jlane];
+          a_f(j,1) -= dely_j[jlane]*fpair_j[jlane];
+          a_f(j,2) -= delz_j[jlane]*fpair_j[jlane];
+        }
+        else
+        {
+          t_f(tid,j,0) -= delx_j[jlane]*fpair_j[jlane];
+          t_f(tid,j,1) -= dely_j[jlane]*fpair_j[jlane];
+          t_f(tid,j,2) -= delz_j[jlane]*fpair_j[jlane];
+        }
+      }
+
+      double evdwl = evdwlOld_j[jlane];
+      if (EVFLAG)
+        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+      //if (vflag_either || eflag_atom) 
+      if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair_j[jlane],delx_j[jlane],dely_j[jlane],delz_j[jlane]);
+    }
+  }
+
+  if (hasError)
+    k_error_flag.d_view() = 1;
+
+  if (UseAtomics)
+  {
+    a_f(i,0) += fx_i;
+    a_f(i,1) += fy_i;
+    a_f(i,2) += fz_i;
+    a_uCG(i) += uCG_i;
+    a_uCGnew(i) += uCGnew_i;
+  }
+  else
+  {
+    t_f(tid,i,0) += fx_i;
+    t_f(tid,i,1) += fy_i;
+    t_f(tid,i,2) += fz_i;
+    t_uCG(tid,i) += uCG_i;
+    t_uCGnew(tid,i) += uCGnew_i;
+  }
 }
 
 template<class DeviceType>

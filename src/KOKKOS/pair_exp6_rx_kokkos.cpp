@@ -249,6 +249,8 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
 
+  if (!lmp->kokkos->gb_test) {
+
   if (neighflag == HALF) {
     if (newton_pair) {
       if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,1,1> >(0,inum),*this,ev);
@@ -273,6 +275,48 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<FULL,0,1> >(0,inum),*this,ev);
       else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<FULL,0,0> >(0,inum),*this);
     }
+  }
+
+  } else { // No atomics
+
+  num_threads = lmp->kokkos->num_threads;
+  int nmax = f.dimension_0();
+  if (nmax > t_f.dimension_1()) {
+    t_f = t_f_array_thread("pair_exp6_rx:t_f",num_threads,nmax);
+    t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",num_threads,nmax);
+    t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",num_threads,nmax);
+  }
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroDupViews>(0,nmax),*this);
+
+  if (neighflag == HALF) {
+    if (newton_pair) {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALF,1,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALF,1,0> >(0,inum),*this);
+    } else {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALF,0,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALF,0,0> >(0,inum),*this);
+    }
+  } else if (neighflag == HALFTHREAD) {
+    if (newton_pair) {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALFTHREAD,1,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALFTHREAD,1,0> >(0,inum),*this);
+    } else {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALFTHREAD,0,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<HALFTHREAD,0,0> >(0,inum),*this);
+    }
+  } else if (neighflag == FULL) {
+    if (newton_pair) {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<FULL,1,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<FULL,1,0> >(0,inum),*this);
+    } else {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<FULL,0,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxComputeNoAtomics<FULL,0,0> >(0,inum),*this);
+    }
+  }
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCollapseDupViews>(0,nmax),*this);
+
   }
 
   k_error_flag.template modify<DeviceType>();
@@ -682,6 +726,387 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
 }
+
+// Experimental thread-safety using duplicated data instead of atomics
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+
+  int tid = 0;
+#ifndef KOKKOS_HAVE_CUDA
+  tid = DeviceType::hardware_thread_id();
+#endif
+
+  int i,jj,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
+  double rsq,r2inv,r6inv,forceExp6,factor_lj;
+  double rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
+  double rm2ij,rm6ij;
+  double r,rexp;
+
+  double alphaOld12_ij, rmOld12_ij, epsilonOld12_ij;
+  double alphaOld21_ij, rmOld21_ij, epsilonOld21_ij;
+  double alpha12_ij, rm12_ij, epsilon12_ij;
+  double alpha21_ij, rm21_ij, epsilon21_ij;
+  double rminv, buck1, buck2;
+  double epsilonOld1_i,alphaOld1_i,rmOld1_i;
+  double epsilonOld1_j,alphaOld1_j,rmOld1_j;
+  double epsilonOld2_i,alphaOld2_i,rmOld2_i;
+  double epsilonOld2_j,alphaOld2_j,rmOld2_j;
+  double epsilon1_i,alpha1_i,rm1_i;
+  double epsilon1_j,alpha1_j,rm1_j;
+  double epsilon2_i,alpha2_i,rm2_i;
+  double epsilon2_j,alpha2_j,rm2_j;
+  double evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
+  double evdwlEXP6_12, evdwlEXP6_21;
+  double mixWtSite1old_i, mixWtSite1old_j;
+  double mixWtSite2old_i, mixWtSite2old_j;
+  double mixWtSite1_i, mixWtSite1_j;
+  double mixWtSite2_i, mixWtSite2_j;
+
+  const int nRep = 12;
+  const double shift = 1.05;
+  double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
+
+  evdwlOld = 0.0;
+  evdwl = 0.0;
+
+  i = d_ilist[ii];
+  xtmp = x(i,0);
+  ytmp = x(i,1);
+  ztmp = x(i,2);
+  itype = type[i];
+  jnum = d_numneigh[i];
+
+  double fx_i = 0.0;
+  double fy_i = 0.0;
+  double fz_i = 0.0;
+  double uCG_i = 0.0;
+  double uCGnew_i = 0.0;
+
+  {
+     epsilon1_i     = PairExp6ParamData.epsilon1[i];
+     alpha1_i       = PairExp6ParamData.alpha1[i];
+     rm1_i          = PairExp6ParamData.rm1[i];
+     mixWtSite1_i    = PairExp6ParamData.mixWtSite1[i];
+     epsilon2_i     = PairExp6ParamData.epsilon2[i];
+     alpha2_i       = PairExp6ParamData.alpha2[i];
+     rm2_i          = PairExp6ParamData.rm2[i];
+     mixWtSite2_i    = PairExp6ParamData.mixWtSite2[i];
+     epsilonOld1_i  = PairExp6ParamData.epsilonOld1[i];
+     alphaOld1_i    = PairExp6ParamData.alphaOld1[i];
+     rmOld1_i       = PairExp6ParamData.rmOld1[i];
+     mixWtSite1old_i = PairExp6ParamData.mixWtSite1old[i];
+     epsilonOld2_i  = PairExp6ParamData.epsilonOld2[i];
+     alphaOld2_i    = PairExp6ParamData.alphaOld2[i];
+     rmOld2_i       = PairExp6ParamData.rmOld2[i];
+     mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
+  }
+
+  for (jj = 0; jj < jnum; jj++) {
+    int j = d_neighbors(i,jj);
+    factor_lj = special_lj[sbmask(j)];
+    j &= NEIGHMASK;
+
+    delx = xtmp - x(j,0);
+    dely = ytmp - x(j,1);
+    delz = ztmp - x(j,2);
+
+    rsq = delx*delx + dely*dely + delz*delz;
+    jtype = type[j];
+
+    if (rsq < d_cutsq(itype,jtype)) { // optimize
+      r2inv = 1.0/rsq;
+      r6inv = r2inv*r2inv*r2inv;
+
+      r = sqrt(rsq);
+      rCut2inv = 1.0/d_cutsq(itype,jtype);
+      rCut6inv = rCut2inv*rCut2inv*rCut2inv;
+      rCut = sqrt(d_cutsq(itype,jtype));
+      rCutInv = 1.0/rCut;
+
+      //
+      // A. Compute the exp-6 potential
+      //
+
+      // A1.  Get alpha, epsilon and rm for particle j
+
+      {
+         epsilon1_j     = PairExp6ParamData.epsilon1[j];
+         alpha1_j       = PairExp6ParamData.alpha1[j];
+         rm1_j          = PairExp6ParamData.rm1[j];
+         mixWtSite1_j    = PairExp6ParamData.mixWtSite1[j];
+         epsilon2_j     = PairExp6ParamData.epsilon2[j];
+         alpha2_j       = PairExp6ParamData.alpha2[j];
+         rm2_j          = PairExp6ParamData.rm2[j];
+         mixWtSite2_j    = PairExp6ParamData.mixWtSite2[j];
+         epsilonOld1_j  = PairExp6ParamData.epsilonOld1[j];
+         alphaOld1_j    = PairExp6ParamData.alphaOld1[j];
+         rmOld1_j       = PairExp6ParamData.rmOld1[j];
+         mixWtSite1old_j = PairExp6ParamData.mixWtSite1old[j];
+         epsilonOld2_j  = PairExp6ParamData.epsilonOld2[j];
+         alphaOld2_j    = PairExp6ParamData.alphaOld2[j];
+         rmOld2_j       = PairExp6ParamData.rmOld2[j];
+         mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
+      }
+
+      // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
+      alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
+      rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
+      epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
+      alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
+      rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
+      epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
+
+      alpha12_ij = sqrt(alpha1_i*alpha2_j);
+      rm12_ij = 0.5*(rm1_i + rm2_j);
+      epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
+      alpha21_ij = sqrt(alpha2_i*alpha1_j);
+      rm21_ij = 0.5*(rm2_i + rm1_j);
+      epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+
+      evdwlOldEXP6_12 = 0.0;
+      evdwlOldEXP6_21 = 0.0;
+      evdwlEXP6_12 = 0.0;
+      evdwlEXP6_21 = 0.0;
+      fpairOldEXP6_12 = 0.0;
+      fpairOldEXP6_21 = 0.0;
+
+      if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
+        if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
+          k_error_flag.d_view() = 1;
+
+        // A3.  Compute some convenient quantities for evaluating the force
+        rminv = 1.0/rmOld12_ij;
+        buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
+        rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
+        rm2ij = rmOld12_ij*rmOld12_ij;
+        rm6ij = rm2ij*rm2ij*rm2ij;
+
+        // Compute the shifted potential
+        rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
+        buck2 = 6.0*alphaOld12_ij;
+        urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
+        durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
+        rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
+        if(r < rin1){
+          rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+          rin6inv = 1.0/rin6;
+
+          rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
+
+          uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+          aRep = win1*powint(rin1,nRep)/nRep;
+
+          uin1rep = aRep/powint(rin1,nRep);
+
+          forceExp6 = double(nRep)*aRep/powint(r,nRep);
+          fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
+
+          evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
+        } else {
+          forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+          fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
+
+          evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+        }
+
+        // A3.  Compute some convenient quantities for evaluating the force
+        rminv = 1.0/rmOld21_ij;
+        buck1 = epsilonOld21_ij / (alphaOld21_ij - 6.0);
+        buck2 = 6.0*alphaOld21_ij;
+        rexp = expValue(alphaOld21_ij*(1.0-r*rminv));
+        rm2ij = rmOld21_ij*rmOld21_ij;
+        rm6ij = rm2ij*rm2ij*rm2ij;
+
+        // Compute the shifted potential
+        rCutExp = expValue(alphaOld21_ij*(1.0-rCut*rminv));
+        buck2 = 6.0*alphaOld21_ij;
+        urc = buck1*(6.0*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
+        durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
+        rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
+
+        if(r < rin1){
+          rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+          rin6inv = 1.0/rin6;
+
+          rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
+
+          uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+          aRep = win1*powint(rin1,nRep)/nRep;
+
+          uin1rep = aRep/powint(rin1,nRep);
+
+          forceExp6 = double(nRep)*aRep/powint(r,nRep);
+          fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
+
+          evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
+        } else {
+          forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+          fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
+
+          evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+        }
+
+        if (isite1 == isite2)
+          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
+        else
+          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
+
+        evdwlOld *= factor_lj;
+
+        uCG_i += 0.5*evdwlOld;
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
+          t_uCG(tid,j) += 0.5*evdwlOld;
+      }
+
+      if(rm12_ij!=0.0 && rm21_ij!=0.0){
+        if(alpha21_ij == 6.0 || alpha12_ij == 6.0)
+          k_error_flag.d_view() = 1;
+
+        // A3.  Compute some convenient quantities for evaluating the force
+        rminv = 1.0/rm12_ij;
+        buck1 = epsilon12_ij / (alpha12_ij - 6.0);
+        buck2 = 6.0*alpha12_ij;
+        rexp = expValue(alpha12_ij*(1.0-r*rminv));
+        rm2ij = rm12_ij*rm12_ij;
+        rm6ij = rm2ij*rm2ij*rm2ij;
+
+        // Compute the shifted potential
+        rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
+        urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
+        durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
+        rin1 = shift*rm12_ij*func_rin(alpha12_ij);
+
+        if(r < rin1){
+          rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+          rin6inv = 1.0/rin6;
+
+          rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
+
+          uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+          aRep = win1*powint(rin1,nRep)/nRep;
+
+          uin1rep = aRep/powint(rin1,nRep);
+
+          evdwlEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
+        } else {
+          evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+        }
+
+        rminv = 1.0/rm21_ij;
+        buck1 = epsilon21_ij / (alpha21_ij - 6.0);
+        buck2 = 6.0*alpha21_ij;
+        rexp = expValue(alpha21_ij*(1.0-r*rminv));
+        rm2ij = rm21_ij*rm21_ij;
+        rm6ij = rm2ij*rm2ij*rm2ij;
+
+        // Compute the shifted potential
+        rCutExp = expValue(alpha21_ij*(1.0-rCut*rminv));
+        urc = buck1*(6.0*rCutExp - alpha21_ij*rm6ij*rCut6inv);
+        durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
+        rin1 = shift*rm21_ij*func_rin(alpha21_ij);
+
+        if(r < rin1){
+          rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+          rin6inv = 1.0/rin6;
+
+          rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
+
+          uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+
+          win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+
+          aRep = win1*powint(rin1,nRep)/nRep;
+
+          uin1rep = aRep/powint(rin1,nRep);
+
+          evdwlEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
+        } else {
+          evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+        }
+      }
+
+      //
+      // Apply Mixing Rule to get the overall force for the CG pair
+      //
+      if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+      else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+
+      fx_i += delx*fpair;
+      fy_i += dely*fpair;
+      fz_i += delz*fpair;
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+        t_f(tid,j,0) -= delx*fpair;
+        t_f(tid,j,1) -= dely*fpair;
+        t_f(tid,j,2) -= delz*fpair;
+      }
+
+      if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+      else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+      evdwl *= factor_lj;
+
+      uCGnew_i += 0.5*evdwl;
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
+        t_uCGnew(tid,j) += 0.5*evdwl;
+      evdwl = evdwlOld;
+      if (EVFLAG)
+        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+      //if (vflag_either || eflag_atom) 
+      if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
+    }
+  }
+
+  t_f(tid,i,0) += fx_i;
+  t_f(tid,i,1) += fy_i;
+  t_f(tid,i,2) += fz_i;
+  t_uCG(tid,i) += uCG_i;
+  t_uCGnew(tid,i) += uCGnew_i;
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+  EV_FLOAT ev;
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, const int &i) const {
+  for (int n = 0; n < num_threads; n++) {
+    f(i,0) += t_f(n,i,0);
+    f(i,1) += t_f(n,i,1);
+    f(i,2) += t_f(n,i,2);
+    uCG(i) += t_uCG(n,i);
+    uCGnew(i) += t_uCGnew(n,i);
+  }
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroDupViews, const int &i) const {
+  for (int n = 0; n < num_threads; n++) {
+    t_f(n,i,0) = 0.0;
+    t_f(n,i,1) = 0.0;
+    t_f(n,i,2) = 0.0;
+    t_uCG(n,i) = 0.0;
+    t_uCGnew(n,i) = 0.0;
+  }
+}
+
 
 /* ----------------------------------------------------------------------
    allocate all arrays

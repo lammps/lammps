@@ -57,6 +57,12 @@ struct TagPairExp6rxgetMixingWeights{};
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairExp6rxCompute{};
 
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct TagPairExp6rxComputeNoAtomics{};
+
+struct TagPairExp6rxCollapseDupViews{};
+struct TagPairExp6rxZeroDupViews{};
+
 template<class DeviceType>
 class PairExp6rxKokkos : public PairExp6rx {
  public:
@@ -81,6 +87,20 @@ class PairExp6rxKokkos : public PairExp6rx {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairExp6rxCollapseDupViews, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairExp6rxZeroDupViews, const int&) const;
+
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
@@ -94,12 +114,19 @@ class PairExp6rxKokkos : public PairExp6rx {
   int eflag,vflag;
   int nlocal,newton_pair,neighflag;
   double special_lj[4];
+  int num_threads;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_efloat_1d uCG, uCGnew;
   typename AT::t_float_2d dvector;
+
+  typedef Kokkos::View<F_FLOAT**[3],Kokkos::LayoutRight,DeviceType> t_f_array_thread;
+  typedef Kokkos::View<E_FLOAT**,Kokkos::LayoutRight,DeviceType> t_efloat_1d_thread;
+
+  t_f_array_thread t_f;
+  t_efloat_1d_thread t_uCG, t_uCGnew;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;

@@ -32,6 +32,7 @@ class KokkosLMP : protected Pointers {
   int num_threads,ngpu;
   int numa;
   int auto_sync;
+  int gb_test;
 
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();

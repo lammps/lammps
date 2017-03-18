@@ -515,11 +515,11 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts()
             if(rsq <= cutneighsq(itype,jtype)) {
               if (molecular) {
                 if (!moltemplate)
-                  which = find_special(i,j);
-                    /* else if (imol >= 0) */
-                    /*   which = find_special(onemols[imol]->special[iatom], */
-                    /*                        onemols[imol]->nspecial[iatom], */
-                    /*                        tag[j]-tagprev); */
+                  which = find_special(j,i);
+                    /* else if (jmol >= 0) */
+                    /*   which = find_special(onemols[jmol]->special[jatom], */
+                    /*                        onemols[jmol]->nspecial[jatom], */
+                    /*                        tag[i]-jtagprev); */
                     /* else which = 0; */
                 if (which == 0){
                   if(n<neigh_list.maxneighs) neighbors_i(n++) = j;

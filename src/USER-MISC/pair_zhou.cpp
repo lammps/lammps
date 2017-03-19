@@ -9,11 +9,13 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+  -------------------------------------------------------------------------
+  Contributed by Kristen Fichthorn @ Penn State University
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_zhou.h"
 #include "atom.h"
 #include "comm.h"

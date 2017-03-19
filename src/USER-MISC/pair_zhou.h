@@ -9,6 +9,8 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+  -------------------------------------------------------------------------
+  Contributed by Kristen Fichthorn @ Penn State University
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS

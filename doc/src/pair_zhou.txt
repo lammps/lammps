@@ -1,0 +1,43 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style zhou command :h3
+
+[Syntax:]
+
+pair_style zhou cutoff s6 d :pre
+
+cutoff = global cutoff (distance units)
+s6 = global scaling factor of the exchange-correlation functional used
+d = damping scaling factor of Grimme's method :ul
+
+[Examples:]
+
+pair_style zhou 12.0 0.75 20.0
+pair_style hybrid/overlay eam/fs lj/charmm/coul/long 10.0 12.0 zhou 12.0 0.75 20.0 morse 5.5
+
+pair_coeff 1*4 5 zhou 0.0 1.0 1.0 10.2847 2.361
+
+[Description:]
+
+Style {zhou} computes pairwise van der Waals (vdW) interactions using the
+"(Grimme)"_#Grimme method implemented in the Many-Body Metal-Organic (MOMB)
+force field described extensively in "(Fichthorn)"_#Fichthorn and
+"(Zhou)"_#Zhou. This potential is widely used to correct for dispersion
+in density functional theory calculations.
+
+:line
+
+:link(Grimme)
+[(Grimme)] Grimme, J Comput Chem, 27(15), 1787-1799 (2006).
+
+:link(Fichthorn)
+[(Fichthorn)] Fichthorn, Balankura, Qi, CrystEngComm, 18(29), 5410-5417 (2016).
+
+:link(Zhou)
+[(Zhou)] Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).

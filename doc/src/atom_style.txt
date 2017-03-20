@@ -12,7 +12,7 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
+style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or {bdipole} \
         {dpd} or {electron} or {ellipsoid} or {full} or {line} or {meso} or \
         {molecular} or {peri} or {smd} or {sphere} or {tri} or \
         {template} or {hybrid} :ulb,l
@@ -73,6 +73,7 @@ quantities.
 {bond} | bonds | bead-spring polymers |
 {charge} | charge | atomic system with charges |
 {dipole} | charge and dipole moment | system with dipolar particles |
+{bdipole} | magnetic dipole moment | system with magnetic dipolar particles |
 {dpd} | internal temperature and internal energies | DPD particles |
 {electron} | charge and spin and eradius | electronic force field |
 {ellipsoid} | shape, quaternion, angular momentum | aspherical particles |
@@ -124,6 +125,10 @@ spheres as in a Stockmayer potential for a dipolar fluid, so that the
 particles can rotate due to dipole-dipole interactions, then you need
 to use atom_style hybrid sphere dipole, which will assign both a
 diameter and dipole moment to each particle.
+
+For the {bdipole} style, a magnetic point dipole is defined for each point
+particle.  Similar to the {dipole} style, finite-size particles with 
+dipole-dipole interactions can be obtained with atom_style hybrid sphere bdipole.
 
 For the {electron} style, the particles representing electrons are 3d
 Gaussians with a specified position and bandwidth or uncertainty in

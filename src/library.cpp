@@ -971,11 +971,9 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      if (image) {
-        if (!domain->ownatom(id[i],xdata,&image[i],shrinkexceed)) continue;
-      } else {
-        if (!domain->ownatom(id[i],xdata,NULL,shrinkexceed)) continue;
-      }
+      imageint * img = image ? &image[i] : NULL;
+      tagint     tag = id    ? id[i]     : -1;
+      if (!domain->ownatom(tag, xdata, img, shrinkexceed)) continue;
   
       atom->avec->create_atom(type[i],xdata);
       if (id) atom->tag[nlocal] = id[i];

@@ -22,7 +22,7 @@ endif
 SOURCES=$(wildcard src/*.txt)
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub html pdf old venv spelling
+.PHONY: help clean-all clean epub html pdf old venv spelling anchor_check
 
 # ------------------------------------------
 
@@ -36,6 +36,7 @@ help:
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
+	@echo "  anchor_check  scan for duplicate anchor labels"
 
 # ------------------------------------------
 
@@ -54,6 +55,9 @@ html: $(OBJECTS)
 		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build -j 8 -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		echo "############################################" ;\
+		doc_anchor_check src/*.txt ;\
+		echo "############################################" ;\
 		deactivate ;\
 	)
 	-rm html/searchindex.js
@@ -126,6 +130,13 @@ fetch:
 	@rm -f lammps-doc.tar.gz
 
 txt2html: utils/txt2html/txt2html.exe
+
+anchor_check : $(TXT2RST)
+	@(\
+		. $(VENV)/bin/activate ;\
+		doc_anchor_check src/*.txt ;\
+		deactivate ;\
+	)
 
 # ------------------------------------------
 

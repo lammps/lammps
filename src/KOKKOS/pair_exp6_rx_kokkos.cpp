@@ -917,6 +917,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,doub
       nMoleculesOld2 = dvector(ispecies+nspecies,id);
       nMolecules2 = dvector(ispecies,id);
       fractionOld2 = dvector(ispecies+nspecies,id)/nTotalold;
+      fraction2 = nMolecules2/nTotal;
     }
 
     // If Site1 or Site2 matches is a fluid, then compute the paramters

@@ -67,7 +67,7 @@ Labs and Temple University:
 
 "Steve Plimpton"_sjp, sjplimp at sandia.gov :ulb,l
 Aidan Thompson, athomps at sandia.gov :l
-Stan Moore, stamoore at sandia.gov :l
+Stan Moore, stamoor at sandia.gov :l
 "Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
 :ule
 

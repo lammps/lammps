@@ -283,8 +283,8 @@ void TemperGrem::command(int narg, char **arg)
       // compute weights
       volume = domain->xprd * domain->yprd * domain->zprd;
       enth = pe + (pressref * volume);
-      weight = log(set_lambda[my_set_lambda] + (eta*(enth + h0)));
-      weight_cross = log(set_lambda[partner_set_lambda] + (eta*(enth + h0)));
+      weight = log(set_lambda[my_set_lambda] + (eta*(enth - h0)));
+      weight_cross = log(set_lambda[partner_set_lambda] + (eta*(enth - h0)));
 
       if (me_universe > partner) {
         MPI_Send(&weight,1,MPI_DOUBLE,partner,0,universe->uworld);
@@ -296,7 +296,7 @@ void TemperGrem::command(int narg, char **arg)
       }
 
       if (me_universe < partner) {
-        boltz_factor = (weight - weight_partner + weight_cross - weight_cross_partner) *
+        boltz_factor = (weight + weight_partner - weight_cross - weight_cross_partner) *
             (1 / (boltz * eta));
         if (boltz_factor >= 0.0) swap = 1;
         else if (ranboltz->uniform() < exp(boltz_factor)) swap = 1;

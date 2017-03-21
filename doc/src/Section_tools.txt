@@ -12,9 +12,12 @@ Section"_Section_modify.html :c
 
 LAMMPS is designed to be a computational kernel for performing
 molecular dynamics computations.  Additional pre- and post-processing
-steps are often necessary to setup and analyze a simulation.  A few
-additional tools are provided with the LAMMPS distribution and are
-described in this section.
+steps are often necessary to setup and analyze a simulation. A
+list of such tools can be found on the LAMMPS home page
+at "http://lammps.sandia.gov/prepost.html"_http://lammps.sandia.gov/prepost.html
+
+A few additional tools are provided with the LAMMPS distribution
+and are described in this section.
 
 Our group has also written and released a separate toolkit called
 "Pizza.py"_pizza which provides tools for doing setup, analysis,
@@ -45,7 +48,6 @@ own sub-directories with their own Makefiles.
 "chain"_#chain
 "colvars"_#colvars
 "createatoms"_#create
-"data2xmovie"_#data
 "eam database"_#eamdb
 "eam generate"_#eamgn
 "eff"_#eff
@@ -56,7 +58,6 @@ own sub-directories with their own Makefiles.
 "kate"_#kate
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
-"lmp2vmd"_#vmd
 "matlab"_#matlab
 "micelle2d"_#micelle
 "moltemplate"_#moltemplate
@@ -69,7 +70,6 @@ own sub-directories with their own Makefiles.
 "restart2data"_#restart
 "vim"_#vim
 "xmgrace"_#xmgrace
-"xmovie"_#xmovie :ul
 
 :line
 
@@ -168,19 +168,6 @@ coordinates in LAMMPS or other formats.
 See the included Manual.pdf for details.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
-
-:line
-
-data2xmovie tool :h4,link(data)
-
-The file data2xmovie.c converts a LAMMPS data file into a snapshot
-suitable for visualizing with the "xmovie"_#xmovie tool, as if it had
-been output with a dump command from LAMMPS itself.  The syntax for
-running the tool is
-
-data2xmovie \[options\] < infile > outfile :pre
-
-See the top of the data2xmovie.c file for a discussion of the options.
 
 :line
 
@@ -317,18 +304,6 @@ This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
 
 :line
 
-lmp2vmd tool :h4,link(vmd)
-
-The lmp2vmd sub-directory contains a README.txt file that describes
-details of scripts and plugin support within the "VMD
-package"_http://www.ks.uiuc.edu/Research/vmd for visualizing LAMMPS
-dump files.
-
-The VMD plugins and other supporting scripts were written by Axel
-Kohlmeyer (akohlmey at cmm.chem.upenn.edu) at U Penn.
-
-:line
-
 matlab tool :h4,link(matlab)
 
 The matlab sub-directory contains several "MATLAB"_matlabhome scripts for
@@ -381,16 +356,14 @@ supports it.  It has its own WWW page at
 msi2lmp tool :h4,link(msi)
 
 The msi2lmp sub-directory contains a tool for creating LAMMPS input
-data files from Accelrys' Insight MD code (formerly MSI/Biosym and
-its Discover MD code).  See the README file for more information.
+data files from BIOVIA's Materias Studio files (formerly Accelrys'
+Insight MD code, formerly MSI/Biosym and its Discover MD code).
 
 This tool was written by John Carpenter (Cray), Michael Peachey
-(Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
-(jec at mayo.edu), but still fields questions about the tool.
+(Cray), and Steve Lustig (Dupont). Several people contributed changes
+to remove bugs and adapt its output to changes in LAMMPS.
 
-This tool may be out-of-date with respect to the current LAMMPS and
-Insight versions.  Since we don't use it at Sandia, you'll need to
-experiment with it yourself.
+See the README file for more information.
 
 :line
 
@@ -484,32 +457,13 @@ read_restart restartfile
 write_data datafile
 
 which will produce the same data file that the restart2data tool used
-to create.  The following information is included in case you have an
-older version of LAMMPS which still includes the restart2data tool.
+to create.
 
-The file restart2data.cpp converts a binary LAMMPS restart file into
-an ASCII data file.  The syntax for running the tool is
-
-restart2data restart-file data-file (input-file) :pre
-
-Input-file is optional and if specified will contain LAMMPS input
-commands for the masses and force field parameters, instead of putting
-those in the data-file.  Only a few force field styles currently
-support this option.
-
-This tool must be compiled on a platform that can read the binary file
-created by a LAMMPS run, since binary files are not compatible across
-all platforms.
-
-Note that a text data file has less precision than a binary restart
-file.  Hence, continuing a run from a converted data file will
-typically not conform as closely to a previous run as will restarting
-from a binary restart file.
-
-If a "%" appears in the specified restart-file, the tool expects a set
-of multiple files to exist.  See the "restart"_restart.html and
-"write_restart"_write_restart.html commands for info on how such sets
-of files are written by LAMMPS, and how the files are named.
+IMPORTANT NOTE: LAMMPS' binary restart files are generally not portable
+between platforms, compiler settings and LAMMPS versions. Changes in
+the format itself are rare, but no effort is made to maintain backward
+compatibility. Data files are mostly backward and forward portable,
+if no features are used that exist in only one LAMMPS version.
 
 :line
 
@@ -537,32 +491,3 @@ See the README file for details.
 
 These files were provided by Vikas Varshney (vv0210 at gmail.com)
 
-:line
-
-xmovie tool :h4,link(xmovie)
-
-The xmovie tool is an X-based visualization package that can read
-LAMMPS dump files and animate them.  It is in its own sub-directory
-with the tools directory.  You may need to modify its Makefile so that
-it can find the appropriate X libraries to link against.
-
-The syntax for running xmovie is
-
-xmovie \[options\] dump.file1 dump.file2 ... :pre
-
-If you just type "xmovie" you will see a list of options.  Note that
-by default, LAMMPS dump files are in scaled coordinates, so you
-typically need to use the -scale option with xmovie.  When xmovie runs
-it opens a visualization window and a control window.  The control
-options are straightforward to use.
-
-Xmovie was mostly written by Mike Uttormark (U Wisconsin) while he
-spent a summer at Sandia.  It displays 2d projections of a 3d domain.
-While simple in design, it is an amazingly fast program that can
-render large numbers of atoms very quickly.  It's a useful tool for
-debugging LAMMPS input and output and making sure your simulation is
-doing what you think it should.  The animations on the Examples page
-of the "LAMMPS WWW site"_lws were created with xmovie.
-
-I've lost contact with Mike, so I hope he's comfortable with us
-distributing his great tool!

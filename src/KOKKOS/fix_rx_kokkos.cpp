@@ -1389,9 +1389,9 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
     // Store the solution back in dvector.
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
     {
-      if (y[ispecies] < -MY_EPSILON)
+      if (y[ispecies] < -1.0e-10)
       {
-        //error->one(FLERR,"Computed concentration in RK solver is < -10*DBL_EPSILON");
+        //error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
         k_error_flag.d_view() = 2;
         // This should be an atomic update.
       }
@@ -1599,9 +1599,9 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
         // Store the solution back in dvector.
         for (int ispecies = 0; ispecies < nspecies; ispecies++)
         {
-          if (y[ispecies] < -MY_EPSILON)
+          if (y[ispecies] < -1.0e-10)
           {
-            //error->one(FLERR,"Computed concentration in RK solver is < -10*DBL_EPSILON");
+            //error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
             k_error_flag.d_view() = 2;
             // This should be an atomic update.
           }
@@ -1639,7 +1639,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
   if (k_error_flag.h_view() == 2)
-    error->one(FLERR,"Computed concentration in RK solver is < -10*DBL_EPSILON");
+    error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
 
   // Signal that dvector has been modified on this execution space.
   atomKK->modified( execution_space, DVECTOR_MASK );

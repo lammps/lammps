@@ -33,6 +33,7 @@ class FixNVESphere : public FixNVE {
   virtual void final_integrate();
 
  protected:
+  double inertia;
   int extra;
   int dlm;
 };

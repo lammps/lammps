@@ -70,7 +70,7 @@ means include all terms except the kinetic energy {ke}.
 Details of how LAMMPS computes the virial efficiently for the entire
 system, including for manybody potentials and accounting for the
 effects of periodic boundary conditions are discussed in
-"(Thompson)"_#Thompson.
+"(Thompson)"_#Thompson1.
 
 The temperature and kinetic energy tensor is not calculated by this
 compute, but rather by the temperature compute specified with the
@@ -150,5 +150,5 @@ stress/atom"_compute_stress_atom.html,
 
 :line
 
-:link(Thompson)
+:link(Thompson1)
 [(Thompson)] Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).

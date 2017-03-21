@@ -50,12 +50,12 @@ for each atom in a group.
 Bispectrum components of an atom are order parameters characterizing
 the radial and angular distribution of neighbor atoms. The detailed
 mathematical definition is given in the paper by Thompson et
-al. "(Thompson)"_#Thompson2014
+al. "(Thompson)"_#Thompson20141
 
 The position of a neighbor atom {i'} relative to a central atom {i} is
 a point within the 3D ball of radius {R_ii' = rcutfac*(R_i + R_i')}
 
-Bartok et al. "(Bartok)"_#Bartok2010, proposed mapping this 3D ball
+Bartok et al. "(Bartok)"_#Bartok20101, proposed mapping this 3D ball
 onto the 3-sphere, the surface of the unit ball in a four-dimensional
 space.  The radial distance {r} within {R_ii'} is mapped on to a third
 polar angle {theta0} defined by,
@@ -92,7 +92,7 @@ The expansion coefficients {u^j_m,m'} are complex-valued and they are
 not directly useful as descriptors, because they are not invariant
 under rotation of the polar coordinate frame. However, the following
 scalar triple products of expansion coefficients can be shown to be
-real-valued and invariant under rotation "(Bartok)"_#Bartok2010.
+real-valued and invariant under rotation "(Bartok)"_#Bartok20101.
 
 :c,image(Eqs/compute_sna_atom3.jpg)
 
@@ -226,11 +226,11 @@ The optional keyword defaults are {diagonal} = 0, {rmin0} = 0,
 
 :line
 
-:link(Thompson2014)
+:link(Thompson20141)
 [(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint
 available at "arXiv:1409.3880"_http://arxiv.org/abs/1409.3880
 
-:link(Bartok2010)
+:link(Bartok20101)
 [(Bartok)] Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
 :link(Meremianin2006)

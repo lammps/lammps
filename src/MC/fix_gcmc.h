@@ -112,7 +112,9 @@ class FixGCMC : public Fix {
   double **cutsq;
   double **atom_coord;
   imageint imagezero;
-
+  double overlap_cutoff;
+  int overlap_flag;
+  
   double energy_intra;
 
   class Pair *pair;

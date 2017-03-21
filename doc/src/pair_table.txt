@@ -64,7 +64,7 @@ computes the energy or force.
 For the {bitmap} style, the specified {N} is used to create
 interpolation tables that are 2^N in length.  The distance {R} is used
 to index into the table via a fast bit-mapping technique due to
-"(Wolff)"_#Wolff, and a linear interpolation is performed between
+"(Wolff)"_#Wolff2, and a linear interpolation is performed between
 adjacent table values.
 
 The following coefficients must be defined for each pair of atoms
@@ -268,5 +268,5 @@ This pair style can only be used via the {pair} keyword of the
 
 :line
 
-:link(Wolff)
+:link(Wolff2)
 [(Wolff)] Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).

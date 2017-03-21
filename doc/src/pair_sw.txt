@@ -24,7 +24,7 @@ pair_coeff * * GaN.sw Ga N Ga :pre
 
 [Description:]
 
-The {sw} style computes a 3-body "Stillinger-Weber"_#Stillinger
+The {sw} style computes a 3-body "Stillinger-Weber"_#Stillinger2
 potential for the energy E of a system of atoms as
 
 :c,image(Eqs/pair_sw.jpg)
@@ -212,5 +212,5 @@ appropriate units if your simulation doesn't use "metal" units.
 
 :line
 
-:link(Stillinger)
+:link(Stillinger2)
 [(Stillinger)] Stillinger and Weber, Phys Rev B, 31, 5262 (1985).

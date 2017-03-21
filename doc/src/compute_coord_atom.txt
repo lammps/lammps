@@ -64,7 +64,7 @@ defined by the orientational order parameter calculated by the
 "compute orientorder/atom"_compute_orientorder_atom.html command.
 This {cstyle} thus allows one to apply the ten Wolde's criterion to
 identify crystal-like atoms in a system, as discussed in "ten
-Wolde"_#tenWolde.
+Wolde"_#tenWolde1.
 
 The ID of the previously specified "compute
 orientorder/atom"_compute_orientorder/atom command is specified as
@@ -127,6 +127,6 @@ explained above.
 
 :line
 
-:link(tenWolde)
+:link(tenWolde1)
 [(tenWolde)] P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).

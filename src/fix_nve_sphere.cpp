@@ -16,6 +16,7 @@
 #include <string.h>
 #include "fix_nve_sphere.h"
 #include "atom.h"
+#include "domain.h"
 #include "atom_vec.h"
 #include "update.h"
 #include "respa.h"
@@ -27,8 +28,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
-
-#define INERTIA 0.4          // moment of inertia prefactor for sphere
 
 enum{NONE,DIPOLE};
 enum{NODLM,DLM};
@@ -43,9 +42,11 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
 
   // process extra keywords
+  // inertia = moment of inertia prefactor for sphere or disc
 
   extra = NONE;
   dlm = NODLM;
+  inertia = 0.4; 
 
   int iarg = 3;
   while (iarg < narg) {
@@ -57,7 +58,14 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
         dlm = DLM;
       } else error->all(FLERR,"Illegal fix nve/sphere command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix nve/sphere command");
+    } 
+    else if (strcmp(arg[iarg],"disc")==0) {
+      inertia = 0.5;
+      if (domain->dimension != 2)
+	error->all(FLERR,"Fix nve/sphere disc requires 2d simulation");	
+      iarg++;
+    }
+    else error->all(FLERR,"Illegal fix nve/sphere command");
   }
 
   // error checks
@@ -109,7 +117,7 @@ void FixNVESphere::initial_integrate(int vflag)
 
   // set timestep here since dt may have changed or come via rRESPA
 
-  double dtfrotate = dtf / INERTIA;
+  double dtfrotate = dtf / inertia;
 
   // update v,x,omega for all particles
   // d_omega/dt = torque / inertia
@@ -284,7 +292,7 @@ void FixNVESphere::final_integrate()
 
   // set timestep here since dt may have changed or come via rRESPA
 
-  double dtfrotate = dtf / INERTIA;
+  double dtfrotate = dtf / inertia;
 
   // update v,omega for all particles
   // d_omega/dt = torque / inertia

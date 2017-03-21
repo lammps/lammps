@@ -49,7 +49,7 @@ pairwise interactions between 1-4 atoms.  The energy contribution of
 these terms is included in the pair energy, not the dihedral energy.
 
 The KSpace contribution is calculated using the method in
-"(Heyes)"_#Heyes for the Ewald method and a related method for PPPM,
+"(Heyes)"_#Heyes1 for the Ewald method and a related method for PPPM,
 as specified by the "kspace_style pppm"_kspace_style.html command.
 For PPPM, the calculation requires 1 extra FFT each timestep that
 per-atom energy is calculated.  This "document"_PDF/kspace.pdf
@@ -97,5 +97,5 @@ stress/atom"_compute_stress_atom.html
 
 :line
 
-:link(Heyes)
+:link(Heyes1)
 [(Heyes)] Heyes, Phys Rev B 49, 755 (1994),

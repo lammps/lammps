@@ -165,9 +165,16 @@ Many of the example input scripts included in the LAMMPS distribution
 are for 2d models.
 
 NOTE: Some models in LAMMPS treat particles as finite-size spheres, as
-opposed to point particles.  In 2d, the particles will still be
-spheres, not disks, meaning their moment of inertia will be the same
-as in 3d.
+opposed to point particles.  See the "atom_style
+sphere"_atom_style.html and "fix nve/sphere"_fix_nve_sphere.html
+commands for details.  By default, for 2d simulations, such particles
+will still be modeled as 3d spheres, not 2d discs (circles), meaning
+their moment of inertia will be that of a sphere.  If you wish to
+model them as 2d discs, see the "set density/disc"_set.html command
+and the {disc} option for the "fix nve/sphere"_fix_nve_sphere.html,
+"fix nvt/sphere"_fix_nvt_sphere.html, "fix
+nph/sphere"_fix_nph_sphere.html, "fix npt/sphere"_fix_npt_sphere.html
+commands.
 
 :line
 
@@ -434,6 +441,12 @@ computations between frozen atoms by using this command:
 
 "neigh_modify"_neigh_modify.html exclude :ul
 
+NOTE: By default, for 2d systems, granular particles are still modeled
+as 3d spheres, not 2d discs (circles), meaning their moment of inertia
+will be the same as in 3d.  If you wish to model granular particles in
+2d as 2d discs, see the note on this topic in "Section
+6.2"_Section_howto.html#howto_2, where 2d simulations are disussed.
+
 :line
 
 6.7 TIP3P water model :link(howto_7),h4
@@ -451,7 +464,7 @@ atoms and the water molecule to run a rigid TIP3P-CHARMM model with a
 cutoff.  The K values can be used if a flexible TIP3P model (without
 fix shake) is desired.  If the LJ epsilon and sigma for HH and OH are
 set to 0.0, it corresponds to the original 1983 TIP3P model
-"(Jorgensen)"_#Jorgensen.
+"(Jorgensen)"_#Jorgensen1.
 
 O mass = 15.9994
 H mass = 1.008
@@ -469,7 +482,7 @@ K of HOH angle = 55
 theta of HOH angle = 104.52 :all(b),p
 
 These are the parameters to use for TIP3P with a long-range Coulombic
-solver (e.g. Ewald or PPPM in LAMMPS), see "(Price)"_#Price for
+solver (e.g. Ewald or PPPM in LAMMPS), see "(Price)"_#Price1 for
 details:
 
 O mass = 15.9994
@@ -513,7 +526,7 @@ using the "fix shake"_fix_shake.html command.
 
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
-"(Jorgensen)"_#Jorgensen.  Note that the OM distance is specified in
+"(Jorgensen)"_#Jorgensen1.  Note that the OM distance is specified in
 the "pair_style"_pair_style.html command, not as part of the pair
 coefficients.
 
@@ -1838,7 +1851,7 @@ the deformation must be chosen judiciously, and care must be taken to
 fully equilibrate the deformed cell before sampling the stress
 tensor. Another approach is to sample the triclinic cell fluctuations
 that occur in an NPT simulation. This method can also be slow to
-converge and requires careful post-processing "(Shinoda)"_#Shinoda
+converge and requires careful post-processing "(Shinoda)"_#Shinoda1
 
 :line
 
@@ -2903,14 +2916,14 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 [(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
 
-:link(Jorgensen)
+:link(Jorgensen1)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
-:link(Price)
+:link(Price1)
 [(Price)] Price and Brooks, J Chem Phys, 121, 10096 (2004).
 
-:link(Shinoda)
+:link(Shinoda1)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
 :link(MitchellFincham)

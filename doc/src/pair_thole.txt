@@ -71,8 +71,8 @@ short distances by a function
 \exp \left( - s_\{ij\} r_\{ij\} \right) \end\{equation\}
 
 This function results from an adaptation to point charges
-"(Noskov)"_#Noskov of the dipole screening scheme originally proposed
-by "Thole"_#Thole. The scaling coefficient \(s_\{ij\} \) is determined
+"(Noskov)"_#Noskov1 of the dipole screening scheme originally proposed
+by "Thole"_#Thole1. The scaling coefficient \(s_\{ij\} \) is determined
 by the polarizability of the atoms, \( \alpha_i \), and by a Thole
 damping parameter \( a \).  This Thole damping parameter usually takes
 a value of 2.6, but in certain force fields the value can depend upon
@@ -186,8 +186,8 @@ temp/drude"_compute_temp_drude.html
 
 :line
 
-:link(Noskov)
+:link(Noskov1)
 [(Noskov)] Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).
 
-:link(Thole)
+:link(Thole1)
 [(Thole)] Chem Phys, 59, 341 (1981).

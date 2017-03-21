@@ -24,7 +24,7 @@ pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0 :pre
 [Description:]
 
 Style {resquared} computes the RE-squared anisotropic interaction
-"(Everaers)"_#Everaers, "(Babadi)"_#Babadi between pairs of
+"(Everaers)"_#Everaers3, "(Babadi)"_#Babadi between pairs of
 ellipsoidal and/or spherical Lennard-Jones particles.  For ellipsoidal
 interactions, the potential considers the ellipsoid as being comprised
 of small spheres of size sigma.  LJ particles are a single sphere of
@@ -69,7 +69,7 @@ two interacting particles.
 
 For ellipsoid/ellipsoid interactions, the interaction is computed by
 the formulas in the supplementary document referenced above.  A12 is
-the Hamaker constant as described in "(Everaers)"_#Everaers. In LJ
+the Hamaker constant as described in "(Everaers)"_#Everaers3. In LJ
 units:
 
 :c,image(Eqs/pair_resquared.jpg)
@@ -131,7 +131,7 @@ that type in a "pair_coeff I J" command.
 
 For large uniform molecules it has been shown that the epsilon_*_*
 energy parameters are approximately representable in terms of local
-contact curvatures "(Everaers)"_#Everaers:
+contact curvatures "(Everaers)"_#Everaers3:
 
 :c,image(Eqs/pair_resquared4.jpg)
 
@@ -228,7 +228,7 @@ gayberne"_pair_gayberne.html
 
 :line
 
-:link(Everaers)
+:link(Everaers3)
 [(Everaers)] Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 :link(Babadi)

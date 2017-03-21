@@ -23,6 +23,7 @@
 // should LATTE take triclinic box from LAMMPS
 // does Coulomb potential = pe[i]/q[i], is it 0 when q = 0
 // how will this work for serial/parallel LAMMPS with serial/parallel LATTE
+// NOTE: ADD checks for metal units !!!!!!!!!!!!!
 
 #include <stdio.h>
 #include <string.h>
@@ -44,11 +45,11 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 extern "C" {
-  void latte(int *, int *, double *, int *, int *, 
-             double *, double *, double *, double *, int*, 
-             double *, double *, double *);
+  void latte(int *, int *, double *, int *, int *,
+             double *, double *, double *, double *, int*,
+             double *, double *, double *, double * );
 }
-  
+
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
@@ -123,7 +124,7 @@ void FixLatte::init()
 {
   // error checks
 
-  if (domain->dimension == 2) 
+  if (domain->dimension == 2)
     error->all(FLERR,"Fix latte requires 3d problem");
 
   if (coulomb) {
@@ -220,7 +221,8 @@ void FixLatte::post_force(int vflag)
 {
   int eflag = eflag_caller;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  // else evflag = 0;
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
 
   // compute Coulombic potential = pe[i]/q[i]
   // invoke compute pe/atom
@@ -248,9 +250,9 @@ void FixLatte::post_force(int vflag)
   // hardwire these unsupported flags for now
 
   int coulombflag = 0;
-  pe_peratom = 0;
-  virial_global = 0;              // set via vflag_global at some point
-  virial_peratom = 0;
+  // pe_peratom = 0;
+  // virial_global = 1;              // set via vflag_global at some point
+  // virial_peratom = 0;
   neighflag = 0;
 
   // set flags used by LATTE
@@ -259,9 +261,9 @@ void FixLatte::post_force(int vflag)
 
   flags[0] = pbcflag;         // 1 for fully periodic, 0 for fully non-periodic
   flags[1] = coulombflag;     // 1 for LAMMPS computes Coulombics, 0 for LATTE
-  flags[2] = pe_peratom;      // 1 to return per-atom energies, 0 for no
-  flags[3] = virial_global;   // 1 to return global virial 0 for no
-  flags[4] = virial_peratom;  // 1 to return per-atom virial, 0 for no
+  flags[2] = eflag_atom; //pe_peratom;      // 1 to return per-atom energies, 0 for no
+  flags[3] = vflag_global; //virial_global;   // 1 to return global virial 0 for no
+  flags[4] = vflag_atom;  //virial_peratom;  // 1 to return per-atom virial, 0 for no
   flags[5] = neighflag;       // 1 to pass neighbor list to LATTE, 0 for no
 
   // setup LATTE arguments
@@ -278,12 +280,10 @@ void FixLatte::post_force(int vflag)
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
 
-  // invoke LATTE
-  
   int maxiter = -1;
 
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,
-        forces,&maxiter,&latte_energy,&atom->v[0][0],&update->dt);  
+        forces,&maxiter,&latte_energy,&atom->v[0][0],&update->dt,virial);
 
   // sum LATTE forces to LAMMPS (Coulombic) forces
 

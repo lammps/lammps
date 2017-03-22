@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -73,7 +73,7 @@ void PairZhou::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -99,33 +99,34 @@ void PairZhou::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
         r6inv = r2inv*r2inv*r2inv;
-	r = sqrt(rsq);
-	dr = r - r0[itype][jtype];
-	dexp = exp(-alpha[itype][jtype] * dr);
+        r = sqrt(rsq);
+        dr = r - r0[itype][jtype];
+        dexp = exp(-alpha[itype][jtype] * dr);
         ddexp = exp(-dscale * (r/rr[itype][jtype] - 1.0));
         invexp = 1.0/(1+ddexp);
-	fpair = morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-        fpair -= sscale*c[itype][jtype] * (invexp*invexp*ddexp*(-dscale/rr[itype][jtype])*r6inv) / r;
+        fpair = morse1[itype][jtype] * (dexp*dexp - dexp) / r;
+        fpair -= sscale*c[itype][jtype]
+          * (invexp*invexp*ddexp*(-dscale/rr[itype][jtype])*r6inv) / r;
         fpair -= sscale*c[itype][jtype] * (6.0 * invexp * r6inv * r2inv);
         fpair *= factor_lj;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
+        if (eflag) {
+          evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
             sscale*c[itype][jtype]*r6inv*invexp  - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+          evdwl *= factor_lj;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -134,7 +135,7 @@ void PairZhou::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairZhou::allocate()
@@ -160,7 +161,7 @@ void PairZhou::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairZhou::settings(int narg, char **arg)
@@ -177,7 +178,7 @@ void PairZhou::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -187,7 +188,9 @@ void PairZhou::settings(int narg, char **arg)
 
 void PairZhou::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 7 || narg > 8)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -230,7 +233,7 @@ double PairZhou::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
-     
+ 
   if (offset_flag) {
     double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
     offset[i][j] = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
@@ -260,12 +263,12 @@ void PairZhou::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&d0[i][j],sizeof(double),1,fp);
-	fwrite(&alpha[i][j],sizeof(double),1,fp);
-	fwrite(&r0[i][j],sizeof(double),1,fp);
+        fwrite(&d0[i][j],sizeof(double),1,fp);
+        fwrite(&alpha[i][j],sizeof(double),1,fp);
+        fwrite(&r0[i][j],sizeof(double),1,fp);
         fwrite(&c[i][j],sizeof(double),1,fp);
         fwrite(&rr[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -287,20 +290,20 @@ void PairZhou::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&d0[i][j],sizeof(double),1,fp);
-	  fread(&alpha[i][j],sizeof(double),1,fp);
-	  fread(&r0[i][j],sizeof(double),1,fp);
+        if (me == 0) {
+          fread(&d0[i][j],sizeof(double),1,fp);
+          fread(&alpha[i][j],sizeof(double),1,fp);
+          fread(&r0[i][j],sizeof(double),1,fp);
           fread(&c[i][j],sizeof(double),1,fp);
           fread(&rr[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&d0[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&r0[i][j],1,MPI_DOUBLE,0,world);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&d0[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&r0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&rr[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }

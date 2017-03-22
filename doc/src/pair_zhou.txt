@@ -25,10 +25,10 @@ pair_coeff 1 2 zhou 0.0 1.0 1.0 10.2847 2.361 :pre
 
 [Description:]
 
-Style {zhou} computes pairwise van der Waals (vdW) interactions using the
-"(Grimme)"_#Grimme method implemented in the Many-Body Metal-Organic (MOMB)
-force field described extensively in "(Fichthorn)"_#Fichthorn and
-"(Zhou)"_#Zhou4. This potential is widely used to correct for dispersion
+Style {zhou} computes pairwise van der Waals (vdW) and short-range interactions using the
+Morse potential and "(Grimme)"_#Grimme method implemented in the Many-Body
+Metal-Organic (MOMB) force field described comprehensively in "(Fichthorn)"_#Fichthorn and
+"(Zhou)"_#Zhou4. The Grimme's method is widely used to correct for dispersion
 in density functional theory calculations.
 
 :c,image(Eqs/pair_zhou.jpg)
@@ -42,7 +42,7 @@ D0 (energy units)
 alpha (1/distance units)
 r0 (distance units)
 C6 (energy*distance^6 units)
-Rr (distance units) :ul
+Rr (distance units, typically sum of atomic vdW radii) :ul
 
 :line
 
@@ -53,6 +53,12 @@ LAMMPS is build with that package. See the "Making of
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
+
+"pair_coeff"_pair_coeff.html, "pair_style morse"_pair_morse.html
+
+[Default:] none
+
+:line
 
 :link(Grimme)
 [(Grimme)] Grimme, J Comput Chem, 27(15), 1787-1799 (2006).

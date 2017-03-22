@@ -23,7 +23,7 @@
 // should LATTE take triclinic box from LAMMPS
 // does Coulomb potential = pe[i]/q[i], is it 0 when q = 0
 // how will this work for serial/parallel LAMMPS with serial/parallel LATTE
-// NOTE: ADD checks for metal units !!!!!!!!!!!!!
+// INPORTANT NOTE: ADD checks for metal units !!!!!!!!!!!!!
 
 #include <stdio.h>
 #include <string.h>
@@ -261,9 +261,9 @@ void FixLatte::post_force(int vflag)
 
   flags[0] = pbcflag;         // 1 for fully periodic, 0 for fully non-periodic
   flags[1] = coulombflag;     // 1 for LAMMPS computes Coulombics, 0 for LATTE
-  flags[2] = eflag_atom; //pe_peratom;      // 1 to return per-atom energies, 0 for no
-  flags[3] = vflag_global; //virial_global;   // 1 to return global virial 0 for no
-  flags[4] = vflag_atom;  //virial_peratom;  // 1 to return per-atom virial, 0 for no
+  flags[2] = eflag_atom;      // 1 to return per-atom energies, 0 for no
+  flags[3] = vflag_global;    // 1 to return global virial 0 for no
+  flags[4] = vflag_atom;      // 1 to return per-atom virial, 0 for no
   flags[5] = neighflag;       // 1 to pass neighbor list to LATTE, 0 for no
 
   // setup LATTE arguments

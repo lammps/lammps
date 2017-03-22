@@ -1060,7 +1060,8 @@ package"_Section_start.html#start_3.
 "table/rx"_pair_table_rx.html,
 "tersoff/table (o)"_pair_tersoff.html,
 "thole"_pair_thole.html,
-"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c)
+"tip4p/long/soft (o)"_pair_lj_soft.html,
+"zhou"_pair_zhou.html :tb(c=4,ea=c)
 
 :line
 

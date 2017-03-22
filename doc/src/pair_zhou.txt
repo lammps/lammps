@@ -13,15 +13,15 @@ pair_style zhou command :h3
 pair_style zhou cutoff s6 d :pre
 
 cutoff = global cutoff (distance units)
-s6 = global scaling factor of the exchange-correlation functional used
-d = damping scaling factor of Grimme's method :ul
+s6 = global scaling factor of the exchange-correlation functional used (unitless)
+d = damping scaling factor of Grimme's method (unitless) :ul
 
 [Examples:]
 
 pair_style zhou 12.0 0.75 20.0
-pair_style hybrid/overlay eam/fs lj/charmm/coul/long 10.0 12.0 zhou 12.0 0.75 20.0 morse 5.5
+pair_style hybrid/overlay eam/fs lj/charmm/coul/long 10.0 12.0 zhou 12.0 0.75 20.0 morse 5.5 :pre
 
-pair_coeff 1*4 5 zhou 0.0 1.0 1.0 10.2847 2.361
+pair_coeff 1 2 zhou 0.0 1.0 1.0 10.2847 2.361 :pre
 
 [Description:]
 
@@ -30,6 +30,19 @@ Style {zhou} computes pairwise van der Waals (vdW) interactions using the
 force field described extensively in "(Fichthorn)"_#Fichthorn and
 "(Zhou)"_#Zhou. This potential is widely used to correct for dispersion
 in density functional theory calculations.
+
+:c,image(Eqs/pair_zhou.jpg)
+
+For the {zhou} pair style, the following coefficients must be defined for each
+pair of atoms types via the "pair_coeff"_pair_coeff.html command as in the
+examples above, or in the data file or restart files read by the 
+"read_data"_read_data.html as described below:
+
+D0 (energy units)
+alpha (1/distance units)
+r0 (distance units)
+C6 (energy*distance^6 units)
+Rr (distance units) :ul
 
 :line
 

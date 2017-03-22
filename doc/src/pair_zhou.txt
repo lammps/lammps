@@ -28,7 +28,7 @@ pair_coeff 1 2 zhou 0.0 1.0 1.0 10.2847 2.361 :pre
 Style {zhou} computes pairwise van der Waals (vdW) interactions using the
 "(Grimme)"_#Grimme method implemented in the Many-Body Metal-Organic (MOMB)
 force field described extensively in "(Fichthorn)"_#Fichthorn and
-"(Zhou)"_#Zhou. This potential is widely used to correct for dispersion
+"(Zhou)"_#Zhou4. This potential is widely used to correct for dispersion
 in density functional theory calculations.
 
 :c,image(Eqs/pair_zhou.jpg)
@@ -46,11 +46,19 @@ Rr (distance units) :ul
 
 :line
 
+[Restrictions:]
+
+This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the "Making of
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
 :link(Grimme)
 [(Grimme)] Grimme, J Comput Chem, 27(15), 1787-1799 (2006).
 
 :link(Fichthorn)
 [(Fichthorn)] Fichthorn, Balankura, Qi, CrystEngComm, 18(29), 5410-5417 (2016).
 
-:link(Zhou)
+:link(Zhou4)
 [(Zhou)] Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).

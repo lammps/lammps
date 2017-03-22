@@ -47,7 +47,7 @@ own sub-directories with their own Makefiles and/or README files.
 "ch2lmp"_#charmm
 "chain"_#chain
 "colvars"_#colvars
-"createatoms"_#createtools
+"createatoms"_#createatoms
 "drude"_#drude
 "eam database"_#eamdb
 "eam generate"_#eamgn
@@ -159,7 +159,7 @@ gmail.com) at ICTP, Italy.
 
 :line
 
-createatoms tool :h4,link(create)
+createatoms tool :h4,link(createatoms)
 
 The tools/createatoms directory contains a Fortran program called
 createAtoms.f which can generate a variety of interesting crystal

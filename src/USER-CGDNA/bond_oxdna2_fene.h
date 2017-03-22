@@ -16,35 +16,22 @@
 
 #ifdef BOND_CLASS
 
-BondStyle(oxdna/fene,BondOxdnaFene)
+BondStyle(oxdna2/fene,BondOxdna2Fene)
 
 #else
 
-#ifndef LMP_BOND_OXDNA_FENE_H
-#define LMP_BOND_OXDNA_FENE_H
+#ifndef LMP_BOND_OXDNA2_FENE_H
+#define LMP_BOND_OXDNA2_FENE_H
 
-#include "bond.h"
+#include "bond_oxdna_fene.h"
 
 namespace LAMMPS_NS {
 
-class BondOxdnaFene : public Bond {
+class BondOxdna2Fene : public BondOxdnaFene {
  public:
-  BondOxdnaFene(class LAMMPS *);
-  virtual ~BondOxdnaFene();
+  BondOxdna2Fene(class LAMMPS *);
+  virtual ~BondOxdna2Fene();
   virtual void compute_interaction_sites(double *, double *, double *);
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
-
- protected:
-  double *k,*Delta,*r0; // FENE
-
-  void allocate();
 };
 
 }

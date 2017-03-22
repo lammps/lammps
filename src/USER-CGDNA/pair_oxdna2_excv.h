@@ -16,52 +16,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna/stk,PairOxdnaStk)
-PairStyle(oxdna2/stk,PairOxdnaStk)
+PairStyle(oxdna2/excv,PairOxdna2Excv)
 
 #else
 
-#ifndef LMP_PAIR_OXDNA_STK_H
-#define LMP_PAIR_OXDNA_STK_H
+#ifndef LMP_PAIR_OXDNA2_EXCV_H
+#define LMP_PAIR_OXDNA2_EXCV_H
 
-#include "pair.h"
+#include "pair_oxdna_excv.h"
 
 namespace LAMMPS_NS {
 
-class PairOxdnaStk : public Pair {
+class PairOxdna2Excv : public PairOxdnaExcv {
  public:
-  PairOxdnaStk(class LAMMPS *);
-  virtual ~PairOxdnaStk();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  void *extract(const char *, int &);
-
- protected:
-  // stacking interaction
-  double **epsilon_st, **a_st, **cut_st_0, **cut_st_c;
-  double **cut_st_lo, **cut_st_hi;
-  double **cut_st_lc, **cut_st_hc, **b_st_lo, **b_st_hi, **shift_st;
-  double **cutsq_st_hc;
-  double **a_st4, **theta_st4_0, **dtheta_st4_ast;
-  double **b_st4, **dtheta_st4_c;
-  double **a_st5, **theta_st5_0, **dtheta_st5_ast;
-  double **b_st5, **dtheta_st5_c;
-  double **a_st6, **theta_st6_0, **dtheta_st6_ast;
-  double **b_st6, **dtheta_st6_c;
-  double **a_st1, **cosphi_st1_ast, **b_st1, **cosphi_st1_c;
-  double **a_st2, **cosphi_st2_ast, **b_st2, **cosphi_st2_c;
-
-  virtual void allocate();
+  PairOxdna2Excv(class LAMMPS *);
+  virtual ~PairOxdna2Excv();
+  virtual void compute_interaction_sites(double *, 
+    double *, double *, double *);
 };
 
 }

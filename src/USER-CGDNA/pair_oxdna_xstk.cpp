@@ -125,7 +125,7 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
   double theta8,theta8p,t8dir[3],cost8;
 
   // distance COM-h-bonding site
-  double d_chb=0.56;
+  double d_chb=+0.4;
   // vectors COM-h-bonding site in lab frame
   double ra_chb[3],rb_chb[3];
 

@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pair_oxdna_coaxstk.h"
+#include "pair_oxdna2_coaxstk.h"
 #include "mf_oxdna.h"
 #include "atom.h"
 #include "comm.h"
@@ -40,7 +40,7 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdnaCoaxstk::PairOxdnaCoaxstk(LAMMPS *lmp) : Pair(lmp)
+PairOxdna2Coaxstk::PairOxdna2Coaxstk(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
@@ -48,7 +48,7 @@ PairOxdnaCoaxstk::PairOxdnaCoaxstk(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
+PairOxdna2Coaxstk::~PairOxdna2Coaxstk()
 {
   if (allocated) {
 
@@ -89,14 +89,8 @@ PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
     memory->destroy(b_cxst6);
     memory->destroy(dtheta_cxst6_c);
 
-    memory->destroy(a_cxst3p);
-    memory->destroy(cosphi_cxst3p_ast);
-    memory->destroy(b_cxst3p);
-    memory->destroy(cosphi_cxst3p_c);
-    memory->destroy(a_cxst4p);
-    memory->destroy(cosphi_cxst4p_ast);
-    memory->destroy(b_cxst4p);
-    memory->destroy(cosphi_cxst4p_c);
+    memory->destroy(AA_cxst1);
+    memory->destroy(BB_cxst1);
 
   }
 }
@@ -106,7 +100,7 @@ PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
    st=stacking site
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::compute(int eflag, int vflag)
+void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 {
 
   double delf[3],delt[3],delta[3],deltb[3]; // force, torque increment;
@@ -151,8 +145,8 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
-  double f2,f4t1,f4t4,f4t5,f4t6,f5c3;
-  double df2,df4t1,df4t4,df4t5,df4t6,df5c3,rsint;
+  double f2,f4f6t1,f4t4,f4t5,f4t6;
+  double df2,df4f6t1,df4t4,df4t5,df4t6,rsint;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -239,13 +233,12 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       theta1 = acos(cost1);
       theta1p = 2 * MY_PI - theta1;
 
-      f4t1 = F4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-             b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype]) +
-             F4(theta1p, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-             b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype]);
+      f4f6t1 = F4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
+	       b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype]) +
+	       F6(theta1, AA_cxst1[atype][btype], BB_cxst1[atype][btype]);
 
       // early rejection criterium
-      if (f4t1) {
+      if (f4f6t1) {
 
       cost4 = MathExtra::dot3(az,bz);
       if (cost4 >  1.0) cost4 =  1.0;
@@ -292,11 +285,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
            cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype], cut_cxst_hi[atype][btype],
            b_cxst_lo[atype][btype], b_cxst_hi[atype][btype], cut_cxst_c[atype][btype]);
 
-
-      f5c3 = F5(cosphi3, a_cxst3p[atype][btype], cosphi_cxst3p_ast[atype][btype], b_cxst3p[atype][btype],
-             cosphi_cxst3p_c[atype][btype]);
-
-      evdwl = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
+      evdwl = f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
 
       // early rejection criterium
       if (evdwl) {
@@ -306,10 +295,9 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
             b_cxst_lo[atype][btype], b_cxst_hi[atype][btype]);
 
       rsint = 1.0/sin(theta1);
-      df4t1 = DF4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-              b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype])*rsint -
-              DF4(theta1p, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
-              b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype])*rsint;
+      df4f6t1 = DF4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype], dtheta_cxst1_ast[atype][btype],
+		b_cxst1[atype][btype], dtheta_cxst1_c[atype][btype])*rsint +
+		DF6(theta1, AA_cxst1[atype][btype], BB_cxst1[atype][btype])*rsint;
 
       df4t4 = DF4(theta4, a_cxst4[atype][btype], theta_cxst4_0[atype][btype], dtheta_cxst4_ast[atype][btype],
               b_cxst4[atype][btype], dtheta_cxst4_c[atype][btype])/sin(theta4);
@@ -325,10 +313,6 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
               b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint -
               DF4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
               b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint;
-
-      df5c3 = DF5(cosphi3, a_cxst3p[atype][btype], cosphi_cxst3p_ast[atype][btype], b_cxst3p[atype][btype],
-              cosphi_cxst3p_c[atype][btype]);
-
 
      // force, torque and virial contribution for forces between stacking sites
 
@@ -347,7 +331,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       deltb[2] = 0.0;
 
       // radial force
-      finc  = -df2 * f4t1 * f4t4 * f4t5 * f4t6 * f5c3 * f5c3 * rinv_st * factor_lj;
+      finc  = -df2 * f4f6t1 * f4t4 * f4t5 * f4t6 * rinv_st * factor_lj;
       fpair += finc;
 
       delf[0] += delr_st[0] * finc;
@@ -357,7 +341,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta5 force
       if (theta5 && theta5p) {
 
-        finc   = -f2 * f4t1 * f4t4 * df4t5 * f4t6 * f5c3 * f5c3 * rinv_st * factor_lj;
+        finc   = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * rinv_st * factor_lj;
         fpair += finc;
 
         delf[0] += (delr_st_norm[0]*cost5 - az[0]) * finc;
@@ -369,57 +353,12 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta6 force
       if (theta6 && theta6p) {
 
-        finc   = -f2 * f4t1* f4t4 * f4t5 * df4t6 * f5c3 * f5c3 * rinv_st * factor_lj;
+        finc   = -f2 * f4f6t1* f4t4 * f4t5 * df4t6 * rinv_st * factor_lj;
         fpair += finc;
 
         delf[0] += (delr_st_norm[0]*cost6 - bz[0]) * finc;
         delf[1] += (delr_st_norm[1]*cost6 - bz[1]) * finc;
         delf[2] += (delr_st_norm[2]*cost6 - bz[2]) * finc;
-
-      }
-
-
-      // cosphi3 and cosphi4 (=cosphi3) force and virial
-      if (cosphi3) {
-
-        finc   = -f2 * f4t1* f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
-        fpair += finc;
-
-        gamma = d_cs - d_cst;
-        gammacub = gamma * gamma * gamma;
-        rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
-        aybx = MathExtra::dot3(ay,bx);
-        azbx = MathExtra::dot3(az,bx);
-        rax = MathExtra::dot3(delr_st_norm,ax);
-        ray = MathExtra::dot3(delr_st_norm,ay);
-        raz = MathExtra::dot3(delr_st_norm,az);
-        rbx = MathExtra::dot3(delr_st_norm,bx);
-
-        fac = (raz * aybx - ray * azbx);
-
-        dcdr    = -gamma * fac * (gamma * (rax - rbx) + r_st) * rinv_ss_cub;
-        dcdaxbx =  gammacub * fac * rinv_ss_cub;
-        dcdaybx =  gamma * raz * rinv_ss;
-        dcdazbx = -gamma * ray * rinv_ss;
-        dcdrax  = -gamma*gamma * fac * r_st * rinv_ss_cub;
-        dcdray  = -gamma * azbx * rinv_ss;
-        dcdraz  =  gamma * aybx * rinv_ss;
-        dcdrbx  =  gamma*gamma * fac * r_st * rinv_ss_cub;
-
-        delf[0] += (delr_st_norm[0] * dcdr + ((ax[0] - delr_st_norm[0] * rax) * dcdrax +
-                                              (ay[0] - delr_st_norm[0] * ray) * dcdray +
-                                              (az[0] - delr_st_norm[0] * raz) * dcdraz +
-                                              (bx[0] - delr_st_norm[0] * rbx) * dcdrbx) * rinv_st) * finc * factor_lj;
-
-        delf[1] += (delr_st_norm[1] * dcdr + ((ax[1] - delr_st_norm[1] * rax) * dcdrax +
-                                              (ay[1] - delr_st_norm[1] * ray) * dcdray +
-                                              (az[1] - delr_st_norm[1] * raz) * dcdraz +
-                                              (bx[1] - delr_st_norm[1] * rbx) * dcdrbx) * rinv_st) * finc * factor_lj;
-
-        delf[2] += (delr_st_norm[2] * dcdr + ((ax[2] - delr_st_norm[2] * rax) * dcdrax +
-                                              (ay[2] - delr_st_norm[2] * ray) * dcdray +
-                                              (az[2] - delr_st_norm[2] * raz) * dcdraz +
-                                              (bx[2] - delr_st_norm[2] * rbx) * dcdrbx) * rinv_st) * finc * factor_lj;
 
       }
 
@@ -464,7 +403,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta1 torque
       if (theta1 && theta1p) {
 
-        tpair = -f2 * df4t1 * f4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
+        tpair = -f2 * df4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
         MathExtra::cross3(ax,bx,t1dir);
 
         delta[0] += t1dir[0]*tpair;
@@ -480,7 +419,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta4 torque
       if (theta4) {
 
-        tpair = -f2 * f4t1 * df4t4 * f4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
+        tpair = -f2 * f4f6t1 * df4t4 * f4t5 * f4t6 * factor_lj;
         MathExtra::cross3(bz,az,t4dir);
 
         delta[0] += t4dir[0]*tpair;
@@ -496,7 +435,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta5 torque
       if (theta5 && theta5p) {
 
-        tpair = -f2 * f4t1 * f4t4 * df4t5 * f4t6 * f5c3 * f5c3 * factor_lj;
+        tpair = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * factor_lj;
         MathExtra::cross3(delr_st_norm,az,t5dir);
 
         delta[0] += t5dir[0] * tpair;
@@ -508,69 +447,12 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // theta6 torque
       if (theta6 && theta6p) {
 
-        tpair = -f2 * f4t1 * f4t4 * f4t5 * df4t6 * f5c3 * f5c3 * factor_lj;
+        tpair = -f2 * f4f6t1 * f4t4 * f4t5 * df4t6 * factor_lj;
         MathExtra::cross3(delr_st_norm,bz,t6dir);
 
         deltb[0] -= t6dir[0] * tpair;
         deltb[1] -= t6dir[1] * tpair;
         deltb[2] -= t6dir[2] * tpair;
-
-      }
-
-      // Full cosphi3 and cosphi4 (=cosphi3) contribution to the torque
-      if (cosphi3) {
-
-        gamma = d_cs - d_cst;
-        gammacub = gamma * gamma * gamma;
-        rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
-        aybx = MathExtra::dot3(ay,bx);
-        azbx = MathExtra::dot3(az,bx);
-        rax = MathExtra::dot3(delr_st_norm,ax);
-        ray = MathExtra::dot3(delr_st_norm,ay);
-        raz = MathExtra::dot3(delr_st_norm,az);
-        rbx = MathExtra::dot3(delr_st_norm,bx);
-
-        fac = (raz * aybx - ray * azbx);
-
-        dcdr    = -gamma * fac * (gamma * (rax - rbx) + r_st) * rinv_ss_cub;
-        dcdaxbx =  gammacub * fac * rinv_ss_cub;
-        dcdaybx =  gamma * raz * rinv_ss;
-        dcdazbx = -gamma * ray * rinv_ss;
-        dcdrax  = -gamma*gamma * fac * r_st * rinv_ss_cub;
-        dcdray  = -gamma * azbx * rinv_ss;
-        dcdraz  =  gamma * aybx * rinv_ss;
-        dcdrbx  =  gamma*gamma * fac * r_st * rinv_ss_cub;
-
-        tpair   = -f2 * f4t1 * f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
-
-        MathExtra::cross3(ax,bx,v1tmp);
-        MathExtra::cross3(ay,bx,v2tmp);
-        MathExtra::cross3(az,bx,v3tmp);
-
-        delt[0] = (v1tmp[0] * dcdaxbx + v2tmp[0] * dcdaybx + v3tmp[0] * dcdazbx) * tpair;
-        delt[1] = (v1tmp[1] * dcdaxbx + v2tmp[1] * dcdaybx + v3tmp[1] * dcdazbx) * tpair;
-        delt[2] = (v1tmp[2] * dcdaxbx + v2tmp[2] * dcdaybx + v3tmp[2] * dcdazbx) * tpair;
-
-        delta[0] += delt[0];
-        delta[1] += delt[1];
-        delta[2] += delt[2];
-        deltb[0] += delt[0];
-        deltb[1] += delt[1];
-        deltb[2] += delt[2];
-
-        MathExtra::cross3(ax,delr_st_norm,v1tmp);
-        MathExtra::cross3(ay,delr_st_norm,v2tmp);
-        MathExtra::cross3(az,delr_st_norm,v3tmp);
-
-        delta[0] += (v1tmp[0] * dcdrax + v2tmp[0] * dcdray + v3tmp[0] * dcdraz) * tpair;
-        delta[1] += (v1tmp[1] * dcdrax + v2tmp[1] * dcdray + v3tmp[1] * dcdraz) * tpair;
-        delta[2] += (v1tmp[2] * dcdrax + v2tmp[2] * dcdray + v3tmp[2] * dcdraz) * tpair;
-
-        MathExtra::cross3(bx,delr_st_norm,v1tmp);
-
-        deltb[0] -= v1tmp[0] * dcdrbx * tpair;
-        deltb[1] -= v1tmp[1] * dcdrbx * tpair;
-        deltb[2] -= v1tmp[2] * dcdrbx * tpair;
 
       }
 
@@ -604,7 +486,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::allocate()
+void PairOxdna2Coaxstk::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -651,14 +533,8 @@ void PairOxdnaCoaxstk::allocate()
   memory->create(b_cxst6,n+1,n+1,"pair:b_cxst6");
   memory->create(dtheta_cxst6_c,n+1,n+1,"pair:dtheta_cxst6_c");
 
-  memory->create(a_cxst3p,n+1,n+1,"pair:a_cxst3p");
-  memory->create(cosphi_cxst3p_ast,n+1,n+1,"pair:cosphi_cxst3p_ast");
-  memory->create(b_cxst3p,n+1,n+1,"pair:b_cxst3p");
-  memory->create(cosphi_cxst3p_c,n+1,n+1,"pair:cosphi_cxst3p_c");
-  memory->create(a_cxst4p,n+1,n+1,"pair:a_cxst4p");
-  memory->create(cosphi_cxst4p_ast,n+1,n+1,"pair:cosphi_cxst4p_ast");
-  memory->create(b_cxst4p,n+1,n+1,"pair:b_cxst4p");
-  memory->create(cosphi_cxst4p_c,n+1,n+1,"pair:cosphi_cxst4p_c");
+  memory->create(AA_cxst1,n+1,n+1,"pair:AA_cxst1");
+  memory->create(BB_cxst1,n+1,n+1,"pair:BB_cxst1");
 
 }
 
@@ -666,7 +542,7 @@ void PairOxdnaCoaxstk::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::settings(int narg, char **arg)
+void PairOxdna2Coaxstk::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 
@@ -676,11 +552,11 @@ void PairOxdnaCoaxstk::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::coeff(int narg, char **arg)
+void PairOxdna2Coaxstk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 23) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_xstack");
+  if (narg != 21) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_xstack");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -705,8 +581,7 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
   double a_cxst6_one, theta_cxst6_0_one, dtheta_cxst6_ast_one;
   double b_cxst6_one, dtheta_cxst6_c_one;
 
-  double a_cxst3p_one, cosphi_cxst3p_ast_one, b_cxst3p_one, cosphi_cxst3p_c_one;
-  double a_cxst4p_one, cosphi_cxst4p_ast_one, b_cxst4p_one, cosphi_cxst4p_c_one;
+  double AA_cxst1_one, BB_cxst1_one;
 
   k_cxst_one = force->numeric(FLERR,arg[2]);
   cut_cxst_0_one = force->numeric(FLERR,arg[3]);
@@ -730,10 +605,8 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
   theta_cxst6_0_one = force->numeric(FLERR,arg[17]);
   dtheta_cxst6_ast_one = force->numeric(FLERR,arg[18]);
 
-  a_cxst3p_one = force->numeric(FLERR,arg[19]);
-  cosphi_cxst3p_ast_one = force->numeric(FLERR,arg[20]);
-  a_cxst4p_one = force->numeric(FLERR,arg[21]);
-  cosphi_cxst4p_ast_one = force->numeric(FLERR,arg[22]);
+  AA_cxst1_one = force->numeric(FLERR,arg[19]);
+  BB_cxst1_one = force->numeric(FLERR,arg[20]);
 
   b_cxst_lo_one = 0.25 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one)/
         (0.5 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one) -
@@ -759,12 +632,6 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
 
   b_cxst6_one = a_cxst6_one*a_cxst6_one*dtheta_cxst6_ast_one*dtheta_cxst6_ast_one/(1-a_cxst6_one*dtheta_cxst6_ast_one*dtheta_cxst6_ast_one);
   dtheta_cxst6_c_one = 1/(a_cxst6_one*dtheta_cxst6_ast_one);
-
-  b_cxst3p_one = a_cxst3p_one*a_cxst3p_one*cosphi_cxst3p_ast_one*cosphi_cxst3p_ast_one/(1-a_cxst3p_one*cosphi_cxst3p_ast_one*cosphi_cxst3p_ast_one);
-  cosphi_cxst3p_c_one=1/(a_cxst3p_one*cosphi_cxst3p_ast_one);
-
-  b_cxst4p_one = a_cxst4p_one*a_cxst4p_one*cosphi_cxst4p_ast_one*cosphi_cxst4p_ast_one/(1-a_cxst4p_one*cosphi_cxst4p_ast_one*cosphi_cxst4p_ast_one);
-  cosphi_cxst4p_c_one=1/(a_cxst4p_one*cosphi_cxst4p_ast_one);
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -803,15 +670,8 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
       b_cxst6[i][j] = b_cxst6_one;
       dtheta_cxst6_c[i][j] = dtheta_cxst6_c_one;
 
-      a_cxst3p[i][j] = a_cxst3p_one;
-      cosphi_cxst3p_ast[i][j] = cosphi_cxst3p_ast_one;
-      b_cxst3p[i][j] = b_cxst3p_one;
-      cosphi_cxst3p_c[i][j] = cosphi_cxst3p_c_one;
-
-      a_cxst4p[i][j] = a_cxst4p_one;
-      cosphi_cxst4p_ast[i][j] = cosphi_cxst4p_ast_one;
-      b_cxst4p[i][j] = b_cxst4p_one;
-      cosphi_cxst4p_c[i][j] = cosphi_cxst4p_c_one;
+      AA_cxst1[i][j] = AA_cxst1_one;
+      BB_cxst1[i][j] = BB_cxst1_one;
 
       setflag[i][j] = 1;
       count++;
@@ -826,7 +686,7 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::init_style()
+void PairOxdna2Coaxstk::init_style()
 {
   int irequest;
 
@@ -840,7 +700,7 @@ void PairOxdnaCoaxstk::init_style()
    neighbor callback to inform pair style of neighbor list to use regular
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::init_list(int id, NeighList *ptr)
+void PairOxdna2Coaxstk::init_list(int id, NeighList *ptr)
 {
   if (id == 0) list = ptr;
   if (id  > 0) error->all(FLERR,"Respa not supported");
@@ -852,7 +712,7 @@ void PairOxdnaCoaxstk::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairOxdnaCoaxstk::init_one(int i, int j)
+double PairOxdna2Coaxstk::init_one(int i, int j)
 {
 
   if (setflag[i][j] == 0) {
@@ -896,15 +756,8 @@ double PairOxdnaCoaxstk::init_one(int i, int j)
   b_cxst6[j][i] = b_cxst6[i][j];
   dtheta_cxst6_c[j][i] = dtheta_cxst6_c[i][j];
 
-  a_cxst3p[j][i] = a_cxst3p[i][j];
-  cosphi_cxst3p_ast[j][i] = cosphi_cxst3p_ast[i][j];
-  b_cxst3p[j][i] = b_cxst3p[i][j];
-  cosphi_cxst3p_c[j][i] = cosphi_cxst3p_c[i][j];
-
-  a_cxst4p[j][i] = a_cxst4p[i][j];
-  cosphi_cxst4p_ast[j][i] = cosphi_cxst4p_ast[i][j];
-  b_cxst4p[j][i] = b_cxst4p[i][j];
-  cosphi_cxst4p_c[j][i] = cosphi_cxst4p_c[i][j];
+  AA_cxst1[j][i] = AA_cxst1[i][j];
+  BB_cxst1[j][i] = BB_cxst1[i][j];
 
   cutsq_cxst_hc[i][j] = cut_cxst_hc[i][j]*cut_cxst_hc[i][j];
   cutsq_cxst_hc[j][i] = cutsq_cxst_hc[i][j];
@@ -918,7 +771,7 @@ double PairOxdnaCoaxstk::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::write_restart(FILE *fp)
+void PairOxdna2Coaxstk::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -962,14 +815,8 @@ void PairOxdnaCoaxstk::write_restart(FILE *fp)
         fwrite(&b_cxst6[i][j],sizeof(double),1,fp);
         fwrite(&dtheta_cxst6_c[i][j],sizeof(double),1,fp);
 
-        fwrite(&a_cxst3p[i][j],sizeof(double),1,fp);
-        fwrite(&cosphi_cxst3p_ast[i][j],sizeof(double),1,fp);
-        fwrite(&b_cxst3p[i][j],sizeof(double),1,fp);
-        fwrite(&cosphi_cxst3p_c[i][j],sizeof(double),1,fp);
-        fwrite(&a_cxst4p[i][j],sizeof(double),1,fp);
-        fwrite(&cosphi_cxst4p_ast[i][j],sizeof(double),1,fp);
-        fwrite(&b_cxst4p[i][j],sizeof(double),1,fp);
-        fwrite(&cosphi_cxst4p_c[i][j],sizeof(double),1,fp);
+        fwrite(&AA_cxst1[i][j],sizeof(double),1,fp);
+        fwrite(&BB_cxst1[i][j],sizeof(double),1,fp);
 
     }
   }
@@ -979,7 +826,7 @@ void PairOxdnaCoaxstk::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::read_restart(FILE *fp)
+void PairOxdna2Coaxstk::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -1008,7 +855,7 @@ void PairOxdnaCoaxstk::read_restart(FILE *fp)
           fread(&dtheta_cxst1_ast[i][j],sizeof(double),1,fp);
           fread(&b_cxst1[i][j],sizeof(double),1,fp);
           fread(&dtheta_cxst1_c[i][j],sizeof(double),1,fp);
-
+    
           fread(&a_cxst4[i][j],sizeof(double),1,fp);
           fread(&theta_cxst4_0[i][j],sizeof(double),1,fp);
           fread(&dtheta_cxst4_ast[i][j],sizeof(double),1,fp);
@@ -1027,14 +874,8 @@ void PairOxdnaCoaxstk::read_restart(FILE *fp)
           fread(&b_cxst6[i][j],sizeof(double),1,fp);
           fread(&dtheta_cxst6_c[i][j],sizeof(double),1,fp);
 
-          fread(&a_cxst3p[i][j],sizeof(double),1,fp);
-          fread(&cosphi_cxst3p_ast[i][j],sizeof(double),1,fp);
-          fread(&b_cxst3p[i][j],sizeof(double),1,fp);
-          fread(&cosphi_cxst3p_c[i][j],sizeof(double),1,fp);
-          fread(&a_cxst4p[i][j],sizeof(double),1,fp);
-          fread(&cosphi_cxst4p_ast[i][j],sizeof(double),1,fp);
-          fread(&b_cxst4p[i][j],sizeof(double),1,fp);
-          fread(&cosphi_cxst4p_c[i][j],sizeof(double),1,fp);
+	  fread(&AA_cxst1[i][j],sizeof(double),1,fp);
+	  fread(&BB_cxst1[i][j],sizeof(double),1,fp);
 
         }
 
@@ -1054,7 +895,7 @@ void PairOxdnaCoaxstk::read_restart(FILE *fp)
         MPI_Bcast(&b_cxst1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&dtheta_cxst1_c[i][j],1,MPI_DOUBLE,0,world);
 
-        MPI_Bcast(&a_cxst4[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&a_cxst4[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&theta_cxst4_0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&dtheta_cxst4_ast[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&b_cxst4[i][j],1,MPI_DOUBLE,0,world);
@@ -1072,16 +913,10 @@ void PairOxdnaCoaxstk::read_restart(FILE *fp)
         MPI_Bcast(&b_cxst6[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&dtheta_cxst6_c[i][j],1,MPI_DOUBLE,0,world);
 
-        MPI_Bcast(&a_cxst3p[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cosphi_cxst3p_ast[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&b_cxst3p[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cosphi_cxst3p_c[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&a_cxst4p[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cosphi_cxst4p_ast[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&b_cxst4p[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cosphi_cxst4p_c[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&AA_cxst1[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&BB_cxst1[i][j],1,MPI_DOUBLE,0,world);
 
-      }
+       }
     }
 }
 
@@ -1089,7 +924,7 @@ void PairOxdnaCoaxstk::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::write_restart_settings(FILE *fp)
+void PairOxdna2Coaxstk::write_restart_settings(FILE *fp)
 {
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
@@ -1100,7 +935,7 @@ void PairOxdnaCoaxstk::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::read_restart_settings(FILE *fp)
+void PairOxdna2Coaxstk::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
@@ -1117,7 +952,7 @@ void PairOxdnaCoaxstk::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::write_data(FILE *fp)
+void PairOxdna2Coaxstk::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d\
@@ -1127,8 +962,7 @@ void PairOxdnaCoaxstk::write_data(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g %g\
-         %g %g %g %g\
-         %g %g %g %g\
+	 %g %g\
          \n",i,
         k_cxst[i][i],cut_cxst_0[i][i],cut_cxst_c[i][i],cut_cxst_lo[i][i],cut_cxst_hi[i][i],
         cut_cxst_lc[i][i],cut_cxst_hc[i][i],b_cxst_lo[i][i],b_cxst_hi[i][i],
@@ -1136,15 +970,14 @@ void PairOxdnaCoaxstk::write_data(FILE *fp)
         a_cxst4[i][i],theta_cxst4_0[i][i],dtheta_cxst4_ast[i][i],b_cxst4[i][i],dtheta_cxst4_c[i][i],
         a_cxst5[i][i],theta_cxst5_0[i][i],dtheta_cxst5_ast[i][i],b_cxst5[i][i],dtheta_cxst5_c[i][i],
         a_cxst6[i][i],theta_cxst6_0[i][i],dtheta_cxst6_ast[i][i],b_cxst6[i][i],dtheta_cxst6_c[i][i],
-        a_cxst3p[i][i],cosphi_cxst3p_ast[i][i],b_cxst3p[i][i], cosphi_cxst3p_c[i][i],
-        a_cxst4p[i][i],cosphi_cxst4p_ast[i][i],b_cxst4p[i][i], cosphi_cxst4p_c[i][i]);
+	AA_cxst1[i][i],BB_cxst1[i][i]);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::write_data_all(FILE *fp)
+void PairOxdna2Coaxstk::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
@@ -1155,8 +988,7 @@ void PairOxdnaCoaxstk::write_data_all(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g %g\
-         %g %g %g %g\
-         %g %g %g %g\
+	 %g %g\
          \n",i,j,
         k_cxst[i][j],cut_cxst_0[i][j],cut_cxst_c[i][j],cut_cxst_lo[i][j],cut_cxst_hi[i][j],
         cut_cxst_lc[i][j],cut_cxst_hc[i][j],b_cxst_lo[i][j],b_cxst_hi[i][j],
@@ -1164,14 +996,13 @@ void PairOxdnaCoaxstk::write_data_all(FILE *fp)
         a_cxst4[i][j],theta_cxst4_0[i][j],dtheta_cxst4_ast[i][j],b_cxst4[i][j],dtheta_cxst4_c[i][j],
         a_cxst5[i][j],theta_cxst5_0[i][j],dtheta_cxst5_ast[i][j],b_cxst5[i][j],dtheta_cxst5_c[i][j],
         a_cxst6[i][j],theta_cxst6_0[i][j],dtheta_cxst6_ast[i][j],b_cxst6[i][j],dtheta_cxst6_c[i][j],
-        a_cxst3p[i][j],cosphi_cxst3p_ast[i][j],b_cxst3p[i][j],cosphi_cxst3p_c[i][j],
-        a_cxst4p[i][j],cosphi_cxst4p_ast[i][j],b_cxst4p[i][j],cosphi_cxst4p_c[i][j]);
+	AA_cxst1[i][j],BB_cxst1[i][j]);
 
 }
 
 /* ---------------------------------------------------------------------- */
 
-void *PairOxdnaCoaxstk::extract(const char *str, int &dim)
+void *PairOxdna2Coaxstk::extract(const char *str, int &dim)
 {
   dim = 2;
 
@@ -1209,15 +1040,8 @@ void *PairOxdnaCoaxstk::extract(const char *str, int &dim)
   if (strcmp(str,"b_cxst6") == 0) return (void *) b_cxst6;
   if (strcmp(str,"dtheta_cxst6_c") == 0) return (void *) dtheta_cxst6_c;
 
-  if (strcmp(str,"a_cxst3p") == 0) return (void *) a_cxst3p;
-  if (strcmp(str,"cosphi_cxst3p_ast") == 0) return (void *) cosphi_cxst3p_ast;
-  if (strcmp(str,"b_cxst3p") == 0) return (void *) b_cxst3p;
-  if (strcmp(str,"cosphi_cxst3p_c") == 0) return (void *) cosphi_cxst3p_c;
-
-  if (strcmp(str,"a_cxst4p") == 0) return (void *) a_cxst4p;
-  if (strcmp(str,"cosphi_cxst4p_ast") == 0) return (void *) cosphi_cxst4p_ast;
-  if (strcmp(str,"b_cxst4p") == 0) return (void *) b_cxst4p;
-  if (strcmp(str,"cosphi_cxst4p_c") == 0) return (void *) cosphi_cxst4p_c;
+  if (strcmp(str,"AA_cxst1") == 0) return (void *) AA_cxst1;
+  if (strcmp(str,"BB_cxst1") == 0) return (void *) BB_cxst1;
 
   return NULL;
 }

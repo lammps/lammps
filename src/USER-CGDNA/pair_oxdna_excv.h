@@ -16,7 +16,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna_excv,PairOxdnaExcv)
+PairStyle(oxdna/excv,PairOxdnaExcv)
 
 #else
 
@@ -31,6 +31,8 @@ class PairOxdnaExcv : public Pair {
  public:
   PairOxdnaExcv(class LAMMPS *);
   virtual ~PairOxdnaExcv();
+  virtual void compute_interaction_sites(double *, double *, 
+    double *, double *);
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

@@ -751,33 +751,52 @@ simulations can be visualized (and analyzed) in a variety of ways.
 
 LAMMPS snapshots are created by the "dump"_dump.html command which can
 create files in several formats.  The native LAMMPS dump format is a
-text file (see "dump atom" or "dump custom") which can be read by
-several popular visualization tools. 
+text file (see "dump atom" or "dump custom") which can be visualized
+by the "xmovie"_Section_tools.html#xmovie program, included with the
+LAMMPS package.  This produces simple, fast 2d projections of 3d
+systems, and can be useful for rapid debugging of simulation geometry
+and atom trajectories.
 
 Several programs included with LAMMPS as auxiliary tools can convert
 native LAMMPS dump files to other formats.  See the
-"Section 9"_Section_tools.html doc page for details.
+"Section 9"_Section_tools.html doc page for details.  The first is
+the "ch2lmp tool"_Section_tools.html#charmm, which contains a
+lammps2pdb Perl script which converts LAMMPS dump files into PDB
+files.  The second is the "lmp2arc tool"_Section_tools.html#arc which
+converts LAMMPS dump files into Accelrys' Insight MD program files.
+The third is the "lmp2cfg tool"_Section_tools.html#cfg which converts
+LAMMPS dump files into CFG files which can be read into the
+"AtomEye"_atomeye visualizer.
 
 A Python-based toolkit distributed by our group can read native LAMMPS
 dump files, including custom dump files with additional columns of
 user-specified atom information, and convert them to various formats
 or pipe them into visualization software directly.  See the "Pizza.py
-WWW site"_pizza for details.
+WWW site"_pizza for details.  Specifically, Pizza.py can convert
+LAMMPS dump files into PDB, XYZ, "Ensight"_ensight, and VTK formats.
+Pizza.py can pipe LAMMPS dump files directly into the Raster3d and
+RasMol visualization programs.  Pizza.py has tools that do interactive
+3d OpenGL visualization and one that creates SVG images of dump file
+snapshots.
 
-LAMMPS can create a selection of file formats natively (via "dump"_dump.html)
-and also supports "VMD molfile plugins"_vmd. Lists of possible
-"visualization programs"_http://lammps.sandia.gov/viz.html and
-"pre-/post-processing tools"_http://lammps.sandia.gov/prepost.html
-are maintained on the LAMMPS homepage.
+LAMMPS can create XYZ files directly (via "dump xyz") which is a
+simple text-based file format used by many visualization programs
+including "VMD"_vmd.
 
-In addition LAMMPS also includes a small render library to create
-visualization snapshot images directly during a simulation
-(via "dump image"_dump_image.html) or automatically convert
-them to movies by piping the images to an external FFmpeg
-executable (via "dump movie"_dump_image.html).
+LAMMPS can create DCD files directly (via "dump dcd") which can be
+read by "VMD"_vmd in conjunction with a CHARMM PSF file.  Using this
+form of output avoids the need to convert LAMMPS snapshots to PDB
+files.  See the "dump"_dump.html command for more information on DCD
+files.
+
+LAMMPS can create XTC files directly (via "dump xtc") which is GROMACS
+file format which can also be read by "VMD"_vmd for visualization.
+See the "dump"_dump.html command for more information on XTC files.
 
 :link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
 :link(vmd,http://www.ks.uiuc.edu/Research/vmd)
+:link(ensight,http://www.ensight.com)
+:link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
 
 :line
 

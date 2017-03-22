@@ -101,5 +101,6 @@ Pair Styles :h1
    pair_yukawa_colloid
    pair_zbl
    pair_zero
+   pair_zhou
 
 END_RST -->

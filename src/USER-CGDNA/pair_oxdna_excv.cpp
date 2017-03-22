@@ -120,8 +120,6 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   double delr_ss[3],rsq_ss,delr_sb[3],rsq_sb;
   double delr_bs[3],rsq_bs,delr_bb[3],rsq_bb;
 
-  // distances COM-backbone site, COM-base site
-  double d_cs=-0.24, d_cb=0.56;
   // vectors COM-backbone site, COM-base site in lab frame
   double ra_cs[3],ra_cb[3];
   double rb_cs[3],rb_cb[3];

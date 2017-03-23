@@ -1,0 +1,32 @@
+image: ubuntu:latest
+
+before_script:
+
+# Install Linux Packages:
+- apt-get update
+- hostname
+- pwd
+- export HOME=/builds/exaalt/
+- env
+#- apt-get --yes --force-yes install gfortran libblas-dev liblapack-dev
+#- apt-get --yes --force-yes install cmake python gcc cmake-data g++ git wget
+#- apt-get --yes --force-yes install pkg-config python-numpy python3-numpy libopenmpi-dev
+#
+## Build LATTE:
+#- cd /builds/exaalt/exaalt/LATTE/
+#- cp ./makefiles/makefile.CHOICES.gfort.lapack.lmp makefile.CHOICES
+#- make
+#
+## Build LAMMPS:
+#- cd /builds/exaalt/exaalt/lammps/lib/latte/
+#- cp Makefile.lammps.gfortran Makefile.lammps
+#- cd /builds/exaalt/exaalt/lammps/src/
+#- make yes-latte
+#- make yes-molecule
+#- make serial
+#
+#script:
+#
+## Test LAMMPS-LATTE Example:
+#- cd /builds/exaalt/exaalt/lammps/examples/latte/
+#- ../../src/lmp_serial -in in.latte.water

@@ -709,13 +709,13 @@ void PairAIREBO::FLJ(int eflag, int vflag)
                     atomm = m;
                     delkmS[0] = delkm[0];
                     delkmS[1] = delkm[1];
-                        delkmS[2] = delkm[2];
+                    delkmS[2] = delkm[2];
                     rkmS = rkm;
                     wkmS = wkm;
                     dwkmS = dwkm;
                     deljmS[0] = deljm[0];
                     deljmS[1] = deljm[1];
-                       deljmS[2] = deljm[2];
+                    deljmS[2] = deljm[2];
                     rmjS = rmj;
                     wmjS = wmj;
                     dwmjS = dwmj;

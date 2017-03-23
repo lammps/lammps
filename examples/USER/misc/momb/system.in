@@ -10,7 +10,7 @@ bond_style      harmonic
 angle_style     charmm
 dihedral_style  charmm
 improper_style  harmonic
-pair_style      hybrid/overlay eam/fs lj/charmm/coul/long 10.0 12.0 zhou 12.0 0.75 20.0 morse 5.5
+pair_style      hybrid/overlay eam/fs lj/charmm/coul/long 10.0 12.0 momb 12.0 0.75 20.0 morse 5.5
 kspace_style    pppm 1e-4
 
 # ----------------- Atom Definition Section -----------------
@@ -28,14 +28,14 @@ pair_coeff   12   16     morse   0.00480  1.30   1.94 # HCA2
 pair_coeff   13   16     morse   0.00448  1.06   2.13 # HCP1
 pair_coeff   14   16     morse   0.00216  1.26   4.99 # CC32A
 pair_coeff   15   16     morse   0.00217  2.09   3.43 # OC311
-pair_coeff  1*4   16     zhou    0.0 1.0 1.0 10.2847 2.361 # H
-pair_coeff  5*9   16     zhou    0.0 1.0 1.0 36.3619 2.812 # C
-pair_coeff   10   16     zhou    0.0 1.0 1.0 30.4846 2.757 # N
-pair_coeff   11   16     zhou    0.0 1.0 1.0 22.9973 2.702 # O
-pair_coeff   12   16     zhou    0.0 1.0 1.0 10.2847 2.361 # HCA2
-pair_coeff   13   16     zhou    0.0 1.0 1.0 10.2847 2.361 # HCP1
-pair_coeff   14   16     zhou    0.0 1.0 1.0 36.3619 2.812 # CC32A
-pair_coeff   15   16     zhou    0.0 1.0 1.0 22.9973 2.702 # OC311
+pair_coeff  1*4   16     momb    0.0 1.0 1.0 10.2847 2.361 # H
+pair_coeff  5*9   16     momb    0.0 1.0 1.0 36.3619 2.812 # C
+pair_coeff   10   16     momb    0.0 1.0 1.0 30.4846 2.757 # N
+pair_coeff   11   16     momb    0.0 1.0 1.0 22.9973 2.702 # O
+pair_coeff   12   16     momb    0.0 1.0 1.0 10.2847 2.361 # HCA2
+pair_coeff   13   16     momb    0.0 1.0 1.0 10.2847 2.361 # HCP1
+pair_coeff   14   16     momb    0.0 1.0 1.0 36.3619 2.812 # CC32A
+pair_coeff   15   16     momb    0.0 1.0 1.0 22.9973 2.702 # OC311
 
 # arithmetic mixing for CHARMM pair coeffs
 pair_coeff   1   1  lj/charmm/coul/long    0.001520  2.387609  0.001520  2.387609 #HRA2  HRA2  

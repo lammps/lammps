@@ -1,10 +1,10 @@
-pair_style zhou example
+pair_style momb example
 =================
 
-This folder contains a example of the use of pair_style zhou for system
+This folder contains a example of the use of pair_style momb for system
 containing Ag, ethylene glycol (EG) and polyvinylpyrrolidone (PVP).
 The pair_style is designed for the interaction between metals and organic
-compounds. For this Ag-EG-PVP system, we use pair_style zhou for the
+compounds. For this Ag-EG-PVP system, we use pair_style momb for the
 interaction between Ag and the oxygen atom in EG and PVP, as described in
 the publication listed below.
 

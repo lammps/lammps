@@ -456,6 +456,7 @@ pair_meam_spline.html
 pair_meam_sw_spline.html
 pair_mgpt.html
 pair_mie.html
+pair_momb.html
 pair_morse.html
 pair_multi_lucy.html
 pair_multi_lucy_rx.html
@@ -497,7 +498,6 @@ pair_yukawa.html
 pair_yukawa_colloid.html
 pair_zbl.html
 pair_zero.html
-pair_zhou.html
 
 bond_class2.html
 bond_fene.html

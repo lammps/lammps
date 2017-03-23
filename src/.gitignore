@@ -815,8 +815,8 @@
 /pair_tri_lj.h
 /pair_yukawa_colloid.cpp
 /pair_yukawa_colloid.h
-/pair_zhou.cpp
-/pair_zhou.h
+/pair_momb.cpp
+/pair_momb.h
 /pppm.cpp
 /pppm.h
 /pppm_cg.cpp

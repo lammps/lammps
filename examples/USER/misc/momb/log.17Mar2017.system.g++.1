@@ -239,9 +239,9 @@ Per MPI rank memory allocation (min/avg/max) = 99.82 | 99.82 | 99.82 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -10035.476    218.18376   -9817.2917    -1066.914 
        9            0   -10244.892    211.35072   -10033.541   -3283.8636 
-Loop time of 2.65996 on 1 procs for 9 steps with 18146 atoms
+Loop time of 2.6765 on 1 procs for 9 steps with 18146 atoms
 
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -255,14 +255,14 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.2936     | 2.2936     | 2.2936     |   0.0 | 86.23
-Bond    | 0.08754    | 0.08754    | 0.08754    |   0.0 |  3.29
-Kspace  | 0.2664     | 0.2664     | 0.2664     |   0.0 | 10.02
+Pair    | 2.3191     | 2.3191     | 2.3191     |   0.0 | 86.65
+Bond    | 0.084626   | 0.084626   | 0.084626   |   0.0 |  3.16
+Kspace  | 0.2622     | 0.2622     | 0.2622     |   0.0 |  9.80
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0041108  | 0.0041108  | 0.0041108  |   0.0 |  0.15
+Comm    | 0.0033448  | 0.0033448  | 0.0033448  |   0.0 |  0.12
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.008299   |            |       |  0.31
+Other   |            | 0.007261   |            |       |  0.27
 
 Nlocal:    18146 ave 18146 max 18146 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -325,22 +325,22 @@ Step PotEng KinEng TotEng Temp Press Pxx Pyy Pzz
       80   -9684.4674     666.4064    -9018.061     284.1303    999.60397    3345.5104   -202.16376   -144.53477 
       90   -9553.3377    550.82743   -9002.5103    234.85183   -1291.4189    1264.3148   -2496.9658   -2641.6058 
      100   -9551.9716    560.31802   -8991.6536    238.89826   -1189.4791    1842.8208   -3025.5224   -2385.7357 
-Loop time of 18.4128 on 1 procs for 100 steps with 18146 atoms
+Loop time of 18.5289 on 1 procs for 100 steps with 18146 atoms
 
-Performance: 0.469 ns/day, 51.147 hours/ns, 5.431 timesteps/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.466 ns/day, 51.469 hours/ns, 5.397 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 14.225     | 14.225     | 14.225     |   0.0 | 77.26
-Bond    | 0.65464    | 0.65464    | 0.65464    |   0.0 |  3.56
-Kspace  | 2.22       | 2.22       | 2.22       |   0.0 | 12.06
-Neigh   | 1.1926     | 1.1926     | 1.1926     |   0.0 |  6.48
-Comm    | 0.040519   | 0.040519   | 0.040519   |   0.0 |  0.22
-Output  | 0.0023048  | 0.0023048  | 0.0023048  |   0.0 |  0.01
-Modify  | 0.058326   | 0.058326   | 0.058326   |   0.0 |  0.32
-Other   |            | 0.01913    |            |       |  0.10
+Pair    | 14.326     | 14.326     | 14.326     |   0.0 | 77.31
+Bond    | 0.65294    | 0.65294    | 0.65294    |   0.0 |  3.52
+Kspace  | 2.2291     | 2.2291     | 2.2291     |   0.0 | 12.03
+Neigh   | 1.2037     | 1.2037     | 1.2037     |   0.0 |  6.50
+Comm    | 0.038561   | 0.038561   | 0.038561   |   0.0 |  0.21
+Output  | 0.0022585  | 0.0022585  | 0.0022585  |   0.0 |  0.01
+Modify  | 0.058746   | 0.058746   | 0.058746   |   0.0 |  0.32
+Other   |            | 0.018      |            |       |  0.10
 
 Nlocal:    18146 ave 18146 max 18146 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -354,4 +354,7 @@ Ave neighs/atom = 24.3524
 Ave special neighs/atom = 5.92362
 Neighbor list builds = 5
 Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
 Total wall time: 0:00:22

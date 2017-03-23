@@ -25,9 +25,7 @@ files and image files.
 
 If you uncomment the "dump"_dump.html command in the input script, a
 text dump file will be produced, which can be animated by various
-"visualization programs"_http://lammps.sandia.gov/viz.html.  It can
-also be animated using the xmovie tool described in the "Additional
-Tools"_Section_tools.html section of the LAMMPS documentation.
+"visualization programs"_http://lammps.sandia.gov/viz.html.
 
 If you uncomment the "dump image"_dump.html command in the input
 script, and assuming you have built LAMMPS with a JPG library, JPG

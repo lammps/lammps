@@ -131,14 +131,15 @@ The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are {rcutfac} and
 {twojmax}. Optional keywords are {rfac0}, {rmin0}, {diagonalstyle},
-and {switchflag}.
+{switchflag}, and {bzeroflag}.
 
 The default values for these keywords are
 
 {rfac0} = 0.99363
 {rmin0} = 0.0
 {diagonalstyle} = 3
-{switchflag} = 0 :ul
+{switchflag} = 0
+{bzeroflag} = 1 :ul
 
 Detailed definitions of these keywords are given on the "compute
 sna/atom"_compute_sna_atom.html doc page.

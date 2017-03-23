@@ -24,7 +24,7 @@ twojmax = band limit for bispectrum components (non-negative integer) :l
 R_1, R_2,... = list of cutoff radii, one for each type (distance units) :l
 w_1, w_2,... = list of neighbor weights, one for each type  :l
 zero or more keyword/value pairs may be appended :l
-keyword = {diagonal} or {rmin0} or {switchflag} :l
+keyword = {diagonal} or {rmin0} or {switchflag} or {bzeroflag} :l
   {diagonal} value = {0} or {1} or {2} or {3}
      {0} = all j1, j2, j <= twojmax, j2 <= j1
      {1} = subset satisfying j1 == j2
@@ -33,7 +33,10 @@ keyword = {diagonal} or {rmin0} or {switchflag} :l
   {rmin0} value = parameter in distance to angle conversion (distance units)
   {switchflag} value = {0} or {1}
      {0} = do not use switching function
-     {1} = use switching function :pre
+     {1} = use switching function
+  {bzeroflag} value = {0} or {1}
+     {0} = do not subtract B0
+     {1} = subtract B0 :pre
 :ule
 
 [Examples:]
@@ -153,6 +156,12 @@ ordered in which they are listed
 The keyword {switchflag} can be used to turn off the switching
 function.
 
+The keyword {bzeroflag} determines whether or not {B0}, the bispectrum
+components of an atom with no neighbors, are subtracted from
+the calculated bispectrum components. This optional keyword is only
+available for compute {sna/atom}, as {snad/atom} and {snav/atom}
+are unaffected by the removal of constant terms.
+
 NOTE: If you have a bonded system, then the settings of
 "special_bonds"_special_bonds.html command can remove pairwise
 interactions between atoms in the same bond, angle, or dihedral.  This
@@ -222,7 +231,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Default:]
 
 The optional keyword defaults are {diagonal} = 0, {rmin0} = 0,
-{switchflag} = 1.
+{switchflag} = 1, {bzeroflag} = 0.
 
 :line
 

@@ -168,7 +168,7 @@ timestep        0.001
 
 restart         2000 NVT.restart.1_dup NVT.restart.1
 
-minimize		1.0e-5 1.0e-7 1000 10000
+minimize		1.0e-3 1.0e-5 1000 10000
 
 velocity        all create 413.0 12378 dist gaussian
 
@@ -192,6 +192,6 @@ variable PZZ equal pzz
 fix             1 all nvt temp 413.0 413.0 0.1 fixedpoint 0.0 0.0 0.0
 fix 			thermo_output all print 2000 "${STEP} ${PE} ${KE} ${ETOTAL} ${TEMP} ${VOL} ${PRESS} ${LX} ${LZ} ${PXX} ${PYY} ${PZZ}" file thermo.lammps title "# Step PotEng KinEng TotEng Temp Volume Press Lx Lz Pxx Pyy Pzz"
 
-dump		    1 all custom 200000 traj_npt.lammpstrj id mol type x y z ix iy iz
+dump		    1 all custom 10 traj_npt.lammpstrj id mol type x y z ix iy iz
 
-run             15000000
+run             100

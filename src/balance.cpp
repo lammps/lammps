@@ -256,6 +256,7 @@ void Balance::command(int narg, char **arg)
   // insure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+  // must reset atom map after exchange() since it clears it
 
   MPI_Barrier(world);
   double start_time = MPI_Wtime();
@@ -267,6 +268,7 @@ void Balance::command(int narg, char **arg)
   domain->reset_box();
   comm->setup();
   comm->exchange();
+  if (atom->map_style) atom->map_set();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance

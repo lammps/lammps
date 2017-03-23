@@ -60,7 +60,7 @@ using namespace MathConst;
 // this must be lower than MAXENERGYSIGNAL
 // by a large amount, so that it is still
 // less than total energy when negative
-// energy changes are adddd to MAXENERGYSIGNAL
+// energy changes are added to MAXENERGYSIGNAL
 
 #define MAXENERGYTEST 1.0e50
 
@@ -72,7 +72,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   idregion(NULL), full_flag(0), ngroups(0), groupstrings(NULL), ngrouptypes(0), grouptypestrings(NULL),
   grouptypebits(NULL), grouptypes(NULL), local_gas_list(NULL), atom_coord(NULL), random_equal(NULL), random_unequal(NULL), 
-  coords(NULL), imageflags(NULL), idshake(NULL)
+  coords(NULL), imageflags(NULL), idrigid(NULL), idshake(NULL), fixrigid(NULL), fixshake(NULL)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
 
@@ -182,8 +182,12 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   if (charge_flag && atom->q == NULL)
     error->all(FLERR,"Fix gcmc atom has charge, but atom style does not");
 
+  if (rigidflag && mode == ATOM)
+    error->all(FLERR,"Cannot use fix gcmc rigid and not molecule");
   if (shakeflag && mode == ATOM)
     error->all(FLERR,"Cannot use fix gcmc shake and not molecule");
+  if (rigidflag && shakeflag)
+    error->all(FLERR,"Cannot use fix gcmc rigid and shake");
 
   // setup of coords and imageflags array
 
@@ -241,11 +245,11 @@ void FixGCMC::options(int narg, char **arg)
   pressure_flag = false;
   pressure = 0.0;
   fugacity_coeff = 1.0;
+  rigidflag = 0;
   shakeflag = 0;
   charge = 0.0;
   charge_flag = false;
   full_flag = false;
-  idshake = NULL;
   ngroups = 0;
   int ngroupsmax = 0;
   groupstrings = NULL;
@@ -301,6 +305,14 @@ void FixGCMC::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
       charge = force->numeric(FLERR,arg[iarg+1]);
       charge_flag = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"rigid") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      int n = strlen(arg[iarg+1]) + 1;
+      delete [] idrigid;
+      idrigid = new char[n];
+      strcpy(idrigid,arg[iarg+1]);
+      rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
@@ -374,6 +386,7 @@ FixGCMC::~FixGCMC()
   memory->destroy(coords);
   memory->destroy(imageflags);
 
+  delete [] idrigid;
   delete [] idshake;
 
   if (ngroups > 0) {
@@ -477,6 +490,21 @@ void FixGCMC::init()
                "Fix gcmc molecule command requires that "
                "atoms have molecule attributes");
 
+  // if rigidflag defined, check for rigid/small fix
+  // its molecule template must be same as this one
+
+  fixrigid = NULL;
+  if (rigidflag) {
+    int ifix = modify->find_fix(idrigid);
+    if (ifix < 0) error->all(FLERR,"Fix gcmc rigid fix does not exist");
+    fixrigid = modify->fix[ifix];
+    int tmp;
+    if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
+      error->all(FLERR,
+                 "Fix gcmc and fix rigid/small not using "
+                 "same molecule template ID");
+  }
+
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
@@ -489,13 +517,6 @@ void FixGCMC::init()
     if (onemols != (Molecule **) fixshake->extract("onemol",tmp))
       error->all(FLERR,"Fix gcmc and fix shake not using "
                  "same molecule template ID");
-  }
-
-  // check for fix rigid
-
-  for (int irigid = 0; irigid < modify->nfix; irigid++) {
-    if (strncmp(modify->fix[irigid]->style,"rigid",5) == 0)
-      error->all(FLERR,"Fix gcmc can not currently be used with any rigid fix");
   }
 
   if (domain->dimension == 2)
@@ -1353,10 +1374,15 @@ void FixGCMC::attempt_molecule_insertion()
         modify->create_attribute(m);
       }
     }
-      
-    if (shakeflag)
+
+    // FixRigidSmall::set_molecule stores rigid body attributes
+    // FixShake::set_molecule stores shake info for molecule
+    
+    if (rigidflag)
+      fixrigid->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
+    else if (shakeflag)
       fixshake->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
-      
+
     atom->natoms += natoms_per_molecule;
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
@@ -2011,7 +2037,12 @@ void FixGCMC::attempt_molecule_insertion_full()
     }
   }
 
-  if (shakeflag)
+  // FixRigidSmall::set_molecule stores rigid body attributes
+  // FixShake::set_molecule stores shake info for molecule
+
+  if (rigidflag)
+    fixrigid->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
+  else if (shakeflag)
     fixshake->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
 
   atom->natoms += natoms_per_molecule;
@@ -2095,7 +2126,7 @@ double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
     int jtype = type[j];
 
     // if overlap check requested, if overlap,
-    // return signal value = MAXENERGYSIGNAL 
+    // return signal value for energy 
 
     if (overlap_flag && rsq < overlap_cutoff)
       return MAXENERGYSIGNAL;
@@ -2145,7 +2176,7 @@ double FixGCMC::energy_full()
   int vflag = 0;
 
   // if overlap check requested, if overlap,
-  // return signal value = MAXENERGYSIGNAL 
+  // return signal value for energy 
 
   if (overlap_flag) {
     double delx,dely,delz,rsq;

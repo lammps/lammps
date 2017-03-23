@@ -862,7 +862,8 @@ void lammps_scatter_atoms(void *ptr, char *name,
     int i,j,m,offset;
     void *vptr = lmp->atom->extract(name);
     if(vptr == NULL) {
-        lmp->error->warning(FLERR,"lammps_scatter_atoms: unknown property name");
+        lmp->error->warning(FLERR,
+                            "lammps_scatter_atoms: unknown property name");
         return;
     }
 

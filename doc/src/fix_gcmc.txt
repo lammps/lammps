@@ -26,6 +26,8 @@ zero or more keyword/value pairs may be appended to args :l
 keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, {charge}, {group}, {grouptype}, {intra_energy}, {tfac_insert}, or {overlap_cutoff}
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
+  {rigid} value = fix-ID
+    fix-ID = ID of "fix rigid/small"_fix_rigid.html command
   {shake} value = fix-ID
     fix-ID = ID of "fix shake"_fix_shake.html command
   {region} value = region-ID
@@ -160,6 +162,17 @@ atoms that are bonded to other atoms, or LAMMPS will
 soon generate an error when it tries to find bonded neighbors.  LAMMPS will
 warn you if any of the atoms eligible for deletion have a non-zero
 molecule ID, but does not check for this at the time of deletion.
+
+If you wish to insert molecules via the {mol} keyword, that will be
+treated as rigid bodies, use the {rigid} keyword, specifying as its
+value the ID of a separate "fix rigid/small"_fix_rigid.html
+command which also appears in your input script.
+
+NOTE: If you wish the new rigid molecules (and other rigid molecules)
+to be thermostatted correctly via "fix rigid/small/nvt"_fix_rigid.html
+or "fix rigid/small/npt"_fix_rigid.html, then you need to use the
+"fix_modify dynamic/dof yes" command for the rigid fix.  This is to
+inform that fix that the molecule count will vary dynamically.
 
 If you wish to insert molecules via the {mol} keyword, that will have
 their bonds or angles constrained via SHAKE, use the {shake} keyword,
@@ -342,10 +355,6 @@ user-referenced template molecule in the second fix gcmc command
 may no longer exist since it might have been deleted by the first
 fix gcmc command. An existing template molecule will need to be
 referenced by the user for each subsequent fix gcmc command.
-
-Because molecule insertion does not work in combination with
-fix rigid, simulataneous use of fix rigid or fix rigid/small
-with this fix is not allowed.
 
 [Related commands:]
 

@@ -811,7 +811,6 @@ void FixNH::setup(int vflag)
           (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
            boltz * t_target) / etap_mass[ich];
     }
-
   }
 }
 

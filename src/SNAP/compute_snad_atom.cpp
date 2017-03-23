@@ -34,7 +34,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
-  int twojmax, switchflag;
+  int twojmax, switchflag, bzeroflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -48,7 +48,8 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   diagonalstyle = 0;
   rmin0 = 0.0;
   switchflag = 1;
-
+  bzeroflag = 0;
+  
   // process required arguments
   memory->create(radelem,ntypes+1,"sna/atom:radelem"); // offset by 1 to match up with types
   memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
@@ -98,14 +99,14 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
 
   snaptr = new SNA*[comm->nthreads];
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag)
+#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag,bzeroflag)
 #endif
   {
     int tid = omp_get_thread_num();
 
     // always unset use_shared_arrays since it does not work with computes
     snaptr[tid] = new SNA(lmp,rfac0,twojmax,diagonalstyle,
-                          0 /*use_shared_arrays*/, rmin0,switchflag);
+                          0 /*use_shared_arrays*/, rmin0,switchflag,bzeroflag);
   }
 
   ncoeff = snaptr[0]->ncoeff;

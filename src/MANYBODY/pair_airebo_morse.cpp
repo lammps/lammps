@@ -27,7 +27,7 @@ PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {}
 
 void PairAIREBOMorse::settings(int narg, char **arg)
 {
-  PairAIREBO::settings(narg, arg);
+  PairAIREBO::settings(narg,arg);
 
   morseflag = 1;
 }

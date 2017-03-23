@@ -16,7 +16,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "pair_zhou.h"
+#include "pair_momb.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -28,11 +28,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairZhou::PairZhou(LAMMPS *lmp) : Pair(lmp) {}
+PairMomb::PairMomb(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-PairZhou::~PairZhou()
+PairMomb::~PairMomb()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -51,7 +51,7 @@ PairZhou::~PairZhou()
 
 /* ---------------------------------------------------------------------- */
 
-void PairZhou::compute(int eflag, int vflag)
+void PairMomb::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -138,7 +138,7 @@ void PairZhou::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairZhou::allocate()
+void PairMomb::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -164,7 +164,7 @@ void PairZhou::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairZhou::settings(int narg, char **arg)
+void PairMomb::settings(int narg, char **arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
@@ -186,7 +186,7 @@ void PairZhou::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairZhou::coeff(int narg, char **arg)
+void PairMomb::coeff(int narg, char **arg)
 {
   if (narg < 7 || narg > 8)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -228,7 +228,7 @@ void PairZhou::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairZhou::init_one(int i, int j)
+double PairMomb::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
@@ -254,7 +254,7 @@ double PairZhou::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairZhou::write_restart(FILE *fp)
+void PairMomb::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -277,7 +277,7 @@ void PairZhou::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairZhou::read_restart(FILE *fp)
+void PairMomb::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -312,7 +312,7 @@ void PairZhou::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairZhou::write_restart_settings(FILE *fp)
+void PairMomb::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&sscale,sizeof(double),1,fp);
@@ -325,7 +325,7 @@ void PairZhou::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairZhou::read_restart_settings(FILE *fp)
+void PairMomb::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
@@ -343,7 +343,7 @@ void PairZhou::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairZhou::single(int i, int j, int itype, int jtype, double rsq,
+double PairMomb::single(int i, int j, int itype, int jtype, double rsq,
 			 double factor_coul, double factor_lj,
 			 double &fforce)
 {

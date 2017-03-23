@@ -15,21 +15,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(zhou,PairZhou)
+PairStyle(momb,PairMomb)
 
 #else
 
-#ifndef LMP_PAIR_ZHOU_H
-#define LMP_PAIR_ZHOU_H
+#ifndef LMP_PAIR_MOMB_H
+#define LMP_PAIR_MOMB_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairZhou : public Pair {
+class PairMomb : public Pair {
  public:
-  PairZhou(class LAMMPS *);
-  virtual ~PairZhou();
+  PairMomb(class LAMMPS *);
+  virtual ~PairMomb();
 
   virtual void compute(int, int);
   virtual void settings(int, char **);

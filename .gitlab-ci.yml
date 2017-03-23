@@ -3,12 +3,13 @@ image: ubuntu:latest
 #before_script:
 script:
 
-# Install Linux Packages:
+  # Install Linux Packages:
   - apt-get update
   - hostname
   - pwd
   - export HOME=/builds/exaalt/
   - env
+  
 #- apt-get --yes --force-yes install gfortran libblas-dev liblapack-dev
 #- apt-get --yes --force-yes install cmake python gcc cmake-data g++ git wget
 #- apt-get --yes --force-yes install pkg-config python-numpy python3-numpy libopenmpi-dev

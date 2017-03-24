@@ -204,13 +204,22 @@ documentation for the formula it computes.
 
 "bond_style"_bond_harmonic.html harmonic
 "angle_style"_angle_charmm.html charmm
+"dihedral_style"_dihedral_charmm.html charmmfsh
 "dihedral_style"_dihedral_charmm.html charmm
+"pair_style"_pair_charmm.html lj/charmmfsw/coul/charmmfsh
+"pair_style"_pair_charmm.html lj/charmmfsw/coul/long
 "pair_style"_pair_charmm.html lj/charmm/coul/charmm
 "pair_style"_pair_charmm.html lj/charmm/coul/charmm/implicit
 "pair_style"_pair_charmm.html lj/charmm/coul/long :ul
 
 "special_bonds"_special_bonds.html charmm
 "special_bonds"_special_bonds.html amber :ul
+
+NOTE: For CHARMM, the newer {charmmfsw} or {charmmfsh} styles were
+released in March 2017.  We recommend they be used instead of the
+older {charmm} styles.  See discussion of the differences on the "pair
+charmm"_pair_charmm.html and "dihedral charmm"_dihedral_charmm.html
+doc pages.
 
 DREIDING is a generic force field developed by the "Goddard
 group"_http://www.wag.caltech.edu at Caltech and is useful for

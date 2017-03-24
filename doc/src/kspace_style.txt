@@ -182,13 +182,13 @@ currently support the -DFFT_SINGLE compiler switch.
 :line
 
 The {msm} style invokes a multi-level summation method MSM solver,
-"(Hardy)"_#Hardy2006 or "(Hardy2)"_#Hardy2009, which maps atom charge to a 3d
-mesh, and uses a multi-level hierarchy of coarser and coarser meshes
-on which direct coulomb solves are done.  This method does not use
-FFTs and scales as N. It may therefore be faster than the other
+"(Hardy)"_#Hardy2006 or "(Hardy2)"_#Hardy2009, which maps atom charge
+to a 3d mesh, and uses a multi-level hierarchy of coarser and coarser
+meshes on which direct coulomb solves are done.  This method does not
+use FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
-core counts. MSM can also be used for non-periodic boundary conditions and
-for mixed periodic and non-periodic boundaries.
+core counts. MSM can also be used for non-periodic boundary conditions
+and for mixed periodic and non-periodic boundaries.
 
 MSM is most competitive versus Ewald and PPPM when only relatively
 low accuracy forces, about 1e-4 relative error or less accurate,

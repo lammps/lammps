@@ -19,7 +19,7 @@ keyword = {extra/dof} or {extra} or {dynamic/dof} or {dynamic} :l
     N = # of extra degrees of freedom to subtract
   {extra} syntax is identical to {extra/dof}, will be disabled at some point
   {dynamic/dof} value = {yes} or {no}
-    yes/no = do or do not recompute the number of atoms contributing to the temperature
+    yes/no = do or do not recompute the number of degrees of freedom (DOF) contributing to the temperature
   {dynamic} syntax is identical to {dynamic/dof}, will be disabled at some point :pre
 :ule
 
@@ -46,13 +46,16 @@ degrees-of-freedom.  See the "compute
 temp/asphere"_compute_temp_asphere.html command for an example.
 
 The {dynamic/dof} or {dynamic} keyword determines whether the number
-of atoms N in the compute group is re-computed each time a temperature
-is computed.  Only compute styles that calculate a temperature use
-this option.  By default, N is assumed to be constant.  If you are
-adding atoms to the system (see the "fix pour"_fix_pour.html, "fix
-deposit"_fix_deposit.html and "fix gcmc"_fix_gcmc.html commands) or
-expect atoms to be lost (e.g. due to evaporation), then this option
-should be used to insure the temperature is correctly normalized.
+of atoms N in the compute group and their associated degrees of
+freedom are re-computed each time a temperature is computed.  Only
+compute styles that calculate a temperature use this option.  By
+default, N and their DOF are assumed to be constant.  If you are
+adding atoms or molecules to the system (see the "fix
+pour"_fix_pour.html, "fix deposit"_fix_deposit.html, and "fix
+gcmc"_fix_gcmc.html commands) or expect atoms or molecules to be lost
+(e.g. due to exiting the simulation box or via "fix
+evaporation"_fix_evaporation.html), then this option should be used to
+insure the temperature is correctly normalized.
 
 NOTE: The {extra} and {dynamic} keywords should not be used as they
 are deprecated (March 2017) and will eventually be disabled.  Instead,

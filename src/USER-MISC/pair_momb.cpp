@@ -9,8 +9,11 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-  -------------------------------------------------------------------------
-  Contributed by Kristen Fichthorn, Tonnam Balankura, Ya Zhou @ Penn State University
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Kristen Fichthorn, Tonnam Balankura, 
+                         Ya Zhou (Penn State University)
 ------------------------------------------------------------------------- */
 
 #include <math.h>

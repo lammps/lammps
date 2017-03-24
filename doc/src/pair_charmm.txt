@@ -82,13 +82,13 @@ others).  See "(MacKerell)"_#pair-MacKerell for a description of the
 CHARMM force field.
 
 The styles with {charmm} (not {charmmfsw} or {charmmfsh}) in their
-name are the older, original LAMMPS implemetations.  They compute the
+name are the older, original LAMMPS implementations.  They compute the
 LJ and Coulombic interactions with an energy switching function (esw,
-a cubic polynomial), which ramps the energy smoothly to zero between
-the inner and outer cutoff.  This can cause irregularities in
-pair-wise forces (due to the discontinuous 2nd derivative of energy at
-the boundaries of the switching region), which in some cases can
-result in substantial artifacts in an MD simulation.
+a cubic polynomial, shown in the formula below), which ramps the
+energy smoothly to zero between the inner and outer cutoff.  This can
+cause irregularities in pair-wise forces (due to the discontinuous 2nd
+derivative of energy at the boundaries of the switching region), which
+in some cases can result in detectable artifacts in an MD simulation.
 
 The newer styles with {charmmfsw} or {charmmfsh} in their name replace
 the energy switching with force switching (fsw) and force shifting
@@ -107,8 +107,10 @@ The general CHARMM formulas are as follows
 
 :c,image(Eqs/pair_charmm.jpg)
 
-where the specific form of the switching or shifting function S(r) is
-given in the "(Steinbach)"_#Steinbach paper.
+where S(r) is the energy switching function mentioned above for the
+{charmm} styles.  See the "(Steinbach)"_#Steinbach paper for the
+functional forms of the force switching and force shifting functions
+used in the {charmmfsw} and {charmmfsh} styles.
 
 When using the {lj/charmm/coul/charmm styles}, both the LJ and
 Coulombic terms require an inner and outer cutoff. They can be the
@@ -253,6 +255,6 @@ the MOLECULE and KSPACE packages are installed by default.
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
-:link(Stenibach)
+:link(Steinbach)
 [(Steinbach)] Steinbach, Brooks, J Comput Chem, 15, 667 (1994).
 

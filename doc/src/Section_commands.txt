@@ -1035,6 +1035,7 @@ package"_Section_start.html#start_3.
 "meam/spline (o)"_pair_meam_spline.html,
 "meam/sw/spline"_pair_meam_sw_spline.html,
 "mgpt"_pair_mgpt.html,
+"momb"_pair_momb.html,
 "morse/smooth/linear"_pair_morse.html,
 "morse/soft"_pair_morse.html,
 "multi/lucy"_pair_multi_lucy.html,
@@ -1061,7 +1062,7 @@ package"_Section_start.html#start_3.
 "table/rx"_pair_table_rx.html,
 "tersoff/table (o)"_pair_tersoff.html,
 "thole"_pair_thole.html,
-"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c)
+"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c) 
 
 :line
 

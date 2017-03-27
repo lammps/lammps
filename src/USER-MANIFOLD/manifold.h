@@ -63,12 +63,12 @@ namespace user_manifold {
 
     virtual void set_atom_id( tagint a_id ){}
     virtual int nparams() = 0;
-    double **get_params(){ return &params; };
+    // double *get_params(){ return params; };
 
     // Overload if any initialization depends on params:
     virtual void post_param_init(){}
     virtual void checkup(){} // Some diagnostics...
-   protected:
+
     double *params;
   };
 

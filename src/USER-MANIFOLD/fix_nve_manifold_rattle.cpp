@@ -110,9 +110,6 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   tstyle = new int[nvars];
   is_var = new int[nvars];
 
-  fprintf(screen,"Succesfully created a manifold of type %s with %d params.\n",
-          ptr_m->id(), nvars);
-
   if( !tstrs || !tvars || !tstyle || !is_var ){
     error->all(FLERR, "Error creating manifold arg arrays");
   }
@@ -121,7 +118,6 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   for( int i = 0; i < nvars; ++i ){
     int len = 0, offset = 0;
     if( was_var( arg[i+6] ) ){
-      fprintf(screen,"arg %d (%s) was var\n",i+6, arg[i+6]);
       len = strlen(arg[i+6]) - 1; // -1 because -2 for v_, +1 for \0.
       is_var[i] = 1;
       offset = 2;
@@ -141,7 +137,6 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
     // If param i was variable type, it will be set later...
     ptr_m->params[i] = is_var[i] ? 0.0 : force->numeric( FLERR, arg[i+6] );
   }
-  fprintf(screen,"Calling post_param_init().\n");
   ptr_m->post_param_init();
 
 
@@ -267,8 +262,7 @@ void FixNVEManifoldRattle::init()
 
 void FixNVEManifoldRattle::update_var_params()
 {
-  fprintf(screen,"In update_var_params().\n");
-  
+ 
   if( nevery > 0 ){
     stats.x_iters = 0;
     stats.v_iters = 0;
@@ -278,11 +272,9 @@ void FixNVEManifoldRattle::update_var_params()
   }
 
   double *ptr_params = ptr_m->params;
-  fprintf(screen,"Setting values of params.\n");
   
   for( int i = 0; i < nvars; ++i ){
     if( is_var[i] ){
-      fprintf(screen,"%d was a var.\n", i);
       tvars[i] = input->variable->find(tstrs[i]);
       if( tvars[i] < 0 ){
         error->all(FLERR,
@@ -291,7 +283,6 @@ void FixNVEManifoldRattle::update_var_params()
       if( input->variable->equalstyle(tvars[i]) ){
         tstyle[i] = EQUAL;
         double new_val = input->variable->compute_equal(tvars[i]);
-        fprintf( stdout, "New value of var %d is now %f\n", i+1, new_val );
         
         ptr_params[i] = new_val;
       }else{

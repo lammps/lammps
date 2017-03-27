@@ -283,9 +283,6 @@ void DumpNC::openfile()
       // Fixme! Perform checks if dimensions and variables conform with
       // data structure standard.
 
-      size_t index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-      double d[1];
-
       if (singlefile_opened) return;
       singlefile_opened = 1;
 
@@ -924,7 +921,7 @@ int DumpNC::modify_param(int narg, char **arg)
 
     for (int i = 0; iarg < narg; iarg++, i++) {
       int n;
-      char *suffix;
+      char *suffix=NULL;
 
       if (!strcmp(arg[iarg],"step")) {
         perframe[i].type = THIS_IS_A_BIGINT;

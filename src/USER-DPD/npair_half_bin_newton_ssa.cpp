@@ -64,7 +64,6 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   if (includegroup) nlocal = atom->nfirst;
   int *ssaAIR = atom->ssaAIR;
 

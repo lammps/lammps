@@ -261,7 +261,6 @@ void FixNHOMP::nh_v_press()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,&v[i].x);
         v[i].x *= factor0;
@@ -374,7 +373,6 @@ void FixNHOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,&v[i].x);
         v[i].x *= factor_eta;

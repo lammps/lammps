@@ -790,7 +790,7 @@ void lammps_gather_atoms(void *ptr, char *name,
         for (i = 0; i < nlocal; i++) {
           offset = count*(tag[i]-1);
           for (j = 0; j < count; j++)
-            copy[offset++] = array[i][0];
+            copy[offset++] = array[i][j];
         }
       
       MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);

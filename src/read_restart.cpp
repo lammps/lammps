@@ -207,8 +207,23 @@ void ReadRestart::command(int narg, char **arg)
     memory->create(buf,assignedChunkSize,"read_restart:buf");
     mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
     mpiio->close();
-
-    if (assignedChunkSize > atom->nmax) avec->grow(assignedChunkSize);
+    if (!nextra) { // We can actually calculate number of atoms from assignedChunkSize
+      atom->nlocal = 1; // temporarily claim there is one atom...
+      int perAtomSize = avec->size_restart(); // ...so we can get its size
+      atom->nlocal = 0; // restore nlocal to zero atoms
+      int atomCt = (int) (assignedChunkSize / perAtomSize);
+#ifdef DEBUG_ME_NOTNOW
+fprintf(stdout, "ReadRestart::command %04d: pAS %d, aCt %d, nmax %d, chunckSize %12.0f, %12.0f\n"
+  ,me
+  ,perAtomSize
+  ,atomCt
+  ,atom->nmax
+  ,(double) assignedChunkSize
+  ,((double) perAtomSize) * atomCt
+);
+#endif
+      if (atomCt > atom->nmax) avec->grow(atomCt);
+    }
     m = 0;
     while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }

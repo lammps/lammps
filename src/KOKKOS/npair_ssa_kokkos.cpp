@@ -122,8 +122,8 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
   NStencilSSA *ns_ssa = dynamic_cast<NStencilSSA*>(ns);
   if (!ns_ssa) error->one(FLERR, "NStencil wasn't a NStencilSSA object");
 
-  k_nstencil_ssa = DAT::tdual_int_1d("NPairSSAKokkos:nstencil_ssa",8);
-  for (int k = 0; k < 8; ++k) {
+  k_nstencil_ssa = DAT::tdual_int_1d("NPairSSAKokkos:nstencil_ssa",5);
+  for (int k = 0; k < 5; ++k) {
     k_nstencil_ssa.h_view(k) = ns_ssa->nstencil_ssa[k];
   }
   k_nstencil_ssa.modify<LMPHostType>();

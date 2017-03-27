@@ -205,7 +205,7 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
 {
   NeighListKokkos<DeviceType>* list = (NeighListKokkos<DeviceType>*) list_;
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
-  const int nl_size = (nlocal + atom->nghost) * 4;
+  const int nl_size = (nlocal * 4) + atom->nghost;
   list->grow(nl_size); // Make special larger SSA neighbor list
 
   ssa_phaseCt = sz1*sy1*sx1;

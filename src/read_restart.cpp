@@ -208,6 +208,7 @@ void ReadRestart::command(int narg, char **arg)
     mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
     mpiio->close();
 
+    if (assignedChunkSize > atom->nmax) avec->grow(assignedChunkSize);
     m = 0;
     while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }

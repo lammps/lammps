@@ -698,7 +698,12 @@ method in the src/atom.cpp file for a list of valid names.  Again, new
 names could easily be added if the property you want is missing.  The
 vector can be used via normal Python subscripting.  If atom IDs are
 not consecutively ordered within LAMMPS, a None is returned as
-indication of an error.
+indication of an error. A special treatment is applied for image flags
+stored in the "image" property. All three image flags are stored in
+a packed format in a single integer, so count would be 1 to retrieve
+that integer, however also a count value of 3 can be used and then
+the image flags will be unpacked into 3 individual integers, ordered
+in a similar fashion as coordinates. 
 
 Note that the data structure gather_atoms("x") returns is different
 from the data structure returned by extract_atom("x") in four ways.
@@ -727,6 +732,10 @@ corresponding properties for each atom inside LAMMPS.  This requires
 LAMMPS to have its "map" option enabled; see the
 "atom_modify"_atom_modify.html command for details.  If it is not, or
 if atom IDs are not consecutively ordered, no coordinates are reset.
+Similar as for gather_atoms() a special treatment is applied for image
+flags, which can be provided in packed (count = 1) or unpacked (count = 3)
+format and in the latter case, they will be packed before applied to
+atoms.
 
 The array of coordinates passed to scatter_atoms() must be a ctypes
 vector of ints or doubles, allocated and initialized something like

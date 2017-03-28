@@ -62,13 +62,8 @@ When using a Langevin thermostat, e.g. through "fix langevin"_fix_langevin.html
 or "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
 the temperature coefficients have to be matched to the one used in the fix.
 
-<<<<<<< HEAD
 Example input and data files for DNA duplexes can be found in examples/USER/cgdna/examples/oxDNA/ and /oxDNA2/.
 A simple python setup tool which creates single straight or helical DNA strands,
-=======
-Example input and data files can be found in examples/USER/cgdna/examples/duplex1/ and /duplex2/.
-A simple python setup tool which creates single straight or helical DNA strands, 
->>>>>>> master
 DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
 A technical report with more information on the model, the structure of the input file,
 the setup tool and the performance of the LAMMPS-implementation of oxDNA

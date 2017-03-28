@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -51,6 +51,21 @@ BondOxdnaFene::~BondOxdnaFene()
   }
 }
 
+
+/* ----------------------------------------------------------------------
+    compute vector COM-sugar-phosphate backbone interaction site in oxDNA
+------------------------------------------------------------------------- */
+void BondOxdnaFene::compute_interaction_sites(double e1[3],
+  double e2[3], double r[3])
+{
+  double d_cs=-0.4;
+
+  r[0] = d_cs*e1[0]; 
+  r[1] = d_cs*e1[1]; 
+  r[2] = d_cs*e1[2]; 
+
+}
+
 /* ----------------------------------------------------------------------
    compute function for oxDNA FENE-bond interaction
    s=sugar-phosphate backbone site, b=base site, st=stacking site
@@ -62,8 +77,6 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   double delr[3],ebond,fbond;
   double rsq,Deltasq,rlogarg;
   double r,rr0,rr0sq;
-  // distances COM-backbone site
-  double d_cs=-0.24;
   // vectors COM-backbone site in lab frame
   double ra_cs[3],rb_cs[3];
 
@@ -100,12 +113,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM-backbone site a and b
-    ra_cs[0] = d_cs*ax[0];
-    ra_cs[1] = d_cs*ax[1];
-    ra_cs[2] = d_cs*ax[2];
-    rb_cs[0] = d_cs*bx[0];
-    rb_cs[1] = d_cs*bx[1];
-    rb_cs[2] = d_cs*bx[2];
+    compute_interaction_sites(ax,ay,ra_cs);
+    compute_interaction_sites(bx,by,rb_cs);
 
     // vector backbone site b to a
     delr[0] = x[a][0] + ra_cs[0] - x[b][0] - rb_cs[0];
@@ -202,7 +211,7 @@ void BondOxdnaFene::allocate()
 
 void BondOxdnaFene::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Incorrect args for bond coefficients in oxdna_fene");
+  if (narg != 4) error->all(FLERR,"Incorrect args for bond coefficients in oxdna/fene");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -222,7 +231,7 @@ void BondOxdnaFene::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients in oxdna_fene");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients in oxdna/fene");
 
 }
 
@@ -252,7 +261,7 @@ void BondOxdnaFene::init_style()
       force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
   {
     if (comm->me == 0)
-      error->warning(FLERR,"Use special bonds lj = 0,1,1 and coul = 1,1,1 with bond style oxdna_fene");
+      error->warning(FLERR,"Use special bonds lj = 0,1,1 and coul = 1,1,1 with bond style oxdna/fene");
   }
 
 }

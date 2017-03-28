@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -116,7 +116,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
   double cosphi1,cosphi2,cosphi1dir[3],cosphi2dir[3];
 
   // distances COM-backbone site, COM-stacking site
-  double d_cs=-0.24, d_cst=0.5;
+  double d_cs=-0.4, d_cst=+0.34;
   // vectors COM-backbone site, COM-stacking site in lab frame
   double ra_cs[3],ra_cst[3];
   double rb_cs[3],rb_cst[3];
@@ -645,6 +645,19 @@ void PairOxdnaStk::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   return temperature dependent oxDNA stacking strength
+------------------------------------------------------------------------- */
+
+double PairOxdnaStk::stacking_strength(double T)
+{
+  double eps;
+
+  eps = 1.3448 + 2.6568 * T;
+
+  return eps;
+}
+
+/* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
@@ -652,7 +665,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 21) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_stk");
+  if (narg != 21) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -662,7 +675,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   // stacking interaction
   count = 0;
 
-  double epsilon_st_one, a_st_one, b_st_lo_one, b_st_hi_one;
+  double T, epsilon_st_one, a_st_one, b_st_lo_one, b_st_hi_one;
   double cut_st_0_one, cut_st_c_one, cut_st_lo_one, cut_st_hi_one;
   double cut_st_lc_one, cut_st_hc_one, tmp, shift_st_one;
 
@@ -678,7 +691,9 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   double a_st1_one, cosphi_st1_ast_one, b_st1_one, cosphi_st1_c_one;
   double a_st2_one, cosphi_st2_ast_one, b_st2_one, cosphi_st2_c_one;
 
-  epsilon_st_one = force->numeric(FLERR,arg[2]);
+  T = force->numeric(FLERR,arg[2]);
+  epsilon_st_one = stacking_strength(T);
+
   a_st_one = force->numeric(FLERR,arg[3]);
   cut_st_0_one = force->numeric(FLERR,arg[4]);
   cut_st_c_one = force->numeric(FLERR,arg[5]);
@@ -790,7 +805,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_stk");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
 
 }
 

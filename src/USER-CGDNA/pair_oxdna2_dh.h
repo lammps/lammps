@@ -13,23 +13,22 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna/excv,PairOxdnaExcv)
+PairStyle(oxdna2/dh,PairOxdna2Dh)
 
 #else
 
-#ifndef LMP_PAIR_OXDNA_EXCV_H
-#define LMP_PAIR_OXDNA_EXCV_H
+#ifndef LMP_PAIR_OXDNA2_DH_H
+#define LMP_PAIR_OXDNA2_DH_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairOxdnaExcv : public Pair {
+class PairOxdna2Dh : public Pair {
  public:
-  PairOxdnaExcv(class LAMMPS *);
-  virtual ~PairOxdnaExcv();
-  virtual void compute_interaction_sites(double *, double *, 
-    double *, double *);
+  PairOxdna2Dh(class LAMMPS *);
+  virtual ~PairOxdna2Dh();
+  virtual void compute_interaction_sites(double *, double *, double *);
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -45,15 +44,9 @@ class PairOxdnaExcv : public Pair {
   void *extract(const char *, int &);
 
  protected:
-  // s=sugar-phosphate backbone site, b=base site, st=stacking site
 
-  // excluded volume interaction
-  double **epsilon_ss, **sigma_ss, **cut_ss_ast, **cutsq_ss_ast;
-  double **lj1_ss, **lj2_ss, **b_ss, **cut_ss_c, **cutsq_ss_c;
-  double **epsilon_sb, **sigma_sb, **cut_sb_ast, **cutsq_sb_ast;
-  double **lj1_sb, **lj2_sb, **b_sb, **cut_sb_c, **cutsq_sb_c;
-  double **epsilon_bb, **sigma_bb, **cut_bb_ast, **cutsq_bb_ast;
-  double **lj1_bb, **lj2_bb, **b_bb, **cut_bb_c, **cutsq_bb_c;
+  double **qeff_dh_pf,**kappa_dh;
+  double **b_dh,**cut_dh_ast,**cutsq_dh_ast,**cut_dh_c,**cutsq_dh_c;
 
   virtual void allocate();
 

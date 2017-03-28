@@ -624,8 +624,6 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  k_list->clean_copy();
-  //cleanup_copy();
   copymode = 1;
 
   dtsqrt = sqrt(update->dt);

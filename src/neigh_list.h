@@ -34,7 +34,8 @@ class NeighList : protected Pointers {
   int occasional;                  // 0 if build every reneighbor, 1 if not
   int ghost;                       // 1 if list stores neighbors of ghosts
   int ssa;                         // 1 if list stores Shardlow data
-  int copy;                        // 1 if this list copied from another list
+  int copy;                        // 1 if this list is (host) copied from another list
+  int copymode;                    // 1 if this is a Kokkos on-device copy
   int dnum;                        // # of doubles per neighbor, 0 if none
 
   // data structs to store neighbor pairs I,J and associated values

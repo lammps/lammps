@@ -265,7 +265,7 @@ class NeighborKokkosExecute
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 
-  ~NeighborKokkosExecute() {neigh_list.clean_copy();};
+  ~NeighborKokkosExecute() {neigh_list.copymode = 1;};
 
   template<int HalfNeigh, int Newton, int Tri>
   KOKKOS_FUNCTION

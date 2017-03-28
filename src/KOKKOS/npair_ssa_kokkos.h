@@ -287,7 +287,7 @@ class NPairSSAKokkosExecute
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 
-  ~NPairSSAKokkosExecute() {neigh_list.clean_copy();};
+  ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
   void build_locals();
   void build_ghosts();

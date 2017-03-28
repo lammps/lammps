@@ -22,21 +22,14 @@ enum{NSQ,BIN,MULTI};
 /* ---------------------------------------------------------------------- */
 
 template<class Device>
-void NeighListKokkos<Device>::clean_copy()
+NeighListKokkos<Device>::NeighListKokkos(class LAMMPS *lmp):NeighList(lmp)
 {
-  ilist = NULL;
-  numneigh = NULL;
-  firstneigh = NULL;
-  firstdouble = NULL;
-  dnum = 0;
-  iskip = NULL;
-  ijskip = NULL;
-
-  ipage = NULL;
-  dpage = NULL;
-
+  _stride = 1;
+  maxneighs = 16;
+  kokkos = 1;
   maxatoms = 0;
-}
+  execution_space = ExecutionSpaceFromDevice<Device>::space;
+};
 
 /* ---------------------------------------------------------------------- */
 

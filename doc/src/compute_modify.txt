@@ -54,7 +54,7 @@ adding atoms or molecules to the system (see the "fix
 pour"_fix_pour.html, "fix deposit"_fix_deposit.html, and "fix
 gcmc"_fix_gcmc.html commands) or expect atoms or molecules to be lost
 (e.g. due to exiting the simulation box or via "fix
-evaporation"_fix_evaporation.html), then this option should be used to
+evaporate"_fix_evaporate.html), then this option should be used to
 insure the temperature is correctly normalized.
 
 NOTE: The {extra} and {dynamic} keywords should not be used as they

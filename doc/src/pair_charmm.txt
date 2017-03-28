@@ -94,7 +94,7 @@ The newer styles with {charmmfsw} or {charmmfsh} in their name replace
 the energy switching with force switching (fsw) and force shifting
 (fsh) functions, for LJ and Coulombic interactions respectively.
 These follow the formulas and description given in
-"(Steinbach)"_#Steinbach and "(Brooks)"_#Brooks to minimize these
+"(Steinbach)"_#Steinbach and "(Brooks)"_#Brooks1 to minimize these
 artifacts.
 
 NOTE: The newer {charmmfsw} or {charmmfsh} styles were released in
@@ -248,7 +248,7 @@ the MOLECULE and KSPACE packages are installed by default.
 
 :line
 
-:link(Brooks)
+:link(Brooks1)
 [(Brooks)] Brooks, et al, J Comput Chem, 30, 1545 (2009).
 
 :link(pair-MacKerell)

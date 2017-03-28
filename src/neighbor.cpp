@@ -954,7 +954,7 @@ void Neighbor::morph_skip()
   int i,j,inewton,jnewton;
   NeighRequest *irq,*jrq,*nrq;
 
-  for (int i = 0; i < nrequest; i++) {
+  for (i = 0; i < nrequest; i++) {
     irq = requests[i];
 
     // only processing skip lists
@@ -1053,7 +1053,7 @@ void Neighbor::morph_skip()
 void Neighbor::morph_granular()
 {
   int i,j;
-  NeighRequest *irq,*jrq,*nrq;
+  NeighRequest *irq,*jrq;
 
   for (i = 0; i < nrequest; i++) {
     irq = requests[i];

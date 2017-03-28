@@ -30,7 +30,7 @@ set	      group all quat/random 982381
 compute	       rot all temp/asphere
 group	       spheroid type 1
 variable       dof equal count(spheroid)+3
-compute_modify rot extra ${dof}
+compute_modify rot extra/dof ${dof}
 
 velocity      all create 2.4 41787 loop geom
 
@@ -45,7 +45,7 @@ thermo	      100
 # equilibration run
 
 fix	       1 all npt/asphere temp 2.4 2.4 0.1 iso 5.0 8.0 0.1
-compute_modify 1_temp extra ${dof}
+compute_modify 1_temp extra/dof ${dof}
 run	       200
 
 # dynamics run

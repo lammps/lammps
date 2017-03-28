@@ -33,12 +33,17 @@ class FixExternal : public Fix {
   int setmask();
   void init();
   void setup(int);
+  void setup_pre_reverse(int, int);
   void min_setup(int);
+  void pre_reverse(int, int);
   void post_force(int);
   void min_post_force(int);
   double compute_scalar();
 
-  void set_energy(double eng);
+  void set_energy_global(double);
+  void set_virial_global(double *);
+  void set_energy_peratom(double *);
+  void set_virial_peratom(double **);
 
   double memory_usage();
   void grow_arrays(int);
@@ -50,7 +55,7 @@ class FixExternal : public Fix {
   void set_callback(FnPtr, void *);
 
  private:
-  int mode,ncall,napply;
+  int mode,ncall,napply,eflag_caller;
   FnPtr callback;
   void *ptr_caller;
   double user_energy;

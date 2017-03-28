@@ -38,6 +38,7 @@ dihedral_style spherical, Andrew Jewett, jewett.aij@gmail.com, 15 Jul 16
 dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix ave/correlate/long, Jorge Ramirez (UPM Madrid), jorge.ramirez at upm.es, 21 Oct 2015
+fix filter/corotate, Lukas Fath (KIT), lukas.fath at kit.edu, 15 Mar 2017
 fix flow/gauss, Joel Eaves (CU Boulder), Joel.Eaves@Colorado.edu, 23 Aug 2016
 fix gle, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014
 fix grem, David Stelter, dstelter@bu.edu, 22 Nov 16
@@ -69,4 +70,5 @@ pair_style meam/sw/spline, Robert Rudd (LLNL), robert.rudd at llnl.gov, 1 Oct 12
 pair_style morse/smooth/linear, Stefan Paquay (TU Eindhoven), stefanpaquay at gmail.com, 29 Feb 16
 pair_style srp, Tim Sirk, tim.sirk at us.army.mil, 21 Nov 14
 pair_style tersoff/table, Luca Ferraro, luca.ferraro@caspur.it, 1 Dec 11
+pair_style momb, Kristen Fichthorn, Tonnam Balankura, Ya Zhou, fichthorn@psu.edu, 18 Mar 17
 temper/grem, David Stelter, dstelter@bu.edu, 22 Nov 16

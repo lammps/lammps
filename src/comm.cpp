@@ -266,7 +266,8 @@ void Comm::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (mode == MULTI)
-        error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
+        error->all(FLERR,
+                   "Use cutoff/multi keyword to set cutoff in multi mode");
       cutghostuser = force->numeric(FLERR,arg[iarg+1]);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");

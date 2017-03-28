@@ -63,8 +63,8 @@ balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
-coreshell: adiabatic core/shell model
 comb:	  models using the COMB potential
+coreshell: adiabatic core/shell model
 controller: use of fix controller as a thermostat
 crack:	  crack propagation in a 2d solid
 deposit:  deposition of atoms and molecules onto a 3d substrate
@@ -74,6 +74,7 @@ eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
+gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
@@ -103,7 +104,7 @@ snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 vashishta: models using the Vashishta potential
-voronoi:  test of Voronoi tesselation in compute voronoi/atom
+voronoi:  Voronoi tesselation via compute voronoi/atom command
 
 Here is a src/Make.py command which will perform a parallel build of a
 LAMMPS executable "lmp_mpi" with all the packages needed by all the

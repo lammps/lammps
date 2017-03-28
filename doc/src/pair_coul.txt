@@ -109,7 +109,7 @@ mimic the screening effect of a polar solvent.
 :line
 
 Style {coul/dsf} computes Coulombic interactions via the damped
-shifted force model described in "Fennell"_#Fennell, given by:
+shifted force model described in "Fennell"_#Fennell1, given by:
 
 :c,image(Eqs/pair_coul_dsf.jpg)
 
@@ -122,7 +122,7 @@ decay to zero.
 :line
 
 Style {coul/wolf} computes Coulombic interactions via the Wolf
-summation method, described in "Wolf"_#Wolf, given by:
+summation method, described in "Wolf"_#Wolf1, given by:
 
 :c,image(Eqs/pair_coul_wolf.jpg)
 
@@ -143,7 +143,7 @@ interactions with a short-range potential.
 
 Style {coul/streitz} is the Coulomb pair interaction defined as part
 of the Streitz-Mintmire potential, as described in "this
-paper"_#Streitz, in which charge distribution about an atom is modeled
+paper"_#Streitz2, in which charge distribution about an atom is modeled
 as a Slater 1{s} orbital.  More details can be found in the referenced
 paper.  To fully reproduce the published Streitz-Mintmire potential,
 which is a variable charge potential, style {coul/streitz} must be
@@ -205,7 +205,7 @@ added for the "core/shell model"_Section_howto.html#howto_25 to allow
 charges on core and shell particles to be separated by r = 0.0.
 
 Styles {tip4p/cut} and {tip4p/long} implement the coulomb part of
-the TIP4P water model of "(Jorgensen)"_#Jorgensen, which introduces
+the TIP4P water model of "(Jorgensen)"_#Jorgensen3, which introduces
 a massless site located a short distance away from the oxygen atom
 along the bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
@@ -325,14 +325,18 @@ hybrid/overlay"_pair_hybrid.html, "kspace_style"_kspace_style.html
 
 :line
 
-:link(Wolf)
+:link(Wolf1)
 [(Wolf)] D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
 Phys, 110, 8254 (1999).
 
-:link(Fennell)
+:link(Fennell1)
 [(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).
 
-:link(Streitz)
+:link(Streitz2)
 [(Streitz)] F. H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003
 (1994).
+
+:link(Jorgensen3)
+[(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
+Phys, 79, 926 (1983).

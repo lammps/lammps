@@ -328,6 +328,8 @@
 /fix_eos_table.h
 /fix_evaporate.cpp
 /fix_evaporate.h
+/fix_filter_corotate.cpp
+/fix_filter_corotate.h
 /fix_viscosity.cpp
 /fix_viscosity.h
 /fix_ehex.cpp
@@ -653,6 +655,8 @@
 /pair_hbond_dreiding_lj.h
 /pair_hbond_dreiding_morse.cpp
 /pair_hbond_dreiding_morse.h
+/pair_kolmogorov_crespi_z.cpp
+/pair_kolmogorov_crespi_z.h
 /pair_lcbop.cpp
 /pair_lcbop.h
 /pair_line_lj.cpp
@@ -811,6 +815,8 @@
 /pair_tri_lj.h
 /pair_yukawa_colloid.cpp
 /pair_yukawa_colloid.h
+/pair_momb.cpp
+/pair_momb.h
 /pppm.cpp
 /pppm.h
 /pppm_cg.cpp

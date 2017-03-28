@@ -46,7 +46,7 @@ compute		1 all erotate/sphere
 compute         Tsphere all temp/sphere
 thermo_style	custom step atoms ke c_1 vol
 thermo_modify	lost ignore norm no temp Tsphere
-compute_modify	Tsphere dynamic yes
+compute_modify	Tsphere dynamic/dof yes
 
 thermo		1000
 

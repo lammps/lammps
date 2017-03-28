@@ -27,14 +27,7 @@ PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {}
 
 void PairAIREBOMorse::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
-
-  cutlj = force->numeric(FLERR,arg[0]);
-
-  if (narg == 3) {
-    ljflag = force->inumeric(FLERR,arg[1]);
-    torflag = force->inumeric(FLERR,arg[2]);
-  }
+  PairAIREBO::settings(narg,arg);
 
   morseflag = 1;
 }

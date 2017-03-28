@@ -22,14 +22,13 @@
 #include "group.h"
 #include "error.h"
 #include "force.h"
+#include "domain.h"
 #include "math_vector.h"
 #include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
-
-#define INERTIA 0.4          // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 
@@ -38,6 +37,21 @@ FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
 {
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix nvt/nph/npt sphere requires atom style sphere");
+
+  // inertia = moment of inertia prefactor for sphere or disc
+  
+  inertia = 0.4; 
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"disc") == 0){
+      inertia = 0.5;
+      if (domain->dimension != 2)
+	error->all(FLERR,
+                   "Fix nvt/nph/npt sphere disc option requires 2d simulation");
+    }
+    iarg++;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +69,7 @@ void FixNHSphere::init()
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
         error->one(FLERR,"Fix nvt/npt/nph/sphere require extended particles");
-
+ 
   FixNH::init();
 }
 
@@ -79,7 +93,7 @@ void FixNHSphere::nve_v()
 
   // set timestep here since dt may have changed or come via rRESPA
 
-  double dtfrotate = dtf / INERTIA;
+  double dtfrotate = dtf / inertia;
   double dtirotate;
 
   // update omega for all particles

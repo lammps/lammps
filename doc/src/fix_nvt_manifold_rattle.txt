@@ -37,7 +37,7 @@ fix 1 all nvt/manifold/rattle 1e-4 10 cylinder 3.0 temp 1.0 1.0 10.0
 
 [Description:]
 
-This fix combines the RATTLE-based "(Andersen)"_#Andersen time integrator of "fix nve/manifold/rattle"_fix_nve_manifold_rattle.html "(Paquay)"_#Paquay3 with a Nose-Hoover-chain thermostat to sample the
+This fix combines the RATTLE-based "(Andersen)"_#Andersen2 time integrator of "fix nve/manifold/rattle"_fix_nve_manifold_rattle.html "(Paquay)"_#Paquay3 with a Nose-Hoover-chain thermostat to sample the
 canonical ensemble of particles constrained to a curved surface (manifold). This sampling does suffer from discretization bias of O(dt).
 For a list of currently supported manifolds and their parameters, see "manifolds"_manifolds.html
 
@@ -72,7 +72,7 @@ section for more info.
 
 :line
 
-:link(Andersen)
+:link(Andersen2)
 [(Andersen)] Andersen, J. Comp. Phys. 52, 24, (1983).
 
 :link(Paquay3)

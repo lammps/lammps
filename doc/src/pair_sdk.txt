@@ -43,7 +43,7 @@ given by
 :c,image(Eqs/pair_cmm.jpg)
 
 as required for the SDK Coarse-grained MD parametrization discussed in
-"(Shinoda)"_#Shinoda and "(DeVane)"_#DeVane.  Rc is the cutoff.
+"(Shinoda)"_#Shinoda3 and "(DeVane)"_#DeVane.  Rc is the cutoff.
 
 Style {lj/sdk/coul/long} computes the adds Coulombic interactions
 with an additional damping factor applied so it can be used in
@@ -148,7 +148,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Shinoda)
+:link(Shinoda3)
 [(Shinoda)] Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).
 
 :link(DeVane)

@@ -12,6 +12,7 @@ setup(name='LAMMPS Documentation Utilities',
       tests_require=['nose'],
       entry_points = {
           "console_scripts": ['txt2html = lammpsdoc.txt2html:main',
-                              'txt2rst  = lammpsdoc.txt2rst:main']
+                              'txt2rst  = lammpsdoc.txt2rst:main',
+                              'doc_anchor_check = lammpsdoc.doc_anchor_check:main ']
       },
 )

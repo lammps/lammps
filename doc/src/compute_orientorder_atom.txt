@@ -78,7 +78,7 @@ normalized complex vector {Ybar_lm} of degree {ldegree}, which must be
 explicitly included in the keyword {degrees}. This option can be used
 in conjunction with "compute coord_atom"_compute_coord_atom.html to
 calculate the ten Wolde's criterion to identify crystal-like
-particles, as discussed in "ten Wolde"_#tenWolde.
+particles, as discussed in "ten Wolde"_#tenWolde2.
 
 The value of {Ql} is set to zero for atoms not in the
 specified compute group, as well as for atoms that have less than
@@ -143,6 +143,6 @@ Phys. Rev. B 28, 784 (1983).
 [(Mickel)] W. Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke,
 J. Chem. Phys. 138, 044501 (2013).
 
-:link(tenWolde)
+:link(tenWolde2)
 [(tenWolde)] P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).

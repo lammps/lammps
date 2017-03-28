@@ -78,7 +78,8 @@ class FixRigidNHSmall : public FixRigidSmall {
   virtual void compute_temp_target();
   void compute_press_target();
   void nh_epsilon_dot();
-
+  void compute_dof();
+  
   void allocate_chain();
   void allocate_order();
   void deallocate_chain();

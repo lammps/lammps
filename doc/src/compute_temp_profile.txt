@@ -43,7 +43,7 @@ atoms, after subtracting out a spatially-averaged center-of-mass
 velocity field, before computing the kinetic energy.  This can be
 useful for thermostatting a collection of atoms undergoing a complex
 flow, e.g. via a profile-unbiased thermostat (PUT) as described in
-"(Evans)"_#Evans.  A compute of this style can be used by any command
+"(Evans)"_#Evans1.  A compute of this style can be used by any command
 that computes a temperature, e.g. "thermo_modify"_thermo_modify.html,
 "fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_nh.html, etc.
 
@@ -75,7 +75,7 @@ atoms (sum of 1/2 m v^2), dim = 2 or 3 = dimensionality of the
 simulation, N = number of atoms in the group, k = Boltzmann constant,
 and T = temperature.  The dim*Nx*Ny*Nz term are degrees of freedom
 subtracted to adjust for the removal of the center-of-mass velocity in
-each of Nx*Ny*Nz bins, as discussed in the "(Evans)"_#Evans paper.
+each of Nx*Ny*Nz bins, as discussed in the "(Evans)"_#Evans1 paper.
 
 If the {out} keyword is used with a {tensor} value, which is the
 default, a kinetic energy tensor, stored as a 6-element vector, is
@@ -126,7 +126,7 @@ See "this howto section"_Section_howto.html#howto_16 of the manual for
 a discussion of different ways to compute temperature and perform
 thermostatting.  Using this compute in conjunction with a
 thermostatting fix, as explained there, will effectively implement a
-profile-unbiased thermostat (PUT), as described in "(Evans)"_#Evans.
+profile-unbiased thermostat (PUT), as described in "(Evans)"_#Evans1.
 
 [Output info:]
 
@@ -178,5 +178,5 @@ The option default is out = tensor.
 
 :line
 
-:link(Evans)
+:link(Evans1)
 [(Evans)] Evans and Morriss, Phys Rev Lett, 56, 2172-2175 (1986).

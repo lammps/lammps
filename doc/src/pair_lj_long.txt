@@ -72,12 +72,12 @@ used as cutoffs for the LJ and Coulombic terms respectively.
 The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r^6 Lennard-Jones and Coulombic 1/r
 interactions.  This is done by use of the {flag_lj} and {flag_coul}
-settings.  The "In 't Veld"_#Veld paper has more details on when it is
+settings.  The "In 't Veld"_#Veld2 paper has more details on when it is
 appropriate to include long-range 1/r^6 interactions, using this
 potential.
 
 Style {lj/long/tip4p/long} implements the TIP4P water model of
-"(Jorgensen)"_#Jorgensen, which introduces a massless site located a
+"(Jorgensen)"_#Jorgensen4, which introduces a massless site located a
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
 and angle types for OH and HOH interactions, and the distance to the
@@ -221,5 +221,9 @@ the KSPACE package is installed by default.
 
 :line
 
-:link(Veld)
+:link(Veld2)
 [(In 't Veld)] In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
+
+:link(Jorgensen4)
+[(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
+Phys, 79, 926 (1983).

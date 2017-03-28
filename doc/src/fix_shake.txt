@@ -53,7 +53,7 @@ velocities are approximated as finite differences to the trajectories
 integrated explicitly, as with velocity Verlet which is what LAMMPS
 uses as an integration method, a second set of constraining forces is
 required in order to eliminate velocity components along the bonds
-("Andersen (1983)"_#Andersen).
+("Andersen (1983)"_#Andersen3).
 
 In order to formulate individual constraints for SHAKE and RATTLE,
 focus on a single molecule whose bonds are constrained.  Let Ri and Vi
@@ -171,7 +171,7 @@ more instructions on how to use the accelerated styles effectively.
 
 The velocity constraints lead to a linear system of equations which
 can be solved analytically.  The implementation of the algorithm in
-LAMMPS closely follows ("Andersen (1983)"_#Andersen).
+LAMMPS closely follows ("Andersen (1983)"_#Andersen3).
 
 NOTE: The fix rattle command modifies forces and velocities and thus
 should be defined after all other integration fixes in your input
@@ -223,5 +223,5 @@ SHAKE or RATTLE should not be used to constrain an angle at 180 degrees
 [(Ryckaert)] J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen,
 J of Comp Phys, 23, 327-341 (1977).
 
-:link(Andersen)
+:link(Andersen3)
 [(Andersen)] H. Andersen, J of Comp Phys, 52, 24-34 (1983).

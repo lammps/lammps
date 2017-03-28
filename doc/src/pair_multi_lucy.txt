@@ -23,8 +23,8 @@ pair_coeff * * multibody.table ENTRY1 7.0 :pre
 [Description:]
 
 Style {multi/lucy} computes a density-dependent force following from
-the many-body form described in "(Moore)"_#Moore and
-"(Warren)"_#Warren as
+the many-body form described in "(Moore)"_#Moore1 and
+"(Warren)"_#Warren1 as
 
 :c,image(Eqs/pair_multi_lucy.jpg)
 
@@ -38,8 +38,8 @@ The density-dependent energy for a given particle is given by:
 
 :c,image(Eqs/pair_multi_lucy_energy.jpg)
 
-See the supporting information of "(Brennan)"_#Brennan or the
-publication by "(Moore)"_#Moore for more details on the functional
+See the supporting information of "(Brennan)"_#Brennan1 or the
+publication by "(Moore)"_#Moore1 for more details on the functional
 form.
 
 An interpolation table is used to evaluate the density-dependent
@@ -188,12 +188,12 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Warren)
+:link(Warren1)
 [(Warren)] Warren, Phys Rev E, 68, 066702 (2003).
 
-:link(Brennan)
+:link(Brennan1)
 [(Brennan)] Brennan, J Chem Phys Lett, 5, 2144-2149 (2014).
 
-:link(Moore)
+:link(Moore1)
 [(Moore)] Moore, J Chem Phys, 144, 104501 (2016).
 

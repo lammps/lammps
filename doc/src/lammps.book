@@ -168,6 +168,7 @@ fix_eos_table.html
 fix_eos_table_rx.html
 fix_evaporate.html
 fix_external.html
+fix_filter_corotate.html
 fix_flow_gauss.html
 fix_freeze.html
 fix_gcmc.html
@@ -455,6 +456,7 @@ pair_meam_spline.html
 pair_meam_sw_spline.html
 pair_mgpt.html
 pair_mie.html
+pair_momb.html
 pair_morse.html
 pair_multi_lucy.html
 pair_multi_lucy_rx.html

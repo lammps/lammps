@@ -33,7 +33,7 @@ fix 1 all viscosity 50 x z 20 swap 2 vtarget 1.5 :pre
 [Description:]
 
 Use the Muller-Plathe algorithm described in "this
-paper"_#Muller-Plathe to exchange momenta between two particles in
+paper"_#Muller-Plathe2 to exchange momenta between two particles in
 different regions of the simulation box every N steps.  This induces a
 shear velocity profile in the system.  As described below this enables
 a viscosity of the fluid to be calculated.  This algorithm is
@@ -83,7 +83,7 @@ quantity by time and the cross-sectional area of the simulation box
 yields a momentum flux.  The ratio of momentum flux to the slope of
 the shear velocity profile is proportional to the viscosity of the
 fluid, in appropriate units.  See the "Muller-Plathe
-paper"_#Muller-Plathe for details.
+paper"_#Muller-Plathe2 for details.
 
 NOTE: If your system is periodic in the direction of the momentum
 flux, then the flux is going in 2 directions.  This means the
@@ -161,7 +161,7 @@ The option defaults are swap = 1 and vtarget = INF.
 
 :line
 
-:link(Muller-Plathe)
+:link(Muller-Plathe2)
 [(Muller-Plathe)] Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).
 
 :link(Maginn)

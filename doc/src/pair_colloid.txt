@@ -39,7 +39,7 @@ where A_cc is the Hamaker constant, a1 and a2 are the radii of the two
 colloidal particles, and Rc is the cutoff.  This equation results from
 describing each colloidal particle as an integrated collection of
 Lennard-Jones particles of size sigma and is derived in
-"(Everaers)"_#Everaers.
+"(Everaers)"_#Everaers1.
 
 The colloid-solvent interaction energy is given by
 
@@ -201,5 +201,5 @@ only per-type polydispersity is enabled via the pair_coeff parameters.
 
 :line
 
-:link(Everaers)
+:link(Everaers1)
 [(Everaers)] Everaers, Ejtehadi, Phys Rev E, 67, 041710 (2003).

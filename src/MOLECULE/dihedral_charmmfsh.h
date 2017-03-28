@@ -1,0 +1,81 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifdef DIHEDRAL_CLASS
+
+DihedralStyle(charmmfsh,DihedralCharmmfsh)
+
+#else
+
+#ifndef LMP_DIHEDRAL_CHARMMFSH_H
+#define LMP_DIHEDRAL_CHARMMFSH_H
+
+#include <stdio.h>
+#include "dihedral.h"
+
+namespace LAMMPS_NS {
+
+class DihedralCharmmfsh : public Dihedral {
+ public:
+  DihedralCharmmfsh(class LAMMPS *);
+  virtual ~DihedralCharmmfsh();
+  virtual void compute(int, int);
+  virtual void coeff(int, char **);
+  virtual void init_style();
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_data(FILE *);
+
+ protected:
+  int implicit,weightflag,dihedflag;
+  double cut_lj_inner14,cut_lj14,cut_coul14;
+  double evdwl14_12,evdwl14_6,cut_coulinv14;
+  double cut_lj_inner3inv,cut_lj_inner6inv,cut_lj3inv,cut_lj6inv;
+
+  double *k,*weight,*cos_shift,*sin_shift;
+  int *multiplicity,*shift;
+  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
+
+  virtual void allocate();
+};
+
+}
+
+#endif
+#endif
+
+/* ERROR/WARNING messages:
+
+W: Dihedral problem: %d %ld %d %d %d %d
+
+Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry.
+
+E: Incorrect args for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Incorrect multiplicity arg for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Incorrect weight arg for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Dihedral charmmfsh is incompatible with Pair style
+
+Dihedral style charmmfsh must be used with a pair style charmm
+in order for the 1-4 epsilon/sigma parameters to be defined.
+
+*/

@@ -37,7 +37,7 @@ Styles {dpd/fdt} and {dpd/fdt/energy} compute the force for dissipative
 particle dynamics (DPD) simulations.  The {dpd/fdt} style is used to
 perform DPD simulations under isothermal and isobaric conditions,
 while the {dpd/fdt/energy} style is used to perform DPD simulations
-under isoenergetic and isoenthalpic conditions (see "(Lisal)"_#Lisal).
+under isoenergetic and isoenthalpic conditions (see "(Lisal)"_#Lisal3).
 For DPD simulations in general, the force on atom I due to atom J is
 given as a sum of 3 terms
 
@@ -111,7 +111,7 @@ calculated using only the conservative term.
 
 The forces computed through the {dpd/fdt} and {dpd/fdt/energy} styles
 can be integrated with the velocity-Verlet integration scheme or the
-Shardlow splitting integration scheme described by "(Lisal)"_#Lisal.
+Shardlow splitting integration scheme described by "(Lisal)"_#Lisal3.
 In the cases when these pair styles are combined with the
 "fix shardlow"_fix_shardlow.html, these pair styles differ from the
 other dpd styles in that the dissipative and random forces are split
@@ -147,7 +147,7 @@ energies and temperatures.
 
 :line
 
-:link(Lisal)
+:link(Lisal3)
 [(Lisal)] M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
 particle dynamics at isothermal, isobaric, isoenergetic, and
 isoenthalpic conditions using Shardlow-like splitting algorithms.",

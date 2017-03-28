@@ -93,7 +93,7 @@ Examples of large rigid bodies are a colloidal particle, or portions
 of a biomolecule such as a protein.
 
 Example of small rigid bodies are patchy nanoparticles, such as those
-modeled in "this paper"_#Zhang by Sharon Glotzer's group, clumps of
+modeled in "this paper"_#Zhang1 by Sharon Glotzer's group, clumps of
 granular particles, lipid molecules consiting of one or more point
 dipoles connected to other spheroids or ellipsoids, irregular
 particles built from line segments (2d) or triangles (3d), and
@@ -299,12 +299,12 @@ perform constant NVE time integration.  They are referred to below as
 the 4 NVE rigid styles.  The only difference is that the {rigid} and
 {rigid/small} styles use an integration technique based on Richardson
 iterations.  The {rigid/nve} and {rigid/small/nve} styles uses the
-methods described in the paper by "Miller"_#Miller, which are thought
+methods described in the paper by "Miller"_#Miller3, which are thought
 to provide better energy conservation than an iterative approach.
 
 The {rigid/nvt} and {rigid/nvt/small} styles performs constant NVT
 integration using a Nose/Hoover thermostat with chains as described
-originally in "(Hoover)"_#Hoover and "(Martyna)"_#Martyna, which
+originally in "(Hoover)"_#Hoover and "(Martyna)"_#Martyna2, which
 thermostats both the translational and rotational degrees of freedom
 of the rigid bodies.  They are referred to below as the 2 NVT rigid
 styles.  The rigid-body algorithm used by {rigid/nvt} is described in
@@ -788,13 +788,13 @@ torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3.
 :link(Kamberaj)
 [(Kamberaj)] Kamberaj, Low, Neal, J Chem Phys, 122, 224114 (2005).
 
-:link(Martyna)
+:link(Martyna2)
 [(Martyna)] Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
 Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.
 
-:link(Miller)
+:link(Miller3)
 [(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
 J Chem Phys, 116, 8649 (2002).
 
-:link(Zhang)
+:link(Zhang1)
 [(Zhang)] Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).

@@ -1,0 +1,42 @@
+# GCMC for LJ simple fluid, no dynamics
+
+# variables available on command line
+
+variable        mu index -21.0
+variable	disp index 1.0
+variable        temp index 2.0
+variable        lbox index 10.0
+
+# global model settings
+
+units           lj
+atom_style      atomic
+pair_style      lj/cut 3.0
+pair_modify	tail yes
+
+# box
+
+region		box block 0 ${lbox} 0 ${lbox} 0 ${lbox}
+create_box	1 box
+
+# lj parameters
+
+pair_coeff	* * 1.0 1.0
+mass		* 1.0
+
+# gcmc
+
+fix             mygcmc all gcmc 1 100 100 1 29494 ${temp} ${mu} ${disp}
+
+# output
+
+variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
+variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
+variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
+compute_modify  thermo_temp dynamic yes
+thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc
+thermo          100
+
+# run
+
+run             1000

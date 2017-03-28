@@ -19,8 +19,8 @@
 // Syntax: binary2txt file1 file2 ...
 // Creates:           file1.txt file2.txt ...
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 
 // these must match settings in src/lmptype.h which builds LAMMPS with
 //   -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL

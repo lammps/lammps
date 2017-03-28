@@ -1,0 +1,20 @@
+pair_style momb example
+=================
+
+This folder contains a example of the use of pair_style momb for system
+containing Ag, ethylene glycol (EG) and polyvinylpyrrolidone (PVP).
+The pair_style is designed for the interaction between metals and organic
+compounds. For this Ag-EG-PVP system, we use pair_style momb for the
+interaction between Ag and the oxygen atom in EG and PVP, as described in
+the publication listed below.
+
+Zhou, Ya, Wissam A. Saidi, and Kristen A. Fichthorn.
+"A force field for describing the polyvinylpyrrolidone-mediated solution-phase
+synthesis of shape-selective Ag nanoparticles."
+The Journal of Physical Chemistry C 118, no. 6 (2014): 3366-3374.
+http://pubs.acs.org/doi/abs/10.1021/jp412098n
+
+Other potentials used for this Ag-EG-PVP system includes the
+EAM, Morse, and CHARMM potential. We note that the EAM potential file,
+'Ag_O1X5.5_O2X0.55.eam.fs', also contains the information about the
+one-way electron density donation from the oxygen atoms to Ag atoms.

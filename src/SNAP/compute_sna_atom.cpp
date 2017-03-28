@@ -34,7 +34,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rmin0, rfac0;
-  int twojmax, switchflag;
+  int twojmax, switchflag, bzeroflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -48,6 +48,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   diagonalstyle = 0;
   rmin0 = 0.0;
   switchflag = 1;
+  bzeroflag = 0;
 
   // offset by 1 to match up with types
 
@@ -100,19 +101,24 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all(FLERR,"Illegal compute sna/atom command");
       switchflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"bzeroflag") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal compute sna/atom command");
+      bzeroflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute sna/atom command");
   }
 
   snaptr = new SNA*[comm->nthreads];
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag)
+#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag,bzeroflag)
 #endif
   {
     int tid = omp_get_thread_num();
 
     // always unset use_shared_arrays since it does not work with computes
     snaptr[tid] = new SNA(lmp,rfac0,twojmax,diagonalstyle,
-                          0 /*use_shared_arrays*/, rmin0,switchflag);
+                          0 /*use_shared_arrays*/, rmin0,switchflag,bzeroflag);
   }
 
   ncoeff = snaptr[0]->ncoeff;

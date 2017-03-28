@@ -48,6 +48,7 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   ghost = 0;
   ssa = 0;
   copy = 0;
+  copymode = 0;
   dnum = 0;
 
   // ptrs
@@ -86,6 +87,7 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
 
 NeighList::~NeighList()
 {
+  if (copymode) return;
   if (!copy) {
     memory->destroy(ilist);
     memory->destroy(numneigh);

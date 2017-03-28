@@ -432,7 +432,8 @@ void FixGCMC::init()
         (force->pair == NULL) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
-        (force->pair_match("eam",0))
+        (force->pair_match("eam",0)) ||
+        (force->pair->tail_flag)
         ) {
       full_flag = true;
       if (comm->me == 0)
@@ -618,13 +619,18 @@ void FixGCMC::init()
   }
 
   // compute beta, lambda, sigma, and the zz factor
-
+  // For LJ units, lambda=1
   beta = 1.0/(force->boltz*reservoir_temperature);
-  double lambda = sqrt(force->hplanck*force->hplanck/
-                       (2.0*MY_PI*gas_mass*force->mvv2e*
+  if (strcmp(update->unit_style,"lj") == 0)
+    zz = exp(beta*chemical_potential);
+  else {
+    double lambda = sqrt(force->hplanck*force->hplanck/
+                         (2.0*MY_PI*gas_mass*force->mvv2e*
                         force->boltz*reservoir_temperature));
+    zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
+  }
+  
   sigma = sqrt(force->boltz*reservoir_temperature*tfac_insert/gas_mass/force->mvv2e);
-  zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
   if (pressure_flag) zz = pressure*fugacity_coeff*beta/force->nktv2p;
 
   imagezero = ((imageint) IMGMAX << IMG2BITS) |

@@ -1989,6 +1989,11 @@ Both methods are thus a means to extract or assign (overwrite) any
 peratom quantities within LAMMPS.  See the extract() method in the
 src/atom.cpp file for a list of valid per-atom properties.  New names
 could easily be added if the property you want is not listed.
+A special treatment is applied for accessing image flags via the
+"image" property. Image flags are stored in a packed format with all
+three image flags stored in a single integer. When signaling to access
+the image flags as 3 individual values per atom instead of 1, the data
+is transparently packed or unpacked by the library interface.
 
 The lammps_create_atoms() function takes a list of N atoms as input
 with atom types and coords (required), an optionally atom IDs and

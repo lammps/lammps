@@ -14,42 +14,37 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "pair_oxdna2_stk.h"
 
-PairStyle(oxdna2/excv,PairOxdna2Excv)
+using namespace LAMMPS_NS;
 
-#else
+/* ---------------------------------------------------------------------- */
 
-#ifndef LMP_PAIR_OXDNA2_EXCV_H
-#define LMP_PAIR_OXDNA2_EXCV_H
-
-#include "pair_oxdna_excv.h"
-
-namespace LAMMPS_NS {
-
-class PairOxdna2Excv : public PairOxdnaExcv {
- public:
-  PairOxdna2Excv(class LAMMPS *);
-  virtual ~PairOxdna2Excv();
-  virtual void compute_interaction_sites(double *, 
-    double *, double *, double *);
-};
+PairOxdna2Stk::PairOxdna2Stk(LAMMPS *lmp) : PairOxdnaStk(lmp)
+{
 
 }
 
-#endif
-#endif
+/* ---------------------------------------------------------------------- */
 
-/* ERROR/WARNING messages:
+PairOxdna2Stk::~PairOxdna2Stk()
+{
 
-E: Illegal ... command
+}
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+/* ----------------------------------------------------------------------
+   return temperature dependent oxDNA2 stacking strength
+------------------------------------------------------------------------- */
 
-E: Incorrect args for pair coefficients
+double PairOxdna2Stk::stacking_strength(double T)
+{
+  double eps;
 
-Self-explanatory.  Check the input script or data file.
+  eps = 1.3523 + 2.6717 * T;
 
-*/
+  return eps;
+}

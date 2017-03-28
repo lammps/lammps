@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -455,7 +455,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -501,7 +501,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
 
   count = 0;
 
@@ -532,7 +532,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
 
   count = 0;
 
@@ -563,7 +563,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
 
 }
 
@@ -664,7 +664,7 @@ double PairOxdnaExcv::init_one(int i, int j)
   cutsq_bb_c[j][i]  = cutsq_bb_c[i][j];
 
   // set the master list distance cutoff
-  return cut_ss_ast[i][j];
+  return cut_ss_c[i][j];
 
 }
 

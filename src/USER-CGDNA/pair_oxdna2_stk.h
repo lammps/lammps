@@ -16,23 +16,24 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna2/excv,PairOxdna2Excv)
+PairStyle(oxdna2/stk,PairOxdna2Stk)
 
 #else
 
-#ifndef LMP_PAIR_OXDNA2_EXCV_H
-#define LMP_PAIR_OXDNA2_EXCV_H
+#ifndef LMP_PAIR_OXDNA2_STK_H
+#define LMP_PAIR_OXDNA2_STK_H
 
-#include "pair_oxdna_excv.h"
+#include "pair_oxdna_stk.h"
 
 namespace LAMMPS_NS {
 
-class PairOxdna2Excv : public PairOxdnaExcv {
+class PairOxdna2Stk : public PairOxdnaStk {
  public:
-  PairOxdna2Excv(class LAMMPS *);
-  virtual ~PairOxdna2Excv();
-  virtual void compute_interaction_sites(double *, 
-    double *, double *, double *);
+  PairOxdna2Stk(class LAMMPS *);
+  virtual ~PairOxdna2Stk();
+
+ protected:
+  virtual double stacking_strength(double);
 };
 
 }

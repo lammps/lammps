@@ -10,6 +10,9 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
+------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
 

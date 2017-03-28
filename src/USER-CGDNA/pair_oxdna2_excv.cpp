@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -19,24 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pair_oxdna2_excv.h"
-#include "mf_oxdna.h"
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "atom_vec_ellipsoid.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 

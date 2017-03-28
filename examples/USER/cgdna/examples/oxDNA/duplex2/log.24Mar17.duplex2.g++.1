@@ -1,4 +1,4 @@
-LAMMPS (17 Mar 2017)
+LAMMPS (24 Mar 2017)
 variable number	equal 2
 variable ofreq	equal 1000
 variable efreq	equal 1000
@@ -47,17 +47,19 @@ bond_coeff * 2.0 0.25 0.7525
 
 # oxDNA pair interactions
 pair_style hybrid/overlay oxdna/excv oxdna/stk oxdna/hbond oxdna/xstk oxdna/coaxstk
-pair_coeff * * oxdna/excv   2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
-pair_coeff * * oxdna/stk    1.61048 6.0 0.4 0.9 0.32 0.6 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
-pair_coeff * * oxdna/hbond  0.0   8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
-pair_coeff 1 4 oxdna/hbond  1.077 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
-pair_coeff 2 3 oxdna/hbond  1.077 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
-pair_coeff * * oxdna/xstk   47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68
+pair_coeff * * oxdna/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
+pair_coeff * * oxdna/stk     0.1 6.0 0.4 0.9 0.32 0.6 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna/hbond   0.0   8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 1 4 oxdna/hbond   1.077 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 2 3 oxdna/hbond   1.077 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff * * oxdna/xstk    47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68
 pair_coeff * * oxdna/coaxstk 46.0 0.4 0.6 0.22 0.58 2.0 2.541592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 -0.65 2.0 -0.65
 
 # NVE ensemble
-fix 1 all   nve/dotc/langevin 0.1 0.1 0.03 457145 angmom 10
-#fix 1 all   nve/dot
+#fix 1 all nve/dot
+fix 1 all nve/dotc/langevin 0.1 0.1 0.03 457145 angmom 10
+#fix 1 all nve/asphere
+#fix 2 all langevin 0.1 0.1 0.03 457145 angmom 10
 
 timestep 1e-5
 
@@ -68,16 +70,12 @@ timestep 1e-5
 #compute mychunk all vcm/chunk mol
 #fix 4 all ave/time 10000 1 10000 c_mychunk[1] c_mychunk[2] c_mychunk[3] file vcm.txt mode vector
 
-dump pos all xyz ${ofreq} traj.${number}.xyz
-dump pos all xyz 1000 traj.${number}.xyz
-dump pos all xyz 1000 traj.2.xyz
+#dump pos all xyz ${ofreq} traj.${number}.xyz
 
-compute quat all property/atom quatw quati quatj quatk
-dump quat all custom ${ofreq} quat.${number}.txt id c_quat[1] c_quat[2] c_quat[3] c_quat[4]
-dump quat all custom 1000 quat.${number}.txt id c_quat[1] c_quat[2] c_quat[3] c_quat[4]
-dump quat all custom 1000 quat.2.txt id c_quat[1] c_quat[2] c_quat[3] c_quat[4]
-dump_modify quat sort id
-dump_modify quat format line "%d  %13.6le  %13.6le  %13.6le  %13.6le"
+#compute quat all property/atom quatw quati quatj quatk
+#dump quat all custom ${ofreq} quat.${number}.txt id c_quat[1] c_quat[2] c_quat[3] c_quat[4]
+#dump_modify quat sort id
+#dump_modify quat format line "%d  %13.6le  %13.6le  %13.6le  %13.6le"
 
 compute erot all erotate/asphere
 compute ekin all ke
@@ -89,11 +87,9 @@ variable etot equal c_erot+c_ekin+c_epot
 fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
 fix 5 all print 1000 "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
 
-dump out all custom ${ofreq} out.${number}.txt id x y z vx vy vz fx fy fz tqx tqy tqz
-dump out all custom 1000 out.${number}.txt id x y z vx vy vz fx fy fz tqx tqy tqz
-dump out all custom 1000 out.2.txt id x y z vx vy vz fx fy fz tqx tqy tqz
-dump_modify out sort id
-dump_modify out format line "%d   %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le"
+#dump out all custom ${ofreq} out.${number}.txt id x y z vx vy vz fx fy fz tqx tqy tqz
+#dump_modify out sort id
+#dump_modify out format line "%d   %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le"
 
 run 1000000
 Neighbor list info ...
@@ -128,7 +124,7 @@ Neighbor list info ...
       pair build: copy
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 5.868 | 5.868 | 5.868 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 2.861 | 2.861 | 2.861 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -1.5402493 0.0070469125   -1.5332024 -8.5641987e-05 
 1000  ekin = 1.54234964773389 |  erot = 1.71563526070267 | epot = -24.5477045187653 | etot = -21.2897196103287
@@ -1132,21 +1128,21 @@ Step Temp E_pair E_mol TotEng Press
 999000  ekin = 2.0749813057658 |  erot = 2.75045972766915 | epot = -20.6160915262949 | etot = -15.79065049286
 1000000  ekin = 2.07851119592056 |  erot = 2.11869313853033 | epot = -20.4539417072874 | etot = -16.2567373728365
  1000000  0.092378275   -1.3359709  0.057599499   -1.1484644 -5.0252938e-05 
-Loop time of 41.6676 on 1 procs for 1000000 steps with 16 atoms
+Loop time of 41.7341 on 1 procs for 1000000 steps with 16 atoms
 
-Performance: 20735.530 tau/day, 23999.457 timesteps/s
-99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 20702.495 tau/day, 23961.221 timesteps/s
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 29.885     | 29.885     | 29.885     |   0.0 | 71.72
-Bond    | 1.0232     | 1.0232     | 1.0232     |   0.0 |  2.46
+Pair    | 29.954     | 29.954     | 29.954     |   0.0 | 71.77
+Bond    | 1.0147     | 1.0147     | 1.0147     |   0.0 |  2.43
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.2572     | 0.2572     | 0.2572     |   0.0 |  0.62
-Output  | 0.16714    | 0.16714    | 0.16714    |   0.0 |  0.40
-Modify  | 9.9118     | 9.9118     | 9.9118     |   0.0 | 23.79
-Other   |            | 0.4235     |            |       |  1.02
+Comm    | 0.32043    | 0.32043    | 0.32043    |   0.0 |  0.77
+Output  | 6.9141e-06 | 6.9141e-06 | 6.9141e-06 |   0.0 |  0.00
+Modify  | 10.025     | 10.025     | 10.025     |   0.0 | 24.02
+Other   |            | 0.4203     |            |       |  1.01
 
 Nlocal:    16 ave 16 max 16 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

@@ -16,23 +16,43 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna2/excv,PairOxdna2Excv)
+PairStyle(oxdna2/dh,PairOxdna2Dh)
 
 #else
 
-#ifndef LMP_PAIR_OXDNA2_EXCV_H
-#define LMP_PAIR_OXDNA2_EXCV_H
+#ifndef LMP_PAIR_OXDNA2_DH_H
+#define LMP_PAIR_OXDNA2_DH_H
 
-#include "pair_oxdna_excv.h"
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairOxdna2Excv : public PairOxdnaExcv {
+class PairOxdna2Dh : public Pair {
  public:
-  PairOxdna2Excv(class LAMMPS *);
-  virtual ~PairOxdna2Excv();
-  virtual void compute_interaction_sites(double *, 
-    double *, double *, double *);
+  PairOxdna2Dh(class LAMMPS *);
+  virtual ~PairOxdna2Dh();
+  virtual void compute_interaction_sites(double *, double *, double *);
+  virtual void compute(int, int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  void init_style();
+  void init_list(int, class NeighList *);
+  double init_one(int, int);
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  void write_data(FILE *);
+  void write_data_all(FILE *);
+  void *extract(const char *, int &);
+
+ protected:
+
+  double **qeff_dh_pf,**kappa_dh;
+  double **b_dh,**cut_dh_ast,**cutsq_dh_ast,**cut_dh_c,**cutsq_dh_c;
+
+  virtual void allocate();
+
 };
 
 }

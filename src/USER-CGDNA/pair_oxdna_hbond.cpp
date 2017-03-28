@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -607,7 +607,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 26) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_hbond");
+  if (narg != 26) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/hbond");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -770,7 +770,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_hbond");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/hbond");
 
 }
 

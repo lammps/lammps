@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
 
 PairStyle(oxdna/stk,PairOxdnaStk)
-PairStyle(oxdna2/stk,PairOxdnaStk)
 
 #else
 
@@ -48,6 +47,7 @@ class PairOxdnaStk : public Pair {
 
  protected:
   // stacking interaction
+  virtual double stacking_strength(double);
   double **epsilon_st, **a_st, **cut_st_0, **cut_st_c;
   double **cut_st_lo, **cut_st_hi;
   double **cut_st_lc, **cut_st_hc, **b_st_lo, **b_st_hi, **shift_st;

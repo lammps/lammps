@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -625,7 +625,7 @@ void PairOxdnaXstk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 25) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_xstk");
+  if (narg != 25) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/xstk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -772,7 +772,7 @@ void PairOxdnaXstk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_xstk");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/xstk");
 
 }
 

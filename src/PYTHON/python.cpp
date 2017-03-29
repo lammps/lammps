@@ -37,6 +37,8 @@ Python::Python(LAMMPS *lmp) : Pointers(lmp)
 
   nfunc = 0;
   pfuncs = NULL;
+
+  external_interpreter = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -44,6 +46,7 @@ Python::Python(LAMMPS *lmp) : Pointers(lmp)
 Python::~Python()
 {
   // clean up
+  PyGILState_STATE gstate = PyGILState_Ensure();
 
   for (int i = 0; i < nfunc; i++) {
     delete [] pfuncs[i].name;
@@ -54,7 +57,12 @@ Python::~Python()
 
   // shutdown Python interpreter
 
-  if (pyMain) Py_Finalize();
+  if (pyMain && !external_interpreter) {
+    Py_Finalize();
+  }
+  else {
+    PyGILState_Release(gstate);
+  }
 
   memory->sfree(pfuncs);
 }
@@ -147,27 +155,20 @@ void Python::command(int narg, char **arg)
   int ifunc = create_entry(arg[0]);
 
   // one-time initialization of Python interpreter
-  // Py_SetArgv() enables finding of *.py module files in current dir
-  //   only needed for module load, not for direct file read into __main__
   // pymain stores pointer to main module
+  PyGILState_STATE gstate;
 
   if (pyMain == NULL) {
-    if (Py_IsInitialized())
-      error->all(FLERR,"Cannot embed Python when also "
-                 "extending Python with LAMMPS");
+    external_interpreter = Py_IsInitialized();
     Py_Initialize();
-
-    //char *arg = (char *) "./lmp";
-    //PySys_SetArgv(1,&arg);
-
-    //PyObject *pName = PyString_FromString("__main__");
-    //if (!pName) errorX->all(FLERR,"Bad pName");
-    //PyObject *pModule = PyImport_Import(pName);
-    //Py_DECREF(pName);
+    PyEval_InitThreads();
+    gstate = PyGILState_Ensure();
 
     PyObject *pModule = PyImport_AddModule("__main__");
     if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
     pyMain = (void *) pModule;
+  } else {
+    gstate = PyGILState_Ensure();
   }
 
   // send Python code to Python interpreter
@@ -177,22 +178,44 @@ void Python::command(int narg, char **arg)
 
   if (pyfile) {
     FILE *fp = fopen(pyfile,"r");
-    if (fp == NULL) error->all(FLERR,"Could not open Python file");
+
+    if (fp == NULL) {
+      PyGILState_Release(gstate);
+      error->all(FLERR,"Could not open Python file");
+    }
+
     int err = PyRun_SimpleFile(fp,pyfile);
-    if (err) error->all(FLERR,"Could not process Python file");
+
+    if (err) {
+      PyGILState_Release(gstate);
+      error->all(FLERR,"Could not process Python file");
+    }
+
     fclose(fp);
   } else if (herestr) {
     int err = PyRun_SimpleString(herestr);
-    if (err) error->all(FLERR,"Could not process Python string");
+
+    if (err) {
+      PyGILState_Release(gstate);
+      error->all(FLERR,"Could not process Python string");
+    }
   }
 
   // pFunc = function object for requested function
 
   PyObject *pModule = (PyObject *) pyMain;
   PyObject *pFunc = PyObject_GetAttrString(pModule,pfuncs[ifunc].name);
-  if (!pFunc) error->all(FLERR,"Could not find Python function");
-  if (!PyCallable_Check(pFunc))
+
+  if (!pFunc) {
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not find Python function");
+  }
+
+  if (!PyCallable_Check(pFunc)) {
+    PyGILState_Release(gstate);
     error->all(FLERR,"Python function is not callable");
+  }
+
   pfuncs[ifunc].pFunc = (void *) pFunc;
 
   // clean-up input storage
@@ -200,12 +223,14 @@ void Python::command(int narg, char **arg)
   delete [] istr;
   delete [] format;
   delete [] pyfile;
+  PyGILState_Release(gstate);
 }
 
 /* ------------------------------------------------------------------ */
 
 void Python::invoke_function(int ifunc, char *result)
 {
+  PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *pValue;
   char *str;
 
@@ -215,29 +240,43 @@ void Python::invoke_function(int ifunc, char *result)
 
   int ninput = pfuncs[ifunc].ninput;
   PyObject *pArgs = PyTuple_New(ninput);
-  if (!pArgs) error->all(FLERR,"Could not create Python function arguments");
+
+  if (!pArgs) {
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not create Python function arguments");
+  }
 
   for (int i = 0; i < ninput; i++) {
     int itype = pfuncs[ifunc].itype[i];
     if (itype == INT) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str)
+
+        if (!str) {
+          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
+        }
+
         pValue = PyInt_FromLong(atoi(str));
       } else pValue = PyInt_FromLong(pfuncs[ifunc].ivalue[i]);
     } else if (itype == DOUBLE) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str)
+
+        if (!str) {
+          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
+        }
+
         pValue = PyFloat_FromDouble(atof(str));
       } else pValue = PyFloat_FromDouble(pfuncs[ifunc].dvalue[i]);
     } else if (itype == STRING) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str)
+        if (!str) {
+          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
+        }
         pValue = PyString_FromString(str);
       } else pValue = PyString_FromString(pfuncs[ifunc].svalue[i]);
     } else if (itype == PTR) {
@@ -250,7 +289,12 @@ void Python::invoke_function(int ifunc, char *result)
   // error check with one() since only some procs may fail
 
   pValue = PyObject_CallObject(pFunc,pArgs);
-  if (!pValue) error->one(FLERR,"Python function evaluation failed");
+
+  if (!pValue) {
+    PyGILState_Release(gstate);
+    error->one(FLERR,"Python function evaluation failed");
+  }
+
   Py_DECREF(pArgs);
 
   // function returned a value
@@ -271,6 +315,8 @@ void Python::invoke_function(int ifunc, char *result)
     }
     Py_DECREF(pValue);
   }
+
+  PyGILState_Release(gstate);
 }
 
 /* ------------------------------------------------------------------ */

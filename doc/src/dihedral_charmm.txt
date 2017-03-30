@@ -90,8 +90,8 @@ the difference between the {charmm} and {charmmfsh} styles is in the
 computation of the 1-4 non-bond interactions, though only if the
 distance between the two atoms is within the switching region of the
 pairwise potential defined by the corresponding CHARMM pair style,
-i.e. between the inner and outer cutoffs specified for the pair style.
-The {charmmfsh} style should only be used when using the "pair_style
+i.e. within the outer cutoff specified for the pair style.  The
+{charmmfsh} style should only be used when using the "pair_style
 lj/charmmfsw/coul/charmmfsh"_pair_charmm.html to make the Coulombic
 pairwise calculations consistent.  Use the {charmm} style with
 long-range Coulombics or the older "pair_style

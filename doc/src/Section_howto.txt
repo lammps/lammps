@@ -1686,7 +1686,7 @@ nph) and Berendsen:
 The "fix npt"_fix_nh.html commands include a Nose-Hoover thermostat
 and barostat.  "Fix nph"_fix_nh.html is just a Nose/Hoover barostat;
 it does no thermostatting.  Both "fix nph"_fix_nh.html and "fix
-press/bernendsen"_fix_press_berendsen.html can be used in conjunction
+press/berendsen"_fix_press_berendsen.html can be used in conjunction
 with any of the thermostatting fixes.
 
 As with the thermostats, "fix npt"_fix_nh.html and "fix

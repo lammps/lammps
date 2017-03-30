@@ -60,6 +60,7 @@ Pair Styles :h1
    pair_meam_sw_spline
    pair_mgpt
    pair_mie
+   pair_momb
    pair_morse
    pair_multi_lucy
    pair_multi_lucy_rx
@@ -67,6 +68,7 @@ Pair Styles :h1
    pair_nm
    pair_none
    pair_oxdna
+   pair_oxdna2
    pair_peri
    pair_polymorphic
    pair_quip

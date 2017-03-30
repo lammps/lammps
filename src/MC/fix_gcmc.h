@@ -112,7 +112,9 @@ class FixGCMC : public Fix {
   double **cutsq;
   double **atom_coord;
   imageint imagezero;
-
+  double overlap_cutoff;
+  int overlap_flag;
+  
   double energy_intra;
 
   class Pair *pair;
@@ -126,9 +128,9 @@ class FixGCMC : public Fix {
   int imol,nmol;
   double **coords;
   imageint *imageflags;
-  class Fix *fixshake;
-  int shakeflag;
-  char *idshake;
+  class Fix *fixrigid, *fixshake;
+  int rigidflag, shakeflag;
+  char *idrigid, *idshake;
   int triclinic;                         // 0 = orthog box, 1 = triclinic
 
   class Compute *c_pe;

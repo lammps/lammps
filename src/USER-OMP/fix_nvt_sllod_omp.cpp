@@ -121,7 +121,7 @@ void FixNVTSllodOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) shared(h_two) schedule(static)
 #endif
   for (i = 0; i < nlocal; i++) {
-    double vdelu0,vdelu1,vdelu2,buf[3];
+    double vdelu0,vdelu1,vdelu2;
     if (mask[i] & groupbit) {
       vdelu0 = h_two[0]*v[i].x + h_two[5]*v[i].y + h_two[4]*v[i].z;
       vdelu1 = h_two[1]*v[i].y + h_two[3]*v[i].z;

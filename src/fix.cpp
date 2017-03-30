@@ -71,6 +71,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
   restart_pbc = 0;
   wd_header = wd_section = 0;
   dynamic_group_allow = 0;
+  dynamic = 0;
   dof_flag = 0;
   special_alter_flag = 0;
   enforce2d_flag = 0;
@@ -130,7 +131,13 @@ void Fix::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"energy") == 0) {
+    if (strcmp(arg[iarg],"dynamic/dof") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
+      if (strcmp(arg[iarg+1],"no") == 0) dynamic = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) dynamic = 1;
+      else error->all(FLERR,"Illegal fix_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) thermo_energy = 1;

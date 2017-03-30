@@ -44,7 +44,6 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   tables2(NULL), dHf(NULL), eosSpecies(NULL)
 {
   if (narg != 8 && narg != 10) error->all(FLERR,"Illegal fix eos/table/rx command");
-  restart_peratom = 1;
   nevery = 1;
 
   rx_flag = false;

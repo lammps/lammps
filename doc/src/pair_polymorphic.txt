@@ -25,7 +25,7 @@ pair_coeff * * GaN_sw.polymorphic GaN :pre
 [Description:]
 
 The {polymorphic} pair style computes a 3-body free-form potential
-("Zhou"_#Zhou) for the energy E of a system of atoms as
+("Zhou"_#Zhou3) for the energy E of a system of atoms as
 
 :c,image(Eqs/polymorphic1.jpg)
 :c,image(Eqs/polymorphic2.jpg)
@@ -52,18 +52,18 @@ to Stillinger-Weber potential ("SW"_#SW) if we set
 :c,image(Eqs/polymorphic4.jpg)
 
 The potential reduces to Tersoff types of potential
-("Tersoff"_#Tersoff or "Albe"_#Albe) if we set
+("Tersoff"_#Tersoff or "Albe"_#poly-Albe) if we set
 
 :c,image(Eqs/polymorphic5.jpg)
 :c,image(Eqs/polymorphic6.jpg)
 
-The potential reduces to Rockett-Tersoff ("Wang"_#Wang) type if we set
+The potential reduces to Rockett-Tersoff ("Wang"_#Wang3) type if we set
 
 :c,image(Eqs/polymorphic7.jpg)
 :c,image(Eqs/polymorphic6.jpg)
 :c,image(Eqs/polymorphic8.jpg)
 
-The potential becomes embedded atom method ("Daw"_#Daw) if we set
+The potential becomes embedded atom method ("Daw"_#poly-Daw) if we set
 
 :c,image(Eqs/polymorphic9.jpg)
 
@@ -208,7 +208,7 @@ files.
 
 :line
 
-:link(Zhou)
+:link(Zhou3)
 [(Zhou)] X. W. Zhou, M. E. Foster, R. E. Jones, P. Yang, H. Fan, and
 F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 
@@ -218,12 +218,12 @@ F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 :link(Tersoff)
 [(Tersoff)] J. Tersoff, Phys. Rev. B, 39, 5566 (1989).
 
-:link(Albe)
+:link(poly-Albe)
 [(Albe)] K. Albe, K. Nordlund, J. Nord, and A. Kuronen, Phys. Rev. B,
 66, 035205 (2002).
 
-:link(Wang)
+:link(Wang3)
 [(Wang)] J. Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
 
-:link(Daw)
+:link(poly-Daw)
 [(Daw)] M. S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).

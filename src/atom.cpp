@@ -1950,7 +1950,7 @@ void Atom::add_callback(int flag)
 
 void Atom::delete_callback(const char *id, int flag)
 {
-  if(id==NULL) return;
+  if (id == NULL) return;
 
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)

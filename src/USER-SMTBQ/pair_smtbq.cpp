@@ -3561,7 +3561,7 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
 
 void PairSMTBQ::CheckEnergyVSForce()
 {
-  double drL,iq,jq,rsq,evdwlCoul,fpairCoul,eflag,ErepR,frepR,fpair,evdwl;
+  double drL,iq,jq,rsq,evdwlCoul,fpairCoul,eflag=0,ErepR,frepR,fpair,evdwl;
   int i,j,iiiMax,iii,iCoord;
   int itype,jtype,l,m;
   double r,t1,t2,sds,xi,engSurf,fforceSurf;

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -125,7 +125,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
   double theta8,t8dir[3],cost8;
 
   // distance COM-hbonding site
-  double d_chb=0.56;
+  double d_chb=+0.4;
   // vectors COM-h-bonding site in lab frame
   double ra_chb[3],rb_chb[3];
 
@@ -607,7 +607,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 26) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_hbond");
+  if (narg != 26) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/hbond");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -770,7 +770,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_hbond");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/hbond");
 
 }
 

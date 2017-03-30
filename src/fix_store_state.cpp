@@ -38,7 +38,8 @@ enum{KEYWORD,COMPUTE,FIX,VARIABLE,DNAME,INAME};
 
 FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), values(NULL),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  ids(NULL), values(NULL),
   vbuf(NULL), pack_choice(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix store/state command");
@@ -1046,7 +1047,8 @@ void FixStoreState::pack_ysu(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) 
-      vbuf[n] = (x[i][1]-boxylo)*invyprd + (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      vbuf[n] = (x[i][1]-boxylo)*invyprd + 
+        (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1158,7 +1160,8 @@ void FixStoreState::pack_iy(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    if (mask[i] & groupbit) 
+      vbuf[n] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }

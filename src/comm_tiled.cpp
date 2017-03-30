@@ -1449,7 +1449,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   // NOTE: these error messages are internal sanity checks
   //       should not occur, can be removed at some point
 
-  int index,dir;
+  int index=-1,dir;
   if (hi[idim] == sublo[idim]) {
     index = myloc[idim] - 1;
     dir = -1;

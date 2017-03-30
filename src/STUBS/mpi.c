@@ -190,6 +190,13 @@ int MPI_Type_size(MPI_Datatype datatype, int *size)
 
 /* ---------------------------------------------------------------------- */
 
+int MPI_Request_free(MPI_Request *request)
+{
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm)
 {

@@ -190,12 +190,15 @@ class lammps(object):
   # send a list of commands
 
   def commands_list(self,cmdlist):
-    args = (c_char_p * len(cmdlist))(*cmdlist)
+    cmds = [x.encode() for x in cmdlist if type(x) is str]
+    args = (c_char_p * len(cmdlist))(*cmds)
     self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
     
   # send a string of commands
 
   def commands_string(self,multicmd):
+    if type(multicmd) is str:
+        multicmd = multicmd.encode()
     self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
     
   # extract global info
@@ -359,19 +362,27 @@ class lammps(object):
   #   e.g. for Python list or NumPy, etc
   #   ditto for gather_atoms() above
 
-  def create_atoms(self,n,id,type,x,v):
+  def create_atoms(self,n,id,type,x,v,image=None,shrinkexceed=False):
     if id:
       id_lmp = (c_int * n)()
       id_lmp[:] = id
-    else: id_lmp = id
+    else:
+      id_lmp = id
+
+    if image:
+      image_lmp = (c_int * n)()
+      image_lmp[:] = image
+    else:
+      image_lmp = image
+
     type_lmp = (c_int * n)()
     type_lmp[:] = type
-    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v)
+    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,shrinkexceed)
 
-  # document this?
-    
+
   @property
   def uses_exceptions(self):
+    """ Return whether the LAMMPS shared library was compiled with C++ exceptions handling enabled """
     try:
       if self.lib.lammps_has_error:
         return True

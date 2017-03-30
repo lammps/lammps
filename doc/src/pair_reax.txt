@@ -32,7 +32,7 @@ represent the contributions of chemical bonding to the potential
 energy. There is more than one version of ReaxFF. The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper:
-"(Chenoweth)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
+"(Chenoweth)"_#Chenoweth_20081.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.
 
 WARNING: pair style reax is now deprecated and will soon be retired. Users
@@ -211,6 +211,6 @@ The keyword defaults are {hbcut} = 6, {hbnewflag} = 1, {tripflag} = 1,
 
 :line
 
-:link(Chenoweth_2008)
+:link(Chenoweth_20081)
 [(Chenoweth_2008)] Chenoweth, van Duin and Goddard,
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).

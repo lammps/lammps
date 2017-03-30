@@ -48,11 +48,11 @@ replicas of a system.  One or more replicas can be used.  The total
 number of steps {N} to run can be interpreted in one of two ways; see
 discussion of the {time} keyword below.
 
-PRD is described in "this paper"_#Voter by Art Voter.  It is a method
+PRD is described in "this paper"_#Voter1998 by Art Voter.  It is a method
 for performing accelerated dynamics that is suitable for
 infrequent-event systems that obey first-order kinetics.  A good
 overview of accelerated dynamics methods for such systems in given in
-"this review paper"_#Voter2 from the same group.  To quote from the
+"this review paper"_#Voter2002prd from the same group.  To quote from the
 paper: "The dynamical evolution is characterized by vibrational
 excursions within a potential basin, punctuated by occasional
 transitions between basins."  The transition probability is
@@ -316,9 +316,9 @@ geom gaussian, and time = steps.
 
 :line
 
-:link(Voter)
-[(Voter)] Voter, Phys Rev B, 57, 13985 (1998).
+:link(Voter1998)
+[(Voter1998)] Voter, Phys Rev B, 57, 13985 (1998).
 
-:link(Voter2)
-[(Voter2)] Voter, Montalenti, Germann, Annual Review of Materials
+:link(Voter2002prd)
+[(Voter2002)] Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

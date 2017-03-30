@@ -773,7 +773,9 @@ void lammps_gather_atoms(void *ptr, char *name,
     if (type == 0) {
       int *vector = NULL;
       int **array = NULL;
-      if (count == 1) vector = (int *) vptr;
+      const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgunpack) vector = (int *) vptr;
       else array = (int **) vptr;
 
       int *copy;
@@ -786,11 +788,19 @@ void lammps_gather_atoms(void *ptr, char *name,
       if (count == 1)
         for (i = 0; i < nlocal; i++)
           copy[tag[i]-1] = vector[i];
-      else
+      else if (imgunpack) {
+        for (i = 0; i < nlocal; i++) {
+          offset = count*(tag[i]-1);
+          const int image = vector[i];
+          copy[offset++] = (image & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMGBITS) & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMG2BITS) & IMGMASK) - IMGMAX;
+        }
+      } else
         for (i = 0; i < nlocal; i++) {
           offset = count*(tag[i]-1);
           for (j = 0; j < count; j++)
-            copy[offset++] = array[i][0];
+            copy[offset++] = array[i][j];
         }
       
       MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
@@ -862,7 +872,8 @@ void lammps_scatter_atoms(void *ptr, char *name,
     int i,j,m,offset;
     void *vptr = lmp->atom->extract(name);
     if(vptr == NULL) {
-        lmp->error->warning(FLERR,"lammps_scatter_atoms: unknown property name");
+        lmp->error->warning(FLERR,
+                            "lammps_scatter_atoms: unknown property name");
         return;
     }
 
@@ -873,7 +884,9 @@ void lammps_scatter_atoms(void *ptr, char *name,
     if (type == 0) {
       int *vector = NULL;
       int **array = NULL;
-      if (count == 1) vector = (int *) vptr;
+      const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgpack) vector = (int *) vptr;
       else array = (int **) vptr;
       int *dptr = (int *) data;
 
@@ -881,6 +894,15 @@ void lammps_scatter_atoms(void *ptr, char *name,
         for (i = 0; i < natoms; i++)
           if ((m = lmp->atom->map(i+1)) >= 0)
             vector[m] = dptr[i];
+      } else if (imgpack) {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0) {
+            offset = count*i;
+            int image = dptr[offset++] + IMGMAX;
+            image += (dptr[offset++] + IMGMAX) << IMGBITS;
+            image += (dptr[offset++] + IMGMAX) << IMG2BITS;
+            vector[m] = image;
+          }
       } else {
         for (i = 0; i < natoms; i++)
           if ((m = lmp->atom->map(i+1)) >= 0) {
@@ -971,11 +993,9 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      if (image) {
-        if (!domain->ownatom(id[i],xdata,&image[i],shrinkexceed)) continue;
-      } else {
-        if (!domain->ownatom(id[i],xdata,NULL,shrinkexceed)) continue;
-      }
+      imageint * img = image ? &image[i] : NULL;
+      tagint     tag = id    ? id[i]     : -1;
+      if (!domain->ownatom(tag, xdata, img, shrinkexceed)) continue;
   
       atom->avec->create_atom(type[i],xdata);
       if (id) atom->tag[nlocal] = id[i];

@@ -121,7 +121,7 @@ halt ID, so that the same condition is not immediately triggered in a
 subsequent run.
 
 The optional {message} keyword determines whether a message is printed
-to the screen and logfile when the half condition is triggered.  If
+to the screen and logfile when the halt condition is triggered.  If
 {message} is set to yes, a one line message with the values that
 triggered the halt is printed.  If {message} is set to no, no message
 is printed; the run simply exits.  The latter may be desirable for

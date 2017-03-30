@@ -1,0 +1,179 @@
+LAMMPS (17 Mar 2017)
+# GCMC for CO2 molecular fluid, rigid/small/nvt dynamics
+# Rigid CO2 TraPPE model
+# [Potoff and J.I. Siepmann, Vapor-liquid equilibria of
+# mixtures containing alkanes, carbon dioxide and
+# nitrogen AIChE J., 47,1676-1682 (2001)].
+
+# variables available on command line
+
+variable        mu index -8.1
+variable	disp index 0.5
+variable        temp index 338.0
+variable        lbox index 10.0
+variable        spacing index 5.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on simple cubic lattice
+
+lattice 	sc ${spacing}
+lattice 	sc 5.0
+Lattice spacing in x,y,z = 5 5 5
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 10.0 units box
+create_box      2 box                                       bond/types 1                                angle/types 1                               extra/bond/per/atom 2                       extra/angle/per/atom 1                      extra/special/per/atom 2
+Created orthogonal box = (0 0 0) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+molecule        co2mol CO2.txt
+Read molecule co2mol:
+  3 atoms with 2 types
+  2 bonds with 1 types
+  1 angles with 1 types
+  0 dihedrals with 0 types
+  0 impropers with 0 types
+create_atoms   	0 box mol co2mol 464563 units box
+Created 24 atoms
+
+# rigid CO2 TraPPE model
+
+pair_coeff      1   1  0.053649   2.8
+pair_coeff      2   2  0.156973   3.05
+bond_coeff      1       0       1.16
+angle_coeff     1       0       180
+
+# masses
+
+mass 1 12.0107
+mass 2 15.9994
+
+# MD settings
+
+group           co2 type 1 2
+24 atoms in group co2
+neighbor        2.0 bin
+neigh_modify    every 1 delay 10 check yes
+velocity       	all create ${temp} 54654
+velocity       	all create 338.0 54654
+timestep        1.0
+
+# rigid constraints with thermostat
+
+fix             myrigidnvt all rigid/nvt/small molecule temp ${temp} ${temp} 100 mol co2mol
+fix             myrigidnvt all rigid/nvt/small molecule temp 338.0 ${temp} 100 mol co2mol
+fix             myrigidnvt all rigid/nvt/small molecule temp 338.0 338.0 100 mol co2mol
+8 rigid bodies with 24 atoms
+  1.16 = max distance from body owner to body atom
+fix_modify	myrigidnvt dynamic/dof no
+
+# gcmc
+
+variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
+fix             mygcmc all gcmc 100 100 100 0 54341 ${temp} ${mu} ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigidnvt
+fix             mygcmc all gcmc 100 100 100 0 54341 338.0 ${mu} ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigidnvt
+fix             mygcmc all gcmc 100 100 100 0 54341 338.0 -8.1 ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigidnvt
+fix             mygcmc all gcmc 100 100 100 0 54341 338.0 -8.1 0.5 mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigidnvt
+fix             mygcmc all gcmc 100 100 100 0 54341 338.0 -8.1 0.5 mol                 co2mol tfac_insert 1.66666666666667 group co2 rigid myrigidnvt
+
+# output
+
+variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
+variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
+variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
+variable	racc equal f_mygcmc[8]/(f_mygcmc[7]+0.1)
+compute_modify  thermo_temp dynamic/dof yes
+thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_racc
+thermo          1000
+
+# run
+
+run             20000
+Ewald initialization ...
+WARNING: Using 12-bit tables for long-range coulomb (../kspace.cpp:321)
+  G vector (1/distance) = 0.164636
+  estimated absolute RMS force accuracy = 0.0332064
+  estimated relative force accuracy = 0.0001
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+WARNING: Fix gcmc using full_energy option (../fix_gcmc.cpp:439)
+0 atoms in group FixGCMC:gcmc_exclusion_group:mygcmc
+0 atoms in group FixGCMC:rotation_gas_atoms:mygcmc
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (../neighbor.cpp:472)
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 15.4 | 15.4 | 15.4 Mbytes
+Step Temp Press PotEng KinEng Density Atoms v_iacc v_dacc v_tacc v_racc 
+       0    386.52184    23582.465   -3.2433417    14.209828    0.5846359       24            0            0            0            0 
+WARNING: Using kspace solver on system with no charge (../kspace.cpp:289)
+    1000    760.80877   -39.270882   -3.5239626    12.851016   0.29231795       12   0.24161633   0.22984103   0.71087092   0.85283311 
+    2000     308.0739     -255.061   -20.411926    14.386853   0.73079488       30   0.26075352   0.24898725   0.73128383   0.88590474 
+    3000    432.34358   -1361.3278   -12.644057    15.894387    0.5846359       24   0.21121583   0.21051229   0.70036003   0.86735027 
+    4000      631.524   -63.488785   -3.6517158    13.804656   0.36539744       15   0.22486443   0.22886173   0.72358173   0.87172606 
+    5000    730.61244    -1029.284   -6.2144028    19.600352   0.43847693       18   0.23017182   0.22740779   0.72281887   0.87820845 
+    6000    752.43412     503.4547   -3.7053679    16.447663   0.36539744       15   0.22943971     0.226183   0.71450085   0.87447436 
+    7000    660.68448    828.51735   -10.592278    21.006666   0.51155641       21   0.24702096   0.24218506   0.71815602    0.8740222 
+    8000    331.58822   -621.22187   -5.3705759    7.2482776   0.36539744       15   0.23211903   0.22906813   0.70281376   0.86269411 
+    9000    413.91538    869.51669    -11.28701    15.216905    0.5846359       24   0.23246466   0.22923961   0.70832684   0.86244176 
+   10000    242.20861   -808.23311   -5.4533937    5.2945044   0.36539744       15   0.22024676   0.22031775   0.70785097   0.85712561 
+   11000    348.20046   -372.16895   -3.4663358    7.6114092   0.36539744       15    0.2252033   0.22688969   0.71513402   0.86123263 
+   12000    251.99682    303.30092    -18.58289    11.768089   0.73079488       30   0.20916844   0.21068047     0.694787   0.84635875 
+   13000    306.83592   -1582.0137   -20.810287    14.329041   0.73079488       30   0.19494837     0.196527   0.67554784   0.83056119 
+   14000    476.57411    268.94927   -14.185859    19.888076   0.65771539       27   0.19779631   0.20016859   0.67957528   0.83375167 
+   15000    267.03534    730.71183   -9.3348616    9.8171066    0.5846359       24   0.19468305   0.19814971   0.68032974   0.83810439 
+   16000    639.83235    2190.3244   -9.6666503    26.701062   0.65771539       27   0.19520687   0.19848997   0.68514387   0.84100361 
+   17000    2237.1203   -222.59057  -0.18248834    4.4456205  0.073079488        3   0.20412446   0.20757814   0.69175318    0.8434939 
+   18000    754.44841    205.54694   -10.501943    27.736031    0.5846359       24    0.2129422   0.21508015   0.69665031   0.84758331 
+   19000    1610.1148    1293.6003  -0.20849836    3.1996309  0.073079488        3   0.22061668   0.22356929   0.69949369   0.84851405 
+   20000    231.61458   -39.696514   -4.6452226    5.0629266   0.36539744       15   0.21984893   0.22246517   0.69914635   0.85058457 
+Loop time of 21.1019 on 4 procs for 20000 steps with 15 atoms
+
+Performance: 81.888 ns/day, 0.293 hours/ns, 947.781 timesteps/s
+98.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.31897    | 0.41973    | 0.49748    |  10.1 |  1.99
+Bond    | 0.014808   | 0.015063   | 0.015289   |   0.2 |  0.07
+Kspace  | 0.3813     | 0.46228    | 0.56585    |   9.8 |  2.19
+Neigh   | 0.049173   | 0.050043   | 0.050868   |   0.3 |  0.24
+Comm    | 0.9755     | 0.99686    | 1.0205     |   1.9 |  4.72
+Output  | 0.0014546  | 0.0015051  | 0.0016098  |   0.2 |  0.01
+Modify  | 19.043     | 19.062     | 19.085     |   0.4 | 90.33
+Other   |            | 0.09438    |            |       |  0.45
+
+Nlocal:    3.75 ave 6 max 3 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:    876.5 ave 937 max 818 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Neighs:    490.5 ave 647 max 363 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+
+Total # of neighbors = 1962
+Ave neighs/atom = 130.8
+Ave special neighs/atom = 2
+Neighbor list builds = 40070
+Dangerous builds = 115
+
+Total wall time: 0:00:21

@@ -812,9 +812,9 @@ void Output::create_restart(int narg, char **arg)
    sum and print memory usage
    result is only memory on proc 0, not averaged across procs
 ------------------------------------------------------------------------- */
-
 void Output::memory_usage()
 {
+
   bigint bytes = 0;
   bytes += atom->memory_usage();
   bytes += neighbor->memory_usage();
@@ -825,11 +825,18 @@ void Output::memory_usage()
   for (int i = 0; i < ndump; i++) bytes += dump[i]->memory_usage();
 
   double mbytes = bytes/1024.0/1024.0;
+  double mbavg,mbmin,mbmax;
+  MPI_Reduce(&mbytes,&mbavg,1,MPI_DOUBLE,MPI_SUM,0,world);
+  MPI_Reduce(&mbytes,&mbmin,1,MPI_DOUBLE,MPI_MIN,0,world);
+  MPI_Reduce(&mbytes,&mbmax,1,MPI_DOUBLE,MPI_MAX,0,world);
+  mbavg /= comm->nprocs;
 
   if (comm->me == 0) {
     if (screen)
-      fprintf(screen,"Memory usage per processor = %g Mbytes\n",mbytes);
+      fprintf(screen,"Per MPI rank memory allocation (min/avg/max) = "
+              "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);
     if (logfile)
-      fprintf(logfile,"Memory usage per processor = %g Mbytes\n",mbytes);
+      fprintf(logfile,"Per MPI rank memory allocation (min/avg/max) = "
+              "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);
   }
 }

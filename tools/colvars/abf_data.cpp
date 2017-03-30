@@ -12,13 +12,12 @@ ABFdata::ABFdata(const char *gradFileName)
 
     std::ifstream gradFile;
     std::ifstream countFile;
-    int n;
     char hash;
     double xi;
     char *countFileName;
 
     countFileName = new char[strlen (gradFileName) + 2];
-    strcpy (countFileName, gradFileName); 
+    strcpy (countFileName, gradFileName);
     countFileName[strlen (gradFileName) - 4] = '\0';
     strcat (countFileName, "count");
 
@@ -152,7 +151,8 @@ ABFdata::ABFdata(const char *gradFileName)
     }
     // Could check for end-of-file string here
     countFile.close();
-    delete [] countFileName;
+    delete[] countFileName;
+    delete[] pos;
 
     // for metadynamics
     bias = new double[scalar_dim];
@@ -269,7 +269,7 @@ void ABFdata::write_bias(const char *fileName)
         if (minbias == 0.0 || (bias[index] > 0.0 && bias[index] < minbias))
             minbias = bias[index];
     }
-    
+
     for (index = 0; index < scalar_dim; index++) {
         // Here we do the Euclidian division iteratively
         for (i = Nvars - 1; i > 0; i--) {

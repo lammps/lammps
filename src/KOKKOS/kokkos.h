@@ -23,6 +23,8 @@ class KokkosLMP : protected Pointers {
  public:
   int kokkos_exists;
   int neighflag;
+  int neighflag_qeq;
+  int neighflag_qeq_set;
   int exchange_comm_classic;
   int forward_comm_classic;
   int exchange_comm_on_host;

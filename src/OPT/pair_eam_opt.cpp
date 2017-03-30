@@ -68,11 +68,6 @@ void PairEAMOpt::eval()
   } fast_alpha_t;
 
   typedef struct {
-    double frho0,frho1,frho2,frho3,frho4,frho5,frho6;
-    double _pad[1];
-  } fast_beta_t;
-
-  typedef struct {
     double rhor4i,rhor5i,rhor6i;
     double rhor4j,rhor5j,rhor6j;
     double z2r0,z2r1,z2r2,z2r3,z2r4,z2r5,z2r6;

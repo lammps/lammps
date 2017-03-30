@@ -23,7 +23,7 @@ pair_coeff * * Ti.meam.spline Ti Ti Ti :pre
 
 The {meam/spline} style computes pairwise interactions for metals
 using a variant of modified embedded-atom method (MEAM) potentials
-"(Lenosky)"_#Lenosky.  The total energy E is given by
+"(Lenosky)"_#Lenosky1.  The total energy E is given by
 
 :c,image(Eqs/pair_meam_spline.jpg)
 
@@ -138,7 +138,7 @@ for more info.
 
 :line
 
-:link(Lenosky)
+:link(Lenosky1)
 [(Lenosky)] Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).

@@ -35,7 +35,7 @@ fix 2 all press/berendsen aniso 0.0 0.0 1000.0 dilate partial :pre
 [Description:]
 
 Reset the pressure of the system by using a Berendsen barostat
-"(Berendsen)"_#Berendsen, which rescales the system volume and
+"(Berendsen)"_#Berendsen1, which rescales the system volume and
 (optionally) the atoms coordinates within the simulation box every
 timestep.
 
@@ -221,7 +221,7 @@ pressure for whatever "units"_units.html are defined.
 
 :line
 
-:link(Berendsen)
+:link(Berendsen1)
 
 [(Berendsen)] Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
 Phys, 81, 3684 (1984).

@@ -206,7 +206,7 @@ beginning of the run to give the desired estimated error. Other
 cutoffs such as LJ will not be affected. If the grid is not set using
 the {mesh} command, this command will also attempt to use the optimal
 grid that minimizes cost using an estimate given by
-"(Hardy)"_#Hardy. Note that this cost estimate is not exact, somewhat
+"(Hardy)"_#Hardy1. Note that this cost estimate is not exact, somewhat
 experimental, and still may not yield the optimal parameters.
 
 The {pressure/scalar} keyword applies only to MSM. If this option is
@@ -235,7 +235,7 @@ collective operations and adequate hardware.
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The {ik} approach is the default for
-PPPM and is the original formulation used in "(Hockney)"_#Hockney.  It
+PPPM and is the original formulation used in "(Hockney)"_#Hockney1.  It
 performs differentiation in Kspace, and uses 3 FFTs to transfer each
 component of the computed fields back to real space for total of 4
 FFTs per timestep.
@@ -271,7 +271,7 @@ speed-up the simulations but introduces some error in the force
 computations, as shown in "(Wennberg)"_#Wennberg.  With {none}, it is
 assumed that no mixing rule is applicable. Splitting of the dispersion
 coefficients will be performed as described in
-"(Isele-Holder)"_#Isele-Holder.  This splitting can be influenced with
+"(Isele-Holder)"_#Isele-Holder1.  This splitting can be influenced with
 the {splittol} keywords. Only the eigenvalues that are larger than tol
 compared to the largest eigenvalues are included. Using this keywords
 the original matrix of dispersion coefficients is approximated. This
@@ -280,7 +280,7 @@ computations of the dispersion part is decreased.
 
 The {force/disp/real} and {force/disp/kspace} keywords set the force
 accuracy for the real and space computations for the dispersion part
-of pppm/disp. As shown in "(Isele-Holder)"_#Isele-Holder, optimal
+of pppm/disp. As shown in "(Isele-Holder)"_#Isele-Holder1, optimal
 performance and accuracy in the results is obtained when these values
 are different.
 
@@ -311,7 +311,7 @@ split = 0, tol = 1.0e-6, and disp/auto = no.
 
 :line
 
-:link(Hockney)
+:link(Hockney1)
 [(Hockney)] Hockney and Eastwood, Computer Simulation Using Particles,
 Adam Hilger, NY (1989).
 
@@ -325,7 +325,7 @@ Adam Hilger, NY (1989).
 :link(Klapp)
 [(Klapp)] Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
 
-:link(Hardy)
+:link(Hardy1)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
@@ -333,7 +333,7 @@ Illinois at Urbana-Champaign, (2006).
 :link(Hummer)
 [(Hummer)] Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 
-:link(Isele-Holder)
+:link(Isele-Holder1)
 [(Isele-Holder)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
 Chem Theory Comput, 9, 5412 (2013).
 

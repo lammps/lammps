@@ -32,7 +32,7 @@ fix 1 all drude/transform/inverse :pre
 
 Transform the coordinates of Drude oscillators from real to reduced
 and back for thermalizing the Drude oscillators as described in
-"(Lamoureux)"_#Lamoureux using a Nose-Hoover thermostat.  This fix is
+"(Lamoureux)"_#Lamoureux1 using a Nose-Hoover thermostat.  This fix is
 designed to be used with the "thermalized Drude oscillator
 model"_tutorial_drude.html.  Polarizable models in LAMMPS are
 described in "this Section"_Section_howto.html#howto_25.
@@ -160,5 +160,5 @@ files"_restart.html.
 
 :line
 
-:link(Lamoureux)
+:link(Lamoureux1)
 [(Lamoureux)] Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).

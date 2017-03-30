@@ -72,7 +72,7 @@ viscosity"_fix_viscosity.html, and "fix nvt/sllod"_fix_nvt_sllod.html,
 can be used in conjunction with the SRD model.
 
 For more details on how the SRD model is implemented in LAMMPS, "this
-paper"_#Petersen describes the implementation and usage of pure SRD
+paper"_#Petersen1 describes the implementation and usage of pure SRD
 fluids.  "This paper"_#Lechman, which is nearly complete, describes
 the implementation and usage of mixture systems (solute particles in
 an SRD fluid).  See the examples/srd directory for sample input
@@ -390,7 +390,7 @@ rescale = yes.
 :link(Hecht)
 [(Hecht)] Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).
 
-:link(Petersen)
+:link(Petersen1)
 [(Petersen)] Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
 Chem Phys, 132, 174106 (2010).
 

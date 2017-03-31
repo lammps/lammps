@@ -47,6 +47,16 @@ enum{NONE,RLINEAR,RSQ,BMP};
 PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
 {
   fractionalWeighting = true;
+  site1 = NULL;
+  site2 = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairTableRX::~PairTableRX()
+{
+  delete [] site1;
+  delete [] site2;
 }
 
 /* ---------------------------------------------------------------------- */

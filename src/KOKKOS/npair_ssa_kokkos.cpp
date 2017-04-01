@@ -205,8 +205,7 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
 {
   NeighListKokkos<DeviceType>* list = (NeighListKokkos<DeviceType>*) list_;
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
-  const int nl_size = (nlocal * 4) + atom->nghost;
-  list->grow(nl_size); // Make special larger SSA neighbor list
+  int nl_size = atom->nghost;
 
   ssa_phaseCt = sz1*sy1*sx1;
 
@@ -240,8 +239,11 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
     ssa_gitemLen = k_ssa_gitemLen.view<DeviceType>();
   }
 
-{ // Preflight the neighbor list build
+{ // Preflight the neighbor list workplan
   const typename ArrayTypes<DeviceType>::t_int_1d_const c_bincount = k_bincount.view<DeviceType>();
+  const typename ArrayTypes<DeviceType>::t_int_2d_const c_bins     = k_bins.view<DeviceType>();
+  const typename ArrayTypes<DeviceType>::t_int_1d_const_um c_stencil = k_stencil.view<DeviceType>();
+  const typename ArrayTypes<DeviceType>::t_int_1d_const c_nstencil_ssa = k_nstencil_ssa.view<DeviceType>();
   int inum = 0;
 
   int workPhase = 0;
@@ -263,7 +265,17 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
       if ((s_xbin < lbinxlo) || (s_xbin >= lbinxhi)) continue;
 
       int ibin = zbin*mbiny*mbinx + s_ybin*mbinx + s_xbin;
-      inum += c_bincount(ibin);
+      for (int il = 0; il < c_bincount(ibin); ++il) {
+        int n = 0;
+
+        // count all local atoms in the current stencil "subphase" as potential neighbors
+        for (int k = c_nstencil_ssa(subphase); k < c_nstencil_ssa(subphase+1); k++) {
+          const int jbin = ibin+c_stencil(k);
+          int jl = (jbin != ibin) ? 0 : (il + 1); // same bin as il, so start just past il in the bin
+          n +=  c_bincount(jbin) - jl;
+        }
+        if (n > 0) inum++;
+      }
     }
     // record where workItem ends in ilist
     ssa_itemLen(workPhase,workItem) = inum - ssa_itemLoc(workPhase,workItem);
@@ -290,7 +302,10 @@ fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase 
   ,nlocal*4
   ,inum / (double) workPhase
 );
+  nl_size += inum;
 }
+
+  list->grow(nl_size); // Make special larger SSA neighbor list
 
   NPairSSAKokkosExecute<DeviceType>
     data(*list,
@@ -404,7 +419,6 @@ fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase 
 template<class DeviceType>
 void NPairSSAKokkosExecute<DeviceType>::build_locals()
 {
-  int n = 0;
   int which = 0;
   int inum = 0;
   int workPhase = 0;
@@ -429,7 +443,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals()
       int ibin = zbin*mbiny*mbinx + s_ybin*mbinx + s_xbin;
       for (int il = 0; il < c_bincount(ibin); ++il) {
         const int i = c_bins(ibin, il);
-        n = 0;
+        int n = 0;
 
         const AtomNeighbors neighbors_i = neigh_list.get_neighbors(inum);
         const X_FLOAT xtmp = x(i, 0);

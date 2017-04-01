@@ -240,6 +240,58 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
     ssa_gitemLen = k_ssa_gitemLen.view<DeviceType>();
   }
 
+{ // Preflight the neighbor list build
+  const typename ArrayTypes<DeviceType>::t_int_1d_const c_bincount = k_bincount.view<DeviceType>();
+  int inum = 0;
+
+  int workPhase = 0;
+  // loop over bins with local atoms, storing half of the neighbors
+  for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
+  for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
+  for (int xoff = sx1 - 1; xoff >= 0; --xoff) {
+    int workItem = 0;
+  for (int zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
+  for (int ybin = lbinylo + yoff - sy1 + 1; ybin < lbinyhi; ybin += sy1) {
+  for (int xbin = lbinxlo + xoff - sx1 + 1; xbin < lbinxhi; xbin += sx1) {
+//    if (workItem >= phaseLenEstimate) error->one(FLERR,"phaseLenEstimate was too small");
+    ssa_itemLoc(workPhase, workItem) = inum; // record where workItem starts in ilist
+
+    for (int subphase = 0; subphase < 4; subphase++) {
+      int s_ybin = ybin + ((subphase & 0x2) ? sy1 - 1 : 0);
+      int s_xbin = xbin + ((subphase & 0x1) ? sx1 - 1 : 0);
+      if ((s_ybin < lbinylo) || (s_ybin >= lbinyhi)) continue;
+      if ((s_xbin < lbinxlo) || (s_xbin >= lbinxhi)) continue;
+
+      int ibin = zbin*mbiny*mbinx + s_ybin*mbinx + s_xbin;
+      inum += c_bincount(ibin);
+    }
+    // record where workItem ends in ilist
+    ssa_itemLen(workPhase,workItem) = inum - ssa_itemLoc(workPhase,workItem);
+    if (ssa_itemLen(workPhase,workItem) > 0) workItem++;
+  }
+  }
+  }
+
+fprintf(stdout, "phase %3d could use %6d inums, expected %6d inums. maxworkItems = %3d, inums/workItems = %g\n"
+  ,workPhase
+  ,inum - ssa_itemLoc(workPhase, 0)
+  ,(nlocal*4 + ssa_phaseCt - 1) / ssa_phaseCt
+  ,workItem
+  ,(inum - ssa_itemLoc(workPhase, 0)) / (double) workItem
+);
+    // record where workPhase ends
+    ssa_phaseLen(workPhase++) = workItem;
+  }
+  }
+  }
+fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
+  ,workPhase
+  ,inum
+  ,nlocal*4
+  ,inum / (double) workPhase
+);
+}
+
   NPairSSAKokkosExecute<DeviceType>
     data(*list,
          k_cutneighsq.view<DeviceType>(),
@@ -355,18 +407,18 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals()
   int n = 0;
   int which = 0;
   int inum = 0;
-
   int workPhase = 0;
+
   // loop over bins with local atoms, storing half of the neighbors
   for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
   for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
   for (int xoff = sx1 - 1; xoff >= 0; --xoff) {
     int workItem = 0;
+    inum = d_ssa_itemLoc(workPhase, workItem); // get where workPhase starts in ilist
   for (int zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
   for (int ybin = lbinylo + yoff - sy1 + 1; ybin < lbinyhi; ybin += sy1) {
   for (int xbin = lbinxlo + xoff - sx1 + 1; xbin < lbinxhi; xbin += sx1) {
-//    if (workItem >= phaseLenEstimate) error->one(FLERR,"phaseLenEstimate was too small");
-    d_ssa_itemLoc(workPhase, workItem) = inum; // record where workItem starts in ilist
+    d_ssa_itemLoc(workPhase, workItem) = inum; // record where workItem actually starts in ilist
 
     for (int subphase = 0; subphase < 4; subphase++) {
       int s_ybin = ybin + ((subphase & 0x2) ? sy1 - 1 : 0);
@@ -441,18 +493,31 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals()
         }
       }
     }
-    // record where workItem ends in ilist
+    // record where workItem actually ends in ilist
     d_ssa_itemLen(workPhase,workItem) = inum - d_ssa_itemLoc(workPhase,workItem);
     if (d_ssa_itemLen(workPhase,workItem) > 0) workItem++;
   }
   }
   }
 
+fprintf(stdout, "phase %3d used %6d inums, expected %6d inums. workItems = %3d, inums/workItems = %g\n"
+  ,workPhase
+  ,inum - d_ssa_itemLoc(workPhase, 0)
+  ,(nlocal*4 + ssa_phaseCt - 1) / ssa_phaseCt
+  ,workItem
+  ,(inum - d_ssa_itemLoc(workPhase, 0)) / (double) workItem
+);
     // record where workPhase ends
     d_ssa_phaseLen(workPhase++) = workItem;
   }
   }
   }
+fprintf(stdout, "Total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
+  ,workPhase
+  ,inum
+  ,nlocal*4
+  ,inum / (double) workPhase
+);
 
 //FIXME  if (ssa_phaseCt != workPhase) error->one(FLERR,"ssa_phaseCt was wrong");
 

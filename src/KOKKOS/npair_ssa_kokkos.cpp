@@ -205,7 +205,7 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
 {
   NeighListKokkos<DeviceType>* list = (NeighListKokkos<DeviceType>*) list_;
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
-  int nl_size = atom->nghost;
+  int nl_size;
 
   ssa_phaseCt = sz1*sy1*sx1;
 
@@ -265,17 +265,17 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
       if ((s_xbin < lbinxlo) || (s_xbin >= lbinxhi)) continue;
 
       int ibin = zbin*mbiny*mbinx + s_ybin*mbinx + s_xbin;
-      for (int il = 0; il < c_bincount(ibin); ++il) {
-        int n = 0;
-
-        // count all local atoms in the current stencil "subphase" as potential neighbors
-        for (int k = c_nstencil_ssa(subphase); k < c_nstencil_ssa(subphase+1); k++) {
-          const int jbin = ibin+c_stencil(k);
-          int jl = (jbin != ibin) ? 0 : (il + 1); // same bin as il, so start just past il in the bin
-          n +=  c_bincount(jbin) - jl;
-        }
-        if (n > 0) inum++;
+      int base_n = 0;
+      bool include_same = false;
+      // count all local atoms in the current stencil "subphase" as potential neighbors
+      for (int k = c_nstencil_ssa(subphase); k < c_nstencil_ssa(subphase+1); k++) {
+        const int jbin = ibin+c_stencil(k);
+        if (jbin != ibin) base_n += c_bincount(jbin);
+        else include_same = true;
       }
+      // Calculate how many ibin particles would have had some neighbors
+      if (base_n > 0) inum += c_bincount(ibin);
+      else if (include_same) inum += c_bincount(ibin) - 1;
     }
     // record where workItem ends in ilist
     ssa_itemLen(workPhase,workItem) = inum - ssa_itemLoc(workPhase,workItem);
@@ -302,9 +302,12 @@ fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase 
   ,nlocal*4
   ,inum / (double) workPhase
 );
-  nl_size += inum;
+  nl_size = inum; // record how much space is needed for the local work plan
 }
-
+  // count how many ghosts are likely to have neighbors, and increase the work plan storage
+  for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
+     nl_size += k_gbincount.h_view(workPhase + 1);
+  }
   list->grow(nl_size); // Make special larger SSA neighbor list
 
   NPairSSAKokkosExecute<DeviceType>
@@ -411,6 +414,13 @@ fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase 
 
   list->inum = data.neigh_list.inum; //FIXME once the above is in a parallel_for
   list->gnum = data.neigh_list.gnum; // it will need a deep_copy or something
+
+fprintf(stdout, "%6d inum %6d gnum, total used %6d, allocated %6d\n"
+  ,list->inum
+  ,list->gnum
+  ,list->inum + list->gnum
+  ,nl_size
+);
 
   list->k_ilist.template modify<DeviceType>();
 }

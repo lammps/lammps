@@ -281,9 +281,9 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
         else if (include_same) inum += ibinCt - 1;
       }
     }
-    /* if (inum > inum_start) */ {
-      ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
-      ssa_itemLen(workPhase,workItem) = inum - inum_start; // record workItem length
+    ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
+    ssa_itemLen(workPhase,workItem) = inum - inum_start; // record workItem length
+#ifdef DEBUG_SSA_BUILD_LOCALS
 if (ssa_itemLen(workPhase,workItem) < 0) fprintf(stdout, "undr%03d phase (%3d,%3d) inum %d - inum_start %d UNDERFLOW\n"
   ,comm->me
   ,workPhase
@@ -291,12 +291,13 @@ if (ssa_itemLen(workPhase,workItem) < 0) fprintf(stdout, "undr%03d phase (%3d,%3
   ,inum
   ,inum_start
 );
-      workItem++;
-    }
+#endif
+    workItem++;
   }
   }
   }
 
+#ifdef DEBUG_SSA_BUILD_LOCALS
 fprintf(stdout, "phas%03d phase %3d could use %6d inums, expected %6d inums. maxworkItems = %3d, inums/workItems = %g\n"
   ,comm->me
   ,workPhase
@@ -305,11 +306,13 @@ fprintf(stdout, "phas%03d phase %3d could use %6d inums, expected %6d inums. max
   ,workItem
   ,(inum - ssa_itemLoc(workPhase, 0)) / (double) workItem
 );
+#endif
     // record where workPhase ends
     ssa_phaseLen(workPhase++) = workItem;
   }
   }
   }
+#ifdef DEBUG_SSA_BUILD_LOCALS
 fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
   ,comm->me
   ,workPhase
@@ -317,9 +320,10 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   ,nlocal*4
   ,inum / (double) workPhase
 );
+#endif
   nl_size = inum; // record how much space is needed for the local work plan
 }
-  // count how many ghosts are likely to have neighbors, and increase the work plan storage
+  // count how many ghosts might have neighbors, and increase the work plan storage
   for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
      nl_size += k_gbincount.h_view(workPhase + 1);
   }
@@ -432,13 +436,15 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   list->inum = data.neigh_list.inum; //FIXME once the above is in a parallel_for
   list->gnum = data.neigh_list.gnum; // it will need a deep_copy or something
 
-fprintf(stdout, "Fina%03d: %6d inum %6d gnum, total used %6d, allocated %6d\n"
+#ifdef DEBUG_SSA_BUILD_LOCALS
+fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
   ,comm->me
   ,list->inum
   ,list->gnum
   ,list->inum + list->gnum
   ,nl_size
 );
+#endif
 
   list->k_ilist.template modify<DeviceType>();
 }
@@ -468,6 +474,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals(const bool firstTry, int me
       continue;
     }
     int inum_start = d_ssa_itemLoc(workPhase, workItem + skippedItems);
+#ifdef DEBUG_SSA_BUILD_LOCALS
     if (inum > inum_start) { // This shouldn't happen!
 fprintf(stdout, "Rank%03d workphase (%2d,%3d,%3d): inum = %4d, but ssa_itemLoc = %4d OVERFLOW\n"
   ,me
@@ -478,7 +485,9 @@ fprintf(stdout, "Rank%03d workphase (%2d,%3d,%3d): inum = %4d, but ssa_itemLoc =
   ,d_ssa_itemLoc(workPhase, workItem + skippedItems)
 );
       inum_start = inum;
-    } else inum = inum_start;
+    } else
+#endif
+    inum = inum_start;
     // d_ssa_itemLoc(workPhase, workItem) = inum; // record where workItem actually starts in ilist
 
     for (int subphase = 0; subphase < 4; subphase++) {
@@ -552,6 +561,7 @@ fprintf(stdout, "Rank%03d workphase (%2d,%3d,%3d): inum = %4d, but ssa_itemLoc =
       }
     }
     int len = inum - inum_start;
+#ifdef DEBUG_SSA_BUILD_LOCALS
     if (len != d_ssa_itemLen(workPhase, workItem + skippedItems)) {
 fprintf(stdout, "Leng%03d workphase (%2d,%3d,%3d): len  = %4d, but ssa_itemLen = %4d%s\n"
   ,me
@@ -563,6 +573,7 @@ fprintf(stdout, "Leng%03d workphase (%2d,%3d,%3d): len  = %4d, but ssa_itemLen =
   ,(len > d_ssa_itemLen(workPhase, workItem + skippedItems)) ? " OVERFLOW" : ""
 );
     }
+#endif
     if (inum > inum_start) {
       d_ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
       d_ssa_itemLen(workPhase,workItem) = inum - inum_start; // record actual workItem length
@@ -572,6 +583,7 @@ fprintf(stdout, "Leng%03d workphase (%2d,%3d,%3d): len  = %4d, but ssa_itemLen =
   }
   }
 
+#ifdef DEBUG_SSA_BUILD_LOCALS
 fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %3d, inums/workItems = %g\n"
   ,me
   ,workPhase
@@ -580,6 +592,7 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
   ,skippedItems
   ,(inum - d_ssa_itemLoc(workPhase, 0)) / (double) workItem
 );
+#endif
     // record where workPhase actually ends
     if (firstTry) {
       d_ssa_phaseLen(workPhase) = workItem;
@@ -591,6 +604,7 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
   }
   }
   }
+#ifdef DEBUG_SSA_BUILD_LOCALS
 fprintf(stdout, "Totl%03d %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
   ,me
   ,workPhase
@@ -598,6 +612,7 @@ fprintf(stdout, "Totl%03d %3d could use %6d inums, expected %6d inums. inums/pha
   ,nlocal*4
   ,inum / (double) workPhase
 );
+#endif
 
 //FIXME  if (ssa_phaseCt != workPhase) error->one(FLERR,"ssa_phaseCt was wrong");
 

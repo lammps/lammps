@@ -25,6 +25,7 @@
 #include "nbin_ssa_kokkos.h"
 #include "nstencil_ssa.h"
 #include "error.h"
+#include "comm.h"
 
 namespace LAMMPS_NS {
 
@@ -255,8 +256,8 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   for (int zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
   for (int ybin = lbinylo + yoff - sy1 + 1; ybin < lbinyhi; ybin += sy1) {
   for (int xbin = lbinxlo + xoff - sx1 + 1; xbin < lbinxhi; xbin += sx1) {
+    int inum_start = inum;
 //    if (workItem >= phaseLenEstimate) error->one(FLERR,"phaseLenEstimate was too small");
-    ssa_itemLoc(workPhase, workItem) = inum; // record where workItem starts in ilist
 
     for (int subphase = 0; subphase < 4; subphase++) {
       int s_ybin = ybin + ((subphase & 0x2) ? sy1 - 1 : 0);
@@ -264,27 +265,40 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
       if ((s_ybin < lbinylo) || (s_ybin >= lbinyhi)) continue;
       if ((s_xbin < lbinxlo) || (s_xbin >= lbinxhi)) continue;
 
-      int ibin = zbin*mbiny*mbinx + s_ybin*mbinx + s_xbin;
-      int base_n = 0;
-      bool include_same = false;
-      // count all local atoms in the current stencil "subphase" as potential neighbors
-      for (int k = c_nstencil_ssa(subphase); k < c_nstencil_ssa(subphase+1); k++) {
-        const int jbin = ibin+c_stencil(k);
-        if (jbin != ibin) base_n += c_bincount(jbin);
-        else include_same = true;
+      const int ibin = zbin*mbiny*mbinx + s_ybin*mbinx + s_xbin;
+      const int ibinCt = c_bincount(ibin);
+      if (ibinCt > 0) {
+        int base_n = 0;
+        bool include_same = false;
+        // count all local atoms in the current stencil "subphase" as potential neighbors
+        for (int k = c_nstencil_ssa(subphase); k < c_nstencil_ssa(subphase+1); k++) {
+          const int jbin = ibin+c_stencil(k);
+          if (jbin != ibin) base_n += c_bincount(jbin);
+          else include_same = true;
+        }
+        // Calculate how many ibin particles would have had some neighbors
+        if (base_n > 0) inum += ibinCt;
+        else if (include_same) inum += ibinCt - 1;
       }
-      // Calculate how many ibin particles would have had some neighbors
-      if (base_n > 0) inum += c_bincount(ibin);
-      else if (include_same) inum += c_bincount(ibin) - 1;
     }
-    // record where workItem ends in ilist
-    ssa_itemLen(workPhase,workItem) = inum - ssa_itemLoc(workPhase,workItem);
-    if (ssa_itemLen(workPhase,workItem) > 0) workItem++;
+    /* if (inum > inum_start) */ {
+      ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
+      ssa_itemLen(workPhase,workItem) = inum - inum_start; // record workItem length
+if (ssa_itemLen(workPhase,workItem) < 0) fprintf(stdout, "undr%03d phase (%3d,%3d) inum %d - inum_start %d UNDERFLOW\n"
+  ,comm->me
+  ,workPhase
+  ,workItem
+  ,inum
+  ,inum_start
+);
+      workItem++;
+    }
   }
   }
   }
 
-fprintf(stdout, "phase %3d could use %6d inums, expected %6d inums. maxworkItems = %3d, inums/workItems = %g\n"
+fprintf(stdout, "phas%03d phase %3d could use %6d inums, expected %6d inums. maxworkItems = %3d, inums/workItems = %g\n"
+  ,comm->me
   ,workPhase
   ,inum - ssa_itemLoc(workPhase, 0)
   ,(nlocal*4 + ssa_phaseCt - 1) / ssa_phaseCt
@@ -296,7 +310,8 @@ fprintf(stdout, "phase %3d could use %6d inums, expected %6d inums. maxworkItems
   }
   }
   }
-fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
+fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
+  ,comm->me
   ,workPhase
   ,inum
   ,nlocal*4
@@ -378,6 +393,7 @@ fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase 
   data.special_flag[2] = special_flag[2];
   data.special_flag[3] = special_flag[3];
 
+  bool firstTry = true;
   data.h_resize()=1;
   while(data.h_resize()) {
     data.h_new_maxneighs() = list->maxneighs;
@@ -390,8 +406,9 @@ fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase 
     NPairSSAKokkosBuildFunctor<DeviceType> f(data,atoms_per_bin*5*sizeof(X_FLOAT));
     Kokkos::parallel_for(nall, f);
 #endif
-    data.build_locals();
+    data.build_locals(firstTry, comm->me);
     data.build_ghosts();
+    firstTry = false;
 
     DeviceType::fence();
     deep_copy(data.h_resize, data.resize);
@@ -415,7 +432,8 @@ fprintf(stdout, "total %3d could use %6d inums, expected %6d inums. inums/phase 
   list->inum = data.neigh_list.inum; //FIXME once the above is in a parallel_for
   list->gnum = data.neigh_list.gnum; // it will need a deep_copy or something
 
-fprintf(stdout, "%6d inum %6d gnum, total used %6d, allocated %6d\n"
+fprintf(stdout, "Fina%03d: %6d inum %6d gnum, total used %6d, allocated %6d\n"
+  ,comm->me
   ,list->inum
   ,list->gnum
   ,list->inum + list->gnum
@@ -427,8 +445,9 @@ fprintf(stdout, "%6d inum %6d gnum, total used %6d, allocated %6d\n"
 
 
 template<class DeviceType>
-void NPairSSAKokkosExecute<DeviceType>::build_locals()
+void NPairSSAKokkosExecute<DeviceType>::build_locals(const bool firstTry, int me)
 {
+  const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
   int which = 0;
   int inum = 0;
   int workPhase = 0;
@@ -438,11 +457,29 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals()
   for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
   for (int xoff = sx1 - 1; xoff >= 0; --xoff) {
     int workItem = 0;
-    inum = d_ssa_itemLoc(workPhase, workItem); // get where workPhase starts in ilist
+    int skippedItems = 0;
+//    inum = d_ssa_itemLoc(workPhase, workItem); // get where workPhase starts in ilist
   for (int zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
   for (int ybin = lbinylo + yoff - sy1 + 1; ybin < lbinyhi; ybin += sy1) {
   for (int xbin = lbinxlo + xoff - sx1 + 1; xbin < lbinxhi; xbin += sx1) {
-    d_ssa_itemLoc(workPhase, workItem) = inum; // record where workItem actually starts in ilist
+    if (d_ssa_itemLen(workPhase, workItem + skippedItems) == 0) {
+      if (firstTry) ++skippedItems;
+      else ++workItem; // phase is done,should break out of three loops here if we could...
+      continue;
+    }
+    int inum_start = d_ssa_itemLoc(workPhase, workItem + skippedItems);
+    if (inum > inum_start) { // This shouldn't happen!
+fprintf(stdout, "Rank%03d workphase (%2d,%3d,%3d): inum = %4d, but ssa_itemLoc = %4d OVERFLOW\n"
+  ,me
+  ,workPhase
+  ,workItem
+  ,workItem + skippedItems
+  ,inum
+  ,d_ssa_itemLoc(workPhase, workItem + skippedItems)
+);
+      inum_start = inum;
+    } else inum = inum_start;
+    // d_ssa_itemLoc(workPhase, workItem) = inum; // record where workItem actually starts in ilist
 
     for (int subphase = 0; subphase < 4; subphase++) {
       int s_ybin = ybin + ((subphase & 0x2) ? sy1 - 1 : 0);
@@ -460,9 +497,6 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals()
         const X_FLOAT ytmp = x(i, 1);
         const X_FLOAT ztmp = x(i, 2);
         const int itype = type(i);
-
-        const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
-          = d_stencil;
 
         // loop over all local atoms in the current stencil "subphase"
         for (int k = d_nstencil_ssa(subphase); k < d_nstencil_ssa(subphase+1); k++) {
@@ -517,26 +551,48 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals()
         }
       }
     }
-    // record where workItem actually ends in ilist
-    d_ssa_itemLen(workPhase,workItem) = inum - d_ssa_itemLoc(workPhase,workItem);
-    if (d_ssa_itemLen(workPhase,workItem) > 0) workItem++;
+    int len = inum - inum_start;
+    if (len != d_ssa_itemLen(workPhase, workItem + skippedItems)) {
+fprintf(stdout, "Leng%03d workphase (%2d,%3d,%3d): len  = %4d, but ssa_itemLen = %4d%s\n"
+  ,me
+  ,workPhase
+  ,workItem
+  ,workItem + skippedItems
+  ,len
+  ,d_ssa_itemLen(workPhase, workItem + skippedItems)
+  ,(len > d_ssa_itemLen(workPhase, workItem + skippedItems)) ? " OVERFLOW" : ""
+);
+    }
+    if (inum > inum_start) {
+      d_ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
+      d_ssa_itemLen(workPhase,workItem) = inum - inum_start; // record actual workItem length
+      workItem++;
+    } else if (firstTry) ++skippedItems;
   }
   }
   }
 
-fprintf(stdout, "phase %3d used %6d inums, expected %6d inums. workItems = %3d, inums/workItems = %g\n"
+fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %3d, inums/workItems = %g\n"
+  ,me
   ,workPhase
   ,inum - d_ssa_itemLoc(workPhase, 0)
-  ,(nlocal*4 + ssa_phaseCt - 1) / ssa_phaseCt
   ,workItem
+  ,skippedItems
   ,(inum - d_ssa_itemLoc(workPhase, 0)) / (double) workItem
 );
-    // record where workPhase ends
-    d_ssa_phaseLen(workPhase++) = workItem;
+    // record where workPhase actually ends
+    if (firstTry) {
+      d_ssa_phaseLen(workPhase) = workItem;
+      while (workItem < (int) d_ssa_itemLen.dimension_1()) {
+        d_ssa_itemLen(workPhase,workItem++) = 0;
+      }
+    }
+    ++workPhase;
   }
   }
   }
-fprintf(stdout, "Total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
+fprintf(stdout, "Totl%03d %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
+  ,me
   ,workPhase
   ,inum
   ,nlocal*4

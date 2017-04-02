@@ -289,7 +289,7 @@ class NPairSSAKokkosExecute
 
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
-  void build_locals();
+  void build_locals(const bool firstTry, int me);
   void build_ghosts();
 
   KOKKOS_INLINE_FUNCTION

@@ -905,8 +905,10 @@ void ReadRestart::header(int incompatible)
       atom->tag_enable = read_int();
     } else if (flag == ATOM_MAP_STYLE) {
       atom->map_style = read_int();
+      atom->map_style = 0;
     } else if (flag == ATOM_MAP_USER) {
       atom->map_user  = read_int();
+      atom->map_user = 0;
     } else if (flag == ATOM_SORTFREQ) {
       atom->sortfreq = read_int();
     } else if (flag == ATOM_SORTBIN) {

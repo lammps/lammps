@@ -94,6 +94,8 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   dof_flag = 1;
 
   nevery = 0;
+  next_output = 0;
+  fprintf( screen, "nevery = %d\n", nevery );
   dtv = dtf = 0;
 
   tolerance = force->numeric( FLERR, arg[3] );
@@ -145,6 +147,11 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   while( argi < narg ){
     if( strcmp(arg[argi], "every") == 0 ){
       nevery = force->inumeric(FLERR,arg[argi+1]);
+      next_output = update->ntimestep + nevery;
+      if( comm->me == 0 ){
+        fprintf(screen,"Outputing every %d steps, next is %d\n",
+			nevery, next_output);
+      }
       argi += 2;
     }else if( error_on_unknown_keyword ){
       char msg[2048];
@@ -220,6 +227,11 @@ void FixNVEManifoldRattle::print_stats( const char *header )
             x_iters * inv_tdiff, v_iters * inv_tdiff, stats.dofs_removed);
     fprintf(screen,"\n");
   }
+
+  stats.x_iters_per_atom = 0;
+  stats.v_iters_per_atom = 0;
+  stats.x_iters = 0;
+  stats.v_iters = 0;
 }
 
 
@@ -263,14 +275,6 @@ void FixNVEManifoldRattle::init()
 void FixNVEManifoldRattle::update_var_params()
 {
  
-  if( nevery > 0 ){
-    stats.x_iters = 0;
-    stats.v_iters = 0;
-    stats.natoms  = 0;
-    stats.x_iters_per_atom = 0.0;
-    stats.v_iters_per_atom = 0.0;
-  }
-
   double *ptr_params = ptr_m->params;
   
   for( int i = 0; i < nvars; ++i ){
@@ -358,7 +362,12 @@ void FixNVEManifoldRattle::final_integrate()
    ---------------------------------------------------------------------------*/
 void FixNVEManifoldRattle::end_of_step()
 {
-  print_stats( "nve/manifold/rattle" );
+  if (nevery && (update->ntimestep == next_output)){
+    if( comm->me == 0 ){
+      print_stats( "nve/manifold/rattle" );
+      next_output += nevery;
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------

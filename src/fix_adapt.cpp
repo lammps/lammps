@@ -410,10 +410,6 @@ void FixAdapt::init()
         error->all(FLERR,"Fix adapt bond style does not exist");
 
       void *ptr = ad->bond->extract(ad->bparam,ad->bdim);
-      if( comm->me == 0 ){
-        fprintf(screen,"Attempting to extract %s\n", ad->bparam);
-        fprintf(screen,"Got back %p\n", ptr);
-      }
       
       if (ptr == NULL)
         error->all(FLERR,"Fix adapt bond style param not supported");
@@ -555,7 +551,7 @@ void FixAdapt::change_settings()
     // set bond type array values:
       
     } else if (ad->which == BOND) {
-      if (ad->pdim == 1){
+      if (ad->bdim == 1){
         if (scaleflag)
           for (i = ad->ilo; i <= ad->ihi; ++i )
             ad->vector[i] = value*ad->vector_orig[i];

@@ -95,7 +95,6 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
 
   nevery = 0;
   next_output = 0;
-  fprintf( screen, "nevery = %d\n", nevery );
   dtv = dtf = 0;
 
   tolerance = force->numeric( FLERR, arg[3] );

@@ -40,6 +40,8 @@ class Set : protected Pointers {
   int ivar1,ivar2,ivar3,ivar4;
   double *vec1,*vec2,*vec3,*vec4;
 
+  int discflag;
+
   void selection(int);
   void set(int);
   void setrandom(int);

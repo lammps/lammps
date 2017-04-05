@@ -35,7 +35,7 @@ enum{TYPE,RADIUS};
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  indices(NULL), pack_choice(NULL), vlocal(NULL), alocal(NULL)
+  vlocal(NULL), alocal(NULL), indices(NULL), pack_choice(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/local command");
 

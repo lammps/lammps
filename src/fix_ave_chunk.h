@@ -49,6 +49,11 @@ class FixAveChunk : public Fix {
   class Compute *tbias;     // ptr to additional bias compute
   FILE *fp;
 
+  int densityflag;        // 1 if density/number or density/mass requested
+  int volflag;            // SCALAR/VECTOR for density normalization by volume
+  double chunk_volume_scalar;
+  double *chunk_volume_vec;
+
   int ave,nwindow;
   int normcount,iwindow,window_limit;
 

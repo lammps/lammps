@@ -26,7 +26,6 @@ args = list of arguments for a particular style :l
                           q, mux, muy, muz, mu,
                           radius, diameter, omegax, omegay, omegaz,
                           angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                          spin, eradius, ervel, erforce,
                           c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
@@ -51,17 +50,18 @@ args = list of arguments for a particular style :l
       angmomx,angmomy,angmomz = angular momentum of aspherical particle
       tqx,tqy,tqz = torque on finite-size particles
       c_ID = per-atom vector calculated by a compute with ID
-      c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
+      c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
       f_ID = per-atom vector calculated by a fix with ID
-      f_ID\[N\] = Nth column of per-atom array calculated by a fix with ID
-      v_name = per-atom vector calculated by an atom-style variable with name :pre
+      f_ID\[I\] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
+      v_name = per-atom vector calculated by an atom-style variable with name
+      d_name = per-atom floating point vector with name, managed by fix property/atom
+      i_name = per-atom integer vector with name, managed by fix property/atom :pre
 :ule
 
 [Examples:]
 
 dump dmpvtk all custom/vtk 100 dump*.myforce.vtk id type vx fx
-dump dmpvtp flow custom/vtk 100 dump*.%.displace.vtp id type c_myD\[1\] c_myD\[2\] c_myD\[3\] v_ke
-dump e_data all custom/vtk 100 dump*.vtu id type spin eradius fx fy fz eforce :pre
+dump dmpvtp flow custom/vtk 100 dump*.%.displace.vtp id type c_myD\[1\] c_myD\[2\] c_myD\[3\] v_ke :pre
 
 The style {custom/vtk} is similar to the "custom"_dump.html style but
 uses the VTK library to write data to VTK simple legacy or XML format
@@ -199,32 +199,38 @@ part of the {custom/vtk} style.
 The {id}, {mol}, {proc}, {procp1}, {type}, {element}, {mass}, {vx},
 {vy}, {vz}, {fx}, {fy}, {fz}, {q} attributes are self-explanatory.
 
-{id} is the atom ID.  {mol} is the molecule ID, included in the data
-file for molecular systems.  {type} is the atom type.  {element} is
-typically the chemical name of an element, which you must assign to
-each type via the "dump_modify element"_dump_modify.html command.
-More generally, it can be any string you wish to associate with an
-atom type.  {mass} is the atom mass.  {vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, and {q} are components of atom velocity and force and atomic
-charge.
+{Id} is the atom ID.  {Mol} is the molecule ID, included in the data
+file for molecular systems.  {Proc} is the ID of the processor (0 to
+Nprocs-1) that currently owns the atom.  {Procp1} is the proc ID+1,
+which can be convenient in place of a {type} attribute (1 to Ntypes)
+for coloring atoms in a visualization program.  {Type} is the atom
+type (1 to Ntypes).  {Element} is typically the chemical name of an
+element, which you must assign to each type via the "dump_modify
+element"_dump_modify.html command.  More generally, it can be any
+string you wish to associated with an atom type.  {Mass} is the atom
+mass.  {Vx}, {vy}, {vz}, {fx}, {fy}, {fz}, and {q} are components of
+atom velocity and force and atomic charge.
 
 There are several options for outputting atom coordinates.  The {x},
-{y}, {z} attributes are used to write atom coordinates "unscaled", in
-the appropriate distance "units"_units.html (Angstroms, sigma, etc).
-Additionally, you can use {xs}, {ys}, {zs} if you want to also save the
-coordinates "scaled" to the box size, so that each value is 0.0 to
-1.0.  If the simulation box is triclinic (tilted), then all atom
-coords will still be between 0.0 and 1.0.  Use {xu}, {yu}, {zu} if you
-want the coordinates "unwrapped" by the image flags for each atom.
-Unwrapped means that if the atom has passed through a periodic
-boundary one or more times, the value is printed for what the
-coordinate would be if it had not been wrapped back into the periodic
-box.  Note that using {xu}, {yu}, {zu} means that the coordinate
-values may be far outside the box bounds printed with the snapshot.
-Using {xsu}, {ysu}, {zsu} is similar to using {xu}, {yu}, {zu}, except
-that the unwrapped coordinates are scaled by the box size. Atoms that
-have passed through a periodic boundary will have the corresponding
-coordinate increased or decreased by 1.0.
+{y}, {z} attributes write atom coordinates "unscaled", in the
+appropriate distance "units"_units.html (Angstroms, sigma, etc).  Use
+{xs}, {ys}, {zs} if you want the coordinates "scaled" to the box size,
+so that each value is 0.0 to 1.0.  If the simulation box is triclinic
+(tilted), then all atom coords will still be between 0.0 and 1.0.
+I.e. actual unscaled (x,y,z) = xs*A + ys*B + zs*C, where (A,B,C) are
+the non-orthogonal vectors of the simulation box edges, as discussed
+in "Section 6.12"_Section_howto.html#howto_12.
+
+Use {xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the
+image flags for each atom.  Unwrapped means that if the atom has
+passed thru a periodic boundary one or more times, the value is
+printed for what the coordinate would be if it had not been wrapped
+back into the periodic box.  Note that using {xu}, {yu}, {zu} means
+that the coordinate values may be far outside the box bounds printed
+with the snapshot.  Using {xsu}, {ysu}, {zsu} is similar to using
+{xu}, {yu}, {zu}, except that the unwrapped coordinates are scaled by
+the box size. Atoms that have passed through a periodic boundary will
+have the corresponding coordinate increased or decreased by 1.0.
 
 The image flags can be printed directly using the {ix}, {iy}, {iz}
 attributes.  For periodic dimensions, they specify which image of the
@@ -255,13 +261,7 @@ The {tqx}, {tqy}, {tqz} attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
 particles.
 
-The {spin}, {eradius}, {ervel}, and {erforce} attributes are for
-particles that represent nuclei and electrons modeled with the
-electronic force field (EFF).  See "atom_style
-electron"_atom_style.html and "pair_style eff"_pair_eff.html for more
-details.
-
-The {c_ID} and {c_ID\[N\]} attributes allow per-atom vectors or arrays
+The {c_ID} and {c_ID\[I\]} attributes allow per-atom vectors or arrays
 calculated by a "compute"_compute.html to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
@@ -275,12 +275,14 @@ command.  Instead, global quantities can be output by the
 "thermo_style custom"_thermo_style.html command, and local quantities
 can be output by the dump local command.
 
-If {c_ID} is used as an attribute, then the per-atom vector calculated
-by the compute is printed.  If {c_ID\[N\]} is used, then N must be in
-the range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the compute.
+If {c_ID} is used as a attribute, then the per-atom vector calculated
+by the compute is printed.  If {c_ID\[I\]} is used, then I must be in
+the range from 1-M, which will print the Ith column of the per-atom
+array with M columns calculated by the compute.  See the discussion
+above for how I can be specified with a wildcard asterisk to
+effectively specify multiple values.
 
-The {f_ID} and {f_ID\[N\]} attributes allow vector or array per-atom
+The {f_ID} and {f_ID\[I\]} attributes allow vector or array per-atom
 quantities calculated by a "fix"_fix.html to be output.  The ID in the
 attribute should be replaced by the actual ID of the fix that has been
 defined previously in the input script.  The "fix
@@ -291,9 +293,11 @@ any "compute"_compute.html, "fix"_fix.html, or atom-style
 be written to a dump file.
 
 If {f_ID} is used as a attribute, then the per-atom vector calculated
-by the fix is printed.  If {f_ID\[N\]} is used, then N must be in the
-range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the fix.
+by the fix is printed.  If {f_ID\[I\]} is used, then I must be in the
+range from 1-M, which will print the Ith column of the per-atom array
+with M columns calculated by the fix.  See the discussion above for
+how I can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
 The {v_name} attribute allows per-atom vectors calculated by a
 "variable"_variable.html to be output.  The name in the attribute
@@ -305,6 +309,10 @@ attributes, per-atom atom attributes, thermodynamic keywords, or
 invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
 dump file.
+
+The {d_name} and {i_name} attributes allow to output custom per atom
+floating point or integer properties that are managed by
+"fix property/atom"_fix_property_atom.html.
 
 See "Section 10"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate

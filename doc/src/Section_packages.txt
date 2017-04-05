@@ -1140,7 +1140,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-ATC"_#USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (1), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 "USER-AWPMD"_#USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 "USER-CG-CMM"_#USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
-"USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, Oliver Henrich (U Edinburgh), src/USER-CGDNA/README, USER/cgdna, -, -
+"USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, Oliver Henrich (U Strathclyde Glasgow), src/USER-CGDNA/README, USER/cgdna, -, -
 "USER-COLVARS"_#USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 "USER-DIFFRACTION"_#USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
 "USER-DPD"_#USER-DPD, reactive dissipative particle dynamics (DPD), Larentzos & Mattox & Brennan (5), src/USER-DPD/README, USER/dpd, -, -
@@ -1288,25 +1288,29 @@ him directly if you have questions.
 USER-CGDNA package :link(USER-CGDNA),h5
 
 Contents: The CGDNA package implements coarse-grained force fields for
-single- and double-stranded DNA. This is at the moment mainly the
-oxDNA model, developed by Doye, Louis and Ouldridge at the University
+single- and double-stranded DNA. These are at the moment mainly the
+oxDNA and oxDNA2 models, developed by Doye, Louis and Ouldridge at the University
 of Oxford.  The package also contains Langevin-type rigid-body
 integrators with improved stability.
 
 See these doc pages to get started:
 
 "bond_style oxdna/fene"_bond_oxdna.html
+"bond_style oxdna2/fene"_bond_oxdna.html
 "pair_style oxdna/..."_pair_oxdna.html
+"pair_style oxdna2/..."_pair_oxdna2.html
 "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html :ul
 
 Supporting info: /src/USER-CGDNA/README, "bond_style
-oxdna/fene"_bond_oxdna.html, "pair_style
-oxdna/..."_pair_oxdna.html, "fix
+oxdna/fene"_bond_oxdna.html, "bond_style
+oxdna2/fene"_bond_oxdna.html, "pair_style
+oxdna/..."_pair_oxdna.html, "pair_style
+oxdna2/..."_pair_oxdna2.html, "fix
 nve/dotc/langevin"_fix_nve_dotc_langevin.html
 
-Author: Oliver Henrich at the University of Edinburgh, UK (o.henrich
-at epcc.ed.ac.uk or ohenrich at ph.ed.ac.uk).  Contact him directly if
-you have any questions.
+Author: Oliver Henrich at the University of Strathclyde, Glasgow, UK and 
+University of Edinburgh (ohenrich@ph.ed.ac.uk).  
+Contact him directly if you have any questions.
 
 :line
 

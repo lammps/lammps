@@ -27,7 +27,7 @@ fix_modify     myCMAP energy yes :pre
 This command enables CMAP crossterms to be added to simulations which
 use the CHARMM force field.  These are relevant for any CHARMM model
 of a peptide or protein sequences that is 3 or more amino-acid
-residues long; see "(Buck)"_#Buck and "(Brooks)"_#Brooks for details,
+residues long; see "(Buck)"_#Buck and "(Brooks)"_#Brooks2 for details,
 including the analytic energy expressions for CMAP interactions.  The
 CMAP crossterms add additional potential energy contributions to pairs
 of overlapping phi-psi dihedrals of amino-acids, which are important
@@ -128,5 +128,5 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 [(Buck)] Buck, Bouguet-Bonnet, Pastor, MacKerell Jr., Biophys J, 90, L36
 (2006).
 
-:link(Brooks)
+:link(Brooks2)
 [(Brooks)] Brooks, Brooks, MacKerell Jr., J Comput Chem, 30, 1545 (2009).

@@ -20,7 +20,7 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
           {quat/random} or {diameter} or {shape} or \
           {length} or {tri} or {theta} or {theta/random} or \
           {angmom} or {omega} or \
-          {mass} or {density} or {volume} or {image} or \
+          {mass} or {density} or {density/disc} or {volume} or {image} or \
           {bond} or {angle} or {dihedral} or {improper} or \
           {meso/e} or {meso/cv} or {meso/rho} or \
           {smd/contact/radius} or {smd/mass/density} or {dpd/theta} or \
@@ -72,7 +72,9 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
     any of wx,wy,wz can be an atom-style variable (see below)
   {mass} value = per-atom mass (mass units)
     value can be an atom-style variable (see below)
-  {density} value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
+  {density} value = particle density for a sphere or ellipsoid (mass/distance^3 units), or for a triangle (mass/distance^2 units) or line (mass/distance units) particle
+    value can be an atom-style variable (see below)
+  {density/disc} value = particle density for a 2d disc or ellipse (mass/distance^2 units)
     value can be an atom-style variable (see below)
   {volume} value = particle volume for Peridynamic particle (distance^3 units)
     value can be an atom-style variable (see below)
@@ -318,23 +320,36 @@ must have a per-atom mass attribute, as defined by the
 "atom_style"_atom_style.html command.  See the "mass" command for how
 to set mass values on a per-type basis.
 
-Keyword {density} also sets the mass of all selected particles, but in
-a different way.  The particles must have a per-atom mass attribute,
-as defined by the "atom_style"_atom_style.html command.  If the atom
-has a radius attribute (see "atom_style sphere"_atom_style.html) and
-its radius is non-zero, its mass is set from the density and particle
-volume.  If the atom has a shape attribute (see "atom_style
+Keyword {density} or {density/disc} also sets the mass of all selected
+particles, but in a different way.  The particles must have a per-atom
+mass attribute, as defined by the "atom_style"_atom_style.html
+command.  If the atom has a radius attribute (see "atom_style
+sphere"_atom_style.html) and its radius is non-zero, its mass is set
+from the density and particle volume for 3d systems (the input density
+is assumed to be in mass/distance^3 units).  For 2d, the default is
+for LAMMPS to model particles with a radius attribute as spheres.
+However, if the {density/disc} keyword is used, then they can be
+modeled as 2d discs (circles).  Their mass is set from the density and
+particle area (the input density is assumed to be in mass/distance^2
+units).
+
+If the atom has a shape attribute (see "atom_style
 ellipsoid"_atom_style.html) and its 3 shape parameters are non-zero,
-then its mass is set from the density and particle volume.  If the
-atom has a length attribute (see "atom_style line"_atom_style.html)
-and its length is non-zero, then its mass is set from the density and
-line segment length (the input density is assumed to be in
-mass/distance units).  If the atom has an area attribute (see
-"atom_style tri"_atom_style.html) and its area is non-zero, then its
-mass is set from the density and triangle area (the input density is
-assumed to be in mass/distance^2 units).  If none of these cases are
-valid, then the mass is set to the density value directly (the input
-density is assumed to be in mass units).
+then its mass is set from the density and particle volume (the input
+density is assumed to be in mass/distance^3 units).  The
+{density/disc} keyword has no effect; it does not (yet) treat 3d
+ellipsoids as 2d ellipses.
+
+If the atom has a length attribute (see "atom_style
+line"_atom_style.html) and its length is non-zero, then its mass is
+set from the density and line segment length (the input density is
+assumed to be in mass/distance units).  If the atom has an area
+attribute (see "atom_style tri"_atom_style.html) and its area is
+non-zero, then its mass is set from the density and triangle area (the
+input density is assumed to be in mass/distance^2 units).
+
+If none of these cases are valid, then the mass is set to the density
+value directly (the input density is assumed to be in mass units).
 
 Keyword {volume} sets the volume of all selected particles.
 Currently, only the "atom_style peri"_atom_style.html command defines

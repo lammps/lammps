@@ -338,15 +338,13 @@ dynamics timestepping, particularly if the computations are not
 parallel, so it is often better to leave such analysis to
 post-processing codes.
 
-A very simple (yet fast) visualizer is provided with the LAMMPS
-package - see the "xmovie"_Section_tools.html#xmovie tool in "this
-section"_Section_tools.html.  It creates xyz projection views of
-atomic coordinates and animates them.  We find it very useful for
-debugging purposes.  For high-quality visualization we recommend the
+For high-quality visualization we recommend the
 following packages:
 
 "VMD"_http://www.ks.uiuc.edu/Research/vmd
 "AtomEye"_http://mt.seas.upenn.edu/Archive/Graphics/A
+"OVITO"_http://www.ovito.org/
+"ParaView"_http://www.paraview.org/
 "PyMol"_http://www.pymol.org
 "Raster3d"_http://www.bmsc.washington.edu/raster3d/raster3d.html
 "RasMol"_http://www.openrasmol.org :ul

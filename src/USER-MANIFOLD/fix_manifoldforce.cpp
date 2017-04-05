@@ -84,8 +84,8 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,msg);
   }
 
-  *(ptr_m->get_params()) = new double[nvars];
-  if( ptr_m->get_params() == NULL ){
+  ptr_m->params = new double[nvars];
+  if( ptr_m->params == NULL ){
     error->all(FLERR,"Parameter pointer was NULL!");
   }
 
@@ -94,7 +94,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   // and sets the values of those arguments that were _not_
   // equal style vars (so that they are not overwritten each time step).
 
-  double *params = *(ptr_m->get_params());
+  double *params = ptr_m->params;
   for( int i = 0; i < nvars; ++i ){
     if( was_var( arg[i+4] ) )
       error->all(FLERR,"Equal-style variables not allowed with fix manifoldforce");

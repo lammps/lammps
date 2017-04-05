@@ -10,13 +10,10 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
-------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
 
-BondStyle(oxdna_fene,BondOxdnaFene)
+BondStyle(oxdna/fene,BondOxdnaFene)
 
 #else
 
@@ -31,6 +28,7 @@ class BondOxdnaFene : public Bond {
  public:
   BondOxdnaFene(class LAMMPS *);
   virtual ~BondOxdnaFene();
+  virtual void compute_interaction_sites(double *, double *, double *);
   virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();

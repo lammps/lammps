@@ -254,10 +254,9 @@ double FixHalt::tlimit()
     bigint final = update->firststep + 
       static_cast<bigint> (tratio*value/cpu * elapsed);
     nextstep = (final/nevery)*nevery + nevery;
+    if (nextstep == update->ntimestep) nextstep += nevery;
     tratio = 1.0;
   }
-
-  //printf("EVAL %ld %g %d\n",update->ntimestep,cpu,nevery);
 
   return cpu;
 }

@@ -76,6 +76,13 @@
 /pair_awpmd_cut.cpp
 /pair_awpmd_cut.h
 
+/dihedral_charmmfsh.cpp
+/dihedral_charmmfsh.h
+/pair_lj_charmmfsw_coul_charmmfsh.cpp
+/pair_lj_charmmfsw_coul_charmmfsh.h
+/pair_lj_charmmfsw_coul_long.cpp
+/pair_lj_charmmfsw_coul_long.h
+
 /angle_cg_cmm.cpp
 /angle_cg_cmm.h
 /angle_charmm.cpp
@@ -815,6 +822,8 @@
 /pair_tri_lj.h
 /pair_yukawa_colloid.cpp
 /pair_yukawa_colloid.h
+/pair_momb.cpp
+/pair_momb.h
 /pppm.cpp
 /pppm.h
 /pppm_cg.cpp

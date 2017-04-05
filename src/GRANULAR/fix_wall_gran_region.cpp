@@ -131,9 +131,8 @@ void FixWallGranRegion::init()
 void FixWallGranRegion::post_force(int vflag)
 {
   int i,m,nc,iwall;
-  double rinv,fx,fy,fz,tooclose;
   double dx,dy,dz,rsq,meff;
-  double xc[3],vwall[3];
+  double vwall[3];
 
   // do not update shear history during setup
 

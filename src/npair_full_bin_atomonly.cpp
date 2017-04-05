@@ -40,7 +40,6 @@ void NPairFullBinAtomonly::build(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;

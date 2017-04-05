@@ -11,6 +11,10 @@
  * LAMMPS dump file has the following entries per atom line:
  * id type mol x y z c_F[1] c_F[2] c_F[3] c_F[4] c_F[5] c_F[6] c_F[7] c_F[8] c_F[9]
  *
+ * Author: Georg Ganzenmuller at the 
+ * Fraunhofer-Institute for High-Speed Dynamics,
+ * Ernst Mach Institute in Germany
+ * (georg.ganzenmueller at emi.fhg.de)
  */
 
 #include <vtkVersion.h>

@@ -21,8 +21,8 @@ pair_coeff * * InP.snapcoeff In P InP.snapparam In In P P :pre
 
 Style {snap} computes interactions
 using the spectral neighbor analysis potential (SNAP)
-"(Thompson)"_#Thompson2014. Like the GAP framework of Bartok et al.
-"(Bartok2010)"_#Bartok2010, "(Bartok2013)"_#Bartok2013
+"(Thompson)"_#Thompson20142. Like the GAP framework of Bartok et al.
+"(Bartok2010)"_#Bartok20102, "(Bartok2013)"_#Bartok2013
 it uses bispectrum components
 to characterize the local neighborhood of each atom
 in a very general way. The mathematical definition of the
@@ -131,14 +131,15 @@ The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are {rcutfac} and
 {twojmax}. Optional keywords are {rfac0}, {rmin0}, {diagonalstyle},
-and {switchflag}.
+{switchflag}, and {bzeroflag}.
 
 The default values for these keywords are
 
 {rfac0} = 0.99363
 {rmin0} = 0.0
 {diagonalstyle} = 3
-{switchflag} = 0 :ul
+{switchflag} = 0
+{bzeroflag} = 1 :ul
 
 Detailed definitions of these keywords are given on the "compute
 sna/atom"_compute_sna_atom.html doc page.
@@ -182,10 +183,10 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Thompson2014)
+:link(Thompson20142)
 [(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
 
-:link(Bartok2010)
+:link(Bartok20102)
 [(Bartok2010)] Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
 :link(Bartok2013)

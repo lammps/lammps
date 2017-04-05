@@ -38,7 +38,7 @@ represent the contributions of chemical bonding to the potential
 energy. There is more than one version of ReaxFF.  The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper: "(Chenoweth et al.,
-2008)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
+2008)"_#Chenoweth_20082.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
 the "(Aktulga)"_#Aktulga paper. The {reax/c} style was initially
@@ -336,7 +336,7 @@ mincap = 50.
 
 :line
 
-:link(Chenoweth_2008)
+:link(Chenoweth_20082)
 [(Chenoweth_2008)] Chenoweth, van Duin and Goddard,
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 

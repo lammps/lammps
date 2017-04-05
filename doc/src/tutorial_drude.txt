@@ -54,7 +54,7 @@ charge, and force constant can be chosen following different
 strategies, as in the following examples of polarizable force
 fields:
 
-"Lamoureux and Roux"_#Lamoureux suggest adopting a global half-stiffness, \
+"Lamoureux and Roux"_#Lamoureux2 suggest adopting a global half-stiffness, \
 \(K_D\) = 500 kcal/(mol Ang \(\{\}^2\)) - which corresponds to a force \
 constant \(k_D\) = 4184 kJ/(mol Ang \(\{\}^2\)) - for all types of \
 core-Drude bond, a global mass \(m_D\) = 0.4 g/mol (or u) for all types \
@@ -83,7 +83,7 @@ from those of the normal atoms. Thermalizing the Drude dipoles at
 temperatures comparable to the rest of the simulation leads to several
 problems (kinetic energy transfer, very short timestep, etc.), which
 can be remediate by the "cold Drude" technique ("Lamoureux and
-Roux"_#Lamoureux).
+Roux"_#Lamoureux2).
 
 Two closely related models are used to represent polarization through
 "charges on a spring": the core-shell model and the Drude
@@ -105,7 +105,7 @@ due to the short distances, so an atom may capture the Drude particle \
 (shell) of a neighbor, or the induced dipoles within the same molecule \
 may align too much.  To avoid this, damping at short of the \
 interactions between the point charges composing the induced dipole \
-can be done by "Thole"_#Thole functions. :l
+can be done by "Thole"_#Thole2 functions. :l
 :ole
 
 
@@ -284,7 +284,7 @@ pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0 :pre
 
 This tells LAMMPS that we are using two pair_styles.  The first one is
 as above ({lj/cut/coul/long 10.0}).  The second one is a {thole}
-pair_style with default screening factor 2.6 ("Noskov"_#Noskov) and
+pair_style with default screening factor 2.6 ("Noskov"_#Noskov2) and
 cutoff 10.0.
 
 Since {hybrid/overlay} does not support mixing rules, the interaction
@@ -381,7 +381,7 @@ group DRUDES type 6 7 8     # DPs :pre
 Note that with the fixes {drude/transform}, it is not required to
 specify {comm_modify vel yes} because the fixes do it anyway (several
 times and for the forces also).  To avoid the flying ice cube artifact
-"(Lamoureux)"_#Lamoureux, where the atoms progressively freeze and the
+"(Lamoureux)"_#Lamoureux2, where the atoms progressively freeze and the
 center of mass of the whole system drifts faster and faster, the {fix
 momentum} can be used. For instance:
 
@@ -448,21 +448,21 @@ fix INVERSE all drude/transform/inverse :pre
 
 :line
 
-:link(Lamoureux)
+:link(Lamoureux2)
 [(Lamoureux)] Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
 
 :link(Schroeder)
 [(Schroeder)]  Schroeder and Steinhauser, J Chem Phys, 133,
 154511 (2010).
 
-:link(Jiang)
+:link(Jiang2)
 [(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,
  J Phys Chem Lett, 2, 87-92 (2011).
 
-:link(Thole)
+:link(Thole2)
 [(Thole)] Chem Phys, 59, 341 (1981).
 
-:link(Noskov)
+:link(Noskov2)
 [(Noskov)] Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).
 
 :link(SWM4-NDP)

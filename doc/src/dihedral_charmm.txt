@@ -10,21 +10,25 @@ dihedral_style charmm command :h3
 dihedral_style charmm/intel command :h3
 dihedral_style charmm/kk command :h3
 dihedral_style charmm/omp command :h3
+dihedral_style charmmfsh command :h3
 
 [Syntax:]
 
-dihedral_style charmm :pre
+dihedral_style style :pre
+
+style = {charmm} or {charmmfsh} :ul
 
 [Examples:]
 
 dihedral_style charmm
+dihedral_style charmmfsh
 dihedral_coeff  1 0.2 1 180 1.0
 dihedral_coeff  2 1.8 1   0 1.0
 dihedral_coeff  1 3.1 2 180 0.5 :pre
 
 [Description:]
 
-The {charmm} dihedral style uses the potential
+The {charmm} and {charmmfsh} dihedral styles use the potential
 
 :c,image(Eqs/dihedral_charmm.jpg)
 
@@ -33,6 +37,14 @@ force field.  This dihedral style can also be used for the AMBER force
 field (see comment on weighting factors below).  See
 "(Cornell)"_#dihedral-Cornell for a description of the AMBER force
 field.
+
+NOTE: The newer {charmmfsh} style was released in March 2017.  We
+recommend it be used instead of the older {charmm} style when running
+a simulation with the CHARMM force field and Coulomb cutoffs, via the
+"pair_style lj/charmmfsw/coul/charmmfsh"_pair_charmm.html command.
+Otherwise the older {charmm} style is fine to use.  See the discussion
+below and more details on the "pair_style charmm"_pair_charmm.html doc
+page.
 
 The following coefficients must be defined for each dihedral type via the
 "dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
@@ -73,13 +85,28 @@ special_bonds 1-4 scaling factor to 0.0 (which is the
 default). Otherwise 1-4 non-bonded interactions in dihedrals will be
 computed twice.
 
-Also note that for AMBER force fields, which use pair styles with
-"lj/cut", the special_bonds 1-4 scaling factor should be set to the
-AMBER defaults (1/2 and 5/6) and all the dihedral weighting factors
-(4th coeff above) must be set to 0.0. In this case, you can use any
-pair style you wish, since the dihedral does not need any
-Lennard-Jones parameter information and will not compute any 1-4
-non-bonded interactions.
+For simulations using the CHARMM force field with a Coulomb cutoff,
+the difference between the {charmm} and {charmmfsh} styles is in the
+computation of the 1-4 non-bond interactions, though only if the
+distance between the two atoms is within the switching region of the
+pairwise potential defined by the corresponding CHARMM pair style,
+i.e. within the outer cutoff specified for the pair style.  The
+{charmmfsh} style should only be used when using the "pair_style
+lj/charmmfsw/coul/charmmfsh"_pair_charmm.html to make the Coulombic
+pairwise calculations consistent.  Use the {charmm} style with
+long-range Coulombics or the older "pair_style
+lj/charmm/coul/charmm"_pair_charmm.html command.  See the discussion
+on the "CHARMM pair_style"_pair_charmm.html doc page for details.
+
+Note that for AMBER force fields, which use pair styles with "lj/cut",
+the special_bonds 1-4 scaling factor should be set to the AMBER
+defaults (1/2 and 5/6) and all the dihedral weighting factors (4th
+coeff above) must be set to 0.0. In this case, you can use any pair
+style you wish, since the dihedral does not need any Lennard-Jones
+parameter information and will not compute any 1-4 non-bonded
+interactions.  Likewise the {charmm} or {charmmfsh} styles are
+identical in this case since no 1-4 non-bonded interactions are
+computed.
 
 :line
 

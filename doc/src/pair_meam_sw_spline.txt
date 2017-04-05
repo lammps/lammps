@@ -23,8 +23,8 @@ pair_coeff * * Ti.meam.sw.spline Ti Ti Ti :pre
 
 The {meam/sw/spline} style computes pairwise interactions for metals
 using a variant of modified embedded-atom method (MEAM) potentials
-"(Lenosky)"_#Lenosky with an additional Stillinger-Weber (SW) term
-"(Stillinger)"_#Stillinger in the energy.  This form of the potential
+"(Lenosky)"_#Lenosky2 with an additional Stillinger-Weber (SW) term
+"(Stillinger)"_#Stillinger1 in the energy.  This form of the potential
 was first proposed by Nicklas, Fellinger, and Park
 "(Nicklas)"_#Nicklas.  We refer to it as MEAM+SW.  The total energy E
 is given by
@@ -123,11 +123,11 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Lenosky)
+:link(Lenosky2)
 [(Lenosky)] Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
 
-:link(Stillinger)
+:link(Stillinger1)
 [(Stillinger)] Stillinger, Weber, Phys. Rev. B 31, 5262 (1985).
 
 :link(Nicklas)

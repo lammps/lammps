@@ -26,7 +26,7 @@ region          mobile block 0 5 0 5 2 INF
 group		mobile region mobile
 
 compute		add addatoms temp
-compute_modify	add dynamic yes extra 0
+compute_modify	add dynamic/dof yes extra/dof 0
 
 fix		1 addatoms nve
 fix		2 mobile langevin 0.1 0.1 0.1 587283

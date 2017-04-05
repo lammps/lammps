@@ -89,6 +89,6 @@ Same as "fix nvt/eff"_fix_nh_eff.html, except tchain = 1.
 
 :line
 
-:link(Tuckerman)
+:link(Tuckerman2)
 [(Tuckerman)] Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
 106, 5615 (1997).

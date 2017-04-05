@@ -191,8 +191,15 @@ remain constant for the duration of the simulation.  This fix forces
 the chunk/atom compute specified by chunkID to hold {Nchunk} constant
 for the appropriate time windows, by not allowing it to re-calculate
 {Nchunk}, which can also affect how it assigns chunk IDs to atoms.
-More details are given on the "compute
-chunk/atom"_compute_chunk_atom.html doc page.
+This is particularly important to understand if the chunks defined by
+the "compute chunk/atom"_compute_chunk_atom.html command are spatial
+bins.  If its {units} keyword is set to {box} or {lattice}, then the
+number of bins {Nchunk} and size of each bin will be fixed over the
+{Nfreq} time window, which can affect which atoms are discarded if the
+simulation box size changes.  If its {units} keyword is set to
+{reduced}, then the number of bins {Nchunk} will still be fixed, but
+the size of each bin can vary at each timestep if the simulation box
+size changes, e.g. for an NPT simulation.
 
 :line
 
@@ -290,24 +297,32 @@ It the {norm} setting is {all}, which is the default, a chunk value is
 summed over all atoms in all {Nrepeat} samples, as is the count of
 atoms in the chunk.  The averaged output value for the chunk on the
 {Nfreq} timesteps is Total-sum / Total-count.  In other words it is an
-average over atoms across the entire {Nfreq} timescale.
+average over atoms across the entire {Nfreq} timescale.  For the
+{density/number} and {density/mass} values, the volume (bin volume or
+system volume) used in the final normalization will be the volume at
+the final {Nfreq} timestep.
 
-If the {norm} setting is {sample}, the chunk value is summed over atoms
-for each sample, as is the count, and an "average sample value" is
-computed for each sample, i.e. Sample-sum / Sample-count.  The output
-value for the chunk on the {Nfreq} timesteps is the average of the
-{Nrepeat} "average sample values", i.e. the sum of {Nrepeat} "average
-sample values" divided by {Nrepeat}.  In other words it is an average
-of an average.
+If the {norm} setting is {sample}, the chunk value is summed over
+atoms for each sample, as is the count, and an "average sample value"
+is computed for each sample, i.e. Sample-sum / Sample-count.  The
+output value for the chunk on the {Nfreq} timesteps is the average of
+the {Nrepeat} "average sample values", i.e. the sum of {Nrepeat}
+"average sample values" divided by {Nrepeat}.  In other words it is an
+average of an average.  For the {density/number} and {density/mass}
+values, the volume (bin volume or system volume) used in the
+per-sample normalization will be the current volume at each sampling
+step.
 
 If the {norm} setting is {none}, a similar computation as for the
-{sample} setting is done, except the individual "average sample values"
-are "summed sample values".  A summed sample value is simply the chunk
-value summed over atoms in the sample, without dividing by the number
-of atoms in the sample.  The output value for the chunk on the
-{Nfreq} timesteps is the average of the {Nrepeat} "summed sample
+{sample} setting is done, except the individual "average sample
+values" are "summed sample values".  A summed sample value is simply
+the chunk value summed over atoms in the sample, without dividing by
+the number of atoms in the sample.  The output value for the chunk on
+the {Nfreq} timesteps is the average of the {Nrepeat} "summed sample
 values", i.e. the sum of {Nrepeat} "summed sample values" divided by
-{Nrepeat}.
+{Nrepeat}.  For the {density/number} and {density/mass} values, the
+volume (bin volume or system volume) used in the per-sample sum
+normalization will be the current volume at each sampling step.
 
 The {ave} keyword determines how the per-chunk values produced every
 {Nfreq} steps are averaged with values produced on previous steps that

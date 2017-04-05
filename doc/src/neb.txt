@@ -44,7 +44,7 @@ of the energy barrier associated with a transition state, e.g. for an
 atom to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
 follows the discussion in these 3 papers: "(HenkelmanA)"_#HenkelmanA,
-"(HenkelmanB)"_#HenkelmanB, and "(Nakano)"_#Nakano.
+"(HenkelmanB)"_#HenkelmanB, and "(Nakano)"_#Nakano3.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
@@ -412,5 +412,5 @@ langevin"_fix_langevin.html, "fix viscous"_fix_viscous.html
 [(HenkelmanB)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
-:link(Nakano)
+:link(Nakano3)
 [(Nakano)] Nakano, Comp Phys Comm, 178, 280-289 (2008).

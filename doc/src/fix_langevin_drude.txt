@@ -41,7 +41,7 @@ fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes :pre
 
 [Description:]
 
-Apply two Langevin thermostats as described in "(Jiang)"_#Jiang for
+Apply two Langevin thermostats as described in "(Jiang)"_#Jiang1 for
 thermalizing the reduced degrees of freedom of Drude oscillators.
 This link describes how to use the "thermalized Drude oscillator
 model"_tutorial_drude.html in LAMMPS and polarizable models in LAMMPS
@@ -268,6 +268,6 @@ The option defaults are zero = no.
 
 :line
 
-:link(Jiang)
+:link(Jiang1)
 [(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).

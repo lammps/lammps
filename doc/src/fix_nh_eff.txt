@@ -128,15 +128,15 @@ ploop = 1, nreset = 0, drag = 0.0, dilate = all, and couple = none.
 
 :line
 
-:link(Martyna)
+:link(Martyna1)
 [(Martyna)] Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
 
 :link(Parrinello)
 [(Parrinello)] Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
-:link(Tuckerman)
+:link(Tuckerman1)
 [(Tuckerman)] Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
 Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
-:link(Shinoda)
+:link(Shinoda2)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).

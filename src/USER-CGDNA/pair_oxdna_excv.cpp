@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -89,6 +89,24 @@ PairOxdnaExcv::~PairOxdnaExcv()
 }
 
 /* ----------------------------------------------------------------------
+    compute vector COM-excluded volume interaction sites in oxDNA
+------------------------------------------------------------------------- */
+void PairOxdnaExcv::compute_interaction_sites(double e1[3],
+  double e2[3], double rs[3], double rb[3])
+{
+  double d_cs=-0.4, d_cb=+0.4;
+
+  rs[0] = d_cs*e1[0];
+  rs[1] = d_cs*e1[1];
+  rs[2] = d_cs*e1[2];
+
+  rb[0] = d_cb*e1[0];
+  rb[1] = d_cb*e1[1];
+  rb[2] = d_cb*e1[2];
+
+}
+
+/* ----------------------------------------------------------------------
    compute function for oxDNA pair interactions
    s=sugar-phosphate backbone site, b=base site, st=stacking site
 ------------------------------------------------------------------------- */
@@ -102,8 +120,6 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   double delr_ss[3],rsq_ss,delr_sb[3],rsq_sb;
   double delr_bs[3],rsq_bs,delr_bb[3],rsq_bb;
 
-  // distances COM-backbone site, COM-base site
-  double d_cs=-0.24, d_cb=0.56;
   // vectors COM-backbone site, COM-base site in lab frame
   double ra_cs[3],ra_cb[3];
   double rb_cs[3],rb_cb[3];
@@ -146,18 +162,13 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     qa=bonus[a].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
 
-    // position of backbone site a
-    ra_cs[0] = d_cs*ax[0];
-    ra_cs[1] = d_cs*ax[1];
-    ra_cs[2] = d_cs*ax[2];
+    // vector COM - backbone and base site a
+    compute_interaction_sites(ax,ay,ra_cs,ra_cb);
+
     rtmp_s[0] = x[a][0] + ra_cs[0];
     rtmp_s[1] = x[a][1] + ra_cs[1];
     rtmp_s[2] = x[a][2] + ra_cs[2];
 
-    // position of base site a
-    ra_cb[0] = d_cb*ax[0];
-    ra_cb[1] = d_cb*ax[1];
-    ra_cb[2] = d_cb*ax[2];
     rtmp_b[0] = x[a][0] + ra_cb[0];
     rtmp_b[1] = x[a][1] + ra_cb[1];
     rtmp_b[2] = x[a][2] + ra_cb[2];
@@ -176,12 +187,8 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
       qb=bonus[b].quat;
       MathExtra::q_to_exyz(qb,bx,by,bz);
 
-      rb_cs[0] = d_cs*bx[0];
-      rb_cs[1] = d_cs*bx[1];
-      rb_cs[2] = d_cs*bx[2];
-      rb_cb[0] = d_cb*bx[0];
-      rb_cb[1] = d_cb*bx[1];
-      rb_cb[2] = d_cb*bx[2];
+      // vector COM - backbone and base site b
+      compute_interaction_sites(bx,by,rb_cs,rb_cb);
 
       // vector backbone site b to a
       delr_ss[0] = rtmp_s[0] - (x[b][0] + rb_cs[0]);
@@ -448,7 +455,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -494,7 +501,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
 
   count = 0;
 
@@ -525,7 +532,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
 
   count = 0;
 
@@ -556,7 +563,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
 
 }
 
@@ -657,7 +664,7 @@ double PairOxdnaExcv::init_one(int i, int j)
   cutsq_bb_c[j][i]  = cutsq_bb_c[i][j];
 
   // set the master list distance cutoff
-  return cut_ss_ast[i][j];
+  return cut_ss_c[i][j];
 
 }
 

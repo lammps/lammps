@@ -6,6 +6,7 @@ BUILDDIR      = /tmp/lammps-docs-$(SHA1)
 RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
+ANCHORCHECK   = $(VENV)/bin/doc_anchor_check
 
 PYTHON        = $(shell which python3)
 HAS_PYTHON3    = NO
@@ -50,7 +51,7 @@ clean:
 clean-spelling:
 	rm -rf spelling
 
-html: $(OBJECTS)
+html: $(OBJECTS) $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
@@ -131,7 +132,7 @@ fetch:
 
 txt2html: utils/txt2html/txt2html.exe
 
-anchor_check : $(TXT2RST)
+anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
 		doc_anchor_check src/*.txt ;\
@@ -162,7 +163,7 @@ $(VENV):
 		deactivate;\
 	)
 
-$(TXT2RST): $(VENV)
+$(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \
 		. $(VENV)/bin/activate; \
 		(cd utils/converters;\

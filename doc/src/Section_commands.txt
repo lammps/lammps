@@ -940,6 +940,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "lj/charmm/coul/charmm/implicit (ko)"_pair_charmm.html,
 "lj/charmm/coul/long (giko)"_pair_charmm.html,
 "lj/charmm/coul/msm"_pair_charmm.html,
+"lj/charmmfsw/coul/charmmfsh"_pair_charmm.html,
+"lj/charmmfsw/coul/long"_pair_charmm.html,
 "lj/class2 (gko)"_pair_class2.html,
 "lj/class2/coul/cut (ko)"_pair_class2.html,
 "lj/class2/coul/long (gko)"_pair_class2.html,
@@ -1035,6 +1037,7 @@ package"_Section_start.html#start_3.
 "meam/spline (o)"_pair_meam_spline.html,
 "meam/sw/spline"_pair_meam_sw_spline.html,
 "mgpt"_pair_mgpt.html,
+"momb"_pair_momb.html,
 "morse/smooth/linear"_pair_morse.html,
 "morse/soft"_pair_morse.html,
 "multi/lucy"_pair_multi_lucy.html,
@@ -1044,6 +1047,10 @@ package"_Section_start.html#start_3.
 "oxdna/hbond"_pair_oxdna.html,
 "oxdna/stk"_pair_oxdna.html,
 "oxdna/xstk"_pair_oxdna.html,
+"oxdna2/coaxstk"_pair_oxdna2.html,
+"oxdna2/dh"_pair_oxdna2.html,
+"oxdna2/excv"_pair_oxdna2.html,
+"oxdna2/stk"_pair_oxdna2.html,
 "quip"_pair_quip.html,
 "reax/c (k)"_pair_reax_c.html,
 "smd/hertz"_pair_smd_hertz.html,
@@ -1061,7 +1068,7 @@ package"_Section_start.html#start_3.
 "table/rx"_pair_table_rx.html,
 "tersoff/table (o)"_pair_tersoff.html,
 "thole"_pair_thole.html,
-"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c)
+"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c) 
 
 :line
 
@@ -1093,7 +1100,8 @@ package"_Section_start.html#start_3.
 
 "harmonic/shift (o)"_bond_harmonic_shift.html,
 "harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
-"oxdna/fene"_bond_oxdna.html :tb(c=4,ea=c)
+"oxdna/fene"_bond_oxdna.html,
+"oxdna2/fene"_bond_oxdna.html :tb(c=4,ea=c)
 
 :line
 
@@ -1147,6 +1155,7 @@ USER-OMP, t = OPT.
 "zero"_dihedral_zero.html,
 "hybrid"_dihedral_hybrid.html,
 "charmm (ko)"_dihedral_charmm.html,
+"charmmfsh"_dihedral_charmm.html,
 "class2 (ko)"_dihedral_class2.html,
 "harmonic (io)"_dihedral_harmonic.html,
 "helix (o)"_dihedral_helix.html,

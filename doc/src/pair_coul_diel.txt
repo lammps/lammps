@@ -46,10 +46,10 @@ for water at 298K.
 
 Examples of the use of this type of Coulomb interaction include implicit
 solvent simulations of salt ions
-"(Lenart)"_#Lenart and of ionic surfactants "(Jusufi)"_#Jusufi.
+"(Lenart)"_#Lenart1 and of ionic surfactants "(Jusufi)"_#Jusufi1.
 Note that this potential is only reasonable for implicit solvent simulations
 and in combination with coul/cut or coul/long. It is also usually combined
-with gauss/cut, see "(Lenart)"_#Lenart or "(Jusufi)"_#Jusufi.
+with gauss/cut, see "(Lenart)"_#Lenart1 or "(Jusufi)"_#Jusufi1.
 
 The following coefficients must be defined for each pair of atom
 types via the "pair_coeff"_pair_coeff.html command as in the example
@@ -103,10 +103,10 @@ LAMMPS"_Section_start.html#start_2_3 section for more info.
 [(Stiles)] Stiles , Hubbard, and Kayser, J Chem Phys, 77,
 6189 (1982).
 
-:link(Lenart)
+:link(Lenart1)
 [(Lenart)] Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
 044509 (2007).
 
-:link(Jusufi)
+:link(Jusufi1)
 [(Jusufi)] Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
 13783 (2008).

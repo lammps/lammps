@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -127,7 +127,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
   double dcdrax,dcdray,dcdraz;
 
   // distances COM-backbone site, COM-stacking site
-  double d_cs=-0.24, d_cst=0.5;
+  double d_cs=-0.4, d_cst=+0.34;
   // vectors COM-backbone site, COM-stacking site in lab frame
   double ra_cs[3],ra_cst[3];
   double rb_cs[3],rb_cst[3];
@@ -680,7 +680,7 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 23) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_xstack");
+  if (narg != 23) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/coaxstk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -818,7 +818,7 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna_xstack");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/coaxstk");
 
 }
 

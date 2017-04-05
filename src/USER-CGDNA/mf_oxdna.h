@@ -10,9 +10,6 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
-------------------------------------------------------------------------- */
 
 #ifndef MF_OXDNA_H
 #define MF_OXDNA_H
@@ -31,6 +28,8 @@ namespace MFOxdna {
   inline double DF4(double, double, double, double, double, double);
   inline double F5(double, double, double, double, double);
   inline double DF5(double, double, double, double, double);
+  inline double F6(double, double, double);
+  inline double DF6(double, double, double);
   inline double is_3pto5p(const double *, const double *);
 
 }
@@ -250,6 +249,32 @@ inline double MFOxdna::DF5(double x, double a, double x_ast,
     return 0.0;
   }
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   f6 modulation factor
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::F6(double theta, double a, double b)
+{
+  if (theta < b) {
+    return 0.0;
+  }
+  else {
+    return 0.5 * a * (theta-b)*(theta-b);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   derivative of f6 modulation factor
+   ------------------------------------------------------------------------- */
+inline double MFOxdna::DF6(double theta, double a, double b)
+{
+  if (theta < b) {
+    return 0.0;
+  }
+  else {
+    return a * (theta-b);
+  }
 }
 
 /* ----------------------------------------------------------------------

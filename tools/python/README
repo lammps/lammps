@@ -86,28 +86,6 @@ To use the logplot.py script you need to have GnuPlot installed on
 your system and its executable "gnuplot" in your path.
 
 To use any of the scripts which load the dump module to read LAMMPS
-dump files, you must have the Python package Numeric installed in your
-Python.  See http://numeric.scipy.org.
+dump files, you must have the Python package NumPy installed in your
+Python. See https://www.numpy.org and https://www.scipy.org/scipylib/download.html
 
-Note that the Pizza.py modules use the older (but still popular)
-Numeric package, not the newer numarray package.
-
-If Numeric is already installed in your Python, you should be able to
-type the following without getting an error:
-
->>> import Numeric
-
-Numeric can be downloaded from SourceForge at this WWW site:
-
-http://sourceforge.net/project/showfiles.php?group_id=1369&package_id=1351
-
-As of July 2007, Version 24.2 was fine.  Once unpacked, you can type
-the following from the Numeric directory to install it in your Python.
-
-sudo python setup.py install
-
-On my Linux box, when Numeric installed itself under the Python lib in
-/usr/local, it did not set all file permsissions correctly to allow a
-user to import it.  So I also needed to do this:
-
-sudo chmod -R 755 /usr/local/lib/python2.5/site-packages/Numeric

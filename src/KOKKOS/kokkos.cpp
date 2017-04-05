@@ -34,7 +34,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   lmp->kokkos = this;
 
   auto_sync = 1;
-  gb_test = 0;
+  gb_test = 1;
 
   int me = 0;
   MPI_Comm_rank(world,&me);
@@ -157,7 +157,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   neighflag = FULL;
   neighflag_qeq = FULL;
   neighflag_qeq_set = 0;
-  gb_test = 0;
+  gb_test = 1;
   int newtonflag = 0;
   double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = 0;

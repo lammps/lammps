@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="17 Mar 2017 version">
+<META NAME="docnumber" CONTENT="31 Mar 2017 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-17 Mar 2017 version :c,h4
+31 Mar 2017 version :c,h4
 
 Version info: :h4
 
@@ -39,7 +39,7 @@ directory name created when you unpack a tarball, and at the top of
 the first page of the manual (this page).
 
 If you browse the HTML doc pages on the LAMMPS WWW site, they always
-describe the most current version of LAMMPS. :ulb,l
+describe the most current [development] version of LAMMPS. :ulb,l
 
 If you browse the HTML doc pages included in your tarball, they
 describe the version you have. :l
@@ -67,7 +67,7 @@ Labs and Temple University:
 
 "Steve Plimpton"_sjp, sjplimp at sandia.gov :ulb,l
 Aidan Thompson, athomps at sandia.gov :l
-Stan Moore, stamoore at sandia.gov :l
+Stan Moore, stamoor at sandia.gov :l
 "Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
 :ule
 

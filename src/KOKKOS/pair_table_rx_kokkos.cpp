@@ -147,6 +147,9 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
   h_table = new TableHost();
   d_table = new TableDevice();
   fractionalWeighting = true;
+
+  site1 = nullptr;
+  site2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -156,14 +159,21 @@ PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
 {
   if (copymode) return;
 
+  delete [] site1;
+  delete [] site2;
+
   memory->destroy_kokkos(k_eatom,eatom);
   memory->destroy_kokkos(k_vatom,vatom);
+
+  if (allocated) {
+    memory->destroy_kokkos(d_table->cutsq, cutsq);
+    memory->destroy_kokkos(d_table->tabindex, tabindex);
+  }
 
   delete h_table;
   h_table = nullptr;
   delete d_table;
   d_table = nullptr;
-  copymode = true; //prevents base class destructor from running
 }
 
 /* ---------------------------------------------------------------------- */
@@ -981,6 +991,8 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
 
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
+  ntables = 0;
+  tables = NULL;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -990,11 +1002,8 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
 
     d_table_const.cutsq = d_table->cutsq = typename ArrayTypes<DeviceType>::t_ffloat_2d();
     h_table->cutsq = typename ArrayTypes<LMPHostType>::t_ffloat_2d();
+    allocated = 0;
   }
-  allocated = 0;
-
-  ntables = 0;
-  tables = NULL;
 }
 
 /* ----------------------------------------------------------------------

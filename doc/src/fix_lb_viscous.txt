@@ -44,7 +44,7 @@ hydrodynamic forces to the particles.
 :line
 
 For further details, as well as descriptions and results of several
-test runs, see "Mackay et al."_#Mackay.  Please include a citation to
+test runs, see "Mackay et al."_#Mackay3.  Please include a citation to
 this paper if this fix is used in work contributing to published
 research.
 
@@ -90,5 +90,5 @@ lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html
 
 :line
 
-:link(Mackay)
+:link(Mackay3)
 [(Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

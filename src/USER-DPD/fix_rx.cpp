@@ -672,7 +672,6 @@ void FixRX::setup_pre_force(int vflag)
   int *mask = atom->mask;
   int newton_pair = force->newton_pair;
   double tmp;
-  int ii;
 
   if(restartFlag){
     restartFlag = 0;

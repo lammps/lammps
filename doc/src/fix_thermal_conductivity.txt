@@ -31,7 +31,7 @@ fix 1 all thermal/conductivity 50 z 20 swap 2 :pre
 [Description:]
 
 Use the Muller-Plathe algorithm described in "this
-paper"_#Muller-Plathe to exchange kinetic energy between two particles
+paper"_#Muller-Plathe1 to exchange kinetic energy between two particles
 in different regions of the simulation box every N steps.  This
 induces a temperature gradient in the system.  As described below this
 enables the thermal conductivity of a material to be calculated.  This
@@ -85,7 +85,7 @@ quantity by time and the cross-sectional area of the simulation box
 yields a heat flux.  The ratio of heat flux to the slope of the
 temperature profile is proportional to the thermal conductivity of the
 fluid, in appropriate units.  See the "Muller-Plathe
-paper"_#Muller-Plathe for details.
+paper"_#Muller-Plathe1 for details.
 
 NOTE: If your system is periodic in the direction of the heat flux,
 then the flux is going in 2 directions.  This means the effective heat
@@ -136,7 +136,7 @@ kinetic energy of atoms that are in constrained molecules, e.g. via
 "fix shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  This is
 because application of the constraints will alter the amount of
 transferred momentum.  You should, however, be able to use flexible
-molecules.  See the "Zhang paper"_#Zhang for a discussion and results
+molecules.  See the "Zhang paper"_#Zhang2 for a discussion and results
 of this idea.
 
 When running a simulation with large, massive particles or molecules
@@ -155,9 +155,9 @@ The option defaults are swap = 1.
 
 :line
 
-:link(Muller-Plathe)
+:link(Muller-Plathe1)
 [(Muller-Plathe)] Muller-Plathe, J Chem Phys, 106, 6082 (1997).
 
-:link(Zhang)
+:link(Zhang2)
 [(Zhang)] Zhang, Lussetti, de Souza, Muller-Plathe, J Phys Chem B,
 109, 15060-15067 (2005).

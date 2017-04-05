@@ -29,14 +29,14 @@ fix 1 all nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10 :pre
 [Description:]
 
 Apply a rigid-body Langevin-type integrator of the kind "Langevin C" 
-as described in "(Davidchack)"_#Davidchack
+as described in "(Davidchack)"_#Davidchack2
 to a group of atoms, which models an interaction with an implicit background
 solvent.  This command performs Brownian dynamics (BD)
 via a technique that splits the integration into a deterministic Hamiltonian 
 part and the Ornstein-Uhlenbeck process for noise and damping. 
 The quaternion degrees of freedom are updated though an evolution
 operator which performs a rotation in quaternion space, preserves
-the quaternion norm and is akin to "(Miller)"_#Miller.
+the quaternion norm and is akin to "(Miller)"_#Miller2.
 
 In terms of syntax this command has been closely modelled on the 
 "fix langevin"_fix_langevin.html and its {angmom} option. But it combines 
@@ -72,7 +72,7 @@ dt damp), where Kb is the Boltzmann constant, T is the desired
 temperature, m is the mass of the particle, dt is the timestep size,
 and damp is the damping factor.  Random numbers are used to randomize
 the direction and magnitude of this force as described in
-"(Dunweg)"_#Dunweg, where a uniform random number is used (instead of
+"(Dunweg)"_#Dunweg3, where a uniform random number is used (instead of
 a Gaussian random number) for speed.
 
 :line
@@ -126,9 +126,9 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 :line
 
-:link(Davidchack)
+:link(Davidchack2)
 [(Davidchack)] R.L Davidchack, T.E. Ouldridge, M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
-:link(Miller)
+:link(Miller2)
 [(Miller)] T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
-:link(Dunweg)
+:link(Dunweg3)
 [(Dunweg)] B. Dunweg, W. Paul, Int. J. Mod. Phys. C, 2, 817-27 (1991).

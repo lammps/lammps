@@ -27,7 +27,7 @@ compute core_shells all temp/cs cores shells :pre
 Define a computation that calculates the temperature of a system based
 on the center-of-mass velocity of atom pairs that are bonded to each
 other.  This compute is designed to be used with the adiabatic
-core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham.  See
+core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham1.  See
 "Section 6.25"_Section_howto.html#howto_25 of the manual for an
 overview of the model as implemented in LAMMPS.  Specifically, this
 compute enables correct temperature calculation and thermostatting of
@@ -114,6 +114,6 @@ temp/chunk"_compute_temp_chunk.html
 
 :line
 
-:link(MitchellFinchham)
+:link(MitchellFinchham1)
 [(Mitchell and Finchham)] Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

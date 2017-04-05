@@ -50,7 +50,7 @@ atoms {i} and {j},
 
 The COMB potentials (styles {comb} and {comb3}) are variable charge
 potentials.  The equilibrium charge on each atom is calculated by the
-electronegativity equalization (QEq) method.  See "Rick"_#Rick for
+electronegativity equalization (QEq) method.  See "Rick"_#Rick2 for
 further details.  This is implemented by the "fix
 qeq/comb"_fix_qeq_comb.html command, which should normally be
 specified in the input script when running a model with the COMB
@@ -187,6 +187,6 @@ S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)
 Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74,
 255-279 (2013).
 
-:link(Rick)
+:link(Rick2)
 [(Rick)] S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).

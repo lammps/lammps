@@ -31,7 +31,7 @@ struct SNA_LOOPINDICES {
 class SNA : protected Pointers {
 
 public:
-  SNA(LAMMPS*, double, int, int, int, double, int);
+  SNA(LAMMPS*, double, int, int, int, double, int, int);
 
   SNA(LAMMPS* lmp) : Pointers(lmp) {};
   ~SNA();
@@ -139,6 +139,8 @@ private:
   // Self-weight
   double wself;
 
+  int bzero_flag; // 1 if bzero subtracted from barray
+  double *bzero;  // array of B values for isolated atoms
 };
 
 }

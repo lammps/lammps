@@ -331,10 +331,7 @@ bonds and colors.
 
 Note that {atom}, {custom}, {dcd}, {xtc}, and {xyz} style dump files
 can be read directly by "VMD"_http://www.ks.uiuc.edu/Research/vmd, a
-popular molecular viewing program.  See
-"Section 9"_Section_tools.html#vmd of the manual and the
-tools/lmp2vmd/README.txt file for more information about support in
-VMD for reading and visualizing LAMMPS dump files.
+popular molecular viewing program.
 
 :line
 

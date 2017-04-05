@@ -217,6 +217,8 @@ class Fix : protected Pointers {
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
 
+  int dynamic;    // recount atoms for temperature computes
+
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);
   void v_setup(int);

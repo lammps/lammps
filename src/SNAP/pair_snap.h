@@ -98,7 +98,7 @@ protected:
   double *wjelem;               // elements weights
   double **coeffelem;           // element bispectrum coefficients
   int *map;                     // mapping from atom types to elements
-  int twojmax, diagonalstyle, switchflag;
+  int twojmax, diagonalstyle, switchflag, bzeroflag;
   double rcutfac, rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag; // flags for required parameters
   int gammaoneflag;              // 1 if parameter gamma is 1

@@ -152,7 +152,7 @@ such as when using a barostat.
 :line
 
 The {pppm/disp} and {pppm/disp/tip4p} styles add a mesh-based long-range
-dispersion sum option for 1/r^6 potentials "(Isele-Holder)"_#Isele-Holder,
+dispersion sum option for 1/r^6 potentials "(Isele-Holder)"_#Isele-Holder2012,
 similar to the {ewald/disp} style. The 1/r^6 capability means
 that Lennard-Jones or Buckingham potentials can be used without a cutoff,
 i.e. they become full long-range potentials.
@@ -163,8 +163,8 @@ This can be done by either choosing the Ewald and grid parameters, or
 by specifying separate accuracies for the real and kspace
 calculations. When not making any settings, the simulation will stop with
 an error message. Further information on the influence of the parameters
-and how to choose them is described in "(Isele-Holder)"_#Isele-Holder,
-"(Isele-Holder2)"_#Isele-Holder2 and the
+and how to choose them is described in "(Isele-Holder)"_#Isele-Holder2012,
+"(Isele-Holder2)"_#Isele-Holder2013 and the
 "How-To"_Section_howto.html#howto_24 discussion.
 
 :line
@@ -182,13 +182,13 @@ currently support the -DFFT_SINGLE compiler switch.
 :line
 
 The {msm} style invokes a multi-level summation method MSM solver,
-"(Hardy)"_#Hardy or "(Hardy2)"_#Hardy2, which maps atom charge to a 3d
-mesh, and uses a multi-level hierarchy of coarser and coarser meshes
-on which direct coulomb solves are done.  This method does not use
-FFTs and scales as N. It may therefore be faster than the other
+"(Hardy)"_#Hardy2006 or "(Hardy2)"_#Hardy2009, which maps atom charge
+to a 3d mesh, and uses a multi-level hierarchy of coarser and coarser
+meshes on which direct coulomb solves are done.  This method does not
+use FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
-core counts. MSM can also be used for non-periodic boundary conditions and
-for mixed periodic and non-periodic boundaries.
+core counts. MSM can also be used for non-periodic boundary conditions
+and for mixed periodic and non-periodic boundaries.
 
 MSM is most competitive versus Ewald and PPPM when only relatively
 low accuracy forces, about 1e-4 relative error or less accurate,
@@ -247,7 +247,7 @@ equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space for
 which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force
 errors in K-space for {pppm} are estimated using equation 38 of
 "(Deserno)"_#Deserno. RMS force errors for {msm} are estimated
-using ideas from chapter 3 of "(Hardy)"_#Hardy, with equation 3.197
+using ideas from chapter 3 of "(Hardy)"_#Hardy2006, with equation 3.197
 of particular note. When using {msm} with non-periodic boundary
 conditions, it is expected that the error estimation will be too
 pessimistic. RMS force errors for dipoles when using {ewald/disp}
@@ -366,19 +366,19 @@ and Computation 5, 2322 (2009)
 [(Toukmaji)] Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
 10913 (2000).
 
-:link(Isele-Holder)
+:link(Isele-Holder2012)
 [(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137,
 174107 (2012).
 
-:link(Isele-Holder2)
+:link(Isele-Holder2013)
 [(Isele-Holder2)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail,
 J Chem Theory Comput 9, 5412 (2013).
 
-:link(Hardy)
+:link(Hardy2006)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
 
-:link(Hardy2)
-[(Hardy)] Hardy, Stone, Schulten, Parallel Computing 35 (2009)
+:link(Hardy2009)
+[(Hardy2)] Hardy, Stone, Schulten, Parallel Computing 35 (2009)
 164-177.

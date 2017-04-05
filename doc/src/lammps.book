@@ -456,6 +456,7 @@ pair_meam_spline.html
 pair_meam_sw_spline.html
 pair_mgpt.html
 pair_mie.html
+pair_momb.html
 pair_morse.html
 pair_multi_lucy.html
 pair_multi_lucy_rx.html
@@ -463,6 +464,7 @@ pair_nb3b_harmonic.html
 pair_nm.html
 pair_none.html
 pair_oxdna.html
+pair_oxdna2.html
 pair_peri.html
 pair_polymorphic.html
 pair_quip.html

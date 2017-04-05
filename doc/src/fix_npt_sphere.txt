@@ -15,12 +15,17 @@ fix ID group-ID npt/sphere keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 npt/sphere = style name of this fix command
-additional thermostat and barostat related keyword/value pairs from the "fix npt"_fix_nh.html command can be appended :ul
+zero or more keyword/value pairs may be appended :l
+keyword = {disc} :l
+  {disc} value = none = treat particles as 2d discs, not spheres :pre
+additional thermostat and barostat related keyword/value pairs from the "fix npt"_fix_nh.html command can be appended :l,ule
+
 
 [Examples:]
 
 fix 1 all npt/sphere temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
 fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0
+fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0 disc
 fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0 drag 0.2
 fix 2 water npt/sphere temp 300.0 300.0 100.0 aniso 0.0 0.0 1000.0 dilate partial :pre
 
@@ -41,6 +46,12 @@ used which calculates a temperature that includes the rotational
 degrees of freedom (see below).  The translational degrees of freedom
 can also have a bias velocity removed from them before thermostatting
 takes place; see the description below.
+
+If the {disc} keyword is used, then each particle is treated as a 2d
+disc (circle) instead of as a sphere.  This is only possible for 2d
+simulations, as defined by the "dimension"_dimension.html keyword.
+The only difference between discs and spheres in this context is their
+moment of inertia, as used in the time integration.
 
 Additional parameters affecting the thermostat and barostat are
 specified by keywords and values documented with the "fix
@@ -162,6 +173,9 @@ command.
 
 All particles in the group must be finite-size spheres.  They cannot
 be point particles.
+
+Use of the {disc} keyword is only allowed for 2d simulations, as
+defined by the "dimension"_dimension.html keyword.
 
 [Related commands:]
 

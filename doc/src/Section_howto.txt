@@ -165,9 +165,16 @@ Many of the example input scripts included in the LAMMPS distribution
 are for 2d models.
 
 NOTE: Some models in LAMMPS treat particles as finite-size spheres, as
-opposed to point particles.  In 2d, the particles will still be
-spheres, not disks, meaning their moment of inertia will be the same
-as in 3d.
+opposed to point particles.  See the "atom_style
+sphere"_atom_style.html and "fix nve/sphere"_fix_nve_sphere.html
+commands for details.  By default, for 2d simulations, such particles
+will still be modeled as 3d spheres, not 2d discs (circles), meaning
+their moment of inertia will be that of a sphere.  If you wish to
+model them as 2d discs, see the "set density/disc"_set.html command
+and the {disc} option for the "fix nve/sphere"_fix_nve_sphere.html,
+"fix nvt/sphere"_fix_nvt_sphere.html, "fix
+nph/sphere"_fix_nph_sphere.html, "fix npt/sphere"_fix_npt_sphere.html
+commands.
 
 :line
 
@@ -197,13 +204,22 @@ documentation for the formula it computes.
 
 "bond_style"_bond_harmonic.html harmonic
 "angle_style"_angle_charmm.html charmm
+"dihedral_style"_dihedral_charmm.html charmmfsh
 "dihedral_style"_dihedral_charmm.html charmm
+"pair_style"_pair_charmm.html lj/charmmfsw/coul/charmmfsh
+"pair_style"_pair_charmm.html lj/charmmfsw/coul/long
 "pair_style"_pair_charmm.html lj/charmm/coul/charmm
 "pair_style"_pair_charmm.html lj/charmm/coul/charmm/implicit
 "pair_style"_pair_charmm.html lj/charmm/coul/long :ul
 
 "special_bonds"_special_bonds.html charmm
 "special_bonds"_special_bonds.html amber :ul
+
+NOTE: For CHARMM, the newer {charmmfsw} or {charmmfsh} styles were
+released in March 2017.  We recommend they be used instead of the
+older {charmm} styles.  See discussion of the differences on the "pair
+charmm"_pair_charmm.html and "dihedral charmm"_dihedral_charmm.html
+doc pages.
 
 DREIDING is a generic force field developed by the "Goddard
 group"_http://www.wag.caltech.edu at Caltech and is useful for
@@ -434,6 +450,12 @@ computations between frozen atoms by using this command:
 
 "neigh_modify"_neigh_modify.html exclude :ul
 
+NOTE: By default, for 2d systems, granular particles are still modeled
+as 3d spheres, not 2d discs (circles), meaning their moment of inertia
+will be the same as in 3d.  If you wish to model granular particles in
+2d as 2d discs, see the note on this topic in "Section
+6.2"_Section_howto.html#howto_2, where 2d simulations are disussed.
+
 :line
 
 6.7 TIP3P water model :link(howto_7),h4
@@ -451,7 +473,7 @@ atoms and the water molecule to run a rigid TIP3P-CHARMM model with a
 cutoff.  The K values can be used if a flexible TIP3P model (without
 fix shake) is desired.  If the LJ epsilon and sigma for HH and OH are
 set to 0.0, it corresponds to the original 1983 TIP3P model
-"(Jorgensen)"_#Jorgensen.
+"(Jorgensen)"_#Jorgensen1.
 
 O mass = 15.9994
 H mass = 1.008
@@ -469,7 +491,7 @@ K of HOH angle = 55
 theta of HOH angle = 104.52 :all(b),p
 
 These are the parameters to use for TIP3P with a long-range Coulombic
-solver (e.g. Ewald or PPPM in LAMMPS), see "(Price)"_#Price for
+solver (e.g. Ewald or PPPM in LAMMPS), see "(Price)"_#Price1 for
 details:
 
 O mass = 15.9994
@@ -513,7 +535,7 @@ using the "fix shake"_fix_shake.html command.
 
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
-"(Jorgensen)"_#Jorgensen.  Note that the OM distance is specified in
+"(Jorgensen)"_#Jorgensen1.  Note that the OM distance is specified in
 the "pair_style"_pair_style.html command, not as part of the pair
 coefficients.
 
@@ -737,23 +759,14 @@ LAMMPS itself does not do visualization, but snapshots from LAMMPS
 simulations can be visualized (and analyzed) in a variety of ways.
 
 LAMMPS snapshots are created by the "dump"_dump.html command which can
-create files in several formats.  The native LAMMPS dump format is a
+create files in several formats. The native LAMMPS dump format is a
 text file (see "dump atom" or "dump custom") which can be visualized
-by the "xmovie"_Section_tools.html#xmovie program, included with the
-LAMMPS package.  This produces simple, fast 2d projections of 3d
-systems, and can be useful for rapid debugging of simulation geometry
-and atom trajectories.
-
+by several popular visualization tools. The "dump image"_dump_image.html
+and "dump movie"_dump_image.html styles can output internally rendered
+images and convert a sequence of them to a movie during the MD run.
 Several programs included with LAMMPS as auxiliary tools can convert
-native LAMMPS dump files to other formats.  See the
-"Section 9"_Section_tools.html doc page for details.  The first is
-the "ch2lmp tool"_Section_tools.html#charmm, which contains a
-lammps2pdb Perl script which converts LAMMPS dump files into PDB
-files.  The second is the "lmp2arc tool"_Section_tools.html#arc which
-converts LAMMPS dump files into Accelrys' Insight MD program files.
-The third is the "lmp2cfg tool"_Section_tools.html#cfg which converts
-LAMMPS dump files into CFG files which can be read into the
-"AtomEye"_atomeye visualizer.
+between LAMMPS format files and other formats.
+See the "Section 9"_Section_tools.html doc page for details.
 
 A Python-based toolkit distributed by our group can read native LAMMPS
 dump files, including custom dump files with additional columns of
@@ -766,22 +779,7 @@ RasMol visualization programs.  Pizza.py has tools that do interactive
 3d OpenGL visualization and one that creates SVG images of dump file
 snapshots.
 
-LAMMPS can create XYZ files directly (via "dump xyz") which is a
-simple text-based file format used by many visualization programs
-including "VMD"_vmd.
-
-LAMMPS can create DCD files directly (via "dump dcd") which can be
-read by "VMD"_vmd in conjunction with a CHARMM PSF file.  Using this
-form of output avoids the need to convert LAMMPS snapshots to PDB
-files.  See the "dump"_dump.html command for more information on DCD
-files.
-
-LAMMPS can create XTC files directly (via "dump xtc") which is GROMACS
-file format which can also be read by "VMD"_vmd for visualization.
-See the "dump"_dump.html command for more information on XTC files.
-
 :link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
-:link(vmd,http://www.ks.uiuc.edu/Research/vmd)
 :link(ensight,http://www.ensight.com)
 :link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
 
@@ -1688,7 +1686,7 @@ nph) and Berendsen:
 The "fix npt"_fix_nh.html commands include a Nose-Hoover thermostat
 and barostat.  "Fix nph"_fix_nh.html is just a Nose/Hoover barostat;
 it does no thermostatting.  Both "fix nph"_fix_nh.html and "fix
-press/bernendsen"_fix_press_berendsen.html can be used in conjunction
+press/berendsen"_fix_press_berendsen.html can be used in conjunction
 with any of the thermostatting fixes.
 
 As with the thermostats, "fix npt"_fix_nh.html and "fix
@@ -1838,7 +1836,7 @@ the deformation must be chosen judiciously, and care must be taken to
 fully equilibrate the deformed cell before sampling the stress
 tensor. Another approach is to sample the triclinic cell fluctuations
 that occur in an NPT simulation. This method can also be slow to
-converge and requires careful post-processing "(Shinoda)"_#Shinoda
+converge and requires careful post-processing "(Shinoda)"_#Shinoda1
 
 :line
 
@@ -1961,9 +1959,12 @@ The extract functions return a pointer to various global or per-atom
 quantities stored in LAMMPS or to values calculated by a compute, fix,
 or variable.  The pointer returned by the extract_global() function
 can be used as a permanent reference to a value which may change.  For
-the other extract functions, the underlying storage may be reallocated
-as LAMMPS runs, so you need to re-call the function to assure a
-current pointer or returned value(s).
+the extract_atom() method, see the extract() method in the
+src/atom.cpp file for a list of valid per-atom properties.  New names
+could easily be added if the property you want is not listed.  For the
+other extract functions, the underlying storage may be reallocated as
+LAMMPS runs, so you need to re-call the function to assure a current
+pointer or returned value(s).
 
 The lammps_reset_box() function resets the size and shape of the
 simulation box, e.g. as part of restoring a previously extracted and
@@ -1979,11 +1980,20 @@ keyword as a double precision value.
 The lammps_get_natoms() function returns the total number of atoms in
 the system and can be used by the caller to allocate space for the
 lammps_gather_atoms() and lammps_scatter_atoms() functions.  The
-gather function collects atom info of the requested type (atom coords,
-types, forces, etc) from all processors, orders them by atom ID, and
-returns a full list to each calling processor.  The scatter function
-does the inverse.  It distributes the same kinds of values, 
+gather function collects peratom info of the requested type (atom
+coords, types, forces, etc) from all processors, orders them by atom
+ID, and returns a full list to each calling processor.  The scatter
+function does the inverse.  It distributes the same peratom values,
 passed by the caller, to each atom owned by individual processors.
+Both methods are thus a means to extract or assign (overwrite) any
+peratom quantities within LAMMPS.  See the extract() method in the
+src/atom.cpp file for a list of valid per-atom properties.  New names
+could easily be added if the property you want is not listed.
+A special treatment is applied for accessing image flags via the
+"image" property. Image flags are stored in a packed format with all
+three image flags stored in a single integer. When signaling to access
+the image flags as 3 individual values per atom instead of 1, the data
+is transparently packed or unpacked by the library interface.
 
 The lammps_create_atoms() function takes a list of N atoms as input
 with atom types and coords (required), an optionally atom IDs and
@@ -2903,14 +2913,14 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 [(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
 
-:link(Jorgensen)
+:link(Jorgensen1)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
-:link(Price)
+:link(Price1)
 [(Price)] Price and Brooks, J Chem Phys, 121, 10096 (2004).
 
-:link(Shinoda)
+:link(Shinoda1)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
 :link(MitchellFincham)

@@ -117,6 +117,12 @@ treated as rigid bodies, use the {rigid} keyword, specifying as its
 value the ID of a separate "fix rigid/small"_fix_rigid.html
 command which also appears in your input script.
 
+NOTE: If you wish the new rigid molecules (and other rigid molecules)
+to be thermostatted correctly via "fix rigid/small/nvt"_fix_rigid.html
+or "fix rigid/small/npt"_fix_rigid.html, then you need to use the
+"fix_modify dynamic/dof yes" command for the rigid fix.  This is to
+inform that fix that the molecule count will vary dynamically.
+
 If you wish to insert molecules via the {mol} keyword, that will have
 their bonds or angles constrained via SHAKE, use the {shake} keyword,
 specifying as its value the ID of a separate "fix

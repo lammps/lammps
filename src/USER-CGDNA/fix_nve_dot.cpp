@@ -10,9 +10,8 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
 #include <math.h>

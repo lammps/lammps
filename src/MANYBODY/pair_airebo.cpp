@@ -709,13 +709,13 @@ void PairAIREBO::FLJ(int eflag, int vflag)
                     atomm = m;
                     delkmS[0] = delkm[0];
                     delkmS[1] = delkm[1];
-                        delkmS[2] = delkm[2];
+                    delkmS[2] = delkm[2];
                     rkmS = rkm;
                     wkmS = wkm;
                     dwkmS = dwkm;
                     deljmS[0] = deljm[0];
                     deljmS[1] = deljm[1];
-                       deljmS[2] = deljm[2];
+                    deljmS[2] = deljm[2];
                     rmjS = rmj;
                     wmjS = wmj;
                     dwmjS = dwmj;
@@ -3183,7 +3183,9 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
   for (i=0; i<64; i++) coeffs[i]=0.0;
 
   if (typei==0 && typej==0) {
-    //if the inputs are out of bounds set them back to a point in bounds
+
+    // if the inputs are out of bounds set them back to a point in bounds
+
     if (Nij<piCCdom[0][0]) Nij=piCCdom[0][0];
     if (Nij>piCCdom[0][1]) Nij=piCCdom[0][1];
     if (Nji<piCCdom[1][0]) Nji=piCCdom[1][0];
@@ -3213,10 +3215,10 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
     }
   }
 
-
   // CH interaction
 
   if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
+
     // if the inputs are out of bounds set them back to a point in bounds
 
     if (Nij<piCHdom[0][0] || Nij>piCHdom[0][1] ||

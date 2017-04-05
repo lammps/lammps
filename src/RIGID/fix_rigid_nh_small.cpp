@@ -321,36 +321,8 @@ void FixRigidNHSmall::init()
 void FixRigidNHSmall::setup(int vflag)
 {
   FixRigidSmall::setup(vflag);
-
-  // total translational and rotational degrees of freedom
-
-  nf_t = dimension * nlocal_body;
-  if (dimension == 3) {
-    nf_r = dimension * nlocal_body;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];
-      for (int k = 0; k < dimension; k++)
-        if (fabs(b->inertia[k]) < EPSILON) nf_r--;
-    }
-  } else if (dimension == 2) {
-    nf_r = nlocal_body;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];
-      if (fabs(b->inertia[2]) < EPSILON) nf_r--;
-    }
-  }
-
-  double nf[2], nfall[2];
-  nf[0] = nf_t;
-  nf[1] = nf_r;
-  MPI_Allreduce(nf,nfall,2,MPI_DOUBLE,MPI_SUM,world);
-  nf_t = nfall[0];
-  nf_r = nfall[1];
-
-  g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
-
+  compute_dof();
+  
   double mbody[3];
   akin_t = akin_r = 0.0;
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
@@ -608,6 +580,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
 
   if (tstat_flag) {
     compute_temp_target();
+    if (dynamic) compute_dof();
     nhc_temp_integrate();
   }
 
@@ -1273,6 +1246,40 @@ void FixRigidNHSmall::nh_epsilon_dot()
   mtk_term2 /= g_f;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixRigidNHSmall::compute_dof()
+{
+  // total translational and rotational degrees of freedom
+
+  nf_t = dimension * nlocal_body;
+  if (dimension == 3) {
+    nf_r = dimension * nlocal_body;
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+      Body *b = &body[ibody];
+      for (int k = 0; k < dimension; k++)
+        if (fabs(b->inertia[k]) < EPSILON) nf_r--;
+    }
+  } else if (dimension == 2) {
+    nf_r = nlocal_body;
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+      Body *b = &body[ibody];
+      if (fabs(b->inertia[2]) < EPSILON) nf_r--;
+    }
+  }
+
+  double nf[2], nfall[2];
+  nf[0] = nf_t;
+  nf[1] = nf_r;
+  MPI_Allreduce(nf,nfall,2,MPI_DOUBLE,MPI_SUM,world);
+  nf_t = nfall[0];
+  nf_r = nfall[1];
+
+  g_f = nf_t + nf_r;
+  onednft = 1.0 + (double)(dimension) / (double)g_f;
+  onednfr = (double) (dimension) / (double)g_f;
+}
+
 /* ----------------------------------------------------------------------
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
@@ -1508,4 +1515,3 @@ void FixRigidNHSmall::deallocate_order()
   delete [] wdti2;
   delete [] wdti4;
 }
-

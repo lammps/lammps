@@ -22,10 +22,7 @@ int main(int argc, char *argv[])
     char *out_file;
     unsigned int step, nsteps, total, out_freq;
     int *pos, *dpos, *newpos;
-    unsigned int *histogram;
-    const double *grad, *newgrad;
     unsigned int offset, newoffset;
-    int not_accepted;
     double dA;
     double temp;
     double mbeta;
@@ -47,7 +44,7 @@ int main(int argc, char *argv[])
 
     if (!(data_file = parse_cl(argc, argv, &nsteps, &temp, &meta, &hill, &hill_fact))) {
         std::cerr << "\nabf_integrate: MC-based integration of multidimensional free energy gradient\n";
-        std::cerr << "Version 20110511\n\n";
+        std::cerr << "Version 20160420\n\n";
         std::cerr << "Syntax: " << argv[0] <<
             " <filename> [-n <nsteps>] [-t <temp>] [-m [0|1] (metadynamics)]"
             " [-h <hill_height>] [-f <variable_hill_factor>]\n\n";
@@ -62,7 +59,7 @@ int main(int argc, char *argv[])
     } else {
         std::cout << "\nUsing unbiased MC sampling\n";
     }
-    
+
     if (nsteps) {
         std::cout << "Sampling " << nsteps << " steps at temperature " << temp << "\n\n";
         out_freq = nsteps / 10;
@@ -74,7 +71,7 @@ int main(int argc, char *argv[])
         converged = false;
     }
 
-    // Inverse temperature in (kcal/mol)-1 
+    // Inverse temperature in (kcal/mol)-1
     mbeta = -1 / (0.001987 * temp);
 
     ABFdata data(data_file);
@@ -91,12 +88,16 @@ int main(int argc, char *argv[])
     dpos = new int[data.Nvars];
     newpos = new int[data.Nvars];
 
+    // TODO: this will be an infinite loop if there is no sampling
+    // it would be more robust to build a list of non-empty bins, and
+    // pick from there (or just treat the special case of no sampling
+    // and output a null PMF)
     do {
       for (int i = 0; i < data.Nvars; i++) {
           pos[i] = rand() % data.sizes[i];
       }
       offset = data.offset(pos);
-    } while ( !data.allowed (offset) ); 
+    } while ( !data.allowed (offset) );
 
     rmsd = compute_deviation(&data, meta, 0.001987 * temp);
     std::cout << "\nInitial gradient RMS is " << rmsd << "\n";
@@ -128,9 +129,9 @@ int main(int argc, char *argv[])
             data.bias[offset] += hill;
         }
 
-        grad = data.gradients + offset * data.Nvars;
+        const double *grad = data.gradients + offset * data.Nvars;
 
-        not_accepted = 1;
+        int not_accepted = 1;
         while (not_accepted) {
             dA = 0.0;
             total++;
@@ -206,7 +207,7 @@ double compute_deviation(ABFdata * data, bool meta, double kT)
     double        *dev = data->deviation;
     double        *est = data->estimate;
     const double  *grad = data->gradients;
-    int           *pos, *dpos, *newpos;
+    int           *pos, *newpos;
     double        rmsd = 0.0;
     unsigned int  offset, newoffset;
     double        sum;
@@ -215,7 +216,6 @@ double compute_deviation(ABFdata * data, bool meta, double kT)
     unsigned int  norm = 0; // number of data points summmed
 
     pos = new int[data->Nvars];
-    dpos = new int[data->Nvars];
     newpos = new int[data->Nvars];
 
     for (int i = 0; i < data->Nvars; i++)
@@ -287,7 +287,6 @@ double compute_deviation(ABFdata * data, bool meta, double kT)
 
     delete [] pos;
     delete [] newpos;
-    delete [] dpos;
 
     return sqrt(rmsd / norm);
 }
@@ -296,8 +295,6 @@ double compute_deviation(ABFdata * data, bool meta, double kT)
 char *parse_cl(int argc, char *argv[], unsigned int *nsteps, double *temp,
                bool * meta, double *hill, double *hill_fact)
 {
-    char *filename = NULL;
-    float f_temp, f_hill;
     int meta_int;
 
     // getting default value for the integer

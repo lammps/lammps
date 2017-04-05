@@ -137,7 +137,7 @@ and beta_pi,ij)(r_ij).
 
 The parameters/coefficients format for the different kinds of BOP
 files are given below with variables matching the formulation of Ward
-("Ward"_#Ward) and Zhou ("Zhou"_#Zhou). Each header line containing a
+("Ward"_#Ward) and Zhou ("Zhou"_#Zhou1). Each header line containing a
 ":" is preceded by a blank line.
 
 
@@ -258,7 +258,7 @@ Line 2: (A_ij)^(mu*nu) (for e1-e2 and repeats as above) :ul
 The parameters/coefficients format for the BOP potentials input file
 containing pre-tabulated functions of g is given below with variables
 matching the formulation of Ward ("Ward"_#Ward).  This format also
-assumes the angular functions have the formulation of ("Zhou"_#Zhou).
+assumes the angular functions have the formulation of ("Zhou"_#Zhou1).
 
 Line 1: # elements N :ul
 
@@ -314,7 +314,7 @@ The rest of the table has the same structure as the previous section
 The parameters/coefficients format for the BOP potentials input file
 containing pre-tabulated functions of g is given below with variables
 matching the formulation of Ward ("Ward"_#Ward).  This format also
-assumes the angular functions have the formulation of ("Zhou"_#Zhou).
+assumes the angular functions have the formulation of ("Zhou"_#Zhou1).
 
 Line 1: # elements N :ul
 
@@ -425,5 +425,5 @@ Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006).
 [(Ward)] D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A.
 Zimmerman, Phys. Rev. B, 85,115206 (2012).
 
-:link(Zhou)
+:link(Zhou1)
 [(Zhou)] X.W. Zhou, D.K. Ward, M. Foster (TBP).

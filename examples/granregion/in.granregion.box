@@ -29,15 +29,15 @@ fix             ins all pour 100 2 4767548 vol 0.4 10 &
 timestep	0.005
 
 compute         1 all temp
-compute_modify  1 dynamic yes
+compute_modify  1 dynamic/dof yes
 
 compute         2 all temp/sphere
-compute_modify  2 dynamic yes
+compute_modify  2 dynamic/dof yes
 
 thermo		100
 thermo_style	custom step atoms temp c_1 c_2 press
 thermo_modify   lost ignore
-compute_modify  thermo_temp dynamic yes
+compute_modify  thermo_temp dynamic/dof yes
 
 #dump		2 all image 100 image.*.jpg type type &
 #		zoom 1.4 adiam 1.0 box no 0.0 axes yes 0.9 0.03

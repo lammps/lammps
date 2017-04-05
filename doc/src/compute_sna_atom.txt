@@ -24,7 +24,7 @@ twojmax = band limit for bispectrum components (non-negative integer) :l
 R_1, R_2,... = list of cutoff radii, one for each type (distance units) :l
 w_1, w_2,... = list of neighbor weights, one for each type  :l
 zero or more keyword/value pairs may be appended :l
-keyword = {diagonal} or {rmin0} or {switchflag} :l
+keyword = {diagonal} or {rmin0} or {switchflag} or {bzeroflag} :l
   {diagonal} value = {0} or {1} or {2} or {3}
      {0} = all j1, j2, j <= twojmax, j2 <= j1
      {1} = subset satisfying j1 == j2
@@ -33,7 +33,10 @@ keyword = {diagonal} or {rmin0} or {switchflag} :l
   {rmin0} value = parameter in distance to angle conversion (distance units)
   {switchflag} value = {0} or {1}
      {0} = do not use switching function
-     {1} = use switching function :pre
+     {1} = use switching function
+  {bzeroflag} value = {0} or {1}
+     {0} = do not subtract B0
+     {1} = subtract B0 :pre
 :ule
 
 [Examples:]
@@ -50,12 +53,12 @@ for each atom in a group.
 Bispectrum components of an atom are order parameters characterizing
 the radial and angular distribution of neighbor atoms. The detailed
 mathematical definition is given in the paper by Thompson et
-al. "(Thompson)"_#Thompson2014
+al. "(Thompson)"_#Thompson20141
 
 The position of a neighbor atom {i'} relative to a central atom {i} is
 a point within the 3D ball of radius {R_ii' = rcutfac*(R_i + R_i')}
 
-Bartok et al. "(Bartok)"_#Bartok2010, proposed mapping this 3D ball
+Bartok et al. "(Bartok)"_#Bartok20101, proposed mapping this 3D ball
 onto the 3-sphere, the surface of the unit ball in a four-dimensional
 space.  The radial distance {r} within {R_ii'} is mapped on to a third
 polar angle {theta0} defined by,
@@ -92,7 +95,7 @@ The expansion coefficients {u^j_m,m'} are complex-valued and they are
 not directly useful as descriptors, because they are not invariant
 under rotation of the polar coordinate frame. However, the following
 scalar triple products of expansion coefficients can be shown to be
-real-valued and invariant under rotation "(Bartok)"_#Bartok2010.
+real-valued and invariant under rotation "(Bartok)"_#Bartok20101.
 
 :c,image(Eqs/compute_sna_atom3.jpg)
 
@@ -152,6 +155,12 @@ ordered in which they are listed
 
 The keyword {switchflag} can be used to turn off the switching
 function.
+
+The keyword {bzeroflag} determines whether or not {B0}, the bispectrum
+components of an atom with no neighbors, are subtracted from
+the calculated bispectrum components. This optional keyword is only
+available for compute {sna/atom}, as {snad/atom} and {snav/atom}
+are unaffected by the removal of constant terms.
 
 NOTE: If you have a bonded system, then the settings of
 "special_bonds"_special_bonds.html command can remove pairwise
@@ -222,15 +231,15 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Default:]
 
 The optional keyword defaults are {diagonal} = 0, {rmin0} = 0,
-{switchflag} = 1.
+{switchflag} = 1, {bzeroflag} = 0.
 
 :line
 
-:link(Thompson2014)
+:link(Thompson20141)
 [(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint
 available at "arXiv:1409.3880"_http://arxiv.org/abs/1409.3880
 
-:link(Bartok2010)
+:link(Bartok20101)
 [(Bartok)] Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
 :link(Meremianin2006)

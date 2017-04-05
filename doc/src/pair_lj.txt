@@ -149,7 +149,7 @@ where kappa is the inverse of the Debye length.  This potential is
 another way to mimic the screening effect of a polar solvent.
 
 Style {lj/cut/coul/dsf} computes the Coulombic term via the damped
-shifted force model described in "Fennell"_#Fennell, given by:
+shifted force model described in "Fennell"_#Fennell2, given by:
 
 :c,image(Eqs/pair_coul_dsf.jpg)
 
@@ -180,7 +180,7 @@ model"_Section_howto.html#howto_25 to allow charges on core and shell
 particles to be separated by r = 0.0.
 
 Styles {lj/cut/tip4p/cut} and {lj/cut/tip4p/long} implement the TIP4P
-water model of "(Jorgensen)"_#Jorgensen, which introduces a massless
+water model of "(Jorgensen)"_#Jorgensen2, which introduces a massless
 site located a short distance away from the oxygen atom along the
 bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
@@ -311,10 +311,10 @@ installed by default.
 
 :line
 
-:link(Jorgensen)
+:link(Jorgensen2)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
-:link(Fennell)
+:link(Fennell2)
 [(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).

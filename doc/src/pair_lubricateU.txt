@@ -37,7 +37,7 @@ other types of interactions.
 
 The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in "(Ball and
-Melrose)"_#Ball
+Melrose)"_#Ball2
 
 :c,image(Eqs/pair_lubricate.jpg)
 
@@ -67,7 +67,7 @@ computed.  Using a {cutoff} less than 3 radii is recommended if
 {flaglog} is set to 1.
 
 The other component is due to the Fast Lubrication Dynamics (FLD)
-approximation, described in "(Kumar)"_#Kumar.  The equation being
+approximation, described in "(Kumar)"_#Kumar2.  The equation being
 solved to balance the forces and torques is
 
 :c,image(Eqs/fld2.jpg)
@@ -211,8 +211,8 @@ The default settings for the optional args are flagHI = 1 and flagVF =
 
 :line
 
-:link(Ball)
+:link(Ball2)
 [(Ball)] Ball and Melrose, Physica A, 247, 444-472 (1997).
 
-:link(Kumar)
+:link(Kumar2)
 [(Kumar)] Kumar and Higdon, Phys Rev E, 82, 051401 (2010).

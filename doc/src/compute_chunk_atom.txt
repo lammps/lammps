@@ -148,7 +148,9 @@ described further below where the keywords are discussed.
 The {binning} styles perform a spatial binning of atoms, and assign an
 atom the chunk ID corresponding to the bin number it is in.  {Nchunk}
 is set to the number of bins, which can change if the simulation box
-size changes.
+size changes.  This also depends on the setting of the {units}
+keyword; e.g. for {reduced} units the number of chunks may not change
+even if the box size does.
 
 The {bin/1d}, {bin/2d}, and {bin/3d} styles define bins as 1d layers
 (slabs), 2d pencils, or 3d boxes.  The {dim}, {origin}, and {delta}

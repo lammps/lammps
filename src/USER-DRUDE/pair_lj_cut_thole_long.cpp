@@ -640,10 +640,12 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
       if (j != di_closest){
         if (drudetype[i] == CORE_TYPE) dqi = -atom->q[di];
         else if (drudetype[i] == DRUDE_TYPE) dqi = atom->q[i];
+        else dqi = 0.0;
         if (drudetype[j] == CORE_TYPE) {
           dj = atom->map(drudeid[j]);
           dqj = -atom->q[dj];
         } else if (drudetype[j] == DRUDE_TYPE) dqj = atom->q[j];
+        else dqj = 0.0;
         asr = ascreen[itype][jtype] * r;
         exp_asr = exp(-asr);
         dcoul = force->qqrd2e * dqi * dqj / r;

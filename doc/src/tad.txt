@@ -56,11 +56,11 @@ Run a temperature accelerated dynamics (TAD) simulation. This method
 requires two or more partitions to perform NEB transition state
 searches.
 
-TAD is described in "this paper"_#Voter by Art Voter.  It is a method
+TAD is described in "this paper"_#Voter2000 by Art Voter.  It is a method
 that uses accelerated dynamics at an elevated temperature to generate
 results at a specified lower temperature.  A good overview of
 accelerated dynamics methods for such systems is given in "this review
-paper"_#Voter2 from the same group. In general, these methods assume
+paper"_#Voter2002 from the same group. In general, these methods assume
 that the long-time dynamics is dominated by infrequent events i.e. the
 system is is confined to low energy basins for long periods,
 punctuated by brief, randomly-occurring transitions to adjacent
@@ -304,9 +304,9 @@ the "timestep"_timestep.html command, and {neb_log} = "none".
 
 :line
 
-:link(Voter)
-[(Voter)] Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
+:link(Voter2000)
+[(Voter2000)] Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
 
-:link(Voter2)
-[(Voter2)] Voter, Montalenti, Germann, Annual Review of Materials
+:link(Voter2002)
+[(Voter2002)] Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

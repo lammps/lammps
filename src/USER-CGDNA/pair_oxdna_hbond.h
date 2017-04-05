@@ -10,13 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
-------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna_hbond,PairOxdnaHbond)
+PairStyle(oxdna/hbond,PairOxdnaHbond)
+PairStyle(oxdna2/hbond,PairOxdnaHbond)
 
 #else
 

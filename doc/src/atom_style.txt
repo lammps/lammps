@@ -110,7 +110,12 @@ basis.
 For the {sphere} style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
 is a finite-size sphere.  If the diameter = 0.0, it is a point
-particle.
+particle.  Note that by use of the {disc} keyword with the "fix
+nve/sphere"_fix_nve_sphere.html, "fix nvt/sphere"_fix_nvt_sphere.html,
+"fix nph/sphere"_fix_nph_sphere.html, "fix
+npt/sphere"_fix_npt_sphere.html commands, spheres can be effectively
+treated as 2d discs for a 2d simulation if desired.  See also the "set
+density/disc"_set.html command.
 
 For the {ellipsoid} style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or

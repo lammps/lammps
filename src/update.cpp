@@ -128,7 +128,7 @@ void Update::set_units(const char *style)
 
   if (strcmp(style,"lj") == 0) {
     force->boltz = 1.0;
-    force->hplanck = 0.18292026;  // using LJ parameters for argon
+    force->hplanck = 1.0;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;

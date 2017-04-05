@@ -44,12 +44,12 @@ a particle as "spherical").
 
 For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
-curvatures "(Everaers)"_#Everaers:
+curvatures "(Everaers)"_#Everaers2:
 
 :c,image(Eqs/pair_gayberne2.jpg)
 
 The variable names utilized as potential parameters are for the most
-part taken from "(Everaers)"_#Everaers in order to be consistent with
+part taken from "(Everaers)"_#Everaers2 in order to be consistent with
 the "RE-squared pair potential"_pair_resquared.html.  Details on the
 upsilon and mu parameters are given
 "here"_PDF/pair_resquared_extra.pdf.
@@ -203,7 +203,7 @@ spherical particles, or point particles.  Spherical particles have all
 all 3 of their shape parameters equal to 0.0.
 
 The Gay-Berne potential does not become isotropic as r increases
-"(Everaers)"_#Everaers.  The distance-of-closest-approach
+"(Everaers)"_#Everaers2.  The distance-of-closest-approach
 approximation used by LAMMPS becomes less accurate when high-aspect
 ratio ellipsoids are used.
 
@@ -217,7 +217,7 @@ resquared"_pair_resquared.html
 
 :line
 
-:link(Everaers)
+:link(Everaers2)
 [(Everaers)] Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 :link(Berardi)
@@ -227,5 +227,5 @@ Berardi, Muccioli, Zannoni, J Chem Phys, 128, 024905 (2008).
 :link(Perram)
 [(Perram)] Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).
 
-:link(Allen)
+:link(Allen3)
 [(Allen)] Allen and Germano, Mol Phys 104, 3225-3235 (2006).

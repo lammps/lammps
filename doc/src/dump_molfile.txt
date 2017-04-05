@@ -34,10 +34,7 @@ to one or more files every N timesteps in one of several formats.
 Only information for atoms in the specified group is dumped.  This
 specific dump style uses molfile plugins that are bundled with the
 "VMD"_http://www.ks.uiuc.edu/Research/vmd molecular visualization and
-analysis program.  See "Section 9"_Section_tools.html#vmd of the
-manual and the tools/lmp2vmd/README.txt file for more information
-about support in VMD for reading and visualizing native LAMMPS dump
-files.
+analysis program.
 
 Unless the filename contains a * character, the output will be written
 to one single file with the specified format. Otherwise there will be

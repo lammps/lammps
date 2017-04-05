@@ -19,7 +19,7 @@ set	     group all quat/random 18238
 compute	     rot all temp/asphere
 group	     spheroid type 1
 variable     dof equal count(spheroid)+2
-compute_modify rot extra ${dof}
+compute_modify rot extra/dof ${dof}
 
 velocity     all create 2.4 87287 loop geom
 
@@ -52,7 +52,7 @@ fix	     1 all npt/asphere temp 2.0 2.0 0.1 iso 0.0 1.0 1.0 &
 	       mtk no pchain 0 tchain 1
 fix	     2 all enforce2d
 
-compute_modify 1_temp extra ${dof}
+compute_modify 1_temp extra/dof ${dof}
 
 # equilibrate to shrink box around dilute system
 

@@ -633,6 +633,15 @@ style, in which case the mass of each particle (body or point
 particle) is specified explicitly.  This is because the volume of the
 body is unknown.
 
+Note that for 2d simulations of spheres, this command will treat them
+as spheres when converting density to mass.  However, they can also be
+modeled as 2d discs (circles) if the "set density/disc"_set.html
+command is used to reset their mass after the read_data command is
+used.  A {disc} keyword can also be used with time integration fixes,
+such as "fix nve/sphere"_fix_nve_sphere.html and "fix
+nvt/sphere"_fix_nve_sphere.html to time integrate their motion as 2d
+discs (not 3d spheres), by changing their moment of inertia.
+
 For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the

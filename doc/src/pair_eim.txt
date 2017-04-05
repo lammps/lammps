@@ -25,7 +25,7 @@ pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na :pre
 [Description:]
 
 Style {eim} computes pairwise interactions for ionic compounds
-using embedded-ion method (EIM) potentials "(Zhou)"_#Zhou.  The
+using embedded-ion method (EIM) potentials "(Zhou)"_#Zhou2.  The
 energy of the system E is given by
 
 :c,image(Eqs/pair_eim1.jpg)
@@ -169,6 +169,6 @@ LAMMPS was built with that package.
 
 :line
 
-:link(Zhou)
+:link(Zhou2)
 [(Zhou)] Zhou, submitted for publication (2010).  Please contact
 Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.

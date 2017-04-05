@@ -1411,7 +1411,7 @@ void PairSNAP::coeff(int narg, char **arg)
     int tid = omp_get_thread_num();
     sna[tid] = new SNA(lmp,rfac0,twojmax,
                        diagonalstyle,use_shared_arrays,
-		       rmin0,switchflag);
+		       rmin0,switchflag,bzeroflag);
     if (!use_shared_arrays)
       sna[tid]->grow_rij(nmax);
   }
@@ -1635,6 +1635,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   rmin0 = 0.0;
   diagonalstyle = 3;
   switchflag = 1;
+  bzeroflag = 0;
   // open SNAP parameter file on proc 0
 
   FILE *fpparam;
@@ -1697,6 +1698,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       diagonalstyle = atoi(keyval);
     else if (strcmp(keywd,"switchflag") == 0)
       switchflag = atoi(keyval);
+    else if (strcmp(keywd,"bzeroflag") == 0)
+      bzeroflag = atoi(keyval);
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }

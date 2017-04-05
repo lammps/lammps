@@ -50,11 +50,12 @@ enum{ISO,ANISO,TRICLINIC};
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
-FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
-eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
-eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-etap_mass(NULL)
+FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : 
+  Fix(lmp, narg, arg),
+  rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
+  eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
+  eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
+  etap_mass(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nvt/npt/nph command");
 
@@ -132,7 +133,7 @@ etap_mass(NULL)
       t_target = t_start;
       t_stop = force->numeric(FLERR,arg[iarg+2]);
       t_period = force->numeric(FLERR,arg[iarg+3]);
-      if (t_start < 0.0 || t_stop <= 0.0)
+      if (t_start <= 0.0 || t_stop <= 0.0)
         error->all(FLERR,
                    "Target temperature for fix nvt/npt/nph cannot be 0.0");
       iarg += 4;
@@ -346,6 +347,12 @@ etap_mass(NULL)
       fixedpoint[1] = force->numeric(FLERR,arg[iarg+2]);
       fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
+
+    // disc keyword is also parsed in fix/nh/sphere  
+
+    } else if (strcmp(arg[iarg],"disc") == 0) {
+      iarg++;
+
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
   }
 
@@ -804,7 +811,6 @@ void FixNH::setup(int vflag)
           (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
            boltz * t_target) / etap_mass[ich];
     }
-
   }
 }
 

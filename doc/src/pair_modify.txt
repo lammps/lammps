@@ -112,7 +112,7 @@ see the doc page for individual styles to see which potentials support
 these options.  If N is non-zero, a table of length 2^N is
 pre-computed for forces and energies, which can shrink their
 computational cost by up to a factor of 2.  The table is indexed via a
-bit-mapping technique "(Wolff)"_#Wolff and a linear interpolation is
+bit-mapping technique "(Wolff)"_#Wolff1 and a linear interpolation is
 performed between adjacent table values.  In our experiments with
 different table styles (lookup, linear, spline), this method typically
 gave the best performance in terms of speed and accuracy.
@@ -253,7 +253,7 @@ mixing.  See the doc pages for individual pair styles for details.
 
 :line
 
-:link(Wolff)
+:link(Wolff1)
 [(Wolff)] Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
 
 :link(Sun)

@@ -28,7 +28,7 @@ fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq :pre
 [Description:]
 
 Perform the charge equilibration (QEq) method as described in "(Rappe
-and Goddard)"_#Rappe and formulated in "(Nakano)"_#Nakano.  It is
+and Goddard)"_#Rappe2 and formulated in "(Nakano)"_#Nakano2.  It is
 typically used in conjunction with the ReaxFF force field model as
 implemented in the "pair_style reax/c"_pair_reax_c.html command, but
 it can be used with any potential in LAMMPS, so long as it defines and
@@ -112,11 +112,11 @@ be used for periodic cell dimensions less than 10 angstroms.
 
 :line
 
-:link(Rappe)
+:link(Rappe2)
  [(Rappe)] Rappe and Goddard III, Journal of Physical Chemistry, 95,
 3358-3363 (1991).
 
-:link(Nakano)
+:link(Nakano2)
 [(Nakano)] Nakano, Computer Physics Communications, 104, 59-69 (1997).
 
 :link(qeq-Aktulga)

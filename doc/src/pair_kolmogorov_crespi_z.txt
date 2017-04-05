@@ -67,6 +67,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 :link(KC05) 
 [(KC05)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
-:link(vanWijk) 
-[(vanWijk)] M. M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino, 
+:link(vanWijk)
+[(vanWijk)] M. M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino,
 Physical Review Letters, 113, 135504 (2014)

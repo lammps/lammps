@@ -41,9 +41,11 @@ class NPairSSAKokkos : public NPair {
   // SSA Work plan data structures
   int ssa_phaseCt;
   DAT::tdual_int_1d k_ssa_phaseLen;
+  DAT::tdual_int_1d_3 k_ssa_phaseOff;
   DAT::tdual_int_2d k_ssa_itemLoc;
   DAT::tdual_int_2d k_ssa_itemLen;
   typename AT::t_int_1d ssa_phaseLen;
+  typename AT::t_int_1d_3 ssa_phaseOff;
   typename AT::t_int_2d ssa_itemLoc;
   typename AT::t_int_2d ssa_itemLen;
 
@@ -175,6 +177,7 @@ class NPairSSAKokkosExecute
   // SSA Work plan data structures
   int ssa_phaseCt;
   typename AT::t_int_1d d_ssa_phaseLen;
+  typename AT::t_int_1d_3_const d_ssa_phaseOff;
   typename AT::t_int_2d d_ssa_itemLoc;
   typename AT::t_int_2d d_ssa_itemLen;
   int ssa_gphaseCt;
@@ -198,6 +201,7 @@ class NPairSSAKokkosExecute
         const typename AT::t_int_1d &_d_nstencil_ssa,
         const int _ssa_phaseCt,
         const typename AT::t_int_1d &_d_ssa_phaseLen,
+        const typename AT::t_int_1d_3 &_d_ssa_phaseOff,
         const typename AT::t_int_2d &_d_ssa_itemLoc,
         const typename AT::t_int_2d &_d_ssa_itemLen,
         const int _ssa_gphaseCt,
@@ -242,6 +246,7 @@ class NPairSSAKokkosExecute
     d_stencil(_d_stencil),d_stencilxyz(_d_stencilxyz),d_nstencil_ssa(_d_nstencil_ssa),
     ssa_phaseCt(_ssa_phaseCt),
     d_ssa_phaseLen(_d_ssa_phaseLen),
+    d_ssa_phaseOff(_d_ssa_phaseOff),
     d_ssa_itemLoc(_d_ssa_itemLoc),
     d_ssa_itemLen(_d_ssa_itemLen),
     ssa_gphaseCt(_ssa_gphaseCt),
@@ -289,7 +294,9 @@ class NPairSSAKokkosExecute
 
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
-  void build_locals(const bool firstTry, int me);
+  KOKKOS_FUNCTION
+  void build_locals_onePhase(const bool firstTry, int me, int workPhase) const;
+
   void build_ghosts();
 
   KOKKOS_INLINE_FUNCTION
@@ -342,6 +349,24 @@ class NPairSSAKokkosExecute
     return 0;
   }
 
+};
+
+template<class DeviceType>
+struct NPairSSAKokkosBuildFunctor {
+  typedef DeviceType device_type;
+
+  const NPairSSAKokkosExecute<DeviceType> c;
+  const bool firstTry;
+  const int me;
+
+  NPairSSAKokkosBuildFunctor(const NPairSSAKokkosExecute<DeviceType> &_c,
+                             const bool _firstTry, const int _me):c(_c),
+                             firstTry(_firstTry), me(_me) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int & i) const {
+    c.build_locals_onePhase(firstTry, me, i);
+  }
 };
 
 }

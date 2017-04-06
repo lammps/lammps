@@ -34,6 +34,14 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 NPairSSAKokkos<DeviceType>::NPairSSAKokkos(LAMMPS *lmp) : NPair(lmp), ssa_phaseCt(27), ssa_gphaseCt(7)
 {
+  const int gphaseLenEstimate = 1; //FIXME make this 4 eventually
+  k_ssa_gphaseLen = DAT::tdual_int_1d("NPairSSAKokkos:ssa_gphaseLen",ssa_gphaseCt);
+  ssa_gphaseLen = k_ssa_gphaseLen.view<DeviceType>();
+
+  k_ssa_gitemLoc = DAT::tdual_int_2d("NPairSSAKokkos::ssa_gitemLoc",ssa_gphaseCt,gphaseLenEstimate);
+  ssa_gitemLoc = k_ssa_gitemLoc.view<DeviceType>();
+  k_ssa_gitemLen = DAT::tdual_int_2d("NPairSSAKokkos::ssa_gitemLen",ssa_gphaseCt,gphaseLenEstimate);
+  ssa_gitemLen = k_ssa_gitemLen.view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -132,6 +140,27 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
   sx1 = ns_ssa->sx + 1;
   sy1 = ns_ssa->sy + 1;
   sz1 = ns_ssa->sz + 1;
+
+  // Setup the phases of the workplan for locals
+  ssa_phaseCt = sz1*sy1*sx1;
+  if (ssa_phaseCt > (int) k_ssa_phaseLen.dimension_0()) {
+    k_ssa_phaseLen = DAT::tdual_int_1d("NPairSSAKokkos:ssa_phaseLen",ssa_phaseCt);
+    ssa_phaseLen = k_ssa_phaseLen.view<DeviceType>();
+    k_ssa_phaseOff = DAT::tdual_int_1d_3("NPairSSAKokkos:ssa_phaseOff",ssa_phaseCt);
+    ssa_phaseOff = k_ssa_phaseOff.view<DeviceType>();
+  }
+  int workPhase = 0;
+  for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
+    for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
+      for (int xoff = sx1 - 1; xoff >= 0; --xoff) {
+        ssa_phaseOff(workPhase, 0) = xoff;
+        ssa_phaseOff(workPhase, 1) = yoff;
+        ssa_phaseOff(workPhase, 2) = zoff;
+        workPhase++;
+      }
+    }
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -208,36 +237,17 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
   int nl_size;
 
-  ssa_phaseCt = sz1*sy1*sx1;
+  int xbinCt = (lbinxhi - lbinxlo + sx1 - 1) / sx1 + 1;
+  int ybinCt = (lbinyhi - lbinylo + sy1 - 1) / sy1 + 1;
+  int zbinCt = (lbinzhi - lbinzlo + sz1 - 1) / sz1 + 1;
+  int phaseLenEstimate = xbinCt*ybinCt*zbinCt;
 
-  int xbin = (lbinxhi - lbinxlo + sx1 - 1) / sx1 + 1;
-  int ybin = (lbinyhi - lbinylo + sy1 - 1) / sy1 + 1;
-  int zbin = (lbinzhi - lbinzlo + sz1 - 1) / sz1 + 1;
-  int phaseLenEstimate = xbin*ybin*zbin;
-  int gphaseLenEstimate = 1; //FIXME make this 4 eventually
-
-  if (ssa_phaseCt > (int) k_ssa_phaseLen.dimension_0()) {
-    k_ssa_phaseLen = DAT::tdual_int_1d("NPairSSAKokkos:ssa_phaseLen",ssa_phaseCt);
-    ssa_phaseLen = k_ssa_phaseLen.view<DeviceType>();
-  }
   if ((ssa_phaseCt > (int) k_ssa_itemLoc.dimension_0()) ||
       (phaseLenEstimate > (int) k_ssa_itemLoc.dimension_1())) {
     k_ssa_itemLoc = DAT::tdual_int_2d("NPairSSAKokkos::ssa_itemLoc",ssa_phaseCt,phaseLenEstimate);
     ssa_itemLoc = k_ssa_itemLoc.view<DeviceType>();
     k_ssa_itemLen = DAT::tdual_int_2d("NPairSSAKokkos::ssa_itemLen",ssa_phaseCt,phaseLenEstimate);
     ssa_itemLen = k_ssa_itemLen.view<DeviceType>();
-  }
-
-  if (ssa_gphaseCt > (int) k_ssa_gphaseLen.dimension_0()) {
-    k_ssa_gphaseLen = DAT::tdual_int_1d("NPairSSAKokkos:ssa_gphaseLen",ssa_gphaseCt);
-    ssa_gphaseLen = k_ssa_gphaseLen.view<DeviceType>();
-  }
-  if ((ssa_gphaseCt > (int) k_ssa_gitemLoc.dimension_0()) ||
-      (gphaseLenEstimate > (int) k_ssa_gitemLoc.dimension_1())) {
-    k_ssa_gitemLoc = DAT::tdual_int_2d("NPairSSAKokkos::ssa_gitemLoc",ssa_gphaseCt,gphaseLenEstimate);
-    ssa_gitemLoc = k_ssa_gitemLoc.view<DeviceType>();
-    k_ssa_gitemLen = DAT::tdual_int_2d("NPairSSAKokkos::ssa_gitemLen",ssa_gphaseCt,gphaseLenEstimate);
-    ssa_gitemLen = k_ssa_gitemLen.view<DeviceType>();
   }
 
 { // Preflight the neighbor list workplan
@@ -247,11 +257,11 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   const typename ArrayTypes<DeviceType>::t_int_1d_const c_nstencil_ssa = k_nstencil_ssa.view<DeviceType>();
   int inum = 0;
 
-  int workPhase = 0;
-  // loop over bins with local atoms, storing half of the neighbors
-  for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
-  for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
-  for (int xoff = sx1 - 1; xoff >= 0; --xoff) {
+  // loop over bins with local atoms, counting half of the neighbors
+  for (int workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
+    int zoff = ssa_phaseOff(workPhase, 2);
+    int yoff = ssa_phaseOff(workPhase, 1);
+    int xoff = ssa_phaseOff(workPhase, 0);
     int workItem = 0;
   for (int zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
   for (int ybin = lbinylo + yoff - sy1 + 1; ybin < lbinyhi; ybin += sy1) {
@@ -308,9 +318,7 @@ fprintf(stdout, "phas%03d phase %3d could use %6d inums, expected %6d inums. max
 );
 #endif
     // record where workPhase ends
-    ssa_phaseLen(workPhase++) = workItem;
-  }
-  }
+    ssa_phaseLen(workPhase) = workItem;
   }
 #ifdef DEBUG_SSA_BUILD_LOCALS
 fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
@@ -343,6 +351,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
          k_nstencil_ssa.view<DeviceType>(),
          ssa_phaseCt,
          k_ssa_phaseLen.view<DeviceType>(),
+         k_ssa_phaseOff.view<DeviceType>(),
          k_ssa_itemLoc.view<DeviceType>(),
          k_ssa_itemLen.view<DeviceType>(),
          ssa_gphaseCt,
@@ -410,7 +419,17 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     NPairSSAKokkosBuildFunctor<DeviceType> f(data,atoms_per_bin*5*sizeof(X_FLOAT));
     Kokkos::parallel_for(nall, f);
 #endif
-    data.build_locals(firstTry, comm->me);
+    // loop over bins with local atoms, storing half of the neighbors
+#ifdef USE_LAMBDA_BUILD
+    Kokkos::parallel_for(ssa_phaseCt, LAMMPS_LAMBDA (const int workPhase) {
+      data.build_locals_onePhase(firstTry, comm->me, workPhase);
+    });
+#else
+    NPairSSAKokkosBuildFunctor<DeviceType> f(data, firstTry, comm->me);
+    Kokkos::parallel_for(ssa_phaseCt, f);
+#endif
+    data.neigh_list.inum = ssa_itemLoc(ssa_phaseCt-1,ssa_phaseLen(ssa_phaseCt-1)-1) +
+      ssa_itemLen(ssa_phaseCt-1,ssa_phaseLen(ssa_phaseCt-1)-1);
     data.build_ghosts();
     firstTry = false;
 
@@ -451,20 +470,16 @@ fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
 
 
 template<class DeviceType>
-void NPairSSAKokkosExecute<DeviceType>::build_locals(const bool firstTry, int me)
+void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTry, int me, int workPhase) const
 {
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
   int which = 0;
-  int inum = 0;
-  int workPhase = 0;
 
-  // loop over bins with local atoms, storing half of the neighbors
-  for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
-  for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
-  for (int xoff = sx1 - 1; xoff >= 0; --xoff) {
-    int workItem = 0;
-    int skippedItems = 0;
-//    inum = d_ssa_itemLoc(workPhase, workItem); // get where workPhase starts in ilist
+  int zoff = d_ssa_phaseOff(workPhase, 2);
+  int yoff = d_ssa_phaseOff(workPhase, 1);
+  int xoff = d_ssa_phaseOff(workPhase, 0);
+  int workItem = 0;
+  int skippedItems = 0;
   for (int zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
   for (int ybin = lbinylo + yoff - sy1 + 1; ybin < lbinyhi; ybin += sy1) {
   for (int xbin = lbinxlo + xoff - sx1 + 1; xbin < lbinxhi; xbin += sx1) {
@@ -474,21 +489,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals(const bool firstTry, int me
       continue;
     }
     int inum_start = d_ssa_itemLoc(workPhase, workItem + skippedItems);
-#ifdef DEBUG_SSA_BUILD_LOCALS
-    if (inum > inum_start) { // This shouldn't happen!
-fprintf(stdout, "Rank%03d workphase (%2d,%3d,%3d): inum = %4d, but ssa_itemLoc = %4d OVERFLOW\n"
-  ,me
-  ,workPhase
-  ,workItem
-  ,workItem + skippedItems
-  ,inum
-  ,d_ssa_itemLoc(workPhase, workItem + skippedItems)
-);
-      inum_start = inum;
-    } else
-#endif
-    inum = inum_start;
-    // d_ssa_itemLoc(workPhase, workItem) = inum; // record where workItem actually starts in ilist
+    int inum = inum_start;
 
     for (int subphase = 0; subphase < 4; subphase++) {
       int s_ybin = ybin + ((subphase & 0x2) ? sy1 - 1 : 0);
@@ -600,23 +601,7 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
         d_ssa_itemLen(workPhase,workItem++) = 0;
       }
     }
-    ++workPhase;
-  }
-  }
-  }
-#ifdef DEBUG_SSA_BUILD_LOCALS
-fprintf(stdout, "Totl%03d %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
-  ,me
-  ,workPhase
-  ,inum
-  ,nlocal*4
-  ,inum / (double) workPhase
-);
-#endif
 
-//FIXME  if (ssa_phaseCt != workPhase) error->one(FLERR,"ssa_phaseCt was wrong");
-
-  neigh_list.inum = inum;
 }
 
 

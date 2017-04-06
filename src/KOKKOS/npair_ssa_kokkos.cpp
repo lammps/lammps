@@ -333,7 +333,10 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
 }
   // count how many ghosts might have neighbors, and increase the work plan storage
   for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
-     nl_size += k_gbincount.h_view(workPhase + 1);
+    int len = k_gbincount.h_view(workPhase + 1);
+    ssa_gitemLoc(workPhase,0) = nl_size; // record where workItem starts in ilist
+    ssa_gitemLen(workPhase,0) = len;
+    nl_size += len;
   }
   list->grow(nl_size); // Make special larger SSA neighbor list
 
@@ -415,22 +418,19 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     Kokkos::deep_copy(data.resize, data.h_resize);
     Kokkos::deep_copy(data.new_maxneighs, data.h_new_maxneighs);
 
-#ifdef NOTYET
-    NPairSSAKokkosBuildFunctor<DeviceType> f(data,atoms_per_bin*5*sizeof(X_FLOAT));
-    Kokkos::parallel_for(nall, f);
-#endif
     // loop over bins with local atoms, storing half of the neighbors
-#ifdef USE_LAMBDA_BUILD
     Kokkos::parallel_for(ssa_phaseCt, LAMMPS_LAMBDA (const int workPhase) {
       data.build_locals_onePhase(firstTry, comm->me, workPhase);
     });
-#else
-    NPairSSAKokkosBuildFunctor<DeviceType> f(data, firstTry, comm->me);
-    Kokkos::parallel_for(ssa_phaseCt, f);
-#endif
     data.neigh_list.inum = ssa_itemLoc(ssa_phaseCt-1,ssa_phaseLen(ssa_phaseCt-1)-1) +
       ssa_itemLen(ssa_phaseCt-1,ssa_phaseLen(ssa_phaseCt-1)-1);
-    data.build_ghosts();
+
+    // loop over AIR ghost atoms, storing their local neighbors
+    Kokkos::parallel_for(ssa_gphaseCt, LAMMPS_LAMBDA (const int workPhase) {
+      data.build_ghosts_onePhase(workPhase);
+    });
+    data.neigh_list.gnum = ssa_gitemLoc(ssa_gphaseCt-1,ssa_gphaseLen(ssa_gphaseCt-1)-1) +
+      ssa_gitemLen(ssa_gphaseCt-1,ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
     firstTry = false;
 
     DeviceType::fence();
@@ -606,33 +606,26 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
 
 
 template<class DeviceType>
-void NPairSSAKokkosExecute<DeviceType>::build_ghosts()
+void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) const
 {
-  int n = 0;
+  const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
   int which = 0;
-  int inum = neigh_list.inum;
-  int gnum = 0;
 
-  // loop over AIR ghost atoms, storing their local neighbors
   // since these are ghosts, must check if stencil bin is out of bounds
-  for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
     int airnum = workPhase + 1;
     //FIXME for now, there is only 1 workItem for each ghost AIR
     int workItem;
     for (workItem = 0; workItem < 1; ++workItem) {
-      d_ssa_gitemLoc(workPhase, workItem) = inum + gnum; // record where workItem starts in ilist
+      int gNdx = d_ssa_gitemLoc(workPhase, workItem); // record where workItem starts in ilist
       for (int il = 0; il < c_gbincount(airnum); ++il) {
         const int i = c_gbins(airnum, il);
-        n = 0;
+        int n = 0;
 
-        const AtomNeighbors neighbors_i = neigh_list.get_neighbors(inum + gnum);
+        const AtomNeighbors neighbors_i = neigh_list.get_neighbors(gNdx);
         const X_FLOAT xtmp = x(i, 0);
         const X_FLOAT ytmp = x(i, 1);
         const X_FLOAT ztmp = x(i, 2);
         const int itype = type(i);
-
-        const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
-          = d_stencil;
 
         int loc[3];
         const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2), &(loc[0]));
@@ -686,8 +679,8 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts()
         }
 
         if (n > 0) {
-          neigh_list.d_numneigh(inum + gnum) = n;
-          neigh_list.d_ilist(inum + (gnum++)) = i;
+          neigh_list.d_numneigh(gNdx) = n;
+          neigh_list.d_ilist(gNdx++) = i;
           if(n > neigh_list.maxneighs) {
             resize() = 1;
             if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
@@ -695,12 +688,10 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts()
         }
       }
       // record where workItem ends in ilist
-      d_ssa_gitemLen(workPhase,workItem) = inum + gnum - d_ssa_gitemLoc(workPhase,workItem);
+      d_ssa_gitemLen(workPhase,workItem) = gNdx - d_ssa_gitemLoc(workPhase,workItem);
       // if (d_ssa_gitemLen(workPhase,workItem) > 0) workItem++;
     }
     d_ssa_gphaseLen(workPhase) = workItem;
-  }
-  neigh_list.gnum = gnum;
 }
 
 }

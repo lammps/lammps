@@ -275,7 +275,7 @@ class NPairSSAKokkosExecute
     bboxlo[0] = _bboxlo[0]; bboxlo[1] = _bboxlo[1]; bboxlo[2] = _bboxlo[2];
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
-    resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
+    resize = typename AT::t_int_scalar("NPairSSAKokkosExecute::resize");
 #ifndef KOKKOS_USE_CUDA_UVM
     h_resize = Kokkos::create_mirror_view(resize);
 #else
@@ -283,7 +283,7 @@ class NPairSSAKokkosExecute
 #endif
     h_resize() = 1;
     new_maxneighs = typename AT::
-      t_int_scalar("NeighborKokkosFunctor::new_maxneighs");
+      t_int_scalar("NPairSSAKokkosExecute::new_maxneighs");
 #ifndef KOKKOS_USE_CUDA_UVM
     h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
 #else
@@ -297,7 +297,8 @@ class NPairSSAKokkosExecute
   KOKKOS_FUNCTION
   void build_locals_onePhase(const bool firstTry, int me, int workPhase) const;
 
-  void build_ghosts();
+  KOKKOS_FUNCTION
+  void build_ghosts_onePhase(int workPhase) const;
 
   KOKKOS_INLINE_FUNCTION
   int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
@@ -349,24 +350,6 @@ class NPairSSAKokkosExecute
     return 0;
   }
 
-};
-
-template<class DeviceType>
-struct NPairSSAKokkosBuildFunctor {
-  typedef DeviceType device_type;
-
-  const NPairSSAKokkosExecute<DeviceType> c;
-  const bool firstTry;
-  const int me;
-
-  NPairSSAKokkosBuildFunctor(const NPairSSAKokkosExecute<DeviceType> &_c,
-                             const bool _firstTry, const int _me):c(_c),
-                             firstTry(_firstTry), me(_me) {};
-
-  KOKKOS_INLINE_FUNCTION
-  void operator() (const int & i) const {
-    c.build_locals_onePhase(firstTry, me, i);
-  }
 };
 
 }

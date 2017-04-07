@@ -35,7 +35,7 @@ touch ../variable.cpp
 # all package files with no dependencies
 
 for file in *.cpp *.h; do
-  action $file
+  test -f ${file} && action $file
 done
 
 # edit 2 Makefile.package files to include/exclude package info

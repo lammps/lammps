@@ -36,7 +36,7 @@ touch ../write_restart.cpp
 # all package files with no dependencies
 
 for file in *.cpp *.h; do
-  action $file
+  test -f ${file} && action $file
 done
 
 # edit 2 Makefile.package to include/exclude LMP_MPIIO setting

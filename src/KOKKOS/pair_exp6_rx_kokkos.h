@@ -52,6 +52,7 @@ struct PairExp6ParamDataTypeKokkos
    {}
 };
 
+struct TagPairExp6rxZeroMixingWeights{};
 struct TagPairExp6rxgetMixingWeights{};
 
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -75,6 +76,9 @@ class PairExp6rxKokkos : public PairExp6rx {
   void compute(int, int);
   void coeff(int, char **);
   void init_style();
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairExp6rxZeroMixingWeights, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxgetMixingWeights, const int&) const;

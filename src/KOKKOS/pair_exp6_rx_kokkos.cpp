@@ -187,22 +187,25 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   {
      const int np_total = nlocal + atom->nghost;
 
-     PairExp6ParamData.epsilon1      = typename AT::t_float_1d("PairExp6ParamData.epsilon1"     ,np_total);
-     PairExp6ParamData.alpha1        = typename AT::t_float_1d("PairExp6ParamData.alpha1"       ,np_total);
-     PairExp6ParamData.rm1           = typename AT::t_float_1d("PairExp6ParamData.rm1"          ,np_total);
-     PairExp6ParamData.mixWtSite1    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1"   ,np_total);
-     PairExp6ParamData.epsilon2      = typename AT::t_float_1d("PairExp6ParamData.epsilon2"     ,np_total);
-     PairExp6ParamData.alpha2        = typename AT::t_float_1d("PairExp6ParamData.alpha2"       ,np_total);
-     PairExp6ParamData.rm2           = typename AT::t_float_1d("PairExp6ParamData.rm2"          ,np_total);
-     PairExp6ParamData.mixWtSite2    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2"   ,np_total);
-     PairExp6ParamData.epsilonOld1   = typename AT::t_float_1d("PairExp6ParamData.epsilonOld1"  ,np_total);
-     PairExp6ParamData.alphaOld1     = typename AT::t_float_1d("PairExp6ParamData.alphaOld1"    ,np_total);
-     PairExp6ParamData.rmOld1        = typename AT::t_float_1d("PairExp6ParamData.rmOld1"       ,np_total);
-     PairExp6ParamData.mixWtSite1old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1old",np_total);
-     PairExp6ParamData.epsilonOld2   = typename AT::t_float_1d("PairExp6ParamData.epsilonOld2"  ,np_total);
-     PairExp6ParamData.alphaOld2     = typename AT::t_float_1d("PairExp6ParamData.alphaOld2"    ,np_total);
-     PairExp6ParamData.rmOld2        = typename AT::t_float_1d("PairExp6ParamData.rmOld2"       ,np_total);
-     PairExp6ParamData.mixWtSite2old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2old",np_total);
+     if (np_total > PairExp6ParamData.epsilon1.dimension_0()) {
+       PairExp6ParamData.epsilon1      = typename AT::t_float_1d("PairExp6ParamData.epsilon1"     ,np_total);
+       PairExp6ParamData.alpha1        = typename AT::t_float_1d("PairExp6ParamData.alpha1"       ,np_total);
+       PairExp6ParamData.rm1           = typename AT::t_float_1d("PairExp6ParamData.rm1"          ,np_total);
+       PairExp6ParamData.mixWtSite1    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1"   ,np_total);
+       PairExp6ParamData.epsilon2      = typename AT::t_float_1d("PairExp6ParamData.epsilon2"     ,np_total);
+       PairExp6ParamData.alpha2        = typename AT::t_float_1d("PairExp6ParamData.alpha2"       ,np_total);
+       PairExp6ParamData.rm2           = typename AT::t_float_1d("PairExp6ParamData.rm2"          ,np_total);
+       PairExp6ParamData.mixWtSite2    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2"   ,np_total);
+       PairExp6ParamData.epsilonOld1   = typename AT::t_float_1d("PairExp6ParamData.epsilonOld1"  ,np_total);
+       PairExp6ParamData.alphaOld1     = typename AT::t_float_1d("PairExp6ParamData.alphaOld1"    ,np_total);
+       PairExp6ParamData.rmOld1        = typename AT::t_float_1d("PairExp6ParamData.rmOld1"       ,np_total);
+       PairExp6ParamData.mixWtSite1old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1old",np_total);
+       PairExp6ParamData.epsilonOld2   = typename AT::t_float_1d("PairExp6ParamData.epsilonOld2"  ,np_total);
+       PairExp6ParamData.alphaOld2     = typename AT::t_float_1d("PairExp6ParamData.alphaOld2"    ,np_total);
+       PairExp6ParamData.rmOld2        = typename AT::t_float_1d("PairExp6ParamData.rmOld2"       ,np_total);
+       PairExp6ParamData.mixWtSite2old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2old",np_total);
+     } else
+       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroMixingWeights>(0,np_total),*this);
 
 #ifdef KOKKOS_HAVE_CUDA
      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxgetMixingWeights>(0,np_total),*this);
@@ -350,6 +353,27 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   //TimerType t_stop = getTimeStamp();
   //printf("PairExp6rxKokkos::compute %f %f\n", getElapsedTime(t_start, t_stop), getElapsedTime(t_mix_start, t_mix_stop));
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroMixingWeights, const int &i) const {
+  PairExp6ParamData.epsilon1[i] = 0.0;
+  PairExp6ParamData.alpha1[i] = 0.0;
+  PairExp6ParamData.rm1[i] = 0.0;
+  PairExp6ParamData.mixWtSite1[i] = 0.0;
+  PairExp6ParamData.epsilon2[i] = 0.0;
+  PairExp6ParamData.alpha2[i] = 0.0;
+  PairExp6ParamData.rm2[i] = 0.0;
+  PairExp6ParamData.mixWtSite2[i] = 0.0;
+  PairExp6ParamData.epsilonOld1[i] = 0.0;
+  PairExp6ParamData.alphaOld1[i] = 0.0;
+  PairExp6ParamData.rmOld1[i] = 0.0;
+  PairExp6ParamData.mixWtSite1old[i] = 0.0;
+  PairExp6ParamData.epsilonOld2[i] = 0.0;
+  PairExp6ParamData.alphaOld2[i] = 0.0;
+  PairExp6ParamData.rmOld2[i] = 0.0;
+  PairExp6ParamData.mixWtSite2old[i] = 0.0;
 }
 
 template<class DeviceType>

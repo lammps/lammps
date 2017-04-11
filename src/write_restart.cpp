@@ -297,6 +297,9 @@ void WriteRestart::write(char *file)
 
   // communication buffer for my atom info
   // max_size = largest buffer needed by any proc
+  // NOTE: are assuming size_restart() returns 32-bit int
+  //   for a huge one-proc problem, nlocal could be 32-bit
+  //   but nlocal * doubles-peratom could oveflow
 
   int max_size;
   int send_size = atom->avec->size_restart();

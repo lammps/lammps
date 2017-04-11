@@ -653,6 +653,21 @@ void Output::delete_dump(char *id)
 }
 
 /* ----------------------------------------------------------------------
+   find a dump by ID
+   return index of dump or -1 if not found
+------------------------------------------------------------------------- */
+
+int Output::find_dump(const char *id)
+{
+  if (id == NULL) return -1;
+  int idump;
+  for (idump = 0; idump < ndump; idump++)
+    if (strcmp(id,dump[idump]->id) == 0) break;
+  if (idump == ndump) return -1;
+  return idump;
+}
+
+/* ----------------------------------------------------------------------
    set thermo output frequency from input script
 ------------------------------------------------------------------------- */
 

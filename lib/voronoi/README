@@ -9,8 +9,8 @@ Laboratory.
 -----------------
 
 You must perform the following steps yourself, or you can use the
-install.py Python script to automate any or all steps of the process.
-Type "python install.py" for instructions.
+Install.py Python script to automate any or all steps of the process.
+Type "python Install.py" for instructions.
 
 1.  Download Voro++ at http://math.lbl.gov/voro++/download
     either as a tarball or via SVN, and unpack the

@@ -23,7 +23,7 @@ class Integrate : protected Pointers {
   Integrate(class LAMMPS *, int, char **);
   virtual ~Integrate();
   virtual void init();
-  virtual void setup() = 0;
+  virtual void setup(int flag=1) = 0;
   virtual void setup_minimal(int) = 0;
   virtual void run(int) = 0;
   virtual void cleanup() {}

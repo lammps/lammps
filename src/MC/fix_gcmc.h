@@ -106,7 +106,7 @@ class FixGCMC : public Fix {
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
   double region_volume;
-  double energy_stored;
+  double energy_stored;  // full energy of old/current configuration
   double *sublo,*subhi;
   int *local_gas_list;
   double **cutsq;
@@ -214,9 +214,14 @@ W: Fix gcmc using full_energy option
 
 Fix gcmc has automatically turned on the full_energy option since it
 is required for systems like the one specified by the user. User input
-included one or more of the following: kspace, triclinic, a hybrid
-pair style, an eam pair style, or no "single" function for the pair
-style.
+included one or more of the following: kspace, a hybrid
+pair style, an eam pair style, tail correction, 
+or no "single" function for the pair style.
+
+W: Energy of old configuration in fix gcmc is > MAXENERGYTEST. 
+
+This probably means that a pair of atoms are closer than the 
+overlap cutoff distance for keyword overlap_cutoff.
 
 E: Invalid atom type in fix gcmc command
 

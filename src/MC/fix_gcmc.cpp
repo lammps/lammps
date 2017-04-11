@@ -60,7 +60,7 @@ using namespace MathConst;
 // this must be lower than MAXENERGYSIGNAL
 // by a large amount, so that it is still
 // less than total energy when negative
-// energy changes are added to MAXENERGYSIGNAL
+// energy contributions are added to MAXENERGYSIGNAL
 
 #define MAXENERGYTEST 1.0e50
 
@@ -701,6 +701,9 @@ void FixGCMC::pre_exchange()
 
   if (full_flag) {
     energy_stored = energy_full();
+    if (overlap_flag && energy_stored > MAXENERGYTEST)
+        error->warning(FLERR,"Energy of old configuration in "
+                       "fix gcmc is > MAXENERGYTEST.");
 
     if (mode == MOLECULE) {
       for (int i = 0; i < ncycles; i++) {
@@ -778,6 +781,9 @@ void FixGCMC::attempt_atomic_translation()
   if (i >= 0) {
     double **x = atom->x;
     double energy_before = energy(i,ngcmc_type,-1,x[i]);
+    if (overlap_flag && energy_before > MAXENERGYTEST)
+        error->warning(FLERR,"Energy of old configuration in "
+                       "fix gcmc is > MAXENERGYTEST.");
     double rsq = 1.1;
     double rx,ry,rz;
     rx = ry = rz = 0.0;
@@ -998,6 +1004,9 @@ void FixGCMC::attempt_molecule_translation()
   if (translation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(translation_molecule);
+  if (overlap_flag && energy_before_sum > MAXENERGYTEST)
+    error->warning(FLERR,"Energy of old configuration in "
+                   "fix gcmc is > MAXENERGYTEST.");
 
   double **x = atom->x;
   double rx,ry,rz;
@@ -1095,6 +1104,9 @@ void FixGCMC::attempt_molecule_rotation()
   if (rotation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(rotation_molecule);
+  if (overlap_flag && energy_before_sum > MAXENERGYTEST)
+    error->warning(FLERR,"Energy of old configuration in "
+                   "fix gcmc is > MAXENERGYTEST.");
 
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -2170,6 +2182,8 @@ double FixGCMC::molecule_energy(tagint gas_molecule_id)
 
 double FixGCMC::energy_full()
 {
+  int imolecule;
+  
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
@@ -2185,14 +2199,15 @@ double FixGCMC::energy_full()
   // return signal value for energy 
 
   if (overlap_flag) {
+    int overlaptestall;
+    int overlaptest = 0;
     double delx,dely,delz,rsq;
     double **x = atom->x;
     tagint *molecule = atom->molecule;
     int nall = atom->nlocal + atom->nghost;
     for (int i = 0; i < atom->nlocal; i++) {
-      int imolecule = molecule[i];
+      if (mode == MOLECULE) imolecule = molecule[i];
       for (int j = i+1; j < nall; j++) {
-
         if (mode == MOLECULE)
           if (imolecule == molecule[j]) continue;
       
@@ -2201,11 +2216,18 @@ double FixGCMC::energy_full()
         delz = x[i][2] - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
       
-        if (rsq < overlap_cutoff) return MAXENERGYSIGNAL;
+        if (rsq < overlap_cutoff) {
+          overlaptest = 1;
+          break;
+        }
       }
+      if (overlaptest) break;
     }
+    MPI_Allreduce(&overlaptest, &overlaptestall, 1,
+                  MPI_INT, MPI_MAX, world);
+    if (overlaptestall) return MAXENERGYSIGNAL;
   }
-  
+
   // clear forces so they don't accumulate over multiple
   // calls within fix gcmc timestep, e.g. for fix shake
   

@@ -180,13 +180,15 @@ void Min::init()
    setup before run
 ------------------------------------------------------------------------- */
 
-void Min::setup()
+void Min::setup(int flag)
 {
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up %s style minimization ...\n",
             update->minimize_style);
-    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-    timer->print_timeout(screen);
+    if (flag) {
+      fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+      timer->print_timeout(screen);
+    }
   }
   update->setupflag = 1;
 
@@ -294,7 +296,7 @@ void Min::setup()
       requestor[m]->min_xf_get(m);
 
   modify->setup(vflag);
-  output->setup();
+  output->setup(flag);
   update->setupflag = 0;
 
   // stats for initial thermo output

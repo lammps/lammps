@@ -455,8 +455,7 @@ and related PPPM operations are somewhat insensitive to floating point
 truncation errors and thus do not always need to be performed in
 double precision.  Using the -DFFT_SINGLE setting trades off a little
 accuracy for reduced memory use and parallel communication costs for
-transposing 3d FFT data.  Note that single precision FFTs have only
-been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
+transposing 3d FFT data.
 
 Step 7 :h6
 

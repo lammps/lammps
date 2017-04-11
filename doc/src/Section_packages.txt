@@ -1308,8 +1308,8 @@ oxdna/..."_pair_oxdna.html, "pair_style
 oxdna2/..."_pair_oxdna2.html, "fix
 nve/dotc/langevin"_fix_nve_dotc_langevin.html
 
-Author: Oliver Henrich at the University of Strathclyde, Glasgow, UK and 
-University of Edinburgh (ohenrich@ph.ed.ac.uk).  
+Author: Oliver Henrich at the University of Strathclyde, Glasgow 
+(oliver.henrich at strath.ac.uk, also ohenrich at ph.ed.ac.uk). 
 Contact him directly if you have any questions.
 
 :line

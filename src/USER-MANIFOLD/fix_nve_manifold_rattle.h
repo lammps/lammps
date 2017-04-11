@@ -81,7 +81,7 @@ namespace LAMMPS_NS {
 
    protected:
 
-    int nevery;
+    int nevery, next_output;
 
     double dtv, dtf;
     double tolerance;

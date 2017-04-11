@@ -204,6 +204,29 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
        PairExp6ParamData.alphaOld2     = typename AT::t_float_1d("PairExp6ParamData.alphaOld2"    ,np_total);
        PairExp6ParamData.rmOld2        = typename AT::t_float_1d("PairExp6ParamData.rmOld2"       ,np_total);
        PairExp6ParamData.mixWtSite2old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2old",np_total);
+
+       PairExp6ParamDataVect.epsilon          = typename AT::t_float_1d("PairExp6ParamDataVect.epsilon"         ,np_total);;
+       PairExp6ParamDataVect.rm3              = typename AT::t_float_1d("PairExp6ParamDataVect.rm3"             ,np_total);;
+       PairExp6ParamDataVect.alpha            = typename AT::t_float_1d("PairExp6ParamDataVect.alpha"           ,np_total);;
+       PairExp6ParamDataVect.xMolei           = typename AT::t_float_1d("PairExp6ParamDataVect.xMolei"          ,np_total);;
+       PairExp6ParamDataVect.epsilon_old      = typename AT::t_float_1d("PairExp6ParamDataVect.epsilon_old"     ,np_total);;
+       PairExp6ParamDataVect.rm3_old          = typename AT::t_float_1d("PairExp6ParamDataVect.rm3_old"         ,np_total);;
+       PairExp6ParamDataVect.alpha_old        = typename AT::t_float_1d("PairExp6ParamDataVect.alpha_old"       ,np_total);;
+       PairExp6ParamDataVect.xMolei_old       = typename AT::t_float_1d("PairExp6ParamDataVect.xMolei_old"      ,np_total);;
+       PairExp6ParamDataVect.fractionOFA      = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOFA"     ,np_total);;
+       PairExp6ParamDataVect.fraction1        = typename AT::t_float_1d("PairExp6ParamDataVect.fraction1"       ,np_total);;
+       PairExp6ParamDataVect.fraction2        = typename AT::t_float_1d("PairExp6ParamDataVect.fraction2"       ,np_total);;
+       PairExp6ParamDataVect.nMoleculesOFA    = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOFA"   ,np_total);;
+       PairExp6ParamDataVect.nMolecules1      = typename AT::t_float_1d("PairExp6ParamDataVect.nMolecules1"     ,np_total);;
+       PairExp6ParamDataVect.nMolecules2      = typename AT::t_float_1d("PairExp6ParamDataVect.nMolecules2"     ,np_total);;
+       PairExp6ParamDataVect.nTotal           = typename AT::t_float_1d("PairExp6ParamDataVect.nTotal"          ,np_total);;
+       PairExp6ParamDataVect.fractionOFAold   = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOFAold"  ,np_total);;
+       PairExp6ParamDataVect.fractionOld1     = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOld1"    ,np_total);;
+       PairExp6ParamDataVect.fractionOld2     = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOld2"    ,np_total);;
+       PairExp6ParamDataVect.nMoleculesOFAold = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOFAold",np_total);;
+       PairExp6ParamDataVect.nMoleculesOld1   = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOld1"  ,np_total);;
+       PairExp6ParamDataVect.nMoleculesOld2   = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOld2"  ,np_total);;
+       PairExp6ParamDataVect.nTotalold        = typename AT::t_float_1d("PairExp6ParamDataVect.nTotalold"       ,np_total);;
      } else
        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroMixingWeights>(0,np_total),*this);
 
@@ -2094,31 +2117,31 @@ template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag, 
                           ArrayT &epsilon1, ArrayT &alpha1, ArrayT &rm1,  ArrayT &mixWtSite1, ArrayT &epsilon2, ArrayT &alpha2, ArrayT &rm2, ArrayT &mixWtSite2, ArrayT &epsilon1_old, ArrayT &alpha1_old, ArrayT &rm1_old,  ArrayT &mixWtSite1old, ArrayT &epsilon2_old, ArrayT &alpha2_old, ArrayT &rm2_old, ArrayT &mixWtSite2old) const
 {
-  ArrayT epsilon("PairExp6ParamData.epsilon",  np_total);
-  ArrayT rm3("PairExp6ParamData.rm3",  np_total);
-  ArrayT alpha("PairExp6ParamData.alpha",  np_total);
-  ArrayT xMolei("PairExp6ParamData.xMolei",  np_total);
+  ArrayT epsilon          = PairExp6ParamDataVect.epsilon         ;
+  ArrayT rm3              = PairExp6ParamDataVect.rm3             ;
+  ArrayT alpha            = PairExp6ParamDataVect.alpha           ;
+  ArrayT xMolei           = PairExp6ParamDataVect.xMolei          ;
 
-  ArrayT epsilon_old("PairExp6ParamData.epsilon_old",  np_total);
-  ArrayT rm3_old("PairExp6ParamData.rm3_old",  np_total);
-  ArrayT alpha_old("PairExp6ParamData.alpha_old",  np_total);
-  ArrayT xMolei_old("PairExp6ParamData.xMolei_old",  np_total);
+  ArrayT epsilon_old      = PairExp6ParamDataVect.epsilon_old     ;
+  ArrayT rm3_old          = PairExp6ParamDataVect.rm3_old         ;
+  ArrayT alpha_old        = PairExp6ParamDataVect.alpha_old       ;
+  ArrayT xMolei_old       = PairExp6ParamDataVect.xMolei_old      ;
 
-  ArrayT fractionOFA("PairExp6ParamData.fractionOFA",  np_total);
-  ArrayT fraction1("PairExp6ParamData.fraction1",  np_total);
-  ArrayT fraction2("PairExp6ParamData.fraction2",  np_total);
-  ArrayT nMoleculesOFA("PairExp6ParamData.nMoleculesOFA",  np_total);
-  ArrayT nMolecules1("PairExp6ParamData.nMolecules1",  np_total);
-  ArrayT nMolecules2("PairExp6ParamData.nMolecules2",  np_total);
-  ArrayT nTotal("PairExp6ParamData.nTotal",  np_total);
+  ArrayT fractionOFA      = PairExp6ParamDataVect.fractionOFA     ;
+  ArrayT fraction1        = PairExp6ParamDataVect.fraction1       ;
+  ArrayT fraction2        = PairExp6ParamDataVect.fraction2       ;
+  ArrayT nMoleculesOFA    = PairExp6ParamDataVect.nMoleculesOFA   ;
+  ArrayT nMolecules1      = PairExp6ParamDataVect.nMolecules1     ;
+  ArrayT nMolecules2      = PairExp6ParamDataVect.nMolecules2     ;
+  ArrayT nTotal           = PairExp6ParamDataVect.nTotal          ;
 
-  ArrayT fractionOFAold("PairExp6ParamData.fractionOFAold",  np_total);
-  ArrayT fractionOld1("PairExp6ParamData.fractionOld1",  np_total);
-  ArrayT fractionOld2("PairExp6ParamData.fractionOld2",  np_total);
-  ArrayT nMoleculesOFAold("PairExp6ParamData.nMoleculesOFAold",  np_total);
-  ArrayT nMoleculesOld1("PairExp6ParamData.nMoleculesOld1",  np_total);
-  ArrayT nMoleculesOld2("PairExp6ParamData.nMoleculesOld2",  np_total);
-  ArrayT nTotalold("PairExp6ParamData.nTotalold",  np_total);
+  ArrayT fractionOFAold   = PairExp6ParamDataVect.fractionOFAold  ;
+  ArrayT fractionOld1     = PairExp6ParamDataVect.fractionOld1    ;
+  ArrayT fractionOld2     = PairExp6ParamDataVect.fractionOld2    ;
+  ArrayT nMoleculesOFAold = PairExp6ParamDataVect.nMoleculesOFAold;
+  ArrayT nMoleculesOld1   = PairExp6ParamDataVect.nMoleculesOld1  ;
+  ArrayT nMoleculesOld2   = PairExp6ParamDataVect.nMoleculesOld2  ;
+  ArrayT nTotalold        = PairExp6ParamDataVect.nTotalold       ;
 
   int errorFlag1 = 0, errorFlag2 = 0;
 

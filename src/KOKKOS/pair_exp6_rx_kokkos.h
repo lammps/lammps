@@ -52,6 +52,29 @@ struct PairExp6ParamDataTypeKokkos
    {}
 };
 
+template<class DeviceType>
+struct PairExp6ParamDataTypeKokkosVect
+{
+  typedef ArrayTypes<DeviceType> AT;
+
+   typename AT::t_float_1d epsilon, rm3, alpha, xMolei, epsilon_old, rm3_old,
+                           alpha_old, xMolei_old, fractionOFA, fraction1,
+                           fraction2, nMoleculesOFA, nMolecules1, nMolecules2,
+                           nTotal, fractionOFAold, fractionOld1, fractionOld2,
+                           nMoleculesOFAold, nMoleculesOld1, nMoleculesOld2,
+                           nTotalold;
+
+   // Default constructor -- nullify everything.
+   PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
+      : epsilon(NULL), rm3(NULL), alpha(NULL), xMolei(NULL), epsilon_old(NULL), rm3_old(NULL),
+        alpha_old(NULL), xMolei_old(NULL), fractionOFA(NULL), fraction1(NULL),
+        fraction2(NULL), nMoleculesOFA(NULL), nMolecules1(NULL), nMolecules2(NULL),
+        nTotal(NULL), fractionOFAold(NULL), fractionOld1(NULL), fractionOld2(NULL),
+        nMoleculesOFAold(NULL), nMoleculesOld1(NULL), nMoleculesOld2(NULL),
+        nTotalold(NULL)
+   {}
+};
+
 struct TagPairExp6rxZeroMixingWeights{};
 struct TagPairExp6rxgetMixingWeights{};
 
@@ -148,6 +171,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   typename AT::t_int_1d_randomread d_numneigh;
 
   PairExp6ParamDataTypeKokkos<DeviceType> PairExp6ParamData;
+  PairExp6ParamDataTypeKokkosVect<DeviceType> PairExp6ParamDataVect;
 
   void allocate();
   DAT::tdual_int_1d k_mol2param;               // mapping from molecule to parameters

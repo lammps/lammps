@@ -73,6 +73,11 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute temp/asphere command");
   }
 
+  // when computing only the rotational temperature,
+  // do not remove DOFs for translation as set by default
+
+  if (mode == ROTATE) extra_dof = 0;
+
   vector = new double[6];
 
 }

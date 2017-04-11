@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class Python : protected Pointers {
  public:
   int python_exists;
+  bool external_interpreter;
 
   Python(class LAMMPS *);
   ~Python();

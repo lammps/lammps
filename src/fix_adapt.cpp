@@ -186,10 +186,10 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
 
   // allocate bond style arrays:
+
   n = atom->nbondtypes;
   for (int m = 0; m < nadapt; ++m)
     if (adapt[m].which == BOND)
-      // For now just use same storage and fake it to be one-dimensional:
       memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
 }
 
@@ -389,7 +389,6 @@ void FixAdapt::init()
     } else if (ad->which == BOND){
       ad->bond = NULL;
       anybond = 1;
-      // Use same routines from pair to strip any suffices:
       
       int n = strlen(ad->bstyle) + 1;
       char *bstyle = new char[n];
@@ -404,7 +403,6 @@ void FixAdapt::init()
         ad->bond = force->bond_match(bsuffix);
         delete [] bsuffix;
       }
-      // If not set grab regular one instead:
       if (ad->bond == NULL) ad->bond = force->bond_match(bstyle);
       if (ad->bond == NULL )
         error->all(FLERR,"Fix adapt bond style does not exist");
@@ -414,7 +412,7 @@ void FixAdapt::init()
       if (ptr == NULL)
         error->all(FLERR,"Fix adapt bond style param not supported");
 
-      // For bond styles you should use a vector
+      // for bond styles, use a vector
 
       if (ad->bdim == 1) ad->vector = (double *) ptr;
 
@@ -449,10 +447,10 @@ void FixAdapt::init()
       for (i = ad->ilo; i <= ad->ihi; i++)
         for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
           ad->array_orig[i][j] = ad->array[i][j];
-    }else if (ad->which == PAIR && ad->pdim == 0){
+    } else if (ad->which == PAIR && ad->pdim == 0){
       ad->scalar_orig = *ad->scalar;
       
-    }else if (ad->which == BOND && ad->bdim == 1){
+    } else if (ad->which == BOND && ad->bdim == 1){
       for (i = ad->ilo; i <= ad->ihi; ++i )
         ad->vector_orig[i] = ad->vector[i];
     }
@@ -612,8 +610,10 @@ void FixAdapt::change_settings()
   modify->addstep_compute(update->ntimestep + nevery);
 
   // re-initialize pair styles if any PAIR settings were changed
+  // ditto for bond styles if any BOND setitings were changes
   // this resets other coeffs that may depend on changed values,
-  // and also offset and tail corrections
+  //   and also offset and tail corrections
+
   if (anypair) {
     for (int m = 0; m < nadapt; m++) {
       Adapt *ad = &adapt[m];

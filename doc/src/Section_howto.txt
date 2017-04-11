@@ -215,7 +215,7 @@ documentation for the formula it computes.
 "special_bonds"_special_bonds.html charmm
 "special_bonds"_special_bonds.html amber :ul
 
-NOTE: For CHARMM, the newer {charmmfsw} or {charmmfsh} styles were
+NOTE: For CHARMM, newer {charmmfsw} or {charmmfsh} styles were
 released in March 2017.  We recommend they be used instead of the
 older {charmm} styles.  See discussion of the differences on the "pair
 charmm"_pair_charmm.html and "dihedral charmm"_dihedral_charmm.html

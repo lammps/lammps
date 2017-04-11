@@ -21,7 +21,7 @@
 #include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
-#include "dihedral_charmmfsh.h"
+#include "dihedral_charmmfsw.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -40,7 +40,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCharmmfsh::DihedralCharmmfsh(LAMMPS *lmp) : Dihedral(lmp)
+DihedralCharmmfsw::DihedralCharmmfsw(LAMMPS *lmp) : Dihedral(lmp)
 {
   weightflag = 0;
   writedata = 1;
@@ -48,7 +48,7 @@ DihedralCharmmfsh::DihedralCharmmfsh(LAMMPS *lmp) : Dihedral(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCharmmfsh::~DihedralCharmmfsh()
+DihedralCharmmfsw::~DihedralCharmmfsw()
 {
   if (allocated && !copymode) {
     memory->destroy(setflag);
@@ -63,7 +63,7 @@ DihedralCharmmfsh::~DihedralCharmmfsh()
 
 /* ---------------------------------------------------------------------- */
 
-void DihedralCharmmfsh::compute(int eflag, int vflag)
+void DihedralCharmmfsw::compute(int eflag, int vflag)
 {
   int i1,i2,i3,i4,i,m,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
@@ -322,7 +322,7 @@ void DihedralCharmmfsh::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void DihedralCharmmfsh::allocate()
+void DihedralCharmmfsw::allocate()
 {
   allocated = 1;
   int n = atom->ndihedraltypes;
@@ -342,7 +342,7 @@ void DihedralCharmmfsh::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void DihedralCharmmfsh::coeff(int narg, char **arg)
+void DihedralCharmmfsw::coeff(int narg, char **arg)
 {
   if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
@@ -384,7 +384,7 @@ void DihedralCharmmfsh::coeff(int narg, char **arg)
    error check and initialize all values needed for force computation
 ------------------------------------------------------------------------- */
 
-void DihedralCharmmfsh::init_style()
+void DihedralCharmmfsw::init_style()
 {
   // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
@@ -392,14 +392,14 @@ void DihedralCharmmfsh::init_style()
   if (weightflag) {
     int itmp;
     if (force->pair == NULL)
-      error->all(FLERR,"Dihedral charmmfsh is incompatible with Pair style");
+      error->all(FLERR,"Dihedral charmmfsw is incompatible with Pair style");
     lj14_1 = (double **) force->pair->extract("lj14_1",itmp);
     lj14_2 = (double **) force->pair->extract("lj14_2",itmp);
     lj14_3 = (double **) force->pair->extract("lj14_3",itmp);
     lj14_4 = (double **) force->pair->extract("lj14_4",itmp);
     int *ptr = (int *) force->pair->extract("implicit",itmp);
     if (!lj14_1 || !lj14_2 || !lj14_3 || !lj14_4 || !ptr)
-      error->all(FLERR,"Dihedral charmmfsh is incompatible with Pair style");
+      error->all(FLERR,"Dihedral charmmfsw is incompatible with Pair style");
     implicit = *ptr;
   }
 
@@ -414,7 +414,7 @@ void DihedralCharmmfsh::init_style()
   
   if (p_cutcoul == NULL || p_cutljinner == NULL || 
       p_cutlj == NULL || p_dihedflag == NULL)
-    error->all(FLERR,"Dihedral charmmfsh is incompatible with Pair style");
+    error->all(FLERR,"Dihedral charmmfsw is incompatible with Pair style");
   
   dihedflag = *p_dihedflag;
   cut_coul14 = *p_cutcoul;
@@ -433,7 +433,7 @@ void DihedralCharmmfsh::init_style()
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
-void DihedralCharmmfsh::write_restart(FILE *fp)
+void DihedralCharmmfsw::write_restart(FILE *fp)
 {
   fwrite(&k[1],sizeof(double),atom->ndihedraltypes,fp);
   fwrite(&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp);
@@ -446,7 +446,7 @@ void DihedralCharmmfsh::write_restart(FILE *fp)
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-void DihedralCharmmfsh::read_restart(FILE *fp)
+void DihedralCharmmfsw::read_restart(FILE *fp)
 {
   allocate();
 
@@ -474,7 +474,7 @@ void DihedralCharmmfsh::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralCharmmfsh::write_data(FILE *fp)
+void DihedralCharmmfsw::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     fprintf(fp,"%d %g %d %d %g\n",i,k[i],multiplicity[i],shift[i],weight[i]);

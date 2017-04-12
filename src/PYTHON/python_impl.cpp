@@ -45,14 +45,26 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 
 PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
-  pyMain = NULL;
-
   // pfuncs stores interface info for each Python function
 
   nfunc = 0;
   pfuncs = NULL;
 
-  external_interpreter = false;
+  // one-time initialization of Python interpreter
+  // pymain stores pointer to main module
+  external_interpreter = Py_IsInitialized();
+
+  Py_Initialize();
+  PyEval_InitThreads();
+
+  PyGILState_STATE gstate = PyGILState_Ensure();
+
+  PyObject *pModule = PyImport_AddModule("__main__");
+  if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
+
+  pyMain = (void *) pModule;
+
+  PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,22 +180,7 @@ void PythonImpl::command(int narg, char **arg)
 
   int ifunc = create_entry(arg[0]);
 
-  // one-time initialization of Python interpreter
-  // pymain stores pointer to main module
-  PyGILState_STATE gstate;
-
-  if (pyMain == NULL) {
-    external_interpreter = Py_IsInitialized();
-    Py_Initialize();
-    PyEval_InitThreads();
-    gstate = PyGILState_Ensure();
-
-    PyObject *pModule = PyImport_AddModule("__main__");
-    if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
-    pyMain = (void *) pModule;
-  } else {
-    gstate = PyGILState_Ensure();
-  }
+  PyGILState_STATE gstate = PyGILState_Ensure();
 
   // send Python code to Python interpreter
   // file: read the file via PyRun_SimpleFile()

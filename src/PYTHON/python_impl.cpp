@@ -43,10 +43,8 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 
 /* ---------------------------------------------------------------------- */
 
-Python::Python(LAMMPS *lmp) : Pointers(lmp)
+PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
-  python_exists = 1;
-
   pyMain = NULL;
 
   // pfuncs stores interface info for each Python function
@@ -59,7 +57,7 @@ Python::Python(LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Python::~Python()
+PythonImpl::~PythonImpl()
 {
   // clean up
   PyGILState_STATE gstate = PyGILState_Ensure();
@@ -85,7 +83,7 @@ Python::~Python()
 
 /* ---------------------------------------------------------------------- */
 
-void Python::command(int narg, char **arg)
+void PythonImpl::command(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Invalid python command");
 
@@ -244,7 +242,7 @@ void Python::command(int narg, char **arg)
 
 /* ------------------------------------------------------------------ */
 
-void Python::invoke_function(int ifunc, char *result)
+void PythonImpl::invoke_function(int ifunc, char *result)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *pValue;
@@ -344,7 +342,7 @@ void Python::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int Python::find(char *name)
+int PythonImpl::find(char *name)
 {
   for (int i = 0; i < nfunc; i++)
     if (strcmp(name,pfuncs[i].name) == 0) return i;
@@ -353,7 +351,7 @@ int Python::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int Python::variable_match(char *name, char *varname, int numeric)
+int PythonImpl::variable_match(char *name, char *varname, int numeric)
 {
   int ifunc = find(name);
   if (ifunc < 0) return -1;
@@ -365,14 +363,14 @@ int Python::variable_match(char *name, char *varname, int numeric)
 
 /* ------------------------------------------------------------------ */
 
-char *Python::long_string(int ifunc)
+char *PythonImpl::long_string(int ifunc)
 {
   return pfuncs[ifunc].longstr;
 }
 
 /* ------------------------------------------------------------------ */
 
-int Python::create_entry(char *name)
+int PythonImpl::create_entry(char *name)
 {
   // ifunc = index to entry by name in pfuncs vector, can be old or new
   // free old vectors if overwriting old pfunc
@@ -482,7 +480,7 @@ int Python::create_entry(char *name)
 
 /* ------------------------------------------------------------------ */
 
-void Python::deallocate(int i)
+void PythonImpl::deallocate(int i)
 {
   delete [] pfuncs[i].itype;
   delete [] pfuncs[i].ivarflag;

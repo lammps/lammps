@@ -45,6 +45,7 @@
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "timer.h"
+#include "python.h"
 #include "memory.h"
 #include "version.h"
 #include "error.h"
@@ -67,6 +68,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   error = new Error(this);
   universe = new Universe(this,communicator);
   output = NULL;
+  python = NULL;
 
   screen = NULL;
   logfile = NULL;
@@ -585,6 +587,7 @@ LAMMPS::~LAMMPS()
 
   if (world != universe->uworld) MPI_Comm_free(&world);
 
+  delete python;
   delete kokkos;
   delete [] suffix;
   delete [] suffix2;
@@ -639,6 +642,8 @@ void LAMMPS::create()
                               // must be after modify so can create Computes
   update = new Update(this);  // must be after output, force, neighbor
   timer = new Timer(this);
+
+  python = new Python(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -759,6 +764,9 @@ void LAMMPS::destroy()
 
   delete timer;
   timer = NULL;
+
+  delete python;
+  python = NULL;
 }
 
 /* ----------------------------------------------------------------------

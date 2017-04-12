@@ -34,7 +34,7 @@
 #include "random_mars.h"
 #include "math_const.h"
 #include "atom_masks.h"
-#include "python_wrapper.h"
+#include "python.h"
 #include "memory.h"
 #include "info.h"
 #include "error.h"
@@ -111,10 +111,6 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[MULTIPLY] = precedence[DIVIDE] = precedence[MODULO] = 6;
   precedence[CARAT] = 7;
   precedence[UNARY] = precedence[NOT] = 8;
-
-  // Python wrapper, real or dummy
-
-  python = new Python(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,7 +140,6 @@ Variable::~Variable()
   delete randomequal;
   delete randomatom;
 
-  delete python;
 }
 
 /* ----------------------------------------------------------------------
@@ -464,7 +459,7 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1],"python") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal variable command");
-    if (!python->python_exists)
+    if (!python->is_enabled())
       error->all(FLERR,"LAMMPS is not built with Python embedded");
     int ivar = find(arg[0]);
     if (ivar >= 0) {
@@ -735,7 +730,7 @@ void Variable::set_arrays(int i)
 
 void Variable::python_command(int narg, char **arg)
 {
-  if (!python->python_exists)
+  if (!python->is_enabled())
     error->all(FLERR,"LAMMPS is not built with Python embedded");
   python->command(narg,arg);
 }

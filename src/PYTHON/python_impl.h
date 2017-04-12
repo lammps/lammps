@@ -11,20 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_PYTHON_H
-#define LMP_PYTHON_H
+#ifndef LMP_PYTHON_IMPL_H
+#define LMP_PYTHON_IMPL_H
 
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class Python : protected Pointers {
+class PythonImpl : protected Pointers, public PythonInterface {
  public:
-  int python_exists;
   bool external_interpreter;
 
-  Python(class LAMMPS *);
-  ~Python();
+  PythonImpl(class LAMMPS *);
+  ~PythonImpl();
   void command(int, char **);
   void invoke_function(int, char *);
   int find(char *);

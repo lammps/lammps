@@ -6,10 +6,6 @@ and your version of Python, and copy it to Makefile.lammps before
 building LAMMPS itself.  You may need to edit one of the provided
 files to match your system.
 
-Note that is not currently possible to use the PYTHON package with
-Python 3, only with Python 2.  The C API changed from Python 2 to 3
-and the LAMMPS code is not compatible with both.
-
 If you create a new Makefile.lammps file suitable for some version of
 Python on some system, that is not a match to one of the provided
 Makefile.lammps.* files, you can send it to the developers, and we can

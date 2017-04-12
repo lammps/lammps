@@ -45,23 +45,25 @@ Python::Python(LAMMPS *lmp) : Pointers(lmp)
 
 Python::~Python()
 {
-  // clean up
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  if(pyMain) {
+    // clean up
+    PyGILState_STATE gstate = PyGILState_Ensure();
 
-  for (int i = 0; i < nfunc; i++) {
-    delete [] pfuncs[i].name;
-    deallocate(i);
-    PyObject *pFunc = (PyObject *) pfuncs[i].pFunc;
-    Py_XDECREF(pFunc);
-  }
+    for (int i = 0; i < nfunc; i++) {
+      delete [] pfuncs[i].name;
+      deallocate(i);
+      PyObject *pFunc = (PyObject *) pfuncs[i].pFunc;
+      Py_XDECREF(pFunc);
+    }
 
-  // shutdown Python interpreter
+    // shutdown Python interpreter
 
-  if (pyMain && !external_interpreter) {
-    Py_Finalize();
-  }
-  else {
-    PyGILState_Release(gstate);
+    if (!external_interpreter) {
+      Py_Finalize();
+    }
+    else {
+      PyGILState_Release(gstate);
+    }
   }
 
   memory->sfree(pfuncs);

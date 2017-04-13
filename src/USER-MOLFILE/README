@@ -28,8 +28,7 @@ taken from.  These header files can be found inside the VMD
 installation tree under: "plugins/include".
 
 For convenience, this package includes a set of header files that is
-compatible with VMD 1.9 and 1.9.1 (the current version in June 2012)
-and should be compilable with VMD versions back to about version 1.8.4
+compatible with VMD 1.9.3 (the current version in April 2017)
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

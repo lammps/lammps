@@ -112,7 +112,7 @@ class FixGCMC : public Fix {
   double **cutsq;
   double **atom_coord;
   imageint imagezero;
-  double overlap_cutoff;
+  double overlap_cutoffsq; // square distance cutoff for overlap 
   int overlap_flag;
   
   double energy_intra;

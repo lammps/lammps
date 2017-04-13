@@ -260,7 +260,7 @@ void FixGCMC::options(int narg, char **arg)
   grouptypebits = NULL;
   energy_intra = 0.0;
   tfac_insert = 1.0;
-  overlap_cutoff = 0.0;
+  overlap_cutoffsq = 0.0;
   overlap_flag = 0;
 
   int iarg = 0;
@@ -366,7 +366,8 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap_cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      overlap_cutoff = force->numeric(FLERR,arg[iarg+1]);
+      double rtmp = force->numeric(FLERR,arg[iarg+1]);
+      overlap_cutoffsq = rtmp*rtmp;
       overlap_flag = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
@@ -2146,7 +2147,7 @@ double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
     // if overlap check requested, if overlap,
     // return signal value for energy 
 
-    if (overlap_flag && rsq < overlap_cutoff)
+    if (overlap_flag && rsq < overlap_cutoffsq)
       return MAXENERGYSIGNAL;
     
     if (rsq < cutsq[itype][jtype])
@@ -2216,7 +2217,7 @@ double FixGCMC::energy_full()
         delz = x[i][2] - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
       
-        if (rsq < overlap_cutoff) {
+        if (rsq < overlap_cutoffsq) {
           overlaptest = 1;
           break;
         }

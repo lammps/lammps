@@ -50,7 +50,7 @@ def factorial(n):
   return n * factorial(n-1)
  """ :pre
 
-python loop input 1 SELF return v_value format -f here """
+python loop input 1 SELF return v_value format pf here """
 def loop(lmpptr,N,cut0):
   from lammps import lammps
   lmp = lammps(ptr=lmpptr) :pre
@@ -59,18 +59,13 @@ def loop(lmpptr,N,cut0):
 
   for i in range(N):
     cut = cut0 + i*0.1
-    lmp.set_variable("cut",cut)               # set a variable in LAMMPS
+    lmp.set_variable("cut",cut)                 # set a variable in LAMMPS
     lmp.command("pair_style lj/cut $\{cut\}")   # LAMMPS commands
     lmp.command("pair_coeff * * 1.0 1.0")
     lmp.command("run 100")
  """ :pre
 
 [Description:]
-
-NOTE: It is not currently possible to use the "python"_python.html
-command described in this section with Python 3, only with Python 2.
-The C API changed from Python 2 to 3 and the LAMMPS code is not
-compatible with both.
 
 Define a Python function or execute a previously defined function.
 Arguments, including LAMMPS variables, can be passed to the function
@@ -477,16 +472,7 @@ python"_Section_python.html.  Note that it is important that the
 stand-alone LAMMPS executable and the LAMMPS shared library be
 consistent (built from the same source code files) in order for this
 to work.  If the two have been built at different times using
-different source files, problems may occur.
-
-As described above, you can use the python command to invoke a Python
-function which calls back to LAMMPS through its Python-wrapped library
-interface.  However you cannot do the opposite.  I.e. you cannot call
-LAMMPS from Python and invoke the python command to "callback" to
-Python and execute a Python function.  LAMMPS will generate an error
-if you try to do that.  Note that we think there actually should be a
-way to do that, but haven't yet been able to figure out how to do it
-successfully.
+different source files, problems may occur. 
 
 [Related commands:]
 

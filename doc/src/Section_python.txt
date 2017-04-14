@@ -118,11 +118,6 @@ check which version of Python you have installed, by simply typing
 
 11.2 Overview of using Python from a LAMMPS script :link(py_2),h4
 
-NOTE: It is not currently possible to use the "python"_python.html
-command described in this section with Python 3, only with Python 2.
-The C API changed from Python 2 to 3 and the LAMMPS code is not
-compatible with both.
-
 LAMMPS has a "python"_python.html command which can be used in an
 input script to define and execute a Python function that you write
 the code for.  The Python function can also be assigned to a LAMMPS

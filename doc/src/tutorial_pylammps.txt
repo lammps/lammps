@@ -55,7 +55,7 @@ using the generated {auto} Makefile.
 cd $LAMMPS_DIR/src :pre
 
 # generate custom Makefile
-python2 Make.py -jpg -png -s ffmpeg exceptions -m mpi -a file :pre
+python Make.py -jpg -png -s ffmpeg exceptions -m mpi -a file :pre
 
 # add packages if necessary
 make yes-MOLECULE :pre

@@ -1,22 +1,26 @@
 The Makefile.lammps file in this directory is used when building
 LAMMPS with its PYTHON package installed.  The file has several
 settings needed to compile and link LAMMPS with the Python library.
-You should choose a Makefile.lammps.* file compatible with your system
-and your version of Python, and copy it to Makefile.lammps before
-building LAMMPS itself.  You may need to edit one of the provided
-files to match your system.
 
-If you create a new Makefile.lammps file suitable for some version of
-Python on some system, that is not a match to one of the provided
-Makefile.lammps.* files, you can send it to the developers, and we can
-include it in the distribution for others to use.
+The default Makefile.lammps will automatically choose the default
+python interpreter of your system and will infer the flags from
+the python-config utility, that is usually bundled with the python
+installation. If needed, you can copy one of the other provided
+Makefile.lammps.* files to to Makefile.lammps before building
+LAMMPS itself.
 
-To illustrate, these are example settings from the
-Makefile.lammps.python2.7 file:
+The files Makefile.lammps.python2 and Makefile.lammps.python3 are
+similar to the default file, but meant for the case that both,
+python 2 and python 3, are installed simultaneously and you want
+to prefer one over the other. If neither of these files work, you
+may have to create a custom Makefile.lammps file suitable for
+the version of Python on your system.  To illustrate, these are
+example settings from the Makefile.lammps.python2.7 file:
 
 python_SYSINC = -I/usr/local/include/python2.7
 python_SYSLIB = -lpython2.7 -lnsl -ldl -lreadline -ltermcap -lpthread -lutil -lm
-python_SYSPATH = 
+python_SYSPATH =
+PYTHON=python2.7
 
 python_SYSINC refers to the directory where Python's Python.h file is
 found.  LAMMPS includes this file.
@@ -26,9 +30,12 @@ application (LAMMPS in this case) to "embed" Python in the
 application.  The Python library itself is listed (-lpython2.7) are
 are several system libraries needed by Python.
 
-python_SYSPATH = refers to the path (e.g. -L/usr/local/lib) where the
+python_SYSPATH refers to the path (e.g. -L/usr/local/lib) where the
 Python library can be found.  You may not need this setting if the
 path is already included in your LD_LIBRARY_PATH environment variable.
+
+PYTHON is the name of the python interpreter. It is used for
+installing the LAMMPS python module with "make install-python"
 
 -------------------------
 

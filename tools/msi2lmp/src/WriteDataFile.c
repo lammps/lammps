@@ -144,7 +144,7 @@ void WriteDataFile(char *nameroot)
       else if (forcefield & FF_TYPE_CLASS2)
         fputs(" # class2\n\n",DatF);
     } else fputs("\n\n",DatF);
-    
+
     for (i=0; i < no_angle_types; i++) {
       fprintf(DatF, " %3i", i+1);
       for ( j = 0; j < m; j++)

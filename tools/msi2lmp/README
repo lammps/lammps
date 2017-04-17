@@ -1,98 +1,50 @@
-Axel Kohlmeyer is the current maintainer of the msi2lmp tool.
-Please send any inquiries about msi2lmp to the lammps-users mailing list.
 
-06 Oct 2016 Axel Kohlmeyer <akohlmey@gmail.com>
+ msi2lmp.exe
 
-Improved whitespace handling in parsing topology and force field
-files to avoid bogus warnings about type name truncation.
+This code has several known limitations listed below under "LIMITATIONS"
+(and possibly some unknown ones, too) and is no longer under active
+development. Only the occasional bugfix is applied.
 
-24 Oct 2015 Axel Kohlmeyer <akohlmey@gmail.com>
+Please send any inquiries about msi2lmp to the lammps-users
+mailing list and not to individual people.
 
-Added check to make certain that force field files
-are consistent with the notation of non-bonded parameters
-that the msi2lmp code expects. For Class 1 and OPLS-AA
-the A-B notation with geometric mixing is expected and for
-Class 2 the r-eps notation with sixthpower mixing.
+------------------------------------------------------------------------
 
-11 Sep 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+OVERVIEW
 
-Refactored ReadMdfFile.c so it more consistently honors
-the MAX_NAME and MAX_STRING string length defines and 
-potentially handles inputs with long names better.
+This is the third version of a program that generates a LAMMPS data file
+based on the information in MSI .car (atom coordinates), .mdf (molecular
+topology) and .frc (forcefield) files.  The .car and .mdf files are
+specific to a molecular system while the .frc file is specific to a
+forcefield version.  The only coherency needed between .frc and
+.car/.mdf files are the atom types.
 
-27 May 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+The first version was written by Steve Lustig at Dupont, but required
+using Discover to derive internal coordinates and forcefield parameters
 
-Added TopoTools style type hints as comments to all Mass, PairCoeff,
-BondCoeff, AngleCoeff, DihedralCoeff, ImproperCoeff entries.
-This should make it easier to identify force field entries with
-the structure and force field map in the data file later.
+The second version was written by Michael Peachey while an intern in the
+Cray Chemistry Applications Group managed by John Carpenter. This
+version derived internal coordinates from the mdf file and looked up
+parameters in the frc file thus eliminating the need for Discover.
 
-06 Mar 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+The third version was written by John Carpenter to optimize the
+performance of the program for large molecular systems (the original
+code for deriving atom numbers was quadratic in time) and to make the
+program fully dynamic. The second version used fixed dimension arrays
+for the internal coordinates.
 
-Fixed a bug in handling of triclinic cells, where the matrices to
-convert to and from fractional coordinates were incorrectly built.
+The third version was revised in Fall 2011 by Stephanie Teich-McGoldrick
+to add support non-orthogonal cells.
 
-26 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+The next revision was started in Summer/Fall 2013 by Axel Kohlmeyer to
+improve portability to Windows compilers, clean up command line parsing
+and improve compatibility with the then current LAMMPS versions. This
+revision removes compatibility with the obsolete LAMMPS version written
+in Fortran 90.
 
-Implemented writing out force field style hints in generated data
-files for improved consistency checking when reading those files.
-Also added writing out CGCMM style comments to identify atom types.
+INSTALLATION & USAGE
 
-08 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
-
-Fixed a memory access violation with Class 2 force fields.
-Free all allocated memory to better detection of memory errors.
-Print out version number and data with all print levels > 0.
-Added valgrind checks to the regression tests
-
-08 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
-
-Fixed a memory access violation with Class 2 force fields.
-Free all allocated memory to better detection of memory errors.
-Print out version number and data with all print levels > 0.
-Added valgrind checks to the regression tests
-
-02 Aug 2013 Axel Kohlmeyer <akohlmey@gmail.com>
-
-Added rudimentary support for OPLS-AA based on
-input provided by jeff greathouse.
-
-18 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
-
-Added support for writing out image flags
-Improved accuracy of atom masses
-Added flag for shifting the entire system
-Fixed some minor logic bugs and prepared
-for supporting other force fields and morse style bonds.
-
-12 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
-
-Fixed the bug that caused improper coefficients to be wrong
-Cleaned up the handling of box parameters and center the box
-by default around the system/molecule. Added a flag to make
-this step optional and center the box around the origin instead.
-Added a regression test script with examples.
-
-1 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
-
-Cleanup and improved port to windows.
-Removed some more static string limits.
-Added print level 3 for additional output.
-Make code stop at missing force field parameters
-and added -i flag to override this.
-Safer argument checking.
-Provide short versions for all flags.
-
-23 Sep 2011
-
-added support for triclinic boxes
-see msi2lmp/TriclinicModification.pdf doc for details
-
------------------------------
-
- msi2lmp V3.6 4/10/2005
-
- This program uses the .car and .mdf files from MSI/Biosyms's INSIGHT
+This program uses the .car and .mdf files from MSI/Biosyms's INSIGHT
  program to produce a LAMMPS data file.
 
  1. Building msi2lmp
@@ -178,50 +130,111 @@ see msi2lmp/TriclinicModification.pdf doc for details
   -- the LAMMPS data file is written to <ROOTNAME>.data
      protocol and error information is written to the screen.
 
-****************************************************************
-*
-* msi2lmp
-*
-* This is the third version of a program that generates a LAMMPS
-* data file based on the information in MSI .car (atom
-* coordinates), .mdf (molecular topology) and .frc (forcefield) 
-* files. The .car and .mdf files are specific to a molecular
-* system while the .frc file is specific to a forcefield version.
-* The only coherency needed between .frc and .car/.mdf files are
-* the atom types. 
-*
-* The first version was written by Steve Lustig at Dupont, but
-* required using Discover to derive internal coordinates and
-* forcefield parameters
-*
-* The second version was written by Michael Peachey while an
-* intern in the Cray Chemistry Applications Group managed
-* by John Carpenter. This version derived internal coordinates
-* from the mdf file and looked up parameters in the frc file
-* thus eliminating the need for Discover.
-*
-* The third version was written by John Carpenter to optimize
-* the performance of the program for large molecular systems
-* (the original  code for deriving atom numbers was quadratic in time)
-* and to make the program fully dynamic. The second version used
-* fixed dimension arrays for the internal coordinates.
-*
-* The current maintainer is only reluctantly doing so because John Mayo no longer
-* needs this code.
-*
-* V3.2 corresponds to adding code to MakeLists.c to gracefully deal with
-* systems that may only be molecules of 1 to 3 atoms. In V3.1, the values
-* for number_of_dihedrals, etc. could be unpredictable in these systems.
-*
-* V3.3 was generated in response to a strange error reading a MDF file generated by
-* Accelys' Materials Studio GUI. Simply rewriting the input part of ReadMdfFile.c 
-* seems to have fixed the problem.
-*
-* V3.4 and V3.5 are minor upgrades to fix bugs associated mostly with .car and .mdf files
-* written by Accelys' Materials Studio GUI.
-*
-* V3.6 outputs to LAMMPS 2005 (C++ version).
-*
-* Contact: Kelly L. Anderson, kelly.anderson@cantab.net
-* 
-* April 2005
+------------------------------------------------------------------------
+
+LIMITATIONS
+
+msi2lmp has the following known limitations:
+
+- there is no support to select morse bonds over harmonic bonds
+- there is no support for auto-equivalences to supplement fully
+  parameterized interactions with heuristic ones
+- there is no support for bond increments
+
+------------------------------------------------------------------------
+
+CHANGELOG
+
+06 Oct 2016 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Improved whitespace handling in parsing topology and force field
+files to avoid bogus warnings about type name truncation.
+
+24 Oct 2015 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added check to make certain that force field files are consistent with
+the notation of non-bonded parameters that the msi2lmp code expects.
+For Class 1 and OPLS-AA the A-B notation with geometric mixing is
+expected and for Class 2 the r-eps notation with sixthpower mixing.
+
+11 Sep 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Refactored ReadMdfFile.c so it more consistently honors the MAX_NAME
+and MAX_STRING string length defines and potentially handles inputs
+with long names better.
+
+27 May 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added TopoTools style type hints as comments to all Mass, PairCoeff,
+BondCoeff, AngleCoeff, DihedralCoeff, ImproperCoeff entries.
+This should make it easier to identify force field entries with
+the structure and force field map in the data file later.
+
+06 Mar 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed a bug in handling of triclinic cells, where the matrices to
+convert to and from fractional coordinates were incorrectly built.
+
+26 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Implemented writing out force field style hints in generated data
+files for improved consistency checking when reading those files.
+Also added writing out CGCMM style comments to identify atom types.
+
+08 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed a memory access violation with Class 2 force fields.  Free all
+allocated memory to better detection of memory errors.  Print out
+version number and data with all print levels > 0.  Added valgrind
+checks to the regression tests.
+
+02 Aug 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added rudimentary support for OPLS-AA based on input provided
+by jeff greathouse.
+
+18 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added support for writing out image flags.  Improved accuracy of atom
+masses.  Added flag for shifting the entire system.  Fixed some minor
+logic bugs and prepared for supporting other force fields and morse
+style bonds.
+
+12 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed the bug that caused improper coefficients to be wrong. Cleaned up
+the handling of box parameters and center the box by default around the
+system/molecule. Added a flag to make this step optional and center the
+box around the origin instead.  Added a regression test script with
+examples.
+
+1 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Cleanup and improved port to windows. Removed some more static string
+limits.  Added print level 3 for additional output.  Make code stop at
+missing force field parameters and added -i flag to override this.
+Safer argument checking.  Provide short versions for all flags.
+
+23 Sep 2011
+
+added support for triclinic boxes
+
+V3.6 outputs to LAMMPS 2005 (C++ version).
+
+Contact: Kelly L. Anderson, kelly.anderson@cantab.net
+
+V3.4 and V3.5 are minor upgrades to fix bugs associated mostly with .car
+ and .mdf files written by Accelys' Materials Studio GUI.  April 2005
+
+V3.3 was generated in response to a strange error reading a MDF file
+generated by Accelys' Materials Studio GUI. Simply rewriting the input
+part of ReadMdfFile.c seems to have fixed the problem.
+
+V3.2 corresponds to adding code to MakeLists.c to gracefully deal with
+systems that may only be molecules of 1 to 3 atoms. In V3.1, the values
+for number_of_dihedrals, etc. could be unpredictable in these systems.
+
+-----------------------------
+
+ msi2lmp v3.9.8 6/10/2016
+

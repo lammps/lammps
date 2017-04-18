@@ -16,6 +16,12 @@ style_region.h
 style_neigh_bin.h
 style_neigh_pair.h
 style_neigh_stencil.h
+# deleted on 19 April 2017
+vmdplugin.h
+molfile_plugin.h
+# deleted on 13 April 2017
+dihedral_charmmfsh.cpp
+dihedral_charmmfsh.h
 # deleted on ## XXX 2016
 accelerator_intel.h
 neigh_bond.cpp

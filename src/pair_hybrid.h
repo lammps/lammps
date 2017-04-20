@@ -55,6 +55,9 @@ class PairHybrid : public Pair {
 
   int check_ijtype(int, int, char *);
 
+  virtual void add_tally_callback(class Compute *);
+  virtual void del_tally_callback(class Compute *);
+
  protected:
   int nstyles;                  // # of sub-styles
   Pair **styles;                // list of Pair style classes

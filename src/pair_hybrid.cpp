@@ -169,6 +169,23 @@ void PairHybrid::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::add_tally_callback(Compute *ptr)
+{
+  for (int m = 0; m < nstyles; m++)
+    styles[m]->add_tally_callback(ptr);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::del_tally_callback(Compute *ptr)
+{
+  for (int m = 0; m < nstyles; m++)
+    styles[m]->del_tally_callback(ptr);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairHybrid::compute_inner()

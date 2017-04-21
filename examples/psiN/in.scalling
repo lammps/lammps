@@ -1,0 +1,211 @@
+# Script for free energy simulation of liquid 
+# Run like this :./lmp_g++ -var rho_init 0.01 -var simTemp 0.13  -var Xatoms 40 -var Yatoms 40 -in in.scalling
+echo both
+
+shell		mkdir	dumps logs avgs
+
+variable	curent_file	index in.scalling
+
+
+variable 	init_lattice	index hex
+variable	radius_cut	equal 2.0
+
+
+variable 	solid_temp	index ${simTemp}
+variable 	liquid_temp	index ${simTemp}
+
+variable	Temp_sim	equal ${simTemp}
+variable 	Temp_melt	equal ${simTemp}
+
+variable	rho	equal	${rho_init}
+variable	drho	equal	0.01
+variable	rho_end	equal	1.1
+
+variable	T_percent_dif	equal	0.05
+
+variable        X_atoms equal   ${Xatoms}
+variable        Y_atoms equal   ${Yatoms}
+variable        Z_atoms index   1
+
+variable        X_atoms_solid   equal   0.5*v_X_atoms
+
+
+variable	Nstep_term	equal	10000
+variable	Nstep_nve	equal	10000
+variable	Nstep_avg	equal	10000
+
+variable	rel_def_all_limit equal 0.5
+############
+# Init
+############
+label		init
+
+variable	filemask index ${init_lattice}${X_atoms}x${Y_atoms}x${Z_atoms}.Temp=${Temp_sim}.rho=${rho}
+
+log             ./logs/${init_lattice}${X_atoms}x${Y_atoms}x${Z_atoms}.Temp=${Temp_sim}.rho=${rho}_${X_atoms}x${Y_atoms}.log
+dimension	2
+units           lj
+atom_style      atomic
+boundary        p p p
+newton          off
+lattice         ${init_lattice}    ${rho}       
+region          box block 0 ${X_atoms} 0 ${Y_atoms} 0 ${Z_atoms}
+create_box      2 box
+create_atoms    1 box
+#############
+# Masses
+#############
+
+
+mass            1 1.0
+mass		2 1.0
+
+#############
+# Regions
+#############
+
+region          1 block 0 ${X_atoms_solid} 0 ${Y_atoms} 0 ${Z_atoms}
+group           solid region 1
+region          2 block ${X_atoms_solid} ${X_atoms} 0 ${Y_atoms} 0 ${Z_atoms}
+group           liquid region 2
+group           all region box
+set             group liquid type 1
+set             group solid type 2
+
+
+#############
+# Interaction
+#############
+
+
+
+pair_style     lj/shift ${radius_cut}
+pair_coeff      1 1 1.0 1.0 10.0 1.35
+pair_coeff      1 2 1.0 1.0 10.0 1.35
+pair_coeff      2 2 1.0 1.0 10.0 1.35
+
+#pair_style	lj/cut	${radius_cut}
+
+#pair_coeff	 * * 1.0 1.0 ${radius_cut}
+
+neighbor        0.3 bin
+
+#############
+# Temperature
+#############
+
+velocity        liquid create ${Temp_melt} 87287
+velocity        solid create ${Temp_melt} 83287
+
+##############
+#Computes 
+##############
+
+
+#Macro params
+compute         all_TMP  all temp
+compute		sol_TMP solid temp
+compute		liq_TMP liquid temp 
+#compute		sol_Press all pressure sol_TMP
+#compute         liq_Press all pressure liq_TMP
+
+variable	TMP	equal c_all_TMP
+#variable	dif_TMP equal c_liq_TMP-c_sol_TMP
+#variable	dif_Press equal c_liq_Press-c_sol_Press
+variable	PRESS equal press
+variable	ETOTAL equal etotal
+
+variable	nvt_Temp_diff equal "sqrt((1.0 -(v_TMP)/(v_Temp_sim))*(1.0 -(v_TMP)/(v_Temp_sim)))"
+
+#Defects
+
+#compute		all_def all centro/atom
+
+#compute		all_avg_def all reduce ave c_all_def
+#compute         sol_avg_def solid reduce ave c_all_def
+#compute         liq_avg_def liquid reduce ave c_all_def
+
+#variable	sol_avg_def equal c_sol_avg_def
+#variable	liq_avg_def equal c_liq_avg_def
+#variable	all_avg_def equal c_all_avg_def
+
+#variable 	avg_def_dif equal sqrt((c_all_avg_def-c_sol_avg_def)*(c_all_avg_def-c_sol_avg_def)+(c_all_avg_def-c_liq_avg_def)*(c_all_avg_def-c_liq_avg_def)+(c_sol_avg_def-c_liq_avg_def)*(c_sol_avg_def-c_liq_avg_def))
+
+#variable	rel_def_all equal (v_avg_def_dif)/(c_all_avg_def)
+thermo		100
+thermo_style 	custom step temp v_TMP v_nvt_Temp_diff press pe ke etotal
+#########
+#Initial melting
+#########
+print "########################Melting###############################"
+fix 	nve_all	all nve
+fix     2d all	enforce2d
+run	10000
+unfix 	nve_all
+unfix	2d
+
+
+#########
+#Termolisation
+#########
+label		term
+
+print "########################Termolisation###########################"
+run 		0
+fix             nvt_all  all nvt	${TMP} 	${Temp_sim}	0.1	
+fix		2d all enforce2d
+run		${Nstep_term}
+
+unfix 		nvt_all
+unfix		2d
+#jump		${curent_file} term_verify
+###########
+#NVE
+###########
+print "########################NVE#####################################"
+fix		nve_all	all nve
+fix		2d all enforce2d
+run		${Nstep_nve}
+unfix		nve_all
+unfix		2d
+jump		${curent_file} term_verify
+print "########################Term verify##############################"
+label		term_verify
+
+if	${nvt_Temp_diff} < ${T_percent_dif} then "jump ${curent_file} collect_avg" else "jump ${curent_file} term"
+
+label	collect_avg
+print "########################Collect_avgs#############################"
+
+fix	nve_all	all	nve
+fix	2d all enforce2d
+
+compute         psi6 all PsiN/atom 6.0 1.4
+compute		psi4 all PsiN/atom 4.0 1.4
+
+compute		psi4_ave all reduce ave c_psi4
+compute		psi6_ave all reduce ave c_psi6
+
+fix	ave_all all	ave/time  1 1000 1000 v_TMP v_rho v_PRESS v_ETOTAL c_psi6_ave c_psi4_ave file ./avgs/${init_lattice}${X_atoms}x${Y_atoms}x${Z_atoms}.Temp=${Temp_sim}.rho=${rho}_${X_atoms}x${Y_atoms}.avg.log
+
+
+dump    all  all custom 1000 ./dumps/temp=${Temp_sim}.rho=${rho}_${X_atoms}x${Y_atoms}.dmp.gz id type  x y z vx vy vz c_psi6 c_psi4
+
+	
+run ${Nstep_avg}
+
+jump		${curent_file} change_sim
+
+
+unfix	2d
+label	change_sim
+print "########################change_sim################################"
+
+variable	rho	equal	${rho}+${drho}
+clear
+if	${rho} < ${rho_end} then "jump		${curent_file} init" else "jump		${curent_file} exit"
+
+label	exit
+print "#######################Exit#######################################"
+
+

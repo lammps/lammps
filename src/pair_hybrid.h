@@ -72,6 +72,7 @@ class PairHybrid : public Pair {
   int ***map;                   // list of sub-styles itype,jtype points to
   double **special_lj;          // list of per style LJ exclusion factors
   double **special_coul;        // list of per style Coulomb exclusion factors
+  int *compute_tally;           // list of on/off flags for tally computes
 
   void allocate();
   void flags();

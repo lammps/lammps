@@ -188,9 +188,6 @@ void PPPM::init()
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box "
                "and kspace_modify diff ad");
-  if (domain->triclinic && slabflag)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and "
-               "slab correction");
   if (domain->dimension == 2) error->all(FLERR,
                                          "Cannot use PPPM with 2d simulation");
   if (comm->style != 0)
@@ -745,13 +742,14 @@ void PPPM::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
   // 2d slab correction
 
   if (slabflag == 1) slabcorr();
 
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------

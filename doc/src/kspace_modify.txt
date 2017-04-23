@@ -163,11 +163,12 @@ The {slab} keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
 "boundary"_boundary.html setting of "boundary p p f".  This is done by
 treating the system as if it were periodic in z, but inserting empty
-volume between atom slabs and removing dipole inter-slab interactions
-so that slab-slab interactions are effectively turned off.  The
+volume between atom slabs and removing dipolar interactions between
+images so that slab-slab interactions are effectively turned off.  The
 volfactor value sets the ratio of the extended dimension in z divided
-by the actual dimension in z.  The recommended value is 3.0.  A larger
-value is inefficient; a smaller value introduces unwanted slab-slab
+by the actual dimension in z.  The recommended value is 3.  A larger
+value is inefficient, while a z-length smaller than three times
+the largest box length introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the {slab}
@@ -179,9 +180,8 @@ in lieu of the volfactor.  This turns off all kspace forces in the z
 direction.  The {nozforce} option is not supported by MSM. For MSM,
 any combination of periodic, non-periodic, or shrink-wrapped
 boundaries can be set using "boundary"_boundary.html (the slab
-approximation in not needed).  The {slab} keyword is not currently
-supported by Ewald or PPPM when using a triclinic simulation cell. The
-slab correction has also been extended to point dipole interactions
+approximation in not needed).
+The slab correction has also been extended to point dipole interactions
 "(Klapp)"_#Klapp in "kspace_style"_kspace_style.html {ewald/disp}.
 
 NOTE: If you wish to apply an electric field in the Z-direction, in
@@ -317,7 +317,7 @@ split = 0, tol = 1.0e-6, and disp/auto = no.
 Adam Hilger, NY (1989).
 
 :link(Yeh)
-[(Yeh)] Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
+[(Yeh)] Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999); see also Ballenegger, J Chem Phys, 140, 161102 (2014).
 
 :link(Ballenegger)
 [(Ballenegger)] Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107

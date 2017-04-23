@@ -105,9 +105,6 @@ void Ewald::init()
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab Ewald");
-    if (domain->triclinic)
-      error->all(FLERR,"Cannot (yet) use Ewald with triclinic box "
-                 "and slab correction");
   }
 
   // extract short-range Coulombic cutoff from pair style

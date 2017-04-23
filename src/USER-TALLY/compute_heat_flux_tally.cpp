@@ -64,12 +64,12 @@ ComputeHeatFluxTally::~ComputeHeatFluxTally()
 void ComputeHeatFluxTally::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR,"Trying to use compute heat/flux/tally with no pair style");
+    error->all(FLERR,"Trying to use compute heat/flux/tally without pair style");
   else
     force->pair->add_tally_callback(this);
 
   if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-    error->all(FLERR,"Compute heat/flux/tally used with incompatible pair style.");
+    error->warning(FLERR,"Compute heat/flux/tally used with incompatible pair style");
 
   if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
                           || force->improper || force->kspace))

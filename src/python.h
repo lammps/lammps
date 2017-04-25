@@ -40,6 +40,7 @@ public:
   char * long_string(int ifunc);
 
   bool is_enabled() const;
+  void request();
 
 private:
   PythonInterface * impl;

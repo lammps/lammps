@@ -60,6 +60,13 @@ bool Python::is_enabled() const {
 
 /* ---------------------------------------------------------------------- */
 
+void Python::request()
+{
+  if (!impl) init();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Python::command(int narg, char **arg)
 {
   if(!impl) init();

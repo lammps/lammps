@@ -40,20 +40,21 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda , impl_view_mapping_a ) {
+TEST_F( cuda, impl_view_mapping_a )
+{
   test_view_mapping< Kokkos::CudaSpace >();
   test_view_mapping_operator< Kokkos::CudaSpace >();
 }
 
-TEST_F( cuda , view_of_class )
+TEST_F( cuda, view_of_class )
 {
   TestViewMappingClassValue< Kokkos::CudaSpace >::run();
   TestViewMappingClassValue< Kokkos::CudaUVMSpace >::run();
 }
 
-} // namespace test
-
+} // namespace Test

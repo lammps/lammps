@@ -6,7 +6,7 @@
 #-----------------------------------------------------------------------------
 # Building on 'kokkos-dev.sandia.gov' with enabled capabilities:
 #
-#   Cuda, OpenMP, Threads, Qthread, hwloc
+#   Cuda, OpenMP, Threads, Qthreads, hwloc
 #
 # module loaded on 'kokkos-dev.sandia.gov' for this build
 #
@@ -82,13 +82,13 @@ CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D Trilinos_ENABLE_OpenMP:BOOL=ON"
 CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D Kokkos_ENABLE_OpenMP:BOOL=ON"
 
 #-----------------------------------------------------------------------------
-# Qthread
+# Qthreads
 
-QTHREAD_BASE_DIR="/home/projects/qthreads/2014-07-08/host/gnu/4.7.3"
+QTHREADS_BASE_DIR="/home/projects/qthreads/2014-07-08/host/gnu/4.7.3"
 
-CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D TPL_ENABLE_QTHREAD:BOOL=ON"
-CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREAD_INCLUDE_DIRS:FILEPATH=${QTHREAD_BASE_DIR}/include"
-CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREAD_LIBRARY_DIRS:FILEPATH=${QTHREAD_BASE_DIR}/lib"
+CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D TPL_ENABLE_QTHREADS:BOOL=ON"
+CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREADS_INCLUDE_DIRS:FILEPATH=${QTHREADS_BASE_DIR}/include"
+CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREADS_LIBRARY_DIRS:FILEPATH=${QTHREADS_BASE_DIR}/lib"
 
 #-----------------------------------------------------------------------------
 # C++11
@@ -108,6 +108,3 @@ rm -rf CMake* Trilinos* packages Dart* Testing cmake_install.cmake MakeFile*
 echo cmake ${CMAKE_CONFIGURE} ${TRILINOS_SOURCE_DIR}
 
 cmake ${CMAKE_CONFIGURE} ${TRILINOS_SOURCE_DIR}
-
-#-----------------------------------------------------------------------------
-

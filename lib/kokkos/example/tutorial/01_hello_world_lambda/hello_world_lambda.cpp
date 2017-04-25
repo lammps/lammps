@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -100,7 +100,7 @@ int main (int argc, char* argv[]) {
   // order.  Parallel for loops may execute in any order.
   // We also need to protect the usage of a lambda against compiling
   // with a backend which doesn't support it (i.e. Cuda 6.5/7.0).
-#if (KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   Kokkos::parallel_for (15, KOKKOS_LAMBDA (const int i) {
       // printf works in a CUDA parallel kernel; std::ostream does not.
       printf ("Hello from i = %i\n", i);

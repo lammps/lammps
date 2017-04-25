@@ -64,6 +64,7 @@ struct TestDynamicView
   typedef Kokkos::Experimental::MemoryPool<typename Space::device_type> memory_pool_type;
 
   typedef Kokkos::Experimental::DynamicView<Scalar*,Space> view_type;
+  typedef typename view_type::const_type const_view_type ;
 
   typedef typename Kokkos::TeamPolicy<execution_space>::member_type member_type ;
   typedef double value_type;
@@ -135,6 +136,8 @@ struct TestDynamicView
 // printf("TestDynamicView::run(%d) construct dynamic view\n",arg_total_size);
 
     view_type da("A",pool,arg_total_size);
+
+    const_view_type ca(da);
 
 // printf("TestDynamicView::run(%d) construct test functor\n",arg_total_size);
 

@@ -40,14 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda , view_space_assign ) {
-  view_space_assign< Kokkos::HostSpace , Kokkos::CudaHostPinnedSpace >();
-  view_space_assign< Kokkos::CudaSpace , Kokkos::CudaUVMSpace >();
+TEST_F( cuda, view_space_assign )
+{
+  view_space_assign< Kokkos::HostSpace, Kokkos::CudaHostPinnedSpace >();
+  view_space_assign< Kokkos::CudaSpace, Kokkos::CudaUVMSpace >();
 }
 
-} // namespace test
-
+} // namespace Test

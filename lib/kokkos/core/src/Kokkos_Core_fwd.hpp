@@ -63,7 +63,7 @@ namespace Kokkos {
 
 struct AUTO_t {
   KOKKOS_INLINE_FUNCTION
-  constexpr const AUTO_t & operator()() const { return *this ; }
+  constexpr const AUTO_t & operator()() const { return *this; }
 };
 
 namespace {
@@ -73,46 +73,49 @@ constexpr AUTO_t AUTO = Kokkos::AUTO_t();
 
 struct InvalidType {};
 
-}
+} // namespace Kokkos
 
-//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 // Forward declarations for class inter-relationships
 
 namespace Kokkos {
 
-class HostSpace ; ///< Memory space for main process and CPU execution spaces
+class HostSpace; ///< Memory space for main process and CPU execution spaces
 
 #ifdef KOKKOS_ENABLE_HBWSPACE
 namespace Experimental {
-class HBWSpace ; /// Memory space for hbw_malloc from memkind (e.g. for KNL processor)
+class HBWSpace; /// Memory space for hbw_malloc from memkind (e.g. for KNL processor)
 }
 #endif
 
 #if defined( KOKKOS_ENABLE_SERIAL )
-class Serial ;    ///< Execution space main process on CPU
-#endif // defined( KOKKOS_ENABLE_SERIAL )
+class Serial;    ///< Execution space main process on CPU.
+#endif
+
+#if defined( KOKKOS_ENABLE_QTHREADS )
+class Qthreads;  ///< Execution space with Qthreads back-end.
+#endif
 
 #if defined( KOKKOS_ENABLE_PTHREAD )
-class Threads ;  ///< Execution space with pthreads back-end
+class Threads;   ///< Execution space with pthreads back-end.
 #endif
 
 #if defined( KOKKOS_ENABLE_OPENMP )
-class OpenMP ; ///< OpenMP execution space
+class OpenMP;    ///< OpenMP execution space.
 #endif
 
 #if defined( KOKKOS_ENABLE_CUDA )
-class CudaSpace ;            ///< Memory space on Cuda GPU
-class CudaUVMSpace ;         ///< Memory space on Cuda GPU with UVM
-class CudaHostPinnedSpace ;  ///< Memory space on Host accessible to Cuda GPU
-class Cuda ;                 ///< Execution space for Cuda GPU
+class CudaSpace;            ///< Memory space on Cuda GPU
+class CudaUVMSpace;         ///< Memory space on Cuda GPU with UVM
+class CudaHostPinnedSpace;  ///< Memory space on Host accessible to Cuda GPU
+class Cuda;                 ///< Execution space for Cuda GPU
 #endif
 
 template<class ExecutionSpace, class MemorySpace>
 struct Device;
+
 } // namespace Kokkos
 
-//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 // Set the default execution space.
 
@@ -122,60 +125,66 @@ struct Device;
 
 namespace Kokkos {
 
-#if   defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA )
-  typedef Cuda DefaultExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
-  typedef OpenMP DefaultExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
-  typedef Threads DefaultExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
-  typedef Serial DefaultExecutionSpace ;
+#if   defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA )
+  typedef Cuda DefaultExecutionSpace;
+#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
+  typedef OpenMP DefaultExecutionSpace;
+#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
+  typedef Threads DefaultExecutionSpace;
+//#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
+//  typedef Qthreads DefaultExecutionSpace;
+#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
+  typedef Serial DefaultExecutionSpace;
 #else
-#  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::OpenMP, Kokkos::Serial, or Kokkos::Threads."
+#  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
 #endif
 
-#if defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
-  typedef OpenMP DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
-  typedef Threads DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
-  typedef Serial DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_OPENMP )
-  typedef OpenMP DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_PTHREAD )
-  typedef Threads DefaultHostExecutionSpace ;
-#elif defined ( KOKKOS_ENABLE_SERIAL )
-  typedef Serial DefaultHostExecutionSpace ;
+#if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
+  typedef OpenMP DefaultHostExecutionSpace;
+#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
+  typedef Threads DefaultHostExecutionSpace;
+//#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
+//  typedef Qthreads DefaultHostExecutionSpace;
+#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
+  typedef Serial DefaultHostExecutionSpace;
+#elif defined( KOKKOS_ENABLE_OPENMP )
+  typedef OpenMP DefaultHostExecutionSpace;
+#elif defined( KOKKOS_ENABLE_PTHREAD )
+  typedef Threads DefaultHostExecutionSpace;
+//#elif defined( KOKKOS_ENABLE_QTHREADS )
+//  typedef Qthreads DefaultHostExecutionSpace;
+#elif defined( KOKKOS_ENABLE_SERIAL )
+  typedef Serial DefaultHostExecutionSpace;
 #else
-#  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Serial, or Kokkos::Threads."
+#  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
 #endif
 
 } // namespace Kokkos
 
-//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 // Detect the active execution space and define its memory space.
 // This is used to verify whether a running kernel can access
 // a given memory space.
 
 namespace Kokkos {
+
 namespace Impl {
 
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) && defined (KOKKOS_ENABLE_CUDA)
-typedef Kokkos::CudaSpace  ActiveExecutionMemorySpace ;
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) && defined( KOKKOS_ENABLE_CUDA )
+typedef Kokkos::CudaSpace  ActiveExecutionMemorySpace;
 #elif defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-typedef Kokkos::HostSpace  ActiveExecutionMemorySpace ;
+typedef Kokkos::HostSpace  ActiveExecutionMemorySpace;
 #else
-typedef void ActiveExecutionMemorySpace ;
+typedef void ActiveExecutionMemorySpace;
 #endif
 
-template< class ActiveSpace , class MemorySpace >
+template< class ActiveSpace, class MemorySpace >
 struct VerifyExecutionCanAccessMemorySpace {
   enum {value = 0};
 };
 
 template< class Space >
-struct VerifyExecutionCanAccessMemorySpace< Space , Space >
+struct VerifyExecutionCanAccessMemorySpace< Space, Space >
 {
   enum {value = 1};
   KOKKOS_INLINE_FUNCTION static void verify(void) {}
@@ -183,17 +192,17 @@ struct VerifyExecutionCanAccessMemorySpace< Space , Space >
 };
 
 } // namespace Impl
+
 } // namespace Kokkos
 
-#define KOKKOS_RESTRICT_EXECUTION_TO_DATA( DATA_SPACE , DATA_PTR ) \
+#define KOKKOS_RESTRICT_EXECUTION_TO_DATA( DATA_SPACE, DATA_PTR ) \
   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
-    Kokkos::Impl::ActiveExecutionMemorySpace , DATA_SPACE >::verify( DATA_PTR )
+    Kokkos::Impl::ActiveExecutionMemorySpace, DATA_SPACE >::verify( DATA_PTR )
 
 #define KOKKOS_RESTRICT_EXECUTION_TO_( DATA_SPACE ) \
   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
-    Kokkos::Impl::ActiveExecutionMemorySpace , DATA_SPACE >::verify()
+    Kokkos::Impl::ActiveExecutionMemorySpace, DATA_SPACE >::verify()
 
-//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
@@ -201,15 +210,15 @@ namespace Kokkos {
 }
 
 //----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 
 namespace Kokkos {
+
 namespace Impl {
 
 template< class Functor
         , class Policy
         , class EnableFunctor = void
-	      , class EnablePolicy = void
+        , class EnablePolicy = void
         >
 struct FunctorPolicyExecutionSpace;
 
@@ -220,18 +229,18 @@ struct FunctorPolicyExecutionSpace;
 ///
 /// This is an implementation detail of parallel_for.  Users should
 /// skip this and go directly to the nonmember function parallel_for.
-template< class FunctorType , class ExecPolicy , class ExecutionSpace =
-          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space
-        > class ParallelFor ;
+template< class FunctorType, class ExecPolicy, class ExecutionSpace =
+          typename Impl::FunctorPolicyExecutionSpace< FunctorType, ExecPolicy >::execution_space
+        > class ParallelFor;
 
 /// \class ParallelReduce
 /// \brief Implementation detail of parallel_reduce.
 ///
 /// This is an implementation detail of parallel_reduce.  Users should
 /// skip this and go directly to the nonmember function parallel_reduce.
-template< class FunctorType , class ExecPolicy , class ReducerType = InvalidType, class ExecutionSpace =
-          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space
-        > class ParallelReduce ;
+template< class FunctorType, class ExecPolicy, class ReducerType = InvalidType, class ExecutionSpace =
+          typename Impl::FunctorPolicyExecutionSpace< FunctorType, ExecPolicy >::execution_space
+        > class ParallelReduce;
 
 /// \class ParallelScan
 /// \brief Implementation detail of parallel_scan.
@@ -239,10 +248,12 @@ template< class FunctorType , class ExecPolicy , class ReducerType = InvalidType
 /// This is an implementation detail of parallel_scan.  Users should
 /// skip this and go directly to the documentation of the nonmember
 /// template function Kokkos::parallel_scan.
-template< class FunctorType , class ExecPolicy , class ExecutionSapce =
-          typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space
-        > class ParallelScan ;
+template< class FunctorType, class ExecPolicy, class ExecutionSapce =
+          typename Impl::FunctorPolicyExecutionSpace< FunctorType, ExecPolicy >::execution_space
+        > class ParallelScan;
 
-}}
+} // namespace Impl
+
+} // namespace Kokkos
+
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */
-

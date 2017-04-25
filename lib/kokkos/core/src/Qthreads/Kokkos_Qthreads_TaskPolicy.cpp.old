@@ -41,11 +41,11 @@
 //@HEADER
 */
 
-// Experimental unified task-data parallel manycore LDRD
+// Experimental unified task-data parallel manycore LDRD.
 
 #include <Kokkos_Core_fwd.hpp>
 
-#if defined( KOKKOS_ENABLE_QTHREAD )
+#if defined( KOKKOS_ENABLE_QTHREADS )
 
 #include <stdio.h>
 
@@ -56,17 +56,15 @@
 #include <string>
 
 #include <Kokkos_Atomic.hpp>
-#include <Qthread/Kokkos_Qthread_TaskPolicy.hpp>
+#include <Qthreads/Kokkos_Qthreads_TaskPolicy.hpp>
 
 #if defined( KOKKOS_ENABLE_TASKDAG )
-
-//----------------------------------------------------------------------------
 
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-typedef TaskMember< Kokkos::Qthread , void , void > Task ;
+typedef TaskMember< Kokkos::Qthreads , void , void > Task ;
 
 namespace {
 
@@ -173,16 +171,16 @@ Task::TaskMember( const function_dealloc_type  arg_dealloc
 
 void Task::throw_error_add_dependence() const
 {
-  std::cerr << "TaskMember< Qthread >::add_dependence ERROR"
+  std::cerr << "TaskMember< Qthreads >::add_dependence ERROR"
             << " state(" << m_state << ")"
             << " dep_size(" << m_dep_size << ")"
             << std::endl ;
-  throw std::runtime_error("TaskMember< Qthread >::add_dependence ERROR");
+  throw std::runtime_error("TaskMember< Qthreads >::add_dependence ERROR");
 }
 
 void Task::throw_error_verify_type()
 {
-  throw std::runtime_error("TaskMember< Qthread >::verify_type ERROR");
+  throw std::runtime_error("TaskMember< Qthreads >::verify_type ERROR");
 }
 
 //----------------------------------------------------------------------------
@@ -190,7 +188,7 @@ void Task::throw_error_verify_type()
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
 {
-  static const char msg_error_header[]      = "Kokkos::Impl::TaskManager<Kokkos::Qthread>::assign ERROR" ;
+  static const char msg_error_header[]      = "Kokkos::Impl::TaskManager<Kokkos::Qthreads>::assign ERROR" ;
   static const char msg_error_count[]       = ": negative reference count" ;
   static const char msg_error_complete[]    = ": destroy task that is not complete" ;
   static const char msg_error_dependences[] = ": destroy task that has dependences" ;
@@ -294,7 +292,7 @@ fflush(stdout);
       assign( & m_dep[i] , 0 );
     }
 
-    // Set qthread FEB to full so that dependent tasks are allowed to execute.
+    // Set Qthreads FEB to full so that dependent tasks are allowed to execute.
     // This 'task' may be deleted immediately following this function call.
     qthread_fill( & m_qfeb );
 
@@ -319,10 +317,10 @@ aligned_t Task::qthread_func( void * arg )
                                         );
 
   if ( task->m_apply_team && ! task->m_apply_single ) {
-    Kokkos::Impl::QthreadTeamPolicyMember::TaskTeam task_team_tag ;
+    Kokkos::Impl::QthreadsTeamPolicyMember::TaskTeam task_team_tag ;
 
     // Initialize team size and rank with shephered info
-    Kokkos::Impl::QthreadTeamPolicyMember member( task_team_tag );
+    Kokkos::Impl::QthreadsTeamPolicyMember member( task_team_tag );
 
     (*task->m_apply_team)( task , member );
 
@@ -344,7 +342,7 @@ fflush(stdout);
   }
   else if ( task->m_apply_team && task->m_apply_single == reinterpret_cast<function_single_type>(1) ) {
     // Team hard-wired to one, no cloning
-    Kokkos::Impl::QthreadTeamPolicyMember member ;
+    Kokkos::Impl::QthreadsTeamPolicyMember member ;
     (*task->m_apply_team)( task , member );
     task->closeout();
   }
@@ -384,8 +382,8 @@ void Task::schedule()
   // Increment active task count before spawning.
   Kokkos::atomic_increment( m_active_count );
 
-  // spawn in qthread.  must malloc the precondition array and give to qthread.
-  // qthread will eventually free this allocation so memory will not be leaked.
+  // spawn in Qthreads.  must malloc the precondition array and give to Qthreads.
+  // Qthreads will eventually free this allocation so memory will not be leaked.
 
   // concern with thread safety of malloc, does this need to be guarded?
   aligned_t ** qprecon = (aligned_t **) malloc( ( m_dep_size + 1 ) * sizeof(aligned_t *) );
@@ -393,7 +391,7 @@ void Task::schedule()
   qprecon[0] = reinterpret_cast<aligned_t *>( uintptr_t(m_dep_size) );
 
   for ( int i = 0 ; i < m_dep_size ; ++i ) {
-    qprecon[i+1] = & m_dep[i]->m_qfeb ; // Qthread precondition flag
+    qprecon[i+1] = & m_dep[i]->m_qfeb ; // Qthreads precondition flag
   }
 
   if ( m_apply_team && ! m_apply_single ) {
@@ -446,7 +444,7 @@ fflush(stdout);
 namespace Kokkos {
 namespace Experimental {
 
-TaskPolicy< Kokkos::Qthread >::
+TaskPolicy< Kokkos::Qthreads >::
 TaskPolicy
   ( const unsigned /* arg_task_max_count */
   , const unsigned /* arg_task_max_size */
@@ -462,7 +460,7 @@ TaskPolicy
 
   if ( m_team_size != 1 && m_team_size != num_worker_per_shepherd ) {
     std::ostringstream msg ;
-    msg << "Kokkos::Experimental::TaskPolicy< Kokkos::Qthread >( "
+    msg << "Kokkos::Experimental::TaskPolicy< Kokkos::Qthreads >( "
         << "default_depedence = " << arg_task_default_dependence_capacity
         << " , team_size = " << arg_task_team_size
         << " ) ERROR, valid team_size arguments are { (omitted) , 1 , " << num_worker_per_shepherd << " }" ;
@@ -470,14 +468,14 @@ TaskPolicy
   }
 }
 
-TaskPolicy< Kokkos::Qthread >::member_type &
-TaskPolicy< Kokkos::Qthread >::member_single()
+TaskPolicy< Kokkos::Qthreads >::member_type &
+TaskPolicy< Kokkos::Qthreads >::member_single()
 {
   static member_type s ;
   return s ;
 }
 
-void wait( Kokkos::Experimental::TaskPolicy< Kokkos::Qthread > & policy )
+void wait( Kokkos::Experimental::TaskPolicy< Kokkos::Qthreads > & policy )
 {
   volatile int * const active_task_count = & policy.m_active_count ;
   while ( *active_task_count ) qthread_yield();
@@ -486,6 +484,5 @@ void wait( Kokkos::Experimental::TaskPolicy< Kokkos::Qthread > & policy )
 } // namespace Experimental
 } // namespace Kokkos
 
-#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
-#endif /* #if defined( KOKKOS_ENABLE_QTHREAD ) */
-
+#endif // #if defined( KOKKOS_ENABLE_TASKDAG )
+#endif // #if defined( KOKKOS_ENABLE_QTHREADS )

@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <openmp/TestOpenMP.hpp>
 
 namespace Test {
 
-TEST_F( openmp, view_subview_3d_from_5d_left_atomic ) {
-  TestViewSubview::test_3d_subview_5d_left< Kokkos::OpenMP , Kokkos::MemoryTraits<Kokkos::Atomic> >();
+TEST_F( openmp, view_subview_3d_from_5d_left_atomic )
+{
+  TestViewSubview::test_3d_subview_5d_left< Kokkos::OpenMP, Kokkos::MemoryTraits<Kokkos::Atomic> >();
 }
 
-} // namespace test
-
+} // namespace Test

@@ -43,15 +43,15 @@
 
 // Experimental unified task-data parallel manycore LDRD
 
-#ifndef KOKKOS_QTHREAD_TASKSCHEDULER_HPP
-#define KOKKOS_QTHREAD_TASKSCHEDULER_HPP
+#ifndef KOKKOS_QTHREADS_TASKSCHEDULER_HPP
+#define KOKKOS_QTHREADS_TASKSCHEDULER_HPP
 
 #include <string>
 #include <typeinfo>
 #include <stdexcept>
 
 //----------------------------------------------------------------------------
-// Defines to enable experimental Qthread functionality
+// Defines to enable experimental Qthreads functionality
 
 #define QTHREAD_LOCAL_PRIORITY
 #define CLONED_TASKS
@@ -63,7 +63,7 @@
 
 //----------------------------------------------------------------------------
 
-#include <Kokkos_Qthread.hpp>
+#include <Kokkos_Qthreads.hpp>
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_View.hpp>
 
@@ -78,13 +78,13 @@ namespace Experimental {
 namespace Impl {
 
 template<>
-class TaskMember< Kokkos::Qthread , void , void >
+class TaskMember< Kokkos::Qthreads , void , void >
 {
 public:
 
   typedef TaskMember * (* function_verify_type) ( TaskMember * );
   typedef void         (* function_single_type) ( TaskMember * );
-  typedef void         (* function_team_type)   ( TaskMember * , Kokkos::Impl::QthreadTeamPolicyMember & );
+  typedef void         (* function_team_type)   ( TaskMember * , Kokkos::Impl::QthreadsTeamPolicyMember & );
   typedef void         (* function_dealloc_type)( TaskMember * );
 
 private:
@@ -94,7 +94,7 @@ private:
   const function_single_type   m_apply_single ;  ///< Apply function
   const function_team_type     m_apply_team ;    ///< Apply function
   int volatile * const         m_active_count ;  ///< Count of active tasks on this policy
-  aligned_t                    m_qfeb ;          ///< Qthread full/empty bit
+  aligned_t                    m_qfeb ;          ///< Qthreads full/empty bit
   TaskMember ** const          m_dep ;           ///< Dependences
   const int                    m_dep_capacity ;  ///< Capacity of dependences
   int                          m_dep_size ;      ///< Actual count of dependences
@@ -129,7 +129,7 @@ protected :
 
   ~TaskMember();
 
-  // Used by TaskMember< Qthread , ResultType , void >
+  // Used by TaskMember< Qthreads , ResultType , void >
   TaskMember( const function_verify_type   arg_verify
             , const function_dealloc_type  arg_dealloc
             , const function_single_type   arg_apply_single
@@ -139,7 +139,7 @@ protected :
             , const unsigned               arg_dependence_capacity
             );
 
-  // Used for TaskMember< Qthread , void , void >
+  // Used for TaskMember< Qthreads , void , void >
   TaskMember( const function_dealloc_type  arg_dealloc
             , const function_single_type   arg_apply_single
             , const function_team_type     arg_apply_team
@@ -175,15 +175,15 @@ public:
   /*  Inheritence Requirements on task types:
    *    typedef  FunctorType::value_type  value_type ;
    *    class DerivedTaskType
-   *      : public TaskMember< Qthread , value_type , FunctorType >
+   *      : public TaskMember< Qthreads , value_type , FunctorType >
    *      { ... };
-   *    class TaskMember< Qthread , value_type , FunctorType >
-   *      : public TaskMember< Qthread , value_type , void >
+   *    class TaskMember< Qthreads , value_type , FunctorType >
+   *      : public TaskMember< Qthreads , value_type , void >
    *      , public Functor
    *      { ... };
    *  If value_type != void
-   *    class TaskMember< Qthread , value_type , void >
-   *      : public TaskMember< Qthread , void , void >
+   *    class TaskMember< Qthreads , value_type , void >
+   *      : public TaskMember< Qthreads , void , void >
    *
    *  Allocate space for DerivedTaskType followed by TaskMember*[ dependence_capacity ]
    *
@@ -300,10 +300,10 @@ public:
   KOKKOS_INLINE_FUNCTION static
   void apply_single( typename std::enable_if< ! std::is_same< ResultType , void >::value , TaskMember * >::type t )
     {
-      typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
+      typedef TaskMember< Kokkos::Qthreads , ResultType , FunctorType > derived_type ;
 
-      // TaskMember< Kokkos::Qthread , ResultType , FunctorType >
-      //   : public TaskMember< Kokkos::Qthread , ResultType , void >
+      // TaskMember< Kokkos::Qthreads , ResultType , FunctorType >
+      //   : public TaskMember< Kokkos::Qthreads , ResultType , void >
       //   , public FunctorType
       //   { ... };
 
@@ -316,10 +316,10 @@ public:
   KOKKOS_INLINE_FUNCTION static
   void apply_single( typename std::enable_if< std::is_same< ResultType , void >::value , TaskMember * >::type t )
     {
-      typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
+      typedef TaskMember< Kokkos::Qthreads , ResultType , FunctorType > derived_type ;
 
-      // TaskMember< Kokkos::Qthread , ResultType , FunctorType >
-      //   : public TaskMember< Kokkos::Qthread , ResultType , void >
+      // TaskMember< Kokkos::Qthreads , ResultType , FunctorType >
+      //   : public TaskMember< Kokkos::Qthreads , ResultType , void >
       //   , public FunctorType
       //   { ... };
 
@@ -333,9 +333,9 @@ public:
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
   void apply_team( typename std::enable_if< ! std::is_same< ResultType , void >::value , TaskMember * >::type t
-                 , Kokkos::Impl::QthreadTeamPolicyMember & member )
+                 , Kokkos::Impl::QthreadsTeamPolicyMember & member )
     {
-      typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
+      typedef TaskMember< Kokkos::Qthreads , ResultType , FunctorType > derived_type ;
 
       derived_type & m = * static_cast< derived_type * >( t );
 
@@ -345,9 +345,9 @@ public:
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
   void apply_team( typename std::enable_if< std::is_same< ResultType , void >::value , TaskMember * >::type t
-                 , Kokkos::Impl::QthreadTeamPolicyMember & member )
+                 , Kokkos::Impl::QthreadsTeamPolicyMember & member )
     {
-      typedef TaskMember< Kokkos::Qthread , ResultType , FunctorType > derived_type ;
+      typedef TaskMember< Kokkos::Qthreads , ResultType , FunctorType > derived_type ;
 
       derived_type & m = * static_cast< derived_type * >( t );
 
@@ -356,7 +356,7 @@ public:
 };
 
 //----------------------------------------------------------------------------
-/** \brief  Base class for tasks with a result value in the Qthread execution space.
+/** \brief  Base class for tasks with a result value in the Qthreads execution space.
  *
  *  The FunctorType must be void because this class is accessed by the
  *  Future class for the task and result value.
@@ -365,8 +365,8 @@ public:
  *  can correctly static_cast from the 'root class' to this class.
  */
 template < class ResultType >
-class TaskMember< Kokkos::Qthread , ResultType , void >
-  : public TaskMember< Kokkos::Qthread , void , void >
+class TaskMember< Kokkos::Qthreads , ResultType , void >
+  : public TaskMember< Kokkos::Qthreads , void , void >
 {
 public:
 
@@ -379,7 +379,7 @@ public:
 
 protected:
 
-  typedef TaskMember< Kokkos::Qthread , void , void >  task_root_type ;
+  typedef TaskMember< Kokkos::Qthreads , void , void >  task_root_type ;
   typedef task_root_type::function_dealloc_type        function_dealloc_type ;
   typedef task_root_type::function_single_type         function_single_type ;
   typedef task_root_type::function_team_type           function_team_type ;
@@ -404,16 +404,16 @@ protected:
 };
 
 template< class ResultType , class FunctorType >
-class TaskMember< Kokkos::Qthread , ResultType , FunctorType >
-  : public TaskMember< Kokkos::Qthread , ResultType , void >
+class TaskMember< Kokkos::Qthreads , ResultType , FunctorType >
+  : public TaskMember< Kokkos::Qthreads , ResultType , void >
   , public FunctorType
 {
 public:
 
   typedef FunctorType  functor_type ;
 
-  typedef TaskMember< Kokkos::Qthread , void , void >        task_root_type ;
-  typedef TaskMember< Kokkos::Qthread , ResultType , void >  task_base_type ;
+  typedef TaskMember< Kokkos::Qthreads , void , void >        task_root_type ;
+  typedef TaskMember< Kokkos::Qthreads , ResultType , void >  task_base_type ;
   typedef task_root_type::function_dealloc_type              function_dealloc_type ;
   typedef task_root_type::function_single_type               function_single_type ;
   typedef task_root_type::function_team_type                 function_team_type ;
@@ -447,16 +447,16 @@ public:
 namespace Kokkos {
 namespace Experimental {
 
-void wait( TaskPolicy< Kokkos::Qthread > & );
+void wait( TaskPolicy< Kokkos::Qthreads > & );
 
 template<>
-class TaskPolicy< Kokkos::Qthread >
+class TaskPolicy< Kokkos::Qthreads >
 {
 public:
 
-  typedef Kokkos::Qthread                        execution_space ;
+  typedef Kokkos::Qthreads                        execution_space ;
   typedef TaskPolicy                             execution_policy ;
-  typedef Kokkos::Impl::QthreadTeamPolicyMember  member_type ;
+  typedef Kokkos::Impl::QthreadsTeamPolicyMember  member_type ;
 
 private:
 
@@ -650,7 +650,7 @@ public:
 
   static member_type & member_single();
 
-  friend void wait( TaskPolicy< Kokkos::Qthread > & );
+  friend void wait( TaskPolicy< Kokkos::Qthreads > & );
 };
 
 } /* namespace Experimental */
@@ -660,5 +660,5 @@ public:
 //----------------------------------------------------------------------------
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
-#endif /* #define KOKKOS_QTHREAD_TASK_HPP */
+#endif /* #define KOKKOS_QTHREADS_TASK_HPP */
 

@@ -40,82 +40,85 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <serial/TestSerial.hpp>
 
 namespace Test {
 
-TEST_F( serial , impl_shared_alloc ) {
-  test_shared_alloc< Kokkos::HostSpace , Kokkos::Serial >();
+TEST_F( serial, impl_shared_alloc )
+{
+  test_shared_alloc< Kokkos::HostSpace, Kokkos::Serial >();
 }
 
-TEST_F( serial , impl_view_mapping_b ) {
+TEST_F( serial, impl_view_mapping_b )
+{
   test_view_mapping_subview< Kokkos::Serial >();
   TestViewMappingAtomic< Kokkos::Serial >::run();
 }
 
-TEST_F( serial, view_api) {
-  TestViewAPI< double , Kokkos::Serial >();
+TEST_F( serial, view_api )
+{
+  TestViewAPI< double, Kokkos::Serial >();
 }
 
-TEST_F( serial , view_nested_view )
+TEST_F( serial, view_nested_view )
 {
   ::Test::view_nested_view< Kokkos::Serial >();
 }
 
-
-
-TEST_F( serial , view_remap )
+TEST_F( serial, view_remap )
 {
-  enum { N0 = 3 , N1 = 2 , N2 = 8 , N3 = 9 };
+  enum { N0 = 3, N1 = 2, N2 = 8, N3 = 9 };
 
-  typedef Kokkos::View< double*[N1][N2][N3] ,
-                             Kokkos::LayoutRight ,
-                             Kokkos::Serial > output_type ;
+  typedef Kokkos::View< double*[N1][N2][N3],
+                        Kokkos::LayoutRight,
+                        Kokkos::Serial > output_type;
 
-  typedef Kokkos::View< int**[N2][N3] ,
-                             Kokkos::LayoutLeft ,
-                             Kokkos::Serial > input_type ;
+  typedef Kokkos::View< int**[N2][N3],
+                        Kokkos::LayoutLeft,
+                        Kokkos::Serial > input_type;
 
-  typedef Kokkos::View< int*[N0][N2][N3] ,
-                             Kokkos::LayoutLeft ,
-                             Kokkos::Serial > diff_type ;
+  typedef Kokkos::View< int*[N0][N2][N3],
+                        Kokkos::LayoutLeft,
+                        Kokkos::Serial > diff_type;
 
-  output_type output( "output" , N0 );
-  input_type  input ( "input" , N0 , N1 );
-  diff_type   diff  ( "diff" , N0 );
+  output_type output( "output", N0 );
+  input_type  input ( "input", N0, N1 );
+  diff_type   diff  ( "diff", N0 );
 
-  int value = 0 ;
-  for ( size_t i3 = 0 ; i3 < N3 ; ++i3 ) {
-  for ( size_t i2 = 0 ; i2 < N2 ; ++i2 ) {
-  for ( size_t i1 = 0 ; i1 < N1 ; ++i1 ) {
-  for ( size_t i0 = 0 ; i0 < N0 ; ++i0 ) {
-    input(i0,i1,i2,i3) = ++value ;
-  }}}}
+  int value = 0;
 
-  // Kokkos::deep_copy( diff , input ); // throw with incompatible shape
-  Kokkos::deep_copy( output , input );
+  for ( size_t i3 = 0; i3 < N3; ++i3 )
+  for ( size_t i2 = 0; i2 < N2; ++i2 )
+  for ( size_t i1 = 0; i1 < N1; ++i1 )
+  for ( size_t i0 = 0; i0 < N0; ++i0 )
+  {
+    input( i0, i1, i2, i3 ) = ++value;
+  }
 
-  value = 0 ;
-  for ( size_t i3 = 0 ; i3 < N3 ; ++i3 ) {
-  for ( size_t i2 = 0 ; i2 < N2 ; ++i2 ) {
-  for ( size_t i1 = 0 ; i1 < N1 ; ++i1 ) {
-  for ( size_t i0 = 0 ; i0 < N0 ; ++i0 ) {
-    ++value ;
-    ASSERT_EQ( value , ((int) output(i0,i1,i2,i3) ) );
-  }}}}
+  // Kokkos::deep_copy( diff, input ); // Throw with incompatible shape.
+  Kokkos::deep_copy( output, input );
+
+  value = 0;
+
+  for ( size_t i3 = 0; i3 < N3; ++i3 )
+  for ( size_t i2 = 0; i2 < N2; ++i2 )
+  for ( size_t i1 = 0; i1 < N1; ++i1 )
+  for ( size_t i0 = 0; i0 < N0; ++i0 )
+  {
+    ++value;
+    ASSERT_EQ( value, ( (int) output( i0, i1, i2, i3 ) ) );
+  }
 }
 
-//----------------------------------------------------------------------------
-
-TEST_F( serial , view_aggregate )
+TEST_F( serial, view_aggregate )
 {
   TestViewAggregate< Kokkos::Serial >();
 }
 
-TEST_F( serial , template_meta_functions )
+TEST_F( serial, template_meta_functions )
 {
-  TestTemplateMetaFunctions<int, Kokkos::Serial >();
+  TestTemplateMetaFunctions< int, Kokkos::Serial >();
 }
 
-} // namespace test
-
+} // namespace Test

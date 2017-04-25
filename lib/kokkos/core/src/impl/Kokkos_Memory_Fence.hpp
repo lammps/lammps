@@ -52,6 +52,10 @@ void memory_fence()
 {
 #if defined( __CUDA_ARCH__ )
   __threadfence();
+#elif defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 )
+  asm volatile (
+	  "mfence" ::: "memory"
+  );
 #elif defined( KOKKOS_ENABLE_GNU_ATOMICS ) || \
       ( defined( KOKKOS_COMPILER_NVCC ) && defined( KOKKOS_ENABLE_INTEL_ATOMICS ) )
   __sync_synchronize();
@@ -76,8 +80,8 @@ void store_fence()
 {
 #if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 )
   asm volatile (
-	"sfence" ::: "memory"
-  	);
+	  "sfence" ::: "memory"
+  );
 #else
   memory_fence();
 #endif
@@ -93,8 +97,8 @@ void load_fence()
 {
 #if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 )
   asm volatile (
-	"lfence" ::: "memory"
-  	);
+	  "lfence" ::: "memory"
+  );
 #else
   memory_fence();
 #endif

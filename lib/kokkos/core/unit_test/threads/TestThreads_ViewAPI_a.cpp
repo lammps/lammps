@@ -40,14 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <threads/TestThreads.hpp>
 
 namespace Test {
 
-TEST_F( threads , impl_view_mapping_a ) {
+TEST_F( threads, impl_view_mapping_a )
+{
   test_view_mapping< Kokkos::Threads >();
   test_view_mapping_operator< Kokkos::Threads >();
 }
 
-} // namespace test
-
+} // namespace Test

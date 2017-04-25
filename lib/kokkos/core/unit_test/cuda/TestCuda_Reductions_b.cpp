@@ -40,38 +40,44 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda, long_reduce) {
-  TestReduce< long ,   Kokkos::Cuda >( 0 );
-  TestReduce< long ,   Kokkos::Cuda >( 1000000 );
-}
-
-TEST_F( cuda, double_reduce) {
-  TestReduce< double ,   Kokkos::Cuda >( 0 );
-  TestReduce< double ,   Kokkos::Cuda >( 1000000 );
-}
-
-TEST_F( cuda, long_reduce_dynamic ) {
-  TestReduceDynamic< long ,   Kokkos::Cuda >( 0 );
-  TestReduceDynamic< long ,   Kokkos::Cuda >( 1000000 );
-}
-
-TEST_F( cuda, double_reduce_dynamic ) {
-  TestReduceDynamic< double ,   Kokkos::Cuda >( 0 );
-  TestReduceDynamic< double ,   Kokkos::Cuda >( 1000000 );
-}
-
-TEST_F( cuda, long_reduce_dynamic_view ) {
-  TestReduceDynamicView< long ,   Kokkos::Cuda >( 0 );
-  TestReduceDynamicView< long ,   Kokkos::Cuda >( 1000000 );
-}
-
-TEST_F( cuda , scan )
+TEST_F( cuda, long_reduce )
 {
-  TestScan< Kokkos::Cuda >::test_range( 1 , 1000 );
+  TestReduce< long, Kokkos::Cuda >( 0 );
+  TestReduce< long, Kokkos::Cuda >( 1000000 );
+}
+
+TEST_F( cuda, double_reduce )
+{
+  TestReduce< double, Kokkos::Cuda >( 0 );
+  TestReduce< double, Kokkos::Cuda >( 1000000 );
+}
+
+TEST_F( cuda, long_reduce_dynamic )
+{
+  TestReduceDynamic< long, Kokkos::Cuda >( 0 );
+  TestReduceDynamic< long, Kokkos::Cuda >( 1000000 );
+}
+
+TEST_F( cuda, double_reduce_dynamic )
+{
+  TestReduceDynamic< double, Kokkos::Cuda >( 0 );
+  TestReduceDynamic< double, Kokkos::Cuda >( 1000000 );
+}
+
+TEST_F( cuda, long_reduce_dynamic_view )
+{
+  TestReduceDynamicView< long, Kokkos::Cuda >( 0 );
+  TestReduceDynamicView< long, Kokkos::Cuda >( 1000000 );
+}
+
+TEST_F( cuda, scan )
+{
+  TestScan< Kokkos::Cuda >::test_range( 1, 1000 );
   TestScan< Kokkos::Cuda >( 0 );
   TestScan< Kokkos::Cuda >( 100000 );
   TestScan< Kokkos::Cuda >( 10000000 );
@@ -79,10 +85,11 @@ TEST_F( cuda , scan )
 }
 
 #if 0
-TEST_F( cuda , scan_small )
+TEST_F( cuda, scan_small )
 {
-  typedef TestScan< Kokkos::Cuda , Kokkos::Impl::CudaExecUseScanSmall > TestScanFunctor ;
-  for ( int i = 0 ; i < 1000 ; ++i ) {
+  typedef TestScan< Kokkos::Cuda, Kokkos::Impl::CudaExecUseScanSmall > TestScanFunctor;
+
+  for ( int i = 0; i < 1000; ++i ) {
     TestScanFunctor( 10 );
     TestScanFunctor( 10000 );
   }
@@ -93,38 +100,39 @@ TEST_F( cuda , scan_small )
 }
 #endif
 
-TEST_F( cuda  , team_scan )
+TEST_F( cuda, team_scan )
 {
-  TestScanTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestScanTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestScanTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 10 );
-  TestScanTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 10 );
-  TestScanTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 10000 );
-  TestScanTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 10000 );
+  TestScanTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestScanTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestScanTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 10 );
+  TestScanTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 10 );
+  TestScanTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 10000 );
+  TestScanTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 10000 );
 }
 
-TEST_F( cuda , team_long_reduce) {
-  TestReduceTeam< long ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestReduceTeam< long ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestReduceTeam< long ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 3 );
-  TestReduceTeam< long ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
-  TestReduceTeam< long ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 100000 );
-  TestReduceTeam< long ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
+TEST_F( cuda, team_long_reduce )
+{
+  TestReduceTeam< long, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestReduceTeam< long, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestReduceTeam< long, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 3 );
+  TestReduceTeam< long, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
+  TestReduceTeam< long, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 100000 );
+  TestReduceTeam< long, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
 }
 
-TEST_F( cuda , team_double_reduce) {
-  TestReduceTeam< double ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestReduceTeam< double ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestReduceTeam< double ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 3 );
-  TestReduceTeam< double ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
-  TestReduceTeam< double ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >( 100000 );
-  TestReduceTeam< double ,   Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
+TEST_F( cuda, team_double_reduce )
+{
+  TestReduceTeam< double, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestReduceTeam< double, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestReduceTeam< double, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 3 );
+  TestReduceTeam< double, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
+  TestReduceTeam< double, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >( 100000 );
+  TestReduceTeam< double, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
 }
 
-TEST_F( cuda , reduction_deduction )
+TEST_F( cuda, reduction_deduction )
 {
   TestCXX11::test_reduction_deduction< Kokkos::Cuda >();
 }
 
-} // namespace test
-
+} // namespace Test

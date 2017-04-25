@@ -40,11 +40,10 @@ public:
   char * long_string(int ifunc);
 
   bool is_enabled() const;
-  void request();
+  void init();
 
 private:
   PythonInterface * impl;
-  void init();
 };
 
 }

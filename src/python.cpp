@@ -43,7 +43,7 @@ PythonInterface::~PythonInterface()
 void Python::init()
 {
 #if LMP_PYTHON
-  impl = new PythonImpl(lmp);
+  if (!impl) impl = new PythonImpl(lmp);
 #else
   error->all(FLERR,"Python support missing! Compile with PYTHON package installed!");
 #endif
@@ -60,16 +60,9 @@ bool Python::is_enabled() const {
 
 /* ---------------------------------------------------------------------- */
 
-void Python::request()
-{
-  if (!impl) init();
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Python::command(int narg, char **arg)
 {
-  if(!impl) init();
+  init();
   impl->command(narg, arg);
 }
 
@@ -77,7 +70,7 @@ void Python::command(int narg, char **arg)
 
 void Python::invoke_function(int ifunc, char *result)
 {
-  if(!impl) init();
+  init();
   impl->invoke_function(ifunc, result);
 }
 
@@ -85,7 +78,7 @@ void Python::invoke_function(int ifunc, char *result)
 
 int Python::find(char *name)
 {
-  if(!impl) init();
+  init();
   return impl->find(name);
 }
 
@@ -93,7 +86,7 @@ int Python::find(char *name)
 
 int Python::variable_match(char *name, char *varname, int numeric)
 {
-  if(!impl) init();
+  init();
   return impl->variable_match(name, varname, numeric);
 }
 
@@ -101,6 +94,6 @@ int Python::variable_match(char *name, char *varname, int numeric)
 
 char * Python::long_string(int ifunc)
 {
-  if(!impl) init();
+  init();
   return impl->long_string(ifunc);
 }

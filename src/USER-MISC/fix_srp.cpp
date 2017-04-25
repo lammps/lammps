@@ -101,6 +101,13 @@ void FixSRP::init()
   if (force->pair_match("hybrid",1) == NULL)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
+  int has_rigid = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strncmp(modify->fix[i]->style,"rigid",5) == 0) ++has_rigid;
+
+  if (has_rigid > 0)
+    error->all(FLERR,"Pair srp is not compatible with rigid fixes.");
+
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR,"Illegal bond particle type");
 

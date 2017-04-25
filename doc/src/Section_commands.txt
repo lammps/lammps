@@ -1047,6 +1047,10 @@ package"_Section_start.html#start_3.
 "oxdna/hbond"_pair_oxdna.html,
 "oxdna/stk"_pair_oxdna.html,
 "oxdna/xstk"_pair_oxdna.html,
+"oxdna2/coaxstk"_pair_oxdna2.html,
+"oxdna2/dh"_pair_oxdna2.html,
+"oxdna2/excv"_pair_oxdna2.html,
+"oxdna2/stk"_pair_oxdna2.html,
 "quip"_pair_quip.html,
 "reax/c (k)"_pair_reax_c.html,
 "smd/hertz"_pair_smd_hertz.html,
@@ -1096,7 +1100,8 @@ package"_Section_start.html#start_3.
 
 "harmonic/shift (o)"_bond_harmonic_shift.html,
 "harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
-"oxdna/fene"_bond_oxdna.html :tb(c=4,ea=c)
+"oxdna/fene"_bond_oxdna.html,
+"oxdna2/fene"_bond_oxdna.html :tb(c=4,ea=c)
 
 :line
 
@@ -1150,7 +1155,7 @@ USER-OMP, t = OPT.
 "zero"_dihedral_zero.html,
 "hybrid"_dihedral_hybrid.html,
 "charmm (ko)"_dihedral_charmm.html,
-"charmmfsh"_dihedral_charmm.html,
+"charmmfsw"_dihedral_charmm.html,
 "class2 (ko)"_dihedral_class2.html,
 "harmonic (io)"_dihedral_harmonic.html,
 "helix (o)"_dihedral_helix.html,

@@ -130,7 +130,7 @@ void Finish::end(int flag)
                           atom->natoms);
       if (logfile) fprintf(logfile,fmt1,time_loop,ntasks,update->nsteps,
                            atom->natoms);
-
+      
       // Gromacs/NAMD-style performance metric for suitable unit settings
 
       if ( timeflag && !minflag && !prdflag && !tadflag &&
@@ -144,7 +144,7 @@ void Finish::end(int flag)
         double one_fs = force->femtosecond;
         double t_step = ((double) time_loop) / ((double) update->nsteps);
         double step_t = 1.0/t_step;
-
+        
         if (strcmp(update->unit_style,"lj") == 0) {
           double tau_day = 24.0*3600.0 / t_step * update->dt / one_fs;
           const char perf[] = "Performance: %.3f tau/day, %.3f timesteps/s\n";
@@ -161,26 +161,28 @@ void Finish::end(int flag)
       }
 
       // CPU use on MPI tasks and OpenMP threads
-
-      if (lmp->kokkos) {
-        const char fmt2[] =
-          "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
-        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,
-                            lmp->kokkos->num_threads);
-        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,
-                             lmp->kokkos->num_threads);
-      } else {
+      
+      if (timeflag) {
+        if (lmp->kokkos) {
+          const char fmt2[] =
+            "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
+          if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,
+                              lmp->kokkos->num_threads);
+          if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,
+                               lmp->kokkos->num_threads);
+        } else {
 #if defined(_OPENMP)
-        const char fmt2[] =
-        "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
-        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
-        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
+          const char fmt2[] =
+            "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
+          if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
+          if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
 #else
-        const char fmt2[] =
-          "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
-        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
-        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
+          const char fmt2[] =
+            "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
+          if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
+          if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
 #endif
+        }
       }
     }
   }

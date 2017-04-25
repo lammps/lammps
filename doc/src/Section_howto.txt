@@ -215,7 +215,7 @@ documentation for the formula it computes.
 "special_bonds"_special_bonds.html charmm
 "special_bonds"_special_bonds.html amber :ul
 
-NOTE: For CHARMM, the newer {charmmfsw} or {charmmfsh} styles were
+NOTE: For CHARMM, newer {charmmfsw} or {charmmfsh} styles were
 released in March 2017.  We recommend they be used instead of the
 older {charmm} styles.  See discussion of the differences on the "pair
 charmm"_pair_charmm.html and "dihedral charmm"_dihedral_charmm.html
@@ -1686,7 +1686,7 @@ nph) and Berendsen:
 The "fix npt"_fix_nh.html commands include a Nose-Hoover thermostat
 and barostat.  "Fix nph"_fix_nh.html is just a Nose/Hoover barostat;
 it does no thermostatting.  Both "fix nph"_fix_nh.html and "fix
-press/bernendsen"_fix_press_berendsen.html can be used in conjunction
+press/berendsen"_fix_press_berendsen.html can be used in conjunction
 with any of the thermostatting fixes.
 
 As with the thermostats, "fix npt"_fix_nh.html and "fix

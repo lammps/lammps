@@ -31,7 +31,7 @@ class Min : protected Pointers {
   Min(class LAMMPS *);
   virtual ~Min();
   virtual void init();
-  void setup();
+  void setup(int flag=1);
   void setup_minimal(int);
   void run(int);
   void cleanup();

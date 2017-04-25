@@ -13,22 +13,22 @@
 
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(charmmfsh,DihedralCharmmfsh)
+DihedralStyle(charmmfsw,DihedralCharmmfsw)
 
 #else
 
-#ifndef LMP_DIHEDRAL_CHARMMFSH_H
-#define LMP_DIHEDRAL_CHARMMFSH_H
+#ifndef LMP_DIHEDRAL_CHARMMFSW_H
+#define LMP_DIHEDRAL_CHARMMFSW_H
 
 #include <stdio.h>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
 
-class DihedralCharmmfsh : public Dihedral {
+class DihedralCharmmfsw : public Dihedral {
  public:
-  DihedralCharmmfsh(class LAMMPS *);
-  virtual ~DihedralCharmmfsh();
+  DihedralCharmmfsw(class LAMMPS *);
+  virtual ~DihedralCharmmfsw();
   virtual void compute(int, int);
   virtual void coeff(int, char **);
   virtual void init_style();
@@ -73,9 +73,9 @@ E: Incorrect weight arg for dihedral coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Dihedral charmmfsh is incompatible with Pair style
+E: Dihedral charmmfsw is incompatible with Pair style
 
-Dihedral style charmmfsh must be used with a pair style charmm
+Dihedral style charmmfsw must be used with a pair style charmm
 in order for the 1-4 epsilon/sigma parameters to be defined.
 
 */

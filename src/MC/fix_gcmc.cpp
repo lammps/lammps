@@ -595,6 +595,9 @@ void FixGCMC::init()
       onemols[imol]->x[i][1] -= onemols[imol]->com[1];
       onemols[imol]->x[i][2] -= onemols[imol]->com[2];
     }
+    onemols[imol]->com[0] = 0;
+    onemols[imol]->com[1] = 0;
+    onemols[imol]->com[2] = 0;
 
   } else gas_mass = atom->mass[ngcmc_type];
 

@@ -13,23 +13,15 @@ lipids and charged amino acids.
 See the doc pages for these commands for details.
 
 There are example scripts for using this package in
-examples/USER/cg-cmm.
+examples/USER/cgsdk
 
 This is the second generation implementation reducing the the clutter
 of the previous version. For many systems with long range
 electrostatics, it will be faster to use pair_style hybrid/overlay
 with lj/sdk and coul/long instead of the combined lj/sdk/coul/long
-style, since the number of charged atom types is usually small.  To
-exploit this property, the use of the kspace_style pppm/cg is
-recommended over regular pppm. For all new styles, input file backward
-compatibility is provided.  The old implementation is still available
-through appending the /old suffix. These will be discontinued and
-removed after the new implementation has been fully validated.
-
-The current version of this package should be considered beta
-quality. The CG potentials work correctly for "normal" situations, but
-have not been testing with all kinds of potential parameters and
-simuation systems.
+style, since the number of charged atom types is usually small.
+To exploit this property, the use of the kspace_style pppm/cg is
+recommended over regular pppm.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
@@ -38,9 +30,9 @@ The person who created this package is Axel Kohlmeyer at Temple U
 
 Thanks for contributions, support and testing goes to
 
-Wataru Shinoda (AIST, Tsukuba)
+Wataru Shinoda (Nagoya University)
 Russell DeVane (Procter & Gamble)
-Michael L. Klein (CMM / U Penn, Philadelphia)
+Michael L. Klein (Temple University, Philadelphia)
 Balasubramanian Sundaram (JNCASR, Bangalore)
 
-version: 0.99 / 2011-11-29
+version: 1.0 / 2017-04-26

@@ -46,7 +46,7 @@ from the pair_style.
 [Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the
-USER-CG-CMM package.  See the "Making
+USER-CGSDK package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]

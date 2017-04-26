@@ -1139,8 +1139,8 @@ The current list of user-contributed packages is as follows:
 Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-ATC"_#USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (1), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 "USER-AWPMD"_#USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
-"USER-CG-CMM"_#USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 "USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, Oliver Henrich (U Strathclyde Glasgow), src/USER-CGDNA/README, USER/cgdna, -, -
+"USER-CGSDK"_#USER-CGSDK, SDK coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cgsdk, "cgsdk"_cgsdk, -
 "USER-COLVARS"_#USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 "USER-DIFFRACTION"_#USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
 "USER-DPD"_#USER-DPD, reactive dissipative particle dynamics (DPD), Larentzos & Mattox & Brennan (5), src/USER-DPD/README, USER/dpd, -, -
@@ -1169,7 +1169,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 :tb(ea=c)
 
 :link(atc,http://lammps.sandia.gov/pictures.html#atc)
-:link(cg,http://lammps.sandia.gov/pictures.html#cg)
+:link(cgsdk,http://lammps.sandia.gov/pictures.html#cg)
 :link(eff,http://lammps.sandia.gov/movies.html#eff)
 :link(manifold,http://lammps.sandia.gov/movies.html#manifold)
 :link(sph,http://lammps.sandia.gov/movies.html#sph)
@@ -1267,18 +1267,18 @@ physik.hu-berlin.de).  Contact him directly if you have questions.
 
 :line
 
-USER-CG-CMM package :link(USER-CG-CMM),h5
+USER-CGSDK package :link(USER-CGSDK),h5
 
-Contents: CG-CMM stands for coarse-grained ??.  This package
-implements several pair styles and an angle style using the coarse
-grained parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27
-(2007) (SDK), with extensions to simulate ionic liquids, electrolytes,
-lipids and charged amino acids.  See src/USER-CG-CMM/README for more
-details.
+Contents: CGSDK stands for Shinoda-DeVane-Klein (SDK) coarse-grained
+molecular dynamics force field.  This package implements several pair
+styles and an angle style using the coarse grained parametrization of
+Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007) (SDK), with extensions
+to simulate ionic liquids, electrolytes, lipids and charged amino acids.
+See src/USER-CGSDK/README for more details.
 
-Supporting info: src/USER-CG-CMM/README, "pair lj/sdk"_pair_sdk.html,
+Supporting info: src/USER-CGSDK/README, "pair lj/sdk"_pair_sdk.html,
 "pair lj/sdk/coul/long"_pair_sdk.html, "angle sdk"_angle_sdk.html,
-examples/USER/cg-cmm
+examples/USER/cgsdk
 
 Author: Axel Kohlmeyer at Temple U (akohlmey at gmail.com).  Contact
 him directly if you have questions.
@@ -1329,10 +1329,12 @@ src/USER-COLVARS/README, lib/colvars/README, "fix
 colvars"_fix_colvars.html, examples/USER/colvars
 
 Authors: Axel Kohlmeyer at Temple U (akohlmey at gmail.com) wrote the
-fix.  The COLVARS library itself is written and maintained by Giacomo
-Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome
-Henin (LISM, CNRS, Marseille, France).  Contact them directly if you
-have questions.
+interface that integrates colvars into LAMMPS.  The COLVARS library
+itself is written and maintained by Giacomo Fiorin (ICMS, Temple
+University, Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS,
+Marseille, France).  For more info, and to communicate with the COLVARS
+developers, please go to COLVARS home page at
+"http://colvars.github.io"_http://colvars.github.io/.
 
 :line
 

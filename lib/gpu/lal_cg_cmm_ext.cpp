@@ -1,5 +1,5 @@
 /***************************************************************************
-                                  cg_cmm.h
+                                  lj_sdk.h
                              -------------------
                             W. Michael Brown (ORNL)
 
@@ -17,7 +17,7 @@
 #include <cassert>
 #include <math.h>
 
-#include "lal_cg_cmm.h"
+#include "lal_lj_sdk.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,7 +27,7 @@ static CGCMM<PRECISION,ACC_PRECISION> CMMMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
+int sdk_gpu_init(const int ntypes, double **cutsq, int **cg_types,
                  double **host_lj1, double **host_lj2, double **host_lj3,
                  double **host_lj4, double **offset, double *special_lj,
                  const int inum, const int nall, const int max_nbors,
@@ -89,11 +89,11 @@ int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
   return init_ok;
 }
 
-void cmm_gpu_clear() {
+void sdk_gpu_clear() {
   CMMMF.clear();
 }
 
-int** cmm_gpu_compute_n(const int ago, const int inum_full,
+int** sdk_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag,
@@ -105,7 +105,7 @@ int** cmm_gpu_compute_n(const int ago, const int inum_full,
                        vatom, host_start, ilist, jnum, cpu_time, success);
 }
 
-void cmm_gpu_compute(const int ago, const int inum_full, const int nall,
+void sdk_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
@@ -114,7 +114,7 @@ void cmm_gpu_compute(const int ago, const int inum_full, const int nall,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
 }
 
-double cmm_gpu_bytes() {
+double sdk_gpu_bytes() {
   return CMMMF.host_memory_usage();
 }
 

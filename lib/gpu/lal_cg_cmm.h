@@ -1,5 +1,5 @@
 /***************************************************************************
-                                  cg_cmm.h
+                                  lj_sdk.h
                              -------------------
                             W. Michael Brown (ORNL)
 
@@ -67,7 +67,7 @@ class CGCMM : public BaseAtomic<numtyp, acctyp> {
   bool shared_types;
 
   /// Number of atom types
-  int _cmm_types;
+  int _sdk_types;
 
  private:
   bool _allocated;

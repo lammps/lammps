@@ -48,7 +48,7 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int cmml_gpu_init(const int ntypes, double **cutsq, int **lj_type,
+int sdkl_gpu_init(const int ntypes, double **cutsq, int **lj_type,
                   double **host_lj1, double **host_lj2, double **host_lj3,
                   double **host_lj4, double **offset, double *special_lj,
                   const int nlocal, const int nall, const int max_nbors,
@@ -56,8 +56,8 @@ int cmml_gpu_init(const int ntypes, double **cutsq, int **lj_type,
                   FILE *screen, double **host_cut_ljsq, double host_cut_coulsq,
                   double *host_special_coul, const double qqrd2e,
                   const double g_ewald);
-void cmml_gpu_clear();
-int ** cmml_gpu_compute_n(const int ago, const int inum, const int nall,
+void sdkl_gpu_clear();
+int ** sdkl_gpu_compute_n(const int ago, const int inum, const int nall,
                           double **host_x, int *host_type, double *sublo,
                           double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag,
@@ -65,13 +65,13 @@ int ** cmml_gpu_compute_n(const int ago, const int inum, const int nall,
                           int **ilist, int **jnum, const double cpu_time,
                           bool &success, double *host_q, double *boxlo,
                           double *prd);
-void cmml_gpu_compute(const int ago, const int inum, const int nall,
+void sdkl_gpu_compute(const int ago, const int inum, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
                       const double cpu_time, bool &success, double *host_q,
                       const int nlocal, double *boxlo, double *prd);
-double cmml_gpu_bytes();
+double sdkl_gpu_bytes();
 
 #include "lj_sdk_common.h"
 
@@ -95,7 +95,7 @@ PairLJSDKCoulLongGPU::PairLJSDKCoulLongGPU(LAMMPS *lmp) :
 
 PairLJSDKCoulLongGPU::~PairLJSDKCoulLongGPU()
 {
-  cmml_gpu_clear();
+  sdkl_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,7 +112,7 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
-    firstneigh = cmml_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+    firstneigh = sdkl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
                                     atom->type, domain->sublo, domain->subhi,
                                     atom->tag, atom->nspecial, atom->special,
                                     eflag, vflag, eflag_atom, vflag_atom,
@@ -124,7 +124,7 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    cmml_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+    sdkl_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                      ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
                      vflag_atom, host_start, cpu_time, success, atom->q,
                      atom->nlocal, domain->boxlo, domain->prd);
@@ -185,7 +185,7 @@ void PairLJSDKCoulLongGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = cmml_gpu_init(atom->ntypes+1, cutsq, lj_type, lj1, lj2, lj3,
+  int success = sdkl_gpu_init(atom->ntypes+1, cutsq, lj_type, lj1, lj2, lj3,
                               lj4, offset, force->special_lj, atom->nlocal,
                               atom->nlocal+atom->nghost, 300, maxspecial,
                               cell_size, gpu_mode, screen, cut_ljsq,
@@ -205,7 +205,7 @@ void PairLJSDKCoulLongGPU::init_style()
 double PairLJSDKCoulLongGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + cmml_gpu_bytes();
+  return bytes + sdkl_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */

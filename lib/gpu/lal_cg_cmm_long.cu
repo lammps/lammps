@@ -1,5 +1,5 @@
 // **************************************************************************
-//                                cg_cmm_long.cu
+//                                lj_sdk_long.cu
 //                             -------------------
 //                           W. Michael Brown (ORNL)
 //
@@ -29,7 +29,7 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-__kernel void k_cg_cmm_long(const __global numtyp4 *restrict x_,
+__kernel void k_lj_sdk_long(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict lj1,
                             const __global numtyp4 *restrict lj3,
                             const int lj_types,
@@ -154,7 +154,7 @@ __kernel void k_cg_cmm_long(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_cg_cmm_long_fast(const __global numtyp4 *restrict x_,
+__kernel void k_lj_sdk_long_fast(const __global numtyp4 *restrict x_,
                                  const __global numtyp4 *restrict lj1_in,
                                  const __global numtyp4 *restrict lj3_in,
                                  const __global numtyp *restrict sp_lj_in,

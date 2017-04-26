@@ -14,7 +14,6 @@
 #ifdef PAIR_CLASS
 
 PairStyle(lj/sdk/coul/long/gpu,PairLJSDKCoulLongGPU)
-PairStyle(cg/cmm/coul/long/gpu,PairLJSDKCoulLongGPU)
 
 #else
 

@@ -18,7 +18,6 @@
 #ifdef PAIR_CLASS
 
 PairStyle(lj/sdk,PairLJSDK)
-PairStyle(cg/cmm,PairLJSDK)
 
 #else
 

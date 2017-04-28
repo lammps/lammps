@@ -33,13 +33,18 @@ atoms J, I, and K centered on atom I. The five functions Phi, U, rho,
 f, and g are represented by cubic splines.
 
 The {meam/spline} style also supports a new style multicomponent
-modified embedded-atom method (MEAM) potential, where the total energy
-E is given by
+modified embedded-atom method (MEAM) potential "(Zhang)"_#Zhang1, where
+the total energy E is given by
 
 :c,image(Eqs/pair_meam_spline_multicomponent.jpg)
 
 where the five functions Phi, U, rho, f, and g depend on the chemistry
-of the atoms in the interaction. 
+of the atoms in the interaction.  In particular, if there are N different
+chemistries, there are N different U, rho, and f functions, while there
+are N(N+1)/2 different Phi and g functions.  The new style multicomponent
+MEAM potential files are indicated by the second line in the file starts
+with "meam/spline" followed by the number of elements and the name of each
+element.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the
@@ -114,9 +119,6 @@ more instructions on how to use the accelerated styles effectively.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-The current version of this pair style does not support multiple
-element types or mixing.  It has been designed for pure elements only.
-
 This pair style does not support the "pair_modify"_pair_modify.html
 shift, table, and tail options.
 
@@ -152,3 +154,6 @@ for more info.
 [(Lenosky)] Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).
+
+:link(Zhang1)
+[(Zhang)] Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

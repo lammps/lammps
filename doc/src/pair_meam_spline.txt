@@ -23,13 +23,23 @@ pair_coeff * * Ti.meam.spline Ti Ti Ti :pre
 
 The {meam/spline} style computes pairwise interactions for metals
 using a variant of modified embedded-atom method (MEAM) potentials
-"(Lenosky)"_#Lenosky1.  The total energy E is given by
+"(Lenosky)"_#Lenosky1.  For a single species ("old-style") MEAM,
+the total energy E is given by
 
 :c,image(Eqs/pair_meam_spline.jpg)
 
 where rho_i is the density at atom I, theta_jik is the angle between
 atoms J, I, and K centered on atom I. The five functions Phi, U, rho,
 f, and g are represented by cubic splines.
+
+The {meam/spline} style also supports a new style multicomponent
+modified embedded-atom method (MEAM) potential, where the total energy
+E is given by
+
+:c,image(Eqs/pair_meam_spline_multicomponent.jpg)
+
+where the five functions Phi, U, rho, f, and g depend on the chemistry
+of the atoms in the interaction. 
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the

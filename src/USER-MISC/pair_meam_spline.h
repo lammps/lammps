@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -43,10 +43,24 @@ public:
         virtual void compute(int, int);
         void settings(int, char **);
         void coeff(int, char **);
+        void get_coeff(double *, double *);
+        double pair_density(int );
+        double three_body_density(int );
         void init_style();
         void init_list(int, class NeighList *);
         double init_one(int, int);
 
+    // helper functions for compute()
+    
+    double compute_three_body_contrib_to_charge_density(int i, int& numBonds); // returns rho_value and returns numBonds by reference
+    double compute_embedding_energy_and_deriv(int eflag, int i, double rho_value); // returns the derivative of the embedding energy Uprime_i
+    void compute_three_body_contrib_to_forces(int i, int numBonds, double Uprime_i);
+    void compute_two_body_pair_interactions();
+    
+    int ij_to_potl(int i, int j);
+    int i_to_potl(int i);
+    
+    
         int pack_forward_comm(int, int *, double *, int, int *);
         void unpack_forward_comm(int, int, double *);
         int pack_reverse_comm(int, int, double *);
@@ -74,15 +88,15 @@ protected:
                 }
 
                 /// Initialization of spline function.
-                void init(int _n, double _deriv0, double _derivN) {
-                        N = _n;
+                void init(int _N, double _deriv0, double _derivN) {
+                        N = _N;
                         deriv0 = _deriv0;
                         derivN = _derivN;
-                        delete[] X;
-                        delete[] Xs;
-                        delete[] Y;
-                        delete[] Y2;
-                        delete[] Ydelta;
+                        // if (X) delete[] X;
+                        // if (Xs) delete[] Xs;
+                        // if (Y) delete[] Y;
+                        // if (Y2) delete[] Y2;
+                        // if (Ydelta) delete[] Ydelta;
                         X = new double[N];
                         Xs = new double[N];
                         Y = new double[N];
@@ -97,7 +111,7 @@ protected:
                 int numKnots() const { return N; }
 
                 /// Parses the spline knots from a text file.
-                void parse(FILE* fp, Error* error);
+                void parse(FILE* fp, Error* error, bool isNewFormat);
 
                 /// Calculates the second derivatives of the cubic spline.
                 void prepareSpline(Error* error);
@@ -209,18 +223,18 @@ protected:
 
         /// Helper data structure for potential routine.
         struct MEAM2Body {
-                int tag;
+                int tag;  // holds the index of the second atom (j)
                 double r;
                 double f, fprime;
                 double del[3];
         };
 
-        SplineFunction phi;                        // Phi(r_ij)
-        SplineFunction rho;                        // Rho(r_ij)
-        SplineFunction f;                        // f(r_ij)
-        SplineFunction U;                        // U(rho)
-        SplineFunction g;                        // g(cos_theta)
-        double zero_atom_energy;        // Shift embedding energy by this value to make it zero for a single atom in vacuum.
+        SplineFunction* phis;                        // Phi_i(r_ij)
+        SplineFunction* rhos;                        // Rho_ij(r_ij)
+        SplineFunction* fs;                        // f_i(r_ij)
+        SplineFunction* Us;                        // U_i(rho)
+        SplineFunction* gs;                        // g_ij(cos_theta)
+        double* zero_atom_energies;        // Shift embedding energy by this value to make it zero for a single atom in vacuum.
 
         double cutoff;              // The cutoff radius
 
@@ -231,6 +245,8 @@ protected:
 
         void read_file(const char* filename);
         void allocate();
+
+    
 };
 
 }
@@ -279,3 +295,5 @@ protected:
  *
  * See file 'pair_spline_meam.cpp' for history of changes.
 ------------------------------------------------------------------------- */
+
+

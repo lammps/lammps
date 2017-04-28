@@ -142,12 +142,10 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     // compute charge density and numBonds
 
     double rho_value = compute_three_body_contrib_to_charge_density(i, numBonds);
-      //cout<<"i  "<<i<<"   rho  "<<rho_value<<"  numBonds  "<<numBonds<<endl;
 
     // Compute embedding energy and its derivative
 
     double Uprime_i = compute_embedding_energy_and_deriv(eflag, i, rho_value);
-      //cout<<"i  "<<i<<"   U prime "<<Uprime_i<<endl;
     // Compute three-body contributions to force
 
     compute_three_body_contrib_to_forces(i, numBonds, Uprime_i); 
@@ -283,9 +281,6 @@ double PairMEAMSpline::compute_embedding_energy_and_deriv(int eflag, int i, doub
     double Uprime_i;
     double embeddingEnergy = Us[i_to_potl(i)].eval(rho_value, Uprime_i) 
                                 - zero_atom_energies[i_to_potl(i)];
-    //cout<<"Density "<<rho_value<<endl;
-    //cout<<"embedding energy "<<embeddingEnergy<<endl;
-    
     
     Uprime_values[i] = Uprime_i;
     if(eflag) {
@@ -395,19 +390,12 @@ void PairMEAMSpline::compute_two_body_pair_interactions() {
       if(rij_sq < cutoff*cutoff) {
         double rij = sqrt(rij_sq);
 
-//      double rho_prime;
-//      rhos[i_to_potl(j)].eval(rij, rho_prime);
-//      cout<<"rho_prime "<<rho_prime<<endl;
-//      double fpair = rho_prime * (Uprime_values[i] + Uprime_values[j]);
         double rho_prime_i,rho_prime_j;
         rhos[i_to_potl(i)].eval(rij,rho_prime_i);
         rhos[i_to_potl(j)].eval(rij,rho_prime_j);
         double fpair = rho_prime_j * Uprime_values[i] + rho_prime_i*Uprime_values[j];
-        //cout<<"fpair "<<fpair<<endl;
         double pair_pot_deriv;
         double pair_pot = phis[ij_to_potl(i,j)].eval(rij, pair_pot_deriv);
-        //cout<<"pair potential "<<pair_pot<<endl;
-        //cout<<"pair pot_deriv "<<pair_pot_deriv<<endl;
 
           fpair += pair_pot_deriv;
 
@@ -416,17 +404,11 @@ void PairMEAMSpline::compute_two_body_pair_interactions() {
         fpair /= rij;
 
         atom->f[i][0] += jdel[0]*fpair;
-        //cout<<i<<"pair fx "<<atom->f[i][0]<<endl;
         atom->f[i][1] += jdel[1]*fpair;
-        //cout<<i<<"pair fy "<<atom->f[i][1]<<endl;
         atom->f[i][2] += jdel[2]*fpair;
-        //cout<<i<<"pair fz "<<atom->f[i][2]<<endl;
         atom->f[j][0] -= jdel[0]*fpair;
-        //cout<<j<<"pair fx "<<atom->f[j][0]<<endl;
         atom->f[j][1] -= jdel[1]*fpair;
-        //cout<<j<<"pair fy "<<atom->f[j][1]<<endl;
         atom->f[j][2] -= jdel[2]*fpair;
-        ////cout<<j<<"pair fz "<<atom->f[j][2]<<endl;
         if (evflag) ev_tally(i, j, atom->nlocal, force->newton_pair,
                              pair_pot, 0.0, -fpair, jdel[0], jdel[1], jdel[2]);
       }
@@ -443,7 +425,6 @@ int PairMEAMSpline::ij_to_potl(int i, int j) {
     int itype = atom->type[i];
     int jtype = atom->type[j];
 
-   // printf("%d %d %d\n",n,itype,jtype);
     return jtype - 1 + (itype-1)*n - (itype-1)*itype/2;
 }
 
@@ -672,15 +653,10 @@ void PairMEAMSpline::read_file(const char* filename)
   for(int i = 1; i <= atom->ntypes; i++) {
     for(int j = 1; j <= atom->ntypes; j++) {
       // setflag[i][j] = 1;
-      cutsq[i][j] = cutoff; // should this be squared?
+      cutsq[i][j] = cutoff;
     }
   }
   
-  //phi.writeGnuplot("phi.gp", "Phi(r)");
-  //rho.writeGnuplot("rho.gp", "Rho(r)");
-  //f.writeGnuplot("f.gp", "f(r)");
-  //U.writeGnuplot("U.gp", "U(rho)");
-  //g.writeGnuplot("g.gp", "g(x)");
 }
 
 /* ----------------------------------------------------------------------
@@ -781,7 +757,6 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error, bool isNewFor
         double d0 = atof(strtok(line, " \t\n\r\f"));
         double dN = atof(strtok(NULL, " \t\n\r\f"));
         init(n, d0, dN);
-//printf("%s\n",line);
 
         // Skip line in old format
         if (!isNewFormat)

@@ -74,7 +74,7 @@ N element names = mapping of spline-based MEAM elements to atom types :ul
 See the "pair_coeff"_pair_coeff.html doc page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine the Ti.meam.spline file has values for Ti.  If
+As an example, imagine the Ti.meam.spline file has values for Ti (old style).  If
 your LAMMPS simulation has 3 atoms types and they are all to be
 treated with this potentials, you would use the following pair_coeff
 command:
@@ -87,10 +87,19 @@ in the potential file.  If a mapping value is specified as NULL, the
 mapping is not performed.  This can be used when a {meam/spline}
 potential is used as part of the {hybrid} pair style.  The NULL values
 are placeholders for atom types that will be used with other
-potentials.
+potentials. The old-style potential maps any non-NULL species named
+on the command line to that single type.
 
-NOTE: The {meam/spline} style currently supports only single-element
-MEAM potentials.  It may be extended for alloy systems in the future.
+An example with a two component spline (new style) is TiO.meam.spline, where
+the command
+
+pair_coeff * * TiO.meam.spline Ti O :pre
+
+will map the 1st atom type to Ti and the second atom type to O. Note
+in this case that the species names need to match exactly with the
+names of the elements in the TiO.meam.spline file; otherwise an
+error will be raised. This behavior is different than the old style
+MEAM files.
 
 :line
 

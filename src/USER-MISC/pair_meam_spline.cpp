@@ -609,7 +609,7 @@ void PairMEAMSpline::read_file(const char* filename)
   MPI_Bcast(&nelements, 1, MPI_INT, 0, world);
   MPI_Bcast(&nmultichoose2, 1, MPI_INT, 0, world);
   // allocate!!
-  if (!allocated) {
+  if (comm->me != 0) {
     allocate();
     elements = new char*[nelements];
   }

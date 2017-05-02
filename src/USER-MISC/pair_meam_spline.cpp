@@ -620,7 +620,7 @@ void PairMEAMSpline::read_file(const char* filename)
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
     if (comm->me != 0)
       elements[i] = new char[n+1];
-    MPI_Bcast(elements[i], n, MPI_CHAR, 0, world);
+    MPI_Bcast(elements[i], n+1, MPI_CHAR, 0, world);
   }
   for (int i = 0; i < nmultichoose2; i++)
     phis[i].communicate(world, comm->me);

@@ -170,14 +170,15 @@ double PairMEAMSpline::pair_density(int i)
 {
   double rho_value = 0;
   MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
-    
+  double** const x = atom->x;
+
   for(int jj = 0; jj < listfull->numneigh[i]; jj++) {
     int j = listfull->firstneigh[i][jj];
     j &= NEIGHMASK;
     
-    double jdelx = atom->x[j][0] - atom->x[i][0];
-    double jdely = atom->x[j][1] - atom->x[i][1];
-    double jdelz = atom->x[j][2] - atom->x[i][2];
+    double jdelx = x[j][0] - x[i][0];
+    double jdely = x[j][1] - x[i][1];
+    double jdelz = x[j][2] - x[i][2];
     double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
     double rij = sqrt(rij_sq);
     
@@ -196,6 +197,7 @@ double PairMEAMSpline::three_body_density(int i)
 {
   double rho_value = 0;
   int numBonds=0;
+  double** const x = atom->x;
   
   MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
   
@@ -203,9 +205,9 @@ double PairMEAMSpline::three_body_density(int i)
     int j = listfull->firstneigh[i][jj];
     j &= NEIGHMASK;
     
-    double jdelx = atom->x[j][0] - atom->x[i][0];
-    double jdely = atom->x[j][1] - atom->x[i][1];
-    double jdelz = atom->x[j][2] - atom->x[i][2];
+    double jdelx = x[j][0] - x[i][0];
+    double jdely = x[j][1] - x[i][1];
+    double jdelz = x[j][2] - x[i][2];
     double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
     
     if(rij_sq < cutoff*cutoff) {
@@ -239,14 +241,15 @@ double PairMEAMSpline::three_body_density(int i)
 double PairMEAMSpline::compute_three_body_contrib_to_charge_density(int i, int& numBonds) {
   double rho_value = 0;
   MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
-  
+  double** const x = atom->x;
+
   for(int jj = 0; jj < listfull->numneigh[i]; jj++) {
     int j = listfull->firstneigh[i][jj];
     j &= NEIGHMASK;
     
-    double jdelx = atom->x[j][0] - atom->x[i][0];
-    double jdely = atom->x[j][1] - atom->x[i][1];
-    double jdelz = atom->x[j][2] - atom->x[i][2];
+    double jdelx = x[j][0] - x[i][0];
+    double jdely = x[j][1] - x[i][1];
+    double jdelz = x[j][2] - x[i][2];
     double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
     
     if(rij_sq < cutoff*cutoff) {
@@ -296,6 +299,7 @@ double PairMEAMSpline::compute_embedding_energy_and_deriv(int eflag, int i, doub
 
 void PairMEAMSpline::compute_three_body_contrib_to_forces(int i, int numBonds, double Uprime_i) {
   double forces_i[3] = {0, 0, 0};
+  double** forces = atom->f;
   
   for(int jj = 0; jj < numBonds; jj++) {
     const MEAM2Body bondj = twoBodyInfo[jj];
@@ -345,9 +349,9 @@ void PairMEAMSpline::compute_three_body_contrib_to_forces(int i, int numBonds, d
       forces_i[2] -= fk[2];
       
       int k = bondk->tag;
-      atom->f[k][0] += fk[0];
-      atom->f[k][1] += fk[1];
-      atom->f[k][2] += fk[2];
+      forces[k][0] += fk[0];
+      forces[k][1] += fk[1];
+      forces[k][2] += fk[2];
       
       if(evflag) {
 	double delta_ij[3];
@@ -362,20 +366,23 @@ void PairMEAMSpline::compute_three_body_contrib_to_forces(int i, int numBonds, d
       }
     }
     
-    atom->f[i][0] -= forces_j[0];
-    atom->f[i][1] -= forces_j[1];
-    atom->f[i][2] -= forces_j[2];
-    atom->f[j][0] += forces_j[0];
-    atom->f[j][1] += forces_j[1];
-    atom->f[j][2] += forces_j[2];
+    forces[i][0] -= forces_j[0];
+    forces[i][1] -= forces_j[1];
+    forces[i][2] -= forces_j[2];
+    forces[j][0] += forces_j[0];
+    forces[j][1] += forces_j[1];
+    forces[j][2] += forces_j[2];
   }
   
-  atom->f[i][0] += forces_i[0];
-  atom->f[i][1] += forces_i[1];
-  atom->f[i][2] += forces_i[2];
+  forces[i][0] += forces_i[0];
+  forces[i][1] += forces_i[1];
+  forces[i][2] += forces_i[2];
 }
 
 void PairMEAMSpline::compute_two_body_pair_interactions() {
+  double** const x = atom->x;
+  double** forces = atom->f;
+
   for(int ii = 0; ii < listhalf->inum; ii++) {
     int i = listhalf->ilist[ii];
     
@@ -384,9 +391,9 @@ void PairMEAMSpline::compute_two_body_pair_interactions() {
       j &= NEIGHMASK;
       
       double jdel[3];
-      jdel[0] = atom->x[j][0] - atom->x[i][0];
-      jdel[1] = atom->x[j][1] - atom->x[i][1];
-      jdel[2] = atom->x[j][2] - atom->x[i][2];
+      jdel[0] = x[j][0] - x[i][0];
+      jdel[1] = x[j][1] - x[i][1];
+      jdel[2] = x[j][2] - x[i][2];
       double rij_sq = jdel[0]*jdel[0] + jdel[1]*jdel[1] + jdel[2]*jdel[2];
       
       if(rij_sq < cutoff*cutoff) {
@@ -405,12 +412,12 @@ void PairMEAMSpline::compute_two_body_pair_interactions() {
 
         fpair /= rij;
 
-        atom->f[i][0] += jdel[0]*fpair;
-        atom->f[i][1] += jdel[1]*fpair;
-        atom->f[i][2] += jdel[2]*fpair;
-        atom->f[j][0] -= jdel[0]*fpair;
-        atom->f[j][1] -= jdel[1]*fpair;
-        atom->f[j][2] -= jdel[2]*fpair;
+        forces[i][0] += jdel[0]*fpair;
+        forces[i][1] += jdel[1]*fpair;
+        forces[i][2] += jdel[2]*fpair;
+        forces[j][0] -= jdel[0]*fpair;
+        forces[j][1] -= jdel[1]*fpair;
+        forces[j][2] -= jdel[2]*fpair;
         if (evflag) ev_tally(i, j, atom->nlocal, force->newton_pair,
                              pair_pot, 0.0, -fpair, jdel[0], jdel[1], jdel[2]);
       }

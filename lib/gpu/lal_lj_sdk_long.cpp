@@ -1,5 +1,5 @@
 /***************************************************************************
-                               cg_cmm_long.cpp
+                               lj_sdk_long.cpp
                              -------------------
                             W. Michael Brown (ORNL)
 
@@ -14,14 +14,14 @@
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "cg_cmm_long_cl.h"
+#include "lj_sdk_long_cl.h"
 #elif defined(USE_CUDART)
-const char *cg_cmm_long=0;
+const char *lj_sdk_long=0;
 #else
-#include "cg_cmm_long_cubin.h"
+#include "lj_sdk_long_cubin.h"
 #endif
 
-#include "lal_cg_cmm_long.h"
+#include "lal_lj_sdk_long.h"
 #include <cassert>
 using namespace LAMMPS_AL;
 #define CGCMMLongT CGCMMLong<numtyp, acctyp>
@@ -58,7 +58,7 @@ int CGCMMLongT::init(const int ntypes, double **host_cutsq,
                            const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,cg_cmm_long,"k_cg_cmm_long");
+                            _screen,lj_sdk_long,"k_lj_sdk_long");
   if (success!=0)
     return success;
 

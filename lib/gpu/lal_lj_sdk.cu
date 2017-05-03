@@ -1,5 +1,5 @@
 // **************************************************************************
-//                                  cg_cmm.cu
+//                                  lj_sdk.cu
 //                             -------------------
 //                           W. Michael Brown (ORNL)
 //
@@ -24,7 +24,7 @@ texture<int4,1> pos_tex;
 #define pos_tex x_
 #endif
 
-__kernel void k_cg_cmm(const __global numtyp4 *restrict x_,
+__kernel void k_lj_sdk(const __global numtyp4 *restrict x_,
                        const __global numtyp4 *restrict lj1,
                        const __global numtyp4 *restrict lj3,
                        const int lj_types,
@@ -116,7 +116,7 @@ __kernel void k_cg_cmm(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_cg_cmm_fast(const __global numtyp4 *restrict x_,
+__kernel void k_lj_sdk_fast(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict lj1_in,
                             const __global numtyp4 *restrict lj3_in,
                             const __global numtyp *restrict sp_lj_in,

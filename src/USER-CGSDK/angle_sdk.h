@@ -14,7 +14,6 @@
 #ifdef ANGLE_CLASS
 
 AngleStyle(sdk,AngleSDK)
-AngleStyle(cg/cmm,AngleSDK)
 
 #else
 

@@ -515,7 +515,7 @@ the packages they have written are somewhat unique to LAMMPS and the
 code would not be as general-purpose as it is without their expertise
 and efforts.
 
-Axel Kohlmeyer (Temple U), akohlmey at gmail.com, SVN and Git repositories, indefatigable mail list responder, USER-CG-CMM and USER-OMP packages
+Axel Kohlmeyer (Temple U), akohlmey at gmail.com, SVN and Git repositories, indefatigable mail list responder, USER-CGSDK and USER-OMP packages
 Roy Pollock (LLNL), Ewald and PPPM solvers
 Mike Brown (ORNL), brownw at ornl.gov, GPU package
 Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential

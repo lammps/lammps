@@ -1,4 +1,4 @@
-LAMMPS USER-CMM-CG example problems
+LAMMPS USER-CGSDK example problems
 
 Each of these sub-directories contains a sample problem for the SDK
 coarse grained MD potentials that you can run with LAMMPS.

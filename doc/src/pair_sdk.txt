@@ -134,7 +134,7 @@ respa"_run_style.html command.
 
 [Restrictions:]
 
-All of the lj/sdk pair styles are part of the USER-CG-CMM package.
+All of the lj/sdk pair styles are part of the USER-CGSDK package.
 The {lj/sdk/coul/long} style also requires the KSPACE package to be
 built (which is enabled by default).  They are only enabled if LAMMPS
 was built with that package.  See the "Making

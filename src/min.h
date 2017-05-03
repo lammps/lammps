@@ -123,6 +123,12 @@ Minimization requires that neigh_modify settings be delay = 0, every =
 changed them and will restore them to their original values after the
 minimization.
 
+W: Energy due to X extra global DOFs will be included in minimizer energies
+
+When using fixes like box/relax, the potential energy used by the minimizer
+is augmented by an additional energy provided by the fix. Thus the printed
+converged energy may be different from the total potential energy.
+
 E: Minimization could not find thermo_pe compute
 
 This compute is created by the thermo command.  It must have been

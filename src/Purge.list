@@ -16,6 +16,19 @@ style_region.h
 style_neigh_bin.h
 style_neigh_pair.h
 style_neigh_stencil.h
+# deleted on 4 May 2017
+pair_reax_c.cpp
+pair_reax_c.h
+fix_reax_c_bonds.cpp
+fix_reax_c_bonds.h
+fix_reax_c_species.cpp
+fix_reax_c_species.h
+pair_reax_c_kokkos.cpp
+pair_reax_c_kokkos.h
+fix_reax_c_bonds_kokkos.cpp
+fix_reax_c_bonds_kokkos.h
+fix_reax_c_species_kokkos.cpp
+fix_reax_c_species_kokkos.h
 # deleted on 19 April 2017
 vmdplugin.h
 molfile_plugin.h

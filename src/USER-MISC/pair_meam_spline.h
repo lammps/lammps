@@ -28,10 +28,12 @@ PairStyle(meam/spline,PairMEAMSpline)
 
 namespace LAMMPS_NS {
 
-/// Set this to 1 if you intend to use MEAM potentials with non-uniform spline knots.
-/// Set this to 0 if you intend to use only MEAM potentials with spline knots on a uniform grid.
-///
-/// With SUPPORT_NON_GRID_SPLINES == 0, the code runs about 50% faster.
+// Set this to 1 if you intend to use MEAM potentials with
+//   non-uniform spline knots.
+// Set this to 0 if you intend to use only MEAM potentials with
+//   spline knots on a uniform grid.
+//
+// With SUPPORT_NON_GRID_SPLINES == 0, the code runs about 50% faster.
 
 #define SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES 0
 
@@ -114,33 +116,35 @@ protected:
     {
       x -= xmin;
       if(x <= 0.0) {  // Left extrapolation.
-	return Y[0] + deriv0 * x;
+        return Y[0] + deriv0 * x;
       }
       else if(x >= xmax_shifted) {  // Right extrapolation.
-	return Y[N-1] + derivN * (x - xmax_shifted);
+        return Y[N-1] + derivN * (x - xmax_shifted);
       }
       else {
 #if SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
-	// Do interval search.
-	int klo = 0;
-	int khi = N-1;
-	while(khi - klo > 1) {
-	  int k = (khi + klo) / 2;
-	  if(Xs[k] > x) khi = k;
-	  else klo = k;
-	}
-	double h = Xs[khi] - Xs[klo];
-	// Do spline interpolation.
-	double a = (Xs[khi] - x)/h;
-	double b = 1.0 - a; // = (x - X[klo])/h
-	return a * Y[klo] + b * Y[khi] + ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi])*(h*h)/6.0;
+        // Do interval search.
+        int klo = 0;
+        int khi = N-1;
+        while(khi - klo > 1) {
+          int k = (khi + klo) / 2;
+          if(Xs[k] > x) khi = k;
+          else klo = k;
+        }
+        double h = Xs[khi] - Xs[klo];
+        // Do spline interpolation.
+        double a = (Xs[khi] - x)/h;
+        double b = 1.0 - a; // = (x - X[klo])/h
+        return a * Y[klo] + b * Y[khi] +
+	  ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi])*(h*h)/6.0;
 #else
-	// For a spline with grid points, we can directly calculate the interval X is in.
-	int klo = (int)(x / h);
-	int khi = klo + 1;
-	double a = Xs[khi] - x;
-	double b = h - a;
-	return Y[khi] - a * Ydelta[klo] + ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
+        // For a spline with regular grid, we directly calculate the interval X is in.
+        int klo = (int)(x / h);
+        int khi = klo + 1;
+        double a = Xs[khi] - x;
+        double b = h - a;
+        return Y[khi] - a * Ydelta[klo] +
+	  ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
 #endif
       }
     }
@@ -150,37 +154,43 @@ protected:
     {
       x -= xmin;
       if(x <= 0.0) {  // Left extrapolation.
-	deriv = deriv0;
-	return Y[0] + deriv0 * x;
+        deriv = deriv0;
+        return Y[0] + deriv0 * x;
       }
       else if(x >= xmax_shifted) {  // Right extrapolation.
-	deriv = derivN;
-	return Y[N-1] + derivN * (x - xmax_shifted);
+        deriv = derivN;
+        return Y[N-1] + derivN * (x - xmax_shifted);
       }
       else {
 #if SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
-	// Do interval search.
-	int klo = 0;
-	int khi = N-1;
-	while(khi - klo > 1) {
-	  int k = (khi + klo) / 2;
-	  if(Xs[k] > x) khi = k;
-	  else klo = k;
-	}
-	double h = Xs[khi] - Xs[klo];
-	// Do spline interpolation.
-	double a = (Xs[khi] - x)/h;
-	double b = 1.0 - a; // = (x - X[klo])/h
-	deriv = (Y[khi] - Y[klo]) / h + ((3.0*b*b - 1.0) * Y2[khi] - (3.0*a*a - 1.0) * Y2[klo]) * h / 6.0;
-	return a * Y[klo] + b * Y[khi] + ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi]) * (h*h) / 6.0;
+        // Do interval search.
+        int klo = 0;
+        int khi = N-1;
+        while(khi - klo > 1) {
+          int k = (khi + klo) / 2;
+          if(Xs[k] > x) khi = k;
+          else klo = k;
+        }
+        double h = Xs[khi] - Xs[klo];
+        // Do spline interpolation.
+        double a = (Xs[khi] - x)/h;
+        double b = 1.0 - a; // = (x - X[klo])/h
+        deriv = (Y[khi] - Y[klo]) / h +
+	  ((3.0*b*b - 1.0) * Y2[khi] -
+	   (3.0*a*a - 1.0) * Y2[klo]) * h / 6.0;
+        return a * Y[klo] + b * Y[khi] +
+	  ((a*a*a - a) * Y2[klo] +
+	   (b*b*b - b) * Y2[khi]) * (h*h) / 6.0;
 #else
-	// For a spline with grid points, we can directly calculate the interval X is in.
-	int klo = (int)(x / h);
-	int khi = klo + 1;
-	double a = Xs[khi] - x;
-	double b = h - a;
-	deriv = Ydelta[klo] + ((3.0*b*b - hsq) * Y2[khi] - (3.0*a*a - hsq) * Y2[klo]);
-	return Y[khi] - a * Ydelta[klo] + ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
+        // For a spline with regular grid, we directly calculate the interval X is in.
+        int klo = (int)(x / h);
+        int khi = klo + 1;
+        double a = Xs[khi] - x;
+        double b = h - a;
+        deriv = Ydelta[klo] + ((3.0*b*b - hsq) * Y2[khi]
+			       - (3.0*a*a - hsq) * Y2[klo]);
+        return Y[khi] - a * Ydelta[klo] +
+	  ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
 #endif
       }
     }
@@ -198,20 +208,20 @@ protected:
     void communicate(MPI_Comm& world, int me);
 
   private:
-    double* X;                                // Positions of spline knots
-    double* Xs;                                // Shifted positions of spline knots
-    double* Y;                                // Function values at spline knots
-    double* Y2;                                // Second derivatives at spline knots
-    double* Ydelta;                        // If this is a grid spline, Ydelta[i] = (Y[i+1]-Y[i])/h
-    int N;                                        // Number of spline knots
-    double deriv0;                        // First derivative at knot 0
-    double derivN;                        // First derivative at knot (N-1)
-    double xmin;                        // The beginning of the interval on which the spline function is defined.
-    double xmax;                        // The end of the interval on which the spline function is defined.
-    int isGridSpline;                // Indicates that all spline knots are on a regular grid.
-    double h;                                // The distance between knots if this is a grid spline with equidistant knots.
-    double hsq;                                // The squared distance between knots if this is a grid spline with equidistant knots.
-    double xmax_shifted;        // The end of the spline interval after it has been shifted to begin at X=0.
+    double* X;       // Positions of spline knots
+    double* Xs;      // Shifted positions of spline knots
+    double* Y;       // Function values at spline knots
+    double* Y2;      // Second derivatives at spline knots
+    double* Ydelta;  // If this is a grid spline, Ydelta[i] = (Y[i+1]-Y[i])/h
+    int N;           // Number of spline knots
+    double deriv0;   // First derivative at knot 0
+    double derivN;   // First derivative at knot (N-1)
+    double xmin;     // The beginning of the interval on which the spline function is defined.
+    double xmax;     // The end of the interval on which the spline function is defined.
+    int isGridSpline;// Indicates that all spline knots are on a regular grid.
+    double h;        // The distance between knots if this is a grid spline with equidistant knots.
+    double hsq;      // The squared distance between knots if this is a grid spline with equidistant knots.
+    double xmax_shifted; // The end of the spline interval after it has been shifted to begin at X=0.
   };
   
   /// Helper data structure for potential routine.
@@ -222,19 +232,19 @@ protected:
     double del[3];
   };
   
-  SplineFunction* phis;                        // Phi_i(r_ij)
-  SplineFunction* rhos;                        // Rho_ij(r_ij)
-  SplineFunction* fs;                        // f_i(r_ij)
-  SplineFunction* Us;                        // U_i(rho)
-  SplineFunction* gs;                        // g_ij(cos_theta)
-  double* zero_atom_energies;        // Shift embedding energy by this value to make it zero for a single atom in vacuum.
+  SplineFunction* phis; // Phi_i(r_ij)
+  SplineFunction* rhos; // Rho_ij(r_ij)
+  SplineFunction* fs;   // f_i(r_ij)
+  SplineFunction* Us;   // U_i(rho)
+  SplineFunction* gs;   // g_ij(cos_theta)
+  double* zero_atom_energies; // Shift embedding energy by this value to make it zero for a single atom in vacuum.
   
-  double cutoff;              // The cutoff radius
+  double cutoff;          // The cutoff radius
   
-  double* Uprime_values;                // Used for temporary storage of U'(rho) values
-  int nmax;                                        // Size of temporary array.
-  int maxNeighbors;                        // The last maximum number of neighbors a single atoms has.
-  MEAM2Body* twoBodyInfo;                // Temporary array.
+  double* Uprime_values;  // Used for temporary storage of U'(rho) values
+  int nmax;               // Size of temporary array.
+  int maxNeighbors;       // The last maximum number of neighbors a single atoms has.
+  MEAM2Body* twoBodyInfo; // Temporary array.
   
   void read_file(const char* filename);
   void allocate();

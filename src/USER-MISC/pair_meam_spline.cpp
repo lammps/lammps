@@ -14,8 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing author: Alexander Stukowski (LLNL), alex@stukowski.com
                         Will Tipton (Cornell), wwt26@cornell.edu
-			Dallas R. Trinkle (UIUC), dtrinkle@illinois.edu
-			Pinchao Zhang (UIUC)
+                        Dallas R. Trinkle (UIUC), dtrinkle@illinois.edu
+                        Pinchao Zhang (UIUC)
    see LLNL copyright notice at bottom of file
 ------------------------------------------------------------------------- */
 
@@ -157,29 +157,29 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
       
       if(rij_sq < cutoff*cutoff) {
-	double rij = sqrt(rij_sq);
-	double partial_sum = 0;
-	
-	nextTwoBodyInfo->tag = j;
-	nextTwoBodyInfo->r = rij;
-	nextTwoBodyInfo->f = fs[i_to_potl(j)].eval(rij, nextTwoBodyInfo->fprime);
-	nextTwoBodyInfo->del[0] = jdelx / rij;
-	nextTwoBodyInfo->del[1] = jdely / rij;
-	nextTwoBodyInfo->del[2] = jdelz / rij;
-	
-	for(int kk = 0; kk < numBonds; kk++) {
-	  const MEAM2Body& bondk = twoBodyInfo[kk];
-	  double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
-			      nextTwoBodyInfo->del[1]*bondk.del[1] +
-			      nextTwoBodyInfo->del[2]*bondk.del[2]);
-	  partial_sum += bondk.f * gs[ij_to_potl(j,bondk.tag)].eval(cos_theta);
-	}
-	
-	rho_value += nextTwoBodyInfo->f * partial_sum;
-	rho_value += rhos[i_to_potl(j)].eval(rij);
-	
-	numBonds++;
-	nextTwoBodyInfo++;
+        double rij = sqrt(rij_sq);
+        double partial_sum = 0;
+        
+        nextTwoBodyInfo->tag = j;
+        nextTwoBodyInfo->r = rij;
+        nextTwoBodyInfo->f = fs[i_to_potl(j)].eval(rij, nextTwoBodyInfo->fprime);
+        nextTwoBodyInfo->del[0] = jdelx / rij;
+        nextTwoBodyInfo->del[1] = jdely / rij;
+        nextTwoBodyInfo->del[2] = jdelz / rij;
+        
+        for(int kk = 0; kk < numBonds; kk++) {
+          const MEAM2Body& bondk = twoBodyInfo[kk];
+          double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
+                              nextTwoBodyInfo->del[1]*bondk.del[1] +
+                              nextTwoBodyInfo->del[2]*bondk.del[2]);
+          partial_sum += bondk.f * gs[ij_to_potl(j,bondk.tag)].eval(cos_theta);
+        }
+        
+        rho_value += nextTwoBodyInfo->f * partial_sum;
+        rho_value += rhos[i_to_potl(j)].eval(rij);
+        
+        numBonds++;
+        nextTwoBodyInfo++;
       }
     }
 
@@ -191,9 +191,9 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     Uprime_values[i] = Uprime_i;
     if(eflag) {
       if(eflag_global)
-	eng_vdwl += embeddingEnergy;
+        eng_vdwl += embeddingEnergy;
       if(eflag_atom)
-	eatom[i] += embeddingEnergy;
+        eatom[i] += embeddingEnergy;
     }
 
     // Compute three-body contributions to force
@@ -210,57 +210,57 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       
       MEAM2Body const* bondk = twoBodyInfo;
       for(int kk = 0; kk < jj; kk++, ++bondk) {
-	double rik = bondk->r;
-	
-	double cos_theta = (bondj.del[0]*bondk->del[0] +
-			    bondj.del[1]*bondk->del[1] +
-			    bondj.del[2]*bondk->del[2]);
-	double g_prime;
-	double g_value = gs[ij_to_potl(j,bondk->tag)].eval(cos_theta, g_prime);
-	double f_rik_prime = bondk->fprime;
-	double f_rik = bondk->f;
-	
-	double fij = -Uprime_i * g_value * f_rik * f_rij_prime;
-	double fik = -Uprime_i * g_value * f_rij * f_rik_prime;
-	
-	double prefactor = Uprime_i * f_rij * f_rik * g_prime;
-	double prefactor_ij = prefactor / rij;
-	double prefactor_ik = prefactor / rik;
-	fij += prefactor_ij * cos_theta;
-	fik += prefactor_ik * cos_theta;
-	
-	double fj[3], fk[3];
-	
-	fj[0] = bondj.del[0] * fij - bondk->del[0] * prefactor_ij;
-	fj[1] = bondj.del[1] * fij - bondk->del[1] * prefactor_ij;
-	fj[2] = bondj.del[2] * fij - bondk->del[2] * prefactor_ij;
-	forces_j[0] += fj[0];
-	forces_j[1] += fj[1];
-	forces_j[2] += fj[2];
-	
-	fk[0] = bondk->del[0] * fik - bondj.del[0] * prefactor_ik;
-	fk[1] = bondk->del[1] * fik - bondj.del[1] * prefactor_ik;
-	fk[2] = bondk->del[2] * fik - bondj.del[2] * prefactor_ik;
-	forces_i[0] -= fk[0];
-	forces_i[1] -= fk[1];
-	forces_i[2] -= fk[2];
-	
-	int k = bondk->tag;
-	forces[k][0] += fk[0];
-	forces[k][1] += fk[1];
-	forces[k][2] += fk[2];
-	
-	if(evflag) {
-	  double delta_ij[3];
-	  double delta_ik[3];
-	  delta_ij[0] = bondj.del[0] * rij;
-	  delta_ij[1] = bondj.del[1] * rij;
-	  delta_ij[2] = bondj.del[2] * rij;
-	  delta_ik[0] = bondk->del[0] * rik;
-	  delta_ik[1] = bondk->del[1] * rik;
-	  delta_ik[2] = bondk->del[2] * rik;
-	  ev_tally3(i, j, k, 0.0, 0.0, fj, fk, delta_ij, delta_ik);
-	}
+        double rik = bondk->r;
+        
+        double cos_theta = (bondj.del[0]*bondk->del[0] +
+                            bondj.del[1]*bondk->del[1] +
+                            bondj.del[2]*bondk->del[2]);
+        double g_prime;
+        double g_value = gs[ij_to_potl(j,bondk->tag)].eval(cos_theta, g_prime);
+        double f_rik_prime = bondk->fprime;
+        double f_rik = bondk->f;
+        
+        double fij = -Uprime_i * g_value * f_rik * f_rij_prime;
+        double fik = -Uprime_i * g_value * f_rij * f_rik_prime;
+        
+        double prefactor = Uprime_i * f_rij * f_rik * g_prime;
+        double prefactor_ij = prefactor / rij;
+        double prefactor_ik = prefactor / rik;
+        fij += prefactor_ij * cos_theta;
+        fik += prefactor_ik * cos_theta;
+        
+        double fj[3], fk[3];
+        
+        fj[0] = bondj.del[0] * fij - bondk->del[0] * prefactor_ij;
+        fj[1] = bondj.del[1] * fij - bondk->del[1] * prefactor_ij;
+        fj[2] = bondj.del[2] * fij - bondk->del[2] * prefactor_ij;
+        forces_j[0] += fj[0];
+        forces_j[1] += fj[1];
+        forces_j[2] += fj[2];
+        
+        fk[0] = bondk->del[0] * fik - bondj.del[0] * prefactor_ik;
+        fk[1] = bondk->del[1] * fik - bondj.del[1] * prefactor_ik;
+        fk[2] = bondk->del[2] * fik - bondj.del[2] * prefactor_ik;
+        forces_i[0] -= fk[0];
+        forces_i[1] -= fk[1];
+        forces_i[2] -= fk[2];
+        
+        int k = bondk->tag;
+        forces[k][0] += fk[0];
+        forces[k][1] += fk[1];
+        forces[k][2] += fk[2];
+        
+        if(evflag) {
+          double delta_ij[3];
+          double delta_ik[3];
+          delta_ij[0] = bondj.del[0] * rij;
+          delta_ij[1] = bondj.del[1] * rij;
+          delta_ij[2] = bondj.del[2] * rij;
+          delta_ik[0] = bondk->del[0] * rik;
+          delta_ik[1] = bondk->del[1] * rik;
+          delta_ik[2] = bondk->del[2] * rik;
+          ev_tally3(i, j, k, 0.0, 0.0, fj, fk, delta_ij, delta_ik);
+        }
       }
       
       forces[i][0] -= forces_j[0];
@@ -304,7 +304,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
         double pair_pot_deriv;
         double pair_pot = phis[ij_to_potl(i,j)].eval(rij, pair_pot_deriv);
 
-	fpair += pair_pot_deriv;
+        fpair += pair_pot_deriv;
 
         // Divide by r_ij to get forces from gradient
 
@@ -406,18 +406,18 @@ void PairMEAMSpline::coeff(int narg, char **arg)
     // old style: we only have one species, so we're either "NULL" or we match.
     for (i = 3; i < narg; i++)
       if (strcmp(arg[i],"NULL") == 0)
-	map[i-2] = -1;
+        map[i-2] = -1;
       else
-	map[i-2] = 0;
+        map[i-2] = 0;
   } else {
     for (i = 3; i < narg; i++) {
       if (strcmp(arg[i],"NULL") == 0) {
-	map[i-2] = -1;
-	continue;
+        map[i-2] = -1;
+        continue;
       }
       for (j = 0; j < nelements; j++)
-	if (strcmp(arg[i],elements[j]) == 0)
-	  break;
+        if (strcmp(arg[i],elements[j]) == 0)
+          break;
       if (j < nelements) map[i-2] = j;
       else error->all(FLERR,"No matching element in EAM potential file");
     }
@@ -460,7 +460,7 @@ void PairMEAMSpline::read_file(const char* filename)
     char line[MAXLINE];
     fgets(line, MAXLINE, fp);
     
-    // Second line holds potential type (currently just "meam/spline") in new potential format.
+    // Second line holds potential type ("meam/spline") in new potential format.
     bool isNewFormat;
     long loc = ftell(fp);
     fgets(line, MAXLINE, fp);
@@ -471,22 +471,22 @@ void PairMEAMSpline::read_file(const char* filename)
       const char *sep = " ,;:-\t\n"; // overkill, but safe
       word = strsep(&linep, sep);
       if (! *word)
-	error->one(FLERR, "Need to include number of atomic species on meam/spline line in potential file");
+        error->one(FLERR, "Need to include number of atomic species on meam/spline line in potential file");
       int n = atoi(word);
       if (n<1)
-	error->one(FLERR, "Invalid number of atomic species on meam/spline line in potential file");
+        error->one(FLERR, "Invalid number of atomic species on meam/spline line in potential file");
       nelements = n;
       elements = new char*[n];
       for (int i=0; i<n; ++i) {
-	word = strsep(&linep, sep);
-	if (! *word)
-	  error->one(FLERR, "Not enough atomic species in meam/spline\n");
-	elements[i] = new char[strlen(word)+1];
-	strcpy(elements[i], word);
+        word = strsep(&linep, sep);
+        if (! *word)
+          error->one(FLERR, "Not enough atomic species in meam/spline\n");
+        elements[i] = new char[strlen(word)+1];
+        strcpy(elements[i], word);
       }
     } else {
       isNewFormat = false;
-      nelements = 1; // old format only handles one species anyway; this is for backwards compatibility
+      nelements = 1; // old format only handles one species; (backwards compatibility)
       elements = new char*[1];
       elements[0] = new char[1];
       strcpy(elements[0], "");
@@ -607,7 +607,8 @@ double PairMEAMSpline::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf,
+				      int pbc_flag, int *pbc)
 {
   int* list_iter = list;
   int* list_iter_end = list + n;
@@ -646,7 +647,8 @@ double PairMEAMSpline::memory_usage()
 
 
 /// Parses the spline knots from a text file.
-void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error, bool isNewFormat)
+void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
+					   bool isNewFormat)
 {
   char line[MAXLINE];
   
@@ -761,7 +763,8 @@ void PairMEAMSpline::SplineFunction::communicate(MPI_Comm& world, int me)
 /// Writes a Gnuplot script that plots the spline function.
 ///
 /// This function is for debugging only!
-void PairMEAMSpline::SplineFunction::writeGnuplot(const char* filename, const char* title) const
+void PairMEAMSpline::SplineFunction::writeGnuplot(const char* filename,
+						  const char* title) const
 {
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "#!/usr/bin/env gnuplot\n");

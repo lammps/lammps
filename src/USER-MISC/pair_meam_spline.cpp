@@ -145,8 +145,6 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     int numBonds = 0;
 
     // compute charge density and numBonds
-
-    // double rho_value = compute_three_body_contrib_to_charge_density(i, numBonds);
     MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
     double rho_value = 0;
     for(int jj = 0; jj < listfull->numneigh[i]; jj++) {

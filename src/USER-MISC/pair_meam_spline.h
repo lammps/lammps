@@ -52,11 +52,6 @@ public:
   
   // helper functions for compute()
   
-  double compute_three_body_contrib_to_charge_density(int i, int& numBonds); // returns rho_value and returns numBonds by reference
-  double compute_embedding_energy_and_deriv(int eflag, int i, double rho_value); // returns the derivative of the embedding energy Uprime_i
-  void compute_three_body_contrib_to_forces(int i, int numBonds, double Uprime_i);
-  void compute_two_body_pair_interactions();
-  
   int ij_to_potl(int i, int j);
   int i_to_potl(int i);
   

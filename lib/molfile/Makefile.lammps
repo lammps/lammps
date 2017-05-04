@@ -6,6 +6,9 @@
 # When you build LAMMPS with the USER-MOLFILE package installed, it will
 # use the 3 settings in this file.  They should be set as follows.
 # 
+# The molfile_SYSINC setting is to point to the folder with the VMD
+# plugin headers. By default it points to bundled headers in this folder
+# 
 # The molfile_SYSLIB setting is for a system dynamic loading library
 # that will be used to load the molfile plugins.  It contains functions
 # like dlopen(), dlsym() and so on for dynamic linking of executable
@@ -24,7 +27,10 @@
 
 # Settings that the LAMMPS build will import when this package is installed
 
-molfile_SYSINC =
+# change this to -I/path/to/your/lib/vmd/plugins/include if the bundled
+# header files are incompatible with your VMD plugsins
+molfile_SYSINC =-I../../lib/molfile
+#
 ifneq ($(LIBOBJDIR),/Obj_mingw32)
 ifneq ($(LIBOBJDIR),/Obj_mingw64)
 ifneq ($(LIBOBJDIR),/Obj_mingw32-mpi)

@@ -65,12 +65,12 @@ ComputeStressTally::~ComputeStressTally()
 void ComputeStressTally::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR,"Trying to use compute stress/tally with no pair style");
+    error->all(FLERR,"Trying to use compute stress/tally without pair style");
   else
     force->pair->add_tally_callback(this);
 
   if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-    error->all(FLERR,"Compute stress/tally used with incompatible pair style.");
+    error->warning(FLERR,"Compute stress/tally used with incompatible pair style");
 
   if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
                           || force->improper || force->kspace))

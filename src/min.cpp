@@ -187,6 +187,8 @@ void Min::setup(int flag)
             update->minimize_style);
     if (flag) {
       fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",
+              update->ntimestep);
       timer->print_timeout(screen);
     }
   }
@@ -196,7 +198,12 @@ void Min::setup(int flag)
   // cannot be done in init() b/c update init() is before modify init()
 
   nextra_global = modify->min_dof();
-  if (nextra_global) fextra = new double[nextra_global];
+  if (nextra_global) {
+    fextra = new double[nextra_global];
+    if (comm->me == 0 && screen)
+      fprintf(screen,"WARNING: Energy due to %d extra global DOFs will"
+              " be included in minimizer energies\n",nextra_global);
+  }
 
   // compute for potential energy
 

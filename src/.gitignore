@@ -47,8 +47,6 @@
 /dump_molfile.h
 /molfile_interface.cpp
 /molfile_interface.h
-/molfile_plugin.h
-/vmdplugin.h
 /type_detector.h
 
 /intel_buffers.cpp
@@ -76,8 +74,8 @@
 /pair_awpmd_cut.cpp
 /pair_awpmd_cut.h
 
-/dihedral_charmmfsh.cpp
-/dihedral_charmmfsh.h
+/dihedral_charmmfsw.cpp
+/dihedral_charmmfsw.h
 /pair_lj_charmmfsw_coul_charmmfsh.cpp
 /pair_lj_charmmfsw_coul_charmmfsh.h
 /pair_lj_charmmfsw_coul_long.cpp
@@ -163,6 +161,8 @@
 /bond_nonlinear.h
 /bond_oxdna_fene.cpp
 /bond_oxdna_fene.h
+/bond_oxdna2_fene.cpp
+/bond_oxdna2_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
 /bond_table.cpp
@@ -770,6 +770,8 @@
 /pair_nm_cut_coul_long.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
+/pair_oxdna2_*.cpp
+/pair_oxdna2_*.h
 /mf_oxdna.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h
@@ -848,6 +850,8 @@
 /prd.h
 /python.cpp
 /python.h
+/python_impl.cpp
+/python_impl.h
 /reader_molfile.cpp
 /reader_molfile.h
 /reaxc_allocate.cpp

@@ -45,11 +45,8 @@ above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands:
 
-K (energy/radian^2)
+K (energy)
 X0 (degrees) :ul
-
-X0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian^2.
 
 :line
 

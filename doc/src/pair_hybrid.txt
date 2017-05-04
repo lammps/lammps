@@ -225,6 +225,12 @@ special_bonds lj/coul 1e-20 1e-20 0.5
 pair_hybrid tersoff lj/cut/coul/long 12.0
 pair_modify pair tersoff special lj/coul 1.0 1.0 1.0 :pre
 
+For use with the various "compute */tally"_compute_tally.html
+computes, the "pair_modify compute/tally"_pair_modify.html
+command can be used to selectively turn off processing of
+the compute tally styles, for example, if those pair styles
+(e.g. manybody styles) do not support this feature.
+
 See the "pair_modify"_pair_modify.html doc page for details on
 the specific syntax, requirements and restrictions.
 

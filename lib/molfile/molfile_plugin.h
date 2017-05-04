@@ -11,7 +11,7 @@
  *
  *      $RCSfile: molfile_plugin.h,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.103 $       $Date: 2011/03/05 03:56:11 $
+ *      $Revision: 1.108 $       $Date: 2016/02/26 03:17:01 $
  *
  ***************************************************************************/
 
@@ -60,6 +60,21 @@ typedef ssize_t molfile_ssize_t;      /**< for frame counts */
 #define MOLFILE_MAXWAVEPERTS     25   /**< maximum number of wavefunctions
                                        *   per timestep */
 
+/**
+ * Hard-coded direct-I/O page size constants for use by both VMD
+ * and the plugins that want to use direct, unbuffered I/O for high
+ * performance with SSDs etc.  We use two constants to define the
+ * range of hardware page sizes that we can support, so that we can
+ * add support for larger 8KB or 16KB page sizes in the future
+ * as they become more prevalent in high-end storage systems.
+ *
+ * At present, VMD uses a hard-coded 4KB page size to reduce memory
+ * fragmentation, but these constants will make it easier to enable the
+ * use of larger page sizes in the future if it becomes necessary.
+ */
+#define MOLFILE_DIRECTIO_MIN_BLOCK_SIZE 4096
+#define MOLFILE_DIRECTIO_MAX_BLOCK_SIZE 4096
+
 
 /**
  * File level comments, origin information, and annotations.
@@ -96,8 +111,17 @@ typedef struct {
   char resname[8];    /**< required residue name string          */
   int resid;          /**< required integer residue ID           */
   char segid[8];      /**< required segment name string, or ""   */
+#if 0 && vmdplugin_ABIVERSION > 17
+  /* The new PDB file formats allows for much larger structures, */
+  /* which can therefore require longer chain ID strings.  The   */
+  /* new PDBx/mmCIF file formats do not have length limits on    */
+  /* fields, so PDB chains could be arbitrarily long strings     */
+  /* in such files.  At present, we know we need at least 3-char */
+  /* chains for existing PDBx/mmCIF files.                       */
+  char chain[4];      /**< required chain name, or ""            */
+#else
   char chain[2];      /**< required chain name, or ""            */
-
+#endif
   /* rest are optional; use optflags to specify what's present   */
   char altloc[2];     /**< optional PDB alternate location code  */
   char insertion[2];  /**< optional PDB insertion code           */
@@ -107,6 +131,23 @@ typedef struct {
   float charge;       /**< optional charge value                 */
   float radius;       /**< optional radius value                 */
   int atomicnumber;   /**< optional element atomic number        */
+
+#if 0
+  char complex[16];
+  char assembly[16];
+  int qmregion;
+  int qmregionlink;
+  int qmlayer;
+  int qmlayerlink;
+  int qmfrag;
+  int qmfraglink;
+  string qmecp;
+  int qmadapt;
+  int qmect;          /**< boolean */
+  int qmparam;
+  int autoparam;
+#endif
+
 #if defined(DESRES_CTNUMBER)
   int ctnumber;       /**< mae ct block, 0-based, including meta */
 #endif
@@ -140,23 +181,19 @@ typedef struct {
 #define MOLFILE_QMTS_SCFITER       0x0002
 /*@}*/
 
-#if vmdplugin_ABIVERSION > 10
 typedef struct molfile_timestep_metadata {
   unsigned int count;                  /**< total # timesteps; -1 if unknown */
   unsigned int avg_bytes_per_timestep; /** bytes per timestep                */
   int has_velocities;                  /**< if timesteps have velocities     */
 } molfile_timestep_metadata_t;
-#endif
 
 /*
  * Per-timestep atom coordinates and periodic cell information
  */
 typedef struct {
   float *coords;        /**< coordinates of all atoms, arranged xyzxyzxyz   */
-#if vmdplugin_ABIVERSION > 10
   float *velocities;    /**< space for velocities of all atoms; same layout */
                         /**< NULL unless has_velocities is set              */
-#endif
 
   /*@{*/
   /**
@@ -169,9 +206,7 @@ typedef struct {
   float A, B, C, alpha, beta, gamma;
   /*@}*/
 
-#if vmdplugin_ABIVERSION > 10
   double physical_time; /**< physical time point associated with this frame */
-#endif
 
 #if defined(DESRES_READ_TIMESTEP2)
   /* HACK to support generic trajectory information */
@@ -213,14 +248,33 @@ typedef struct {
    * physical size of the box, this is the number of voxels in each
    * direction, independent of the shape of the volume set.
    */
-  int xsize;            /**< number of grid cells along the X axis          */
-  int ysize;            /**< number of grid cells along the Y axis          */
-  int zsize;            /**< number of grid cells along the Z axis          */
+  int xsize;            /**< number of grid cells along the X axis           */
+  int ysize;            /**< number of grid cells along the Y axis           */
+  int zsize;            /**< number of grid cells along the Z axis           */
 
-  int has_color;        /**< flag indicating presence of voxel color data   */
+#if vmdplugin_ABIVERSION > 16
+  int has_scalar;       /**< flag indicating presence of scalar volume       */
+  int has_gradient;     /**< flag indicating presence of vector volume       */
+  int has_variance;     /**< flag indicating presence of variance map        */
+#endif
+  int has_color;        /**< flag indicating presence of voxel color data    */
 } molfile_volumetric_t;
 
 
+#if vmdplugin_ABIVERSION > 16
+/**
+ * Volumetric dataset read/write structure with both flag/parameter sets
+ * and VMD-allocated pointers for fields to be used by the plugin.
+ */
+typedef struct {
+  int setidx;           /**< volumetric dataset index to load/save */
+  float *scalar;        /**< scalar density/potential field data   */
+  float *gradient;      /**< gradient vector field                 */
+  float *variance;      /**< variance map indicating signal/noise  */
+  float *rgb3f;         /**< RGB floating point color texture map  */
+  unsigned char *rgb3u; /**< RGB unsigned byte color texture map   */
+} molfile_volumetric_readwrite_t;
+#endif
 
 
 /**************************************************************
@@ -230,9 +284,6 @@ typedef struct {
  ****                                                      ****
  **************************************************************
  **************************************************************/
-
-#if vmdplugin_ABIVERSION > 9
-
 
 /* macros for the convergence status of a QM calculation. */
 #define MOLFILE_QMSTATUS_UNKNOWN       -1 /* don't know yet */
@@ -485,8 +536,6 @@ typedef struct {
 } molfile_qm_timestep_t;
 
 
-#endif
-
 /**************************************************************
  **************************************************************/
 
@@ -609,12 +658,8 @@ typedef struct {
    * This function can be called only after read_structure().
    * Return MOLFILE_SUCCESS if no errors occur.
    */
-#if vmdplugin_ABIVERSION > 14
   int (*read_bonds)(void *, int *nbonds, int **from, int **to, float **bondorder,
                     int **bondtype, int *nbondtypes, char ***bondtypename);
-#else
-  int (*read_bonds)(void *, int *nbonds, int **from, int **to, float **bondorder);
-#endif
 
   /**
    * XXX this function will be augmented and possibly superceded by a
@@ -684,6 +729,9 @@ typedef struct {
    */
   int (* read_volumetric_data)(void *, int set, float *datablock,
         float *colorblock);
+#if vmdplugin_ABIVERSION > 16
+  int (* read_volumetric_data_ex)(void *, molfile_volumetric_readwrite_t *v);
+#endif
 
   /**
    * Read raw graphics data stored in this file.   Return the number of data
@@ -723,14 +771,9 @@ typedef struct {
    * bondtypenames can only be used of bondtypes is also given.
    * Return MOLFILE_SUCCESS if no errors occur.
    */
-#if vmdplugin_ABIVERSION > 14
   int (* write_bonds)(void *, int nbonds, int *from, int *to, float *bondorder,
                      int *bondtype, int nbondtypes, char **bondtypename);
-#else
-  int (* write_bonds)(void *, int nbonds, int *from, int *to, float *bondorder);
-#endif
 
-#if vmdplugin_ABIVERSION > 9
   /**
    * Write the specified volumetric data set into the space pointed to by
    * datablock.  The * allocated for the datablock must be equal to
@@ -740,8 +783,11 @@ typedef struct {
    */
   int (* write_volumetric_data)(void *, molfile_volumetric_t *metadata,
                                 float *datablock, float *colorblock);
+#if vmdplugin_ABIVERSION > 16
+  int (* write_volumetric_data_ex)(void *, molfile_volumetric_t *metadata,
+                                   molfile_volumetric_readwrite_t *v);
+#endif
 
-#if vmdplugin_ABIVERSION > 15
   /**
    * Read in Angles, Dihedrals, Impropers, and Cross Terms and optionally types.
    * (Cross terms pertain to the CHARMM/NAMD CMAP feature)
@@ -764,33 +810,6 @@ typedef struct {
                        const int *impropers, const int *impropertypes, int numimpropertypes,
                        const char **impropertypenames, int numcterms,  const int *cterms,
                        int ctermcols, int ctermrows);
-#else
-  /**
-   * Read in Angles, Dihedrals, Impropers, and Cross Terms
-   * Forces are in Kcal/mol
-   * (Cross terms pertain to the CHARMM/NAMD CMAP feature, forces are given
-   *  as a 2-D matrix)
-   */
-  int (* read_angles)(void *,
-                int *numangles,    int **angles,    double **angleforces,
-                int *numdihedrals, int **dihedrals, double **dihedralforces,
-                int *numimpropers, int **impropers, double **improperforces,
-                int *numcterms,    int **cterms,
-                int *ctermcols,    int *ctermrows,  double **ctermforces);
-
-  /**
-   * Write out Angles, Dihedrals, Impropers, and Cross Terms
-   * Forces are in Kcal/mol
-   * (Cross terms pertain to the CHARMM/NAMD CMAP feature, forces are given
-   *  as a 2-D matrix)
-   */
-  int (* write_angles)(void *,
-        int numangles,    const int *angles,    const double *angleforces,
-        int numdihedrals, const int *dihedrals, const double *dihedralforces,
-        int numimpropers, const int *impropers, const double *improperforces,
-        int numcterms,   const int *cterms,
-        int ctermcols, int ctermrows, const double *ctermforces);
-#endif
 
 
   /**
@@ -839,14 +858,9 @@ typedef struct {
    */
   int (* read_timestep)(void *, int natoms, molfile_timestep_t *,
                         molfile_qm_metadata_t *, molfile_qm_timestep_t *);
-#endif
 
-#if vmdplugin_ABIVERSION > 10
   int (* read_timestep_metadata)(void *, molfile_timestep_metadata_t *);
-#endif
-#if vmdplugin_ABIVERSION > 11
   int (* read_qm_timestep_metadata)(void *, molfile_qm_timestep_metadata_t *);
-#endif
 
 #if defined(DESRES_READ_TIMESTEP2)
   /**
@@ -864,7 +878,6 @@ typedef struct {
                                   double * times );
 #endif
 
-#if vmdplugin_ABIVERSION > 13
   /**
    *  Console output, READ-ONLY function pointer.
    *  Function pointer that plugins can use for printing to the host
@@ -883,8 +896,8 @@ typedef struct {
    *      application-provided services
    */
   int (* cons_fputs)(const int, const char*);
-#endif
 
 } molfile_plugin_t;
 
 #endif
+

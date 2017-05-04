@@ -25,7 +25,7 @@ PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
 
 #include <stdio.h>
 #include "pair_kokkos.h"
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "neigh_list_kokkos.h"
 #include "reaxc_types.h"
 

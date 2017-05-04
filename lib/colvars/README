@@ -35,6 +35,11 @@ links against when using the USER-COLVARS package.
 This library must be built with a C++ compiler, before LAMMPS is
 built, so LAMMPS can link against it.
 
+You can type "make lib-colvars" from the src directory to see help on
+how to build this library via make commands, or you can do the same
+thing by typing "python Install.py" from within this directory, or you
+can do it manually by following the instructions below.
+
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:
 

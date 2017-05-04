@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "reaxc_multi_body.h"
 #include "reaxc_bond_orders.h"
 #include "reaxc_list.h"
@@ -79,7 +79,7 @@ void Atom_Energy( reax_system *system, control_params *control,
       numbonds ++;
 
     /* calculate the energy */
-    if (numbonds > 0)
+    if (numbonds > 0 || control->enobondsflag)
       data->my_en.e_lp += e_lp =
         p_lp2 * workspace->Delta_lp[i] * inv_expvd2;
 
@@ -87,7 +87,8 @@ void Atom_Energy( reax_system *system, control_params *control,
       75 * p_lp2 * workspace->Delta_lp[i] * expvd2 * SQR(inv_expvd2);
     CElp = dElp * workspace->dDelta_lp[i];
 
-    if (numbonds > 0) workspace->CdDelta[i] += CElp;  // lp - 1st term
+    if (numbonds > 0 || control->enobondsflag)
+      workspace->CdDelta[i] += CElp;  // lp - 1st term
 
     /* tally into per-atom energy */
     if( system->pair_ptr->evflag)
@@ -187,7 +188,7 @@ void Atom_Energy( reax_system *system, control_params *control,
     for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
       numbonds ++;
 
-    if (numbonds > 0)
+    if (numbonds > 0 || control->enobondsflag)
       data->my_en.e_un += e_un =
         -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
@@ -202,13 +203,15 @@ void Atom_Energy( reax_system *system, control_params *control,
     /* tally into per-atom energy */
     if( system->pair_ptr->evflag) {
       eng_tmp = e_ov;
-      if (numbonds > 0) eng_tmp += e_un;
+      if (numbonds > 0 || control->enobondsflag)
+        eng_tmp += e_un;
       system->pair_ptr->ev_tally(i,i,system->n,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
     }
 
     /* forces */
     workspace->CdDelta[i] += CEover3;   // OvCoor - 2nd term
-    if (numbonds > 0) workspace->CdDelta[i] += CEunder3;  // UnCoor - 1st term
+    if (numbonds > 0 || control->enobondsflag)
+      workspace->CdDelta[i] += CEunder3;  // UnCoor - 1st term
 
     for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
       pbond = &(bonds->select.bond_list[pj]);

@@ -25,7 +25,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "dump_custom_vtk.h"
+#include "dump_vtk.h"
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -39,12 +39,15 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+
 #include <vector>
 #include <sstream>
 #include <vtkVersion.h>
+
 #ifndef VTK_MAJOR_VERSION
 #include <vtkConfigure.h>
 #endif
+
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 #include <vtkDoubleArray.h>
@@ -93,10 +96,10 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
 /* ---------------------------------------------------------------------- */
 
-DumpCustomVTK::DumpCustomVTK(LAMMPS *lmp, int narg, char **arg) :
+DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
-  if (narg == 5) error->all(FLERR,"No dump custom/vtk arguments specified");
+  if (narg == 5) error->all(FLERR,"No dump vtk arguments specified");
 
   pack_choice.clear();
   vtype.clear();
@@ -113,7 +116,7 @@ DumpCustomVTK::DumpCustomVTK(LAMMPS *lmp, int narg, char **arg) :
 
   if (ioptional < narg &&
       strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute in dump custom command");
+    error->all(FLERR,"Invalid attribute in dump vtk command");
   size_one = pack_choice.size();
   current_pack_choice_key = -1;
 
@@ -162,7 +165,7 @@ DumpCustomVTK::DumpCustomVTK(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-DumpCustomVTK::~DumpCustomVTK()
+DumpVTK::~DumpVTK()
 {
   delete [] filecurrent;
   delete [] domainfilecurrent;
@@ -173,7 +176,7 @@ DumpCustomVTK::~DumpCustomVTK()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::init_style()
+void DumpVTK::init_style()
 {
   // default for element names = C
 
@@ -191,14 +194,14 @@ void DumpCustomVTK::init_style()
 
   // setup function ptrs
 
-  header_choice = &DumpCustomVTK::header_vtk;
+  header_choice = &DumpVTK::header_vtk;
 
   if (vtk_file_format == VTP || vtk_file_format == PVTP)
-    write_choice = &DumpCustomVTK::write_vtp;
+    write_choice = &DumpVTK::write_vtp;
   else if (vtk_file_format == VTU || vtk_file_format == PVTU)
-    write_choice = &DumpCustomVTK::write_vtu;
+    write_choice = &DumpVTK::write_vtu;
   else
-    write_choice = &DumpCustomVTK::write_vtk;
+    write_choice = &DumpVTK::write_vtk;
 
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
@@ -206,24 +209,24 @@ void DumpCustomVTK::init_style()
   int icompute;
   for (int i = 0; i < ncompute; i++) {
     icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR,"Could not find dump custom/vtk compute ID");
+    if (icompute < 0) error->all(FLERR,"Could not find dump vtk compute ID");
     compute[i] = modify->compute[icompute];
   }
 
   int ifix;
   for (int i = 0; i < nfix; i++) {
     ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR,"Could not find dump custom/vtk fix ID");
+    if (ifix < 0) error->all(FLERR,"Could not find dump vtk fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all(FLERR,"Dump custom/vtk and fix not computed at compatible times");
+      error->all(FLERR,"Dump vtk and fix not computed at compatible times");
   }
 
   int ivariable;
   for (int i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0)
-      error->all(FLERR,"Could not find dump custom/vtk variable name");
+      error->all(FLERR,"Could not find dump vtk variable name");
     variable[i] = ivariable;
   }
 
@@ -239,25 +242,25 @@ void DumpCustomVTK::init_style()
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
     if (iregion == -1)
-      error->all(FLERR,"Region ID for dump custom/vtk does not exist");
+      error->all(FLERR,"Region ID for dump vtk does not exist");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_header(bigint)
+void DumpVTK::write_header(bigint)
 {
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::header_vtk(bigint)
+void DumpVTK::header_vtk(bigint)
 {
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpCustomVTK::count()
+int DumpVTK::count()
 {
   n_calls_ = 0;
 
@@ -807,7 +810,7 @@ int DumpCustomVTK::count()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write()
+void DumpVTK::write()
 {
   // simulation box bounds
 
@@ -905,7 +908,7 @@ void DumpCustomVTK::write()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::pack(tagint *ids)
+void DumpVTK::pack(tagint *ids)
 {
   int n = 0;
   for (std::map<int,FnPtrPack>::iterator it=pack_choice.begin(); it!=pack_choice.end(); ++it, ++n) {
@@ -922,14 +925,14 @@ void DumpCustomVTK::pack(tagint *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_data(int n, double *mybuf)
+void DumpVTK::write_data(int n, double *mybuf)
 {
   (this->*write_choice)(n,mybuf);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::setFileCurrent() {
+void DumpVTK::setFileCurrent() {
   delete [] filecurrent;
   filecurrent = NULL;
 
@@ -1064,7 +1067,7 @@ void DumpCustomVTK::setFileCurrent() {
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::buf2arrays(int n, double *mybuf)
+void DumpVTK::buf2arrays(int n, double *mybuf)
 {
   for (int iatom=0; iatom < n; ++iatom) {
     vtkIdType pid[1];
@@ -1123,7 +1126,7 @@ void DumpCustomVTK::buf2arrays(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::prepare_domain_data(vtkRectilinearGrid *rgrid)
+void DumpVTK::prepare_domain_data(vtkRectilinearGrid *rgrid)
 {
   vtkSmartPointer<vtkDoubleArray> xCoords =  vtkSmartPointer<vtkDoubleArray>::New();
   xCoords->InsertNextValue(boxxlo);
@@ -1143,7 +1146,7 @@ void DumpCustomVTK::prepare_domain_data(vtkRectilinearGrid *rgrid)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::prepare_domain_data_triclinic(vtkUnstructuredGrid *hexahedronGrid)
+void DumpVTK::prepare_domain_data_triclinic(vtkUnstructuredGrid *hexahedronGrid)
 {
   vtkSmartPointer<vtkPoints> hexahedronPoints = vtkSmartPointer<vtkPoints>::New();
   hexahedronPoints->SetNumberOfPoints(8);
@@ -1173,7 +1176,7 @@ void DumpCustomVTK::prepare_domain_data_triclinic(vtkUnstructuredGrid *hexahedro
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_domain_vtk()
+void DumpVTK::write_domain_vtk()
 {
   vtkSmartPointer<vtkRectilinearGrid> rgrid = vtkSmartPointer<vtkRectilinearGrid>::New();
   prepare_domain_data(rgrid.GetPointer());
@@ -1197,7 +1200,7 @@ void DumpCustomVTK::write_domain_vtk()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_domain_vtk_triclinic()
+void DumpVTK::write_domain_vtk_triclinic()
 {
   vtkSmartPointer<vtkUnstructuredGrid> hexahedronGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
   prepare_domain_data_triclinic(hexahedronGrid.GetPointer());
@@ -1221,7 +1224,7 @@ void DumpCustomVTK::write_domain_vtk_triclinic()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_domain_vtr()
+void DumpVTK::write_domain_vtr()
 {
   vtkSmartPointer<vtkRectilinearGrid> rgrid = vtkSmartPointer<vtkRectilinearGrid>::New();
   prepare_domain_data(rgrid.GetPointer());
@@ -1242,7 +1245,7 @@ void DumpCustomVTK::write_domain_vtr()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_domain_vtu_triclinic()
+void DumpVTK::write_domain_vtu_triclinic()
 {
   vtkSmartPointer<vtkUnstructuredGrid> hexahedronGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
   prepare_domain_data_triclinic(hexahedronGrid.GetPointer());
@@ -1263,7 +1266,7 @@ void DumpCustomVTK::write_domain_vtu_triclinic()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_vtk(int n, double *mybuf)
+void DumpVTK::write_vtk(int n, double *mybuf)
 {
   ++n_calls_;
 
@@ -1330,7 +1333,7 @@ void DumpCustomVTK::write_vtk(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_vtp(int n, double *mybuf)
+void DumpVTK::write_vtp(int n, double *mybuf)
 {
   ++n_calls_;
 
@@ -1394,7 +1397,7 @@ void DumpCustomVTK::write_vtp(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_vtu(int n, double *mybuf)
+void DumpVTK::write_vtu(int n, double *mybuf)
 {
   ++n_calls_;
 
@@ -1457,7 +1460,7 @@ void DumpCustomVTK::write_vtu(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::reset_vtk_data_containers()
+void DumpVTK::reset_vtk_data_containers()
 {
   points = vtkSmartPointer<vtkPoints>::New();
   pointsCells = vtkSmartPointer<vtkCellArray>::New();
@@ -1489,16 +1492,16 @@ void DumpCustomVTK::reset_vtk_data_containers()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpCustomVTK::parse_fields(int narg, char **arg)
+int DumpVTK::parse_fields(int narg, char **arg)
 {
 
-  pack_choice[X] = &DumpCustomVTK::pack_x;
+  pack_choice[X] = &DumpVTK::pack_x;
   vtype[X] = DOUBLE;
   name[X] = "x";
-  pack_choice[Y] = &DumpCustomVTK::pack_y;
+  pack_choice[Y] = &DumpVTK::pack_y;
   vtype[Y] = DOUBLE;
   name[Y] = "y";
-  pack_choice[Z] = &DumpCustomVTK::pack_z;
+  pack_choice[Z] = &DumpVTK::pack_z;
   vtype[Z] = DOUBLE;
   name[Z] = "z";
 
@@ -1508,33 +1511,33 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
     i = iarg-5;
 
     if (strcmp(arg[iarg],"id") == 0) {
-      pack_choice[ID] = &DumpCustomVTK::pack_id;
+      pack_choice[ID] = &DumpVTK::pack_id;
       vtype[ID] = INT;
       name[ID] = arg[iarg];
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[MOL] = &DumpCustomVTK::pack_molecule;
+      pack_choice[MOL] = &DumpVTK::pack_molecule;
       vtype[MOL] = INT;
       name[MOL] = arg[iarg];
     } else if (strcmp(arg[iarg],"proc") == 0) {
-      pack_choice[PROC] = &DumpCustomVTK::pack_proc;
+      pack_choice[PROC] = &DumpVTK::pack_proc;
       vtype[PROC] = INT;
       name[PROC] = arg[iarg];
     } else if (strcmp(arg[iarg],"procp1") == 0) {
-      pack_choice[PROCP1] = &DumpCustomVTK::pack_procp1;
+      pack_choice[PROCP1] = &DumpVTK::pack_procp1;
       vtype[PROCP1] = INT;
       name[PROCP1] = arg[iarg];
     } else if (strcmp(arg[iarg],"type") == 0) {
-      pack_choice[TYPE] = &DumpCustomVTK::pack_type;
+      pack_choice[TYPE] = &DumpVTK::pack_type;
       vtype[TYPE] = INT;
       name[TYPE] =arg[iarg];
     } else if (strcmp(arg[iarg],"element") == 0) {
-      pack_choice[ELEMENT] = &DumpCustomVTK::pack_type;
+      pack_choice[ELEMENT] = &DumpVTK::pack_type;
       vtype[ELEMENT] = STRING;
       name[ELEMENT] = arg[iarg];
     } else if (strcmp(arg[iarg],"mass") == 0) {
-      pack_choice[MASS] = &DumpCustomVTK::pack_mass;
+      pack_choice[MASS] = &DumpVTK::pack_mass;
       vtype[MASS] = DOUBLE;
       name[MASS] = arg[iarg];
 
@@ -1545,182 +1548,182 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"z") == 0) {
       // required property
     } else if (strcmp(arg[iarg],"xs") == 0) {
-      if (domain->triclinic) pack_choice[XS] = &DumpCustomVTK::pack_xs_triclinic;
-      else pack_choice[XS] = &DumpCustomVTK::pack_xs;
+      if (domain->triclinic) pack_choice[XS] = &DumpVTK::pack_xs_triclinic;
+      else pack_choice[XS] = &DumpVTK::pack_xs;
       vtype[XS] = DOUBLE;
       name[XS] = arg[iarg];
     } else if (strcmp(arg[iarg],"ys") == 0) {
-      if (domain->triclinic) pack_choice[YS] = &DumpCustomVTK::pack_ys_triclinic;
-      else pack_choice[YS] = &DumpCustomVTK::pack_ys;
+      if (domain->triclinic) pack_choice[YS] = &DumpVTK::pack_ys_triclinic;
+      else pack_choice[YS] = &DumpVTK::pack_ys;
       vtype[YS] = DOUBLE;
       name[YS] = arg[iarg];
     } else if (strcmp(arg[iarg],"zs") == 0) {
-      if (domain->triclinic) pack_choice[ZS] = &DumpCustomVTK::pack_zs_triclinic;
-      else pack_choice[ZS] = &DumpCustomVTK::pack_zs;
+      if (domain->triclinic) pack_choice[ZS] = &DumpVTK::pack_zs_triclinic;
+      else pack_choice[ZS] = &DumpVTK::pack_zs;
       vtype[ZS] = DOUBLE;
       name[ZS] = arg[iarg];
     } else if (strcmp(arg[iarg],"xu") == 0) {
-      if (domain->triclinic) pack_choice[XU] = &DumpCustomVTK::pack_xu_triclinic;
-      else pack_choice[XU] = &DumpCustomVTK::pack_xu;
+      if (domain->triclinic) pack_choice[XU] = &DumpVTK::pack_xu_triclinic;
+      else pack_choice[XU] = &DumpVTK::pack_xu;
       vtype[XU] = DOUBLE;
       name[XU] = arg[iarg];
     } else if (strcmp(arg[iarg],"yu") == 0) {
-      if (domain->triclinic) pack_choice[YU] = &DumpCustomVTK::pack_yu_triclinic;
-      else pack_choice[YU] = &DumpCustomVTK::pack_yu;
+      if (domain->triclinic) pack_choice[YU] = &DumpVTK::pack_yu_triclinic;
+      else pack_choice[YU] = &DumpVTK::pack_yu;
       vtype[YU] = DOUBLE;
       name[YU] = arg[iarg];
     } else if (strcmp(arg[iarg],"zu") == 0) {
-      if (domain->triclinic) pack_choice[ZU] = &DumpCustomVTK::pack_zu_triclinic;
-      else pack_choice[ZU] = &DumpCustomVTK::pack_zu;
+      if (domain->triclinic) pack_choice[ZU] = &DumpVTK::pack_zu_triclinic;
+      else pack_choice[ZU] = &DumpVTK::pack_zu;
       vtype[ZU] = DOUBLE;
       name[ZU] = arg[iarg];
     } else if (strcmp(arg[iarg],"xsu") == 0) {
-      if (domain->triclinic) pack_choice[XSU] = &DumpCustomVTK::pack_xsu_triclinic;
-      else pack_choice[XSU] = &DumpCustomVTK::pack_xsu;
+      if (domain->triclinic) pack_choice[XSU] = &DumpVTK::pack_xsu_triclinic;
+      else pack_choice[XSU] = &DumpVTK::pack_xsu;
       vtype[XSU] = DOUBLE;
       name[XSU] = arg[iarg];
     } else if (strcmp(arg[iarg],"ysu") == 0) {
-      if (domain->triclinic) pack_choice[YSU] = &DumpCustomVTK::pack_ysu_triclinic;
-      else pack_choice[YSU] = &DumpCustomVTK::pack_ysu;
+      if (domain->triclinic) pack_choice[YSU] = &DumpVTK::pack_ysu_triclinic;
+      else pack_choice[YSU] = &DumpVTK::pack_ysu;
       vtype[YSU] = DOUBLE;
       name[YSU] = arg[iarg];
     } else if (strcmp(arg[iarg],"zsu") == 0) {
-      if (domain->triclinic) pack_choice[ZSU] = &DumpCustomVTK::pack_zsu_triclinic;
-      else pack_choice[ZSU] = &DumpCustomVTK::pack_zsu;
+      if (domain->triclinic) pack_choice[ZSU] = &DumpVTK::pack_zsu_triclinic;
+      else pack_choice[ZSU] = &DumpVTK::pack_zsu;
       vtype[ZSU] = DOUBLE;
       name[ZSU] = arg[iarg];
     } else if (strcmp(arg[iarg],"ix") == 0) {
-      pack_choice[IX] = &DumpCustomVTK::pack_ix;
+      pack_choice[IX] = &DumpVTK::pack_ix;
       vtype[IX] = INT;
       name[IX] = arg[iarg];
     } else if (strcmp(arg[iarg],"iy") == 0) {
-      pack_choice[IY] = &DumpCustomVTK::pack_iy;
+      pack_choice[IY] = &DumpVTK::pack_iy;
       vtype[IY] = INT;
       name[IY] = arg[iarg];
     } else if (strcmp(arg[iarg],"iz") == 0) {
-      pack_choice[IZ] = &DumpCustomVTK::pack_iz;
+      pack_choice[IZ] = &DumpVTK::pack_iz;
       vtype[IZ] = INT;
       name[IZ] = arg[iarg];
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
-      pack_choice[VX] = &DumpCustomVTK::pack_vx;
+      pack_choice[VX] = &DumpVTK::pack_vx;
       vtype[VX] = DOUBLE;
       name[VX] = arg[iarg];
     } else if (strcmp(arg[iarg],"vy") == 0) {
-      pack_choice[VY] = &DumpCustomVTK::pack_vy;
+      pack_choice[VY] = &DumpVTK::pack_vy;
       vtype[VY] = DOUBLE;
       name[VY] = arg[iarg];
     } else if (strcmp(arg[iarg],"vz") == 0) {
-      pack_choice[VZ] = &DumpCustomVTK::pack_vz;
+      pack_choice[VZ] = &DumpVTK::pack_vz;
       vtype[VZ] = DOUBLE;
       name[VZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"fx") == 0) {
-      pack_choice[FX] = &DumpCustomVTK::pack_fx;
+      pack_choice[FX] = &DumpVTK::pack_fx;
       vtype[FX] = DOUBLE;
       name[FX] = arg[iarg];
     } else if (strcmp(arg[iarg],"fy") == 0) {
-      pack_choice[FY] = &DumpCustomVTK::pack_fy;
+      pack_choice[FY] = &DumpVTK::pack_fy;
       vtype[FY] = DOUBLE;
       name[FY] = arg[iarg];
     } else if (strcmp(arg[iarg],"fz") == 0) {
-      pack_choice[FZ] = &DumpCustomVTK::pack_fz;
+      pack_choice[FZ] = &DumpVTK::pack_fz;
       vtype[FZ] = DOUBLE;
       name[FZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[Q] = &DumpCustomVTK::pack_q;
+      pack_choice[Q] = &DumpVTK::pack_q;
       vtype[Q] = DOUBLE;
       name[Q] = arg[iarg];
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[MUX] = &DumpCustomVTK::pack_mux;
+      pack_choice[MUX] = &DumpVTK::pack_mux;
       vtype[MUX] = DOUBLE;
       name[MUX] = arg[iarg];
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[MUY] = &DumpCustomVTK::pack_muy;
+      pack_choice[MUY] = &DumpVTK::pack_muy;
       vtype[MUY] = DOUBLE;
       name[MUY] = arg[iarg];
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[MUZ] = &DumpCustomVTK::pack_muz;
+      pack_choice[MUZ] = &DumpVTK::pack_muz;
       vtype[MUZ] = DOUBLE;
       name[MUZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[MU] = &DumpCustomVTK::pack_mu;
+      pack_choice[MU] = &DumpVTK::pack_mu;
       vtype[MU] = DOUBLE;
       name[MU] = arg[iarg];
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[RADIUS] = &DumpCustomVTK::pack_radius;
+      pack_choice[RADIUS] = &DumpVTK::pack_radius;
       vtype[RADIUS] = DOUBLE;
       name[RADIUS] = arg[iarg];
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[DIAMETER] = &DumpCustomVTK::pack_diameter;
+      pack_choice[DIAMETER] = &DumpVTK::pack_diameter;
       vtype[DIAMETER] = DOUBLE;
       name[DIAMETER] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[OMEGAX] = &DumpCustomVTK::pack_omegax;
+      pack_choice[OMEGAX] = &DumpVTK::pack_omegax;
       vtype[OMEGAX] = DOUBLE;
       name[OMEGAX] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[OMEGAY] = &DumpCustomVTK::pack_omegay;
+      pack_choice[OMEGAY] = &DumpVTK::pack_omegay;
       vtype[OMEGAY] = DOUBLE;
       name[OMEGAY] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[OMEGAZ] = &DumpCustomVTK::pack_omegaz;
+      pack_choice[OMEGAZ] = &DumpVTK::pack_omegaz;
       vtype[OMEGAZ] = DOUBLE;
       name[OMEGAZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[ANGMOMX] = &DumpCustomVTK::pack_angmomx;
+      pack_choice[ANGMOMX] = &DumpVTK::pack_angmomx;
       vtype[ANGMOMX] = DOUBLE;
       name[ANGMOMX] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[ANGMOMY] = &DumpCustomVTK::pack_angmomy;
+      pack_choice[ANGMOMY] = &DumpVTK::pack_angmomy;
       vtype[ANGMOMY] = DOUBLE;
       name[ANGMOMY] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[ANGMOMZ] = &DumpCustomVTK::pack_angmomz;
+      pack_choice[ANGMOMZ] = &DumpVTK::pack_angmomz;
       vtype[ANGMOMZ] = DOUBLE;
       name[ANGMOMZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[TQX] = &DumpCustomVTK::pack_tqx;
+      pack_choice[TQX] = &DumpVTK::pack_tqx;
       vtype[TQX] = DOUBLE;
       name[TQX] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[TQY] = &DumpCustomVTK::pack_tqy;
+      pack_choice[TQY] = &DumpVTK::pack_tqy;
       vtype[TQY] = DOUBLE;
       name[TQY] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[TQZ] = &DumpCustomVTK::pack_tqz;
+      pack_choice[TQZ] = &DumpVTK::pack_tqz;
       vtype[TQZ] = DOUBLE;
       name[TQZ] = arg[iarg];
 
@@ -1728,7 +1731,7 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
     // if no trailing [], then arg is set to 0, else arg is int between []
 
     } else if (strncmp(arg[iarg],"c_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpCustomVTK::pack_compute;
+      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_compute;
       vtype[ATTRIBUTES+i] = DOUBLE;
 
       int n = strlen(arg[iarg]);
@@ -1738,24 +1741,24 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
         if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in dump custom/vtk command");
+          error->all(FLERR,"Invalid attribute in dump vtk command");
         argindex[ATTRIBUTES+i] = atoi(ptr+1);
         *ptr = '\0';
       } else argindex[ATTRIBUTES+i] = 0;
 
       n = modify->find_compute(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump custom/vtk compute ID");
+      if (n < 0) error->all(FLERR,"Could not find dump vtk compute ID");
       if (modify->compute[n]->peratom_flag == 0)
-        error->all(FLERR,"Dump custom/vtk compute does not compute per-atom info");
+        error->all(FLERR,"Dump vtk compute does not compute per-atom info");
       if (argindex[ATTRIBUTES+i] == 0 && modify->compute[n]->size_peratom_cols > 0)
         error->all(FLERR,
-                   "Dump custom/vtk compute does not calculate per-atom vector");
+                   "Dump vtk compute does not calculate per-atom vector");
       if (argindex[ATTRIBUTES+i] > 0 && modify->compute[n]->size_peratom_cols == 0)
         error->all(FLERR,\
-                   "Dump custom/vtk compute does not calculate per-atom array");
+                   "Dump vtk compute does not calculate per-atom array");
       if (argindex[ATTRIBUTES+i] > 0 &&
           argindex[ATTRIBUTES+i] > modify->compute[n]->size_peratom_cols)
-        error->all(FLERR,"Dump custom/vtk compute vector is accessed out-of-range");
+        error->all(FLERR,"Dump vtk compute vector is accessed out-of-range");
 
       field2index[ATTRIBUTES+i] = add_compute(suffix);
       name[ATTRIBUTES+i] = arg[iarg];
@@ -1765,7 +1768,7 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
     // if no trailing [], then arg is set to 0, else arg is between []
 
     } else if (strncmp(arg[iarg],"f_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpCustomVTK::pack_fix;
+      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_fix;
       vtype[ATTRIBUTES+i] = DOUBLE;
 
       int n = strlen(arg[iarg]);
@@ -1775,22 +1778,22 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
         if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in dump custom/vtk command");
+          error->all(FLERR,"Invalid attribute in dump vtk command");
         argindex[ATTRIBUTES+i] = atoi(ptr+1);
         *ptr = '\0';
       } else argindex[ATTRIBUTES+i] = 0;
 
       n = modify->find_fix(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump custom/vtk fix ID");
+      if (n < 0) error->all(FLERR,"Could not find dump vtk fix ID");
       if (modify->fix[n]->peratom_flag == 0)
-        error->all(FLERR,"Dump custom/vtk fix does not compute per-atom info");
+        error->all(FLERR,"Dump vtk fix does not compute per-atom info");
       if (argindex[ATTRIBUTES+i] == 0 && modify->fix[n]->size_peratom_cols > 0)
-        error->all(FLERR,"Dump custom/vtk fix does not compute per-atom vector");
+        error->all(FLERR,"Dump vtk fix does not compute per-atom vector");
       if (argindex[ATTRIBUTES+i] > 0 && modify->fix[n]->size_peratom_cols == 0)
-        error->all(FLERR,"Dump custom/vtk fix does not compute per-atom array");
+        error->all(FLERR,"Dump vtk fix does not compute per-atom array");
       if (argindex[ATTRIBUTES+i] > 0 &&
           argindex[ATTRIBUTES+i] > modify->fix[n]->size_peratom_cols)
-        error->all(FLERR,"Dump custom/vtk fix vector is accessed out-of-range");
+        error->all(FLERR,"Dump vtk fix vector is accessed out-of-range");
 
       field2index[ATTRIBUTES+i] = add_fix(suffix);
       name[ATTRIBUTES+i] = arg[iarg];
@@ -1799,7 +1802,7 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
     // variable value = v_name
 
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpCustomVTK::pack_variable;
+      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_variable;
       vtype[ATTRIBUTES+i] = DOUBLE;
 
       int n = strlen(arg[iarg]);
@@ -1809,9 +1812,9 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
       argindex[ATTRIBUTES+i] = 0;
 
       n = input->variable->find(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump custom/vtk variable name");
+      if (n < 0) error->all(FLERR,"Could not find dump vtk variable name");
       if (input->variable->atomstyle(n) == 0)
-        error->all(FLERR,"Dump custom/vtk variable is not atom-style variable");
+        error->all(FLERR,"Dump vtk variable is not atom-style variable");
 
       field2index[ATTRIBUTES+i] = add_variable(suffix);
       name[ATTRIBUTES+i] = suffix;
@@ -1820,7 +1823,7 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
     // custom per-atom floating point value = d_ID
 
     } else if (strncmp(arg[iarg],"d_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpCustomVTK::pack_custom;
+      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
       vtype[ATTRIBUTES+i] = DOUBLE;
 
       int n = strlen(arg[iarg]);
@@ -1843,7 +1846,7 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
     // custom per-atom integer value = i_ID
 
     } else if (strncmp(arg[iarg],"i_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpCustomVTK::pack_custom;
+      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
       vtype[ATTRIBUTES+i] = INT;
 
       int n = strlen(arg[iarg]);
@@ -1873,7 +1876,7 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::identify_vectors()
+void DumpVTK::identify_vectors()
 {
   // detect vectors
   vector_set.insert(X); // required
@@ -1923,7 +1926,7 @@ void DumpCustomVTK::identify_vectors()
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustomVTK::add_compute(char *id)
+int DumpVTK::add_compute(char *id)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
@@ -1948,7 +1951,7 @@ int DumpCustomVTK::add_compute(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustomVTK::add_fix(char *id)
+int DumpVTK::add_fix(char *id)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
@@ -1973,7 +1976,7 @@ int DumpCustomVTK::add_fix(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustomVTK::add_variable(char *id)
+int DumpVTK::add_variable(char *id)
 {
   int ivariable;
   for (ivariable = 0; ivariable < nvariable; ivariable++)
@@ -2002,7 +2005,7 @@ int DumpCustomVTK::add_variable(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustomVTK::add_custom(char *id, int flag)
+int DumpVTK::add_custom(char *id, int flag)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)
@@ -2026,7 +2029,7 @@ int DumpCustomVTK::add_custom(char *id, int flag)
 
 /* ---------------------------------------------------------------------- */
 
-int DumpCustomVTK::modify_param(int narg, char **arg)
+int DumpVTK::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"region") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
@@ -2301,7 +2304,7 @@ int DumpCustomVTK::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf, choose, variable arrays
 ------------------------------------------------------------------------- */
 
-bigint DumpCustomVTK::memory_usage()
+bigint DumpVTK::memory_usage()
 {
   bigint bytes = Dump::memory_usage();
   bytes += memory->usage(choose,maxlocal);
@@ -2315,7 +2318,7 @@ bigint DumpCustomVTK::memory_usage()
    extraction of Compute, Fix, Variable results
 ------------------------------------------------------------------------- */
 
-void DumpCustomVTK::pack_compute(int n)
+void DumpVTK::pack_compute(int n)
 {
   double *vector = compute[field2index[current_pack_choice_key]]->vector_atom;
   double **array = compute[field2index[current_pack_choice_key]]->array_atom;
@@ -2337,7 +2340,7 @@ void DumpCustomVTK::pack_compute(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::pack_fix(int n)
+void DumpVTK::pack_fix(int n)
 {
   double *vector = fix[field2index[current_pack_choice_key]]->vector_atom;
   double **array = fix[field2index[current_pack_choice_key]]->array_atom;
@@ -2359,7 +2362,7 @@ void DumpCustomVTK::pack_fix(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::pack_variable(int n)
+void DumpVTK::pack_variable(int n)
 {
   double *vector = vbuf[field2index[current_pack_choice_key]];
 
@@ -2371,9 +2374,8 @@ void DumpCustomVTK::pack_variable(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::pack_custom(int n)
+void DumpVTK::pack_custom(int n)
 {
-
   int index = field2index[n];
 
   if (flag_custom[index] == 0) { // integer

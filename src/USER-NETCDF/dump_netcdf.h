@@ -32,16 +32,17 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 #if defined(LMP_HAS_NETCDF)
 
 #ifdef DUMP_CLASS
 
-DumpStyle(nc,DumpNC)
+DumpStyle(netcdf,DumpNetCDF)
 
 #else
 
-#ifndef LMP_DUMP_NC_H
-#define LMP_DUMP_NC_H
+#ifndef LMP_DUMP_NETCDF_H
+#define LMP_DUMP_NETCDFC_H
 
 #include "dump_custom.h"
 
@@ -50,10 +51,10 @@ namespace LAMMPS_NS {
 const int NC_FIELD_NAME_MAX = 100;
 const int DUMP_NC_MAX_DIMS  = 100;
 
-class DumpNC : public DumpCustom {
+class DumpNetCDF : public DumpCustom {
  public:
-  DumpNC(class LAMMPS *, int, char **);
-  virtual ~DumpNC();
+  DumpNetCDF(class LAMMPS *, int, char **);
+  virtual ~DumpNetCDF();
   virtual void write();
 
  private:
@@ -68,7 +69,7 @@ class DumpNC : public DumpCustom {
     int ndumped;                  // number of enties written for this prop.
   };
 
-  typedef void (DumpNC::*funcptr_t)(void *);
+  typedef void (DumpNetCDF::*funcptr_t)(void *);
 
   // per-frame quantities (variables, fixes or computes)
   struct nc_perframe_t {

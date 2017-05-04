@@ -32,14 +32,14 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 #if defined(LMP_HAS_NETCDF)
 
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <netcdf.h>
-
+#include "dump_netcdf.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
@@ -55,8 +55,6 @@
 #include "universe.h"
 #include "variable.h"
 #include "force.h"
-
-#include "dump_nc.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -91,7 +89,7 @@ const int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
-DumpNC::DumpNC(LAMMPS *lmp, int narg, char **arg) :
+DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
   // arrays for data rearrangement
@@ -224,7 +222,7 @@ DumpNC::DumpNC(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-DumpNC::~DumpNC()
+DumpNetCDF::~DumpNetCDF()
 {
   closefile();
 
@@ -238,7 +236,7 @@ DumpNC::~DumpNC()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::openfile()
+void DumpNetCDF::openfile()
 {
   // now the computes and fixes have been initialized, so we can query
   // for the size of vector quantities
@@ -594,12 +592,12 @@ void DumpNC::openfile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::closefile()
+void DumpNetCDF::closefile()
 {
   if (filewriter && singlefile_opened) {
     NCERR( nc_close(ncid) );
     singlefile_opened = 0;
-    // append next time DumpNC::openfile is called
+    // append next time DumpNetCDF::openfile is called
     append_flag = 1;
     // write to next frame upon next open
     framei++;
@@ -608,7 +606,7 @@ void DumpNC::closefile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::write()
+void DumpNetCDF::write()
 {
   // open file
 
@@ -678,7 +676,7 @@ void DumpNC::write()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::write_header(bigint n)
+void DumpNetCDF::write_header(bigint n)
 {
   size_t start[2];
 
@@ -753,7 +751,7 @@ void DumpNC::write_header(bigint n)
    write head of block (mass & element name) only if has atoms of the type
 ------------------------------------------------------------------------- */
 
-void DumpNC::write_data(int n, double *mybuf)
+void DumpNetCDF::write_data(int n, double *mybuf)
 {
   size_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   ptrdiff_t stride[NC_MAX_VAR_DIMS];
@@ -761,18 +759,17 @@ void DumpNC::write_data(int n, double *mybuf)
   if (!int_buffer) {
     n_buffer = n;
     int_buffer = (int *)
-      memory->smalloc(n*sizeof(int), "DumpNC::int_buffer");
+      memory->smalloc(n*sizeof(int),"dump::int_buffer");
     double_buffer = (double *)
-      memory->smalloc(n*sizeof(double), "DumpNC::double_buffer");
+      memory->smalloc(n*sizeof(double),"dump::double_buffer");
   }
 
   if (n > n_buffer) {
     n_buffer = n;
     int_buffer = (int *)
-      memory->srealloc(int_buffer, n*sizeof(int), "DumpNC::int_buffer");
+      memory->srealloc(int_buffer, n*sizeof(int),"dump::int_buffer");
     double_buffer = (double *)
-      memory->srealloc(double_buffer, n*sizeof(double),
-                       "DumpNC::double_buffer");
+      memory->srealloc(double_buffer, n*sizeof(double),"dump::double_buffer");
   }
 
   start[0] = framei-1;
@@ -887,7 +884,7 @@ void DumpNC::write_data(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-int DumpNC::modify_param(int narg, char **arg)
+int DumpNetCDF::modify_param(int narg, char **arg)
 {
   int iarg = 0;
   if (strcmp(arg[iarg],"double") == 0) {
@@ -925,17 +922,17 @@ int DumpNC::modify_param(int narg, char **arg)
 
       if (!strcmp(arg[iarg],"step")) {
         perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNC::compute_step;
+        perframe[i].compute = &DumpNetCDF::compute_step;
         strcpy(perframe[i].name, arg[iarg]);
       }
       else if (!strcmp(arg[iarg],"elapsed")) {
         perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNC::compute_elapsed;
+        perframe[i].compute = &DumpNetCDF::compute_elapsed;
         strcpy(perframe[i].name, arg[iarg]);
       }
       else if (!strcmp(arg[iarg],"elaplong")) {
         perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNC::compute_elapsed_long;
+        perframe[i].compute = &DumpNetCDF::compute_elapsed_long;
         strcpy(perframe[i].name, arg[iarg]);
       }
       else {
@@ -1036,7 +1033,7 @@ int DumpNC::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::write_prmtop()
+void DumpNetCDF::write_prmtop()
 {
   char fn[1024];
   char tmp[81];
@@ -1098,7 +1095,7 @@ void DumpNC::write_prmtop()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::ncerr(int err, const char *descr, int line)
+void DumpNetCDF::ncerr(int err, const char *descr, int line)
 {
   if (err != NC_NOERR) {
     char errstr[1024];
@@ -1122,21 +1119,21 @@ void DumpNC::ncerr(int err, const char *descr, int line)
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
 
-void DumpNC::compute_step(void *r)
+void DumpNetCDF::compute_step(void *r)
 {
   *((bigint *) r) = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::compute_elapsed(void *r)
+void DumpNetCDF::compute_elapsed(void *r)
 {
   *((bigint *) r) = update->ntimestep - update->firststep;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNC::compute_elapsed_long(void *r)
+void DumpNetCDF::compute_elapsed_long(void *r)
 {
   *((bigint *) r) = update->ntimestep - update->beginstep;
 }

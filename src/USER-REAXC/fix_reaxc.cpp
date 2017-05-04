@@ -21,7 +21,7 @@
    Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
-#include "fix_reax_c.h"
+#include "fix_reaxc.h"
 #include "atom.h"
 #include "pair.h"
 #include "comm.h"

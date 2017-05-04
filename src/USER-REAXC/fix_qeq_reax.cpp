@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fix_qeq_reax.h"
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

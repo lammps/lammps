@@ -32,16 +32,17 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 #if defined(LMP_HAS_PNETCDF)
 
 #ifdef DUMP_CLASS
 
-DumpStyle(nc/mpiio,DumpNCMPIIO)
+DumpStyle(netcdf/mpiio,DumpNetCDFMPIIO)
 
 #else
 
-#ifndef LMP_DUMP_NC_MPIIO_H
-#define LMP_DUMP_NC_MPIIO_H
+#ifndef LMP_DUMP_NETCDF_MPIIO_H
+#define LMP_DUMP_NETCDF_MPIIO_H
 
 #include "dump_custom.h"
 
@@ -50,10 +51,10 @@ namespace LAMMPS_NS {
 const int NC_MPIIO_FIELD_NAME_MAX = 100;
 const int DUMP_NC_MPIIO_MAX_DIMS  = 100;
 
-class DumpNCMPIIO : public DumpCustom {
+class DumpNetCDFMPIIO : public DumpCustom {
  public:
-  DumpNCMPIIO(class LAMMPS *, int, char **);
-  virtual ~DumpNCMPIIO();
+  DumpNetCDFMPIIO(class LAMMPS *, int, char **);
+  virtual ~DumpNetCDFMPIIO();
   virtual void write();
 
  private:

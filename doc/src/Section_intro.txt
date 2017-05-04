@@ -249,8 +249,12 @@ Pizza.py WWW site"_pizza. :l
 
 Specialized features :h5
 
-These are LAMMPS capabilities which you may not think of as typical
-molecular dynamics options:
+LAMMPS can be built with optional packages which implement a variety
+of additional capabilities.  An overview of all the packages is "given
+here"_Section_packages.html.
+
+These are some LAMMPS capabilities which you may not think of as
+typical classical molecular dynamics options:
 
 "static"_balance.html and "dynamic load-balancing"_fix_balance.html
 "generalized aspherical particles"_body.html

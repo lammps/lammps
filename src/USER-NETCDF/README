@@ -1,7 +1,7 @@
-USER-NC-DUMP
+USER-NETCDF
 ============
 
-This package provides the nc and (optionally) the nc/mpiio dump styles.
+This package provides the netcf and netcdf/mpiio dump styles.
 See the doc page for dump nc or dump nc/mpiio command for how to use them.
 Compiling these dump styles requires having the netCDF library installed
 on your system. See lib/netcdf/README for additional details.

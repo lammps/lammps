@@ -36,7 +36,7 @@ supplemental information of the following paper:
 the most up-to-date version of ReaxFF as of summer 2010.
 
 WARNING: pair style reax is now deprecated and will soon be retired. Users
-should switch to "pair_style reax/c"_pair_reax_c.html. The {reax} style
+should switch to "pair_style reax/c"_pair_reaxc.html. The {reax} style
 differs from the {reax/c} style in the lo-level implementation details.
 The {reax} style is a
 Fortran library, linked to LAMMPS.  The {reax/c} style was initially
@@ -82,7 +82,7 @@ be specified.
 
 Two examples using {pair_style reax} are provided in the examples/reax
 sub-directory, along with corresponding examples for
-"pair_style reax/c"_pair_reax_c.html. Note that while the energy and force
+"pair_style reax/c"_pair_reaxc.html. Note that while the energy and force
 calculated by both of these pair styles match very closely, the
 contributions due to the valence angles differ slightly due to
 the fact that with {pair_style reax/c} the default value of {thb_cutoff_sq}
@@ -201,7 +201,7 @@ appropriate units if your simulation doesn't use "real" units.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style reax/c"_pair_reax_c.html,
+"pair_coeff"_pair_coeff.html, "pair_style reax/c"_pair_reaxc.html,
 "fix_reax_bonds"_fix_reax_bonds.html
 
 [Default:]

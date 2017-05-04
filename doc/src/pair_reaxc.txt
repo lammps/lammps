@@ -17,6 +17,7 @@ cfile = NULL or name of a control file :ulb,l
 zero or more keyword/value pairs may be appended :l
 keyword = {checkqeq} or {lgvdw} or {safezone} or {mincap}
   {checkqeq} value = {yes} or {no} = whether or not to require qeq/reax fix
+  {enobonds} value = {yes} or {no} = whether or not to tally energy of atoms with no bonds
   {lgvdw} value = {yes} or {no} = whether or not to use a low gradient vdW correction
   {safezone} = factor used for array allocation
   {mincap} = minimum size for array allocation :pre
@@ -126,6 +127,13 @@ for several energetic materials (see "Liu"). When using lg-correction,
 recommended value for parameter {thb} is 0.01, which can be set in the
 control file.  Note: Force field files are different for the original
 or lg corrected pair styles, using wrong ffield file generates an error message.
+
+Using the optional keyword {enobonds} with the value {yes}, the energy
+of atoms with no bonds (i.e. isolated atoms) is included in the total
+potential energy and the per-atom energy of that atom.  If the value
+{no} is specified then the energy of atoms with no bonds is set to zero.
+The latter behavior is usual not desired, as it causes discontinuities
+in the potential energy when the bonding of an atom drops to zero.
 
 Optional keywords {safezone} and {mincap} are used for allocating
 reax/c arrays.  Increasing these values can avoid memory problems, such
@@ -331,7 +339,7 @@ reax"_pair_reax.html
 
 [Default:]
 
-The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2,
+The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no, safezone = 1.2,
 mincap = 50.
 
 :line

@@ -32,14 +32,14 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 #if defined(LMP_HAS_PNETCDF)
 
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <pnetcdf.h>
-
+#include "dump_netcdf_mpiio.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
@@ -55,8 +55,6 @@
 #include "universe.h"
 #include "variable.h"
 #include "force.h"
-
-#include "dump_nc_mpiio.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -91,7 +89,7 @@ const int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
-DumpNCMPIIO::DumpNCMPIIO(LAMMPS *lmp, int narg, char **arg) :
+DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
   // arrays for data rearrangement
@@ -217,7 +215,7 @@ DumpNCMPIIO::DumpNCMPIIO(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-DumpNCMPIIO::~DumpNCMPIIO()
+DumpNetCDFMPIIO::~DumpNetCDFMPIIO()
 {
   closefile();
 
@@ -231,7 +229,7 @@ DumpNCMPIIO::~DumpNCMPIIO()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNCMPIIO::openfile()
+void DumpNetCDFMPIIO::openfile()
 {
   // now the computes and fixes have been initialized, so we can query
   // for the size of vector quantities
@@ -570,12 +568,12 @@ void DumpNCMPIIO::openfile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNCMPIIO::closefile()
+void DumpNetCDFMPIIO::closefile()
 {
   if (singlefile_opened) {
     NCERR( ncmpi_close(ncid) );
     singlefile_opened = 0;
-    // append next time DumpNCMPIIO::openfile is called
+    // append next time DumpNetCDFMPIIO::openfile is called
     append_flag = 1;
     // write to next frame upon next open
     framei++;
@@ -584,7 +582,7 @@ void DumpNCMPIIO::closefile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNCMPIIO::write()
+void DumpNetCDFMPIIO::write()
 {
   // open file
 
@@ -687,7 +685,7 @@ void DumpNCMPIIO::write()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNCMPIIO::write_time_and_cell()
+void DumpNetCDFMPIIO::write_time_and_cell()
 {
   MPI_Offset start[2];
 
@@ -759,7 +757,7 @@ void DumpNCMPIIO::write_time_and_cell()
    write head of block (mass & element name) only if has atoms of the type
 ------------------------------------------------------------------------- */
 
-void DumpNCMPIIO::write_data(int n, double *mybuf)
+void DumpNetCDFMPIIO::write_data(int n, double *mybuf)
 {
   MPI_Offset start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   MPI_Offset stride[NC_MAX_VAR_DIMS];
@@ -767,19 +765,18 @@ void DumpNCMPIIO::write_data(int n, double *mybuf)
   if (!int_buffer) {
     n_buffer = std::max(1, n);
     int_buffer = (int *)
-      memory->smalloc(n_buffer*sizeof(int), "DumpNCMPIIO::int_buffer");
+      memory->smalloc(n_buffer*sizeof(int),"dump::int_buffer");
     double_buffer = (double *)
-      memory->smalloc(n_buffer*sizeof(double), "DumpNCMPIIO::double_buffer");
+      memory->smalloc(n_buffer*sizeof(double),"dump::double_buffer");
   }
 
   if (n > n_buffer) {
     n_buffer = std::max(1, n);
     int_buffer = (int *)
-      memory->srealloc(int_buffer, n_buffer*sizeof(int),
-                       "DumpNCMPIIO::int_buffer");
+      memory->srealloc(int_buffer, n_buffer*sizeof(int),"dump::int_buffer");
     double_buffer = (double *)
       memory->srealloc(double_buffer, n_buffer*sizeof(double),
-                       "DumpNCMPIIO::double_buffer");
+                       "dump::double_buffer");
   }
 
   start[0] = framei-1;
@@ -882,7 +879,7 @@ void DumpNCMPIIO::write_data(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-int DumpNCMPIIO::modify_param(int narg, char **arg)
+int DumpNetCDFMPIIO::modify_param(int narg, char **arg)
 {
   int iarg = 0;
   if (strcmp(arg[iarg],"double") == 0) {
@@ -920,17 +917,17 @@ int DumpNCMPIIO::modify_param(int narg, char **arg)
 
       if (!strcmp(arg[iarg],"step")) {
         perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNCMPIIO::compute_step;
+        perframe[i].compute = &DumpNetCDFMPIIO::compute_step;
         strcpy(perframe[i].name, arg[iarg]);
       }
       else if (!strcmp(arg[iarg],"elapsed")) {
         perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNCMPIIO::compute_elapsed;
+        perframe[i].compute = &DumpNetCDFMPIIO::compute_elapsed;
         strcpy(perframe[i].name, arg[iarg]);
       }
       else if (!strcmp(arg[iarg],"elaplong")) {
         perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNCMPIIO::compute_elapsed_long;
+        perframe[i].compute = &DumpNetCDFMPIIO::compute_elapsed_long;
         strcpy(perframe[i].name, arg[iarg]);
       }
       else {
@@ -1031,7 +1028,7 @@ int DumpNCMPIIO::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNCMPIIO::ncerr(int err, const char *descr, int line)
+void DumpNetCDFMPIIO::ncerr(int err, const char *descr, int line)
 {
   if (err != NC_NOERR) {
     char errstr[1024];
@@ -1055,21 +1052,21 @@ void DumpNCMPIIO::ncerr(int err, const char *descr, int line)
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
 
-void DumpNCMPIIO::compute_step(void *r)
+void DumpNetCDFMPIIO::compute_step(void *r)
 {
   *((bigint *) r) = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNCMPIIO::compute_elapsed(void *r)
+void DumpNetCDFMPIIO::compute_elapsed(void *r)
 {
   *((bigint *) r) = update->ntimestep - update->firststep;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNCMPIIO::compute_elapsed_long(void *r)
+void DumpNetCDFMPIIO::compute_elapsed_long(void *r)
 {
   *((bigint *) r) = update->ntimestep - update->beginstep;
 }

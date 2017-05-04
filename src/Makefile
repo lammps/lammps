@@ -46,38 +46,36 @@ endif
 # PACKAGE    = standard packages
 # PACKUSER   = user packagse
 # PACKLIB    = all packages that require an additional lib
+#              should be PACKSYS + PACKINT + PACKEXT
 # PACKSYS    = subset that reqiure a common system library
+#              include MPIIO and LB b/c require full MPI, not just STUBS
 # PACKINT    = subset that require an internal (provided) library
 # PACKEXT    = subset that require an external (downloaded) library
-# PACKLIB    = PACKSYS + PACKING + PACKEXT
-# PACKSCRIPT = libs under lammps/lib that have an Install.py script
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace manybody mc meam misc molecule \
 	  mpiio mscg opt peri poems \
 	  python qeq reax replica rigid shock snap srd voronoi
 
-PACKUSER = user-atc user-awpmd user-cgsdk user-cgdna user-colvars \
+PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-mgpt user-misc user-molfile \
-	   user-nc-dump user-omp user-phonon user-qmmm user-qtb \
+	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-vtk
 
 PACKLIB = compress gpu kim kokkos meam mpiio mscg poems \
 	  python reax voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-molfile \
-	  user-nc-dump user-qmmm user-quip user-smd user-vtk
+	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
+	  user-netcdf user-qmmm user-quip user-smd user-vtk
 
-PACKSYS = compress mpiio python
+PACKSYS = compress mpiio python user-lb
 
 PACKINT = gpu kokkos meam poems reax user-atc user-awpmd user-colvars
 
 PACKEXT = kim mscg voronoi \
-	  user-h5md user-molfile user-nc-dump user-qmmm user-quip \
+	  user-h5md user-molfile user-netcdf user-qmmm user-quip \
 	  user-smd user-vtk
-
-PACKSCRIPT = voronoi
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -87,6 +85,7 @@ PACKUSERUC = $(shell echo $(PACKUSER) | tr a-z A-Z)
 YESDIR = $(shell echo $(@:yes-%=%) | tr a-z A-Z)
 NODIR  = $(shell echo $(@:no-%=%) | tr a-z A-Z)
 LIBDIR = $(shell echo $(@:lib-%=%))
+LIBUSERDIR = $(shell echo $(@:lib-user-%=%))
 
 # List of all targets
 
@@ -108,7 +107,7 @@ help:
 	@echo 'make no-standard (no-std)    remove all standard pkgs'
 	@echo 'make yes-user                install all user pkgs'
 	@echo 'make no-user                 remove all user pkgs'
-	@echo 'make yes-lib       install all pkgs with libs (incldued or ext)'
+	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
 	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
 	@echo 'make yes-ext                 install all pkgs with external libs'
 	@echo 'make no-ext                  remove all pkgs with external libs'
@@ -273,7 +272,7 @@ package:
 	@echo 'make package-overwrite    replace package files with src files'
 	@echo 'make package-diff (pd)    diff src files against package file'
 	@echo ''
-	@echo 'make lib-package      download/build/install a package library'
+	@echo 'make lib-package      build and/or download a package library'
 
 yes-all:
 	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
@@ -338,11 +337,14 @@ no-%:
 # download/build/install a package library
 
 lib-%:
-	@if [ ! -e ../lib/$(LIBDIR)/Install.py ]; then \
-	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
-	else \
-	  echo "Installing lib for package $(@:lib-%=%)"; \
+	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
+	  echo "Installing lib $(@:lib-%=%)"; \
 	  cd ../lib/$(LIBDIR); python Install.py $(args); \
+	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
+	  echo "Installing lib $(@:lib-user-%=%)"; \
+	  cd ../lib/$(LIBUSERDIR); python Install.py $(args); \
+	else \
+	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi;
 
 # status = list src files that differ from package files

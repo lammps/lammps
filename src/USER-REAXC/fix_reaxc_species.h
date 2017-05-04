@@ -23,7 +23,7 @@ FixStyle(reax/c/species,FixReaxCSpecies)
 #include "fix.h"
 #include "pointers.h"
 
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "reaxc_types.h"
 #include "reaxc_defs.h"
 

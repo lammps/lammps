@@ -17,12 +17,12 @@
 
 #ifdef DUMP_CLASS
 
-DumpStyle(custom/vtk,DumpCustomVTK)
+DumpStyle(vtk,DumpVTK)
 
 #else
 
-#ifndef LMP_DUMP_CUSTOM_VTK_H
-#define LMP_DUMP_CUSTOM_VTK_H
+#ifndef LMP_DUMP_VTK_H
+#define LMP_DUMP_VTK_H
 
 #include "dump_custom.h"
 #include <map>
@@ -40,7 +40,7 @@ class vtkUnstructuredGrid;
 namespace LAMMPS_NS {
 
 /**
- * @brief DumpCustomVTK class
+ * @brief DumpVTK class
  *        write atom data to vtk files.
  *
  * Similar to the DumpCustom class but uses the vtk library to write data to vtk simple
@@ -54,10 +54,11 @@ namespace LAMMPS_NS {
  * This dump command does not support compressed files, buffering or custom format strings,
  * multiproc is only supported by the xml formats, multifile option has to be used.
  */
-class DumpCustomVTK : public DumpCustom {
+
+class DumpVTK : public DumpCustom {
  public:
-  DumpCustomVTK(class LAMMPS *, int, char **);
-  virtual ~DumpCustomVTK();
+  DumpVTK(class LAMMPS *, int, char **);
+  virtual ~DumpVTK();
 
   virtual void write();
  protected:
@@ -86,11 +87,11 @@ class DumpCustomVTK : public DumpCustom {
   int add_custom(char *, int);
   virtual int modify_param(int, char **);
 
-  typedef void (DumpCustomVTK::*FnPtrHeader)(bigint);
+  typedef void (DumpVTK::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;           // ptr to write header functions
   void header_vtk(bigint);
 
-  typedef void (DumpCustomVTK::*FnPtrWrite)(int, double *);
+  typedef void (DumpVTK::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;             // ptr to write data functions
   void write_vtk(int, double *);
   void write_vtp(int, double *);
@@ -103,7 +104,7 @@ class DumpCustomVTK : public DumpCustom {
   void write_domain_vtr();
   void write_domain_vtu_triclinic();
 
-  typedef void (DumpCustomVTK::*FnPtrPack)(int);
+  typedef void (DumpVTK::*FnPtrPack)(int);
   std::map<int, FnPtrPack> pack_choice;  // ptrs to pack functions
   std::map<int, int> vtype;              // data type
   std::map<int, std::string> name;       // attribute labels

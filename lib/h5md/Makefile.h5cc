@@ -19,7 +19,7 @@ build/ch5md.o: src/ch5md.c | build
 	$(CC) $(INC) $(CFLAGS) -c $< -o $@
 
 Makefile.lammps:
-	cp Makefile.lammps.empty $@
+	cp $(EXTRAMAKE) $@
 
 .PHONY: all lib clean
 

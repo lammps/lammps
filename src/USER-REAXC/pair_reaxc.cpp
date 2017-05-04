@@ -20,7 +20,7 @@
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -30,7 +30,7 @@
 #include "neigh_request.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_reax_c.h"
+#include "fix_reaxc.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
@@ -223,10 +223,11 @@ void PairReaxC::settings(int narg, char **arg)
 
   qeqflag = 1;
   control->lgflag = 0;
+  control->enobondsflag = 1;
   system->mincap = MIN_CAP;
   system->safezone = SAFE_ZONE;
   system->saferzone = SAFER_ZONE;
-
+  
   // process optional keywords
 
   int iarg = 1;
@@ -238,7 +239,13 @@ void PairReaxC::settings(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) qeqflag = 0;
       else error->all(FLERR,"Illegal pair_style reax/c command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"lgvdw") == 0) {
+    } else if (strcmp(arg[iarg],"enobonds") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
+      if (strcmp(arg[iarg+1],"yes") == 0) control->enobondsflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) control->enobondsflag = 0;
+      else error->all(FLERR,"Illegal pair_style reax/c command");
+      iarg += 2;
+  } else if (strcmp(arg[iarg],"lgvdw") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       if (strcmp(arg[iarg+1],"yes") == 0) control->lgflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) control->lgflag = 0;

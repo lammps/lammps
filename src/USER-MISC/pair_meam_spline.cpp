@@ -28,7 +28,7 @@
  * 24-Sep-11 - AS: Adapted code to new interface of Error::one() function.
  * 20-Jun-13 - WT: Added support for multiple species types
  * 25-Apr-17 - DRT/PZ: Modified format of multiple species type to
-                       conform with pairing
+                       conform with pairing, updated to LAMMPS style
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -102,6 +102,9 @@ PairMEAMSpline::~PairMEAMSpline()
 
 void PairMEAMSpline::compute(int eflag, int vflag)
 {
+  double** const x = atom->x;
+  double** forces = atom->f;
+  
   if (eflag || vflag) {
     ev_setup(eflag, vflag);
   } else {
@@ -143,15 +146,140 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 
     // compute charge density and numBonds
 
-    double rho_value = compute_three_body_contrib_to_charge_density(i, numBonds);
+    // double rho_value = compute_three_body_contrib_to_charge_density(i, numBonds);
+    MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
+    double rho_value = 0;
+    for(int jj = 0; jj < listfull->numneigh[i]; jj++) {
+      int j = listfull->firstneigh[i][jj];
+      j &= NEIGHMASK;
+      
+      double jdelx = x[j][0] - x[i][0];
+      double jdely = x[j][1] - x[i][1];
+      double jdelz = x[j][2] - x[i][2];
+      double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
+      
+      if(rij_sq < cutoff*cutoff) {
+	double rij = sqrt(rij_sq);
+	double partial_sum = 0;
+	
+	nextTwoBodyInfo->tag = j;
+	nextTwoBodyInfo->r = rij;
+	nextTwoBodyInfo->f = fs[i_to_potl(j)].eval(rij, nextTwoBodyInfo->fprime);
+	nextTwoBodyInfo->del[0] = jdelx / rij;
+	nextTwoBodyInfo->del[1] = jdely / rij;
+	nextTwoBodyInfo->del[2] = jdelz / rij;
+	
+	for(int kk = 0; kk < numBonds; kk++) {
+	  const MEAM2Body& bondk = twoBodyInfo[kk];
+	  double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
+			      nextTwoBodyInfo->del[1]*bondk.del[1] +
+			      nextTwoBodyInfo->del[2]*bondk.del[2]);
+	  partial_sum += bondk.f * gs[ij_to_potl(j,bondk.tag)].eval(cos_theta);
+	}
+	
+	rho_value += nextTwoBodyInfo->f * partial_sum;
+	rho_value += rhos[i_to_potl(j)].eval(rij);
+	
+	numBonds++;
+	nextTwoBodyInfo++;
+      }
+    }
 
     // Compute embedding energy and its derivative
 
-    double Uprime_i = compute_embedding_energy_and_deriv(eflag, i, rho_value);
+    // double Uprime_i = compute_embedding_energy_and_deriv(eflag, i, rho_value);
+    double Uprime_i;
+    double embeddingEnergy = Us[i_to_potl(i)].eval(rho_value, Uprime_i)
+      - zero_atom_energies[i_to_potl(i)];
+  
+    Uprime_values[i] = Uprime_i;
+    if(eflag) {
+      if(eflag_global)
+	eng_vdwl += embeddingEnergy;
+      if(eflag_atom)
+	eatom[i] += embeddingEnergy;
+    }
+
     // Compute three-body contributions to force
 
-    compute_three_body_contrib_to_forces(i, numBonds, Uprime_i); 
-
+    // compute_three_body_contrib_to_forces(i, numBonds, Uprime_i);
+    double forces_i[3] = {0, 0, 0};
+    for(int jj = 0; jj < numBonds; jj++) {
+      const MEAM2Body bondj = twoBodyInfo[jj];
+      double rij = bondj.r;
+      int j = bondj.tag;
+      
+      double f_rij_prime = bondj.fprime;
+      double f_rij = bondj.f;
+      
+      double forces_j[3] = {0, 0, 0};
+      
+      MEAM2Body const* bondk = twoBodyInfo;
+      for(int kk = 0; kk < jj; kk++, ++bondk) {
+	double rik = bondk->r;
+	
+	double cos_theta = (bondj.del[0]*bondk->del[0] +
+			    bondj.del[1]*bondk->del[1] +
+			    bondj.del[2]*bondk->del[2]);
+	double g_prime;
+	double g_value = gs[ij_to_potl(j,bondk->tag)].eval(cos_theta, g_prime);
+	double f_rik_prime = bondk->fprime;
+	double f_rik = bondk->f;
+	
+	double fij = -Uprime_i * g_value * f_rik * f_rij_prime;
+	double fik = -Uprime_i * g_value * f_rij * f_rik_prime;
+	
+	double prefactor = Uprime_i * f_rij * f_rik * g_prime;
+	double prefactor_ij = prefactor / rij;
+	double prefactor_ik = prefactor / rik;
+	fij += prefactor_ij * cos_theta;
+	fik += prefactor_ik * cos_theta;
+	
+	double fj[3], fk[3];
+	
+	fj[0] = bondj.del[0] * fij - bondk->del[0] * prefactor_ij;
+	fj[1] = bondj.del[1] * fij - bondk->del[1] * prefactor_ij;
+	fj[2] = bondj.del[2] * fij - bondk->del[2] * prefactor_ij;
+	forces_j[0] += fj[0];
+	forces_j[1] += fj[1];
+	forces_j[2] += fj[2];
+	
+	fk[0] = bondk->del[0] * fik - bondj.del[0] * prefactor_ik;
+	fk[1] = bondk->del[1] * fik - bondj.del[1] * prefactor_ik;
+	fk[2] = bondk->del[2] * fik - bondj.del[2] * prefactor_ik;
+	forces_i[0] -= fk[0];
+	forces_i[1] -= fk[1];
+	forces_i[2] -= fk[2];
+	
+	int k = bondk->tag;
+	forces[k][0] += fk[0];
+	forces[k][1] += fk[1];
+	forces[k][2] += fk[2];
+	
+	if(evflag) {
+	  double delta_ij[3];
+	  double delta_ik[3];
+	  delta_ij[0] = bondj.del[0] * rij;
+	  delta_ij[1] = bondj.del[1] * rij;
+	  delta_ij[2] = bondj.del[2] * rij;
+	  delta_ik[0] = bondk->del[0] * rik;
+	  delta_ik[1] = bondk->del[1] * rik;
+	  delta_ik[2] = bondk->del[2] * rik;
+	  ev_tally3(i, j, k, 0.0, 0.0, fj, fk, delta_ij, delta_ik);
+	}
+      }
+      
+      forces[i][0] -= forces_j[0];
+      forces[i][1] -= forces_j[1];
+      forces[i][2] -= forces_j[2];
+      forces[j][0] += forces_j[0];
+      forces[j][1] += forces_j[1];
+      forces[j][2] += forces_j[2];
+    }
+    
+    forces[i][0] += forces_i[0];
+    forces[i][1] += forces_i[1];
+    forces[i][2] += forces_i[2];
   }
 
   // Communicate U'(rho) values
@@ -159,7 +287,47 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   comm->forward_comm_pair(this);
 
   // Compute two-body pair interactions
-  compute_two_body_pair_interactions();
+  // compute_two_body_pair_interactions();
+  for(int ii = 0; ii < listhalf->inum; ii++) {
+    int i = listhalf->ilist[ii];
+    
+    for(int jj = 0; jj < listhalf->numneigh[i]; jj++) {
+      int j = listhalf->firstneigh[i][jj];
+      j &= NEIGHMASK;
+      
+      double jdel[3];
+      jdel[0] = x[j][0] - x[i][0];
+      jdel[1] = x[j][1] - x[i][1];
+      jdel[2] = x[j][2] - x[i][2];
+      double rij_sq = jdel[0]*jdel[0] + jdel[1]*jdel[1] + jdel[2]*jdel[2];
+      
+      if(rij_sq < cutoff*cutoff) {
+        double rij = sqrt(rij_sq);
+
+        double rho_prime_i,rho_prime_j;
+        rhos[i_to_potl(i)].eval(rij,rho_prime_i);
+        rhos[i_to_potl(j)].eval(rij,rho_prime_j);
+        double fpair = rho_prime_j * Uprime_values[i] + rho_prime_i*Uprime_values[j];
+        double pair_pot_deriv;
+        double pair_pot = phis[ij_to_potl(i,j)].eval(rij, pair_pot_deriv);
+
+          fpair += pair_pot_deriv;
+
+        // Divide by r_ij to get forces from gradient
+
+        fpair /= rij;
+
+        forces[i][0] += jdel[0]*fpair;
+        forces[i][1] += jdel[1]*fpair;
+        forces[i][2] += jdel[2]*fpair;
+        forces[j][0] -= jdel[0]*fpair;
+        forces[j][1] -= jdel[1]*fpair;
+        forces[j][2] -= jdel[2]*fpair;
+        if (evflag) ev_tally(i, j, atom->nlocal, force->newton_pair,
+                             pair_pot, 0.0, -fpair, jdel[0], jdel[1], jdel[2]);
+      }
+    }
+  }
 
   if(vflag_fdotr) 
     virial_fdotr_compute();

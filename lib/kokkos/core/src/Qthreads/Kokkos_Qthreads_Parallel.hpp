@@ -41,8 +41,8 @@
 //@HEADER
 */
 
-#ifndef KOKKOS_QTHREAD_PARALLEL_HPP
-#define KOKKOS_QTHREAD_PARALLEL_HPP
+#ifndef KOKKOS_QTHREADS_PARALLEL_HPP
+#define KOKKOS_QTHREADS_PARALLEL_HPP
 
 #include <vector>
 
@@ -51,7 +51,7 @@
 #include <impl/Kokkos_StaticAssert.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
-#include <Qthread/Kokkos_QthreadExec.hpp>
+#include <Qthreads/Kokkos_QthreadsExec.hpp>
 
 //----------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ namespace Impl {
 template< class FunctorType , class ... Traits >
 class ParallelFor< FunctorType
                  , Kokkos::RangePolicy< Traits ... >
-                 , Kokkos::Qthread
+                 , Kokkos::Qthreads
                  >
 {
 private:
@@ -99,7 +99,7 @@ private:
     }
 
   // Function is called once by every concurrent thread.
-  static void exec( QthreadExec & exec , const void * arg )
+  static void exec( QthreadsExec & exec , const void * arg )
   {
     const ParallelFor & self = * ((const ParallelFor *) arg );
 
@@ -116,7 +116,7 @@ public:
   inline
   void execute() const
     {
-      Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelFor::exec , this );
+      Impl::QthreadsExec::exec_all( Qthreads::instance() , & ParallelFor::exec , this );
 
     }
 
@@ -134,7 +134,7 @@ template< class FunctorType , class ReducerType , class ... Traits >
 class ParallelReduce< FunctorType
                     , Kokkos::RangePolicy< Traits ... >
                     , ReducerType
-                    , Kokkos::Qthread
+                    , Kokkos::Qthreads
                     >
 {
 private:
@@ -186,7 +186,7 @@ private:
       }
     }
 
-  static void exec( QthreadExec & exec , const void * arg )
+  static void exec( QthreadsExec & exec , const void * arg )
   {
     const ParallelReduce & self = * ((const ParallelReduce *) arg );
 
@@ -205,10 +205,10 @@ public:
   inline
   void execute() const
     {
-      QthreadExec::resize_worker_scratch( ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) ) , 0 );
-      Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelReduce::exec , this );
+      QthreadsExec::resize_worker_scratch( ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) ) , 0 );
+      Impl::QthreadsExec::exec_all( Qthreads::instance() , & ParallelReduce::exec , this );
 
-      const pointer_type data = (pointer_type) QthreadExec::exec_all_reduce_result();
+      const pointer_type data = (pointer_type) QthreadsExec::exec_all_reduce_result();
 
       Kokkos::Impl::FunctorFinal< ReducerTypeFwd , WorkTag >::final( ReducerConditional::select(m_functor , m_reducer) , data );
 
@@ -246,11 +246,11 @@ public:
 template< class FunctorType , class ... Properties >
 class ParallelFor< FunctorType
                  , TeamPolicy< Properties ... >
-                 , Kokkos::Qthread >
+                 , Kokkos::Qthreads >
 {
 private:
 
-  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::Qthread , Properties ... > Policy ;
+  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::Qthreads , Properties ... > Policy ;
   typedef typename Policy::member_type  Member ;
   typedef typename Policy::work_tag     WorkTag ;
 
@@ -282,7 +282,7 @@ private:
       }
     }
 
-  static void exec( QthreadExec & exec , const void * arg )
+  static void exec( QthreadsExec & exec , const void * arg )
   {
     const ParallelFor & self = * ((const ParallelFor *) arg );
 
@@ -297,10 +297,10 @@ public:
   inline
   void execute() const
     {
-      QthreadExec::resize_worker_scratch
+      QthreadsExec::resize_worker_scratch
         ( /* reduction   memory */ 0
         , /* team shared memory */ FunctorTeamShmemSize< FunctorType >::value( m_functor , m_policy.team_size() ) );
-      Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelFor::exec , this );
+      Impl::QthreadsExec::exec_all( Qthreads::instance() , & ParallelFor::exec , this );
     }
 
   ParallelFor( const FunctorType & arg_functor ,
@@ -316,12 +316,12 @@ template< class FunctorType , class ReducerType , class ... Properties >
 class ParallelReduce< FunctorType
                     , TeamPolicy< Properties... >
                     , ReducerType
-                    , Kokkos::Qthread
+                    , Kokkos::Qthreads
                     >
 {
 private:
 
-  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::Qthread , Properties ... > Policy ;
+  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::Qthreads , Properties ... > Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;
@@ -365,7 +365,7 @@ private:
       }
     }
 
-  static void exec( QthreadExec & exec , const void * arg )
+  static void exec( QthreadsExec & exec , const void * arg )
   {
     const ParallelReduce & self = * ((const ParallelReduce *) arg );
 
@@ -383,13 +383,13 @@ public:
   inline
   void execute() const
     {
-      QthreadExec::resize_worker_scratch
+      QthreadsExec::resize_worker_scratch
         ( /* reduction   memory */ ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) )
         , /* team shared memory */ FunctorTeamShmemSize< FunctorType >::value( m_functor , m_policy.team_size() ) );
 
-      Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelReduce::exec , this );
+      Impl::QthreadsExec::exec_all( Qthreads::instance() , & ParallelReduce::exec , this );
 
-      const pointer_type data = (pointer_type) QthreadExec::exec_all_reduce_result();
+      const pointer_type data = (pointer_type) QthreadsExec::exec_all_reduce_result();
 
       Kokkos::Impl::FunctorFinal< ReducerTypeFwd , WorkTag >::final( ReducerConditional::select(m_functor , m_reducer), data );
 
@@ -429,7 +429,7 @@ public:
 template< class FunctorType , class ... Traits >
 class ParallelScan< FunctorType
                   , Kokkos::RangePolicy< Traits ... >
-                  , Kokkos::Qthread
+                  , Kokkos::Qthreads
                   >
 {
 private:
@@ -474,7 +474,7 @@ private:
       }
     }
 
-  static void exec( QthreadExec & exec , const void * arg )
+  static void exec( QthreadsExec & exec , const void * arg )
   {
     const ParallelScan & self = * ((const ParallelScan *) arg );
 
@@ -497,8 +497,8 @@ public:
   inline
   void execute() const
     {
-      QthreadExec::resize_worker_scratch( ValueTraits::value_size( m_functor ) , 0 );
-      Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelScan::exec , this );
+      QthreadsExec::resize_worker_scratch( ValueTraits::value_size( m_functor ) , 0 );
+      Impl::QthreadsExec::exec_all( Qthreads::instance() , & ParallelScan::exec , this );
     }
 
   ParallelScan( const FunctorType & arg_functor
@@ -521,37 +521,37 @@ namespace Kokkos {
 
 template< typename iType >
 KOKKOS_INLINE_FUNCTION
-Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadTeamPolicyMember >
-TeamThreadRange( const Impl::QthreadTeamPolicyMember& thread, const iType& count )
+Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadsTeamPolicyMember >
+TeamThreadRange( const Impl::QthreadsTeamPolicyMember& thread, const iType& count )
 {
-  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadTeamPolicyMember >( thread, count );
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadsTeamPolicyMember >( thread, count );
 }
 
 template< typename iType1, typename iType2 >
 KOKKOS_INLINE_FUNCTION
 Impl::TeamThreadRangeBoundariesStruct< typename std::common_type< iType1, iType2 >::type,
-                                       Impl::QthreadTeamPolicyMember >
-TeamThreadRange( const Impl::QthreadTeamPolicyMember& thread, const iType1 & begin, const iType2 & end )
+                                       Impl::QthreadsTeamPolicyMember >
+TeamThreadRange( const Impl::QthreadsTeamPolicyMember& thread, const iType1 & begin, const iType2 & end )
 {
   typedef typename std::common_type< iType1, iType2 >::type iType;
-  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadTeamPolicyMember >( thread, iType(begin), iType(end) );
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::QthreadsTeamPolicyMember >( thread, iType(begin), iType(end) );
 }
 
 template<typename iType>
 KOKKOS_INLINE_FUNCTION
-Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >
-  ThreadVectorRange(const Impl::QthreadTeamPolicyMember& thread, const iType& count) {
-  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >(thread,count);
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >
+  ThreadVectorRange(const Impl::QthreadsTeamPolicyMember& thread, const iType& count) {
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >(thread,count);
 }
 
 KOKKOS_INLINE_FUNCTION
-Impl::ThreadSingleStruct<Impl::QthreadTeamPolicyMember> PerTeam(const Impl::QthreadTeamPolicyMember& thread) {
-  return Impl::ThreadSingleStruct<Impl::QthreadTeamPolicyMember>(thread);
+Impl::ThreadSingleStruct<Impl::QthreadsTeamPolicyMember> PerTeam(const Impl::QthreadsTeamPolicyMember& thread) {
+  return Impl::ThreadSingleStruct<Impl::QthreadsTeamPolicyMember>(thread);
 }
 
 KOKKOS_INLINE_FUNCTION
-Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember> PerThread(const Impl::QthreadTeamPolicyMember& thread) {
-  return Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember>(thread);
+Impl::VectorSingleStruct<Impl::QthreadsTeamPolicyMember> PerThread(const Impl::QthreadsTeamPolicyMember& thread) {
+  return Impl::VectorSingleStruct<Impl::QthreadsTeamPolicyMember>(thread);
 }
 
 /** \brief  Inter-thread parallel_for. Executes lambda(iType i) for each i=0..N-1.
@@ -560,7 +560,7 @@ Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember> PerThread(const Impl::Qt
  * This functionality requires C++11 support.*/
 template<typename iType, class Lambda>
 KOKKOS_INLINE_FUNCTION
-void parallel_for(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>& loop_boundaries, const Lambda& lambda) {
+void parallel_for(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember>& loop_boundaries, const Lambda& lambda) {
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment)
     lambda(i);
 }
@@ -571,7 +571,7 @@ void parallel_for(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Qthrea
  * val is performed and put into result. This functionality requires C++11 support.*/
 template< typename iType, class Lambda, typename ValueType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>& loop_boundaries,
+void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember>& loop_boundaries,
                      const Lambda & lambda, ValueType& result) {
 
   result = ValueType();
@@ -595,7 +595,7 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Qth
  * '1 for *'). This functionality requires C++11 support.*/
 template< typename iType, class Lambda, typename ValueType, class JoinType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember>& loop_boundaries,
+void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember>& loop_boundaries,
                      const Lambda & lambda, const JoinType& join, ValueType& init_result) {
 
   ValueType result = init_result;
@@ -615,7 +615,7 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Qth
  * This functionality requires C++11 support.*/
 template<typename iType, class Lambda>
 KOKKOS_INLINE_FUNCTION
-void parallel_for(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >&
+void parallel_for(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >&
     loop_boundaries, const Lambda& lambda) {
   #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
   #pragma ivdep
@@ -630,7 +630,7 @@ void parallel_for(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Qthr
  * val is performed and put into result. This functionality requires C++11 support.*/
 template< typename iType, class Lambda, typename ValueType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >&
+void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >&
       loop_boundaries, const Lambda & lambda, ValueType& result) {
   result = ValueType();
 #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
@@ -652,7 +652,7 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Q
  * '1 for *'). This functionality requires C++11 support.*/
 template< typename iType, class Lambda, typename ValueType, class JoinType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >&
+void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >&
       loop_boundaries, const Lambda & lambda, const JoinType& join, ValueType& init_result) {
 
   ValueType result = init_result;
@@ -679,7 +679,7 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Q
  * This functionality requires C++11 support.*/
 template< typename iType, class FunctorType >
 KOKKOS_INLINE_FUNCTION
-void parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadTeamPolicyMember >&
+void parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >&
       loop_boundaries, const FunctorType & lambda) {
 
   typedef Kokkos::Impl::FunctorValueTraits< FunctorType , void > ValueTraits ;
@@ -697,25 +697,25 @@ void parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Qth
 
 template<class FunctorType>
 KOKKOS_INLINE_FUNCTION
-void single(const Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember>& single_struct, const FunctorType& lambda) {
+void single(const Impl::VectorSingleStruct<Impl::QthreadsTeamPolicyMember>& single_struct, const FunctorType& lambda) {
   lambda();
 }
 
 template<class FunctorType>
 KOKKOS_INLINE_FUNCTION
-void single(const Impl::ThreadSingleStruct<Impl::QthreadTeamPolicyMember>& single_struct, const FunctorType& lambda) {
+void single(const Impl::ThreadSingleStruct<Impl::QthreadsTeamPolicyMember>& single_struct, const FunctorType& lambda) {
   if(single_struct.team_member.team_rank()==0) lambda();
 }
 
 template<class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION
-void single(const Impl::VectorSingleStruct<Impl::QthreadTeamPolicyMember>& single_struct, const FunctorType& lambda, ValueType& val) {
+void single(const Impl::VectorSingleStruct<Impl::QthreadsTeamPolicyMember>& single_struct, const FunctorType& lambda, ValueType& val) {
   lambda(val);
 }
 
 template<class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION
-void single(const Impl::ThreadSingleStruct<Impl::QthreadTeamPolicyMember>& single_struct, const FunctorType& lambda, ValueType& val) {
+void single(const Impl::ThreadSingleStruct<Impl::QthreadsTeamPolicyMember>& single_struct, const FunctorType& lambda, ValueType& val) {
   if(single_struct.team_member.team_rank()==0) {
     lambda(val);
   }
@@ -724,4 +724,4 @@ void single(const Impl::ThreadSingleStruct<Impl::QthreadTeamPolicyMember>& singl
 
 } // namespace Kokkos
 
-#endif /* #define KOKKOS_QTHREAD_PARALLEL_HPP */
+#endif /* #define KOKKOS_QTHREADS_PARALLEL_HPP */

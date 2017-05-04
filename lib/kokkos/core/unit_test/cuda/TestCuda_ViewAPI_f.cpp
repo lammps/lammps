@@ -40,16 +40,17 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda, view_api_a) {
-  typedef Kokkos::View< const int * , Kokkos::Cuda , Kokkos::MemoryTraits< Kokkos::RandomAccess > > view_texture_managed ;
-  typedef Kokkos::View< const int * , Kokkos::Cuda , Kokkos::MemoryTraits< Kokkos::RandomAccess | Kokkos::Unmanaged > > view_texture_unmanaged ;
+TEST_F( cuda, view_api_a )
+{
+  typedef Kokkos::View< const int *, Kokkos::Cuda, Kokkos::MemoryTraits<Kokkos::RandomAccess> > view_texture_managed;
+  typedef Kokkos::View< const int *, Kokkos::Cuda, Kokkos::MemoryTraits<Kokkos::RandomAccess | Kokkos::Unmanaged> > view_texture_unmanaged;
 
-  TestViewAPI< double , Kokkos::Cuda >();
+  TestViewAPI< double, Kokkos::Cuda >();
 }
 
-} // namespace test
-
+} // namespace Test

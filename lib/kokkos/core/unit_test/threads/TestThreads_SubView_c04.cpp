@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <threads/TestThreads.hpp>
 
 namespace Test {
 
-TEST_F( threads, view_subview_2d_from_3d ) {
+TEST_F( threads, view_subview_2d_from_3d )
+{
   TestViewSubview::test_2d_subview_3d< Kokkos::Threads >();
 }
 
-} // namespace test
-
+} // namespace Test

@@ -56,12 +56,13 @@ int bit_scan_forward( unsigned i )
 {
 #if defined( __CUDA_ARCH__ )
   return __ffs(i) - 1;
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-  return __builtin_ffs(i) - 1;
-#elif defined( __INTEL_COMPILER )
+#elif defined( KOKKOS_COMPILER_INTEL )
   return _bit_scan_forward(i);
+#elif defined( KOKKOS_COMPILER_IBM )
+  return __cnttz4(i);
+#elif defined( KOKKOS_COMPILER_GNU ) || defined( __GNUC__ ) || defined( __GNUG__ )
+  return __builtin_ffs(i) - 1;
 #else
-
   unsigned t = 1u;
   int r = 0;
   while ( i && ( i & t == 0 ) )
@@ -79,10 +80,12 @@ int bit_scan_reverse( unsigned i )
   enum { shift = static_cast<int>( sizeof(unsigned) * CHAR_BIT - 1 ) };
 #if defined( __CUDA_ARCH__ )
   return shift - __clz(i);
+#elif defined( KOKKOS_COMPILER_INTEL )
+  return _bit_scan_reverse(i);
+#elif defined( KOKKOS_COMPILER_IBM )
+  return shift - __cntlz4(i);
 #elif defined( __GNUC__ ) || defined( __GNUG__ )
   return shift - __builtin_clz(i);
-#elif defined( __INTEL_COMPILER )
-  return _bit_scan_reverse(i);
 #else
   unsigned t = 1u << shift;
   int r = 0;
@@ -101,10 +104,12 @@ int bit_count( unsigned i )
 {
 #if defined( __CUDA_ARCH__ )
   return __popc(i);
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-  return __builtin_popcount(i);
 #elif defined ( __INTEL_COMPILER )
   return _popcnt32(i);
+#elif defined( KOKKOS_COMPILER_IBM )
+  return __popcnt4(i);
+#elif defined( __GNUC__ ) || defined( __GNUG__ )
+  return __builtin_popcount(i);
 #else
   // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetNaive
   i = i - ( ( i >> 1 ) & ~0u / 3u );                             // temp

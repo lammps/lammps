@@ -50,7 +50,7 @@
 #include <string>
 #include <cinttypes>
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 #include <impl/Kokkos_Profiling_DeviceInfo.hpp>
 #include <dlfcn.h>
 #include <iostream>
@@ -59,7 +59,7 @@
 
 #define KOKKOSP_INTERFACE_VERSION 20150628
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 namespace Kokkos {
   namespace Profiling {
 

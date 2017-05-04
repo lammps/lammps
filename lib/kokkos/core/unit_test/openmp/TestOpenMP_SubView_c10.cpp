@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <openmp/TestOpenMP.hpp>
 
 namespace Test {
 
-TEST_F( openmp, view_subview_3d_from_5d_right ) {
+TEST_F( openmp, view_subview_3d_from_5d_right )
+{
   TestViewSubview::test_3d_subview_5d_right< Kokkos::OpenMP >();
 }
 
-} // namespace test
-
+} // namespace Test

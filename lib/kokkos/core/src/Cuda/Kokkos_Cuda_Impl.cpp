@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -505,18 +505,18 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
       std::cout << "                                  The code must call Cuda::fence() after each kernel" << std::endl;
-      std::cout << "                                  or will likely crash when accessing data on the host." << std::endl; 
+      std::cout << "                                  or will likely crash when accessing data on the host." << std::endl;
     }
 
     const char * env_force_device_alloc = getenv("CUDA_MANAGED_FORCE_DEVICE_ALLOC");
     bool force_device_alloc;
     if (env_force_device_alloc == 0) force_device_alloc=false;
     else force_device_alloc=atoi(env_force_device_alloc)!=0;
-  
+
     const char * env_visible_devices = getenv("CUDA_VISIBLE_DEVICES");
     bool visible_devices_one=true;
     if (env_visible_devices == 0) visible_devices_one=false;
-    
+
     if(!visible_devices_one && !force_device_alloc) {
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_MANAGED_FORCE_DEVICE_ALLOC=1 or " << std::endl;
@@ -536,6 +536,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
   locks.atomic = atomic_lock_array_cuda_space_ptr(false);
   locks.scratch = scratch_lock_array_cuda_space_ptr(false);
   locks.threadid = threadid_lock_array_cuda_space_ptr(false);
+  locks.n = Kokkos::Cuda::concurrency();
   cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
   #endif
 }
@@ -620,9 +621,9 @@ void CudaInternal::finalize()
   was_finalized = 1;
   if ( 0 != m_scratchSpace || 0 != m_scratchFlags ) {
 
-    atomic_lock_array_cuda_space_ptr(false);
-    scratch_lock_array_cuda_space_ptr(false);
-    threadid_lock_array_cuda_space_ptr(false);
+    atomic_lock_array_cuda_space_ptr(true);
+    scratch_lock_array_cuda_space_ptr(true);
+    threadid_lock_array_cuda_space_ptr(true);
 
     if ( m_stream ) {
       for ( size_type i = 1 ; i < m_streamCount ; ++i ) {
@@ -700,7 +701,7 @@ void Cuda::initialize( const Cuda::SelectDevice config , size_t num_instances )
 {
   Impl::CudaInternal::singleton().initialize( config.cuda_device_id , num_instances );
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
 }
@@ -739,7 +740,7 @@ void Cuda::finalize()
 {
   Impl::CudaInternal::singleton().finalize();
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
   #endif
 }

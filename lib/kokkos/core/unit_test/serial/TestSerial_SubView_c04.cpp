@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <serial/TestSerial.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_2d_from_3d ) {
+TEST_F( serial, view_subview_2d_from_3d )
+{
   TestViewSubview::test_2d_subview_3d< Kokkos::Serial >();
 }
 
-} // namespace test
-
+} // namespace Test

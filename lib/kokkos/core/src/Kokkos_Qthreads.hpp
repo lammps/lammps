@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,57 +36,75 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#ifndef KOKKOS_QTHREAD_HPP
-#define KOKKOS_QTHREAD_HPP
+#ifndef KOKKOS_QTHREADS_HPP
+#define KOKKOS_QTHREADS_HPP
+
+#include <Kokkos_Core_fwd.hpp>
+
+#ifdef KOKKOS_ENABLE_QTHREADS
+
+// Defines to enable experimental Qthreads functionality.
+#define QTHREAD_LOCAL_PRIORITY
+#define CLONED_TASKS
+
+#include <qthread.h>
 
 #include <cstddef>
 #include <iosfwd>
-#include <Kokkos_Core.hpp>
-#include <Kokkos_Layout.hpp>
-#include <Kokkos_MemoryTraits.hpp>
+
 #include <Kokkos_HostSpace.hpp>
-#include <Kokkos_ExecPolicy.hpp>
+#include <Kokkos_ScratchSpace.hpp>
+#include <Kokkos_Parallel.hpp>
+//#include <Kokkos_MemoryTraits.hpp>
+//#include <Kokkos_ExecPolicy.hpp>
+//#include <Kokkos_TaskScheduler.hpp> // Uncomment when Tasking working.
+#include <Kokkos_Layout.hpp>
 #include <impl/Kokkos_Tags.hpp>
+#include <KokkosExp_MDRangePolicy.hpp>
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
+
 namespace Impl {
-class QthreadExec ;
+
+class QthreadsExec;
+
 } // namespace Impl
+
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 
-/** \brief  Execution space supported by Qthread */
-class Qthread {
+/** \brief  Execution space supported by Qthreads */
+class Qthreads {
 public:
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
 
   //! Tag this class as an execution space
-  typedef Qthread                  execution_space ;
-  typedef Kokkos::HostSpace        memory_space ;
+  typedef Qthreads                 execution_space;
+  typedef Kokkos::HostSpace        memory_space;
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space,memory_space> device_type;
+  typedef Kokkos::Device< execution_space, memory_space > device_type;
 
-  typedef Kokkos::LayoutRight      array_layout ;
-  typedef memory_space::size_type  size_type ;
+  typedef Kokkos::LayoutRight      array_layout;
+  typedef memory_space::size_type  size_type;
 
-  typedef ScratchMemorySpace< Qthread > scratch_memory_space ;
+  typedef ScratchMemorySpace< Qthreads > scratch_memory_space;
 
   //@}
   /*------------------------------------------------------------------------*/
 
   /** \brief  Initialization will construct one or more instances */
-  static Qthread & instance( int = 0 );
+  static Qthreads & instance( int = 0 );
 
   /** \brief  Set the execution space to a "sleep" state.
    *
@@ -100,14 +118,14 @@ public:
   bool sleep();
 
   /** \brief  Wake from the sleep state.
-   * 
+   *
    *  \return True if enters or is in the "ready" state.
    *          False if functions are currently executing.
    */
   static bool wake();
 
   /** \brief Wait until all dispatched functions to complete.
-   * 
+   *
    *  The parallel_for or parallel_reduce dispatch of a functor may
    *  return asynchronously, before the functor completes.  This
    *  method does not return until all dispatched functors on this
@@ -128,26 +146,24 @@ public:
   static void finalize();
 
   /** \brief Print configuration information to the given output stream. */
-  static void print_configuration( std::ostream & , const bool detail = false );
+  static void print_configuration( std::ostream &, const bool detail = false );
 
-  int shepherd_size() const ;
-  int shepherd_worker_size() const ;
+  int shepherd_size() const;
+  int shepherd_worker_size() const;
 };
-
-/*--------------------------------------------------------------------------*/
 
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
+
 namespace Impl {
 
 template<>
-struct MemorySpaceAccess 
-  < Kokkos::Qthread::memory_space
-  , Kokkos::Qthread::scratch_memory_space
+struct MemorySpaceAccess
+  < Kokkos::Qthreads::memory_space
+  , Kokkos::Qthreads::scratch_memory_space
   >
 {
   enum { assignable = false };
@@ -157,27 +173,26 @@ struct MemorySpaceAccess
 
 template<>
 struct VerifyExecutionCanAccessMemorySpace
-  < Kokkos::Qthread::memory_space
-  , Kokkos::Qthread::scratch_memory_space
+  < Kokkos::Qthreads::memory_space
+  , Kokkos::Qthreads::scratch_memory_space
   >
 {
   enum { value = true };
-  inline static void verify( void ) { }
-  inline static void verify( const void * ) { }
+  inline static void verify( void ) {}
+  inline static void verify( const void * ) {}
 };
 
 } // namespace Impl
+
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
 
-#include <Kokkos_Parallel.hpp>
-#include <Qthread/Kokkos_QthreadExec.hpp>
-#include <Qthread/Kokkos_Qthread_Parallel.hpp>
+#include <Qthreads/Kokkos_QthreadsExec.hpp>
+#include <Qthreads/Kokkos_Qthreads_Parallel.hpp>
+//#include <Qthreads/Kokkos_Qthreads_Task.hpp> // Uncomment when Tasking working.
+//#include <Qthreads/Kokkos_Qthreads_TaskQueue.hpp> // Uncomment when Tasking working.
 
-#endif /* #define KOKKOS_QTHREAD_HPP */
+#endif // #define KOKKOS_ENABLE_QTHREADS
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
+#endif // #define KOKKOS_QTHREADS_HPP

@@ -76,9 +76,6 @@ namespace Impl {
 template< typename Space , typename ResultType , typename FunctorType >
 class TaskBase ;
 
-template< typename Space >
-class TaskExec ;
-
 } /* namespace Impl */
 } /* namespace Kokkos */
 
@@ -149,8 +146,8 @@ private:
   //     task->m_next is the dependence or zero
   //   Postcondition:
   //     task->m_next is linked list membership
-  KOKKOS_FUNCTION
-  void schedule( task_root_type * const );
+  KOKKOS_FUNCTION void schedule_runnable(  task_root_type * const );
+  KOKKOS_FUNCTION void schedule_aggregate( task_root_type * const );
 
   // Reschedule a task
   //   Precondition:
@@ -178,7 +175,7 @@ private:
                        , task_root_type * const );
 
   KOKKOS_FUNCTION
-  static task_root_type * pop_task( task_root_type * volatile * const );
+  static task_root_type * pop_ready_task( task_root_type * volatile * const );
 
   KOKKOS_FUNCTION static
   void decrement( task_root_type * task );
@@ -368,6 +365,7 @@ public:
   int16_t        m_task_type ;   ///< Type of task
   int16_t        m_priority ;    ///< Priority of runnable task
 
+  TaskBase() = delete ;
   TaskBase( TaskBase && ) = delete ;
   TaskBase( const TaskBase & ) = delete ;
   TaskBase & operator = ( TaskBase && ) = delete ;
@@ -375,17 +373,43 @@ public:
 
   KOKKOS_INLINE_FUNCTION ~TaskBase() = default ;
 
+  // Constructor for a runnable task
   KOKKOS_INLINE_FUNCTION
-  constexpr TaskBase() noexcept
-    : m_apply(0)
-    , m_queue(0)
-    , m_wait(0)
-    , m_next(0)
-    , m_ref_count(0)
-    , m_alloc_size(0)
-    , m_dep_count(0)
-    , m_task_type( TaskSingle )
-    , m_priority( 1 /* TaskRegularPriority */ )
+  constexpr TaskBase( function_type arg_apply
+                    , queue_type  * arg_queue
+                    , TaskBase    * arg_dependence
+                    , int           arg_ref_count
+                    , int           arg_alloc_size
+                    , int           arg_task_type
+                    , int           arg_priority
+                    ) noexcept
+    : m_apply(      arg_apply )
+    , m_queue(      arg_queue )
+    , m_wait( 0 )
+    , m_next(       arg_dependence )
+    , m_ref_count(  arg_ref_count )
+    , m_alloc_size( arg_alloc_size )
+    , m_dep_count( 0 )
+    , m_task_type(  arg_task_type )
+    , m_priority(   arg_priority )
+    {}
+
+  // Constructor for an aggregate task
+  KOKKOS_INLINE_FUNCTION
+  constexpr TaskBase( queue_type  * arg_queue
+                    , int           arg_ref_count
+                    , int           arg_alloc_size
+                    , int           arg_dep_count
+                    ) noexcept
+    : m_apply( 0 )
+    , m_queue( arg_queue )
+    , m_wait( 0 )
+    , m_next( 0 )
+    , m_ref_count(  arg_ref_count )
+    , m_alloc_size( arg_alloc_size )
+    , m_dep_count(  arg_dep_count )
+    , m_task_type(  Aggregate )
+    , m_priority( 0 )
     {}
 
   //----------------------------------------
@@ -406,9 +430,13 @@ public:
   KOKKOS_INLINE_FUNCTION
   void add_dependence( TaskBase* dep )
     {
+      // Precondition: lock == m_next
+
+      TaskBase * const lock = (TaskBase *) LockTag ;
+
       // Assign dependence to m_next.  It will be processed in the subsequent
       // call to schedule.  Error if the dependence is reset.
-      if ( 0 != Kokkos::atomic_exchange( & m_next, dep ) ) {
+      if ( lock != Kokkos::atomic_exchange( & m_next, dep ) ) {
         Kokkos::abort("TaskScheduler ERROR: resetting task dependence");
       }
 
@@ -431,8 +459,13 @@ class TaskBase< ExecSpace , ResultType , void >
 {
 private:
 
-  static_assert( sizeof(TaskBase<ExecSpace,void,void>) == 48 , "" );
+  using root_type     = TaskBase<ExecSpace,void,void> ;
+  using function_type = typename root_type::function_type ;
+  using queue_type    = typename root_type::queue_type ;
 
+  static_assert( sizeof(root_type) == 48 , "" );
+
+  TaskBase() = delete ;
   TaskBase( TaskBase && ) = delete ;
   TaskBase( const TaskBase & ) = delete ;
   TaskBase & operator = ( TaskBase && ) = delete ;
@@ -444,9 +477,24 @@ public:
 
   KOKKOS_INLINE_FUNCTION ~TaskBase() = default ;
 
+  // Constructor for runnable task
   KOKKOS_INLINE_FUNCTION
-  TaskBase()
-    : TaskBase< ExecSpace , void , void >()
+  constexpr TaskBase( function_type arg_apply
+                    , queue_type  * arg_queue
+                    , root_type   * arg_dependence
+                    , int           arg_ref_count
+                    , int           arg_alloc_size
+                    , int           arg_task_type
+                    , int           arg_priority
+                    )
+    : root_type( arg_apply 
+               , arg_queue
+               , arg_dependence
+               , arg_ref_count
+               , arg_alloc_size
+               , arg_task_type
+               , arg_priority
+               )
     , m_result()
     {}
 
@@ -471,11 +519,14 @@ private:
 
 public:
 
-  using root_type    = TaskBase< ExecSpace , void , void > ;
-  using base_type    = TaskBase< ExecSpace , ResultType , void > ;
-  using member_type  = TaskExec< ExecSpace > ;
-  using functor_type = FunctorType ;
-  using result_type  = ResultType ;
+  using root_type       = TaskBase< ExecSpace , void , void > ;
+  using base_type       = TaskBase< ExecSpace , ResultType , void > ;
+  using specialization  = TaskQueueSpecialization< ExecSpace > ;
+  using function_type   = typename root_type::function_type ;
+  using queue_type      = typename root_type::queue_type ;
+  using member_type     = typename specialization::member_type ;
+  using functor_type    = FunctorType ;
+  using result_type     = ResultType ;
 
   template< typename Type >
   KOKKOS_INLINE_FUNCTION static
@@ -522,13 +573,30 @@ public:
       if ( 0 == member->team_rank() && !(task->requested_respawn()) ) {
         // Did not respawn, destroy the functor to free memory.
         static_cast<functor_type*>(task)->~functor_type();
-        // Cannot destroy the task until its dependences have been processed.
+        // Cannot destroy and deallocate the task until its dependences
+        // have been processed.
       }
     }
 
+  // Constructor for runnable task
   KOKKOS_INLINE_FUNCTION
-  TaskBase( functor_type const & arg_functor )
-    : base_type()
+  constexpr TaskBase( function_type arg_apply
+                    , queue_type  * arg_queue
+                    , root_type   * arg_dependence
+                    , int           arg_ref_count
+                    , int           arg_alloc_size
+                    , int           arg_task_type
+                    , int           arg_priority
+                    , FunctorType && arg_functor
+                    )
+    : base_type( arg_apply 
+               , arg_queue
+               , arg_dependence
+               , arg_ref_count
+               , arg_alloc_size
+               , arg_task_type
+               , arg_priority
+               )
     , functor_type( arg_functor )
     {}
 

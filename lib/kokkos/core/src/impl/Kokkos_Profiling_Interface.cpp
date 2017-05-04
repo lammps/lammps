@@ -43,7 +43,7 @@
 
 #include <impl/Kokkos_Profiling_Interface.hpp>
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 #include <string.h>
 
 namespace Kokkos {
@@ -84,21 +84,21 @@ namespace Kokkos {
             (*endScanCallee)(kernelID);
         }
     }
-    
+
     void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID, uint64_t* kernelID) {
         if(NULL != beginReduceCallee) {
             Kokkos::fence();
             (*beginReduceCallee)(kernelPrefix.c_str(), devID, kernelID);
         }
     }
-    
+
     void endParallelReduce(const uint64_t kernelID) {
         if(NULL != endReduceCallee) {
             Kokkos::fence();
             (*endReduceCallee)(kernelID);
         }
     }
-    
+
 
     void pushRegion(const std::string& kName) {
       if( NULL != pushRegionCallee ) {

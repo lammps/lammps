@@ -40,21 +40,23 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <serial/TestSerial.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_layoutleft_to_layoutleft) {
+TEST_F( serial, view_subview_layoutleft_to_layoutleft )
+{
   TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Serial >();
-  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Serial , Kokkos::MemoryTraits<Kokkos::Atomic> >();
-  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Serial , Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Serial, Kokkos::MemoryTraits<Kokkos::Atomic> >();
+  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Serial, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-TEST_F( serial, view_subview_layoutright_to_layoutright) {
+TEST_F( serial, view_subview_layoutright_to_layoutright )
+{
   TestViewSubview::test_layoutright_to_layoutright< Kokkos::Serial >();
-  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Serial , Kokkos::MemoryTraits<Kokkos::Atomic> >();
-  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Serial , Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Serial, Kokkos::MemoryTraits<Kokkos::Atomic> >();
+  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Serial, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-} // namespace test
-
+} // namespace Test

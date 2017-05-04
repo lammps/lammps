@@ -40,81 +40,87 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda , team_tag )
+TEST_F( cuda, team_tag )
 {
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >::test_for(0);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >::test_reduce(0);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(0);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(0);
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >::test_for( 0 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 0 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 0 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 0 );
 
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >::test_for(2);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >::test_reduce(2);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(2);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(2);
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >::test_for( 2 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 2 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 2 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 2 );
 
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >::test_for(1000);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >::test_reduce(1000);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(1000);
-  TestTeamPolicy< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(1000);
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >::test_for( 1000 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 1000 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 1000 );
+  TestTeamPolicy< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 1000 );
 }
 
-TEST_F( cuda , team_shared_request) {
-  TestSharedTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >();
-  TestSharedTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >();
+TEST_F( cuda, team_shared_request )
+{
+  TestSharedTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();
+  TestSharedTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-//THis Tests request to much L0 scratch
-//TEST_F( cuda, team_scratch_request) {
-//  TestScratchTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >();
-//  TestScratchTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >();
+// This tests request to much L0 scratch.
+//TEST_F( cuda, team_scratch_request )
+//{
+//  TestScratchTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();
+//  TestScratchTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >();
 //}
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-TEST_F( cuda , team_lambda_shared_request) {
+#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+TEST_F( cuda, team_lambda_shared_request )
+{
   TestLambdaSharedTeam< Kokkos::CudaSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();
   TestLambdaSharedTeam< Kokkos::CudaUVMSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();
-  TestLambdaSharedTeam< Kokkos::CudaHostPinnedSpace, Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static>  >();
+  TestLambdaSharedTeam< Kokkos::CudaHostPinnedSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();
   TestLambdaSharedTeam< Kokkos::CudaSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >();
   TestLambdaSharedTeam< Kokkos::CudaUVMSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >();
-  TestLambdaSharedTeam< Kokkos::CudaHostPinnedSpace, Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic>  >();
+  TestLambdaSharedTeam< Kokkos::CudaHostPinnedSpace, Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 #endif
 
-TEST_F( cuda, shmem_size) {
+TEST_F( cuda, shmem_size )
+{
   TestShmemSize< Kokkos::Cuda >();
 }
 
-TEST_F( cuda, multi_level_scratch) {
-  TestMultiLevelScratchTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Static> >();
-  TestMultiLevelScratchTeam< Kokkos::Cuda , Kokkos::Schedule<Kokkos::Dynamic> >();
+TEST_F( cuda, multi_level_scratch )
+{
+  TestMultiLevelScratchTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Static> >();
+  TestMultiLevelScratchTeam< Kokkos::Cuda, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-TEST_F( cuda , team_vector )
+#if !defined(KOKKOS_CUDA_CLANG_WORKAROUND) && !defined(KOKKOS_ARCH_PASCAL)
+TEST_F( cuda, team_vector )
 {
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(0) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(1) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(2) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(3) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(4) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(5) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(6) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(7) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(8) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(9) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >(10) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 0 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 1 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 2 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 3 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 4 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 5 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 6 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 7 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 8 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 9 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Cuda >( 10 ) ) );
 }
+#endif
 
 TEST_F( cuda, triple_nested_parallelism )
 {
-  TestTripleNestedReduce< double, Kokkos::Cuda >( 8192, 2048 , 32 , 32 );
-  TestTripleNestedReduce< double, Kokkos::Cuda >( 8192, 2048 , 32 , 16 );
-  TestTripleNestedReduce< double, Kokkos::Cuda >( 8192, 2048 , 16 , 16 );
+  TestTripleNestedReduce< double, Kokkos::Cuda >( 8192, 2048, 32, 32 );
+  TestTripleNestedReduce< double, Kokkos::Cuda >( 8192, 2048, 32, 16 );
+  TestTripleNestedReduce< double, Kokkos::Cuda >( 8192, 2048, 16, 16 );
 }
 
-
-} // namespace test
-
+} // namespace Test

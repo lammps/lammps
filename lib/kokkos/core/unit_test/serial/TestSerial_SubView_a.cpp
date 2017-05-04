@@ -40,53 +40,64 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <serial/TestSerial.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_auto_1d_left ) {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutLeft,Kokkos::Serial >();
+TEST_F( serial, view_subview_auto_1d_left )
+{
+  TestViewSubview::test_auto_1d< Kokkos::LayoutLeft, Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_auto_1d_right ) {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutRight,Kokkos::Serial >();
+TEST_F( serial, view_subview_auto_1d_right )
+{
+  TestViewSubview::test_auto_1d< Kokkos::LayoutRight, Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_auto_1d_stride ) {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutStride,Kokkos::Serial >();
+TEST_F( serial, view_subview_auto_1d_stride )
+{
+  TestViewSubview::test_auto_1d< Kokkos::LayoutStride, Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_assign_strided ) {
+TEST_F( serial, view_subview_assign_strided )
+{
   TestViewSubview::test_1d_strided_assignment< Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_left_0 ) {
+TEST_F( serial, view_subview_left_0 )
+{
   TestViewSubview::test_left_0< Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_left_1 ) {
+TEST_F( serial, view_subview_left_1 )
+{
   TestViewSubview::test_left_1< Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_left_2 ) {
+TEST_F( serial, view_subview_left_2 )
+{
   TestViewSubview::test_left_2< Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_left_3 ) {
+TEST_F( serial, view_subview_left_3 )
+{
   TestViewSubview::test_left_3< Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_right_0 ) {
+TEST_F( serial, view_subview_right_0 )
+{
   TestViewSubview::test_right_0< Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_right_1 ) {
+TEST_F( serial, view_subview_right_1 )
+{
   TestViewSubview::test_right_1< Kokkos::Serial >();
 }
 
-TEST_F( serial, view_subview_right_3 ) {
+TEST_F( serial, view_subview_right_3 )
+{
   TestViewSubview::test_right_3< Kokkos::Serial >();
 }
 
-} // namespace test
-
+} // namespace Test

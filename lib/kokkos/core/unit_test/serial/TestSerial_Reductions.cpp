@@ -40,83 +40,90 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <serial/TestSerial.hpp>
 
 namespace Test {
 
-TEST_F( serial, long_reduce) {
-  TestReduce< long ,   Kokkos::Serial >( 0 );
-  TestReduce< long ,   Kokkos::Serial >( 1000000 );
-}
-
-TEST_F( serial, double_reduce) {
-  TestReduce< double ,   Kokkos::Serial >( 0 );
-  TestReduce< double ,   Kokkos::Serial >( 1000000 );
-}
-
-TEST_F( serial , reducers )
+TEST_F( serial, long_reduce )
 {
-  TestReducers<int, Kokkos::Serial>::execute_integer();
-  TestReducers<size_t, Kokkos::Serial>::execute_integer();
-  TestReducers<double, Kokkos::Serial>::execute_float();
-  TestReducers<Kokkos::complex<double>, Kokkos::Serial>::execute_basic();
+  TestReduce< long, Kokkos::Serial >( 0 );
+  TestReduce< long, Kokkos::Serial >( 1000000 );
 }
 
-TEST_F( serial, long_reduce_dynamic ) {
-  TestReduceDynamic< long ,   Kokkos::Serial >( 0 );
-  TestReduceDynamic< long ,   Kokkos::Serial >( 1000000 );
-}
-
-TEST_F( serial, double_reduce_dynamic ) {
-  TestReduceDynamic< double ,   Kokkos::Serial >( 0 );
-  TestReduceDynamic< double ,   Kokkos::Serial >( 1000000 );
-}
-
-TEST_F( serial, long_reduce_dynamic_view ) {
-  TestReduceDynamicView< long ,   Kokkos::Serial >( 0 );
-  TestReduceDynamicView< long ,   Kokkos::Serial >( 1000000 );
-}
-
-TEST_F( serial , scan )
+TEST_F( serial, double_reduce )
 {
-  TestScan< Kokkos::Serial >::test_range( 1 , 1000 );
+  TestReduce< double, Kokkos::Serial >( 0 );
+  TestReduce< double, Kokkos::Serial >( 1000000 );
+}
+
+TEST_F( serial, reducers )
+{
+  TestReducers< int, Kokkos::Serial >::execute_integer();
+  TestReducers< size_t, Kokkos::Serial >::execute_integer();
+  TestReducers< double, Kokkos::Serial >::execute_float();
+  TestReducers< Kokkos::complex<double >, Kokkos::Serial>::execute_basic();
+}
+
+TEST_F( serial, long_reduce_dynamic )
+{
+  TestReduceDynamic< long, Kokkos::Serial >( 0 );
+  TestReduceDynamic< long, Kokkos::Serial >( 1000000 );
+}
+
+TEST_F( serial, double_reduce_dynamic )
+{
+  TestReduceDynamic< double, Kokkos::Serial >( 0 );
+  TestReduceDynamic< double, Kokkos::Serial >( 1000000 );
+}
+
+TEST_F( serial, long_reduce_dynamic_view )
+{
+  TestReduceDynamicView< long, Kokkos::Serial >( 0 );
+  TestReduceDynamicView< long, Kokkos::Serial >( 1000000 );
+}
+
+TEST_F( serial, scan )
+{
+  TestScan< Kokkos::Serial >::test_range( 1, 1000 );
   TestScan< Kokkos::Serial >( 0 );
   TestScan< Kokkos::Serial >( 10 );
   TestScan< Kokkos::Serial >( 10000 );
 }
 
-TEST_F( serial  , team_scan )
+TEST_F( serial, team_scan )
 {
-  TestScanTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestScanTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestScanTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 10 );
-  TestScanTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 10 );
-  TestScanTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 10000 );
-  TestScanTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 10000 );
+  TestScanTeam< Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestScanTeam< Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestScanTeam< Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 10 );
+  TestScanTeam< Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 10 );
+  TestScanTeam< Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 10000 );
+  TestScanTeam< Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 10000 );
 }
 
-TEST_F( serial , team_long_reduce) {
-  TestReduceTeam< long ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestReduceTeam< long ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestReduceTeam< long ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 3 );
-  TestReduceTeam< long ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
-  TestReduceTeam< long ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 100000 );
-  TestReduceTeam< long ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
+TEST_F( serial, team_long_reduce )
+{
+  TestReduceTeam< long, Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestReduceTeam< long, Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestReduceTeam< long, Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 3 );
+  TestReduceTeam< long, Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
+  TestReduceTeam< long, Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 100000 );
+  TestReduceTeam< long, Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
 }
 
-TEST_F( serial , team_double_reduce) {
-  TestReduceTeam< double ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestReduceTeam< double ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestReduceTeam< double ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 3 );
-  TestReduceTeam< double ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
-  TestReduceTeam< double ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >( 100000 );
-  TestReduceTeam< double ,   Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
+TEST_F( serial, team_double_reduce )
+{
+  TestReduceTeam< double, Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestReduceTeam< double, Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestReduceTeam< double, Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 3 );
+  TestReduceTeam< double, Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
+  TestReduceTeam< double, Kokkos::Serial, Kokkos::Schedule<Kokkos::Static> >( 100000 );
+  TestReduceTeam< double, Kokkos::Serial, Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
 }
 
-TEST_F( serial , reduction_deduction )
+TEST_F( serial, reduction_deduction )
 {
   TestCXX11::test_reduction_deduction< Kokkos::Serial >();
 }
 
-} // namespace test
-
+} // namespace Test

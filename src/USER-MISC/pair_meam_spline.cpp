@@ -186,8 +186,6 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     }
 
     // Compute embedding energy and its derivative
-
-    // double Uprime_i = compute_embedding_energy_and_deriv(eflag, i, rho_value);
     double Uprime_i;
     double embeddingEnergy = Us[i_to_potl(i)].eval(rho_value, Uprime_i)
       - zero_atom_energies[i_to_potl(i)];
@@ -201,8 +199,6 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     }
 
     // Compute three-body contributions to force
-
-    // compute_three_body_contrib_to_forces(i, numBonds, Uprime_i);
     double forces_i[3] = {0, 0, 0};
     for(int jj = 0; jj < numBonds; jj++) {
       const MEAM2Body bondj = twoBodyInfo[jj];
@@ -287,7 +283,6 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   comm->forward_comm_pair(this);
 
   // Compute two-body pair interactions
-  // compute_two_body_pair_interactions();
   for(int ii = 0; ii < listhalf->inum; ii++) {
     int i = listhalf->ilist[ii];
     

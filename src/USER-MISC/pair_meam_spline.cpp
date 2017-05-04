@@ -458,9 +458,6 @@ void PairMEAMSpline::coeff(int narg, char **arg)
 {
   int i,j,n;
 
-  if (!allocated)
-    allocate();
-
   if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 

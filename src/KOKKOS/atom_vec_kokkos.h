@@ -20,6 +20,17 @@
 
 namespace LAMMPS_NS {
 
+union d_ubuf {
+  double d;
+  int64_t i;
+  KOKKOS_INLINE_FUNCTION
+  d_ubuf(double arg) : d(arg) {}
+  KOKKOS_INLINE_FUNCTION
+  d_ubuf(int64_t arg) : i(arg) {}
+  KOKKOS_INLINE_FUNCTION
+  d_ubuf(int arg) : i(arg) {}
+};
+
 class AtomVecKokkos : public AtomVec {
  public:
   AtomVecKokkos(class LAMMPS *);

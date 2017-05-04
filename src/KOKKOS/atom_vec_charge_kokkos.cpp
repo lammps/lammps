@@ -323,7 +323,7 @@ struct AtomVecChargeKokkos_PackCommSelf {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecChargeKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, const int & iswap,
-										const int nfirst, const int &pbc_flag, const int* const pbc) {
+                                        const int nfirst, const int &pbc_flag, const int* const pbc) {
   if(commKK->forward_comm_on_host) {
     sync(Host,X_MASK);
     modified(Host,X_MASK);
@@ -631,17 +631,17 @@ struct AtomVecChargeKokkos_PackBorder {
           _buf(i,0) = _x(j,0);
           _buf(i,1) = _x(j,1);
           _buf(i,2) = _x(j,2);
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
           _buf(i,6) = _q(j);
       } else {
           _buf(i,0) = _x(j,0) + _dx;
           _buf(i,1) = _x(j,1) + _dy;
           _buf(i,2) = _x(j,2) + _dz;
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
           _buf(i,6) = _q(j);
       }
   }
@@ -872,9 +872,9 @@ struct AtomVecChargeKokkos_UnpackBorder {
       _x(i+_first,0) = _buf(i,0);
       _x(i+_first,1) = _buf(i,1);
       _x(i+_first,2) = _buf(i,2);
-      _tag(i+_first) = static_cast<tagint> (_buf(i,3));
-      _type(i+_first) = static_cast<int>  (_buf(i,4));
-      _mask(i+_first) = static_cast<int>  (_buf(i,5));
+      _tag(i+_first) = (tagint) d_ubuf(_buf(i,3)).i;
+      _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
+      _mask(i+_first) = (int) d_ubuf(_buf(i,5)).i;
       _q(i+_first) = _buf(i,6);
   }
 };
@@ -1039,10 +1039,10 @@ struct AtomVecChargeKokkos_PackExchangeFunctor {
     _buf(mysend,4) = _v(i,0);
     _buf(mysend,5) = _v(i,1);
     _buf(mysend,6) = _v(i,2);
-    _buf(mysend,7) = _tag[i];
-    _buf(mysend,8) = _type[i];
-    _buf(mysend,9) = _mask[i];
-    _buf(mysend,10) = _image[i];
+    _buf(mysend,7) = d_ubuf(_tag[i]).d;
+    _buf(mysend,8) = d_ubuf(_type[i]).d;
+    _buf(mysend,9) = d_ubuf(_mask[i]).d;
+    _buf(mysend,10) = d_ubuf(_image[i]).d;
     _buf(mysend,11) = _q[i];
     const int j = _copylist(mysend);
 
@@ -1163,10 +1163,10 @@ struct AtomVecChargeKokkos_UnpackExchangeFunctor {
       _v(i,0) = _buf(myrecv,4);
       _v(i,1) = _buf(myrecv,5);
       _v(i,2) = _buf(myrecv,6);
-      _tag[i] = _buf(myrecv,7);
-      _type[i] = _buf(myrecv,8);
-      _mask[i] = _buf(myrecv,9);
-      _image[i] = _buf(myrecv,10);
+      _tag[i] = (tagint) d_ubuf(_buf(myrecv,7)).i;
+      _type[i] = (int) d_ubuf(_buf(myrecv,8)).i;
+      _mask[i] = (int) d_ubuf(_buf(myrecv,9)).i;
+      _image[i] = (imageint) d_ubuf(_buf(myrecv,10)).i;
       _q[i] = _buf(myrecv,11);
     }
   }

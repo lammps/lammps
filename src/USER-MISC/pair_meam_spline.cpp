@@ -304,7 +304,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
         double pair_pot_deriv;
         double pair_pot = phis[ij_to_potl(i,j)].eval(rij, pair_pot_deriv);
 
-          fpair += pair_pot_deriv;
+	fpair += pair_pot_deriv;
 
         // Divide by r_ij to get forces from gradient
 

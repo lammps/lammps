@@ -61,7 +61,7 @@
 #include <Cuda/Kokkos_Cuda_Internal.hpp>
 #include <Kokkos_Vectorization.hpp>
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <typeinfo>
 #endif
@@ -586,13 +586,35 @@ public:
   void operator()(void) const
   {
     // Iterate this block through the league
+    int threadid = 0;
+    if ( m_scratch_size[1]>0 ) {
+      __shared__ int base_thread_id;
+      if (threadIdx.x==0 && threadIdx.y==0 ) {
+        threadid = ((blockIdx.x*blockDim.z + threadIdx.z) * blockDim.x * blockDim.y) % kokkos_impl_cuda_lock_arrays.n;
+        threadid = ((threadid + blockDim.x * blockDim.y-1)/(blockDim.x * blockDim.y)) * blockDim.x * blockDim.y;
+        if(threadid > kokkos_impl_cuda_lock_arrays.n) threadid-=blockDim.x * blockDim.y;
+        int done = 0;
+        while (!done) {
+          done = (0 == atomicCAS(&kokkos_impl_cuda_lock_arrays.atomic[threadid],0,1));
+          if(!done) {
+            threadid += blockDim.x * blockDim.y;
+            if(threadid > kokkos_impl_cuda_lock_arrays.n) threadid = 0;
+          }
+        }
+        base_thread_id = threadid;
+      }
+      __syncthreads();
+      threadid = base_thread_id;
+    }
+
+
     for ( int league_rank = blockIdx.x ; league_rank < m_league_size ; league_rank += gridDim.x ) {
 
       this-> template exec_team< WorkTag >(
         typename Policy::member_type( kokkos_impl_cuda_shared_memory<void>()
                                     , m_shmem_begin
                                     , m_shmem_size
-                                    , m_scratch_ptr[1]
+                                    , (void*) ( ((char*)m_scratch_ptr[1]) + threadid/(blockDim.x*blockDim.y) * m_scratch_size[1])
                                     , m_scratch_size[1]
                                     , league_rank
                                     , m_league_size ) );
@@ -946,11 +968,32 @@ public:
 
   __device__ inline
   void operator() () const {
-    run(Kokkos::Impl::if_c<UseShflReduction, DummyShflReductionType, DummySHMEMReductionType>::select(1,1.0) );
+    int threadid = 0;
+    if ( m_scratch_size[1]>0 ) {
+      __shared__ int base_thread_id;
+      if (threadIdx.x==0 && threadIdx.y==0 ) {
+        threadid = ((blockIdx.x*blockDim.z + threadIdx.z) * blockDim.x * blockDim.y) % kokkos_impl_cuda_lock_arrays.n;
+        threadid = ((threadid + blockDim.x * blockDim.y-1)/(blockDim.x * blockDim.y)) * blockDim.x * blockDim.y;
+        if(threadid > kokkos_impl_cuda_lock_arrays.n) threadid-=blockDim.x * blockDim.y;
+        int done = 0;
+        while (!done) {
+          done = (0 == atomicCAS(&kokkos_impl_cuda_lock_arrays.atomic[threadid],0,1));
+          if(!done) {
+            threadid += blockDim.x * blockDim.y;
+            if(threadid > kokkos_impl_cuda_lock_arrays.n) threadid = 0;
+          }
+        }
+        base_thread_id = threadid;
+      }
+      __syncthreads();
+      threadid = base_thread_id;
+    }
+
+    run(Kokkos::Impl::if_c<UseShflReduction, DummyShflReductionType, DummySHMEMReductionType>::select(1,1.0), threadid );
   }
 
   __device__ inline
-  void run(const DummySHMEMReductionType&) const
+  void run(const DummySHMEMReductionType&, const int& threadid) const
   {
     const integral_nonzero_constant< size_type , ValueTraits::StaticValueSize / sizeof(size_type) >
       word_count( ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) ) / sizeof(size_type) );
@@ -964,7 +1007,7 @@ public:
         ( Member( kokkos_impl_cuda_shared_memory<char>() + m_team_begin
                                         , m_shmem_begin
                                         , m_shmem_size
-                                        , m_scratch_ptr[1]
+                                        , (void*) ( ((char*)m_scratch_ptr[1]) + threadid/(blockDim.x*blockDim.y) * m_scratch_size[1])
                                         , m_scratch_size[1]
                                         , league_rank
                                         , m_league_size )
@@ -992,7 +1035,7 @@ public:
   }
 
   __device__ inline
-  void run(const DummyShflReductionType&) const
+  void run(const DummyShflReductionType&, const int& threadid) const
   {
     value_type value;
     ValueInit::init( ReducerConditional::select(m_functor , m_reducer) , &value);
@@ -1003,7 +1046,7 @@ public:
         ( Member( kokkos_impl_cuda_shared_memory<char>() + m_team_begin
                                         , m_shmem_begin
                                         , m_shmem_size
-                                        , m_scratch_ptr[1]
+                                        , (void*) ( ((char*)m_scratch_ptr[1]) + threadid/(blockDim.x*blockDim.y) * m_scratch_size[1])
                                         , m_scratch_size[1]
                                         , league_rank
                                         , m_league_size )
@@ -1128,9 +1171,9 @@ public:
       Kokkos::Impl::throw_runtime_exception(std::string("Kokkos::Impl::ParallelReduce< Cuda > requested too much L0 scratch memory"));
     }
 
-    if ( m_team_size >
-         Kokkos::Impl::cuda_get_max_block_size< ParallelReduce >
-               ( arg_functor , arg_policy.vector_length(), arg_policy.team_scratch_size(0),arg_policy.thread_scratch_size(0) ) / arg_policy.vector_length()) {
+    if ( unsigned(m_team_size) >
+         unsigned(Kokkos::Impl::cuda_get_max_block_size< ParallelReduce >
+               ( arg_functor , arg_policy.vector_length(), arg_policy.team_scratch_size(0),arg_policy.thread_scratch_size(0) ) / arg_policy.vector_length())) {
       Kokkos::Impl::throw_runtime_exception(std::string("Kokkos::Impl::ParallelReduce< Cuda > requested too large team size."));
     }
 
@@ -1621,14 +1664,25 @@ void parallel_for(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Cuda
 #endif
 }
 
-/** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
+/** \brief  Intra-thread vector parallel_reduce.
  *
- * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a summation of
- * val is performed and put into result. This functionality requires C++11 support.*/
+ *  Calls lambda(iType i, ValueType & val) for each i=[0..N).
+ *
+ *  The range [0..N) is mapped to all vector lanes of
+ *  the calling thread and a reduction of val is performed using +=
+ *  and output into result.
+ *
+ *  The identity value for the += operator is assumed to be the default
+ *  constructed value.
+ */
 template< typename iType, class Lambda, typename ValueType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >&
-      loop_boundaries, const Lambda & lambda, ValueType& result) {
+void parallel_reduce
+  ( Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >
+      const & loop_boundaries
+  , Lambda const & lambda
+  , ValueType & result )
+{
 #ifdef __CUDA_ARCH__
   result = ValueType();
 
@@ -1636,52 +1690,42 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::C
     lambda(i,result);
   }
 
-  if (loop_boundaries.increment > 1)
-    result += shfl_down(result, 1,loop_boundaries.increment);
-  if (loop_boundaries.increment > 2)
-    result += shfl_down(result, 2,loop_boundaries.increment);
-  if (loop_boundaries.increment > 4)
-    result += shfl_down(result, 4,loop_boundaries.increment);
-  if (loop_boundaries.increment > 8)
-    result += shfl_down(result, 8,loop_boundaries.increment);
-  if (loop_boundaries.increment > 16)
-    result += shfl_down(result, 16,loop_boundaries.increment);
+  Impl::cuda_intra_warp_vector_reduce(
+    Impl::Reducer< ValueType , Impl::ReduceSum< ValueType > >( & result ) );
 
-  result = shfl(result,0,loop_boundaries.increment);
 #endif
 }
 
-/** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
+/** \brief  Intra-thread vector parallel_reduce.
  *
- * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a reduction of
- * val is performed using JoinType(ValueType& val, const ValueType& update) and put into init_result.
- * The input value of init_result is used as initializer for temporary variables of ValueType. Therefore
- * the input value should be the neutral element with respect to the join operation (e.g. '0 for +-' or
- * '1 for *'). This functionality requires C++11 support.*/
+ *  Calls lambda(iType i, ValueType & val) for each i=[0..N).
+ *
+ *  The range [0..N) is mapped to all vector lanes of
+ *  the calling thread and a reduction of val is performed
+ *  using JoinType::operator()(ValueType& val, const ValueType& update)
+ *  and output into result.
+ *
+ *  The input value of result must be the identity value for the
+ *  reduction operation; e.g., ( 0 , += ) or ( 1 , *= ).
+ */
 template< typename iType, class Lambda, typename ValueType, class JoinType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >&
-      loop_boundaries, const Lambda & lambda, const JoinType& join, ValueType& init_result) {
-
+void parallel_reduce
+  ( Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >
+      const & loop_boundaries
+  , Lambda const & lambda
+  , JoinType const & join
+  , ValueType & result )
+{
 #ifdef __CUDA_ARCH__
-  ValueType result = init_result;
 
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
     lambda(i,result);
   }
 
-  if (loop_boundaries.increment > 1)
-    join( result, shfl_down(result, 1,loop_boundaries.increment));
-  if (loop_boundaries.increment > 2)
-    join( result, shfl_down(result, 2,loop_boundaries.increment));
-  if (loop_boundaries.increment > 4)
-    join( result, shfl_down(result, 4,loop_boundaries.increment));
-  if (loop_boundaries.increment > 8)
-    join( result, shfl_down(result, 8,loop_boundaries.increment));
-  if (loop_boundaries.increment > 16)
-    join( result, shfl_down(result, 16,loop_boundaries.increment));
+  Impl::cuda_intra_warp_vector_reduce(
+    Impl::Reducer< ValueType , JoinType >( join , & result ) );
 
-  init_result = shfl(result,0,loop_boundaries.increment);
 #endif
 }
 

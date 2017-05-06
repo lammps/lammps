@@ -18,7 +18,6 @@
 #ifdef PAIR_CLASS
 
 PairStyle(lj/sdk/coul/long/omp,PairLJSDKCoulLongOMP)
-PairStyle(cg/cmm/coul/long/omp,PairLJSDKCoulLongOMP)
 
 #else
 

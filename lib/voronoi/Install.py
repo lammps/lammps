@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# install.py tool to download, unpack, build, and link to the Voro++ library
+# Install.py tool to download, unpack, build, and link to the Voro++ library
 # used to automate the steps described in the README file in this dir
 
 import sys,os,re,urllib,commands
@@ -8,19 +8,20 @@ import sys,os,re,urllib,commands
 # help message
 
 help = """
-Syntax: install.py -v version -g gdir [gname] -b bdir -l ldir
+Syntax: python Install.py -v version -h hpath hdir -g -b -l
   specify one or more options, order does not matter
-  gdir,bdir,ldir can be paths relative to lib/latte, full paths, or contain ~
   -v = version of Voro++ to download and build
-       default = voro++-0.4.6 (current as of Jan 2015)
-  -g = grab (download) from math.lbl.gov/voro++ website
-       unpack tarfile in gdir to produce version dir (e.g. voro++-0.4.6)
-       if optional gname specified, rename version dir to gname within gdir
-  -b = build Voro++, bdir = Voro++ home directory
-       note that bdir must include the version suffix unless renamed
-  -l = create 2 softlinks (includelink,liblink)
-         in lib/voronoi to src dir of ldir = Voro++ home directory
-       note that ldir must include the version suffix unless renamed
+       default version = voro++-0.4.6 (current as of Jan 2015)
+  -h = set home dir of Voro++ to be hpath/hdir
+       hpath can be full path, contain '~' or '.' chars
+       default hpath = . = lib/voronoi
+       default hdir = voro++-0.4.6 = what tarball unpacks to
+  -g = grab (download) tarball from math.lbl.gov/voro++ website
+       unpack it to hpath/hdir
+       hpath must already exist
+       if hdir already exists, it will be deleted before unpack
+  -b = build Voro++ library in its src dir
+  -l = create 2 softlinks (includelink,liblink) in lib/voronoi to Voro++ src dir
 """
 
 # settings
@@ -47,6 +48,9 @@ args = sys.argv[1:]
 nargs = len(args)
 if nargs == 0: error()
 
+homepath = "."
+homedir = version
+
 grabflag = 0
 buildflag = 0
 linkflag = 0
@@ -56,49 +60,47 @@ while iarg < nargs:
   if args[iarg] == "-v":
     if iarg+2 > nargs: error()
     version = args[iarg+1]
-    iarg += 2  
+    iarg += 2
+  elif args[iarg] == "-h":
+    if iarg+3 > nargs: error()
+    homepath = args[iarg+1]
+    homedir = args[iarg+2]
+    iarg += 3
   elif args[iarg] == "-g":
-    if iarg+2 > nargs: error()
     grabflag = 1
-    grabdir = args[iarg+1]
-    grabname = None
-    if iarg+2 < nargs and args[iarg+2][0] != '-':
-      grabname = args[iarg+2]
-      iarg += 1
-    iarg += 2
+    iarg += 1
   elif args[iarg] == "-b":
-    if iarg+2 > nargs: error()
     buildflag = 1
-    builddir = args[iarg+1]
-    iarg += 2
+    iarg += 1
   elif args[iarg] == "-l":
-    if iarg+2 > nargs: error()
     linkflag = 1
-    linkdir = args[iarg+1]
-    iarg += 2
+    iarg += 1
   else: error()
+
+homepath = fullpath(homepath)
+if not os.path.isdir(homepath): error("Voro++ path does not exist")
+homedir = "%s/%s" % (homepath,homedir)
 
 # download and unpack Voro++ tarball
 
 if grabflag:
   print "Downloading Voro++ ..."
-  grabdir = fullpath(grabdir)
-  if not os.path.isdir(grabdir): error("Grab directory does not exist")
-  urllib.urlretrieve(url,"%s/%s.tar.gz" % (grabdir,version))
+  urllib.urlretrieve(url,"%s/%s.tar.gz" % (homepath,version))
   
   print "Unpacking Voro++ tarball ..."
-  tardir = "%s/%s" % (grabdir,version)
-  if os.path.exists(tardir): commands.getoutput("rm -rf %s" % tardir)
-  cmd = "cd %s; tar zxvf %s.tar.gz" % (grabdir,version)
-  txt = commands.getoutput(cmd)
-  print tardir,grabdir,grabname
-  if grabname: os.rename(tardir,"%s/%s" % (grabdir,grabname))
+  if os.path.exists("%s/%s" % (homepath,version)):
+    commands.getoutput("rm -rf %s/%s" % (homepath,version))
+  cmd = "cd %s; tar zxvf %s.tar.gz" % (homepath,version)
+  commands.getoutput(cmd)
+  if os.path.basename(homedir) != version:
+    if os.path.exists(homedir): commands.getoutput("rm -rf %s" % homedir)
+    os.rename("%s/%s" % (homepath,version),homedir)
 
 # build Voro++
 
 if buildflag:
   print "Building Voro++ ..."
-  cmd = "cd %s; make" % builddir
+  cmd = "cd %s; make" % homedir
   txt = commands.getoutput(cmd)
   print txt
 
@@ -110,7 +112,7 @@ if linkflag:
     os.remove("includelink")
   if os.path.isfile("liblink") or os.path.islink("liblink"):
     os.remove("liblink")
-  cmd = "ln -s %s/src includelink" % linkdir
+  cmd = "ln -s %s/src includelink" % homedir
   commands.getoutput(cmd)
-  cmd = "ln -s %s/src liblink" % linkdir
+  cmd = "ln -s %s/src liblink" % homedir
   commands.getoutput(cmd)

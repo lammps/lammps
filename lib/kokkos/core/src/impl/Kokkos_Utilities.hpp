@@ -45,6 +45,7 @@
 #define KOKKOS_CORE_IMPL_UTILITIES_HPP
 
 #include <Kokkos_Macros.hpp>
+#include <stdint.h>
 #include <type_traits>
 
 //----------------------------------------------------------------------------

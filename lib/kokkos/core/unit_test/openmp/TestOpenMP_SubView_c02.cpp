@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <openmp/TestOpenMP.hpp>
 
 namespace Test {
 
-TEST_F( openmp, view_subview_1d_assign_atomic ) {
-  TestViewSubview::test_1d_assign< Kokkos::OpenMP , Kokkos::MemoryTraits<Kokkos::Atomic> >();
+TEST_F( openmp, view_subview_1d_assign_atomic )
+{
+  TestViewSubview::test_1d_assign< Kokkos::OpenMP, Kokkos::MemoryTraits<Kokkos::Atomic> >();
 }
 
-} // namespace test
-
+} // namespace Test

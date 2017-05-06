@@ -30,7 +30,7 @@ fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq :pre
 Perform the charge equilibration (QEq) method as described in "(Rappe
 and Goddard)"_#Rappe2 and formulated in "(Nakano)"_#Nakano2.  It is
 typically used in conjunction with the ReaxFF force field model as
-implemented in the "pair_style reax/c"_pair_reax_c.html command, but
+implemented in the "pair_style reax/c"_pair_reaxc.html command, but
 it can be used with any potential in LAMMPS, so long as it defines and
 uses charges on each atom.  The "fix qeq/comb"_fix_qeq_comb.html
 command should be used to perform charge equilibration with the "COMB
@@ -42,7 +42,7 @@ The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
 with their neighbors.  It requires some parameters for each atom type.
 If the {params} setting above is the word "reax/c", then these are
-extracted from the "pair_style reax/c"_pair_reax_c.html command and
+extracted from the "pair_style reax/c"_pair_reaxc.html command and
 the ReaxFF force field file it reads in.  If a file name is specified
 for {params}, then the parameters are taken from the specified file
 and the file must contain one line for each atom type.  The latter
@@ -106,7 +106,7 @@ be used for periodic cell dimensions less than 10 angstroms.
 
 [Related commands:]
 
-"pair_style reax/c"_pair_reax_c.html
+"pair_style reax/c"_pair_reaxc.html
 
 [Default:] none
 

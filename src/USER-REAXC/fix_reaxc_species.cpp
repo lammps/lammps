@@ -24,7 +24,7 @@
 #include "fix_reaxc_species.h"
 #include "domain.h"
 #include "update.h"
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"

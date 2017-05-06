@@ -66,6 +66,8 @@ const char TestHostDeviceName[] = "Kokkos::Serial" ;
 
 #include <impl/Kokkos_Timer.hpp>
 
+#include <PerfTestMDRange.hpp>
+
 #include <PerfTestHexGrad.hpp>
 #include <PerfTestBlasKernels.hpp>
 #include <PerfTestGramSchmidt.hpp>
@@ -101,6 +103,14 @@ protected:
     TestHostDevice::finalize();
   }
 };
+
+//TEST_F( host, mdrange_lr ) {
+//  EXPECT_NO_THROW( (run_test_mdrange<TestHostDevice , Kokkos::LayoutRight> (5, 8, TestHostDeviceName) ) );
+//}
+
+//TEST_F( host, mdrange_ll ) {
+//  EXPECT_NO_THROW( (run_test_mdrange<TestHostDevice , Kokkos::LayoutLeft> (5, 8, TestHostDeviceName) ) );
+//}
 
 TEST_F( host, hexgrad ) {
   EXPECT_NO_THROW(run_test_hexgrad< TestHostDevice>( 10, 20, TestHostDeviceName ));

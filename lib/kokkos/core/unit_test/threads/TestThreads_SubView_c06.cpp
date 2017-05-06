@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <threads/TestThreads.hpp>
 
 namespace Test {
 
-TEST_F( threads, view_subview_2d_from_3d_randomaccess ) {
-  TestViewSubview::test_2d_subview_3d< Kokkos::Threads , Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+TEST_F( threads, view_subview_2d_from_3d_randomaccess )
+{
+  TestViewSubview::test_2d_subview_3d< Kokkos::Threads, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-} // namespace test
-
+} // namespace Test

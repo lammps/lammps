@@ -28,7 +28,7 @@ fix 1 all reax/c/bonds 100 bonds.reaxc :pre
 
 Write out the bond information computed by the ReaxFF potential
 specified by "pair_style reax"_pair_reax.html or "pair_style
-reax/c"_pair_reax_c.html in the exact same format as the original
+reax/c"_pair_reaxc.html in the exact same format as the original
 stand-alone ReaxFF code of Adri van Duin.  The bond information is
 written to {filename} on timesteps that are multiples of {Nevery},
 including timestep 0.  For time-averaged chemical species analysis,
@@ -80,7 +80,7 @@ reax"_pair_reax.html be invoked.  This fix is part of the REAX
 package.  It is only enabled if LAMMPS was built with that package,
 which also requires the REAX library be built and linked with LAMMPS.
 The fix reax/c/bonds command requires that the "pair_style
-reax/c"_pair_reax_c.html be invoked.  This fix is part of the
+reax/c"_pair_reaxc.html be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info.
@@ -88,6 +88,6 @@ for more info.
 [Related commands:]
 
 "pair_style reax"_pair_reax.html, "pair_style
-reax/c"_pair_reax_c.html, "fix reax/c/species"_fix_reaxc_species.html
+reax/c"_pair_reaxc.html, "fix reax/c/species"_fix_reaxc_species.html
 
 [Default:] none

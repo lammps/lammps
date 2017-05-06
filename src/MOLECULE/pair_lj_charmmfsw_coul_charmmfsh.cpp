@@ -42,6 +42,10 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
+
+  // short-range/long-range flag accessed by DihedralCharmmfsw
+
+  dihedflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -235,10 +239,6 @@ void PairLJCharmmfswCoulCharmmfsh::settings(int narg, char **arg)
   } else {
     cut_coul = force->numeric(FLERR,arg[2]);
   }
-
-  // indicates pair_style being used for dihedral_charmm
-
-  dihedflag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -535,7 +535,7 @@ void *PairLJCharmmfswCoulCharmmfsh::extract(const char *str, int &dim)
   dim = 0;
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;
 
-  // info extracted by dihedral_charmmf
+  // info extracted by dihedral_charmmfsw
 
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   if (strcmp(str,"cut_lj_inner") == 0) return (void *) &cut_lj_inner;

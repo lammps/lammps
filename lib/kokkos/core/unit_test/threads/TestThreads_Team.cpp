@@ -40,67 +40,73 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <threads/TestThreads.hpp>
 
 namespace Test {
 
-TEST_F( threads , team_tag )
+TEST_F( threads, team_tag )
 {
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >::test_for(0);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >::test_reduce(0);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(0);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(0);
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >::test_for( 0 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 0 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 0 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 0 );
 
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >::test_for(2);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >::test_reduce(2);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(2);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(2);
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >::test_for( 2 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 2 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 2 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 2 );
 
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >::test_for(1000);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >::test_reduce(1000);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(1000);
-  TestTeamPolicy< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(1000);
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >::test_for( 1000 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 1000 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 1000 );
+  TestTeamPolicy< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 1000 );
 }
 
-TEST_F( threads , team_shared_request) {
-  TestSharedTeam< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >();
-  TestSharedTeam< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >();
+TEST_F( threads, team_shared_request )
+{
+  TestSharedTeam< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >();
+  TestSharedTeam< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-TEST_F( threads, team_scratch_request) {
-  TestScratchTeam< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >();
-  TestScratchTeam< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >();
+TEST_F( threads, team_scratch_request )
+{
+  TestScratchTeam< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >();
+  TestScratchTeam< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-TEST_F( threads , team_lambda_shared_request) {
-  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >();
-  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >();
+#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+TEST_F( threads, team_lambda_shared_request )
+{
+  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >();
+  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 #endif
 
-TEST_F( threads, shmem_size) {
+TEST_F( threads, shmem_size )
+{
   TestShmemSize< Kokkos::Threads >();
 }
 
-TEST_F( threads, multi_level_scratch) {
-  TestMultiLevelScratchTeam< Kokkos::Threads , Kokkos::Schedule<Kokkos::Static> >();
-  TestMultiLevelScratchTeam< Kokkos::Threads , Kokkos::Schedule<Kokkos::Dynamic> >();
+TEST_F( threads, multi_level_scratch )
+{
+  TestMultiLevelScratchTeam< Kokkos::Threads, Kokkos::Schedule<Kokkos::Static> >();
+  TestMultiLevelScratchTeam< Kokkos::Threads, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-TEST_F( threads , team_vector )
+TEST_F( threads, team_vector )
 {
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(0) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(1) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(2) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(3) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(4) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(5) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(6) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(7) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(8) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(9) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >(10) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 0 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 1 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 2 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 3 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 4 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 5 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 6 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 7 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 8 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 9 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Threads >( 10 ) ) );
 }
 
 #ifdef KOKKOS_COMPILER_GNU
@@ -112,11 +118,10 @@ TEST_F( threads , team_vector )
 #ifndef SKIP_TEST
 TEST_F( threads, triple_nested_parallelism )
 {
-  TestTripleNestedReduce< double, Kokkos::Threads >( 8192, 2048 , 32 , 32 );
-  TestTripleNestedReduce< double, Kokkos::Threads >( 8192, 2048 , 32 , 16 );
-  TestTripleNestedReduce< double, Kokkos::Threads >( 8192, 2048 , 16 , 16 );
+  TestTripleNestedReduce< double, Kokkos::Threads >( 8192, 2048, 32, 32 );
+  TestTripleNestedReduce< double, Kokkos::Threads >( 8192, 2048, 32, 16 );
+  TestTripleNestedReduce< double, Kokkos::Threads >( 8192, 2048, 16, 16 );
 }
 #endif
 
-} // namespace test
-
+} // namespace Test

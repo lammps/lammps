@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -52,13 +52,14 @@
 #include <Kokkos_View.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <typeinfo>
 #endif
 
 #include <impl/Kokkos_Tags.hpp>
 #include <impl/Kokkos_Traits.hpp>
+#include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
 #ifdef KOKKOS_DEBUG
@@ -175,7 +176,7 @@ void parallel_for( const ExecPolicy  & policy
                  , typename Impl::enable_if< ! Impl::is_integral< ExecPolicy >::value >::type * = 0
                  )
 {
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
     uint64_t kpID = 0;
      if(Kokkos::Profiling::profileLibraryLoaded()) {
      	Kokkos::Profiling::beginParallelFor("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
@@ -185,10 +186,10 @@ void parallel_for( const ExecPolicy  & policy
     Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
     Impl::ParallelFor< FunctorType , ExecPolicy > closure( functor , policy );
     Kokkos::Impl::shared_allocation_tracking_release_and_enable();
-   
+
    closure.execute();
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
      if(Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::endParallelFor(kpID);
      }
@@ -207,20 +208,20 @@ void parallel_for( const size_t        work_count
       execution_space ;
   typedef RangePolicy< execution_space > policy ;
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
      if(Kokkos::Profiling::profileLibraryLoaded()) {
   	Kokkos::Profiling::beginParallelFor("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
      }
 #endif
-    
+
   Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
   Impl::ParallelFor< FunctorType , policy > closure( functor , policy(0,work_count) );
   Kokkos::Impl::shared_allocation_tracking_release_and_enable();
 
   closure.execute();
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
      if(Kokkos::Profiling::profileLibraryLoaded()) {
 	Kokkos::Profiling::endParallelFor(kpID);
      }
@@ -417,7 +418,7 @@ void parallel_scan( const ExecutionPolicy & policy
                   , typename Impl::enable_if< ! Impl::is_integral< ExecutionPolicy >::value >::type * = 0
                   )
 {
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
      if(Kokkos::Profiling::profileLibraryLoaded()) {
 	Kokkos::Profiling::beginParallelScan("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
@@ -430,7 +431,7 @@ void parallel_scan( const ExecutionPolicy & policy
 
   closure.execute();
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
      if(Kokkos::Profiling::profileLibraryLoaded()) {
 	Kokkos::Profiling::endParallelScan(kpID);
      }
@@ -450,20 +451,20 @@ void parallel_scan( const size_t        work_count
 
   typedef Kokkos::RangePolicy< execution_space > policy ;
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
      if(Kokkos::Profiling::profileLibraryLoaded()) {
 	Kokkos::Profiling::beginParallelScan("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
      }
 #endif
-    
+
   Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
   Impl::ParallelScan< FunctorType , policy > closure( functor , policy(0,work_count) );
   Kokkos::Impl::shared_allocation_tracking_release_and_enable();
 
   closure.execute();
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
      if(Kokkos::Profiling::profileLibraryLoaded()) {
 	Kokkos::Profiling::endParallelScan(kpID);
      }

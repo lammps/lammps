@@ -40,165 +40,162 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <openmp/TestOpenMP.hpp>
 
 namespace Test {
 
-TEST_F( openmp , atomics )
+TEST_F( openmp, atomics )
 {
-  const int loop_count = 1e4 ;
+  const int loop_count = 1e4;
 
-  ASSERT_TRUE( ( TestAtomic::Loop<int,Kokkos::OpenMP>(loop_count,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<int,Kokkos::OpenMP>(loop_count,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<int,Kokkos::OpenMP>(loop_count,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< int, Kokkos::OpenMP >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< int, Kokkos::OpenMP >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< int, Kokkos::OpenMP >( loop_count, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<unsigned int,Kokkos::OpenMP>(loop_count,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<unsigned int,Kokkos::OpenMP>(loop_count,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<unsigned int,Kokkos::OpenMP>(loop_count,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned int, Kokkos::OpenMP >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned int, Kokkos::OpenMP >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned int, Kokkos::OpenMP >( loop_count, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<long int,Kokkos::OpenMP>(loop_count,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<long int,Kokkos::OpenMP>(loop_count,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<long int,Kokkos::OpenMP>(loop_count,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long int, Kokkos::OpenMP >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long int, Kokkos::OpenMP >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long int, Kokkos::OpenMP >( loop_count, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<unsigned long int,Kokkos::OpenMP>(loop_count,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<unsigned long int,Kokkos::OpenMP>(loop_count,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<unsigned long int,Kokkos::OpenMP>(loop_count,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned long int, Kokkos::OpenMP >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned long int, Kokkos::OpenMP >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned long int, Kokkos::OpenMP >( loop_count, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<long long int,Kokkos::OpenMP>(loop_count,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<long long int,Kokkos::OpenMP>(loop_count,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<long long int,Kokkos::OpenMP>(loop_count,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long long int, Kokkos::OpenMP >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long long int, Kokkos::OpenMP >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long long int, Kokkos::OpenMP >( loop_count, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<double,Kokkos::OpenMP>(loop_count,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<double,Kokkos::OpenMP>(loop_count,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<double,Kokkos::OpenMP>(loop_count,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< double, Kokkos::OpenMP >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< double, Kokkos::OpenMP >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< double, Kokkos::OpenMP >( loop_count, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<float,Kokkos::OpenMP>(100,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<float,Kokkos::OpenMP>(100,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<float,Kokkos::OpenMP>(100,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< float, Kokkos::OpenMP >( 100, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< float, Kokkos::OpenMP >( 100, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< float, Kokkos::OpenMP >( 100, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<Kokkos::complex<double> ,Kokkos::OpenMP>(100,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<Kokkos::complex<double> ,Kokkos::OpenMP>(100,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<Kokkos::complex<double> ,Kokkos::OpenMP>(100,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, Kokkos::OpenMP >( 100, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, Kokkos::OpenMP >( 100, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, Kokkos::OpenMP >( 100, 3 ) ) );
 
-  ASSERT_TRUE( ( TestAtomic::Loop<TestAtomic::SuperScalar<4> ,Kokkos::OpenMP>(100,1) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<TestAtomic::SuperScalar<4> ,Kokkos::OpenMP>(100,2) ) );
-  ASSERT_TRUE( ( TestAtomic::Loop<TestAtomic::SuperScalar<4> ,Kokkos::OpenMP>(100,3) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< TestAtomic::SuperScalar<4>, Kokkos::OpenMP >( 100, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< TestAtomic::SuperScalar<4>, Kokkos::OpenMP >( 100, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< TestAtomic::SuperScalar<4>, Kokkos::OpenMP >( 100, 3 ) ) );
 }
 
-TEST_F( openmp , atomic_operations )
+TEST_F( openmp, atomic_operations )
 {
-  const int start = 1; //Avoid zero for division
+  const int start = 1; // Avoid zero for division.
   const int end = 11;
-  for (int i = start; i < end; ++i)
+
+  for ( int i = start; i < end; ++i )
   {
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::OpenMP>(start, end-i, 12 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 9 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 11 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, Kokkos::OpenMP >( start, end - i, 12 ) ) );
 
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::OpenMP>(start, end-i, 12 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 9 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 11 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, Kokkos::OpenMP >( start, end - i, 12 ) ) );
 
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::OpenMP>(start, end-i, 12 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 9 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 11 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, Kokkos::OpenMP >( start, end - i, 12 ) ) );
 
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::OpenMP>(start, end-i, 12 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 9 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 11 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, Kokkos::OpenMP >( start, end - i, 12 ) ) );
 
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::OpenMP>(start, end-i, 12 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 9 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 11 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, Kokkos::OpenMP >( start, end - i, 12 ) ) );
 
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::OpenMP>(start, end-i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::OpenMP>(start, end-i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::OpenMP>(start, end-i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::OpenMP>(start, end-i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, Kokkos::OpenMP >( start, end - i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, Kokkos::OpenMP >( start, end - i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, Kokkos::OpenMP >( start, end - i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, Kokkos::OpenMP >( start, end - i, 4 ) ) );
 
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::OpenMP>(start, end-i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::OpenMP>(start, end-i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::OpenMP>(start, end-i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::OpenMP>(start, end-i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, Kokkos::OpenMP >( start, end - i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, Kokkos::OpenMP >( start, end - i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, Kokkos::OpenMP >( start, end - i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, Kokkos::OpenMP >( start, end - i, 4 ) ) );
   }
-
 }
 
-
-TEST_F( openmp , atomic_views_integral )
+TEST_F( openmp, atomic_views_integral )
 {
   const long length = 1000000;
   {
-    //Integral Types
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType<long, Kokkos::OpenMP>(length, 8 ) ) );
-
+    // Integral Types.
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, Kokkos::OpenMP >( length, 8 ) ) );
   }
 }
 
-TEST_F( openmp , atomic_views_nonintegral )
+TEST_F( openmp, atomic_views_nonintegral )
 {
   const long length = 1000000;
   {
-    //Non-Integral Types
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<double,Kokkos::OpenMP>(length, 4 ) ) );
-
+    // Non-Integral Types.
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<  double, Kokkos::OpenMP >( length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<  double, Kokkos::OpenMP >( length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<  double, Kokkos::OpenMP >( length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType<  double, Kokkos::OpenMP >( length, 4 ) ) );
   }
 }
 
-TEST_F( openmp , atomic_view_api )
+TEST_F( openmp, atomic_view_api )
 {
-  TestAtomicViews::TestAtomicViewAPI<int, Kokkos::OpenMP>();
+  TestAtomicViews::TestAtomicViewAPI<int, Kokkos::OpenMP >();
 }
 
-} // namespace test
-
+} // namespace Test

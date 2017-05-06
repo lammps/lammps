@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="11 Apr 2017 version">
+<META NAME="docnumber" CONTENT="4 May 2017 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-11 Apr 2017 version :c,h4
+4 May 2017 version :c,h4
 
 Version info: :h4
 
@@ -158,12 +158,11 @@ END_RST -->
   2.1 "What's in the LAMMPS distribution"_start_1 :ulb,b
   2.2 "Making LAMMPS"_start_2 :b
   2.3 "Making LAMMPS with optional packages"_start_3 :b
-  2.4 "Building LAMMPS via the Make.py script"_start_4 :b
-  2.5 "Building LAMMPS as a library"_start_5 :b
-  2.6 "Running LAMMPS"_start_6 :b
-  2.7 "Command-line options"_start_7 :b
-  2.8 "Screen output"_start_8 :b
-  2.9 "Tips for users of previous versions"_start_9 :ule,b
+  2.4 "Building LAMMPS as a library"_start_4 :b
+  2.5 "Running LAMMPS"_start_5 :b
+  2.6 "Command-line options"_start_6 :b
+  2.7 "Screen output"_start_7 :b
+  2.8 "Tips for users of previous versions"_start_8 :ule,b
 "Commands"_Section_commands.html :l
   3.1 "LAMMPS input script"_cmd_1 :ulb,b
   3.2 "Parsing rules"_cmd_2 :b

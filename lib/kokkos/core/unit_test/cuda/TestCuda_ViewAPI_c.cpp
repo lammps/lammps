@@ -40,14 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda , impl_view_mapping_c ) {
+TEST_F( cuda, impl_view_mapping_c )
+{
   test_view_mapping< Kokkos::CudaUVMSpace >();
   test_view_mapping_operator< Kokkos::CudaUVMSpace >();
 }
 
-} // namespace test
-
+} // namespace Test

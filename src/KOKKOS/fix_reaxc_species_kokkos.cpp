@@ -23,7 +23,7 @@
 #include "fix_reaxc_species_kokkos.h"
 #include "domain.h"
 #include "update.h"
-#include "pair_reax_c_kokkos.h"
+#include "pair_reaxc_kokkos.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"

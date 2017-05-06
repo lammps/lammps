@@ -55,15 +55,163 @@
 #include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Cuda/Kokkos_Cuda_Vectorization.hpp>
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 namespace Impl {
 
+//----------------------------------------------------------------------------
 
+template< typename T >
+__device__ inline
+void cuda_shfl( T & out , T const & in , int lane ,
+  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
+{
+  *reinterpret_cast<int*>(&out) =
+    __shfl( *reinterpret_cast<int const *>(&in) , lane , width );
+}
 
-//Shfl based reductions
+template< typename T >
+__device__ inline
+void cuda_shfl( T & out , T const & in , int lane ,
+  typename std::enable_if
+    < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
+    , int >::type width )
+{
+  enum : int { N = sizeof(T) / sizeof(int) };
+
+  for ( int i = 0 ; i < N ; ++i ) {
+    reinterpret_cast<int*>(&out)[i] =
+      __shfl( reinterpret_cast<int const *>(&in)[i] , lane , width );
+  }
+}
+
+//----------------------------------------------------------------------------
+
+template< typename T >
+__device__ inline
+void cuda_shfl_down( T & out , T const & in , int delta ,
+  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
+{
+  *reinterpret_cast<int*>(&out) =
+    __shfl_down( *reinterpret_cast<int const *>(&in) , delta , width );
+}
+
+template< typename T >
+__device__ inline
+void cuda_shfl_down( T & out , T const & in , int delta ,
+  typename std::enable_if
+    < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
+    , int >::type width )
+{
+  enum : int { N = sizeof(T) / sizeof(int) };
+
+  for ( int i = 0 ; i < N ; ++i ) {
+    reinterpret_cast<int*>(&out)[i] =
+      __shfl_down( reinterpret_cast<int const *>(&in)[i] , delta , width );
+  }
+}
+
+//----------------------------------------------------------------------------
+
+template< typename T >
+__device__ inline
+void cuda_shfl_up( T & out , T const & in , int delta ,
+  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
+{
+  *reinterpret_cast<int*>(&out) =
+    __shfl_up( *reinterpret_cast<int const *>(&in) , delta , width );
+}
+
+template< typename T >
+__device__ inline
+void cuda_shfl_up( T & out , T const & in , int delta ,
+  typename std::enable_if
+    < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
+    , int >::type width )
+{
+  enum : int { N = sizeof(T) / sizeof(int) };
+
+  for ( int i = 0 ; i < N ; ++i ) {
+    reinterpret_cast<int*>(&out)[i] =
+      __shfl_up( reinterpret_cast<int const *>(&in)[i] , delta , width );
+  }
+}
+
+//----------------------------------------------------------------------------
+/** \brief  Reduce within a warp over blockDim.x, the "vector" dimension.
+ *
+ *  This will be called within a nested, intra-team parallel operation.
+ *  Use shuffle operations to avoid conflicts with shared memory usage.
+ *
+ *  Requires:
+ *    blockDim.x is power of 2
+ *    blockDim.x <= 32 (one warp)
+ *
+ *  Cannot use "butterfly" pattern because floating point
+ *  addition is non-associative.  Therefore, must broadcast
+ *  the final result.
+ */
+template< class Reducer >
+__device__ inline
+void cuda_intra_warp_vector_reduce( Reducer const & reducer )
+{
+  static_assert(
+    std::is_reference< typename Reducer::reference_type >::value , "" );
+
+  if ( 1 < blockDim.x ) {
+
+    typename Reducer::value_type tmp ;
+
+    for ( int i = blockDim.x ; ( i >>= 1 ) ; ) {
+
+      cuda_shfl_down( tmp , reducer.reference() , i , blockDim.x );
+
+      if ( threadIdx.x < i ) { reducer.join( reducer.data() , & tmp ); }
+    }
+
+    // Broadcast from root "lane" to all other "lanes"
+
+    cuda_shfl( reducer.reference() , reducer.reference() , 0 , blockDim.x );
+  }
+}
+
+/** \brief  Inclusive scan over blockDim.x, the "vector" dimension.
+ *
+ *  This will be called within a nested, intra-team parallel operation.
+ *  Use shuffle operations to avoid conflicts with shared memory usage.
+ *
+ *  Algorithm is concurrent bottom-up reductions in triangular pattern
+ *  where each CUDA thread is the root of a reduction tree from the
+ *  zeroth CUDA thread to itself.
+ *
+ *  Requires:
+ *    blockDim.x is power of 2
+ *    blockDim.x <= 32 (one warp)
+ */
+template< typename ValueType >
+__device__ inline
+void cuda_intra_warp_vector_inclusive_scan( ValueType & local )
+{
+  ValueType tmp ;
+
+  // Bottom up:
+  //   [t] += [t-1] if t >= 1
+  //   [t] += [t-2] if t >= 2
+  //   [t] += [t-4] if t >= 4
+  // ...
+
+  for ( int i = 1 ; i < blockDim.x ; i <<= 1 ) {
+
+    cuda_shfl_up( tmp , local , i , blockDim.x );
+
+    if ( i <= threadIdx.x ) { local += tmp ; }
+  }
+}
+
+//----------------------------------------------------------------------------
 /*
  *  Algorithmic constraints:
  *   (a) threads with same threadIdx.y have same value
@@ -98,7 +246,10 @@ inline void cuda_inter_warp_reduction( ValueType& value,
                                        const int max_active_thread = blockDim.y) {
 
   #define STEP_WIDTH 4
-  __shared__ char sh_result[sizeof(ValueType)*STEP_WIDTH];
+  // Depending on the ValueType _shared__ memory must be aligned up to 8byte boundaries
+  // The reason not to use ValueType directly is that for types with constructors it 
+  // could lead to race conditions
+  __shared__ double sh_result[(sizeof(ValueType)+7)/8*STEP_WIDTH];
   ValueType* result = (ValueType*) & sh_result;
   const unsigned step = 32 / blockDim.x;
   unsigned shift = STEP_WIDTH;

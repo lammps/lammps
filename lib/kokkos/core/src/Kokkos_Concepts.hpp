@@ -102,6 +102,7 @@ KOKKOS_IMPL_IS_CONCEPT( memory_traits )
 KOKKOS_IMPL_IS_CONCEPT( execution_space )
 KOKKOS_IMPL_IS_CONCEPT( execution_policy )
 KOKKOS_IMPL_IS_CONCEPT( array_layout )
+KOKKOS_IMPL_IS_CONCEPT( reducer )
 
 namespace Impl {
 

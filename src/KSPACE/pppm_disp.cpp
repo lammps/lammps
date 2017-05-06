@@ -380,18 +380,18 @@ void PPPMDisp::init()
     alpha = qdist / (cos(0.5*theta) * blen);
   }
 
+  //if g_ewald and g_ewald_6 have not been specified, set some initial value
+  //  to avoid problems when calculating the energies!
+
+  if (!gewaldflag) g_ewald = 1;
+  if (!gewaldflag_6) g_ewald_6 = 1;
+
   // initialize the pair style to get the coefficients
 
   neighrequest_flag = 0;
   pair->init();
   neighrequest_flag = 1;
   init_coeffs();
-
-  //if g_ewald and g_ewald_6 have not been specified, set some initial value
-  //  to avoid problems when calculating the energies!
-
-  if (!gewaldflag) g_ewald = 1;
-  if (!gewaldflag_6) g_ewald_6 = 1;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 

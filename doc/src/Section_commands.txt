@@ -1052,7 +1052,7 @@ package"_Section_start.html#start_3.
 "oxdna2/excv"_pair_oxdna2.html,
 "oxdna2/stk"_pair_oxdna2.html,
 "quip"_pair_quip.html,
-"reax/c (k)"_pair_reax_c.html,
+"reax/c (k)"_pair_reaxc.html,
 "smd/hertz"_pair_smd_hertz.html,
 "smd/tlsph"_pair_smd_tlsph.html,
 "smd/triangulated/surface"_pair_smd_triangulated_surface.html,

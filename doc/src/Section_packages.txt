@@ -10,1701 +10,2236 @@ Section"_Section_accelerate.html :c
 
 4. Packages :h3
 
-This section gives an overview of the add-on optional packages that
-extend LAMMPS functionality.  Packages are groups of files that enable
-a specific set of features.  For example, force fields for molecular
-systems or granular systems are in packages.  You can see the list of
-all packages by typing "make package" from within the src directory of
-the LAMMPS distribution.
+This section gives an overview of the optional packages that extend
+LAMMPS functionality with instructions on how to build LAMMPS with
+each of them.  Packages are groups of files that enable a specific set
+of features.  For example, force fields for molecular systems or
+granular systems are in packages.  You can see the list of all
+packages and "make" commands to manage them by typing "make package"
+from within the src directory of the LAMMPS distribution.  "Section
+2.3"_Section_start.html#start_3 gives general info on how to install
+and un-install packages as part of the LAMMPS build process.
 
-Here are links for two tables below, which list standard and user
-packages.
+There are two kinds of packages in LAMMPS, standard and user packages:
 
-4.1 "Standard packages"_#pkg_1
-4.2 "User packages"_#pkg_2 :all(b)
+"Table of standard packages"_#table_standard
+"Table of user packages"_#table_user :ul
 
-"Section 2.3"_Section_start.html#start_3 of the manual describes
-the difference between standard packages and user packages.  It also
-has general details on how to include/exclude specific packages as
-part of the LAMMPS build process, and on how to build auxiliary
-libraries or modify a machine Makefile if a package requires it.
+Standard packages are supported by the LAMMPS developers and are
+written in a syntax and style consistent with the rest of LAMMPS.
+This means the developers will answer questions about them, debug and
+fix them if necessary, and keep them compatible with future changes to
+LAMMPS.
 
-Following the two tables below, is a sub-section for each package.  It
-has a summary of what the package contains.  It has specific
-instructions on how to install it, build or obtain any auxiliary
-library it requires, and any Makefile.machine changes it requires.  It
-also lists pointers to examples of its use or documentation provided
-in the LAMMPS distribution.  If you want to know the complete list of
-commands that a package adds to LAMMPS, simply list the files in its
-directory, e.g. "ls src/GRANULAR".  Source files with names that start
-with compute, fix, pair, bond, etc correspond to command styles with
-the same names.
+User packages have been contributed by users, and begin with the
+"user" prefix.  If they are a single command (single file), they are
+typically in the user-misc package.  User packages don't necessarily
+meet the requirements of the standard packages.  If you have problems
+using a feature provided in a user package, you may need to contact
+the contributor directly to get help.  Information on how to submit
+additions you make to LAMMPS as single files or as a standard or user
+package are given in "this section"_Section_modify.html#mod_15 of the
+manual.
 
-NOTE: The USER package sub-sections below are still being filled in,
-as of March 2016.
+Following the next two tables is a sub-section for each package.  It
+lists authors (if applicable) and summarizes the package contents.  It
+has specific instructions on how to install the package, including (if
+necessary) downloading or building any extra library it requires. It
+also gives links to documentation, example scripts, and
+pictures/movies (if available) that illustrate use of the package.
 
-Unless otherwise noted below, every package is independent of all the
-others.  I.e. any package can be included or excluded in a LAMMPS
-build, independent of all other packages.  However, note that some
-packages include commands derived from commands in other packages.  If
-the other package is not installed, the derived command from the new
-package will also not be installed when you include the new one.
-E.g. the pair lj/cut/coul/long/omp command from the USER-OMP package
-will not be installed as part of the USER-OMP package if the KSPACE
-package is not also installed, since it contains the pair
-lj/cut/coul/long command.  If you later install the KSPACE package and
-the USER-OMP package is already installed, both the pair
-lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.
+NOTE: To see the complete list of commands a package adds to LAMMPS,
+just look at the files in its src directory, e.g. "ls src/GRANULAR".
+Files with names that start with fix, compute, atom, pair, bond,
+angle, etc correspond to commands with the same style names.
 
-:line
+In these two tables, the "Example" column is a sub-directory in the
+examples directory of the distribution which has an input script that
+uses the package.  E.g. "peptide" refers to the examples/peptide
+directory; USER/atc refers to the examples/USER/atc directory.  The
+"Library" column indicates whether an extra library is needed to build
+and use the package:
 
-4.1 Standard packages :h4,link(pkg_1)
-
-The current list of standard packages is as follows.  Each package
-name links to a sub-section below with more details.
-
-Package, Description, Author(s), Doc page, Example, Library
-"ASPHERE"_#ASPHERE, aspherical particles, -, "Section 6.6.14"_Section_howto.html#howto_14, ellipse, -
-"BODY"_#BODY, body-style particles, -, "body"_body.html, body, -
-"CLASS2"_#CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
-"COLLOID"_#COLLOID, colloidal particles, Kumar (1), "atom_style colloid"_atom_style.html, colloid, -
-"COMPRESS"_#COMPRESS, I/O compression, Axel Kohlmeyer (Temple U), "dump */gz"_dump.html, -, -
-"CORESHELL"_#CORESHELL, adiabatic core/shell model, Hendrik Heenen (Technical U of Munich), "Section 6.6.25"_Section_howto.html#howto_25, coreshell, -
-"DIPOLE"_#DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
-"GPU"_#GPU, GPU-enabled styles, Mike Brown (ORNL), "Section 5.3.1"_accelerate_gpu.html, gpu, lib/gpu
-"GRANULAR"_#GRANULAR, granular systems, -, "Section 6.6.6"_Section_howto.html#howto_6, pour, -
-"KIM"_#KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, KIM
-"KOKKOS"_#KOKKOS, Kokkos-enabled styles, Trott & Moore (4), "Section 5.3.3"_accelerate_kokkos.html, kokkos, lib/kokkos
-"KSPACE"_#KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
-"MANYBODY"_#MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
-"MEAM"_#MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
-"MC"_#MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
-"MOLECULE"_#MOLECULE, molecular system force fields, -, "Section 6.6.3"_Section_howto.html#howto_3, peptide, -
-"OPT"_#OPT, optimized pair styles, Fischer & Richie & Natoli (2), "Section 5.3.5"_accelerate_opt.html, -, -
-"PERI"_#PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
-"POEMS"_#POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
-"PYTHON"_#PYTHON, embed Python code in an input script, -, "python"_python.html, python, lib/python
-"REAX"_#REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax, lib/reax
-"REPLICA"_#REPLICA, multi-replica methods, -, "Section 6.6.5"_Section_howto.html#howto_5, tad, -
-"RIGID"_#RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
-"SHOCK"_#SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
-"SNAP"_#SNAP, quantum-fit potential, Aidan Thompson (Sandia), "pair snap"_pair_snap.html, snap, -
-"SRD"_#SRD, stochastic rotation dynamics, -, "fix srd"_fix_srd.html, srd, -
-"VORONOI"_#VORONOI, Voronoi tesselations, Daniel Schwen (LANL), "compute voronoi/atom"_compute_voronoi_atom.html, -, Voro++
-:tb(ea=c)
-
-The "Authors" column lists a name(s) if a specific person is
-responsible for creating and maintaining the package.
-
-(1) The COLLOID package includes Fast Lubrication Dynamics pair styles
-which were created by Amit Kumar and Michael Bybee from Jonathan
-Higdon's group at UIUC.
-
-(2) The OPT package was created by James Fischer (High Performance
-Technologies), David Richie, and Vincent Natoli (Stone Ridge
-Technolgy).
-
-(3) The KIM package was created by Valeriu Smirichinski, Ryan Elliott,
-and Ellad Tadmor (U Minn).
-
-(4) The KOKKOS package was created primarily by Christian Trott and
-Stan Moore (Sandia).  It uses the Kokkos library which was developed
-by Carter Edwards, Christian Trott, and others at Sandia.
-
-The "Doc page" column links to either a sub-section of the
-"Section 6"_Section_howto.html of the manual, or an input script
-command implemented as part of the package, or to additional
-documentation provided within the package.
-
-The "Example" column is a sub-directory in the examples directory of
-the distribution which has an input script that uses the package.
-E.g. "peptide" refers to the examples/peptide directory.
-
-The "Library" column lists an external library which must be built
-first and which LAMMPS links to when it is built.  If it is listed as
-lib/package, then the code for the library is under the lib directory
-of the LAMMPS distribution.  See the lib/package/README file for info
-on how to build the library.  If it is not listed as lib/package, then
-it is a third-party library not included in the LAMMPS distribution.
-See details on all of this below for individual packages.
+dash = no library
+sys = system library: you likely have it on your machine
+int = internal library: provided with LAMMPS, but you may need to build it
+ext = external library: you will need to download and install it on your machine :ul
 
 :line
+:line
 
-ASPHERE package :link(ASPHERE),h5
+[Standard packages] :link(table_standard),p
 
-Contents: Several computes, time-integration fixes, and pair styles
-for aspherical particle models: ellipsoids, 2d lines, 3d triangles.
+Package, Description, Doc page, Example, Library
+"ASPHERE"_#ASPHERE, aspherical particle models, "Section 6.6.14"_Section_howto.html#howto_14, ellipse, -
+"BODY"_#BODY, body-style particles, "body"_body.html, body, -
+"CLASS2"_#CLASS2, class 2 force fields, "pair_style lj/class2"_pair_class2.html, -, -
+"COLLOID"_#COLLOID, colloidal particles, "atom_style colloid"_atom_style.html, colloid, -
+"COMPRESS"_#COMPRESS, I/O compression, "dump */gz"_dump.html, -, sys
+"CORESHELL"_#CORESHELL, adiabatic core/shell model, "Section 6.6.25"_Section_howto.html#howto_25, coreshell, -
+"DIPOLE"_#DIPOLE, point dipole particles, "pair_style dipole/cut"_pair_dipole.html, dipole, -
+"GPU"_#GPU, GPU-enabled styles, "Section 5.3.1"_accelerate_gpu.html, WWW bench, int
+"GRANULAR"_#GRANULAR, granular systems, "Section 6.6.6"_Section_howto.html#howto_6, pour, -
+"KIM"_#KIM, openKIM wrapper, "pair_style kim"_pair_kim.html, kim, ext
+"KOKKOS"_#KOKKOS, Kokkos-enabled styles, "Section 5.3.3"_accelerate_kokkos.html, WWW bench, -
+"KSPACE"_#KSPACE, long-range Coulombic solvers, "kspace_style"_kspace_style.html, peptide, -
+"MANYBODY"_#MANYBODY, many-body potentials, "pair_style tersoff"_pair_tersoff.html, shear, -
+"MC"_#MC, Monte Carlo options, "fix gcmc"_fix_gcmc.html, -, -
+"MEAM"_#MEAM, modified EAM potential, "pair_style meam"_pair_meam.html, meam, int
+"MISC"_#MISC, miscellanous single-file commands, -, -, -
+"MOLECULE"_#MOLECULE, molecular system force fields, "Section 6.6.3"_Section_howto.html#howto_3, peptide, -
+"MPIIO"_#MPIIO, MPI parallel I/O dump and restart, "dump"_dump.html, -, -
+"MSCG"_#MSCG, multi-scale coarse-graining wrapper, "fix mscg"_fix_mscg.html, mscg, ext
+"OPT"_#OPT, optimized pair styles, "Section 5.3.5"_accelerate_opt.html, WWW bench, -
+"PERI"_#PERI, Peridynamics models, "pair_style peri"_pair_peri.html, peri, -
+"POEMS"_#POEMS, coupled rigid body motion, "fix poems"_fix_poems.html, rigid, int
+"PYTHON"_#PYTHON, embed Python code in an input script, "python"_python.html, python, sys
+"QEQ"_#QEQ, QEq charge equilibration, "fix qeq"_fix_qeq.html, qeq, -
+"REAX"_#REAX, ReaxFF potential (Fortran), "pair_style reax"_pair_reax.html, reax, int
+"REPLICA"_#REPLICA, multi-replica methods, "Section 6.6.5"_Section_howto.html#howto_5, tad, -
+"RIGID"_#RIGID, rigid bodies and constraints, "fix rigid"_fix_rigid.html, rigid, -
+"SHOCK"_#SHOCK, shock loading methods, "fix msst"_fix_msst.html, -, -
+"SNAP"_#SNAP, quantum-fitted potential, "pair snap"_pair_snap.html, snap, -
+"SRD"_#SRD, stochastic rotation dynamics, "fix srd"_fix_srd.html, srd, -
+"VORONOI"_#VORONOI, Voronoi tesselation, "compute voronoi/atom"_compute_voronoi_atom.html, -, ext
+:tb(ea=c,ca1=l)
 
-To install via make or Make.py:
+[USER packages] :link(table_user),p
+
+Package, Description, Doc page, Example, Library
+"USER-ATC"_#USER-ATC, atom-to-continuum coupling, "fix atc"_fix_atc.html, USER/atc, int
+"USER-AWPMD"_#USER-AWPMD, wave-packet MD, "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, int
+"USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, src/USER-CGDNA/README, USER/cgdna, -
+"USER-CGSDK"_#USER-CGSDK, SDK coarse-graining model, "pair_style lj/sdk"_pair_sdk.html, USER/cgsdk, -
+"USER-COLVARS"_#USER-COLVARS, collective variables library, "fix colvars"_fix_colvars.html, USER/colvars, int
+"USER-DIFFRACTION"_#USER-DIFFRACTION, virtual x-ray and electron diffraction,"compute xrd"_compute_xrd.html, USER/diffraction, -
+"USER-DPD"_#USER-DPD, reactive dissipative particle dynamics, src/USER-DPD/README, USER/dpd, -
+"USER-DRUDE"_#USER-DRUDE, Drude oscillators, "tutorial"_tutorial_drude.html, USER/drude, -
+"USER-EFF"_#USER-EFF, electron force field,"pair_style eff/cut"_pair_eff.html, USER/eff, -
+"USER-FEP"_#USER-FEP, free energy perturbation,"compute fep"_compute_fep.html, USER/fep, -
+"USER-H5MD"_#USER-H5MD, dump output via HDF5,"dump h5md"_dump_h5md.html, -, ext
+"USER-INTEL"_#USER-INTEL, optimized Intel CPU and KNL styles,"Section 5.3.2"_accelerate_intel.html, WWW bench, -
+"USER-LB"_#USER-LB, Lattice Boltzmann fluid,"fix lb/fluid"_fix_lb_fluid.html, USER/lb, -
+"USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, -
+"USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
+"USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
+"USER-MOLFILE"_#USER-MOLFILE, "VMD"_VMD molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
+"USER-NETCDF"_#USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, -, ext
+"USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, WWW bench, -
+"USER-PHONON"_#USER-PHONON, phonon dynamical matrix,"fix phonon"_fix_phonon.html, USER/phonon, -
+"USER-QMMM"_#USER-QMMM, QM/MM coupling,"fix qmmm"_fix_qmmm.html, USER/qmmm, ext
+"USER-QTB"_#USER-QTB, quantum nuclear effects,"fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, -
+"USER-QUIP"_#USER-QUIP, QUIP/libatoms interface,"pair_style quip"_pair_quip.html, USER/quip, ext
+"USER-REAXC"_#USER-REAXC, ReaxFF potential (C/C++) ,"pair_style reaxc"_pair_reaxc.html, reax, -
+"USER-SMD"_#USER-SMD, smoothed Mach dynamics,"SMD User Guide"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, ext
+"USER-SMTBQ"_#USER-SMTBQ, second moment tight binding QEq potential,"pair_style smtbq"_pair_smtbq.html, USER/smtbq, -
+"USER-SPH"_#USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, -
+"USER-TALLY"_#USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, -
+"USER-VTK"_#USER-VTK, dump output via VTK, "compute custom/vtk"_dump_custom_vtk.html, -, ext
+:tb(ea=c,ca1=l)
+
+:line
+:line
+
+ASPHERE package :link(ASPHERE),h4
+
+[Contents:]
+
+Computes, time-integration fixes, and pair styles for aspherical
+particle models including ellipsoids, 2d lines, and 3d triangles.
+
+[Install or un-install:]
 
 make yes-asphere
 make machine :pre
 
-Make.py -p asphere -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-asphere
 make machine :pre
 
-Make.py -p ^asphere -a machine :pre
+[Supporting info:]
 
-Supporting info: "Section 6.14"_Section_howto.html#howto_14,
-"pair_style gayberne"_pair_gayberne.html, "pair_style
-resquared"_pair_resquared.html,
-"doc/PDF/pair_gayberne_extra.pdf"_PDF/pair_gayberne_extra.pdf,
-"doc/PDF/pair_resquared_extra.pdf"_PDF/pair_resquared_extra.pdf,
-examples/ASPHERE, examples/ellipse
+src/ASPHERE: filenames -> commands
+"Section 6.14"_Section_howto.html#howto_14
+"pair_style gayberne"_pair_gayberne.html
+"pair_style resquared"_pair_resquared.html
+"doc/PDF/pair_gayberne_extra.pdf"_PDF/pair_gayberne_extra.pdf
+"doc/PDF/pair_resquared_extra.pdf"_PDF/pair_resquared_extra.pdf
+examples/ASPHERE
+examples/ellipse
+http://lammps.sandia.gov/movies.html#line
+http://lammps.sandia.gov/movies.html#tri :ul
 
 :line
 
-BODY package :link(BODY),h5
+BODY package :link(BODY),h4
 
-Contents: Support for body-style particles.  Computes,
+[Contents:]
+
+Body-style particles with internal structure.  Computes,
 time-integration fixes, pair styles, as well as the body styles
 themselves.  See the "body"_body.html doc page for an overview.
 
-To install via make or Make.py:
+[Install or un-install:]
 
 make yes-body
 make machine :pre
 
-Make.py -p body -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-body
 make machine :pre
 
-Make.py -p ^body -a machine :pre
+[Supporting info:]
 
-Supporting info: "atom_style body"_atom_style.html, "body"_body.html,
-"pair_style body"_pair_body.html, examples/body
+src/BODY filenames -> commands
+"body"_body.html
+"atom_style body"_atom_style.html
+"fix nve/body"_fix_nve_body.html
+"pair_style body"_pair_body.html
+examples/body :ul
 
 :line
 
-CLASS2 package :link(CLASS2),h5
+CLASS2 package :link(CLASS2),h4
 
-Contents: Bond, angle, dihedral, improper, and pair styles for the
-COMPASS CLASS2 molecular force field.
+[Contents:]
 
-To install via make or Make.py:
+Bond, angle, dihedral, improper, and pair styles for the COMPASS
+CLASS2 molecular force field.
+
+[Install or un-install:]
 
 make yes-class2
 make machine :pre
 
-Make.py -p class2 -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-class2
 make machine :pre
 
-Make.py -p ^class2 -a machine :pre
+[Supporting info:]
 
-Supporting info: "bond_style class2"_bond_class2.html, "angle_style
-class2"_angle_class2.html, "dihedral_style
-class2"_dihedral_class2.html, "improper_style
-class2"_improper_class2.html, "pair_style lj/class2"_pair_class2.html
+src/CLASS2: filenames -> commands
+"bond_style class2"_bond_class2.html
+"angle_style class2"_angle_class2.html
+"dihedral_style class2"_dihedral_class2.html
+"improper_style class2"_improper_class2.html
+"pair_style lj/class2"_pair_class2.html :ul
 
 :line
 
-COLLOID package :link(COLLOID),h5
+COLLOID package :link(COLLOID),h4
 
-Contents: Support for coarse-grained colloidal particles.  Wall fix
-and pair styles that implement colloidal interaction models for
-finite-size particles.  This includes the Fast Lubrication Dynamics
-method for hydrodynamic interactions, which is a simplified
-approximation to Stokesian dynamics.
+[Contents:]
 
-To install via make or Make.py:
+Coarse-grained finite-size colloidal particles.  Pair stayle and fix
+wall styles for colloidal interactions.  Includes the Fast Lubrication
+Dynamics (FLD) method for hydrodynamic interactions, which is a
+simplified approximation to Stokesian dynamics.
+
+[Authors:] This package includes Fast Lubrication Dynamics pair styles
+which were created by Amit Kumar and Michael Bybee from Jonathan
+Higdon's group at UIUC.
+
+[Install or un-install:]
 
 make yes-colloid
 make machine :pre
 
-Make.py -p colloid -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-colloid
 make machine :pre
 
-Make.py -p ^colloid -a machine :pre
+[Supporting info:]
 
-Supporting info: "fix wall/colloid"_fix_wall.html, "pair_style
-colloid"_pair_colloid.html, "pair_style
-yukawa/colloid"_pair_yukawa_colloid.html, "pair_style
-brownian"_pair_brownian.html, "pair_style
-lubricate"_pair_lubricate.html, "pair_style
-lubricateU"_pair_lubricateU.html, examples/colloid, examples/srd
+src/COLLOID: filenames -> commands
+"fix wall/colloid"_fix_wall.html
+"pair_style colloid"_pair_colloid.html
+"pair_style yukawa/colloid"_pair_yukawa_colloid.html
+"pair_style brownian"_pair_brownian.html
+"pair_style lubricate"_pair_lubricate.html
+"pair_style lubricateU"_pair_lubricateU.html
+examples/colloid
+examples/srd :ul
 
 :line
 
-COMPRESS package :link(COMPRESS),h5
+COMPRESS package :link(COMPRESS),h4
 
-Contents: Support for compressed output of dump files via the zlib
-compression library, using dump styles with a "gz" in their style
-name.
+[Contents:]
 
-Building with the COMPRESS package assumes you have the zlib
-compression library available on your system.  The build uses the
-lib/compress/Makefile.lammps file in the compile/link process.  You
-should only need to edit this file if the LAMMPS build cannot find the
-zlib info it specifies.
+Compressed output of dump files via the zlib compression library,
+using dump styles with a "gz" in their style name.
 
-To install via make or Make.py:
+To use this package you must have the zlib compression library
+available on your system.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Install or un-install:]
+
+Note that building with this package assumes you have the zlib
+compression library available on your system.  The LAMMPS build uses
+the settings in the lib/compress/Makefile.lammps file in the
+compile/link process.  You should only need to edit this file if the
+LAMMPS build fails on your system.
 
 make yes-compress
 make machine :pre
 
-Make.py -p compress -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-compress
 make machine :pre
 
-Make.py -p ^compress -a machine :pre
+[Supporting info:]
 
-Supporting info: src/COMPRESS/README, lib/compress/README, "dump
-atom/gz"_dump.html, "dump cfg/gz"_dump.html, "dump
-custom/gz"_dump.html, "dump xyz/gz"_dump.html
+src/COMPRESS: filenames -> commands
+src/COMPRESS/README
+lib/compress/README
+"dump atom/gz"_dump.html
+"dump cfg/gz"_dump.html
+"dump custom/gz"_dump.html
+"dump xyz/gz"_dump.html :ul
 
 :line
 
-CORESHELL package :link(CORESHELL),h5
+CORESHELL package :link(CORESHELL),h4
 
-Contents: Compute and pair styles that implement the adiabatic
-core/shell model for polarizability.  The compute temp/cs command
-measures the temperature of a system with core/shell particles.  The
-pair styles augment Born, Buckingham, and Lennard-Jones styles with
-core/shell capabilities.  See "Section 6.26"_Section_howto.html#howto_26
-for an overview of how to use the package.
+[Contents:]
 
-To install via make or Make.py:
+Compute and pair styles that implement the adiabatic core/shell model
+for polarizability.  The pair styles augment Born, Buckingham, and
+Lennard-Jones styles with core/shell capabilities.  The "compute
+temp/cs"_compute_temp_cs.html command calculates the temperature of a
+system with core/shell particles.  See "Section
+6.26"_Section_howto.html#howto_26 for an overview of how to use this
+package.
+
+[Author:] Hendrik Heenen (Technical U of Munich).
+
+[Install or un-install:]
 
 make yes-coreshell
 make machine :pre
 
-Make.py -p coreshell -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-coreshell
 make machine :pre
 
-Make.py -p ^coreshell -a machine :pre
+[Supporting info:]
 
-Supporting info: "Section 6.26"_Section_howto.html#howto_26,
-"compute temp/cs"_compute_temp_cs.html,
-"pair_style born/coul/long/cs"_pair_cs.html, "pair_style
-buck/coul/long/cs"_pair_cs.html, pair_style
-lj/cut/coul/long/cs"_pair_lj.html, examples/coreshell
+src/CORESHELL: filenames -> commands
+"Section 6.26"_Section_howto.html#howto_26
+"Section 6.25"_Section_howto.html#howto_25
+"compute temp/cs"_compute_temp_cs.html
+"pair_style born/coul/long/cs"_pair_cs.html
+"pair_style buck/coul/long/cs"_pair_cs.html
+"pair_style lj/cut/coul/long/cs"_pair_lj.html
+examples/coreshell :ul
 
 :line
 
-DIPOLE package :link(DIPOLE),h5
+DIPOLE package :link(DIPOLE),h4
 
-Contents: An atom style and several pair styles to support point
-dipole models with short-range or long-range interactions.
+[Contents:]
 
-To install via make or Make.py:
+An atom style and several pair styles for point dipole models with
+short-range or long-range interactions.
+
+[Install or un-install:]
 
 make yes-dipole
 make machine :pre
 
-Make.py -p dipole -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-dipole
 make machine :pre
 
-Make.py -p ^dipole -a machine :pre
+[Supporting info:]
 
-Supporting info: "atom_style dipole"_atom_style.html, "pair_style
-lj/cut/dipole/cut"_pair_dipole.html, "pair_style
-lj/cut/dipole/long"_pair_dipole.html, "pair_style
-lj/long/dipole/long"_pair_dipole.html, examples/dipole
+src/DIPOLE: filenames -> commands
+"atom_style dipole"_atom_style.html
+"pair_style lj/cut/dipole/cut"_pair_dipole.html
+"pair_style lj/cut/dipole/long"_pair_dipole.html
+"pair_style lj/long/dipole/long"_pair_dipole.html
+examples/dipole :ul
 
 :line
 
-GPU package :link(GPU),h5
+GPU package :link(GPU),h4
 
-Contents: Dozens of pair styles and a version of the PPPM long-range
-Coulombic solver for NVIDIA GPUs.  All of them have a "gpu" in their
-style name.  "Section 5.3.1"_accelerate_gpu.html gives
+[Contents:]
+
+Dozens of pair styles and a version of the PPPM long-range Coulombic
+solver optimized for NVIDIA GPUs.  All such styles have a "gpu" as a
+suffix in their style name.  "Section 5.3.1"_accelerate_gpu.html gives
 details of what hardware and Cuda software is required on your system,
-and how to build and use this package.  See the KOKKOS package, which
-also has GPU-enabled styles.
+and details on how to build and use this package.  Its styles can be
+invoked at run time via the "-sf gpu" or "-suffix gpu" "command-line
+switches"_Section_start.html#start_7.  See also the "KOKKOS"_#KOKKOS
+package, which has GPU-enabled styles.
 
-Building LAMMPS with the GPU package requires first building the GPU
-library itself, which is a set of C and Cuda files in lib/gpu.
-Details of how to do this are in lib/gpu/README.  As illustrated
-below, perform a "make" using one of the Makefile.machine files in
-lib/gpu which should create a lib/reax/libgpu.a file.
-Makefile.linux.* and Makefile.xk7 are examples for different
-platforms.  There are 3 important settings in the Makefile.machine you
-use:
+[Authors:] Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
+(Northwestern U) while at ORNL.
+
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first build the GPU
+library in lib/gpu from a set of provided C and Cuda files.  You can
+do this manually if you prefer; follow the instructions in
+lib/gpu/README.  You can also do it in one step from the lammps/src
+dir, using a command like these, which simply invoke the
+lib/gpu/Install.py script with the specified args:
+
+make lib-gpu                                # print help message
+make lib-gpu args="-m"                      # build GPU library with default Makefile.linux
+make lib-gpu args="-i xk7 -p single -o xk7.single"      # create new Makefile.xk7.single, altered for single-precision
+make lib-gpu args="-i xk7 -p single -o xk7.single -m"   # ditto, also build GPU library
+
+Note that this procedure starts with one of the existing
+Makefile.machine files in lib/gpu.  It allows you to alter 4 important
+settings in that Makefile, via the -h, -a, -p, -e switches,
+and save the new Makefile, if desired:
 
 CUDA_HOME = where NVIDIA Cuda software is installed on your system
-CUDA_ARCH = appropriate to your GPU hardware
-CUDA_PREC = precision (double, mixed, single) you desire :ul
+CUDA_ARCH = what GPU hardware you have (see help message for details)
+CUDA_PRECISION = precision (double, mixed, single)
+EXTRAMAKE = which Makefile.lammps.* file to copy to Makefile.lammps :ul
 
-See example Makefile.machine files in lib/gpu for the syntax of these
-settings.  See lib/gpu/Makefile.linux.double for ARCH settings for
-various NVIDIA GPUs.  The "make" also creates a
-lib/gpu/Makefile.lammps file.  This file has settings that enable
-LAMMPS to link with Cuda libraries.  If the settings in
-Makefile.lammps for your machine are not correct, the LAMMPS link will
-fail.  Note that the Make.py script has a "-gpu" option to allow the
-GPU library (with several of its options) and LAMMPS to be built in
-one step, with Type "python src/Make.py -h -gpu" to see the details.
+If the library build is successful, 2 files should be created:
+lib/gpu/libgpu.a and lib/gpu/Makefile.lammps.  The latter has settings
+that enable LAMMPS to link with Cuda libraries.  If the settings in
+Makefile.lammps for your machine are not correct, the LAMMPS build
+will fail.
 
-To install via make or Make.py:
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
 
-cd ~/lammps/lib/gpu
-make -f Makefile.linux.mixed     # for example
-cd ~/lammps/src
 make yes-gpu
 make machine :pre
-
-Make.py -p gpu -gpu mode=mixed arch=35 -a machine :pre
-
-To un-install via make or Make.py:
 
 make no-gpu
 make machine :pre
 
-Make.py -p ^gpu -a machine :pre
+NOTE: If you re-build the GPU library in lib/gpu, you should always
+un-install the GPU package, then re-install it and re-build LAMMPS.
+This is because the compilation of files in the GPU package use the
+library settings from the lib/gpu/Makefile.machine used to build the
+GPU library.
 
-Supporting info: src/GPU/README, lib/gpu/README,
-"Section 5.3"_Section_accelerate.html#acc_3,
-"Section 5.3.1"_accelerate_gpu.html,
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5
-for any pair style listed with a (g),
-"kspace_style"_kspace_style.html, "package gpu"_package.html,
-examples/accelerate, bench/FERMI, bench/KEPLER
+[Supporting info:]
+
+src/GPU: filenames -> commands
+src/GPU/README
+lib/gpu/README
+"Section 5.3"_Section_accelerate.html#acc_3
+"Section 5.3.1"_accelerate_gpu.html
+"Section 2.7 -sf gpu"_Section_start.html#start_7
+"Section 2.7 -pk gpu"_Section_start.html#start_7
+"package gpu"_package.html
+Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (g)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
 
-GRANULAR package :link(GRANULAR),h5
+GRANULAR package :link(GRANULAR),h4
 
-Contents: Fixes and pair styles that support models of finite-size
-granular particles, which interact with each other and boundaries via
-frictional and dissipative potentials.
+[Contents:]
 
-To install via make or Make.py:
+Pair styles and fixes for finite-size granular particles, which
+interact with each other and boundaries via frictional and dissipative
+potentials.
+
+[Install or un-install:]
 
 make yes-granular
 make machine :pre
 
-Make.py -p granular -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-granular
 make machine :pre
 
-Make.py -p ^granular -a machine :pre
+[Supporting info:]
 
-Supporting info: "Section 6.6"_Section_howto.html#howto_6, "fix
-pour"_fix_pour.html, "fix wall/gran"_fix_wall_gran.html, "pair_style
-gran/hooke"_pair_gran.html, "pair_style
-gran/hertz/history"_pair_gran.html, examples/pour, bench/in.chute
+src/GRANULAR: filenames -> commands
+"Section 6.6"_Section_howto.html#howto_6,
+"fix pour"_fix_pour.html
+"fix wall/gran"_fix_wall_gran.html
+"pair_style gran/hooke"_pair_gran.html
+"pair_style gran/hertz/history"_pair_gran.html
+examples/granregion
+examples/pour
+bench/in.chute
+http://lammps.sandia.gov/pictures.html#jamming
+http://lammps.sandia.gov/movies.html#hopper
+http://lammps.sandia.gov/movies.html#dem
+http://lammps.sandia.gov/movies.html#brazil
+http://lammps.sandia.gov/movies.html#granregion :ul
 
 :line
 
-KIM package :link(KIM),h5
+KIM package :link(KIM),h4
 
-Contents: A pair style that interfaces to the Knowledge Base for
-Interatomic Models (KIM) repository of interatomic potentials, so that
-KIM potentials can be used in a LAMMPS simulation.
+[Contents:]
 
-To build LAMMPS with the KIM package you must have previously
-installed the KIM API (library) on your system.  The lib/kim/README
-file explains how to download and install KIM.  Building with the KIM
-package also uses the lib/kim/Makefile.lammps file in the compile/link
-process.  You should not need to edit this file.
+A "pair_style kim"_pair_kim.html command which is a wrapper on the
+Knowledge Base for Interatomic Models (KIM) repository of interatomic
+potentials, enabling any of them to be used in LAMMPS simulations.
 
-To install via make or Make.py:
+To use this package you must have the KIM library available on your
+system.
+
+Information about the KIM project can be found at its website:
+https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
+Elliott (U Minnesota) and James Sethna (Cornell U).
+
+[Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
+API which the "pair_style kim"_pair_kim.html command uses.  He
+developed the pair style in collaboration with Valeriu Smirichinski (U
+Minnesota).
+
+[Install or un-install:]
+
+Using this package requires the KIM library and its models
+(interatomic potentials) to be downloaded and installed on your
+system.  The library can be downloaded and built in lib/kim or
+elsewhere on your system.  Details of the download, build, and install
+process for KIM are given in the lib/kim/README file.
+
+Once that process is complete, you can then install/un-install the
+package and build LAMMPS in the usual manner:
 
 make yes-kim
 make machine :pre
 
-Make.py -p kim -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-kim
 make machine :pre
 
-Make.py -p ^kim -a machine :pre
+[Supporting info:]
 
-Supporting info: src/KIM/README, lib/kim/README, "pair_style
-kim"_pair_kim.html, examples/kim
+src/KIM: filenames -> commands
+src/KIM/README
+lib/kim/README
+"pair_style kim"_pair_kim.html
+examples/kim :ul
 
 :line
 
-KOKKOS package :link(KOKKOS),h5
+KOKKOS package :link(KOKKOS),h4
 
-Contents: Dozens of atom, pair, bond, angle, dihedral, improper styles
-which run with the Kokkos library to provide optimization for
-multicore CPUs (via OpenMP), NVIDIA GPUs, or the Intel Xeon Phi (in
-native mode).  All of them have a "kk" in their style name.  "Section
-5.3.3"_accelerate_kokkos.html gives details of what
-hardware and software is required on your system, and how to build and
-use this package.  See the GPU, OPT, USER-INTEL, USER-OMP packages,
-which also provide optimizations for the same range of hardware.
+[Contents:]
 
-Building with the KOKKOS package requires choosing which of 3 hardware
-options you are optimizing for: CPU acceleration via OpenMP, GPU
-acceleration, or Intel Xeon Phi.  (You can build multiple times to
-create LAMMPS executables for different hardware.)  It also requires a
-C++11 compatible compiler.  For GPUs, the NVIDIA "nvcc" compiler is
-used, and an appropriate KOKKOS_ARCH setting should be made in your
-Makefile.machine for your GPU hardware and NVIDIA software.
+Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
+styles adapted to compile using the Kokkos library which can convert
+them to OpenMP or Cuda code so that they run efficiently on multicore
+CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
+style name.  "Section 5.3.3"_accelerate_kokkos.html gives details of
+what hardware and software is required on your system, and how to
+build and use this package.  Its styles can be invoked at run time via
+the "-sf kk" or "-suffix kk" "command-line
+switches"_Section_start.html#start_7.  Also see the "GPU"_#GPU,
+"OPT"_#OPT, "USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER_OMP
+packages, which have styles optimized for CPUs, KNLs, and GPUs.
 
-The simplest way to do this is to use Makefile.kokkos_cuda or
-Makefile.kokkos_omp or Makefile.kokkos_phi in src/MAKE/OPTIONS, via
-"make kokkos_cuda" or "make kokkos_omp" or "make kokkos_phi".  (Check
-the KOKKOS_ARCH setting in Makefile.kokkos_cuda), Or, as illustrated
-below, you can use the Make.py script with its "-kokkos" option to
-choose which hardware to build for.  Type "python src/Make.py -h
--kokkos" to see the details.  If these methods do not work on your
-system, you will need to read the "Section 5.3.3"_accelerate_kokkos.html
-doc page for details of what Makefile.machine settings are needed.
+You must have a C++11 compatible compiler to use this package.
 
-To install via make or Make.py for each of 3 hardware options:
+[Authors:] The KOKKOS package was created primarily by Christian Trott
+and Stan Moore (Sandia), with contributions from other folks as well.
+It uses the open-source "Kokkos library"_https://github.com/kokkos
+which was developed by Carter Edwards, Christian Trott, and others at
+Sandia, and which is included in the LAMMPS distribution in
+lib/kokkos.
+
+[Install or un-install:]
+
+For the KOKKOS package, you have 3 choices when building.  You can
+build with either CPU or KNL or GPU support.  Each choice requires
+additional settings in your Makefile.machine for the KOKKOS_DEVICES
+and KOKKOS_ARCH settings.  See the src/MAKE/OPTIONS/Makefile.kokkos*
+files for examples.
+
+For multicore CPUs using OpenMP:
+
+KOKKOS_DEVICES = OpenMP
+KOKKOS_ARCH = HSW           # HSW = Haswell, SNB = SandyBridge, BDW = Broadwell, etc
+
+For Intel KNLs using OpenMP:
+
+KOKKOS_DEVICES = OpenMP
+KOKKOS_ARCH = KNL
+
+For NVIDIA GPUs using Cuda:
+
+KOKKOS_DEVICES = Cuda
+KOKKOS_ARCH = Pascal60,Power8     # P100 hosted by an IBM Power8, etc
+KOKKOS_ARCH = Kepler37,Power8     # K80 hosted by an IBM Power8, etc
+
+For GPUs, you also need these 2 lines in your Makefile.machine before
+the CC line is defined, in this case for use with OpenMPI mpicxx.  The
+2 lines define a nvcc wrapper compiler, which will use nvcc for
+compiling Cuda files or use a C++ compiler for non-Kokkos, non-Cuda
+files.
+
+KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
+export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
+CC =		mpicxx
+
+Once you have an appropriate Makefile.machine, you can
+install/un-install the package and build LAMMPS in the usual manner.
+Note that you cannot build one executable to run on multiple hardware
+targets (CPU or KNL or GPU).  You need to build LAMMPS once for each
+hardware target, to produce a separate executable.  Also note that we
+do not recommend building with other acceleration packages installed
+(GPU, OPT, USER-INTEL, USER-OMP) when also building with KOKKOS.
 
 make yes-kokkos
-make kokkos_omp    # for CPUs with OpenMP
-make kokkos_cuda   # for GPUs, check the KOKKOS_ARCH setting in Makefile.kokkos_cuda
-make kokkos_phi    # for Xeon Phis :pre
-
-Make.py -p kokkos -kokkos omp -a machine           # for CPUs with OpenMP
-Make.py -p kokkos -kokkos cuda arch=35 -a machine  # for GPUs of style arch
-Make.py -p kokkos -kokkos phi -a machine           # for Xeon Phis
-
-To un-install via make or Make.py:
-
+make machine :pre
+ 
 make no-kokkos
 make machine :pre
 
-Make.py -p ^kokkos -a machine :pre
+[Supporting info:]
 
-Supporting info: src/KOKKOS/README, lib/kokkos/README,
-"Section 5.3"_Section_accelerate.html#acc_3,
-"Section 5.3.3"_accelerate_kokkos.html,
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5
-for any pair style listed with a (k), "package kokkos"_package.html,
-examples/accelerate, bench/FERMI, bench/KEPLER
+src/KOKKOS: filenames -> commands
+src/KOKKOS/README
+lib/kokkos/README
+"Section 5.3"_Section_accelerate.html#acc_3
+"Section 5.3.3"_accelerate_kokkos.html
+"Section 2.7 -k on ..."_Section_start.html#start_7
+"Section 2.7 -sf kk"_Section_start.html#start_7
+"Section 2.7 -pk kokkos"_Section_start.html#start_7
+"package kokkos"_package.html
+Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (k)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
 
-KSPACE package :link(KSPACE),h5
+KSPACE package :link(KSPACE),h4
 
-Contents: A variety of long-range Coulombic solvers, and pair styles
-which compute the corresponding short-range portion of the pairwise
-Coulombic interactions.  These include Ewald, particle-particle
-particle-mesh (PPPM), and multilevel summation method (MSM) solvers.
+[Contents:]
 
-Building with the KSPACE package requires a 1d FFT library be present
-on your system for use by the PPPM solvers.  This can be the KISS FFT
-library provided with LAMMPS, or 3rd party libraries like FFTW or a
+A variety of long-range Coulombic solvers, as well as pair styles
+which compute the corresponding short-range pairwise Coulombic
+interactions.  These include Ewald, particle-particle particle-mesh
+(PPPM), and multilevel summation method (MSM) solvers.
+
+[Install or un-install:]
+
+Building with this package requires a 1d FFT library be present on
+your system for use by the PPPM solvers.  This can be the KISS FFT
+library provided with LAMMPS, 3rd party libraries like FFTW, or a
 vendor-supplied FFT library.  See step 6 of "Section
-2.2.2"_Section_start.html#start_2_2 of the manual for details of how
-to select different FFT options in your machine Makefile.  The Make.py
-tool has an "-fft" option which can insert these settings into your
-machine Makefile automatically.  Type "python src/Make.py -h -fft" to
-see the details.
-
-To install via make or Make.py:
+2.2.2"_Section_start.html#start_2_2 of the manual for details on how
+to select different FFT options in your machine Makefile.
 
 make yes-kspace
 make machine :pre
 
-Make.py -p kspace -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-kspace
 make machine :pre
 
-Make.py -p ^kspace -a machine :pre
+[Supporting info:]
 
-Supporting info: "kspace_style"_kspace_style.html,
-"doc/PDF/kspace.pdf"_PDF/kspace.pdf,
-"Section 6.7"_Section_howto.html#howto_7,
-"Section 6.8"_Section_howto.html#howto_8,
-"Section 6.9"_Section_howto.html#howto_9,
-"pair_style coul"_pair_coul.html, other pair style command doc pages
-which have "long" or "msm" in their style name,
-examples/peptide, bench/in.rhodo
+src/KSPACE: filenames -> commands
+"kspace_style"_kspace_style.html
+"doc/PDF/kspace.pdf"_PDF/kspace.pdf
+"Section 6.7"_Section_howto.html#howto_7
+"Section 6.8"_Section_howto.html#howto_8
+"Section 6.9"_Section_howto.html#howto_9
+"pair_style coul"_pair_coul.html
+Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 with "long" or "msm" in pair style name
+examples/peptide
+bench/in.rhodo :ul
 
 :line
 
-MANYBODY package :link(MANYBODY),h5
+MANYBODY package :link(MANYBODY),h4
 
-Contents: A variety of many-body and bond-order potentials.  These
-include (AI)REBO, EAM, EIM, BOP, Stillinger-Weber, and Tersoff
-potentials.  Do a directory listing, "ls src/MANYBODY", to see
-the full list.
+[Contents:]
 
-To install via make or Make.py:
+A variety of manybody and bond-order potentials.  These include
+(AI)REBO, BOP, EAM, EIM, Stillinger-Weber, and Tersoff potentials.
+
+[Install or un-install:]
 
 make yes-manybody
 make machine :pre
 
-Make.py -p manybody -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-manybody
 make machine :pre
 
-Make.py -p ^manybody -a machine :pre
+[Supporting info:]
 
-Supporting info:
-
-Examples: Pair Styles section of "Section
-3.5"_Section_commands.html#cmd_5, examples/comb, examples/eim,
-examples/nb3d, examples/vashishta
+src/MANYBODY: filenames -> commands
+Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5
+examples/comb
+examples/eim
+examples/nb3d
+examples/shear
+examples/streitz
+examples/vashishta
+bench/in.eam :ul
 
 :line
 
-MC package :link(MC),h5
+MC package :link(MC),h4
 
-Contents: Several fixes and a pair style that have Monte Carlo (MC) or
-MC-like attributes.  These include fixes for creating, breaking, and
-swapping bonds, and for performing atomic swaps and grand-canonical MC
-in conjuction with dynamics.
+[Contents:]
 
-To install via make or Make.py:
+Several fixes and a pair style that have Monte Carlo (MC) or MC-like
+attributes.  These include fixes for creating, breaking, and swapping
+bonds, for performing atomic swaps, and performing grand-canonical MC
+(GCMC) in conjuction with dynamics.
+
+[Install or un-install:]
 
 make yes-mc
 make machine :pre
 
-Make.py -p mc -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-mc
 make machine :pre
 
-Make.py -p ^mc -a machine :pre
+[Supporting info:]
 
-Supporting info: "fix atom/swap"_fix_atom_swap.html, "fix
-bond/break"_fix_bond_break.html, "fix
-bond/create"_fix_bond_create.html, "fix bond/swap"_fix_bond_swap.html,
-"fix gcmc"_fix_gcmc.html, "pair_style dsmc"_pair_dsmc.html
+src/MC: filenames -> commands
+"fix atom/swap"_fix_atom_swap.html
+"fix bond/break"_fix_bond_break.html
+"fix bond/create"_fix_bond_create.html
+"fix bond/swap"_fix_bond_swap.html
+"fix gcmc"_fix_gcmc.html
+"pair_style dsmc"_pair_dsmc.html
+http://lammps.sandia.gov/movies.html#gcmc :ul
 
 :line
 
-MEAM package :link(MEAM),h5
+MEAM package :link(MEAM),h4
 
-Contents: A pair style for the modified embedded atom (MEAM)
-potential.
+[Contents:]
 
-Building LAMMPS with the MEAM package requires first building the MEAM
-library itself, which is a set of Fortran 95 files in lib/meam.
-Details of how to do this are in lib/meam/README.  As illustrated
-below, perform a "make" using one of the Makefile.machine files in
-lib/meam which should create a lib/meam/libmeam.a file.
-Makefile.gfortran and Makefile.ifort are examples for the GNU Fortran
-and Intel Fortran compilers.  The "make" also copies a
-lib/meam/Makefile.lammps.machine file to lib/meam/Makefile.lammps.
-This file has settings that enable the C++ compiler used to build
-LAMMPS to link with a Fortran library (typically the 2 compilers to be
-consistent e.g. both Intel compilers, or both GNU compilers).  If the
-settings in Makefile.lammps for your compilers and machine are not
-correct, the LAMMPS link will fail.  Note that the Make.py script has
-a "-meam" option to allow the MEAM library and LAMMPS to be built in
-one step.  Type "python src/Make.py -h -meam" to see the details.
+A pair style for the modified embedded atom (MEAM) potential.
 
-NOTE: The MEAM potential can run dramatically faster if built with the
-Intel Fortran compiler, rather than the GNU Fortran compiler.
+[Author:] Greg Wagner (Northwestern U) while at Sandia.
 
-To install via make or Make.py:
+[Install or un-install:]
 
-cd ~/lammps/lib/meam
-make -f Makefile.gfortran    # for example
-cd ~/lammps/src
+Before building LAMMPS with this package, you must first build the
+MEAM library in lib/meam.  You can do this manually if you prefer;
+follow the instructions in lib/meam/README.  You can also do it in one
+step from the lammps/src dir, using a command like these, which simply
+invoke the lib/meam/Install.py script with the specified args:
+
+make lib-meam                      # print help message
+make lib-meam args="-m gfortran"   # build with GNU Fortran compiler
+make lib-meam args="-m ifort"      # build with Intel ifort compiler :pre
+
+The build should produce two files: lib/meam/libmeam.a and
+lib/meam/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
+Fortran (MEAM library).  Typically the two compilers used for LAMMPS
+and the MEAM library need to be consistent (e.g. both Intel or both
+GNU compilers).  If necessary, you can edit/create a new
+lib/meam/Makefile.machine file for your system, which should define an
+EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
+file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
 make yes-meam
 make machine :pre
-
-Make.py -p meam -meam make=gfortran -a machine :pre
-
-To un-install via make or Make.py:
 
 make no-meam
 make machine :pre
 
-Make.py -p ^meam -a machine :pre
+NOTE: You should test building the MEAM library with both the Intel
+and GNU compilers to see if a simulation runs faster with one versus
+the other on your system.
 
-Supporting info: lib/meam/README, "pair_style meam"_pair_meam.html,
-examples/meam
+[Supporting info:]
+
+src/MEAM: filenames -> commands
+src/meam/README
+lib/meam/README
+"pair_style meam"_pair_meam.html
+examples/meam :ul
 
 :line
 
-MISC package :link(MISC),h5
+MISC package :link(MISC),h4
 
-Contents: A variety of computes, fixes, and pair styles that are not
-commonly used, but don't align with other packages.  Do a directory
+[Contents:]
+
+A variety of compute, fix, pair, dump styles with specialized
+capabilities that don't align with other packages.  Do a directory
 listing, "ls src/MISC", to see the list of commands.
 
-To install via make or Make.py:
+[Install or un-install:]
 
 make yes-misc
 make machine :pre
 
-Make.py -p misc -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-misc
 make machine :pre
 
-Make.py -p ^misc -a machine :pre
+[Supporting info:]
 
-Supporting info: "compute ti"_compute_ti.html, "fix
-evaporate"_fix_evaporate.html, "fix tmm"_fix_ttm.html, "fix
-viscosity"_fix_viscosity.html, examples/misc
+src/MISC: filenames -> commands
+"compute ti"_compute_ti.html
+"fix evaporate"_fix_evaporate.html
+"fix orient/fcc"_fix_orient.html
+"fix ttm"_fix_ttm.html
+"fix thermal/conductivity"_fix_thermal_conductivity.html
+"fix viscosity"_fix_viscosity.html
+examples/KAPPA
+examples/VISCOSITY
+http://lammps.sandia.gov/pictures.html#ttm
+http://lammps.sandia.gov/movies.html#evaporation :ul
 
 :line
 
-MOLECULE package :link(MOLECULE),h5
+MOLECULE package :link(MOLECULE),h4
 
-Contents: A large number of atom, pair, bond, angle, dihedral,
-improper styles that are used to model molecular systems with fixed
-covalent bonds.  The pair styles include terms for the Dreiding
-(hydrogen-bonding) and CHARMM force fields, and TIP4P water model.
+[Contents:]
 
-To install via make or Make.py:
+A large number of atom, pair, bond, angle, dihedral, improper styles
+that are used to model molecular systems with fixed covalent bonds.
+The pair styles include the Dreiding (hydrogen-bonding) and CHARMM
+force fields, and a TIP4P water model.
+
+[Install or un-install:]
 
 make yes-molecule
 make machine :pre
 
-Make.py -p molecule -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-molecule
 make machine :pre
 
-Make.py -p ^molecule -a machine :pre
+[Supporting info:]
 
-Supporting info:"atom_style"_atom_style.html,
-"bond_style"_bond_style.html, "angle_style"_angle_style.html,
-"dihedral_style"_dihedral_style.html,
-"improper_style"_improper_style.html, "pair_style
-hbond/dreiding/lj"_pair_hbond_dreiding.html, "pair_style
-lj/charmm/coul/charmm"_pair_charmm.html,
-"Section 6.3"_Section_howto.html#howto_3,
-examples/micelle, examples/peptide, bench/in.chain, bench/in.rhodo
+src/MOLECULE: filenames -> commands
+"atom_style"_atom_style.html
+"bond_style"_bond_style.html
+"angle_style"_angle_style.html
+"dihedral_style"_dihedral_style.html
+"improper_style"_improper_style.html
+"pair_style hbond/dreiding/lj"_pair_hbond_dreiding.html
+"pair_style lj/charmm/coul/charmm"_pair_charmm.html
+"Section 6.3"_Section_howto.html#howto_3
+examples/cmap
+examples/dreiding
+examples/micelle,
+examples/peptide
+bench/in.chain
+bench/in.rhodo :ul
 
 :line
 
-MPIIO package :link(MPIIO),h5
+MPIIO package :link(MPIIO),h4
 
-Contents: Support for parallel output/input of dump and restart files
-via the MPIIO library, which is part of the standard message-passing
-interface (MPI) library.  It adds "dump styles"_dump.html with a
-"mpiio" in their style name.  Restart files with an ".mpiio" suffix
-are also written and read in parallel.
+[Contents:]
 
-To install via make or Make.py:
+Support for parallel output/input of dump and restart files via the
+MPIIO library.  It adds "dump styles"_dump.html with a "mpiio" in
+their style name.  Restart files with an ".mpiio" suffix are also
+written and read in parallel.
 
+[Install or un-install:]
+
+Note that MPIIO is part of the standard message-passing interface
+(MPI) library, so you should not need any additional compiler or link
+settings, beyond what LAMMPS normally uses for MPI on your system.
+ 
 make yes-mpiio
 make machine :pre
-
-Make.py -p mpiio -a machine :pre
-
-To un-install via make or Make.py:
-
+ 
 make no-mpiio
 make machine :pre
+ 
+[Supporting info:]
 
-Make.py -p ^mpiio -a machine :pre
-
-Supporting info: "dump"_dump.html, "restart"_restart.html,
-"write_restart"_write_restart.html, "read_restart"_read_restart.html
+src/MPIIO: filenames -> commands
+"dump"_dump.html
+"restart"_restart.html
+"write_restart"_write_restart.html
+"read_restart"_read_restart.html :ul
 
 :line
+ 
+MSCG package :link(MSCG),h4
 
-OPT package :link(OPT),h5
+[Contents:]
 
-Contents: A handful of pair styles with an "opt" in their style name
-which are optimized for improved CPU performance on single or multiple
-cores.  These include EAM, LJ, CHARMM, and Morse potentials.  "Section
-5.3.5"_accelerate_opt.html gives details of how to build and
-use this package.  See the KOKKOS, USER-INTEL, and USER-OMP packages,
-which also have styles optimized for CPU performance.
+A "fix mscg"_fix_mscg.html command which can parameterize a
+Mulit-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
+library"_mscg.
 
-Some C++ compilers, like the Intel compiler, require the compile flag
-"-restrict" to build LAMMPS with the OPT package.  It should be added
-to the CCFLAGS line of your Makefile.machine.  Or use Makefile.opt in
-src/MAKE/OPTIONS, via "make opt".  For compilers that use the flag,
-the Make.py command adds it automatically to the Makefile.auto file it
-creates and uses.
+:link(mscg,https://github.com/uchicago-voth/MSCG-release)
 
-To install via make or Make.py:
+To use this package you must have the MS-CG library available on your
+system.
+
+[Authors:] The fix was written by Lauren Abbott (Sandia).  The MS-CG
+library was developed by Jacob Wagner in Greg Voth's group at the
+University of Chicago.
+
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first download and
+build the MS-CG library.  Building the MS-CG library and using it from
+LAMMPS requires a C++11 compatible compiler, and that LAPACK and GSL
+(GNU Scientific Library) libraries be installed on your machine.  See
+the lib/mscg/README and MSCG/Install files for more details.
+
+Assuming these libraries are in place, you can do the download and
+build of MS-CG manually if you prefer; follow the instructions in
+lib/mscg/README.  You can also do it in one step from the lammps/src
+dir, using a command like these, which simply invoke the
+lib/mscg/Install.py script with the specified args:
+
+make lib-mscg                                # print help message
+make lib-mscg args="-g -b -l"                # download and build in default lib/mscg/MSCG-release-master
+make lib-mscg args="-h . MSCG -g -b -l"      # download and build in lib/mscg/MSCG
+make lib-mscg args="-h ~ MSCG -g -b -l"      # download and build in ~/mscg :pre
+
+Note that the final -l switch is to create 2 symbolic (soft) links,
+"includelink" and "liblink", in lib/mscg to point to the MS-CG src
+dir.  When LAMMPS builds it will use these links.  You should not need
+to edit the lib/mscg/Makefile.lammps file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-mscg
+make machine :pre
+
+make no-mscg
+make machine :pre
+
+[Supporting info:]
+
+src/MSCG: filenames -> commands
+src/MSCG/README
+lib/mscg/README
+examples/mscg :ul
+
+:line
+ 
+OPT package :link(OPT),h4
+
+[Contents:]
+
+A handful of pair styles which are optimized for improved CPU
+performance on single or multiple cores.  These include EAM, LJ,
+CHARMM, and Morse potentials.  The styles have an "opt" suffix in
+their style name.  "Section 5.3.5"_accelerate_opt.html gives details
+of how to build and use this package.  Its styles can be invoked at
+run time via the "-sf opt" or "-suffix opt" "command-line
+switches"_Section_start.html#start_7.  See also the "KOKKOS"_#KOKKOS,
+"USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP packages, which
+have styles optimized for CPU performance.
+
+[Authors:] James Fischer (High Performance Technologies), David Richie,
+and Vincent Natoli (Stone Ridge Technolgy).
+
+[Install or un-install:]
 
 make yes-opt
 make machine :pre
 
-Make.py -p opt -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-opt
 make machine :pre
 
-Make.py -p ^opt -a machine :pre
+NOTE: The compile flag "-restrict" must be used to build LAMMPS with
+the OPT package.  It should be added to the CCFLAGS line of your
+Makefile.machine.  See Makefile.opt in src/MAKE/OPTIONS for an
+example.
 
-Supporting info: "Section 5.3"_Section_accelerate.html#acc_3,
-"Section 5.3.5"_accelerate_opt.html, Pair Styles section of
-"Section 3.5"_Section_commands.html#cmd_5 for any pair style
-listed with an (t), examples/accelerate, bench/KEPLER
+CCFLAGS: add -restrict :ul
+
+[Supporting info:]
+
+src/OPT: filenames -> commands
+"Section 5.3"_Section_accelerate.html#acc_3
+"Section 5.3.5"_accelerate_opt.html
+"Section 2.7 -sf opt"_Section_start.html#start_7
+Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (t)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
 
-PERI package :link(PERI),h5
+PERI package :link(PERI),h4
 
-Contents: Support for the Peridynamics method, a particle-based
-meshless continuum model.  The package includes an atom style, several
-computes which calculate diagnostics, and several Peridynamic pair
-styles which implement different materials models.
+[Contents:]
 
-To install via make or Make.py:
+An atom style, several pair styles which implement different
+Peridynamics materials models, and several computes which calculate
+diagnostics.  Peridynamics is a a particle-based meshless continuum
+model.
+
+[Authors:] The original package was created by Mike Parks (Sandia).
+Additional Peridynamics models were added by Rezwanur Rahman and John
+Foster (UTSA).
+
+[Install or un-install:]
 
 make yes-peri
 make machine :pre
 
-Make.py -p peri -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-peri
 make machine :pre
 
-Make.py -p ^peri -a machine :pre
+[Supporting info:]
 
-Supporting info:
-"doc/PDF/PDLammps_overview.pdf"_PDF/PDLammps_overview.pdf,
-"doc/PDF/PDLammps_EPS.pdf"_PDF/PDLammps_EPS.pdf,
-"doc/PDF/PDLammps_VES.pdf"_PDF/PDLammps_VES.pdf, "atom_style
-peri"_atom_style.html, "compute damage/atom"_compute_damage_atom.html,
-"pair_style peri/pmb"_pair_peri.html, examples/peri
+src/PERI: filenames -> commands
+"doc/PDF/PDLammps_overview.pdf"_PDF/PDLammps_overview.pdf
+"doc/PDF/PDLammps_EPS.pdf"_PDF/PDLammps_EPS.pdf
+"doc/PDF/PDLammps_VES.pdf"_PDF/PDLammps_VES.pdf
+"atom_style peri"_atom_style.html
+"pair_style peri/*"_pair_peri.html
+"compute damage/atom"_compute_damage_atom.html
+"compute plasticity/atom"_compute_plasticity_atom.html
+examples/peri
+http://lammps.sandia.gov/movies.html#peri :ul
 
 :line
 
-POEMS package :link(POEMS),h5
+POEMS package :link(POEMS),h4
 
-Contents: A fix that wraps the Parallelizable Open source Efficient
-Multibody Software (POEMS) librar, which is able to simulate the
-dynamics of articulated body systems.  These are systems with multiple
-rigid bodies (collections of atoms or particles) whose motion is
-coupled by connections at hinge points.
+[Contents:]
 
-Building LAMMPS with the POEMS package requires first building the
-POEMS library itself, which is a set of C++ files in lib/poems.
-Details of how to do this are in lib/poems/README.  As illustrated
-below, perform a "make" using one of the Makefile.machine files in
-lib/poems which should create a lib/meam/libpoems.a file.
-Makefile.g++ and Makefile.icc are examples for the GNU and Intel C++
-compilers.  The "make" also creates a lib/poems/Makefile.lammps file
-which you should not need to change.  Note the Make.py script has a
-"-poems" option to allow the POEMS library and LAMMPS to be built in
-one step.  Type "python src/Make.py -h -poems" to see the details.
+A fix that wraps the Parallelizable Open source Efficient Multibody
+Software (POEMS) library, which is able to simulate the dynamics of
+articulated body systems.  These are systems with multiple rigid
+bodies (collections of particles) whose motion is coupled by
+connections at hinge points.
 
-To install via make or Make.py:
+[Author:] Rudra Mukherjee (JPL) while at RPI.
 
-cd ~/lammps/lib/poems
-make -f Makefile.g++    # for example
-cd ~/lammps/src
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first build the
+POEMS library in lib/poems.  You can do this manually if you prefer;
+follow the instructions in lib/poems/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invoke the lib/poems/Install.py script with the specified args:
+
+make lib-poems                      # print help message
+make lib-poems args="-m g++"        # build with GNU g++ compiler
+make lib-poems args="-m icc"        # build with Intel icc compiler :pre
+
+The build should produce two files: lib/poems/libpoems.a and
+lib/poems/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to build LAMMPS with the
+POEMS library (though typically the settings are just blank).  If
+necessary, you can edit/create a new lib/poems/Makefile.machine file
+for your system, which should define an EXTRAMAKE variable to specify
+a corresponding Makefile.lammps.machine file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
 make yes-poems
 make machine :pre
-
-Make.py -p poems -poems make=g++ -a machine :pre
-
-To un-install via make or Make.py:
 
 make no-meam
 make machine :pre
 
-Make.py -p ^meam -a machine :pre
+[Supporting info:]
 
-Supporting info: src/POEMS/README, lib/poems/README,
-"fix poems"_fix_poems.html, examples/rigid
+src/POEMS: filenames -> commands
+src/POEMS/README
+lib/poems/README
+"fix poems"_fix_poems.html
+examples/rigid :ul
 
 :line
 
-PYTHON package :link(PYTHON),h5
+PYTHON package :link(PYTHON),h4
 
-Contents: A "python"_python.html command which allow you to execute
-Python code from a LAMMPS input script.  The code can be in a separate
-file or embedded in the input script itself.  See "Section
+[Contents:]
+
+A "python"_python.html command which allow you to execute Python code
+from a LAMMPS input script.  The code can be in a separate file or
+embedded in the input script itself.  See "Section
 11.2"_Section_python.html#py_2 for an overview of using Python from
-LAMMPS and for other ways to use LAMMPS and Python together.
+LAMMPS in this manner and the entire section for other ways to use
+LAMMPS and Python together.
 
-Building with the PYTHON package assumes you have a Python shared
-library available on your system, which needs to be a Python 2
-version, 2.6 or later.  Python 3 is not yet supported.  The build uses
-the contents of the lib/python/Makefile.lammps file to find all the Python
-files required in the build/link process.  See the lib/python/README
-file if the settings in that file do not work on your system.  Note
-that the Make.py script has a "-python" option to allow an alternate
-lib/python/Makefile.lammps file to be specified and LAMMPS to be built
-in one step.  Type "python src/Make.py -h -python" to see the details.
-
-To install via make or Make.py:
+[Install or un-install:]
 
 make yes-python
 make machine :pre
 
-Make.py -p python -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-python
 make machine :pre
 
-Make.py -p ^python -a machine :pre
+NOTE: Building with the PYTHON package assumes you have a Python
+shared library available on your system, which needs to be a Python 2
+version, 2.6 or later.  Python 3 is not yet supported.  See the
+lib/python/README for more details.  Note that the build uses the
+lib/python/Makefile.lammps file in the compile/link process.  You
+should only need to create a new Makefile.lammps.* file (and copy it
+to Makefile.lammps) if the LAMMPS build fails.
 
-Supporting info: examples/python
+[Supporting info:]
+
+src/PYTHON: filenames -> commands
+"Section 11"_Section_python.html
+lib/python/README
+examples/python :ul
 
 :line
 
-QEQ package :link(QEQ),h5
+QEQ package :link(QEQ),h4
 
-Contents: Several fixes for performing charge equilibration (QEq) via
-severeal different algorithms.  These can be used with pair styles
-that use QEq as part of their formulation.
+[Contents:]
 
-To install via make or Make.py:
+Several fixes for performing charge equilibration (QEq) via different
+algorithms.  These can be used with pair styles that perform QEq as
+part of their formulation.
+
+[Install or un-install:]
 
 make yes-qeq
 make machine :pre
 
-Make.py -p qeq -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-qeq
 make machine :pre
 
-Make.py -p ^qeq -a machine :pre
+[Supporting info:]
 
-Supporting info: "fix qeq/*"_fix_qeq.html, examples/qeq
+src/QEQ: filenames -> commands
+"fix qeq/*"_fix_qeq.html
+examples/qeq
+examples/streitz :ul
 
 :line
 
-REAX package :link(REAX),h5
+REAX package :link(REAX),h4
 
-Contents: A pair style for the ReaxFF potential, a universal reactive
-force field, as well as a "fix reax/bonds"_fix_reax_bonds.html command
-for monitoring molecules as bonds are created and destroyed.
+[Contents:]
 
-Building LAMMPS with the REAX package requires first building the REAX
-library itself, which is a set of Fortran 95 files in lib/reax.
-Details of how to do this are in lib/reax/README.  As illustrated
-below, perform a "make" using one of the Makefile.machine files in
-lib/reax which should create a lib/reax/libreax.a file.
-Makefile.gfortran and Makefile.ifort are examples for the GNU Fortran
-and Intel Fortran compilers.  The "make" also copies a
-lib/reax/Makefile.lammps.machine file to lib/reax/Makefile.lammps.
-This file has settings that enable the C++ compiler used to build
-LAMMPS to link with a Fortran library (typically the 2 compilers to be
-consistent e.g. both Intel compilers, or both GNU compilers).  If the
-settings in Makefile.lammps for your compilers and machine are not
-correct, the LAMMPS link will fail.  Note that the Make.py script has
-a "-reax" option to allow the REAX library and LAMMPS to be built in
-one step.  Type "python src/Make.py -h -reax" to see the details.
+A pair style which wraps a Fortran library which implements the ReaxFF
+potential, which is a universal reactive force field.  See the
+"USER-REAXC package"_#USER-REAXC for an alternate implementation in
+C/C++.  Also a "fix reax/bonds"_fix_reax_bonds.html command for
+monitoring molecules as bonds are created and destroyed.
 
-To install via make or Make.py:
+[Author:] Aidan Thompson (Sandia).
 
-cd ~/lammps/lib/reax
-make -f Makefile.gfortran    # for example
-cd ~/lammps/src
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first build the
+REAX library in lib/reax.  You can do this manually if you prefer;
+follow the instructions in lib/reax/README.  You can also do it in one
+step from the lammps/src dir, using a command like these, which simply
+invoke the lib/reax/Install.py script with the specified args:
+
+make lib-reax                      # print help message
+make lib-reax args="-m gfortran"   # build with GNU Fortran compiler
+make lib-reax args="-m ifort"      # build with Intel ifort compiler :pre
+
+The build should produce two files: lib/reax/libreax.a and
+lib/reax/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
+Fortran (REAX library).  Typically the two compilers used for LAMMPS
+and the REAX library need to be consistent (e.g. both Intel or both
+GNU compilers).  If necessary, you can edit/create a new
+lib/reax/Makefile.machine file for your system, which should define an
+EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
+file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
 make yes-reax
 make machine :pre
-
-Make.py -p reax -reax make=gfortran -a machine :pre
-
-To un-install via make or Make.py:
 
 make no-reax
 make machine :pre
 
-Make.py -p ^reax -a machine :pre
+[Supporting info:]
 
-Supporting info: lib/reax/README, "pair_style reax"_pair_reax.html,
-"fix reax/bonds"_fix_reax_bonds.html, examples/reax
+src/REAX: filenames -> commands
+lib/reax/README
+"pair_style reax"_pair_reax.html
+"fix reax/bonds"_fix_reax_bonds.html
+examples/reax :ul
 
 :line
 
-REPLICA package :link(REPLICA),h5
+REPLICA package :link(REPLICA),h4
 
-Contents: A collection of multi-replica methods that are used by
-invoking multiple instances (replicas) of LAMMPS
-simulations. Communication between individual replicas is performed in
-different ways by the different methods.  See "Section
+[Contents:]
+
+A collection of multi-replica methods which can be used when running
+multiple LAMMPS simulations (replicas).  See "Section
 6.5"_Section_howto.html#howto_5 for an overview of how to run
-multi-replica simulations in LAMMPS.  Multi-replica methods included
-in the package are nudged elastic band (NEB), parallel replica
-dynamics (PRD), temperature accelerated dynamics (TAD), parallel
-tempering, and a verlet/split algorithm for performing long-range
-Coulombics on one set of processors, and the remainder of the force
-field calculation on another set.
+multi-replica simulations in LAMMPS.  Methods in the package include
+nudged elastic band (NEB), parallel replica dynamics (PRD),
+temperature accelerated dynamics (TAD), parallel tempering, and a
+verlet/split algorithm for performing long-range Coulombics on one set
+of processors, and the remainder of the force field calcalation on
+another set.
 
-To install via make or Make.py:
+[Install or un-install:]
 
 make yes-replica
 make machine :pre
 
-Make.py -p replica -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-replica
 make machine :pre
 
-Make.py -p ^replica -a machine :pre
+[Supporting info:]
 
-Supporting info: "Section 6.5"_Section_howto.html#howto_5,
-"neb"_neb.html, "prd"_prd.html, "tad"_tad.html, "temper"_temper.html,
-"run_style verlet/split"_run_style.html, examples/neb, examples/prd,
-examples/tad
+src/REPLICA: filenames -> commands
+"Section 6.5"_Section_howto.html#howto_5
+"neb"_neb.html
+"prd"_prd.html
+"tad"_tad.html
+"temper"_temper.html,
+"run_style verlet/split"_run_style.html
+examples/neb
+examples/prd
+examples/tad :ul
 
 :line
 
-RIGID package :link(RIGID),h5
+RIGID package :link(RIGID),h4
 
-Contents: A collection of computes and fixes which enforce rigid
-constraints on collections of atoms or particles.  This includes SHAKE
-and RATTLE, as well as variants of rigid-body time integrators for a
-few large bodies or many small bodies.
+[Contents:]
 
-To install via make or Make.py:
+Fixes which enforce rigid constraints on collections of atoms or
+particles.  This includes SHAKE and RATTLE, as well as varous
+rigid-body integrators for a few large bodies or many small bodies.
+Also several computes which calculate properties of rigid bodies.
+
+To install/build:
 
 make yes-rigid
 make machine :pre
 
-Make.py -p rigid -a machine :pre
-
-To un-install via make or Make.py:
+To un-install/re-build:
 
 make no-rigid
 make machine :pre
 
-Make.py -p ^rigid -a machine :pre
+[Supporting info:]
 
-Supporting info: "compute erotate/rigid"_compute_erotate_rigid.html,
-"fix shake"_fix_shake.html, "fix rattle"_fix_shake.html, "fix
-rigid/*"_fix_rigid.html, examples/ASPHERE, examples/rigid
+src/RIGID: filenames -> commands
+"compute erotate/rigid"_compute_erotate_rigid.html
+fix shake"_fix_shake.html
+"fix rattle"_fix_shake.html
+"fix rigid/*"_fix_rigid.html
+examples/ASPHERE
+examples/rigid
+bench/in.rhodo
+http://lammps.sandia.gov/movies.html#box
+http://lammps.sandia.gov/movies.html#star :ul
 
 :line
 
-SHOCK package :link(SHOCK),h5
+SHOCK package :link(SHOCK),h4
 
-Contents: A small number of fixes useful for running impact
-simulations where a shock-wave passes through a material.
+[Contents:]
 
-To install via make or Make.py:
+Fixes for running impact simulations where a shock-wave passes through
+a material.
+
+[Install or un-install:]
 
 make yes-shock
 make machine :pre
 
-Make.py -p shock -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-shock
 make machine :pre
 
-Make.py -p ^shock -a machine :pre
+[Supporting info:]
 
-Supporting info: "fix append/atoms"_fix_append_atoms.html, "fix
-msst"_fix_msst.html, "fix nphug"_fix_nphug.html, "fix
-wall/piston"_fix_wall_piston.html, examples/hugoniostat, examples/msst
+src/SHOCK: filenames -> commands
+"fix append/atoms"_fix_append_atoms.html
+"fix msst"_fix_msst.html
+"fix nphug"_fix_nphug.html
+"fix wall/piston"_fix_wall_piston.html
+examples/hugoniostat
+examples/msst :ul
 
 :line
 
-SNAP package :link(SNAP),h5
+SNAP package :link(SNAP),h4
 
-Contents: A pair style for the spectral neighbor analysis potential
-(SNAP), which is an empirical potential which can be quantum accurate
-when fit to an archive of DFT data.  Computes useful for analyzing
-properties of the potential are also included.
+[Contents:]
 
-To install via make or Make.py:
+A pair style for the spectral neighbor analysis potential (SNAP).
+SNAP is methodology for deriving a highly accurate classical potential
+fit to a large archive of quantum mechanical (DFT) data. Also several
+computes which analyze attributes of the potential.
+
+[Author:] Aidan Thompson (Sandia).
+
+[Install or un-install:]
 
 make yes-snap
 make machine :pre
 
-Make.py -p snap -a machine :pre
-
-To un-install via make or Make.py:
-
 make no-snap
 make machine :pre
 
-Make.py -p ^snap -a machine :pre
+[Supporting info:]
 
-Supporting info: "pair snap"_pair_snap.html, "compute
-sna/atom"_compute_sna_atom.html, "compute snad/atom"_compute_sna_atom.html,
-"compute snav/atom"_compute_sna_atom.html, examples/snap
+src/SNAP: filenames -> commands
+"pair snap"_pair_snap.html
+"compute sna/atom"_compute_sna_atom.html
+"compute snad/atom"_compute_sna_atom.html
+"compute snav/atom"_compute_sna_atom.html
+examples/snap :ul
 
 :line
 
-SRD package :link(SRD),h5
+SRD package :link(SRD),h4
 
-Contents: Two fixes which implement the Stochastic Rotation Dynamics
-(SRD) method for coarse-graining of a solvent, typically around large
-colloidal-scale particles.
+[Contents:]
 
-To install via make or Make.py:
+A pair of fixes which implement the Stochastic Rotation Dynamics (SRD)
+method for coarse-graining of a solvent, typically around large
+colloidal particles.
+
+To install/build:
 
 make yes-srd
 make machine :pre
 
-Make.py -p srd -a machine :pre
-
-To un-install via make or Make.py:
+To un-install/re-build:
 
 make no-srd
 make machine :pre
 
-Make.py -p ^srd -a machine :pre
+[Supporting info:]
 
-Supporting info: "fix srd"_fix_srd.html, "fix
-wall/srd"_fix_wall_srd.html, examples/srd, examples/ASPHERE
+src/SRD: filenames -> commands
+"fix srd"_fix_srd.html
+"fix wall/srd"_fix_wall_srd.html
+examples/srd
+examples/ASPHERE
+http://lammps.sandia.gov/movies.html#tri
+http://lammps.sandia.gov/movies.html#line
+http://lammps.sandia.gov/movies.html#poly :ul
 
 :line
 
-VORONOI package :link(VORONOI),h5
+VORONOI package :link(VORONOI),h4
 
-Contents: A "compute voronoi/atom"_compute_voronoi_atom.html command
-which computes the Voronoi tesselation of a collection of atoms or
-particles by wrapping the Voro++ lib
+[Contents:]
 
-To build LAMMPS with the KIM package you must have previously
-installed the KIM API (library) on your system.  The lib/kim/README
-file explains how to download and install KIM.  Building with the KIM
-package also uses the lib/kim/Makefile.lammps file in the compile/link
-process.  You should not need to edit this file.
+A compute command which calculates the Voronoi tesselation of a
+collection of atoms by wrapping the "Voro++ library"_voronoi.  This
+can be used to calculate the local volume or each atoms or its near
+neighbors.
 
+:link(voronoi,http://math.lbl.gov/voro++)
 
-To build LAMMPS with the VORONOI package you must have previously
-installed the Voro++ library on your system.  The lib/voronoi/README
-file explains how to download and install Voro++.  There is a
-lib/voronoi/install.py script which automates the process.  Type
-"python install.py" to see instructions.  The final step is to create
-soft links in the lib/voronoi directory for "includelink" and
-"liblink" which point to installed Voro++ directories.  Building with
-the VORONOI package uses the contents of the
-lib/voronoi/Makefile.lammps file in the compile/link process.  You
-should not need to edit this file.  Note that the Make.py script has a
-"-voronoi" option to allow the Voro++ library to be downloaded and/or
-installed and LAMMPS to be built in one step.  Type "python
-src/Make.py -h -voronoi" to see the details.
+To use this package you must have the Voro++ library available on your
+system.
 
-To install via make or Make.py:
+[Author:] Daniel Schwen (INL) while at LANL.  The open-source Voro++
+library was written by Chris Rycroft (Harvard U) while at UC Berkeley
+and LBNL.
 
-cd ~/lammps/lib/voronoi
-python install.py -g -b -l    # download Voro++, build in lib/voronoi, create links
-cd ~/lammps/src
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first download and
+build the Voro++ library.  You can do this manually if you prefer;
+follow the instructions in lib/voronoi/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invoke the lib/voronoi/Install.py script with the specified
+args:
+
+make lib-voronoi                                # print help message
+make lib-voronoi args="-g -b -l"                # download and build in default lib/voronoi/voro++-0.4.6
+make lib-voronoi args="-h . voro++ -g -b -l"    # download and build in lib/voronoi/voro++
+make lib-voronoi args="-h ~ voro++ -g -b -l"    # download and build in ~/voro++ :pre
+
+Note that the final -l switch is to create 2 symbolic (soft) links,
+"includelink" and "liblink", in lib/voronoi to point to the Voro++ src
+dir.  When LAMMPS builds it will use these links.  You should not need
+to edit the lib/voronoi/Makefile.lammps file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
 make yes-voronoi
 make machine :pre
-
-Make.py -p voronoi -voronoi install="-g -b -l" -a machine :pre
-
-To un-install via make or Make.py:
 
 make no-voronoi
 make machine :pre
 
-Make.py -p ^voronoi -a machine :pre
+[Supporting info:]
 
-Supporting info: src/VORONOI/README, lib/voronoi/README, "compute
-voronoi/atom"_compute_voronoi_atom.html, examples/voronoi
-
-:line
-
-4.2 User packages :h4,link(pkg_2)
-
-The current list of user-contributed packages is as follows:
-
-Package, Description, Author(s), Doc page, Example, Pic/movie, Library
-"USER-ATC"_#USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (1), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
-"USER-AWPMD"_#USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
-"USER-CG-CMM"_#USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
-"USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, Oliver Henrich (U Strathclyde Glasgow), src/USER-CGDNA/README, USER/cgdna, -, -
-"USER-COLVARS"_#USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
-"USER-DIFFRACTION"_#USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
-"USER-DPD"_#USER-DPD, reactive dissipative particle dynamics (DPD), Larentzos & Mattox & Brennan (5), src/USER-DPD/README, USER/dpd, -, -
-"USER-DRUDE"_#USER-DRUDE, Drude oscillators, Dequidt & Devemy & Padua (3), "tutorial"_tutorial_drude.html, USER/drude, -, -
-"USER-EFF"_#USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
-"USER-FEP"_#USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
-"USER-H5MD"_#USER-H5MD, dump output via HDF5, Pierre de Buyl (KU Leuven), "dump h5md"_dump_h5md.html, -, -, lib/h5md
-"USER-INTEL"_#USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section 5.3.2"_accelerate_intel.html, examples/intel, -, -
-"USER-LB"_#USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
-"USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, Tomas Oppelstrup & John Moriarty (LLNL), "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -, -
-"USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
-"USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surface, Stefan Paquay (Eindhoven U of Technology), "fix manifoldforce"_fix_manifoldforce.html, USER/manifold, "manifold"_manifold, -
-"USER-MOLFILE"_#USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
-"USER-NC-DUMP"_#USER-NC-DUMP, dump output via NetCDF, Lars Pastewka (Karlsruhe Institute of Technology, KIT), "dump nc / dump nc/mpiio"_dump_nc.html, -, -, lib/netcdf
-"USER-OMP"_#USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section 5.3.4"_accelerate_omp.html, -, -, -
-"USER-PHONON"_#USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
-"USER-QMMM"_#USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
-"USER-QTB"_#USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, -, -
-"USER-QUIP"_#USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_style quip"_pair_quip.html, USER/quip, -, lib/quip
-"USER-REAXC"_#USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
-"USER-SMD"_#USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "SMD User Guide"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, -, -
-"USER-SMTBQ"_#USER-SMTBQ, Second Moment Tight Binding - QEq potential, Salles & Maras & Politano & Tetot (4), "pair_style smtbq"_pair_smtbq.html, USER/smtbq, -, -
-"USER-SPH"_#USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
-"USER-TALLY"_#USER-TALLY, Pairwise tallied computes, Axel Kohlmeyer (Temple U), "compute XXX/tally"_compute_tally.html, USER/tally, -, -
-"USER-VTK"_#USER-VTK, VTK-style dumps, Berger and Queteschiner (6), "compute custom/vtk"_dump_custom_vtk.html, -, -, lib/vtk
-:tb(ea=c)
-
-:link(atc,http://lammps.sandia.gov/pictures.html#atc)
-:link(cg,http://lammps.sandia.gov/pictures.html#cg)
-:link(eff,http://lammps.sandia.gov/movies.html#eff)
-:link(manifold,http://lammps.sandia.gov/movies.html#manifold)
-:link(sph,http://lammps.sandia.gov/movies.html#sph)
-:link(VMD,http://www.ks.uiuc.edu/Research/vmd)
-
-The "Authors" column lists a name(s) if a specific person is
-responsible for creating and maintaining the package.
-
-(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
-Jon Zimmerman (Sandia).
-
-(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
-the colvars module library written by Giacomo Fiorin (Temple U) and
-Jerome Henin (LISM, Marseille, France).
-
-(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
-Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
-(U Blaise Pascal).
-
-(4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
-Olivier Politano, and Robert Tetot (LAAS-CNRS, France).
-
-(5) The USER-DPD package was created by James Larentzos (ARL), Timothy
-Mattox (Engility), and John Brennan (ARL).
-
-(6) The USER-VTK package was created by Richard Berger (JKU) and
-Daniel Queteschiner (DCS Computing).
-
-The "Doc page" column links to either a sub-section of the
-"Section 6"_Section_howto.html of the manual, or an input script
-command implemented as part of the package, or to additional
-documentation provided within the package.
-
-The "Example" column is a sub-directory in the examples directory of
-the distribution which has an input script that uses the package.
-E.g. "peptide" refers to the examples/peptide directory.
-
-The "Library" column lists an external library which must be built
-first and which LAMMPS links to when it is built.  If it is listed as
-lib/package, then the code for the library is under the lib directory
-of the LAMMPS distribution.  See the lib/package/README file for info
-on how to build the library.  If it is not listed as lib/package, then
-it is a third-party library not included in the LAMMPS distribution.
-See details on all of this below for individual packages.
+src/VORONOI: filenames -> commands
+src/VORONOI/README
+lib/voronoi/README
+"compute voronoi/atom"_compute_voronoi_atom.html
+examples/voronoi :ul
 
 :line
+:line
 
-USER-ATC package :link(USER-ATC),h5
+USER-ATC package :link(USER-ATC),h4
 
-Contents: ATC stands for atoms-to-continuum.  This package implements
-a "fix atc"_fix_atc.html command to either couple MD with continuum
-finite element equations or perform on-the-fly post-processing of
-atomic information to continuum fields.  See src/USER-ATC/README for
-more details.
+[Contents:]
 
-To build LAMMPS with this package ...
+ATC stands for atoms-to-continuum.  This package implements a "fix
+atc"_fix_atc.html command to either couple molecular dynamics with
+continuum finite element equations or perform on-the-fly conversion of
+atomic information to continuum fields.
 
-To install via make or Make.py:
+[Authors:] Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
+
+[Install or un-install:]
+  
+Before building LAMMPS with this package, you must first build the ATC
+library in lib/atc.  You can do this manually if you prefer; follow
+the instructions in lib/atc/README.  You can also do it in one step
+from the lammps/src dir, using a command like these, which simply
+invoke the lib/atc/Install.py script with the specified args:
+
+make lib-atc                      # print help message
+make lib-atc args="-m g++"        # build with GNU g++ compiler
+make lib-atc args="-m icc"        # build with Intel icc compiler :pre
+
+The build should produce two files: lib/atc/libatc.a and
+lib/atc/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to build LAMMPS with the ATC
+library.  If necessary, you can edit/create a new
+lib/atc/Makefile.machine file for your system, which should define an
+EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
+file.
+
+Note that the Makefile.lammps file has settings for the BLAS and
+LAPACK linear algebra libraries.  As explained in lib/atc/README these
+can either exist on your system, or you can use the files provided in
+lib/linalg.  In the latter case you also need to build the library
+in lib/linalg with a command like these:
+
+make lib-linalg                      # print help message
+make lib-atc args="-m gfortran"      # build with GNU Fortran compiler
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
 
 make yes-user-atc
 make machine :pre
-
-Make.py -p atc -a machine :pre
-
-To un-install via make or Make.py:
-
+ 
 make no-user-atc
 make machine :pre
+ 
+[Supporting info:]
 
-Make.py -p ^atc -a machine :pre
-
-Supporting info:src/USER-ATC/README, "fix atc"_fix_atc.html,
+src/USER-ATC: filenames -> commands
+src/USER-ATC/README
+"fix atc"_fix_atc.html
 examples/USER/atc
-
-Authors: Reese Jones (rjones at sandia.gov), Jeremy Templeton (jatempl
-at sandia.gov) and Jon Zimmerman (jzimmer at sandia.gov) at Sandia.
-Contact them directly if you have questions.
+http://lammps.sandia.gov/pictures.html#atc :ul
 
 :line
 
-USER-AWPMD package :link(USER-AWPMD),h5
+USER-AWPMD package :link(USER-AWPMD),h4
 
-Contents: AWPMD stands for Antisymmetrized Wave Packet Molecular
-Dynamics.  This package implements an atom, pair, and fix style which
-allows electrons to be treated as explicit particles in an MD
-calculation.  See src/USER-AWPMD/README for more details.
+[Contents:]
 
-To build LAMMPS with this package ...
+AWPMD stands for Antisymmetrized Wave Packet Molecular Dynamics.  This
+package implements an atom, pair, and fix style which allows electrons
+to be treated as explicit particles in a classical molecular dynamics
+model.
 
-Supporting info: src/USER-AWPMD/README, "fix
-awpmd/cut"_pair_awpmd.html, examples/USER/awpmd
+[Author:] Ilya Valuev (JIHT, Russia).
 
-Author: Ilya Valuev at the JIHT in Russia (valuev at
-physik.hu-berlin.de).  Contact him directly if you have questions.
+[Install or un-install:]
+  
+Before building LAMMPS with this package, you must first build the
+AWPMD library in lib/awpmd.  You can do this manually if you prefer;
+follow the instructions in lib/awpmd/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invoke the lib/awpmd/Install.py script with the specified args:
+
+make lib-awpmd                      # print help message
+make lib-awpmd args="-m g++"        # build with GNU g++ compiler
+make lib-awpmd args="-m icc"        # build with Intel icc compiler :pre
+
+The build should produce two files: lib/awpmd/libawpmd.a and
+lib/awpmd/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to build LAMMPS with the
+AWPMD library.  If necessary, you can edit/create a new
+lib/awpmd/Makefile.machine file for your system, which should define
+an EXTRAMAKE variable to specify a corresponding
+Makefile.lammps.machine file.
+
+Note that the Makefile.lammps file has settings for the BLAS and
+LAPACK linear algebra libraries.  As explained in lib/awpmd/README
+these can either exist on your system, or you can use the files
+provided in lib/linalg.  In the latter case you also need to build the
+library in lib/linalg with a command like these:
+
+make lib-linalg                      # print help message
+make lib-atc args="-m gfortran"      # build with GNU Fortran compiler
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-user-awpmd
+make machine :pre
+ 
+make no-user-awpmd
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-AWPMD: filenames -> commands
+src/USER-AWPMD/README
+"pair awpmd/cut"_pair_awpmd.html
+"fix nve/awpmd"_fix_nve_awpmd.html
+examples/USER/awpmd :ul
 
 :line
 
-USER-CG-CMM package :link(USER-CG-CMM),h5
+USER-CGDNA package :link(USER-CGDNA),h4
 
-Contents: CG-CMM stands for coarse-grained ??.  This package
-implements several pair styles and an angle style using the coarse
-grained parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27
-(2007) (SDK), with extensions to simulate ionic liquids, electrolytes,
-lipids and charged amino acids.  See src/USER-CG-CMM/README for more
-details.
+[Contents:]
 
-Supporting info: src/USER-CG-CMM/README, "pair lj/sdk"_pair_sdk.html,
-"pair lj/sdk/coul/long"_pair_sdk.html, "angle sdk"_angle_sdk.html,
-examples/USER/cg-cmm
+Several pair styles, a bond style, and integration fixes for
+coarse-grained models of single- and double-stranded DNA based on the
+oxDNA model of Doye, Louis and Ouldridge at the University of Oxford.
+This includes Langevin-type rigid-body integrators with improved
+stability.
 
-Author: Axel Kohlmeyer at Temple U (akohlmey at gmail.com).  Contact
-him directly if you have questions.
+[Author:] Oliver Henrich (University of Edinburgh).
 
-:line
+[Install or un-install:]
+  
+make yes-user-cgdna
+make machine :pre
+ 
+make no-user-cgdna
+make machine :pre
+ 
+[Supporting info:]
 
-USER-CGDNA package :link(USER-CGDNA),h5
-
-Contents: The CGDNA package implements coarse-grained force fields for
-single- and double-stranded DNA. These are at the moment mainly the
-oxDNA and oxDNA2 models, developed by Doye, Louis and Ouldridge at the University
-of Oxford.  The package also contains Langevin-type rigid-body
-integrators with improved stability.
-
-See these doc pages to get started:
-
-"bond_style oxdna/fene"_bond_oxdna.html
-"bond_style oxdna2/fene"_bond_oxdna.html
-"pair_style oxdna/..."_pair_oxdna.html
-"pair_style oxdna2/..."_pair_oxdna2.html
+src/USER-CGDNA: filenames -> commands
+/src/USER-CGDNA/README
+"pair_style oxdna/*"_pair_oxdna.html
+"pair_style oxdna2/*"_pair_oxdna2.html
+"bond_style oxdna/*"_bond_oxdna.html
+"bond_style oxdna2/*"_bond_oxdna2.html
 "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html :ul
 
-Supporting info: /src/USER-CGDNA/README, "bond_style
-oxdna/fene"_bond_oxdna.html, "bond_style
-oxdna2/fene"_bond_oxdna.html, "pair_style
-oxdna/..."_pair_oxdna.html, "pair_style
-oxdna2/..."_pair_oxdna2.html, "fix
-nve/dotc/langevin"_fix_nve_dotc_langevin.html
+:line
 
-Author: Oliver Henrich at the University of Strathclyde, Glasgow 
-(oliver.henrich at strath.ac.uk, also ohenrich at ph.ed.ac.uk). 
-Contact him directly if you have any questions.
+USER-CGSDK package :link(USER-CGSDK),h4
+
+[Contents:]
+
+Several pair styles and an angle style which implement the
+coarse-grained SDK model of Shinoda, DeVane, and Klein which enables
+simulation of ionic liquids, electrolytes, lipids and charged amino
+acids.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Install or un-install:]
+  
+make yes-user-cgsdk
+make machine :pre
+ 
+make no-user-cgsdk
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-CGSDK: filenames -> commands
+src/USER-CGSDK/README
+"pair_style lj/sdk/*"_pair_sdk.html
+"angle_style sdk"_angle_sdk.html
+examples/USER/cgsdk
+http://lammps.sandia.gov/pictures.html#cg :ul
 
 :line
 
-USER-COLVARS package :link(USER-COLVARS),h5
+USER-COLVARS package :link(USER-COLVARS),h4
 
-Contents: COLVARS stands for collective variables which can be used to
-implement Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
-Sampling and Restraints.  This package implements a "fix
-colvars"_fix_colvars.html command which wraps a COLVARS library which
-can perform those kinds of simulations.  See src/USER-COLVARS/README
-for more details.
+[Contents:]
 
-Supporting info:
-"doc/PDF/colvars-refman-lammps.pdf"_PDF/colvars-refman-lammps.pdf,
-src/USER-COLVARS/README, lib/colvars/README, "fix
-colvars"_fix_colvars.html, examples/USER/colvars
+COLVARS stands for collective variables, which can be used to
+implement various enhanced sampling methods, including Adaptive
+Biasing Force, Metadynamics, Steered MD, Umbrella Sampling and
+Restraints.  A "fix colvars"_fix_colvars.html command is implemented
+which wraps a COLVARS library, which implements these methods.
+simulations.
 
-Authors: Axel Kohlmeyer at Temple U (akohlmey at gmail.com) wrote the
-fix.  The COLVARS library itself is written and maintained by Giacomo
-Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome
-Henin (LISM, CNRS, Marseille, France).  Contact them directly if you
-have questions.
+[Authors:] Axel Kohlmeyer (Temple U).  The COLVARS library was written
+by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and
+Jerome Henin (LISM, CNRS, Marseille, France).
+
+[Install or un-install:]
+  
+Before building LAMMPS with this package, you must first build the
+COLVARS library in lib/colvars.  You can do this manually if you
+prefer; follow the instructions in lib/colvars/README.  You can also
+do it in one step from the lammps/src dir, using a command like these,
+which simply invoke the lib/colvars/Install.py script with the
+specified args:
+
+make lib-colvars                      # print help message
+make lib-colvars args="-m g++"        # build with GNU g++ compiler :pre
+
+The build should produce two files: lib/colvars/libcolvars.a and
+lib/colvars/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to build LAMMPS with the
+COLVARS library (though typically the settings are just blank).  If
+necessary, you can edit/create a new lib/colvars/Makefile.machine file
+for your system, which should define an EXTRAMAKE variable to specify
+a corresponding Makefile.lammps.machine file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-user-colvars
+make machine :pre
+ 
+make no-user-colvars
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-COLVARS: filenames -> commands
+"doc/PDF/colvars-refman-lammps.pdf"_PDF/colvars-refman-lammps.pdf
+src/USER-COLVARS/README
+lib/colvars/README
+"fix colvars"_fix_colvars.html
+examples/USER/colvars :ul
 
 :line
 
-USER-DIFFRACTION package :link(USER-DIFFRACTION),h5
+USER-DIFFRACTION package :link(USER-DIFFRACTION),h4
 
-Contents: This packages implements two computes and a fix for
-calculating x-ray and electron diffraction intensities based on
-kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
-more details.
+[Contents:]
 
-Supporting info: "compute saed"_compute_saed.html, "compute
-xrd"_compute_xrd.html, "fix saed/vtk"_fix_saed_vtk.html,
-examples/USER/diffraction
+Two computes and a fix for calculating x-ray and electron diffraction
+intensities based on kinematic diffraction theory.
 
-Author: Shawn P. Coleman (shawn.p.coleman8.ctr at mail.mil) while at
-the University of Arkansas.  Contact him directly if you have
-questions.
+[Author:] Shawn Coleman while at the U Arkansas.
+
+[Install or un-install:]
+  
+make yes-user-diffraction
+make machine :pre
+ 
+make no-user-diffraction
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-DIFFRACTION: filenames -> commands
+"compute saed"_compute_saed.html
+"compute xrd"_compute_xrd.html
+"fix saed/vtk"_fix_saed_vtk.html
+examples/USER/diffraction :ul
 
 :line
 
-USER-DPD package :link(USER-DPD),h5
+USER-DPD package :link(USER-DPD),h4
 
-Contents: DPD stands for dissipative particle dynamics, This package
-implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
-conditions.  It also has extensions for performing reactive DPD, where
-each particle has internal state for multiple species and a coupled
-set of chemical reaction ODEs are integrated each timestep.  The DPD
-equations of motion are integrated efficiently through the Shardlow
-splitting algorithm.  See src/USER-DPD/README for more details.
+[Contents:]
 
-Supporting info: /src/USER-DPD/README, "compute dpd"_compute_dpd.html
+DPD stands for dissipative particle dynamics.  This package implements
+coarse-grained DPD-based models for energetic, reactive molecular
+crystalline materials.  It includes many pair styles specific to these
+systems, including for reactive DPD, where each particle has internal
+state for multiple species and a coupled set of chemical reaction ODEs
+are integrated each timestep.  Highly accurate time intergrators for
+isothermal, isoenergetic, isobaric and isenthalpic conditions are
+included.  These enable long timesteps via the Shardlow splitting
+algorithm.
+
+[Authors:] Jim Larentzos (ARL), Tim Mattox (Engility Corp), and and John
+Brennan (ARL).
+
+[Install or un-install:]
+  
+make yes-user-dpd
+make machine :pre
+ 
+make no-user-dpd
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-DPD: filenames -> commands
+/src/USER-DPD/README
+"compute dpd"_compute_dpd.html
 "compute dpd/atom"_compute_dpd_atom.html
-"fix eos/cv"_fix_eos_table.html "fix eos/table"_fix_eos_table.html
-"fix eos/table/rx"_fix_eos_table_rx.html "fix shardlow"_fix_shardlow.html
-"fix rx"_fix_rx.html "pair table/rx"_pair_table_rx.html
-"pair dpd/fdt"_pair_dpd_fdt.html "pair dpd/fdt/energy"_pair_dpd_fdt.html
-"pair exp6/rx"_pair_exp6_rx.html "pair multi/lucy"_pair_multi_lucy.html
-"pair multi/lucy/rx"_pair_multi_lucy_rx.html, examples/USER/dpd
-
-Authors: James Larentzos (ARL) (james.p.larentzos.civ at mail.mil),
-Timothy Mattox (Engility Corp) (Timothy.Mattox at engilitycorp.com)
-and John Brennan (ARL) (john.k.brennan.civ at mail.mil).  Contact them
-directly if you have questions.
+"fix eos/cv"_fix_eos_table.html
+"fix eos/table"_fix_eos_table.html
+"fix eos/table/rx"_fix_eos_table_rx.html
+"fix shardlow"_fix_shardlow.html
+"fix rx"_fix_rx.html
+"pair table/rx"_pair_table_rx.html
+"pair dpd/fdt"_pair_dpd_fdt.html
+"pair dpd/fdt/energy"_pair_dpd_fdt.html
+"pair exp6/rx"_pair_exp6_rx.html
+"pair multi/lucy"_pair_multi_lucy.html
+"pair multi/lucy/rx"_pair_multi_lucy_rx.html
+examples/USER/dpd :ul
 
 :line
 
-USER-DRUDE package :link(USER-DRUDE),h5
+USER-DRUDE package :link(USER-DRUDE),h4
 
-Contents: This package contains methods for simulating polarizable
-systems using thermalized Drude oscillators.  It has computes, fixes,
-and pair styles for this purpose.  See "Section
+[Contents:]
+
+Fixes, pair styles, and a compute to simulate thermalized Drude
+oscillators as a model of polarization.  See "Section
 6.27"_Section_howto.html#howto_27 for an overview of how to use the
-package.  See src/USER-DRUDE/README for additional details.  There are
-auxiliary tools for using this package in tools/drude.
+package.  There are auxiliary tools for using this package in
+tools/drude.
 
-Supporting info: "Section 6.27"_Section_howto.html#howto_27,
-src/USER-DRUDE/README, "fix drude"_fix_drude.html, "fix
-drude/transform/*"_fix_drude_transform.html, "compute
-temp/drude"_compute_temp_drude.html, "pair thole"_pair_thole.html,
-"pair lj/cut/thole/long"_pair_thole.html, examples/USER/drude,
-tools/drude
+[Authors:] Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
+Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
 
-Authors: Alain Dequidt at Universite Blaise Pascal Clermont-Ferrand
-(alain.dequidt at univ-bpclermont.fr); co-authors: Julien Devemy,
-Agilio Padua.  Contact them directly if you have questions.
+[Install or un-install:]
+  
+make yes-user-drude
+make machine :pre
+ 
+make no-user-drude
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-DRUDE: filenames -> commands
+"Section 6.27"_Section_howto.html#howto_27
+"Section 6.25"_Section_howto.html#howto_25
+src/USER-DRUDE/README
+"fix drude"_fix_drude.html
+"fix drude/transform/*"_fix_drude_transform.html
+"compute temp/drude"_compute_temp_drude.html
+"pair thole"_pair_thole.html
+"pair lj/cut/thole/long"_pair_thole.html
+examples/USER/drude
+tools/drude :ul
 
 :line
 
-USER-EFF package :link(USER-EFF),h5
+USER-EFF package :link(USER-EFF),h4
 
-Contents: EFF stands for electron force field.  This package contains
-atom, pair, fix and compute styles which implement the eFF as
+[Contents:]
+
+EFF stands for electron force field which allows a classical MD code
+to model electrons as particles of variable radius.  This package
+contains atom, pair, fix and compute styles which implement the eFF as
 described in A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III,
-JCC, 2010. The eFF potential was first introduced by Su and Goddard,
-in 2007.  See src/USER-EFF/README for more details.  There are
-auxiliary tools for using this package in tools/eff; see its README
+JCC, 2010.  The eFF potential was first introduced by Su and Goddard,
+in 2007.  There are auxiliary tools for using this package in
+tools/eff; see its README file.
+
+[Author:] Andres Jaramillo-Botero (CalTech).
+
+[Install or un-install:]
+  
+make yes-user-eff
+make machine :pre
+ 
+make no-user-eff
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-EFF: filenames -> commands
+src/USER-EFF/README
+"atom_style electron"_atom_style.html
+"fix nve/eff"_fix_nve_eff.html
+"fix nvt/eff"_fix_nvt_eff.html
+"fix npt/eff"_fix_npt_eff.html
+"fix langevin/eff"_fix_langevin_eff.html
+"compute temp/eff"_compute_temp_eff.html
+"pair eff/cut"_pair_eff.html
+"pair eff/inline"_pair_eff.html
+examples/USER/eff
+tools/eff/README
+tools/eff
+http://lammps.sandia.gov/movies.html#eff :ul
+
+:line
+
+USER-FEP package :link(USER-FEP),h4
+
+[Contents:]
+
+FEP stands for free energy perturbation.  This package provides
+methods for performing FEP simulations by using a "fix
+adapt/fep"_fix_adapt_fep.html command with soft-core pair potentials,
+which have a "soft" in their style name.  There are auxiliary tools
+for using this package in tools/fep; see its README file.
+
+[Author:] Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+
+[Install or un-install:]
+  
+make yes-user-fep
+make machine :pre
+ 
+make no-user-fep
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-FEP: filenames -> commands
+src/USER-FEP/README
+"fix adapt/fep"_fix_adapt_fep.html
+"compute fep"_compute_fep.html
+"pair_style */soft"_pair_lj_soft.html
+examples/USER/fep
+tools/fep/README
+tools/fep :ul
+
+:line
+
+USER-H5MD package :link(USER-H5MD),h4
+
+[Contents:]
+
+H5MD stands for HDF5 for MD.  "HDF5"_HDF5 is a portable, binary,
+self-describing file format, used by many scientific simulations.
+H5MD is a format for molecular simulations, built on top of HDF5.
+This package implements a "dump h5md"_dump_h5md.html command to output
+LAMMPS snapshots in this format.
+
+:link(HDF5,http://www.hdfgroup.org/HDF5)
+
+To use this package you must have the HDF5 library available on your
+system.
+
+[Author:] Pierre de Buyl (KU Leuven) created both the package and the
+H5MD format.
+
+[Install or un-install:]
+
+Note that to follow these steps to compile and link to the CH5MD
+library, you need the standard HDF5 software package installed on your
+system, which should include the h5cc compiler and the HDF5 library.
+
+Before building LAMMPS with this package, you must first build the
+CH5MD library in lib/h5md.  You can do this manually if you prefer;
+follow the instructions in lib/h5md/README.  You can also do it in one
+step from the lammps/src dir, using a command like these, which simply
+invoke the lib/h5md/Install.py script with the specified args:
+
+make lib-h5md                     # print help message
+make lib-hm5d args="-m h5cc"      # build with h5cc compiler :pre
+
+The build should produce two files: lib/h5md/libch5md.a and
+lib/h5md/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to build LAMMPS with the
+system HDF5 library.  If necessary, you can edit/create a new
+lib/h5md/Makefile.machine file for your system, which should define an
+EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
 file.
 
-Supporting info:
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+  
+make yes-user-h5md
+make machine :pre
+ 
+make no-user-h5md
+make machine :pre
+ 
+[Supporting info:]
 
-Author: Andres Jaramillo-Botero at CalTech (ajaramil at
-wag.caltech.edu).  Contact him directly if you have questions.
-
-:line
-
-USER-FEP package :link(USER-FEP),h5
-
-Contents: FEP stands for free energy perturbation.  This package
-provides methods for performing FEP simulations by using a "fix
-adapt/fep"_fix_adapt_fep.html command with soft-core pair potentials,
-which have a "soft" in their style name.  See src/USER-FEP/README for
-more details.  There are auxiliary tools for using this package in
-tools/fep; see its README file.
-
-Supporting info: src/USER-FEP/README, "fix
-adapt/fep"_fix_adapt_fep.html, "compute fep"_compute_fep.html,
-"pair_style */soft"_pair_lj_soft.html, examples/USER/fep
-
-Author: Agilio Padua at Universite Blaise Pascal Clermont-Ferrand
-(agilio.padua at univ-bpclermont.fr). Contact him directly if you have
-questions.
+src/USER-H5MD: filenames -> commands
+src/USER-H5MD/README
+lib/h5md/README
+"dump h5md"_dump_h5md.html :ul
 
 :line
 
-USER-H5MD package :link(USER-H5MD),h5
+USER-INTEL package :link(USER-INTEL),h4
 
-Contents: H5MD stands for HDF5 for MD.  "HDF5"_HDF5 is a binary,
-portable, self-describing file format, used by many scientific
-simulations.  H5MD is a format for molecular simulations, built on top
-of HDF5.  This package implements a "dump h5md"_dump_h5md.html command
-to output LAMMPS snapshots in this format.  See src/USER-H5MD/README
-for more details.
+[Contents:]
 
-:link(HDF5,http://www.hdfgroup.org/HDF5/)
+Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
+styles which are optimized for Intel CPUs and KNLs (Knights Landing).
+All of them have an "intel" in their style name.  "Section
+5.3.2"_accelerate_intel.html gives details of what hardware and
+compilers are required on your system, and how to build and use this
+package.  Its styles can be invoked at run time via the "-sf intel" or
+"-suffix intel" "command-line switches"_Section_start.html#start_7.
+Also see the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and "USER-OMP"_#USER-OMP
+packages, which have styles optimized for CPUs and KNLs.
 
-Supporting info: src/USER-H5MD/README, lib/h5md/README, "dump
-h5md"_dump_h5md.html
+You need to have an Intel compiler, version 14 or higher to take full
+advantage of this package.
 
-Author: Pierre de Buyl at KU Leuven (see http://pdebuyl.be) created
-this package as well as the H5MD format and library.  Contact him
-directly if you have questions.
+[Author:] Mike Brown (Intel).
 
-:line
-
-USER-INTEL package :link(USER-INTEL),h5
-
-Contents: Dozens of pair, bond, angle, dihedral, and improper styles
-that are optimized for Intel CPUs and the Intel Xeon Phi (in offload
-mode).  All of them have an "intel" in their style name.  "Section
-5.3.2"_accelerate_intel.html gives details of what hardware
-and compilers are required on your system, and how to build and use
-this package.  Also see src/USER-INTEL/README for more details. See
-the KOKKOS, OPT, and USER-OMP packages, which also have CPU and
-Phi-enabled styles.
-
-Supporting info: examples/accelerate, src/USER-INTEL/TEST
-
-"Section 5.3"_Section_accelerate.html#acc_3
-
-Author: Mike Brown at Intel (michael.w.brown at intel.com).  Contact
-him directly if you have questions.
+[Install or un-install:]
 
 For the USER-INTEL package, you have 2 choices when building.  You can
-build with CPU or Phi support.  The latter uses Xeon Phi chips in
-"offload" mode.  Each of these modes requires additional settings in
-your Makefile.machine for CCFLAGS and LINKFLAGS.
+build with either CPU or KNL support.  Each choice requires additional
+settings in your Makefile.machine for CCFLAGS and LINKFLAGS and
+optimized malloc libraries.  See the
+src/MAKE/OPTIONS/Makefile.intel_cpu and src/MAKE/OPTIONS/Makefile.knl
+files for examples.
 
-For CPU mode (if using an Intel compiler):
+For CPUs:
 
-CCFLAGS: add -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost, -fno-alias, -ansi-alias, -override-limits
-LINKFLAGS: add -fopenmp :ul
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
+CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
+                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+LIB =           -ltbbmalloc -ltbbmalloc_proxy
 
-For Phi mode add the following in addition to the CPU mode flags:
+For KNLs:
 
-CCFLAGS: add -DLMP_INTEL_OFFLOAD and
-LINKFLAGS: add -offload :ul
+OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
+CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
+                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+LIB =           -ltbbmalloc
 
-And also add this to CCFLAGS:
+Once you have an appropriate Makefile.machine, you can
+install/un-install the package and build LAMMPS in the usual manner.
+Note that you cannot build one executable to run on multiple hardware
+targets (Intel CPUs or KNL).  You need to build LAMMPS once for each
+hardware target, to produce a separate executable.
 
--offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\"" :pre
+You should also typically install the USER-OMP package, as it can be
+used in tandem with the USER-INTEL package to good effect, as
+explained in "Section 5.3.2"_accelerate_intel.html.
 
-Examples:
+make yes-user-intel yes-user-omp
+make machine :pre
+ 
+make no-user-intel no-user-omp
+make machine :pre
+
+[Supporting info:]
+
+src/USER-INTEL: filenames -> commands
+src/USER-INTEL/README
+"Section 5.3"_Section_accelerate.html#acc_3
+"Section 5.3.2"_accelerate_gpu.html
+"Section 2.7 -sf intel"_Section_start.html#start_7
+"Section 2.7 -pk intel"_Section_start.html#start_7
+"package intel"_package.html
+Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (i)
+src/USER-INTEL/TEST
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
 
-USER-LB package :link(USER-LB),h5
+USER-LB package :link(USER-LB),h4
 
-Supporting info:
+[Contents:]
 
-This package contains a LAMMPS implementation of a background
-Lattice-Boltzmann fluid, which can be used to model MD particles
-influenced by hydrodynamic forces.
+Fixes which implement a background Lattice-Boltzmann (LB) fluid, which
+can be used to model MD particles influenced by hydrodynamic forces.
 
-See this doc page and its related commands to get started:
+[Authors:] Frances Mackay and Colin Denniston (University of Western
+Ontario).
 
+[Install or un-install:]
+  
+make yes-user-lb
+make machine :pre
+ 
+make no-user-lb
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-LB: filenames -> commands
+src/USER-LB/README
 "fix lb/fluid"_fix_lb_fluid.html
-
-The people who created this package are Frances Mackay (fmackay at
-uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
-Western Ontario.  Contact them directly if you have questions.
-
-Examples: examples/USER/lb
+"fix lb/momentum"_fix_lb_momentum.html
+"fix lb/viscous"_fix_lb_viscous.html
+examples/USER/lb :ul
 
 :line
 
-USER-MGPT package :link(USER-MGPT),h5
+USER-MGPT package :link(USER-MGPT),h4
 
-Supporting info:
+[Contents:]
 
-This package contains a fast implementation for LAMMPS of
-quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
-derives from first-principles DFT-based generalized pseudopotential
-theory (GPT) through a series of systematic approximations valid for
-mid-period transition metals with nearly half-filled d bands.  The
-MGPT method was originally developed by John Moriarty at Lawrence
-Livermore National Lab (LLNL).
+A pair style which provides a fast implementation of the quantum-based
+MGPT multi-ion potentials.  The MGPT or model GPT method derives from
+first-principles DFT-based generalized pseudopotential theory (GPT)
+through a series of systematic approximations valid for mid-period
+transition metals with nearly half-filled d bands.  The MGPT method
+was originally developed by John Moriarty at LLNL.  The pair style in
+this package calculates forces and energies using an optimized
+matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
 
-In the general matrix representation of MGPT, which can also be
-applied to f-band actinide metals, the multi-ion potentials are
-evaluated on the fly during a simulation through d- or f-state matrix
-multiplication, and the forces that move the ions are determined
-analytically.  The {mgpt} pair style in this package calculates forces
-and energies using an optimized matrix-MGPT algorithm due to Tomas
-Oppelstrup at LLNL.
+[Authors:] Tomas Oppelstrup and John Moriarty (LLNL).
 
-See this doc page to get started:
+[Install or un-install:]
+  
+make yes-user-mgpt
+make machine :pre
+ 
+make no-user-mgpt
+make machine :pre
+ 
+[Supporting info:]
 
+src/USER-MGPT: filenames -> commands
+src/USER-MGPT/README
 "pair_style mgpt"_pair_mgpt.html
-
-The persons who created the USER-MGPT package are Tomas Oppelstrup
-(oppelstrup2@llnl.gov) and John Moriarty (moriarty2@llnl.gov)
-Contact them directly if you have any questions.
-
-Examples: examples/USER/mgpt
+examples/USER/mgpt :ul
 
 :line
 
-USER-MISC package :link(USER-MISC),h5
+USER-MISC package :link(USER-MISC),h4
 
-Supporting info:
+[Contents:]
 
-The files in this package are a potpourri of (mostly) unrelated
-features contributed to LAMMPS by users.  Each feature is a single
-pair of files (*.cpp and *.h).
+A potpourri of (mostly) unrelated features contributed to LAMMPS by
+users.  Each feature is a single fix, compute, pair, bond, angle,
+dihedral, improper, or command style.
 
-More information about each feature can be found by reading its doc
-page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
-input script commands is as follows:
-
-"Section 3.5"_Section_commands.html#cmd_5
-
-User-contributed features are listed at the bottom of the fix,
-compute, pair, etc sections.
-
-The list of features and author of each is given in the
+[Authors:] The author for each style in the package is listed in the
 src/USER-MISC/README file.
 
-You should contact the author directly if you have specific questions
-about the feature or its coding.
+[Install or un-install:]
+  
+make yes-user-misc
+make machine :pre
+ 
+make no-user-misc
+make machine :pre
+ 
+[Supporting info:]
 
-Examples: examples/USER/misc
+src/USER-MISC: filenames -> commands
+src/USER-MISC/README
+one doc page per individual command listed in src/USER-MISC/README
+examples/USER/misc :ul
 
 :line
 
-USER-MANIFOLD package :link(USER-MANIFOLD),h5
+USER-MANIFOLD package :link(USER-MANIFOLD),h4
 
-Supporting info:
+[Contents:]
 
-This package contains a dump molfile command which uses molfile
-plugins that are bundled with the
-"VMD"_http://www.ks.uiuc.edu/Research/vmd molecular visualization and
-analysis program, to enable LAMMPS to dump its information in formats
-compatible with various molecular simulation tools.
+Several fixes and a "manifold" class which enable simulations of
+particles constrained to a manifold (a 2D surface within the 3D
+simulation box).  This is done by applying the RATTLE constraint
+algorithm to formulate single-particle constraint functions
+g(xi,yi,zi) = 0 and their derivative (i.e. the normal of the manifold)
+n = grad(g).
 
-This package allows LAMMPS to perform MD simulations of particles
-constrained on a manifold (i.e., a 2D subspace of the 3D simulation
-box). It achieves this using the RATTLE constraint algorithm applied
-to single-particle constraint functions g(xi,yi,zi) = 0 and their
-derivative (i.e. the normal of the manifold) n = grad(g).
+[Author:] Stefan Paquay (Eindhoven University of Technology (TU/e), The
+Netherlands)
 
-See this doc page to get started:
+[Install or un-install:]
+  
+make yes-user-manifold
+make machine :pre
+ 
+make no-user-manifold
+make machine :pre
+ 
+[Supporting info:]
 
+src/USER-MANIFOLD: filenames -> commands
+src/USER-MANIFOLD/README
+"doc/manifolds"_manifolds.html
 "fix manifoldforce"_fix_manifoldforce.html
-
-The person who created this package is Stefan Paquay, at the Eindhoven
-University of Technology (TU/e), The Netherlands (s.paquay at tue.nl).
-Contact him directly if you have questions.
-
-:line
-
-USER-MOLFILE package :link(USER-MOLFILE),h5
-
-Supporting info:
-
-This package contains a dump molfile command which uses molfile
-plugins that are bundled with the
-"VMD"_http://www.ks.uiuc.edu/Research/vmd molecular visualization and
-analysis program, to enable LAMMPS to dump its information in formats
-compatible with various molecular simulation tools.
-
-The package only provides the interface code, not the plugins.  These
-can be obtained from a VMD installation which has to match the
-platform that you are using to compile LAMMPS for. By adding plugins
-to VMD, support for new file formats can be added to LAMMPS (or VMD or
-other programs that use them) without having to recompile the
-application itself.
-
-See this doc page to get started:
-
-"dump molfile"_dump_molfile.html
-
-The person who created this package is Axel Kohlmeyer at Temple U
-(akohlmey at gmail.com).  Contact him directly if you have questions.
+"fix nve/manifold/rattle"_fix_nve_manifold/rattle.html
+"fix nvt/manifold/rattle"_fix_nvt_manifold/rattle.html
+examples/USER/manifold
+http://lammps.sandia.gov/movies.html#manifold :ul
 
 :line
 
-USER-NC-DUMP package :link(USER-NC-DUMP),h5
+USER-MOLFILE package :link(USER-MOLFILE),h4
 
-Contents: Dump styles for writing NetCDF format files.  NetCDF is a binary,
-portable, self-describing file format on top of HDF5. The file format
-contents follow the AMBER NetCDF trajectory conventions
-(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions to this
-convention. This package implements a "dump nc"_dump_nc.html command
-and a "dump nc/mpiio"_dump_nc.html command to output LAMMPS snapshots
-in this format.  See src/USER-NC-DUMP/README for more details.
+[Contents:]
 
-NetCDF files can be directly visualized with the following tools:
+A "dump molfile"_dump_molfile.html command which uses molfile plugins
+that are bundled with the "VMD"_http://www.ks.uiuc.edu/Research/vmd
+molecular visualization and analysis program, to enable LAMMPS to dump
+snapshots in formats compatible with various molecular simulation
+tools.
 
-Ovito (http://www.ovito.org/). Ovito supports the AMBER convention
-and all of the above extensions. :ulb,l
-VMD (http://www.ks.uiuc.edu/Research/vmd/) :l
-AtomEye (http://www.libatoms.org/). The libAtoms version of AtomEye contains
-a NetCDF reader that is not present in the standard distribution of AtomEye :l,ule
+To use this package you must have the desired VMD plugins available on
+your system.
 
-The person who created these files is Lars Pastewka at
-Karlsruhe Institute of Technology (lars.pastewka at kit.edu).
-Contact him directly if you have questions.
+Note that this package only provides the interface code, not the
+plugins themselves, which will be accessed when requesting a specific
+plugin via the "dump molfile"_dump_molfile.html command.  Plugins can
+be obtained from a VMD installation which has to match the platform
+that you are using to compile LAMMPS for. By adding plugins to VMD,
+support for new file formats can be added to LAMMPS (or VMD or other
+programs that use them) without having to recompile the application
+itself.  More information about the VMD molfile plugins can be found
+at
+"http://www.ks.uiuc.edu/Research/vmd/plugins/molfile"_http://www.ks.uiuc.edu/Research/vmd/plugins/molfile.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Install or un-install:]
+  
+Note that the lib/molfile/Makefile.lammps file has a setting for a
+dynamic loading library libdl.a that should is typically present on
+all systems, which is required for LAMMPS to link with this package.
+If the setting is not valid for your system, you will need to edit the
+Makefile.lammps file.  See lib/molfile/README and
+lib/molfile/Makefile.lammps for details.
+
+make yes-user-molfile
+make machine :pre
+ 
+make no-user-molfile
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-MOLFILE: filenames -> commands
+src/USER-MOLFILE/README
+lib/molfile/README
+"dump molfile"_dump_molfile.html :ul
 
 :line
 
-USER-OMP package :link(USER-OMP),h5
+USER-NETCDF package :link(USER-NETCDF),h4
 
-Supporting info:
+[Contents:]
 
-This package provides OpenMP multi-threading support and
-other optimizations of various LAMMPS pair styles, dihedral
-styles, and fix styles.
+Dump styles for writing NetCDF formatted dump files.  NetCDF is a
+portable, binary, self-describing file format developed on top of
+HDF5. The file contents follow the AMBER NetCDF trajectory conventions
+(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
 
-See this section of the manual to get started:
+To use this package you must have the NetCDF library available on your
+system.
 
-"Section 5.3"_Section_accelerate.html#acc_3
+Note that NetCDF files can be directly visualized with the following
+tools:
 
-The person who created this package is Axel Kohlmeyer at Temple U
-(akohlmey at gmail.com).  Contact him directly if you have questions.
+"Ovito"_ovito (Ovito supports the AMBER convention and the extensions mentioned above)
+"VMD"_vmd
+"AtomEye"_atomeye (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution) :ul
 
-For the USER-OMP package, your Makefile.machine needs additional
-settings for CCFLAGS and LINKFLAGS.
+:link(ovito,http://www.ovito.org)
+:link(atomeye,http://www.libatoms.org)
+
+[Author:] Lars Pastewka (Karlsruhe Institute of Technology).
+
+[Install or un-install:]
+   
+Note that to follow these steps, you need the standard NetCDF software
+package installed on your system.  The lib/netcdf/Makefile.lammps file
+has settings for NetCDF include and library files that LAMMPS needs to
+compile and linkk with this package.  If the settings are not valid
+for your system, you will need to edit the Makefile.lammps file.  See
+lib/netcdf/README for details.
+
+make yes-user-netcdf
+make machine :pre
+  
+make no-user-netcdf
+make machine :pre
+
+[Supporting info:]
+
+src/USER-NETCDF: filenames -> commands
+src/USER-NETCDF/README
+lib/netcdf/README
+"dump netcdf"_dump_netcdf.html :ul
+
+:line
+
+USER-OMP package :link(USER-OMP),h4
+
+[Contents:]
+
+Hundreds of pair, fix, compute, bond, angle, dihedral, improper, and
+kspace styles which are altered to enable threading on many-core CPUs
+via OpenMP directives.  All of them have an "omp" in their style name.
+"Section 5.3.4"_accelerate_omp.html gives details of what hardware and
+compilers are required on your system, and how to build and use this
+package.  Its styles can be invoked at run time via the "-sf omp" or
+"-suffix omp" "command-line switches"_Section_start.html#start_7.
+Also see the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and
+"USER-INTEL"_#USER-INTEL packages, which have styles optimized for
+CPUs.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+NOTE: The compile flags "-restrict" and "-fopenmp" must be used to
+build LAMMPS with the USER-OMP package, as well as the link flag
+"-fopenmp".  They should be added to the CCFLAGS and LINKFLAGS lines
+of your Makefile.machine.  See src/MAKE/OPTIONS/Makefile.omp for an
+example.
+
+Once you have an appropriate Makefile.machine, you can
+install/un-install the package and build LAMMPS in the usual manner:
+
+[Install or un-install:]
+  
+make yes-user-omp
+make machine :pre
+ 
+make no-user-omp
+make machine :pre
 
 CCFLAGS: add -fopenmp and -restrict
 LINKFLAGS: add -fopenmp :ul
 
-Examples: examples/accelerate, bench/KEPLER
+[Supporting info:]
+
+src/USER-OMP: filenames -> commands
+src/USER-OMP/README
+"Section 5.3"_Section_accelerate.html#acc_3
+"Section 5.3.4"_accelerate_omp.html
+"Section 2.7 -sf omp"_Section_start.html#start_7
+"Section 2.7 -pk omp"_Section_start.html#start_7
+"package omp"_package.html
+Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (o)
+"Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
 
-USER-PHONON package :link(USER-PHONON),h5
+USER-PHONON package :link(USER-PHONON),h4
 
-This package contains a fix phonon command that calculates dynamical
+[Contents:]
+
+A "fix phonon"_fix_phonon.html command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
 
-See this doc page to get started:
+[Author:] Ling-Ti Kong (Shanghai Jiao Tong University).
 
+[Install or un-install:]
+   
+make yes-user-phonon
+make machine :pre
+  
+make no-user-phonon
+make machine :pre
+  
+[Supporting info:]
+
+src/USER-PHONON: filenames -> commands
+src/USER-PHONON/README
 "fix phonon"_fix_phonon.html
-
-The person who created this package is Ling-Ti Kong (konglt at
-sjtu.edu.cn) at Shanghai Jiao Tong University.  Contact him directly
-if you have questions.
-
-Examples: examples/USER/phonon
+examples/USER/phonon :ul
 
 :line
 
-USER-QMMM package :link(USER-QMMM),h5
+USER-QMMM package :link(USER-QMMM),h4
 
-Supporting info:
+[Contents:]
 
-This package provides a fix qmmm command which allows LAMMPS to be
-used in a QM/MM simulation, currently only in combination with pw.x
-code from the "Quantum ESPRESSO"_espresso package.
+A "fix qmmm"_fix_qmmm.html command which allows LAMMPS to be used in a
+QM/MM simulation, currently only in combination with the "Quantum
+ESPRESSO"_espresso package.  
 
 :link(espresso,http://www.quantum-espresso.org)
+
+To use this package you must have Quantum ESPRESSO available on your
+system.
 
 The current implementation only supports an ONIOM style mechanical
 coupling to the Quantum ESPRESSO plane wave DFT package.
@@ -1712,193 +2247,355 @@ Electrostatic coupling is in preparation and the interface has been
 written in a manner that coupling to other QM codes should be possible
 without changes to LAMMPS itself.
 
-See this doc page to get started:
+[Author:] Axel Kohlmeyer (Temple U).
 
-"fix qmmm"_fix_qmmm.html
+[Install or un-install:]
 
-as well as the lib/qmmm/README file.
+Before building LAMMPS with this package, you must first build the
+QMMM library in lib/qmmm.  You can do this manually if you prefer;
+follow the first two steps explained in lib/colvars/README.  You can
+also do it in one step from the lammps/src dir, using a command like
+these, which simply invoke the lib/colvars/Install.py script with the
+specified args:
 
-The person who created this package is Axel Kohlmeyer at Temple U
-(akohlmey at gmail.com).  Contact him directly if you have questions.
+make lib-qmmm                      # print help message
+make lib-qmmm args="-m gfortran"   # build with GNU Fortran compiler :pre
+
+The build should produce two files: lib/qmmm/libqmmm.a and
+lib/qmmm/Makefile.lammps.  The latter is copied from an existing
+Makefile.lammps.* and has settings needed to build LAMMPS with the
+QMMM library (though typically the settings are just blank).  If
+necessary, you can edit/create a new lib/qmmm/Makefile.machine file
+for your system, which should define an EXTRAMAKE variable to specify
+a corresponding Makefile.lammps.machine file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-user-qmmm
+make machine :pre
+  
+make no-user-qmmm
+make machine :pre
+
+NOTE: The LAMMPS executable these steps produce is not yet functional
+for a QM/MM simulation.  You must also build Quantum ESPRESSO and
+create a new executable which links LAMMPS and Quanutm ESPRESSO
+together.  These are steps 3 and 4 described in the lib/qmmm/README
+file.
+  
+[Supporting info:]
+
+src/USER-QMMM: filenames -> commands
+src/USER-QMMM/README
+lib/qmmm/README
+"fix phonon"_fix_phonon.html
+lib/qmmm/example-ec/README
+lib/qmmm/example-mc/README :ul
 
 :line
 
-USER-QTB package :link(USER-QTB),h5
+USER-QTB package :link(USER-QTB),h4
 
-Supporting info:
+[Contents:]
 
-This package provides a self-consistent quantum treatment of the
+Two fixes which provide a self-consistent quantum treatment of
 vibrational modes in a classical molecular dynamics simulation.  By
 coupling the MD simulation to a colored thermostat, it introduces zero
-point energy into the system, alter the energy power spectrum and the
-heat capacity towards their quantum nature. This package could be of
-interest if one wants to model systems at temperatures lower than
-their classical limits or when temperatures ramp up across the
-classical limits in the simulation.
+point energy into the system, altering the energy power spectrum and
+the heat capacity to account for their quantum nature. This is useful
+when modeling systems at temperatures lower than their classical
+limits or when temperatures ramp across the classical limits in a
+simulation.
 
-See these two doc pages to get started:
+[Author:] Yuan Shen (Stanford U).
 
-"fix qtb"_fix_qtb.html provides quantum nulcear correction through a
-colored thermostat and can be used with other time integration schemes
-like "fix nve"_fix_nve.html or "fix nph"_fix_nh.html.
+[Install or un-install:]
+   
+make yes-user-qtb
+make machine :pre
+  
+make no-user-qtb
+make machine :pre
+  
+[Supporting info:]
 
-"fix qbmsst"_fix_qbmsst.html enables quantum nuclear correction of a
-multi-scale shock technique simulation by coupling the quantum thermal
-bath with the shocked system.
-
-The person who created this package is Yuan Shen (sy0302 at
-stanford.edu) at Stanford University.  Contact him directly if you
-have questions.
-
-Examples: examples/USER/qtb
-
-:line
-
-USER-QUIP package :link(USER-QUIP),h5
-
-Supporting info:
-
-Examples: examples/USER/quip
+src/USER-QTB: filenames -> commands
+src/USER-QTB/README
+"fix qtb"_fix_qtb.html
+"fix qbmsst"_fix_qbmsst.html
+examples/USER/qtb :ul
 
 :line
 
-USER-REAXC package :link(USER-REAXC),h5
+USER-QUIP package :link(USER-QUIP),h4
 
-Supporting info:
+[Contents:]
 
-This package contains a implementation for LAMMPS of the ReaxFF force
-field.  ReaxFF uses distance-dependent bond-order functions to
-represent the contributions of chemical bonding to the potential
-energy.  It was originally developed by Adri van Duin and the Goddard
-group at CalTech.
+A "pair_style quip"_pair_quip.html command which wraps the "QUIP
+libAtoms library"_quip, which includes a variety of interatomic
+potentials, including Gaussian Approximation Potential (GAP) models
+developed by the Cambridge University group.
 
-The USER-REAXC version of ReaxFF (pair_style reax/c), implemented in
-C, should give identical or very similar results to pair_style reax,
-which is a ReaxFF implementation on top of a Fortran library, a
-version of which library was originally authored by Adri van Duin.
+:link(quip,https://github.com/libAtoms/QUIP)
 
-The reax/c version should be somewhat faster and more scalable,
-particularly with respect to the charge equilibration calculation.  It
-should also be easier to build and use since there are no complicating
-issues with Fortran memory allocation or linking to a Fortran library.
+To use this package you must have the QUIP libAatoms library available
+on your system.
 
-For technical details about this implementation of ReaxFF, see
-this paper:
+[Author:] Albert Bartok (Cambridge University)
 
-Parallel and Scalable Reactive Molecular Dynamics: Numerical Methods
-and Algorithmic Techniques, H. M. Aktulga, J. C. Fogarty,
-S. A. Pandit, A. Y. Grama, Parallel Computing, in press (2011).
+[Install or un-install:]
 
-See the doc page for the pair_style reax/c command for details
-of how to use it in LAMMPS.
+Note that to follow these steps to compile and link to the QUIP
+library, you must first download and build QUIP on your systems.  It
+can be obtained from GitHub.  See step 1 and step 1.1 in the
+lib/quip/README file for details on how to do this.  Note that it
+requires setting two environment variables, QUIP_ROOT and QUIP_ARCH,
+which will be accessed by the lib/quip/Makefile.lammps file which is
+used when you compile and link LAMMPS with this package.  You should
+only need to edit this file if the LAMMPS build can not use its
+settings to successfully build on your system.
 
-The person who created this package is Hasan Metin Aktulga (hmaktulga
-at lbl.gov), while at Purdue University.  Contact him directly, or
-Aidan Thompson at Sandia (athomps at sandia.gov), if you have
-questions.
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
 
-Examples: examples/reax
+make yes-user-quip
+make machine :pre
+  
+make no-user-quip
+make machine :pre
+  
+[Supporting info:]
 
-:line
-
-USER-SMD package :link(USER-SMD),h5
-
-Supporting info:
-
-This package implements smoothed Mach dynamics (SMD) in
-LAMMPS.  Currently, the package has the following features:
-
-* Does liquids via traditional Smooth Particle Hydrodynamics (SPH)
-
-* Also solves solids mechanics problems via a state of the art
-  stabilized meshless method with hourglass control.
-
-* Can specify hydrostatic interactions independently from material
-  strength models, i.e. pressure and deviatoric stresses are separated.
-
-* Many material models available (Johnson-Cook, plasticity with
-  hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new
-  material models.
-
-* Rigid boundary conditions (walls) can be loaded as surface geometries
-  from *.STL files.
-
-See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.
-
-There are example scripts for using this package in examples/USER/smd.
-
-The person who created this package is Georg Ganzenmuller at the
-Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
-Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
-you have questions.
-
-Examples: examples/USER/smd
+src/USER-QUIP: filenames -> commands
+src/USER-QUIP/README
+"pair_style quip"_pair_quip.html
+examples/USER/quip :ul
 
 :line
 
-USER-SMTBQ package :link(USER-SMTBQ),h5
+USER-REAXC package :link(USER-REAXC),h4
 
-Supporting info:
+[Contents:]
 
-This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
-potential for the description of ionocovalent bonds in oxides.
+A pair style which implements the ReaxFF potential in C/C++ (in
+contrast to the "REAX package"_#REAX and its Fortran library).  ReaxFF
+is universal reactive force field.  See the src/USER-REAXC/README file
+for more info on differences between the two packages.  Also two fixes
+for monitoring molecules as bonds are created and destroyed.
 
-There are example scripts for using this package in
-examples/USER/smtbq.
+[Author:] Hasan Metin Aktulga (MSU) while at Purdue University.
 
-See this doc page to get started:
+[Install or un-install:]
+   
+make yes-user-reaxc
+make machine :pre
+  
+make no-user-reaxc
+make machine :pre
+  
+[Supporting info:]
 
+src/USER-REAXC: filenames -> commands
+src/USER-REAXC/README
+"pair_style reax/c"_pair_reaxc.html
+"fix reax/c/bonds"_fix_reax_bonds.html
+"fix reax/c/species"_fix_reaxc_species.html
+examples/reax :ul
+
+:line
+
+USER-SMD package :link(USER-SMD),h4
+
+[Contents:]
+
+An atom style, fixes, computes, and several pair styles which
+implements smoothed Mach dynamics (SMD) for solids, which is a model
+related to smoothed particle hydrodynamics (SPH) for liquids (see the
+"USER-SPH package"_#USER-SPH).
+
+This package solves solids mechanics problems via a state of the art
+stabilized meshless method with hourglass control.  It can specify
+hydrostatic interactions independently from material strength models,
+i.e. pressure and deviatoric stresses are separated.  It provides many
+material models (Johnson-Cook, plasticity with hardening,
+Mie-Grueneisen, Polynomial EOS) and allows new material models to be
+added.  It implements rigid boundary conditions (walls) which can be
+specified as surface geometries from *.STL files.
+
+[Author:] Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
+Dynamics, Ernst Mach Institute, Germany).
+
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first download the
+Eigen library.  Eigen is a template library, so you do not need to
+build it, just download it.  You can do this manually if you prefer;
+follow the instructions in lib/smd/README.  You can also do it in one
+step from the lammps/src dir, using a command like these, which simply
+invoke the lib/smd/Install.py script with the specified args:
+
+make lib-smd                            # print help message
+make lib-smd args="-g -l"               # download in default lib/smd/eigen-eigen-*
+make lib-smd args="-h . eigen -g -l"    # download in lib/smd/eigen
+make lib-smd args="-h ~ eigen -g -l"    # download and build in ~/eigen :pre
+
+Note that the final -l switch is to create a symbolic (soft) link
+named "includelink" in lib/smd to point to the Eigen dir.  When LAMMPS
+builds it will use this link.  You should not need to edit the
+lib/smd/Makefile.lammps file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-user-smd
+make machine :pre
+  
+make no-user-smd
+make machine :pre
+  
+[Supporting info:]
+
+src/USER-SMD: filenames -> commands
+src/USER-SMD/README
+doc/PDF/SMD_LAMMPS_userguide.pdf
+examples/USER/smd
+http://lammps.sandia.gov/movies.html#smd :ul
+
+:line
+
+USER-SMTBQ package :link(USER-SMTBQ),h4
+
+[Contents:]
+
+A pair style which implements a Second Moment Tight Binding model with
+QEq charge equilibration (SMTBQ) potential for the description of
+ionocovalent bonds in oxides.
+
+[Authors:] Nicolas Salles, Emile Maras, Olivier Politano, and Robert
+Tetot (LAAS-CNRS, France).
+
+[Install or un-install:]
+   
+make yes-user-smtbq
+make machine :pre
+  
+make no-user-smtbq
+make machine :pre
+  
+[Supporting info:]
+
+src/USER-SMTBQ: filenames -> commands
+src/USER-SMTBQ/README
 "pair_style smtbq"_pair_smtbq.html
-
-The persons who created the USER-SMTBQ package are Nicolas Salles,
-Emile Maras, Olivier Politano, Robert Tetot, who can be contacted at
-these email addresses: lammps@u-bourgogne.fr, nsalles@laas.fr.  Contact
-them directly if you have any questions.
-
-Examples: examples/USER/smtbq
+examples/USER/smtbq :ul
 
 :line
 
-USER-SPH package :link(USER-SPH),h5
+USER-SPH package :link(USER-SPH),h4
 
-Supporting info:
+[Contents:]
 
-This package implements smoothed particle hydrodynamics (SPH) in
-LAMMPS.  Currently, the package has the following features:
+An atom style, fixes, computes, and several pair styles which
+implements smoothed particle hydrodynamics (SPH) for liquids.  See the
+related "USER-SMD package"_#USER-SMD package for smooth Mach dynamics
+(SMD) for solids.
 
-* Tait, ideal gas, Lennard-Jones equation of states, full support for
-  complete (i.e. internal-energy dependent) equations of state
+This package contains ideal gas, Lennard-Jones equation of states,
+Tait, and full support for complete (i.e. internal-energy dependent)
+equations of state.  It allows for plain or Monaghans XSPH integration
+of the equations of motion.  It has options for density continuity or
+density summation to propagate the density field.  It has
+"set"_set.html command options to set the internal energy and density
+of particles from the input script and allows the same quantities to
+be output with thermodynamic output or to dump files via the "compute
+property/atom"_compute_property_atom.html command.
 
-* Plain or Monaghans XSPH integration of the equations of motion
+[Author:] Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
+Dynamics, Ernst Mach Institute, Germany).
 
-* Density continuity or density summation to propagate the density field
+[Install or un-install:]
+   
+make yes-user-sph
+make machine :pre
+  
+make no-user-sph
+make machine :pre
+  
+[Supporting info:]
 
-* Commands to set internal energy and density of particles from the
-  input script
-
-* Output commands to access internal energy and density for dumping and
-  thermo output
-
-See the file doc/PDF/SPH_LAMMPS_userguide.pdf to get started.
-
-There are example scripts for using this package in examples/USER/sph.
-
-The person who created this package is Georg Ganzenmuller at the
-Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
-Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
-you have questions.
-
-Examples: examples/USER/sph
+src/USER-SPH: filenames -> commands
+src/USER-SPH/README
+doc/PDF/SPH_LAMMPS_userguide.pdf
+examples/USER/sph
+http://lammps.sandia.gov/movies.html#sph :ul
 
 :line
 
-USER-TALLY package :link(USER-TALLY),h5
+USER-TALLY package :link(USER-TALLY),h4
 
-Supporting info:
+[Contents:]
 
-Examples: examples/USER/tally
+Several compute styles that can be called when pairwise interactions
+are calculated to tally information (forces, heat flux, energy,
+stress, etc) about individual interactions.
+
+[Author:] Axel Kohlmeyer (Temple U).
+
+[Install or un-install:]
+   
+make yes-user-tally
+make machine :pre
+  
+make no-user-tally
+make machine :pre
+  
+[Supporting info:]
+
+src/USER-TALLY: filenames -> commands
+src/USER-TALLY/README
+"compute */tally"_compute_tally.html
+examples/USER/tally :ul
 
 :line
 
-USER-VTK package :link(USER-VTK),h5
+USER-VTK package :link(USER-VTK),h4
 
+[Contents:]
+
+A "dump custom/vtk"_dump_custom_vtk.html command which outputs
+snapshot info in the "VTK format"_vtk, enabling visualization by
+"Paraview"_paraview or other visuzlization packages.
+
+:link(vtk,http://www.vtk.org)
+:link(paraview,http://www.paraview.org)
+
+To use this package you must have VTK library available on your
+system.
+
+[Authors:] Richard Berger (JKU) and Daniel Queteschiner (DCS Computing).
+
+[Install or un-install:]
+   
+The lib/vtk/Makefile.lammps file has settings for accessing VTK files
+and its library, which are required for LAMMPS to build and link with
+this package.  If the settings are not valid for your system, check if
+one of the other lib/vtk/Makefile.lammps.* files is compatible and
+copy it to Makefile.lammps.  If none of the provided files work, you
+will need to edit the Makefile.lammps file.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-user-vtk
+make machine :pre
+  
+make no-user-vtk
+make machine :pre
+  
+[Supporting info:]
+
+src/USER-VTK: filenames -> commands
+src/USER-VTK/README
+lib/vtk/README
+"dump custom/vtk"_dump_custom_vtk.html :ul

@@ -40,31 +40,25 @@
 // ************************************************************************
 //@HEADER
 */
+
 #ifndef KOKKOS_TEST_CUDA_HPP
 #define KOKKOS_TEST_CUDA_HPP
+
 #include <gtest/gtest.h>
 
 #include <Kokkos_Macros.hpp>
-
 #include <Kokkos_Core.hpp>
 
 #include <TestTile.hpp>
-
-//----------------------------------------------------------------------------
-
 #include <TestSharedAlloc.hpp>
 #include <TestViewMapping.hpp>
-
-
 #include <TestViewAPI.hpp>
 #include <TestViewOfClass.hpp>
 #include <TestViewSubview.hpp>
 #include <TestViewSpaceAssign.hpp>
 #include <TestAtomic.hpp>
 #include <TestAtomicOperations.hpp>
-
 #include <TestAtomicViews.hpp>
-
 #include <TestRange.hpp>
 #include <TestTeam.hpp>
 #include <TestReduce.hpp>
@@ -73,20 +67,16 @@
 #include <TestCompilerMacros.hpp>
 #include <TestTaskScheduler.hpp>
 #include <TestMemoryPool.hpp>
-
-
 #include <TestCXX11.hpp>
 #include <TestCXX11Deduction.hpp>
 #include <TestTeamVector.hpp>
 #include <TestTemplateMetaFunctions.hpp>
-
 #include <TestPolicyConstruction.hpp>
-
 #include <TestMDRange.hpp>
 
 namespace Test {
 
-// For Some Reason I can only have the definition of SetUp and TearDown in one cpp file ...
+// For some reason I can only have the definition of SetUp and TearDown in one cpp file ...
 class cuda : public ::testing::Test {
 protected:
   static void SetUpTestCase();
@@ -95,17 +85,19 @@ protected:
 
 #ifdef TEST_CUDA_INSTANTIATE_SETUP_TEARDOWN
 void cuda::SetUpTestCase()
-  {
-    Kokkos::Cuda::print_configuration( std::cout );
-    Kokkos::HostSpace::execution_space::initialize();
-    Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice(0) );
-  }
+{
+  Kokkos::print_configuration( std::cout );
+  Kokkos::HostSpace::execution_space::initialize();
+  Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice( 0 ) );
+}
 
 void cuda::TearDownTestCase()
-  {
-    Kokkos::Cuda::finalize();
-    Kokkos::HostSpace::execution_space::finalize();
-  }
-#endif
+{
+  Kokkos::Cuda::finalize();
+  Kokkos::HostSpace::execution_space::finalize();
 }
+#endif
+
+} // namespace Test
+
 #endif

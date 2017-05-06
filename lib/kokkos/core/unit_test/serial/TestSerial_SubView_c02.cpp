@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <serial/TestSerial.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_1d_assign_atomic ) {
-  TestViewSubview::test_1d_assign< Kokkos::Serial , Kokkos::MemoryTraits<Kokkos::Atomic> >();
+TEST_F( serial, view_subview_1d_assign_atomic )
+{
+  TestViewSubview::test_1d_assign< Kokkos::Serial, Kokkos::MemoryTraits<Kokkos::Atomic> >();
 }
 
-} // namespace test
-
+} // namespace Test

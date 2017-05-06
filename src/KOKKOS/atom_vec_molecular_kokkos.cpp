@@ -786,18 +786,18 @@ struct AtomVecMolecularKokkos_PackBorder {
           _buf(i,0) = _x(j,0);
           _buf(i,1) = _x(j,1);
           _buf(i,2) = _x(j,2);
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
-          _buf(i,6) = _molecule(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
+          _buf(i,6) = d_ubuf(_molecule(j)).d;
       } else {
           _buf(i,0) = _x(j,0) + _dx;
           _buf(i,1) = _x(j,1) + _dy;
           _buf(i,2) = _x(j,2) + _dz;
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
-          _buf(i,6) = _molecule(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
+          _buf(i,6) = d_ubuf(_molecule(j)).d;
       }
   }
 };
@@ -1029,10 +1029,10 @@ struct AtomVecMolecularKokkos_UnpackBorder {
       _x(i+_first,0) = _buf(i,0);
       _x(i+_first,1) = _buf(i,1);
       _x(i+_first,2) = _buf(i,2);
-      _tag(i+_first) = static_cast<tagint> (_buf(i,3));
-      _type(i+_first) = static_cast<int>  (_buf(i,4));
-      _mask(i+_first) = static_cast<int>  (_buf(i,5));
-      _molecule(i+_first) = static_cast<tagint> (_buf(i,6));
+      _tag(i+_first) = (tagint) d_ubuf(_buf(i,3)).i;
+      _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
+      _mask(i+_first) = (int) d_ubuf(_buf(i,5)).i;
+      _molecule(i+_first) = (tagint) d_ubuf(_buf(i,6)).i;
 
   }
 };
@@ -1263,7 +1263,7 @@ struct AtomVecMolecularKokkos_PackExchangeFunctor {
     elements = 19+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
     const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*
-			     buf.template view<DeviceType>().dimension_1())/elements;
+                             buf.template view<DeviceType>().dimension_1())/elements;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
 
@@ -1279,45 +1279,45 @@ struct AtomVecMolecularKokkos_PackExchangeFunctor {
     _buf(mysend,m++) = _v(i,0);
     _buf(mysend,m++) = _v(i,1);
     _buf(mysend,m++) = _v(i,2);
-    _buf(mysend,m++) = _tag(i);
-    _buf(mysend,m++) = _type(i);
-    _buf(mysend,m++) = _mask(i);
-    _buf(mysend,m++) = _image(i);
-    _buf(mysend,m++) = _molecule(i);
-    _buf(mysend,m++) = _num_bond(i);
+    _buf(mysend,m++) = d_ubuf(_tag(i)).d;
+    _buf(mysend,m++) = d_ubuf(_type(i)).d;
+    _buf(mysend,m++) = d_ubuf(_mask(i)).d;
+    _buf(mysend,m++) = d_ubuf(_image(i)).d;
+    _buf(mysend,m++) = d_ubuf(_molecule(i)).d;
+    _buf(mysend,m++) = d_ubuf(_num_bond(i)).d;
     for (k = 0; k < _num_bond(i); k++) {
-      _buf(mysend,m++) = _bond_type(i,k);
-      _buf(mysend,m++) = _bond_atom(i,k);
+      _buf(mysend,m++) = d_ubuf(_bond_type(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_bond_atom(i,k)).d;
     }
-    _buf(mysend,m++) = _num_angle(i);
+    _buf(mysend,m++) = d_ubuf(_num_angle(i)).d;
     for (k = 0; k < _num_angle(i); k++) {
-      _buf(mysend,m++) = _angle_type(i,k);
-      _buf(mysend,m++) = _angle_atom1(i,k);
-      _buf(mysend,m++) = _angle_atom2(i,k);
-      _buf(mysend,m++) = _angle_atom3(i,k);
+      _buf(mysend,m++) = d_ubuf(_angle_type(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_angle_atom1(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_angle_atom2(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_angle_atom3(i,k)).d;
     }
-    _buf(mysend,m++) = _num_dihedral(i);
+    _buf(mysend,m++) = d_ubuf(_num_dihedral(i)).d;
     for (k = 0; k < _num_dihedral(i); k++) {
-      _buf(mysend,m++) = _dihedral_type(i,k);
-      _buf(mysend,m++) = _dihedral_atom1(i,k);
-      _buf(mysend,m++) = _dihedral_atom2(i,k);
-      _buf(mysend,m++) = _dihedral_atom3(i,k);
-      _buf(mysend,m++) = _dihedral_atom4(i,k);
+      _buf(mysend,m++) = d_ubuf(_dihedral_type(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_dihedral_atom1(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_dihedral_atom2(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_dihedral_atom3(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_dihedral_atom4(i,k)).d;
     }
-    _buf(mysend,m++) = _num_improper(i);
+    _buf(mysend,m++) = d_ubuf(_num_improper(i)).d;
     for (k = 0; k < _num_improper(i); k++) {
-      _buf(mysend,m++) = _improper_type(i,k);
-      _buf(mysend,m++) = _improper_atom1(i,k);
-      _buf(mysend,m++) = _improper_atom2(i,k);
-      _buf(mysend,m++) = _improper_atom3(i,k);
-      _buf(mysend,m++) = _improper_atom4(i,k);
+      _buf(mysend,m++) = d_ubuf(_improper_type(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_improper_atom1(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_improper_atom2(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_improper_atom3(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_improper_atom4(i,k)).d;
     }
 
-    _buf(mysend,m++) = _nspecial(i,0);
-    _buf(mysend,m++) = _nspecial(i,1);
-    _buf(mysend,m++) = _nspecial(i,2);
+    _buf(mysend,m++) = d_ubuf(_nspecial(i,0)).d;
+    _buf(mysend,m++) = d_ubuf(_nspecial(i,1)).d;
+    _buf(mysend,m++) = d_ubuf(_nspecial(i,2)).d;
     for (k = 0; k < _nspecial(i,2); k++)
-      _buf(mysend,m++) = _special(i,k);
+      _buf(mysend,m++) = d_ubuf(_special(i,k)).d;
 
     const int j = _copylist(mysend);
 
@@ -1536,7 +1536,7 @@ struct AtomVecMolecularKokkos_UnpackExchangeFunctor {
     elements = 19+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
     const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*
-			     buf.template view<DeviceType>().dimension_1())/elements;
+                             buf.template view<DeviceType>().dimension_1())/elements;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
 
@@ -1552,46 +1552,46 @@ struct AtomVecMolecularKokkos_UnpackExchangeFunctor {
       _v(i,0) = _buf(myrecv,m++);
       _v(i,1) = _buf(myrecv,m++);
       _v(i,2) = _buf(myrecv,m++);
-      _tag(i) = _buf(myrecv,m++);
-      _type(i) = _buf(myrecv,m++);
-      _mask(i) = _buf(myrecv,m++);
-      _image(i) = _buf(myrecv,m++);
+      _tag(i) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+      _type(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _mask(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _image(i) = (imageint) d_ubuf(_buf(myrecv,m++)).i;
 
-      _molecule(i) = _buf(myrecv,m++);
-      _num_bond(i) = _buf(myrecv,m++);
+      _molecule(i) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+      _num_bond(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
       int k;
       for (k = 0; k < _num_bond(i); k++) {
-        _bond_type(i,k) = _buf(myrecv,m++);
-        _bond_atom(i,k) = _buf(myrecv,m++);
+        _bond_type(i,k) = (int) d_ubuf(_buf(myrecv,m++)).i;
+        _bond_atom(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
       }
-      _num_angle(i) =  _buf(myrecv,m++);
+      _num_angle(i) =  (int) d_ubuf(_buf(myrecv,m++)).i;
       for (k = 0; k < _num_angle(i); k++) {
-        _angle_type(i,k) = _buf(myrecv,m++);
-        _angle_atom1(i,k) = _buf(myrecv,m++);
-        _angle_atom2(i,k) = _buf(myrecv,m++);
-        _angle_atom3(i,k) = _buf(myrecv,m++);
+        _angle_type(i,k) = (int) d_ubuf(_buf(myrecv,m++)).i;
+        _angle_atom1(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _angle_atom2(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _angle_atom3(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
       }
-      _num_dihedral(i) =  _buf(myrecv,m++);
+      _num_dihedral(i) = d_ubuf(_buf(myrecv,m++)).i;
       for (k = 0; k < _num_dihedral(i); k++) {
-        _dihedral_type(i,k) = _buf(myrecv,m++);
-        _dihedral_atom1(i,k) = _buf(myrecv,m++);
-        _dihedral_atom2(i,k) = _buf(myrecv,m++);
-        _dihedral_atom3(i,k) = _buf(myrecv,m++);
-        _dihedral_atom4(i,k) = _buf(myrecv,m++);
+        _dihedral_type(i,k) = (int) d_ubuf(_buf(myrecv,m++)).i;
+        _dihedral_atom1(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _dihedral_atom2(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _dihedral_atom3(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _dihedral_atom4(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
       }
-      _num_improper(i) =  _buf(myrecv,m++);
-      for (k = 0; k < _num_improper(i); k++) {
-        _improper_type(i,k) = _buf(myrecv,m++);
-        _improper_atom1(i,k) = _buf(myrecv,m++);
-        _improper_atom2(i,k) = _buf(myrecv,m++);
-        _improper_atom3(i,k) = _buf(myrecv,m++);
-        _improper_atom4(i,k) = _buf(myrecv,m++);
+      _num_improper(i) =  (int) d_ubuf(_buf(myrecv,m++)).i;
+      for (k = 0; k < (int) _num_improper(i); k++) {
+        _improper_type(i,k) = (int) d_ubuf(_buf(myrecv,m++)).i;
+        _improper_atom1(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _improper_atom2(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _improper_atom3(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+        _improper_atom4(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
       }
-      _nspecial(i,0) = _buf(myrecv,m++);
-      _nspecial(i,1) = _buf(myrecv,m++);
-      _nspecial(i,2) = _buf(myrecv,m++);
+      _nspecial(i,0) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _nspecial(i,1) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _nspecial(i,2) = (int) d_ubuf(_buf(myrecv,m++)).i;
       for (k = 0; k < _nspecial(i,2); k++)
-        _special(i,k) = _buf(myrecv,m++);
+        _special(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
     }
   }
 };

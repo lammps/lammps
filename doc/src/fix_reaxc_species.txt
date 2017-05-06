@@ -41,7 +41,7 @@ fix 1 all reax/c/species 1 100 100 species.out element Au O H position 1000 AuOH
 [Description:]
 
 Write out the chemical species information computed by the ReaxFF
-potential specified by "pair_style reax/c"_pair_reax_c.html.
+potential specified by "pair_style reax/c"_pair_reaxc.html.
 Bond-order values (either averaged or instantaneous, depending on
 value of {Nrepeat}) are used to determine chemical bonds.  Every
 {Nfreq} timesteps, chemical species information is written to
@@ -65,7 +65,7 @@ symbol printed for each LAMMPS atom type. The number of symbols must
 match the number of LAMMPS atom types and each symbol must consist of
 1 or 2 alphanumeric characters. Normally, these symbols should be
 chosen to match the chemical identity of each LAMMPS atom type, as
-specified using the "reax/c pair_coeff"_pair_reax_c.html command and
+specified using the "reax/c pair_coeff"_pair_reaxc.html command and
 the ReaxFF force field file.
 
 The optional keyword {position} writes center-of-mass positions of
@@ -158,8 +158,8 @@ more instructions on how to use the accelerated styles effectively.
 [Restrictions:]
 
 The fix species currently only works with
-"pair_style reax/c"_pair_reax_c.html and it requires that the "pair_style
-reax/c"_pair_reax_c.html be invoked.  This fix is part of the
+"pair_style reax/c"_pair_reaxc.html and it requires that the "pair_style
+reax/c"_pair_reaxc.html be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info.
@@ -170,7 +170,7 @@ It should be possible to extend it to other reactive pair_styles (such as
 
 [Related commands:]
 
-"pair_style reax/c"_pair_reax_c.html, "fix
+"pair_style reax/c"_pair_reaxc.html, "fix
 reax/bonds"_fix_reax_bonds.html
 
 [Default:]

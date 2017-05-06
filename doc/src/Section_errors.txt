@@ -11171,6 +11171,12 @@ Self-explanatory. :dd
 If the fix changes the timestep, the dump dcd file will not
 reflect the change. :dd
 
+{Energy due to X extra global DOFs will be included in minimizer energies} :dt
+
+When using fixes like box/relax, the potential energy used by the minimizer
+is augmented by an additional energy provided by the fix. Thus the printed
+converged energy may be different from the total potential energy. :dd
+
 {Energy tally does not account for 'zero yes'} :dt
 
 The energy removed by using the 'zero yes' flag is not accounted

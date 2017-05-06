@@ -40,46 +40,52 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <openmp/TestOpenMP.hpp>
 
 namespace Test {
 
-TEST_F( openmp, long_reduce) {
-  TestReduce< long ,   Kokkos::OpenMP >( 0 );
-  TestReduce< long ,   Kokkos::OpenMP >( 1000000 );
-}
-
-TEST_F( openmp, double_reduce) {
-  TestReduce< double ,   Kokkos::OpenMP >( 0 );
-  TestReduce< double ,   Kokkos::OpenMP >( 1000000 );
-}
-
-TEST_F( openmp , reducers )
+TEST_F( openmp, long_reduce )
 {
-  TestReducers<int, Kokkos::OpenMP>::execute_integer();
-  TestReducers<size_t, Kokkos::OpenMP>::execute_integer();
-  TestReducers<double, Kokkos::OpenMP>::execute_float();
-  TestReducers<Kokkos::complex<double>, Kokkos::OpenMP>::execute_basic();
+  TestReduce< long, Kokkos::OpenMP >( 0 );
+  TestReduce< long, Kokkos::OpenMP >( 1000000 );
 }
 
-TEST_F( openmp, long_reduce_dynamic ) {
-  TestReduceDynamic< long ,   Kokkos::OpenMP >( 0 );
-  TestReduceDynamic< long ,   Kokkos::OpenMP >( 1000000 );
-}
-
-TEST_F( openmp, double_reduce_dynamic ) {
-  TestReduceDynamic< double ,   Kokkos::OpenMP >( 0 );
-  TestReduceDynamic< double ,   Kokkos::OpenMP >( 1000000 );
-}
-
-TEST_F( openmp, long_reduce_dynamic_view ) {
-  TestReduceDynamicView< long ,   Kokkos::OpenMP >( 0 );
-  TestReduceDynamicView< long ,   Kokkos::OpenMP >( 1000000 );
-}
-
-TEST_F( openmp , scan )
+TEST_F( openmp, double_reduce )
 {
-  TestScan< Kokkos::OpenMP >::test_range( 1 , 1000 );
+  TestReduce< double, Kokkos::OpenMP >( 0 );
+  TestReduce< double, Kokkos::OpenMP >( 1000000 );
+}
+
+TEST_F( openmp, reducers )
+{
+  TestReducers< int, Kokkos::OpenMP >::execute_integer();
+  TestReducers< size_t, Kokkos::OpenMP >::execute_integer();
+  TestReducers< double, Kokkos::OpenMP >::execute_float();
+  TestReducers< Kokkos::complex<double>, Kokkos::OpenMP >::execute_basic();
+}
+
+TEST_F( openmp, long_reduce_dynamic )
+{
+  TestReduceDynamic< long, Kokkos::OpenMP >( 0 );
+  TestReduceDynamic< long, Kokkos::OpenMP >( 1000000 );
+}
+
+TEST_F( openmp, double_reduce_dynamic )
+{
+  TestReduceDynamic< double, Kokkos::OpenMP >( 0 );
+  TestReduceDynamic< double, Kokkos::OpenMP >( 1000000 );
+}
+
+TEST_F( openmp, long_reduce_dynamic_view )
+{
+  TestReduceDynamicView< long, Kokkos::OpenMP >( 0 );
+  TestReduceDynamicView< long, Kokkos::OpenMP >( 1000000 );
+}
+
+TEST_F( openmp, scan )
+{
+  TestScan< Kokkos::OpenMP >::test_range( 1, 1000 );
   TestScan< Kokkos::OpenMP >( 0 );
   TestScan< Kokkos::OpenMP >( 100000 );
   TestScan< Kokkos::OpenMP >( 10000000 );
@@ -87,10 +93,11 @@ TEST_F( openmp , scan )
 }
 
 #if 0
-TEST_F( openmp , scan_small )
+TEST_F( openmp, scan_small )
 {
-  typedef TestScan< Kokkos::OpenMP , Kokkos::Impl::OpenMPExecUseScanSmall > TestScanFunctor ;
-  for ( int i = 0 ; i < 1000 ; ++i ) {
+  typedef TestScan< Kokkos::OpenMP, Kokkos::Impl::OpenMPExecUseScanSmall > TestScanFunctor;
+
+  for ( int i = 0; i < 1000; ++i ) {
     TestScanFunctor( 10 );
     TestScanFunctor( 10000 );
   }
@@ -101,38 +108,39 @@ TEST_F( openmp , scan_small )
 }
 #endif
 
-TEST_F( openmp  , team_scan )
+TEST_F( openmp, team_scan )
 {
-  TestScanTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestScanTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestScanTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 10 );
-  TestScanTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 10 );
-  TestScanTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 10000 );
-  TestScanTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 10000 );
+  TestScanTeam< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestScanTeam< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestScanTeam< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 10 );
+  TestScanTeam< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 10 );
+  TestScanTeam< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 10000 );
+  TestScanTeam< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 10000 );
 }
 
-TEST_F( openmp , team_long_reduce) {
-  TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 3 );
-  TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
-  TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 100000 );
-  TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
+TEST_F( openmp, team_long_reduce )
+{
+  TestReduceTeam< long, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestReduceTeam< long, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestReduceTeam< long, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 3 );
+  TestReduceTeam< long, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
+  TestReduceTeam< long, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 100000 );
+  TestReduceTeam< long, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
 }
 
-TEST_F( openmp , team_double_reduce) {
-  TestReduceTeam< double ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 0 );
-  TestReduceTeam< double ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
-  TestReduceTeam< double ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 3 );
-  TestReduceTeam< double ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
-  TestReduceTeam< double ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 100000 );
-  TestReduceTeam< double ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
+TEST_F( openmp, team_double_reduce )
+{
+  TestReduceTeam< double, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 0 );
+  TestReduceTeam< double, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 0 );
+  TestReduceTeam< double, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 3 );
+  TestReduceTeam< double, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
+  TestReduceTeam< double, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >( 100000 );
+  TestReduceTeam< double, Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >( 100000 );
 }
 
-TEST_F( openmp , reduction_deduction )
+TEST_F( openmp, reduction_deduction )
 {
   TestCXX11::test_reduction_deduction< Kokkos::OpenMP >();
 }
 
-} // namespace test
-
+} // namespace Test

@@ -73,7 +73,7 @@ pair_coeff command to assign parameters for the different type pairs.
 NOTE: There are two exceptions to this option to list an individual
 pair style multiple times.  The first is for pair styles implemented
 as Fortran libraries: "pair_style meam"_pair_meam.html and "pair_style
-reax"_pair_reax.html ("pair_style reax/c"_pair_reax_c.html is OK).
+reax"_pair_reax.html ("pair_style reax/c"_pair_reaxc.html is OK).
 This is because unlike a C++ class, they can not be instantiated
 multiple times, due to the manner in which they were coded in Fortran.
 The second is for GPU-enabled pair styles in the GPU package.  This is
@@ -224,6 +224,12 @@ effectively {lj/coul 0.0 0.0 0.5} as required for OPLS/AA:
 special_bonds lj/coul 1e-20 1e-20 0.5
 pair_hybrid tersoff lj/cut/coul/long 12.0
 pair_modify pair tersoff special lj/coul 1.0 1.0 1.0 :pre
+
+For use with the various "compute */tally"_compute_tally.html
+computes, the "pair_modify compute/tally"_pair_modify.html
+command can be used to selectively turn off processing of
+the compute tally styles, for example, if those pair styles
+(e.g. manybody styles) do not support this feature.
 
 See the "pair_modify"_pair_modify.html doc page for details on
 the specific syntax, requirements and restrictions.

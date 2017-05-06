@@ -73,7 +73,7 @@ Pair Styles :h1
    pair_polymorphic
    pair_quip
    pair_reax
-   pair_reax_c
+   pair_reaxc
    pair_resquared
    pair_sdk
    pair_smd_hertz

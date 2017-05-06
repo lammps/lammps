@@ -18,6 +18,15 @@ the only option. Adding support for a different QM code will require
 to write a new version of the top-level wrapper code, pwqmmm.c, and
 also an interface layer into the QM code similar to the one in QE.
 
+You can type "make lib-qmmm" from the src directory to see help on how
+to build this library (steps 1 and 2 below) via make commands, or you
+can do the same thing by typing "python Install.py" from within this
+directory, or you can do it manually by following the instructions
+below.
+
+However you perform steps 1 and 2, you will need to perform steps 3
+and 4 manually, as outlined below.
+
 -------------------------------------------------
 
 WARNING: This is experimental code under developement and is provided

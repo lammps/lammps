@@ -115,10 +115,31 @@ IF(Kokkos_ENABLE_OpenMP)
   )
 ENDIF()
 
-IF(Kokkos_ENABLE_QTHREAD)
+IF(Kokkos_ENABLE_Qthreads)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
-    UnitTest_Qthread
-    SOURCES UnitTestMain.cpp TestQthread.cpp
+    UnitTest_Qthreads
+    SOURCES
+      UnitTestMain.cpp
+      qthreads/TestQthreads_Atomics.cpp
+      qthreads/TestQthreads_Other.cpp
+      qthreads/TestQthreads_Reductions.cpp
+      qthreads/TestQthreads_SubView_a.cpp
+      qthreads/TestQthreads_SubView_b.cpp
+      qthreads/TestQthreads_SubView_c01.cpp
+      qthreads/TestQthreads_SubView_c02.cpp
+      qthreads/TestQthreads_SubView_c03.cpp
+      qthreads/TestQthreads_SubView_c04.cpp
+      qthreads/TestQthreads_SubView_c05.cpp
+      qthreads/TestQthreads_SubView_c06.cpp
+      qthreads/TestQthreads_SubView_c07.cpp
+      qthreads/TestQthreads_SubView_c08.cpp
+      qthreads/TestQthreads_SubView_c09.cpp
+      qthreads/TestQthreads_SubView_c10.cpp
+      qthreads/TestQthreads_SubView_c11.cpp
+      qthreads/TestQthreads_SubView_c12.cpp
+      qthreads/TestQthreads_Team.cpp
+      qthreads/TestQthreads_ViewAPI_a.cpp
+      qthreads/TestQthreads_ViewAPI_b.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -194,4 +215,3 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   FAIL_REGULAR_EXPRESSION "  FAILED  "
     TESTONLYLIBS kokkos_gtest
 )
-

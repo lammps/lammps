@@ -14,7 +14,6 @@
 #ifdef PAIR_CLASS
 
 PairStyle(lj/sdk/gpu,PairLJSDKGPU)
-PairStyle(cg/cmm/gpu,PairLJSDKGPU)
 
 #else
 

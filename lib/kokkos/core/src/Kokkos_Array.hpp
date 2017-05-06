@@ -59,8 +59,14 @@ template< class T      = void
         , class Proxy  = void
         >
 struct Array {
-private:
-  T m_elem[N];
+public:
+  /**
+   * The elements of this C array shall not be accessed directly. The data
+   * member has to be declared public to enable aggregate initialization as for
+   * std::array. We mark it as private in the documentation.
+   * @private
+   */
+  T m_internal_implementation_private_member_data[N];
 public:
 
   typedef T &                                 reference ;
@@ -78,25 +84,32 @@ public:
   KOKKOS_INLINE_FUNCTION
   reference operator[]( const iType & i )
     {
-      static_assert( std::is_integral<iType>::value , "Must be integral argument" );
-      return m_elem[i];
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      return m_internal_implementation_private_member_data[i];
     }
 
   template< typename iType >
   KOKKOS_INLINE_FUNCTION
   const_reference operator[]( const iType & i ) const
     {
-      static_assert( std::is_integral<iType>::value , "Must be integral argument" );
-      return m_elem[i];
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      return m_internal_implementation_private_member_data[i];
     }
 
-  KOKKOS_INLINE_FUNCTION pointer       data()       { return & m_elem[0] ; }
-  KOKKOS_INLINE_FUNCTION const_pointer data() const { return & m_elem[0] ; }
+  KOKKOS_INLINE_FUNCTION pointer       data()
+    {
+      return & m_internal_implementation_private_member_data[0];
+    }
+  KOKKOS_INLINE_FUNCTION const_pointer data() const
+    {
+      return & m_internal_implementation_private_member_data[0];
+    }
 
-  ~Array() = default ;
-  Array() = default ;
-  Array( const Array & ) = default ;
-  Array & operator = ( const Array & ) = default ;
+  // Do not default unless move and move-assignment are also defined
+  // ~Array() = default ;
+  // Array() = default ;
+  // Array( const Array & ) = default ;
+  // Array & operator = ( const Array & ) = default ;
 
   // Some supported compilers are not sufficiently C++11 compliant
   // for default move constructor and move assignment operator.
@@ -124,7 +137,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   value_type operator[]( const iType & )
     {
-      static_assert( std::is_integral<iType>::value , "Must be integer argument" );
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integer argument" );
       return value_type();
     }
 
@@ -132,7 +145,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   value_type operator[]( const iType & ) const
     {
-      static_assert( std::is_integral<iType>::value , "Must be integer argument" );
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integer argument" );
       return value_type();
     }
 
@@ -181,7 +194,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   reference operator[]( const iType & i )
     {
-      static_assert( std::is_integral<iType>::value , "Must be integral argument" );
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
       return m_elem[i];
     }
 
@@ -189,7 +202,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   const_reference operator[]( const iType & i ) const
     {
-      static_assert( std::is_integral<iType>::value , "Must be integral argument" );
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
       return m_elem[i];
     }
 
@@ -250,7 +263,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   reference operator[]( const iType & i )
     {
-      static_assert( std::is_integral<iType>::value , "Must be integral argument" );
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
       return m_elem[i*m_stride];
     }
 
@@ -258,7 +271,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   const_reference operator[]( const iType & i ) const
     {
-      static_assert( std::is_integral<iType>::value , "Must be integral argument" );
+      static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
       return m_elem[i*m_stride];
     }
 

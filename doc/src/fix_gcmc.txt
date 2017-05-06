@@ -317,7 +317,7 @@ solution is to start a new simulation after the equilibrium density
 has been reached.
 
 With some pair_styles, such as "Buckingham"_pair_buck.html,
-"Born-Mayer-Huggins"_pair_born.html and "ReaxFF"_pair_reax_c.html, two
+"Born-Mayer-Huggins"_pair_born.html and "ReaxFF"_pair_reaxc.html, two
 atoms placed close to each other may have an arbitrary large, negative
 potential energy due to the functional form of the potential.  While
 these unphysical configurations are inaccessible to typical dynamical

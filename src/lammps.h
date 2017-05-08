@@ -54,6 +54,8 @@ class LAMMPS {
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
   class AtomKokkos *atomKK;      // KOKKOS version of Atom class
 
+  class Python * python;         // Python interface
+
   class CiteMe *citeme;          // citation info
 
   LAMMPS(int, char **, MPI_Comm);

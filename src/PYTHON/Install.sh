@@ -26,11 +26,9 @@ action () {
   fi
 }
 
-# force rebuild of files with LMP_KOKKOS switch
-# also variable so its *.d dependence on changed python_wrapper.h is rebuilt
+# force rebuild of files using python header
 
-touch ../python_wrapper.h
-touch ../variable.cpp
+touch ../python.h
 
 # all package files with no dependencies
 

@@ -848,8 +848,6 @@
 /pppm_tip4p_cg.h
 /prd.cpp
 /prd.h
-/python.cpp
-/python.h
 /python_impl.cpp
 /python_impl.h
 /reader_molfile.cpp

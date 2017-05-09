@@ -223,7 +223,9 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to automatically adapt name of python interpreter
+# include python package settings to 
+#   automatically adapt name of python interpreter
+
 sinclude ../lib/python/Makefile.lammps
 install-python:
 	@$(PYTHON) ../python/install.py

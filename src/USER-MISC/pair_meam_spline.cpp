@@ -99,8 +99,9 @@ PairMEAMSpline::~PairMEAMSpline()
 
 void PairMEAMSpline::compute(int eflag, int vflag)
 {
-  double** const x = atom->x;
-  double** forces = atom->f;
+  const double* const * const x = atom->x;
+  double* const * const forces = atom->f;
+  const int ntypes = atom->ntypes;
   
   if (eflag || vflag) {
     ev_setup(eflag, vflag);
@@ -144,6 +145,9 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     // compute charge density and numBonds
     MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
     double rho_value = 0;
+    const int ntypes = atom->ntypes;
+    const int itype = atom->type[i];
+
     for(int jj = 0; jj < listfull->numneigh[i]; jj++) {
       int j = listfull->firstneigh[i][jj];
       j &= NEIGHMASK;
@@ -156,10 +160,11 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       if(rij_sq < cutoff*cutoff) {
         double rij = sqrt(rij_sq);
         double partial_sum = 0;
+        const int jtype = atom->type[j];
         
         nextTwoBodyInfo->tag = j;
         nextTwoBodyInfo->r = rij;
-        nextTwoBodyInfo->f = fs[i_to_potl(j)].eval(rij, nextTwoBodyInfo->fprime);
+        nextTwoBodyInfo->f = fs[i_to_potl(jtype)].eval(rij, nextTwoBodyInfo->fprime);
         nextTwoBodyInfo->del[0] = jdelx / rij;
         nextTwoBodyInfo->del[1] = jdely / rij;
         nextTwoBodyInfo->del[2] = jdelz / rij;
@@ -169,11 +174,11 @@ void PairMEAMSpline::compute(int eflag, int vflag)
           double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
                               nextTwoBodyInfo->del[1]*bondk.del[1] +
                               nextTwoBodyInfo->del[2]*bondk.del[2]);
-          partial_sum += bondk.f * gs[ij_to_potl(j,bondk.tag)].eval(cos_theta);
+          partial_sum += bondk.f * gs[ij_to_potl(jtype,atom->type[bondk.tag],ntypes)].eval(cos_theta);
         }
         
         rho_value += nextTwoBodyInfo->f * partial_sum;
-        rho_value += rhos[i_to_potl(j)].eval(rij);
+        rho_value += rhos[i_to_potl(jtype)].eval(rij);
         
         numBonds++;
         nextTwoBodyInfo++;
@@ -182,8 +187,8 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 
     // Compute embedding energy and its derivative
     double Uprime_i;
-    double embeddingEnergy = Us[i_to_potl(i)].eval(rho_value, Uprime_i)
-      - zero_atom_energies[i_to_potl(i)];
+    double embeddingEnergy = Us[i_to_potl(itype)].eval(rho_value, Uprime_i)
+      - zero_atom_energies[i_to_potl(itype)];
   
     Uprime_values[i] = Uprime_i;
     if(eflag) {
@@ -204,6 +209,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       double f_rij = bondj.f;
       
       double forces_j[3] = {0, 0, 0};
+      const int jtype = atom->type[j];
       
       MEAM2Body const* bondk = twoBodyInfo;
       for(int kk = 0; kk < jj; kk++, ++bondk) {
@@ -213,7 +219,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
                             bondj.del[1]*bondk->del[1] +
                             bondj.del[2]*bondk->del[2]);
         double g_prime;
-        double g_value = gs[ij_to_potl(j,bondk->tag)].eval(cos_theta, g_prime);
+        double g_value = gs[ij_to_potl(jtype,atom->type[bondk->tag],ntypes)].eval(cos_theta, g_prime);
         double f_rik_prime = bondk->fprime;
         double f_rik = bondk->f;
         
@@ -280,6 +286,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   // Compute two-body pair interactions
   for(int ii = 0; ii < listhalf->inum; ii++) {
     int i = listhalf->ilist[ii];
+    const int itype = atom->type[i];
     
     for(int jj = 0; jj < listhalf->numneigh[i]; jj++) {
       int j = listhalf->firstneigh[i][jj];
@@ -293,13 +300,14 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       
       if(rij_sq < cutoff*cutoff) {
         double rij = sqrt(rij_sq);
+        const int jtype = atom->type[j];
 
         double rho_prime_i,rho_prime_j;
-        rhos[i_to_potl(i)].eval(rij,rho_prime_i);
-        rhos[i_to_potl(j)].eval(rij,rho_prime_j);
+        rhos[i_to_potl(itype)].eval(rij,rho_prime_i);
+        rhos[i_to_potl(jtype)].eval(rij,rho_prime_j);
         double fpair = rho_prime_j * Uprime_values[i] + rho_prime_i*Uprime_values[j];
         double pair_pot_deriv;
-        double pair_pot = phis[ij_to_potl(i,j)].eval(rij, pair_pot_deriv);
+        double pair_pot = phis[ij_to_potl(itype,jtype,ntypes)].eval(rij, pair_pot_deriv);
 
         fpair += pair_pot_deriv;
 
@@ -321,24 +329,6 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 
   if(vflag_fdotr) 
     virial_fdotr_compute();
-}
-
-
-/* ----------------------------------------------------------------------
-   helper functions to map atom types to potential array indices
-------------------------------------------------------------------------- */
-
-int PairMEAMSpline::ij_to_potl(int i, int j) {
-  int n = atom->ntypes;
-  int itype = atom->type[i];
-  int jtype = atom->type[j];
-  
-  return jtype - 1 + (itype-1)*n - (itype-1)*itype/2;
-}
-
-int PairMEAMSpline::i_to_potl(int i) {
-  int itype = atom->type[i];
-  return itype - 1;
 }
 
 /* ---------------------------------------------------------------------- */

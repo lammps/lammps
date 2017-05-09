@@ -54,8 +54,11 @@ public:
   
   // helper functions for compute()
   
-  int ij_to_potl(int i, int j);
-  int i_to_potl(int i);
+  int ij_to_potl(const int itype, const int jtype, const int ntypes) const {
+    return  jtype - 1 + (itype-1)*ntypes - (itype-1)*itype/2;
+  }
+  int i_to_potl(const int itype) const { return itype-1; }
+    
   
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);

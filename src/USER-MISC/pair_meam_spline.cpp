@@ -45,9 +45,6 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include <iostream>
-
-using namespace std;
 
 using namespace LAMMPS_NS;
 
@@ -449,7 +446,7 @@ void PairMEAMSpline::read_file(const char* filename)
   int nmultichoose2; // = (n+1)*n/2;
 
   if(comm->me == 0) {
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = force->open_potential(filename);
     if(fp == NULL) {
       char str[1024];
       sprintf(str,"Cannot open spline MEAM potential file %s", filename);
@@ -458,31 +455,35 @@ void PairMEAMSpline::read_file(const char* filename)
     
     // Skip first line of file. It's a comment.
     char line[MAXLINE];
+    char *ptr;
     fgets(line, MAXLINE, fp);
     
-    // Second line holds potential type ("meam/spline") in new potential format.
-    bool isNewFormat;
-    long loc = ftell(fp);
+    // Second line holds potential type ("meam/spline")
+    // in new potential format.
+
+    bool isNewFormat = false;
     fgets(line, MAXLINE, fp);
-    if (strncmp(line, "meam/spline", 11) == 0) {
+    ptr = strtok(line, " \t\n\r\f");
+    
+    if (strcmp(ptr, "meam/spline") == 0) {
       isNewFormat = true;
       // parse the rest of the line!
-      char *linep = line+12, *word;
-      const char *sep = " ,;:-\t\n"; // overkill, but safe
-      word = strsep(&linep, sep);
-      if (! *word)
-        error->one(FLERR, "Need to include number of atomic species on meam/spline line in potential file");
-      int n = atoi(word);
-      if (n<1)
-        error->one(FLERR, "Invalid number of atomic species on meam/spline line in potential file");
-      nelements = n;
-      elements = new char*[n];
-      for (int i=0; i<n; ++i) {
-        word = strsep(&linep, sep);
-        if (! *word)
-          error->one(FLERR, "Not enough atomic species in meam/spline\n");
-        elements[i] = new char[strlen(word)+1];
-        strcpy(elements[i], word);
+      ptr = strtok(NULL," \t\n\r\f");
+      if (ptr == NULL)
+        error->one(FLERR,"Need to include number of atomic species on"
+                   " meam/spline line in multi-element potential file");
+      nelements = atoi(ptr);
+      if (nelements < 1)
+        error->one(FLERR, "Invalid number of atomic species on"
+                   " meam/spline line in potential file");
+      elements = new char*[nelements];
+      for (int i=0; i<nelements; ++i) {
+        ptr = strtok(NULL," \t\n\r\f");
+        if (ptr == NULL)
+          error->one(FLERR, "Not enough atomic species in meam/spline"
+                     " line of multi-element potential file");
+        elements[i] = new char[strlen(ptr)+1];
+        strcpy(elements[i], ptr);
       }
     } else {
       isNewFormat = false;
@@ -490,7 +491,8 @@ void PairMEAMSpline::read_file(const char* filename)
       elements = new char*[1];
       elements[0] = new char[1];
       strcpy(elements[0], "");
-      fseek(fp, loc, SEEK_SET);
+      rewind(fp);
+      fgets(line, MAXLINE, fp);
     }
     
     nmultichoose2 = ((nelements+1)*nelements)/2;

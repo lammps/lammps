@@ -25,6 +25,8 @@ dump_nc_mpiio.cpp
 dump_nc_mpiio.h
 pair_reax_c.cpp
 pair_reax_c.h
+fix_reax_c.cpp
+fix_reax_c.h
 fix_reax_c_bonds.cpp
 fix_reax_c_bonds.h
 fix_reax_c_species.cpp

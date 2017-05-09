@@ -461,8 +461,8 @@
 /fix_qmmm.h
 /fix_reax_bonds.cpp
 /fix_reax_bonds.h
-/fix_reax_c.cpp
-/fix_reax_c.h
+/fix_reaxc.cpp
+/fix_reaxc.h
 /fix_reaxc_bonds.cpp
 /fix_reaxc_bonds.h
 /fix_reaxc_species.cpp
@@ -784,8 +784,8 @@
 /pair_reax.cpp
 /pair_reax.h
 /pair_reax_fortran.h
-/pair_reax_c.cpp
-/pair_reax_c.h
+/pair_reaxc.cpp
+/pair_reaxc.h
 /pair_rebo.cpp
 /pair_rebo.h
 /pair_resquared.cpp

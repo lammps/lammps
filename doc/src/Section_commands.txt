@@ -527,9 +527,9 @@ These are additional commands in USER packages, which can be used if
 "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"dump custom/vtk"_dump_custom_vtk.html,
-"dump nc"_dump_nc.html,
-"dump nc/mpiio"_dump_nc.html,
+"dump netcdf"_dump_netcdf.html,
+"dump netcdf/mpiio"_dump_netcdf.html,
+"dump vtk"_dump_vtk.html,
 "group2ndx"_group2ndx.html,
 "ndx2group"_group2ndx.html,
 "temper/grem"_temper_grem.html :tb(c=3,ea=c)

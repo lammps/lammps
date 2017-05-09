@@ -55,12 +55,12 @@ dihedral_style.html
 dimension.html
 displace_atoms.html
 dump.html
-dump_custom_vtk.html
 dump_h5md.html
 dump_image.html
 dump_modify.html
 dump_molfile.html
-dump_nc.html
+dump_netcdf.html
+dump_vtk.html
 echo.html
 fix.html
 fix_modify.html

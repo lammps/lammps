@@ -655,8 +655,7 @@ This section has the following sub-sections:
 
 2.3.1 "Package basics"_#start_3_1
 2.3.2 "Including/excluding packages"_#start_3_2
-2.3.3 "Packages that require extra libraries"_#start_3_3
-2.3.4 "Packages that require Makefile.machine settings"_#start_3_4 :all(b)
+2.3.3 "Packages that require extra libraries"_#start_3_3 :all(b)
 
 :line
 
@@ -828,13 +827,13 @@ Packages in the tables "Section 4"_Section_packages.html with an "ext"
 in the last column link to exernal libraries whose source code is not
 included with LAMMPS.  You must first download and install the library
 before building LAMMPS with that package installed.  E.g. the voronoi
-package links to the freely available "Voro++ library"_voronoi.  You
+package links to the freely available "Voro++ library"_voro_home2.  You
 can often do the download/build in one step by typing "make lib-name
 args=..." from the src dir, with appropriate arguments.  You can leave
 off the args to see a help message.  See "Section
 4"_Section_packages.html for details for each package.
 
-:link(voronoi,http://math.lbl.gov/voro++)
+:link(voro_home2,http://math.lbl.gov/voro++)
 
 [Possible errors:]
 

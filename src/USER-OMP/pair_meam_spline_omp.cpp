@@ -305,7 +305,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
         rhos[i_to_potl(itype)].eval(rij,rho_prime_i);
         rhos[i_to_potl(jtype)].eval(rij,rho_prime_j);
         double fpair = rho_prime_j * Uprime_values[i] + rho_prime_i*Uprime_values[j];
-        
+
         double pair_pot_deriv;
         double pair_pot = phis[ij_to_potl(itype,jtype,ntypes)].eval(rij, pair_pot_deriv);
 

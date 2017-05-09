@@ -51,21 +51,21 @@ public:
   void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
-  
+
   // helper functions for compute()
-  
+
   int ij_to_potl(const int itype, const int jtype, const int ntypes) const {
     return  jtype - 1 + (itype-1)*ntypes - (itype-1)*itype/2;
   }
   int i_to_potl(const int itype) const { return itype-1; }
-    
-  
+
+
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
-  
+
 protected:
   char **elements;              // names of unique elements
   int *map;                     // mapping from atom types to elements
@@ -75,7 +75,7 @@ protected:
   public:
     /// Default constructor.
     SplineFunction() : X(NULL), Xs(NULL), Y(NULL), Y2(NULL), Ydelta(NULL), N(0) {}
-    
+
     /// Destructor.
     ~SplineFunction() {
       delete[] X;
@@ -84,7 +84,7 @@ protected:
       delete[] Y2;
       delete[] Ydelta;
     }
-    
+
     /// Initialization of spline function.
     void init(int _N, double _deriv0, double _derivN) {
       N = _N;
@@ -101,19 +101,19 @@ protected:
       Y2 = new double[N];
       Ydelta = new double[N];
     }
-    
+
     /// Adds a knot to the spline.
     void setKnot(int n, double x, double y) { X[n] = x; Y[n] = y; }
-    
+
     /// Returns the number of knots.
     int numKnots() const { return N; }
-    
+
     /// Parses the spline knots from a text file.
     void parse(FILE* fp, Error* error, bool isNewFormat);
-    
+
     /// Calculates the second derivatives of the cubic spline.
     void prepareSpline(Error* error);
-    
+
     /// Evaluates the spline function at position x.
     inline double eval(double x) const
     {
@@ -151,7 +151,7 @@ protected:
 #endif
       }
     }
-    
+
     /// Evaluates the spline function and its first derivative at position x.
     inline double eval(double x, double& deriv) const
     {
@@ -197,16 +197,16 @@ protected:
 #endif
       }
     }
-    
+
     /// Returns the number of bytes used by this function object.
     double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
 
     /// Returns the cutoff radius of this function.
     double cutoff() const { return X[N-1]; }
-    
+
     /// Writes a Gnuplot script that plots the spline function.
     void writeGnuplot(const char* filename, const char* title = NULL) const;
-    
+
     /// Broadcasts the spline function parameters to all processors.
     void communicate(MPI_Comm& world, int me);
 
@@ -226,7 +226,7 @@ protected:
     double hsq;      // The squared distance between knots if this is a grid spline with equidistant knots.
     double xmax_shifted; // The end of the spline interval after it has been shifted to begin at X=0.
   };
-  
+
   /// Helper data structure for potential routine.
   struct MEAM2Body {
     int tag;  // holds the index of the second atom (j)
@@ -234,26 +234,26 @@ protected:
     double f, fprime;
     double del[3];
   };
-  
+
   SplineFunction* phis; // Phi_i(r_ij)
   SplineFunction* rhos; // Rho_ij(r_ij)
   SplineFunction* fs;   // f_i(r_ij)
   SplineFunction* Us;   // U_i(rho)
   SplineFunction* gs;   // g_ij(cos_theta)
   double* zero_atom_energies; // Shift embedding energy by this value to make it zero for a single atom in vacuum.
-  
+
   double cutoff;          // The cutoff radius
-  
+
   double* Uprime_values;  // Used for temporary storage of U'(rho) values
   int nmax;               // Size of temporary array.
   int maxNeighbors;       // The last maximum number of neighbors a single atoms has.
   MEAM2Body* twoBodyInfo; // Temporary array.
-  
+
   void read_file(const char* filename);
   void allocate();
-   
+
 };
- 
+
 }
 
 #endif

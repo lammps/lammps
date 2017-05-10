@@ -110,7 +110,21 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   strcpy(tmparg[2],arg[5]);
 
   if (me == 0) {
-    fp = fopen(arg[6],"w");
+    char *suffix = strrchr(arg[6],'.');
+    if (suffix && strcmp(suffix,".gz") == 0) {
+#ifdef LAMMPS_GZIP
+      char gzip[128];
+      sprintf(gzip,"gzip -6 > %s",arg[6]);
+#ifdef _WIN32
+      fp = _popen(gzip,"wb");
+#else
+      fp = popen(gzip,"w");
+#endif
+#else
+      error->one(FLERR,"Cannot open gzipped file");
+#endif
+    } else fp = fopen(arg[6],"w");
+
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open fix reax/c/species file %s",arg[6]);

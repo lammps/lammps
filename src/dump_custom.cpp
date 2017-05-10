@@ -244,11 +244,15 @@ DumpCustom::~DumpCustom()
   for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
   delete [] typenames;
 
-  for (int i = 0; i < size_one; i++) delete [] vformat[i];
-  delete [] vformat;
+  if(vformat) {
+    for (int i = 0; i < size_one; i++) delete [] vformat[i];
+    delete [] vformat;
+  }
 
-  for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
-  delete [] format_column_user;
+  if(format_column_user) {
+    for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
+    delete [] format_column_user;
+  }
 
   delete [] columns;
 }

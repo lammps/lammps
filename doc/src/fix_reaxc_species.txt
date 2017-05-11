@@ -52,6 +52,10 @@ number of molecules of each species.  In this context, "species" means
 a unique molecule.  The chemical formula of each species is given in
 the first line.
 
+If the filename ends with ".gz", the output file is written in gzipped
+format.  A gzipped dump file will be about 3x smaller than the text version,
+but will also take longer to write.
+
 Optional keyword {cutoff} can be assigned to change the minimum
 bond-order values used in identifying chemical bonds between pairs of
 atoms.  Bond-order cutoffs should be carefully chosen, as bond-order
@@ -163,6 +167,9 @@ reax/c"_pair_reaxc.html be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info.
+
+To write gzipped species files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option.
 
 It should be possible to extend it to other reactive pair_styles (such as
 "rebo"_pair_airebo.html, "airebo"_pair_airebo.html,

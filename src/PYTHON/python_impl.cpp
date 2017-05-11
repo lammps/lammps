@@ -119,6 +119,32 @@ void PythonImpl::command(int narg, char **arg)
     return;
   }
 
+  // if source is only keyword, execute the python code
+
+  if (narg == 3 && strcmp(arg[1],"source") == 0) {
+
+    PyGILState_STATE gstate = PyGILState_Ensure();
+
+    // if argument string is file, open it
+    // otherwise process string as python code
+
+    int err = 0;
+    FILE *fp = fopen(arg[2],"r");
+
+    if (fp == NULL)
+      err = PyRun_SimpleString(arg[2]);
+    else
+      err = PyRun_SimpleFile(fp,arg[2]);
+
+    if (err) {
+      PyGILState_Release(gstate);
+      error->all(FLERR,"Could not process Python source command");
+    }
+    if (fp) fclose(fp);
+    PyGILState_Release(gstate);
+    return;
+  }
+
   // parse optional args, invoke is not allowed in this mode
 
   ninput = noutput = 0;

@@ -110,6 +110,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
+  const int ntypes = atom->ntypes;
 
   const double cutforcesq = cutoff*cutoff;
 
@@ -135,33 +136,38 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
       const double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
 
       if (rij_sq < cutforcesq) {
+        const int jtype = atom->type[j];
         const double rij = sqrt(rij_sq);
         double partial_sum = 0;
 
         nextTwoBodyInfo->tag = j;
         nextTwoBodyInfo->r = rij;
-        nextTwoBodyInfo->f = f.eval(rij, nextTwoBodyInfo->fprime);
+        nextTwoBodyInfo->f = fs[i_to_potl(jtype)].eval(rij, nextTwoBodyInfo->fprime);
         nextTwoBodyInfo->del[0] = jdelx / rij;
         nextTwoBodyInfo->del[1] = jdely / rij;
         nextTwoBodyInfo->del[2] = jdelz / rij;
 
         for(int kk = 0; kk < numBonds; kk++) {
           const MEAM2Body& bondk = myTwoBodyInfo[kk];
-          double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] + nextTwoBodyInfo->del[1]*bondk.del[1] + nextTwoBodyInfo->del[2]*bondk.del[2]);
-          partial_sum += bondk.f * g.eval(cos_theta);
+          double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
+                              nextTwoBodyInfo->del[1]*bondk.del[1] +
+                              nextTwoBodyInfo->del[2]*bondk.del[2]);
+          partial_sum += bondk.f * gs[ij_to_potl(jtype,atom->type[bondk.tag],ntypes)].eval(cos_theta);
         }
 
         rho_value += nextTwoBodyInfo->f * partial_sum;
-        rho_value += rho.eval(rij);
+        rho_value += rhos[i_to_potl(jtype)].eval(rij);
 
         numBonds++;
         nextTwoBodyInfo++;
       }
     }
 
+    const int itype = atom->type[i];
     // Compute embedding energy and its derivative.
     double Uprime_i;
-    double embeddingEnergy = U.eval(rho_value, Uprime_i) - zero_atom_energy;
+    double embeddingEnergy = Us[i_to_potl(itype)].eval(rho_value, Uprime_i)
+      - zero_atom_energies[i_to_potl(itype)];
     Uprime_thr[i] = Uprime_i;
     if (EFLAG)
       e_tally_thr(this,i,i,nlocal,1/*newton_pair*/,embeddingEnergy,0.0,thr);
@@ -173,6 +179,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
       const MEAM2Body bondj = myTwoBodyInfo[jj];
       const double rij = bondj.r;
       const int j = bondj.tag;
+      const int jtype = atom->type[j];
 
       const double f_rij_prime = bondj.fprime;
       const double f_rij = bondj.f;
@@ -187,7 +194,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
                                   + bondj.del[1]*bondk->del[1]
                                   + bondj.del[2]*bondk->del[2]);
         double g_prime;
-        double g_value = g.eval(cos_theta, g_prime);
+        double g_value = gs[ij_to_potl(jtype,atom->type[bondk->tag],ntypes)].eval(cos_theta, g_prime);
         const double f_rik_prime = bondk->fprime;
         const double f_rik = bondk->f;
 
@@ -279,6 +286,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
     const double ztmp = x[i][2];
     const int* const jlist = firstneigh_half[i];
     const int jnum = numneigh_half[i];
+    const int itype = atom->type[i];
 
     for(int jj = 0; jj < jnum; jj++) {
       const int j = jlist[jj] & NEIGHMASK;
@@ -291,13 +299,16 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if(rij_sq < cutforcesq) {
         double rij = sqrt(rij_sq);
+        const int jtype = atom->type[j];
 
-        double rho_prime;
-        rho.eval(rij, rho_prime);
-        double fpair = rho_prime * (Uprime_values[i] + Uprime_values[j]);
+        double rho_prime_i,rho_prime_j;
+        rhos[i_to_potl(itype)].eval(rij,rho_prime_i);
+        rhos[i_to_potl(jtype)].eval(rij,rho_prime_j);
+        double fpair = rho_prime_j * Uprime_values[i] + rho_prime_i*Uprime_values[j];
 
         double pair_pot_deriv;
-        double pair_pot = phi.eval(rij, pair_pot_deriv);
+        double pair_pot = phis[ij_to_potl(itype,jtype,ntypes)].eval(rij, pair_pot_deriv);
+
         fpair += pair_pot_deriv;
 
         // Divide by r_ij to get forces from gradient.

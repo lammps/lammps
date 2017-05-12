@@ -405,6 +405,9 @@ or other variables may have hidden side effects as well.  In these
 cases, LAMMPS has no simple way to check that something illogical is
 being attempted.
 
+The same applies to Python functions called during a simulation run at
+each time step using "fix python"_fix_python.html.
+
 :line
 
 If you run Python code directly on your workstation, either
@@ -490,6 +493,6 @@ different source files, problems may occur.
 
 [Related commands:]
 
-"shell"_shell.html, "variable"_variable.html
+"shell"_shell.html, "variable"_variable.html, "fix python"_fix_python.html
 
 [Default:] none

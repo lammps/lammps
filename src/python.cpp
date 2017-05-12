@@ -97,3 +97,19 @@ char * Python::long_string(int ifunc)
   init();
   return impl->long_string(ifunc);
 }
+
+/* ------------------------------------------------------------------ */
+
+int Python::execute_string(char *cmd)
+{
+  init();
+  return impl->execute_string(cmd);
+}
+
+/* ------------------------------------------------------------------ */
+
+int Python::execute_file(char *fname)
+{
+  init();
+  return impl->execute_file(fname);
+}

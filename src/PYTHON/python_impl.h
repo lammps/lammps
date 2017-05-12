@@ -29,6 +29,8 @@ class PythonImpl : protected Pointers, public PythonInterface {
   int find(char *);
   int variable_match(char *, char *, int);
   char *long_string(int);
+  int execute_string(char *);
+  int execute_file(char *);
 
  private:
   int ninput,noutput,length_longstr;

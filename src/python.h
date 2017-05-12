@@ -26,6 +26,8 @@ public:
   virtual int find(char *) = 0;
   virtual int variable_match(char *, char *, int) = 0;
   virtual char * long_string(int ifunc) = 0;
+  virtual int execute_string(char *) = 0;
+  virtual int execute_file(char *) = 0;
 };
 
 class Python : protected Pointers {
@@ -38,6 +40,8 @@ public:
   int find(char *);
   int variable_match(char *, char *, int);
   char * long_string(int ifunc);
+  int execute_string(char *);
+  int execute_file(char *);
 
   bool is_enabled() const;
   void init();

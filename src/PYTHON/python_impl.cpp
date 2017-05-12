@@ -122,26 +122,17 @@ void PythonImpl::command(int narg, char **arg)
   // if source is only keyword, execute the python code
 
   if (narg == 3 && strcmp(arg[1],"source") == 0) {
+    int err;
 
-    PyGILState_STATE gstate = PyGILState_Ensure();
-
-    // if argument string is file, open it
-    // otherwise process string as python code
-
-    int err = 0;
     FILE *fp = fopen(arg[2],"r");
-
     if (fp == NULL)
-      err = PyRun_SimpleString(arg[2]);
+      err = execute_string(arg[2]);
     else
-      err = PyRun_SimpleFile(fp,arg[2]);
+      err = execute_file(arg[2]);
 
-    if (err) {
-      PyGILState_Release(gstate);
-      error->all(FLERR,"Could not process Python source command");
-    }
     if (fp) fclose(fp);
-    PyGILState_Release(gstate);
+    if (err) error->all(FLERR,"Could not process Python source command");
+
     return;
   }
 
@@ -501,6 +492,32 @@ int PythonImpl::create_entry(char *name)
   strcpy(pfuncs[ifunc].ovarname,&ostr[2]);
 
   return ifunc;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PythonImpl::execute_string(char *cmd)
+{
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  int err = PyRun_SimpleString(cmd);
+  PyGILState_Release(gstate);
+
+  return err;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PythonImpl::execute_file(char *fname)
+{
+  FILE *fp = fopen(fname,"r");
+  if (fp == NULL) return -1;
+
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  int err = PyRun_SimpleFile(fp,fname);
+  PyGILState_Release(gstate);
+
+  if (fp) fclose(fp);
+  return err;
 }
 
 /* ------------------------------------------------------------------ */

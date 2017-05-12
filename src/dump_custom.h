@@ -178,6 +178,11 @@ class DumpCustom : public Dump {
   void pack_muy(int);
   void pack_muz(int);
   void pack_mu(int);
+  void pack_mumag(int);  //Magnetic quantities
+  void pack_spx(int);
+  void pack_spy(int); 
+  void pack_spz(int); 
+  void pack_sp(int); 
   void pack_radius(int);
   void pack_diameter(int);
 

@@ -61,6 +61,10 @@ class Atom : protected Pointers {
   double *radius,*rmass;
   int *ellipsoid,*line,*tri,*body;
 
+  // SPIN package
+  double *mumag, **sp;
+  double **fm;
+
   // PERI package
 
   double *vfrac,*s0;
@@ -139,6 +143,9 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
   int dpd_flag;
+
+  //USER-SPIN package
+  int mumag_flag,sp_flag;
 
   // USER-SMD package
 

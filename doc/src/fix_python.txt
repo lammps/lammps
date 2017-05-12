@@ -17,7 +17,7 @@ python = style name of this fix command :l
 N = execute every N steps :l
 callback = {post_force} or {end_of_step} :l
   {post_force} = callback after force computations on atoms every N time steps
-  {end_of_step} = callback after each N time steps :pre
+  {end_of_step} = callback after every N time steps :pre
 :ule
 
 [Examples:]

@@ -155,7 +155,8 @@ commands.
 See the "python"_python.html doc page and the "variable"_variable.html
 doc page for its python-style variables for more info, including
 examples of Python code you can write for both pure Python operations
-and callbacks to LAMMPS.
+and callbacks to LAMMPS. See "fix python"_fix_python.html to learn about
+possibilities to execute Python code during each time step.
 
 To run pure Python code from LAMMPS, you only need to build LAMMPS
 with the PYTHON package installed:

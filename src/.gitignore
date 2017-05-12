@@ -850,6 +850,8 @@
 /prd.h
 /python_impl.cpp
 /python_impl.h
+/fix_python.cpp
+/fix_python.h
 /reader_molfile.cpp
 /reader_molfile.h
 /reaxc_allocate.cpp

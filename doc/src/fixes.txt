@@ -111,6 +111,7 @@ Fixes :h1
    fix_press_berendsen
    fix_print
    fix_property_atom
+   fix_python
    fix_qbmsst
    fix_qeq
    fix_qeq_comb

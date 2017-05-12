@@ -14,7 +14,7 @@ python func keyword args ... :pre
 
 func = name of Python function :ulb,l
 one or more keyword/args pairs must be appended :l
-keyword = {invoke} or {input} or {return} or {format} or {length} or {file} or {here} or {exists}
+keyword = {invoke} or {input} or {return} or {format} or {length} or {file} or {here} or {exists} or {source}
   {invoke} arg = none = invoke the previously defined Python function
   {input} args = N i1 i2 ... iN
     N = # of inputs to function
@@ -36,7 +36,12 @@ keyword = {invoke} or {input} or {return} or {format} or {length} or {file} or {
   {here} arg = inline
     inline = one or more lines of Python code which defines func
              must be a single argument, typically enclosed between triple quotes
-  {exists} arg = none = Python code has been loaded by previous python command :pre
+  {exists} arg = none = Python code has been loaded by previous python command
+  {source} arg = {filename} or {inline}
+    filename = file of Python code which will be executed immediately
+    inline = one or more lines of Python code which will be executed immediately
+             must be a single argument, typically enclosed between triple quotes
+:pre
 :ule
 
 [Examples:]
@@ -67,7 +72,8 @@ def loop(lmpptr,N,cut0):
 
 [Description:]
 
-Define a Python function or execute a previously defined function.
+Define a Python function or execute a previously defined function or
+execute some arbitrary python code.
 Arguments, including LAMMPS variables, can be passed to the function
 from the LAMMPS input script and a value returned by the Python
 function to a LAMMPS variable.  The Python code for the function can
@@ -102,7 +108,8 @@ command.
 
 The {func} setting specifies the name of the Python function.  The
 code for the function is defined using the {file} or {here} keywords
-as explained below.
+as explained below. In case of the {source} keyword, the name of
+the function is ignored.
 
 If the {invoke} keyword is used, no other keywords can be used, and a
 previous python command must have defined the Python function
@@ -110,6 +117,13 @@ referenced by this command.  This invokes the Python function with the
 previously defined arguments and return value processed as explained
 below.  You can invoke the function as many times as you wish in your
 input script.
+
+If the {source} keyword is used, no other keywords can be used.
+The argument can be a filename or a string with python commands,
+either on a single line enclosed in quotes, or as multiple lines
+enclosed in triple quotes. These python commands will be passed
+to the python interpreter and executed immediately without registering
+a python function for future execution.
 
 The {input} keyword defines how many arguments {N} the Python function
 expects.  If it takes no arguments, then the {input} keyword should
@@ -391,6 +405,9 @@ or other variables may have hidden side effects as well.  In these
 cases, LAMMPS has no simple way to check that something illogical is
 being attempted.
 
+The same applies to Python functions called during a simulation run at
+each time step using "fix python"_fix_python.html.
+
 :line
 
 If you run Python code directly on your workstation, either
@@ -476,6 +493,6 @@ different source files, problems may occur.
 
 [Related commands:]
 
-"shell"_shell.html, "variable"_variable.html
+"shell"_shell.html, "variable"_variable.html, "fix python"_fix_python.html
 
 [Default:] none

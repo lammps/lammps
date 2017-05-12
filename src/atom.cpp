@@ -98,6 +98,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = e = de = cv = NULL;
   vest = NULL;
 
+  // USER-SPIN
+  mumag = NULL;
+  sp = fm = NULL;
+  
   // USER-DPD
 
   uCond = uMech = uChem = uCG = uCGnew = NULL;
@@ -167,6 +171,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   omega_flag = torque_flag = angmom_flag = 0;
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+ 
+  //Magnetic flags
+  sp_flag = mumag_flag = 0;
 
   vfrac_flag = 0;
   spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
@@ -421,6 +428,9 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
 
+  //Magnetic flags
+  sp_flag = mumag_flag = 0;
+
   vfrac_flag = 0;
   spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
@@ -494,7 +504,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     AtomVecCreator avec_creator = (*avec_map)[style];
     return avec_creator(lmp);
   }
-
+  //printf("test entries function: %s, %d, %d \n ",style, trysuffix, &sflag);
   error->all(FLERR,"Unknown atom style");
   return NULL;
 }

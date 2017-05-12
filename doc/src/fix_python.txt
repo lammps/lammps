@@ -10,13 +10,14 @@ fix python command :h3
 
 [Syntax:]
 
-fix ID group-ID python callback function_name :pre
+fix ID group-ID python N callback function_name :pre
 
 ID, group-ID are ignored by this fix :ulb,l
 python = style name of this fix command :l
+N = execute every N steps :l
 callback = {post_force} or {end_of_step} :l
-  {post_force} = callback after force computations on atoms
-  {end_of_step} = callback after each time step :pre
+  {post_force} = callback after force computations on atoms every N time steps
+  {end_of_step} = callback after each N time steps :pre
 :ule
 
 [Examples:]
@@ -35,14 +36,14 @@ def end_of_step_callback(lammps_ptr):
     # access LAMMPS state using Python interface
 """ :pre
 
-fix pf  all python post_force post_force_callback
-fix eos all python end_of_step end_of_step_callback :pre
+fix pf  all python 50 post_force post_force_callback
+fix eos all python 50 end_of_step end_of_step_callback :pre
 
 [Description:]
 
 This fix allows you to call a Python function during a simulation run.
 The callback is either executed after forces have been applied to atoms
-or at the end of each time step.
+or at the end of every N time steps.
 
 Callback functions must be declared in the global scope of the
 active Python interpreter. This can either be done by defining it

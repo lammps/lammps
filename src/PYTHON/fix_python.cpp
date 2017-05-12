@@ -36,14 +36,17 @@ using namespace FixConst;
 FixPython::FixPython(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 5) error->all(FLERR,"Illegal fix python command");
+  if (narg != 6) error->all(FLERR,"Illegal fix python command");
+
+  nevery = force->inumeric(FLERR,arg[3]);
+  if (nevery <= 0) error->all(FLERR,"Illegal fix python command");
 
   // ensure Python interpreter is initialized
   python->init();
 
-  if (strcmp(arg[3],"post_force") == 0) {
+  if (strcmp(arg[4],"post_force") == 0) {
     selected_callback = POST_FORCE;
-  } else if (strcmp(arg[3],"end_of_step") == 0) {
+  } else if (strcmp(arg[4],"end_of_step") == 0) {
     selected_callback = END_OF_STEP;
   }
 
@@ -57,7 +60,7 @@ FixPython::FixPython(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Could not initialize embedded Python");
   }
 
-  char * fname = arg[4];
+  char * fname = arg[5];
   pFunc = PyObject_GetAttrString(pyMain, fname);
 
   if (!pFunc) {
@@ -94,6 +97,8 @@ void FixPython::end_of_step()
 
 void FixPython::post_force(int vflag)
 {
+  if (update->ntimestep % nevery != 0) return;
+
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   PyObject * ptr = PY_VOID_POINTER(lmp);

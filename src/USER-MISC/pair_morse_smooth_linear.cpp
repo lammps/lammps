@@ -104,7 +104,7 @@ void PairMorseSmoothLinear::compute(int eflag, int vflag)
         dexp = exp(-alpha[itype][jtype] * dr);
 
         fpartial = morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-        fpair = factor_lj * ( fpartial - der_at_cutoff[itype][jtype] / r);
+        fpair = factor_lj * ( fpartial + der_at_cutoff[itype][jtype] / r);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -118,7 +118,7 @@ void PairMorseSmoothLinear::compute(int eflag, int vflag)
         if (eflag) {
           evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
             offset[itype][jtype];
-          evdwl += ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
+          evdwl -= ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -349,10 +349,11 @@ double PairMorseSmoothLinear::single(int i, int j, int itype, int jtype, double 
   r = sqrt(rsq);
   dr = r - r0[itype][jtype];
   dexp = exp(-alpha[itype][jtype] * dr);
-  fforce = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
+  fforce = factor_lj * (morse1[itype][jtype] * (dexp*dexp - dexp)
+                        + der_at_cutoff[itype][jtype]) / r;
 
   phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
-  dr = cut[itype][jtype] - r0[itype][jtype];
+  dr = cut[itype][jtype] - r;
   phi += dr * der_at_cutoff[itype][jtype];
 
   return factor_lj*phi;

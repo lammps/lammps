@@ -51,7 +51,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   pfuncs = NULL;
 
   // one-time initialization of Python interpreter
-  // pymain stores pointer to main module
+  // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
 
   Py_Initialize();
@@ -63,7 +63,6 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
 
   pyMain = (void *) pModule;
-
   PyGILState_Release(gstate);
 }
 

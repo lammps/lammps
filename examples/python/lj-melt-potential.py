@@ -18,17 +18,19 @@ class LAMMPSLJCutPotential(object):
            raise Exception("cannot match atom type %s" % name)
 
     def compute_force(self,rsq,itype,jtype):
+        coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
         r2inv  = 1.0/rsq
         r6inv  = r2inv*r2inv*r2inv
-        lj1 = self.coeff[self.pmap[itype]][self.pmap[jtype]][2]
-        lj2 = self.coeff[self.pmap[itype]][self.pmap[jtype]][3]
+        lj1 = coeff[2]
+        lj2 = coeff[3]
         return (r6inv * (lj1*r6inv - lj2))
 
     def compute_energy(self,rsq,itype,jtype):
+        coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
         r2inv  = 1.0/rsq
         r6inv  = r2inv*r2inv*r2inv
-        lj3 = self.coeff[self.pmap[itype]][self.pmap[jtype]][4]
-        lj4 = self.coeff[self.pmap[itype]][self.pmap[jtype]][5]
+        lj3 = coeff[4]
+        lj4 = coeff[5]
         return (r6inv * (lj3*r6inv - lj4))
 
 lammps_pair_style = LAMMPSLJCutPotential()

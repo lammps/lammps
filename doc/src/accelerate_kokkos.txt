@@ -415,15 +415,15 @@ For binding threads with the KOKKOS OMP option, use thread affinity
 environment variables to force binding.  With OpenMP 3.1 (gcc 4.7 or
 later, intel 12 or later) setting the environment variable
 OMP_PROC_BIND=true should be sufficient.  For binding threads with the
-KOKKOS pthreads option, compile LAMMPS the KOKKOS HWLOC=yes option, as
-discussed in "Section 2.3.4"_Sections_start.html#start_3_4 of the
-manual.
+KOKKOS pthreads option, compile LAMMPS the KOKKOS HWLOC=yes option
+(see "this section"_Section_packages.html#KOKKOS of the manual for
+details).
 
 [Running on GPUs:]
 
 Insure the -arch setting in the machine makefile you are using,
-e.g. src/MAKE/Makefile.cuda, is correct for your GPU hardware/software
-(see "this section"_Section_start.html#start_3_4 of the manual for
+e.g. src/MAKE/Makefile.cuda, is correct for your GPU hardware/software.
+(see "this section"_Section_packages.html#KOKKOS of the manual for
 details).
 
 The -np setting of the mpirun command should set the number of MPI

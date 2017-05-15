@@ -1224,10 +1224,13 @@ void Neighbor::morph_copy()
 
       if (jrq->copy && jrq->copylist == i) continue;
 
-      // parent list must be perpetual
-      // copied list can be perpetual or occasional
+      // other list (jrq) to copy from must be perpetual
+      // list that becomes a copy list (irq) can be perpetual or occasional
+      // if both lists are perpetual, require j < i
+      //   to prevent circular dependence with 3 or more copies of a list
 
       if (jrq->occasional) continue;
+      if (!irq->occasional && j > i) continue;
 
       // both lists must be half, or both full
 

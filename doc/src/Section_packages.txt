@@ -123,7 +123,7 @@ Package, Description, Doc page, Example, Library
 "USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
-"USER-MOLFILE"_#USER-MOLFILE, "VMD"_VMD molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
+"USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
 "USER-NETCDF"_#USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, -, ext
 "USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, WWW bench, -
 "USER-PHONON"_#USER-PHONON, phonon dynamical matrix,"fix phonon"_fix_phonon.html, USER/phonon, -
@@ -135,7 +135,7 @@ Package, Description, Doc page, Example, Library
 "USER-SMTBQ"_#USER-SMTBQ, second moment tight binding QEq potential,"pair_style smtbq"_pair_smtbq.html, USER/smtbq, -
 "USER-SPH"_#USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, -
 "USER-TALLY"_#USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, -
-"USER-VTK"_#USER-VTK, dump output via VTK, "compute custom/vtk"_dump_custom_vtk.html, -, ext
+"USER-VTK"_#USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, -, ext
 :tb(ea=c,ca1=l)
 
 :line
@@ -529,7 +529,7 @@ what hardware and software is required on your system, and how to
 build and use this package.  Its styles can be invoked at run time via
 the "-sf kk" or "-suffix kk" "command-line
 switches"_Section_start.html#start_7.  Also see the "GPU"_#GPU,
-"OPT"_#OPT, "USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER_OMP
+"OPT"_#OPT, "USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP
 packages, which have styles optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++11 compatible compiler to use this package.
@@ -856,15 +856,15 @@ src/MPIIO: filenames -> commands
 
 :line
  
-MSCG package :link(MSCG),h4
+MSCG package :link(mscg),h4
 
 [Contents:]
 
 A "fix mscg"_fix_mscg.html command which can parameterize a
 Mulit-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
-library"_mscg.
+library"_mscg_home.
 
-:link(mscg,https://github.com/uchicago-voth/MSCG-release)
+:link(mscg_home,https://github.com/uchicago-voth/MSCG-release)
 
 To use this package you must have the MS-CG library available on your
 system.
@@ -1323,11 +1323,11 @@ VORONOI package :link(VORONOI),h4
 [Contents:]
 
 A compute command which calculates the Voronoi tesselation of a
-collection of atoms by wrapping the "Voro++ library"_voronoi.  This
+collection of atoms by wrapping the "Voro++ library"_voro_home.  This
 can be used to calculate the local volume or each atoms or its near
 neighbors.
 
-:link(voronoi,http://math.lbl.gov/voro++)
+:link(voro_home,http://math.lbl.gov/voro++)
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -1488,7 +1488,6 @@ make machine :pre
 src/USER-AWPMD: filenames -> commands
 src/USER-AWPMD/README
 "pair awpmd/cut"_pair_awpmd.html
-"fix nve/awpmd"_fix_nve_awpmd.html
 examples/USER/awpmd :ul
 
 :line
@@ -1520,7 +1519,7 @@ src/USER-CGDNA: filenames -> commands
 "pair_style oxdna/*"_pair_oxdna.html
 "pair_style oxdna2/*"_pair_oxdna2.html
 "bond_style oxdna/*"_bond_oxdna.html
-"bond_style oxdna2/*"_bond_oxdna2.html
+"bond_style oxdna2/*"_bond_oxdna.html
 "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html :ul
 
 :line
@@ -1748,8 +1747,8 @@ src/USER-EFF: filenames -> commands
 src/USER-EFF/README
 "atom_style electron"_atom_style.html
 "fix nve/eff"_fix_nve_eff.html
-"fix nvt/eff"_fix_nvt_eff.html
-"fix npt/eff"_fix_npt_eff.html
+"fix nvt/eff"_fix_nh_eff.html
+"fix npt/eff"_fix_nh_eff.html
 "fix langevin/eff"_fix_langevin_eff.html
 "compute temp/eff"_compute_temp_eff.html
 "pair eff/cut"_pair_eff.html
@@ -2045,8 +2044,8 @@ src/USER-MANIFOLD: filenames -> commands
 src/USER-MANIFOLD/README
 "doc/manifolds"_manifolds.html
 "fix manifoldforce"_fix_manifoldforce.html
-"fix nve/manifold/rattle"_fix_nve_manifold/rattle.html
-"fix nvt/manifold/rattle"_fix_nvt_manifold/rattle.html
+"fix nve/manifold/rattle"_fix_nve_manifold_rattle.html
+"fix nvt/manifold/rattle"_fix_nvt_manifold_rattle.html
 examples/USER/manifold
 http://lammps.sandia.gov/movies.html#manifold :ul
 
@@ -2057,10 +2056,12 @@ USER-MOLFILE package :link(USER-MOLFILE),h4
 [Contents:]
 
 A "dump molfile"_dump_molfile.html command which uses molfile plugins
-that are bundled with the "VMD"_http://www.ks.uiuc.edu/Research/vmd
+that are bundled with the "VMD"_vmd_home
 molecular visualization and analysis program, to enable LAMMPS to dump
 snapshots in formats compatible with various molecular simulation
 tools.
+
+:link(vmd_home,http://www.ks.uiuc.edu/Research/vmd)
 
 To use this package you must have the desired VMD plugins available on
 your system.
@@ -2118,7 +2119,7 @@ Note that NetCDF files can be directly visualized with the following
 tools:
 
 "Ovito"_ovito (Ovito supports the AMBER convention and the extensions mentioned above)
-"VMD"_vmd
+"VMD"_vmd_home
 "AtomEye"_atomeye (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution) :ul
 
 :link(ovito,http://www.ovito.org)
@@ -2563,7 +2564,7 @@ USER-VTK package :link(USER-VTK),h4
 
 [Contents:]
 
-A "dump custom/vtk"_dump_custom_vtk.html command which outputs
+A "dump vtk"_dump_vtk.html command which outputs
 snapshot info in the "VTK format"_vtk, enabling visualization by
 "Paraview"_paraview or other visuzlization packages.
 
@@ -2598,4 +2599,4 @@ make machine :pre
 src/USER-VTK: filenames -> commands
 src/USER-VTK/README
 lib/vtk/README
-"dump custom/vtk"_dump_custom_vtk.html :ul
+"dump vtk"_dump_vtk.html :ul

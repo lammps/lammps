@@ -17,8 +17,16 @@ style_neigh_bin.h
 style_neigh_pair.h
 style_neigh_stencil.h
 # deleted on 4 May 2017
+dump_custom_vtk.cpp
+dump_custom_vtk.h
+dump_nc.cpp
+dump_nc.h
+dump_nc_mpiio.cpp
+dump_nc_mpiio.h
 pair_reax_c.cpp
 pair_reax_c.h
+fix_reax_c.cpp
+fix_reax_c.h
 fix_reax_c_bonds.cpp
 fix_reax_c_bonds.h
 fix_reax_c_species.cpp

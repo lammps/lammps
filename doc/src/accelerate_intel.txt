@@ -69,8 +69,9 @@ not {hardware thread}.
 For Intel Xeon CPUs:
 
 Edit src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi as necessary. :ulb,l
-If using {kspace_style pppm} in the input script, add "neigh_modify binsize 3" and "kspace_modify diff ad" to the input script for better
-performance. :l
+If using {kspace_style pppm} in the input script, add "neigh_modify binsize cutoff" and "kspace_modify diff ad" to the input script for better
+performance.  Cutoff should be roughly the neighbor list cutoff.  By
+default the binsize is half the neighbor list cutoff.  :l
 "-pk intel 0 omp 2 -sf intel" added to LAMMPS command-line :l
 :ule
 

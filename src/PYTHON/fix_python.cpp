@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer and Richard Berger (Temple U)
+------------------------------------------------------------------------- */
+
 #include <stdio.h>
 #include <string.h>
 #include "fix_python.h"
@@ -20,16 +24,10 @@
 #include "respa.h"
 #include "error.h"
 #include "python.h"
+#include "python_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-// Wrap API changes between Python 2 and 3 using macros
-#if PY_MAJOR_VERSION == 2
-#define PY_VOID_POINTER(X) PyCObject_FromVoidPtr((void *) X, NULL)
-#elif PY_MAJOR_VERSION == 3
-#define PY_VOID_POINTER(X) PyCapsule_New((void *) X, NULL, NULL)
-#endif
 
 /* ---------------------------------------------------------------------- */
 

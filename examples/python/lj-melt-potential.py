@@ -12,7 +12,7 @@ class LAMMPSLJCutPotential(object):
                                'NULL': (0.0,1.0, 0.0, 0.0,0.0,0.0)}}
 
     def map_coeff(self,name,type):
-        if self.coeff.has_key(name):
+        if name in self.coeff:
            self.pmap[type] = name
         else:
            raise Exception("cannot match atom type %s" % name)

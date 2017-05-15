@@ -55,3 +55,4 @@ fix		1 all nve
 thermo		50
 run		250
 
+shell rm melt.data melt.restart

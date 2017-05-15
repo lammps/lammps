@@ -16,7 +16,7 @@ pair_coeff	* * python lj-melt-potential.py lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 neighbor	0.3 bin
-neigh_modify	every 10 delay 0 check no
+neigh_modify	every 20 delay 0 check no
 
 fix		1 all nve
 
@@ -51,10 +51,11 @@ pair_coeff	* * python lj-melt-potential.py lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 neighbor	0.3 bin
-neigh_modify	every 10 delay 0 check no
+neigh_modify	every 20 delay 0 check no
 
 fix		1 all nve
 
 thermo		50
 run		250
 
+shell rm hybrid.data hybrid.restart

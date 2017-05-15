@@ -158,7 +158,7 @@ void PairAIREBO::settings(int narg, char **arg)
 
   // this one parameter for C-C interactions is different in AIREBO vs REBO
   // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-  
+
   PCCf_2_0 = -0.0276030;
 }
 
@@ -2134,7 +2134,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   realrij[0] = x[atomi][0] - x[atomj][0];
   realrij[1] = x[atomi][1] - x[atomj][1];
   realrij[2] = x[atomi][2] - x[atomj][2];
-  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1] 
+  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1]
                                             + realrij[2] * realrij[2]);
 
   REBO_neighs = REBO_firstneigh[i];
@@ -2479,7 +2479,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fj[1] -= rijmbr * (fil[1] - (realrij[1] * realrij[0] * fil[0] + realrij[1] * realrij[1] * fil[1] + realrij[1] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
         fj[2] -= rijmbr * (fil[2] - (realrij[2] * realrij[0] * fil[0] + realrij[2] * realrij[1] * fil[1] + realrij[2] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
 
- 
+
         tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
         fj[0] += tmp2*(rjl[0]/rjlmag);
         fj[1] += tmp2*(rjl[1]/rjlmag);

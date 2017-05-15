@@ -45,6 +45,7 @@ class PairPython : public Pair {
 
  protected:
   double cut_global;
+  void * py_potential;
 
   virtual void allocate();
 };

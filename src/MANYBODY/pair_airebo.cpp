@@ -1335,7 +1335,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[0] = 0.0;
   dN2[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
-  pij = pow(1.0+Etmp+PijS,-0.5);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmp = -0.5*cube(pij);
 
   // pij forces
@@ -1480,7 +1480,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[0] = 0.0;
   dN2[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
-  pji = pow(1.0+Etmp+PjiS,-0.5);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmp = -0.5*cube(pji);
 
   REBO_neighs = REBO_firstneigh[j];
@@ -2171,7 +2171,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PIJ[0] = 0.0;
   dN2PIJ[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
-  pij = pow(1.0+Etmp+PijS,-0.5);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmppij = -.5*cube(pij);
   tmp3pij = tmp3;
   tmp = 0.0;
@@ -2211,7 +2211,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PJI[0] = 0.0;
   dN2PJI[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
-  pji = pow(1.0+Etmp+PjiS,-0.5);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmppji = -.5*cube(pji);
   tmp3pji = tmp3;
 

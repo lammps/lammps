@@ -852,6 +852,8 @@
 /python_impl.h
 /fix_python.cpp
 /fix_python.h
+/pair_python.cpp
+/pair_python.h
 /reader_molfile.cpp
 /reader_molfile.h
 /reaxc_allocate.cpp

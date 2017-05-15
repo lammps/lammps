@@ -133,7 +133,7 @@ void PairPython::compute(int eflag, int vflag)
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not create tuple for 'compute' function arguments");
   }
-  
+
   PyObject *py_rsq, *py_itype, *py_jtype, *py_value;
 
   // loop over neighbors of my atoms
@@ -299,7 +299,7 @@ void PairPython::coeff(int narg, char **arg)
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not create tuple for 'map_coeff' function arguments");
   }
-  
+
   PyObject *py_type, *py_name, *py_value;
   for (int i = 1; i <= ntypes ; i++) {
     py_type = PY_INT_FROM_LONG(i);
@@ -321,7 +321,7 @@ void PairPython::coeff(int narg, char **arg)
       }
     }
   }
-  Py_DECREF(py_map_args);  
+  Py_DECREF(py_map_args);
   PyGILState_Release(gstate);
 }
 

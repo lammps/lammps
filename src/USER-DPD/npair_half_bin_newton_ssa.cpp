@@ -141,7 +141,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
       }
     }
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
 
     // loop over all local atoms in other bins in "half" stencil
 

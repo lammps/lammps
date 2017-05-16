@@ -29,6 +29,7 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
   maxbin = maxatom = 0;
   binhead = NULL;
   bins = NULL;
+  atom2bin = NULL;
 
   // geometry settings
 
@@ -42,6 +43,7 @@ NBin::~NBin()
 {
   memory->destroy(binhead);
   memory->destroy(bins);
+  memory->destroy(atom2bin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,12 +89,15 @@ void NBin::bin_atoms_setup(int nall)
     memory->create(binhead,maxbin,"neigh:binhead");
   }
 
-  // bins = per-atom vector
+  // bins and atom2bin = per-atom vectors
+  // for both local and ghost atoms
 
   if (nall > maxatom) {
     maxatom = nall;
     memory->destroy(bins);
     memory->create(bins,maxatom,"neigh:bins");
+    memory->destroy(atom2bin);
+    memory->create(atom2bin,maxatom,"neigh:atom2bin");
   }
 }
 
@@ -148,6 +153,6 @@ bigint NBin::memory_usage()
 {
   bigint bytes = 0;
   bytes += maxbin*sizeof(int);
-  bytes += maxatom*sizeof(int);
+  bytes += 2*maxatom*sizeof(int);
   return bytes;
 }

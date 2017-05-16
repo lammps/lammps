@@ -77,7 +77,7 @@ class NPair : protected Pointers {
   int mbinx,mbiny,mbinz;
   int mbinxlo,mbinylo,mbinzlo;
   double bininvx,bininvy,bininvz;
-  int *bins;
+  int *atom2bin,*bins;
   int *binhead;
   
   // data from NStencil class

@@ -113,7 +113,7 @@ void NPairHalfSizeBinNewtoffOmp::build(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
 
     // loop over all atoms in surrounding bins in stencil including self
     // only store pair if i < j

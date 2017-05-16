@@ -87,7 +87,7 @@ void NPairHalfMultiNewtoff::build(NeighList *list)
     // stores own/own pairs only once
     // stores own/ghost pairs on both procs
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
     s = stencil_multi[itype];
     distsq = distsq_multi[itype];
     cutsq = cutneighsq[itype];

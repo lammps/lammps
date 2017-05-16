@@ -102,8 +102,8 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
   if (allocated) {					// reset explicit cuts
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+      for (j = i; j <= atom->ntypes; j++)
+        if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
 
@@ -343,9 +343,9 @@ void PairLJLongDipoleLong::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon_read[i][j],sizeof(double),1,fp);
-	fwrite(&sigma_read[i][j],sizeof(double),1,fp);
-	fwrite(&cut_lj_read[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon_read[i][j],sizeof(double),1,fp);
+        fwrite(&sigma_read[i][j],sizeof(double),1,fp);
+        fwrite(&cut_lj_read[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -367,14 +367,14 @@ void PairLJLongDipoleLong::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon_read[i][j],sizeof(double),1,fp);
-	  fread(&sigma_read[i][j],sizeof(double),1,fp);
-	  fread(&cut_lj_read[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon_read[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma_read[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_lj_read[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon_read[i][j],sizeof(double),1,fp);
+          fread(&sigma_read[i][j],sizeof(double),1,fp);
+          fread(&cut_lj_read[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon_read[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma_read[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_lj_read[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }

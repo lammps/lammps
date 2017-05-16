@@ -140,174 +140,174 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	rinv = sqrt(r2inv);
+        r2inv = 1.0/rsq;
+        rinv = sqrt(r2inv);
 
-	if (rsq < cut_coulsq) {
-	  r = sqrt(rsq);
-	  grij = g_ewald * r;
-	  expm2 = exp(-grij*grij);
-	  t = 1.0 / (1.0 + EWALD_P*grij);
-	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        if (rsq < cut_coulsq) {
+          r = sqrt(rsq);
+          grij = g_ewald * r;
+          expm2 = exp(-grij*grij);
+          t = 1.0 / (1.0 + EWALD_P*grij);
+          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
-	  pdotp = mu[i][0]*mu[j][0] + mu[i][1]*mu[j][1] + mu[i][2]*mu[j][2];
-	  pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
-	  pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
+          pdotp = mu[i][0]*mu[j][0] + mu[i][1]*mu[j][1] + mu[i][2]*mu[j][2];
+          pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
+          pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
 
-	  g0 = qtmp*q[j];
-	  g1 = qtmp*pjdotr - q[j]*pidotr + pdotp;
-	  g2 = -pidotr*pjdotr;
+          g0 = qtmp*q[j];
+          g1 = qtmp*pjdotr - q[j]*pidotr + pdotp;
+          g2 = -pidotr*pjdotr;
 
-	  if (factor_coul > 0.0) {
-	    b0 = erfc * rinv;
-	    b1 = (b0 + pre1*expm2) * r2inv;
-	    b2 = (3.0*b1 + pre2*expm2) * r2inv;
-	    b3 = (5.0*b2 + pre3*expm2) * r2inv;
+          if (factor_coul > 0.0) {
+            b0 = erfc * rinv;
+            b1 = (b0 + pre1*expm2) * r2inv;
+            b2 = (3.0*b1 + pre2*expm2) * r2inv;
+            b3 = (5.0*b2 + pre3*expm2) * r2inv;
 
-	    g0b1_g1b2_g2b3 = g0*b1 + g1*b2 + g2*b3;
-	    fdx = delx * g0b1_g1b2_g2b3 -
-	      b1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) +
-	      b2 * (pjdotr*mu[i][0] + pidotr*mu[j][0]);
-	    fdy = dely * g0b1_g1b2_g2b3 -
-	      b1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) +
-	      b2 * (pjdotr*mu[i][1] + pidotr*mu[j][1]);
-	    fdz = delz * g0b1_g1b2_g2b3 -
-	      b1 * (qtmp*mu[j][2] - q[j]*mu[i][2]) +
-	      b2 * (pjdotr*mu[i][2] + pidotr*mu[j][2]);
+            g0b1_g1b2_g2b3 = g0*b1 + g1*b2 + g2*b3;
+            fdx = delx * g0b1_g1b2_g2b3 -
+              b1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) +
+              b2 * (pjdotr*mu[i][0] + pidotr*mu[j][0]);
+            fdy = dely * g0b1_g1b2_g2b3 -
+              b1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) +
+              b2 * (pjdotr*mu[i][1] + pidotr*mu[j][1]);
+            fdz = delz * g0b1_g1b2_g2b3 -
+              b1 * (qtmp*mu[j][2] - q[j]*mu[i][2]) +
+              b2 * (pjdotr*mu[i][2] + pidotr*mu[j][2]);
 
-	    zdix = delx * (q[j]*b1 + b2*pjdotr) - b1*mu[j][0];
-	    zdiy = dely * (q[j]*b1 + b2*pjdotr) - b1*mu[j][1];
-	    zdiz = delz * (q[j]*b1 + b2*pjdotr) - b1*mu[j][2];
-	    zdjx = delx * (-qtmp*b1 + b2*pidotr) - b1*mu[i][0];
-	    zdjy = dely * (-qtmp*b1 + b2*pidotr) - b1*mu[i][1];
-	    zdjz = delz * (-qtmp*b1 + b2*pidotr) - b1*mu[i][2];
+            zdix = delx * (q[j]*b1 + b2*pjdotr) - b1*mu[j][0];
+            zdiy = dely * (q[j]*b1 + b2*pjdotr) - b1*mu[j][1];
+            zdiz = delz * (q[j]*b1 + b2*pjdotr) - b1*mu[j][2];
+            zdjx = delx * (-qtmp*b1 + b2*pidotr) - b1*mu[i][0];
+            zdjy = dely * (-qtmp*b1 + b2*pidotr) - b1*mu[i][1];
+            zdjz = delz * (-qtmp*b1 + b2*pidotr) - b1*mu[i][2];
 
-	    if (factor_coul < 1.0) {
-	      fdx *= factor_coul;
-	      fdy *= factor_coul;
-	      fdz *= factor_coul;
-	      zdix *= factor_coul;
-	      zdiy *= factor_coul;
-	      zdiz *= factor_coul;
-	      zdjx *= factor_coul;
-	      zdjy *= factor_coul;
-	      zdjz *= factor_coul;
-	    }
-	  } else {
-	    fdx = fdy = fdz = 0.0;
-	    zdix = zdiy = zdiz = 0.0;
-	    zdjx = zdjy = zdjz = 0.0;
-	  }
+            if (factor_coul < 1.0) {
+              fdx *= factor_coul;
+              fdy *= factor_coul;
+              fdz *= factor_coul;
+              zdix *= factor_coul;
+              zdiy *= factor_coul;
+              zdiz *= factor_coul;
+              zdjx *= factor_coul;
+              zdjy *= factor_coul;
+              zdjz *= factor_coul;
+            }
+          } else {
+            fdx = fdy = fdz = 0.0;
+            zdix = zdiy = zdiz = 0.0;
+            zdjx = zdjy = zdjz = 0.0;
+          }
 
-	  if (factor_coul < 1.0) {
-	    d0 = (erfc - 1.0) * rinv;
-	    d1 = (d0 + pre1*expm2) * r2inv;
-	    d2 = (3.0*d1 + pre2*expm2) * r2inv;
-	    d3 = (5.0*d2 + pre3*expm2) * r2inv;
+          if (factor_coul < 1.0) {
+            d0 = (erfc - 1.0) * rinv;
+            d1 = (d0 + pre1*expm2) * r2inv;
+            d2 = (3.0*d1 + pre2*expm2) * r2inv;
+            d3 = (5.0*d2 + pre3*expm2) * r2inv;
 
-	    g0d1_g1d2_g2d3 = g0*d1 + g1*d2 + g2*d3;
-	    fax = delx * g0d1_g1d2_g2d3 -
-	      d1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) +
-	      d2 * (pjdotr*mu[i][0] + pidotr*mu[j][0]);
-	    fay = dely * g0d1_g1d2_g2d3 -
-	      d1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) +
-	      d2 * (pjdotr*mu[i][1] + pidotr*mu[j][1]);
-	    faz = delz * g0d1_g1d2_g2d3 -
-	      d1 * (qtmp*mu[j][2] - q[j]*mu[i][2]) +
-	      d2 * (pjdotr*mu[i][2] + pidotr*mu[j][2]);
+            g0d1_g1d2_g2d3 = g0*d1 + g1*d2 + g2*d3;
+            fax = delx * g0d1_g1d2_g2d3 -
+              d1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) +
+              d2 * (pjdotr*mu[i][0] + pidotr*mu[j][0]);
+            fay = dely * g0d1_g1d2_g2d3 -
+              d1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) +
+              d2 * (pjdotr*mu[i][1] + pidotr*mu[j][1]);
+            faz = delz * g0d1_g1d2_g2d3 -
+              d1 * (qtmp*mu[j][2] - q[j]*mu[i][2]) +
+              d2 * (pjdotr*mu[i][2] + pidotr*mu[j][2]);
 
-	    zaix = delx * (q[j]*d1 + d2*pjdotr) - d1*mu[j][0];
-	    zaiy = dely * (q[j]*d1 + d2*pjdotr) - d1*mu[j][1];
-	    zaiz = delz * (q[j]*d1 + d2*pjdotr) - d1*mu[j][2];
-	    zajx = delx * (-qtmp*d1 + d2*pidotr) - d1*mu[i][0];
-	    zajy = dely * (-qtmp*d1 + d2*pidotr) - d1*mu[i][1];
-	    zajz = delz * (-qtmp*d1 + d2*pidotr) - d1*mu[i][2];
+            zaix = delx * (q[j]*d1 + d2*pjdotr) - d1*mu[j][0];
+            zaiy = dely * (q[j]*d1 + d2*pjdotr) - d1*mu[j][1];
+            zaiz = delz * (q[j]*d1 + d2*pjdotr) - d1*mu[j][2];
+            zajx = delx * (-qtmp*d1 + d2*pidotr) - d1*mu[i][0];
+            zajy = dely * (-qtmp*d1 + d2*pidotr) - d1*mu[i][1];
+            zajz = delz * (-qtmp*d1 + d2*pidotr) - d1*mu[i][2];
 
-	    if (factor_coul > 0.0) {
-	      facm1 = 1.0 - factor_coul;
-	      fax *= facm1;
-	      fay *= facm1;
-	      faz *= facm1;
-	      zaix *= facm1;
-	      zaiy *= facm1;
-	      zaiz *= facm1;
-	      zajx *= facm1;
-	      zajy *= facm1;
-	      zajz *= facm1;
-	    }
-	  } else {
-	    fax = fay = faz = 0.0;
-	    zaix = zaiy = zaiz = 0.0;
-	    zajx = zajy = zajz = 0.0;
-	  }
+            if (factor_coul > 0.0) {
+              facm1 = 1.0 - factor_coul;
+              fax *= facm1;
+              fay *= facm1;
+              faz *= facm1;
+              zaix *= facm1;
+              zaiy *= facm1;
+              zaiz *= facm1;
+              zajx *= facm1;
+              zajy *= facm1;
+              zajz *= facm1;
+            }
+          } else {
+            fax = fay = faz = 0.0;
+            zaix = zaiy = zaiz = 0.0;
+            zajx = zajy = zajz = 0.0;
+          }
 
-	  forcecoulx = fdx + fax;
-	  forcecouly = fdy + fay;
-	  forcecoulz = fdz + faz;
+          forcecoulx = fdx + fax;
+          forcecouly = fdy + fay;
+          forcecoulz = fdz + faz;
 
-	  tixcoul = mu[i][1]*(zdiz + zaiz) - mu[i][2]*(zdiy + zaiy);
-	  tiycoul = mu[i][2]*(zdix + zaix) - mu[i][0]*(zdiz + zaiz);
-	  tizcoul = mu[i][0]*(zdiy + zaiy) - mu[i][1]*(zdix + zaix);
-	  tjxcoul = mu[j][1]*(zdjz + zajz) - mu[j][2]*(zdjy + zajy);
-	  tjycoul = mu[j][2]*(zdjx + zajx) - mu[j][0]*(zdjz + zajz);
-	  tjzcoul = mu[j][0]*(zdjy + zajy) - mu[j][1]*(zdjx + zajx);
+          tixcoul = mu[i][1]*(zdiz + zaiz) - mu[i][2]*(zdiy + zaiy);
+          tiycoul = mu[i][2]*(zdix + zaix) - mu[i][0]*(zdiz + zaiz);
+          tizcoul = mu[i][0]*(zdiy + zaiy) - mu[i][1]*(zdix + zaix);
+          tjxcoul = mu[j][1]*(zdjz + zajz) - mu[j][2]*(zdjy + zajy);
+          tjycoul = mu[j][2]*(zdjx + zajx) - mu[j][0]*(zdjz + zajz);
+          tjzcoul = mu[j][0]*(zdjy + zajy) - mu[j][1]*(zdjx + zajx);
 
-	} else {
-	  forcecoulx = forcecouly = forcecoulz = 0.0;
-	  tixcoul = tiycoul = tizcoul = 0.0;
-	  tjxcoul = tjycoul = tjzcoul = 0.0;
-	}
-
-	// LJ interaction
-
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  fforce = factor_lj * forcelj*r2inv;
-	} else fforce = 0.0;
-
-	// total force
-
-	fx = qqrd2e*forcecoulx + delx*fforce;
-	fy = qqrd2e*forcecouly + dely*fforce;
-	fz = qqrd2e*forcecoulz + delz*fforce;
-
-	// force & torque accumulation
-
-	f[i][0] += fx;
-	f[i][1] += fy;
-	f[i][2] += fz;
-	torque[i][0] += qqrd2e*tixcoul;
-	torque[i][1] += qqrd2e*tiycoul;
-	torque[i][2] += qqrd2e*tizcoul;
-
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= fx;
-	  f[j][1] -= fy;
-	  f[j][2] -= fz;
-	  torque[j][0] += qqrd2e*tjxcoul;
-	  torque[j][1] += qqrd2e*tjycoul;
-	  torque[j][2] += qqrd2e*tjzcoul;
-	}
-
-	if (eflag) {
-	  if (rsq < cut_coulsq && factor_coul > 0.0) {
-	    ecoul = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
-	    if (factor_coul < 1.0) {
-              ecoul *= factor_coul;
-	      ecoul += (1-factor_coul) * qqrd2e * (d0*g0 + d1*g1 + d2*g2);
+        } else {
+          forcecoulx = forcecouly = forcecoulz = 0.0;
+          tixcoul = tiycoul = tizcoul = 0.0;
+          tjxcoul = tjycoul = tjzcoul = 0.0;
         }
-	  } else ecoul = 0.0;
 
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+        // LJ interaction
 
-	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-				 evdwl,ecoul,fx,fy,fz,delx,dely,delz);
+        if (rsq < cut_ljsq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          fforce = factor_lj * forcelj*r2inv;
+        } else fforce = 0.0;
+
+        // total force
+
+        fx = qqrd2e*forcecoulx + delx*fforce;
+        fy = qqrd2e*forcecouly + dely*fforce;
+        fz = qqrd2e*forcecoulz + delz*fforce;
+
+        // force & torque accumulation
+
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
+        torque[i][0] += qqrd2e*tixcoul;
+        torque[i][1] += qqrd2e*tiycoul;
+        torque[i][2] += qqrd2e*tizcoul;
+
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fx;
+          f[j][1] -= fy;
+          f[j][2] -= fz;
+          torque[j][0] += qqrd2e*tjxcoul;
+          torque[j][1] += qqrd2e*tjycoul;
+          torque[j][2] += qqrd2e*tjzcoul;
+        }
+
+        if (eflag) {
+          if (rsq < cut_coulsq && factor_coul > 0.0) {
+            ecoul = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
+            if (factor_coul < 1.0) {
+              ecoul *= factor_coul;
+              ecoul += (1-factor_coul) * qqrd2e * (d0*g0 + d1*g1 + d2*g2);
+            }
+          } else ecoul = 0.0;
+
+          if (rsq < cut_ljsq[itype][jtype]) {
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+              offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
+
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+                                 evdwl,ecoul,fx,fy,fz,delx,dely,delz);
       }
     }
   }
@@ -360,8 +360,8 @@ void PairLJCutDipoleLong::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+      for (j = i; j <= atom->ntypes; j++)
+        if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
 
@@ -407,7 +407,7 @@ double PairLJCutDipoleLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut_lj[i][j] = mix_distance(cut_lj[i][i],cut_lj[j][j]);
   }
@@ -472,9 +472,9 @@ void PairLJCutDipoleLong::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&cut_lj[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut_lj[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -496,14 +496,14 @@ void PairLJCutDipoleLong::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&cut_lj[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut_lj[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }

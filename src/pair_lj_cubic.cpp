@@ -179,14 +179,8 @@ void PairLJCubic::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 
-  // reset cutoffs that have been explicitly set
-
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = 0.0;
-  }
+  // NOTE: lj/cubic has no global cutoff. instead the cutoff is
+  // inferred from the lj parameters. so we must not reset cutoffs here.
 }
 
 /* ----------------------------------------------------------------------

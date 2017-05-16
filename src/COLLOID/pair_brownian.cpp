@@ -403,7 +403,7 @@ void PairBrownian::settings(int narg, char **arg)
 
   if (allocated) {
     for (int i = 1; i <= atom->ntypes; i++)
-      for (int j = i+1; j <= atom->ntypes; j++)
+      for (int j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
           cut_inner[i][j] = cut_inner_global;
           cut[i][j] = cut_global;

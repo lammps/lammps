@@ -3107,10 +3107,10 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 
     // if inputs are out of bounds set them back to a point in bounds
 
-    if (NijC <  pCCdom[0][0]) NijC=pCCdom[0][0];
-    if (NijC >= pCCdom[0][1]) NijC=pCCdom[0][1]-TOL;
-    if (NijH <  pCCdom[1][0]) NijH=pCCdom[1][0];
-    if (NijH >= pCCdom[1][1]) NijH=pCCdom[1][1]-TOL;
+    if (NijC < pCCdom[0][0]) NijC=pCCdom[0][0];
+    if (NijC > pCCdom[0][1]) NijC=pCCdom[0][1];
+    if (NijH < pCCdom[1][0]) NijH=pCCdom[1][0];
+    if (NijH > pCCdom[1][1]) NijH=pCCdom[1][1];
     x = (int) floor(NijC);
     y = (int) floor(NijH);
 
@@ -3119,6 +3119,8 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
       dN2[0] = PCCdfdx[x][y];
       dN2[1] = PCCdfdy[x][y];
     } else {
+      if (NijC == pCCdom[0][1]) --x;
+      if (NijH == pCCdom[1][1]) --y;
       Pij = Spbicubic(NijC,NijH,pCC[x][y],dN2);
     }
 
@@ -3126,10 +3128,10 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 
     // if inputs are out of bounds set them back to a point in bounds
 
-    if (NijC <  pCHdom[0][0]) NijC=pCHdom[0][0];
-    if (NijC >= pCHdom[0][1]) NijC=pCHdom[0][1]-TOL;
-    if (NijH <  pCHdom[1][0]) NijH=pCHdom[1][0];
-    if (NijH >= pCHdom[1][1]) NijH=pCHdom[1][1]-TOL;
+    if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
+    if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
+    if (NijH < pCHdom[1][0]) NijH=pCHdom[1][0];
+    if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
     x = (int) floor(NijC);
     y = (int) floor(NijH);
 
@@ -3138,6 +3140,8 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
       dN2[0] = PCHdfdx[x][y];
       dN2[1] = PCHdfdy[x][y];
     } else {
+      if (NijC == pCHdom[0][1]) --x;
+      if (NijH == pCHdom[1][1]) --y;
       Pij = Spbicubic(NijC,NijH,pCH[x][y],dN2);
     }
   }
@@ -3166,12 +3170,12 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 
     // if the inputs are out of bounds set them back to a point in bounds
 
-    if (Nij <  piCCdom[0][0]) Nij=piCCdom[0][0];
-    if (Nij >= piCCdom[0][1]) Nij=piCCdom[0][1]-TOL;
-    if (Nji <  piCCdom[1][0]) Nji=piCCdom[1][0];
-    if (Nji >= piCCdom[1][1]) Nji=piCCdom[1][1]-TOL;
-    if (Nijconj <  piCCdom[2][0]) Nijconj=piCCdom[2][0];
-    if (Nijconj >= piCCdom[2][1]) Nijconj=piCCdom[2][1]-TOL;
+    if (Nij < piCCdom[0][0]) Nij=piCCdom[0][0];
+    if (Nij > piCCdom[0][1]) Nij=piCCdom[0][1];
+    if (Nji < piCCdom[1][0]) Nji=piCCdom[1][0];
+    if (Nji > piCCdom[1][1]) Nji=piCCdom[1][1];
+    if (Nijconj < piCCdom[2][0]) Nijconj=piCCdom[2][0];
+    if (Nijconj > piCCdom[2][1]) Nijconj=piCCdom[2][1];
     x = (int) floor(Nij);
     y = (int) floor(Nji);
     z = (int) floor(Nijconj);
@@ -3183,6 +3187,9 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
       dN3[1]=piCCdfdy[x][y][z];
       dN3[2]=piCCdfdz[x][y][z];
     } else {
+      if (Nij == piCCdom[0][1]) --x;
+      if (Nji == piCCdom[1][1]) --y;
+      if (Nijconj == piCCdom[2][1]) --z;
       piRC=Sptricubic(Nij,Nji,Nijconj,piCC[x][y][z],dN3);
     }
   } else if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
@@ -3191,12 +3198,12 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 
     // if the inputs are out of bounds set them back to a point in bounds
 
-    if (Nij <  piCHdom[0][0]) Nij=piCHdom[0][0];
-    if (Nij >= piCHdom[0][1]) Nij=piCHdom[0][1]-TOL;
-    if (Nji <  piCHdom[1][0]) Nji=piCHdom[1][0];
-    if (Nji >= piCHdom[1][1]) Nji=piCHdom[1][1]-TOL;
-    if (Nijconj <  piCHdom[2][0]) Nijconj=piCHdom[2][0];
-    if (Nijconj >= piCHdom[2][1]) Nijconj=piCHdom[2][1]-TOL;
+    if (Nij < piCHdom[0][0]) Nij=piCHdom[0][0];
+    if (Nij > piCHdom[0][1]) Nij=piCHdom[0][1];
+    if (Nji < piCHdom[1][0]) Nji=piCHdom[1][0];
+    if (Nji > piCHdom[1][1]) Nji=piCHdom[1][1];
+    if (Nijconj < piCHdom[2][0]) Nijconj=piCHdom[2][0];
+    if (Nijconj > piCHdom[2][1]) Nijconj=piCHdom[2][1];
     x = (int) floor(Nij);
     y = (int) floor(Nji);
     z = (int) floor(Nijconj);
@@ -3208,26 +3215,32 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
       dN3[1]=piCHdfdy[x][y][z];
       dN3[2]=piCHdfdz[x][y][z];
     } else {
+      if (Nij == piCHdom[0][1]) --x;
+      if (Nji == piCHdom[1][1]) --y;
+      if (Nijconj == piCHdom[2][1]) --z;
       piRC=Sptricubic(Nij,Nji,Nijconj,piCH[x][y][z],dN3);
     }
   } else if (typei==1 && typej==1) {
-    if (Nij <  piHHdom[0][0]) Nij=piHHdom[0][0];
-    if (Nij >= piHHdom[0][1]) Nij=piHHdom[0][1]-TOL;
-    if (Nji <  piHHdom[1][0]) Nji=piHHdom[1][0];
-    if (Nji >= piHHdom[1][1]) Nji=piHHdom[1][1]-TOL;
-    if (Nijconj <  piHHdom[2][0]) Nijconj=piHHdom[2][0];
-    if (Nijconj >= piHHdom[2][1]) Nijconj=piHHdom[2][1]-TOL;
+    if (Nij < piHHdom[0][0]) Nij=piHHdom[0][0];
+    if (Nij > piHHdom[0][1]) Nij=piHHdom[0][1];
+    if (Nji < piHHdom[1][0]) Nji=piHHdom[1][0];
+    if (Nji > piHHdom[1][1]) Nji=piHHdom[1][1];
+    if (Nijconj < piHHdom[2][0]) Nijconj=piHHdom[2][0];
+    if (Nijconj > piHHdom[2][1]) Nijconj=piHHdom[2][1];
     x = (int) floor(Nij);
     y = (int) floor(Nji);
     z = (int) floor(Nijconj);
 
-    if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-        fabs(Nijconj-floor(Nijconj))<TOL) {
+    if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+        && fabs(Nijconj-floor(Nijconj)) < TOL) {
       piRC=piHHf[x][y][z];
       dN3[0]=piHHdfdx[x][y][z];
       dN3[1]=piHHdfdy[x][y][z];
       dN3[2]=piHHdfdz[x][y][z];
     } else {
+      if (Nij == piHHdom[0][1]) --x;
+      if (Nji == piHHdom[1][1]) --y;
+      if (Nijconj == piHHdom[2][1]) --z;
       piRC=Sptricubic(Nij,Nji,Nijconj,piHH[x][y][z],dN3);
     }
   }
@@ -3255,12 +3268,12 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 
   //if the inputs are out of bounds set them back to a point in bounds
 
-  if (Nij <  Tijdom[0][0]) Nij=Tijdom[0][0];
-  if (Nij >= Tijdom[0][1]) Nij=Tijdom[0][1]-TOL;
-  if (Nji <  Tijdom[1][0]) Nji=Tijdom[1][0];
-  if (Nji >= Tijdom[1][1]) Nji=Tijdom[1][1]-TOL;
-  if (Nijconj <  Tijdom[2][0]) Nijconj=Tijdom[2][0];
-  if (Nijconj >= Tijdom[2][1]) Nijconj=Tijdom[2][1]-TOL;
+  if (Nij < Tijdom[0][0]) Nij=Tijdom[0][0];
+  if (Nij > Tijdom[0][1]) Nij=Tijdom[0][1];
+  if (Nji < Tijdom[1][0]) Nji=Tijdom[1][0];
+  if (Nji > Tijdom[1][1]) Nji=Tijdom[1][1];
+  if (Nijconj < Tijdom[2][0]) Nijconj=Tijdom[2][0];
+  if (Nijconj > Tijdom[2][1]) Nijconj=Tijdom[2][1];
   x = (int) floor(Nij);
   y = (int) floor(Nji);
   z = (int) floor(Nijconj);
@@ -3272,6 +3285,9 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
     dN3[1]=Tdfdy[x][y][z];
     dN3[2]=Tdfdz[x][y][z];
   } else {
+    if (Nij == Tijdom[0][1]) --x;
+    if (Nji == Tijdom[1][1]) --y;
+    if (Nijconj == Tijdom[2][1]) --z;
     Tijf=Sptricubic(Nij,Nji,Nijconj,Tijc[x][y][z],dN3);
   }
 

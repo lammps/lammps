@@ -1016,6 +1016,7 @@ package"_Section_start.html#start_3.
 "dpd/fdt/energy"_pair_dpd_fdt.html,
 "eam/cd (o)"_pair_eam.html,
 "edip (o)"_pair_edip.html,
+"edip/multi"_pair_edip.html,
 "eff/cut"_pair_eff.html,
 "exp6/rx"_pair_exp6_rx.html,
 "gauss/cut"_pair_gauss.html,

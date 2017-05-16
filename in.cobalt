@@ -10,13 +10,14 @@ units metal
 dimension 3
 
 #setting boundary conditions. (p for periodic, f for fixed, ...)
-boundary p p p 
+#boundary p p p 
 #boundary f f f
 
 #setting atom_style, defines what can of atoms to use in simulation (atomic, molecule, angle, dipole, ...)
 atom_style spin
 #atom_style hybrid sphere spin
 
+atom_modify sort 1000 4.0
 
 ###########################
 #######Create atoms########
@@ -27,7 +28,7 @@ lattice fcc 3.54
 
 #Defining a geometric region of space. Sets ID(user's choice), style(block, sphere, ...), then, args depends on the style chosen
 #(for block, one has x0, xf, y0, yf, z0, zf, in distance units)
-region box block 0.0 2.0 0.0 2.0 0.0 2.0
+region box block 0.0 1.0 0.0 1.0 0.0 1.0
 
 #Creating a simulation box based on the specified region. Entries: number of atom types and box ref. 
 create_box 1 box
@@ -50,18 +51,18 @@ mass		1 1.0
 #set		group all mass 1.0
 #Setting spins orientation and moment 
 #set group all spin/random 11 1.7
-set group all spin 1.7 0.0 1.0 0.0 
+set group all spin 1.7 1.0 0.0 0.0 
 
 #Magnetic exchange interaction coefficient for bulk fcc Cobalt
-pair_style pair/spin 4.0
-pair_coeff * * 0.0446928 0.003496 1.4885
+#pair_style pair/spin 4.0
+#pair_coeff * * 0.0446928 0.003496 1.4885
 #pair_coeff * * 0.0 0.003496 1.4885
 
 #Fix Langevin spins (merging damping and temperature)
 #Defines a cutof distance for the neighbors. 
 #neighbor 0.5 bin
 #Magnetic field fix
-fix 1 all force/spin zeeman 50 0.0 0.0 1.0
+fix 1 all force/spin zeeman 10 0.0 0.0 1.0
 #fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 #fix 1 all force/spin anisotropy 0.1 0.0 0.0 1.0
 
@@ -74,13 +75,13 @@ fix 3 all nve/spin
 
 #compute total magnetization and magnetic energy
 compute mag all compute/spin
-fix outmag all ave/time 1 1 100 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5]  file mag.dat
+fix outmag all ave/time 1 1 50 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5] c_mag[6] file mag.dat
 
 #Defining a computation that will be performed on a group of atoms. 
 #Entries: ID(user assigned), group-ID(group of atoms to peform the sim on), style(temp, pe, ...), args    
 
 #Setting the timestep for the simulation
-timestep	0.000005
+timestep	0.00005
 
 ##################
 #######run########
@@ -90,6 +91,6 @@ timestep	0.000005
 dump 1 all custom 100 dump_spin.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 10
-
+run 1000000
+#run 100
 

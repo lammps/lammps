@@ -70,7 +70,7 @@ proc enable_trace {} {
      trace variable vmd_frame([molinfo top]) w vmd_draw_spin    
      }
      
-set molid [mol addfile {/ascldap/users/jtranch/Documents/Test_lammps_Spin3/src/dump_spin.lammpstrj} type {lammpstrj} autobonds off first 0 last -1 step 1 waitfor all]
+set molid [mol addfile {/home/jtranch/Documents/lammps/src/dump_spin.lammpstrj} type {lammpstrj} autobonds off first 0 last -1 step 1 waitfor all]
 scale by 0.5
 animate style Loop
 enable_trace

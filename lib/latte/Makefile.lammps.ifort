@@ -15,6 +15,13 @@ latte_SYSINC  = -I${latte_PATH}/src -I${bml_PATH}/install/include -I${progress_P
 latte_SYSLIB  = -openmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte.a \
 								-lifcore -lsvml -lompstub -limf -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64 -lmkl_intel_lp64 \
                 -lmkl_intel_thread -lmkl_core -lmkl_intel_thread -lpthread -openmp -O0 \
+
+# Alternative linking line
+#latte_SYSLIB  = -qopenmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte.a \
+#                -L${MKLROOT}/lib/intel64 -lifcore -lsvml  -lifport -mkl=parallel -lpthread -qopenmp -O0 \
+
+# Uncomment the following line to use PROGRESS/BML
+#latte_SYSLIB  += -L${progress_PATH}/install/lib -lprogress -L${bml_PATH}/install/lib -lbml -L${metis_PATH}/install -lmetis 
 # Uncomment the following line to use PROGRESS/BML
 latte_SYSLIB  += -L${progress_PATH}/install/lib -lprogress -L${bml_PATH}/install/lib -lbml -L${metis_PATH}/install -lmetis 
 

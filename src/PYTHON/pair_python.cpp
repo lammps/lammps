@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 
 PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   respa_enable = 0;
-  single_enable = 0;
+  single_enable = 1;
   writedata = 0;
   restartinfo = 0;
   one_coeff = 1;
@@ -46,7 +46,7 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   py_potential = NULL;
 
   // add current directory to PYTHONPATH
-  PyObject * py_path = PySys_GetObject("path");
+  PyObject * py_path = PySys_GetObject((char *)"path");
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
   // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
@@ -353,3 +353,83 @@ double PairPython::init_one(int, int)
   return cut_global;
 }
 
+/* ---------------------------------------------------------------------- */
+
+double PairPython::single(int i, int j, int itype, int jtype, double rsq,
+                         double factor_coul, double factor_lj,
+                         double &fforce)
+{
+
+  // prepare access to compute_force and compute_energy functions
+
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyObject *py_pair_instance = (PyObject *) py_potential;
+  PyObject *py_compute_force
+    = PyObject_GetAttrString(py_pair_instance,"compute_force");
+  if (!py_compute_force) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not find 'compute_force' method'");
+  }
+  if (!PyCallable_Check(py_compute_force)) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Python 'compute_force' is not callable");
+  }
+
+  PyObject *py_compute_energy
+    = PyObject_GetAttrString(py_pair_instance,"compute_energy");
+  if (!py_compute_energy) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not find 'compute_energy' method'");
+  }
+  if (!PyCallable_Check(py_compute_energy)) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Python 'compute_energy' is not callable");
+  }
+
+  PyObject *py_rsq, *py_itype, *py_jtype, *py_value;
+  PyObject *py_compute_args = PyTuple_New(3);
+  if (!py_compute_args) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not create tuple for 'compute' function arguments");
+  }
+
+  py_itype = PY_INT_FROM_LONG(itype);
+  PyTuple_SetItem(py_compute_args,1,py_itype);
+  py_jtype = PY_INT_FROM_LONG(jtype);
+  PyTuple_SetItem(py_compute_args,2,py_jtype);
+  py_rsq = PyFloat_FromDouble(rsq);
+  PyTuple_SetItem(py_compute_args,0,py_rsq);
+
+  py_value = PyObject_CallObject(py_compute_force,py_compute_args);
+  if (!py_value) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Calling 'compute_force' function failed");
+  }
+  fforce = factor_lj*PyFloat_AsDouble(py_value)/rsq;
+
+  py_value = PyObject_CallObject(py_compute_energy,py_compute_args);
+  if (!py_value) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Calling 'compute_energy' function failed");
+  }
+  double evdwl = factor_lj*PyFloat_AsDouble(py_value);
+
+  Py_DECREF(py_compute_args);
+  PyGILState_Release(gstate);
+
+  return evdwl;
+}

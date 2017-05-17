@@ -42,6 +42,7 @@ class PairPython : public Pair {
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
+  double single(int, int, int, int, double, double, double, double &);
 
  protected:
   double cut_global;

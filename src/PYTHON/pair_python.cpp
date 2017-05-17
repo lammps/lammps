@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer and Richard Berger (Temple U)
+   Contributing authors: Axel Kohlmeyer and Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
 #include <Python.h>

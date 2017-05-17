@@ -1,0 +1,137 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style python command :h3
+
+[Syntax:]
+
+pair_style python cutoff :pre
+
+cutoff = global cutoff for interactions in python potential classes
+
+[Examples:]
+
+pair_style python 2.5
+pair_coeff * * py_pot.LJCutMelt lj :pre
+
+pair_style hybrid/overlay coul/long 12.0 python 12.0
+pair_coeff * * coul/long
+pair_coeff * * python py_pot.LJCutSPCE OW NULL :pre
+
+[Description:]
+
+The {python} pair style provides a way to define pairwise additive
+potential functions as scripted python script code that is loaded
+into LAMMPS from a python file which must contain specific python
+class definitions. This allows to model potentials, that are not
+currently available in LAMMPS without having to program a new
+pair style or modify an existing one and recompile LAMMPS. Due to
+python being an interpreted language, the performance of this pair
+style is going to be significantly slower (often between 20x and 100x),
+but this penalty can be significantly reduced through generating
+tabulations from the python code through the "pair_write"_pair_write.html
+command.
+
+Only a single pair_coeff command is used with the {python} pair style
+which specifies a python class inside a python module that LAMMPS will
+look up either in the current directory, the folder pointed to by the
+LAMMPS_POTENTIALS environment variable or somewhere in your python path.
+The class definition has to follow specific rules as explained below.
+
+Atom types in the python class are specified through symbolic constants,
+typically strings. These are mapped to LAMMPS atom types by specifying
+N additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
+
+module.class
+N element names = mapping of python atom types to LAMMPS atom types :ul
+
+As an example, imagine a file py_pot.py has a python class LJCutMelt
+with parameters and potential functions for a two Lennard-Jones
+atom types labeled as 'LJ1' and 'LJ2', and you would have defined
+4 atom types in LAMMPS, out which the first three are supposed to be
+using the 'LJ1' parameters and the fourth the 'LJ2' parameters, then
+you would use the following pair_coeff command:
+
+pair_coeff * * py_pot.LJCutMelt LJ1 LJ1 LJ1 LJ2 :pre
+
+The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The first three LJ1 arguments map LAMMPS atom types 1,2,3 to the LJ1
+atom type in the py_pot.py file.  The final LJ2 argument maps LAMMPS
+atom type 4 to the LJ2 atom type the python file.  If a mapping value
+is specified as NULL, the mapping is not performed.  This can be used
+when a {python} potential is used as part of the {hybrid} pair style.
+The NULL values are placeholders for atom types that will be used with
+other potentials.
+
+The python potential file has to provide classes for the computation
+of the potential energy and forces, which have to contain three methods:
+{map_coeff}, {compute_force}, and {compute_energy}. For details please
+see the provided examples in the examples/python folder.
+
+:line
+
+IMPORTANT NOTE: The evaluation of scripted python code will slow down
+the computation pair-wise interactions very significantly. However,
+this can be largely worked around through using the python pair style
+to generate tabulated potentials on the fly. Please see below for an
+example of how to build the table file:
+
+pair_style python 2.5
+pair_coeff * * py_pot.LJCutMelt LJ1 LJ2 LJ2
+shell rm -f lj1_lj2.table
+pair_write  1 1 10000 rsq 0.01 2.5 lj1_lj2.table LJ1-LJ1
+pair_write  1 2 10000 rsq 0.01 2.5 lj1_lj2.table LJ1-LJ2
+pair_write  2 2 10000 rsq 0.01 2.5 lj1_lj2.table LJ2-LJ2 :pre
+
+After switching the pair style to {table}, the various potential
+function tables need to be assigned to the LAMMPS atom types:
+
+pair_style      table linear 10000
+pair_coeff      1  1  lj1_lj2.table LJ1-LJ1
+pair_coeff      1  2* lj1_lj2.table LJ1-LJ2
+pair_coeff      2* 2* lj1_lj2.table LJ2-LJ2 :pre
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+Mixing of potential parameters has to be handled inside the
+provided python module. The python pair style assumes that force
+and energy computation can be correctly performed for all
+pairs of atom types as they are mapped to the atom type labels
+inside the python potential class.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This pair style does not write its information to "binary restart
+files"_restart.html, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
+[Restrictions:]
+
+This pair style is part of the PYTHON package.  It is only enabled
+if LAMMPS was built with that package.  See
+the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "pair_write"_pair_write.html,
+"pair style table"_pair_table.html
+
+[Default:] none
+
+

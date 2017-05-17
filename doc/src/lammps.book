@@ -237,6 +237,7 @@ fix_pour.html
 fix_press_berendsen.html
 fix_print.html
 fix_property_atom.html
+fix_python.html
 fix_qbmsst.html
 fix_qeq.html
 fix_qeq_comb.html
@@ -467,6 +468,7 @@ pair_oxdna.html
 pair_oxdna2.html
 pair_peri.html
 pair_polymorphic.html
+pair_python.html
 pair_quip.html
 pair_reax.html
 pair_reaxc.html

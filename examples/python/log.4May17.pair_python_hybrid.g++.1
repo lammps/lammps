@@ -19,7 +19,7 @@ mass		* 1.0
 velocity	all create 3.0 87287
 
 pair_style	hybrid lj/cut 2.5 python 2.5
-pair_coeff	* * python lj-melt-potential.py lj NULL
+pair_coeff	* * python potentials.LJCutMelt lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 neighbor	0.3 bin
@@ -59,20 +59,20 @@ Step Temp E_pair E_mol TotEng Press
      150    1.6324555   -4.7286791            0    -2.280608    5.9589514 
      200    1.6630725   -4.7750988            0   -2.2811136    5.7364886 
      250    1.6275257   -4.7224992            0    -2.281821    5.9567365 
-Loop time of 41.3888 on 1 procs for 250 steps with 4000 atoms
+Loop time of 43.2436 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 2609.399 tau/day, 6.040 timesteps/s
-48.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 2497.477 tau/day, 5.781 timesteps/s
+31.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 41.135     | 41.135     | 41.135     |   0.0 | 99.39
-Neigh   | 0.17089    | 0.17089    | 0.17089    |   0.0 |  0.41
-Comm    | 0.032175   | 0.032175   | 0.032175   |   0.0 |  0.08
-Output  | 0.000513   | 0.000513   | 0.000513   |   0.0 |  0.00
-Modify  | 0.046448   | 0.046448   | 0.046448   |   0.0 |  0.11
-Other   |            | 0.003913   |            |       |  0.01
+Pair    | 42.933     | 42.933     | 42.933     |   0.0 | 99.28
+Neigh   | 0.24816    | 0.24816    | 0.24816    |   0.0 |  0.57
+Comm    | 0.027748   | 0.027748   | 0.027748   |   0.0 |  0.06
+Output  | 0.000519   | 0.000519   | 0.000519   |   0.0 |  0.00
+Modify  | 0.028028   | 0.028028   | 0.028028   |   0.0 |  0.06
+Other   |            | 0.005912   |            |       |  0.01
 
 Nlocal:    4000 ave 4000 max 4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -99,7 +99,7 @@ read_restart    hybrid.restart
   4000 atoms
 
 pair_style	hybrid lj/cut 2.5 python 2.5
-pair_coeff	* * python lj-melt-potential.py lj NULL
+pair_coeff	* * python potentials.LJCutMelt lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 fix		1 all nve
@@ -136,20 +136,20 @@ Step Temp E_pair E_mol TotEng Press
      400    1.6540555   -4.7622999            0    -2.281837    5.8200413 
      450    1.6264734   -4.7200865            0   -2.2809863    5.9546991 
      500    1.6366891   -4.7350979            0   -2.2806781    5.9369284 
-Loop time of 41.5677 on 1 procs for 250 steps with 4000 atoms
+Loop time of 46.2882 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 2598.172 tau/day, 6.014 timesteps/s
-48.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 2333.206 tau/day, 5.401 timesteps/s
+31.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 41.124     | 41.124     | 41.124     |   0.0 | 98.93
-Neigh   | 0.35605    | 0.35605    | 0.35605    |   0.0 |  0.86
-Comm    | 0.034799   | 0.034799   | 0.034799   |   0.0 |  0.08
-Output  | 0.000473   | 0.000473   | 0.000473   |   0.0 |  0.00
-Modify  | 0.046841   | 0.046841   | 0.046841   |   0.0 |  0.11
-Other   |            | 0.005854   |            |       |  0.01
+Pair    | 45.662     | 45.662     | 45.662     |   0.0 | 98.65
+Neigh   | 0.55234    | 0.55234    | 0.55234    |   0.0 |  1.19
+Comm    | 0.035614   | 0.035614   | 0.035614   |   0.0 |  0.08
+Output  | 0.000544   | 0.000544   | 0.000544   |   0.0 |  0.00
+Modify  | 0.029269   | 0.029269   | 0.029269   |   0.0 |  0.06
+Other   |            | 0.008735   |            |       |  0.02
 
 Nlocal:    4000 ave 4000 max 4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -179,7 +179,7 @@ read_data       hybrid.data
   4000 velocities
 
 pair_style	hybrid lj/cut 2.5 python 2.5
-pair_coeff	* * python lj-melt-potential.py lj NULL
+pair_coeff	* * python potentials.LJCutMelt lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 neighbor	0.3 bin
@@ -219,20 +219,20 @@ Step Temp E_pair E_mol TotEng Press
      150    1.6537193   -4.7627023            0   -2.2827434    5.8177704 
      200    1.6258731   -4.7205017            0   -2.2823017     5.952511 
      250    1.6370862   -4.7373176            0   -2.2823022     5.925807 
-Loop time of 41.7098 on 1 procs for 250 steps with 4000 atoms
+Loop time of 46.4094 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 2589.318 tau/day, 5.994 timesteps/s
-48.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 2327.115 tau/day, 5.387 timesteps/s
+31.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 41.458     | 41.458     | 41.458     |   0.0 | 99.40
-Neigh   | 0.16992    | 0.16992    | 0.16992    |   0.0 |  0.41
-Comm    | 0.031355   | 0.031355   | 0.031355   |   0.0 |  0.08
-Output  | 0.000537   | 0.000537   | 0.000537   |   0.0 |  0.00
-Modify  | 0.046569   | 0.046569   | 0.046569   |   0.0 |  0.11
-Other   |            | 0.003735   |            |       |  0.01
+Pair    | 46.066     | 46.066     | 46.066     |   0.0 | 99.26
+Neigh   | 0.27099    | 0.27099    | 0.27099    |   0.0 |  0.58
+Comm    | 0.033778   | 0.033778   | 0.033778   |   0.0 |  0.07
+Output  | 0.000507   | 0.000507   | 0.000507   |   0.0 |  0.00
+Modify  | 0.030938   | 0.030938   | 0.030938   |   0.0 |  0.07
+Other   |            | 0.006695   |            |       |  0.01
 
 Nlocal:    4000 ave 4000 max 4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -247,4 +247,4 @@ Neighbor list builds = 12
 Dangerous builds not checked
 
 shell rm hybrid.data hybrid.restart
-Total wall time: 0:02:07
+Total wall time: 0:02:20

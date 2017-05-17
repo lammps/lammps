@@ -12,7 +12,7 @@ mass		* 1.0
 velocity	all create 3.0 87287
 
 pair_style	hybrid lj/cut 2.5 python 2.5
-pair_coeff	* * python potentials.LAMMPSLJCutPotential lj NULL
+pair_coeff	* * python potentials.LJCutMelt lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 neighbor	0.3 bin

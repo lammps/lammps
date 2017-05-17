@@ -32,6 +32,3 @@ class LAMMPSLJCutPotential(object):
         lj3 = coeff[4]
         lj4 = coeff[5]
         return (r6inv * (lj3*r6inv - lj4))
-
-lammps_pair_style = LAMMPSLJCutPotential()
-

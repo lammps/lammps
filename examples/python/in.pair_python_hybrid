@@ -12,7 +12,7 @@ mass		* 1.0
 velocity	all create 3.0 87287
 
 pair_style	hybrid lj/cut 2.5 python 2.5
-pair_coeff	* * python lj-melt-potential.py lj NULL
+pair_coeff	* * python potentials.LAMMPSLJCutPotential lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 neighbor	0.3 bin
@@ -31,7 +31,7 @@ clear
 read_restart    hybrid.restart
 
 pair_style	hybrid lj/cut 2.5 python 2.5
-pair_coeff	* * python lj-melt-potential.py lj NULL
+pair_coeff	* * python potentials.LAMMPSLJCutPotential lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 fix		1 all nve
@@ -47,7 +47,7 @@ atom_style	atomic
 read_data       hybrid.data
 
 pair_style	hybrid lj/cut 2.5 python 2.5
-pair_coeff	* * python lj-melt-potential.py lj NULL
+pair_coeff	* * python potentials.LAMMPSLJCutPotential lj NULL
 pair_coeff      * 2 lj/cut 1.0 1.0
 
 neighbor	0.3 bin

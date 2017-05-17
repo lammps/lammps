@@ -42,12 +42,26 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   reinitflag = 0;
 
   python->init();
+
+  py_potential = NULL;
+
+  // add current directory to PYTHONPATH
+  PyObject * py_path = PySys_GetObject("path");
+  PyList_Append(py_path, PY_STRING_FROM_STRING("."));
+
+  // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
+  const char * potentials_path = getenv("LAMMPS_POTENTIALS");
+  if (potentials_path != NULL) {
+    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairPython::~PairPython()
 {
+  if(py_potential) Py_DECREF((PyObject*) py_potential);
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -234,34 +248,56 @@ void PairPython::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // check if python potential file exists and source it
+  char * full_cls_name = arg[2];
+  char * lastpos = strrchr(full_cls_name, '.');
 
-  FILE *fp = fopen(arg[2],"r");
-  if (fp == NULL)
-    error->all(FLERR,"Cannot open python pair potential class file");
+  if (lastpos == NULL) {
+    error->all(FLERR,"Python pair style requires fully qualified class name");
+  }
+
+  size_t module_name_length = strlen(full_cls_name) - strlen(lastpos);
+  size_t cls_name_length = strlen(lastpos)-1;
+
+  char * module_name = new char[module_name_length+1];
+  char * cls_name = new char[cls_name_length+1];
+  strncpy(module_name, full_cls_name, module_name_length);
+  module_name[module_name_length] = 0;
+
+  strcpy(cls_name, lastpos+1);
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 
-  int err = PyRun_SimpleFile(fp,arg[2]);
-  if (err) {
+  PyObject * pModule = PyImport_ImportModule(module_name);
+  if (!pModule) {
+    PyErr_Print();
+    PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Loading python pair style class failure");
+    error->all(FLERR,"Loading python pair style module failure");
   }
-  fclose(fp);
 
   // create LAMMPS atom type to potential file type mapping in python class
   // by calling 'lammps_pair_style.map_coeff(name,type)'
 
-  PyObject *pModule = PyImport_AddModule("__main__");
-  if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
+  PyObject *py_pair_type = PyObject_GetAttrString(pModule, cls_name);
+  if (!py_pair_type) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not find pair style class in module'");
+  }
 
-  PyObject *py_pair_instance = PyObject_GetAttrString(pModule,"lammps_pair_style");
+  delete [] module_name;
+  delete [] cls_name;
+
+  PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, NULL);
   if (!py_pair_instance) {
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find 'lammps_pair_style instance'");
+    error->all(FLERR,"Could not instantiate instance of pair style class'");
   }
-  py_potential = (void *) py_pair_instance; // XXX do we need to increment reference counter?
+
+  py_potential = (void *) py_pair_instance;
 
   PyObject *py_map_coeff = PyObject_GetAttrString(py_pair_instance,"map_coeff");
   if (!py_map_coeff) {

@@ -1145,6 +1145,22 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_atoms();
     dvalue = bivalue;
 
+  } else if (strcmp(word,"bonds") == 0) {
+    compute_bonds();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"angles") == 0) {
+    compute_angles();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"dihedrals") == 0) {
+    compute_dihedrals();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"impropers") == 0) {
+    compute_impropers();
+    dvalue = bivalue;
+
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "

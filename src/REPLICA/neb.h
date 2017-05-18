@@ -38,6 +38,7 @@ class NEB : protected Pointers {
  private:
   int me,me_universe;          // my proc ID in world and universe
   int ireplica,nreplica;
+  bool Verbose;
   MPI_Comm uworld;
   MPI_Comm roots;              // MPI comm with 1 root proc from each world
   FILE *fp;
@@ -52,6 +53,8 @@ class NEB : protected Pointers {
   int nall;                    // per-replica dimension of array all
   double **all;                // PE,plen,nlen,gradvnorm from each replica
   double *rdist;               // normalize reaction distance, 0 to 1
+  double *freplica;               // force on an image
+  double *fmaxatomInRepl;               // force on an image
 
   void readfile(char *, int);
   void open(char *);
@@ -106,7 +109,7 @@ for NEB.
 
 E: Too many timesteps
 
-The cumulative timesteps must fit in a 64-bit integer.
+The cummulative timesteps must fit in a 64-bit integer.
 
 E: Unexpected end of neb file
 

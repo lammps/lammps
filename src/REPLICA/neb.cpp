@@ -143,17 +143,19 @@ void NEB::command(int narg, char **arg)
   // process file-style setting to setup initial configs for all replicas
 
   if (strcmp(arg[5],"final") == 0) {
-    if (narg != 7) error->universe_all(FLERR,"Illegal NEB command");
+    if (narg != 7 and narg !=8) error->universe_all(FLERR,"Illegal NEB command");
     infile = arg[6];
     readfile(infile,0);
   } else if (strcmp(arg[5],"each") == 0) {
-    if (narg != 7) error->universe_all(FLERR,"Illegal NEB command");
+    if (narg != 7 and narg !=8) error->universe_all(FLERR,"Illegal NEB command");
     infile = arg[6];
     readfile(infile,1);
   } else if (strcmp(arg[5],"none") == 0) {
-    if (narg != 6) error->universe_all(FLERR,"Illegal NEB command");
+    if (narg != 6 and narg !=7) error->universe_all(FLERR,"Illegal NEB command");
   } else error->universe_all(FLERR,"Illegal NEB command");
-
+  
+  Verbose=false;
+  if (strcmp(arg[narg-1],"verbose") == 0) Verbose=true;
   // run the NEB calculation
 
   run();
@@ -178,7 +180,8 @@ void NEB::run()
   if (ineb == modify->nfix) error->all(FLERR,"NEB requires use of fix neb");
 
   fneb = (FixNEB *) modify->fix[ineb];
-  nall = 4;
+  if (Verbose) nall =7;
+  else  nall = 4;
   memory->create(all,nreplica,nall,"neb:all");
   rdist = new double[nreplica];
 
@@ -210,11 +213,25 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (universe->uscreen)
+      if (Verbose)
+	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+      else
+
       fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
               "GradV0 GradV1 GradVc "
               "EBF EBR RDT "
               "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
+      if (Verbose)
+	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+      else
+
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
               "GradV0 GradV1 GradVc "
               "EBF EBR RDT "
@@ -280,11 +297,24 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (universe->uscreen)
-      fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+      if (Verbose)
+	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+      else
+	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
               "GradV0 GradV1 GradVc "
               "EBF EBR RDT "
               "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
+      if (Verbose)
+	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+      else
+
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
               "GradV0 GradV1 GradVc "
               "EBF EBR RDT "
@@ -538,12 +568,28 @@ void NEB::print_status()
   double fnorminf = update->minimize->fnorm_inf();
   double fmaxatom;
   MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
+  
+  if (Verbose)
+    {
+      freplica = new double[nreplica];
+      MPI_Allgather(&fnorm2,1,MPI_DOUBLE,&freplica[0],1,MPI_DOUBLE,roots);
+      fmaxatomInRepl = new double[nreplica];
+      MPI_Allgather(&fnorminf,1,MPI_DOUBLE,&fmaxatomInRepl[0],1,MPI_DOUBLE,roots);
+    }
 
-  double one[4];
+  double one[nall];
   one[0] = fneb->veng;
   one[1] = fneb->plen;
   one[2] = fneb->nlen;
-  one[nall-1] = fneb->gradvnorm;
+  one[3] = fneb->gradlen;
+
+  if (Verbose)
+    {
+  one[4] = fneb->dotpath;
+  one[5] = fneb->dottangrad;
+  one[6] = fneb->dotgrad;
+
+    }
 
   if (output->thermo->normflag) one[0] /= atom->natoms;
   if (me == 0)
@@ -586,7 +632,7 @@ void NEB::print_status()
     ebf = all[irep][0]-all[0][0];
     ebr = all[irep][0]-all[nreplica-1][0];
   }
-
+  double pi=3.14159265;
   if (me_universe == 0) {
     if (universe->uscreen) {
       fprintf(universe->uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
@@ -596,8 +642,15 @@ void NEB::print_status()
       fprintf(universe->uscreen,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
         fprintf(universe->uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
+      if (Verbose)
+	{fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[0][5])*180/pi,180-acos(all[0][6])*180/pi,all[0][3],freplica[0],fmaxatomInRepl[0]);  
+	  for (int i = 1; i < nreplica-1; i++)
+	    fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",180-acos(all[i][4])*180/pi,180-acos(all[i][5])*180/pi,180-acos(all[i][6])*180/pi,all[i][3],freplica[i],fmaxatomInRepl[i]);  
+	  fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[nreplica-1][5])*180/pi,NAN,all[nreplica-1][3],freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
+	}
       fprintf(universe->uscreen,"\n");
     }
+
     if (universe->ulogfile) {
       fprintf(universe->ulogfile,BIGINT_FORMAT " %12.8g %12.8g ",
               update->ntimestep,fmaxreplica,fmaxatom);
@@ -606,6 +659,12 @@ void NEB::print_status()
       fprintf(universe->ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
         fprintf(universe->ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
+      if (Verbose)
+	{fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[0][5])*180/pi,180-acos(all[0][6])*180/pi,all[0][3],freplica[0],fmaxatomInRepl[0]);  
+	  for (int i = 1; i < nreplica-1; i++)
+	    fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",180-acos(all[i][4])*180/pi,180-acos(all[i][5])*180/pi,180-acos(all[i][6])*180/pi,all[i][3],freplica[i],fmaxatomInRepl[i]);  
+	  fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[nreplica-1][5])*180/pi,NAN,all[nreplica-1][3],freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
+	}
       fprintf(universe->ulogfile,"\n");
       fflush(universe->ulogfile);
     }

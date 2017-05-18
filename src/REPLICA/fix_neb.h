@@ -26,9 +26,8 @@ namespace LAMMPS_NS {
 
 class FixNEB : public Fix {
  public:
-  double veng,plen,nlen;
+  double veng,plen,nlen,dotpath, dottangrad,gradlen,dotgrad ;
   int rclimber;
-  double gradvnorm;
 
   FixNEB(class LAMMPS *, int, char **);
   ~FixNEB();
@@ -39,33 +38,38 @@ class FixNEB : public Fix {
 
  private:
   int me,nprocs,nprocs_universe;
-  double kspring;
+  double kspring, kspringPerp,EIniIni,EFinalIni;
+  bool StandardNEB, NEBLongRange,PerpSpring, FreeEndIni,FreeEndFinal,FreeEndFinalWithRespToEIni,FinalAndInterWithRespToEIni ;
   int ireplica,nreplica;
   int procnext,procprev;
   int cmode;
   MPI_Comm uworld;
+  MPI_Comm rootworld;
+  
 
   char *id_pe;
   class Compute *pe;
 
-  int nebatoms;                // # of active NEB atoms
+  int nebatoms;
   int ntotal;                  // total # of atoms, NEB or not
   int maxlocal;                // size of xprev,xnext,tangent arrays
-
-  double **xprev,**xnext;      // coords of my owned atoms in neighbor replicas
-  double **tangent;            // work vector for inter-replica forces
-
+  double *nlenall;
+  double **xprev,**xnext,**fnext,**springF;
+  double **tangent;
   double **xsend,**xrecv;      // coords to send/recv to/from other replica
+  double **fsend,**frecv;      // coords to send/recv to/from other replica
   tagint *tagsend,*tagrecv;    // ditto for atom IDs
 
                                  // info gathered from all procs in my replica
   double **xsendall,**xrecvall;    // coords to send/recv to/from other replica
+  double **fsendall,**frecvall;    // force to send/recv to/from other replica
   tagint *tagsendall,*tagrecvall;  // ditto for atom IDs
 
   int *counts,*displacements;   // used for MPI_Gather
 
   void inter_replica_comm();
   void reallocate();
+
 };
 
 }

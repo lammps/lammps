@@ -12,12 +12,12 @@ mass		* 1.0
 velocity	all create 3.0 87287
 
 pair_style	python 2.5
-pair_coeff	* * potentials.LJCutMelt lj
+pair_coeff	* * py_pot.LJCutMelt lj
 
 # generate tabulated potential from python variant
-pair_write      1 1 10000 rsq 0.01 2.5 lj_1_1.table LJ
+pair_write      1 1 2000 rsq 0.01 2.5 lj_1_1.table LJ
 
-pair_style      table linear 10000
+pair_style      table linear 2000
 pair_coeff      1 1 lj_1_1.table LJ
 
 neighbor	0.3 bin

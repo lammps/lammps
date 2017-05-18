@@ -18,10 +18,10 @@ mass		* 1.0
 velocity	all create 3.0 87287
 
 pair_style	python 2.5
-pair_coeff	* * potentials.LJCutMelt lj
+pair_coeff	* * py_pot.LJCutMelt lj
 
 # generate tabulated potential from python variant
-pair_write      1 1 10000 rsq 0.01 2.5 lj_1_1.table LJ
+pair_write      1 1 2000 rsq 0.01 2.5 lj_1_1.table LJ
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -35,9 +35,9 @@ Neighbor list info ...
       stencil: half/bin/3d/newton
       bin: standard
 
-pair_style      table linear 10000
+pair_style      table linear 2000
 pair_coeff      1 1 lj_1_1.table LJ
-WARNING: 1 of 1000 force values in table are inconsistent with -dE/dr.
+WARNING: 2 of 2000 force values in table are inconsistent with -dE/dr.
   Should only be flagged at inflection points (../pair_table.cpp:476)
 
 neighbor	0.3 bin
@@ -61,36 +61,36 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 3.184 | 3.184 | 3.184 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0            3   -6.7733675            0   -2.2744925   -3.7033435 
-      50    1.6758875   -4.7951764            0   -2.2819736    5.6705794 
-     100    1.6458266   -4.7488945            0   -2.2807717    5.8696895 
-     150    1.6324439   -4.7283321            0   -2.2802784    5.9594952 
-     200    1.6630547   -4.7746809            0   -2.2807225    5.7372657 
-     250    1.6278968   -4.7226363            0   -2.2814016    5.9559236 
-Loop time of 1.0498 on 1 procs for 250 steps with 4000 atoms
+       0            3   -6.7733629            0   -2.2744879   -3.7032813 
+      50    1.6758731   -4.7953067            0   -2.2821255    5.6706553 
+     100    1.6458118   -4.7490281            0   -2.2809276    5.8697466 
+     150     1.632425   -4.7284533            0   -2.2804279    5.9595684 
+     200    1.6631578   -4.7749889            0   -2.2808759    5.7365839 
+     250    1.6277062   -4.7224727            0   -2.2815238    5.9572913 
+Loop time of 0.996652 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 102877.190 tau/day, 238.142 timesteps/s
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 108362.785 tau/day, 250.840 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.93242    | 0.93242    | 0.93242    |   0.0 | 88.82
-Neigh   | 0.088495   | 0.088495   | 0.088495   |   0.0 |  8.43
-Comm    | 0.012153   | 0.012153   | 0.012153   |   0.0 |  1.16
-Output  | 0.00013924 | 0.00013924 | 0.00013924 |   0.0 |  0.01
-Modify  | 0.013729   | 0.013729   | 0.013729   |   0.0 |  1.31
-Other   |            | 0.002855   |            |       |  0.27
+Pair    | 0.87999    | 0.87999    | 0.87999    |   0.0 | 88.29
+Neigh   | 0.087921   | 0.087921   | 0.087921   |   0.0 |  8.82
+Comm    | 0.012098   | 0.012098   | 0.012098   |   0.0 |  1.21
+Output  | 0.00013614 | 0.00013614 | 0.00013614 |   0.0 |  0.01
+Modify  | 0.01363    | 0.01363    | 0.01363    |   0.0 |  1.37
+Other   |            | 0.002882   |            |       |  0.29
 
 Nlocal:    4000 ave 4000 max 4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    5504 ave 5504 max 5504 min
+Nghost:    5500 ave 5500 max 5500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    151497 ave 151497 max 151497 min
+Neighs:    151496 ave 151496 max 151496 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 151497
-Ave neighs/atom = 37.8743
+Total # of neighbors = 151496
+Ave neighs/atom = 37.874
 Neighbor list builds = 12
 Dangerous builds not checked
 

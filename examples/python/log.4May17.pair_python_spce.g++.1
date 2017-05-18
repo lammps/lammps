@@ -1,5 +1,4 @@
 LAMMPS (4 May 2017)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
   using 1 OpenMP thread(s) per MPI task
 units		real
 atom_style	full
@@ -22,11 +21,11 @@ read_data	data.spce
   1 = max # of 1-4 neighbors
   2 = max # of special neighbors
 
-pair_style	hybrid/overlay python 12.0 coul/long 12.0
+pair_style	hybrid/overlay coul/long 12.0 python 12.0
 kspace_style	pppm 1.0e-6
 
 pair_coeff	* * coul/long
-pair_coeff	* * python potentials.LJCutSPCE OW NULL
+pair_coeff	* * python py_pot.LJCutSPCE OW NULL
 
 bond_style	harmonic
 angle_style	harmonic
@@ -68,16 +67,16 @@ Neighbor list info ...
   ghost atom cutoff = 14
   binsize = 7, bins = 6 6 6
   2 neighbor lists, perpetual/occasional/extra = 2 0 0
-  (1) pair python, perpetual, skip from (2)
-      attributes: half, newton on
-      pair build: skip
-      stencil: none
-      bin: none
-  (2) pair coul/long, perpetual
+  (1) pair coul/long, perpetual
       attributes: half, newton on
       pair build: half/bin/newton
       stencil: half/bin/3d/newton
       bin: standard
+  (2) pair python, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
 Per MPI rank memory allocation (min/avg/max) = 41.05 | 41.05 | 41.05 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -16692.369            0   -16692.369    -1289.222 
@@ -91,33 +90,33 @@ Step Temp E_pair E_mol TotEng Press
       80    182.94811   -18155.978            0   -16520.523   -2393.3156 
       90    191.29902   -18197.887            0   -16487.779   -2242.7104 
      100    194.70949   -18195.021            0   -16454.425   -1955.2916 
-Loop time of 63.3145 on 1 procs for 100 steps with 4500 atoms
+Loop time of 23.0818 on 1 procs for 100 steps with 4500 atoms
 
-Performance: 0.136 ns/day, 175.874 hours/ns, 1.579 timesteps/s
-86.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.374 ns/day, 64.116 hours/ns, 4.332 timesteps/s
+98.9% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 61.815     | 61.815     | 61.815     |   0.0 | 97.63
-Bond    | 0.000132   | 0.000132   | 0.000132   |   0.0 |  0.00
-Kspace  | 1.2226     | 1.2226     | 1.2226     |   0.0 |  1.93
-Neigh   | 0.21684    | 0.21684    | 0.21684    |   0.0 |  0.34
-Comm    | 0.015175   | 0.015175   | 0.015175   |   0.0 |  0.02
-Output  | 0.000405   | 0.000405   | 0.000405   |   0.0 |  0.00
-Modify  | 0.040088   | 0.040088   | 0.040088   |   0.0 |  0.06
-Other   |            | 0.003896   |            |       |  0.01
+Pair    | 21.186     | 21.186     | 21.186     |   0.0 | 91.79
+Bond    | 0.00022054 | 0.00022054 | 0.00022054 |   0.0 |  0.00
+Kspace  | 1.5442     | 1.5442     | 1.5442     |   0.0 |  6.69
+Neigh   | 0.25672    | 0.25672    | 0.25672    |   0.0 |  1.11
+Comm    | 0.023787   | 0.023787   | 0.023787   |   0.0 |  0.10
+Output  | 0.00060248 | 0.00060248 | 0.00060248 |   0.0 |  0.00
+Modify  | 0.064809   | 0.064809   | 0.064809   |   0.0 |  0.28
+Other   |            | 0.005301   |            |       |  0.02
 
 Nlocal:    4500 ave 4500 max 4500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:    21216 ave 21216 max 21216 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.44594e+06 ave 1.44594e+06 max 1.44594e+06 min
+Neighs:    2.60176e+06 ave 2.60176e+06 max 2.60176e+06 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 1445935
-Ave neighs/atom = 321.319
+Total # of neighbors = 2601762
+Ave neighs/atom = 578.169
 Ave special neighs/atom = 2
 Neighbor list builds = 3
 Dangerous builds = 0
-Total wall time: 0:01:05
+Total wall time: 0:00:23

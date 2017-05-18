@@ -24,6 +24,7 @@
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
+#include "update.h"
 #include "neigh_list.h"
 #include "python.h"
 #include "error.h"
@@ -41,9 +42,10 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   one_coeff = 1;
   reinitflag = 0;
 
-  python->init();
-
   py_potential = NULL;
+  skip_types = NULL;
+
+  python->init();
 
   // add current directory to PYTHONPATH
   PyObject * py_path = PySys_GetObject((char *)"path");
@@ -60,7 +62,8 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
 
 PairPython::~PairPython()
 {
-  if(py_potential) Py_DECREF((PyObject*) py_potential);
+  if (py_potential) Py_DECREF((PyObject*) py_potential);
+  delete[] skip_types;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -160,6 +163,9 @@ void PairPython::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
+      // with hybrid/overlay we might get called for skipped types
+      if (skip_types[itype] || skip_types[jtype]) continue;
+
       py_jtype = PY_INT_FROM_LONG(jtype);
       PyTuple_SetItem(py_compute_args,2,py_jtype);
 
@@ -173,7 +179,7 @@ void PairPython::compute(int eflag, int vflag)
           PyGILState_Release(gstate);
           error->all(FLERR,"Calling 'compute_force' function failed");
         }
-        fpair = factor_lj*PyFloat_AsDouble(py_value)/rsq;
+        fpair = factor_lj*PyFloat_AsDouble(py_value);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -299,6 +305,39 @@ void PairPython::coeff(int narg, char **arg)
 
   py_potential = (void *) py_pair_instance;
 
+  PyObject *py_check_units = PyObject_GetAttrString(py_pair_instance,"check_units");
+  if (!py_check_units) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not find 'check_units' method'");
+  }
+  if (!PyCallable_Check(py_check_units)) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Python 'check_units' is not callable");
+  }
+  PyObject *py_units_args = PyTuple_New(1);
+  if (!py_units_args) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Could not create tuple for 'check_units' function arguments");
+  }
+
+  PyObject *py_name = PY_STRING_FROM_STRING(update->unit_style);
+  PyTuple_SetItem(py_units_args,0,py_name);
+  PyObject *py_value = PyObject_CallObject(py_check_units,py_units_args);
+  if (!py_value) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Calling 'check_units' function failed");
+  }
+  Py_DECREF(py_units_args);
+
+
   PyObject *py_map_coeff = PyObject_GetAttrString(py_pair_instance,"map_coeff");
   if (!py_map_coeff) {
     PyErr_Print();
@@ -321,9 +360,15 @@ void PairPython::coeff(int narg, char **arg)
     error->all(FLERR,"Could not create tuple for 'map_coeff' function arguments");
   }
 
-  PyObject *py_type, *py_name, *py_value;
+  delete[] skip_types;
+  skip_types = new int[ntypes+1];
+  skip_types[0] = 1;
   for (int i = 1; i <= ntypes ; i++) {
-    py_type = PY_INT_FROM_LONG(i);
+    if (strcmp(arg[2+i],"NULL") == 0) {
+      skip_types[i] = 1;
+      continue;
+    } else skip_types[i] = 0;
+    PyObject *py_type = PY_INT_FROM_LONG(i);
     py_name = PY_STRING_FROM_STRING(arg[2+i]);
     PyTuple_SetItem(py_map_args,0,py_name);
     PyTuple_SetItem(py_map_args,1,py_type);
@@ -336,10 +381,8 @@ void PairPython::coeff(int narg, char **arg)
     }
 
     for (int j = i; j <= ntypes ; j++) {
-      if (strcmp(arg[2+i],"NULL") != 0) {
-        setflag[i][j] = 1;
-        cutsq[i][j] = cut_global*cut_global;
-      }
+      setflag[i][j] = 1;
+      cutsq[i][j] = cut_global*cut_global;
     }
   }
   Py_DECREF(py_map_args);
@@ -359,6 +402,11 @@ double PairPython::single(int i, int j, int itype, int jtype, double rsq,
                          double factor_coul, double factor_lj,
                          double &fforce)
 {
+  // with hybrid/overlay we might get called for skipped types
+  if (skip_types[itype] || skip_types[jtype]) {
+    fforce = 0.0;
+    return 0.0;
+  }
 
   // prepare access to compute_force and compute_energy functions
 
@@ -417,7 +465,7 @@ double PairPython::single(int i, int j, int itype, int jtype, double rsq,
     PyGILState_Release(gstate);
     error->all(FLERR,"Calling 'compute_force' function failed");
   }
-  fforce = factor_lj*PyFloat_AsDouble(py_value)/rsq;
+  fforce = factor_lj*PyFloat_AsDouble(py_value);
 
   py_value = PyObject_CallObject(py_compute_energy,py_compute_args);
   if (!py_value) {

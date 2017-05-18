@@ -3,11 +3,11 @@ atom_style	full
 
 read_data	data.spce
 
-pair_style	hybrid/overlay python 12.0 coul/long 12.0
+pair_style	hybrid/overlay coul/long 12.0 python 12.0
 kspace_style	pppm 1.0e-6
 
 pair_coeff	* * coul/long
-pair_coeff	* * python potentials.LJCutSPCE OW NULL
+pair_coeff	* * python py_pot.LJCutSPCE OW NULL
 
 bond_style	harmonic
 angle_style	harmonic

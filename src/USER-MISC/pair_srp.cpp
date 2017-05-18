@@ -408,7 +408,7 @@ void PairSRP::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= bptype; i++)
-      for (j = i+1; j <= bptype; j++)
+      for (j = i; j <= bptype; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }

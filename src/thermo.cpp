@@ -1385,11 +1385,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"ylat") == 0) compute_ylat();
   else if (strcmp(word,"zlat") == 0) compute_zlat();
 
-  else if (strcmp(word,"bonds") == 0) compute_bonds();
-  else if (strcmp(word,"angles") == 0) compute_angles();
-  else if (strcmp(word,"dihedrals") == 0) compute_dihedrals();
-  else if (strcmp(word,"impropers") == 0) compute_impropers();
-
   else if (strcmp(word,"pxx") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "

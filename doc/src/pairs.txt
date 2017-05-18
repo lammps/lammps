@@ -36,6 +36,7 @@ Pair Styles :h1
    pair_gayberne
    pair_gran
    pair_gromacs
+   pair_gw
    pair_hbond_dreiding
    pair_hybrid
    pair_kim

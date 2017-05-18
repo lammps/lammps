@@ -931,6 +931,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "gran/hertz/history (o)"_pair_gran.html,
 "gran/hooke (o)"_pair_gran.html,
 "gran/hooke/history (o)"_pair_gran.html,
+"gw"_pair_gw.html,
+"gw/zbl"_pair_gw.html,
 "hbond/dreiding/lj (o)"_pair_hbond_dreiding.html,
 "hbond/dreiding/morse (o)"_pair_hbond_dreiding.html,
 "kim"_pair_kim.html,

@@ -62,6 +62,7 @@ pair_coeff	3 3 1.0 1.5
 pair_coeff	1 4 0.0 1.0 0.5
 pair_coeff	2 4 0.0 1.0 1.0
 pair_coeff	3 4 0.0 1.0 0.75
+pair_coeff	4 4 0.0 1.0 0.0
 
 delete_atoms	overlap 1.0 small big
 

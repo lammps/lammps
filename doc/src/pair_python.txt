@@ -80,7 +80,7 @@ class LAMMPSPairPotential(object):
         self.pmap=dict()
         self.units='lj'
     def map_coeff(self,name,ltype):
-        self.pmap[ltype]=name
+        self.pmap\[ltype\]=name
     def check_units(self,units):
         if (units != self.units):
            raise Exception("Conflicting units: %s vs. %s" % (self.units,units))
@@ -91,7 +91,7 @@ from this class and should be initialize in a similar fashion to the
 example given below. NOTE: The class constructor has to set up a data
 structure containing the potential parameters supported by this class.
 It should also define a variable {self.units} containing a string
-matching one of the options of LAMMPS' "units command"_units.html, which
+matching one of the options of LAMMPS' "units"_units.html command, which
 is used to verify, that the potential definition in the python class and
 in the LAMMPS input match. Example for a single type Lennard-Jones
 potential class {LJCutMelt} in reducted units, which defines an atom
@@ -121,19 +121,19 @@ value of the internal potential parameter data structure. Following
 the {LJCutMelt} example, here are the two functions:
 
    def compute_force(self,rsq,itype,jtype):
-        coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
+        coeff = self.coeff\[self.pmap\[itype\]\]\[self.pmap\[jtype\]\]
         r2inv  = 1.0/rsq
         r6inv  = r2inv*r2inv*r2inv
-        lj1 = coeff[0]
-        lj2 = coeff[1]
+        lj1 = coeff\[0\]
+        lj2 = coeff\[1\]
         return (r6inv * (lj1*r6inv - lj2))*r2inv :pre
 
     def compute_energy(self,rsq,itype,jtype):
-        coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
+        coeff = self.coeff\[self.pmap\[itype\]\]\[self.pmap\[jtype\]\]
         r2inv  = 1.0/rsq
         r6inv  = r2inv*r2inv*r2inv
-        lj3 = coeff[2]
-        lj4 = coeff[3]
+        lj3 = coeff\[2\]
+        lj4 = coeff\[3\]
         return (r6inv * (lj3*r6inv - lj4)) :pre
 
 IMPORTANT NOTE: for consistency with the C++ pair styles in LAMMPS,
@@ -149,7 +149,7 @@ IMPORTANT NOTE: The evaluation of scripted python code will slow down
 the computation pair-wise interactions quite significantly. However,
 this can be largely worked around through using the python pair style
 not for the actual simulation, but to generate tabulated potentials
-on the fly using the "pair_write command"_pair_write.html . Please
+on the fly using the "pair_write"_pair_write.html command. Please
 see below for an example LAMMPS input of how to build a table file:
 
 pair_style python 2.5

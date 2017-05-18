@@ -31,16 +31,39 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define DELTA 4
 
+
+static const char cite_pair_edip[] =
+  "@article{cjiang2012\n"
+  " author    = {Jian, Chao and Morgan, Dane, and Szlufarska, Izabella},\n"
+  " title     = {Carbon tri-interstitial defect: A model for DII center},\n"
+  " journal   = {Physical Review B},\n"
+  " volume    = {86},\n"
+  " pages     = {144118},\n"
+  " year      = {2012},\n"
+  "}\n\n"
+  "@article{lpizzagalli2010,\n"
+  " author    = {G. Lucas, M. Bertolus, and L. Pizzagalli},\n"
+  " journal   = {J. Phys. : Condens. Matter 22},\n"
+  " volume    = {22},\n"
+  " pages     = {035802},\n"
+  " year      = {2010},\n"
+  "}\n\n";
+
+
+
 /* ---------------------------------------------------------------------- */
 
 PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_pair_edip);
+
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

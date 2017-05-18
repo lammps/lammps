@@ -11,7 +11,9 @@ pair_style gw/zbl command :h3
 
 [Syntax:]
 
-pair_style gw :pre
+pair_style style :pre
+
+style = {gw} or {gw/zbl} :ul
 
 [Examples:]
 

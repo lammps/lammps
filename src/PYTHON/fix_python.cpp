@@ -86,7 +86,7 @@ void FixPython::end_of_step()
   PyObject * ptr = PY_VOID_POINTER(lmp);
   PyObject * arglist = Py_BuildValue("(O)", ptr);
 
-  PyObject * result = PyEval_CallObject(pFunc, arglist);
+  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
   Py_DECREF(arglist);
 
   PyGILState_Release(gstate);
@@ -103,7 +103,7 @@ void FixPython::post_force(int vflag)
   PyObject * ptr = PY_VOID_POINTER(lmp);
   PyObject * arglist = Py_BuildValue("(Oi)", ptr, vflag);
 
-  PyObject * result = PyEval_CallObject(pFunc, arglist);
+  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
   Py_DECREF(arglist);
 
   PyGILState_Release(gstate);

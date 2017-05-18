@@ -21,7 +21,6 @@ FixStyle(python,FixPython)
 #define LMP_FIX_PYTHON_H
 
 #include "fix.h"
-#include <Python.h>
 
 namespace LAMMPS_NS {
 
@@ -34,7 +33,7 @@ class FixPython : public Fix {
   virtual void post_force(int);
 
  private:
-  PyObject * pFunc;
+  void * pFunc;
   int selected_callback;
 };
 

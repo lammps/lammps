@@ -121,7 +121,7 @@ void NPairHalfMultiNewton::build(NeighList *list)
     // loop over all atoms in other bins in stencil, store every pair
     // skip if i,j neighbor cutoff is less than bin distance
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
     s = stencil_multi[itype];
     distsq = distsq_multi[itype];
     cutsq = cutneighsq[itype];

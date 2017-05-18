@@ -88,7 +88,7 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
     //         (equal zyx and j <= i)
     // latter excludes self-self interaction but allows superposed atoms
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
     s = stencil_multi[itype];
     distsq = distsq_multi[itype];
     cutsq = cutneighsq[itype];

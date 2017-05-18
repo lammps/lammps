@@ -117,7 +117,7 @@ void NPairHalfRespaBinNewtoffOmp::build(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
     if (moltemplate) {
       imol = molindex[i];
       iatom = molatom[i];

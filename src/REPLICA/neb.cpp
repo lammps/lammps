@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 // lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
@@ -37,8 +37,10 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXLINE 256
 #define CHUNK 1024
@@ -50,7 +52,7 @@ NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
@@ -103,7 +105,7 @@ NEB::~NEB()
 
 /* ----------------------------------------------------------------------
    perform NEB on multiple replicas
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 void NEB::command(int narg, char **arg)
 {
@@ -153,7 +155,7 @@ void NEB::command(int narg, char **arg)
   } else if (strcmp(arg[5],"none") == 0) {
     if (narg != 6 and narg !=7) error->universe_all(FLERR,"Illegal NEB command");
   } else error->universe_all(FLERR,"Illegal NEB command");
-  
+
   Verbose=false;
   if (strcmp(arg[narg-1],"verbose") == 0) Verbose=true;
   // run the NEB calculation
@@ -163,7 +165,7 @@ void NEB::command(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    run NEB on multiple replicas
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 void NEB::run()
 {
@@ -215,27 +217,27 @@ void NEB::run()
     if (universe->uscreen)
       if (Verbose)
 	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
       else
 
-      fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       if (Verbose)
 	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
       else
 
-      fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
 
@@ -299,26 +301,26 @@ void NEB::run()
     if (universe->uscreen)
       if (Verbose)
 	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
       else
 	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       if (Verbose)
 	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
       else
 
-      fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-              "GradV0 GradV1 GradVc "
-              "EBF EBR RDT "
-              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+		"GradV0 GradV1 GradVc "
+		"EBF EBR RDT "
+		"RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
 
@@ -351,17 +353,17 @@ void NEB::run()
 /* ----------------------------------------------------------------------
    read initial config atom coords from file
    flag = 0
-     only first replica opens file and reads it
-     first replica bcasts lines to all replicas
-     final replica stores coords
-     intermediate replicas interpolate from coords
-       new coord = replica fraction between current and final state
-     initial replica does nothing
+   only first replica opens file and reads it
+   first replica bcasts lines to all replicas
+   final replica stores coords
+   intermediate replicas interpolate from coords
+   new coord = replica fraction between current and final state
+   initial replica does nothing
    flag = 1
-     each replica (except first) opens file and reads it
-     each replica stores coords
-     initial replica does nothing
-------------------------------------------------------------------------- */
+   each replica (except first) opens file and reads it
+   each replica stores coords
+   initial replica does nothing
+   ------------------------------------------------------------------------- */
 
 void NEB::readfile(char *file, int flag)
 {
@@ -524,7 +526,7 @@ void NEB::readfile(char *file, int flag)
 /* ----------------------------------------------------------------------
    universe proc 0 opens NEB data file
    test if gzipped
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 void NEB::open(char *file)
 {
@@ -558,7 +560,7 @@ void NEB::open(char *file)
 /* ----------------------------------------------------------------------
    query fix NEB for info on each replica
    universe proc 0 prints current NEB status
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 void NEB::print_status()
 {
@@ -568,7 +570,7 @@ void NEB::print_status()
   double fnorminf = update->minimize->fnorm_inf();
   double fmaxatom;
   MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
-  
+
   if (Verbose)
     {
       freplica = new double[nreplica];
@@ -585,9 +587,9 @@ void NEB::print_status()
 
   if (Verbose)
     {
-  one[4] = fneb->dotpath;
-  one[5] = fneb->dottangrad;
-  one[6] = fneb->dotgrad;
+      one[4] = fneb->dotpath;
+      one[5] = fneb->dottangrad;
+      one[6] = fneb->dotgrad;
 
     }
 
@@ -632,7 +634,7 @@ void NEB::print_status()
     ebf = all[irep][0]-all[0][0];
     ebr = all[irep][0]-all[nreplica-1][0];
   }
-  double pi=3.14159265;
+
   if (me_universe == 0) {
     if (universe->uscreen) {
       fprintf(universe->uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
@@ -643,10 +645,10 @@ void NEB::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(universe->uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (Verbose)
-	{fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[0][5])*180/pi,180-acos(all[0][6])*180/pi,all[0][3],freplica[0],fmaxatomInRepl[0]);  
+	{fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[0][5])*180/MY_PI,180-acos(all[0][6])*180/MY_PI,all[0][3],freplica[0],fmaxatomInRepl[0]);  
 	  for (int i = 1; i < nreplica-1; i++)
-	    fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",180-acos(all[i][4])*180/pi,180-acos(all[i][5])*180/pi,180-acos(all[i][6])*180/pi,all[i][3],freplica[i],fmaxatomInRepl[i]);  
-	  fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[nreplica-1][5])*180/pi,NAN,all[nreplica-1][3],freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
+	    fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",180-acos(all[i][4])*180/MY_PI,180-acos(all[i][5])*180/MY_PI,180-acos(all[i][6])*180/MY_PI,all[i][3],freplica[i],fmaxatomInRepl[i]);  
+	  fprintf(universe->uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[nreplica-1][5])*180/MY_PI,NAN,all[nreplica-1][3],freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
 	}
       fprintf(universe->uscreen,"\n");
     }
@@ -660,10 +662,10 @@ void NEB::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(universe->ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (Verbose)
-	{fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[0][5])*180/pi,180-acos(all[0][6])*180/pi,all[0][3],freplica[0],fmaxatomInRepl[0]);  
+	{fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[0][5])*180/MY_PI,180-acos(all[0][6])*180/MY_PI,all[0][3],freplica[0],fmaxatomInRepl[0]);  
 	  for (int i = 1; i < nreplica-1; i++)
-	    fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",180-acos(all[i][4])*180/pi,180-acos(all[i][5])*180/pi,180-acos(all[i][6])*180/pi,all[i][3],freplica[i],fmaxatomInRepl[i]);  
-	  fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[nreplica-1][5])*180/pi,NAN,all[nreplica-1][3],freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
+	    fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",180-acos(all[i][4])*180/MY_PI,180-acos(all[i][5])*180/MY_PI,180-acos(all[i][6])*180/MY_PI,all[i][3],freplica[i],fmaxatomInRepl[i]);  
+	  fprintf(universe->ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",NAN,180-acos(all[nreplica-1][5])*180/MY_PI,NAN,all[nreplica-1][3],freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
 	}
       fprintf(universe->ulogfile,"\n");
       fflush(universe->ulogfile);

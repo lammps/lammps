@@ -337,7 +337,7 @@ void FixNEB::min_post_force(int vflag)
 
 
   if (ireplica < nreplica-1)
-    MMY_PI_Irecv(xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
+    MPI_Irecv(xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
   if (ireplica > 0)
     MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
   if (ireplica < nreplica-1) MPI_Wait(&request,&status);

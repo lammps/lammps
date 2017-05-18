@@ -14,6 +14,9 @@ Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
 create_atoms	1 box
 Created 4000 atoms
 mass		* 1.0
+region          half block -0.1 4.9 0 10 0 10
+set region half type 2
+  2000 settings made for type
 
 velocity	all create 3.0 87287
 
@@ -58,30 +61,30 @@ Step Temp E_pair E_mol TotEng Press
      150    1.6596605   -4.7699432            0   -2.2810749    5.7830138 
      200    1.6371874   -4.7365462            0   -2.2813789    5.9246674 
      250    1.6323462   -4.7292021            0   -2.2812949    5.9762238 
-Loop time of 6.01723 on 4 procs for 250 steps with 4000 atoms
+Loop time of 2.71748 on 4 procs for 250 steps with 4000 atoms
 
-Performance: 17948.472 tau/day, 41.547 timesteps/s
-98.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 39742.745 tau/day, 91.997 timesteps/s
+98.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.1507     | 5.4989     | 5.9629     |  13.1 | 91.39
-Neigh   | 0.024123   | 0.024877   | 0.025959   |   0.5 |  0.41
-Comm    | 0.02258    | 0.48785    | 0.83691    |  44.1 |  8.11
-Output  | 0.00039768 | 0.00045246 | 0.00052929 |   0.0 |  0.01
-Modify  | 0.0036325  | 0.0037773  | 0.0038905  |   0.2 |  0.06
-Other   |            | 0.001357   |            |       |  0.02
+Pair    | 2.4777     | 2.5639     | 2.6253     |   3.9 | 94.35
+Neigh   | 0.024626   | 0.025331   | 0.02598    |   0.3 |  0.93
+Comm    | 0.061933   | 0.12297    | 0.20987    |  18.0 |  4.53
+Output  | 0.00026131 | 0.00027591 | 0.00031352 |   0.0 |  0.01
+Modify  | 0.0036087  | 0.0036573  | 0.0037553  |   0.1 |  0.13
+Other   |            | 0.001337   |            |       |  0.05
 
 Nlocal:    1000 ave 1010 max 982 min
 Histogram: 1 0 0 0 0 0 1 0 0 2
 Nghost:    2703.75 ave 2713 max 2689 min
 Histogram: 1 0 0 0 0 0 0 2 0 1
-Neighs:    0 ave 0 max 0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    21469.8 ave 22167 max 20546 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
 
-Total # of neighbors = 0
-Ave neighs/atom = 0
+Total # of neighbors = 85879
+Ave neighs/atom = 21.4698
 Neighbor list builds = 12
 Dangerous builds not checked
 
@@ -134,30 +137,30 @@ Step Temp E_pair E_mol TotEng Press
      400    1.6388136   -4.7387093            0   -2.2811035    5.9331084 
      450    1.6431295   -4.7452215            0   -2.2811435    5.8929898 
      500     1.643316   -4.7454222            0   -2.2810644    5.8454817 
-Loop time of 6.09991 on 4 procs for 250 steps with 4000 atoms
+Loop time of 2.75827 on 4 procs for 250 steps with 4000 atoms
 
-Performance: 17705.179 tau/day, 40.984 timesteps/s
-98.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 39155.038 tau/day, 90.637 timesteps/s
+98.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.2315     | 5.5179     | 6.0183     |  13.7 | 90.46
-Neigh   | 0.049134   | 0.051424   | 0.053837   |   0.8 |  0.84
-Comm    | 0.021671   | 0.52455    | 0.8132     |  44.5 |  8.60
-Output  | 0.00019336 | 0.00026017 | 0.00032115 |   0.0 |  0.00
-Modify  | 0.0036032  | 0.0036635  | 0.0038021  |   0.1 |  0.06
-Other   |            | 0.002068   |            |       |  0.03
+Pair    | 2.3631     | 2.5412     | 2.6672     |   7.2 | 92.13
+Neigh   | 0.050358   | 0.052316   | 0.053312   |   0.5 |  1.90
+Comm    | 0.032793   | 0.15893    | 0.33904    |  29.1 |  5.76
+Output  | 0.00018525 | 0.00020212 | 0.00024509 |   0.0 |  0.01
+Modify  | 0.0034482  | 0.0035321  | 0.0036578  |   0.1 |  0.13
+Other   |            | 0.002039   |            |       |  0.07
 
 Nlocal:    1000 ave 1012 max 983 min
 Histogram: 1 0 0 0 0 0 2 0 0 1
 Nghost:    2699 ave 2706 max 2693 min
 Histogram: 1 1 0 0 0 0 1 0 0 1
-Neighs:    0 ave 0 max 0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    21802 ave 22700 max 21236 min
+Histogram: 1 1 0 1 0 0 0 0 0 1
 
-Total # of neighbors = 0
-Ave neighs/atom = 0
+Total # of neighbors = 87208
+Ave neighs/atom = 21.802
 Neighbor list builds = 25
 Dangerous builds = 25
 
@@ -216,32 +219,32 @@ Step Temp E_pair E_mol TotEng Press
      150    1.6384234   -4.7389689            0   -2.2819482    5.9315273 
      200    1.6428814   -4.7460743            0   -2.2823683    5.8888228 
      250    1.6432631   -4.7466603            0   -2.2823818    5.8398819 
-Loop time of 6.04476 on 4 procs for 250 steps with 4000 atoms
+Loop time of 2.71936 on 4 procs for 250 steps with 4000 atoms
 
-Performance: 17866.705 tau/day, 41.358 timesteps/s
-98.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 39715.257 tau/day, 91.933 timesteps/s
+98.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.2589     | 5.5841     | 5.9788     |  11.1 | 92.38
-Neigh   | 0.023942   | 0.024705   | 0.025509   |   0.4 |  0.41
-Comm    | 0.034946   | 0.43056    | 0.75671    |  40.0 |  7.12
-Output  | 0.00022149 | 0.00029725 | 0.0003593  |   0.0 |  0.00
-Modify  | 0.003613   | 0.0037647  | 0.003829   |   0.1 |  0.06
-Other   |            | 0.001313   |            |       |  0.02
+Pair    | 2.3769     | 2.5432     | 2.6447     |   6.6 | 93.52
+Neigh   | 0.024088   | 0.025093   | 0.025748   |   0.4 |  0.92
+Comm    | 0.044614   | 0.14598    | 0.31339    |  27.5 |  5.37
+Output  | 0.00026488 | 0.00028872 | 0.00034189 |   0.0 |  0.01
+Modify  | 0.0034099  | 0.0035709  | 0.0036535  |   0.2 |  0.13
+Other   |            | 0.001215   |            |       |  0.04
 
 Nlocal:    1000 ave 1013 max 989 min
 Histogram: 1 0 0 1 0 1 0 0 0 1
 Nghost:    2695.5 ave 2706 max 2682 min
 Histogram: 1 0 0 0 0 0 2 0 0 1
-Neighs:    0 ave 0 max 0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    21792 ave 22490 max 21457 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
 
-Total # of neighbors = 0
-Ave neighs/atom = 0
+Total # of neighbors = 87168
+Ave neighs/atom = 21.792
 Neighbor list builds = 12
 Dangerous builds not checked
 
 shell rm hybrid.data hybrid.restart
-Total wall time: 0:00:18
+Total wall time: 0:00:08

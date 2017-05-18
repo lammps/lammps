@@ -21,13 +21,10 @@ read_data	data.spce
   1 = max # of 1-4 neighbors
   2 = max # of special neighbors
 
-pair_style	hybrid/overlay coul/long 12.0 python 12.0
-kspace_style	pppm 1.0e-6
+pair_style	hybrid/overlay coul/cut 12.0 python 12.0
 
-pair_coeff	* * coul/long
+pair_coeff	* * coul/cut
 pair_coeff	* * python py_pot.LJCutSPCE OW NULL
-
-pair_modify     table 0
 
 bond_style	harmonic
 angle_style	harmonic
@@ -54,15 +51,6 @@ fix		2 all nvt temp 300.0 300.0 100.0
 # create combined lj/coul table for all atom types
 # generate tabulated potential from python variant
 pair_write      1 1 2000 rsq 0.1 12 spce.table OW-OW -0.8472 -0.8472
-PPPM initialization ...
-WARNING: Using polynomial approximation for long-range coulomb (../kspace.cpp:321)
-  G vector (1/distance) = 0.279652
-  grid = 40 40 40
-  stencil order = 5
-  estimated absolute RMS force accuracy = 0.000394206
-  estimated relative force accuracy = 1.18714e-06
-  using double precision FFTs
-  3d grid and FFT values/proc = 103823 64000
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -70,7 +58,7 @@ Neighbor list info ...
   ghost atom cutoff = 14
   binsize = 7, bins = 6 6 6
   2 neighbor lists, perpetual/occasional/extra = 2 0 0
-  (1) pair coul/long, perpetual
+  (1) pair coul/cut, perpetual
       attributes: half, newton on
       pair build: half/bin/newton
       stencil: half/bin/3d/newton
@@ -81,25 +69,7 @@ Neighbor list info ...
       stencil: none
       bin: none
 pair_write      1 2 2000 rsq 0.1 12 spce.table OW-HW -0.8472  0.4236
-PPPM initialization ...
-WARNING: Using polynomial approximation for long-range coulomb (../kspace.cpp:321)
-  G vector (1/distance) = 0.279652
-  grid = 40 40 40
-  stencil order = 5
-  estimated absolute RMS force accuracy = 0.000394206
-  estimated relative force accuracy = 1.18714e-06
-  using double precision FFTs
-  3d grid and FFT values/proc = 103823 64000
 pair_write      2 2 2000 rsq 0.1 12 spce.table HW-HW  0.4236  0.4236
-PPPM initialization ...
-WARNING: Using polynomial approximation for long-range coulomb (../kspace.cpp:321)
-  G vector (1/distance) = 0.279652
-  grid = 40 40 40
-  stencil order = 5
-  estimated absolute RMS force accuracy = 0.000394206
-  estimated relative force accuracy = 1.18714e-06
-  using double precision FFTs
-  3d grid and FFT values/proc = 103823 64000
 
 # switch to tabulated potential
 pair_style      table linear 2000 pppm
@@ -109,15 +79,6 @@ pair_coeff      2 2 spce.table HW-HW
 
 thermo 10
 run 100
-PPPM initialization ...
-WARNING: Using 12-bit tables for long-range coulomb (../kspace.cpp:321)
-  G vector (1/distance) = 0.279652
-  grid = 40 40 40
-  stencil order = 5
-  estimated absolute RMS force accuracy = 0.000394674
-  estimated relative force accuracy = 1.18855e-06
-  using double precision FFTs
-  3d grid and FFT values/proc = 103823 64000
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -130,49 +91,48 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 35.26 | 35.26 | 35.26 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 25.08 | 25.08 | 25.08 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0            0   -100272.97            0   -100272.97   -1282.0708 
-      10    120.61568   -101350.63            0   -100272.39   -4077.5051 
-      20    136.11379   -101465.43            0   -100248.65   -5136.5677 
-      30    137.01602    -101455.3            0   -100230.46   -5347.8311 
-      40      153.424   -101582.46            0   -100210.93   -5223.1676 
-      50    167.73654   -101686.24            0   -100186.77   -4468.6687 
-      60    163.11642   -101618.16            0   -100159.99   -3291.7815 
-      70    169.64512   -101647.89            0   -100131.35    -2611.638 
-      80     182.9979   -101737.01            0   -100101.11   -2390.6293 
-      90    191.33873   -101778.71            0   -100068.24    -2239.386 
-     100     194.7458   -101775.84            0   -100034.92   -1951.9128 
-Loop time of 7.63869 on 1 procs for 100 steps with 4500 atoms
+       0            0   -18284.922            0   -18284.922   -2080.7739 
+      10    146.83806   -19552.072            0   -18239.421     -4865.31 
+      20    183.15761   -18706.872            0   -17069.543   -4865.6695 
+      30    205.96203   -18901.541            0   -17060.354   -4454.8634 
+      40    241.62768   -18323.117            0   -16163.099   -3269.1475 
+      50    265.98384   -19883.562            0   -17505.813   -2788.5194 
+      60    274.01897   -21320.575            0   -18870.996   -2387.0708 
+      70     288.7601   -19849.269            0   -17267.913    -1235.818 
+      80    300.64724   -20958.602            0   -18270.981   -1714.7988 
+      90    304.19113     -21580.4            0   -18861.099   -2144.1614 
+     100    304.22027   -21239.014            0   -18519.452   -2092.6759 
+Loop time of 6.01861 on 1 procs for 100 steps with 4500 atoms
 
-Performance: 1.131 ns/day, 21.219 hours/ns, 13.091 timesteps/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 1.436 ns/day, 16.718 hours/ns, 16.615 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.7777     | 5.7777     | 5.7777     |   0.0 | 75.64
-Bond    | 0.00017595 | 0.00017595 | 0.00017595 |   0.0 |  0.00
-Kspace  | 1.5385     | 1.5385     | 1.5385     |   0.0 | 20.14
-Neigh   | 0.22962    | 0.22962    | 0.22962    |   0.0 |  3.01
-Comm    | 0.024123   | 0.024123   | 0.024123   |   0.0 |  0.32
-Output  | 0.00061131 | 0.00061131 | 0.00061131 |   0.0 |  0.01
-Modify  | 0.062444   | 0.062444   | 0.062444   |   0.0 |  0.82
-Other   |            | 0.005466   |            |       |  0.07
+Pair    | 5.698      | 5.698      | 5.698      |   0.0 | 94.67
+Bond    | 0.0001626  | 0.0001626  | 0.0001626  |   0.0 |  0.00
+Neigh   | 0.23235    | 0.23235    | 0.23235    |   0.0 |  3.86
+Comm    | 0.018961   | 0.018961   | 0.018961   |   0.0 |  0.32
+Output  | 0.00058126 | 0.00058126 | 0.00058126 |   0.0 |  0.01
+Modify  | 0.063452   | 0.063452   | 0.063452   |   0.0 |  1.05
+Other   |            | 0.005146   |            |       |  0.09
 
 Nlocal:    4500 ave 4500 max 4500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    21216 ave 21216 max 21216 min
+Nghost:    21285 ave 21285 max 21285 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    2.60177e+06 ave 2.60177e+06 max 2.60177e+06 min
+Neighs:    2.59766e+06 ave 2.59766e+06 max 2.59766e+06 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 2601766
-Ave neighs/atom = 578.17
+Total # of neighbors = 2597662
+Ave neighs/atom = 577.258
 Ave special neighs/atom = 2
 Neighbor list builds = 3
 Dangerous builds = 0
 
 shell rm spce.table
 
-Total wall time: 0:00:07
+Total wall time: 0:00:06

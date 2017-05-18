@@ -14,6 +14,9 @@ Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
 create_atoms	1 box
 Created 4000 atoms
 mass		* 1.0
+region          half block -0.1 4.9 0 10 0 10
+set region half type 2
+  2000 settings made for type
 
 velocity	all create 3.0 87287
 
@@ -50,7 +53,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 4.828 | 4.828 | 4.828 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.446 | 4.446 | 4.446 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            3   -6.7733681            0   -2.2744931   -3.7033504 
       50    1.6758903   -4.7955425            0   -2.2823355     5.670064 
@@ -58,30 +61,30 @@ Step Temp E_pair E_mol TotEng Press
      150    1.6324555   -4.7286791            0    -2.280608    5.9589514 
      200    1.6630725   -4.7750988            0   -2.2811136    5.7364886 
      250    1.6275257   -4.7224992            0    -2.281821    5.9567365 
-Loop time of 21.9463 on 1 procs for 250 steps with 4000 atoms
+Loop time of 10.0384 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 4921.114 tau/day, 11.391 timesteps/s
-98.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 10758.705 tau/day, 24.904 timesteps/s
+98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 21.819     | 21.819     | 21.819     |   0.0 | 99.42
-Neigh   | 0.094718   | 0.094718   | 0.094718   |   0.0 |  0.43
-Comm    | 0.01407    | 0.01407    | 0.01407    |   0.0 |  0.06
-Output  | 0.00024915 | 0.00024915 | 0.00024915 |   0.0 |  0.00
-Modify  | 0.015002   | 0.015002   | 0.015002   |   0.0 |  0.07
-Other   |            | 0.003232   |            |       |  0.01
+Pair    | 9.913      | 9.913      | 9.913      |   0.0 | 98.75
+Neigh   | 0.095569   | 0.095569   | 0.095569   |   0.0 |  0.95
+Comm    | 0.012686   | 0.012686   | 0.012686   |   0.0 |  0.13
+Output  | 0.00027537 | 0.00027537 | 0.00027537 |   0.0 |  0.00
+Modify  | 0.01386    | 0.01386    | 0.01386    |   0.0 |  0.14
+Other   |            | 0.003027   |            |       |  0.03
 
 Nlocal:    4000 ave 4000 max 4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:    5499 ave 5499 max 5499 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    0 ave 0 max 0 min
+Neighs:    85978 ave 85978 max 85978 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 0
-Ave neighs/atom = 0
+Total # of neighbors = 85978
+Ave neighs/atom = 21.4945
 Neighbor list builds = 12
 Dangerous builds not checked
 
@@ -126,7 +129,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 4.626 | 4.626 | 4.626 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.245 | 4.245 | 4.245 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      250    1.6275257   -4.7224992            0    -2.281821    5.9567365 
      300     1.645592   -4.7496711            0   -2.2819002    5.8734193 
@@ -134,30 +137,30 @@ Step Temp E_pair E_mol TotEng Press
      400    1.6540555   -4.7622999            0    -2.281837    5.8200413 
      450    1.6264734   -4.7200865            0   -2.2809863    5.9546991 
      500    1.6366891   -4.7350979            0   -2.2806781    5.9369284 
-Loop time of 21.9098 on 1 procs for 250 steps with 4000 atoms
+Loop time of 10.0803 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 4929.303 tau/day, 11.410 timesteps/s
-98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 10713.932 tau/day, 24.801 timesteps/s
+98.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 21.68      | 21.68      | 21.68      |   0.0 | 98.95
-Neigh   | 0.19625    | 0.19625    | 0.19625    |   0.0 |  0.90
-Comm    | 0.014877   | 0.014877   | 0.014877   |   0.0 |  0.07
-Output  | 0.00027227 | 0.00027227 | 0.00027227 |   0.0 |  0.00
-Modify  | 0.013663   | 0.013663   | 0.013663   |   0.0 |  0.06
-Other   |            | 0.004371   |            |       |  0.02
+Pair    | 9.8479     | 9.8479     | 9.8479     |   0.0 | 97.69
+Neigh   | 0.20002    | 0.20002    | 0.20002    |   0.0 |  1.98
+Comm    | 0.01437    | 0.01437    | 0.01437    |   0.0 |  0.14
+Output  | 0.00024033 | 0.00024033 | 0.00024033 |   0.0 |  0.00
+Modify  | 0.013422   | 0.013422   | 0.013422   |   0.0 |  0.13
+Other   |            | 0.004348   |            |       |  0.04
 
 Nlocal:    4000 ave 4000 max 4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:    5472 ave 5472 max 5472 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    0 ave 0 max 0 min
+Neighs:    86930 ave 86930 max 86930 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 0
-Ave neighs/atom = 0
+Total # of neighbors = 86930
+Ave neighs/atom = 21.7325
 Neighbor list builds = 25
 Dangerous builds = 25
 
@@ -208,7 +211,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 4.126 | 4.126 | 4.126 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 3.745 | 3.745 | 3.745 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    1.6275257   -4.7224992            0    -2.281821    5.9567365 
       50    1.6454666   -4.7497515            0   -2.2821686    5.8729175 
@@ -216,32 +219,32 @@ Step Temp E_pair E_mol TotEng Press
      150    1.6537193   -4.7627023            0   -2.2827434    5.8177704 
      200    1.6258731   -4.7205017            0   -2.2823017     5.952511 
      250    1.6370862   -4.7373176            0   -2.2823022     5.925807 
-Loop time of 22.091 on 1 procs for 250 steps with 4000 atoms
+Loop time of 9.93686 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 4888.868 tau/day, 11.317 timesteps/s
+Performance: 10868.626 tau/day, 25.159 timesteps/s
 98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 21.966     | 21.966     | 21.966     |   0.0 | 99.43
-Neigh   | 0.094647   | 0.094647   | 0.094647   |   0.0 |  0.43
-Comm    | 0.013071   | 0.013071   | 0.013071   |   0.0 |  0.06
-Output  | 0.00027871 | 0.00027871 | 0.00027871 |   0.0 |  0.00
-Modify  | 0.013882   | 0.013882   | 0.013882   |   0.0 |  0.06
-Other   |            | 0.003102   |            |       |  0.01
+Pair    | 9.8119     | 9.8119     | 9.8119     |   0.0 | 98.74
+Neigh   | 0.096041   | 0.096041   | 0.096041   |   0.0 |  0.97
+Comm    | 0.01243    | 0.01243    | 0.01243    |   0.0 |  0.13
+Output  | 0.00028133 | 0.00028133 | 0.00028133 |   0.0 |  0.00
+Modify  | 0.013261   | 0.013261   | 0.013261   |   0.0 |  0.13
+Other   |            | 0.002994   |            |       |  0.03
 
 Nlocal:    4000 ave 4000 max 4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:    5487 ave 5487 max 5487 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    0 ave 0 max 0 min
+Neighs:    86831 ave 86831 max 86831 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 0
-Ave neighs/atom = 0
+Total # of neighbors = 86831
+Ave neighs/atom = 21.7078
 Neighbor list builds = 12
 Dangerous builds not checked
 
 shell rm hybrid.data hybrid.restart
-Total wall time: 0:01:07
+Total wall time: 0:00:30

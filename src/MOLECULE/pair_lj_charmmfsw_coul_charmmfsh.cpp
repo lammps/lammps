@@ -393,10 +393,10 @@ void PairLJCharmmfswCoulCharmmfsh::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&eps14[i][j],sizeof(double),1,fp);
-	fwrite(&sigma14[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&eps14[i][j],sizeof(double),1,fp);
+        fwrite(&sigma14[i][j],sizeof(double),1,fp);
       }
     }
 }

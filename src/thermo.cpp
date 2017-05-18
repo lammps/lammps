@@ -1145,6 +1145,22 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_atoms();
     dvalue = bivalue;
 
+  } else if (strcmp(word,"bonds") == 0) {
+    compute_bonds();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"angles") == 0) {
+    compute_angles();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"dihedrals") == 0) {
+    compute_dihedrals();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"impropers") == 0) {
+    compute_impropers();
+    dvalue = bivalue;
+
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1368,11 +1384,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"xlat") == 0) compute_xlat();
   else if (strcmp(word,"ylat") == 0) compute_ylat();
   else if (strcmp(word,"zlat") == 0) compute_zlat();
-
-  else if (strcmp(word,"bonds") == 0) compute_bonds();
-  else if (strcmp(word,"angles") == 0) compute_angles();
-  else if (strcmp(word,"dihedrals") == 0) compute_dihedrals();
-  else if (strcmp(word,"impropers") == 0) compute_impropers();
 
   else if (strcmp(word,"pxx") == 0) {
     if (!pressure)

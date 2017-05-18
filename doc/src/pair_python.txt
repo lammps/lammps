@@ -107,15 +107,15 @@ class LJCutMelt(LAMMPSPairPotential):
         # set coeffs: 48*eps*sig**12, 24*eps*sig**6,
         #              4*eps*sig**12,  4*eps*sig**6
         self.units = 'lj'
-        self.coeff = {'lj'  : {'lj'  : (48.0,24.0,4.0,4.0)}}
+        self.coeff = \{'lj'  : \{'lj'  : (48.0,24.0,4.0,4.0)\}\}
 :pre
 
 The class also has to provide two methods for the computation of the
 potential energy and forces, which have be named {compute_force},
 and {compute_energy}, which both take 3 numerical arguments:
 
-  rsq   = the square of the distance between a pair of atoms (float) :li
-  itype = the (numerical) type of the first atom :li
+  rsq   = the square of the distance between a pair of atoms (float) :l
+  itype = the (numerical) type of the first atom :l
   jtype = the (numerical) type of the second atom :ul
 
 This functions need to compute the force and the energy, respectively,

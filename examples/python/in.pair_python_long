@@ -1,0 +1,38 @@
+units		real	
+atom_style	full
+
+read_data	data.spce
+
+pair_style	python 12.0
+pair_coeff	* * py_pot.LJCutSPCE OW HW
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 1.0
+
+neighbor        2.0 bin
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+fix		2 all nvt temp 300.0 300.0 100.0
+
+# create only lj/cut table for the oxygen atoms from python
+shell rm -f spce.table
+pair_write      1 1 2000 rsq 0.1 12 spce.table OW-OW
+
+# switch to tabulated potential with long-range coulomb as overlay
+pair_style      hybrid/overlay coul/long 12.0 table linear 2000
+kspace_style	pppm 1.0e-6
+pair_coeff      * * coul/long
+pair_coeff      1 1 table spce.table OW-OW
+
+thermo 10
+run 100
+
+shell rm spce.table
+

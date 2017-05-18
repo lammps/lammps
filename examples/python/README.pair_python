@@ -1,0 +1,41 @@
+This folder contains several LAMMPS input scripts and a python module
+file py_pot.py to demonstrate the use of the pair style python.
+
+in.pair_python_melt:
+This is a version of the melt example using the python pair style.  The first
+part of the output should have identical energies, temperature and pressure
+than the melt example.  The following two sections then demonstrate how to
+restart with pair style python from a restart file and a data file.
+
+in.pair_python_hybrid:
+This versions shows how to mix regular pair styles with a python pair style.
+However, in this case both potentials are the same, so the energies and
+pressure in the output should be identical to that of the previous example.
+
+in.pair_python_spce:
+This input shows a simulation of small bulk water system with the SPC/E
+water potential. Since the python pair style does not support computing
+coulomb contributions, pair style hybrid/overload is used to combine
+the python style containing the Lennard-Jones part with the long-range coulomb.
+Same as for the previous example, it also showcases restarting.
+
+in.pair_python_table:
+This input demonstrates the use of using the python pair style to build
+a table file for use with pair style table. This will run much faster
+than the python pair style. This example tabulates the melt example from
+above. Note that tabulation is approximative, so the output will only
+agree with the melt result to some degree. 
+
+in.pair_python_coulomb:
+This is another tabulation example, this time for the SPC/E water example
+with cutoff coulomb interactions.
+Please note, that tabulating long-range coulomb has a systematic error in
+forces and energies for all systems with bonds, angle and dihedrals.
+In this case, this will only affect the energies, since the water molecules
+are held rigid with fix shake. To enable long-range coulomb the coul/cut
+style needs to be replaced with coul/long, a suitable kspace style added
+and the pppm keyword added to the table pair style definition.
+
+in.pair_python_long:
+The final example shows how to combine long-range coulomb with tabulation
+for only the short range interactions via pair style hybrid/overlay.

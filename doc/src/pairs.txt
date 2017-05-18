@@ -72,6 +72,7 @@ Pair Styles :h1
    pair_oxdna2
    pair_peri
    pair_polymorphic
+   pair_python
    pair_quip
    pair_reax
    pair_reaxc

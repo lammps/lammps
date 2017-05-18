@@ -1,0 +1,42 @@
+units		real	
+atom_style	full
+
+read_data	data.spce
+
+pair_style	hybrid/overlay coul/cut 12.0 python 12.0
+
+pair_coeff	* * coul/cut
+pair_coeff	* * python py_pot.LJCutSPCE OW NULL
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 1.0
+
+neighbor        2.0 bin
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+fix		2 all nvt temp 300.0 300.0 100.0
+
+# create combined lj/coul table for all atom types
+# generate tabulated potential from python variant
+pair_write      1 1 2000 rsq 0.1 12 spce.table OW-OW -0.8472 -0.8472
+pair_write      1 2 2000 rsq 0.1 12 spce.table OW-HW -0.8472  0.4236
+pair_write      2 2 2000 rsq 0.1 12 spce.table HW-HW  0.4236  0.4236
+
+# switch to tabulated potential
+pair_style      table linear 2000 pppm
+pair_coeff      1 1 spce.table OW-OW
+pair_coeff      1 2 spce.table OW-HW
+pair_coeff      2 2 spce.table HW-HW
+
+thermo 10
+run 100
+
+shell rm spce.table
+

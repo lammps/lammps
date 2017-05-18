@@ -7,12 +7,13 @@
 :line
 
 pair_style edip command :h3
+pair_style edip/multi command :h3
 
 [Syntax:]
 
-pair_style edip :pre
-pair_style edip/omp :pre
-pair_style edip/multi :pre
+pair_style style :pre
+
+style = {edip} or {edip/multi} :ul
 
 [Examples:]
 
@@ -168,4 +169,4 @@ appropriate units if your simulation doesn't use "metal" units.
 :line
 
 :link(EDIP)
-[(EDIP)] J. F. Justo et al., Phys. Rev. B 58, 2539 (1998).
+[(EDIP)] J F Justo et al, Phys Rev B 58, 2539 (1998).

@@ -637,6 +637,8 @@
 /pair_eam_fs_opt.h
 /pair_edip.cpp
 /pair_edip.h
+/pair_edip_multi.cpp
+/pair_edip_multi.h
 /pair_eff_cut.cpp
 /pair_eff_cut.h
 /pair_eff_inline.h

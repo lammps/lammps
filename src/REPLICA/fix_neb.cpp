@@ -38,12 +38,12 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_pe(NULL), pe(NULL), xprev(NULL), xnext(NULL), fnext(NULL),
-  tangent(NULL), springF(NULL), xsend(NULL), xrecv(NULL),
+  id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL), xnext(NULL),
+  fnext(NULL), springF(NULL), tangent(NULL), xsend(NULL), xrecv(NULL),
   fsend(NULL), frecv(NULL), tagsend(NULL), tagrecv(NULL),
   xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL),
   tagsendall(NULL), tagrecvall(NULL), counts(NULL),
-  displacements(NULL),nlenall(NULL)
+  displacements(NULL)
 {
 
 
@@ -248,7 +248,6 @@ void FixNEB::min_post_force(int vflag)
 {
   double vprev,vnext,vmax,vmin;
   double delxp,delyp,delzp,delxn,delyn,delzn;
-  double delta1[3],delta2[3];
   double vIni =0.0;
 
   vprev=vnext=veng = pe->compute_scalar();
@@ -314,8 +313,6 @@ void FixNEB::min_post_force(int vflag)
   nlen = 0.0;
   double tlen = 0.0;
   double gradnextlen = 0.0;
-  double dotFreeEndIniOld = 0.0;
-  double dotFreeEndFinalOld = 0.0;
 
   dotgrad = gradlen = dotpath = dottangrad = 0.0;
 
@@ -440,7 +437,7 @@ void FixNEB::min_post_force(int vflag)
   gradlen = sqrt(bufout[3]);
   gradnextlen = sqrt(bufout[4]);
   dotpath = bufout[5];
-  dottangrag = bufout[6];
+  dottangrad = bufout[6];
   dotgrad = bufout[7];
 
   // normalize tangent vector
@@ -557,7 +554,6 @@ void FixNEB::min_post_force(int vflag)
   if (ireplica == 0 || ireplica == nreplica-1) return ;
 
   double AngularContr;
-  double thetapath;
   dotpath = dotpath/(plen*nlen);
   AngularContr = 0.5 *(1+cos(MY_PI * dotpath));
 
@@ -579,8 +575,6 @@ void FixNEB::min_post_force(int vflag)
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dot=dotall;
 
-  //  double prefactor, prefSpring;
-  double ToDisp;
   if (ireplica == rclimber)
     prefactor = -2.0*dot;
   else {

@@ -214,30 +214,33 @@ void NEB::run()
   update->minimize->setup();
 
   if (me_universe == 0) {
-    if (universe->uscreen)
-      if (Verbose)
-	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-		"GradV0 GradV1 GradVc "
-		"EBF EBR RDT "
-		"RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
-      else
-
-	fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-		"GradV0 GradV1 GradVc "
-		"EBF EBR RDT "
-		"RD1 PE1 RD2 PE2 ... RDN PEN\n");
-    if (universe->ulogfile)
-      if (Verbose)
-	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-		"GradV0 GradV1 GradVc "
-		"EBF EBR RDT "
-		"RD1 PE1 RD2 PE2 ... RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 ... ReplicaForceN MaxAtomForceN\n");
-      else
-
-	fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-		"GradV0 GradV1 GradVc "
-		"EBF EBR RDT "
-		"RD1 PE1 RD2 PE2 ... RDN PEN\n");
+    if (universe->uscreen) {
+      if (Verbose) {
+        fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+                "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
+                "RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 "
+                "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
+                "... ReplicaForceN MaxAtomForceN\n");
+      } else {
+        fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+                "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
+                "RDN PEN\n");
+      }
+    }
+    
+    if (universe->ulogfile) {    
+      if (Verbose) {
+        fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+                "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
+                "RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 "
+                "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
+                "... ReplicaForceN MaxAtomForceN\n");
+      } else {
+        fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+                "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
+                "RDN PEN\n");
+      }
+    }
   }
   print_status();
 

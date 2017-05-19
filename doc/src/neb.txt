@@ -61,7 +61,7 @@ would see with one or more physical processors per replica.  See
 discussion.
 
 NOTE: As explained below, a NEB calculation perfoms a damped dynamics
-minimization across all the replicas.  The mimimizer uses whatever
+minimization across all the replicas.  The minimizer uses whatever
 timestep you have defined in your input script, via the
 "timestep"_timestep.html command.  Often NEB will converge more
 quickly if you use a timestep about 10x larger than you would normally
@@ -151,7 +151,7 @@ world-, universe-, or uloop-style variables.
 
 Each replica (except the first replica) will read its file, formatted
 as described below, and for any atom that appears in the file, assign
-the specified coordinates to this atom.  The various files do not need
+the specified coordinates to its atom.  The various files do not need
 to contain the same set of atoms.
 
 For a {file-style} setting of {none}, no filename is specified.  Each

@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class FixNEB : public Fix {
  public:
-  double veng,plen,nlen,dotpath, dottangrad,gradlen,dotgrad ;
+  double veng,plen,nlen,dotpath,dottangrad,gradlen,dotgrad;
   int rclimber;
 
   FixNEB(class LAMMPS *, int, char **);
@@ -38,14 +38,15 @@ class FixNEB : public Fix {
 
  private:
   int me,nprocs,nprocs_universe;
-  double kspring, kspringPerp,EIniIni,EFinalIni;
-  bool StandardNEB, NEBLongRange,PerpSpring, FreeEndIni,FreeEndFinal,FreeEndFinalWithRespToEIni,FinalAndInterWithRespToEIni ;
+  double kspring,kspringPerp,EIniIni,EFinalIni;
+  bool StandardNEB,NEBLongRange,PerpSpring,FreeEndIni,FreeEndFinal;
+  bool FreeEndFinalWithRespToEIni,FinalAndInterWithRespToEIni;
   int ireplica,nreplica;
   int procnext,procprev;
   int cmode;
   MPI_Comm uworld;
   MPI_Comm rootworld;
-  
+
 
   char *id_pe;
   class Compute *pe;

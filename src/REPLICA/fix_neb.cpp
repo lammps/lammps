@@ -37,54 +37,58 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 /* ---------------------------------------------------------------------- */
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(NULL), pe(NULL), xprev(NULL), xnext(NULL), fnext(NULL), 
-  tangent(NULL),springF(NULL), xsend(NULL), xrecv(NULL),fsend(NULL),frecv(NULL), tagsend(NULL), tagrecv(NULL),   xsendall(NULL), xrecvall(NULL),fsendall(NULL), frecvall(NULL), tagsendall(NULL), tagrecvall(NULL),   counts(NULL), displacements(NULL),nlenall(NULL)
+  Fix(lmp, narg, arg),
+  id_pe(NULL), pe(NULL), xprev(NULL), xnext(NULL), fnext(NULL),
+  tangent(NULL), springF(NULL), xsend(NULL), xrecv(NULL),
+  fsend(NULL), frecv(NULL), tagsend(NULL), tagrecv(NULL),
+  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL),
+  tagsendall(NULL), tagrecvall(NULL), counts(NULL),
+  displacements(NULL),nlenall(NULL)
 {
 
 
-  StandardNEB=false;
-  NEBLongRange=true;
-  PerpSpring=false;
-  FreeEndIni=false;
-  FreeEndFinal=false;
-  FreeEndFinalWithRespToEIni =false;
-  FinalAndInterWithRespToEIni = false;
-  kspringPerp=0;
-  if (narg < 4) error->all(FLERR,"Illegal fix neb command, argument missing");
+  StandardNEB=NEBLongRange=PerpSpring=FreeEndIni=FreeEndFinal=false;
+  FreeEndFinalWithRespToEIni=FinalAndInterWithRespToEIni=false;
+
+  kspringPerp=0.0;
+
+  if (narg < 4)
+    error->all(FLERR,"Illegal fix neb command, argument missing");
 
   kspring = force->numeric(FLERR,arg[3]);
-  if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command. The spring force was not provided properly");
+  if (kspring <= 0.0)
+    error->all(FLERR,"Illegal fix neb command."
+               " The spring force was not provided properly");
 
   int iarg =4;
-  while (iarg < narg){
-    if (strcmp (arg[iarg],"idealpos")==0){
+  while (iarg < narg) {
+    if (strcmp (arg[iarg],"idealpos")==0) {
       NEBLongRange = true;
-      iarg+=1;}
-    else if (strcmp (arg[iarg],"neigh")==0){
+      iarg+=1;
+    } else if (strcmp (arg[iarg],"neigh")==0) {
       NEBLongRange = false;
       StandardNEB = true;
-      iarg+=1;}
-    else if (strcmp (arg[iarg],"perp")==0){
+      iarg+=1;
+    } else if (strcmp (arg[iarg],"perp")==0) {
       PerpSpring=true;
       kspringPerp = force->numeric(FLERR,arg[iarg+1]);
-      if (kspringPerp < 0.0) error->all(FLERR,"Illegal fix neb command. The perpendicular spring force was not provided properly");
+      if (kspringPerp < 0.0)
+        error->all(FLERR,"Illegal fix neb command. "
+                   "The perpendicular spring force was not provided properly");
       iarg+=2;
-    }
-    else if (strcmp (arg[iarg],"freeend")==0){
+    } else if (strcmp (arg[iarg],"freeend")==0) {
       if (strcmp (arg[iarg+1],"ini")==0)
         FreeEndIni=true;
       else if (strcmp (arg[iarg+1],"final")==0)
         FreeEndFinal=true;
-      else if (strcmp (arg[iarg+1],"final")==0)
-        FreeEndFinal=true;
       else if (strcmp (arg[iarg+1],"finaleini")==0)
-	FreeEndFinalWithRespToEIni=true;
-      else if (strcmp (arg[iarg+1],"final2eini")==0){
+        FreeEndFinalWithRespToEIni=true;
+      else if (strcmp (arg[iarg+1],"final2eini")==0) {
         FinalAndInterWithRespToEIni=true;
         FreeEndFinalWithRespToEIni=true;}
-        iarg+=2;}
-      else {error->all(FLERR,"Illegal fix neb command. Unknown keyword");}
-    }
+      iarg+=2;
+    } else error->all(FLERR,"Illegal fix neb command. Unknown keyword");
+  }
 
   // nreplica = number of partitions
   // ireplica = which world I am in universe
@@ -99,16 +103,20 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
 
-  if (ireplica > 0) procprev = universe->root_proc[ireplica-1];
+  if (ireplica > 0)
+    procprev = universe->root_proc[ireplica-1];
   else procprev = -1;
-  if (ireplica < nreplica-1) procnext = universe->root_proc[ireplica+1];
+
+  if (ireplica < nreplica-1)
+    procnext = universe->root_proc[ireplica+1];
   else procnext = -1;
+
   uworld = universe->uworld;
   int *iroots = new int[nreplica];
   MPI_Group uworldgroup,rootgroup;
-  if (NEBLongRange ){
-    for (int iIm =0; iIm < nreplica;iIm++){
-      iroots[iIm]=universe->root_proc[iIm];}
+  if (NEBLongRange) {
+    for (int iIm =0; iIm < nreplica;iIm++)
+      iroots[iIm]=universe->root_proc[iIm];
     MPI_Comm_group(uworld, &uworldgroup);
     MPI_Group_incl(uworldgroup, nreplica, iroots, &rootgroup);
     //    MPI_Comm_create_group(uworld, rootgroup, 0, &rootworld);
@@ -133,20 +141,6 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   maxlocal = 0;
   ntotal = 0;
-
-  xprev = xnext = tangent = springF= NULL;
-  fnext = NULL;
-  xsend = xrecv = NULL;
-  fsend = frecv = NULL;
-  tagsend = tagrecv = NULL;
-  xsendall = xrecvall = NULL;
-  fsendall = frecvall = NULL;
-  tagsendall = tagrecvall = NULL;
-  counts = displacements = NULL;
-
-
-  if (NEBLongRange)
-    {nlenall=NULL;}
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,7 +198,6 @@ void FixNEB::init()
 
   rclimber = -1;
 
-
   // nebatoms = # of atoms in fix group = atoms with inter-replica forces
 
   bigint count = group->count(igroup);
@@ -236,11 +229,6 @@ void FixNEB::init()
     memory->create(counts,nprocs,"neb:counts");
     memory->create(displacements,nprocs,"neb:displacements");
   }
-
-
-
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,8 +249,6 @@ void FixNEB::min_post_force(int vflag)
   double vprev,vnext,vmax,vmin;
   double delxp,delyp,delzp,delxn,delyn,delzn;
   double delta1[3],delta2[3];
-  MPI_Status status;
-  MPI_Request request;
   double vIni =0.0;
 
   vprev=vnext=veng = pe->compute_scalar();
@@ -270,42 +256,42 @@ void FixNEB::min_post_force(int vflag)
   if (ireplica < nreplica-1 && me ==0)
     MPI_Send(&veng,1,MPI_DOUBLE,procnext,0,uworld);
   if (ireplica > 0 && me ==0)
-    MPI_Recv(&vprev,1,MPI_DOUBLE,procprev,0,uworld,&status);
+    MPI_Recv(&vprev,1,MPI_DOUBLE,procprev,0,uworld,MPI_STATUS_IGNORE);
 
   if (ireplica > 0 && me == 0)
     MPI_Send(&veng,1,MPI_DOUBLE,procprev,0,uworld);
   if (ireplica < nreplica-1 && me == 0)
-    MPI_Recv(&vnext,1,MPI_DOUBLE,procnext,0,uworld,&status);
+    MPI_Recv(&vnext,1,MPI_DOUBLE,procnext,0,uworld,MPI_STATUS_IGNORE);
 
   if (cmode == MULTI_PROC) {
     MPI_Bcast(&vprev,1,MPI_DOUBLE,0,world);
     MPI_Bcast(&vnext,1,MPI_DOUBLE,0,world);
   }
 
-  if (FreeEndFinal){
-    if (update->ntimestep==0){EFinalIni = veng;}
+  if (FreeEndFinal) {
+    if (update->ntimestep == 0) {EFinalIni = veng;}
   }
 
-  if (ireplica==0)
+  if (ireplica == 0)
     vIni=veng;
-  if (FreeEndFinalWithRespToEIni ){
-    if ( me ==0){
+  if (FreeEndFinalWithRespToEIni) {
+    if (me == 0) {
       int procFirst;
       procFirst=universe->root_proc[0];
-      MPI_Bcast(&vIni,1,MPI_DOUBLE,procFirst,uworld);     //MPI_Recv(&vIni,1,MPI_DOUBLE,procFirst,0,uworld,&status);
+      MPI_Bcast(&vIni,1,MPI_DOUBLE,procFirst,uworld);
     }
     if (cmode == MULTI_PROC) {
       MPI_Bcast(&vIni,1,MPI_DOUBLE,0,world);
     }
   }
-    if (FreeEndIni && ireplica==0 ){
-      if (me == 0 )
-	if (update->ntimestep==0){
-          EIniIni = veng;
-          if (cmode == MULTI_PROC) 
-            MPI_Bcast(&EIniIni,1,MPI_DOUBLE,0,world);
-        }
-    }
+  if (FreeEndIni && ireplica == 0) {
+    if (me == 0 )
+      if (update->ntimestep == 0) {
+        EIniIni = veng;
+        if (cmode == MULTI_PROC)
+          MPI_Bcast(&EIniIni,1,MPI_DOUBLE,0,world);
+      }
+  }
 
   // communicate atoms to/from adjacent replicas to fill xprev,xnext
   inter_replica_comm();
@@ -313,39 +299,6 @@ void FixNEB::min_post_force(int vflag)
   // trigger potential energy computation on next timestep
 
   pe->addstep(update->ntimestep+1);
-
-  /*  ALL THIS SHOULD BE DONE IN inter_replica_comm()
-  // xprev,xnext = atom coords of adjacent replicas
-  // assume order of atoms in all replicas is the same
-  // check that number of atoms hasn't changed
-
-  double **x = atom->x;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  double dot = 0.0;
-  double prefactor;
-
-  if (nlocal != nebatoms) error->one(FLERR,"Atom count changed in fix neb");
-
-  if (ireplica > 0)
-    MPI_Irecv(xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&request);
-  if (ireplica < nreplica-1)
-    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld);
-  if (ireplica > 0) MPI_Wait(&request,&status);
-
-
-
-
-  if (ireplica < nreplica-1)
-    MPI_Irecv(xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
-  if (ireplica > 0)
-    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
-  if (ireplica < nreplica-1) MPI_Wait(&request,&status);
-  */
-
-
-
-
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -355,33 +308,18 @@ void FixNEB::min_post_force(int vflag)
   double **f = atom->f;
   int nlocal = atom->nlocal;
 
-  /* SHOULD BE DONE IN  inter_replica_comm()
-  if (ireplica < nreplica-1)
-    MPI_Irecv(fnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
-  if (ireplica > 0)
-    MPI_Send(f[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
-  if (ireplica < nreplica-1) MPI_Wait(&request,&status);
-  */
-
-
   //calculating separation between images
+
   plen = 0.0;
   nlen = 0.0;
   double tlen = 0.0;
-  double  gradnextlen = 0.0;
-  double dotFreeEndIniOld=0.0;
-  double dotFreeEndFinalOld=0.0;
+  double gradnextlen = 0.0;
+  double dotFreeEndIniOld = 0.0;
+  double dotFreeEndFinalOld = 0.0;
 
-  dotgrad = 0.0;
+  dotgrad = gradlen = dotpath = dottangrad = 0.0;
 
-  gradlen = 0.0;
-
-
-  dotpath = 0.0;
-  dottangrad = 0.0;
-
-
-  if (ireplica ==nreplica-1){
+  if (ireplica ==nreplica-1) {
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -393,18 +331,18 @@ void FixNEB::min_post_force(int vflag)
         plen += delxp*delxp + delyp*delyp + delzp*delzp;
         dottangrad += delxp* f[i][0]+ delyp*f[i][1]+delzp*f[i][2];
         gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-        if (FreeEndFinal||FreeEndFinalWithRespToEIni){
+        if (FreeEndFinal||FreeEndFinalWithRespToEIni) {
           tangent[i][0]=delxp;
           tangent[i][1]=delyp;
           tangent[i][2]=delzp;
-          tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] +
-            tangent[i][2]*tangent[i][2];
-          dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + f[i][2]*tangent[i][2];
+          tlen += tangent[i][0]*tangent[i][0]
+            + tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
+          dot += f[i][0]*tangent[i][0]
+            + f[i][1]*tangent[i][1] + f[i][2]*tangent[i][2];
         }
-    }
-  }
+      }
 
-  else if (ireplica == 0){
+  } else if (ireplica == 0) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         delxn = xnext[i][0] - x[i][0];
@@ -412,113 +350,98 @@ void FixNEB::min_post_force(int vflag)
         delzn = xnext[i][2] - x[i][2];
         domain->minimum_image(delxn,delyn,delzn);
         nlen += delxn*delxn + delyn*delyn + delzn*delzn;
-        gradnextlen += fnext[i][0]*fnext[i][0] + fnext[i][1]*fnext[i][1] +fnext[i][2] * fnext[i][2];
-        dotgrad += f[i][0]*fnext[i][0] + f[i][1]*fnext[i][1] +
-          f[i][2]*fnext[i][2];
-        dottangrad += delxn* f[i][0]+ delyn*f[i][1]+delzn*f[i][2];
+        gradnextlen += fnext[i][0]*fnext[i][0]
+          + fnext[i][1]*fnext[i][1] +fnext[i][2] * fnext[i][2];
+        dotgrad += f[i][0]*fnext[i][0]
+          + f[i][1]*fnext[i][1] + f[i][2]*fnext[i][2];
+        dottangrad += delxn*f[i][0]+ delyn*f[i][1] + delzn*f[i][2];
         gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-        if (FreeEndIni)
-          {
-            tangent[i][0]=delxn;
-            tangent[i][1]=delyn;
-            tangent[i][2]=delzn;
-            tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] +
-              tangent[i][2]*tangent[i][2];
-            dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + f[i][2]*tangent[i][2];
+        if (FreeEndIni) {
+          tangent[i][0]=delxn;
+          tangent[i][1]=delyn;
+          tangent[i][2]=delzn;
+          tlen += tangent[i][0]*tangent[i][0]
+            + tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
+          dot += f[i][0]*tangent[i][0]
+            + f[i][1]*tangent[i][1] + f[i][2]*tangent[i][2];
+        }
+      }
+  } else {
+    //not the first or last replica
+    vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
+    vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
+
+
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        delxp = x[i][0] - xprev[i][0];
+        delyp = x[i][1] - xprev[i][1];
+        delzp = x[i][2] - xprev[i][2];
+        domain->minimum_image(delxp,delyp,delzp);
+        plen += delxp*delxp + delyp*delyp + delzp*delzp;
+
+        delxn = xnext[i][0] - x[i][0];
+        delyn = xnext[i][1] - x[i][1];
+        delzn = xnext[i][2] - x[i][2];
+        domain->minimum_image(delxn,delyn,delzn);
+
+        if (vnext > veng && veng > vprev) {
+          tangent[i][0]=delxn;
+          tangent[i][1]=delyn;
+          tangent[i][2]=delzn;
+        } else if (vnext < veng && veng < vprev) {
+          tangent[i][0]=delxp;
+          tangent[i][1]=delyp;
+          tangent[i][2]=delzp;
+        } else {
+          if (vnext > vprev) {
+            tangent[i][0] = vmax*delxn + vmin*delxp;
+            tangent[i][1] = vmax*delyn + vmin*delyp;
+            tangent[i][2] = vmax*delzn + vmin*delzp;
+          } else {
+            tangent[i][0] = vmin*delxn + vmax*delxp;
+            tangent[i][1] = vmin*delyn + vmax*delyp;
+            tangent[i][2] = vmin*delzn + vmax*delzp;
           }
+        }
+
+        nlen += delxn*delxn + delyn*delyn + delzn*delzn;
+        tlen += tangent[i][0]*tangent[i][0]
+          + tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
+        gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
+        dotpath += delxp*delxn + delyp*delyn + delzp*delzn;
+        dottangrad += tangent[i][0]* f[i][0]
+          + tangent[i][1]*f[i][1] + tangent[i][2]*f[i][2];
+        gradnextlen += fnext[i][0]*fnext[i][0]
+          + fnext[i][1]*fnext[i][1] +fnext[i][2] * fnext[i][2];
+        dotgrad += f[i][0]*fnext[i][0]
+          + f[i][1]*fnext[i][1] + f[i][2]*fnext[i][2];
+
+        springF[i][0]=kspringPerp*(delxn-delxp);
+        springF[i][1]=kspringPerp*(delyn-delyp);
+        springF[i][2]=kspringPerp*(delzn-delzp);
       }
   }
-  else //not the first or last replica
-    {
-      vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
-      vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
 
-
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          delxp = x[i][0] - xprev[i][0];
-          delyp = x[i][1] - xprev[i][1];
-          delzp = x[i][2] - xprev[i][2];
-          domain->minimum_image(delxp,delyp,delzp);
-          plen += delxp*delxp + delyp*delyp + delzp*delzp;
-
-          delxn = xnext[i][0] - x[i][0];
-          delyn = xnext[i][1] - x[i][1];
-          delzn = xnext[i][2] - x[i][2];
-          domain->minimum_image(delxn,delyn,delzn);       domain->minimum_image(delxn,delyn,delzn);
-
-          if (vnext > veng && veng > vprev) {
-            tangent[i][0]=delxn;
-            tangent[i][1]=delyn;
-            tangent[i][2]=delzn;
-          }
-          else if (vnext < veng && veng < vprev) {
-            tangent[i][0]=delxp;
-            tangent[i][1]=delyp;
-            tangent[i][2]=delzp;
-          }
-          else {
-            if (vnext > vprev) {
-              tangent[i][0] = vmax*delxn + vmin*delxp;
-              tangent[i][1] = vmax*delyn + vmin*delyp;
-              tangent[i][2] = vmax*delzn + vmin*delzp;
-            } else {
-              tangent[i][0] = vmin*delxn + vmax*delxp;
-              tangent[i][1] = vmin*delyn + vmax*delyp;
-              tangent[i][2] = vmin*delzn + vmax*delzp;
-            }
-
-          }
-
-          nlen += delxn*delxn + delyn*delyn + delzn*delzn;
-          tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] +
-            tangent[i][2]*tangent[i][2];
-          gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-          dotpath += delxp*delxn + delyp*delyn + delzp*delzn;
-          dottangrad += tangent[i][0]* f[i][0]+ tangent[i][1]*f[i][1]+tangent[i][2]*f[i][2];
-
-
-
-          gradnextlen += fnext[i][0]*fnext[i][0] + fnext[i][1]*fnext[i][1] +fnext[i][2] * fnext[i][2];
-          dotgrad += f[i][0]*fnext[i][0] + f[i][1]*fnext[i][1] +
-            f[i][2]*fnext[i][2];
-
-          springF[i][0]=kspringPerp*(delxn-delxp);
-          springF[i][1]=kspringPerp*(delyn-delyp);
-          springF[i][2]=kspringPerp*(delzn-delzp);
-        }
-  }
-
-  double lenall;
-  MPI_Allreduce(&nlen,&lenall,1,MPI_DOUBLE,MPI_SUM,world);
-  nlen = sqrt(lenall);
-
-  MPI_Allreduce(&plen,&lenall,1,MPI_DOUBLE,MPI_SUM,world);
-  plen = sqrt(lenall);
-
-  MPI_Allreduce(&tlen,&lenall,1,MPI_DOUBLE,MPI_SUM,world);
-  tlen = sqrt(lenall);
-
-  MPI_Allreduce(&gradlen,&lenall,1,MPI_DOUBLE,MPI_SUM,world);
-  gradlen = sqrt(lenall);
-
-  MPI_Allreduce(&gradnextlen,&lenall,1,MPI_DOUBLE,MPI_SUM,world);
-  gradnextlen = sqrt(lenall);
-
-
-
-  double dotpathall;
-  double dottangradall;
-  double dotgradall;
-
-  MPI_Allreduce(&dotpath,&dotpathall,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&dottangrad,&dottangradall,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&dotgrad,&dotgradall,1,MPI_DOUBLE,MPI_SUM,world);
-
-
-  dotpath=dotpathall;
-  dottangrad=dottangradall;
-  dotgrad=dotgradall;
+#define BUFSIZE 8
+  double bufin[BUFSIZE], bufout[BUFSIZE];
+  bufin[0] = nlen;
+  bufin[1] = plen;
+  bufin[2] = tlen;
+  bufin[3] = gradlen;
+  bufin[4] = gradnextlen;
+  bufin[5] = dotpath;
+  bufin[6] = dottangrad;
+  bufin[7] = dotgrad;
+  MPI_Allreduce(bufin,bufout,BUFSIZE,MPI_DOUBLE,MPI_SUM,world);
+  nlen = sqrt(bufout[0]);
+  plen = sqrt(bufout[1]);
+  tlen = sqrt(bufout[2]);
+  gradlen = sqrt(bufout[3]);
+  gradnextlen = sqrt(bufout[4]);
+  dotpath = bufout[5];
+  dottangrag = bufout[6];
+  dotgrad = bufout[7];
 
   // normalize tangent vector
 
@@ -532,145 +455,122 @@ void FixNEB::min_post_force(int vflag)
       }
   }
 
-
   // first or last replica has no change to forces, just return
 
-  if(ireplica >0 && ireplica<nreplica-1) {
+  if(ireplica>0 && ireplica<nreplica-1)
     dottangrad = dottangrad/(tlen*gradlen);
-
-  }
-  if(ireplica==0)     dottangrad = dottangrad/(nlen*gradlen);
-  if(ireplica==nreplica-1)     dottangrad = dottangrad/(plen*gradlen);
-  if(ireplica < nreplica-1){
+  if (ireplica == 0)
+    dottangrad = dottangrad/(nlen*gradlen);
+  if (ireplica == nreplica-1)
+    dottangrad = dottangrad/(plen*gradlen);
+  if (ireplica < nreplica-1)
     dotgrad = dotgrad /(gradlen*gradnextlen);
-  }
 
-
-  if(FreeEndIni&&ireplica == 0) {
+  if (FreeEndIni && ireplica == 0) {
     if (tlen > 0.0) {
       double dotall;
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
-      dot=dotall;
-      double tleninv = 1.0/tlen;
-      dot *= tleninv;
-      if (dot<0)
-        prefactor = -dot - (veng-EIniIni);
-      else  prefactor = -dot + (veng-EIniIni);
+      dot=dotall/tlen;
+
+      if (dot<0) prefactor = -dot - (veng-EIniIni);
+      else prefactor = -dot + (veng-EIniIni);
+
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           f[i][0] += prefactor *tangent[i][0];
-          f[i][1] += prefactor *tangent[i][1]; 
+          f[i][1] += prefactor *tangent[i][1];
           f[i][2] += prefactor *tangent[i][2];
         }
     }
-
   }
 
-
-  if(FreeEndFinal&&ireplica == nreplica -1){
+  if (FreeEndFinal&&ireplica == nreplica -1) {
     if (tlen > 0.0) {
       double dotall;
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
-      dot=dotall;
-      double tleninv = 1.0/tlen;
-      dot *= tleninv;
-      if (dot<0)
-	prefactor = -dot - (veng-EFinalIni);
-      else  prefactor = -dot + (veng-EFinalIni);
-      for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  f[i][0] += prefactor *tangent[i][0];
-	  f[i][1] += prefactor *tangent[i][1]; 
-	  f[i][2] += prefactor *tangent[i][2];
-	}
+      dot=dotall/tlen;
 
+      if (dot<0) prefactor = -dot - (veng-EFinalIni);
+      else prefactor = -dot + (veng-EFinalIni);
+
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          f[i][0] += prefactor *tangent[i][0];
+          f[i][1] += prefactor *tangent[i][1];
+          f[i][2] += prefactor *tangent[i][2];
+        }
     }
   }
 
-  if(FreeEndFinalWithRespToEIni&&ireplica == nreplica -1){
+  if (FreeEndFinalWithRespToEIni&&ireplica == nreplica -1) {
     if (tlen > 0.0) {
       double dotall;
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
-      dot=dotall;
-      double tleninv = 1.0/tlen;
-      dot *= tleninv;
-      if (dot<0)
-	prefactor = -dot - (veng-vIni);
-      else  prefactor = -dot + (veng-vIni);
-      for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  f[i][0] += prefactor *tangent[i][0];
-	  f[i][1] += prefactor *tangent[i][1]; 
-	  f[i][2] += prefactor *tangent[i][2];
-	}
+      dot=dotall/tlen;
 
+      if (dot<0) prefactor = -dot - (veng-vIni);
+      else prefactor = -dot + (veng-vIni);
+
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          f[i][0] += prefactor *tangent[i][0];
+          f[i][1] += prefactor *tangent[i][1];
+          f[i][2] += prefactor *tangent[i][2];
+        }
     }
   }
+
   double lentot = 0;
-
   double meanDist,idealPos,lenuntilIm,lenuntilClimber;
   lenuntilClimber=0;
-  if(NEBLongRange)
-    {
-      if (cmode == SINGLE_PROC_DIRECT or cmode == SINGLE_PROC_MAP)
-        {MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);}
-      else{
-	if (me == 0)
-	  MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,rootworld);
-
-	MPI_Bcast(nlenall,nreplica,MPI_DOUBLE,0,world);
-      }
-
-
-
-      lenuntilIm = 0;
-      for (int i = 0; i < ireplica; i++)
-        lenuntilIm += nlenall[i];
-
-      for (int i = 0; i < nreplica; i++)
-        lentot += nlenall[i];
-
-      meanDist = lentot/(nreplica -1);
-
-      if (rclimber>0) {
-	for (int i = 0; i < rclimber; i++)
-	  lenuntilClimber += nlenall[i];
-	double meanDistBeforeClimber = lenuntilClimber/rclimber;
-	double meanDistAfterClimber = (lentot-lenuntilClimber)/(nreplica-rclimber-1);
-	if (ireplica<rclimber)
-	  idealPos = ireplica * meanDistBeforeClimber;
-	else
-	  idealPos = lenuntilClimber+ (ireplica-rclimber)*meanDistAfterClimber;
-      }
-      else{
-        idealPos = ireplica * meanDist;
-      }
-
-
+  if (NEBLongRange) {
+    if (cmode == SINGLE_PROC_DIRECT or cmode == SINGLE_PROC_MAP) {
+      MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);
+    } else {
+      if (me == 0)
+        MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,rootworld);
+      MPI_Bcast(nlenall,nreplica,MPI_DOUBLE,0,world);
     }
 
+    lenuntilIm = 0;
+    for (int i = 0; i < ireplica; i++)
+      lenuntilIm += nlenall[i];
 
-  if (ireplica == 0 || ireplica == nreplica-1)     return ;
+    for (int i = 0; i < nreplica; i++)
+      lentot += nlenall[i];
+
+    meanDist = lentot/(nreplica -1);
+
+    if (rclimber>0) {
+      for (int i = 0; i < rclimber; i++)
+        lenuntilClimber += nlenall[i];
+      double meanDistBeforeClimber = lenuntilClimber/rclimber;
+      double meanDistAfterClimber =
+        (lentot-lenuntilClimber)/(nreplica-rclimber-1);
+      if (ireplica<rclimber)
+        idealPos = ireplica * meanDistBeforeClimber;
+      else
+        idealPos = lenuntilClimber+ (ireplica-rclimber)*meanDistAfterClimber;
+    } else idealPos = ireplica * meanDist;
+  }
+
+  if (ireplica == 0 || ireplica == nreplica-1) return ;
 
   double AngularContr;
-
   double thetapath;
-
-dotpath = dotpath/(plen*nlen);
-
-AngularContr = 0.5 *(1+cos(MY_PI * dotpath));
-
-
+  dotpath = dotpath/(plen*nlen);
+  AngularContr = 0.5 *(1+cos(MY_PI * dotpath));
 
   double dotSpringTangent;
   dotSpringTangent=0;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + f[i][2]*tangent[i][2];
-      dotSpringTangent+=springF[i][0]*tangent[i][0]+springF[i][1]*tangent[i][1]+springF[i][2]*tangent[i][2];}
+      dot += f[i][0]*tangent[i][0]
+        + f[i][1]*tangent[i][1] + f[i][2]*tangent[i][2];
+      dotSpringTangent += springF[i][0]*tangent[i][0]
+        +springF[i][1]*tangent[i][1]+springF[i][2]*tangent[i][2];}
   }
-
 
   double dotSpringTangentall;
   MPI_Allreduce(&dotSpringTangent,&dotSpringTangentall,1,MPI_DOUBLE,MPI_SUM,world);
@@ -679,26 +579,24 @@ AngularContr = 0.5 *(1+cos(MY_PI * dotpath));
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dot=dotall;
 
-
   //  double prefactor, prefSpring;
   double ToDisp;
-  if (ireplica == rclimber) {
+  if (ireplica == rclimber)
     prefactor = -2.0*dot;
-
-  }
   else {
-    if(NEBLongRange)
-      {prefactor = -dot - kspring*(lenuntilIm-idealPos)/(2*meanDist);}
-    else if (StandardNEB)
-      {prefactor = -dot + kspring*(nlen-plen);}
+    if (NEBLongRange) {
+      prefactor = -dot - kspring*(lenuntilIm-idealPos)/(2*meanDist);
+    } else if (StandardNEB) {
+      prefactor = -dot + kspring*(nlen-plen);
+    }
 
-    if (FinalAndInterWithRespToEIni&& veng<vIni){
+    if (FinalAndInterWithRespToEIni&& veng<vIni) {
       for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  f[i][0] = 0;
-	  f[i][1] = 0;
-	  f[i][2] = 0;
-	}
+        if (mask[i] & groupbit) {
+          f[i][0] = 0;
+          f[i][1] = 0;
+          f[i][2] = 0;
+        }
       prefactor =  kspring*(nlen-plen);
       AngularContr=0;
     }
@@ -706,14 +604,13 @@ AngularContr = 0.5 *(1+cos(MY_PI * dotpath));
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      f[i][0] += prefactor*tangent[i][0] +AngularContr*(springF[i][0] -dotSpringTangent*tangent[i][0]);
-      f[i][1] += prefactor*tangent[i][1]+ AngularContr*(springF[i][1] - dotSpringTangent*tangent[i][1]);
-      f[i][2] += prefactor*tangent[i][2]+ AngularContr*(springF[i][2] - dotSpringTangent*tangent[i][2]);
-
-
-
+      f[i][0] += prefactor*tangent[i][0]
+        +AngularContr*(springF[i][0] -dotSpringTangent*tangent[i][0]);
+      f[i][1] += prefactor*tangent[i][1]
+        + AngularContr*(springF[i][1] - dotSpringTangent*tangent[i][1]);
+      f[i][2] += prefactor*tangent[i][2]
+        + AngularContr*(springF[i][2] - dotSpringTangent*tangent[i][2]);
     }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -863,13 +760,12 @@ void FixNEB::inter_replica_comm()
   for (i = 0; i < nprocs; i++) counts[i] *= 3;
   for (i = 0; i < nprocs-1; i++)
     displacements[i+1] = displacements[i] + counts[i];
-  if (xsend){
+  if (xsend) {
     MPI_Gatherv(xsend[0],3*m,MPI_DOUBLE,
                 xsendall[0],counts,displacements,MPI_DOUBLE,0,world);
     MPI_Gatherv(fsend[0],3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
-  }
-  else {
+  } else {
     MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
                 xsendall[0],counts,displacements,MPI_DOUBLE,0,world);
     MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
@@ -948,7 +844,7 @@ void FixNEB::reallocate()
   memory->destroy(fnext);
   memory->destroy(springF);
 
-  if (NEBLongRange){
+  if (NEBLongRange) {
     memory->destroy(nlenall);
     memory->create(nlenall,nreplica,"neb:nlenall");
   }

@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 // lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
@@ -52,7 +52,7 @@ NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
@@ -105,7 +105,7 @@ NEB::~NEB()
 
 /* ----------------------------------------------------------------------
    perform NEB on multiple replicas
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void NEB::command(int narg, char **arg)
 {
@@ -165,7 +165,7 @@ void NEB::command(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    run NEB on multiple replicas
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void NEB::run()
 {
@@ -363,7 +363,7 @@ void NEB::run()
    each replica (except first) opens file and reads it
    each replica stores coords
    initial replica does nothing
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void NEB::readfile(char *file, int flag)
 {
@@ -526,7 +526,7 @@ void NEB::readfile(char *file, int flag)
 /* ----------------------------------------------------------------------
    universe proc 0 opens NEB data file
    test if gzipped
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void NEB::open(char *file)
 {
@@ -560,7 +560,7 @@ void NEB::open(char *file)
 /* ----------------------------------------------------------------------
    query fix NEB for info on each replica
    universe proc 0 prints current NEB status
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void NEB::print_status()
 {

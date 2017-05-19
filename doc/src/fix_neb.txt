@@ -1,8 +1,8 @@
 "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
-:link(lws,http://lammps.sandia.gov) 
+:link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-
+:link(lc,Section_commands.html#comm)
 
 :line
 
@@ -11,164 +11,184 @@ fix neb command :h3
 [Syntax:]
 
 fix ID group-ID neb Kspring keyword value :pre
-  
-ID, group-ID are documented in "fix"_fix.html command neb = style name of this
-fix command Kspring = parallel spring constant (force/distance units) :ul
-keyword = {idealpos} or {neigh} or {perp} or {freeend} {idealpos} value = none =
-each replica is attached with a spring to its interpolated ideal position
-(default value) {neigh} value = none = each replica is attached with a spring
-with the previous and next replica.  {perp} value = spring constant for the
-perpendicular spring {freeend} value = ini or final or finaleini or final2eini
 
-  
+ID, group-ID are documented in "fix"_fix.html command
+neb = style name of this fix command
+Kspring = parallel spring constant (force/distance units)
+keyword = {idealpos} or {neigh} or {perp} or {freeend} :ul
+ {idealpos} = each replica is attached with a spring to its interpolated ideal position (default)
+ {neigh} = each replica is connected with spring to the previous and next replica.
+ {perp} value = set spring constant for the perpendicular spring to {value}
+ {freeend} flag = set behavior for the end points
+   flag = {ini} or {final} or {finaleini} or {final2eini}
+   :pre
 
 [Examples:]
 
-fix 1 active neb 10.0 :pre fix 2 all neb 1.0 perp 1.0 freeend final :pre fix 1
-all neb 1.0 neigh freeend final2eini :pre
+fix 1 active neb 10.0
+fix 2 all neb 1.0 perp 1.0 freeend final
+fix 1 all neb 1.0 neigh freeend final2eini :pre
 
 [Description:]
 
-Add a nudging force to atoms in the group for a multi-replica simulation run via
-the "neb"_neb.html command to perform a nudged elastic band (NEB) calculation
-for finding the transition state.  Hi-level explanations of NEB are given with
-the "neb"_neb.html command and in "Section_howto 5"_Section_howto.html#howto_5
-of the manual.  The fix neb command must be used with the "neb" command and
-defines how nudging inter-replica forces are computed.  A NEB calculation is
-divided in two stages. In the first stage n replicas are relaxed toward a MEP
-and in a second stage, the climbing image scheme (see
-"(Henkelman2)"_#Henkelman2) is turned on so that the replica having the highest
-energy relaxes toward the saddle point (i.e. the point of highest energy along
-the MEP).
+Add a nudging force to atoms in the group for a multi-replica
+simulation run via the "neb"_neb.html command to perform a nudged
+elastic band (NEB) calculation for finding the transition state.
+Hi-level explanations of NEB are given with the "neb"_neb.html command
+and in "Section_howto 5"_Section_howto.html#howto_5 of the manual.
+The fix neb command must be used with the "neb" command and defines
+how nudging inter-replica forces are computed.  A NEB calculation is
+divided in two stages. In the first stage n replicas are relaxed
+toward a MEP and in a second stage, the climbing image scheme (see
+"(Henkelman2)"_#Henkelman2) is turned on so that the replica having
+the highest energy relaxes toward the saddle point (i.e. the point of
+highest energy along the MEP).
 
-One purpose of the nudging forces is to keep the replicas equally spaced.
-During the NEB, the 3N-length vector of interatomic force Fi = -Grad(V) of
-replicas i is altered. For all intermediate replicas (i.e. for 1<i<n) except for
-the climbing replica the force vector becomes:
+One purpose of the nudging forces is to keep the replicas equally
+spaced.  During the NEB, the 3N-length vector of interatomic force Fi
+= -Grad(V) of replicas i is altered. For all intermediate replicas
+(i.e. for 1<i<n) except for the climbing replica the force vector
+becomes:
 
 Fi = -Grad(V) + (Grad(V) dot That) That + Fspringparallel + Fspringperp :pre
 
-That is the unit "tangent" vector for replica i and is a function of Ri, Ri-1,
-Ri+1, and the potential energy of the 3 replicas; it points roughly in the
-direction of (Ri+i - Ri-1) (see the "(Henkelman1)"_#Henkelman1 paper for
-details).  Ri are the atomic coordinates of replica i; Ri-1 and Ri+1 are the
-coordinates of its neighbor replicas.  The term (Grad(V) dot That) is used to
-remove the component of the gradient parallel to the path which would tend to
+That is the unit "tangent" vector for replica i and is a function of
+Ri, Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
+roughly in the direction of (Ri+i - Ri-1) (see the
+"(Henkelman1)"_#Henkelman1 paper for details).  Ri are the atomic
+coordinates of replica i; Ri-1 and Ri+1 are the coordinates of its
+neighbor replicas.  The term (Grad(V) dot That) is used to remove the
+component of the gradient parallel to the path which would tend to
 distribute the replica unevenly along the path.  Fspringparallel is an
-artificial spring force which is applied only in the tangent direction and which
-maintains the replicas equally spaced (see below for more information).
-Fspringperp is an optinal artificial spring which is applied only perpendicular
-to the tangent and which prevent the paths from forming too acute kinks (see
-below for more information).
+artificial spring force which is applied only in the tangent direction
+and which maintains the replicas equally spaced (see below for more
+information).  Fspringperp is an optinal artificial spring which is
+applied only perpendicular to the tangent and which prevent the paths
+from forming too acute kinks (see below for more information).
 
 
-In the second stage of the NEB, the interatomic force Fi for the climbing
-replica (which is the replica of highest energy) becomes :
+In the second stage of the NEB, the interatomic force Fi for the
+climbing replica (which is the replica of highest energy) becomes:
 
 Fi = -Grad(V) + 2 (Grad(V) dot That) That :pre
 
+By default, the force acting on the first and last replicas is not
+altered so that during the NEB relaxation, these ending replicas relax
+toward local minima. However it is possible to use the key word
+{freeend} to allow either the initial or the final replica to relax
+toward a MEP while constraining its energy.  The interatomic force Fi
+for the free end image becomes :
 
-By default, the force acting on the first and last replicas is not altered so
-that during the NEB relaxation, these ending replicas relax toward local
-minima. However it is possible to use the key word {freeend} to allow either the
-initial or the final replica to relax toward a MEP while constraining its
-energy.  The interatomic force Fi for the free end image becomes :
+Fi = -Grad(V)+ (Grad(V) dot That + E-ETarget) That,  {when} Grad(V) dot That < 0
+Fi = -Grad(V)+ (Grad(V) dot That + ETarget- E) That, {when} Grad(V) dot That > 0
+:pre
 
-Fi = -Grad(V)+ (Grad(V) dot That + E-ETarget) That when Grad(V) dot That < 0 Fi
-= -Grad(V)+ (Grad(V) dot That + ETarget- E) That when Grad(V) dot That > 0
+where E is the energy of the free end replica and ETarget is the
+target energy.
 
-where E is the energy of the free end replica and ETarget is the target energy.
-
-When the value {ini} ({final}) is used after the keyword {freeend}, the first
-(last) replica is considered as a free end. The target energy is set to the
-energy of the replica at starting of the NEB calculation. When the value
-{finaleini} or {final2eini} is used the last image is considered as a free end
-and the target energy is equal to the energy of the first replica (which can
-evolve during the NEB relaxation).  With the value {finaleini}, when the initial
-path is too far from the MEP, an intermediate repilica might relax "faster" and
-get a lower energy than the last replica. The benefit of the free end is then
-lost since this intermediate replica will relax toward a local minima. This
-behavior can be prevented by using the value {final2eini} which remove entirely
-the contribution of the gradient for all intermediate replica which have a lower
-energy than the initial one thus preventing these replicae to over-relax.  After
-converging a NEB with the {final2eini} value it is recommended to check that all
-intermediate replica have a larger energy than the initial replica. Finally note
-that if the last replica converges toward a local minimum with a larger energy
-than the energy of the first replica, a free end neb calculation with the value
-{finaleini} or {final2eini} cannot reach the convergence criteria.
+When the value {ini} ({final}) is used after the keyword {freeend},
+the first (last) replica is considered as a free end. The target
+energy is set to the energy of the replica at starting of the NEB
+calculation. When the value {finaleini} or {final2eini} is used the
+last image is considered as a free end and the target energy is equal
+to the energy of the first replica (which can evolve during the NEB
+relaxation).  With the value {finaleini}, when the initial path is too
+far from the MEP, an intermediate repilica might relax "faster" and
+get a lower energy than the last replica. The benefit of the free end
+is then lost since this intermediate replica will relax toward a local
+minima. This behavior can be prevented by using the value {final2eini}
+which remove entirely the contribution of the gradient for all
+intermediate replica which have a lower energy than the initial one
+thus preventing these replicae to over-relax.  After converging a NEB
+with the {final2eini} value it is recommended to check that all
+intermediate replica have a larger energy than the initial
+replica. Finally note that if the last replica converges toward a
+local minimum with a larger energy than the energy of the first
+replica, a free end neb calculation with the value {finaleini} or
+{final2eini} cannot reach the convergence criteria.
 
 :line
 
-
-The keywords {idealpos} and {neigh} allow to specify how to parallel spring
-force is computed.  If the keyword {idealpos} is used or by default, the spring
-force is computed as suggested in "(E)"_#E :
+The keywords {idealpos} and {neigh} allow to specify how to parallel
+spring force is computed.  If the keyword {idealpos} is used or by
+default, the spring force is computed as suggested in "(E)"_#E :
    
-Fspringparallel=-{Kspring}* (RD-RDideal)/(2 meanDist)
+Fspringparallel=-{Kspring}* (RD-RDideal)/(2 meanDist) :pre
 
-where RD is the "reaction coordinate" see "neb"_neb.html section, and RDideal is
-the ideal RD for which all the images are equally spaced (i.e. RDideal =
-(i-1)*meanDist when the climbing image is off, where i is the replica
-number). The meanDist is the average distance between replicas.
+where RD is the "reaction coordinate" see "neb"_neb.html section, and
+RDideal is the ideal RD for which all the images are equally spaced
+(i.e. RDideal = (i-1)*meanDist when the climbing image is off, where i
+is the replica number). The meanDist is the average distance between
+replicas.
 
-If the keyword {neigh} is used, the parallel spring force is computed as in
-"(Henkelman1)"_#Henkelman1 by connecting each intermediate replica with the
-previous and the next image:
+If the keyword {neigh} is used, the parallel spring force is computed
+as in "(Henkelman1)"_#Henkelman1 by connecting each intermediate
+replica with the previous and the next image:
 
-Fspringparallel= {Kspring}* (|Ri+1 - Ri| - |Ri - Ri-1|)
+Fspringparallel= {Kspring}* (|Ri+1 - Ri| - |Ri - Ri-1|) :pre
 
-The parallel spring force associated with the key word idealpos should usually
-be more efficient at keeping the images equally spaced.
+The parallel spring force associated with the key word idealpos should
+usually be more efficient at keeping the images equally spaced.
 
 :line
 
-The keyword {perp} allows to add a spring force perpendicular to the path in
-order to prevent the path from becoming too kinky. It can improve significantly
-the convergence of the NEB when the resolution is poor (i.e. when too few images
-are used) (see "(Maras)"_#Maras).  The perpendicular spring force is given by
+The keyword {perp} allows to add a spring force perpendicular to the
+path in order to prevent the path from becoming too kinky. It can
+improve significantly the convergence of the NEB when the resolution
+is poor (i.e. when too few images are used) (see "(Maras)"_#Maras1).
+The perpendicular spring force is given by
 
-Fspringperp = {Kspringperp} * f(Ri-1,Ri,Ri+1) (Ri+1 + Ri-1 - 2 Ri)
+Fspringperp = {Kspringperp} * f(Ri-1,Ri,Ri+1) (Ri+1 + Ri-1 - 2 Ri) :pre
 
- f(Ri-1 Ri R+1) is a smooth scalar function of the angle Ri-1 Ri Ri+1. It is
- equal to 0 when the path is straight and is equal to 1 when the angle Ri-1 Ri
- Ri+1 is accute. f(Ri-1 Ri R+1) is defined in "(Jonsson)"_#Jonsson
+f(Ri-1 Ri R+1) is a smooth scalar function of the angle Ri-1 Ri
+Ri+1. It is equal to 0 when the path is straight and is equal to 1
+when the angle Ri-1 Ri Ri+1 is accute. f(Ri-1 Ri R+1) is defined in
+"(Jonsson)"_#Jonsson
 
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart files"_restart.html.
-None of the "fix_modify"_fix_modify.html options are relevant to this fix.  No
-global or per-atom quantities are stored by this fix for access by various
-"output commands"_Section_howto.html#howto_15.  No parameter of this fix can be
-used with the {start/stop} keywords of the "run"_run.html command.
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output
+commands"_Section_howto.html#howto_15.  No parameter of this fix can
+be used with the {start/stop} keywords of the "run"_run.html command.
 
-The forces due to this fix are imposed during an energy minimization, as invoked
-by the "minimize"_minimize.html command via the "neb"_neb.html command.
+The forces due to this fix are imposed during an energy minimization,
+as invoked by the "minimize"_minimize.html command via the
+"neb"_neb.html command.
 
 [Restrictions:]
 
-This command can only be used if LAMMPS was built with the REPLICA package.  See
-the "Making LAMMPS"_Section_start.html#start_3 section for more info on
-packages.
+This command can only be used if LAMMPS was built with the REPLICA
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 [Related commands:]
 
 "neb"_neb.html
 
-[Default:] none
+[Default:]
 
-:link(Henkelman1) [(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113,
-9978-9985 (2000).
+none
 
-:link(Henkelman2) [(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+:link(Henkelman1)
+[(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
+
+:link(Henkelman2)
+[(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
-:link(E) [(E)] E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002)
+:link(E)
+[(E)] E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002)
 
-:link(Jonsson) [(Jonsson)] Jonsson, Mills and Jacobsen, in Classical and Quantum
+:link(Jonsson)
+[(Jonsson)] Jonsson, Mills and Jacobsen, in Classical and Quantum
 Dynamics in Condensed Phase Simulations, edited by Berne, Ciccotti, and Coker
-͑World Scientific, Singapore, 1998͒, p. 385
+World Scientific, Singapore, 1998, p. 385
 
-:link(Maras) [(Maras)] Maras, Trushin, Stukowski, Ala-Nissila, Jonsson, Comp
-Phys Comm, 205, 13-21 (2016)
+:link(Maras1)
+[(Maras)] Maras, Trushin, Stukowski, Ala-Nissila, Jonsson,
+Comp Phys Comm, 205, 13-21 (2016)

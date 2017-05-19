@@ -41,14 +41,13 @@ PairSpin::~PairSpin()
 {
   if (allocated) {
     memory->destroy(setflag);
+    
     memory->destroy(cut_spin_exchange);
     memory->destroy(cut_spin_dipolar);
     memory->destroy(J_1);
     memory->destroy(J_2);
     memory->destroy(J_2);
-    
     memory->destroy(cutsq);
-
   }
 }
 
@@ -56,23 +55,24 @@ PairSpin::~PairSpin()
 
 void PairSpin::compute(int eflag, int vflag)
 {
-	
+  int i,j,ii,jj,inum,jnum,itype,jtype;  
+  double evdwl,ecoul;
+  double xtmp,ytmp,ztmp,fmix,fmiy,fmiz,fmjx,fmjy,fmjz,omx,omy,omz;
+  double cut, Jex, ra;
+  double rsq,rd,delx,dely,delz;
+  int *ilist,*jlist,*numneigh,**firstneigh;  
+
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
+  
   double **x = atom->x;
   double **fm = atom->fm;
   double *mumag = atom->mumag;
   double **sp = atom->sp;	
   int *type = atom->type;  
-  
-  int i,j,ii,jj,inum,jnum,itype,jtype;  
-  double xtmp,ytmp,ztmp,fmix,fmiy,fmiz,fmjx,fmjy,fmjz,omx,omy,omz;
-  double rsq,rd,delx,dely,delz;
-  int *ilist,*jlist,*numneigh,**firstneigh;  
-  double cut, Jex, ra;
-  
-  double evdwl,ecoul;
-  evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  int nlocal = atom->nlocal;  
+  int newton_pair = force->newton_pair;
   
   inum = list->inum;
   ilist = list->ilist;
@@ -81,6 +81,7 @@ void PairSpin::compute(int eflag, int vflag)
   
   // Pair spin computations
   // Loop over neighbors of my atoms
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -88,10 +89,21 @@ void PairSpin::compute(int eflag, int vflag)
     ztmp = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i];  
-    
+   
+    //printf(":::::::Loop for atom numb. %d,  jnum=%d ::::::: \n",i,jnum);
+     
+    //printf("Test print real atom: i=%d, sx=%g, sy=%g, sz=%g \n",i,sp[i][0],sp[i][1],sp[i][2]);
+    //printf("Test print real atom: i=%d, rx=%g, ry=%g, rz=%g \n",i,x[i][0],x[i][1],x[i][2]);
+
+    int testcount=0;     
+
     //Exchange interaction
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
+
+      fmix = fmiy = fmiz = 0.0;
+      fmjx = fmjy = fmjz = 0.0;
      
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -103,8 +115,6 @@ void PairSpin::compute(int eflag, int vflag)
       if (rd <= cut) {
           itype = type[i];
           jtype = type[j];
-          fmix = fmiy = fmiz = 0.0;
-          fmjx = fmjy = fmjz = 0.0;
 
           ra = (rd/J_3[itype][jtype])*(rd/J_3[itype][jtype]); 
           Jex = 4.0*J_1[itype][jtype]*ra;
@@ -116,22 +126,47 @@ void PairSpin::compute(int eflag, int vflag)
           fmiy = Jex*sp[j][1];
           fmiz = Jex*sp[j][2];
           
-          //fmjx = Jex*sp[i][0];
-          //fmjy = Jex*sp[i][1];
-          //fmjz = Jex*sp[i][2];
+          fmjx = Jex*sp[i][0];
+          fmjy = Jex*sp[i][1];
+          fmjz = Jex*sp[i][2];
+
+ 
+          
+          //printf("Neighb pair: i=%d, j=%d \n",i,j);
+          //printf("Test print ghost/real neib atom: i=%d, j=%d, sx=%g, sy=%g, sz=%g \n",i,j,sp[j][0],sp[j][1],sp[j][2]);
+          //printf("Test g/r neib pair: i=%d, j=%d, rx=%g, ry=%g, rz=%g \n",i,j,x[j][0],x[j][1],x[j][2]);
+          //printf("Atom i: %d of type %d, Atom j: %d of type %d, \n",i,itype,j,jtype);
+          //printf("Exchange pair (%d,%d), Jij=%g, rij=%g \n",i,j,Jex,rd);
+          testcount++;
 	  }
 
+
+      //printf("Test print ghost/real atom: j=%d, sx=%g, sy=%g, sz=%g \n",j,sp[j][0],sp[j][1],sp[j][2]);
+      //printf("Test print ghost/real atom: j=%d, rx=%g, ry=%g, rz=%g \n",j,x[j][0],x[j][1],x[j][2]);
+     
       fm[i][0] += fmix;	 
       fm[i][1] += fmiy;	  	  
       fm[i][2] += fmiz;
       
-      //fm[j][0] += fmjx;	 
-      //fm[j][1] += fmjy;	  	  
-      //fm[j][2] += fmjz;
-      }     
+      if (newton_pair || j < nlocal) { 
+      fm[j][0] += fmjx;	 
+      fm[j][1] += fmjy;	  	  
+      fm[j][2] += fmjz;
+      }
+
+      //printf("Val fm %d: [%g,%g,%g] \n",i,fm[i][0],fm[i][1],fm[i][2]);
+      //printf("Val fm %d: [%g,%g,%g] \n",j,fm[j][0],fm[j][1],fm[j][2]);
+
+      }
+
+
+     // printf("Test count %d \n",testcount);
+     
   }
+  //printf("New pair val: %d \n",newton_pair);
   //printf("vals exchange: Jx=%g, Jy=%g, Jz=%g \n",fm[0][0],fm[0][1],fm[0][2]);  
   //printf("test exchange. 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);
+  //printf("::::::::::::::::::::::::: End loop ::::::::::::::::::::::::\n");
   if (vflag_fdotr) virial_fdotr_compute();
 }
 

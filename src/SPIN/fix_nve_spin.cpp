@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "fix_nve_spin.h"
-//#include "fix_damping_spin.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
@@ -121,9 +120,7 @@ void FixNVESpin::initial_integrate(int vflag)
       // Advance spins
       //See Omelyan et al., PRL 86, 2001 and P.W. Ma et al, PRB 83, 2011
       for (int i = 0; i < nlocal; i++)
-	      if (mask[i] & groupbit)
-		      if (sp[i][3] > 0.0) {
-
+	      if (mask[i] & groupbit) {
                           cp[0] = cp[1] = cp[2] = 0.0;
                           g[0] = g[1] = g[2] = 0.0;
 			  fm2 = (fm[i][0]*fm[i][0])+(fm[i][1]*fm[i][1])+(fm[i][2]*fm[i][2]);
@@ -134,10 +131,6 @@ void FixNVESpin::initial_integrate(int vflag)
 			  cp[1] = fm[i][2]*sp[i][0]-fm[i][0]*sp[i][2];
 			  cp[2] = fm[i][0]*sp[i][1]-fm[i][1]*sp[i][0];
 			  
-                          //cp[0] = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
-			  //cp[1] = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
-			  //cp[2] = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
-			  
 			  g[0] = sp[i][0]+cp[0]*dts;
 			  g[1] = sp[i][1]+cp[1]*dts;
 			  g[2] = sp[i][2]+cp[2]*dts;
@@ -146,9 +139,9 @@ void FixNVESpin::initial_integrate(int vflag)
 			  g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts*dts;
 			  g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts*dts;
 			  
-			  g[0] /= (1+(fmsq*dts*0.5)*(fmsq*dts*0.5));
-			  g[1] /= (1+(fmsq*dts*0.5)*(fmsq*dts*0.5));	  
-			  g[2] /= (1+(fmsq*dts*0.5)*(fmsq*dts*0.5));
+			  g[0] /= (1+0.25*fm2*dts*dts);
+			  g[1] /= (1+0.25*fm2*dts*dts);
+			  g[2] /= (1+0.25*fm2*dts*dts);
 			  
 			  sp[i][0] = g[0];
 			  sp[i][1] = g[1];
@@ -161,7 +154,7 @@ void FixNVESpin::initial_integrate(int vflag)
                           sp[i][1] *= scale;
                           sp[i][2] *= scale;
                           
-                          // printf("test fix integ. 1;i=%d, fx=%g, fy=%g, fz=%g \n",i,fm[i][0],fm[i][1],fm[i][2]);	  
+                          //printf("test fix integ. 1;i=%d, fx=%g, fy=%g, fz=%g \n",i,fm[i][0],fm[i][1],fm[i][2]);	  
 
                           //printf("test fix integ.; i=%d, sx=%g, sy=%g, sz=%g, norm=%g \n",i,sp[i][0],sp[i][1],sp[i][2],scale);	  
 		  }

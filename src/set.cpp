@@ -860,7 +860,7 @@ void Set::set(int keyword)
       sp[i][2] = zvalue/sp_norm;
       sp[i][3] = sqrt(sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1] +
                       sp[i][2]*sp[i][2]); //Should be 1 for atomic spins
-      mumag[i] = sp_norm;
+      mumag[i] = dvalue;
     }
 
     // set quaternion orientation of ellipsoid or tri or body particle

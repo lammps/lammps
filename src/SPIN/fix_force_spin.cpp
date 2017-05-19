@@ -77,8 +77,6 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 	  Kaz = force->numeric(FLERR,arg[7]);	  
   } else error->all(FLERR,"Illegal fix force/spin command");
  
-  //printf("test field in creator: H=%g, Hx=%g, Hy=%g, Hz=%g \n",H_field,Hx,Hy,Hz); 
-  
   degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
 
@@ -122,13 +120,13 @@ void FixForceSpin::init()
   }
 
   // check variables
-   if (magstr) {
+  if (magstr) {
   magvar = input->variable->find(magstr);
   if (magvar < 0) 
         error->all(FLERR,"Variable name for fix magnetic field does not exist");
   if (!input->variable->equalstyle(magvar))
         error->all(FLERR,"Variable for fix magnetic field is invalid style");
-	}
+  }
   
   varflag = CONSTANT;
   if (magfieldstyle != CONSTANT) varflag = EQUAL;
@@ -177,19 +175,17 @@ void FixForceSpin::post_force(int vflag)
 		  fm[i][0] += mumag[i]*xmag;
 		  fm[i][1] += mumag[i]*ymag;
 		  fm[i][2] += mumag[i]*zmag;
-		  // emag -= (sp[i][0]*xmag + sp[i][1]*ymag + sp[i][2]*zmag);
 	  }
   }
   if (style == ANISOTROPY) {
 	  for (int i = 0; i < nlocal; i++) {
 		  scalar = Kax*sp[i][0] + Kay*sp[i][1] + Kaz*sp[i][2];
-		  fm[i][0] -= Ka*scalar*Kax;
-		  fm[i][1] -= Ka*scalar*Kay;
-		  fm[i][2] -= Ka*scalar*Kaz;
-		  //emag -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
+		  fm[i][0] += scalar*xmag;
+		  fm[i][1] += scalar*ymag;
+		  fm[i][2] += scalar*zmag;
 	  }
   }
-  printf("test force. 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]); 
+  //printf("test force. 1;i=0, fx=%g, fy=%g, fz=%g, mumag=%g \n",fm[0][0],fm[0][1],fm[0][2],mumag[0]); 
   //printf("Field force compute, fm[0][2]=%g \n",fm[0][2]); 
 }
 
@@ -211,6 +207,12 @@ void FixForceSpin::set_magneticforce()
 	  ymag = H_field*Hy;
 	  zmag = H_field*Hz;	  
   }
+  if (style == ANISOTROPY) {
+	  xmag = 2.0*Ka*Kax;
+	  ymag = 2.0*Ka*Kay;
+	  zmag = 2.0*Ka*Kaz;	  
+  }
+
 }
 
 

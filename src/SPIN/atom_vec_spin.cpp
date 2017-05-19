@@ -44,7 +44,6 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
  
   forceclearflag = 1;
   atom->mumag_flag = atom->sp_flag = 1;
-  //atom->rmass_flag = 1;    
 }
 
 
@@ -138,6 +137,7 @@ int AtomVecSpin::pack_comm(int n, int *list, double *buf,
       buf[m++] = sp[j][0];
       buf[m++] = sp[j][1];
       buf[m++] = sp[j][2];
+      buf[m++] = sp[j][3];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -157,6 +157,7 @@ int AtomVecSpin::pack_comm(int n, int *list, double *buf,
       buf[m++] = sp[j][0];
       buf[m++] = sp[j][1];
       buf[m++] = sp[j][2];
+      buf[m++] = sp[j][3];
     }
   }
   return m;
@@ -180,6 +181,7 @@ int AtomVecSpin::pack_comm_vel(int n, int *list, double *buf,
       buf[m++] = sp[j][0];
       buf[m++] = sp[j][1];
       buf[m++] = sp[j][2];
+      buf[m++] = sp[j][3];
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -203,6 +205,7 @@ int AtomVecSpin::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = sp[j][0];
         buf[m++] = sp[j][1];
         buf[m++] = sp[j][2];
+        buf[m++] = sp[j][3];
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
         buf[m++] = v[j][2];
@@ -219,6 +222,7 @@ int AtomVecSpin::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = sp[j][0];
         buf[m++] = sp[j][1];
         buf[m++] = sp[j][2];
+        buf[m++] = sp[j][3];
         if (mask[i] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
@@ -246,6 +250,7 @@ int AtomVecSpin::pack_comm_hybrid(int n, int *list, double *buf)
     buf[m++] = sp[j][0];
     buf[m++] = sp[j][1];
     buf[m++] = sp[j][2];
+    buf[m++] = sp[j][3];
   }
   return m;
 }
@@ -265,6 +270,7 @@ void AtomVecSpin::unpack_comm(int n, int first, double *buf)
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
+    sp[i][3] = buf[m++];
   }
 }
 
@@ -283,6 +289,7 @@ void AtomVecSpin::unpack_comm_vel(int n, int first, double *buf)
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
+    sp[i][3] = buf[m++];
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -301,6 +308,7 @@ int AtomVecSpin::unpack_comm_hybrid(int n, int first, double *buf)
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
+    sp[i][3] = buf[m++];
   }
   return m;
 }
@@ -317,6 +325,9 @@ int AtomVecSpin::pack_reverse(int n, int first, double *buf)
     buf[m++] = f[i][0];
     buf[m++] = f[i][1];
     buf[m++] = f[i][2];
+    buf[m++] = fm[i][0];
+    buf[m++] = fm[i][1];
+    buf[m++] = fm[i][2];
   }
   return m;
 }
@@ -333,6 +344,9 @@ void AtomVecSpin::unpack_reverse(int n, int *list, double *buf)
     f[j][0] += buf[m++];
     f[j][1] += buf[m++];
     f[j][2] += buf[m++];
+    fm[j][0] += buf[m++];
+    fm[j][1] += buf[m++];
+    fm[j][2] += buf[m++];
   } 
 }
 
@@ -855,9 +869,10 @@ void AtomVecSpin::pack_data(double **buf)
     buf[i][6] = sp[i][0];
     buf[i][7] = sp[i][1];
     buf[i][8] = sp[i][2];
-    buf[i][9] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
-    buf[i][10] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
-    buf[i][11] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
+    buf[i][9] = sp[i][3];
+    buf[i][10] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+    buf[i][11] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+    buf[i][12] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
   } 
 }
 
@@ -871,8 +886,9 @@ int AtomVecSpin::pack_data_hybrid(int i, double *buf)
   buf[1] = sp[i][0];
   buf[2] = sp[i][1];
   buf[3] = sp[i][2];
+  buf[4] = sp[i][3];
   
-  return 4;
+  return 5;
 }
 
 /* ----------------------------------------------------------------------
@@ -887,9 +903,9 @@ void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
             "%-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],buf[i][4],
-            buf[i][5],buf[i][6],buf[i][7],buf[i][8],
-            (int) ubuf(buf[i][9]).i,(int) ubuf(buf[i][10]).i,
-            (int) ubuf(buf[i][11]).i); 
+            buf[i][5],buf[i][6],buf[i][7],buf[i][8],buf[i][9],
+            (int) ubuf(buf[i][10]).i,(int) ubuf(buf[i][11]).i,
+            (int) ubuf(buf[i][12]).i); 
 }
 
 /* ----------------------------------------------------------------------
@@ -898,7 +914,7 @@ void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecSpin::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3]);
+  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3],buf[4]);
   return 4;
 }
 

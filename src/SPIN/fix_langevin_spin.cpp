@@ -107,7 +107,7 @@ void FixLangevinSpin::init()
   if (flag_force >= flag_lang) error->all(FLERR,"Fix langevin/spin should come after all other spin fixes");  
 
   dts = update->dt; 
-  Gil_factor = alpha_t/(1.0+(alpha_t)*(alpha_t));
+  Gil_factor = 1.0/(1.0+(alpha_t)*(alpha_t));
   
   double hbar = force->hplanck/MY_2PI; //eV/(rad.THz)
   double kb = force->boltz;
@@ -166,8 +166,8 @@ void FixLangevinSpin::post_force(int vflag)
 		fm[i][1] = fmy;
 		fm[i][2] = fmz;		
    }
-   
-   //printf("test damping. 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);
+
+  //printf("test damping. 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);
   //apply thermal effects
   //add random field to fm 
   for (int i = 0; i < nlocal; i++)
@@ -183,12 +183,15 @@ void FixLangevinSpin::post_force(int vflag)
         	fm[i][0] += rx;//Adding random field
 		fm[i][1] += ry;
 		fm[i][2] += rz;
-         
+                
                 fm[i][0] *= Gil_factor;//Multiplying by Gilbert's prefactor 
                 fm[i][1] *= Gil_factor; 
                 fm[i][2] *= Gil_factor; 
 		
    }
+
+   //printf("test langevin 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);
+
    //printf("test rand var: %g, sigma=%g \n",(random->uniform()-0.5),sigma);
    //printf("test rand var: %g, sigma=%g \n",random->gaussian(),sigma);
    //printf("test random 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);  

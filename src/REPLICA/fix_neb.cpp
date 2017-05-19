@@ -115,13 +115,14 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   int *iroots = new int[nreplica];
   MPI_Group uworldgroup,rootgroup;
   if (NEBLongRange) {
-    for (int iIm =0; iIm < nreplica;iIm++)
-      iroots[iIm]=universe->root_proc[iIm];
+    for (int i=0; i<nreplica; i++)
+      iroots[i]=universe->root_proc[i];
     MPI_Comm_group(uworld, &uworldgroup);
     MPI_Group_incl(uworldgroup, nreplica, iroots, &rootgroup);
-    //    MPI_Comm_create_group(uworld, rootgroup, 0, &rootworld);
     MPI_Comm_create(uworld, rootgroup, &rootworld);
   }
+  delete[] iroots;
+
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all
 
@@ -139,8 +140,8 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize local storage
 
-  maxlocal = 0;
-  ntotal = 0;
+  maxlocal = -1;
+  ntotal = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,6 +154,7 @@ FixNEB::~FixNEB()
   memory->destroy(xprev);
   memory->destroy(xnext);
   memory->destroy(tangent);
+  memory->destroy(fnext);
   memory->destroy(springF);
   memory->destroy(xsend);
   memory->destroy(xrecv);
@@ -171,9 +173,10 @@ FixNEB::~FixNEB()
   memory->destroy(counts);
   memory->destroy(displacements);
 
-  if (NEBLongRange)
+  if (NEBLongRange) {
+    MPI_Comm_free(&rootworld);
     memory->destroy(nlenall);
-
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,11 +249,11 @@ void FixNEB::min_setup(int vflag)
 
 void FixNEB::min_post_force(int vflag)
 {
-  double vprev,vnext,vmax,vmin;
+  double vprev,vnext;
   double delxp,delyp,delzp,delxn,delyn,delzn;
-  double vIni =0.0;
+  double vIni=0.0;
 
-  vprev=vnext=veng = pe->compute_scalar();
+  vprev=vnext=veng=pe->compute_scalar();
 
   if (ireplica < nreplica-1 && me ==0)
     MPI_Send(&veng,1,MPI_DOUBLE,procnext,0,uworld);
@@ -302,7 +305,7 @@ void FixNEB::min_post_force(int vflag)
   double **x = atom->x;
   int *mask = atom->mask;
   double dot = 0.0;
-  double prefactor;
+  double prefactor = 0.0;
 
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -364,9 +367,9 @@ void FixNEB::min_post_force(int vflag)
         }
       }
   } else {
-    //not the first or last replica
-    vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
-    vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
+    // not the first or last replica
+    double vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
+    double vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
 
 
     for (int i = 0; i < nlocal; i++)
@@ -658,7 +661,6 @@ void FixNEB::inter_replica_comm()
       MPI_Send(f[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
     if (ireplica < nreplica-1) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-
     return;
   }
 
@@ -832,17 +834,19 @@ void FixNEB::inter_replica_comm()
 void FixNEB::reallocate()
 {
 
+  maxlocal = atom->nmax;
+
   memory->destroy(xprev);
   memory->destroy(xnext);
   memory->destroy(tangent);
   memory->destroy(fnext);
   memory->destroy(springF);
 
-  if (NEBLongRange) {
-    memory->destroy(nlenall);
-    memory->create(nlenall,nreplica,"neb:nlenall");
-  }
-
+  memory->create(xprev,maxlocal,3,"neb:xprev");
+  memory->create(xnext,maxlocal,3,"neb:xnext");
+  memory->create(tangent,maxlocal,3,"neb:tangent");
+  memory->create(fnext,maxlocal,3,"neb:fnext");
+  memory->create(springF,maxlocal,3,"neb:springF");
 
   if (cmode != SINGLE_PROC_DIRECT) {
     memory->destroy(xsend);
@@ -851,23 +855,16 @@ void FixNEB::reallocate()
     memory->destroy(frecv);
     memory->destroy(tagsend);
     memory->destroy(tagrecv);
-  }
-
-  maxlocal = atom->nmax;
-
-  memory->create(xprev,maxlocal,3,"neb:xprev");
-  memory->create(xnext,maxlocal,3,"neb:xnext");
-  memory->create(tangent,maxlocal,3,"neb:tangent");
-  memory->create(fnext,maxlocal,3,"neb:fnext");
-  memory->create(springF,maxlocal,3,"neb:springF");
-
-
-  if (cmode != SINGLE_PROC_DIRECT) {
     memory->create(xsend,maxlocal,3,"neb:xsend");
     memory->create(fsend,maxlocal,3,"neb:fsend");
     memory->create(xrecv,maxlocal,3,"neb:xrecv");
     memory->create(frecv,maxlocal,3,"neb:frecv");
     memory->create(tagsend,maxlocal,"neb:tagsend");
     memory->create(tagrecv,maxlocal,"neb:tagrecv");
+  }
+
+  if (NEBLongRange) {
+    memory->destroy(nlenall);
+    memory->create(nlenall,nreplica,"neb:nlenall");
   }
 }

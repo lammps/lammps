@@ -20,9 +20,12 @@
 #include "memory.h"
 #include "error.h"
 #include "math_special.h"
+#include "math_const.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -32,7 +35,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
   vector_flag = 1;
-  size_vector = 6;
+  size_vector = 7;
   extvector = 0;
 
   init();
@@ -52,6 +55,8 @@ ComputeSpin::~ComputeSpin()
 
 void ComputeSpin::init()
 {
+  hbar = force->hplanck/MY_2PI;
+  kb = force->boltz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,13 +64,16 @@ void ComputeSpin::init()
 void ComputeSpin::compute_vector()
 {
   int i, index;
-  
+ 
   invoked_vector = update->ntimestep;
   
   countsp = countsptot = 0.0;	
   mag[0] = mag[1] = mag[2] = mag[3] = 0.0; 
   magtot[0] = magtot[1] = magtot[2] = magtot[3] = 0.0; 
-  magenergy = magenergytot = 0.0;  
+  magenergy = magenergytot = 0.0; 
+  tempnum = tempnumtot = 0.0;
+  tempdenom = tempdenomtot = 0.0; 
+  spintemperature = 0.0;  
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -74,6 +82,7 @@ void ComputeSpin::compute_vector()
   double *mumag = atom->mumag;
   double **sp = atom->sp;  
   double **fm = atom->fm;
+  double tx,ty,tz;
 	
   int nlocal = atom->nlocal;
     
@@ -86,7 +95,12 @@ void ComputeSpin::compute_vector()
 		mag[2] += sp[i][2];
 		magenergy += mumag[i]*sp[i][0]*fm[i][0];  
 		magenergy += mumag[i]*sp[i][1]*fm[i][1]; 
-		magenergy += mumag[i]*sp[i][2]*fm[i][2]; 		
+		magenergy += mumag[i]*sp[i][2]*fm[i][2];
+                tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
+                ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
+                tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
+                tempnum += tx*tx+ty*ty+tz*tz;
+                tempdenom += sp[i][0]*sp[i][0]+sp[i][1]*sp[i][1]+sp[i][2]*sp[i][2];  	
 		countsp++;
                 }
       }
@@ -95,6 +109,8 @@ void ComputeSpin::compute_vector()
   
   MPI_Allreduce(mag,magtot,4,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&magenergy,&magenergytot,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&tempnum,&tempnumtot,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&tempdenom,&tempdenomtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&countsp,&countsptot,1,MPI_DOUBLE,MPI_SUM,world);
   
   double scale = 1.0/countsptot;
@@ -102,13 +118,16 @@ void ComputeSpin::compute_vector()
   magtot[1] *= scale;
   magtot[2] *= scale;    
   magtot[3] = sqrt(square(magtot[0])+square(magtot[1])+square(magtot[2]));
+  spintemperature = hbar*tempnumtot/2.0/kb/tempdenomtot;    
  
   vector[0] = invoked_vector*update->dt;
   vector[1] = magtot[0];
   vector[2] = magtot[1];
   vector[3] = magtot[2];
   vector[4] = magtot[3];
-  vector[5] = magenergytot;  
+  vector[5] = magenergytot; 
+  vector[6] = spintemperature;
+ 
 }
 
 /* ----------------------------------------------------------------------
@@ -120,6 +139,6 @@ void ComputeSpin::allocate()
   memory->destroy(mag);
   memory->create(mag,4,"compute/spin:mag");
   memory->create(magtot,5,"compute/spin:mag");
-  memory->create(vector,6,"compute/spin:vector");
+  memory->create(vector,7,"compute/spin:vector");
 }
 

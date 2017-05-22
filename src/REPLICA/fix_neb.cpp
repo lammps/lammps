@@ -174,7 +174,7 @@ FixNEB::~FixNEB()
   memory->destroy(displacements);
 
   if (NEBLongRange) {
-    MPI_Comm_free(&rootworld);
+    if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
     memory->destroy(nlenall);
   }
 }

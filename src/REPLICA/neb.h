@@ -50,7 +50,7 @@ class NEB : protected Pointers {
   char *infile;                // name of file containing final state
 
   class FixNEB *fneb;
-  int nall;                    // per-replica dimension of array all
+  int numall;                  // per-replica dimension of array all
   double **all;                // PE,plen,nlen,gradvnorm from each replica
   double *rdist;               // normalize reaction distance, 0 to 1
   double *freplica;            // force on an image

@@ -35,6 +35,12 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 
 PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
+  ninput = noutput = 0;
+  istr = NULL;
+  ostr = NULL;
+  format = NULL;
+  length_longstr = 0;
+
   // pfuncs stores interface info for each Python function
 
   nfunc = 0;

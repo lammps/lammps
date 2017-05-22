@@ -220,7 +220,7 @@ void FixNEB::init()
   if (atom->natoms > MAXSMALLINT) error->all(FLERR,"Too many atoms for NEB");
   ntotal = atom->natoms;
 
-  if (atom->nlocal > maxlocal) reallocate();
+  if (atom->nmax > maxlocal) reallocate();
 
   if (MULTI_PROC && counts == NULL) {
     memory->create(xsendall,ntotal,3,"neb:xsendall");
@@ -624,7 +624,7 @@ void FixNEB::inter_replica_comm()
 
   // reallocate memory if necessary
 
-  if (atom->nlocal > maxlocal) reallocate();
+  if (atom->nmax > maxlocal) reallocate();
 
   double **x = atom->x;
   double **f = atom->f;

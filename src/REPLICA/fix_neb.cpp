@@ -270,12 +270,10 @@ void FixNEB::min_post_force(int vflag)
     MPI_Bcast(&vnext,1,MPI_DOUBLE,0,world);
   }
 
-  if (FreeEndFinal) {
-    if (update->ntimestep == 0) {EFinalIni = veng;}
-  }
+  if (FreeEndFinal && (update->ntimestep == 0)) EFinalIni = veng;
 
-  if (ireplica == 0)
-    vIni=veng;
+  if (ireplica == 0) vIni=veng;
+
   if (FreeEndFinalWithRespToEIni) {
     if (me == 0) {
       int procFirst;
@@ -484,7 +482,7 @@ void FixNEB::min_post_force(int vflag)
     }
   }
 
-  if (FreeEndFinal&&ireplica == nreplica -1) {
+  if (FreeEndFinal && ireplica == nreplica -1) {
     if (tlen > 0.0) {
       double dotall;
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
@@ -524,7 +522,7 @@ void FixNEB::min_post_force(int vflag)
   double meanDist,idealPos,lenuntilIm,lenuntilClimber;
   lenuntilClimber=0;
   if (NEBLongRange) {
-    if (cmode == SINGLE_PROC_DIRECT or cmode == SINGLE_PROC_MAP) {
+    if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);
     } else {
       if (me == 0)

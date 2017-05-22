@@ -145,15 +145,15 @@ void NEB::command(int narg, char **arg)
   // process file-style setting to setup initial configs for all replicas
 
   if (strcmp(arg[5],"final") == 0) {
-    if (narg != 7 and narg !=8) error->universe_all(FLERR,"Illegal NEB command");
+    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB command");
     infile = arg[6];
     readfile(infile,0);
   } else if (strcmp(arg[5],"each") == 0) {
-    if (narg != 7 and narg !=8) error->universe_all(FLERR,"Illegal NEB command");
+    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB command");
     infile = arg[6];
     readfile(infile,1);
   } else if (strcmp(arg[5],"none") == 0) {
-    if (narg != 6 and narg !=7) error->universe_all(FLERR,"Illegal NEB command");
+    if (narg != 6 && narg !=7) error->universe_all(FLERR,"Illegal NEB command");
   } else error->universe_all(FLERR,"Illegal NEB command");
 
   Verbose=false;

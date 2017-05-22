@@ -46,8 +46,8 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   displacements(NULL)
 {
 
-
-  StandardNEB=NEBLongRange=PerpSpring=FreeEndIni=FreeEndFinal=false;
+  NEBLongRange=true;
+  StandardNEB=PerpSpring=FreeEndIni=FreeEndFinal=false;
   FreeEndFinalWithRespToEIni=FinalAndInterWithRespToEIni=false;
 
   kspringPerp=0.0;

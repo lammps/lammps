@@ -70,7 +70,6 @@ class FixNEB : public Fix {
 
   void inter_replica_comm();
   void reallocate();
-
 };
 
 }

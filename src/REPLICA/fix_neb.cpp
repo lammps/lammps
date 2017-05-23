@@ -95,7 +95,6 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   // nprocs_universe = # of procs in all replicase
   // procprev,procnext = root proc in adjacent replicas
 
-
   me = comm->me;
   nprocs = comm->nprocs;
 
@@ -103,12 +102,9 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
 
-  if (ireplica > 0)
-    procprev = universe->root_proc[ireplica-1];
+  if (ireplica > 0) procprev = universe->root_proc[ireplica-1];
   else procprev = -1;
-
-  if (ireplica < nreplica-1)
-    procnext = universe->root_proc[ireplica+1];
+  if (ireplica < nreplica-1) procnext = universe->root_proc[ireplica+1];
   else procnext = -1;
 
   uworld = universe->uworld;
@@ -317,11 +313,10 @@ void FixNEB::min_post_force(int vflag)
 
   dotgrad = gradlen = dotpath = dottangrad = 0.0;
 
-  if (ireplica ==nreplica-1) {
+  if (ireplica == nreplica-1) {
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-
         delxp = x[i][0] - xprev[i][0];
         delyp = x[i][1] - xprev[i][1];
         delzp = x[i][2] - xprev[i][2];
@@ -365,7 +360,9 @@ void FixNEB::min_post_force(int vflag)
         }
       }
   } else {
+
     // not the first or last replica
+
     double vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
     double vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
 
@@ -464,6 +461,7 @@ void FixNEB::min_post_force(int vflag)
   if (ireplica < nreplica-1)
     dotgrad = dotgrad /(gradlen*gradnextlen);
 
+  dot = 0.0;
   if (FreeEndIni && ireplica == 0) {
     if (tlen > 0.0) {
       double dotall;
@@ -576,8 +574,7 @@ void FixNEB::min_post_force(int vflag)
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dot=dotall;
 
-  if (ireplica == rclimber)
-    prefactor = -2.0*dot;
+  if (ireplica == rclimber) prefactor = -2.0*dot;
   else {
     if (NEBLongRange) {
       prefactor = -dot - kspring*(lenuntilIm-idealPos)/(2*meanDist);
@@ -831,7 +828,6 @@ void FixNEB::inter_replica_comm()
 
 void FixNEB::reallocate()
 {
-
   maxlocal = atom->nmax;
 
   memory->destroy(xprev);

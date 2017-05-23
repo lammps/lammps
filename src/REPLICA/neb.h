@@ -38,7 +38,7 @@ class NEB : protected Pointers {
  private:
   int me,me_universe;          // my proc ID in world and universe
   int ireplica,nreplica;
-  bool Verbose;
+  bool verbose;
   MPI_Comm uworld;
   MPI_Comm roots;              // MPI comm with 1 root proc from each world
   FILE *fp;
@@ -109,7 +109,7 @@ for NEB.
 
 E: Too many timesteps
 
-The cummulative timesteps must fit in a 64-bit integer.
+The cumulative timesteps must fit in a 64-bit integer.
 
 E: Unexpected end of neb file
 

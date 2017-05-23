@@ -655,16 +655,16 @@ void NEB::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-        fprintf(uscreen,"NaN %12.5g %12.5g %12.5g %12.5g %12.5g",
-                180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
+        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
+                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
                 all[0][3],freplica[0],fmaxatomInRepl[0]);  
         for (int i = 1; i < nreplica-1; i++)
           fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                   180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
                   180-acos(all[i][6])*todeg,all[i][3],freplica[i],
                   fmaxatomInRepl[i]);  
-        fprintf(uscreen,"NaN %12.5g NaN %12.5g %12.5g %12.5g",
-                180-acos(all[nreplica-1][5])*todeg,all[nreplica-1][3],
+        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
+                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
                 freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
       }
       fprintf(uscreen,"\n");
@@ -679,16 +679,16 @@ void NEB::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-        fprintf(ulogfile,"NaN %12.5g %12.5g %12.5g %12.5g %12.5g",
-                180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
+        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
+                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
                 all[0][3],freplica[0],fmaxatomInRepl[0]);  
         for (int i = 1; i < nreplica-1; i++)
           fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                   180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
                   180-acos(all[i][6])*todeg,all[i][3],freplica[i],
                   fmaxatomInRepl[i]);  
-        fprintf(ulogfile,"NaN %12.5g NaN %12.5g %12.5g %12.5g",
-                180-acos(all[nreplica-1][5])*todeg,all[nreplica-1][3],
+        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
+                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
                 freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
       }
       fprintf(ulogfile,"\n");

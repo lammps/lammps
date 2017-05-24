@@ -64,7 +64,7 @@ static const char cite_fix_qeq_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), pertype_option(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reax);
 
@@ -76,7 +76,9 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   swa = force->numeric(FLERR,arg[4]);
   swb = force->numeric(FLERR,arg[5]);
   tolerance = force->numeric(FLERR,arg[6]);
-  pertype_parameters(arg[7]);
+  int len = strlen(arg[7]) + 1;
+  pertype_option = new char[len];
+  strcpy(pertype_option,arg[7]);
 
   // dual CG support only available for USER-OMP variant
   dual_enabled = 0;
@@ -135,6 +137,8 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 
 FixQEqReax::~FixQEqReax()
 {
+  delete[] pertype_option;
+
   // unregister callbacks to this fix from Atom class
 
   if (copymode) return;
@@ -154,6 +158,13 @@ FixQEqReax::~FixQEqReax()
     memory->destroy(eta);
     memory->destroy(gamma);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixQEqReax::post_constructor()
+{
+  pertype_parameters(pertype_option);
 }
 
 /* ---------------------------------------------------------------------- */

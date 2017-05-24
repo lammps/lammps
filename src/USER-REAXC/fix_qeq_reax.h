@@ -39,6 +39,7 @@ class FixQEqReax : public Fix {
   FixQEqReax(class LAMMPS *, int, char **);
   ~FixQEqReax();
   int setmask();
+  virtual void post_constructor();
   virtual void init();
   void init_list(int,class NeighList *);
   virtual void init_storage();
@@ -100,6 +101,7 @@ class FixQEqReax : public Fix {
   //double **h;
   //double *hc, *hs;
 
+  char *pertype_option;  // argument to determine how per-type info is obtained
   virtual void pertype_parameters(char*);
   void init_shielding();
   void init_taper();

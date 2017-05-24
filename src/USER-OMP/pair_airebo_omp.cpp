@@ -1907,7 +1907,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
   realrij[0] = x[atomi][0] - x[atomj][0];
   realrij[1] = x[atomi][1] - x[atomj][1];
   realrij[2] = x[atomi][2] - x[atomj][2];
-  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1] 
+  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1]
                                             + realrij[2] * realrij[2]);
 
   REBO_neighs = REBO_firstneigh[i];

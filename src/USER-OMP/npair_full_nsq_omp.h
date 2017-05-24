@@ -15,7 +15,7 @@
 
 NPairStyle(full/nsq/omp,
            NPairFullNsqOmp,
-           NP_FULL | NP_NSQ | NP_OMP | NP_NEWTON | NP_NEWTOFF | 
+           NP_FULL | NP_NSQ | NP_OMP | NP_NEWTON | NP_NEWTOFF |
            NP_ORTHO | NP_TRI)
 
 #else

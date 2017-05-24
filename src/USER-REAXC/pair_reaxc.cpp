@@ -211,6 +211,9 @@ void PairReaxC::settings(int narg, char **arg)
     control->thb_cutsq = 0.00001;
     control->bg_cut = 0.3;
 
+    // Initialize for when omp style included
+    control->nthreads = 1;
+
     out_control->write_steps = 0;
     out_control->traj_method = 0;
     strcpy( out_control->traj_title, "default_title" );
@@ -256,7 +259,7 @@ void PairReaxC::settings(int narg, char **arg)
       system->safezone = force->numeric(FLERR,arg[iarg+1]);
       if (system->safezone < 0.0)
 	error->all(FLERR,"Illegal pair_style reax/c safezone command");
-      system->saferzone = system->safezone*1.2;
+      system->saferzone = system->safezone*1.2 + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
@@ -457,6 +460,9 @@ void PairReaxC::setup( )
 
     ReAllocate( system, control, data, workspace, &lists, mpi_data );
   }
+
+  bigint local_ngroup = list->inum;
+  MPI_Allreduce( &local_ngroup, &ngroup, 1, MPI_LMP_BIGINT, MPI_SUM, world );
 }
 
 /* ---------------------------------------------------------------------- */

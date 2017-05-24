@@ -31,6 +31,10 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 /* allocate space for my_atoms
    important: we cannot know the exact number of atoms that will fall into a
    process's box throughout the whole simulation. therefore
@@ -48,6 +52,15 @@ int PreAllocate_Space( reax_system *system, control_params *control,
 
   system->my_atoms = (reax_atom*)
     scalloc( system->total_cap, sizeof(reax_atom), "my_atoms", comm );
+
+  // Nullify some arrays only used in omp styles
+  // Should be safe to do here since called in pair->setup();
+#ifdef LMP_USER_OMP
+  workspace->CdDeltaReduction = NULL;
+  workspace->forceReduction = NULL;
+  workspace->valence_angle_atom_myoffset = NULL;
+  workspace->my_ext_pressReduction = NULL;
+#endif
 
   return SUCCESS;
 }
@@ -174,13 +187,21 @@ void DeAllocate_Workspace( control_params *control, storage *workspace )
   sfree( workspace->q2, "q2" );
   sfree( workspace->p2, "p2" );
 
-  /* integrator */
+  /* integrator storage */
   sfree( workspace->v_const, "v_const" );
 
   /* force related storage */
   sfree( workspace->f, "f" );
   sfree( workspace->CdDelta, "CdDelta" );
 
+  /* reductions */
+#ifdef LMP_USER_OMP
+  if(workspace->CdDeltaReduction) sfree( workspace->CdDeltaReduction, "cddelta_reduce" );
+  if(workspace->forceReduction) sfree( workspace->forceReduction, "f_reduce" );
+  if(workspace->valence_angle_atom_myoffset) sfree( workspace->valence_angle_atom_myoffset, "valence_angle_atom_myoffset");
+  
+  if (control->virial && workspace->my_ext_pressReduction) sfree( workspace->my_ext_pressReduction, "ext_press_reduce");
+#endif
 }
 
 
@@ -272,10 +293,24 @@ int Allocate_Workspace( reax_system *system, control_params *control,
   /* integrator storage */
   workspace->v_const = (rvec*) smalloc( local_rvec, "v_const", comm );
 
-  // /* force related storage */
+  /* force related storage */
   workspace->f = (rvec*) scalloc( total_cap, sizeof(rvec), "f", comm );
   workspace->CdDelta = (double*)
     scalloc( total_cap, sizeof(double), "CdDelta", comm );
+  
+  // storage for reductions with multiple threads
+#ifdef LMP_USER_OMP
+  workspace->CdDeltaReduction = (double *) scalloc(sizeof(double), total_cap*control->nthreads,
+						 "cddelta_reduce", comm);
+  
+  workspace->forceReduction = (rvec *) scalloc(sizeof(rvec), total_cap*control->nthreads,
+					       "forceReduction", comm);
+
+  workspace->valence_angle_atom_myoffset = (int *) scalloc(sizeof(int), total_cap, "valence_angle_atom_myoffset", comm);
+
+  if (control->virial)
+    workspace->my_ext_pressReduction = (rvec *) calloc(sizeof(rvec), control->nthreads);
+#endif
 
   return SUCCESS;
 }
@@ -333,13 +368,30 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
     *total_bonds += system->my_atoms[i].num_bonds;
   }
   *total_bonds = (int)(MAX( *total_bonds * safezone, mincap*MIN_BONDS ));
-
+  
+#ifdef LMP_USER_OMP
+  for (i = 0; i < bonds->num_intrs; ++i)
+    sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+#endif
+  
   Delete_List( bonds, comm );
   if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds, comm)) {
     fprintf( stderr, "not enough space for bonds list. terminating!\n" );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }
-
+  
+#ifdef LMP_USER_OMP
+#if defined(_OPENMP)
+  int nthreads = omp_get_num_threads();
+#else
+  int nthreads = 1;
+#endif
+  
+  for (i = 0; i < bonds->num_intrs; ++i)
+    bonds->select.bond_list[i].bo_data.CdboReduction = 
+      (double*) smalloc(sizeof(double)*nthreads, "CdboReduction", comm);
+#endif
+  
   return SUCCESS;
 }
 
@@ -438,7 +490,7 @@ void ReAllocate( reax_system *system, control_params *control,
     Reallocate_Bonds_List( system, (*lists)+BONDS, &num_bonds,
                            &est_3body, comm );
     realloc->bonds = 0;
-    realloc->num_3body = MAX( realloc->num_3body, est_3body );
+    realloc->num_3body = MAX( realloc->num_3body, est_3body ) * 2;
   }
 
   /* 3-body list */

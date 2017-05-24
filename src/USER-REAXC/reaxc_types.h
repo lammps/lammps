@@ -38,6 +38,40 @@
 #include "sys/time.h"
 #include <time.h>
 
+#if defined LMP_USER_OMP
+#define OMP_TIMING 1
+
+#ifdef OMP_TIMING
+// pkcoff timing fields
+enum {
+	COMPUTEINDEX=0,
+	COMPUTEWLINDEX,
+	COMPUTEBFINDEX,
+	COMPUTEQEQINDEX,
+	COMPUTENBFINDEX,
+	COMPUTEIFINDEX,
+	COMPUTETFINDEX,
+	COMPUTEBOINDEX,
+	COMPUTEBONDSINDEX,
+	COMPUTEATOMENERGYINDEX,
+	COMPUTEVALENCEANGLESBOINDEX,
+	COMPUTETORSIONANGLESBOINDEX,
+	COMPUTEHBONDSINDEX,
+	COMPUTECG1INDEX,
+	COMPUTECG2INDEX,
+	COMPUTECGCOMPUTEINDEX,
+	COMPUTECALCQINDEX,
+	COMPUTEINITMVINDEX,
+	COMPUTEMVCOMPINDEX,
+	LASTTIMINGINDEX
+};
+
+extern double ompTimingData[LASTTIMINGINDEX];
+extern int ompTimingCount[LASTTIMINGINDEX];
+extern int ompTimingCGCount[LASTTIMINGINDEX];
+#endif
+#endif
+
 /************* SOME DEFS - crucial for reax_types.h *********/
 
 #define LAMMPS_REAX
@@ -391,6 +425,7 @@ typedef struct
 {
   char sim_name[REAX_MAX_STR];
   int  nprocs;
+  int  nthreads;
   ivec procs_by_dim;
   /* ensemble values:
      0 : NVE
@@ -616,6 +651,7 @@ typedef struct{
   double C1dbopi, C2dbopi, C3dbopi, C4dbopi;
   double C1dbopi2, C2dbopi2, C3dbopi2, C4dbopi2;
   rvec dBOp, dln_BOp_s, dln_BOp_pi, dln_BOp_pi2;
+  double *CdboReduction;
 } bond_order_data;
 
 typedef struct {
@@ -701,6 +737,13 @@ typedef struct
   /* force calculations */
   double *CdDelta;  // coefficient of dDelta
   rvec *f;
+
+  /* omp */
+  rvec *forceReduction;
+  rvec *my_ext_pressReduction;
+  double *CdDeltaReduction;
+  int *valence_angle_atom_myoffset;
+
 
   reallocate_data realloc;
 } storage;

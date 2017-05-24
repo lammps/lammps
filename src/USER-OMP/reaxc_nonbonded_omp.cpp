@@ -25,7 +25,6 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reaxc_omp.h"
-#include  <omp.h>
 #include "thr_data.h"
 
 #include "reaxc_types.h"
@@ -35,6 +34,10 @@
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#if defined(_OPENMP)
+#include  <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -53,9 +56,15 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
   double total_EvdW = 0.;
   double total_Eele = 0.;
 
-#pragma omp parallel default(shared) reduction(+: total_EvdW, total_Eele)  //default(none)
+#if defined(_OPENMP)
+#pragma omp parallel default(shared) reduction(+: total_EvdW, total_Eele)
+#endif
   {
-  int tid = omp_get_thread_num();
+#if defined(_OPENMP)
+    int tid = omp_get_thread_num();
+#else
+    int tid = 0;
+#endif
   int i, j, pj;
   int start_i, end_i, orig_i, orig_j, flag;
   double powr_vdW1, powgi_vdW1;
@@ -87,8 +96,9 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
   e_lg = 0;
   de_lg = 0.0;
 
-//#pragma omp for schedule(dynamic,50)
+#if defined(_OPENMP)
 #pragma omp for schedule(guided)
+#endif
   for( i = 0; i < natoms; ++i ) {
     if(system->my_atoms[i].type < 0) continue;
     start_i = Start_Index(i, far_nbrs);
@@ -258,7 +268,9 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   double total_EvdW = 0.;
   double total_Eele = 0.;
 
+#if defined(_OPENMP)
 #pragma omp parallel default(shared) reduction(+:total_EvdW, total_Eele)
+#endif
   {
   int i, j, pj, r;
   int type_i, type_j, tmin, tmax;
@@ -270,7 +282,11 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   rvec temp, ext_press;
   far_neighbor_data *nbr_pj;
   LR_lookup_table *t;
-  int  tid = omp_get_thread_num();
+#if defined(_OPENMP)
+  int tid = omp_get_thread_num();
+  #else
+  int tid = 0;
+#endif
   long froffset = (system->N * tid);
 
   class PairReaxCOMP *pair_reax_ptr;
@@ -282,8 +298,9 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 				    natoms, system->pair_ptr->eatom,
 				    system->pair_ptr->vatom, thr);
 
-//#pragma omp for schedule(dynamic,50)
+#if defined(_OPENMP)
 #pragma omp for schedule(guided)
+#endif
   for (i = 0; i < natoms; ++i) {
     type_i  = system->my_atoms[i].type;
     if(type_i < 0) continue;

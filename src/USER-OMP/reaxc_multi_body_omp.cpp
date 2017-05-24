@@ -25,13 +25,16 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reaxc_omp.h"
-#include  <omp.h>
 #include "thr_data.h"
 
 #include "reaxc_multi_body_omp.h"
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#if defined(_OPENMP)
+#include  <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -63,7 +66,9 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
   double total_Eun = 0.0;
   double total_Eov = 0.0;
 
+#if defined(_OPENMP)
 #pragma omp parallel default(shared) reduction(+:total_Elp, total_Eun, total_Eov)
+#endif
 {
   int i, j, pj, type_i, type_j;
   double Delta_lpcorr, dfvl;
@@ -83,7 +88,11 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
   bond_data *pbond;
   bond_order_data *bo_ij;
 
+#if defined(_OPENMP)
   int tid = omp_get_thread_num();
+#else
+  int tid = 0;
+#endif
 
   long reductionOffset = (system->N * tid);
   class PairReaxCOMP *pair_reax_ptr;
@@ -94,7 +103,9 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
 				    system->pair_ptr->vflag_either, natoms,
 				    system->pair_ptr->eatom, system->pair_ptr->vatom, thr);
 
+#if defined(_OPENMP)
 #pragma omp for schedule(guided)
+#endif
   for ( i = 0; i < system->n; ++i) {
     type_i = system->my_atoms[i].type;
     if(type_i < 0) continue;
@@ -156,9 +167,10 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
         }
       }
   }
+#if defined(_OPENMP)
 #pragma omp barrier
-
 #pragma omp for schedule(guided)
+#endif
   for (i = 0; i < system->n; ++i) {
     type_i = system->my_atoms[i].type;
     if(type_i < 0) continue;

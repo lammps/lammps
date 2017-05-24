@@ -25,7 +25,6 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reaxc_omp.h"
-#include <omp.h>
 #include "thr_data.h"
 
 #include "reaxc_types.h"
@@ -34,6 +33,10 @@
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -161,7 +164,11 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   bond_data *pbond_ij, *pbond_jk, *pbond_jt;
   bond_order_data *bo_ij, *bo_jk, *bo_jt;
 
-  int  tid = omp_get_thread_num();
+#if defined(_OPENMP)
+  int tid = omp_get_thread_num();
+#else
+  int tid = 0;
+#endif
   long reductionOffset = (system->N * tid);
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);

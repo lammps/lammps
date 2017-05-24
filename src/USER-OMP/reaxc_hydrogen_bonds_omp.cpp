@@ -25,7 +25,6 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reaxc_omp.h"
-#include  <omp.h>
 
 #include "reaxc_hydrogen_bonds_omp.h"
 #include "reaxc_bond_orders_omp.h"
@@ -33,6 +32,10 @@
 #include "reaxc_valence_angles.h"     // To access Calculate_Theta()
 #include "reaxc_valence_angles_omp.h" // To access Calculate_dCos_ThetaOMP()
 #include "reaxc_vector.h"
+
+#if defined(_OPENMP)
+#include  <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -50,8 +53,10 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   const int nthreads = control->nthreads;
   long totalReductionSize = system->N;
 
+#if defined(_OPENMP)
 #pragma omp parallel default(shared) //default(none)
- {
+#endif
+  {
   int  i, j, k, pi, pk;
   int  type_i, type_j, type_k;
   int  start_j, end_j, hb_start_j, hb_end_j;
@@ -80,7 +85,11 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   hbond_list = hbonds->select.hbond_list;
 
   int natoms = system->n;
+#if defined(_OPENMP)
   int tid = omp_get_thread_num();
+#else
+  int tid = 0;
+#endif
   const int idelta = 1 + natoms/nthreads;
   int ifrom = tid*idelta;
   int ito   = ((ifrom + idelta) > natoms) ? natoms : ifrom + idelta;
@@ -226,7 +235,9 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
 
     }
   }
+#if defined(_OPENMP)
 #pragma omp critical
+#endif
   {
     data->my_en.e_hb += e_hb_thr;
   }

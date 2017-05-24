@@ -36,7 +36,6 @@
 #include "reaxc_system_props.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
-#include "omp.h"
 
 // Functions definedd in reaxc_init_md.cpp
 extern int Init_MPI_Datatypes(reax_system*, storage*, mpi_datatypes*, MPI_Comm, char*);

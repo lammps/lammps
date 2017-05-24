@@ -25,13 +25,16 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reaxc_omp.h"
-#include  <omp.h>
 
 #include "reaxc_bonds_omp.h"
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
+
+#if defined(_OPENMP)
+#include  <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -56,8 +59,10 @@ void BondsOMP( reax_system *system, control_params *control,
   double gp37 = (int) system->reax_param.gp.l[37];
   double total_Ebond = 0.0;
 
+#if defined(_OPENMP)
 #pragma omp parallel default(shared) reduction(+: total_Ebond)
- {
+#endif
+  {
   int  i, j, pj;
   int start_i, end_i;
   int type_i, type_j;
@@ -68,7 +73,12 @@ void BondsOMP( reax_system *system, control_params *control,
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;
   bond_order_data *bo_ij;
-  int  tid = omp_get_thread_num();
+  
+#if defined(_OPENMP)
+  int tid = omp_get_thread_num();
+#else
+  int tid = 0;
+#endif
   long reductionOffset = (system->N * tid);
 
   class PairReaxCOMP *pair_reax_ptr;
@@ -79,7 +89,9 @@ void BondsOMP( reax_system *system, control_params *control,
 				    system->pair_ptr->vflag_either, natoms,
 				    system->pair_ptr->eatom, system->pair_ptr->vatom, thr);
 
+#if defined(_OPENMP)
 #pragma omp for schedule(guided)
+#endif
   for (i = 0; i < natoms; ++i) {
     start_i = Start_Index(i, bonds);
     end_i = End_Index(i, bonds);

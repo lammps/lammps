@@ -49,6 +49,10 @@
 #include "reaxc_vector.h"
 #include "fix_reaxc_bonds.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 #ifdef OMP_TIMING
@@ -206,7 +210,9 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   ompTimingData[COMPUTEINDEX] += (endTimeBase-startTimeBase);
 #endif
 
+#if defined(_OPENMP)
 #pragma omp parallel for schedule(static)
+#endif
   for(int k = 0; k < system->N; ++k) {
     num_bonds[k] = system->my_atoms[k].num_bonds;
     num_hbonds[k] = system->my_atoms[k].num_hbonds;
@@ -269,7 +275,9 @@ void PairReaxCOMP::compute(int eflag, int vflag)
       memory->create(tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
     }
 
+#if defined(_OPENMP)
 #pragma omp parallel for collapse(2) schedule(static) default(shared)
+#endif
     for (i = 0; i < system->N; i ++)
       for (j = 0; j < MAXSPECBOND; j ++) {
         tmpbo[i][j] = 0.0;
@@ -330,8 +338,11 @@ void PairReaxCOMP::init_style( )
     fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
   }
 
-#pragma omp parallel
-  { control->nthreads = omp_get_num_threads(); }
+#if defined(_OPENMP)
+  control->nthreads = omp_get_max_threads();
+#else
+  control->nthreads = 1;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -418,7 +429,9 @@ void PairReaxCOMP::write_reax_atoms()
   if (system->N > system->total_cap)
     error->all(FLERR,"Too many ghost atoms");
 
+#if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)
+#endif
   for( int i = 0; i < system->N; ++i ){
     system->my_atoms[i].orig_id = atom->tag[i];
     system->my_atoms[i].type = map[atom->type[i]];
@@ -498,9 +511,10 @@ int PairReaxCOMP::write_reax_lists()
     num_nbrs += numneigh[i];
   }
 
-//#pragma omp parallel for schedule(guided) default(shared)	
-#pragma omp parallel for schedule(dynamic,50) default(shared)		\
-        private(itr_i, itr_j, i, j, jlist, cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(dynamic,50) default(shared)           \
+  private(itr_i, itr_j, i, j, jlist, cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
+#endif
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     jlist = firstneigh[i];
@@ -539,7 +553,9 @@ int PairReaxCOMP::write_reax_lists()
 
 void PairReaxCOMP::read_reax_forces(int vflag)
 {
+#if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)
+#endif
   for( int i = 0; i < system->N; ++i ) {
     system->my_atoms[i].f[0] = workspace->f[i][0];
     system->my_atoms[i].f[1] = workspace->f[i][1];
@@ -561,8 +577,10 @@ void PairReaxCOMP::FindBond()
   bond_data *bo_ij;
   bo_cut = 0.10;
 
-#pragma omp parallel for schedule(static) default(shared) \
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static) default(shared)   \
   private(i, nj, pj, bo_ij, j, bo_tmp)
+#endif
   for (i = 0; i < system->n; i++) {
     nj = 0;
     for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
@@ -573,10 +591,10 @@ void PairReaxCOMP::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp >= bo_cut ) {
-	tmpid[i][nj] = j;
-	tmpbo[i][nj] = bo_tmp;
-	nj ++;
-	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
+        tmpid[i][nj] = j;
+        tmpbo[i][nj] = bo_tmp;
+        nj ++;
+        if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
       }
     }
   }

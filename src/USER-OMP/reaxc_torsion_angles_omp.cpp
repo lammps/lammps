@@ -25,7 +25,6 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reaxc_omp.h"
-#include <omp.h>
 #include "thr_data.h"
 
 #include "reaxc_types.h"
@@ -34,6 +33,10 @@
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 #define MIN_SINE 1e-10
 
@@ -107,7 +110,11 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
   double delil[3], deljl[3], delkl[3];
   double eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
 
-  int  tid = omp_get_thread_num();
+#if defined(_OPENMP)
+  int tid = omp_get_thread_num();
+#else
+  int tid = 0;
+#endif
   long reductionOffset = (system->N * tid);
   int num_thb_intrs = 0;
   class PairReaxCOMP *pair_reax_ptr;

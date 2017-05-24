@@ -24,12 +24,15 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include  <omp.h>
 #include "pair_reaxc_omp.h"
 #include "reaxc_types.h"
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#if defined(_OPENMP)
+#include  <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -45,7 +48,11 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
   PairReaxCOMP *pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
 
+#if defined(_OPENMP)
   int tid = omp_get_thread_num();
+#else
+  int tid = 0;
+#endif
   ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
   long reductionOffset = (system->N * tid);
 
@@ -226,7 +233,11 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj, simulation_
 
   PairReaxCOMP *pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
 
+#if defined(_OPENMP)
   int tid = omp_get_thread_num();
+#else
+  int tid = 0;
+#endif
   ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
   long reductionOffset = (system->N * tid);
 
@@ -428,7 +439,9 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
   int  natoms = system->N;
   int  nthreads = control->nthreads;
 
+#if defined(_OPENMP)
 #pragma omp parallel default(shared)
+#endif
   {
     int  i, j, pj, type_i, type_j;
     int  start_i, end_i, sym_index;
@@ -443,10 +456,15 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
     two_body_parameters *twbp;
     bond_order_data *bo_ij, *bo_ji;
 
+#if defined(_OPENMP)
     int tid = omp_get_thread_num();
-
+#else
+    int tid = 0;
+#endif
     /* Calculate Deltaprime, Deltaprime_boc values */
+#if defined(_OPENMP)
 #pragma omp for schedule(static)
+#endif
     for (i = 0; i < system->N; ++i) {
       type_i = system->my_atoms[i].type;
       if(type_i < 0) continue;
@@ -459,11 +477,14 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
     }
 
     // Wait till initialization complete
+#if defined(_OPENMP)
 #pragma omp barrier
-
+#endif
+    
     /* Corrected Bond Order calculations */
-//#pragma omp for schedule(dynamic,50)
+#if defined(_OPENMP)
 #pragma omp for schedule(guided)
+#endif
     for (i = 0; i < system->N; ++i) {
       type_i = system->my_atoms[i].type;
       if(type_i < 0) continue;
@@ -625,11 +646,14 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
     }
 
     // Wait for bo_ij to be updated
+#if defined(_OPENMP)
 #pragma omp barrier
-
+#endif
     // Try to combine the following for-loop back into the for-loop above
     /*-------------------------*/
+#if defined(_OPENMP)
 #pragma omp for schedule(guided)
+#endif
     for (i = 0; i < system->N; ++i) {
       type_i = system->my_atoms[i].type;
       if(type_i < 0) continue;
@@ -664,11 +688,14 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
     /*-------------------------*/
 
     // Need to wait for total_bond_order to be accumulated.
+#if defined(_OPENMP)
 #pragma omp barrier
-
+#endif
     /* Calculate some helper variables that are  used at many places
        throughout force calculations */
+#if defined(_OPENMP)
 #pragma omp for schedule(guided)
+#endif
     for(j = 0; j < system->N; ++j ) {
       type_j = system->my_atoms[j].type;
       if(type_j < 0) continue;

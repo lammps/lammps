@@ -230,7 +230,7 @@ void PairReaxC::settings(int narg, char **arg)
   system->mincap = MIN_CAP;
   system->safezone = SAFE_ZONE;
   system->saferzone = SAFER_ZONE;
-  
+
   // process optional keywords
 
   int iarg = 1;

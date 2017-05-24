@@ -44,7 +44,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 			     simulation_data *data, storage *workspace,
 			     reax_list **lists, output_controls *out_control ) {
 
-  int natoms = system->n; 
+  int natoms = system->n;
   int nthreads = control->nthreads;
   long totalReductionSize = system->N * nthreads;
   reax_list *far_nbrs = (*lists) + FAR_NBRS;
@@ -52,7 +52,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
   double p_vdW1i = 1.0 / p_vdW1;
   double total_EvdW = 0.;
   double total_Eele = 0.;
-  
+
 #pragma omp parallel default(shared) reduction(+: total_EvdW, total_Eele)  //default(none)
   {
   int tid = omp_get_thread_num();
@@ -67,20 +67,20 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
   rvec temp, ext_press;
   two_body_parameters *twbp;
   far_neighbor_data *nbr_pj;
-  
+
   // Tallying variables:
   double pe_vdw, f_tmp, delij[3];
-  
+
   long reductionOffset = (system->N * tid);
-  
+
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
-  
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either, 
-				    system->pair_ptr->vflag_either, 
+
+  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
+				    system->pair_ptr->vflag_either,
 				    natoms, system->pair_ptr->eatom,
-				    system->pair_ptr->vatom, thr);  
+				    system->pair_ptr->vatom, thr);
   e_core = 0;
   e_vdW = 0;
   e_vdW_thr = 0;
@@ -94,12 +94,12 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
     start_i = Start_Index(i, far_nbrs);
     end_i   = End_Index(i, far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
-     
+
     for( pj = start_i; pj < end_i; ++pj ) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       orig_j  = system->my_atoms[j].orig_id;
-      
+
       flag = 0;
       if(nbr_pj->d <= control->nonb_cut) {
 	if(j < natoms) flag = 1;
@@ -113,7 +113,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 	  }
 	}
       }
-      
+
       if (flag) {
 	
 	r_ij = nbr_pj->d;
@@ -142,14 +142,14 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 	  { // shielding
 	    powr_vdW1 = pow(r_ij, p_vdW1);
 	    powgi_vdW1 = pow( 1.0 / twbp->gamma_w, p_vdW1);
-	    
+	
 	    fn13 = pow( powr_vdW1 + powgi_vdW1, p_vdW1i );
 	    exp1 = exp( twbp->alpha * (1.0 - fn13 / twbp->r_vdW) );
 	    exp2 = exp( 0.5 * twbp->alpha * (1.0 - fn13 / twbp->r_vdW) );
-	    
+	
 	    e_vdW = twbp->D * (exp1 - 2.0 * exp2);
 	    total_EvdW += Tap * e_vdW;
-	    
+	
 	    dfn13 = pow( powr_vdW1 + powgi_vdW1, p_vdW1i - 1.0) *
 	      pow(r_ij, p_vdW1 - 2.0);
 
@@ -159,10 +159,10 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 	else{ // no shielding
 	  exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 	  exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
-	  
+	
 	  e_vdW = twbp->D * (exp1 - 2.0 * exp2);
 	  total_EvdW += Tap * e_vdW;
-	  
+	
 	  CEvd = dTap * e_vdW -
 	      Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
 	}
@@ -171,23 +171,23 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 	  { // innner wall
 	    e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
 	    total_EvdW += Tap * e_core;
-	    
+	
 	    de_core = -(twbp->acore/twbp->rcore) * e_core;
 	    CEvd += dTap * e_core + Tap * de_core / r_ij;
-	    
+	
 	    //  lg correction, only if lgvdw is yes
 	    if (control->lgflag) {
 	      r_ij5 = pow( r_ij, 5.0 );
 	      r_ij6 = pow( r_ij, 6.0 );
 	      re6 = pow( twbp->lgre, 6.0 );
-	      
+	
 	      e_lg = -(twbp->lgcij/( r_ij6 + re6 ));
 	      total_EvdW += Tap * e_lg;
-	      
+	
 	      de_lg = -6.0 * e_lg *  r_ij5 / ( r_ij6 + re6 ) ;
 	      CEvd += dTap * e_lg + Tap * de_lg / r_ij;
 	    }
-	    
+	
 	  }
 	
 	/*Coulomb Calculations*/
@@ -207,44 +207,44 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 	  rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
 			  -1., system->my_atoms[j].x );
 	  f_tmp = -(CEvd + CEclmb);
-	  pair_reax_ptr->ev_tally_thr_proxy( system->pair_ptr, i, j, natoms, 
-					     1, pe_vdw, e_ele, f_tmp, 
+	  pair_reax_ptr->ev_tally_thr_proxy( system->pair_ptr, i, j, natoms,
+					     1, pe_vdw, e_ele, f_tmp,
 					     delij[0], delij[1], delij[2], thr);
 	}
-	  
+	
 	if( control->virial == 0 ) {
 	  rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
-	  rvec_ScaledAdd( workspace->forceReduction[reductionOffset+j], 
+	  rvec_ScaledAdd( workspace->forceReduction[reductionOffset+j],
 			  +(CEvd + CEclmb), nbr_pj->dvec );
 	}
 	else { /* NPT, iNPT or sNPT */
 	  /* for pressure coupling, terms not related to bond order
 	     derivatives are added directly into pressure vector/tensor */
-	  
+	
 	  rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
 	  rvec_ScaledAdd( workspace->f[reductionOffset+i], -1., temp );
 	  rvec_Add( workspace->forceReduction[reductionOffset+j], temp);
-	  
+	
 	  rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
-	  
+	
 	  rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
 	}
 	}
       }
     }
 
-  pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either, 
-				  system->pair_ptr->vflag_either, thr);    
+  pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
+				  system->pair_ptr->vflag_either, thr);
   } // parallel region
-  
+
   data->my_en.e_vdW = total_EvdW;
   data->my_en.e_ele = total_Eele;
-  
+
   Compute_Polarization_Energy( system, data );
-} 
+}
 
 /* ---------------------------------------------------------------------- */
-  
+
 void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *control,
 				      simulation_data *data, storage *workspace,
 				      reax_list **lists,
@@ -257,7 +257,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   long totalReductionSize = system->N * nthreads;
   double total_EvdW = 0.;
   double total_Eele = 0.;
-  
+
 #pragma omp parallel default(shared) reduction(+:total_EvdW, total_Eele)
   {
   int i, j, pj, r;
@@ -276,12 +276,12 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
-   
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either, 
-				    system->pair_ptr->vflag_either, 
+
+  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
+				    system->pair_ptr->vflag_either,
 				    natoms, system->pair_ptr->eatom,
 				    system->pair_ptr->vatom, thr);
-  
+
 //#pragma omp for schedule(dynamic,50)
 #pragma omp for schedule(guided)
   for (i = 0; i < natoms; ++i) {
@@ -290,7 +290,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
     start_i = Start_Index(i,far_nbrs);
     end_i   = End_Index(i,far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
-    
+
     for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
@@ -310,7 +310,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 	      flag = 1;
 	  }
 	}
-      
+
       }
 
       if (flag) {
@@ -354,30 +354,30 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 	
 	if( control->virial == 0 ) {
 	  rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
-	  rvec_ScaledAdd( workspace->forceReduction[froffset+j], 
+	  rvec_ScaledAdd( workspace->forceReduction[froffset+j],
 			  +(CEvd + CEclmb), nbr_pj->dvec );
 	}
 	else { // NPT, iNPT or sNPT
 	  /* for pressure coupling, terms not related to bond order derivatives
 	     are added directly into pressure vector/tensor */
 	  rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
-	  
+	
 	  rvec_ScaledAdd( workspace->f[i], -1., temp );
 	  rvec_Add( workspace->forceReduction[froffset+j], temp );
-	  
+	
 	  rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
 	  rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
 	}
       }
     }
   }
-  
+
   pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
-				  system->pair_ptr->vflag_either, thr);  
+				  system->pair_ptr->vflag_either, thr);
   } // end omp parallel
-  
+
   data->my_en.e_vdW = total_EvdW;
   data->my_en.e_ele = total_Eele;
-  
+
   Compute_Polarization_Energy( system, data );
 }

@@ -89,7 +89,7 @@ PairReaxCOMP::~PairReaxCOMP()
   int myrank;
 
   MPI_Comm_rank(mpi_data->world,&myrank);
-  
+
   // Write screen output
   if (myrank == 0 && screen) {
     fprintf(screen,"\n\nWrite_Lists    took %11.3lf seconds", ompTimingData[COMPUTEWLINDEX]);
@@ -98,11 +98,11 @@ PairReaxCOMP::~PairReaxCOMP()
     fprintf(screen,"\n ->Initial Forces: %11.3lf seconds", ompTimingData[COMPUTEIFINDEX]);
     fprintf(screen,"\n ->Bond Order:     %11.3lf seconds", ompTimingData[COMPUTEBOINDEX]);
     fprintf(screen,"\n ->Atom Energy:    %11.3lf seconds", ompTimingData[COMPUTEATOMENERGYINDEX]);
-    fprintf(screen,"\n ->Bond:           %11.3lf seconds", ompTimingData[COMPUTEBONDSINDEX]); 
+    fprintf(screen,"\n ->Bond:           %11.3lf seconds", ompTimingData[COMPUTEBONDSINDEX]);
     fprintf(screen,"\n ->Hydrogen bonds: %11.3lf seconds", ompTimingData[COMPUTEHBONDSINDEX]);
     fprintf(screen,"\n ->Torsion Angles: %11.3lf seconds", ompTimingData[COMPUTETORSIONANGLESBOINDEX]);
     fprintf(screen,"\n ->Valence Angles: %11.3lf seconds", ompTimingData[COMPUTEVALENCEANGLESBOINDEX]);
-    fprintf(screen,"\n ->Non-Bonded For: %11.3lf seconds", ompTimingData[COMPUTENBFINDEX]); 
+    fprintf(screen,"\n ->Non-Bonded For: %11.3lf seconds", ompTimingData[COMPUTENBFINDEX]);
     fprintf(screen,"\n ->Total Forces:   %11.3lf seconds", ompTimingData[COMPUTETFINDEX]);
 
     fprintf(screen,"\n\nfixQEQ:          %11.3lf seconds", ompTimingData[COMPUTEQEQINDEX]);
@@ -124,11 +124,11 @@ PairReaxCOMP::~PairReaxCOMP()
     fprintf(logfile,"\n ->Initial Forces: %11.3lf seconds", ompTimingData[COMPUTEIFINDEX]);
     fprintf(logfile,"\n ->Bond Order:     %11.3lf seconds", ompTimingData[COMPUTEBOINDEX]);
     fprintf(logfile,"\n ->Atom Energy:    %11.3lf seconds", ompTimingData[COMPUTEATOMENERGYINDEX]);
-    fprintf(logfile,"\n ->Bond:           %11.3lf seconds", ompTimingData[COMPUTEBONDSINDEX]); 
+    fprintf(logfile,"\n ->Bond:           %11.3lf seconds", ompTimingData[COMPUTEBONDSINDEX]);
     fprintf(logfile,"\n ->Hydrogen bonds: %11.3lf seconds", ompTimingData[COMPUTEHBONDSINDEX]);
     fprintf(logfile,"\n ->Torsion Angles: %11.3lf seconds", ompTimingData[COMPUTETORSIONANGLESBOINDEX]);
     fprintf(logfile,"\n ->Valence Angles: %11.3lf seconds", ompTimingData[COMPUTEVALENCEANGLESBOINDEX]);
-    fprintf(logfile,"\n ->Non-Bonded For: %11.3lf seconds", ompTimingData[COMPUTENBFINDEX]); 
+    fprintf(logfile,"\n ->Non-Bonded For: %11.3lf seconds", ompTimingData[COMPUTENBFINDEX]);
     fprintf(logfile,"\n ->Total Forces:   %11.3lf seconds", ompTimingData[COMPUTETFINDEX]);
 
     fprintf(logfile,"\n\nfixQEQ:          %11.3lf seconds", ompTimingData[COMPUTEQEQINDEX]);
@@ -150,41 +150,41 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 {
   double evdwl,ecoul;
   double t_start, t_end;
-  
+
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
-  
+
   if (neighbor->ago == 0) comm->forward_comm_fix(fix_reax);
   int *num_bonds = fix_reax->num_bonds;
   int *num_hbonds = fix_reax->num_hbonds;
-  
+
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else ev_unset();
-  
+
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
-  
+
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
-  
+
   system->big_box.V = 0;
   system->big_box.box_norms[0] = 0;
   system->big_box.box_norms[1] = 0;
   system->big_box.box_norms[2] = 0;
   if( comm->me == 0 ) t_start = MPI_Wtime();
   // setup data structures
-  
+
   setup();
-  
+
   Reset( system, control, data, workspace, &lists, world );
-  
+
   // Why not update workspace like in MPI-only code?
-  // Using the MPI-only way messes up the hb energy 
+  // Using the MPI-only way messes up the hb energy
   //workspace->realloc.num_far = write_reax_lists();
   write_reax_lists();
-  
+
   // timing for filling in the reax lists
   if( comm->me == 0 ) {
     t_end = MPI_Wtime();
@@ -192,7 +192,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   }
 
   // forces
-  
+
 #ifdef OMP_TIMING
   double startTimeBase,endTimeBase;
   startTimeBase = MPI_Wtime();
@@ -200,20 +200,20 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   Compute_ForcesOMP(system,control,data,workspace,&lists,out_control,mpi_data);
   read_reax_forces(vflag);
-  
+
 #ifdef OMP_TIMING
   endTimeBase = MPI_Wtime();
   ompTimingData[COMPUTEINDEX] += (endTimeBase-startTimeBase);
 #endif
-  
+
 #pragma omp parallel for schedule(static)
   for(int k = 0; k < system->N; ++k) {
     num_bonds[k] = system->my_atoms[k].num_bonds;
     num_hbonds[k] = system->my_atoms[k].num_hbonds;
   }
-  
+
   // energies and pressure
-  
+
   if (eflag_global) {
     evdwl += data->my_en.e_bond;
     evdwl += data->my_en.e_ov;
@@ -226,13 +226,13 @@ void PairReaxCOMP::compute(int eflag, int vflag)
     evdwl += data->my_en.e_tor;
     evdwl += data->my_en.e_con;
     evdwl += data->my_en.e_vdW;
-    
+
     ecoul += data->my_en.e_ele;
     ecoul += data->my_en.e_pol;
-    
+
     // Store the different parts of the energy
     // in a list for output by compute pair command
-    
+
     pvector[0] = data->my_en.e_bond;
     pvector[1] = data->my_en.e_ov + data->my_en.e_un;
     pvector[2] = data->my_en.e_lp;
@@ -250,16 +250,16 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-  
+
 // Set internal timestep counter to that of LAMMPS
-  
+
   data->step = update->ntimestep;
 
   Output_Results( system, control, data, &lists, out_control, mpi_data );
-  
+
   // populate tmpid and tmpbo arrays for fix reax/c/species
   int i, j;
-  
+
   if(fixspecies_flag) {
     if (system->N > nmax) {
       memory->destroy(tmpid);
@@ -268,14 +268,14 @@ void PairReaxCOMP::compute(int eflag, int vflag)
       memory->create(tmpid,nmax,MAXSPECBOND,"pair:tmpid");
       memory->create(tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
     }
-    
+
 #pragma omp parallel for collapse(2) schedule(static) default(shared)
     for (i = 0; i < system->N; i ++)
       for (j = 0; j < MAXSPECBOND; j ++) {
         tmpbo[i][j] = 0.0;
 	tmpid[i][j] = 0;
       }
-    
+
     FindBond();
   }
 }
@@ -284,7 +284,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
 void PairReaxCOMP::init_style( )
 {
-  if (!atom->q_flag) 
+  if (!atom->q_flag)
     error->all(FLERR,"Pair reax/c/omp requires atom attribute q");
 
   // firstwarn = 1;
@@ -330,7 +330,7 @@ void PairReaxCOMP::init_style( )
     fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
   }
 
-#pragma omp parallel 
+#pragma omp parallel
   { control->nthreads = omp_get_num_threads(); }
 }
 
@@ -397,11 +397,11 @@ void PairReaxCOMP::setup( )
 
     for(int k = oldN; k < system->N; ++k)
       Set_End_Index( k, Start_Index( k, lists+BONDS ), lists+BONDS );
-    
+
     // estimate far neighbor list size
     // Not present in MPI-only version
     workspace->realloc.num_far = estimate_reax_lists();
-    
+
     // check if I need to shrink/extend my data-structs
 
     ReAllocate( system, control, data, workspace, &lists, mpi_data );
@@ -414,10 +414,10 @@ void PairReaxCOMP::write_reax_atoms()
 {
   int *num_bonds = fix_reax->num_bonds;
   int *num_hbonds = fix_reax->num_hbonds;
-  
+
   if (system->N > system->total_cap)
     error->all(FLERR,"Too many ghost atoms");
-  
+
 #pragma omp parallel for schedule(static) default(shared)
   for( int i = 0; i < system->N; ++i ){
     system->my_atoms[i].orig_id = atom->tag[i];
@@ -435,28 +435,28 @@ void PairReaxCOMP::write_reax_atoms()
 
 int PairReaxCOMP::estimate_reax_lists()
 {
-  int i;  
+  int i;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int numall = list->inum + list->gnum;
   int mincap = system->mincap;
-  
+
   // for good performance in the OpenMP implementation, each thread needs
   // to know where to place the neighbors of the atoms it is responsible for.
   // The sumscan values for the list->numneigh will be used to determine the
-  // neighbor offset of each atom. Note that this may cause some significant 
-  // memory overhead if delayed neighboring is used - so it may be desirable 
+  // neighbor offset of each atom. Note that this may cause some significant
+  // memory overhead if delayed neighboring is used - so it may be desirable
   // to work on this part to reduce the memory footprint of the far_nbrs list.
-  
+
   int num_nbrs = 0;
-  
+
   for (int itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     num_nbrs += numneigh[i];
   }
-  
+
   int new_estimate = MAX (num_nbrs, mincap*MIN_NBRS);
-  
+
   return new_estimate;
 }
 
@@ -473,51 +473,51 @@ int PairReaxCOMP::write_reax_lists()
   int *jlist;
   double d_sqr, dist, cutoff_sqr;
   rvec dvec;
-  
+
   double **x = atom->x;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   reax_list *far_nbrs = lists + FAR_NBRS;
   far_neighbor_data *far_list = far_nbrs->select.far_nbr_list;
-  
+
   int num_nbrs = 0;
   int inum = list->inum;
   int gnum = list->gnum;
   int numall = inum + gnum;
-  
+
   // sumscan of the number of neighbors per atom to determine the offsets
   // most likely, we are overallocating. desirable to work on this part
   // to reduce the memory footprint of the far_nbrs list.
-  
+
   num_nbrs = 0;
-  
+
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     num_nbrs_offset[i] = num_nbrs;
     num_nbrs += numneigh[i];
   }
 
-//#pragma omp parallel for schedule(guided) default(shared)	   
+//#pragma omp parallel for schedule(guided) default(shared)	
 #pragma omp parallel for schedule(dynamic,50) default(shared)		\
         private(itr_i, itr_j, i, j, jlist, cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     jlist = firstneigh[i];
     Set_Start_Index( i, num_nbrs_offset[i], far_nbrs );
-    
-    if (i < inum) 
+
+    if (i < inum)
       cutoff_sqr = control->nonb_cut*control->nonb_cut;
-    else 
-      cutoff_sqr = control->bond_cut*control->bond_cut;      
-    
+    else
+      cutoff_sqr = control->bond_cut*control->bond_cut;
+
     num_mynbrs = 0;
-    
+
     for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
       j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
-      
+
       if (d_sqr <= cutoff_sqr) {
         dist = sqrt( d_sqr );
         set_far_nbr( &far_list[num_nbrs_offset[i] + num_mynbrs], j, dist, dvec );
@@ -531,7 +531,7 @@ int PairReaxCOMP::write_reax_lists()
   endTimeBase = MPI_Wtime();
   ompTimingData[COMPUTEWLINDEX] += (endTimeBase-startTimeBase);
 #endif
-  
+
   return num_nbrs;
 }
 

@@ -54,7 +54,7 @@ void Calculate_dCos_ThetaOMP( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_
 
   double csqr_jk = Cdot_inv3 * sqr_d_jk;
   double csqr_ji = Cdot_inv3 * sqr_d_ji;
-  
+
   // Try to help compiler out by unrolling
   // x-component
   double dinv_jk = dvec_jk[0] * inv_dists;
@@ -103,7 +103,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   double endTimeBase, startTimeBase;
   startTimeBase = MPI_Wtime();
 #endif
-  
+
   reax_list *bonds = (*lists) + BONDS;
   reax_list *thb_intrs =  (*lists) + THREE_BODIES;
 
@@ -118,20 +118,20 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   double total_Eang = 0;
   double total_Epen = 0;
   double total_Ecoa = 0;
-  
+
   int  per_atom = (thb_intrs->num_intrs / system->N);
   int  nthreads = control->nthreads;
   int  chunksize = system->N/(nthreads*10);
   int  num_thb_intrs = 0;
   int  TWICE = 2;
 
-#pragma omp parallel default(shared) reduction(+:total_Eang, total_Epen, total_Ecoa, num_thb_intrs) 
+#pragma omp parallel default(shared) reduction(+:total_Eang, total_Epen, total_Ecoa, num_thb_intrs)
  {
   int i, j, pi, k, pk, t;
   int type_i, type_j, type_k;
   int start_j, end_j, start_pk, end_pk;
   int cnt, my_offset, mark;
-  
+
   double temp, temp_bo_jt, pBOjt7;
   double p_val1, p_val2, p_val3, p_val4, p_val5, p_val7;
   double p_pen1, p_pen2, p_pen3, p_pen4;
@@ -150,17 +150,17 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   double BOA_ij, BOA_jk;
   rvec force, ext_press;
   // rtensor temp_rtensor, total_rtensor;
-  
+
   // Tallying variables
   double eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
   double delij[3], delkj[3];
-  
+
   three_body_header *thbh;
   three_body_parameters *thbp;
   three_body_interaction_data *p_ijk, *p_kji;
   bond_data *pbond_ij, *pbond_jk, *pbond_jt;
   bond_order_data *bo_ij, *bo_jk, *bo_jt;
-  
+
   int  tid = omp_get_thread_num();
   long reductionOffset = (system->N * tid);
   class PairReaxCOMP *pair_reax_ptr;
@@ -174,7 +174,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
 
   // Run through a minimal for(j<N) loop once to precompute offsets with safe number of threads
-  
+
   const int per_thread = thb_intrs->num_intrs / nthreads;
 
 #pragma omp for schedule(dynamic,50)
@@ -188,7 +188,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
     // Always point to start of workspace to count angles
     my_offset = tid * per_thread;
-    
+
     for (pi = start_j; pi < end_j; ++pi) {
       Set_Start_Index( pi, my_offset, thb_intrs );
       pbond_ij = &(bonds->select.bond_list[pi]);
@@ -196,7 +196,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       BOA_ij = bo_ij->BO - control->thb_cut;
 
       if (BOA_ij > 0.0) {
-	i = pbond_ij->nbr;	  
+	i = pbond_ij->nbr;	
 	
 	/* first copy 3-body intrs from previously computed ones where i>k.
 	   in the second for-loop below,
@@ -204,13 +204,13 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 	for (pk = start_j; pk < pi; ++pk) {
 	  start_pk = Start_Index( pk, thb_intrs );
 	  end_pk = End_Index( pk, thb_intrs );
-	  
+	
 	  for (t = start_pk; t < end_pk; ++t)
 	    if (thb_intrs->select.three_body_list[t].thb == i) {
 
 	      p_ijk = &(thb_intrs->select.three_body_list[my_offset] );
 	      p_ijk->thb = bonds->select.bond_list[pk].nbr;
-	      
+	
 	      ++my_offset;
 	      break;
 	    }
@@ -225,11 +225,11 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
 	  p_ijk    = &( thb_intrs->select.three_body_list[my_offset] );
 	  p_ijk->thb = k;
-	  
+	
 	  ++my_offset; // add this  to the list of 3-body interactions
 	} // for(pk)
       } // if()
-      
+
       Set_End_Index(pi, my_offset, thb_intrs );
     } // for(pi)
 
@@ -246,7 +246,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     // Number of angles owned by this atom
     _my_offset[j] = my_offset - tid * per_thread;
   } // for(j)
-  
+
   // Wait for all threads to finish counting angles
 #pragma omp barrier
 
@@ -271,7 +271,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   // Original loop, but now using precomputed offsets
   // Safe to use all threads available, regardless of threads tasked above
   // We also now skip over atoms that have no angles assigned
-#pragma omp for schedule(dynamic,50)//(dynamic,chunksize)//(guided)  
+#pragma omp for schedule(dynamic,50)//(dynamic,chunksize)//(guided)
   for (j = 0; j < system->N; ++j) {         // Ray: the first one with system->N
     type_j = system->my_atoms[j].type;
     if(type_j < 0) continue;
@@ -281,14 +281,14 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
     start_j = Start_Index(j, bonds);
     end_j = End_Index(j, bonds);
-    
+
     type_j = system->my_atoms[j].type;
 
     my_offset = _my_offset[j];
 
     p_val3 = system->reax_param.sbp[ type_j ].p_val3;
     p_val5 = system->reax_param.sbp[ type_j ].p_val5;
-    
+
     SBOp = 0, prod_SBO = 1;
     for (t = start_j; t < end_j; ++t) {
       bo_jt = &(bonds->select.bond_list[t].bo_data);
@@ -298,7 +298,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       temp *= temp;
       prod_SBO *= exp( -temp );
     }
-    
+
     // modifications to match Adri's code - 09/01/09
     if( workspace->vlpex[j] >= 0 ){
       vlpadj = 0;
@@ -308,10 +308,10 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       vlpadj = workspace->nlp[j];
       dSBO2 = (prod_SBO - 1) * (1 - p_val8 * workspace->dDelta_lp[j]);
     }
-    
+
     SBO = SBOp + (1 - prod_SBO) * (-workspace->Delta_boc[j] - p_val8 * vlpadj);
     dSBO1 = -8 * prod_SBO * ( workspace->Delta_boc[j] + p_val8 * vlpadj );
-    
+
     if( SBO <= 0 )
       SBO2 = 0, CSBO2 = 0;
     else if( SBO > 0 && SBO <= 1 ) {
@@ -324,16 +324,16 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     }
     else
       SBO2 = 2, CSBO2 = 0;
-    
+
     expval6 = exp( p_val6 * workspace->Delta_boc[j] );
-    
+
     for (pi = start_j; pi < end_j; ++pi) {
       Set_Start_Index( pi, my_offset, thb_intrs );
       pbond_ij = &(bonds->select.bond_list[pi]);
       bo_ij = &(pbond_ij->bo_data);
       BOA_ij = bo_ij->BO - control->thb_cut;
-      
-      
+
+
       if (BOA_ij > 0.0) {
         i = pbond_ij->nbr;
         r_ij = pbond_ij->d;
@@ -346,19 +346,19 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
         for (pk = start_j; pk < pi; ++pk) {
           start_pk = Start_Index( pk, thb_intrs );
           end_pk = End_Index( pk, thb_intrs );
-	  
+	
           for (t = start_pk; t < end_pk; ++t)
             if (thb_intrs->select.three_body_list[t].thb == i) {
               p_ijk = &(thb_intrs->select.three_body_list[my_offset] );
               p_kji = &(thb_intrs->select.three_body_list[t]);
-	      
+	
               p_ijk->thb = bonds->select.bond_list[pk].nbr;
               p_ijk->pthb  = pk;
               p_ijk->theta = p_kji->theta;
               rvec_Copy( p_ijk->dcos_di, p_kji->dcos_dk );
               rvec_Copy( p_ijk->dcos_dj, p_kji->dcos_dj );
               rvec_Copy( p_ijk->dcos_dk, p_kji->dcos_di );
-	      
+	
               ++my_offset;
 	      ++num_thb_intrs;
               break;
@@ -374,15 +374,15 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
           k        = pbond_jk->nbr;
           type_k   = system->my_atoms[k].type;
           p_ijk    = &( thb_intrs->select.three_body_list[my_offset] );
-	  
+	
 	  // Fix by Sudhir
 	  // if (BOA_jk <= 0) continue;
 	  if (j >= system->n && i >= system->n && k >= system->n) continue;
-	  
+	
           Calculate_Theta( pbond_ij->dvec, pbond_ij->d,
                            pbond_jk->dvec, pbond_jk->d,
                            &theta, &cos_theta );
-	  
+	
           Calculate_dCos_ThetaOMP( pbond_ij->dvec, pbond_ij->d,
 				   pbond_jk->dvec, pbond_jk->d,
 				   &(p_ijk->dcos_di), &(p_ijk->dcos_dj),
@@ -390,23 +390,23 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
           p_ijk->thb = k;
           p_ijk->pthb = pk;
           p_ijk->theta = theta;
-	  
+	
           sin_theta = sin( theta );
           if( sin_theta < 1.0e-5 )
             sin_theta = 1.0e-5;
-	  
+	
           ++my_offset; // add this  to the list of 3-body interactions
 	  ++num_thb_intrs;
-	  
+	
           if ((j < system->n) && (BOA_jk > 0.0) &&
               (bo_ij->BO > control->thb_cut) &&
               (bo_jk->BO > control->thb_cut) &&
               (bo_ij->BO * bo_jk->BO > control->thb_cutsq)) {
             r_jk = pbond_jk->d;
             thbh = &( system->reax_param.thbp[ type_i ][ type_j ][ type_k ] );
-	   	    
+	   	
             for (cnt = 0; cnt < thbh->cnt; ++cnt) {
-	      
+	
               if( fabs(thbh->prm[cnt].p_val1) > 0.001 ) {
                 thbp = &( thbh->prm[cnt] );
 		
@@ -456,7 +456,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                 CEval7 = CEval5 * dSBO2;
                 CEval8 = -CEval4 / sin_theta;
 
-		total_Eang += e_ang = 
+		total_Eang += e_ang =
                   f7_ij * f7_jk * f8_Dj * expval12theta;
                 /* END ANGLE ENERGY*/
 		
@@ -533,9 +533,9 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 		
                 if( control->virial == 0 ) {
                   rvec_ScaledAdd( workspace->f[j], CEval8, p_ijk->dcos_dj );
-		  rvec_ScaledAdd( workspace->forceReduction[reductionOffset+i], 
+		  rvec_ScaledAdd( workspace->forceReduction[reductionOffset+i],
 				  CEval8, p_ijk->dcos_di );
-                  rvec_ScaledAdd( workspace->forceReduction[reductionOffset+k], 
+                  rvec_ScaledAdd( workspace->forceReduction[reductionOffset+k],
 				  CEval8, p_ijk->dcos_dk );
                 }
                 else {
@@ -543,36 +543,36 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                      added directly into forces and pressure vector/tensor */
                   rvec_Scale( force, CEval8, p_ijk->dcos_di );
                   rvec_Add( workspace->forceReduction[reductionOffset+i], force );
-		  
+		
                   rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
 		  rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
-		  
+		
                   rvec_ScaledAdd( workspace->f[j], CEval8, p_ijk->dcos_dj );
-		  
+		
                   rvec_Scale( force, CEval8, p_ijk->dcos_dk );
                   rvec_Add( workspace->forceReduction[reductionOffset+k], force );
-                  
+
 		  rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
 		  rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
                 }
 		
                 /* tally into per-atom virials */
                 if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
-		  
+		
                   /* Acquire vectors */
                   rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                                         -1., system->my_atoms[j].x );
                   rvec_ScaledSum( delkj, 1., system->my_atoms[k].x,
                                         -1., system->my_atoms[j].x );
-		  
+		
                   rvec_Scale( fi_tmp, -CEval8, p_ijk->dcos_di );
                   rvec_Scale( fj_tmp, -CEval8, p_ijk->dcos_dj );
                   rvec_Scale( fk_tmp, -CEval8, p_ijk->dcos_dk );
-		  
+		
                   eng_tmp = e_ang + e_pen + e_coa;
-		  
+		
                   if( system->pair_ptr->evflag)
-		    pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, j, j, system->N, 1, 
+		    pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, j, j, system->N, 1,
 						      eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
                   if( system->pair_ptr->vflag_atom)
 		    // NEED TO MAKE AN OMP VERSION OF THIS CALL!
@@ -588,7 +588,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       Set_End_Index(pi, my_offset, thb_intrs );
     } // for(pi)
   } // for(j)
-  
+
   pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
 				  system->pair_ptr->vflag_either, thr);
  } // end omp parallel

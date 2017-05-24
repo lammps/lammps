@@ -199,7 +199,7 @@ void DeAllocate_Workspace( control_params *control, storage *workspace )
   if(workspace->CdDeltaReduction) sfree( workspace->CdDeltaReduction, "cddelta_reduce" );
   if(workspace->forceReduction) sfree( workspace->forceReduction, "f_reduce" );
   if(workspace->valence_angle_atom_myoffset) sfree( workspace->valence_angle_atom_myoffset, "valence_angle_atom_myoffset");
-  
+
   if (control->virial && workspace->my_ext_pressReduction) sfree( workspace->my_ext_pressReduction, "ext_press_reduce");
 #endif
 }
@@ -297,12 +297,12 @@ int Allocate_Workspace( reax_system *system, control_params *control,
   workspace->f = (rvec*) scalloc( total_cap, sizeof(rvec), "f", comm );
   workspace->CdDelta = (double*)
     scalloc( total_cap, sizeof(double), "CdDelta", comm );
-  
+
   // storage for reductions with multiple threads
 #ifdef LMP_USER_OMP
   workspace->CdDeltaReduction = (double *) scalloc(sizeof(double), total_cap*control->nthreads,
 						 "cddelta_reduce", comm);
-  
+
   workspace->forceReduction = (rvec *) scalloc(sizeof(rvec), total_cap*control->nthreads,
 					       "forceReduction", comm);
 
@@ -368,30 +368,30 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
     *total_bonds += system->my_atoms[i].num_bonds;
   }
   *total_bonds = (int)(MAX( *total_bonds * safezone, mincap*MIN_BONDS ));
-  
+
 #ifdef LMP_USER_OMP
   for (i = 0; i < bonds->num_intrs; ++i)
     sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
 #endif
-  
+
   Delete_List( bonds, comm );
   if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds, comm)) {
     fprintf( stderr, "not enough space for bonds list. terminating!\n" );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }
-  
+
 #ifdef LMP_USER_OMP
 #if defined(_OPENMP)
   int nthreads = omp_get_num_threads();
 #else
   int nthreads = 1;
 #endif
-  
+
   for (i = 0; i < bonds->num_intrs; ++i)
-    bonds->select.bond_list[i].bo_data.CdboReduction = 
+    bonds->select.bond_list[i].bo_data.CdboReduction =
       (double*) smalloc(sizeof(double)*nthreads, "CdboReduction", comm);
 #endif
-  
+
   return SUCCESS;
 }
 

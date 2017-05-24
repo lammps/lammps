@@ -486,7 +486,7 @@ typedef struct
 
   int lgflag;
   int enobondsflag;
-  
+
 } control_params;
 
 

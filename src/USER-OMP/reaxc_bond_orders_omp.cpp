@@ -44,11 +44,11 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
   int pk, k, j;
 
   PairReaxCOMP *pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
-  
+
   int tid = omp_get_thread_num();
   ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
   long reductionOffset = (system->N * tid);
-  
+
   /* Virial Tallying variables */
   double f_scaler;
   rvec fi_tmp, fj_tmp, fk_tmp, delij, delji, delki, delkj, temp;
@@ -154,7 +154,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
   for( pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk ) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
-    
+
     // rvec_Scale(     temp, -coef.C2dbo,    nbr_k->bo_data.dBOp);
     // rvec_ScaledAdd( temp, -coef.C2dDelta, nbr_k->bo_data.dBOp);
     // rvec_ScaledAdd( temp, -coef.C3dbopi,  nbr_k->bo_data.dBOp);
@@ -179,12 +179,12 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 					    delkj[0],delkj[1],delkj[2],thr);
     }
   }
-  
+
   // forces on k: j neighbor
   for( pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk ) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
-    
+
     // rvec_Scale(     temp, -coef.C3dbo,    nbr_k->bo_data.dBOp );
     // rvec_ScaledAdd( temp, -coef.C3dDelta, nbr_k->bo_data.dBOp);
     // rvec_ScaledAdd( temp, -coef.C4dbopi,  nbr_k->bo_data.dBOp);
@@ -202,7 +202,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
       pair_reax_ptr->ev_tally_xyz_thr_proxy(system->pair_ptr,k,i,system->N,0,0,0,
 					    fk_tmp[0],fk_tmp[1],fk_tmp[2],
 					    delki[0],delki[1],delki[2],thr);
-      
+
       rvec_ScaledSum(delkj,1.,system->my_atoms[k].x,-1.,system->my_atoms[j].x);
 
       pair_reax_ptr->ev_tally_xyz_thr_proxy(system->pair_ptr,k,j,system->N,0,0,0,
@@ -357,7 +357,7 @@ int BOp_OMP( storage *workspace, reax_list *bonds, double bo_cut,
   /****** bonds i-j and j-i ******/
   ibond = &( bonds->select.bond_list[btop_i] );
   jbond = &( bonds->select.bond_list[btop_j] );
-  
+
   ibond->nbr = j;
   jbond->nbr = i;
   ibond->d = nbr_pj->d;
@@ -370,19 +370,19 @@ int BOp_OMP( storage *workspace, reax_list *bonds, double bo_cut,
   jbond->dbond_index = btop_i;
   ibond->sym_index = btop_j;
   jbond->sym_index = btop_i;
-  
+
   bo_ij = &( ibond->bo_data );
   bo_ji = &( jbond->bo_data );
   bo_ji->BO     = bo_ij->BO     = BO;
   bo_ji->BO_s   = bo_ij->BO_s   = BO_s;
   bo_ji->BO_pi  = bo_ij->BO_pi  = BO_pi;
   bo_ji->BO_pi2 = bo_ij->BO_pi2 = BO_pi2;
-  
+
   /* Bond Order page2-3, derivative of total bond order prime */
   Cln_BOp_s   = twbp->p_bo2 * C12 * rr2;
   Cln_BOp_pi  = twbp->p_bo4 * C34 * rr2;
   Cln_BOp_pi2 = twbp->p_bo6 * C56 * rr2;
-  
+
   /* Only dln_BOp_xx wrt. dr_i is stored here, note that
      dln_BOp_xx/dr_i = -dln_BOp_xx/dr_j and all others are 0 */
   rvec_Scale(bo_ij->dln_BOp_s,-bo_ij->BO_s*Cln_BOp_s,ibond->dvec);
@@ -392,34 +392,34 @@ int BOp_OMP( storage *workspace, reax_list *bonds, double bo_cut,
   rvec_Scale(bo_ji->dln_BOp_s,   -1., bo_ij->dln_BOp_s);
   rvec_Scale(bo_ji->dln_BOp_pi,  -1., bo_ij->dln_BOp_pi );
   rvec_Scale(bo_ji->dln_BOp_pi2, -1., bo_ij->dln_BOp_pi2 );
-  
+
   rvec_Scale( bo_ij->dBOp,
 	      -(bo_ij->BO_s * Cln_BOp_s +
 		bo_ij->BO_pi * Cln_BOp_pi +
 		bo_ij->BO_pi2 * Cln_BOp_pi2), ibond->dvec );
   rvec_Scale( bo_ji->dBOp, -1., bo_ij->dBOp );
-  
+
   bo_ij->BO_s -= bo_cut;
   bo_ij->BO   -= bo_cut;
   bo_ji->BO_s -= bo_cut;
   bo_ji->BO   -= bo_cut;
-  
+
   bo_ij->Cdbo = bo_ij->Cdbopi = bo_ij->Cdbopi2 = 0.0;
   bo_ji->Cdbo = bo_ji->Cdbopi = bo_ji->Cdbopi2 = 0.0;
-  
+
   return 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void BOOMP( reax_system *system, control_params *control, simulation_data *data,
-	    storage *workspace, reax_list **lists, output_controls *out_control ) 
+	    storage *workspace, reax_list **lists, output_controls *out_control )
 {
 #ifdef OMP_TIMING
   double endTimeBase, startTimeBase;
   startTimeBase = MPI_Wtime();
 #endif
-  
+
   double p_lp1 = system->reax_param.gp.l[15];
   int  num_bonds = 0;
   double p_boc1 = system->reax_param.gp.l[0];
@@ -427,7 +427,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
   reax_list *bonds = (*lists) + BONDS;
   int  natoms = system->N;
   int  nthreads = control->nthreads;
-  
+
 #pragma omp parallel default(shared)
   {
     int  i, j, pj, type_i, type_j;
@@ -442,9 +442,9 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
     single_body_parameters *sbp_i, *sbp_j;
     two_body_parameters *twbp;
     bond_order_data *bo_ij, *bo_ji;
-    
+
     int tid = omp_get_thread_num();
-    
+
     /* Calculate Deltaprime, Deltaprime_boc values */
 #pragma omp for schedule(static)
     for (i = 0; i < system->N; ++i) {
@@ -460,7 +460,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 
     // Wait till initialization complete
 #pragma omp barrier
-    
+
     /* Corrected Bond Order calculations */
 //#pragma omp for schedule(dynamic,50)
 #pragma omp for schedule(guided)
@@ -473,7 +473,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
       Deltap_boc_i = workspace->Deltap_boc[i];
       start_i = Start_Index(i, bonds);
       end_i = End_Index(i, bonds);
-      
+
       for (pj = start_i; pj < end_i; ++pj) {
 	j = bonds->select.bond_list[pj].nbr;
 	type_j = system->my_atoms[j].type;
@@ -487,23 +487,23 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	    bo_ij->C1dbo = 1.000000;
 	    bo_ij->C2dbo = 0.000000;
 	    bo_ij->C3dbo = 0.000000;
-	    
+	
 	    bo_ij->C1dbopi = bo_ij->BO_pi;
 	    bo_ij->C2dbopi = 0.000000;
 	    bo_ij->C3dbopi = 0.000000;
 	    bo_ij->C4dbopi = 0.000000;
-	    
+	
 	    bo_ij->C1dbopi2 = bo_ij->BO_pi2;
 	    bo_ij->C2dbopi2 = 0.000000;
 	    bo_ij->C3dbopi2 = 0.000000;
 	    bo_ij->C4dbopi2 = 0.000000;
-	    
+	
 	  }
 	  else {
 	    val_j = system->reax_param.sbp[type_j].valency;
 	    Deltap_j = workspace->Deltap[j];
 	    Deltap_boc_j = workspace->Deltap_boc[j];
-	  
+	
 	    /* on page 1 */
 	    if( twbp->ovc >= 0.001 ) {
 	      /* Correction for overcoordination */
@@ -511,12 +511,12 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	      exp_p2i = exp( -p_boc2 * Deltap_i );
 	      exp_p1j = exp( -p_boc1 * Deltap_j );
 	      exp_p2j = exp( -p_boc2 * Deltap_j );
-	      
+	
 	      f2 = exp_p1i + exp_p1j;
 	      f3 = -1.0 / p_boc2 * log( 0.5 * ( exp_p2i  + exp_p2j ) );
 	      f1 = 0.5 * ( ( val_i + f2 )/( val_i + f2 + f3 ) +
 			   ( val_j + f2 )/( val_j + f2 + f3 ) );
-	      
+	
 	      /* Now come the derivates */
 	      /* Bond Order pages 5-7, derivative of f1 */
 	      temp = f2 + f3;
@@ -526,7 +526,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 				    1.0 / SQR( u1_ji ));
 	      Cf1B_ij = -0.5 * (( u1_ij - f3 ) / SQR( u1_ij ) +
 				( u1_ji - f3 ) / SQR( u1_ji ));
-	      
+	
 	      Cf1_ij = 0.50 * ( -p_boc1 * exp_p1i / u1_ij -
 				((val_i+f2) / SQR(u1_ij)) *
 				( -p_boc1 * exp_p1i +
@@ -535,8 +535,8 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 				((val_j+f2) / SQR(u1_ji)) *
 				( -p_boc1 * exp_p1i +
 				  exp_p2i / ( exp_p2i + exp_p2j ) ));
-	      
-	      
+	
+	
 	      Cf1_ji = -Cf1A_ij * p_boc1 * exp_p1j +
 		Cf1B_ij * exp_p2j / ( exp_p2i + exp_p2j );
 	    }
@@ -552,11 +552,11 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 			    Deltap_boc_i) * twbp->p_boc3 + twbp->p_boc5);
 	      exp_f5 =exp(-(twbp->p_boc4 * SQR( bo_ij->BO ) -
 			    Deltap_boc_j) * twbp->p_boc3 + twbp->p_boc5);
-	      
+	
 	      f4 = 1. / (1. + exp_f4);
 	      f5 = 1. / (1. + exp_f5);
 	      f4f5 = f4 * f5;
-	      
+	
 	      /* Bond Order pages 8-9, derivative of f4 and f5 */
 	      Cf45_ij = -f4 * exp_f4;
 	      Cf45_ji = -f5 * exp_f5;
@@ -565,7 +565,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	      f4 = f5 = f4f5 = 1.0;
 	      Cf45_ij = Cf45_ji = 0.0;
 	    }
-	    
+	
 	    /* Bond Order page 10, derivative of total bond order */
 	    A0_ij = f1 * f4f5;
 	    A1_ij = -2 * twbp->p_boc3 * twbp->p_boc4 * bo_ij->BO *
@@ -574,28 +574,28 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	    A2_ji = Cf1_ji / f1 + twbp->p_boc3 * Cf45_ji;
 	    A3_ij = A2_ij + Cf1_ij / f1;
 	    A3_ji = A2_ji + Cf1_ji / f1;
-	    
+	
 	    /* find corrected bond orders and their derivative coef */
 	    bo_ij->BO    = bo_ij->BO    * A0_ij;
 	    bo_ij->BO_pi = bo_ij->BO_pi * A0_ij *f1;
 	    bo_ij->BO_pi2= bo_ij->BO_pi2* A0_ij *f1;
 	    bo_ij->BO_s  = bo_ij->BO - ( bo_ij->BO_pi + bo_ij->BO_pi2 );
-	    
+	
 	    bo_ij->C1dbo = A0_ij + bo_ij->BO * A1_ij;
 	    bo_ij->C2dbo = bo_ij->BO * A2_ij;
 	    bo_ij->C3dbo = bo_ij->BO * A2_ji;
-	    
+	
 	    bo_ij->C1dbopi = f1*f1*f4*f5;
 	    bo_ij->C2dbopi = bo_ij->BO_pi * A1_ij;
 	    bo_ij->C3dbopi = bo_ij->BO_pi * A3_ij;
 	    bo_ij->C4dbopi = bo_ij->BO_pi * A3_ji;
-	    
+	
 	    bo_ij->C1dbopi2 = f1*f1*f4*f5;
 	    bo_ij->C2dbopi2 = bo_ij->BO_pi2 * A1_ij;
 	    bo_ij->C3dbopi2 = bo_ij->BO_pi2 * A3_ij;
 	    bo_ij->C4dbopi2 = bo_ij->BO_pi2 * A3_ji;
 	  }
-	  
+	
 	  /* neglect bonds that are < 1e-10 */
 	  if( bo_ij->BO < 1e-10 )
 	    bo_ij->BO = 0.0;
@@ -605,7 +605,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	    bo_ij->BO_pi = 0.0;
 	  if( bo_ij->BO_pi2 < 1e-10 )
 	    bo_ij->BO_pi2 = 0.0;
-	  
+	
 	  workspace->total_bond_order[i] += bo_ij->BO; //now keeps total_BO
 	}
 	// else {
@@ -617,11 +617,11 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	//   bo_ij->BO_s = bo_ji->BO_s;
 	//   bo_ij->BO_pi = bo_ji->BO_pi;
 	//   bo_ij->BO_pi2 = bo_ji->BO_pi2;
-	  
+	
 	//   workspace->total_bond_order[i] += bo_ij->BO;// now keeps total_BO
 	// }
       }
-      
+
     }
 
     // Wait for bo_ij to be updated
@@ -635,7 +635,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
       if(type_i < 0) continue;
       start_i = Start_Index(i, bonds);
       end_i = End_Index(i, bonds);
-      
+
       for (pj = start_i; pj < end_i; ++pj) {
 	j = bonds->select.bond_list[pj].nbr;
 	type_j = system->my_atoms[j].type;
@@ -647,25 +647,25 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	  /* We only need to update bond orders from bo_ji
 	     everything else is set in uncorrected_bo calculations */
 	  sym_index = bonds->select.bond_list[pj].sym_index;
-	  
+	
 	  bo_ij = &( bonds->select.bond_list[pj].bo_data );
 	  bo_ji = &(bonds->select.bond_list[ sym_index ].bo_data);
 	  bo_ij->BO = bo_ji->BO;
 	  bo_ij->BO_s = bo_ji->BO_s;
 	  bo_ij->BO_pi = bo_ji->BO_pi;
 	  bo_ij->BO_pi2 = bo_ji->BO_pi2;
-	  
+	
 	  workspace->total_bond_order[i] += bo_ij->BO;// now keeps total_BO
 	}
       }
-      
+
     }
 
     /*-------------------------*/
-    
+
     // Need to wait for total_bond_order to be accumulated.
 #pragma omp barrier
-    
+
     /* Calculate some helper variables that are  used at many places
        throughout force calculations */
 #pragma omp for schedule(guided)
@@ -673,14 +673,14 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
       type_j = system->my_atoms[j].type;
       if(type_j < 0) continue;
       sbp_j = &(system->reax_param.sbp[ type_j ]);
-      
+
       workspace->Delta[j] = workspace->total_bond_order[j] - sbp_j->valency;
       workspace->Delta_e[j] = workspace->total_bond_order[j] - sbp_j->valency_e;
       workspace->Delta_boc[j] = workspace->total_bond_order[j] -
 	sbp_j->valency_boc;
       workspace->Delta_val[j] = workspace->total_bond_order[j] -
 	sbp_j->valency_val;
-      
+
       workspace->vlpex[j] = workspace->Delta_e[j] -
 	2.0 * (int)(workspace->Delta_e[j]/2.0);
       explp1 = exp(-p_lp1 * SQR(2.0 + workspace->vlpex[j]));
@@ -688,7 +688,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
       workspace->Delta_lp[j] = sbp_j->nlp_opt - workspace->nlp[j];
       workspace->Clp[j] = 2.0 * p_lp1 * explp1 * (2.0 + workspace->vlpex[j]);
       workspace->dDelta_lp[j] = workspace->Clp[j];
-      
+
       if( sbp_j->mass > 21.0 ) {
 	workspace->nlp_temp[j] = 0.5 * (sbp_j->valency_e - sbp_j->valency);
 	workspace->Delta_lp_temp[j] = sbp_j->nlp_opt - workspace->nlp_temp[j];
@@ -700,7 +700,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 	workspace->dDelta_lp_temp[j] = workspace->Clp[j];
       }
     }
-    
+
   } // parallel region
 
 #ifdef OMP_TIMING

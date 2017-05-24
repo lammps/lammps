@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -26,17 +26,17 @@ FixStyle(reax/c/species/omp,FixReaxCSpeciesOMP)
 #define BUFLEN 1000
 
 namespace LAMMPS_NS {
-  
+
   class FixReaxCSpeciesOMP : public FixReaxCSpecies {
-    
+
   public:
     FixReaxCSpeciesOMP(class LAMMPS *, int, char **);
     ~FixReaxCSpeciesOMP(){};
     virtual void init();
-    
+
   private:
     class PairReaxCOMP *reaxc;
-    
+
   };
 }
 

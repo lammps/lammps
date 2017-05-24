@@ -53,7 +53,7 @@ int Init_ListsOMP( reax_system *system, control_params *control,
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
   MPI_Comm comm;
-  
+
   int TWICE = 2;
   int mincap = system->mincap;
   double safezone = system->safezone;
@@ -96,9 +96,9 @@ int Init_ListsOMP( reax_system *system, control_params *control,
 
   int nthreads = control->nthreads;
   reax_list *bonds = (*lists)+BONDS;
-  
+
   for (i = 0; i < bonds->num_intrs; ++i)
-    bonds->select.bond_list[i].bo_data.CdboReduction = 
+    bonds->select.bond_list[i].bo_data.CdboReduction =
       (double*) smalloc(sizeof(double)*nthreads, "CdboReduction", comm);
 
   /* 3bodies list */

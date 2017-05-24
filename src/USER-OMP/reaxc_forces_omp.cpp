@@ -77,7 +77,7 @@ void Compute_Bonded_ForcesOMP( reax_system *system, control_params *control,
                             MPI_Comm comm )
 {
   int i;
-  
+
 #ifdef OMP_TIMING
   double startTimeBase, endTimeBase;
   startTimeBase = MPI_Wtime();
@@ -114,7 +114,7 @@ void Compute_NonBonded_ForcesOMP( reax_system *system, control_params *control,
   else
     Tabulated_vdW_Coulomb_Energy_OMP( system, control, data, workspace,
 				      lists, out_control );
-  
+
 #ifdef OMP_TIMING
   endTimeBase = MPI_Wtime();
   ompTimingData[COMPUTENBFINDEX] += (endTimeBase-startTimeBase);
@@ -129,48 +129,48 @@ void Compute_NonBonded_ForcesOMP( reax_system *system, control_params *control,
 void Compute_Total_ForceOMP( reax_system *system, control_params *control,
                           simulation_data *data, storage *workspace,
                           reax_list **lists, mpi_datatypes *mpi_data )
-{  
+{
 #ifdef OMP_TIMING
   double startTimeBase,endTimeBase;
   startTimeBase = MPI_Wtime();
 #endif
-  
+
   int natoms = system->N;
   int nthreads = control->nthreads;
-  long totalReductionSize = system->N * nthreads;    
+  long totalReductionSize = system->N * nthreads;
   reax_list *bonds = (*lists) + BONDS;
-  
-#pragma omp parallel default(shared) //default(none)  
+
+#pragma omp parallel default(shared) //default(none)
   {
     int i, j, k, pj, pk, start_j, end_j;
     int tid = omp_get_thread_num();
     bond_order_data *bo_jk;
-    
+
     class PairReaxCOMP *pair_reax_ptr;
     pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
     class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
-    
-    pair_reax_ptr->ev_setup_thr_proxy(0, 1, natoms, system->pair_ptr->eatom, 
+
+    pair_reax_ptr->ev_setup_thr_proxy(0, 1, natoms, system->pair_ptr->eatom,
  				      system->pair_ptr->vatom, thr);
-    
+
 #pragma omp for schedule(guided)
     for (i = 0; i < system->N; ++i) {
       for (j = 0; j < nthreads; ++j)
 	workspace->CdDelta[i] += workspace->CdDeltaReduction[system->N*j+i];
     }
-    
+
 #pragma omp for schedule(dynamic,50)
     for (j = 0; j < system->N; ++j) {
       start_j = Start_Index(j, bonds);
       end_j = End_Index(j, bonds);
-      
+
       for (pk = start_j; pk < end_j; ++pk) {
  	bo_jk = &( bonds->select.bond_list[pk].bo_data );
  	for (k = 0; k < nthreads; ++k)
  	  bo_jk->Cdbo += bo_jk->CdboReduction[k];
       }
     }
-    
+
 // #pragma omp for schedule(guided) //(dynamic,50)
 //     for (i = 0; i < system->N; ++i)
 //       for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
@@ -188,7 +188,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 	const int startj = Start_Index(i, bonds);
 	const int endj  = End_Index(i, bonds);
 	for (pj = startj; pj < endj; ++pj)
-	  if (i < bonds->select.bond_list[pj].nbr) 
+	  if (i < bonds->select.bond_list[pj].nbr)
 	    Add_dBond_to_ForcesOMP( system, i, pj, workspace, lists );
       }
 
@@ -199,7 +199,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 	const int startj = Start_Index(i, bonds);
 	const int endj  = End_Index(i, bonds);
 	for (pj = startj; pj < endj; ++pj)
-	  if (i < bonds->select.bond_list[pj].nbr) 
+	  if (i < bonds->select.bond_list[pj].nbr)
 	    Add_dBond_to_Forces_NPTOMP(system, i, pj, data, workspace, lists );
       }
 
@@ -213,8 +213,8 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
  	rvec_Add( workspace->f[i], workspace->forceReduction[system->N*j+i] );
     }
 
-    
-#pragma omp for schedule(guided) 
+
+#pragma omp for schedule(guided)
     for (i = 0; i < totalReductionSize; i++) {
       workspace->forceReduction[i][0] = 0;
       workspace->forceReduction[i][1] = 0;
@@ -222,7 +222,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
       workspace->CdDeltaReduction[i] = 0;
     }
   } // parallel region
-  
+
   if (control->virial)
     for (int i=0; i < nthreads; ++i) {
       rvec_Add(data->my_ext_press, workspace->my_ext_pressReduction[i]);
@@ -249,7 +249,7 @@ void Validate_ListsOMP( reax_system *system, storage *workspace, reax_list **lis
 
 #pragma omp parallel default(shared) private(i, comp, Hindex)
   {
-  
+
   /* bond list */
   if( N > 0 ) {
     bonds = *lists + BONDS;
@@ -269,8 +269,8 @@ void Validate_ListsOMP( reax_system *system, storage *workspace, reax_list **lis
       }
     }
   }
-  
-  
+
+
   /* hbonds list */
   if( numH > 0 ) {
     hbonds = *lists + HBONDS;
@@ -294,7 +294,7 @@ void Validate_ListsOMP( reax_system *system, storage *workspace, reax_list **lis
       }
     }
   }
-  
+
   } // omp parallel
 }
 
@@ -307,7 +307,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
   double startTimeBase, endTimeBase;
   startTimeBase = MPI_Wtime();
 #endif
-  
+
   int i, j, pi, pj;
   int start_i, end_i, start_j, end_j;
   int type_i, type_j;
@@ -338,7 +338,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 
   /* uncorrected bond orders */
   cutoff = control->bond_cut;
-  
+
 #pragma omp parallel default(shared)					\
   private(i, atom_i, type_i, pi, start_i, end_i, sbp_i, btop_i, ibond, ihb, ihb_top, \
 	  j, atom_j, type_j, pj, start_j, end_j, sbp_j, nbr_pj, jbond, jhb, twbp)
@@ -376,7 +376,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 //             btop_i++;
 //             Set_End_Index(i, btop_i, bonds);
 // 	  }
-	  
+	
 // 	}
 	
 	// Trying to minimize time spent in critical section by moving initial part of BOp()
@@ -412,7 +412,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 	
 	if(BO >= bo_cut) {
 	  int btop_j;
-	  
+	
 	  // Update indices in critical section
 #pragma omp critical
  	  {
@@ -421,30 +421,30 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 	    Set_End_Index( j, btop_j+1, bonds );
 	    Set_End_Index( i, btop_i+1, bonds );
  	  } // omp critical
-	  
+	
 	  // Finish remaining BOp() work
 	  BOp_OMP(workspace, bonds, bo_cut,
 		  i , btop_i, nbr_pj, sbp_i, sbp_j, twbp, btop_j,
 		  C12, C34, C56, BO, BO_s, BO_pi, BO_pi2);
-	  
+	
  	  bond_data * ibond = &(bonds->select.bond_list[btop_i]);
  	  bond_order_data * bo_ij = &(ibond->bo_data);
-	  
+	
  	  bond_data * jbond = &(bonds->select.bond_list[btop_j]);
  	  bond_order_data * bo_ji = &(jbond->bo_data);
-	  
+	
 	  workspace->total_bond_order[i]      += bo_ij->BO;
 	  tmp_bond_order[reductionOffset + j] += bo_ji->BO;
-	  
+	
 	  rvec_Add(workspace->dDeltap_self[i],      bo_ij->dBOp);
 	  rvec_Add(tmp_ddelta[reductionOffset + j], bo_ji->dBOp);
-	  
+	
 	  btop_i++;
 	  num_bonds++;
 	} // if(BO>=bo_cut)
 	
       } // if(cutoff)
-            
+
     } // for(pj)
   } // for(i)
 
@@ -452,7 +452,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 #pragma omp barrier
 
 #pragma omp for schedule(dynamic,50)
-  for(i=0; i<system->N; i++) 
+  for(i=0; i<system->N; i++)
     for(int t=0; t<nthreads; t++) {
       const int indx = t*system->N + i;
       workspace->dDeltap_self[i][0]  += tmp_ddelta[indx][0];
@@ -467,18 +467,18 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 //   for (i = 0; i < system->N; ++i) {
 //     start_i = Start_Index(i, bonds);
 //     end_i   = End_Index(i, bonds);
-    
+
 //     for (pi = start_i; pi < end_i; ++pi) {
 //       ibond = &(bonds->select.bond_list[pi]);
 //       j = ibond->nbr;
-      
+
 //       if (i < j) {
 //  	start_j = Start_Index(j, bonds);
 //  	end_j   = End_Index(j, bonds);
 	
 //  	for (pj = start_j; pj < end_j; ++pj) {
 //  	  jbond = &(bonds->select.bond_list[pj]);
-	  
+	
 //  	  if (jbond->nbr == i) {
 //  	    ibond->sym_index = pj;
 //  	    jbond->sym_index = pi;
@@ -488,13 +488,13 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 //       }
 //     }
 //    }
-  
+
   /* hydrogen bond list */
   if (control->hbond_cut > 0) {
     cutoff = control->hbond_cut;
 
-//#pragma omp for schedule(guided) reduction(+ : num_hbonds)    
-#pragma omp for schedule(dynamic,50) reduction(+ : num_hbonds)    
+//#pragma omp for schedule(guided) reduction(+ : num_hbonds)
+#pragma omp for schedule(dynamic,50) reduction(+ : num_hbonds)
      for (i = 0; i < system->n; ++i) {
        atom_i = &(system->my_atoms[i]);
        type_i  = atom_i->type;
@@ -503,11 +503,11 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 
 #pragma omp critical
        {
-       
+
        if (ihb == 1 || ihb == 2) {
 	 start_i = Start_Index(i, far_nbrs);
 	 end_i   = End_Index(i, far_nbrs);
-	 
+	
 	 for (pj = start_i; pj < end_i; ++pj) {
 	   nbr_pj = &( far_nbrs->select.far_nbr_list[pj] );
 	   j = nbr_pj->nbr;
@@ -520,12 +520,12 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 	   if (nbr_pj->d <= control->hbond_cut) {
 	     int iflag = 0;
 	     int jflag = 0;
-	     
+	
 	     if(ihb==1 && jhb==2) iflag = 1;
 	     else if(j<system->n && ihb == 2 && jhb == 1) jflag = 1;
-	     
+	
 	     if(iflag || jflag) {
-	     
+	
 	       // This critical section enforces H-bonds to be added by threads one at a time.
 // #pragma omp critical
 // 	       {
@@ -547,14 +547,14 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 		 hbonds->select.hbond_list[jhb_top].scl = -1;
 		 hbonds->select.hbond_list[jhb_top].ptr = nbr_pj;
 	       }
-	       
+	
 	       num_hbonds++;
 	     } // if(iflag || jflag)
 
 	   }
 	 }
        }
-       
+
        } // omp critical
      }
 
@@ -592,8 +592,8 @@ void Compute_ForcesOMP( reax_system *system, control_params *control,
 {
   int qeq_flag;
   MPI_Comm comm = mpi_data->world;
-  
-  // Init Forces  
+
+  // Init Forces
 #if defined(LOG_PERFORMANCE)
   double t_start = 0;
   if( system->my_rank == MASTER_NODE )
@@ -602,13 +602,13 @@ void Compute_ForcesOMP( reax_system *system, control_params *control,
 
   Init_Forces_noQEq_OMP( system, control, data, workspace,
 			 lists, out_control, comm );
-  
+
 #if defined(LOG_PERFORMANCE)
   //MPI_Barrier( comm );
   if( system->my_rank == MASTER_NODE )
     Update_Timing_Info( &t_start, &(data->timing.init_forces) );
 #endif
-  
+
   // Bonded Interactions
   Compute_Bonded_ForcesOMP( system, control, data, workspace,
                          lists, out_control, mpi_data->world );
@@ -617,19 +617,19 @@ void Compute_ForcesOMP( reax_system *system, control_params *control,
   if( system->my_rank == MASTER_NODE )
     Update_Timing_Info( &t_start, &(data->timing.bonded) );
 #endif
-  
+
   // Nonbonded Interactions
   Compute_NonBonded_ForcesOMP( system, control, data, workspace,
                             lists, out_control, mpi_data->world );
-  
+
 #if defined(LOG_PERFORMANCE)
   if( system->my_rank == MASTER_NODE )
     Update_Timing_Info( &t_start, &(data->timing.nonb) );
 #endif
-  
+
   // Total Force
   Compute_Total_ForceOMP( system, control, data, workspace, lists, mpi_data );
-  
+
 #if defined(LOG_PERFORMANCE)
   if( system->my_rank == MASTER_NODE )
     Update_Timing_Info( &t_start, &(data->timing.bonded) );

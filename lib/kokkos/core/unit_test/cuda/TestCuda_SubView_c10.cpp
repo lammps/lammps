@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda, view_subview_3d_from_5d_right ) {
+TEST_F( cuda, view_subview_3d_from_5d_right )
+{
   TestViewSubview::test_3d_subview_5d_right< Kokkos::CudaUVMSpace >();
 }
 
-} // namespace test
-
+} // namespace Test

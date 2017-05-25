@@ -292,3 +292,14 @@ double Bond::memory_usage()
   bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }
+
+/* -----------------------------------------------------------------------
+   Reset all type-based bond params via init.
+-------------------------------------------------------------------------- */
+void Bond::reinit()
+{
+  if (!reinitflag)
+    error->all(FLERR,"Fix adapt interface to this bond style not supported");
+
+  init();
+}

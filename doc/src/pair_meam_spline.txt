@@ -23,13 +23,28 @@ pair_coeff * * Ti.meam.spline Ti Ti Ti :pre
 
 The {meam/spline} style computes pairwise interactions for metals
 using a variant of modified embedded-atom method (MEAM) potentials
-"(Lenosky)"_#Lenosky1.  The total energy E is given by
+"(Lenosky)"_#Lenosky1.  For a single species ("old-style") MEAM,
+the total energy E is given by
 
 :c,image(Eqs/pair_meam_spline.jpg)
 
 where rho_i is the density at atom I, theta_jik is the angle between
 atoms J, I, and K centered on atom I. The five functions Phi, U, rho,
 f, and g are represented by cubic splines.
+
+The {meam/spline} style also supports a new style multicomponent
+modified embedded-atom method (MEAM) potential "(Zhang)"_#Zhang4, where
+the total energy E is given by
+
+:c,image(Eqs/pair_meam_spline_multicomponent.jpg)
+
+where the five functions Phi, U, rho, f, and g depend on the chemistry
+of the atoms in the interaction.  In particular, if there are N different
+chemistries, there are N different U, rho, and f functions, while there
+are N(N+1)/2 different Phi and g functions.  The new style multicomponent
+MEAM potential files are indicated by the second line in the file starts
+with "meam/spline" followed by the number of elements and the name of each
+element.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the
@@ -59,7 +74,7 @@ N element names = mapping of spline-based MEAM elements to atom types :ul
 See the "pair_coeff"_pair_coeff.html doc page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine the Ti.meam.spline file has values for Ti.  If
+As an example, imagine the Ti.meam.spline file has values for Ti (old style).  If
 your LAMMPS simulation has 3 atoms types and they are all to be
 treated with this potentials, you would use the following pair_coeff
 command:
@@ -72,10 +87,19 @@ in the potential file.  If a mapping value is specified as NULL, the
 mapping is not performed.  This can be used when a {meam/spline}
 potential is used as part of the {hybrid} pair style.  The NULL values
 are placeholders for atom types that will be used with other
-potentials.
+potentials. The old-style potential maps any non-NULL species named
+on the command line to that single type.
 
-NOTE: The {meam/spline} style currently supports only single-element
-MEAM potentials.  It may be extended for alloy systems in the future.
+An example with a two component spline (new style) is TiO.meam.spline, where
+the command
+
+pair_coeff * * TiO.meam.spline Ti O :pre
+
+will map the 1st atom type to Ti and the second atom type to O. Note
+in this case that the species names need to match exactly with the
+names of the elements in the TiO.meam.spline file; otherwise an
+error will be raised. This behavior is different than the old style
+MEAM files.
 
 :line
 
@@ -103,9 +127,6 @@ more instructions on how to use the accelerated styles effectively.
 :line
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
-
-The current version of this pair style does not support multiple
-element types or mixing.  It has been designed for pure elements only.
 
 This pair style does not support the "pair_modify"_pair_modify.html
 shift, table, and tail options.
@@ -142,3 +163,6 @@ for more info.
 [(Lenosky)] Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).
+
+:link(Zhang4)
+[(Zhang)] Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

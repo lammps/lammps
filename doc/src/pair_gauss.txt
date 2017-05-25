@@ -128,7 +128,7 @@ The B parameter is converted to a distance (sigma), before mixing
 afterwards (using B=sigma^2).
 Negative A values are converted to positive A values (using abs(A))
 before mixing, and converted back after mixing
-(by multiplying by sign(Ai)*sign(Aj)).
+(by multiplying by min(sign(Ai),sign(Aj))).
 This way, if either particle is repulsive (if Ai<0 or Aj<0),
 then the default interaction between both particles will be repulsive.
 

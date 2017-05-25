@@ -40,17 +40,17 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda , reducers )
+TEST_F( cuda, reducers )
 {
-  TestReducers<int, Kokkos::Cuda>::execute_integer();
-  TestReducers<size_t, Kokkos::Cuda>::execute_integer();
-  TestReducers<double, Kokkos::Cuda>::execute_float();
-  TestReducers<Kokkos::complex<double>, Kokkos::Cuda>::execute_basic();
+  TestReducers< int, Kokkos::Cuda >::execute_integer();
+  TestReducers< size_t, Kokkos::Cuda >::execute_integer();
+  TestReducers< double, Kokkos::Cuda >::execute_float();
+  TestReducers< Kokkos::complex<double>, Kokkos::Cuda >::execute_basic();
 }
 
-} // namespace test
-
+} // namespace Test

@@ -547,7 +547,7 @@ namespace Kokkos {
 
     KOKKOS_INLINE_FUNCTION
     Random_XorShift64 (uint64_t state, int state_idx = 0)
-     : state_(state),state_idx_(state_idx){}
+     : state_(state==0?uint64_t(1318319):state),state_idx_(state_idx){}
 
     KOKKOS_INLINE_FUNCTION
     uint32_t urand() {
@@ -719,6 +719,9 @@ namespace Kokkos {
     }
 
     void init(uint64_t seed, int num_states) {
+      if(seed==0)
+        seed = uint64_t(1318319);
+
       num_states_ = num_states;
 
       locks_ = lock_type("Kokkos::Random_XorShift64::locks",num_states_);
@@ -974,8 +977,9 @@ namespace Kokkos {
 
     inline
     void init(uint64_t seed, int num_states) {
+      if(seed==0)
+        seed = uint64_t(1318319);
       num_states_ = num_states;
-
       locks_ = int_view_type("Kokkos::Random_XorShift1024::locks",num_states_);
       state_ = state_data_type("Kokkos::Random_XorShift1024::state",num_states_);
       p_ = int_view_type("Kokkos::Random_XorShift1024::p",num_states_);

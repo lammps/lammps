@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -53,63 +53,126 @@
 
 namespace Kokkos {
 namespace Impl {
-namespace SerialImpl {
+namespace {
 
-Sentinel::Sentinel() : m_scratch(0), m_reduce_end(0), m_shared_end(0) {}
+HostThreadTeamData g_serial_thread_team_data ;
 
-Sentinel::~Sentinel()
-{
-  if ( m_scratch ) { free( m_scratch ); }
-  m_scratch = 0 ;
-  m_reduce_end = 0 ;
-  m_shared_end = 0 ;
 }
 
-Sentinel & Sentinel::singleton()
+// Resize thread team data scratch memory
+void serial_resize_thread_team_data( size_t pool_reduce_bytes
+                                   , size_t team_reduce_bytes
+                                   , size_t team_shared_bytes
+                                   , size_t thread_local_bytes )
 {
-  static Sentinel s ; return s ;
+  if ( pool_reduce_bytes < 512 ) pool_reduce_bytes = 512 ;
+  if ( team_reduce_bytes < 512 ) team_reduce_bytes = 512 ;
+
+  const size_t old_pool_reduce  = g_serial_thread_team_data.pool_reduce_bytes();
+  const size_t old_team_reduce  = g_serial_thread_team_data.team_reduce_bytes();
+  const size_t old_team_shared  = g_serial_thread_team_data.team_shared_bytes();
+  const size_t old_thread_local = g_serial_thread_team_data.thread_local_bytes();
+  const size_t old_alloc_bytes  = g_serial_thread_team_data.scratch_bytes();
+
+  // Allocate if any of the old allocation is tool small:
+
+  const bool allocate = ( old_pool_reduce  < pool_reduce_bytes ) ||
+                        ( old_team_reduce  < team_reduce_bytes ) ||
+                        ( old_team_shared  < team_shared_bytes ) ||
+                        ( old_thread_local < thread_local_bytes );
+
+  if ( allocate ) {
+
+    Kokkos::HostSpace space ;
+
+    if ( old_alloc_bytes ) {
+      g_serial_thread_team_data.disband_team();
+      g_serial_thread_team_data.disband_pool();
+
+      space.deallocate( g_serial_thread_team_data.scratch_buffer()
+                      , g_serial_thread_team_data.scratch_bytes() );
+    }
+
+    if ( pool_reduce_bytes < old_pool_reduce ) { pool_reduce_bytes = old_pool_reduce ; }
+    if ( team_reduce_bytes < old_team_reduce ) { team_reduce_bytes = old_team_reduce ; }
+    if ( team_shared_bytes < old_team_shared ) { team_shared_bytes = old_team_shared ; }
+    if ( thread_local_bytes < old_thread_local ) { thread_local_bytes = old_thread_local ; }
+
+    const size_t alloc_bytes =
+      HostThreadTeamData::scratch_size( pool_reduce_bytes
+                                      , team_reduce_bytes
+                                      , team_shared_bytes
+                                      , thread_local_bytes );
+
+    void * const ptr = space.allocate( alloc_bytes );
+
+    g_serial_thread_team_data.
+      scratch_assign( ((char *)ptr)
+                    , alloc_bytes
+                    , pool_reduce_bytes
+                    , team_reduce_bytes
+                    , team_shared_bytes
+                    , thread_local_bytes );
+
+    HostThreadTeamData * pool[1] = { & g_serial_thread_team_data };
+
+    g_serial_thread_team_data.organize_pool( pool , 1 );
+    g_serial_thread_team_data.organize_team(1);
+  }
 }
 
-inline
-unsigned align( unsigned n )
+// Get thread team data structure for omp_get_thread_num()
+HostThreadTeamData * serial_get_thread_team_data()
 {
-  enum { ALIGN = 0x0100 /* 256 */ , MASK = ALIGN - 1 };
-  return ( n + MASK ) & ~MASK ;
+  return & g_serial_thread_team_data ;
 }
-
-} // namespace
-
-SerialTeamMember::SerialTeamMember( int arg_league_rank
-                                  , int arg_league_size
-                                  , int arg_shared_size
-                                  )
-  : m_space( ((char *) SerialImpl::Sentinel::singleton().m_scratch) + SerialImpl::Sentinel::singleton().m_reduce_end
-           , arg_shared_size )
-  , m_league_rank( arg_league_rank )
-  , m_league_size( arg_league_size )
-{}
 
 } // namespace Impl
+} // namespace Kokkos
 
-void * Serial::scratch_memory_resize( unsigned reduce_size , unsigned shared_size )
+/*--------------------------------------------------------------------------*/
+
+namespace Kokkos {
+
+int Serial::is_initialized()
 {
-  static Impl::SerialImpl::Sentinel & s = Impl::SerialImpl::Sentinel::singleton();
+  return 1 ;
+}
 
-  reduce_size = Impl::SerialImpl::align( reduce_size );
-  shared_size = Impl::SerialImpl::align( shared_size );
+void Serial::initialize( unsigned threads_count
+                       , unsigned use_numa_count
+                       , unsigned use_cores_per_numa
+                       , bool allow_asynchronous_threadpool )
+{
+  (void) threads_count;
+  (void) use_numa_count;
+  (void) use_cores_per_numa;
+  (void) allow_asynchronous_threadpool;
 
-  if ( ( s.m_reduce_end < reduce_size ) ||
-       ( s.m_shared_end < s.m_reduce_end + shared_size ) ) {
+  // Init the array of locks used for arbitrarily sized atomics
+  Impl::init_lock_array_host_space();
+  #if defined(KOKKOS_ENABLE_PROFILING)
+    Kokkos::Profiling::initialize();
+  #endif
+}
 
-    if ( s.m_scratch ) { free( s.m_scratch ); }
+void Serial::finalize()
+{
+  if ( Impl::g_serial_thread_team_data.scratch_buffer() ) {
+    Impl::g_serial_thread_team_data.disband_team();
+    Impl::g_serial_thread_team_data.disband_pool();
 
-    if ( s.m_reduce_end < reduce_size ) s.m_reduce_end = reduce_size ;
-    if ( s.m_shared_end < s.m_reduce_end + shared_size ) s.m_shared_end = s.m_reduce_end + shared_size ;
+    Kokkos::HostSpace space ;
 
-    s.m_scratch = malloc( s.m_shared_end );
+    space.deallocate( Impl::g_serial_thread_team_data.scratch_buffer()
+                    , Impl::g_serial_thread_team_data.scratch_bytes() );
+
+    Impl::g_serial_thread_team_data.scratch_assign( (void*) 0, 0, 0, 0, 0, 0 );
   }
 
-  return s.m_scratch ;
+  #if defined(KOKKOS_ENABLE_PROFILING)
+    Kokkos::Profiling::finalize();
+  #endif
 }
 
 } // namespace Kokkos

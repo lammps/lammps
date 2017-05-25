@@ -40,14 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <openmp/TestOpenMP.hpp>
 
 namespace Test {
 
-TEST_F( openmp , impl_view_mapping_a ) {
+TEST_F( openmp, impl_view_mapping_a )
+{
   test_view_mapping< Kokkos::OpenMP >();
   test_view_mapping_operator< Kokkos::OpenMP >();
 }
 
-} // namespace test
-
+} // namespace Test

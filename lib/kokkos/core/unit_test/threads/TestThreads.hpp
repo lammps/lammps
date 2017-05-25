@@ -40,11 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #ifndef KOKKOS_TEST_THREADS_HPP
 #define KOKKOS_TEST_THREADS_HPP
+
 #include <gtest/gtest.h>
 
 #include <Kokkos_Macros.hpp>
+
 #ifdef KOKKOS_LAMBDA
 #undef KOKKOS_LAMBDA
 #endif
@@ -53,13 +56,8 @@
 #include <Kokkos_Core.hpp>
 
 #include <TestTile.hpp>
-
-//----------------------------------------------------------------------------
-
 #include <TestSharedAlloc.hpp>
 #include <TestViewMapping.hpp>
-
-
 #include <TestViewAPI.hpp>
 #include <TestViewOfClass.hpp>
 #include <TestViewSubview.hpp>
@@ -74,15 +72,11 @@
 #include <TestCompilerMacros.hpp>
 #include <TestTaskScheduler.hpp>
 #include <TestMemoryPool.hpp>
-
-
 #include <TestCXX11.hpp>
 #include <TestCXX11Deduction.hpp>
 #include <TestTeamVector.hpp>
 #include <TestTemplateMetaFunctions.hpp>
-
 #include <TestPolicyConstruction.hpp>
-
 #include <TestMDRange.hpp>
 
 namespace Test {
@@ -95,13 +89,13 @@ protected:
     const unsigned cores_per_numa   = Kokkos::hwloc::get_available_cores_per_numa();
     const unsigned threads_per_core = Kokkos::hwloc::get_available_threads_per_core();
 
-    unsigned threads_count = 0 ;
+    unsigned threads_count = 0;
 
-    threads_count = std::max( 1u , numa_count )
-                  * std::max( 2u , cores_per_numa * threads_per_core );
+    threads_count = std::max( 1u, numa_count )
+                  * std::max( 2u, cores_per_numa * threads_per_core );
 
     Kokkos::Threads::initialize( threads_count );
-    Kokkos::Threads::print_configuration( std::cout , true /* detailed */ );
+    Kokkos::print_configuration( std::cout, true /* detailed */ );
   }
 
   static void TearDownTestCase()
@@ -110,6 +104,6 @@ protected:
   }
 };
 
+} // namespace Test
 
-}
 #endif

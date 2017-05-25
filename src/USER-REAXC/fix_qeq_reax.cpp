@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fix_qeq_reax.h"
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -375,7 +375,7 @@ void FixQEqReax::init_shielding()
 
   ntypes = atom->ntypes;
   if (shld == NULL)
-    memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
+    memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
 
   for( i = 1; i <= ntypes; ++i )
     for( j = 1; j <= ntypes; ++j )
@@ -416,9 +416,6 @@ void FixQEqReax::init_taper()
 
 void FixQEqReax::setup_pre_force(int vflag)
 {
-  // should not be needed
-  // neighbor->build_one(list);
-
   deallocate_storage();
   allocate_storage();
 

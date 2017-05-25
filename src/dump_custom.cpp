@@ -82,8 +82,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
-  field2index = new int[nfield];
-  argindex = new int[nfield];
+  memory->create(field2index,nfield,"dump:field2index");
+  memory->create(argindex,nfield,"dump:argindex");
 
   buffer_allow = 1;
   buffer_flag = 1;
@@ -200,8 +200,8 @@ DumpCustom::~DumpCustom()
 
   delete [] pack_choice;
   delete [] vtype;
-  delete [] field2index;
-  delete [] argindex;
+  memory->destroy(field2index);
+  memory->destroy(argindex);
 
   delete [] idregion;
   memory->destroy(thresh_array);
@@ -244,11 +244,15 @@ DumpCustom::~DumpCustom()
   for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
   delete [] typenames;
 
-  for (int i = 0; i < size_one; i++) delete [] vformat[i];
-  delete [] vformat;
+  if(vformat) {
+    for (int i = 0; i < size_one; i++) delete [] vformat[i];
+    delete [] vformat;
+  }
 
-  for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
-  delete [] format_column_user;
+  if(format_column_user) {
+    for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
+    delete [] format_column_user;
+  }
 
   delete [] columns;
 }

@@ -45,13 +45,10 @@
 
 #include <Kokkos_Core.hpp>
 
-#if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
-//----------------------------------------------------------------------------
+#if !defined( KOKKOS_ENABLE_CUDA ) || defined( __CUDACC__ )
 
 #include <TestAtomic.hpp>
-
 #include <TestViewAPI.hpp>
-
 #include <TestReduce.hpp>
 #include <TestScan.hpp>
 #include <TestTeam.hpp>
@@ -78,24 +75,25 @@ protected:
 
 TEST_F( defaultdevicetype, host_space_access )
 {
-  typedef Kokkos::HostSpace::execution_space host_exec_space ;
-  typedef Kokkos::Device< host_exec_space , Kokkos::HostSpace > device_space ;
-  typedef Kokkos::Impl::HostMirror< Kokkos::DefaultExecutionSpace >::Space mirror_space ;
+  typedef Kokkos::HostSpace::execution_space host_exec_space;
+  typedef Kokkos::Device< host_exec_space, Kokkos::HostSpace > device_space;
+  typedef Kokkos::Impl::HostMirror< Kokkos::DefaultExecutionSpace >::Space mirror_space;
 
   static_assert(
-    Kokkos::Impl::SpaceAccessibility< host_exec_space , Kokkos::HostSpace >::accessible , "" );
+    Kokkos::Impl::SpaceAccessibility< host_exec_space, Kokkos::HostSpace >::accessible, "" );
 
   static_assert(
-    Kokkos::Impl::SpaceAccessibility< device_space , Kokkos::HostSpace >::accessible , "" );
+    Kokkos::Impl::SpaceAccessibility< device_space, Kokkos::HostSpace >::accessible, "" );
 
   static_assert(
-    Kokkos::Impl::SpaceAccessibility< mirror_space , Kokkos::HostSpace >::accessible , "" );
+    Kokkos::Impl::SpaceAccessibility< mirror_space, Kokkos::HostSpace >::accessible, "" );
 }
 
-TEST_F( defaultdevicetype, view_api) {
-  TestViewAPI< double , Kokkos::DefaultExecutionSpace >();
+TEST_F( defaultdevicetype, view_api )
+{
+  TestViewAPI< double, Kokkos::DefaultExecutionSpace >();
 }
 
-} // namespace test
+} // namespace Test
 
 #endif

@@ -40,13 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <cuda/TestCuda.hpp>
 
 namespace Test {
 
-TEST_F( cuda, view_api_b) {
-  TestViewAPI< double , Kokkos::CudaUVMSpace >();
+TEST_F( cuda, view_api_b )
+{
+  TestViewAPI< double, Kokkos::CudaUVMSpace >();
 }
 
-} // namespace test
-
+} // namespace Test

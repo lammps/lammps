@@ -36,6 +36,7 @@ Pair Styles :h1
    pair_gayberne
    pair_gran
    pair_gromacs
+   pair_gw
    pair_hbond_dreiding
    pair_hybrid
    pair_kim
@@ -71,9 +72,10 @@ Pair Styles :h1
    pair_oxdna2
    pair_peri
    pair_polymorphic
+   pair_python
    pair_quip
    pair_reax
-   pair_reax_c
+   pair_reaxc
    pair_resquared
    pair_sdk
    pair_smd_hertz

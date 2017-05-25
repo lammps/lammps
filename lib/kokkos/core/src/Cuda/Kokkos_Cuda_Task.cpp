@@ -91,7 +91,7 @@ void TaskQueueSpecialization< Kokkos::Cuda >::driver
       // Loop by priority and then type
       for ( int i = 0 ; i < Queue::NumQueue && end == task.ptr ; ++i ) {
         for ( int j = 0 ; j < 2 && end == task.ptr ; ++j ) {
-          task.ptr = Queue::pop_task( & queue->m_ready[i][j] );
+          task.ptr = Queue::pop_ready_task( & queue->m_ready[i][j] );
         }
       }
 

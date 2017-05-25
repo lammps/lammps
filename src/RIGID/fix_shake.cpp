@@ -1419,12 +1419,14 @@ void FixShake::shake(int m)
   domain->minimum_image(r01);
 
   // s01 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   // scalar distances between atoms
 
@@ -1526,18 +1528,20 @@ void FixShake::shake3(int m)
   domain->minimum_image(r02);
 
   // s01,s02 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image(s02);
+  domain->minimum_image_once(s02);
 
   // scalar distances between atoms
 
@@ -1699,24 +1703,26 @@ void FixShake::shake4(int m)
   domain->minimum_image(r03);
 
   // s01,s02,s03 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image(s02);
+  domain->minimum_image_once(s02);
 
   double s03[3];
   s03[0] = xshake[i0][0] - xshake[i3][0];
   s03[1] = xshake[i0][1] - xshake[i3][1];
   s03[2] = xshake[i0][2] - xshake[i3][2];
-  domain->minimum_image(s03);
+  domain->minimum_image_once(s03);
 
   // scalar distances between atoms
 
@@ -1941,24 +1947,26 @@ void FixShake::shake3angle(int m)
   domain->minimum_image(r12);
 
   // s01,s02,s12 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image(s02);
+  domain->minimum_image_once(s02);
 
   double s12[3];
   s12[0] = xshake[i1][0] - xshake[i2][0];
   s12[1] = xshake[i1][1] - xshake[i2][1];
   s12[2] = xshake[i1][2] - xshake[i2][2];
-  domain->minimum_image(s12);
+  domain->minimum_image_once(s12);
 
   // scalar distances between atoms
 
@@ -2055,6 +2063,7 @@ void FixShake::shake3angle(int m)
   double quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda12_new;
 
   while (!done && niter < max_iter) {
+
     quad1 = quad1_0101 * lamda01*lamda01 +
       quad1_0202 * lamda02*lamda02 +
       quad1_1212 * lamda12*lamda12 +

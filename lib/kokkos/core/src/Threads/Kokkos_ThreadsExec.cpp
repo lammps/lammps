@@ -264,7 +264,7 @@ void ThreadsExec::execute_sleep( ThreadsExec & exec , const void * )
   const int rank_rev = exec.m_pool_size - ( exec.m_pool_rank + 1 );
 
   for ( int i = 0 ; i < n ; ++i ) {
-    Impl::spinwait( exec.m_pool_base[ rank_rev + (1<<i) ]->m_pool_state , ThreadsExec::Active );
+    Impl::spinwait_while_equal( exec.m_pool_base[ rank_rev + (1<<i) ]->m_pool_state , ThreadsExec::Active );
   }
 
   exec.m_pool_state = ThreadsExec::Inactive ;
@@ -308,7 +308,7 @@ void ThreadsExec::fence()
 {
   if ( s_thread_pool_size[0] ) {
     // Wait for the root thread to complete:
-    Impl::spinwait( s_threads_exec[0]->m_pool_state , ThreadsExec::Active );
+    Impl::spinwait_while_equal( s_threads_exec[0]->m_pool_state , ThreadsExec::Active );
   }
 
   s_current_function     = 0 ;
@@ -724,7 +724,7 @@ void ThreadsExec::initialize( unsigned thread_count ,
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
 }
@@ -777,7 +777,7 @@ void ThreadsExec::finalize()
   s_threads_process.m_pool_fan_size   = 0 ;
   s_threads_process.m_pool_state = ThreadsExec::Inactive ;
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
   #endif
 }

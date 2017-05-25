@@ -1622,7 +1622,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
                   (1.0-tspjik)*(1.0-tspijl);
                 aaa1 = -prefactor*(1.0-square(om1234)) *
                   (1.0-tspjik)*(1.0-tspijl);
-                aaa2 = aaa1*w21*w34;
+                aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
                 at2 = aa*cwnum;
 
                 fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
@@ -2550,7 +2550,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
                     (1.0-tspjik)*(1.0-tspijl);
                   aaa1 = -prefactor*(1.0-square(om1234)) *
                     (1.0-tspjik)*(1.0-tspijl);
-                  aaa2 = aaa1*w21*w34;
+                  aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
                   at2 = aa*cwnum;
 
                   fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));

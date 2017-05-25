@@ -68,7 +68,7 @@ void InitializeItems(void)
   if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
     strcpy(ff_tor.keyword,"#torsion_1");
     ff_tor.number_of_parameters = 3;
-  } 
+  }
 
   if (forcefield & FF_TYPE_CLASS2) {
     strcpy(ff_tor.keyword,"#torsion_3");

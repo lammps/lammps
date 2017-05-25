@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,11 +36,10 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
-
 
 #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP
 #define KOKKOS_UNITTEST_TASKSCHEDULER_HPP
@@ -51,9 +50,6 @@
 
 #if defined( KOKKOS_ENABLE_TASKDAG )
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
 namespace TestTaskScheduler {
 
 namespace {
@@ -61,14 +57,14 @@ namespace {
 inline
 long eval_fib( long n )
 {
-  constexpr long mask = 0x03 ;
+  constexpr long mask = 0x03;
 
-  long fib[4] = { 0 , 1 , 1 , 2 };
+  long fib[4] = { 0, 1, 1, 2 };
 
-  for ( long i = 2 ; i <= n ; ++i ) {
+  for ( long i = 2; i <= n; ++i ) {
     fib[ i & mask ] = fib[ ( i - 1 ) & mask ] + fib[ ( i - 2 ) & mask ];
   }
-  
+
   return fib[ n & mask ];
 }
 
@@ -77,100 +73,93 @@ long eval_fib( long n )
 template< typename Space >
 struct TestFib
 {
-  typedef Kokkos::TaskScheduler<Space>  policy_type ;
-  typedef Kokkos::Future<long,Space> future_type ;
-  typedef long value_type ;
+  typedef Kokkos::TaskScheduler< Space >  sched_type;
+  typedef Kokkos::Future< long, Space >   future_type;
+  typedef long                            value_type;
 
-  policy_type policy ;
-  future_type fib_m1 ;
-  future_type fib_m2 ;
-  const value_type n ;
-
-  KOKKOS_INLINE_FUNCTION
-  TestFib( const policy_type & arg_policy , const value_type arg_n )
-    : policy(arg_policy)
-    , fib_m1() , fib_m2()
-    , n( arg_n )
-    {}
+  sched_type  sched;
+  future_type fib_m1;
+  future_type fib_m2;
+  const value_type n;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()( typename policy_type::member_type & , value_type & result )
-    {
+  TestFib( const sched_type & arg_sched, const value_type arg_n )
+    : sched( arg_sched ), fib_m1(), fib_m2(), n( arg_n ) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( typename sched_type::member_type &, value_type & result )
+  {
 #if 0
-      printf( "\nTestFib(%ld) %d %d\n"
-             , n
-             , int( ! fib_m1.is_null() )
-             , int( ! fib_m2.is_null() )
-             );
+    printf( "\nTestFib(%ld) %d %d\n", n, int( !fib_m1.is_null() ), int( !fib_m2.is_null() ) );
 #endif
 
-      if ( n < 2 ) {
-        result = n ;
-      }
-      else if ( ! fib_m2.is_null() && ! fib_m1.is_null() ) {
-        result = fib_m1.get() + fib_m2.get();
+    if ( n < 2 ) {
+      result = n;
+    }
+    else if ( !fib_m2.is_null() && !fib_m1.is_null() ) {
+      result = fib_m1.get() + fib_m2.get();
+    }
+    else {
+      // Spawn new children and respawn myself to sum their results.
+      // Spawn lower value at higher priority as it has a shorter
+      // path to completion.
+
+      fib_m2 = Kokkos::task_spawn( Kokkos::TaskSingle( sched, Kokkos::TaskPriority::High )
+                                 , TestFib( sched, n - 2 ) );
+
+      fib_m1 = Kokkos::task_spawn( Kokkos::TaskSingle( sched )
+                                 , TestFib( sched, n - 1 ) );
+
+      Kokkos::Future< Space > dep[] = { fib_m1, fib_m2 };
+      Kokkos::Future< Space > fib_all = Kokkos::when_all( dep, 2 );
+
+      if ( !fib_m2.is_null() && !fib_m1.is_null() && !fib_all.is_null() ) {
+        // High priority to retire this branch.
+        Kokkos::respawn( this, fib_all, Kokkos::TaskPriority::High );
       }
       else {
-
-        // Spawn new children and respawn myself to sum their results:
-        // Spawn lower value at higher priority as it has a shorter
-        // path to completion.
-
-        fib_m2 = policy.task_spawn( TestFib(policy,n-2)
-                                  , Kokkos::TaskSingle
-                                  , Kokkos::TaskHighPriority );
-
-        fib_m1 = policy.task_spawn( TestFib(policy,n-1)
-                                  , Kokkos::TaskSingle );
-
-        Kokkos::Future<Space> dep[] = { fib_m1 , fib_m2 };
-
-        Kokkos::Future<Space> fib_all = policy.when_all( 2 , dep );
-
-        if ( ! fib_m2.is_null() && ! fib_m1.is_null() && ! fib_all.is_null() ) {
-          // High priority to retire this branch
-          policy.respawn( this , Kokkos::TaskHighPriority , fib_all );
-        }
-        else {
 #if 1
-      printf( "TestFib(%ld) insufficient memory alloc_capacity(%d) task_max(%d) task_accum(%ld)\n"
-             , n
-             , policy.allocation_capacity()
-             , policy.allocated_task_count_max()
-             , policy.allocated_task_count_accum()
-             );
+        printf( "TestFib(%ld) insufficient memory alloc_capacity(%d) task_max(%d) task_accum(%ld)\n"
+               , n
+               , sched.allocation_capacity()
+               , sched.allocated_task_count_max()
+               , sched.allocated_task_count_accum()
+               );
 #endif
-          Kokkos::abort("TestFib insufficient memory");
 
-        }
+        Kokkos::abort( "TestFib insufficient memory" );
+
       }
     }
+  }
 
-  static void run( int i , size_t MemoryCapacity = 16000 )
-    {
-      typedef typename policy_type::memory_space memory_space ;
+  static void run( int i, size_t MemoryCapacity = 16000 )
+  {
+    typedef typename sched_type::memory_space memory_space;
 
-      enum { Log2_SuperBlockSize = 12 };
+    enum { Log2_SuperBlockSize = 12 };
 
-      policy_type root_policy( memory_space() , MemoryCapacity , Log2_SuperBlockSize );
+    sched_type root_sched( memory_space(), MemoryCapacity, Log2_SuperBlockSize );
 
-      future_type f = root_policy.host_spawn( TestFib(root_policy,i) , Kokkos::TaskSingle );
-      Kokkos::wait( root_policy );
-      ASSERT_EQ( eval_fib(i) , f.get() );
+    future_type f = Kokkos::host_spawn( Kokkos::TaskSingle( root_sched )
+                                      , TestFib( root_sched, i ) );
+
+    Kokkos::wait( root_sched );
+
+    ASSERT_EQ( eval_fib( i ), f.get() );
 
 #if 0
-      fprintf( stdout , "\nTestFib::run(%d) spawn_size(%d) when_all_size(%d) alloc_capacity(%d) task_max(%d) task_accum(%ld)\n"
-             , i
-             , int(root_policy.template spawn_allocation_size<TestFib>())
-             , int(root_policy.when_all_allocation_size(2))
-             , root_policy.allocation_capacity()
-             , root_policy.allocated_task_count_max()
-             , root_policy.allocated_task_count_accum()
-             );
-      fflush( stdout );
+    fprintf( stdout, "\nTestFib::run(%d) spawn_size(%d) when_all_size(%d) alloc_capacity(%d) task_max(%d) task_accum(%ld)\n"
+           , i
+           , int(root_sched.template spawn_allocation_size<TestFib>())
+           , int(root_sched.when_all_allocation_size(2))
+           , root_sched.allocation_capacity()
+           , root_sched.allocated_task_count_max()
+           , root_sched.allocated_task_count_accum()
+           );
+    fflush( stdout );
 #endif
-    }
-
+  }
 };
 
 } // namespace TestTaskScheduler
@@ -181,73 +170,71 @@ namespace TestTaskScheduler {
 
 template< class Space >
 struct TestTaskDependence {
+  typedef Kokkos::TaskScheduler< Space >  sched_type;
+  typedef Kokkos::Future< Space >         future_type;
+  typedef Kokkos::View< long, Space >     accum_type;
+  typedef void                            value_type;
 
-  typedef Kokkos::TaskScheduler<Space>  policy_type ;
-  typedef Kokkos::Future<Space>      future_type ;
-  typedef Kokkos::View<long,Space>   accum_type ;
-  typedef void value_type ;
-
-  policy_type  m_policy ;
-  accum_type   m_accum ;
-  long         m_count ;
+  sched_type  m_sched;
+  accum_type  m_accum;
+  long        m_count;
 
   KOKKOS_INLINE_FUNCTION
   TestTaskDependence( long n
-                    , const policy_type & arg_policy
-                    , const accum_type  & arg_accum )
-    : m_policy( arg_policy )
+                    , const sched_type & arg_sched
+                    , const accum_type & arg_accum )
+    : m_sched( arg_sched )
     , m_accum( arg_accum )
-    , m_count( n )
-    {}
+    , m_count( n ) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()( typename policy_type::member_type & )
-    {
-       enum { CHUNK = 8 };
-       const int n = CHUNK < m_count ? CHUNK : m_count ;
+  void operator()( typename sched_type::member_type & )
+  {
+    enum { CHUNK = 8 };
+    const int n = CHUNK < m_count ? CHUNK : m_count;
 
-       if ( 1 < m_count ) {
-         future_type f[ CHUNK ] ;
+    if ( 1 < m_count ) {
+      future_type f[ CHUNK ];
 
-         const int inc = ( m_count + n - 1 ) / n ;
+      const int inc = ( m_count + n - 1 ) / n;
 
-         for ( int i = 0 ; i < n ; ++i ) {
-           long begin = i * inc ;
-           long count = begin + inc < m_count ? inc : m_count - begin ;
-           f[i] = m_policy.task_spawn( TestTaskDependence(count,m_policy,m_accum) , Kokkos::TaskSingle );
-         }
+      for ( int i = 0; i < n; ++i ) {
+        long begin = i * inc;
+        long count = begin + inc < m_count ? inc : m_count - begin;
+        f[i] = Kokkos::task_spawn( Kokkos::TaskSingle( m_sched )
+                                 , TestTaskDependence( count, m_sched, m_accum ) );
+      }
 
-         m_count = 0 ;
+      m_count = 0;
 
-         m_policy.respawn( this , m_policy.when_all( n , f ) );
-       }
-       else if ( 1 == m_count ) {
-         Kokkos::atomic_increment( & m_accum() );
-       }
+      Kokkos::respawn( this, Kokkos::when_all( f, n ) );
     }
+    else if ( 1 == m_count ) {
+      Kokkos::atomic_increment( & m_accum() );
+    }
+  }
 
   static void run( int n )
-    {
-      typedef typename policy_type::memory_space memory_space ;
+  {
+    typedef typename sched_type::memory_space memory_space;
 
-      // enum { MemoryCapacity = 4000 }; // Triggers infinite loop in memory pool
-      enum { MemoryCapacity = 16000 };
-      enum { Log2_SuperBlockSize = 12 };
-      policy_type policy( memory_space() , MemoryCapacity , Log2_SuperBlockSize );
+    // enum { MemoryCapacity = 4000 }; // Triggers infinite loop in memory pool.
+    enum { MemoryCapacity = 16000 };
+    enum { Log2_SuperBlockSize = 12 };
+    sched_type sched( memory_space(), MemoryCapacity, Log2_SuperBlockSize );
 
-      accum_type accum("accum");
+    accum_type accum( "accum" );
 
-      typename accum_type::HostMirror host_accum =
-        Kokkos::create_mirror_view( accum );
+    typename accum_type::HostMirror host_accum = Kokkos::create_mirror_view( accum );
 
-      policy.host_spawn( TestTaskDependence(n,policy,accum) , Kokkos::TaskSingle );
+    Kokkos::host_spawn( Kokkos::TaskSingle( sched ), TestTaskDependence( n, sched, accum ) );
 
-      Kokkos::wait( policy );
+    Kokkos::wait( sched );
 
-      Kokkos::deep_copy( host_accum , accum );
+    Kokkos::deep_copy( host_accum, accum );
 
-      ASSERT_EQ( host_accum() , n );
-    }
+    ASSERT_EQ( host_accum(), n );
+  }
 };
 
 } // namespace TestTaskScheduler
@@ -258,294 +245,317 @@ namespace TestTaskScheduler {
 
 template< class ExecSpace >
 struct TestTaskTeam {
-
   //enum { SPAN = 8 };
   enum { SPAN = 33 };
   //enum { SPAN = 1 };
 
-  typedef void value_type ;
-  typedef Kokkos::TaskScheduler<ExecSpace>  policy_type ;
-  typedef Kokkos::Future<ExecSpace>      future_type ;
-  typedef Kokkos::View<long*,ExecSpace>  view_type ;
+  typedef void                                value_type;
+  typedef Kokkos::TaskScheduler< ExecSpace >  sched_type;
+  typedef Kokkos::Future< ExecSpace >         future_type;
+  typedef Kokkos::View< long*, ExecSpace >    view_type;
 
-  policy_type  policy ;
-  future_type  future ;
+  sched_type   sched;
+  future_type  future;
 
-  view_type  parfor_result ;
-  view_type  parreduce_check ;
-  view_type  parscan_result ;
-  view_type  parscan_check ;
-  const long nvalue ;
+  view_type   parfor_result;
+  view_type   parreduce_check;
+  view_type   parscan_result;
+  view_type   parscan_check;
+  const long  nvalue;
 
   KOKKOS_INLINE_FUNCTION
-  TestTaskTeam( const policy_type & arg_policy
-              , const view_type   & arg_parfor_result
-              , const view_type   & arg_parreduce_check
-              , const view_type   & arg_parscan_result
-              , const view_type   & arg_parscan_check
-              , const long          arg_nvalue )
-    : policy(arg_policy)
+  TestTaskTeam( const sched_type & arg_sched
+              , const view_type  & arg_parfor_result
+              , const view_type  & arg_parreduce_check
+              , const view_type  & arg_parscan_result
+              , const view_type  & arg_parscan_check
+              , const long         arg_nvalue )
+    : sched( arg_sched )
     , future()
     , parfor_result( arg_parfor_result )
     , parreduce_check( arg_parreduce_check )
     , parscan_result( arg_parscan_result )
     , parscan_check( arg_parscan_check )
-    , nvalue( arg_nvalue )
-    {}
+    , nvalue( arg_nvalue ) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()( typename policy_type::member_type & member )
-    {
-      const long end   = nvalue + 1 ;
-      const long begin = 0 < end - SPAN ? end - SPAN : 0 ;
+  void operator()( typename sched_type::member_type & member )
+  {
+    const long end   = nvalue + 1;
+    const long begin = 0 < end - SPAN ? end - SPAN : 0;
 
-      if ( 0 < begin && future.is_null() ) {
-        if ( member.team_rank() == 0 ) {
-          future = policy.task_spawn
-            ( TestTaskTeam( policy ,
-                            parfor_result ,
-                            parreduce_check,
-                            parscan_result,
-                            parscan_check,
-                            begin - 1 )
-            , Kokkos::TaskTeam );
-
-          assert( ! future.is_null() );
-
-          policy.respawn( this , future );
-        }
-        return ;
-      }
-
-      Kokkos::parallel_for( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i ) { parfor_result[i] = i ; }
-                          );
-
-      // test parallel_reduce without join
-    
-      long tot = 0;
-      long expected = (begin+end-1)*(end-begin)*0.5;
-      
-      Kokkos::parallel_reduce( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i, long &res) { res += parfor_result[i]; }
-                          , tot);
-      Kokkos::parallel_for( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i ) { parreduce_check[i] = expected-tot ; }
-                          );
-
-      // test parallel_reduce with join
-
-      tot = 0;
-      Kokkos::parallel_reduce( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i, long &res) { res += parfor_result[i]; }
-                          , [&]( long& val1, const long& val2) { val1 += val2; }
-                          , tot);
-      Kokkos::parallel_for( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i ) { parreduce_check[i] += expected-tot ; }
-                          );
-
-      // test parallel_scan
-
-      // Exclusive scan
-      Kokkos::parallel_scan<long>( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i, long &val , const bool final ) {
-                              if ( final ) { parscan_result[i] = val; }
-                              val += i;
-                            }
-                          );
+    if ( 0 < begin && future.is_null() ) {
       if ( member.team_rank() == 0 ) {
-        for ( long i = begin ; i < end ; ++i ) {
-          parscan_check[i] = (i*(i-1)-begin*(begin-1))*0.5-parscan_result[i];
-        }
+        future = Kokkos::task_spawn( Kokkos::TaskTeam( sched )
+                                   , TestTaskTeam( sched
+                                                 , parfor_result
+                                                 , parreduce_check
+                                                 , parscan_result
+                                                 , parscan_check
+                                                 , begin - 1 )
+                                   );
+
+        assert( !future.is_null() );
+
+        Kokkos::respawn( this, future );
       }
 
-      // Inclusive scan
-      Kokkos::parallel_scan<long>( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i, long &val , const bool final ) {
-                              val += i;
-                              if ( final ) { parscan_result[i] = val; }
-                            }
-                          );
-      if ( member.team_rank() == 0 ) {
-        for ( long i = begin ; i < end ; ++i ) {
-          parscan_check[i] += (i*(i+1)-begin*(begin-1))*0.5-parscan_result[i];
-        }
-      }
-      // ThreadVectorRange check
-      /*
-      long result = 0;
-      expected = (begin+end-1)*(end-begin)*0.5;
-      Kokkos::parallel_reduce( Kokkos::TeamThreadRange( member , 0 , 1 )
-                             , [&] ( const int i , long & outerUpdate ) {
-                                 long sum_j = 0.0;
-                                 Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( member , end - begin )
-                                                        , [&] ( const int j , long &innerUpdate ) {
-                                                            innerUpdate += begin+j;
-                                                          } , sum_j );
-                                 outerUpdate += sum_j ;
-                               } , result );
-      Kokkos::parallel_for( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i ) {
-                              parreduce_check[i] += result-expected ;
-                            }
-                          );
-      */
+      return;
     }
+
+    Kokkos::parallel_for( Kokkos::TeamThreadRange( member, begin, end )
+                        , [&] ( int i ) { parfor_result[i] = i; }
+                        );
+
+    // Test parallel_reduce without join.
+
+    long tot = 0;
+    long expected = ( begin + end - 1 ) * ( end - begin ) * 0.5;
+
+    Kokkos::parallel_reduce( Kokkos::TeamThreadRange( member, begin, end )
+                           , [&] ( int i, long & res ) { res += parfor_result[i]; }
+                           , tot
+                           );
+
+    Kokkos::parallel_for( Kokkos::TeamThreadRange( member, begin, end )
+                        , [&] ( int i ) { parreduce_check[i] = expected - tot; }
+                        );
+
+    // Test parallel_reduce with join.
+
+    tot = 0;
+    Kokkos::parallel_reduce( Kokkos::TeamThreadRange( member, begin, end )
+                           , [&] ( int i, long & res ) { res += parfor_result[i]; }
+#if 0
+                           , Kokkos::Sum( tot )
+#else
+                           , [] ( long & dst, const long & src ) { dst += src; }
+                           , tot
+#endif
+                           );
+
+    Kokkos::parallel_for( Kokkos::TeamThreadRange( member, begin, end )
+                        , [&] ( int i ) { parreduce_check[i] += expected - tot; }
+                        );
+
+    // Test parallel_scan.
+
+    // Exclusive scan.
+    Kokkos::parallel_scan<long>( Kokkos::TeamThreadRange( member, begin, end )
+                               , [&] ( int i, long & val, const bool final )
+    {
+      if ( final ) { parscan_result[i] = val; }
+
+      val += i;
+    });
+
+    // Wait for 'parscan_result' before testing it.
+    member.team_barrier();
+
+    if ( member.team_rank() == 0 ) {
+      for ( long i = begin; i < end; ++i ) {
+        parscan_check[i] = ( i * ( i - 1 ) - begin * ( begin - 1 ) ) * 0.5 - parscan_result[i];
+      }
+    }
+
+    // Don't overwrite 'parscan_result' until it has been tested.
+    member.team_barrier();
+
+    // Inclusive scan.
+    Kokkos::parallel_scan<long>( Kokkos::TeamThreadRange( member, begin, end )
+                               , [&] ( int i, long & val, const bool final )
+    {
+      val += i;
+
+      if ( final ) { parscan_result[i] = val; }
+    });
+
+    // Wait for 'parscan_result' before testing it.
+    member.team_barrier();
+
+    if ( member.team_rank() == 0 ) {
+      for ( long i = begin; i < end; ++i ) {
+        parscan_check[i] += ( i * ( i + 1 ) - begin * ( begin - 1 ) ) * 0.5 - parscan_result[i];
+      }
+    }
+
+    // ThreadVectorRange check.
+/*
+    long result = 0;
+    expected = ( begin + end - 1 ) * ( end - begin ) * 0.5;
+    Kokkos::parallel_reduce( Kokkos::TeamThreadRange( member, 0, 1 )
+                           , [&] ( const int i, long & outerUpdate )
+    {
+      long sum_j = 0.0;
+
+      Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( member, end - begin )
+                             , [&] ( const int j, long & innerUpdate )
+      {
+        innerUpdate += begin + j;
+      }, sum_j );
+
+      outerUpdate += sum_j;
+    }, result );
+
+    Kokkos::parallel_for( Kokkos::TeamThreadRange( member, begin, end )
+                        , [&] ( int i )
+    {
+      parreduce_check[i] += result - expected;
+    });
+*/
+  }
 
   static void run( long n )
-    {
-      // const unsigned memory_capacity = 10000 ; // causes memory pool infinite loop
-      // const unsigned memory_capacity = 100000 ; // fails with SPAN=1 for serial and OMP
-      const unsigned memory_capacity = 400000 ;
+  {
+    //const unsigned memory_capacity = 10000; // Causes memory pool infinite loop.
+    //const unsigned memory_capacity = 100000; // Fails with SPAN=1 for serial and OMP.
+    const unsigned memory_capacity = 400000;
 
-      policy_type root_policy( typename policy_type::memory_space()
-                        , memory_capacity );
+    sched_type root_sched( typename sched_type::memory_space(), memory_capacity );
 
-      view_type   root_parfor_result("parfor_result",n+1);
-      view_type   root_parreduce_check("parreduce_check",n+1);
-      view_type   root_parscan_result("parscan_result",n+1);
-      view_type   root_parscan_check("parscan_check",n+1);
+    view_type root_parfor_result( "parfor_result", n + 1 );
+    view_type root_parreduce_check( "parreduce_check", n + 1 );
+    view_type root_parscan_result( "parscan_result", n + 1 );
+    view_type root_parscan_check( "parscan_check", n + 1 );
 
-      typename view_type::HostMirror
-        host_parfor_result = Kokkos::create_mirror_view( root_parfor_result );
-      typename view_type::HostMirror
-        host_parreduce_check = Kokkos::create_mirror_view( root_parreduce_check );
-      typename view_type::HostMirror
-        host_parscan_result = Kokkos::create_mirror_view( root_parscan_result );
-      typename view_type::HostMirror
-        host_parscan_check = Kokkos::create_mirror_view( root_parscan_check );
+    typename view_type::HostMirror
+      host_parfor_result = Kokkos::create_mirror_view( root_parfor_result );
+    typename view_type::HostMirror
+      host_parreduce_check = Kokkos::create_mirror_view( root_parreduce_check );
+    typename view_type::HostMirror
+      host_parscan_result = Kokkos::create_mirror_view( root_parscan_result );
+    typename view_type::HostMirror
+      host_parscan_check = Kokkos::create_mirror_view( root_parscan_check );
 
-      future_type f = root_policy.host_spawn(
-                        TestTaskTeam( root_policy ,
-                                      root_parfor_result ,
-                                      root_parreduce_check ,
-                                      root_parscan_result,
-                                      root_parscan_check,
-                                      n ) ,
-                        Kokkos::TaskTeam );
+    future_type f = Kokkos::host_spawn( Kokkos::TaskTeam( root_sched )
+                                      , TestTaskTeam( root_sched
+                                                    , root_parfor_result
+                                                    , root_parreduce_check
+                                                    , root_parscan_result
+                                                    , root_parscan_check
+                                                    , n )
+                                      );
 
-      Kokkos::wait( root_policy );
+    Kokkos::wait( root_sched );
 
-      Kokkos::deep_copy( host_parfor_result , root_parfor_result );
-      Kokkos::deep_copy( host_parreduce_check , root_parreduce_check );
-      Kokkos::deep_copy( host_parscan_result , root_parscan_result );
-      Kokkos::deep_copy( host_parscan_check , root_parscan_check );
+    Kokkos::deep_copy( host_parfor_result, root_parfor_result );
+    Kokkos::deep_copy( host_parreduce_check, root_parreduce_check );
+    Kokkos::deep_copy( host_parscan_result, root_parscan_result );
+    Kokkos::deep_copy( host_parscan_check, root_parscan_check );
 
-      for ( long i = 0 ; i <= n ; ++i ) {
-        const long answer = i ;
-        if ( host_parfor_result(i) != answer ) {
-          std::cerr << "TestTaskTeam::run ERROR parallel_for result(" << i << ") = "
-                    << host_parfor_result(i) << " != " << answer << std::endl ;
-        }
-        if ( host_parreduce_check(i) != 0 ) {
-          std::cerr << "TestTaskTeam::run ERROR parallel_reduce check(" << i << ") = "
-                    << host_parreduce_check(i) << " != 0" << std::endl ;
-        }
-        if ( host_parscan_check(i) != 0 ) {
-          std::cerr << "TestTaskTeam::run ERROR parallel_scan check(" << i << ") = "
-                    << host_parscan_check(i) << " != 0" << std::endl ;
-        }
+    for ( long i = 0; i <= n; ++i ) {
+      const long answer = i;
+
+      if ( host_parfor_result( i ) != answer ) {
+        std::cerr << "TestTaskTeam::run ERROR parallel_for result(" << i << ") = "
+                  << host_parfor_result( i ) << " != " << answer << std::endl;
+      }
+
+      if ( host_parreduce_check( i ) != 0 ) {
+        std::cerr << "TestTaskTeam::run ERROR parallel_reduce check(" << i << ") = "
+                  << host_parreduce_check( i ) << " != 0" << std::endl;
+      }
+
+      if ( host_parscan_check( i ) != 0 ) {
+        std::cerr << "TestTaskTeam::run ERROR parallel_scan check(" << i << ") = "
+                  << host_parscan_check( i ) << " != 0" << std::endl;
       }
     }
+  }
 };
 
 template< class ExecSpace >
 struct TestTaskTeamValue {
-
   enum { SPAN = 8 };
 
-  typedef long value_type ;
-  typedef Kokkos::TaskScheduler<ExecSpace>         policy_type ;
-  typedef Kokkos::Future<value_type,ExecSpace>  future_type ;
-  typedef Kokkos::View<long*,ExecSpace>         view_type ;
+  typedef long                                     value_type;
+  typedef Kokkos::TaskScheduler< ExecSpace >       sched_type;
+  typedef Kokkos::Future< value_type, ExecSpace >  future_type;
+  typedef Kokkos::View< long*, ExecSpace >         view_type;
 
-  policy_type  policy ;
-  future_type  future ;
+  sched_type   sched;
+  future_type  future;
 
-  view_type  result ;
-  const long nvalue ;
+  view_type   result;
+  const long  nvalue;
 
   KOKKOS_INLINE_FUNCTION
-  TestTaskTeamValue( const policy_type & arg_policy
-                   , const view_type   & arg_result
-                   , const long          arg_nvalue )
-    : policy(arg_policy)
+  TestTaskTeamValue( const sched_type & arg_sched
+                   , const view_type  & arg_result
+                   , const long         arg_nvalue )
+    : sched( arg_sched )
     , future()
     , result( arg_result )
-    , nvalue( arg_nvalue )
-    {}
+    , nvalue( arg_nvalue ) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()( typename policy_type::member_type const & member
+  void operator()( typename sched_type::member_type const & member
                  , value_type & final )
-    {
-      const long end   = nvalue + 1 ;
-      const long begin = 0 < end - SPAN ? end - SPAN : 0 ;
+  {
+    const long end   = nvalue + 1;
+    const long begin = 0 < end - SPAN ? end - SPAN : 0;
 
-      if ( 0 < begin && future.is_null() ) {
-        if ( member.team_rank() == 0 ) {
-
-          future = policy.task_spawn
-            ( TestTaskTeamValue( policy , result , begin - 1 )
-            , Kokkos::TaskTeam );
-
-          assert( ! future.is_null() );
-
-          policy.respawn( this , future );
-        }
-        return ;
-      }
-
-      Kokkos::parallel_for( Kokkos::TeamThreadRange(member,begin,end)
-                          , [&]( int i ) { result[i] = i + 1 ; }
-                          );
-
+    if ( 0 < begin && future.is_null() ) {
       if ( member.team_rank() == 0 ) {
-        final = result[nvalue] ;
+        future = sched.task_spawn( TestTaskTeamValue( sched, result, begin - 1 )
+                                 , Kokkos::TaskTeam );
+
+        assert( !future.is_null() );
+
+        sched.respawn( this , future );
       }
 
-      Kokkos::memory_fence();
+      return;
     }
+
+    Kokkos::parallel_for( Kokkos::TeamThreadRange( member, begin, end )
+                        , [&] ( int i ) { result[i] = i + 1; }
+                        );
+
+    if ( member.team_rank() == 0 ) {
+      final = result[nvalue];
+    }
+
+    Kokkos::memory_fence();
+  }
 
   static void run( long n )
-    {
-      // const unsigned memory_capacity = 10000 ; // causes memory pool infinite loop
-      const unsigned memory_capacity = 100000 ;
+  {
+    //const unsigned memory_capacity = 10000; // Causes memory pool infinite loop.
+    const unsigned memory_capacity = 100000;
 
-      policy_type root_policy( typename policy_type::memory_space()
-                             , memory_capacity );
+    sched_type root_sched( typename sched_type::memory_space()
+                          , memory_capacity );
 
-      view_type   root_result("result",n+1);
+    view_type root_result( "result", n + 1 );
 
-      typename view_type::HostMirror
-        host_result = Kokkos::create_mirror_view( root_result );
+    typename view_type::HostMirror host_result = Kokkos::create_mirror_view( root_result );
 
-      future_type fv = root_policy.host_spawn
-        ( TestTaskTeamValue( root_policy, root_result, n ) , Kokkos::TaskTeam );
+    future_type fv = root_sched.host_spawn( TestTaskTeamValue( root_sched, root_result, n )
+                                          , Kokkos::TaskTeam );
 
-      Kokkos::wait( root_policy );
+    Kokkos::wait( root_sched );
 
-      Kokkos::deep_copy( host_result , root_result );
+    Kokkos::deep_copy( host_result, root_result );
 
-      if ( fv.get() != n + 1 ) {
-        std::cerr << "TestTaskTeamValue ERROR future = "
-                  << fv.get() << " != " << n + 1 << std::endl ;
-      }
-      for ( long i = 0 ; i <= n ; ++i ) {
-        const long answer = i + 1 ;
-        if ( host_result(i) != answer ) {
-          std::cerr << "TestTaskTeamValue ERROR result(" << i << ") = "
-                    << host_result(i) << " != " << answer << std::endl ;
-        }
+    if ( fv.get() != n + 1 ) {
+      std::cerr << "TestTaskTeamValue ERROR future = "
+                << fv.get() << " != " << n + 1 << std::endl;
+    }
+
+    for ( long i = 0; i <= n; ++i ) {
+      const long answer = i + 1;
+
+      if ( host_result( i ) != answer ) {
+        std::cerr << "TestTaskTeamValue ERROR result(" << i << ") = "
+                  << host_result( i ) << " != " << answer << std::endl;
       }
     }
+  }
 };
+
 } // namespace TestTaskScheduler
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+#endif // #if defined( KOKKOS_ENABLE_TASKDAG )
 
-#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
-#endif /* #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP */
-
-
+#endif // #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP

@@ -44,7 +44,7 @@ class ComputeSNAAtom : public Compute {
   double *wjelem;
   class SNA** snaptr;
   double cutmax;
-
+  int quadraticflag;
 };
 
 }

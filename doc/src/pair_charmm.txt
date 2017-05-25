@@ -99,9 +99,10 @@ artifacts.
 
 NOTE: The newer {charmmfsw} or {charmmfsh} styles were released in
 March 2017.  We recommend they be used instead of the older {charmm}
-styles.  Eventually code from the new styles will propagate into the
-related pair styles (e.g. implicit, accelerator, free energy
-variants).
+styles.  This includes the newer "dihedral_style
+charmmfsw"_dihedral_charmm.html command.  Eventually code from the new
+styles will propagate into the related pair styles (e.g. implicit,
+accelerator, free energy variants).
 
 The general CHARMM formulas are as follows
 

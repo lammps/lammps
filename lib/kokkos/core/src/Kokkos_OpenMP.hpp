@@ -66,7 +66,6 @@
 #include <Kokkos_Layout.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
-#include <KokkosExp_MDRangePolicy.hpp>
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
@@ -196,6 +195,7 @@ struct VerifyExecutionCanAccessMemorySpace
 #include <OpenMP/Kokkos_OpenMP_Parallel.hpp>
 #include <OpenMP/Kokkos_OpenMP_Task.hpp>
 
+#include <KokkosExp_MDRangePolicy.hpp>
 /*--------------------------------------------------------------------------*/
 
 #endif /* #if defined( KOKKOS_ENABLE_OPENMP ) && defined( _OPENMP ) */

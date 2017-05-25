@@ -62,7 +62,6 @@
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
-#include <KokkosExp_MDRangePolicy.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -295,6 +294,7 @@ struct VerifyExecutionCanAccessMemorySpace
 #include <Cuda/Kokkos_Cuda_Parallel.hpp>
 #include <Cuda/Kokkos_Cuda_Task.hpp>
 
+#include <KokkosExp_MDRangePolicy.hpp>
 //----------------------------------------------------------------------------
 
 #endif /* #if defined( KOKKOS_ENABLE_CUDA ) */

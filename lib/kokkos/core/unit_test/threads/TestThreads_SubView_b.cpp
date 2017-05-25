@@ -40,21 +40,23 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <threads/TestThreads.hpp>
 
 namespace Test {
 
-TEST_F( threads, view_subview_layoutleft_to_layoutleft) {
+TEST_F( threads, view_subview_layoutleft_to_layoutleft )
+{
   TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Threads >();
-  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Threads , Kokkos::MemoryTraits<Kokkos::Atomic> >();
-  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Threads , Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Threads, Kokkos::MemoryTraits<Kokkos::Atomic> >();
+  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::Threads, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-TEST_F( threads, view_subview_layoutright_to_layoutright) {
+TEST_F( threads, view_subview_layoutright_to_layoutright )
+{
   TestViewSubview::test_layoutright_to_layoutright< Kokkos::Threads >();
-  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Threads , Kokkos::MemoryTraits<Kokkos::Atomic> >();
-  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Threads , Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Threads, Kokkos::MemoryTraits<Kokkos::Atomic> >();
+  TestViewSubview::test_layoutright_to_layoutright< Kokkos::Threads, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-} // namespace test
-
+} // namespace Test

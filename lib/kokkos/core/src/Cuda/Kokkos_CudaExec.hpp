@@ -131,6 +131,7 @@ namespace Impl {
     int* atomic;
     int* scratch;
     int* threadid;
+    int n;
   };
 }
 }
@@ -250,6 +251,7 @@ struct CudaParallelLaunch< DriverType , true > {
       locks.atomic = atomic_lock_array_cuda_space_ptr(false);
       locks.scratch = scratch_lock_array_cuda_space_ptr(false);
       locks.threadid = threadid_lock_array_cuda_space_ptr(false);
+      locks.n = Kokkos::Cuda::concurrency();
       cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
       #endif
 
@@ -292,6 +294,7 @@ struct CudaParallelLaunch< DriverType , false > {
       locks.atomic = atomic_lock_array_cuda_space_ptr(false);
       locks.scratch = scratch_lock_array_cuda_space_ptr(false);
       locks.threadid = threadid_lock_array_cuda_space_ptr(false);
+      locks.n = Kokkos::Cuda::concurrency();
       cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
       #endif
 

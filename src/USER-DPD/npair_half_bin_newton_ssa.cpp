@@ -251,7 +251,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
       ytmp = x[i][1];
       ztmp = x[i][2];
 
-      ibin = coord2bin(x[i],xbin,ybin,zbin);
+      ibin = atom2bin[i];
 
       // loop over AIR ghost atoms in all bins in "full" stencil
       // Note: the non-AIR ghost atoms have already been filtered out

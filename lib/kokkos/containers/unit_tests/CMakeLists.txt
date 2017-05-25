@@ -3,38 +3,49 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../src )
 
-SET(SOURCES
-  UnitTestMain.cpp 
-  TestCuda.cpp
-  )
-
 SET(LIBRARIES kokkoscore)
 
 IF(Kokkos_ENABLE_Pthread)
-  LIST( APPEND SOURCES
-    TestThreads.cpp
-  )
-ENDIF()
-
-IF(Kokkos_ENABLE_Serial)
-  LIST( APPEND SOURCES
-    TestSerial.cpp
-  )
-ENDIF()
-
-IF(Kokkos_ENABLE_OpenMP)
-  LIST( APPEND SOURCES
-    TestOpenMP.cpp
-  )
-ENDIF()
-
-
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
-  UnitTest
-  SOURCES ${SOURCES}
+  UnitTest_Threads
+  SOURCES TestThreads.cpp UnitTestMain.cpp
   COMM serial mpi
   NUM_MPI_PROCS 1
   FAIL_REGULAR_EXPRESSION "  FAILED  "
   TESTONLYLIBS kokkos_gtest
   )
-  
+ENDIF()
+
+IF(Kokkos_ENABLE_Serial)
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_Serial
+  SOURCES TestSerial.cpp UnitTestMain.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "  FAILED  "
+  TESTONLYLIBS kokkos_gtest
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_OpenMP)
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_OpenMP
+  SOURCES TestOpenMP.cpp UnitTestMain.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "  FAILED  "
+  TESTONLYLIBS kokkos_gtest
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_Cuda)
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_Cuda
+  SOURCES TestCuda.cpp UnitTestMain.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "  FAILED  "
+  TESTONLYLIBS kokkos_gtest
+  )
+ENDIF()
+

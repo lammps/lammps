@@ -33,5 +33,5 @@ action () {
 # all package files with no dependencies
 
 for file in *.cpp *.h; do
-  action $file
+  test -f ${file} && action $file
 done

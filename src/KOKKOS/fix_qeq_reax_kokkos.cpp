@@ -37,7 +37,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "pair_reax_c_kokkos.h"
+#include "pair_reaxc_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -50,7 +50,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-FixQEqReaxKokkos<DeviceType>::FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
+FixQEqReaxKokkos<DeviceType>::
+FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReax(lmp, narg, arg)
 {
   kokkosable = 1;

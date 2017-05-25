@@ -57,6 +57,10 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
+
+  // short-range/long-range flag accessed by DihedralCharmmfsw
+
+  dihedflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -669,10 +673,6 @@ void PairLJCharmmfswCoulLong::settings(int narg, char **arg)
   cut_lj = force->numeric(FLERR,arg[1]);
   if (narg == 2) cut_coul = cut_lj;
   else cut_coul = force->numeric(FLERR,arg[2]);
-
-  // indicates pair_style being used for dihedral_charmm
-
-  dihedflag = 1;
 }
 
 /* ----------------------------------------------------------------------

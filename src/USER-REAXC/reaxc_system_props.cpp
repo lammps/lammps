@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "reaxc_system_props.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"

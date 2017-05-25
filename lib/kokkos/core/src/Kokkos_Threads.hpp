@@ -230,4 +230,3 @@ struct VerifyExecutionCanAccessMemorySpace
 #endif /* #if defined( KOKKOS_ENABLE_PTHREAD ) */
 #endif /* #define KOKKOS_THREADS_HPP */
 
-

@@ -40,14 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
+
 #include <serial/TestSerial.hpp>
 
 namespace Test {
 
-TEST_F( serial , impl_view_mapping_a ) {
+TEST_F( serial, impl_view_mapping_a )
+{
   test_view_mapping< Kokkos::Serial >();
   test_view_mapping_operator< Kokkos::Serial >();
 }
 
-} // namespace test
-
+} // namespace Test

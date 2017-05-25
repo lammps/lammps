@@ -1294,6 +1294,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   size_t get_min_block_size() const { return MIN_BLOCK_SIZE; }
 
+  KOKKOS_INLINE_FUNCTION
   size_t get_mem_size() const { return m_data_size; }
 
 private:

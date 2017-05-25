@@ -1635,7 +1635,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   rmin0 = 0.0;
   diagonalstyle = 3;
   switchflag = 1;
-  bzeroflag = 0;
+  bzeroflag = 1;
+  
   // open SNAP parameter file on proc 0
 
   FILE *fpparam;

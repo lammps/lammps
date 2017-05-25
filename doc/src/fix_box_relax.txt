@@ -245,8 +245,8 @@ appear the system is converging to your specified pressure.  The
 solution for this is to either (a) zero the velocities of all atoms
 before performing the minimization, or (b) make sure you are
 monitoring the pressure without its kinetic component.  The latter can
-be done by outputting the pressure from the fix this command creates
-(see below) or a pressure fix you define yourself.
+be done by outputting the pressure from the pressure compute this 
+command creates (see below) or a pressure compute you define yourself.
 
 NOTE: Because pressure is often a very sensitive function of volume,
 it can be difficult for the minimizer to equilibrate the system the
@@ -308,7 +308,7 @@ thermo_modify command (or in two separate commands), then the order in
 which the keywords are specified is important.  Note that a "pressure
 compute"_compute_pressure.html defines its own temperature compute as
 an argument when it is specified.  The {temp} keyword will override
-this (for the pressure compute being used by fix npt), but only if the
+this (for the pressure compute being used by fix box/relax), but only if the
 {temp} keyword comes after the {press} keyword.  If the {temp} keyword
 comes before the {press} keyword, then the new pressure compute
 specified by the {press} keyword will be unaffected by the {temp}
@@ -316,18 +316,16 @@ setting.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15. The scalar is the
-pressure-volume energy, plus the strain energy, if it exists.
-
-This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15. The scalar is given
-by the energy expression shown above. The energy values reported
-at the end of a minimization run under "Minimization stats" include
-this energy, and so differ from what LAMMPS normally reports as
-potential energy. This fix does not support the
-"fix_modify"_fix_modify.html {energy} option,
-because that would result in double-counting of the fix energy in the
-minimization energy. Instead, the fix energy can be explicitly
-added to the potential energy using one of these two variants:
+pressure-volume energy, plus the strain energy, if it exists,
+as described above.
+The energy values reported at the
+end of a minimization run under "Minimization stats" include this
+energy, and so differ from what LAMMPS normally reports as potential
+energy. This fix does not support the "fix_modify"_fix_modify.html
+{energy} option, because that would result in double-counting of the
+fix energy in the minimization energy. Instead, the fix energy can be
+explicitly added to the potential energy using one of these two
+variants:
 
 variable emin equal pe+f_1  :pre
 

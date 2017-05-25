@@ -62,11 +62,13 @@ void TaskQueueSpecialization< Kokkos::Serial >::execute
   using execution_space = Kokkos::Serial ;
   using queue_type      = TaskQueue< execution_space > ;
   using task_root_type  = TaskBase< execution_space , void , void > ;
-  using Member          = TaskExec< execution_space > ;
+  using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
-  Member exec ;
+  Impl::HostThreadTeamData * const data = Impl::serial_get_thread_team_data();
+
+  Member exec( *data );
 
   // Loop until all queues are empty
   while ( 0 < queue->m_ready_count ) {
@@ -75,13 +77,13 @@ void TaskQueueSpecialization< Kokkos::Serial >::execute
 
     for ( int i = 0 ; i < queue_type::NumQueue && end == task ; ++i ) {
       for ( int j = 0 ; j < 2 && end == task ; ++j ) {
-        task = queue_type::pop_task( & queue->m_ready[i][j] );
+        task = queue_type::pop_ready_task( & queue->m_ready[i][j] );
       }
     }
 
     if ( end != task ) {
 
-      // pop_task resulted in lock == task->m_next
+      // pop_ready_task resulted in lock == task->m_next
       // In the executing state
 
       (*task->m_apply)( task , & exec );
@@ -113,11 +115,13 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
   using execution_space = Kokkos::Serial ;
   using queue_type      = TaskQueue< execution_space > ;
   using task_root_type  = TaskBase< execution_space , void , void > ;
-  using Member          = TaskExec< execution_space > ;
+  using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
-  Member exec ;
+  Impl::HostThreadTeamData * const data = Impl::serial_get_thread_team_data();
+
+  Member exec( *data );
 
   // Loop until no runnable task
 
@@ -129,7 +133,7 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
 
     for ( int i = 0 ; i < queue_type::NumQueue && end == task ; ++i ) {
       for ( int j = 0 ; j < 2 && end == task ; ++j ) {
-        task = queue_type::pop_task( & queue->m_ready[i][j] );
+        task = queue_type::pop_ready_task( & queue->m_ready[i][j] );
       }
     }
 

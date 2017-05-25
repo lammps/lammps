@@ -49,6 +49,7 @@
 #include <utility>
 #include <impl/Kokkos_spinwait.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
+#include <impl/Kokkos_HostThreadTeam.hpp>
 
 #include <Kokkos_Atomic.hpp>
 
@@ -103,13 +104,13 @@ public:
 
       // Wait for fan-in threads
       for ( n = 1 ; ( ! ( m_team_rank_rev & n ) ) && ( ( j = m_team_rank_rev + n ) < m_team_size ) ; n <<= 1 ) {
-        Impl::spinwait( m_team_base[j]->state() , ThreadsExec::Active );
+        Impl::spinwait_while_equal( m_team_base[j]->state() , ThreadsExec::Active );
       }
 
       // If not root then wait for release
       if ( m_team_rank_rev ) {
         m_exec->state() = ThreadsExec::Rendezvous ;
-        Impl::spinwait( m_exec->state() , ThreadsExec::Rendezvous );
+        Impl::spinwait_while_equal( m_exec->state() , ThreadsExec::Rendezvous );
       }
 
       return ! m_team_rank_rev ;
@@ -350,6 +351,10 @@ public:
         const int team_rank_rev = pool_rank_rev % team.team_alloc();
         const size_t pool_league_size     = m_exec->pool_size() / team.team_alloc() ;
         const size_t pool_league_rank_rev = pool_rank_rev / team.team_alloc() ;
+        if(pool_league_rank_rev >= pool_league_size) {
+          m_invalid_thread = 1;
+          return;
+        }
         const size_t pool_league_rank     = pool_league_size - ( pool_league_rank_rev + 1 );
 
         const int pool_num_teams       = m_exec->pool_size()/team.team_alloc();
@@ -505,7 +510,8 @@ private:
            , const int team_size_request )
    {
       const int pool_size  = traits::execution_space::thread_pool_size(0);
-      const int team_max   = traits::execution_space::thread_pool_size(1);
+      const int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
+      const int team_max   = pool_size<max_host_team_size?pool_size:max_host_team_size;
       const int team_grain = traits::execution_space::thread_pool_size(2);
 
       m_league_size = league_size_request ;
@@ -552,8 +558,12 @@ public:
 
   template< class FunctorType >
   inline static
-  int team_size_max( const FunctorType & )
-    { return traits::execution_space::thread_pool_size(1); }
+  int team_size_max( const FunctorType & ) {
+      int pool_size = traits::execution_space::thread_pool_size(1);
+      int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
+      return pool_size<max_host_team_size?pool_size:max_host_team_size;
+    }
+
 
   template< class FunctorType >
   static int team_size_recommended( const FunctorType & )
@@ -819,9 +829,7 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::T
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
-    ValueType tmp = ValueType();
-    lambda(i,tmp);
-    result+=tmp;
+    lambda(i,result);
   }
 }
 
@@ -835,18 +843,14 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::T
 template< typename iType, class Lambda, typename ValueType, class JoinType >
 KOKKOS_INLINE_FUNCTION
 void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember >&
-      loop_boundaries, const Lambda & lambda, const JoinType& join, ValueType& init_result) {
+      loop_boundaries, const Lambda & lambda, const JoinType& join, ValueType& result ) {
 
-  ValueType result = init_result;
 #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
-    ValueType tmp = ValueType();
-    lambda(i,tmp);
-    join(result,tmp);
+    lambda(i,result);
   }
-  init_result = result;
 }
 
 /** \brief  Intra-thread vector parallel exclusive prefix sum. Executes lambda(iType i, ValueType & val, bool final)

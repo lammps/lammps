@@ -16,7 +16,6 @@ Bond Styles :h1
    bond_none
    bond_nonlinear
    bond_oxdna
-   bond_oxdna2
    bond_quartic
    bond_table
    bond_zero

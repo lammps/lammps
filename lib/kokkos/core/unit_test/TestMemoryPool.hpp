@@ -156,7 +156,7 @@ struct fill_memory {
   void operator()( size_type i ) const
   {
     if ( i % STRIDE == 0 ) {
-      *m_pointers[i / STRIDE].ptr = i / STRIDE ;
+      *m_pointers[i / STRIDE].ptr = i / STRIDE;
     }
   }
 };
@@ -493,12 +493,12 @@ T smallest_power2_ge( T val )
   // Find the most significant nonzero bit.
   int first_nonzero_bit = Kokkos::Impl::bit_scan_reverse( val );
 
-  // If val is an integral power of 2, ceil( log2(val) ) is equal to the
+  // If val is an integral power of 2, ceil( log2( val ) ) is equal to the
   // most significant nonzero bit.  Otherwise, you need to add 1.
   int lg2_size = first_nonzero_bit +
                  !Kokkos::Impl::is_integral_power_of_two( val );
 
-  return T(1) << T(lg2_size);
+  return T( 1 ) << T( lg2_size );
 }
 
 // This test makes allocation requests for multiple sizes and interleaves
@@ -547,7 +547,7 @@ void test_mempool2( unsigned base_chunk_size, size_t num_chunk_sizes,
   phase1_size = ( ( phase1_size + num_chunk_sizes - 1 ) / num_chunk_sizes ) *
                 num_chunk_sizes;
 
-  // Make sure the phase 2 size is multiples of (2 * num_chunk_sizes).
+  // Make sure the phase 2 size is multiples of ( 2 * num_chunk_sizes ).
   phase2_size =
     ( ( phase2_size + 2 * num_chunk_sizes - 1 ) / ( 2 * num_chunk_sizes ) ) *
     2 * num_chunk_sizes;
@@ -567,7 +567,7 @@ void test_mempool2( unsigned base_chunk_size, size_t num_chunk_sizes,
   // each chunk size.
   work_view phase1_work( "Phase 1 Work", phase1_size );
   typename work_view::HostMirror host_phase1_work =
-    create_mirror_view(phase1_work);
+    create_mirror_view( phase1_work );
 
   size_t inner_size = phase1_size / num_chunk_sizes;
   unsigned chunk_size = base_chunk_size;
@@ -589,7 +589,7 @@ void test_mempool2( unsigned base_chunk_size, size_t num_chunk_sizes,
   // deallocations with an equal number of allocations for each chunk size.
   work_view phase2_work( "Phase 2 Work", phase2_size );
   typename work_view::HostMirror host_phase2_work =
-    create_mirror_view(phase2_work);
+    create_mirror_view( phase2_work );
 
   inner_size = half_phase2_size / num_chunk_sizes;
   chunk_size = base_chunk_size;
@@ -614,7 +614,7 @@ void test_mempool2( unsigned base_chunk_size, size_t num_chunk_sizes,
   // Initialize the phase 3 work view with all deallocations.
   work_view phase3_work( "Phase 3 Work", phase3_size );
   typename work_view::HostMirror host_phase3_work =
-    create_mirror_view(phase3_work);
+    create_mirror_view( phase3_work );
 
   inner_size = phase3_size / num_chunk_sizes;
 

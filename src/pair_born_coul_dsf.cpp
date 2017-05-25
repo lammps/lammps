@@ -226,9 +226,8 @@ void PairBornCoulDSF::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-        if (setflag[i][j])
-          cut_lj[i][j] = cut_lj_global;
+      for (j = i; j <= atom->ntypes; j++)
+        if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
 

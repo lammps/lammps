@@ -32,8 +32,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_coul_long.o $(OBJ_DIR)/lal_coul_long_ext.o \
        $(OBJ_DIR)/lal_morse.o $(OBJ_DIR)/lal_morse_ext.o \
        $(OBJ_DIR)/lal_charmm_long.o $(OBJ_DIR)/lal_charmm_long_ext.o \
-       $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
-       $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
+       $(OBJ_DIR)/lal_lj_sdk.o $(OBJ_DIR)/lal_lj_sdk_ext.o \
+       $(OBJ_DIR)/lal_lj_sdk_long.o $(OBJ_DIR)/lal_lj_sdk_long_ext.o \
        $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o \
        $(OBJ_DIR)/lal_eam_fs_ext.o $(OBJ_DIR)/lal_eam_alloy_ext.o \
        $(OBJ_DIR)/lal_buck.o $(OBJ_DIR)/lal_buck_ext.o \
@@ -75,8 +75,8 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/lj_coul_long_cl.h $(OBJ_DIR)/lj_dsf_cl.h \
        $(OBJ_DIR)/lj_class2_long_cl.h \
        $(OBJ_DIR)/coul_long_cl.h $(OBJ_DIR)/morse_cl.h \
-       $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/cg_cmm_cl.h \
-       $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/neighbor_gpu_cl.h \
+       $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/lj_sdk_cl.h \
+       $(OBJ_DIR)/lj_sdk_long_cl.h $(OBJ_DIR)/neighbor_gpu_cl.h \
        $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/buck_cl.h \
        $(OBJ_DIR)/buck_coul_cl.h $(OBJ_DIR)/buck_coul_long_cl.h \
        $(OBJ_DIR)/table_cl.h $(OBJ_DIR)/yukawa_cl.h \
@@ -273,23 +273,23 @@ $(OBJ_DIR)/lal_lj_expand.o: $(ALL_H) lal_lj_expand.h lal_lj_expand.cpp  $(OBJ_DI
 $(OBJ_DIR)/lal_lj_expand_ext.o: $(ALL_H) lal_lj_expand.h lal_lj_expand_ext.cpp lal_base_atomic.h
 	$(OCL) -o $@ -c lal_lj_expand_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_cl.h: lal_cg_cmm.cu $(PRE1_H)
-	$(BSH) ./geryon/file_to_cstr.sh cg_cmm $(PRE1_H) lal_cg_cmm.cu $(OBJ_DIR)/cg_cmm_cl.h;
+$(OBJ_DIR)/lj_sdk_cl.h: lal_lj_sdk.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_sdk $(PRE1_H) lal_lj_sdk.cu $(OBJ_DIR)/lj_sdk_cl.h;
 
-$(OBJ_DIR)/lal_cg_cmm.o: $(ALL_H) lal_cg_cmm.h lal_cg_cmm.cpp  $(OBJ_DIR)/cg_cmm_cl.h $(OBJ_DIR)/cg_cmm_cl.h $(OBJ_DIR)/lal_base_atomic.o
-	$(OCL) -o $@ -c lal_cg_cmm.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_sdk.o: $(ALL_H) lal_lj_sdk.h lal_lj_sdk.cpp  $(OBJ_DIR)/lj_sdk_cl.h $(OBJ_DIR)/lj_sdk_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_lj_sdk.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lal_cg_cmm_ext.o: $(ALL_H) lal_cg_cmm.h lal_cg_cmm_ext.cpp lal_base_atomic.h
-	$(OCL) -o $@ -c lal_cg_cmm_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_sdk_ext.o: $(ALL_H) lal_lj_sdk.h lal_lj_sdk_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_lj_sdk_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_long_cl.h: lal_cg_cmm_long.cu $(PRE1_H)
-	$(BSH) ./geryon/file_to_cstr.sh cg_cmm_long $(PRE1_H) lal_cg_cmm_long.cu $(OBJ_DIR)/cg_cmm_long_cl.h;
+$(OBJ_DIR)/lj_sdk_long_cl.h: lal_lj_sdk_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_sdk_long $(PRE1_H) lal_lj_sdk_long.cu $(OBJ_DIR)/lj_sdk_long_cl.h;
 
-$(OBJ_DIR)/lal_cg_cmm_long.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long.cpp  $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/lal_base_atomic.o
-	$(OCL) -o $@ -c lal_cg_cmm_long.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_sdk_long.o: $(ALL_H) lal_lj_sdk_long.h lal_lj_sdk_long.cpp  $(OBJ_DIR)/lj_sdk_long_cl.h $(OBJ_DIR)/lj_sdk_long_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_lj_sdk_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lal_cg_cmm_long_ext.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long_ext.cpp lal_base_charge.h
-	$(OCL) -o $@ -c lal_cg_cmm_long_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_sdk_long_ext.o: $(ALL_H) lal_lj_sdk_long.h lal_lj_sdk_long_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_lj_sdk_long_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/eam_cl.h: lal_eam.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh eam $(PRE1_H) lal_eam.cu $(OBJ_DIR)/eam_cl.h;

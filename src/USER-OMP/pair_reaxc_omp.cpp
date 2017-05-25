@@ -281,7 +281,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
     for (i = 0; i < system->N; i ++)
       for (j = 0; j < MAXSPECBOND; j ++) {
         tmpbo[i][j] = 0.0;
-	tmpid[i][j] = 0;
+        tmpid[i][j] = 0;
       }
 
     FindBond();

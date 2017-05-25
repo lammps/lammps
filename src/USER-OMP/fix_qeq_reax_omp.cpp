@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "fix_qeq_reax_omp.h"
 #include "pair_reaxc_omp.h"
 #include "atom.h"
@@ -56,38 +55,15 @@ using namespace FixConst;
 FixQEqReaxOMP::FixQEqReaxOMP(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReax(lmp, narg, arg)
 {
-  if (narg < 8 || narg > 9) error->all(FLERR,"Illegal fix qeq/reax/omp command");
-
-  nevery = force->inumeric(FLERR,arg[3]);
-  swa = force->numeric(FLERR,arg[4]);
-  swb = force->numeric(FLERR,arg[5]);
-  tolerance = force->numeric(FLERR,arg[6]);
-
-  // dual CG support
-  dual_enabled = 0;
-  if(narg == 9)
-    if(strcmp(arg[8],"dual") == 0) dual_enabled = 1;
-    else error->all(FLERR,"Unknown fix qeq/reax argument in location 9");
-
-  // perform initial allocation of atom-based arrays
-  // register with Atom class
-
-  s_hist = t_hist = NULL;
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  for (int i = 0; i < atom->nmax; i++ )
-    for (int j = 0; j < nprev; ++j )
-      s_hist[i][j] = t_hist[i][j] = 0;
-
-  reaxc = NULL;
-  reaxc = (PairReaxCOMP *) force->pair_match("reax/c/omp",1);
+  if (narg<8 || narg>9) error->all(FLERR,"Illegal fix qeq/reax/omp command");
 
   b_temp = NULL;
 
   // ASPC: Kolafa, J. Comp. Chem., 25(3), 335 (2003)
   do_aspc = 0;
   aspc_order = 1;
-  aspc_order_max = nprev - 2; // Must be consistent with nprev to store history: nprev = aspc_order + 2
+  // Must be consistent with nprev to store history: nprev = aspc_order + 2
+  aspc_order_max = nprev - 2;
   aspc_omega = 0.0;
   aspc_b = NULL;
 }
@@ -106,63 +82,13 @@ void FixQEqReaxOMP::post_constructor()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxOMP::pertype_parameters(char *arg)
-{
-  if (strcmp(arg,"reax/c") == 0) {
-    reaxflag = 1;
-    Pair *pair = force->pair_match("reax/c",0);
-    if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/reax/omp");
-    int tmp;
-    chi = (double *) pair->extract("chi",tmp);
-    eta = (double *) pair->extract("eta",tmp);
-    gamma = (double *) pair->extract("gamma",tmp);
-    if (chi == NULL || eta == NULL || gamma == NULL)
-      error->all(FLERR,
-                 "Fix qeq/reax/omp could not extract params from pair reax/c");
-    return;
-  }
-
-  int i,itype,ntypes;
-  double v1,v2,v3;
-  FILE *pf;
-
-  reaxflag = 0;
-  ntypes = atom->ntypes;
-
-  memory->create(chi,ntypes+1,"qeq/reax:chi");
-  memory->create(eta,ntypes+1,"qeq/reax:eta");
-  memory->create(gamma,ntypes+1,"qeq/reax:gamma");
-
-  if (comm->me == 0) {
-    if ((pf = fopen(arg,"r")) == NULL)
-      error->one(FLERR,"Fix qeq/reax/omp parameter file could not be found");
-
-    for (i = 1; i <= ntypes && !feof(pf); i++) {
-      fscanf(pf,"%d %lg %lg %lg",&itype,&v1,&v2,&v3);
-      if (itype < 1 || itype > ntypes)
-        error->one(FLERR,"Fix qeq/reax/omp invalid atom type in param file");
-      chi[itype] = v1;
-      eta[itype] = v2;
-      gamma[itype] = v3;
-    }
-    if (i <= ntypes) error->one(FLERR,"Invalid param file for fix qeq/reax/omp");
-    fclose(pf);
-  }
-
-  MPI_Bcast(&chi[1],ntypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&eta[1],ntypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&gamma[1],ntypes,MPI_DOUBLE,0,world);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixQEqReaxOMP::allocate_storage()
 {
   FixQEqReax::allocate_storage();
 
   // dual CG support
   int size = nmax;
-  if(dual_enabled) size*= 2;
+  if (dual_enabled) size*= 2;
   memory->create(b_temp, comm->nthreads, size, "qeq/reax/omp:b_temp");
 }
 
@@ -177,81 +103,12 @@ void FixQEqReaxOMP::deallocate_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxOMP::allocate_matrix()
-{
-  int i,ii,inum,m;
-  int *ilist, *numneigh;
-
-  int mincap;
-  double safezone;
-
-  if( reaxflag ) {
-    mincap = reaxc->system->mincap;
-    safezone = reaxc->system->safezone;
-  } else {
-    mincap = MIN_CAP;
-    safezone = SAFE_ZONE;
-  }
-
-  n = atom->nlocal;
-  n_cap = MAX( (int)(n * safezone), mincap );
-
-  // determine the total space for the H matrix
-
-  if (reaxc) {
-    inum = reaxc->list->inum;
-    ilist = reaxc->list->ilist;
-    numneigh = reaxc->list->numneigh;
-  } else {
-    inum = list->inum;
-    ilist = list->ilist;
-    numneigh = list->numneigh;
-  }
-
-  m = 0;
-  for (ii = 0; ii < inum; ii++ ) {
-    i = ilist[ii];
-    m += numneigh[i];
-  }
-  m_cap = MAX( (int)(m * safezone), mincap * MIN_NBRS );
-
-  H.n = n_cap;
-  H.m = m_cap;
-  memory->create(H.firstnbr,n_cap,"qeq:H.firstnbr");
-  memory->create(H.numnbrs,n_cap,"qeq:H.numnbrs");
-  memory->create(H.jlist,m_cap,"qeq:H.jlist");
-  memory->create(H.val,m_cap,"qeq:H.val");
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixQEqReaxOMP::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax/omp requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/reax group has no atoms");
-
-  if (!force->pair_match("reax/c/omp",1))
-    error->all(FLERR,"Must use pair_style reax/c/omp with fix qeq/reax/omp");
-
-  // need a half neighbor list w/ Newton off and ghost neighbors
-  // built whenever re-neighboring occurs
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->newton = 2;
-  neighbor->requests[irequest]->ghost = 1;
-
-  init_shielding();
-  init_taper();
-
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  FixQEqReax::init();
 
   // APSC setup
-  if(do_aspc) {
+  if (do_aspc) {
     memory->create(aspc_b, aspc_order_max+2, "qeq/reax/aspc_b");
 
     // Calculate damping factor
@@ -267,7 +124,7 @@ void FixQEqReaxOMP::init()
     double s = -1.0;
     double f =  2.0;
 
-    for(int i=1; i<aspc_order_max+2; i++ ) {
+    for (int i=1; i<aspc_order_max+2; i++) {
       c*= (o + n) / (o + d);
       aspc_b[i] = s * f * c;
 
@@ -276,10 +133,6 @@ void FixQEqReaxOMP::init()
       n -= 1.0;
       d += 1.0;
     }
-
-    // fprintf(stdout,"aspc_omega= %f\n",aspc_omega);
-    // for(int i=0; i<aspc_order_max+2; i++) fprintf(stdout,"i= %i  B= %f\n",i,aspc_b[i]);
-    // error->all(FLERR,"Early Termination");
   }
 }
 
@@ -295,7 +148,7 @@ void FixQEqReaxOMP::compute_H()
   double **x = atom->x;
   int *mask = atom->mask;
 
-  if(reaxc) {
+  if (reaxc) {
     inum = reaxc->list->inum;
     ilist = reaxc->list->ilist;
     numneigh = reaxc->list->numneigh;
@@ -337,7 +190,7 @@ void FixQEqReaxOMP::compute_H()
 #endif
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if(mask[i] & groupbit) {
+      if (mask[i] & groupbit) {
 	jlist = firstneigh[i];
 	jnum = numneigh[i];
 	mfill = H.firstnbr[i];
@@ -363,7 +216,7 @@ void FixQEqReaxOMP::compute_H()
 	    }
 	  }
 	
-	  if( flag ) {
+	  if (flag) {
 	    H.jlist[mfill] = j;
 	    H.val[mfill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]] );
 	    mfill++;
@@ -377,7 +230,7 @@ void FixQEqReaxOMP::compute_H()
     if (mfill >= H.m) {
       char str[128];
       sprintf(str,"H matrix size has been exceeded: mfill=%d H.m=%d\n",
-	      mfill, H.m );
+	      mfill, H.m);
       error->warning(FLERR,str);
       error->all(FLERR,"Fix qeq/reax/omp has insufficient QEq matrix size");
     }
@@ -391,7 +244,7 @@ void FixQEqReaxOMP::init_storage()
 {
   int NN;
 
-  if(reaxc) NN = reaxc->list->inum + reaxc->list->gnum;
+  if (reaxc) NN = reaxc->list->inum + reaxc->list->gnum;
   else NN = list->inum + list->gnum;
 
 #if defined(_OPENMP)
@@ -420,7 +273,7 @@ void FixQEqReaxOMP::pre_force(int vflag)
   double t_start, t_end;
 
   if (update->ntimestep % nevery) return;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0) t_start = MPI_Wtime();
 
   n = atom->nlocal;
   N = atom->nlocal + atom->nghost;
@@ -428,8 +281,8 @@ void FixQEqReaxOMP::pre_force(int vflag)
   // grow arrays if necessary
   // need to be atom->nmax in length
 
-  if( atom->nmax > nmax ) reallocate_storage();
-  if( n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if (atom->nmax > nmax) reallocate_storage();
+  if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
 #ifdef OMP_TIMING
@@ -444,9 +297,9 @@ void FixQEqReaxOMP::pre_force(int vflag)
   startTimeBase = endTimeBase;
 #endif
 
-  if(dual_enabled) matvecs = dual_CG(b_s, b_t, s, t); // OMP_TIMING inside dual_CG
-  else {
-
+  if (dual_enabled) {
+    matvecs = dual_CG(b_s, b_t, s, t); // OMP_TIMING inside dual_CG
+  } else {
     matvecs_s = CG(b_s, s);    	// CG on s - parallel
 
 #ifdef OMP_TIMING
@@ -467,9 +320,7 @@ void FixQEqReaxOMP::pre_force(int vflag)
     startTimeBase = endTimeBase;
 #endif
 
-  } // if(dual_enabled)
-
-  //  if(comm->me == 0) fprintf(stdout,"matvecs= %i %i\n",matvecs_s,matvecs_t);
+  } // if (dual_enabled)
 
 #ifdef OMP_TIMING
   startTimeBase = MPI_Wtime();
@@ -482,7 +333,7 @@ void FixQEqReaxOMP::pre_force(int vflag)
   ompTimingData[COMPUTECALCQINDEX] += (endTimeBase-startTimeBase);
 #endif
 
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     qeq_time = t_end - t_start;
   }
@@ -508,7 +359,7 @@ void FixQEqReaxOMP::init_matvec()
   int nn,i;
   int *ilist;
 
-  if(reaxc) {
+  if (reaxc) {
     nn = reaxc->list->inum;
     ilist = reaxc->list->ilist;
   } else {
@@ -517,15 +368,15 @@ void FixQEqReaxOMP::init_matvec()
   }
 
   // Should really be more careful with initialization and first (aspc_order+2) MD steps
-  if(do_aspc) {
+  if (do_aspc) {
 
     double m_aspc_omega = 1.0 - aspc_omega;
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) private(i)
 #endif
-    for(int ii = 0; ii < nn; ++ii ) {
+    for (int ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if(atom->mask[i] & groupbit) {
+      if (atom->mask[i] & groupbit) {
 	
 	/* init pre-conditioner for H and init solution vectors */
 	Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -535,7 +386,7 @@ void FixQEqReaxOMP::init_matvec()
 	// Predictor Step
 	double tp = 0.0;
 	double sp = 0.0;
-	for(int j=0; j<aspc_order+2; j++) {
+	for (int j=0; j<aspc_order+2; j++) {
 	  tp+= aspc_b[j] * t_hist[i][j];
 	  sp+= aspc_b[j] * s_hist[i][j];
 	}
@@ -551,9 +402,9 @@ void FixQEqReaxOMP::init_matvec()
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) private(i)
 #endif
-    for(int ii = 0; ii < nn; ++ii ) {
+    for (int ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if(atom->mask[i] & groupbit) {
+      if (atom->mask[i] & groupbit) {
 	
 	/* init pre-conditioner for H and init solution vectors */
 	Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -588,10 +439,10 @@ void FixQEqReaxOMP::init_matvec()
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReaxOMP::CG( double *b, double *x )
+int FixQEqReaxOMP::CG( double *b, double *x)
 {
-  int  i, ii, j, imax;
-  double tmp, alpha, beta, b_norm;
+  int  i, ii, imax;
+  double alpha, beta, b_norm;
   double sig_old, sig_new;
 
   double my_buf[2], buf[2];
@@ -610,7 +461,7 @@ int FixQEqReaxOMP::CG( double *b, double *x )
 
   pack_flag = 1;
   sparse_matvec( &H, x, q );
-  comm->reverse_comm_fix( this ); //Coll_Vector( q );
+  comm->reverse_comm_fix( this); //Coll_Vector( q );
 
   double tmp1, tmp2;
   tmp1 = tmp2 = 0.0;
@@ -618,7 +469,7 @@ int FixQEqReaxOMP::CG( double *b, double *x )
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) private(i) reduction(+:tmp1,tmp2)
 #endif
-  for (jj = 0; jj < nn; ++jj ) {
+  for (jj = 0; jj < nn; ++jj) {
     i = ilist[jj];
     if (atom->mask[i] & groupbit) {
       r[i] = b[i] - q[i];
@@ -637,7 +488,7 @@ int FixQEqReaxOMP::CG( double *b, double *x )
   b_norm = sqrt(buf[0]);
   sig_new = buf[1];
 
-  for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i ) {
+  for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
     comm->forward_comm_fix(this); //Dist_vector( d );
     sparse_matvec( &H, d, q );
     comm->reverse_comm_fix(this); //Coll_vector( q );
@@ -653,7 +504,7 @@ int FixQEqReaxOMP::CG( double *b, double *x )
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if(atom->mask[ii] & groupbit) tmp1 += d[ii] * q[ii];
+        if (atom->mask[ii] & groupbit) tmp1 += d[ii] * q[ii];
       }
 
 #if defined(_OPENMP)
@@ -673,7 +524,7 @@ int FixQEqReaxOMP::CG( double *b, double *x )
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if(atom->mask[ii] & groupbit) {
+        if (atom->mask[ii] & groupbit) {
           x[ii] += alpha * d[ii];
           r[ii] -= alpha * q[ii];
 	
@@ -696,7 +547,7 @@ int FixQEqReaxOMP::CG( double *b, double *x )
 #endif
     for (jj = 0; jj < nn; jj++) {
       ii = ilist[jj];
-      if(atom->mask[ii] & groupbit) d[ii] = p[ii] + beta * d[ii];
+      if (atom->mask[ii] & groupbit) d[ii] = p[ii] + beta * d[ii];
     }
   }
 
@@ -712,7 +563,7 @@ int FixQEqReaxOMP::CG( double *b, double *x )
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b )
+void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b)
 {
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
@@ -728,7 +579,7 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b )
     int tid = 0;
 #endif
 
-    if(reaxc) {
+    if (reaxc) {
       nn = reaxc->list->inum;
       NN = reaxc->list->inum + reaxc->list->gnum;
       ilist = reaxc->list->ilist;
@@ -743,7 +594,7 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b )
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if(atom->mask[i] & groupbit) b[i] = eta[ atom->type[i] ] * x[i];
+      if (atom->mask[i] & groupbit) b[i] = eta[ atom->type[i] ] * x[i];
     }
 
 #if defined(_OPENMP)
@@ -751,14 +602,14 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b )
 #endif
     for (ii = nn; ii < NN; ++ii) {
       i = ilist[ii];
-      if(atom->mask[i] & groupbit) b[i] = 0;
+      if (atom->mask[i] & groupbit) b[i] = 0;
     }
 
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
     for (i = 0; i < NN; ++i)
-      for(int t=0; t<nthreads; t++) b_temp[t][i] = 0.0;
+      for (int t=0; t<nthreads; t++) b_temp[t][i] = 0.0;
 
     // Wait for b accumulated and b_temp zeroed.
 #if defined(_OPENMP)
@@ -767,7 +618,7 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b )
 #endif    
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if(atom->mask[i] & groupbit) {
+      if (atom->mask[i] & groupbit) {
         for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
           j = A->jlist[itr_j];
           b[i] += A->val[itr_j] * x[j];
@@ -811,9 +662,9 @@ void FixQEqReaxOMP::calculate_Q()
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) private(i) reduction(+:tmp1,tmp2)
 #endif
-  for(int ii = 0; ii < nn; ii++) {
+  for (int ii = 0; ii < nn; ii++) {
     i = ilist[ii];
-    if(atom->mask[i] & groupbit) {
+    if (atom->mask[i] & groupbit) {
       tmp1 += s[i];
       tmp2 += t[i];
     }
@@ -835,7 +686,7 @@ void FixQEqReaxOMP::calculate_Q()
 #endif
   for (int ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
-    if(atom->mask[i] & groupbit) {
+    if (atom->mask[i] & groupbit) {
       q[i] = s[i] - u * t[i];
 
       // backup s & t
@@ -849,13 +700,13 @@ void FixQEqReaxOMP::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix( this ); //Dist_vector( atom->q );
+  comm->forward_comm_fix( this); //Dist_vector( atom->q );
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReaxOMP::vector_sum( double* dest, double c, double* v,
-                                double d, double* y, int k )
+                                double d, double* y, int k)
 {
   int i;
   int *ilist;
@@ -868,13 +719,13 @@ void FixQEqReaxOMP::vector_sum( double* dest, double c, double* v,
 #endif
   for (int ii=0; ii<k; ii++) {
     i = ilist[ii];
-    if(atom->mask[i] & groupbit) dest[i] = c * v[i] + d * y[i];
+    if (atom->mask[i] & groupbit) dest[i] = c * v[i] + d * y[i];
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxOMP::vector_add( double* dest, double c, double* v, int k )
+void FixQEqReaxOMP::vector_add( double* dest, double c, double* v, int k)
 {
   int i;
   int *ilist;
@@ -887,7 +738,7 @@ void FixQEqReaxOMP::vector_add( double* dest, double c, double* v, int k )
 #endif
   for (int ii=0; ii<k; ii++) {
     i = ilist[ii];
-    if(atom->mask[i] & groupbit) dest[i] += c * v[i];
+    if (atom->mask[i] & groupbit) dest[i] += c * v[i];
   }
 }
 
@@ -897,7 +748,7 @@ void FixQEqReaxOMP::vector_add( double* dest, double c, double* v, int k )
 /* dual CG support                                                        */
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
+int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 {
 
 #ifdef OMP_TIMING
@@ -905,8 +756,8 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
   startTimeBase = MPI_Wtime();
 #endif
 
-  int  i, j, imax;
-  double tmp, alpha_s, alpha_t, beta_s, beta_t, b_norm_s, b_norm_t;
+  int  i, imax;
+  double alpha_s, alpha_t, beta_s, beta_t, b_norm_s, b_norm_t;
   double sig_old_s, sig_old_t, sig_new_s, sig_new_t;
 
   double my_buf[4], buf[4];
@@ -925,7 +776,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
 
   pack_flag = 5; // forward 2x d and reverse 2x q
   dual_sparse_matvec( &H, x1, x2, q );
-  comm->reverse_comm_fix( this ); //Coll_Vector( q );
+  comm->reverse_comm_fix( this); //Coll_Vector( q );
 
   double tmp1, tmp2, tmp3, tmp4;
   tmp1 = tmp2 = tmp3 = tmp4 = 0.0;
@@ -933,7 +784,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) private(i) reduction(+:tmp1,tmp2,tmp3,tmp4)
 #endif
-  for (jj = 0; jj < nn; ++jj ) {
+  for (jj = 0; jj < nn; ++jj) {
     i = ilist[jj];
     if (atom->mask[i] & groupbit) {
       int indxI = 2 * i;
@@ -964,7 +815,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
   sig_new_s = buf[2];
   sig_new_t = buf[3];
 
-  for (i = 1; i < imax; ++i ) {
+  for (i = 1; i < imax; ++i) {
     comm->forward_comm_fix(this); //Dist_vector( d );
     dual_sparse_matvec( &H, d, q );
     comm->reverse_comm_fix(this); //Coll_vector( q );
@@ -980,7 +831,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if(atom->mask[ii] & groupbit) {
+        if (atom->mask[ii] & groupbit) {
           int indxI = 2 * ii;
           tmp1 += d[indxI  ] * q[indxI  ];
           tmp2 += d[indxI+1] * q[indxI+1];
@@ -1009,7 +860,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if(atom->mask[ii] & groupbit) {
+        if (atom->mask[ii] & groupbit) {
           int indxI = 2 * ii;
           x1[ii] += alpha_s * d[indxI  ];
           x2[ii] += alpha_t * d[indxI+1];
@@ -1038,7 +889,8 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
     sig_new_s = buf[0];
     sig_new_t = buf[1];
 
-    if( sqrt(sig_new_s)/b_norm_s <= tolerance || sqrt(sig_new_t)/b_norm_t <= tolerance) break;
+    if (sqrt(sig_new_s)/b_norm_s <= tolerance
+        || sqrt(sig_new_t)/b_norm_t <= tolerance) break;
 
     beta_s = sig_new_s / sig_old_s;
     beta_t = sig_new_t / sig_old_t;
@@ -1048,7 +900,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
 #endif
     for (jj = 0; jj < nn; jj++) {
       ii = ilist[jj];
-      if(atom->mask[ii] & groupbit) {
+      if (atom->mask[ii] & groupbit) {
         int indxI = 2 * ii;
 	
         d[indxI  ] = p[indxI  ] + beta_s * d[indxI  ];
@@ -1071,14 +923,14 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
 #endif
 
   // If necessary, converge other system
-  if(sqrt(sig_new_s)/b_norm_s > tolerance) {
+  if (sqrt(sig_new_s)/b_norm_s > tolerance) {
     pack_flag = 2;
     comm->forward_comm_fix(this); // x1 => s
 
     i+= CG(b1, x1);
     matvecs_s = i;
   }
-  else if(sqrt(sig_new_t)/b_norm_t > tolerance) {
+  else if (sqrt(sig_new_t)/b_norm_t > tolerance) {
     pack_flag = 3;
     comm->forward_comm_fix(this); // x2 => t
 
@@ -1107,7 +959,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2 )
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2, double *b )
+void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2, double *b)
 {
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
@@ -1138,7 +990,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (ii = 0; ii < nn; ++ii ) {
+    for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;
@@ -1150,7 +1002,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (ii = nn; ii < NN; ++ii ) {
+    for (ii = nn; ii < NN; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;
@@ -1164,7 +1016,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2
 #endif
     for (i = 0; i < NN; ++i) {
       indxI = 2 * i;
-      for(int t=0; t<nthreads; t++) {
+      for (int t=0; t<nthreads; t++) {
         b_temp[t][indxI  ] = 0.0;
         b_temp[t][indxI+1] = 0.0;
       }
@@ -1175,7 +1027,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2
 #pragma omp barrier
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (ii = 0; ii < nn; ++ii ) {
+    for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;
@@ -1240,7 +1092,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x, double *b )
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (ii = 0; ii < nn; ++ii ) {
+    for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;
@@ -1252,7 +1104,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x, double *b )
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (ii = nn; ii < NN; ++ii ) {
+    for (ii = nn; ii < NN; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;
@@ -1266,7 +1118,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x, double *b )
 #endif
     for (i = 0; i < NN; ++i) {
       indxI = 2 * i;
-      for(int t=0; t<nthreads; t++) {
+      for (int t=0; t<nthreads; t++) {
         b_temp[t][indxI  ] = 0.0;
         b_temp[t][indxI+1] = 0.0;
       }
@@ -1277,7 +1129,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x, double *b )
 #pragma omp barrier
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (ii = 0; ii < nn; ++ii ) {
+    for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;

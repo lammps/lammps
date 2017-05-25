@@ -47,27 +47,19 @@ class FixQEqReaxOMP : public FixQEqReax {
  protected:
   double **b_temp;
 
-  class PairReaxCOMP *reaxc;
-
   int do_aspc;
   int aspc_order, aspc_order_max;
   double aspc_omega;
   double * aspc_b;
 
-  virtual void pertype_parameters(char*);
   virtual void allocate_storage();
   virtual void deallocate_storage();
-  virtual void allocate_matrix();
   virtual void init_matvec();
   virtual void compute_H();
 
   virtual int CG(double*,double*);
   virtual void sparse_matvec(sparse_matrix*,double*,double*);
   virtual void calculate_Q();
-
-  /* virtual double parallel_norm( double*, int ); */
-  /* virtual double parallel_dot( double*, double*, int ); */
-  /* virtual double parallel_vector_acc( double*, int ); */
 
   virtual void vector_sum(double*,double,double*,double,double*,int);
   virtual void vector_add(double*, double, double*,int);

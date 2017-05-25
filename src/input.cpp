@@ -1478,7 +1478,7 @@ void Input::comm_style()
 
 void Input::compute()
 {
-  modify->add_compute(narg,arg,1);
+  modify->add_compute(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1556,7 +1556,7 @@ void Input::dump_modify()
 
 void Input::fix()
 {
-  modify->add_fix(narg,arg,1);
+  modify->add_fix(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

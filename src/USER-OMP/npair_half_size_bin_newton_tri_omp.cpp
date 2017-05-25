@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeBinNewtonTriOmp::NPairHalfSizeBinNewtonTriOmp(LAMMPS *lmp) : 
+NPairHalfSizeBinNewtonTriOmp::NPairHalfSizeBinNewtonTriOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------

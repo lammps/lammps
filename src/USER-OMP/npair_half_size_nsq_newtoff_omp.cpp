@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeNsqNewtoffOmp::NPairHalfSizeNsqNewtoffOmp(LAMMPS *lmp) : 
+NPairHalfSizeNsqNewtoffOmp::NPairHalfSizeNsqNewtoffOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------

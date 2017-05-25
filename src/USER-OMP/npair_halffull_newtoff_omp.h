@@ -15,7 +15,7 @@
 
 NPairStyle(halffull/newtoff/omp,
            NPairHalffullNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_OMP | NP_HALF | 
+           NP_HALF_FULL | NP_NEWTOFF | NP_OMP | NP_HALF |
            NP_NSQ | NP_BIN | NP_MULTI | NP_ORTHO | NP_TRI)
 
 #else

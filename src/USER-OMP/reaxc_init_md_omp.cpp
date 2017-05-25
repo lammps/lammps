@@ -53,7 +53,6 @@ int Init_ListsOMP( reax_system *system, control_params *control,
   int *hb_top, *bond_top;
   MPI_Comm comm;
 
-  int TWICE = 2;
   int mincap = system->mincap;
   double safezone = system->safezone;
   double saferzone = system->saferzone;

@@ -73,7 +73,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
  {
   int i, j, k, l, pi, pj, pk, pl, pij, plk;
   int type_i, type_j, type_k, type_l;
-  int start_j, end_j, start_k, end_k;
+  int start_j, end_j;
   int start_pj, end_pj, start_pk, end_pk;
   int num_frb_intrs = 0;
 
@@ -108,7 +108,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
 
   // Virial tallying variables
   double delil[3], deljl[3], delkl[3];
-  double eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  double eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
 
 #if defined(_OPENMP)
   int tid = omp_get_thread_num();
@@ -116,7 +116,6 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
   int tid = 0;
 #endif
   long reductionOffset = (system->N * tid);
-  int num_thb_intrs = 0;
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
@@ -156,8 +155,6 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
          trying to form a 4-body interaction out of this neighborhood */
       if (system->my_atoms[j].orig_id < system->my_atoms[k].orig_id &&
           bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs)) {
-        start_k = Start_Index(k, bonds);
-        end_k = End_Index(k, bonds);
         pj = pbond_jk->sym_index; // pj points to j on k's list
 	
         /* do the same check as above:

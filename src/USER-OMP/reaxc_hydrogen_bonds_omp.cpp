@@ -51,7 +51,6 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
 #endif
 
   const int nthreads = control->nthreads;
-  long totalReductionSize = system->N;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(shared) //default(none)

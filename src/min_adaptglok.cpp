@@ -33,6 +33,7 @@ using namespace LAMMPS_NS;
 #define ALPHA0 0.25
 #define ALPHA_SHRINK 0.99
 #define TMAX 2.0
+#define TMIN 0.02           // as harcoded in IMD: 1/50
 
 
 /* ---------------------------------------------------------------------- */
@@ -46,9 +47,15 @@ void MinAdaptGlok::init()
   Min::init();
 
   dt = update->dt;
+
+  // GUENOLE - save the global timestep
+  dtdef = dt;
+
   dtmax = TMAX * dt;
+  dtmin = TMIN * dt;
   alpha = ALPHA0;
   last_negative = update->ntimestep;
+  ntimestep_start = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,6 +108,9 @@ int MinAdaptGlok::iterate(int maxiter)
     double **v = atom->v;
     double **f = atom->f;
     int nlocal = atom->nlocal;
+    double *rmass = atom->rmass;
+    double *mass = atom->mass;
+    int *type = atom->type;
 
     vdotf = 0.0;
     for (int i = 0; i < nlocal; i++)
@@ -149,13 +159,13 @@ int MinAdaptGlok::iterate(int maxiter)
       }
 
       scale1 = 1.0 - alpha;
-      if (fdotfall == 0.0) scale2 = 0.0;
+      if (fdotfall == 0.0) scale2 = alpha;
       else scale2 = alpha * sqrt(vdotvall/fdotfall);
-      for (int i = 0; i < nlocal; i++) {
-        v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-        v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-        v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-      }
+      //for (int i = 0; i < nlocal; i++) {
+      //  v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+       // v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+      //  v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+      //}
 
       if (ntimestep - last_negative > DELAYSTEP) {
         dt = MIN(dt*DT_GROW,dtmax);
@@ -167,31 +177,38 @@ int MinAdaptGlok::iterate(int maxiter)
 
     } else {
       // Limit decrease of timestep
-      if (ntimestep - last_negative > DELAYSTEP) {
+      if (ntimestep - ntimestep_start > DELAYSTEP) {
+        if (dt > dtmin) dt *= DT_SHRINK;
         alpha = ALPHA0;
-        if (dt > dtmax / 50.0) {
-          dt *= DT_SHRINK;
-        }
       }
       last_negative = ntimestep;
+      double **x = atom->x;
+      for (int i = 0; i < nlocal; i++) {
+        x[i][0] -= 0.5 * dtv * v[i][0];
+        x[i][1] -= 0.5 * dtv * v[i][1];
+        x[i][2] -= 0.5 * dtv * v[i][2];
+      }
       for (int i = 0; i < nlocal; i++)
         v[i][0] = v[i][1] = v[i][2] = 0.0;
     }
 
     // limit timestep so no particle moves further than dmax
 
-    double *rmass = atom->rmass;
-    double *mass = atom->mass;
-    int *type = atom->type;
 
     dtvone = dt;
 
+    ke = 0.0;
     for (int i = 0; i < nlocal; i++) {
       vmax = MAX(fabs(v[i][0]),fabs(v[i][1]));
       vmax = MAX(vmax,fabs(v[i][2]));
       if (dtvone*vmax > dmax) dtvone = dmax/vmax;
+      ke += mass[type[i]] *
+      (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
     }
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
+    MPI_Allreduce(&ke,&keall,1,MPI_DOUBLE,MPI_SUM,world);
+
+    fprintf(screen,"vdotfall %f %f\n",vdotfall,keall);
 
     // min dtv over replicas, if necessary
     // this communicator would be invalid for multiprocess replicas
@@ -218,15 +235,22 @@ int MinAdaptGlok::iterate(int maxiter)
         v[i][2] += dtfm * f[i][2];
       }
     } else {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / mass[type[i]];
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-      }
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / mass[type[i]];
+          //fprintf(screen,"mass %f\n",mass[type[i]]);
+          v[i][0] += dtfm * f[i][0];
+          v[i][1] += dtfm * f[i][1];
+          v[i][2] += dtfm * f[i][2];
+          if (vdotfall > 0.0) {
+            // we perform the mixing AFTER the timeintegration
+            v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+            v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+            v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+          }
+          x[i][0] += dtv * v[i][0];
+          x[i][1] += dtv * v[i][1];
+          x[i][2] += dtv * v[i][2];
+        }
     }
 
     eprevious = ecurrent;
@@ -258,7 +282,13 @@ int MinAdaptGlok::iterate(int maxiter)
     if (update->ftol > 0.0) {
       fdotf = fnorm_sqr();
       if (update->multireplica == 0) {
-        if (fdotf < update->ftol*update->ftol) return FTOL;
+        if (fdotf < update->ftol*update->ftol) {
+          
+          // GUENOLE - reset the global timestep to the default value
+          //update->dt = dtdef;
+
+          return FTOL;
+        }
       } else {
         if (fdotf < update->ftol*update->ftol) flag = 0;
         else flag = 1;
@@ -270,11 +300,18 @@ int MinAdaptGlok::iterate(int maxiter)
     // output for thermo, dump, restart files
 
     if (output->next == ntimestep) {
+      
+      // GUENOLE - update of the global timestep for thermo output
+      update->dt = dt;
+
       timer->stamp();
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);
     }
   }
+
+  // GUENOLE - reset the global timestep to the default value
+  //update->dt = dtdef;
 
   return MAXITER;
 }

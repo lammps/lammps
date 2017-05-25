@@ -1,0 +1,6 @@
+#!/bin/bash -l
+
+mpirun -np 1 lmp_mpi -i $1
+
+gnu="set title 'LAMMPS'; set xlabel 'nfc'; set ylabel 'forces';unset logs y; pl [0:] 'log.lammps' u 1:2 w lp t 'LAMMPS', '../../imd/test/fire_silicon-vac_6x6x6x5.431.eng' u 1:2 w lp t 'IMD'"
+echo -e $gnu | gnuplot -persist

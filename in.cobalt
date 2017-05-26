@@ -98,6 +98,6 @@ timestep	0.00005
 dump 1 all custom 50 dump_spin.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 30000
+run 300000
 #run 1
 

@@ -79,25 +79,6 @@ void PairSpin::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-
-//#define GHOST_TAG
-tagint *tag = atom->tag;
-
-//#define GH_PR
-#if defined GH_PR
-  FILE* file=NULL;
-  file=fopen("spin_ghosts_lammps.lammpstrj","w");
-
-  fprintf(file,"ITEM: TIMESTEP\n");
-  fprintf(file,"0.0 \n");
-  fprintf(file,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(file,"n \n");
-  fprintf(file,"ITEM: BOX BOUNDS\n");
-  for(int d=0; d<3; d++) fprintf(file,"%lf %lf\n",-10.0,10.0);
-  fprintf(file,"ITEM: ATOMS type x y z vx vy vz\n");
-#endif
-
- 
   // Pair spin computations
   // Loop over neighbors of my itoms
 
@@ -140,60 +121,21 @@ tagint *tag = atom->tag;
           fmjx = Jex*sp[i][0];
           fmjy = Jex*sp[i][1];
           fmjz = Jex*sp[i][2];
-#if defined GH_PR
-          fprintf(file,"%d %lf %lf %lf %lf %lf %lf\n",j,x[j][0],x[j][1],x[j][2],sp[j][0],sp[j][1],sp[j][2]);          
-#endif
-
-#if defined GHOST_TAG
-          printf("Test print ghost/real neib atom: i=%d, j=%d, tag=%d, fx=%g, fy=%g, fz=%g \n",i,j,tag[j],fmjx,fmjy,fmjz);
-#endif
 	  }
      
       fm[i][0] += fmix;	 
       fm[i][1] += fmiy;	  	  
       fm[i][2] += fmiz;
 
-//#define INDEX
-#if defined INDEX
-      int index = atom->map(tag[j]);
-      fm[index][0] += fmjx;
-      fm[index][1] += fmjy;
-      fm[index][2] += fmjz;
-#else      
       if (newton_pair || j < nlocal) {
-      fm[j][0] += fmjx;	 
-      fm[j][1] += fmjy;	  	  
-      fm[j][2] += fmjz;
+          fm[j][0] += fmjx;	 
+          fm[j][1] += fmjy;	  	  
+          fm[j][2] += fmjz;
+          }
       }
-#endif
-
-      	}
   }
 
-//Test print atoms + ghosts
-#if defined GH_PR
-  if (file!=NULL) fclose(file);
-#endif
-
-
-//  printf("::::::::::::::::::::::::: End loop ::::::::::::::::::::::::\n");
   if (vflag_fdotr) virial_fdotr_compute();
-
-//#define TAG_NALL
-#if defined TAG_NALL
-int nall = nlocal + atom->nghost;
-for (i = 0; i < nall; i++) {
-   int num_neig = numneigh[i];
-   int itag = tag[i];
-   printf("atom %d has %d neighbs and tag numb %d \n",i,num_neig,itag);
-}
-#endif
-
-
-#if defined TRANS_FORCE
-transferfm(fm);
-#endif 
-
 }
 
 

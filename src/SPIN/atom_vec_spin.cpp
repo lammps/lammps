@@ -30,15 +30,17 @@ using namespace LAMMPS_NS;
 AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
-  mass_type = 1;
+  mass_type = 1; //check why
 
-  comm_x_only = 0;
-  comm_f_only = 1;
-  size_forward = 6;
-  size_reverse = 3;
+  //comm_x_only = 0;
+  comm_x_only = 1;
+  //comm_f_only = 1;
+  comm_f_only = 0;
+  size_forward = 7;
+  size_reverse = 6;
   size_border = 11;
   size_velocity = 3;
-  size_data_atom = 9;
+  size_data_atom = 9; //to check later
   size_data_vel = 4;
   xcol_data = 4;
  
@@ -318,7 +320,6 @@ int AtomVecSpin::unpack_comm_hybrid(int n, int first, double *buf)
 int AtomVecSpin::pack_reverse(int n, int first, double *buf)
 {
   int i,m,last;
-
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
@@ -337,7 +338,6 @@ int AtomVecSpin::pack_reverse(int n, int first, double *buf)
 void AtomVecSpin::unpack_reverse(int n, int *list, double *buf)
 {
   int i,j,m;
-
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
@@ -941,9 +941,9 @@ bigint AtomVecSpin::memory_usage()
   return bytes;
 }
 
-//Test force clear in spin
 void AtomVecSpin::force_clear(int n, size_t nbytes)
 {
+  memset(&atom->f[0][0],0,3*nbytes);  
   memset(&atom->fm[0][0],0,3*nbytes);  
 }
 

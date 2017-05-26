@@ -32,15 +32,16 @@ class FixNVESpin : public FixNVE {
   virtual ~FixNVESpin() {}
   void init();
   virtual void initial_integrate(int);
+  void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
 
  protected:
   int extra;
   double dts;
-  double alpha_t;
+  //double alpha_t;
   
- private:
-  class FixSpinDamping *lockspindamping;
+ //private:
+  //class FixSpinDamping *lockspindamping;
 };
 
 }

@@ -18,17 +18,20 @@ atom_style spin
 #Define sort for paramagnetic simulations (if no pair interaction)
 #atom_modify sort 1000 4.0
 
+atom_modify map array 
+
 ###########################
 #######Create atoms########
 ###########################
 
 #Lattice constant of fcc Cobalt
 lattice fcc 3.54
-#lattice sc 3.54
+#lattice sc 2.50
+#lattice bcc 3.54
 
 #Defining a geometric region of space. Sets ID(user's choice), style(block, sphere, ...), then, args depends on the style chosen
 #(for block, one has x0, xf, y0, yf, z0, zf, in distance units)
-region box block 0.0 3.0 0.0 3.0 0.0 3.0
+region box block 0.0 2.0 0.0 2.0 0.0 2.0
 
 #Creating a simulation box based on the specified region. Entries: number of atom types and box ref. 
 create_box 1 box
@@ -60,20 +63,24 @@ pair_coeff * * 0.0446928 0.003496 1.4885
 
 #Fix Langevin spins (merging damping and temperature)
 #Defines a cutof distance for the neighbors. 
-#neighbor 0.5 bin
+#neighbor 1.0 bin
+#neigh_modify every 10 check yes delay 20
+neighbor 0.0 bin
+neigh_modify every 1 check no delay 0 
 #Magnetic field fix
-fix 1 all force/spin zeeman 1.0 0.0 0.0 1.0
+fix 1 all force/spin zeeman 10.0 0.0 0.0 1.0
 #fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 #fix 1 all force/spin anisotropy 0.001 0.0 0.0 1.0
 
 #Fix Langevin spins (merging damping and temperature)
-fix 2 all langevin/spin 0.0 0.1 0.0 21
+#fix 2 all langevin/spin 0.0 0.0 0.1 21
 #fix 2 all langevin/spin 0.0 0.0 0.0 21
 
 #Magnetic integration fix
 fix 3 all nve/spin
 
 #compute total magnetization and magnetic energy
+#Ite Time Mx My Mz |M| Em Tm
 compute mag all compute/spin
 fix outmag all ave/time 1 1 50 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5] c_mag[6] c_mag[7] file mag.dat
 
@@ -81,7 +88,7 @@ fix outmag all ave/time 1 1 50 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5] c_ma
 #Entries: ID(user assigned), group-ID(group of atoms to peform the sim on), style(temp, pe, ...), args    
 
 #Setting the timestep for the simulation
-timestep	0.000005
+timestep	0.00005
 
 ##################
 #######run########
@@ -91,6 +98,6 @@ timestep	0.000005
 dump 1 all custom 50 dump_spin.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 200000
-#run 2
+run 30000
+#run 1
 

@@ -37,6 +37,12 @@ class PairSpin : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+
+  //Test transf. force
+//#define TRANS_FORCE
+#if defined TRANS_FORCE
+  void transferfm(double **);
+#endif
   
  protected:
   double cut_spin_exchange_global, cut_spin_dipolar_global; //Global cutting distance

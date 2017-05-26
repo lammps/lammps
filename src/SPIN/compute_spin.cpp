@@ -125,7 +125,7 @@ void ComputeSpin::compute_vector()
   vector[2] = magtot[1];
   vector[3] = magtot[2];
   vector[4] = magtot[3];
-  vector[5] = magenergytot; 
+  vector[5] = -0.5*magenergytot*hbar; 
   vector[6] = spintemperature;
  
 }

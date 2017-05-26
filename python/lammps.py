@@ -825,6 +825,58 @@ class PyLammps(object):
     return handler
 
 
+  try:
+
+    import numpy
+
+    def get_property_as_array(self, prop, prop_type_id, prop_size, prop_type):
+      """
+Return a NumPy array with a copy of the requested atom property using
+gather_atoms(): prop is the name of the property, prop_type_id is 0 for
+integers and 1 for floats, prop_size is the multiplicity (1 for scalars, 3 for
+vectors) and prop_type is the type object (e.g. numpy.int32 or float).
+      """
+      natoms = self.lib.lammps_get_natoms(self.lmp)
+      shape = (natoms)
+      if (prop_size > 1): shape = (natoms, prop_size)
+      xnp = self.numpy.zeros(shape, dtype=prop_type)
+      xc = xnp.ctypes.data
+      xc = self.lib.lammps_gather_atoms(self.lmp,
+                                        prop, prop_type_id, prop_size, xc)
+      return xnp
+
+    def get_positions_as_array(self):
+      """Return a NumPy array with a copy of the atom positions"""
+      return self.get_property_as_array("x", 1, 3, float)
+
+    def get_velocities_as_array(self):
+      """Return a NumPy array with a copy of the atom velocities"""
+      return self.get_property_as_array("v", 1, 3, float)
+
+    def get_forces_as_array(self):
+      """Return a NumPy array with a copy of the atom forces"""
+      return self.get_property_as_array("f", 1, 3, float)
+
+    def get_ids_as_array(self):
+      """Return a NumPy array with a copy of the atom IDs"""
+      return self.get_property_as_array("id", 0, 1, self.numpy.int32)
+
+    def get_types_as_array(self):
+      """Return a NumPy array with a copy of the atom types"""
+      return self.get_property_as_array("type", 0, 1, self.numpy.int32)
+
+    def get_charges_as_array(self):
+      """Return a NumPy array with a copy of the atom charges"""
+      return self.get_property_as_array("q", 1, 1, float)
+
+    def get_masses_as_array(self):
+      """Return a NumPy array with a copy of the atom masses"""
+      return self.get_property_as_array("mass", 1, 1, float)
+
+  except ImportError:
+    pass
+
+
 class IPyLammps(PyLammps):
   """
   iPython wrapper for LAMMPS which adds embedded graphics capabilities

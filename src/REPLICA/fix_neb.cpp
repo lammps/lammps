@@ -461,7 +461,7 @@ void FixNEB::min_post_force(int vflag)
   if (ireplica < nreplica-1)
     dotgrad = dotgrad /(gradlen*gradnextlen);
 
-  dot = 0.0;
+
   if (FreeEndIni && ireplica == 0) {
     if (tlen > 0.0) {
       double dotall;

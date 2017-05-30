@@ -1026,10 +1026,9 @@ void FixGCMC::attempt_molecule_translation()
   com_displace[1] = displace*ry;
   com_displace[2] = displace*rz;
 
-  int nlocal = atom->nlocal;
   if (regionflag) {
     int *mask = atom->mask;
-    for (int i = 0; i < nlocal; i++) {
+    for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         mask[i] |= molecule_group_bit;
       } else {
@@ -1060,7 +1059,7 @@ void FixGCMC::attempt_molecule_translation()
   }
 
   double energy_after = 0.0;
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == translation_molecule) {
       coord[0] = x[i][0] + com_displace[0];
       coord[1] = x[i][1] + com_displace[1];
@@ -1077,7 +1076,7 @@ void FixGCMC::attempt_molecule_translation()
   if (energy_after_sum < MAXENERGYTEST &&
       random_equal->uniform() <
       exp(beta*(energy_before_sum - energy_after_sum))) {
-    for (int i = 0; i < nlocal; i++) {
+    for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         x[i][0] += com_displace[0];
         x[i][1] += com_displace[1];
@@ -1112,9 +1111,8 @@ void FixGCMC::attempt_molecule_rotation()
     error->warning(FLERR,"Energy of old configuration in "
                    "fix gcmc is > MAXENERGYTEST.");
 
-  int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == rotation_molecule) {
       mask[i] |= molecule_group_bit;
     } else {
@@ -1147,7 +1145,7 @@ void FixGCMC::attempt_molecule_rotation()
   imageint *image = atom->image;
   double energy_after = 0.0;
   int n = 0;
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & molecule_group_bit) {
       double xtmp[3];
       domain->unmap(x[i],image[i],xtmp);
@@ -1176,7 +1174,7 @@ void FixGCMC::attempt_molecule_rotation()
       random_equal->uniform() <
       exp(beta*(energy_before_sum - energy_after_sum))) {
     int n = 0;
-    for (int i = 0; i < nlocal; i++) {
+    for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & molecule_group_bit) {
         image[i] = imagezero;
         x[i][0] = atom_coord[n][0];
@@ -1692,10 +1690,9 @@ void FixGCMC::attempt_molecule_translation_full()
   com_displace[1] = displace*ry;
   com_displace[2] = displace*rz;
 
-  int nlocal = atom->nlocal;
   if (regionflag) {
     int *mask = atom->mask;
-    for (int i = 0; i < nlocal; i++) {
+    for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         mask[i] |= molecule_group_bit;
       } else {
@@ -1725,7 +1722,7 @@ void FixGCMC::attempt_molecule_translation_full()
     com_displace[2] = displace*rz;
   }
 
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == translation_molecule) {
       x[i][0] += com_displace[0];
       x[i][1] += com_displace[1];
@@ -1744,7 +1741,7 @@ void FixGCMC::attempt_molecule_translation_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
-    for (int i = 0; i < nlocal; i++) {
+    for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         x[i][0] -= com_displace[0];
         x[i][1] -= com_displace[1];
@@ -1769,9 +1766,8 @@ void FixGCMC::attempt_molecule_rotation_full()
 
   double energy_before = energy_stored;
 
-  int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == rotation_molecule) {
       mask[i] |= molecule_group_bit;
     } else {
@@ -1804,7 +1800,7 @@ void FixGCMC::attempt_molecule_rotation_full()
   imageint *image = atom->image;
   imageint image_orig[natoms_per_molecule];
   int n = 0;
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & molecule_group_bit) {
       atom_coord[n][0] = x[i][0];
       atom_coord[n][1] = x[i][1];
@@ -1837,7 +1833,7 @@ void FixGCMC::attempt_molecule_rotation_full()
   } else {
     energy_stored = energy_before;
     int n = 0;
-    for (int i = 0; i < nlocal; i++) {
+    for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & molecule_group_bit) {
         x[i][0] = atom_coord[n][0];
         x[i][1] = atom_coord[n][1];

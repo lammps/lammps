@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBinAtomonlyNewton::NPairHalfBinAtomonlyNewton(LAMMPS *lmp) : 
+NPairHalfBinAtomonlyNewton::NPairHalfBinAtomonlyNewton(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------

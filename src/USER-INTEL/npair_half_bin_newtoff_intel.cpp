@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBinNewtoffIntel::NPairHalfBinNewtoffIntel(LAMMPS *lmp) : 
+NPairHalfBinNewtoffIntel::NPairHalfBinNewtoffIntel(LAMMPS *lmp) :
   NPairIntel(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -75,7 +75,7 @@ hbnni(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
   int need_ic = 0;
   if (atom->molecular)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
-			 neighbor->cutneighmax);
+                         neighbor->cutneighmax);
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (need_ic) {
@@ -159,7 +159,7 @@ hbnni(const int offload, NeighList *list, IntelBuffers<flt_t,acc_t> *buffers,
     overflow = _fix->get_off_overflow_flag();
     _fix->stop_watch(TIME_HOST_NEIGHBOR);
     _fix->start_watch(TIME_OFFLOAD_LATENCY);
-  } else 
+  } else
   #endif
   {
     tnum = comm->nthreads;
@@ -294,13 +294,13 @@ hbnni(const int offload, NeighList *list, IntelBuffers<flt_t,acc_t> *buffers,
                   ominimum_image_check(no_special, delx, dely, delz);
                   if (no_special)
                     neighptr[n++] = -j - 1;
-		  else
+                  else
                     neighptr[n++] = j;
                 } else
                   neighptr[n++] = j;
                 #ifdef _LMP_INTEL_OFFLOAD
-		if (j < lmin) lmin = j;
-		if (j > lmax) lmax = j;
+                if (j < lmin) lmin = j;
+                if (j > lmax) lmax = j;
                 #endif
               } else {
                 if (need_ic) {
@@ -308,16 +308,16 @@ hbnni(const int offload, NeighList *list, IntelBuffers<flt_t,acc_t> *buffers,
                   ominimum_image_check(no_special, delx, dely, delz);
                   if (no_special)
                     neighptr[n2++] = -j - 1;
-		  else
+                  else
                     neighptr[n2++] = j;
                 } else
                   neighptr[n2++] = j;
-	        #ifdef _LMP_INTEL_OFFLOAD
-		if (j < gmin) gmin = j;
-		if (j > gmax) gmax = j;
+                #ifdef _LMP_INTEL_OFFLOAD
+                if (j < gmin) gmin = j;
+                if (j > gmax) gmax = j;
                 #endif
-	      }
-	    }
+              }
+            }
           }
         }
         ilist[i] = i;
@@ -341,13 +341,13 @@ hbnni(const int offload, NeighList *list, IntelBuffers<flt_t,acc_t> *buffers,
         neighptr += n;
         if (ct + n + maxnbors > list_size) {
           *overflow = 1;
-	  ct = (ifrom + tid) * maxnbors;
+          ct = (ifrom + tid) * maxnbors;
         }
       }
 
       if (*overflow == 1)
-	for (int i = ifrom; i < ito; i++)
-	  numneigh[i] = 0;
+        for (int i = ifrom; i < ito; i++)
+          numneigh[i] = 0;
 
       #ifdef _LMP_INTEL_OFFLOAD
       if (separate_buffers) {
@@ -370,7 +370,7 @@ hbnni(const int offload, NeighList *list, IntelBuffers<flt_t,acc_t> *buffers,
         if (offload) {
           ghost_offset = overflow[LMP_GHOST_MIN] - overflow[LMP_LOCAL_MAX] - 1;
           nall_offset = overflow[LMP_LOCAL_MAX] + 1 + nghost;
-	} else {
+        } else {
           ghost_offset = overflow[LMP_GHOST_MIN] - nlocal;
           nall_offset = nlocal + nghost;
         }
@@ -383,38 +383,38 @@ hbnni(const int offload, NeighList *list, IntelBuffers<flt_t,acc_t> *buffers,
           const int jnum = numneigh[i];
           for (int jj = 0; jj < jnum; jj++) {
             const int j = jlist[jj];
-	    if (need_ic && j < 0) {
-	      which = 0;
-	      jlist[jj] = -j - 1;
-	    } else
+            if (need_ic && j < 0) {
+              which = 0;
+              jlist[jj] = -j - 1;
+            } else
               ofind_special(which, special, nspecial, i, tag[j]);
             #ifdef _LMP_INTEL_OFFLOAD
-	    if (j >= nlocal) {
-	      if (j == nall)
-		jlist[jj] = nall_offset;
-	      else if (which) 
-		jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
-	      else jlist[jj]-=ghost_offset;
+            if (j >= nlocal) {
+              if (j == nall)
+                jlist[jj] = nall_offset;
+              else if (which)
+                jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
+              else jlist[jj]-=ghost_offset;
             } else
             #endif
-	      if (which) jlist[jj] = j ^ (which << SBBITS);
+              if (which) jlist[jj] = j ^ (which << SBBITS);
           }
         }
       }
       #ifdef _LMP_INTEL_OFFLOAD
       else if (separate_buffers) {
-	for (int i = ifrom; i < ito; ++i) {
+        for (int i = ifrom; i < ito; ++i) {
           int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
-	  int jj = 0;
-	  for (jj = 0; jj < jnum; jj++)
-	    if (jlist[jj] >= nlocal) break;
-	  while (jj < jnum) {
-	    if (jlist[jj] == nall) jlist[jj] = nall_offset;
-	    else jlist[jj] -= ghost_offset;
-	    jj++;
-	  }
-	}
+          int jj = 0;
+          for (jj = 0; jj < jnum; jj++)
+            if (jlist[jj] >= nlocal) break;
+          while (jj < jnum) {
+            if (jlist[jj] == nall) jlist[jj] = nall_offset;
+            else jlist[jj] -= ghost_offset;
+            jj++;
+          }
+        }
       }
       #endif
     } // end omp
@@ -438,9 +438,9 @@ hbnni(const int offload, NeighList *list, IntelBuffers<flt_t,acc_t> *buffers,
       _fix->start_watch(TIME_PACK);
       _fix->set_neighbor_host_sizes();
       buffers->pack_sep_from_single(_fix->host_min_local(),
-				    _fix->host_used_local(),
-				    _fix->host_min_ghost(),
-				    _fix->host_used_ghost());
+                        	    _fix->host_used_local(),
+                        	    _fix->host_min_ghost(),
+                        	    _fix->host_used_ghost());
       _fix->stop_watch(TIME_PACK);
     }
   }

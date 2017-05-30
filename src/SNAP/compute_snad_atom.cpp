@@ -125,11 +125,11 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   threencoeff = 3*ncoeff;
   size_peratom_cols = threencoeff*atom->ntypes;
   if (quadraticflag) {
-    ncoeffsq = ncoeff*ncoeff;
-    twoncoeffsq = 2*ncoeffsq;
-    threencoeffsq = 3*ncoeffsq;
+    ncoeffq = (ncoeff*(ncoeff+1))/2;
+    twoncoeffq = 2*ncoeffq;
+    threencoeffq = 3*ncoeffq;
     size_peratom_cols +=
-      threencoeffsq*atom->ntypes;
+      threencoeffq*atom->ntypes;
   }
   comm_reverse = size_peratom_cols;
   peratom_flag = 1;
@@ -250,7 +250,7 @@ void ComputeSNADAtom::compute_peratom()
 
       const int typeoffset = threencoeff*(atom->type[i]-1);
       const int quadraticoffset = threencoeff*atom->ntypes +
-        threencoeffsq*(atom->type[i]-1);
+        threencoeffq*(atom->type[i]-1);
 
       // insure rij, inside, and typej  are of size jnum
 
@@ -320,7 +320,10 @@ void ComputeSNADAtom::compute_peratom()
             double bix = snaptr[tid]->dbvec[icoeff][0];
             double biy = snaptr[tid]->dbvec[icoeff][1];
             double biz = snaptr[tid]->dbvec[icoeff][2];
-            for (int jcoeff = 0; jcoeff < ncoeff; jcoeff++) {
+
+            // upper-triangular elements of quadratic matrix
+          
+            for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++) {
               double dbxtmp = bi*snaptr[tid]->dbvec[jcoeff][0]
                 + bix*snaptr[tid]->bvec[jcoeff];
               double dbytmp = bi*snaptr[tid]->dbvec[jcoeff][1]
@@ -328,11 +331,11 @@ void ComputeSNADAtom::compute_peratom()
               double dbztmp = bi*snaptr[tid]->dbvec[jcoeff][2]
                 + biz*snaptr[tid]->bvec[jcoeff];
               snadi[ncount] += dbxtmp;
-              snadi[ncount+ncoeffsq] += dbytmp;
-              snadi[ncount+twoncoeffsq] += dbztmp;
+              snadi[ncount+ncoeffq] += dbytmp;
+              snadi[ncount+twoncoeffq] += dbztmp;
               snadj[ncount] -= dbxtmp;
-              snadj[ncount+ncoeffsq] -= dbytmp;
-              snadj[ncount+twoncoeffsq] -= dbztmp;
+              snadj[ncount+ncoeffq] -= dbytmp;
+              snadj[ncount+twoncoeffq] -= dbztmp;
               ncount++;
             }
           }
@@ -385,7 +388,7 @@ double ComputeSNADAtom::memory_usage()
   bytes += 3*njmax*sizeof(double);
   bytes += njmax*sizeof(int);
   bytes += threencoeff*atom->ntypes;
-  if (quadraticflag) bytes += threencoeffsq*atom->ntypes;
+  if (quadraticflag) bytes += threencoeffq*atom->ntypes;
   bytes += snaptr[0]->memory_usage()*comm->nthreads;
   return bytes;
 }

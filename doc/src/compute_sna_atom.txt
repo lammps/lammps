@@ -231,11 +231,12 @@ the numbers of columns are 930, 2790, and 5580, respectively.
 
 If the {quadratic} keyword value is set to 1, then additional
 columns are appended to each per-atom array, corresponding to
-a matrix of quantities that are products of two bispectrum components. If the
-number of bispectrum components is {K}, then the number of matrix elements
-is {K}^2. These are output in subblocks of {K}^2 columns, using the same
-ordering of columns and sub-blocks as was used for the bispectrum
-components.
+the products of all distinct pairs of  bispectrum components. If the
+number of bispectrum components is {K}, then the number of distinct pairs
+is  {K}({K}+1)/2. These are output in subblocks of  {K}({K}+1)/2 columns, using the same
+ordering of sub-blocks as was used for the bispectrum
+components. Within each sub-block, the ordering is upper-triangular,
+(1,1),(1,2)...(1,{K}),(2,1)...({K}-1,{K}-1),({K}-1,{K}),({K},{K})
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See "Section

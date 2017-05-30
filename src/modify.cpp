@@ -819,20 +819,26 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
-      }
+        delete[] fix[ifix]->style;
+        fix[ifix]->style = estyle;
+      } else delete[] estyle;
     }
     if (fix[ifix] == NULL && lmp->suffix2) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
-      }
+        delete[] fix[ifix]->style;
+        fix[ifix]->style = estyle;
+      } else delete[] estyle;
     }
   }
 
@@ -1018,20 +1024,26 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
-      }
+        delete[] compute[ncompute]->style;
+        compute[ncompute]->style = estyle;
+      } else delete[] estyle;
     }
     if (compute[ncompute] == NULL && lmp->suffix2) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
-      }
+        delete[] compute[ncompute]->style;
+        compute[ncompute]->style = estyle;
+      } else delete[] estyle;
     }
   }
 

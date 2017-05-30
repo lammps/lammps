@@ -140,10 +140,15 @@ The default values for these keywords are
 {rmin0} = 0.0
 {diagonalstyle} = 3
 {switchflag} = 0
-{bzeroflag} = 1 :ul
+{bzeroflag} = 1
+{quadraticflag} = 1 :ul
 
-Detailed definitions of these keywords are given on the "compute
+Detailed definitions for all the keywords are given on the "compute
 sna/atom"_compute_sna_atom.html doc page.
+If {quadraticflag} is set to 1, then the SNAP energy expression includes the quadratic term,
+0.5*B^t.alpha.B, where alpha is a symmetric {K} by {K} matrix.
+The SNAP element file should contain {K}({K}+1)/2 additional coefficients
+for each element, the upper-triangular elements of alpha.
 
 :line
 

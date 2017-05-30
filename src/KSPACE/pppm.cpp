@@ -82,6 +82,7 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 
   pppmflag = 1;
   group_group_enable = 1;
+  triclinic = domain->triclinic;
 
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 

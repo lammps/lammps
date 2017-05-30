@@ -286,9 +286,6 @@ void lammps_commands_string(void *ptr, char *str)
       else if ((copy[i] == '&') && (copy[i+1] == '\0'))
         copy[i] = ' ';
 
-      if ((copy[i] == '\r') || (copy[i] == '\t'))
-        copy[i] = ' ';
-
       if (copy[i] == '\n') {
         copy[i] = '\0';
         lmp->input->one(ptr);

@@ -47,6 +47,8 @@ FixPython::FixPython(LAMMPS *lmp, int narg, char **arg) :
     selected_callback = POST_FORCE;
   } else if (strcmp(arg[4],"end_of_step") == 0) {
     selected_callback = END_OF_STEP;
+  } else {
+    error->all(FLERR,"Unsupported callback name for fix/python");
   }
 
   // get Python function

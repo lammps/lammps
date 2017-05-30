@@ -228,7 +228,6 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
 
   dnum = other->dnum;
 
-  iskip = other->iskip;
   iskip = NULL;
   ijskip = NULL;
 

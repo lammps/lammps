@@ -35,6 +35,12 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 
 PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
+  ninput = noutput = 0;
+  istr = NULL;
+  ostr = NULL;
+  format = NULL;
+  length_longstr = 0;
+
   // pfuncs stores interface info for each Python function
 
   nfunc = 0;
@@ -307,6 +313,9 @@ void PythonImpl::invoke_function(int ifunc, char *result)
       }
     } else if (itype == PTR) {
       pValue = PY_VOID_POINTER(lmp);
+    } else {
+      PyGILState_Release(gstate);
+      error->all(FLERR,"Unsupported variable type");
     }
     PyTuple_SetItem(pArgs,i,pValue);
   }

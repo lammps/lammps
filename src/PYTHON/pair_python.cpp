@@ -41,6 +41,7 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   restartinfo = 0;
   one_coeff = 1;
   reinitflag = 0;
+  cut_global = 0.0;
 
   py_potential = NULL;
   skip_types = NULL;

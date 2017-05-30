@@ -15,7 +15,7 @@
 
 NPairStyle(half/size/nsq/newton/omp,
            NPairHalfSizeNsqNewtonOmp,
-           NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTON | NP_OMP | 
+           NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTON | NP_OMP |
            NP_ORTHO | NP_TRI)
 
 #else

@@ -277,12 +277,24 @@ void lammps_commands_string(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    char *ptr = strtok(copy,"\n");
-    if (ptr) concatenate_lines(ptr);
-    while (ptr) {
-      lmp->input->one(ptr);
-      ptr = strtok(NULL,"\n");
-      if (ptr) concatenate_lines(ptr);
+    char *ptr = copy;
+    for (int i=0; i < n-1; ++i) {
+
+      // handle continuation character as last character in line or string
+      if ((copy[i] == '&') && (copy[i+1] == '\n'))
+        copy[i+1] = copy[i] = ' ';
+      else if ((copy[i] == '&') && (copy[i+1] == '\0'))
+        copy[i] = ' ';
+
+      if ((copy[i] == '\r') || (copy[i] == '\t'))
+        copy[i] = ' ';
+
+      if (copy[i] == '\n') {
+        copy[i] = '\0';
+        lmp->input->one(ptr);
+        ptr = copy + i+1;
+      } else if (copy[i+1] == '\0')
+        lmp->input->one(ptr);
     }
   }
   END_CAPTURE

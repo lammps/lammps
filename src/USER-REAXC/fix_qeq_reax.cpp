@@ -140,11 +140,11 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 
 FixQEqReax::~FixQEqReax()
 {
+  if (copymode) return;
+
   delete[] pertype_option;
 
   // unregister callbacks to this fix from Atom class
-
-  if (copymode) return;
 
   atom->delete_callback(id,0);
 

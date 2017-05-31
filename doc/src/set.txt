@@ -80,6 +80,7 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
     value can be an atom-style variable (see below)
   {image} nx ny nz
     nx,ny,nz = which periodic image of the simulation box the atom is in
+    any of nx,ny,nz can be an atom-style variable (see below)
   {bond} value = bond type for all bonds between selected atoms
   {angle} value = angle type for all angles between selected atoms
   {dihedral} value = dihedral type for all dihedrals between selected atoms

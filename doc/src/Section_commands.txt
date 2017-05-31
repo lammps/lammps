@@ -831,6 +831,7 @@ package"_Section_start.html#start_3.
 
 "ackland/atom"_compute_ackland_atom.html,
 "basal/atom"_compute_basal_atom.html,
+"cnp/atom"_compute_cnp_atom.html,
 "dpd"_compute_dpd.html,
 "dpd/atom"_compute_dpd_atom.html,
 "fep"_compute_fep.html,

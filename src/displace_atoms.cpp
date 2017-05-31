@@ -271,9 +271,15 @@ void DisplaceAtoms::command(int narg, char **arg)
     int *body = atom->body;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
+    imageint *image = atom->image;
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
+        // unwrap coordinate and reset image flags accordingly
+        domain->unmap(x[i],image[i]);
+        image[i] = ((imageint) IMGMAX << IMG2BITS) |
+          ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
         d[0] = x[i][0] - point[0];
         d[1] = x[i][1] - point[1];
         d[2] = x[i][2] - point[2];

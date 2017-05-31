@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBinNewtoffGhostOmp::NPairHalfBinNewtoffGhostOmp(LAMMPS *lmp) : 
+NPairHalfBinNewtoffGhostOmp::NPairHalfBinNewtoffGhostOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------

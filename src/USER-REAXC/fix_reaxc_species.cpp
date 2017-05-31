@@ -500,8 +500,16 @@ void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 AtomCoord FixReaxCSpecies::chAnchor(AtomCoord in1, AtomCoord in2)
 {
-  if (in1.x <= in2.x)
+  if (in1.x < in2.x)
     return in1;
+  else if (in1.x == in2.x) {
+    if (in1.y < in2.y)
+      return in1;
+    else if (in1.y == in2.y) {
+      if (in1.z < in2.z)
+        return in1;
+    }
+  }
   return in2;
 }
 

@@ -364,9 +364,8 @@ A value of -1 means subtract 1 box length to get the true value.
 LAMMPS updates these flags as atoms cross periodic boundaries during
 the simulation.  The flags can be output with atom snapshots via the
 "dump"_dump.html command.  If a value of NULL is specified for any of
-nx,ny,nz, then the current image value for that dimension is
-unchanged.  For non-periodic dimensions only a value of 0 can be
-specified.  This keyword does not allow use of atom-style variables.
+nx,ny,nz, then the current image value for that dimension is unchanged.
+For non-periodic dimensions only a value of 0 can be specified.
 This command can be useful after a system has been equilibrated and
 atoms have diffused one or more box lengths in various directions.
 This command can then reset the image values for atoms so that they

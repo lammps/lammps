@@ -12,22 +12,33 @@ fix neb command :h3
 
 fix ID group-ID neb Kspring keyword value :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-neb = style name of this fix command
-Kspring = parallel spring constant (force/distance units)
-keyword = {idealpos} or {neigh} or {perp} or {freeend} :ul
- {idealpos} = each replica is attached with a spring to its interpolated ideal position (default)
- {neigh} = each replica is connected with spring to the previous and next replica.
- {perp} value = set spring constant for the perpendicular spring to {value}
- {freeend} flag = set behavior for the end points
-   flag = {ini} or {final} or {finaleini} or {final2eini}
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+neb = style name of this fix command :l
+Kspring = parallel spring constant (force/distance units or force units) :l
+zero or more keyword/value pairs may be appended :l
+keyword = {nudg_style} or {perp} or {freend} or {freend_k_spring} :l
+  {nudg_style} value = {neigh} or {idealpos}
+    {neigh} = the parallel nudging force is calculated from the distance to neighbouring replicas (in this case, Kspring is in force/distance units)
+    {idealpos} = the parallel nudging force is proportional to the distance between the replica and its interpolated ideal position (in this case Kspring is in force units)
+  {perp} value {none} or kspring2
+    {none} = no perpendicular spring force is applied
+  {freeend} value = {none} or {ini} or {final} or {finaleini} or {final2eini}
+    {none} = no nudging force is apply to the first and last replicas
+    {ini} = set the first replica to be a free end 
+    {final} = set the last replica to be a free end
+    {finaleini} = set the last replica to be a free end and set its target energy as that of the first replica
+    {final2eini} = same as {finaleini} plus prevent intermediate replicas to have a lower energy than the first replica
+  {freeend_kspring}  value = kspring2
+    kspring2 = spring constant of the perpendicular spring force (per distance units)    
+flag = set behavior for the end points
+   flag = 
    :pre
 
 [Examples:]
 
 fix 1 active neb 10.0
 fix 2 all neb 1.0 perp 1.0 freeend final
-fix 1 all neb 1.0 neigh freeend final2eini :pre
+fix 1 all neb 1.0 nudg_style idealpos freeend final2eini freend_kspring 1:pre
 
 [Description:]
 
@@ -109,11 +120,11 @@ replica, a free end neb calculation with the value {finaleini} or
 
 :line
 
-The keywords {idealpos} and {neigh} allow to specify how to parallel
-spring force is computed.  If the keyword {idealpos} is used or by
-default, the spring force is computed as suggested in "(E)"_#E :
+The keyword {nudg_style} allow to specify how to parallel
+nudging force is computed. With a value of idealpos, the spring 
+force is computed as suggested in "(E)"_#E :
    
-Fspringparallel=-{Kspring}* (RD-RDideal)/(2 meanDist) :pre
+Fnudgparallel=-{Kspring}* (RD-RDideal)/(2 meanDist) :pre
 
 where RD is the "reaction coordinate" see "neb"_neb.html section, and
 RDideal is the ideal RD for which all the images are equally spaced
@@ -121,13 +132,14 @@ RDideal is the ideal RD for which all the images are equally spaced
 is the replica number). The meanDist is the average distance between
 replicas.
 
-If the keyword {neigh} is used, the parallel spring force is computed
-as in "(Henkelman1)"_#Henkelman1 by connecting each intermediate
-replica with the previous and the next image:
+When {nudg_style} has a value of neigh (or by default), the parallel 
+nudging force is computed as in "(Henkelman1)"_#Henkelman1 by 
+connecting each intermediate replica with the previous and the next 
+image:
 
-Fspringparallel= {Kspring}* (|Ri+1 - Ri| - |Ri - Ri-1|) :pre
+Fnudgparallel= {Kspring}* (|Ri+1 - Ri| - |Ri - Ri-1|) :pre
 
-The parallel spring force associated with the key word idealpos should
+The parallel nudging force associated with the key word idealpos should
 usually be more efficient at keeping the images equally spaced.
 
 :line
@@ -172,7 +184,9 @@ for more info on packages.
 
 [Default:]
 
-none
+The option defaults are nudg_style = neigh, perp = none, freeend = none and freend_kspring = 1.
+
+:line
 
 :link(Henkelman1)
 [(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).

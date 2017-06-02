@@ -66,7 +66,7 @@ minimize	1.0e-6 1.0e-4 1000 10000
 
 reset_timestep	0
 
-fix		1 all neb 1.0 neigh
+fix		1 all neb 1.0 
 
 thermo		100
 

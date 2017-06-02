@@ -46,12 +46,13 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   displacements(NULL)
 {
 
-  NEBLongRange=true;
-  StandardNEB=PerpSpring=FreeEndIni=FreeEndFinal=false;
+  NEBLongRange=false;
+  StandardNEB=true;
+  PerpSpring=FreeEndIni=FreeEndFinal=false;
   FreeEndFinalWithRespToEIni=FinalAndInterWithRespToEIni=false;
 
   kspringPerp=0.0;
-
+  kspring2=1.0;
   if (narg < 4)
     error->all(FLERR,"Illegal fix neb command, argument missing");
 
@@ -62,21 +63,23 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg =4;
   while (iarg < narg) {
-    if (strcmp (arg[iarg],"idealpos")==0) {
-      NEBLongRange = true;
-      iarg+=1;
-    } else if (strcmp (arg[iarg],"neigh")==0) {
-      NEBLongRange = false;
-      StandardNEB = true;
-      iarg+=1;
-    } else if (strcmp (arg[iarg],"perp")==0) {
+    if (strcmp (arg[iarg],"nudg_style")==0) {
+          if (strcmp (arg[iarg+1],"idealpos")==0) {
+	    NEBLongRange = true;
+	    iarg+=2;}
+	  else if (strcmp (arg[iarg+1],"neigh")==0) {
+	    NEBLongRange = false;
+	    StandardNEB = true;
+	    iarg+=2;}
+	  else error->all(FLERR,"Illegal fix neb command. Unknown keyword");}
+    else if (strcmp (arg[iarg],"perp")==0) {
       PerpSpring=true;
       kspringPerp = force->numeric(FLERR,arg[iarg+1]);
       if (kspringPerp < 0.0)
         error->all(FLERR,"Illegal fix neb command. "
                    "The perpendicular spring force was not provided properly");
-      iarg+=2;
-    } else if (strcmp (arg[iarg],"freeend")==0) {
+      iarg+=2;} 
+    else if (strcmp (arg[iarg],"freeend")==0) {
       if (strcmp (arg[iarg+1],"ini")==0)
         FreeEndIni=true;
       else if (strcmp (arg[iarg+1],"final")==0)
@@ -86,8 +89,12 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp (arg[iarg+1],"final2eini")==0) {
         FinalAndInterWithRespToEIni=true;
         FreeEndFinalWithRespToEIni=true;}
-      iarg+=2;
-    } else error->all(FLERR,"Illegal fix neb command. Unknown keyword");
+      else if (strcmp (arg[iarg+1],"none")!=0) error->all(FLERR,"Illegal fix neb command. Unknown keyword");
+      iarg+=2;} 
+    else if (strcmp (arg[iarg],"freeend_kspring")==0) {
+      kspring2=force->numeric(FLERR,arg[iarg+1]);
+      iarg+=2; }
+    else error->all(FLERR,"Illegal fix neb command. Unknown keyword");
   }
 
   // nreplica = number of partitions
@@ -468,8 +475,8 @@ void FixNEB::min_post_force(int vflag)
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
 
-      if (dot<0) prefactor = -dot - (veng-EIniIni);
-      else prefactor = -dot + (veng-EIniIni);
+      if (dot<0) prefactor = -dot - kspring2*(veng-EIniIni);
+      else prefactor = -dot + kspring2*(veng-EIniIni);
 
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -486,8 +493,8 @@ void FixNEB::min_post_force(int vflag)
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
 
-      if (dot<0) prefactor = -dot - (veng-EFinalIni);
-      else prefactor = -dot + (veng-EFinalIni);
+      if (dot<0) prefactor = -dot - kspring2*(veng-EFinalIni);
+      else prefactor = -dot + kspring2*(veng-EFinalIni);
 
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -504,8 +511,8 @@ void FixNEB::min_post_force(int vflag)
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
 
-      if (dot<0) prefactor = -dot - (veng-vIni);
-      else prefactor = -dot + (veng-vIni);
+      if (dot<0) prefactor = -dot - kspring2*(veng-vIni);
+      else prefactor = -dot + kspring2*(veng-vIni);
 
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {

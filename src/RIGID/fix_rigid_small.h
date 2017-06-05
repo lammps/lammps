@@ -131,6 +131,7 @@ class FixRigidSmall : public Fix {
   int extended;         // 1 if any particles have extended attributes
   int orientflag;       // 1 if particles store spatial orientation
   int dorientflag;      // 1 if particles store dipole orientation
+  int reinitflag;       // 1 if re-initialize rigid bodies between runs
 
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;

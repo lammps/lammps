@@ -138,6 +138,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   langflag = 0;
   infile = NULL;
   onemols = NULL;
+  reinitflag = 1;
 
   tstat_flag = 0;
   pstat_flag = 0;
@@ -173,6 +174,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix rigid/small langevin period must be > 0.0");
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");
       iarg += 5;
+
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       delete [] infile;
@@ -180,7 +182,16 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       infile = new char[n];
       strcpy(infile,arg[iarg+1]);
       restart_file = 1;
+      reinitflag = 0;
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"reinit") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
+      else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
+      else error->all(FLERR,"Illegal fix rigid/small command");
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       int imol = atom->find_molecule(arg[iarg+1]);
@@ -520,14 +531,15 @@ void FixRigidSmall::init()
 }
 
 /* ----------------------------------------------------------------------
-   setup static/dynamic properties of rigid bodies, using current atom info
-   only do initialization once, b/c properties may not be re-computable
-     especially if overlapping particles or bodies inserted from mol template
-   do not do dynamic init if read body properties from infile
-     this is b/c the infile defines the static and dynamic properties
-     and may not be computable if contain overlapping particles
-     setup_bodies_static() reads infile itself
-   cannot do this until now, b/c requires comm->setup() to have setup stencil
+   setup static/dynamic properties of rigid bodies, using current atom info.
+   if reinitflag is not set, do the initialization only once, b/c properties
+   may not be re-computable especially if overlapping particles or bodies
+   are inserted from mol template.
+     do not do dynamic init if read body properties from infile. this
+   is b/c the infile defines the static and dynamic properties and may not
+   be computable if contain overlapping particles setup_bodies_static()
+   reads infile itself.
+     cannot do this until now, b/c requires comm->setup() to have setup stencil
    invoke pre_neighbor() to insure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
      setup_bodies_static() invokes pre_neighbor itself
@@ -535,9 +547,13 @@ void FixRigidSmall::init()
 
 void FixRigidSmall::setup_pre_neighbor()
 {
-  if (!setupflag) setup_bodies_static();
+  if (reinitflag || !setupflag)
+    setup_bodies_static();
   else pre_neighbor();
-  if (!setupflag && !infile) setup_bodies_dynamic();
+
+  if ((reinitflag || !setupflag) && !infile)
+    setup_bodies_dynamic();
+
   setupflag = 1;
 }
 

@@ -267,6 +267,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   int seed;
   langflag = 0;
+  reinitflag = 1;
+
   tstat_flag = 0;
   pstat_flag = 0;
   allremap = 1;
@@ -501,6 +503,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       infile = new char[n];
       strcpy(infile,arg[iarg+1]);
       restart_file = 1;
+      reinitflag = 0;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"reinit") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
+      else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
+      else error->all(FLERR,"Illegal fix rigid command");
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");
@@ -679,15 +689,15 @@ void FixRigid::init()
   if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
-  // setup rigid bodies, using current atom info
-  // only do initialization once, b/c properties may not be re-computable
-  //   especially if overlapping particles
-  // do not do dynamic init if read body properties from infile
-  //   this is b/c the infile defines the static and dynamic properties
-  //   and may not be computable if contain overlapping particles
+  // setup rigid bodies, using current atom info. if reinitflag is not set,
+  // do the initialization only once, b/c properties may not be re-computable
+  // especially if overlapping particles.
+  //   do not do dynamic init if read body properties from infile.
+  // this is b/c the infile defines the static and dynamic properties and may
+  // not be computable if contain overlapping particles.
   //   setup_bodies_static() reads infile itself
 
-  if (!setupflag) {
+  if (reinitflag || !setupflag) {
     setup_bodies_static();
     if (!infile) setup_bodies_dynamic();
     setupflag = 1;

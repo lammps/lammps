@@ -1011,16 +1011,11 @@ int Modify::check_rigid_group_overlap(int groupbit)
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (strncmp("rigid",fix[ifix]->style,5) == 0) {
-      const int bothbits = groupbit | fix[ifix]->groupbit;
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
-      for (int i=0; i < nlocal; ++i) {
-        if (((mask[i] & bothbits) == bothbits) && (body[i] >= 0)) {
-          ++n; break;
-        }
-      }
-      if (n > 0) break;
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)) ++n;
     }
   }
 
@@ -1048,17 +1043,12 @@ int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
   reg->prematch();
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (strncmp("rigid",fix[ifix]->style,5) == 0) {
-      const int bothbits = groupbit | fix[ifix]->groupbit;
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
-      for (int i=0; i < nlocal; ++i)
-        if (((mask[i] & bothbits) == bothbits) && (body[i] >= 0)
-            && reg->match(x[i][0],x[i][1],x[i][2])) {
-          ++n;
-          break;
-        }
-      if (n > 0) break;
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)
+            && reg->match(x[i][0],x[i][1],x[i][2])) ++n;
     }
   }
 
@@ -1084,17 +1074,11 @@ int Modify::check_rigid_list_overlap(int *select)
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (strncmp("rigid",fix[ifix]->style,5) == 0) {
-      const int groupbit = fix[ifix]->groupbit;
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
-      for (int i=0; i < nlocal; ++i) {
-        if ((mask[i] & groupbit) && (body[i] >= 0) && select[i]) {
-          ++n;
-          break;
-        }
-      }
-      if (n > 0) break;
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((body[i] >= 0) && select[i]) ++n;
     }
   }
 

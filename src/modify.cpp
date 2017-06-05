@@ -1006,13 +1006,20 @@ int Modify::check_rigid_group_overlap(int groupbit)
 {
   const int * const mask = atom->mask;
   const int nlocal = atom->nlocal;
+  int dim;
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (strncmp("rigid",fix[ifix]->style,5) == 0) {
       const int bothbits = groupbit | fix[ifix]->groupbit;
-      for (int i=0; i < nlocal; ++i)
-        if (mask[i] & bothbits) {++n; break;}
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; i < nlocal; ++i) {
+        if (((mask[i] & bothbits) == bothbits) && (body[i] >= 0)) {
+          ++n; break;
+        }
+      }
       if (n > 0) break;
     }
   }
@@ -1025,23 +1032,29 @@ int Modify::check_rigid_group_overlap(int groupbit)
 }
 
 /* ----------------------------------------------------------------------
-   check if the atoms in the region indicated by regionid overlap with any
-   currently existing rigid fixes. return 1 in this case otherwise 0
+   check if the atoms in the group indicated by groupbit _and_ region
+   indicated by regionid overlap with any currently existing rigid fixes.
+   return 1 in this case, otherwise 0
 ------------------------------------------------------------------------- */
 
-int Modify::check_rigid_region_overlap(Region *reg)
+int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
 {
   const int * const mask = atom->mask;
   const double * const * const x = atom->x;
   const int nlocal = atom->nlocal;
+  int dim;
 
   int n = 0;
   reg->prematch();
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (strncmp("rigid",fix[ifix]->style,5) == 0) {
-      const int groupbit = fix[ifix]->groupbit;
+      const int bothbits = groupbit | fix[ifix]->groupbit;
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
       for (int i=0; i < nlocal; ++i)
-        if ((mask[i] & groupbit) && reg->match(x[i][0],x[i][1],x[i][2])) {
+        if (((mask[i] & bothbits) == bothbits) && (body[i] >= 0)
+            && reg->match(x[i][0],x[i][1],x[i][2])) {
           ++n;
           break;
         }
@@ -1066,16 +1079,21 @@ int Modify::check_rigid_list_overlap(int *select)
 {
   const int * const mask = atom->mask;
   const int nlocal = atom->nlocal;
+  int dim;
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (strncmp("rigid",fix[ifix]->style,5) == 0) {
       const int groupbit = fix[ifix]->groupbit;
-      for (int i=0; i < nlocal; ++i)
-        if ((mask[i] & groupbit) && select[i]) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; i < nlocal; ++i) {
+        if ((mask[i] & groupbit) && (body[i] >= 0) && select[i]) {
           ++n;
           break;
         }
+      }
       if (n > 0) break;
     }
   }

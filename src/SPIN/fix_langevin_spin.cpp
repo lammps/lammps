@@ -142,11 +142,10 @@ void FixLangevinSpin::post_force(int vflag)
   double cpx, cpy, cpz;
   double rx, ry, rz;  
                           
-  // apply transverse magnetic damping to spins
-  // add the damping to the effective field
+  // add the damping to the effective field of each spin
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-		sx = sp[i][0];//Getting Mag. and Mag. force components
+		sx = sp[i][0];
 		sy = sp[i][1];
 		sz = sp[i][2];
 		
@@ -164,22 +163,23 @@ void FixLangevinSpin::post_force(int vflag)
 		
 		fm[i][0] = fmx;
 		fm[i][1] = fmy;
-		fm[i][2] = fmz;		
+		fm[i][2] = fmz;
    }
 
-  //printf("test damping. 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);
-  //apply thermal effects
-  //add random field to fm 
+  //apply thermal effects adding random fields to fm
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+                #define GAUSSIAN_R
+                #if defined GAUSSIAN_R
 		rx = sigma*random->gaussian();//Drawing random distributions
 		ry = sigma*random->gaussian();
 		rz = sigma*random->gaussian();
-	
-		//rx = sigma*(random->uniform() - 0.5);
-		//ry = sigma*(random->uniform() - 0.5);
-		//rz = sigma*(random->uniform() - 0.5);
-	
+	        #else 
+		rx = sigma*(random->uniform() - 0.5);
+		ry = sigma*(random->uniform() - 0.5);
+		rz = sigma*(random->uniform() - 0.5);
+	        #endif
+
         	fm[i][0] += rx;//Adding random field
 		fm[i][1] += ry;
 		fm[i][2] += rz;
@@ -189,13 +189,6 @@ void FixLangevinSpin::post_force(int vflag)
                 fm[i][2] *= Gil_factor; 
 		
    }
-
-   //printf("test langevin 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);
-
-   //printf("test rand var: %g, sigma=%g \n",(random->uniform()-0.5),sigma);
-   //printf("test rand var: %g, sigma=%g \n",random->gaussian(),sigma);
-   //printf("test random 1;i=0, fx=%g, fy=%g, fz=%g \n",fm[0][0],fm[0][1],fm[0][2]);  
-   //printf("test dt: %g, sigma=%g \n",dts,random->gaussian(),sigma);
 }
 
 /* ---------------------------------------------------------------------- */

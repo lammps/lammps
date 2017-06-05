@@ -35,6 +35,9 @@ class FixNVESpin : public FixNVE {
   void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
 
+//Sorting atoms/spins routine
+void SortSpins();
+
  protected:
   int extra;
   double dts;

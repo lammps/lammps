@@ -33,24 +33,36 @@ class PairSpin : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-
-  //Test transf. force
-//#define TRANS_FORCE
-#if defined TRANS_FORCE
-  void transferfm(double **);
-#endif
   
+  inline void compute_exchange(int, int, double, double *, double *);
+  inline void compute_dmi(int, int, double *, double *);
+  inline void compute_me(int, int, double *, double *);  
+ 
  protected:
-  double cut_spin_exchange_global, cut_spin_dipolar_global; //Global cutting distance
-  double **cut_spin_exchange; //cutting distance for each exchange interaction
-  double **cut_spin_dipolar;  //cutting distance for the dipolar interaction
+  int exch_flag,dmi_flag,me_flag;
+  double cut_spin_pair_global;
+  double cut_spin_dipolar_global;
   
-  double **J_1, **J_2, **J_3; //coefficients for computing the exchange interaction Jij
-                              //J1 is an energy (in eV), J2 is adim and J3 is a distance (in Ang)
+  double **cut_spin_exchange; //cutting distance exchange
+  double **cut_spin_dmi; //cutting distance dmi
+  double **cut_spin_me; //cutting distance me 
+ 
+  double **J_1, **J_2, **J_3; //exchange coeffs Jij
+                              //J1 in eV, J2 adim and J3 in Ang
+  double **DM;
+  double **v_dmx, **v_dmy, **v_dmz;//DMI coeffs
+                                   //DM int. in eV, v direction
+
+  double **ME;
+  double **v_mex, **v_mey, **v_mez;//ME coeffs
+                                   //ME in eV, v direction
+
+  double *fmi, *fmj; //Temp var. in compute
 
   void allocate();
 };
@@ -66,9 +78,9 @@ E: Incorrect args in pair_style command
 
 Self-explanatory.
 
-E: Cannot (yet) use 'electron' units with spins
+E: Spin simulations require metal unit style
 
-This feature is not yet supported.
+Self-explanatory.
 
 E: Incorrect args for pair coefficients
 

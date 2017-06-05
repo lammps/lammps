@@ -87,6 +87,7 @@ void ComputeSpin::compute_vector()
   int nlocal = atom->nlocal;
     
   // compute total magnetization and magnetic energy 
+  // compute spin temperature; See Nurdin et al., Phys. Rev. E 61, 2000
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->mumag_flag && atom->sp_flag) {

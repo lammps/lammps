@@ -185,8 +185,6 @@ void FixForceSpin::post_force(int vflag)
 		  fm[i][2] += scalar*zmag;
 	  }
   }
-  //printf("test force. 1;i=0, fx=%g, fy=%g, fz=%g, mumag=%g \n",fm[0][0],fm[0][1],fm[0][2],mumag[0]); 
-  //printf("Field force compute, fm[0][2]=%g \n",fm[0][2]); 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,8 +196,6 @@ void FixForceSpin::post_force_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 //No acceleration for magnetic EOM, only a "magnetic force" 
-//(keeping set_magneticforce in case of time--dependent mag. field implementation)
-
 void FixForceSpin::set_magneticforce()
 {
   if (style == ZEEMAN) {
@@ -212,9 +208,7 @@ void FixForceSpin::set_magneticforce()
 	  ymag = 2.0*Ka*Kay;
 	  zmag = 2.0*Ka*Kaz;	  
   }
-
 }
-
 
 /* ----------------------------------------------------------------------
    potential energy in magnetic field

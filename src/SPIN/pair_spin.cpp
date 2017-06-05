@@ -33,6 +33,8 @@ using namespace MathConst;
 PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  exch_flag = 0; 
+  dmi_flag = 0; 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -43,10 +45,25 @@ PairSpin::~PairSpin()
     memory->destroy(setflag);
     
     memory->destroy(cut_spin_exchange);
-    memory->destroy(cut_spin_dipolar);
     memory->destroy(J_1);
     memory->destroy(J_2);
-    memory->destroy(J_2);
+    memory->destroy(J_2);  
+    
+    memory->destroy(cut_spin_dmi);
+    memory->destroy(DM);
+    memory->destroy(v_dmx);
+    memory->destroy(v_dmy);
+    memory->destroy(v_dmz);
+
+    memory->destroy(cut_spin_me);
+    memory->destroy(ME);
+    memory->destroy(v_mex);
+    memory->destroy(v_mey);
+    memory->destroy(v_mez);
+    
+    memory->destroy(fmi);
+    memory->destroy(fmj);
+
     memory->destroy(cutsq);
   }
 }
@@ -57,8 +74,9 @@ void PairSpin::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl,ecoul;
-  double xtmp,ytmp,ztmp,fmix,fmiy,fmiz,fmjx,fmjy,fmjz,omx,omy,omz;
-  double cut, Jex, ra;
+  double xtmp,ytmp,ztmp;
+  double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
+  double cut_ex,cut_dmi,cut_me;
   double rsq,rd,delx,dely,delz;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
@@ -90,47 +108,52 @@ void PairSpin::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];  
    
-    //Exchange interaction
+    //Loop on Neighbors
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      fmix = fmiy = fmiz = 0.0;
-      fmjx = fmjy = fmjz = 0.0;
+      fmi[0] = fmi[1] = fmi[2] = 0.0;
+      fmj[0] = fmj[1] = fmj[2] = 0.0;
      
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;  //square or inter-atomic distance
       rd = sqrt(rsq); //Inter-atomic distance
-      cut = cut_spin_exchange_global;
-      
-      if (rd <= cut) {
-          itype = type[i];
-          jtype = type[j];
+      itype = type[i];
+      jtype = type[j];
 
-          ra = (rd/J_3[itype][jtype])*(rd/J_3[itype][jtype]); 
-          Jex = 4.0*J_1[itype][jtype]*ra;
-          Jex *= (1.0-J_2[itype][jtype]*ra);
-          Jex *= exp(-ra);
-      
-          fmix = Jex*sp[j][0];
-          fmiy = Jex*sp[j][1];
-          fmiz = Jex*sp[j][2];
-          
-          fmjx = Jex*sp[i][0];
-          fmjy = Jex*sp[i][1];
-          fmjz = Jex*sp[i][2];
-	  }
-     
-      fm[i][0] += fmix;	 
-      fm[i][1] += fmiy;	  	  
-      fm[i][2] += fmiz;
+      //Exchange interaction
+      if (exch_flag) {
+        cut_ex = cut_spin_exchange[itype][jtype];
+        if (rd <= cut_ex) {
+          compute_exchange(i,j,rsq,fmi,fmj);   
+        }
+      }
+      //DM interaction
+      if (dmi_flag){
+        cut_dmi = cut_spin_dmi[itype][jtype];
+        if (rd <= cut_dmi){
+          compute_dmi(i,j,fmi,fmj);
+        } 
+      }
+      //ME interaction
+      if (me_flag){
+        cut_me = cut_spin_me[itype][jtype];
+        if (rd <= cut_me){
+          compute_me(i,j,fmi,fmj);
+        } 
+      }
+
+      fm[i][0] += fmi[0];	 
+      fm[i][1] += fmi[1];	  	  
+      fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-          fm[j][0] += fmjx;	 
-          fm[j][1] += fmjy;	  	  
-          fm[j][2] += fmjz;
+          fm[j][0] += fmj[0];	 
+          fm[j][1] += fmj[1];	  	  
+          fm[j][2] += fmj[2];
           }
       }
   }
@@ -138,6 +161,95 @@ void PairSpin::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+inline void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *fmj)
+{
+  int *type = atom->type;  
+  int itype, jtype;
+  double **sp = atom->sp;
+  double dmix,dmiy,dmiz;	
+  double Jex, ra;
+  itype = type[i];
+  jtype = type[j];
+          
+  ra = rsq/J_3[itype][jtype]/J_3[itype][jtype]; 
+  Jex = 4.0*J_1[itype][jtype]*ra;
+  Jex *= (1.0-J_2[itype][jtype]*ra);
+  Jex *= exp(-ra);
+
+  fmi[0] += Jex*sp[j][0];
+  fmi[1] += Jex*sp[j][1];
+  fmi[2] += Jex*sp[j][2];
+          
+  fmj[0] += Jex*sp[i][0];
+  fmj[1] += Jex*sp[i][1];
+  fmj[2] += Jex*sp[i][2];
+
+}
+
+/* ---------------------------------------------------------------------- */
+inline void PairSpin::compute_dmi(int i, int j, double *fmi,  double *fmj)
+{
+
+  int *type = atom->type;  
+  int itype, jtype;
+  double **sp = atom->sp;
+  double dmix,dmiy,dmiz;	
+  itype = type[i];
+  jtype = type[j];
+          
+  dmix = DM[itype][jtype]*v_dmx[itype][jtype];
+  dmiy = DM[itype][jtype]*v_dmy[itype][jtype];
+  dmiz = DM[itype][jtype]*v_dmz[itype][jtype];
+
+  fmi[0] += sp[j][1]*dmiz-sp[j][2]*dmiy;
+  fmi[1] += sp[j][2]*dmix-sp[j][0]*dmiz;
+  fmi[2] += sp[j][0]*dmiy-sp[j][1]*dmix;
+
+  fmj[0] -= sp[i][1]*dmiz-sp[i][2]*dmiy;
+  fmj[1] -= sp[i][2]*dmix-sp[i][0]*dmiz;
+  fmj[2] -= sp[i][0]*dmiy-sp[i][1]*dmix;
+}
+
+/* ---------------------------------------------------------------------- */
+inline void PairSpin::compute_me(int i, int j, double *fmi,  double *fmj)
+{
+  int *type = atom->type;  
+  int itype, jtype;
+  itype = type[i];
+  jtype = type[j];
+  double **sp = atom->sp;
+  double **x = atom->x;
+  double meix,meiy,meiz;
+  double rx, ry, rz, inorm;
+
+  rx = x[j][0] - x[i][0];
+  ry = x[j][1] - x[i][1];
+  rz = x[j][2] - x[i][2];
+  inorm = 1.0/sqrt(rx*rx+ry*ry+rz*rz);
+  rx *= inorm;
+  ry *= inorm; 
+  rz *= inorm; 
+
+  meix = v_mey[itype][jtype]*rz - v_mez[itype][jtype]*ry; 
+  meiy = v_mez[itype][jtype]*rx - v_mex[itype][jtype]*rz; 
+  meiz = v_mex[itype][jtype]*ry - v_mey[itype][jtype]*rx; 
+
+  meix *= ME[itype][jtype]; 
+  meiy *= ME[itype][jtype]; 
+  meiz *= ME[itype][jtype]; 
+
+  fmi[0] += sp[j][1]*meiz - sp[j][2]*meiy;
+  fmi[1] += sp[j][2]*meix - sp[j][0]*meiz;
+  fmi[2] += sp[j][0]*meiy - sp[j][1]*meix;
+          
+  fmj[0] -= sp[i][1]*meiz - sp[i][2]*meiy;
+  fmj[1] -= sp[i][2]*meix - sp[i][0]*meiz;
+  fmj[2] -= sp[i][0]*meiy - sp[i][1]*meix;
+
+ // printf("test val fmi=%g, fmj=%g \n",fmi[2],fmj[2]);
+
+}
 
 /* ----------------------------------------------------------------------
    allocate all arrays
@@ -154,11 +266,25 @@ void PairSpin::allocate()
       setflag[i][j] = 0;
       
   memory->create(cut_spin_exchange,n+1,n+1,"pair:cut_spin_exchange");
-  memory->create(cut_spin_dipolar,n+1,n+1,"pair:cut_spin_dipolar");
   memory->create(J_1,n+1,n+1,"pair:J_1");
   memory->create(J_2,n+1,n+1,"pair:J_2");  
   memory->create(J_3,n+1,n+1,"pair:J_3");
-  
+
+  memory->create(cut_spin_dmi,n+1,n+1,"pair:cut_spin_dmi");
+  memory->create(DM,n+1,n+1,"pair:DM");
+  memory->create(v_dmx,n+1,n+1,"pair:DM_vector_x");
+  memory->create(v_dmy,n+1,n+1,"pair:DM_vector_y");
+  memory->create(v_dmz,n+1,n+1,"pair:DM_vector_z");
+ 
+  memory->create(cut_spin_me,n+1,n+1,"pair:cut_spin_me");
+  memory->create(ME,n+1,n+1,"pair:ME");
+  memory->create(v_mex,n+1,n+1,"pair:ME_vector_x");
+  memory->create(v_mey,n+1,n+1,"pair:ME_vector_y");
+  memory->create(v_mez,n+1,n+1,"pair:ME_vector_z");
+ 
+  memory->create(fmi,3,"pair:fmi");
+  memory->create(fmj,3,"pair:fmj");
+ 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");  
   
 }
@@ -172,14 +298,11 @@ void PairSpin::settings(int narg, char **arg)
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
 
-  if (strcmp(update->unit_style,"electron") == 0)
-    error->all(FLERR,"Cannot (yet) use 'electron' units with spins");
+  if (strcmp(update->unit_style,"metal") != 0)
+    error->all(FLERR,"Spin simulations require metal unit style");
     
-  cut_spin_exchange_global = force->numeric(FLERR,arg[0]);
+  cut_spin_pair_global = force->numeric(FLERR,arg[0]);
     
-  if (narg == 1) cut_spin_dipolar_global = cut_spin_exchange_global;
-  else cut_spin_dipolar_global = force->numeric(FLERR,arg[1]);
-  
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -187,8 +310,8 @@ void PairSpin::settings(int narg, char **arg)
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
-          cut_spin_exchange[i][j] = cut_spin_exchange_global;
-          cut_spin_dipolar[i][j] = cut_spin_dipolar_global;
+          cut_spin_exchange[i][j] = cut_spin_pair_global;
+          cut_spin_dmi[i][j] = cut_spin_pair_global;
         }
   }
    
@@ -201,38 +324,108 @@ void PairSpin::settings(int narg, char **arg)
 void PairSpin::coeff(int narg, char **arg)
 {
 
-  if (narg != 5)
-    error->all(FLERR,"Incorrect number of args for pair spin coefficients");
-  if (!allocated) allocate();	
-  
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-    
-  double J1 = force->numeric(FLERR,arg[2]);
-  double J2 = force->numeric(FLERR,arg[3]);  
-  double J3 = force->numeric(FLERR,arg[4]); 
-  
-  double hbar = force->hplanck/MY_2PI;
-  J1 /= hbar;
-    
-  int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      J_1[i][j] = J1;
-      J_2[i][j] = J2;
-      J_3[i][j] = J3;
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
-  if (count == 0) error->all(FLERR,"Incorrect args for spinpair coefficients");  
- 
-  //Simple (Anti)Ferromagnetic exchange for now. 
-  //Check if Jex [][] still works for Ferrimagnetic exchange
-  
-}
+  if (!allocated) allocate();
 
+  if (strcmp(arg[2],"exchange")==0){
+    if (narg != 7) error->all(FLERR,"Incorrect args in pair_style command");
+    exch_flag = 1;    
+    
+    int ilo,ihi,jlo,jhi;
+    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+    
+    double rij = force->numeric(FLERR,arg[3]);
+    double J1 = force->numeric(FLERR,arg[4]);
+    double J2 = force->numeric(FLERR,arg[5]);  
+    double J3 = force->numeric(FLERR,arg[6]); 
+  
+    double hbar = force->hplanck/MY_2PI;
+    J1 /= hbar;
+    
+    int count = 0;
+    for (int i = ilo; i <= ihi; i++) {
+      for (int j = MAX(jlo,i); j <= jhi; j++) {
+        cut_spin_exchange[i][j] = rij;   
+        J_1[i][j] = J1;
+        J_2[i][j] = J2;
+        J_3[i][j] = J3;
+        setflag[i][j] = 1;
+        count++;
+      }
+    }
+    if (count == 0) error->all(FLERR,"Incorrect args in pair_style command");  
+  } else if (strcmp(arg[2],"dmi")==0) {
+    if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
+    dmi_flag = 1;    
+    int ilo,ihi,jlo,jhi;
+    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+    
+    double rij = force->numeric(FLERR,arg[3]);
+    double dm = force->numeric(FLERR,arg[4]);
+    double dmx = force->numeric(FLERR,arg[5]);  
+    double dmy = force->numeric(FLERR,arg[6]); 
+    double dmz = force->numeric(FLERR,arg[7]); 
+
+    double inorm = 1.0/(dmx*dmx+dmy*dmy+dmz*dmz);
+    dmx *= inorm; 
+    dmy *= inorm; 
+    dmz *= inorm; 
+ 
+    double hbar = force->hplanck/MY_2PI;
+    dm /= hbar;
+    
+    int count = 0;
+    for (int i = ilo; i <= ihi; i++) {
+      for (int j = MAX(jlo,i); j <= jhi; j++) {
+        cut_spin_dmi[i][j] = rij;
+        DM[i][j] = dm;
+        v_dmx[i][j] = dmx;
+        v_dmy[i][j] = dmy;
+        v_dmz[i][j] = dmz;
+        setflag[i][j] = 1;
+        count++;
+      }
+    }
+    if (count == 0) error->all(FLERR,"Incorrect args in pair_style command"); 
+  } else if (strcmp(arg[2],"me")==0) {
+    if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
+    me_flag = 1;    
+    int ilo,ihi,jlo,jhi;
+    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+    
+    double rij = force->numeric(FLERR,arg[3]);
+    double me = force->numeric(FLERR,arg[4]);
+    double mex = force->numeric(FLERR,arg[5]);  
+    double mey = force->numeric(FLERR,arg[6]); 
+    double mez = force->numeric(FLERR,arg[7]); 
+
+    double inorm = 1.0/(mex*mex+mey*mey+mez*mez);
+    mex *= inorm; 
+    mey *= inorm; 
+    mez *= inorm; 
+ 
+    double hbar = force->hplanck/MY_2PI;
+    me /= hbar;
+    
+    int count = 0;
+    for (int i = ilo; i <= ihi; i++) {
+      for (int j = MAX(jlo,i); j <= jhi; j++) {
+        cut_spin_me[i][j] = rij;
+        DM[i][j] = me;
+        v_mex[i][j] = mex;
+        v_mey[i][j] = mey;
+        v_mez[i][j] = mez;
+        setflag[i][j] = 1;
+        count++;
+      }
+    }
+    if (count == 0) error->all(FLERR,"Incorrect args in pair_style command"); 
+  } else error->all(FLERR,"Incorrect args in pair_style command");
+
+  //Check if Jex [][] still works for Ferrimagnetic exchange  
+}
 
 
 /* ----------------------------------------------------------------------
@@ -256,7 +449,7 @@ double PairSpin::init_one(int i, int j)
    
    if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  return cut_spin_exchange_global;
+  return cut_spin_pair_global;
 }
 
 /* ----------------------------------------------------------------------
@@ -272,10 +465,26 @@ void PairSpin::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        fwrite(&J_1[i][j],sizeof(double),1,fp);
-        fwrite(&J_2[i][j],sizeof(double),1,fp);
-        fwrite(&J_3[i][j],sizeof(double),1,fp);
-        fwrite(&cut_spin_exchange[i][j],sizeof(double),1,fp);
+        if (exch_flag){
+          fwrite(&J_1[i][j],sizeof(double),1,fp);
+          fwrite(&J_2[i][j],sizeof(double),1,fp);
+          fwrite(&J_3[i][j],sizeof(double),1,fp);
+          fwrite(&cut_spin_exchange[i][j],sizeof(double),1,fp);
+        }
+        if (dmi_flag) {
+          fwrite(&DM[i][j],sizeof(double),1,fp);
+          fwrite(&v_dmx[i][j],sizeof(double),1,fp);
+          fwrite(&v_dmy[i][j],sizeof(double),1,fp);
+          fwrite(&v_dmz[i][j],sizeof(double),1,fp);
+          fwrite(&cut_spin_dmi[i][j],sizeof(double),1,fp);
+        } 
+        if (me_flag) {
+          fwrite(&ME[i][j],sizeof(double),1,fp);
+          fwrite(&v_mex[i][j],sizeof(double),1,fp);
+          fwrite(&v_mey[i][j],sizeof(double),1,fp);
+          fwrite(&v_mez[i][j],sizeof(double),1,fp);
+          fwrite(&cut_spin_me[i][j],sizeof(double),1,fp);
+        } 
       }
     }
 }
@@ -310,16 +519,15 @@ void PairSpin::read_restart(FILE *fp)
       }
     }
 }
- 
 
+ 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairSpin::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_spin_exchange_global,sizeof(double),1,fp);
-  fwrite(&cut_spin_dipolar_global,sizeof(double),1,fp);
+  fwrite(&cut_spin_pair_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -331,13 +539,11 @@ void PairSpin::write_restart_settings(FILE *fp)
 void PairSpin::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_exchange_global,sizeof(double),1,fp);
-    fread(&cut_spin_dipolar_global,sizeof(double),1,fp);
+    fread(&cut_spin_pair_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&cut_spin_exchange_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&cut_spin_dipolar_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_spin_pair_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world); 
 }

@@ -10,8 +10,8 @@ units metal
 dimension 3
 
 #setting boundary conditions. (p for periodic, f for fixed, ...)
-boundary p p p 
-#boundary f f f
+#boundary p p p 
+boundary f f f
 
 #setting atom_style, defines what can of atoms to use in simulation (atomic, molecule, angle, dipole, ...)
 atom_style spin
@@ -25,13 +25,25 @@ atom_modify map array
 ###########################
 
 #Lattice constant of fcc Cobalt
-lattice fcc 3.54
-#lattice sc 2.50
-#lattice bcc 3.54
+#lattice fcc 3.54
+lattice sc 2.50
 
+#Test Kagome
+#variable a equal sqrt(3.0)
+#variable d equal 1.0/(2.0*sqrt(3.0)+1)
+#variable p_1 equal $d*sqrt(3.0)
+#variable p_2 equal $d*2.2*sqrt(3.0)
+
+#lattice custom 1.0 a1 2.0 0.0 0.0 &
+#                   a2 1.0 $a 0.0 &
+#                   a3 0.0 0.0 1.0 &
+#                   basis ${p_1} ${p_2} 0.0 &
+#                   basis ${p_2} ${p_2} 0.0 &
+#                   basis 0.5 0.0 0.0
+    
 #Defining a geometric region of space. Sets ID(user's choice), style(block, sphere, ...), then, args depends on the style chosen
 #(for block, one has x0, xf, y0, yf, z0, zf, in distance units)
-region box block 0.0 2.0 0.0 2.0 0.0 2.0
+region box block 0.0 5.0 0.0 5.0 0.0 1.0
 
 #Creating a simulation box based on the specified region. Entries: number of atom types and box ref. 
 create_box 1 box
@@ -53,13 +65,24 @@ create_atoms 1 box
 mass		1 1.0
 #set		group all mass 1.0
 #Setting spins orientation and moment 
-#set group all spin/random 11 1.72
-set group all spin 1.72 1.0 0.0 0.0 
+set group all spin/random 11 1.72
+#set group all spin 1.72 1.0 0.0 0.0 
 
 #Magnetic exchange interaction coefficient for bulk fcc Cobalt
-pair_style pair/spin 4.0
-pair_coeff * * 0.0446928 0.003496 1.4885
+#pair_style pair/spin/exchange 4.0
+#type i and j | J1 | J2 | J3
+#pair_coeff * * 0.0446928 0.003496 1.4885
 #pair_coeff * * 0.0 0.003496 1.4885
+#pair_style pair/spin/dmi 4.0
+# type i and j | DM (in eV) | Directions
+#pair_coeff * * 0.001 0.0 0.0 1.0
+#pair_style hybrid/overlay pair/spin/exchange 4.0 pair/spin/dmi 4.0
+pair_style pair/spin 4.0
+#type i and j | interaction type | cutoff | J1 | J2 | J3
+pair_coeff * * exchange 4.0  0.0446928 0.003496 1.4885 
+pair_coeff * * dmi 2.6 0.01 1.0 0.0 0.0
+#pair_coeff * * me 2.6 0.01 1.0 1.0 1.0
+
 
 #Fix Langevin spins (merging damping and temperature)
 #Defines a cutof distance for the neighbors. 
@@ -67,20 +90,22 @@ pair_coeff * * 0.0446928 0.003496 1.4885
 #neigh_modify every 10 check yes delay 20
 neighbor 0.0 bin
 neigh_modify every 1 check no delay 0 
+
 #Magnetic field fix
-fix 1 all force/spin zeeman 10.0 0.0 0.0 1.0
-#fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
+#Type | Intensity (T or eV) | Direction
+fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 #fix 1 all force/spin anisotropy 0.001 0.0 0.0 1.0
 
 #Fix Langevin spins (merging damping and temperature)
-#fix 2 all langevin/spin 0.0 0.0 0.1 21
+#Temp | Alpha_trans | Alpha_long | Seed
+fix 2 all langevin/spin 0.0 0.1 0.0 21
 #fix 2 all langevin/spin 0.0 0.0 0.0 21
 
 #Magnetic integration fix
 fix 3 all nve/spin
 
-#compute total magnetization and magnetic energy
-#Ite Time Mx My Mz |M| Em Tm
+#compute real time, total magnetization, magnetic energy, and spin temperature
+#Iteration | Time | Mx | My | Mz | |M| | Em | Tm
 compute mag all compute/spin
 fix outmag all ave/time 1 1 50 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5] c_mag[6] c_mag[7] file mag.dat
 
@@ -98,6 +123,6 @@ timestep	0.00005
 dump 1 all custom 50 dump_spin.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 300000
-#run 1
+run 60000
+#run 10
 

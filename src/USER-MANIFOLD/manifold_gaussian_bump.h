@@ -24,7 +24,10 @@
    testing purposes) and a wave-y plane.
    See the README file for more info.
 
-   Stefan Paquay, s.paquay@tue.nl
+   Stefan Paquay, spaquay@brandeis.edu
+   Brandeis University, Waltham, MA, USA.
+
+   This package was mainly developed at
    Applied Physics/Theory of Polymers and Soft Matter,
    Eindhoven University of Technology (TU/e), The Netherlands
 

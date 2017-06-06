@@ -63,7 +63,6 @@ pair_style gauss/cut, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style lennard/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style list, Axel Kohlmeyer (Temple U), akohlmey at gmail.com, 1 Jun 13
 pair_style lj/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
-pair_style lj/sf, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 pair_style kolmogorov/crespi/z, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Feb 17
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12
 pair_style meam/sw/spline, Robert Rudd (LLNL), robert.rudd at llnl.gov, 1 Oct 12

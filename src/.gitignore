@@ -740,8 +740,6 @@
 /pair_lj_sdk_coul_long.h
 /pair_lj_sdk_coul_msm.cpp
 /pair_lj_sdk_coul_msm.h
-/pair_lj_sf.cpp
-/pair_lj_sf.h
 /pair_lj_sf_dipole_sf.cpp
 /pair_lj_sf_dipole_sf.h
 /pair_lubricateU.cpp

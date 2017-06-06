@@ -275,7 +275,11 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   auto h_bincount = k_bincount.h_view;
   const typename ArrayTypes<DeviceType>::t_int_2d_const c_bins     = k_bins.view<DeviceType>();
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um c_stencil = k_stencil.view<DeviceType>();
+  k_stencil.sync<LMPHostType>();
+  auto h_stencil = k_stencil.h_view;
   const typename ArrayTypes<DeviceType>::t_int_1d_const c_nstencil_ssa = k_nstencil_ssa.view<DeviceType>();
+  k_nstencil_ssa.sync<LMPHostType>();
+  auto h_nstencil_ssa = k_nstencil_ssa.h_view;
   int inum = 0;
 
   // loop over bins with local atoms, counting half of the neighbors
@@ -302,8 +306,8 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
         int base_n = 0;
         bool include_same = false;
         // count all local atoms in the current stencil "subphase" as potential neighbors
-        for (int k = c_nstencil_ssa(subphase); k < c_nstencil_ssa(subphase+1); k++) {
-          const int jbin = ibin+c_stencil(k);
+        for (int k = h_nstencil_ssa(subphase); k < h_nstencil_ssa(subphase+1); k++) {
+          const int jbin = ibin+h_stencil(k);
           if (jbin != ibin) base_n += h_bincount(jbin);
           else include_same = true;
         }

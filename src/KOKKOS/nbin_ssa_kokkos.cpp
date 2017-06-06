@@ -212,6 +212,8 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     });
     DeviceType::fence();
   }
+  k_bins.modify<DeviceType>();
+  k_bincount.modify<DeviceType>();
   c_bins = bins; // bins won't change until the next bin_atoms
 
 //now dispose of the k_binID array

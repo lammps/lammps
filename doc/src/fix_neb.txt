@@ -18,20 +18,19 @@ Kspring = parallel spring constant (force/distance units or force units) :l
 zero or more keyword/value pairs may be appended :l
 keyword = {nudg_style} or {perp} or {freend} or {freend_k_spring} :l
   {nudg_style} value = {neigh} or {idealpos}
-    {neigh} = the parallel nudging force is calculated from the distance to neighbouring replicas (in this case, Kspring is in force/distance units)
+    {neigh} = the parallel nudging force is calculated from the distances to neighbouring replicas (in this case, Kspring is in force/distance units)
     {idealpos} = the parallel nudging force is proportional to the distance between the replica and its interpolated ideal position (in this case Kspring is in force units)
   {perp} value {none} or kspring2
     {none} = no perpendicular spring force is applied
+    {kspring2} = spring constant for the perpendicular nudging force (in force/distance units)
   {freeend} value = {none} or {ini} or {final} or {finaleini} or {final2eini}
-    {none} = no nudging force is apply to the first and last replicas
+    {none} = no nudging force is applied to the first and last replicas
     {ini} = set the first replica to be a free end 
     {final} = set the last replica to be a free end
     {finaleini} = set the last replica to be a free end and set its target energy as that of the first replica
     {final2eini} = same as {finaleini} plus prevent intermediate replicas to have a lower energy than the first replica
-  {freeend_kspring}  value = kspring2
-    kspring2 = spring constant of the perpendicular spring force (per distance units)    
-flag = set behavior for the end points
-   flag = 
+  {freeend_kspring}  value = kspring3
+    kspring3 = spring constant of the perpendicular spring force (per distance units)    
    :pre
 
 [Examples:]
@@ -58,10 +57,10 @@ highest energy along the MEP).
 One purpose of the nudging forces is to keep the replicas equally
 spaced.  During the NEB, the 3N-length vector of interatomic force Fi
 = -Grad(V) of replicas i is altered. For all intermediate replicas
-(i.e. for 1<i<n) except for the climbing replica the force vector
+(i.e. for 1<i<n) but the climbing replica the force vector
 becomes:
 
-Fi = -Grad(V) + (Grad(V) dot That) That + Fspringparallel + Fspringperp :pre
+Fi = -Grad(V) + (Grad(V) dot That) That + Fnudgparallel + Fspringperp :pre
 
 That is the unit "tangent" vector for replica i and is a function of
 Ri, Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
@@ -70,55 +69,12 @@ roughly in the direction of (Ri+i - Ri-1) (see the
 coordinates of replica i; Ri-1 and Ri+1 are the coordinates of its
 neighbor replicas.  The term (Grad(V) dot That) is used to remove the
 component of the gradient parallel to the path which would tend to
-distribute the replica unevenly along the path.  Fspringparallel is an
-artificial spring force which is applied only in the tangent direction
+distribute the replica unevenly along the path.  Fnudgparallel is an
+artificial nudging force which is applied only in the tangent direction
 and which maintains the replicas equally spaced (see below for more
 information).  Fspringperp is an optinal artificial spring which is
 applied only perpendicular to the tangent and which prevent the paths
 from forming too acute kinks (see below for more information).
-
-
-In the second stage of the NEB, the interatomic force Fi for the
-climbing replica (which is the replica of highest energy) becomes:
-
-Fi = -Grad(V) + 2 (Grad(V) dot That) That :pre
-
-By default, the force acting on the first and last replicas is not
-altered so that during the NEB relaxation, these ending replicas relax
-toward local minima. However it is possible to use the key word
-{freeend} to allow either the initial or the final replica to relax
-toward a MEP while constraining its energy.  The interatomic force Fi
-for the free end image becomes :
-
-Fi = -Grad(V)+ (Grad(V) dot That + E-ETarget) That,  {when} Grad(V) dot That < 0
-Fi = -Grad(V)+ (Grad(V) dot That + ETarget- E) That, {when} Grad(V) dot That > 0
-:pre
-
-where E is the energy of the free end replica and ETarget is the
-target energy.
-
-When the value {ini} ({final}) is used after the keyword {freeend},
-the first (last) replica is considered as a free end. The target
-energy is set to the energy of the replica at starting of the NEB
-calculation. When the value {finaleini} or {final2eini} is used the
-last image is considered as a free end and the target energy is equal
-to the energy of the first replica (which can evolve during the NEB
-relaxation).  With the value {finaleini}, when the initial path is too
-far from the MEP, an intermediate repilica might relax "faster" and
-get a lower energy than the last replica. The benefit of the free end
-is then lost since this intermediate replica will relax toward a local
-minima. This behavior can be prevented by using the value {final2eini}
-which remove entirely the contribution of the gradient for all
-intermediate replica which have a lower energy than the initial one
-thus preventing these replicae to over-relax.  After converging a NEB
-with the {final2eini} value it is recommended to check that all
-intermediate replica have a larger energy than the initial
-replica. Finally note that if the last replica converges toward a
-local minimum with a larger energy than the energy of the first
-replica, a free end neb calculation with the value {finaleini} or
-{final2eini} cannot reach the convergence criteria.
-
-:line
 
 The keyword {nudg_style} allow to specify how to parallel
 nudging force is computed. With a value of idealpos, the spring 
@@ -158,6 +114,52 @@ when the angle Ri-1 Ri Ri+1 is accute. f(Ri-1 Ri R+1) is defined in
 "(Jonsson)"_#Jonsson
 
 :line
+
+By default, the force acting on the first and last replicas is not
+altered so that during the NEB relaxation, these ending replicas relax
+toward local minima. However it is possible to use the key word
+{freeend} to allow either the initial or the final replica to relax
+toward a MEP while constraining its energy.  The interatomic force Fi
+for the free end image becomes :
+
+Fi = -Grad(V)+ (Grad(V) dot That + (E-ETarget)*kspring3) That,  {when} Grad(V) dot That < 0
+Fi = -Grad(V)+ (Grad(V) dot That + (ETarget- E)*kspring3) That, {when} Grad(V) dot That > 0
+:pre
+
+where E is the energy of the free end replica and ETarget is the
+target energy.
+
+When the value {ini} ({final}) is used after the keyword {freeend},
+the first (last) replica is considered as a free end. The target
+energy is set to the energy of the replica at starting of the NEB
+calculation. When the value {finaleini} or {final2eini} is used the
+last image is considered as a free end and the target energy is equal
+to the energy of the first replica (which can evolve during the NEB
+relaxation).  With the value {finaleini}, when the initial path is too
+far from the MEP, an intermediate repilica might relax "faster" and
+get a lower energy than the last replica. The benefit of the free end
+is then lost since this intermediate replica will relax toward a local
+minima. This behavior can be prevented by using the value {final2eini}
+which remove entirely the contribution of the gradient for all
+intermediate replica which have a lower energy than the initial one
+thus preventing these replicae to over-relax.  After converging a NEB
+with the {final2eini} value it is recommended to check that all
+intermediate replica have a larger energy than the initial
+replica. Finally note that if the last replica converges toward a
+local minimum with a larger energy than the energy of the first
+replica, a free end neb calculation with the value {finaleini} or
+{final2eini} cannot reach the convergence criteria.
+
+:line
+
+
+
+In the second stage of the NEB, the interatomic force Fi for the
+climbing replica (which is the replica of highest energy) becomes:
+
+Fi = -Grad(V) + 2 (Grad(V) dot That) That :pre
+
+
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

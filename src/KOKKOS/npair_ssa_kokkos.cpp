@@ -149,17 +149,21 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
     k_ssa_phaseOff = DAT::tdual_int_1d_3("NPairSSAKokkos:ssa_phaseOff",ssa_phaseCt);
     ssa_phaseOff = k_ssa_phaseOff.view<DeviceType>();
   }
+  auto h_ssa_phaseOff = k_ssa_phaseOff.h_view;
+  k_ssa_phaseOff.sync<LMPHostType>();
   int workPhase = 0;
   for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
     for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
       for (int xoff = sx1 - 1; xoff >= 0; --xoff) {
-        ssa_phaseOff(workPhase, 0) = xoff;
-        ssa_phaseOff(workPhase, 1) = yoff;
-        ssa_phaseOff(workPhase, 2) = zoff;
+        h_ssa_phaseOff(workPhase, 0) = xoff;
+        h_ssa_phaseOff(workPhase, 1) = yoff;
+        h_ssa_phaseOff(workPhase, 2) = zoff;
         workPhase++;
       }
     }
   }
+  k_ssa_phaseOff.modify<LMPHostType>();
+  k_ssa_phaseOff.sync<DeviceType>();
 
 }
 
@@ -250,8 +254,25 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
     ssa_itemLen = k_ssa_itemLen.view<DeviceType>();
   }
 
+  k_ssa_itemLoc.sync<LMPHostType>();
+  k_ssa_itemLen.sync<LMPHostType>();
+  k_ssa_gitemLoc.sync<LMPHostType>();
+  k_ssa_gitemLen.sync<LMPHostType>();
+  k_ssa_phaseOff.sync<LMPHostType>();
+  k_ssa_phaseLen.sync<LMPHostType>();
+  k_ssa_gphaseLen.sync<LMPHostType>();
+  auto h_ssa_itemLoc = k_ssa_itemLoc.h_view;
+  auto h_ssa_itemLen = k_ssa_itemLen.h_view;
+  auto h_ssa_gitemLoc = k_ssa_gitemLoc.h_view;
+  auto h_ssa_gitemLen = k_ssa_gitemLen.h_view;
+  auto h_ssa_phaseOff = k_ssa_phaseOff.h_view;
+  auto h_ssa_phaseLen = k_ssa_phaseLen.h_view;
+  auto h_ssa_gphaseLen = k_ssa_gphaseLen.h_view;
+
 { // Preflight the neighbor list workplan
   const typename ArrayTypes<DeviceType>::t_int_1d_const c_bincount = k_bincount.view<DeviceType>();
+  k_bincount.sync<LMPHostType>();
+  auto h_bincount = k_bincount.h_view;
   const typename ArrayTypes<DeviceType>::t_int_2d_const c_bins     = k_bins.view<DeviceType>();
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um c_stencil = k_stencil.view<DeviceType>();
   const typename ArrayTypes<DeviceType>::t_int_1d_const c_nstencil_ssa = k_nstencil_ssa.view<DeviceType>();
@@ -259,9 +280,9 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
 
   // loop over bins with local atoms, counting half of the neighbors
   for (int workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
-    int zoff = ssa_phaseOff(workPhase, 2);
-    int yoff = ssa_phaseOff(workPhase, 1);
-    int xoff = ssa_phaseOff(workPhase, 0);
+    int zoff = h_ssa_phaseOff(workPhase, 2);
+    int yoff = h_ssa_phaseOff(workPhase, 1);
+    int xoff = h_ssa_phaseOff(workPhase, 0);
     int workItem = 0;
   for (int zbin = lbinzlo + zoff; zbin < lbinzhi; zbin += sz1) {
   for (int ybin = lbinylo + yoff - sy1 + 1; ybin < lbinyhi; ybin += sy1) {
@@ -276,14 +297,14 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
       if ((s_xbin < lbinxlo) || (s_xbin >= lbinxhi)) continue;
 
       const int ibin = zbin*mbiny*mbinx + s_ybin*mbinx + s_xbin;
-      const int ibinCt = c_bincount(ibin);
+      const int ibinCt = h_bincount(ibin);
       if (ibinCt > 0) {
         int base_n = 0;
         bool include_same = false;
         // count all local atoms in the current stencil "subphase" as potential neighbors
         for (int k = c_nstencil_ssa(subphase); k < c_nstencil_ssa(subphase+1); k++) {
           const int jbin = ibin+c_stencil(k);
-          if (jbin != ibin) base_n += c_bincount(jbin);
+          if (jbin != ibin) base_n += h_bincount(jbin);
           else include_same = true;
         }
         // Calculate how many ibin particles would have had some neighbors
@@ -291,10 +312,10 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
         else if (include_same) inum += ibinCt - 1;
       }
     }
-    ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
-    ssa_itemLen(workPhase,workItem) = inum - inum_start; // record workItem length
+    h_ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
+    h_ssa_itemLen(workPhase,workItem) = inum - inum_start; // record workItem length
 #ifdef DEBUG_SSA_BUILD_LOCALS
-if (ssa_itemLen(workPhase,workItem) < 0) fprintf(stdout, "undr%03d phase (%3d,%3d) inum %d - inum_start %d UNDERFLOW\n"
+if (h_ssa_itemLen(workPhase,workItem) < 0) fprintf(stdout, "undr%03d phase (%3d,%3d) inum %d - inum_start %d UNDERFLOW\n"
   ,comm->me
   ,workPhase
   ,workItem
@@ -311,14 +332,14 @@ if (ssa_itemLen(workPhase,workItem) < 0) fprintf(stdout, "undr%03d phase (%3d,%3
 fprintf(stdout, "phas%03d phase %3d could use %6d inums, expected %6d inums. maxworkItems = %3d, inums/workItems = %g\n"
   ,comm->me
   ,workPhase
-  ,inum - ssa_itemLoc(workPhase, 0)
+  ,inum - h_ssa_itemLoc(workPhase, 0)
   ,(nlocal*4 + ssa_phaseCt - 1) / ssa_phaseCt
   ,workItem
-  ,(inum - ssa_itemLoc(workPhase, 0)) / (double) workItem
+  ,(inum - h_ssa_itemLoc(workPhase, 0)) / (double) workItem
 );
 #endif
     // record where workPhase ends
-    ssa_phaseLen(workPhase) = workItem;
+    h_ssa_phaseLen(workPhase) = workItem;
   }
 #ifdef DEBUG_SSA_BUILD_LOCALS
 fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inums/phase = %g\n"
@@ -331,14 +352,29 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
 #endif
   nl_size = inum; // record how much space is needed for the local work plan
 }
+
   // count how many ghosts might have neighbors, and increase the work plan storage
   for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
     int len = k_gbincount.h_view(workPhase + 1);
-    ssa_gitemLoc(workPhase,0) = nl_size; // record where workItem starts in ilist
-    ssa_gitemLen(workPhase,0) = len;
+    h_ssa_gitemLoc(workPhase,0) = nl_size; // record where workItem starts in ilist
+    h_ssa_gitemLen(workPhase,0) = len;
     nl_size += len;
   }
   list->grow(nl_size); // Make special larger SSA neighbor list
+
+  k_ssa_itemLoc.modify<LMPHostType>();
+  k_ssa_itemLen.modify<LMPHostType>();
+  k_ssa_gitemLoc.modify<LMPHostType>();
+  k_ssa_gitemLen.modify<LMPHostType>();
+  k_ssa_phaseOff.modify<LMPHostType>();
+  k_ssa_phaseLen.modify<LMPHostType>();
+  k_ssa_itemLoc.sync<DeviceType>();
+  k_ssa_itemLen.sync<DeviceType>();
+  k_ssa_gitemLen.sync<DeviceType>();
+  k_ssa_gitemLoc.sync<DeviceType>();
+  k_ssa_phaseOff.sync<DeviceType>();
+  k_ssa_phaseLen.sync<DeviceType>();
+  k_ssa_gphaseLen.sync<DeviceType>();
 
   NPairSSAKokkosExecute<DeviceType>
     data(*list,
@@ -422,15 +458,27 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     Kokkos::parallel_for(ssa_phaseCt, LAMMPS_LAMBDA (const int workPhase) {
       data.build_locals_onePhase(firstTry, comm->me, workPhase);
     });
-    data.neigh_list.inum = ssa_itemLoc(ssa_phaseCt-1,ssa_phaseLen(ssa_phaseCt-1)-1) +
-      ssa_itemLen(ssa_phaseCt-1,ssa_phaseLen(ssa_phaseCt-1)-1);
+    k_ssa_itemLoc.modify<DeviceType>();
+    k_ssa_itemLen.modify<DeviceType>();
+    k_ssa_phaseLen.modify<DeviceType>();
+    k_ssa_itemLoc.sync<LMPHostType>();
+    k_ssa_itemLen.sync<LMPHostType>();
+    k_ssa_phaseLen.sync<LMPHostType>();
+    data.neigh_list.inum = h_ssa_itemLoc(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1) +
+      h_ssa_itemLen(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1);
 
     // loop over AIR ghost atoms, storing their local neighbors
     Kokkos::parallel_for(ssa_gphaseCt, LAMMPS_LAMBDA (const int workPhase) {
       data.build_ghosts_onePhase(workPhase);
     });
-    data.neigh_list.gnum = ssa_gitemLoc(ssa_gphaseCt-1,ssa_gphaseLen(ssa_gphaseCt-1)-1) +
-      ssa_gitemLen(ssa_gphaseCt-1,ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
+    k_ssa_gitemLoc.modify<DeviceType>();
+    k_ssa_gitemLen.modify<DeviceType>();
+    k_ssa_gphaseLen.modify<DeviceType>();
+    k_ssa_gitemLoc.sync<LMPHostType>();
+    k_ssa_gitemLen.sync<LMPHostType>();
+    k_ssa_gphaseLen.sync<LMPHostType>();
+    data.neigh_list.gnum = h_ssa_gitemLoc(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) +
+      h_ssa_gitemLen(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
     firstTry = false;
 
     DeviceType::fence();
@@ -445,12 +493,12 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     }
   }
 
-  k_ssa_phaseLen.modify<DeviceType>();
-  k_ssa_itemLoc.modify<DeviceType>();
-  k_ssa_itemLen.modify<DeviceType>();
-  k_ssa_gphaseLen.modify<DeviceType>();
-  k_ssa_gitemLoc.modify<DeviceType>();
-  k_ssa_gitemLen.modify<DeviceType>();
+  //k_ssa_phaseLen.modify<DeviceType>();
+  //k_ssa_itemLoc.modify<DeviceType>();
+  //k_ssa_itemLen.modify<DeviceType>();
+  //k_ssa_gphaseLen.modify<DeviceType>();
+  //k_ssa_gitemLoc.modify<DeviceType>();
+  //k_ssa_gitemLen.modify<DeviceType>();
 
   list->inum = data.neigh_list.inum; //FIXME once the above is in a parallel_for
   list->gnum = data.neigh_list.gnum; // it will need a deep_copy or something

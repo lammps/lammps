@@ -2027,8 +2027,8 @@ algorithm to formulate single-particle constraint functions
 g(xi,yi,zi) = 0 and their derivative (i.e. the normal of the manifold)
 n = grad(g).
 
-[Author:] Stefan Paquay (Eindhoven University of Technology (TU/e), The
-Netherlands)
+[Author:] Stefan Paquay (until 2017: Eindhoven University of Technology (TU/e), The
+Netherlands; since 2017: Brandeis University, Waltham, MA, USA)
 
 [Install or un-install:]
   

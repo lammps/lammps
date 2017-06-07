@@ -45,7 +45,7 @@ class DeleteAtoms : protected Pointers {
   void recount_topology();
   void options(int, char **);
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 

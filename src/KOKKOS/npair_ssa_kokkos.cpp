@@ -260,24 +260,18 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   k_ssa_gitemLen.sync<LMPHostType>();
   k_ssa_phaseOff.sync<LMPHostType>();
   k_ssa_phaseLen.sync<LMPHostType>();
-  k_ssa_gphaseLen.sync<LMPHostType>();
   auto h_ssa_itemLoc = k_ssa_itemLoc.h_view;
   auto h_ssa_itemLen = k_ssa_itemLen.h_view;
   auto h_ssa_gitemLoc = k_ssa_gitemLoc.h_view;
   auto h_ssa_gitemLen = k_ssa_gitemLen.h_view;
   auto h_ssa_phaseOff = k_ssa_phaseOff.h_view;
   auto h_ssa_phaseLen = k_ssa_phaseLen.h_view;
-  auto h_ssa_gphaseLen = k_ssa_gphaseLen.h_view;
 
 { // Preflight the neighbor list workplan
-  const typename ArrayTypes<DeviceType>::t_int_1d_const c_bincount = k_bincount.view<DeviceType>();
   k_bincount.sync<LMPHostType>();
   auto h_bincount = k_bincount.h_view;
-  const typename ArrayTypes<DeviceType>::t_int_2d_const c_bins     = k_bins.view<DeviceType>();
-  const typename ArrayTypes<DeviceType>::t_int_1d_const_um c_stencil = k_stencil.view<DeviceType>();
   k_stencil.sync<LMPHostType>();
   auto h_stencil = k_stencil.h_view;
-  const typename ArrayTypes<DeviceType>::t_int_1d_const c_nstencil_ssa = k_nstencil_ssa.view<DeviceType>();
   k_nstencil_ssa.sync<LMPHostType>();
   auto h_nstencil_ssa = k_nstencil_ssa.h_view;
   int inum = 0;
@@ -358,6 +352,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
 }
 
   // count how many ghosts might have neighbors, and increase the work plan storage
+  k_gbincount.sync<LMPHostType>();
   for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
     int len = k_gbincount.h_view(workPhase + 1);
     h_ssa_gitemLoc(workPhase,0) = nl_size; // record where workItem starts in ilist
@@ -370,7 +365,6 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   k_ssa_itemLen.modify<LMPHostType>();
   k_ssa_gitemLoc.modify<LMPHostType>();
   k_ssa_gitemLen.modify<LMPHostType>();
-  k_ssa_phaseOff.modify<LMPHostType>();
   k_ssa_phaseLen.modify<LMPHostType>();
   k_ssa_itemLoc.sync<DeviceType>();
   k_ssa_itemLen.sync<DeviceType>();
@@ -481,6 +475,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     k_ssa_gitemLoc.sync<LMPHostType>();
     k_ssa_gitemLen.sync<LMPHostType>();
     k_ssa_gphaseLen.sync<LMPHostType>();
+    auto h_ssa_gphaseLen = k_ssa_gphaseLen.h_view;
     data.neigh_list.gnum = h_ssa_gitemLoc(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) +
       h_ssa_gitemLen(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
     firstTry = false;

@@ -216,6 +216,9 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   k_bincount.modify<DeviceType>();
   c_bins = bins; // bins won't change until the next bin_atoms
 
+  k_gbins.modify<DeviceType>();
+  k_gbincount.modify<DeviceType>();
+
 //now dispose of the k_binID array
   k_binID = DAT::tdual_int_1d("NBinSSAKokkos::binID",0);
   binID = k_binID.view<DeviceType>();

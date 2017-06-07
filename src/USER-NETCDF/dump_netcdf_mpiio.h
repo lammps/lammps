@@ -66,7 +66,7 @@ class DumpNetCDFMPIIO : public DumpCustom {
     int var;                            // NetCDF variable
   };
 
-  typedef void (DumpNCMPIIO::*funcptr_t)(void *);
+  typedef void (DumpNetCDFMPIIO::*funcptr_t)(void *);
 
   // per-frame quantities (variables, fixes or computes)
   struct nc_perframe_t {

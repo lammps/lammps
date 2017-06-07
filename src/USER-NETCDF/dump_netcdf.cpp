@@ -354,7 +354,7 @@ void DumpNetCDF::openfile()
       if (singlefile_opened) return;
       singlefile_opened = 1;
 
-      NCERRX( nc_create(filename, NC_64BIT_OFFSET, &ncid),
+      NCERRX( nc_create(filename, NC_64BIT_DATA, &ncid),
 	      filename );
 
       // dimensions

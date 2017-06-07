@@ -350,7 +350,7 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_create(MPI_COMM_WORLD, filename, NC_64BIT_OFFSET,
+    NCERRX( ncmpi_create(MPI_COMM_WORLD, filename, NC_64BIT_DATA,
                          MPI_INFO_NULL, &ncid), filename );
 
     // dimensions

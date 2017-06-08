@@ -55,11 +55,13 @@
 #include "universe.h"
 #include "variable.h"
 #include "force.h"
+#include "output.h"
+#include "thermo.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{INT,DOUBLE};  // same as in dump_custom.cpp
+enum{INT,FLOAT,BIGINT}; // same as in thermo.cpp
 
 const char NC_FRAME_STR[]         = "frame";
 const char NC_SPATIAL_STR[]       = "spatial";
@@ -201,14 +203,14 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
     perat[inc].field[idim] = i;
   }
 
-  n_perframe = 0;
-  perframe = NULL;
-
   n_buffer = 0;
   int_buffer = NULL;
   double_buffer = NULL;
 
   double_precision = false;
+
+  thermo = false;
+  thermovar = NULL;
 
   framei = 0;
 }
@@ -220,8 +222,7 @@ DumpNetCDFMPIIO::~DumpNetCDFMPIIO()
   closefile();
 
   delete [] perat;
-  if (n_perframe > 0)
-    delete [] perframe;
+  if (thermovar)  delete [] thermovar;
 
   if (int_buffer) memory->sfree(int_buffer);
   if (double_buffer) memory->sfree(double_buffer);
@@ -231,6 +232,11 @@ DumpNetCDFMPIIO::~DumpNetCDFMPIIO()
 
 void DumpNetCDFMPIIO::openfile()
 {
+  if (thermo && !singlefile_opened) {
+    if (thermovar)  delete [] thermovar;
+    thermovar = new int[output->thermo->nfield];
+  }
+
   // now the computes and fixes have been initialized, so we can query
   // for the size of vector quantities
   for (int i = 0; i < n_perat; i++) {
@@ -330,9 +336,12 @@ void DumpNetCDFMPIIO::openfile()
     }
 
     // perframe variables
-    for (int i = 0; i < n_perframe; i++) {
-      NCERRX( ncmpi_inq_varid(ncid, perframe[i].name, &perframe[i].var),
-              perframe[i].name );
+    if (thermo) {
+      Thermo *th = output->thermo;
+      for (int i = 0; i < th->nfield; i++) {
+        NCERRX( ncmpi_inq_varid(ncid, th->keyword[i], &thermovar[i]),
+                th->keyword[i] );
+      }
     }
 
     MPI_Offset nframes;
@@ -439,14 +448,21 @@ void DumpNetCDFMPIIO::openfile()
     }
 
     // perframe variables
-    for (int i = 0; i < n_perframe; i++) {
-      if (perframe[i].type == THIS_IS_A_BIGINT) {
-        NCERRX( ncmpi_def_var(ncid, perframe[i].name, NC_INT, 1, dims,
-                              &perframe[i].var), perframe[i].name );
-      }
-      else {
-        NCERRX( ncmpi_def_var(ncid, perframe[i].name, NC_DOUBLE, 1, dims,
-                              &perframe[i].var), perframe[i].name );
+    if (thermo) {
+      Thermo *th = output->thermo;
+      for (int i = 0; i < th->nfield; i++) {
+        if (th->vtype[i] == FLOAT) {
+          NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_DOUBLE, 1, dims,
+                                &thermovar[i]), th->keyword[i] );
+        }
+        else if (th->vtype[i] == INT) {
+          NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_INT, 1, dims,
+                                &thermovar[i]), th->keyword[i] );
+        }
+        else if (th->vtype[i] == BIGINT) {
+          NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_LONG, 1, dims,
+                                &thermovar[i]), th->keyword[i] );
+        }
       }
     }
 
@@ -600,50 +616,34 @@ void DumpNetCDFMPIIO::write()
 
   NCERR( ncmpi_begin_indep_data(ncid) );
 
-  for (int i = 0; i < n_perframe; i++) {
-
-    if (perframe[i].type == THIS_IS_A_BIGINT) {
-      bigint data;
-      (this->*perframe[i].compute)((void*) &data);
-
-      if (filewriter)
+  if (thermo) {
+    Thermo *th = output->thermo;
+    for (int i = 0; i < th->nfield; i++) {
+      th->call_vfunc(i);
+      if (filewriter) {
+        if (th->vtype[i] == FLOAT) {
+          NCERRX( ncmpi_put_var1_double(ncid, thermovar[i], start,
+                                        &th->dvalue),
+                  th->keyword[i] );
+        }
+        else if (th->vtype[i] == INT) {
+          NCERRX( ncmpi_put_var1_int(ncid, thermovar[i], start, &th->ivalue),
+                  th->keyword[i] );
+        }
+        else if (th->vtype[i] == BIGINT) {
 #if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-        NCERR( ncmpi_put_var1_long(ncid, perframe[i].var, start, &data) );
+          NCERRX( ncmpi_put_var1_long(ncid, thermovar[i], start, &th->bivalue),
+                  th->keyword[i] );
 #else
-        NCERR( ncmpi_put_var1_int(ncid, perframe[i].var, start, &data) );
+          NCERRX( ncmpi_put_var1_int(ncid, thermovar[i], start, &th->bivalue),
+                  th->keyword[i] );
 #endif
-    }
-    else {
-      double data;
-      int j = perframe[i].index;
-      int idim = perframe[i].dim;
-
-      if (perframe[i].type == THIS_IS_A_COMPUTE) {
-        if (idim >= 0) {
-          modify->compute[j]->compute_vector();
-          data = modify->compute[j]->vector[idim];
         }
-        else
-          data = modify->compute[j]->compute_scalar();
       }
-      else if (perframe[i].type == THIS_IS_A_FIX) {
-        if (idim >= 0) {
-          data = modify->fix[j]->compute_vector(idim);
-        }
-        else
-          data = modify->fix[j]->compute_scalar();
-      }
-      else if (perframe[i].type == THIS_IS_A_VARIABLE) {
-        j = input->variable->find(perframe[i].id);
-        data = input->variable->compute_equal(j);
-      }
-
-      if (filewriter)
-        NCERR( ncmpi_put_var1_double(ncid, perframe[i].var, start, &data) );
     }
   }
 
-  // write timestep header
+ // write timestep header
 
   write_time_and_cell();
 
@@ -903,126 +903,19 @@ int DumpNetCDFMPIIO::modify_param(int narg, char **arg)
     iarg++;
     return 2;
   }
-  else if (strcmp(arg[iarg],"global") == 0) {
-    // "perframe" quantities, i.e. not per-atom stuff
-
+  else if (strcmp(arg[iarg],"thermo") == 0) {
     iarg++;
-
-    n_perframe = narg-iarg;
-    perframe = new nc_perframe_t[n_perframe];
-
-    for (int i = 0; iarg < narg; iarg++, i++) {
-      int n;
-      char *suffix;
-
-      if (!strcmp(arg[iarg],"step")) {
-        perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNetCDFMPIIO::compute_step;
-        strcpy(perframe[i].name, arg[iarg]);
-      }
-      else if (!strcmp(arg[iarg],"elapsed")) {
-        perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNetCDFMPIIO::compute_elapsed;
-        strcpy(perframe[i].name, arg[iarg]);
-      }
-      else if (!strcmp(arg[iarg],"elaplong")) {
-        perframe[i].type = THIS_IS_A_BIGINT;
-        perframe[i].compute = &DumpNetCDFMPIIO::compute_elapsed_long;
-        strcpy(perframe[i].name, arg[iarg]);
-      }
-      else {
-
-        n = strlen(arg[iarg]);
-
-        if (n > 2) {
-          suffix = new char[n-1];
-          strcpy(suffix, arg[iarg]+2);
-        }
-        else {
-          char errstr[1024];
-          sprintf(errstr, "perframe quantity '%s' must thermo quantity or "
-                  "compute, fix or variable", arg[iarg]);
-          error->all(FLERR,errstr);
-        }
-
-        if (!strncmp(arg[iarg], "c_", 2)) {
-          int idim = -1;
-          char *ptr = strchr(suffix, '[');
-
-          if (ptr) {
-            if (suffix[strlen(suffix)-1] != ']')
-              error->all(FLERR,"Missing ']' in dump modify command");
-            *ptr = '\0';
-            idim = ptr[1] - '1';
-          }
-
-          n = modify->find_compute(suffix);
-          if (n < 0)
-            error->all(FLERR,"Could not find dump modify compute ID");
-          if (modify->compute[n]->peratom_flag != 0)
-            error->all(FLERR,"Dump modify compute ID computes per-atom info");
-          if (idim >= 0 && modify->compute[n]->vector_flag == 0)
-            error->all(FLERR,"Dump modify compute ID does not compute vector");
-          if (idim < 0 && modify->compute[n]->scalar_flag == 0)
-            error->all(FLERR,"Dump modify compute ID does not compute scalar");
-
-          perframe[i].type = THIS_IS_A_COMPUTE;
-          perframe[i].dim = idim;
-          perframe[i].index = n;
-          strcpy(perframe[i].name, arg[iarg]);
-        }
-        else if (!strncmp(arg[iarg], "f_", 2)) {
-          int idim = -1;
-          char *ptr = strchr(suffix, '[');
-
-          if (ptr) {
-            if (suffix[strlen(suffix)-1] != ']')
-              error->all(FLERR,"Missing ']' in dump modify command");
-            *ptr = '\0';
-            idim = ptr[1] - '1';
-          }
-
-          n = modify->find_fix(suffix);
-          if (n < 0)
-            error->all(FLERR,"Could not find dump modify fix ID");
-          if (modify->fix[n]->peratom_flag != 0)
-            error->all(FLERR,"Dump modify fix ID computes per-atom info");
-          if (idim >= 0 && modify->fix[n]->vector_flag == 0)
-            error->all(FLERR,"Dump modify fix ID does not compute vector");
-          if (idim < 0 && modify->fix[n]->scalar_flag == 0)
-            error->all(FLERR,"Dump modify fix ID does not compute vector");
-
-          perframe[i].type = THIS_IS_A_FIX;
-          perframe[i].dim = idim;
-          perframe[i].index = n;
-          strcpy(perframe[i].name, arg[iarg]);
-        }
-        else if (!strncmp(arg[iarg], "v_", 2)) {
-          n = input->variable->find(suffix);
-          if (n < 0)
-            error->all(FLERR,"Could not find dump modify variable ID");
-          if (!input->variable->equalstyle(n))
-            error->all(FLERR,"Dump modify variable must be of style equal");
-
-          perframe[i].type = THIS_IS_A_VARIABLE;
-          perframe[i].dim = 1;
-          perframe[i].index = n;
-          strcpy(perframe[i].name, arg[iarg]);
-          strcpy(perframe[i].id, suffix);
-        }
-        else {
-          char errstr[1024];
-          sprintf(errstr, "perframe quantity '%s' must be compute, fix or "
-                  "variable", arg[iarg]);
-          error->all(FLERR,errstr);
-        }
-
-        delete [] suffix;
-
-      }
+    if (iarg >= narg)
+      error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
+    if (strcmp(arg[iarg],"yes") == 0) {
+      thermo = true;
     }
-
-    return narg;
+    else if (strcmp(arg[iarg],"no") == 0) {
+      thermo = false;
+    }
+    else error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
+    iarg++;
+    return 2;
   } else return 0;
 }
 
@@ -1042,33 +935,6 @@ void DumpNetCDFMPIIO::ncerr(int err, const char *descr, int line)
     }
     error->one(FLERR,errstr);
   }
-}
-
-/* ----------------------------------------------------------------------
-   one method for every keyword thermo can output
-   called by compute() or evaluate_keyword()
-   compute will have already been called
-   set ivalue/dvalue/bivalue if value is int/double/bigint
-   customize a new keyword by adding a method
-------------------------------------------------------------------------- */
-
-void DumpNetCDFMPIIO::compute_step(void *r)
-{
-  *((bigint *) r) = update->ntimestep;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpNetCDFMPIIO::compute_elapsed(void *r)
-{
-  *((bigint *) r) = update->ntimestep - update->firststep;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpNetCDFMPIIO::compute_elapsed_long(void *r)
-{
-  *((bigint *) r) = update->ntimestep - update->beginstep;
 }
 
 #endif /* defined(LMP_HAS_PNETCDF) */

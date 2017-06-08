@@ -674,7 +674,7 @@ namespace Kokkos {
         const double V = 2.0*drand() - 1.0;
         S = U*U+V*V;
       }
-      return U*sqrt(-2.0*log(S)/S);
+      return U*std::sqrt(-2.0*log(S)/S);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -917,7 +917,7 @@ namespace Kokkos {
         const double V = 2.0*drand() - 1.0;
         S = U*U+V*V;
       }
-      return U*sqrt(-2.0*log(S)/S);
+      return U*std::sqrt(-2.0*log(S)/S);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -1171,7 +1171,7 @@ namespace Kokkos {
         const double V = 2.0*drand() - 1.0;
         S = U*U+V*V;
       }
-      return U*sqrt(-2.0*log(S)/S);
+      return U*std::sqrt(-2.0*log(S)/S);
     }
 
     KOKKOS_INLINE_FUNCTION

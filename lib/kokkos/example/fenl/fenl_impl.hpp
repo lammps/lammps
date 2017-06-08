@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef KOKKOS_EXAMPLE_FENL_IMPL_HPP
 #define KOKKOS_EXAMPLE_FENL_IMPL_HPP
 
-#include <math.h>
+#include <cmath>
 
 // Kokkos libraries' headers:
 
@@ -126,8 +126,8 @@ public:
     , zmax( arg_zmax )
     , T_zmin( arg_T_zmin )
     , T_zmax( arg_T_zmax )
-    , a( ( 1.0 / sqrt(T_zmax) - 1.0 / sqrt(T_zmin) ) / ( zmax - zmin ) )
-    , b( 1.0 / sqrt(T_zmin) )
+    , a( ( 1.0 / std::sqrt(T_zmax) - 1.0 / std::sqrt(T_zmin) ) / ( zmax - zmin ) )
+    , b( 1.0 / std::sqrt(T_zmin) )
     , K( 1.0 / ( 6.0 * a * a ) )
     {}
 
@@ -269,7 +269,7 @@ Perf fenl(
                   << ")" ;
       }
       std::cout << " }" << std::endl ;
-  
+
       std::cout << "Node coord {" ;
       for ( unsigned inode = 0 ; inode < fixture.node_count() ; ++inode ) {
         std::cout << " (" << h_node_coord(inode,0)

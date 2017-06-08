@@ -117,7 +117,7 @@ public:
 //  typedef Kokkos::Qthreads  execution_space;
 #elif defined( KOKKOS_ENABLE_OPENMP )
   typedef Kokkos::OpenMP    execution_space;
-#elif defined( KOKKOS_ENABLE_PTHREAD )
+#elif defined( KOKKOS_ENABLE_THREADS )
   typedef Kokkos::Threads   execution_space;
 //#elif defined( KOKKOS_ENABLE_QTHREADS )
 //  typedef Kokkos::Qthreads  execution_space;
@@ -265,7 +265,7 @@ public:
     return (SharedAllocationRecord *) 0;
 #endif
   }
-   
+
 
   /**\brief  Allocate tracked memory in the space */
   static
@@ -316,3 +316,4 @@ struct DeepCopy< HostSpace, HostSpace, ExecutionSpace > {
 } // namespace Kokkos
 
 #endif // #define KOKKOS_HOSTSPACE_HPP
+

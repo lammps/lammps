@@ -54,6 +54,9 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_ViewCtor.hpp>
 #include <impl/Kokkos_Atomic_View.hpp>
+#if defined(KOKKOS_ENABLE_PROFILING)
+#include <impl/Kokkos_Profiling_Interface.hpp>
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -2478,10 +2481,21 @@ struct ViewValueFunctor< ExecSpace , ValueType , false /* is_scalar */ >
     {
       destroy = arg ;
       if ( ! space.in_parallel() ) {
+#if defined(KOKKOS_ENABLE_PROFILING)
+        uint64_t kpID = 0;
+        if(Kokkos::Profiling::profileLibraryLoaded()) {
+          Kokkos::Profiling::beginParallelFor("Kokkos::View::initialization", 0, &kpID);
+        }
+#endif
         const Kokkos::Impl::ParallelFor< ViewValueFunctor , PolicyType >
           closure( *this , PolicyType( 0 , n ) );
         closure.execute();
         space.fence();
+#if defined(KOKKOS_ENABLE_PROFILING)
+        if(Kokkos::Profiling::profileLibraryLoaded()) {
+          Kokkos::Profiling::endParallelFor(kpID);
+        }
+#endif
       }
       else {
         for ( size_t i = 0 ; i < n ; ++i ) operator()(i);
@@ -2524,10 +2538,21 @@ struct ViewValueFunctor< ExecSpace , ValueType , true /* is_scalar */ >
   void construct_shared_allocation()
     {
       if ( ! space.in_parallel() ) {
+#if defined(KOKKOS_ENABLE_PROFILING)
+        uint64_t kpID = 0;
+        if(Kokkos::Profiling::profileLibraryLoaded()) {
+          Kokkos::Profiling::beginParallelFor("Kokkos::View::initialization", 0, &kpID);
+        }
+#endif
         const Kokkos::Impl::ParallelFor< ViewValueFunctor , PolicyType >
           closure( *this , PolicyType( 0 , n ) );
         closure.execute();
         space.fence();
+#if defined(KOKKOS_ENABLE_PROFILING)
+        if(Kokkos::Profiling::profileLibraryLoaded()) {
+          Kokkos::Profiling::endParallelFor(kpID);
+        }
+#endif
       }
       else {
         for ( size_t i = 0 ; i < n ; ++i ) operator()(i);
@@ -3126,16 +3151,18 @@ void view_error_operator_bounds
   view_error_operator_bounds<R+1>(buf+n,len-n,map,args...);
 }
 
-template< class MapType , class ... Args >
+template< class MemorySpace , class MapType , class ... Args >
 KOKKOS_INLINE_FUNCTION
 void view_verify_operator_bounds
-  ( const char* label , const MapType & map , Args ... args )
+  ( Kokkos::Impl::SharedAllocationTracker const & tracker
+  , const MapType & map , Args ... args )
 {
   if ( ! view_verify_operator_bounds<0>( map , args ... ) ) {
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
     enum { LEN = 1024 };
     char buffer[ LEN ];
-    int n = snprintf(buffer,LEN,"View bounds error of view %s (", label);
+    const std::string label = tracker.template get_label<MemorySpace>();
+    int n = snprintf(buffer,LEN,"View bounds error of view %s (",label.c_str());
     view_error_operator_bounds<0>( buffer + n , LEN - n , map , args ... );
     Kokkos::Impl::throw_runtime_exception(std::string(buffer));
 #else

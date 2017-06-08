@@ -1,12 +1,12 @@
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,11 +35,11 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <iostream>
 #include <fstream>
@@ -131,7 +131,7 @@ public:
   , coeff_K(          arg_coeff_K )
   , elem_count(       arg_mesh.elem_node_ids.dimension_0() )
   {
-    const unsigned jInvJ[9][4] = 
+    const unsigned jInvJ[9][4] =
      { { j22 , j33 , j23 , j32 } ,
        { j13 , j32 , j12 , j33 } ,
        { j12 , j23 , j13 , j22 } ,
@@ -164,7 +164,7 @@ public:
 public:
 
   //------------------------------------
-  // Sum among the threadIdx.x 
+  // Sum among the threadIdx.x
 
   template< typename Type >
   __device__ inline static
@@ -320,8 +320,8 @@ public:
 
     sum_x_clear(); // Make sure summation scratch is zero
 
-    // $$ R_i = \int_{\Omega} \nabla \phi_i \cdot (k \nabla T) + \phi_i T^2 d \Omega $$ 
-    // $$ J_{i,j} = \frac{\partial R_i}{\partial T_j} = \int_{\Omega} k \nabla \phi_i \cdot \nabla \phi_j + 2 \phi_i \phi_j T d \Omega $$ 
+    // $$ R_i = \int_{\Omega} \nabla \phi_i \cdot (k \nabla T) + \phi_i T^2 d \Omega $$
+    // $$ J_{i,j} = \frac{\partial R_i}{\partial T_j} = \int_{\Omega} k \nabla \phi_i \cdot \nabla \phi_j + 2 \phi_i \phi_j T d \Omega $$
 
     const unsigned iInt = threadIdx.x ;
 
@@ -354,7 +354,7 @@ public:
 
         for ( unsigned iCol = 0 ; iCol < FunctionCount ; ++iCol ) {
 
-          const float jac_del = 
+          const float jac_del =
             dpsidx_row * work_data->dpsidx[iCol][iInt] +
             dpsidy_row * work_data->dpsidy[iCol][iInt] +
             dpsidz_row * work_data->dpsidz[iCol][iInt] ;
@@ -367,7 +367,7 @@ public:
       }
     }
 
-    __syncthreads(); // All warps finish before refilling shared data 
+    __syncthreads(); // All warps finish before refilling shared data
   }
 
   __device__ inline

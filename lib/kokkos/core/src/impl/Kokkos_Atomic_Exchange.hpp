@@ -41,6 +41,7 @@
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_EXCHANGE_HPP )
 #define KOKKOS_ATOMIC_EXCHANGE_HPP
 
@@ -355,6 +356,4 @@ void atomic_assign( volatile T * const dest , const T val )
 } // namespace Kokkos
 
 #endif
-
-//----------------------------------------------------------------------------
 

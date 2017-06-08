@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,10 +36,13 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
+
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_THREADS
 
 #include <gtest/gtest.h>
 
@@ -55,7 +58,6 @@
 
 namespace Test {
 
-#ifdef KOKKOS_ENABLE_PTHREAD
 class threads : public ::testing::Test {
 protected:
   static void SetUpTestCase()
@@ -107,7 +109,9 @@ THREADS_SORT_UNSIGNED(171)
 #undef THREADS_RANDOM_XORSHIFT1024
 #undef THREADS_SORT_UNSIGNED
 
-#endif
 } // namespace Test
+#else
+void KOKKOS_ALGORITHMS_UNITTESTS_TESTTHREADS_PREVENT_LINK_ERROR() {}
+#endif
 
 

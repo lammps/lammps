@@ -60,34 +60,12 @@ Step 2:
 // -------------------------------------------------------------------------------- //
 
 Step 3:
-  3.1. Build and test Trilinos with 3 different configurations; a configure-all script is provided in Trilinos and should be modified to test each of the following 3 configurations with appropriate environment variable(s):
+  3.1. Build and test Trilinos with 4 different configurations; Run scripts for white and shepard are provided in kokkos/config/trilinos-integration
 
-      - GCC/4.7.2-OpenMP/Complex
-          Run tests with the following environment variable:
+         Usually its a good idea to run those script via nohup. 
+         You can run all four at the same time, use separate directories for each.
 
-            export OMP_NUM_THREADS=2
-
-
-      - Intel/15.0.2-Serial/NoComplex
-
-
-      - GCC/4.8.4/CUDA/7.5.18-Cuda/Serial/NoComplex
-          Run tests with the following environment variables:
-
-            export CUDA_LAUNCH_BLOCKING=1
-            export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
-
-
-        mkdir Build
-        cd Build
-        cp TRILINOS_PATH/sampleScripts/Sandia-SEMS/configure-all ./
-            ** Set the path to Trilinos appropriately within the configure-all script **
-        source $SEMS_MODULE_ROOT/utils/sems-modules-init.sh kokkos
-        source configure-all
-        make -k  (-k means "keep going" to get past build errors; -j12 can also be specified to build with 12 threads, for example)
-        ctest
-
-  3.2. Compare the failed test output to the test output on the dashboard ( testing.sandia.gov/cdash select Trilinos ); investigate and fix problems if new tests fail after the Kokkos snapshot
+  3.2. Compare the failed test output between the pristine and the updated runs; investigate and fix problems if new tests fail after the Kokkos snapshot
 
 // -------------------------------------------------------------------------------- //
 
@@ -134,7 +112,7 @@ Step 4: Once all Trilinos tests pass promote Kokkos develop branch to master on 
          master: sha1
          develop: sha1
 
-       git push --follow-tags origin master
+   4.4. Do NOT push yet
 
 // -------------------------------------------------------------------------------- //
 
@@ -156,9 +134,15 @@ Step 5:
 
        python KOKKOS_PATH/config/snapshot.py KOKKOS_PATH TRILINOS_PATH/packages
        
-  5.3. Push the updated develop branch of Trilinos to Github - congratulations!!!
+  5.3. Run checkin-test to push to trilinos using the CI build modules (gcc/4.9.3)
 
-       (From Trilinos directory):
-       git push
+       The modules are listed in kokkos/config/trilinos-integration/checkin-test
+       Run checkin-test, forward dependencies and optional dependencies must be enabled
+       If push failed because someone else clearly broke something, push manually. 
+       If push failed for unclear reasons, investigate, fix, and potentially start over from step 2 after reseting your local kokkos/master branch
+
+Step 6: Push Kokkos to master
+      
+       git push --follow-tags origin master 
 
 // -------------------------------------------------------------------------------- //

@@ -44,9 +44,10 @@
 #ifndef KOKKOS_QTHREADS_HPP
 #define KOKKOS_QTHREADS_HPP
 
-#include <Kokkos_Core_fwd.hpp>
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_QTHREADS )
 
-#ifdef KOKKOS_ENABLE_QTHREADS
+#include <Kokkos_Core_fwd.hpp>
 
 // Defines to enable experimental Qthreads functionality.
 #define QTHREAD_LOCAL_PRIORITY
@@ -150,6 +151,8 @@ public:
 
   int shepherd_size() const;
   int shepherd_worker_size() const;
+
+  static const char* name();
 };
 
 } // namespace Kokkos
@@ -194,5 +197,5 @@ struct VerifyExecutionCanAccessMemorySpace
 //#include <Qthreads/Kokkos_Qthreads_TaskQueue.hpp> // Uncomment when Tasking working.
 
 #endif // #define KOKKOS_ENABLE_QTHREADS
-
 #endif // #define KOKKOS_QTHREADS_HPP
+

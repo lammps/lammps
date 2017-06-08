@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,18 +36,17 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_SERIAL
+
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-
-#if ! defined(KOKKOS_ENABLE_SERIAL)
-#  error "It doesn't make sense to build this file unless the Kokkos::Serial device is enabled.  If you see this message, it probably means that there is an error in Kokkos' CMake build infrastructure."
-#else
 
 #include <Kokkos_Bitset.hpp>
 #include <Kokkos_UnorderedMap.hpp>
@@ -59,7 +58,6 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestDynamicView.hpp>
-#include <TestComplex.hpp>
 
 #include <iomanip>
 
@@ -103,11 +101,6 @@ TEST_F( serial , staticcrsgraph )
   TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(75, 1000);
   TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(75, 10000);
   TestStaticCrsGraph::run_test_graph3< Kokkos::Serial >(75, 100000);
-}
-
-TEST_F( serial, complex )
-{
-  testComplex<Kokkos::Serial> ();
 }
 
 TEST_F( serial, bitset )
@@ -190,6 +183,7 @@ TEST_F(serial, ErrorReporter)
 
 } // namespace Test
 
+#else
+void KOKKOS_CONTAINERS_UNIT_TESTS_TESTSERIAL_PREVENT_EMPTY_LINK_ERROR() {}
 #endif // KOKKOS_ENABLE_SERIAL
-
 

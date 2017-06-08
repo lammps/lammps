@@ -56,28 +56,30 @@
 #include <Kokkos_Core.hpp>
 
 #include <TestTile.hpp>
-#include <TestSharedAlloc.hpp>
-#include <TestViewMapping.hpp>
-#include <TestViewAPI.hpp>
-#include <TestViewOfClass.hpp>
-#include <TestViewSubview.hpp>
-#include <TestAtomic.hpp>
-#include <TestAtomicOperations.hpp>
-#include <TestAtomicViews.hpp>
+//#include <TestSharedAlloc.hpp>
+//#include <TestViewAPI.hpp>
+//#include <TestViewOfClass.hpp>
+//#include <TestViewSubview.hpp>
+//#include <TestAtomic.hpp>
+//#include <TestAtomicOperations.hpp>
+//#include <TestAtomicViews.hpp>
 #include <TestRange.hpp>
 #include <TestTeam.hpp>
-#include <TestReduce.hpp>
-#include <TestScan.hpp>
-#include <TestAggregate.hpp>
-#include <TestCompilerMacros.hpp>
-#include <TestTaskScheduler.hpp>
-#include <TestMemoryPool.hpp>
-#include <TestCXX11.hpp>
-#include <TestCXX11Deduction.hpp>
+//#include <TestReduce.hpp>
+//#include <TestScan.hpp>
+//#include <TestAggregate.hpp>
+//#include <TestCompilerMacros.hpp>
+
+//TODO enable task scheduler tests for threads
+//#include <TestTaskScheduler.hpp>
+
+//#include <TestMemoryPool.hpp>
+//#include <TestCXX11.hpp>
+//#include <TestCXX11Deduction.hpp>
 #include <TestTeamVector.hpp>
-#include <TestTemplateMetaFunctions.hpp>
-#include <TestPolicyConstruction.hpp>
-#include <TestMDRange.hpp>
+//#include <TestTemplateMetaFunctions.hpp>
+//#include <TestPolicyConstruction.hpp>
+//#include <TestMDRange.hpp>
 
 namespace Test {
 

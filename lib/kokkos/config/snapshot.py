@@ -27,7 +27,7 @@ import subprocess, argparse, re, doctest, os, datetime, traceback
 def parse_cmdline(description):
   parser = argparse.ArgumentParser(usage="snapshot.py [options] source destination", description=description)
 
-  parser.add_argument("-n", "--no-comit", action="store_false", dest="create_commit", default=True,
+  parser.add_argument("-n", "--no-commit", action="store_false", dest="create_commit", default=True,
                       help="Do not perform a commit or create a commit message.")
   parser.add_argument("-v", "--verbose", action="store_true", dest="verbose_mode", default=False,
                       help="Enable verbose mode.")
@@ -39,6 +39,8 @@ def parse_cmdline(description):
                       help="Type of repository of the source, use none to skip all repository operations.")
   parser.add_argument("--dest-repo", choices=["git","none"], default="",
                       help="Type of repository of the destination, use none to skip all repository operations.")
+  parser.add_argument("--small", action="store_true", dest="small_mode",
+                      help="Don't include tests and other extra files when copying.")
 
   parser.add_argument("source",      help="Source project to snapshot from.")
   parser.add_argument("destination", help="Destination to snapshot too.")
@@ -58,9 +60,9 @@ def validate_options(options):
 
   options.source      = os.path.abspath(options.source)
   options.destination = os.path.abspath(options.destination)
-  
+
   if os.path.exists(options.source):
-    apparent_source_repo_type, source_root = deterimine_repo_type(options.source)
+    apparent_source_repo_type, source_root = determine_repo_type(options.source)
   else:
     raise RuntimeError("Could not find source directory of %s." % options.source)
   options.source_root = source_root
@@ -69,7 +71,7 @@ def validate_options(options):
     print "Could not find destination directory of %s so it will be created." % options.destination
     os.makedirs(options.destination)
 
-  apparent_dest_repo_type, dest_root = deterimine_repo_type(options.destination)
+  apparent_dest_repo_type, dest_root = determine_repo_type(options.destination)
   options.dest_root = dest_root
 
   #error on svn repo types for now
@@ -111,7 +113,7 @@ def run_cmd(cmd, options, working_dir="."):
     print "==== %s stderr ====" % cmd_str
     print proc_stderr
     print "==== %s stderr ====" % cmd_str
- 
+
   if ret_val != 0:
     raise RuntimeError("Command '%s' failed with error code %d. Error message:%s%s%sstdout:%s" % \
       (cmd_str, ret_val, os.linesep, proc_stderr, os.linesep, proc_stdout))
@@ -119,7 +121,7 @@ def run_cmd(cmd, options, working_dir="."):
   return proc_stdout, proc_stderr
 #end run_cmd
 
-def deterimine_repo_type(location):
+def determine_repo_type(location):
   apparent_repo_type = "none"
 
   while location != "":
@@ -133,16 +135,32 @@ def deterimine_repo_type(location):
       location = location[:location.rfind(os.sep)]
 
   return apparent_repo_type, location
-
-#end deterimine_repo_type
+#end determine_repo_type
 
 def rsync(source, dest, options):
   rsync_cmd = ["rsync", "-ar", "--delete"]
   if options.debug_mode:
     rsync_cmd.append("-v")
 
+  if options.small_mode or options.source_repo == "git":
+    rsync_cmd.append("--delete-excluded")
+
+  if options.small_mode:
+    rsync_cmd.append("--include=config/master_history.txt")
+    rsync_cmd.append("--include=cmake/tpls")
+    rsync_cmd.append("--exclude=benchmarks/")
+    rsync_cmd.append("--exclude=config/*")
+    rsync_cmd.append("--exclude=doc/")
+    rsync_cmd.append("--exclude=example/")
+    rsync_cmd.append("--exclude=tpls/")
+    rsync_cmd.append("--exclude=HOW_TO_SNAPSHOT")
+    rsync_cmd.append("--exclude=unit_test")
+    rsync_cmd.append("--exclude=unit_tests")
+    rsync_cmd.append("--exclude=perf_test")
+    rsync_cmd.append("--exclude=performance_tests")
+
   if options.source_repo == "git":
-    rsync_cmd.append("--exclude=.git")
+    rsync_cmd.append("--exclude=.git*")
 
   rsync_cmd.append(options.source)
   rsync_cmd.append(options.destination)
@@ -171,28 +189,27 @@ def find_git_commit_information(options):
   ('sems', 'software.sandia.gov:/git/sems')
   """
   git_log_cmd = ["git", "log", "-1"]
-  
+
   output, error = run_cmd(git_log_cmd, options, options.source)
-  
+
   commit_match = re.match("commit ([0-9a-fA-F]+)", output)
   commit_id = commit_match.group(1)
   commit_log = output
-  
+
   git_remote_cmd = ["git", "remote", "-v"]
   output, error = run_cmd(git_remote_cmd, options, options.source)
-  
+
   remote_match = re.search("origin\s([^ ]*/([^ ]+))", output, re.MULTILINE)
   if not remote_match:
     raise RuntimeError("Could not find origin of repo at %s. Consider using none for source repo type." % (options.source))
 
   source_location = remote_match.group(1)
   source_name     = remote_match.group(2).strip()
-  
+
   if source_name[-1] == "/":
     source_name = source_name[:-1]
 
   return commit_id, commit_log, source_name, source_location
-
 #end find_git_commit_information
 
 def do_git_commit(message, options):
@@ -201,10 +218,10 @@ def do_git_commit(message, options):
 
   git_add_cmd = ["git", "add", "-A"]
   run_cmd(git_add_cmd, options, options.destination)
-  
+
   git_commit_cmd = ["git", "commit", "-m%s" % message]
   run_cmd(git_commit_cmd, options, options.destination)
-  
+
   git_log_cmd = ["git", "log", "--format=%h", "-1"]
   commit_sha1, error = run_cmd(git_log_cmd, options, options.destination)
 
@@ -214,7 +231,7 @@ def do_git_commit(message, options):
 def verify_git_repo_clean(location, options):
   git_status_cmd = ["git", "status", "--porcelain"]
   output, error = run_cmd(git_status_cmd, options, location)
-  
+
   if output != "":
     if options.no_validate_repo == False:
       raise RuntimeError("%s is not clean.%sPlease commit or stash all changes before running snapshot."
@@ -223,7 +240,6 @@ def verify_git_repo_clean(location, options):
       print "WARNING: %s is not clean. Proceeding anyway." % location
       print "WARNING:   This could lead to differences in the source and destination."
       print "WARNING:   It could also lead to extra files being included in the snapshot commit."
-
 #end verify_git_repo_clean
 
 def main(options):
@@ -238,14 +254,14 @@ def main(options):
     commit_log    = "Unknown commit from %s snapshotted at: %s" % (options.source, datetime.datetime.now())
     repo_name     = options.source
     repo_location = options.source
-    
+
   commit_message = create_commit_message(commit_id, commit_log, repo_name, repo_location) + os.linesep*2
-  
+
   if options.dest_repo == "git":
     verify_git_repo_clean(options.destination, options)
 
   rsync(options.source, options.destination, options)
-  
+
   if options.dest_repo == "git":
     do_git_commit(commit_message, options)
   elif options.dest_repo == "none":
@@ -256,10 +272,6 @@ def main(options):
     cwd = os.getcwd()
     print "No commit done by request. Please use file at:"
     print "%s%sif you wish to commit this to a repo later." % (cwd+"/"+file_name, os.linesep)
-  
-  
-  
-  
 #end main
 
 if (__name__ == "__main__"):
@@ -267,7 +279,7 @@ if (__name__ == "__main__"):
     doctest.testmod()
     sys.exit(0)
 
-  try:    
+  try:
     options = parse_cmdline(__doc__)
     main(options)
   except RuntimeError, e:
@@ -275,5 +287,5 @@ if (__name__ == "__main__"):
     if "--debug" in sys.argv:
       traceback.print_exc()
     sys.exit(1)
-  else:  
+  else:
     sys.exit(0)

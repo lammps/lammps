@@ -96,6 +96,11 @@ class PairTableRXKokkos : public PairTable {
 
   /* PairTableRX members */
 
+  Kokkos::View<double*, DeviceType> mixWtSite1old;
+  Kokkos::View<double*, DeviceType> mixWtSite2old;
+  Kokkos::View<double*, DeviceType> mixWtSite1;
+  Kokkos::View<double*, DeviceType> mixWtSite2;
+
   int nspecies;
   char *site1, *site2;
   int isite1, isite2;

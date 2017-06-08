@@ -534,10 +534,10 @@ static void compute_all_items(
     typename ArrayTypes<DeviceType>::t_int_1d_const d_numneigh,
     typename ArrayTypes<DeviceType>::t_x_array_randomread x,
     typename ArrayTypes<DeviceType>::t_int_1d_randomread type,
-    Kokkos::View<double*, DeviceType> mixWtSite1old,
-    Kokkos::View<double*, DeviceType> mixWtSite2old,
-    Kokkos::View<double*, DeviceType> mixWtSite1,
-    Kokkos::View<double*, DeviceType> mixWtSite2,
+    Kokkos::View<double*, DeviceType> const& mixWtSite1old,
+    Kokkos::View<double*, DeviceType> const& mixWtSite2old,
+    Kokkos::View<double*, DeviceType> const& mixWtSite1,
+    Kokkos::View<double*, DeviceType> const& mixWtSite2,
     Few<int, 4> special_lj,
     Few<Few<F_FLOAT, MAX_TYPES_STACKPARAMS+1>, MAX_TYPES_STACKPARAMS+1> m_cutsq,
     typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq,
@@ -597,10 +597,10 @@ static void getAllMixingWeights(
     int nspecies,
     int isite1, int isite2,
     bool fractionalWeighting,
-    Kokkos::View<double*, DeviceType> mixWtSite1old,
-    Kokkos::View<double*, DeviceType> mixWtSite2old,
-    Kokkos::View<double*, DeviceType> mixWtSite1,
-    Kokkos::View<double*, DeviceType> mixWtSite2) {
+    Kokkos::View<double*, DeviceType> const& mixWtSite1old,
+    Kokkos::View<double*, DeviceType> const& mixWtSite2old,
+    Kokkos::View<double*, DeviceType> const& mixWtSite1,
+    Kokkos::View<double*, DeviceType> const& mixWtSite2) {
   Kokkos::parallel_for(ntotal,
   LAMMPS_LAMBDA(int i) {
       getMixingWeights<DeviceType>(dvector,nspecies,isite1,isite2,fractionalWeighting,
@@ -651,10 +651,12 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   const int ntotal = atom->nlocal + atom->nghost;
-  auto mixWtSite1old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1old", ntotal);
-  auto mixWtSite2old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2old", ntotal);
-  auto mixWtSite1 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1", ntotal);
-  auto mixWtSite2 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2", ntotal);
+  if (ntotal > mixWtSite1.dimension_0()) {
+    mixWtSite1old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1old", ntotal);
+    mixWtSite2old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2old", ntotal);
+    mixWtSite1 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1", ntotal);
+    mixWtSite2 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2", ntotal);
+  }
 
   getAllMixingWeights(ntotal, atomKK->k_dvector.template view<DeviceType>(),
       nspecies, isite1, isite2, fractionalWeighting,

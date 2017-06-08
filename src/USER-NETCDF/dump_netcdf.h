@@ -69,22 +69,6 @@ class DumpNetCDF : public DumpCustom {
     int ndumped;                  // number of enties written for this prop.
   };
 
-  typedef void (DumpNetCDF::*funcptr_t)(void *);
-
-  // per-frame quantities (variables, fixes or computes)
-  struct nc_perframe_t {
-    char name[NC_FIELD_NAME_MAX]; // field name
-    int var;                      // NetCDF variable
-    int type;                     // variable, fix, compute or callback
-    int index;                    // index in fix/compute list
-    funcptr_t compute;            // compute function
-    int dim;                      // dimension
-    char id[NC_FIELD_NAME_MAX];   // variable id
-
-    bigint bigint_data;           // actual data
-    double double_data;           // actual data
-  };
-
   int framei;                  // current frame index
   int blocki;                  // current block index
   int ndata;                   // number of data blocks to expect
@@ -94,10 +78,10 @@ class DumpNetCDF : public DumpCustom {
   int n_perat;                 // # of netcdf per-atom properties
   nc_perat_t *perat;           // per-atom properties
 
-  int n_perframe;              // # of global netcdf (not per-atom) fix props
-  nc_perframe_t *perframe;     // global properties
+  int *thermovar;              // NetCDF variables for thermo output
 
   bool double_precision;       // write everything as double precision
+  bool thermo;                 // write thermo output to netcdf file
 
   bigint n_buffer;             // size of buffer
   int *int_buffer;             // buffer for passing data to netcdf
@@ -131,10 +115,6 @@ class DumpNetCDF : public DumpCustom {
   virtual int modify_param(int, char **);
 
   void ncerr(int, const char *, int);
-
-  void compute_step(void *);
-  void compute_elapsed(void *);
-  void compute_elapsed_long(void *);
 };
 
 }

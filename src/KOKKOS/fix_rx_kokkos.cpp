@@ -79,6 +79,17 @@ FixRxKokkos<DeviceType>::~FixRxKokkos()
 {
   //printf("Inside FixRxKokkos::~FixRxKokkos copymode= %d\n", copymode);
   if (copymode) return;
+
+  if (localTempFlag)
+    memory->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
+
+  memory->destroy_kokkos(k_sumWeights, sumWeights);
+  //memory->destroy_kokkos(k_sumWeights);
+
+  //delete [] scratchSpace;
+  memory->destroy_kokkos(d_scratchSpace);
+
+  memory->destroy_kokkos(k_cutsq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1433,9 +1444,12 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   {
     const int count = nlocal + (newton_pair ? nghost : 0);
 
-    memory->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
-    this->d_dpdThetaLocal = k_dpdThetaLocal.d_view;
-    this->h_dpdThetaLocal = k_dpdThetaLocal.h_view;
+    if (count > k_dpdThetaLocal.d_view.dimension_0()) {
+      memory->destroy_kokkos (k_dpdThetaLocal, dpdThetaLocal);
+      memory->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
+      this->d_dpdThetaLocal = k_dpdThetaLocal.d_view;
+      this->h_dpdThetaLocal = k_dpdThetaLocal.h_view;
+    }
 
     const int neighflag = lmp->kokkos->neighflag;
 
@@ -1527,7 +1541,10 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   //double *scratchSpace = new double[ scratchSpaceSize * nlocal ];
 
   //typename ArrayTypes<DeviceType>::t_double_1d d_scratchSpace("d_scratchSpace", scratchSpaceSize * nlocal);
-  memory->create_kokkos (d_scratchSpace, nlocal*scratchSpaceSize, "FixRxKokkos::d_scratchSpace");
+  if (nlocal*scratchSpaceSize > d_scratchSpace.dimension_0()) {
+    memory->destroy_kokkos (d_scratchSpace);
+    memory->create_kokkos (d_scratchSpace, nlocal*scratchSpaceSize, "FixRxKokkos::d_scratchSpace");
+  }
 
 #if 0
   Kokkos::parallel_reduce( nlocal, LAMMPS_LAMBDA(int i, CounterType &counter)
@@ -1630,9 +1647,6 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
     Kokkos::parallel_reduce( Kokkos::RangePolicy<DeviceType, Tag_FixRxKokkos_solveSystems<false> >(0,nlocal), *this, TotalCounters);
 #endif
 
-  //delete [] scratchSpace;
-  memory->destroy_kokkos (d_scratchSpace);
-
   TimerType timer_ODE = getTimeStamp();
 
   // Check the error flag for any failures.
@@ -1650,9 +1664,6 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   comm->forward_comm_fix(this);
 
   atomKK->modified ( Host, DVECTOR_MASK );
-
-  if (localTempFlag)
-    memory->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
 
   TimerType timer_stop = getTimeStamp();
 
@@ -2012,8 +2023,11 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
     const int ntypes = atom->ntypes;
 
     //memory->create_kokkos (k_cutsq, h_cutsq, ntypes+1, ntypes+1, "pair:cutsq");
-    memory->create_kokkos (k_cutsq, ntypes+1, ntypes+1, "FixRxKokkos::k_cutsq");
-    d_cutsq = k_cutsq.template view<DeviceType>();
+    if (ntypes+1 > k_cutsq.dimension_0()) {
+      memory->destroy_kokkos (k_cutsq);
+      memory->create_kokkos (k_cutsq, ntypes+1, ntypes+1, "FixRxKokkos::k_cutsq");
+      d_cutsq = k_cutsq.template view<DeviceType>();
+    }
 
     for (int i = 1; i <= ntypes; ++i)
       for (int j = i; j <= ntypes; ++j)
@@ -2030,9 +2044,12 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   int sumWeightsCt = nlocal + (NEWTON_PAIR ? nghost : 0);
 
   //memory->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
-  memory->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
-  d_sumWeights = k_sumWeights.d_view;
-  h_sumWeights = k_sumWeights.h_view;
+  if (sumWeightsCt > k_sumWeights.d_view.dimension_0()) {
+    memory->destroy_kokkos(k_sumWeights, sumWeights);
+    memory->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
+    d_sumWeights = k_sumWeights.d_view;
+    h_sumWeights = k_sumWeights.h_view;
+  }
 
   // Initialize the accumulator to zero ...
   //Kokkos::parallel_for (sumWeightsCt,
@@ -2165,11 +2182,6 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   Kokkos::parallel_for (Kokkos::RangePolicy<DeviceType, Tag_FixRxKokkos_2ndPairOperator<WT_FLAG, LOCAL_TEMP_FLAG> >(0, nlocal), *this);
 #endif
 
-  // Clean up the local kokkos data.
-  //memory->destroy_kokkos(k_cutsq, h_cutsq);
-  memory->destroy_kokkos(k_cutsq);
-  //memory->destroy_kokkos(k_sumWeights, sumWeights);
-  memory->destroy_kokkos(k_sumWeights);
 }
 
 /* ---------------------------------------------------------------------- */

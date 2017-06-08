@@ -180,10 +180,12 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
 
   {
     const int ntotal = nlocal + nghost;
-    d_mixWtSite1old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1old",ntotal);
-    d_mixWtSite2old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2old",ntotal);
-    d_mixWtSite1 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1",ntotal);
-    d_mixWtSite2 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2",ntotal);
+    if (ntotal > d_mixWtSite1.dimension_0()) {
+      d_mixWtSite1old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1old",ntotal);
+      d_mixWtSite2old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2old",ntotal);
+      d_mixWtSite1 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1",ntotal);
+      d_mixWtSite2 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2",ntotal);
+    }
 
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXgetMixingWeights>(0,ntotal),*this);
   }

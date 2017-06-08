@@ -444,9 +444,6 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
   rand_type rand_gen = rand_pool.get_state(id);
 #endif
 
-  const double boltz_inv = 1.0/force->boltz;
-  const double ftm2v = force->ftm2v;
-  const double dt     = update->dt;
   int ct = count;
   int ii = start_ii;
 
@@ -639,6 +636,16 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   ssa_gitemLoc = np_ssa->ssa_gitemLoc;
   ssa_gitemLen = np_ssa->ssa_gitemLen;
 
+  np_ssa->k_ssa_itemLoc.template sync<DeviceType>();
+  np_ssa->k_ssa_itemLen.template sync<DeviceType>();
+  np_ssa->k_ssa_gitemLoc.template sync<DeviceType>();
+  np_ssa->k_ssa_gitemLen.template sync<DeviceType>();
+
+  np_ssa->k_ssa_phaseLen.template sync<LMPHostType>();
+  np_ssa->k_ssa_gphaseLen.template sync<LMPHostType>();
+  auto h_ssa_phaseLen = np_ssa->k_ssa_phaseLen.h_view;
+  auto h_ssa_gphaseLen = np_ssa->k_ssa_gphaseLen.h_view;
+
   int maxWorkItemCt = (int) ssa_itemLoc.dimension_1();
   if (maxWorkItemCt < (int) ssa_gitemLoc.dimension_1()) {
     maxWorkItemCt = (int) ssa_gitemLoc.dimension_1();
@@ -670,9 +677,13 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   deep_copy(d_hist, h_hist);
 #endif
 
+  boltz_inv = 1.0/force->boltz;
+  ftm2v = force->ftm2v;
+  dt     = update->dt;
+
   // process neighbors in the local AIR
   for (int workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
-    int workItemCt = ssa_phaseLen[workPhase];
+    int workItemCt = h_ssa_phaseLen[workPhase];
 
     if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
       Kokkos::parallel_for(workItemCt, LAMMPS_LAMBDA (const int workItem ) {
@@ -692,7 +703,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   //Loop over all 13 outward directions (7 stages)
   for (int workPhase = 0; workPhase < ssa_gphaseCt; ++workPhase) {
     // int airnum = workPhase + 1;
-    int workItemCt = ssa_gphaseLen[workPhase];
+    int workItemCt = h_ssa_gphaseLen[workPhase];
 
     // Communicate the updated velocities to all nodes
     comm->forward_comm_fix(this);

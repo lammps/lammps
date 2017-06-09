@@ -300,7 +300,7 @@ void FixReaxCSpecies::init()
 
   reaxc = (PairReaxC *) force->pair_match("reax/c",0);
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/species without "
-		  "pair_style reax/c");
+		  "pair_style reax/c, reax/c/kk, or reax/c/omp");
 
   reaxc->fixspecies_flag = 1;
 

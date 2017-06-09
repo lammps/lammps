@@ -33,6 +33,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "timer.h"
 
 #include "reaxc_types.h"
 #include "reaxc_allocate.h"
@@ -95,7 +96,7 @@ PairReaxCOMP::~PairReaxCOMP()
   MPI_Comm_rank(mpi_data->world,&myrank);
 
   // Write screen output
-  if (myrank == 0 && screen) {
+  if (timer->has_full() && myrank == 0 && screen) {
     fprintf(screen,"\n\nWrite_Lists    took %11.3lf seconds", ompTimingData[COMPUTEWLINDEX]);
 
     fprintf(screen,"\n\nCompute_Forces took %11.3lf seconds:", ompTimingData[COMPUTEINDEX]);
@@ -121,7 +122,7 @@ PairReaxCOMP::~PairReaxCOMP()
   }
 
   // Write logfile output
-  if (myrank == 0 && logfile) {
+  if (timer->has_full() && myrank == 0 && logfile) {
     fprintf(logfile,"\n\nWrite_Lists    took %11.3lf seconds", ompTimingData[COMPUTEWLINDEX]);
 
     fprintf(logfile,"\n\nCompute_Forces took %11.3lf seconds:", ompTimingData[COMPUTEINDEX]);

@@ -1,3 +1,4 @@
+extern "C"{
 #include "meam.h"
 #include <math.h>
 
@@ -549,3 +550,5 @@ void dsij(int i,int j,int k,int jn,int nmax,int numneigh,double rij2,double *dsi
       }
 
       }
+
+}

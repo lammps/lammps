@@ -1,3 +1,4 @@
+extern "C" {
 #include "meam.h"
 #include <math.h>
 
@@ -500,5 +501,4 @@
 //ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 
-
-
+}

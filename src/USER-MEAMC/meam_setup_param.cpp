@@ -1,3 +1,4 @@
+extern "C" {
 #include "meam.h"
 
 //
@@ -58,7 +59,7 @@
       void meam_setup_param_(int *which_p, double *value_p, int *nindex_p, int *index /*index(3)*/, int *errorflag)
       {
         //: index[0..2]
-        int i1, i2;
+        int i1, i2, val;
         *errorflag = 0;
         int which = *which_p;
         double value = *value_p;
@@ -97,7 +98,7 @@
         case 4:
           meam_checkindex(2,maxelt,nindex,index,errorflag);
           if (*errorflag!=0) return;
-          int val = (int)value;
+          val = (int)value;
 
           if (val==0)
             meam_data.lattce_meam[index[0]][index[1]] = FCC;
@@ -221,3 +222,5 @@
           *errorflag = 1;
       }
     }
+
+}

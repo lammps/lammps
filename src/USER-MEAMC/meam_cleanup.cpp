@@ -1,3 +1,4 @@
+extern "C" {
 #include "meam.h"
 
 void meam_cleanup_(void) {
@@ -11,4 +12,5 @@ void meam_cleanup_(void) {
     deallocate(meam_data.phirar);
     deallocate(meam_data.phir);
 
+}
 }

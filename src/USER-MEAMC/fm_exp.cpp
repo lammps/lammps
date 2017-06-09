@@ -1,3 +1,4 @@
+extern "C" {
 /*
    Copyright (c) 2012,2013   Axel Kohlmeyer <akohlmey@gmail.com>
    All rights reserved.
@@ -131,3 +132,4 @@ double fm_exp(double x)
  * indent-tabs-mode: nil
  * End:
  */
+}

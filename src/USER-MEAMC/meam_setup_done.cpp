@@ -1,3 +1,4 @@
+extern "C" {
 #include "meam.h"
 #include <math.h>
 
@@ -943,3 +944,6 @@ void G_gam(double Gamma,int ibar,double gsmooth_factor, double *G, int *errorfla
 
       return result;
       }
+
+
+}

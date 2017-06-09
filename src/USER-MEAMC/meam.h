@@ -91,7 +91,7 @@ typedef struct {
       double dr,rdrar;
 } meam_data_t;
 
-meam_data_t meam_data;
+extern meam_data_t meam_data;
 
 // Functions we need for compat
 #ifndef max

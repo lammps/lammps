@@ -34,7 +34,6 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
 static const int nkeywords = 21;
 static const char *keywords[] = {
   "Ec","alpha","rho0","delta","lattce",
@@ -78,7 +77,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
 
 PairMEAMC::~PairMEAMC()
 {
-  meam_cleanup_();
+  meam_inst.meam_cleanup_();
 
   memory->destroy(rho);
   memory->destroy(rho0);
@@ -237,7 +236,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_dens_init_(&ifort,&nmax,&ntype,type,fmap,&x[0][0],
+    meam_inst.meam_dens_init_(&ifort,&nmax,&ntype,type,fmap,&x[0][0],
                     &numneigh_half[i],firstneigh_half[i],
                     &numneigh_full[i],firstneigh_full[i],
                     &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
@@ -254,7 +253,7 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   comm->reverse_comm_pair(this);
 
-  meam_dens_final_(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
+  meam_inst.meam_dens_final_(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
                    &eng_vdwl,eatom,&ntype,type,fmap,
                    &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
                    &arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],gamma,dgamma1,
@@ -279,7 +278,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_force_(&ifort,&nmax,&eflag_either,&eflag_global,&eflag_atom,
+    meam_inst.meam_force_(&ifort,&nmax,&eflag_either,&eflag_global,&eflag_atom,
                 &vflag_atom,&eng_vdwl,eatom,&ntype,type,fmap,&x[0][0],
                 &numneigh_half[i],firstneigh_half[i],
                 &numneigh_full[i],firstneigh_full[i],
@@ -368,7 +367,7 @@ void PairMEAMC::coeff(int narg, char **arg)
   // tell MEAM package that setup is done
 
   read_files(arg[2],arg[2+nelements+1]);
-  meam_setup_done_(&cutmax);
+  meam_inst.meam_setup_done_(&cutmax);
 
   // read args that map atom types to MEAM elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
@@ -567,7 +566,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     else if (strcmp(words[1],"bcc") == 0) lat[i] = BCC;
     else if (strcmp(words[1],"hcp") == 0) lat[i] = HCP;
     else if (strcmp(words[1],"dim") == 0) lat[i] = DIM;
-    else if (strcmp(words[1],"dia") == 0) lat[i] = DIAMOND;
+    else if (strcmp(words[1],"dia") == 0) lat[i] = DIA;
     else error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
 
     // store parameters
@@ -600,7 +599,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   // pass element parameters to MEAM package
 
-  meam_setup_global_(&nelements,lat,z,ielement,atwt,alpha,b0,b1,b2,b3,
+  meam_inst.meam_setup_global_(&nelements,lat,z,ielement,atwt,alpha,b0,b1,b2,b3,
                        alat,esub,asub,t0,t1,t2,t3,rozero,ibar);
 
   // set element masses
@@ -704,7 +703,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
       else if (strcmp(params[nparams-1],"bcc") == 0) value = BCC;
       else if (strcmp(params[nparams-1],"hcp") == 0) value = HCP;
       else if (strcmp(params[nparams-1],"dim") == 0) value = DIM;
-      else if (strcmp(params[nparams-1],"dia") == 0) value = DIAMOND;
+      else if (strcmp(params[nparams-1],"dia") == 0) value = DIA;
       else if (strcmp(params[nparams-1],"b1")  == 0) value = B1;
       else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
       else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
@@ -716,7 +715,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     // pass single setting to MEAM package
 
     int errorflag = 0;
-    meam_setup_param_(&which,&value,&nindex,index,&errorflag);
+    meam_inst.meam_setup_param_(&which,&value,&nindex,index,&errorflag);
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);

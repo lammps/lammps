@@ -1,14 +1,5 @@
-extern "C" {
 #include "meam.h"
 #include <math.h>
-
-// in meam_setup_done
-void get_shpfcn(double* s /* s(3) */, lattice_t latt);
-
-// in meam_dens_init
-void dsij(int i, int j, int k, int jn, int nmax, int numneigh, double rij2,
-          double* dsij1, double* dsij2, int ntype, int* type, int* fmap,
-          double* x, double* scrfcn, double* fcpair);
 
 //     Extern "C" declaration has the form:
 //
@@ -32,7 +23,7 @@ void dsij(int i, int j, int k, int jn, int nmax, int numneigh, double rij2,
 //
 
 void
-meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
+MEAM::meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
             int* eflag_atom, int* vflag_atom, double* eng_vdwl, double* eatom,
             int* ntype, int* type, int* fmap, double* x, int* numneigh,
             int* firstneigh, int* numneigh_full, int* firstneigh_full,
@@ -113,27 +104,27 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
         delij[2] = arr2v(x, 2, j) - yitmp;
         delij[3] = arr2v(x, 3, j) - zitmp;
         rij2 = delij[1] * delij[1] + delij[2] * delij[2] + delij[3] * delij[3];
-        if (rij2 < meam_data.cutforcesq) {
+        if (rij2 < this->cutforcesq) {
           rij = sqrt(rij2);
           r = rij;
 
           //     Compute phi and phip
-          ind = meam_data.eltind[elti][eltj];
-          pp = rij * meam_data.rdrar + 1.0;
+          ind = this->eltind[elti][eltj];
+          pp = rij * this->rdrar + 1.0;
           kk = (int)pp;
-          kk = min(kk, meam_data.nrar - 1);
+          kk = min(kk, this->nrar - 1);
           pp = pp - kk;
           pp = min(pp, 1.0);
-          phi = ((arr2(meam_data.phirar3, kk, ind) * pp +
-                  arr2(meam_data.phirar2, kk, ind)) *
+          phi = ((arr2(this->phirar3, kk, ind) * pp +
+                  arr2(this->phirar2, kk, ind)) *
                    pp +
-                 arr2(meam_data.phirar1, kk, ind)) *
+                 arr2(this->phirar1, kk, ind)) *
                   pp +
-                arr2(meam_data.phirar, kk, ind);
-          phip = (arr2(meam_data.phirar6, kk, ind) * pp +
-                  arr2(meam_data.phirar5, kk, ind)) *
+                arr2(this->phirar, kk, ind);
+          phip = (arr2(this->phirar6, kk, ind) * pp +
+                  arr2(this->phirar5, kk, ind)) *
                    pp +
-                 arr2(meam_data.phirar4, kk, ind);
+                 arr2(this->phirar4, kk, ind);
           recip = 1.0 / r;
 
           if (*eflag_either != 0) {
@@ -149,30 +140,30 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
           //     write(1,*) "force_meamf: phip: ",phip
 
           //     Compute pair densities and derivatives
-          invrei = 1.0 / meam_data.re_meam[elti][elti];
+          invrei = 1.0 / this->re_meam[elti][elti];
           ai = rij * invrei - 1.0;
-          ro0i = meam_data.rho0_meam[elti];
-          rhoa0i = ro0i * fm_exp(-meam_data.beta0_meam[elti] * ai);
-          drhoa0i = -meam_data.beta0_meam[elti] * invrei * rhoa0i;
-          rhoa1i = ro0i * fm_exp(-meam_data.beta1_meam[elti] * ai);
-          drhoa1i = -meam_data.beta1_meam[elti] * invrei * rhoa1i;
-          rhoa2i = ro0i * fm_exp(-meam_data.beta2_meam[elti] * ai);
-          drhoa2i = -meam_data.beta2_meam[elti] * invrei * rhoa2i;
-          rhoa3i = ro0i * fm_exp(-meam_data.beta3_meam[elti] * ai);
-          drhoa3i = -meam_data.beta3_meam[elti] * invrei * rhoa3i;
+          ro0i = this->rho0_meam[elti];
+          rhoa0i = ro0i * fm_exp(-this->beta0_meam[elti] * ai);
+          drhoa0i = -this->beta0_meam[elti] * invrei * rhoa0i;
+          rhoa1i = ro0i * fm_exp(-this->beta1_meam[elti] * ai);
+          drhoa1i = -this->beta1_meam[elti] * invrei * rhoa1i;
+          rhoa2i = ro0i * fm_exp(-this->beta2_meam[elti] * ai);
+          drhoa2i = -this->beta2_meam[elti] * invrei * rhoa2i;
+          rhoa3i = ro0i * fm_exp(-this->beta3_meam[elti] * ai);
+          drhoa3i = -this->beta3_meam[elti] * invrei * rhoa3i;
 
           if (elti != eltj) {
-            invrej = 1.0 / meam_data.re_meam[eltj][eltj];
+            invrej = 1.0 / this->re_meam[eltj][eltj];
             aj = rij * invrej - 1.0;
-            ro0j = meam_data.rho0_meam[eltj];
-            rhoa0j = ro0j * fm_exp(-meam_data.beta0_meam[eltj] * aj);
-            drhoa0j = -meam_data.beta0_meam[eltj] * invrej * rhoa0j;
-            rhoa1j = ro0j * fm_exp(-meam_data.beta1_meam[eltj] * aj);
-            drhoa1j = -meam_data.beta1_meam[eltj] * invrej * rhoa1j;
-            rhoa2j = ro0j * fm_exp(-meam_data.beta2_meam[eltj] * aj);
-            drhoa2j = -meam_data.beta2_meam[eltj] * invrej * rhoa2j;
-            rhoa3j = ro0j * fm_exp(-meam_data.beta3_meam[eltj] * aj);
-            drhoa3j = -meam_data.beta3_meam[eltj] * invrej * rhoa3j;
+            ro0j = this->rho0_meam[eltj];
+            rhoa0j = ro0j * fm_exp(-this->beta0_meam[eltj] * aj);
+            drhoa0j = -this->beta0_meam[eltj] * invrej * rhoa0j;
+            rhoa1j = ro0j * fm_exp(-this->beta1_meam[eltj] * aj);
+            drhoa1j = -this->beta1_meam[eltj] * invrej * rhoa1j;
+            rhoa2j = ro0j * fm_exp(-this->beta2_meam[eltj] * aj);
+            drhoa2j = -this->beta2_meam[eltj] * invrej * rhoa2j;
+            rhoa3j = ro0j * fm_exp(-this->beta3_meam[eltj] * aj);
+            drhoa3j = -this->beta3_meam[eltj] * invrej * rhoa3j;
           } else {
             rhoa0j = rhoa0i;
             drhoa0j = drhoa0i;
@@ -184,19 +175,19 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
             drhoa3j = drhoa3i;
           }
 
-          if (meam_data.ialloy == 1) {
-            rhoa1j = rhoa1j * meam_data.t1_meam[eltj];
-            rhoa2j = rhoa2j * meam_data.t2_meam[eltj];
-            rhoa3j = rhoa3j * meam_data.t3_meam[eltj];
-            rhoa1i = rhoa1i * meam_data.t1_meam[elti];
-            rhoa2i = rhoa2i * meam_data.t2_meam[elti];
-            rhoa3i = rhoa3i * meam_data.t3_meam[elti];
-            drhoa1j = drhoa1j * meam_data.t1_meam[eltj];
-            drhoa2j = drhoa2j * meam_data.t2_meam[eltj];
-            drhoa3j = drhoa3j * meam_data.t3_meam[eltj];
-            drhoa1i = drhoa1i * meam_data.t1_meam[elti];
-            drhoa2i = drhoa2i * meam_data.t2_meam[elti];
-            drhoa3i = drhoa3i * meam_data.t3_meam[elti];
+          if (this->ialloy == 1) {
+            rhoa1j = rhoa1j * this->t1_meam[eltj];
+            rhoa2j = rhoa2j * this->t2_meam[eltj];
+            rhoa3j = rhoa3j * this->t3_meam[eltj];
+            rhoa1i = rhoa1i * this->t1_meam[elti];
+            rhoa2i = rhoa2i * this->t2_meam[elti];
+            rhoa3i = rhoa3i * this->t3_meam[elti];
+            drhoa1j = drhoa1j * this->t1_meam[eltj];
+            drhoa2j = drhoa2j * this->t2_meam[eltj];
+            drhoa3j = drhoa3j * this->t3_meam[eltj];
+            drhoa1i = drhoa1i * this->t1_meam[elti];
+            drhoa2i = drhoa2i * this->t2_meam[elti];
+            drhoa3i = drhoa3i * this->t3_meam[elti];
           }
 
           nv2 = 1;
@@ -212,12 +203,12 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
           for (n = 1; n <= 3; n++) {
             for (p = n; p <= 3; p++) {
               for (q = p; q <= 3; q++) {
-                arg = delij[n] * delij[p] * delij[q] * meam_data.v3D[nv3];
+                arg = delij[n] * delij[p] * delij[q] * this->v3D[nv3];
                 arg1i3 = arg1i3 + arr2v(Arho3, nv3, i) * arg;
                 arg1j3 = arg1j3 - arr2v(Arho3, nv3, j) * arg;
                 nv3 = nv3 + 1;
               }
-              arg = delij[n] * delij[p] * meam_data.v2D[nv2];
+              arg = delij[n] * delij[p] * this->v2D[nv2];
               arg1i2 = arg1i2 + arr2v(Arho2, nv2, i) * arg;
               arg1j2 = arg1j2 + arr2v(Arho2, nv2, j) * arg;
               nv2 = nv2 + 1;
@@ -254,9 +245,9 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
             drho2drm2[m] = 0.0;
             for (n = 1; n <= 3; n++) {
               drho2drm1[m] = drho2drm1[m] +
-                             arr2v(Arho2, meam_data.vind2D[m][n], i) * delij[n];
+                             arr2v(Arho2, this->vind2D[m][n], i) * delij[n];
               drho2drm2[m] = drho2drm2[m] -
-                             arr2v(Arho2, meam_data.vind2D[m][n], j) * delij[n];
+                             arr2v(Arho2, this->vind2D[m][n], j) * delij[n];
             }
             drho2drm1[m] = a2 * rhoa2j * drho2drm1[m];
             drho2drm2[m] = -a2 * rhoa2i * drho2drm2[m];
@@ -278,11 +269,11 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
             nv2 = 1;
             for (n = 1; n <= 3; n++) {
               for (p = n; p <= 3; p++) {
-                arg = delij[n] * delij[p] * meam_data.v2D[nv2];
+                arg = delij[n] * delij[p] * this->v2D[nv2];
                 drho3drm1[m] = drho3drm1[m] +
-                               arr2v(Arho3, meam_data.vind3D[m][n][p], i) * arg;
+                               arr2v(Arho3, this->vind3D[m][n][p], i) * arg;
                 drho3drm2[m] = drho3drm2[m] +
-                               arr2v(Arho3, meam_data.vind3D[m][n][p], j) * arg;
+                               arr2v(Arho3, this->vind3D[m][n][p], j) * arg;
                 nv2 = nv2 + 1;
               }
             }
@@ -300,7 +291,7 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
           t2j = arr2v(t_ave, 2, j);
           t3j = arr2v(t_ave, 3, j);
 
-          if (meam_data.ialloy == 1) {
+          if (this->ialloy == 1) {
 
             a1i = 0.0;
             a1j = 0.0;
@@ -321,20 +312,20 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
             if (!iszero(arr2v(tsq_ave, 3, j)))
               a3j = drhoa0i * sij / arr2v(tsq_ave, 3, j);
 
-            dt1dr1 = a1i * (meam_data.t1_meam[eltj] -
-                            t1i * pow(meam_data.t1_meam[eltj], 2));
-            dt1dr2 = a1j * (meam_data.t1_meam[elti] -
-                            t1j * pow(meam_data.t1_meam[elti], 2));
-            dt2dr1 = a2i * (meam_data.t2_meam[eltj] -
-                            t2i * pow(meam_data.t2_meam[eltj], 2));
-            dt2dr2 = a2j * (meam_data.t2_meam[elti] -
-                            t2j * pow(meam_data.t2_meam[elti], 2));
-            dt3dr1 = a3i * (meam_data.t3_meam[eltj] -
-                            t3i * pow(meam_data.t3_meam[eltj], 2));
-            dt3dr2 = a3j * (meam_data.t3_meam[elti] -
-                            t3j * pow(meam_data.t3_meam[elti], 2));
+            dt1dr1 = a1i * (this->t1_meam[eltj] -
+                            t1i * pow(this->t1_meam[eltj], 2));
+            dt1dr2 = a1j * (this->t1_meam[elti] -
+                            t1j * pow(this->t1_meam[elti], 2));
+            dt2dr1 = a2i * (this->t2_meam[eltj] -
+                            t2i * pow(this->t2_meam[eltj], 2));
+            dt2dr2 = a2j * (this->t2_meam[elti] -
+                            t2j * pow(this->t2_meam[elti], 2));
+            dt3dr1 = a3i * (this->t3_meam[eltj] -
+                            t3i * pow(this->t3_meam[eltj], 2));
+            dt3dr2 = a3j * (this->t3_meam[elti] -
+                            t3j * pow(this->t3_meam[elti], 2));
 
-          } else if (meam_data.ialloy == 2) {
+          } else if (this->ialloy == 2) {
 
             dt1dr1 = 0.0;
             dt1dr2 = 0.0;
@@ -352,17 +343,17 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
             if (!iszero(arr1v(rho0, j)))
               aj = drhoa0i * sij / arr1v(rho0, j);
 
-            dt1dr1 = ai * (meam_data.t1_meam[elti] - t1i);
-            dt1dr2 = aj * (meam_data.t1_meam[elti] - t1j);
-            dt2dr1 = ai * (meam_data.t2_meam[elti] - t2i);
-            dt2dr2 = aj * (meam_data.t2_meam[elti] - t2j);
-            dt3dr1 = ai * (meam_data.t3_meam[elti] - t3i);
-            dt3dr2 = aj * (meam_data.t3_meam[elti] - t3j);
+            dt1dr1 = ai * (this->t1_meam[elti] - t1i);
+            dt1dr2 = aj * (this->t1_meam[elti] - t1j);
+            dt2dr1 = ai * (this->t2_meam[elti] - t2i);
+            dt2dr2 = aj * (this->t2_meam[elti] - t2j);
+            dt3dr1 = ai * (this->t3_meam[elti] - t3i);
+            dt3dr2 = aj * (this->t3_meam[elti] - t3j);
           }
 
           //     Compute derivatives of total density wrt rij, sij and rij(3)
-          get_shpfcn(shpi, meam_data.lattce_meam[elti][elti]);
-          get_shpfcn(shpj, meam_data.lattce_meam[eltj][eltj]);
+          get_shpfcn(shpi, this->lattce_meam[elti][elti]);
+          get_shpfcn(shpj, this->lattce_meam[eltj][eltj]);
           drhodr1 =
             arr1v(dGamma1, i) * drho0dr1 +
             arr1v(dGamma2, i) * (dt1dr1 * arr1v(rho1, i) + t1i * drho1dr1 +
@@ -405,7 +396,7 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
             drho3ds1 = a3 * rhoa3j * arg1i3 - a3a * rhoa3j * arg3i3;
             drho3ds2 = a3 * rhoa3i * arg1j3 - a3a * rhoa3i * arg3j3;
 
-            if (meam_data.ialloy == 1) {
+            if (this->ialloy == 1) {
 
               a1i = 0.0;
               a1j = 0.0;
@@ -426,20 +417,20 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
               if (!iszero(arr2v(tsq_ave, 3, j)))
                 a3j = rhoa0i / arr2v(tsq_ave, 3, j);
 
-              dt1ds1 = a1i * (meam_data.t1_meam[eltj] -
-                              t1i * pow(meam_data.t1_meam[eltj], 2));
-              dt1ds2 = a1j * (meam_data.t1_meam[elti] -
-                              t1j * pow(meam_data.t1_meam[elti], 2));
-              dt2ds1 = a2i * (meam_data.t2_meam[eltj] -
-                              t2i * pow(meam_data.t2_meam[eltj], 2));
-              dt2ds2 = a2j * (meam_data.t2_meam[elti] -
-                              t2j * pow(meam_data.t2_meam[elti], 2));
-              dt3ds1 = a3i * (meam_data.t3_meam[eltj] -
-                              t3i * pow(meam_data.t3_meam[eltj], 2));
-              dt3ds2 = a3j * (meam_data.t3_meam[elti] -
-                              t3j * pow(meam_data.t3_meam[elti], 2));
+              dt1ds1 = a1i * (this->t1_meam[eltj] -
+                              t1i * pow(this->t1_meam[eltj], 2));
+              dt1ds2 = a1j * (this->t1_meam[elti] -
+                              t1j * pow(this->t1_meam[elti], 2));
+              dt2ds1 = a2i * (this->t2_meam[eltj] -
+                              t2i * pow(this->t2_meam[eltj], 2));
+              dt2ds2 = a2j * (this->t2_meam[elti] -
+                              t2j * pow(this->t2_meam[elti], 2));
+              dt3ds1 = a3i * (this->t3_meam[eltj] -
+                              t3i * pow(this->t3_meam[eltj], 2));
+              dt3ds2 = a3j * (this->t3_meam[elti] -
+                              t3j * pow(this->t3_meam[elti], 2));
 
-            } else if (meam_data.ialloy == 2) {
+            } else if (this->ialloy == 2) {
 
               dt1ds1 = 0.0;
               dt1ds2 = 0.0;
@@ -457,12 +448,12 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
               if (!iszero(arr1v(rho0, j)))
                 aj = rhoa0i / arr1v(rho0, j);
 
-              dt1ds1 = ai * (meam_data.t1_meam[eltj] - t1i);
-              dt1ds2 = aj * (meam_data.t1_meam[elti] - t1j);
-              dt2ds1 = ai * (meam_data.t2_meam[eltj] - t2i);
-              dt2ds2 = aj * (meam_data.t2_meam[elti] - t2j);
-              dt3ds1 = ai * (meam_data.t3_meam[eltj] - t3i);
-              dt3ds2 = aj * (meam_data.t3_meam[elti] - t3j);
+              dt1ds1 = ai * (this->t1_meam[eltj] - t1i);
+              dt1ds2 = aj * (this->t1_meam[elti] - t1j);
+              dt2ds1 = ai * (this->t2_meam[eltj] - t2i);
+              dt2ds2 = aj * (this->t2_meam[elti] - t2j);
+              dt3ds1 = ai * (this->t3_meam[eltj] - t3i);
+              dt3ds2 = aj * (this->t3_meam[elti] - t3j);
             }
 
             drhods1 =
@@ -601,5 +592,4 @@ meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
 
     //     else if elti=0, this is not a meam atom
   }
-}
 }

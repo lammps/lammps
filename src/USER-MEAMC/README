@@ -2,7 +2,7 @@ This package implements the MEAM/C potential as a LAMMPS pair style.
 
 +==============================================================================+
 
-This package is a translation of the MEAM package to native C. See
+This package is a translation of the MEAM package to native C++. See
 that package as well as the Fortran code distributed in lib/meam for
 the original sources and information.
 

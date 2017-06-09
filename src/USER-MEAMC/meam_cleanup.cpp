@@ -1,17 +1,15 @@
-extern "C" {
 #include "meam.h"
 
 void
-meam_cleanup_(void)
+MEAM::meam_cleanup_(void)
 {
 
-  deallocate(meam_data.phirar6);
-  deallocate(meam_data.phirar5);
-  deallocate(meam_data.phirar4);
-  deallocate(meam_data.phirar3);
-  deallocate(meam_data.phirar2);
-  deallocate(meam_data.phirar1);
-  deallocate(meam_data.phirar);
-  deallocate(meam_data.phir);
-}
+  meam_deallocate(this->phirar6);
+  meam_deallocate(this->phirar5);
+  meam_deallocate(this->phirar4);
+  meam_deallocate(this->phirar3);
+  meam_deallocate(this->phirar2);
+  meam_deallocate(this->phirar1);
+  meam_deallocate(this->phirar);
+  meam_deallocate(this->phir);
 }

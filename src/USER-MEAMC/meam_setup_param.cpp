@@ -1,10 +1,9 @@
-extern "C" {
 #include "meam.h"
 
 //
 //     do a sanity check on index parameters
 void
-meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr)
+MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr)
 {
   //: idx[0..2]
   *ierr = 0;
@@ -58,7 +57,7 @@ meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr)
 //     20 = bkgd_dyn
 
 void
-meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
+MEAM::meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
                   int* index /*index(3)*/, int* errorflag)
 {
   //: index[0..2]
@@ -74,7 +73,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.Ec_meam[index[0]][index[1]] = value;
+      this->Ec_meam[index[0]][index[1]] = value;
       break;
 
     //     1 = alpha_meam
@@ -82,7 +81,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.alpha_meam[index[0]][index[1]] = value;
+      this->alpha_meam[index[0]][index[1]] = value;
       break;
 
     //     2 = rho0_meam
@@ -90,7 +89,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(1, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.rho0_meam[index[0]] = value;
+      this->rho0_meam[index[0]] = value;
       break;
 
     //     3 = delta_meam
@@ -98,7 +97,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.delta_meam[index[0]][index[1]] = value;
+      this->delta_meam[index[0]][index[1]] = value;
       break;
 
     //     4 = lattce_meam
@@ -109,23 +108,23 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       val = (int)value;
 
       if (val == 0)
-        meam_data.lattce_meam[index[0]][index[1]] = FCC;
+        this->lattce_meam[index[0]][index[1]] = FCC;
       else if (val == 1)
-        meam_data.lattce_meam[index[0]][index[1]] = BCC;
+        this->lattce_meam[index[0]][index[1]] = BCC;
       else if (val == 2)
-        meam_data.lattce_meam[index[0]][index[1]] = HCP;
+        this->lattce_meam[index[0]][index[1]] = HCP;
       else if (val == 3)
-        meam_data.lattce_meam[index[0]][index[1]] = DIM;
+        this->lattce_meam[index[0]][index[1]] = DIM;
       else if (val == 4)
-        meam_data.lattce_meam[index[0]][index[1]] = DIA;
+        this->lattce_meam[index[0]][index[1]] = DIA;
       else if (val == 5)
-        meam_data.lattce_meam[index[0]][index[1]] = B1;
+        this->lattce_meam[index[0]][index[1]] = B1;
       else if (val == 6)
-        meam_data.lattce_meam[index[0]][index[1]] = C11;
+        this->lattce_meam[index[0]][index[1]] = C11;
       else if (val == 7)
-        meam_data.lattce_meam[index[0]][index[1]] = L12;
+        this->lattce_meam[index[0]][index[1]] = L12;
       else if (val == 8)
-        meam_data.lattce_meam[index[0]][index[1]] = B2;
+        this->lattce_meam[index[0]][index[1]] = B2;
       break;
 
     //     5 = attrac_meam
@@ -133,7 +132,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.attrac_meam[index[0]][index[1]] = value;
+      this->attrac_meam[index[0]][index[1]] = value;
       break;
 
     //     6 = repuls_meam
@@ -141,7 +140,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.repuls_meam[index[0]][index[1]] = value;
+      this->repuls_meam[index[0]][index[1]] = value;
       break;
 
     //     7 = nn2_meam
@@ -151,7 +150,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
         return;
       i1 = min(index[0], index[1]);
       i2 = max(index[0], index[1]);
-      meam_data.nn2_meam[i1][i2] = (int)value;
+      this->nn2_meam[i1][i2] = (int)value;
       break;
 
     //     8 = Cmin_meam
@@ -159,7 +158,7 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(3, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.Cmin_meam[index[0]][index[1]][index[2]] = value;
+      this->Cmin_meam[index[0]][index[1]][index[2]] = value;
       break;
 
     //     9 = Cmax_meam
@@ -167,27 +166,27 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(3, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.Cmax_meam[index[0]][index[1]][index[2]] = value;
+      this->Cmax_meam[index[0]][index[1]][index[2]] = value;
       break;
 
     //     10 = rc_meam
     case 10:
-      meam_data.rc_meam = value;
+      this->rc_meam = value;
       break;
 
     //     11 = delr_meam
     case 11:
-      meam_data.delr_meam = value;
+      this->delr_meam = value;
       break;
 
     //     12 = augt1
     case 12:
-      meam_data.augt1 = (int)value;
+      this->augt1 = (int)value;
       break;
 
     //     13 = gsmooth
     case 13:
-      meam_data.gsmooth_factor = value;
+      this->gsmooth_factor = value;
       break;
 
     //     14 = re_meam
@@ -195,22 +194,22 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      meam_data.re_meam[index[0]][index[1]] = value;
+      this->re_meam[index[0]][index[1]] = value;
       break;
 
     //     15 = ialloy
     case 15:
-      meam_data.ialloy = (int)value;
+      this->ialloy = (int)value;
       break;
 
     //     16 = mixture_ref_t
     case 16:
-      meam_data.mix_ref_t = (int)value;
+      this->mix_ref_t = (int)value;
       break;
 
     //     17 = erose_form
     case 17:
-      meam_data.erose_form = (int)value;
+      this->erose_form = (int)value;
       break;
 
     //     18 = zbl_meam
@@ -220,21 +219,20 @@ meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
         return;
       i1 = min(index[0], index[1]);
       i2 = max(index[0], index[1]);
-      meam_data.zbl_meam[i1][i2] = (int)value;
+      this->zbl_meam[i1][i2] = (int)value;
       break;
 
     //     19 = emb_lin_neg
     case 19:
-      meam_data.emb_lin_neg = (int)value;
+      this->emb_lin_neg = (int)value;
       break;
 
     //     20 = bkgd_dyn
     case 20:
-      meam_data.bkgd_dyn = (int)value;
+      this->bkgd_dyn = (int)value;
       break;
 
     default:
       *errorflag = 1;
   }
-}
 }

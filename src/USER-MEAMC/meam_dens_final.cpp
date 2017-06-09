@@ -1,14 +1,5 @@
-extern "C" {
 #include "meam.h"
 #include <math.h>
-
-void G_gam(double Gamma, int ibar, double gsmooth_factor, double* G,
-           int* errorflag);
-void dG_gam(double Gamma, int ibar, double gsmooth_factor, double* G,
-            double* dG);
-
-// in meam_setup_done
-void get_shpfcn(double* s /* s(3) */, lattice_t latt);
 
 // Extern "C" declaration has the form:
 //
@@ -28,7 +19,7 @@ void get_shpfcn(double* s /* s(3) */, lattice_t latt);
 //
 
 void
-meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
+MEAM::meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
                  int* eflag_atom, double* eng_vdwl, double* eatom, int* ntype,
                  int* type, int* fmap, double* Arho1, double* Arho2,
                  double* Arho2b, double* Arho3, double* Arho3b, double* t_ave,
@@ -67,23 +58,23 @@ meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
       for (m = 1; m <= 6; m++) {
         arr1v(rho2, i) =
           arr1v(rho2, i) +
-          meam_data.v2D[m] * arr2v(Arho2, m, i) * arr2v(Arho2, m, i);
+          this->v2D[m] * arr2v(Arho2, m, i) * arr2v(Arho2, m, i);
       }
       for (m = 1; m <= 10; m++) {
         arr1v(rho3, i) =
           arr1v(rho3, i) +
-          meam_data.v3D[m] * arr2v(Arho3, m, i) * arr2v(Arho3, m, i);
+          this->v3D[m] * arr2v(Arho3, m, i) * arr2v(Arho3, m, i);
       }
 
       if (arr1v(rho0, i) > 0.0) {
-        if (meam_data.ialloy == 1) {
+        if (this->ialloy == 1) {
           arr2v(t_ave, 1, i) = arr2v(t_ave, 1, i) / arr2v(tsq_ave, 1, i);
           arr2v(t_ave, 2, i) = arr2v(t_ave, 2, i) / arr2v(tsq_ave, 2, i);
           arr2v(t_ave, 3, i) = arr2v(t_ave, 3, i) / arr2v(tsq_ave, 3, i);
-        } else if (meam_data.ialloy == 2) {
-          arr2v(t_ave, 1, i) = meam_data.t1_meam[elti];
-          arr2v(t_ave, 2, i) = meam_data.t2_meam[elti];
-          arr2v(t_ave, 3, i) = meam_data.t3_meam[elti];
+        } else if (this->ialloy == 2) {
+          arr2v(t_ave, 1, i) = this->t1_meam[elti];
+          arr2v(t_ave, 2, i) = this->t2_meam[elti];
+          arr2v(t_ave, 3, i) = this->t3_meam[elti];
         } else {
           arr2v(t_ave, 1, i) = arr2v(t_ave, 1, i) / arr1v(rho0, i);
           arr2v(t_ave, 2, i) = arr2v(t_ave, 2, i) / arr1v(rho0, i);
@@ -99,56 +90,56 @@ meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
         arr1v(Gamma, i) = arr1v(Gamma, i) / (arr1v(rho0, i) * arr1v(rho0, i));
       }
 
-      Z = meam_data.Z_meam[elti];
+      Z = this->Z_meam[elti];
 
-      G_gam(arr1v(Gamma, i), meam_data.ibar_meam[elti],
-            meam_data.gsmooth_factor, &G, errorflag);
+      G_gam(arr1v(Gamma, i), this->ibar_meam[elti],
+            this->gsmooth_factor, &G, errorflag);
       if (*errorflag != 0)
         return;
-      get_shpfcn(shp, meam_data.lattce_meam[elti][elti]);
-      if (meam_data.ibar_meam[elti] <= 0) {
+      get_shpfcn(shp, this->lattce_meam[elti][elti]);
+      if (this->ibar_meam[elti] <= 0) {
         Gbar = 1.0;
         dGbar = 0.0;
       } else {
-        if (meam_data.mix_ref_t == 1) {
+        if (this->mix_ref_t == 1) {
           gam = (arr2v(t_ave, 1, i) * shp[1] + arr2v(t_ave, 2, i) * shp[2] +
                  arr2v(t_ave, 3, i) * shp[3]) /
                 (Z * Z);
         } else {
-          gam = (meam_data.t1_meam[elti] * shp[1] +
-                 meam_data.t2_meam[elti] * shp[2] +
-                 meam_data.t3_meam[elti] * shp[3]) /
+          gam = (this->t1_meam[elti] * shp[1] +
+                 this->t2_meam[elti] * shp[2] +
+                 this->t3_meam[elti] * shp[3]) /
                 (Z * Z);
         }
-        G_gam(gam, meam_data.ibar_meam[elti], meam_data.gsmooth_factor, &Gbar,
+        G_gam(gam, this->ibar_meam[elti], this->gsmooth_factor, &Gbar,
               errorflag);
       }
       arr1v(rho, i) = arr1v(rho0, i) * G;
 
-      if (meam_data.mix_ref_t == 1) {
-        if (meam_data.ibar_meam[elti] <= 0) {
+      if (this->mix_ref_t == 1) {
+        if (this->ibar_meam[elti] <= 0) {
           Gbar = 1.0;
           dGbar = 0.0;
         } else {
           gam = (arr2v(t_ave, 1, i) * shp[1] + arr2v(t_ave, 2, i) * shp[2] +
                  arr2v(t_ave, 3, i) * shp[3]) /
                 (Z * Z);
-          dG_gam(gam, meam_data.ibar_meam[elti], meam_data.gsmooth_factor,
+          dG_gam(gam, this->ibar_meam[elti], this->gsmooth_factor,
                  &Gbar, &dGbar);
         }
-        rho_bkgd = meam_data.rho0_meam[elti] * Z * Gbar;
+        rho_bkgd = this->rho0_meam[elti] * Z * Gbar;
       } else {
-        if (meam_data.bkgd_dyn == 1) {
-          rho_bkgd = meam_data.rho0_meam[elti] * Z;
+        if (this->bkgd_dyn == 1) {
+          rho_bkgd = this->rho0_meam[elti] * Z;
         } else {
-          rho_bkgd = meam_data.rho_ref_meam[elti];
+          rho_bkgd = this->rho_ref_meam[elti];
         }
       }
       rhob = arr1v(rho, i) / rho_bkgd;
       denom = 1.0 / rho_bkgd;
 
-      dG_gam(arr1v(Gamma, i), meam_data.ibar_meam[elti],
-             meam_data.gsmooth_factor, &G, &dG);
+      dG_gam(arr1v(Gamma, i), this->ibar_meam[elti],
+             this->gsmooth_factor, &G, &dG);
 
       arr1v(dGamma1, i) = (G - 2 * dG * arr1v(Gamma, i)) * denom;
 
@@ -161,30 +152,30 @@ meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
       //     dGamma3 is nonzero only if we are using the "mixed" rule for
       //     computing t in the reference system (which is not correct, but
       //     included for backward compatibility
-      if (meam_data.mix_ref_t == 1) {
+      if (this->mix_ref_t == 1) {
         arr1v(dGamma3, i) = arr1v(rho0, i) * G * dGbar / (Gbar * Z * Z) * denom;
       } else {
         arr1v(dGamma3, i) = 0.0;
       }
 
-      B = meam_data.A_meam[elti] * meam_data.Ec_meam[elti][elti];
+      B = this->A_meam[elti] * this->Ec_meam[elti][elti];
 
       if (!iszero(rhob)) {
-        if (meam_data.emb_lin_neg == 1 && rhob <= 0) {
+        if (this->emb_lin_neg == 1 && rhob <= 0) {
           arr1v(fp, i) = -B;
         } else {
           arr1v(fp, i) = B * (log(rhob) + 1.0);
         }
         if (*eflag_either != 0) {
           if (*eflag_global != 0) {
-            if (meam_data.emb_lin_neg == 1 && rhob <= 0) {
+            if (this->emb_lin_neg == 1 && rhob <= 0) {
               *eng_vdwl = *eng_vdwl - B * rhob;
             } else {
               *eng_vdwl = *eng_vdwl + B * rhob * log(rhob);
             }
           }
           if (*eflag_atom != 0) {
-            if (meam_data.emb_lin_neg == 1 && rhob <= 0) {
+            if (this->emb_lin_neg == 1 && rhob <= 0) {
               arr1v(eatom, i) = arr1v(eatom, i) - B * rhob;
             } else {
               arr1v(eatom, i) = arr1v(eatom, i) + B * rhob * log(rhob);
@@ -192,7 +183,7 @@ meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
           }
         }
       } else {
-        if (meam_data.emb_lin_neg == 1) {
+        if (this->emb_lin_neg == 1) {
           arr1v(fp, i) = -B;
         } else {
           arr1v(fp, i) = B;
@@ -205,7 +196,7 @@ meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-G_gam(double Gamma, int ibar, double gsmooth_factor, double* G, int* errorflag)
+MEAM::G_gam(double Gamma, int ibar, double gsmooth_factor, double* G, int* errorflag)
 {
   //     Compute G(Gamma) based on selection flag ibar:
   //   0 => G = sqrt(1+Gamma)
@@ -246,7 +237,7 @@ G_gam(double Gamma, int ibar, double gsmooth_factor, double* G, int* errorflag)
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-dG_gam(double Gamma, int ibar, double gsmooth_factor, double* G, double* dG)
+MEAM::dG_gam(double Gamma, int ibar, double gsmooth_factor, double* G, double* dG)
 {
   // Compute G(Gamma) and dG(gamma) based on selection flag ibar:
   //   0 => G = sqrt(1+Gamma)
@@ -289,4 +280,3 @@ dG_gam(double Gamma, int ibar, double gsmooth_factor, double* G, double* dG)
 }
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-}

@@ -20,41 +20,8 @@ PairStyle(meam/c,PairMEAMC)
 #ifndef LMP_PAIR_MEAMC_H
 #define LMP_PAIR_MEAMC_H
 
-extern "C" {
-  void meam_setup_global_(int *, int *, double *, int *, double *, double *,
-                         double *, double *, double *, double *, double *,
-                         double *, double *, double *, double *, double *,
-                         double *, double *, int *);
-  void meam_setup_param_(int *, double *, int *, int *, int *);
-  void meam_setup_done_(double *);
-
-  void meam_dens_init_(int *, int *, int *, int *, int *,
-                       double *, int *, int *, int *, int *,
-                       double *, double *, double *, double *,
-                       double *, double *,
-                       double *, double *, double *, double *, double *,
-                       int *);
-
-  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
-                        int *, int *, int *,
-                        double *, double *, double *, double *,
-                        double *, double *, double *,
-                        double *, double *, double *, double *,
-                        double *, double *,
-                        double *, double *, double *, double *, int *);
-
-  void meam_force_(int *, int *, int *, int *, int *, int *,
-                   double *, double *, int *, int *, int *,
-                   double *, int *, int *, int *, int *, double *, double *,
-                   double *, double *, double *, double *, double *, double *,
-                   double *, double *, double *, double *, double *, double *,
-                   double *, double *, double *, double *, double *, double *, int *);
-
-  void meam_cleanup_();
-}
-
-
 #include "pair.h"
+#include "meam.h"
 
 namespace LAMMPS_NS {
 
@@ -76,6 +43,7 @@ class PairMEAMC : public Pair {
   double memory_usage();
 
  private:
+  MEAM meam_inst;
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

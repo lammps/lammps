@@ -73,11 +73,11 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
   FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0)
 {
   kokkosable = 1;
-//  atomKK = (AtomKokkos *) atom;
-//  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK = (AtomKokkos *) atom;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-//  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK;
-//  datamask_modify = Q_MASK | X_MASK;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 
   if (narg != 3) error->all(FLERR,"Illegal fix shardlow command");
 
@@ -167,6 +167,7 @@ void FixShardlowKokkos<DeviceType>::init()
 //FIXME either create cutsq and fill it in, or just point to pairDPD's...
 //  memory->destroy(cutsq); //FIXME
 //  memory->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"FixShardlowKokkos:cutsq");
+  k_pairDPDE->k_cutsq.template sync<DeviceType>();
   d_cutsq = k_pairDPDE->k_cutsq.template view<DeviceType>(); //FIXME
 
   const double boltz2 = 2.0*force->boltz;
@@ -288,10 +289,6 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
   rand_type rand_gen = rand_pool.get_state(id);
 #endif
 
-  const double theta_ij_inv = 1.0/k_pairDPD->temperature; // independent of i,j
-  const double boltz_inv = 1.0/force->boltz;
-  const double ftm2v = force->ftm2v;
-  const double dt     = update->dt;
   int ct = count;
   int ii = start_ii;
 
@@ -677,20 +674,24 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   deep_copy(d_hist, h_hist);
 #endif
 
+  //theta_ij_inv = 1.0/k_pairDPD->temperature; // independent of i,j
   boltz_inv = 1.0/force->boltz;
   ftm2v = force->ftm2v;
   dt     = update->dt;
 
+  k_params.template sync<DeviceType>();
+
   // process neighbors in the local AIR
+  atomKK->sync(execution_space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
   for (workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
     int workItemCt = h_ssa_phaseLen[workPhase];
-
 
     if(atom->ntypes > MAX_TYPES_STACKPARAMS)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDE<false> >(0,workItemCt),*this);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDE<true> >(0,workItemCt),*this);
   }
+  atomKK->modified(execution_space,V_MASK | UCOND_MASK | UMECH_MASK);
 
   //Loop over all 13 outward directions (7 stages)
   for (workPhase = 0; workPhase < ssa_gphaseCt; ++workPhase) {
@@ -698,7 +699,9 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
     int workItemCt = h_ssa_gphaseLen[workPhase];
 
     // Communicate the updated velocities to all nodes
+    atomKK->sync(Host,V_MASK);
     comm->forward_comm_fix(this);
+    atomKK->modified(Host,V_MASK);
 
     if(k_pairDPDE){
       // Zero out the ghosts' uCond & uMech to be used as delta accumulators
@@ -706,6 +709,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 //      memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
 
       // must capture local variables, not class variables
+      atomKK->sync(execution_space,UCOND_MASK | UMECH_MASK);
       auto l_uCond = uCond;
       auto l_uMech = uMech;
       Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
@@ -713,16 +717,21 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
         l_uMech(i) = 0.0;
       });
       DeviceType::fence();
+      atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK);
     }
 
     // process neighbors in this AIR
+    atomKK->sync(execution_space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
     if(atom->ntypes > MAX_TYPES_STACKPARAMS)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDEGhost<false> >(0,workItemCt),*this);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDEGhost<true> >(0,workItemCt),*this);
+    atomKK->modified(execution_space,V_MASK | UCOND_MASK | UMECH_MASK);
 
     // Communicate the ghost deltas to the atom owners
+    atomKK->sync(Host,V_MASK | UCOND_MASK | UMECH_MASK);
     comm->reverse_comm_fix(this);
+    atomKK->modified(Host,V_MASK | UCOND_MASK | UMECH_MASK);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 

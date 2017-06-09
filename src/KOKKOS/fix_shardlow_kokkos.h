@@ -83,7 +83,7 @@ class FixShardlowKokkos : public FixShardlow {
 
  protected:
   int workPhase;
-  double boltz_inv,ftm2v,dt;
+  double theta_ij_inv,boltz_inv,ftm2v,dt;
 
 //  class PairDPDfdt *pairDPD;
   PairDPDfdtEnergyKokkos<DeviceType> *k_pairDPDE;

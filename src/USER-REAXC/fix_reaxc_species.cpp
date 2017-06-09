@@ -298,10 +298,7 @@ void FixReaxCSpecies::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use fix reax/c/species unless atoms have IDs");
 
-  reaxc = (PairReaxC *) force->pair_match("reax/c",1);
-  if (reaxc == NULL)
-    reaxc = (PairReaxC *) force->pair_match("reax/c/kk",1);
-
+  reaxc = (PairReaxC *) force->pair_match("reax/c",0);
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/species without "
 		  "pair_style reax/c");
 

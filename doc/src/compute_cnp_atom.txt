@@ -29,9 +29,9 @@ around an atom and can be used to characterize whether the
 atom is part of a perfect lattice, a local defect (e.g. a dislocation
 or stacking fault), or at a surface.
 
-The value of the CNP parameter will be 0.0 for atoms not
-in the specified compute group.  Note that normally a CNP calculation should only be
-performed on mono-component systems.
+The value of the CNP parameter will be 0.0 for atoms not in the
+specified compute group.  Note that normally a CNP calculation should
+only be performed on single component systems.
 
 This parameter is computed using the following formula from
 "(Tsuzuki)"_#Tsuzuki2

@@ -117,7 +117,7 @@ void ComputeCNPAtom::compute_peratom()
   int i,j,k,ii,jj,kk,m,n,inum,jnum,inear,jnear;
   int firstflag,ncommon;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int cnp[MAXNEAR][4],onenearest[MAXNEAR];
+  int onenearest[MAXNEAR];
   int common[MAXCOMMON];
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double xjtmp,yjtmp,zjtmp,rjkx,rjky,rjkz;
@@ -204,8 +204,12 @@ void ComputeCNPAtom::compute_peratom()
     ytmp = x[i][1];
     ztmp = x[i][2];
     // reset cnpv
-   	cnpv[i] = 0.0;
-   	  
+    cnpv[i] = 0.0;
+
+    // skip computation of cnpv for atoms outside the compute group
+
+    if (!(mask[i] & groupbit)) continue;
+
     // loop over nearest neighbors of I to build cnp data structure
     //  cnp[k][NCOMMON] = # of common neighbors of I with each of its neighbors
     for (m = 0; m < nnearest[i]; m++) {
@@ -265,12 +269,12 @@ void ComputeCNPAtom::compute_peratom()
                 firstflag = 0;
               }
             }
-      }  
-      
+      }
+
       // Calculate and update sum |Rik+Rjk|ˆ2
       rjkx = 0.0;
       rjky = 0.0;
-      rjkz = 0.0;        
+      rjkz = 0.0;
       for (kk = 0; kk < ncommon; kk++) {
         k = common[kk];
         rjkx += 2.0*x[k][0] - xjtmp - xtmp;
@@ -279,16 +283,16 @@ void ComputeCNPAtom::compute_peratom()
       }
       // update cnpv with summed (valuejk)
       cnpv[i] += rjkx*rjkx + rjky*rjky + rjkz*rjkz;
-    
+
     // end of loop over j atoms
     }
-    
+
     // normalize cnp by the number of nearest neighbors
     cnpv[i] = cnpv[i] / nnearest[i];
 
   // end of loop over i atoms
-  }     
-  
+  }
+
   // warning message
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
   if (nerrorall && comm->me == 0) {

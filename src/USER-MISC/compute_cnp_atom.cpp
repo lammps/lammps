@@ -61,6 +61,22 @@ ComputeCNPAtom::ComputeCNPAtom(LAMMPS *lmp, int narg, char **arg) :
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute cnp/atom command");
   cutsq = cutoff*cutoff;
 
+  // apply check for single type atoms in compute group
+  int lasttype = -1;
+  int n = -1;
+  for (int i=0; i < atom->nlocal; ++i) {
+    if (atom->mask[i] & groupbit) {
+      if (lasttype != atom->type[i]) {
+        lasttype = atom->type[i];
+        ++n;
+      }
+    }
+  }
+  int all_n = 0;
+  MPI_Allreduce(&n,&all_n,1,MPI_INT,MPI_MAX,world);
+  if (all_n > 0)
+    error->warning(FLERR,"Compute cnp/atom requested on multi-type system");
+
   nmax = 0;
 }
 

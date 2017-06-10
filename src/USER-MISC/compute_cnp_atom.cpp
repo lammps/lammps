@@ -9,11 +9,11 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Common Neighbor Parameter as proposed in:
    Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007)
    Cite: http://dx.doi.org/10.1063/1.2197987
-   
+
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -79,7 +79,7 @@ void ComputeCNPAtom::init()
 {
   if (force->pair == NULL)
     error->all(FLERR,"Compute cnp/atom requires a pair style be defined");
-    
+
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,"Compute cnp/atom cutoff is longer than pairwise cutoff");
 

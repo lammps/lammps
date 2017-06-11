@@ -1,5 +1,6 @@
 #include "meam.h"
 #include <math.h>
+#include "math_special.h"
 
 using namespace LAMMPS_NS;
 // Extern "C" declaration has the form:
@@ -20,7 +21,7 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_dens_final_(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
+MEAM::meam_dens_final(int* nlocal, int* nmax, int* eflag_either, int* eflag_global,
                  int* eflag_atom, double* eng_vdwl, double* eatom, int* ntype,
                  int* type, int* fmap, double* Arho1, double* Arho2,
                  double* Arho2b, double* Arho3, double* Arho3b, double* t_ave,
@@ -221,7 +222,7 @@ MEAM::G_gam(double Gamma, int ibar, double gsmooth_factor, double* G, int* error
       *G = sqrt(1.0 + Gamma);
     }
   } else if (ibar == 1) {
-    *G = fm_exp(Gamma / 2.0);
+    *G = MathSpecial::fm_exp(Gamma / 2.0);
   } else if (ibar == 3) {
     *G = 2.0 / (1.0 + exp(-Gamma));
   } else if (ibar == -5) {
@@ -242,9 +243,9 @@ MEAM::dG_gam(double Gamma, int ibar, double gsmooth_factor, double* G, double* d
 {
   // Compute G(Gamma) and dG(gamma) based on selection flag ibar:
   //   0 => G = sqrt(1+Gamma)
-  //   1 => G = fm_exp(Gamma/2)
+  //   1 => G = MathSpecial::fm_exp(Gamma/2)
   //   2 => not implemented
-  //   3 => G = 2/(1+fm_exp(-Gamma))
+  //   3 => G = 2/(1+MathSpecial::fm_exp(-Gamma))
   //   4 => G = sqrt(1+Gamma)
   //  -5 => G = +-sqrt(abs(1+Gamma))
   double gsmooth_switchpoint;
@@ -264,10 +265,10 @@ MEAM::dG_gam(double Gamma, int ibar, double gsmooth_factor, double* G, double* d
       *dG = 1.0 / (2.0 * *G);
     }
   } else if (ibar == 1) {
-    *G = fm_exp(Gamma / 2.0);
+    *G = MathSpecial::fm_exp(Gamma / 2.0);
     *dG = *G / 2.0;
   } else if (ibar == 3) {
-    *G = 2.0 / (1.0 + fm_exp(-Gamma));
+    *G = 2.0 / (1.0 + MathSpecial::fm_exp(-Gamma));
     *dG = *G * (2.0 - *G) / 2;
   } else if (ibar == -5) {
     if ((1.0 + Gamma) >= 0) {

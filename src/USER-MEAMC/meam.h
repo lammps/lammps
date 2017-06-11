@@ -2,31 +2,25 @@
 #define LMP_MEAM_H
 
 #include <stdlib.h>
+#include "memory.h"
 
 #define maxelt 5
-
-extern "C" {
-    double fm_exp(double);
-}
 
 namespace LAMMPS_NS {
 
 typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
 
-struct allocatable_double_2d {
-  allocatable_double_2d() : dim1(0),dim2(0),ptr(0) {};
-  int dim1, dim2;
-  double* ptr;
-};
-
 class MEAM {
  public:
-  MEAM(){};
+  MEAM(Memory *mem) :
+    memory(mem) {};
 
   ~MEAM() {
-    meam_cleanup_();
+    meam_cleanup();
   }
  private:
+  Memory *&memory;
+
   // cutforce = force cutoff
   // cutforcesq = force cutoff squared
 
@@ -89,10 +83,10 @@ class MEAM {
   int eltind[maxelt + 1][maxelt + 1];
   int neltypes;
 
-  allocatable_double_2d phir; // [:,:]
+  double **phir;
 
-  allocatable_double_2d phirar, phirar1, phirar2, phirar3, phirar4, phirar5,
-    phirar6; // [:,:]
+  double **phirar, **phirar1, **phirar2, **phirar3, **phirar4, **phirar5,
+    **phirar6;
 
   double attrac_meam[maxelt + 1][maxelt + 1],
     repuls_meam[maxelt + 1][maxelt + 1];
@@ -108,13 +102,10 @@ class MEAM {
 
   int nr, nrar;
   double dr, rdrar;
- public:
+ protected:
   void meam_checkindex(int, int, int, int*, int*);
-  void meam_setup_param_(int*, double*, int*, int*, int*);
-  void meam_dens_final_(int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
   void G_gam(double, int, double, double*, int*);
   void dG_gam(double, int, double, double*, double*);
-  void meam_dens_init_(int*, int*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
   void getscreen(int, int, double*, double*, double*, double*, int, int*, int, int*, int, int*, int*);
   void screen(int, int, int, double*, double, double*, int, int*, int, int*, int*);
   void calc_rho1(int, int, int, int*, int*, double*, int, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*);
@@ -124,9 +115,6 @@ class MEAM {
   void dCfunc(double, double, double, double*);
   void dCfunc2(double, double, double, double*, double*);
 
-  void meam_force_(int*, int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-  void meam_cleanup_();
-  void meam_setup_done_(double*);
   void alloyparams();
   void compute_pair_meam();
   double phi_meam(double, int, int);
@@ -141,13 +129,17 @@ class MEAM {
   double erose(double, double, double, double, double, double, int);
   void interpolate_meam(int);
   double compute_phi(double, int, int);
-  void meam_setup_global_(int*, int*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-
+ public:
+  void meam_setup_global(int*, int*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_setup_param(int*, double*, int*, int*, int*);
+  void meam_setup_done(double*);
+  void meam_dens_init(int*, int*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_dens_final(int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_force(int*, int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_cleanup();
 };
 
 // Functions we need for compat
-#define MIN(A,B) ((A) < (B) ? (A) : (B))
-#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 #define iszero(f) (fabs(f) < 1e-20)
 
@@ -171,7 +163,7 @@ Fortran Array Semantics in C.
     - Multi-Dimensional MUST be declared in reverse, so that the order when accessing is the same as in Fortran
  - arrays that are passed externally via the meam_* functions must use the arr*v() functions below
    (or be used with 0-based indexing)
- - allocatable arrays (only global phir*) are actually a struct, and must be accessed with arr2()
+ - allocatable arrays must be accessed with arr2()
 */
 
 // we receive a pointer to the first element, and F dimensions is ptr(a,b,c)
@@ -194,19 +186,9 @@ Fortran Array Semantics in C.
   ptr[(i - 1) + (j - 1) * (DIM1__##ptr) +                                      \
       (k - 1) * (DIM1__##ptr) * (DIM2__##ptr)]
 
-// allocatable arrays via special type
-#define allocate_2d(arr, cols, rows)                                           \
-  arr.dim1 = cols;                                                             \
-  arr.dim2 = rows;                                                             \
-  arr.ptr = (double*)calloc((size_t)(cols) * (size_t)(rows), sizeof(double));
-#define allocated(a) (a.ptr != NULL)
-#define meam_deallocate(a)                                                     \
-  ({                                                                           \
-    free(a.ptr);                                                               \
-    a.ptr = NULL;                                                              \
-  })
+// allocatable arrays
 // access data with same index as used in fortran (1-based)
-#define arr2(arr, i, j) arr.ptr[(arr.dim1) * (j - 1) + (i - 1)]
+#define arr2(arr, i, j) arr[j-1][i-1]
 
 };
 

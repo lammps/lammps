@@ -1,4 +1,5 @@
 #include "meam.h"
+#include <algorithm>
 using namespace LAMMPS_NS;
 
 //
@@ -58,7 +59,7 @@ MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr
 //     20 = bkgd_dyn
 
 void
-MEAM::meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
+MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
                   int* index /*index(3)*/, int* errorflag)
 {
   //: index[0..2]
@@ -149,8 +150,8 @@ MEAM::meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      i1 = MIN(index[0], index[1]);
-      i2 = MAX(index[0], index[1]);
+      i1 = std::min(index[0], index[1]);
+      i2 = std::max(index[0], index[1]);
       this->nn2_meam[i1][i2] = (int)value;
       break;
 
@@ -218,8 +219,8 @@ MEAM::meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      i1 = MIN(index[0], index[1]);
-      i2 = MAX(index[0], index[1]);
+      i1 = std::min(index[0], index[1]);
+      i2 = std::max(index[0], index[1]);
       this->zbl_meam[i1][i2] = (int)value;
       break;
 

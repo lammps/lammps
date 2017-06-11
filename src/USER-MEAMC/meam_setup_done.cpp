@@ -1,5 +1,7 @@
 #include "meam.h"
 #include <math.h>
+#include <algorithm>
+#include "math_special.h"
 using namespace LAMMPS_NS;
 
 // Declaration in pair_meam.h:
@@ -12,7 +14,7 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_setup_done_(double* cutmax)
+MEAM::meam_setup_done(double* cutmax)
 {
   int nv2, nv3, m, n, p;
 
@@ -160,7 +162,7 @@ MEAM::alloyparams(void)
       for (k = 1; k <= this->neltypes; k++) {
         eb = (this->Cmax_meam[i][j][k] * this->Cmax_meam[i][j][k]) /
              (4.0 * (this->Cmax_meam[i][j][k] - 1.0));
-        this->ebound_meam[i][j] = MAX(this->ebound_meam[i][j], eb);
+        this->ebound_meam[i][j] = std::max(this->ebound_meam[i][j], eb);
       }
     }
   }
@@ -183,43 +185,51 @@ MEAM::compute_pair_meam(void)
   double C, s111, s112, s221, S11, S22;
 
   // check for previously allocated arrays and free them
-  if (allocated(this->phir))
-    meam_deallocate(this->phir);
-  if (allocated(this->phirar))
-    meam_deallocate(this->phirar);
-  if (allocated(this->phirar1))
-    meam_deallocate(this->phirar1);
-  if (allocated(this->phirar2))
-    meam_deallocate(this->phirar2);
-  if (allocated(this->phirar3))
-    meam_deallocate(this->phirar3);
-  if (allocated(this->phirar4))
-    meam_deallocate(this->phirar4);
-  if (allocated(this->phirar5))
-    meam_deallocate(this->phirar5);
-  if (allocated(this->phirar6))
-    meam_deallocate(this->phirar6);
+  if (this->phir != NULL)
+    memory->destroy(this->phir);
+  if (this->phirar != NULL)
+    memory->destroy(this->phirar);
+  if (this->phirar1 != NULL)
+    memory->destroy(this->phirar1);
+  if (this->phirar2 != NULL)
+    memory->destroy(this->phirar2);
+  if (this->phirar3 != NULL)
+    memory->destroy(this->phirar3);
+  if (this->phirar4 != NULL)
+    memory->destroy(this->phirar4);
+  if (this->phirar5 != NULL)
+    memory->destroy(this->phirar5);
+  if (this->phirar6 != NULL)
+    memory->destroy(this->phirar6);
 
   // allocate memory for array that defines the potential
-  allocate_2d(this->phir, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
+  memory->create(this->phir, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phir");
 
   // allocate coeff memory
 
-  allocate_2d(this->phirar, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
-  allocate_2d(this->phirar1, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
-  allocate_2d(this->phirar2, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
-  allocate_2d(this->phirar3, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
-  allocate_2d(this->phirar4, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
-  allocate_2d(this->phirar5, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
-  allocate_2d(this->phirar6, this->nr,
-              (this->neltypes * (this->neltypes + 1)) / 2);
+  memory->create(this->phirar, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phirar");
+  memory->create(this->phirar1, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phirar1");
+  memory->create(this->phirar2, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phirar2");
+  memory->create(this->phirar3, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phirar3");
+  memory->create(this->phirar4, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phirar4");
+  memory->create(this->phirar5, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phirar5");
+  memory->create(this->phirar6, this->nr,
+              (this->neltypes * (this->neltypes + 1)) / 2,
+              "pair:phirar6");
 
   // loop over pairs of element types
   nv2 = 0;
@@ -600,7 +610,7 @@ MEAM::compute_reference_density(void)
       get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][a],
                this->Cmin_meam[a][a][a], this->Cmax_meam[a][a][a]);
       rho0_2nn =
-        this->rho0_meam[a] * fm_exp(-this->beta0_meam[a] * (arat - 1));
+        this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * (arat - 1));
       rho0 = rho0 + Z2 * rho0_2nn * scrn;
     }
 
@@ -667,8 +677,8 @@ MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av,
     } else {
       a1 = r / this->re_meam[a][a] - 1.0;
       a2 = r / this->re_meam[b][b] - 1.0;
-      rhoa01 = this->rho0_meam[a] * fm_exp(-this->beta0_meam[a] * a1);
-      rhoa02 = this->rho0_meam[b] * fm_exp(-this->beta0_meam[b] * a2);
+      rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
+      rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
       if (latt == L12) {
         rho01 = 8 * rhoa01 + 4 * rhoa02;
         *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
@@ -803,14 +813,14 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
   a1 = r / this->re_meam[a][a] - 1.0;
   a2 = r / this->re_meam[b][b] - 1.0;
 
-  rhoa01 = this->rho0_meam[a] * fm_exp(-this->beta0_meam[a] * a1);
-  rhoa11 = this->rho0_meam[a] * fm_exp(-this->beta1_meam[a] * a1);
-  rhoa21 = this->rho0_meam[a] * fm_exp(-this->beta2_meam[a] * a1);
-  rhoa31 = this->rho0_meam[a] * fm_exp(-this->beta3_meam[a] * a1);
-  rhoa02 = this->rho0_meam[b] * fm_exp(-this->beta0_meam[b] * a2);
-  rhoa12 = this->rho0_meam[b] * fm_exp(-this->beta1_meam[b] * a2);
-  rhoa22 = this->rho0_meam[b] * fm_exp(-this->beta2_meam[b] * a2);
-  rhoa32 = this->rho0_meam[b] * fm_exp(-this->beta3_meam[b] * a2);
+  rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
+  rhoa11 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
+  rhoa21 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
+  rhoa31 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
+  rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+  rhoa12 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta1_meam[b] * a2);
+  rhoa22 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
+  rhoa32 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
 
   lat = this->lattce_meam[a][b];
 
@@ -889,8 +899,8 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
     a1 = arat * r / this->re_meam[a][a] - 1.0;
     a2 = arat * r / this->re_meam[b][b] - 1.0;
 
-    rhoa01nn = this->rho0_meam[a] * fm_exp(-this->beta0_meam[a] * a1);
-    rhoa02nn = this->rho0_meam[b] * fm_exp(-this->beta0_meam[b] * a2);
+    rhoa01nn = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
+    rhoa02nn = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
 
     if (lat == L12) {
       //     As usual, L12 thinks it's special; we need to be careful computing
@@ -935,7 +945,7 @@ MEAM::zbl(double r, int z1, int z2)
   double result = 0.0;
   x = r / a;
   for (i = 0; i <= 3; i++) {
-    result = result + c[i] * fm_exp(-d[i] * x);
+    result = result + c[i] * MathSpecial::fm_exp(-d[i] * x);
   }
   if (r > 0.0)
     result = result * z1 * z2 / r * cc;
@@ -962,12 +972,12 @@ MEAM::erose(double r, double re, double alpha, double Ec, double repuls,
 
     if (form == 1)
       result = -Ec * (1 + astar + (-attrac + repuls / r) * pow(astar, 3)) *
-               fm_exp(-astar);
+               MathSpecial::fm_exp(-astar);
     else if (form == 2)
-      result = -Ec * (1 + astar + a3 * pow(astar, 3)) * fm_exp(-astar);
+      result = -Ec * (1 + astar + a3 * pow(astar, 3)) * MathSpecial::fm_exp(-astar);
     else
       result =
-        -Ec * (1 + astar + a3 * pow(astar, 3) / (r / re)) * fm_exp(-astar);
+        -Ec * (1 + astar + a3 * pow(astar, 3) / (r / re)) * MathSpecial::fm_exp(-astar);
   }
   return result;
 }
@@ -1042,9 +1052,9 @@ MEAM::compute_phi(double rij, int elti, int eltj)
   ind = this->eltind[elti][eltj];
   pp = rij * this->rdrar + 1.0;
   kk = (int)pp;
-  kk = MIN(kk, this->nrar - 1);
+  kk = std::min(kk, this->nrar - 1);
   pp = pp - kk;
-  pp = MIN(pp, 1.0);
+  pp = std::min(pp, 1.0);
   double result = ((arr2(this->phirar3, kk, ind) * pp +
                     arr2(this->phirar2, kk, ind)) *
                      pp +

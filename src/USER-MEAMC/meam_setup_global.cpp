@@ -18,7 +18,7 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_setup_global_(int* nelt, int* lat, double* z, int* ielement, double* atwt,
+MEAM::meam_setup_global(int* nelt, int* lat, double* z, int* ielement, double* atwt,
                    double* alpha, double* b0, double* b1, double* b2,
                    double* b3, double* alat, double* esub, double* asub,
                    double* t0, double* t1, double* t2, double* t3,

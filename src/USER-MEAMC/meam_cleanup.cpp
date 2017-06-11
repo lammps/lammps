@@ -3,15 +3,15 @@
 using namespace LAMMPS_NS;
 
 void
-MEAM::meam_cleanup_(void)
+MEAM::meam_cleanup(void)
 {
 
-  meam_deallocate(this->phirar6);
-  meam_deallocate(this->phirar5);
-  meam_deallocate(this->phirar4);
-  meam_deallocate(this->phirar3);
-  meam_deallocate(this->phirar2);
-  meam_deallocate(this->phirar1);
-  meam_deallocate(this->phirar);
-  meam_deallocate(this->phir);
+  memory->destroy(this->phirar6);
+  memory->destroy(this->phirar5);
+  memory->destroy(this->phirar4);
+  memory->destroy(this->phirar3);
+  memory->destroy(this->phirar2);
+  memory->destroy(this->phirar1);
+  memory->destroy(this->phirar);
+  memory->destroy(this->phir);
 }

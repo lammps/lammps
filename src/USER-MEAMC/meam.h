@@ -13,15 +13,16 @@ namespace LAMMPS_NS {
 
 typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
 
-typedef struct
-{
+struct allocatable_double_2d {
+  allocatable_double_2d() : dim1(0),dim2(0),ptr(0) {};
   int dim1, dim2;
   double* ptr;
-} allocatable_double_2d;
+};
 
 class MEAM {
  public:
-  MEAM() {};
+  MEAM(){};
+
   ~MEAM() {
     meam_cleanup_();
   }

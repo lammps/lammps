@@ -1,5 +1,6 @@
 #include "meam.h"
 #include <math.h>
+using namespace LAMMPS_NS;
 
 // Declaration in pair_meam.h:
 //
@@ -159,7 +160,7 @@ MEAM::alloyparams(void)
       for (k = 1; k <= this->neltypes; k++) {
         eb = (this->Cmax_meam[i][j][k] * this->Cmax_meam[i][j][k]) /
              (4.0 * (this->Cmax_meam[i][j][k] - 1.0));
-        this->ebound_meam[i][j] = max(this->ebound_meam[i][j], eb);
+        this->ebound_meam[i][j] = MAX(this->ebound_meam[i][j], eb);
       }
     }
   }
@@ -1041,9 +1042,9 @@ MEAM::compute_phi(double rij, int elti, int eltj)
   ind = this->eltind[elti][eltj];
   pp = rij * this->rdrar + 1.0;
   kk = (int)pp;
-  kk = min(kk, this->nrar - 1);
+  kk = MIN(kk, this->nrar - 1);
   pp = pp - kk;
-  pp = min(pp, 1.0);
+  pp = MIN(pp, 1.0);
   double result = ((arr2(this->phirar3, kk, ind) * pp +
                     arr2(this->phirar2, kk, ind)) *
                      pp +

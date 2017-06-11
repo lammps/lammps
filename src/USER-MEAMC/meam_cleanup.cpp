@@ -1,5 +1,7 @@
 #include "meam.h"
 
+using namespace LAMMPS_NS;
+
 void
 MEAM::meam_cleanup_(void)
 {

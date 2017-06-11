@@ -21,9 +21,9 @@ PairStyle(meam/c,PairMEAMC)
 #define LMP_PAIR_MEAMC_H
 
 #include "pair.h"
-#include "meam.h"
 
 namespace LAMMPS_NS {
+class MEAM;
 
 class PairMEAMC : public Pair {
  public:
@@ -43,7 +43,7 @@ class PairMEAMC : public Pair {
   double memory_usage();
 
  private:
-  MEAM meam_inst;
+  class MEAM *meam_inst;
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

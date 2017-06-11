@@ -1,5 +1,6 @@
 #include "meam.h"
 #include <math.h>
+using namespace LAMMPS_NS;
 
 //
 // declaration in pair_meam.h:

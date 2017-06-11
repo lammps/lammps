@@ -1,6 +1,7 @@
 #include "meam.h"
 #include <math.h>
 
+using namespace LAMMPS_NS;
 //     Extern "C" declaration has the form:
 //
 //  void meam_force_(int *, int *, int *, double *, int *, int *, int *, double
@@ -112,9 +113,9 @@ MEAM::meam_force_(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
           ind = this->eltind[elti][eltj];
           pp = rij * this->rdrar + 1.0;
           kk = (int)pp;
-          kk = min(kk, this->nrar - 1);
+          kk = MIN(kk, this->nrar - 1);
           pp = pp - kk;
-          pp = min(pp, 1.0);
+          pp = MIN(pp, 1.0);
           phi = ((arr2(this->phirar3, kk, ind) * pp +
                   arr2(this->phirar2, kk, ind)) *
                    pp +

@@ -1,6 +1,7 @@
 #include "meam.h"
 #include <math.h>
 
+using namespace LAMMPS_NS;
 // Extern "C" declaration has the form:
 //
 //  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,

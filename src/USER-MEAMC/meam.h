@@ -9,6 +9,8 @@ extern "C" {
     double fm_exp(double);
 }
 
+namespace LAMMPS_NS {
+
 typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
 
 typedef struct
@@ -18,7 +20,12 @@ typedef struct
 } allocatable_double_2d;
 
 class MEAM {
-private:
+ public:
+  MEAM() {};
+  ~MEAM() {
+    meam_cleanup_();
+  }
+ private:
   // cutforce = force cutoff
   // cutforcesq = force cutoff squared
 
@@ -100,61 +107,46 @@ private:
 
   int nr, nrar;
   double dr, rdrar;
-public:
-void meam_checkindex(int, int, int, int*, int*);
-void meam_setup_param_(int*, double*, int*, int*, int*);
-void meam_dens_final_(int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-void G_gam(double, int, double, double*, int*);
-void dG_gam(double, int, double, double*, double*);
-void meam_dens_init_(int*, int*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-void getscreen(int, int, double*, double*, double*, double*, int, int*, int, int*, int, int*, int*);
-void screen(int, int, int, double*, double, double*, int, int*, int, int*, int*);
-void calc_rho1(int, int, int, int*, int*, double*, int, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*);
-void dsij(int, int, int, int, int, int, double, double*, double*, int, int*, int*, double*, double*, double*);
-void fcut(double, double*);
-void dfcut(double, double*, double*);
-void dCfunc(double, double, double, double*);
-void dCfunc2(double, double, double, double*, double*);
+ public:
+  void meam_checkindex(int, int, int, int*, int*);
+  void meam_setup_param_(int*, double*, int*, int*, int*);
+  void meam_dens_final_(int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void G_gam(double, int, double, double*, int*);
+  void dG_gam(double, int, double, double*, double*);
+  void meam_dens_init_(int*, int*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void getscreen(int, int, double*, double*, double*, double*, int, int*, int, int*, int, int*, int*);
+  void screen(int, int, int, double*, double, double*, int, int*, int, int*, int*);
+  void calc_rho1(int, int, int, int*, int*, double*, int, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*);
+  void dsij(int, int, int, int, int, int, double, double*, double*, int, int*, int*, double*, double*, double*);
+  void fcut(double, double*);
+  void dfcut(double, double*, double*);
+  void dCfunc(double, double, double, double*);
+  void dCfunc2(double, double, double, double*, double*);
 
-void meam_force_(int*, int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-void meam_cleanup_();
-void meam_setup_done_(double*);
-void alloyparams();
-void compute_pair_meam();
-double phi_meam(double, int, int);
-void compute_reference_density();
-void get_shpfcn(double*, lattice_t);
-void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double, double, double, double, int, int, lattice_t);
-void get_Zij(int*, lattice_t);
-void get_Zij2(int*, double*, double*, lattice_t, double, double);
-void get_sijk(double, int, int, int, double*);
-void get_densref(double, int, int, double*, double*, double*, double*, double*, double*, double*, double*);
-double zbl(double, int, int);
-double erose(double, double, double, double, double, double, int);
-void interpolate_meam(int);
-double compute_phi(double, int, int);
-void meam_setup_global_(int*, int*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_force_(int*, int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_cleanup_();
+  void meam_setup_done_(double*);
+  void alloyparams();
+  void compute_pair_meam();
+  double phi_meam(double, int, int);
+  void compute_reference_density();
+  void get_shpfcn(double*, lattice_t);
+  void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double, double, double, double, int, int, lattice_t);
+  void get_Zij(int*, lattice_t);
+  void get_Zij2(int*, double*, double*, lattice_t, double, double);
+  void get_sijk(double, int, int, int, double*);
+  void get_densref(double, int, int, double*, double*, double*, double*, double*, double*, double*, double*);
+  double zbl(double, int, int);
+  double erose(double, double, double, double, double, double, int);
+  void interpolate_meam(int);
+  double compute_phi(double, int, int);
+  void meam_setup_global_(int*, int*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
 
 };
 
 // Functions we need for compat
-#ifndef max
-#define max(a, b)                                                              \
-  ({                                                                           \
-    __typeof__(a) _a = (a);                                                    \
-    __typeof__(b) _b = (b);                                                    \
-    _a > _b ? _a : _b;                                                         \
-  })
-#endif
-
-#ifndef min
-#define min(a, b)                                                              \
-  ({                                                                           \
-    __typeof__(a) _a = (a);                                                    \
-    __typeof__(b) _b = (b);                                                    \
-    _a < _b ? _a : _b;                                                         \
-  })
-#endif
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 #define iszero(f) (fabs(f) < 1e-20)
 
@@ -215,5 +207,6 @@ Fortran Array Semantics in C.
 // access data with same index as used in fortran (1-based)
 #define arr2(arr, i, j) arr.ptr[(arr.dim1) * (j - 1) + (i - 1)]
 
+};
 
 #endif

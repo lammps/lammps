@@ -1,4 +1,5 @@
 #include "meam.h"
+using namespace LAMMPS_NS;
 
 //
 //     do a sanity check on index parameters
@@ -148,8 +149,8 @@ MEAM::meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      i1 = min(index[0], index[1]);
-      i2 = max(index[0], index[1]);
+      i1 = MIN(index[0], index[1]);
+      i2 = MAX(index[0], index[1]);
       this->nn2_meam[i1][i2] = (int)value;
       break;
 
@@ -217,8 +218,8 @@ MEAM::meam_setup_param_(int* which_p, double* value_p, int* nindex_p,
       meam_checkindex(2, maxelt, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      i1 = min(index[0], index[1]);
-      i2 = max(index[0], index[1]);
+      i1 = MIN(index[0], index[1]);
+      i2 = MAX(index[0], index[1]);
       this->zbl_meam[i1][i2] = (int)value;
       break;
 

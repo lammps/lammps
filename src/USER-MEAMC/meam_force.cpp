@@ -112,22 +112,22 @@ MEAM::meam_force(int* iptr, int* nmax, int* eflag_either, int* eflag_global,
           r = rij;
 
           //     Compute phi and phip
-          ind = this->eltind[elti][eltj];
-          pp = rij * this->rdrar + 1.0;
+          ind = this->eltind[elti][eltj] - 1;  //: TODO Remove -1 when reindexing eltind
+          pp = rij * this->rdrar;
           kk = (int)pp;
-          kk = std::min(kk, this->nrar - 1);
+          kk = std::min(kk, this->nrar - 2);
           pp = pp - kk;
           pp = std::min(pp, 1.0);
-          phi = ((arr2(this->phirar3, kk, ind) * pp +
-                  arr2(this->phirar2, kk, ind)) *
+          phi = ((this->phirar3[ind][kk] * pp +
+                  this->phirar2[ind][kk]) *
                    pp +
-                 arr2(this->phirar1, kk, ind)) *
+                 this->phirar1[ind][kk]) *
                   pp +
-                arr2(this->phirar, kk, ind);
-          phip = (arr2(this->phirar6, kk, ind) * pp +
-                  arr2(this->phirar5, kk, ind)) *
+                this->phirar[ind][kk];
+          phip = (this->phirar6[ind][kk] * pp +
+                  this->phirar5[ind][kk]) *
                    pp +
-                 arr2(this->phirar4, kk, ind);
+                 this->phirar4[ind][kk];
           recip = 1.0 / r;
 
           if (*eflag_either != 0) {

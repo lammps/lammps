@@ -163,7 +163,6 @@ Fortran Array Semantics in C.
     - Multi-Dimensional MUST be declared in reverse, so that the order when accessing is the same as in Fortran
  - arrays that are passed externally via the meam_* functions must use the arr*v() functions below
    (or be used with 0-based indexing)
- - allocatable arrays must be accessed with arr2()
 */
 
 // we receive a pointer to the first element, and F dimensions is ptr(a,b,c)
@@ -185,11 +184,6 @@ Fortran Array Semantics in C.
 #define arr3v(ptr, i, j, k)                                                    \
   ptr[(i - 1) + (j - 1) * (DIM1__##ptr) +                                      \
       (k - 1) * (DIM1__##ptr) * (DIM2__##ptr)]
-
-// allocatable arrays
-// access data with same index as used in fortran (1-based)
-#define arr2(arr, i, j) arr[j-1][i-1]
-
 };
 
 #endif

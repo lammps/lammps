@@ -203,45 +203,51 @@ MEAM::compute_pair_meam(void)
     memory->destroy(this->phirar6);
 
   // allocate memory for array that defines the potential
-  memory->create(this->phir, this->nr,
+  memory->create(this->phir,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phir");
 
   // allocate coeff memory
 
-  memory->create(this->phirar, this->nr,
+  memory->create(this->phirar,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phirar");
-  memory->create(this->phirar1, this->nr,
+  memory->create(this->phirar1,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phirar1");
-  memory->create(this->phirar2, this->nr,
+  memory->create(this->phirar2,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phirar2");
-  memory->create(this->phirar3, this->nr,
+  memory->create(this->phirar3,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phirar3");
-  memory->create(this->phirar4, this->nr,
+  memory->create(this->phirar4,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phirar4");
-  memory->create(this->phirar5, this->nr,
+  memory->create(this->phirar5,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phirar5");
-  memory->create(this->phirar6, this->nr,
+  memory->create(this->phirar6,
               (this->neltypes * (this->neltypes + 1)) / 2,
+              this->nr,
               "pair:phirar6");
 
   // loop over pairs of element types
   nv2 = 0;
   for (a = 1; a <= this->neltypes; a++) {
     for (b = a; b <= this->neltypes; b++) {
-      nv2 = nv2 + 1;
-
       // loop over r values and compute
-      for (j = 1; j <= this->nr; j++) {
-        r = (j - 1) * this->dr;
+      for (j = 0; j < this->nr; j++) {
+        r = j * this->dr;
 
-        arr2(this->phir, j, nv2) = phi_meam(r, a, b);
+        this->phir[nv2][j] = phi_meam(r, a, b);
 
         // if using second-nearest neighbor, solve recursive problem
         // (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
@@ -298,13 +304,13 @@ MEAM::compute_pair_meam(void)
               get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][b],
                        this->Cmin_meam[a][a][b],
                        this->Cmax_meam[a][a][b]);
-              arr2(this->phir, j, nv2) =
-                arr2(this->phir, j, nv2) - Z2 * scrn / (2 * Z1) * phiaa;
+              this->phir[nv2][j] =
+                this->phir[nv2][j] - Z2 * scrn / (2 * Z1) * phiaa;
               get_Zij2(&Z2, &arat, &scrn2, this->lattce_meam[a][b],
                        this->Cmin_meam[b][b][a],
                        this->Cmax_meam[b][b][a]);
-              arr2(this->phir, j, nv2) =
-                arr2(this->phir, j, nv2) - Z2 * scrn2 / (2 * Z1) * phibb;
+              this->phir[nv2][j] =
+                this->phir[nv2][j] - Z2 * scrn2 / (2 * Z1) * phibb;
 
             } else if (this->lattce_meam[a][b] == L12) {
               //     The L12 case has one last trick; we have to be careful to
@@ -321,7 +327,7 @@ MEAM::compute_pair_meam(void)
               get_sijk(C, b, b, a, &s221);
               S11 = s111 * s111 * s112 * s112;
               S22 = pow(s221, 4);
-              arr2(this->phir, j, nv2) = arr2(this->phir, j, nv2) -
+              this->phir[nv2][j] = this->phir[nv2][j] -
                                              0.75 * S11 * phiaa -
                                              0.25 * S22 * phibb;
             }
@@ -329,8 +335,8 @@ MEAM::compute_pair_meam(void)
           } else {
             nmax = 10;
             for (n = 1; n <= nmax; n++) {
-              arr2(this->phir, j, nv2) =
-                arr2(this->phir, j, nv2) +
+              this->phir[nv2][j] =
+                this->phir[nv2][j] +
                 pow((-Z2 * scrn / Z1), n) * phi_meam(r * pow(arat, n), a, b);
             }
           }
@@ -346,19 +352,21 @@ MEAM::compute_pair_meam(void)
           astar =
             this->alpha_meam[a][b] * (r / this->re_meam[a][b] - 1.0);
           if (astar <= -3.0)
-            arr2(this->phir, j, nv2) =
+            this->phir[nv2][j] =
               zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
           else if (astar > -3.0 && astar < -1.0) {
             fcut(1 - (astar + 1.0) / (-3.0 + 1.0), &frac);
             phizbl = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
-            arr2(this->phir, j, nv2) =
-              frac * arr2(this->phir, j, nv2) + (1 - frac) * phizbl;
+            this->phir[nv2][j] =
+              frac * this->phir[nv2][j] + (1 - frac) * phizbl;
           }
         }
       }
 
       // call interpolation
       interpolate_meam(nv2);
+
+      nv2 = nv2 + 1;
     }
   }
 }
@@ -997,46 +1005,42 @@ MEAM::interpolate_meam(int ind)
   this->rdrar = 1.0 / drar;
 
   // phir interp
-  for (j = 1; j <= this->nrar; j++) {
-    arr2(this->phirar, j, ind) = arr2(this->phir, j, ind);
+  for (j = 0; j < this->nrar; j++) {
+    this->phirar[ind][j] = this->phir[ind][j];
   }
-  arr2(this->phirar1, 1, ind) =
-    arr2(this->phirar, 2, ind) - arr2(this->phirar, 1, ind);
-  arr2(this->phirar1, 2, ind) =
-    0.5 * (arr2(this->phirar, 3, ind) - arr2(this->phirar, 1, ind));
-  arr2(this->phirar1, this->nrar - 1, ind) =
-    0.5 * (arr2(this->phirar, this->nrar, ind) -
-           arr2(this->phirar, this->nrar - 2, ind));
-  arr2(this->phirar1, this->nrar, ind) = 0.0;
-  for (j = 3; j <= this->nrar - 2; j++) {
-    arr2(this->phirar1, j, ind) =
-      ((arr2(this->phirar, j - 2, ind) -
-        arr2(this->phirar, j + 2, ind)) +
-       8.0 * (arr2(this->phirar, j + 1, ind) -
-              arr2(this->phirar, j - 1, ind))) /
+  this->phirar1[ind][0] = this->phirar[ind][1] - this->phirar[ind][0];
+  this->phirar1[ind][1] = 0.5 * (this->phirar[ind][2] - this->phirar[ind][0]);
+  this->phirar1[ind][this->nrar - 2] = 0.5 * (this->phirar[ind][this->nrar - 1] - this->phirar[ind][this->nrar - 3]);
+  this->phirar1[ind][this->nrar - 1] = 0.0;
+  for (j = 2; j < this->nrar - 2; j++) {
+    this->phirar1[ind][j] =
+      ((this->phirar[ind][j - 2] -
+        this->phirar[ind][j + 2]) +
+       8.0 * (this->phirar[ind][j + 1] -
+              this->phirar[ind][j - 1])) /
       12.;
   }
 
-  for (j = 1; j <= this->nrar - 1; j++) {
-    arr2(this->phirar2, j, ind) =
+  for (j = 0; j < this->nrar - 1; j++) {
+    this->phirar2[ind][j] =
       3.0 *
-        (arr2(this->phirar, j + 1, ind) - arr2(this->phirar, j, ind)) -
-      2.0 * arr2(this->phirar1, j, ind) -
-      arr2(this->phirar1, j + 1, ind);
-    arr2(this->phirar3, j, ind) =
-      arr2(this->phirar1, j, ind) + arr2(this->phirar1, j + 1, ind) -
+        (this->phirar[ind][j + 1] - this->phirar[ind][j]) -
+      2.0 * this->phirar1[ind][j] -
+        this->phirar1[ind][j + 1];
+    this->phirar3[ind][j] =
+      this->phirar1[ind][j] + this->phirar1[ind][j + 1] -
       2.0 *
-        (arr2(this->phirar, j + 1, ind) - arr2(this->phirar, j, ind));
+        (this->phirar[ind][j + 1] - this->phirar[ind][j]);
   }
-  arr2(this->phirar2, this->nrar, ind) = 0.0;
-  arr2(this->phirar3, this->nrar, ind) = 0.0;
+  this->phirar2[ind][this->nrar - 1] = 0.0;
+  this->phirar3[ind][this->nrar - 1] = 0.0;
 
-  for (j = 1; j <= this->nrar; j++) {
-    arr2(this->phirar4, j, ind) = arr2(this->phirar1, j, ind) / drar;
-    arr2(this->phirar5, j, ind) =
-      2.0 * arr2(this->phirar2, j, ind) / drar;
-    arr2(this->phirar6, j, ind) =
-      3.0 * arr2(this->phirar3, j, ind) / drar;
+  for (j = 0; j < this->nrar; j++) {
+    this->phirar4[ind][j] = this->phirar1[ind][j] / drar;
+    this->phirar5[ind][j] =
+      2.0 * this->phirar2[ind][j] / drar;
+    this->phirar6[ind][j] =
+      3.0 * this->phirar3[ind][j] / drar;
   }
 }
 
@@ -1050,17 +1054,17 @@ MEAM::compute_phi(double rij, int elti, int eltj)
   int ind, kk;
 
   ind = this->eltind[elti][eltj];
-  pp = rij * this->rdrar + 1.0;
+  pp = rij * this->rdrar;
   kk = (int)pp;
-  kk = std::min(kk, this->nrar - 1);
+  kk = std::min(kk, this->nrar - 2);
   pp = pp - kk;
   pp = std::min(pp, 1.0);
-  double result = ((arr2(this->phirar3, kk, ind) * pp +
-                    arr2(this->phirar2, kk, ind)) *
+  double result = ((this->phirar3[ind][kk] * pp +
+                    this->phirar2[ind][kk]) *
                      pp +
-                   arr2(this->phirar1, kk, ind)) *
+                   this->phirar1[ind][kk]) *
                     pp +
-                  arr2(this->phirar, kk, ind);
+                  this->phirar[ind][kk];
 
   return result;
 }

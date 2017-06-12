@@ -1031,7 +1031,7 @@ int FixRigidSmall::dof(int tgroup)
     j = atom2body[i];
     counts[j][2]++;
     if (mask[i] & tgroupbit) {
-      if (extended && eflags[i]) counts[j][1]++;
+      if (extended && (eflags[i] & ~(POINT | DIPOLE))) counts[j][1]++;
       else counts[j][0]++;
     }
   }

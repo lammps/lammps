@@ -12,12 +12,8 @@ typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
 
 class MEAM {
  public:
-  MEAM(Memory *mem) :
-    memory(mem) {};
-
-  ~MEAM() {
-    meam_cleanup();
-  }
+  MEAM(Memory *mem);
+  ~MEAM();
  private:
   Memory *&memory;
 
@@ -102,14 +98,29 @@ class MEAM {
 
   int nr, nrar;
   double dr, rdrar;
+
+public:
+  int nmax;
+  double *rho,*rho0,*rho1,*rho2,*rho3,*frhop;
+  double *gamma,*dgamma1,*dgamma2,*dgamma3,*arho2b;
+  double **arho1,**arho2,**arho3,**arho3b,**t_ave,**tsq_ave;
+
+  int maxneigh;
+  double *scrfcn,*dscrfcn,*fcpair;
  protected:
   void meam_checkindex(int, int, int, int*, int*);
   void G_gam(double, int, double, double*, int*);
   void dG_gam(double, int, double, double*, double*);
-  void getscreen(int, int, double*, double*, double*, double*, int, int*, int, int*, int, int*, int*);
-  void screen(int, int, int, double*, double, double*, int, int*, int, int*, int*);
-  void calc_rho1(int, int, int, int*, int*, double*, int, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*);
-  void dsij(int, int, int, int, int, int, double, double*, double*, int, int*, int*, double*, double*, double*);
+  void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
+          double** x, int numneigh, int* firstneigh, int numneigh_full,
+          int* firstneigh_full, int ntype, int* type, int* fmap);
+  void screen(int i, int j, double** x, double rijsq, double* sij,
+       int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap);
+  void calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
+          int numneigh, int* firstneigh, double* scrfcn, double* fcpair);
+  void dsij(int i, int j, int k, int jn, int numneigh, double rij2,
+     double* dsij1, double* dsij2, int ntype, int* type, int* fmap, double** x,
+     double* scrfcn, double* fcpair);
   void fcut(double, double*);
   void dfcut(double, double*, double*);
   void dCfunc(double, double, double, double*);
@@ -133,9 +144,19 @@ class MEAM {
   void meam_setup_global(int*, int*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
   void meam_setup_param(int*, double*, int*, int*, int*);
   void meam_setup_done(double*);
-  void meam_dens_init(int*, int*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-  void meam_dens_final(int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-  void meam_force(int*, int*, int*, int*, int*, int*, double*, double*, int*, int*, int*, double*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_dens_setup(int, int, int);
+  void meam_dens_init(int* i, int* ntype, int* type, int* fmap, double** x,
+                int* numneigh, int* firstneigh, int* numneigh_full,
+                int* firstneigh_full, int fnoffset, int* errorflag);
+  void meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
+                 int* eflag_atom, double* eng_vdwl, double* eatom, int* ntype,
+                 int* type, int* fmap, int* errorflag);
+  void meam_force(int* iptr, int* eflag_either, int* eflag_global,
+            int* eflag_atom, int* vflag_atom, double* eng_vdwl, double* eatom,
+            int* ntype, int* type, int* fmap, double** x, int* numneigh,
+            int* firstneigh, int* numneigh_full, int* firstneigh_full,
+            int fnoffset, double** f, double** vatom,
+            int* errorflag);
   void meam_cleanup();
 };
 
@@ -165,25 +186,8 @@ Fortran Array Semantics in C.
    (or be used with 0-based indexing)
 */
 
-// we receive a pointer to the first element, and F dimensions is ptr(a,b,c)
-// we know c data structure is ptr[c][b][a]
-#define arrdim2v(ptr, a, b)                                                    \
-  const int DIM1__##ptr = a;                                                   \
-  const int DIM2__##ptr = b;                                                   \
-  (void)(DIM1__##ptr);                                                         \
-  (void)(DIM2__##ptr);
-#define arrdim3v(ptr, a, b, c)                                                 \
-  const int DIM1__##ptr = a;                                                   \
-  const int DIM2__##ptr = b;                                                   \
-  const int DIM3__##ptr = c;                                                   \
-  (void)(DIM1__##ptr); (void)(DIM2__##ptr; (void)(DIM3__##ptr);
-
 // access data with same index as used in fortran (1-based)
 #define arr1v(ptr, i) ptr[i - 1]
-#define arr2v(ptr, i, j) ptr[(DIM1__##ptr) * (j - 1) + (i - 1)]
-#define arr3v(ptr, i, j, k)                                                    \
-  ptr[(i - 1) + (j - 1) * (DIM1__##ptr) +                                      \
-      (k - 1) * (DIM1__##ptr) * (DIM2__##ptr)]
-};
+#define arr2v(ptr, i, j) ptr[j - 1][i - 1]
 
 #endif

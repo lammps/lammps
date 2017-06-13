@@ -52,14 +52,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
 
-  nmax = 0;
-  rho = rho0 = rho1 = rho2 = rho3 = frhop = NULL;
-  gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = NULL;
-  arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = NULL;
-
-  maxneigh = 0;
   allocated = 0;
-  scrfcn = dscrfcn = fcpair = NULL;
 
   nelements = 0;
   elements = NULL;
@@ -80,29 +73,6 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
 PairMEAMC::~PairMEAMC()
 {
   delete meam_inst;
-
-  memory->destroy(rho);
-  memory->destroy(rho0);
-  memory->destroy(rho1);
-  memory->destroy(rho2);
-  memory->destroy(rho3);
-  memory->destroy(frhop);
-  memory->destroy(gamma);
-  memory->destroy(dgamma1);
-  memory->destroy(dgamma2);
-  memory->destroy(dgamma3);
-  memory->destroy(arho2b);
-
-  memory->destroy(arho1);
-  memory->destroy(arho2);
-  memory->destroy(arho3);
-  memory->destroy(arho3b);
-  memory->destroy(t_ave);
-  memory->destroy(tsq_ave);
-
-  memory->destroy(scrfcn);
-  memory->destroy(dscrfcn);
-  memory->destroy(fcpair);
 
   for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
@@ -128,48 +98,6 @@ void PairMEAMC::compute(int eflag, int vflag)
   else evflag = vflag_fdotr = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
 
-  // grow local arrays if necessary
-
-  if (atom->nmax > nmax) {
-    memory->destroy(rho);
-    memory->destroy(rho0);
-    memory->destroy(rho1);
-    memory->destroy(rho2);
-    memory->destroy(rho3);
-    memory->destroy(frhop);
-    memory->destroy(gamma);
-    memory->destroy(dgamma1);
-    memory->destroy(dgamma2);
-    memory->destroy(dgamma3);
-    memory->destroy(arho2b);
-    memory->destroy(arho1);
-    memory->destroy(arho2);
-    memory->destroy(arho3);
-    memory->destroy(arho3b);
-    memory->destroy(t_ave);
-    memory->destroy(tsq_ave);
-
-    nmax = atom->nmax;
-
-    memory->create(rho,nmax,"pair:rho");
-    memory->create(rho0,nmax,"pair:rho0");
-    memory->create(rho1,nmax,"pair:rho1");
-    memory->create(rho2,nmax,"pair:rho2");
-    memory->create(rho3,nmax,"pair:rho3");
-    memory->create(frhop,nmax,"pair:frhop");
-    memory->create(gamma,nmax,"pair:gamma");
-    memory->create(dgamma1,nmax,"pair:dgamma1");
-    memory->create(dgamma2,nmax,"pair:dgamma2");
-    memory->create(dgamma3,nmax,"pair:dgamma3");
-    memory->create(arho2b,nmax,"pair:arho2b");
-    memory->create(arho1,nmax,3,"pair:arho1");
-    memory->create(arho2,nmax,6,"pair:arho2");
-    memory->create(arho3,nmax,10,"pair:arho3");
-    memory->create(arho3b,nmax,3,"pair:arho3b");
-    memory->create(t_ave,nmax,3,"pair:t_ave");
-    memory->create(tsq_ave,nmax,3,"pair:tsq_ave");
-  }
-
   // neighbor list info
 
   inum_half = listhalf->inum;
@@ -194,29 +122,8 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   n = 0;
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
-
-  if (n > maxneigh) {
-    memory->destroy(scrfcn);
-    memory->destroy(dscrfcn);
-    memory->destroy(fcpair);
-    maxneigh = n;
-    memory->create(scrfcn,maxneigh,"pair:scrfcn");
-    memory->create(dscrfcn,maxneigh,"pair:dscrfcn");
-    memory->create(fcpair,maxneigh,"pair:fcpair");
-  }
-
-  // zero out local arrays
-
-  for (i = 0; i < nall; i++) {
-    rho0[i] = 0.0;
-    arho2b[i] = 0.0;
-    arho1[i][0] = arho1[i][1] = arho1[i][2] = 0.0;
-    for (j = 0; j < 6; j++) arho2[i][j] = 0.0;
-    for (j = 0; j < 10; j++) arho3[i][j] = 0.0;
-    arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
-    t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
-    tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
-  }
+  
+  meam_inst->meam_dens_setup(atom->nmax, nall, n);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -238,12 +145,10 @@ void PairMEAMC::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_inst->meam_dens_init(&ifort,&nmax,&ntype,type,fmap,&x[0][0],
+    meam_inst->meam_dens_init(&ifort,&ntype,type,fmap,x,
                     &numneigh_half[i],firstneigh_half[i],
                     &numneigh_full[i],firstneigh_full[i],
-                    &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
-                    rho0,&arho1[0][0],&arho2[0][0],arho2b,
-                    &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],
+                    offset,
                     &errorflag);
     if (errorflag) {
       char str[128];
@@ -255,11 +160,9 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   comm->reverse_comm_pair(this);
 
-  meam_inst->meam_dens_final(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
+  meam_inst->meam_dens_final(&nlocal,&eflag_either,&eflag_global,&eflag_atom,
                    &eng_vdwl,eatom,&ntype,type,fmap,
-                   &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
-                   &arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],gamma,dgamma1,
-                   dgamma2,dgamma3,rho,rho0,rho1,rho2,rho3,frhop,&errorflag);
+                   &errorflag);
   if (errorflag) {
     char str[128];
     sprintf(str,"MEAM library error %d",errorflag);
@@ -273,21 +176,19 @@ void PairMEAMC::compute(int eflag, int vflag)
   // vptr is first value in vatom if it will be used by meam_force()
   // else vatom may not exist, so pass dummy ptr
 
-  double *vptr;
-  if (vflag_atom) vptr = &vatom[0][0];
-  else vptr = &cutmax;
+  double **vptr;
+  if (vflag_atom) vptr = vatom;
+  else vptr = NULL;
 
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_inst->meam_force(&ifort,&nmax,&eflag_either,&eflag_global,&eflag_atom,
-                &vflag_atom,&eng_vdwl,eatom,&ntype,type,fmap,&x[0][0],
+    meam_inst->meam_force(&ifort,&eflag_either,&eflag_global,&eflag_atom,
+                &vflag_atom,&eng_vdwl,eatom,&ntype,type,fmap,x,
                 &numneigh_half[i],firstneigh_half[i],
                 &numneigh_full[i],firstneigh_full[i],
-                &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
-                dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
-                &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],&arho3b[0][0],
-                &t_ave[0][0],&tsq_ave[0][0],&f[0][0],vptr,&errorflag);
+                offset,
+                f,vptr,&errorflag);
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
@@ -738,35 +639,35 @@ int PairMEAMC::pack_forward_comm(int n, int *list, double *buf,
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = rho0[j];
-    buf[m++] = rho1[j];
-    buf[m++] = rho2[j];
-    buf[m++] = rho3[j];
-    buf[m++] = frhop[j];
-    buf[m++] = gamma[j];
-    buf[m++] = dgamma1[j];
-    buf[m++] = dgamma2[j];
-    buf[m++] = dgamma3[j];
-    buf[m++] = arho2b[j];
-    buf[m++] = arho1[j][0];
-    buf[m++] = arho1[j][1];
-    buf[m++] = arho1[j][2];
-    buf[m++] = arho2[j][0];
-    buf[m++] = arho2[j][1];
-    buf[m++] = arho2[j][2];
-    buf[m++] = arho2[j][3];
-    buf[m++] = arho2[j][4];
-    buf[m++] = arho2[j][5];
-    for (k = 0; k < 10; k++) buf[m++] = arho3[j][k];
-    buf[m++] = arho3b[j][0];
-    buf[m++] = arho3b[j][1];
-    buf[m++] = arho3b[j][2];
-    buf[m++] = t_ave[j][0];
-    buf[m++] = t_ave[j][1];
-    buf[m++] = t_ave[j][2];
-    buf[m++] = tsq_ave[j][0];
-    buf[m++] = tsq_ave[j][1];
-    buf[m++] = tsq_ave[j][2];
+    buf[m++] = meam_inst->rho0[j];
+    buf[m++] = meam_inst->rho1[j];
+    buf[m++] = meam_inst->rho2[j];
+    buf[m++] = meam_inst->rho3[j];
+    buf[m++] = meam_inst->frhop[j];
+    buf[m++] = meam_inst->gamma[j];
+    buf[m++] = meam_inst->dgamma1[j];
+    buf[m++] = meam_inst->dgamma2[j];
+    buf[m++] = meam_inst->dgamma3[j];
+    buf[m++] = meam_inst->arho2b[j];
+    buf[m++] = meam_inst->arho1[j][0];
+    buf[m++] = meam_inst->arho1[j][1];
+    buf[m++] = meam_inst->arho1[j][2];
+    buf[m++] = meam_inst->arho2[j][0];
+    buf[m++] = meam_inst->arho2[j][1];
+    buf[m++] = meam_inst->arho2[j][2];
+    buf[m++] = meam_inst->arho2[j][3];
+    buf[m++] = meam_inst->arho2[j][4];
+    buf[m++] = meam_inst->arho2[j][5];
+    for (k = 0; k < 10; k++) buf[m++] = meam_inst->arho3[j][k];
+    buf[m++] = meam_inst->arho3b[j][0];
+    buf[m++] = meam_inst->arho3b[j][1];
+    buf[m++] = meam_inst->arho3b[j][2];
+    buf[m++] = meam_inst->t_ave[j][0];
+    buf[m++] = meam_inst->t_ave[j][1];
+    buf[m++] = meam_inst->t_ave[j][2];
+    buf[m++] = meam_inst->tsq_ave[j][0];
+    buf[m++] = meam_inst->tsq_ave[j][1];
+    buf[m++] = meam_inst->tsq_ave[j][2];
   }
 
   return m;
@@ -781,35 +682,35 @@ void PairMEAMC::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    rho0[i] = buf[m++];
-    rho1[i] = buf[m++];
-    rho2[i] = buf[m++];
-    rho3[i] = buf[m++];
-    frhop[i] = buf[m++];
-    gamma[i] = buf[m++];
-    dgamma1[i] = buf[m++];
-    dgamma2[i] = buf[m++];
-    dgamma3[i] = buf[m++];
-    arho2b[i] = buf[m++];
-    arho1[i][0] = buf[m++];
-    arho1[i][1] = buf[m++];
-    arho1[i][2] = buf[m++];
-    arho2[i][0] = buf[m++];
-    arho2[i][1] = buf[m++];
-    arho2[i][2] = buf[m++];
-    arho2[i][3] = buf[m++];
-    arho2[i][4] = buf[m++];
-    arho2[i][5] = buf[m++];
-    for (k = 0; k < 10; k++) arho3[i][k] = buf[m++];
-    arho3b[i][0] = buf[m++];
-    arho3b[i][1] = buf[m++];
-    arho3b[i][2] = buf[m++];
-    t_ave[i][0] = buf[m++];
-    t_ave[i][1] = buf[m++];
-    t_ave[i][2] = buf[m++];
-    tsq_ave[i][0] = buf[m++];
-    tsq_ave[i][1] = buf[m++];
-    tsq_ave[i][2] = buf[m++];
+    meam_inst->rho0[i] = buf[m++];
+    meam_inst->rho1[i] = buf[m++];
+    meam_inst->rho2[i] = buf[m++];
+    meam_inst->rho3[i] = buf[m++];
+    meam_inst->frhop[i] = buf[m++];
+    meam_inst->gamma[i] = buf[m++];
+    meam_inst->dgamma1[i] = buf[m++];
+    meam_inst->dgamma2[i] = buf[m++];
+    meam_inst->dgamma3[i] = buf[m++];
+    meam_inst->arho2b[i] = buf[m++];
+    meam_inst->arho1[i][0] = buf[m++];
+    meam_inst->arho1[i][1] = buf[m++];
+    meam_inst->arho1[i][2] = buf[m++];
+    meam_inst->arho2[i][0] = buf[m++];
+    meam_inst->arho2[i][1] = buf[m++];
+    meam_inst->arho2[i][2] = buf[m++];
+    meam_inst->arho2[i][3] = buf[m++];
+    meam_inst->arho2[i][4] = buf[m++];
+    meam_inst->arho2[i][5] = buf[m++];
+    for (k = 0; k < 10; k++) meam_inst->arho3[i][k] = buf[m++];
+    meam_inst->arho3b[i][0] = buf[m++];
+    meam_inst->arho3b[i][1] = buf[m++];
+    meam_inst->arho3b[i][2] = buf[m++];
+    meam_inst->t_ave[i][0] = buf[m++];
+    meam_inst->t_ave[i][1] = buf[m++];
+    meam_inst->t_ave[i][2] = buf[m++];
+    meam_inst->tsq_ave[i][0] = buf[m++];
+    meam_inst->tsq_ave[i][1] = buf[m++];
+    meam_inst->tsq_ave[i][2] = buf[m++];
   }
 }
 
@@ -822,27 +723,27 @@ int PairMEAMC::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    buf[m++] = rho0[i];
-    buf[m++] = arho2b[i];
-    buf[m++] = arho1[i][0];
-    buf[m++] = arho1[i][1];
-    buf[m++] = arho1[i][2];
-    buf[m++] = arho2[i][0];
-    buf[m++] = arho2[i][1];
-    buf[m++] = arho2[i][2];
-    buf[m++] = arho2[i][3];
-    buf[m++] = arho2[i][4];
-    buf[m++] = arho2[i][5];
-    for (k = 0; k < 10; k++) buf[m++] = arho3[i][k];
-    buf[m++] = arho3b[i][0];
-    buf[m++] = arho3b[i][1];
-    buf[m++] = arho3b[i][2];
-    buf[m++] = t_ave[i][0];
-    buf[m++] = t_ave[i][1];
-    buf[m++] = t_ave[i][2];
-    buf[m++] = tsq_ave[i][0];
-    buf[m++] = tsq_ave[i][1];
-    buf[m++] = tsq_ave[i][2];
+    buf[m++] = meam_inst->rho0[i];
+    buf[m++] = meam_inst->arho2b[i];
+    buf[m++] = meam_inst->arho1[i][0];
+    buf[m++] = meam_inst->arho1[i][1];
+    buf[m++] = meam_inst->arho1[i][2];
+    buf[m++] = meam_inst->arho2[i][0];
+    buf[m++] = meam_inst->arho2[i][1];
+    buf[m++] = meam_inst->arho2[i][2];
+    buf[m++] = meam_inst->arho2[i][3];
+    buf[m++] = meam_inst->arho2[i][4];
+    buf[m++] = meam_inst->arho2[i][5];
+    for (k = 0; k < 10; k++) buf[m++] = meam_inst->arho3[i][k];
+    buf[m++] = meam_inst->arho3b[i][0];
+    buf[m++] = meam_inst->arho3b[i][1];
+    buf[m++] = meam_inst->arho3b[i][2];
+    buf[m++] = meam_inst->t_ave[i][0];
+    buf[m++] = meam_inst->t_ave[i][1];
+    buf[m++] = meam_inst->t_ave[i][2];
+    buf[m++] = meam_inst->tsq_ave[i][0];
+    buf[m++] = meam_inst->tsq_ave[i][1];
+    buf[m++] = meam_inst->tsq_ave[i][2];
   }
 
   return m;
@@ -857,27 +758,27 @@ void PairMEAMC::unpack_reverse_comm(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    rho0[j] += buf[m++];
-    arho2b[j] += buf[m++];
-    arho1[j][0] += buf[m++];
-    arho1[j][1] += buf[m++];
-    arho1[j][2] += buf[m++];
-    arho2[j][0] += buf[m++];
-    arho2[j][1] += buf[m++];
-    arho2[j][2] += buf[m++];
-    arho2[j][3] += buf[m++];
-    arho2[j][4] += buf[m++];
-    arho2[j][5] += buf[m++];
-    for (k = 0; k < 10; k++) arho3[j][k] += buf[m++];
-    arho3b[j][0] += buf[m++];
-    arho3b[j][1] += buf[m++];
-    arho3b[j][2] += buf[m++];
-    t_ave[j][0] += buf[m++];
-    t_ave[j][1] += buf[m++];
-    t_ave[j][2] += buf[m++];
-    tsq_ave[j][0] += buf[m++];
-    tsq_ave[j][1] += buf[m++];
-    tsq_ave[j][2] += buf[m++];
+    meam_inst->rho0[j] += buf[m++];
+    meam_inst->arho2b[j] += buf[m++];
+    meam_inst->arho1[j][0] += buf[m++];
+    meam_inst->arho1[j][1] += buf[m++];
+    meam_inst->arho1[j][2] += buf[m++];
+    meam_inst->arho2[j][0] += buf[m++];
+    meam_inst->arho2[j][1] += buf[m++];
+    meam_inst->arho2[j][2] += buf[m++];
+    meam_inst->arho2[j][3] += buf[m++];
+    meam_inst->arho2[j][4] += buf[m++];
+    meam_inst->arho2[j][5] += buf[m++];
+    for (k = 0; k < 10; k++) meam_inst->arho3[j][k] += buf[m++];
+    meam_inst->arho3b[j][0] += buf[m++];
+    meam_inst->arho3b[j][1] += buf[m++];
+    meam_inst->arho3b[j][2] += buf[m++];
+    meam_inst->t_ave[j][0] += buf[m++];
+    meam_inst->t_ave[j][1] += buf[m++];
+    meam_inst->t_ave[j][2] += buf[m++];
+    meam_inst->tsq_ave[j][0] += buf[m++];
+    meam_inst->tsq_ave[j][1] += buf[m++];
+    meam_inst->tsq_ave[j][2] += buf[m++];
   }
 }
 
@@ -887,9 +788,9 @@ void PairMEAMC::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairMEAMC::memory_usage()
 {
-  double bytes = 11 * nmax * sizeof(double);
-  bytes += (3 + 6 + 10 + 3 + 3 + 3) * nmax * sizeof(double);
-  bytes += 3 * maxneigh * sizeof(double);
+  double bytes = 11 * meam_inst->nmax * sizeof(double);
+  bytes += (3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
+  bytes += 3 * meam_inst->maxneigh * sizeof(double);
   return bytes;
 }
 

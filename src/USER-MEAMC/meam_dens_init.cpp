@@ -3,6 +3,85 @@
 #include "math_special.h"
 
 using namespace LAMMPS_NS;
+
+
+void
+MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
+{
+  int i, j;
+  
+  // grow local arrays if necessary
+
+  if (atom_nmax > nmax) {
+    memory->destroy(rho);
+    memory->destroy(rho0);
+    memory->destroy(rho1);
+    memory->destroy(rho2);
+    memory->destroy(rho3);
+    memory->destroy(frhop);
+    memory->destroy(gamma);
+    memory->destroy(dgamma1);
+    memory->destroy(dgamma2);
+    memory->destroy(dgamma3);
+    memory->destroy(arho2b);
+    memory->destroy(arho1);
+    memory->destroy(arho2);
+    memory->destroy(arho3);
+    memory->destroy(arho3b);
+    memory->destroy(t_ave);
+    memory->destroy(tsq_ave);
+
+    nmax = atom_nmax;
+
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(rho0,nmax,"pair:rho0");
+    memory->create(rho1,nmax,"pair:rho1");
+    memory->create(rho2,nmax,"pair:rho2");
+    memory->create(rho3,nmax,"pair:rho3");
+    memory->create(frhop,nmax,"pair:frhop");
+    memory->create(gamma,nmax,"pair:gamma");
+    memory->create(dgamma1,nmax,"pair:dgamma1");
+    memory->create(dgamma2,nmax,"pair:dgamma2");
+    memory->create(dgamma3,nmax,"pair:dgamma3");
+    memory->create(arho2b,nmax,"pair:arho2b");
+    memory->create(arho1,nmax,3,"pair:arho1");
+    memory->create(arho2,nmax,6,"pair:arho2");
+    memory->create(arho3,nmax,10,"pair:arho3");
+    memory->create(arho3b,nmax,3,"pair:arho3b");
+    memory->create(t_ave,nmax,3,"pair:t_ave");
+    memory->create(tsq_ave,nmax,3,"pair:tsq_ave");
+  }
+
+  if (n_neigh > maxneigh) {
+    memory->destroy(scrfcn);
+    memory->destroy(dscrfcn);
+    memory->destroy(fcpair);
+    maxneigh = n_neigh;
+    memory->create(scrfcn,maxneigh,"pair:scrfcn");
+    memory->create(dscrfcn,maxneigh,"pair:dscrfcn");
+    memory->create(fcpair,maxneigh,"pair:fcpair");
+  }
+
+  // zero out local arrays
+
+  for (i = 0; i < nall; i++) {
+    rho0[i] = 0.0;
+    arho2b[i] = 0.0;
+    arho1[i][0] = arho1[i][1] = arho1[i][2] = 0.0;
+    for (j = 0; j < 6; j++) arho2[i][j] = 0.0;
+    for (j = 0; j < 10; j++) arho3[i][j] = 0.0;
+    arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
+    t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
+    tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
+  }
+}
+
+
+
+
+
+
+
 //     Extern "C" declaration has the form:
 //
 //  void meam_dens_init_(int *, int *, int *, double *, int *, int *, int *,
@@ -22,34 +101,27 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_dens_init(int* i, int* nmax, int* ntype, int* type, int* fmap, double* x,
+MEAM::meam_dens_init(int* i, int* ntype, int* type, int* fmap, double** x,
                 int* numneigh, int* firstneigh, int* numneigh_full,
-                int* firstneigh_full, double* scrfcn, double* dscrfcn,
-                double* fcpair, double* rho0, double* arho1, double* arho2,
-                double* arho2b, double* arho3, double* arho3b, double* t_ave,
-                double* tsq_ave, int* errorflag)
+                int* firstneigh_full, int fnoffset, int* errorflag)
 {
   *errorflag = 0;
 
   //     Compute screening function and derivatives
-  getscreen(*i, *nmax, scrfcn, dscrfcn, fcpair, x, *numneigh, firstneigh,
+  getscreen(*i, &scrfcn[fnoffset], &dscrfcn[fnoffset], &fcpair[fnoffset], x, *numneigh, firstneigh,
             *numneigh_full, firstneigh_full, *ntype, type, fmap);
 
   //     Calculate intermediate density terms to be communicated
-  calc_rho1(*i, *nmax, *ntype, type, fmap, x, *numneigh, firstneigh, scrfcn,
-            fcpair, rho0, arho1, arho2, arho2b, arho3, arho3b, t_ave, tsq_ave);
+  calc_rho1(*i, *ntype, type, fmap, x, *numneigh, firstneigh, &scrfcn[fnoffset], &fcpair[fnoffset]);
 }
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::getscreen(int i, int nmax, double* scrfcn, double* dscrfcn, double* fcpair,
-          double* x, int numneigh, int* firstneigh, int numneigh_full,
+MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
+          double** x, int numneigh, int* firstneigh, int numneigh_full,
           int* firstneigh_full, int ntype, int* type, int* fmap)
 {
-
-  arrdim2v(x, 3, nmax);
-
   int jn, j, kn, k;
   int elti, eltj, eltk;
   double xitmp, yitmp, zitmp, delxij, delyij, delzij, rij2, rij;
@@ -92,8 +164,7 @@ MEAM::getscreen(int i, int nmax, double* scrfcn, double* dscrfcn, double* fcpair
           sij = 0.0;
         } else {
           rnorm = (this->rc_meam - rij) * drinv;
-          screen(i, j, nmax, x, rij2, &sij, numneigh_full, firstneigh_full,
-                 ntype, type, fmap);
+          screen(i, j, x, rij2, &sij, numneigh_full, firstneigh_full, ntype, type, fmap);
           dfcut(rnorm, &fc, &dfc);
           fcij = fc;
           dfcij = dfc * drinv;
@@ -170,19 +241,9 @@ MEAM::getscreen(int i, int nmax, double* scrfcn, double* dscrfcn, double* fcpair
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::calc_rho1(int i, int nmax, int ntype, int* type, int* fmap, double* x,
-          int numneigh, int* firstneigh, double* scrfcn, double* fcpair,
-          double* rho0, double* arho1, double* arho2, double* arho2b,
-          double* arho3, double* arho3b, double* t_ave, double* tsq_ave)
+MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
+          int numneigh, int* firstneigh, double* scrfcn, double* fcpair)
 {
-  arrdim2v(x, 3, nmax);
-  arrdim2v(arho1, 3, nmax);
-  arrdim2v(arho2, 6, nmax);
-  arrdim2v(arho3, 10, nmax);
-  arrdim2v(arho3b, 3, nmax);
-  arrdim2v(t_ave, 3, nmax);
-  arrdim2v(tsq_ave, 3, nmax);
-
   int jn, j, m, n, p, elti, eltj;
   int nv2, nv3;
   double xtmp, ytmp, ztmp, delij[3 + 1], rij2, rij, sij;
@@ -302,7 +363,7 @@ MEAM::calc_rho1(int i, int nmax, int ntype, int* type, int* fmap, double* x,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::screen(int i, int j, int nmax, double* x, double rijsq, double* sij,
+MEAM::screen(int i, int j, double** x, double rijsq, double* sij,
        int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap)
 //     Screening function
 //     Inputs:  i = atom 1 id (integer)
@@ -310,11 +371,7 @@ MEAM::screen(int i, int j, int nmax, double* x, double rijsq, double* sij,
 //     rijsq = squared distance between i and j
 //     Outputs: sij = screening function
 {
-
-  arrdim2v(x, 3, nmax)
-
-    int k,
-    nk /*,m*/;
+  int k, nk /*,m*/;
   int elti, eltj, eltk;
   double delxik, delyik, delzik;
   double delxjk, delyjk, delzjk;
@@ -375,8 +432,8 @@ MEAM::screen(int i, int j, int nmax, double* x, double rijsq, double* sij,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::dsij(int i, int j, int k, int jn, int nmax, int numneigh, double rij2,
-     double* dsij1, double* dsij2, int ntype, int* type, int* fmap, double* x,
+MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2,
+     double* dsij1, double* dsij2, int ntype, int* type, int* fmap, double** x,
      double* scrfcn, double* fcpair)
 {
   //     Inputs: i,j,k = id's of 3 atom triplet
@@ -385,7 +442,7 @@ MEAM::dsij(int i, int j, int k, int jn, int nmax, int numneigh, double rij2,
   //     Outputs: dsij1 = deriv. of sij w.r.t. rik
   //     dsij2 = deriv. of sij w.r.t. rjk
 
-  arrdim2v(x, 3, nmax) int elti, eltj, eltk;
+  int elti, eltj, eltk;
   double rik2, rjk2;
 
   double dxik, dyik, dzik;

@@ -52,14 +52,6 @@ class PairMEAMC : public Pair {
   int *map;                     // mapping from atom types to elements
   int *fmap;                    // Fortran version of map array for MEAM lib
 
-  int maxneigh;
-  double *scrfcn,*dscrfcn,*fcpair;
-
-  int nmax;
-  double *rho,*rho0,*rho1,*rho2,*rho3,*frhop;
-  double *gamma,*dgamma1,*dgamma2,*dgamma3,*arho2b;
-  double **arho1,**arho2,**arho3,**arho3b,**t_ave,**tsq_ave;
-
   void allocate();
   void read_files(char *, char *);
   void neigh_strip(int, int *, int *, int **);

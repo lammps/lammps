@@ -111,7 +111,6 @@ void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton
                                             double, double, double fpair,
                                             double dx, double dy, double dz)
 {
-  const int ntotal = atom->nlocal + atom->nghost;
   const int * const mask = atom->mask;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))

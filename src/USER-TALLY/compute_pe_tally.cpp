@@ -109,7 +109,6 @@ void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton,
                                          double evdwl, double ecoul, double,
                                          double, double, double)
 {
-  const int ntotal = atom->nlocal + atom->nghost;
   const int * const mask = atom->mask;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))

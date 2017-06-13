@@ -43,7 +43,7 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 6;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
-  did_compute = 0;
+  did_setup = 0;
   invoked_peratom = invoked_scalar = -1;
   nmax = -1;
   stress = NULL;
@@ -80,9 +80,41 @@ void ComputeHeatFluxTally::init()
                     || force->improper || force->kspace)
       error->warning(FLERR,"Compute heat/flux/tally only called from pair style");
   }
-  did_compute = -1;
+  did_setup = -1;
 }
 
+/* ---------------------------------------------------------------------- */
+void ComputeHeatFluxTally::pair_setup_callback(int, int)
+{
+  const int ntotal = atom->nlocal + atom->nghost;
+
+  // grow per-atom storage, if needed
+
+  if (atom->nmax > nmax) {
+    memory->destroy(stress);
+    memory->destroy(eatom);
+    nmax = atom->nmax;
+    memory->create(stress,nmax,6,"heat/flux/tally:stress");
+    memory->create(eatom,nmax,"heat/flux/tally:eatom");
+  }
+
+  // clear storage
+
+  for (int i=0; i < ntotal; ++i) {
+    eatom[i] = 0.0;
+    stress[i][0] = 0.0;
+    stress[i][1] = 0.0;
+    stress[i][2] = 0.0;
+    stress[i][3] = 0.0;
+    stress[i][4] = 0.0;
+    stress[i][5] = 0.0;
+  }
+
+  for (int i=0; i < size_vector; ++i)
+    vector[i] = heatj[i] = 0.0;
+
+  did_setup = update->ntimestep;
+}
 
 /* ---------------------------------------------------------------------- */
 void ComputeHeatFluxTally::pair_tally_callback(int i, int j, int nlocal, int newton,
@@ -91,52 +123,6 @@ void ComputeHeatFluxTally::pair_tally_callback(int i, int j, int nlocal, int new
 {
   const int ntotal = atom->nlocal + atom->nghost;
   const int * const mask = atom->mask;
-
-  // do setup work that needs to be done only once per timestep
-
-  if (did_compute != update->ntimestep) {
-    did_compute = update->ntimestep;
-
-    // grow local stress and eatom arrays if necessary
-    // needs to be atom->nmax in length
-
-    if (atom->nmax > nmax) {
-      memory->destroy(stress);
-      nmax = atom->nmax;
-      memory->create(stress,nmax,6,"heat/flux/tally:stress");
-
-      memory->destroy(eatom);
-      nmax = atom->nmax;
-      memory->create(eatom,nmax,"heat/flux/tally:eatom");
-    }
-
-    // clear storage as needed
-
-    if (newton) {
-      for (int i=0; i < ntotal; ++i) {
-        eatom[i] = 0.0;
-        stress[i][0] = 0.0;
-        stress[i][1] = 0.0;
-        stress[i][2] = 0.0;
-        stress[i][3] = 0.0;
-        stress[i][4] = 0.0;
-        stress[i][5] = 0.0;
-      }
-    } else {
-      for (int i=0; i < atom->nlocal; ++i) {
-        eatom[i] = 0.0;
-        stress[i][0] = 0.0;
-        stress[i][1] = 0.0;
-        stress[i][2] = 0.0;
-        stress[i][3] = 0.0;
-        stress[i][4] = 0.0;
-        stress[i][5] = 0.0;
-      }
-    }
-
-    for (int i=0; i < size_vector; ++i)
-      vector[i] = heatj[i] = 0.0;
-  }
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
        || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
@@ -215,7 +201,7 @@ void ComputeHeatFluxTally::unpack_reverse_comm(int n, int *list, double *buf)
 void ComputeHeatFluxTally::compute_vector()
 {
   invoked_vector = update->ntimestep;
-  if ((did_compute != invoked_vector) || (update->eflag_global != invoked_vector))
+  if ((did_setup != invoked_vector) || (update->eflag_global != invoked_vector))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms

@@ -9,7 +9,7 @@ void
 MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 {
   int i, j;
-  
+
   // grow local arrays if necessary
 
   if (atom_nmax > nmax) {

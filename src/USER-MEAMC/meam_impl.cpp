@@ -35,30 +35,37 @@ MEAM::MEAM(Memory *mem) : memory(mem)
 
 MEAM::~MEAM()
 {
-  meam_cleanup();
+  memory->destroy(this->phirar6);
+  memory->destroy(this->phirar5);
+  memory->destroy(this->phirar4);
+  memory->destroy(this->phirar3);
+  memory->destroy(this->phirar2);
+  memory->destroy(this->phirar1);
+  memory->destroy(this->phirar);
+  memory->destroy(this->phir);
 
-  memory->destroy(rho);
-  memory->destroy(rho0);
-  memory->destroy(rho1);
-  memory->destroy(rho2);
-  memory->destroy(rho3);
-  memory->destroy(frhop);
-  memory->destroy(gamma);
-  memory->destroy(dgamma1);
-  memory->destroy(dgamma2);
-  memory->destroy(dgamma3);
-  memory->destroy(arho2b);
+  memory->destroy(this->rho);
+  memory->destroy(this->rho0);
+  memory->destroy(this->rho1);
+  memory->destroy(this->rho2);
+  memory->destroy(this->rho3);
+  memory->destroy(this->frhop);
+  memory->destroy(this->gamma);
+  memory->destroy(this->dgamma1);
+  memory->destroy(this->dgamma2);
+  memory->destroy(this->dgamma3);
+  memory->destroy(this->arho2b);
 
-  memory->destroy(arho1);
-  memory->destroy(arho2);
-  memory->destroy(arho3);
-  memory->destroy(arho3b);
-  memory->destroy(t_ave);
-  memory->destroy(tsq_ave);
+  memory->destroy(this->arho1);
+  memory->destroy(this->arho2);
+  memory->destroy(this->arho3);
+  memory->destroy(this->arho3b);
+  memory->destroy(this->t_ave);
+  memory->destroy(this->tsq_ave);
 
-  memory->destroy(scrfcn);
-  memory->destroy(dscrfcn);
-  memory->destroy(fcpair);
+  memory->destroy(this->scrfcn);
+  memory->destroy(this->dscrfcn);
+  memory->destroy(this->fcpair);
 }
 
 

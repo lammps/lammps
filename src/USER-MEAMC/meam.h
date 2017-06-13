@@ -157,7 +157,6 @@ public:
             int* firstneigh, int* numneigh_full, int* firstneigh_full,
             int fnoffset, double** f, double** vatom,
             int* errorflag);
-  void meam_cleanup();
 };
 
 // Functions we need for compat
@@ -190,4 +189,6 @@ Fortran Array Semantics in C.
 #define arr1v(ptr, i) ptr[i - 1]
 #define arr2v(ptr, i, j) ptr[j - 1][i - 1]
 
+
+};
 #endif

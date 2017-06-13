@@ -66,13 +66,14 @@ void ComputePEMolTally::init()
   if (atom->molecule_flag == 0)
     error->all(FLERR,"Compute pe/mol/tally requires molecule IDs");
 
-  if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-    error->warning(FLERR,"Compute pe/mol/tally used with incompatible pair style");
+  if (comm->me == 0) {
+    if (force->pair->single_enable == 0 || force->pair->manybody_flag)
+      error->warning(FLERR,"Compute pe/mol/tally used with incompatible pair style");
 
-  if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
-                          || force->improper || force->kspace))
-    error->warning(FLERR,"Compute pe/mol/tally only called from pair style");
-
+    if (force->bond || force->angle || force->dihedral
+                    || force->improper || force->kspace)
+      error->warning(FLERR,"Compute pe/mol/tally only called from pair style");
+  }
   did_compute = -1;
 }
 

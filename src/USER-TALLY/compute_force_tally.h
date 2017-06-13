@@ -31,6 +31,7 @@ class ComputeForceTally : public Compute {
   virtual ~ComputeForceTally();
 
   void init();
+  void setup();
 
   double compute_scalar();
   void compute_peratom();

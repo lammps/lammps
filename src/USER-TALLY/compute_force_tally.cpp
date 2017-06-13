@@ -69,18 +69,42 @@ void ComputeForceTally::init()
   else
     force->pair->add_tally_callback(this);
 
-  if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-    error->warning(FLERR,"Compute force/tally used with incompatible pair style");
+  if (comm->me == 0) {
+    if (force->pair->single_enable == 0 || force->pair->manybody_flag)
+      error->warning(FLERR,"Compute force/tally used with incompatible pair style");
 
-  if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
-                          || force->improper || force->kspace))
-    error->warning(FLERR,"Compute force/tally only called from pair style");
-
+    if (force->bond || force->angle || force->dihedral
+                    || force->improper || force->kspace)
+      error->warning(FLERR,"Compute force/tally only called from pair style");
+  }
   did_compute = -1;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeForceTally::setup()
+{
+  const int ntotal = atom->nlocal + atom->nghost;
+
+  if (atom->nmax > nmax) {
+    memory->destroy(fatom);
+    nmax = atom->nmax;
+    memory->create(fatom,nmax,size_peratom_cols,"force/tally:fatom");
+    array_atom = fatom;
+  }
+
+  // clear storage as needed
+
+  for (int i=0; i < ntotal; ++i)
+    for (int j=0; j < size_peratom_cols; ++j)
+      fatom[i][j] = 0.0;
+
+  for (int i=0; i < size_peratom_cols; ++i)
+    vector[i] = ftotal[i] = 0.0;
+}
 
 /* ---------------------------------------------------------------------- */
+
 void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton,
                                             double, double, double fpair,
                                             double dx, double dy, double dz)
@@ -197,7 +221,7 @@ double ComputeForceTally::compute_scalar()
 void ComputeForceTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
-  if ((did_compute != invoked_peratom) || (update->eflag_global != invoked_peratom))
+  if (((atom->nlocal > 0) && (did_compute != invoked_peratom)) || (update->eflag_global != invoked_peratom))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms

@@ -46,7 +46,7 @@ class ComputeHeatFluxTally : public Compute {
   bigint did_compute;
   int nmax,igroup2,groupbit2;
   double **stress,*eatom;
-  double heatj[6];
+  double *heatj;
 };
 
 }

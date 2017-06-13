@@ -49,6 +49,7 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
   stress = NULL;
   eatom = NULL;
   vector = new double[size_vector];
+  heatj = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,6 +57,9 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
 ComputeHeatFluxTally::~ComputeHeatFluxTally()
 {
   if (force && force->pair) force->pair->del_tally_callback(this);
+  memory->destroy(stress);
+  memory->destroy(eatom);
+  delete[] heatj;
   delete[] vector;
 }
 
@@ -244,6 +248,7 @@ void ComputeHeatFluxTally::compute_vector()
   const double pfactor = 0.5 * force->mvv2e;
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
 
   double jc[3] = {0.0,0.0,0.0};
@@ -251,17 +256,21 @@ void ComputeHeatFluxTally::compute_vector()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      double ke_i = pfactor * mass[type[i]] *
-                  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-      jc[0] += (ke_i + eatom[i]) * v[i][0];
-      jc[1] += (ke_i + eatom[i]) * v[i][1];
-      jc[2] += (ke_i + eatom[i]) * v[i][2];
-      jv[0] += stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
-                stress[i][4]*v[i][2];
-      jv[1] += stress[i][3]*v[i][0] + stress[i][1]*v[i][1] +
-                stress[i][5]*v[i][2];
-      jv[2] += stress[i][4]*v[i][0] + stress[i][5]*v[i][1] +
-                stress[i][2]*v[i][2];
+      const double * const vi = v[i];
+      const double * const si = stress[i];
+      double ke_i;
+
+      if (rmass) ke_i = pfactor * rmass[i];
+      else ke_i *= pfactor * mass[type[i]];
+      ke_i *= (vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2]);
+      ke_i += eatom[i];
+
+      jc[0] += ke_i*vi[0];
+      jc[1] += ke_i*vi[1];
+      jc[2] += ke_i*vi[2];
+      jv[0] += si[0]*vi[0] + si[3]*vi[1] + si[4]*vi[2];
+      jv[1] += si[3]*vi[0] + si[1]*vi[1] + si[5]*vi[2];
+      jv[2] += si[4]*vi[0] + si[5]*vi[1] + si[2]*vi[2];
     }
   }
 

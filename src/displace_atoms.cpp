@@ -76,7 +76,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   groupbit = group->bitmask[igroup];
 
   if (modify->check_rigid_group_overlap(groupbit))
-    error->warning(FLERR,"Displacing atoms in rigid bodies");
+    error->warning(FLERR,"Attempting to displace atoms in rigid bodies");
 
   int style = -1;
   if (strcmp(arg[1],"move") == 0) style = MOVE;

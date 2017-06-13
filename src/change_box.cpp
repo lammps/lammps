@@ -316,6 +316,9 @@ void ChangeBox::command(int narg, char **arg)
 
     } else if (ops[m].style == REMAP) {
 
+      if (modify->check_rigid_group_overlap(groupbit))
+        error->warning(FLERR,"Attempting to remap atoms in rigid bodies");
+
       // convert atoms to lamda coords, using last box state
       // convert atoms back to box coords, using current box state
       // save current box state

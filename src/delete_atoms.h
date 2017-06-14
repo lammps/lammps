@@ -49,12 +49,10 @@ class DeleteAtoms : protected Pointers {
     return j >> SBBITS & 3;
   }
 
-  // static variable for ring communication callback to access class data
   // callback functions for ring communication
 
-  static DeleteAtoms *cptr;
-  static void bondring(int, char *);
-  static void molring(int, char *);
+  static void bondring(int, char *, void *);
+  static void molring(int, char *, void *);
 };
 
 }

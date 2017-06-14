@@ -39,18 +39,16 @@ class Special : protected Pointers {
   void combine();
   void fix_alteration();
 
-  // static variable for ring communication callback to access class data
   // callback functions for ring communication
 
-  static Special *sptr;
-  static void ring_one(int, char *);
-  static void ring_two(int, char *);
-  static void ring_three(int, char *);
-  static void ring_four(int, char *);
-  static void ring_five(int, char *);
-  static void ring_six(int, char *);
-  static void ring_seven(int, char *);
-  static void ring_eight(int, char *);
+  static void ring_one(int, char *, void *);
+  static void ring_two(int, char *, void *);
+  static void ring_three(int, char *, void *);
+  static void ring_four(int, char *, void *);
+  static void ring_five(int, char *, void *);
+  static void ring_six(int, char *, void *);
+  static void ring_seven(int, char *, void *);
+  static void ring_eight(int, char *, void *);
 };
 
 }

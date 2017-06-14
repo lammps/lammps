@@ -39,10 +39,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-// allocate space for static class variable
-
-FixShake *FixShake::fsptr;
-
 #define BIG 1.0e20
 #define MASSDELTA 0.1
 
@@ -844,8 +840,7 @@ void FixShake::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf);
+  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf,(void *)this);
 
   // store partner info returned to me
 
@@ -970,8 +965,7 @@ void FixShake::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf);
+  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf,(void *)this);
 
   // store partner info returned to me
   
@@ -1123,8 +1117,7 @@ void FixShake::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL);
+  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL,(void *)this);
 
   memory->destroy(buf);
 
@@ -1211,8 +1204,9 @@ void FixShake::find_clusters()
      search for bond with 1st atom and fill in bondtype
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_bonds(int ndatum, char *cbuf)
+void FixShake::ring_bonds(int ndatum, char *cbuf, void *ptr)
 {
+  FixShake *fsptr = (FixShake *)ptr;
   Atom *atom = fsptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -1248,8 +1242,9 @@ void FixShake::ring_bonds(int ndatum, char *cbuf)
    if I own partner, fill in nshake value
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_nshake(int ndatum, char *cbuf)
+void FixShake::ring_nshake(int ndatum, char *cbuf, void *ptr)
 {
+  FixShake *fsptr = (FixShake *)ptr;
   Atom *atom = fsptr->atom;
   int nlocal = atom->nlocal;
 
@@ -1269,8 +1264,9 @@ void FixShake::ring_nshake(int ndatum, char *cbuf)
    if I own partner, fill in nshake value
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_shake(int ndatum, char *cbuf)
+void FixShake::ring_shake(int ndatum, char *cbuf, void *ptr)
 {
+  FixShake *fsptr = (FixShake *)ptr;
   Atom *atom = fsptr->atom;
   int nlocal = atom->nlocal;
 

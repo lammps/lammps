@@ -41,10 +41,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-// allocate space for static class variable
-
-FixRigidSmall *FixRigidSmall::frsptr;
-
 #define MAXLINE 1024
 #define CHUNK 1024
 #define ATTRIBUTE_PERBODY 20
@@ -1499,8 +1495,7 @@ void FixRigidSmall::create_bodies()
   // func = update bbox with atom coords from every proc
   // when done, have full bbox for every rigid body my atoms are part of
 
-  frsptr = this;
-  comm->ring(m,sizeof(double),buf,1,ring_bbox,NULL);
+  comm->ring(m,sizeof(double),buf,1,ring_bbox,NULL,(void *)this);
 
   // check if any bbox is size 0.0, meaning rigid body is a single particle
 
@@ -1549,8 +1544,7 @@ void FixRigidSmall::create_bodies()
   // func = update idclose,rsqclose with atom IDs from every proc
   // when done, have idclose for every rigid body my atoms are part of
 
-  frsptr = this;
-  comm->ring(m,sizeof(double),buf,2,ring_nearest,NULL);
+  comm->ring(m,sizeof(double),buf,2,ring_nearest,NULL,(void *)this);
 
   // set bodytag of all owned atoms, based on idclose
   // find max value of rsqclose across all procs
@@ -1581,8 +1575,7 @@ void FixRigidSmall::create_bodies()
   // when done, have rsqfar for all atoms in bodies I own
 
   rsqfar = 0.0;
-  frsptr = this;
-  comm->ring(m,sizeof(double),buf,3,ring_farthest,NULL);
+  comm->ring(m,sizeof(double),buf,3,ring_farthest,NULL,(void *)this);
 
   // find maxextent of rsqfar across all procs
   // if defined, include molecule->maxextent
@@ -1609,8 +1602,9 @@ void FixRigidSmall::create_bodies()
    update bounding box for rigid bodies my atoms are part of
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::ring_bbox(int n, char *cbuf)
+void FixRigidSmall::ring_bbox(int n, char *cbuf, void *ptr)
 {
+  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
   std::map<tagint,int> *hash = frsptr->hash;
   double **bbox = frsptr->bbox;
 
@@ -1641,8 +1635,9 @@ void FixRigidSmall::ring_bbox(int n, char *cbuf)
    update nearest atom to body center for rigid bodies my atoms are part of
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::ring_nearest(int n, char *cbuf)
+void FixRigidSmall::ring_nearest(int n, char *cbuf, void *ptr)
 {
+  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
   std::map<tagint,int> *hash = frsptr->hash;
   double **ctr = frsptr->ctr;
   tagint *idclose = frsptr->idclose;
@@ -1681,8 +1676,9 @@ void FixRigidSmall::ring_nearest(int n, char *cbuf)
    update rsqfar = distance from owning atom to other atom
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::ring_farthest(int n, char *cbuf)
+void FixRigidSmall::ring_farthest(int n, char *cbuf, void *ptr)
 {
+  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
   double **x = frsptr->atom->x;
   imageint *image = frsptr->atom->image;
   int nlocal = frsptr->atom->nlocal;

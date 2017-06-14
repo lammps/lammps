@@ -20,13 +20,12 @@ read_data       ${rep}/lj.data
 
 fix             fxnpt all npt temp ${T0} ${T0} 1000.0 iso ${press} ${press} 10000.0 
 fix             fxgREM all grem ${lambda} -.03 -30000 fxnpt
-thermo_modify   press fxgREM_press
 
 thermo          10
 thermo_style    custom step temp f_fxgREM pe etotal press vol
+thermo_modify   press fxgREM_press
 timestep        1.0
 
-
-temper/grem            10000 100 ${lambda} fxgREM fxnpt 10294 98392 #${walker}
+temper/grem     10000 100 ${lambda} fxgREM fxnpt 10294 98392 #${walker}
 
 #write_data      ${rep}/lj-out.data

@@ -18,10 +18,6 @@
 #include <math.h>
 
 #include "lal_vashishta.h"
-#include <iostream>
-using namespace std;
-
-using namespace std;
 using namespace LAMMPS_AL;
 
 static Vashishta<PRECISION,ACC_PRECISION> VashishtaMF;
@@ -103,7 +99,6 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
   if (init_ok==0)
     VashishtaMF.estimate_gpu_overhead();
 
-  cout << "Seems like this was ok!" << endl;
   return init_ok;
 }
 

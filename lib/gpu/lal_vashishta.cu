@@ -37,8 +37,8 @@ texture<int4> param5_tex;
 #define param1_tex param1
 #define param2_tex param2
 #define param3_tex param3
-#define param3_tex param4
-#define param3_tex param5
+#define param4_tex param4
+#define param5_tex param5
 #endif
 
 #define THIRD (numtyp)0.66666666666666666667

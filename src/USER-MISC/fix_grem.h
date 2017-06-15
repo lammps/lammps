@@ -34,6 +34,7 @@ class FixGrem : public Fix {
   void min_setup(int);
   void post_force(int);
   void *extract(const char *, int &);
+  double compute_scalar();
   double scale_grem,lambda,eta,h0;
   int pressflag;
 

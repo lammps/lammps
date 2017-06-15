@@ -24,7 +24,10 @@
    testing purposes) and a wave-y plane.
    See the README file for more info.
 
-   Stefan Paquay, stefanpaquay@gmail.com
+   Stefan Paquay, spaquay@brandeis.edu
+   Brandeis University, Waltham, MA, USA.
+
+   This package was mainly developed at
    Applied Physics/Theory of Polymers and Soft Matter,
    Eindhoven University of Technology (TU/e), The Netherlands
 
@@ -34,67 +37,46 @@
 
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MANIFOLD_H
-#define LMP_MANIFOLD_H
+#ifndef LMP_MANIFOLD_GAUSSIAN_BUMP_H
+#define LMP_MANIFOLD_GAUSSIAN_BUMP_H
 
-#include "pointers.h"
-#include <math.h>
+#include "manifold.h"
 
 namespace LAMMPS_NS {
+
 namespace user_manifold {
 
-  // Abstract base class.
-  class manifold : protected Pointers {
+  // A Gaussian bump with a smoothed decay to flat 2D.
+  class manifold_gaussian_bump : public manifold {
    public:
-    manifold(class LAMMPS* lmp) : Pointers(lmp), params(NULL){ }
-    virtual ~manifold(){ delete[] params; }
-    virtual double g( const double * ) = 0;
-    virtual void   n( const double *, double * ) = 0;
+    enum { NPARAMS = 4 };
+    manifold_gaussian_bump(class LAMMPS*, int, char **) : manifold(lmp) {}
+    virtual ~manifold_gaussian_bump(){}
 
+    virtual double g( const double * );
+    virtual void   n( const double *, double * );
 
     // Variant of g that computes n at the same time.
-    virtual double g_and_n( const double *x, double *nn )
-    {
-      this->n(x,nn);
-      return g(x);
-    }
+    virtual double g_and_n( const double *x, double *nn );
 
-    virtual const char *id() = 0;
+    static const char* type(){ return "gaussian_bump"; }
+    virtual const char *id() { return type(); }
 
-    virtual void set_atom_id( tagint a_id ){}
-    virtual int nparams() = 0;
-    // double *get_params(){ return params; };
+    virtual int nparams(){ return NPARAMS; }
+    virtual void post_param_init();
+   private:
+    // Some private constants:
+    double aa, bb, cc, dd, AA, ll, ll2, f_at_rc, fp_at_rc;
+    double rc1, rc2, rc12, rc22, dr, inv_dr;
 
-    // Overload if any initialization depends on params:
-    virtual void post_param_init(){}
-    virtual void checkup(){} // Some diagnostics...
+    double gaussian_bump    ( double );
+    double gaussian_bump_x2 ( double );
+    double gaussian_bump_der( double );
 
-    double *params;
   };
-
-
-
-  // Some utility functions that are templated, so I implement them
-  // here in the header.
-  template< unsigned int size > inline
-  double infnorm( double *vect )
-  {
-    double largest = fabs( vect[0] );
-    for( unsigned int i = 1; i < size; ++i ){
-      double c = fabs( vect[i] );
-      largest = ( c > largest ) ? c : largest;
-    }
-    return largest;
-  }
-
-  inline double dot( double *a, double *b ){
-    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-  }
-
-
-} // namespace LAMMPS_NS
+}
 
 }
 
 
-#endif // LMP_MANIFOLD_H
+#endif // LMP_MANIFOLD_GAUSSIAN_BUMP_H

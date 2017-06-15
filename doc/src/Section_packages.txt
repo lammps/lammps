@@ -1502,7 +1502,7 @@ oxDNA model of Doye, Louis and Ouldridge at the University of Oxford.
 This includes Langevin-type rigid-body integrators with improved
 stability.
 
-[Author:] Oliver Henrich (University of Edinburgh).
+[Author:] Oliver Henrich (University of Strathclyde, Glasgow).
 
 [Install or un-install:]
   

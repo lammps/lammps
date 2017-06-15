@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,14 +36,15 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#include <Kokkos_Core.hpp>
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG )
+
+#include <Kokkos_Core.hpp>
 
 #include <impl/Kokkos_TaskQueue_impl.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
@@ -110,21 +111,27 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::execute
   static task_root_type * const end =
     (task_root_type *) task_root_type::EndTag ;
 
+
   HostThreadTeamData & team_data_single =
     HostThreadTeamDataSingleton::singleton();
 
-  const int team_size = Impl::OpenMPexec::pool_size(2); // Threads per core
-  // const int team_size = Impl::OpenMPexec::pool_size(1); // Threads per NUMA
+  const int team_size = Impl::OpenMPExec::pool_size(2); // Threads per core
+  // const int team_size = Impl::OpenMPExec::pool_size(1); // Threads per NUMA
 
 #if 0
 fprintf(stdout,"TaskQueue<OpenMP> execute %d\n", team_size );
 fflush(stdout);
 #endif
 
+  OpenMPExec::resize_thread_data( 0 /* global reduce buffer */
+                                , 512 * team_size /* team reduce buffer */
+                                , 0 /* team shared buffer */
+                                , 0 /* thread local buffer */
+                                );
 
 #pragma omp parallel
   {
-    Impl::HostThreadTeamData & self = *Impl::OpenMPexec::get_thread_data();
+    Impl::HostThreadTeamData & self = *Impl::OpenMPExec::get_thread_data();
 
     // Organizing threads into a team performs a barrier across the
     // entire pool to insure proper initialization of the team
@@ -164,7 +171,7 @@ fflush(stdout);
             if ( 0 != task && end != task ) {
               // team member #0 completes the previously executed task,
               // completion may delete the task
-              queue->complete( task ); 
+              queue->complete( task );
             }
 
             // If 0 == m_ready_count then set task = 0
@@ -301,7 +308,7 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
 
       (*task->m_apply)( task , & single_exec );
 
-      queue->complete( task ); 
+      queue->complete( task );
 
     } while(1);
   }
@@ -310,7 +317,7 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
 }} /* namespace Kokkos::Impl */
 
 //----------------------------------------------------------------------------
-
+#else
+void KOKKOS_CORE_SRC_OPENMP_KOKKOS_OPENMP_TASK_PREVENT_LINK_ERROR() {}
 #endif /* #if defined( KOKKOS_ENABLE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG ) */
-
 

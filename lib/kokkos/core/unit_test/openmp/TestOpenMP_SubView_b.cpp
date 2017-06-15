@@ -41,22 +41,23 @@
 //@HEADER
 */
 
-#include <openmp/TestOpenMP.hpp>
+#include <openmp/TestOpenMP_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( openmp, view_subview_layoutleft_to_layoutleft )
+TEST_F( TEST_CATEGORY, view_subview_layoutleft_to_layoutleft )
 {
-  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::OpenMP >();
-  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::OpenMP, Kokkos::MemoryTraits<Kokkos::Atomic> >();
-  TestViewSubview::test_layoutleft_to_layoutleft< Kokkos::OpenMP, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+  TestViewSubview::test_layoutleft_to_layoutleft< TEST_EXECSPACE >();
+  TestViewSubview::test_layoutleft_to_layoutleft< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Atomic> >();
+  TestViewSubview::test_layoutleft_to_layoutleft< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-TEST_F( openmp, view_subview_layoutright_to_layoutright )
+TEST_F( TEST_CATEGORY, view_subview_layoutright_to_layoutright )
 {
-  TestViewSubview::test_layoutright_to_layoutright< Kokkos::OpenMP >();
-  TestViewSubview::test_layoutright_to_layoutright< Kokkos::OpenMP, Kokkos::MemoryTraits<Kokkos::Atomic> >();
-  TestViewSubview::test_layoutright_to_layoutright< Kokkos::OpenMP, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+  TestViewSubview::test_layoutright_to_layoutright< TEST_EXECSPACE >();
+  TestViewSubview::test_layoutright_to_layoutright< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Atomic> >();
+  TestViewSubview::test_layoutright_to_layoutright< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
 } // namespace Test

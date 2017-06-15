@@ -57,11 +57,16 @@
 #include <Kokkos_OpenMP.hpp>
 #endif
 
+//#if defined( KOKKOS_ENABLE_OPENMPTARGET )
+#include <Kokkos_OpenMPTarget.hpp>
+#include <Kokkos_OpenMPTargetSpace.hpp>
+//#endif
+
 #if defined( KOKKOS_ENABLE_QTHREADS )
 #include <Kokkos_Qthreads.hpp>
 #endif
 
-#if defined( KOKKOS_ENABLE_PTHREAD )
+#if defined( KOKKOS_ENABLE_THREADS )
 #include <Kokkos_Threads.hpp>
 #endif
 
@@ -69,8 +74,8 @@
 #include <Kokkos_Cuda.hpp>
 #endif
 
-#include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Pair.hpp>
+#include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
 #include <Kokkos_Vectorization.hpp>
@@ -167,3 +172,4 @@ void * kokkos_realloc( void * arg_alloc , const size_t arg_alloc_size )
 //----------------------------------------------------------------------------
 
 #endif
+

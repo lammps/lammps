@@ -119,6 +119,11 @@ void TestViewAggregate()
 //  Kokkos::Array< double, 3 > initialized_with_too_many{ { 1, 2, 3, 4 } };
 }
 
+TEST_F( TEST_CATEGORY, view_aggregate )
+{
+  TestViewAggregate< TEST_EXECSPACE >();
+}
+
 } // namespace Test
 
 #endif /* #ifndef TEST_AGGREGATE_HPP */

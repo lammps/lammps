@@ -82,7 +82,7 @@ struct findprimes {
     // Test all numbers from 3 to ceiling(sqrt(data(i))), to see if
     // they are factors of data(i).  It's not the most efficient prime
     // test, but it works.
-    const int upper_bound = sqrt(1.0*number)+1;
+    const int upper_bound = std::sqrt(1.0*number)+1;
     bool is_prime = !(number%2 == 0);
     int k = 3;
     while (k < upper_bound && is_prime) {

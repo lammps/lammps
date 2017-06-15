@@ -44,7 +44,8 @@
 #ifndef KOKKOS_IMPL_QTHREADS_TASK_HPP
 #define KOKKOS_IMPL_QTHREADS_TASK_HPP
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_QTHREADS ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <gtest/gtest.h>
 
@@ -1717,5 +1717,20 @@ struct TestMDRange_6D {
 };
 
 } // namespace
+
+TEST_F( TEST_CATEGORY , mdrange_for ) {
+  TestMDRange_2D< TEST_EXECSPACE >::test_for2( 100, 100 );
+  TestMDRange_3D< TEST_EXECSPACE >::test_for3( 100, 10, 100 );
+  TestMDRange_4D< TEST_EXECSPACE >::test_for4( 100, 10, 10, 10 );
+  TestMDRange_5D< TEST_EXECSPACE >::test_for5( 100, 10, 10, 10, 5 );
+  TestMDRange_6D< TEST_EXECSPACE >::test_for6( 10, 10, 10, 10, 5, 5 );
+}
+
+#ifndef KOKKOS_ENABLE_CUDA
+TEST_F( TEST_CATEGORY , mdrange_reduce ) {
+  TestMDRange_2D< TEST_EXECSPACE >::test_reduce2( 100, 100 );
+  TestMDRange_3D< TEST_EXECSPACE >::test_reduce3( 100, 10, 100 );
+}
+#endif
 
 } // namespace Test

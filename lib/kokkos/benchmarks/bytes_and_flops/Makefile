@@ -7,7 +7,7 @@ default: build
 	echo "Start Build"
 
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-CXX = ${KOKKOS_PATH}/config/nvcc_wrapper
+CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 EXE = bytes_and_flops.cuda
 KOKKOS_DEVICES = "Cuda,OpenMP"
 KOKKOS_ARCH = "SNB,Kepler35"
@@ -22,7 +22,7 @@ CXXFLAGS = -O3 -g
 
 DEPFLAGS = -M
 LINK = ${CXX}
-LINKFLAGS =  
+LINKFLAGS =
 
 OBJ = $(SRC:.cpp=.o)
 LIB =
@@ -34,7 +34,7 @@ build: $(EXE)
 $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
 
-clean: kokkos-clean 
+clean: kokkos-clean
 	rm -f *.o *.cuda *.host
 
 # Compilation rules

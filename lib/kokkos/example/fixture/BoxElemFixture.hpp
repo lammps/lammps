@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef KOKKOS_EXAMPLE_BOXELEMFIXTURE_HPP
 #define KOKKOS_EXAMPLE_BOXELEMFIXTURE_HPP
 
-#include <stdio.h>
+#include <cstdio>
 #include <utility>
 
 #include <Kokkos_Core.hpp>
@@ -97,7 +97,7 @@ struct MapGridUnitCube {
       const double x = double(grid_x) / double(m_max_x);
       const double y = double(grid_y) / double(m_max_y);
       const double z = double(grid_z) / double(m_max_z);
-    
+
       coord_x = x + x * x * ( x - 1 ) * ( x - 1 ) * m_a ;
       coord_y = y + y * y * ( y - 1 ) * ( y - 1 ) * m_b ;
       coord_z = z + z * z * ( z - 1 ) * ( z - 1 ) * m_c ;
@@ -235,7 +235,7 @@ public:
       m_recv_node     = rhs.m_recv_node ;
       m_send_node     = rhs.m_send_node ;
       m_send_node_id  = rhs.m_send_node_id ;
-     
+
       for ( int i = 0 ; i < ElemNode ; ++i ) {
         m_elem_node_local[i][0] = rhs.m_elem_node_local[i][0] ;
         m_elem_node_local[i][1] = rhs.m_elem_node_local[i][1] ;
@@ -279,7 +279,7 @@ public:
       }
     }
 
-    const size_t nwork = 
+    const size_t nwork =
       std::max( m_recv_node.dimension_0() ,
       std::max( m_send_node.dimension_0() ,
       std::max( m_send_node_id.dimension_0() ,

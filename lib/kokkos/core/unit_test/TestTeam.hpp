@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-#include <stdio.h>
+#include <cstdio>
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
@@ -308,7 +308,8 @@ public:
     }
 
     // Team max:
-    const int long m = ind.team_reduce( (long int) ( ind.league_rank() + ind.team_rank() ), JoinMax() );
+    int long m = (long int) ( ind.league_rank() + ind.team_rank() );
+    ind.team_reduce(  Kokkos::Experimental::Max<int long>(m) );
 
     if ( m != ind.league_rank() + ( ind.team_size() - 1 ) ) {
       printf( "ScanTeamFunctor[%d.%d of %d.%d] reduce_max_answer(%ld) != reduce_max(%ld)\n",
@@ -491,6 +492,7 @@ struct TestSharedTeam {
 namespace Test {
 
 #if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
+#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
 template< class MemorySpace, class ExecSpace, class ScheduleType >
 struct TestLambdaSharedTeam {
   TestLambdaSharedTeam() { run(); }
@@ -557,6 +559,7 @@ struct TestLambdaSharedTeam {
     ASSERT_EQ( error_count, 0 );
   }
 };
+#endif
 #endif
 
 } // namespace Test
@@ -655,7 +658,7 @@ struct TestScratchTeam {
 
     int thread_scratch_size = Functor::shared_int_array_type::shmem_size( Functor::SHARED_THREAD_COUNT );
 
-    Kokkos::parallel_reduce( team_exec.set_scratch_size( 0, Kokkos::PerTeam( team_scratch_size ),
+    Kokkos::parallel_reduce( team_exec.set_scratch_size( 1, Kokkos::PerTeam( team_scratch_size ),
                                                          Kokkos::PerThread( thread_scratch_size ) ),
                              Functor(), result_type( & error_count ) );
 
@@ -866,6 +869,7 @@ struct ClassWithShmemSizeFunction {
 template< class ExecSpace, class ScheduleType >
 void test_team_mulit_level_scratch_test_lambda() {
 #ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
+#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
   Kokkos::View< int, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic> > errors;
   Kokkos::View< int, ExecSpace > d_errors( "Errors" );
   errors = d_errors;
@@ -898,6 +902,7 @@ void test_team_mulit_level_scratch_test_lambda() {
   }, error );
   ASSERT_EQ( error, 0 );
   Kokkos::fence();
+#endif
 #endif
 }
 
@@ -943,5 +948,6 @@ struct TestShmemSize {
     ASSERT_EQ( size, d1 * d2 * d3 * sizeof( long ) );
   }
 };
+
 
 } // namespace Test

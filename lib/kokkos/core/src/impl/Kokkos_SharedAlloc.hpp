@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,15 +36,15 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#ifndef KOKKOS_SHARED_ALLOC_HPP_
-#define KOKKOS_SHARED_ALLOC_HPP_
+#ifndef KOKKOS_SHARED_ALLOC_HPP
+#define KOKKOS_SHARED_ALLOC_HPP
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace Kokkos {
@@ -112,12 +112,12 @@ public:
 
   static int tracking_enabled() { return s_tracking_enabled ; }
 
-  /**\brief A host process thread claims and disables the 
+  /**\brief A host process thread claims and disables the
    *        shared allocation tracking flag.
    */
   static void tracking_claim_and_disable();
 
-  /**\brief A host process thread releases and enables the 
+  /**\brief A host process thread releases and enables the
    *        shared allocation tracking flag.
    */
   static void tracking_release_and_enable();
@@ -225,7 +225,7 @@ public:
   // inserts the record into the tracking list.  Decrementing the count from one to zero
   // removes from the trakcing list and deallocates.
   KOKKOS_INLINE_FUNCTION static
-  SharedAllocationRecord * allocate( const MemorySpace & arg_space 
+  SharedAllocationRecord * allocate( const MemorySpace & arg_space
                                    , const std::string & arg_label
                                    , const size_t        arg_alloc
                                    )
@@ -400,3 +400,4 @@ public:
 } /* namespace Kokkos */
 
 #endif
+

@@ -46,7 +46,7 @@
 
 #include <Kokkos_Macros.hpp>
 #include <impl/Kokkos_BitOps.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 #include <cstdio>
 #include <climits>

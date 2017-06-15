@@ -33,10 +33,6 @@ class Dump : protected Pointers {
   int comm_forward;          // size of forward communication (0 if none)
   int comm_reverse;          // size of reverse communication (0 if none)
 
-  // static variable across all Dump objects
-
-  static Dump *dumpptr;         // holds a ptr to Dump currently being used
-
   Dump(class LAMMPS *, int, char **);
   virtual ~Dump();
   void init();
@@ -134,9 +130,9 @@ class Dump : protected Pointers {
   void pbc_allocate();
     
   void sort();
-  static int idcompare(const void *, const void *);
-  static int bufcompare(const void *, const void *);
-  static int bufcompare_reverse(const void *, const void *);
+  static int idcompare(const int, const int, void *);
+  static int bufcompare(const int, const int, void *);
+  static int bufcompare_reverse(const int, const int, void *);
 };
 
 }

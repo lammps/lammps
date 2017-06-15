@@ -63,6 +63,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_lj_coul_debye.o $(OBJ_DIR)/lal_lj_coul_debye_ext.o \
        $(OBJ_DIR)/lal_coul_dsf.o $(OBJ_DIR)/lal_coul_dsf_ext.o \
        $(OBJ_DIR)/lal_sw.o $(OBJ_DIR)/lal_sw_ext.o \
+       $(OBJ_DIR)/lal_vashishta.o $(OBJ_DIR)/lal_vashishta_ext.o \
        $(OBJ_DIR)/lal_beck.o $(OBJ_DIR)/lal_beck_ext.o \
        $(OBJ_DIR)/lal_mie.o $(OBJ_DIR)/lal_mie_ext.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
@@ -117,6 +118,7 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/lj_coul_debye.cubin $(OBJ_DIR)/lj_coul_debye_cubin.h \
        $(OBJ_DIR)/coul_dsf.cubin $(OBJ_DIR)/coul_dsf_cubin.h \
        $(OBJ_DIR)/sw.cubin $(OBJ_DIR)/sw_cubin.h \
+       $(OBJ_DIR)/vashishta.cubin $(OBJ_DIR)/vashishta_cubin.h \
        $(OBJ_DIR)/beck.cubin $(OBJ_DIR)/beck_cubin.h \
        $(OBJ_DIR)/mie.cubin $(OBJ_DIR)/mie_cubin.h \
        $(OBJ_DIR)/soft.cubin $(OBJ_DIR)/soft_cubin.h \
@@ -612,6 +614,18 @@ $(OBJ_DIR)/lal_coul_dsf.o: $(ALL_H) lal_coul_dsf.h lal_coul_dsf.cpp $(OBJ_DIR)/c
 
 $(OBJ_DIR)/lal_coul_dsf_ext.o: $(ALL_H) lal_coul_dsf.h lal_coul_dsf_ext.cpp lal_base_charge.h
 	$(CUDR) -o $@ -c lal_coul_dsf_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/vashishta.cubin: lal_vashishta.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_vashishta.cu
+
+$(OBJ_DIR)/vashishta_cubin.h: $(OBJ_DIR)/vashishta.cubin $(OBJ_DIR)/vashishta.cubin
+	$(BIN2C) -c -n vashishta $(OBJ_DIR)/vashishta.cubin > $(OBJ_DIR)/vashishta_cubin.h
+
+$(OBJ_DIR)/lal_vashishta.o: $(ALL_H) lal_vashishta.h lal_vashishta.cpp $(OBJ_DIR)/vashishta_cubin.h $(OBJ_DIR)/lal_base_three.o
+	$(CUDR) -o $@ -c lal_vashishta.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_vashishta_ext.o: $(ALL_H) lal_vashishta.h lal_vashishta_ext.cpp lal_base_three.h
+	$(CUDR) -o $@ -c lal_vashishta_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/sw.cubin: lal_sw.cu lal_precision.h lal_preprocessor.h
 	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_sw.cu

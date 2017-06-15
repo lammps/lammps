@@ -8890,6 +8890,14 @@ This is a requirement to use this potential. :dd
 
 See the newton command.  This is a restriction to use this potential. :dd
 
+{Pair style vashishta/gpu requires atom IDs} :dt
+
+This is a requirement to use this potential. :dd
+
+{Pair style vashishta/gpu requires newton pair off} :dt
+
+See the newton command.  This is a restriction to use this potential. :dd
+
 {Pair style tersoff/gpu requires atom IDs} :dt
 
 This is a requirement to use the tersoff/gpu potential. :dd

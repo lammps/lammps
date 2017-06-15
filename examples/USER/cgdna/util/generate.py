@@ -14,7 +14,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Oliver Henrich (EPCC, University of Edinburgh)
+   Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 """
 
@@ -45,7 +45,7 @@ try:
     box_length = float(sys.argv[2])
     infile = sys.argv[3]
 except:
-    print >> sys.stderr, "Usage: %s <%s> <%s> <%s>" % (sys.argv[0], \
+    rint >> sys.stderr, "Usage: %s <%s> <%s> <%s>" % (sys.argv[0], \
 	"box offset", "box length", "file with sequences")
     sys.exit(1)
 box = np.array ([box_length, box_length, box_length])

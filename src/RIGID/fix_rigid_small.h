@@ -31,10 +31,6 @@ class FixRigidSmall : public Fix {
   friend class ComputeRigidLocal;
 
  public:
-  // static variable for ring communication callback to access class data
-
-  static FixRigidSmall *frsptr;
-
   FixRigidSmall(class LAMMPS *, int, char **);
   virtual ~FixRigidSmall();
   virtual int setmask();
@@ -200,9 +196,9 @@ class FixRigidSmall : public Fix {
 
   // callback functions for ring communication
 
-  static void ring_bbox(int, char *);
-  static void ring_nearest(int, char *);
-  static void ring_farthest(int, char *);
+  static void ring_bbox(int, char *, void *);
+  static void ring_nearest(int, char *, void *);
+  static void ring_farthest(int, char *, void *);
 
   // debug
 

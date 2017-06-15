@@ -134,10 +134,9 @@ class FixShake : public Fix {
   // static variable for ring communication callback to access class data
   // callback functions for ring communication
 
-  static FixShake *fsptr;
-  static void ring_bonds(int, char *);
-  static void ring_nshake(int, char *);
-  static void ring_shake(int, char *);
+  static void ring_bonds(int, char *, void *);
+  static void ring_nshake(int, char *, void *);
+  static void ring_shake(int, char *, void *);
 };
 
 }

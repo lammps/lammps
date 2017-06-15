@@ -48,6 +48,7 @@ char Read_Control_File( char *control_file, control_params* control,
   control->nsteps          = 0;
   control->dt              = 0.25;
   control->nprocs          = 1;
+  control->nthreads        = 1;
   control->procs_by_dim[0] = 1;
   control->procs_by_dim[1] = 1;
   control->procs_by_dim[2] = 1;

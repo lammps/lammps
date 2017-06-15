@@ -8,6 +8,7 @@
 
 pair_style reax/c command :h3
 pair_style reax/c/kk command :h3
+pair_style reax/c/omp command :h3
 
 [Syntax:]
 

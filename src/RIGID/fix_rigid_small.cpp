@@ -54,7 +54,7 @@ FixRigidSmall *FixRigidSmall::frsptr;
 #define BIG 1.0e20
 
 #define SINERTIA 0.4            // moment of inertia prefactor for sphere
-#define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
+#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
 #define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
 
 #define DELTA_BODY 10000
@@ -1047,7 +1047,7 @@ int FixRigidSmall::dof(int tgroup)
     j = atom2body[i];
     counts[j][2]++;
     if (mask[i] & tgroupbit) {
-      if (extended && eflags[i]) counts[j][1]++;
+      if (extended && (eflags[i] & ~(POINT | DIPOLE))) counts[j][1]++;
       else counts[j][0]++;
     }
   }

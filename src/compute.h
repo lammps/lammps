@@ -153,7 +153,7 @@ class Compute : protected Pointers {
   double **vbiasall;           // stored velocity bias for all atoms
   int maxbias;                 // size of vbiasall array
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 

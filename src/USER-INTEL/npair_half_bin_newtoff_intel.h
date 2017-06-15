@@ -38,7 +38,7 @@ class NPairHalfBinNewtoffIntel : public NPairIntel {
   void hbnni(NeighList *, IntelBuffers<flt_t,acc_t> *);
   template <class flt_t, class acc_t, int>
   void hbnni(const int, NeighList *, IntelBuffers<flt_t,acc_t> *, const int,
-	     const int);
+             const int);
 };
 
 }

@@ -98,13 +98,14 @@ c     Complete the calculation of density
           call G_gam(Gamma(i),ibar_meam(elti),
      $         gsmooth_factor,G,errorflag)
           if (errorflag.ne.0) return
+          call get_shpfcn(shp,lattce_meam(elti,elti))
           if (ibar_meam(elti).le.0) then
             Gbar = 1.d0
+            dGbar = 0.d0
           else
-            call get_shpfcn(shp,lattce_meam(elti,elti))
             if (mix_ref_t.eq.1) then
-              gam = (t_ave(1,i)*shpi(1)+t_ave(2,i)*shpi(2)
-     $             +t_ave(3,i)*shpi(3))/(Z*Z)
+              gam = (t_ave(1,i)*shp(1)+t_ave(2,i)*shp(2)
+     $             +t_ave(3,i)*shp(3))/(Z*Z)
             else
               gam = (t1_meam(elti)*shp(1)+t2_meam(elti)*shp(2)
      $             +t3_meam(elti)*shp(3))/(Z*Z)
@@ -119,9 +120,8 @@ c     Complete the calculation of density
               Gbar = 1.d0
               dGbar = 0.d0
             else
-              call get_shpfcn(shpi,lattce_meam(elti,elti))
-              gam = (t_ave(1,i)*shpi(1)+t_ave(2,i)*shpi(2)
-     $             +t_ave(3,i)*shpi(3))/(Z*Z)
+              gam = (t_ave(1,i)*shp(1)+t_ave(2,i)*shp(2)
+     $             +t_ave(3,i)*shp(3))/(Z*Z)
               call dG_gam(gam,ibar_meam(elti),gsmooth_factor,
      $             Gbar,dGbar)
             endif

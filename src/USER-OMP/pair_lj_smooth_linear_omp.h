@@ -18,6 +18,7 @@
 #ifdef PAIR_CLASS
 
 PairStyle(lj/smooth/linear/omp,PairLJSmoothLinearOMP)
+PairStyle(lj/sf/omp,PairLJSmoothLinearOMP)
 
 #else
 

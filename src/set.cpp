@@ -327,15 +327,18 @@ void Set::command(int narg, char **arg)
       ximageflag = yimageflag = zimageflag = 0;
       if (strcmp(arg[iarg+1],"NULL") != 0) {
         ximageflag = 1;
-        ximage = force->inumeric(FLERR,arg[iarg+1]);
+        if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+        else ximage = force->inumeric(FLERR,arg[iarg+1]);
       }
       if (strcmp(arg[iarg+2],"NULL") != 0) {
         yimageflag = 1;
-        yimage = force->inumeric(FLERR,arg[iarg+2]);
+        if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) varparse(arg[iarg+2],2);
+        else yimage = force->inumeric(FLERR,arg[iarg+2]);
       }
       if (strcmp(arg[iarg+3],"NULL") != 0) {
         zimageflag = 1;
-        zimage = force->inumeric(FLERR,arg[iarg+3]);
+        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) varparse(arg[iarg+3],3);
+        else zimage = force->inumeric(FLERR,arg[iarg+3]);
       }
       if (ximageflag && ximage && !domain->xperiodic)
         error->all(FLERR,
@@ -811,6 +814,9 @@ void Set::set(int keyword)
       int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
       int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
+      if (varflag1) ximage = static_cast<int>(xvalue);
+      if (varflag2) yimage = static_cast<int>(yvalue);
+      if (varflag3) zimage = static_cast<int>(zvalue);
       if (ximageflag) xbox = ximage;
       if (yimageflag) ybox = yimage;
       if (zimageflag) zbox = zimage;

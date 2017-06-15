@@ -19,7 +19,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin2dNewtonTri::NStencilHalfBin2dNewtonTri(LAMMPS *lmp) : 
+NStencilHalfBin2dNewtonTri::NStencilHalfBin2dNewtonTri(LAMMPS *lmp) :
   NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------

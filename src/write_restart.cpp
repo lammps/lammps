@@ -185,7 +185,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
     if (strcmp(arg[iarg],"fileper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use write_restart fileper "
+        error->all(FLERR,"Cannot use write_restart fileper "
                    "without % in restart file name");
       int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
@@ -203,7 +203,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use write_restart nfile "
+        error->all(FLERR,"Cannot use write_restart nfile "
                    "without % in restart file name");
       int nfile = force->inumeric(FLERR,arg[iarg+1]);
       if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");

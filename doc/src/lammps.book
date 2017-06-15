@@ -301,6 +301,7 @@ compute_centro_atom.html
 compute_chunk_atom.html
 compute_cluster_atom.html
 compute_cna_atom.html
+compute_cnp_atom.html
 compute_com.html
 compute_com_chunk.html
 compute_contact_atom.html

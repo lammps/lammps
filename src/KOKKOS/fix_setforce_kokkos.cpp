@@ -108,7 +108,6 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
   if (varflag == CONSTANT) {
     copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixSetForceConstant>(0,nlocal),*this,foriginal_kk);
-    DeviceType::fence();
     copymode = 0;
 
   // variable force, wrap with clear/add
@@ -138,7 +137,6 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
 
     copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixSetForceNonConstant>(0,nlocal),*this,foriginal_kk);
-    DeviceType::fence();
     copymode = 0;
   }
 

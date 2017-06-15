@@ -234,12 +234,10 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   // compute_H
   FixQEqReaxKokkosComputeHFunctor<DeviceType> computeH_functor(this);
   Kokkos::parallel_scan(inum,computeH_functor);
-  DeviceType::fence();
 
   // init_matvec
   FixQEqReaxKokkosMatVecFunctor<DeviceType> matvec_functor(this);
   Kokkos::parallel_for(inum,matvec_functor);
-  DeviceType::fence();
 
   // comm->forward_comm_fix(this); //Dist_vector( s );
   pack_flag = 2;
@@ -259,15 +257,12 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // 1st cg solve over b_s, s
   cg_solve1();
-  DeviceType::fence();
 
   // 2nd cg solve over b_t, t
   cg_solve2();
-  DeviceType::fence();
 
   // calculate_Q();
   calculate_q();
-  DeviceType::fence();
 
   copymode = 0;
 
@@ -354,7 +349,6 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
   const int ignum = atom->nlocal + atom->nghost;
   FixQEqReaxKokkosZeroFunctor<DeviceType> zero_functor(this);
   Kokkos::parallel_for(ignum,zero_functor);
-  DeviceType::fence();
 
 }
 /* ---------------------------------------------------------------------- */
@@ -499,10 +493,8 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse12Functor<DeviceType> sparse12_functor(this);
   Kokkos::parallel_for(inum,sparse12_functor);
-  DeviceType::fence();
   if (neighflag != FULL) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
-    DeviceType::fence();
     if (neighflag == HALF) {
       FixQEqReaxKokkosSparse13Functor<DeviceType,HALF> sparse13_functor(this);
       Kokkos::parallel_for(inum,sparse13_functor);
@@ -513,7 +505,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   } else {
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> (inum, teamsize), *this);
   }
-  DeviceType::fence();
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
@@ -529,21 +520,17 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   F_FLOAT my_norm = 0.0;
   FixQEqReaxKokkosNorm1Functor<DeviceType> norm1_functor(this);
   Kokkos::parallel_reduce(inum,norm1_functor,my_norm);
-  DeviceType::fence();
   F_FLOAT norm_sqr = 0.0;
   MPI_Allreduce( &my_norm, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
   b_norm = sqrt(norm_sqr);
-  DeviceType::fence();
 
   // sig_new = parallel_dot( r, d, nn);
   F_FLOAT my_dot = 0.0;
   FixQEqReaxKokkosDot1Functor<DeviceType> dot1_functor(this);
   Kokkos::parallel_reduce(inum,dot1_functor,my_dot);
-  DeviceType::fence();
   F_FLOAT dot_sqr = 0.0;
   MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
   F_FLOAT sig_new = dot_sqr;
-  DeviceType::fence();
 
   int loop;
   const int loopmax = 200;
@@ -560,10 +547,8 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
-    DeviceType::fence();
     if (neighflag != FULL) {
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
-      DeviceType::fence();
       if (neighflag == HALF) {
         FixQEqReaxKokkosSparse23Functor<DeviceType,HALF> sparse23_functor(this);
         Kokkos::parallel_for(inum,sparse23_functor);
@@ -574,7 +559,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     } else {
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
     }
-    DeviceType::fence();
 
 
     if (neighflag != FULL) {
@@ -589,7 +573,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     my_dot = dot_sqr = 0.0;
     FixQEqReaxKokkosDot2Functor<DeviceType> dot2_functor(this);
     Kokkos::parallel_reduce(inum,dot2_functor,my_dot);
-    DeviceType::fence();
     MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
     tmp = dot_sqr;
 
@@ -602,12 +585,10 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     my_dot = dot_sqr = 0.0;
     FixQEqReaxKokkosPrecon1Functor<DeviceType> precon1_functor(this);
     Kokkos::parallel_for(inum,precon1_functor);
-    DeviceType::fence();
     // preconditioning: p[j] = r[j] * Hdia_inv[j];
     // sig_new = parallel_dot( r, p, nn);
     FixQEqReaxKokkosPreconFunctor<DeviceType> precon_functor(this);
     Kokkos::parallel_reduce(inum,precon_functor,my_dot);
-    DeviceType::fence();
     MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
     sig_new = dot_sqr;
 
@@ -616,7 +597,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     // vector_sum( d, 1., p, beta, d, nn );
     FixQEqReaxKokkosVecSum2Functor<DeviceType> vecsum2_functor(this);
     Kokkos::parallel_for(inum,vecsum2_functor);
-    DeviceType::fence();
   }
 
   if (loop >= loopmax && comm->me == 0) {
@@ -644,10 +624,8 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse32Functor<DeviceType> sparse32_functor(this);
   Kokkos::parallel_for(inum,sparse32_functor);
-  DeviceType::fence();
   if (neighflag != FULL) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
-    DeviceType::fence();
     if (neighflag == HALF) {
       FixQEqReaxKokkosSparse33Functor<DeviceType,HALF> sparse33_functor(this);
       Kokkos::parallel_for(inum,sparse33_functor);
@@ -658,7 +636,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   } else {
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> (inum, teamsize), *this);
   }
-  DeviceType::fence();
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
@@ -674,21 +651,17 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   F_FLOAT my_norm = 0.0;
   FixQEqReaxKokkosNorm2Functor<DeviceType> norm2_functor(this);
   Kokkos::parallel_reduce(inum,norm2_functor,my_norm);
-  DeviceType::fence();
   F_FLOAT norm_sqr = 0.0;
   MPI_Allreduce( &my_norm, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
   b_norm = sqrt(norm_sqr);
-  DeviceType::fence();
 
   // sig_new = parallel_dot( r, d, nn);
   F_FLOAT my_dot = 0.0;
   FixQEqReaxKokkosDot1Functor<DeviceType> dot1_functor(this);
   Kokkos::parallel_reduce(inum,dot1_functor,my_dot);
-  DeviceType::fence();
   F_FLOAT dot_sqr = 0.0;
   MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
   F_FLOAT sig_new = dot_sqr;
-  DeviceType::fence();
 
   int loop;
   const int loopmax = 200;
@@ -705,10 +678,8 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
-    DeviceType::fence();
     if (neighflag != FULL) {
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
-      DeviceType::fence();
       if (neighflag == HALF) {
         FixQEqReaxKokkosSparse23Functor<DeviceType,HALF> sparse23_functor(this);
         Kokkos::parallel_for(inum,sparse23_functor);
@@ -719,7 +690,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     } else {
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
     }
-    DeviceType::fence();
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
@@ -733,10 +703,8 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     my_dot = dot_sqr = 0.0;
     FixQEqReaxKokkosDot2Functor<DeviceType> dot2_functor(this);
     Kokkos::parallel_reduce(inum,dot2_functor,my_dot);
-    DeviceType::fence();
     MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
     tmp = dot_sqr;
-    DeviceType::fence();
 
     alpha = sig_new / tmp;
 
@@ -747,12 +715,10 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     my_dot = dot_sqr = 0.0;
     FixQEqReaxKokkosPrecon2Functor<DeviceType> precon2_functor(this);
     Kokkos::parallel_for(inum,precon2_functor);
-    DeviceType::fence();
     // preconditioning: p[j] = r[j] * Hdia_inv[j];
     // sig_new = parallel_dot( r, p, nn);
     FixQEqReaxKokkosPreconFunctor<DeviceType> precon_functor(this);
     Kokkos::parallel_reduce(inum,precon_functor,my_dot);
-    DeviceType::fence();
     MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
     sig_new = dot_sqr;
 
@@ -761,7 +727,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     // vector_sum( d, 1., p, beta, d, nn );
     FixQEqReaxKokkosVecSum2Functor<DeviceType> vecsum2_functor(this);
     Kokkos::parallel_for(inum,vecsum2_functor);
-    DeviceType::fence();
   }
 
   if (loop >= loopmax && comm->me == 0) {
@@ -786,7 +751,6 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
   sum = sum_all = 0.0;
   FixQEqReaxKokkosVecAcc1Functor<DeviceType> vecacc1_functor(this);
   Kokkos::parallel_reduce(inum,vecacc1_functor,sum);
-  DeviceType::fence();
   MPI_Allreduce(&sum, &sum_all, 1, MPI_DOUBLE, MPI_SUM, world );
   const F_FLOAT s_sum = sum_all;
 
@@ -794,7 +758,6 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
   sum = sum_all = 0.0;
   FixQEqReaxKokkosVecAcc2Functor<DeviceType> vecacc2_functor(this);
   Kokkos::parallel_reduce(inum,vecacc2_functor,sum);
-  DeviceType::fence();
   MPI_Allreduce(&sum, &sum_all, 1, MPI_DOUBLE, MPI_SUM, world );
   const F_FLOAT t_sum = sum_all;
 
@@ -804,7 +767,6 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
   // q[i] = s[i] - u * t[i];
   FixQEqReaxKokkosCalculateQFunctor<DeviceType> calculateQ_functor(this);
   Kokkos::parallel_for(inum,calculateQ_functor);
-  DeviceType::fence();
 
   pack_flag = 4;
   //comm->forward_comm_fix( this ); //Dist_vector( atom->q );

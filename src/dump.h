@@ -128,7 +128,7 @@ class Dump : protected Pointers {
   virtual int convert_string(int, double *) {return 0;}
   virtual void write_data(int, double *) = 0;
   void pbc_allocate();
-    
+
   void sort();
   static int idcompare(const int, const int, void *);
   static int bufcompare(const int, const int, void *);

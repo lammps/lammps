@@ -80,7 +80,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   buffer_flag = 0;
   padflag = 0;
   pbcflag = 0;
-  
+
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
   ids = idsort = NULL;
@@ -166,13 +166,13 @@ Dump::~Dump()
   delete irregular;
 
   memory->destroy(sbuf);
-  
+
   if (pbcflag) {
     memory->destroy(xpbc);
     memory->destroy(vpbc);
     memory->destroy(imagepbc);
   }
-  
+
   if (multiproc) MPI_Comm_free(&clustercomm);
 
   // XTC style sets fp to NULL since it closes file in its destructor
@@ -273,7 +273,7 @@ void Dump::init()
   }
 
   // preallocation for PBC copies if requested
-  
+
   if (pbcflag && atom->nlocal > maxpbc) pbc_allocate();
 }
 
@@ -386,7 +386,7 @@ void Dump::write()
     atom->image = imagepbc;
     domain->pbc();
   }
-  
+
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()
   // sort buf as needed
@@ -717,7 +717,8 @@ void Dump::sort()
    compare two atom IDs
    called via merge_sort() in sort() method
 ------------------------------------------------------------------------- */
-int Dump::idcompare(const int i, const int j, void *ptr) {
+int Dump::idcompare(const int i, const int j, void *ptr)
+{
   tagint *idsort = ((Dump *)ptr)->idsort;
   if (idsort[i] < idsort[j]) return -1;
   else if (idsort[i] > idsort[j]) return 1;
@@ -730,7 +731,8 @@ int Dump::idcompare(const int i, const int j, void *ptr) {
    sort in ASCENDing order
 ------------------------------------------------------------------------- */
 
-int Dump::bufcompare(const int i, const int j, void *ptr) {
+int Dump::bufcompare(const int i, const int j, void *ptr)
+{
   Dump *dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
@@ -738,7 +740,7 @@ int Dump::bufcompare(const int i, const int j, void *ptr) {
 
   const int ii=i*size_one + sortcolm1;
   const int jj=j*size_one + sortcolm1;
-        
+
   if (bufsort[ii] < bufsort[jj]) return -1;
   else if (bufsort[ii] > bufsort[jj]) return 1;
   else return 0;
@@ -749,7 +751,8 @@ int Dump::bufcompare(const int i, const int j, void *ptr) {
    sort in DESCENDing order
 ------------------------------------------------------------------------- */
 
-int Dump::bufcompare_reverse(const int i, const int j, void *ptr) {
+int Dump::bufcompare_reverse(const int i, const int j, void *ptr)
+{
   Dump *dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
@@ -757,7 +760,7 @@ int Dump::bufcompare_reverse(const int i, const int j, void *ptr) {
 
   const int ii=i*size_one + sortcolm1;
   const int jj=j*size_one + sortcolm1;
-        
+
   if (bufsort[ii] < bufsort[jj]) return 1;
   else if (bufsort[ii] > bufsort[jj]) return -1;
   else return 0;

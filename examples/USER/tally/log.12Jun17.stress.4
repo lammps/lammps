@@ -1,5 +1,4 @@
-LAMMPS (21 Aug 2015-ICMS)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (19 May 2017)
 
 units		real
 atom_style	full
@@ -50,6 +49,35 @@ fix		1 all shake 0.0001 20 0 b 1 a 1
   1500 = # of frozen angles
 fix		2 all nvt temp 300.0 300.0 100.0
 
+# make certain that shake constraints are satisfied
+run 0 post no
+PPPM initialization ...
+WARNING: Using 12-bit tables for long-range coulomb (../kspace.cpp:321)
+  G vector (1/distance) = 0.218482
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0319435
+  estimated relative force accuracy = 9.61968e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 3380 960
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 10.6 | 10.61 | 10.61 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -16692.358            0   -16692.358   -1289.8319 
+Loop time of 4e-06 on 4 procs for 0 steps with 4500 atoms
+
+
 group		one molecule 1 2
 6 atoms in group one
 
@@ -79,6 +107,7 @@ thermo		10
 
 run 50
 PPPM initialization ...
+WARNING: Using 12-bit tables for long-range coulomb (../kspace.cpp:321)
   G vector (1/distance) = 0.218482
   grid = 15 15 15
   stencil order = 5
@@ -86,44 +115,38 @@ PPPM initialization ...
   estimated relative force accuracy = 9.61968e-05
   using double precision FFTs
   3d grid and FFT values/proc = 3380 960
-WARNING: Compute stress/tally only called from pair style (../compute_stress_tally.cpp:75)
-WARNING: Compute stress/tally only called from pair style (../compute_stress_tally.cpp:75)
-Neighbor list info ...
-  1 neighbor list requests
-  update every 1 steps, delay 10 steps, check yes
-  master list distance cutoff = 14
-  ghost atom cutoff = 14
-  binsize = 7 -> bins = 6 6 6
-Memory usage per processor = 12.0691 Mbytes
-Step press spa press one ref 
-       0    26497.547    26497.547    26497.547   -2357033.6   -2357033.6 
-      10    23665.073    23665.073    23665.073   -2096057.3   -2096057.3 
-      20    23338.149    23338.149    23338.149     -2034283     -2034283 
-      30      25946.4      25946.4      25946.4     -2002817     -2002817 
-      40    27238.349    27238.349    27238.349   -2155411.5   -2155411.5 
-      50    27783.092    27783.092    27783.092   -1862190.3   -1862190.3 
+WARNING: Compute stress/tally only called from pair style (../compute_stress_tally.cpp:79)
+WARNING: Compute stress/tally only called from pair style (../compute_stress_tally.cpp:79)
+Per MPI rank memory allocation (min/avg/max) = 15.25 | 15.26 | 15.27 Mbytes
+Step c_press v_spa v_press v_one v_ref 
+       0    26496.811    26496.811    26496.811   -2356992.7   -2356992.7 
+      10    23665.129    23665.129    23665.129     -2096059     -2096059 
+      20    23338.197    23338.197    23338.197   -2034284.1   -2034284.1 
+      30    25946.434    25946.434    25946.434   -2002815.3   -2002815.3 
+      40    27238.374    27238.374    27238.374   -2155408.7   -2155408.7 
+      50    27783.107    27783.107    27783.107   -1862191.5   -1862191.5 
+Loop time of 4.32017 on 4 procs for 50 steps with 4500 atoms
 
-Loop time of 1.17266 on 4 procs for 50 steps with 4500 atoms
-100.0% CPU use with 4 MPI tasks x 1 OpenMP threads
-Performance: 7.368 ns/day  3.257 hours/ns  42.638 timesteps/s
+Performance: 2.000 ns/day, 12.000 hours/ns, 11.574 timesteps/s
+31.8% CPU use with 4 MPI tasks x no OpenMP threads
 
-MPI task timings breakdown:
+MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.89832    | 0.93222    | 0.98611    |   3.4 | 79.50
-Bond    | 0.00081754 | 0.00096095 | 0.0011327  |   0.4 |  0.08
-Kspace  | 0.068058   | 0.12154    | 0.15522    |   9.4 | 10.36
-Neigh   | 0.065756   | 0.065785   | 0.065824   |   0.0 |  5.61
-Comm    | 0.017489   | 0.017982   | 0.018623   |   0.4 |  1.53
-Output  | 0.010985   | 0.011017   | 0.011111   |   0.1 |  0.94
-Modify  | 0.021429   | 0.021491   | 0.021551   |   0.0 |  1.83
-Other   |            | 0.001671   |            |       |  0.14
+Pair    | 3.5816     | 3.6917     | 3.839      |   4.9 | 85.45
+Bond    | 0.001579   | 0.0016563  | 0.001709   |   0.1 |  0.04
+Kspace  | 0.22505    | 0.3716     | 0.48023    |  15.3 |  8.60
+Neigh   | 0.14558    | 0.14568    | 0.14575    |   0.0 |  3.37
+Comm    | 0.032009   | 0.03441    | 0.036274   |   0.8 |  0.80
+Output  | 0.02253    | 0.023115   | 0.024844   |   0.7 |  0.54
+Modify  | 0.046954   | 0.047086   | 0.047132   |   0.0 |  1.09
+Other   |            | 0.004935   |            |       |  0.11
 
 Nlocal:    1125 ave 1154 max 1092 min
 Histogram: 1 0 0 0 1 0 1 0 0 1
 Nghost:    12263.5 ave 12300 max 12219 min
 Histogram: 1 0 1 0 0 0 0 0 0 2
-Neighs:    650438 ave 678786 max 626279 min
+Neighs:    650438 ave 678787 max 626279 min
 Histogram: 1 0 0 1 1 0 0 0 0 1
 
 Total # of neighbors = 2601750
@@ -132,4 +155,4 @@ Ave special neighs/atom = 2
 Neighbor list builds = 3
 Dangerous builds = 0
 
-Total wall time: 0:00:01
+Total wall time: 0:00:04

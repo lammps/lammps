@@ -64,7 +64,7 @@ idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
   // optional args
 
   iregion = -1;
-  
+
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
@@ -125,6 +125,10 @@ void FixHeat::init()
     else if (input->variable->atomstyle(hvar)) hstyle = ATOM;
     else error->all(FLERR,"Variable for fix heat is invalid style");
   }
+
+  // check for rigid bodies in region (done here for performance reasons)
+  if (modify->check_rigid_region_overlap(groupbit,domain->regions[iregion]))
+    error->warning(FLERR,"Cannot apply fix heat to atoms in rigid bodies");
 
   // cannot have 0 atoms in group
 

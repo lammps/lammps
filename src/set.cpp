@@ -585,6 +585,28 @@ void Set::set(int keyword)
     }
   }
 
+  // check if properties of atoms in rigid bodies are updated
+  // that are cached as per-body data.
+  switch (keyword) {
+  case X:
+  case Y:
+  case Z:
+  case MOLECULE:
+  case MASS:
+  case ANGMOM:
+  case SHAPE:
+  case DIAMETER:
+  case DENSITY:
+  case QUAT:
+  case IMAGE:
+    if (modify->check_rigid_list_overlap(select))
+      error->warning(FLERR,"Changing a property of atoms in rigid bodies "
+                     "that has no effect unless rigid bodies are rebuild");
+    break;
+  default: // assume no conflict for all other properties
+    break;
+  }
+
   // loop over selected atoms
 
   AtomVecEllipsoid *avec_ellipsoid =

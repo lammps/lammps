@@ -69,6 +69,15 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
   else error->all(FLERR,"Illegal delete_atoms command");
 
+  if (allflag) {
+    int igroup = group->find("all");
+    if ((igroup >= 0) && modify->check_rigid_group_overlap(group->bitmask[igroup]))
+      error->warning(FLERR,"Attempting to delete atoms in rigid bodies");
+  } else {
+    if (modify->check_rigid_list_overlap(dlist))
+      error->warning(FLERR,"Attempting to delete atoms in rigid bodies");
+  }
+
   // if allflag = 1, just reset atom->nlocal
   // else delete atoms one by one
 
@@ -89,16 +98,16 @@ void DeleteAtoms::command(int narg, char **arg)
     int i = 0;
     while (i < nlocal) {
       if (dlist[i]) {
-	avec->copy(nlocal-1,i,1);
-	dlist[i] = dlist[nlocal-1];
-	nlocal--;
+        avec->copy(nlocal-1,i,1);
+        dlist[i] = dlist[nlocal-1];
+        nlocal--;
       } else i++;
     }
-    
+
     atom->nlocal = nlocal;
     memory->destroy(dlist);
   }
-  
+
   // if non-molecular system and compress flag set,
   // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
@@ -201,7 +210,7 @@ void DeleteAtoms::delete_group(int narg, char **arg)
     allflag = 1;
     return;
   }
-  
+
   // allocate and initialize deletion list
 
   int nlocal = atom->nlocal;

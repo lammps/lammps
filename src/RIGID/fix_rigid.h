@@ -104,6 +104,7 @@ class FixRigid : public Fix {
   int extended;             // 1 if any particles have extended attributes
   int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
+  int reinitflag;           // 1 if re-initialize rigid bodies between runs
 
   imageint *xcmimage;       // internal image flags for atoms in rigid bodies
                             // set relative to in-box xcm of each body

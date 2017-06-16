@@ -78,17 +78,17 @@ void VerletLRTIntel::init()
    setup before run
 ------------------------------------------------------------------------- */
 
-void VerletLRTIntel::setup()
+void VerletLRTIntel::setup(int flag)
 {
   if (_intel_kspace == 0) {
-    Verlet::setup();
+    Verlet::setup(flag);
     return;
   } 
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_intel_kspace->use_base()) {
     _intel_kspace = 0;
-    Verlet::setup();
+    Verlet::setup(flag);
     return;
   }
   #endif

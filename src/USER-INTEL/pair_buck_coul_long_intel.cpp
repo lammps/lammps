@@ -85,53 +85,47 @@ void PairBuckCoulLongIntel::compute(int eflag, int vflag,
 
   if (_lrt == 0 && ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
+    
+    int packthreads;
+    if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
+    else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #pragma omp parallel if(packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
       IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, 
-				nthreads, sizeof(ATOM_T));
+				packthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
   
-  if (evflag || vflag_fdotr) {
-    int ovflag = 0;
-    if (vflag_fdotr) ovflag = 2;
-    else if (vflag) ovflag = 1;
-    if (eflag) {
-      if (force->newton_pair) {
-	eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-	eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+  int ovflag = 0;
+  if (vflag_fdotr) ovflag = 2;
+  else if (vflag) ovflag = 1;
+  if (eflag) {
+    if (force->newton_pair) {
+      eval<1,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      if (force->newton_pair) {
-	eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-	eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+      eval<1,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   } else {
     if (force->newton_pair) {
-      eval<0,0,1>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,1>(0, 0, buffers, fc, host_start, inum);
+      eval<0,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      eval<0,0,0>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,0>(0, 0, buffers, fc, host_start, inum);
+      eval<0,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
 void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
 				 IntelBuffers<flt_t,acc_t> *buffers,
 				 const ForceConst<flt_t> &fc,
@@ -170,9 +164,17 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
   const int ntypes = atom->ntypes + 1;
   const int eatom = this->eflag_atom;
 
+  flt_t * _noalias const ccachex = buffers->get_ccachex();
+  flt_t * _noalias const ccachey = buffers->get_ccachey();
+  flt_t * _noalias const ccachez = buffers->get_ccachez();
+  flt_t * _noalias const ccachew = buffers->get_ccachew();
+  int * _noalias const ccachei = buffers->get_ccachei();
+  int * _noalias const ccachej = buffers->get_ccachej();
+  const int ccache_stride = _ccache_stride;
+
   // Determine how much data to transfer
   int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EVFLAG, EFLAG, vflag,
+  IP_PRE_get_transfern(ago, NEWTON_PAIR, EFLAG, vflag,
 		       buffers, offload, fix, separate_flag,
 		       x_size, q_size, ev_size, f_stride);
 
@@ -208,8 +210,10 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
     in(x:length(x_size) alloc_if(0) free_if(0)) \
     in(q:length(q_size) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
+    in(ccachex,ccachey,ccachez,ccachew:length(0) alloc_if(0) free_if(0)) \
+    in(ccachei,ccachej:length(0) alloc_if(0) free_if(0)) \
     in(astart,nthreads,qqrd2e,g_ewald,inum,nall,ntypes,vflag,eatom) \
-    in(f_stride,nlocal,minlocal,separate_flag,offload) \
+    in(ccache_stride,f_stride,nlocal,minlocal,separate_flag,offload)	\
     out(f_start:length(f_stride) alloc_if(0) free_if(0)) \
     out(ev_global:length(ev_size) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
@@ -224,27 +228,34 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
 			      f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EVFLAG) {
-      oevdwl = oecoul = (acc_t)0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
-    }
+    if (EFLAG) oevdwl = oecoul = (acc_t)0;
+    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
-    #pragma omp parallel default(none)        \
-      shared(f_start,f_stride,nlocal,nall,minlocal)	\
-      reduction(+:oevdwl,oecoul,ov0,ov1,ov2,ov3,ov4,ov5)
+    #pragma omp parallel reduction(+:oevdwl,oecoul,ov0,ov1,ov2,ov3,ov4,ov5)
     #endif
     {
-      int iifrom, iito, tid;
-      IP_PRE_omp_range_id(iifrom, iito, tid, inum, nthreads);
+      int iifrom, iip, iito, tid;
+      IP_PRE_omp_stride_id(iifrom, iip, iito, tid, inum, nthreads);
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * _noalias const f = f_start - minlocal + (tid * f_stride);
-      memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
+      int foff;
+      if (NEWTON_PAIR) foff = tid * f_stride - minlocal;
+      else foff = -minlocal;
+      FORCE_T * _noalias const f = f_start + foff;
+      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
-      for (int i = iifrom; i < iito; ++i) {
+      const int toffs = tid * ccache_stride;
+      flt_t * _noalias const tdelx = ccachex + toffs;
+      flt_t * _noalias const tdely = ccachey + toffs;
+      flt_t * _noalias const tdelz = ccachez + toffs;
+      flt_t * _noalias const trsq = ccachew + toffs;
+      int * _noalias const tj = ccachei + toffs;
+      int * _noalias const tjtype = ccachej + toffs;
+
+      for (int i = iifrom; i < iito; i += iip) {
         const int itype = x[i].w;
         const int ptr_off = itype * ntypes;
         const C_FORCE_T * _noalias const c_forcei = c_force + ptr_off;
@@ -262,85 +273,98 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
         const flt_t ztmp = x[i].z;
         const flt_t qtmp = q[i];
         fxtmp = fytmp = fztmp = (acc_t)0;
-        if (EVFLAG) {
-	  if (EFLAG) fwtmp = sevdwl = secoul = (acc_t)0;
-	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+	if (EFLAG) fwtmp = sevdwl = secoul = (acc_t)0;
+	if (NEWTON_PAIR == 0)
+	  if (vflag == 1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+
+	int ej = 0;
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma ivdep
+        #endif
+        for (int jj = 0; jj < jnum; jj++) {
+          const int j = jlist[jj] & NEIGHMASK;
+          const flt_t delx = xtmp - x[j].x;
+          const flt_t dely = ytmp - x[j].y;
+          const flt_t delz = ztmp - x[j].z;
+	  const int jtype = x[j].w;
+          const flt_t rsq = delx * delx + dely * dely + delz * delz;
+	  
+          if (rsq < c_forcei[jtype].cutsq) {
+	    trsq[ej]=rsq;
+	    tdelx[ej]=delx;
+	    tdely[ej]=dely;
+	    tdelz[ej]=delz;
+	    tjtype[ej]=jtype;
+	    tj[ej]=jlist[jj];
+	    ej++;
+	  }
 	}
 
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-	                       sv0, sv1, sv2, sv3, sv4, sv5)
+        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, secoul, \
+		                 sv0, sv1, sv2, sv3, sv4, sv5)
         #endif
-        for (int jj = 0; jj < jnum; jj++) {
+        for (int jj = 0; jj < ej; jj++) {
           flt_t forcecoul, forcebuck, evdwl, ecoul;
           forcecoul = forcebuck = evdwl = ecoul = (flt_t)0.0;
 
-          const int sbindex = jlist[jj] >> SBBITS & 3;
-          const int j = jlist[jj] & NEIGHMASK;
-
-          const flt_t delx = xtmp - x[j].x;
-          const flt_t dely = ytmp - x[j].y;
-          const flt_t delz = ztmp - x[j].z;
-          const int jtype = x[j].w;
-          const flt_t rsq = delx * delx + dely * dely + delz * delz;
+	  const int j = tj[jj] & NEIGHMASK;
+          const int sbindex = tj[jj] >> SBBITS & 3;
+	  const int jtype = tjtype[jj];
+	  const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
           const flt_t r = (flt_t)1.0 / sqrt(r2inv);
 
-          #ifdef INTEL_VMASK
-          if (rsq < c_forcei[jtype].cutsq) {
+          #ifdef INTEL_ALLOW_TABLE
+          if (!ncoultablebits || rsq <= tabinnersq) {
           #endif
-            #ifdef INTEL_ALLOW_TABLE
-            if (!ncoultablebits || rsq <= tabinnersq) {
-            #endif
-              const flt_t A1 =  0.254829592;
-              const flt_t A2 = -0.284496736;
-              const flt_t A3 =  1.421413741;
-              const flt_t A4 = -1.453152027;
-              const flt_t A5 =  1.061405429;
-              const flt_t EWALD_F = 1.12837917;
-              const flt_t INV_EWALD_P = 1.0 / 0.3275911;
+            const flt_t A1 =  0.254829592;
+	    const flt_t A2 = -0.284496736;
+	    const flt_t A3 =  1.421413741;
+	    const flt_t A4 = -1.453152027;
+	    const flt_t A5 =  1.061405429;
+	    const flt_t EWALD_F = 1.12837917;
+	    const flt_t INV_EWALD_P = 1.0 / 0.3275911;
+	    
+	    const flt_t grij = g_ewald * r;
+	    const flt_t expm2 = exp(-grij * grij);
+	    const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
+	    const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	    const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
+	    forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+	    if (EFLAG) ecoul = prefactor * erfc;
 
-              const flt_t grij = g_ewald * r;
-              const flt_t expm2 = exp(-grij * grij);
-              const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
-              const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-              const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
-              forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
-              if (EFLAG) ecoul = prefactor * erfc;
-
-	      const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
+	    const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
+	      prefactor;
+	    forcecoul -= adjust;
+	    if (EFLAG) ecoul -= adjust;
+	    
+          #ifdef INTEL_ALLOW_TABLE
+          } else {
+	    float rsq_lookup = rsq;
+	    const int itable = (__intel_castf32_u32(rsq_lookup) &
+	      ncoulmask) >> ncoulshiftbits;
+	    const flt_t fraction = (rsq_lookup - table[itable].r) *
+	      table[itable].dr;
+	    
+	    const flt_t tablet = table[itable].f +
+	      fraction * table[itable].df;
+	    forcecoul = qtmp * q[j] * tablet;
+	    if (EFLAG) ecoul = qtmp * q[j] * (etable[itable] +
+	      fraction * detable[itable]);
+	    if (sbindex) {
+	      const flt_t table2 = ctable[itable] +
+		fraction * dctable[itable];
+	      const flt_t prefactor = qtmp * q[j] * table2;
+	      const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex]) *
 		prefactor;
 	      forcecoul -= adjust;
 	      if (EFLAG) ecoul -= adjust;
-
-            #ifdef INTEL_ALLOW_TABLE
-            } else {
-              float rsq_lookup = rsq;
-              const int itable = (__intel_castf32_u32(rsq_lookup) &
-                                  ncoulmask) >> ncoulshiftbits;
-              const flt_t fraction = (rsq_lookup - table[itable].r) *
-                table[itable].dr;
-
-              const flt_t tablet = table[itable].f +
-                fraction * table[itable].df;
-              forcecoul = qtmp * q[j] * tablet;
-              if (EFLAG) ecoul = qtmp * q[j] * (etable[itable] +
-                                                fraction * detable[itable]);
-              if (sbindex) {
-                const flt_t table2 = ctable[itable] +
-                  fraction * dctable[itable];
-                const flt_t prefactor = qtmp * q[j] * table2;
-                const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex]) *
-                  prefactor;
-                forcecoul -= adjust;
-                if (EFLAG) ecoul -= adjust;
-              }
             }
-            #endif
-            #ifdef INTEL_VMASK
           }
-	  #endif
+          #endif
 
 	  #ifdef INTEL_VMASK
           if (rsq < c_forcei[jtype].cut_ljsq) {
@@ -361,80 +385,74 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
           #ifdef INTEL_VMASK
           }
           #else
-          if (rsq > c_forcei[jtype].cutsq)
-            { forcecoul = (flt_t)0.0; ecoul = (flt_t)0.0; }
           if (rsq > c_forcei[jtype].cut_ljsq)
             { forcebuck = (flt_t)0.0; evdwl = (flt_t)0.0; }
           #endif
 
-          #ifdef INTEL_VMASK
-          if (rsq < c_forcei[jtype].cutsq) {
-          #endif
-            const flt_t fpair = (forcecoul + forcebuck) * r2inv;
-            fxtmp += delx * fpair;
-            fytmp += dely * fpair;
-            fztmp += delz * fpair;
-            if (NEWTON_PAIR || j < nlocal) {
-              f[j].x -= delx * fpair;
-              f[j].y -= dely * fpair;
-              f[j].z -= delz * fpair;
-            }
+	  const flt_t fpair = (forcecoul + forcebuck) * r2inv;
+          const flt_t fpx = fpair * tdelx[jj];
+          fxtmp += fpx;
+          if (NEWTON_PAIR) f[j].x -= fpx;
+          const flt_t fpy = fpair * tdely[jj];
+          fytmp += fpy;
+          if (NEWTON_PAIR) f[j].y -= fpy;
+          const flt_t fpz = fpair * tdelz[jj];
+          fztmp += fpz;
+          if (NEWTON_PAIR) f[j].z -= fpz;
 
-            if (EVFLAG) {
-              flt_t ev_pre = (flt_t)0;
-              if (NEWTON_PAIR || i < nlocal)
-                ev_pre += (flt_t)0.5;
-              if (NEWTON_PAIR || j < nlocal)
-                ev_pre += (flt_t)0.5;
-
-              if (EFLAG) {
-                sevdwl += ev_pre * evdwl;
-                secoul += ev_pre * ecoul;
-                if (eatom) {
-                  if (NEWTON_PAIR || i < nlocal)
-                    fwtmp += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
-                  if (NEWTON_PAIR || j < nlocal) 
-                    f[j].w += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
-                }
-              }
-              IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair, delx, dely, delz);
+	  if (EFLAG) {
+            sevdwl += evdwl;
+	    secoul += ecoul;
+	    if (eatom) {
+	      fwtmp += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
+	      if (NEWTON_PAIR) 
+		f[j].w += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
             }
-          #ifdef INTEL_VMASK
-          }
-          #endif
+	  }
+	  if (NEWTON_PAIR == 0)
+	    IP_PRE_ev_tally_nborv(vflag, tdelx[jj], tdely[jj], tdelz[jj],
+				  fpx, fpy, fpz);
         } // for jj
-
-        f[i].x += fxtmp;
-        f[i].y += fytmp;
-        f[i].z += fztmp;
-	IP_PRE_ev_tally_atomq(EVFLAG, EFLAG, vflag, f, fwtmp);
+	if (NEWTON_PAIR) {
+	  f[i].x += fxtmp;
+	  f[i].y += fytmp;
+	  f[i].z += fztmp;
+	} else {
+	  f[i].x = fxtmp;
+	  f[i].y = fytmp;
+	  f[i].z = fztmp;
+	}	  
+	IP_PRE_ev_tally_atomq(NEWTON_PAIR, EFLAG, vflag, f, fwtmp);
       } // for ii
 
-      #ifndef _LMP_INTEL_OFFLOAD
-      if (vflag == 2)
-      #endif
-      {
-        #if defined(_OPENMP)
-        #pragma omp barrier
-        #endif
-        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			       nlocal, minlocal, nthreads, f_start, f_stride, 
-			       x, offload);
-      }
+      IP_PRE_fdotr_reduce_omp(NEWTON_PAIR, nall, minlocal, nthreads, f_start,
+			      f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+			      ov4, ov5);
     } // end of omp parallel region
-    if (EVFLAG) {
-      if (EFLAG) {
-        ev_global[0] = oevdwl;
-        ev_global[1] = oecoul;
+
+    IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
+			ov0, ov1, ov2, ov3, ov4, ov5);
+
+    if (EFLAG) {
+      if (NEWTON_PAIR == 0) oevdwl *= (acc_t)0.5;
+      ev_global[0] = oevdwl;
+      ev_global[1] = oecoul;
+    }
+    if (vflag) {
+      if (NEWTON_PAIR == 0) {
+	ov0 *= (acc_t)0.5;
+	ov1 *= (acc_t)0.5;
+	ov2 *= (acc_t)0.5;
+	ov3 *= (acc_t)0.5;
+	ov4 *= (acc_t)0.5;
+	ov5 *= (acc_t)0.5;
       }
-      if (vflag) {
-        ev_global[2] = ov0;
-        ev_global[3] = ov1;
-        ev_global[4] = ov2;
-        ev_global[5] = ov3;
-        ev_global[6] = ov4;
-        ev_global[7] = ov5;
-      }
+      ev_global[2] = ov0;
+      ev_global[3] = ov1;
+      ev_global[4] = ov2;
+      ev_global[5] = ov3;
+      ev_global[6] = ov4;
+      ev_global[7] = ov5;
     }
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
@@ -446,7 +464,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
   else
     fix->stop_watch(TIME_HOST_PAIR);
 
-  if (EVFLAG)
+  if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
@@ -457,6 +475,10 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
 void PairBuckCoulLongIntel::init_style()
 {
   PairBuckCoulLong::init_style();
+  if (force->newton_pair == 0) {
+    neighbor->requests[neighbor->nrequest-1]->half = 0;
+    neighbor->requests[neighbor->nrequest-1]->full = 1;
+  }
   neighbor->requests[neighbor->nrequest-1]->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
@@ -484,6 +506,13 @@ template <class flt_t, class acc_t>
 void PairBuckCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
                                           IntelBuffers<flt_t,acc_t> *buffers)
 {
+  int off_ccache = 0;
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_cop >= 0) off_ccache = 1;
+  #endif
+  buffers->grow_ccache(off_ccache, comm->nthreads, 1);
+  _ccache_stride = buffers->ccache_stride();
+
   int tp1 = atom->ntypes + 1;
   int ntable = 1;
   if (ncoultablebits)
@@ -518,6 +547,9 @@ void PairBuckCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
 
   for (int i = 0; i < tp1; i++) {
     for (int j = 0; j < tp1; j++) {
+      if (cutsq[i][j] < cut_ljsq[i][j])
+        error->all(FLERR,
+	 "Intel variant of lj/buck/coul/long expects lj cutoff<=coulombic");
       fc.c_force[i][j].cutsq = cutsq[i][j];
       fc.c_force[i][j].cut_ljsq = cut_ljsq[i][j];
       fc.c_force[i][j].buck1 = buck1[i][j];

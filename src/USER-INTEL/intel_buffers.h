@@ -78,6 +78,7 @@ class IntelBuffers {
     free_nbor_list();
     free_nmax();
     free_list_local();
+    free_ncache();
   }
 
   inline void grow_list(NeighList *list, const int nlocal, const int nthreads,
@@ -105,6 +106,15 @@ class IntelBuffers {
   inline int ccache_stride3() { return _ccache_stride3; }
   inline acc_t * get_ccachef() { return _ccachef; }
   #endif
+
+  void free_ncache();
+  void grow_ncache(const int off_flag, const int nthreads);
+  inline int ncache_stride() { return _ncache_stride; }
+  inline flt_t * get_ncachex() { return _ncachex; }
+  inline flt_t * get_ncachey() { return _ncachey; }
+  inline flt_t * get_ncachez() { return _ncachez; }
+  inline int * get_ncachej() { return _ncachej; }
+  inline int * get_ncachejtype() { return _ncachejtype; }
 
   inline int get_max_nbors() {
     int mn = lmp->neighbor->oneatom * sizeof(int) /
@@ -179,6 +189,15 @@ class IntelBuffers {
       }
     }
   }
+
+  #ifndef _LMP_INTEL_OFFLOAD
+  void fdotr_reduce_l5(const int lf, const int lt, const int nthreads, 
+		       const int f_stride, acc_t &ov0, acc_t &ov1,
+		       acc_t &ov2, acc_t &ov3, acc_t &ov4, acc_t &ov5);
+  void fdotr_reduce(const int nall, const int nthreads, const int f_stride, 
+		    acc_t &ov0, acc_t &ov1, acc_t &ov2, acc_t &ov3, 
+		    acc_t &ov4, acc_t &ov5);
+  #endif
 
   #ifdef _LMP_INTEL_OFFLOAD
   inline void thr_pack_cop(const int ifrom, const int ito,
@@ -263,6 +282,10 @@ class IntelBuffers {
   int _ccache_stride;
   flt_t *_ccachex, *_ccachey, *_ccachez, *_ccachew;
   int *_ccachei, *_ccachej;
+
+  int _ncache_stride, _ncache_alloc;
+  flt_t *_ncachex, *_ncachey, *_ncachez;
+  int *_ncachej, *_ncachejtype;
   #ifdef LMP_USE_AVXCD
   int _ccache_stride3;
   acc_t * _ccachef;
@@ -274,7 +297,7 @@ class IntelBuffers {
   flt_t *_host_q;
   quat_t *_host_quat;
   vec3_acc_t *_off_f;
-  int _off_map_nmax, _cop, _off_ccache;
+  int _off_map_nmax, _cop, _off_ccache, _off_ncache;
   int *_off_map_ilist;
   int *_off_map_special, *_off_map_nspecial, *_off_map_tag;
   int *_off_map_numneigh;

@@ -1778,7 +1778,7 @@ namespace ip_simd {
   inline void SIMD_iforce_update(const SIMD_mask &m, float *force,
 				 const SIMD_int &i, const SIMD_float &fx,
 				 const SIMD_float &fy, const SIMD_float &fz,
-				 const int EVFLAG, const int eatom,
+				 const int EFLAG, const int eatom,
 				 const SIMD_float &fwtmp) {
     SIMD_float jfrc;
     jfrc = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), m, i, force, 
@@ -1793,7 +1793,7 @@ namespace ip_simd {
 				    _MM_SCALE_1);
     jfrc = jfrc + fz;
     _mm512_mask_i32scatter_ps(force+2, m, i, jfrc, _MM_SCALE_1);
-    if (EVFLAG) {
+    if (EFLAG) {
       if (eatom) {
 	jfrc = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), m, i, force + 3,
 					_MM_SCALE_1);
@@ -1806,7 +1806,7 @@ namespace ip_simd {
   inline void SIMD_iforce_update(const SIMD_mask &m, double *force,
 				 const SIMD_int &i, const SIMD_double &fx,
 				 const SIMD_double &fy, const SIMD_double &fz,
-				 const int EVFLAG, const int eatom,
+				 const int EFLAG, const int eatom,
 				 const SIMD_double &fwtmp) {
     SIMD_double jfrc;
     jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force, 
@@ -1821,7 +1821,7 @@ namespace ip_simd {
 				      _MM_SCALE_2);
     jfrc = jfrc + fz;
     _mm512_mask_i32loscatter_pd(force+2, m, i, jfrc, _MM_SCALE_2);
-    if (EVFLAG) {
+    if (EFLAG) {
       if (eatom) {
 	jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, 
 					  force + 3, _MM_SCALE_2);

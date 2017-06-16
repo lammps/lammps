@@ -70,23 +70,32 @@ class FixIntel : public Fix {
 
   inline int nbor_pack_width() const { return _nbor_pack_width; }
   inline void nbor_pack_width(const int w) { _nbor_pack_width = w; }
-
+  inline int three_body_neighbor() { return _three_body_neighbor; }
+  inline void three_body_neighbor(const int i) { _three_body_neighbor = 1; }
+  
   inline int need_zero(const int tid) {
     if (_need_reduce == 0 && tid > 0) return 1;
     return 0;
   }
-  inline void set_reduce_flag() { _need_reduce = 1; }
+  inline void set_reduce_flag() { if (_nthreads > 1) _need_reduce = 1; }
   inline int lrt() {
     if (force->kspace_match("pppm/intel", 0)) return _lrt;
     else return 0;
   }
+  inline int pppm_table() {
+    if (force->kspace_match("pppm/intel", 0) ||
+	force->kspace_match("pppm/disp/intel",0)) 
+      return INTEL_P3M_TABLE;
+    else return 0;
+  }
+  
 
  protected:
   IntelBuffers<float,float> *_single_buffers;
   IntelBuffers<float,double> *_mixed_buffers;
   IntelBuffers<double,double> *_double_buffers;
 
-  int _precision_mode, _nthreads, _nbor_pack_width;
+  int _precision_mode, _nthreads, _nbor_pack_width, _three_body_neighbor;
 
  public:
   inline int* get_overflow_flag() { return _overflow_flag; }
@@ -241,7 +250,10 @@ void FixIntel::get_buffern(const int offload, int &nlocal, int &nall,
     } else {
       nlocal = atom->nlocal;
       nall = _host_nall;
-      minlocal = _host_min_local;
+      if (force->newton)
+        minlocal = _host_min_local;
+      else
+	minlocal = host_start_pair();
     }
     return;
   }
@@ -275,7 +287,7 @@ void FixIntel::add_result_array(IntelBuffers<double,double>::vec3_acc_t *f_in,
   _results_eatom = eatom;
   _results_vatom = vatom;
   #ifndef _LMP_INTEL_OFFLOAD
-  if (rflag != 2 && _nthreads > 1) _need_reduce = 1;
+  if (rflag != 2 && _nthreads > 1 && force->newton) _need_reduce = 1;
   #endif
 
   if (_overflow_flag[LMP_OVERFLOW])
@@ -303,7 +315,7 @@ void FixIntel::add_result_array(IntelBuffers<float,double>::vec3_acc_t *f_in,
   _results_eatom = eatom;
   _results_vatom = vatom;
   #ifndef _LMP_INTEL_OFFLOAD
-  if (rflag != 2 && _nthreads > 1) _need_reduce = 1;
+  if (rflag != 2 && _nthreads > 1 && force->newton) _need_reduce = 1;
   #endif
 
   if (_overflow_flag[LMP_OVERFLOW])
@@ -331,7 +343,7 @@ void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
   _results_eatom = eatom;
   _results_vatom = vatom;
   #ifndef _LMP_INTEL_OFFLOAD
-  if (rflag != 2 && _nthreads > 1) _need_reduce = 1;
+  if (rflag != 2 && _nthreads > 1 && force->newton) _need_reduce = 1;
   #endif
 
   if (_overflow_flag[LMP_OVERFLOW])

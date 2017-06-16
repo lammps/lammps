@@ -308,7 +308,8 @@ The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
 (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
-split = 0, tol = 1.0e-6, and disp/auto = no.
+split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel, order =
+order/disp = 7.
 
 :line
 

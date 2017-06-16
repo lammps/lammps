@@ -79,7 +79,7 @@ class PairTersoffIntel : public PairTersoff {
   template <class flt_t, class acc_t>
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+  template <int EFLAG, class flt_t, class acc_t>
   void eval(const int offload, const int vflag,
 	    IntelBuffers<flt_t,acc_t> * buffers,
 	    const ForceConst<flt_t> &fc, const int astart, const int aend);

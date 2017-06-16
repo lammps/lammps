@@ -41,7 +41,7 @@ class PairEAMIntel : public PairEAM {
  protected:
 
   FixIntel *fix;
-  int _cop, _onetype;
+  int _cop, _onetype, _ccache_stride;
   float *fp_float;
 
   template <class flt_t>
@@ -53,7 +53,7 @@ class PairEAMIntel : public PairEAM {
   template <class flt_t, class acc_t>
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
-  template <int ONETYPE, int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, 
+  template <int ONETYPE, int EFLAG, int NEWTON_PAIR, class flt_t, 
 	    class acc_t>
   void eval(const int offload, const int vflag,
             IntelBuffers<flt_t,acc_t> * buffers,

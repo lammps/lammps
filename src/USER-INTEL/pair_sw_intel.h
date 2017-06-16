@@ -46,7 +46,7 @@ class PairSWIntel : public PairSW {
   template <class flt_t, class acc_t>
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
-  template <int SPQ,int ONETYPE,int EVFLAG,int EFLAG,class flt_t,class acc_t>
+  template <int SPQ, int ONETYPE, int EFLAG, class flt_t, class acc_t>
   void eval(const int offload, const int vflag,
             IntelBuffers<flt_t,acc_t> * buffers, const ForceConst<flt_t> &fc,
 	    const int astart, const int aend, const int pad_width);

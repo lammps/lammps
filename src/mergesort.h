@@ -20,8 +20,15 @@
 // an opaque pointer to the comparison function, e.g. for access to
 // class members. this avoids having to use global variables.
 // for improved performance, we employ an in-place insertion sort on
-// chunks of up to 32 elements and switch to merge sort from then on.
+// chunks of up to 64 elements and switch to merge sort from then on.
 
+// compile with -DLMP_USE_MERGE_SORT to switch to a plain merge sort
+
+#if !defined(LMP_USE_MERGE_SORT) && !defined(LMP_USE_HYBRID_SORT)
+#define LMP_USE_HYBRID_SORT
+#endif
+
+#if defined(LMP_USE_HYBRID_SORT)
 // part 1. insertion sort for pre-sorting of small chunks
 
 static void insertion_sort(int *index, int num, void *ptr,
@@ -41,6 +48,7 @@ static void insertion_sort(int *index, int num, void *ptr,
     }
   }
 }
+#endif
 
 // part 2. merge two sublists
 
@@ -55,7 +63,7 @@ static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi,
       idx[i++] = buf[l++];
     else idx[i++] = buf[r++];
   }
-    
+
   while (l < lhi) idx[i++] = buf[l++];
   while (r < rhi) idx[i++] = buf[r++];
 }
@@ -70,9 +78,11 @@ static void merge_sort(int *index, int num, void *ptr,
 
   int chunk,i,j;
 
-  // do insertion sort on chunks of up to 32 elements
+#if defined(LMP_USE_HYBRID_SORT)
 
-  chunk = 32;
+  // do insertion sort on chunks of up to 64 elements
+
+  chunk = 64;
   for (i=0; i < num; i += chunk) {
     j = (i+chunk > num) ? num-i : chunk;
     insertion_sort(index+i,j,ptr,comp);
@@ -81,6 +91,10 @@ static void merge_sort(int *index, int num, void *ptr,
   // already done?
 
   if (chunk >= num) return;
+
+#else
+  chunk = 1;
+#endif
 
   // continue with merge sort on the pre-sorted chunks.
   // we need an extra buffer for temporary storage and two

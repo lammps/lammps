@@ -21,6 +21,12 @@ namespace LAMMPS_NS {
 class Irregular : protected Pointers {
  public:
 
+#if defined(LMP_USE_LIBC_QSORT)
+  // static variable across all Irregular objects, for qsort callback
+
+  static int *proc_recv_copy;
+#endif
+
   Irregular(class LAMMPS *);
   ~Irregular();
   void migrate_atoms(int sortflag = 0, int preassign = 0,

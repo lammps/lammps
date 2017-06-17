@@ -22,13 +22,6 @@
 // for improved performance, we employ an in-place insertion sort on
 // chunks of up to 64 elements and switch to merge sort from then on.
 
-// compile with -DLMP_USE_MERGE_SORT to switch to a plain merge sort
-
-#if !defined(LMP_USE_MERGE_SORT) && !defined(LMP_USE_HYBRID_SORT)
-#define LMP_USE_HYBRID_SORT
-#endif
-
-#if defined(LMP_USE_HYBRID_SORT)
 // part 1. insertion sort for pre-sorting of small chunks
 
 static void insertion_sort(int *index, int num, void *ptr,
@@ -48,7 +41,6 @@ static void insertion_sort(int *index, int num, void *ptr,
     }
   }
 }
-#endif
 
 // part 2. merge two sublists
 
@@ -78,8 +70,6 @@ static void merge_sort(int *index, int num, void *ptr,
 
   int chunk,i,j;
 
-#if defined(LMP_USE_HYBRID_SORT)
-
   // do insertion sort on chunks of up to 64 elements
 
   chunk = 64;
@@ -91,10 +81,6 @@ static void merge_sort(int *index, int num, void *ptr,
   // already done?
 
   if (chunk >= num) return;
-
-#else
-  chunk = 1;
-#endif
 
   // continue with merge sort on the pre-sorted chunks.
   // we need an extra buffer for temporary storage and two

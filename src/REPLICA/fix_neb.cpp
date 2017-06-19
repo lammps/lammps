@@ -48,6 +48,9 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   tagsendall(NULL), tagrecvall(NULL), counts(NULL),
   displacements(NULL)
 {
+
+  
+
   if (narg < 4) error->all(FLERR,"Illegal fix neb command");
 
   kspring = force->numeric(FLERR,arg[3]);
@@ -282,7 +285,7 @@ void FixNEB::min_post_force(int vflag)
     MPI_Bcast(&vnext,1,MPI_DOUBLE,0,world);
   }
 
-  if (FreeEndFinal && (update->ntimestep == 0)) EFinalIni = veng;
+  if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0)) EFinalIni = veng;
 
   if (ireplica == 0) vIni=veng;
 
@@ -296,14 +299,16 @@ void FixNEB::min_post_force(int vflag)
       MPI_Bcast(&vIni,1,MPI_DOUBLE,0,world);
     }
   }
-  if (FreeEndIni && ireplica == 0) {
-    if (me == 0 )
+
+  if (FreeEndIni && ireplica == 0 && (update->ntimestep == 0)) EIniIni = veng;
+  /*  if (FreeEndIni && ireplica == 0) {
+    //    if (me == 0 )
       if (update->ntimestep == 0) {
         EIniIni = veng;
-        if (cmode == MULTI_PROC)
-          MPI_Bcast(&EIniIni,1,MPI_DOUBLE,0,world);
+	//	if (cmode == MULTI_PROC)
+	// MPI_Bcast(&EIniIni,1,MPI_DOUBLE,0,world);
       }
-  }
+      }*/
 
   // communicate atoms to/from adjacent replicas to fill xprev,xnext
 

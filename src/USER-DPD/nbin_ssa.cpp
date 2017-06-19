@@ -76,7 +76,6 @@ void NBinSSA::bin_atoms()
     int nowned = atom->nlocal; // NOTE: nlocal was set to atom->nfirst above
     for (i = nall-1; i >= nowned; i--) {
       ibin = coord2ssaAIR(x[i]);
-      atom2bin[i] = ibin;
       if (ibin < 1) continue; // skip ghost atoms not in AIR
       if (mask[i] & bitmask) {
         bins[i] = gairhead_ssa[ibin];
@@ -86,7 +85,6 @@ void NBinSSA::bin_atoms()
   } else {
     for (i = nall-1; i >= nlocal; i--) {
       ibin = coord2ssaAIR(x[i]);
-      atom2bin[i] = ibin;
       if (ibin < 1) continue; // skip ghost atoms not in AIR
       bins[i] = gairhead_ssa[ibin];
       gairhead_ssa[ibin] = i;
@@ -94,7 +92,6 @@ void NBinSSA::bin_atoms()
   }
   for (i = nlocal-1; i >= 0; i--) {
     ibin = coord2bin(x[i][0], x[i][1], x[i][2], xbin, ybin, zbin);
-    atom2bin[i] = ibin;
     // Find the bounding box of the local atoms in the bins
     if (xbin < lbinxlo) lbinxlo = xbin;
     if (xbin >= lbinxhi) lbinxhi = xbin + 1;

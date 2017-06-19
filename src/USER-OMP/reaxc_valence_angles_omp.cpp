@@ -124,8 +124,9 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   int  nthreads = control->nthreads;
   int  num_thb_intrs = 0;
   int  TWICE = 2;
-
+#if defined(_OPENMP)
 #pragma omp parallel default(shared) reduction(+:total_Eang, total_Epen, total_Ecoa, num_thb_intrs)
+#endif
   {
     int i, j, pi, k, pk, t;
     int type_i, type_j, type_k;
@@ -180,7 +181,9 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
     const int per_thread = thb_intrs->num_intrs / nthreads;
 
+#if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
+#endif
     for (j = 0; j < system->N; ++j) {
       type_j = system->my_atoms[j].type;
       _my_offset[j] = 0;
@@ -251,11 +254,14 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     } // for(j)
 
     // Wait for all threads to finish counting angles
+#if defined(_OPENMP) && !defined(__NVCC__)
 #pragma omp barrier
-
+#endif
     // Master thread uses angle counts to compute offsets
     // This can be threaded
+#if defined(_OPENMP) && !defined(__NVCC__)
 #pragma omp master
+#endif
     {
       int current_count = 0;
       int m = _my_offset[0];
@@ -269,12 +275,15 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     }
 
     // All threads wait till master thread finished computing offsets
+#if defined(_OPENMP) && !defined(__NVCC__)
 #pragma omp barrier
-
+#endif
     // Original loop, but now using precomputed offsets
     // Safe to use all threads available, regardless of threads tasked above
     // We also now skip over atoms that have no angles assigned
+#if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)//(dynamic,chunksize)//(guided)
+#endif
     for (j = 0; j < system->N; ++j) {         // Ray: the first one with system->N
       type_j = system->my_atoms[j].type;
       if(type_j < 0) continue;

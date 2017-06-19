@@ -188,7 +188,7 @@ void FixShardlow::setup(int vflag)
       error->all(FLERR,"Cannot use constant temperature integration routines with DPD.");
 
   for (int i = 0; i < modify->nfix; i++){
-    if (strcmp(modify->fix[i]->style,"shardlow") == 0) fixShardlow = true;
+    if (strncmp(modify->fix[i]->style,"shardlow",3) == 0) fixShardlow = true;
     if (strncmp(modify->fix[i]->style,"nve",3) == 0 || (strncmp(modify->fix[i]->style,"nph",3) == 0)){
       if(fixShardlow) break;
       else error->all(FLERR,"The deterministic integrator must follow fix shardlow in the input file.");

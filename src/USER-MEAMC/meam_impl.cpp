@@ -24,6 +24,8 @@ using namespace LAMMPS_NS;
 
 MEAM::MEAM(Memory *mem) : memory(mem)
 {
+  phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = NULL;
+
   nmax = 0;
   rho = rho0 = rho1 = rho2 = rho3 = frhop = NULL;
   gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = NULL;

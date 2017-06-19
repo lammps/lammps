@@ -34,7 +34,7 @@ keyword = {nudge} or {perp} or {ends} :l
 
 fix 1 active neb 10.0
 fix 2 all neb 1.0 perp 1.0 end last
-fix 2 all neb 1.0 perp 1.0 end first end last
+fix 2 all neb 1.0 perp 1.0 end first 1.0 end last 1.0
 fix 1 all neb 1.0 nudge ideal end last/efirst 1 :pre
 
 [Description:]
@@ -64,7 +64,7 @@ Fi = -Grad(V) + (Grad(V) dot T') T' + Fnudge_parallel + Fspring_perp :pre
 T' is the unit "tangent" vector for replica I and is a function of Ri,
 Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
 roughly in the direction of (Ri+i - Ri-1); see the
-"(Henkelman1)"_#Henkelman1 paper for details.  Ri are the atomic
+"(Henkelman1)"_#Henkelman1 paper for details.  Ri gives the atomic
 coordinates of replica I; Ri-1 and Ri+1 are the coordinates of its
 neighbor replicas.  The term (Grad(V) dot T') is used to remove the
 component of the gradient parallel to the path which would tend to
@@ -114,7 +114,7 @@ keeping the replicas equally spaced.
 :line
 
 The keyword {perp} adds a spring force perpendicular to the path in
-order to prevent the path from becoming too kinky, with magnitude It
+order to prevent the path from becoming too kinky. It
 can significantly improve the convergence of the NEB calculation when
 the resolution is poor.  I.e. when too few replicas are used; see
 "(Maras)"_#Maras1 for details.
@@ -133,11 +133,11 @@ force is added.
 
 :line
 
-By default, no forces act on the first and last replicas during the
-NEB relaxation, so these replicas simply relax toward their respective
-local minima.  By using the key word {end}, additional forces can be
-applied to the first or last replica, to enable them to relax toward a
-MEP while constraining their energy.
+By default, no nudging forces act on the first and last replicas during 
+the NEB relaxation, so these replicas simply relax toward their 
+respective local minima.  By using the key word {end}, additional forces 
+can be applied to the first or last replica, to enable them to relax 
+toward a MEP while constraining their energy.
 
 The interatomic force Fi for the specified replica becomes:
 
@@ -177,10 +177,9 @@ only be done if a particular intermediate replica has a lower energy
 than the first replica.  This should effectively prevent the
 intermediate replicas from over-relaxing.
 
-After converging a NEB calculation using an {estyle} of {last/efirst},
-you should check that all intermediate replicas have a larger energy
-than the first replica.  If not, then repeat the calculation with an
-{estyle} of {last/efirst/middle}.
+After converging a NEB calculation using an {estyle} of {last/efirst/middle},
+you should check that all intermediate replicas have a larger energy than the
+first replica. If this is not the case, the path is probably not a MEP.
 
 Finally, note that if the last replica converges toward a local
 minimum which has a larger energy than the energy of the first

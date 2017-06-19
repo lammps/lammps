@@ -63,7 +63,8 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   PerpSpring = FreeEndIni = FreeEndFinal = false;
   FreeEndFinalWithRespToEIni = FinalAndInterWithRespToEIni = false;
   kspringPerp = 0.0;
-  kspring2 = 1.0;
+  kspringIni = 1.0;
+  kspringFinal = 1.0;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -90,20 +91,24 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix neb command");
       if (strcmp(arg[iarg+1],"first") == 0) {
         FreeEndIni = true;
+	kspringIni = force->numeric(FLERR,arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"last") == 0) {
         FreeEndFinal = true;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = false;
+	kspringFinal = force->numeric(FLERR,arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"last/efirst") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = true;
+	kspringFinal = force->numeric(FLERR,arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"last/efirst/middle") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = true;
         FreeEndFinalWithRespToEIni = true;
+	kspringFinal = force->numeric(FLERR,arg[iarg+2]);
       } else error->all(FLERR,"Illegal fix neb command");
-      kspring2 = force->numeric(FLERR,arg[iarg+2]);
+
       iarg += 3;
     
     } else error->all(FLERR,"Illegal fix neb command");
@@ -488,8 +493,8 @@ void FixNEB::min_post_force(int vflag)
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
 
-      if (dot<0) prefactor = -dot - kspring2*(veng-EIniIni);
-      else prefactor = -dot + kspring2*(veng-EIniIni);
+      if (dot<0) prefactor = -dot - kspringIni*(veng-EIniIni);
+      else prefactor = -dot + kspringIni*(veng-EIniIni);
 
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -506,8 +511,8 @@ void FixNEB::min_post_force(int vflag)
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
 
-      if (dot<0) prefactor = -dot - kspring2*(veng-EFinalIni);
-      else prefactor = -dot + kspring2*(veng-EFinalIni);
+      if (dot<0) prefactor = -dot - kspringFinal*(veng-EFinalIni);
+      else prefactor = -dot + kspringFinal*(veng-EFinalIni);
 
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -524,8 +529,8 @@ void FixNEB::min_post_force(int vflag)
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
 
-      if (dot<0) prefactor = -dot - kspring2*(veng-vIni);
-      else prefactor = -dot + kspring2*(veng-vIni);
+      if (dot<0) prefactor = -dot - kspringFinal*(veng-vIni);
+      else prefactor = -dot + kspringFinal*(veng-vIni);
 
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {

@@ -82,54 +82,48 @@ void PairLJCharmmCoulLongIntel::compute(int eflag, int vflag,
 
   if (_lrt == 0 && ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
+
+    int packthreads;
+    if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
+    else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #pragma omp parallel if(packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
       IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost,
-			      nthreads, sizeof(ATOM_T));
+                                packthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
 
   // -------------------- Regular version
-  if (evflag || vflag_fdotr) {
-    int ovflag = 0;
-    if (vflag_fdotr) ovflag = 2;
-    else if (vflag) ovflag = 1;
-    if (eflag) {
-      if (force->newton_pair) {
-	eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-	eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+  int ovflag = 0;
+  if (vflag_fdotr) ovflag = 2;
+  else if (vflag) ovflag = 1;
+  if (eflag) {
+    if (force->newton_pair) {
+      eval<1,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      if (force->newton_pair) {
-	eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-	eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+      eval<1,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   } else {
     if (force->newton_pair) {
-      eval<0,0,1>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,1>(0, 0, buffers, fc, host_start, inum);
+      eval<0,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      eval<0,0,0>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,0>(0, 0, buffers, fc, host_start, inum);
+      eval<0,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
 void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 				     IntelBuffers<flt_t,acc_t> *buffers,
 				     const ForceConst<flt_t> &fc,
@@ -182,7 +176,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 
   // Determine how much data to transfer
   int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EVFLAG, EFLAG, vflag,
+  IP_PRE_get_transfern(ago, NEWTON_PAIR, EFLAG, vflag,
 		       buffers, offload, fix, separate_flag,
 		       x_size, q_size, ev_size, f_stride);
 
@@ -236,25 +230,24 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 			      f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EVFLAG) {
-      oevdwl = oecoul = (acc_t)0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
-    }
+    if (EFLAG) oevdwl = oecoul = (acc_t)0;
+    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
-      shared(f_start,f_stride,nlocal,nall,minlocal) \
-      reduction(+:oevdwl,oecoul,ov0,ov1,ov2,ov3,ov4,ov5)
+    #pragma omp parallel reduction(+:oevdwl,oecoul,ov0,ov1,ov2,ov3,ov4,ov5)
     #endif
     {
-      int iifrom, iito, tid;
-      IP_PRE_omp_range_id(iifrom, iito, tid, inum, nthreads);
+      int iifrom, iip, iito, tid;
+      IP_PRE_omp_stride_id(iifrom, iip, iito, tid, inum, nthreads);
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * _noalias const f = f_start - minlocal + (tid * f_stride);
-      memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
+      int foff;
+      if (NEWTON_PAIR) foff = tid * f_stride - minlocal;
+      else foff = -minlocal;
+      FORCE_T * _noalias const f = f_start + foff;
+      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
       flt_t cutboth = cut_coulsq;
 
       const int toffs = tid * ccache_stride;
@@ -265,7 +258,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
       int * _noalias const tj = ccachei + toffs;
       int * _noalias const tjtype = ccachej + toffs;
 
-      for (int i = iifrom; i < iito; ++i) {
+      for (int i = iifrom; i < iito; i += iip) {
 	//        const int i = ilist[ii];
         const int itype = x[i].w;
 
@@ -284,10 +277,9 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         const flt_t ztmp = x[i].z;
         const flt_t qtmp = q[i];
         fxtmp = fytmp = fztmp = (acc_t)0;
-        if (EVFLAG) {
-	  if (EFLAG) fwtmp = sevdwl = secoul = (acc_t)0;
+	if (EFLAG) fwtmp = sevdwl = secoul = (acc_t)0;
+	if (NEWTON_PAIR == 0)
 	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
-	}
 
 	int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
@@ -421,77 +413,76 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	  #ifdef INTEL_VMASK
 	  }
 	  #else
-	  if (rsq > cut_coulsq) { forcecoul = (flt_t)0.0; ecoul = (flt_t)0.0; }
 	  if (rsq > cut_ljsq) { forcelj = (flt_t)0.0; evdwl = (flt_t)0.0; }
 	  #endif
 
-	  const flt_t delx = tdelx[jj];
-	  const flt_t dely = tdely[jj];
-	  const flt_t delz = tdelz[jj];
 	  const flt_t fpair = (forcecoul + forcelj) * r2inv;
-	  fxtmp += delx * fpair;
-	  fytmp += dely * fpair;
-	  fztmp += delz * fpair;
-	  if (NEWTON_PAIR || j < nlocal) {
-	    f[j].x -= delx * fpair;
-	    f[j].y -= dely * fpair;
-	    f[j].z -= delz * fpair;
-	  }
+	  const flt_t fpx = fpair * tdelx[jj];
+	  fxtmp += fpx;
+	  if (NEWTON_PAIR) f[j].x -= fpx;
+	  const flt_t fpy = fpair * tdely[jj];
+	  fytmp += fpy;
+	  if (NEWTON_PAIR) f[j].y -= fpy;
+	  const flt_t fpz = fpair * tdelz[jj];
+	  fztmp += fpz;
+	  if (NEWTON_PAIR) f[j].z -= fpz;
 
-	  if (EVFLAG) {
-	    flt_t ev_pre = (flt_t)0;
-	    if (NEWTON_PAIR || i < nlocal)
-	      ev_pre += (flt_t)0.5;
-	    if (NEWTON_PAIR || j < nlocal)
-	      ev_pre += (flt_t)0.5;
-	    
-	    if (EFLAG) {
-	      sevdwl += ev_pre * evdwl;
-	      secoul += ev_pre * ecoul;
-	      if (eatom) {
-		if (NEWTON_PAIR || i < nlocal)
-		  fwtmp += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
-		if (NEWTON_PAIR || j < nlocal)
-		  f[j].w += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
-	      }
+	  if (EFLAG) {
+	    sevdwl += evdwl;
+	    secoul += ecoul;
+	    if (eatom) {
+	      fwtmp += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
+	      if (NEWTON_PAIR)
+		f[j].w += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
 	    }
-
-	    IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
-				 delx, dely, delz);
 	  }
+	  if (NEWTON_PAIR == 0)
+	    IP_PRE_ev_tally_nborv(vflag, tdelx[jj], tdely[jj], tdelz[jj],
+				  fpx, fpy, fpz);
         } // for jj
-        f[i].x += fxtmp;
-        f[i].y += fytmp;
-        f[i].z += fztmp;
-
-	IP_PRE_ev_tally_atomq(EVFLAG, EFLAG, vflag, f, fwtmp);
+        if (NEWTON_PAIR) {
+          f[i].x += fxtmp;
+          f[i].y += fytmp;
+          f[i].z += fztmp;
+        } else {
+          f[i].x = fxtmp;
+          f[i].y = fytmp;
+          f[i].z = fztmp;
+        }
+	IP_PRE_ev_tally_atomq(NEWTON_PAIR, EFLAG, vflag, f, fwtmp);
       } // for ii
 
-      #ifndef _LMP_INTEL_OFFLOAD
-      if (vflag == 2)
-      #endif
-      {
-        #if defined(_OPENMP)
-        #pragma omp barrier
-        #endif
-        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-	  		       nlocal, minlocal, nthreads, f_start, f_stride,
-	                       x, offload);
-      }
+      IP_PRE_fdotr_reduce_omp(NEWTON_PAIR, nall, minlocal, nthreads, f_start,
+			      f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+			      ov4, ov5);
     } // end of omp parallel region
-    if (EVFLAG) {
-      if (EFLAG) {
-        ev_global[0] = oevdwl;
-        ev_global[1] = oecoul;
+
+    IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
+			ov0, ov1, ov2, ov3, ov4, ov5);
+
+    if (EFLAG) {
+      if (NEWTON_PAIR == 0) {
+	oevdwl *= (acc_t)0.5;
+	oecoul *= (acc_t)0.5;
       }
-      if (vflag) {
-        ev_global[2] = ov0;
-        ev_global[3] = ov1;
-        ev_global[4] = ov2;
-        ev_global[5] = ov3;
-        ev_global[6] = ov4;
-        ev_global[7] = ov5;
+      ev_global[0] = oevdwl;
+      ev_global[1] = oecoul;
+    }
+    if (vflag) {
+      if (NEWTON_PAIR == 0) {
+	ov0 *= (acc_t)0.5;
+	ov1 *= (acc_t)0.5;
+	ov2 *= (acc_t)0.5;
+	ov3 *= (acc_t)0.5;
+	ov4 *= (acc_t)0.5;
+	ov5 *= (acc_t)0.5;
       }
+      ev_global[2] = ov0;
+      ev_global[3] = ov1;
+      ev_global[4] = ov2;
+      ev_global[5] = ov3;
+      ev_global[6] = ov4;
+      ev_global[7] = ov5;
     }
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
@@ -503,7 +494,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
   else
     fix->stop_watch(TIME_HOST_PAIR);
 
-  if (EVFLAG)
+  if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
@@ -514,6 +505,10 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 void PairLJCharmmCoulLongIntel::init_style()
 {
   PairLJCharmmCoulLong::init_style();
+  if (force->newton_pair == 0) {
+    neighbor->requests[neighbor->nrequest-1]->half = 0;
+    neighbor->requests[neighbor->nrequest-1]->full = 1;
+  }
   neighbor->requests[neighbor->nrequest-1]->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
@@ -541,17 +536,17 @@ template <class flt_t, class acc_t>
 void PairLJCharmmCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
                                           IntelBuffers<flt_t,acc_t> *buffers)
 {
-  int tp1 = atom->ntypes + 1;
-  int ntable = 1;
-  if (ncoultablebits)
-    for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
-
   int off_ccache = 0;
   #ifdef _LMP_INTEL_OFFLOAD
   if (_cop >= 0) off_ccache = 1;
   #endif
   buffers->grow_ccache(off_ccache, comm->nthreads, 1);
   _ccache_stride = buffers->ccache_stride();
+
+  int tp1 = atom->ntypes + 1;
+  int ntable = 1;
+  if (ncoultablebits)
+    for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
 
   fc.set_ntypes(tp1, ntable, memory, _cop);
   buffers->set_ntypes(tp1);

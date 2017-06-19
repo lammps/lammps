@@ -30,8 +30,8 @@ Dihedral Styles: charmm, harmonic, opls :l
 Fixes: nve, npt, nvt, nvt/sllod :l
 Improper Styles: cvff, harmonic :l
 Pair Styles: buck/coul/cut, buck/coul/long, buck, eam, gayberne,
-charmm/coul/long, lj/cut, lj/cut/coul/long, sw, tersoff :l
-K-Space Styles: pppm :l
+charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long, sw, tersoff :l
+K-Space Styles: pppm, pppm/disp :l
 :ule
 
 [Speed-ups to expect:]
@@ -42,21 +42,54 @@ precision mode. Performance improvements are shown compared to
 LAMMPS {without using other acceleration packages} as these are
 under active development (and subject to performance changes). The
 measurements were performed using the input files available in
-the src/USER-INTEL/TEST directory. These are scalable in size; the
-results given are with 512K particles (524K for Liquid Crystal).
-Most of the simulations are standard LAMMPS benchmarks (indicated
-by the filename extension in parenthesis) with modifications to the
-run length and to add a warmup run (for use with offload
-benchmarks).
+the src/USER-INTEL/TEST directory with the provided run script. 
+These are scalable in size; the results given are with 512K 
+particles (524K for Liquid Crystal). Most of the simulations are 
+standard LAMMPS benchmarks (indicated by the filename extension in
+parenthesis) with modifications to the run length and to add a 
+warmup run (for use with offload benchmarks).
 
 :c,image(JPG/user_intel.png)
 
 Results are speedups obtained on Intel Xeon E5-2697v4 processors
 (code-named Broadwell) and Intel Xeon Phi 7250 processors
-(code-named Knights Landing) with "18 Jun 2016" LAMMPS built with
-Intel Parallel Studio 2016 update 3. Results are with 1 MPI task
+(code-named Knights Landing) with "June 2017" LAMMPS built with
+Intel Parallel Studio 2017 update 2. Results are with 1 MPI task
 per physical core. See {src/USER-INTEL/TEST/README} for the raw
 simulation rates and instructions to reproduce.
+
+:line
+
+[Accuracy and order of operations:]
+
+In most molecular dynamics software, parallelization parameters
+(# of MPI, OpenMP, and vectorization) can change the results due
+to changing the order of operations with finite-precision 
+calculations. The USER-INTEL package is deterministic. This means
+that the results should be reproducible from run to run with the
+{same} parallel configurations and when using determinstic 
+libraries or library settings (MPI, OpenMP, FFT). However, there
+are differences in the USER-INTEL package that can change the
+order of operations compared to LAMMPS without acceleration:
+
+Neighbor lists can be created in a different order :ulb,l
+Bins used for sorting atoms can be oriented differently :l
+The default stencil order for PPPM is 7. By default, LAMMPS will 
+calculate other PPPM parameters to fit the desired acuracy with 
+this order :l
+The {newton} setting applies to all atoms, not just atoms shared
+between MPI tasks :l
+Vectorization can change the order for adding pairwise forces :l
+:ule
+
+The precision mode (described below) used with the USER-INTEL 
+package can change the {accuracy} of the calculations. For the 
+default {mixed} precision option, calculations between pairs or 
+triplets of atoms are performed in single precision, intended to 
+be within the inherent error of MD simulations. All accumulation
+is performed in double precision to prevent the error from growing 
+with the number of atoms in the simulation. {Single} precision
+mode should not be used without appropriate validation.
 
 :line
 
@@ -66,38 +99,31 @@ LAMMPS should be built with the USER-INTEL package installed.
 Simulations should be run with 1 MPI task per physical {core},
 not {hardware thread}.
 
-For Intel Xeon CPUs:
-
 Edit src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi as necessary. :ulb,l
-If using {kspace_style pppm} in the input script, add "neigh_modify binsize cutoff" and "kspace_modify diff ad" to the input script for better
-performance.  Cutoff should be roughly the neighbor list cutoff.  By
-default the binsize is half the neighbor list cutoff.  :l
-"-pk intel 0 omp 2 -sf intel" added to LAMMPS command-line :l
+Set the environment variable KMP_BLOCKTIME=0 :l
+"-pk intel 0 omp $t -sf intel" added to LAMMPS command-line :l
+$t should be 2 for Intel Xeon CPUs and 2 or 4 for Intel Xeon Phi :l
+For some of the simple 2-body potentials without long-range
+electrostatics, performance and scalability can be better with
+the "newton off" setting added to the input script :l
+If using {kspace_style pppm} in the input script, add 
+"kspace_modify diff ad" for better performance :l
 :ule
 
-For Intel Xeon Phi CPUs for simulations without {kspace_style
-pppm} in the input script :
+For Intel Xeon Phi CPUs:
 
-Edit src/MAKE/OPTIONS/Makefile.knl as necessary. :ulb,l
-Runs should be performed using MCDRAM. :l
-"-pk intel 0 omp 2 -sf intel" {or} "-pk intel 0 omp 4 -sf intel"
-should be added to the LAMMPS command-line. Choice for best
-performance will depend on the simulation. :l
+Runs should be performed using MCDRAM. :ulb,l
 :ule
 
-For Intel Xeon Phi CPUs for simulations with {kspace_style
-pppm} in the input script:
+For simulations using {kspace_style pppm} on Intel CPUs 
+supporting AVX-512:
 
-Edit src/MAKE/OPTIONS/Makefile.knl as necessary. :ulb,l
-Runs should be performed using MCDRAM. :l
-Add "neigh_modify binsize 3" to the input script for better
-performance. :l
-Add "kspace_modify diff ad" to the input script for better
-performance. :l
-export KMP_AFFINITY=none :l
-"-pk intel 0 omp 3 lrt yes -sf intel" or "-pk intel 0 omp 1 lrt yes
--sf intel" added to LAMMPS command-line. Choice for best performance
-will depend on the simulation. :l
+Add "kspace_modify diff ad" to the input script :ulb,l
+The command-line option should be changed to 
+"-pk intel 0 omp $r lrt yes -sf intel" where $r is the number of 
+threads minus 1. :l
+Do not use thread affinity (set KMP_AFFINITY=none) :l
+The "newton off" setting may provide better scalability :l
 :ule
 
 For Intel Xeon Phi coprocessors (Offload):
@@ -168,6 +194,10 @@ this information can normally be obtained with:
 cat /proc/cpuinfo :pre
 
 [Building LAMMPS with the USER-INTEL package:]
+
+NOTE: See the src/USER-INTEL/README file for additional flags that
+might be needed for best performance on Intel server processors
+code-named "Skylake".
 
 The USER-INTEL package must be installed into the source directory:
 
@@ -322,8 +352,8 @@ follow in the input script.
 
 NOTE: The USER-INTEL package will perform better with modifications
 to the input script when "PPPM"_kspace_style.html is used:
-"kspace_modify diff ad"_kspace_modify.html and "neigh_modify binsize
-3"_neigh_modify.html should be added to the input script.
+"kspace_modify diff ad"_kspace_modify.html should be added to the 
+input script.
 
 Long-Range Thread (LRT) mode is an option to the "package
 intel"_package.html command that can improve performance when using
@@ -341,6 +371,10 @@ would normally perform best with "-pk intel 0 omp 4", instead use
 "-pk intel 0 omp 3 lrt yes". When using LRT, you should set the
 environment variable "KMP_AFFINITY=none". LRT mode is not supported
 when using offload.
+
+NOTE: Changing the "newton"_newton.html setting to off can improve
+performance and/or scalability for simple 2-body potentials such as
+lj/cut or when using LRT mode on processors supporting AVX-512.
 
 Not all styles are supported in the USER-INTEL package. You can mix
 the USER-INTEL package with styles from the "OPT"_accelerate_opt.html
@@ -467,7 +501,7 @@ supported.
 
 Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakker, F.M., De Kraker, A.R., Yamada, M., Ang, J.A., Plimpton, S.J., "Optimizing Classical Molecular Dynamics in LAMMPS," in Intel Xeon Phi Processor High Performance Programming: Knights Landing Edition, J. Jeffers, J. Reinders, A. Sodani, Eds. Morgan Kaufmann. :ulb,l
 
-Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency. 2016 International Conference for High Performance Computing. In press. :l
+Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. "Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency."_http://dl.acm.org/citation.cfm?id=3014915 2016 High Performance Computing, Networking, Storage and Analysis, SC16: International Conference (pp. 82-95). :l
 
 Brown, W.M., Carrillo, J.-M.Y., Gavhane, N., Thakkar, F.M., Plimpton, S.J. Optimizing Legacy Molecular Dynamics Software with Directive-Based Offload. Computer Physics Communications. 2015. 195: p. 95-101. :l
 :ule

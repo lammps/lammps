@@ -77,16 +77,16 @@ void DihedralHarmonicIntel::compute(int eflag, int vflag,
   } else evflag = 0;
 
   if (evflag) {
-    if (eflag) {
+    if (vflag && !eflag) {
+      if (force->newton_bond)
+	eval<0,1,1>(vflag, buffers, fc);
+      else
+	eval<0,1,0>(vflag, buffers, fc);
+    } else {
       if (force->newton_bond)
 	eval<1,1,1>(vflag, buffers, fc);
       else
 	eval<1,1,0>(vflag, buffers, fc);
-    } else {
-      if (force->newton_bond)
-	eval<1,0,1>(vflag, buffers, fc);
-      else
-	eval<1,0,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -96,7 +96,7 @@ void DihedralHarmonicIntel::compute(int eflag, int vflag,
   }
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
+template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
 void DihedralHarmonicIntel::eval(const int vflag, 
 			       IntelBuffers<flt_t,acc_t> *buffers,
 			       const ForceConst<flt_t> &fc)
@@ -120,12 +120,9 @@ void DihedralHarmonicIntel::eval(const int vflag,
   const int nthreads = tc;
 
   acc_t oedihedral, ov0, ov1, ov2, ov3, ov4, ov5;
-  if (EVFLAG) {
-    if (EFLAG)
-      oedihedral = (acc_t)0.0;
-    if (vflag) {
-      ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
-    }
+  if (EFLAG) oedihedral = (acc_t)0.0;
+  if (VFLAG && vflag) {
+    ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
   }
 
   #if defined(_OPENMP)
@@ -134,8 +131,12 @@ void DihedralHarmonicIntel::eval(const int vflag,
     reduction(+:oedihedral,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif
   {
-    int nfrom, nto, tid;
+    int nfrom, npl, nto, tid;
+    #ifdef LMP_INTEL_USE_SIMDOFF
     IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
+    #else
+    IP_PRE_omp_stride_id(nfrom, npl, nto, tid, inum, nthreads);
+    #endif
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
@@ -144,16 +145,17 @@ void DihedralHarmonicIntel::eval(const int vflag,
     const int5_t * _noalias const dihedrallist = 
       (int5_t *) neighbor->dihedrallist[0];
 
+    #ifdef LMP_INTEL_USE_SIMDOFF
     acc_t sedihedral, sv0, sv1, sv2, sv3, sv4, sv5;
-    if (EVFLAG) {
-      if (EFLAG)
-	sedihedral = (acc_t)0.0;
-      if (vflag) {
-	sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
-      }
+    if (EFLAG) sedihedral = (acc_t)0.0;
+    if (VFLAG && vflag) {
+      sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
     }
-
-    for (int n = nfrom; n < nto; n++) {
+    #pragma simd reduction(+:sedihedral, sv0, sv1, sv2, sv3, sv4, sv5)
+    for (int n = nfrom; n < nto; n ++) {
+    #else
+    for (int n = nfrom; n < nto; n += npl) {
+    #endif
       const int i1 = dihedrallist[n].a;
       const int i2 = dihedrallist[n].b;
       const int i3 = dihedrallist[n].c;
@@ -203,6 +205,7 @@ void DihedralHarmonicIntel::eval(const int vflag,
       const flt_t s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
 
       // error check
+      #ifndef LMP_INTEL_USE_SIMDOFF
       if (c > PTOLERANCE || c < MTOLERANCE) {
 	int me = comm->me;
 
@@ -224,6 +227,7 @@ void DihedralHarmonicIntel::eval(const int vflag,
 		  me,x[i4].x,x[i4].y,x[i4].z);
 	}
       }
+      #endif
 
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
@@ -292,16 +296,27 @@ void DihedralHarmonicIntel::eval(const int vflag,
       const flt_t f3y = -sy2 - f4y;
       const flt_t f3z = -sz2 - f4z;
 
-      if (EVFLAG) {
+      if (EFLAG || VFLAG) {
 	flt_t deng;
 	if (EFLAG) deng = tk * p;
-	IP_PRE_ev_tally_dihed(EFLAG, eatom, vflag, deng, i1, i2, i3, i4, f1x, 
-			      f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z, vb1x, 
-			      vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x, vb3y, 
-			      vb3z, sedihedral, f, NEWTON_BOND, nlocal,
+	#ifdef LMP_INTEL_USE_SIMDOFF
+	IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, deng, i1, i2, i3, i4,
+	                      f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z, 
+	                      vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x, 
+	                      vb3y, vb3z, sedihedral, f, NEWTON_BOND, nlocal,
 			      sv0, sv1, sv2, sv3, sv4, sv5);
+        #else
+	IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, deng, i1, i2, i3, i4,
+	                      f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z, 
+	                      vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x, 
+	                      vb3y, vb3z, oedihedral, f, NEWTON_BOND, nlocal,
+			      ov0, ov1, ov2, ov3, ov4, ov5);
+        #endif
       }
 
+      #ifdef LMP_INTEL_USE_SIMDOFF
+      #pragma simdoff
+      #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {
 	  f[i1].x += f1x;
@@ -328,20 +343,19 @@ void DihedralHarmonicIntel::eval(const int vflag,
         }
       }
     } // for n
-    if (EVFLAG) {
-      if (EFLAG) oedihedral += sedihedral;
-      if (vflag) {
-	ov0 += sv0; ov1 += sv1; ov2 += sv2; ov3 += sv3; ov4 += sv4; ov5 += sv5;
-      }
+    #ifdef LMP_INTEL_USE_SIMDOFF
+    if (EFLAG) oedihedral += sedihedral;
+    if (VFLAG && vflag) {
+        ov0 += sv0; ov1 += sv1; ov2 += sv2; 
+	ov3 += sv3; ov4 += sv4; ov5 += sv5;
     }
+    #endif
   } // omp parallel
 
-  if (EVFLAG) {
-    if (EFLAG) energy += oedihedral;
-    if (vflag) {
-      virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-      virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
-    }
+  if (EFLAG) energy += oedihedral;
+  if (VFLAG && vflag) {
+    virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
   }
 
   fix->set_reduce_flag();

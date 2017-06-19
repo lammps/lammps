@@ -25,10 +25,6 @@
 #include "intel_simd.h"
 #endif
 
-#ifdef OUTER_CHUNK
-#include "intel_simd.h"
-#endif
-
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(push,target(mic))
 #endif
@@ -86,6 +82,10 @@ class NPairIntel : public NPair {
 
  protected:
   FixIntel *_fix;
+
+  template <class flt_t, class acc_t, int, int, int, int, int>
+  void bin_newton(const int, NeighList *, IntelBuffers<flt_t,acc_t> *, 
+		  const int, const int, const int offload_end = 0);
 
   #ifdef _LMP_INTEL_OFFLOAD
   int _cop;

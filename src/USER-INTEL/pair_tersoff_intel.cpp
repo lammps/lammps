@@ -119,32 +119,30 @@ void PairTersoffIntel::compute(int eflag, int vflag,
 
   if (ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
+    int packthreads;
+    if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
+    else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #pragma omp parallel if(packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
       IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, 
-				nthreads, sizeof(ATOM_T));
+				packthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
   
-  if (evflag || vflag_fdotr) {
-    int ovflag = 0;
-    if (vflag_fdotr) ovflag = 2;
-    else if (vflag) ovflag = 1;
-    if (eflag) {
-	eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
-    } else {
-	eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
-    }
+  int ovflag = 0;
+  if (vflag_fdotr) ovflag = 2;
+  else if (vflag) ovflag = 1;
+  if (eflag) {
+    eval<1>(1, ovflag, buffers, fc, 0, offload_end);
+    eval<1>(0, ovflag, buffers, fc, host_start, inum);
   } else {
-      eval<0,0,1>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,1>(0, 0, buffers, fc, host_start, inum);
+    eval<0>(1, ovflag, buffers, fc, 0, offload_end);
+    eval<0>(0, ovflag, buffers, fc, host_start, inum);
   }
 }
 
@@ -202,7 +200,7 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
   );
 
   // perform the actual computation
-  template<bool EVFLAG, bool EFLAG>
+  template<bool EFLAG>
   static void kernel(
       int iito, int iifrom, int eatom, int vflag, 
       const int * _noalias const numneigh,
@@ -213,11 +211,11 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
       const c_inner_t * _noalias const c_inner, 
       const c_outer_t * _noalias const c_outer, 
       typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
-      acc_t *evdwl, acc_t *ov0, acc_t * ov1, acc_t *ov2, acc_t* ov3, acc_t *ov4, acc_t *ov5
+      acc_t *evdwl
   );
 
   // perform one step of calculation, pass in i-j pairs of atoms (is, js)
-  template<int EVFLAG, int EFLAG>
+  template<int EFLAG>
   static void kernel_step(
       int eatom, int vflag, 
       const int * _noalias const numneigh,
@@ -228,13 +226,12 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
       const c_inner_t * _noalias const c_inner, 
       const c_outer_t * _noalias const c_outer, 
       typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
-      avec *vsevdwl, avec *vsv0, avec * vsv1, avec *vsv2, avec* vsv3, avec *vsv4, avec *vsv5,
-      int compress_idx, iarr is, iarr js, bvec vmask_repulsive
+      avec *vsevdwl, int compress_idx, iarr is, iarr js, bvec vmask_repulsive
   );
 
   // perform one step of calculation, as opposed to the previous method now
   //  with fixed i and a number of js
-  template<int EVFLAG, int EFLAG>
+  template<int EFLAG>
   static void kernel_step_const_i(
     int eatom, int vflag, 
     const int * _noalias const numneigh, const int * _noalias const cnumneigh, 
@@ -243,8 +240,7 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
     const c_inner_t * _noalias const c_inner, 
     const c_outer_t * _noalias const c_outer, 
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
-    avec *vsevdwl, avec *vsv0, avec *vsv1, avec *vsv2, avec *vsv3, avec *vsv4, avec *vsv5,
-    int compress_idx, int i, iarr js, bvec vmask_repulsive
+    avec *vsevdwl, int compress_idx, int i, iarr js, bvec vmask_repulsive
   );
 };
 
@@ -257,7 +253,7 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
 // Dispatch to correct kernel instatiation and perform all the work neccesary
 //  for offloading. In this routine we enter the Phi.
 // This method is nearly identical to what happens in the other /intel styles
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+template <int EFLAG, class flt_t, class acc_t>
 void PairTersoffIntel::eval(const int offload, const int vflag,
 				     IntelBuffers<flt_t,acc_t> *buffers,
 				     const ForceConst<flt_t> &fc,
@@ -292,7 +288,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
 
   // Determine how much data to transfer
   int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EVFLAG, EFLAG, vflag,
+  IP_PRE_get_transfern(ago, 1, EFLAG, vflag,
 		       buffers, offload, fix, separate_flag,
 		       x_size, q_size, ev_size, f_stride);
 
@@ -330,20 +326,16 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
     #endif
     #endif
 
-    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall, 
-			       f_stride, x, 0);
+    IP_PRE_repack_for_offload(1, separate_flag, nlocal, nall, 
+			      f_stride, x, 0);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EVFLAG) {
-      oevdwl = oecoul = (acc_t)0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
-    }
+    if (EFLAG) oevdwl = oecoul = (acc_t)0;
+    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
-      shared(f_start,f_stride,nlocal,nall,minlocal)	\
-      reduction(+:oevdwl,oecoul,ov0,ov1,ov2,ov3,ov4,ov5)
+    #pragma omp parallel reduction(+:oevdwl,oecoul,ov0,ov1,ov2,ov3,ov4,ov5)
     #endif
     {
       int iifrom, iito, tid;
@@ -355,10 +347,10 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
       memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       {
-        acc_t sevdwl, sv0, sv1, sv2, sv3, sv4, sv5;
-        sevdwl = sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = 0.;
+        acc_t sevdwl;
+        sevdwl = 0.;
         #define ARGS iito, iifrom, eatom, vflag, numneigh, numneighhalf, cnumneigh, \
-          firstneigh, ntypes, x, c_inner, c_outer, f, &sevdwl, &sv0, &sv1, &sv2, &sv3, &sv4, &sv5
+          firstneigh, ntypes, x, c_inner, c_outer, f, &sevdwl
         // Pick the variable i algorithm under specific conditions
         // do use scalar algorithm with very short vectors
         int VL = lmp_intel::vector_routines<flt_t,acc_t,lmp_intel::mode>::VL;
@@ -366,50 +358,34 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
           lmp_intel::vector_traits<lmp_intel::mode>::support_integer_and_gather_ops;
         bool use_scalar = VL < 4;
         if (use_scalar) {
-          IntelKernelTersoff<flt_t,acc_t,lmp_intel::NONE,false>::kernel<EVFLAG,EFLAG>(ARGS);
+          IntelKernelTersoff<flt_t,acc_t,lmp_intel::NONE,false>::kernel<EFLAG>(ARGS);
         } else if (pack_i) {
-          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,true >::kernel<EVFLAG,EFLAG>(ARGS);
+          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,true >::kernel<EFLAG>(ARGS);
         } else {
-          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,false>::kernel<EVFLAG,EFLAG>(ARGS);
+          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,false>::kernel<EFLAG>(ARGS);
         }
-	if (EVFLAG) {
-          if (EFLAG) oevdwl += sevdwl;
-          if (vflag == 1) {
-            ov0 += sv0;
-            ov1 += sv1;
-            ov2 += sv2;
-            ov3 += sv3;
-            ov4 += sv4;
-            ov5 += sv5;
-          }
-        }
+	if (EFLAG) oevdwl += sevdwl;
       }
 
-      #ifndef _LMP_INTEL_OFFLOAD
-      if (vflag == 2)
-      #endif
-      {
-        #if defined(_OPENMP)
-        #pragma omp barrier
-        #endif
-        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-	  		       nlocal, minlocal, nthreads, f_start, f_stride, 
-                               x, offload);
-      }
+      IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start,
+			      f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+			      ov4, ov5);
     } // end of omp parallel region
-    if (EVFLAG) {
-      if (EFLAG) {
-        ev_global[0] = oevdwl;
-        ev_global[1] = 0.0;
-      }
-      if (vflag) {
-        ev_global[2] = ov0;
-        ev_global[3] = ov1;
-        ev_global[4] = ov2;
-        ev_global[5] = ov3;
-        ev_global[6] = ov4;
-        ev_global[7] = ov5;
-      }
+
+    IP_PRE_fdotr_reduce(1, nall, nthreads, f_stride, vflag,
+			ov0, ov1, ov2, ov3, ov4, ov5);
+
+    if (EFLAG) {
+      ev_global[0] = oevdwl;
+      ev_global[1] = 0.0;
+    }
+    if (vflag) {
+      ev_global[2] = ov0;
+      ev_global[3] = ov1;
+      ev_global[4] = ov2;
+      ev_global[5] = ov3;
+      ev_global[6] = ov4;
+      ev_global[7] = ov5;
     }
 
     #ifdef _LMP_INTEL_OFFLOAD
@@ -424,7 +400,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
   else
     fix->stop_watch(TIME_HOST_PAIR);
 
-  if (EVFLAG)
+  if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
@@ -457,6 +433,7 @@ void PairTersoffIntel::init_style()
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
   
   fix->pair_init_check();
+  fix->three_body_neighbor(1);
   #ifdef _LMP_INTEL_OFFLOAD
   _cop = fix->coprocessor_number();
   #endif
@@ -663,7 +640,7 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
 static const int N_CACHE = 8;
 
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
-template<int EVFLAG, int EFLAG>
+template<int EFLAG>
 void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     int eatom, int vflag, 
     const int * _noalias const numneigh, const int * _noalias const cnumneigh, 
@@ -673,12 +650,6 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     const typename PairTersoffIntel::ForceConst<flt_t>::c_outer_t * _noalias const c_outer, 
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
     avec *vsevdwl, 
-    avec *vsv0, 
-    avec *vsv1, 
-    avec *vsv2, 
-    avec* vsv3, 
-    avec *vsv4, 
-    avec *vsv5,
     int compress_idx, 
     iarr is,
     iarr js,
@@ -829,21 +800,11 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
   vfjytmp = vfjytmp * vprefactor - vdy_ij * vfpair;
   vfjztmp = vfjztmp * vprefactor - vdz_ij * vfpair;
  
-  if (EVFLAG) {
-    if (EFLAG) {
-      *vsevdwl = v::acc_mask_add(*vsevdwl, vmask, *vsevdwl, vevdwl);
-      if (eatom) {
-        v::store(fw, (v_0_5 * vevdwl));
-      }
+  if (EFLAG) {
+    *vsevdwl = v::acc_mask_add(*vsevdwl, vmask, *vsevdwl, vevdwl);
+    if (eatom) {
+      v::store(fw, (v_0_5 * vevdwl));
     }
-    if (vflag == 1) {				
-      *vsv0 = v::acc_mask_add(*vsv0, vmask, *vsv0, vdx_ij * vdx_ij * vfpair);
-      *vsv1 = v::acc_mask_add(*vsv1, vmask, *vsv1, vdy_ij * vdy_ij * vfpair);
-      *vsv2 = v::acc_mask_add(*vsv2, vmask, *vsv2, vdz_ij * vdz_ij * vfpair);
-      *vsv3 = v::acc_mask_add(*vsv3, vmask, *vsv3, vdx_ij * vdy_ij * vfpair);
-      *vsv4 = v::acc_mask_add(*vsv4, vmask, *vsv4, vdx_ij * vdz_ij * vfpair);
-      *vsv5 = v::acc_mask_add(*vsv5, vmask, *vsv5, vdy_ij * vdz_ij * vfpair);
-    }						
   }
   {
     while (cache_idx-- > 0) {
@@ -933,7 +894,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     f[t_].x += fx[t];
     f[t_].y += fy[t];
     f[t_].z += fz[t];
-    if (EVFLAG && EFLAG && eatom) {
+    if (EFLAG && eatom) {
       f[t_].w += fw[t];
     }
   }
@@ -945,7 +906,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     f[t_].x += fx[t];
     f[t_].y += fy[t];
     f[t_].z += fz[t];
-    if (EVFLAG && EFLAG && eatom) {
+    if (EFLAG && eatom) {
       f[t_].w += fw[t];
     }
   }
@@ -954,7 +915,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
 // Specialized kernel step for fixed i, means that we don't have to use the
 //  convoluted iteration scheme above, as the loop variables are uniform.
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
-template<int EVFLAG, int EFLAG>
+template<int EFLAG>
 void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
     int eatom, int vflag, 
     const int * _noalias const numneigh, const int * _noalias const cnumneigh, 
@@ -964,12 +925,6 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
     const typename PairTersoffIntel::ForceConst<flt_t>::c_outer_t * _noalias const c_outer, 
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
     avec *vsevdwl, 
-    avec *vsv0, 
-    avec *vsv1, 
-    avec *vsv2, 
-    avec* vsv3, 
-    avec *vsv4, 
-    avec *vsv5,
     int compress_idx, 
     int i,
     iarr js,
@@ -1097,22 +1052,12 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
   vfjytmp = vfjytmp * vaprefactor - avec(vdy_ij * vfpair);
   vfjztmp = vfjztmp * vaprefactor - avec(vdz_ij * vfpair);
  
-  if (EVFLAG) {
-    if (EFLAG) {
-      *vsevdwl = v::acc_mask_add(*vsevdwl, vmask, *vsevdwl, vevdwl);
-      if (eatom) {
-        vfwtmp = v_0_5 * vevdwl;
-        v::store(fw, vfwtmp);
-      }
+  if (EFLAG) {
+    *vsevdwl = v::acc_mask_add(*vsevdwl, vmask, *vsevdwl, vevdwl);
+    if (eatom) {
+      vfwtmp = v_0_5 * vevdwl;
+      v::store(fw, vfwtmp);
     }
-    if (vflag == 1) {				
-      *vsv0 = v::acc_mask_add(*vsv0, vmask, *vsv0, vdx_ij * vdx_ij * vfpair);
-      *vsv1 = v::acc_mask_add(*vsv1, vmask, *vsv1, vdy_ij * vdy_ij * vfpair);
-      *vsv2 = v::acc_mask_add(*vsv2, vmask, *vsv2, vdz_ij * vdz_ij * vfpair);
-      *vsv3 = v::acc_mask_add(*vsv3, vmask, *vsv3, vdx_ij * vdy_ij * vfpair);
-      *vsv4 = v::acc_mask_add(*vsv4, vmask, *vsv4, vdx_ij * vdz_ij * vfpair);
-      *vsv5 = v::acc_mask_add(*vsv5, vmask, *vsv5, vdy_ij * vdz_ij * vfpair);
-    }						
   }
   while (cache_idx-- > 0) {
     fvec vfkx = vprefactor * vfkx_cache[cache_idx];
@@ -1169,20 +1114,20 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
     f[t_].x += fx[t];
     f[t_].y += fy[t];
     f[t_].z += fz[t];
-    if (EVFLAG && EFLAG && eatom) {
+    if (EFLAG && eatom) {
       f[t_].w += fw[t];
     }
   }
   f[i].x += v::acc_reduce_add(v::acc_mask_add(v::acc_zero(), vmask, vfxtmp, v::zero()));
   f[i].y += v::acc_reduce_add(v::acc_mask_add(v::acc_zero(), vmask, vfytmp, v::zero()));
   f[i].z += v::acc_reduce_add(v::acc_mask_add(v::acc_zero(), vmask, vfztmp, v::zero()));
-  if (EVFLAG && EFLAG && eatom) {
+  if (EFLAG && eatom) {
     f[i].z += v::acc_reduce_add(v::acc_mask_add(v::acc_zero(), vmask, vfwtmp, v::zero()));
   }
 }
 
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
-template<bool EVFLAG, bool EFLAG>
+template<bool EFLAG>
 void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
     int iito, int iifrom, int eatom, int vflag, 
     const int * _noalias const numneigh, 
@@ -1193,14 +1138,12 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
     const c_inner_t * _noalias const c_inner, 
     const c_outer_t * _noalias const c_outer, 
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
-    acc_t *evdwl, acc_t *ov0, acc_t * ov1, acc_t *ov2, acc_t* ov3, acc_t *ov4, acc_t *ov5
+    acc_t *evdwl
 ) {
   int compress_idx = 0;
   int ii, jj;
   iarr is, js;
   avec vsevdwl = v::acc_zero();
-  avec vsv0 = v::acc_zero(), vsv1 = v::acc_zero(), vsv2 = v::acc_zero();
-  avec vsv3 = v::acc_zero(), vsv4 = v::acc_zero(), vsv5 = v::acc_zero();
   ivec v_i4floats(static_cast<int>(sizeof(typename v::fscal) * 4));
   ivec vj, v_NEIGHMASK(NEIGHMASK);
   bvec vmask_repulsive(0);
@@ -1237,11 +1180,11 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
       if (pack_i) {
         if (compress_idx == v::VL) {
           vmask_repulsive = v::int_cmpneq(v::int_load_vl(repulsive_flag), ivec(0));
-          kernel_step<EVFLAG,EFLAG>(
+          kernel_step<EFLAG>(
               eatom, vflag, 
               numneigh, cnumneigh, firstneigh, ntypes,
               x, c_inner, c_outer, f,
-              &vsevdwl, &vsv0, &vsv1, &vsv2, &vsv3, &vsv4, &vsv5, compress_idx, 
+              &vsevdwl, compress_idx, 
               is, js, vmask_repulsive
           );
           compress_idx = 0;
@@ -1250,11 +1193,11 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
       } else {
         if (compress_idx == v::VL || (compress_idx > 0 && jj == jnum-1)) {
           vmask_repulsive = v::int_cmpneq(v::int_load_vl(repulsive_flag), ivec(0));
-          kernel_step_const_i<EVFLAG,EFLAG>(
+          kernel_step_const_i<EFLAG>(
               eatom, vflag, 
               numneigh, cnumneigh, firstneigh, ntypes,
               x, c_inner, c_outer, f,
-              &vsevdwl, &vsv0, &vsv1, &vsv2, &vsv3, &vsv4, &vsv5, compress_idx, 
+              &vsevdwl, compress_idx, 
               i, js, vmask_repulsive
           );
           compress_idx = 0;
@@ -1265,26 +1208,16 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
   }
   if (compress_idx > 0) {
         vmask_repulsive = v::int_cmpneq(v::int_load_vl(repulsive_flag), ivec(0));
-        IntelKernelTersoff::kernel_step<EVFLAG,EFLAG>(
+        IntelKernelTersoff::kernel_step<EFLAG>(
             eatom, vflag, 
             numneigh, cnumneigh, firstneigh, ntypes,
             x, c_inner, c_outer, f,
-            &vsevdwl, &vsv0, &vsv1, &vsv2, &vsv3, &vsv4, &vsv5, compress_idx, 
+            &vsevdwl, compress_idx, 
             is, js, vmask_repulsive
         );
   }
-  if (EVFLAG) {
-    if (EFLAG) {
-      *evdwl += v::acc_reduce_add(vsevdwl);
-    }
-    if (vflag == 1) {
-      *ov0 += v::acc_reduce_add(vsv0);
-      *ov1 += v::acc_reduce_add(vsv1);
-      *ov2 += v::acc_reduce_add(vsv2);
-      *ov3 += v::acc_reduce_add(vsv3);
-      *ov4 += v::acc_reduce_add(vsv4);
-      *ov5 += v::acc_reduce_add(vsv5);
-    }
+  if (EFLAG) {
+    *evdwl += v::acc_reduce_add(vsevdwl);
   }
 }
 

@@ -93,16 +93,16 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   if (evflag) {
-    if (eflag) {
+    if (vflag && !eflag) {
+      if (force->newton_bond)
+	eval<0,1,1>(vflag, buffers, fc);
+      else
+	eval<0,1,0>(vflag, buffers, fc);
+    } else {
       if (force->newton_bond)
 	eval<1,1,1>(vflag, buffers, fc);
       else
 	eval<1,1,0>(vflag, buffers, fc);
-    } else {
-      if (force->newton_bond)
-	eval<1,0,1>(vflag, buffers, fc);
-      else
-	eval<1,0,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -114,7 +114,7 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
 
 #ifndef LMP_USE_AVXCD_DHC
 
-template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
+template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
 void DihedralCharmmIntel::eval(const int vflag, 
 			       IntelBuffers<flt_t,acc_t> *buffers,
 			       const ForceConst<flt_t> &fc)
@@ -140,13 +140,10 @@ void DihedralCharmmIntel::eval(const int vflag,
 
   acc_t oedihedral, ov0, ov1, ov2, ov3, ov4, ov5;
   acc_t oevdwl, oecoul, opv0, opv1, opv2, opv3, opv4, opv5;
-  if (EVFLAG) {
-    if (EFLAG)
-      oevdwl = oecoul = oedihedral = (acc_t)0.0;
-    if (vflag) {
-      ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
-      opv0 = opv1 = opv2 = opv3 = opv4 = opv5 = (acc_t)0.0;
-    }
+  if (EFLAG) oevdwl = oecoul = oedihedral = (acc_t)0.0;
+  if (VFLAG && vflag) {
+    ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
+    opv0 = opv1 = opv2 = opv3 = opv4 = opv5 = (acc_t)0.0;
   }
 
   #if defined(_OPENMP)
@@ -156,8 +153,13 @@ void DihedralCharmmIntel::eval(const int vflag,
 	      opv0,opv1,opv2,opv3,opv4,opv5)
   #endif
   {
+    #if defined(LMP_SIMD_COMPILER_TEST)
     int nfrom, nto, tid;
     IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
+    #else
+    int nfrom, npl, nto, tid;
+    IP_PRE_omp_stride_id(nfrom, npl, nto, tid, inum, nthreads);
+    #endif
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
@@ -169,21 +171,19 @@ void DihedralCharmmIntel::eval(const int vflag,
 
     acc_t sedihedral, sv0, sv1, sv2, sv3, sv4, sv5;
     acc_t sevdwl, secoul, spv0, spv1, spv2, spv3, spv4, spv5;
-    if (EVFLAG) {
-      if (EFLAG)
-	sevdwl = secoul = sedihedral = (acc_t)0.0;
-      if (vflag) {
-	sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
-	spv0 = spv1 = spv2 = spv3 = spv4 = spv5 = (acc_t)0.0;
-      }
+    if (EFLAG) sevdwl = secoul = sedihedral = (acc_t)0.0;
+    if (VFLAG && vflag) {
+      sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
+      spv0 = spv1 = spv2 = spv3 = spv4 = spv5 = (acc_t)0.0;
     }
 
     #if defined(LMP_SIMD_COMPILER_TEST)
     #pragma vector aligned
     #pragma simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
                            sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, spv5) 
-    #endif
     for (int n = nfrom; n < nto; n++) {
+    #endif
+    for (int n = nfrom; n < nto; n += npl) {
       const int i1 = dihedrallist[n].a;
       const int i2 = dihedrallist[n].b;
       const int i3 = dihedrallist[n].c;
@@ -333,14 +333,14 @@ void DihedralCharmmIntel::eval(const int vflag,
       const flt_t f3y = -sy2 - f4y;
       const flt_t f3z = -sz2 - f4z;
 
-      if (EVFLAG) {
+      if (EFLAG || VFLAG) {
 	flt_t deng;
 	if (EFLAG) deng = tk * p;
-	IP_PRE_ev_tally_dihed(EFLAG, eatom, vflag, deng, i1, i2, i3, i4, f1x, 
-			      f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z, vb1x, 
-			      vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x, vb3y, 
-			      vb3z, sedihedral, f, NEWTON_BOND, nlocal,
-			      sv0, sv1, sv2, sv3, sv4, sv5);
+	IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, deng, i1, i2, i3, 
+                              i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, 
+                              f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm,
+                              vb3x, vb3y, vb3z, sedihedral, f, NEWTON_BOND, 
+                              nlocal, sv0, sv1, sv2, sv3, sv4, sv5);
       }
 
 
@@ -387,7 +387,7 @@ void DihedralCharmmIntel::eval(const int vflag,
 	f4z -= delz*fpair;
       }
 
-      if (EVFLAG) {
+      if (EFLAG || VFLAG) {
 	flt_t ev_pre = (flt_t)0;
 	if (NEWTON_BOND || i1 < nlocal)
 	  ev_pre += (flt_t)0.5;
@@ -412,13 +412,13 @@ void DihedralCharmmIntel::eval(const int vflag,
 	}
 	//	      IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
 	//				   delx, dely, delz);
-	if (vflag) {                                                    
-	  spv0 += ev_pre * delx * delx * fpair;                               
-	  spv1 += ev_pre * dely * dely * fpair;                               
-	  spv2 += ev_pre * delz * delz * fpair;                               
-	  spv3 += ev_pre * delx * dely * fpair;                               
-	  spv4 += ev_pre * delx * delz * fpair;                               
-	  spv5 += ev_pre * dely * delz * fpair;                               
+	if (VFLAG && vflag) {
+	  spv0 += ev_pre * delx * delx * fpair;
+	  spv1 += ev_pre * dely * dely * fpair;
+	  spv2 += ev_pre * delz * delz * fpair;
+	  spv3 += ev_pre * delx * dely * fpair;
+	  spv4 += ev_pre * delx * delz * fpair;
+	  spv5 += ev_pre * dely * delz * fpair;
 	}                                                                    
       }
 
@@ -440,36 +440,32 @@ void DihedralCharmmIntel::eval(const int vflag,
         }
       }
     } // for n
-    if (EVFLAG) {
-      if (EFLAG) {
-	oedihedral += sedihedral;
-	oecoul += secoul;
-	oevdwl += sevdwl;
-      }
-      if (vflag) {
-	ov0 += sv0; ov1 += sv1; ov2 += sv2; ov3 += sv3; ov4 += sv4; ov5 += sv5;
-	opv0 += spv0; opv1 += spv1; opv2 += spv2; 
-	opv3 += spv3; opv4 += spv4; opv5 += spv5;
-      }
+    if (EFLAG) {
+      oedihedral += sedihedral;
+      oecoul += secoul;
+      oevdwl += sevdwl;
+    }
+    if (VFLAG && vflag) {
+      ov0 += sv0; ov1 += sv1; ov2 += sv2; ov3 += sv3; ov4 += sv4; ov5 += sv5;
+      opv0 += spv0; opv1 += spv1; opv2 += spv2; 
+      opv3 += spv3; opv4 += spv4; opv5 += spv5;
     }
   } // omp parallel
 
-  if (EVFLAG) {
-    if (EFLAG) {
-      energy += oedihedral;
-      force->pair->eng_vdwl += oevdwl;
-      force->pair->eng_coul += oecoul;
-    }
-    if (vflag) {
-      virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-      virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
-      force->pair->virial[0] += opv0;
-      force->pair->virial[1] += opv1;
-      force->pair->virial[2] += opv2;
-      force->pair->virial[3] += opv3;
-      force->pair->virial[4] += opv4;
-      force->pair->virial[5] += opv5;
-    }
+  if (EFLAG) {
+    energy += oedihedral;
+    force->pair->eng_vdwl += oevdwl;
+    force->pair->eng_coul += oecoul;
+  }
+  if (VFLAG && vflag) {
+    virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
+    force->pair->virial[0] += opv0;
+    force->pair->virial[1] += opv1;
+    force->pair->virial[2] += opv2;
+    force->pair->virial[3] += opv3;
+    force->pair->virial[4] += opv4;
+    force->pair->virial[5] += opv5;
   }
 
   fix->set_reduce_flag();
@@ -488,7 +484,7 @@ authors for more details.
 
 ------------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
+template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
 void DihedralCharmmIntel::eval(const int vflag, 
 			       IntelBuffers<flt_t,acc_t> *buffers,
 			       const ForceConst<flt_t> &fc)
@@ -518,13 +514,10 @@ void DihedralCharmmIntel::eval(const int vflag,
 
   acc_t oedihedral, ov0, ov1, ov2, ov3, ov4, ov5;
   acc_t oevdwl, oecoul, opv0, opv1, opv2, opv3, opv4, opv5;
-  if (EVFLAG) {
-    if (EFLAG)
-      oevdwl = oecoul = oedihedral = (acc_t)0.0;
-    if (vflag) {
-      ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
-      opv0 = opv1 = opv2 = opv3 = opv4 = opv5 = (acc_t)0.0;
-    }
+  if (EFLAG) oevdwl = oecoul = oedihedral = (acc_t)0.0;
+  if (VFLAG && vflag) {
+    ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
+    opv0 = opv1 = opv2 = opv3 = opv4 = opv5 = (acc_t)0.0;
   }
 
   #if defined(_OPENMP)
@@ -534,8 +527,9 @@ void DihedralCharmmIntel::eval(const int vflag,
 	      opv0,opv1,opv2,opv3,opv4,opv5)
   #endif
   {
-    int nfrom, nto, tid;
-    IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
+    int nfrom, npl, nto, tid;
+    IP_PRE_omp_stride_id_vec(nfrom, npl, nto, tid, inum, nthreads,
+			     swidth);
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
@@ -559,26 +553,24 @@ void DihedralCharmmIntel::eval(const int vflag,
 
     SIMD_acc_t sedihedral, sv0, sv1, sv2, sv3, sv4, sv5;
     SIMD_acc_t sevdwl, secoul, spv0, spv1, spv2, spv3, spv4, spv5;
-    if (EVFLAG) {
-      if (EFLAG) {
-	sevdwl = SIMD_set((acc_t)0.0);
-	secoul = SIMD_set((acc_t)0.0);
-	sedihedral = SIMD_set((acc_t)0.0);
-      }
-      if (vflag) {
-	sv0 = SIMD_set((acc_t)0.0);
-	sv1 = SIMD_set((acc_t)0.0);
-	sv2 = SIMD_set((acc_t)0.0);
-	sv3 = SIMD_set((acc_t)0.0);
-	sv4 = SIMD_set((acc_t)0.0);
-	sv5 = SIMD_set((acc_t)0.0);
-	spv0 = SIMD_set((acc_t)0.0);
-	spv1 = SIMD_set((acc_t)0.0);
-	spv2 = SIMD_set((acc_t)0.0);
-	spv3 = SIMD_set((acc_t)0.0);
-	spv4 = SIMD_set((acc_t)0.0);
-	spv5 = SIMD_set((acc_t)0.0);
-      }
+    if (EFLAG) {
+      sevdwl = SIMD_set((acc_t)0.0);
+      secoul = SIMD_set((acc_t)0.0);
+      sedihedral = SIMD_set((acc_t)0.0);
+    }
+    if (VFLAG && vflag) {
+      sv0 = SIMD_set((acc_t)0.0);
+      sv1 = SIMD_set((acc_t)0.0);
+      sv2 = SIMD_set((acc_t)0.0);
+      sv3 = SIMD_set((acc_t)0.0);
+      sv4 = SIMD_set((acc_t)0.0);
+      sv5 = SIMD_set((acc_t)0.0);
+      spv0 = SIMD_set((acc_t)0.0);
+      spv1 = SIMD_set((acc_t)0.0);
+      spv2 = SIMD_set((acc_t)0.0);
+      spv3 = SIMD_set((acc_t)0.0);
+      spv4 = SIMD_set((acc_t)0.0);
+      spv5 = SIMD_set((acc_t)0.0);
     }
 
     SIMD_int n_offset = SIMD_set(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
@@ -588,7 +580,7 @@ void DihedralCharmmIntel::eval(const int vflag,
     const SIMD_int simd_nlocals4 = SIMD_set(nlocals4);
     const int ntypes = atom->ntypes + 1;
 
-    for (int n = nfrom; n < nto; n += swidth) {
+    for (int n = nfrom; n < nto; n += npl) {
       SIMD_mask nmask = n_offset < nto5;
       SIMD_int i1 = SIMD_gather(nmask, dihedrallist, n_offset);
       const SIMD_flt_t q1 = SIMD_gather(nmask, q, i1);
@@ -601,7 +593,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       SIMD_int type = SIMD_gather(nmask, dihedrallist+4, n_offset);
       const SIMD_flt_t tweight = SIMD_gather(nmask, weight, type);
       type = type << 2;
-      n_offset = n_offset + swidth * 5;
+      n_offset = n_offset + npl * 5;
 
       // 1st bond
 
@@ -747,7 +739,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       SIMD_flt_t f3z = -sz2 - f4z;
 
       SIMD_flt_t qdeng;
-      if (EVFLAG) {
+      if (EFLAG || VFLAG) {
 	SIMD_flt_t ev_pre;
 	if (NEWTON_BOND) ev_pre = one;
 	else {
@@ -774,7 +766,7 @@ void DihedralCharmmIntel::eval(const int vflag,
 	    SIMD_jeng_update(newton_mask, featom, i3, ieng);
 	  }
 	}
-	if (vflag) {
+	if (VFLAG && vflag) {
           sv0 = SIMD_ev_add(sv0, ev_pre*(vb1x*f1x-vb2xm*f3x+(vb3x-vb2xm)*f4x));
 	  sv1 = SIMD_ev_add(sv1, ev_pre*(vb1y*f1y-vb2ym*f3y+(vb3y-vb2ym)*f4y));
 	  sv2 = SIMD_ev_add(sv2, ev_pre*(vb1z*f1z-vb2zm*f3z+(vb3z-vb2zm)*f4z));
@@ -816,7 +808,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       f4y = f4y - dely * fpair;
       f4z = f4z - delz * fpair;
 
-      if (EVFLAG) {
+      if (EFLAG || VFLAG) {
 	SIMD_flt_t ev_pre;
 	if (NEWTON_BOND) ev_pre = one;
 	else {
@@ -848,7 +840,7 @@ void DihedralCharmmIntel::eval(const int vflag,
             SIMD_jeng_update(newton_mask, featom, i4, ieng);
 	  }
 	}
-	if (vflag) {                                                    
+	if (VFLAG && vflag) {
           spv0 = SIMD_ev_add(spv0, ev_pre * delx * delx * fpair);
 	  spv1 = SIMD_ev_add(spv1, ev_pre * dely * dely * fpair);
 	  spv2 = SIMD_ev_add(spv2, ev_pre * delz * delz * fpair);
@@ -865,45 +857,41 @@ void DihedralCharmmIntel::eval(const int vflag,
       SIMD_safe_jforce(newton_mask, pforce, i4, f4x, f4y, f4z);
     } // for n
 
-    if (EVFLAG) {
-      if (EFLAG) {
-	oedihedral += SIMD_sum(sedihedral);
-	oecoul += SIMD_sum(secoul);
-	oevdwl += SIMD_sum(sevdwl);
-      }
-      if (vflag) {
-	ov0 += SIMD_sum(sv0); 
-	ov1 += SIMD_sum(sv1); 
-	ov2 += SIMD_sum(sv2); 
-	ov3 += SIMD_sum(sv3); 
-	ov4 += SIMD_sum(sv4); 
-	ov5 += SIMD_sum(sv5);
-	opv0 += SIMD_sum(spv0); 
-	opv1 += SIMD_sum(spv1); 
-	opv2 += SIMD_sum(spv2); 
-	opv3 += SIMD_sum(spv3); 
-	opv4 += SIMD_sum(spv4); 
-	opv5 += SIMD_sum(spv5);
-      }
+    if (EFLAG) {
+      oedihedral += SIMD_sum(sedihedral);
+      oecoul += SIMD_sum(secoul);
+      oevdwl += SIMD_sum(sevdwl);
+    }
+    if (VFLAG && vflag) {
+      ov0 += SIMD_sum(sv0); 
+      ov1 += SIMD_sum(sv1); 
+      ov2 += SIMD_sum(sv2); 
+      ov3 += SIMD_sum(sv3); 
+      ov4 += SIMD_sum(sv4); 
+      ov5 += SIMD_sum(sv5);
+      opv0 += SIMD_sum(spv0); 
+      opv1 += SIMD_sum(spv1); 
+      opv2 += SIMD_sum(spv2); 
+      opv3 += SIMD_sum(spv3); 
+      opv4 += SIMD_sum(spv4); 
+      opv5 += SIMD_sum(spv5);
     }
   } // omp parallel
 
-  if (EVFLAG) {
-    if (EFLAG) {
-      energy += oedihedral;
-      force->pair->eng_vdwl += oevdwl;
-      force->pair->eng_coul += oecoul;
-    }
-    if (vflag) {
-      virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-      virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
-      force->pair->virial[0] += opv0;
-      force->pair->virial[1] += opv1;
-      force->pair->virial[2] += opv2;
-      force->pair->virial[3] += opv3;
-      force->pair->virial[4] += opv4;
-      force->pair->virial[5] += opv5;
-    }
+  if (EFLAG) {
+    energy += oedihedral;
+    force->pair->eng_vdwl += oevdwl;
+    force->pair->eng_coul += oecoul;
+  }
+  if (VFLAG && vflag) {
+    virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
+    force->pair->virial[0] += opv0;
+    force->pair->virial[1] += opv1;
+    force->pair->virial[2] += opv2;
+    force->pair->virial[3] += opv3;
+    force->pair->virial[4] += opv4;
+    force->pair->virial[5] += opv5;
   }
 
   fix->set_reduce_flag();
@@ -953,12 +941,14 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
   fc.set_ntypes(tp1,bp1,memory);
   buffers->set_ntypes(tp1);
 
-  for (int i = 0; i < tp1; i++) {
-    for (int j = 0; j < tp1; j++) {
-      fc.ljp[i][j].lj1 = lj14_1[i][j];
-      fc.ljp[i][j].lj2 = lj14_2[i][j];
-      fc.ljp[i][j].lj3 = lj14_3[i][j];
-      fc.ljp[i][j].lj4 = lj14_4[i][j];
+  if (weightflag) {
+    for (int i = 0; i < tp1; i++) {
+      for (int j = 0; j < tp1; j++) {
+	fc.ljp[i][j].lj1 = lj14_1[i][j];
+	fc.ljp[i][j].lj2 = lj14_2[i][j];
+	fc.ljp[i][j].lj3 = lj14_3[i][j];
+	fc.ljp[i][j].lj4 = lj14_4[i][j];
+      }
     }
   }
 

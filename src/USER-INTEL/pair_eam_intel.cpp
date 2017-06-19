@@ -90,78 +90,58 @@ void PairEAMIntel::compute(int eflag, int vflag,
   if (ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
 
+    int packthreads;
+    if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
+    else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #pragma omp parallel if(packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
       IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
-                                nthreads, sizeof(ATOM_T));
+                                packthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
 
+  int ovflag = 0;
+  if (vflag_fdotr) ovflag = 2;
+  else if (vflag) ovflag = 1;
   if (_onetype) {
-    if (evflag || vflag_fdotr) {
-      int ovflag = 0;
-      if (vflag_fdotr) ovflag = 2;
-      else if (vflag) ovflag = 1;
-      if (eflag) {
-        if (force->newton_pair) {
-          eval<1,1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<1,1,1,1>(0, ovflag, buffers, fc, host_start, inum);
-        } else {
-          eval<1,1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<1,1,1,0>(0, ovflag, buffers, fc, host_start, inum);
-        }
+    if (eflag) {
+      if (force->newton_pair) {
+	eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
       } else {
-        if (force->newton_pair) {
-          eval<1,1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<1,1,0,1>(0, ovflag, buffers, fc, host_start, inum);
-        } else {
-          eval<1,1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<1,1,0,0>(0, ovflag, buffers, fc, host_start, inum);
-        }
+	eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum);
       }
     } else {
       if (force->newton_pair) {
-        eval<0,0,0,1>(1, 0, buffers, fc, 0, offload_end);
-        eval<0,0,0,1>(0, 0, buffers, fc, host_start, inum);
+	eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
       } else {
-        eval<0,0,0,0>(1, 0, buffers, fc, 0, offload_end);
-        eval<0,0,0,0>(0, 0, buffers, fc, host_start, inum);
+	eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum);
       }
     }
   } else {
-    if (evflag || vflag_fdotr) {
-      int ovflag = 0;
-      if (vflag_fdotr) ovflag = 2;
-      else if (vflag) ovflag = 1;
-      if (eflag) {
-        if (force->newton_pair) {
-          eval<0,1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<0,1,1,1>(0, ovflag, buffers, fc, host_start, inum);
-        } else {
-          eval<0,1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<0,1,1,0>(0, ovflag, buffers, fc, host_start, inum);
-        }
+    if (eflag) {
+      if (force->newton_pair) {
+	eval<0,1,1>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<0,1,1>(0, ovflag, buffers, fc, host_start, inum);
       } else {
-        if (force->newton_pair) {
-          eval<0,1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<0,1,0,1>(0, ovflag, buffers, fc, host_start, inum);
-        } else {
-          eval<0,1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-	  eval<0,1,0,0>(0, ovflag, buffers, fc, host_start, inum);
-        }
+	eval<0,1,0>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<0,1,0>(0, ovflag, buffers, fc, host_start, inum);
       }
     } else {
       if (force->newton_pair) {
-        eval<0,0,0,1>(1, 0, buffers, fc, 0, offload_end);
-        eval<0,0,0,1>(0, 0, buffers, fc, host_start, inum);
+	eval<0,0,1>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<0,0,1>(0, ovflag, buffers, fc, host_start, inum);
       } else {
-        eval<0,0,0,0>(1, 0, buffers, fc, 0, offload_end);
-        eval<0,0,0,0>(0, 0, buffers, fc, host_start, inum);
+	eval<0,0,0>(1, ovflag, buffers, fc, 0, offload_end);
+	eval<0,0,0>(0, ovflag, buffers, fc, host_start, inum);
       }
     }
   }
@@ -169,8 +149,7 @@ void PairEAMIntel::compute(int eflag, int vflag,
 
 /* ---------------------------------------------------------------------- */
 
-template <int ONETYPE, int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, 
-	  class acc_t>
+template <int ONETYPE, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
 void PairEAMIntel::eval(const int offload, const int vflag,
 			IntelBuffers<flt_t,acc_t> *buffers,
 			const ForceConst<flt_t> &fc,
@@ -186,7 +165,10 @@ void PairEAMIntel::eval(const int offload, const int vflag,
     nmax = atom->nmax;
     int edge = (nmax * sizeof(acc_t)) % INTEL_DATA_ALIGN;
     if (edge) nmax += (INTEL_DATA_ALIGN - edge) / sizeof(acc_t);
-    memory->create(rho,nmax*comm->nthreads,"pair:rho");
+    if (NEWTON_PAIR)
+      memory->create(rho,nmax*comm->nthreads,"pair:rho");
+    else
+      memory->create(rho,nmax,"pair:rho");
     memory->create(fp,nmax,"pair:fp");
     // Use single precision allocation for single/mixed mode
     // Keep double version for single and swap_eam
@@ -222,9 +204,17 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   const int ntypes = atom->ntypes + 1;
   const int eatom = this->eflag_atom;
 
+  flt_t * _noalias const ccachex = buffers->get_ccachex();
+  flt_t * _noalias const ccachey = buffers->get_ccachey();
+  flt_t * _noalias const ccachez = buffers->get_ccachez();
+  flt_t * _noalias const ccachew = buffers->get_ccachew();
+  int * _noalias const ccachei = buffers->get_ccachei();
+  int * _noalias const ccachej = buffers->get_ccachej();
+  const int ccache_stride = _ccache_stride;
+
   // Determine how much data to transfer
   int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EVFLAG, EFLAG, vflag,
+  IP_PRE_get_transfern(ago, NEWTON_PAIR, EFLAG, vflag,
                        buffers, offload, fix, separate_flag,
                        x_size, q_size, ev_size, f_stride);
 
@@ -252,16 +242,12 @@ void PairEAMIntel::eval(const int offload, const int vflag,
                               f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EVFLAG) {
-      oevdwl = (acc_t)0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
-    }
+    if (EFLAG) oevdwl = (acc_t)0;
+    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
-      shared(fp_f, f_start,f_stride,nlocal,nall,minlocal)	\
-      reduction(+:oevdwl,ov0,ov1,ov2,ov3,ov4,ov5)
+    #pragma omp parallel reduction(+:oevdwl,ov0,ov1,ov2,ov3,ov4,ov5)
     #endif
     {
       int iifrom, iito, tid;
@@ -270,12 +256,25 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * _noalias const f = f_start - minlocal + (tid * f_stride);
-      double * _noalias const trho = rho + tid*nmax;
-      if (NEWTON_PAIR)
+      int foff;
+      if (NEWTON_PAIR) foff = tid * f_stride - minlocal;
+      else foff = -minlocal;
+      FORCE_T * _noalias const f = f_start + foff;
+      if (NEWTON_PAIR) foff = tid * nmax;
+      else foff = 0;
+      double * _noalias const trho = rho + foff;
+      if (NEWTON_PAIR) {
+	memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 	memset(trho, 0, nall * sizeof(double));
-      else
-	memset(trho, 0, nlocal * sizeof(double));
+      }
+
+      const int toffs = tid * ccache_stride;
+      flt_t * _noalias const tdelx = ccachex + toffs;
+      flt_t * _noalias const tdely = ccachey + toffs;
+      flt_t * _noalias const tdelz = ccachez + toffs;
+      flt_t * _noalias const trsq = ccachew + toffs;
+      int * _noalias const tj = ccachei + toffs;
+      int * _noalias const tjtype = ccachej + toffs;
 
       flt_t oscale;
       int rhor_joff, frho_ioff;
@@ -300,53 +299,67 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 	const flt_t ztmp = x[i].z;
 
 	acc_t rhoi = (acc_t)0.0;
-	#if defined(LMP_SIMD_COMPILER)
-	#pragma vector aligned
-        #pragma simd reduction(+:rhoi)
+	int ej = 0;
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma ivdep
 	#endif
 	for (int jj = 0; jj < jnum; jj++) {
-          int j, jtype;
-	  j = jlist[jj] & NEIGHMASK;
-
+	  const int j = jlist[jj] & NEIGHMASK;
           const flt_t delx = xtmp - x[j].x;
           const flt_t dely = ytmp - x[j].y;
           const flt_t delz = ztmp - x[j].z;
 	  const flt_t rsq = delx*delx + dely*dely + delz*delz;
 
 	  if (rsq < fcutforcesq) {
-	    if (!ONETYPE) jtype = x[j].w;
-	    flt_t p = sqrt(rsq)*frdr + (flt_t)1.0;
-	    int m = static_cast<int> (p);
-	    m = MIN(m,nr-1);
-	    p -= m;
-	    p = MIN(p,(flt_t)1.0);
-	    if (!ONETYPE)
-	      rhor_joff = rhor_ioff + jtype * jstride;
-	    const int joff = rhor_joff + m;
-	    flt_t ra;
-	    ra = ((rhor_spline_e[joff].a*p + rhor_spline_e[joff].b) * p +
-		  rhor_spline_e[joff].c) * p + rhor_spline_e[joff].d;
-	    rhoi += ra;
-	    if (NEWTON_PAIR || j < nlocal) {
-	      if (!ONETYPE) {
-		const int ioff = jtype * istride + itype * jstride + m;
-		ra = ((rhor_spline_e[ioff].a*p + rhor_spline_e[ioff].b)*p +
-                      rhor_spline_e[ioff].c) * p + rhor_spline_e[ioff].d;
-	      }
-	      trho[j] += ra;
-            }
+	    trsq[ej]=rsq;
+	    if (!ONETYPE) tjtype[ej]=x[j].w;
+	    tj[ej]=jlist[jj];
+	    ej++;
           }
+        }
+
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma vector aligned
+        #pragma simd reduction(+:rhoi)
+	#endif
+        for (int jj = 0; jj < ej; jj++) {
+	  int jtype;
+	  const int j = tj[jj] & NEIGHMASK;
+	  if (!ONETYPE) jtype = tjtype[jj];
+	  const flt_t rsq = trsq[jj];
+	  flt_t p = sqrt(rsq)*frdr + (flt_t)1.0;
+	  int m = static_cast<int> (p);
+	  m = MIN(m,nr-1);
+	  p -= m;
+	  p = MIN(p,(flt_t)1.0);
+	  if (!ONETYPE)
+	    rhor_joff = rhor_ioff + jtype * jstride;
+	  const int joff = rhor_joff + m;
+	  flt_t ra;
+	  ra = ((rhor_spline_e[joff].a*p + rhor_spline_e[joff].b) * p +
+		rhor_spline_e[joff].c) * p + rhor_spline_e[joff].d;
+	  rhoi += ra;
+	  if (NEWTON_PAIR) {
+	    if (!ONETYPE) {
+	      const int ioff = jtype * istride + itype * jstride + m;
+	      ra = ((rhor_spline_e[ioff].a*p + rhor_spline_e[ioff].b)*p +
+		    rhor_spline_e[ioff].c) * p + rhor_spline_e[ioff].d;
+	    }
+	    trho[j] += ra;
+	  }
         } // for jj
-	trho[i] += rhoi;
+	if (NEWTON_PAIR)
+	  trho[i] += rhoi;
+	else
+	  trho[i] = rhoi;
       } // for i
 
       #if defined(_OPENMP)
-      if (nthreads > 1) {
+      if (NEWTON_PAIR && nthreads > 1) {
         #pragma omp barrier
         if (tid == 0) {  
-          int rcount;
-	  if (NEWTON_PAIR) rcount = nall;
-	  else rcount = nlocal;
+          const int rcount = nall;
 	  if (nthreads == 2) {
             double *trho2 = rho + nmax;
 	    #pragma vector aligned
@@ -431,10 +444,9 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       #pragma omp barrier
       #endif
 
-      if (tid == 0) {
+      if (tid == 0)
         comm->forward_comm_pair(this);
-	memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
-      } else
+      if (NEWTON_PAIR)
 	memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       #if defined(_OPENMP)
@@ -462,124 +474,142 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 	const flt_t ytmp = x[i].y;
 	const flt_t ztmp = x[i].z;
 	fxtmp = fytmp = fztmp = (acc_t)0;
-	if (EVFLAG) {
-          if (EFLAG) fwtmp = sevdwl = (acc_t)0;
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
-        }
+	if (EFLAG) fwtmp = sevdwl = (acc_t)0;
+        if (NEWTON_PAIR == 0)
+	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
-	#if defined(LMP_SIMD_COMPILER)
-	#pragma vector aligned
-	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl,	\
-	                         sv0, sv1, sv2, sv3, sv4, sv5)
+	int ej = 0;
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma ivdep
 	#endif
 	for (int jj = 0; jj < jnum; jj++) {
-          int j, jtype;
-	  j = jlist[jj] & NEIGHMASK;
-
+	  const int j = jlist[jj] & NEIGHMASK;
           const flt_t delx = xtmp - x[j].x;
           const flt_t dely = ytmp - x[j].y;
           const flt_t delz = ztmp - x[j].z;
 	  const flt_t rsq = delx*delx + dely*dely + delz*delz;
 
-
 	  if (rsq < fcutforcesq) {
-	    if (!ONETYPE) jtype = x[j].w;
-	    const flt_t r = sqrt(rsq);
-	    flt_t p = r*frdr + (flt_t)1.0;
-	    int m = static_cast<int> (p);
-	    m = MIN(m,nr-1);
-	    p -= m;
-	    p = MIN(p,(flt_t)1.0);
-	    if (!ONETYPE)
-	      rhor_joff = rhor_ioff + jtype * jstride;
-	    const int joff = rhor_joff + m;
-	    const flt_t rhojp = (rhor_spline_f[joff].a*p + 
-                                 rhor_spline_f[joff].b)*p + 
-	                        rhor_spline_f[joff].c;
-	    flt_t rhoip;
-	    if (!ONETYPE) {
-	      const int ioff = jtype * istride + itype * jstride + m;
-	      rhoip = (rhor_spline_f[ioff].a*p + rhor_spline_f[ioff].b)*p + 
-		      rhor_spline_f[ioff].c;
-	    } else
-	      rhoip = rhojp;
-	    const flt_t z2p = (z2r_spline_t[joff].a*p + 
-                               z2r_spline_t[joff].b)*p + 
-                              z2r_spline_t[joff].c;
-	    const flt_t z2 = ((z2r_spline_t[joff].d*p + 
-			       z2r_spline_t[joff].e)*p + 
-			      z2r_spline_t[joff].f)*p + 
-	                     z2r_spline_t[joff].g;
+	    trsq[ej]=rsq;
+	    tdelx[ej]=delx;
+	    tdely[ej]=dely;
+	    tdelz[ej]=delz;
+	    if (!ONETYPE) tjtype[ej]=x[j].w;
+	    tj[ej]=jlist[jj];
+	    ej++;
+	  }
+	}
 
-	    const flt_t recip = (flt_t)1.0/r;
-	    const flt_t phi = z2*recip;
-	    const flt_t phip = z2p*recip - phi*recip;
-	    const flt_t psip = fp_f[i]*rhojp + fp_f[j]*rhoip + phip;
-	    if (!ONETYPE)
-	      oscale = scale_fi[jtype];
-	    const flt_t fpair = -oscale*psip*recip;
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma vector aligned
+        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+		                 sv0, sv1, sv2, sv3, sv4, sv5)
+        #endif
+        for (int jj = 0; jj < ej; jj++) {
+	  int jtype;
+	  const int j = tj[jj] & NEIGHMASK;
+	  if (!ONETYPE) jtype = tjtype[jj];
+	  const flt_t rsq = trsq[jj];
+	  const flt_t r = sqrt(rsq);
+	  flt_t p = r*frdr + (flt_t)1.0;
+	  int m = static_cast<int> (p);
+	  m = MIN(m,nr-1);
+	  p -= m;
+	  p = MIN(p,(flt_t)1.0);
+	  if (!ONETYPE)
+	    rhor_joff = rhor_ioff + jtype * jstride;
+	  const int joff = rhor_joff + m;
+	  const flt_t rhojp = (rhor_spline_f[joff].a*p + 
+			       rhor_spline_f[joff].b)*p + 
+	    rhor_spline_f[joff].c;
+	  flt_t rhoip;
+	  if (!ONETYPE) {
+	    const int ioff = jtype * istride + itype * jstride + m;
+	    rhoip = (rhor_spline_f[ioff].a*p + rhor_spline_f[ioff].b)*p + 
+	      rhor_spline_f[ioff].c;
+	  } else
+	    rhoip = rhojp;
+	  const flt_t z2p = (z2r_spline_t[joff].a*p + 
+			     z2r_spline_t[joff].b)*p + 
+	    z2r_spline_t[joff].c;
+	  const flt_t z2 = ((z2r_spline_t[joff].d*p + 
+			     z2r_spline_t[joff].e)*p + 
+			    z2r_spline_t[joff].f)*p + 
+	    z2r_spline_t[joff].g;
+	  
+	  const flt_t recip = (flt_t)1.0/r;
+	  const flt_t phi = z2*recip;
+	  const flt_t phip = z2p*recip - phi*recip;
+	  const flt_t psip = fp_f[i]*rhojp + fp_f[j]*rhoip + phip;
+	  if (!ONETYPE)
+	    oscale = scale_fi[jtype];
+	  const flt_t fpair = -oscale*psip*recip;
+	  
+          const flt_t fpx = fpair * tdelx[jj];
+          fxtmp += fpx;
+          if (NEWTON_PAIR) f[j].x -= fpx;
+          const flt_t fpy = fpair * tdely[jj];
+          fytmp += fpy;
+          if (NEWTON_PAIR) f[j].y -= fpy;
+          const flt_t fpz = fpair * tdelz[jj];
+          fztmp += fpz;
+          if (NEWTON_PAIR) f[j].z -= fpz;
 
-	    fxtmp += delx*fpair;
-	    fytmp += dely*fpair;
-	    fztmp += delz*fpair;
-	    if (NEWTON_PAIR || j < nlocal) {
-              f[j].x -= delx*fpair;
-	      f[j].y -= dely*fpair;
-	      f[j].z -= delz*fpair;
-            }
-
-	    if (EVFLAG) {
-              flt_t ev_pre = (flt_t)0;
-              if (NEWTON_PAIR || i<nlocal)
-	        ev_pre += (flt_t)0.5;
-              if (NEWTON_PAIR || j<nlocal)
-	        ev_pre += (flt_t)0.5;
-
-	      if (EFLAG) {
-                const flt_t evdwl = oscale*phi;
-                sevdwl += ev_pre * evdwl;
-		if (eatom) {
-                  if (NEWTON_PAIR || i < nlocal)
-		    fwtmp += (flt_t)0.5 * evdwl;
-		  if (NEWTON_PAIR || j < nlocal)
-		    f[j].w += (flt_t)0.5 * evdwl;
-                }
-              }
-              IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
-	                           delx, dely, delz);
-            }
-          } // if rsq
+	  if (EFLAG) {
+	    const flt_t evdwl = oscale*phi;
+	    sevdwl += evdwl;
+	    if (eatom) {
+	      fwtmp += (flt_t)0.5 * evdwl;
+	      if (NEWTON_PAIR)
+		f[j].w += (flt_t)0.5 * evdwl;
+	    }
+	  }
+	  if (NEWTON_PAIR == 0) 
+	    IP_PRE_ev_tally_nborv(vflag, tdelx[jj], tdely[jj], tdelz[jj],
+				  fpx, fpy, fpz);
         } // for jj
-        f[i].x += fxtmp;
-        f[i].y += fytmp;
-        f[i].z += fztmp;
-
-        IP_PRE_ev_tally_atom(EVFLAG, EFLAG, vflag, f, fwtmp);
+	if (NEWTON_PAIR) {
+          f[i].x += fxtmp;
+          f[i].y += fytmp;
+          f[i].z += fztmp;
+        } else {
+          f[i].x = fxtmp;
+          f[i].y = fytmp;
+          f[i].z = fztmp;
+	  sevdwl *= (acc_t)0.5;
+        }
+	
+        IP_PRE_ev_tally_atom(NEWTON_PAIR, EFLAG, vflag, f, fwtmp);
       } // for i
 
-      if (vflag == 2) {
-        #if defined(_OPENMP)
-        #pragma omp barrier
-        #endif
-        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			       nlocal, minlocal, nthreads, f_start, f_stride,
-			       x, offload);
-      }
-
+      IP_PRE_fdotr_reduce_omp(NEWTON_PAIR, nall, minlocal, nthreads, f_start,
+			      f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+			      ov4, ov5);
     } /// omp
-    if (EVFLAG) {
-      if (EFLAG) {
-        ev_global[0] = oevdwl;
-        ev_global[1] = (acc_t)0.0;
-      }
-      if (vflag) {
-        ev_global[2] = ov0;
-        ev_global[3] = ov1;
-        ev_global[4] = ov2;
-        ev_global[5] = ov3;
-        ev_global[6] = ov4;
-        ev_global[7] = ov5;
-      }
+
+    IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
+			ov0, ov1, ov2, ov3, ov4, ov5);
+
+    if (EFLAG) {
+      ev_global[0] = oevdwl;
+      ev_global[1] = (acc_t)0.0;
+    }
+    if (vflag) {
+      if (NEWTON_PAIR == 0) {
+	ov0 *= (acc_t)0.5;
+	ov1 *= (acc_t)0.5;
+	ov2 *= (acc_t)0.5;
+	ov3 *= (acc_t)0.5;
+	ov4 *= (acc_t)0.5;
+	ov5 *= (acc_t)0.5;
+      }	
+      ev_global[2] = ov0;
+      ev_global[3] = ov1;
+      ev_global[4] = ov2;
+      ev_global[5] = ov3;
+      ev_global[6] = ov4;
+      ev_global[7] = ov5;
     }
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
@@ -591,7 +621,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   else
     fix->stop_watch(TIME_HOST_PAIR);
 
-  if (EVFLAG)
+  if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
@@ -604,6 +634,10 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 void PairEAMIntel::init_style()
 {
   PairEAM::init_style();
+  if (force->newton_pair == 0) {
+    neighbor->requests[neighbor->nrequest-1]->half = 0;
+    neighbor->requests[neighbor->nrequest-1]->full = 1;
+  }
   neighbor->requests[neighbor->nrequest-1]->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
@@ -633,6 +667,13 @@ template <class flt_t, class acc_t>
 void PairEAMIntel::pack_force_const(ForceConst<flt_t> &fc,
 				    IntelBuffers<flt_t,acc_t> *buffers)
 {
+  int off_ccache = 0;
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_cop >= 0) off_ccache = 1;
+  #endif
+  buffers->grow_ccache(off_ccache, comm->nthreads, 1);
+  _ccache_stride = buffers->ccache_stride();
+
   int tp1 = atom->ntypes + 1;
   fc.set_ntypes(tp1,nr,nrho,memory,_cop);
   buffers->set_ntypes(tp1);

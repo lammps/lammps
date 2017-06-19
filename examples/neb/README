@@ -2,12 +2,12 @@ Run these examples as:
 
 mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop1
 mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop2
-mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop1freeend
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop1.end
 mpirun -np 3 lmp_g++ -partition 3x1 -in in.neb.sivac
 
 mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1
 mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop2
-mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1freeend
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1.end
 mpirun -np 6 lmp_g++ -partition 3x2 -in in.neb.sivac
 mpirun -np 9 lmp_g++ -partition 3x3 -in in.neb.sivac
 

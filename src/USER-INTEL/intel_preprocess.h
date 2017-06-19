@@ -17,6 +17,9 @@
 
 #ifdef __INTEL_COMPILER
 #define LMP_SIMD_COMPILER
+#if (__INTEL_COMPILER_BUILD_DATE > 20160720)
+#define LMP_INTEL_USE_SIMDOFF
+#endif
 #endif
 
 #ifdef __INTEL_OFFLOAD
@@ -65,7 +68,10 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_MAX_STENCIL 256
 // INTEL_MAX_STENCIL * sqrt(INTEL_MAX_STENCIL)
 #define INTEL_MAX_STENCIL_CHECK 4096
-#define INTEL_P3M_MAXORDER 5
+#define INTEL_P3M_MAXORDER 7
+#define INTEL_P3M_ALIGNED_MAXORDER 8
+// PRECOMPUTE VALUES IN TABLE (DOESN'T AFFECT ACCURACY)
+#define INTEL_P3M_TABLE 1
 
 #ifdef __INTEL_COMPILER
 #ifdef __AVX__
@@ -87,7 +93,12 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #ifdef __MIC__
 #define INTEL_V512 1
 #define INTEL_VMASK 1
+#define INTEL_HTHREADS 4
 #endif
+#endif
+
+#ifdef __AVX512ER__
+#define INTEL_HTHREADS 4
 #endif
 
 #ifdef __AVX512CD__
@@ -96,21 +107,32 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #endif
 #endif
 
+#ifdef __MIC__
+#define INTEL_COMPILE_WIDTH INTEL_MIC_VECTOR_WIDTH
+#else
+#define INTEL_COMPILE_WIDTH INTEL_VECTOR_WIDTH
+#endif
+
 #else
 
 #undef INTEL_VECTOR_WIDTH
 #define INTEL_VECTOR_WIDTH 1
+#define INTEL_COMPILE_WIDTH 1
 
 #endif
 
 #define INTEL_DATA_ALIGN 64
-#define INTEL_ONEATOM_FACTOR 2
+#define INTEL_ONEATOM_FACTOR 1
 #define INTEL_MIC_NBOR_PAD INTEL_MIC_VECTOR_WIDTH
 #define INTEL_NBOR_PAD INTEL_VECTOR_WIDTH
 #define INTEL_LB_MEAN_WEIGHT 0.1
 #define INTEL_BIGP 1e15
 #define INTEL_MAX_HOST_CORE_COUNT 512
 #define INTEL_MAX_COI_CORES 36
+
+#ifndef INTEL_HTHREADS
+#define INTEL_HTHREADS 2
+#endif
 
 #define IP_PRE_get_stride(stride, n, datasize, torque)	\
   {								\
@@ -125,9 +147,17 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 
 #define IP_PRE_omp_range(ifrom, ito, tid, inum, nthreads) 	\
   {								\
-    const int idelta = 1 + inum/nthreads;			\
+    int idelta = inum/nthreads;					\
+    const int imod = inum % nthreads;				\
     ifrom = tid * idelta;					\
-    ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;	\
+    ito = ifrom + idelta;					\
+    if (tid < imod) {						\
+      ito+=tid+1;						\
+      ifrom+=tid;						\
+    } else {							\
+      ito+=imod;						\
+      ifrom+=imod;						\
+    }								\
   }
 
 #define IP_PRE_omp_range_id(ifrom, ito, tid, inum, nthreads)	\
@@ -136,12 +166,37 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     IP_PRE_omp_range(ifrom, ito, tid, inum, nthreads);		\
   }
 
+#define IP_PRE_omp_stride(ifrom, ip, ito, tid, inum, nthr)	\
+  {								\
+    if (nthr <= INTEL_HTHREADS) {				\
+      ifrom = tid;						\
+      ito = inum;					      	\
+      ip = nthr;						\
+    } else if (nthr % INTEL_HTHREADS == 0) {			\
+      int nd = nthr / INTEL_HTHREADS;				\
+      int td = tid / INTEL_HTHREADS;				\
+      int tm = tid % INTEL_HTHREADS;				\
+      IP_PRE_omp_range(ifrom, ito, td, inum, nd);		\
+      ifrom += tm;						\
+      ip = INTEL_HTHREADS;					\
+    } else {							\
+      IP_PRE_omp_range(ifrom, ito, tid, inum, nthr);		\
+      ip = 1;							\
+    }								\
+  }
+
+#define IP_PRE_omp_stride_id(ifrom, ip, ito, tid, inum, nthr)	\
+  {								\
+    tid = omp_get_thread_num();         			\
+    IP_PRE_omp_stride(ifrom, ip, ito, tid, inum, nthr);		\
+  }
+
 #define IP_PRE_omp_range_align(ifrom, ito, tid, inum, nthreads, \
                              datasize)                          \
 {                                                               \
   int chunk_size = INTEL_DATA_ALIGN / datasize;                 \
-  int idelta = static_cast<int>(static_cast<float>(inum)	\
-				/chunk_size/nthreads) + 1;	\
+  int idelta = static_cast<int>(ceil(static_cast<float>(inum)	\
+				     /chunk_size/nthreads));	\
   idelta *= chunk_size;						\
   ifrom = tid*idelta;                                           \
   ito = ifrom + idelta;                                         \
@@ -168,6 +223,29 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     if (ito > inum) ito = inum;					\
   }
 
+#define IP_PRE_omp_stride_id_vec(ifrom, ip, ito, tid, inum,     \  
+                                 nthr, vecsize)			\
+  {								\
+    tid = omp_get_thread_num();					\
+    if (nthr <= INTEL_HTHREADS) {				\
+      ifrom = tid*vecsize;					\
+      ito = inum;					      	\
+      ip = nthr*vecsize;					\
+    } else if (nthr % INTEL_HTHREADS == 0) {			\
+      int nd = nthr / INTEL_HTHREADS;				\
+      int td = tid / INTEL_HTHREADS;				\
+      int tm = tid % INTEL_HTHREADS;				\
+      IP_PRE_omp_range_id_vec(ifrom, ito, td, inum, nd,         \
+	vecsize);						\
+      ifrom += tm * vecsize;					\
+      ip = INTEL_HTHREADS * vecsize;				\
+    } else {							\
+      IP_PRE_omp_range_id_vec(ifrom, ito, tid, inum, nthr,      \
+			      vecsize);				\
+      ip = vecsize;						\
+    }								\
+  }
+
 #else
 
 #define IP_PRE_omp_range(ifrom, ito, tid, inum, nthreads)	\
@@ -181,6 +259,21 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     tid = 0;							\
     ifrom = 0;							\
     ito = inum;							\
+  }
+
+#define IP_PRE_omp_range(ifrom, ip, ito, tid, inum, nthreads)	\
+  {								\
+    ifrom = 0;							\
+    ito = inum;						        \
+    ip = 1;							\
+  }
+
+#define IP_PRE_omp_stride_id(ifrom, ip, ito, tid, inum, nthr)	\
+  {								\
+    tid = 0;							\
+    ifrom = 0;							\
+    ito = inum;							\
+    ip = 1;							\
   }
 
 #define IP_PRE_omp_range_align(ifrom, ito, tid, inum, nthreads, \
@@ -202,13 +295,214 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 				nthreads, vecsize)		\
   {								\
     tid = 0;                            			\
-    int idelta = static_cast<int>(ceil(static_cast<float>(inum)	\
-				       /vecsize));         	\
     ifrom = 0;							\
     ito = inum;							\
   }
 
+#define IP_PRE_omp_range_id_vec(ifrom, ip, ito, tid, inum,	\
+				nthreads, vecsize)		\
+  {								\
+    tid = 0;                            			\
+    ifrom = 0;							\
+    ito = inum;							\
+    ip = vecsize;						\
+  }
+
 #endif
+
+#define IP_PRE_fdotr_acc_force_l5(lf, lt, minlocal, nthreads, f_start,	\
+				  f_stride, pos, ov0, ov1, ov2,		\
+				  ov3, ov4, ov5)			\
+{									\
+  acc_t *f_scalar = &f_start[0].x;					\
+  flt_t *x_scalar = &pos[minlocal].x;					\
+  int f_stride4 = f_stride * 4;						\
+  _alignvar(acc_t ovv[INTEL_COMPILE_WIDTH],64);				\
+  int vwidth;								\
+  if (sizeof(acc_t) == sizeof(double))					\
+    vwidth = INTEL_COMPILE_WIDTH/2;					\
+  else									\
+    vwidth = INTEL_COMPILE_WIDTH;					\
+  if (vwidth < 4) vwidth = 4;						\
+  _use_simd_pragma("vector aligned")          				\ 
+  _use_simd_pragma("simd")					        \
+  for (int v = 0; v < vwidth; v++) ovv[v] = (acc_t)0.0;			\
+  int remainder = lt % vwidth;						\
+  if (lf > lt) remainder = 0;						\
+  const int v_range = lt - remainder;					\
+  if (nthreads == 2) {							\
+    acc_t *f_scalar2 = f_scalar + f_stride4;				\
+    for (int n = lf; n < v_range; n += vwidth) {			\
+      _use_simd_pragma("vector aligned")				\ 
+      _use_simd_pragma("simd")					        \
+      for (int v = 0; v < vwidth; v++) {				\
+	f_scalar[n+v] += f_scalar2[n+v];				\
+	ovv[v] += f_scalar[n+v] * x_scalar[n+v];			\
+      }									\
+      ov3 += f_scalar[n+1] * x_scalar[n+0];				\
+      ov4 += f_scalar[n+2] * x_scalar[n+0];				\
+      ov5 += f_scalar[n+2] * x_scalar[n+1];				\
+      if (vwidth > 4) {							\
+	ov3 += f_scalar[n+5] * x_scalar[n+4];				\
+	ov4 += f_scalar[n+6] * x_scalar[n+4];				\
+	ov5 += f_scalar[n+6] * x_scalar[n+5];				\
+      }									\
+      if (vwidth > 8) {							\
+        ov3 += f_scalar[n+9] * x_scalar[n+8];				\
+        ov3 += f_scalar[n+13] * x_scalar[n+12];				\
+	ov4 += f_scalar[n+10] * x_scalar[n+8];				\
+	ov4 += f_scalar[n+14] * x_scalar[n+12];				\
+	ov5 += f_scalar[n+10] * x_scalar[n+9];				\
+	ov5 += f_scalar[n+14] * x_scalar[n+13];				\
+      }									\
+    }									\
+    _use_simd_pragma("vector aligned")				        \ 
+    _use_simd_pragma("ivdep")						\
+    _use_simd_pragma("loop_count min(4) max(INTEL_COMPILE_WIDTH)")	\
+    for (int n = v_range; n < lt; n++)					\
+      f_scalar[n] += f_scalar2[n];					\
+  } else if (nthreads==4) {						\
+    acc_t *f_scalar2 = f_scalar + f_stride4;				\
+    acc_t *f_scalar3 = f_scalar2 + f_stride4;				\
+    acc_t *f_scalar4 = f_scalar3 + f_stride4;				\
+    for (int n = lf; n < v_range; n += vwidth) {			\
+      _use_simd_pragma("vector aligned")				\ 
+      _use_simd_pragma("simd")						\
+      for (int v = 0; v < vwidth; v++) {				\
+	f_scalar[n+v] += f_scalar2[n+v] + f_scalar3[n+v] +		\
+	  f_scalar4[n+v];						\
+	ovv[v] += f_scalar[n+v] * x_scalar[n+v];			\
+      }									\
+      ov3 += f_scalar[n+1] * x_scalar[n+0];				\
+      ov4 += f_scalar[n+2] * x_scalar[n+0];				\
+      ov5 += f_scalar[n+2] * x_scalar[n+1];				\
+      if (vwidth > 4) {							\
+	ov3 += f_scalar[n+5] * x_scalar[n+4];				\
+	ov4 += f_scalar[n+6] * x_scalar[n+4];				\
+	ov5 += f_scalar[n+6] * x_scalar[n+5];				\
+      }									\
+      if (vwidth > 8) {							\
+        ov3 += f_scalar[n+9] * x_scalar[n+8];				\
+	ov3 += f_scalar[n+13] * x_scalar[n+12];				\
+	ov4 += f_scalar[n+10] * x_scalar[n+8];				\
+	ov4 += f_scalar[n+14] * x_scalar[n+12];				\
+	ov5 += f_scalar[n+10] * x_scalar[n+9];				\
+	ov5 += f_scalar[n+14] * x_scalar[n+13];				\
+      }									\
+    }									\
+    _use_simd_pragma("vector aligned")				        \ 
+    _use_simd_pragma("ivdep")						\
+    _use_simd_pragma("loop_count min(4) max(INTEL_COMPILE_WIDTH)")	\
+    for (int n = v_range; n < lt; n++)				        \
+      f_scalar[n] += f_scalar2[n] + f_scalar3[n] + f_scalar4[n];	\
+  } else if (nthreads==1) {						\
+    for (int n = lf; n < v_range; n += vwidth) {			\
+      _use_simd_pragma("vector aligned")				\
+      _use_simd_pragma("simd")						\
+      for (int v = 0; v < vwidth; v++) 				        \
+	ovv[v] += f_scalar[n+v] * x_scalar[n+v];			\
+      ov3 += f_scalar[n+1] * x_scalar[n+0];				\
+      ov4 += f_scalar[n+2] * x_scalar[n+0];				\
+      ov5 += f_scalar[n+2] * x_scalar[n+1];				\
+      if (vwidth > 4) {							\
+        ov3 += f_scalar[n+5] * x_scalar[n+4];				\
+	ov4 += f_scalar[n+6] * x_scalar[n+4];				\
+	ov5 += f_scalar[n+6] * x_scalar[n+5];				\
+      }									\
+      if (vwidth > 8) {							\
+	ov3 += f_scalar[n+9] * x_scalar[n+8];				\
+	ov3 += f_scalar[n+13] * x_scalar[n+12];				\
+	ov4 += f_scalar[n+10] * x_scalar[n+8];				\
+	ov4 += f_scalar[n+14] * x_scalar[n+12];				\
+	ov5 += f_scalar[n+10] * x_scalar[n+9];				\
+	ov5 += f_scalar[n+14] * x_scalar[n+13];				\
+      }									\
+    }									\
+  } else if (nthreads==3) {						\
+    acc_t *f_scalar2 = f_scalar + f_stride4;				\
+    acc_t *f_scalar3 = f_scalar2 + f_stride4;				\
+    for (int n = lf; n < v_range; n += vwidth) {			\
+      _use_simd_pragma("vector aligned")				\ 
+      _use_simd_pragma("simd")						\
+      for (int v = 0; v < vwidth; v++) {				\
+	f_scalar[n+v] += f_scalar2[n+v] + f_scalar3[n+v];		\
+	ovv[v] += f_scalar[n+v] * x_scalar[n+v];			\
+      }									\
+      ov3 += f_scalar[n+1] * x_scalar[n+0];				\
+      ov4 += f_scalar[n+2] * x_scalar[n+0];				\
+      ov5 += f_scalar[n+2] * x_scalar[n+1];				\
+      if (vwidth > 4) {							\
+	ov3 += f_scalar[n+5] * x_scalar[n+4];				\
+	ov4 += f_scalar[n+6] * x_scalar[n+4];				\
+	ov5 += f_scalar[n+6] * x_scalar[n+5];				\
+      }									\
+      if (vwidth > 8) {							\
+        ov3 += f_scalar[n+9] * x_scalar[n+8];				\
+	ov3 += f_scalar[n+13] * x_scalar[n+12];				\
+	ov4 += f_scalar[n+10] * x_scalar[n+8];				\
+	ov4 += f_scalar[n+14] * x_scalar[n+12];				\
+	ov5 += f_scalar[n+10] * x_scalar[n+9];				\
+	ov5 += f_scalar[n+14] * x_scalar[n+13];				\
+      }									\
+    }									\
+    _use_simd_pragma("vector aligned")				        \ 
+    _use_simd_pragma("ivdep")						\
+    _use_simd_pragma("loop_count min(4) max(INTEL_COMPILE_WIDTH)")	\
+    for (int n = v_range; n < lt; n++)				        \
+      f_scalar[n] += f_scalar2[n] + f_scalar3[n];			\
+  }									\
+  for (int n = v_range; n < lt; n += 4) {				\
+    _use_simd_pragma("vector aligned")				        \ 
+    _use_simd_pragma("ivdep")						\
+    for (int v = 0; v < 4; v++) 				        \
+      ovv[v] += f_scalar[n+v] * x_scalar[n+v];				\
+    ov3 += f_scalar[n+1] * x_scalar[n+0];				\
+    ov4 += f_scalar[n+2] * x_scalar[n+0];				\
+    ov5 += f_scalar[n+2] * x_scalar[n+1];				\
+  }									\
+  ov0 += ovv[0];							\
+  ov1 += ovv[1];						       	\
+  ov2 += ovv[2];							\
+  if (vwidth > 4) {							\
+    ov0 += ovv[4];							\
+    ov1 += ovv[5];							\
+    ov2 += ovv[6];							\
+  }									\
+  if (vwidth > 8) {							\
+    ov0 += ovv[8] + ovv[12];						\
+    ov1 += ovv[9] + ovv[13];						\
+    ov2 += ovv[10] + ovv[14];						\
+  }									\
+}
+
+#define IP_PRE_fdotr_acc_force(nall, minlocal, nthreads, f_start,	\
+                               f_stride, pos, offload, vflag, ov0, ov1,	\
+                               ov2, ov3, ov4, ov5)			\
+{									\
+  int o_range = (nall - minlocal) * 4;					\
+  IP_PRE_omp_range_id_align(iifrom, iito, tid, o_range, nthreads,	\
+			    sizeof(acc_t));				\
+									\
+  acc_t *f_scalar = &f_start[0].x;					\
+  int f_stride4 = f_stride * 4;						\
+  int t;								\
+  if (vflag == 2) t = 4; else t = 1;					\
+  acc_t *f_scalar2 = f_scalar + f_stride4 * t;				\
+  for ( ; t < nthreads; t++) {						\
+    _use_simd_pragma("vector aligned")					\
+    _use_simd_pragma("simd") 					        \
+    for (int n = iifrom; n < iito; n++)				        \
+      f_scalar[n] += f_scalar2[n];					\
+    f_scalar2 += f_stride4;						\
+  }									\
+									\
+  if (vflag == 2) {							\
+    int nt_min = MIN(4,nthreads);					\
+    IP_PRE_fdotr_acc_force_l5(iifrom, iito, minlocal, nt_min, f_start,	\
+			      f_stride, pos, ov0, ov1, ov2, ov3, ov4,	\
+			      ov5);					\
+  }									\
+}
 
 #ifdef _LMP_INTEL_OFFLOAD
 #include <sys/time.h>
@@ -229,17 +523,19 @@ inline double MIC_Wtime() {
     if (fix->separate_buffers() && ago != 0) {				\
     fix->start_watch(TIME_PACK);					\
     if (offload) {							\
-      _use_omp_pragma("omp parallel default(none) shared(buffers,nlocal,nall)")	\
+      int packthreads;							\
+      if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;\
+      else packthreads = 1;						\
+      _use_omp_pragma("omp parallel if(packthreads > 1)")		\
       {									\
         int ifrom, ito, tid;						\
-	int nthreads = comm->nthreads;					\
 	IP_PRE_omp_range_id_align(ifrom, ito, tid, nlocal,		\
-				nthreads, sizeof(flt_t));		\
+				  packthreads, sizeof(flt_t));		\
 	buffers->thr_pack_cop(ifrom, ito, 0);				\
 	int nghost = nall - nlocal;					\
 	if (nghost) {							\
 	  IP_PRE_omp_range_align(ifrom, ito, tid, nall - nlocal,	\
-				 nthreads, sizeof(flt_t));		\
+				 packthreads, sizeof(flt_t));		\
 	  buffers->thr_pack_cop(ifrom + nlocal, ito + nlocal,		\
 				fix->offload_min_ghost() - nlocal,	\
 				ago == 1);				\
@@ -254,7 +550,7 @@ inline double MIC_Wtime() {
   }									\
 }
 
-#define IP_PRE_get_transfern(ago, newton, evflag, eflag, vflag, 	\
+#define IP_PRE_get_transfern(ago, newton, eflag, vflag,			\
 			     buffers, offload, fix, separate_flag,	\
 			     x_size, q_size, ev_size, f_stride)		\
 {									\
@@ -276,17 +572,12 @@ inline double MIC_Wtime() {
     q_size = 0;								\
   }									\
   ev_size = 0;								\
-  if (evflag) {								\
-    if (eflag) ev_size = 2;						\
-    if (vflag) ev_size = 8;						\
-  }									\
-  int f_length;								\
+  if (eflag) ev_size = 2;						\
+  if (vflag) ev_size = 8;						\
   if (newton)								\
-    f_length = nall;							\
+    f_stride = buffers->get_stride(nall);				\
   else									\
-    f_length = nlocal;							\
-  f_length -= minlocal;							\
-  f_stride = buffers->get_stride(f_length);				\
+    f_stride = buffers->get_stride(inum);				\
 }
 
 #define IP_PRE_get_buffers(offload, buffers, fix, tc, f_start,    	\
@@ -337,6 +628,20 @@ inline double MIC_Wtime() {
   }									\
 }
 
+#define IP_PRE_fdotr_reduce_omp(newton, nall, minlocal, nthreads,	\
+				f_start, f_stride, x, offload, vflag,	\
+				ov0, ov1, ov2, ov3, ov4, ov5)		\
+{								        \
+  if (newton) {								\
+    _use_omp_pragma("omp barrier");					\
+    IP_PRE_fdotr_acc_force(nall, minlocal, nthreads, f_start,		\
+			   f_stride, x, offload, vflag, ov0, ov1, ov2,	\
+			   ov3, ov4, ov5);				\
+  }									\
+}
+
+#define IP_PRE_fdotr_reduce(newton, nall, nthreads, f_stride, vflag,	\
+			    ov0, ov1, ov2, ov3, ov4, ov5)		
 
 #else
 
@@ -344,7 +649,7 @@ inline double MIC_Wtime() {
 #define IP_PRE_pack_separate_buffers(fix, buffers, ago, offload,        \
                                      nlocal, nall)
 
-#define IP_PRE_get_transfern(ago, newton, evflag, eflag, vflag, 	\
+#define IP_PRE_get_transfern(ago, newton, eflag, vflag,			\
 			     buffers, offload, fix, separate_flag,	\
 			     x_size, q_size, ev_size, f_stride)		\
 {                                                                       \
@@ -369,18 +674,54 @@ inline double MIC_Wtime() {
 #define IP_PRE_repack_for_offload(newton, separate_flag, nlocal, nall,	\
 				  f_stride, x, q)
 
+#define IP_PRE_fdotr_reduce_omp(newton, nall, minlocal, nthreads,	\
+				f_start, f_stride, x, offload, vflag,	\
+				ov0, ov1, ov2, ov3, ov4, ov5)		\
+{								        \
+  if (newton) {								\
+    if (vflag == 2 && nthreads > INTEL_HTHREADS) {			\
+      _use_omp_pragma("omp barrier");					\
+      buffers->fdotr_reduce(nall, nthreads, f_stride, ov0, ov1, ov2,	\
+			    ov3, ov4, ov5);				\
+    }									\
+  }									\
+}
+
+#define IP_PRE_fdotr_reduce(newton, nall, nthreads, f_stride, vflag,	\
+			    ov0, ov1, ov2, ov3, ov4, ov5)		\
+{								        \
+  if (newton) {								\
+    if (vflag == 2 && nthreads <= INTEL_HTHREADS) {			\
+      int lt = nall * 4;						\
+      buffers->fdotr_reduce_l5(0, lt, nthreads, f_stride, ov0, ov1,	\
+			       ov2, ov3, ov4, ov5);			\
+    }									\
+  }									\
+}
 
 #endif
 
-#define IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair, delx, dely, delz)    \
+#define IP_PRE_ev_tally_nbor(vflag, fpair, delx, dely, delz)		\
 {                                                                       \
   if (vflag == 1) {                                                     \
-    sv0 += ev_pre * delx * delx * fpair;                                \
-    sv1 += ev_pre * dely * dely * fpair;                                \
-    sv2 += ev_pre * delz * delz * fpair;                                \
-    sv3 += ev_pre * delx * dely * fpair;                                \
-    sv4 += ev_pre * delx * delz * fpair;                                \
-    sv5 += ev_pre * dely * delz * fpair;                                \
+    sv0 += delx * delx * fpair;						\
+    sv1 += dely * dely * fpair;						\
+    sv2 += delz * delz * fpair;						\
+    sv3 += delx * dely * fpair;						\
+    sv4 += delx * delz * fpair;						\
+    sv5 += dely * delz * fpair;						\
+  }                                                                     \
+}
+
+#define IP_PRE_ev_tally_nborv(vflag, dx, dy, dz, fpx, fpy, fpz)		\
+{                                                                       \
+  if (vflag == 1) {                                                     \
+    sv0 += dx * fpx;							\
+    sv1 += dy * fpy;							\
+    sv2 += dz * fpz;							\
+    sv3 += dx * fpy;							\
+    sv4 += dx * fpz;							\
+    sv5 += dy * fpz;							\
   }                                                                     \
 }
 
@@ -408,9 +749,10 @@ inline double MIC_Wtime() {
   }                                                                     \
 }
 
-#define IP_PRE_ev_tally_bond(eflag, eatom, vflag, ebond, i1, i2, fbond,	\
-			     delx, dely, delz, obond, force, newton,	\
-			     nlocal, ov0, ov1, ov2, ov3, ov4, ov5)	\
+#define IP_PRE_ev_tally_bond(eflag, VFLAG, eatom, vflag, ebond, i1, i2, \
+			     fbond, delx, dely, delz, obond, force,	\
+			     newton, nlocal, ov0, ov1, ov2, ov3, ov4,	\
+			     ov5)					\
 {                                                                       \
   flt_t ev_pre;								\
   if (newton) ev_pre = (flt_t)1.0;					\
@@ -421,7 +763,7 @@ inline double MIC_Wtime() {
   }									\
 									\
   if (eflag) {								\
-    oebond += ev_pre * ebond;						\
+    obond += ev_pre * ebond;						\
     if (eatom) {							\
       flt_t halfeng = ebond * (flt_t)0.5;				\
       if (newton || i1 < nlocal) f[i1].w += halfeng;			\
@@ -429,7 +771,7 @@ inline double MIC_Wtime() {
     }									\
   }									\
 									\
-  if (vflag) {								\
+  if (VFLAG && vflag) {							\
     ov0 += ev_pre * (delx * delx * fbond);				\
     ov1 += ev_pre * (dely * dely * fbond);				\
     ov2 += ev_pre * (delz * delz * fbond);				\
@@ -439,9 +781,9 @@ inline double MIC_Wtime() {
   }                                                                     \
 }
 
-#define IP_PRE_ev_tally_angle(eflag, eatom, vflag, eangle, i1, i2, i3, 	\
-			      f1x, f1y, f1z, f3x, f3y, f3z, delx1,	\
-			      dely1, delz1, delx2, dely2, delz2,	\
+#define IP_PRE_ev_tally_angle(eflag, VFLAG, eatom, vflag, eangle, i1,   \
+			      i2, i3, f1x, f1y, f1z, f3x, f3y, f3z,	\
+			      delx1, dely1, delz1, delx2, dely2, delz2,	\
 			      oeangle, force, newton, nlocal, ov0, ov1, \
 			      ov2, ov3, ov4, ov5)			\
 {                                                                       \
@@ -464,20 +806,20 @@ inline double MIC_Wtime() {
     }									\
   }									\
 									\
-  if (vflag) {								\
-    ov0 += ev_pre * (delx1 * f1x + delx2 * f3x);			\
-    ov1 += ev_pre * (dely1 * f1y + dely2 * f3y);			\
-    ov2 += ev_pre * (delz1 * f1z + delz2 * f3z);			\
-    ov3 += ev_pre * (delx1 * f1y + delx2 * f3y);			\
-    ov4 += ev_pre * (delx1 * f1z + delx2 * f3z);			\
-    ov5 += ev_pre * (dely1 * f1z + dely2 * f3z);			\
+  if (VFLAG && vflag) {							\
+    ov0 += ev_pre * (delx1 * f1x + delx2 * f3x);                        \
+    ov1 += ev_pre * (dely1 * f1y + dely2 * f3y);                        \
+    ov2 += ev_pre * (delz1 * f1z + delz2 * f3z);                        \
+    ov3 += ev_pre * (delx1 * f1y + delx2 * f3y);                        \
+    ov4 += ev_pre * (delx1 * f1z + delx2 * f3z);                        \
+    ov5 += ev_pre * (dely1 * f1z + dely2 * f3z);                        \
   }                                                                     \
 }
 
-#define IP_PRE_ev_tally_dihed(eflag, eatom, vflag, deng, i1, i2, i3, i4,\
-			      f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y,	\
-			      f4z, vb1x, vb1y, vb1z, vb2x, vb2y, vb2z,	\
-			      vb3x, vb3y, vb3z,oedihedral, force,	\
+#define IP_PRE_ev_tally_dihed(eflag, VFLAG, eatom, vflag, deng, i1, i2, \
+			      i3, i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x,\
+			      f4y, f4z, vb1x, vb1y, vb1z, vb2x, vb2y,	\
+			      vb2z, vb3x, vb3y, vb3z, oedihedral, force,\
 			      newton, nlocal, ov0, ov1, ov2, ov3, ov4,  \
 			      ov5)					\
 {                                                                       \
@@ -502,7 +844,7 @@ inline double MIC_Wtime() {
     }									\
   }									\
 									\
-  if (vflag) {								\
+  if (VFLAG && vflag) {							\
     ov0 += ev_pre * (vb1x*f1x + vb2x*f3x + (vb3x+vb2x)*f4x);		\
     ov1 += ev_pre * (vb1y*f1y + vb2y*f3y + (vb3y+vb2y)*f4y);		\
     ov2 += ev_pre * (vb1z*f1z + vb2z*f3z + (vb3z+vb2z)*f4z);		\
@@ -512,96 +854,36 @@ inline double MIC_Wtime() {
   }                                                                     \
 }
 
-#define IP_PRE_ev_tally_atom(evflag, eflag, vflag, f, fwtmp)    	\
+#define IP_PRE_ev_tally_atom(newton, eflag, vflag, f, fwtmp)    	\
 {									\
-  if (evflag) {								\
-    if (eflag) {							\
-      f[i].w += fwtmp;							\
-      oevdwl += sevdwl;							\
-    }									\
-    if (vflag == 1) {							\
-      ov0 += sv0;							\
-      ov1 += sv1;							\
-      ov2 += sv2;							\
-      ov3 += sv3;							\
-      ov4 += sv4;							\
-      ov5 += sv5;							\
-    }									\
+  if (eflag) {								\
+    f[i].w += fwtmp;							\
+    oevdwl += sevdwl;							\
+  }									\
+  if (newton == 0 && vflag == 1) {					\
+    ov0 += sv0;								\
+    ov1 += sv1;								\
+    ov2 += sv2;								\
+    ov3 += sv3;								\
+    ov4 += sv4;								\
+    ov5 += sv5;								\
   }									\
 }
 
-#define IP_PRE_ev_tally_atomq(evflag, eflag, vflag, f, fwtmp)    	\
+#define IP_PRE_ev_tally_atomq(newton, eflag, vflag, f, fwtmp)    	\
 {									\
-  if (evflag) {								\
-    if (eflag) {							\
-      f[i].w += fwtmp;							\
-      oevdwl += sevdwl;							\
-      oecoul += secoul;							\
-    }									\
-    if (vflag == 1) {							\
-      ov0 += sv0;							\
-      ov1 += sv1;							\
-      ov2 += sv2;							\
-      ov3 += sv3;							\
-      ov4 += sv4;							\
-      ov5 += sv5;							\
-    }									\
+  if (eflag) {								\
+    f[i].w += fwtmp;							\
+    oevdwl += sevdwl;							\
+    oecoul += secoul;							\
   }									\
-}
-
-#define IP_PRE_fdotr_acc_force(newton, evflag, eflag, vflag, eatom,	\
-			       nall, nlocal, minlocal, nthreads,	\
-			       f_start, f_stride, x, offload)		\
-{									\
-  int o_range;								\
-  if (newton)								\
-    o_range = nall;							\
-  else									\
-    o_range = nlocal;							\
-  if (offload == 0) o_range -= minlocal;				\
-    IP_PRE_omp_range_align(iifrom, iito, tid, o_range, nthreads,	\
-			 sizeof(acc_t));				\
-									\
-  int t_off = f_stride;						        \
-  if (eflag && eatom) {							\
-    for (int t = 1; t < nthreads; t++) {				\
-      _use_simd_pragma("vector nontemporal")				\
-      _use_simd_pragma("novector")					\
-      for (int n = iifrom; n < iito; n++) {				\
-        f_start[n].x += f_start[n + t_off].x;				\
-        f_start[n].y += f_start[n + t_off].y;				\
-	f_start[n].z += f_start[n + t_off].z;				\
-	f_start[n].w += f_start[n + t_off].w;				\
-      }									\
-      t_off += f_stride;						\
-    }									\
-  } else {								\
-    for (int t = 1; t < nthreads; t++) {				\
-      _use_simd_pragma("vector nontemporal")  				\
-      _use_simd_pragma("novector")					\
-      for (int n = iifrom; n < iito; n++) {                             \
-	f_start[n].x += f_start[n + t_off].x;                  	        \
-        f_start[n].y += f_start[n + t_off].y;				\
-        f_start[n].z += f_start[n + t_off].z;				\
-      }									\
-      t_off += f_stride;						\
-    }									\
-  }									\
-									\
-  if (evflag) {								\
-    if (vflag == 2) {							\
-      const ATOM_T * _noalias const xo = x + minlocal;			\
-      _use_simd_pragma("vector nontemporal")   				\
-      _use_simd_pragma("novector")					\
-      for (int n = iifrom; n < iito; n++) {				\
-	ov0 += f_start[n].x * xo[n].x;					\
-	ov1 += f_start[n].y * xo[n].y;					\
-	ov2 += f_start[n].z * xo[n].z;					\
-	ov3 += f_start[n].y * xo[n].x;					\
-	ov4 += f_start[n].z * xo[n].x;					\
-	ov5 += f_start[n].z * xo[n].y;					\
-      }									\
-    }									\
+  if (newton == 0 && vflag == 1) {					\
+    ov0 += sv0;								\
+    ov1 += sv1;								\
+    ov2 += sv2;								\
+    ov3 += sv3;								\
+    ov4 += sv4;								\
+    ov5 += sv5;								\
   }									\
 }
 

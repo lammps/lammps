@@ -39,19 +39,22 @@ class PairSpin : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  inline void compute_exchange(int, int, double, double *, double *);
-  inline void compute_dmi(int, int, double *, double *);
-  inline void compute_me(int, int, double *, double *);  
+  void compute_exchange(int, int, double, double *, double *);
+  void compute_dmi(int, int, double *, double *);
+  void compute_me(int, int, double *, double *);  
  
- protected:
+ //Test for seq. integ.
+ //protected: 
   int exch_flag,dmi_flag,me_flag;
   double cut_spin_pair_global;
   double cut_spin_dipolar_global;
   
   double **cut_spin_exchange; //cutting distance exchange
-  double **cut_spin_dmi; //cutting distance dmi
-  double **cut_spin_me; //cutting distance me 
- 
+  double **cut_spin_dmi;      //cutting distance dmi
+  double **cut_spin_me;       //cutting distance me 
+
+ //Test for seq. integ.
+ protected: 
   double **J_1, **J_2, **J_3; //exchange coeffs Jij
                               //J1 in eV, J2 adim and J3 in Ang
   double **DM;

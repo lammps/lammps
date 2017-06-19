@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "error.h"
 #include "force.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -59,10 +60,13 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
   Hx = Hy = Hz = 0.0;
   Ka = 0.0;
   Kax = Kay = Kaz = 0.0;
-  
+ 
+  zeeman_flag = aniso_flag = 0;
+ 
   if (strcmp(arg[3],"zeeman") == 0) {
 	  if (narg != 8) error->all(FLERR,"Illegal fix zeeman command");
 	  style = ZEEMAN;
+          zeeman_flag = 1;
 	  H_field = force->numeric(FLERR,arg[4]);
 	  Hx = force->numeric(FLERR,arg[5]);
 	  Hy = force->numeric(FLERR,arg[6]);
@@ -71,6 +75,7 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
   } else if (strcmp(arg[3],"anisotropy") == 0) {
 	  if (narg != 8) error->all(FLERR,"Illegal fix anisotropy command");
 	  style = ANISOTROPY;
+          aniso_flag = 1;
 	  Ka = force->numeric(FLERR,arg[4]);
 	  Kax = force->numeric(FLERR,arg[5]);
 	  Kay = force->numeric(FLERR,arg[6]);
@@ -88,6 +93,8 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 
 FixForceSpin::~FixForceSpin()
 {
+  memory->destroy(spi);
+  memory->destroy(fmi);
   delete [] magstr;
 }
 
@@ -133,7 +140,10 @@ void FixForceSpin::init()
  
   // set magnetic field components once and for all
   if (varflag == CONSTANT) set_magneticforce();
-   
+  
+  memory->create(spi,3,"forcespin:spi"); 
+  memory->create(fmi,3,"forcespin:fmi"); 
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,7 +170,7 @@ void FixForceSpin::post_force(int vflag)
     set_magneticforce(); //Update value of the mag. field if time-dependent
   }
 
-  double **x = atom->x;
+//  double **x = atom->x;
   double **sp = atom->sp; 
   double *mumag = atom->mumag;
   double **fm = atom->fm; 
@@ -169,22 +179,42 @@ void FixForceSpin::post_force(int vflag)
   
   eflag = 0;
   emag = 0.0;
-          
-  if (style == ZEEMAN) {
-	  for (int i = 0; i < nlocal; i++) {
-		  fm[i][0] += mumag[i]*xmag;
-		  fm[i][1] += mumag[i]*ymag;
-		  fm[i][2] += mumag[i]*zmag;
-	  }
-  }
-  if (style == ANISOTROPY) {
-	  for (int i = 0; i < nlocal; i++) {
-		  scalar = Kax*sp[i][0] + Kay*sp[i][1] + Kaz*sp[i][2];
-		  fm[i][0] += scalar*xmag;
-		  fm[i][1] += scalar*ymag;
-		  fm[i][2] += scalar*zmag;
-	  }
-  }
+
+  for (int i = 0; i < nlocal; i++) {
+    fmi[0] = fmi[1] = fmi[2] = 0.0;
+    //if (style == ZEEMAN) {
+    if (zeeman_flag) {
+      compute_zeeman(i,fmi);
+    }  
+    //if (style == ANISOTROPY) {
+    if (aniso_flag) {
+      spi[0] = sp[i][0];
+      spi[1] = sp[i][1];
+      spi[2] = sp[i][2];
+      compute_anisotropy(i,spi,fmi);
+    }
+    fm[i][0] += fmi[0];
+    fm[i][1] += fmi[1];
+    fm[i][2] += fmi[2];
+  }  
+}
+
+
+/* ---------------------------------------------------------------------- */
+void FixForceSpin::compute_zeeman(int i, double *fmi)
+{
+double *mumag = atom->mumag;
+  fmi[0] += mumag[i]*xmag;
+  fmi[1] += mumag[i]*ymag;
+  fmi[2] += mumag[i]*zmag;
+}
+
+void FixForceSpin::compute_anisotropy(int i, double * spi, double *fmi)
+{
+  double scalar = Kax*spi[0] + Kay*spi[1] + Kaz*spi[2];
+  fmi[0] += scalar*xmag;
+  fmi[1] += scalar*ymag;
+  fmi[2] += scalar*zmag;
 }
 
 /* ---------------------------------------------------------------------- */

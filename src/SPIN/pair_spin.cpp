@@ -25,6 +25,9 @@
 #include "update.h"
 #include <string.h>
 
+//Add. lib. for full neighb. list
+#include "neigh_request.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -34,7 +37,9 @@ PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   exch_flag = 0; 
-  dmi_flag = 0; 
+  dmi_flag = 0;
+  me_flag = 0;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,7 +81,7 @@ void PairSpin::compute(int eflag, int vflag)
   double evdwl,ecoul;
   double xtmp,ytmp,ztmp;
   double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
-  double cut_ex,cut_dmi,cut_me;
+  double cut_ex_2,cut_dmi_2,cut_me_2;
   double rsq,rd,delx,dely,delz;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
@@ -120,28 +125,27 @@ void PairSpin::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;  //square or inter-atomic distance
-      rd = sqrt(rsq); //Inter-atomic distance
       itype = type[i];
       jtype = type[j];
 
       //Exchange interaction
       if (exch_flag) {
-        cut_ex = cut_spin_exchange[itype][jtype];
-        if (rd <= cut_ex) {
+        cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+        if (rsq <= cut_ex_2) {
           compute_exchange(i,j,rsq,fmi,fmj);   
         }
       }
       //DM interaction
       if (dmi_flag){
-        cut_dmi = cut_spin_dmi[itype][jtype];
-        if (rd <= cut_dmi){
+        cut_dmi_2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
+        if (rsq <= cut_dmi_2){
           compute_dmi(i,j,fmi,fmj);
         } 
       }
       //ME interaction
       if (me_flag){
-        cut_me = cut_spin_me[itype][jtype];
-        if (rd <= cut_me){
+        cut_me_2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
+        if (rsq <= cut_me_2){
           compute_me(i,j,fmi,fmj);
         } 
       }
@@ -162,7 +166,7 @@ void PairSpin::compute(int eflag, int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-inline void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *fmj)
+void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *fmj)
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -184,13 +188,12 @@ inline void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  d
   fmj[0] += Jex*sp[i][0];
   fmj[1] += Jex*sp[i][1];
   fmj[2] += Jex*sp[i][2];
-
+  
 }
 
 /* ---------------------------------------------------------------------- */
-inline void PairSpin::compute_dmi(int i, int j, double *fmi,  double *fmj)
+void PairSpin::compute_dmi(int i, int j, double *fmi,  double *fmj)
 {
-
   int *type = atom->type;  
   int itype, jtype;
   double **sp = atom->sp;
@@ -212,7 +215,7 @@ inline void PairSpin::compute_dmi(int i, int j, double *fmi,  double *fmj)
 }
 
 /* ---------------------------------------------------------------------- */
-inline void PairSpin::compute_me(int i, int j, double *fmi,  double *fmj)
+void PairSpin::compute_me(int i, int j, double *fmi,  double *fmj)
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -246,8 +249,6 @@ inline void PairSpin::compute_me(int i, int j, double *fmi,  double *fmj)
   fmj[0] -= sp[i][1]*meiz - sp[i][2]*meiy;
   fmj[1] -= sp[i][2]*meix - sp[i][0]*meiz;
   fmj[2] -= sp[i][0]*meiy - sp[i][1]*meix;
-
- // printf("test val fmi=%g, fmj=%g \n",fmi[2],fmj[2]);
 
 }
 
@@ -312,6 +313,7 @@ void PairSpin::settings(int narg, char **arg)
         if (setflag[i][j]) {
           cut_spin_exchange[i][j] = cut_spin_pair_global;
           cut_spin_dmi[i][j] = cut_spin_pair_global;
+          cut_spin_me[i][j] = cut_spin_pair_global;
         }
   }
    
@@ -438,6 +440,13 @@ void PairSpin::init_style()
     error->all(FLERR,"Pair spin requires atom attributes sp, mumag");
 
   neighbor->request(this,instance_me);
+
+#define FULLNEI
+#if defined FULLNEI
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+#endif
 }
 
 /* ----------------------------------------------------------------------

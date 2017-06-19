@@ -37,6 +37,10 @@ class FixForceSpin : public Fix {
   virtual void post_force_respa(int, int, int);
   double compute_scalar();
 
+  int zeeman_flag, aniso_flag;	
+  void compute_zeeman(int, double *);
+  void compute_anisotropy(int, double *, double *);
+
  protected:
   int style;
   
@@ -58,8 +62,10 @@ class FixForceSpin : public Fix {
   double Ka; //Magnetic anisotropy intensity and direction
   double Kax, Kay, Kaz;
 
+  double *spi, *fmi; //Temp var. in compute
+  
   void set_magneticforce();
-   
+ 
 };
 
 }

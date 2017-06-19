@@ -84,8 +84,8 @@ class NPairIntel : public NPair {
   FixIntel *_fix;
 
   template <class flt_t, class acc_t, int, int, int, int, int>
-  void bin_newton(const int, NeighList *, IntelBuffers<flt_t,acc_t> *, 
-		  const int, const int, const int offload_end = 0);
+  void bin_newton(const int, NeighList *, IntelBuffers<flt_t,acc_t> *,
+                  const int, const int, const int offload_end = 0);
 
   #ifdef _LMP_INTEL_OFFLOAD
   int _cop;

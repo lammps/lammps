@@ -51,11 +51,11 @@ NBinIntel::~NBinIntel() {
     const int * bins = this->bins;
     const int * _atombin = this->_atombin;
     const int * _binpacked = this->_binpacked;
-    #pragma offload_transfer target(mic:_cop)	\
+    #pragma offload_transfer target(mic:_cop)   \
       nocopy(binhead,bins,_atombin,_binpacked:alloc_if(0) free_if(1))
   }
   #endif
-}  
+}
 
 /* ----------------------------------------------------------------------
    setup for bin_atoms()
@@ -70,8 +70,8 @@ void NBinIntel::bin_atoms_setup(int nall)
     #ifdef _LMP_INTEL_OFFLOAD
     if (_offload_alloc) {
       const int * binhead = this->binhead;
-      #pragma offload_transfer target(mic:_cop)	\
-	nocopy(binhead:alloc_if(0) free_if(1))
+      #pragma offload_transfer target(mic:_cop) \
+        nocopy(binhead:alloc_if(0) free_if(1))
     }
     #endif
 
@@ -98,8 +98,8 @@ void NBinIntel::bin_atoms_setup(int nall)
       const int * bins = this->bins;
       const int * _atombin = this->_atombin;
       const int * _binpacked = this->_binpacked;
-      #pragma offload_transfer target(mic:_cop)	\
-	nocopy(bins,_atombin,_binpacked:alloc_if(0) free_if(1))
+      #pragma offload_transfer target(mic:_cop) \
+        nocopy(bins,_atombin,_binpacked:alloc_if(0) free_if(1))
     }
     #endif
     memory->destroy(bins);
@@ -157,10 +157,10 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
     const flt_t dx = (INTEL_BIGP - bboxhi[0]);
     const flt_t dy = (INTEL_BIGP - bboxhi[1]);
     const flt_t dz = (INTEL_BIGP - bboxhi[2]);
-    if (dx * dx + dy * dy + dz * dz < 
-	static_cast<flt_t>(neighbor->cutneighmaxsq))
+    if (dx * dx + dy * dy + dz * dz <
+        static_cast<flt_t>(neighbor->cutneighmaxsq))
       error->one(FLERR,
-	"Intel package expects no atoms within cutoff of {1e15,1e15,1e15}.");
+        "Intel package expects no atoms within cutoff of {1e15,1e15,1e15}.");
   }
 
   // ---------- Grow and cast/pack buffers -------------
@@ -183,7 +183,7 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
   {
     int ifrom, ito, tid;
     IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
-			      sizeof(ATOM_T));
+                              sizeof(ATOM_T));
     buffers->thr_pack(ifrom, ito, 0);
   }
   _fix->stop_watch(TIME_PACK);

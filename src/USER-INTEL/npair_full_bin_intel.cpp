@@ -70,48 +70,48 @@ fbi(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
   #endif
 
   buffers->grow_list(list, atom->nlocal, comm->nthreads, off_end,
-		     _fix->nbor_pack_width());
+                     _fix->nbor_pack_width());
 
   int need_ic = 0;
   if (atom->molecular)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
-			 neighbor->cutneighmax);
+                         neighbor->cutneighmax);
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_fix->three_body_neighbor()) {
     if (need_ic) {
       if (offload_noghost) {
-	bin_newton<flt_t,acc_t,1,1,1,0,1>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,1,1,1,0,1>(0, list, buffers, host_start, nlocal, off_end);
+        bin_newton<flt_t,acc_t,1,1,1,0,1>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,1,1,1,0,1>(0, list, buffers, host_start, nlocal, off_end);
       } else {
-	bin_newton<flt_t,acc_t,0,1,1,0,1>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,0,1,1,0,1>(0, list, buffers, host_start, nlocal);
+        bin_newton<flt_t,acc_t,0,1,1,0,1>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,0,1,1,0,1>(0, list, buffers, host_start, nlocal);
       }
     } else {
       if (offload_noghost) {
-	bin_newton<flt_t,acc_t,1,0,1,0,1>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,1,0,1,0,1>(0, list, buffers, host_start, nlocal, off_end);
+        bin_newton<flt_t,acc_t,1,0,1,0,1>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,1,0,1,0,1>(0, list, buffers, host_start, nlocal, off_end);
       } else {
-	bin_newton<flt_t,acc_t,0,0,1,0,1>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,0,0,1,0,1>(0, list, buffers, host_start, nlocal);
+        bin_newton<flt_t,acc_t,0,0,1,0,1>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,0,0,1,0,1>(0, list, buffers, host_start, nlocal);
       }
     }
   } else {
     if (need_ic) {
       if (offload_noghost) {
-	bin_newton<flt_t,acc_t,1,1,1,0,0>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,1,1,1,0,0>(0, list, buffers, host_start, nlocal, off_end);
+        bin_newton<flt_t,acc_t,1,1,1,0,0>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,1,1,1,0,0>(0, list, buffers, host_start, nlocal, off_end);
       } else {
-	bin_newton<flt_t,acc_t,0,1,1,0,0>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,0,1,1,0,0>(0, list, buffers, host_start, nlocal);
+        bin_newton<flt_t,acc_t,0,1,1,0,0>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,0,1,1,0,0>(0, list, buffers, host_start, nlocal);
       }
     } else {
       if (offload_noghost) {
-	bin_newton<flt_t,acc_t,1,0,1,0,0>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,1,0,1,0,0>(0, list, buffers, host_start, nlocal, off_end);
+        bin_newton<flt_t,acc_t,1,0,1,0,0>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,1,0,1,0,0>(0, list, buffers, host_start, nlocal, off_end);
       } else {
-	bin_newton<flt_t,acc_t,0,0,1,0,0>(1, list, buffers, 0, off_end);
-	bin_newton<flt_t,acc_t,0,0,1,0,0>(0, list, buffers, host_start, nlocal);
+        bin_newton<flt_t,acc_t,0,0,1,0,0>(1, list, buffers, 0, off_end);
+        bin_newton<flt_t,acc_t,0,0,1,0,0>(0, list, buffers, host_start, nlocal);
       }
     }
   }

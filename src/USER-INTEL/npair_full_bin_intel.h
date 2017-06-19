@@ -15,7 +15,7 @@
 
 NPairStyle(full/bin/intel,
            NPairFullBinIntel,
-           NP_FULL | NP_BIN | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | 
+           NP_FULL | NP_BIN | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI |
            NP_INTEL)
 #else
 

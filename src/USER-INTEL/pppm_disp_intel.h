@@ -39,7 +39,7 @@ namespace LAMMPS_NS {
     #ifdef _LMP_INTEL_OFFLOAD
     int use_base();
     #endif
-    
+
   protected:
     FixIntel *fix;
 
@@ -68,9 +68,9 @@ namespace LAMMPS_NS {
     FFT_SCALAR *particle_ekz5;
     FFT_SCALAR *particle_ekx6;
     FFT_SCALAR *particle_eky6;
-    FFT_SCALAR *particle_ekz6;  
-            
-    
+    FFT_SCALAR *particle_ekz6;
+
+
 
     int _use_table;
     int rho_points;
@@ -86,14 +86,14 @@ namespace LAMMPS_NS {
     #ifdef _LMP_INTEL_OFFLOAD
     int _use_base;
     #endif
-    
+
     template<class flt_t, class acc_t>
     void particle_map(double, double, double,
                       double, int **, int, int,
                       int, int, int,
-		      int, int, int,
-		      IntelBuffers<flt_t,acc_t> *buffers);
-    
+                      int, int, int,
+                      IntelBuffers<flt_t,acc_t> *buffers);
+
     template<class flt_t, class acc_t, int use_table>
     void make_rho_c(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -104,7 +104,7 @@ namespace LAMMPS_NS {
         make_rho_c<flt_t,acc_t,0>(buffers);
       }
     }
-  
+
     template<class flt_t, class acc_t, int use_table>
     void make_rho_g(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -115,7 +115,7 @@ namespace LAMMPS_NS {
         make_rho_g<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
     template<class flt_t, class acc_t, int use_table>
     void make_rho_a(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -127,7 +127,7 @@ namespace LAMMPS_NS {
       }
     }
 
-    
+
     template<class flt_t, class acc_t, int use_table>
     void make_rho_none(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -138,7 +138,7 @@ namespace LAMMPS_NS {
         make_rho_none<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
 
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_c_ik(IntelBuffers<flt_t,acc_t> *buffers);
@@ -150,7 +150,7 @@ namespace LAMMPS_NS {
         fieldforce_c_ik<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_c_ad(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -161,7 +161,7 @@ namespace LAMMPS_NS {
         fieldforce_c_ad<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_g_ik(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -172,7 +172,7 @@ namespace LAMMPS_NS {
         fieldforce_g_ik<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_g_ad(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -183,7 +183,7 @@ namespace LAMMPS_NS {
         fieldforce_g_ad<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_a_ik(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -194,7 +194,7 @@ namespace LAMMPS_NS {
         fieldforce_a_ik<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_a_ad(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -204,7 +204,7 @@ namespace LAMMPS_NS {
       } else {
         fieldforce_a_ad<flt_t,acc_t,0>(buffers);
       }
-    }    
+    }
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_none_ik(IntelBuffers<flt_t,acc_t> *buffers);
      template<class flt_t, class acc_t>
@@ -215,7 +215,7 @@ namespace LAMMPS_NS {
         fieldforce_none_ik<flt_t,acc_t,0>(buffers);
       }
     }
-    
+
     template<class flt_t, class acc_t, int use_table>
     void fieldforce_none_ad(IntelBuffers<flt_t,acc_t> *buffers);
     template<class flt_t, class acc_t>
@@ -228,11 +228,11 @@ namespace LAMMPS_NS {
     }
 
     void precompute_rho();
-    
+
   };
 
 }
 #endif
 #endif
-    
-  
+
+

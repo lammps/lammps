@@ -44,8 +44,8 @@ class DihedralHarmonicIntel : public DihedralHarmonic {
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers, 
-	    const ForceConst<flt_t> &fc);
+  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers,
+            const ForceConst<flt_t> &fc);
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc,
                         IntelBuffers<flt_t, acc_t> *buffers);
@@ -57,7 +57,7 @@ class DihedralHarmonicIntel : public DihedralHarmonic {
   template <class flt_t>
   class ForceConst {
    public:
-    typedef struct { flt_t cos_shift, sin_shift, k; 
+    typedef struct { flt_t cos_shift, sin_shift, k;
                      int multiplicity; } fc_packed1;
 
     fc_packed1 *bp;

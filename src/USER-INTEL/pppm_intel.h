@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: William McDoniel (RWTH Aachen University)
                          Rodrigo Canales (RWTH Aachen University)
-			 Markus Hoehnerbach (RWTH Aachen University)
+                         Markus Hoehnerbach (RWTH Aachen University)
                          W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
@@ -77,7 +77,7 @@ class PPPMIntel : public PPPM {
     template<class flt_t, class acc_t>
     void test_function(IntelBuffers<flt_t,acc_t> *buffers);
 
-  
+
   void precompute_rho();
   template<class flt_t, class acc_t>
   void particle_map(IntelBuffers<flt_t,acc_t> *buffers);

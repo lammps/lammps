@@ -80,8 +80,8 @@ void DihedralCharmmIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void DihedralCharmmIntel::compute(int eflag, int vflag,
-				  IntelBuffers<flt_t,acc_t> *buffers,
-				  const ForceConst<flt_t> &fc)
+                                  IntelBuffers<flt_t,acc_t> *buffers,
+                                  const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -95,14 +95,14 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
   if (evflag) {
     if (vflag && !eflag) {
       if (force->newton_bond)
-	eval<0,1,1>(vflag, buffers, fc);
+        eval<0,1,1>(vflag, buffers, fc);
       else
-	eval<0,1,0>(vflag, buffers, fc);
+        eval<0,1,0>(vflag, buffers, fc);
     } else {
       if (force->newton_bond)
-	eval<1,1,1>(vflag, buffers, fc);
+        eval<1,1,1>(vflag, buffers, fc);
       else
-	eval<1,1,0>(vflag, buffers, fc);
+        eval<1,1,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -115,9 +115,9 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
 #ifndef LMP_USE_AVXCD_DHC
 
 template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void DihedralCharmmIntel::eval(const int vflag, 
-			       IntelBuffers<flt_t,acc_t> *buffers,
-			       const ForceConst<flt_t> &fc)
+void DihedralCharmmIntel::eval(const int vflag,
+                               IntelBuffers<flt_t,acc_t> *buffers,
+                               const ForceConst<flt_t> &fc)
 
 {
   const int inum = neighbor->ndihedrallist;
@@ -148,9 +148,9 @@ void DihedralCharmmIntel::eval(const int vflag,
 
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
-    shared(f_start,f_stride,fc)		  \
+    shared(f_start,f_stride,fc)           \
     reduction(+:oevdwl,oecoul,oedihedral,ov0,ov1,ov2,ov3,ov4,ov5, \
-	      opv0,opv1,opv2,opv3,opv4,opv5)
+              opv0,opv1,opv2,opv3,opv4,opv5)
   #endif
   {
     #if defined(LMP_SIMD_COMPILER_TEST)
@@ -165,7 +165,7 @@ void DihedralCharmmIntel::eval(const int vflag,
     if (fix->need_zero(tid))
       memset(f, 0, f_stride * sizeof(FORCE_T));
 
-    const int5_t * _noalias const dihedrallist = 
+    const int5_t * _noalias const dihedrallist =
       (int5_t *) neighbor->dihedrallist[0];
     const flt_t qqrd2e = force->qqrd2e;
 
@@ -180,7 +180,7 @@ void DihedralCharmmIntel::eval(const int vflag,
     #if defined(LMP_SIMD_COMPILER_TEST)
     #pragma vector aligned
     #pragma simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
-                           sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, spv5) 
+                           sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, spv5)
     for (int n = nfrom; n < nto; n++) {
     #endif
     for (int n = nfrom; n < nto; n += npl) {
@@ -204,7 +204,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       const flt_t vb2zm = x[i2].z - x[i3].z;
 
       // 3rd bond
-      
+
       const flt_t vb3x = x[i4].x - x[i3].x;
       const flt_t vb3y = x[i4].y - x[i3].y;
       const flt_t vb3z = x[i4].z - x[i3].z;
@@ -244,25 +244,25 @@ void DihedralCharmmIntel::eval(const int vflag,
       // error check
       #ifndef LMP_SIMD_COMPILER_TEST
       if (c > PTOLERANCE || c < MTOLERANCE) {
-	int me = comm->me;
+        int me = comm->me;
 
-	if (screen) {
-	  char str[128];
-	  sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " "
-		  TAGINT_FORMAT " " TAGINT_FORMAT " "
-		  TAGINT_FORMAT " " TAGINT_FORMAT,
-		  me,tid,update->ntimestep,
-		  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	  error->warning(FLERR,str,0);
-	  fprintf(screen,"  1st atom: %d %g %g %g\n",
-		  me,x[i1].x,x[i1].y,x[i1].z);
-	  fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		  me,x[i2].x,x[i2].y,x[i2].z);
-	  fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		  me,x[i3].x,x[i3].y,x[i3].z);
-	  fprintf(screen,"  4th atom: %d %g %g %g\n",
-		  me,x[i4].x,x[i4].y,x[i4].z);
-	}
+        if (screen) {
+          char str[128];
+          sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " "
+                  TAGINT_FORMAT " " TAGINT_FORMAT,
+                  me,tid,update->ntimestep,
+                  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+          error->warning(FLERR,str,0);
+          fprintf(screen,"  1st atom: %d %g %g %g\n",
+                  me,x[i1].x,x[i1].y,x[i1].z);
+          fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                  me,x[i2].x,x[i2].y,x[i2].z);
+          fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                  me,x[i3].x,x[i3].y,x[i3].z);
+          fprintf(screen,"  4th atom: %d %g %g %g\n",
+                  me,x[i4].x,x[i4].y,x[i4].z);
+        }
       }
       #endif
 
@@ -279,19 +279,19 @@ void DihedralCharmmIntel::eval(const int vflag,
       ddf1 = df1 = (flt_t)0.0;
 
       for (int i = 0; i < m; i++) {
-	ddf1 = p*c - df1*s;
-	df1 = p*s + df1*c;
-	p = ddf1;
+        ddf1 = p*c - df1*s;
+        df1 = p*s + df1*c;
+        p = ddf1;
       }
 
       p = p*tcos_shift + df1*tsin_shift;
       df1 = df1*tcos_shift - ddf1*tsin_shift;
       df1 *= -m;
       p += (flt_t)1.0;
-      
+
       if (m == 0) {
-	p = (flt_t)1.0 + tcos_shift;
-	df1 = (flt_t)0.0;
+        p = (flt_t)1.0 + tcos_shift;
+        df1 = (flt_t)0.0;
       }
 
       const flt_t fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
@@ -334,12 +334,12 @@ void DihedralCharmmIntel::eval(const int vflag,
       const flt_t f3z = -sz2 - f4z;
 
       if (EFLAG || VFLAG) {
-	flt_t deng;
-	if (EFLAG) deng = tk * p;
-	IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, deng, i1, i2, i3, 
-                              i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, 
+        flt_t deng;
+        if (EFLAG) deng = tk * p;
+        IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, deng, i1, i2, i3,
+                              i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y,
                               f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm,
-                              vb3x, vb3y, vb3z, sedihedral, f, NEWTON_BOND, 
+                              vb3x, vb3y, vb3z, sedihedral, f, NEWTON_BOND,
                               nlocal, sv0, sv1, sv2, sv3, sv4, sv5);
       }
 
@@ -349,15 +349,15 @@ void DihedralCharmmIntel::eval(const int vflag,
       #endif
       {
         if (NEWTON_BOND || i2 < nlocal) {
-	  f[i2].x += f2x;
-	  f[i2].y += f2y;
-	  f[i2].z += f2z;
+          f[i2].x += f2x;
+          f[i2].y += f2y;
+          f[i2].z += f2z;
         }
 
         if (NEWTON_BOND || i3 < nlocal) {
-	  f[i3].x += f3x;
-	  f[i3].y += f3y;
-	  f[i3].z += f3z;
+          f[i3].x += f3x;
+          f[i3].y += f3y;
+          f[i3].z += f3z;
         }
       }
 
@@ -372,54 +372,54 @@ void DihedralCharmmIntel::eval(const int vflag,
       flt_t forcecoul;
       if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
       else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
-      const flt_t forcelj = r6inv * (fc.ljp[itype][jtype].lj1*r6inv - 
-				     fc.ljp[itype][jtype].lj2);
+      const flt_t forcelj = r6inv * (fc.ljp[itype][jtype].lj1*r6inv -
+                                     fc.ljp[itype][jtype].lj2);
       const flt_t fpair = tweight * (forcelj+forcecoul)*r2inv;
 
       if (NEWTON_BOND || i1 < nlocal) {
-	f1x += delx*fpair;
-	f1y += dely*fpair;
-	f1z += delz*fpair;
+        f1x += delx*fpair;
+        f1y += dely*fpair;
+        f1z += delz*fpair;
       }
       if (NEWTON_BOND || i4 < nlocal) {
-	f4x -= delx*fpair;
-	f4y -= dely*fpair;
-	f4z -= delz*fpair;
+        f4x -= delx*fpair;
+        f4y -= dely*fpair;
+        f4z -= delz*fpair;
       }
 
       if (EFLAG || VFLAG) {
-	flt_t ev_pre = (flt_t)0;
-	if (NEWTON_BOND || i1 < nlocal)
-	  ev_pre += (flt_t)0.5;
-	if (NEWTON_BOND || i4 < nlocal)
-	  ev_pre += (flt_t)0.5;
+        flt_t ev_pre = (flt_t)0;
+        if (NEWTON_BOND || i1 < nlocal)
+          ev_pre += (flt_t)0.5;
+        if (NEWTON_BOND || i4 < nlocal)
+          ev_pre += (flt_t)0.5;
 
-	if (EFLAG) {
-	  flt_t ecoul, evdwl;
-	  ecoul = tweight * forcecoul;
-	  evdwl = tweight * r6inv * (fc.ljp[itype][jtype].lj3*r6inv - 
-				     fc.ljp[itype][jtype].lj4);
-	  secoul += ev_pre * ecoul;
-	  sevdwl += ev_pre * evdwl;
-	  if (eatom) {
-	    evdwl *= (flt_t)0.5;
-	    evdwl += (flt_t)0.5 * ecoul;
-	    if (NEWTON_BOND || i1 < nlocal)
-	      f[i1].w += evdwl;
-	    if (NEWTON_BOND || i4 < nlocal)
-	      f[i4].w += evdwl;
-	  }
-	}
-	//	      IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
-	//				   delx, dely, delz);
-	if (VFLAG && vflag) {
-	  spv0 += ev_pre * delx * delx * fpair;
-	  spv1 += ev_pre * dely * dely * fpair;
-	  spv2 += ev_pre * delz * delz * fpair;
-	  spv3 += ev_pre * delx * dely * fpair;
-	  spv4 += ev_pre * delx * delz * fpair;
-	  spv5 += ev_pre * dely * delz * fpair;
-	}                                                                    
+        if (EFLAG) {
+          flt_t ecoul, evdwl;
+          ecoul = tweight * forcecoul;
+          evdwl = tweight * r6inv * (fc.ljp[itype][jtype].lj3*r6inv -
+                                     fc.ljp[itype][jtype].lj4);
+          secoul += ev_pre * ecoul;
+          sevdwl += ev_pre * evdwl;
+          if (eatom) {
+            evdwl *= (flt_t)0.5;
+            evdwl += (flt_t)0.5 * ecoul;
+            if (NEWTON_BOND || i1 < nlocal)
+              f[i1].w += evdwl;
+            if (NEWTON_BOND || i4 < nlocal)
+              f[i4].w += evdwl;
+          }
+        }
+        //            IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
+        //                                 delx, dely, delz);
+        if (VFLAG && vflag) {
+          spv0 += ev_pre * delx * delx * fpair;
+          spv1 += ev_pre * dely * dely * fpair;
+          spv2 += ev_pre * delz * delz * fpair;
+          spv3 += ev_pre * delx * dely * fpair;
+          spv4 += ev_pre * delx * delz * fpair;
+          spv5 += ev_pre * dely * delz * fpair;
+        }
       }
 
       // apply force to each of 4 atoms
@@ -428,15 +428,15 @@ void DihedralCharmmIntel::eval(const int vflag,
       #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {
-	  f[i1].x += f1x;
-	  f[i1].y += f1y;
-	  f[i1].z += f1z;
+          f[i1].x += f1x;
+          f[i1].y += f1y;
+          f[i1].z += f1z;
         }
 
         if (NEWTON_BOND || i4 < nlocal) {
-	  f[i4].x += f4x;
-	  f[i4].y += f4y;
-	  f[i4].z += f4z;
+          f[i4].x += f4x;
+          f[i4].y += f4y;
+          f[i4].z += f4z;
         }
       }
     } // for n
@@ -447,7 +447,7 @@ void DihedralCharmmIntel::eval(const int vflag,
     }
     if (VFLAG && vflag) {
       ov0 += sv0; ov1 += sv1; ov2 += sv2; ov3 += sv3; ov4 += sv4; ov5 += sv5;
-      opv0 += spv0; opv1 += spv1; opv2 += spv2; 
+      opv0 += spv0; opv1 += spv1; opv2 += spv2;
       opv3 += spv3; opv4 += spv4; opv5 += spv5;
     }
   } // omp parallel
@@ -485,9 +485,9 @@ authors for more details.
 ------------------------------------------------------------------------- */
 
 template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void DihedralCharmmIntel::eval(const int vflag, 
-			       IntelBuffers<flt_t,acc_t> *buffers,
-			       const ForceConst<flt_t> &fc)
+void DihedralCharmmIntel::eval(const int vflag,
+                               IntelBuffers<flt_t,acc_t> *buffers,
+                               const ForceConst<flt_t> &fc)
 
 {
   typedef typename SIMD_type<flt_t>::SIMD_vec SIMD_flt_t;
@@ -522,20 +522,20 @@ void DihedralCharmmIntel::eval(const int vflag,
 
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
-    shared(f_start,f_stride,fc)		  \
+    shared(f_start,f_stride,fc)           \
     reduction(+:oevdwl,oecoul,oedihedral,ov0,ov1,ov2,ov3,ov4,ov5, \
-	      opv0,opv1,opv2,opv3,opv4,opv5)
+              opv0,opv1,opv2,opv3,opv4,opv5)
   #endif
   {
     int nfrom, npl, nto, tid;
     IP_PRE_omp_stride_id_vec(nfrom, npl, nto, tid, inum, nthreads,
-			     swidth);
+                             swidth);
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
       memset(f, 0, f_stride * sizeof(FORCE_T));
 
-    const int * _noalias const dihedrallist = 
+    const int * _noalias const dihedrallist =
       (int *) neighbor->dihedrallist[0];
     const flt_t * _noalias const weight = &(fc.weight[0]);
     const flt_t * _noalias const x_f = &(x[0].x);
@@ -574,7 +574,7 @@ void DihedralCharmmIntel::eval(const int vflag,
     }
 
     SIMD_int n_offset = SIMD_set(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
-				 55, 60, 65, 70, 75) + (nfrom * 5);
+                                 55, 60, 65, 70, 75) + (nfrom * 5);
     const int nto5 = nto * 5;
     const int nlocals4 = nlocal << 4;
     const SIMD_int simd_nlocals4 = SIMD_set(nlocals4);
@@ -618,7 +618,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       const SIMD_flt_t vb2zm = z2 - z3;
 
       // 3rd bond
-      
+
       SIMD_flt_t x4, y4, z4;
       SIMD_int jtype;
 
@@ -664,7 +664,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       const SIMD_flt_t ptol = SIMD_set(PTOLERANCE);
       const SIMD_flt_t ntol = SIMD_set(MTOLERANCE);
       if (c > ptol || c < ntol)
-	if (screen)
+        if (screen)
           error->warning(FLERR,"Dihedral problem.");
 
       c = SIMD_set(c, c > one, one);
@@ -678,14 +678,14 @@ void DihedralCharmmIntel::eval(const int vflag,
       SIMD_flt_t p(one);
       SIMD_flt_t ddf1(szero);
       SIMD_flt_t df1(szero);
-      
+
       const int m_max = SIMD_max(m);
 
       for (int i = 0; i < m_max; i++) {
-	const SIMD_mask my_m = i < m;
-	ddf1 = SIMD_set(ddf1, my_m, p*c - df1*s);
-	df1 = SIMD_set(df1, my_m, p*s + df1*c);
-	p = SIMD_set(p, my_m, ddf1);
+        const SIMD_mask my_m = i < m;
+        ddf1 = SIMD_set(ddf1, my_m, p*c - df1*s);
+        df1 = SIMD_set(df1, my_m, p*s + df1*c);
+        p = SIMD_set(p, my_m, ddf1);
       }
 
       SIMD_flt_t multf;
@@ -694,7 +694,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       df1 = df1*tcos_shift - ddf1*tsin_shift;
       df1 = df1 * multf;
       p = p + one;
-      
+
       SIMD_mask mzero = (m == SIMD_set((int)0));
       p = SIMD_set(p, mzero, one + tcos_shift);
       df1 = SIMD_set(df1, mzero, szero);
@@ -740,40 +740,40 @@ void DihedralCharmmIntel::eval(const int vflag,
 
       SIMD_flt_t qdeng;
       if (EFLAG || VFLAG) {
-	SIMD_flt_t ev_pre;
-	if (NEWTON_BOND) ev_pre = one;
-	else {
-	  ev_pre = szero;
-	  const SIMD_flt_t quarter = SIMD_set((flt_t)0.25);
-	  ev_pre = SIMD_add(ev_pre, i1 < simd_nlocals4, ev_pre, quarter);
-	  ev_pre = SIMD_add(ev_pre, i2 < simd_nlocals4, ev_pre, quarter);
-	  ev_pre = SIMD_add(ev_pre, i3 < simd_nlocals4, ev_pre, quarter);
-	  ev_pre = SIMD_add(ev_pre, i4 < simd_nlocals4, ev_pre, quarter);
-	}
-	SIMD_zero_masked(nmask, ev_pre);
-	if (EFLAG) {
-	  const SIMD_flt_t deng = tk * p;
-	  sedihedral = SIMD_ev_add(sedihedral, ev_pre * deng);
-	  if (eatom) {
-	    qdeng = deng * SIMD_set((flt_t)0.25);
-	    SIMD_mask newton_mask;
-	    if (NEWTON_BOND) newton_mask = nmask;
-	    if (!NEWTON_BOND) newton_mask = SIMD_lt(nmask, i2, simd_nlocals4);
-	    SIMD_flt_t ieng = qdeng;
-	    SIMD_jeng_update(newton_mask, featom, i2, ieng);
-	    ieng = qdeng;
-	    if (!NEWTON_BOND) newton_mask = SIMD_lt(nmask, i3, simd_nlocals4);
-	    SIMD_jeng_update(newton_mask, featom, i3, ieng);
-	  }
-	}
-	if (VFLAG && vflag) {
+        SIMD_flt_t ev_pre;
+        if (NEWTON_BOND) ev_pre = one;
+        else {
+          ev_pre = szero;
+          const SIMD_flt_t quarter = SIMD_set((flt_t)0.25);
+          ev_pre = SIMD_add(ev_pre, i1 < simd_nlocals4, ev_pre, quarter);
+          ev_pre = SIMD_add(ev_pre, i2 < simd_nlocals4, ev_pre, quarter);
+          ev_pre = SIMD_add(ev_pre, i3 < simd_nlocals4, ev_pre, quarter);
+          ev_pre = SIMD_add(ev_pre, i4 < simd_nlocals4, ev_pre, quarter);
+        }
+        SIMD_zero_masked(nmask, ev_pre);
+        if (EFLAG) {
+          const SIMD_flt_t deng = tk * p;
+          sedihedral = SIMD_ev_add(sedihedral, ev_pre * deng);
+          if (eatom) {
+            qdeng = deng * SIMD_set((flt_t)0.25);
+            SIMD_mask newton_mask;
+            if (NEWTON_BOND) newton_mask = nmask;
+            if (!NEWTON_BOND) newton_mask = SIMD_lt(nmask, i2, simd_nlocals4);
+            SIMD_flt_t ieng = qdeng;
+            SIMD_jeng_update(newton_mask, featom, i2, ieng);
+            ieng = qdeng;
+            if (!NEWTON_BOND) newton_mask = SIMD_lt(nmask, i3, simd_nlocals4);
+            SIMD_jeng_update(newton_mask, featom, i3, ieng);
+          }
+        }
+        if (VFLAG && vflag) {
           sv0 = SIMD_ev_add(sv0, ev_pre*(vb1x*f1x-vb2xm*f3x+(vb3x-vb2xm)*f4x));
-	  sv1 = SIMD_ev_add(sv1, ev_pre*(vb1y*f1y-vb2ym*f3y+(vb3y-vb2ym)*f4y));
-	  sv2 = SIMD_ev_add(sv2, ev_pre*(vb1z*f1z-vb2zm*f3z+(vb3z-vb2zm)*f4z));
-	  sv3 = SIMD_ev_add(sv3, ev_pre*(vb1x*f1y-vb2xm*f3y+(vb3x-vb2xm)*f4y));
-	  sv4 = SIMD_ev_add(sv4, ev_pre*(vb1x*f1z-vb2xm*f3z+(vb3x-vb2xm)*f4z));
-	  sv5 = SIMD_ev_add(sv5, ev_pre*(vb1y*f1z-vb2ym*f3z+(vb3y-vb2ym)*f4z));
-	}
+          sv1 = SIMD_ev_add(sv1, ev_pre*(vb1y*f1y-vb2ym*f3y+(vb3y-vb2ym)*f4y));
+          sv2 = SIMD_ev_add(sv2, ev_pre*(vb1z*f1z-vb2zm*f3z+(vb3z-vb2zm)*f4z));
+          sv3 = SIMD_ev_add(sv3, ev_pre*(vb1x*f1y-vb2xm*f3y+(vb3x-vb2xm)*f4y));
+          sv4 = SIMD_ev_add(sv4, ev_pre*(vb1x*f1z-vb2xm*f3z+(vb3x-vb2xm)*f4z));
+          sv5 = SIMD_ev_add(sv5, ev_pre*(vb1y*f1z-vb2ym*f3z+(vb3y-vb2ym)*f4z));
+        }
       }
 
       SIMD_mask newton_mask;
@@ -809,27 +809,27 @@ void DihedralCharmmIntel::eval(const int vflag,
       f4z = f4z - delz * fpair;
 
       if (EFLAG || VFLAG) {
-	SIMD_flt_t ev_pre;
-	if (NEWTON_BOND) ev_pre = one;
-	else {
-	  ev_pre = szero;
+        SIMD_flt_t ev_pre;
+        if (NEWTON_BOND) ev_pre = one;
+        else {
+          ev_pre = szero;
           const SIMD_flt_t half = SIMD_set((flt_t)0.5);
           ev_pre = SIMD_add(ev_pre, i1 < simd_nlocals4,ev_pre,half);
           ev_pre = SIMD_add(ev_pre, i4 < simd_nlocals4,ev_pre,half);
-	}
-	SIMD_zero_masked(nmask, ev_pre);
+        }
+        SIMD_zero_masked(nmask, ev_pre);
 
-	if (EFLAG) {
-	  const SIMD_flt_t ecoul = tweight * forcecoul;
-	  const SIMD_flt_t lj3 = SIMD_gather(nmask, plj3, ijtype);
-	  const SIMD_flt_t lj4 = SIMD_gather(nmask, plj4, ijtype);
-	  SIMD_flt_t evdwl = tweight * r6inv * (lj3 * r6inv - lj4);
-	  secoul = SIMD_ev_add(secoul, ev_pre * ecoul);
-	  sevdwl = SIMD_ev_add(sevdwl, ev_pre * evdwl);
-	  if (eatom) {
- 	    const SIMD_flt_t half = SIMD_set((flt_t)0.5);
-	    evdwl = evdwl * half;
-	    evdwl = evdwl + half * ecoul + qdeng;
+        if (EFLAG) {
+          const SIMD_flt_t ecoul = tweight * forcecoul;
+          const SIMD_flt_t lj3 = SIMD_gather(nmask, plj3, ijtype);
+          const SIMD_flt_t lj4 = SIMD_gather(nmask, plj4, ijtype);
+          SIMD_flt_t evdwl = tweight * r6inv * (lj3 * r6inv - lj4);
+          secoul = SIMD_ev_add(secoul, ev_pre * ecoul);
+          sevdwl = SIMD_ev_add(sevdwl, ev_pre * evdwl);
+          if (eatom) {
+            const SIMD_flt_t half = SIMD_set((flt_t)0.5);
+            evdwl = evdwl * half;
+            evdwl = evdwl + half * ecoul + qdeng;
 
             if (NEWTON_BOND) newton_mask = nmask;
             if (!NEWTON_BOND) newton_mask = SIMD_lt(nmask, i1, simd_nlocals4);
@@ -838,16 +838,16 @@ void DihedralCharmmIntel::eval(const int vflag,
             ieng = evdwl;
             if (!NEWTON_BOND) newton_mask = SIMD_lt(nmask, i4, simd_nlocals4);
             SIMD_jeng_update(newton_mask, featom, i4, ieng);
-	  }
-	}
-	if (VFLAG && vflag) {
+          }
+        }
+        if (VFLAG && vflag) {
           spv0 = SIMD_ev_add(spv0, ev_pre * delx * delx * fpair);
-	  spv1 = SIMD_ev_add(spv1, ev_pre * dely * dely * fpair);
-	  spv2 = SIMD_ev_add(spv2, ev_pre * delz * delz * fpair);
-	  spv3 = SIMD_ev_add(spv3, ev_pre * delx * dely * fpair);
-	  spv4 = SIMD_ev_add(spv4, ev_pre * delx * delz * fpair);
-	  spv5 = SIMD_ev_add(spv5, ev_pre * dely * delz * fpair);
-	}                                                                    
+          spv1 = SIMD_ev_add(spv1, ev_pre * dely * dely * fpair);
+          spv2 = SIMD_ev_add(spv2, ev_pre * delz * delz * fpair);
+          spv3 = SIMD_ev_add(spv3, ev_pre * delx * dely * fpair);
+          spv4 = SIMD_ev_add(spv4, ev_pre * delx * delz * fpair);
+          spv5 = SIMD_ev_add(spv5, ev_pre * dely * delz * fpair);
+        }
       }
 
       if (NEWTON_BOND) newton_mask = nmask;
@@ -863,17 +863,17 @@ void DihedralCharmmIntel::eval(const int vflag,
       oevdwl += SIMD_sum(sevdwl);
     }
     if (VFLAG && vflag) {
-      ov0 += SIMD_sum(sv0); 
-      ov1 += SIMD_sum(sv1); 
-      ov2 += SIMD_sum(sv2); 
-      ov3 += SIMD_sum(sv3); 
-      ov4 += SIMD_sum(sv4); 
+      ov0 += SIMD_sum(sv0);
+      ov1 += SIMD_sum(sv1);
+      ov2 += SIMD_sum(sv2);
+      ov3 += SIMD_sum(sv3);
+      ov4 += SIMD_sum(sv4);
       ov5 += SIMD_sum(sv5);
-      opv0 += SIMD_sum(spv0); 
-      opv1 += SIMD_sum(spv1); 
-      opv2 += SIMD_sum(spv2); 
-      opv3 += SIMD_sum(spv3); 
-      opv4 += SIMD_sum(spv4); 
+      opv0 += SIMD_sum(spv0);
+      opv1 += SIMD_sum(spv1);
+      opv2 += SIMD_sum(spv2);
+      opv3 += SIMD_sum(spv3);
+      opv4 += SIMD_sum(spv4);
       opv5 += SIMD_sum(spv5);
     }
   } // omp parallel
@@ -933,7 +933,7 @@ void DihedralCharmmIntel::init_style()
 
 template <class flt_t, class acc_t>
 void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
-	                                   IntelBuffers<flt_t,acc_t> *buffers)
+                                           IntelBuffers<flt_t,acc_t> *buffers)
 {
 
   const int tp1 = atom->ntypes + 1;
@@ -944,10 +944,10 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
   if (weightflag) {
     for (int i = 0; i < tp1; i++) {
       for (int j = 0; j < tp1; j++) {
-	fc.ljp[i][j].lj1 = lj14_1[i][j];
-	fc.ljp[i][j].lj2 = lj14_2[i][j];
-	fc.ljp[i][j].lj3 = lj14_3[i][j];
-	fc.ljp[i][j].lj4 = lj14_4[i][j];
+        fc.ljp[i][j].lj1 = lj14_1[i][j];
+        fc.ljp[i][j].lj2 = lj14_2[i][j];
+        fc.ljp[i][j].lj3 = lj14_3[i][j];
+        fc.ljp[i][j].lj4 = lj14_4[i][j];
       }
     }
   }
@@ -965,8 +965,8 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
 
 template <class flt_t>
 void DihedralCharmmIntel::ForceConst<flt_t>::set_ntypes(const int npairtypes,
-            	                                        const int nbondtypes,
-	                                                Memory *memory) {
+                                                        const int nbondtypes,
+                                                        Memory *memory) {
   if (npairtypes != _npairtypes) {
     if (_npairtypes > 0)
       _memory->destroy(ljp);
@@ -979,7 +979,7 @@ void DihedralCharmmIntel::ForceConst<flt_t>::set_ntypes(const int npairtypes,
       _memory->destroy(bp);
       _memory->destroy(weight);
     }
-    
+
     if (nbondtypes > 0) {
       _memory->create(bp,nbondtypes,"dihedralcharmmintel.bp");
       _memory->create(weight,nbondtypes,"dihedralcharmmintel.weight");

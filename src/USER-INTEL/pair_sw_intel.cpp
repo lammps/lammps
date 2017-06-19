@@ -77,7 +77,7 @@ void PairSWIntel::compute(int eflag, int vflag)
 {
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
-			  force_const_single);
+                          force_const_single);
   else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
     compute<double,double>(eflag, vflag, fix->get_double_buffers(),
                            force_const_double);
@@ -131,37 +131,37 @@ void PairSWIntel::compute(int eflag, int vflag,
   if (_onetype) {
     if (_spq) {
       if (eflag) {
-	eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       } else {
-	eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       }
     } else {
       if (eflag) {
-	eval<0,1,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<0,1,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<0,1,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<0,1,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       } else {
-	eval<0,1,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<0,1,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<0,1,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<0,1,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       }
     }
   } else {
     if (_spq) {
       if (eflag) {
-	eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       } else {
-	eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       }
     } else {
       if (eflag) {
-	eval<0,0,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<0,0,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<0,0,1>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<0,0,1>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       } else {
-	eval<0,0,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
-	eval<0,0,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
+        eval<0,0,0>(1, ovflag, buffers, fc, 0, offload_end, _offload_pad);
+        eval<0,0,0>(0, ovflag, buffers, fc, host_start, inum, _host_pad);
       }
     }
   }
@@ -174,7 +174,7 @@ template <int SPQ,int ONETYPE,int EFLAG,class flt_t,class acc_t>
 void PairSWIntel::eval(const int offload, const int vflag,
                        IntelBuffers<flt_t,acc_t> *buffers,
                        const ForceConst<flt_t> &fc, const int astart,
-		       const int aend, const int pad_width)
+                       const int aend, const int pad_width)
 {
   const int inum = aend - astart;
   if (inum == 0) return;
@@ -278,23 +278,23 @@ void PairSWIntel::eval(const int offload, const int vflag,
       flt_t sigma_gamma, costheta, lambda_epsilon, lambda_epsilon2;
       if (ONETYPE) {
         cutsq = p2[3].cutsq;
-	cut = p2f[3].cut;
-	sigma = p2f[3].sigma;
-	c1 = p2f2[3].c1;
-	c2 = p2f2[3].c2;
-	c3 = p2f2[3].c3;
-	c4 = p2f2[3].c4;
-	sigma_gamma = p2[3].sigma_gamma;
-	costheta = p3[7].costheta;
-	lambda_epsilon = p3[7].lambda_epsilon;
-	lambda_epsilon2 = p3[7].lambda_epsilon2;
-	if (SPQ == 0) {
+        cut = p2f[3].cut;
+        sigma = p2f[3].sigma;
+        c1 = p2f2[3].c1;
+        c2 = p2f2[3].c2;
+        c3 = p2f2[3].c3;
+        c4 = p2f2[3].c4;
+        sigma_gamma = p2[3].sigma_gamma;
+        costheta = p3[7].costheta;
+        lambda_epsilon = p3[7].lambda_epsilon;
+        lambda_epsilon2 = p3[7].lambda_epsilon2;
+        if (SPQ == 0) {
           powerp = p2f[3].powerp;
-	  powerq = p2f[3].powerq;
+          powerq = p2f[3].powerq;
         }
-	if (EFLAG) {
+        if (EFLAG) {
           c5 = p2e[3].c5;
-	  c6 = p2e[3].c6;
+          c6 = p2e[3].c6;
         }
       }
 
@@ -304,23 +304,23 @@ void PairSWIntel::eval(const int offload, const int vflag,
         const flt_t ytmp = x[i].y;
         const flt_t ztmp = x[i].z;
 
-	if (!ONETYPE) {
+        if (!ONETYPE) {
           itype = x[i].w;
-	  itype_offset = itype * ntypes;
-        } 
+          itype_offset = itype * ntypes;
+        }
 
         const int * _noalias const jlist = firstneigh + cnumneigh[i];
         const int jnum = numneigh[i];
-	const int jnumhalf = numneighhalf[i];
+        const int jnumhalf = numneighhalf[i];
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
         acc_t sevdwl;
         fxtmp = fytmp = fztmp = (acc_t)0.0;
-	if (EFLAG) fwtmp = sevdwl = (acc_t)0;
+        if (EFLAG) fwtmp = sevdwl = (acc_t)0;
 
-	int ejnum = 0, ejnumhalf = 0;
-	#pragma vector aligned
-	#pragma ivdep
+        int ejnum = 0, ejnumhalf = 0;
+        #pragma vector aligned
+        #pragma ivdep
         for (int jj = 0; jj < jnum; jj++) {
           int j = jlist[jj];
           j &= NEIGHMASK;
@@ -329,115 +329,115 @@ void PairSWIntel::eval(const int offload, const int vflag,
           const flt_t delz = x[j].z - ztmp;
           int jtype, ijtype;
           if (!ONETYPE) {
-	    jtype = x[j].w;
-	    ijtype = itype_offset + jtype;
-	    cutsq = p2[ijtype].cutsq;
-	  } 
+            jtype = x[j].w;
+            ijtype = itype_offset + jtype;
+            cutsq = p2[ijtype].cutsq;
+          }
           const flt_t rsq1 = delx * delx + dely * dely + delz * delz;
           if (rsq1 < cutsq) {
-	    tdelx[ejnum] = delx;
-	    tdely[ejnum] = dely;
-	    tdelz[ejnum] = delz;
-	    trsq[ejnum] = rsq1;
-	    tj[ejnum] = j;
-	    if (!ONETYPE) tjtype[ejnum] = jtype;
-	    ejnum++;
-	    if (jj < jnumhalf) ejnumhalf++;
-	  }
-	}
-	int ejnum_pad = ejnum;
-	
-	while ( (ejnum_pad % pad_width) != 0) {
-	  tdelx[ejnum_pad] = (flt_t)0.0;
-	  tdely[ejnum_pad] = (flt_t)0.0;
-	  tdelz[ejnum_pad] = (flt_t)0.0;
-	  trsq[ejnum_pad] = p2[3].cutsq + (flt_t)1.0;
-	  tj[ejnum_pad] = nall;
-	  if (!ONETYPE) tjtype[ejnum_pad] = 0;
-	  ejnum_pad++;
-	}
-	
+            tdelx[ejnum] = delx;
+            tdely[ejnum] = dely;
+            tdelz[ejnum] = delz;
+            trsq[ejnum] = rsq1;
+            tj[ejnum] = j;
+            if (!ONETYPE) tjtype[ejnum] = jtype;
+            ejnum++;
+            if (jj < jnumhalf) ejnumhalf++;
+          }
+        }
+        int ejnum_pad = ejnum;
+
+        while ( (ejnum_pad % pad_width) != 0) {
+          tdelx[ejnum_pad] = (flt_t)0.0;
+          tdely[ejnum_pad] = (flt_t)0.0;
+          tdelz[ejnum_pad] = (flt_t)0.0;
+          trsq[ejnum_pad] = p2[3].cutsq + (flt_t)1.0;
+          tj[ejnum_pad] = nall;
+          if (!ONETYPE) tjtype[ejnum_pad] = 0;
+          ejnum_pad++;
+        }
+
         #if defined(LMP_SIMD_COMPILER)
-	#pragma vector aligned
+        #pragma vector aligned
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
-	#endif
+        #endif
         for (int jj = 0; jj < ejnum_pad; jj++) {
           acc_t fjxtmp, fjytmp, fjztmp, fjtmp;
           fjxtmp = fjytmp = fjztmp = (acc_t)0.0;
           if (EFLAG) fjtmp = (acc_t)0.0;
-	  int ijtype;
+          int ijtype;
 
-	  if (!ONETYPE) ijtype = tjtype[jj] + itype_offset;
+          if (!ONETYPE) ijtype = tjtype[jj] + itype_offset;
           const flt_t rsq1 = trsq[jj];
 
           const flt_t rinvsq1 = (flt_t)1.0 / rsq1;
           const flt_t r1 = (flt_t)1.0/sqrt(rinvsq1);
-	  if (!ONETYPE) cut = p2f[ijtype].cut;
+          if (!ONETYPE) cut = p2f[ijtype].cut;
           const flt_t rainv1 = (flt_t)1.0 / (r1 - cut);
-	  
-	  // two-body interactions, skip half of them
-	  flt_t rp, rq;
-	  if (SPQ == 1) {
-	    rp = r1 * r1;
-	    rp *= rp;
-	    rp = (flt_t)1.0 / rp;
-	    rq = (flt_t)1.0;
-	  } else {
+
+          // two-body interactions, skip half of them
+          flt_t rp, rq;
+          if (SPQ == 1) {
+            rp = r1 * r1;
+            rp *= rp;
+            rp = (flt_t)1.0 / rp;
+            rq = (flt_t)1.0;
+          } else {
             if (!ONETYPE) {
               powerp = p2f[ijtype].powerp;
-	      powerq = p2f[ijtype].powerq;
+              powerq = p2f[ijtype].powerq;
             }
-	    rp = std::pow(r1, powerp);
-	    rq = std::pow(r1, powerq);
-	  }
-
-	  if (!ONETYPE) {
-            sigma = p2f[ijtype].sigma;
-	    c1 = p2f2[ijtype].c1;
-	    c2 = p2f2[ijtype].c2;
-	    c3 = p2f2[ijtype].c3; 
-	    c4 = p2f2[ijtype].c4;
+            rp = std::pow(r1, powerp);
+            rq = std::pow(r1, powerq);
           }
 
-	  const flt_t rainvsq = rainv1 * rainv1 * r1;
-	  flt_t expsrainv = exp(sigma * rainv1);
-	  if (jj >= ejnumhalf) expsrainv = (flt_t)0.0;
-	  const flt_t fpair = (c1 * rp - c2 * rq + (c3 * rp - c4 * rq) * 
-			       rainvsq) * expsrainv * rinvsq1;
+          if (!ONETYPE) {
+            sigma = p2f[ijtype].sigma;
+            c1 = p2f2[ijtype].c1;
+            c2 = p2f2[ijtype].c2;
+            c3 = p2f2[ijtype].c3;
+            c4 = p2f2[ijtype].c4;
+          }
 
-	  const flt_t delx = tdelx[jj];
-	  const flt_t dely = tdely[jj];
-	  const flt_t delz = tdelz[jj];
-	  const flt_t fpx = fpair * delx;
-	  fxtmp -= fpx;
-	  fjxtmp += fpx;
-	  const flt_t fpy = fpair * dely;
-	  fytmp -= fpy;
-	  fjytmp += fpy;
-	  const flt_t fpz = fpair * delz;
-	  fztmp -= fpz;
-	  fjztmp += fpz;
+          const flt_t rainvsq = rainv1 * rainv1 * r1;
+          flt_t expsrainv = exp(sigma * rainv1);
+          if (jj >= ejnumhalf) expsrainv = (flt_t)0.0;
+          const flt_t fpair = (c1 * rp - c2 * rq + (c3 * rp - c4 * rq) *
+                               rainvsq) * expsrainv * rinvsq1;
 
-	  if (EFLAG) {
-	    flt_t evdwl;
-	    if (!ONETYPE) {
-	      c5 = p2e[ijtype].c5;
-	      c6 = p2e[ijtype].c6;
+          const flt_t delx = tdelx[jj];
+          const flt_t dely = tdely[jj];
+          const flt_t delz = tdelz[jj];
+          const flt_t fpx = fpair * delx;
+          fxtmp -= fpx;
+          fjxtmp += fpx;
+          const flt_t fpy = fpair * dely;
+          fytmp -= fpy;
+          fjytmp += fpy;
+          const flt_t fpz = fpair * delz;
+          fztmp -= fpz;
+          fjztmp += fpz;
+
+          if (EFLAG) {
+            flt_t evdwl;
+            if (!ONETYPE) {
+              c5 = p2e[ijtype].c5;
+              c6 = p2e[ijtype].c6;
             }
-	    evdwl = (c5 * rp - c6 * rq) * expsrainv;
-	    sevdwl += evdwl;
-	    if (eatom) {
-	      fwtmp += (flt_t)0.5 * evdwl;
-	      fjtmp += (flt_t)0.5 * evdwl;
+            evdwl = (c5 * rp - c6 * rq) * expsrainv;
+            sevdwl += evdwl;
+            if (eatom) {
+              fwtmp += (flt_t)0.5 * evdwl;
+              fjtmp += (flt_t)0.5 * evdwl;
             }
-	  }
+          }
 
-	  /*---------------------------------------------*/
+          /*---------------------------------------------*/
 
-	  int ijkoff;
-	  if (!ONETYPE) {
+          int ijkoff;
+          if (!ONETYPE) {
             sigma_gamma = p2[ijtype].sigma_gamma;
-	    ijkoff = ijtype * ntypes;
+            ijkoff = ijtype * ntypes;
           }
 
           flt_t gsrainv1 = sigma_gamma * rainv1;
@@ -446,15 +446,15 @@ void PairSWIntel::eval(const int offload, const int vflag,
 
           for (int kk = 0; kk < ejnum; kk++) {
             int iktype, ijktype;
-	    if (!ONETYPE) {
+            if (!ONETYPE) {
               iktype = tjtype[kk];
-	      ijktype = ijkoff + iktype;
-	      iktype += itype_offset;
-	      cut = p2[iktype].cut;
-	      sigma_gamma = p2[iktype].sigma_gamma;
-	      costheta = p3[ijktype].costheta;
-	      lambda_epsilon = p3[ijktype].lambda_epsilon;
-	      lambda_epsilon2 = p3[ijktype].lambda_epsilon2;
+              ijktype = ijkoff + iktype;
+              iktype += itype_offset;
+              cut = p2[iktype].cut;
+              sigma_gamma = p2[iktype].sigma_gamma;
+              costheta = p3[ijktype].costheta;
+              lambda_epsilon = p3[ijktype].lambda_epsilon;
+              lambda_epsilon2 = p3[ijktype].lambda_epsilon2;
             }
 
             flt_t delr2[3];
@@ -463,76 +463,76 @@ void PairSWIntel::eval(const int offload, const int vflag,
             delr2[2] = tdelz[kk];
             const flt_t rsq2 = trsq[kk];
 
-	    const flt_t rinvsq2 = (flt_t)1.0 / rsq2;
-	    const flt_t r2 = (flt_t)1.0 / sqrt(rinvsq2);
-	    const flt_t rainv2 = (flt_t)1.0 / (r2 - cut);
-	    const flt_t gsrainv2 = sigma_gamma * rainv2;
-	    const flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
-	    const flt_t expgsrainv2 = exp(gsrainv2);
+            const flt_t rinvsq2 = (flt_t)1.0 / rsq2;
+            const flt_t r2 = (flt_t)1.0 / sqrt(rinvsq2);
+            const flt_t rainv2 = (flt_t)1.0 / (r2 - cut);
+            const flt_t gsrainv2 = sigma_gamma * rainv2;
+            const flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
+            const flt_t expgsrainv2 = exp(gsrainv2);
 
-	    const flt_t rinv12 = (flt_t)1.0 / (r1 * r2);
-	    const flt_t cs = (delx * delr2[0] + dely * delr2[1] +
+            const flt_t rinv12 = (flt_t)1.0 / (r1 * r2);
+            const flt_t cs = (delx * delr2[0] + dely * delr2[1] +
                               delz * delr2[2]) * rinv12;
-	    const flt_t delcs = cs - costheta;
-	    const flt_t delcssq = delcs*delcs;
+            const flt_t delcs = cs - costheta;
+            const flt_t delcssq = delcs*delcs;
 
-	    flt_t kfactor;
-	    if (jj == kk || jj >= ejnum) kfactor = (flt_t)0.0;
-	    else kfactor = (flt_t)1.0;
+            flt_t kfactor;
+            if (jj == kk || jj >= ejnum) kfactor = (flt_t)0.0;
+            else kfactor = (flt_t)1.0;
 
-	    const flt_t facexp = expgsrainv1*expgsrainv2*kfactor;
-	    const flt_t facrad = lambda_epsilon * facexp * delcssq;
-	    const flt_t frad1 = facrad*gsrainvsq1;
-	    const flt_t frad2 = facrad*gsrainvsq2;
-	    const flt_t facang = lambda_epsilon2 * facexp * delcs;
-	    const flt_t facang12 = rinv12*facang;
-	    const flt_t csfacang = cs*facang;
-	    const flt_t csfac1 = rinvsq1*csfacang;
+            const flt_t facexp = expgsrainv1*expgsrainv2*kfactor;
+            const flt_t facrad = lambda_epsilon * facexp * delcssq;
+            const flt_t frad1 = facrad*gsrainvsq1;
+            const flt_t frad2 = facrad*gsrainvsq2;
+            const flt_t facang = lambda_epsilon2 * facexp * delcs;
+            const flt_t facang12 = rinv12*facang;
+            const flt_t csfacang = cs*facang;
+            const flt_t csfac1 = rinvsq1*csfacang;
 
-	    const flt_t fjx = delx*(frad1+csfac1)-delr2[0]*facang12;
-	    const flt_t fjy = dely*(frad1+csfac1)-delr2[1]*facang12;
-	    const flt_t fjz = delz*(frad1+csfac1)-delr2[2]*facang12;
+            const flt_t fjx = delx*(frad1+csfac1)-delr2[0]*facang12;
+            const flt_t fjy = dely*(frad1+csfac1)-delr2[1]*facang12;
+            const flt_t fjz = delz*(frad1+csfac1)-delr2[2]*facang12;
 
-	    fxtmp -= fjx;
-	    fytmp -= fjy;
-	    fztmp -= fjz;
-	    fjxtmp += fjx;
-	    fjytmp += fjy;
-	    fjztmp += fjz;
+            fxtmp -= fjx;
+            fytmp -= fjy;
+            fztmp -= fjz;
+            fjxtmp += fjx;
+            fjytmp += fjy;
+            fjztmp += fjz;
 
-	    if (EFLAG) {
-	      const flt_t evdwl = facrad * (flt_t)0.5;
-	      sevdwl += evdwl;
-	      if (eatom) {
-		fwtmp += (acc_t)0.33333333 * evdwl;
-		fjtmp += (acc_t)0.33333333 * facrad;
-	      }
-	    }
-	  } // for kk
-	  const int j = tj[jj];
+            if (EFLAG) {
+              const flt_t evdwl = facrad * (flt_t)0.5;
+              sevdwl += evdwl;
+              if (eatom) {
+                fwtmp += (acc_t)0.33333333 * evdwl;
+                fjtmp += (acc_t)0.33333333 * facrad;
+              }
+            }
+          } // for kk
+          const int j = tj[jj];
           f[j].x += fjxtmp;
           f[j].y += fjytmp;
           f[j].z += fjztmp;
-          if (EFLAG) 
-	    if (eatom) f[j].w += fjtmp;
+          if (EFLAG)
+            if (eatom) f[j].w += fjtmp;
         } // for jj
 
         f[i].x += fxtmp;
         f[i].y += fytmp;
         f[i].z += fztmp;
 
-	if (EFLAG) {
-	  f[i].w += fwtmp;
-	  oevdwl += sevdwl;
-	}
+        if (EFLAG) {
+          f[i].w += fwtmp;
+          oevdwl += sevdwl;
+        }
       } // for ii
 
-      IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start, f_stride, 
-			      x, offload, vflag, ov0, ov1, ov2, ov3, ov4, ov5);
+      IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start, f_stride,
+                              x, offload, vflag, ov0, ov1, ov2, ov3, ov4, ov5);
     } // end omp
 
     IP_PRE_fdotr_reduce(1, nall, nthreads, f_stride, vflag,
-			ov0, ov1, ov2, ov3, ov4, ov5);
+                        ov0, ov1, ov2, ov3, ov4, ov5);
 
     if (EFLAG) {
       ev_global[0] = oevdwl;
@@ -561,7 +561,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
     fix->add_result_array(f_start, 0, offload);
 }
 
-#else 
+#else
 
 /* ----------------------------------------------------------------------
 
@@ -577,8 +577,8 @@ authors for more details.
 template <int SPQ,int ONETYPE,int EFLAG,class flt_t,class acc_t>
 void PairSWIntel::eval(const int offload, const int vflag,
                        IntelBuffers<flt_t,acc_t> *buffers,
-                       const ForceConst<flt_t> &fc, const int astart, 
-		       const int aend, const int pad_width)
+                       const ForceConst<flt_t> &fc, const int astart,
+                       const int aend, const int pad_width)
 {
   typedef typename SIMD_type<flt_t>::SIMD_vec SIMD_flt_t;
   typedef typename SIMD_type<acc_t>::SIMD_vec SIMD_acc_t;
@@ -646,7 +646,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
     in(ccachei,ccachej,ccachef:length(0) alloc_if(0) free_if(0)) \
     in(ccache_stride,nthreads,inum,nall,ntypes,vflag,eatom,offload) \
     in(astart,nlocal,f_stride,minlocal,separate_flag,pad_width) \
-    in(ccache_stride3)						\
+    in(ccache_stride3)                                          \
     out(f_start:length(f_stride) alloc_if(0) free_if(0)) \
     out(ev_global:length(ev_size) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
@@ -669,9 +669,9 @@ void PairSWIntel::eval(const int offload, const int vflag,
     #endif
     {
       int iifrom, iip, iito, tid;
-      IP_PRE_omp_stride_id_vec(iifrom, iip, iito, tid, inum, nthreads, 
-			       swidth);
-      
+      IP_PRE_omp_stride_id_vec(iifrom, iip, iito, tid, inum, nthreads,
+                               swidth);
+
       iifrom += astart;
       iito += astart;
 
@@ -692,22 +692,22 @@ void PairSWIntel::eval(const int offload, const int vflag,
       SIMD_flt_t cutsq, cut, powerp, powerq, sigma, c1, c2, c3,c4, c5, c6;
       SIMD_flt_t sigma_gamma, costheta, lambda_epsilon, lambda_epsilon2;
       if (ONETYPE) {
-	cutsq = SIMD_set(p2[3].cutsq);
-	cut = SIMD_set(p2f[3].cut);
-	sigma = SIMD_set(p2f[3].sigma);
-	c1 = SIMD_set(p2f2[3].c1);
-	c2 = SIMD_set(p2f2[3].c2);
-	c3 = SIMD_set(p2f2[3].c3);
-	c4 = SIMD_set(p2f2[3].c4);
-	sigma_gamma = SIMD_set(p2[3].sigma_gamma);
-	costheta = SIMD_set(p3[7].costheta);
-	lambda_epsilon = SIMD_set(p3[7].lambda_epsilon);
-	lambda_epsilon2 = SIMD_set(p3[7].lambda_epsilon2);
-	if (SPQ == 0) {
-	  powerp = SIMD_set(p2f[3].powerp);
-	  powerq = SIMD_set(p2f[3].powerq);
-	}
-	if (EFLAG) {
+        cutsq = SIMD_set(p2[3].cutsq);
+        cut = SIMD_set(p2f[3].cut);
+        sigma = SIMD_set(p2f[3].sigma);
+        c1 = SIMD_set(p2f2[3].c1);
+        c2 = SIMD_set(p2f2[3].c2);
+        c3 = SIMD_set(p2f2[3].c3);
+        c4 = SIMD_set(p2f2[3].c4);
+        sigma_gamma = SIMD_set(p2[3].sigma_gamma);
+        costheta = SIMD_set(p3[7].costheta);
+        lambda_epsilon = SIMD_set(p3[7].lambda_epsilon);
+        lambda_epsilon2 = SIMD_set(p3[7].lambda_epsilon2);
+        if (SPQ == 0) {
+          powerp = SIMD_set(p2f[3].powerp);
+          powerq = SIMD_set(p2f[3].powerq);
+        }
+        if (EFLAG) {
           c5 = SIMD_set(p2e[3].c5);
           c6 = SIMD_set(p2e[3].c6);
         }
@@ -715,120 +715,120 @@ void PairSWIntel::eval(const int offload, const int vflag,
 
       SIMD_int ilist = SIMD_set(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
       const SIMD_int goffset = SIMD_set(0,16,32,48,64,80,96,112,128,
-					144,160,176,192,208,224,240);
+                                        144,160,176,192,208,224,240);
       ilist = ilist + iifrom;
       acc_t * const dforce = &(f[0].x);
       for (int i = iifrom; i < iito; i += iip) {
-	SIMD_mask imask = ilist < iito;
-	SIMD_flt_t xtmp, ytmp, ztmp;
-	SIMD_int itype, itype_offset;
+        SIMD_mask imask = ilist < iito;
+        SIMD_flt_t xtmp, ytmp, ztmp;
+        SIMD_int itype, itype_offset;
 
-	if (ONETYPE)
-	  SIMD_atom_gather(imask, &(x[i].x), goffset, xtmp, ytmp, ztmp);
-	else {
-	  SIMD_atom_gather(imask, &(x[i].x), goffset, xtmp, ytmp, ztmp, itype);
-	  itype_offset = itype * ntypes;
-	}
-
-	#ifdef OUTER_CHUNK
-	const int* ng = firstneigh + cnumneigh[i] - swidth;
-	#else
-        SIMD_int ng = SIMD_load(cnumneigh + i);
-	ng = ng - 1;
-	#endif
-	const SIMD_int jnum = SIMD_loadz(imask, numneigh + i);
-	const SIMD_int jnumhalf = SIMD_loadz(imask, numneighhalf + i);
-	const int jnum_max = SIMD_max(jnum);
-
-	SIMD_acc_t fxtmp = SIMD_set((acc_t)0);
-	SIMD_acc_t fytmp = SIMD_set((acc_t)0);
-	SIMD_acc_t fztmp = SIMD_set((acc_t)0);
-	SIMD_acc_t fwtmp, fxtmp2, fytmp2, fztmp2, fwtmp2;
-	if (is_same<flt_t,acc_t>::value == 0) {
-	  fxtmp2 = SIMD_set((acc_t)0);
-	  fytmp2 = SIMD_set((acc_t)0);
-	  fztmp2 = SIMD_set((acc_t)0);
-          if (EFLAG) fwtmp2 = SIMD_set((acc_t)0);
-	}
-
-        SIMD_acc_t sevdwl;
-	if (EFLAG) {
-          fwtmp = SIMD_set((acc_t)0);
-	  sevdwl = SIMD_set((acc_t)0);
+        if (ONETYPE)
+          SIMD_atom_gather(imask, &(x[i].x), goffset, xtmp, ytmp, ztmp);
+        else {
+          SIMD_atom_gather(imask, &(x[i].x), goffset, xtmp, ytmp, ztmp, itype);
+          itype_offset = itype * ntypes;
         }
 
-	SIMD_int ejnum = SIMD_set(0);
-	SIMD_int ejnumhalf = SIMD_set(0);
-	SIMD_int coffset = SIMD_set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
-				    11, 12, 13, 14, 15);
+        #ifdef OUTER_CHUNK
+        const int* ng = firstneigh + cnumneigh[i] - swidth;
+        #else
+        SIMD_int ng = SIMD_load(cnumneigh + i);
+        ng = ng - 1;
+        #endif
+        const SIMD_int jnum = SIMD_loadz(imask, numneigh + i);
+        const SIMD_int jnumhalf = SIMD_loadz(imask, numneighhalf + i);
+        const int jnum_max = SIMD_max(jnum);
+
+        SIMD_acc_t fxtmp = SIMD_set((acc_t)0);
+        SIMD_acc_t fytmp = SIMD_set((acc_t)0);
+        SIMD_acc_t fztmp = SIMD_set((acc_t)0);
+        SIMD_acc_t fwtmp, fxtmp2, fytmp2, fztmp2, fwtmp2;
+        if (is_same<flt_t,acc_t>::value == 0) {
+          fxtmp2 = SIMD_set((acc_t)0);
+          fytmp2 = SIMD_set((acc_t)0);
+          fztmp2 = SIMD_set((acc_t)0);
+          if (EFLAG) fwtmp2 = SIMD_set((acc_t)0);
+        }
+
+        SIMD_acc_t sevdwl;
+        if (EFLAG) {
+          fwtmp = SIMD_set((acc_t)0);
+          sevdwl = SIMD_set((acc_t)0);
+        }
+
+        SIMD_int ejnum = SIMD_set(0);
+        SIMD_int ejnumhalf = SIMD_set(0);
+        SIMD_int coffset = SIMD_set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                                    11, 12, 13, 14, 15);
         for (int jj = 0; jj < jnum_max; jj++) {
           SIMD_mask jmask = jj < jnum;
 
-	  #ifdef OUTER_CHUNK
-	  ng += swidth;
-	  SIMD_int j = SIMD_load(ng);
-	  #else
-	  ng = ng + 1;
-	  SIMD_int j = SIMD_gather(jmask, firstneigh, ng);
-	  #endif
+          #ifdef OUTER_CHUNK
+          ng += swidth;
+          SIMD_int j = SIMD_load(ng);
+          #else
+          ng = ng + 1;
+          SIMD_int j = SIMD_gather(jmask, firstneigh, ng);
+          #endif
           j = j & SIMD_set(NEIGHMASK);
-	  const SIMD_int joffset = j << 4;
+          const SIMD_int joffset = j << 4;
 
-	  SIMD_flt_t delx, dely, delz;
-	  SIMD_int jtype, ijtype;
-	  if (ONETYPE)
-	    SIMD_atom_gather(jmask, &(x[0].x), joffset, delx, dely, delz);
-	  else {
-	    SIMD_atom_gather(jmask, &(x[0].x), joffset, delx, dely, delz, 
-			     jtype);
-	    ijtype = (jtype + itype_offset) << 2;
-	    cutsq = SIMD_gather(jmask, &(p2[0].cutsq), ijtype);
-	  }
+          SIMD_flt_t delx, dely, delz;
+          SIMD_int jtype, ijtype;
+          if (ONETYPE)
+            SIMD_atom_gather(jmask, &(x[0].x), joffset, delx, dely, delz);
+          else {
+            SIMD_atom_gather(jmask, &(x[0].x), joffset, delx, dely, delz,
+                             jtype);
+            ijtype = (jtype + itype_offset) << 2;
+            cutsq = SIMD_gather(jmask, &(p2[0].cutsq), ijtype);
+          }
 
-	  delx = delx - xtmp;
-	  dely = dely - ytmp;
-	  delz = delz - ztmp;
+          delx = delx - xtmp;
+          dely = dely - ytmp;
+          delz = delz - ztmp;
           SIMD_flt_t rsq1 = delx * delx;
-	  rsq1 = SIMD_fma(dely, dely, rsq1);
-	  rsq1 = SIMD_fma(delz, delz, rsq1);
+          rsq1 = SIMD_fma(dely, dely, rsq1);
+          rsq1 = SIMD_fma(delz, delz, rsq1);
 
-	  const SIMD_mask rmask = SIMD_lt(jmask, rsq1, cutsq);
-	  SIMD_scatter(rmask, tdelx, coffset, delx);
-	  SIMD_scatter(rmask, tdely, coffset, dely);
-	  SIMD_scatter(rmask, tdelz, coffset, delz);
-	  SIMD_scatter(rmask, trsq, coffset, rsq1);
-	  SIMD_scatter(rmask, tj, coffset, j);
-	  if (!ONETYPE) SIMD_scatter(rmask, tjtype, coffset, jtype);
-	  ejnum = SIMD_add(rmask, ejnum, 1);
-	  coffset = SIMD_add(rmask, coffset, swidth);
-	  const SIMD_mask hmask = SIMD_lt(rmask, SIMD_set(jj), jnumhalf);
-	  ejnumhalf = SIMD_add(hmask, ejnumhalf, 1);
-	}
+          const SIMD_mask rmask = SIMD_lt(jmask, rsq1, cutsq);
+          SIMD_scatter(rmask, tdelx, coffset, delx);
+          SIMD_scatter(rmask, tdely, coffset, dely);
+          SIMD_scatter(rmask, tdelz, coffset, delz);
+          SIMD_scatter(rmask, trsq, coffset, rsq1);
+          SIMD_scatter(rmask, tj, coffset, j);
+          if (!ONETYPE) SIMD_scatter(rmask, tjtype, coffset, jtype);
+          ejnum = SIMD_add(rmask, ejnum, 1);
+          coffset = SIMD_add(rmask, coffset, swidth);
+          const SIMD_mask hmask = SIMD_lt(rmask, SIMD_set(jj), jnumhalf);
+          ejnumhalf = SIMD_add(hmask, ejnumhalf, 1);
+        }
 
-	const int ejnum_max = SIMD_max(ejnum);
-	const int ejnumhalf_max = SIMD_max(ejnumhalf);
-	memset(tf, 0, ejnum_max * sizeof(acc_t) * swidth * 3);
+        const int ejnum_max = SIMD_max(ejnum);
+        const int ejnumhalf_max = SIMD_max(ejnumhalf);
+        memset(tf, 0, ejnum_max * sizeof(acc_t) * swidth * 3);
         for (int jj = 0; jj < ejnum_max; jj++) {
           SIMD_int ijtype;
-	  const int coffset = jj * swidth;
-	  if (!ONETYPE) {
-	    ijtype = SIMD_load(tjtype + coffset);
-	    ijtype = (ijtype + itype_offset) << 2;
-	    cut = SIMD_gather(&(p2f[0].cut), ijtype);
-	  }
+          const int coffset = jj * swidth;
+          if (!ONETYPE) {
+            ijtype = SIMD_load(tjtype + coffset);
+            ijtype = (ijtype + itype_offset) << 2;
+            cut = SIMD_gather(&(p2f[0].cut), ijtype);
+          }
 
-	  SIMD_acc_t fjxtmp = SIMD_set((acc_t)0);
-	  SIMD_acc_t fjytmp = SIMD_set((acc_t)0);
-	  SIMD_acc_t fjztmp = SIMD_set((acc_t)0);
-	  SIMD_acc_t fjtmp, fjxtmp2, fjytmp2, fjztmp2, fjtmp2;
+          SIMD_acc_t fjxtmp = SIMD_set((acc_t)0);
+          SIMD_acc_t fjytmp = SIMD_set((acc_t)0);
+          SIMD_acc_t fjztmp = SIMD_set((acc_t)0);
+          SIMD_acc_t fjtmp, fjxtmp2, fjytmp2, fjztmp2, fjtmp2;
           if (EFLAG) fjtmp = SIMD_set((acc_t)0.0);
 
-	  if (is_same<flt_t,acc_t>::value == 0) {
-	    fjxtmp2 = SIMD_set((acc_t)0);
-	    fjytmp2 = SIMD_set((acc_t)0);
-	    fjztmp2 = SIMD_set((acc_t)0);
-	    if (EFLAG) fjtmp2 = SIMD_set((acc_t)0.0);
-	  }
+          if (is_same<flt_t,acc_t>::value == 0) {
+            fjxtmp2 = SIMD_set((acc_t)0);
+            fjytmp2 = SIMD_set((acc_t)0);
+            fjztmp2 = SIMD_set((acc_t)0);
+            if (EFLAG) fjtmp2 = SIMD_set((acc_t)0.0);
+          }
 
           const SIMD_flt_t delx = SIMD_load(tdelx + coffset);
           const SIMD_flt_t dely = SIMD_load(tdely + coffset);
@@ -836,211 +836,211 @@ void PairSWIntel::eval(const int offload, const int vflag,
           const SIMD_flt_t rsq1 = SIMD_load(trsq + coffset);
 
           const SIMD_flt_t rinvsq1 = SIMD_rcp(rsq1);
-          const SIMD_flt_t r1 = SIMD_invsqrt(rinvsq1); 
+          const SIMD_flt_t r1 = SIMD_invsqrt(rinvsq1);
           const SIMD_flt_t rainv1 = SIMD_rcp(r1 - cut);
-	  
-	  // two-body interactions, skip half of them
-	  if (jj < ejnumhalf_max) {
+
+          // two-body interactions, skip half of them
+          if (jj < ejnumhalf_max) {
             SIMD_flt_t rp, rq;
-	    if (SPQ == 1) {
+            if (SPQ == 1) {
               rp = r1 * r1;
-	      rp = rp * rp;
-	      rp = SIMD_rcp(rp);
-	      rq = SIMD_set((flt_t)1.0);
+              rp = rp * rp;
+              rp = SIMD_rcp(rp);
+              rq = SIMD_set((flt_t)1.0);
             } else {
-	      if (!ONETYPE) {
-		powerp = SIMD_gather(&(p2f[0].powerp), ijtype);
-		powerq = SIMD_gather(&(p2f[0].powerq), ijtype);
-	      }
-	      rp = SIMD_pow(r1, powerp);
-	      rq = SIMD_pow(r1, powerq);
-	    }
+              if (!ONETYPE) {
+                powerp = SIMD_gather(&(p2f[0].powerp), ijtype);
+                powerq = SIMD_gather(&(p2f[0].powerq), ijtype);
+              }
+              rp = SIMD_pow(r1, powerp);
+              rq = SIMD_pow(r1, powerq);
+            }
 
-	    if (!ONETYPE) {
-	      sigma = SIMD_gather(&(p2f[0].sigma), ijtype);
-	      c1 = SIMD_gather(&(p2f2[0].c1), ijtype);
-	      c2 = SIMD_gather(&(p2f2[0].c2), ijtype);
-	      c3 = SIMD_gather(&(p2f2[0].c3), ijtype);
-	      c4 = SIMD_gather(&(p2f2[0].c4), ijtype);
-	    }
+            if (!ONETYPE) {
+              sigma = SIMD_gather(&(p2f[0].sigma), ijtype);
+              c1 = SIMD_gather(&(p2f2[0].c1), ijtype);
+              c2 = SIMD_gather(&(p2f2[0].c2), ijtype);
+              c3 = SIMD_gather(&(p2f2[0].c3), ijtype);
+              c4 = SIMD_gather(&(p2f2[0].c4), ijtype);
+            }
 
-	    const SIMD_flt_t rainvsq = rainv1 * rainv1 * r1;
-	    const SIMD_flt_t expsrainv = SIMD_exp(sigma * rainv1);
-	    const SIMD_flt_t fpair = (c1 * rp - c2 * rq + (c3 * rp - c4 * rq) *
-				      rainvsq) * expsrainv * rinvsq1;
+            const SIMD_flt_t rainvsq = rainv1 * rainv1 * r1;
+            const SIMD_flt_t expsrainv = SIMD_exp(sigma * rainv1);
+            const SIMD_flt_t fpair = (c1 * rp - c2 * rq + (c3 * rp - c4 * rq) *
+                                      rainvsq) * expsrainv * rinvsq1;
 
-	    const SIMD_flt_t fjx = delx * fpair;
-	    const SIMD_flt_t fjy = dely * fpair;
-	    const SIMD_flt_t fjz = delz * fpair;
+            const SIMD_flt_t fjx = delx * fpair;
+            const SIMD_flt_t fjy = dely * fpair;
+            const SIMD_flt_t fjz = delz * fpair;
 
-	    const SIMD_mask hmask = jj < ejnumhalf;
-	    SIMD_accumulate3(hmask, fjx, fjy, fjz, fxtmp, fytmp, fztmp,
-			     fjxtmp, fjytmp, fjztmp, fxtmp2, fytmp2,
-			     fztmp2, fjxtmp2, fjytmp2, fjztmp2); 
-          
-	    if (EFLAG) {
-	      if (!ONETYPE) {
-		c5 = SIMD_gather(&(p2e[0].c5), ijtype);
-		c6 = SIMD_gather(&(p2e[0].c6), ijtype);
-	      }            
-	      SIMD_flt_t evdwl;
-	      evdwl = (c5 * rp - c6 * rq) * expsrainv;
-	      SIMD_acc_energy3(hmask, evdwl, eatom, sevdwl, fwtmp, fjtmp,
-			       fwtmp2, fjtmp2);
-	    }
+            const SIMD_mask hmask = jj < ejnumhalf;
+            SIMD_accumulate3(hmask, fjx, fjy, fjz, fxtmp, fytmp, fztmp,
+                             fjxtmp, fjytmp, fjztmp, fxtmp2, fytmp2,
+                             fztmp2, fjxtmp2, fjytmp2, fjztmp2);
+
+            if (EFLAG) {
+              if (!ONETYPE) {
+                c5 = SIMD_gather(&(p2e[0].c5), ijtype);
+                c6 = SIMD_gather(&(p2e[0].c6), ijtype);
+              }
+              SIMD_flt_t evdwl;
+              evdwl = (c5 * rp - c6 * rq) * expsrainv;
+              SIMD_acc_energy3(hmask, evdwl, eatom, sevdwl, fwtmp, fjtmp,
+                               fwtmp2, fjtmp2);
+            }
           }
 
-	  /*---------------------------------------------*/
-	  SIMD_int ijkoff;
-	  if (!ONETYPE) {
-	    sigma_gamma = SIMD_gather(&(p2[0].sigma_gamma), ijtype);
-	    ijkoff = ijtype * ntypes;
-	  }
+          /*---------------------------------------------*/
+          SIMD_int ijkoff;
+          if (!ONETYPE) {
+            sigma_gamma = SIMD_gather(&(p2[0].sigma_gamma), ijtype);
+            ijkoff = ijtype * ntypes;
+          }
           const SIMD_flt_t gsrainv1 = sigma_gamma * rainv1;
           const SIMD_flt_t gsrainvsq1 = gsrainv1 * rainv1 / r1;
           const SIMD_flt_t expgsrainv1 = SIMD_exp(gsrainv1);
 
-	  const SIMD_mask jmask = jj < ejnum;
+          const SIMD_mask jmask = jj < ejnum;
           for (int kk = jj+1; kk < ejnum_max; kk++) {
-	    SIMD_int iktype, ijktype;
-	    const int kcoffset = kk * swidth;
-	    if (!ONETYPE) {
-	      iktype = SIMD_load(tjtype + kcoffset);
-	      ijktype = ijkoff + (iktype << 2);
-	      iktype = (iktype + itype_offset) << 2;
-	      cut = SIMD_gather(&(p2[0].cut), iktype);
-	      sigma_gamma = SIMD_gather(&(p2[0].sigma_gamma), iktype);
-	      costheta = SIMD_gather(&(p3[0].costheta), ijktype);
-	      lambda_epsilon = SIMD_gather(&(p3[0].lambda_epsilon), ijktype);
-	      lambda_epsilon2 = SIMD_gather(&(p3[0].lambda_epsilon2), ijktype);
-	    }
-	    const SIMD_flt_t delr2x = SIMD_load(tdelx + kcoffset);
-	    const SIMD_flt_t delr2y = SIMD_load(tdely + kcoffset);
-	    const SIMD_flt_t delr2z = SIMD_load(tdelz + kcoffset);
-	    const SIMD_flt_t rsq2 = SIMD_load(trsq + kcoffset);
+            SIMD_int iktype, ijktype;
+            const int kcoffset = kk * swidth;
+            if (!ONETYPE) {
+              iktype = SIMD_load(tjtype + kcoffset);
+              ijktype = ijkoff + (iktype << 2);
+              iktype = (iktype + itype_offset) << 2;
+              cut = SIMD_gather(&(p2[0].cut), iktype);
+              sigma_gamma = SIMD_gather(&(p2[0].sigma_gamma), iktype);
+              costheta = SIMD_gather(&(p3[0].costheta), ijktype);
+              lambda_epsilon = SIMD_gather(&(p3[0].lambda_epsilon), ijktype);
+              lambda_epsilon2 = SIMD_gather(&(p3[0].lambda_epsilon2), ijktype);
+            }
+            const SIMD_flt_t delr2x = SIMD_load(tdelx + kcoffset);
+            const SIMD_flt_t delr2y = SIMD_load(tdely + kcoffset);
+            const SIMD_flt_t delr2z = SIMD_load(tdelz + kcoffset);
+            const SIMD_flt_t rsq2 = SIMD_load(trsq + kcoffset);
 
-	    const SIMD_flt_t rinvsq2 = SIMD_rcp(rsq2);
-	    const SIMD_flt_t r2 = SIMD_invsqrt(rinvsq2);
-	    const SIMD_flt_t rainv2 = SIMD_rcp(r2 - cut);
-	    const SIMD_flt_t gsrainv2 = sigma_gamma * rainv2;
-	    const SIMD_flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
-	    const SIMD_flt_t expgsrainv2 = SIMD_exp(gsrainv2);
-	    const SIMD_flt_t rinv12 = SIMD_rcp(r1 * r2);
-	    const SIMD_flt_t cs = (delx * delr2x + dely * delr2y + 
+            const SIMD_flt_t rinvsq2 = SIMD_rcp(rsq2);
+            const SIMD_flt_t r2 = SIMD_invsqrt(rinvsq2);
+            const SIMD_flt_t rainv2 = SIMD_rcp(r2 - cut);
+            const SIMD_flt_t gsrainv2 = sigma_gamma * rainv2;
+            const SIMD_flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
+            const SIMD_flt_t expgsrainv2 = SIMD_exp(gsrainv2);
+            const SIMD_flt_t rinv12 = SIMD_rcp(r1 * r2);
+            const SIMD_flt_t cs = (delx * delr2x + dely * delr2y +
                               delz * delr2z) * rinv12;
-	    const SIMD_flt_t delcs = cs - costheta;
-	    const SIMD_flt_t delcssq = delcs*delcs;
+            const SIMD_flt_t delcs = cs - costheta;
+            const SIMD_flt_t delcssq = delcs*delcs;
 
-	    const SIMD_flt_t facexp = expgsrainv1*expgsrainv2;
-	    const SIMD_flt_t facrad = lambda_epsilon * facexp * delcssq;
-	    const SIMD_flt_t frad1 = facrad * gsrainvsq1;
-	    const SIMD_flt_t frad2 = facrad * gsrainvsq2;
-	    const SIMD_flt_t facang = lambda_epsilon2 * facexp * delcs;
-	    const SIMD_flt_t facang12 = rinv12 * facang;
-	    const SIMD_flt_t csfacang = cs * facang;
+            const SIMD_flt_t facexp = expgsrainv1*expgsrainv2;
+            const SIMD_flt_t facrad = lambda_epsilon * facexp * delcssq;
+            const SIMD_flt_t frad1 = facrad * gsrainvsq1;
+            const SIMD_flt_t frad2 = facrad * gsrainvsq2;
+            const SIMD_flt_t facang = lambda_epsilon2 * facexp * delcs;
+            const SIMD_flt_t facang12 = rinv12 * facang;
+            const SIMD_flt_t csfacang = cs * facang;
 
-	    const SIMD_flt_t csfac1 = rinvsq1 * csfacang;
-	    const SIMD_flt_t fjx = delx * (frad1 + csfac1)-delr2x*facang12;
-	    const SIMD_flt_t fjy = dely * (frad1 + csfac1)-delr2y*facang12;
-	    const SIMD_flt_t fjz = delz * (frad1 + csfac1)-delr2z*facang12;
+            const SIMD_flt_t csfac1 = rinvsq1 * csfacang;
+            const SIMD_flt_t fjx = delx * (frad1 + csfac1)-delr2x*facang12;
+            const SIMD_flt_t fjy = dely * (frad1 + csfac1)-delr2y*facang12;
+            const SIMD_flt_t fjz = delz * (frad1 + csfac1)-delr2z*facang12;
 
-	    const SIMD_flt_t csfac2 = rinvsq2 * csfacang;
-	    SIMD_flt_t fkx = delx * facang12 - delr2x * (frad2 + csfac2);
-	    SIMD_flt_t fky = dely * facang12 - delr2y * (frad2 + csfac2);
-	    SIMD_flt_t fkz = delz * facang12 - delr2z * (frad2 + csfac2);
+            const SIMD_flt_t csfac2 = rinvsq2 * csfacang;
+            SIMD_flt_t fkx = delx * facang12 - delr2x * (frad2 + csfac2);
+            SIMD_flt_t fky = dely * facang12 - delr2y * (frad2 + csfac2);
+            SIMD_flt_t fkz = delz * facang12 - delr2z * (frad2 + csfac2);
 
-	    const SIMD_mask kmask = SIMD_lt(jmask, kk, ejnum);
+            const SIMD_mask kmask = SIMD_lt(jmask, kk, ejnum);
 
-	    SIMD_acc_cache3(kmask, fjx, fjy, fjz, fkx, fky, fkz, fxtmp, fytmp,
-			    fztmp, fjxtmp, fjytmp, fjztmp, fxtmp2, fytmp2,
-			    fztmp2, fjxtmp2, fjytmp2, fjztmp2, 
-			    tf + kcoffset * 3, swidth); 
+            SIMD_acc_cache3(kmask, fjx, fjy, fjz, fkx, fky, fkz, fxtmp, fytmp,
+                            fztmp, fjxtmp, fjytmp, fjztmp, fxtmp2, fytmp2,
+                            fztmp2, fjxtmp2, fjytmp2, fjztmp2,
+                            tf + kcoffset * 3, swidth);
 
-	    if (EFLAG) {
-	      SIMD_int k;
-	      if (eatom) {
-		k = SIMD_load(tj + kcoffset);
-		k = k << 4;
-	      }
-	      SIMD_acc_three(kmask, facrad, eatom, sevdwl, fwtmp, fjtmp,
-			     fwtmp2, fjtmp2, k, dforce);
-	    }
-	  } // for kk
-	  if (is_same<flt_t,acc_t>::value == 1)
-	    SIMD_cache3(tf + coffset * 3, swidth, fjxtmp, fjytmp, fjztmp);
-	  else
-	    SIMD_cache3(tf + coffset * 3, swidth, fjxtmp, fjytmp, fjztmp, 
-	                fjxtmp2, fjytmp2, fjztmp2);
+            if (EFLAG) {
+              SIMD_int k;
+              if (eatom) {
+                k = SIMD_load(tj + kcoffset);
+                k = k << 4;
+              }
+              SIMD_acc_three(kmask, facrad, eatom, sevdwl, fwtmp, fjtmp,
+                             fwtmp2, fjtmp2, k, dforce);
+            }
+          } // for kk
+          if (is_same<flt_t,acc_t>::value == 1)
+            SIMD_cache3(tf + coffset * 3, swidth, fjxtmp, fjytmp, fjztmp);
+          else
+            SIMD_cache3(tf + coffset * 3, swidth, fjxtmp, fjytmp, fjztmp,
+                        fjxtmp2, fjytmp2, fjztmp2);
 
-	  if (EFLAG) {
-	    if (eatom) { 
-	      SIMD_int j = SIMD_load(tj + coffset);
-	      j = j << 4;
-	      SIMD_jeng_update(jmask, dforce + 3, j, fjtmp);
-	      if (is_same<flt_t,acc_t>::value == 0)
-		SIMD_jeng_update_hi(jmask, dforce + 3, j, fjtmp2);
-	    }
-	  }
+          if (EFLAG) {
+            if (eatom) {
+              SIMD_int j = SIMD_load(tj + coffset);
+              j = j << 4;
+              SIMD_jeng_update(jmask, dforce + 3, j, fjtmp);
+              if (is_same<flt_t,acc_t>::value == 0)
+                SIMD_jeng_update_hi(jmask, dforce + 3, j, fjtmp2);
+            }
+          }
         } // for jj first loop
 
         for (int jj = 0; jj < ejnum_max; jj++) {
-	  const int coffset = jj * swidth;
-	  const SIMD_mask jmask = jj < ejnum;
+          const int coffset = jj * swidth;
+          const SIMD_mask jmask = jj < ejnum;
           const SIMD_int j = SIMD_load(tj + coffset);
-	  const SIMD_int joffset = j << 4;
+          const SIMD_int joffset = j << 4;
 
-	  SIMD_acc_t fjxtmp, fjytmp, fjztmp, fjxtmp2, fjytmp2, fjztmp2;
-	  int foffset = swidth;
-	  if (is_same<flt_t,acc_t>::value == 0) foffset = foffset >> 1;
-	  acc_t *p = tf + coffset * 3;
-	  fjxtmp = SIMD_load(p);
-	  if (is_same<flt_t,acc_t>::value == 0) {
-	    p = p + foffset;
-	    fjxtmp2 = SIMD_load(p);
-	  }
-	  p = p + foffset;
-	  fjytmp = SIMD_load(p);
-	  if (is_same<flt_t,acc_t>::value == 0) {
-	    p = p + foffset;
-	    fjytmp2 = SIMD_load(p);
-	  }
-	  p = p + foffset;
-	  fjztmp = SIMD_load(p);
-	  if (is_same<flt_t,acc_t>::value == 0) {
-	    p = p + foffset;
-	    fjztmp2 = SIMD_load(p);
-	  }
-	  
-	  SIMD_conflict_pi_reduce3(jmask, joffset, fjxtmp, fjytmp, fjztmp);
-	  SIMD_jforce_update(jmask, dforce, joffset, fjxtmp, fjytmp, 
-			     fjztmp);
+          SIMD_acc_t fjxtmp, fjytmp, fjztmp, fjxtmp2, fjytmp2, fjztmp2;
+          int foffset = swidth;
+          if (is_same<flt_t,acc_t>::value == 0) foffset = foffset >> 1;
+          acc_t *p = tf + coffset * 3;
+          fjxtmp = SIMD_load(p);
           if (is_same<flt_t,acc_t>::value == 0) {
-	    SIMD_int joffset2 = _mm512_shuffle_i32x4(joffset, joffset, 238);
-	    SIMD_mask jmask2 = jmask >> 8;
-	    SIMD_conflict_pi_reduce3(jmask2, joffset2, fjxtmp2, fjytmp2, 
-				     fjztmp2);
-	    SIMD_jforce_update(jmask2, dforce, joffset2, fjxtmp2, fjytmp2, 
-			       fjztmp2);
-	  }
-	} // for jj second loop
+            p = p + foffset;
+            fjxtmp2 = SIMD_load(p);
+          }
+          p = p + foffset;
+          fjytmp = SIMD_load(p);
+          if (is_same<flt_t,acc_t>::value == 0) {
+            p = p + foffset;
+            fjytmp2 = SIMD_load(p);
+          }
+          p = p + foffset;
+          fjztmp = SIMD_load(p);
+          if (is_same<flt_t,acc_t>::value == 0) {
+            p = p + foffset;
+            fjztmp2 = SIMD_load(p);
+          }
 
-	SIMD_iforce_update(imask, &(f[i].x), goffset, fxtmp, fytmp, fztmp,
-			   EFLAG, eatom, fwtmp);
-	if (is_same<flt_t,acc_t>::value == 0) {
-	  imask = imask >> 8;
-	  SIMD_iforce_update(imask, &(f[i+8].x), goffset, fxtmp2, fytmp2, 
-			     fztmp2, EFLAG, eatom, fwtmp2);
-	}
-	if (EFLAG) oevdwl += SIMD_sum(sevdwl);
-	ilist = ilist + iip;
+          SIMD_conflict_pi_reduce3(jmask, joffset, fjxtmp, fjytmp, fjztmp);
+          SIMD_jforce_update(jmask, dforce, joffset, fjxtmp, fjytmp,
+                             fjztmp);
+          if (is_same<flt_t,acc_t>::value == 0) {
+            SIMD_int joffset2 = _mm512_shuffle_i32x4(joffset, joffset, 238);
+            SIMD_mask jmask2 = jmask >> 8;
+            SIMD_conflict_pi_reduce3(jmask2, joffset2, fjxtmp2, fjytmp2,
+                                     fjztmp2);
+            SIMD_jforce_update(jmask2, dforce, joffset2, fjxtmp2, fjytmp2,
+                               fjztmp2);
+          }
+        } // for jj second loop
+
+        SIMD_iforce_update(imask, &(f[i].x), goffset, fxtmp, fytmp, fztmp,
+                           EFLAG, eatom, fwtmp);
+        if (is_same<flt_t,acc_t>::value == 0) {
+          imask = imask >> 8;
+          SIMD_iforce_update(imask, &(f[i+8].x), goffset, fxtmp2, fytmp2,
+                             fztmp2, EFLAG, eatom, fwtmp2);
+        }
+        if (EFLAG) oevdwl += SIMD_sum(sevdwl);
+        ilist = ilist + iip;
       } // for ii
 
-      IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start, f_stride, 
-			      x, offload, vflag, ov0, ov1, ov2, ov3, ov4, ov5);
+      IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start, f_stride,
+                              x, offload, vflag, ov0, ov1, ov2, ov3, ov4, ov5);
     } // end omp
-  
+
     IP_PRE_fdotr_reduce(1, nall, nthreads, f_stride, vflag,
-			ov0, ov1, ov2, ov3, ov4, ov5);
+                        ov0, ov1, ov2, ov3, ov4, ov5);
 
     if (EFLAG) {
       ev_global[0] = oevdwl;
@@ -1119,7 +1119,7 @@ void PairSWIntel::init_style()
   #if defined(__INTEL_COMPILER)
   if (__INTEL_COMPILER_BUILD_DATE < 20141023)
     error->all(FLERR, "Intel compiler versions before "
-	       "15 Update 1 not supported for sw/intel");
+               "15 Update 1 not supported for sw/intel");
   #endif
 }
 
@@ -1168,7 +1168,7 @@ void PairSWIntel::pack_force_const(ForceConst<flt_t> &fc,
       }
     }
   }
-  
+
   _onetype = 0;
   if (atom->ntypes == 1) _onetype = 1;
 
@@ -1178,55 +1178,55 @@ void PairSWIntel::pack_force_const(ForceConst<flt_t> &fc,
     for (int jj = 0; jj < tp1; jj++) {
       int j = map[jj];
       if (i < 0 || j < 0 || ii == 0 || jj == 0) {
-	fc.p2[ii][jj].cutsq = 0;
-	fc.p2[ii][jj].cut = 0;
-	fc.p2[ii][jj].sigma_gamma = 0;
-	fc.p2f[ii][jj].cut = 0;
-	fc.p2f[ii][jj].powerp = 0;
-	fc.p2f[ii][jj].powerq = 0;
-	fc.p2f[ii][jj].sigma = 0;
-	fc.p2f2[ii][jj].c1 = 0;
-	fc.p2f2[ii][jj].c2 = 0;
-	fc.p2f2[ii][jj].c3 = 0;
-	fc.p2f2[ii][jj].c4 = 0;
-	fc.p2e[ii][jj].c5 = 0;
-	fc.p2e[ii][jj].c6 = 0;
+        fc.p2[ii][jj].cutsq = 0;
+        fc.p2[ii][jj].cut = 0;
+        fc.p2[ii][jj].sigma_gamma = 0;
+        fc.p2f[ii][jj].cut = 0;
+        fc.p2f[ii][jj].powerp = 0;
+        fc.p2f[ii][jj].powerq = 0;
+        fc.p2f[ii][jj].sigma = 0;
+        fc.p2f2[ii][jj].c1 = 0;
+        fc.p2f2[ii][jj].c2 = 0;
+        fc.p2f2[ii][jj].c3 = 0;
+        fc.p2f2[ii][jj].c4 = 0;
+        fc.p2e[ii][jj].c5 = 0;
+        fc.p2e[ii][jj].c6 = 0;
       } else {
-	int ijparam = elem2param[i][j][j];
-	fc.p2[ii][jj].cutsq = params[ijparam].cutsq;
-	fc.p2[ii][jj].cut = params[ijparam].cut;
-	fc.p2[ii][jj].sigma_gamma = params[ijparam].sigma_gamma;
-	fc.p2f[ii][jj].cut = params[ijparam].cut;
-	fc.p2f[ii][jj].powerp = -params[ijparam].powerp;
-	fc.p2f[ii][jj].powerq = -params[ijparam].powerq;
-	fc.p2f[ii][jj].sigma = params[ijparam].sigma;
-	fc.p2f2[ii][jj].c1 = params[ijparam].c1;
-	fc.p2f2[ii][jj].c2 = params[ijparam].c2;
-	fc.p2f2[ii][jj].c3 = params[ijparam].c3;
-	fc.p2f2[ii][jj].c4 = params[ijparam].c4;
-	fc.p2e[ii][jj].c5 = params[ijparam].c5;
-	fc.p2e[ii][jj].c6 = params[ijparam].c6;
+        int ijparam = elem2param[i][j][j];
+        fc.p2[ii][jj].cutsq = params[ijparam].cutsq;
+        fc.p2[ii][jj].cut = params[ijparam].cut;
+        fc.p2[ii][jj].sigma_gamma = params[ijparam].sigma_gamma;
+        fc.p2f[ii][jj].cut = params[ijparam].cut;
+        fc.p2f[ii][jj].powerp = -params[ijparam].powerp;
+        fc.p2f[ii][jj].powerq = -params[ijparam].powerq;
+        fc.p2f[ii][jj].sigma = params[ijparam].sigma;
+        fc.p2f2[ii][jj].c1 = params[ijparam].c1;
+        fc.p2f2[ii][jj].c2 = params[ijparam].c2;
+        fc.p2f2[ii][jj].c3 = params[ijparam].c3;
+        fc.p2f2[ii][jj].c4 = params[ijparam].c4;
+        fc.p2e[ii][jj].c5 = params[ijparam].c5;
+        fc.p2e[ii][jj].c6 = params[ijparam].c6;
 
-	double cutcut = params[ijparam].cut * params[ijparam].cut;
-	if (params[ijparam].cutsq >= cutcut)
-	  fc.p2[ii][jj].cutsq *= 0.98;
+        double cutcut = params[ijparam].cut * params[ijparam].cut;
+        if (params[ijparam].cutsq >= cutcut)
+          fc.p2[ii][jj].cutsq *= 0.98;
 
-	if (params[ijparam].powerp != 4.0 || params[ijparam].powerq != 0.0)
-	  _spq = 0;
+        if (params[ijparam].powerp != 4.0 || params[ijparam].powerq != 0.0)
+          _spq = 0;
       }
 
       for (int kk = 0; kk < tp1; kk++) {
         int k = map[kk];
-	if (i < 0 || j < 0 || k < 0  || ii == 0 || jj == 0 || kk == 0) {
-	  fc.p3[ii][jj][kk].costheta = 0;
-	  fc.p3[ii][jj][kk].lambda_epsilon = 0;
-	  fc.p3[ii][jj][kk].lambda_epsilon2 = 0;
-	} else {
-	  int ijkparam = elem2param[i][j][k];
-	  fc.p3[ii][jj][kk].costheta = params[ijkparam].costheta;
-	  fc.p3[ii][jj][kk].lambda_epsilon = params[ijkparam].lambda_epsilon;
-	  fc.p3[ii][jj][kk].lambda_epsilon2 = params[ijkparam].lambda_epsilon2;
-	}
+        if (i < 0 || j < 0 || k < 0  || ii == 0 || jj == 0 || kk == 0) {
+          fc.p3[ii][jj][kk].costheta = 0;
+          fc.p3[ii][jj][kk].lambda_epsilon = 0;
+          fc.p3[ii][jj][kk].lambda_epsilon2 = 0;
+        } else {
+          int ijkparam = elem2param[i][j][k];
+          fc.p3[ii][jj][kk].costheta = params[ijkparam].costheta;
+          fc.p3[ii][jj][kk].lambda_epsilon = params[ijkparam].lambda_epsilon;
+          fc.p3[ii][jj][kk].lambda_epsilon2 = params[ijkparam].lambda_epsilon2;
+        }
       }
     }
   }
@@ -1247,10 +1247,10 @@ void PairSWIntel::pack_force_const(ForceConst<flt_t> &fc,
   flt_t * ocutneighsq = cutneighsq[0];
   int tp1sq = tp1 * tp1;
   int tp1cu = tp1sq * tp1;
-  if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL && 
+  if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL &&
       op3 != NULL && ocutneighsq != NULL) {
     #pragma offload_transfer target(mic:_cop) \
-      in(op2,op2f,op2f2,op2e: length(tp1sq) alloc_if(0) free_if(0))	\
+      in(op2,op2f,op2f2,op2e: length(tp1sq) alloc_if(0) free_if(0))     \
       in(op3: length(tp1cu) alloc_if(0) free_if(0)) \
       in(ocutneighsq: length(tp1sq))
   }
@@ -1272,8 +1272,8 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       fc_packed3 *op3 = p3[0][0];
 
       #ifdef _LMP_INTEL_OFFLOAD
-      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL && 
-	  op3 != NULL && _cop >= 0) {
+      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL &&
+          op3 != NULL && _cop >= 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(op2, op2f, op2f2, op2e, op3: alloc_if(0) free_if(1))
       }
@@ -1301,8 +1301,8 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       fc_packed3 *op3 = p3[0][0];
       int tp1sq = ntypes * ntypes;
       int tp1cu = tp1sq * ntypes;
-      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL && 
-	  op3 != NULL && cop >= 0) {
+      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL &&
+          op3 != NULL && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(op2,op2f,op2f2,op2e: length(tp1sq) alloc_if(1) free_if(0)) \
           nocopy(op3: length(tp1cu) alloc_if(1) free_if(0))

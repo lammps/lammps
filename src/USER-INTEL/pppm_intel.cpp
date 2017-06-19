@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: William McDoniel (RWTH Aachen University)
                          Rodrigo Canales (RWTH Aachen University)
-			 Markus Hoehnerbach (RWTH Aachen University)
+                         Markus Hoehnerbach (RWTH Aachen University)
                          W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
@@ -62,10 +62,10 @@ PPPMIntel::PPPMIntel(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 
   perthread_density = NULL;
   particle_ekx = particle_eky = particle_ekz = NULL;
-  
+
   rho_lookup = drho_lookup = NULL;
   rho_points = 0;
-  
+
   vdxy_brick = vdz0_brick = NULL;
   work3 = NULL;
   cg_pack = NULL;
@@ -120,20 +120,20 @@ void PPPMIntel::init()
   if ((comm->nthreads > 1) && !_use_lrt) {
     memory->destroy(perthread_density);
     memory->create(perthread_density, comm->nthreads-1,
-		   ngrid + INTEL_P3M_ALIGNED_MAXORDER,
+                   ngrid + INTEL_P3M_ALIGNED_MAXORDER,
                    "pppmintel:perthread_density");
   }
-  
+
   _use_table = fix->pppm_table();
   if (_use_table) {
     rho_points = 5000;
     memory->destroy(rho_lookup);
     memory->create(rho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
-		   "pppmintel:rho_lookup");
+                   "pppmintel:rho_lookup");
     if(differentiation_flag == 1) {
       memory->destroy(drho_lookup);
       memory->create(drho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
-		     "pppmintel:drho_lookup");
+                     "pppmintel:drho_lookup");
     }
     precompute_rho();
   }
@@ -141,7 +141,7 @@ void PPPMIntel::init()
   if (order > INTEL_P3M_MAXORDER)
     error->all(FLERR,"PPPM order greater than supported by USER-INTEL\n");
 
-  _use_packing = (order == 7) && (INTEL_VECTOR_WIDTH == 16) 
+  _use_packing = (order == 7) && (INTEL_VECTOR_WIDTH == 16)
                               && (sizeof(FFT_SCALAR) == sizeof(float))
                               && (differentiation_flag == 0);
   if (_use_packing) {
@@ -149,13 +149,13 @@ void PPPMIntel::init()
     memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdxy_brick, nzlo_out, nylo_out, 2*nxlo_out);
-    memory->create3d_offset(vdxy_brick, nzlo_out, nzhi_out+2, 
-			    nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
-			    "pppmintel:vdxy_brick");
+    memory->create3d_offset(vdxy_brick, nzlo_out, nzhi_out+2,
+                            nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
+                            "pppmintel:vdxy_brick");
     memory->destroy3d_offset(vdz0_brick, nzlo_out, nylo_out, 2*nxlo_out);
-    memory->create3d_offset(vdz0_brick, nzlo_out, nzhi_out+2, 
-			    nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
-			    "pppmintel:vdz0_brick");
+    memory->create3d_offset(vdz0_brick, nzlo_out, nzhi_out+2,
+                            nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
+                            "pppmintel:vdz0_brick");
     memory->destroy(work3);
     memory->create(work3, 2*nfft_both, "pppmintel:work3");
 
@@ -163,10 +163,10 @@ void PPPMIntel::init()
     delete cg_pack;
     int (*procneigh)[2] = comm->procneigh;
     cg_pack = new GridComm(lmp,world,2,0, 2*nxlo_in,2*nxhi_in+1,nylo_in,
-			   nyhi_in,nzlo_in,nzhi_in, 2*nxlo_out,2*nxhi_out+1,
-			   nylo_out,nyhi_out,nzlo_out,nzhi_out,
-			   procneigh[0][0],procneigh[0][1],procneigh[1][0],
-			   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+                           nyhi_in,nzlo_in,nzhi_in, 2*nxlo_out,2*nxhi_out+1,
+                           nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                           procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                           procneigh[1][1],procneigh[2][0],procneigh[2][1]);
 
     cg_pack->ghost_notify();
     cg_pack->setup();
@@ -484,7 +484,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
   {
     const int nix = nxhi_out - nxlo_out + 1;
     const int niy = nyhi_out - nylo_out + 1;
-  
+
     const flt_t lo0 = boxlo[0];
     const flt_t lo1 = boxlo[1];
     const flt_t lo2 = boxlo[2];
@@ -503,7 +503,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
     memset(my_density, 0, ngrid * sizeof(FFT_SCALAR));
 
     for (int i = ifrom; i < ito; i++) {
-  
+
       int nx = part2grid[i][0];
       int ny = part2grid[i][1];
       int nz = part2grid[i][2];
@@ -515,9 +515,9 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
       FFT_SCALAR dx = nx+fshiftone - (x[i].x-lo0)*xi;
       FFT_SCALAR dy = ny+fshiftone - (x[i].y-lo1)*yi;
       FFT_SCALAR dz = nz+fshiftone - (x[i].z-lo2)*zi;
-  
+
       _alignvar(flt_t rho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-  
+
       if (use_table) {
         dx = dx*half_rho_scale + half_rho_scale_plus;
         int idx = dx;
@@ -527,7 +527,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
-        #endif   
+        #endif
         for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
           rho[1][k] = rho_lookup[idy][k];
@@ -536,11 +536,11 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
-        #endif   
+        #endif
         for (int k = nlower; k <= nupper; k++) {
           FFT_SCALAR r1,r2,r3;
           r1 = r2 = r3 = ZEROF;
-  
+
           for (int l = order-1; l >= 0; l--) {
             r1 = rho_coeff[l][k] + r1*dx;
             r2 = rho_coeff[l][k] + r2*dy;
@@ -551,24 +551,24 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
           rho[2][k-nlower] = r3;
         }
       }
-  
+
       FFT_SCALAR z0 = fdelvolinv * q[i];
 
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count=7
-      #endif   
+      #endif
       for (int n = 0; n < order; n++) {
         int mz = n*nix*niy + nzsum;
         FFT_SCALAR y0 = z0*rho[2][n];
         #if defined(LMP_SIMD_COMPILER)
         #pragma loop_count=7
-        #endif   
+        #endif
         for (int m = 0; m < order; m++) {
           int mzy = m*nix + mz;
           FFT_SCALAR x0 = y0*rho[1][m];
           #if defined(LMP_SIMD_COMPILER)
           #pragma simd
-          #endif   
+          #endif
           for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
             int mzyx = l + mzy;
             my_density[mzyx] += x0*rho[0][l];
@@ -709,21 +709,21 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
 
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count=7
-      #endif   
+      #endif
       for (int n = 0; n < order; n++) {
         int mz = n+nzsum;
         FFT_SCALAR z0 = rho2[n];
         #if defined(LMP_SIMD_COMPILER)
         #pragma loop_count=7
-        #endif   
+        #endif
         for (int m = 0; m < order; m++) {
           int my = m+nysum;
           FFT_SCALAR y0 = z0*rho1[m];
           #if defined(LMP_SIMD_COMPILER)
           #pragma simd
-          #endif   
+          #endif
           for (int l = 0; l < (use_packing ? 2 : 1) *
-		 INTEL_P3M_ALIGNED_MAXORDER; l++) {
+                 INTEL_P3M_ALIGNED_MAXORDER; l++) {
             int mx = l+nxsum;
             FFT_SCALAR x0 = y0*rho0[l];
             if (use_packing) {
@@ -824,13 +824,13 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
     const flt_t fsf_coeff3 = sf_coeff[3];
     const flt_t fsf_coeff4 = sf_coeff[4];
     const flt_t fsf_coeff5 = sf_coeff[5];
-  
+
     int ifrom, ito, tid;
     IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
 
     _alignvar(flt_t rho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
     _alignvar(flt_t drho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-  
+
     for (int i = ifrom; i < ito; i++) {
       int nx = part2grid[i][0];
       int ny = part2grid[i][1];
@@ -838,11 +838,11 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       FFT_SCALAR dx = nx+fshiftone - (x[i].x-lo0)*xi;
       FFT_SCALAR dy = ny+fshiftone - (x[i].y-lo1)*yi;
       FFT_SCALAR dz = nz+fshiftone - (x[i].z-lo2)*zi;
-  
+
       int nxsum = nx + nlower;
       int nysum = ny + nlower;
       int nzsum = nz + nlower;
-  
+
       if (use_table) {
         dx = dx*half_rho_scale + half_rho_scale_plus;
         int idx = dx;
@@ -852,7 +852,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
-        #endif   
+        #endif
         for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
           rho[1][k] = rho_lookup[idy][k];
@@ -864,11 +864,11 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
-        #endif   
+        #endif
         for (int k = nlower; k <= nupper; k++) {
           FFT_SCALAR r1,r2,r3,dr1,dr2,dr3;
           dr1 = dr2 = dr3 = ZEROF;
-  
+
           r1 = rho_coeff[order-1][k];
           r2 = rho_coeff[order-1][k];
           r3 = rho_coeff[order-1][k];
@@ -888,21 +888,21 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
           drho[2][k-nlower] = dr3;
         }
       }
-  
+
       _alignvar(FFT_SCALAR ekx[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
       _alignvar(FFT_SCALAR eky[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
       _alignvar(FFT_SCALAR ekz[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-  
+
       particle_ekx[i] = particle_eky[i] = particle_ekz[i] = ZEROF;
-  
+
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count=7
-      #endif   
+      #endif
       for (int n = 0; n < order; n++) {
         int mz = n + nzsum;
         #if defined(LMP_SIMD_COMPILER)
         #pragma loop_count=7
-        #endif   
+        #endif
         for (int m = 0; m < order; m++) {
           int my = m + nysum;
           FFT_SCALAR ekx_p = rho[1][m] * rho[2][n];
@@ -910,7 +910,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
           FFT_SCALAR ekz_p = rho[1][m] * drho[2][n];
           #if defined(LMP_SIMD_COMPILER)
           #pragma simd
-          #endif   
+          #endif
           for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
             int mx = l + nxsum;
             ekx[l] += drho[0][l] * ekx_p * u_brick[mz][my][mx];
@@ -919,17 +919,17 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
           }
         }
       }
-  
+
       #if defined(LMP_SIMD_COMPILER)
       #pragma simd
       #endif
       for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++){
-      	particle_ekx[i] += ekx[l];
-      	particle_eky[i] += eky[l];
-      	particle_ekz[i] += ekz[l];
+        particle_ekx[i] += ekx[l];
+        particle_eky[i] += eky[l];
+        particle_ekz[i] += ekz[l];
       }
     }
-  
+
     #if defined(LMP_SIMD_COMPILER)
     #pragma simd
     #endif
@@ -937,12 +937,12 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       particle_ekx[i] *= hx_inv;
       particle_eky[i] *= hy_inv;
       particle_ekz[i] *= hz_inv;
-  
+
       // convert E-field to force
-  
+
       const flt_t qfactor = fqqrd2es * q[i];
       const flt_t twoqsq = (flt_t)2.0 * q[i] * q[i];
-  
+
       const flt_t s1 = x[i].x * hx_inv;
       const flt_t s2 = x[i].y * hy_inv;
       const flt_t s3 = x[i].z * hz_inv;
@@ -950,16 +950,16 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       sf += fsf_coeff1 * sin(ffour_pi * s1);
       sf *= twoqsq;
       f[i].x += qfactor * particle_ekx[i] - fqqrd2es * sf;
-  
+
       sf = fsf_coeff2 * sin(ftwo_pi * s2);
       sf += fsf_coeff3 * sin(ffour_pi * s2);
       sf *= twoqsq;
       f[i].y += qfactor * particle_eky[i] - fqqrd2es * sf;
-  
+
       sf = fsf_coeff4 * sin(ftwo_pi * s3);
       sf += fsf_coeff5 * sin(ffour_pi * s3);
       sf *= twoqsq;
-  
+
       if (slabflag != 2) f[i].z += qfactor * particle_ekz[i] - fqqrd2es * sf;
     }
   }
@@ -1000,7 +1000,7 @@ void PPPMIntel::poisson_ik_intel()
       n = 0;
       for (i = 0; i < nfft; i++) {
         eng = s2 * greensfn[i] * (work1[n]*work1[n] +
-				  work1[n+1]*work1[n+1]);
+                                  work1[n+1]*work1[n+1]);
         for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
         if (eflag_global) energy += eng;
         n += 2;
@@ -1069,10 +1069,10 @@ void PPPMIntel::poisson_ik_intel()
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
         vdxy_brick[k][j][2*i] = work2[n];
-	vdxy_brick[k][j][2*i+1] = work3[n];
+        vdxy_brick[k][j][2*i+1] = work3[n];
         n += 2;
       }
-  
+
   // z direction gradient
 
   n = 0;
@@ -1091,7 +1091,7 @@ void PPPMIntel::poisson_ik_intel()
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
         vdz0_brick[k][j][2*i] = work2[n];
-	vdz0_brick[k][j][2*i+1] = 0.;
+        vdz0_brick[k][j][2*i+1] = 0.;
         n += 2;
       }
 }
@@ -1202,7 +1202,7 @@ double PPPMIntel::memory_usage()
     }
   }
   if (_use_packing) {
-    bytes += 2 * (nzhi_out + 2 - nzlo_out + 1) * (nyhi_out - nylo_out + 1) 
+    bytes += 2 * (nzhi_out + 2 - nzlo_out + 1) * (nyhi_out - nylo_out + 1)
                * (2 * nxhi_out + 1 - 2 * nxlo_out + 1) * sizeof(FFT_SCALAR);
     bytes -= 3 * (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1)
                * (nzhi_out - nzlo_out + 1) * sizeof(FFT_SCALAR);
@@ -1228,7 +1228,7 @@ void PPPMIntel::pack_buffers()
   {
     int ifrom, ito, tid;
     IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost,
-                              packthreads, 
+                              packthreads,
                               sizeof(IntelBuffers<float,double>::atom_t));
     if (fix->precision() == FixIntel::PREC_MODE_MIXED)
       fix->get_mixed_buffers()->thr_pack(ifrom,ito,1);

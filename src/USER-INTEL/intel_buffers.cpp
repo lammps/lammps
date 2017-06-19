@@ -71,8 +71,8 @@ void IntelBuffers<flt_t, acc_t>::free_buffers()
       if (ev_global != 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(x:alloc_if(0) free_if(1)) \
-	  nocopy(f_start:alloc_if(0) free_if(1)) \
-	  nocopy(ev_global:alloc_if(0) free_if(1))
+          nocopy(f_start:alloc_if(0) free_if(1)) \
+          nocopy(ev_global:alloc_if(0) free_if(1))
       }
 
       if (q != 0) {
@@ -105,8 +105,8 @@ void IntelBuffers<flt_t, acc_t>::free_buffers()
 
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
-				       const int nthreads,
-				       const int offload_end)
+                                       const int nthreads,
+                                       const int offload_end)
 {
   free_buffers();
   _buf_size = static_cast<double>(nall) * 1.1 + 1;
@@ -151,15 +151,15 @@ void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
       if (x != NULL && q != NULL && f_start != NULL && ev_global != NULL) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(x,q:length(_buf_size) alloc_if(1) free_if(0)) \
-	  nocopy(f_start:length(f_stride*fm) alloc_if(1) free_if(0))\
-	  nocopy(ev_global:length(8) alloc_if(1) free_if(0))
+          nocopy(f_start:length(f_stride*fm) alloc_if(1) free_if(0))\
+          nocopy(ev_global:length(8) alloc_if(1) free_if(0))
       }
     } else {
       if (x != NULL && f_start != NULL && ev_global != NULL) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(x:length(_buf_size) alloc_if(1) free_if(0)) \
           nocopy(f_start:length(f_stride*fm) alloc_if(1) free_if(0))\
-	  nocopy(ev_global:length(8) alloc_if(1) free_if(0))
+          nocopy(ev_global:length(8) alloc_if(1) free_if(0))
       }
     }
     if (lmp->atom->ellipsoid != NULL) {
@@ -186,7 +186,7 @@ void IntelBuffers<flt_t, acc_t>::free_nmax()
     if (tag != 0 && special != 0 && nspecial !=0) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(tag:alloc_if(0) free_if(1)) \
-	nocopy(special,nspecial:alloc_if(0) free_if(1))
+        nocopy(special,nspecial:alloc_if(0) free_if(1))
     }
     _off_map_nmax = 0;
     _host_nmax = 0;
@@ -261,7 +261,7 @@ void IntelBuffers<flt_t, acc_t>::free_list_local()
 
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow_list_local(NeighList *list,
-	                                          const int offload_end)
+                                                  const int offload_end)
 {
   free_list_local();
   int size = list->get_maxlocal();
@@ -276,7 +276,7 @@ void IntelBuffers<flt_t, acc_t>::_grow_list_local(NeighList *list,
     if (cnumneigh != 0) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ilist:length(size) alloc_if(1) free_if(0)) \
-	nocopy(numneigh:length(size) alloc_if(1) free_if(0)) \
+        nocopy(numneigh:length(size) alloc_if(1) free_if(0)) \
         nocopy(cnumneigh:length(size) alloc_if(1) free_if(0))
     }
     _off_map_ilist = ilist;
@@ -309,14 +309,14 @@ void IntelBuffers<flt_t, acc_t>::free_nbor_list()
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list,
                                                  const int nlocal,
-	                                         const int nthreads,
-	                                         const int offload_end,
-	                                         const int pack_width)
+                                                 const int nthreads,
+                                                 const int offload_end,
+                                                 const int pack_width)
 {
   free_nbor_list();
   _list_alloc_atoms = 1.10 * nlocal;
   int nt = MAX(nthreads, _off_threads);
-  int list_alloc_size = (_list_alloc_atoms + nt * 2 + pack_width - 1) * 
+  int list_alloc_size = (_list_alloc_atoms + nt * 2 + pack_width - 1) *
     get_max_nbors();
   lmp->memory->create(_list_alloc, list_alloc_size, "_list_alloc");
   #ifdef _LMP_INTEL_OFFLOAD
@@ -380,8 +380,8 @@ void IntelBuffers<flt_t, acc_t>::free_ccache()
 
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
-	const int nthreads,
-	const int width)
+        const int nthreads,
+        const int width)
 {
   #ifdef _LMP_INTEL_OFFLOAD
   if (_ccachex && off_flag && _off_ccache == 0)
@@ -418,7 +418,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
     int *ccachej = _ccachej;
 
     if (ccachex != NULL && ccachey !=NULL && ccachez != NULL &&
-	ccachew != NULL && ccachei != NULL && ccachej !=NULL) {
+        ccachew != NULL && ccachei != NULL && ccachej !=NULL) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ccachex,ccachey:length(vsize) alloc_if(1) free_if(0)) \
         nocopy(ccachez,ccachew:length(vsize) alloc_if(1) free_if(0)) \
@@ -471,7 +471,7 @@ void IntelBuffers<flt_t, acc_t>::free_ncache()
 
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
-					     const int nthreads)
+                                             const int nthreads)
 {
   const int nsize = get_max_nbors() * 3;
   int esize = MIN(sizeof(int), sizeof(flt_t));
@@ -507,7 +507,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
     int *ncachejtype = _ncachejtype;
 
     if (ncachex != NULL && ncachey !=NULL && ncachez != NULL &&
-	ncachej != NULL && ncachejtype != NULL) {
+        ncachej != NULL && ncachejtype != NULL) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ncachex,ncachey:length(vsize) alloc_if(1) free_if(0)) \
         nocopy(ncachez,ncachej:length(vsize) alloc_if(1) free_if(0)) \
@@ -522,9 +522,9 @@ void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
 
 #ifndef _LMP_INTEL_OFFLOAD
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::fdotr_reduce_l5(const int lf, const int lt, 
+void IntelBuffers<flt_t, acc_t>::fdotr_reduce_l5(const int lf, const int lt,
     const int nthreads, const int f_stride, acc_t &ov0, acc_t &ov1,
-    acc_t &ov2, acc_t &ov3, acc_t &ov4, acc_t &ov5) 
+    acc_t &ov2, acc_t &ov3, acc_t &ov4, acc_t &ov5)
 {
   IP_PRE_fdotr_acc_force_l5(lf, lt, 0, nthreads, _f, f_stride, _x, ov0,
                             ov1, ov2, ov3, ov4, ov5);
@@ -535,13 +535,13 @@ void IntelBuffers<flt_t, acc_t>::fdotr_reduce_l5(const int lf, const int lt,
 
 #ifndef _LMP_INTEL_OFFLOAD
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::fdotr_reduce(const int nall, 
-    const int nthreads, const int f_stride, acc_t &ov0, acc_t &ov1, 
+void IntelBuffers<flt_t, acc_t>::fdotr_reduce(const int nall,
+    const int nthreads, const int f_stride, acc_t &ov0, acc_t &ov1,
     acc_t &ov2, acc_t &ov3, acc_t &ov4, acc_t &ov5)
 {
   int iifrom, iito, tid;
   IP_PRE_fdotr_acc_force(nall, 0, nthreads, _f, f_stride, _x, 0, 2,
-			 ov0, ov1, ov2, ov3, ov4, ov5);
+                         ov0, ov1, ov2, ov3, ov4, ov5);
 }
 #endif
 

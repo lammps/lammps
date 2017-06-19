@@ -37,7 +37,7 @@ typedef struct { int a,b,c,t;  } int4_t;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonicIntel::AngleHarmonicIntel(LAMMPS *lmp) : AngleHarmonic(lmp) 
+AngleHarmonicIntel::AngleHarmonicIntel(LAMMPS *lmp) : AngleHarmonic(lmp)
 {
   suffix_flag |= Suffix::INTEL;
 }
@@ -74,8 +74,8 @@ void AngleHarmonicIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void AngleHarmonicIntel::compute(int eflag, int vflag,
-			       IntelBuffers<flt_t,acc_t> *buffers,
-			       const ForceConst<flt_t> &fc)
+                               IntelBuffers<flt_t,acc_t> *buffers,
+                               const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
@@ -83,14 +83,14 @@ void AngleHarmonicIntel::compute(int eflag, int vflag,
   if (evflag) {
     if (vflag && !eflag) {
       if (force->newton_bond)
-	eval<0,1,1>(vflag, buffers, fc);
+        eval<0,1,1>(vflag, buffers, fc);
       else
-	eval<0,1,0>(vflag, buffers, fc);
+        eval<0,1,0>(vflag, buffers, fc);
     } else {
       if (force->newton_bond)
-	eval<1,1,1>(vflag, buffers, fc);
+        eval<1,1,1>(vflag, buffers, fc);
       else
-	eval<1,1,0>(vflag, buffers, fc);
+        eval<1,1,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -103,9 +103,9 @@ void AngleHarmonicIntel::compute(int eflag, int vflag,
 /* ---------------------------------------------------------------------- */
 
 template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void AngleHarmonicIntel::eval(const int vflag, 
-			    IntelBuffers<flt_t,acc_t> *buffers,
-			    const ForceConst<flt_t> &fc)
+void AngleHarmonicIntel::eval(const int vflag,
+                            IntelBuffers<flt_t,acc_t> *buffers,
+                            const ForceConst<flt_t> &fc)
 
 {
   const int inum = neighbor->nanglelist;
@@ -133,7 +133,7 @@ void AngleHarmonicIntel::eval(const int vflag,
 
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
-    shared(f_start,f_stride,fc)	\
+    shared(f_start,f_stride,fc) \
     reduction(+:oeangle,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif
   {
@@ -148,7 +148,7 @@ void AngleHarmonicIntel::eval(const int vflag,
     if (fix->need_zero(tid))
       memset(f, 0, f_stride * sizeof(FORCE_T));
 
-    const int4_t * _noalias const anglelist = 
+    const int4_t * _noalias const anglelist =
       (int4_t *) neighbor->anglelist[0];
 
     #ifdef LMP_INTEL_USE_SIMDOFF
@@ -228,35 +228,35 @@ void AngleHarmonicIntel::eval(const int vflag,
       {
         if (NEWTON_BOND || i1 < nlocal) {
           f[i1].x += f1x;
-	  f[i1].y += f1y;
-	  f[i1].z += f1z;
+          f[i1].y += f1y;
+          f[i1].z += f1z;
         }
 
-	if (NEWTON_BOND || i2 < nlocal) {
+        if (NEWTON_BOND || i2 < nlocal) {
           f[i2].x -= f1x + f3x;
-	  f[i2].y -= f1y + f3y;
-	  f[i2].z -= f1z + f3z;
+          f[i2].y -= f1y + f3y;
+          f[i2].z -= f1z + f3z;
         }
 
         if (NEWTON_BOND || i3 < nlocal) {
           f[i3].x += f3x;
-	  f[i3].y += f3y;
-	  f[i3].z += f3z;
+          f[i3].y += f3y;
+          f[i3].z += f3z;
         }
       }
 
       if (EFLAG || VFLAG) {
         #ifdef LMP_INTEL_USE_SIMDOFF
-	IP_PRE_ev_tally_angle(EFLAG, VFLAG, eatom, vflag, eangle, i1, i2, i3,
-                              f1x, f1y, f1z, f3x, f3y, f3z, delx1, dely1, 
-                              delz1, delx2, dely2, delz2, seangle, f, 
-                              NEWTON_BOND, nlocal, sv0, sv1, sv2, sv3, sv4, 
+        IP_PRE_ev_tally_angle(EFLAG, VFLAG, eatom, vflag, eangle, i1, i2, i3,
+                              f1x, f1y, f1z, f3x, f3y, f3z, delx1, dely1,
+                              delz1, delx2, dely2, delz2, seangle, f,
+                              NEWTON_BOND, nlocal, sv0, sv1, sv2, sv3, sv4,
                               sv5);
         #else
-	IP_PRE_ev_tally_angle(EFLAG, VFLAG, eatom, vflag, eangle, i1, i2, i3,
-                              f1x, f1y, f1z, f3x, f3y, f3z, delx1, dely1, 
-                              delz1, delx2, dely2, delz2, oeangle, f, 
-                              NEWTON_BOND, nlocal, ov0, ov1, ov2, ov3, ov4, 
+        IP_PRE_ev_tally_angle(EFLAG, VFLAG, eatom, vflag, eangle, i1, i2, i3,
+                              f1x, f1y, f1z, f3x, f3y, f3z, delx1, dely1,
+                              delz1, delx2, dely2, delz2, oeangle, f,
+                              NEWTON_BOND, nlocal, ov0, ov1, ov2, ov3, ov4,
                               ov5);
         #endif
       }
@@ -264,8 +264,8 @@ void AngleHarmonicIntel::eval(const int vflag,
     #ifdef LMP_INTEL_USE_SIMDOFF
     if (EFLAG) oeangle += seangle;
     if (VFLAG && vflag) {
-        ov0 += sv0; ov1 += sv1; ov2 += sv2; 
-	ov3 += sv3; ov4 += sv4; ov5 += sv5;
+        ov0 += sv0; ov1 += sv1; ov2 += sv2;
+        ov3 += sv3; ov4 += sv4; ov5 += sv5;
     }
     #endif
   } // omp parallel
@@ -273,7 +273,7 @@ void AngleHarmonicIntel::eval(const int vflag,
   if (EFLAG) energy += oeangle;
   if (VFLAG && vflag) {
     virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5; 
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
   }
 
   fix->set_reduce_flag();
@@ -328,11 +328,11 @@ void AngleHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
 
 template <class flt_t>
 void AngleHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nangletypes,
-	                                             Memory *memory) {
+                                                     Memory *memory) {
   if (nangletypes != _nangletypes) {
     if (_nangletypes > 0)
       _memory->destroy(fc);
-    
+
     if (nangletypes > 0)
       _memory->create(fc,nangletypes,"anglecharmmintel.fc");
   }

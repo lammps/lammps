@@ -42,7 +42,7 @@ typedef struct { int a,b,c,d,t;  } int5_t;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperCvffIntel::ImproperCvffIntel(LAMMPS *lmp) : 
+ImproperCvffIntel::ImproperCvffIntel(LAMMPS *lmp) :
   ImproperCvff(lmp)
 {
   suffix_flag |= Suffix::INTEL;
@@ -80,8 +80,8 @@ void ImproperCvffIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void ImproperCvffIntel::compute(int eflag, int vflag,
-				    IntelBuffers<flt_t,acc_t> *buffers,
-				    const ForceConst<flt_t> &fc)
+                                    IntelBuffers<flt_t,acc_t> *buffers,
+                                    const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
@@ -89,14 +89,14 @@ void ImproperCvffIntel::compute(int eflag, int vflag,
   if (evflag) {
     if (vflag && !eflag) {
       if (force->newton_bond)
-	eval<0,1,1>(vflag, buffers, fc);
+        eval<0,1,1>(vflag, buffers, fc);
       else
-	eval<0,1,0>(vflag, buffers, fc);
+        eval<0,1,0>(vflag, buffers, fc);
     } else {
       if (force->newton_bond)
-	eval<1,1,1>(vflag, buffers, fc);
+        eval<1,1,1>(vflag, buffers, fc);
       else
-	eval<1,1,0>(vflag, buffers, fc);
+        eval<1,1,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -109,9 +109,9 @@ void ImproperCvffIntel::compute(int eflag, int vflag,
 /* ---------------------------------------------------------------------- */
 
 template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void ImproperCvffIntel::eval(const int vflag, 
-				 IntelBuffers<flt_t,acc_t> *buffers,
-				 const ForceConst<flt_t> &fc)
+void ImproperCvffIntel::eval(const int vflag,
+                                 IntelBuffers<flt_t,acc_t> *buffers,
+                                 const ForceConst<flt_t> &fc)
 {
   const int inum = neighbor->nimproperlist;
   if (inum == 0) return;
@@ -153,7 +153,7 @@ void ImproperCvffIntel::eval(const int vflag,
     if (fix->need_zero(tid))
       memset(f, 0, f_stride * sizeof(FORCE_T));
 
-    const int5_t * _noalias const improperlist = 
+    const int5_t * _noalias const improperlist =
       (int5_t *) neighbor->improperlist[0];
 
     #ifdef LMP_INTEL_USE_SIMDOFF_FIX
@@ -230,22 +230,22 @@ void ImproperCvffIntel::eval(const int vflag,
       #ifndef LMP_INTEL_USE_SIMDOFF_FIX
       if (c > PTOLERANCE || c < MTOLERANCE) {
         int me;
-	MPI_Comm_rank(world,&me);
-	if (screen) {
+        MPI_Comm_rank(world,&me);
+        if (screen) {
           char str[128];
-	  sprintf(str,"Improper problem: %d " BIGINT_FORMAT " "
+          sprintf(str,"Improper problem: %d " BIGINT_FORMAT " "
                   TAGINT_FORMAT " " TAGINT_FORMAT " "
                   TAGINT_FORMAT " " TAGINT_FORMAT,
                   me,update->ntimestep,
                   atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	  error->warning(FLERR,str,0);
-	  fprintf(screen,"  1st atom: %d %g %g %g\n",
+          error->warning(FLERR,str,0);
+          fprintf(screen,"  1st atom: %d %g %g %g\n",
                   me,x[i1].x,x[i1].y,x[i1].z);
-	  fprintf(screen,"  2nd atom: %d %g %g %g\n",
+          fprintf(screen,"  2nd atom: %d %g %g %g\n",
                   me,x[i2].x,x[i2].y,x[i2].z);
-	  fprintf(screen,"  3rd atom: %d %g %g %g\n",
+          fprintf(screen,"  3rd atom: %d %g %g %g\n",
                   me,x[i3].x,x[i3].y,x[i3].z);
-	  fprintf(screen,"  4th atom: %d %g %g %g\n",
+          fprintf(screen,"  4th atom: %d %g %g %g\n",
                   me,x[i4].x,x[i4].y,x[i4].z);
         }
       }
@@ -268,35 +268,35 @@ void ImproperCvffIntel::eval(const int vflag,
       {
         if (m == 2) {
           p = (flt_t)2.0*c*c;
-	  pd = (flt_t)2.0*c;
+          pd = (flt_t)2.0*c;
         } else if (m == 3) {
-	  const flt_t rc2 = c*c;
-	  p = ((flt_t)4.0*rc2-(flt_t)3.0)*c + (flt_t)1.0;
-	  pd = (flt_t)6.0*rc2 - (flt_t)1.5;
+          const flt_t rc2 = c*c;
+          p = ((flt_t)4.0*rc2-(flt_t)3.0)*c + (flt_t)1.0;
+          pd = (flt_t)6.0*rc2 - (flt_t)1.5;
         } else if (m == 4) {
           const flt_t rc2 = c*c;
-	  p = (flt_t)8.0*(rc2-1)*rc2 + (flt_t)2.0;
-	  pd = ((flt_t)16.0*rc2-(flt_t)8.0)*c;
+          p = (flt_t)8.0*(rc2-1)*rc2 + (flt_t)2.0;
+          pd = ((flt_t)16.0*rc2-(flt_t)8.0)*c;
         } else if (m == 6) {
           const flt_t rc2 = c*c;
-	  p = (((flt_t)32.0*rc2-(flt_t)48.0)*rc2 + (flt_t)18.0)*rc2;
-	  pd = ((flt_t)96.0*(rc2-(flt_t)1.0)*rc2 + (flt_t)18.0)*c;
+          p = (((flt_t)32.0*rc2-(flt_t)48.0)*rc2 + (flt_t)18.0)*rc2;
+          pd = ((flt_t)96.0*(rc2-(flt_t)1.0)*rc2 + (flt_t)18.0)*c;
         } else if (m == 1) {
-	  p = c + (flt_t)1.0;
-	  pd = (flt_t)0.5;
+          p = c + (flt_t)1.0;
+          pd = (flt_t)0.5;
         } else if (m == 5) {
-	  const flt_t rc2 = c*c;
-	  p = (((flt_t)16.0*rc2-(flt_t)20.0)*rc2 + (flt_t)5.0)*c + (flt_t)1.0;
-	  pd = ((flt_t)40.0*rc2-(flt_t)30.0)*rc2 + (flt_t)2.5;
+          const flt_t rc2 = c*c;
+          p = (((flt_t)16.0*rc2-(flt_t)20.0)*rc2 + (flt_t)5.0)*c + (flt_t)1.0;
+          pd = ((flt_t)40.0*rc2-(flt_t)30.0)*rc2 + (flt_t)2.5;
         } else if (m == 0) {
           p = (flt_t)2.0;
-	  pd = (flt_t)0.0;
+          pd = (flt_t)0.0;
         }
       }
 
       if (fc.fc[type].sign == -1) {
-	p = (flt_t)2.0 - p;
-	pd = -pd;
+        p = (flt_t)2.0 - p;
+        pd = -pd;
       }
 
       flt_t eimproper;
@@ -340,43 +340,43 @@ void ImproperCvffIntel::eval(const int vflag,
       {
         if (NEWTON_BOND || i1 < nlocal) {
           f[i1].x += f1x;
-	  f[i1].y += f1y;
-	  f[i1].z += f1z;
+          f[i1].y += f1y;
+          f[i1].z += f1z;
         }
 
         if (NEWTON_BOND || i2 < nlocal) {
           f[i2].x += f2x;
-	  f[i2].y += f2y;
-	  f[i2].z += f2z;
+          f[i2].y += f2y;
+          f[i2].z += f2z;
         }
 
-	if (NEWTON_BOND || i3 < nlocal) {
+        if (NEWTON_BOND || i3 < nlocal) {
           f[i3].x += f3x;
-	  f[i3].y += f3y;
-	  f[i3].z += f3z;
+          f[i3].y += f3y;
+          f[i3].z += f3z;
         }
 
         if (NEWTON_BOND || i4 < nlocal) {
           f[i4].x += f4x;
-	  f[i4].y += f4y;
-	  f[i4].z += f4z;
+          f[i4].y += f4y;
+          f[i4].z += f4z;
         }
       }
 
       if (EFLAG || VFLAG) {
         #ifdef LMP_INTEL_USE_SIMDOFF_FIX
-	IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, eimproper, i1, i2, 
-                              i3, i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, 
-                              f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, 
-                              vb3x, vb3y, vb3z, seimproper, f, NEWTON_BOND, 
+        IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, eimproper, i1, i2,
+                              i3, i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y,
+                              f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm,
+                              vb3x, vb3y, vb3z, seimproper, f, NEWTON_BOND,
                               nlocal, sv0, sv1, sv2, sv3, sv4, sv5);
-	#else
-	IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, eimproper, i1, i2, 
-                              i3, i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, 
-                              f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, 
-                              vb3x, vb3y, vb3z, oeimproper, f, NEWTON_BOND, 
+        #else
+        IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, eimproper, i1, i2,
+                              i3, i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y,
+                              f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm,
+                              vb3x, vb3y, vb3z, oeimproper, f, NEWTON_BOND,
                               nlocal, ov0, ov1, ov2, ov3, ov4, ov5);
-	#endif
+        #endif
       }
     } // for n
     #ifdef LMP_INTEL_USE_SIMDOFF_FIX
@@ -390,7 +390,7 @@ void ImproperCvffIntel::eval(const int vflag,
   if (EFLAG) energy += oeimproper;
   if (VFLAG && vflag) {
     virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5; 
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
   }
 
   fix->set_reduce_flag();
@@ -428,7 +428,7 @@ void ImproperCvffIntel::init_style()
 
 template <class flt_t, class acc_t>
 void ImproperCvffIntel::pack_force_const(ForceConst<flt_t> &fc,
-					     IntelBuffers<flt_t,acc_t> *buffers)
+                                             IntelBuffers<flt_t,acc_t> *buffers)
 {
   const int bp1 = atom->nimpropertypes + 1;
   fc.set_ntypes(bp1,memory);
@@ -444,11 +444,11 @@ void ImproperCvffIntel::pack_force_const(ForceConst<flt_t> &fc,
 
 template <class flt_t>
 void ImproperCvffIntel::ForceConst<flt_t>::set_ntypes(const int nimproper,
-	                                                  Memory *memory) {
+                                                          Memory *memory) {
   if (nimproper != _nimpropertypes) {
     if (_nimpropertypes > 0)
       _memory->destroy(fc);
-    
+
     if (nimproper > 0)
       _memory->create(fc,nimproper,"improperharmonicintel.fc");
   }

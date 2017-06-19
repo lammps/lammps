@@ -50,8 +50,8 @@ private:
 
   template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
   void eval(const int offload, const int vflag,
-	    IntelBuffers<flt_t,acc_t> * buffers,
-	    const ForceConst<flt_t> &fc, const int astart, const int aend);
+            IntelBuffers<flt_t,acc_t> * buffers,
+            const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc,
@@ -59,7 +59,7 @@ private:
 
   template <class flt_t>
   class ForceConst {
-  
+
   public:
     typedef struct { flt_t buck1, buck2, rhoinv, cutsq; } c_force_t;
     typedef struct { flt_t a, c, offset, pad; } c_energy_t;
@@ -78,7 +78,7 @@ private:
     int _ntypes, _cop;
     Memory *_memory;
   };
-  
+
   ForceConst<float> force_const_single;
   ForceConst<double> force_const_double;
 };

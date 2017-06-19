@@ -47,7 +47,7 @@ void PairTersoffIntel::init_style()
 {
   if (comm->me == 0) {
     error->warning(FLERR, "Tersoff/intel currently requires intel compiler. "
-		   "Using MANYBODY version.");
+                   "Using MANYBODY version.");
   }
   PairTersoff::init_style();
 }
@@ -87,7 +87,7 @@ PairTersoffIntel::PairTersoffIntel(LAMMPS *lmp) : PairTersoff(lmp)
 void PairTersoffIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED) {
-    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(), 
+    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
                           force_const_single);
   } else if (fix->precision()==FixIntel::PREC_MODE_DOUBLE) {
     compute<double,double>(eflag, vflag, fix->get_double_buffers(),
@@ -104,8 +104,8 @@ void PairTersoffIntel::compute(int eflag, int vflag)
 //  do we need to calculate energy/virial
 template <class flt_t, class acc_t>
 void PairTersoffIntel::compute(int eflag, int vflag,
-				     IntelBuffers<flt_t,acc_t> *buffers,
-				     const ForceConst<flt_t> &fc)
+                                     IntelBuffers<flt_t,acc_t> *buffers,
+                                     const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -127,13 +127,13 @@ void PairTersoffIntel::compute(int eflag, int vflag,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, 
-				packthreads, sizeof(ATOM_T));
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
+                                packthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
-  
+
   int ovflag = 0;
   if (vflag_fdotr) ovflag = 2;
   else if (vflag) ovflag = 1;
@@ -170,14 +170,14 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
   // what's done in here is that they are inlined and vectorized
   // attractive() also provides an option to compute zeta as well
   static fvec zeta_vector(
-      const c_inner_t * param, 
-      ivec xjw, bvec mask, 
-      fvec vrij, fvec rsq2, 
-      fvec vdijx, fvec vdijy, fvec vdijz, 
+      const c_inner_t * param,
+      ivec xjw, bvec mask,
+      fvec vrij, fvec rsq2,
+      fvec vdijx, fvec vdijy, fvec vdijz,
       fvec dikx, fvec diky, fvec dikz
   );
   static void force_zeta_vector(
-      const c_outer_t * param, 
+      const c_outer_t * param,
       ivec xjw,
       bvec mask,
       fvec vrijsq, fvec vzeta_ij,
@@ -202,14 +202,14 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
   // perform the actual computation
   template<bool EFLAG>
   static void kernel(
-      int iito, int iifrom, int eatom, int vflag, 
+      int iito, int iifrom, int eatom, int vflag,
       const int * _noalias const numneigh,
       const int * _noalias const numneighhalf,
-      const int * _noalias const cnumneigh, 
-      const int * _noalias const firstneigh, int ntypes, 
+      const int * _noalias const cnumneigh,
+      const int * _noalias const firstneigh, int ntypes,
       typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
-      const c_inner_t * _noalias const c_inner, 
-      const c_outer_t * _noalias const c_outer, 
+      const c_inner_t * _noalias const c_inner,
+      const c_outer_t * _noalias const c_outer,
       typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
       acc_t *evdwl
   );
@@ -217,14 +217,14 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
   // perform one step of calculation, pass in i-j pairs of atoms (is, js)
   template<int EFLAG>
   static void kernel_step(
-      int eatom, int vflag, 
+      int eatom, int vflag,
       const int * _noalias const numneigh,
-      const int * _noalias const cnumneigh, 
-      const int * _noalias const firstneigh, 
+      const int * _noalias const cnumneigh,
+      const int * _noalias const firstneigh,
       int ntypes,
       typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
-      const c_inner_t * _noalias const c_inner, 
-      const c_outer_t * _noalias const c_outer, 
+      const c_inner_t * _noalias const c_inner,
+      const c_outer_t * _noalias const c_outer,
       typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
       avec *vsevdwl, int compress_idx, iarr is, iarr js, bvec vmask_repulsive
   );
@@ -233,12 +233,12 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
   //  with fixed i and a number of js
   template<int EFLAG>
   static void kernel_step_const_i(
-    int eatom, int vflag, 
-    const int * _noalias const numneigh, const int * _noalias const cnumneigh, 
-    const int * _noalias const firstneigh, int ntypes, 
+    int eatom, int vflag,
+    const int * _noalias const numneigh, const int * _noalias const cnumneigh,
+    const int * _noalias const firstneigh, int ntypes,
     typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
-    const c_inner_t * _noalias const c_inner, 
-    const c_outer_t * _noalias const c_outer, 
+    const c_inner_t * _noalias const c_inner,
+    const c_outer_t * _noalias const c_outer,
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
     avec *vsevdwl, int compress_idx, int i, iarr js, bvec vmask_repulsive
   );
@@ -255,9 +255,9 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
 // This method is nearly identical to what happens in the other /intel styles
 template <int EFLAG, class flt_t, class acc_t>
 void PairTersoffIntel::eval(const int offload, const int vflag,
-				     IntelBuffers<flt_t,acc_t> *buffers,
-				     const ForceConst<flt_t> &fc,
-				     const int astart, const int aend)
+                                     IntelBuffers<flt_t,acc_t> *buffers,
+                                     const ForceConst<flt_t> &fc,
+                                     const int astart, const int aend)
 {
   const int inum = aend - astart;
   if (inum == 0) return;
@@ -289,8 +289,8 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
   // Determine how much data to transfer
   int x_size, q_size, f_stride, ev_size, separate_flag;
   IP_PRE_get_transfern(ago, 1, EFLAG, vflag,
-		       buffers, offload, fix, separate_flag,
-		       x_size, q_size, ev_size, f_stride);
+                       buffers, offload, fix, separate_flag,
+                       x_size, q_size, ev_size, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
@@ -326,8 +326,8 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
     #endif
     #endif
 
-    IP_PRE_repack_for_offload(1, separate_flag, nlocal, nall, 
-			      f_stride, x, 0);
+    IP_PRE_repack_for_offload(1, separate_flag, nlocal, nall,
+                              f_stride, x, 0);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EFLAG) oevdwl = oecoul = (acc_t)0;
@@ -354,7 +354,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
         // Pick the variable i algorithm under specific conditions
         // do use scalar algorithm with very short vectors
         int VL = lmp_intel::vector_routines<flt_t,acc_t,lmp_intel::mode>::VL;
-        bool pack_i = VL >= 8 && 
+        bool pack_i = VL >= 8 &&
           lmp_intel::vector_traits<lmp_intel::mode>::support_integer_and_gather_ops;
         bool use_scalar = VL < 4;
         if (use_scalar) {
@@ -364,16 +364,16 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
         } else {
           IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,false>::kernel<EFLAG>(ARGS);
         }
-	if (EFLAG) oevdwl += sevdwl;
+        if (EFLAG) oevdwl += sevdwl;
       }
 
       IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start,
-			      f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
-			      ov4, ov5);
+                              f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+                              ov4, ov5);
     } // end of omp parallel region
 
     IP_PRE_fdotr_reduce(1, nall, nthreads, f_stride, vflag,
-			ov0, ov1, ov2, ov3, ov4, ov5);
+                        ov0, ov1, ov2, ov3, ov4, ov5);
 
     if (EFLAG) {
       ev_global[0] = oevdwl;
@@ -431,7 +431,7 @@ void PairTersoffIntel::init_style()
     error->all(FLERR,
                "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
-  
+
   fix->pair_init_check();
   fix->three_body_neighbor(1);
   #ifdef _LMP_INTEL_OFFLOAD
@@ -481,25 +481,25 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
       for (int k = 1; k < tp1; k++) {
         Param * param = &params[elem2param[map[i]][map[j]][map[k]]];
         fc.c_cutoff_inner[i][k][j].cutsq = static_cast<flt_t>(param->cutsq);
-	fc.c_inner_loop[i][j][k].lam3 = static_cast<flt_t>(param->lam3);
+        fc.c_inner_loop[i][j][k].lam3 = static_cast<flt_t>(param->lam3);
         fc.c_inner_loop[i][j][k].bigr = static_cast<flt_t>(param->bigr);
         fc.c_inner_loop[i][j][k].bigd = static_cast<flt_t>(param->bigd);
         fc.c_inner_loop[i][j][k].c2 = static_cast<flt_t>(param->c * param->c);
         fc.c_inner_loop[i][j][k].d2 = static_cast<flt_t>(param->d * param->d);
         fc.c_inner_loop[i][j][k].h = static_cast<flt_t>(param->h);
         fc.c_inner_loop[i][j][k].gamma = static_cast<flt_t>(param->gamma);
-        fc.c_inner_loop[i][j][k].powermint = static_cast<flt_t>(param->powermint);  
+        fc.c_inner_loop[i][j][k].powermint = static_cast<flt_t>(param->powermint);
 
         fc.c_inner[i][j][k].cutsq = static_cast<flt_t>(param->cutsq);
-	fc.c_inner[i][j][k].lam3 = static_cast<flt_t>(param->lam3);
+        fc.c_inner[i][j][k].lam3 = static_cast<flt_t>(param->lam3);
         fc.c_inner[i][j][k].bigr = static_cast<flt_t>(param->bigr);
         fc.c_inner[i][j][k].bigd = static_cast<flt_t>(param->bigd);
         fc.c_inner[i][j][k].c2 = static_cast<flt_t>(param->c * param->c);
         fc.c_inner[i][j][k].d2 = static_cast<flt_t>(param->d * param->d);
         fc.c_inner[i][j][k].h = static_cast<flt_t>(param->h);
         fc.c_inner[i][j][k].gamma = static_cast<flt_t>(param->gamma);
-        fc.c_inner[i][j][k].powermint = static_cast<flt_t>(param->powermint);  
- 
+        fc.c_inner[i][j][k].powermint = static_cast<flt_t>(param->powermint);
+
       }
       Param * param = &params[elem2param[map[i]][map[j]][map[j]]];
       fc.c_cutoff_outer[i][j].cutsq = static_cast<flt_t>(param->cutsq);
@@ -515,7 +515,7 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
       fc.c_second_loop[i][j].c2 = static_cast<flt_t>(param->c2);
       fc.c_second_loop[i][j].c3 = static_cast<flt_t>(param->c3);
       fc.c_second_loop[i][j].c4 = static_cast<flt_t>(param->c4);
-     
+
       fc.c_outer[i][j].cutsq = static_cast<flt_t>(param->cutsq);
       fc.c_outer[i][j].bigr = static_cast<flt_t>(param->bigr);
       fc.c_outer[i][j].bigd = static_cast<flt_t>(param->bigd);
@@ -563,8 +563,8 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
 // As in any other /intel pair style
 template <class flt_t>
 void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
-							   Memory *memory,
-							   const int cop) {
+                                                           Memory *memory,
+                                                           const int cop) {
   if ( (ntypes != _ntypes) ) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -575,12 +575,12 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       c_cutoff_t * oc_cutoff_outer = c_cutoff_outer[0];
       c_inner_t * oc_inner = c_inner[0][0];
       c_outer_t * oc_outer = c_outer[0];
-      if (c_first_loop != NULL && c_second_loop != NULL && 
+      if (c_first_loop != NULL && c_second_loop != NULL &&
           c_inner_loop != NULL &&  _cop >= 0) {
 
         #pragma offload_transfer target(mic:cop) \
-	  nocopy(oc_first_loop, oc_second_loop, oc_inner_loop: alloc_if(0) free_if(1)) \
-	  nocopy(oc_cutoff_outer, oc_cutoff_inner: alloc_if(0) free_if(1)) \
+          nocopy(oc_first_loop, oc_second_loop, oc_inner_loop: alloc_if(0) free_if(1)) \
+          nocopy(oc_cutoff_outer, oc_cutoff_inner: alloc_if(0) free_if(1)) \
           nocopy(oc_inner, oc_outer: alloc_if(0) free_if(0))
       }
       #endif
@@ -614,7 +614,7 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       int tp1sq = ntypes * ntypes;
       int tp1cb = ntypes * ntypes * ntypes;
       int tp1cb_pad = ntypes * ntypes * ntypes_pad;
-      if (oc_first_loop != NULL && oc_second_loop != NULL && 
+      if (oc_first_loop != NULL && oc_second_loop != NULL &&
           oc_inner_loop != NULL && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(oc_first_loop: length(tp1sq) alloc_if(1) free_if(0)) \
@@ -642,15 +642,15 @@ static const int N_CACHE = 8;
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
 template<int EFLAG>
 void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
-    int eatom, int vflag, 
-    const int * _noalias const numneigh, const int * _noalias const cnumneigh, 
-    const int * _noalias const firstneigh, int ntypes, 
+    int eatom, int vflag,
+    const int * _noalias const numneigh, const int * _noalias const cnumneigh,
+    const int * _noalias const firstneigh, int ntypes,
     typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
-    const typename PairTersoffIntel::ForceConst<flt_t>::c_inner_t * _noalias const c_inner, 
-    const typename PairTersoffIntel::ForceConst<flt_t>::c_outer_t * _noalias const c_outer, 
+    const typename PairTersoffIntel::ForceConst<flt_t>::c_inner_t * _noalias const c_inner,
+    const typename PairTersoffIntel::ForceConst<flt_t>::c_outer_t * _noalias const c_outer,
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
-    avec *vsevdwl, 
-    int compress_idx, 
+    avec *vsevdwl,
+    int compress_idx,
     iarr is,
     iarr js,
     bvec vmask_repulsive
@@ -662,7 +662,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
   ivec v_i0(0);
   ivec v_i_ntypes(ntypes);
   ivec v_i_NEIGHMASK(NEIGHMASK);
-  
+
   farr fx, fy, fz, fw;
   int cache_idx = 0;
   fvec vfkx_cache[N_CACHE];
@@ -672,7 +672,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
   bvec vmask_cache[N_CACHE];
   ivec vkks_final_cache;
   bvec vmask_final_cache;
-  iarr ts; 
+  iarr ts;
   // compute all the stuff we know from i and j
   // TDO: We could extract this from the driver routine
   ivec vis = v::int_mullo(v_i4floats, v::int_load_vl(is));
@@ -738,7 +738,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
             &vfix,&vfiy,&vfiz,
             &vfjx,&vfjy,&vfjz,
             &vfkx,&vfky,&vfkz,
-	    &vzeta_contrib);
+            &vzeta_contrib);
         vfxtmp = v::mask_add(vfxtmp, veff_mask, vfxtmp, vfix);
         vfytmp = v::mask_add(vfytmp, veff_mask, vfytmp, vfiy);
         vfztmp = v::mask_add(vfztmp, veff_mask, vfztmp, vfiz);
@@ -749,9 +749,9 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
         vfkx_cache[cache_idx] = vfkx;
         vfky_cache[cache_idx] = vfky;
         vfkz_cache[cache_idx] = vfkz;
-	vks_cache[cache_idx] = vks;
-	vmask_cache[cache_idx] = veff_mask;
-	cache_idx += 1;
+        vks_cache[cache_idx] = vks;
+        vmask_cache[cache_idx] = veff_mask;
+        cache_idx += 1;
 
         vzeta = v::mask_add(vzeta, veff_mask, vzeta, vzeta_contrib);
         vkks = vkks + v_i1;
@@ -799,7 +799,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
   vfjxtmp = vfjxtmp * vprefactor - vdx_ij * vfpair;
   vfjytmp = vfjytmp * vprefactor - vdy_ij * vfpair;
   vfjztmp = vfjztmp * vprefactor - vdz_ij * vfpair;
- 
+
   if (EFLAG) {
     *vsevdwl = v::acc_mask_add(*vsevdwl, vmask, *vsevdwl, vevdwl);
     if (eatom) {
@@ -833,7 +833,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     fvec vx_k, vy_k, vz_k, vcutsq;
     while (! v::mask_testz(vactive_mask)) {
       bvec vnew_mask = vactive_mask & ~ veff_old_mask;
-      vks = v::int_mullo(v_i4floats, v_i_NEIGHMASK & 
+      vks = v::int_mullo(v_i4floats, v_i_NEIGHMASK &
           v::int_gather<4>(vks, vactive_mask, vkks + vcnumneigh_i, firstneigh));
       v::gather_x(vks, vnew_mask, x, &vx_k, &vy_k, &vz_k, &vw_k);
       fvec vdx_ik = vx_k - vx_i;
@@ -855,7 +855,7 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
             &vfix,&vfiy,&vfiz,
             &vfjx,&vfjy,&vfjz,
             &vfkx,&vfky,&vfkz,
-	    0);
+            0);
         vfxtmp = v::mask_add(vfxtmp, veff_mask, vfxtmp, vfix);
         vfytmp = v::mask_add(vfytmp, veff_mask, vfytmp, vfiy);
         vfztmp = v::mask_add(vfztmp, veff_mask, vfztmp, vfiz);
@@ -917,15 +917,15 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
 template<int EFLAG>
 void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
-    int eatom, int vflag, 
-    const int * _noalias const numneigh, const int * _noalias const cnumneigh, 
-    const int * _noalias const firstneigh, int ntypes, 
+    int eatom, int vflag,
+    const int * _noalias const numneigh, const int * _noalias const cnumneigh,
+    const int * _noalias const firstneigh, int ntypes,
     typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
-    const typename PairTersoffIntel::ForceConst<flt_t>::c_inner_t * _noalias const c_inner, 
-    const typename PairTersoffIntel::ForceConst<flt_t>::c_outer_t * _noalias const c_outer, 
+    const typename PairTersoffIntel::ForceConst<flt_t>::c_inner_t * _noalias const c_inner,
+    const typename PairTersoffIntel::ForceConst<flt_t>::c_outer_t * _noalias const c_outer,
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
-    avec *vsevdwl, 
-    int compress_idx, 
+    avec *vsevdwl,
+    int compress_idx,
     int i,
     iarr js,
     bvec vmask_repulsive
@@ -951,7 +951,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
   int kk_final_cache;
 
   aarr fx, fy, fz, fw;
-  iarr ts; 
+  iarr ts;
 
   bvec vmask = v::mask_enable_lower(compress_idx);
   fvec vx_i(x[i].x), vy_i(x[i].y), vz_i(x[i].z);
@@ -997,7 +997,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
       fvec vfix, vfiy, vfiz;
       fvec vfjx, vfjy, vfjz;
       fvec vfkx, vfky, vfkz;
-      
+
       attractive_vector<true>(&c_inner[ntypes * ntypes * w_i + w_k],vc_idx_j_ntypes,veff_mask,fvec(1.),
           vrij,vrsq,vdx_ij,vdy_ij,vdz_ij,vdx_ik,vdy_ik,vdz_ik,
           &vfix,&vfiy,&vfiz,
@@ -1010,7 +1010,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
       vfjxtmp = v::acc_mask_add(vfjxtmp, veff_mask, vfjxtmp, vfjx);
       vfjytmp = v::acc_mask_add(vfjytmp, veff_mask, vfjytmp, vfjy);
       vfjztmp = v::acc_mask_add(vfjztmp, veff_mask, vfjztmp, vfjz);
-      
+
       vfkx_cache[cache_idx] = v::mask_add(v::zero(), veff_mask, vfkx, v::zero());
       vfky_cache[cache_idx] = v::mask_add(v::zero(), veff_mask, vfky, v::zero());
       vfkz_cache[cache_idx] = v::mask_add(v::zero(), veff_mask, vfkz, v::zero());
@@ -1037,7 +1037,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
     bvec vsame_mask = v::int_cmpneq(vjs, ivec(static_cast<int>(4 * sizeof(typename v::fscal) * k)));
     bvec veff_mask = vcutoff_mask & vsame_mask & vmask;
     if (! v::mask_testz(veff_mask)) {
-      fvec vzeta_contrib = zeta_vector(&c_inner[ntypes * ntypes * w_i + w_k], vc_idx_j_ntypes, veff_mask, vrij, vrsq, 
+      fvec vzeta_contrib = zeta_vector(&c_inner[ntypes * ntypes * w_i + w_k], vc_idx_j_ntypes, veff_mask, vrij, vrsq,
           vdx_ij,vdy_ij,vdz_ij,vdx_ik,vdy_ik,vdz_ik);
       vzeta = v::acc_mask_add(vzeta, veff_mask, vzeta, vzeta_contrib);
     }
@@ -1051,7 +1051,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
   vfjxtmp = vfjxtmp * vaprefactor - avec(vdx_ij * vfpair);
   vfjytmp = vfjytmp * vaprefactor - avec(vdy_ij * vfpair);
   vfjztmp = vfjztmp * vaprefactor - avec(vdz_ij * vfpair);
- 
+
   if (EFLAG) {
     *vsevdwl = v::acc_mask_add(*vsevdwl, vmask, *vsevdwl, vevdwl);
     if (eatom) {
@@ -1093,7 +1093,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
            &vfix,&vfiy,&vfiz,
            &vfjx,&vfjy,&vfjz,
            &vfkx,&vfky,&vfkz,
-	   0);
+           0);
        vfxtmp  = v::acc_mask_add(vfxtmp, veff_mask, vfxtmp, vfix);
        vfytmp  = v::acc_mask_add(vfytmp, veff_mask, vfytmp, vfiy);
        vfztmp  = v::acc_mask_add(vfztmp, veff_mask, vfztmp, vfiz);
@@ -1129,14 +1129,14 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
 template<bool EFLAG>
 void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
-    int iito, int iifrom, int eatom, int vflag, 
-    const int * _noalias const numneigh, 
-    const int * _noalias const numneighhalf, 
-    const int * _noalias const cnumneigh, 
-    const int * _noalias const firstneigh, int ntypes, 
+    int iito, int iifrom, int eatom, int vflag,
+    const int * _noalias const numneigh,
+    const int * _noalias const numneighhalf,
+    const int * _noalias const cnumneigh,
+    const int * _noalias const firstneigh, int ntypes,
     typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
-    const c_inner_t * _noalias const c_inner, 
-    const c_outer_t * _noalias const c_outer, 
+    const c_inner_t * _noalias const c_inner,
+    const c_outer_t * _noalias const c_outer,
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
     acc_t *evdwl
 ) {
@@ -1181,10 +1181,10 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
         if (compress_idx == v::VL) {
           vmask_repulsive = v::int_cmpneq(v::int_load_vl(repulsive_flag), ivec(0));
           kernel_step<EFLAG>(
-              eatom, vflag, 
+              eatom, vflag,
               numneigh, cnumneigh, firstneigh, ntypes,
               x, c_inner, c_outer, f,
-              &vsevdwl, compress_idx, 
+              &vsevdwl, compress_idx,
               is, js, vmask_repulsive
           );
           compress_idx = 0;
@@ -1194,10 +1194,10 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
         if (compress_idx == v::VL || (compress_idx > 0 && jj == jnum-1)) {
           vmask_repulsive = v::int_cmpneq(v::int_load_vl(repulsive_flag), ivec(0));
           kernel_step_const_i<EFLAG>(
-              eatom, vflag, 
+              eatom, vflag,
               numneigh, cnumneigh, firstneigh, ntypes,
               x, c_inner, c_outer, f,
-              &vsevdwl, compress_idx, 
+              &vsevdwl, compress_idx,
               i, js, vmask_repulsive
           );
           compress_idx = 0;
@@ -1209,10 +1209,10 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
   if (compress_idx > 0) {
         vmask_repulsive = v::int_cmpneq(v::int_load_vl(repulsive_flag), ivec(0));
         IntelKernelTersoff::kernel_step<EFLAG>(
-            eatom, vflag, 
+            eatom, vflag,
             numneigh, cnumneigh, firstneigh, ntypes,
             x, c_inner, c_outer, f,
-            &vsevdwl, compress_idx, 
+            &vsevdwl, compress_idx,
             is, js, vmask_repulsive
         );
   }
@@ -1224,10 +1224,10 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
 
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
 IntelKernelTersoff<flt_t,acc_t,mic,pack_i>::fvec IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::zeta_vector(
-    const c_inner_t * param, 
-    ivec xjw, bvec mask, 
-    fvec vrij, fvec rsq2, 
-    fvec vdijx, fvec vdijy, fvec vdijz, 
+    const c_inner_t * param,
+    ivec xjw, bvec mask,
+    fvec vrij, fvec rsq2,
+    fvec vdijx, fvec vdijy, fvec vdijz,
     fvec dikx, fvec diky, fvec dikz
 ) {
   fvec v_1_0(1.0);
@@ -1250,7 +1250,7 @@ IntelKernelTersoff<flt_t,acc_t,mic,pack_i>::fvec IntelKernelTersoff<flt_t, acc_t
   // Its kind of important to check the mask.
   // Some simulations never/rarely invoke this branch.
   if (! v::mask_testz(vmask_need_sine)) {
-    vfc = v::blend(vmask_need_sine, vfc, 
+    vfc = v::blend(vmask_need_sine, vfc,
         v_0_5 * (v_1_0 - sin(fvec(MY_PI2) * (vrik - vpbigr) * v::recip(vpbigd))));
   }
   return vgijk * vex_delr * vfc;
@@ -1258,7 +1258,7 @@ IntelKernelTersoff<flt_t,acc_t,mic,pack_i>::fvec IntelKernelTersoff<flt_t, acc_t
 
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
 void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::force_zeta_vector(
-    const c_outer_t * param, 
+    const c_outer_t * param,
     ivec xjw,
     bvec mask,
     fvec vrij, fvec vzeta_ij,
@@ -1402,9 +1402,9 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
     vfc_d = v::blend(vmask_need_sine, vfc_d, fvec(-0.5) * vtmp * vfccos);
   }
 
-  fvec vzeta_d_fc = vfc_d * vgijk * vex_delr; 
-  fvec vzeta_d_gijk = vfc * vgijk_d * vex_delr; 
-  fvec vzeta_d_ex_delr = vfc * vgijk * vex_delr_d; 
+  fvec vzeta_d_fc = vfc_d * vgijk * vex_delr;
+  fvec vzeta_d_gijk = vfc * vgijk_d * vex_delr;
+  fvec vzeta_d_ex_delr = vfc * vgijk * vex_delr_d;
   if (ZETA) *zeta = vfc * vgijk * vex_delr;
 
   fvec vminus_costheta = - vcostheta;
@@ -1417,7 +1417,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
   fvec vdcosdrix = -(vdcosdrjx + vdcosdrkx);
   fvec vdcosdriy = -(vdcosdrjy + vdcosdrky);
   fvec vdcosdriz = -(vdcosdrjz + vdcosdrkz);
-  
+
   *fix = vprefactor * (vzeta_d_gijk * vdcosdrix + vzeta_d_ex_delr * (rik_hatx - vrij_hatx) - vzeta_d_fc * rik_hatx);
   *fiy = vprefactor * (vzeta_d_gijk * vdcosdriy + vzeta_d_ex_delr * (rik_haty - vrij_haty) - vzeta_d_fc * rik_haty);
   *fiz = vprefactor * (vzeta_d_gijk * vdcosdriz + vzeta_d_ex_delr * (rik_hatz - vrij_hatz) - vzeta_d_fc * rik_hatz);

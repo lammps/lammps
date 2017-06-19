@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBinNewtonTriIntel::NPairHalfBinNewtonTriIntel(LAMMPS *lmp) : 
+NPairHalfBinNewtonTriIntel::NPairHalfBinNewtonTriIntel(LAMMPS *lmp) :
   NPairIntel(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -75,14 +75,14 @@ hbnti(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
   int need_ic = 0;
   if (atom->molecular)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
-			 neighbor->cutneighmax);
+                         neighbor->cutneighmax);
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (need_ic) {
     if (offload_noghost) {
       bin_newton<flt_t,acc_t,1,1,0,1,0>(1, list, buffers, 0, off_end);
-      bin_newton<flt_t,acc_t,1,1,0,1,0>(0, list, buffers, host_start, nlocal, 
-					off_end);
+      bin_newton<flt_t,acc_t,1,1,0,1,0>(0, list, buffers, host_start, nlocal,
+                                        off_end);
     } else {
       bin_newton<flt_t,acc_t,0,1,0,1,0>(1, list, buffers, 0, off_end);
       bin_newton<flt_t,acc_t,0,1,0,1,0>(0, list, buffers, host_start, nlocal);
@@ -90,8 +90,8 @@ hbnti(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
   } else {
     if (offload_noghost) {
       bin_newton<flt_t,acc_t,1,0,0,1,0>(1, list, buffers, 0, off_end);
-      bin_newton<flt_t,acc_t,1,0,0,1,0>(0, list, buffers, host_start, nlocal, 
-					off_end);
+      bin_newton<flt_t,acc_t,1,0,0,1,0>(0, list, buffers, host_start, nlocal,
+                                        off_end);
     } else {
       bin_newton<flt_t,acc_t,0,0,0,1,0>(1, list, buffers, 0, off_end);
       bin_newton<flt_t,acc_t,0,0,0,1,0>(0, list, buffers, host_start, nlocal);

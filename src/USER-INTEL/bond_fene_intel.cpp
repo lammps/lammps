@@ -33,7 +33,7 @@ typedef struct { int a,b,t;  } int3_t;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENEIntel::BondFENEIntel(LAMMPS *lmp) : BondFENE(lmp) 
+BondFENEIntel::BondFENEIntel(LAMMPS *lmp) : BondFENE(lmp)
 {
   suffix_flag |= Suffix::INTEL;
 }
@@ -70,8 +70,8 @@ void BondFENEIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void BondFENEIntel::compute(int eflag, int vflag,
-				IntelBuffers<flt_t,acc_t> *buffers,
-				const ForceConst<flt_t> &fc)
+                                IntelBuffers<flt_t,acc_t> *buffers,
+                                const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
@@ -79,14 +79,14 @@ void BondFENEIntel::compute(int eflag, int vflag,
   if (evflag) {
     if (vflag && !eflag) {
       if (force->newton_bond)
-	eval<0,1,1>(vflag, buffers, fc);
+        eval<0,1,1>(vflag, buffers, fc);
       else
-	eval<0,1,0>(vflag, buffers, fc);
+        eval<0,1,0>(vflag, buffers, fc);
     } else {
       if (force->newton_bond)
-	eval<1,1,1>(vflag, buffers, fc);
+        eval<1,1,1>(vflag, buffers, fc);
       else
-	eval<1,1,0>(vflag, buffers, fc);
+        eval<1,1,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -97,9 +97,9 @@ void BondFENEIntel::compute(int eflag, int vflag,
 }
 
 template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void BondFENEIntel::eval(const int vflag, 
-			 IntelBuffers<flt_t,acc_t> *buffers,
-			 const ForceConst<flt_t> &fc)
+void BondFENEIntel::eval(const int vflag,
+                         IntelBuffers<flt_t,acc_t> *buffers,
+                         const ForceConst<flt_t> &fc)
 {
   const int inum = neighbor->nbondlist;
   if (inum == 0) return;
@@ -126,7 +126,7 @@ void BondFENEIntel::eval(const int vflag,
 
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
-    shared(f_start,f_stride,fc)		  \
+    shared(f_start,f_stride,fc)           \
     reduction(+:oebond,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif
   {
@@ -141,7 +141,7 @@ void BondFENEIntel::eval(const int vflag,
     if (fix->need_zero(tid))
       memset(f, 0, f_stride * sizeof(FORCE_T));
 
-    const int3_t * _noalias const bondlist = 
+    const int3_t * _noalias const bondlist =
       (int3_t *) neighbor->bondlist[0];
 
     #ifdef LMP_INTEL_USE_SIMDOFF
@@ -176,7 +176,7 @@ void BondFENEIntel::eval(const int vflag,
       // if r -> r0, then rlogarg < 0.0 which is an error
       // issue a warning and reset rlogarg = epsilon
       // if r > 2*r0 something serious is wrong, abort
-      
+
       if (rlogarg < (flt_t)0.1) {
         char str[128];
         sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
@@ -186,18 +186,18 @@ void BondFENEIntel::eval(const int vflag,
         if (rlogarg <= (flt_t)-3.0) error->one(FLERR,"Bad FENE bond");
         rlogarg = (flt_t)0.1;
       }
-      
+
       flt_t fbond = -k/rlogarg;
-      
+
       // force from LJ term
-      
+
       flt_t sr2,sr6;
       if (rsq < (flt_t)TWO_1_3*sigmasq) {
-	sr2 = sigmasq * irsq;
+        sr2 = sigmasq * irsq;
         sr6 = sr2 * sr2 * sr2;
         fbond += (flt_t)48.0 * epsilon * sr6 * (sr6 - (flt_t)0.5) * irsq;
       }
-      
+
       // energy
 
       flt_t ebond;
@@ -215,27 +215,27 @@ void BondFENEIntel::eval(const int vflag,
       {
         if (NEWTON_BOND || i1 < nlocal) {
           f[i1].x += delx*fbond;
-	  f[i1].y += dely*fbond;
-	  f[i1].z += delz*fbond;
+          f[i1].y += dely*fbond;
+          f[i1].z += delz*fbond;
         }
 
         if (NEWTON_BOND || i2 < nlocal) {
           f[i2].x -= delx*fbond;
-	  f[i2].y -= dely*fbond;
-	  f[i2].z -= delz*fbond;
+          f[i2].y -= dely*fbond;
+          f[i2].z -= delz*fbond;
         }
-      } 
+      }
 
       if (EFLAG || VFLAG) {
         #ifdef LMP_INTEL_USE_SIMDOFF
-	IP_PRE_ev_tally_bond(EFLAG, VFLAG, eatom, vflag, ebond, i1, i2, fbond, 
-                             delx, dely, delz, sebond, f, NEWTON_BOND, 
+        IP_PRE_ev_tally_bond(EFLAG, VFLAG, eatom, vflag, ebond, i1, i2, fbond,
+                             delx, dely, delz, sebond, f, NEWTON_BOND,
                              nlocal, sv0, sv1, sv2, sv3, sv4, sv5);
-	#else
-	IP_PRE_ev_tally_bond(EFLAG, VFLAG, eatom, vflag, ebond, i1, i2, fbond, 
-                             delx, dely, delz, oebond, f, NEWTON_BOND, 
+        #else
+        IP_PRE_ev_tally_bond(EFLAG, VFLAG, eatom, vflag, ebond, i1, i2, fbond,
+                             delx, dely, delz, oebond, f, NEWTON_BOND,
                              nlocal, ov0, ov1, ov2, ov3, ov4, ov5);
-	#endif
+        #endif
       }
     } // for n
     #ifdef LMP_INTEL_USE_SIMDOFF
@@ -250,7 +250,7 @@ void BondFENEIntel::eval(const int vflag,
   if (EFLAG) energy += oebond;
   if (VFLAG && vflag) {
     virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5; 
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
   }
 
   fix->set_reduce_flag();
@@ -307,11 +307,11 @@ void BondFENEIntel::pack_force_const(ForceConst<flt_t> &fc,
 
 template <class flt_t>
 void BondFENEIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
-	                                              Memory *memory) {
+                                                      Memory *memory) {
   if (nbondtypes != _nbondtypes) {
     if (_nbondtypes > 0)
       _memory->destroy(fc);
-    
+
     if (nbondtypes > 0)
       _memory->create(fc,nbondtypes,"bondfeneintel.fc");
   }

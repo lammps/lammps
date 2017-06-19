@@ -51,7 +51,7 @@ VerletLRTIntel::VerletLRTIntel(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-VerletLRTIntel::~VerletLRTIntel() 
+VerletLRTIntel::~VerletLRTIntel()
 {
   #if defined(_LMP_INTEL_LRT_PTHREAD)
   pthread_mutex_destroy(&_kmutex);
@@ -67,10 +67,10 @@ void VerletLRTIntel::init()
   Verlet::init();
 
   _intel_kspace = (PPPMIntel*)(force->kspace_match("pppm/intel", 0));
-  
+
   #ifdef LMP_INTEL_NOLRT
-  error->all(FLERR, 
-	     "LRT otion for Intel package disabled at compile time");
+  error->all(FLERR,
+             "LRT otion for Intel package disabled at compile time");
   #endif
 }
 
@@ -83,7 +83,7 @@ void VerletLRTIntel::setup(int flag)
   if (_intel_kspace == 0) {
     Verlet::setup(flag);
     return;
-  } 
+  }
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_intel_kspace->use_base()) {
@@ -154,15 +154,15 @@ void VerletLRTIntel::setup(int flag)
   _intel_kspace->setup();
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
-  pthread_create(&_kspace_thread, &_kspace_attr, 
-		 &VerletLRTIntel::k_launch_loop, this);
+  pthread_create(&_kspace_thread, &_kspace_attr,
+                 &VerletLRTIntel::k_launch_loop, this);
   #elif defined(_LMP_INTEL_LRT_11)
   std::thread kspace_thread;
-  if (kspace_compute_flag) 
-    _kspace_thread=std::thread([=]{ _intel_kspace->compute_first(eflag, 
+  if (kspace_compute_flag)
+    _kspace_thread=std::thread([=]{ _intel_kspace->compute_first(eflag,
                                                                  vflag); });
-  else 
-    _kspace_thread=std::thread([=]{ _intel_kspace->compute_dummy(eflag, 
+  else
+    _kspace_thread=std::thread([=]{ _intel_kspace->compute_dummy(eflag,
                                                                  vflag); });
   #endif
 
@@ -297,8 +297,8 @@ void VerletLRTIntel::run(int n)
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
     std::thread kspace_thread;
-    if (kspace_compute_flag) 
-      kspace_thread=std::thread([=] { 
+    if (kspace_compute_flag)
+      kspace_thread=std::thread([=] {
         _intel_kspace->compute_first(eflag, vflag);
         timer->stamp(Timer::KSPACE);
       } );
@@ -329,7 +329,7 @@ void VerletLRTIntel::run(int n)
     _kspace_done = 0;
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
-    if (kspace_compute_flag) 
+    if (kspace_compute_flag)
       kspace_thread.join();
     #endif
 
@@ -367,7 +367,7 @@ void VerletLRTIntel::run(int n)
   }
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
-  if (run_cancelled) 
+  if (run_cancelled)
     pthread_cancel(_kspace_thread);
   else {
     pthread_mutex_lock(&_kmutex);
@@ -390,9 +390,9 @@ void * VerletLRTIntel::k_launch_loop(void *context)
 {
   VerletLRTIntel * const c = (VerletLRTIntel *)context;
 
-  if (c->kspace_compute_flag) 
+  if (c->kspace_compute_flag)
     c->_intel_kspace->compute_first(c->eflag, c->vflag);
-  else 
+  else
     c->_intel_kspace->compute_dummy(c->eflag, c->vflag);
 
   pthread_mutex_lock(&(c->_kmutex));
@@ -408,7 +408,7 @@ void * VerletLRTIntel::k_launch_loop(void *context)
   pthread_mutex_unlock(&(c->_kmutex));
 
   for (int i = 0; i < n; i++) {
-    
+
     if (c->kspace_compute_flag) {
       c->_intel_kspace->compute_first(c->eflag, c->vflag);
       c->timer->stamp(Timer::KSPACE);

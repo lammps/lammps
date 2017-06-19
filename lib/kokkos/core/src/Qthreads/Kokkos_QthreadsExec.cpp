@@ -41,12 +41,13 @@
 //@HEADER
 */
 
-#include <Kokkos_Core_fwd.hpp>
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_QTHREADS )
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <Kokkos_Core_fwd.hpp>
+
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <utility>
@@ -214,6 +215,8 @@ void Qthreads::fence()
 
 int Qthreads::shepherd_size() const { return Impl::s_number_shepherds; }
 int Qthreads::shepherd_worker_size() const { return Impl::s_number_workers_per_shepherd; }
+
+const char* Qthreads::name() { return "Qthreads"; }
 
 } // namespace Kokkos
 
@@ -516,4 +519,7 @@ QthreadsTeamPolicyMember::QthreadsTeamPolicyMember( const QthreadsTeamPolicyMemb
 
 } // namespace Kokkos
 
+#else
+void KOKKOS_SRC_QTHREADS_EXEC_PREVENT_LINK_ERROR() {}
 #endif // #if defined( KOKKOS_ENABLE_QTHREADS )
+

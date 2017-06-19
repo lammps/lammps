@@ -44,6 +44,7 @@
 #ifndef KOKKOS_IMPL_SERIAL_TASK_HPP
 #define KOKKOS_IMPL_SERIAL_TASK_HPP
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_TASKDAG )
 
 #include <impl/Kokkos_TaskQueue.hpp>

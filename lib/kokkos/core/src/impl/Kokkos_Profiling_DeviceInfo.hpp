@@ -44,12 +44,14 @@
 #ifndef KOKKOSP_DEVICE_INFO_HPP
 #define KOKKOSP_DEVICE_INFO_HPP
 
+#include <cstdint>
+
 namespace Kokkos {
 namespace Profiling {
 
-    struct KokkosPDeviceInfo {
-        uint32_t deviceID;
-    };
+struct KokkosPDeviceInfo {
+  uint32_t deviceID;
+};
 
 }
 }

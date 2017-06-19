@@ -44,7 +44,10 @@
 #ifndef KOKKOS_THREADSEXEC_HPP
 #define KOKKOS_THREADSEXEC_HPP
 
-#include <stdio.h>
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_THREADS )
+
+#include <cstdio>
 
 #include <utility>
 #include <impl/Kokkos_spinwait.hpp>
@@ -626,6 +629,6 @@ inline void Threads::fence()
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-
+#endif
 #endif /* #define KOKKOS_THREADSEXEC_HPP */
 

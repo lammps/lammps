@@ -38,7 +38,7 @@ class ComputeSNAVAtom : public Compute {
  private:
   int nmax, njmax, diagonalstyle;
   int ncoeff, twoncoeff, threencoeff, fourncoeff, fivencoeff, sixncoeff;
-  int ncoeffsq, twoncoeffsq, threencoeffsq, fourncoeffsq, fivencoeffsq, sixncoeffsq;
+  int ncoeffq, twoncoeffq, threencoeffq, fourncoeffq, fivencoeffq, sixncoeffq;
   double **cutsq;
   class NeighList *list;
   double **snav;

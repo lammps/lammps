@@ -124,14 +124,14 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   sixncoeff = 6*ncoeff;
   size_peratom_cols = sixncoeff*atom->ntypes;
   if (quadraticflag) {
-    ncoeffsq = ncoeff*ncoeff;
-    twoncoeffsq = 2*ncoeffsq;
-    threencoeffsq = 3*ncoeffsq;
-    fourncoeffsq = 4*ncoeffsq;
-    fivencoeffsq = 5*ncoeffsq;
-    sixncoeffsq = 6*ncoeffsq;
+    ncoeffq = ncoeff*ncoeff;
+    twoncoeffq = 2*ncoeffq;
+    threencoeffq = 3*ncoeffq;
+    fourncoeffq = 4*ncoeffq;
+    fivencoeffq = 5*ncoeffq;
+    sixncoeffq = 6*ncoeffq;
     size_peratom_cols +=
-      sixncoeffsq*atom->ntypes;
+      sixncoeffq*atom->ntypes;
   }
   comm_reverse = size_peratom_cols;
   peratom_flag = 1;
@@ -253,7 +253,7 @@ void ComputeSNAVAtom::compute_peratom()
 
       const int typeoffset = sixncoeff*(atom->type[i]-1);
       const int quadraticoffset = sixncoeff*atom->ntypes +
-        sixncoeffsq*(atom->type[i]-1);
+        sixncoeffq*(atom->type[i]-1);
 
       // insure rij, inside, and typej  are of size jnum
 
@@ -330,7 +330,10 @@ void ComputeSNAVAtom::compute_peratom()
             double bix = snaptr[tid]->dbvec[icoeff][0];
             double biy = snaptr[tid]->dbvec[icoeff][1];
             double biz = snaptr[tid]->dbvec[icoeff][2];
-            for (int jcoeff = 0; jcoeff < ncoeff; jcoeff++) {
+
+            // upper-triangular elements of quadratic matrix
+          
+            for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++) {
               double dbxtmp = bi*snaptr[tid]->dbvec[jcoeff][0]
                 + bix*snaptr[tid]->bvec[jcoeff];
               double dbytmp = bi*snaptr[tid]->dbvec[jcoeff][1]
@@ -338,17 +341,17 @@ void ComputeSNAVAtom::compute_peratom()
               double dbztmp = bi*snaptr[tid]->dbvec[jcoeff][2]
                 + biz*snaptr[tid]->bvec[jcoeff];
               snavi[ncount] +=               dbxtmp*xtmp;
-              snavi[ncount+ncoeffsq] +=      dbytmp*ytmp;
-              snavi[ncount+twoncoeffsq] +=   dbztmp*ztmp;
-              snavi[ncount+threencoeffsq] += dbytmp*ztmp;
-              snavi[ncount+fourncoeffsq] +=  dbxtmp*ztmp;
-              snavi[ncount+fivencoeffsq] +=  dbxtmp*ytmp;
+              snavi[ncount+ncoeffq] +=      dbytmp*ytmp;
+              snavi[ncount+twoncoeffq] +=   dbztmp*ztmp;
+              snavi[ncount+threencoeffq] += dbytmp*ztmp;
+              snavi[ncount+fourncoeffq] +=  dbxtmp*ztmp;
+              snavi[ncount+fivencoeffq] +=  dbxtmp*ytmp;
               snavj[ncount] -=               dbxtmp*x[j][0];
-              snavj[ncount+ncoeffsq] -=      dbytmp*x[j][1];
-              snavj[ncount+twoncoeffsq] -=   dbztmp*x[j][2];
-              snavj[ncount+threencoeffsq] -= dbytmp*x[j][2];
-              snavj[ncount+fourncoeffsq] -=  dbxtmp*x[j][2];
-              snavj[ncount+fivencoeffsq] -=  dbxtmp*x[j][1];
+              snavj[ncount+ncoeffq] -=      dbytmp*x[j][1];
+              snavj[ncount+twoncoeffq] -=   dbztmp*x[j][2];
+              snavj[ncount+threencoeffq] -= dbytmp*x[j][2];
+              snavj[ncount+fourncoeffq] -=  dbxtmp*x[j][2];
+              snavj[ncount+fivencoeffq] -=  dbxtmp*x[j][1];
               ncount++;
             }
           }
@@ -401,7 +404,7 @@ double ComputeSNAVAtom::memory_usage()
   bytes += 3*njmax*sizeof(double);
   bytes += njmax*sizeof(int);
   bytes += sixncoeff*atom->ntypes;
-  if (quadraticflag) bytes += sixncoeffsq*atom->ntypes;
+  if (quadraticflag) bytes += sixncoeffq*atom->ntypes;
   bytes += snaptr[0]->memory_usage()*comm->nthreads;
   return bytes;
 }

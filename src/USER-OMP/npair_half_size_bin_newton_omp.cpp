@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeBinNewtonOmp::NPairHalfSizeBinNewtonOmp(LAMMPS *lmp) : 
+NPairHalfSizeBinNewtonOmp::NPairHalfSizeBinNewtonOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -202,7 +202,7 @@ void NPairHalfSizeBinNewtonOmp::build(NeighList *list)
               nn += dnum;
             }
           }
-          
+
           n++;
         }
       }

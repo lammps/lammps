@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,9 +44,10 @@
 #ifndef KOKKOS_CUDASPACE_HPP
 #define KOKKOS_CUDASPACE_HPP
 
-#include <Kokkos_Core_fwd.hpp>
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_CUDA )
+
+#include <Kokkos_Core_fwd.hpp>
 
 #include <iosfwd>
 #include <typeinfo>
@@ -717,7 +718,7 @@ private:
   static ::cudaTextureObject_t
   attach_texture_object( const unsigned sizeof_alias
                        , void * const   alloc_ptr
-                       , const size_t   alloc_size ); 
+                       , const size_t   alloc_size );
 
   static RecordBase s_root_record ;
 

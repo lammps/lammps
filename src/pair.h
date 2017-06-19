@@ -247,7 +247,7 @@ class Pair : protected Pointers {
     ubuf(int arg) : i(arg) {}
   };
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 };

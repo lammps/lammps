@@ -32,7 +32,7 @@ NPairSkipSize::NPairSkipSize(LAMMPS *lmp) : NPair(lmp) {}
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
    iskip and ijskip flag which atom types and type pairs to skip
-   if list requests it, preserve shear history via fix shear/history 
+   if list requests it, preserve shear history via fix shear/history
 ------------------------------------------------------------------------- */
 
 void NPairSkipSize::build(NeighList *list)

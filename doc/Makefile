@@ -100,6 +100,7 @@ epub: $(OBJECTS)
 
 pdf: utils/txt2html/txt2html.exe
 	@(\
+		set -e; \
 		cd src; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
 		htmldoc --batch lammps.book;          \

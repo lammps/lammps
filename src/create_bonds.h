@@ -30,7 +30,7 @@ class CreateBonds : protected Pointers {
   void command(int, char **);
 
  private:
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 };

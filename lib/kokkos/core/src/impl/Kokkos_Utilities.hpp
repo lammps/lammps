@@ -45,7 +45,7 @@
 #define KOKKOS_CORE_IMPL_UTILITIES_HPP
 
 #include <Kokkos_Macros.hpp>
-#include <stdint.h>
+#include <cstdint>
 #include <type_traits>
 
 //----------------------------------------------------------------------------
@@ -413,3 +413,4 @@ struct inclusive_scan_integer_sequence
 
 
 #endif //KOKKOS_CORE_IMPL_UTILITIES_HPP
+

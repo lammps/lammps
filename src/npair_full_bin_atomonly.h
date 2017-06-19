@@ -14,9 +14,9 @@
 #ifdef NPAIR_CLASS
 
 NPairStyle(full/bin/atomonly,
-           NPairFullBin,
+           NPairFullBinAtomonly,
            NP_FULL | NP_BIN | NP_ATOMONLY |
-	   NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 #else
 

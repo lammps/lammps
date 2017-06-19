@@ -41,7 +41,11 @@
 //@HEADER
 */
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#ifndef KOKKOS_QTHREADS_TASKQUEUE_HPP
+#define KOKKOS_QTHREADS_TASKQUEUE_HPP
+
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_QTHREADS ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -60,7 +64,7 @@ private:
   using execution_space = Kokkos::Qthread ;
   using memory_space    = Kokkos::HostSpace
   using device_type     = Kokkos::Device< execution_space, memory_space > ;
-  using memory_pool     = Kokkos::Experimental::MemoryPool< device_type > ;
+  using memory_pool     = Kokkos::MemoryPool< device_type > ;
   using task_root_type  = Kokkos::Impl::TaskBase< execution_space, void, void > ;
 
   friend class Kokkos::TaskScheduler< execution_space > ;
@@ -317,3 +321,5 @@ public:
 //----------------------------------------------------------------------------
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif // KOKKOS_QTHREADS_TASKQUEUE_HPP
+

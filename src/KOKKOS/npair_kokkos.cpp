@@ -287,12 +287,12 @@ int NeighborKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 
   if (nex_mol) {
     for (m = 0; m < nex_mol; m++)
-      if (ex_mol_intra[m]) { // intra-chain: exclude i-j pair if on same molecule 
+      if (ex_mol_intra[m]) { // intra-chain: exclude i-j pair if on same molecule
         if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
-	    molecule[i] == molecule[j]) return 1;
-      } else                 // exclude i-j pair if on different molecules 
-	if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
-	    molecule[i] != molecule[j]) return 1;
+            molecule[i] == molecule[j]) return 1;
+      } else                 // exclude i-j pair if on different molecules
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+            molecule[i] != molecule[j]) return 1;
   }
 
   return 0;

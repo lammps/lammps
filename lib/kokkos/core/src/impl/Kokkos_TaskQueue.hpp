@@ -46,6 +46,7 @@
 #ifndef KOKKOS_IMPL_TASKQUEUE_HPP
 #define KOKKOS_IMPL_TASKQUEUE_HPP
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_TASKDAG )
 
 #include <string>
@@ -104,7 +105,7 @@ private:
   using specialization  = TaskQueueSpecialization< execution_space > ;
   using memory_space    = typename specialization::memory_space ;
   using device_type     = Kokkos::Device< execution_space , memory_space > ;
-  using memory_pool     = Kokkos::Experimental::MemoryPool< device_type > ;
+  using memory_pool     = Kokkos::MemoryPool< device_type > ;
   using task_root_type  = Kokkos::Impl::TaskBase<execution_space,void,void> ;
 
   struct Destroy {
@@ -134,11 +135,7 @@ private:
   TaskQueue & operator = ( TaskQueue && ) = delete ;
   TaskQueue & operator = ( TaskQueue const & ) = delete ;
 
-  TaskQueue
-    ( const memory_space & arg_space
-    , unsigned const arg_memory_pool_capacity
-    , unsigned const arg_memory_pool_superblock_capacity_log2
-    );
+  TaskQueue( const memory_pool & arg_memory_pool );
 
   // Schedule a task
   //   Precondition:
@@ -487,7 +484,7 @@ public:
                     , int           arg_task_type
                     , int           arg_priority
                     )
-    : root_type( arg_apply 
+    : root_type( arg_apply
                , arg_queue
                , arg_dependence
                , arg_ref_count
@@ -589,7 +586,7 @@ public:
                     , int           arg_priority
                     , FunctorType && arg_functor
                     )
-    : base_type( arg_apply 
+    : base_type( arg_apply
                , arg_queue
                , arg_dependence
                , arg_ref_count
@@ -612,3 +609,4 @@ public:
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #ifndef KOKKOS_IMPL_TASKQUEUE_HPP */
+

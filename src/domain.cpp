@@ -60,6 +60,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
+  box_change = 0;
 
   dimension = 3;
   nonperiodic = 0;
@@ -1697,6 +1698,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
+  lattice = NULL;
   lattice = new Lattice(lmp,narg,arg);
 }
 

@@ -47,6 +47,9 @@
 #ifndef KOKKOS_SERIAL_HPP
 #define KOKKOS_SERIAL_HPP
 
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_SERIAL )
+
 #include <cstddef>
 #include <iosfwd>
 #include <Kokkos_Parallel.hpp>
@@ -63,7 +66,6 @@
 
 #include <KokkosExp_MDRangePolicy.hpp>
 
-#if defined( KOKKOS_ENABLE_SERIAL )
 
 namespace Kokkos {
 
@@ -163,6 +165,7 @@ public:
   KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() { return thread_pool_rank(); }
   inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
 
+  static const char* name();
   //--------------------------------------------------------------------------
 };
 
@@ -515,7 +518,7 @@ public:
     : m_functor( arg_functor )
     , m_policy(  arg_policy )
     , m_reducer( reducer )
-    , m_result_ptr(  reducer.result_view().data() )
+    , m_result_ptr(  reducer.view().data() )
     {
       /*static_assert( std::is_same< typename ViewType::memory_space
                                       , Kokkos::HostSpace >::value
@@ -798,7 +801,7 @@ public:
     : m_functor( arg_functor )
     , m_league(  arg_policy.league_size() )
     , m_reducer( reducer )
-    , m_result_ptr(  reducer.result_view().data() )
+    , m_result_ptr(  reducer.view().data() )
     , m_shared( arg_policy.scratch_size(0) +
                 arg_policy.scratch_size(1) +
                 FunctorTeamShmemSize< FunctorType >::value( arg_functor , 1 ) )
@@ -821,5 +824,3 @@ public:
 #endif // defined( KOKKOS_ENABLE_SERIAL )
 #endif /* #define KOKKOS_SERIAL_HPP */
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------

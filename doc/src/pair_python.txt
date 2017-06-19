@@ -74,7 +74,7 @@ placeholders for atom types that will be used with other potentials.
 The python potential file has to start with the following code:
 
 from __future__ import print_function
-
+#
 class LAMMPSPairPotential(object):
     def __init__(self):
         self.pmap=dict()
@@ -163,9 +163,10 @@ pair_write  1 1 2000 rsq 0.01 2.5 lj1_lj2.table lj :pre
 
 Note that it is strongly recommended to try to [delete] the potential
 table file before generating it. Since the {pair_write} command will
-always append to a table file, which pair style table will use the
-first match. Thus when changing the potential function in the python
-class, the table pair style will still read the old variant.
+always [append] to a table file, while pair style table will use the
+[first match]. Thus when changing the potential function in the python
+class, the table pair style will still read the old variant unless the
+table file is first deleted.
 
 After switching the pair style to {table}, the potential tables need
 to be assigned to the LAMMPS atom types like this:

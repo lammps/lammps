@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <Kokkos_Core.hpp>
 
@@ -61,37 +61,37 @@ struct TestRange {
   struct ResetTag {};
   struct VerifyResetTag {};
 
-  TestRange( const size_t N )
-    : m_flags( Kokkos::ViewAllocateWithoutInitializing( "flags" ), N )
+  int N; 
+  TestRange( const size_t N_ )
+    : m_flags( Kokkos::ViewAllocateWithoutInitializing( "flags" ), N_ ), N(N_)
     {}
 
-  static void test_for( const size_t N )
+  void test_for()
   {
-    TestRange functor( N );
 
-    typename view_type::HostMirror host_flags = Kokkos::create_mirror_view( functor.m_flags );
+    typename view_type::HostMirror host_flags = Kokkos::create_mirror_view( m_flags );
 
-    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), functor );
-    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType, VerifyInitTag >( 0, N ), functor );
+    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), *this );
+    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType, VerifyInitTag >( 0, N ), *this );
 
-    Kokkos::deep_copy( host_flags, functor.m_flags );
+    Kokkos::deep_copy( host_flags, m_flags );
 
-    size_t error_count = 0;
-    for ( size_t i = 0; i < N; ++i ) {
+    int error_count = 0;
+    for ( int i = 0; i < N; ++i ) {
       if ( int( i ) != host_flags( i ) ) ++error_count;
     }
-    ASSERT_EQ( error_count, size_t( 0 ) );
+    ASSERT_EQ( error_count, int( 0 ) );
 
-    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType, ResetTag >( 0, N ), functor );
-    Kokkos::parallel_for( std::string( "TestKernelFor" ), Kokkos::RangePolicy< ExecSpace, ScheduleType, VerifyResetTag >( 0, N ), functor );
+    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType, ResetTag >( 0, N ), *this );
+    Kokkos::parallel_for( std::string( "TestKernelFor" ), Kokkos::RangePolicy< ExecSpace, ScheduleType, VerifyResetTag >( 0, N ), *this );
 
-    Kokkos::deep_copy( host_flags, functor.m_flags );
+    Kokkos::deep_copy( host_flags, m_flags );
 
     error_count = 0;
-    for ( size_t i = 0; i < N; ++i ) {
+    for ( int i = 0; i < N; ++i ) {
       if ( int( 2 * i ) != host_flags( i ) ) ++error_count;
     }
-    ASSERT_EQ( error_count, size_t( 0 ) );
+    ASSERT_EQ( error_count, int( 0 ) );
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -123,18 +123,17 @@ struct TestRange {
 
   struct OffsetTag {};
 
-  static void test_reduce( const size_t N )
+  void test_reduce( )
   {
-    TestRange functor( N );
     int total = 0;
 
-    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), functor );
+    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), *this );
 
-    Kokkos::parallel_reduce( "TestKernelReduce", Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), functor, total );
+    Kokkos::parallel_reduce( "TestKernelReduce", Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), *this, total );
     // sum( 0 .. N-1 )
     ASSERT_EQ( size_t( ( N - 1 ) * ( N ) / 2 ), size_t( total ) );
 
-    Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace, ScheduleType, OffsetTag>( 0, N ), functor, total );
+    Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace, ScheduleType, OffsetTag>( 0, N ), *this, total );
     // sum( 1 .. N )
     ASSERT_EQ( size_t( ( N ) * ( N + 1 ) / 2 ), size_t( total ) );
   }
@@ -149,13 +148,12 @@ struct TestRange {
 
   //----------------------------------------
 
-  static void test_scan( const size_t N )
+  void test_scan( )
   {
-    TestRange functor( N );
 
-    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), functor );
+    Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), *this );
 
-    Kokkos::parallel_scan( "TestKernelScan", Kokkos::RangePolicy< ExecSpace, ScheduleType, OffsetTag>( 0, N ), functor );
+    Kokkos::parallel_scan( "TestKernelScan", Kokkos::RangePolicy< ExecSpace, ScheduleType, OffsetTag>( 0, N ), *this );
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -170,15 +168,17 @@ struct TestRange {
     }
   }
 
-  static void test_dynamic_policy( const size_t N )
+  void test_dynamic_policy()
   {
-    typedef Kokkos::RangePolicy< ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> > policy_t;
+#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA) 
+   #if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
+     typedef Kokkos::RangePolicy< ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> > policy_t;
 
     {
       Kokkos::View< size_t*, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic> > count( "Count", ExecSpace::concurrency() );
       Kokkos::View< int*, ExecSpace > a( "A", N );
 
-      Kokkos::parallel_for( policy_t( 0, N ), KOKKOS_LAMBDA ( const typename policy_t::member_type& i ) {
+      Kokkos::parallel_for( policy_t( 0, N ), KOKKOS_LAMBDA ( const int& i ) {
         for ( int k = 0; k < ( i < N / 2 ? 1 : 10000 ); k++ ) {
           a( i )++;
         }
@@ -186,12 +186,12 @@ struct TestRange {
       });
 
       int error = 0;
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), KOKKOS_LAMBDA( const typename policy_t::member_type & i, int & lsum ) {
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), KOKKOS_LAMBDA( const int & i, int & lsum ) {
         lsum += ( a( i ) != ( i < N / 2 ? 1 : 10000 ) );
       }, error );
       ASSERT_EQ( error, 0 );
 
-      if ( ( ExecSpace::concurrency() > (int) 1 ) && ( N > static_cast<size_t>( 4 * ExecSpace::concurrency() ) ) ) {
+      if ( ( ExecSpace::concurrency() > (int) 1 ) && ( N > static_cast<int>( 4 * ExecSpace::concurrency() ) ) ) {
         size_t min = N;
         size_t max = 0;
         for ( int t = 0; t < ExecSpace::concurrency(); t++ ) {
@@ -211,7 +211,7 @@ struct TestRange {
       Kokkos::View< int*, ExecSpace> a( "A", N );
 
       int sum = 0;
-      Kokkos::parallel_reduce( policy_t( 0, N ), KOKKOS_LAMBDA( const typename policy_t::member_type & i, int & lsum ) {
+      Kokkos::parallel_reduce( policy_t( 0, N ), KOKKOS_LAMBDA( const int & i, int & lsum ) {
         for ( int k = 0; k < ( i < N / 2 ? 1 : 10000 ); k++ ) {
           a( i )++;
         }
@@ -221,12 +221,12 @@ struct TestRange {
       ASSERT_EQ( sum, N );
 
       int error = 0;
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), KOKKOS_LAMBDA( const typename policy_t::member_type & i, int & lsum ) {
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), KOKKOS_LAMBDA( const int & i, int & lsum ) {
         lsum += ( a( i ) != ( i < N / 2 ? 1 : 10000 ) );
       }, error );
       ASSERT_EQ( error, 0 );
 
-      if ( ( ExecSpace::concurrency() > (int) 1 ) && ( N > static_cast<size_t>( 4 * ExecSpace::concurrency() ) ) ) {
+      if ( ( ExecSpace::concurrency() > (int) 1 ) && ( N > static_cast<int>( 4 * ExecSpace::concurrency() ) ) ) {
         size_t min = N;
         size_t max = 0;
         for ( int t = 0; t < ExecSpace::concurrency(); t++ ) {
@@ -240,9 +240,57 @@ struct TestRange {
         //}
       }
     }
+#endif
+#endif
   }
 };
 
 } // namespace
 
+TEST_F( TEST_CATEGORY, range_for )
+{
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(0); f.test_for(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(0); f.test_for(); }
+
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(2); f.test_for(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(3); f.test_for(); }
+
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(1000); f.test_for(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(1001); f.test_for(); }
+}
+
+TEST_F( TEST_CATEGORY, range_reduce )
+{
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(0); f.test_reduce(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(0); f.test_reduce(); }
+
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(2); f.test_reduce(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(3); f.test_reduce(); }
+
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(1000); f.test_reduce(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(1001); f.test_reduce(); }
+}
+
+#ifndef KOKKOS_ENABLE_OPENMPTARGET 
+TEST_F( TEST_CATEGORY, range_scan )
+{
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(0); f.test_scan(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(0); f.test_scan(); }
+#ifndef KOKKOS_ENABLE_CUDA
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(0); f.test_dynamic_policy(); }
+#endif
+
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(2); f.test_scan(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(3); f.test_scan(); }
+#ifndef KOKKOS_ENABLE_CUDA
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(3); f.test_dynamic_policy(); }
+#endif
+
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(1000); f.test_scan(); }
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(1001); f.test_scan(); }
+#ifndef KOKKOS_ENABLE_CUDA
+  { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(1001); f.test_dynamic_policy(); }
+#endif
+}
+#endif
 } // namespace Test

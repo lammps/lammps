@@ -48,6 +48,7 @@
 #include <sstream>
 #include <iostream>
 
+namespace Test {
 struct SomeTag {};
 
 template< class ExecutionSpace >
@@ -526,3 +527,11 @@ private:
     test_run_time_parameters_type< Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Dynamic>, Kokkos::IndexType<long>, ExecutionSpace, SomeTag > >();
   }
 };
+
+TEST_F( TEST_CATEGORY, policy_construction )
+{
+   TestRangePolicyConstruction< TEST_EXECSPACE >();
+   TestTeamPolicyConstruction< TEST_EXECSPACE >();
+}
+
+}

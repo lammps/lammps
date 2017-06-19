@@ -14,7 +14,7 @@ pair_style zero cutoff {nocoeff} :pre
 
 zero = style name of this pair style
 cutoff = global cutoff (distance units)
-nocoeff = ignore all pair_coeff parameters (optional) :l
+nocoeff = ignore all pair_coeff parameters (optional) :ul
 
 [Examples:]
 

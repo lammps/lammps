@@ -44,6 +44,7 @@
 #ifndef KOKKOS_IMPL_CUDA_TASK_HPP
 #define KOKKOS_IMPL_CUDA_TASK_HPP
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
@@ -325,7 +326,7 @@ ValueType shfl_warp_broadcast
   return Kokkos::shfl(val, src_lane, width);
 }
 
-// all-reduce across corresponding vector lanes between team members within warp
+/*// all-reduce across corresponding vector lanes between team members within warp
 // assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
@@ -351,7 +352,7 @@ void parallel_reduce
                           loop_boundaries.thread.team_size(),
                           blockDim.x);
   initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, threadIdx.x, Impl::CudaTraits::WarpSize );
-}
+}*/
 
 // all-reduce across corresponding vector lanes between team members within warp
 // if no join() provided, use sum
@@ -382,13 +383,36 @@ void parallel_reduce
   initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, threadIdx.x, Impl::CudaTraits::WarpSize );
 }
 
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+void parallel_reduce
+  (const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >& loop_boundaries,
+   const Lambda & lambda,
+   const ReducerType& reducer) {
+
+  typedef typename ReducerType::value_type ValueType;
+  //TODO what is the point of creating this temporary?
+  ValueType result = ValueType();
+  reducer.init(result);
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,result);
+  }
+
+  strided_shfl_warp_reduction(
+                          [&] (ValueType& val1, const ValueType& val2) { reducer.join(val1,val2); },
+                          result,
+                          loop_boundaries.thread.team_size(),
+                          blockDim.x);
+  reducer.reference() = shfl_warp_broadcast<ValueType>( result, threadIdx.x, Impl::CudaTraits::WarpSize );
+}
 // all-reduce within team members within warp
 // assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
 // threadIdx.y == member number
-template< typename iType, class Lambda, typename ValueType, class JoinType >
+/*template< typename iType, class Lambda, typename ValueType, class JoinType >
 KOKKOS_INLINE_FUNCTION
 void parallel_reduce
   (const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >& loop_boundaries,
@@ -404,7 +428,7 @@ void parallel_reduce
 
   multi_shfl_warp_reduction<ValueType, JoinType>(join, initialized_result, blockDim.x);
   initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, 0, blockDim.x );
-}
+}*/
 
 // all-reduce within team members within warp
 // if no join() provided, use sum
@@ -436,6 +460,28 @@ void parallel_reduce
   initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, 0, blockDim.x );
 }
 
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+void parallel_reduce
+  (const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >& loop_boundaries,
+   const Lambda & lambda,
+   const ReducerType& reducer) {
+
+  typedef typename ReducerType::value_type ValueType;
+
+  ValueType result = ValueType();
+  reducer.init(result);
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,result);
+  }
+
+  multi_shfl_warp_reduction(
+                          [&] (ValueType& val1, const ValueType& val2) { reducer.join(val1, val2); },
+                          result,
+                          blockDim.x);
+  reducer.reference() = shfl_warp_broadcast<ValueType>( result, 0, blockDim.x );
+}
 // scan across corresponding vector lanes between team members within warp
 // assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride

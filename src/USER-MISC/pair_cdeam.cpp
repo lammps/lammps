@@ -456,11 +456,11 @@ void PairCDEAM::read_h_coeff(char *filename)
 {
         if(comm->me == 0) {
                 // Open potential file
-                FILE *fp;
+                FILE *fptr;
                 char line[MAXLINE];
                 char nextline[MAXLINE];
-                fp = force->open_potential(filename);
-                if (fp == NULL) {
+                fptr = force->open_potential(filename);
+                if (fptr == NULL) {
                         char str[128];
                         sprintf(str,"Cannot open EAM potential file %s", filename);
                         error->one(FLERR,str);
@@ -468,7 +468,7 @@ void PairCDEAM::read_h_coeff(char *filename)
 
                 // h coefficients are stored at the end of the file.
                 // Skip to last line of file.
-                while(fgets(nextline, MAXLINE, fp) != NULL) {
+                while(fgets(nextline, MAXLINE, fptr) != NULL) {
                         strcpy(line, nextline);
                 }
                 char* ptr = strtok(line, " \t\n\r\f");
@@ -483,7 +483,7 @@ void PairCDEAM::read_h_coeff(char *filename)
                         error->one(FLERR,"Failed to read h(x) function coefficients from EAM file.");
 
                 // Close the potential file.
-                fclose(fp);
+                fclose(fptr);
         }
 
         MPI_Bcast(&nhcoeff, 1, MPI_INT, 0, world);

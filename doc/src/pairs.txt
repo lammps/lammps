@@ -49,7 +49,6 @@ Pair Styles :h1
    pair_lj_cubic
    pair_lj_expand
    pair_lj_long
-   pair_lj_sf
    pair_lj_smooth
    pair_lj_smooth_linear
    pair_lj_soft

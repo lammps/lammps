@@ -110,7 +110,6 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondClass2Compute<0,0> >(0,nbondlist),*this);
     }
   }
-  //DeviceType::fence();
 
   if (eflag_global) energy += ev.evdwl;
   if (vflag_global) {

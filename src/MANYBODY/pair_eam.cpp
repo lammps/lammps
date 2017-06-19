@@ -429,6 +429,7 @@ double PairEAM::init_one(int i, int j)
   // for funcfl could be multiple files
   // for setfl or fs, just one file
 
+  if (setflag[i][j] == 0) scale[i][j] = 1.0;
   scale[j][i] = scale[i][j];
 
   if (funcfl) {

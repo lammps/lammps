@@ -62,6 +62,6 @@ void NPairIntel::grow_stencil()
     const int maxstencil = ns->get_maxstencil();
     #pragma offload_transfer target(mic:_cop)	\
       in(stencil:length(maxstencil) alloc_if(1) free_if(0))
-  }  
+  }
 }
 #endif

@@ -49,10 +49,6 @@ enum{LIMITMAX,LIMITEXACT};
 #define IDMAX 1024*1024
 #define INVOKED_PERATOM 8
 
-// allocate space for static class variable
-
-ComputeChunkAtom *ComputeChunkAtom::cptr;
-
 /* ---------------------------------------------------------------------- */
 
 ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -1088,8 +1084,7 @@ void ComputeChunkAtom::compress_chunk_ids()
     memory->destroy(listall);
 
   } else {
-    cptr = this;
-    comm->ring(n,sizeof(int),list,1,idring,NULL,0);
+    comm->ring(n,sizeof(int),list,1,idring,NULL,(void *)this,0);
   }
 
   memory->destroy(list);
@@ -1121,8 +1116,9 @@ void ComputeChunkAtom::compress_chunk_ids()
    hash ends up storing all unique IDs across all procs
 ------------------------------------------------------------------------- */
 
-void ComputeChunkAtom::idring(int n, char *cbuf)
+void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 {
+  ComputeChunkAtom *cptr = (ComputeChunkAtom *)ptr;
   tagint *list = (tagint *) cbuf;
   std::map<tagint,int> *hash = cptr->hash;
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;

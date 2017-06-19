@@ -44,16 +44,10 @@
 #ifndef KOKKOS_HOST_EXP_ITERATE_TILE_HPP
 #define KOKKOS_HOST_EXP_ITERATE_TILE_HPP
 
-#include <iostream>
-#include <algorithm>
-#include <stdio.h>
-
 #include <Kokkos_Macros.hpp>
-
-#if defined(KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION) && defined(KOKKOS_HAVE_PRAGMA_IVDEP) && !defined(__CUDA_ARCH__)
+#if defined(KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION) && defined(KOKKOS_HAVE_PRAGMA_IVDEP) && !defined(__CUDA_ARCH__)
 #define KOKKOS_MDRANGE_IVDEP
 #endif
-
 
 #ifdef KOKKOS_MDRANGE_IVDEP
  #define KOKKOS_ENABLE_IVDEP_MDRANGE _Pragma("ivdep")
@@ -61,7 +55,9 @@
  #define KOKKOS_ENABLE_IVDEP_MDRANGE
 #endif
 
-
+#include <iostream>
+#include <algorithm>
+#include <cstdio>
 
 namespace Kokkos { namespace Experimental { namespace Impl {
 
@@ -243,7 +239,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
   KOKKOS_ENABLE_IVDEP_MDRANGE                            \
   for( type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) { \
     APPLY( func, i0 + m_offset[0] )              \
-  } 
+  }
 
 #define LOOP_LAYOUT_2( func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -255,7 +251,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) { \
       LOOP_R_1( func, type, m_offset, extent, 1 , i1 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_3( func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -267,7 +263,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) { \
       LOOP_R_2( func, type, m_offset, extent, 1 , i2 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_4( func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -279,7 +275,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) { \
       LOOP_R_3( func, type, m_offset, extent, 1 , i3 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_5( func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -291,7 +287,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) { \
       LOOP_R_4( func, type, m_offset, extent, 1 , i4 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_6( func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -303,7 +299,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) { \
       LOOP_R_5( func, type, m_offset, extent, 1 , i5 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_7( func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -315,7 +311,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) { \
       LOOP_R_6( func, type, m_offset, extent, 1 , i6 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_8( func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -327,7 +323,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) { \
       LOOP_R_7( func, type, m_offset, extent, 1 , i7 + m_offset[0] )   \
     } \
-  } 
+  }
 
 // Partial vs Full Tile
 #define TILE_LOOP_1( func, type, is_left, cond, m_offset, extent_full, extent_partial, rank ) \
@@ -459,7 +455,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
   KOKKOS_ENABLE_IVDEP_MDRANGE                            \
   for( type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) { \
     APPLY_REDUX( val, func, i0 + m_offset[0] )              \
-  } 
+  }
 
 #define LOOP_LAYOUT_2_REDUX( val, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -471,7 +467,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) { \
       LOOP_R_1_REDUX( val, func, type, m_offset, extent, 1 , i1 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_3_REDUX( val, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -483,7 +479,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) { \
       LOOP_R_2_REDUX( val, func, type, m_offset, extent, 1 , i2 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_4_REDUX( val, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -495,7 +491,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) { \
       LOOP_R_3_REDUX( val, func, type, m_offset, extent, 1 , i3 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_5_REDUX( val, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -507,7 +503,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) { \
       LOOP_R_4_REDUX( val, func, type, m_offset, extent, 1 , i4 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_6_REDUX( val, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -519,7 +515,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) { \
       LOOP_R_5_REDUX( val, func, type, m_offset, extent, 1 , i5 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_7_REDUX( val, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -531,7 +527,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) { \
       LOOP_R_6_REDUX( val, func, type, m_offset, extent, 1 , i6 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define LOOP_LAYOUT_8_REDUX( val, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -543,7 +539,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) { \
       LOOP_R_7_REDUX( val, func, type, m_offset, extent, 1 , i7 + m_offset[0] )   \
     } \
-  } 
+  }
 
 // Partial vs Full Tile
 #define TILE_LOOP_1_REDUX( val, func, type, is_left, cond, m_offset, extent_full, extent_partial, rank ) \
@@ -676,7 +672,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
   KOKKOS_ENABLE_IVDEP_MDRANGE                            \
   for( type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) { \
     TAGGED_APPLY( tag, func, i0 + m_offset[0] )              \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_2( tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -688,7 +684,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) { \
       TAGGED_LOOP_R_1( tag, func, type, m_offset, extent, 1 , i1 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_3( tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -700,7 +696,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) { \
       TAGGED_LOOP_R_2( tag, func, type, m_offset, extent, 1 , i2 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_4( tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -712,7 +708,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) { \
       TAGGED_LOOP_R_3( tag, func, type, m_offset, extent, 1 , i3 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_5( tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -724,7 +720,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) { \
       TAGGED_LOOP_R_4( tag, func, type, m_offset, extent, 1 , i4 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_6( tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -736,7 +732,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) { \
       TAGGED_LOOP_R_5( tag, func, type, m_offset, extent, 1 , i5 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_7( tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -748,7 +744,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) { \
       TAGGED_LOOP_R_6( tag, func, type, m_offset, extent, 1 , i6 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_8( tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -760,7 +756,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) { \
       TAGGED_LOOP_R_7( tag, func, type, m_offset, extent, 1 , i7 + m_offset[0] )   \
     } \
-  } 
+  }
 
 // Partial vs Full Tile
 #define TAGGED_TILE_LOOP_1( tag, func, type, is_left, cond, m_offset, extent_full, extent_partial, rank ) \
@@ -892,7 +888,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
   KOKKOS_ENABLE_IVDEP_MDRANGE                            \
   for( type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) { \
     TAGGED_APPLY_REDUX( val, tag, func, i0 + m_offset[0] )              \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_2_REDUX( val, tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -904,7 +900,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) { \
       TAGGED_LOOP_R_1_REDUX( val, tag, func, type, m_offset, extent, 1 , i1 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_3_REDUX( val, tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -916,7 +912,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) { \
       TAGGED_LOOP_R_2_REDUX( val, tag, func, type, m_offset, extent, 1 , i2 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_4_REDUX( val, tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -928,7 +924,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) { \
       TAGGED_LOOP_R_3_REDUX( val, tag, func, type, m_offset, extent, 1 , i3 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_5_REDUX( val, tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -940,7 +936,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) { \
       TAGGED_LOOP_R_4_REDUX( val, tag, func, type, m_offset, extent, 1 , i4 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_6_REDUX( val, tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -952,7 +948,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) { \
       TAGGED_LOOP_R_5_REDUX( val, tag, func, type, m_offset, extent, 1 , i5 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_7_REDUX( val, tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -964,7 +960,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) { \
       TAGGED_LOOP_R_6_REDUX( val, tag, func, type, m_offset, extent, 1 , i6 + m_offset[0] )   \
     } \
-  } 
+  }
 
 #define TAGGED_LOOP_LAYOUT_8_REDUX( val, tag, func, type, is_left, m_offset, extent, rank )  \
   if (is_left) { \
@@ -976,7 +972,7 @@ namespace Kokkos { namespace Experimental { namespace Impl {
     for( type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) { \
       TAGGED_LOOP_R_7_REDUX( val, tag, func, type, m_offset, extent, 1 , i7 + m_offset[0] )   \
     } \
-  } 
+  }
 
 // Partial vs Full Tile
 #define TAGGED_TILE_LOOP_1_REDUX( val, tag, func, type, is_left, cond, m_offset, extent_full, extent_partial, rank ) \
@@ -1321,8 +1317,8 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
         }
         else {
           is_full_tile = false ;
-            partial_tile[i] = (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1 
-                            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0 ? (m_rp.m_upper[i] - offset[i]) 
+            partial_tile[i] = (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
+                            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0 ? (m_rp.m_upper[i] - offset[i])
                             : (m_rp.m_upper[i] - m_rp.m_lower[i]) ; // when single tile encloses range
         }
       }
@@ -1332,7 +1328,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
 
   template <int Rank>
-  struct RankTag 
+  struct RankTag
   {
     typedef RankTag type;
     enum { value = (int)Rank };
@@ -1343,13 +1339,13 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
   inline
   void
   operator()(IType tile_idx) const
-  { 
+  {
     point_type m_offset;
     point_type m_tiledims;
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1361,13 +1357,13 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
     }
 
     //Check if offset+tiledim in bounds - if not, replace tile dims with the partial tile dims
-    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ; 
+    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ;
 
     Tile_Loop_Type< RP::rank, (RP::inner_direction == RP::Left), index_type, Tag >::apply( m_func, full_tile, m_offset, m_rp.m_tile, m_tiledims );
 
   }
 
-#else 
+#else
   template <typename IType>
   inline
   void
@@ -1384,7 +1380,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1396,7 +1392,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
     }
 
     //Check if offset+tiledim in bounds - if not, replace tile dims with the partial tile dims
-    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ; 
+    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ;
 
     if (RP::inner_direction == RP::Left) {
      if ( full_tile ) {
@@ -1437,7 +1433,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1490,7 +1486,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1543,7 +1539,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1596,7 +1592,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1649,7 +1645,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1702,7 +1698,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1804,8 +1800,8 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
         }
         else {
           is_full_tile = false ;
-            partial_tile[i] = (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1 
-                            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0 ? (m_rp.m_upper[i] - offset[i]) 
+            partial_tile[i] = (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
+                            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0 ? (m_rp.m_upper[i] - offset[i])
                             : (m_rp.m_upper[i] - m_rp.m_lower[i]) ; // when single tile encloses range
         }
       }
@@ -1815,7 +1811,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
 
   template <int Rank>
-  struct RankTag 
+  struct RankTag
   {
     typedef RankTag type;
     enum { value = (int)Rank };
@@ -1827,13 +1823,13 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
   inline
   void
   operator()(IType tile_idx) const
-  { 
+  {
     point_type m_offset;
     point_type m_tiledims;
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1845,13 +1841,13 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
     }
 
     //Check if offset+tiledim in bounds - if not, replace tile dims with the partial tile dims
-    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ; 
+    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ;
 
     Tile_Loop_Type< RP::rank, (RP::inner_direction == RP::Left), index_type, Tag >::apply( m_v, m_func, full_tile, m_offset, m_rp.m_tile, m_tiledims );
 
   }
 
-#else 
+#else
   template <typename IType>
   inline
   void
@@ -1869,7 +1865,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1881,7 +1877,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
     }
 
     //Check if offset+tiledim in bounds - if not, replace tile dims with the partial tile dims
-    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ; 
+    const bool full_tile = check_iteration_bounds(m_tiledims , m_offset) ;
 
     if (RP::inner_direction == RP::Left) {
      if ( full_tile ) {
@@ -1922,7 +1918,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -1975,7 +1971,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -2028,7 +2024,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -2081,7 +2077,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -2134,7 +2130,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -2187,7 +2183,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
     if (RP::outer_direction == RP::Left) {
       for (int i=0; i<RP::rank; ++i) {
-        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ; 
+        m_offset[i] = (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i] ;
         tile_idx /= m_rp.m_tile_end[i];
       }
     }
@@ -2352,5 +2348,5 @@ struct MDFunctor< MDRange, Functor, void >
 
 } } } //end namespace Kokkos::Experimental::Impl
 
-
 #endif
+

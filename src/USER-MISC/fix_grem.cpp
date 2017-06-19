@@ -50,11 +50,8 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all(FLERR,"Illegal fix grem command");
 
   scalar_flag = 1;
-  vector_flag = 1;
-  size_vector = 3;
+  extscalar = 0;
   global_freq = 1;
-  extscalar = 1;
-  extvector = 1;
 
   scale_grem = 1.0;
 
@@ -280,6 +277,13 @@ void FixGrem::post_force(int vflag)
       f[i][2] *= scale_grem;
     }
   pe->addstep(update->ntimestep+1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixGrem::compute_scalar()
+{
+  return tbath / scale_grem;
 }
 
 /* ----------------------------------------------------------------------

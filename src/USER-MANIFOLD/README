@@ -7,9 +7,13 @@ box). It achieves this using the RATTLE constraint algorithm applied
 to single-particle constraint functions g(xi,yi,zi) = 0 and their
 derivative (i.e. the normal of the manifold) n = grad(g).
 
-Stefan Paquay, s.paquay@tue.nl
-Applied Physics/Theory of Polymers and Soft Matter,
+Stefan Paquay, stefanpaquay@gmail.com
+
+until 2017: Applied Physics/Theory of Polymers and Soft Matter,
 Eindhoven University of Technology (TU/e), The Netherlands
+
+since 2017: Brandeis University, Waltham, MA, USA.
+
 
 Thanks to Remy Kusters at TU/e for testing.
 

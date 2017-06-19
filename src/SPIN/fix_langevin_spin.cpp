@@ -145,25 +145,25 @@ void FixLangevinSpin::post_force(int vflag)
   // add the damping to the effective field of each spin
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-		sx = sp[i][0];
-		sy = sp[i][1];
-		sz = sp[i][2];
-		
-		fmx = fm[i][0];
-		fmy = fm[i][1];
-		fmz = fm[i][2];
+      sx = sp[i][0];
+      sy = sp[i][1];
+      sz = sp[i][2];
+ 		
+      fmx = fm[i][0];
+      fmy = fm[i][1];
+      fmz = fm[i][2];
 	
-		cpx = fmy*sz - fmz*sy;//Computing cross product
-		cpy = fmz*sx - fmx*sz;
-		cpz = fmx*sy - fmy*sx;
+      cpx = fmy*sz - fmz*sy;//Computing cross product
+      cpy = fmz*sx - fmx*sz;
+      cpz = fmx*sy - fmy*sx;
 		
-		fmx -= alpha_t*cpx;//Taking the damping value away
-		fmy -= alpha_t*cpy;
-		fmz -= alpha_t*cpz;
+      fmx -= alpha_t*cpx;//Taking the damping value away
+      fmy -= alpha_t*cpy;
+      fmz -= alpha_t*cpz;
 		
-		fm[i][0] = fmx;
-		fm[i][1] = fmy;
-		fm[i][2] = fmz;
+      fm[i][0] = fmx;
+      fm[i][1] = fmy;
+      fm[i][2] = fmz;
    }
 
   //apply thermal effects adding random fields to fm

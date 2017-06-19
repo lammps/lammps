@@ -25,24 +25,34 @@ FixStyle(nve/spin,FixNVESpin)
 namespace LAMMPS_NS {
 
 class FixNVESpin : public FixNVE {
-	friend class FixSpinDamping;
 	
  public:
   FixNVESpin(class LAMMPS *, int, char **);
-  virtual ~FixNVESpin() {}
+  virtual ~FixNVESpin();
   void init();
   virtual void initial_integrate(int);
   void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
 
-//Sorting atoms/spins routine
-void SortSpins();
+//#define SEQ
+#define SEQNEI   
+  void ComputeSpinInteractions();   
+  void ComputeSpinInteractionsNei(int);   
 
  protected:
   int extra;
   double dts;
   //double alpha_t;
-  
+ 
+#if defined SEQNEI 
+ private:
+  int exch_flag, dmi_flag, me_flag;
+  int zeeman_flag, aniso_flag;
+  class PairSpin *lockpairspin;
+  double *spi, *fmi, *fmj; //Temp var. for compute
+  class FixForceSpin *lockforcespin;
+#endif
+
  //private:
   //class FixSpinDamping *lockspindamping;
 };

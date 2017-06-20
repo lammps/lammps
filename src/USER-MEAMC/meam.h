@@ -15,7 +15,7 @@ class MEAM {
   MEAM(Memory *mem);
   ~MEAM();
  private:
-  Memory *&memory;
+  Memory *memory;
 
   // cutforce = force cutoff
   // cutforcesq = force cutoff squared

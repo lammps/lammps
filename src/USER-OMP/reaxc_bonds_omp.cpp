@@ -50,7 +50,6 @@ void BondsOMP( reax_system *system, control_params *control,
 #endif
 
   const int natoms = system->n;
-  const int nthreads = control->nthreads;
   reax_list *bonds = (*lists) + BONDS;
   const double gp3 = system->reax_param.gp.l[3];
   const double gp4 = system->reax_param.gp.l[4];
@@ -66,8 +65,8 @@ void BondsOMP( reax_system *system, control_params *control,
   int  i, j, pj;
   int start_i, end_i;
   int type_i, type_j;
-  double ebond, ebond_thr=0.0, pow_BOs_be2, exp_be12, CEbo;
-  double exphu, exphua1, exphub1, exphuov, hulpov, estriph, estriph_thr=0.0;
+  double ebond, pow_BOs_be2, exp_be12, CEbo;
+  double exphu, exphua1, exphub1, exphuov, hulpov, estriph;
   double decobdbo, decobdboua, decobdboub;
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;

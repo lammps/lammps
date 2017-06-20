@@ -18,7 +18,7 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_setup_global(int* nelt, int* lat, double* z, int* ielement, double* atwt,
+MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt,
                    double* alpha, double* b0, double* b1, double* b2,
                    double* b3, double* alat, double* esub, double* asub,
                    double* t0, double* t1, double* t2, double* t3,
@@ -28,22 +28,10 @@ MEAM::meam_setup_global(int* nelt, int* lat, double* z, int* ielement, double* a
   int i;
   double tmplat[maxelt];
 
-  this->neltypes = *nelt;
+  this->neltypes = nelt;
 
-  for (i = 1; i <= *nelt; i++) {
-    if (arr1v(lat, i) == 0)
-      this->lattce_meam[i][i] = FCC;
-    else if (arr1v(lat, i) == 1)
-      this->lattce_meam[i][i] = BCC;
-    else if (arr1v(lat, i) == 2)
-      this->lattce_meam[i][i] = HCP;
-    else if (arr1v(lat, i) == 3)
-      this->lattce_meam[i][i] = DIM;
-    else if (arr1v(lat, i) == 4)
-      this->lattce_meam[i][i] = DIA;
-    else {
-      //           unknown
-    }
+  for (i = 1; i <= nelt; i++) {
+    this->lattce_meam[i][i] = arr1v(lat, i);
 
     this->Z_meam[i] = arr1v(z, i);
     this->ielt_meam[i] = arr1v(ielement, i);

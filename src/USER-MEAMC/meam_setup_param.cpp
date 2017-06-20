@@ -59,20 +59,17 @@ MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr
 //     20 = bkgd_dyn
 
 void
-MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
-                  int* index /*index(3)*/, int* errorflag)
+MEAM::meam_setup_param(int which, double value, int nindex, int* index /*index(3)*/, int* errorflag)
 {
   //: index[0..2]
-  int i1, i2, val;
+  int i1, i2;
+  lattice_t vlat;
   *errorflag = 0;
-  int which = *which_p;
-  double value = *value_p;
-  int nindex = *nindex_p;
 
   switch (which) {
     //     0 = Ec_meam
     case 0:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->Ec_meam[index[0]][index[1]] = value;
@@ -80,7 +77,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     1 = alpha_meam
     case 1:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->alpha_meam[index[0]][index[1]] = value;
@@ -88,7 +85,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     2 = rho0_meam
     case 2:
-      meam_checkindex(1, maxelt, nindex, index, errorflag);
+      meam_checkindex(1, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->rho0_meam[index[0]] = value;
@@ -96,7 +93,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     3 = delta_meam
     case 3:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->delta_meam[index[0]][index[1]] = value;
@@ -104,34 +101,17 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     4 = lattce_meam
     case 4:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
-      val = (int)value;
+      vlat = (lattice_t)value;
 
-      if (val == 0)
-        this->lattce_meam[index[0]][index[1]] = FCC;
-      else if (val == 1)
-        this->lattce_meam[index[0]][index[1]] = BCC;
-      else if (val == 2)
-        this->lattce_meam[index[0]][index[1]] = HCP;
-      else if (val == 3)
-        this->lattce_meam[index[0]][index[1]] = DIM;
-      else if (val == 4)
-        this->lattce_meam[index[0]][index[1]] = DIA;
-      else if (val == 5)
-        this->lattce_meam[index[0]][index[1]] = B1;
-      else if (val == 6)
-        this->lattce_meam[index[0]][index[1]] = C11;
-      else if (val == 7)
-        this->lattce_meam[index[0]][index[1]] = L12;
-      else if (val == 8)
-        this->lattce_meam[index[0]][index[1]] = B2;
+      this->lattce_meam[index[0]][index[1]] = vlat;
       break;
 
     //     5 = attrac_meam
     case 5:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->attrac_meam[index[0]][index[1]] = value;
@@ -139,7 +119,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     6 = repuls_meam
     case 6:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->repuls_meam[index[0]][index[1]] = value;
@@ -147,7 +127,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     7 = nn2_meam
     case 7:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       i1 = std::min(index[0], index[1]);
@@ -157,7 +137,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     8 = Cmin_meam
     case 8:
-      meam_checkindex(3, maxelt, nindex, index, errorflag);
+      meam_checkindex(3, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->Cmin_meam[index[0]][index[1]][index[2]] = value;
@@ -165,7 +145,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     9 = Cmax_meam
     case 9:
-      meam_checkindex(3, maxelt, nindex, index, errorflag);
+      meam_checkindex(3, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->Cmax_meam[index[0]][index[1]][index[2]] = value;
@@ -193,7 +173,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     14 = re_meam
     case 14:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       this->re_meam[index[0]][index[1]] = value;
@@ -216,7 +196,7 @@ MEAM::meam_setup_param(int* which_p, double* value_p, int* nindex_p,
 
     //     18 = zbl_meam
     case 18:
-      meam_checkindex(2, maxelt, nindex, index, errorflag);
+      meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;
       i1 = std::min(index[0], index[1]);

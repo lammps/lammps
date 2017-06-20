@@ -371,7 +371,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   int params_per_line = 19;
 
-  int *lat = new int[nelements];
+  lattice_t *lat = new lattice_t[nelements];
   int *ielement = new int[nelements];
   int *ibar = new int[nelements];
   double *z = new double[nelements];
@@ -502,7 +502,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   // pass element parameters to MEAM package
 
-  meam_inst->meam_setup_global(&nelements,lat,z,ielement,atwt,alpha,b0,b1,b2,b3,
+  meam_inst->meam_setup_global(nelements,lat,z,ielement,atwt,alpha,b0,b1,b2,b3,
                        alat,esub,asub,t0,t1,t2,t3,rozero,ibar);
 
   // set element masses
@@ -601,7 +601,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     // map lattce_meam value to an integer
 
-    if (which == 4) {
+    if (which == 4) {	
       if (strcmp(params[nparams-1],"fcc") == 0) value = FCC;
       else if (strcmp(params[nparams-1],"bcc") == 0) value = BCC;
       else if (strcmp(params[nparams-1],"hcp") == 0) value = HCP;
@@ -618,7 +618,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     // pass single setting to MEAM package
 
     int errorflag = 0;
-    meam_inst->meam_setup_param(&which,&value,&nindex,index,&errorflag);
+    meam_inst->meam_setup_param(which,value,nindex,index,&errorflag);
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);

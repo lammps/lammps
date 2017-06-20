@@ -141,8 +141,8 @@ public:
   void interpolate_meam(int);
   double compute_phi(double, int, int);
  public:
-  void meam_setup_global(int*, int*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-  void meam_setup_param(int*, double*, int*, int*, int*);
+  void meam_setup_global(int, lattice_t*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
+  void meam_setup_param(int, double, int, int*, int*);
   void meam_setup_done(double*);
   void meam_dens_setup(int, int, int);
   void meam_dens_init(int* i, int* ntype, int* type, int* fmap, double** x,

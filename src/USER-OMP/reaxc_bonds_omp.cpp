@@ -49,14 +49,14 @@ void BondsOMP( reax_system *system, control_params *control,
   startTimeBase = MPI_Wtime();
 #endif
 
-  int natoms = system->n;
-  int nthreads = control->nthreads;
+  const int natoms = system->n;
+  const int nthreads = control->nthreads;
   reax_list *bonds = (*lists) + BONDS;
-  double gp3 = system->reax_param.gp.l[3];
-  double gp4 = system->reax_param.gp.l[4];
-  double gp7 = system->reax_param.gp.l[7];
-  double gp10 = system->reax_param.gp.l[10];
-  double gp37 = (int) system->reax_param.gp.l[37];
+  const double gp3 = system->reax_param.gp.l[3];
+  const double gp4 = system->reax_param.gp.l[4];
+  const double gp7 = system->reax_param.gp.l[7];
+  const double gp10 = system->reax_param.gp.l[10];
+  const int gp37 = (int) system->reax_param.gp.l[37];
   double total_Ebond = 0.0;
 
 #if defined(_OPENMP)
@@ -67,7 +67,6 @@ void BondsOMP( reax_system *system, control_params *control,
   int start_i, end_i;
   int type_i, type_j;
   double ebond, ebond_thr=0.0, pow_BOs_be2, exp_be12, CEbo;
-  double gp3, gp4, gp7, gp10, gp37;
   double exphu, exphua1, exphub1, exphuov, hulpov, estriph, estriph_thr=0.0;
   double decobdbo, decobdboua, decobdboub;
   single_body_parameters *sbp_i, *sbp_j;

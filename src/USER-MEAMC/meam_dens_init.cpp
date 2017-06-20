@@ -135,9 +135,9 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
   double rnorm, fc, dfc, drinv;
 
   drinv = 1.0 / this->delr_meam;
-  elti = arr1v(fmap, arr1v(type, i));
+  elti = fmap[arr1v(type, i)];
 
-  if (elti > 0) {
+  if (elti >= 0) {
 
     xitmp = arr2v(x, 1, i);
     yitmp = arr2v(x, 2, i);
@@ -146,8 +146,8 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
     for (jn = 1; jn <= numneigh; jn++) {
       j = arr1v(firstneigh, jn);
 
-      eltj = arr1v(fmap, arr1v(type, j));
-      if (eltj > 0) {
+      eltj = fmap[arr1v(type, j)];
+      if (eltj >= 0) {
 
         //     First compute screening function itself, sij
         xjtmp = arr2v(x, 1, j);
@@ -180,8 +180,8 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
           k = arr1v(firstneigh_full, kn);
           if (k == j)
             continue;
-          eltk = arr1v(fmap, arr1v(type, k));
-          if (eltk == 0)
+          eltk = fmap[arr1v(type, k)];
+          if (eltk < 0)
             continue;
           xktmp = arr2v(x, 1, k);
           yktmp = arr2v(x, 2, k);
@@ -252,7 +252,7 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
   double ro0i, ro0j;
   double rhoa0i, rhoa1i, rhoa2i, rhoa3i, A1i, A2i, A3i;
 
-  elti = arr1v(fmap, arr1v(type, i));
+  elti = fmap[arr1v(type, i)];
   xtmp = arr2v(x, 1, i);
   ytmp = arr2v(x, 2, i);
   ztmp = arr2v(x, 3, i);
@@ -265,7 +265,7 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
       delij[3] = arr2v(x, 3, j) - ztmp;
       rij2 = delij[1] * delij[1] + delij[2] * delij[2] + delij[3] * delij[3];
       if (rij2 < this->cutforcesq) {
-        eltj = arr1v(fmap, arr1v(type, j));
+        eltj = fmap[arr1v(type, j)];
         rij = sqrt(rij2);
         ai = rij / this->re_meam[elti][elti] - 1.0;
         aj = rij / this->re_meam[eltj][eltj] - 1.0;
@@ -379,15 +379,15 @@ MEAM::screen(int i, int j, double** x, double rijsq, double* sij,
   double Cmax, Cmin, rbound;
 
   *sij = 1.0;
-  eltj = arr1v(fmap, arr1v(type, j));
-  elti = arr1v(fmap, arr1v(type, j));
+  eltj = fmap[arr1v(type, j)];
+  elti = fmap[arr1v(type, j)];
 
   //     if rjksq > ebound*rijsq, atom k is definitely outside the ellipse
   rbound = this->ebound_meam[elti][eltj] * rijsq;
 
   for (nk = 1; nk <= numneigh_full; nk++) {
     k = arr1v(firstneigh_full, nk);
-    eltk = arr1v(fmap, arr1v(type, k));
+    eltk = fmap[arr1v(type, k)];
     if (k == j)
       continue;
     delxjk = arr2v(x, 1, k) - arr2v(x, 1, j);
@@ -451,9 +451,9 @@ MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2,
   double Cmax, Cmin, dCikj1, dCikj2;
 
   sij = arr1v(scrfcn, jn) * arr1v(fcpair, jn);
-  elti = arr1v(fmap, arr1v(type, i));
-  eltj = arr1v(fmap, arr1v(type, j));
-  eltk = arr1v(fmap, arr1v(type, k));
+  elti = fmap[arr1v(type, i)];
+  eltj = fmap[arr1v(type, j)];
+  eltk = fmap[arr1v(type, k)];
   Cmax = this->Cmax_meam[elti][eltj][eltk];
   Cmin = this->Cmin_meam[elti][eltj][eltk];
 

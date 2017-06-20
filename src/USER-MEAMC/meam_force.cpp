@@ -74,9 +74,9 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
 
   //     Compute forces atom i
 
-  elti = arr1v(fmap, arr1v(type, i));
+  elti = fmap[arr1v(type, i)];
 
-  if (elti > 0) {
+  if (elti >= 0) {
     xitmp = arr2v(x, 1, i);
     yitmp = arr2v(x, 2, i);
     zitmp = arr2v(x, 3, i);
@@ -84,9 +84,9 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
     //     Treat each pair
     for (jn = 1; jn <= *numneigh; jn++) {
       j = arr1v(firstneigh, jn);
-      eltj = arr1v(fmap, arr1v(type, j));
+      eltj = fmap[arr1v(type, j)];
 
-      if (!iszero(arr1v(scrfcn, fnoffset + jn)) && eltj > 0) {
+      if (!iszero(arr1v(scrfcn, fnoffset + jn)) && eltj >= 0) {
 
         sij = arr1v(scrfcn, fnoffset + jn) * arr1v(fcpair, fnoffset + jn);
         delij[1] = arr2v(x, 1, j) - xitmp;
@@ -98,7 +98,7 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
           r = rij;
 
           //     Compute phi and phip
-          ind = this->eltind[elti][eltj] - 1;  //: TODO Remove -1 when reindexing eltind
+          ind = this->eltind[elti][eltj];
           pp = rij * this->rdrar;
           kk = (int)pp;
           kk = std::min(kk, this->nrar - 2);
@@ -514,8 +514,8 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             continue; //: cont jn loop
           for (kn = 1; kn <= *numneigh_full; kn++) {
             k = arr1v(firstneigh_full, kn);
-            eltk = arr1v(fmap, arr1v(type, k));
-            if (k != j && eltk > 0) {
+            eltk = fmap[arr1v(type, k)];
+            if (k != j && eltk >= 0) {
               dsij(i, j, k, jn, *numneigh, rij2, &dsij1, &dsij2, *ntype,
                    type, fmap, x, &scrfcn[fnoffset], &fcpair[fnoffset]);
               if (!iszero(dsij1) || !iszero(dsij2)) {
@@ -579,6 +579,6 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
       //     end of j loop
     }
 
-    //     else if elti=0, this is not a meam atom
+    //     else if elti<0, this is not a meam atom
   }
 }

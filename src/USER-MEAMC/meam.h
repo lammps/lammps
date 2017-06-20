@@ -62,21 +62,21 @@ class MEAM {
   // nr,dr = pair function discretization parameters
   // nrar,rdrar = spline coeff array parameters
 
-  double Ec_meam[maxelt + 1][maxelt + 1], re_meam[maxelt + 1][maxelt + 1];
-  double Omega_meam[maxelt + 1], Z_meam[maxelt + 1];
-  double A_meam[maxelt + 1], alpha_meam[maxelt + 1][maxelt + 1],
-    rho0_meam[maxelt + 1];
-  double delta_meam[maxelt + 1][maxelt + 1];
-  double beta0_meam[maxelt + 1], beta1_meam[maxelt + 1];
-  double beta2_meam[maxelt + 1], beta3_meam[maxelt + 1];
-  double t0_meam[maxelt + 1], t1_meam[maxelt + 1];
-  double t2_meam[maxelt + 1], t3_meam[maxelt + 1];
-  double rho_ref_meam[maxelt + 1];
-  int ibar_meam[maxelt + 1], ielt_meam[maxelt + 1];
-  lattice_t lattce_meam[maxelt + 1][maxelt + 1];
-  int nn2_meam[maxelt + 1][maxelt + 1];
-  int zbl_meam[maxelt + 1][maxelt + 1];
-  int eltind[maxelt + 1][maxelt + 1];
+  double Ec_meam[maxelt][maxelt], re_meam[maxelt][maxelt];
+  double Omega_meam[maxelt], Z_meam[maxelt];
+  double A_meam[maxelt], alpha_meam[maxelt][maxelt],
+    rho0_meam[maxelt];
+  double delta_meam[maxelt][maxelt];
+  double beta0_meam[maxelt], beta1_meam[maxelt];
+  double beta2_meam[maxelt], beta3_meam[maxelt];
+  double t0_meam[maxelt], t1_meam[maxelt];
+  double t2_meam[maxelt], t3_meam[maxelt];
+  double rho_ref_meam[maxelt];
+  int ibar_meam[maxelt], ielt_meam[maxelt];
+  lattice_t lattce_meam[maxelt][maxelt];
+  int nn2_meam[maxelt][maxelt];
+  int zbl_meam[maxelt][maxelt];
+  int eltind[maxelt][maxelt];
   int neltypes;
 
   double **phir;
@@ -84,12 +84,12 @@ class MEAM {
   double **phirar, **phirar1, **phirar2, **phirar3, **phirar4, **phirar5,
     **phirar6;
 
-  double attrac_meam[maxelt + 1][maxelt + 1],
-    repuls_meam[maxelt + 1][maxelt + 1];
+  double attrac_meam[maxelt][maxelt],
+    repuls_meam[maxelt][maxelt];
 
-  double Cmin_meam[maxelt + 1][maxelt + 1][maxelt + 1];
-  double Cmax_meam[maxelt + 1][maxelt + 1][maxelt + 1];
-  double rc_meam, delr_meam, ebound_meam[maxelt + 1][maxelt + 1];
+  double Cmin_meam[maxelt][maxelt][maxelt];
+  double Cmax_meam[maxelt][maxelt][maxelt];
+  double rc_meam, delr_meam, ebound_meam[maxelt][maxelt];
   int augt1, ialloy, mix_ref_t, erose_form;
   int emb_lin_neg, bkgd_dyn;
   double gsmooth_factor;
@@ -165,15 +165,15 @@ public:
 
 #define setall2d(arr, v)                                                       \
   {                                                                            \
-    for (int __i = 1; __i <= maxelt; __i++)                                    \
-      for (int __j = 1; __j <= maxelt; __j++)                                  \
+    for (int __i = 0; __i < maxelt; __i++)                                     \
+      for (int __j = 0; __j < maxelt; __j++)                                   \
         arr[__i][__j] = v;                                                     \
   }
 #define setall3d(arr, v)                                                       \
   {                                                                            \
-    for (int __i = 1; __i <= maxelt; __i++)                                    \
-      for (int __j = 1; __j <= maxelt; __j++)                                  \
-        for (int __k = 1; __k <= maxelt; __k++)                                \
+    for (int __i = 0; __i < maxelt; __i++)                                     \
+      for (int __j = 0; __j < maxelt; __j++)                                   \
+        for (int __k = 0; __k < maxelt; __k++)                                 \
           arr[__i][__j][__k] = v;                                              \
   }
 

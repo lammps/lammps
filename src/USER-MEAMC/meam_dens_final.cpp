@@ -33,8 +33,8 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
   //     Complete the calculation of density
 
   for (i = 1; i <= *nlocal; i++) {
-    elti = arr1v(fmap, arr1v(type, i));
-    if (elti > 0) {
+    elti = fmap[arr1v(type, i)];
+    if (elti >= 0) {
       arr1v(rho1, i) = 0.0;
       arr1v(rho2, i) = -1.0 / 3.0 * arr1v(arho2b, i) * arr1v(arho2b, i);
       arr1v(rho3, i) = 0.0;

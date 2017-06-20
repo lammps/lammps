@@ -26,7 +26,7 @@ MEAM::meam_setup_done(double* cutmax)
   *cutmax = this->cutforce;
 
   //     Augment t1 term
-  for (int i = 1; i <= maxelt; i++)
+  for (int i = 0; i < maxelt; i++)
     this->t1_meam[i] =
       this->t1_meam[i] + this->augt1 * 3.0 / 5.0 * this->t3_meam[i];
 
@@ -71,9 +71,9 @@ MEAM::meam_setup_done(double* cutmax)
   this->v3D[9] = 3;
   this->v3D[10] = 1;
 
-  nv2 = 1;
-  for (m = 1; m <= this->neltypes; m++) {
-    for (n = m; n <= this->neltypes; n++) {
+  nv2 = 0;
+  for (m = 0; m < this->neltypes; m++) {
+    for (n = m; n < this->neltypes; n++) {
       this->eltind[m][n] = nv2;
       this->eltind[n][m] = nv2;
       nv2 = nv2 + 1;
@@ -99,8 +99,8 @@ MEAM::alloyparams(void)
   double eb;
 
   // Loop over pairs
-  for (i = 1; i <= this->neltypes; i++) {
-    for (j = 1; i <= this->neltypes; i++) {
+  for (i = 0; i < this->neltypes; i++) {
+    for (j = 0; i < this->neltypes; i++) {
       // Treat off-diagonal pairs
       // If i>j, set all equal to i<j case (which has aready been set,
       // here or in the input file)
@@ -144,9 +144,9 @@ MEAM::alloyparams(void)
 
   // Cmin[i][k][j] is symmetric in i-j, but not k.  For all triplets
   // where i>j, set equal to the i<j element.  Likewise for Cmax.
-  for (i = 2; i <= this->neltypes; i++) {
-    for (j = 1; j <= i - 1; j++) {
-      for (k = 1; k <= this->neltypes; k++) {
+  for (i = 1; i < this->neltypes; i++) {
+    for (j = 0; j < i; j++) {
+      for (k = 0; k < this->neltypes; k++) {
         this->Cmin_meam[i][j][k] = this->Cmin_meam[j][i][k];
         this->Cmax_meam[i][j][k] = this->Cmax_meam[j][i][k];
       }
@@ -157,9 +157,9 @@ MEAM::alloyparams(void)
   // atom k definitely lies outside the screening function ellipse (so
   // there is no need to calculate its effects).  Here, compute it for all
   // triplets [i][j][k] so that ebound[i][j] is the maximized over k
-  for (i = 2; i <= this->neltypes; i++) {
-    for (j = 1; j <= this->neltypes; j++) {
-      for (k = 1; k <= this->neltypes; k++) {
+  for (i = 0; i < this->neltypes; i++) {
+    for (j = 0; j < this->neltypes; j++) {
+      for (k = 0; k < this->neltypes; k++) {
         eb = (this->Cmax_meam[i][j][k] * this->Cmax_meam[i][j][k]) /
              (4.0 * (this->Cmax_meam[i][j][k] - 1.0));
         this->ebound_meam[i][j] = std::max(this->ebound_meam[i][j], eb);
@@ -241,8 +241,8 @@ MEAM::compute_pair_meam(void)
 
   // loop over pairs of element types
   nv2 = 0;
-  for (a = 1; a <= this->neltypes; a++) {
-    for (b = a; b <= this->neltypes; b++) {
+  for (a = 0; a < this->neltypes; a++) {
+    for (b = a; b < this->neltypes; b++) {
       // loop over r values and compute
       for (j = 0; j < this->nr; j++) {
         r = j * this->dr;
@@ -593,7 +593,7 @@ MEAM::compute_reference_density(void)
   double rho0, rho0_2nn, arat, scrn;
 
   // loop over element types
-  for (a = 1; a <= this->neltypes; a++) {
+  for (a = 0; a < this->neltypes; a++) {
     Z = (int)this->Z_meam[a];
     if (this->ibar_meam[a] <= 0)
       Gbar = 1.0;

@@ -30,25 +30,25 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
 
   this->neltypes = nelt;
 
-  for (i = 1; i <= nelt; i++) {
-    this->lattce_meam[i][i] = arr1v(lat, i);
+  for (i = 0; i < nelt; i++) {
+    this->lattce_meam[i][i] = lat[i];
 
-    this->Z_meam[i] = arr1v(z, i);
-    this->ielt_meam[i] = arr1v(ielement, i);
-    this->alpha_meam[i][i] = arr1v(alpha, i);
-    this->beta0_meam[i] = arr1v(b0, i);
-    this->beta1_meam[i] = arr1v(b1, i);
-    this->beta2_meam[i] = arr1v(b2, i);
-    this->beta3_meam[i] = arr1v(b3, i);
-    tmplat[i] = arr1v(alat, i);
-    this->Ec_meam[i][i] = arr1v(esub, i);
-    this->A_meam[i] = arr1v(asub, i);
-    this->t0_meam[i] = arr1v(t0, i);
-    this->t1_meam[i] = arr1v(t1, i);
-    this->t2_meam[i] = arr1v(t2, i);
-    this->t3_meam[i] = arr1v(t3, i);
-    this->rho0_meam[i] = arr1v(rozero, i);
-    this->ibar_meam[i] = arr1v(ibar, i);
+    this->Z_meam[i] = z[i];
+    this->ielt_meam[i] = ielement[i];
+    this->alpha_meam[i][i] = alpha[i];
+    this->beta0_meam[i] = b0[i];
+    this->beta1_meam[i] = b1[i];
+    this->beta2_meam[i] = b2[i];
+    this->beta3_meam[i] = b3[i];
+    tmplat[i] = alat[i];
+    this->Ec_meam[i][i] = esub[i];
+    this->A_meam[i] = asub[i];
+    this->t0_meam[i] = t0[i];
+    this->t1_meam[i] = t1[i];
+    this->t2_meam[i] = t2[i];
+    this->t3_meam[i] = t3[i];
+    this->rho0_meam[i] = rozero[i];
+    this->ibar_meam[i] = ibar[i];
 
     if (this->lattce_meam[i][i] == FCC)
       this->re_meam[i][i] = tmplat[i] / sqrt(2.0);

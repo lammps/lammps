@@ -15,7 +15,7 @@ MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr
   }
 
   for (int i = 0; i < num; i++) {
-    if ((idx[i] < 1) || (idx[i] > lim)) {
+    if ((idx[i] < 0) || (idx[i] >= lim)) {
       *ierr = 3;
       return;
     }

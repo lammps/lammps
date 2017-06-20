@@ -82,7 +82,6 @@ PairMEAMC::~PairMEAMC()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
-    delete [] fmap;
   }
 }
 
@@ -145,7 +144,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_inst->meam_dens_init(&ifort,&ntype,type,fmap,x,
+    meam_inst->meam_dens_init(&ifort,&ntype,type,map,x,
                     &numneigh_half[i],firstneigh_half[i],
                     &numneigh_full[i],firstneigh_full[i],
                     offset,
@@ -161,7 +160,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   comm->reverse_comm_pair(this);
 
   meam_inst->meam_dens_final(&nlocal,&eflag_either,&eflag_global,&eflag_atom,
-                   &eng_vdwl,eatom,&ntype,type,fmap,
+                   &eng_vdwl,eatom,&ntype,type,map,
                    &errorflag);
   if (errorflag) {
     char str[128];
@@ -184,7 +183,7 @@ void PairMEAMC::compute(int eflag, int vflag)
     i = ilist_half[ii];
     ifort = i+1;
     meam_inst->meam_force(&ifort,&eflag_either,&eflag_global,&eflag_atom,
-                &vflag_atom,&eng_vdwl,eatom,&ntype,type,fmap,x,
+                &vflag_atom,&eng_vdwl,eatom,&ntype,type,map,x,
                 &numneigh_half[i],firstneigh_half[i],
                 &numneigh_full[i],firstneigh_full[i],
                 offset,
@@ -216,7 +215,6 @@ void PairMEAMC::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
-  fmap = new int[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -323,12 +321,6 @@ void PairMEAMC::init_style()
   neighbor->requests[irequest_full]->full = 1;
   int irequest_half = neighbor->request(this,instance_me);
   neighbor->requests[irequest_half]->id = 2;
-
-  // setup Fortran-style mapping array needed by MEAM package
-  // fmap is indexed from 1:ntypes by Fortran and stores a Fortran index
-  // if type I is not a MEAM atom, fmap stores a 0
-
-  for (int i = 1; i <= atom->ntypes; i++) fmap[i-1] = map[i] + 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -597,7 +589,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
       error->all(FLERR,str);
     }
     nindex = nparams - 2;
-    for (i = 0; i < nindex; i++) index[i] = atoi(params[i+1]);
+    for (i = 0; i < nindex; i++) index[i] = atoi(params[i+1]) - 1;
 
     // map lattce_meam value to an integer
 

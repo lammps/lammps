@@ -49,8 +49,7 @@ class PairMEAMC : public Pair {
   char **elements;              // names of unique elements
   double *mass;                 // mass of each element
 
-  int *map;                     // mapping from atom types to elements
-  int *fmap;                    // Fortran version of map array for MEAM lib
+  int *map;                     // mapping from atom types (1-indexed) to elements (1-indexed)
 
   void allocate();
   void read_files(char *, char *);

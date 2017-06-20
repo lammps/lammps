@@ -1337,8 +1337,8 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               fH[1] = 0.5 * alpha * fd[1];
               fH[2] = 0.5 * alpha * fd[2];
 
-              xH1 = x[jH1];
-              xH2 = x[jH2];
+              xH1 = x[iH1];
+              xH2 = x[iH2];
               v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
               v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
               v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];

@@ -50,7 +50,7 @@ enum{NCOMMON};
 
 ComputeCNPAtom::ComputeCNPAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  nearest(NULL), nnearest(NULL), cnpv(NULL)
+  list(NULL), nearest(NULL), nnearest(NULL), cnpv(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cnp/atom command");
 

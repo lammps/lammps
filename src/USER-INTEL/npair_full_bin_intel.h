@@ -36,9 +36,6 @@ class NPairFullBinIntel : public NPairIntel {
  private:
   template <class flt_t, class acc_t>
   void fbi(NeighList *, IntelBuffers<flt_t,acc_t> *);
-  template <class flt_t, class acc_t, int, int>
-  void fbi(const int, NeighList *, IntelBuffers<flt_t,acc_t> *, const int,
-           const int, const int offload_end = 0);
 };
 
 }

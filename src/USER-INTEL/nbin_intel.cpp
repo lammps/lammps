@@ -51,7 +51,7 @@ NBinIntel::~NBinIntel() {
     const int * bins = this->bins;
     const int * _atombin = this->_atombin;
     const int * _binpacked = this->_binpacked;
-    #pragma offload_transfer target(mic:_cop)	\
+    #pragma offload_transfer target(mic:_cop)   \
       nocopy(binhead,bins,_atombin,_binpacked:alloc_if(0) free_if(1))
   }
   #endif
@@ -70,7 +70,7 @@ void NBinIntel::bin_atoms_setup(int nall)
     #ifdef _LMP_INTEL_OFFLOAD
     if (_offload_alloc) {
       const int * binhead = this->binhead;
-      #pragma offload_transfer target(mic:_cop)	\
+      #pragma offload_transfer target(mic:_cop) \
         nocopy(binhead:alloc_if(0) free_if(1))
     }
     #endif
@@ -98,7 +98,7 @@ void NBinIntel::bin_atoms_setup(int nall)
       const int * bins = this->bins;
       const int * _atombin = this->_atombin;
       const int * _binpacked = this->_binpacked;
-      #pragma offload_transfer target(mic:_cop)	\
+      #pragma offload_transfer target(mic:_cop) \
         nocopy(bins,_atombin,_binpacked:alloc_if(0) free_if(1))
     }
     #endif
@@ -174,9 +174,11 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
   biga.w = 1;
   buffers->get_x()[nall] = biga;
 
-  const int nthreads = comm->nthreads;
+  int nthreads;
+  if (comm->nthreads > INTEL_HTHREADS) nthreads = comm->nthreads;
+  else nthreads = 1;
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) shared(buffers)
+  #pragma omp parallel if(nthreads > INTEL_HTHREADS)
   #endif
   {
     int ifrom, ito, tid;

@@ -104,3 +104,8 @@ This pair style can only be used via the {pair} keyword of the
 "pair_coeff"_pair_coeff.html, "pair lj/smooth"_pair_lj_smooth.html
 
 [Default:] none
+
+:line
+
+:link(Toxvaerd)
+[(Toxvaerd)] Toxvaerd, Dyre, J Chem Phys, 134, 081102 (2011).

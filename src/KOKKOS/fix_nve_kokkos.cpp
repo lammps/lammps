@@ -76,7 +76,6 @@ void FixNVEKokkos<DeviceType>::initial_integrate(int vflag)
     FixNVEKokkosInitialIntegrateFunctor<DeviceType,0> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   }
-  DeviceType::fence();
 }
 
 template<class DeviceType>
@@ -133,7 +132,6 @@ void FixNVEKokkos<DeviceType>::final_integrate()
     FixNVEKokkosFinalIntegrateFunctor<DeviceType,0> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   }
-  DeviceType::fence();
 
   // debug
   //atomKK->sync(Host,datamask_read);

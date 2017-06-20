@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,8 +44,8 @@
 #ifndef KOKKOSTRAITS_HPP
 #define KOKKOSTRAITS_HPP
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <Kokkos_Macros.hpp>
 #include <string>
 #include <type_traits>
@@ -93,7 +93,7 @@ public:
 template< typename DefaultType
         , template< typename > class Condition
         , typename ... Pack >
-struct has_condition 
+struct has_condition
 {
   enum { value = false };
   typedef DefaultType type ;
@@ -355,7 +355,7 @@ struct is_integral : public integral_constant< bool ,
     std::is_same< T , uint8_t  >::value ||
     std::is_same< T , uint16_t >::value ||
     std::is_same< T , uint32_t >::value ||
-    std::is_same< T , uint64_t >::value 
+    std::is_same< T , uint64_t >::value
   )>
 {};
 //----------------------------------------------------------------------------

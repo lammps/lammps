@@ -24,7 +24,7 @@ args = list of atom attributes, same as for "dump_style custom"_dump.html :l,ule
 [Examples:]
 
 dump 1 all netcdf 100 traj.nc type x y z vx vy vz
-dump_modify 1 append yes at -1 global c_thermo_pe c_thermo_temp c_thermo_press
+dump_modify 1 append yes at -1 thermo yes
 dump 1 all netcdf/mpiio 1000 traj.nc id type x y z :pre
 
 [Description:]
@@ -44,7 +44,7 @@ rank.
 NetCDF files can be directly visualized via the following tools:
 
 Ovito (http://www.ovito.org/). Ovito supports the AMBER convention and
-all of the above extensions. :ule,b
+all extensions of this dump style. :ule,b
 
 VMD (http://www.ks.uiuc.edu/Research/vmd/). :l
 
@@ -52,15 +52,9 @@ AtomEye (http://www.libatoms.org/). The libAtoms version of AtomEye
 contains a NetCDF reader that is not present in the standard
 distribution of AtomEye. :l,ule
 
-In addition to per-atom data, global data can be included in the dump
-file, which are the kinds of values output by the
-"thermo_style"_thermo_style.html command .  See "Section howto
-6.15"_Section_howto.html#howto_15 for an explanation of per-atom
-versus global data.  The global output written into the dump file can
-be from computes, fixes, or variables, by prefixing the compute/fix ID
-or variable name with "c_" or "f_" or "v_" respectively, as in the
-example above.  These global values are specified via the "dump_modify
-global"_dump_modify.html command.
+In addition to per-atom data, "thermo"_thermo.html data can be included in the
+dump file. The data included in the dump file is identical to the data specified
+by "thermo_style"_thermo_style.html.
 
 :link(netcdf-home,http://www.unidata.ucar.edu/software/netcdf/)
 :link(pnetcdf-home,http://trac.mcs.anl.gov/projects/parallel-netcdf/)

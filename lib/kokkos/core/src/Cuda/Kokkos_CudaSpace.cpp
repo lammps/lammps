@@ -41,16 +41,15 @@
 //@HEADER
 */
 
-#include <stdlib.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_CUDA
+
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
 #include <atomic>
-#include <Kokkos_Macros.hpp>
-
-/* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_ENABLE_CUDA
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Cuda.hpp>
@@ -890,9 +889,9 @@ void init_lock_arrays_cuda_space() {
   }
 }
 
-void* cuda_resize_scratch_space(size_t bytes, bool force_shrink) {
+void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
   static void* ptr = NULL;
-  static size_t current_size = 0;
+  static std::int64_t current_size = 0;
   if(current_size == 0) {
     current_size = bytes;
     ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",current_size);
@@ -911,5 +910,7 @@ void* cuda_resize_scratch_space(size_t bytes, bool force_shrink) {
 
 }
 }
+#else
+void KOKKOS_CORE_SRC_CUDA_CUDASPACE_PREVENT_LINK_ERROR() {}
 #endif // KOKKOS_ENABLE_CUDA
 

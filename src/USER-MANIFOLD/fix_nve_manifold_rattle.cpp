@@ -115,6 +115,13 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
     error->all(FLERR, "Error creating manifold arg arrays");
   }
 
+  // Check if you have enough args:
+  if( 6 + nvars > narg ){
+    char msg[2048];
+    sprintf(msg, "Not enough args for manifold %s, %d expected but got %d\n",
+            ptr_m->id(), nvars, narg - 6);
+    error->all(FLERR, msg);
+  }
   // Loop over manifold args:
   for( int i = 0; i < nvars; ++i ){
     int len = 0, offset = 0;

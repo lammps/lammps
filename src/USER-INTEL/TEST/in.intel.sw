@@ -1,5 +1,6 @@
 # bulk Si via Stillinger-Weber
 
+variable        N index on      # Newton Setting
 variable        w index 10      # Warmup Timesteps
 variable        t index 6200	# Main Run Timesteps
 variable        m index 1       # Main Run Timestep Multiplier
@@ -16,6 +17,7 @@ variable	zz equal 10*$z
 variable        rr equal floor($t*$m)
 variable        root getenv LMP_ROOT
 
+newton          $N
 if "$n > 0"     then "processors * * * grid numa"
 
 units		metal

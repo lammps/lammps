@@ -47,7 +47,7 @@ keyword = {scale} or {reset} :l
 fix 1 all adapt 1 pair soft a 1 1 v_prefactor
 fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
 fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
-fix 1 all adapt 10 atom diameter v_size
+fix 1 all adapt 10 atom diameter v_size :pre
 
 variable ramp_up equal "ramp(0.01,0.5)"
 fix stretch all adapt 1 bond harmonic r0 1 v_ramp_up :pre

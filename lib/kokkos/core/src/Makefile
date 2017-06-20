@@ -9,14 +9,14 @@ default: messages build-lib
 	echo "End Build"
 
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-  CXX = $(KOKKOS_PATH)/config/nvcc_wrapper
+  CXX = $(KOKKOS_PATH)/bin/nvcc_wrapper
 else
   CXX = g++
 endif
 
 CXXFLAGS = -O3
 LINK ?= $(CXX)
-LDFLAGS ?= 
+LDFLAGS ?=
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
@@ -66,7 +66,7 @@ else
   KOKKOS_DEBUG_CMAKE = ON
 endif
 
-messages: 
+messages:
 	echo "Start Build"
 
 build-makefile-kokkos:
@@ -80,13 +80,13 @@ build-makefile-kokkos:
 	echo "KOKKOS_CXX_STANDARD = $(KOKKOS_CXX_STANDARD)" >> Makefile.kokkos
 	echo "KOKKOS_OPTIONS = $(KOKKOS_OPTIONS)" >> Makefile.kokkos
 	echo "KOKKOS_CUDA_OPTIONS = $(KOKKOS_CUDA_OPTIONS)" >> Makefile.kokkos
-	echo "CXX ?= $(CXX)" >> Makefile.kokkos 
+	echo "CXX ?= $(CXX)" >> Makefile.kokkos
 	echo "NVCC_WRAPPER ?= $(PREFIX)/bin/nvcc_wrapper" >> Makefile.kokkos
-	echo "" >> Makefile.kokkos  
+	echo "" >> Makefile.kokkos
 	echo "#Source and Header files of Kokkos relative to KOKKOS_PATH" >> Makefile.kokkos
 	echo "KOKKOS_HEADERS = $(KOKKOS_HEADERS)" >> Makefile.kokkos
 	echo "KOKKOS_SRC = $(KOKKOS_SRC)" >> Makefile.kokkos
-	echo "" >> Makefile.kokkos  
+	echo "" >> Makefile.kokkos
 	echo "#Variables used in application Makefiles" >> Makefile.kokkos
 	echo "KOKKOS_CPP_DEPENDS = $(KOKKOS_CPP_DEPENDS)" >> Makefile.kokkos
 	echo "KOKKOS_CXXFLAGS = $(KOKKOS_CXXFLAGS)" >> Makefile.kokkos
@@ -133,11 +133,11 @@ build-cmake-kokkos:
 	echo "else()" >> kokkos.cmake
 	echo '  set(NVCC_WRAPPER $$ENV{NVCC_WRAPPER} CACHE FILEPATH "Path to command nvcc_wrapper")' >> kokkos.cmake
 	echo "endif()" >> kokkos.cmake
-	echo "" >> kokkos.cmake  
+	echo "" >> kokkos.cmake
 	echo "#Source and Header files of Kokkos relative to KOKKOS_PATH" >> kokkos.cmake
 	echo "set(KOKKOS_HEADERS \"$(KOKKOS_HEADERS)\" CACHE STRING \"Kokkos headers list\")" >> kokkos.cmake
 	echo "set(KOKKOS_SRC \"$(KOKKOS_SRC)\" CACHE STRING \"Kokkos source list\")" >> kokkos.cmake
-	echo "" >> kokkos.cmake  
+	echo "" >> kokkos.cmake
 	echo "#Variables used in application Makefiles" >> kokkos.cmake
 	echo "set(KOKKOS_CPP_DEPENDS \"$(KOKKOS_CPP_DEPENDS)\" CACHE STRING \"\")" >> kokkos.cmake
 	echo "set(KOKKOS_CXXFLAGS \"$(KOKKOS_CXXFLAGS)\" CACHE STRING \"\")" >> kokkos.cmake
@@ -164,7 +164,7 @@ build-cmake-kokkos:
 
 build-lib: build-makefile-kokkos build-cmake-kokkos $(KOKKOS_LINK_DEPENDS)
 
-mkdir: 
+mkdir:
 	mkdir -p $(PREFIX)
 	mkdir -p $(PREFIX)/bin
 	mkdir -p $(PREFIX)/include
@@ -187,7 +187,7 @@ copy-openmp: mkdir
 	mkdir -p $(PREFIX)/include/OpenMP
 	cp $(COPY_FLAG) $(KOKKOS_HEADERS_OPENMP) $(PREFIX)/include/OpenMP
 
-install: mkdir $(CONDITIONAL_COPIES) build-lib 
+install: mkdir $(CONDITIONAL_COPIES) build-lib
 	cp $(COPY_FLAG) $(NVCC_WRAPPER) $(PREFIX)/bin
 	cp $(COPY_FLAG) $(KOKKOS_HEADERS_INCLUDE) $(PREFIX)/include
 	cp $(COPY_FLAG) $(KOKKOS_HEADERS_INCLUDE_IMPL) $(PREFIX)/include/impl

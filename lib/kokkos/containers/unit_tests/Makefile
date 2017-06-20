@@ -8,7 +8,7 @@ default: build_all
 	echo "End Build"
 
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-  CXX = $(KOKKOS_PATH)/config/nvcc_wrapper
+  CXX = $(KOKKOS_PATH)/bin/nvcc_wrapper
 else
   CXX = g++
 endif
@@ -21,8 +21,8 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 
 KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/containers/unit_tests
 
-TEST_TARGETS = 
-TARGETS = 
+TEST_TARGETS =
+TARGETS =
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	OBJ_CUDA = TestCuda.o UnitTestMain.o gtest-all.o
@@ -49,16 +49,16 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
 endif
 
 KokkosContainers_UnitTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_UnitTest_Cuda
+	$(LINK) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_Cuda
 
 KokkosContainers_UnitTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_THREADS) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_UnitTest_Threads
+	$(LINK) $(EXTRA_PATH) $(OBJ_THREADS) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_Threads
 
 KokkosContainers_UnitTest_OpenMP: $(OBJ_OPENMP) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_OPENMP) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_UnitTest_OpenMP
+	$(LINK) $(EXTRA_PATH) $(OBJ_OPENMP) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_OpenMP
 
 KokkosContainers_UnitTest_Serial: $(OBJ_SERIAL) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_SERIAL) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_UnitTest_Serial
+	$(LINK) $(EXTRA_PATH) $(OBJ_SERIAL) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_Serial
 
 test-cuda: KokkosContainers_UnitTest_Cuda
 	./KokkosContainers_UnitTest_Cuda
@@ -76,7 +76,7 @@ build_all: $(TARGETS)
 
 test: $(TEST_TARGETS)
 
-clean: kokkos-clean 
+clean: kokkos-clean
 	rm -f *.o $(TARGETS)
 
 # Compilation rules
@@ -84,6 +84,5 @@ clean: kokkos-clean
 %.o:%.cpp $(KOKKOS_CPP_DEPENDS)
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_INC) -c $<
 
-gtest-all.o:$(GTEST_PATH)/gtest/gtest-all.cc 
+gtest-all.o:$(GTEST_PATH)/gtest/gtest-all.cc
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_INC) -c $(GTEST_PATH)/gtest/gtest-all.cc
-

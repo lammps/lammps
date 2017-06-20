@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
+enum{NONE=0,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
 enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 
 // same as domain.cpp, fix_nvt_sllod.cpp, compute_temp_deform.cpp
@@ -52,6 +52,7 @@ rfix(NULL), irregular(NULL), set(NULL)
   if (narg < 4) error->all(FLERR,"Illegal fix deform command");
 
   no_change_box = 1;
+  restart_global = 1;
 
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix deform command");
@@ -59,12 +60,7 @@ rfix(NULL), irregular(NULL), set(NULL)
   // set defaults
 
   set = new Set[6];
-  set[0].style = set[1].style = set[2].style =
-    set[3].style = set[4].style = set[5].style = NONE;
-  set[0].hstr = set[1].hstr = set[2].hstr =
-    set[3].hstr = set[4].hstr = set[5].hstr = NULL;
-  set[0].hratestr = set[1].hratestr = set[2].hratestr =
-    set[3].hratestr = set[4].hratestr = set[5].hratestr = NULL;
+  memset(set,0,6*sizeof(Set));
 
   // parse arguments
 
@@ -343,11 +339,9 @@ rfix(NULL), irregular(NULL), set(NULL)
     set[i].hi_initial = domain->boxhi[i];
     set[i].vol_initial = domain->xprd * domain->yprd * domain->zprd;
   }
-  for (int i = 3; i < 6; i++) {
-    if (i == 5) set[i].tilt_initial = domain->xy;
-    else if (i == 4) set[i].tilt_initial = domain->xz;
-    else if (i == 3) set[i].tilt_initial = domain->yz;
-  }
+  set[3].tilt_initial = domain->yz;
+  set[4].tilt_initial = domain->xz;
+  set[5].tilt_initial = domain->xy;
 
   // reneighboring only forced if flips can occur due to shape changes
 
@@ -953,6 +947,43 @@ void FixDeform::end_of_step()
   // redo KSpace coeffs since box has changed
 
   if (kspace_flag) force->kspace->setup();
+}
+
+/* ----------------------------------------------------------------------
+   write Set data to restart file
+------------------------------------------------------------------------- */
+
+void FixDeform::write_restart(FILE *fp)
+{
+  if (comm->me == 0) {
+    int size = 6*sizeof(Set);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(set,sizeof(Set),6,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use selected state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixDeform::restart(char *buf)
+{
+  int samestyle = 1;
+  Set *set_restart = (Set *) buf;
+  for (int i=0; i<6; ++i) {
+    // restore data from initial state
+    set[i].lo_initial = set_restart[i].lo_initial;
+    set[i].hi_initial = set_restart[i].hi_initial;
+    set[i].vol_initial = set_restart[i].vol_initial;
+    set[i].tilt_initial = set_restart[i].tilt_initial;
+    // check if style settings are consitent (should do the whole set?)
+    if (set[i].style != set_restart[i].style)
+      samestyle = 0;
+    if (set[i].substyle != set_restart[i].substyle)
+      samestyle = 0;
+  }
+  if (!samestyle)
+    error->all(FLERR,"Fix deform settings not consistent with restart");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -41,13 +41,14 @@
 //@HEADER
 */
 
-#include <serial/TestSerial.hpp>
+#include <serial/TestSerial_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_1d_assign )
+TEST_F( TEST_CATEGORY, view_subview_1d_assign )
 {
-  TestViewSubview::test_1d_assign< Kokkos::Serial >();
+  TestViewSubview::test_1d_assign< TEST_EXECSPACE >();
 }
 
 } // namespace Test

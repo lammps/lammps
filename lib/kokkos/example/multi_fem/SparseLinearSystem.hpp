@@ -240,7 +240,7 @@ void cgsolve(
 
   double old_rdot = dot( count_owned , r , data_map.machine );
 
-  normr     = sqrt( old_rdot );
+  normr     = std::sqrt( old_rdot );
   iteration = 0 ;
 
   Kokkos::Timer wall_clock ;
@@ -262,7 +262,7 @@ void cgsolve(
 
     /* p = r + beta * p ; */ xpby( count_owned , r , beta , p );
 
-    normr = sqrt( old_rdot = r_dot );
+    normr = std::sqrt( old_rdot = r_dot );
     ++iteration ;
   }
 

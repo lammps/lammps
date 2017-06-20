@@ -1503,7 +1503,7 @@ oxDNA model of Doye, Louis and Ouldridge at the University of Oxford.
 This includes Langevin-type rigid-body integrators with improved
 stability.
 
-[Author:] Oliver Henrich (University of Edinburgh).
+[Author:] Oliver Henrich (University of Strathclyde, Glasgow).
 
 [Install or un-install:]
   
@@ -2028,8 +2028,8 @@ algorithm to formulate single-particle constraint functions
 g(xi,yi,zi) = 0 and their derivative (i.e. the normal of the manifold)
 n = grad(g).
 
-[Author:] Stefan Paquay (Eindhoven University of Technology (TU/e), The
-Netherlands)
+[Author:] Stefan Paquay (until 2017: Eindhoven University of Technology (TU/e), The
+Netherlands; since 2017: Brandeis University, Waltham, MA, USA)
 
 [Install or un-install:]
   

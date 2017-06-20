@@ -182,8 +182,8 @@
 /compute_basal_atom.h
 /compute_body_local.cpp
 /compute_body_local.h
-/compute_cna_atom2.cpp
-/compute_cna_atom2.h
+/compute_cnp_atom.cpp
+/compute_cnp_atom.h
 /compute_damage_atom.cpp
 /compute_damage_atom.h
 /compute_dilatation_atom.cpp
@@ -745,8 +745,6 @@
 /pair_lj_sdk_coul_long.h
 /pair_lj_sdk_coul_msm.cpp
 /pair_lj_sdk_coul_msm.h
-/pair_lj_sf.cpp
-/pair_lj_sf.h
 /pair_lj_sf_dipole_sf.cpp
 /pair_lj_sf_dipole_sf.h
 /pair_lubricateU.cpp

@@ -45,7 +45,7 @@ typedef struct { double x,y,z; } dbl3_t;
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
-FixNHIntel::FixNHIntel(LAMMPS *lmp, int narg, char **arg) : 
+FixNHIntel::FixNHIntel(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
   _dtfm = 0;
@@ -118,12 +118,12 @@ void FixNHIntel::remap()
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & dilate_group_bit) {
-	const double d0 = x[i].x - b0;
-	const double d1 = x[i].y - b1;
-	const double d2 = x[i].z - b2;
-	x[i].x = hi0*d0 + hi5*d1 + hi4*d2;
-	x[i].y = hi1*d1 + hi3*d2;
-	x[i].z = hi2*d2;
+        const double d0 = x[i].x - b0;
+        const double d1 = x[i].y - b1;
+        const double d2 = x[i].z - b2;
+        x[i].x = hi0*d0 + hi5*d1 + hi4*d2;
+        x[i].y = hi1*d1 + hi3*d2;
+        x[i].z = hi2*d2;
       }
     }
   }
@@ -294,9 +294,9 @@ void FixNHIntel::remap()
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & dilate_group_bit) {
-	x[i].x = h0*x[i].x + h5*x[i].y + h4*x[i].z + nb0;
-	x[i].y = h1*x[i].y + h3*x[i].z + nb1;
-	x[i].z = h2*x[i].z + nb2;
+        x[i].x = h0*x[i].x + h5*x[i].y + h4*x[i].z + nb0;
+        x[i].y = h1*x[i].y + h3*x[i].z + nb1;
+        x[i].z = h2*x[i].z + nb2;
       }
     }
   }
@@ -318,7 +318,7 @@ void FixNHIntel::reset_dt()
   dto = dthalf;
 
   // If using respa, then remap is performed in innermost level
-  
+
   if (strstr(update->integrate_style,"respa"))
     dto = 0.5*step_respa[0];
 
@@ -329,7 +329,7 @@ void FixNHIntel::reset_dt()
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 
   const int * const mask = atom->mask;
-  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : 
+  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
 
   if (nlocal > _nlocal_max) {
@@ -345,9 +345,9 @@ void FixNHIntel::reset_dt()
       const double * const rmass = atom->rmass;
       int n = 0;
       for (int i = 0; i < nlocal; i++) {
-	_dtfm[n++] = dtf / rmass[i];
-	_dtfm[n++] = dtf / rmass[i];
-	_dtfm[n++] = dtf / rmass[i];
+        _dtfm[n++] = dtf / rmass[i];
+        _dtfm[n++] = dtf / rmass[i];
+        _dtfm[n++] = dtf / rmass[i];
       }
     } else {
       const double * const mass = atom->mass;
@@ -364,29 +364,29 @@ void FixNHIntel::reset_dt()
       const double * const rmass = atom->rmass;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  _dtfm[n++] = dtf / rmass[i];
-	  _dtfm[n++] = dtf / rmass[i];
-	  _dtfm[n++] = dtf / rmass[i];
+        if (mask[i] & groupbit) {
+          _dtfm[n++] = dtf / rmass[i];
+          _dtfm[n++] = dtf / rmass[i];
+          _dtfm[n++] = dtf / rmass[i];
         } else {
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	}
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+        }
     } else {
       const double * const mass = atom->mass;
       const int * const type = atom->type;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  _dtfm[n++] = dtf / mass[type[i]];
-	  _dtfm[n++] = dtf / mass[type[i]];
-	  _dtfm[n++] = dtf / mass[type[i]];
+        if (mask[i] & groupbit) {
+          _dtfm[n++] = dtf / mass[type[i]];
+          _dtfm[n++] = dtf / mass[type[i]];
+          _dtfm[n++] = dtf / mass[type[i]];
         } else {
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	}
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+        }
     }
   }
 }
@@ -431,9 +431,9 @@ void FixNHIntel::nh_v_press()
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	v[i].x *= f0;
-	v[i].y *= f1;
-	v[i].z *= f2;
+        v[i].x *= f0;
+        v[i].y *= f1;
+        v[i].z *= f2;
       }
     }
   }
@@ -506,7 +506,7 @@ void FixNHIntel::nh_v_temp()
     #pragma simd
     #endif
     for (int i = 0; i < _nlocal3; i++)
-	v[i] *= factor_eta;
+        v[i] *= factor_eta;
   } else {
     #if defined(LMP_SIMD_COMPILER)
     #pragma vector aligned
@@ -514,12 +514,12 @@ void FixNHIntel::nh_v_temp()
     #endif
     for (int i = 0; i < _nlocal3; i++) {
       if (_dtfm[i] != 0.0)
-	v[i] *= factor_eta;
+        v[i] *= factor_eta;
     }
   }
 }
 
-double FixNHIntel::memory_usage() 
+double FixNHIntel::memory_usage()
 {
   return FixNH::memory_usage() + _nlocal_max * 3 * sizeof(double);
 }

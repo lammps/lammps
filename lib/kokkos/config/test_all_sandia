@@ -24,6 +24,8 @@ elif [[ "$HOSTNAME" =~ node.* ]]; then # Warning: very generic name
   fi
 elif [[ "$HOSTNAME" =~ apollo ]]; then
   MACHINE=apollo
+elif [[ "$HOSTNAME" =~ sullivan ]]; then
+  MACHINE=sullivan
 elif [ ! -z "$SEMS_MODULEFILES_ROOT" ]; then
   MACHINE=sems
 else
@@ -152,7 +154,7 @@ if [ "$MACHINE" = "sems" ]; then
                "gcc/5.1.0 $BASE_MODULE_LIST "Serial" g++ $GCC_WARNING_FLAGS"
                "intel/16.0.1 $BASE_MODULE_LIST "OpenMP" icpc $INTEL_WARNING_FLAGS"
                "clang/3.9.0 $BASE_MODULE_LIST "Pthread_Serial" clang++ $CLANG_WARNING_FLAGS"
-               "cuda/8.0.44 $CUDA8_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "cuda/8.0.44 $CUDA8_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
     )
   else
     # Format: (compiler module-list build-list exe-name warning-flag)
@@ -164,6 +166,7 @@ if [ "$MACHINE" = "sems" ]; then
                "clang/3.6.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
                "clang/3.7.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
                "clang/3.8.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+               "clang/3.9.0 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
                "cuda/7.0.28 $CUDA_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
                "cuda/7.5.18 $CUDA_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
                "cuda/8.0.44 $CUDA8_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
@@ -184,7 +187,7 @@ elif [ "$MACHINE" = "white" ]; then
   # Format: (compiler module-list build-list exe-name warning-flag)
   COMPILERS=("gcc/5.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
              "ibm/13.1.3 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
-             "cuda/8.0.44 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
+             "cuda/8.0.44 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
   )
 
   if [ -z "$ARCH_FLAG" ]; then
@@ -221,7 +224,7 @@ elif [ "$MACHINE" = "sullivan" ]; then
   BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
 
   # Format: (compiler module-list build-list exe-name warning-flag)
-  COMPILERS=("gcc/5.3.0 $BASE_MODULE_LIST $ARM_GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS")
+  COMPILERS=("gcc/6.1.0 $BASE_MODULE_LIST $ARM_GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS")
 
   if [ -z "$ARCH_FLAG" ]; then
     ARCH_FLAG="--arch=ARMv8-ThunderX"
@@ -278,11 +281,11 @@ elif [ "$MACHINE" = "apollo" ]; then
                "intel/16.0.1 $BASE_MODULE_LIST "OpenMP" icpc $INTEL_WARNING_FLAGS"
                "clang/3.9.0 $BASE_MODULE_LIST "Pthread_Serial" clang++ $CLANG_WARNING_FLAGS"
                "clang/head $CLANG_MODULE_LIST "Cuda_Pthread" clang++ $CUDA_WARNING_FLAGS"
-               "cuda/8.0.44 $CUDA_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "cuda/8.0.44 $CUDA_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
     )
   else
     # Format: (compiler module-list build-list exe-name warning-flag)
-    COMPILERS=("cuda/8.0.44 $CUDA8_MODULE_LIST $BUILD_LIST_CUDA_NVCC $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
+    COMPILERS=("cuda/8.0.44 $CUDA8_MODULE_LIST $BUILD_LIST_CUDA_NVCC $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
                "clang/head $CLANG_MODULE_LIST $BUILD_LIST_CUDA_CLANG clang++ $CUDA_WARNING_FLAGS"
                "clang/3.9.0 $CLANG_MODULE_LIST $BUILD_LIST_CLANG clang++ $CLANG_WARNING_FLAGS"
                "gcc/4.7.2 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
@@ -295,8 +298,8 @@ elif [ "$MACHINE" = "apollo" ]; then
                "intel/16.0.1 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
                "clang/3.5.2 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
                "clang/3.6.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
-               "cuda/7.0.28 $CUDA_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
-               "cuda/7.5.18 $CUDA_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/config/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "cuda/7.0.28 $CUDA_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "cuda/7.5.18 $CUDA_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
     )
   fi
 

@@ -16,7 +16,7 @@
 NPairStyle(full/bin/atomonly,
            NPairFullBinAtomonly,
            NP_FULL | NP_BIN | NP_ATOMONLY |
-	   NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 #else
 

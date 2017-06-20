@@ -28,7 +28,7 @@ keyword = {parallel} or {perp} or {end} :l
       {last} = apply force to last replica
       {last/efirst} = apply force to last replica and set its target energy to that of first replica
       {last/efirst/middle} = same as {last/efirst} plus prevent middle replicas having lower energy than first replica
-    {Kspring3} = spring constant for target energy term (1/distance units) :pre
+    {Kspring3} = spring constant for target energy term (1/distance units) :pre,ule
 
 [Examples:]
 
@@ -98,7 +98,7 @@ units.
 
 With a value of {ideal}, the spring force is computed as suggested in
 "(WeinenE)"_#WeinenE :
-   
+
 Fnudge_parallel = -{Kspring} * (RD-RDideal) / (2 * meanDist) :pre
 
 where RD is the "reaction coordinate" see "neb"_neb.html section, and

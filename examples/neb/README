@@ -8,9 +8,7 @@ mpirun -np 3 lmp_g++ -partition 3x1 -in in.neb.sivac
 mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1
 mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop2
 mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1.end
-mpirun -np 6 lmp_g++ -partition 3x2 -in in.neb.sivac
-mpirun -np 9 lmp_g++ -partition 3x3 -in in.neb.sivac
-
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.sivac
 
 Note that more than 4 replicas should be used for a precise estimate 
 of the activation energy corresponding to a transition.

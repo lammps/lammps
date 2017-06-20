@@ -30,7 +30,7 @@
 
 using namespace LAMMPS_NS;
 
-#if defined(LMP_USE_LIBC_QSORT)
+#if defined(LMP_QSORT)
 // allocate space for static class variable
 Dump *Dump::dumpptr;
 #else
@@ -692,7 +692,7 @@ void Dump::sort()
         index[idsort[i]-idlo] = i;
   }
 
-#if defined(LMP_USE_LIBC_QSORT)
+#if defined(LMP_QSORT)
   if (!reorderflag) {
     dumpptr = this;
     for (i = 0; i < nme; i++) index[i] = i;
@@ -728,7 +728,8 @@ void Dump::sort()
     memcpy(&buf[i*size_one],&bufsort[index[i]*size_one],nbytes);
 }
 
-#if defined(LMP_USE_LIBC_QSORT)
+#if defined(LMP_QSORT)
+
 /* ----------------------------------------------------------------------
    compare two atom IDs
    called via qsort() in sort() method
@@ -795,6 +796,7 @@ int Dump::bufcompare_reverse(const void *pi, const void *pj)
    compare two atom IDs
    called via merge_sort() in sort() method
 ------------------------------------------------------------------------- */
+
 int Dump::idcompare(const int i, const int j, void *ptr)
 {
   tagint *idsort = ((Dump *)ptr)->idsort;

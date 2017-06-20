@@ -23,17 +23,13 @@
 
 using namespace LAMMPS_NS;
 
-#if defined(LMP_USE_LIBC_QSORT)
+#if defined(LMP_QSORT)
 // allocate space for static class variable
 // prototype for non-class function
-
 int *Irregular::proc_recv_copy;
 static int compare_standalone(const void *, const void *);
-
 #else
-
 #include "mergesort.h"
-
 // prototype for non-class function
 static int compare_standalone(const int, const int, void *);
 #endif
@@ -433,7 +429,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
 
     for (i = 0; i < nrecv_proc; i++) order[i] = i;
 
-#if defined(LMP_USE_LIBC_QSORT)
+#if defined(LMP_QSORT)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
 #else
@@ -464,7 +460,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
   return nrecvsize;
 }
 
-#if defined(LMP_USE_LIBC_QSORT)
+#if defined(LMP_QSORT)
 
 /* ----------------------------------------------------------------------
    comparison function invoked by qsort()
@@ -705,12 +701,13 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
     for (i = 0; i < nrecv_proc; i++) order[i] = i;
 
-#if defined(LMP_USE_LIBC_QSORT)
+#if defined(LMP_QSORT)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
 #else
     merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
+
     int j;
     for (i = 0; i < nrecv_proc; i++) {
       j = order[i];

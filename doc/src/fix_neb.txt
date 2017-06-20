@@ -14,10 +14,10 @@ fix ID group-ID neb Kspring keyword value :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 neb = style name of this fix command :l
-Kspring = parallel spring constant (force/distance units or force units, see nudge keyword) :l
+Kspring = spring constant for parallel nudging force (force/distance units or force units, see parallel keyword) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {nudge} or {perp} or {ends} :l
-  {nudge} value = {neigh} or {ideal}
+keyword = {parallel} or {perp} or {end} :l
+  {parallel} value = {neigh} or {ideal}
     {neigh} = parallel nudging force based on distance to neighbor replicas (Kspring = force/distance units)
     {ideal} = parallel nudging force based on interpolated ideal position (Kspring = force units)
   {perp} value = {Kspring2}
@@ -59,22 +59,22 @@ interatomic force Fi = -Grad(V) for each replica I is altered.  For
 all intermediate replicas (i.e. for 1 < I < N, except the climbing
 replica) the force vector becomes:
 
-Fi = -Grad(V) + (Grad(V) dot T') T' + Fnudge_parallel + Fspring_perp :pre
+Fi = -Grad(V) + (Grad(V) dot T') T' + Fnudge_parallel + Fnudge_perp :pre
 
 T' is the unit "tangent" vector for replica I and is a function of Ri,
 Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
 roughly in the direction of (Ri+i - Ri-1); see the
-"(Henkelman1)"_#Henkelman1 paper for details.  Ri gives the atomic
+"(Henkelman1)"_#Henkelman1 paper for details.  Ri are the atomic
 coordinates of replica I; Ri-1 and Ri+1 are the coordinates of its
 neighbor replicas.  The term (Grad(V) dot T') is used to remove the
 component of the gradient parallel to the path which would tend to
 distribute the replica unevenly along the path.  Fnudge_parallel is an
 artificial nudging force which is applied only in the tangent
 direction and which maintains the equal spacing between replicas (see
-below for more information).  Fspring_perp is an optional artificial
-spring which is applied only perpendicular to the tangent and which
-prevent the paths from forming acute kinks (see below for more
-information).
+below for more information).  Fnudge_perp is an optional artificial
+spring which is applied in a direction perpendicular to the tangent
+direction and which prevent the paths from forming acute kinks (see
+below for more information).
 
 In the second stage of the NEB calculation, the interatomic force Fi
 for the climbing replica (the replica of highest energy after the
@@ -86,7 +86,7 @@ and the relaxation procedure is continued to a new converged MEP.
 
 :line
 
-The keyword {nudge} specifies how the parallel nudging force is
+The keyword {parallel} specifies how the parallel nudging force is
 computed.  With a value of {neigh}, the parallel nudging force is
 computed as in "(Henkelman1)"_#Henkelman1 by connecting each
 intermediate replica with the previous and the next image:
@@ -113,15 +113,16 @@ keeping the replicas equally spaced.
 
 :line
 
-The keyword {perp} adds a spring force perpendicular to the path in
-order to prevent the path from becoming too kinky. It
-can significantly improve the convergence of the NEB calculation when
-the resolution is poor.  I.e. when too few replicas are used; see
+The keyword {perp} specifies if and how a perpendicual nudging force
+is computed.  It adds a spring force perpendicular to the path in
+order to prevent the path from becoming too kinky.  It can
+significantly improve the convergence of the NEB calculation when the
+resolution is poor.  I.e. when few replicas are used; see
 "(Maras)"_#Maras1 for details.
 
 The perpendicular spring force is given by
 
-Fspring_perp = {Kspring2} * F(Ri-1,Ri,Ri+1) (Ri+1 + Ri-1 - 2 Ri) :pre
+Fnudge_perp = {Kspring2} * F(Ri-1,Ri,Ri+1) (Ri+1 + Ri-1 - 2 Ri) :pre
 
 where {Kspring2} is the specified value.  F(Ri-1 Ri R+1) is a smooth
 scalar function of the angle Ri-1 Ri Ri+1.  It is equal to 0.0 when
@@ -133,11 +134,11 @@ force is added.
 
 :line
 
-By default, no nudging forces act on the first and last replicas during 
-the NEB relaxation, so these replicas simply relax toward their 
-respective local minima.  By using the key word {end}, additional forces 
-can be applied to the first or last replica, to enable them to relax 
-toward a MEP while constraining their energy.
+By default, no additional forces act on the first and last replicas
+during the NEB relaxation, so these replicas simply relax toward their
+respective local minima.  By using the key word {end}, additional
+forces can be applied to the first and/or last replicas, to enable
+them to relax toward a MEP while constraining their energy.
 
 The interatomic force Fi for the specified replica becomes:
 
@@ -177,9 +178,10 @@ only be done if a particular intermediate replica has a lower energy
 than the first replica.  This should effectively prevent the
 intermediate replicas from over-relaxing.
 
-After converging a NEB calculation using an {estyle} of {last/efirst/middle},
-you should check that all intermediate replicas have a larger energy than the
-first replica. If this is not the case, the path is probably not a MEP.
+After converging a NEB calculation using an {estyle} of
+{last/efirst/middle}, you should check that all intermediate replicas
+have a larger energy than the first replica. If this is not the case,
+the path is probably not a MEP.
 
 Finally, note that if the last replica converges toward a local
 minimum which has a larger energy than the energy of the first

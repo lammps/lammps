@@ -49,8 +49,6 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   displacements(NULL)
 {
 
-  
-
   if (narg < 4) error->all(FLERR,"Illegal fix neb command");
 
   kspring = force->numeric(FLERR,arg[3]);
@@ -68,7 +66,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"nudge") == 0) {
+    if (strcmp(arg[iarg],"parallel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
       if (strcmp(arg[iarg+1],"ideal") == 0) {
         NEBLongRange = true;

@@ -100,7 +100,7 @@ MEAM::alloyparams(void)
 
   // Loop over pairs
   for (i = 0; i < this->neltypes; i++) {
-    for (j = 0; i < this->neltypes; i++) {
+    for (j = 0; j < this->neltypes; j++) {
       // Treat off-diagonal pairs
       // If i>j, set all equal to i<j case (which has aready been set,
       // here or in the input file)

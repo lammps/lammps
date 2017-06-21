@@ -398,6 +398,10 @@ void DihedralCharmmfsw::init_style()
         " r-RESPA level as 'outer'");
   }
 
+  if ((force->special_lj[3] != 0.0) || (force->special_coul[3] != 0.0))
+    error->all(FLERR,"Must use 'special_bonds charmm' with"
+               " dihedral style charmmfsw");
+
   // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
 

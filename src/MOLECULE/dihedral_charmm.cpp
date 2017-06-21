@@ -374,11 +374,15 @@ void DihedralCharmm::init_style()
     Respa *r = (Respa *) update->integrate;
     if (r->level_pair >= 0 && (r->level_pair != r->level_dihedral))
       error->all(FLERR,"Dihedral style charmm must be set to same"
-        " r-RESPA level as 'pair'");
+                 " r-RESPA level as 'pair'");
     if (r->level_outer >= 0 && (r->level_outer != r->level_dihedral))
       error->all(FLERR,"Dihedral style charmm must be set to same"
-        " r-RESPA level as 'outer'");
+                 " r-RESPA level as 'outer'");
   }
+
+  if ((force->special_lj[3] != 0.0) || (force->special_coul[3] != 0.0))
+    error->all(FLERR,"Must use 'special_bonds charmm' with"
+               " dihedral style charmm");
 
   // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair

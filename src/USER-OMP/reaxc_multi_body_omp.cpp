@@ -50,16 +50,14 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
 #endif
 
   /* Initialize parameters */
-  double p_lp1 = system->reax_param.gp.l[15];
-  double p_lp3 = system->reax_param.gp.l[5];
-  double p_ovun3 = system->reax_param.gp.l[32];
-  double p_ovun4 = system->reax_param.gp.l[31];
-  double p_ovun6 = system->reax_param.gp.l[6];
-  double p_ovun7 = system->reax_param.gp.l[8];
-  double p_ovun8 = system->reax_param.gp.l[9];
+  const double p_lp3 = system->reax_param.gp.l[5];
+  const double p_ovun3 = system->reax_param.gp.l[32];
+  const double p_ovun4 = system->reax_param.gp.l[31];
+  const double p_ovun6 = system->reax_param.gp.l[6];
+  const double p_ovun7 = system->reax_param.gp.l[8];
+  const double p_ovun8 = system->reax_param.gp.l[9];
 
-  int natoms = system->n;
-  int nthreads = control->nthreads;
+  const int natoms = system->n;
   reax_list *bonds = (*lists) + BONDS;
 
   double total_Elp = 0.0;
@@ -79,11 +77,11 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
   double exp_ovun2n, exp_ovun6, exp_ovun8;
   double inv_exp_ovun1, inv_exp_ovun2, inv_exp_ovun2n, inv_exp_ovun8;
   double e_un, CEunder1, CEunder2, CEunder3, CEunder4;
-  double eng_tmp, f_tmp;
+  double eng_tmp;
   double p_lp2, p_ovun2, p_ovun5;
   int numbonds;
 
-  single_body_parameters *sbp_i, *sbp_j;
+  single_body_parameters *sbp_i;
   two_body_parameters *twbp;
   bond_data *pbond;
   bond_order_data *bo_ij;

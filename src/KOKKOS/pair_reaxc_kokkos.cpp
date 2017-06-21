@@ -731,7 +731,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputePolar<HALFTHREAD,0> >(0,inum),*this);
   }
-  DeviceType::fence();
   ev_all += ev;
   pvector[13] = ev.ecoul;
 
@@ -771,7 +770,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<FULL,0> >(0,inum),*this);
     }
   }
-  DeviceType::fence();
   ev_all += ev;
   pvector[10] = ev.evdwl;
   pvector[11] = ev.ecoul;
@@ -800,7 +798,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     // zero
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZero>(0,nmax),*this);
-    DeviceType::fence();
 
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
@@ -808,7 +805,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf_LessAtomics<HALFTHREAD> >(0,ignum),*this);
     else //(neighflag == FULL)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsFull>(0,ignum),*this);
-    DeviceType::fence();
 
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
@@ -827,15 +823,11 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Bond order
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
-    DeviceType::fence();
   } else if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1_LessAtomics>(0,ignum),*this);
-    DeviceType::fence();
   }
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder2>(0,ignum),*this);
-  DeviceType::fence();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder3>(0,ignum),*this);
-  DeviceType::fence();
 
   // Bond energy
   if (neighflag == HALF) {
@@ -843,7 +835,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] = ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
@@ -851,7 +842,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] = ev.evdwl;
   }
@@ -859,21 +849,17 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Multi-body corrections
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti1<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti1<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
   pvector[2] = ev.ereax[0];
@@ -887,14 +873,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
   pvector[4] = ev.ereax[3];
@@ -908,14 +892,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
   pvector[8] = ev.ereax[6];
@@ -929,14 +911,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALF,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALF,0> >(0,inum),*this);
-      DeviceType::fence();
       ev_all += ev;
     } else { //if (neighflag == HALFTHREAD) {
       if (evflag)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALFTHREAD,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALFTHREAD,0> >(0,inum),*this);
-      DeviceType::fence();
       ev_all += ev;
     }
   }
@@ -946,22 +926,18 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Bond force
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALF> >(0,ignum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,1> >(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,0> >(0,ignum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] += ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALFTHREAD> >(0,ignum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,0> >(0,ignum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] += ev.evdwl;
   }
@@ -3945,11 +3921,9 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
   if (eflag_atom) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroEAtom>(0,maxeatom),*this);
-    DeviceType::fence();
   }
   if (vflag_atom) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroVAtom>(0,maxvatom),*this);
-    DeviceType::fence();
   }
 
   // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
@@ -4002,7 +3976,6 @@ void PairReaxCKokkos<DeviceType>::FindBond(int &numbonds)
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondZero>(0,nmax),*this);
-  DeviceType::fence();
 
   bo_cut_bond = control->bg_cut;
 
@@ -4017,7 +3990,6 @@ void PairReaxCKokkos<DeviceType>::FindBond(int &numbonds)
   numbonds = 0;
   PairReaxCKokkosFindBondFunctor<DeviceType> find_bond_functor(this);
   Kokkos::parallel_reduce(inum,find_bond_functor,numbonds);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -4076,7 +4048,6 @@ void PairReaxCKokkos<DeviceType>::PackBondBuffer(DAT::tdual_ffloat_1d k_buf, int
   nlocal = atomKK->nlocal;
   PairReaxCKokkosPackBondBufferFunctor<DeviceType> pack_bond_buffer_functor(this);
   Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
-  DeviceType::fence();
   copymode = 0;
 
   k_buf.modify<DeviceType>();
@@ -4135,11 +4106,9 @@ void PairReaxCKokkos<DeviceType>::FindBondSpecies()
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpeciesZero>(0,nmax),*this);
-  DeviceType::fence();
 
   nlocal = atomKK->nlocal;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpecies>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 
   // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added

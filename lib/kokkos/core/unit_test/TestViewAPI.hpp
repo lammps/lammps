@@ -68,8 +68,8 @@ struct TestViewOperator
 {
   typedef typename DeviceType::execution_space  execution_space;
 
-  static const unsigned N = 100;
-  static const unsigned D = 3;
+  enum { N = 1000 };
+  enum { D = 3 };
 
   typedef Kokkos::View< T*[D], execution_space > view_type;
 
@@ -80,11 +80,6 @@ struct TestViewOperator
     : v1( "v1", N )
     , v2( "v2", N )
     {}
-
-  static void testit()
-  {
-    Kokkos::parallel_for( N, TestViewOperator() );
-  }
 
   KOKKOS_INLINE_FUNCTION
   void operator()( const unsigned i ) const
@@ -144,13 +139,11 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 8 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
-    TestViewOperator_LeftAndRight driver;
-
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -237,13 +230,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 7 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
-    TestViewOperator_LeftAndRight driver;
 
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -318,13 +310,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 6 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
-    TestViewOperator_LeftAndRight driver;
 
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -402,13 +393,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 5 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
-    TestViewOperator_LeftAndRight driver;
 
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -485,13 +475,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 4 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
-    TestViewOperator_LeftAndRight driver;
 
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -565,13 +554,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 3 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
-    TestViewOperator_LeftAndRight driver;
 
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -650,13 +638,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 2 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
-    TestViewOperator_LeftAndRight driver;
 
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -733,13 +720,13 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 1 >
     , right_alloc( allocation_count( right ) )
     {}
 
-  static void testit()
+  void testit()
   {
     TestViewOperator_LeftAndRight driver;
 
     int error_flag = 0;
 
-    Kokkos::parallel_reduce( 1, driver, error_flag );
+    Kokkos::parallel_reduce( 1, *this, error_flag );
 
     ASSERT_EQ( error_flag, 0 );
   }
@@ -839,15 +826,18 @@ public:
     run_test_subview_strided();
     run_test_vector();
 
-    TestViewOperator< T, device >::testit();
-    TestViewOperator_LeftAndRight< int[2][3][4][2][3][4][2][3], device >::testit();
-    TestViewOperator_LeftAndRight< int[2][3][4][2][3][4][2], device >::testit();
-    TestViewOperator_LeftAndRight< int[2][3][4][2][3][4], device >::testit();
-    TestViewOperator_LeftAndRight< int[2][3][4][2][3], device >::testit();
-    TestViewOperator_LeftAndRight< int[2][3][4][2], device >::testit();
-    TestViewOperator_LeftAndRight< int[2][3][4], device >::testit();
-    TestViewOperator_LeftAndRight< int[2][3], device >::testit();
-    TestViewOperator_LeftAndRight< int[2], device >::testit();
+
+    {TestViewOperator< T, device > f; Kokkos::parallel_for(int(N0),f);}
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+    TestViewOperator_LeftAndRight< int[2][3][4][2][3][4][2][3], device > f8; f8.testit();
+    TestViewOperator_LeftAndRight< int[2][3][4][2][3][4][2], device > f7; f7.testit();
+    TestViewOperator_LeftAndRight< int[2][3][4][2][3][4], device >f6; f6.testit();
+    TestViewOperator_LeftAndRight< int[2][3][4][2][3], device >f5; f5.testit();
+    TestViewOperator_LeftAndRight< int[2][3][4][2], device >f4; f4.testit();
+    TestViewOperator_LeftAndRight< int[2][3][4], device >f3; f3.testit();
+    TestViewOperator_LeftAndRight< int[2][3], device >f2; f2.testit();
+    TestViewOperator_LeftAndRight< int[2], device >f1; f1.testit();
+#endif
     TestViewMirror< Kokkos::LayoutLeft, device >::testit();
     TestViewMirror< Kokkos::LayoutRight, device >::testit();
   }
@@ -883,8 +873,9 @@ public:
     Kokkos::deep_copy( dx, hx );
     Kokkos::deep_copy( dy, dx );
     Kokkos::deep_copy( hy, dy );
-
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     ASSERT_EQ( hx(), hy() );
+#endif
   }
 
   static void run_test()
@@ -1005,7 +996,9 @@ public:
     ASSERT_EQ( dy.dimension_3(), unsigned( N3 ) );
 
     ASSERT_EQ( unmanaged_from_ptr_dx.capacity(), unsigned( N0 ) * unsigned( N1 ) * unsigned( N2 ) * unsigned( N3 ) );
-
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+return;
+#endif
     hx = Kokkos::create_mirror( dx );
     hy = Kokkos::create_mirror( dy );
 
@@ -1318,5 +1311,68 @@ public:
     typename const_multivector_type::const_type ccmvX( cmv );
   }
 };
+
+TEST_F( TEST_CATEGORY, view_api )
+{
+  TestViewAPI< double, TEST_EXECSPACE >();
+}
+
+TEST_F( TEST_CATEGORY, view_remap )
+{
+  enum { N0 = 3, N1 = 2, N2 = 8, N3 = 9 };
+
+  #ifdef KOKKOS_ENABLE_CUDA
+    #define EXECSPACE std::conditional<std::is_same<TEST_EXECSPACE,Kokkos::Cuda>::value,Kokkos::CudaHostPinnedSpace,TEST_EXECSPACE>::type
+  #else
+    #ifdef KOKKOS_ENABLE_OPENMPTARGET
+      #define EXECSPACE Kokkos::HostSpace
+    #else
+      #define EXECSPACE TEST_EXECSPACE
+    #endif
+  #endif
+
+  typedef Kokkos::View< double*[N1][N2][N3],
+                        Kokkos::LayoutRight,
+                        EXECSPACE > output_type;
+
+  typedef Kokkos::View< int**[N2][N3],
+                        Kokkos::LayoutLeft,
+                        EXECSPACE > input_type;
+
+  typedef Kokkos::View< int*[N0][N2][N3],
+                        Kokkos::LayoutLeft,
+                        EXECSPACE > diff_type;
+
+  output_type output( "output", N0 );
+  input_type  input ( "input", N0, N1 );
+  diff_type   diff  ( "diff", N0 );
+
+  Kokkos::fence();
+  int value = 0;
+
+  for ( size_t i3 = 0; i3 < N3; ++i3 )
+  for ( size_t i2 = 0; i2 < N2; ++i2 )
+  for ( size_t i1 = 0; i1 < N1; ++i1 )
+  for ( size_t i0 = 0; i0 < N0; ++i0 )
+  {
+    input( i0, i1, i2, i3 ) = ++value;
+  }
+
+  Kokkos::fence();
+  // Kokkos::deep_copy( diff, input ); // Throw with incompatible shape.
+  Kokkos::deep_copy( output, input );
+  Kokkos::fence();
+
+  value = 0;
+
+  for ( size_t i3 = 0; i3 < N3; ++i3 )
+  for ( size_t i2 = 0; i2 < N2; ++i2 )
+  for ( size_t i1 = 0; i1 < N1; ++i1 )
+  for ( size_t i0 = 0; i0 < N0; ++i0 )
+  {
+    ++value;
+    ASSERT_EQ( value, ( (int) output( i0, i1, i2, i3 ) ) );
+  }
+}
 
 } // namespace Test

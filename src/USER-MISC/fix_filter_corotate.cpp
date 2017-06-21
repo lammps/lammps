@@ -46,10 +46,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace FixConst;
 
-// allocate space for static class variable
-
-FixFilterCorotate *FixFilterCorotate::fsptr = NULL;
-
 #define BIG 1.0e20
 #define MASSDELTA 0.1
 
@@ -950,8 +946,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf);
+  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf,(void *)this);
 
   // store partner info returned to me
 
@@ -1079,8 +1074,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf);
+  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf,(void *)this);
 
   // store partner info returned to me
 
@@ -1240,8 +1234,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL);
+  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL,(void *)this);
 
   memory->destroy(buf);
 
@@ -1310,15 +1303,16 @@ void FixFilterCorotate::find_clusters()
  *    search for bond with 1st atom and fill in bondtype
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf)
+void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
 {
-  Atom *atom = fsptr->atom;
+  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  Atom *atom = ffptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nmass = fsptr->nmass;
+  int nmass = ffptr->nmass;
 
   tagint *buf = (tagint *) cbuf;
   int m,n;
@@ -1332,10 +1326,10 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf)
       if (nmass) {
         if (rmass) massone = rmass[m];
         else massone = mass[type[m]];
-        buf[i+4] = fsptr->masscheck(massone);
+        buf[i+4] = ffptr->masscheck(massone);
       }
       if (buf[i+5] == 0) {
-        n = fsptr->bondtype_findset(m,buf[i],buf[i+1],0);
+        n = ffptr->bondtype_findset(m,buf[i],buf[i+1],0);
         if (n) buf[i+5] = n;
       }
     }
@@ -1347,12 +1341,13 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf)
  *  if I own partner, fill in nshake value
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf)
+void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf, void *ptr)
 {
-  Atom *atom = fsptr->atom;
+  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
-  int *nshake = fsptr->nshake;
+  int *nshake = ffptr->nshake;
 
   tagint *buf = (tagint *) cbuf;
   int m;
@@ -1368,14 +1363,15 @@ void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf)
  *  if I own partner, fill in nshake value
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::ring_shake(int ndatum, char *cbuf)
+void FixFilterCorotate::ring_shake(int ndatum, char *cbuf, void *ptr)
 {
-  Atom *atom = fsptr->atom;
+  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
-  int *shake_flag = fsptr->shake_flag;
-  tagint **shake_atom = fsptr->shake_atom;
-  int **shake_type = fsptr->shake_type;
+  int *shake_flag = ffptr->shake_flag;
+  tagint **shake_atom = ffptr->shake_atom;
+  int **shake_type = ffptr->shake_type;
 
   tagint *buf = (tagint *) cbuf;
   int m;

@@ -86,7 +86,7 @@ private:
 
 public:
 
-  typedef Kokkos::Experimental::MemoryPool< typename traits::device_type > memory_pool ;
+  typedef Kokkos::MemoryPool< typename traits::device_type > memory_pool ;
 
 private:
 
@@ -275,6 +275,10 @@ public:
           ch[jc_try] = reinterpret_cast<value_type*>(
             m_pool.allocate( sizeof(value_type) << m_chunk_shift ));
 
+          if ( 0 == ch[jc_try] ) {
+            Kokkos::abort("DynamicView::resize_parallel exhausted memory pool");
+          }
+
           Kokkos::memory_fence();
         }
       }
@@ -436,7 +440,7 @@ public:
     void operator()( unsigned i ) const
       {
         if ( m_destroy && i < m_chunk_max && 0 != m_chunks[i] ) {
-          m_pool.deallocate( m_chunks[i] , m_pool.get_min_block_size() );
+          m_pool.deallocate( m_chunks[i] , m_pool.min_block_size() );
         }
         m_chunks[i] = 0 ;
       }
@@ -495,7 +499,7 @@ public:
     // The memory pool chunk is guaranteed to be a power of two
     , m_chunk_shift(
         Kokkos::Impl::integral_power_of_two(
-          m_pool.get_min_block_size()/sizeof(typename traits::value_type)) )
+          m_pool.min_block_size()/sizeof(typename traits::value_type)) )
     , m_chunk_mask( ( 1 << m_chunk_shift ) - 1 )
     , m_chunk_max( ( arg_size_max + m_chunk_mask ) >> m_chunk_shift )
     {

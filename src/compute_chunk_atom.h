@@ -107,11 +107,9 @@ class ComputeChunkAtom : public Compute {
   int *exclude;              // 1 if atom is not assigned to any chunk
   std::map<tagint,int> *hash;   // store original chunks IDs before compression
 
-  // static variable for ring communication callback to access class data
-  // callback functions for ring communication
+  // callback function for ring communication
 
-  static ComputeChunkAtom *cptr;
-  static void idring(int, char *);
+  static void idring(int, char *, void *);
 
   void assign_chunk_ids();
   void compress_chunk_ids();

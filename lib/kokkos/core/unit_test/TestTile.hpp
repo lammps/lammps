@@ -139,4 +139,31 @@ void test( const size_t dim0, const size_t dim1 )
 
 } // namespace TestTile
 
+namespace Test {
+TEST_F( TEST_CATEGORY, tile_layout )
+{
+  TestTile::test< TEST_EXECSPACE, 1, 1 >( 1, 1 );
+  TestTile::test< TEST_EXECSPACE, 1, 1 >( 2, 3 );
+  TestTile::test< TEST_EXECSPACE, 1, 1 >( 9, 10 );
+
+  TestTile::test< TEST_EXECSPACE, 2, 2 >( 1, 1 );
+  TestTile::test< TEST_EXECSPACE, 2, 2 >( 2, 3 );
+  TestTile::test< TEST_EXECSPACE, 2, 2 >( 4, 4 );
+  TestTile::test< TEST_EXECSPACE, 2, 2 >( 9, 9 );
+
+  TestTile::test< TEST_EXECSPACE, 2, 4 >( 9, 9 );
+  TestTile::test< TEST_EXECSPACE, 4, 2 >( 9, 9 );
+
+  TestTile::test< TEST_EXECSPACE, 4, 4 >( 1, 1 );
+  TestTile::test< TEST_EXECSPACE, 4, 4 >( 4, 4 );
+  TestTile::test< TEST_EXECSPACE, 4, 4 >( 9, 9 );
+  TestTile::test< TEST_EXECSPACE, 4, 4 >( 9, 11 );
+
+  TestTile::test< TEST_EXECSPACE, 8, 8 >( 1, 1 );
+  TestTile::test< TEST_EXECSPACE, 8, 8 >( 4, 4 );
+  TestTile::test< TEST_EXECSPACE, 8, 8 >( 9, 9 );
+  TestTile::test< TEST_EXECSPACE, 8, 8 >( 9, 11 );
+}
+
+}
 #endif //TEST_TILE_HPP

@@ -501,7 +501,7 @@ void FixGCMC::init()
     if (ifix < 0) error->all(FLERR,"Fix gcmc rigid fix does not exist");
     fixrigid = modify->fix[ifix];
     int tmp;
-    if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
+    if (&onemols[imol] != (Molecule **) fixrigid->extract("onemol",tmp))
       error->all(FLERR,
                  "Fix gcmc and fix rigid/small not using "
                  "same molecule template ID");
@@ -516,7 +516,7 @@ void FixGCMC::init()
     if (ifix < 0) error->all(FLERR,"Fix gcmc shake fix does not exist");
     fixshake = modify->fix[ifix];
     int tmp;
-    if (onemols != (Molecule **) fixshake->extract("onemol",tmp))
+    if (&onemols[imol] != (Molecule **) fixshake->extract("onemol",tmp))
       error->all(FLERR,"Fix gcmc and fix shake not using "
                  "same molecule template ID");
   }
@@ -1397,12 +1397,13 @@ void FixGCMC::attempt_molecule_insertion()
 
     // FixRigidSmall::set_molecule stores rigid body attributes
     // FixShake::set_molecule stores shake info for molecule
-    
-    if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
-    else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
 
+    for (int submol = 0; submol < nmol; ++submol) {
+      if (rigidflag)
+        fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
+      else if (shakeflag)
+        fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
+    }
     atom->natoms += natoms_per_molecule;
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
@@ -2058,11 +2059,12 @@ void FixGCMC::attempt_molecule_insertion_full()
   // FixRigidSmall::set_molecule stores rigid body attributes
   // FixShake::set_molecule stores shake info for molecule
 
-  if (rigidflag)
-    fixrigid->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
-  else if (shakeflag)
-    fixshake->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
-
+  for (int submol = 0; submol < nmol; ++submol) {
+    if (rigidflag)
+      fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
+    else if (shakeflag)
+      fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
+  }
   atom->natoms += natoms_per_molecule;
   if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");

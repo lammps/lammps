@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef KOKKOS_EXAMPLE_FENLFUNCTORS_HPP
 #define KOKKOS_EXAMPLE_FENLFUNCTORS_HPP
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <iostream>
 #include <fstream>
@@ -340,7 +340,7 @@ public:
     if ( phase == FILL_NODE_SET ) {
       operator()( TagFillNodeSet() , iwork );
     }
-    else */  
+    else */
     if ( phase == FILL_GRAPH_ENTRIES ) {
       fill_graph_entries( iwork );
     }
@@ -378,7 +378,7 @@ public:
   void init( const TagFillNodeSet & , unsigned & update ) const { update = 0 ; }
 
   KOKKOS_INLINE_FUNCTION
-  void join( const TagFillNodeSet & 
+  void join( const TagFillNodeSet &
            , volatile       unsigned & update
            , volatile const unsigned & input ) const { update += input ; }
 

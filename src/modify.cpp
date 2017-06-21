@@ -23,6 +23,7 @@
 #include "group.h"
 #include "update.h"
 #include "domain.h"
+#include "region.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -993,6 +994,99 @@ int Modify::check_package(const char *package_fix_name)
 {
   if (fix_map->find(package_fix_name) == fix_map->end()) return 0;
   return 1;
+}
+
+
+/* ----------------------------------------------------------------------
+   check if the group indicated by groupbit overlaps with any
+   currently existing rigid fixes. return 1 in this case otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_group_overlap(int groupbit)
+{
+  const int * const mask = atom->mask;
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if the atoms in the group indicated by groupbit _and_ region
+   indicated by regionid overlap with any currently existing rigid fixes.
+   return 1 in this case, otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
+{
+  const int * const mask = atom->mask;
+  const double * const * const x = atom->x;
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  reg->prematch();
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)
+            && reg->match(x[i][0],x[i][1],x[i][2])) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if the atoms in the selection list (length atom->nlocal,
+   content: 1 if atom is contained, 0 if not) overlap with currently
+   existing rigid fixes. return 1 in this case otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_list_overlap(int *select)
+{
+  const int * const mask = atom->mask;
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((body[i] >= 0) && select[i]) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

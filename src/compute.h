@@ -135,6 +135,7 @@ class Compute : protected Pointers {
 
   virtual double memory_usage() {return 0.0;}
 
+  virtual void pair_setup_callback(int, int) {}
   virtual void pair_tally_callback(int, int, int, int,
                                    double, double, double,
                                    double, double, double) {}
@@ -152,7 +153,7 @@ class Compute : protected Pointers {
   double **vbiasall;           // stored velocity bias for all atoms
   int maxbias;                 // size of vbiasall array
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 

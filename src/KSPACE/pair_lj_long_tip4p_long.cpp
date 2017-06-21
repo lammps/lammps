@@ -126,7 +126,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 
   int order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int ni;
-  double  *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
 
   inum = list->inum;
@@ -158,7 +158,6 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
         hneigh[i][0] = iH1;
         hneigh[i][1] = iH2;
         hneigh[i][2] = 1;
-
       } else {
         iH1 = hneigh[i][0];
         iH2 = hneigh[i][1];
@@ -191,22 +190,22 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
         r2inv = 1.0/rsq;
        	if (order6) {					// long-range lj
           if (!ndisptablebits || rsq <= tabinnerdispsq) {
-	    register double rn = r2inv*r2inv*r2inv;
-	    register double x2 = g2*rsq, a2 = 1.0/x2;
-	    x2 = a2*exp(-x2)*lj4i[jtype];
-	    if (ni == 0) {
-	      forcelj =
-	        (rn*=rn)*lj1i[jtype]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
-	      if (eflag)
-	        evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
-	    }
-	    else {					// special case
-	      register double f = special_lj[ni], t = rn*(1.0-f);
-	      forcelj = f*(rn *= rn)*lj1i[jtype]-
-	        g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
-	      if (eflag)
-	        evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
-	    }
+            register double rn = r2inv*r2inv*r2inv;
+            register double x2 = g2*rsq, a2 = 1.0/x2;
+            x2 = a2*exp(-x2)*lj4i[jtype];
+            if (ni == 0) {
+              forcelj =
+                (rn*=rn)*lj1i[jtype]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
+              if (eflag)
+                evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
+            }
+            else {					// special case
+              register double f = special_lj[ni], t = rn*(1.0-f);
+              forcelj = f*(rn *= rn)*lj1i[jtype]-
+                g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
+              if (eflag)
+                evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
+            }
           }
           else {                                        // table real space
             register union_int_float_t disp_t;
@@ -224,31 +223,31 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
               if (eflag) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
             }
           }
-	}
-	else {						// cut lj
-	  register double rn = r2inv*r2inv*r2inv;
-	  if (ni == 0) {
-	    forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-	    if (eflag) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
-	  }
-	  else {					// special case
-	    register double f = special_lj[ni];
-	    forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
-	    if (eflag)
-	      evdwl = f * (rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype]);
-	  }
+        }
+        else {						// cut lj
+          register double rn = r2inv*r2inv*r2inv;
+          if (ni == 0) {
+            forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
+            if (eflag) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
+          }
+          else {					// special case
+            register double f = special_lj[ni];
+            forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
+            if (eflag)
+              evdwl = f * (rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype]);
+          }
         }
 
         forcelj *= r2inv;
-	f[i][0] += delx*forcelj;
-	f[i][1] += dely*forcelj;
-	f[i][2] += delz*forcelj;
-	f[j][0] -= delx*forcelj;
-	f[j][1] -= dely*forcelj;
-	f[j][2] -= delz*forcelj;
+        f[i][0] += delx*forcelj;
+        f[i][1] += dely*forcelj;
+        f[i][2] += delz*forcelj;
+        f[j][0] -= delx*forcelj;
+        f[j][1] -= dely*forcelj;
+        f[j][2] -= delz*forcelj;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
-	      	             evdwl,0.0,forcelj,delx,dely,delz);
+                             evdwl,0.0,forcelj,delx,dely,delz);
       }
 
 
@@ -257,7 +256,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 
       if (rsq < cut_coulsqplus) {
         if (itype == typeO || jtype == typeO) {
-	  if (jtype == typeO) {
+          if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
               jH1 = atom->map(tag[j] + 1);
               jH2 = atom->map(tag[j] + 2);
@@ -272,7 +271,6 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
               hneigh[j][0] = jH1;
               hneigh[j][1] = jH2;
               hneigh[j][2] = 1;
-
             } else {
               jH1 = hneigh[j][0];
               jH2 = hneigh[j][1];
@@ -282,63 +280,63 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
               }
             }
             x2 = newsite[j];
-	  } else x2 = x[j];
-	  delx = x1[0] - x2[0];
-	  dely = x1[1] - x2[1];
-	  delz = x1[2] - x2[2];
-	  rsq = delx*delx + dely*dely + delz*delz;
+          } else x2 = x[j];
+          delx = x1[0] - x2[0];
+          dely = x1[1] - x2[1];
+          delz = x1[2] - x2[2];
+          rsq = delx*delx + dely*dely + delz*delz;
         }
 
-	// test current rsq against cutoff and compute Coulombic force
+        // test current rsq against cutoff and compute Coulombic force
 
         if (rsq < cut_coulsq && order1) {
-	  r2inv = 1.0 / rsq;
-	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (factor_coul < 1.0) {
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  }
+          r2inv = 1.0 / rsq;
+          if (!ncoultablebits || rsq <= tabinnersq) {
+            r = sqrt(rsq);
+            grij = g_ewald * r;
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            if (factor_coul < 1.0) {
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          }
 
-	  cforce = forcecoul * r2inv;
+          cforce = forcecoul * r2inv;
 
-	  //if (evflag) ev_tally(i,j,nlocal,newton_pair,
+          //if (evflag) ev_tally(i,j,nlocal,newton_pair,
           //		       evdwl,0.0,cforce,delx,dely,delz);
 
-	  // if i,j are not O atoms, force is applied directly
-	  // if i or j are O atoms, force is on fictitious atom & partitioned
-	  // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
-	  // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
-	  // preserves total force and torque on water molecule
-	  // virial = sum(r x F) where each water's atoms are near xi and xj
-	  // vlist stores 2,4,6 atoms whose forces contribute to virial
+          // if i,j are not O atoms, force is applied directly
+          // if i or j are O atoms, force is on fictitious atom & partitioned
+          // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+          // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+          // preserves total force and torque on water molecule
+          // virial = sum(r x F) where each water's atoms are near xi and xj
+          // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-	  n = 0;
+          n = 0;
           key = 0;
 
-	  if (itype != typeO) {
-	    f[i][0] += delx * cforce;
-	    f[i][1] += dely * cforce;
-	    f[i][2] += delz * cforce;
+          if (itype != typeO) {
+            f[i][0] += delx * cforce;
+            f[i][1] += dely * cforce;
+            f[i][2] += delz * cforce;
 
             if (vflag) {
               v[0] = x[i][0] * delx * cforce;
@@ -348,9 +346,9 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
               v[4] = x[i][0] * delz * cforce;
               v[5] = x[i][1] * delz * cforce;
             }
-          vlist[n++] = i;
+            vlist[n++] = i;
 
-	  } else {
+          } else {
             key += 1;
             fd[0] = delx*cforce;
             fd[1] = dely*cforce;
@@ -376,42 +374,42 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
             f[iH2][1] += fH[1];
             f[iH2][2] += fH[2];
 
-	    if (vflag) {
+            if (vflag) {
               xH1 = x[iH1];
               xH2 = x[iH2];
-	      v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
-	    }
-	    vlist[n++] = i;
-	    vlist[n++] = iH1;
-	    vlist[n++] = iH2;
-  	  }
-
-	  if (jtype != typeO) {
-	    f[j][0] -= delx * cforce;
-	    f[j][1] -= dely * cforce;
-	    f[j][2] -= delz * cforce;
-
-	    if (vflag) {
-	      v[0] -= x[j][0] * delx * cforce;
-	      v[1] -= x[j][1] * dely * cforce;
-	      v[2] -= x[j][2] * delz * cforce;
-	      v[3] -= x[j][0] * dely * cforce;
-	      v[4] -= x[j][0] * delz * cforce;
-	      v[5] -= x[j][1] * delz * cforce;
+              v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+              v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+              v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+              v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+              v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+              v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
-	    vlist[n++] = j;
+            vlist[n++] = i;
+            vlist[n++] = iH1;
+            vlist[n++] = iH2;
+          }
 
-	  } else {
+          if (jtype != typeO) {
+            f[j][0] -= delx * cforce;
+            f[j][1] -= dely * cforce;
+            f[j][2] -= delz * cforce;
+
+            if (vflag) {
+              v[0] -= x[j][0] * delx * cforce;
+              v[1] -= x[j][1] * dely * cforce;
+              v[2] -= x[j][2] * delz * cforce;
+              v[3] -= x[j][0] * dely * cforce;
+              v[4] -= x[j][0] * delz * cforce;
+              v[5] -= x[j][1] * delz * cforce;
+            }
+            vlist[n++] = j;
+
+          } else {
             key += 2;
 
-	    fd[0] = -delx*cforce;
-	    fd[1] = -dely*cforce;
-	    fd[2] = -delz*cforce;
+            fd[0] = -delx*cforce;
+            fd[1] = -dely*cforce;
+            fd[2] = -delz*cforce;
 
             fO[0] = fd[0]*(1 - alpha);
             fO[1] = fd[1]*(1 - alpha);
@@ -421,45 +419,45 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
             fH[1] = 0.5 * alpha * fd[1];
             fH[2] = 0.5 * alpha * fd[2];
 
-	    f[j][0] += fO[0];
-	    f[j][1] += fO[1];
-	    f[j][2] += fO[2];
+            f[j][0] += fO[0];
+            f[j][1] += fO[1];
+            f[j][2] += fO[2];
 
-	    f[jH1][0] += fH[0];
-	    f[jH1][1] += fH[1];
-	    f[jH1][2] += fH[2];
+            f[jH1][0] += fH[0];
+            f[jH1][1] += fH[1];
+            f[jH1][2] += fH[2];
 
-	    f[jH2][0] += fH[0];
-	    f[jH2][1] += fH[1];
-	    f[jH2][2] += fH[2];
+            f[jH2][0] += fH[0];
+            f[jH2][1] += fH[1];
+            f[jH2][2] += fH[2];
 
-	    if (vflag) {
+            if (vflag) {
               xH1 = x[jH1];
               xH2 = x[jH2];
-	      v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+              v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+              v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+              v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+              v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+              v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+              v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
       	    vlist[n++] = j;
-	    vlist[n++] = jH1;
-	    vlist[n++] = jH2;
-	  }
+            vlist[n++] = jH1;
+            vlist[n++] = jH2;
+          }
 
-	  if (eflag) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
-	      ecoul = prefactor*erfc;
-	    else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
-	    }
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          if (eflag) {
+            if (!ncoultablebits || rsq <= tabinnersq)
+              ecoul = prefactor*erfc;
+            else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
+            }
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
 
           if (evflag) ev_tally_tip4p(key,vlist,v,ecoul,alpha);
-	}
+        }
       }
     }
   }
@@ -473,7 +471,7 @@ void PairLJLongTIP4PLong::compute_inner()
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
   double r2inv,forcecoul,forcelj,cforce;
-  double fO[3],fH[3],fd[3];// f1[3];
+  double fO[3],fH[3],fd[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq, qri;
@@ -534,14 +532,19 @@ void PairLJLongTIP4PLong::compute_inner()
     itype = type[i];
     if (itype == typeO && order1) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
-        hneigh[i][2] = 1;
+        iH1 = atom->map(tag[i] + 1);
+        iH2 = atom->map(tag[i] + 2);
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        // set iH1,iH2 to closest image to O
+        iH1 = domain->closest_image(i,iH1);
+        iH2 = domain->closest_image(i,iH2);
         compute_newsite(x[i],x[iH1],x[iH2],newsite[i]);
+        hneigh[i][0] = iH1;
+        hneigh[i][1] = iH2;
+        hneigh[i][2] = 1;
       } else {
         iH1 = hneigh[i][0];
         iH2 = hneigh[i][1];
@@ -570,12 +573,12 @@ void PairLJLongTIP4PLong::compute_inner()
 
       if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
         r2inv = 1.0/rsq;
-	register double rn = r2inv*r2inv*r2inv;
-	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-	else {					// special case
-	  register double f = special_lj[ni];
-	  forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
-	 }
+        register double rn = r2inv*r2inv*r2inv;
+        if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
+        else {					// special case
+          register double f = special_lj[ni];
+          forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
+        }
 
         if (rsq > cut_out_on_sq) {                        // switching
           register double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
@@ -583,12 +586,12 @@ void PairLJLongTIP4PLong::compute_inner()
         }
 
         forcelj *= r2inv;
-	f[i][0] += delx*forcelj;
-	f[i][1] += dely*forcelj;
-	f[i][2] += delz*forcelj;
-	f[j][0] -= delx*forcelj;
-	f[j][1] -= dely*forcelj;
-	f[j][2] -= delz*forcelj;
+        f[i][0] += delx*forcelj;
+        f[i][1] += dely*forcelj;
+        f[i][2] += delz*forcelj;
+        f[j][0] -= delx*forcelj;
+        f[j][1] -= dely*forcelj;
+        f[j][2] -= delz*forcelj;
       }
 
 
@@ -597,16 +600,21 @@ void PairLJLongTIP4PLong::compute_inner()
 
       if (rsq < cut_coulsqplus && order1) {
         if (itype == typeO || jtype == typeO) {
-	  if (jtype == typeO) {
+          if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
-              hneigh[j][2] = 1;
+              jH1 = atom->map(tag[j] + 1);
+              jH2 = atom->map(tag[j] + 2);
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              // set jH1,jH2 to closest image to O
+              jH1 = domain->closest_image(j,jH1);
+              jH2 = domain->closest_image(j,jH2);
               compute_newsite(x[j],x[jH1],x[jH2],newsite[j]);
+              hneigh[j][0] = jH1;
+              hneigh[j][1] = jH2;
+              hneigh[j][2] = 1;
             } else {
               jH1 = hneigh[j][0];
               jH2 = hneigh[j][1];
@@ -616,17 +624,17 @@ void PairLJLongTIP4PLong::compute_inner()
               }
             }
             x2 = newsite[j];
-	  } else x2 = x[j];
-	  delx = x1[0] - x2[0];
-	  dely = x1[1] - x2[1];
-	  delz = x1[2] - x2[2];
-	  rsq = delx*delx + dely*dely + delz*delz;
+          } else x2 = x[j];
+          delx = x1[0] - x2[0];
+          dely = x1[1] - x2[1];
+          delz = x1[2] - x2[2];
+          rsq = delx*delx + dely*dely + delz*delz;
         }
 
-	// test current rsq against cutoff and compute Coulombic force
+        // test current rsq against cutoff and compute Coulombic force
 
         if (rsq < cut_coulsq && rsq < cut_out_off_sq) {
-	  r2inv = 1.0 / rsq;
+          r2inv = 1.0 / rsq;
           qri = qqrd2e*qtmp;
           if (ni == 0) forcecoul = qri*q[j]*sqrt(r2inv);
           else {
@@ -638,25 +646,25 @@ void PairLJLongTIP4PLong::compute_inner()
             forcecoul  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
           }
 
-	  cforce = forcecoul * r2inv;
+          cforce = forcecoul * r2inv;
 
-	  //if (evflag) ev_tally(i,j,nlocal,newton_pair,
+          //if (evflag) ev_tally(i,j,nlocal,newton_pair,
           //		       evdwl,0.0,cforce,delx,dely,delz);
 
-	  // if i,j are not O atoms, force is applied directly
-	  // if i or j are O atoms, force is on fictitious atom & partitioned
-	  // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
-	  // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
-	  // preserves total force and torque on water molecule
-	  // virial = sum(r x F) where each water's atoms are near xi and xj
-	  // vlist stores 2,4,6 atoms whose forces contribute to virial
+          // if i,j are not O atoms, force is applied directly
+          // if i or j are O atoms, force is on fictitious atom & partitioned
+          // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+          // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+          // preserves total force and torque on water molecule
+          // virial = sum(r x F) where each water's atoms are near xi and xj
+          // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-	  if (itype != typeO) {
-	    f[i][0] += delx * cforce;
-	    f[i][1] += dely * cforce;
-	    f[i][2] += delz * cforce;
+          if (itype != typeO) {
+            f[i][0] += delx * cforce;
+            f[i][1] += dely * cforce;
+            f[i][2] += delz * cforce;
 
-	  } else {
+          } else {
             fd[0] = delx*cforce;
             fd[1] = dely*cforce;
             fd[2] = delz*cforce;
@@ -682,15 +690,15 @@ void PairLJLongTIP4PLong::compute_inner()
             f[iH2][2] += fH[2];
           }
 
-	  if (jtype != typeO) {
-	    f[j][0] -= delx * cforce;
-	    f[j][1] -= dely * cforce;
-	    f[j][2] -= delz * cforce;
+          if (jtype != typeO) {
+            f[j][0] -= delx * cforce;
+            f[j][1] -= dely * cforce;
+            f[j][2] -= delz * cforce;
 
-	  } else {
-	    fd[0] = -delx*cforce;
-	    fd[1] = -dely*cforce;
-	    fd[2] = -delz*cforce;
+          } else {
+            fd[0] = -delx*cforce;
+            fd[1] = -dely*cforce;
+            fd[2] = -delz*cforce;
 
             fO[0] = fd[0]*(1 - alpha);
             fO[1] = fd[1]*(1 - alpha);
@@ -700,19 +708,19 @@ void PairLJLongTIP4PLong::compute_inner()
             fH[1] = 0.5 * alpha * fd[1];
             fH[2] = 0.5 * alpha * fd[2];
 
-	    f[j][0] += fO[0];
-	    f[j][1] += fO[1];
-	    f[j][2] += fO[2];
+            f[j][0] += fO[0];
+            f[j][1] += fO[1];
+            f[j][2] += fO[2];
 
-	    f[jH1][0] += fH[0];
-	    f[jH1][1] += fH[1];
-	    f[jH1][2] += fH[2];
+            f[jH1][0] += fH[0];
+            f[jH1][1] += fH[1];
+            f[jH1][2] += fH[2];
 
-	    f[jH2][0] += fH[0];
-	    f[jH2][1] += fH[1];
-	    f[jH2][2] += fH[2];
+            f[jH2][0] += fH[0];
+            f[jH2][1] += fH[1];
+            f[jH2][2] += fH[2];
           }
-	}
+        }
       }
     }
   }
@@ -777,14 +785,19 @@ void PairLJLongTIP4PLong::compute_middle()
     itype = type[i];
     if (itype == typeO && order1) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
-        hneigh[i][2] = 1;
+        iH1 = atom->map(tag[i] + 1);
+        iH2 = atom->map(tag[i] + 2);
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        // set iH1,iH2 to closest image to O
+        iH1 = domain->closest_image(i,iH1);
+        iH2 = domain->closest_image(i,iH2);
         compute_newsite(x[i],x[iH1],x[iH2],newsite[i]);
+        hneigh[i][0] = iH1;
+        hneigh[i][1] = iH2;
+        hneigh[i][2] = 1;
       } else {
         iH1 = hneigh[i][0];
         iH2 = hneigh[i][1];
@@ -813,12 +826,12 @@ void PairLJLongTIP4PLong::compute_middle()
 
       if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
         r2inv = 1.0/rsq;
-	register double rn = r2inv*r2inv*r2inv;
-	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-	else {					// special case
-	  register double f = special_lj[ni];
-	  forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
-	 }
+        register double rn = r2inv*r2inv*r2inv;
+        if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
+        else {					// special case
+          register double f = special_lj[ni];
+          forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
+        }
 
         if (rsq < cut_in_on_sq) {                                // switching
           register double rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
@@ -830,12 +843,12 @@ void PairLJLongTIP4PLong::compute_middle()
         }
 
         forcelj *= r2inv;
-	f[i][0] += delx*forcelj;
-	f[i][1] += dely*forcelj;
-	f[i][2] += delz*forcelj;
-	f[j][0] -= delx*forcelj;
-	f[j][1] -= dely*forcelj;
-	f[j][2] -= delz*forcelj;
+        f[i][0] += delx*forcelj;
+        f[i][1] += dely*forcelj;
+        f[i][2] += delz*forcelj;
+        f[j][0] -= delx*forcelj;
+        f[j][1] -= dely*forcelj;
+        f[j][2] -= delz*forcelj;
       }
 
 
@@ -844,16 +857,21 @@ void PairLJLongTIP4PLong::compute_middle()
 
       if (rsq < cut_coulsqplus && order1) {
         if (itype == typeO || jtype == typeO) {
-	  if (jtype == typeO) {
+          if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
-              hneigh[j][2] = 1;
+              jH1 = atom->map(tag[j] + 1);
+              jH2 = atom->map(tag[j] + 2);
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              // set jH1,jH2 to closest image to O
+              jH1 = domain->closest_image(j,jH1);
+              jH2 = domain->closest_image(j,jH2);
               compute_newsite(x[j],x[jH1],x[jH2],newsite[j]);
+              hneigh[j][0] = jH1;
+              hneigh[j][1] = jH2;
+              hneigh[j][2] = 1;
             } else {
               jH1 = hneigh[j][0];
               jH2 = hneigh[j][1];
@@ -863,17 +881,17 @@ void PairLJLongTIP4PLong::compute_middle()
               }
             }
             x2 = newsite[j];
-	  } else x2 = x[j];
-	  delx = x1[0] - x2[0];
-	  dely = x1[1] - x2[1];
-	  delz = x1[2] - x2[2];
-	  rsq = delx*delx + dely*dely + delz*delz;
+          } else x2 = x[j];
+          delx = x1[0] - x2[0];
+          dely = x1[1] - x2[1];
+          delz = x1[2] - x2[2];
+          rsq = delx*delx + dely*dely + delz*delz;
         }
 
-	// test current rsq against cutoff and compute Coulombic force
+        // test current rsq against cutoff and compute Coulombic force
 
         if (rsq < cut_coulsq &&  rsq >= cut_in_off_sq && rsq <= cut_out_off_sq) {
-	  r2inv = 1.0 / rsq;
+          r2inv = 1.0 / rsq;
           qri = qqrd2e*qtmp;
           if (ni == 0) forcecoul = qri*q[j]*sqrt(r2inv);
           else {
@@ -889,25 +907,25 @@ void PairLJLongTIP4PLong::compute_middle()
             forcecoul  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
           }
 
-	  cforce = forcecoul * r2inv;
+          cforce = forcecoul * r2inv;
 
-	  //if (evflag) ev_tally(i,j,nlocal,newton_pair,
+          //if (evflag) ev_tally(i,j,nlocal,newton_pair,
           //		       evdwl,0.0,cforce,delx,dely,delz);
 
-	  // if i,j are not O atoms, force is applied directly
-	  // if i or j are O atoms, force is on fictitious atom & partitioned
-	  // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
-	  // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
-	  // preserves total force and torque on water molecule
-	  // virial = sum(r x F) where each water's atoms are near xi and xj
-	  // vlist stores 2,4,6 atoms whose forces contribute to virial
+          // if i,j are not O atoms, force is applied directly
+          // if i or j are O atoms, force is on fictitious atom & partitioned
+          // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+          // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+          // preserves total force and torque on water molecule
+          // virial = sum(r x F) where each water's atoms are near xi and xj
+          // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-	  if (itype != typeO) {
-	    f[i][0] += delx * cforce;
-	    f[i][1] += dely * cforce;
-	    f[i][2] += delz * cforce;
+          if (itype != typeO) {
+            f[i][0] += delx * cforce;
+            f[i][1] += dely * cforce;
+            f[i][2] += delz * cforce;
 
-	  } else {
+          } else {
             fd[0] = delx*cforce;
             fd[1] = dely*cforce;
             fd[2] = delz*cforce;
@@ -933,15 +951,15 @@ void PairLJLongTIP4PLong::compute_middle()
             f[iH2][2] += fH[2];
           }
 
-	  if (jtype != typeO) {
-	    f[j][0] -= delx * cforce;
-	    f[j][1] -= dely * cforce;
-	    f[j][2] -= delz * cforce;
+          if (jtype != typeO) {
+            f[j][0] -= delx * cforce;
+            f[j][1] -= dely * cforce;
+            f[j][2] -= delz * cforce;
 
-	  } else {
-	    fd[0] = -delx*cforce;
-	    fd[1] = -dely*cforce;
-	    fd[2] = -delz*cforce;
+          } else {
+            fd[0] = -delx*cforce;
+            fd[1] = -dely*cforce;
+            fd[2] = -delz*cforce;
 
             fO[0] = fd[0]*(1 - alpha);
             fO[1] = fd[1]*(1 - alpha);
@@ -951,19 +969,19 @@ void PairLJLongTIP4PLong::compute_middle()
             fH[1] = 0.5 * alpha * fd[1];
             fH[2] = 0.5 * alpha * fd[2];
 
-	    f[j][0] += fO[0];
-	    f[j][1] += fO[1];
-	    f[j][2] += fO[2];
+            f[j][0] += fO[0];
+            f[j][1] += fO[1];
+            f[j][2] += fO[2];
 
-	    f[jH1][0] += fH[0];
-	    f[jH1][1] += fH[1];
-	    f[jH1][2] += fH[2];
+            f[jH1][0] += fH[0];
+            f[jH1][1] += fH[1];
+            f[jH1][2] += fH[2];
 
-	    f[jH2][0] += fH[0];
-	    f[jH2][1] += fH[1];
-	    f[jH2][2] += fH[2];
+            f[jH2][0] += fH[0];
+            f[jH2][1] += fH[1];
+            f[jH2][2] += fH[2];
           }
-	}
+        }
       }
     }
   }
@@ -979,8 +997,8 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa,fvirial;
-  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
-  double *x1,*x2;
+  double fO[3],fH[3],fd[3],v[6];
+  double *x1,*x2,*xH1,*xH2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq,qri;
   int respa_flag;
@@ -1048,14 +1066,19 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
     itype = type[i];
     if (itype == typeO) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
-        hneigh[i][2] = 1;
+        iH1 = atom->map(tag[i] + 1);
+        iH2 = atom->map(tag[i] + 2);
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        // set iH1,iH2 to closest image to O
+        iH1 = domain->closest_image(i,iH1);
+        iH2 = domain->closest_image(i,iH2);
         compute_newsite(x[i],x[iH1],x[iH2],newsite[i]);
+        hneigh[i][0] = iH1;
+        hneigh[i][1] = iH2;
+        hneigh[i][2] = 1;
       } else {
         iH1 = hneigh[i][0];
         iH2 = hneigh[i][1];
@@ -1096,8 +1119,8 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
         r2inv = 1.0/rsq;
         register double rn = r2inv*r2inv*r2inv;
         if (respa_flag) respa_lj = ni == 0 ?                 // correct for respa
-            frespa*rn*(rn*lj1i[jtype]-lj2i[jtype]) :
-            frespa*rn*(rn*lj1i[jtype]-lj2i[jtype])*special_lj[ni];
+                          frespa*rn*(rn*lj1i[jtype]-lj2i[jtype]) :
+                          frespa*rn*(rn*lj1i[jtype]-lj2i[jtype])*special_lj[ni];
         if (order6) {                                        // long-range form
           if (!ndisptablebits || rsq <= tabinnerdispsq) {
             register double x2 = g2*rsq, a2 = 1.0/x2;
@@ -1145,17 +1168,17 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
         }
 
         forcelj *= r2inv;
-	f[i][0] += delx*forcelj;
-	f[i][1] += dely*forcelj;
-	f[i][2] += delz*forcelj;
-	f[j][0] -= delx*forcelj;
-	f[j][1] -= dely*forcelj;
-	f[j][2] -= delz*forcelj;
+        f[i][0] += delx*forcelj;
+        f[i][1] += dely*forcelj;
+        f[i][2] += delz*forcelj;
+        f[j][0] -= delx*forcelj;
+        f[j][1] -= dely*forcelj;
+        f[j][2] -= delz*forcelj;
 
         if (evflag) {
           fvirial = forcelj + respa_lj*r2inv;
           ev_tally(i,j,nlocal,newton_pair,
-	           evdwl,0.0,fvirial,delx,dely,delz);
+                   evdwl,0.0,fvirial,delx,dely,delz);
         }
       }
 
@@ -1165,16 +1188,21 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 
       if (rsq < cut_coulsqplus) {
         if (itype == typeO || jtype == typeO) {
-	  if (jtype == typeO) {
+          if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
-              hneigh[j][2] = 1;
+              jH1 = atom->map(tag[j] + 1);
+              jH2 = atom->map(tag[j] + 2);
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              // set jH1,jH2 to closest image to O
+              jH1 = domain->closest_image(j,jH1);
+              jH2 = domain->closest_image(j,jH2);
               compute_newsite(x[j],x[jH1],x[jH2],newsite[j]);
+              hneigh[j][0] = jH1;
+              hneigh[j][1] = jH2;
+              hneigh[j][2] = 1;
             } else {
               jH1 = hneigh[j][0];
               jH2 = hneigh[j][1];
@@ -1184,14 +1212,14 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               }
             }
             x2 = newsite[j];
-	  } else x2 = x[j];
-	  delx = x1[0] - x2[0];
-	  dely = x1[1] - x2[1];
-	  delz = x1[2] - x2[2];
-	  rsq = delx*delx + dely*dely + delz*delz;
+          } else x2 = x[j];
+          delx = x1[0] - x2[0];
+          dely = x1[1] - x2[1];
+          delz = x1[2] - x2[2];
+          rsq = delx*delx + dely*dely + delz*delz;
         }
 
-	// test current rsq against cutoff and compute Coulombic force
+        // test current rsq against cutoff and compute Coulombic force
         if ((rsq < cut_coulsq) && order1) {
 
           frespa = 1.0;                                       // check whether and how to compute respa corrections
@@ -1245,20 +1273,20 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
           fvirial = (forcecoul + respa_coul) * r2inv;
 
           // if i,j are not O atoms, force is applied directly
-	  // if i or j are O atoms, force is on fictitious atom & partitioned
-	  // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
-	  // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
-	  // preserves total force and torque on water molecule
-	  // virial = sum(r x F) where each water's atoms are near xi and xj
-	  // vlist stores 2,4,6 atoms whose forces contribute to virial
+          // if i or j are O atoms, force is on fictitious atom & partitioned
+          // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+          // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+          // preserves total force and torque on water molecule
+          // virial = sum(r x F) where each water's atoms are near xi and xj
+          // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-	  n = 0;
+          n = 0;
           key = 0;
 
-	  if (itype != typeO) {
-	    f[i][0] += delx * cforce;
+          if (itype != typeO) {
+            f[i][0] += delx * cforce;
             f[i][1] += dely * cforce;
-	    f[i][2] += delz * cforce;
+            f[i][2] += delz * cforce;
 
             if (vflag) {
               v[0] = x[i][0] * delx * fvirial;
@@ -1268,9 +1296,9 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               v[4] = x[i][0] * delz * fvirial;
               v[5] = x[i][1] * delz * fvirial;
             }
-          vlist[n++] = i;
+            vlist[n++] = i;
 
-	  } else {
+          } else {
             key += 1;
             fd[0] = delx*cforce;
             fd[1] = dely*cforce;
@@ -1296,7 +1324,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
             f[iH2][1] += fH[1];
             f[iH2][2] += fH[2];
 
-	    if (vflag) {
+            if (vflag) {
               fd[0] = delx*fvirial;
               fd[1] = dely*fvirial;
               fd[2] = delz*fvirial;
@@ -1309,42 +1337,41 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               fH[1] = 0.5 * alpha * fd[1];
               fH[2] = 0.5 * alpha * fd[2];
 
-	      domain->closest_image(x[i],x[iH1],xH1);
-	      domain->closest_image(x[i],x[iH2],xH2);
-
-	      v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
-	    }
-	    vlist[n++] = i;
-	    vlist[n++] = iH1;
-	    vlist[n++] = iH2;
-  	  }
-
-	  if (jtype != typeO) {
-	    f[j][0] -= delx * cforce;
-	    f[j][1] -= dely * cforce;
-	    f[j][2] -= delz * cforce;
-
-	    if (vflag) {
-	      v[0] -= x[j][0] * delx * fvirial;
-	      v[1] -= x[j][1] * dely * fvirial;
-	      v[2] -= x[j][2] * delz * fvirial;
-	      v[3] -= x[j][0] * dely * fvirial;
-	      v[4] -= x[j][0] * delz * fvirial;
-	      v[5] -= x[j][1] * delz * fvirial;
+              xH1 = x[jH1];
+              xH2 = x[jH2];
+              v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+              v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+              v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+              v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+              v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+              v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
-	    vlist[n++] = j;
+            vlist[n++] = i;
+            vlist[n++] = iH1;
+            vlist[n++] = iH2;
+          }
 
-	  } else {
+          if (jtype != typeO) {
+            f[j][0] -= delx * cforce;
+            f[j][1] -= dely * cforce;
+            f[j][2] -= delz * cforce;
+
+            if (vflag) {
+              v[0] -= x[j][0] * delx * fvirial;
+              v[1] -= x[j][1] * dely * fvirial;
+              v[2] -= x[j][2] * delz * fvirial;
+              v[3] -= x[j][0] * dely * fvirial;
+              v[4] -= x[j][0] * delz * fvirial;
+              v[5] -= x[j][1] * delz * fvirial;
+            }
+            vlist[n++] = j;
+
+          } else {
             key += 2;
 
-	    fd[0] = -delx*cforce;
-	    fd[1] = -dely*cforce;
-	    fd[2] = -delz*cforce;
+            fd[0] = -delx*cforce;
+            fd[1] = -dely*cforce;
+            fd[2] = -delz*cforce;
 
             fO[0] = fd[0]*(1 - alpha);
             fO[1] = fd[1]*(1 - alpha);
@@ -1354,23 +1381,23 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
             fH[1] = 0.5 * alpha * fd[1];
             fH[2] = 0.5 * alpha * fd[2];
 
-	    f[j][0] += fO[0];
-	    f[j][1] += fO[1];
-	    f[j][2] += fO[2];
+            f[j][0] += fO[0];
+            f[j][1] += fO[1];
+            f[j][2] += fO[2];
 
-	    f[jH1][0] += fH[0];
-	    f[jH1][1] += fH[1];
-	    f[jH1][2] += fH[2];
+            f[jH1][0] += fH[0];
+            f[jH1][1] += fH[1];
+            f[jH1][2] += fH[2];
 
-	    f[jH2][0] += fH[0];
-	    f[jH2][1] += fH[1];
-	    f[jH2][2] += fH[2];
+            f[jH2][0] += fH[0];
+            f[jH2][1] += fH[1];
+            f[jH2][2] += fH[2];
 
-	    if (vflag) {
+            if (vflag) {
 
-	      fd[0] = -delx*fvirial;
-	      fd[1] = -dely*fvirial;
-	      fd[2] = -delz*fvirial;
+              fd[0] = -delx*fvirial;
+              fd[1] = -dely*fvirial;
+              fd[2] = -delz*fvirial;
 
               fO[0] = fd[0]*(1 - alpha);
               fO[1] = fd[1]*(1 - alpha);
@@ -1380,20 +1407,20 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               fH[1] = 0.5 * alpha * fd[1];
               fH[2] = 0.5 * alpha * fd[2];
 
-	      domain->closest_image(x[j],x[jH1],xH1);
-	      domain->closest_image(x[j],x[jH2],xH2);
+              xH1 = x[jH1];
+              xH2 = x[jH2];
 
-	      v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+              v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+              v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+              v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+              v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+              v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+              v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
       	    vlist[n++] = j;
-	    vlist[n++] = jH1;
-	    vlist[n++] = jH2;
-	  }
+            vlist[n++] = jH1;
+            vlist[n++] = jH2;
+          }
 
           if (evflag) ev_tally_tip4p(key,vlist,v,ecoul,alpha);
         }

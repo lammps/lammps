@@ -8,7 +8,7 @@ SHELL = /bin/sh
 
 CC =		mpiicpc
 OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
+CCFLAGS =	-qopenmp -DLAMMPS_MEMALIGN=64 -qno-offload \
                 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M

@@ -52,6 +52,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_lj_coul_debye.o $(OBJ_DIR)/lal_lj_coul_debye_ext.o \
        $(OBJ_DIR)/lal_coul_dsf.o $(OBJ_DIR)/lal_coul_dsf_ext.o \
        $(OBJ_DIR)/lal_sw.o $(OBJ_DIR)/lal_sw_ext.o \
+       $(OBJ_DIR)/lal_vashishta.o $(OBJ_DIR)/lal_vashishta_ext.o \
        $(OBJ_DIR)/lal_beck.o $(OBJ_DIR)/lal_beck_ext.o \
        $(OBJ_DIR)/lal_mie.o $(OBJ_DIR)/lal_mie_ext.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
@@ -92,7 +93,7 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/tersoff_cl.h $(OBJ_DIR)/tersoff_zbl_cl.h \
        $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/coul_cl.h \
        $(OBJ_DIR)/coul_debye_cl.h $(OBJ_DIR)/zbl_cl.h \
-       $(OBJ_DIR)/lj_cubic_cl.h
+       $(OBJ_DIR)/lj_cubic_cl.h $(OBJ_DIR)/vashishta_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -449,6 +450,15 @@ $(OBJ_DIR)/lal_sw.o: $(ALL_H) lal_sw.h lal_sw.cpp  $(OBJ_DIR)/sw_cl.h $(OBJ_DIR)
 
 $(OBJ_DIR)/lal_sw_ext.o: $(ALL_H) lal_sw.h lal_sw_ext.cpp lal_base_three.h
 	$(OCL) -o $@ -c lal_sw_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/vashishta_cl.h: lal_vashishta.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh vashishta $(PRE1_H) lal_vashishta.cu $(OBJ_DIR)/vashishta_cl.h;
+
+$(OBJ_DIR)/lal_vashishta.o: $(ALL_H) lal_vashishta.h lal_vashishta.cpp  $(OBJ_DIR)/vashishta_cl.h $(OBJ_DIR)/vashishta_cl.h $(OBJ_DIR)/lal_base_three.o
+	$(OCL) -o $@ -c lal_vashishta.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_vashishta_ext.o: $(ALL_H) lal_vashishta.h lal_vashishta_ext.cpp lal_base_three.h
+	$(OCL) -o $@ -c lal_vashishta_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/beck_cl.h: lal_beck.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh beck $(PRE1_H) lal_beck.cu $(OBJ_DIR)/beck_cl.h;

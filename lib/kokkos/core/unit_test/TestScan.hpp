@@ -41,7 +41,8 @@
 //@HEADER
 */
 
-#include <stdio.h>
+#include <Kokkos_Core.hpp>
+#include <cstdio>
 
 namespace Test {
 
@@ -112,5 +113,30 @@ struct TestScan {
     }
   }
 };
+
+TEST_F( TEST_CATEGORY, scan )
+{
+  TestScan< TEST_EXECSPACE >::test_range( 1, 1000 );
+  TestScan< TEST_EXECSPACE >( 0 );
+  TestScan< TEST_EXECSPACE >( 100000 );
+  TestScan< TEST_EXECSPACE >( 10000000 );
+  TEST_EXECSPACE::fence();
+}
+
+
+/*TEST_F( TEST_CATEGORY, scan_small )
+{
+  typedef TestScan< TEST_EXECSPACE, Kokkos::Impl::ThreadsExecUseScanSmall > TestScanFunctor;
+
+  for ( int i = 0; i < 1000; ++i ) {
+    TestScanFunctor( 10 );
+    TestScanFunctor( 10000 );
+  }
+  TestScanFunctor( 1000000 );
+  TestScanFunctor( 10000000 );
+
+  TEST_EXECSPACE::fence();
+}*/
+
 
 } // namespace Test

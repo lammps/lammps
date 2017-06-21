@@ -42,6 +42,7 @@
 */
 
 #include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 
 #include <impl/Kokkos_spinwait.hpp>
 
@@ -128,7 +129,6 @@
 
 namespace Kokkos {
 namespace Impl {
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 
 void spinwait_while_equal( volatile int32_t & flag , const int32_t value )
 {
@@ -174,8 +174,10 @@ void spinwait_until_equal( volatile int64_t & flag , const int64_t value )
   Kokkos::load_fence();
 }
 
-#endif
-
 } /* namespace Impl */
 } /* namespace Kokkos */
+
+#else
+void KOKKOS_CORE_SRC_IMPL_SPINWAIT_PREVENT_LINK_ERROR() {}
+#endif
 

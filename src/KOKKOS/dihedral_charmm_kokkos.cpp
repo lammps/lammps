@@ -132,7 +132,6 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDihedralCharmmCompute<0,0> >(0,ndihedrallist),*this);
     }
   }
-  DeviceType::fence();
 
   // error check
 

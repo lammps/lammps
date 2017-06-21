@@ -11,25 +11,25 @@ pair_style lj/smooth/linear/omp command :h3
 
 [Syntax:]
 
-pair_style lj/smooth/linear Rc :pre
+pair_style lj/smooth/linear cutoff :pre
 
-Rc = cutoff for lj/smooth/linear interactions (distance units) :ul
+cutoff = global cutoff for Lennard-Jones interactions (distance units) :ul
 
 [Examples:]
 
-pair_style lj/smooth/linear 5.456108274435118
-pair_coeff * * 0.7242785984051078 2.598146797350056
-pair_coeff 1 1 20.0 1.3 9.0 :pre
+pair_style lj/smooth/linear 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 0.3 3.0 9.0 :pre
 
 [Description:]
 
-Style {lj/smooth/linear} computes a LJ interaction that combines the
-standard 12/6 Lennard-Jones function and subtracts a linear term that
-includes the cutoff distance Rc, as in this formula:
+Style {lj/smooth/linear} computes a truncated and force-shifted LJ
+interaction (aka Shifted Force Lennard-Jones) that combines the
+standard 12/6 Lennard-Jones function and subtracts a linear term based
+on the cutoff distance, so that both, the potential and the force, go
+continuously to zero at the cutoff Rc "(Toxvaerd)"_#Toxvaerd:
 
 :c,image(Eqs/pair_lj_smooth_linear.jpg)
-
-At the cutoff Rc, the energy and force (its 1st derivative) will be 0.0.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -41,8 +41,8 @@ epsilon (energy units)
 sigma (distance units)
 cutoff (distance units) :ul
 
-The last coefficient is optional.  If not specified, the global value
-for Rc is used.
+The last coefficient is optional. If not specified, the global
+LJ cutoff specified in the pair_style command is used.
 
 :line
 
@@ -76,10 +76,11 @@ and cutoff distance can be mixed. The default mix value is geometric.
 See the "pair_modify" command for details.
 
 This pair style does not support the "pair_modify"_pair_modify.html
-shift option for the energy of the pair interaction.
+shift option for the energy of the pair interaction, since it goes
+to 0.0 at the cutoff by construction.
 
-The "pair_modify"_pair_modify.html table option is not relevant for
-this pair style.
+The "pair_modify"_pair_modify.html table option is not relevant
+for this pair style.
 
 This pair style does not support the "pair_modify"_pair_modify.html
 tail option for adding long-range tail corrections to energy and
@@ -103,3 +104,8 @@ This pair style can only be used via the {pair} keyword of the
 "pair_coeff"_pair_coeff.html, "pair lj/smooth"_pair_lj_smooth.html
 
 [Default:] none
+
+:line
+
+:link(Toxvaerd)
+[(Toxvaerd)] Toxvaerd, Dyre, J Chem Phys, 134, 081102 (2011).

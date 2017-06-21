@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
-   			 Oleg Sergeev (VNIIA, sergeev@vniia.ru)
+                         Oleg Sergeev (VNIIA, sergeev@vniia.ru)
 ------------------------------------------------------------------------- */
 
 #include <stdlib.h>
@@ -68,7 +68,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   nrepeat = atoi(arg[4]);
   global_freq = nfreq = atoi(arg[5]);
 
-  comm_forward = 5;
+  comm_forward = 4;
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix reax/c/species command");
@@ -133,12 +133,10 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   }
 
   x0 = NULL;
-  PBCconnected = NULL;
   clusterID = NULL;
 
   int ntmp = 1;
   memory->create(x0,ntmp,"reax/c/species:x0");
-  memory->create(PBCconnected,ntmp,"reax/c/species:PBCconnected");
   memory->create(clusterID,ntmp,"reax/c/species:clusterID");
   vector_atom = clusterID;
 
@@ -182,35 +180,35 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
       jtype = atoi(arg[iarg+2]);
       bo_cut = atof(arg[iarg+3]);
       if (itype > ntypes || jtype > ntypes)
-      	error->all(FLERR,"Illegal fix reax/c/species command");
+        error->all(FLERR,"Illegal fix reax/c/species command");
       if (itype <= 0 || jtype <= 0)
-      	error->all(FLERR,"Illegal fix reax/c/species command");
+        error->all(FLERR,"Illegal fix reax/c/species command");
       if (bo_cut > 1.0 || bo_cut < 0.0)
-      	error->all(FLERR,"Illegal fix reax/c/species command");
+        error->all(FLERR,"Illegal fix reax/c/species command");
 
       BOCut[itype][jtype] = bo_cut;
       BOCut[jtype][itype] = bo_cut;
       iarg += 4;
 
-    // modify element type names
+      // modify element type names
     } else if (strcmp(arg[iarg],"element") == 0) {
       if (iarg+ntypes+1 > narg) error->all(FLERR,"Illegal fix reax/c/species command");
 
       eletype = (char**) malloc(ntypes*sizeof(char*));
       for (int i = 0; i < ntypes; i ++) {
         eletype[i] = (char*) malloc(2*sizeof(char));
-      	strcpy(eletype[i],arg[iarg+1+i]);
+        strcpy(eletype[i],arg[iarg+1+i]);
       }
       eleflag = 1;
       iarg += ntypes + 1;
 
-    // position of molecules
+      // position of molecules
     } else if (strcmp(arg[iarg],"position") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix reax/c/species command");
       posflag = 1;
       posfreq = atoi(arg[iarg+1]);
       if (posfreq < nfreq || (posfreq%nfreq != 0))
-	error->all(FLERR,"Illegal fix reax/c/species command");
+        error->all(FLERR,"Illegal fix reax/c/species command");
 
       filepos = new char[255];
       strcpy(filepos,arg[iarg+2]);
@@ -221,8 +219,8 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
           pos = fopen(filepos, "w");
           if (pos == NULL) error->one(FLERR,"Cannot open fix reax/c/species position file");
         }
-      	singlepos_opened = 1;
-      	multipos = 0;
+        singlepos_opened = 1;
+        multipos = 0;
       }
       iarg += 3;
     } else error->all(FLERR,"Illegal fix reax/c/species command");
@@ -251,7 +249,6 @@ FixReaxCSpecies::~FixReaxCSpecies()
   memory->destroy(ele);
   memory->destroy(BOCut);
   memory->destroy(clusterID);
-  memory->destroy(PBCconnected);
   memory->destroy(x0);
 
   memory->destroy(nd);
@@ -298,12 +295,9 @@ void FixReaxCSpecies::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use fix reax/c/species unless atoms have IDs");
 
-  reaxc = (PairReaxC *) force->pair_match("reax/c",1);
-  if (reaxc == NULL)
-    reaxc = (PairReaxC *) force->pair_match("reax/c/kk",1);
-
+  reaxc = (PairReaxC *) force->pair_match("reax/c",0);
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/species without "
-		  "pair_style reax/c");
+                                "pair_style reax/c, reax/c/kk, or reax/c/omp");
 
   reaxc->fixspecies_flag = 1;
 
@@ -392,14 +386,14 @@ void FixReaxCSpecies::create_fix()
   args[3]  = tmparg[0];
   args[4]  = tmparg[1];
   args[5]  = tmparg[2];
-  args[6]  = (char *) "c_SPECATOM[1]";	 // q, array_atoms[i][0]
-  args[7]  = (char *) "c_SPECATOM[2]";	 // x, 1
-  args[8]  = (char *) "c_SPECATOM[3]";	 // y, 2
-  args[9]  = (char *) "c_SPECATOM[4]";	 // z, 3
-  args[10] = (char *) "c_SPECATOM[5]";	 // vx, 4
-  args[11] = (char *) "c_SPECATOM[6]";	 // vy, 5
-  args[12] = (char *) "c_SPECATOM[7]";	 // vz, 6
-  args[13] = (char *) "c_SPECATOM[8]";	 // abo01, 7
+  args[6]  = (char *) "c_SPECATOM[1]";   // q, array_atoms[i][0]
+  args[7]  = (char *) "c_SPECATOM[2]";   // x, 1
+  args[8]  = (char *) "c_SPECATOM[3]";   // y, 2
+  args[9]  = (char *) "c_SPECATOM[4]";   // z, 3
+  args[10] = (char *) "c_SPECATOM[5]";   // vx, 4
+  args[11] = (char *) "c_SPECATOM[6]";   // vy, 5
+  args[12] = (char *) "c_SPECATOM[7]";   // vz, 6
+  args[13] = (char *) "c_SPECATOM[8]";   // abo01, 7
   args[14] = (char *) "c_SPECATOM[9]";
   args[15] = (char *) "c_SPECATOM[10]";
   args[16] = (char *) "c_SPECATOM[11]";
@@ -461,16 +455,13 @@ void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memory->destroy(x0);
-    memory->destroy(PBCconnected);
     memory->destroy(clusterID);
     memory->create(x0,nmax,"reax/c/species:x0");
-    memory->create(PBCconnected,nmax,"reax/c/species:PBCconnected");
     memory->create(clusterID,nmax,"reax/c/species:clusterID");
     vector_atom = clusterID;
   }
 
   for (int i = 0; i < nmax; i++) {
-    PBCconnected[i] = 0;
     x0[i].x = x0[i].y = x0[i].z = 0.0;
   }
 
@@ -523,6 +514,8 @@ void FixReaxCSpecies::FindMolecule ()
   int *ilist;
   double bo_tmp,bo_cut;
   double **spec_atom = f_SPECBOND->array_atom;
+  const double * const * const x = atom->x;
+  const int nlocal = atom->nlocal;
 
   inum = reaxc->list->inum;
   ilist = reaxc->list->ilist;
@@ -548,35 +541,32 @@ void FixReaxCSpecies::FindMolecule ()
       done = 1;
 
       for (ii = 0; ii < inum; ii++) {
-      	i = ilist[ii];
-      	if (!(mask[i] & groupbit)) continue;
+        i = ilist[ii];
+        if (!(mask[i] & groupbit)) continue;
 
-      	itype = atom->type[i];
+        itype = atom->type[i];
 
         for (jj = 0; jj < MAXSPECBOND; jj++) {
-      	  j = reaxc->tmpid[i][jj];
+          j = reaxc->tmpid[i][jj];
 
-      	  if (j < i) continue;
-      	  if (!(mask[j] & groupbit)) continue;
+          if ((j == 0) || (j < i)) continue;
+          if (!(mask[j] & groupbit)) continue;
 
-      	  if (clusterID[i] == clusterID[j] && PBCconnected[i] == PBCconnected[j]
-	    && x0[i].x == x0[j].x && x0[i].y == x0[j].y && x0[i].z == x0[j].z) continue;
+          if (clusterID[i] == clusterID[j]
+              && x0[i].x == x0[j].x
+              && x0[i].y == x0[j].y
+              && x0[i].z == x0[j].z) continue;
 
           jtype = atom->type[j];
-      	  bo_cut = BOCut[itype][jtype];
-      	  bo_tmp = spec_atom[i][jj+7];
+          bo_cut = BOCut[itype][jtype];
+          bo_tmp = spec_atom[i][jj+7];
 
-      	  if (bo_tmp > bo_cut) {
+          if (bo_tmp > bo_cut) {
             clusterID[i] = clusterID[j] = MIN(clusterID[i], clusterID[j]);
-            PBCconnected[i] = PBCconnected[j] = MAX(PBCconnected[i], PBCconnected[j]);
             x0[i] = x0[j] = chAnchor(x0[i], x0[j]);
-            if ((fabs(spec_atom[i][1] - spec_atom[j][1]) > reaxc->control->bond_cut)
-             || (fabs(spec_atom[i][2] - spec_atom[j][2]) > reaxc->control->bond_cut)
-             || (fabs(spec_atom[i][3] - spec_atom[j][3]) > reaxc->control->bond_cut))
-              PBCconnected[i] = PBCconnected[j] = 1;
-      	    done = 0;
-      	  }
-      	}
+            done = 0;
+          }
+        }
       }
       if (!done) change = 1;
       if (done) break;
@@ -612,13 +602,13 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall && me == 0)
     error->warning(FLERR,"Atom with cluster ID = 0 included in "
-		    "fix reax/c/species group");
+                   "fix reax/c/species group");
   MPI_Allreduce(&lo,&idlo,1,MPI_INT,MPI_MIN,world);
   MPI_Allreduce(&hi,&idhi,1,MPI_INT,MPI_MAX,world);
   if (idlo == ntotal)
     if (me == 0)
       error->warning(FLERR,"Atom with cluster ID = maxmol "
-		    "included in fix reax/c/species group");
+                     "included in fix reax/c/species group");
 
   int nlen = idhi - idlo + 1;
   memory->create(molmap,nlen,"reax/c/species:molmap");
@@ -798,7 +788,7 @@ void FixReaxCSpecies::OpenPos()
   *ptr = '\0';
   if (padflag == 0)
     sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-	filepos,ntimestep,ptr+1);
+            filepos,ntimestep,ptr+1);
   else {
     char bif[8],pad[16];
     strcpy(bif,BIGINT_FORMAT);
@@ -838,11 +828,11 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
 
   if (me == 0) {
     fprintf(pos,"Timestep " BIGINT_FORMAT " NMole %d  NSpec %d  xlo %f  "
-		"xhi %f  ylo %f  yhi %f  zlo %f  zhi %f\n",
-	        update->ntimestep,Nmole, Nspec,
-		domain->boxlo[0],domain->boxhi[0],
-		domain->boxlo[1],domain->boxhi[1],
-		domain->boxlo[2],domain->boxhi[2]);
+            "xhi %f  ylo %f  yhi %f  zlo %f  zhi %f\n",
+            update->ntimestep,Nmole, Nspec,
+            domain->boxlo[0],domain->boxhi[0],
+            domain->boxlo[1],domain->boxhi[1],
+            domain->boxlo[2],domain->boxhi[2]);
 
     fprintf(pos,"ID\tAtom_Count\tType\tAve_q\t\tCoM_x\t\tCoM_y\t\tCoM_z\n");
   }
@@ -865,22 +855,20 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
       if (cid == m) {
         itype = atom->type[i]-1;
         Name[itype] ++;
-      	count ++;
-      	avq += spec_atom[i][0];
-        if (PBCconnected[i]) {
-          if ((x0[i].x - spec_atom[i][1]) > halfbox[0])
-            spec_atom[i][1] += box[0];
-          if ((spec_atom[i][1] - x0[i].x) > halfbox[0])
-             spec_atom[i][1] -= box[0];
-          if ((x0[i].y - spec_atom[i][2]) > halfbox[1])
-              spec_atom[i][2] += box[1];
-          if ((spec_atom[i][2] - x0[i].y) > halfbox[1])
-             spec_atom[i][2] -= box[1];
-          if ((x0[i].z - spec_atom[i][3]) > halfbox[2])
-            spec_atom[i][3] += box[2];
-          if ((spec_atom[i][3] - x0[i].z) > halfbox[2])
-           spec_atom[i][3] -= box[2];
-        }
+        count ++;
+        avq += spec_atom[i][0];
+        if ((x0[i].x - spec_atom[i][1]) > halfbox[0])
+          spec_atom[i][1] += box[0];
+        if ((spec_atom[i][1] - x0[i].x) > halfbox[0])
+          spec_atom[i][1] -= box[0];
+        if ((x0[i].y - spec_atom[i][2]) > halfbox[1])
+          spec_atom[i][2] += box[1];
+        if ((spec_atom[i][2] - x0[i].y) > halfbox[1])
+          spec_atom[i][2] -= box[1];
+        if ((x0[i].z - spec_atom[i][3]) > halfbox[2])
+          spec_atom[i][3] += box[2];
+        if ((spec_atom[i][3] - x0[i].z) > halfbox[2])
+          spec_atom[i][3] -= box[2];
         for (n = 0; n < 3; n++)
           avx[n] += spec_atom[i][n+1];
       }
@@ -914,17 +902,17 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
       if (count > 0) {
         avq /= count;
         for (k = 0; k < 3; k++) {
-      	  avx[k] /= count;
+          avx[k] /= count;
           if (avx[k] >= domain->boxhi[k])
             avx[k] -= box[k];
           if (avx[k] < domain->boxlo[k])
             avx[k] += box[k];
 
-      	  avx[k] -= domain->boxlo[k];
-      	  avx[k] /= box[k];
+          avx[k] -= domain->boxlo[k];
+          avx[k] /= box[k];
         }
         fprintf(pos,"\t%.8f \t%.8f \t%.8f \t%.8f",
-		    avq,avx[0],avx[1],avx[2]);
+                avq,avx[0],avx[1],avx[2]);
       }
       fprintf(pos,"\n");
     }
@@ -966,11 +954,10 @@ int FixReaxCSpecies::pack_forward_comm(int n, int *list, double *buf,
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m] = clusterID[j];
-    buf[m+1] = (double)PBCconnected[j];
-    buf[m+2] = x0[j].x;
-    buf[m+3] = x0[j].y;
-    buf[m+4] = x0[j].z;
-    m += 5;
+    buf[m+1] = x0[j].x;
+    buf[m+2] = x0[j].y;
+    buf[m+3] = x0[j].z;
+    m += 4;
   }
   return m;
 }
@@ -985,11 +972,10 @@ void FixReaxCSpecies::unpack_forward_comm(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     clusterID[i] = buf[m];
-    PBCconnected[i] = (int)buf[m+1];
-    x0[i].x = buf[m+2];
-    x0[i].y = buf[m+3];
-    x0[i].z = buf[m+4];
-    m += 5;
+    x0[i].x = buf[m+1];
+    x0[i].y = buf[m+2];
+    x0[i].z = buf[m+3];
+    m += 4;
   }
 }
 
@@ -999,7 +985,7 @@ double FixReaxCSpecies::memory_usage()
 {
   double bytes;
 
-  bytes = 5*nmax*sizeof(double);  // clusterID + PBCconnected + x0
+  bytes = 4*nmax*sizeof(double);  // clusterID + x0
 
   return bytes;
 }

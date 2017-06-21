@@ -1,0 +1,185 @@
+LAMMPS (19 May 2017)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
+# Generation and relaxation of a partial dislocation in Cu perfect FCC crystal
+
+# Initialization
+units           metal
+boundary        p p p
+atom_style      atomic
+
+# create simulation box and system
+lattice         fcc 3.615  origin 0.01 0.01 0.01 orient x -1 -1 2 orient y 1 1 1 orient z -1 1 0
+Lattice spacing in x,y,z = 5.90327 6.26136 5.11238
+region          mdbox  block 0 3 0.0 14.0 0 84 units lattice
+region          system block 0 3 1.1 13.1 0 84 units lattice
+create_box      2 mdbox
+Created orthogonal box = (0 0 0) to (17.7098 87.6591 429.44)
+  1 by 1 by 4 MPI processor grid
+create_atoms    1 region system
+Created 48384 atoms
+
+# Define atoms mass and force field
+mass            *  63.54
+pair_style      eam/alloy
+pair_coeff      * * Cu_Mishin1.eam Cu Cu
+
+# Delete a plane of atoms along the z direction to generate a partial dislocation
+region          dislocation_atoms block 0 3 7 14 41.9 42.1 units lattice
+delete_atoms    region dislocation_atoms
+Deleted 76 atoms, new total = 48308
+region          quarter_up block 0 3 7 11 0 84 units lattice
+group           middle region quarter_up
+16080 atoms in group middle
+
+# specify simulation parameters
+timestep        0.004
+
+# Relax configuration using conjugate gradient
+#min_style cg
+#minimize 1.0e-4 1.0e-6 100 1000
+
+# Setup calculations
+compute         1 all cnp/atom 3.086
+compute         2 all cna/atom 3.086
+compute         3 all centro/atom fcc
+compute         4 all coord/atom cutoff 3.086
+dump            1 all custom 100 dump.lammpstrj id type xu yu zu c_1 c_2 c_3 c_4
+
+### Set up thermo display
+thermo          10
+thermo_style    custom step atoms temp press pe ke etotal
+
+# Relax the system performing a langevin dynamics (freeze motion along y 111 direction)
+fix             1 all nve
+fix             2 all langevin 50 1 0.1 699483
+fix             3 all setforce NULL 0.0 NULL
+fix             4 middle setforce 0.0  0.0 0.0
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.50679
+  ghost atom cutoff = 7.50679
+  binsize = 3.75339, bins = 5 24 115
+  5 neighbor lists, perpetual/occasional/extra = 1 4 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) compute cnp/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (3) compute cna/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (4) compute centro/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (5) compute coord/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 45.41 | 45.41 | 45.41 Mbytes
+Step Atoms Temp Press PotEng KinEng TotEng 
+       0    48308            0   -3388.0911   -169746.07            0   -169746.07 
+      10    48308      7.35092   -3091.0864   -169715.96    45.900393   -169670.05 
+      20    48308    9.9162268   -2822.7045   -169678.51    61.918604   -169616.59 
+      30    48308    12.351316   -2726.7195   -169666.35    77.123716   -169589.23 
+      40    48308    13.302856    -2703.586    -169662.9     83.06529   -169579.83 
+      50    48308    12.782228   -2706.8662   -169662.36    79.814401   -169582.55 
+      60    48308    12.198179   -2772.4206   -169670.02    76.167503   -169593.86 
+      70    48308    10.663322   -2841.3384   -169677.48    66.583595    -169610.9 
+      80    48308    9.1169804   -2932.3896   -169687.85    56.927974   -169630.92 
+      90    48308    7.2905076   -3029.9433   -169699.09    45.523167   -169653.56 
+     100    48308    5.4063635   -3139.4496   -169711.65    33.758252   -169677.89 
+Loop time of 10.9003 on 4 procs for 100 steps with 48308 atoms
+
+Performance: 3.171 ns/day, 7.570 hours/ns, 9.174 timesteps/s
+31.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 9.8764     | 9.9587     | 10.021     |   1.6 | 91.36
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.1232     | 0.18385    | 0.26683    |  12.1 |  1.69
+Output  | 0.45385    | 0.45451    | 0.45634    |   0.2 |  4.17
+Modify  | 0.25026    | 0.2537     | 0.25744    |   0.5 |  2.33
+Other   |            | 0.04949    |            |       |  0.45
+
+Nlocal:    12077 ave 12096 max 12020 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    14204 ave 14261 max 14109 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+Neighs:    814050 ave 818584 max 809212 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+FullNghs:  1.6281e+06 ave 1.63296e+06 max 1.61808e+06 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+
+Total # of neighbors = 6512400
+Ave neighs/atom = 134.81
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix           4
+run             200
+Per MPI rank memory allocation (min/avg/max) = 45.41 | 45.41 | 45.41 Mbytes
+Step Atoms Temp Press PotEng KinEng TotEng 
+     100    48308    5.4063635   -3139.4496   -169711.65    33.758252   -169677.89 
+     110    48308    15.260795    -2793.119   -169677.24    95.290993   -169581.95 
+     120    48308    18.548656   -2433.1584   -169624.79    115.82096   -169508.97 
+     130    48308     22.15831    -2276.626   -169604.28    138.36025   -169465.92 
+     140    48308    24.393841   -2208.1771   -169596.16    152.31929   -169443.84 
+     150    48308    24.797558   -2173.3145   -169591.43    154.84016   -169436.59 
+     160    48308     24.73371    -2188.909   -169593.08    154.44148   -169438.64 
+     170    48308    24.128467   -2220.3404   -169596.96    150.66225   -169446.29 
+     180    48308    22.975708   -2275.1244   -169602.72    143.46422   -169459.26 
+     190    48308    21.936324   -2348.3762   -169610.59    136.97413   -169473.61 
+     200    48308    20.516249   -2432.8447   -169619.98    128.10694   -169491.87 
+     210    48308    19.000566   -2510.2915   -169628.58    118.64276   -169509.93 
+     220    48308    17.490407    -2597.299   -169638.24    109.21307   -169529.03 
+     230    48308    16.062482   -2684.1203   -169648.31    100.29687   -169548.01 
+     240    48308    14.360342   -2768.2313    -169657.7    89.668411   -169568.03 
+     250    48308    12.802315   -2852.6965   -169666.99    79.939831   -169587.05 
+     260    48308    11.258205   -2944.4533   -169677.52    70.298142   -169607.23 
+     270    48308    9.6159129   -3038.6304   -169688.06    60.043393   -169628.02 
+     280    48308     7.972425   -3129.0826   -169698.03    49.781176   -169648.25 
+     290    48308    6.3752377   -3219.2054   -169708.23    39.808067   -169668.42 
+     300    48308    4.7374688   -3306.1468   -169718.27     29.58156   -169688.69 
+Loop time of 23.0164 on 4 procs for 200 steps with 48308 atoms
+
+Performance: 3.003 ns/day, 7.992 hours/ns, 8.689 timesteps/s
+31.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 20.221     | 20.423     | 20.57      |   3.1 | 88.73
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.27748    | 0.42603    | 0.62832    |  21.4 |  1.85
+Output  | 1.5454     | 1.5473     | 1.5529     |   0.3 |  6.72
+Modify  | 0.48886    | 0.49773    | 0.50842    |   1.1 |  2.16
+Other   |            | 0.1221     |            |       |  0.53
+
+Nlocal:    12077 ave 12096 max 12020 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    14204 ave 14261 max 14109 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+Neighs:    814094 ave 818584 max 809212 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+FullNghs:  1.62852e+06 ave 1.63296e+06 max 1.61892e+06 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+
+Total # of neighbors = 6514094
+Ave neighs/atom = 134.845
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:35

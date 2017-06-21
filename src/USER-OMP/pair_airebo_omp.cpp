@@ -1387,6 +1387,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
       if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
 
+      // due to kronecker(ktype, 0) term in contribution
+      // to NconjtmpI and later Nijconj
+      if (ktype != 0) continue;
+
       tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
       f[atomi][0] -= tmp2*rik[0];
       f[atomi][1] -= tmp2*rik[1];
@@ -1449,6 +1453,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
       f[atoml][2] += tmp2*rjl[2];
 
       if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+      // due to kronecker(ltype, 0) term in contribution
+      // to NconjtmpJ and later Nijconj
+      if (ltype != 0) continue;
 
       tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
       f[atomj][0] -= tmp2*rjl[0];
@@ -1732,6 +1740,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
         if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
 
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
         f[atomi][0] -= tmp2*rik[0];
         f[atomi][1] -= tmp2*rik[1];
@@ -1794,6 +1806,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
         f[atoml][2] += tmp2*rjl[2];
 
         if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
 
         tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
         f[atomj][0] -= tmp2*rjl[0];
@@ -2332,6 +2348,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 
         if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
 
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
         f[atomi][0] -= tmp2*rik[0];
         f[atomi][1] -= tmp2*rik[1];
@@ -2394,6 +2414,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
         f[atoml][2] += tmp2*rjl[2];
 
         if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
 
         tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
         f[atomj][0] -= tmp2*rjl[0];
@@ -2667,6 +2691,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 
           if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
 
+          // due to kronecker(ktype, 0) term in contribution
+          // to NconjtmpI and later Nijconj
+          if (ktype != 0) continue;
+
           tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
           f[atomi][0] -= tmp2*rik[0];
           f[atomi][1] -= tmp2*rik[1];
@@ -2729,6 +2757,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
           f[atoml][2] += tmp2*rjl[2];
 
           if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+          // due to kronecker(ltype, 0) term in contribution
+          // to NconjtmpJ and later Nijconj
+          if (ltype != 0) continue;
 
           tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
           f[atomj][0] -= tmp2*rjl[0];

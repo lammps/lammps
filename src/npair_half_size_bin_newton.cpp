@@ -190,7 +190,7 @@ void NPairHalfSizeBinNewton::build(NeighList *list)
               nn += dnum;
             }
           }
-          
+
           n++;
         }
       }

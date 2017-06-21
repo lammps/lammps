@@ -28,20 +28,20 @@ fix 1 all nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10 :pre
 
 [Description:]
 
-Apply a rigid-body Langevin-type integrator of the kind "Langevin C" 
+Apply a rigid-body Langevin-type integrator of the kind "Langevin C"
 as described in "(Davidchack)"_#Davidchack2
 to a group of atoms, which models an interaction with an implicit background
 solvent.  This command performs Brownian dynamics (BD)
-via a technique that splits the integration into a deterministic Hamiltonian 
-part and the Ornstein-Uhlenbeck process for noise and damping. 
+via a technique that splits the integration into a deterministic Hamiltonian
+part and the Ornstein-Uhlenbeck process for noise and damping.
 The quaternion degrees of freedom are updated though an evolution
 operator which performs a rotation in quaternion space, preserves
 the quaternion norm and is akin to "(Miller)"_#Miller2.
 
-In terms of syntax this command has been closely modelled on the 
-"fix langevin"_fix_langevin.html and its {angmom} option. But it combines 
-the "fix nve"_fix_nve.html and the "fix langevin"_fix_langevin.html in 
-one single command. The main feature is improved stability 
+In terms of syntax this command has been closely modelled on the
+"fix langevin"_fix_langevin.html and its {angmom} option. But it combines
+the "fix nve"_fix_nve.html and the "fix langevin"_fix_langevin.html in
+one single command. The main feature is improved stability
 over the standard integrator, permitting slightly larger timestep sizes.
 
 NOTE: Unlike the "fix langevin"_fix_langevin.html this command performs
@@ -57,7 +57,7 @@ Fc is the conservative force computed via the usual inter-particle
 interactions ("pair_style"_pair_style.html,
 "bond_style"_bond_style.html, etc).
 
-The Ff and Fr terms are implicitly taken into account by this fix 
+The Ff and Fr terms are implicitly taken into account by this fix
 on a per-particle basis.
 
 Ff is a frictional drag or viscous damping term proportional to the
@@ -77,7 +77,7 @@ a Gaussian random number) for speed.
 
 :line
 
-{Tstart} and {Tstop} have to be constant values, i.e. they cannot 
+{Tstart} and {Tstop} have to be constant values, i.e. they cannot
 be variables.
 
 The {damp} parameter is specified in time units and determines how
@@ -98,16 +98,16 @@ different numbers of processors.
 
 The keyword/value option has to be used in the following way:
 
-This fix has to be used together with the {angmom} keyword. The 
-particles are always considered to have a finite size. 
-The keyword {angmom} enables thermostatting of the rotational degrees of 
-freedom in addition to the usual translational degrees of freedom. 
+This fix has to be used together with the {angmom} keyword. The
+particles are always considered to have a finite size.
+The keyword {angmom} enables thermostatting of the rotational degrees of
+freedom in addition to the usual translational degrees of freedom.
 
-The scale factor after the {angmom} keyword gives the ratio of the rotational to 
+The scale factor after the {angmom} keyword gives the ratio of the rotational to
 the translational friction coefficient.
 
 An example input file can be found in /examples/USER/cgdna/examples/duplex2/.
-A technical report with more information on this integrator can be found 
+A technical report with more information on this integrator can be found
 "here"_PDF/USER-CGDNA-overview.pdf.
 
 :line
@@ -120,7 +120,7 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]
 
-"fix nve"_fix_nve.html, "fix langevin"_fix_langevin.html, "fix nve/dot"_fix_nve_dot.html,  
+"fix nve"_fix_nve.html, "fix langevin"_fix_langevin.html, "fix nve/dot"_fix_nve_dot.html,
 
 [Default:] none
 

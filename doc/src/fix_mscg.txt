@@ -57,7 +57,7 @@ simulations is as follows:
 Perform all-atom simulations on the system to be coarse grained.
 Generate a trajectory mapped to the coarse-grained model.
 Create input files for the MS-CG library.
-Run the range finder functionality of the MS-CG library.  
+Run the range finder functionality of the MS-CG library.
 Run the force matching functionality of the MS-CG library.
 Check the results of the force matching.
 Run coarse-grained simulations using the new coarse-grained potentials. :ol
@@ -70,7 +70,7 @@ Step 2 can be performed using a Python script (what is the name?)
 provided with the MS-CG library which defines the coarse-grained model
 and converts a standard LAMMPS dump file for an all-atom simulation
 (step 1) into a LAMMPS dump file which has the positions of and forces
-on the coarse-grained beads.  
+on the coarse-grained beads.
 
 In step 3, an input file named "control.in" is needed by the MS-CG
 library which sets parameters for the range finding and force matching

@@ -42,7 +42,7 @@ where the index {j} goes over the {n}i nearest neighbors of atom
 {i}, and the index {k} goes over the {n}ij common nearest neighbors
 between atom {i} and atom {j}. Rik and Rjk are the vectors connecting atom
 {k} to atoms {i} and {j}.  The quantity in the double sum is computed
-for each atom. 
+for each atom.
 
 The CNP calculation is sensitive to the specified cutoff value.
 You should ensure that the appropriate nearest neighbors of an atom are

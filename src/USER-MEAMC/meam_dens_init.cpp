@@ -379,8 +379,8 @@ MEAM::screen(int i, int j, double** x, double rijsq, double* sij,
   double Cmax, Cmin, rbound;
 
   *sij = 1.0;
+  elti = fmap[arr1v(type, i)];
   eltj = fmap[arr1v(type, j)];
-  elti = fmap[arr1v(type, j)];
 
   //     if rjksq > ebound*rijsq, atom k is definitely outside the ellipse
   rbound = this->ebound_meam[elti][eltj] * rijsq;

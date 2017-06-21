@@ -332,11 +332,11 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             if (!iszero(arr1v(rho0, j)))
               aj = drhoa0i * sij / arr1v(rho0, j);
 
-            dt1dr1 = ai * (this->t1_meam[elti] - t1i);
+            dt1dr1 = ai * (this->t1_meam[eltj] - t1i);
             dt1dr2 = aj * (this->t1_meam[elti] - t1j);
-            dt2dr1 = ai * (this->t2_meam[elti] - t2i);
+            dt2dr1 = ai * (this->t2_meam[eltj] - t2i);
             dt2dr2 = aj * (this->t2_meam[elti] - t2j);
-            dt3dr1 = ai * (this->t3_meam[elti] - t3i);
+            dt3dr1 = ai * (this->t3_meam[eltj] - t3i);
             dt3dr2 = aj * (this->t3_meam[elti] - t3j);
           }
 

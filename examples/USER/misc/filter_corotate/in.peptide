@@ -20,7 +20,7 @@ thermo          50
 
 timestep        8
 
-run_style respa 3 2 8 bond 1 pair 2 kspace 3
+run_style respa 3 2 8 bond 1 dihedral 2 pair 2 kspace 3
 
 fix             1 all nvt temp 250.0 250.0 100.0 tchain 1
 fix             cor all filter/corotate m 1.0

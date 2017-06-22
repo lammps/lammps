@@ -28,7 +28,7 @@ thermo          100
 thermo_style    multi
 timestep	8
 
-run_style respa 3 2 8 bond 1 pair 2 kspace 3
+run_style respa 3 2 8 bond 1 dihedral 2 pair 2 kspace 3
 
 velocity        all create 200.0 12345678 dist uniform
 #dump            dump1 all atom 100 4pti.dump

@@ -26,14 +26,14 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
-            int* eflag_atom, int* vflag_atom, double* eng_vdwl, double* eatom,
-            int* ntype, int* type, int* fmap, double** x, int* numneigh,
-            int* firstneigh, int* numneigh_full, int* firstneigh_full,
+MEAM::meam_force(int i, int eflag_either, int eflag_global,
+            int eflag_atom, int vflag_atom, double* eng_vdwl, double* eatom,
+            int ntype, int* type, int* fmap, double** x, int numneigh,
+            int* firstneigh, int numneigh_full, int* firstneigh_full,
             int fnoffset, double** f, double** vatom,
             int* errorflag)
 {
-  int i, j, jn, k, kn, kk, m, n, p, q;
+  int j, jn, k, kn, kk, m, n, p, q;
   int nv2, nv3, elti, eltj, eltk, ind;
   double xitmp, yitmp, zitmp, delij[3 + 1], rij2, rij, rij3;
   double delik[3 + 1], deljk[3 + 1], v[6 + 1], fi[3 + 1], fj[3 + 1];
@@ -69,29 +69,26 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
   third = 1.0 / 3.0;
   sixth = 1.0 / 6.0;
 
-  //: aliased
-  i = *iptr;
-
   //     Compute forces atom i
 
-  elti = fmap[arr1v(type, i)];
+  elti = fmap[type[i]];
 
   if (elti >= 0) {
-    xitmp = arr2v(x, 1, i);
-    yitmp = arr2v(x, 2, i);
-    zitmp = arr2v(x, 3, i);
+    xitmp = x[i][0];
+    yitmp = x[i][1];
+    zitmp = x[i][2];
 
     //     Treat each pair
-    for (jn = 1; jn <= *numneigh; jn++) {
-      j = arr1v(firstneigh, jn);
-      eltj = fmap[arr1v(type, j)];
+    for (jn = 0; jn < numneigh; jn++) {
+      j = firstneigh[jn];
+      eltj = fmap[type[j]];
 
-      if (!iszero(arr1v(scrfcn, fnoffset + jn)) && eltj >= 0) {
+      if (!iszero(scrfcn[fnoffset + jn]) && eltj >= 0) {
 
-        sij = arr1v(scrfcn, fnoffset + jn) * arr1v(fcpair, fnoffset + jn);
-        delij[1] = arr2v(x, 1, j) - xitmp;
-        delij[2] = arr2v(x, 2, j) - yitmp;
-        delij[3] = arr2v(x, 3, j) - zitmp;
+        sij = scrfcn[fnoffset + jn] * fcpair[fnoffset + jn];
+        delij[1] = x[j][0] - xitmp;
+        delij[2] = x[j][1] - yitmp;
+        delij[3] = x[j][2] - zitmp;
         rij2 = delij[1] * delij[1] + delij[2] * delij[2] + delij[3] * delij[3];
         if (rij2 < this->cutforcesq) {
           rij = sqrt(rij2);
@@ -116,12 +113,12 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
                  this->phirar4[ind][kk];
           recip = 1.0 / r;
 
-          if (*eflag_either != 0) {
-            if (*eflag_global != 0)
+          if (eflag_either != 0) {
+            if (eflag_global != 0)
               *eng_vdwl = *eng_vdwl + phi * sij;
-            if (*eflag_atom != 0) {
-              arr1v(eatom, i) = arr1v(eatom, i) + 0.5 * phi * sij;
-              arr1v(eatom, j) = arr1v(eatom, j) + 0.5 * phi * sij;
+            if (eflag_atom != 0) {
+              eatom[i] = eatom[i] + 0.5 * phi * sij;
+              eatom[j] = eatom[j] + 0.5 * phi * sij;
             }
           }
 
@@ -193,19 +190,19 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             for (p = n; p <= 3; p++) {
               for (q = p; q <= 3; q++) {
                 arg = delij[n] * delij[p] * delij[q] * this->v3D[nv3];
-                arg1i3 = arg1i3 + arr2v(arho3, nv3, i) * arg;
-                arg1j3 = arg1j3 - arr2v(arho3, nv3, j) * arg;
+                arg1i3 = arg1i3 + arr2v(arho3, nv3, i+1) * arg;
+                arg1j3 = arg1j3 - arr2v(arho3, nv3, j+1) * arg;
                 nv3 = nv3 + 1;
               }
               arg = delij[n] * delij[p] * this->v2D[nv2];
-              arg1i2 = arg1i2 + arr2v(arho2, nv2, i) * arg;
-              arg1j2 = arg1j2 + arr2v(arho2, nv2, j) * arg;
+              arg1i2 = arg1i2 + arr2v(arho2, nv2, i+1) * arg;
+              arg1j2 = arg1j2 + arr2v(arho2, nv2, j+1) * arg;
               nv2 = nv2 + 1;
             }
-            arg1i1 = arg1i1 + arr2v(arho1, n, i) * delij[n];
-            arg1j1 = arg1j1 - arr2v(arho1, n, j) * delij[n];
-            arg3i3 = arg3i3 + arr2v(arho3b, n, i) * delij[n];
-            arg3j3 = arg3j3 - arr2v(arho3b, n, j) * delij[n];
+            arg1i1 = arg1i1 + arr2v(arho1, n, i+1) * delij[n];
+            arg1j1 = arg1j1 - arr2v(arho1, n, j+1) * delij[n];
+            arg3i3 = arg3i3 + arr2v(arho3b, n, i+1) * delij[n];
+            arg3j3 = arg3j3 - arr2v(arho3b, n, j+1) * delij[n];
           }
 
           //     rho0 terms
@@ -218,25 +215,25 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
           drho1dr2 = a1 * (drhoa1i - rhoa1i / rij) * arg1j1;
           a1 = 2.0 * sij / rij;
           for (m = 1; m <= 3; m++) {
-            drho1drm1[m] = a1 * rhoa1j * arr2v(arho1, m, i);
-            drho1drm2[m] = -a1 * rhoa1i * arr2v(arho1, m, j);
+            drho1drm1[m] = a1 * rhoa1j * arr2v(arho1, m, i+1);
+            drho1drm2[m] = -a1 * rhoa1i * arr2v(arho1, m, j+1);
           }
 
           //     rho2 terms
           a2 = 2 * sij / rij2;
           drho2dr1 = a2 * (drhoa2j - 2 * rhoa2j / rij) * arg1i2 -
-                     2.0 / 3.0 * arr1v(arho2b, i) * drhoa2j * sij;
+                     2.0 / 3.0 * arho2b[i] * drhoa2j * sij;
           drho2dr2 = a2 * (drhoa2i - 2 * rhoa2i / rij) * arg1j2 -
-                     2.0 / 3.0 * arr1v(arho2b, j) * drhoa2i * sij;
+                     2.0 / 3.0 * arho2b[j] * drhoa2i * sij;
           a2 = 4 * sij / rij2;
           for (m = 1; m <= 3; m++) {
             drho2drm1[m] = 0.0;
             drho2drm2[m] = 0.0;
             for (n = 1; n <= 3; n++) {
               drho2drm1[m] = drho2drm1[m] +
-                             arr2v(arho2, this->vind2D[m][n], i) * delij[n];
+                             arr2v(arho2, this->vind2D[m][n], i+1) * delij[n];
               drho2drm2[m] = drho2drm2[m] -
-                             arr2v(arho2, this->vind2D[m][n], j) * delij[n];
+                             arr2v(arho2, this->vind2D[m][n], j+1) * delij[n];
             }
             drho2drm1[m] = a2 * rhoa2j * drho2drm1[m];
             drho2drm2[m] = -a2 * rhoa2i * drho2drm2[m];
@@ -260,25 +257,25 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
               for (p = n; p <= 3; p++) {
                 arg = delij[n] * delij[p] * this->v2D[nv2];
                 drho3drm1[m] = drho3drm1[m] +
-                               arr2v(arho3, this->vind3D[m][n][p], i) * arg;
+                               arr2v(arho3, this->vind3D[m][n][p], i+1) * arg;
                 drho3drm2[m] = drho3drm2[m] +
-                               arr2v(arho3, this->vind3D[m][n][p], j) * arg;
+                               arr2v(arho3, this->vind3D[m][n][p], j+1) * arg;
                 nv2 = nv2 + 1;
               }
             }
             drho3drm1[m] =
-              (a3 * drho3drm1[m] - a3a * arr2v(arho3b, m, i)) * rhoa3j;
+              (a3 * drho3drm1[m] - a3a * arr2v(arho3b, m, i+1)) * rhoa3j;
             drho3drm2[m] =
-              (-a3 * drho3drm2[m] + a3a * arr2v(arho3b, m, j)) * rhoa3i;
+              (-a3 * drho3drm2[m] + a3a * arr2v(arho3b, m, j+1)) * rhoa3i;
           }
 
           //     Compute derivatives of weighting functions t wrt rij
-          t1i = arr2v(t_ave, 1, i);
-          t2i = arr2v(t_ave, 2, i);
-          t3i = arr2v(t_ave, 3, i);
-          t1j = arr2v(t_ave, 1, j);
-          t2j = arr2v(t_ave, 2, j);
-          t3j = arr2v(t_ave, 3, j);
+          t1i = t_ave[i][0];
+          t2i = t_ave[i][1];
+          t3i = t_ave[i][2];
+          t1j = t_ave[j][0];
+          t2j = t_ave[j][1];
+          t3j = t_ave[j][2];
 
           if (this->ialloy == 1) {
 
@@ -288,18 +285,18 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             a2j = 0.0;
             a3i = 0.0;
             a3j = 0.0;
-            if (!iszero(arr2v(tsq_ave, 1, i)))
-              a1i = drhoa0j * sij / arr2v(tsq_ave, 1, i);
-            if (!iszero(arr2v(tsq_ave, 1, j)))
-              a1j = drhoa0i * sij / arr2v(tsq_ave, 1, j);
-            if (!iszero(arr2v(tsq_ave, 2, i)))
-              a2i = drhoa0j * sij / arr2v(tsq_ave, 2, i);
-            if (!iszero(arr2v(tsq_ave, 2, j)))
-              a2j = drhoa0i * sij / arr2v(tsq_ave, 2, j);
-            if (!iszero(arr2v(tsq_ave, 3, i)))
-              a3i = drhoa0j * sij / arr2v(tsq_ave, 3, i);
-            if (!iszero(arr2v(tsq_ave, 3, j)))
-              a3j = drhoa0i * sij / arr2v(tsq_ave, 3, j);
+            if (!iszero(tsq_ave[i][0]))
+              a1i = drhoa0j * sij / tsq_ave[i][0];
+            if (!iszero(tsq_ave[j][0]))
+              a1j = drhoa0i * sij / tsq_ave[j][0];
+            if (!iszero(tsq_ave[i][1]))
+              a2i = drhoa0j * sij / tsq_ave[i][1];
+            if (!iszero(tsq_ave[j][1]))
+              a2j = drhoa0i * sij / tsq_ave[j][1];
+            if (!iszero(tsq_ave[i][2]))
+              a3i = drhoa0j * sij / tsq_ave[i][2];
+            if (!iszero(tsq_ave[j][2]))
+              a3j = drhoa0i * sij / tsq_ave[j][2];
 
             dt1dr1 = a1i * (this->t1_meam[eltj] -
                             t1i * pow(this->t1_meam[eltj], 2));
@@ -326,11 +323,11 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
           } else {
 
             ai = 0.0;
-            if (!iszero(arr1v(rho0, i)))
-              ai = drhoa0j * sij / arr1v(rho0, i);
+            if (!iszero(rho0[i]))
+              ai = drhoa0j * sij / rho0[i];
             aj = 0.0;
-            if (!iszero(arr1v(rho0, j)))
-              aj = drhoa0i * sij / arr1v(rho0, j);
+            if (!iszero(rho0[j]))
+              aj = drhoa0i * sij / rho0[j];
 
             dt1dr1 = ai * (this->t1_meam[eltj] - t1i);
             dt1dr2 = aj * (this->t1_meam[elti] - t1j);
@@ -344,32 +341,32 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
           get_shpfcn(shpi, this->lattce_meam[elti][elti]);
           get_shpfcn(shpj, this->lattce_meam[eltj][eltj]);
           drhodr1 =
-            arr1v(dgamma1, i) * drho0dr1 +
-            arr1v(dgamma2, i) * (dt1dr1 * arr1v(rho1, i) + t1i * drho1dr1 +
-                                 dt2dr1 * arr1v(rho2, i) + t2i * drho2dr1 +
-                                 dt3dr1 * arr1v(rho3, i) + t3i * drho3dr1) -
-            arr1v(dgamma3, i) *
+            dgamma1[i] * drho0dr1 +
+            dgamma2[i] * (dt1dr1 * rho1[i] + t1i * drho1dr1 +
+                          dt2dr1 * rho2[i] + t2i * drho2dr1 +
+                          dt3dr1 * rho3[i] + t3i * drho3dr1) -
+            dgamma3[i] *
               (shpi[1] * dt1dr1 + shpi[2] * dt2dr1 + shpi[3] * dt3dr1);
           drhodr2 =
-            arr1v(dgamma1, j) * drho0dr2 +
-            arr1v(dgamma2, j) * (dt1dr2 * arr1v(rho1, j) + t1j * drho1dr2 +
-                                 dt2dr2 * arr1v(rho2, j) + t2j * drho2dr2 +
-                                 dt3dr2 * arr1v(rho3, j) + t3j * drho3dr2) -
-            arr1v(dgamma3, j) *
+            dgamma1[j] * drho0dr2 +
+            dgamma2[j] * (dt1dr2 * rho1[j] + t1j * drho1dr2 +
+                          dt2dr2 * rho2[j] + t2j * drho2dr2 +
+                          dt3dr2 * rho3[j] + t3j * drho3dr2) -
+            dgamma3[j] *
               (shpj[1] * dt1dr2 + shpj[2] * dt2dr2 + shpj[3] * dt3dr2);
           for (m = 1; m <= 3; m++) {
             drhodrm1[m] = 0.0;
             drhodrm2[m] = 0.0;
             drhodrm1[m] =
-              arr1v(dgamma2, i) *
+              dgamma2[i] *
               (t1i * drho1drm1[m] + t2i * drho2drm1[m] + t3i * drho3drm1[m]);
             drhodrm2[m] =
-              arr1v(dgamma2, j) *
+              dgamma2[j] *
               (t1j * drho1drm2[m] + t2j * drho2drm2[m] + t3j * drho3drm2[m]);
           }
 
           //     Compute derivatives wrt sij, but only if necessary
-          if (!iszero(arr1v(dscrfcn, fnoffset + jn))) {
+          if (!iszero(dscrfcn[fnoffset + jn])) {
             drho0ds1 = rhoa0j;
             drho0ds2 = rhoa0i;
             a1 = 2.0 / rij;
@@ -377,9 +374,9 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             drho1ds2 = a1 * rhoa1i * arg1j1;
             a2 = 2.0 / rij2;
             drho2ds1 =
-              a2 * rhoa2j * arg1i2 - 2.0 / 3.0 * arr1v(arho2b, i) * rhoa2j;
+              a2 * rhoa2j * arg1i2 - 2.0 / 3.0 * arho2b[i] * rhoa2j;
             drho2ds2 =
-              a2 * rhoa2i * arg1j2 - 2.0 / 3.0 * arr1v(arho2b, j) * rhoa2i;
+              a2 * rhoa2i * arg1j2 - 2.0 / 3.0 * arho2b[j] * rhoa2i;
             a3 = 2.0 / rij3;
             a3a = 6.0 / (5.0 * rij);
             drho3ds1 = a3 * rhoa3j * arg1i3 - a3a * rhoa3j * arg3i3;
@@ -393,18 +390,12 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
               a2j = 0.0;
               a3i = 0.0;
               a3j = 0.0;
-              if (!iszero(arr2v(tsq_ave, 1, i)))
-                a1i = rhoa0j / arr2v(tsq_ave, 1, i);
-              if (!iszero(arr2v(tsq_ave, 1, j)))
-                a1j = rhoa0i / arr2v(tsq_ave, 1, j);
-              if (!iszero(arr2v(tsq_ave, 2, i)))
-                a2i = rhoa0j / arr2v(tsq_ave, 2, i);
-              if (!iszero(arr2v(tsq_ave, 2, j)))
-                a2j = rhoa0i / arr2v(tsq_ave, 2, j);
-              if (!iszero(arr2v(tsq_ave, 3, i)))
-                a3i = rhoa0j / arr2v(tsq_ave, 3, i);
-              if (!iszero(arr2v(tsq_ave, 3, j)))
-                a3j = rhoa0i / arr2v(tsq_ave, 3, j);
+              if (!iszero(tsq_ave[i][0])) a1i = rhoa0j / tsq_ave[i][0];
+              if (!iszero(tsq_ave[j][0])) a1j = rhoa0i / tsq_ave[j][0];
+              if (!iszero(tsq_ave[i][1])) a2i = rhoa0j / tsq_ave[i][1];
+              if (!iszero(tsq_ave[j][1])) a2j = rhoa0i / tsq_ave[j][1];
+              if (!iszero(tsq_ave[i][2])) a3i = rhoa0j / tsq_ave[i][2];
+              if (!iszero(tsq_ave[j][2])) a3j = rhoa0i / tsq_ave[j][2];
 
               dt1ds1 = a1i * (this->t1_meam[eltj] -
                               t1i * pow(this->t1_meam[eltj], 2));
@@ -431,11 +422,11 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             } else {
 
               ai = 0.0;
-              if (!iszero(arr1v(rho0, i)))
-                ai = rhoa0j / arr1v(rho0, i);
+              if (!iszero(rho0[i]))
+                ai = rhoa0j / rho0[i];
               aj = 0.0;
-              if (!iszero(arr1v(rho0, j)))
-                aj = rhoa0i / arr1v(rho0, j);
+              if (!iszero(rho0[j]))
+                aj = rhoa0i / rho0[j];
 
               dt1ds1 = ai * (this->t1_meam[eltj] - t1i);
               dt1ds2 = aj * (this->t1_meam[elti] - t1j);
@@ -446,44 +437,44 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             }
 
             drhods1 =
-              arr1v(dgamma1, i) * drho0ds1 +
-              arr1v(dgamma2, i) * (dt1ds1 * arr1v(rho1, i) + t1i * drho1ds1 +
-                                   dt2ds1 * arr1v(rho2, i) + t2i * drho2ds1 +
-                                   dt3ds1 * arr1v(rho3, i) + t3i * drho3ds1) -
-              arr1v(dgamma3, i) *
+              dgamma1[i] * drho0ds1 +
+              dgamma2[i] * (dt1ds1 * rho1[i] + t1i * drho1ds1 +
+                            dt2ds1 * rho2[i] + t2i * drho2ds1 +
+                            dt3ds1 * rho3[i] + t3i * drho3ds1) -
+              dgamma3[i] *
                 (shpi[1] * dt1ds1 + shpi[2] * dt2ds1 + shpi[3] * dt3ds1);
             drhods2 =
-              arr1v(dgamma1, j) * drho0ds2 +
-              arr1v(dgamma2, j) * (dt1ds2 * arr1v(rho1, j) + t1j * drho1ds2 +
-                                   dt2ds2 * arr1v(rho2, j) + t2j * drho2ds2 +
-                                   dt3ds2 * arr1v(rho3, j) + t3j * drho3ds2) -
-              arr1v(dgamma3, j) *
+              dgamma1[j] * drho0ds2 +
+              dgamma2[j] * (dt1ds2 * rho1[j] + t1j * drho1ds2 +
+                            dt2ds2 * rho2[j] + t2j * drho2ds2 +
+                            dt3ds2 * rho3[j] + t3j * drho3ds2) -
+              dgamma3[j] *
                 (shpj[1] * dt1ds2 + shpj[2] * dt2ds2 + shpj[3] * dt3ds2);
           }
 
           //     Compute derivatives of energy wrt rij, sij and rij[3]
-          dUdrij = phip * sij + arr1v(frhop, i) * drhodr1 + arr1v(frhop, j) * drhodr2;
+          dUdrij = phip * sij + frhop[i] * drhodr1 + frhop[j] * drhodr2;
           dUdsij = 0.0;
-          if (!iszero(arr1v(dscrfcn, fnoffset + jn))) {
-            dUdsij = phi + arr1v(frhop, i) * drhods1 + arr1v(frhop, j) * drhods2;
+          if (!iszero(dscrfcn[fnoffset + jn])) {
+            dUdsij = phi + frhop[i] * drhods1 + frhop[j] * drhods2;
           }
           for (m = 1; m <= 3; m++) {
             dUdrijm[m] =
-              arr1v(frhop, i) * drhodrm1[m] + arr1v(frhop, j) * drhodrm2[m];
+              frhop[i] * drhodrm1[m] + frhop[j] * drhodrm2[m];
           }
 
           //     Add the part of the force due to dUdrij and dUdsij
 
-          force = dUdrij * recip + dUdsij * arr1v(dscrfcn, fnoffset + jn);
+          force = dUdrij * recip + dUdsij * dscrfcn[fnoffset + jn];
           for (m = 1; m <= 3; m++) {
             forcem = delij[m] * force + dUdrijm[m];
-            arr2v(f, m, i) = arr2v(f, m, i) + forcem;
-            arr2v(f, m, j) = arr2v(f, m, j) - forcem;
+            f[i][m-1] = f[i][m-1] + forcem;
+            f[j][m-1] = f[j][m-1] - forcem;
           }
 
           //     Tabulate per-atom virial as symmetrized stress tensor
 
-          if (*vflag_atom != 0) {
+          if (vflag_atom != 0) {
             fi[1] = delij[1] * force + dUdrijm[1];
             fi[2] = delij[2] * force + dUdrijm[2];
             fi[3] = delij[3] * force + dUdrijm[3];
@@ -494,47 +485,46 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
             v[5] = -0.25 * (delij[1] * fi[3] + delij[3] * fi[1]);
             v[6] = -0.25 * (delij[2] * fi[3] + delij[3] * fi[2]);
 
-            arr2v(vatom, 1, i) = arr2v(vatom, 1, i) + v[1];
-            arr2v(vatom, 2, i) = arr2v(vatom, 2, i) + v[2];
-            arr2v(vatom, 3, i) = arr2v(vatom, 3, i) + v[3];
-            arr2v(vatom, 4, i) = arr2v(vatom, 4, i) + v[4];
-            arr2v(vatom, 5, i) = arr2v(vatom, 5, i) + v[5];
-            arr2v(vatom, 6, i) = arr2v(vatom, 6, i) + v[6];
-            arr2v(vatom, 1, j) = arr2v(vatom, 1, j) + v[1];
-            arr2v(vatom, 2, j) = arr2v(vatom, 2, j) + v[2];
-            arr2v(vatom, 3, j) = arr2v(vatom, 3, j) + v[3];
-            arr2v(vatom, 4, j) = arr2v(vatom, 4, j) + v[4];
-            arr2v(vatom, 5, j) = arr2v(vatom, 5, j) + v[5];
-            arr2v(vatom, 6, j) = arr2v(vatom, 6, j) + v[6];
+            vatom[i][0] = vatom[i][0] + v[1];
+            vatom[i][1] = vatom[i][1] + v[2];
+            vatom[i][2] = vatom[i][2] + v[3];
+            vatom[i][3] = vatom[i][3] + v[4];
+            vatom[i][4] = vatom[i][4] + v[5];
+            vatom[i][5] = vatom[i][5] + v[6];
+            vatom[j][0] = vatom[j][0] + v[1];
+            vatom[j][1] = vatom[j][1] + v[2];
+            vatom[j][2] = vatom[j][2] + v[3];
+            vatom[j][3] = vatom[j][3] + v[4];
+            vatom[j][4] = vatom[j][4] + v[5];
+            vatom[j][5] = vatom[j][5] + v[6];
           }
 
           //     Now compute forces on other atoms k due to change in sij
 
           if (iszero(sij) || iszero(sij - 1.0))
             continue; //: cont jn loop
-          for (kn = 1; kn <= *numneigh_full; kn++) {
-            k = arr1v(firstneigh_full, kn);
-            eltk = fmap[arr1v(type, k)];
+          for (kn = 0; kn < numneigh_full; kn++) {
+            k = firstneigh_full[kn];
+            eltk = fmap[type[k]];
             if (k != j && eltk >= 0) {
-              dsij(i, j, k, jn, *numneigh, rij2, &dsij1, &dsij2, *ntype,
+              dsij(i, j, k, jn, numneigh, rij2, &dsij1, &dsij2, ntype,
                    type, fmap, x, &scrfcn[fnoffset], &fcpair[fnoffset]);
               if (!iszero(dsij1) || !iszero(dsij2)) {
                 force1 = dUdsij * dsij1;
                 force2 = dUdsij * dsij2;
                 for (m = 1; m <= 3; m++) {
-                  delik[m] = arr2v(x, m, k) - arr2v(x, m, i);
-                  deljk[m] = arr2v(x, m, k) - arr2v(x, m, j);
+                  delik[m] = arr2v(x, m, k+1) - arr2v(x, m, i+1);
+                  deljk[m] = arr2v(x, m, k+1) - arr2v(x, m, j+1);
                 }
                 for (m = 1; m <= 3; m++) {
-                  arr2v(f, m, i) = arr2v(f, m, i) + force1 * delik[m];
-                  arr2v(f, m, j) = arr2v(f, m, j) + force2 * deljk[m];
-                  arr2v(f, m, k) =
-                    arr2v(f, m, k) - force1 * delik[m] - force2 * deljk[m];
+                  arr2v(f, m, i+1) = arr2v(f, m, i+1) + force1 * delik[m];
+                  arr2v(f, m, j+1) = arr2v(f, m, j+1) + force2 * deljk[m];
+                  arr2v(f, m, k+1) = arr2v(f, m, k+1) - force1 * delik[m] - force2 * deljk[m];
                 }
 
                 //     Tabulate per-atom virial as symmetrized stress tensor
 
-                if (*vflag_atom != 0) {
+                if (vflag_atom != 0) {
                   fi[1] = force1 * delik[1];
                   fi[2] = force1 * delik[2];
                   fi[3] = force1 * delik[3];
@@ -551,24 +541,24 @@ MEAM::meam_force(int* iptr, int* eflag_either, int* eflag_global,
                   v[6] = -sixth * (delik[2] * fi[3] + deljk[2] * fj[3] +
                                    delik[3] * fi[2] + deljk[3] * fj[2]);
 
-                  arr2v(vatom, 1, i) = arr2v(vatom, 1, i) + v[1];
-                  arr2v(vatom, 2, i) = arr2v(vatom, 2, i) + v[2];
-                  arr2v(vatom, 3, i) = arr2v(vatom, 3, i) + v[3];
-                  arr2v(vatom, 4, i) = arr2v(vatom, 4, i) + v[4];
-                  arr2v(vatom, 5, i) = arr2v(vatom, 5, i) + v[5];
-                  arr2v(vatom, 6, i) = arr2v(vatom, 6, i) + v[6];
-                  arr2v(vatom, 1, j) = arr2v(vatom, 1, j) + v[1];
-                  arr2v(vatom, 2, j) = arr2v(vatom, 2, j) + v[2];
-                  arr2v(vatom, 3, j) = arr2v(vatom, 3, j) + v[3];
-                  arr2v(vatom, 4, j) = arr2v(vatom, 4, j) + v[4];
-                  arr2v(vatom, 5, j) = arr2v(vatom, 5, j) + v[5];
-                  arr2v(vatom, 6, j) = arr2v(vatom, 6, j) + v[6];
-                  arr2v(vatom, 1, k) = arr2v(vatom, 1, k) + v[1];
-                  arr2v(vatom, 2, k) = arr2v(vatom, 2, k) + v[2];
-                  arr2v(vatom, 3, k) = arr2v(vatom, 3, k) + v[3];
-                  arr2v(vatom, 4, k) = arr2v(vatom, 4, k) + v[4];
-                  arr2v(vatom, 5, k) = arr2v(vatom, 5, k) + v[5];
-                  arr2v(vatom, 6, k) = arr2v(vatom, 6, k) + v[6];
+                  vatom[i][0] = vatom[i][0] + v[1];
+                  vatom[i][1] = vatom[i][1] + v[2];
+                  vatom[i][2] = vatom[i][2] + v[3];
+                  vatom[i][3] = vatom[i][3] + v[4];
+                  vatom[i][4] = vatom[i][4] + v[5];
+                  vatom[i][5] = vatom[i][5] + v[6];
+                  vatom[j][0] = vatom[j][0] + v[1];
+                  vatom[j][1] = vatom[j][1] + v[2];
+                  vatom[j][2] = vatom[j][2] + v[3];
+                  vatom[j][3] = vatom[j][3] + v[4];
+                  vatom[j][4] = vatom[j][4] + v[5];
+                  vatom[j][5] = vatom[j][5] + v[6];
+                  vatom[k][0] = vatom[k][0] + v[1];
+                  vatom[k][1] = vatom[k][1] + v[2];
+                  vatom[k][2] = vatom[k][2] + v[3];
+                  vatom[k][3] = vatom[k][3] + v[4];
+                  vatom[k][4] = vatom[k][4] + v[5];
+                  vatom[k][5] = vatom[k][5] + v[6];
                 }
               }
             }

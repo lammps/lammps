@@ -101,18 +101,18 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 //
 
 void
-MEAM::meam_dens_init(int* i, int* ntype, int* type, int* fmap, double** x,
-                int* numneigh, int* firstneigh, int* numneigh_full,
+MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
+                int numneigh, int* firstneigh, int numneigh_full,
                 int* firstneigh_full, int fnoffset, int* errorflag)
 {
   *errorflag = 0;
 
   //     Compute screening function and derivatives
-  getscreen(*i, &scrfcn[fnoffset], &dscrfcn[fnoffset], &fcpair[fnoffset], x, *numneigh, firstneigh,
-            *numneigh_full, firstneigh_full, *ntype, type, fmap);
+  getscreen(i, &scrfcn[fnoffset], &dscrfcn[fnoffset], &fcpair[fnoffset], x, numneigh, firstneigh,
+            numneigh_full, firstneigh_full, ntype, type, fmap);
 
   //     Calculate intermediate density terms to be communicated
-  calc_rho1(*i, *ntype, type, fmap, x, *numneigh, firstneigh, &scrfcn[fnoffset], &fcpair[fnoffset]);
+  calc_rho1(i, ntype, type, fmap, x, numneigh, firstneigh, &scrfcn[fnoffset], &fcpair[fnoffset]);
 }
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -135,24 +135,24 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
   double rnorm, fc, dfc, drinv;
 
   drinv = 1.0 / this->delr_meam;
-  elti = fmap[arr1v(type, i)];
+  elti = fmap[type[i]];
 
   if (elti >= 0) {
 
-    xitmp = arr2v(x, 1, i);
-    yitmp = arr2v(x, 2, i);
-    zitmp = arr2v(x, 3, i);
+    xitmp = x[i][0];
+    yitmp = x[i][1];
+    zitmp = x[i][2];
 
-    for (jn = 1; jn <= numneigh; jn++) {
-      j = arr1v(firstneigh, jn);
+    for (jn = 0; jn < numneigh; jn++) {
+      j = firstneigh[jn];
 
-      eltj = fmap[arr1v(type, j)];
+      eltj = fmap[type[j]];
       if (eltj >= 0) {
 
         //     First compute screening function itself, sij
-        xjtmp = arr2v(x, 1, j);
-        yjtmp = arr2v(x, 2, j);
-        zjtmp = arr2v(x, 3, j);
+        xjtmp = x[j][0];
+        yjtmp = x[j][1];
+        zjtmp = x[j][2];
         delxij = xjtmp - xitmp;
         delyij = yjtmp - yitmp;
         delzij = zjtmp - zitmp;
@@ -171,21 +171,21 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
         }
 
         //     Now compute derivatives
-        arr1v(dscrfcn, jn) = 0.0;
+        dscrfcn[jn] = 0.0;
         sfcij = sij * fcij;
         if (iszero(sfcij) || iszero(sfcij - 1.0))
           goto LABEL_100;
         rbound = this->ebound_meam[elti][eltj] * rij2;
-        for (kn = 1; kn <= numneigh_full; kn++) {
-          k = arr1v(firstneigh_full, kn);
+        for (kn = 0; kn < numneigh_full; kn++) {
+          k = firstneigh_full[kn];
           if (k == j)
             continue;
-          eltk = fmap[arr1v(type, k)];
+          eltk = fmap[type[k]];
           if (eltk < 0)
             continue;
-          xktmp = arr2v(x, 1, k);
-          yktmp = arr2v(x, 2, k);
-          zktmp = arr2v(x, 3, k);
+          xktmp = x[k][0];
+          yktmp = x[k][1];
+          zktmp = x[k][2];
           delxjk = xktmp - xjtmp;
           delyjk = yktmp - yjtmp;
           delzjk = zktmp - zjtmp;
@@ -223,16 +223,16 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
             dfcut(cikj, &sikj, &dfikj);
             coef1 = dfikj / (delc * sikj);
             dCfunc(rij2, rik2, rjk2, &dCikj);
-            arr1v(dscrfcn, jn) = arr1v(dscrfcn, jn) + coef1 * dCikj;
+            dscrfcn[jn] = dscrfcn[jn] + coef1 * dCikj;
           }
         }
         coef1 = sfcij;
         coef2 = sij * dfcij / rij;
-        arr1v(dscrfcn, jn) = arr1v(dscrfcn, jn) * coef1 - coef2;
+        dscrfcn[jn] = dscrfcn[jn] * coef1 - coef2;
 
       LABEL_100:
-        arr1v(scrfcn, jn) = sij;
-        arr1v(fcpair, jn) = fcij;
+        scrfcn[jn] = sij;
+        fcpair[jn] = fcij;
       }
     }
   }
@@ -252,20 +252,20 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
   double ro0i, ro0j;
   double rhoa0i, rhoa1i, rhoa2i, rhoa3i, A1i, A2i, A3i;
 
-  elti = fmap[arr1v(type, i)];
-  xtmp = arr2v(x, 1, i);
-  ytmp = arr2v(x, 2, i);
-  ztmp = arr2v(x, 3, i);
-  for (jn = 1; jn <= numneigh; jn++) {
-    if (!iszero(arr1v(scrfcn, jn))) {
-      j = arr1v(firstneigh, jn);
-      sij = arr1v(scrfcn, jn) * arr1v(fcpair, jn);
-      delij[1] = arr2v(x, 1, j) - xtmp;
-      delij[2] = arr2v(x, 2, j) - ytmp;
-      delij[3] = arr2v(x, 3, j) - ztmp;
+  elti = fmap[type[i]];
+  xtmp = x[i][0];
+  ytmp = x[i][1];
+  ztmp = x[i][2];
+  for (jn = 0; jn < numneigh; jn++) {
+    if (!iszero(scrfcn[jn])) {
+      j = firstneigh[jn];
+      sij = scrfcn[jn] * fcpair[jn];
+      delij[1] = x[j][0] - xtmp;
+      delij[2] = x[j][1] - ytmp;
+      delij[3] = x[j][2] - ztmp;
       rij2 = delij[1] * delij[1] + delij[2] * delij[2] + delij[3] * delij[3];
       if (rij2 < this->cutforcesq) {
-        eltj = fmap[arr1v(type, j)];
+        eltj = fmap[type[j]];
         rij = sqrt(rij2);
         ai = rij / this->re_meam[elti][elti] - 1.0;
         aj = rij / this->re_meam[eltj][eltj] - 1.0;
@@ -287,45 +287,27 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
           rhoa2i = rhoa2i * this->t2_meam[elti];
           rhoa3i = rhoa3i * this->t3_meam[elti];
         }
-        arr1v(rho0, i) = arr1v(rho0, i) + rhoa0j;
-        arr1v(rho0, j) = arr1v(rho0, j) + rhoa0i;
+        rho0[i] = rho0[i] + rhoa0j;
+        rho0[j] = rho0[j] + rhoa0i;
         // For ialloy = 2, use single-element value (not average)
         if (this->ialloy != 2) {
-          arr2v(t_ave, 1, i) =
-            arr2v(t_ave, 1, i) + this->t1_meam[eltj] * rhoa0j;
-          arr2v(t_ave, 2, i) =
-            arr2v(t_ave, 2, i) + this->t2_meam[eltj] * rhoa0j;
-          arr2v(t_ave, 3, i) =
-            arr2v(t_ave, 3, i) + this->t3_meam[eltj] * rhoa0j;
-          arr2v(t_ave, 1, j) =
-            arr2v(t_ave, 1, j) + this->t1_meam[elti] * rhoa0i;
-          arr2v(t_ave, 2, j) =
-            arr2v(t_ave, 2, j) + this->t2_meam[elti] * rhoa0i;
-          arr2v(t_ave, 3, j) =
-            arr2v(t_ave, 3, j) + this->t3_meam[elti] * rhoa0i;
+          t_ave[i][0] = t_ave[i][0] + this->t1_meam[eltj] * rhoa0j;
+          t_ave[i][1] = t_ave[i][1] + this->t2_meam[eltj] * rhoa0j;
+          t_ave[i][2] = t_ave[i][2] + this->t3_meam[eltj] * rhoa0j;
+          t_ave[j][0] = t_ave[j][0] + this->t1_meam[elti] * rhoa0i;
+          t_ave[j][1] = t_ave[j][1] + this->t2_meam[elti] * rhoa0i;
+          t_ave[j][2] = t_ave[j][2] + this->t3_meam[elti] * rhoa0i;
         }
         if (this->ialloy == 1) {
-          arr2v(tsq_ave, 1, i) =
-            arr2v(tsq_ave, 1, i) +
-            this->t1_meam[eltj] * this->t1_meam[eltj] * rhoa0j;
-          arr2v(tsq_ave, 2, i) =
-            arr2v(tsq_ave, 2, i) +
-            this->t2_meam[eltj] * this->t2_meam[eltj] * rhoa0j;
-          arr2v(tsq_ave, 3, i) =
-            arr2v(tsq_ave, 3, i) +
-            this->t3_meam[eltj] * this->t3_meam[eltj] * rhoa0j;
-          arr2v(tsq_ave, 1, j) =
-            arr2v(tsq_ave, 1, j) +
-            this->t1_meam[elti] * this->t1_meam[elti] * rhoa0i;
-          arr2v(tsq_ave, 2, j) =
-            arr2v(tsq_ave, 2, j) +
-            this->t2_meam[elti] * this->t2_meam[elti] * rhoa0i;
-          arr2v(tsq_ave, 3, j) =
-            arr2v(tsq_ave, 3, j) +
-            this->t3_meam[elti] * this->t3_meam[elti] * rhoa0i;
+          tsq_ave[i][0] = tsq_ave[i][0] + this->t1_meam[eltj] * this->t1_meam[eltj] * rhoa0j;
+          tsq_ave[i][1] = tsq_ave[i][1] + this->t2_meam[eltj] * this->t2_meam[eltj] * rhoa0j;
+          tsq_ave[i][2] = tsq_ave[i][2] + this->t3_meam[eltj] * this->t3_meam[eltj] * rhoa0j;
+          tsq_ave[j][0] = tsq_ave[j][0] + this->t1_meam[elti] * this->t1_meam[elti] * rhoa0i;
+          tsq_ave[j][1] = tsq_ave[j][1] + this->t2_meam[elti] * this->t2_meam[elti] * rhoa0i;
+          tsq_ave[j][2] = tsq_ave[j][2] + this->t3_meam[elti] * this->t3_meam[elti] * rhoa0i;
         }
-        arr1v(arho2b, i) = arr1v(arho2b, i) + rhoa2j;
-        arr1v(arho2b, j) = arr1v(arho2b, j) + rhoa2i;
+        arho2b[i] = arho2b[i] + rhoa2j;
+        arho2b[j] = arho2b[j] + rhoa2i;
 
         A1j = rhoa1j / rij;
         A2j = rhoa2j / rij2;
@@ -336,21 +318,21 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
         nv2 = 1;
         nv3 = 1;
         for (m = 1; m <= 3; m++) {
-          arr2v(arho1, m, i) = arr2v(arho1, m, i) + A1j * delij[m];
-          arr2v(arho1, m, j) = arr2v(arho1, m, j) - A1i * delij[m];
-          arr2v(arho3b, m, i) = arr2v(arho3b, m, i) + rhoa3j * delij[m] / rij;
-          arr2v(arho3b, m, j) = arr2v(arho3b, m, j) - rhoa3i * delij[m] / rij;
+          arr2v(arho1, m, i+1) = arr2v(arho1, m, i+1) + A1j * delij[m];
+          arr2v(arho1, m, j+1) = arr2v(arho1, m, j+1) - A1i * delij[m];
+          arr2v(arho3b, m, i+1) = arr2v(arho3b, m, i+1) + rhoa3j * delij[m] / rij;
+          arr2v(arho3b, m, j+1) = arr2v(arho3b, m, j+1) - rhoa3i * delij[m] / rij;
           for (n = m; n <= 3; n++) {
-            arr2v(arho2, nv2, i) =
-              arr2v(arho2, nv2, i) + A2j * delij[m] * delij[n];
-            arr2v(arho2, nv2, j) =
-              arr2v(arho2, nv2, j) + A2i * delij[m] * delij[n];
+            arr2v(arho2, nv2, i+1) =
+              arr2v(arho2, nv2, i+1) + A2j * delij[m] * delij[n];
+            arr2v(arho2, nv2, j+1) =
+              arr2v(arho2, nv2, j+1) + A2i * delij[m] * delij[n];
             nv2 = nv2 + 1;
             for (p = n; p <= 3; p++) {
-              arr2v(arho3, nv3, i) =
-                arr2v(arho3, nv3, i) + A3j * delij[m] * delij[n] * delij[p];
-              arr2v(arho3, nv3, j) =
-                arr2v(arho3, nv3, j) - A3i * delij[m] * delij[n] * delij[p];
+              arr2v(arho3, nv3, i+1) =
+                arr2v(arho3, nv3, i+1) + A3j * delij[m] * delij[n] * delij[p];
+              arr2v(arho3, nv3, j+1) =
+                arr2v(arho3, nv3, j+1) - A3i * delij[m] * delij[n] * delij[p];
               nv3 = nv3 + 1;
             }
           }
@@ -379,26 +361,26 @@ MEAM::screen(int i, int j, double** x, double rijsq, double* sij,
   double Cmax, Cmin, rbound;
 
   *sij = 1.0;
-  elti = fmap[arr1v(type, i)];
-  eltj = fmap[arr1v(type, j)];
+  elti = fmap[type[i]];
+  eltj = fmap[type[j]];
 
   //     if rjksq > ebound*rijsq, atom k is definitely outside the ellipse
   rbound = this->ebound_meam[elti][eltj] * rijsq;
 
-  for (nk = 1; nk <= numneigh_full; nk++) {
-    k = arr1v(firstneigh_full, nk);
-    eltk = fmap[arr1v(type, k)];
+  for (nk = 0; nk < numneigh_full; nk++) {
+    k = firstneigh_full[nk];
+    eltk = fmap[type[k]];
     if (k == j)
       continue;
-    delxjk = arr2v(x, 1, k) - arr2v(x, 1, j);
-    delyjk = arr2v(x, 2, k) - arr2v(x, 2, j);
-    delzjk = arr2v(x, 3, k) - arr2v(x, 3, j);
+    delxjk = x[k][0] - x[j][0];
+    delyjk = x[k][1] - x[j][1];
+    delzjk = x[k][2] - x[j][2];
     rjksq = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
     if (rjksq > rbound)
       continue;
-    delxik = arr2v(x, 1, k) - arr2v(x, 1, i);
-    delyik = arr2v(x, 2, k) - arr2v(x, 2, i);
-    delzik = arr2v(x, 3, k) - arr2v(x, 3, i);
+    delxik = x[k][0] - x[i][0];
+    delyik = x[k][1] - x[i][1];
+    delzik = x[k][2] - x[i][2];
     riksq = delxik * delxik + delyik * delyik + delzik * delzik;
     if (riksq > rbound)
       continue;
@@ -450,10 +432,10 @@ MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2,
   double rbound, delc, sij, xik, xjk, cikj, sikj, dfc, a;
   double Cmax, Cmin, dCikj1, dCikj2;
 
-  sij = arr1v(scrfcn, jn) * arr1v(fcpair, jn);
-  elti = fmap[arr1v(type, i)];
-  eltj = fmap[arr1v(type, j)];
-  eltk = fmap[arr1v(type, k)];
+  sij = scrfcn[jn] * fcpair[jn];
+  elti = fmap[type[i]];
+  eltj = fmap[type[j]];
+  eltk = fmap[type[k]];
   Cmax = this->Cmax_meam[elti][eltj][eltk];
   Cmin = this->Cmin_meam[elti][eltj][eltk];
 
@@ -462,14 +444,14 @@ MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2,
   if (!iszero(sij) && !iszero(sij - 1.0)) {
     rbound = rij2 * this->ebound_meam[elti][eltj];
     delc = Cmax - Cmin;
-    dxjk = arr2v(x, 1, k) - arr2v(x, 1, j);
-    dyjk = arr2v(x, 2, k) - arr2v(x, 2, j);
-    dzjk = arr2v(x, 3, k) - arr2v(x, 3, j);
+    dxjk = x[k][0] - x[j][0];
+    dyjk = x[k][1] - x[j][1];
+    dzjk = x[k][2] - x[j][2];
     rjk2 = dxjk * dxjk + dyjk * dyjk + dzjk * dzjk;
     if (rjk2 <= rbound) {
-      dxik = arr2v(x, 1, k) - arr2v(x, 1, i);
-      dyik = arr2v(x, 2, k) - arr2v(x, 2, i);
-      dzik = arr2v(x, 3, k) - arr2v(x, 3, i);
+      dxik = x[k][0] - x[i][0];
+      dyik = x[k][1] - x[i][1];
+      dzik = x[k][2] - x[i][2];
       rik2 = dxik * dxik + dyik * dyik + dzik * dzik;
       if (rik2 <= rbound) {
         xik = rik2 / rij2;

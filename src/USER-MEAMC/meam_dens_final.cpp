@@ -21,8 +21,8 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
-                 int* eflag_atom, double* eng_vdwl, double* eatom, int* ntype,
+MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
+                 int eflag_atom, double* eng_vdwl, double* eatom, int ntype,
                  int* type, int* fmap, int* errorflag)
 {
   int i, elti;
@@ -32,56 +32,54 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
 
   //     Complete the calculation of density
 
-  for (i = 1; i <= *nlocal; i++) {
-    elti = fmap[arr1v(type, i)];
+  for (i = 0; i < nlocal; i++) {
+    elti = fmap[type[i]];
     if (elti >= 0) {
-      arr1v(rho1, i) = 0.0;
-      arr1v(rho2, i) = -1.0 / 3.0 * arr1v(arho2b, i) * arr1v(arho2b, i);
-      arr1v(rho3, i) = 0.0;
+      rho1[i] = 0.0;
+      rho2[i] = -1.0 / 3.0 * arho2b[i] * arho2b[i];
+      rho3[i] = 0.0;
       for (m = 1; m <= 3; m++) {
-        arr1v(rho1, i) =
-          arr1v(rho1, i) + arr2v(arho1, m, i) * arr2v(arho1, m, i);
-        arr1v(rho3, i) = arr1v(rho3, i) -
-                         3.0 / 5.0 * arr2v(arho3b, m, i) * arr2v(arho3b, m, i);
+        rho1[i] = rho1[i] + arr2v(arho1, m, i+1) * arr2v(arho1, m, i+1);
+        rho3[i] = rho3[i] - 3.0 / 5.0 * arr2v(arho3b, m, i+1) * arr2v(arho3b, m, i+1);
       }
       for (m = 1; m <= 6; m++) {
-        arr1v(rho2, i) =
-          arr1v(rho2, i) +
-          this->v2D[m] * arr2v(arho2, m, i) * arr2v(arho2, m, i);
+        rho2[i] =
+          rho2[i] +
+          this->v2D[m] * arr2v(arho2, m, i+1) * arr2v(arho2, m, i+1);
       }
       for (m = 1; m <= 10; m++) {
-        arr1v(rho3, i) =
-          arr1v(rho3, i) +
-          this->v3D[m] * arr2v(arho3, m, i) * arr2v(arho3, m, i);
+        rho3[i] =
+          rho3[i] +
+          this->v3D[m] * arr2v(arho3, m, i+1) * arr2v(arho3, m, i+1);
       }
 
-      if (arr1v(rho0, i) > 0.0) {
+      if (rho0[i] > 0.0) {
         if (this->ialloy == 1) {
-          arr2v(t_ave, 1, i) = arr2v(t_ave, 1, i) / arr2v(tsq_ave, 1, i);
-          arr2v(t_ave, 2, i) = arr2v(t_ave, 2, i) / arr2v(tsq_ave, 2, i);
-          arr2v(t_ave, 3, i) = arr2v(t_ave, 3, i) / arr2v(tsq_ave, 3, i);
+          t_ave[i][0] = t_ave[i][0] / tsq_ave[i][0];
+          t_ave[i][1] = t_ave[i][1] / tsq_ave[i][1];
+          t_ave[i][2] = t_ave[i][2] / tsq_ave[i][2];
         } else if (this->ialloy == 2) {
-          arr2v(t_ave, 1, i) = this->t1_meam[elti];
-          arr2v(t_ave, 2, i) = this->t2_meam[elti];
-          arr2v(t_ave, 3, i) = this->t3_meam[elti];
+          t_ave[i][0] = this->t1_meam[elti];
+          t_ave[i][1] = this->t2_meam[elti];
+          t_ave[i][2] = this->t3_meam[elti];
         } else {
-          arr2v(t_ave, 1, i) = arr2v(t_ave, 1, i) / arr1v(rho0, i);
-          arr2v(t_ave, 2, i) = arr2v(t_ave, 2, i) / arr1v(rho0, i);
-          arr2v(t_ave, 3, i) = arr2v(t_ave, 3, i) / arr1v(rho0, i);
+          t_ave[i][0] = t_ave[i][0] / rho0[i];
+          t_ave[i][1] = t_ave[i][1] / rho0[i];
+          t_ave[i][2] = t_ave[i][2] / rho0[i];
         }
       }
 
-      arr1v(gamma, i) = arr2v(t_ave, 1, i) * arr1v(rho1, i) +
-                        arr2v(t_ave, 2, i) * arr1v(rho2, i) +
-                        arr2v(t_ave, 3, i) * arr1v(rho3, i);
+      gamma[i] = t_ave[i][0] * rho1[i] +
+                 t_ave[i][1] * rho2[i] +
+                 t_ave[i][2] * rho3[i];
 
-      if (arr1v(rho0, i) > 0.0) {
-        arr1v(gamma, i) = arr1v(gamma, i) / (arr1v(rho0, i) * arr1v(rho0, i));
+      if (rho0[i] > 0.0) {
+        gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
       }
 
       Z = this->Z_meam[elti];
 
-      G_gam(arr1v(gamma, i), this->ibar_meam[elti], &G, errorflag);
+      G_gam(gamma[i], this->ibar_meam[elti], &G, errorflag);
       if (*errorflag != 0)
         return;
       get_shpfcn(shp, this->lattce_meam[elti][elti]);
@@ -90,8 +88,8 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
         dGbar = 0.0;
       } else {
         if (this->mix_ref_t == 1) {
-          gam = (arr2v(t_ave, 1, i) * shp[1] + arr2v(t_ave, 2, i) * shp[2] +
-                 arr2v(t_ave, 3, i) * shp[3]) /
+          gam = (t_ave[i][0] * shp[1] + t_ave[i][1] * shp[2] +
+                 t_ave[i][2] * shp[3]) /
                 (Z * Z);
         } else {
           gam = (this->t1_meam[elti] * shp[1] +
@@ -101,15 +99,15 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
         }
         G_gam(gam, this->ibar_meam[elti], &Gbar, errorflag);
       }
-      arr1v(rho, i) = arr1v(rho0, i) * G;
+      rho[i] = rho0[i] * G;
 
       if (this->mix_ref_t == 1) {
         if (this->ibar_meam[elti] <= 0) {
           Gbar = 1.0;
           dGbar = 0.0;
         } else {
-          gam = (arr2v(t_ave, 1, i) * shp[1] + arr2v(t_ave, 2, i) * shp[2] +
-                 arr2v(t_ave, 3, i) * shp[3]) /
+          gam = (t_ave[i][0] * shp[1] + t_ave[i][1] * shp[2] +
+                 t_ave[i][2] * shp[3]) /
                 (Z * Z);
           dG_gam(gam, this->ibar_meam[elti], &Gbar, &dGbar);
         }
@@ -121,57 +119,57 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
           rho_bkgd = this->rho_ref_meam[elti];
         }
       }
-      rhob = arr1v(rho, i) / rho_bkgd;
+      rhob = rho[i] / rho_bkgd;
       denom = 1.0 / rho_bkgd;
 
-      dG_gam(arr1v(gamma, i), this->ibar_meam[elti], &G, &dG);
+      dG_gam(gamma[i], this->ibar_meam[elti], &G, &dG);
 
-      arr1v(dgamma1, i) = (G - 2 * dG * arr1v(gamma, i)) * denom;
+      dgamma1[i] = (G - 2 * dG * gamma[i]) * denom;
 
-      if (!iszero(arr1v(rho0, i))) {
-        arr1v(dgamma2, i) = (dG / arr1v(rho0, i)) * denom;
+      if (!iszero(rho0[i])) {
+        dgamma2[i] = (dG / rho0[i]) * denom;
       } else {
-        arr1v(dgamma2, i) = 0.0;
+        dgamma2[i] = 0.0;
       }
 
       //     dgamma3 is nonzero only if we are using the "mixed" rule for
       //     computing t in the reference system (which is not correct, but
       //     included for backward compatibility
       if (this->mix_ref_t == 1) {
-        arr1v(dgamma3, i) = arr1v(rho0, i) * G * dGbar / (Gbar * Z * Z) * denom;
+        dgamma3[i] = rho0[i] * G * dGbar / (Gbar * Z * Z) * denom;
       } else {
-        arr1v(dgamma3, i) = 0.0;
+        dgamma3[i] = 0.0;
       }
 
       B = this->A_meam[elti] * this->Ec_meam[elti][elti];
 
       if (!iszero(rhob)) {
         if (this->emb_lin_neg == 1 && rhob <= 0) {
-          arr1v(frhop, i) = -B;
+          frhop[i] = -B;
         } else {
-          arr1v(frhop, i) = B * (log(rhob) + 1.0);
+          frhop[i] = B * (log(rhob) + 1.0);
         }
-        if (*eflag_either != 0) {
-          if (*eflag_global != 0) {
+        if (eflag_either != 0) {
+          if (eflag_global != 0) {
             if (this->emb_lin_neg == 1 && rhob <= 0) {
               *eng_vdwl = *eng_vdwl - B * rhob;
             } else {
               *eng_vdwl = *eng_vdwl + B * rhob * log(rhob);
             }
           }
-          if (*eflag_atom != 0) {
+          if (eflag_atom != 0) {
             if (this->emb_lin_neg == 1 && rhob <= 0) {
-              arr1v(eatom, i) = arr1v(eatom, i) - B * rhob;
+              eatom[i] = eatom[i] - B * rhob;
             } else {
-              arr1v(eatom, i) = arr1v(eatom, i) + B * rhob * log(rhob);
+              eatom[i] = eatom[i] + B * rhob * log(rhob);
             }
           }
         }
       } else {
         if (this->emb_lin_neg == 1) {
-          arr1v(frhop, i) = -B;
+          frhop[i] = -B;
         } else {
-          arr1v(frhop, i) = B;
+          frhop[i] = B;
         }
       }
     }

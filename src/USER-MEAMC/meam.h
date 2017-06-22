@@ -141,20 +141,24 @@ public:
   void interpolate_meam(int);
   double compute_phi(double, int, int);
  public:
-  void meam_setup_global(int, lattice_t*, double*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*);
-  void meam_setup_param(int, double, int, int*, int*);
-  void meam_setup_done(double*);
-  void meam_dens_setup(int, int, int);
-  void meam_dens_init(int* i, int* ntype, int* type, int* fmap, double** x,
-                int* numneigh, int* firstneigh, int* numneigh_full,
+  void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt,
+                   double* alpha, double* b0, double* b1, double* b2,
+                   double* b3, double* alat, double* esub, double* asub,
+                   double* t0, double* t1, double* t2, double* t3,
+                   double* rozero, int* ibar);
+  void meam_setup_param(int which, double value, int nindex, int* index /*index(3)*/, int* errorflag);
+  void meam_setup_done(double* cutmax);
+  void meam_dens_setup(int atom_nmax, int nall, int n_neigh);
+  void meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
+                int numneigh, int* firstneigh, int numneigh_full,
                 int* firstneigh_full, int fnoffset, int* errorflag);
-  void meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
-                 int* eflag_atom, double* eng_vdwl, double* eatom, int* ntype,
+  void meam_dens_final(int nlocal, int eflag_either, int eflag_global,
+                 int eflag_atom, double* eng_vdwl, double* eatom, int ntype,
                  int* type, int* fmap, int* errorflag);
-  void meam_force(int* iptr, int* eflag_either, int* eflag_global,
-            int* eflag_atom, int* vflag_atom, double* eng_vdwl, double* eatom,
-            int* ntype, int* type, int* fmap, double** x, int* numneigh,
-            int* firstneigh, int* numneigh_full, int* firstneigh_full,
+  void meam_force(int i, int eflag_either, int eflag_global,
+            int eflag_atom, int vflag_atom, double* eng_vdwl, double* eatom,
+            int ntype, int* type, int* fmap, double** x, int numneigh,
+            int* firstneigh, int numneigh_full, int* firstneigh_full,
             int fnoffset, double** f, double** vatom,
             int* errorflag);
 };

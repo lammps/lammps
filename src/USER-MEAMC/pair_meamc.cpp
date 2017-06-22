@@ -129,24 +129,17 @@ void PairMEAMC::compute(int eflag, int vflag)
   int *type = atom->type;
   int ntype = atom->ntypes;
 
-  // change neighbor list indices to Fortran indexing
-
-  neigh_c2f(inum_half,ilist_half,numneigh_half,firstneigh_half);
-  neigh_c2f(inum_half,ilist_half,numneigh_full,firstneigh_full);
-
   // 3 stages of MEAM calculation
   // loop over my atoms followed by communication
 
-  int ifort;
   int offset = 0;
   errorflag = 0;
 
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
-    ifort = i+1;
-    meam_inst->meam_dens_init(&ifort,&ntype,type,map,x,
-                    &numneigh_half[i],firstneigh_half[i],
-                    &numneigh_full[i],firstneigh_full[i],
+    meam_inst->meam_dens_init(i,ntype,type,map,x,
+                    numneigh_half[i],firstneigh_half[i],
+                    numneigh_full[i],firstneigh_full[i],
                     offset,
                     &errorflag);
     if (errorflag) {
@@ -159,8 +152,8 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   comm->reverse_comm_pair(this);
 
-  meam_inst->meam_dens_final(&nlocal,&eflag_either,&eflag_global,&eflag_atom,
-                   &eng_vdwl,eatom,&ntype,type,map,
+  meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
+                   &eng_vdwl,eatom,ntype,type,map,
                    &errorflag);
   if (errorflag) {
     char str[128];
@@ -181,11 +174,10 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
-    ifort = i+1;
-    meam_inst->meam_force(&ifort,&eflag_either,&eflag_global,&eflag_atom,
-                &vflag_atom,&eng_vdwl,eatom,&ntype,type,map,x,
-                &numneigh_half[i],firstneigh_half[i],
-                &numneigh_full[i],firstneigh_full[i],
+    meam_inst->meam_force(i,eflag_either,eflag_global,eflag_atom,
+                vflag_atom,&eng_vdwl,eatom,ntype,type,map,x,
+                numneigh_half[i],firstneigh_half[i],
+                numneigh_full[i],firstneigh_full[i],
                 offset,
                 f,vptr,&errorflag);
     if (errorflag) {
@@ -195,11 +187,6 @@ void PairMEAMC::compute(int eflag, int vflag)
     }
     offset += numneigh_half[i];
   }
-
-  // change neighbor list indices back to C indexing
-
-  neigh_f2c(inum_half,ilist_half,numneigh_half,firstneigh_half);
-  neigh_f2c(inum_half,ilist_half,numneigh_full,firstneigh_full);
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
@@ -804,36 +791,5 @@ void PairMEAMC::neigh_strip(int inum, int *ilist,
     jlist = firstneigh[i];
     jnum = numneigh[i];
     for (j = 0; j < jnum; j++) jlist[j] &= NEIGHMASK;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   toggle neighbor list indices between zero- and one-based values
-   needed for access by MEAM Fortran library
-------------------------------------------------------------------------- */
-
-void PairMEAMC::neigh_f2c(int inum, int *ilist, int *numneigh, int **firstneigh)
-{
-  int i,j,ii,jnum;
-  int *jlist;
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    for (j = 0; j < jnum; j++) jlist[j]--;
-  }
-}
-
-void PairMEAMC::neigh_c2f(int inum, int *ilist, int *numneigh, int **firstneigh)
-{
-  int i,j,ii,jnum;
-  int *jlist;
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    for (j = 0; j < jnum; j++) jlist[j]++;
   }
 }

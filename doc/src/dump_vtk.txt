@@ -16,7 +16,7 @@ ID = user-assigned name for the dump
 group-ID = ID of the group of atoms to be dumped
 vtk = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page)
 N = dump every this many timesteps
-file = name of file to write dump info to 
+file = name of file to write dump info to
 args = same as arguments for "dump_style custom"_dump.html :ul
 
 [Examples:]
@@ -83,7 +83,7 @@ Triclinic simulation boxes (non-orthogonal) are saved as
 hexahedrons in either legacy .vtk or .vtu XML format.
 
 Style {vtk} allows you to specify a list of atom attributes to be
-written to the dump file for each atom.  The list of possible attributes 
+written to the dump file for each atom.  The list of possible attributes
 is the same as for the "dump_style custom"_dump.html command; see
 its doc page for a listing and an explanation of each attribute.
 

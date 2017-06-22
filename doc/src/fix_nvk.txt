@@ -27,7 +27,7 @@ timestep.  V is volume; K is kinetic energy. This creates a system
 trajectory consistent with the isokinetic ensemble.
 
 The equations of motion used are those of Minary et al in
-"(Minary)"_#nvk-Minary, a variant of those initially given by Zhang in 
+"(Minary)"_#nvk-Minary, a variant of those initially given by Zhang in
 "(Zhang)"_#nvk-Zhang.
 
 The kinetic energy will be held constant at its value given when fix

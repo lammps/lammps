@@ -245,7 +245,7 @@ appear the system is converging to your specified pressure.  The
 solution for this is to either (a) zero the velocities of all atoms
 before performing the minimization, or (b) make sure you are
 monitoring the pressure without its kinetic component.  The latter can
-be done by outputting the pressure from the pressure compute this 
+be done by outputting the pressure from the pressure compute this
 command creates (see below) or a pressure compute you define yourself.
 
 NOTE: Because pressure is often a very sensitive function of volume,

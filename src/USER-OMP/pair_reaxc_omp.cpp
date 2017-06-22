@@ -572,17 +572,18 @@ void PairReaxCOMP::read_reax_forces(int vflag)
 
 void PairReaxCOMP::FindBond()
 {
-  int i, ii, j, pj, jtag, nj, jtmp, jj;
-  double bo_tmp, bo_cut, rij, rsq;
-
-  bond_data *bo_ij;
-  bo_cut = 0.10;
+  const double bo_cut = 0.10;
+  int i;
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)   \
-  private(i, nj, pj, bo_ij, j, bo_tmp)
+  private(i)
 #endif
   for (i = 0; i < system->n; i++) {
+    int j, pj, nj;
+    double bo_tmp;
+    bond_data *bo_ij;
+
     nj = 0;
     for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
       bo_ij = &( lists->select.bond_list[pj] );

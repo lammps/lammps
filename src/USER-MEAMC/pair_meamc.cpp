@@ -89,7 +89,7 @@ PairMEAMC::~PairMEAMC()
 
 void PairMEAMC::compute(int eflag, int vflag)
 {
-  int i,j,ii,n,inum_half,errorflag;
+  int i,ii,n,inum_half,errorflag;
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 

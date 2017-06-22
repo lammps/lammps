@@ -471,16 +471,14 @@ MEAM::phi_meam(double r, int a, int b)
       else {
         get_shpfcn(s1, this->lattce_meam[a][a]);
         Gam1 = (s1[1] * t11av + s1[2] * t21av + s1[3] * t31av) / (Z1 * Z1);
-        G_gam(Gam1, this->ibar_meam[a], this->gsmooth_factor, &G1,
-              &errorflag);
+        G_gam(Gam1, this->ibar_meam[a], &G1, &errorflag);
       }
       if (this->ibar_meam[b] <= 0)
         G2 = 1.0;
       else {
         get_shpfcn(s2, this->lattce_meam[b][b]);
         Gam2 = (s2[1] * t12av + s2[2] * t22av + s2[3] * t32av) / (Z2 * Z2);
-        G_gam(Gam2, this->ibar_meam[b], this->gsmooth_factor, &G2,
-              &errorflag);
+        G_gam(Gam2, this->ibar_meam[b], &G2, &errorflag);
       }
       rho0_1 = this->rho0_meam[a] * Z1 * G1;
       rho0_2 = this->rho0_meam[b] * Z2 * G2;
@@ -497,10 +495,8 @@ MEAM::phi_meam(double r, int a, int b)
     else
       Gam2 = Gam2 / (rho02 * rho02);
 
-    G_gam(Gam1, this->ibar_meam[a], this->gsmooth_factor, &G1,
-          &errorflag);
-    G_gam(Gam2, this->ibar_meam[b], this->gsmooth_factor, &G2,
-          &errorflag);
+    G_gam(Gam1, this->ibar_meam[a], &G1, &errorflag);
+    G_gam(Gam2, this->ibar_meam[b], &G2, &errorflag);
     if (this->mix_ref_t == 1) {
       rho_bkgd1 = rho0_1;
       rho_bkgd2 = rho0_2;
@@ -602,8 +598,7 @@ MEAM::compute_reference_density(void)
       gam = (this->t1_meam[a] * shp[1] + this->t2_meam[a] * shp[2] +
              this->t3_meam[a] * shp[3]) /
             (Z * Z);
-      G_gam(gam, this->ibar_meam[a], this->gsmooth_factor, &Gbar,
-            &errorflag);
+      G_gam(gam, this->ibar_meam[a], &Gbar, &errorflag);
     }
 
     //     The zeroth order density in the reference structure, with

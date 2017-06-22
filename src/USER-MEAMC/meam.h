@@ -109,8 +109,8 @@ public:
   double *scrfcn,*dscrfcn,*fcpair;
  protected:
   void meam_checkindex(int, int, int, int*, int*);
-  void G_gam(double, int, double, double*, int*);
-  void dG_gam(double, int, double, double*, double*);
+  void G_gam(double, int, double*, int*);
+  void dG_gam(double, int, double*, double*);
   void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
           double** x, int numneigh, int* firstneigh, int numneigh_full,
           int* firstneigh_full, int ntype, int* type, int* fmap);

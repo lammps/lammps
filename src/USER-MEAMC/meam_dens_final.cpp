@@ -81,8 +81,7 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
 
       Z = this->Z_meam[elti];
 
-      G_gam(arr1v(gamma, i), this->ibar_meam[elti],
-            this->gsmooth_factor, &G, errorflag);
+      G_gam(arr1v(gamma, i), this->ibar_meam[elti], &G, errorflag);
       if (*errorflag != 0)
         return;
       get_shpfcn(shp, this->lattce_meam[elti][elti]);
@@ -100,8 +99,7 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
                  this->t3_meam[elti] * shp[3]) /
                 (Z * Z);
         }
-        G_gam(gam, this->ibar_meam[elti], this->gsmooth_factor, &Gbar,
-              errorflag);
+        G_gam(gam, this->ibar_meam[elti], &Gbar, errorflag);
       }
       arr1v(rho, i) = arr1v(rho0, i) * G;
 
@@ -113,8 +111,7 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
           gam = (arr2v(t_ave, 1, i) * shp[1] + arr2v(t_ave, 2, i) * shp[2] +
                  arr2v(t_ave, 3, i) * shp[3]) /
                 (Z * Z);
-          dG_gam(gam, this->ibar_meam[elti], this->gsmooth_factor,
-                 &Gbar, &dGbar);
+          dG_gam(gam, this->ibar_meam[elti], &Gbar, &dGbar);
         }
         rho_bkgd = this->rho0_meam[elti] * Z * Gbar;
       } else {
@@ -127,8 +124,7 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
       rhob = arr1v(rho, i) / rho_bkgd;
       denom = 1.0 / rho_bkgd;
 
-      dG_gam(arr1v(gamma, i), this->ibar_meam[elti],
-             this->gsmooth_factor, &G, &dG);
+      dG_gam(arr1v(gamma, i), this->ibar_meam[elti], &G, &dG);
 
       arr1v(dgamma1, i) = (G - 2 * dG * arr1v(gamma, i)) * denom;
 
@@ -185,7 +181,7 @@ MEAM::meam_dens_final(int* nlocal, int* eflag_either, int* eflag_global,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::G_gam(double gamma, int ibar, double gsmooth_factor, double* G, int* errorflag)
+MEAM::G_gam(double gamma, int ibar, double* G, int* errorflag)
 {
   //     Compute G(gamma) based on selection flag ibar:
   //   0 => G = sqrt(1+gamma)
@@ -226,7 +222,7 @@ MEAM::G_gam(double gamma, int ibar, double gsmooth_factor, double* G, int* error
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::dG_gam(double gamma, int ibar, double gsmooth_factor, double* G, double* dG)
+MEAM::dG_gam(double gamma, int ibar, double* G, double* dG)
 {
   // Compute G(gamma) and dG(gamma) based on selection flag ibar:
   //   0 => G = sqrt(1+gamma)

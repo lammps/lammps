@@ -17,7 +17,7 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
   {verlet/split} args = none
   {respa} args = N n1 n2 ... keyword values ...
     N = # of levels of rRESPA
-    n1, n2, ... = loop factor between rRESPA levels (N-1 values)
+    n1, n2, ... = loop factors between rRESPA levels (N-1 values)
     zero or more keyword/value pairings may be appended to the loop factors
     keyword = {bond} or {angle} or {dihedral} or {improper} or
               {pair} or {inner} or {middle} or {outer} or {hybrid} or {kspace}
@@ -55,7 +55,7 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
 
 run_style verlet
 run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
-run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4 :pre
+run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4
 run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3 :pre
 
 [Description:]

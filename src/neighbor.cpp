@@ -1268,9 +1268,11 @@ void Neighbor::morph_copy()
 
       if (irq->ghost && !jrq->ghost) continue;
 
-      // do not copy from a history list
+      // do not copy from a history list or a respa middle/inner list
 
       if (jrq->history) continue;
+      if (jrq->respamiddle) continue;
+      if (jrq->respainner) continue;
 
       // these flags must be same,
       //   else 2 lists do not store same pairs

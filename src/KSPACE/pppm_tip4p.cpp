@@ -332,9 +332,9 @@ void PPPMTIP4P::fieldforce_ad()
 
     const double qfactor = qqrd2e * scale;
 
-    s1 = x[i][0]*hx_inv;
-    s2 = x[i][1]*hy_inv;
-    s3 = x[i][2]*hz_inv;
+    s1 = xi[0]*hx_inv;
+    s2 = xi[1]*hy_inv;
+    s3 = xi[2]*hz_inv;
     sf = sf_coeff[0]*sin(2*MY_PI*s1);
     sf += sf_coeff[1]*sin(4*MY_PI*s1);
     sf *= 2.0*q[i]*q[i];

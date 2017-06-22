@@ -25,6 +25,7 @@
 #include <string.h>
 #include "pair_lj_charmmfsw_coul_charmmfsh.h"
 #include "atom.h"
+#include "update.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -46,6 +47,11 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
   // short-range/long-range flag accessed by DihedralCharmmfsw
 
   dihedflag = 0;
+
+  // switch qqr2e from LAMMPS value to CHARMM value
+
+  if (strcmp(update->unit_style,"real") == 0)
+    force->qqr2e = force->qqr2e_charmm_real;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,6 +77,11 @@ PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
       memory->destroy(lj14_4);
     }
   }
+
+  // switch qqr2e back from CHARMM value to LAMMPS value
+
+  if (strcmp(update->unit_style,"real") == 0)
+    force->qqr2e = force->qqr2e_lammps_real;
 }
 
 /* ---------------------------------------------------------------------- */

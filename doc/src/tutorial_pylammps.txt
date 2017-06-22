@@ -36,7 +36,7 @@ lammps.PyLammps :h4
 
 higher-level abstraction built on top of original C-Types interface
 manipulation of Python objects
-communication with LAMMPS is hidden from API user 
+communication with LAMMPS is hidden from API user
 shorter, more concise Python
 better IPython integration, designed for quick prototyping :ul
 
@@ -328,7 +328,7 @@ IPyLammps Examples :h2
 
 Examples of IPython notebooks can be found in the python/examples/pylammps
 subdirectory. To open these notebooks launch {jupyter notebook} inside this
-directory and navigate to one of them. If you compiled and installed 
+directory and navigate to one of them. If you compiled and installed
 a LAMMPS shared library with exceptions, PNG, JPEG and FFMPEG support
 you should be able to rerun all of these notebooks.
 
@@ -399,19 +399,19 @@ natoms = L.system.natoms :pre
 for i in range(niterations):
     iatom = random.randrange(0, natoms)
     current_atom = L.atoms\[iatom\] :pre
-    
+
     x0, y0 = current_atom.position :pre
-    
+
     dx = deltamove * random.uniform(-1, 1)
     dy = deltamove * random.uniform(-1, 1) :pre
-    
+
     current_atom.position = (x0+dx, y0+dy) :pre
-    
+
     L.run(1, "pre no post no") :pre
-    
+
     e = L.eval("pe")
     energies.append(e) :pre
-    
+
     if e <= elast:
         naccept += 1
         elast = e
@@ -460,4 +460,4 @@ Feedback and Contributing :h2
 If you find this Python interface useful, please feel free to provide feedback
 and ideas on how to improve it to Richard Berger (richard.berger@temple.edu). We also
 want to encourage people to write tutorial style IPython notebooks showcasing LAMMPS usage
-and maybe their latest research results. 
+and maybe their latest research results.

@@ -406,7 +406,7 @@ the user for each subsequent fix gcmc command.
 [Default:]
 
 The option defaults are mol = no, maxangle = 10, overlap_cutoff = 0.0,
-fugacity_coeff = 1, and full_energy = no, 
+fugacity_coeff = 1, and full_energy = no,
 except for the situations where full_energy is required, as
 listed above.
 

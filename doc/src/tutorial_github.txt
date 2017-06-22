@@ -86,7 +86,7 @@ machine via HTTPS:
 or, if you have set up your GitHub account for using SSH keys, via SSH:
 
   $ git clone git@github.com:<your user name>/lammps.git :pre
-  
+
 You can find the proper URL by clicking the "Clone or download"-button:
 
 :c,image(JPG/tutorial_https_block.png)

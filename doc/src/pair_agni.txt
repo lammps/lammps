@@ -40,8 +40,8 @@ vectorial atomic forces.
 
 Only a single pair_coeff command is used with the {agni} style which
 specifies an AGNI potential file containing the parameters of the
-force field for the needed elements. These are mapped to LAMMPS atom 
-types by specifying N additional arguments after the filename in the 
+force field for the needed elements. These are mapped to LAMMPS atom
+types by specifying N additional arguments after the filename in the
 pair_coeff command, where N is the number of LAMMPS atom types:
 
 filename
@@ -52,13 +52,13 @@ to specify the path for the force field file.
 
 An AGNI force field is fully specified by the filename which contains the
 parameters of the force field, i.e., the reference training environments
-used to construct the machine learning force field. Example force field 
-and input files are provided in the examples/USER/misc/agni directory. 
+used to construct the machine learning force field. Example force field
+and input files are provided in the examples/USER/misc/agni directory.
 
 :line
 
-Styles with {omp} suffix is functionally the same as the corresponding 
-style without the suffix. They have been optimized to run faster, depending 
+Styles with {omp} suffix is functionally the same as the corresponding
+style without the suffix. They have been optimized to run faster, depending
 on your available hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated style takes the same arguments and
 should produce the same results, except for round-off and precision

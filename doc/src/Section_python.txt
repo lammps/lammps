@@ -714,7 +714,7 @@ stored in the "image" property. All three image flags are stored in
 a packed format in a single integer, so count would be 1 to retrieve
 that integer, however also a count value of 3 can be used and then
 the image flags will be unpacked into 3 individual integers, ordered
-in a similar fashion as coordinates. 
+in a similar fashion as coordinates.
 
 Note that the data structure gather_atoms("x") returns is different
 from the data structure returned by extract_atom("x") in four ways.

@@ -246,7 +246,7 @@ void ComputeHeatFluxTally::compute_vector()
       double ke_i;
 
       if (rmass) ke_i = pfactor * rmass[i];
-      else ke_i *= pfactor * mass[type[i]];
+      else ke_i = pfactor * mass[type[i]];
       ke_i *= (vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2]);
       ke_i += eatom[i];
 

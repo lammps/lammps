@@ -42,11 +42,11 @@ precision mode. Performance improvements are shown compared to
 LAMMPS {without using other acceleration packages} as these are
 under active development (and subject to performance changes). The
 measurements were performed using the input files available in
-the src/USER-INTEL/TEST directory with the provided run script. 
-These are scalable in size; the results given are with 512K 
-particles (524K for Liquid Crystal). Most of the simulations are 
+the src/USER-INTEL/TEST directory with the provided run script.
+These are scalable in size; the results given are with 512K
+particles (524K for Liquid Crystal). Most of the simulations are
 standard LAMMPS benchmarks (indicated by the filename extension in
-parenthesis) with modifications to the run length and to add a 
+parenthesis) with modifications to the run length and to add a
 warmup run (for use with offload benchmarks).
 
 :c,image(JPG/user_intel.png)
@@ -64,30 +64,30 @@ simulation rates and instructions to reproduce.
 
 In most molecular dynamics software, parallelization parameters
 (# of MPI, OpenMP, and vectorization) can change the results due
-to changing the order of operations with finite-precision 
+to changing the order of operations with finite-precision
 calculations. The USER-INTEL package is deterministic. This means
 that the results should be reproducible from run to run with the
-{same} parallel configurations and when using determinstic 
+{same} parallel configurations and when using determinstic
 libraries or library settings (MPI, OpenMP, FFT). However, there
 are differences in the USER-INTEL package that can change the
 order of operations compared to LAMMPS without acceleration:
 
 Neighbor lists can be created in a different order :ulb,l
 Bins used for sorting atoms can be oriented differently :l
-The default stencil order for PPPM is 7. By default, LAMMPS will 
-calculate other PPPM parameters to fit the desired acuracy with 
+The default stencil order for PPPM is 7. By default, LAMMPS will
+calculate other PPPM parameters to fit the desired acuracy with
 this order :l
 The {newton} setting applies to all atoms, not just atoms shared
 between MPI tasks :l
 Vectorization can change the order for adding pairwise forces :l
 :ule
 
-The precision mode (described below) used with the USER-INTEL 
-package can change the {accuracy} of the calculations. For the 
-default {mixed} precision option, calculations between pairs or 
-triplets of atoms are performed in single precision, intended to 
+The precision mode (described below) used with the USER-INTEL
+package can change the {accuracy} of the calculations. For the
+default {mixed} precision option, calculations between pairs or
+triplets of atoms are performed in single precision, intended to
 be within the inherent error of MD simulations. All accumulation
-is performed in double precision to prevent the error from growing 
+is performed in double precision to prevent the error from growing
 with the number of atoms in the simulation. {Single} precision
 mode should not be used without appropriate validation.
 
@@ -106,7 +106,7 @@ $t should be 2 for Intel Xeon CPUs and 2 or 4 for Intel Xeon Phi :l
 For some of the simple 2-body potentials without long-range
 electrostatics, performance and scalability can be better with
 the "newton off" setting added to the input script :l
-If using {kspace_style pppm} in the input script, add 
+If using {kspace_style pppm} in the input script, add
 "kspace_modify diff ad" for better performance :l
 :ule
 
@@ -115,12 +115,12 @@ For Intel Xeon Phi CPUs:
 Runs should be performed using MCDRAM. :ulb,l
 :ule
 
-For simulations using {kspace_style pppm} on Intel CPUs 
+For simulations using {kspace_style pppm} on Intel CPUs
 supporting AVX-512:
 
 Add "kspace_modify diff ad" to the input script :ulb,l
-The command-line option should be changed to 
-"-pk intel 0 omp $r lrt yes -sf intel" where $r is the number of 
+The command-line option should be changed to
+"-pk intel 0 omp $r lrt yes -sf intel" where $r is the number of
 threads minus 1. :l
 Do not use thread affinity (set KMP_AFFINITY=none) :l
 The "newton off" setting may provide better scalability :l
@@ -352,7 +352,7 @@ follow in the input script.
 
 NOTE: The USER-INTEL package will perform better with modifications
 to the input script when "PPPM"_kspace_style.html is used:
-"kspace_modify diff ad"_kspace_modify.html should be added to the 
+"kspace_modify diff ad"_kspace_modify.html should be added to the
 input script.
 
 Long-Range Thread (LRT) mode is an option to the "package

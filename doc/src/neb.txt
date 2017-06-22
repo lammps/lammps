@@ -344,7 +344,7 @@ informations can help understanding what is going wrong. For instance
 when the path angle becomes accute the definition of tangent used in
 the NEB calculation is questionable and the NEB cannot may diverge
 "(Maras)"_#Maras2.
- 
+
 
 When running on multiple partitions, LAMMPS produces additional log
 files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For a

@@ -514,8 +514,6 @@ void FixReaxCSpecies::FindMolecule ()
   int *ilist;
   double bo_tmp,bo_cut;
   double **spec_atom = f_SPECBOND->array_atom;
-  const double * const * const x = atom->x;
-  const int nlocal = atom->nlocal;
 
   inum = reaxc->list->inum;
   ilist = reaxc->list->ilist;

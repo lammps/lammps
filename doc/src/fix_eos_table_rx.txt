@@ -45,14 +45,14 @@ species {j} in particle {i}, {u_j} is the internal energy of species j,
 {DeltaH_f,j} is the heat of formation of species {j}, N is the number of
 molecules represented by the coarse-grained particle, kb is the
 Boltzmann constant, and T is the temperature of the system.  Additionally,
-it is possible to modify the concentration-dependent particle internal 
-energy relation by adding an energy correction, temperature-dependent 
+it is possible to modify the concentration-dependent particle internal
+energy relation by adding an energy correction, temperature-dependent
 correction, and/or a molecule-dependent correction.  An energy correction can
-be specified as a constant (in energy units).  A temperature correction can be 
-specified by multiplying a temperature correction coefficient by the 
-internal temperature.  A molecular correction can be specified by 
-by multiplying a molecule correction coefficient by the average number of 
-product gas particles in the coarse-grain particle. 
+be specified as a constant (in energy units).  A temperature correction can be
+specified by multiplying a temperature correction coefficient by the
+internal temperature.  A molecular correction can be specified by
+by multiplying a molecule correction coefficient by the average number of
+product gas particles in the coarse-grain particle.
 
 Fix {eos/table/rx} creates interpolation tables of length {N} from {m}
 internal energy values of each species {u_j} listed in a file as a
@@ -72,12 +72,12 @@ The second filename specifies a file containing heat of formation
 {DeltaH_f,j} for each species.
 
 In cases where the coarse-grain particle represents a single molecular
-species (i.e., no reactions occur and fix {rx} is not present in the input file), 
-fix {eos/table/rx} can be applied in a similar manner to fix {eos/table} 
-within a non-reactive DPD simulation.  In this case, the heat of formation 
+species (i.e., no reactions occur and fix {rx} is not present in the input file),
+fix {eos/table/rx} can be applied in a similar manner to fix {eos/table}
+within a non-reactive DPD simulation.  In this case, the heat of formation
 filename is replaced with the heat of formation value for the single species.
-Additionally, the energy correction and temperature correction coefficients may 
-also be specified as fix arguments.  
+Additionally, the energy correction and temperature correction coefficients may
+also be specified as fix arguments.
 
 :line
 
@@ -138,8 +138,8 @@ used as the species name must correspond with the tags used to define
 the reactions with the "fix rx"_fix_rx.html command.
 
 Alternatively, corrections to the EOS can be included by specifying
-three additional columns that correspond to the energy correction, 
-the temperature correction coefficient and molecule correction 
+three additional columns that correspond to the energy correction,
+the temperature correction coefficient and molecule correction
 coefficient.  In this case, the format of the file is as follows:
 
 # HEAT OF FORMATION TABLE     (one or more comment or blank lines) :pre

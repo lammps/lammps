@@ -50,8 +50,12 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
 
   // switch qqr2e from LAMMPS value to CHARMM value
 
-  if (strcmp(update->unit_style,"real") == 0)
+  if (strcmp(update->unit_style,"real") == 0) {
+    if ((comm->me == 0) && (force->qqr2e != force->qqr2e_charmm_real))
+      error->message(FLERR,"Switching to CHARMM coulomb energy"
+                     " conversion constant");
     force->qqr2e = force->qqr2e_charmm_real;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,8 +84,12 @@ PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
 
   // switch qqr2e back from CHARMM value to LAMMPS value
 
-  if (strcmp(update->unit_style,"real") == 0)
+  if (update && strcmp(update->unit_style,"real") == 0) {
+    if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
+      error->message(FLERR,"Restoring original LAMMPS coulomb energy"
+                     " conversion constant");
     force->qqr2e = force->qqr2e_lammps_real;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

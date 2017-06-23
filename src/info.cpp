@@ -1,5 +1,4 @@
 /* ----------------------------------------------------------------------
-  fputs
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov

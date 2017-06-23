@@ -104,7 +104,15 @@ charmmfsw"_dihedral_charmm.html command.  Eventually code from the new
 styles will propagate into the related pair styles (e.g. implicit,
 accelerator, free energy variants).
 
-The general CHARMM formulas are as follows
+NOTE: The newest CHARMM pair styles reset the Coulombic energy
+conversion factor used internally in the code, from the LAMMPS value
+to the CHARMM value, as if it were effectively a parameter of the
+force field.  This is because the CHARMM code uses a slightly
+different value for the this conversion factor in "real
+units"_units.html (Kcal/mole), namely CHARMM = 332.0716, LAMMPS =
+332.06371.  This is to enable more precise agreement by LAMMPS with
+the CHARMM force field energies and forces, when using one of these
+two CHARMM pair styles.
 
 :c,image(Eqs/pair_charmm.jpg)
 

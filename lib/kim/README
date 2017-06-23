@@ -9,13 +9,16 @@ KIM API and he also maintains the code that implements the pair_style
 kim command.
 
 To download, build, and install the KIM API on your system, follow
-these steps.  We are working on scripts that will automate this
-process.
+these steps.  You can use the install.py script to automate these steps.
 
-The KIM API is available for download from "this
-site"_https://openkim.org, namely https://openkim.org.  The tarball
-you download is "kim-api-vX.Y.Z.tgz", which can be unpacked in this
-directory or whereever you wish:
+**Note** The process described below will compile the kim-api using absolute
+paths names.  This means that if you move your lammps directory to a new
+location after compilation the kim-api library will not be able to find some of
+its components.  It is best to recompile after moving the lammps directory.
+
+The KIM API is available for download from "this site"_https://openkim.org,
+namely https://openkim.org.  The tarball you download is "kim-api-vX.Y.Z.tgz",
+which can be unpacked in this directory or whereever you wish:
 
 tar xvfz kim*tgz
 
@@ -41,13 +44,7 @@ $ tar zxvf kim-api-vX.Y.Z.tgz
 
 # get OpenKIM models, setup and compile
 $ cd kim-api-vX.Y.Z
-$ cp Makefile.KIM_Config.example Makefile.KIM_Config
-
-# edit this file as appropriate following the instructions given in
-# INSTALL.  Here, we'll assume you set the 'prefix' variable as
-# follows in order to install the KIM API to your home directory:
-# prefix = $(HOME)/local
-$ vi Makefile.KIM_Config
+$ ./configure --prefix=??????
 
 $ make add-EAM_Dynamo_Angelo_Moody_NiAlH__MO_418978237058_001
 $ make

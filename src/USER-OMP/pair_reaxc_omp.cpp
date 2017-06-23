@@ -84,10 +84,11 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
 
 PairReaxCOMP::~PairReaxCOMP()
 {
-  reax_list * bonds = lists+BONDS;
-  for (int i=0; i<bonds->num_intrs; ++i)
-    sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
-
+  if (setup_flag) {
+    reax_list * bonds = lists+BONDS;
+    for (int i=0; i<bonds->num_intrs; ++i)
+      sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+  }
   memory->destroy(num_nbrs_offset);
 
 #ifdef OMP_TIMING

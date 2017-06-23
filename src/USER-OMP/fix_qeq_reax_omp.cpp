@@ -172,6 +172,7 @@ void FixQEqReaxOMP::compute_H()
     H.firstnbr[ai] = num_nbrs;
     num_nbrs += numneigh[ai];
   }
+  m_fill = num_nbrs;
 
   // fill in the H matrix
 

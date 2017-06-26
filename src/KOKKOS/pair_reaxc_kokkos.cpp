@@ -709,8 +709,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  k_list->clean_copy();
-
   if (eflag_global) {
     for (int i = 0; i < 14; i++)
       pvector[i] = 0.0;
@@ -3985,7 +3983,6 @@ void PairReaxCKokkos<DeviceType>::FindBond(int &numbonds)
   const int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_ilist = k_list->d_ilist;
-  k_list->clean_copy();
 
   numbonds = 0;
   PairReaxCKokkosFindBondFunctor<DeviceType> find_bond_functor(this);

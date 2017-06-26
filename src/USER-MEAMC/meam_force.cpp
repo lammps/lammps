@@ -35,15 +35,15 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
 {
   int j, jn, k, kn, kk, m, n, p, q;
   int nv2, nv3, elti, eltj, eltk, ind;
-  double xitmp, yitmp, zitmp, delij[3 + 1], rij2, rij, rij3;
-  double delik[3 + 1], deljk[3 + 1], v[6 + 1], fi[3 + 1], fj[3 + 1];
+  double xitmp, yitmp, zitmp, delij[3], rij2, rij, rij3;
+  double delik[3], deljk[3], v[6], fi[3], fj[3];
   double third, sixth;
-  double pp, dUdrij, dUdsij, dUdrijm[3 + 1], force, forcem;
+  double pp, dUdrij, dUdsij, dUdrijm[3], force, forcem;
   double r, recip, phi, phip;
   double sij;
   double a1, a1i, a1j, a2, a2i, a2j;
   double a3i, a3j;
-  double shpi[3 + 1], shpj[3 + 1];
+  double shpi[3], shpj[3];
   double ai, aj, ro0i, ro0j, invrei, invrej;
   double rhoa0j, drhoa0j, rhoa0i, drhoa0i;
   double rhoa1j, drhoa1j, rhoa1i, drhoa1i;
@@ -51,15 +51,15 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
   double a3, a3a, rhoa3j, drhoa3j, rhoa3i, drhoa3i;
   double drho0dr1, drho0dr2, drho0ds1, drho0ds2;
   double drho1dr1, drho1dr2, drho1ds1, drho1ds2;
-  double drho1drm1[3 + 1], drho1drm2[3 + 1];
+  double drho1drm1[3], drho1drm2[3];
   double drho2dr1, drho2dr2, drho2ds1, drho2ds2;
-  double drho2drm1[3 + 1], drho2drm2[3 + 1];
+  double drho2drm1[3], drho2drm2[3];
   double drho3dr1, drho3dr2, drho3ds1, drho3ds2;
-  double drho3drm1[3 + 1], drho3drm2[3 + 1];
+  double drho3drm1[3], drho3drm2[3];
   double dt1dr1, dt1dr2, dt1ds1, dt1ds2;
   double dt2dr1, dt2dr2, dt2ds1, dt2ds2;
   double dt3dr1, dt3dr2, dt3ds1, dt3ds2;
-  double drhodr1, drhodr2, drhods1, drhods2, drhodrm1[3 + 1], drhodrm2[3 + 1];
+  double drhodr1, drhodr2, drhods1, drhods2, drhodrm1[3], drhodrm2[3];
   double arg;
   double arg1i1, arg1j1, arg1i2, arg1j2, arg1i3, arg1j3, arg3i3, arg3j3;
   double dsij1, dsij2, force1, force2;
@@ -86,10 +86,10 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
       if (!iszero(scrfcn[fnoffset + jn]) && eltj >= 0) {
 
         sij = scrfcn[fnoffset + jn] * fcpair[fnoffset + jn];
-        delij[1] = x[j][0] - xitmp;
-        delij[2] = x[j][1] - yitmp;
-        delij[3] = x[j][2] - zitmp;
-        rij2 = delij[1] * delij[1] + delij[2] * delij[2] + delij[3] * delij[3];
+        delij[0] = x[j][0] - xitmp;
+        delij[1] = x[j][1] - yitmp;
+        delij[2] = x[j][2] - zitmp;
+        rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
         if (rij2 < this->cutforcesq) {
           rij = sqrt(rij2);
           r = rij;
@@ -176,8 +176,8 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
             drhoa3i = drhoa3i * this->t3_meam[elti];
           }
 
-          nv2 = 1;
-          nv3 = 1;
+          nv2 = 0;
+          nv3 = 0;
           arg1i1 = 0.0;
           arg1j1 = 0.0;
           arg1i2 = 0.0;
@@ -186,23 +186,23 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
           arg1j3 = 0.0;
           arg3i3 = 0.0;
           arg3j3 = 0.0;
-          for (n = 1; n <= 3; n++) {
-            for (p = n; p <= 3; p++) {
-              for (q = p; q <= 3; q++) {
+          for (n = 0; n < 3; n++) {
+            for (p = n; p < 3; p++) {
+              for (q = p; q < 3; q++) {
                 arg = delij[n] * delij[p] * delij[q] * this->v3D[nv3];
-                arg1i3 = arg1i3 + arr2v(arho3, nv3, i+1) * arg;
-                arg1j3 = arg1j3 - arr2v(arho3, nv3, j+1) * arg;
+                arg1i3 = arg1i3 + arho3[i][nv3] * arg;
+                arg1j3 = arg1j3 - arho3[j][nv3] * arg;
                 nv3 = nv3 + 1;
               }
               arg = delij[n] * delij[p] * this->v2D[nv2];
-              arg1i2 = arg1i2 + arr2v(arho2, nv2, i+1) * arg;
-              arg1j2 = arg1j2 + arr2v(arho2, nv2, j+1) * arg;
+              arg1i2 = arg1i2 + arho2[i][nv2] * arg;
+              arg1j2 = arg1j2 + arho2[j][nv2] * arg;
               nv2 = nv2 + 1;
             }
-            arg1i1 = arg1i1 + arr2v(arho1, n, i+1) * delij[n];
-            arg1j1 = arg1j1 - arr2v(arho1, n, j+1) * delij[n];
-            arg3i3 = arg3i3 + arr2v(arho3b, n, i+1) * delij[n];
-            arg3j3 = arg3j3 - arr2v(arho3b, n, j+1) * delij[n];
+            arg1i1 = arg1i1 + arho1[i][n] * delij[n];
+            arg1j1 = arg1j1 - arho1[j][n] * delij[n];
+            arg3i3 = arg3i3 + arho3b[i][n] * delij[n];
+            arg3j3 = arg3j3 - arho3b[j][n] * delij[n];
           }
 
           //     rho0 terms
@@ -214,9 +214,9 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
           drho1dr1 = a1 * (drhoa1j - rhoa1j / rij) * arg1i1;
           drho1dr2 = a1 * (drhoa1i - rhoa1i / rij) * arg1j1;
           a1 = 2.0 * sij / rij;
-          for (m = 1; m <= 3; m++) {
-            drho1drm1[m] = a1 * rhoa1j * arr2v(arho1, m, i+1);
-            drho1drm2[m] = -a1 * rhoa1i * arr2v(arho1, m, j+1);
+          for (m = 0; m < 3; m++) {
+            drho1drm1[m] = a1 * rhoa1j * arho1[i][m];
+            drho1drm2[m] = -a1 * rhoa1i * arho1[j][m];
           }
 
           //     rho2 terms
@@ -226,14 +226,12 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
           drho2dr2 = a2 * (drhoa2i - 2 * rhoa2i / rij) * arg1j2 -
                      2.0 / 3.0 * arho2b[j] * drhoa2i * sij;
           a2 = 4 * sij / rij2;
-          for (m = 1; m <= 3; m++) {
+          for (m = 0; m < 3; m++) {
             drho2drm1[m] = 0.0;
             drho2drm2[m] = 0.0;
-            for (n = 1; n <= 3; n++) {
-              drho2drm1[m] = drho2drm1[m] +
-                             arr2v(arho2, this->vind2D[m][n], i+1) * delij[n];
-              drho2drm2[m] = drho2drm2[m] -
-                             arr2v(arho2, this->vind2D[m][n], j+1) * delij[n];
+            for (n = 0; n < 3; n++) {
+              drho2drm1[m] = drho2drm1[m] + arho2[i][this->vind2D[m][n]] * delij[n];
+              drho2drm2[m] = drho2drm2[m] - arho2[j][this->vind2D[m][n]] * delij[n];
             }
             drho2drm1[m] = a2 * rhoa2j * drho2drm1[m];
             drho2drm2[m] = -a2 * rhoa2i * drho2drm2[m];
@@ -249,24 +247,22 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
                      a3a * (drhoa3i - rhoa3i / rij) * arg3j3;
           a3 = 6 * sij / rij3;
           a3a = 6 * sij / (5 * rij);
-          for (m = 1; m <= 3; m++) {
+          for (m = 0; m < 3; m++) {
             drho3drm1[m] = 0.0;
             drho3drm2[m] = 0.0;
-            nv2 = 1;
-            for (n = 1; n <= 3; n++) {
-              for (p = n; p <= 3; p++) {
+            nv2 = 0;
+            for (n = 0; n < 3; n++) {
+              for (p = n; p < 3; p++) {
                 arg = delij[n] * delij[p] * this->v2D[nv2];
-                drho3drm1[m] = drho3drm1[m] +
-                               arr2v(arho3, this->vind3D[m][n][p], i+1) * arg;
-                drho3drm2[m] = drho3drm2[m] +
-                               arr2v(arho3, this->vind3D[m][n][p], j+1) * arg;
+                drho3drm1[m] = drho3drm1[m] + arho3[i][this->vind3D[m][n][p]] * arg;
+                drho3drm2[m] = drho3drm2[m] + arho3[j][this->vind3D[m][n][p]] * arg;
                 nv2 = nv2 + 1;
               }
             }
             drho3drm1[m] =
-              (a3 * drho3drm1[m] - a3a * arr2v(arho3b, m, i+1)) * rhoa3j;
+              (a3 * drho3drm1[m] - a3a * arho3b[i][m]) * rhoa3j;
             drho3drm2[m] =
-              (-a3 * drho3drm2[m] + a3a * arr2v(arho3b, m, j+1)) * rhoa3i;
+              (-a3 * drho3drm2[m] + a3a * arho3b[j][m]) * rhoa3i;
           }
 
           //     Compute derivatives of weighting functions t wrt rij
@@ -346,15 +342,15 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
                           dt2dr1 * rho2[i] + t2i * drho2dr1 +
                           dt3dr1 * rho3[i] + t3i * drho3dr1) -
             dgamma3[i] *
-              (shpi[1] * dt1dr1 + shpi[2] * dt2dr1 + shpi[3] * dt3dr1);
+              (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
           drhodr2 =
             dgamma1[j] * drho0dr2 +
             dgamma2[j] * (dt1dr2 * rho1[j] + t1j * drho1dr2 +
                           dt2dr2 * rho2[j] + t2j * drho2dr2 +
                           dt3dr2 * rho3[j] + t3j * drho3dr2) -
             dgamma3[j] *
-              (shpj[1] * dt1dr2 + shpj[2] * dt2dr2 + shpj[3] * dt3dr2);
-          for (m = 1; m <= 3; m++) {
+              (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
+          for (m = 0; m < 3; m++) {
             drhodrm1[m] = 0.0;
             drhodrm2[m] = 0.0;
             drhodrm1[m] =
@@ -442,14 +438,14 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
                             dt2ds1 * rho2[i] + t2i * drho2ds1 +
                             dt3ds1 * rho3[i] + t3i * drho3ds1) -
               dgamma3[i] *
-                (shpi[1] * dt1ds1 + shpi[2] * dt2ds1 + shpi[3] * dt3ds1);
+                (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
             drhods2 =
               dgamma1[j] * drho0ds2 +
               dgamma2[j] * (dt1ds2 * rho1[j] + t1j * drho1ds2 +
                             dt2ds2 * rho2[j] + t2j * drho2ds2 +
                             dt3ds2 * rho3[j] + t3j * drho3ds2) -
               dgamma3[j] *
-                (shpj[1] * dt1ds2 + shpj[2] * dt2ds2 + shpj[3] * dt3ds2);
+                (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
           }
 
           //     Compute derivatives of energy wrt rij, sij and rij[3]
@@ -458,7 +454,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
           if (!iszero(dscrfcn[fnoffset + jn])) {
             dUdsij = phi + frhop[i] * drhods1 + frhop[j] * drhods2;
           }
-          for (m = 1; m <= 3; m++) {
+          for (m = 0; m < 3; m++) {
             dUdrijm[m] =
               frhop[i] * drhodrm1[m] + frhop[j] * drhodrm2[m];
           }
@@ -466,37 +462,29 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
           //     Add the part of the force due to dUdrij and dUdsij
 
           force = dUdrij * recip + dUdsij * dscrfcn[fnoffset + jn];
-          for (m = 1; m <= 3; m++) {
+          for (m = 0; m < 3; m++) {
             forcem = delij[m] * force + dUdrijm[m];
-            f[i][m-1] = f[i][m-1] + forcem;
-            f[j][m-1] = f[j][m-1] - forcem;
+            f[i][m] = f[i][m] + forcem;
+            f[j][m] = f[j][m] - forcem;
           }
 
           //     Tabulate per-atom virial as symmetrized stress tensor
 
           if (vflag_atom != 0) {
+            fi[0] = delij[0] * force + dUdrijm[0];
             fi[1] = delij[1] * force + dUdrijm[1];
             fi[2] = delij[2] * force + dUdrijm[2];
-            fi[3] = delij[3] * force + dUdrijm[3];
+            v[0] = -0.5 * (delij[0] * fi[0]);
             v[1] = -0.5 * (delij[1] * fi[1]);
             v[2] = -0.5 * (delij[2] * fi[2]);
-            v[3] = -0.5 * (delij[3] * fi[3]);
-            v[4] = -0.25 * (delij[1] * fi[2] + delij[2] * fi[1]);
-            v[5] = -0.25 * (delij[1] * fi[3] + delij[3] * fi[1]);
-            v[6] = -0.25 * (delij[2] * fi[3] + delij[3] * fi[2]);
+            v[3] = -0.25 * (delij[0] * fi[1] + delij[1] * fi[0]);
+            v[4] = -0.25 * (delij[0] * fi[2] + delij[2] * fi[0]);
+            v[5] = -0.25 * (delij[1] * fi[2] + delij[2] * fi[1]);
 
-            vatom[i][0] = vatom[i][0] + v[1];
-            vatom[i][1] = vatom[i][1] + v[2];
-            vatom[i][2] = vatom[i][2] + v[3];
-            vatom[i][3] = vatom[i][3] + v[4];
-            vatom[i][4] = vatom[i][4] + v[5];
-            vatom[i][5] = vatom[i][5] + v[6];
-            vatom[j][0] = vatom[j][0] + v[1];
-            vatom[j][1] = vatom[j][1] + v[2];
-            vatom[j][2] = vatom[j][2] + v[3];
-            vatom[j][3] = vatom[j][3] + v[4];
-            vatom[j][4] = vatom[j][4] + v[5];
-            vatom[j][5] = vatom[j][5] + v[6];
+            for (m = 0; m<6; m++) {
+              vatom[i][m] = vatom[i][m] + v[m];
+              vatom[j][m] = vatom[j][m] + v[m];
+            }
           }
 
           //     Now compute forces on other atoms k due to change in sij
@@ -512,53 +500,40 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global,
               if (!iszero(dsij1) || !iszero(dsij2)) {
                 force1 = dUdsij * dsij1;
                 force2 = dUdsij * dsij2;
-                for (m = 1; m <= 3; m++) {
-                  delik[m] = arr2v(x, m, k+1) - arr2v(x, m, i+1);
-                  deljk[m] = arr2v(x, m, k+1) - arr2v(x, m, j+1);
+                for (m = 0; m < 3; m++) {
+                  delik[m] = x[k][m] - x[i][m];
+                  deljk[m] = x[k][m] - x[j][m];
                 }
-                for (m = 1; m <= 3; m++) {
-                  arr2v(f, m, i+1) = arr2v(f, m, i+1) + force1 * delik[m];
-                  arr2v(f, m, j+1) = arr2v(f, m, j+1) + force2 * deljk[m];
-                  arr2v(f, m, k+1) = arr2v(f, m, k+1) - force1 * delik[m] - force2 * deljk[m];
+                for (m = 0; m < 3; m++) {
+                  f[i][m] = f[i][m] + force1 * delik[m];
+                  f[j][m] = f[j][m] + force2 * deljk[m];
+                  f[k][m] = f[k][m] - force1 * delik[m] - force2 * deljk[m];
                 }
 
                 //     Tabulate per-atom virial as symmetrized stress tensor
 
                 if (vflag_atom != 0) {
+                  fi[0] = force1 * delik[0];
                   fi[1] = force1 * delik[1];
                   fi[2] = force1 * delik[2];
-                  fi[3] = force1 * delik[3];
+                  fj[0] = force2 * deljk[0];
                   fj[1] = force2 * deljk[1];
                   fj[2] = force2 * deljk[2];
-                  fj[3] = force2 * deljk[3];
+                  v[0] = -third * (delik[0] * fi[0] + deljk[0] * fj[0]);
                   v[1] = -third * (delik[1] * fi[1] + deljk[1] * fj[1]);
                   v[2] = -third * (delik[2] * fi[2] + deljk[2] * fj[2]);
-                  v[3] = -third * (delik[3] * fi[3] + deljk[3] * fj[3]);
-                  v[4] = -sixth * (delik[1] * fi[2] + deljk[1] * fj[2] +
+                  v[3] = -sixth * (delik[0] * fi[1] + deljk[0] * fj[1] +
+                                   delik[1] * fi[0] + deljk[1] * fj[0]);
+                  v[4] = -sixth * (delik[0] * fi[2] + deljk[0] * fj[2] +
+                                   delik[2] * fi[0] + deljk[2] * fj[0]);
+                  v[5] = -sixth * (delik[1] * fi[2] + deljk[1] * fj[2] +
                                    delik[2] * fi[1] + deljk[2] * fj[1]);
-                  v[5] = -sixth * (delik[1] * fi[3] + deljk[1] * fj[3] +
-                                   delik[3] * fi[1] + deljk[3] * fj[1]);
-                  v[6] = -sixth * (delik[2] * fi[3] + deljk[2] * fj[3] +
-                                   delik[3] * fi[2] + deljk[3] * fj[2]);
 
-                  vatom[i][0] = vatom[i][0] + v[1];
-                  vatom[i][1] = vatom[i][1] + v[2];
-                  vatom[i][2] = vatom[i][2] + v[3];
-                  vatom[i][3] = vatom[i][3] + v[4];
-                  vatom[i][4] = vatom[i][4] + v[5];
-                  vatom[i][5] = vatom[i][5] + v[6];
-                  vatom[j][0] = vatom[j][0] + v[1];
-                  vatom[j][1] = vatom[j][1] + v[2];
-                  vatom[j][2] = vatom[j][2] + v[3];
-                  vatom[j][3] = vatom[j][3] + v[4];
-                  vatom[j][4] = vatom[j][4] + v[5];
-                  vatom[j][5] = vatom[j][5] + v[6];
-                  vatom[k][0] = vatom[k][0] + v[1];
-                  vatom[k][1] = vatom[k][1] + v[2];
-                  vatom[k][2] = vatom[k][2] + v[3];
-                  vatom[k][3] = vatom[k][3] + v[4];
-                  vatom[k][4] = vatom[k][4] + v[5];
-                  vatom[k][5] = vatom[k][5] + v[6];
+                  for (m = 0; m<6; m++) {
+                    vatom[i][m] = vatom[i][m] + v[m];
+                    vatom[j][m] = vatom[j][m] + v[m];
+                    vatom[k][m] = vatom[k][m] + v[m];
+                  }
                 }
               }
             }

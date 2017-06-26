@@ -34,14 +34,14 @@ MEAM::meam_setup_done(double* cutmax)
   alloyparams();
 
   // indices and factors for Voight notation
-  nv2 = 1;
-  nv3 = 1;
-  for (m = 1; m <= 3; m++) {
-    for (n = m; n <= 3; n++) {
+  nv2 = 0;
+  nv3 = 0;
+  for (m = 0; m < 3; m++) {
+    for (n = m; n < 3; n++) {
       this->vind2D[m][n] = nv2;
       this->vind2D[n][m] = nv2;
       nv2 = nv2 + 1;
-      for (p = n; p <= 3; p++) {
+      for (p = n; p < 3; p++) {
         this->vind3D[m][n][p] = nv3;
         this->vind3D[m][p][n] = nv3;
         this->vind3D[n][m][p] = nv3;
@@ -53,23 +53,23 @@ MEAM::meam_setup_done(double* cutmax)
     }
   }
 
-  this->v2D[1] = 1;
+  this->v2D[0] = 1;
+  this->v2D[1] = 2;
   this->v2D[2] = 2;
-  this->v2D[3] = 2;
-  this->v2D[4] = 1;
-  this->v2D[5] = 2;
-  this->v2D[6] = 1;
+  this->v2D[3] = 1;
+  this->v2D[4] = 2;
+  this->v2D[5] = 1;
 
-  this->v3D[1] = 1;
+  this->v3D[0] = 1;
+  this->v3D[1] = 3;
   this->v3D[2] = 3;
   this->v3D[3] = 3;
-  this->v3D[4] = 3;
-  this->v3D[5] = 6;
-  this->v3D[6] = 3;
-  this->v3D[7] = 1;
+  this->v3D[4] = 6;
+  this->v3D[5] = 3;
+  this->v3D[6] = 1;
+  this->v3D[7] = 3;
   this->v3D[8] = 3;
-  this->v3D[9] = 3;
-  this->v3D[10] = 1;
+  this->v3D[9] = 1;
 
   nv2 = 0;
   for (m = 0; m < this->neltypes; m++) {
@@ -379,7 +379,7 @@ MEAM::phi_meam(double r, int a, int b)
 {
   /*unused:double a1,a2,a12;*/
   double t11av, t21av, t31av, t12av, t22av, t32av;
-  double G1, G2, s1[3 + 1], s2[3 + 1] /*,s12[3+1]*/, rho0_1, rho0_2;
+  double G1, G2, s1[3], s2[3], rho0_1, rho0_2;
   double Gam1, Gam2, Z1, Z2;
   double rhobar1, rhobar2, F1, F2;
   double rho01, rho11, rho21, rho31;
@@ -470,14 +470,14 @@ MEAM::phi_meam(double r, int a, int b)
         G1 = 1.0;
       else {
         get_shpfcn(s1, this->lattce_meam[a][a]);
-        Gam1 = (s1[1] * t11av + s1[2] * t21av + s1[3] * t31av) / (Z1 * Z1);
+        Gam1 = (s1[0] * t11av + s1[1] * t21av + s1[2] * t31av) / (Z1 * Z1);
         G_gam(Gam1, this->ibar_meam[a], &G1, &errorflag);
       }
       if (this->ibar_meam[b] <= 0)
         G2 = 1.0;
       else {
         get_shpfcn(s2, this->lattce_meam[b][b]);
-        Gam2 = (s2[1] * t12av + s2[2] * t22av + s2[3] * t32av) / (Z2 * Z2);
+        Gam2 = (s2[0] * t12av + s2[1] * t22av + s2[2] * t32av) / (Z2 * Z2);
         G_gam(Gam2, this->ibar_meam[b], &G2, &errorflag);
       }
       rho0_1 = this->rho0_meam[a] * Z1 * G1;
@@ -585,7 +585,7 @@ void
 MEAM::compute_reference_density(void)
 {
   int a, Z, Z2, errorflag;
-  double gam, Gbar, shp[3 + 1];
+  double gam, Gbar, shp[3];
   double rho0, rho0_2nn, arat, scrn;
 
   // loop over element types
@@ -595,8 +595,8 @@ MEAM::compute_reference_density(void)
       Gbar = 1.0;
     else {
       get_shpfcn(shp, this->lattce_meam[a][a]);
-      gam = (this->t1_meam[a] * shp[1] + this->t2_meam[a] * shp[2] +
-             this->t3_meam[a] * shp[3]) /
+      gam = (this->t1_meam[a] * shp[0] + this->t2_meam[a] * shp[1] +
+             this->t3_meam[a] * shp[2]) /
             (Z * Z);
       G_gam(gam, this->ibar_meam[a], &Gbar, &errorflag);
     }
@@ -627,24 +627,24 @@ void
 MEAM::get_shpfcn(double* s /* s(3) */, lattice_t latt)
 {
   if (latt == FCC || latt == BCC || latt == B1 || latt == B2) {
+    s[0] = 0.0;
     s[1] = 0.0;
     s[2] = 0.0;
-    s[3] = 0.0;
   } else if (latt == HCP) {
+    s[0] = 0.0;
     s[1] = 0.0;
-    s[2] = 0.0;
-    s[3] = 1.0 / 3.0;
+    s[2] = 1.0 / 3.0;
   } else if (latt == DIA) {
+    s[0] = 0.0;
     s[1] = 0.0;
-    s[2] = 0.0;
-    s[3] = 32.0 / 9.0;
+    s[2] = 32.0 / 9.0;
   } else if (latt == DIM) {
-    s[1] = 1.0;
-    s[2] = 2.0 / 3.0;
+    s[0] = 1.0;
+    s[1] = 2.0 / 3.0;
     //        s(3) = 1.d0
-    s[3] = 0.40;
+    s[2] = 0.40;
   } else {
-    s[1] = 0.0;
+    s[0] = 0.0;
     //        call error('Lattice not defined in get_shpfcn.')
   }
 }
@@ -804,7 +804,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
             double* rho32)
 {
   double a1, a2;
-  double s[3 + 1];
+  double s[3];
   lattice_t lat;
   int Zij1nn, Zij2nn;
   double rhoa01nn, rhoa02nn;
@@ -859,12 +859,12 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
     get_shpfcn(s, DIM);
     *rho01 = rhoa02;
     *rho02 = rhoa01;
-    *rho11 = s[1] * rhoa12 * rhoa12;
-    *rho12 = s[1] * rhoa11 * rhoa11;
-    *rho21 = s[2] * rhoa22 * rhoa22;
-    *rho22 = s[2] * rhoa21 * rhoa21;
-    *rho31 = s[3] * rhoa32 * rhoa32;
-    *rho32 = s[3] * rhoa31 * rhoa31;
+    *rho11 = s[0] * rhoa12 * rhoa12;
+    *rho12 = s[0] * rhoa11 * rhoa11;
+    *rho21 = s[1] * rhoa22 * rhoa22;
+    *rho22 = s[1] * rhoa21 * rhoa21;
+    *rho31 = s[2] * rhoa32 * rhoa32;
+    *rho32 = s[2] * rhoa31 * rhoa31;
   } else if (lat == C11) {
     *rho01 = rhoa01;
     *rho02 = rhoa02;

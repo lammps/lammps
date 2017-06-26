@@ -93,8 +93,8 @@ class MEAM {
   int augt1, ialloy, mix_ref_t, erose_form;
   int emb_lin_neg, bkgd_dyn;
   double gsmooth_factor;
-  int vind2D[3 + 1][3 + 1], vind3D[3 + 1][3 + 1][3 + 1];
-  int v2D[6 + 1], v3D[10 + 1];
+  int vind2D[3][3], vind3D[3][3][3];
+  int v2D[6], v3D[10];
 
   int nr, nrar;
   double dr, rdrar;
@@ -180,19 +180,6 @@ public:
         for (int __k = 0; __k < maxelt; __k++)                                 \
           arr[__i][__j][__k] = v;                                              \
   }
-
-/*
-Fortran Array Semantics in C.
- - Stack-Allocated and global arrays are 1-based, declared as foo[N+1] and simply ignoring the first element
-    - Multi-Dimensional MUST be declared in reverse, so that the order when accessing is the same as in Fortran
- - arrays that are passed externally via the meam_* functions must use the arr*v() functions below
-   (or be used with 0-based indexing)
-*/
-
-// access data with same index as used in fortran (1-based)
-#define arr1v(ptr, i) ptr[i - 1]
-#define arr2v(ptr, i, j) ptr[j - 1][i - 1]
-
 
 };
 #endif

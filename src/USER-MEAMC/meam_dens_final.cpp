@@ -27,7 +27,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
 {
   int i, elti;
   int m;
-  double rhob, G, dG, Gbar, dGbar, gam, shp[3 + 1], Z;
+  double rhob, G, dG, Gbar, dGbar, gam, shp[3], Z;
   double B, denom, rho_bkgd;
 
   //     Complete the calculation of density
@@ -38,19 +38,19 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
       rho1[i] = 0.0;
       rho2[i] = -1.0 / 3.0 * arho2b[i] * arho2b[i];
       rho3[i] = 0.0;
-      for (m = 1; m <= 3; m++) {
-        rho1[i] = rho1[i] + arr2v(arho1, m, i+1) * arr2v(arho1, m, i+1);
-        rho3[i] = rho3[i] - 3.0 / 5.0 * arr2v(arho3b, m, i+1) * arr2v(arho3b, m, i+1);
+      for (m = 0; m < 3; m++) {
+        rho1[i] = rho1[i] + arho1[i][m] * arho1[i][m];
+        rho3[i] = rho3[i] - 3.0 / 5.0 * arho3b[i][m] * arho3b[i][m];
       }
-      for (m = 1; m <= 6; m++) {
+      for (m = 0; m < 6; m++) {
         rho2[i] =
           rho2[i] +
-          this->v2D[m] * arr2v(arho2, m, i+1) * arr2v(arho2, m, i+1);
+          this->v2D[m] * arho2[i][m] * arho2[i][m];
       }
-      for (m = 1; m <= 10; m++) {
+      for (m = 0; m < 10; m++) {
         rho3[i] =
           rho3[i] +
-          this->v3D[m] * arr2v(arho3, m, i+1) * arr2v(arho3, m, i+1);
+          this->v3D[m] * arho3[i][m] * arho3[i][m];
       }
 
       if (rho0[i] > 0.0) {
@@ -88,13 +88,13 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
         dGbar = 0.0;
       } else {
         if (this->mix_ref_t == 1) {
-          gam = (t_ave[i][0] * shp[1] + t_ave[i][1] * shp[2] +
-                 t_ave[i][2] * shp[3]) /
+          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] +
+                 t_ave[i][2] * shp[2]) /
                 (Z * Z);
         } else {
-          gam = (this->t1_meam[elti] * shp[1] +
-                 this->t2_meam[elti] * shp[2] +
-                 this->t3_meam[elti] * shp[3]) /
+          gam = (this->t1_meam[elti] * shp[0] +
+                 this->t2_meam[elti] * shp[1] +
+                 this->t3_meam[elti] * shp[2]) /
                 (Z * Z);
         }
         G_gam(gam, this->ibar_meam[elti], &Gbar, errorflag);
@@ -106,8 +106,8 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
           Gbar = 1.0;
           dGbar = 0.0;
         } else {
-          gam = (t_ave[i][0] * shp[1] + t_ave[i][1] * shp[2] +
-                 t_ave[i][2] * shp[3]) /
+          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] +
+                 t_ave[i][2] * shp[2]) /
                 (Z * Z);
           dG_gam(gam, this->ibar_meam[elti], &Gbar, &dGbar);
         }

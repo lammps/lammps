@@ -246,7 +246,7 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
 {
   int jn, j, m, n, p, elti, eltj;
   int nv2, nv3;
-  double xtmp, ytmp, ztmp, delij[3 + 1], rij2, rij, sij;
+  double xtmp, ytmp, ztmp, delij[3], rij2, rij, sij;
   double ai, aj, rhoa0j, rhoa1j, rhoa2j, rhoa3j, A1j, A2j, A3j;
   // double G,Gbar,gam,shp[3+1];
   double ro0i, ro0j;
@@ -260,10 +260,10 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
     if (!iszero(scrfcn[jn])) {
       j = firstneigh[jn];
       sij = scrfcn[jn] * fcpair[jn];
-      delij[1] = x[j][0] - xtmp;
-      delij[2] = x[j][1] - ytmp;
-      delij[3] = x[j][2] - ztmp;
-      rij2 = delij[1] * delij[1] + delij[2] * delij[2] + delij[3] * delij[3];
+      delij[0] = x[j][0] - xtmp;
+      delij[1] = x[j][1] - ytmp;
+      delij[2] = x[j][2] - ztmp;
+      rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
       if (rij2 < this->cutforcesq) {
         eltj = fmap[type[j]];
         rij = sqrt(rij2);
@@ -315,24 +315,20 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
         A1i = rhoa1i / rij;
         A2i = rhoa2i / rij2;
         A3i = rhoa3i / (rij2 * rij);
-        nv2 = 1;
-        nv3 = 1;
-        for (m = 1; m <= 3; m++) {
-          arr2v(arho1, m, i+1) = arr2v(arho1, m, i+1) + A1j * delij[m];
-          arr2v(arho1, m, j+1) = arr2v(arho1, m, j+1) - A1i * delij[m];
-          arr2v(arho3b, m, i+1) = arr2v(arho3b, m, i+1) + rhoa3j * delij[m] / rij;
-          arr2v(arho3b, m, j+1) = arr2v(arho3b, m, j+1) - rhoa3i * delij[m] / rij;
-          for (n = m; n <= 3; n++) {
-            arr2v(arho2, nv2, i+1) =
-              arr2v(arho2, nv2, i+1) + A2j * delij[m] * delij[n];
-            arr2v(arho2, nv2, j+1) =
-              arr2v(arho2, nv2, j+1) + A2i * delij[m] * delij[n];
+        nv2 = 0;
+        nv3 = 0;
+        for (m = 0; m < 3; m++) {
+          arho1[i][m] = arho1[i][m] + A1j * delij[m];
+          arho1[j][m] = arho1[j][m] - A1i * delij[m];
+          arho3b[i][m] = arho3b[i][m] + rhoa3j * delij[m] / rij;
+          arho3b[j][m] = arho3b[j][m] - rhoa3i * delij[m] / rij;
+          for (n = m; n < 3; n++) {
+            arho2[i][nv2] = arho2[i][nv2] + A2j * delij[m] * delij[n];
+            arho2[j][nv2] = arho2[j][nv2] + A2i * delij[m] * delij[n];
             nv2 = nv2 + 1;
-            for (p = n; p <= 3; p++) {
-              arr2v(arho3, nv3, i+1) =
-                arr2v(arho3, nv3, i+1) + A3j * delij[m] * delij[n] * delij[p];
-              arr2v(arho3, nv3, j+1) =
-                arr2v(arho3, nv3, j+1) - A3i * delij[m] * delij[n] * delij[p];
+            for (p = n; p < 3; p++) {
+              arho3[i][nv3] = arho3[i][nv3] + A3j * delij[m] * delij[n] * delij[p];
+              arho3[j][nv3] = arho3[j][nv3] - A3i * delij[m] * delij[n] * delij[p];
               nv3 = nv3 + 1;
             }
           }

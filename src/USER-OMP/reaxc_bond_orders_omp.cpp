@@ -55,7 +55,6 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
   long reductionOffset = (system->N * tid);
 
   /* Virial Tallying variables */
-  double f_scaler;
   rvec fi_tmp, fj_tmp, fk_tmp, delij, delji, delki, delkj, temp;
 
   /* Initializations */
@@ -229,14 +228,11 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj, simulation_
   ivec rel_box;
   int pk, k, j;
 
-  PairReaxCOMP *pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
-
 #if defined(_OPENMP)
   int tid = omp_get_thread_num();
 #else
   int tid = 0;
 #endif
-  ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
   long reductionOffset = (system->N * tid);
 
   /* Initializations */
@@ -430,12 +426,9 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 #endif
 
   double p_lp1 = system->reax_param.gp.l[15];
-  int  num_bonds = 0;
   double p_boc1 = system->reax_param.gp.l[0];
   double p_boc2 = system->reax_param.gp.l[1];
   reax_list *bonds = (*lists) + BONDS;
-  int  natoms = system->N;
-  int  nthreads = control->nthreads;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
@@ -454,11 +447,6 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
     two_body_parameters *twbp;
     bond_order_data *bo_ij, *bo_ji;
 
-#if defined(_OPENMP)
-    int tid = omp_get_thread_num();
-#else
-    int tid = 0;
-#endif
     /* Calculate Deltaprime, Deltaprime_boc values */
 #if defined(_OPENMP)
 #pragma omp for schedule(static)

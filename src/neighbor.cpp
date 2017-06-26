@@ -1268,6 +1268,12 @@ void Neighbor::morph_copy()
 
       if (irq->ghost && !jrq->ghost) continue;
 
+      // do not copy from a history list or a respa middle/inner list
+
+      if (jrq->history) continue;
+      if (jrq->respamiddle) continue;
+      if (jrq->respainner) continue;
+
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
@@ -1617,6 +1623,21 @@ void Neighbor::requests_new2old()
   old_triclinic = triclinic;
   old_pgsize = pgsize;
   old_oneatom = oneatom;
+}
+
+/* ----------------------------------------------------------------------
+   find and return request made by classptr
+   if not found or classpt = NULL, return NULL
+------------------------------------------------------------------------- */
+
+NeighRequest *Neighbor::find_request(void *classptr)
+{
+  if (classptr == NULL) return NULL;
+
+  for (int i = 0; i < nrequest; i++)
+    if (requests[i]->requestor == classptr) return requests[i];
+
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

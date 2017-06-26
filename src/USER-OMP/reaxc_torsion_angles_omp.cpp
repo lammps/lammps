@@ -69,8 +69,10 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
   double total_Econ = 0;
   int  nthreads = control->nthreads;
 
+#if defined(_OPENMP)
 #pragma omp parallel default(shared) reduction(+: total_Etor, total_Econ)
- {
+#endif
+  {
   int i, j, k, l, pi, pj, pk, pl, pij, plk;
   int type_i, type_j, type_k, type_l;
   int start_j, end_j;
@@ -125,7 +127,9 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                                     system->N, system->pair_ptr->eatom,
                                     system->pair_ptr->vatom, thr);
 
+#if defined(_OPENMP)
 #pragma omp for schedule(static)
+#endif
   for (j = 0; j < system->N; ++j) {
     start_j = Start_Index(j, bonds);
     end_j = End_Index(j, bonds);
@@ -137,7 +141,9 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
     }
   }
 
+#if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
+#endif
   for (j = 0; j < natoms; ++j) {
     type_j = system->my_atoms[j].type;
     Delta_j = workspace->Delta_boc[j];

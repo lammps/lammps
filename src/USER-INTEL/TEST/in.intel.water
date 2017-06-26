@@ -1,5 +1,6 @@
 # Coarse-grain water simulation using Stillinger-Weber
 
+variable        N index on      # Newton Setting
 variable        w index 10      # Warmup Timesteps
 variable        t index 2600	# Main Run Timesteps
 variable        m index 1       # Main Run Timestep Multiplier
@@ -11,6 +12,7 @@ variable	y index 2
 variable	z index 2
 variable        rr equal floor($t*$m)
 
+newton          $N
 if "$n > 0"     then "processors * * * grid numa"
 
 units		real

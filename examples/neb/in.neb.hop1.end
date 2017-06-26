@@ -15,7 +15,7 @@ variable	u uloop 20
 lattice		hex 0.9
 region		box block 0 20 0 10 -0.25 0.25
 
-read_data        initial.hop1freeend
+read_data        initial.hop1.end
 
 # LJ potentials
 
@@ -41,7 +41,7 @@ set		group nebatoms type 3
 group		nonneb subtract all nebatoms
 
 fix		1 lower setforce 0.0 0.0 0.0
-fix		2 nebatoms neb 1.0 nudg_style idealpos freeend ini
+fix		2 nebatoms neb 1.0 parallel ideal end first 1.0
 fix		3 all enforce2d
 
 thermo		100

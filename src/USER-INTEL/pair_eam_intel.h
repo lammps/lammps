@@ -41,7 +41,7 @@ class PairEAMIntel : public PairEAM {
  protected:
 
   FixIntel *fix;
-  int _cop, _onetype;
+  int _cop, _onetype, _ccache_stride;
   float *fp_float;
 
   template <class flt_t>
@@ -53,8 +53,8 @@ class PairEAMIntel : public PairEAM {
   template <class flt_t, class acc_t>
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
-  template <int ONETYPE, int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, 
-	    class acc_t>
+  template <int ONETYPE, int EFLAG, int NEWTON_PAIR, class flt_t,
+            class acc_t>
   void eval(const int offload, const int vflag,
             IntelBuffers<flt_t,acc_t> * buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
@@ -79,8 +79,8 @@ class PairEAMIntel : public PairEAM {
     ForceConst() : _ntypes(0), _nr(0)  {}
     ~ForceConst() { set_ntypes(0, 0, 0, NULL, _cop); }
 
-    void set_ntypes(const int ntypes, const int nr, const int nrho, 
-		    Memory *memory, const int cop);
+    void set_ntypes(const int ntypes, const int nr, const int nrho,
+                    Memory *memory, const int cop);
     inline int rhor_jstride() const { return _nr; }
     inline int rhor_istride() const { return _nr * _ntypes; }
     inline int frho_stride() const { return _nrho; }

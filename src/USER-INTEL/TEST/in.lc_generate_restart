@@ -4,13 +4,13 @@
 # cutoff 4.0 with skin 0.8
 # NPT, T=2.4, P=8.0
 
-variable	x index 1
-variable	y index 1
-variable	z index 1
+variable	xt index 1
+variable	yt index 1
+variable	zt index 1
 
-variable	i equal $x*32
-variable	j equal $y*32
-variable	k equal $z*32
+variable	i equal ${xt}*32
+variable	j equal ${yt}*32
+variable	k equal ${zt}*32
 
 units		lj
 atom_style	ellipsoid

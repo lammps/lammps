@@ -48,8 +48,6 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 			     reax_list **lists, output_controls *out_control ) {
 
   int natoms = system->n;
-  int nthreads = control->nthreads;
-  long totalReductionSize = system->N * nthreads;
   reax_list *far_nbrs = (*lists) + FAR_NBRS;
   double p_vdW1 = system->reax_param.gp.l[28];
   double p_vdW1i = 1.0 / p_vdW1;
@@ -71,7 +69,8 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
   double tmp, r_ij, fn13, exp1, exp2;
   double Tap, dTap, dfn13, CEvd, CEclmb, de_core;
   double dr3gamij_1, dr3gamij_3;
-  double e_ele, e_ele_thr, e_vdW, e_vdW_thr, e_core, SMALL = 0.0001;
+  double e_ele, e_vdW, e_core;
+  const double SMALL = 0.0001;
   double e_lg, de_lg, r_ij5, r_ij6, re6;
   rvec temp, ext_press;
   two_body_parameters *twbp;
@@ -92,7 +91,6 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 				    system->pair_ptr->vatom, thr);
   e_core = 0;
   e_vdW = 0;
-  e_vdW_thr = 0;
   e_lg = 0;
   de_lg = 0.0;
 
@@ -263,8 +261,6 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   double SMALL = 0.0001;
   int  natoms = system->n;
   reax_list *far_nbrs = (*lists) + FAR_NBRS;
-  int  nthreads = control->nthreads;
-  long totalReductionSize = system->N * nthreads;
   double total_EvdW = 0.;
   double total_Eele = 0.;
 

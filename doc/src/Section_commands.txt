@@ -964,7 +964,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "lj/expand (gko)"_pair_lj_expand.html,
 "lj/gromacs (gko)"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs (ko)"_pair_gromacs.html,
-"lj/long/coul/long (o)"_pair_lj_long.html,
+"lj/long/coul/long (io)"_pair_lj_long.html,
 "lj/long/dipole/long"_pair_dipole.html,
 "lj/long/tip4p/long"_pair_lj_long.html,
 "lj/smooth (o)"_pair_lj_smooth.html,
@@ -1073,7 +1073,7 @@ package"_Section_start.html#start_3.
 "table/rx"_pair_table_rx.html,
 "tersoff/table (o)"_pair_tersoff.html,
 "thole"_pair_thole.html,
-"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c) 
+"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c)
 
 :line
 
@@ -1225,7 +1225,7 @@ USER-OMP, t = OPT.
 "msm/cg (o)"_kspace_style.html,
 "pppm (go)"_kspace_style.html,
 "pppm/cg (o)"_kspace_style.html,
-"pppm/disp"_kspace_style.html,
+"pppm/disp (i)"_kspace_style.html,
 "pppm/disp/tip4p"_kspace_style.html,
 "pppm/stagger"_kspace_style.html,
 "pppm/tip4p (o)"_kspace_style.html :tb(c=4,ea=c)

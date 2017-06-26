@@ -29,7 +29,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNVEIntel::FixNVEIntel(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg) 
+  FixNVE(lmp, narg, arg)
 {
   _dtfm = 0;
   _nlocal3 = 0;
@@ -91,7 +91,7 @@ void FixNVEIntel::initial_integrate(int vflag)
     for (int i = 0; i < _nlocal3; i++) {
       if (_dtfm[i] != 0.0) {
         v[i] += _dtfm[i] * f[i];
-	x[i] += dtv * v[i];
+        x[i] += dtv * v[i];
       }
     }
   }
@@ -130,7 +130,7 @@ void FixNVEIntel::reset_dt() {
   dtf = 0.5 * update->dt * force->ftm2v;
 
   const int * const mask = atom->mask;
-  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : 
+  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
 
   if (nlocal > _nlocal_max) {
@@ -146,9 +146,9 @@ void FixNVEIntel::reset_dt() {
       const double * const rmass = atom->rmass;
       int n = 0;
       for (int i = 0; i < nlocal; i++) {
-	_dtfm[n++] = dtf / rmass[i];
-	_dtfm[n++] = dtf / rmass[i];
-	_dtfm[n++] = dtf / rmass[i];
+        _dtfm[n++] = dtf / rmass[i];
+        _dtfm[n++] = dtf / rmass[i];
+        _dtfm[n++] = dtf / rmass[i];
       }
     } else {
       const double * const mass = atom->mass;
@@ -165,34 +165,34 @@ void FixNVEIntel::reset_dt() {
       const double * const rmass = atom->rmass;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  _dtfm[n++] = dtf / rmass[i];
-	  _dtfm[n++] = dtf / rmass[i];
-	  _dtfm[n++] = dtf / rmass[i];
+        if (mask[i] & groupbit) {
+          _dtfm[n++] = dtf / rmass[i];
+          _dtfm[n++] = dtf / rmass[i];
+          _dtfm[n++] = dtf / rmass[i];
         } else {
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	}
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+        }
     } else {
       const double * const mass = atom->mass;
       const int * const type = atom->type;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  _dtfm[n++] = dtf / mass[type[i]];
-	  _dtfm[n++] = dtf / mass[type[i]];
-	  _dtfm[n++] = dtf / mass[type[i]];
+        if (mask[i] & groupbit) {
+          _dtfm[n++] = dtf / mass[type[i]];
+          _dtfm[n++] = dtf / mass[type[i]];
+          _dtfm[n++] = dtf / mass[type[i]];
         } else {
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	  _dtfm[n++] = 0.0;
-	}
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+          _dtfm[n++] = 0.0;
+        }
     }
   }
 }
 
-double FixNVEIntel::memory_usage() 
+double FixNVEIntel::memory_usage()
 {
   return FixNVE::memory_usage() + _nlocal_max * 3 * sizeof(double);
 }

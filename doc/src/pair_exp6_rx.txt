@@ -55,33 +55,33 @@ defined in the reaction kinetics files specified with the "fix
 rx"_fix_rx.html command or they must correspond to the tag "1fluid",
 signifying interaction with a product species mixture determined
 through a one-fluid approximation.  The interaction potential is
-weighted by the geometric average of either the mole fraction concentrations 
-or the number of molecules associated with the interacting coarse-grained 
-particles (see the {fractional} or {molecular} weighting pair style options). 
+weighted by the geometric average of either the mole fraction concentrations
+or the number of molecules associated with the interacting coarse-grained
+particles (see the {fractional} or {molecular} weighting pair style options).
 The coarse-grained potential is stored before and after the
 reaction kinetics solver is applied, where the difference is defined
 to be the internal chemical energy (uChem).
 
-The fourth argument specifies the type of scaling that will be used 
+The fourth argument specifies the type of scaling that will be used
 to scale the EXP-6 parameters as reactions occur.  Currently, there
 are three scaling options:  {exponent}, {polynomial} and {none}.
 
-Exponent scaling requires two additional arguments for scaling 
+Exponent scaling requires two additional arguments for scaling
 the {Rm} and {epsilon} parameters, respectively.  The scaling factor
-is computed by phi^exponent, where phi is the number of molecules  
-represented by the coarse-grain particle and exponent is specified 
+is computed by phi^exponent, where phi is the number of molecules
+represented by the coarse-grain particle and exponent is specified
 as a pair coefficient argument for {Rm} and {epsilon}, respectively.
-The {Rm} and {epsilon} parameters are multiplied by the scaling 
+The {Rm} and {epsilon} parameters are multiplied by the scaling
 factor to give the scaled interaction parameters for the CG particle.
 
-Polynomial scaling requires a filename to be specified as a pair 
+Polynomial scaling requires a filename to be specified as a pair
 coeff argument.  The file contains the coefficients to a fifth order
-polynomial for the {alpha}, {epsilon} and {Rm} parameters that depend 
-upon phi (the number of molecules represented by the CG particle). 
+polynomial for the {alpha}, {epsilon} and {Rm} parameters that depend
+upon phi (the number of molecules represented by the CG particle).
 The format of a polynomial file is provided below.
 
 The {none} option to the scaling does not have any additional pair coeff
-arguments.  This is equivalent to specifying the {exponent} option with 
+arguments.  This is equivalent to specifying the {exponent} option with
 {Rm} and {epsilon} exponents of 0.0 and 0.0, respectively.
 
 The final argument specifies the interaction cutoff (optional).
@@ -102,7 +102,7 @@ parenthesized comments):
 
 # POLYNOMIAL FILE          (one or more comment or blank lines) :pre
 #  General Functional Form:
-#  A*phi^5 + B*phi^4 + C*phi^3 + D*phi^2 + E*phi + F 
+#  A*phi^5 + B*phi^4 + C*phi^3 + D*phi^2 + E*phi + F
 #
 #  Parameter  A        B         C        D         E        F
                            (blank)

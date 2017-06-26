@@ -489,7 +489,7 @@ python"_Section_python.html.  Note that it is important that the
 stand-alone LAMMPS executable and the LAMMPS shared library be
 consistent (built from the same source code files) in order for this
 to work.  If the two have been built at different times using
-different source files, problems may occur. 
+different source files, problems may occur.
 
 [Related commands:]
 

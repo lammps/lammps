@@ -1,5 +1,6 @@
 # 3d Lennard-Jones melt
 
+variable        N index off     # Newton Setting
 variable	w index 10	# Warmup Timesteps
 variable	t index 7900	# Main Run Timesteps
 variable	m index 1	# Main Run Timestep Multiplier
@@ -15,6 +16,7 @@ variable	yy equal 20*$y
 variable	zz equal 20*$z
 variable	rr equal floor($t*$m)
 
+newton          $N
 if "$n > 0"	then "processors * * * grid numa"
 
 units		lj

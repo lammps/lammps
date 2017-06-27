@@ -13,14 +13,14 @@ Thus please also have a look at:
 [I don't want to read this whole thing, I just have a question!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
 
 [How Can I Contribute?](#how-can-i-contribute)
-    * [Discussing How To Use LAMMPS](#discussing-how-to-use-lammps)
-    * [Reporting Bugs](#reporting-bugs)
-    * [Suggesting Enhancements](#suggesting-enhancements)
-    * [Contributing Code](#contributing-code)
+* [Discussing How To Use LAMMPS](#discussing-how-to-use-lammps)
+* [Reporting Bugs](#reporting-bugs)
+* [Suggesting Enhancements](#suggesting-enhancements)
+* [Contributing Code](#contributing-code)
 
 [GitHub Workflows](#github-workflows)
-    * [Issues](#issues)
-    * [Pull Requests](#pull-requests)
+* [Issues](#issues)
+* [Pull Requests](#pull-requests)
 
 __
 

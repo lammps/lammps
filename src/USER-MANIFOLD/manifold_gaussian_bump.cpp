@@ -72,7 +72,7 @@ public:
       ff  = x(t) - xx;
       ffp = xp(t);
       double res = ff;
-      if( std::fabs( res ) < tol ){
+      if( fabs( res ) < tol ){
         return t;
       }
     }

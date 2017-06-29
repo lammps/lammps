@@ -66,6 +66,8 @@ PairSpin::~PairSpin()
     memory->destroy(v_mey);
     memory->destroy(v_mez);
     
+    memory->destroy(spi);
+    memory->destroy(spj);
     memory->destroy(fmi);
     memory->destroy(fmj);
 
@@ -111,12 +113,18 @@ void PairSpin::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     jlist = firstneigh[i];
-    jnum = numneigh[i];  
+    jnum = numneigh[i]; 
+    spi[0] = sp[i][0]; 
+    spi[1] = sp[i][1]; 
+    spi[2] = sp[i][2]; 
    
     //Loop on Neighbors
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+      spj[0] = sp[j][0]; 
+      spj[1] = sp[j][1]; 
+      spj[2] = sp[j][2]; 
 
       fmi[0] = fmi[1] = fmi[2] = 0.0;
       fmj[0] = fmj[1] = fmj[2] = 0.0;
@@ -132,21 +140,21 @@ void PairSpin::compute(int eflag, int vflag)
       if (exch_flag) {
         cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
         if (rsq <= cut_ex_2) {
-          compute_exchange(i,j,rsq,fmi,fmj);   
+          compute_exchange(i,j,rsq,fmi,fmj,spi,spj);   
         }
       }
       //DM interaction
       if (dmi_flag){
         cut_dmi_2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
         if (rsq <= cut_dmi_2){
-          compute_dmi(i,j,fmi,fmj);
+          compute_dmi(i,j,fmi,fmj,spi,spj);
         } 
       }
       //ME interaction
       if (me_flag){
         cut_me_2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
         if (rsq <= cut_me_2){
-          compute_me(i,j,fmi,fmj);
+          compute_me(i,j,fmi,fmj,spi,spj);
         } 
       }
 
@@ -166,11 +174,10 @@ void PairSpin::compute(int eflag, int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *fmj)
+void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *fmj, double *spi, double *spj)
 {
   int *type = atom->type;  
   int itype, jtype;
-  double **sp = atom->sp;
   double dmix,dmiy,dmiz;	
   double Jex, ra;
   itype = type[i];
@@ -181,22 +188,21 @@ void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *
   Jex *= (1.0-J_2[itype][jtype]*ra);
   Jex *= exp(-ra);
 
-  fmi[0] += Jex*sp[j][0];
-  fmi[1] += Jex*sp[j][1];
-  fmi[2] += Jex*sp[j][2];
+  fmi[0] += Jex*spj[0];
+  fmi[1] += Jex*spj[1];
+  fmi[2] += Jex*spj[2];
           
-  fmj[0] += Jex*sp[i][0];
-  fmj[1] += Jex*sp[i][1];
-  fmj[2] += Jex*sp[i][2];
+  fmj[0] += Jex*spi[0];
+  fmj[1] += Jex*spi[1];
+  fmj[2] += Jex*spi[2];
   
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpin::compute_dmi(int i, int j, double *fmi,  double *fmj)
+void PairSpin::compute_dmi(int i, int j, double *fmi,  double *fmj, double *spi, double *spj)
 {
   int *type = atom->type;  
   int itype, jtype;
-  double **sp = atom->sp;
   double dmix,dmiy,dmiz;	
   itype = type[i];
   jtype = type[j];
@@ -205,17 +211,17 @@ void PairSpin::compute_dmi(int i, int j, double *fmi,  double *fmj)
   dmiy = DM[itype][jtype]*v_dmy[itype][jtype];
   dmiz = DM[itype][jtype]*v_dmz[itype][jtype];
 
-  fmi[0] += sp[j][1]*dmiz-sp[j][2]*dmiy;
-  fmi[1] += sp[j][2]*dmix-sp[j][0]*dmiz;
-  fmi[2] += sp[j][0]*dmiy-sp[j][1]*dmix;
+  fmi[0] += spj[1]*dmiz-spj[2]*dmiy;
+  fmi[1] += spj[2]*dmix-spj[0]*dmiz;
+  fmi[2] += spj[0]*dmiy-spj[1]*dmix;
 
-  fmj[0] -= sp[i][1]*dmiz-sp[i][2]*dmiy;
-  fmj[1] -= sp[i][2]*dmix-sp[i][0]*dmiz;
-  fmj[2] -= sp[i][0]*dmiy-sp[i][1]*dmix;
+  fmj[0] -= spi[1]*dmiz-spi[2]*dmiy;
+  fmj[1] -= spi[2]*dmix-spi[0]*dmiz;
+  fmj[2] -= spi[0]*dmiy-spi[1]*dmix;
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpin::compute_me(int i, int j, double *fmi,  double *fmj)
+void PairSpin::compute_me(int i, int j, double *fmi,  double *fmj, double *spi, double *spj)
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -242,13 +248,13 @@ void PairSpin::compute_me(int i, int j, double *fmi,  double *fmj)
   meiy *= ME[itype][jtype]; 
   meiz *= ME[itype][jtype]; 
 
-  fmi[0] += sp[j][1]*meiz - sp[j][2]*meiy;
-  fmi[1] += sp[j][2]*meix - sp[j][0]*meiz;
-  fmi[2] += sp[j][0]*meiy - sp[j][1]*meix;
+  fmi[0] += spj[1]*meiz - spj[2]*meiy;
+  fmi[1] += spj[2]*meix - spj[0]*meiz;
+  fmi[2] += spj[0]*meiy - spj[1]*meix;
           
-  fmj[0] -= sp[i][1]*meiz - sp[i][2]*meiy;
-  fmj[1] -= sp[i][2]*meix - sp[i][0]*meiz;
-  fmj[2] -= sp[i][0]*meiy - sp[i][1]*meix;
+  fmj[0] -= spi[1]*meiz - spi[2]*meiy;
+  fmj[1] -= spi[2]*meix - spi[0]*meiz;
+  fmj[2] -= spi[0]*meiy - spi[1]*meix;
 
 }
 
@@ -283,6 +289,8 @@ void PairSpin::allocate()
   memory->create(v_mey,n+1,n+1,"pair:ME_vector_y");
   memory->create(v_mez,n+1,n+1,"pair:ME_vector_z");
  
+  memory->create(spi,3,"pair:spi");
+  memory->create(spj,3,"pair:spj");
   memory->create(fmi,3,"pair:fmi");
   memory->create(fmj,3,"pair:fmj");
  
@@ -325,6 +333,7 @@ void PairSpin::settings(int narg, char **arg)
 
 void PairSpin::coeff(int narg, char **arg)
 {
+  const double hbar = force->hplanck/MY_2PI;
 
   if (!allocated) allocate();
 
@@ -336,14 +345,11 @@ void PairSpin::coeff(int narg, char **arg)
     force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
     force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
     
-    double rij = force->numeric(FLERR,arg[3]);
-    double J1 = force->numeric(FLERR,arg[4]);
-    double J2 = force->numeric(FLERR,arg[5]);  
-    double J3 = force->numeric(FLERR,arg[6]); 
+    const double rij = force->numeric(FLERR,arg[3]);
+    const double J1 = (force->numeric(FLERR,arg[4]))/hbar;
+    const double J2 = force->numeric(FLERR,arg[5]);  
+    const double J3 = force->numeric(FLERR,arg[6]); 
   
-    double hbar = force->hplanck/MY_2PI;
-    J1 /= hbar;
-    
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -363,8 +369,8 @@ void PairSpin::coeff(int narg, char **arg)
     force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
     force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
     
-    double rij = force->numeric(FLERR,arg[3]);
-    double dm = force->numeric(FLERR,arg[4]);
+    const double rij = force->numeric(FLERR,arg[3]);
+    const double dm = (force->numeric(FLERR,arg[4]))/hbar;
     double dmx = force->numeric(FLERR,arg[5]);  
     double dmy = force->numeric(FLERR,arg[6]); 
     double dmz = force->numeric(FLERR,arg[7]); 
@@ -374,9 +380,6 @@ void PairSpin::coeff(int narg, char **arg)
     dmy *= inorm; 
     dmz *= inorm; 
  
-    double hbar = force->hplanck/MY_2PI;
-    dm /= hbar;
-    
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -397,8 +400,8 @@ void PairSpin::coeff(int narg, char **arg)
     force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
     force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
     
-    double rij = force->numeric(FLERR,arg[3]);
-    double me = force->numeric(FLERR,arg[4]);
+    const double rij = force->numeric(FLERR,arg[3]);
+    const double me = (force->numeric(FLERR,arg[4]))/hbar;
     double mex = force->numeric(FLERR,arg[5]);  
     double mey = force->numeric(FLERR,arg[6]); 
     double mez = force->numeric(FLERR,arg[7]); 
@@ -408,9 +411,6 @@ void PairSpin::coeff(int narg, char **arg)
     mey *= inorm; 
     mez *= inorm; 
  
-    double hbar = force->hplanck/MY_2PI;
-    me /= hbar;
-    
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {

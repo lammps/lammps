@@ -240,26 +240,6 @@ void WriteData::header()
       fprintf(fp,BIGINT_FORMAT " impropers\n",atom->nimpropers);
       fprintf(fp,"%d improper types\n",atom->nimpropertypes);
     }
-    if (atom->extra_bond_per_atom > 0) {
-      fprintf(fp,BIGINT_FORMAT " extra bond per atom\n",
-	      atom->extra_bond_per_atom);
-    }
-    if (atom->extra_angle_per_atom > 0) {
-      fprintf(fp,BIGINT_FORMAT " extra angle per atom\n",
-	      atom->extra_angle_per_atom);
-    }
-    if (atom->extra_dihedral_per_atom > 0) {
-      fprintf(fp,BIGINT_FORMAT " extra dihedral per atom\n",
-	      atom->extra_dihedral_per_atom);
-    }
-    if (atom->extra_improper_per_atom > 0) {
-      fprintf(fp,BIGINT_FORMAT " extra improper per atom\n",
-	      atom->extra_improper_per_atom);
-    }
-    if (force->special_extra > 0) {
-      fprintf(fp,BIGINT_FORMAT " extra special per atom\n",
-	      force->special_extra);
-    }
   }
 
   for (int i = 0; i < modify->nfix; i++)

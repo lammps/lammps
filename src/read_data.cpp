@@ -968,6 +968,7 @@ void ReadData::header(int firstpass)
     // search line for header keyword and set corresponding variable
     // customize for new header lines
     // check for triangles before angles so "triangles" not matched as "angles"
+    int extra_flag_value = 0;
 
     if (strstr(line,"atoms")) {
       sscanf(line,BIGINT_FORMAT,&natoms);
@@ -1029,17 +1030,26 @@ void ReadData::header(int firstpass)
         atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
     // these settings only used by first data file
+    // also, these are obsolescent. we parse them to maintain backward
+    // compatibility, but the recommended way is to set them via keywords
+    // in the LAMMPS input file. In case these flags are set in both,
+    // the input and the data file, we use the larger of the two.
 
     } else if (strstr(line,"extra bond per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_bond_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_bond_per_atom = MAX(atom->extra_bond_per_atom,extra_flag_value);
     } else if (strstr(line,"extra angle per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_angle_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_angle_per_atom = MAX(atom->extra_angle_per_atom,extra_flag_value);
     } else if (strstr(line,"extra dihedral per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_dihedral_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_dihedral_per_atom = MAX(atom->extra_dihedral_per_atom,extra_flag_value);
     } else if (strstr(line,"extra improper per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_improper_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_improper_per_atom = MAX(atom->extra_improper_per_atom,extra_flag_value);
     } else if (strstr(line,"extra special per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&force->special_extra);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      force->special_extra = MAX(force->special_extra,extra_flag_value);
 
     // local copy of box info
     // so can treat differently for first vs subsequent data files

@@ -32,10 +32,9 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   molecular = 0;
   mass_type = 1; //check why
 
-  //comm_x_only = 0;
-  comm_x_only = 1;
-  //comm_f_only = 1;
-  comm_f_only = 0;
+  comm_x_only = 0;
+  comm_f_only = 1;
+
   size_forward = 7;
   size_reverse = 6;
   size_border = 11;

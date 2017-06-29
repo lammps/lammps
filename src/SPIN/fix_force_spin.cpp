@@ -114,9 +114,9 @@ int FixForceSpin::setmask()
 
 void FixForceSpin::init()
 {
-  double hbar = force->hplanck/MY_2PI; //eV/(rad.THz)
-  double mub = 5.78901e-5; //in eV/T 
-  double gyro = mub/hbar; //in rad.THz/T  
+  const double hbar = force->hplanck/MY_2PI; //eV/(rad.THz)
+  const double mub = 5.78901e-5; //in eV/T 
+  const double gyro = mub/hbar; //in rad.THz/T  
 
   H_field *= gyro; //in rad.THz
   Ka /= hbar; //in rad.THz
@@ -174,7 +174,7 @@ void FixForceSpin::post_force(int vflag)
   double **sp = atom->sp; 
   double *mumag = atom->mumag;
   double **fm = atom->fm; 
-  int nlocal = atom->nlocal;  
+  const int nlocal = atom->nlocal;  
   double scalar;
   
   eflag = 0;

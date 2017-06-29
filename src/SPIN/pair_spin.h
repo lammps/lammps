@@ -39,9 +39,9 @@ class PairSpin : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_exchange(int, int, double, double *, double *);
-  void compute_dmi(int, int, double *, double *);
-  void compute_me(int, int, double *, double *);  
+  void compute_exchange(int, int, double, double *, double *,double *, double *);
+  void compute_dmi(int, int, double *, double *, double *, double *);
+  void compute_me(int, int, double *, double *, double *, double *);  
  
  //Test for seq. integ.
  //protected: 
@@ -61,10 +61,10 @@ class PairSpin : public Pair {
   double **v_dmx, **v_dmy, **v_dmz;//DMI coeffs
                                    //DM int. in eV, v direction
 
-  double **ME;
-  double **v_mex, **v_mey, **v_mez;//ME coeffs
-                                   //ME in eV, v direction
+  double **ME;                     //ME in eV
+  double **v_mex, **v_mey, **v_mez;//ME direction
 
+  double *spi, *spj;
   double *fmi, *fmj; //Temp var. in compute
 
   void allocate();

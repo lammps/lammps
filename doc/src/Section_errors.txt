@@ -9686,25 +9686,23 @@ Self-explanatory. :dd
 
 {Subsequent read data induced too many angles per atom} :dt
 
-See the read_data or create_box commands for info on using the
-"extra/angle/per/atom" keyword to allow for additional angles to be formed :dd
+See the extra/angle/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many bonds per atom} :dt
 
-See the read_data or create_box commands for info on using the
-"extra/bond/per/atom" keyword to allow for additional bonds to be formed :dd
+See the extra/bond/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many dihedrals per atom} :dt
 
-See the read_data or create_box commands for info on using the
-"extra/dihedral/per/atom" keyword to allow for additional
-dihedrals to be formed :dd
+See the extra/dihedral/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many impropers per atom} :dt
 
-See the read_data or create_box commands for info on using the
-"extra/improper/per/atom" keyword to allow for additional
-impropers to be formed :dd
+See the extra/improper/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Substitution for illegal variable} :dt
 

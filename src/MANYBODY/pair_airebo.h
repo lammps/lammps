@@ -113,6 +113,12 @@ class PairAIREBO : public Pair {
   double Sp5th(double, double *, double *);
   double Spbicubic(double, double, double *, double *);
   double Sptricubic(double, double, double, double *, double *);
+  void Sptricubic_patch_adjust(double *, double, double, char);
+  void Sptricubic_patch_coeffs(double, double, double, double, double, double,
+                               double*, double*, double*, double*, double*);
+  void Spbicubic_patch_adjust(double *, double, double, char);
+  void Spbicubic_patch_coeffs(double, double, double, double, double *,
+                              double *, double *, double *);
   void spline_init();
 
   void allocate();

@@ -4067,6 +4067,276 @@ double PairAIREBO::Sptricubic(double x, double y, double z,
 }
 
 /* ----------------------------------------------------------------------
+   spline coefficient matrix python script
+-------------------------------------------------------------------------
+
+import numpy as np
+import numpy.linalg as lin
+
+# Generate all the derivatives that are spline conditions
+# Ordered such that df / dx_i / d_xj i < j.
+# Gives the derivatives at which the spline's values are prescribed.
+def generate_derivs(n):
+  def generate_derivs_order(n, m):
+    if m == 0:
+      return [tuple()]
+    if m == 1:
+      return [tuple([i]) for i in range(n)]
+    rec = generate_derivs_order(n, m - 1)
+    return [tuple([i]+list(j)) for i in range(n) for j in rec if j[0] > i]
+  ret = []
+  m = 0
+  while m <= n:
+    ret += generate_derivs_order(n, m)
+    m += 1
+  return ret
+
+# Generate all the points in an n-dimensional unit cube.
+# Gives the points at which the spline's values are prescribed.
+def generate_points(n):
+  if n == 1:
+    return [(0,), (1,)]
+  rec = generate_points(n - 1)
+  return [tuple([j]+list(i)) for j in range(2) for i in rec]
+
+# Generate all the coefficients in the order later expected.
+def generate_coeffs(n):
+  if n == 1:
+    return [tuple([i]) for i in range(4)] # cubic
+  rec = generate_coeffs(n-1)
+  return [tuple([i]+list(j)) for i in range(4) for j in rec]
+
+# Evaluate the `deriv`'s derivative at `point` symbolically
+# with respect to the coefficients `coeffs`.
+def eval_at(n, coeffs, deriv, point):
+  def eval_single(order, value, the_deriv):
+    if the_deriv:
+      if order == 0:
+        return 0
+      if order == 1:
+        return 1
+      return order * value
+    else:
+      if order == 0:
+        return 1
+      else:
+        return value
+  result = {}
+  for c in coeffs:
+    result[c] = 1
+    for i in range(n):
+      result[c] *= eval_single(c[i], point[i], i in deriv)
+  return result
+
+# Build the matrix transforming prescribed values to coefficients.
+def get_matrix(n):
+  coeffs = generate_coeffs(n)
+  points = generate_points(n)
+  derivs = generate_derivs(n)
+  assert(len(coeffs) == len(points)*len(derivs))
+  i = 0
+  A = np.zeros((len(coeffs), len(points)*len(derivs)))
+  for d in derivs:
+    for p in points:
+      coeff = eval_at(n, coeffs, d, p)
+      for j, c in enumerate(coeffs):
+        A[i, j] = coeff[c]
+      i += 1
+  return lin.inv(A)
+
+# Output the first k values with padding n from A.
+def output_matrix(n, k, A):
+  print('\n'.join([''.join([("%{}d,".format(n+1)) % i for i in j[:k]]) for j in A]))
+
+*/
+
+/* ----------------------------------------------------------------------
+   tricubic spline coefficient calculation
+------------------------------------------------------------------------- */
+
+void PairAIREBO::Sptricubic_patch_adjust(double * dl, double wid, double lo,
+                                         char dir) {
+  int rowOuterL = 16, rowInnerL = 1, colL;
+  if (dir == 'R') {
+    rowOuterL = 4;
+    colL = 16;
+  } else if (dir == 'M') {
+    colL = 4;
+  } else if (dir == 'L') {
+    rowInnerL = 4;
+    colL = 1;
+  }
+  double binomial[5] = {1, 1, 2, 6};
+  for (int rowOuter = 0; rowOuter < 4; rowOuter++) {
+    for (int rowInner = 0; rowInner < 4; rowInner++) {
+      for (int col = 0; col < 4; col++) {
+        double acc = 0;
+        for (int k = col; k < 4; k++) {
+          acc += dl[rowOuterL * rowOuter + rowInnerL * rowInner + colL * k]
+               * pow(wid, -k) * pow(-lo, k - col) * binomial[k] / binomial[col]
+               / binomial[k - col];
+        }
+        dl[rowOuterL * rowOuter + rowInnerL * rowInner + colL * col] = acc;
+      }
+    }
+  }
+}
+
+void PairAIREBO::Sptricubic_patch_coeffs(
+    double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
+    double * y, double * y1, double * y2, double * y3, double * dl
+) {
+  const double C_inv[64][32] = {
+    // output_matrix(2, 8*4, get_matrix(3))
+      1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,
+     -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,
+      2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,
+      9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6, -6,  3, -3,  0,  0,  0,  0,  6,  3, -6, -3,  0,  0,  0,  0,
+     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4, -2,  2,  0,  0,  0,  0, -3, -3,  3,  3,  0,  0,  0,  0,
+      2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,
+     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3, -3,  3,  0,  0,  0,  0, -4, -2,  4,  2,  0,  0,  0,  0,
+      4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  2, -2,  0,  0,  0,  0,  2,  2, -2, -2,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     -3,  0,  0,  0,  3,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,
+      9, -9,  0,  0, -9,  9,  0,  0,  6, -6,  0,  0,  3, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  3,  0,  0, -6, -3,  0,  0,
+     -6,  6,  0,  0,  6, -6,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9, -9,  0,  0, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      9,  0, -9,  0, -9,  0,  9,  0,  6,  0, -6,  0,  3,  0, -3,  0,  6,  0,  3,  0, -6,  0, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9,  0, -9,  0, -9,  0,  9,  0,
+    -27, 27, 27,-27, 27,-27,-27, 27,-18, 18, 18,-18, -9,  9,  9, -9,-18, 18, -9,  9, 18,-18,  9, -9,-18, -9, 18,  9, 18,  9,-18, -9,
+     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6, 12,-12,  6, -6,-12, 12, -6,  6,  9,  9, -9, -9, -9, -9,  9,  9,
+     -6,  0,  6,  0,  6,  0, -6,  0, -4,  0,  4,  0, -2,  0,  2,  0, -3,  0, -3,  0,  3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
+     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6,  9, -9,  9, -9, -9,  9, -9,  9, 12,  6,-12, -6,-12, -6, 12,  6,
+    -12, 12, 12,-12, 12,-12,-12, 12, -8,  8,  8, -8, -4,  4,  4, -4, -6,  6, -6,  6,  6, -6,  6, -6, -6, -6,  6,  6,  6,  6, -6, -6,
+      2,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,
+     -6,  6,  0,  0,  6, -6,  0,  0, -3,  3,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4, -2,  0,  0,  4,  2,  0,  0,
+      4, -4,  0,  0, -4,  4,  0,  0,  2, -2,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,  0, -2, -2,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, -4,  0,  0, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     -6,  0,  6,  0,  6,  0, -6,  0, -3,  0,  3,  0, -3,  0,  3,  0, -4,  0, -2,  0,  4,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
+     18,-18,-18, 18,-18, 18, 18,-18,  9, -9, -9,  9,  9, -9, -9,  9, 12,-12,  6, -6,-12, 12, -6,  6, 12,  6,-12, -6,-12, -6, 12,  6,
+    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -8,  8, -4,  4,  8, -8,  4, -4, -6, -6,  6,  6,  6,  6, -6, -6,
+      4,  0, -4,  0, -4,  0,  4,  0,  2,  0, -2,  0,  2,  0, -2,  0,  2,  0,  2,  0, -2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0,
+    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -6,  6, -6,  6,  6, -6,  6, -6, -8, -4,  8,  4,  8,  4, -8, -4,
+      8, -8, -8,  8, -8,  8,  8, -8,  4, -4, -4,  4,  4, -4, -4,  4,  4, -4,  4, -4, -4,  4, -4,  4,  4,  4, -4, -4, -4, -4,  4,  4,
+  };
+  double dx = xmax - xmin;
+  double dy = ymax - ymin;
+  double dz = zmax - zmin;
+  double x[32];
+  for (int i = 0; i < 8; i++) {
+    x[i+0*8] = y[i];
+    x[i+1*8] = y1[i] * dx;
+    x[i+2*8] = y2[i] * dy;
+    x[i+3*8] = y3[i] * dz;
+  }
+  for (int i = 0; i < 64; i++) {
+    dl[i] = 0;
+    for (int k = 0; k < 32; k++) {
+      dl[i] += x[k] * C_inv[i][k];
+    }
+  }
+  Sptricubic_patch_adjust(dl, dx, xmin, 'R');
+  Sptricubic_patch_adjust(dl, dy, ymin, 'M');
+  Sptricubic_patch_adjust(dl, dz, zmin, 'L');
+}
+
+/* ----------------------------------------------------------------------
+   bicubic spline coefficient calculation
+------------------------------------------------------------------------- */
+
+void PairAIREBO::Spbicubic_patch_adjust(double * dl, double wid, double lo,
+                                        char dir) {
+  int rowL = dir == 'R' ? 1 : 4;
+  int colL = dir == 'L' ? 1 : 4;
+  double binomial[5] = {1, 1, 2, 6};
+  for (int row = 0; row < 4; row++) {
+    for (int col = 0; col < 4; col++) {
+      double acc = 0;
+      for (int k = col; k < 4; k++) {
+        acc += dl[rowL * row + colL * k] * pow(wid, -k) * pow(-lo, k - col)
+             * binomial[k] / binomial[col] / binomial[k - col];
+      }
+      dl[rowL * row + colL * col] = acc;
+    }
+  }
+}
+
+void PairAIREBO::Spbicubic_patch_coeffs(
+    double xmin, double xmax, double ymin, double ymax, double * y,
+    double * y1, double * y2, double * dl
+) {
+  const double C_inv[16][12] = {
+     // output_matrix(1, 4*3, get_matrix(2))
+      1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+     -3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0,
+      2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+      0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0,
+     -3, 0, 3, 0,-2, 0,-1, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0,
+      9,-9,-9, 9, 6,-6, 3,-3, 6, 3,-6,-3,
+     -6, 6, 6,-6,-4, 4,-2, 2,-3,-3, 3, 3,
+      2, 0,-2, 0, 1, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0,
+     -6, 6, 6,-6,-3, 3,-3, 3,-4,-2, 4, 2,
+      4,-4,-4, 4, 2,-2, 2,-2, 2, 2,-2,-2,
+  };
+  double dx = xmax - xmin;
+  double dy = ymax - ymin;
+  double x[12];
+  for (int i = 0; i < 4; i++) {
+    x[i+0*4] = y[i];
+    x[i+1*4] = y1[i] * dx;
+    x[i+2*4] = y2[i] * dy;
+  }
+  for (int i = 0; i < 16; i++) {
+    dl[i] = 0;
+    for (int k = 0; k < 12; k++) {
+      dl[i] += x[k] * C_inv[i][k];
+    }
+  }
+  Spbicubic_patch_adjust(dl, dx, xmin, 'R');
+  Spbicubic_patch_adjust(dl, dy, ymin, 'L');
+}
+
+/* ----------------------------------------------------------------------
    initialize spline knot values
 ------------------------------------------------------------------------- */
 
@@ -4106,6 +4376,22 @@ void PairAIREBO::spline_init()
   PCHf[2][0] = -0.122042146;
   PCHf[2][1] = -0.300529172;
   PCHf[3][0] = -0.307584705;
+
+  for (int nH = 0; nH < 4; nH++) {
+    for (int nC = 0; nC < 4; nC++) {
+      double y[4] = {0}, y1[4] = {0}, y2[4] = {0};
+      y[0] = PCCf[nC][nH];
+      y[1] = PCCf[nC][nH+1];
+      y[2] = PCCf[nC+1][nH];
+      y[3] = PCCf[nC+1][nH+1];
+      Spbicubic_patch_coeffs(nC, nC+1, nH, nH+1, y, y1, y2, &pCC[nC][nH][0]);
+      y[0] = PCHf[nC][nH];
+      y[1] = PCHf[nC][nH+1];
+      y[2] = PCHf[nC+1][nH];
+      y[3] = PCHf[nC+1][nH+1];
+      Spbicubic_patch_coeffs(nC, nC+1, nH, nH+1, y, y1, y2, &pCH[nC][nH][0]);
+    }
+  }
 
   for (i = 0; i < 5; i++) {
     for (j = 0; j < 5; j++) {
@@ -4271,6 +4557,46 @@ void PairAIREBO::spline_init()
 
   Tf[2][2][1] = -0.035140;
   for (i = 2; i < 10; i++) Tf[2][2][i] = -0.0040480;
+
+  for (int nH = 0; nH < 4; nH++) {
+    for (int nC = 0; nC < 4; nC++) {
+      // Note: Spline knot values exist up to "10", but are never used because
+      // they are clamped down to 9.
+      for (int nConj = 0; nConj < 9; nConj++) {
+        double y[8] = {0}, y1[8] = {0}, y2[8] = {0}, y3[8] = {0};
+        #define FILL_KNOTS_TRI(dest, src)      \
+          dest[0] = src[nC+0][nH+0][nConj+0];  \
+          dest[1] = src[nC+0][nH+0][nConj+1];  \
+          dest[2] = src[nC+0][nH+1][nConj+0];  \
+          dest[3] = src[nC+0][nH+1][nConj+1];  \
+          dest[4] = src[nC+1][nH+0][nConj+0];  \
+          dest[5] = src[nC+1][nH+0][nConj+1];  \
+          dest[6] = src[nC+1][nH+1][nConj+0];  \
+          dest[7] = src[nC+1][nH+1][nConj+1];
+        FILL_KNOTS_TRI(y, piCCf)
+        FILL_KNOTS_TRI(y1, piCCdfdx)
+        FILL_KNOTS_TRI(y2, piCCdfdy)
+        FILL_KNOTS_TRI(y3, piCCdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &piCC[nC][nH][nConj][0]);
+        FILL_KNOTS_TRI(y, piCHf)
+        FILL_KNOTS_TRI(y1, piCHdfdx)
+        FILL_KNOTS_TRI(y2, piCHdfdy)
+        FILL_KNOTS_TRI(y3, piCHdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &piCH[nC][nH][nConj][0]);
+        FILL_KNOTS_TRI(y, piHHf)
+        FILL_KNOTS_TRI(y1, piHHdfdx)
+        FILL_KNOTS_TRI(y2, piHHdfdy)
+        FILL_KNOTS_TRI(y3, piHHdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &piHH[nC][nH][nConj][0]);
+        FILL_KNOTS_TRI(y, Tf)
+        FILL_KNOTS_TRI(y1, Tdfdx)
+        FILL_KNOTS_TRI(y2, Tdfdy)
+        FILL_KNOTS_TRI(y3, Tdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &Tijc[nC][nH][nConj][0]);
+        #undef FILL_KNOTS_TRI
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

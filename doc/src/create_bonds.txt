@@ -46,7 +46,7 @@ Create bonds between pairs of atoms that meet a specified distance
 criteria.  Or create a single bond, angle, or dihedral between 2, 3,
 or 4 specified atoms.
 
-The new bond (angle, diehdral) interactions will then be computed
+The new bond (angle, dihedral) interactions will then be computed
 during a simulation by the bond (angle, dihedral) potential defined by
 the "bond_style"_bond_style.html, "bond_coeff"_bond_coeff.html,
 "angle_style"_angle_style.html, "angle_coeff"_angle_coeff.html,
@@ -125,7 +125,7 @@ simulation.
 
 :line
 
-The {single/bond} style creates a signle bond of type {btype} between
+The {single/bond} style creates a single bond of type {btype} between
 two atoms with IDs {batom1} and {batom2}.  {Btype} must be a value
 between 1 and the number of bond types defined.
 
@@ -137,7 +137,7 @@ ordered linearly within the angle; the central atom is {aatom2}.
 {Atype} must be a value between 1 and the number of angle types
 defined.
 
-The {single/dihedral} style creates a signle dihedral of type {btype}
+The {single/dihedral} style creates a single dihedral of type {btype}
 between two atoms with IDs {batom1} and {batom2}.  The ordering of the
 atoms is the same as in the {Dihedrals} section of a data file read by
 the "read_data"_read_data command.  I.e. the 4 atoms are ordered

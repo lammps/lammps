@@ -110,11 +110,80 @@ public:
 
 protected:
   // meam_funcs.cpp
-  static double fcut(const double xi);
-  static double dfcut(const double xi, double &dfc);
 
-  static double dCfunc(const double rij2, const double rik2, const double rjk2);
-  static void dCfunc2(const double rij2, const double rik2, const double rjk2, double &dCikj1, double &dCikj2);
+  //-----------------------------------------------------------------------------
+  // Cutoff function
+  //
+  static double fcut(const double xi) {
+    double a;
+    if (xi >= 1.0)
+      return 1.0;
+    else if (xi <= 0.0)
+      return 0.0;
+    else {
+      a = 1.0 - xi;
+      a *= a; a *= a;
+      a = 1.0 - a;
+      return a * a;
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  // Cutoff function and derivative
+  //
+  static double dfcut(const double xi, double& dfc) {
+    double a, a3, a4, a1m4;
+    if (xi >= 1.0) {
+      dfc = 0.0;
+      return 1.0;
+    } else if (xi <= 0.0) {
+      dfc = 0.0;
+      return 0.0;
+    } else {
+      a = 1.0 - xi;
+      a3 = a * a * a;
+      a4 = a * a3;
+      a1m4 = 1.0-a4;
+      
+      dfc = 8 * a1m4 * a3;
+      return a1m4*a1m4;
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  // Derivative of Cikj w.r.t. rij
+  //     Inputs: rij,rij2,rik2,rjk2
+  //
+  static double dCfunc(const double rij2, const double rik2, const double rjk2) {
+    double rij4, a, asq, b,denom;
+
+    rij4 = rij2 * rij2;
+    a = rik2 - rjk2;
+    b = rik2 + rjk2;
+    asq = a*a;
+    denom = rij4 - asq;
+    denom = denom * denom;
+    return -4 * (-2 * rij2 * asq + rij4 * b + asq * b) / denom;
+  }
+
+  //-----------------------------------------------------------------------------
+  // Derivative of Cikj w.r.t. rik and rjk
+  //     Inputs: rij,rij2,rik2,rjk2
+  //
+  static void dCfunc2(const double rij2, const double rik2, const double rjk2,
+               double& dCikj1, double& dCikj2) {
+    double rij4, rik4, rjk4, a, denom;
+
+    rij4 = rij2 * rij2;
+    rik4 = rik2 * rik2;
+    rjk4 = rjk2 * rjk2;
+    a = rik2 - rjk2;
+    denom = rij4 - a * a;
+    denom = denom * denom;
+    dCikj1 = 4 * rij2 * (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
+    dCikj2 = 4 * rij2 * (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
+  }
+
   double G_gam(const double gamma, const int ibar, int &errorflag) const;
   double dG_gam(const double gamma, const int ibar, double &dG) const;
   static double zbl(const double r, const int z1, const int z2);

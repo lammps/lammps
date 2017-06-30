@@ -21,87 +21,6 @@
 
 using namespace LAMMPS_NS;
 
-//-----------------------------------------------------------------------------
-// Cutoff function
-//
-double
-MEAM::fcut(const double xi)
-{
-  double a;
-  if (xi >= 1.0)
-    return 1.0;
-  else if (xi <= 0.0)
-    return 0.0;
-  else {
-    a = 1.0 - xi;
-    a = a * a;
-    a = a * a;
-    a = 1.0 - a;
-    return a * a;
-    //     fc = xi
-  }
-}
-
-//-----------------------------------------------------------------------------
-// Cutoff function and derivative
-//
-double
-MEAM::dfcut(const double xi, double& dfc)
-{
-  double a, a3, a4;
-  if (xi >= 1.0) {
-    dfc = 0.0;
-    return 1.0;
-  } else if (xi <= 0.0) {
-    dfc = 0.0;
-    return 0.0;
-  } else {
-    a = 1.0 - xi;
-    a3 = a * a * a;
-    a4 = a * a3;
-    dfc = 8 * (1.0 - a4) * a3;
-    return pow((1.0 - a4), 2);
-    //     fc = xi
-    //     dfc = 1.d0
-  }
-}
-
-//-----------------------------------------------------------------------------
-// Derivative of Cikj w.r.t. rij
-//     Inputs: rij,rij2,rik2,rjk2
-//
-double
-MEAM::dCfunc(const double rij2, const double rik2, const double rjk2)
-{
-  double rij4, a, b, denom;
-
-  rij4 = rij2 * rij2;
-  a = rik2 - rjk2;
-  b = rik2 + rjk2;
-  denom = rij4 - a * a;
-  denom = denom * denom;
-  return -4 * (-2 * rij2 * a * a + rij4 * b + a * a * b) / denom;
-}
-
-//-----------------------------------------------------------------------------
-// Derivative of Cikj w.r.t. rik and rjk
-//     Inputs: rij,rij2,rik2,rjk2
-//
-void
-MEAM::dCfunc2(const double rij2, const double rik2, const double rjk2, double& dCikj1, double& dCikj2)
-{
-  double rij4, rik4, rjk4, a, b, denom;
-
-  rij4 = rij2 * rij2;
-  rik4 = rik2 * rik2;
-  rjk4 = rjk2 * rjk2;
-  a = rik2 - rjk2;
-  b = rik2 + rjk2;
-  denom = rij4 - a * a;
-  denom = denom * denom;
-  dCikj1 = 4 * rij2 * (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
-  dCikj2 = 4 * rij2 * (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
-}
 
 //-----------------------------------------------------------------------------
 // Compute G(gamma) based on selection flag ibar:
@@ -142,6 +61,7 @@ MEAM::G_gam(const double gamma, const int ibar, int& errorflag) const
       }
   }
   errorflag = 1;
+  return 0.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -195,6 +115,8 @@ MEAM::dG_gam(const double gamma, const int ibar, double& dG) const
         return G;
       }
   }
+  dG = 1.0;
+  return 0.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -313,6 +235,7 @@ MEAM::get_Zij(const lattice_t latt)
       return 8;
       //        call error('Lattice not defined in get_Zij.')
   }
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -328,50 +251,64 @@ MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, doubl
   int Zij2 = 0, numscr = 0;
 
   switch (latt) {
-    case FCC:
-      Zij2 = 6;
-      a = sqrt(2.0);
-      numscr = 4;
-      break;
-    case BCC:
-      Zij2 = 6;
-      a = 2.0 / sqrt(3.0);
-      numscr = 4;
-      break;
-    case HCP:
-      Zij2 = 6;
-      a = sqrt(2.0);
-      numscr = 4;
-      break;
-    case B1:
-      Zij2 = 12;
-      a = sqrt(2.0);
-      numscr = 2;
-      break;
-    case DIA:
-      Zij2 = 0;
-      a = sqrt(8.0 / 3.0);
-      numscr = 4;
-      if (cmin < 0.500001) {
+
+  case FCC:
+    Zij2 = 6;
+    a = sqrt(2.0);
+    numscr = 4;
+    break;
+
+  case BCC:
+    Zij2 = 6;
+    a = 2.0 / sqrt(3.0);
+    numscr = 4;
+    break;
+
+  case HCP:
+    Zij2 = 6;
+    a = sqrt(2.0);
+    numscr = 4;
+    break;
+
+  case B1:
+    Zij2 = 12;
+    a = sqrt(2.0);
+    numscr = 2;
+    break;
+
+  case DIA:
+    Zij2 = 0;
+    a = sqrt(8.0 / 3.0);
+    numscr = 4;
+    if (cmin < 0.500001) {
         //          call error('can not do 2NN MEAM for dia')
-      }
-      break;
-    case DIM:
-      //        this really shouldn't be allowed; make sure screening is zero
-      a = 1.0;
-      S = 0.0;
-      return 0;
-    case L12:
-      Zij2 = 6;
-      a = sqrt(2.0);
-      numscr = 4;
-      break;
-    case B2:
-      Zij2 = 6;
-      a = 2.0 / sqrt(3.0);
-      numscr = 4;
-      break;
-      //        call error('Lattice not defined in get_Zij.')
+    }
+    break;
+
+  case DIM:
+    //        this really shouldn't be allowed; make sure screening is zero
+    a = 1.0;
+    S = 0.0;
+    return 0;
+
+  case L12:
+    Zij2 = 6;
+    a = sqrt(2.0);
+    numscr = 4;
+    break;
+
+  case B2:
+    Zij2 = 6;
+    a = 2.0 / sqrt(3.0);
+    numscr = 4;
+    break;
+  case C11:
+    // unsupported lattice flag C11 in get_Zij
+    break;
+  default:
+    // unknown lattic flag in get Zij
+    //        call error('Lattice not defined in get_Zij.')
+    break;
   }
 
   // Compute screening for each first neighbor
@@ -379,6 +316,6 @@ MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, doubl
   x = (C - cmin) / (cmax - cmin);
   sijk = fcut(x);
   // There are numscr first neighbors screening the second neighbors
-  S = pow(sijk, numscr);
+  S = MathSpecial::powint(sijk, numscr);
   return Zij2;
 }

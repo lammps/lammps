@@ -1,0 +1,15 @@
+#!/bin/bash -l
+################
+# Plot the fnorm from a .eng file during a relaxation
+# from Julien, 06.2014
+################
+if [[ -z "$1" ]]
+then
+ file=`ls *.eng`
+else
+ file=`ls $1`
+fi
+gnu="set xlabel 'nfc'; set ylabel 'fnorm'; set logs y; pl '$file' using 1:5 w l"
+echo -e $gnu | gnuplot -persist
+
+

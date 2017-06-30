@@ -1,17 +1,7 @@
 #include "meam.h"
 #include "math_special.h"
 #include <algorithm>
-#include <math.h>
 using namespace LAMMPS_NS;
-
-// Declaration in pair_meam.h:
-//
-// void meam_setup_done(double *)
-//
-// Call from pair_meam.cpp:
-//
-// meam_setup_done(&cutmax)
-//
 
 void
 MEAM::meam_setup_done(double* cutmax)
@@ -219,9 +209,9 @@ MEAM::compute_pair_meam(void)
         // if using second-nearest neighbor, solve recursive problem
         // (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
         if (this->nn2_meam[a][b] == 1) {
-          get_Zij(&Z1, this->lattce_meam[a][b]);
-          get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
-                   this->Cmax_meam[a][a][b]);
+          Z1 = get_Zij(this->lattce_meam[a][b]);
+          Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
+                   this->Cmax_meam[a][a][b], arat, scrn);
 
           //     The B1, B2,  and L12 cases with NN2 have a trick to them; we
           //     need to
@@ -235,9 +225,9 @@ MEAM::compute_pair_meam(void)
 
             //               phi_aa
             phiaa = phi_meam(rarat, a, a);
-            get_Zij(&Z1, this->lattce_meam[a][a]);
-            get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
-                     this->Cmax_meam[a][a][a]);
+            Z1 = get_Zij(this->lattce_meam[a][a]);
+            Z2 = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
+                     this->Cmax_meam[a][a][a], arat, scrn);
             nmax = 10;
             if (scrn > 0.0) {
               for (n = 1; n <= nmax; n++) {
@@ -247,9 +237,9 @@ MEAM::compute_pair_meam(void)
 
             //               phi_bb
             phibb = phi_meam(rarat, b, b);
-            get_Zij(&Z1, this->lattce_meam[b][b]);
-            get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[b][b], this->Cmin_meam[b][b][b],
-                     this->Cmax_meam[b][b][b]);
+            Z1 = get_Zij(this->lattce_meam[b][b]);
+            Z2 = get_Zij2(this->lattce_meam[b][b], this->Cmin_meam[b][b][b],
+                     this->Cmax_meam[b][b][b], arat, scrn);
             nmax = 10;
             if (scrn > 0.0) {
               for (n = 1; n <= nmax; n++) {
@@ -259,12 +249,12 @@ MEAM::compute_pair_meam(void)
 
             if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2) {
               //     Add contributions to the B1 or B2 potential
-              get_Zij(&Z1, this->lattce_meam[a][b]);
-              get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
-                       this->Cmax_meam[a][a][b]);
+              Z1 = get_Zij(this->lattce_meam[a][b]);
+              Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
+                       this->Cmax_meam[a][a][b], arat, scrn);
               this->phir[nv2][j] = this->phir[nv2][j] - Z2 * scrn / (2 * Z1) * phiaa;
-              get_Zij2(&Z2, &arat, &scrn2, this->lattce_meam[a][b], this->Cmin_meam[b][b][a],
-                       this->Cmax_meam[b][b][a]);
+              Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[b][b][a],
+                       this->Cmax_meam[b][b][a], arat, scrn2);
               this->phir[nv2][j] = this->phir[nv2][j] - Z2 * scrn2 / (2 * Z1) * phibb;
 
             } else if (this->lattce_meam[a][b] == L12) {
@@ -305,7 +295,7 @@ MEAM::compute_pair_meam(void)
           if (astar <= -3.0)
             this->phir[nv2][j] = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
           else if (astar > -3.0 && astar < -1.0) {
-            fcut(1 - (astar + 1.0) / (-3.0 + 1.0), &frac);
+            frac = fcut(1 - (astar + 1.0) / (-3.0 + 1.0));
             phizbl = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
             this->phir[nv2][j] = frac * this->phir[nv2][j] + (1 - frac) * phizbl;
           }
@@ -348,7 +338,7 @@ MEAM::phi_meam(double r, int a, int b)
 
   // get number of neighbors in the reference structure
   //   Nref[i][j] = # of i's neighbors of type j
-  get_Zij(&Z12, this->lattce_meam[a][b]);
+  Z12 = get_Zij(this->lattce_meam[a][b]);
 
   get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32);
 
@@ -409,16 +399,16 @@ MEAM::phi_meam(double r, int a, int b)
       if (this->ibar_meam[a] <= 0)
         G1 = 1.0;
       else {
-        get_shpfcn(s1, this->lattce_meam[a][a]);
+        get_shpfcn(this->lattce_meam[a][a], s1);
         Gam1 = (s1[0] * t11av + s1[1] * t21av + s1[2] * t31av) / (Z1 * Z1);
-        G_gam(Gam1, this->ibar_meam[a], &G1, &errorflag);
+        G1 = G_gam(Gam1, this->ibar_meam[a], errorflag);
       }
       if (this->ibar_meam[b] <= 0)
         G2 = 1.0;
       else {
-        get_shpfcn(s2, this->lattce_meam[b][b]);
+        get_shpfcn(this->lattce_meam[b][b], s2);
         Gam2 = (s2[0] * t12av + s2[1] * t22av + s2[2] * t32av) / (Z2 * Z2);
-        G_gam(Gam2, this->ibar_meam[b], &G2, &errorflag);
+        G2 = G_gam(Gam2, this->ibar_meam[b], errorflag);
       }
       rho0_1 = this->rho0_meam[a] * Z1 * G1;
       rho0_2 = this->rho0_meam[b] * Z2 * G2;
@@ -435,8 +425,8 @@ MEAM::phi_meam(double r, int a, int b)
     else
       Gam2 = Gam2 / (rho02 * rho02);
 
-    G_gam(Gam1, this->ibar_meam[a], &G1, &errorflag);
-    G_gam(Gam2, this->ibar_meam[b], &G2, &errorflag);
+    G1 = G_gam(Gam1, this->ibar_meam[a], errorflag);
+    G2 = G_gam(Gam2, this->ibar_meam[b], errorflag);
     if (this->mix_ref_t == 1) {
       rho_bkgd1 = rho0_1;
       rho_bkgd2 = rho0_2;
@@ -488,9 +478,9 @@ MEAM::phi_meam(double r, int a, int b)
   } else if (this->lattce_meam[a][b] == L12) {
     phiaa = phi_meam(r, a, a);
     //       account for second neighbor a-a potential here...
-    get_Zij(&Z1nn, this->lattce_meam[a][a]);
-    get_Zij2(&Z2nn, &arat, &scrn, this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
-             this->Cmax_meam[a][a][a]);
+    Z1nn = get_Zij(this->lattce_meam[a][a]);
+    Z2nn = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
+             this->Cmax_meam[a][a][a], arat, scrn);
     nmax = 10;
     if (scrn > 0.0) {
       for (n = 1; n <= nmax; n++) {
@@ -529,9 +519,9 @@ MEAM::compute_reference_density(void)
     if (this->ibar_meam[a] <= 0)
       Gbar = 1.0;
     else {
-      get_shpfcn(shp, this->lattce_meam[a][a]);
+      get_shpfcn(this->lattce_meam[a][a], shp);
       gam = (this->t1_meam[a] * shp[0] + this->t2_meam[a] * shp[1] + this->t3_meam[a] * shp[2]) / (Z * Z);
-      G_gam(gam, this->ibar_meam[a], &Gbar, &errorflag);
+      Gbar = G_gam(gam, this->ibar_meam[a], errorflag);
     }
 
     //     The zeroth order density in the reference structure, with
@@ -543,41 +533,13 @@ MEAM::compute_reference_density(void)
     //     add on the contribution from those (accounting for partial
     //     screening)
     if (this->nn2_meam[a][a] == 1) {
-      get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
-               this->Cmax_meam[a][a][a]);
+      Z2 = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
+               this->Cmax_meam[a][a][a], arat, scrn);
       rho0_2nn = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * (arat - 1));
       rho0 = rho0 + Z2 * rho0_2nn * scrn;
     }
 
     this->rho_ref_meam[a] = rho0 * Gbar;
-  }
-}
-
-//----------------------------------------------------------------------c
-// Shape factors for various configurations
-void
-MEAM::get_shpfcn(double* s /* s(3) */, lattice_t latt)
-{
-  if (latt == FCC || latt == BCC || latt == B1 || latt == B2) {
-    s[0] = 0.0;
-    s[1] = 0.0;
-    s[2] = 0.0;
-  } else if (latt == HCP) {
-    s[0] = 0.0;
-    s[1] = 0.0;
-    s[2] = 1.0 / 3.0;
-  } else if (latt == DIA) {
-    s[0] = 0.0;
-    s[1] = 0.0;
-    s[2] = 32.0 / 9.0;
-  } else if (latt == DIM) {
-    s[0] = 1.0;
-    s[1] = 2.0 / 3.0;
-    //        s(3) = 1.d0
-    s[2] = 0.40;
-  } else {
-    s[0] = 0.0;
-    //        call error('Lattice not defined in get_shpfcn.')
   }
 }
 
@@ -628,100 +590,12 @@ MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, dou
 }
 
 //------------------------------------------------------------------------------c
-// Number of neighbors for the reference structure
-void
-MEAM::get_Zij(int* Zij, lattice_t latt)
-{
-  if (latt == FCC)
-    *Zij = 12;
-  else if (latt == BCC)
-    *Zij = 8;
-  else if (latt == HCP)
-    *Zij = 12;
-  else if (latt == B1)
-    *Zij = 6;
-  else if (latt == DIA)
-    *Zij = 4;
-  else if (latt == DIM)
-    *Zij = 1;
-  else if (latt == C11)
-    *Zij = 10;
-  else if (latt == L12)
-    *Zij = 12;
-  else if (latt == B2)
-    *Zij = 8;
-  else {
-    //        call error('Lattice not defined in get_Zij.')
-  }
-}
-
-//------------------------------------------------------------------------------c
-// Zij2 = number of second neighbors, a = distance ratio R1/R2, and S = second
-// neighbor screening function for lattice type "latt"
-
-void
-MEAM::get_Zij2(int* Zij2, double* a, double* S, lattice_t latt, double cmin, double cmax)
-{
-
-  double /*rratio,*/ C, x, sijk;
-  int numscr = 0;
-
-  if (latt == BCC) {
-    *Zij2 = 6;
-    *a = 2.0 / sqrt(3.0);
-    numscr = 4;
-  } else if (latt == FCC) {
-    *Zij2 = 6;
-    *a = sqrt(2.0);
-    numscr = 4;
-  } else if (latt == DIA) {
-    *Zij2 = 0;
-    *a = sqrt(8.0 / 3.0);
-    numscr = 4;
-    if (cmin < 0.500001) {
-      //          call error('can not do 2NN MEAM for dia')
-    }
-  } else if (latt == HCP) {
-    *Zij2 = 6;
-    *a = sqrt(2.0);
-    numscr = 4;
-  } else if (latt == B1) {
-    *Zij2 = 12;
-    *a = sqrt(2.0);
-    numscr = 2;
-  } else if (latt == L12) {
-    *Zij2 = 6;
-    *a = sqrt(2.0);
-    numscr = 4;
-  } else if (latt == B2) {
-    *Zij2 = 6;
-    *a = 2.0 / sqrt(3.0);
-    numscr = 4;
-  } else if (latt == DIM) {
-    //        this really shouldn't be allowed; make sure screening is zero
-    *Zij2 = 0;
-    *a = 1;
-    *S = 0;
-    return;
-  } else {
-    //        call error('Lattice not defined in get_Zij2.')
-  }
-
-  // Compute screening for each first neighbor
-  C = 4.0 / (*a * *a) - 1.0;
-  x = (C - cmin) / (cmax - cmin);
-  fcut(x, &sijk);
-  // There are numscr first neighbors screening the second neighbors
-  *S = pow(sijk, numscr);
-}
-
-//------------------------------------------------------------------------------c
 void
 MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
 {
   double x;
   x = (C - this->Cmin_meam[i][j][k]) / (this->Cmax_meam[i][j][k] - this->Cmin_meam[i][j][k]);
-  fcut(x, sijk);
+  *sijk = fcut(x);
 }
 
 //------------------------------------------------------------------------------c
@@ -761,7 +635,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
   *rho22 = 0.0;
   *rho32 = 0.0;
 
-  get_Zij(&Zij1nn, lat);
+  Zij1nn = get_Zij(lat);
 
   if (lat == FCC) {
     *rho01 = 12.0 * rhoa02;
@@ -783,7 +657,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
     *rho31 = 1.0 / 3.0 * rhoa32 * rhoa32;
     *rho32 = 1.0 / 3.0 * rhoa31 * rhoa31;
   } else if (lat == DIM) {
-    get_shpfcn(s, DIM);
+    get_shpfcn(DIM, s);
     *rho01 = rhoa02;
     *rho02 = rhoa01;
     *rho11 = s[0] * rhoa12 * rhoa12;
@@ -820,7 +694,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
 
   if (this->nn2_meam[a][b] == 1) {
 
-    get_Zij2(&Zij2nn, &arat, &scrn, lat, this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b]);
+    Zij2nn = get_Zij2(lat, this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b], arat, scrn);
 
     a1 = arat * r / this->re_meam[a][a] - 1.0;
     a2 = arat * r / this->re_meam[b][b] - 1.0;
@@ -847,64 +721,12 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
       *rho01 = *rho01 + Zij2nn * scrn * rhoa01nn;
 
       //     Assume Zij2nn and arat don't depend on order, but scrn might
-      get_Zij2(&Zij2nn, &arat, &scrn, lat, this->Cmin_meam[b][b][a], this->Cmax_meam[b][b][a]);
+      Zij2nn = get_Zij2(lat, this->Cmin_meam[b][b][a], this->Cmax_meam[b][b][a], arat, scrn);
       *rho02 = *rho02 + Zij2nn * scrn * rhoa02nn;
     }
   }
 }
 
-//---------------------------------------------------------------------
-// Compute ZBL potential
-//
-double
-MEAM::zbl(double r, int z1, int z2)
-{
-  int i;
-  const double c[] = { 0.028171, 0.28022, 0.50986, 0.18175 };
-  const double d[] = { 0.20162, 0.40290, 0.94229, 3.1998 };
-  const double azero = 0.4685;
-  const double cc = 14.3997;
-  double a, x;
-  // azero = (9pi^2/128)^1/3 (0.529) Angstroms
-  a = azero / (pow(z1, 0.23) + pow(z2, 0.23));
-  double result = 0.0;
-  x = r / a;
-  for (i = 0; i <= 3; i++) {
-    result = result + c[i] * MathSpecial::fm_exp(-d[i] * x);
-  }
-  if (r > 0.0)
-    result = result * z1 * z2 / r * cc;
-  return result;
-}
-
-//---------------------------------------------------------------------
-// Compute Rose energy function, I.16
-//
-double
-MEAM::erose(double r, double re, double alpha, double Ec, double repuls, double attrac, int form)
-{
-  double astar, a3;
-  double result = 0.0;
-
-  if (r > 0.0) {
-    astar = alpha * (r / re - 1.0);
-    a3 = 0.0;
-    if (astar >= 0)
-      a3 = attrac;
-    else if (astar < 0)
-      a3 = repuls;
-
-    if (form == 1)
-      result = -Ec * (1 + astar + (-attrac + repuls / r) * pow(astar, 3)) * MathSpecial::fm_exp(-astar);
-    else if (form == 2)
-      result = -Ec * (1 + astar + a3 * pow(astar, 3)) * MathSpecial::fm_exp(-astar);
-    else
-      result = -Ec * (1 + astar + a3 * pow(astar, 3) / (r / re)) * MathSpecial::fm_exp(-astar);
-  }
-  return result;
-}
-
-// -----------------------------------------------------------------------
 
 void
 MEAM::interpolate_meam(int ind)

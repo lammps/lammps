@@ -2,6 +2,7 @@
 #define LMP_MEAM_H
 
 #include "memory.h"
+#include <math.h>
 #include <stdlib.h>
 
 #define maxelt 5
@@ -108,9 +109,22 @@ public:
   double *scrfcn, *dscrfcn, *fcpair;
 
 protected:
+  // meam_funcs.cpp
+  static double fcut(const double xi);
+  static double dfcut(const double xi, double &dfc);
+
+  static double dCfunc(const double rij2, const double rik2, const double rjk2);
+  static void dCfunc2(const double rij2, const double rik2, const double rjk2, double &dCikj1, double &dCikj2);
+  double G_gam(const double gamma, const int ibar, int &errorflag) const;
+  double dG_gam(const double gamma, const int ibar, double &dG) const;
+  static double zbl(const double r, const int z1, const int z2);
+  static double erose(const double r, const double re, const double alpha, const double Ec, const double repuls, const double attrac, const int form);
+
+  static void get_shpfcn(const lattice_t latt, double (&s)[3]);
+  static int get_Zij(const lattice_t latt);
+  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax, double &a, double &S);
+protected:
   void meam_checkindex(int, int, int, int*, int*);
-  void G_gam(double, int, double*, int*);
-  void dG_gam(double, int, double*, double*);
   void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
                  int* firstneigh, int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap);
   void screen(int i, int j, double** x, double rijsq, double* sij, int numneigh_full, int* firstneigh_full,
@@ -119,24 +133,15 @@ protected:
                  double* scrfcn, double* fcpair);
   void dsij(int i, int j, int k, int jn, int numneigh, double rij2, double* dsij1, double* dsij2, int ntype,
             int* type, int* fmap, double** x, double* scrfcn, double* fcpair);
-  void fcut(double, double*);
-  void dfcut(double, double*, double*);
-  void dCfunc(double, double, double, double*);
-  void dCfunc2(double, double, double, double*, double*);
 
   void alloyparams();
   void compute_pair_meam();
   double phi_meam(double, int, int);
   void compute_reference_density();
-  void get_shpfcn(double*, lattice_t);
   void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double,
                   double, double, double, int, int, lattice_t);
-  void get_Zij(int*, lattice_t);
-  void get_Zij2(int*, double*, double*, lattice_t, double, double);
   void get_sijk(double, int, int, int, double*);
   void get_densref(double, int, int, double*, double*, double*, double*, double*, double*, double*, double*);
-  double zbl(double, int, int);
-  double erose(double, double, double, double, double, double, int);
   void interpolate_meam(int);
   double compute_phi(double, int, int);
 
@@ -160,20 +165,24 @@ public:
 
 // Functions we need for compat
 
-#define iszero(f) (fabs(f) < 1e-20)
+static inline bool iszero(const double f) {
+  return fabs(f) < 1e-20;
+}
 
-#define setall2d(arr, v)                                                                                     \
-  {                                                                                                          \
-    for (int __i = 0; __i < maxelt; __i++)                                                                   \
-      for (int __j = 0; __j < maxelt; __j++)                                                                 \
-        arr[__i][__j] = v;                                                                                   \
-  }
-#define setall3d(arr, v)                                                                                     \
-  {                                                                                                          \
-    for (int __i = 0; __i < maxelt; __i++)                                                                   \
-      for (int __j = 0; __j < maxelt; __j++)                                                                 \
-        for (int __k = 0; __k < maxelt; __k++)                                                               \
-          arr[__i][__j][__k] = v;                                                                            \
-  }
+template <typename TYPE, size_t maxi, size_t maxj>
+static inline void setall2d(TYPE (&arr)[maxi][maxj], const TYPE v) {
+  for (size_t i = 0; i < maxi; i++)
+    for (size_t j = 0; j < maxj; j++)
+      arr[i][j] = v;
+}
+
+template <typename TYPE, size_t maxi, size_t maxj, size_t maxk>
+static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
+  for (size_t i = 0; i < maxi; i++)
+    for (size_t j = 0; j < maxj; j++)
+      for (size_t k = 0; k < maxk; k++)
+        arr[i][j][k] = v;
+}
+
 };
 #endif

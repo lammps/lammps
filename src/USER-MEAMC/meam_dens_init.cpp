@@ -1,6 +1,5 @@
 #include "meam.h"
 #include "math_special.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -77,24 +76,6 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
   }
 }
 
-//     Extern "C" declaration has the form:
-//
-//  void meam_dens_init_(int *, int *, int *, double *, int *, int *, int *,
-//  double *,
-//		 int *, int *, int *, int *,
-//		 double *, double *, double *, double *, double *, double *,
-//		 double *, double *, double *, double *, double *, int *);
-//
-//
-//     Call from pair_meam.cpp has the form:
-//
-//    meam_dens_init_(&i,&nmax,ntype,type,fmap,&x[0][0],
-//	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
-//	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
-//	       rho0,&arho1[0][0],&arho2[0][0],arho2b,
-//	       &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],&errorflag);
-//
-
 void
 MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
                      int numneigh_full, int* firstneigh_full, int fnoffset, int* errorflag)
@@ -158,7 +139,7 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
         } else {
           rnorm = (this->rc_meam - rij) * drinv;
           screen(i, j, x, rij2, &sij, numneigh_full, firstneigh_full, ntype, type, fmap);
-          dfcut(rnorm, &fc, &dfc);
+          fc = dfcut(rnorm, dfc);
           fcij = fc;
           dfcij = dfc * drinv;
         }
@@ -213,9 +194,9 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
           } else {
             delc = Cmax - Cmin;
             cikj = (cikj - Cmin) / delc;
-            dfcut(cikj, &sikj, &dfikj);
+            sikj = dfcut(cikj, dfikj);
             coef1 = dfikj / (delc * sikj);
-            dCfunc(rij2, rik2, rjk2, &dCikj);
+            dCikj = dCfunc(rij2, rik2, rjk2);
             dscrfcn[jn] = dscrfcn[jn] + coef1 * dCikj;
           }
         }
@@ -394,7 +375,7 @@ MEAM::screen(int i, int j, double** x, double rijsq, double* sij, int numneigh_f
     } else {
       delc = Cmax - Cmin;
       cikj = (cikj - Cmin) / delc;
-      fcut(cikj, &sikj);
+      sikj = fcut(cikj);
     }
     *sij = *sij * sikj;
   }
@@ -449,8 +430,8 @@ MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2, double* dsij1
           cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
           if (cikj >= Cmin && cikj <= Cmax) {
             cikj = (cikj - Cmin) / delc;
-            dfcut(cikj, &sikj, &dfc);
-            dCfunc2(rij2, rik2, rjk2, &dCikj1, &dCikj2);
+            sikj = dfcut(cikj, dfc);
+            dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
             a = sij / delc * dfc / sikj;
             *dsij1 = a * dCikj1;
             *dsij2 = a * dCikj2;
@@ -460,90 +441,3 @@ MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2, double* dsij1
     }
   }
 }
-
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-void
-MEAM::fcut(double xi, double* fc)
-{
-  //     cutoff function
-  double a;
-  if (xi >= 1.0)
-    *fc = 1.0;
-  else if (xi <= 0.0)
-    *fc = 0.0;
-  else {
-    a = 1.0 - xi;
-    a = a * a;
-    a = a * a;
-    a = 1.0 - a;
-    *fc = a * a;
-    //     fc = xi
-  }
-}
-
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-void
-MEAM::dfcut(double xi, double* fc, double* dfc)
-{
-  //     cutoff function and its derivative
-  double a, a3, a4;
-  if (xi >= 1.0) {
-    *fc = 1.0;
-    *dfc = 0.0;
-  } else if (xi <= 0.0) {
-    *fc = 0.0;
-    *dfc = 0.0;
-  } else {
-    a = 1.0 - xi;
-    a3 = a * a * a;
-    a4 = a * a3;
-    *fc = pow((1.0 - a4), 2);
-    *dfc = 8 * (1.0 - a4) * a3;
-    //     fc = xi
-    //     dfc = 1.d0
-  }
-}
-
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-void
-MEAM::dCfunc(double rij2, double rik2, double rjk2, double* dCikj)
-{
-  //     Inputs: rij,rij2,rik2,rjk2
-  //     Outputs: dCikj = derivative of Cikj w.r.t. rij
-  double rij4, a, b, denom;
-
-  rij4 = rij2 * rij2;
-  a = rik2 - rjk2;
-  b = rik2 + rjk2;
-  denom = rij4 - a * a;
-  denom = denom * denom;
-  *dCikj = -4 * (-2 * rij2 * a * a + rij4 * b + a * a * b) / denom;
-}
-
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-void
-MEAM::dCfunc2(double rij2, double rik2, double rjk2, double* dCikj1, double* dCikj2)
-{
-  //     Inputs: rij,rij2,rik2,rjk2
-  //     Outputs: dCikj1 = derivative of Cikj w.r.t. rik
-  //     dCikj2 = derivative of Cikj w.r.t. rjk
-  double rij4, rik4, rjk4, a, b, denom;
-
-  rij4 = rij2 * rij2;
-  rik4 = rik2 * rik2;
-  rjk4 = rjk2 * rjk2;
-  a = rik2 - rjk2;
-  b = rik2 + rjk2;
-  denom = rij4 - a * a;
-  denom = denom * denom;
-  *dCikj1 = 4 * rij2 * (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
-  *dCikj2 = 4 * rij2 * (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
-
-  (void)(b);
-}
-
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

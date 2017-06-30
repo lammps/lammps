@@ -22,17 +22,6 @@ MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr
   }
 }
 
-//
-//     Declaration in pair_meam.h:
-//
-//     void meam_setup_param(int *, double *, int *, int *, int *);
-//
-//     in pair_meam.cpp
-//
-//     meam_setup_param(&which,&value,&nindex,index,&errorflag);
-//
-//
-//
 //     The "which" argument corresponds to the index of the "keyword" array
 //     in pair_meam.cpp:
 //

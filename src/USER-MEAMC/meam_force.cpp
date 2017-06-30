@@ -1,29 +1,9 @@
 #include "meam.h"
 #include "math_special.h"
 #include <algorithm>
-#include <math.h>
 
 using namespace LAMMPS_NS;
-//     Extern "C" declaration has the form:
-//
-//  void meam_force_(int *, int *, int *, double *, int *, int *, int *, double
-//  *,
-//		 int *, int *, int *, int *, double *, double *,
-//		 double *, double *, double *, double *, double *, double *,
-//		 double *, double *, double *, double *, double *, double *,
-//		 double *, double *, double *, double *, double *, double *, int
-//*);
-//
-//     Call from pair_meam.cpp has the form:
-//
-//    meam_force_(&i,&nmax,&eflag_either,&eflag_global,&eflag_atom,&vflag_atom,
-//              &eng_vdwl,eatom,&ntype,type,fmap,&x[0][0],
-//	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
-//	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
-//	       dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
-//	       &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],&arho3b[0][0],
-//	       &t_ave[0][0],&tsq_ave[0][0],&f[0][0],&vatom[0][0],&errorflag);
-//
+
 
 void
 MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
@@ -313,8 +293,8 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
           }
 
           //     Compute derivatives of total density wrt rij, sij and rij(3)
-          get_shpfcn(shpi, this->lattce_meam[elti][elti]);
-          get_shpfcn(shpj, this->lattce_meam[eltj][eltj]);
+          get_shpfcn(this->lattce_meam[elti][elti], shpi);
+          get_shpfcn(this->lattce_meam[eltj][eltj], shpj);
           drhodr1 = dgamma1[i] * drho0dr1 +
                     dgamma2[i] * (dt1dr1 * rho1[i] + t1i * drho1dr1 + dt2dr1 * rho2[i] + t2i * drho2dr1 +
                                   dt3dr1 * rho3[i] + t3i * drho3dr1) -

@@ -2,21 +2,6 @@
 #include <math.h>
 using namespace LAMMPS_NS;
 
-//
-// declaration in pair_meam.h:
-//
-//  void meam_setup_global(int *, int *, double *, int *, double *, double *,
-//			 double *, double *, double *, double *, double *,
-//			 double *, double *, double *, double *, double *,
-//			 double *, double *, int *);
-//
-// call in pair_meam.cpp:
-//
-//  meam_setup_global(&nelements,lat,z,ielement,atwt,alpha,b0,b1,b2,b3,
-//		    alat,esub,asub,t0,t1,t2,t3,rozero,ibar);
-//
-//
-
 void
 MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,
                         double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,

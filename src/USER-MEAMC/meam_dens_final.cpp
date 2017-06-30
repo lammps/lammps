@@ -1,24 +1,7 @@
 #include "meam.h"
 #include "math_special.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
-// Extern "C" declaration has the form:
-//
-//  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
-//                int *, int *, int *,
-//		 double *, double *, double *, double *, double *, double *,
-//		 double *, double *, double *, double *, double *, double *,
-//		 double *, double *, double *, double *, double *, int *);
-//
-// Call from pair_meam.cpp has the form:
-//
-//  meam_dens_final_(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
-//            &eng_vdwl,eatom,ntype,type,fmap,
-//	     &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
-//	     &arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],gamma,dgamma1,
-//	     dgamma2,dgamma3,rho,rho0,rho1,rho2,rho3,frhop,&errorflag);
-//
 
 void
 MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
@@ -72,10 +55,10 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
 
       Z = this->Z_meam[elti];
 
-      G_gam(gamma[i], this->ibar_meam[elti], &G, errorflag);
+      G = G_gam(gamma[i], this->ibar_meam[elti], *errorflag);
       if (*errorflag != 0)
         return;
-      get_shpfcn(shp, this->lattce_meam[elti][elti]);
+      get_shpfcn(this->lattce_meam[elti][elti], shp);
       if (this->ibar_meam[elti] <= 0) {
         Gbar = 1.0;
         dGbar = 0.0;
@@ -86,7 +69,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
           gam = (this->t1_meam[elti] * shp[0] + this->t2_meam[elti] * shp[1] + this->t3_meam[elti] * shp[2]) /
                 (Z * Z);
         }
-        G_gam(gam, this->ibar_meam[elti], &Gbar, errorflag);
+        Gbar = G_gam(gam, this->ibar_meam[elti], *errorflag);
       }
       rho[i] = rho0[i] * G;
 
@@ -96,7 +79,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
           dGbar = 0.0;
         } else {
           gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
-          dG_gam(gam, this->ibar_meam[elti], &Gbar, &dGbar);
+          Gbar = dG_gam(gam, this->ibar_meam[elti], dGbar);
         }
         rho_bkgd = this->rho0_meam[elti] * Z * Gbar;
       } else {
@@ -109,7 +92,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
       rhob = rho[i] / rho_bkgd;
       denom = 1.0 / rho_bkgd;
 
-      dG_gam(gamma[i], this->ibar_meam[elti], &G, &dG);
+      G = dG_gam(gamma[i], this->ibar_meam[elti], dG);
 
       dgamma1[i] = (G - 2 * dG * gamma[i]) * denom;
 
@@ -163,88 +146,3 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
   }
 }
 
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-void
-MEAM::G_gam(double gamma, int ibar, double* G, int* errorflag)
-{
-  //     Compute G(gamma) based on selection flag ibar:
-  //   0 => G = sqrt(1+gamma)
-  //   1 => G = exp(gamma/2)
-  //   2 => not implemented
-  //   3 => G = 2/(1+exp(-gamma))
-  //   4 => G = sqrt(1+gamma)
-  //  -5 => G = +-sqrt(abs(1+gamma))
-
-  double gsmooth_switchpoint;
-  if (ibar == 0 || ibar == 4) {
-    gsmooth_switchpoint = -gsmooth_factor / (gsmooth_factor + 1);
-    if (gamma < gsmooth_switchpoint) {
-      //         e.g. gsmooth_factor is 99, {:
-      //         gsmooth_switchpoint = -0.99
-      //         G = 0.01*(-0.99/gamma)**99
-      *G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
-      *G = sqrt(*G);
-    } else {
-      *G = sqrt(1.0 + gamma);
-    }
-  } else if (ibar == 1) {
-    *G = MathSpecial::fm_exp(gamma / 2.0);
-  } else if (ibar == 3) {
-    *G = 2.0 / (1.0 + exp(-gamma));
-  } else if (ibar == -5) {
-    if ((1.0 + gamma) >= 0) {
-      *G = sqrt(1.0 + gamma);
-    } else {
-      *G = -sqrt(-1.0 - gamma);
-    }
-  } else {
-    *errorflag = 1;
-  }
-}
-
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-void
-MEAM::dG_gam(double gamma, int ibar, double* G, double* dG)
-{
-  // Compute G(gamma) and dG(gamma) based on selection flag ibar:
-  //   0 => G = sqrt(1+gamma)
-  //   1 => G = MathSpecial::fm_exp(gamma/2)
-  //   2 => not implemented
-  //   3 => G = 2/(1+MathSpecial::fm_exp(-gamma))
-  //   4 => G = sqrt(1+gamma)
-  //  -5 => G = +-sqrt(abs(1+gamma))
-  double gsmooth_switchpoint;
-
-  if (ibar == 0 || ibar == 4) {
-    gsmooth_switchpoint = -gsmooth_factor / (gsmooth_factor + 1);
-    if (gamma < gsmooth_switchpoint) {
-      //         e.g. gsmooth_factor is 99, {:
-      //         gsmooth_switchpoint = -0.99
-      //         G = 0.01*(-0.99/gamma)**99
-      *G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
-      *G = sqrt(*G);
-      *dG = -gsmooth_factor * *G / (2.0 * gamma);
-    } else {
-      *G = sqrt(1.0 + gamma);
-      *dG = 1.0 / (2.0 * *G);
-    }
-  } else if (ibar == 1) {
-    *G = MathSpecial::fm_exp(gamma / 2.0);
-    *dG = *G / 2.0;
-  } else if (ibar == 3) {
-    *G = 2.0 / (1.0 + MathSpecial::fm_exp(-gamma));
-    *dG = *G * (2.0 - *G) / 2;
-  } else if (ibar == -5) {
-    if ((1.0 + gamma) >= 0) {
-      *G = sqrt(1.0 + gamma);
-      *dG = 1.0 / (2.0 * *G);
-    } else {
-      *G = -sqrt(-1.0 - gamma);
-      *dG = -1.0 / (2.0 * *G);
-    }
-  }
-}
-
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

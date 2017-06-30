@@ -196,8 +196,6 @@ protected:
   void meam_checkindex(int, int, int, int*, int*);
   void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
                  int* firstneigh, int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap);
-  void screen(int i, int j, double** x, double rijsq, double* sij, int numneigh_full, int* firstneigh_full,
-              int ntype, int* type, int* fmap);
   void calc_rho1(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
                  double* scrfcn, double* fcpair);
   void dsij(int i, int j, int k, int jn, int numneigh, double rij2, double* dsij1, double* dsij2, int ntype,

@@ -117,9 +117,6 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
   int inum = list->inum;
 
-  // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
-
-  k_list->clean_copy();
   copymode = 1;
 
   // zero out density

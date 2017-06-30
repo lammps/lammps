@@ -87,7 +87,7 @@ struct PairComputeFunctor  {
   vatom(c.d_vatom),list(*list_ptr) {};
 
   // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
-  ~PairComputeFunctor() {c.cleanup_copy();list.clean_copy();};
+  ~PairComputeFunctor() {c.cleanup_copy();list.copymode = 1;};
 
   KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
     return j >> SBBITS & 3;
@@ -344,7 +344,7 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
   PairComputeFunctor(PairStyle* c_ptr,
                           NeighListKokkos<device_type>* list_ptr):
   c(*c_ptr),list(*list_ptr) {};
-  ~PairComputeFunctor() {c.cleanup_copy();list.clean_copy();};
+  ~PairComputeFunctor() {c.cleanup_copy();list.copymode = 1;};
 
   KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
     return j >> SBBITS & 3;

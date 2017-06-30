@@ -200,7 +200,6 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  k_list->clean_copy();
   copymode = 1;
 
   EV_FLOAT ev;

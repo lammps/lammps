@@ -248,12 +248,6 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 
 #else
 
-#define IP_PRE_omp_range(ifrom, ito, tid, inum, nthreads)       \
-  {                                                             \
-    ifrom = 0;                                                  \
-    ito = inum;                                                 \
-  }
-
 #define IP_PRE_omp_range_id(ifrom, ito, tid, inum, nthreads)    \
   {                                                             \
     tid = 0;                                                    \
@@ -297,15 +291,6 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     tid = 0;                                                    \
     ifrom = 0;                                                  \
     ito = inum;                                                 \
-  }
-
-#define IP_PRE_omp_range_id_vec(ifrom, ip, ito, tid, inum,      \
-                                nthreads, vecsize)              \
-  {                                                             \
-    tid = 0;                                                    \
-    ifrom = 0;                                                  \
-    ito = inum;                                                 \
-    ip = vecsize;                                               \
   }
 
 #endif

@@ -1514,12 +1514,13 @@ void Atom::set_mass(double *values)
 }
 
 /* ----------------------------------------------------------------------
-   check that all masses have been set
+   check that all per-atom-type masses have been set
 ------------------------------------------------------------------------- */
 
 void Atom::check_mass(const char *file, int line)
 {
   if (mass == NULL) return;
+  if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
     if (mass_setflag[itype] == 0) 
       error->all(file,line,"Not all per-type masses are set");

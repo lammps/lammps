@@ -472,8 +472,8 @@ outside a non-periodic simulation box.
 
 E: Subsequent read data induced too many bonds per atom
 
-See the create_box extra/bond/per/atom or read_data "extra bond per
-atom" header value to set this limit larger.
+See the extra/bond/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Bonds assigned incorrectly
 
@@ -482,8 +482,8 @@ This means there is something invalid about the topology definitions.
 
 E: Subsequent read data induced too many angles per atom
 
-See the create_box extra/angle/per/atom or read_data "extra angle per
-atom" header value to set this limit larger.
+See the extra/angle/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Angles assigned incorrectly
 
@@ -493,8 +493,8 @@ definitions.
 
 E: Subsequent read data induced too many dihedrals per atom
 
-See the create_box extra/dihedral/per/atom or read_data "extra
-dihedral per atom" header value to set this limit larger.
+See the extra/dihedral/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Dihedrals assigned incorrectly
 
@@ -504,8 +504,8 @@ definitions.
 
 E: Subsequent read data induced too many impropers per atom
 
-See the create_box extra/improper/per/atom or read_data "extra
-improper per atom" header value to set this limit larger.
+See the extra/improper/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Impropers assigned incorrectly
 

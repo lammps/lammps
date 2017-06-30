@@ -58,6 +58,12 @@ class Min : protected Pointers {
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
 
+/* Wolframs include of FIRE parameters */
+  int DELAYSTEP;               // FIRE parameters
+  double DT_GROW,DT_SHRINK;
+  double ALPHA0,ALPHA_SHRINK;
+  double TMAX,TMIN;
+
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;
   class Compute **elist_global;     // lists of PE,virial Computes

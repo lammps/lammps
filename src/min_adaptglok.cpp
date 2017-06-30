@@ -27,6 +27,7 @@ using namespace LAMMPS_NS;
 
 #define EPS_ENERGY 1.0e-8
 
+/* Default values defined in min.cpp > Min::Min(LAMMPS *lmp) : Pointers(lmp)
 #define DELAYSTEP 20
 #define DT_GROW 1.1
 #define DT_SHRINK 0.5
@@ -34,6 +35,7 @@ using namespace LAMMPS_NS;
 #define ALPHA_SHRINK 0.99
 #define TMAX 2.0
 #define TMIN 0.02           // as harcoded in IMD: 1/50
+*/
 
 
 /* ---------------------------------------------------------------------- */
@@ -242,7 +244,7 @@ int MinAdaptGlok::iterate(int maxiter)
           v[i][1] += dtfm * f[i][1];
           v[i][2] += dtfm * f[i][2];
           if (vdotfall > 0.0) {
-            // we perform the mixing AFTER the timeintegration
+            // we perform the mixing AFTER the velocity has been calculated
             v[i][0] = scale1*v[i][0] + scale2*f[i][0];
             v[i][1] = scale1*v[i][1] + scale2*f[i][1];
             v[i][2] = scale1*v[i][2] + scale2*f[i][2];

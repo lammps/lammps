@@ -1,8 +1,8 @@
 #ifndef LMP_MEAM_H
 #define LMP_MEAM_H
 
-#include <stdlib.h>
 #include "memory.h"
+#include <stdlib.h>
 
 #define maxelt 5
 
@@ -10,12 +10,14 @@ namespace LAMMPS_NS {
 
 typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
 
-class MEAM {
- public:
-  MEAM(Memory *mem);
+class MEAM
+{
+public:
+  MEAM(Memory* mem);
   ~MEAM();
- private:
-  Memory *memory;
+
+private:
+  Memory* memory;
 
   // cutforce = force cutoff
   // cutforcesq = force cutoff squared
@@ -64,8 +66,7 @@ class MEAM {
 
   double Ec_meam[maxelt][maxelt], re_meam[maxelt][maxelt];
   double Omega_meam[maxelt], Z_meam[maxelt];
-  double A_meam[maxelt], alpha_meam[maxelt][maxelt],
-    rho0_meam[maxelt];
+  double A_meam[maxelt], alpha_meam[maxelt][maxelt], rho0_meam[maxelt];
   double delta_meam[maxelt][maxelt];
   double beta0_meam[maxelt], beta1_meam[maxelt];
   double beta2_meam[maxelt], beta3_meam[maxelt];
@@ -79,13 +80,11 @@ class MEAM {
   int eltind[maxelt][maxelt];
   int neltypes;
 
-  double **phir;
+  double** phir;
 
-  double **phirar, **phirar1, **phirar2, **phirar3, **phirar4, **phirar5,
-    **phirar6;
+  double **phirar, **phirar1, **phirar2, **phirar3, **phirar4, **phirar5, **phirar6;
 
-  double attrac_meam[maxelt][maxelt],
-    repuls_meam[maxelt][maxelt];
+  double attrac_meam[maxelt][maxelt], repuls_meam[maxelt][maxelt];
 
   double Cmin_meam[maxelt][maxelt][maxelt];
   double Cmax_meam[maxelt][maxelt][maxelt];
@@ -101,26 +100,25 @@ class MEAM {
 
 public:
   int nmax;
-  double *rho,*rho0,*rho1,*rho2,*rho3,*frhop;
-  double *gamma,*dgamma1,*dgamma2,*dgamma3,*arho2b;
-  double **arho1,**arho2,**arho3,**arho3b,**t_ave,**tsq_ave;
+  double *rho, *rho0, *rho1, *rho2, *rho3, *frhop;
+  double *gamma, *dgamma1, *dgamma2, *dgamma3, *arho2b;
+  double **arho1, **arho2, **arho3, **arho3b, **t_ave, **tsq_ave;
 
   int maxneigh;
-  double *scrfcn,*dscrfcn,*fcpair;
- protected:
+  double *scrfcn, *dscrfcn, *fcpair;
+
+protected:
   void meam_checkindex(int, int, int, int*, int*);
   void G_gam(double, int, double*, int*);
   void dG_gam(double, int, double*, double*);
-  void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
-          double** x, int numneigh, int* firstneigh, int numneigh_full,
-          int* firstneigh_full, int ntype, int* type, int* fmap);
-  void screen(int i, int j, double** x, double rijsq, double* sij,
-       int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap);
-  void calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
-          int numneigh, int* firstneigh, double* scrfcn, double* fcpair);
-  void dsij(int i, int j, int k, int jn, int numneigh, double rij2,
-     double* dsij1, double* dsij2, int ntype, int* type, int* fmap, double** x,
-     double* scrfcn, double* fcpair);
+  void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
+                 int* firstneigh, int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap);
+  void screen(int i, int j, double** x, double rijsq, double* sij, int numneigh_full, int* firstneigh_full,
+              int ntype, int* type, int* fmap);
+  void calc_rho1(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                 double* scrfcn, double* fcpair);
+  void dsij(int i, int j, int k, int jn, int numneigh, double rij2, double* dsij1, double* dsij2, int ntype,
+            int* type, int* fmap, double** x, double* scrfcn, double* fcpair);
   void fcut(double, double*);
   void dfcut(double, double*, double*);
   void dCfunc(double, double, double, double*);
@@ -131,7 +129,8 @@ public:
   double phi_meam(double, int, int);
   void compute_reference_density();
   void get_shpfcn(double*, lattice_t);
-  void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double, double, double, double, int, int, lattice_t);
+  void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double,
+                  double, double, double, int, int, lattice_t);
   void get_Zij(int*, lattice_t);
   void get_Zij2(int*, double*, double*, lattice_t, double, double);
   void get_sijk(double, int, int, int, double*);
@@ -140,46 +139,41 @@ public:
   double erose(double, double, double, double, double, double, int);
   void interpolate_meam(int);
   double compute_phi(double, int, int);
- public:
-  void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt,
-                   double* alpha, double* b0, double* b1, double* b2,
-                   double* b3, double* alat, double* esub, double* asub,
-                   double* t0, double* t1, double* t2, double* t3,
-                   double* rozero, int* ibar);
+
+public:
+  void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,
+                         double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
+                         double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,
+                         int* ibar);
   void meam_setup_param(int which, double value, int nindex, int* index /*index(3)*/, int* errorflag);
   void meam_setup_done(double* cutmax);
   void meam_dens_setup(int atom_nmax, int nall, int n_neigh);
-  void meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
-                int numneigh, int* firstneigh, int numneigh_full,
-                int* firstneigh_full, int fnoffset, int* errorflag);
-  void meam_dens_final(int nlocal, int eflag_either, int eflag_global,
-                 int eflag_atom, double* eng_vdwl, double* eatom, int ntype,
-                 int* type, int* fmap, int* errorflag);
-  void meam_force(int i, int eflag_either, int eflag_global,
-            int eflag_atom, int vflag_atom, double* eng_vdwl, double* eatom,
-            int ntype, int* type, int* fmap, double** x, int numneigh,
-            int* firstneigh, int numneigh_full, int* firstneigh_full,
-            int fnoffset, double** f, double** vatom,
-            int* errorflag);
+  void meam_dens_init(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                      int numneigh_full, int* firstneigh_full, int fnoffset, int* errorflag);
+  void meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
+                       double* eatom, int ntype, int* type, int* fmap, int* errorflag);
+  void meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
+                  double* eatom, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                  int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom,
+                  int* errorflag);
 };
 
 // Functions we need for compat
 
 #define iszero(f) (fabs(f) < 1e-20)
 
-#define setall2d(arr, v)                                                       \
-  {                                                                            \
-    for (int __i = 0; __i < maxelt; __i++)                                     \
-      for (int __j = 0; __j < maxelt; __j++)                                   \
-        arr[__i][__j] = v;                                                     \
+#define setall2d(arr, v)                                                                                     \
+  {                                                                                                          \
+    for (int __i = 0; __i < maxelt; __i++)                                                                   \
+      for (int __j = 0; __j < maxelt; __j++)                                                                 \
+        arr[__i][__j] = v;                                                                                   \
   }
-#define setall3d(arr, v)                                                       \
-  {                                                                            \
-    for (int __i = 0; __i < maxelt; __i++)                                     \
-      for (int __j = 0; __j < maxelt; __j++)                                   \
-        for (int __k = 0; __k < maxelt; __k++)                                 \
-          arr[__i][__j][__k] = v;                                              \
+#define setall3d(arr, v)                                                                                     \
+  {                                                                                                          \
+    for (int __i = 0; __i < maxelt; __i++)                                                                   \
+      for (int __j = 0; __j < maxelt; __j++)                                                                 \
+        for (int __k = 0; __k < maxelt; __k++)                                                               \
+          arr[__i][__j][__k] = v;                                                                            \
   }
-
 };
 #endif

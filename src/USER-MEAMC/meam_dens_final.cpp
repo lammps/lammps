@@ -1,6 +1,6 @@
 #include "meam.h"
-#include <math.h>
 #include "math_special.h"
+#include <math.h>
 
 using namespace LAMMPS_NS;
 // Extern "C" declaration has the form:
@@ -21,9 +21,8 @@ using namespace LAMMPS_NS;
 //
 
 void
-MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
-                 int eflag_atom, double* eng_vdwl, double* eatom, int ntype,
-                 int* type, int* fmap, int* errorflag)
+MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
+                      double* eatom, int ntype, int* type, int* fmap, int* errorflag)
 {
   int i, elti;
   int m;
@@ -43,14 +42,10 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
         rho3[i] = rho3[i] - 3.0 / 5.0 * arho3b[i][m] * arho3b[i][m];
       }
       for (m = 0; m < 6; m++) {
-        rho2[i] =
-          rho2[i] +
-          this->v2D[m] * arho2[i][m] * arho2[i][m];
+        rho2[i] = rho2[i] + this->v2D[m] * arho2[i][m] * arho2[i][m];
       }
       for (m = 0; m < 10; m++) {
-        rho3[i] =
-          rho3[i] +
-          this->v3D[m] * arho3[i][m] * arho3[i][m];
+        rho3[i] = rho3[i] + this->v3D[m] * arho3[i][m] * arho3[i][m];
       }
 
       if (rho0[i] > 0.0) {
@@ -69,9 +64,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
         }
       }
 
-      gamma[i] = t_ave[i][0] * rho1[i] +
-                 t_ave[i][1] * rho2[i] +
-                 t_ave[i][2] * rho3[i];
+      gamma[i] = t_ave[i][0] * rho1[i] + t_ave[i][1] * rho2[i] + t_ave[i][2] * rho3[i];
 
       if (rho0[i] > 0.0) {
         gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
@@ -88,13 +81,9 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
         dGbar = 0.0;
       } else {
         if (this->mix_ref_t == 1) {
-          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] +
-                 t_ave[i][2] * shp[2]) /
-                (Z * Z);
+          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
         } else {
-          gam = (this->t1_meam[elti] * shp[0] +
-                 this->t2_meam[elti] * shp[1] +
-                 this->t3_meam[elti] * shp[2]) /
+          gam = (this->t1_meam[elti] * shp[0] + this->t2_meam[elti] * shp[1] + this->t3_meam[elti] * shp[2]) /
                 (Z * Z);
         }
         G_gam(gam, this->ibar_meam[elti], &Gbar, errorflag);
@@ -106,9 +95,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global,
           Gbar = 1.0;
           dGbar = 0.0;
         } else {
-          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] +
-                 t_ave[i][2] * shp[2]) /
-                (Z * Z);
+          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
           dG_gam(gam, this->ibar_meam[elti], &Gbar, &dGbar);
         }
         rho_bkgd = this->rho0_meam[elti] * Z * Gbar;
@@ -196,8 +183,7 @@ MEAM::G_gam(double gamma, int ibar, double* G, int* errorflag)
       //         e.g. gsmooth_factor is 99, {:
       //         gsmooth_switchpoint = -0.99
       //         G = 0.01*(-0.99/gamma)**99
-      *G = 1 / (gsmooth_factor + 1) *
-           pow((gsmooth_switchpoint / gamma), gsmooth_factor);
+      *G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
       *G = sqrt(*G);
     } else {
       *G = sqrt(1.0 + gamma);
@@ -237,8 +223,7 @@ MEAM::dG_gam(double gamma, int ibar, double* G, double* dG)
       //         e.g. gsmooth_factor is 99, {:
       //         gsmooth_switchpoint = -0.99
       //         G = 0.01*(-0.99/gamma)**99
-      *G = 1 / (gsmooth_factor + 1) *
-           pow((gsmooth_switchpoint / gamma), gsmooth_factor);
+      *G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
       *G = sqrt(*G);
       *dG = -gsmooth_factor * *G / (2.0 * gamma);
     } else {

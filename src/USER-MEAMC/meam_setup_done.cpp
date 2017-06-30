@@ -1,7 +1,7 @@
 #include "meam.h"
-#include <math.h>
-#include <algorithm>
 #include "math_special.h"
+#include <algorithm>
+#include <math.h>
 using namespace LAMMPS_NS;
 
 // Declaration in pair_meam.h:
@@ -27,8 +27,7 @@ MEAM::meam_setup_done(double* cutmax)
 
   //     Augment t1 term
   for (int i = 0; i < maxelt; i++)
-    this->t1_meam[i] =
-      this->t1_meam[i] + this->augt1 * 3.0 / 5.0 * this->t3_meam[i];
+    this->t1_meam[i] = this->t1_meam[i] + this->augt1 * 3.0 / 5.0 * this->t3_meam[i];
 
   //     Compute off-diagonal alloy parameters
   alloyparams();
@@ -116,28 +115,21 @@ MEAM::alloyparams(void)
         if (iszero(this->Ec_meam[i][j])) {
           if (this->lattce_meam[i][j] == L12)
             this->Ec_meam[i][j] =
-              (3 * this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 4.0 -
-              this->delta_meam[i][j];
+              (3 * this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 4.0 - this->delta_meam[i][j];
           else if (this->lattce_meam[i][j] == C11) {
             if (this->lattce_meam[i][i] == DIA)
               this->Ec_meam[i][j] =
-                (2 * this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 3.0 -
-                this->delta_meam[i][j];
+                (2 * this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 3.0 - this->delta_meam[i][j];
             else
               this->Ec_meam[i][j] =
-                (this->Ec_meam[i][i] + 2 * this->Ec_meam[j][j]) / 3.0 -
-                this->delta_meam[i][j];
+                (this->Ec_meam[i][i] + 2 * this->Ec_meam[j][j]) / 3.0 - this->delta_meam[i][j];
           } else
-            this->Ec_meam[i][j] =
-              (this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 2.0 -
-              this->delta_meam[i][j];
+            this->Ec_meam[i][j] = (this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 2.0 - this->delta_meam[i][j];
         }
         if (iszero(this->alpha_meam[i][j]))
-          this->alpha_meam[i][j] =
-            (this->alpha_meam[i][i] + this->alpha_meam[j][j]) / 2.0;
+          this->alpha_meam[i][j] = (this->alpha_meam[i][i] + this->alpha_meam[j][j]) / 2.0;
         if (iszero(this->re_meam[i][j]))
-          this->re_meam[i][j] =
-            (this->re_meam[i][i] + this->re_meam[j][j]) / 2.0;
+          this->re_meam[i][j] = (this->re_meam[i][i] + this->re_meam[j][j]) / 2.0;
       }
     }
   }
@@ -160,8 +152,7 @@ MEAM::alloyparams(void)
   for (i = 0; i < this->neltypes; i++) {
     for (j = 0; j < this->neltypes; j++) {
       for (k = 0; k < this->neltypes; k++) {
-        eb = (this->Cmax_meam[i][j][k] * this->Cmax_meam[i][j][k]) /
-             (4.0 * (this->Cmax_meam[i][j][k] - 1.0));
+        eb = (this->Cmax_meam[i][j][k] * this->Cmax_meam[i][j][k]) / (4.0 * (this->Cmax_meam[i][j][k] - 1.0));
         this->ebound_meam[i][j] = std::max(this->ebound_meam[i][j], eb);
       }
     }
@@ -203,41 +194,17 @@ MEAM::compute_pair_meam(void)
     memory->destroy(this->phirar6);
 
   // allocate memory for array that defines the potential
-  memory->create(this->phir,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phir");
+  memory->create(this->phir, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phir");
 
   // allocate coeff memory
 
-  memory->create(this->phirar,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phirar");
-  memory->create(this->phirar1,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phirar1");
-  memory->create(this->phirar2,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phirar2");
-  memory->create(this->phirar3,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phirar3");
-  memory->create(this->phirar4,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phirar4");
-  memory->create(this->phirar5,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phirar5");
-  memory->create(this->phirar6,
-              (this->neltypes * (this->neltypes + 1)) / 2,
-              this->nr,
-              "pair:phirar6");
+  memory->create(this->phirar, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar");
+  memory->create(this->phirar1, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar1");
+  memory->create(this->phirar2, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar2");
+  memory->create(this->phirar3, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar3");
+  memory->create(this->phirar4, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar4");
+  memory->create(this->phirar5, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar5");
+  memory->create(this->phirar6, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar6");
 
   // loop over pairs of element types
   nv2 = 0;
@@ -253,8 +220,8 @@ MEAM::compute_pair_meam(void)
         // (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
         if (this->nn2_meam[a][b] == 1) {
           get_Zij(&Z1, this->lattce_meam[a][b]);
-          get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][b],
-                   this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b]);
+          get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
+                   this->Cmax_meam[a][a][b]);
 
           //     The B1, B2,  and L12 cases with NN2 have a trick to them; we
           //     need to
@@ -262,55 +229,43 @@ MEAM::compute_pair_meam(void)
           //     a-a
           //     pairs, but need to include NN2 contributions to those pairs as
           //     well.
-          if (this->lattce_meam[a][b] == B1 ||
-              this->lattce_meam[a][b] == B2 ||
+          if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2 ||
               this->lattce_meam[a][b] == L12) {
             rarat = r * arat;
 
             //               phi_aa
             phiaa = phi_meam(rarat, a, a);
             get_Zij(&Z1, this->lattce_meam[a][a]);
-            get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][a],
-                     this->Cmin_meam[a][a][a],
+            get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
                      this->Cmax_meam[a][a][a]);
             nmax = 10;
             if (scrn > 0.0) {
               for (n = 1; n <= nmax; n++) {
-                phiaa = phiaa +
-                        pow((-Z2 * scrn / Z1), n) *
-                          phi_meam(rarat * pow(arat, n), a, a);
+                phiaa = phiaa + pow((-Z2 * scrn / Z1), n) * phi_meam(rarat * pow(arat, n), a, a);
               }
             }
 
             //               phi_bb
             phibb = phi_meam(rarat, b, b);
             get_Zij(&Z1, this->lattce_meam[b][b]);
-            get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[b][b],
-                     this->Cmin_meam[b][b][b],
+            get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[b][b], this->Cmin_meam[b][b][b],
                      this->Cmax_meam[b][b][b]);
             nmax = 10;
             if (scrn > 0.0) {
               for (n = 1; n <= nmax; n++) {
-                phibb = phibb +
-                        pow((-Z2 * scrn / Z1), n) *
-                          phi_meam(rarat * pow(arat, n), b, b);
+                phibb = phibb + pow((-Z2 * scrn / Z1), n) * phi_meam(rarat * pow(arat, n), b, b);
               }
             }
 
-            if (this->lattce_meam[a][b] == B1 ||
-                this->lattce_meam[a][b] == B2) {
+            if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2) {
               //     Add contributions to the B1 or B2 potential
               get_Zij(&Z1, this->lattce_meam[a][b]);
-              get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][b],
-                       this->Cmin_meam[a][a][b],
+              get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
                        this->Cmax_meam[a][a][b]);
-              this->phir[nv2][j] =
-                this->phir[nv2][j] - Z2 * scrn / (2 * Z1) * phiaa;
-              get_Zij2(&Z2, &arat, &scrn2, this->lattce_meam[a][b],
-                       this->Cmin_meam[b][b][a],
+              this->phir[nv2][j] = this->phir[nv2][j] - Z2 * scrn / (2 * Z1) * phiaa;
+              get_Zij2(&Z2, &arat, &scrn2, this->lattce_meam[a][b], this->Cmin_meam[b][b][a],
                        this->Cmax_meam[b][b][a]);
-              this->phir[nv2][j] =
-                this->phir[nv2][j] - Z2 * scrn2 / (2 * Z1) * phibb;
+              this->phir[nv2][j] = this->phir[nv2][j] - Z2 * scrn2 / (2 * Z1) * phibb;
 
             } else if (this->lattce_meam[a][b] == L12) {
               //     The L12 case has one last trick; we have to be careful to
@@ -327,17 +282,14 @@ MEAM::compute_pair_meam(void)
               get_sijk(C, b, b, a, &s221);
               S11 = s111 * s111 * s112 * s112;
               S22 = pow(s221, 4);
-              this->phir[nv2][j] = this->phir[nv2][j] -
-                                             0.75 * S11 * phiaa -
-                                             0.25 * S22 * phibb;
+              this->phir[nv2][j] = this->phir[nv2][j] - 0.75 * S11 * phiaa - 0.25 * S22 * phibb;
             }
 
           } else {
             nmax = 10;
             for (n = 1; n <= nmax; n++) {
               this->phir[nv2][j] =
-                this->phir[nv2][j] +
-                pow((-Z2 * scrn / Z1), n) * phi_meam(r * pow(arat, n), a, b);
+                this->phir[nv2][j] + pow((-Z2 * scrn / Z1), n) * phi_meam(r * pow(arat, n), a, b);
             }
           }
         }
@@ -349,16 +301,13 @@ MEAM::compute_pair_meam(void)
         //   potential is linear combination with zbl potential
         // endif
         if (this->zbl_meam[a][b] == 1) {
-          astar =
-            this->alpha_meam[a][b] * (r / this->re_meam[a][b] - 1.0);
+          astar = this->alpha_meam[a][b] * (r / this->re_meam[a][b] - 1.0);
           if (astar <= -3.0)
-            this->phir[nv2][j] =
-              zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
+            this->phir[nv2][j] = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
           else if (astar > -3.0 && astar < -1.0) {
             fcut(1 - (astar + 1.0) / (-3.0 + 1.0), &frac);
             phizbl = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
-            this->phir[nv2][j] =
-              frac * this->phir[nv2][j] + (1 - frac) * phizbl;
+            this->phir[nv2][j] = frac * this->phir[nv2][j] + (1 - frac) * phizbl;
           }
         }
       }
@@ -401,8 +350,7 @@ MEAM::phi_meam(double r, int a, int b)
   //   Nref[i][j] = # of i's neighbors of type j
   get_Zij(&Z12, this->lattce_meam[a][b]);
 
-  get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22,
-              &rho32);
+  get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32);
 
   // if densities are too small, numerical problems may result; just return zero
   if (rho01 <= 1e-14 && rho02 <= 1e-14)
@@ -419,40 +367,32 @@ MEAM::phi_meam(double r, int a, int b)
       t32av = this->t3_meam[b];
     } else {
       scalfac = 1.0 / (rho01 + rho02);
-      t11av =
-        scalfac * (this->t1_meam[a] * rho01 + this->t1_meam[b] * rho02);
+      t11av = scalfac * (this->t1_meam[a] * rho01 + this->t1_meam[b] * rho02);
       t12av = t11av;
-      t21av =
-        scalfac * (this->t2_meam[a] * rho01 + this->t2_meam[b] * rho02);
+      t21av = scalfac * (this->t2_meam[a] * rho01 + this->t2_meam[b] * rho02);
       t22av = t21av;
-      t31av =
-        scalfac * (this->t3_meam[a] * rho01 + this->t3_meam[b] * rho02);
+      t31av = scalfac * (this->t3_meam[a] * rho01 + this->t3_meam[b] * rho02);
       t32av = t31av;
     }
   } else {
     // average weighting factors for the reference structure, eqn. I.8
-    get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av,
-               this->t1_meam[a], this->t2_meam[a], this->t3_meam[a],
-               this->t1_meam[b], this->t2_meam[b], this->t3_meam[b],
-               r, a, b, this->lattce_meam[a][b]);
+    get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, this->t1_meam[a], this->t2_meam[a],
+               this->t3_meam[a], this->t1_meam[b], this->t2_meam[b], this->t3_meam[b], r, a, b,
+               this->lattce_meam[a][b]);
   }
 
   // for c11b structure, calculate background electron densities
   if (this->lattce_meam[a][b] == C11) {
     latta = this->lattce_meam[a][a];
     if (latta == DIA) {
-      rhobar1 = pow(((Z12 / 2) * (rho02 + rho01)), 2) +
-                t11av * pow((rho12 - rho11), 2) +
-                t21av / 6.0 * pow(rho22 + rho21, 2) +
-                121.0 / 40.0 * t31av * pow((rho32 - rho31), 2);
+      rhobar1 = pow(((Z12 / 2) * (rho02 + rho01)), 2) + t11av * pow((rho12 - rho11), 2) +
+                t21av / 6.0 * pow(rho22 + rho21, 2) + 121.0 / 40.0 * t31av * pow((rho32 - rho31), 2);
       rhobar1 = sqrt(rhobar1);
       rhobar2 = pow(Z12 * rho01, 2) + 2.0 / 3.0 * t21av * pow(rho21, 2);
       rhobar2 = sqrt(rhobar2);
     } else {
-      rhobar2 = pow(((Z12 / 2) * (rho01 + rho02)), 2) +
-                t12av * pow((rho11 - rho12), 2) +
-                t22av / 6.0 * pow(rho21 + rho22, 2) +
-                121.0 / 40.0 * t32av * pow((rho31 - rho32), 2);
+      rhobar2 = pow(((Z12 / 2) * (rho01 + rho02)), 2) + t12av * pow((rho11 - rho12), 2) +
+                t22av / 6.0 * pow(rho21 + rho22, 2) + 121.0 / 40.0 * t32av * pow((rho31 - rho32), 2);
       rhobar2 = sqrt(rhobar2);
       rhobar1 = pow(Z12 * rho02, 2) + 2.0 / 3.0 * t22av * pow(rho22, 2);
       rhobar1 = sqrt(rhobar1);
@@ -520,8 +460,7 @@ MEAM::phi_meam(double r, int a, int b)
     if (this->emb_lin_neg == 1 && rhobar1 <= 0)
       F1 = -this->A_meam[a] * this->Ec_meam[a][a] * rhobar1;
     else
-      F1 =
-        this->A_meam[a] * this->Ec_meam[a][a] * rhobar1 * log(rhobar1);
+      F1 = this->A_meam[a] * this->Ec_meam[a][a] * rhobar1 * log(rhobar1);
   }
   if (iszero(rhobar2))
     F2 = 0.0;
@@ -529,13 +468,11 @@ MEAM::phi_meam(double r, int a, int b)
     if (this->emb_lin_neg == 1 && rhobar2 <= 0)
       F2 = -this->A_meam[b] * this->Ec_meam[b][b] * rhobar2;
     else
-      F2 =
-        this->A_meam[b] * this->Ec_meam[b][b] * rhobar2 * log(rhobar2);
+      F2 = this->A_meam[b] * this->Ec_meam[b][b] * rhobar2 * log(rhobar2);
   }
 
   // compute Rose function, I.16
-  Eu = erose(r, this->re_meam[a][b], this->alpha_meam[a][b],
-             this->Ec_meam[a][b], this->repuls_meam[a][b],
+  Eu = erose(r, this->re_meam[a][b], this->alpha_meam[a][b], this->Ec_meam[a][b], this->repuls_meam[a][b],
              this->attrac_meam[a][b], this->erose_form);
 
   // calculate the pair energy
@@ -552,14 +489,12 @@ MEAM::phi_meam(double r, int a, int b)
     phiaa = phi_meam(r, a, a);
     //       account for second neighbor a-a potential here...
     get_Zij(&Z1nn, this->lattce_meam[a][a]);
-    get_Zij2(&Z2nn, &arat, &scrn, this->lattce_meam[a][a],
-             this->Cmin_meam[a][a][a], this->Cmax_meam[a][a][a]);
+    get_Zij2(&Z2nn, &arat, &scrn, this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
+             this->Cmax_meam[a][a][a]);
     nmax = 10;
     if (scrn > 0.0) {
       for (n = 1; n <= nmax; n++) {
-        phiaa =
-          phiaa +
-          pow((-Z2nn * scrn / Z1nn), n) * phi_meam(r * pow(arat, n), a, a);
+        phiaa = phiaa + pow((-Z2nn * scrn / Z1nn), n) * phi_meam(r * pow(arat, n), a, a);
       }
     }
     phi_m = Eu / 3.0 - F1 / 4.0 - F2 / 12.0 - phiaa;
@@ -595,9 +530,7 @@ MEAM::compute_reference_density(void)
       Gbar = 1.0;
     else {
       get_shpfcn(shp, this->lattce_meam[a][a]);
-      gam = (this->t1_meam[a] * shp[0] + this->t2_meam[a] * shp[1] +
-             this->t3_meam[a] * shp[2]) /
-            (Z * Z);
+      gam = (this->t1_meam[a] * shp[0] + this->t2_meam[a] * shp[1] + this->t3_meam[a] * shp[2]) / (Z * Z);
       G_gam(gam, this->ibar_meam[a], &Gbar, &errorflag);
     }
 
@@ -610,10 +543,9 @@ MEAM::compute_reference_density(void)
     //     add on the contribution from those (accounting for partial
     //     screening)
     if (this->nn2_meam[a][a] == 1) {
-      get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][a],
-               this->Cmin_meam[a][a][a], this->Cmax_meam[a][a][a]);
-      rho0_2nn =
-        this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * (arat - 1));
+      get_Zij2(&Z2, &arat, &scrn, this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
+               this->Cmax_meam[a][a][a]);
+      rho0_2nn = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * (arat - 1));
       rho0 = rho0 + Z2 * rho0_2nn * scrn;
     }
 
@@ -652,10 +584,9 @@ MEAM::get_shpfcn(double* s /* s(3) */, lattice_t latt)
 //------------------------------------------------------------------------------c
 // Average weighting factors for the reference structure
 void
-MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av,
-           double* t22av, double* t32av, double t11, double t21, double t31,
-           double t12, double t22, double t32, double r, int a, int b,
-           lattice_t latt)
+MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, double* t22av, double* t32av,
+                 double t11, double t21, double t31, double t12, double t22, double t32, double r, int a,
+                 int b, lattice_t latt)
 {
   double rhoa01, rhoa02, a1, a2, rho01 /*,rho02*/;
 
@@ -668,8 +599,7 @@ MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av,
     *t22av = t22;
     *t32av = t32;
   } else {
-    if (latt == FCC || latt == BCC || latt == DIA || latt == HCP ||
-        latt == B1 || latt == DIM || latt == B2) {
+    if (latt == FCC || latt == BCC || latt == DIA || latt == HCP || latt == B1 || latt == DIM || latt == B2) {
       //     all neighbors are of the opposite type
       *t11av = t12;
       *t21av = t22;
@@ -730,8 +660,7 @@ MEAM::get_Zij(int* Zij, lattice_t latt)
 // neighbor screening function for lattice type "latt"
 
 void
-MEAM::get_Zij2(int* Zij2, double* a, double* S, lattice_t latt, double cmin,
-         double cmax)
+MEAM::get_Zij2(int* Zij2, double* a, double* S, lattice_t latt, double cmin, double cmax)
 {
 
   double /*rratio,*/ C, x, sijk;
@@ -791,17 +720,15 @@ void
 MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
 {
   double x;
-  x = (C - this->Cmin_meam[i][j][k]) /
-      (this->Cmax_meam[i][j][k] - this->Cmin_meam[i][j][k]);
+  x = (C - this->Cmin_meam[i][j][k]) / (this->Cmax_meam[i][j][k] - this->Cmin_meam[i][j][k]);
   fcut(x, sijk);
 }
 
 //------------------------------------------------------------------------------c
 // Calculate density functions, assuming reference configuration
 void
-MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21,
-            double* rho31, double* rho02, double* rho12, double* rho22,
-            double* rho32)
+MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21, double* rho31,
+                  double* rho02, double* rho12, double* rho22, double* rho32)
 {
   double a1, a2;
   double s[3];
@@ -878,11 +805,8 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
     *rho01 = 8 * rhoa01 + 4 * rhoa02;
     *rho02 = 12 * rhoa01;
     if (this->ialloy == 1) {
-      *rho21 =
-        8. / 3. *
-        pow(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b], 2);
-      denom = 8 * rhoa01 * pow(this->t2_meam[a], 2) +
-              4 * rhoa02 * pow(this->t2_meam[b], 2);
+      *rho21 = 8. / 3. * pow(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b], 2);
+      denom = 8 * rhoa01 * pow(this->t2_meam[a], 2) + 4 * rhoa02 * pow(this->t2_meam[b], 2);
       if (denom > 0.)
         *rho21 = *rho21 / denom * *rho01;
     } else
@@ -896,8 +820,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
 
   if (this->nn2_meam[a][b] == 1) {
 
-    get_Zij2(&Zij2nn, &arat, &scrn, lat, this->Cmin_meam[a][a][b],
-             this->Cmax_meam[a][a][b]);
+    get_Zij2(&Zij2nn, &arat, &scrn, lat, this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b]);
 
     a1 = arat * r / this->re_meam[a][a] - 1.0;
     a2 = arat * r / this->re_meam[b][b] - 1.0;
@@ -924,8 +847,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
       *rho01 = *rho01 + Zij2nn * scrn * rhoa01nn;
 
       //     Assume Zij2nn and arat don't depend on order, but scrn might
-      get_Zij2(&Zij2nn, &arat, &scrn, lat, this->Cmin_meam[b][b][a],
-               this->Cmax_meam[b][b][a]);
+      get_Zij2(&Zij2nn, &arat, &scrn, lat, this->Cmin_meam[b][b][a], this->Cmax_meam[b][b][a]);
       *rho02 = *rho02 + Zij2nn * scrn * rhoa02nn;
     }
   }
@@ -959,8 +881,7 @@ MEAM::zbl(double r, int z1, int z2)
 // Compute Rose energy function, I.16
 //
 double
-MEAM::erose(double r, double re, double alpha, double Ec, double repuls,
-      double attrac, int form)
+MEAM::erose(double r, double re, double alpha, double Ec, double repuls, double attrac, int form)
 {
   double astar, a3;
   double result = 0.0;
@@ -974,13 +895,11 @@ MEAM::erose(double r, double re, double alpha, double Ec, double repuls,
       a3 = repuls;
 
     if (form == 1)
-      result = -Ec * (1 + astar + (-attrac + repuls / r) * pow(astar, 3)) *
-               MathSpecial::fm_exp(-astar);
+      result = -Ec * (1 + astar + (-attrac + repuls / r) * pow(astar, 3)) * MathSpecial::fm_exp(-astar);
     else if (form == 2)
       result = -Ec * (1 + astar + a3 * pow(astar, 3)) * MathSpecial::fm_exp(-astar);
     else
-      result =
-        -Ec * (1 + astar + a3 * pow(astar, 3) / (r / re)) * MathSpecial::fm_exp(-astar);
+      result = -Ec * (1 + astar + a3 * pow(astar, 3) / (r / re)) * MathSpecial::fm_exp(-astar);
   }
   return result;
 }
@@ -1005,37 +924,28 @@ MEAM::interpolate_meam(int ind)
   }
   this->phirar1[ind][0] = this->phirar[ind][1] - this->phirar[ind][0];
   this->phirar1[ind][1] = 0.5 * (this->phirar[ind][2] - this->phirar[ind][0]);
-  this->phirar1[ind][this->nrar - 2] = 0.5 * (this->phirar[ind][this->nrar - 1] - this->phirar[ind][this->nrar - 3]);
+  this->phirar1[ind][this->nrar - 2] =
+    0.5 * (this->phirar[ind][this->nrar - 1] - this->phirar[ind][this->nrar - 3]);
   this->phirar1[ind][this->nrar - 1] = 0.0;
   for (j = 2; j < this->nrar - 2; j++) {
-    this->phirar1[ind][j] =
-      ((this->phirar[ind][j - 2] -
-        this->phirar[ind][j + 2]) +
-       8.0 * (this->phirar[ind][j + 1] -
-              this->phirar[ind][j - 1])) /
-      12.;
+    this->phirar1[ind][j] = ((this->phirar[ind][j - 2] - this->phirar[ind][j + 2]) +
+                             8.0 * (this->phirar[ind][j + 1] - this->phirar[ind][j - 1])) /
+                            12.;
   }
 
   for (j = 0; j < this->nrar - 1; j++) {
-    this->phirar2[ind][j] =
-      3.0 *
-        (this->phirar[ind][j + 1] - this->phirar[ind][j]) -
-      2.0 * this->phirar1[ind][j] -
-        this->phirar1[ind][j + 1];
-    this->phirar3[ind][j] =
-      this->phirar1[ind][j] + this->phirar1[ind][j + 1] -
-      2.0 *
-        (this->phirar[ind][j + 1] - this->phirar[ind][j]);
+    this->phirar2[ind][j] = 3.0 * (this->phirar[ind][j + 1] - this->phirar[ind][j]) -
+                            2.0 * this->phirar1[ind][j] - this->phirar1[ind][j + 1];
+    this->phirar3[ind][j] = this->phirar1[ind][j] + this->phirar1[ind][j + 1] -
+                            2.0 * (this->phirar[ind][j + 1] - this->phirar[ind][j]);
   }
   this->phirar2[ind][this->nrar - 1] = 0.0;
   this->phirar3[ind][this->nrar - 1] = 0.0;
 
   for (j = 0; j < this->nrar; j++) {
     this->phirar4[ind][j] = this->phirar1[ind][j] / drar;
-    this->phirar5[ind][j] =
-      2.0 * this->phirar2[ind][j] / drar;
-    this->phirar6[ind][j] =
-      3.0 * this->phirar3[ind][j] / drar;
+    this->phirar5[ind][j] = 2.0 * this->phirar2[ind][j] / drar;
+    this->phirar6[ind][j] = 3.0 * this->phirar3[ind][j] / drar;
   }
 }
 
@@ -1054,12 +964,9 @@ MEAM::compute_phi(double rij, int elti, int eltj)
   kk = std::min(kk, this->nrar - 2);
   pp = pp - kk;
   pp = std::min(pp, 1.0);
-  double result = ((this->phirar3[ind][kk] * pp +
-                    this->phirar2[ind][kk]) *
-                     pp +
-                   this->phirar1[ind][kk]) *
-                    pp +
-                  this->phirar[ind][kk];
+  double result =
+    ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp +
+    this->phirar[ind][kk];
 
   return result;
 }

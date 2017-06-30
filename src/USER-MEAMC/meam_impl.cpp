@@ -22,7 +22,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MEAM::MEAM(Memory *mem) : memory(mem)
+MEAM::MEAM(Memory* mem)
+  : memory(mem)
 {
   phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = NULL;
 
@@ -69,5 +70,3 @@ MEAM::~MEAM()
   memory->destroy(this->dscrfcn);
   memory->destroy(this->fcpair);
 }
-
-

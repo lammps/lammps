@@ -1,9 +1,8 @@
 #include "meam.h"
-#include <math.h>
 #include "math_special.h"
+#include <math.h>
 
 using namespace LAMMPS_NS;
-
 
 void
 MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
@@ -33,23 +32,23 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 
     nmax = atom_nmax;
 
-    memory->create(rho,nmax,"pair:rho");
-    memory->create(rho0,nmax,"pair:rho0");
-    memory->create(rho1,nmax,"pair:rho1");
-    memory->create(rho2,nmax,"pair:rho2");
-    memory->create(rho3,nmax,"pair:rho3");
-    memory->create(frhop,nmax,"pair:frhop");
-    memory->create(gamma,nmax,"pair:gamma");
-    memory->create(dgamma1,nmax,"pair:dgamma1");
-    memory->create(dgamma2,nmax,"pair:dgamma2");
-    memory->create(dgamma3,nmax,"pair:dgamma3");
-    memory->create(arho2b,nmax,"pair:arho2b");
-    memory->create(arho1,nmax,3,"pair:arho1");
-    memory->create(arho2,nmax,6,"pair:arho2");
-    memory->create(arho3,nmax,10,"pair:arho3");
-    memory->create(arho3b,nmax,3,"pair:arho3b");
-    memory->create(t_ave,nmax,3,"pair:t_ave");
-    memory->create(tsq_ave,nmax,3,"pair:tsq_ave");
+    memory->create(rho, nmax, "pair:rho");
+    memory->create(rho0, nmax, "pair:rho0");
+    memory->create(rho1, nmax, "pair:rho1");
+    memory->create(rho2, nmax, "pair:rho2");
+    memory->create(rho3, nmax, "pair:rho3");
+    memory->create(frhop, nmax, "pair:frhop");
+    memory->create(gamma, nmax, "pair:gamma");
+    memory->create(dgamma1, nmax, "pair:dgamma1");
+    memory->create(dgamma2, nmax, "pair:dgamma2");
+    memory->create(dgamma3, nmax, "pair:dgamma3");
+    memory->create(arho2b, nmax, "pair:arho2b");
+    memory->create(arho1, nmax, 3, "pair:arho1");
+    memory->create(arho2, nmax, 6, "pair:arho2");
+    memory->create(arho3, nmax, 10, "pair:arho3");
+    memory->create(arho3b, nmax, 3, "pair:arho3b");
+    memory->create(t_ave, nmax, 3, "pair:t_ave");
+    memory->create(tsq_ave, nmax, 3, "pair:tsq_ave");
   }
 
   if (n_neigh > maxneigh) {
@@ -57,9 +56,9 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->destroy(dscrfcn);
     memory->destroy(fcpair);
     maxneigh = n_neigh;
-    memory->create(scrfcn,maxneigh,"pair:scrfcn");
-    memory->create(dscrfcn,maxneigh,"pair:dscrfcn");
-    memory->create(fcpair,maxneigh,"pair:fcpair");
+    memory->create(scrfcn, maxneigh, "pair:scrfcn");
+    memory->create(dscrfcn, maxneigh, "pair:dscrfcn");
+    memory->create(fcpair, maxneigh, "pair:fcpair");
   }
 
   // zero out local arrays
@@ -68,19 +67,15 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     rho0[i] = 0.0;
     arho2b[i] = 0.0;
     arho1[i][0] = arho1[i][1] = arho1[i][2] = 0.0;
-    for (j = 0; j < 6; j++) arho2[i][j] = 0.0;
-    for (j = 0; j < 10; j++) arho3[i][j] = 0.0;
+    for (j = 0; j < 6; j++)
+      arho2[i][j] = 0.0;
+    for (j = 0; j < 10; j++)
+      arho3[i][j] = 0.0;
     arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
     t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
     tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
   }
 }
-
-
-
-
-
-
 
 //     Extern "C" declaration has the form:
 //
@@ -101,9 +96,8 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 //
 
 void
-MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
-                int numneigh, int* firstneigh, int numneigh_full,
-                int* firstneigh_full, int fnoffset, int* errorflag)
+MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                     int numneigh_full, int* firstneigh_full, int fnoffset, int* errorflag)
 {
   *errorflag = 0;
 
@@ -118,9 +112,8 @@ MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
-          double** x, int numneigh, int* firstneigh, int numneigh_full,
-          int* firstneigh_full, int ntype, int* type, int* fmap)
+MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
+                int* firstneigh, int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap)
 {
   int jn, j, kn, k;
   int elti, eltj, eltk;
@@ -241,8 +234,8 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
-          int numneigh, int* firstneigh, double* scrfcn, double* fcpair)
+MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                double* scrfcn, double* fcpair)
 {
   int jn, j, m, n, p, elti, eltj;
   int nv2, nv3;
@@ -341,8 +334,8 @@ MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::screen(int i, int j, double** x, double rijsq, double* sij,
-       int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap)
+MEAM::screen(int i, int j, double** x, double rijsq, double* sij, int numneigh_full, int* firstneigh_full,
+             int ntype, int* type, int* fmap)
 //     Screening function
 //     Inputs:  i = atom 1 id (integer)
 //     j = atom 2 id (integer)
@@ -410,9 +403,8 @@ MEAM::screen(int i, int j, double** x, double rijsq, double* sij,
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2,
-     double* dsij1, double* dsij2, int ntype, int* type, int* fmap, double** x,
-     double* scrfcn, double* fcpair)
+MEAM::dsij(int i, int j, int k, int jn, int numneigh, double rij2, double* dsij1, double* dsij2, int ntype,
+           int* type, int* fmap, double** x, double* scrfcn, double* fcpair)
 {
   //     Inputs: i,j,k = id's of 3 atom triplet
   //     jn = id of i-j pair
@@ -548,10 +540,8 @@ MEAM::dCfunc2(double rij2, double rik2, double rjk2, double* dCikj1, double* dCi
   b = rik2 + rjk2;
   denom = rij4 - a * a;
   denom = denom * denom;
-  *dCikj1 = 4 * rij2 *
-            (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
-  *dCikj2 = 4 * rij2 *
-            (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
+  *dCikj1 = 4 * rij2 * (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
+  *dCikj2 = 4 * rij2 * (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
 
   (void)(b);
 }

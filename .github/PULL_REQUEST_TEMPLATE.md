@@ -4,7 +4,11 @@ _Briefly describe the new feature(s), enhancement(s), or bugfix(es) included in 
 
 ## Implementation Notes
 
-_Provide any relevant details about how the changes are implemented, how correctness was verified, how other features, if any, in LAMMPS are affected_
+_Provide any relevant details about how the changes are implemented, how correctness was verified, how other features - if any - in LAMMPS are affected_
+
+## Backward Compatibility
+
+_Please state whether any changes in the pull request break backward compatibility for inputs, and - if yes - explain what has been changed and why_
 
 ## Post Submission Checklist
 

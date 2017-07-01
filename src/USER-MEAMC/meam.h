@@ -198,8 +198,6 @@ protected:
                  int* firstneigh, int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap);
   void calc_rho1(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
                  double* scrfcn, double* fcpair);
-  void dsij(int i, int j, int k, int jn, int numneigh, double rij2, double* dsij1, double* dsij2, int ntype,
-            int* type, int* fmap, double** x, double* scrfcn, double* fcpair);
 
   void alloyparams();
   void compute_pair_meam();

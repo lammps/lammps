@@ -80,7 +80,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
           pp = pp - kk;
           pp = std::min(pp, 1.0);
           phi = ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp +
-                this->phirar[ind][kk];
+            this->phirar[ind][kk];
           phip = (this->phirar6[ind][kk] * pp + this->phirar5[ind][kk]) * pp + this->phirar4[ind][kk];
           recip = 1.0 / r;
 
@@ -296,13 +296,13 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
           get_shpfcn(this->lattce_meam[elti][elti], shpi);
           get_shpfcn(this->lattce_meam[eltj][eltj], shpj);
           drhodr1 = dgamma1[i] * drho0dr1 +
-                    dgamma2[i] * (dt1dr1 * rho1[i] + t1i * drho1dr1 + dt2dr1 * rho2[i] + t2i * drho2dr1 +
-                                  dt3dr1 * rho3[i] + t3i * drho3dr1) -
-                    dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
+            dgamma2[i] * (dt1dr1 * rho1[i] + t1i * drho1dr1 + dt2dr1 * rho2[i] + t2i * drho2dr1 +
+                          dt3dr1 * rho3[i] + t3i * drho3dr1) -
+            dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
           drhodr2 = dgamma1[j] * drho0dr2 +
-                    dgamma2[j] * (dt1dr2 * rho1[j] + t1j * drho1dr2 + dt2dr2 * rho2[j] + t2j * drho2dr2 +
-                                  dt3dr2 * rho3[j] + t3j * drho3dr2) -
-                    dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
+            dgamma2[j] * (dt1dr2 * rho1[j] + t1j * drho1dr2 + dt2dr2 * rho2[j] + t2j * drho2dr2 +
+                          dt3dr2 * rho3[j] + t3j * drho3dr2) -
+            dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
           for (m = 0; m < 3; m++) {
             drhodrm1[m] = 0.0;
             drhodrm2[m] = 0.0;
@@ -380,13 +380,13 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
             }
 
             drhods1 = dgamma1[i] * drho0ds1 +
-                      dgamma2[i] * (dt1ds1 * rho1[i] + t1i * drho1ds1 + dt2ds1 * rho2[i] + t2i * drho2ds1 +
-                                    dt3ds1 * rho3[i] + t3i * drho3ds1) -
-                      dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
+              dgamma2[i] * (dt1ds1 * rho1[i] + t1i * drho1ds1 + dt2ds1 * rho2[i] + t2i * drho2ds1 +
+                            dt3ds1 * rho3[i] + t3i * drho3ds1) -
+              dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
             drhods2 = dgamma1[j] * drho0ds2 +
-                      dgamma2[j] * (dt1ds2 * rho1[j] + t1j * drho1ds2 + dt2ds2 * rho2[j] + t2j * drho2ds2 +
-                                    dt3ds2 * rho3[j] + t3j * drho3ds2) -
-                      dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
+              dgamma2[j] * (dt1ds2 * rho1[j] + t1j * drho1ds2 + dt2ds2 * rho2[j] + t2j * drho2ds2 +
+                            dt3ds2 * rho3[j] + t3j * drho3ds2) -
+              dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
           }
 
           //     Compute derivatives of energy wrt rij, sij and rij[3]
@@ -435,8 +435,49 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
             k = firstneigh_full[kn];
             eltk = fmap[type[k]];
             if (k != j && eltk >= 0) {
-              dsij(i, j, k, jn, numneigh, rij2, &dsij1, &dsij2, ntype, type, fmap, x, &scrfcn[fnoffset],
-                   &fcpair[fnoffset]);
+              double xik, xjk, cikj, sikj, dfc, a;
+              double dCikj1, dCikj2;
+              double dxik, dyik, dzik;
+              double dxjk, dyjk, dzjk;
+              double delc, rik2, rjk2;
+
+              sij = scrfcn[jn+fnoffset] * fcpair[jn+fnoffset];
+              const double Cmax = this->Cmax_meam[elti][eltj][eltk];
+              const double Cmin = this->Cmin_meam[elti][eltj][eltk];
+
+              dsij1 = 0.0;
+              dsij2 = 0.0;
+              if (!iszero(sij) && !iszero(sij - 1.0)) {
+                const double rbound = rij2 * this->ebound_meam[elti][eltj];
+                delc = Cmax - Cmin;
+                dxjk = x[k][0] - x[j][0];
+                dyjk = x[k][1] - x[j][1];
+                dzjk = x[k][2] - x[j][2];
+                rjk2 = dxjk * dxjk + dyjk * dyjk + dzjk * dzjk;
+                if (rjk2 <= rbound) {
+                  dxik = x[k][0] - x[i][0];
+                  dyik = x[k][1] - x[i][1];
+                  dzik = x[k][2] - x[i][2];
+                  rik2 = dxik * dxik + dyik * dyik + dzik * dzik;
+                  if (rik2 <= rbound) {
+                    xik = rik2 / rij2;
+                    xjk = rjk2 / rij2;
+                    a = 1 - (xik - xjk) * (xik - xjk);
+                    if (!iszero(a)) {
+                      cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
+                      if (cikj >= Cmin && cikj <= Cmax) {
+                        cikj = (cikj - Cmin) / delc;
+                        sikj = dfcut(cikj, dfc);
+                        dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
+                        a = sij / delc * dfc / sikj;
+                        dsij1 = a * dCikj1;
+                        dsij2 = a * dCikj2;
+                      }
+                    }
+                  }
+                }
+              }
+
               if (!iszero(dsij1) || !iszero(dsij2)) {
                 force1 = dUdsij * dsij1;
                 force2 = dUdsij * dsij2;

@@ -14,7 +14,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   int j, jn, k, kn, kk, m, n, p, q;
   int nv2, nv3, elti, eltj, eltk, ind;
   double xitmp, yitmp, zitmp, delij[3], rij2, rij, rij3;
-  double delik[3], deljk[3], v[6], fi[3], fj[3];
+  double v[6], fi[3], fj[3];
   double third, sixth;
   double pp, dUdrij, dUdsij, dUdrijm[3], force, forcem;
   double r, recip, phi, phip;

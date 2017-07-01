@@ -607,7 +607,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
   double a1, a2;
   double s[3];
   lattice_t lat;
-  int Zij1nn, Zij2nn;
+  int Zij2nn;
   double rhoa01nn, rhoa02nn;
   double rhoa01, rhoa11, rhoa21, rhoa31;
   double rhoa02, rhoa12, rhoa22, rhoa32;
@@ -634,8 +634,6 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
   *rho12 = 0.0;
   *rho22 = 0.0;
   *rho32 = 0.0;
-
-  Zij1nn = get_Zij(lat);
 
   if (lat == FCC) {
     *rho01 = 12.0 * rhoa02;

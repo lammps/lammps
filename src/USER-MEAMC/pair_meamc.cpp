@@ -140,21 +140,14 @@ void PairMEAMC::compute(int eflag, int vflag)
     meam_inst->meam_dens_init(i,ntype,type,map,x,
                     numneigh_half[i],firstneigh_half[i],
                     numneigh_full[i],firstneigh_full[i],
-                    offset,
-                    &errorflag);
-    if (errorflag) {
-      char str[128];
-      sprintf(str,"MEAM library error %d",errorflag);
-      error->one(FLERR,str);
-    }
+                    offset);
     offset += numneigh_half[i];
   }
 
   comm->reverse_comm_pair(this);
 
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
-                   &eng_vdwl,eatom,ntype,type,map,
-                   &errorflag);
+                   &eng_vdwl,eatom,ntype,type,map,errorflag);
   if (errorflag) {
     char str[128];
     sprintf(str,"MEAM library error %d",errorflag);
@@ -178,13 +171,7 @@ void PairMEAMC::compute(int eflag, int vflag)
                 vflag_atom,&eng_vdwl,eatom,ntype,type,map,x,
                 numneigh_half[i],firstneigh_half[i],
                 numneigh_full[i],firstneigh_full[i],
-                offset,
-                f,vptr,&errorflag);
-    if (errorflag) {
-      char str[128];
-      sprintf(str,"MEAM library error %d",errorflag);
-      error->one(FLERR,str);
-    }
+                offset,f,vptr);
     offset += numneigh_half[i];
   }
 

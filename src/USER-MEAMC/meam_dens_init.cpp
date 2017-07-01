@@ -77,11 +77,10 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 }
 
 void
-MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
-                     int numneigh_full, int* firstneigh_full, int fnoffset, int* errorflag)
+MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
+                     int numneigh, int* firstneigh,
+                     int numneigh_full, int* firstneigh_full, int fnoffset)
 {
-  *errorflag = 0;
-
   //     Compute screening function and derivatives
   getscreen(i, &scrfcn[fnoffset], &dscrfcn[fnoffset], &fcpair[fnoffset], x, numneigh, firstneigh,
             numneigh_full, firstneigh_full, ntype, type, fmap);

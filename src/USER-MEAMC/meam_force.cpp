@@ -8,8 +8,7 @@ using namespace LAMMPS_NS;
 void
 MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
                  double* eatom, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
-                 int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom,
-                 int* errorflag)
+                 int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom)
 {
   int j, jn, k, kn, kk, m, n, p, q;
   int nv2, nv3, elti, eltj, eltk, ind;
@@ -43,7 +42,6 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   double dsij1, dsij2, force1, force2;
   double t1i, t2i, t3i, t1j, t2j, t3j;
 
-  *errorflag = 0;
   third = 1.0 / 3.0;
   sixth = 1.0 / 6.0;
 

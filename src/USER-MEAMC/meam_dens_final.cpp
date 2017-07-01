@@ -5,7 +5,7 @@ using namespace LAMMPS_NS;
 
 void
 MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
-                      double* eatom, int ntype, int* type, int* fmap, int* errorflag)
+                      double* eatom, int ntype, int* type, int* fmap, int& errorflag)
 {
   int i, elti;
   int m;
@@ -55,8 +55,8 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
 
       Z = this->Z_meam[elti];
 
-      G = G_gam(gamma[i], this->ibar_meam[elti], *errorflag);
-      if (*errorflag != 0)
+      G = G_gam(gamma[i], this->ibar_meam[elti], errorflag);
+      if (errorflag != 0)
         return;
       get_shpfcn(this->lattce_meam[elti][elti], shp);
       if (this->ibar_meam[elti] <= 0) {
@@ -69,7 +69,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
           gam = (this->t1_meam[elti] * shp[0] + this->t2_meam[elti] * shp[1] + this->t3_meam[elti] * shp[2]) /
                 (Z * Z);
         }
-        Gbar = G_gam(gam, this->ibar_meam[elti], *errorflag);
+        Gbar = G_gam(gam, this->ibar_meam[elti], errorflag);
       }
       rho[i] = rho0[i] * G;
 

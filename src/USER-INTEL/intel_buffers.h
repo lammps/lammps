@@ -172,6 +172,10 @@ class IntelBuffers {
 
   inline void thr_pack(const int ifrom, const int ito, const int ago) {
     if (ago == 0) {
+      #if defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma ivdep
+      #endif
       for (int i = ifrom; i < ito; i++) {
         _x[i].x = lmp->atom->x[i][0];
         _x[i].y = lmp->atom->x[i][1];
@@ -179,9 +183,17 @@ class IntelBuffers {
         _x[i].w = lmp->atom->type[i];
       }
       if (lmp->atom->q != NULL)
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma ivdep
+        #endif
         for (int i = ifrom; i < ito; i++)
           _q[i] = lmp->atom->q[i];
     } else {
+      #if defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma ivdep
+      #endif
       for (int i = ifrom; i < ito; i++) {
         _x[i].x = lmp->atom->x[i][0];
         _x[i].y = lmp->atom->x[i][1];
@@ -204,7 +216,10 @@ class IntelBuffers {
                            const int offset, const bool dotype = false) {
     double ** x = lmp->atom->x + offset;
     if (dotype == false) {
-      #pragma vector nontemporal
+      #if defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma ivdep
+      #endif
       for (int i = ifrom; i < ito; i++) {
         _x[i].x = x[i][0];
         _x[i].y = x[i][1];
@@ -212,7 +227,10 @@ class IntelBuffers {
       }
     } else {
       int *type = lmp->atom->type + offset;
-      #pragma vector nontemporal
+      #if defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma ivdep
+      #endif
       for (int i = ifrom; i < ito; i++) {
         _x[i].x = x[i][0];
         _x[i].y = x[i][1];
@@ -225,6 +243,10 @@ class IntelBuffers {
   inline void thr_pack_host(const int ifrom, const int ito,
                             const int offset) {
     double ** x = lmp->atom->x + offset;
+    #if defined(LMP_SIMD_COMPILER)
+    #pragma vector aligned
+    #pragma ivdep
+    #endif
     for (int i = ifrom; i < ito; i++) {
       _host_x[i].x = x[i][0];
       _host_x[i].y = x[i][1];

@@ -68,7 +68,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_MAX_STENCIL 256
 // INTEL_MAX_STENCIL * sqrt(INTEL_MAX_STENCIL)
 #define INTEL_MAX_STENCIL_CHECK 4096
-#define INTEL_P3M_MAXORDER 7
+#define INTEL_P3M_MAXORDER 8
 #define INTEL_P3M_ALIGNED_MAXORDER 8
 // PRECOMPUTE VALUES IN TABLE (DOESN'T AFFECT ACCURACY)
 #define INTEL_P3M_TABLE 1
@@ -248,6 +248,12 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 
 #else
 
+#define IP_PRE_omp_range(ifrom, ito, tid, inum, nthreads)       \
+  {                                                             \
+    ifrom = 0;                                                  \
+    ito = inum;                                                 \
+  }
+
 #define IP_PRE_omp_range_id(ifrom, ito, tid, inum, nthreads)    \
   {                                                             \
     tid = 0;                                                    \
@@ -291,6 +297,15 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     tid = 0;                                                    \
     ifrom = 0;                                                  \
     ito = inum;                                                 \
+  }
+
+#define IP_PRE_omp_range_id_vec(ifrom, ip, ito, tid, inum,      \
+                                nthreads, vecsize)              \
+  {                                                             \
+    tid = 0;                                                    \
+    ifrom = 0;                                                  \
+    ito = inum;                                                 \
+    ip = vecsize;                                               \
   }
 
 #endif

@@ -2062,8 +2062,9 @@ to plain C++. In contrast to the MEAM package, no library
 needs to be compiled and the pair style can be instantiated
 multiple times.
 
-[Author:]  Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
-based on the work of Greg Wagner (Northwestern U) while at Sandia.
+[Author:] Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
+based on the Fortran version of Greg Wagner (Northwestern U) while at
+Sandia.
 
 [Install or un-install:]
   

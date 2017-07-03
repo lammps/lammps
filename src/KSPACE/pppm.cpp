@@ -186,6 +186,10 @@ void PPPM::init()
   // error check
 
   triclinic_check();
+
+  if (triclinic != domain->triclinic)
+    error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
+
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box "
                "and kspace_modify diff ad");

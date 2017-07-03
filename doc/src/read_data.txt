@@ -14,7 +14,7 @@ read_data file keyword args ... :pre
 
 file = name of data file to read in :ulb,l
 zero or more keyword/arg pairs may be appended :l
-keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/types} or {extra/angle/types} or {extra/dihedral/types} or {extra/improper/types} or {group} or {nocoeff} or {fix} :l
+keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/types} or {extra/angle/types} or {extra/dihedral/types} or {extra/improper/types} or {extra/bond/per/atom} or {extra/angle/per/atom} or {extra/dihedral/per/atom} or {extra/improper/per/atom} or {group} or {nocoeff} or {fix} :l
   {add} arg = {append} or {Nstart} or {merge}
     append = add new atoms with IDs appended to current IDs
     Nstart = add new atoms with IDs starting with Nstart

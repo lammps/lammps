@@ -121,6 +121,7 @@ Package, Description, Doc page, Example, Library
 "USER-INTEL"_#USER-INTEL, optimized Intel CPU and KNL styles,"Section 5.3.2"_accelerate_intel.html, WWW bench, -
 "USER-LB"_#USER-LB, Lattice Boltzmann fluid,"fix lb/fluid"_fix_lb_fluid.html, USER/lb, -
 "USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, -
+"USER-MEAMC"_#USER-MEAMC, modified EAM potential (C++), "pair_style meam/c"_pair_meam.html, meam, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
@@ -2048,6 +2049,36 @@ src/USER-MANIFOLD/README
 "fix nvt/manifold/rattle"_fix_nvt_manifold_rattle.html
 examples/USER/manifold
 http://lammps.sandia.gov/movies.html#manifold :ul
+
+:line
+
+USER-MEAMC package :link(USER-MEAMC),h4
+
+[Contents:]
+
+A pair style for the modified embedded atom (MEAM) potential
+translated from the Fortran version in the "MEAM"_MEAM package
+to plain C++. In contrast to the MEAM package, no library
+needs to be compiled and the pair style can be instantiated
+multiple times.
+
+[Author:]  Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
+based on the work of Greg Wagner (Northwestern U) while at Sandia.
+
+[Install or un-install:]
+  
+make yes-user-meamc
+make machine :pre
+ 
+make no-user-meamc
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-MEAMC: filenames -> commands
+src/USER-MEAMC/README
+"pair meam/c"_pair_meam.html
+examples/meam :ul
 
 :line
 

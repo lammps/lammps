@@ -14,7 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing author: Ase Henry (MIT)
    Bugfixes and optimizations:
-     Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
+     Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U),
+     Markus Hoehnerbach (RWTH Aachen), Github user CF17
    AIREBO-M modification to optionally replace LJ with Morse potentials.
      Thomas C. O'Connor (JHU) 2014
 ------------------------------------------------------------------------- */

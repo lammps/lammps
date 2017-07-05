@@ -1066,7 +1066,6 @@ int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
 
 int Modify::check_rigid_list_overlap(int *select)
 {
-  const int * const mask = atom->mask;
   const int nlocal = atom->nlocal;
   int dim;
 

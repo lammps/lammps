@@ -40,7 +40,7 @@ class FixWallRegionEES : public Fix {
   double compute_vector(int);
 
  private:
-  class AtomVecEllipsoid *avec;//me
+  class AtomVecEllipsoid *avec;
 
   int iregion;
   double epsilon,sigma,cutoff;
@@ -50,11 +50,11 @@ class FixWallRegionEES : public Fix {
   char *idregion;
 
   double coeff1,coeff2,coeff3,coeff4,offset;
-  double coeff5, coeff6;//me
+  double coeff5, coeff6;
   double eng,fwall;
-  double torque[3];//me
+  double torque[3];
 
-  void ees(int, int);//me
+  void ees(int, int);
 };
 
 }

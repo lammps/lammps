@@ -11,13 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+/* ----------------------------------------------------------------------
+   Contributing author:  Abdoreza Ershadinia, a.ershadinia at gmail.com
+------------------------------------------------------------------------- */
+
+#include <math.h>
 #include "math_extra.h"
 #include "fix_wall_ees.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
+#include "domain.h"
+#include "region.h"
+#include "force.h"
+#include "lattice.h"
+#include "update.h"
+#include "output.h"
+#include "respa.h"
 #include "error.h"
+#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -96,13 +108,13 @@ void FixWallEES::wall_particle(int m, int which, double coord)
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
 
-        if (side < 0)
-          delta = x[i][dim] - coord;
+      if (side < 0)
+        delta = x[i][dim] - coord;
       else
-          delta = coord - x[i][dim];
+        delta = coord - x[i][dim];
 
       if (delta >= cutoff[m])
-          continue;
+        continue;
 
       double A[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
       double tempvec[3]= {0,0,0};
@@ -168,37 +180,37 @@ void FixWallEES::wall_particle(int m, int which, double coord)
       hms = delta - sigman;
 
       fwall = side*(
-                  -1*coeff4[m]/hhss2 +
-                  coeff3[m] * (  21*delta6 + 63*delta4*sigman2 + 27*delta2*sigman4 + sigman6  ) / hhss8
-                  );
-    f[i][dim] -= fwall;
+        -1*coeff4[m]/hhss2 +
+        coeff3[m] * (  21*delta6 + 63*delta4*sigman2 + 27*delta2*sigman4 + sigman6  ) / hhss8
+        );
+      f[i][dim] -= fwall;
 
-    ewall[0] += -1*coeff2[m] * (  4*delta/sigman2/hhss + 2*log(hms/hps)/sigman3  ) +
-            coeff1[m] * (  35*delta5 + 70*delta3*sigman2 + 15*delta*sigman4  ) / hhss7;
+      ewall[0] += -1*coeff2[m] * (  4*delta/sigman2/hhss + 2*log(hms/hps)/sigman3  ) +
+        coeff1[m] * (  35*delta5 + 70*delta3*sigman2 + 15*delta*sigman4  ) / hhss7;
 
-    ewall[m+1] += fwall;
+      ewall[m+1] += fwall;
 
-    twall = coeff6[m] * (  6.*delta3/sigman4/hhss2  - 10.*delta/sigman2/hhss2 + 3.*log(hms/hps)/sigman5  )  +
-            coeff5[m] * (  21.*delta5 + 30.*delta3*sigman2 + 5.*delta*sigman4  ) / hhss8    ;
-
-
-    MathExtra::matvec(Lx,nhat,tempvec);
-    MathExtra::transpose_matvec(A,tempvec,tempvec2);
-    for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
-    that[0] = MathExtra::dot3(SAn,tempvec2);
-
-    MathExtra::matvec(Ly,nhat,tempvec);
-    MathExtra::transpose_matvec(A,tempvec,tempvec2);
-    for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
-    that[1] = MathExtra::dot3(SAn,tempvec2);
-
-    MathExtra::matvec(Lz,nhat,tempvec);
-    MathExtra::transpose_matvec(A,tempvec,tempvec2);
-    for(int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
-    that[2] = MathExtra::dot3(SAn,tempvec2);
+      twall = coeff6[m] * (  6.*delta3/sigman4/hhss2  - 10.*delta/sigman2/hhss2 + 3.*log(hms/hps)/sigman5  )  +
+        coeff5[m] * (  21.*delta5 + 30.*delta3*sigman2 + 5.*delta*sigman4  ) / hhss8    ;
 
 
-    for(int j = 0; j<3 ; j++)
+      MathExtra::matvec(Lx,nhat,tempvec);
+      MathExtra::transpose_matvec(A,tempvec,tempvec2);
+      for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+      that[0] = MathExtra::dot3(SAn,tempvec2);
+
+      MathExtra::matvec(Ly,nhat,tempvec);
+      MathExtra::transpose_matvec(A,tempvec,tempvec2);
+      for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+      that[1] = MathExtra::dot3(SAn,tempvec2);
+
+      MathExtra::matvec(Lz,nhat,tempvec);
+      MathExtra::transpose_matvec(A,tempvec,tempvec2);
+      for(int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
+      that[2] = MathExtra::dot3(SAn,tempvec2);
+
+
+      for(int j = 0; j<3 ; j++)
         tor[i][j] += twall * that[j];
 
     }

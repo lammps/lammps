@@ -19,8 +19,8 @@ epsilon = strength factor for wall-particle interaction (energy or energy/distan
 sigma = size factor for wall-particle interaction (distance units)
 cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :ul
 
-[Examples:]o
-o
+[Examples:]
+
 fix wall all wall/region/ees mySphere 1.0 1.0 2.5 :pre
 
 [Description:]
@@ -32,7 +32,14 @@ the EES potential introduced "fix wall/ees"_fix_wall_ees.html.
 Other details of this command is the same wiht "fix wall/region"_fix_wall_region.html command. 
 One may also find and exapmle of using this code in USER/ees/ under examples/ directory. 
 
-[Restrictions:] none
+[Restrictions:] 
+
+This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+This fix requires that atoms be ellipsoids as defined by the
+"atom_style ellipsoid"_atom_style.html command.
 
 [Related commands:]
 

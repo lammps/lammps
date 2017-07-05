@@ -2081,44 +2081,63 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
 /* ----------------------------------------------------------------------
    Bij* function
-------------------------------------------------------------------------- */
+------------------------------------------------------------------------- 
 
-double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
-                               double VA, double rij0[3], double rij0mag,
+This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
+To do so, it needs to compute b_ij*, i.e. the bondorder given that the
+atoms i and j are placed a ficticious distance rijmag_mod apart.
+Now there are two approaches to calculate the resulting forces:
+1. Carry through the ficticious distance and corresponding vector
+   rij_mod, correcting afterwards using the derivative of r/|r|.
+2. Perform all the calculations using the real distance, and do not
+   use a correction, only using rijmag_mod where necessary.
+This code opts for (2). Mathematically, the approaches are equivalent
+if implemented correctly, since in terms where only the normalized
+vector is used, both calculations necessarily lead to the same result
+since if f(x) = g(x/|x|) then for x = y/|y| f(x) = g(y/|y|/1).
+The actual modified distance is only used in the lamda terms.
+Note that these do not contribute to the forces between i and j, since
+rijmag_mod is a constant and the corresponding derivatives are
+accordingly zero.
+This function should be kept in sync with bondorder(), i.e. changes
+there probably also need to be performed here.
+
+*/
+
+double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mod,
+                               double VA, double rij[3], double rijmag,
                                double **f, int vflag_atom)
 {
-  int k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
-  int atomi,atomj,itype,jtype,ktype,ltype,ntype;
-  double rik[3], rjl[3], rkn[3],rknmag,dNki;
+  int atomi,atomj,k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
+  int itype,jtype,ktype,ltype,ntype;
+  double rik[3],rjl[3],rkn[3],rji[3],rki[3],rlj[3],rknmag,dNki,dwjl,bij;
   double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
   double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
-  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ;
-  double Nki,Nlj,dS,lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
-  double dN2[2],dN3[3],dwjl;
-  double Tij,crosskij[3],crosskijmag;
-  double crossijl[3],crossijlmag,omkijl;
-  double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
-  double bij,tmp3pij,tmp3pji,Stb,dStb;
-  double r32[3],r32mag,cos321;
+  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ,Nki,Nlj,dS;
+  double lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
+  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
+  double dN2[2],dN3[3];
+  double dcosjikdrj[3],dcosijldrj[3],dcosijldrl[3];
+  double Tij;
+  double r32[3],r32mag,cos321,r43[3],r13[3];
+  double dNlj;
   double om1234,rln[3];
   double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
   double cross321[3],cross234[3],prefactor,SpN;
-  double fcikpc,fcjlpc,fcjkpc,fcilpc;
-  double dt2dik[3],dt2djl[3],aa,aaa2,at2,cw,cwnum,cwnom;
+  double fcikpc,fcjlpc,fcjkpc,fcilpc,fcijpc;
+  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
-  double dctik,dctjk,dctjl,dctil,rik2i,rjl2i,sink2i,sinl2i;
-  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil;
-  double dNlj;
-  double PijS,PjiS;
+  double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
+  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
+  double F23[3],F12[3],F34[3],F31[3],F24[3],fi[3],fj[3],fk[3],fl[3];
+  double f1[3],f2[3],f3[3],f4[4];
+  double dcut321,PijS,PjiS; 
   double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
   int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
-  double F12[3],F34[3],F31[3],F24[3];
-  double fi[3],fj[3],fk[3],fl[3],f1[3],f2[3],f3[3],f4[4];
-  double rji[3],rki[3],rlj[3],r13[3],r43[3];
-  double realrij[3], realrijmag;
-  double rjkmag, rilmag, dctdjk, dctdik, dctdil, dctdjl;
-  double fjk[3], fil[3], rijmbr;
+  double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
+  double tmp3pij,tmp3pji,Stb,dStb;
+
 
   double **x = atom->x;
   int *type = atom->type;
@@ -2127,12 +2146,11 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   atomj = j;
   itype = map[type[atomi]];
   jtype = map[type[atomj]];
-  wij = Sp(rij0mag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+  wij = Sp(rijmag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
   NijC = nC[atomi]-(wij*kronecker(jtype,0));
   NijH = nH[atomi]-(wij*kronecker(jtype,1));
   NjiC = nC[atomj]-(wij*kronecker(itype,0));
   NjiH = nH[atomj]-(wij*kronecker(itype,1));
-
   bij = 0.0;
   tmp = 0.0;
   tmp2 = 0.0;
@@ -2145,12 +2163,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   Stb = 0.0;
   dStb = 0.0;
 
-  realrij[0] = x[atomi][0] - x[atomj][0];
-  realrij[1] = x[atomi][1] - x[atomj][1];
-  realrij[2] = x[atomi][2] - x[atomj][2];
-  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1]
-                                            + realrij[2] * realrij[2]);
-
   REBO_neighs = REBO_firstneigh[i];
   for (k = 0; k < REBO_numneigh[i]; k++) {
     atomk = REBO_neighs[k];
@@ -2161,9 +2173,9 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
       rik[2] = x[atomi][2]-x[atomk][2];
       rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
       lamdajik = 4.0*kronecker(itype,1) *
-        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
+        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag_mod));
       wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
-      Nki = nC[atomk]-(wik*kronecker(itype,0)) +
+      Nki = nC[atomk]-(wik*kronecker(itype,0))+
         nH[atomk]-(wik*kronecker(itype,1));
       cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
         (rijmag*rikmag);
@@ -2186,6 +2198,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmppij = -.5*cube(pij);
   tmp3pij = tmp3;
+
   tmp = 0.0;
   tmp2 = 0.0;
   tmp3 = 0.0;
@@ -2201,7 +2214,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
       rjl[2] = x[atomj][2]-x[atoml][2];
       rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
       lamdaijl = 4.0*kronecker(jtype,1) *
-        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
+        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag_mod));
       wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
       Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
         (wjl*kronecker(jtype,1));
@@ -2231,82 +2244,80 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
   Nijconj = 1.0+(NconjtmpI*NconjtmpI)+(NconjtmpJ*NconjtmpJ);
   piRC = piRCSpline(NijC+NijH,NjiC+NjiH,Nijconj,itype,jtype,dN3piRC);
+
   Tij = 0.0;
   dN3Tij[0] = 0.0;
   dN3Tij[1] = 0.0;
   dN3Tij[2] = 0.0;
   if (itype == 0 && jtype == 0)
     Tij=TijSpline((NijC+NijH),(NjiC+NjiH),Nijconj,dN3Tij);
-
   Etmp = 0.0;
+  
   if (fabs(Tij) > TOL) {
+    atom2 = atomi;
+    atom3 = atomj;
+    r32[0] = x[atom3][0]-x[atom2][0];
+    r32[1] = x[atom3][1]-x[atom2][1];
+    r32[2] = x[atom3][2]-x[atom2][2];
+    r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
+    r23[0] = -r32[0];
+    r23[1] = -r32[1];
+    r23[2] = -r32[2];
+    r23mag = r32mag;
     REBO_neighs_i = REBO_firstneigh[i];
     for (k = 0; k < REBO_numneigh[i]; k++) {
       atomk = REBO_neighs_i[k];
+      atom1 = atomk;
       ktype = map[type[atomk]];
       if (atomk != atomj) {
-        rik[0] = x[atomi][0]-x[atomk][0];
-        rik[1] = x[atomi][1]-x[atomk][1];
-        rik[2] = x[atomi][2]-x[atomk][2];
-        rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-        cos321 = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
-          (rijmag*rikmag);
+        r21[0] = x[atom2][0]-x[atom1][0];
+        r21[1] = x[atom2][1]-x[atom1][1];
+        r21[2] = x[atom2][2]-x[atom1][2];
+        r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
+        cos321 = -1.0*((r21[0]*r32[0])+(r21[1]*r32[1])+(r21[2]*r32[2])) /
+          (r21mag*r32mag);
         cos321 = MIN(cos321,1.0);
         cos321 = MAX(cos321,-1.0);
+        sin321 = sqrt(1.0 - cos321*cos321);
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21); 
+          tspjik = Sp2(cos321,thmin,thmax,dtsjik);
 
-        rjk[0] = rik[0]-rij[0];
-        rjk[1] = rik[1]-rij[1];
-        rjk[2] = rik[2]-rij[2];
-        rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
-        rij2 = rijmag*rijmag;
-        rik2 = rikmag*rikmag;
-        costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
-        tspjik = Sp2(costmp,thmin,thmax,dtsjik);
-
-        if (sqrt(1.0 - cos321*cos321) > sqrt(TOL)) {
-          wik = Sp(rikmag,rcmin[itype][ktype],rcmaxp[itype][ktype],dwik);
           REBO_neighs_j = REBO_firstneigh[j];
           for (l = 0; l < REBO_numneigh[j]; l++) {
             atoml = REBO_neighs_j[l];
+            atom4 = atoml;
             ltype = map[type[atoml]];
             if (!(atoml == atomi || atoml == atomk)) {
-              rjl[0] = x[atomj][0]-x[atoml][0];
-              rjl[1] = x[atomj][1]-x[atoml][1];
-              rjl[2] = x[atomj][2]-x[atoml][2];
-              rjlmag = sqrt(rjl[0]*rjl[0] + rjl[1]*rjl[1] + rjl[2]*rjl[2]);
-              cos234 = -((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
-                (rijmag*rjlmag);
+              r34[0] = x[atom3][0]-x[atom4][0];
+              r34[1] = x[atom3][1]-x[atom4][1];
+              r34[2] = x[atom3][2]-x[atom4][2];
+              r34mag = sqrt((r34[0]*r34[0])+(r34[1]*r34[1])+(r34[2]*r34[2]));
+              cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
+                (r32mag*r34mag);
               cos234 = MIN(cos234,1.0);
               cos234 = MAX(cos234,-1.0);
+              sin234 = sqrt(1.0 - cos234*cos234);
 
-              ril[0] = rij[0]+rjl[0];
-              ril[1] = rij[1]+rjl[1];
-              ril[2] = rij[2]+rjl[2];
-              ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-              rjl2 = rjlmag*rjlmag;
-              costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
-              tspijl = Sp2(costmp,thmin,thmax,dtsijl);
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
+                tspijl = Sp2(cos234,thmin,thmax,dtsijl);
 
-              if (sqrt(1.0 - cos234*cos234) > sqrt(TOL)) {
-                wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dS);
-                crosskij[0] = (rij[1]*rik[2]-rij[2]*rik[1]);
-                crosskij[1] = (rij[2]*rik[0]-rij[0]*rik[2]);
-                crosskij[2] = (rij[0]*rik[1]-rij[1]*rik[0]);
-                crosskijmag = sqrt(crosskij[0]*crosskij[0] +
-                                   crosskij[1]*crosskij[1] +
-                                   crosskij[2]*crosskij[2]);
-                crossijl[0] = (rij[1]*rjl[2]-rij[2]*rjl[1]);
-                crossijl[1] = (rij[2]*rjl[0]-rij[0]*rjl[2]);
-                crossijl[2] = (rij[0]*rjl[1]-rij[1]*rjl[0]);
-                crossijlmag = sqrt(crossijl[0]*crossijl[0] +
-                                   crossijl[1]*crossijl[1] +
-                                   crossijl[2]*crossijl[2]);
-                omkijl = -1.0*(((crosskij[0]*crossijl[0]) +
-                                (crosskij[1]*crossijl[1]) +
-                                (crosskij[2]*crossijl[2])) /
-                               (crosskijmag*crossijlmag));
-                Etmp += ((1.0-square(omkijl))*wik*wjl) *
+                cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
+                cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
+                cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
+                cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
+                cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
+                cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
+
+                cwnum = (cross321[0]*cross234[0]) +
+                  (cross321[1]*cross234[1]) + (cross321[2]*cross234[2]);
+                cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
+                om1234 = cwnum/cwnom;
+                cw = om1234;
+                Etmp += ((1.0-square(om1234))*w21*w34) *
                   (1.0-tspjik)*(1.0-tspijl);
+
               }
             }
           }
@@ -2338,50 +2349,43 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         rik[2] = x[atomi][2]-x[atomk][2];
         rikmag = sqrt(rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2]);
         lamdajik = 4.0*kronecker(itype,1) *
-          ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
+          ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag_mod));
         wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-        rjk[0] = rik[0] - rij[0];
-        rjk[1] = rik[1] - rij[1];
-        rjk[2] = rik[2] - rij[2];
-        rjkmag = sqrt(rjk[0] * rjk[0] + rjk[1] * rjk[1] + rjk[2] * rjk[2]);
-        rijrik = 2 * rijmag * rikmag;
-        rr = rijmag * rijmag - rikmag * rikmag;
-        cosjik = (rijmag * rijmag + rikmag * rikmag - rjkmag * rjkmag) / rijrik;
+        cosjik = (rij[0]*rik[0] + rij[1]*rik[1] + rij[2]*rik[2]) /
+          (rijmag*rikmag);
         cosjik = MIN(cosjik,1.0);
         cosjik = MAX(cosjik,-1.0);
-        dctdjk = -2 / rijrik;
-        dctdik = (-rr + rjkmag * rjkmag) / (rijrik * rikmag * rikmag);
-        // evaluate splines g and derivatives dg
+
+        dcosjikdri[0] = ((rij[0]+rik[0])/(rijmag*rikmag)) -
+          (cosjik*((rij[0]/(rijmag*rijmag))+(rik[0]/(rikmag*rikmag))));
+        dcosjikdri[1] = ((rij[1]+rik[1])/(rijmag*rikmag)) -
+          (cosjik*((rij[1]/(rijmag*rijmag))+(rik[1]/(rikmag*rikmag))));
+        dcosjikdri[2] = ((rij[2]+rik[2])/(rijmag*rikmag)) -
+          (cosjik*((rij[2]/(rijmag*rijmag))+(rik[2]/(rikmag*rikmag))));
+        dcosjikdrk[0] = (-rij[0]/(rijmag*rikmag)) +
+          (cosjik*(rik[0]/(rikmag*rikmag)));
+        dcosjikdrk[1] = (-rij[1]/(rijmag*rikmag)) +
+          (cosjik*(rik[1]/(rikmag*rikmag)));
+        dcosjikdrk[2] = (-rij[2]/(rijmag*rikmag)) +
+          (cosjik*(rik[2]/(rikmag*rikmag)));
+        dcosjikdrj[0] = (-rik[0]/(rijmag*rikmag)) +
+          (cosjik*(rij[0]/(rijmag*rijmag)));
+        dcosjikdrj[1] = (-rik[1]/(rijmag*rikmag)) +
+          (cosjik*(rij[1]/(rijmag*rijmag)));
+        dcosjikdrj[2] = (-rik[2]/(rijmag*rikmag)) +
+          (cosjik*(rij[2]/(rijmag*rijmag)));
 
         g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-
         tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
-
-        fi[0] = -tmp2 * dctdik * rik[0];
-        fi[1] = -tmp2 * dctdik * rik[1];
-        fi[2] = -tmp2 * dctdik * rik[2];
-        fk[0] =  tmp2 * dctdik * rik[0];
-        fk[1] =  tmp2 * dctdik * rik[1];
-        fk[2] =  tmp2 * dctdik * rik[2];
-        fj[0] = 0;
-        fj[1] = 0;
-        fj[2] = 0;
-        fjk[0] = -tmp2 * dctdjk * rjk[0];
-        fjk[1] = -tmp2 * dctdjk * rjk[1];
-        fjk[2] = -tmp2 * dctdjk * rjk[2];
-        fi[0] += fjk[0];
-        fi[1] += fjk[1];
-        fi[2] += fjk[2];
-        fk[0] -= fjk[0];
-        fk[1] -= fjk[1];
-        fk[2] -= fjk[2];
-        rijmbr = rcmin[itype][jtype] / realrijmag;
-        fj[0] += rijmbr * (fjk[0] - (realrij[0] * realrij[0] * fjk[0] + realrij[0] * realrij[1] * fjk[1] + realrij[0] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fj[1] += rijmbr * (fjk[1] - (realrij[1] * realrij[0] * fjk[0] + realrij[1] * realrij[1] * fjk[1] + realrij[1] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fj[2] += rijmbr * (fjk[2] - (realrij[2] * realrij[0] * fjk[0] + realrij[2] * realrij[1] * fjk[1] + realrij[2] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fi[0] -= rijmbr * (fjk[0] - (realrij[0] * realrij[0] * fjk[0] + realrij[0] * realrij[1] * fjk[1] + realrij[0] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fi[1] -= rijmbr * (fjk[1] - (realrij[1] * realrij[0] * fjk[0] + realrij[1] * realrij[1] * fjk[1] + realrij[1] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fi[2] -= rijmbr * (fjk[2] - (realrij[2] * realrij[0] * fjk[0] + realrij[2] * realrij[1] * fjk[1] + realrij[2] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
+        fj[0] = -tmp2*dcosjikdrj[0];
+        fj[1] = -tmp2*dcosjikdrj[1];
+        fj[2] = -tmp2*dcosjikdrj[2];
+        fi[0] = -tmp2*dcosjikdri[0];
+        fi[1] = -tmp2*dcosjikdri[1];
+        fi[2] = -tmp2*dcosjikdri[2];
+        fk[0] = -tmp2*dcosjikdrk[0];
+        fk[1] = -tmp2*dcosjikdrk[1];
+        fk[2] = -tmp2*dcosjikdrk[2];
 
         tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
         fi[0] += tmp2*(rik[0]/rikmag);
@@ -2439,6 +2443,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
     tmp3 = tmp3pji;
     dN2[0] = dN2PJI[0];
     dN2[1] = dN2PJI[1];
+
     REBO_neighs  =  REBO_firstneigh[j];
     for (l = 0; l < REBO_numneigh[j]; l++) {
       atoml = REBO_neighs[l];
@@ -2449,51 +2454,43 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         rjl[2] = x[atomj][2]-x[atoml][2];
         rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
         lamdaijl = 4.0*kronecker(jtype,1) *
-          ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
+          ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag_mod));
         wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-        ril[0] = rij[0] + rjl[0];
-        ril[1] = rij[1] + rjl[1];
-        ril[2] = rij[2] + rjl[2];
-        rilmag = sqrt(ril[0] * ril[0] + ril[1] * ril[1] + ril[2] * ril[2]);
-        rijrjl = 2 * rijmag * rjlmag;
-        rr = rijmag * rijmag - rjlmag * rjlmag;
-        cosijl = (rijmag * rijmag + rjlmag * rjlmag - rilmag * rilmag) / rijrjl;
+        cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2]))) /
+          (rijmag*rjlmag);
         cosijl = MIN(cosijl,1.0);
         cosijl = MAX(cosijl,-1.0);
-        dctdil = -2 / rijrjl;
-        dctdjl = (-rr + rilmag * rilmag) / (rijrjl * rjlmag * rjlmag);
+        
+        dcosijldri[0] = (-rjl[0]/(rijmag*rjlmag)) -
+          (cosijl*rij[0]/(rijmag*rijmag));
+        dcosijldri[1] = (-rjl[1]/(rijmag*rjlmag)) -
+          (cosijl*rij[1]/(rijmag*rijmag));
+        dcosijldri[2] = (-rjl[2]/(rijmag*rjlmag)) -
+          (cosijl*rij[2]/(rijmag*rijmag));
+        dcosijldrj[0] = ((-rij[0]+rjl[0])/(rijmag*rjlmag)) +
+          (cosijl*((rij[0]/square(rijmag))-(rjl[0]/(rjlmag*rjlmag))));
+        dcosijldrj[1] = ((-rij[1]+rjl[1])/(rijmag*rjlmag)) +
+          (cosijl*((rij[1]/square(rijmag))-(rjl[1]/(rjlmag*rjlmag))));
+        dcosijldrj[2] = ((-rij[2]+rjl[2])/(rijmag*rjlmag)) +
+          (cosijl*((rij[2]/square(rijmag))-(rjl[2]/(rjlmag*rjlmag))));
+        dcosijldrl[0] = (rij[0]/(rijmag*rjlmag))+(cosijl*rjl[0]/(rjlmag*rjlmag));
+        dcosijldrl[1] = (rij[1]/(rijmag*rjlmag))+(cosijl*rjl[1]/(rjlmag*rjlmag));
+        dcosijldrl[2] = (rij[2]/(rijmag*rjlmag))+(cosijl*rjl[2]/(rjlmag*rjlmag));
 
         // evaluate splines g and derivatives dg
 
         g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
         tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
-        fj[0] = -tmp2 * dctdjl * rjl[0];
-        fj[1] = -tmp2 * dctdjl * rjl[1];
-        fj[2] = -tmp2 * dctdjl * rjl[2];
-        fl[0] =  tmp2 * dctdjl * rjl[0];
-        fl[1] =  tmp2 * dctdjl * rjl[1];
-        fl[2] =  tmp2 * dctdjl * rjl[2];
-        fi[0] = 0;
-        fi[1] = 0;
-        fi[2] = 0;
-        fil[0] = -tmp2 * dctdil * ril[0];
-        fil[1] = -tmp2 * dctdil * ril[1];
-        fil[2] = -tmp2 * dctdil * ril[2];
-        fj[0] += fil[0];
-        fj[1] += fil[1];
-        fj[2] += fil[2];
-        fl[0] -= fil[0];
-        fl[1] -= fil[1];
-        fl[2] -= fil[2];
-        rijmbr = rcmin[itype][jtype] / realrijmag;
-        fi[0] += rijmbr * (fil[0] - (realrij[0] * realrij[0] * fil[0] + realrij[0] * realrij[1] * fil[1] + realrij[0] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fi[1] += rijmbr * (fil[1] - (realrij[1] * realrij[0] * fil[0] + realrij[1] * realrij[1] * fil[1] + realrij[1] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fi[2] += rijmbr * (fil[2] - (realrij[2] * realrij[0] * fil[0] + realrij[2] * realrij[1] * fil[1] + realrij[2] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fj[0] -= rijmbr * (fil[0] - (realrij[0] * realrij[0] * fil[0] + realrij[0] * realrij[1] * fil[1] + realrij[0] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fj[1] -= rijmbr * (fil[1] - (realrij[1] * realrij[0] * fil[0] + realrij[1] * realrij[1] * fil[1] + realrij[1] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fj[2] -= rijmbr * (fil[2] - (realrij[2] * realrij[0] * fil[0] + realrij[2] * realrij[1] * fil[1] + realrij[2] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-
-
+        fi[0] = -tmp2*dcosijldri[0];
+        fi[1] = -tmp2*dcosijldri[1];
+        fi[2] = -tmp2*dcosijldri[2];
+        fj[0] = -tmp2*dcosijldrj[0];
+        fj[1] = -tmp2*dcosijldrj[1];
+        fj[2] = -tmp2*dcosijldrj[2];
+        fl[0] = -tmp2*dcosijldrl[0];
+        fl[1] = -tmp2*dcosijldrl[1];
+        fl[2] = -tmp2*dcosijldrl[2];
+  
         tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
         fj[0] += tmp2*(rjl[0]/rjlmag);
         fj[1] += tmp2*(rjl[1]/rjlmag);
@@ -2503,6 +2500,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fl[2] -= tmp2*(rjl[2]/rjlmag);
 
          // coordination forces
+
         // dwik forces
 
         tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))/rjlmag;
@@ -2617,8 +2615,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
     // piRC forces to J side
 
-    REBO_neighs = REBO_firstneigh[j];
-    for (l = 0; l < REBO_numneigh[j]; l++) {
+    REBO_neighs = REBO_firstneigh[atomj];
+    for (l = 0; l < REBO_numneigh[atomj]; l++) {
       atoml = REBO_neighs[l];
       if (atoml != atomi) {
         ltype = map[type[atoml]];
@@ -2688,15 +2686,14 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
       dN3[2] = dN3Tij[2];
       atom2 = atomi;
       atom3 = atomj;
-      r32[0] = -rij[0];
-      r32[1] = -rij[1];
-      r32[2] = -rij[2];
-      r23[0] = rij[0];
-      r23[1] = rij[1];
-      r23[2] = rij[2];
-      r32mag = rijmag;
-      r23mag = rijmag;
-
+      r32[0] = x[atom3][0]-x[atom2][0];
+      r32[1] = x[atom3][1]-x[atom2][1];
+      r32[2] = x[atom3][2]-x[atom2][2];
+      r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
+      r23[0] = -r32[0];
+      r23[1] = -r32[1];
+      r23[2] = -r32[2];
+      r23mag = r32mag;
       REBO_neighs_i = REBO_firstneigh[i];
       for (k = 0; k < REBO_numneigh[i]; k++) {
         atomk = REBO_neighs_i[k];
@@ -2712,20 +2709,21 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
           cos321 = MIN(cos321,1.0);
           cos321 = MAX(cos321,-1.0);
           sin321 = sqrt(1.0 - cos321*cos321);
-
           if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
             sink2i = 1.0/(sin321*sin321);
             rik2i = 1.0/(r21mag*r21mag);
             rr = (rijmag*rijmag)-(r21mag*r21mag);
-            rjk[0] = r21[0]-rij[0];
-            rjk[1] = r21[1]-rij[1];
-            rjk[2] = r21[2]-rij[2];
+            rjk[0] = r21[0]-r23[0];
+            rjk[1] = r21[1]-r23[1];
+            rjk[2] = r21[2]-r23[2];
             rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
-            rijrik = 2.0*rijmag*r21mag;
+            rijrik = 2.0*r23mag*r21mag;
             rik2 = r21mag*r21mag;
             dctik = (-rr+rjk2)/(rijrik*rik2);
+            dctij = (rr+rjk2)/(rijrik*r23mag*r23mag);
             dctjk = -2.0/rijrik;
             w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
+            rijmag = r32mag;
             rikmag = r21mag;
             rij2 = r32mag*r32mag;
             rik2 = r21mag*r21mag;
@@ -2743,8 +2741,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                 r34[1] = x[atom3][1]-x[atom4][1];
                 r34[2] = x[atom3][2]-x[atom4][2];
                 r34mag = sqrt(r34[0]*r34[0] + r34[1]*r34[1] + r34[2]*r34[2]);
-                cos234 = -1.0*((rij[0]*r34[0])+(rij[1]*r34[1]) +
-                               (rij[2]*r34[2]))/(rijmag*r34mag);
+                cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
+                  (r32mag*r34mag);
                 cos234 = MIN(cos234,1.0);
                 cos234 = MAX(cos234,-1.0);
                 sin234 = sqrt(1.0 - cos234*cos234);
@@ -2762,6 +2760,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   rijrjl = 2.0*r23mag*r34mag;
                   rjl2 = r34mag*r34mag;
                   dctjl = (-rr+ril2)/(rijrjl*rjl2);
+                  dctji = (rr+ril2)/(rijrjl*r23mag*r23mag);
                   dctil = -2.0/rijrjl;
                   rjlmag = r34mag;
                   rjl2 = r34mag*r34mag;
@@ -2787,6 +2786,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   dt1djk = (-dctjk*sink2i*cos321);
                   dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
                   dt1dil = (-dctil*sinl2i*cos234);
+                  dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
+                    (dctji*sinl2i*cos234);
 
                   dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
                   dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
@@ -2796,15 +2797,28 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
                   dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
 
+                  dt2dij[0] = (r21[2]*cross234[1])-(r34[2]*cross321[1]) -
+                    (r21[1]*cross234[2])+(r34[1]*cross321[2]);
+                  dt2dij[1] = (r21[0]*cross234[2])-(r34[0]*cross321[2]) -
+                    (r21[2]*cross234[0])+(r34[2]*cross321[0]);
+                  dt2dij[2] = (r21[1]*cross234[0])-(r34[1]*cross321[0]) -
+                    (r21[0]*cross234[1])+(r34[0]*cross321[1]);
+
                   aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                     (1.0-tspjik)*(1.0-tspijl);
                   aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
                   at2 = aa*cwnum;
 
+                  fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
+                    (aaa2*dtsijl*dctji*(1.0-tspjik));
                   fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
                   fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
                   fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
                   fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
+
+                  F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
+                  F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
+                  F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
 
                   F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
                   F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
@@ -2825,30 +2839,15 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   f1[0] = -F12[0]-F31[0];
                   f1[1] = -F12[1]-F31[1];
                   f1[2] = -F12[2]-F31[2];
-                  f2[0] = F12[0]+F31[0];
-                  f2[1] = F12[1]+F31[1];
-                  f2[2] = F12[2]+F31[2];
-                  f3[0] = F34[0]+F24[0];
-                  f3[1] = F34[1]+F24[1];
-                  f3[2] = F34[2]+F24[2];
+                  f2[0] = F23[0]+F12[0]+F24[0];
+                  f2[1] = F23[1]+F12[1]+F24[1];
+                  f2[2] = F23[2]+F12[2]+F24[2];
+                  f3[0] = -F23[0]+F34[0]+F31[0];
+                  f3[1] = -F23[1]+F34[1]+F31[1];
+                  f3[2] = -F23[2]+F34[2]+F31[2];
                   f4[0] = -F34[0]-F24[0];
                   f4[1] = -F34[1]-F24[1];
                   f4[2] = -F34[2]-F24[2];
-
-                  rijmbr = rcmin[itype][jtype] / realrijmag;
-                  f2[0] += rijmbr * (F24[0] - (realrij[0] * realrij[0] * F24[0] + realrij[0] * realrij[1] * F24[1] + realrij[0] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f2[1] += rijmbr * (F24[1] - (realrij[1] * realrij[0] * F24[0] + realrij[1] * realrij[1] * F24[1] + realrij[1] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f2[2] += rijmbr * (F24[2] - (realrij[2] * realrij[0] * F24[0] + realrij[2] * realrij[1] * F24[1] + realrij[2] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f3[0] -= rijmbr * (F24[0] - (realrij[0] * realrij[0] * F24[0] + realrij[0] * realrij[1] * F24[1] + realrij[0] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f3[1] -= rijmbr * (F24[1] - (realrij[1] * realrij[0] * F24[0] + realrij[1] * realrij[1] * F24[1] + realrij[1] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f3[2] -= rijmbr * (F24[2] - (realrij[2] * realrij[0] * F24[0] + realrij[2] * realrij[1] * F24[1] + realrij[2] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-
-                  f2[0] -= rijmbr * (F31[0] - (realrij[0] * realrij[0] * F31[0] + realrij[0] * realrij[1] * F31[1] + realrij[0] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f2[1] -= rijmbr * (F31[1] - (realrij[1] * realrij[0] * F31[0] + realrij[1] * realrij[1] * F31[1] + realrij[1] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f2[2] -= rijmbr * (F31[2] - (realrij[2] * realrij[0] * F31[0] + realrij[2] * realrij[1] * F31[1] + realrij[2] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f3[0] += rijmbr * (F31[0] - (realrij[0] * realrij[0] * F31[0] + realrij[0] * realrij[1] * F31[1] + realrij[0] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f3[1] += rijmbr * (F31[1] - (realrij[1] * realrij[0] * F31[0] + realrij[1] * realrij[1] * F31[1] + realrij[1] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f3[2] += rijmbr * (F31[2] - (realrij[2] * realrij[0] * F31[0] + realrij[2] * realrij[1] * F31[1] + realrij[2] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
 
                   // coordination forces
 

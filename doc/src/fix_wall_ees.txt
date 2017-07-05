@@ -66,7 +66,7 @@ particle and wall no longer interact. Also,  sigma_n is the distance between c
 :c,image(JPG/fix_wall_ees_image.jpg)
 
  
-Details of using this command and specifications are the same as fix/wall command. 
+Details of using this command and specifications are the same as fix/wall command. You can also find an example in USER/ees/ under examples/ directory. 
  
 The prefactor {epsilon} can be thought of as an
 effective Hamaker constant with energy units for the strength of the
@@ -83,7 +83,14 @@ means you cannot start your simulation with particles touching the wall
 position {coord} (r = sigma_n) or with particles penetrating the wall (0 =< r < sigma_n) or with particles on the wrong side of the
 wall (r < 0). 
  
-[Restrictions:] none
+[Restrictions:] 
+
+This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+This fix requires that atoms be ellipsoids as defined by the
+"atom_style ellipsoid"_atom_style.html command.
 
 [Related commands:]
 

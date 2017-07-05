@@ -534,7 +534,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   double delij[3],rijsq,delik[3],rik,deljk[3];
   double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
   double vdw,slw,dvdw,dslw,drij,swidth,tee,tee2;
-  double rljmin,rljmax,sigcut,sigmin;
+  double rljmin,rljmax;
   double delkm[3],rkm,deljm[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *REBO_neighs_i,*REBO_neighs_k;
@@ -550,8 +550,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   evdwl = 0.0;
   rljmin = 0.0;
   rljmax = 0.0;
-  sigcut = 0.0;
-  sigmin = 0.0;
 
   double **x = atom->x;
   double **f = atom->f;

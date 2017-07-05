@@ -68,6 +68,10 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   nC = nH = NULL;
   map = NULL;
   manybody_flag = 1;
+
+  sigwid = 0.84;
+  sigcut = 3.0;
+  sigmin = sigcut - sigwid;
 }
 
 /* ----------------------------------------------------------------------
@@ -147,13 +151,21 @@ void PairAIREBO::allocate()
 
 void PairAIREBO::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1 && narg != 3 && narg != 4)
+    error->all(FLERR,"Illegal pair_style command");
 
   cutlj = force->numeric(FLERR,arg[0]);
 
   if (narg == 3) {
     ljflag = force->inumeric(FLERR,arg[1]);
     torflag = force->inumeric(FLERR,arg[2]);
+  }
+  if (narg == 4) {
+    ljflag = force->inumeric(FLERR,arg[1]);
+    torflag = force->inumeric(FLERR,arg[2]);
+    sigcut = cutlj;
+    sigmin = force->numeric(FLERR,arg[3]);
+    sigwid = sigcut - sigmin;
   }
 
   // this one parameter for C-C interactions is different in AIREBO vs REBO
@@ -735,10 +747,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       if (cij == 0.0) continue;
 
       // compute LJ forces and energy
-
-      sigwid = 0.84;
-      sigcut = 3.0;
-      sigmin = sigcut - sigwid;
 
       rljmin = sigma[itype][jtype];
       rljmax = sigcut * rljmin;

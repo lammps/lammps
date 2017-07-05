@@ -15,12 +15,13 @@ pair_style rebo/omp command :h3
 
 [Syntax:]
 
-pair_style style cutoff LJ_flag TORSION_flag :pre
+pair_style style cutoff LJ_flag TORSION_flag cutoff_min :pre
 
 style = {airebo} or {airebo/morse} or {rebo}
 cutoff = LJ or Morse cutoff (sigma scale factor) (AIREBO and AIREBO-M only)
 LJ_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)
-TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional) :ul
+TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)
+cutoff_min = Start of the transition region of cutoff (sigma scale factor) (AIREBO and AIREBO-M only, optional) :ul
 
 [Examples:]
 
@@ -60,7 +61,7 @@ The AIREBO potential consists of three terms:
 :c,image(Eqs/pair_airebo.jpg)
 
 By default, all three terms are included.  For the {airebo} style, if
-the two optional flag arguments to the pair_style command are
+the first two optional flag arguments to the pair_style command are
 included, the LJ and torsional terms can be turned off.  Note that
 both or neither of the flags must be included.  If both of the LJ an
 torsional terms are turned off, it becomes the 2nd-generation REBO
@@ -96,6 +97,12 @@ value defined in the potential file for that type pair.  In the
 standard AIREBO potential, sigma_CC = 3.4 Angstroms, so with a scale
 factor of 3.0 (the argument in pair_style), the resulting E_LJ cutoff
 would be 10.2 Angstroms.
+
+By default, the longer-ranged interaction is smoothly switched off
+between 2.16 and 3.0 sigma. By specifying {cutoff_min} in addition
+to {cutoff}, the switching can be configured to take place between 
+{cutoff_min} and {cutoff}. {cutoff_min} can only be specified if all
+optional arguments are given.
 
 The E_TORSION term is an explicit 4-body potential that describes
 various dihedral angle preferences in hydrocarbon configurations.

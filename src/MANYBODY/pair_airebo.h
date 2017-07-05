@@ -46,6 +46,7 @@ class PairAIREBO : public Pair {
   int morseflag;                   // 1 if Morse instead of LJ for non-bonded
 
   double cutlj;                    // user-specified LJ cutoff
+  double sigcut,sigwid,sigmin;     // corresponding cutoff function
   double cutljrebosq;              // cut for when to compute
                                    // REBO neighs of ghost atoms
 

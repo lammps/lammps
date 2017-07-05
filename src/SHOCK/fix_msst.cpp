@@ -250,7 +250,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   nrigid = 0;
   rfix = NULL;
 
-  maxold = 0;
+  maxold = -1;
   old_velocity = NULL;
 }
 
@@ -458,7 +458,7 @@ void FixMSST::initial_integrate(int vflag)
 
   // realloc old_velocity if necessary
 
-  if (atom->nmax > maxold) {
+  if (nlocal > maxold) {
     memory->destroy(old_velocity);
     maxold = atom->nmax;
     memory->create(old_velocity,maxold,3,"msst:old_velocity");

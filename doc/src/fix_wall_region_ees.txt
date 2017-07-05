@@ -30,6 +30,7 @@ as a bounding wall which interacts with nearby ellipsoidal particles according t
 the EES potential introduced "fix wall/ees"_fix_wall_ees.html.
 
 Other details of this command is the same wiht "fix wall/region"_fix_wall_region.html command. 
+One may also find and exapmle of using this code in USER/ees/ under examples/ directory. 
 
 [Restrictions:] none
 

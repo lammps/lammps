@@ -468,7 +468,7 @@ void FixMSST::initial_integrate(int vflag)
   // must convert energy to mv^2 units
 
   if (dftb) {
-    TS_dftb = fix_external->compute_vector(1);
+    TS_dftb = fix_external->compute_vector(0);
     TS = force->ftm2v*TS_dftb;
     if (update->ntimestep == 1) T0S0 = TS;
   } else {
@@ -686,7 +686,7 @@ void FixMSST::final_integrate()
   // must convert energy to mv^2 units
 
   if (dftb) {
-    TS_dftb = fix_external->compute_vector(1);
+    TS_dftb = fix_external->compute_vector(0);
     TS = force->ftm2v*TS_dftb;
   } else TS = 0.0;
 

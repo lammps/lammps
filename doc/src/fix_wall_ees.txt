@@ -83,7 +83,14 @@ means you cannot start your simulation with particles touching the wall
 position {coord} (r = sigma_n) or with particles penetrating the wall (0 =< r < sigma_n) or with particles on the wrong side of the
 wall (r < 0). 
  
-[Restrictions:] none
+[Restrictions:] 
+
+This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+This fix requires that atoms be ellipsoids as defined by the
+"atom_style ellipsoid"_atom_style.html command.
 
 [Related commands:]
 

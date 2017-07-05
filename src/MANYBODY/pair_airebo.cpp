@@ -534,7 +534,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   double delij[3],rijsq,delik[3],rik,deljk[3];
   double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
   double vdw,slw,dvdw,dslw,drij,swidth,tee,tee2;
-  double rljmin,rljmax,sigcut,sigmin,sigwid;
+  double rljmin,rljmax,sigcut,sigmin;
   double delkm[3],rkm,deljm[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *REBO_neighs_i,*REBO_neighs_k;
@@ -552,8 +552,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   rljmax = 0.0;
   sigcut = 0.0;
   sigmin = 0.0;
-  sigwid = 0.0;
-
 
   double **x = atom->x;
   double **f = atom->f;
@@ -2133,13 +2131,13 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mo
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
   double cross321[3],cross234[3],prefactor,SpN;
   double fcikpc,fcjlpc,fcjkpc,fcilpc,fcijpc;
-  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
+  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
   double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
   double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
   double F23[3],F12[3],F34[3],F31[3],F24[3],fi[3],fj[3],fk[3],fl[3];
   double f1[3],f2[3],f3[3],f4[4];
-  double dcut321,PijS,PjiS; 
+  double PijS,PjiS;
   double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
   int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
   double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];

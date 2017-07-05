@@ -2147,7 +2147,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mo
   double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
   double tmp3pij,tmp3pji,Stb,dStb;
 
-
   double **x = atom->x;
   int *type = atom->type;
 
@@ -2261,7 +2260,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mo
   if (itype == 0 && jtype == 0)
     Tij=TijSpline((NijC+NijH),(NjiC+NjiH),Nijconj,dN3Tij);
   Etmp = 0.0;
-  
+
   if (fabs(Tij) > TOL) {
     atom2 = atomi;
     atom3 = atomj;

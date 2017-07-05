@@ -17,19 +17,22 @@ msst = style name of this fix :l
 dir = {x} or {y} or {z} :l
 shockvel = shock velocity (strictly positive, distance/time units) :l
 zero or more keyword value pairs may be appended :l
-keyword = {q} or {mu} or {p0} or {v0} or {e0} or {tscale} :l
+keyword = {q} or {mu} or {p0} or {v0} or {e0} or {tscale} or {beta} or {dftb} :l
   {q} value = cell mass-like parameter (mass^2/distance^4 units)
   {mu} value = artificial viscosity (mass/length/time units)
   {p0} value = initial pressure in the shock equations (pressure units)
   {v0} value = initial simulation cell volume in the shock equations (distance^3 units)
   {e0} value = initial total energy (energy units)
-  {tscale} value = reduction in initial temperature (unitless fraction between 0.0 and 1.0) :pre
+  {tscale} value = reduction in initial temperature (unitless fraction between 0.0 and 1.0) 
+  {dftb} value = {yes} or {no} for whether using MSST in conjunction with DFTB+
+  {beta} value = scale factor on energy contribution of DFTB+ :pre
 :ule
 
 [Examples:]
 
 fix 1 all msst y 100.0 q 1.0e5 mu 1.0e5
-fix 2 all msst z 50.0 q 1.0e4 mu 1.0e4  v0 4.3419e+03 p0 3.7797e+03 e0 -9.72360e+02 tscale 0.01 :pre
+fix 2 all msst z 50.0 q 1.0e4 mu 1.0e4  v0 4.3419e+03 p0 3.7797e+03 e0 -9.72360e+02 tscale 0.01
+fix 1 all msst y 100.0 q 1.0e5 mu 1.0e5 dftb yes beta 0.5 :pre
 
 [Description:]
 
@@ -58,11 +61,11 @@ oscillations have physical significance in some cases.  The optional
 symmetry to equilibrate to the shock Hugoniot and Rayleigh line more
 rapidly in such cases.
 
-{tscale} is a factor between 0 and 1 that determines what fraction of
-thermal kinetic energy is converted to compressive strain kinetic
-energy at the start of the simulation.  Setting this parameter to a
-non-zero value may assist in compression at the start of simulations
-where it is slow to occur.
+The keyword {tscale} is a factor between 0 and 1 that determines what
+fraction of thermal kinetic energy is converted to compressive strain
+kinetic energy at the start of the simulation.  Setting this parameter
+to a non-zero value may assist in compression at the start of
+simulations where it is slow to occur.
 
 If keywords {e0}, {p0},or {v0} are not supplied, these quantities will
 be calculated on the first step, after the energy specified by
@@ -77,17 +80,40 @@ For all pressure styles, the simulation box stays orthogonal in shape.
 Parrinello-Rahman boundary conditions (tilted box) are supported by
 LAMMPS, but are not implemented for MSST.
 
-This fix computes a temperature and pressure each timestep. To do
-this, the fix creates its own computes of style "temp" and "pressure",
-as if these commands had been issued:
+This fix computes a temperature and pressure and potential energy each
+timestep. To do this, the fix creates its own computes of style "temp"
+"pressure", and "pe", as if these commands had been issued:
 
-compute fix-ID_temp group-ID temp
-compute fix-ID_press group-ID pressure fix-ID_temp :pre
+compute fix-ID_MSST_temp all temp
+compute fix-ID_MSST_press all pressure fix-ID_MSST_temp :pre
+compute fix-ID_MSST_pe all pe :pre
 
 See the "compute temp"_compute_temp.html and "compute
 pressure"_compute_pressure.html commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
-+ underscore + "press".  The group for the new computes is "all".
+IDs of the new computes are the fix-ID + "_MSST_temp" or "_MSST_press"
+or "_MSST_pe".  The group for the new computes is "all".
+
+:line
+
+The {dftb} and {beta} keywords are to allow this fix to be used when
+LAMMPS is being driven by DFTB+, a density-functional tight-binding
+code.
+
+If the keyword {dftb} is used with a value of {yes}, then the MSST
+equations are altered to account for an energy contribution compute by
+DFTB+.  In this case, you must define a "fix
+external"_fix_external.html command in your input script, which is
+used to callback to DFTB+ during the LAMMPS timestepping.  DFTB+ will
+communicate its info to LAMMPS via that fix.
+
+The keyword {beta} is a scale factor on the DFTB+ energy contribution.
+The value of {beta} must be between 0.0 and 1.0 inclusive.  A value of
+0.0 means no contribution, a value of 1.0 means a full contribution.
+
+(July 2017) More information about these keywords and the use of
+LAMMPS with DFTB+ will be added to the LAMMMPS documention soon.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -149,8 +175,9 @@ all.
 
 [Default:]
 
-The keyword defaults are q = 10, mu = 0, tscale = 0.01. p0, v0, and e0
-are calculated on the first step.
+The keyword defaults are q = 10, mu = 0, tscale = 0.01, dftb = no,
+beta = 0.0.  Note that p0, v0, and e0 are calculated on the first
+timestep.
 
 :line
 

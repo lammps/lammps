@@ -8,12 +8,12 @@
 
 Atoms
 atom-ID atom-type ellipsoidflag density x y z
-1 1 1 1 30 30 30
+1 1 1 1 30 30 50
 
 
 Ellipsoids
 atom-ID shapex shapey shapez quatw quati quatj quatk
-1 14 6 8 0.44700 0 0.89453  0 
+1 14 6 8 0.44700 0 0.89453  0
 
 
 Velocities

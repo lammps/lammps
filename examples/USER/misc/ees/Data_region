@@ -15,7 +15,7 @@ atom-ID atom-type ellipsoidflag density x y z
 
 Ellipsoids
 atom-ID shapex shapey shapez quatw quati quatj quatk
-1 14 6 8 0.89453 0.44700 0 0 
+1 14 6 8 0.89453 0.44700 0 0
 2 14 6 8 0.25755 0 0.96626 0
 3 14 6 8 0.95009 0 0 0.31197
 

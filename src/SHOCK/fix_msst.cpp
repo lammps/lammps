@@ -458,7 +458,7 @@ void FixMSST::initial_integrate(int vflag)
 
   // realloc old_velocity if necessary
 
-  if (nlocal > maxold) {
+  if (atom->nmax > maxold) {
     memory->destroy(old_velocity);
     maxold = atom->nmax;
     memory->create(old_velocity,maxold,3,"msst:old_velocity");

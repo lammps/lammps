@@ -157,13 +157,11 @@ void PairAIREBO::settings(int narg, char **arg)
 
   cutlj = force->numeric(FLERR,arg[0]);
 
-  if (narg == 3) {
+  if (narg >= 3) {
     ljflag = force->inumeric(FLERR,arg[1]);
     torflag = force->inumeric(FLERR,arg[2]);
   }
   if (narg == 4) {
-    ljflag = force->inumeric(FLERR,arg[1]);
-    torflag = force->inumeric(FLERR,arg[2]);
     sigcut = cutlj;
     sigmin = force->numeric(FLERR,arg[3]);
     sigwid = sigcut - sigmin;

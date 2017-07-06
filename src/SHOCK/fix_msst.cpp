@@ -434,6 +434,7 @@ void FixMSST::setup(int vflag)
 
   // trigger virial computation on next timestep
 
+  pe->addstep(update->ntimestep+1);
   pressure->addstep(update->ntimestep+1);
 }
 

@@ -161,7 +161,7 @@ void Fix::modify_params(int narg, char **arg)
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
-   fixes call this if use ev_tally()
+   fixes call this if they use ev_tally()
 ------------------------------------------------------------------------- */
 
 void Fix::ev_setup(int eflag, int vflag)

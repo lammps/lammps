@@ -42,8 +42,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), old_velocity(NULL), rfix(NULL), 
-  id_temp(NULL), id_press(NULL), id_pe(NULL), temperature(NULL), 
+  Fix(lmp, narg, arg), old_velocity(NULL), rfix(NULL),
+  id_temp(NULL), id_press(NULL), id_pe(NULL), temperature(NULL),
   pressure(NULL), pe(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix msst command");
@@ -131,7 +131,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"beta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
       beta = force->numeric(FLERR,arg[iarg+1]);
-      if (beta < 0.0 || beta > 1.0) 
+      if (beta < 0.0 || beta > 1.0)
         error->all(FLERR,"Illegal fix msst command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix msst command");
@@ -348,7 +348,7 @@ void FixMSST::init()
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"external") == 0)
         fix_external = (FixExternal *) modify->fix[i];
-    if (fix_external == NULL) 
+    if (fix_external == NULL)
       error->all(FLERR,"Fix msst dftb cannot be used w/out fix external");
   }
 }
@@ -434,6 +434,7 @@ void FixMSST::setup(int vflag)
 
   // trigger virial computation on next timestep
 
+  pe->addstep(update->ntimestep+1);
   pressure->addstep(update->ntimestep+1);
 }
 
@@ -468,7 +469,7 @@ void FixMSST::initial_integrate(int vflag)
   // must convert energy to mv^2 units
 
   if (dftb) {
-    TS_dftb = fix_external->compute_vector(0);
+    double TS_dftb = fix_external->compute_vector(0);
     TS = force->ftm2v*TS_dftb;
     if (update->ntimestep == 1) T0S0 = TS;
   } else {
@@ -493,7 +494,7 @@ void FixMSST::initial_integrate(int vflag)
   TS_int += (update->dt*TS_dot);
   //TS_int += (update->dt*TS_dot)/total_mass;
 
-  // compute etot + extra terms for conserved quantity 
+  // compute etot + extra terms for conserved quantity
 
   double e_scale = compute_etotal() + compute_scalar();
 
@@ -531,7 +532,7 @@ void FixMSST::initial_integrate(int vflag)
         for ( k = 0; k < 3; k++ ) {
           double C = f[i][k] * force->ftm2v / mass[type[i]];
           TS_term = TS_dot/(mass[type[i]]*velocity_sum);
-          escale_term = force->ftm2v*beta*(e0-e_scale) / 
+          escale_term = force->ftm2v*beta*(e0-e_scale) /
             (mass[type[i]]*velocity_sum);
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
@@ -591,7 +592,7 @@ void FixMSST::initial_integrate(int vflag)
         for ( k = 0; k < 3; k++ ) {
           double C = f[i][k] * force->ftm2v / mass[type[i]];
           TS_term = TS_dot/(mass[type[i]]*velocity_sum);
-          escale_term = force->ftm2v*beta*(e0-e_scale) / 
+          escale_term = force->ftm2v*beta*(e0-e_scale) /
             (mass[type[i]]*velocity_sum);
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
@@ -668,7 +669,7 @@ void FixMSST::final_integrate()
 {
   int i;
   double p_msst;                  // MSST driving pressure
-  double TS,TS_term,escale_term;
+  double TS_term,escale_term;
 
   // v update only for atoms in MSST group
 
@@ -682,15 +683,7 @@ void FixMSST::final_integrate()
 
   int sd = direction;
 
-  // for DFTB, extract TS_dftb from fix external
-  // must convert energy to mv^2 units
-
-  if (dftb) {
-    TS_dftb = fix_external->compute_vector(0);
-    TS = force->ftm2v*TS_dftb;
-  } else TS = 0.0;
-
-  // compute etot + extra terms for conserved quantity 
+  // compute etot + extra terms for conserved quantity
 
   double e_scale = compute_etotal() + compute_scalar();
 
@@ -702,7 +695,7 @@ void FixMSST::final_integrate()
         for ( int k = 0; k < 3; k++ ) {
           double C = f[i][k] * force->ftm2v / mass[type[i]];
           TS_term = TS_dot/(mass[type[i]]*velocity_sum);
-          escale_term = force->ftm2v*beta*(e0-e_scale) / 
+          escale_term = force->ftm2v*beta*(e0-e_scale) /
             (mass[type[i]]*velocity_sum);
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
@@ -875,7 +868,7 @@ void FixMSST::restart(char *buf)
   omega[direction] = list[n++];
   e0 = list[n++];
   v0 = list[n++];
-  p0 = list[n++]; 
+  p0 = list[n++];
   TS_int = list[n++];
   tscale = 0.0;           // set tscale to zero for restart
   p0_set = 1;
@@ -899,7 +892,7 @@ int FixMSST::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 

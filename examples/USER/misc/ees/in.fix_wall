@@ -1,4 +1,3 @@
-log log_substrate
 units lj
 atom_style ellipsoid
 boundary p p f
@@ -26,6 +25,6 @@ compute qj all  property/atom quatj
 compute qk all  property/atom quatk
 #------------------------------------#
 thermo 500
-dump 1 all custom 1000 dump_substrate id type x y z c_qw c_qi c_qj c_qk 
+#dump 1 all custom 1000 dump_substrate id type x y z c_qw c_qi c_qj c_qk 
 run 40000
 

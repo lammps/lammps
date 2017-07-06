@@ -1,4 +1,3 @@
-log log_region
 units lj
 atom_style ellipsoid
 boundary p p p
@@ -25,6 +24,6 @@ compute qj all  property/atom quatj
 compute qk all  property/atom quatk
 #------------------------------------#
 thermo 500
-dump 1 all custom 1000 dump_region id type x y z c_qw c_qi c_qj c_qk 
+#dump 1 all custom 1000 dump_region id type x y z c_qw c_qi c_qj c_qk 
 run 50000
 

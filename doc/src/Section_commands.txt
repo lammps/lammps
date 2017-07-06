@@ -732,7 +732,9 @@ package"_Section_start.html#start_3.
 "smd/wall/surface"_fix_smd_wall_surface.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html,
 "ti/spring"_fix_ti_spring.html,
-"ttm/mod"_fix_ttm.html :tb(c=6,ea=c)
+"ttm/mod"_fix_ttm.html
+"wall/ees"_fix_wall_ees.html
+"wall/region/ees"_fix_wall_ees.html :tb(c=6,ea=c)
 
 :line
 

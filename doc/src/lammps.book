@@ -280,6 +280,7 @@ fix_vector.html
 fix_viscosity.html
 fix_viscous.html
 fix_wall.html
+fix_wall_ees.html
 fix_wall_gran.html
 fix_wall_gran_region.html
 fix_wall_piston.html

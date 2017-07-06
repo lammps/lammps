@@ -16,11 +16,12 @@
 # Settings that the LAMMPS build will import when this package is installed
 
 
+include ./Makefile.KIM_DIR
 
-ifeq ($(wildcard ../../lib/kim/bin/kim-api-build-config),)
+ifeq ($(wildcard $(KIM_INSTALL_DIR)/bin/kim-api-build-config),)
   KIM_CONFIG_HELPER = kim-api-build-config
 else
-  KIM_CONFIG_HELPER = ../../lib/kim/bin/kim-api-build-config
+  KIM_CONFIG_HELPER = $(KIM_INSTALL_DIR)/bin/kim-api-build-config
 endif
 ifeq ($(shell $(KIM_CONFIG_HELPER) --version 2> /dev/null),)
   $(error $(KIM_CONFIG_HELPER) utility is not available.  Something is wrong with your KIM API package setup)

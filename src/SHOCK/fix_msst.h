@@ -54,12 +54,12 @@ class FixMSST : public Fix {
   int dftb;                        // flag for use with DFTB+
 
   double velocity_sum;             // Sum of the velocities squared
-  double damping;		   // Damping function for TS force term at 
+  double damping;                  // Damping function for TS force term at
                                    //   small volume difference (v0 - vol)
-  double T0S0;			   // Initial TS term for DFTB+ simulations
-  double S_elec,S_elec_1,S_elec_2; // time history of electron entropy 
-                                   //   for DFTB+ simulaitons 
-  double TS_dot;                   // time derivative of TS term for 
+  double T0S0;                     // Initial TS term for DFTB+ simulations
+  double S_elec,S_elec_1,S_elec_2; // time history of electron entropy
+                                   //   for DFTB+ simulaitons
+  double TS_dot;                   // time derivative of TS term for
                                    //   DFTB+ simulations
 
   double **old_velocity;           // Saved velocities
@@ -88,7 +88,7 @@ class FixMSST : public Fix {
   int p0_set;                      // Is pressure set
   int v0_set;                      // Is volume set
   int e0_set;                      // Is energy set
-  double TS_int;                   // Needed for conserved quantity 
+  double TS_int;                   // Needed for conserved quantity
                                    //   with thermal electronic excitations
   double beta;                     // Energy conservation scaling factor
 

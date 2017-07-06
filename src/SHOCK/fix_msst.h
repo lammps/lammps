@@ -93,7 +93,6 @@ class FixMSST : public Fix {
   double beta;                     // Energy conservation scaling factor
 
   int maxold;                      // allocated size of old_velocity
-  double TS_dftb;                  // value needed from DFTB+ via fix external
   class FixExternal *fix_external; // ptr to fix external
 
   // functions

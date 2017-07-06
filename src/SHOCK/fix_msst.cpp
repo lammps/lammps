@@ -469,7 +469,7 @@ void FixMSST::initial_integrate(int vflag)
   // must convert energy to mv^2 units
 
   if (dftb) {
-    TS_dftb = fix_external->compute_vector(0);
+    double TS_dftb = fix_external->compute_vector(0);
     TS = force->ftm2v*TS_dftb;
     if (update->ntimestep == 1) T0S0 = TS;
   } else {
@@ -669,7 +669,7 @@ void FixMSST::final_integrate()
 {
   int i;
   double p_msst;                  // MSST driving pressure
-  double TS,TS_term,escale_term;
+  double TS_term,escale_term;
 
   // v update only for atoms in MSST group
 
@@ -683,15 +683,7 @@ void FixMSST::final_integrate()
 
   int sd = direction;
 
-  // for DFTB, extract TS_dftb from fix external
-  // must convert energy to mv^2 units
-
-  if (dftb) {
-    TS_dftb = fix_external->compute_vector(0);
-    TS = force->ftm2v*TS_dftb;
-  } else TS = 0.0;
-
-  // compute etot + extra terms for conserved quantity 
+  // compute etot + extra terms for conserved quantity
 
   double e_scale = compute_etotal() + compute_scalar();
 

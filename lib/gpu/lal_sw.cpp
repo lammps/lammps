@@ -55,7 +55,7 @@ int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,sw,"k_sw","k_sw_three_center",
-                           "k_sw_three_end");
+                           "k_sw_three_end","k_sw_short_nbor");
   if (success!=0)
     return success;
 
@@ -193,19 +193,30 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   else
     vflag=0;
 
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+  // build the short neighbor list
+  int ainum=this->_ainum;
+  int nbor_pitch=this->nbor->nbor_pitch();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
                                (BX/this->_threads_per_atom)));
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &sw3, &map, &elem2param, &_nelements,
+                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                 &this->dev_short_nbor, &ainum,
+                 &nbor_pitch, &this->_threads_per_atom);
 
   // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa > 1
   // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1 or tpa == 1
-  int ainum=this->ans->inum();
-  int nbor_pitch=this->nbor->nbor_pitch();
+  ainum=this->ans->inum();
+  nbor_pitch=this->nbor->nbor_pitch();
+  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
   this->time_pair.start();
-
+  
   this->k_pair.set_size(GX,BX);
   this->k_pair.run(&this->atom->x, &sw1, &sw2, &sw3,
                    &map, &elem2param, &_nelements,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                   &this->dev_short_nbor,
                    &this->ans->force, &this->ans->engv,
                    &eflag, &vflag, &ainum, &nbor_pitch,
                    &this->_threads_per_atom);
@@ -217,6 +228,7 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   this->k_three_center.run(&this->atom->x, &sw1, &sw2, &sw3,
                            &map, &elem2param, &_nelements,
                            &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                           &this->dev_short_nbor,
                            &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
                            &nbor_pitch, &this->_threads_per_atom, &evatom);
 
@@ -231,7 +243,7 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end_vatom.run(&this->atom->x, &sw1, &sw2, &sw3,
                           &map, &elem2param, &_nelements,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
@@ -240,7 +252,7 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end.run(&this->atom->x, &sw1, &sw2, &sw3,
                           &map, &elem2param, &_nelements,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 

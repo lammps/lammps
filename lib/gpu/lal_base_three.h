@@ -56,7 +56,8 @@ class BaseThree {
                  const int maxspecial, const double cell_size,
                  const double gpu_split, FILE *screen,
                  const void *pair_program, const char *k_two,
-                 const char *k_three_center, const char *k_three_end);
+                 const char *k_three_center, const char *k_three_end,
+                 const char *k_short_nbor=NULL);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();
@@ -74,8 +75,8 @@ class BaseThree {
 
   /// Check if there is enough storage for neighbors and realloc if not
   /** \param nlocal number of particles whose nbors must be stored on device
-    * \param host_inum number of particles whose nbors need to copied to host
-    * \param current maximum number of neighbors
+    * \param max_nbors maximum number of neighbors
+    * \param success set to false if insufficient memory
     * \note olist_size=total number of local particles **/
   inline void resize_local(const int inum, const int max_nbors, bool &success) {
     nbor->resize(inum,max_nbors,success);
@@ -84,7 +85,7 @@ class BaseThree {
   /// Check if there is enough storage for neighbors and realloc if not
   /** \param nlocal number of particles whose nbors must be stored on device
     * \param host_inum number of particles whose nbors need to copied to host
-    * \param current maximum number of neighbors
+    * \param max_nbors current maximum number of neighbors
     * \note host_inum is 0 if the host is performing neighboring
     * \note nlocal+host_inum=total number local particles
     * \note olist_size=0 **/
@@ -144,14 +145,6 @@ class BaseThree {
                int &host_start, const double cpu_time, bool &success);
 
   /// Pair loop with device neighboring
-  int * compute(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, double *sublo,
-                double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                const double cpu_time, bool &success);
-
-  /// Pair loop with device neighboring
   int ** compute(const int ago, const int inum_full,
                  const int nall, double **host_x, int *host_type, double *sublo,
                  double *subhi, tagint *tag, int **nspecial,
@@ -193,6 +186,9 @@ class BaseThree {
   /// Neighbor data
   Neighbor *nbor;
 
+  UCL_D_Vec<int> dev_short_nbor;
+  UCL_Kernel k_short_nbor;
+
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pair_program;
   UCL_Kernel k_pair, k_three_center, k_three_end, k_three_end_vatom;
@@ -203,16 +199,17 @@ class BaseThree {
   UCL_Texture pos_tex;
 
  protected:
-  bool _compiled;
+  bool _compiled,_short_nbor;
   int _block_pair, _block_size, _threads_per_atom, _end_command_queue;
   int _gpu_nbor;
   double _max_bytes, _max_an_bytes;
+  int _max_nbors, _ainum;
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,
-                       const char *k_two, const char *k_three_center,
-                       const char *k_three_end);
+                       const char *two, const char *three_center,
+                       const char *three_end, const char* short_nbor);
 
   virtual void loop(const bool _eflag, const bool _vflag,
                     const int evatom) = 0;

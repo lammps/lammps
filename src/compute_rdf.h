@@ -51,6 +51,8 @@ class ComputeRDF : public Compute {
   int *duplicates;
 
   class NeighList *list; // half neighbor list
+  void init_norm();
+  bigint natoms_old;
 };
 
 }

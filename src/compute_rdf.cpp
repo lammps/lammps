@@ -48,7 +48,6 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 
   array_flag = 1;
   extarray = 0;
-  dynamic_group_allow = 0;
 
   nbin = force->inumeric(FLERR,arg[3]);
   if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
@@ -125,6 +124,9 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   icount = new int[npairs];
   jcount = new int[npairs];
   duplicates = new int[npairs];
+
+  dynamic = 0;
+  natoms_old = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -150,7 +152,6 @@ ComputeRDF::~ComputeRDF()
 
 void ComputeRDF::init()
 {
-  int i,j,m;
 
   if (!force->pair && !cutflag)
     error->all(FLERR,"Compute rdf requires a pair style be defined "
@@ -184,40 +185,12 @@ void ComputeRDF::init()
   for (int i = 0; i < nbin; i++)
     array[i][0] = (i+0.5) * delr;
 
-  // count atoms of each type that are also in group
+  // initialize normalization, finite size correction, and changing atom counts
 
-  int *mask = atom->mask;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int ntypes = atom->ntypes;
-
-  for (i = 1; i <= ntypes; i++) typecount[i] = 0;
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) typecount[type[i]]++;
-
-  // icount = # of I atoms participating in I,J pairs for each histogram
-  // jcount = # of J atoms participating in I,J pairs for each histogram
-  // duplicates = # of atoms in both groups I and J for each histogram
-
-  for (m = 0; m < npairs; m++) {
-    icount[m] = 0;
-    for (i = ilo[m]; i <= ihi[m]; i++) icount[m] += typecount[i];
-    jcount[m] = 0;
-    for (i = jlo[m]; i <= jhi[m]; i++) jcount[m] += typecount[i];
-    duplicates[m] = 0;
-    for (i = ilo[m]; i <= ihi[m]; i++)
-      for (j = jlo[m]; j <= jhi[m]; j++)
-        if (i == j) duplicates[m] += typecount[i];
-  }
-
-  int *scratch = new int[npairs];
-  MPI_Allreduce(icount,scratch,npairs,MPI_INT,MPI_SUM,world);
-  for (i = 0; i < npairs; i++) icount[i] = scratch[i];
-  MPI_Allreduce(jcount,scratch,npairs,MPI_INT,MPI_SUM,world);
-  for (i = 0; i < npairs; i++) jcount[i] = scratch[i];
-  MPI_Allreduce(duplicates,scratch,npairs,MPI_INT,MPI_SUM,world);
-  for (i = 0; i < npairs; i++) duplicates[i] = scratch[i];
-  delete [] scratch;
+  natoms_old = atom->natoms;
+  dynamic = group->dynamic[igroup];
+  if (dynamic_user) dynamic = 1;
+  init_norm();
 
   // need an occasional half neighbor list
   // if user specified, request a cutoff = cutoff_user + skin
@@ -246,12 +219,65 @@ void ComputeRDF::init_list(int id, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeRDF::init_norm()
+{
+  int i,j,m;
+
+  // count atoms of each type that are also in group
+
+  const int nlocal = atom->nlocal;
+  const int ntypes = atom->ntypes;
+  const int * const mask = atom->mask;
+  const int * const type = atom->type;
+
+  for (i = 1; i <= ntypes; i++) typecount[i] = 0;
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) typecount[type[i]]++;
+
+  // icount = # of I atoms participating in I,J pairs for each histogram
+  // jcount = # of J atoms participating in I,J pairs for each histogram
+  // duplicates = # of atoms in both groups I and J for each histogram
+
+  for (m = 0; m < npairs; m++) {
+    icount[m] = 0;
+    for (i = ilo[m]; i <= ihi[m]; i++) icount[m] += typecount[i];
+    jcount[m] = 0;
+    for (i = jlo[m]; i <= jhi[m]; i++) jcount[m] += typecount[i];
+    duplicates[m] = 0;
+    for (i = ilo[m]; i <= ihi[m]; i++)
+      for (j = jlo[m]; j <= jhi[m]; j++)
+        if (i == j) duplicates[m] += typecount[i];
+  }
+
+  int *scratch = new int[npairs];
+  MPI_Allreduce(icount,scratch,npairs,MPI_INT,MPI_SUM,world);
+  for (i = 0; i < npairs; i++) icount[i] = scratch[i];
+  MPI_Allreduce(jcount,scratch,npairs,MPI_INT,MPI_SUM,world);
+  for (i = 0; i < npairs; i++) jcount[i] = scratch[i];
+  MPI_Allreduce(duplicates,scratch,npairs,MPI_INT,MPI_SUM,world);
+  for (i = 0; i < npairs; i++) duplicates[i] = scratch[i];
+  delete [] scratch;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeRDF::compute_array()
 {
   int i,j,m,ii,jj,inum,jnum,itype,jtype,ipair,jpair,ibin,ihisto;
   double xtmp,ytmp,ztmp,delx,dely,delz,r;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_lj,factor_coul;
+
+  if (natoms_old != atom->natoms) {
+    dynamic = 1;
+    natoms_old = atom->natoms;
+  }
+
+  // if the number of atoms has changed or we have a dynamic group
+  // or dynamic updates are requested (e.g. when changing atom types)
+  // we need to recompute some normalization parameters
+
+  if (dynamic) init_norm();
 
   invoked_array = update->ntimestep;
 

@@ -104,8 +104,7 @@ class TersoffMod : public BaseThree<numtyp, acctyp> {
 
   UCL_Kernel k_zeta;
   UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex;
-
-  int _max_nbors;
+  numtyp _cutshortsq;
 
  private:
   bool _allocated;

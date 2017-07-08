@@ -62,7 +62,8 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,tersoff_zbl,"k_tersoff_zbl_repulsive",
-                           "k_tersoff_zbl_three_center", "k_tersoff_zbl_three_end");
+                           "k_tersoff_zbl_three_center", "k_tersoff_zbl_three_end",
+                           "k_tersoff_zbl_short_nbor");
   if (success!=0)
     return success;
 
@@ -177,10 +178,15 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
 
   UCL_H_Vec<numtyp> cutsq_view(nparams,*(this->ucl_device),
                                UCL_WRITE_ONLY);
-  for (int i=0; i<nparams; i++)
+  double cutsqmax = 0.0;
+  for (int i=0; i<nparams; i++) {
     cutsq_view[i]=static_cast<numtyp>(host_cutsq[i]);
+    if (cutsqmax < host_cutsq[i]) cutsqmax = host_cutsq[i];
+  }
   cutsq.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(cutsq,cutsq_view,false);
+
+  _cutshortsq = static_cast<numtyp>(cutsqmax);
 
   UCL_H_Vec<int> dview_elem2param(nelements*nelements*nelements,
                            *(this->ucl_device), UCL_WRITE_ONLY);
@@ -275,7 +281,7 @@ void TersoffZT::compute(const int f_ago, const int inum_full, const int nall,
     this->reset_nbors(nall, inum, nlist, ilist, numj, firstneigh, success);
     if (!success)
       return;
-    _max_nbors = this->nbor->max_nbor_loop(nlist,numj,ilist);
+    this->_max_nbors = this->nbor->max_nbor_loop(nlist,numj,ilist);
   }
 
   this->atom->cast_x_data(host_x,host_type);
@@ -283,10 +289,12 @@ void TersoffZT::compute(const int f_ago, const int inum_full, const int nall,
   this->atom->add_x_data(host_x,host_type);
 
   // re-allocate zetaij if necessary
-  if (nall*_max_nbors > _zetaij.cols()) {
+  if (nall*this->_max_nbors > _zetaij.cols()) {
     int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
-    _zetaij.resize(_max_nbors*_nmax);
+    _zetaij.resize(this->_max_nbors*_nmax);
   }
+
+  this->_ainum=nlist;
 
   int _eflag;
   if (eflag)
@@ -354,7 +362,7 @@ int ** TersoffZT::compute(const int ago, const int inum_full,
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
-    _max_nbors = this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
+    this->_max_nbors = this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return NULL;
@@ -368,10 +376,12 @@ int ** TersoffZT::compute(const int ago, const int inum_full,
   *jnum=this->nbor->host_acc.begin();
 
   // re-allocate zetaij if necessary
-  if (nall*_max_nbors > _zetaij.cols()) {
+  if (nall*this->_max_nbors > _zetaij.cols()) {
     int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
-    _zetaij.resize(_max_nbors*_nmax);
+    _zetaij.resize(this->_max_nbors*_nmax);
   }
+
+  this->_ainum=nall;
 
   int _eflag;
   if (eflag)
@@ -427,9 +437,32 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   else
     vflag=0;
 
-  int ainum=this->ans->inum();
+  // build the short neighbor list
+  int ainum=this->_ainum;
   int nbor_pitch=this->nbor->nbor_pitch();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
+                               (BX/this->_threads_per_atom)));
+
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &_cutshortsq,
+                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                 &this->dev_short_nbor, &ainum,
+                 &nbor_pitch, &this->_threads_per_atom);
+
+  nbor_pitch=this->nbor->nbor_pitch();
+  GX=static_cast<int>(ceil(static_cast<double>(this->_ainum)/
+                               (BX/(JTHREADS*KTHREADS))));
+
+  this->k_zeta.set_size(GX,BX);
+  this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &cutsq,
+                   &map, &elem2param, &_nelements, &_nparams, &_zetaij,
+                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                   &this->dev_short_nbor,
+                   &_eflag, &this->_ainum, &nbor_pitch, &this->_threads_per_atom);
+
+  ainum=this->ans->inum();
+  nbor_pitch=this->nbor->nbor_pitch();
+  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
   this->time_pair.start();
@@ -449,6 +482,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   this->k_three_center.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                            &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                            &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                           &this->dev_short_nbor,
                            &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
                            &nbor_pitch, &this->_threads_per_atom, &evatom);
 
@@ -463,7 +497,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
@@ -472,7 +506,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   }

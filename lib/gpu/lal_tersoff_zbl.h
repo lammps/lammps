@@ -109,8 +109,8 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
   UCL_Kernel k_zeta;
   UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex, ts6_tex;
 
-  int _max_nbors;
   numtyp _global_e,_global_a_0,_global_epsilon_0;
+  numtyp _cutshortsq;
 
  private:
   bool _allocated;

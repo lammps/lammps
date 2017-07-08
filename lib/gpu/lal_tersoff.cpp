@@ -163,9 +163,10 @@ int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int
     cutsq_view[i]=static_cast<numtyp>(host_cutsq[i]);
     if (cutsqmax < host_cutsq[i]) cutsqmax = host_cutsq[i];
   }
-  _cutshortsq = static_cast<numtyp>(cutsqmax);
   cutsq.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(cutsq,cutsq_view,false);
+
+  _cutshortsq = static_cast<numtyp>(cutsqmax);
 
   UCL_H_Vec<int> dview_elem2param(nelements*nelements*nelements,
                            *(this->ucl_device), UCL_WRITE_ONLY);

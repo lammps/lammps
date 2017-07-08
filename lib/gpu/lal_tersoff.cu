@@ -106,7 +106,7 @@ texture<int4> ts5_tex;
     ans[ii]=old;                                                            \
   }
 
-#define store_zeta(z, tid, t_per_atom, offset)                              \
+#define acc_zeta(z, tid, t_per_atom, offset)                                \
   if (t_per_atom>1) {                                                       \
     __local acctyp red_acc[BLOCK_PAIR];                                     \
     red_acc[tid]=z;                                                         \
@@ -155,7 +155,7 @@ texture<int4> ts5_tex;
     ans[ii]=old;                                                            \
   }
 
-#define store_zeta(z, tid, t_per_atom, offset)                              \
+#define acc_zeta(z, tid, t_per_atom, offset)                                \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       z += shfl_xor(z, s, t_per_atom);                                      \
@@ -348,7 +348,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
       int idx = nbor_j - n_stride;
 //      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
 //               i, nbor_j, offset_j, idx);
-      store_zeta(z, tid, t_per_atom, offset_k);
+      acc_zeta(z, tid, t_per_atom, offset_k);
 
       numtyp4 ts1_ijparam = ts1[ijparam]; //fetch4(ts1_ijparam,ijparam,ts1_tex);
       numtyp ijparam_lam2 = ts1_ijparam.y;

@@ -74,7 +74,7 @@ class BaseThree {
   }
 
   /// Check if there is enough storage for neighbors and realloc if not
-  /** \param nlocal number of particles whose nbors must be stored on device
+  /** \param inum number of particles whose nbors must be stored on device
     * \param max_nbors maximum number of neighbors
     * \param success set to false if insufficient memory
     * \note olist_size=total number of local particles **/
@@ -83,7 +83,7 @@ class BaseThree {
   }
 
   /// Check if there is enough storage for neighbors and realloc if not
-  /** \param nlocal number of particles whose nbors must be stored on device
+  /** \param inum number of particles whose nbors must be stored on device
     * \param host_inum number of particles whose nbors need to copied to host
     * \param max_nbors current maximum number of neighbors
     * \note host_inum is 0 if the host is performing neighboring
@@ -203,7 +203,7 @@ class BaseThree {
   int _block_pair, _block_size, _threads_per_atom, _end_command_queue;
   int _gpu_nbor;
   double _max_bytes, _max_an_bytes;
-  int _max_nbors, _ainum;
+  int _max_nbors, _ainum, _nall;
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 

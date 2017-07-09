@@ -180,6 +180,8 @@ int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
   if (!success)
     return NULL;
 
+  _nall = nall;
+
   // originally the requirement that nall == nlist was enforced
   // to allow direct indexing neighbors of neighbors after re-arrangement
 //  nbor->get_host3(nall,nlist,ilist,numj,firstneigh,block_size());
@@ -213,6 +215,8 @@ inline int BaseThreeT::build_nbor_list(const int inum, const int host_inum,
   if (!success)
     return 0;
   atom->cast_copy_x(host_x,host_type);
+
+  _nall = nall;
 
   int mn;
   nbor->build_nbor_list(host_x, nall, host_inum, nall, *atom, sublo, subhi, tag,

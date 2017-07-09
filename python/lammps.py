@@ -162,6 +162,9 @@ class lammps(object):
         pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
         self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
 
+      # optional numpy support (lazy loading)
+      self._numpy = None
+
   def __del__(self):
     if self.lmp and self.opened:
       self.lib.lammps_close(self.lmp)
@@ -235,6 +238,41 @@ class lammps(object):
     else: return None
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
     return ptr
+
+  @property
+  def numpy(self):
+    if not self._numpy:
+      import numpy as np
+      class LammpsNumpyWrapper:
+        def __init__(self, lmp):
+          self.lmp = lmp
+
+        def extract_atom_iarray(self, name, nelem, dim=1):
+          if dim == 1:
+              tmp = self.lmp.extract_atom(name, 0)
+              ptr = cast(tmp, POINTER(c_int * nelem))
+          else:
+              tmp = self.lmp.extract_atom(name, 1)
+              ptr = cast(tmp[0], POINTER(c_int * nelem * dim))
+
+          a = np.frombuffer(ptr.contents, dtype=np.intc)
+          a.shape = (nelem, dim)
+          return a
+
+        def extract_atom_darray(self, name, nelem, dim=1):
+          if dim == 1:
+              tmp = self.lmp.extract_atom(name, 2)
+              ptr = cast(tmp, POINTER(c_double * nelem))
+          else:
+              tmp = self.lmp.extract_atom(name, 3)
+              ptr = cast(tmp[0], POINTER(c_double * nelem * dim))
+
+          a = np.frombuffer(ptr.contents)
+          a.shape = (nelem, dim)
+          return a
+
+      self._numpy = LammpsNumpyWrapper(self)
+    return self._numpy
 
   # extract compute info
   

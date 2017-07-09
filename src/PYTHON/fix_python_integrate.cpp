@@ -52,11 +52,11 @@ FixPythonIntegrate::FixPythonIntegrate(LAMMPS *lmp, int narg, char **arg) :
 
 
   // create integrator instance
-  char * full_cls_name = arg[2];
+  char * full_cls_name = arg[3];
   char * lastpos = strrchr(full_cls_name, '.');
 
   if (lastpos == NULL) {
-    error->all(FLERR,"Python pair style requires fully qualified class name");
+    error->all(FLERR,"Fix python/integrate requires fully qualified class name");
   }
 
   size_t module_name_length = strlen(full_cls_name) - strlen(lastpos);
@@ -91,7 +91,11 @@ FixPythonIntegrate::FixPythonIntegrate(LAMMPS *lmp, int narg, char **arg) :
   delete [] module_name;
   delete [] cls_name;
 
-  PyObject * py_integrator_obj = PyObject_CallObject(py_integrator_type, NULL);
+  PyObject * ptr = PY_VOID_POINTER(lmp);
+  PyObject * arglist = Py_BuildValue("(O)", ptr);
+  PyObject * py_integrator_obj = PyObject_CallObject(py_integrator_type, arglist);
+  Py_DECREF(arglist);
+
   if (!py_integrator_obj) {
     PyErr_Print();
     PyErr_Clear();
@@ -139,10 +143,7 @@ void FixPythonIntegrate::init()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'init' method'");
   }
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(O)", ptr);
-  PyObject * result = PyEval_CallObject(py_init, arglist);
-  Py_DECREF(arglist);
+  PyObject * result = PyEval_CallObject(py_init, NULL);
   PyGILState_Release(gstate);
 }
 
@@ -159,8 +160,7 @@ void FixPythonIntegrate::initial_integrate(int vflag)
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'initial_integrate' method'");
   }
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(Oi)", ptr, vflag);
+  PyObject * arglist = Py_BuildValue("(i)", vflag);
   PyObject * result = PyEval_CallObject(py_initial_integrate, arglist);
   Py_DECREF(arglist);
   PyGILState_Release(gstate);
@@ -179,10 +179,7 @@ void FixPythonIntegrate::final_integrate()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'final_integrate' method'");
   }
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(O)", ptr);
-  PyObject * result = PyEval_CallObject(py_final_integrate, arglist);
-  Py_DECREF(arglist);
+  PyObject * result = PyEval_CallObject(py_final_integrate, NULL);
   PyGILState_Release(gstate);
 }
 
@@ -199,8 +196,7 @@ void FixPythonIntegrate::initial_integrate_respa(int vflag, int ilevel, int iloo
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'initial_integrate_respa' method'");
   }
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(Oiii)", ptr, vflag, ilevel, iloop);
+  PyObject * arglist = Py_BuildValue("(iii)", vflag, ilevel, iloop);
   PyObject * result = PyEval_CallObject(py_initial_integrate_respa, arglist);
   Py_DECREF(arglist);
   PyGILState_Release(gstate);
@@ -219,8 +215,7 @@ void FixPythonIntegrate::final_integrate_respa(int ilevel, int iloop)
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'final_integrate_respa' method'");
   }
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(Oii)", ptr, ilevel, iloop);
+  PyObject * arglist = Py_BuildValue("(ii)", ilevel, iloop);
   PyObject * result = PyEval_CallObject(py_final_integrate_respa, arglist);
   Py_DECREF(arglist);
   PyGILState_Release(gstate);
@@ -239,9 +234,6 @@ void FixPythonIntegrate::reset_dt()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'reset_dt' method'");
   }
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(O)", ptr);
-  PyObject * result = PyEval_CallObject(py_reset_dt, arglist);
-  Py_DECREF(arglist);
+  PyObject * result = PyEval_CallObject(py_reset_dt, NULL);
   PyGILState_Release(gstate);
 }

@@ -188,6 +188,10 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use fix gcmc shake and not molecule");
   if (rigidflag && shakeflag)
     error->all(FLERR,"Cannot use fix gcmc rigid and shake");
+  if (rigidflag && (nmcmoves > 0))
+    error->all(FLERR,"Cannot use fix gcmc rigid with MC moves");
+  if (shakeflag && (nmcmoves > 0))
+    error->all(FLERR,"Cannot use fix gcmc shake with MC moves");
 
   // setup of coords and imageflags array
 

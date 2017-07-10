@@ -21,6 +21,9 @@
 #include "timer.h"
 #include "error.h"
 
+//#include "neighbor.h"
+//#include "pair.h"
+
 using namespace LAMMPS_NS;
 
 // EPS_ENERGY = minimum normalization for energy tolerance
@@ -94,6 +97,9 @@ int MinAdaptGlok::iterate(int maxiter)
   double scale1,scale2;
   double dtvone,dtv,dtf,dtfm;
   int flag,flagall;
+  double **f = atom->f;
+
+ 
 
   alpha_final = 0.0;
 
@@ -108,7 +114,7 @@ int MinAdaptGlok::iterate(int maxiter)
     // vdotfall = v dot f
 
     double **v = atom->v;
-    double **f = atom->f;
+    //double **f = atom->f;
     int nlocal = atom->nlocal;
     double *rmass = atom->rmass;
     double *mass = atom->mass;
@@ -160,19 +166,22 @@ int MinAdaptGlok::iterate(int maxiter)
         MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       }
 
-      scale1 = 1.0 - alpha;
-      if (fdotfall == 0.0) scale2 = alpha;
-      else scale2 = alpha * sqrt(vdotvall/fdotfall);
-      //for (int i = 0; i < nlocal; i++) {
-      //  v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-       // v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-      //  v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-      //}
-
       if (ntimestep - last_negative > DELAYSTEP) {
         dt = MIN(dt*DT_GROW,dtmax);
         alpha *= ALPHA_SHRINK;
       }
+
+      scale1 = 1.0 - alpha;
+      if (fdotfall == 0.0) scale2 = alpha;
+      else scale2 = alpha * sqrt(vdotvall/fdotfall);
+      /* mixing done within the Velocity-Verlet loop
+      for (int i = 0; i < nlocal; i++) {
+        v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+        v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+        v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+      }
+      */
+   
 
     // else (v dot f) <= 0:
     // decrease timestep, reset alpha, set v = 0
@@ -210,7 +219,7 @@ int MinAdaptGlok::iterate(int maxiter)
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
     MPI_Allreduce(&ke,&keall,1,MPI_DOUBLE,MPI_SUM,world);
 
-    fprintf(screen,"vdotfall %f %f\n",vdotfall,keall);
+    //fprintf(screen,"vdotfall %f %f\n",vdotfall,keall);
 
     // min dtv over replicas, if necessary
     // this communicator would be invalid for multiprocess replicas
@@ -220,11 +229,11 @@ int MinAdaptGlok::iterate(int maxiter)
       MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
     }
 
-    dtf = dtv * force->ftm2v;
-
-    // Euler integration step, formerly done in Fire
+  // Euler integration
 
     double **x = atom->x;
+/*
+    dtf = dtv * force->ftm2v;
 
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {
@@ -254,6 +263,66 @@ int MinAdaptGlok::iterate(int maxiter)
           x[i][2] += dtv * v[i][2];
         }
     }
+*/
+
+  dtf = 0.5 * dtv * force->ftm2v;
+  // Velocity Verlet integration: initial
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {
+        dtfm = dtf / rmass[i];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+        dtfm = dtf / mass[type[i]];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+        // we perform the mixing AFTER the velocity has been calculated
+        if (vdotfall > 0.0) {
+          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+        }
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+    }
+  }
+  // Velocity Verlet integration: final (update velocity)
+  
+  //  neighbor list build, force calculation [inspired by verlet.cpp] BUT PROBABLY WRONG
+  //force_clear();
+  //neighbor->build();
+  //force->pair->compute(eflag,vflag);
+  //comm->reverse_comm();
+
+  // simple calculation as before...
+  double **f = atom->f;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {
+        dtfm = dtf / rmass[i];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+      }
+
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      dtfm = dtf / mass[type[i]];
+      v[i][0] += dtfm * f[i][0];
+      v[i][1] += dtfm * f[i][1];
+      v[i][2] += dtfm * f[i][2];
+    }
+  }
+
+
 
     eprevious = ecurrent;
     ecurrent = energy_force(0);
@@ -287,7 +356,7 @@ int MinAdaptGlok::iterate(int maxiter)
         if (fdotf < update->ftol*update->ftol) {
           
           // GUENOLE - reset the global timestep to the default value
-          //update->dt = dtdef;
+          update->dt = dtdef;
 
           return FTOL;
         }
@@ -313,7 +382,7 @@ int MinAdaptGlok::iterate(int maxiter)
   }
 
   // GUENOLE - reset the global timestep to the default value
-  //update->dt = dtdef;
+  update->dt = dtdef;
 
   return MAXITER;
 }

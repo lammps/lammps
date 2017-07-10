@@ -70,10 +70,12 @@ url = "https://s3.openkim.org/kim-api/%s.tgz" % version
 
 if not os.path.isfile("%s/Makefile.KIM_DIR" % thisdir):
   open("%s/Makefile.KIM_DIR" % thisdir, 'w').write("KIM_INSTALL_DIR=%s" % dir)
+  open("%s/Makefile.KIM_Config" % thisdir, 'w').write("include %s/lib/kim-api/Makefile.KIM_Config" % dir)
   print "Created %s/Makefile.KIM_DIR : using %s" % (thisdir,dir)
 else:
   if dirflag == 1:
     open("%s/Makefile.KIM_DIR" % thisdir, 'w').write("KIM_INSTALL_DIR=%s" % dir)
+    open("%s/Makefile.KIM_Config" % thisdir, 'w').write("include %s/lib/kim-api/Makefile.KIM_Config" % dir)
     print "Updated %s/Makefile.KIM_DIR : using %s" % (thisdir,dir)
 
 
@@ -119,7 +121,7 @@ if buildflag == 1:
   if txt[0] != 0: error()
 
   # remove source files
-  print "Removing kim-api source and build files"
+  print "Removing kim-api source and build files ..."
   cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" % (thisdir,version,version)
   txt = commands.getstatusoutput(cmd)
   print txt[1]
@@ -136,4 +138,14 @@ if addflag == 1:
   if txt[0] != 0: error()
   #
   print "Building item ..."
-  #.....
+  cmd = "cd %s/%s; make; make install" %(thisdir,addmodelname)
+  txt = commands.getstatusoutput(cmd)
+  print txt[1]
+  if txt[0] != 0: error()
+  #
+  print "Removing kim item source and build files ..."
+  cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" %(thisdir,addmodelname,addmodelname)
+  txt = commands.getstatusoutput(cmd)
+  print txt[1]
+  if txt[0] != 0: error()
+

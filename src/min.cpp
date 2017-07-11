@@ -651,31 +651,31 @@ void Min::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dmax = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fire_delaystep") == 0) {
+    } else if (strcmp(arg[iarg],"delaystep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       delaystep = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fire_dt_grow") == 0) {
+    } else if (strcmp(arg[iarg],"dt_grow") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dt_grow = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fire_dt_shrink") == 0) {
+    } else if (strcmp(arg[iarg],"dt_shrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dt_shrink = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fire_alpha0") == 0) {
+    } else if (strcmp(arg[iarg],"alpha0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       alpha0 = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fire_alpha_shrink") == 0) {
+    } else if (strcmp(arg[iarg],"alpha_shrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       alpha_shrink = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fire_tmax") == 0) {
+    } else if (strcmp(arg[iarg],"tmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       tmax = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fire_tmin") == 0) {
+    } else if (strcmp(arg[iarg],"tmin") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       tmin = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;       

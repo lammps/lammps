@@ -1,4 +1,4 @@
-#!usr/local/python
+#!/usr/bin/env python
 
 # install.py tool to setup the kim-api library
 # used to automate the steps described in the README file in this dir
@@ -148,4 +148,3 @@ if addflag == 1:
   txt = commands.getstatusoutput(cmd)
   print txt[1]
   if txt[0] != 0: error()
-

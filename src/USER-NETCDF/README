@@ -1,9 +1,9 @@
 USER-NETCDF
 ============
 
-This package provides the netcf and netcdf/mpiio dump styles.
-See the doc page for dump nc or dump nc/mpiio command for how to use them.
-Compiling these dump styles requires having the netCDF library installed
+This package provides the netcdf and netcdf/mpiio dump styles.
+See the doc page for dump netcdf or dump netcdf/mpiio command for how to use
+them. Compiling these dump styles requires having the netCDF library installed
 on your system. See lib/netcdf/README for additional details.
 
 PACKAGE DESCRIPTION
@@ -29,11 +29,11 @@ NetCDF files can be directly visualized with the following tools:
   a NetCDF reader that is not present in the standard distribution of AtomEye.
 
 The person who created these files is Lars Pastewka at
-Karlsruhe Institute of Technology (lars.pastewka@kit.edu).
+the University of Freiburg (lars.pastewka@imtek.uni-freiburg.de).
 Contact him directly if you have questions.
 
 Lars Pastewka
-Institute for Applied Materials (IAM)
-Karlsruhe Institute of Technology (KIT)
-Kaiserstrasse 12, 76131 Karlsruhe
-e-mail: lars.pastewka@kit.edu
+University of Freiburg
+Department of Microsystems Engineering
+Georges-Köhler-Allee 103, 79110 Freiburg, Germany
+e-mail: lars.pastewka@imtek.uni-freiburg.de

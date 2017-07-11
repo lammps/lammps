@@ -76,6 +76,7 @@ void NBinSSA::bin_atoms()
       if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
       if (mask[i] & bitmask) {
         ibin = coord2bin(x[i]);
+        atom2bin[i] = ibin;
         bins_ssa[i] = gbinhead_ssa[ibin];
         gbinhead_ssa[ibin] = i;
       }
@@ -84,12 +85,14 @@ void NBinSSA::bin_atoms()
     for (i = nall-1; i >= nlocal; i--) {
       if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
       ibin = coord2bin(x[i]);
+      atom2bin[i] = ibin;
       bins_ssa[i] = gbinhead_ssa[ibin];
       gbinhead_ssa[ibin] = i;
     }
   }
   for (i = nlocal-1; i >= 0; i--) {
     ibin = coord2bin(x[i]);
+    atom2bin[i] = ibin;
     bins_ssa[i] = binhead_ssa[ibin];
     binhead_ssa[ibin] = i;
   }

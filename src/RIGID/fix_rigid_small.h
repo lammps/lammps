@@ -31,10 +31,6 @@ class FixRigidSmall : public Fix {
   friend class ComputeRigidLocal;
 
  public:
-  // static variable for ring communication callback to access class data
-
-  static FixRigidSmall *frsptr;
-
   FixRigidSmall(class LAMMPS *, int, char **);
   virtual ~FixRigidSmall();
   virtual int setmask();
@@ -131,6 +127,7 @@ class FixRigidSmall : public Fix {
   int extended;         // 1 if any particles have extended attributes
   int orientflag;       // 1 if particles store spatial orientation
   int dorientflag;      // 1 if particles store dipole orientation
+  int reinitflag;       // 1 if re-initialize rigid bodies between runs
 
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
@@ -199,9 +196,9 @@ class FixRigidSmall : public Fix {
 
   // callback functions for ring communication
 
-  static void ring_bbox(int, char *);
-  static void ring_nearest(int, char *);
-  static void ring_farthest(int, char *);
+  static void ring_bbox(int, char *, void *);
+  static void ring_nearest(int, char *, void *);
+  static void ring_farthest(int, char *, void *);
 
   // debug
 

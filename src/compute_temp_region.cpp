@@ -200,6 +200,23 @@ void ComputeTempRegion::remove_bias(int i, double *v)
 }
 
 /* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempRegion::remove_bias_thr(int i, double *v, double *b)
+{
+  double *x = atom->x[i];
+  if (domain->regions[iregion]->match(x[0],x[1],x[2]))
+    b[0] = b[1] = b[2] = 0.0;
+  else {
+    b[0] = v[0];
+    b[1] = v[1];
+    b[2] = v[2];
+    v[0] = v[1] = v[2] = 0.0;
+  }
+}
+
+/* ----------------------------------------------------------------------
    remove velocity bias from all atoms to leave thermal velocity
 ------------------------------------------------------------------------- */
 
@@ -241,6 +258,18 @@ void ComputeTempRegion::restore_bias(int i, double *v)
   v[0] += vbias[0];
   v[1] += vbias[1];
   v[2] += vbias[2];
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias_thr()
+   assume remove_bias_thr() was previously called with the same buffer b
+------------------------------------------------------------------------- */
+
+void ComputeTempRegion::restore_bias_thr(int i, double *v, double *b)
+{
+  v[0] += b[0];
+  v[1] += b[1];
+  v[2] += b[2];
 }
 
 /* ----------------------------------------------------------------------

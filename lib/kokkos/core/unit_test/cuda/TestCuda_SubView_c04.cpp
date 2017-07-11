@@ -41,13 +41,14 @@
 //@HEADER
 */
 
-#include <cuda/TestCuda.hpp>
+#include <cuda/TestCudaUVM_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( cuda, view_subview_2d_from_3d )
+TEST_F( TEST_CATEGORY, view_subview_2d_from_3d )
 {
-  TestViewSubview::test_2d_subview_3d< Kokkos::CudaUVMSpace >();
+  TestViewSubview::test_2d_subview_3d< TEST_EXECSPACE >();
 }
 
 } // namespace Test

@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Richard Berger (Temple U)
+------------------------------------------------------------------------- */
+
+#include <Python.h>
 #include <stdio.h>
 #include <string.h>
 #include "fix_python.h"
@@ -20,16 +25,10 @@
 #include "respa.h"
 #include "error.h"
 #include "python.h"
+#include "python_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-// Wrap API changes between Python 2 and 3 using macros
-#if PY_MAJOR_VERSION == 2
-#define PY_VOID_POINTER(X) PyCObject_FromVoidPtr((void *) X, NULL)
-#elif PY_MAJOR_VERSION == 3
-#define PY_VOID_POINTER(X) PyCapsule_New((void *) X, NULL, NULL)
-#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +47,8 @@ FixPython::FixPython(LAMMPS *lmp, int narg, char **arg) :
     selected_callback = POST_FORCE;
   } else if (strcmp(arg[4],"end_of_step") == 0) {
     selected_callback = END_OF_STEP;
+  } else {
+    error->all(FLERR,"Unsupported callback name for fix/python");
   }
 
   // get Python function
@@ -87,7 +88,7 @@ void FixPython::end_of_step()
   PyObject * ptr = PY_VOID_POINTER(lmp);
   PyObject * arglist = Py_BuildValue("(O)", ptr);
 
-  PyObject * result = PyEval_CallObject(pFunc, arglist);
+  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
   Py_DECREF(arglist);
 
   PyGILState_Release(gstate);
@@ -104,7 +105,7 @@ void FixPython::post_force(int vflag)
   PyObject * ptr = PY_VOID_POINTER(lmp);
   PyObject * arglist = Py_BuildValue("(Oi)", ptr, vflag);
 
-  PyObject * result = PyEval_CallObject(pFunc, arglist);
+  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
   Py_DECREF(arglist);
 
   PyGILState_Release(gstate);

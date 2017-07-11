@@ -15,7 +15,7 @@
 
 NPairStyle(half/bin/newtoff/ghost/omp,
            NPairHalfBinNewtoffGhostOmp,
-           NP_HALF | NP_BIN | NP_NEWTOFF | NP_GHOST | NP_OMP | 
+           NP_HALF | NP_BIN | NP_NEWTOFF | NP_GHOST | NP_OMP |
            NP_ORTHO | NP_TRI)
 
 #else

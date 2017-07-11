@@ -35,7 +35,7 @@ cutoff.
 In contrast to "pair_style yukawa"_pair_yukawa.html, this functional
 form arises from the Coulombic interaction between two colloid
 particles, screened due to the presence of an electrolyte, see the
-book by "Safran"_#Safran for a derivation in the context of DVLO
+book by "Safran"_#Safran for a derivation in the context of DLVO
 theory.  "Pair_style yukawa"_pair_yukawa.html is a screened Coulombic
 potential between two point-charges and uses no such approximation.
 

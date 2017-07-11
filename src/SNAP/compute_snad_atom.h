@@ -37,7 +37,7 @@ class ComputeSNADAtom : public Compute {
 
  private:
   int nmax, njmax, diagonalstyle;
-  int ncoeff, twoncoeff, threencoeff, ncoeffsq, twoncoeffsq, threencoeffsq;
+  int ncoeff, twoncoeff, threencoeff, ncoeffq, twoncoeffq, threencoeffq;
   double **cutsq;
   class NeighList *list;
   double **snad;

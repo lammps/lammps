@@ -41,13 +41,14 @@
 //@HEADER
 */
 
-#include <cuda/TestCuda.hpp>
+#include <cuda/TestCudaUVM_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( cuda, view_subview_2d_from_3d_randomaccess )
+TEST_F( TEST_CATEGORY, view_subview_2d_from_3d_randomaccess )
 {
-  TestViewSubview::test_2d_subview_3d< Kokkos::CudaUVMSpace, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+  TestViewSubview::test_2d_subview_3d< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
 } // namespace Test

@@ -35,7 +35,7 @@ class FixNHIntel : public FixNH {
   int _nlocal3, _nlocal_max;
 
   virtual void remap();
-  virtual void nve_x();      
+  virtual void nve_x();
   virtual void nve_v();
   virtual void nh_v_press();
   virtual void nh_v_temp();

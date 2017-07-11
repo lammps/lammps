@@ -43,12 +43,13 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 6;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
-  did_compute = 0;
+  did_setup = 0;
   invoked_peratom = invoked_scalar = -1;
   nmax = -1;
   stress = NULL;
   eatom = NULL;
   vector = new double[size_vector];
+  heatj = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,6 +57,9 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
 ComputeHeatFluxTally::~ComputeHeatFluxTally()
 {
   if (force && force->pair) force->pair->del_tally_callback(this);
+  memory->destroy(stress);
+  memory->destroy(eatom);
+  delete[] heatj;
   delete[] vector;
 }
 
@@ -68,70 +72,56 @@ void ComputeHeatFluxTally::init()
   else
     force->pair->add_tally_callback(this);
 
-  if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-    error->warning(FLERR,"Compute heat/flux/tally used with incompatible pair style");
+  if (comm->me == 0) {
+    if (force->pair->single_enable == 0 || force->pair->manybody_flag)
+      error->warning(FLERR,"Compute heat/flux/tally used with incompatible pair style");
 
-  if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
-                          || force->improper || force->kspace))
-    error->warning(FLERR,"Compute heat/flux/tally only called from pair style");
-
-  did_compute = -1;
+    if (force->bond || force->angle || force->dihedral
+                    || force->improper || force->kspace)
+      error->warning(FLERR,"Compute heat/flux/tally only called from pair style");
+  }
+  did_setup = -1;
 }
 
+/* ---------------------------------------------------------------------- */
+void ComputeHeatFluxTally::pair_setup_callback(int, int)
+{
+  const int ntotal = atom->nlocal + atom->nghost;
+
+  // grow per-atom storage, if needed
+
+  if (atom->nmax > nmax) {
+    memory->destroy(stress);
+    memory->destroy(eatom);
+    nmax = atom->nmax;
+    memory->create(stress,nmax,6,"heat/flux/tally:stress");
+    memory->create(eatom,nmax,"heat/flux/tally:eatom");
+  }
+
+  // clear storage
+
+  for (int i=0; i < ntotal; ++i) {
+    eatom[i] = 0.0;
+    stress[i][0] = 0.0;
+    stress[i][1] = 0.0;
+    stress[i][2] = 0.0;
+    stress[i][3] = 0.0;
+    stress[i][4] = 0.0;
+    stress[i][5] = 0.0;
+  }
+
+  for (int i=0; i < size_vector; ++i)
+    vector[i] = heatj[i] = 0.0;
+
+  did_setup = update->ntimestep;
+}
 
 /* ---------------------------------------------------------------------- */
 void ComputeHeatFluxTally::pair_tally_callback(int i, int j, int nlocal, int newton,
                                              double evdwl, double ecoul, double fpair,
                                              double dx, double dy, double dz)
 {
-  const int ntotal = atom->nlocal + atom->nghost;
   const int * const mask = atom->mask;
-
-  // do setup work that needs to be done only once per timestep
-
-  if (did_compute != update->ntimestep) {
-    did_compute = update->ntimestep;
-
-    // grow local stress and eatom arrays if necessary
-    // needs to be atom->nmax in length
-
-    if (atom->nmax > nmax) {
-      memory->destroy(stress);
-      nmax = atom->nmax;
-      memory->create(stress,nmax,6,"heat/flux/tally:stress");
-
-      memory->destroy(eatom);
-      nmax = atom->nmax;
-      memory->create(eatom,nmax,"heat/flux/tally:eatom");
-    }
-
-    // clear storage as needed
-
-    if (newton) {
-      for (int i=0; i < ntotal; ++i) {
-        eatom[i] = 0.0;
-        stress[i][0] = 0.0;
-        stress[i][1] = 0.0;
-        stress[i][2] = 0.0;
-        stress[i][3] = 0.0;
-        stress[i][4] = 0.0;
-        stress[i][5] = 0.0;
-      }
-    } else {
-      for (int i=0; i < atom->nlocal; ++i) {
-        eatom[i] = 0.0;
-        stress[i][0] = 0.0;
-        stress[i][1] = 0.0;
-        stress[i][2] = 0.0;
-        stress[i][3] = 0.0;
-        stress[i][4] = 0.0;
-        stress[i][5] = 0.0;
-      }
-    }
-
-    for (int i=0; i < size_vector; ++i)
-      vector[i] = heatj[i] = 0.0;
-  }
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
        || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
@@ -210,7 +200,7 @@ void ComputeHeatFluxTally::unpack_reverse_comm(int n, int *list, double *buf)
 void ComputeHeatFluxTally::compute_vector()
 {
   invoked_vector = update->ntimestep;
-  if ((did_compute != invoked_vector) || (update->eflag_global != invoked_vector))
+  if ((did_setup != invoked_vector) || (update->eflag_global != invoked_vector))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms
@@ -243,6 +233,7 @@ void ComputeHeatFluxTally::compute_vector()
   const double pfactor = 0.5 * force->mvv2e;
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
 
   double jc[3] = {0.0,0.0,0.0};
@@ -250,17 +241,21 @@ void ComputeHeatFluxTally::compute_vector()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      double ke_i = pfactor * mass[type[i]] *
-                  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-      jc[0] += (ke_i + eatom[i]) * v[i][0];
-      jc[1] += (ke_i + eatom[i]) * v[i][1];
-      jc[2] += (ke_i + eatom[i]) * v[i][2];
-      jv[0] += stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
-                stress[i][4]*v[i][2];
-      jv[1] += stress[i][3]*v[i][0] + stress[i][1]*v[i][1] +
-                stress[i][5]*v[i][2];
-      jv[2] += stress[i][4]*v[i][0] + stress[i][5]*v[i][1] +
-                stress[i][2]*v[i][2];
+      const double * const vi = v[i];
+      const double * const si = stress[i];
+      double ke_i;
+
+      if (rmass) ke_i = pfactor * rmass[i];
+      else ke_i = pfactor * mass[type[i]];
+      ke_i *= (vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2]);
+      ke_i += eatom[i];
+
+      jc[0] += ke_i*vi[0];
+      jc[1] += ke_i*vi[1];
+      jc[2] += ke_i*vi[2];
+      jv[0] += si[0]*vi[0] + si[3]*vi[1] + si[4]*vi[2];
+      jv[1] += si[3]*vi[0] + si[1]*vi[1] + si[5]*vi[2];
+      jv[2] += si[4]*vi[0] + si[5]*vi[1] + si[2]*vi[2];
     }
   }
 

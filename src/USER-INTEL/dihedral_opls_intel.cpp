@@ -73,24 +73,24 @@ void DihedralOPLSIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void DihedralOPLSIntel::compute(int eflag, int vflag,
-				  IntelBuffers<flt_t,acc_t> *buffers,
-				  const ForceConst<flt_t> &fc)
+                                  IntelBuffers<flt_t,acc_t> *buffers,
+                                  const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
   } else evflag = 0;
 
   if (evflag) {
-    if (eflag) {
+    if (vflag && !eflag) {
       if (force->newton_bond)
-	eval<1,1,1>(vflag, buffers, fc);
+        eval<0,1,1>(vflag, buffers, fc);
       else
-	eval<1,1,0>(vflag, buffers, fc);
+        eval<0,1,0>(vflag, buffers, fc);
     } else {
       if (force->newton_bond)
-	eval<1,0,1>(vflag, buffers, fc);
+        eval<1,1,1>(vflag, buffers, fc);
       else
-	eval<1,0,0>(vflag, buffers, fc);
+        eval<1,1,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -100,10 +100,10 @@ void DihedralOPLSIntel::compute(int eflag, int vflag,
   }
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void DihedralOPLSIntel::eval(const int vflag, 
-			       IntelBuffers<flt_t,acc_t> *buffers,
-			       const ForceConst<flt_t> &fc)
+template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
+void DihedralOPLSIntel::eval(const int vflag,
+                               IntelBuffers<flt_t,acc_t> *buffers,
+                               const ForceConst<flt_t> &fc)
 
 {
   const int inum = neighbor->ndihedrallist;
@@ -124,40 +124,42 @@ void DihedralOPLSIntel::eval(const int vflag,
   const int nthreads = tc;
 
   acc_t oedihedral, ov0, ov1, ov2, ov3, ov4, ov5;
-  if (EVFLAG) {
-    if (EFLAG)
-      oedihedral = (acc_t)0.0;
-    if (vflag) {
-      ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
-    }
+  if (EFLAG) oedihedral = (acc_t)0.0;
+  if (VFLAG && vflag) {
+    ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
   }
 
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
-    shared(f_start,f_stride,fc)		  \
+    shared(f_start,f_stride,fc)           \
     reduction(+:oedihedral,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif
   {
-    int nfrom, nto, tid;
+    int nfrom, npl, nto, tid;
+    #ifdef LMP_INTEL_USE_SIMDOFF
     IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
+    #else
+    IP_PRE_omp_stride_id(nfrom, npl, nto, tid, inum, nthreads);
+    #endif
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
       memset(f, 0, f_stride * sizeof(FORCE_T));
 
-    const int5_t * _noalias const dihedrallist = 
+    const int5_t * _noalias const dihedrallist =
       (int5_t *) neighbor->dihedrallist[0];
 
+    #ifdef LMP_INTEL_USE_SIMDOFF
     acc_t sedihedral, sv0, sv1, sv2, sv3, sv4, sv5;
-    if (EVFLAG) {
-      if (EFLAG)
-	sedihedral = (acc_t)0.0;
-      if (vflag) {
-	sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
-      }
+    if (EFLAG) sedihedral = (acc_t)0.0;
+    if (VFLAG && vflag) {
+      sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
     }
-
-    for (int n = nfrom; n < nto; n++) {
+    #pragma simd reduction(+:sedihedral, sv0, sv1, sv2, sv3, sv4, sv5)
+    for (int n = nfrom; n < nto; n ++) {
+    #else
+    for (int n = nfrom; n < nto; n += npl) {
+    #endif
       const int i1 = dihedrallist[n].a;
       const int i2 = dihedrallist[n].b;
       const int i3 = dihedrallist[n].c;
@@ -177,7 +179,7 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t vb2zm = x[i2].z - x[i3].z;
 
       // 3rd bond
-      
+
       const flt_t vb3x = x[i4].x - x[i3].x;
       const flt_t vb3y = x[i4].y - x[i3].y;
       const flt_t vb3z = x[i4].z - x[i3].z;
@@ -207,7 +209,7 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
 
       flt_t ctmp = -vb1x*vb2xm - vb1y*vb2ym - vb1z*vb2zm;
-      const flt_t r12c1 =  rb1 * rb2; 
+      const flt_t r12c1 =  rb1 * rb2;
       const flt_t c1mag = ctmp * r12c1;
 
       ctmp = vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z;
@@ -236,27 +238,29 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t dx = (cx*vb3x + cy*vb3y + cz*vb3z)*cmag*rb3;
 
       // error check
+      #ifndef LMP_INTEL_USE_SIMDOFF
       if (c > PTOLERANCE || c < MTOLERANCE) {
-	int me = comm->me;
+        int me = comm->me;
 
-	if (screen) {
-	  char str[128];
-	  sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " "
-		  TAGINT_FORMAT " " TAGINT_FORMAT " "
-		  TAGINT_FORMAT " " TAGINT_FORMAT,
-		  me,tid,update->ntimestep,
-		  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	  error->warning(FLERR,str,0);
-	  fprintf(screen,"  1st atom: %d %g %g %g\n",
-		  me,x[i1].x,x[i1].y,x[i1].z);
-	  fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		  me,x[i2].x,x[i2].y,x[i2].z);
-	  fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		  me,x[i3].x,x[i3].y,x[i3].z);
-	  fprintf(screen,"  4th atom: %d %g %g %g\n",
-		  me,x[i4].x,x[i4].y,x[i4].z);
-	}
+        if (screen) {
+          char str[128];
+          sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " "
+                  TAGINT_FORMAT " " TAGINT_FORMAT,
+                  me,tid,update->ntimestep,
+                  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+          error->warning(FLERR,str,0);
+          fprintf(screen,"  1st atom: %d %g %g %g\n",
+                  me,x[i1].x,x[i1].y,x[i1].z);
+          fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                  me,x[i2].x,x[i2].y,x[i2].z);
+          fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                  me,x[i3].x,x[i3].y,x[i3].z);
+          fprintf(screen,"  4th atom: %d %g %g %g\n",
+                  me,x[i4].x,x[i4].y,x[i4].z);
+        }
       }
+      #endif
 
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
@@ -279,14 +283,14 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t sin_4phim = (flt_t)2.0 * cos_2phi * sin_2phim;
 
       flt_t p, pd;
-      p = fc.bp[type].k1*((flt_t)1.0 + c) + 
-	  fc.bp[type].k2*((flt_t)1.0 - cos_2phi) + 
-	  fc.bp[type].k3*((flt_t)1.0 + cos_3phi) +
-	  fc.bp[type].k4*((flt_t)1.0 - cos_4phi) ;
-      pd = fc.bp[type].k1 - 
-	   (flt_t)2.0 * fc.bp[type].k2 * sin_2phim +
-	   (flt_t)3.0 * fc.bp[type].k3 * sin_3phim - 
-	   (flt_t)4.0 * fc.bp[type].k4 * sin_4phim;
+      p = fc.bp[type].k1*((flt_t)1.0 + c) +
+          fc.bp[type].k2*((flt_t)1.0 - cos_2phi) +
+          fc.bp[type].k3*((flt_t)1.0 + cos_3phi) +
+          fc.bp[type].k4*((flt_t)1.0 - cos_4phi) ;
+      pd = fc.bp[type].k1 -
+           (flt_t)2.0 * fc.bp[type].k2 * sin_2phim +
+           (flt_t)3.0 * fc.bp[type].k3 * sin_3phim -
+           (flt_t)4.0 * fc.bp[type].k4 * sin_4phim;
 
       flt_t edihed;
       if (EFLAG) edihed = p;
@@ -321,54 +325,64 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t f3y = sy2 - f4y;
       const flt_t f3z = sz2 - f4z;
 
-      if (EVFLAG) {
-	IP_PRE_ev_tally_dihed(EFLAG, eatom, vflag, edihed, i1, i2, i3, i4, f1x, 
-			      f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z, vb1x, 
-			      vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x, vb3y, 
-			      vb3z, sedihedral, f, NEWTON_BOND, nlocal,
-			      sv0, sv1, sv2, sv3, sv4, sv5);
+      if (EFLAG || VFLAG) {
+        #ifdef LMP_INTEL_USE_SIMDOFF
+        IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, edihed, i1, i2, i3,
+                              i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z,
+                              vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x,
+                              vb3y, vb3z, sedihedral, f, NEWTON_BOND, nlocal,
+                              sv0, sv1, sv2, sv3, sv4, sv5);
+        #else
+        IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, edihed, i1, i2, i3,
+                              i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z,
+                              vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x,
+                              vb3y, vb3z, oedihedral, f, NEWTON_BOND, nlocal,
+                              ov0, ov1, ov2, ov3, ov4, ov5);
+        #endif
       }
 
+      #ifdef LMP_INTEL_USE_SIMDOFF
+      #pragma simdoff
+      #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {
-	  f[i1].x += f1x;
-	  f[i1].y += f1y;
-	  f[i1].z += f1z;
+          f[i1].x += f1x;
+          f[i1].y += f1y;
+          f[i1].z += f1z;
         }
 
         if (NEWTON_BOND || i2 < nlocal) {
-	  f[i2].x += f2x;
-	  f[i2].y += f2y;
-	  f[i2].z += f2z;
+          f[i2].x += f2x;
+          f[i2].y += f2y;
+          f[i2].z += f2z;
         }
 
         if (NEWTON_BOND || i3 < nlocal) {
-	  f[i3].x += f3x;
-	  f[i3].y += f3y;
-	  f[i3].z += f3z;
+          f[i3].x += f3x;
+          f[i3].y += f3y;
+          f[i3].z += f3z;
         }
 
         if (NEWTON_BOND || i4 < nlocal) {
-	  f[i4].x += f4x;
-	  f[i4].y += f4y;
-	  f[i4].z += f4z;
+          f[i4].x += f4x;
+          f[i4].y += f4y;
+          f[i4].z += f4z;
         }
       }
     } // for n
-    if (EVFLAG) {
-      if (EFLAG) oedihedral += sedihedral;
-      if (vflag) {
-	ov0 += sv0; ov1 += sv1; ov2 += sv2; ov3 += sv3; ov4 += sv4; ov5 += sv5;
-      }
+    #ifdef LMP_INTEL_USE_SIMDOFF
+    if (EFLAG) oedihedral += sedihedral;
+    if (VFLAG && vflag) {
+        ov0 += sv0; ov1 += sv1; ov2 += sv2;
+        ov3 += sv3; ov4 += sv4; ov5 += sv5;
     }
+    #endif
   } // omp parallel
 
-  if (EVFLAG) {
-    if (EFLAG) energy += oedihedral;
-    if (vflag) {
-      virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-      virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
-    }
+  if (EFLAG) energy += oedihedral;
+  if (VFLAG && vflag) {
+    virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
   }
 
   fix->set_reduce_flag();
@@ -408,7 +422,7 @@ void DihedralOPLSIntel::init_style()
 
 template <class flt_t, class acc_t>
 void DihedralOPLSIntel::pack_force_const(ForceConst<flt_t> &fc,
-	                                     IntelBuffers<flt_t,acc_t> *buffers)
+                                             IntelBuffers<flt_t,acc_t> *buffers)
 {
   const int bp1 = atom->ndihedraltypes + 1;
   fc.set_ntypes(bp1,memory);
@@ -425,11 +439,11 @@ void DihedralOPLSIntel::pack_force_const(ForceConst<flt_t> &fc,
 
 template <class flt_t>
 void DihedralOPLSIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
-	                                                  Memory *memory) {
+                                                          Memory *memory) {
   if (nbondtypes != _nbondtypes) {
     if (_nbondtypes > 0)
       _memory->destroy(bp);
-    
+
     if (nbondtypes > 0)
       _memory->create(bp,nbondtypes,"dihedralcharmmintel.bp");
   }

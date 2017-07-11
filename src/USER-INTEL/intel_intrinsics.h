@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* *- c++ -*- -----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -46,23 +46,23 @@ struct lmp_intel_an_fvec {
     lmp_intel_an_fvec(const lmp_intel_an_fvec &a) { data[:] = a.data[:]; }
     lmp_intel_an_fvec& operator =(const lmp_intel_an_fvec &a) { data[:] = a.data[:]; return *this; }
     const lmp_intel_an_fvec operator +(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this; 
-        ret.data[:] += b.data[:]; 
+        lmp_intel_an_fvec ret = *this;
+        ret.data[:] += b.data[:];
         return ret;
     }
     const lmp_intel_an_fvec operator -(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this; 
-        ret.data[:] -= b.data[:]; 
+        lmp_intel_an_fvec ret = *this;
+        ret.data[:] -= b.data[:];
         return ret;
     }
     const lmp_intel_an_fvec operator *(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this; 
-        ret.data[:] *= b.data[:]; 
+        lmp_intel_an_fvec ret = *this;
+        ret.data[:] *= b.data[:];
         return ret;
     }
     const lmp_intel_an_fvec operator /(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this; 
-        ret.data[:] /= b.data[:]; 
+        lmp_intel_an_fvec ret = *this;
+        ret.data[:] /= b.data[:];
         return ret;
     }
     lmp_intel_an_fvec& operator +=(const lmp_intel_an_fvec &b) {
@@ -103,18 +103,18 @@ struct lmp_intel_an_ivec {
     explicit lmp_intel_an_ivec(int i) { data[:] = i; }
     explicit lmp_intel_an_ivec(const int * a) { data[:] = a[0:VL]; }
     const lmp_intel_an_ivec operator &(const lmp_intel_an_ivec &b) {
-        lmp_intel_an_ivec ret = *this; 
-        ret.data[:] &= b.data[:]; 
+        lmp_intel_an_ivec ret = *this;
+        ret.data[:] &= b.data[:];
         return ret;
     }
     const lmp_intel_an_ivec operator |(const lmp_intel_an_ivec &b) {
-        lmp_intel_an_ivec ret = *this; 
-        ret.data[:] |= b.data[:]; 
+        lmp_intel_an_ivec ret = *this;
+        ret.data[:] |= b.data[:];
         return ret;
     }
     const lmp_intel_an_ivec operator +(const lmp_intel_an_ivec &b) {
-        lmp_intel_an_ivec ret = *this; 
-        ret.data[:] += b.data[:]; 
+        lmp_intel_an_ivec ret = *this;
+        ret.data[:] += b.data[:];
         return ret;
     }
 };
@@ -171,13 +171,13 @@ enum CalculationMode { KNC, AVX, AVX2, SSE, NONE, AN };
 
 // This is used in the selection logic
 template<CalculationMode mode>
-struct vector_traits { 
-    static const bool support_integer_and_gather_ops = true; 
+struct vector_traits {
+    static const bool support_integer_and_gather_ops = true;
 };
 
 template<>
-struct vector_traits<AVX> { 
-    static const bool support_integer_and_gather_ops = false; 
+struct vector_traits<AVX> {
+    static const bool support_integer_and_gather_ops = false;
 };
 
 // This is the base template for all the different architectures
@@ -198,10 +198,10 @@ struct ivec32x16 {
   }
   explicit ivec32x16(int i) { vec = _mm512_set1_epi32(i); }
   operator __m512i() const { return vec; }
-  friend ivec32x16 operator &(const ivec32x16 &a, const ivec32x16 &b) { 
+  friend ivec32x16 operator &(const ivec32x16 &a, const ivec32x16 &b) {
     return _mm512_and_epi32(a, b);
   }
-  friend ivec32x16 operator |(const ivec32x16 &a, const ivec32x16 &b) { 
+  friend ivec32x16 operator |(const ivec32x16 &a, const ivec32x16 &b) {
     return _mm512_or_epi32(a, b);
   }
   friend ivec32x16 operator +(const ivec32x16 &a, const ivec32x16 &b) {
@@ -326,7 +326,7 @@ struct vector_ops<double, KNC> {
       *z = gather<1>(*z, mask, idxs, &base->z);
       *w = int_gather<1>(*w, mask, idxs, &base->w);
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char *>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char *>(base) +  8);
@@ -337,7 +337,7 @@ struct vector_ops<double, KNC> {
       *r6 = gather<4>(*r6, mask, idxs, reinterpret_cast<const char *>(base) + 48);
       *r7 = gather<4>(*r7, mask, idxs, reinterpret_cast<const char *>(base) + 56);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char *>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char *>(base) +  8);
@@ -464,7 +464,7 @@ struct vector_ops<float, KNC> {
       *z = gather<1>(*z, mask, idxs, &base->z);
       *w = int_gather<1>(*w, mask, idxs, &base->w);
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char *>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char *>(base) +  4);
@@ -475,7 +475,7 @@ struct vector_ops<float, KNC> {
       *r6 = gather<4>(*r6, mask, idxs, reinterpret_cast<const char *>(base) + 24);
       *r7 = gather<4>(*r7, mask, idxs, reinterpret_cast<const char *>(base) + 28);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char *>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char *>(base) +  4);
@@ -519,10 +519,10 @@ struct ivec32x8 {
   }
   explicit ivec32x8(int i) { vec = _mm256_set1_epi32(i); }
   operator __m256i() const { return vec; }
-  friend ivec32x8 operator &(const ivec32x8 &a, const ivec32x8 &b) { 
+  friend ivec32x8 operator &(const ivec32x8 &a, const ivec32x8 &b) {
     return _mm256_castpd_si256(_mm256_and_pd(_mm256_castsi256_pd(a), _mm256_castsi256_pd(b)));
   }
-  friend ivec32x8 operator |(const ivec32x8 &a, const ivec32x8 &b) { 
+  friend ivec32x8 operator |(const ivec32x8 &a, const ivec32x8 &b) {
     return _mm256_castpd_si256(_mm256_or_pd(_mm256_castsi256_pd(a), _mm256_castsi256_pd(b)));
   }
   friend ivec32x8 operator +(const ivec32x8 &a, const ivec32x8 &b) {
@@ -545,10 +545,10 @@ struct avx_bvec {
   operator F64vec4() const { return _mm256_castsi256_pd(vec); }
   operator F32vec8() const { return _mm256_castsi256_ps(vec); }
   operator ivec32x8() const { return vec; }
-  friend avx_bvec operator &(const avx_bvec &a, const avx_bvec &b) { 
+  friend avx_bvec operator &(const avx_bvec &a, const avx_bvec &b) {
     return _mm256_castpd_si256(_mm256_and_pd(_mm256_castsi256_pd(a), _mm256_castsi256_pd(b)));
   }
-  friend avx_bvec operator |(const avx_bvec &a, const avx_bvec &b) { 
+  friend avx_bvec operator |(const avx_bvec &a, const avx_bvec &b) {
     return _mm256_castpd_si256(_mm256_or_pd(_mm256_castsi256_pd(a), _mm256_castsi256_pd(b)));
   }
   friend avx_bvec operator ~(const avx_bvec &a) { return _mm256_castpd_si256(_mm256_andnot_pd(_mm256_castsi256_pd(a), _mm256_castsi256_pd(avx_bvec(0xFFFFFFFF)))); }
@@ -582,8 +582,8 @@ struct vector_ops<double, AVX> {
       _mm256_store_si256(reinterpret_cast<__m256i*>(idxs), idx);
       _mm256_store_pd(reinterpret_cast<double*>(src), from);
       for (int i = 0; i < VL; i++) {
-        result[i] = mask_test_at(mask, i) 
-            ? *reinterpret_cast<const double*>(reinterpret_cast<const char*>(base) + scale * idxs[2*i]) 
+        result[i] = mask_test_at(mask, i)
+            ? *reinterpret_cast<const double*>(reinterpret_cast<const char*>(base) + scale * idxs[2*i])
             : src[i];
       }
       return _mm256_load_pd(reinterpret_cast<double*>(result));
@@ -605,18 +605,18 @@ struct vector_ops<double, AVX> {
       __m256d c1 = _mm256_permute2f128_pd(b1, b3, 0x20);
       __m256d c2 = _mm256_permute2f128_pd(b0, b2, 0x31);
       __m256d c3 = _mm256_permute2f128_pd(b1, b3, 0x31);
-      *x = blend(mask, *x, c0); 
-      *y = blend(mask, *y, c1); 
-      *z = blend(mask, *z, c2); 
+      *x = blend(mask, *x, c0);
+      *y = blend(mask, *y, c1);
+      *z = blend(mask, *z, c2);
       *w = int_blend(mask, *w, _mm256_castps_si256(_mm256_permute_ps(_mm256_castpd_ps(c3), 0xA0)));
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       fvec a = zero(), b = zero(), c = zero(), d = zero();
       gather_4(idxs, mask, base, r0, r1, r2, r3);
       gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 32, r4, r5, r6, r7);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       iarr i, m;
       _mm256_store_si256(reinterpret_cast<__m256i*>(i), idxs);
@@ -642,10 +642,10 @@ struct vector_ops<double, AVX> {
       __m256d c1 = _mm256_permute2f128_pd(b1, b3, 0x20);
       __m256d c2 = _mm256_permute2f128_pd(b0, b2, 0x31);
       __m256d c3 = _mm256_permute2f128_pd(b1, b3, 0x31);
-      *r0 = blend(mask, *r0, c0); 
-      *r1 = blend(mask, *r1, c1); 
-      *r2 = blend(mask, *r2, c2); 
-      *r3 = blend(mask, *r3, c3); 
+      *r0 = blend(mask, *r0, c0);
+      *r1 = blend(mask, *r1, c1);
+      *r2 = blend(mask, *r2, c2);
+      *r3 = blend(mask, *r3, c3);
     }
     static fvec blend(const bvec &mask, const fvec &a, const fvec &b) {
       return (b & mask) | (a & ~ mask);
@@ -809,8 +809,8 @@ struct vector_ops<float, AVX> {
       _mm256_store_si256(reinterpret_cast<__m256i*>(idxs), idx);
       _mm256_store_ps(reinterpret_cast<float*>(src), from);
       for (int i = 0; i < VL; i++) {
-        result[i] = mask_test_at(mask, i) 
-            ? *reinterpret_cast<const float*>(reinterpret_cast<const char*>(base) + scale * idxs[i]) 
+        result[i] = mask_test_at(mask, i)
+            ? *reinterpret_cast<const float*>(reinterpret_cast<const char*>(base) + scale * idxs[i])
             : src[i];
       }
       return _mm256_load_ps(reinterpret_cast<float*>(result));
@@ -842,18 +842,18 @@ struct vector_ops<float, AVX> {
       __m256 c1 = _mm256_shuffle_ps(b0, b2, 0xEE);
       __m256 c2 = _mm256_shuffle_ps(b1, b3, 0x44);
       __m256 c3 = _mm256_shuffle_ps(b1, b3, 0xEE);
-      *x = blend(mask, *x, c0); 
-      *y = blend(mask, *y, c1); 
-      *z = blend(mask, *z, c2); 
+      *x = blend(mask, *x, c0);
+      *y = blend(mask, *y, c1);
+      *z = blend(mask, *z, c2);
       *w = int_blend(mask, *w, _mm256_castps_si256(c3));
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       fvec a = zero(), b = zero(), c = zero(), d = zero();
       gather_4(idxs, mask, base, r0, r1, r2, r3);
       gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 16, r4, r5, r6, r7);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       iarr i, m;
       int_store(i, idxs);
@@ -880,10 +880,10 @@ struct vector_ops<float, AVX> {
       __m256 c1 = _mm256_shuffle_ps(b0, b2, 0xEE);
       __m256 c2 = _mm256_shuffle_ps(b1, b3, 0x44);
       __m256 c3 = _mm256_shuffle_ps(b1, b3, 0xEE);
-      *r0 = blend(mask, *r0, c0); 
-      *r1 = blend(mask, *r1, c1); 
-      *r2 = blend(mask, *r2, c2); 
-      *r3 = blend(mask, *r3, c3); 
+      *r0 = blend(mask, *r0, c0);
+      *r1 = blend(mask, *r1, c1);
+      *r2 = blend(mask, *r2, c2);
+      *r3 = blend(mask, *r3, c3);
     }
     static fvec blend(const bvec &mask, const fvec &a, const fvec &b) {
       return (b & mask) | (a & ~ mask);
@@ -961,8 +961,8 @@ struct vector_ops<float, AVX> {
       _mm256_store_si256(reinterpret_cast<__m256i*>(idxs), idx);
       _mm256_store_si256(reinterpret_cast<__m256i*>(src), from);
       for (int i = 0; i < VL; i++) {
-        result[i] = mask_test_at(mask, i) 
-            ? *reinterpret_cast<const int*>(reinterpret_cast<const char*>(base) + scale * idxs[i]) 
+        result[i] = mask_test_at(mask, i)
+            ? *reinterpret_cast<const int*>(reinterpret_cast<const char*>(base) + scale * idxs[i])
             : src[i];
       }
       return _mm256_load_si256(reinterpret_cast<__m256i*>(result));
@@ -1038,10 +1038,10 @@ struct avx2_ivec32 {
   }
   explicit avx2_ivec32(int i) { vec = _mm256_set1_epi32(i); }
   operator __m256i() const { return vec; }
-  friend avx2_ivec32 operator &(const avx2_ivec32 &a, const avx2_ivec32 &b) { 
+  friend avx2_ivec32 operator &(const avx2_ivec32 &a, const avx2_ivec32 &b) {
     return _mm256_and_si256(a, b);
   }
-  friend avx2_ivec32 operator |(const avx2_ivec32 &a, const avx2_ivec32 &b) { 
+  friend avx2_ivec32 operator |(const avx2_ivec32 &a, const avx2_ivec32 &b) {
     return _mm256_or_si256(a, b);
   }
   friend avx2_ivec32 operator +(const avx2_ivec32 &a, const avx2_ivec32 &b) {
@@ -1060,14 +1060,14 @@ struct avx2_bvec {
   operator F64vec4() const { return _mm256_castsi256_pd(vec); }
   operator F32vec8() const { return _mm256_castsi256_ps(vec); }
   operator avx2_ivec32() const { return vec; }
-  friend avx2_bvec operator &(const avx2_bvec &a, const avx2_bvec &b) { 
+  friend avx2_bvec operator &(const avx2_bvec &a, const avx2_bvec &b) {
     return _mm256_and_si256(a, b);
   }
-  friend avx2_bvec operator |(const avx2_bvec &a, const avx2_bvec &b) { 
+  friend avx2_bvec operator |(const avx2_bvec &a, const avx2_bvec &b) {
     return _mm256_or_si256(a, b);
   }
   friend avx2_bvec operator ~(const avx2_bvec &a) {
-    return _mm256_andnot_si256(a, avx2_bvec(0xFFFFFFFF)); 
+    return _mm256_andnot_si256(a, avx2_bvec(0xFFFFFFFF));
   }
   avx2_bvec& operator &=(const avx2_bvec &a) { return *this = _mm256_and_si256(vec,a); }
 };
@@ -1106,13 +1106,13 @@ struct vector_ops<double, AVX2> {
       *z = _mm256_mask_i32gather_pd(*z, &base->z, _mm256_castsi256_si128(idx1), mask, 1);
       *w = _mm256_mask_i32gather_epi32(*w, &base->w, idx, mask, 1);
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       fvec a = zero(), b = zero(), c = zero(), d = zero();
       gather_4(idxs, mask, base, r0, r1, r2, r3);
       gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 32, r4, r5, r6, r7);
     }
-    static void gather_4(const ivec &idx, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idx, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       ivec idx0 = _mm256_shuffle_epi32(idx, 0xD8); // 11011000 ->3120
       ivec idx1 = _mm256_permute4x64_epi64(idx0, 0xD8);
@@ -1253,7 +1253,7 @@ struct vector_ops<float, AVX2> {
       *z = _mm256_mask_i32gather_ps(*z, reinterpret_cast<const float*>(base) + 2, idx, mask, 1);
       *w = _mm256_mask_i32gather_epi32(*w, reinterpret_cast<const int*>(base) + 3, idx, mask, 1);
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char *>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char *>(base) +  4);
@@ -1264,7 +1264,7 @@ struct vector_ops<float, AVX2> {
       *r6 = gather<4>(*r6, mask, idxs, reinterpret_cast<const char *>(base) + 24);
       *r7 = gather<4>(*r7, mask, idxs, reinterpret_cast<const char *>(base) + 28);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char *>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char *>(base) +  4);
@@ -1401,10 +1401,10 @@ struct ivec32x4 {
   }
   explicit ivec32x4(int i) { vec = _mm_set1_epi32(i); }
   operator __m128i() const { return vec; }
-  friend ivec32x4 operator &(const ivec32x4 &a, const ivec32x4 &b) { 
+  friend ivec32x4 operator &(const ivec32x4 &a, const ivec32x4 &b) {
     return _mm_castpd_si128(_mm_and_pd(_mm_castsi128_pd(a), _mm_castsi128_pd(b)));
   }
-  friend ivec32x4 operator |(const ivec32x4 &a, const ivec32x4 &b) { 
+  friend ivec32x4 operator |(const ivec32x4 &a, const ivec32x4 &b) {
     return _mm_castpd_si128(_mm_or_pd(_mm_castsi128_pd(a), _mm_castsi128_pd(b)));
   }
   friend ivec32x4 operator +(const ivec32x4 &a, const ivec32x4 &b) {
@@ -1420,10 +1420,10 @@ struct sse_bvecx4 {
   operator __m128i() const { return vec; }
   operator F64vec2() const { return _mm_castsi128_pd(vec); }
   operator ivec32x4() const { return vec; }
-  friend sse_bvecx4 operator &(const sse_bvecx4 &a, const sse_bvecx4 &b) { 
+  friend sse_bvecx4 operator &(const sse_bvecx4 &a, const sse_bvecx4 &b) {
     return _mm_castpd_si128(_mm_and_pd(_mm_castsi128_pd(a), _mm_castsi128_pd(b)));
   }
-  friend sse_bvecx4 operator |(const sse_bvecx4 &a, const sse_bvecx4 &b) { 
+  friend sse_bvecx4 operator |(const sse_bvecx4 &a, const sse_bvecx4 &b) {
     return _mm_castpd_si128(_mm_or_pd(_mm_castsi128_pd(a), _mm_castsi128_pd(b)));
   }
   friend sse_bvecx4 operator ~(const sse_bvecx4 &a) { return _mm_castpd_si128(_mm_andnot_pd(_mm_castsi128_pd(a), _mm_castsi128_pd(sse_bvecx4(0xFFFFFFFF)))); }
@@ -1477,18 +1477,18 @@ struct vector_ops<double, SSE> {
       __m128d c1 = _mm_unpackhi_pd(a0lo, a1lo);
       __m128d c2 = _mm_unpacklo_pd(a0hi, a1hi);
       __m128d c3 = _mm_unpackhi_pd(a0hi, a1hi);
-      *x = blend(mask, *x, c0); 
-      *y = blend(mask, *y, c1); 
-      *z = blend(mask, *z, c2); 
+      *x = blend(mask, *x, c0);
+      *y = blend(mask, *y, c1);
+      *z = blend(mask, *z, c2);
       *w = int_blend(mask, *w, _mm_shuffle_epi32(_mm_castpd_si128(c3), 0xA0));
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       fvec a = zero(), b = zero(), c = zero(), d = zero();
       gather_4(idxs, mask, base, r0, r1, r2, r3);
       gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 32, r4, r5, r6, r7);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char*>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char*>(base) +  8);
@@ -1634,8 +1634,8 @@ struct vector_ops<float, SSE> {
       _mm_store_si128(reinterpret_cast<__m128i*>(idxs), idx);
       _mm_store_ps(reinterpret_cast<float*>(src), from);
       for (int i = 0; i < VL; i++) {
-        result[i] = m[i] 
-            ? *reinterpret_cast<const float*>(reinterpret_cast<const char*>(base) + scale * idxs[i]) 
+        result[i] = m[i]
+            ? *reinterpret_cast<const float*>(reinterpret_cast<const char*>(base) + scale * idxs[i])
             : src[i];
       }
       return _mm_load_ps(reinterpret_cast<float*>(result));
@@ -1647,13 +1647,13 @@ struct vector_ops<float, SSE> {
       *z = gather<1>(*z, mask, idxs, &base->z);
       *w = int_gather<1>(*w, mask, idxs, &base->w);
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       fvec a = zero(), b = zero(), c = zero(), d = zero();
       gather_4(idxs, mask, base, r0, r1, r2, r3);
       gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 16, r4, r5, r6, r7);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char*>(base) +  0);
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char*>(base) +  4);
@@ -1816,13 +1816,13 @@ struct vector_ops<flt_t, NONE> {
       *z = gather<1>(*z, mask, idxs, &base->z);
       *w = int_gather<1>(*w, mask, idxs, &base->w);
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       fvec a = zero(), b = zero(), c = zero(), d = zero();
       gather_4(idxs, mask, base, r0, r1, r2, r3);
       gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 4 * sizeof(fscal), r4, r5, r6, r7);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char*>(base) +  0 * sizeof(fscal));
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char*>(base) +  1 * sizeof(fscal));
@@ -1946,13 +1946,13 @@ struct vector_ops<flt_t, AN> {
       *z = gather<1>(*z, mask, idxs, &base->z);
       *w = int_gather<1>(*w, mask, idxs, &base->w);
     }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
       fvec a = zero(), b = zero(), c = zero(), d = zero();
       gather_4(idxs, mask, base, r0, r1, r2, r3);
       gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 4 * sizeof(fscal), r4, r5, r6, r7);
     }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base, 
+    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
         fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
       *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char*>(base) +  0 * sizeof(fscal));
       *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char*>(base) +  1 * sizeof(fscal));
@@ -2113,7 +2113,7 @@ struct AccumulatorTwiceMixin {
 
   typedef avec_t avec;
   typedef typename HIGH::fscal aarr[BASE::VL] __attribute__((aligned(BASE::ALIGN)));
-  
+
   static avec acc_mask_add(const avec &src, const typename BASE::bvec &m, const avec &a, const typename BASE::fvec &b) {
     typename HIGH::fvec blo = BASE::cvtup_lo(b);
     typename HIGH::fvec bhi = BASE::cvtup_hi(b);
@@ -2121,7 +2121,7 @@ struct AccumulatorTwiceMixin {
     BASE::mask_cvtup(m, &mlo, &mhi);
     return avec(HIGH::mask_add(src.lo, mlo, a.lo, blo), HIGH::mask_add(src.hi, mhi, a.hi, bhi));
   }
-  
+
   static typename HIGH::fscal acc_reduce_add(const avec &a) {
     return HIGH::reduce_add(a.lo + a.hi);
   }
@@ -2143,13 +2143,13 @@ template<class BASE_flt_t, class HIGH_flt_t, CalculationMode mic>
 struct AccumulatorTwiceMixinNone {
   typedef vector_ops<BASE_flt_t, mic> BASE;
   typedef vector_ops<HIGH_flt_t, mic> HIGH;
- 
+
   typedef typename HIGH::fvec avec;
   typedef typename HIGH::fscal aarr[BASE::VL];
-  
+
   static avec acc_mask_add(const avec &src, const typename BASE::bvec &m, const avec &a, const typename BASE::fvec &b) {
      return HIGH::mask_add(src, m, a, static_cast<typename HIGH::fvec>(b));
-  }  
+  }
   static typename HIGH::fscal acc_reduce_add(const avec &a) {
     return HIGH::reduce_add(a);
   }

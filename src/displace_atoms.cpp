@@ -75,6 +75,9 @@ void DisplaceAtoms::command(int narg, char **arg)
   if (igroup == -1) error->all(FLERR,"Could not find displace_atoms group ID");
   groupbit = group->bitmask[igroup];
 
+  if (modify->check_rigid_group_overlap(groupbit))
+    error->warning(FLERR,"Attempting to displace atoms in rigid bodies");
+
   int style = -1;
   if (strcmp(arg[1],"move") == 0) style = MOVE;
   else if (strcmp(arg[1],"ramp") == 0) style = RAMP;
@@ -271,9 +274,15 @@ void DisplaceAtoms::command(int narg, char **arg)
     int *body = atom->body;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
+    imageint *image = atom->image;
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
+        // unwrap coordinate and reset image flags accordingly
+        domain->unmap(x[i],image[i]);
+        image[i] = ((imageint) IMGMAX << IMG2BITS) |
+          ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
         d[0] = x[i][0] - point[0];
         d[1] = x[i][1] - point[1];
         d[2] = x[i][2] - point[2];

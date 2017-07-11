@@ -100,6 +100,7 @@ epub: $(OBJECTS)
 
 pdf: utils/txt2html/txt2html.exe
 	@(\
+		set -e; \
 		cd src; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
 		htmldoc --batch lammps.book;          \
@@ -158,7 +159,7 @@ $(VENV):
 	@( \
 		virtualenv -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install Sphinx; \
+		pip install Sphinx==1.5.6; \
 		pip install sphinxcontrib-images; \
 		deactivate;\
 	)

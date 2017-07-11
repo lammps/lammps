@@ -1437,3 +1437,39 @@ bool AtomicViewsTestNonIntegralType( const int length, int test )
 }
 
 } // namespace TestAtomicViews
+
+namespace Test {
+
+TEST_F( TEST_CATEGORY, atomic_views_integral )
+{
+  const long length = 1000000;
+  {
+    // Integral Types.
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestIntegralType< long, TEST_EXECSPACE >( length, 8 ) ) );
+  }
+}
+
+TEST_F( TEST_CATEGORY, atomic_views_nonintegral )
+{
+  const long length = 1000000;
+  {
+    // Non-Integral Types.
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType< double, TEST_EXECSPACE >( length, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType< double, TEST_EXECSPACE >( length, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType< double, TEST_EXECSPACE >( length, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicViews::AtomicViewsTestNonIntegralType< double, TEST_EXECSPACE >( length, 4 ) ) );
+  }
+}
+
+TEST_F( TEST_CATEGORY, atomic_view_api )
+{
+  TestAtomicViews::TestAtomicViewAPI< int, TEST_EXECSPACE >();
+}
+}

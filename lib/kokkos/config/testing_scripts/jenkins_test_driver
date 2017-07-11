@@ -48,7 +48,7 @@ esac
 #nvcc wrapper and make the wrapper the compiler.
 if [ $cuda_compiler != "" ]; then
   export NVCC_WRAPPER_DEFAULT_COMPILER=$compiler
-  compiler=$kokkos_path/config/nvcc_wrapper
+  compiler=$kokkos_path/bin/nvcc_wrapper
 fi
 
 if [ $host_compiler_brand == "intel" -a $cuda_compiler != "" ]; then

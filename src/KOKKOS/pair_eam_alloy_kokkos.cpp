@@ -122,9 +122,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
   int inum = list->inum;
 
-  // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
-
-  k_list->clean_copy();
   copymode = 1;
 
   // zero out density
@@ -409,7 +406,6 @@ int PairEAMAlloyKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_i
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMAlloyPackForwardComm>(0,n),*this);
-  DeviceType::fence();
   return n;
 }
 
@@ -428,7 +424,6 @@ void PairEAMAlloyKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first
   first = first_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMAlloyUnpackForwardComm>(0,n),*this);
-  DeviceType::fence();
 }
 
 template<class DeviceType>

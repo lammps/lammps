@@ -161,6 +161,8 @@ void PairComb3::allocate()
 void PairComb3::settings(int narg, char **arg)
 {
 
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+
   if (strcmp(arg[0],"polar_on") == 0) {
     pol_flag = 1;
     if (comm->me == 0 && screen) fprintf(screen,

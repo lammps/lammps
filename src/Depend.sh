@@ -126,4 +126,5 @@ fi
 
 if (test $1 = "USER-REAXC") then
   depend KOKKOS
+  depend USER-OMP
 fi

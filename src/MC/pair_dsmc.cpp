@@ -93,9 +93,9 @@ void PairDSMC::compute(int eflag, int vflag)
     int ycell = static_cast<int>((x[i][1] - domain->boxlo[1])/celly);
     int zcell = static_cast<int>((x[i][2] - domain->boxlo[2])/cellz);
 
-    if ((xcell < 0) or (xcell > ncellsx-1) or
-        (ycell < 0) or (ycell > ncellsy-1) or
-        (zcell < 0) or (zcell > ncellsz-1)) continue;
+    if ((xcell < 0) || (xcell > ncellsx-1) ||
+        (ycell < 0) || (ycell > ncellsy-1) ||
+        (zcell < 0) || (zcell > ncellsz-1)) continue;
 
     int icell = xcell + ycell*ncellsx + zcell*ncellsx*ncellsy;
     itype = type[i];
@@ -146,7 +146,7 @@ void PairDSMC::compute(int eflag, int vflag)
         double num_of_collisions_double = number_of_A * number_of_B *
           weighting * Vs_max * update->dt / vol;
 
-        if ((itype == jtype) and number_of_B)
+        if ((itype == jtype) && number_of_B)
           num_of_collisions_double *=
             0.5 * double(number_of_B - 1) / double(number_of_B);
 
@@ -161,8 +161,8 @@ void PairDSMC::compute(int eflag, int vflag)
         // perform collisions on pairs of particles in icell
 
         for (int k = 0; k < num_of_collisions; k++) {
-          if ((number_of_A < 1) or (number_of_B < 1)) break;
-          if ((itype == jtype) and (number_of_A < 2)) break;
+          if ((number_of_A < 1) || (number_of_B < 1)) break;
+          if ((itype == jtype) && (number_of_A < 2)) break;
           int ith_A = static_cast<int>(random->uniform()*number_of_A);
           int jth_B = static_cast<int>(random->uniform()*number_of_B);
           int i = particle_list[itype][ith_A];
@@ -230,7 +230,7 @@ void PairDSMC::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }

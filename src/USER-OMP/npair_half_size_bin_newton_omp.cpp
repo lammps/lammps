@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeBinNewtonOmp::NPairHalfSizeBinNewtonOmp(LAMMPS *lmp) : 
+NPairHalfSizeBinNewtonOmp::NPairHalfSizeBinNewtonOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -168,7 +168,7 @@ void NPairHalfSizeBinNewtonOmp::build(NeighList *list)
 
     // loop over all atoms in other bins in stencil, store every pair
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
         if (exclude && exclusion(i,j,type[i],type[j],mask,molecule)) continue;
@@ -202,7 +202,7 @@ void NPairHalfSizeBinNewtonOmp::build(NeighList *list)
               nn += dnum;
             }
           }
-          
+
           n++;
         }
       }

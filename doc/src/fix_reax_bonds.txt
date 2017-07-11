@@ -34,7 +34,20 @@ written to {filename} on timesteps that are multiples of {Nevery},
 including timestep 0.  For time-averaged chemical species analysis,
 please see the "fix reaxc/c/species"_fix_reaxc_species.html command.
 
-The format of the output file should be self-explanatory.
+The format of the output file should be reasonably self-explanatory.
+The meaning of the column header abbreviations is as follows:
+
+id = atom id
+type = atom type
+nb = number of bonds
+id_1 = atom id of first bond
+id_nb = atom id of Nth bond
+mol = molecule id
+bo_1 = bond order of first bond
+bo_nb = bond order of Nth bond
+abo = atom bond order (sum of all bonds)
+nlp = number of lone pairs
+q = atomic charge :ul
 
 If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text

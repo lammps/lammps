@@ -30,9 +30,12 @@
 
 using namespace LAMMPS_NS;
 
+#if defined(LMP_QSORT)
 // allocate space for static class variable
-
 Dump *Dump::dumpptr;
+#else
+#include "mergesort.h"
+#endif
 
 #define BIG 1.0e20
 #define EPSILON 1.0e-6
@@ -82,7 +85,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   buffer_flag = 0;
   padflag = 0;
   pbcflag = 0;
-  
+
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
   ids = idsort = NULL;
@@ -168,13 +171,13 @@ Dump::~Dump()
   delete irregular;
 
   memory->destroy(sbuf);
-  
+
   if (pbcflag) {
     memory->destroy(xpbc);
     memory->destroy(vpbc);
     memory->destroy(imagepbc);
   }
-  
+
   if (multiproc) MPI_Comm_free(&clustercomm);
 
   // XTC style sets fp to NULL since it closes file in its destructor
@@ -275,7 +278,7 @@ void Dump::init()
   }
 
   // preallocation for PBC copies if requested
-  
+
   if (pbcflag && atom->nlocal > maxpbc) pbc_allocate();
 }
 
@@ -388,7 +391,7 @@ void Dump::write()
     atom->image = imagepbc;
     domain->pbc();
   }
-  
+
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()
   // sort buf as needed
@@ -689,6 +692,7 @@ void Dump::sort()
         index[idsort[i]-idlo] = i;
   }
 
+#if defined(LMP_QSORT)
   if (!reorderflag) {
     dumpptr = this;
     for (i = 0; i < nme; i++) index[i] = i;
@@ -696,6 +700,14 @@ void Dump::sort()
     else if (sortorder == ASCEND) qsort(index,nme,sizeof(int),bufcompare);
     else qsort(index,nme,sizeof(int),bufcompare_reverse);
   }
+#else
+  if (!reorderflag) {
+    for (i = 0; i < nme; i++) index[i] = i;
+    if (sortcol == 0) merge_sort(index,nme,(void *)this,idcompare);
+    else if (sortorder == ASCEND) merge_sort(index,nme,(void *)this,bufcompare);
+    else merge_sort(index,nme,(void *)this,bufcompare_reverse);
+  }
+#endif
 
   // reset buf size and maxbuf to largest of any post-sort nme values
   // this insures proc 0 can receive everyone's info
@@ -715,6 +727,8 @@ void Dump::sort()
   for (i = 0; i < nme; i++)
     memcpy(&buf[i*size_one],&bufsort[index[i]*size_one],nbytes);
 }
+
+#if defined(LMP_QSORT)
 
 /* ----------------------------------------------------------------------
    compare two atom IDs
@@ -775,6 +789,65 @@ int Dump::bufcompare_reverse(const void *pi, const void *pj)
   if (bufsort[i] < bufsort[j]) return 1;
   return 0;
 }
+
+#else
+
+/* ----------------------------------------------------------------------
+   compare two atom IDs
+   called via merge_sort() in sort() method
+------------------------------------------------------------------------- */
+
+int Dump::idcompare(const int i, const int j, void *ptr)
+{
+  tagint *idsort = ((Dump *)ptr)->idsort;
+  if (idsort[i] < idsort[j]) return -1;
+  else if (idsort[i] > idsort[j]) return 1;
+  else return 0;
+}
+
+/* ----------------------------------------------------------------------
+   compare two buffer values with size_one stride
+   called via merge_sort() in sort() method
+   sort in ASCENDing order
+------------------------------------------------------------------------- */
+
+int Dump::bufcompare(const int i, const int j, void *ptr)
+{
+  Dump *dptr = (Dump *) ptr;
+  double *bufsort     = dptr->bufsort;
+  const int size_one  = dptr->size_one;
+  const int sortcolm1 = dptr->sortcolm1;
+
+  const int ii=i*size_one + sortcolm1;
+  const int jj=j*size_one + sortcolm1;
+
+  if (bufsort[ii] < bufsort[jj]) return -1;
+  else if (bufsort[ii] > bufsort[jj]) return 1;
+  else return 0;
+}
+
+/* ----------------------------------------------------------------------
+   compare two buffer values with size_one stride
+   called via merge_sort() in sort() method
+   sort in DESCENDing order
+------------------------------------------------------------------------- */
+
+int Dump::bufcompare_reverse(const int i, const int j, void *ptr)
+{
+  Dump *dptr = (Dump *) ptr;
+  double *bufsort     = dptr->bufsort;
+  const int size_one  = dptr->size_one;
+  const int sortcolm1 = dptr->sortcolm1;
+
+  const int ii=i*size_one + sortcolm1;
+  const int jj=j*size_one + sortcolm1;
+
+  if (bufsort[ii] < bufsort[jj]) return 1;
+  else if (bufsort[ii] > bufsort[jj]) return -1;
+  else return 0;
+}
+
+#endif
 
 /* ----------------------------------------------------------------------
    process params common to all dumps here

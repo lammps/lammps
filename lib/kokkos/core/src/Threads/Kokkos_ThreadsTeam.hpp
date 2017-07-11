@@ -44,7 +44,10 @@
 #ifndef KOKKOS_THREADSTEAM_HPP
 #define KOKKOS_THREADSTEAM_HPP
 
-#include <stdio.h>
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_THREADS )
+
+#include <cstdio>
 
 #include <utility>
 #include <impl/Kokkos_spinwait.hpp>
@@ -173,7 +176,9 @@ public:
   }
 
   template< typename Type >
-  KOKKOS_INLINE_FUNCTION Type team_reduce( const Type & value ) const
+  KOKKOS_INLINE_FUNCTION
+  typename std::enable_if< !Kokkos::is_reducer< Type >::value , Type>::type
+  team_reduce( const Type & value ) const
 #if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
     { return Type(); }
 #else
@@ -201,6 +206,55 @@ public:
       return accum ;
     }
 #endif
+
+    template< typename ReducerType >
+    KOKKOS_INLINE_FUNCTION
+    typename std::enable_if< Kokkos::is_reducer< ReducerType >::value >::type
+  #if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    team_reduce( const ReducerType & ) const
+      {}
+  #else
+    team_reduce( const ReducerType & reducer ) const
+    {
+      typedef typename ReducerType::value_type value_type;
+      // Make sure there is enough scratch space:
+      typedef typename if_c< sizeof(value_type) < TEAM_REDUCE_SIZE
+                           , value_type , void >::type type ;
+
+      if ( 0 == m_exec ) return ;
+
+      type * const local_value = ((type*) m_exec->scratch_memory());
+
+      // Set this thread's contribution
+      *local_value = reducer.reference() ;
+
+      // Fence to make sure the base team member has access:
+      memory_fence();
+
+      if ( team_fan_in() ) {
+        // The last thread to synchronize returns true, all other threads wait for team_fan_out()
+        type * const team_value = ((type*) m_team_base[0]->scratch_memory());
+
+        // Join to the team value:
+        for ( int i = 1 ; i < m_team_size ; ++i ) {
+          reducer.join( *team_value , *((type*) m_team_base[i]->scratch_memory()) );
+        }
+
+        // Team base thread may "lap" member threads so copy out to their local value.
+        for ( int i = 1 ; i < m_team_size ; ++i ) {
+          *((type*) m_team_base[i]->scratch_memory()) = *team_value ;
+        }
+
+        // Fence to make sure all team members have access
+        memory_fence();
+      }
+
+      team_fan_out();
+
+      // Value was changed by the team base
+      reducer.reference() = *((type volatile const *) local_value);
+    }
+  #endif
 
   template< class ValueType, class JoinOp >
   KOKKOS_INLINE_FUNCTION ValueType
@@ -760,7 +814,8 @@ void parallel_for(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Thread
  * val is performed and put into result. This functionality requires C++11 support.*/
 template< typename iType, class Lambda, typename ValueType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>& loop_boundaries,
+typename std::enable_if< !Kokkos::is_reducer< ValueType >::value >::type
+parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>& loop_boundaries,
                      const Lambda & lambda, ValueType& result) {
 
   result = ValueType();
@@ -772,6 +827,21 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::Thr
   }
 
   result = loop_boundaries.thread.team_reduce(result,Impl::JoinAdd<ValueType>());
+}
+
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+typename std::enable_if< Kokkos::is_reducer< ReducerType >::value >::type
+parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>& loop_boundaries,
+                     const Lambda & lambda, const ReducerType& reducer) {
+
+  reducer.init(reducer.reference());
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,reducer.reference());
+  }
+
+  loop_boundaries.thread.team_reduce(reducer);
 }
 
 /** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
@@ -822,14 +892,23 @@ void parallel_for(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Thre
  * val is performed and put into result. This functionality requires C++11 support.*/
 template< typename iType, class Lambda, typename ValueType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember >&
+typename std::enable_if< !Kokkos::is_reducer< ValueType >::value >::type
+parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember >&
       loop_boundaries, const Lambda & lambda, ValueType& result) {
   result = ValueType();
-#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
-#pragma ivdep
-#endif
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
     lambda(i,result);
+  }
+}
+
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+typename std::enable_if< Kokkos::is_reducer< ReducerType >::value >::type
+parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember >&
+      loop_boundaries, const Lambda & lambda, const ReducerType& reducer) {
+  reducer.init(reducer.reference());
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,reducer.reference());
   }
 }
 
@@ -915,6 +994,6 @@ void single(const Impl::ThreadSingleStruct<Impl::ThreadsExecTeamMember>& single_
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-
+#endif
 #endif /* #define KOKKOS_THREADSTEAM_HPP */
 

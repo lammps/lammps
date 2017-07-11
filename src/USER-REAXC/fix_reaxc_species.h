@@ -52,7 +52,6 @@ class FixReaxCSpecies : public Fix {
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap;
   double *clusterID;
-  int *PBCconnected;
   AtomCoord *x0;
 
   double bg_cut;

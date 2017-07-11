@@ -41,6 +41,7 @@
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_FETCH_ADD_HPP )
 #define KOKKOS_ATOMIC_FETCH_ADD_HPP
 
@@ -279,6 +280,7 @@ T atomic_fetch_add( volatile T * const dest ,
 {
   while( !Impl::lock_address_host_space( (void*) dest ) );
   T return_val = *dest;
+
   // Don't use the following line of code here:
   //
   //const T tmp = *dest = return_val + val;
@@ -292,6 +294,7 @@ T atomic_fetch_add( volatile T * const dest ,
   const T tmp = *dest;
   (void) tmp;
   Impl::unlock_address_host_space( (void*) dest );
+
   return return_val;
 }
 //----------------------------------------------------------------------------

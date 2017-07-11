@@ -158,7 +158,7 @@ void PairAIREBO::settings(int narg, char **arg)
 
   // this one parameter for C-C interactions is different in AIREBO vs REBO
   // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-  
+
   PCCf_2_0 = -0.0276030;
 }
 
@@ -1271,7 +1271,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
   double cross321[3],cross234[3],prefactor,SpN;
   double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
-  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
+  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
   double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
   double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
@@ -1335,7 +1335,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[0] = 0.0;
   dN2[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
-  pij = pow(1.0+Etmp+PijS,-0.5);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmp = -0.5*cube(pij);
 
   // pij forces
@@ -1480,7 +1480,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[0] = 0.0;
   dN2[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
-  pji = pow(1.0+Etmp+PjiS,-0.5);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmp = -0.5*cube(pji);
 
   REBO_neighs = REBO_firstneigh[j];
@@ -1615,6 +1615,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
       if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+      // due to kronecker(ktype, 0) term in contribution
+      // to NconjtmpI and later Nijconj
+      if (ktype != 0) continue;
+
       tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
       f[atomi][0] -= tmp2*rik[0];
       f[atomi][1] -= tmp2*rik[1];
@@ -1677,6 +1681,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
       f[atoml][2] += tmp2*rjl[2];
 
       if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+
+      // due to kronecker(ltype, 0) term in contribution
+      // to NconjtmpJ and later Nijconj
+      if (ltype != 0) continue;
 
       tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
       f[atomj][0] -= tmp2*rjl[0];
@@ -1848,9 +1856,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
                 aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                   (1.0-tspjik)*(1.0-tspijl);
-                aaa1 = -prefactor*(1.0-square(om1234)) *
-                  (1.0-tspjik)*(1.0-tspijl);
-                aaa2 = aaa1*w21*w34;
+                aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
                 at2 = aa*cwnum;
 
                 fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
@@ -1960,6 +1966,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
         if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
         f[atomi][0] -= tmp2*rik[0];
         f[atomi][1] -= tmp2*rik[1];
@@ -2023,6 +2033,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
         if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
 
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
         f[atomj][0] -= tmp2*rjl[0];
         f[atomj][1] -= tmp2*rjl[1];
@@ -2080,9 +2094,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
   double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ;
   double Nki,Nlj,dS,lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
-  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
-  double dN2[2],dN3[3];
-  double dcosijldrj[3],dcosijldrl[3],dcosjikdrj[3],dwjl;
+  double dN2[2],dN3[3],dwjl;
   double Tij,crosskij[3],crosskijmag;
   double crossijl[3],crossijlmag,omkijl;
   double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
@@ -2092,16 +2104,16 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
   double cross321[3],cross234[3],prefactor,SpN;
-  double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
-  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
+  double fcikpc,fcjlpc,fcjkpc,fcilpc;
+  double dt2dik[3],dt2djl[3],aa,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
-  double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
-  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
+  double dctik,dctjk,dctjl,dctil,rik2i,rjl2i,sink2i,sinl2i;
+  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil;
   double dNlj;
   double PijS,PjiS;
   double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
   int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
-  double F12[3],F23[3],F34[3],F31[3],F24[3];
+  double F12[3],F34[3],F31[3],F24[3];
   double fi[3],fj[3],fk[3],fl[3],f1[3],f2[3],f3[3],f4[4];
   double rji[3],rki[3],rlj[3],r13[3],r43[3];
   double realrij[3], realrijmag;
@@ -2136,7 +2148,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   realrij[0] = x[atomi][0] - x[atomj][0];
   realrij[1] = x[atomi][1] - x[atomj][1];
   realrij[2] = x[atomi][2] - x[atomj][2];
-  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1] 
+  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1]
                                             + realrij[2] * realrij[2]);
 
   REBO_neighs = REBO_firstneigh[i];
@@ -2171,7 +2183,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PIJ[0] = 0.0;
   dN2PIJ[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
-  pij = pow(1.0+Etmp+PijS,-0.5);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmppij = -.5*cube(pij);
   tmp3pij = tmp3;
   tmp = 0.0;
@@ -2211,7 +2223,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PJI[0] = 0.0;
   dN2PJI[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
-  pji = pow(1.0+Etmp+PjiS,-0.5);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmppji = -.5*cube(pji);
   tmp3pji = tmp3;
 
@@ -2481,7 +2493,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fj[1] -= rijmbr * (fil[1] - (realrij[1] * realrij[0] * fil[0] + realrij[1] * realrij[1] * fil[1] + realrij[1] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
         fj[2] -= rijmbr * (fil[2] - (realrij[2] * realrij[0] * fil[0] + realrij[2] * realrij[1] * fil[1] + realrij[2] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
 
- 
+
         tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
         fj[0] += tmp2*(rjl[0]/rjlmag);
         fj[1] += tmp2*(rjl[1]/rjlmag);
@@ -2562,6 +2574,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
         if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
         f[atomi][0] -= tmp2*rik[0];
         f[atomi][1] -= tmp2*rik[1];
@@ -2624,6 +2640,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         f[atoml][2] += tmp2*rjl[2];
 
         if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
 
         tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
         f[atomj][0] -= tmp2*rjl[0];
@@ -2778,9 +2798,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
                   aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                     (1.0-tspjik)*(1.0-tspijl);
-                  aaa1 = -prefactor*(1.0-square(om1234)) *
-                    (1.0-tspjik)*(1.0-tspijl);
-                  aaa2 = aaa1*w21*w34;
+                  aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
                   at2 = aa*cwnum;
 
                   fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
@@ -2897,6 +2915,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
           if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+          // due to kronecker(ktype, 0) term in contribution
+          // to NconjtmpI and later Nijconj
+          if (ktype != 0) continue;
+
           tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
           f[atomi][0] -= tmp2*rik[0];
           f[atomi][1] -= tmp2*rik[1];
@@ -2959,6 +2981,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
           f[atoml][2] += tmp2*rjl[2];
 
           if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+
+          // due to kronecker(ltype, 0) term in contribution
+          // to NconjtmpJ and later Nijconj
+          if (ltype != 0) continue;
 
           tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
           f[atomj][0] -= tmp2*rjl[0];
@@ -3094,72 +3120,58 @@ double PairAIREBO::gSpline(double costh, double Nij, int typei,
 double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
                              double dN2[2])
 {
-  int x,y,i,done;
-  double Pij,coeffs[16];
-
-  for (i = 0; i < 16; i++) coeffs[i]=0.0;
+  int x,y;
+  double Pij;
 
   x = 0;
   y = 0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  done = 0;
+  Pij = 0.0;
 
-  // if inputs are out of bounds set them back to a point in bounds
+  if (typei == 1) return Pij;
 
-  if (typei == 0 && typej == 0) {
+  if (typej == 0) {
+
+    // if inputs are out of bounds set them back to a point in bounds
+
     if (NijC < pCCdom[0][0]) NijC=pCCdom[0][0];
     if (NijC > pCCdom[0][1]) NijC=pCCdom[0][1];
     if (NijH < pCCdom[1][0]) NijH=pCCdom[1][0];
     if (NijH > pCCdom[1][1]) NijH=pCCdom[1][1];
+    x = (int) floor(NijC);
+    y = (int) floor(NijH);
 
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {
-      Pij = PCCf[(int) NijC][(int) NijH];
-      dN2[0] = PCCdfdx[(int) NijC][(int) NijH];
-      dN2[1] = PCCdfdy[(int) NijC][(int) NijH];
-      done = 1;
+      Pij    = PCCf[x][y];
+      dN2[0] = PCCdfdx[x][y];
+      dN2[1] = PCCdfdy[x][y];
+    } else {
+      if (NijC == pCCdom[0][1]) --x;
+      if (NijH == pCCdom[1][1]) --y;
+      Pij = Spbicubic(NijC,NijH,pCC[x][y],dN2);
     }
-    if (done == 0) {
-      x = (int) (floor(NijC));
-      y = (int) (floor(NijH));
-      for (i = 0; i<16; i++) coeffs[i] = pCC[x][y][i];
-      Pij = Spbicubic(NijC,NijH,coeffs,dN2);
-    }
-  }
 
-  // if inputs are out of bounds set them back to a point in bounds
+  } else if (typej == 1) {
 
-   if (typei == 0 && typej == 1){
-     if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
-     if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
-      if (NijH < pCHdom[1][0]) NijH=pCHdom[1][0];
-      if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
+    // if inputs are out of bounds set them back to a point in bounds
+
+    if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
+    if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
+    if (NijH < pCHdom[1][0]) NijH=pCHdom[1][0];
+    if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
+    x = (int) floor(NijC);
+    y = (int) floor(NijH);
 
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {
-      Pij = PCHf[(int) NijC][(int) NijH];
-      dN2[0] = PCHdfdx[(int) NijC][(int) NijH];
-      dN2[1] = PCHdfdy[(int) NijC][(int) NijH];
-      done = 1;
+      Pij = PCHf[x][y];
+      dN2[0] = PCHdfdx[x][y];
+      dN2[1] = PCHdfdy[x][y];
+    } else {
+      if (NijC == pCHdom[0][1]) --x;
+      if (NijH == pCHdom[1][1]) --y;
+      Pij = Spbicubic(NijC,NijH,pCH[x][y],dN2);
     }
-    if (done == 0) {
-      x = (int) (floor(NijC));
-      y = (int) (floor(NijH));
-      for (i = 0; i<16; i++) coeffs[i] = pCH[x][y][i];
-      Pij = Spbicubic(NijC,NijH,coeffs,dN2);
-    }
-  }
-
-  if (typei == 1 && typej == 0) {
-    Pij = 0.0;
-    dN2[0] = 0.0;
-    dN2[1] = 0.0;
-  }
-
-
-  if (typei == 1 && typej == 1) {
-    Pij = 0.0;
-    dN2[0] = 0.0;
-    dN2[1] = 0.0;
   }
   return Pij;
 }
@@ -3171,115 +3183,93 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
                               int typei, int typej, double dN3[3])
 {
-  int x,y,z,i,done;
-  double piRC,coeffs[64];
+  int x,y,z;
+  double piRC;
   x=0;
   y=0;
   z=0;
-  i=0;
-
-  done=0;
-
-  for (i=0; i<64; i++) coeffs[i]=0.0;
+  dN3[0]=0.0;
+  dN3[1]=0.0;
+  dN3[2]=0.0;
 
   if (typei==0 && typej==0) {
 
-    // if the inputs are out of bounds set them back to a point in bounds
-
-    if (Nij<piCCdom[0][0]) Nij=piCCdom[0][0];
-    if (Nij>piCCdom[0][1]) Nij=piCCdom[0][1];
-    if (Nji<piCCdom[1][0]) Nji=piCCdom[1][0];
-    if (Nji>piCCdom[1][1]) Nji=piCCdom[1][1];
-    if (Nijconj<piCCdom[2][0]) Nijconj=piCCdom[2][0];
-    if (Nijconj>piCCdom[2][1]) Nijconj=piCCdom[2][1];
-
-    if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-        fabs(Nijconj-floor(Nijconj))<TOL) {
-      piRC=piCCf[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[0]=piCCdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[1]=piCCdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[2]=piCCdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-      done=1;
-    }
-
-    if (done==0) {
-      for (i=0; i<piCCdom[0][1]; i++)
-        if (Nij>=(double) i && Nij<=(double) i+1) x=i;
-      for (i=0; i<piCCdom[1][1]; i++)
-        if (Nji>=(double) i && Nji<=(double) i+1) y=i;
-      for (i=0; i<piCCdom[2][1]; i++)
-        if (Nijconj>=(double) i && Nijconj<=(double) i+1) z=i;
-
-      for (i=0; i<64; i++) coeffs[i]=piCC[x][y][z][i];
-      piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
-    }
-  }
-
-  // CH interaction
-
-  if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
+    // CC interaction
 
     // if the inputs are out of bounds set them back to a point in bounds
 
-    if (Nij<piCHdom[0][0] || Nij>piCHdom[0][1] ||
-        Nji<piCHdom[1][0] || Nji>piCHdom[1][1] ||
-        Nijconj<piCHdom[2][0] || Nijconj>piCHdom[2][1]) {
-      if (Nij<piCHdom[0][0]) Nij=piCHdom[0][0];
-      if (Nij>piCHdom[0][1]) Nij=piCHdom[0][1];
-      if (Nji<piCHdom[1][0]) Nji=piCHdom[1][0];
-      if (Nji>piCHdom[1][1]) Nji=piCHdom[1][1];
-      if (Nijconj<piCHdom[2][0]) Nijconj=piCHdom[2][0];
-      if (Nijconj>piCHdom[2][1]) Nijconj=piCHdom[2][1];
-    }
+    if (Nij < piCCdom[0][0]) Nij=piCCdom[0][0];
+    if (Nij > piCCdom[0][1]) Nij=piCCdom[0][1];
+    if (Nji < piCCdom[1][0]) Nji=piCCdom[1][0];
+    if (Nji > piCCdom[1][1]) Nji=piCCdom[1][1];
+    if (Nijconj < piCCdom[2][0]) Nijconj=piCCdom[2][0];
+    if (Nijconj > piCCdom[2][1]) Nijconj=piCCdom[2][1];
+    x = (int) floor(Nij);
+    y = (int) floor(Nji);
+    z = (int) floor(Nijconj);
 
-    if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-        fabs(Nijconj-floor(Nijconj))<TOL) {
-      piRC=piCHf[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[0]=piCHdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[1]=piCHdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[2]=piCHdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-      done=1;
+    if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+        && fabs(Nijconj-floor(Nijconj)) < TOL) {
+      piRC=piCCf[x][y][z];
+      dN3[0]=piCCdfdx[x][y][z];
+      dN3[1]=piCCdfdy[x][y][z];
+      dN3[2]=piCCdfdz[x][y][z];
+    } else {
+      if (Nij == piCCdom[0][1]) --x;
+      if (Nji == piCCdom[1][1]) --y;
+      if (Nijconj == piCCdom[2][1]) --z;
+      piRC=Sptricubic(Nij,Nji,Nijconj,piCC[x][y][z],dN3);
     }
+  } else if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
 
-    if (done==0) {
-      for (i=0; i<piCHdom[0][1]; i++)
-        if (Nij>=i && Nij<=i+1) x=i;
-      for (i=0; i<piCHdom[1][1]; i++)
-        if (Nji>=i && Nji<=i+1) y=i;
-      for (i=0; i<piCHdom[2][1]; i++)
-        if (Nijconj>=i && Nijconj<=i+1) z=i;
+    // CH interaction
 
-      for (i=0; i<64; i++) coeffs[i]=piCH[x][y][z][i];
-      piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
+    // if the inputs are out of bounds set them back to a point in bounds
+
+    if (Nij < piCHdom[0][0]) Nij=piCHdom[0][0];
+    if (Nij > piCHdom[0][1]) Nij=piCHdom[0][1];
+    if (Nji < piCHdom[1][0]) Nji=piCHdom[1][0];
+    if (Nji > piCHdom[1][1]) Nji=piCHdom[1][1];
+    if (Nijconj < piCHdom[2][0]) Nijconj=piCHdom[2][0];
+    if (Nijconj > piCHdom[2][1]) Nijconj=piCHdom[2][1];
+    x = (int) floor(Nij);
+    y = (int) floor(Nji);
+    z = (int) floor(Nijconj);
+
+    if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+        && fabs(Nijconj-floor(Nijconj)) < TOL) {
+      piRC=piCHf[x][y][z];
+      dN3[0]=piCHdfdx[x][y][z];
+      dN3[1]=piCHdfdy[x][y][z];
+      dN3[2]=piCHdfdz[x][y][z];
+    } else {
+      if (Nij == piCHdom[0][1]) --x;
+      if (Nji == piCHdom[1][1]) --y;
+      if (Nijconj == piCHdom[2][1]) --z;
+      piRC=Sptricubic(Nij,Nji,Nijconj,piCH[x][y][z],dN3);
     }
-  }
+  } else if (typei==1 && typej==1) {
+    if (Nij < piHHdom[0][0]) Nij=piHHdom[0][0];
+    if (Nij > piHHdom[0][1]) Nij=piHHdom[0][1];
+    if (Nji < piHHdom[1][0]) Nji=piHHdom[1][0];
+    if (Nji > piHHdom[1][1]) Nji=piHHdom[1][1];
+    if (Nijconj < piHHdom[2][0]) Nijconj=piHHdom[2][0];
+    if (Nijconj > piHHdom[2][1]) Nijconj=piHHdom[2][1];
+    x = (int) floor(Nij);
+    y = (int) floor(Nji);
+    z = (int) floor(Nijconj);
 
-  if (typei==1 && typej==1) {
-    if (Nij<piHHdom[0][0] || Nij>piHHdom[0][1] ||
-        Nji<piHHdom[1][0] || Nji>piHHdom[1][1] ||
-        Nijconj<piHHdom[2][0] || Nijconj>piHHdom[2][1]) {
-      Nij=0.0;
-      Nji=0.0;
-      Nijconj=0.0;
-    }
-    if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-        fabs(Nijconj-floor(Nijconj))<TOL) {
-      piRC=piHHf[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[0]=piHHdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[1]=piHHdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[2]=piHHdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-      done=1;
-    }
-    if (done==0) {
-      for (i=0; i<piHHdom[0][1]; i++)
-        if (Nij>=i && Nij<=i+1) x=i;
-      for (i=0; i<piHHdom[1][1]; i++)
-        if (Nji>=i && Nji<=i+1) y=i;
-      for (i=0; i<piHHdom[2][1]; i++)
-        if (Nijconj>=i && Nijconj<=i+1) z=i;
-
-      for (i=0; i<64; i++) coeffs[i]=piHH[x][y][z][i];
-      piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
+    if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+        && fabs(Nijconj-floor(Nijconj)) < TOL) {
+      piRC=piHHf[x][y][z];
+      dN3[0]=piHHdfdx[x][y][z];
+      dN3[1]=piHHdfdy[x][y][z];
+      dN3[2]=piHHdfdz[x][y][z];
+    } else {
+      if (Nij == piHHdom[0][1]) --x;
+      if (Nji == piHHdom[1][1]) --y;
+      if (Nijconj == piHHdom[2][1]) --z;
+      piRC=Sptricubic(Nij,Nji,Nijconj,piHH[x][y][z],dN3);
     }
   }
 
@@ -3293,45 +3283,40 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 double PairAIREBO::TijSpline(double Nij, double Nji,
                              double Nijconj, double dN3[3])
 {
-  int x,y,z,i,done;
-  double Tijf,coeffs[64];
+  int x,y,z;
+  double Tijf;
 
   x=0;
   y=0;
   z=0;
-  i=0;
   Tijf=0.0;
-  done=0;
-  for (i=0; i<64; i++) coeffs[i]=0.0;
+  dN3[0]=0.0;
+  dN3[1]=0.0;
+  dN3[2]=0.0;
 
   //if the inputs are out of bounds set them back to a point in bounds
 
-  if (Nij<Tijdom[0][0]) Nij=Tijdom[0][0];
-  if (Nij>Tijdom[0][1]) Nij=Tijdom[0][1];
-  if (Nji<Tijdom[1][0]) Nji=Tijdom[1][0];
-  if (Nji>Tijdom[1][1]) Nji=Tijdom[1][1];
-  if (Nijconj<Tijdom[2][0]) Nijconj=Tijdom[2][0];
-  if (Nijconj>Tijdom[2][1]) Nijconj=Tijdom[2][1];
+  if (Nij < Tijdom[0][0]) Nij=Tijdom[0][0];
+  if (Nij > Tijdom[0][1]) Nij=Tijdom[0][1];
+  if (Nji < Tijdom[1][0]) Nji=Tijdom[1][0];
+  if (Nji > Tijdom[1][1]) Nji=Tijdom[1][1];
+  if (Nijconj < Tijdom[2][0]) Nijconj=Tijdom[2][0];
+  if (Nijconj > Tijdom[2][1]) Nijconj=Tijdom[2][1];
+  x = (int) floor(Nij);
+  y = (int) floor(Nji);
+  z = (int) floor(Nijconj);
 
-  if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-      fabs(Nijconj-floor(Nijconj))<TOL) {
-    Tijf=Tf[(int) Nij][(int) Nji][(int) Nijconj];
-    dN3[0]=Tdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-    dN3[1]=Tdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-    dN3[2]=Tdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-    done=1;
-  }
-
-  if (done==0) {
-    for (i=0; i<Tijdom[0][1]; i++)
-      if (Nij>=i && Nij<=i+1) x=i;
-    for (i=0; i<Tijdom[1][1]; i++)
-      if (Nji>=i && Nji<=i+1) y=i;
-    for (i=0; i<Tijdom[2][1]; i++)
-      if (Nijconj>=i && Nijconj<=i+1) z=i;
-
-    for (i=0; i<64; i++) coeffs[i]=Tijc[x][y][z][i];
-    Tijf=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
+  if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+      && fabs(Nijconj-floor(Nijconj)) < TOL) {
+    Tijf=Tf[x][y][z];
+    dN3[0]=Tdfdx[x][y][z];
+    dN3[1]=Tdfdy[x][y][z];
+    dN3[2]=Tdfdz[x][y][z];
+  } else {
+    if (Nij == Tijdom[0][1]) --x;
+    if (Nji == Tijdom[1][1]) --y;
+    if (Nijconj == Tijdom[2][1]) --z;
+    Tijf=Sptricubic(Nij,Nji,Nijconj,Tijc[x][y][z],dN3);
   }
 
   return Tijf;

@@ -33,7 +33,7 @@ typedef struct { int a,b,t;  } int3_t;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicIntel::BondHarmonicIntel(LAMMPS *lmp) : BondHarmonic(lmp) 
+BondHarmonicIntel::BondHarmonicIntel(LAMMPS *lmp) : BondHarmonic(lmp)
 {
   suffix_flag |= Suffix::INTEL;
 }
@@ -70,23 +70,23 @@ void BondHarmonicIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void BondHarmonicIntel::compute(int eflag, int vflag,
-				IntelBuffers<flt_t,acc_t> *buffers,
-				const ForceConst<flt_t> &fc)
+                                IntelBuffers<flt_t,acc_t> *buffers,
+                                const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 
   if (evflag) {
-    if (eflag) {
+    if (vflag && !eflag) {
       if (force->newton_bond)
-	eval<1,1,1>(vflag, buffers, fc);
+        eval<0,1,1>(vflag, buffers, fc);
       else
-	eval<1,1,0>(vflag, buffers, fc);
+        eval<0,1,0>(vflag, buffers, fc);
     } else {
       if (force->newton_bond)
-	eval<1,0,1>(vflag, buffers, fc);
+        eval<1,1,1>(vflag, buffers, fc);
       else
-	eval<1,0,0>(vflag, buffers, fc);
+        eval<1,1,0>(vflag, buffers, fc);
     }
   } else {
     if (force->newton_bond)
@@ -96,10 +96,10 @@ void BondHarmonicIntel::compute(int eflag, int vflag,
   }
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void BondHarmonicIntel::eval(const int vflag, 
-			     IntelBuffers<flt_t,acc_t> *buffers,
-			     const ForceConst<flt_t> &fc)
+template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
+void BondHarmonicIntel::eval(const int vflag,
+                             IntelBuffers<flt_t,acc_t> *buffers,
+                             const ForceConst<flt_t> &fc)
 {
   const int inum = neighbor->nbondlist;
   if (inum == 0) return;
@@ -119,31 +119,42 @@ void BondHarmonicIntel::eval(const int vflag,
   const int nthreads = tc;
 
   acc_t oebond, ov0, ov1, ov2, ov3, ov4, ov5;
-  if (EVFLAG) {
-    if (EFLAG)
-      oebond = (acc_t)0.0;
-    if (vflag) {
-      ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
-    }
+  if (EFLAG) oebond = (acc_t)0.0;
+  if (VFLAG && vflag) {
+    ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
   }
 
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
-    shared(f_start,f_stride,fc)		  \
+    shared(f_start,f_stride,fc)           \
     reduction(+:oebond,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif
   {
-    int nfrom, nto, tid;
+    int nfrom, npl, nto, tid;
+    #ifdef LMP_INTEL_USE_SIMDOFF
     IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
+    #else
+    IP_PRE_omp_stride_id(nfrom, npl, nto, tid, inum, nthreads);
+    #endif
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
       memset(f, 0, f_stride * sizeof(FORCE_T));
 
-    const int3_t * _noalias const bondlist = 
+    const int3_t * _noalias const bondlist =
       (int3_t *) neighbor->bondlist[0];
 
-    for (int n = nfrom; n < nto; n++) {
+    #ifdef LMP_INTEL_USE_SIMDOFF
+    acc_t sebond, sv0, sv1, sv2, sv3, sv4, sv5;
+    if (EFLAG) sebond = (acc_t)0.0;
+    if (VFLAG && vflag) {
+      sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
+    }
+    #pragma simd reduction(+:sebond, sv0, sv1, sv2, sv3, sv4, sv5)
+    for (int n = nfrom; n < nto; n ++) {
+    #else
+    for (int n = nfrom; n < nto; n += npl) {
+    #endif
       const int i1 = bondlist[n].a;
       const int i2 = bondlist[n].b;
       const int type = bondlist[n].t;
@@ -167,33 +178,50 @@ void BondHarmonicIntel::eval(const int vflag,
       if (EFLAG) ebond = rk*dr;
 
       // apply force to each of 2 atoms
-      if (NEWTON_BOND || i1 < nlocal) {
-        f[i1].x += delx*fbond;
-        f[i1].y += dely*fbond;
-        f[i1].z += delz*fbond;
+      #ifdef LMP_INTEL_USE_SIMDOFF
+      #pragma simdoff
+      #endif
+      {
+        if (NEWTON_BOND || i1 < nlocal) {
+          f[i1].x += delx*fbond;
+          f[i1].y += dely*fbond;
+          f[i1].z += delz*fbond;
+        }
+
+        if (NEWTON_BOND || i2 < nlocal) {
+          f[i2].x -= delx*fbond;
+          f[i2].y -= dely*fbond;
+          f[i2].z -= delz*fbond;
+        }
       }
 
-      if (NEWTON_BOND || i2 < nlocal) {
-        f[i2].x -= delx*fbond;
-        f[i2].y -= dely*fbond;
-        f[i2].z -= delz*fbond;
-      }
-
-      if (EVFLAG) {
-	IP_PRE_ev_tally_bond(EFLAG, eatom, vflag, ebond, i1, i2, fbond, 
-                             delx, dely, delz, oebond, f, NEWTON_BOND, 
-                             nlocal, ov0, ov1, ov2, ov3, ov4, ov5);
+      if (EFLAG || VFLAG) {
+        #ifdef LMP_INTEL_USE_SIMDOFF
+        IP_PRE_ev_tally_bond(EFLAG, VFLAG, eatom, vflag, ebond, i1, i2,
+                             fbond, delx, dely, delz, sebond, f,
+                             NEWTON_BOND, nlocal, sv0, sv1, sv2, sv3,
+                             sv4, sv5);
+        #else
+        IP_PRE_ev_tally_bond(EFLAG, VFLAG, eatom, vflag, ebond, i1, i2,
+                             fbond, delx, dely, delz, oebond, f,
+                             NEWTON_BOND, nlocal, ov0, ov1, ov2, ov3,
+                             ov4, ov5);
+        #endif
       }
     } // for n
+    #ifdef LMP_INTEL_USE_SIMDOFF
+    if (EFLAG) oebond += sebond;
+    if (VFLAG && vflag) {
+       ov0 += sv0; ov1 += sv1; ov2 += sv2;
+       ov3 += sv3; ov4 += sv4; ov5 += sv5;
+    }
+    #endif
   } // omp parallel
 
-  if (EVFLAG) {
-    if (EFLAG)
-      energy += oebond;
-    if (vflag) {
-      virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
-      virial[3] += ov3; virial[4] += ov4; virial[5] += ov5; 
-    }
+  if (EFLAG) energy += oebond;
+  if (VFLAG && vflag) {
+    virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
+    virial[3] += ov3; virial[4] += ov4; virial[5] += ov5;
   }
 
   fix->set_reduce_flag();
@@ -248,11 +276,11 @@ void BondHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
 
 template <class flt_t>
 void BondHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
-	                                              Memory *memory) {
+                                                      Memory *memory) {
   if (nbondtypes != _nbondtypes) {
     if (_nbondtypes > 0)
       _memory->destroy(fc);
-    
+
     if (nbondtypes > 0)
       _memory->create(fc,nbondtypes,"bondharmonicintel.fc");
   }

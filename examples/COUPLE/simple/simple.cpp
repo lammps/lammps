@@ -153,7 +153,7 @@ int main(int narg, char **arg)
     for (int i = 0; i < natoms; i++) type[i] = 1;
 
     lmp->input->one("delete_atoms group all");
-    lammps_create_atoms(lmp,natoms,NULL,type,x,v);
+    lammps_create_atoms(lmp,natoms,NULL,type,x,v,NULL,0);
     lmp->input->one("run 10");
   }
 

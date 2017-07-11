@@ -26,7 +26,7 @@ Define a computation that calculates the CNA (Common Neighbor
 Analysis) pattern for each atom in the group.  In solid-state systems
 the CNA pattern is a useful measure of the local crystal structure
 around an atom.  The CNA methodology is described in "(Faken)"_#Faken
-and "(Tsuzuki)"_#Tsuzuki.
+and "(Tsuzuki)"_#Tsuzuki1.
 
 Currently, there are five kinds of CNA patterns LAMMPS recognizes:
 
@@ -93,5 +93,5 @@ above.
 :link(Faken)
 [(Faken)] Faken, Jonsson, Comput Mater Sci, 2, 279 (1994).
 
-:link(Tsuzuki)
+:link(Tsuzuki1)
 [(Tsuzuki)] Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007).

@@ -75,7 +75,7 @@ Lennard-Jones 12/6) given by
 :c,image(Eqs/pair_buck.jpg)
 
 where rho is an ionic-pair dependent length parameter, and Rc is the
-cutoff on both terms. 
+cutoff on both terms.
 
 The styles with {coul/cut} or {coul/long} or {coul/msm} add a
 Coulombic term as described for the "lj/cut"_pair_lj.html pair styles.

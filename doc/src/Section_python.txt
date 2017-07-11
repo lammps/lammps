@@ -118,13 +118,21 @@ check which version of Python you have installed, by simply typing
 
 11.2 Overview of using Python from a LAMMPS script :link(py_2),h4
 
-LAMMPS has a "python"_python.html command which can be used in an
-input script to define and execute a Python function that you write
-the code for.  The Python function can also be assigned to a LAMMPS
-python-style variable via the "variable"_variable.html command.  Each
-time the variable is evaluated, either in the LAMMPS input script
-itself, or by another LAMMPS command that uses the variable, this will
-trigger the Python function to be invoked.
+LAMMPS has several commands which can be used to invoke Python
+code directly from an input script:
+
+"python"_python.html
+"variable python"_variable.html
+"fix python"_fix_python.html
+"pair_style python"_pair_python.html :ul
+
+The "python"_python.html command which can be used to define and
+execute a Python function that you write the code for.  The Python
+function can also be assigned to a LAMMPS python-style variable via
+the "variable"_variable.html command.  Each time the variable is
+evaluated, either in the LAMMPS input script itself, or by another
+LAMMPS command that uses the variable, this will trigger the Python
+function to be invoked.
 
 The Python code for the function can be included directly in the input
 script or in an auxiliary file.  The function can have arguments which
@@ -155,11 +163,18 @@ commands.
 See the "python"_python.html doc page and the "variable"_variable.html
 doc page for its python-style variables for more info, including
 examples of Python code you can write for both pure Python operations
-and callbacks to LAMMPS. See "fix python"_fix_python.html to learn about
-possibilities to execute Python code during each time step.
+and callbacks to LAMMPS.
 
-To run pure Python code from LAMMPS, you only need to build LAMMPS
-with the PYTHON package installed:
+The "fix python"_fix_python.html command can execute
+Python code at selected timesteps during a simulation run.
+
+The "pair_style python"_pair_python command allows you to define
+pairwise potentials as python code which encodes a single pairwise
+interaction.  This is useful for rapid-developement and debugging of a
+new potential.
+
+To use any of these commands, you only need to build LAMMPS with the
+PYTHON package installed:
 
 make yes-python
 make machine :pre
@@ -699,7 +714,7 @@ stored in the "image" property. All three image flags are stored in
 a packed format in a single integer, so count would be 1 to retrieve
 that integer, however also a count value of 3 can be used and then
 the image flags will be unpacked into 3 individual integers, ordered
-in a similar fashion as coordinates. 
+in a similar fashion as coordinates.
 
 Note that the data structure gather_atoms("x") returns is different
 from the data structure returned by extract_atom("x") in four ways.

@@ -265,7 +265,7 @@ class NeighborKokkosExecute
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 
-  ~NeighborKokkosExecute() {neigh_list.clean_copy();};
+  ~NeighborKokkosExecute() {neigh_list.copymode = 1;};
 
   template<int HalfNeigh, int Newton, int Tri>
   KOKKOS_FUNCTION
@@ -385,7 +385,7 @@ struct NPairKokkosBuildFunctor {
   }
 #ifdef KOKKOS_HAVE_CUDA
   __device__ inline
-  
+
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
     c.template build_ItemCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
   }

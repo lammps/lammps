@@ -508,6 +508,9 @@ static const double fm_exp2_p[] = {
     1.51390680115615096133e3
 };
 
+/* double precision constants */
+#define FM_DOUBLE_LOG2OFE  1.4426950408889634074
+
 double MathSpecial::exp2_x86(double x)
 {
     double   ipart, fpart, px, qx;
@@ -531,3 +534,14 @@ double MathSpecial::exp2_x86(double x)
     x = 1.0 + 2.0*(px/(qx-px));
     return epart.f*x;
 }
+
+double MathSpecial::fm_exp(double x)
+{
+#if defined(__BYTE_ORDER__)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    return exp2_x86(FM_DOUBLE_LOG2OFE * x);
+#endif
+#endif
+    return ::exp(x);
+}
+

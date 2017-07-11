@@ -27,10 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-// allocate space for static class variable
-
-Special *Special::sptr;
-
 /* ---------------------------------------------------------------------- */
 
 Special::Special(LAMMPS *lmp) : Pointers(lmp)
@@ -120,8 +116,7 @@ void Special::build()
     // when receive buffer, scan tags for atoms I own
     // when find one, increment nspecial count for that atom
 
-    sptr = this;
-    comm->ring(size,sizeof(tagint),buf,1,ring_one,NULL);
+    comm->ring(size,sizeof(tagint),buf,1,ring_one,NULL,(void *)this);
 
     memory->destroy(buf);
   }
@@ -178,8 +173,7 @@ void Special::build()
     // when receive buffer, scan 2nd-atom tags for atoms I own
     // when find one, add 1st-atom tag to onetwo list for 2nd atom
 
-    sptr = this;
-    comm->ring(size,sizeof(tagint),buf,2,ring_two,NULL);
+    comm->ring(size,sizeof(tagint),buf,2,ring_two,NULL,(void *)this);
 
     memory->destroy(buf);
   }
@@ -226,8 +220,7 @@ void Special::build()
   // when find one, increment 1-3 count by # of 1-2 neighbors of my atom,
   //   subtracting one since my list will contain original atom
 
-  sptr = this;
-  comm->ring(size,sizeof(tagint),buf,3,ring_three,buf);
+  comm->ring(size,sizeof(tagint),buf,3,ring_three,buf,(void *)this);
 
   // extract count from buffer that has cycled back to me
   // nspecial[i][1] = # of 1-3 neighbors of atom i
@@ -287,8 +280,7 @@ void Special::build()
   //   exclude the atom whose tag = original
   //   this process may include duplicates but they will be culled later
 
-  sptr = this;
-  comm->ring(size,sizeof(tagint),buf,4,ring_four,buf);
+  comm->ring(size,sizeof(tagint),buf,4,ring_four,buf,(void *)this);
 
   // fill onethree with buffer values that have been returned to me
   // sanity check: accumulated buf[i+3] count should equal
@@ -343,8 +335,7 @@ void Special::build()
   // when find one, increment 1-4 count by # of 1-2 neighbors of my atom
   //   may include duplicates and original atom but they will be culled later
 
-  sptr = this;
-  comm->ring(size,sizeof(tagint),buf,5,ring_five,buf);
+  comm->ring(size,sizeof(tagint),buf,5,ring_five,buf,(void *)this);
 
   // extract count from buffer that has cycled back to me
   // nspecial[i][2] = # of 1-4 neighbors of atom i
@@ -402,8 +393,7 @@ void Special::build()
   //   incrementing the count in buf(i+4)
   //   this process may include duplicates but they will be culled later
 
-  sptr = this;
-  comm->ring(size,sizeof(tagint),buf,6,ring_six,buf);
+  comm->ring(size,sizeof(tagint),buf,6,ring_six,buf,(void *)this);
 
   // fill onefour with buffer values that have been returned to me
   // sanity check: accumulated buf[i+2] count should equal
@@ -744,8 +734,7 @@ void Special::angle_trim()
     // when receive buffer, scan list of 1,3 atoms looking for atoms I own
     // when find one, scan its 1-3 neigh list and mark I,J as in an angle
 
-    sptr = this;
-    comm->ring(size,sizeof(tagint),buf,7,ring_seven,NULL);
+    comm->ring(size,sizeof(tagint),buf,7,ring_seven,NULL,(void *)this);
 
     // delete 1-3 neighbors if they are not flagged in dflag
 
@@ -850,8 +839,7 @@ void Special::dihedral_trim()
     // when receive buffer, scan list of 1,4 atoms looking for atoms I own
     // when find one, scan its 1-4 neigh list and mark I,J as in a dihedral
 
-    sptr = this;
-    comm->ring(size,sizeof(tagint),buf,8,ring_eight,NULL);
+    comm->ring(size,sizeof(tagint),buf,8,ring_eight,NULL,(void *)this);
 
     // delete 1-4 neighbors if they are not flagged in dflag
 
@@ -894,8 +882,9 @@ void Special::dihedral_trim()
    when find one, increment nspecial count for that atom
 ------------------------------------------------------------------------- */
 
-void Special::ring_one(int ndatum, char *cbuf)
+void Special::ring_one(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -914,8 +903,9 @@ void Special::ring_one(int ndatum, char *cbuf)
    when find one, add 1st-atom tag to onetwo list for 2nd atom
 ------------------------------------------------------------------------- */
 
-void Special::ring_two(int ndatum, char *cbuf)
+void Special::ring_two(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int nlocal = atom->nlocal;
 
@@ -937,8 +927,9 @@ void Special::ring_two(int ndatum, char *cbuf)
      subtracting one since my list will contain original atom
 ------------------------------------------------------------------------- */
 
-void Special::ring_three(int ndatum, char *cbuf)
+void Special::ring_three(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -968,8 +959,9 @@ void Special::ring_three(int ndatum, char *cbuf)
     this process may include duplicates but they will be culled later
 ------------------------------------------------------------------------- */
 
-void Special::ring_four(int ndatum, char *cbuf)
+void Special::ring_four(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -1004,8 +996,9 @@ void Special::ring_four(int ndatum, char *cbuf)
      may include duplicates and original atom but they will be culled later
 ------------------------------------------------------------------------- */
 
-void Special::ring_five(int ndatum, char *cbuf)
+void Special::ring_five(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -1033,8 +1026,9 @@ void Special::ring_five(int ndatum, char *cbuf)
      this process may include duplicates but they will be culled later
 ------------------------------------------------------------------------- */
 
-void Special::ring_six(int ndatum, char *cbuf)
+void Special::ring_six(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -1065,8 +1059,9 @@ void Special::ring_six(int ndatum, char *cbuf)
    when find one, scan its 1-3 neigh list and mark I,J as in an angle
 ------------------------------------------------------------------------- */
 
-void Special::ring_seven(int ndatum, char *cbuf)
+void Special::ring_seven(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -1105,8 +1100,9 @@ void Special::ring_seven(int ndatum, char *cbuf)
    when find one, scan its 1-4 neigh list and mark I,J as in a dihedral
 ------------------------------------------------------------------------- */
 
-void Special::ring_eight(int ndatum, char *cbuf)
+void Special::ring_eight(int ndatum, char *cbuf, void *ptr)
 {
+  Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;

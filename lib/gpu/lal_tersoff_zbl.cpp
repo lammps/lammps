@@ -275,7 +275,8 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                                (BX/this->_threads_per_atom)));
 
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &_cutshortsq,
+  this->k_short_nbor.run(&this->atom->x, &cutsq, &map,
+                 &elem2param, &_nelements, &_nparams,
                  &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                  &this->dev_short_nbor, &ainum,
                  &nbor_pitch, &this->_threads_per_atom);
@@ -309,6 +310,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                    &_global_e, &_global_a_0, &_global_epsilon_0, &cutsq,
                    &map, &elem2param, &_nelements, &_nparams,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                   &this->dev_short_nbor,
                    &this->ans->force, &this->ans->engv,
                    &eflag, &vflag, &ainum, &nbor_pitch,
                    &this->_threads_per_atom);

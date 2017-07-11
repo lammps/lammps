@@ -168,7 +168,10 @@ texture<int4> ts6_tex;
 #endif
 
 __kernel void k_tersoff_zbl_short_nbor(const __global numtyp4 *restrict x_,
-                                   const numtyp cutshortsq,
+                                   const __global numtyp *restrict cutsq,
+                                   const __global int *restrict map,
+                                   const __global int *restrict elem2param,
+                                   const int nelements, const int nparams,
                                    const __global int * dev_nbor,
                                    const __global int * dev_packed,
                                    __global int * dev_short_nbor,
@@ -185,6 +188,8 @@ __kernel void k_tersoff_zbl_short_nbor(const __global numtyp4 *restrict x_,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    int itype=ix.w;
+    itype=map[itype];
 
     int ncount = 0;
     int m = nbor;
@@ -198,6 +203,9 @@ __kernel void k_tersoff_zbl_short_nbor(const __global numtyp4 *restrict x_,
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      int jtype=jx.w;
+      jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -205,7 +213,7 @@ __kernel void k_tersoff_zbl_short_nbor(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutshortsq) {
+      if (rsq<cutsq[ijparam]) {
         dev_short_nbor[nbor_short] = nj;
         nbor_short += n_stride;
         ncount++;
@@ -304,7 +312,7 @@ __kernel void k_tersoff_zbl_zeta(const __global numtyp4 *restrict x_,
       delr1.z = jx.z-ix.z;
       numtyp rsq1 = delr1.x*delr1.x+delr1.y*delr1.y+delr1.z*delr1.z;
 
-      if (rsq1 > cutsq[ijparam]) continue;
+//      if (rsq1 > cutsq[ijparam]) continue;
 
       // compute zeta_ij
       z = (acctyp)0;
@@ -403,6 +411,7 @@ __kernel void k_tersoff_zbl_repulsive(const __global numtyp4 *restrict x_,
                                   const int nelements, const int nparams,
                                   const __global int * dev_nbor,
                                   const __global int * dev_packed,
+                                  const __global int * dev_short_nbor,
                                   __global acctyp4 *restrict ans,
                                   __global acctyp *restrict engv,
                                   const int eflag, const int vflag,
@@ -440,9 +449,14 @@ __kernel void k_tersoff_zbl_repulsive(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    numj = dev_short_nbor[nbor];
+    nbor += n_stride;
+    nbor_end = nbor+fast_mul(numj,n_stride);
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int j=dev_packed[nbor];
+      int j=dev_short_nbor[nbor];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -457,38 +471,37 @@ __kernel void k_tersoff_zbl_repulsive(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutsq[ijparam]) {
-        numtyp feng[2];
-        numtyp ijparam_lam1 = ts1[ijparam].x;
-        numtyp4 ts2_ijparam = ts2[ijparam];
-        numtyp ijparam_biga = ts2_ijparam.x;
-        numtyp ijparam_bigr = ts2_ijparam.z;
-        numtyp ijparam_bigd = ts2_ijparam.w;
-        numtyp4 ts6_ijparam = ts6[ijparam];
-        numtyp ijparam_Z_i = ts6_ijparam.x;
-        numtyp ijparam_Z_j = ts6_ijparam.y;
-        numtyp ijparam_ZBLcut = ts6_ijparam.z;
-        numtyp ijparam_ZBLexpscale = ts6_ijparam.w;
+      // rsq<cutsq[ijparam]
+      numtyp feng[2];
+      numtyp ijparam_lam1 = ts1[ijparam].x;
+      numtyp4 ts2_ijparam = ts2[ijparam];
+      numtyp ijparam_biga = ts2_ijparam.x;
+      numtyp ijparam_bigr = ts2_ijparam.z;
+      numtyp ijparam_bigd = ts2_ijparam.w;
+      numtyp4 ts6_ijparam = ts6[ijparam];
+      numtyp ijparam_Z_i = ts6_ijparam.x;
+      numtyp ijparam_Z_j = ts6_ijparam.y;
+      numtyp ijparam_ZBLcut = ts6_ijparam.z;
+      numtyp ijparam_ZBLexpscale = ts6_ijparam.w;
 
-        repulsive(ijparam_bigr, ijparam_bigd, ijparam_lam1, ijparam_biga,
-                  ijparam_Z_i, ijparam_Z_j, ijparam_ZBLcut, ijparam_ZBLexpscale,
-                  global_e, global_a_0, global_epsilon_0, rsq, eflag, feng);
+      repulsive(ijparam_bigr, ijparam_bigd, ijparam_lam1, ijparam_biga,
+                ijparam_Z_i, ijparam_Z_j, ijparam_ZBLcut, ijparam_ZBLexpscale,
+                global_e, global_a_0, global_epsilon_0, rsq, eflag, feng);
 
-        numtyp force = feng[0];
-        f.x+=delx*force;
-        f.y+=dely*force;
-        f.z+=delz*force;
+      numtyp force = feng[0];
+      f.x+=delx*force;
+      f.y+=dely*force;
+      f.z+=delz*force;
 
-        if (eflag>0)
-          energy+=feng[1];
-        if (vflag>0) {
-          virial[0] += delx*delx*force;
-          virial[1] += dely*dely*force;
-          virial[2] += delz*delz*force;
-          virial[3] += delx*dely*force;
-          virial[4] += delx*delz*force;
-          virial[5] += dely*delz*force;
-        }
+      if (eflag>0)
+        energy+=feng[1];
+      if (vflag>0) {
+        virial[0] += delx*delx*force;
+        virial[1] += dely*dely*force;
+        virial[2] += delz*delz*force;
+        virial[3] += delx*dely*force;
+        virial[4] += delx*delz*force;
+        virial[5] += dely*delz*force;
       }
     } // for nbor
 
@@ -576,7 +589,7 @@ __kernel void k_tersoff_zbl_three_center(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      if (rsq1 > cutsq[ijparam]) continue;
+//      if (rsq1 > cutsq[ijparam]) continue;
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
 
@@ -758,7 +771,7 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      if (rsq1 > cutsq[ijparam]) continue;
+//      if (rsq1 > cutsq[ijparam]) continue;
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -998,7 +1011,7 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      if (rsq1 > cutsq[ijparam]) continue;
+//      if (rsq1 > cutsq[ijparam]) continue;
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];

@@ -34,9 +34,9 @@ class MinAdaptGlok : public Min {
   int iterate(int);
 
  private:
-  double dt,dtmax,dtmin,dtdef,ke,keall;
+  double dt,dtmax,dtmin,dtinit;
   double alpha;
-  bigint last_negative,ntimestep_start;
+  bigint last_negative,ntimestep_fire;
 };
 
 }

@@ -55,13 +55,13 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   searchflag = 0;
   linestyle = 1;
 
-  DELAYSTEP = 20;
-  DT_GROW = 1.1;
-  DT_SHRINK = 0.5;
-  ALPHA0 = 0.25;
-  ALPHA_SHRINK = 0.99;
-  TMAX = 2.0;
-  TMIN = 0.02;
+  delaystep = 20;
+  dt_grow = 1.1;
+  dt_shrink = 0.5;
+  alpha0 = 0.25;
+  alpha_shrink = 0.99;
+  tmax = 2.0;
+  tmin = 0.02;
 
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
@@ -651,49 +651,33 @@ void Min::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dmax = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    /* Wolfram
-       Hack: define some new parameters
-       DELAYSTEP 5
-       DT_GROW 1.1
-       DT_SHRINK 0.5
-       ALPHA0 0.1
-       ALPHA_SHRINK 0.99
-       TMAX 10.0
-    */
     } else if (strcmp(arg[iarg],"fire_delaystep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      DELAYSTEP = force->numeric(FLERR,arg[iarg+1]);
-      if (comm->me == 0 && screen)     fprintf(screen,"DELAYSTEP: %d \n", DELAYSTEP);
+      delaystep = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fire_dt_grow") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      DT_GROW = force->numeric(FLERR,arg[iarg+1]);
-      if (comm->me == 0 && screen)          fprintf(screen,"DT_GROW:   %.8f \n", DT_GROW);
+      dt_grow = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fire_dt_shrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      DT_SHRINK = force->numeric(FLERR,arg[iarg+1]);
-      if (comm->me == 0 && screen)          fprintf(screen,"DT_SHRINK: %.8f \n", DT_SHRINK);
+      dt_shrink = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fire_alpha0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      ALPHA0 = force->numeric(FLERR,arg[iarg+1]);
-      if (comm->me == 0 && screen)          fprintf(screen,"ALPHA0:    %.8f \n", ALPHA0);
+      alpha0 = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fire_alpha_shrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      ALPHA_SHRINK = force->numeric(FLERR,arg[iarg+1]);
-      if (comm->me == 0 && screen)          fprintf(screen,"ALPHA_SHRINK: %.8f \n", ALPHA_SHRINK);
+      alpha_shrink = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fire_tmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      TMAX = force->numeric(FLERR,arg[iarg+1]);
-      if (comm->me == 0 && screen)          fprintf(screen,"TMAX: %.8f \n", TMAX);
+      tmax = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fire_tmin") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      TMAX = force->numeric(FLERR,arg[iarg+1]);
-      if (comm->me == 0 && screen)          fprintf(screen,"TMIN: %.8f \n", TMAX);
+      tmin = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;       
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");

@@ -58,11 +58,10 @@ class Min : protected Pointers {
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
 
-/* Wolframs include of FIRE parameters */
-  int DELAYSTEP;               // FIRE parameters
-  double DT_GROW,DT_SHRINK;
-  double ALPHA0,ALPHA_SHRINK;
-  double TMAX,TMIN;
+  int delaystep;              // minium steps of dynamics (adaptglok)
+  double dt_grow,dt_shrink;   // timestep increase, decrease (adaptglok)
+  double alpha0,alpha_shrink; // mixing velocities+forces coefficient (adaptglok)
+  double tmax,tmin;           // timestep max, min (adaptglok)
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

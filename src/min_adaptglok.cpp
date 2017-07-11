@@ -38,9 +38,9 @@ void MinAdaptGlok::init()
   Min::init();
 
   dt = dtinit = update->dt;
-  dtmax = TMAX * dt;
-  dtmin = TMIN * dt;
-  alpha = ALPHA0;
+  dtmax = tmax * dt;
+  dtmin = tmin * dt;
+  alpha = alpha0;
   last_negative = ntimestep_fire = update->ntimestep;
 }
 
@@ -117,7 +117,7 @@ int MinAdaptGlok::iterate(int maxiter)
     // v = (1-alpha) v + alpha |v| Fhat
     // |v| = length of v, Fhat = unit f
     // The modificatin of v is made wihtin the Verlet integration, after v update
-    // if more than DELAYSTEP since v dot f was negative:
+    // if more than delaystep since v dot f was negative:
     // increase timestep and decrease alpha
 
     if (vdotfall > 0.0) {
@@ -151,14 +151,14 @@ int MinAdaptGlok::iterate(int maxiter)
       if (fdotfall <= 1e-20) scale2 = 0.0;
       else scale2 = alpha * sqrt(vdotvall/fdotfall);
 
-      if (ntimestep - last_negative > DELAYSTEP) {
-        dt = MIN(dt*DT_GROW,dtmax);
+      if (ntimestep - last_negative > delaystep) {
+        dt = MIN(dt*dt_grow,dtmax);
         update->dt = dt;
-        alpha *= ALPHA_SHRINK;
+        alpha *= alpha_shrink;
       }
 
     // else (v dot f) <= 0
-    // if more than DELAYSTEP since starting the relaxation:
+    // if more than delaystep since starting the relaxation:
     // reset alpha
     //    if dt > dtmin:
     //    decrease timestep
@@ -168,10 +168,10 @@ int MinAdaptGlok::iterate(int maxiter)
     } else {
       last_negative = ntimestep;
       // Limit decrease of timestep
-      if (ntimestep - ntimestep_fire > DELAYSTEP) {
-        alpha = ALPHA0;
+      if (ntimestep - ntimestep_fire > delaystep) {
+        alpha = alpha0;
         if (dt > dtmin) {
-          dt *= DT_SHRINK;
+          dt *= dt_shrink;
           update->dt = dt;
         }
       }
@@ -265,10 +265,10 @@ int MinAdaptGlok::iterate(int maxiter)
     neval++;
 
     // energy tolerance criterion
-    // only check after DELAYSTEP elapsed since velocties reset to 0
+    // only check after delaystep elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
 
-    if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
+    if (update->etol > 0.0 && ntimestep-last_negative > delaystep) {
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
             update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)) {

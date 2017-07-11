@@ -21,25 +21,11 @@
 #include "timer.h"
 #include "error.h"
 
-//#include "neighbor.h"
-//#include "pair.h"
-
 using namespace LAMMPS_NS;
 
 // EPS_ENERGY = minimum normalization for energy tolerance
 
 #define EPS_ENERGY 1.0e-8
-
-/* Default values defined in min.cpp > Min::Min(LAMMPS *lmp) : Pointers(lmp)
-#define DELAYSTEP 20
-#define DT_GROW 1.1
-#define DT_SHRINK 0.5
-#define ALPHA0 0.25
-#define ALPHA_SHRINK 0.99
-#define TMAX 2.0
-#define TMIN 0.02           // as harcoded in IMD: 1/50
-*/
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,12 +37,11 @@ void MinAdaptGlok::init()
 {
   Min::init();
 
-  dt = update->dt;
-  dtinit = dt;
+  dt = dtinit = update->dt;
   dtmax = TMAX * dt;
   dtmin = TMIN * dt;
   alpha = ALPHA0;
-  ntimestep_fire = last_negative = update->ntimestep;
+  last_negative = ntimestep_fire = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,7 +148,7 @@ int MinAdaptGlok::iterate(int maxiter)
       }
 
       scale1 = 1.0 - alpha;
-      if (fdotfall == 0.0) scale2 = alpha;
+      if (fdotfall <= 1e-20) scale2 = 0.0;
       else scale2 = alpha * sqrt(vdotvall/fdotfall);
 
       if (ntimestep - last_negative > DELAYSTEP) {

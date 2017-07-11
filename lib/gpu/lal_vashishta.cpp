@@ -233,7 +233,8 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                                (BX/this->_threads_per_atom)));
 
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &_cutshortsq,
+  this->k_short_nbor.run(&this->atom->x, &param4, &map,
+                 &elem2param, &_nelements, &_nparams,
                  &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                  &this->dev_short_nbor, &ainum,
                  &nbor_pitch, &this->_threads_per_atom);

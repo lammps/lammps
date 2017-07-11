@@ -5,11 +5,12 @@ ELSE()
 ENDIF()
 
 IF(NOT KOKKOS_HAS_TRILINOS)
-  CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11 FATAL_ERROR)
-  INCLUDE(cmake/tribits.cmake)
-  SET(CMAKE_CXX_STANDARD 11)
-ENDIF()
+  cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+  project(Kokkos CXX)
 
+  INCLUDE(cmake/kokkos.cmake)
+ELSE()
+#------------------------------------------------------------------------------
 #
 # A) Forward delcare the package so that certain options are also defined for
 # subpackages
@@ -17,13 +18,12 @@ ENDIF()
 
 TRIBITS_PACKAGE_DECL(Kokkos) # ENABLE_SHADOWING_WARNINGS)
 
+
 #------------------------------------------------------------------------------
 #
 # B) Define the common options for Kokkos first so they can be used by
 # subpackages as well.
 #
-
-
 
 # mfh 01 Aug 2016: See Issue #61:
 #
@@ -83,10 +83,10 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   )
 
 ASSERT_DEFINED(TPL_ENABLE_Pthread)
-IF (Kokkos_ENABLE_Pthread AND NOT TPL_ENABLE_Pthread)
+IF(Kokkos_ENABLE_Pthread AND NOT TPL_ENABLE_Pthread)
   MESSAGE(FATAL_ERROR "You set Kokkos_ENABLE_Pthread=ON, but Trilinos' support for Pthread(s) is not enabled (TPL_ENABLE_Pthread=OFF).  This is not allowed.  Please enable Pthreads in Trilinos before attempting to enable Kokkos' support for Pthreads.")
-ENDIF ()
-IF (NOT TPL_ENABLE_Pthread)
+ENDIF()
+IF(NOT TPL_ENABLE_Pthread)
   ADD_DEFINITIONS(-DGTEST_HAS_PTHREAD=0)
 ENDIF()
 
@@ -98,12 +98,13 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   )
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
-  Kokkos_ENABLE_Qthreads
+  Kokkos_ENABLE_QTHREAD
   KOKKOS_HAVE_QTHREADS
   "Enable Qthreads support in Kokkos."
-  "${TPL_ENABLE_QTHREADS}"
+  "${TPL_ENABLE_QTHREAD}"
   )
 
+# TODO: No longer an option in Kokkos.  Needs to be removed.
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_CXX11
   KOKKOS_HAVE_CXX11
@@ -118,6 +119,7 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   "${TPL_ENABLE_HWLOC}"
   )
 
+# TODO: This is currently not used in Kokkos.  Should it be removed?
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_MPI
   KOKKOS_HAVE_MPI
@@ -155,10 +157,24 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   )
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
+  Kokkos_ENABLE_Debug_DualView_Modify_Check
+  KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
+  "Enable abort when Kokkos::DualView modified on host and device without sync."
+  "${Kokkos_ENABLE_DEBUG}"
+  )
+
+TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_Profiling
-  KOKKOS_ENABLE_PROFILING_INTERNAL
+  KOKKOS_ENABLE_PROFILING
   "Enable KokkosP profiling support for kernel data collections."
   "${TPL_ENABLE_DLlib}"
+  )
+
+TRIBITS_ADD_OPTION_AND_DEFINE(
+  Kokkos_ENABLE_Profiling_Load_Print
+  KOKKOS_ENABLE_PROFILING_LOAD_PRINT
+  "Print to standard output which profiling library was loaded."
+  OFF
   )
 
 # placeholder for future device...
@@ -169,6 +185,7 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   "${TPL_ENABLE_Winthread}"
   )
 
+# TODO: No longer an option in Kokkos.  Needs to be removed.
 # use new/old View
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_USING_DEPRECATED_VIEW
@@ -177,11 +194,11 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   OFF
   )
 
+
 #------------------------------------------------------------------------------
 #
 # C) Install Kokkos' executable scripts
 #
-
 
 # nvcc_wrapper is Kokkos' wrapper for NVIDIA's NVCC CUDA compiler.
 # Kokkos needs nvcc_wrapper in order to build.  Other libraries and
@@ -199,6 +216,8 @@ INSTALL(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper DESTINATION bin)
 
 TRIBITS_PROCESS_SUBPACKAGES()
 
+
+#------------------------------------------------------------------------------
 #
 # E) If Kokkos itself is enabled, process the Kokkos package
 #
@@ -213,3 +232,4 @@ TRIBITS_EXCLUDE_FILES(
   )
 
 TRIBITS_PACKAGE_POSTPROCESS()
+ENDIF()

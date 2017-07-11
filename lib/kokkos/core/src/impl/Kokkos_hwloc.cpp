@@ -723,4 +723,3 @@ std::pair<unsigned,unsigned> get_this_thread_coordinate()
 
 #endif
 
-

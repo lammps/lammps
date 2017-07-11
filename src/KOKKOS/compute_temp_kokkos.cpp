@@ -63,7 +63,6 @@ double ComputeTempKokkos<DeviceType>::compute_scalar()
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempScalar<1> >(0,nlocal),*this,t_kk);
   else
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempScalar<0> >(0,nlocal),*this,t_kk);
-  DeviceType::fence();
   copymode = 0;
 
   t = t_kk.t0; // could make this more efficient
@@ -118,7 +117,6 @@ void ComputeTempKokkos<DeviceType>::compute_vector()
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempVector<1> >(0,nlocal),*this,t_kk);
   else
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempVector<0> >(0,nlocal),*this,t_kk);
-  DeviceType::fence();
   copymode = 0;
 
   t[0] = t_kk.t0;

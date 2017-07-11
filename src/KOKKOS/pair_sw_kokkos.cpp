@@ -115,7 +115,6 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
 
-  k_list->clean_copy();
   copymode = 1;
 
   EV_FLOAT ev;

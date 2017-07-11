@@ -129,7 +129,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   ncoeff = snaptr[0]->ncoeff;
   size_peratom_cols = ncoeff;
-  if (quadraticflag) size_peratom_cols += ncoeff*ncoeff;
+  if (quadraticflag) size_peratom_cols += (ncoeff*(ncoeff+1))/2;
   peratom_flag = 1;
 
   nmax = 0;
@@ -275,7 +275,10 @@ void ComputeSNAAtom::compute_peratom()
         int ncount = ncoeff;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bi = snaptr[tid]->bvec[icoeff];
-          for (int jcoeff = 0; jcoeff < ncoeff; jcoeff++)
+
+          // upper-triangular elements of quadratic matrix
+          
+          for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++)
             sna[i][ncount++] = bi*snaptr[tid]->bvec[jcoeff];
         }
       }

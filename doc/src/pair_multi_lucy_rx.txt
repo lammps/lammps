@@ -97,9 +97,9 @@ tags must either correspond to the species defined in the reaction
 kinetics files specified with the "fix rx"_fix_rx.html command or they
 must correspond to the tag "1fluid", signifying interaction with a
 product species mixture determined through a one-fluid approximation.
-The interaction potential is weighted by the geometric average of 
-either the mole fraction concentrations or the number of molecules 
-associated with the interacting coarse-grained particles (see the 
+The interaction potential is weighted by the geometric average of
+either the mole fraction concentrations or the number of molecules
+associated with the interacting coarse-grained particles (see the
 {fractional} or {molecular} weighting pair style options). The coarse-grained potential is
 stored before and after the reaction kinetics solver is applied, where
 the difference is defined to be the internal chemical energy (uChem).

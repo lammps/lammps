@@ -173,8 +173,8 @@ void Min::init()
 
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0)
-      error->warning(FLERR,
-                     "Resetting reneighboring criteria during minimization");
+      error->warning(FLERR, "Using 'neigh_modify every 1 delay 0 check"
+                     " yes' setting during minimization");
   }
 
   neighbor->every = 1;

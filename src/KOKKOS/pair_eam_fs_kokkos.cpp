@@ -122,9 +122,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
   int inum = list->inum;
 
-  // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
-
-  k_list->clean_copy();
   copymode = 1;
 
   // zero out density
@@ -133,7 +130,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSInitialize>(0,nall),*this);
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSInitialize>(0,nlocal),*this);
-  DeviceType::fence();
 
   // loop over neighbors of my atoms
 
@@ -156,7 +152,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelA<HALFTHREAD,0> >(0,inum),*this);
       }
     }
-    DeviceType::fence();
 
     // communicate and sum densities (on the host)
 
@@ -174,7 +169,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelB<0> >(0,inum),*this);
-    DeviceType::fence();
 
   } else if (neighflag == FULL) {
 
@@ -184,7 +178,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelAB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelAB<0> >(0,inum),*this);
-    DeviceType::fence();
   }
 
   if (eflag) {
@@ -239,7 +232,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -414,7 +406,6 @@ int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMFSPackForwardComm>(0,n),*this);
-  DeviceType::fence();
   return n;
 }
 
@@ -433,7 +424,6 @@ void PairEAMFSKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in
   first = first_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMFSUnpackForwardComm>(0,n),*this);
-  DeviceType::fence();
 }
 
 template<class DeviceType>

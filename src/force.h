@@ -43,6 +43,9 @@ class Force : protected Pointers {
   double femtosecond;                // 1 femtosecond in native units
   double qelectron;                  // 1 electron charge abs() in native units
 
+  double qqr2e_lammps_real;          // different versions of this constant
+  double qqr2e_charmm_real;          // used by new CHARMM pair styles
+
   int newton,newton_pair,newton_bond;   // Newton's 3rd law settings
 
   class Pair *pair;

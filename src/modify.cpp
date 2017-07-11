@@ -23,6 +23,7 @@
 #include "group.h"
 #include "update.h"
 #include "domain.h"
+#include "region.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -819,20 +820,26 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
-      }
+        delete[] fix[ifix]->style;
+        fix[ifix]->style = estyle;
+      } else delete[] estyle;
     }
     if (fix[ifix] == NULL && lmp->suffix2) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
-      }
+        delete[] fix[ifix]->style;
+        fix[ifix]->style = estyle;
+      } else delete[] estyle;
     }
   }
 
@@ -990,6 +997,97 @@ int Modify::check_package(const char *package_fix_name)
 }
 
 /* ----------------------------------------------------------------------
+   check if the group indicated by groupbit overlaps with any
+   currently existing rigid fixes. return 1 in this case otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_group_overlap(int groupbit)
+{
+  const int * const mask = atom->mask;
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if the atoms in the group indicated by groupbit _and_ region
+   indicated by regionid overlap with any currently existing rigid fixes.
+   return 1 in this case, otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
+{
+  const int * const mask = atom->mask;
+  const double * const * const x = atom->x;
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  reg->prematch();
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)
+            && reg->match(x[i][0],x[i][1],x[i][2])) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if the atoms in the selection list (length atom->nlocal,
+   content: 1 if atom is contained, 0 if not) overlap with currently
+   existing rigid fixes. return 1 in this case otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_list_overlap(int *select)
+{
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((body[i] >= 0) && select[i]) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    add a new compute
 ------------------------------------------------------------------------- */
 
@@ -1018,20 +1116,26 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
-      }
+        delete[] compute[ncompute]->style;
+        compute[ncompute]->style = estyle;
+      } else delete[] estyle;
     }
     if (compute[ncompute] == NULL && lmp->suffix2) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
-      }
+        delete[] compute[ncompute]->style;
+        compute[ncompute]->style = estyle;
+      } else delete[] estyle;
     }
   }
 

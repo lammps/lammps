@@ -41,6 +41,7 @@
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_COMPARE_EXCHANGE_STRONG_HPP )
 #define KOKKOS_ATOMIC_COMPARE_EXCHANGE_STRONG_HPP
 

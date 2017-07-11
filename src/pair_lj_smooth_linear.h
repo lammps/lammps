@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 
 PairStyle(lj/smooth/linear,PairLJSmoothLinear)
+PairStyle(lj/sf,PairLJSmoothLinear)
 
 #else
 

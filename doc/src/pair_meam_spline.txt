@@ -33,7 +33,7 @@ atoms J, I, and K centered on atom I. The five functions Phi, U, rho,
 f, and g are represented by cubic splines.
 
 The {meam/spline} style also supports a new style multicomponent
-modified embedded-atom method (MEAM) potential "(Zhang)"_#Zhang1, where
+modified embedded-atom method (MEAM) potential "(Zhang)"_#Zhang4, where
 the total energy E is given by
 
 :c,image(Eqs/pair_meam_spline_multicomponent.jpg)
@@ -164,5 +164,5 @@ for more info.
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).
 
-:link(Zhang1)
+:link(Zhang4)
 [(Zhang)] Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

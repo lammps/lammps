@@ -16,6 +16,11 @@ style_region.h
 style_neigh_bin.h
 style_neigh_pair.h
 style_neigh_stencil.h
+# deleted on 6 June 2017
+pair_lj_sf.cpp
+pair_lj_sf.h
+pair_lj_sf_omp.cpp
+pair_lj_sf_omp.h
 # deleted on 4 May 2017
 dump_custom_vtk.cpp
 dump_custom_vtk.h

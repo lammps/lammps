@@ -44,14 +44,12 @@
 #ifndef KOKKOS_CUDA_EXP_ITERATE_TILE_HPP
 #define KOKKOS_CUDA_EXP_ITERATE_TILE_HPP
 
+#include <Kokkos_Macros.hpp>
+#if defined( __CUDACC__ ) && defined( KOKKOS_HAVE_CUDA )
+
 #include <iostream>
 #include <algorithm>
-#include <stdio.h>
-
-#include <Kokkos_Macros.hpp>
-
-/* only compile this file if CUDA is enabled for Kokkos */
-#if defined( __CUDACC__ ) && defined( KOKKOS_HAVE_CUDA )
+#include <cstdio>
 
 #include <utility>
 
@@ -1298,3 +1296,4 @@ protected:
 
 #endif
 #endif
+

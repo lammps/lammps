@@ -80,10 +80,12 @@ For a given entry, if the first three arguments are all different,
 then the entry is for the {K} and {theta_0} parameters (the cutoff in
 this case is irrelevant).
 
-It is {not} required that the potential file contain entries for all
-of the elements listed in the pair_coeff command.  It can also contain
-entries for additional elements not being used in a particular
-simulation; LAMMPS ignores those entries.
+It is required that the potential file contains entries for {all}
+permutations of the elements listed in the pair_coeff command.
+If certain combinations are not parameterized the corresponding
+parameters should be set to zero. The potential file can also
+contain entries for additional elements which are not used in
+a particular simulation; LAMMPS ignores those entries.
 
 :line
 

@@ -7,6 +7,7 @@
 :line
 
 pair_style lj/long/coul/long command :h3
+pair_style lj/long/coul/long/intel command :h3
 pair_style lj/long/coul/long/omp command :h3
 pair_style lj/long/coul/long/opt command :h3
 pair_style lj/long/tip4p/long command :h3

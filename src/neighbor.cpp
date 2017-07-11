@@ -640,6 +640,24 @@ int Neighbor::init_pair()
   delete [] neigh_stencil;
   delete [] neigh_pair;
 
+  // error check on requests
+  // do not allow occasional, ghost, bin list
+  //   b/c it still uses variant of coord2bin() in NPair() method
+  //     instead of atom2bin, this could cause error b/c stoms have
+  //     moved out of proc domain by time occasional list is built
+  //   solution would be to use a different NBin variant
+  //     that used Npair::coord2bin(x,ix,iy,iz) (then delete it from NPair)
+  //     and stored the ix,iy,iz values for all atoms (including ghosts)
+  //     at time of binning when neighbor lists are rebuilt,
+  //     similar to what vanilla Nbin::coord2atom() does now in atom2bin
+
+  if (style == BIN) {
+    for (i = 0; i < nrequest; i++)
+      if (requests[i]->occasional && requests[i]->ghost)
+        error->all(FLERR,"Cannot request an occasional binned neighbor list "
+                   "with ghost info");
+  }
+
   // morph requests in various ways
   // purpose is to avoid duplicate or inefficient builds
   // may add new requests if a needed request to derive from does not exist
@@ -1250,6 +1268,12 @@ void Neighbor::morph_copy()
 
       if (irq->ghost && !jrq->ghost) continue;
 
+      // do not copy from a history list or a respa middle/inner list
+
+      if (jrq->history) continue;
+      if (jrq->respamiddle) continue;
+      if (jrq->respainner) continue;
+
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
@@ -1602,6 +1626,21 @@ void Neighbor::requests_new2old()
 }
 
 /* ----------------------------------------------------------------------
+   find and return request made by classptr
+   if not found or classpt = NULL, return NULL
+------------------------------------------------------------------------- */
+
+NeighRequest *Neighbor::find_request(void *classptr)
+{
+  if (classptr == NULL) return NULL;
+
+  for (int i = 0; i < nrequest; i++)
+    if (requests[i]->requestor == classptr) return requests[i];
+
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
    assign NBin class to a NeighList
    use neigh request settings to build mask
    match mask to list of masks of known Nbin classes
@@ -1668,7 +1707,6 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   else if (rq->newton == 0 && !newton_pair) newtflag = 0;
   else if (rq->newton == 1) newtflag = 1;
   else if (rq->newton == 2) newtflag = 0;
-
 
   //printf("STENCIL RQ FLAGS: hff %d %d n %d g %d s %d newtflag %d\n",
   //       rq->half,rq->full,rq->newton,rq->ghost,rq->ssa,
@@ -2087,7 +2125,7 @@ void Neighbor::build(int topoflag)
   }
 
   // bin atoms for all NBin instances
-  // not just NBin associated with perpetual lists
+  // not just NBin associated with perpetual lists, also occasional lists
   // b/c cannot wait to bin occasional lists in build_one() call
   // if bin then, atoms may have moved outside of proc domain & bin extent,
   //   leading to errors or even a crash
@@ -2193,6 +2231,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // build the list
 
+  if (!mylist->copy) mylist->grow(atom->nlocal,atom->nlocal+atom->nghost);
   np->build_setup();
   np->build(mylist);
 }

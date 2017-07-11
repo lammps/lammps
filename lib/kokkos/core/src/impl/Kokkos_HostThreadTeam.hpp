@@ -49,7 +49,6 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
-#include <impl/Kokkos_Reducer.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 
 //----------------------------------------------------------------------------
@@ -507,8 +506,9 @@ public:
   const scratch_memory_space & thread_scratch(int) const
     { return m_scratch.set_team_thread_mode(0,m_data.m_team_size,m_data.m_team_rank); }
 
-  //----------------------------------------
+  //--------------------------------------------------------------------------
   // Team collectives
+  //--------------------------------------------------------------------------
 
   KOKKOS_INLINE_FUNCTION void team_barrier() const noexcept
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
@@ -518,22 +518,6 @@ public:
 #else
     {}
 #endif
-
-  template< class Closure >
-  KOKKOS_INLINE_FUNCTION
-  void team_barrier( Closure const & f ) const noexcept
-    {
-      if ( m_data.team_rendezvous() ) {
-
-        // All threads have entered 'team_rendezvous'
-        // only this thread returned from 'team_rendezvous'
-        // with a return value of 'true'
-
-        f();
-
-        m_data.team_rendezvous_release();
-      }
-    }
 
   //--------------------------------------------------------------------------
 
@@ -613,8 +597,9 @@ public:
 
         if ( 0 != m_data.m_team_rank ) {
           // Non-root copies to their local buffer:
-          reducer.copy( (value_type*) m_data.team_reduce_local()
-                      , reducer.data() );
+          /*reducer.copy( (value_type*) m_data.team_reduce_local()
+                      , reducer.data() );*/
+          *((value_type*) m_data.team_reduce_local()) = reducer.reference();
         }
 
         // Root does not overwrite shared memory until all threads arrive
@@ -630,19 +615,19 @@ public:
             value_type * const src =
               (value_type*) m_data.team_member(i)->team_reduce_local();
 
-            reducer.join( reducer.data() , src );
+            reducer.join( reducer.reference(), *src);
           }
 
           // Copy result to root member's buffer:
-          reducer.copy( (value_type*) m_data.team_reduce() , reducer.data() );
-
+          // reducer.copy( (value_type*) m_data.team_reduce() , reducer.data() );
+          *((value_type*) m_data.team_reduce()) = reducer.reference();
           m_data.team_rendezvous_release();
           // This thread released all other threads from 'team_rendezvous'
           // with a return value of 'false'
         }
         else {
           // Copy from root member's buffer:
-          reducer.copy( reducer.data() , (value_type*) m_data.team_reduce() );
+          reducer.reference() = *((value_type*) m_data.team_reduce());
         }
       }
     }
@@ -652,7 +637,7 @@ public:
 
   //--------------------------------------------------------------------------
 
-  template< typename ValueType , class JoinOp >
+  /*template< typename ValueType , class JoinOp >
   KOKKOS_INLINE_FUNCTION
   ValueType
   team_reduce( ValueType const & value
@@ -696,7 +681,7 @@ public:
     }
 #else
     { Kokkos::abort("HostThreadTeamMember team_reduce\n"); return ValueType(); }
-#endif
+#endif*/
 
 
   template< typename T >
@@ -854,7 +839,7 @@ parallel_reduce
   , Reducer  const & reducer
   )
 {
-  reducer.init( reducer.data() );
+  reducer.init( reducer.reference() );
 
   for( iType i = loop_boundaries.start
      ; i <  loop_boundaries.end
@@ -875,9 +860,9 @@ parallel_reduce
   , ValueType      & result
   )
 {
-  Impl::Reducer< ValueType , Impl::ReduceSum< ValueType > > reducer( & result );
+  Kokkos::Experimental::Sum<ValueType> reducer( result );
 
-  reducer.init( reducer.data() );
+  reducer.init( result );
 
   for( iType i = loop_boundaries.start
      ; i <  loop_boundaries.end
@@ -888,7 +873,7 @@ parallel_reduce
   loop_boundaries.thread.team_reduce( reducer );
 }
 
-template< typename iType, class Space
+/*template< typename iType, class Space
          , class Closure, class Joiner , typename ValueType >
 KOKKOS_INLINE_FUNCTION
 void parallel_reduce
@@ -910,7 +895,7 @@ void parallel_reduce
   }
 
   loop_boundaries.thread.team_reduce( reducer );
-}
+}*/
 
 //----------------------------------------------------------------------------
 /** \brief  Inter-thread vector parallel_reduce.
@@ -923,19 +908,33 @@ void parallel_reduce
  */
 template< typename iType, class Space , class Lambda, typename ValueType >
 KOKKOS_INLINE_FUNCTION
-void parallel_reduce
+typename std::enable_if< ! Kokkos::is_reducer<ValueType>::value >::type
+parallel_reduce
   (const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >& loop_boundaries,
    const Lambda & lambda,
    ValueType& result)
 {
   result = ValueType();
-#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
-#pragma ivdep
-#endif
   for( iType i =  loop_boundaries.start ;
              i <  loop_boundaries.end ;
              i += loop_boundaries.increment) {
     lambda(i,result);
+  }
+}
+
+template< typename iType, class Space , class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+typename std::enable_if< Kokkos::is_reducer< ReducerType >::value >::type
+parallel_reduce
+  (const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >& loop_boundaries,
+   const Lambda & lambda,
+   const ReducerType& reducer)
+{
+  reducer.init(reducer.reference());
+  for( iType i =  loop_boundaries.start ;
+             i <  loop_boundaries.end ;
+             i += loop_boundaries.increment) {
+    lambda(i,reducer.reference());
   }
 }
 
@@ -961,9 +960,6 @@ void parallel_reduce
    const JoinType & join,
    ValueType& result)
 {
-#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
-#pragma ivdep
-#endif
   for( iType i =  loop_boundaries.start ;
              i <  loop_boundaries.end ;
              i += loop_boundaries.increment ) {
@@ -1055,9 +1051,8 @@ template< class Space , class FunctorType >
 KOKKOS_INLINE_FUNCTION
 void single( const Impl::ThreadSingleStruct< Impl::HostThreadTeamMember<Space> > & single , const FunctorType & functor )
 {
-  if ( single.team_member.team_rank() == 0 ) functor();
   // 'single' does not perform a barrier.
-  // single.team_member.team_barrier( functor );
+  if ( single.team_member.team_rank() == 0 ) functor();
 }
 
 template< class Space , class FunctorType , typename ValueType >

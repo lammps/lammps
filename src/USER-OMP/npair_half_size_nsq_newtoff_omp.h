@@ -15,7 +15,7 @@
 
 NPairStyle(half/size/nsq/newtoff/omp,
            NPairHalfSizeNsqNewtoffOmp,
-           NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTOFF | NP_OMP | 
+           NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTOFF | NP_OMP |
            NP_ORTHO | NP_TRI)
 
 #else

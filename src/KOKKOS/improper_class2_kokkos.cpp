@@ -140,7 +140,6 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagImproperClass2Compute<0,0> >(0,nimproperlist),*this);
     }
   }
-  DeviceType::fence();
   if (eflag_global) energy += ev.evdwl;
 
   // error check
@@ -165,7 +164,6 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagImproperClass2AngleAngle<0,0> >(0,nimproperlist),*this);
     }
   }
-  DeviceType::fence();
   if (eflag_global) energy += ev.evdwl;
 
   if (vflag_global) {

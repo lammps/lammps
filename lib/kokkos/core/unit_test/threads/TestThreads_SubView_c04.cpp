@@ -41,13 +41,14 @@
 //@HEADER
 */
 
-#include <threads/TestThreads.hpp>
+#include <threads/TestThreads_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( threads, view_subview_2d_from_3d )
+TEST_F( TEST_CATEGORY, view_subview_2d_from_3d )
 {
-  TestViewSubview::test_2d_subview_3d< Kokkos::Threads >();
+  TestViewSubview::test_2d_subview_3d< TEST_EXECSPACE >();
 }
 
 } // namespace Test

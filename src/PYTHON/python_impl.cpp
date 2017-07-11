@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Richard Berger and Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #include <Python.h>
 #include "python.h"
 #include "force.h"
@@ -18,6 +22,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "python_compat.h"
 
 using namespace LAMMPS_NS;
 
@@ -25,33 +30,24 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 
 #define VALUELENGTH 64               // also in variable.cpp
 
-// Wrap API changes between Python 2 and 3 using macros
-#if PY_MAJOR_VERSION == 2
-#define PY_INT_FROM_LONG(X) PyInt_FromLong(X)
-#define PY_INT_AS_LONG(X) PyInt_AsLong(X)
-#define PY_STRING_FROM_STRING(X) PyString_FromString(X)
-#define PY_VOID_POINTER(X) PyCObject_FromVoidPtr((void *) X, NULL)
-#define PY_STRING_AS_STRING(X) PyString_AsString(X)
-
-#elif PY_MAJOR_VERSION == 3
-#define PY_INT_FROM_LONG(X) PyLong_FromLong(X)
-#define PY_INT_AS_LONG(X) PyLong_AsLong(X)
-#define PY_STRING_FROM_STRING(X) PyUnicode_FromString(X)
-#define PY_VOID_POINTER(X) PyCapsule_New((void *) X, NULL, NULL)
-#define PY_STRING_AS_STRING(X) PyUnicode_AsUTF8(X)
-#endif
 
 /* ---------------------------------------------------------------------- */
 
 PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
+  ninput = noutput = 0;
+  istr = NULL;
+  ostr = NULL;
+  format = NULL;
+  length_longstr = 0;
+
   // pfuncs stores interface info for each Python function
 
   nfunc = 0;
   pfuncs = NULL;
 
   // one-time initialization of Python interpreter
-  // pymain stores pointer to main module
+  // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
 
   Py_Initialize();
@@ -63,7 +59,6 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
 
   pyMain = (void *) pModule;
-
   PyGILState_Release(gstate);
 }
 
@@ -318,6 +313,9 @@ void PythonImpl::invoke_function(int ifunc, char *result)
       }
     } else if (itype == PTR) {
       pValue = PY_VOID_POINTER(lmp);
+    } else {
+      PyGILState_Release(gstate);
+      error->all(FLERR,"Unsupported variable type");
     }
     PyTuple_SetItem(pArgs,i,pValue);
   }

@@ -39,11 +39,14 @@ class FixExternal : public Fix {
   void post_force(int);
   void min_post_force(int);
   double compute_scalar();
+  double compute_vector(int);
 
   void set_energy_global(double);
   void set_virial_global(double *);
   void set_energy_peratom(double *);
   void set_virial_peratom(double **);
+  void set_vector_length(int);
+  void set_vector(int,double);
 
   double memory_usage();
   void grow_arrays(int);
@@ -59,6 +62,7 @@ class FixExternal : public Fix {
   FnPtr callback;
   void *ptr_caller;
   double user_energy;
+  double *caller_vector;
 };
 
 }

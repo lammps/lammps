@@ -48,7 +48,7 @@ using namespace MathSpecial;
 PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
   PPPMTIP4P(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
 {
-  triclinic_support = 0;
+  triclinic_support = 1;
   suffix_flag |= Suffix::OMP;
 }
 
@@ -735,6 +735,8 @@ void PPPMTIP4POMP::fieldforce_ad()
 
 void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
 {
+  double **x = atom->x;
+
   iH1 = atom->map(atom->tag[i] + 1);
   iH2 = atom->map(atom->tag[i] + 2);
 
@@ -742,24 +744,102 @@ void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
-  // set iH1,iH2 to index of closest image to O
+  if (triclinic) {
 
-  iH1 = domain->closest_image(i,iH1);
-  iH2 = domain->closest_image(i,iH2);
+    // need to use custom code to find the closest image for triclinic,
+    // since local atoms are in lambda coordinates, but ghosts are not.
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+    int *sametag = atom->sametag;
+    double xo[3],xh1[3],xh2[3];
 
-  double delx1 = x[iH1].x - x[i].x;
-  double dely1 = x[iH1].y - x[i].y;
-  double delz1 = x[iH1].z - x[i].z;
+    domain->lamda2x(x[i],xo);
+    domain->lamda2x(x[iH1],xh1);
+    domain->lamda2x(x[iH2],xh2);
 
-  double delx2 = x[iH2].x - x[i].x;
-  double dely2 = x[iH2].y - x[i].y;
-  double delz2 = x[iH2].z - x[i].z;
+    double delx = xo[0] - xh1[0];
+    double dely = xo[1] - xh1[1];
+    double delz = xo[2] - xh1[2];
+    double rsqmin = delx*delx + dely*dely + delz*delz;
+    double rsq;
+    int closest = iH1;
 
-  xM.x = x[i].x + alpha * 0.5 * (delx1 + delx2);
-  xM.y = x[i].y + alpha * 0.5 * (dely1 + dely2);
-  xM.z = x[i].z + alpha * 0.5 * (delz1 + delz2);
+    while (sametag[iH1] >= 0) {
+      iH1 = sametag[iH1];
+      delx = xo[0] - x[iH1][0];
+      dely = xo[1] - x[iH1][1];
+      delz = xo[2] - x[iH1][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < rsqmin) {
+        rsqmin = rsq;
+        closest = iH1;
+        xh1[0] = x[iH1][0];
+        xh1[1] = x[iH1][1];
+        xh1[2] = x[iH1][2];
+      }
+    }
+    iH1 = closest;
+
+    closest = iH2;
+    delx = xo[0] - xh2[0];
+    dely = xo[1] - xh2[1];
+    delz = xo[2] - xh2[2];
+    rsqmin = delx*delx + dely*dely + delz*delz;
+
+    while (sametag[iH2] >= 0) {
+      iH2 = sametag[iH2];
+      delx = xo[0] - x[iH2][0];
+      dely = xo[1] - x[iH2][1];
+      delz = xo[2] - x[iH2][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < rsqmin) {
+        rsqmin = rsq;
+        closest = iH2;
+        xh2[0] = x[iH2][0];
+        xh2[1] = x[iH2][1];
+        xh2[2] = x[iH2][2];
+      }
+    }
+    iH2 = closest;
+
+    // finally compute M in real coordinates ...
+
+    double delx1 = xh1[0] - xo[0];
+    double dely1 = xh1[1] - xo[1];
+    double delz1 = xh1[2] - xo[2];
+
+    double delx2 = xh2[0] - xo[0];
+    double dely2 = xh2[1] - xo[1];
+    double delz2 = xh2[2] - xo[2];
+
+    xM.x = xo[0] + alpha * 0.5 * (delx1 + delx2);
+    xM.y = xo[1] + alpha * 0.5 * (dely1 + dely2);
+    xM.z = xo[2] + alpha * 0.5 * (delz1 + delz2);
+
+    // ... and convert M to lamda space for PPPM
+
+    domain->x2lamda((double *)&xM,(double *)&xM);
+
+  } else {
+
+    // set iH1,iH2 to index of closest image to O
+
+    iH1 = domain->closest_image(i,iH1);
+    iH2 = domain->closest_image(i,iH2);
+
+    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+
+    double delx1 = x[iH1].x - x[i].x;
+    double dely1 = x[iH1].y - x[i].y;
+    double delz1 = x[iH1].z - x[i].z;
+
+    double delx2 = x[iH2].x - x[i].x;
+    double dely2 = x[iH2].y - x[i].y;
+    double delz2 = x[iH2].z - x[i].z;
+
+    xM.x = x[i].x + alpha * 0.5 * (delx1 + delx2);
+    xM.y = x[i].y + alpha * 0.5 * (dely1 + dely2);
+    xM.z = x[i].z + alpha * 0.5 * (delz1 + delz2);
+  }
 }
 
 

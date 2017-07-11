@@ -21,6 +21,7 @@
 #include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "dihedral_charmmfsw.h"
 #include "atom.h"
 #include "comm.h"
@@ -29,6 +30,7 @@
 #include "force.h"
 #include "pair.h"
 #include "update.h"
+#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -386,10 +388,26 @@ void DihedralCharmmfsw::coeff(int narg, char **arg)
 
 void DihedralCharmmfsw::init_style()
 {
+  if (strstr(update->integrate_style,"respa")) {
+    Respa *r = (Respa *) update->integrate;
+    if (r->level_pair >= 0 && (r->level_pair != r->level_dihedral))
+      error->all(FLERR,"Dihedral style charmmfsw must be set to same"
+        " r-RESPA level as 'pair'");
+    if (r->level_outer >= 0 && (r->level_outer != r->level_dihedral))
+      error->all(FLERR,"Dihedral style charmmfsw must be set to same"
+        " r-RESPA level as 'outer'");
+  }
+
   // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
+  // also verify that the correct 1-4 scaling is set
 
   if (weightflag) {
+
+    if ((force->special_lj[3] != 0.0) || (force->special_coul[3] != 0.0))
+      error->all(FLERR,"Must use 'special_bonds charmm' with"
+                 " dihedral style charmm for use with CHARMM pair styles");
+
     int itmp;
     if (force->pair == NULL)
       error->all(FLERR,"Dihedral charmmfsw is incompatible with Pair style");

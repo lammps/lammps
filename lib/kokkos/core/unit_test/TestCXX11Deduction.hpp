@@ -89,4 +89,11 @@ void test_reduction_deduction()
 
 } // namespace TestCXX11
 
+namespace Test {
+
+TEST_F( TEST_CATEGORY, reduction_deduction )
+{
+  TestCXX11::test_reduction_deduction< TEST_EXECSPACE >();
+}
+}
 #endif

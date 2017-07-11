@@ -235,6 +235,19 @@ void ComputeTempRamp::remove_bias(int i, double *v)
 }
 
 /* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempRamp::remove_bias_thr(int i, double *v, double *b)
+{
+  double fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+  fraction = MAX(fraction,0.0);
+  fraction = MIN(fraction,1.0);
+  b[v_dim] = v_lo + fraction*(v_hi - v_lo);
+  v[v_dim] -= b[v_dim];
+}
+
+/* ----------------------------------------------------------------------
    remove velocity bias from all atoms to leave thermal velocity
 ------------------------------------------------------------------------- */
 
@@ -269,6 +282,16 @@ void ComputeTempRamp::remove_bias_all()
 void ComputeTempRamp::restore_bias(int i, double *v)
 {
   v[v_dim] += vbias[v_dim];
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias_thr()
+   assume remove_bias_thr() was previously called with the same buffer b
+------------------------------------------------------------------------- */
+
+void ComputeTempRamp::restore_bias_thr(int i, double *v, double *b)
+{
+  v[v_dim] += b[v_dim];
 }
 
 /* ----------------------------------------------------------------------

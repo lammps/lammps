@@ -128,6 +128,9 @@ void FixTempBerendsen::init()
     error->all(FLERR,"Temperature ID for fix temp/berendsen does not exist");
   temperature = modify->compute[icompute];
 
+  if (modify->check_rigid_group_overlap(groupbit))
+    error->warning(FLERR,"Cannot thermostat atoms in rigid bodies");
+
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 }

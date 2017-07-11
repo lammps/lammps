@@ -30,7 +30,7 @@ The {oxdna/fene} and {oxdna2/fene} bond styles use the potential
 
 to define a modified finite extensible nonlinear elastic (FENE) potential
 "(Ouldridge)"_#oxdna_fene to model the connectivity of the phosphate backbone
-in the oxDNA force field for coarse-grained modelling of DNA. 
+in the oxDNA force field for coarse-grained modelling of DNA.
 
 The following coefficients must be defined for the bond type via the
 "bond_coeff"_bond_coeff.html command as given in the above example, or in
@@ -43,8 +43,8 @@ r0 (distance) :ul
 
 NOTE: The oxDNA bond style has to be used together with the corresponding oxDNA pair styles
 for excluded volume interaction {oxdna/excv}, stacking {oxdna/stk}, cross-stacking {oxdna/xstk}
-and coaxial stacking interaction {oxdna/coaxstk} as well as hydrogen-bonding interaction {oxdna/hbond} (see also documentation of 
-"pair_style oxdna/excv"_pair_oxdna.html). For the oxDNA2 "(Snodin)"_#oxdna2 bond style the analogous pair styles and an additional Debye-Hueckel pair 
+and coaxial stacking interaction {oxdna/coaxstk} as well as hydrogen-bonding interaction {oxdna/hbond} (see also documentation of
+"pair_style oxdna/excv"_pair_oxdna.html). For the oxDNA2 "(Snodin)"_#oxdna2 bond style the analogous pair styles and an additional Debye-Hueckel pair
 style {oxdna2/dh} have to be defined.
 The coefficients in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
 
@@ -66,7 +66,7 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]
 
-"pair_style oxdna/excv"_pair_oxdna.html, "pair_style oxdna2/excv"_pair_oxdna2.html, "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html, "bond_coeff"_bond_coeff.html 
+"pair_style oxdna/excv"_pair_oxdna.html, "pair_style oxdna2/excv"_pair_oxdna2.html, "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html, "bond_coeff"_bond_coeff.html
 
 [Default:] none
 

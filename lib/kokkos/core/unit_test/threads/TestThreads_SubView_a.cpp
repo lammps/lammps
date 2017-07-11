@@ -41,63 +41,64 @@
 //@HEADER
 */
 
-#include <threads/TestThreads.hpp>
+#include <threads/TestThreads_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( threads, view_subview_auto_1d_left )
+TEST_F( TEST_CATEGORY, view_subview_auto_1d_left )
 {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutLeft, Kokkos::Threads >();
+  TestViewSubview::test_auto_1d< Kokkos::LayoutLeft, TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_auto_1d_right )
+TEST_F( TEST_CATEGORY, view_subview_auto_1d_right )
 {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutRight, Kokkos::Threads >();
+  TestViewSubview::test_auto_1d< Kokkos::LayoutRight, TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_auto_1d_stride )
+TEST_F( TEST_CATEGORY, view_subview_auto_1d_stride )
 {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutStride, Kokkos::Threads >();
+  TestViewSubview::test_auto_1d< Kokkos::LayoutStride, TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_assign_strided )
+TEST_F( TEST_CATEGORY, view_subview_assign_strided )
 {
-  TestViewSubview::test_1d_strided_assignment< Kokkos::Threads >();
+  TestViewSubview::test_1d_strided_assignment< TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_left_0 )
+TEST_F( TEST_CATEGORY, view_subview_left_0 )
 {
-  TestViewSubview::test_left_0< Kokkos::Threads >();
+  TestViewSubview::test_left_0< TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_left_1 )
+TEST_F( TEST_CATEGORY, view_subview_left_1 )
 {
-  TestViewSubview::test_left_1< Kokkos::Threads >();
+  TestViewSubview::test_left_1< TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_left_2 )
+TEST_F( TEST_CATEGORY, view_subview_left_2 )
 {
-  TestViewSubview::test_left_2< Kokkos::Threads >();
+  TestViewSubview::test_left_2< TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_left_3 )
+TEST_F( TEST_CATEGORY, view_subview_left_3 )
 {
-  TestViewSubview::test_left_3< Kokkos::Threads >();
+  TestViewSubview::test_left_3< TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_right_0 )
+TEST_F( TEST_CATEGORY, view_subview_right_0 )
 {
-  TestViewSubview::test_right_0< Kokkos::Threads >();
+  TestViewSubview::test_right_0< TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_right_1 )
+TEST_F( TEST_CATEGORY, view_subview_right_1 )
 {
-  TestViewSubview::test_right_1< Kokkos::Threads >();
+  TestViewSubview::test_right_1< TEST_EXECSPACE >();
 }
 
-TEST_F( threads, view_subview_right_3 )
+TEST_F( TEST_CATEGORY, view_subview_right_3 )
 {
-  TestViewSubview::test_right_3< Kokkos::Threads >();
+  TestViewSubview::test_right_3< TEST_EXECSPACE >();
 }
 
 } // namespace Test

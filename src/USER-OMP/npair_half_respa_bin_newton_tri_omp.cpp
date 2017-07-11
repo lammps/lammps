@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfRespaBinNewtonTriOmp::NPairHalfRespaBinNewtonTriOmp(LAMMPS *lmp) : 
+NPairHalfRespaBinNewtonTriOmp::NPairHalfRespaBinNewtonTriOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -128,7 +128,7 @@ void NPairHalfRespaBinNewtonTriOmp::build(NeighList *list)
     //         (equal zyx and j <= i)
     // latter excludes self-self interaction but allows superposed atoms
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
         if (x[j][2] < ztmp) continue;

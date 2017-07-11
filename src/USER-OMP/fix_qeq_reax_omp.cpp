@@ -49,7 +49,6 @@
 #include "pair.h"
 #include "respa.h"
 #include "memory.h"
-#include "citeme.h"
 #include "error.h"
 #include "reaxc_defs.h"
 
@@ -63,22 +62,11 @@ using namespace FixConst;
 #define CUBE(x) ((x)*(x)*(x))
 #define MIN_NBRS 100
 
-static const char cite_fix_qeq_reax_omp[] =
-  "fix qeq/reax/omp command:\n\n"
-  "@Article{Aktulga17,\n"
-  " author =  {H. M. Aktulga, C. Knight, P. Coffman, K. A. OHearn, T. R. Shan, W. Jiang},\n"
-  " title =   {Optimizing the performance of reactive molecular dynamics simulations for multi-core architectures},\n"
-  " journal = {International Journal of High Performance Computing Applications},\n"
-  " year =    to appear\n"
-  "}\n\n";
-
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxOMP::FixQEqReaxOMP(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReax(lmp, narg, arg)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reax_omp);
-
   if (narg<8 || narg>9) error->all(FLERR,"Illegal fix qeq/reax/omp command");
 
   b_temp = NULL;

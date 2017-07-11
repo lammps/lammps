@@ -77,7 +77,7 @@ int ompTimingCGCount[LASTTIMINGINDEX];
 #endif
 
 static const char cite_pair_reax_c_omp[] =
-  "pair reax/c/omp command:\n\n"
+  "pair reax/c/omp and fix qeq/reax/omp command:\n\n"
   "@Article{Aktulga17,\n"
   " author =  {H. M. Aktulga, C. Knight, P. Coffman, K. A. OHearn, T. R. Shan, W. Jiang},\n"
   " title =   {Optimizing the performance of reactive molecular dynamics simulations for multi-core architectures},\n"

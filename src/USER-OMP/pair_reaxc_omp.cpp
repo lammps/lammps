@@ -16,19 +16,19 @@
    Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
    Per-atom energy/virial added by Ray Shan (Materials Design, Inc.)
-   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added 
+   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added
    by Ray Shan (Materials Design)
 
-   OpenMP based threading support for pair_style reax/c/omp added 
-   by Hasan Metin Aktulga (MSU), Chris Knight (ALCF), Paul Coffman (ALCF), 
+   OpenMP based threading support for pair_style reax/c/omp added
+   by Hasan Metin Aktulga (MSU), Chris Knight (ALCF), Paul Coffman (ALCF),
    Kurt O'Hearn (MSU), Ray Shan (Materials Design), Wei Jiang (ALCF)
- 
-   Integration of the pair_style reax/c/omp into the User-OMP package 
+
+   Integration of the pair_style reax/c/omp into the User-OMP package
    by Axel Kohlmeyer (Temple U.)
 
    Please cite the related publication:
-   H. M. Aktulga, C. Knight, P. Coffman, K. A. O'Hearn, T. R. Shan, 
-   W. Jiang, "Optimizing the performance of reactive molecular dynamics 
+   H. M. Aktulga, C. Knight, P. Coffman, K. A. O'Hearn, T. R. Shan,
+   W. Jiang, "Optimizing the performance of reactive molecular dynamics
    simulations for multi-core architectures", International Journal of
    High Performance Computing Applications, to appear.
  ------------------------------------------------------------------------- */

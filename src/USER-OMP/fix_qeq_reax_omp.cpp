@@ -12,11 +12,24 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Hasan Metin Aktulga, Purdue University
-   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+   Contributing author:
+   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
-     Hybrid and sub-group capabilities: Ray Shan (Sandia)
-------------------------------------------------------------------------- */
+   Hybrid & sub-group capabilities added by Ray Shan (Materials Design)
+
+   OpenMP based threading support for fix qeq/reax/omp added 
+   by Hasan Metin Aktulga (MSU), Chris Knight (ALCF), Paul Coffman (ALCF), 
+   Kurt O'Hearn (MSU), Ray Shan (Materials Design), Wei Jiang (ALCF)
+ 
+   Integration of the pair_style reax/c/omp into the User-OMP package 
+   by Axel Kohlmeyer (Temple U.)
+
+   Please cite the related publication:
+   H. M. Aktulga, C. Knight, P. Coffman, K. A. O'Hearn, T. R. Shan, 
+   W. Jiang, "Optimizing the performance of reactive molecular dynamics 
+   simulations for multi-core architectures", International Journal of
+   High Performance Computing Applications, to appear.
+ ------------------------------------------------------------------------- */
 
 #include <math.h>
 #include <stdio.h>
@@ -50,11 +63,22 @@ using namespace FixConst;
 #define CUBE(x) ((x)*(x)*(x))
 #define MIN_NBRS 100
 
+static const char cite_fix_qeq_reax_omp[] =
+  "fix qeq/reax/omp command:\n\n"
+  "@Article{Aktulga17,\n"
+  " author =  {H. M. Aktulga, C. Knight, P. Coffman, K. A. OHearn, T. R. Shan, W. Jiang},\n"
+  " title =   {Optimizing the performance of reactive molecular dynamics simulations for multi-core architectures},\n"
+  " journal = {International Journal of High Performance Computing Applications},\n"
+  " year =    to appear\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxOMP::FixQEqReaxOMP(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReax(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reax_omp);
+
   if (narg<8 || narg>9) error->all(FLERR,"Illegal fix qeq/reax/omp command");
 
   b_temp = NULL;

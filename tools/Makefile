@@ -5,7 +5,7 @@
 #
 
 all:
-	$(MAKE) binary2txt chain micelle2d data2xmovie
+	$(MAKE) binary2txt chain micelle2d
 
 binary2txt:	binary2txt.o
 	g++ -g binary2txt.o -o binary2txt
@@ -16,14 +16,11 @@ chain:	chain.o
 micelle2d:	micelle2d.o
 	ifort micelle2d.o -o micelle2d
 
-data2xmovie:	data2xmovie.o
-	g++ -g data2xmovie.o -o data2xmovie
-
 thermo_extract:	thermo_extract.o
 	gcc -g thermo_extract.o -o thermo_extract
 
 clean:
-	rm binary2txt chain micelle2d data2xmovie
+	rm binary2txt chain micelle2d
 	rm thermo_extract
 	rm *.o
 

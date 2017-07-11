@@ -37,9 +37,8 @@ produce dump snapshots of the running simulation in any of 3 formats.
 
 If you uncomment the dump command in the input script, a text dump
 file will be produced, which can be animated by various visualization
-programs (see http://lammps.sandia.gov/viz.html) such as VMD or
-AtomEye.  It can also be animated using the xmovie tool described in
-the Additional Tools section of the LAMMPS documentation.
+programs (see http://lammps.sandia.gov/viz.html) such as Ovito, VMD,
+or AtomEye.
 
 If you uncomment the dump image command in the input script, and
 assuming you have built LAMMPS with a JPG library, JPG snapshot images

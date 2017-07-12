@@ -32,6 +32,13 @@ import select
 import re
 import sys
 
+def get_ctypes_int(size):
+  if size == 4:
+    return c_int32
+  elif size == 8:
+    return c_int64
+  return c_int
+
 class MPIAbortException(Exception):
   def __init__(self, message):
     self.message = message
@@ -165,6 +172,11 @@ class lammps(object):
     # optional numpy support (lazy loading)
     self._numpy = None
 
+    # set default types
+    self.c_bigint = get_ctypes_int(self.extract_setting("bigint"))
+    self.c_tagint = get_ctypes_int(self.extract_setting("tagint"))
+    self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
+
   def __del__(self):
     if self.lmp and self.opened:
       self.lib.lammps_close(self.lmp)
@@ -238,6 +250,13 @@ class lammps(object):
     else: return None
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
     return ptr
+
+  # extract lammps type byte sizes
+
+  def extract_setting(self, name):
+    if name: name = name.encode()
+    self.lib.lammps_extract_atom.restype = c_int
+    return int(self.lib.lammps_extract_setting(self.lmp,name))
 
   @property
   def numpy(self):

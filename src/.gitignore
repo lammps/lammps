@@ -508,6 +508,10 @@
 /fix_tune_kspace.h
 /fix_wall_colloid.cpp
 /fix_wall_colloid.h
+/fix_wall_ees.cpp
+/fix_wall_ees.h
+/fix_wall_region_ees.cpp
+/fix_wall_region_ees.h
 /fix_wall_gran.cpp
 /fix_wall_gran.h
 /fix_wall_gran_region.cpp

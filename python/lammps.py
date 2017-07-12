@@ -162,8 +162,8 @@ class lammps(object):
         pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
         self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
 
-      # optional numpy support (lazy loading)
-      self._numpy = None
+    # optional numpy support (lazy loading)
+    self._numpy = None
 
   def __del__(self):
     if self.lmp and self.opened:

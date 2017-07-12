@@ -124,6 +124,7 @@ void CommBrick::init_buffers()
   maxrecv = BUFMIN;
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
+  nswap = 0;
   maxswap = 6;
   allocate_swap(maxswap);
 

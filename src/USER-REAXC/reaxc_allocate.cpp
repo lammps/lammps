@@ -196,11 +196,10 @@ void DeAllocate_Workspace( control_params *control, storage *workspace )
 
   /* reductions */
 #ifdef LMP_USER_OMP
-  if(workspace->CdDeltaReduction) sfree( workspace->CdDeltaReduction, "cddelta_reduce" );
-  if(workspace->forceReduction) sfree( workspace->forceReduction, "f_reduce" );
-  if(workspace->valence_angle_atom_myoffset) sfree( workspace->valence_angle_atom_myoffset, "valence_angle_atom_myoffset");
-
-  if (control->virial && workspace->my_ext_pressReduction) sfree( workspace->my_ext_pressReduction, "ext_press_reduce");
+  if (workspace->CdDeltaReduction) sfree( workspace->CdDeltaReduction, "cddelta_reduce" );
+  if (workspace->forceReduction) sfree( workspace->forceReduction, "f_reduce" );
+  if (workspace->valence_angle_atom_myoffset) sfree( workspace->valence_angle_atom_myoffset, "valence_angle_atom_myoffset");
+  if (workspace->my_ext_pressReduction) sfree( workspace->my_ext_pressReduction, "ext_press_reduce");
 #endif
 }
 
@@ -307,9 +306,7 @@ int Allocate_Workspace( reax_system *system, control_params *control,
 					       "forceReduction", comm);
 
   workspace->valence_angle_atom_myoffset = (int *) scalloc(sizeof(int), total_cap, "valence_angle_atom_myoffset", comm);
-
-  if (control->virial)
-    workspace->my_ext_pressReduction = (rvec *) calloc(sizeof(rvec), control->nthreads);
+  workspace->my_ext_pressReduction = (rvec *) calloc(sizeof(rvec), control->nthreads);
 #endif
 
   return SUCCESS;

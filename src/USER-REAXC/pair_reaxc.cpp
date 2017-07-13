@@ -108,6 +108,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->my_atoms = NULL;
   system->pair_ptr = this;
 
+  system->omp_active = 0;
+
   fix_reax = NULL;
   tmpid = NULL;
   tmpbo = NULL;

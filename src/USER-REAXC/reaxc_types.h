@@ -415,6 +415,7 @@ struct _reax_system
   int mincap;
   double safezone, saferzone;
 
+  int omp_active;
 };
 typedef _reax_system reax_system;
 

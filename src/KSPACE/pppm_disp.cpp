@@ -121,6 +121,13 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
+  nfft_both = nfft_both_6 = 0;
+  nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
+  nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
+  nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
+  nxhi_in_6 = nxlo_in_6 = nxhi_out_6 = nxlo_out_6 = 0;
+  nyhi_in_6 = nylo_in_6 = nyhi_out_6 = nylo_out_6 = 0;
+  nzhi_in_6 = nzlo_in_6 = nzhi_out_6 = nzlo_out_6 = 0;
 
   csumflag = 0;
   B = NULL;

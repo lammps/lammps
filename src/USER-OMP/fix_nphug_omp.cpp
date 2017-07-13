@@ -157,7 +157,7 @@ FixNPHugOMP::FixNPHugOMP(LAMMPS *lmp, int narg, char **arg) :
 
   // create a new compute potential energy compute
 
-  n = strlen(id) + 3;
+  n = strlen(id) + 4;
   id_pe = new char[n];
   strcpy(id_pe,id);
   strcat(id_pe,"_pe");

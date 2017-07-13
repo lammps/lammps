@@ -12,11 +12,24 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Hasan Metin Aktulga, Purdue University
-   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+   Contributing author:
+   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
-     Hybrid and sub-group capabilities: Ray Shan (Sandia)
-------------------------------------------------------------------------- */
+   Hybrid & sub-group capabilities added by Ray Shan (Materials Design)
+
+   OpenMP based threading support for fix qeq/reax/omp added
+   by Hasan Metin Aktulga (MSU), Chris Knight (ALCF), Paul Coffman (ALCF),
+   Kurt O'Hearn (MSU), Ray Shan (Materials Design), Wei Jiang (ALCF)
+
+   Integration of the pair_style reax/c/omp into the User-OMP package
+   by Axel Kohlmeyer (Temple U.)
+
+   Please cite the related publication:
+   H. M. Aktulga, C. Knight, P. Coffman, K. A. O'Hearn, T. R. Shan,
+   W. Jiang, "Optimizing the performance of reactive molecular dynamics
+   simulations for multi-core architectures", International Journal of
+   High Performance Computing Applications, to appear.
+ ------------------------------------------------------------------------- */
 
 #include <math.h>
 #include <stdio.h>
@@ -36,7 +49,6 @@
 #include "pair.h"
 #include "respa.h"
 #include "memory.h"
-#include "citeme.h"
 #include "error.h"
 #include "reaxc_defs.h"
 
@@ -192,46 +204,46 @@ void FixQEqReaxOMP::compute_H()
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
-	jlist = firstneigh[i];
-	jnum = numneigh[i];
-	mfill = H.firstnbr[i];
-	
-	for (jj = 0; jj < jnum; jj++) {
-	  j = jlist[jj];
-	
-	  dx = x[j][0] - x[i][0];
-	  dy = x[j][1] - x[i][1];
-	  dz = x[j][2] - x[i][2];
-	  r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
-	
-	  flag = 0;
-	  if (r_sqr <= SQR(swb)) {
-	    if (j < n) flag = 1;
-	    else if (tag[i] < tag[j]) flag = 1;
-	    else if (tag[i] == tag[j]) {
-	      if (dz > SMALL) flag = 1;
-	      else if (fabs(dz) < SMALL) {
-		if (dy > SMALL) flag = 1;
-		else if (fabs(dy) < SMALL && dx > SMALL) flag = 1;
-	      }
-	    }
-	  }
-	
-	  if (flag) {
-	    H.jlist[mfill] = j;
-	    H.val[mfill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]] );
-	    mfill++;
-	  }
-	}
-	
-	H.numnbrs[i] = mfill - H.firstnbr[i];
+        jlist = firstneigh[i];
+        jnum = numneigh[i];
+        mfill = H.firstnbr[i];
+
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+
+          dx = x[j][0] - x[i][0];
+          dy = x[j][1] - x[i][1];
+          dz = x[j][2] - x[i][2];
+          r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
+
+          flag = 0;
+          if (r_sqr <= SQR(swb)) {
+            if (j < n) flag = 1;
+            else if (tag[i] < tag[j]) flag = 1;
+            else if (tag[i] == tag[j]) {
+              if (dz > SMALL) flag = 1;
+              else if (fabs(dz) < SMALL) {
+                if (dy > SMALL) flag = 1;
+                else if (fabs(dy) < SMALL && dx > SMALL) flag = 1;
+              }
+            }
+          }
+
+          if (flag) {
+            H.jlist[mfill] = j;
+            H.val[mfill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]] );
+            mfill++;
+          }
+        }
+
+        H.numnbrs[i] = mfill - H.firstnbr[i];
       }
     }
 
     if (mfill >= H.m) {
       char str[128];
       sprintf(str,"H matrix size has been exceeded: mfill=%d H.m=%d\n",
-	      mfill, H.m);
+              mfill, H.m);
       error->warning(FLERR,str);
       error->all(FLERR,"Fix qeq/reax/omp has insufficient QEq matrix size");
     }
@@ -301,7 +313,7 @@ void FixQEqReaxOMP::pre_force(int vflag)
   if (dual_enabled) {
     matvecs = dual_CG(b_s, b_t, s, t); // OMP_TIMING inside dual_CG
   } else {
-    matvecs_s = CG(b_s, s);    	// CG on s - parallel
+    matvecs_s = CG(b_s, s);     // CG on s - parallel
 
 #ifdef OMP_TIMING
     endTimeBase = MPI_Wtime();
@@ -311,7 +323,7 @@ void FixQEqReaxOMP::pre_force(int vflag)
     startTimeBase = endTimeBase;
 #endif
 
-    matvecs_t = CG(b_t, t); 	// CG on t - parallel
+    matvecs_t = CG(b_t, t);     // CG on t - parallel
 
 #ifdef OMP_TIMING
     endTimeBase = MPI_Wtime();
@@ -378,23 +390,23 @@ void FixQEqReaxOMP::init_matvec()
     for (int ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
-	
-	/* init pre-conditioner for H and init solution vectors */
-	Hdia_inv[i] = 1. / eta[ atom->type[i] ];
-	b_s[i]      = -chi[ atom->type[i] ];
-	b_t[i]      = -1.0;
-	
-	// Predictor Step
-	double tp = 0.0;
-	double sp = 0.0;
-	for (int j=0; j<aspc_order+2; j++) {
-	  tp+= aspc_b[j] * t_hist[i][j];
-	  sp+= aspc_b[j] * s_hist[i][j];
-	}
 
-	// Corrector Step
-	t[i] = aspc_omega * t_hist[i][0] + m_aspc_omega * tp;
-	s[i] = aspc_omega * s_hist[i][0] + m_aspc_omega * sp;
+        /* init pre-conditioner for H and init solution vectors */
+        Hdia_inv[i] = 1. / eta[ atom->type[i] ];
+        b_s[i]      = -chi[ atom->type[i] ];
+        b_t[i]      = -1.0;
+
+        // Predictor Step
+        double tp = 0.0;
+        double sp = 0.0;
+        for (int j=0; j<aspc_order+2; j++) {
+          tp+= aspc_b[j] * t_hist[i][j];
+          sp+= aspc_b[j] * s_hist[i][j];
+        }
+
+        // Corrector Step
+        t[i] = aspc_omega * t_hist[i][0] + m_aspc_omega * tp;
+        s[i] = aspc_omega * s_hist[i][0] + m_aspc_omega * sp;
       }
     }
 
@@ -406,23 +418,23 @@ void FixQEqReaxOMP::init_matvec()
     for (int ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
-	
-	/* init pre-conditioner for H and init solution vectors */
-	Hdia_inv[i] = 1. / eta[ atom->type[i] ];
-	b_s[i]      = -chi[ atom->type[i] ];
-	b_t[i]      = -1.0;
-	
-	/* linear extrapolation for s & t from previous solutions */
-	//s[i] = 2 * s_hist[i][0] - s_hist[i][1];
-	//t[i] = 2 * t_hist[i][0] - t_hist[i][1];
-	
-	/* quadratic extrapolation for s & t from previous solutions */
-	//s[i] = s_hist[i][2] + 3 * ( s_hist[i][0] - s_hist[i][1] );
-	t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1] );
-	
-	/* cubic extrapolation for s & t from previous solutions */
-	s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
-	//t[i] = 4*(t_hist[i][0]+t_hist[i][2])-(6*t_hist[i][1]+t_hist[i][3]);
+
+        /* init pre-conditioner for H and init solution vectors */
+        Hdia_inv[i] = 1. / eta[ atom->type[i] ];
+        b_s[i]      = -chi[ atom->type[i] ];
+        b_t[i]      = -1.0;
+
+        /* linear extrapolation for s & t from previous solutions */
+        //s[i] = 2 * s_hist[i][0] - s_hist[i][1];
+        //t[i] = 2 * t_hist[i][0] - t_hist[i][1];
+
+        /* quadratic extrapolation for s & t from previous solutions */
+        //s[i] = s_hist[i][2] + 3 * ( s_hist[i][0] - s_hist[i][1] );
+        t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1] );
+
+        /* cubic extrapolation for s & t from previous solutions */
+        s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+        //t[i] = 4*(t_hist[i][0]+t_hist[i][2])-(6*t_hist[i][1]+t_hist[i][3]);
       }
     }
   }
@@ -514,7 +526,7 @@ int FixQEqReaxOMP::CG( double *b, double *x)
 #endif
       {
         MPI_Allreduce(&tmp1, &tmp2, 1, MPI_DOUBLE, MPI_SUM, world);
-	
+
         alpha = sig_new / tmp2;
         tmp1 = 0.0;
       }
@@ -528,7 +540,7 @@ int FixQEqReaxOMP::CG( double *b, double *x)
         if (atom->mask[ii] & groupbit) {
           x[ii] += alpha * d[ii];
           r[ii] -= alpha * q[ii];
-	
+
           // pre-conditioning
           p[ii] = r[ii] * Hdia_inv[ii];
           tmp1 += r[ii] * p[ii];
@@ -616,7 +628,7 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b)
 #if defined(_OPENMP)
 #pragma omp barrier
 #pragma omp for schedule(dynamic,50)
-#endif    
+#endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) {
@@ -846,9 +858,9 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
       {
         my_buf[0] = tmp1;
         my_buf[1] = tmp2;
-	
+
         MPI_Allreduce(&my_buf, &buf, 2, MPI_DOUBLE, MPI_SUM, world);
-	
+
         alpha_s = sig_new_s / buf[0];
         alpha_t = sig_new_t / buf[1];
 
@@ -865,14 +877,14 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
           int indxI = 2 * ii;
           x1[ii] += alpha_s * d[indxI  ];
           x2[ii] += alpha_t * d[indxI+1];
-	
+
           r[indxI  ] -= alpha_s * q[indxI  ];
           r[indxI+1] -= alpha_t * q[indxI+1];
-	
+
           // pre-conditioning
           p[indxI  ] = r[indxI  ] * Hdia_inv[ii];
           p[indxI+1] = r[indxI+1] * Hdia_inv[ii];
-	
+
           tmp1 += r[indxI  ] * p[indxI  ];
           tmp2 += r[indxI+1] * p[indxI+1];
         }
@@ -903,7 +915,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
       ii = ilist[jj];
       if (atom->mask[ii] & groupbit) {
         int indxI = 2 * ii;
-	
+
         d[indxI  ] = p[indxI  ] + beta_s * d[indxI  ];
         d[indxI+1] = p[indxI+1] + beta_t * d[indxI+1];
       }

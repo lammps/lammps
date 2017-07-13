@@ -66,12 +66,21 @@ void FixEnforce2D::init()
     if (modify->fix[i]->enforce2d_flag) nfixlist++;
 
   if (nfixlist) {
+    int myindex = -1;
     delete [] flist;
     flist = new Fix*[nfixlist];
     nfixlist = 0;
     for (int i = 0; i < modify->nfix; i++) {
-      if (modify->fix[i]->enforce2d_flag) 
-        flist[nfixlist++] = modify->fix[i];
+      if (modify->fix[i]->enforce2d_flag) {
+        if (myindex < 0)
+          flist[nfixlist++] = modify->fix[i];
+        else {
+          char msg[256];
+          sprintf(msg,"Fix enforce2d must be defined after fix %s",modify->fix[i]->style);
+          error->all(FLERR,msg);
+        }
+      }
+      if (modify->fix[i] == this) myindex = i;
     }
   }
 }

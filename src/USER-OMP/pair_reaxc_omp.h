@@ -11,16 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Hasan Metin Aktulga, Purdue University
-   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
-
-   Please cite the related publication:
-   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
-   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-   Algorithmic Techniques", Parallel Computing, in press.
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 
 PairStyle(reax/c/omp,PairReaxCOMP)

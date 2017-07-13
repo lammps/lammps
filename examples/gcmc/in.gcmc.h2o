@@ -1,8 +1,4 @@
-# GCMC for CO2 molecular fluid, rigid/small/nvt dynamics
-# Rigid CO2 TraPPE model
-# [Potoff and J.I. Siepmann, Vapor-liquid equilibria of
-# mixtures containing alkanes, carbon dioxide and
-# nitrogen AIChE J., 47,1676-1682 (2001)].
+# fix gcmc example with fix shake
 
 # variables available on command line
 
@@ -33,39 +29,48 @@ create_box      2 box                       &
                 extra/bond/per/atom 2       &
                 extra/angle/per/atom 1      &
                 extra/special/per/atom 2
-molecule        co2mol CO2.txt
-create_atoms   	0 box mol co2mol 464563 units box
-                        
-# rigid CO2 TraPPE model 
 
-pair_coeff      1   1  0.053649   2.8
-pair_coeff      2   2  0.156973   3.05 
-bond_coeff      1       0       1.16   
-angle_coeff     1       0       180 
+# we can load multiple molecule templates, but don't have to use them all
+molecule        co2mol CO2.txt
+molecule        h2omol H2O.txt
+create_atoms   	0 box mol h2omol 464563 units box
+                        
+# rigid SPC/E water model
+
+pair_coeff      1 1 0.15535 3.166
+pair_coeff      * 2 0.0000 0.0000       
+
+bond_coeff      1     1000       1.0   
+angle_coeff     1      100       109.47
 
 # masses
 
-mass 1 12.0107 
-mass 2 15.9994 
+mass 1 15.9994 
+mass 2 1.0
 
 # MD settings
 
-group           co2 type 1 2
+group           h2o type 1 2
 neighbor        2.0 bin
-neigh_modify    every 1 delay 10 check yes
+neigh_modify    every 1 delay 1 check yes
 velocity       	all create ${temp} 54654
 timestep        1.0
 
+minimize 0.0 0.0 100 1000
+reset_timestep 0
 # rigid constraints with thermostat 
 
-fix             myrigidnvt all rigid/nvt/small molecule temp ${temp} ${temp} 100 mol co2mol
-fix_modify	myrigidnvt dynamic/dof no
-
+fix             mynvt all nvt temp ${temp} ${temp} 100
+fix             wshake  all shake 0.0001 50 0 b 1 a 1 mol h2omol
 # gcmc
+
+
+
+run 1000
 
 variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
 fix             mygcmc all gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
-                co2mol tfac_insert ${tfac} group co2 rigid myrigidnvt
+                h2omol tfac_insert ${tfac} group h2o shake wshake
 
 # output
 

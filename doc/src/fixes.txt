@@ -156,6 +156,7 @@ Fixes :h1
    fix_viscosity
    fix_viscous
    fix_wall
+   fix_wall_ees
    fix_wall_gran
    fix_wall_gran_region
    fix_wall_piston

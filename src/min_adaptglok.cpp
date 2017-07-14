@@ -373,6 +373,44 @@ int MinAdaptGlok::iterate(int maxiter)
       }
     }
 
+  // Standard Euler integration
+
+  }else if (integrator == 3) {
+
+    dtf = dtv * force->ftm2v; 
+
+    if (rmass) {
+      for (int i = 0; i < nlocal; i++) {
+        dtfm = dtf / rmass[i];
+        if (vdotfall > 0.0) {
+          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+        }
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+      }
+    } else {
+      for (int i = 0; i < nlocal; i++) {
+        dtfm = dtf / mass[type[i]];
+        if (vdotfall > 0.0) {
+          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+        }
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+      }
+    }
+
   }
 
     eprevious = ecurrent;

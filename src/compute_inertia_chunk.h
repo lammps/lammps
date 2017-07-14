@@ -47,7 +47,7 @@ class ComputeInertiaChunk : public Compute {
   double *massproc,*masstotal;
   double **com,**comall;
   double **inertia,**inertiaall;
-  double **origin;                // added by A.Vorontsov
+  double **origin;
 
   void allocate();
 };

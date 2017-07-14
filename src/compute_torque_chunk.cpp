@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), torque(NULL), torqueall(NULL),
-  origin(NULL)      //added by A.Vorontsov
+  origin(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute torque/chunk command");
 
@@ -64,7 +64,7 @@ ComputeTorqueChunk::~ComputeTorqueChunk()
   memory->destroy(comall);
   memory->destroy(torque);
   memory->destroy(torqueall);
-  memory->destroy(origin);           //added by A.Vorontsov
+  memory->destroy(origin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,22 +119,20 @@ void ComputeTorqueChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-//----------- added by A.Vorontsov ----------------------------------------------------------------------
-  for (int i = 0; i < nlocal; i++)           // added by A.Vorontsov
-    if (mask[i] & groupbit) {                // added by A.Vorontsov
-      index = ichunk[i]-1;                   // added by A.Vorontsov
-      if (index < 0) continue;               // added by A.Vorontsov
-      domain->unmap(x[i],image[i],unwrap);   // added by A.Vorontsov
-      com[index][0] = unwrap[0];             // added by A.Vorontsov
-      com[index][1] = unwrap[1];             // added by A.Vorontsov
-      com[index][2] = unwrap[2];             // added by A.Vorontsov
-    }                                        // added by A.Vorontsov
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      index = ichunk[i]-1;
+      if (index < 0) continue;
+      domain->unmap(x[i],image[i],unwrap);
+      com[index][0] = unwrap[0];
+      com[index][1] = unwrap[1];
+      com[index][2] = unwrap[2];
+    }
 
-  MPI_Allreduce(&com[0][0],&origin[0][0],3*nchunk,MPI_DOUBLE,MPI_MIN,world);  // added by A.Vorontsov
+  MPI_Allreduce(&com[0][0],&origin[0][0],3*nchunk,MPI_DOUBLE,MPI_MIN,world);
 
-  for (int i = 0; i < nchunk; i++)              // added by A.Vorontsov
-    com[i][0] = com[i][1] = com[i][2] = 0.0;    // added by A.Vorontsov
-//--------------------------------------------------------------------------------------------------------
+  for (int i = 0; i < nchunk; i++)
+    com[i][0] = com[i][1] = com[i][2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -143,10 +141,10 @@ void ComputeTorqueChunk::compute_array()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       domain->unmap(x[i],image[i],unwrap);
-      unwrap[0] -= origin[index][0];                        // added by A.Vorontsov
-      unwrap[1] -= origin[index][1];                        // added by A.Vorontsov
-      unwrap[2] -= origin[index][2];                        // added by A.Vorontsov
-      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]); // added by A.Vorontsov
+      unwrap[0] -= origin[index][0];
+      unwrap[1] -= origin[index][1];
+      unwrap[2] -= origin[index][2];
+      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]);
 
       massproc[index] += massone;
       com[index][0] += unwrap[0] * massone;
@@ -163,9 +161,9 @@ void ComputeTorqueChunk::compute_array()
       comall[i][1] /= masstotal[i];
       comall[i][2] /= masstotal[i];
 
-      comall[i][0] += origin[i][0];             // added by A.Vorontsov
-      comall[i][1] += origin[i][1];             // added by A.Vorontsov
-      comall[i][2] += origin[i][2];             // added by A.Vorontsov
+      comall[i][0] += origin[i][0];
+      comall[i][1] += origin[i][1];
+      comall[i][2] += origin[i][2];
     }
   }
 
@@ -181,7 +179,7 @@ void ComputeTorqueChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
-      domain->minimum_image(dx,dy,dz);             // added by A.Vorontsov
+      domain->minimum_image(dx,dy,dz);
       torque[index][0] += dy*f[i][2] - dz*f[i][1];
       torque[index][1] += dz*f[i][0] - dx*f[i][2];
       torque[index][2] += dx*f[i][1] - dy*f[i][0];
@@ -259,7 +257,7 @@ void ComputeTorqueChunk::allocate()
   memory->destroy(comall);
   memory->destroy(torque);
   memory->destroy(torqueall);
-  memory->destroy(origin);              //added by A.Vorontsov
+  memory->destroy(origin);
   maxchunk = nchunk;
   memory->create(massproc,maxchunk,"torque/chunk:massproc");
   memory->create(masstotal,maxchunk,"torque/chunk:masstotal");
@@ -267,7 +265,7 @@ void ComputeTorqueChunk::allocate()
   memory->create(comall,maxchunk,3,"torque/chunk:comall");
   memory->create(torque,maxchunk,3,"torque/chunk:torque");
   memory->create(torqueall,maxchunk,3,"torque/chunk:torqueall");
-  memory->create(origin,maxchunk,3,"torque/chunk:origin");    //added by A.Vorontsov
+  memory->create(origin,maxchunk,3,"torque/chunk:origin");
   array = torqueall;
 }
 
@@ -280,6 +278,6 @@ double ComputeTorqueChunk::memory_usage()
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
   bytes += (bigint) maxchunk * 2*3 * sizeof(double);
   bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 3 * sizeof(double);    //added by A.Vorontsov
+  bytes += (bigint) maxchunk * 3 * sizeof(double);
   return bytes;
 }

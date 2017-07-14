@@ -51,7 +51,7 @@ class ComputeMSDChunk : public Compute {
   double *massproc,*masstotal;
   double **com,**comall;
   double **msd;
-  double **origin;        //added by A.Vorontsov
+  double **origin;
 
   void allocate();
 };

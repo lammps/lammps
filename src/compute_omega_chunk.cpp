@@ -32,7 +32,7 @@ ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   idchunk(NULL),massproc(NULL),masstotal(NULL),com(NULL),comall(NULL),
   inertia(NULL),inertiaall(NULL),angmom(NULL),angmomall(NULL),omega(NULL),
-  origin(NULL)          // added by A.Vorontsov
+  origin(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute omega/chunk command");
 
@@ -71,7 +71,7 @@ ComputeOmegaChunk::~ComputeOmegaChunk()
   memory->destroy(inertia);
   memory->destroy(inertiaall);
   memory->destroy(omega);
-  memory->destroy(origin);                   //added by A.Vorontsov
+  memory->destroy(origin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,22 +128,20 @@ void ComputeOmegaChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-//----------- added by A.Vorontsov ----------------------------------------------------------------------
-  for (int i = 0; i < nlocal; i++)           // added by A.Vorontsov
-    if (mask[i] & groupbit) {                // added by A.Vorontsov
-      index = ichunk[i]-1;                   // added by A.Vorontsov
-      if (index < 0) continue;               // added by A.Vorontsov
-      domain->unmap(x[i],image[i],unwrap);   // added by A.Vorontsov
-      com[index][0] = unwrap[0];             // added by A.Vorontsov
-      com[index][1] = unwrap[1];             // added by A.Vorontsov
-      com[index][2] = unwrap[2];             // added by A.Vorontsov
-    }                                        // added by A.Vorontsov
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      index = ichunk[i]-1;
+      if (index < 0) continue;
+      domain->unmap(x[i],image[i],unwrap);
+      com[index][0] = unwrap[0];
+      com[index][1] = unwrap[1];
+      com[index][2] = unwrap[2];
+    }
 
-  MPI_Allreduce(&com[0][0],&origin[0][0],3*nchunk,MPI_DOUBLE,MPI_MIN,world);  // added by A.Vorontsov
+  MPI_Allreduce(&com[0][0],&origin[0][0],3*nchunk,MPI_DOUBLE,MPI_MIN,world);
 
-  for (int i = 0; i < nchunk; i++)              // added by A.Vorontsov
-    com[i][0] = com[i][1] = com[i][2] = 0.0;    // added by A.Vorontsov
-//--------------------------------------------------------------------------------------------------------
+  for (int i = 0; i < nchunk; i++)
+    com[i][0] = com[i][1] = com[i][2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -152,10 +150,10 @@ void ComputeOmegaChunk::compute_array()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       domain->unmap(x[i],image[i],unwrap);
-      unwrap[0] -= origin[index][0];                        // added by A.Vorontsov
-      unwrap[1] -= origin[index][1];                        // added by A.Vorontsov
-      unwrap[2] -= origin[index][2];                        // added by A.Vorontsov
-      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]); // added by A.Vorontsov
+      unwrap[0] -= origin[index][0];
+      unwrap[1] -= origin[index][1];
+      unwrap[2] -= origin[index][2];
+      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]);
 
       massproc[index] += massone;
       com[index][0] += unwrap[0] * massone;
@@ -172,9 +170,9 @@ void ComputeOmegaChunk::compute_array()
       comall[i][1] /= masstotal[i];
       comall[i][2] /= masstotal[i];
 
-      comall[i][0] += origin[i][0];             // added by A.Vorontsov
-      comall[i][1] += origin[i][1];             // added by A.Vorontsov
-      comall[i][2] += origin[i][2];             // added by A.Vorontsov
+      comall[i][0] += origin[i][0];
+      comall[i][1] += origin[i][1];
+      comall[i][2] += origin[i][2];
     }
   }
 
@@ -190,7 +188,7 @@ void ComputeOmegaChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
-      domain->minimum_image(dx,dy,dz);             // added by A.Vorontsov.
+      domain->minimum_image(dx,dy,dz);
       inertia[index][0] += massone * (dy*dy + dz*dz);
       inertia[index][1] += massone * (dx*dx + dz*dz);
       inertia[index][2] += massone * (dx*dx + dy*dy);
@@ -214,7 +212,7 @@ void ComputeOmegaChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
-      domain->minimum_image(dx,dy,dz);             // added by A.Vorontsov.
+      domain->minimum_image(dx,dy,dz);
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       angmom[index][0] += massone * (dy*v[i][2] - dz*v[i][1]);
@@ -390,7 +388,7 @@ void ComputeOmegaChunk::allocate()
   memory->destroy(angmom);
   memory->destroy(angmomall);
   memory->destroy(omega);
-  memory->destroy(origin);                              //added by A.Vorontsov
+  memory->destroy(origin);
   maxchunk = nchunk;
   memory->create(massproc,maxchunk,"omega/chunk:massproc");
   memory->create(masstotal,maxchunk,"omega/chunk:masstotal");
@@ -401,7 +399,7 @@ void ComputeOmegaChunk::allocate()
   memory->create(angmom,maxchunk,3,"omega/chunk:angmom");
   memory->create(angmomall,maxchunk,3,"omega/chunk:angmomall");
   memory->create(omega,maxchunk,3,"omega/chunk:omega");
-  memory->create(origin,maxchunk,3,"omega/chunk:origin"); //added by A.Vorontsov
+  memory->create(origin,maxchunk,3,"omega/chunk:origin");
   array = omega;
 }
 
@@ -416,6 +414,6 @@ double ComputeOmegaChunk::memory_usage()
   bytes += (bigint) maxchunk * 2*6 * sizeof(double);
   bytes += (bigint) maxchunk * 2*3 * sizeof(double);
   bytes += (bigint) maxchunk * 3 * sizeof(double);
-  bytes += (bigint) maxchunk * 3 * sizeof(double);       //added by A.Vorontsov
+  bytes += (bigint) maxchunk * 3 * sizeof(double);
   return bytes;
 }

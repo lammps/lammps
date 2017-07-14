@@ -47,7 +47,7 @@ class ComputeTorqueChunk : public Compute {
   double *massproc,*masstotal;
   double **com,**comall;
   double **torque,**torqueall;
-  double **origin;              //added by A.Vorontsov
+  double **origin;
 
   void allocate();
 };

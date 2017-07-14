@@ -49,7 +49,7 @@ class ComputeOmegaChunk : public Compute {
   double **inertia,**inertiaall;
   double **angmom,**angmomall;
   double **omega;
-  double **origin;          //added by A.Vorontsov
+  double **origin;
 
   void allocate();
 };

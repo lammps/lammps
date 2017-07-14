@@ -40,9 +40,10 @@ find_package(UnixCommands)
 
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
+option(ENABLE_ALL "Build all packages" OFF)
 set(PACKAGES ASPHERE BODY COLLOID CLASS2 COMPRESS CORESHELL DIPOLE GRANULAR KSPACE MC MOLECULE MANYBODY RIGID REAX)
 foreach(PKG ${PACKAGES})
-  option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
+  option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
 
 set(ACCEL_PACKAGES USER-OMP)
@@ -169,3 +170,9 @@ install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTI
 add_executable(lmp ${LMP_SOURCES})
 target_link_libraries(lmp lammps)
 install(TARGETS lammps DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+foreach(PKG ${PACKAGES} ${ACCEL_PACKAGES})
+  if(ENABLE_${PKG})
+    message(STATUS "Building package: ${PKG}")
+  endif()
+endforeach()

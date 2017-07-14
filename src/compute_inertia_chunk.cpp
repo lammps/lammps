@@ -28,7 +28,8 @@ using namespace LAMMPS_NS;
 ComputeInertiaChunk::ComputeInertiaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL),
-  inertia(NULL), inertiaall(NULL)
+  inertia(NULL), inertiaall(NULL),
+  origin(NULL)                // added by A.Vorontsov
 {
   if (narg != 4) error->all(FLERR,"Illegal compute inertia/chunk command");
 
@@ -64,6 +65,7 @@ ComputeInertiaChunk::~ComputeInertiaChunk()
   memory->destroy(comall);
   memory->destroy(inertia);
   memory->destroy(inertiaall);
+  memory->destroy(origin);              //added by A. Vorontsov
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,6 +120,23 @@ void ComputeInertiaChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
+//----------- added by A.Vorontsov ----------------------------------------------------------------------
+  for (int i = 0; i < nlocal; i++)           // added by A.Vorontsov
+    if (mask[i] & groupbit) {                // added by A.Vorontsov
+      index = ichunk[i]-1;                   // added by A.Vorontsov
+      if (index < 0) continue;               // added by A.Vorontsov
+      domain->unmap(x[i],image[i],unwrap);   // added by A.Vorontsov
+      com[index][0] = unwrap[0];             // added by A.Vorontsov
+      com[index][1] = unwrap[1];             // added by A.Vorontsov
+      com[index][2] = unwrap[2];             // added by A.Vorontsov
+    }                                        // added by A.Vorontsov
+
+  MPI_Allreduce(&com[0][0],&origin[0][0],3*nchunk,MPI_DOUBLE,MPI_MIN,world);  // added by A.Vorontsov
+
+  for (int i = 0; i < nchunk; i++)              // added by A.Vorontsov
+    com[i][0] = com[i][1] = com[i][2] = 0.0;    // added by A.Vorontsov
+//--------------------------------------------------------------------------------------------------------
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
@@ -125,6 +144,11 @@ void ComputeInertiaChunk::compute_array()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       domain->unmap(x[i],image[i],unwrap);
+      unwrap[0] -= origin[index][0];                        // added by A.Vorontsov
+      unwrap[1] -= origin[index][1];                        // added by A.Vorontsov
+      unwrap[2] -= origin[index][2];                        // added by A.Vorontsov
+      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]); // added by A.Vorontsov
+
       massproc[index] += massone;
       com[index][0] += unwrap[0] * massone;
       com[index][1] += unwrap[1] * massone;
@@ -139,6 +163,10 @@ void ComputeInertiaChunk::compute_array()
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
       comall[i][2] /= masstotal[i];
+
+      comall[i][0] += origin[i][0];             // added by A.Vorontsov
+      comall[i][1] += origin[i][1];             // added by A.Vorontsov
+      comall[i][2] += origin[i][2];             // added by A.Vorontsov
     }
   }
 
@@ -154,6 +182,7 @@ void ComputeInertiaChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
+      domain->minimum_image(dx,dy,dz);                  // added by A.Vorontsov
       inertia[index][0] += massone * (dy*dy + dz*dz);
       inertia[index][1] += massone * (dx*dx + dz*dz);
       inertia[index][2] += massone * (dx*dx + dy*dy);
@@ -235,6 +264,7 @@ void ComputeInertiaChunk::allocate()
   memory->destroy(comall);
   memory->destroy(inertia);
   memory->destroy(inertiaall);
+  memory->destroy(origin);                  // added by A.Vorontsov
   maxchunk = nchunk;
   memory->create(massproc,maxchunk,"inertia/chunk:massproc");
   memory->create(masstotal,maxchunk,"inertia/chunk:masstotal");
@@ -242,6 +272,7 @@ void ComputeInertiaChunk::allocate()
   memory->create(comall,maxchunk,3,"inertia/chunk:comall");
   memory->create(inertia,maxchunk,6,"inertia/chunk:inertia");
   memory->create(inertiaall,maxchunk,6,"inertia/chunk:inertiaall");
+  memory->create(origin,maxchunk,3,"inertia/chunk:origin");      // added by A.Vorontsov
   array = inertiaall;
 }
 
@@ -254,5 +285,6 @@ double ComputeInertiaChunk::memory_usage()
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
   bytes += (bigint) maxchunk * 2*3 * sizeof(double);
   bytes += (bigint) maxchunk * 2*6 * sizeof(double);
+  bytes += (bigint) maxchunk * 3 * sizeof(double);           //added by A.Vorontsov
   return bytes;
 }

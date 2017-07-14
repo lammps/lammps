@@ -50,6 +50,7 @@ class ComputeCOMChunk : public Compute {
 
   double *massproc;
   double **com,**comall;
+  double **origin;           // added by A.Vorontsov
 
   void allocate();
 };

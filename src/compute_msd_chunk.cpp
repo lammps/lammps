@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 
 ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), id_fix(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), msd(NULL)
+  idchunk(NULL), id_fix(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), msd(NULL),
+  origin(NULL)             //added by A.Vorontsov
 {
   if (narg != 4) error->all(FLERR,"Illegal compute msd/chunk command");
 
@@ -87,6 +88,7 @@ ComputeMSDChunk::~ComputeMSDChunk()
   memory->destroy(com);
   memory->destroy(comall);
   memory->destroy(msd);
+  memory->destroy(origin);              //added by A.Vorontsov
 }
 
 /* ---------------------------------------------------------------------- */
@@ -181,6 +183,23 @@ void ComputeMSDChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
+//----------- added by A.Vorontsov ----------------------------------------------------------------------
+  for (int i = 0; i < nlocal; i++)           // added by A.Vorontsov
+    if (mask[i] & groupbit) {                // added by A.Vorontsov
+      index = ichunk[i]-1;                   // added by A.Vorontsov
+      if (index < 0) continue;               // added by A.Vorontsov
+      domain->unmap(x[i],image[i],unwrap);   // added by A.Vorontsov
+      com[index][0] = unwrap[0];             // added by A.Vorontsov
+      com[index][1] = unwrap[1];             // added by A.Vorontsov
+      com[index][2] = unwrap[2];             // added by A.Vorontsov
+    }                                        // added by A.Vorontsov
+
+  MPI_Allreduce(&com[0][0],&origin[0][0],3*nchunk,MPI_DOUBLE,MPI_MIN,world);  // added by A.Vorontsov
+
+  for (int i = 0; i < nchunk; i++)              // added by A.Vorontsov
+    com[i][0] = com[i][1] = com[i][2] = 0.0;    // added by A.Vorontsov
+//--------------------------------------------------------------------------------------------------------
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
@@ -188,6 +207,11 @@ void ComputeMSDChunk::compute_array()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       domain->unmap(x[i],image[i],unwrap);
+      unwrap[0] -= origin[index][0];                        // added by A.Vorontsov
+      unwrap[1] -= origin[index][1];                        // added by A.Vorontsov
+      unwrap[2] -= origin[index][2];                        // added by A.Vorontsov
+      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]); // added by A.Vorontsov
+
       massproc[index] += massone;
       com[index][0] += unwrap[0] * massone;
       com[index][1] += unwrap[1] * massone;
@@ -202,6 +226,10 @@ void ComputeMSDChunk::compute_array()
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
       comall[i][2] /= masstotal[i];
+
+      comall[i][0] += origin[i][0];             // added by A.Vorontsov
+      comall[i][1] += origin[i][1];             // added by A.Vorontsov
+      comall[i][2] += origin[i][2];             // added by A.Vorontsov
     }
   }
 
@@ -217,6 +245,10 @@ void ComputeMSDChunk::compute_array()
     dx = comall[i][0] - cominit[i][0];
     dy = comall[i][1] - cominit[i][1];
     dz = comall[i][2] - cominit[i][2];
+
+//???? could it be: msd > box_size/2 ?
+    domain->minimum_image(dx,dy,dz);   // added by A.Vorontsov.
+
     msd[i][0] = dx*dx;
     msd[i][1] = dy*dy;
     msd[i][2] = dz*dz;
@@ -291,6 +323,7 @@ void ComputeMSDChunk::allocate()
   memory->create(com,nchunk,3,"msd/chunk:com");
   memory->create(comall,nchunk,3,"msd/chunk:comall");
   memory->create(msd,nchunk,4,"msd/chunk:msd");
+  memory->create(origin,nchunk,3,"msd/chunk:origin");          //added by A.Vorontsov
   array = msd;
 }
 
@@ -303,5 +336,6 @@ double ComputeMSDChunk::memory_usage()
   double bytes = (bigint) nchunk * 2 * sizeof(double);
   bytes += (bigint) nchunk * 2*3 * sizeof(double);
   bytes += (bigint) nchunk * 4 * sizeof(double);
+  bytes += (bigint) nchunk * 3 * sizeof(double);              //added by A.Vorontov
   return bytes;
 }

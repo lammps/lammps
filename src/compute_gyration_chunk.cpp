@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), 
-  rg(NULL), rgall(NULL), rgt(NULL), rgtall(NULL)
+  rg(NULL), rgall(NULL), rgt(NULL), rgtall(NULL),
+  origin(NULL)          //added by A.Vorontsov
 {
   if (narg < 4) error->all(FLERR,"Illegal compute gyration/chunk command");
 
@@ -85,6 +86,7 @@ ComputeGyrationChunk::~ComputeGyrationChunk()
   memory->destroy(rgall);
   memory->destroy(rgt);
   memory->destroy(rgtall);
+  memory->destroy(origin);      //added by A.Vorontsov
 }
 
 /* ---------------------------------------------------------------------- */
@@ -133,6 +135,7 @@ void ComputeGyrationChunk::compute_vector()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
+      domain->minimum_image(dx,dy,dz);                 // added by A.Vorontsov
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       rg[index] += (dx*dx + dy*dy + dz*dz) * massone;
@@ -177,6 +180,7 @@ void ComputeGyrationChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
+      domain->minimum_image(dx,dy,dz);             // added by A.Vorontsov
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       rgt[index][0] += dx*dx * massone;
@@ -238,6 +242,23 @@ void ComputeGyrationChunk::com_chunk()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
+//----------- added by A.Vorontsov ----------------------------------------------------------------------
+  for (int i = 0; i < nlocal; i++)           // added by A.Vorontsov
+    if (mask[i] & groupbit) {                // added by A.Vorontsov
+      index = ichunk[i]-1;                   // added by A.Vorontsov
+      if (index < 0) continue;               // added by A.Vorontsov
+      domain->unmap(x[i],image[i],unwrap);   // added by A.Vorontsov
+      com[index][0] = unwrap[0];             // added by A.Vorontsov
+      com[index][1] = unwrap[1];             // added by A.Vorontsov
+      com[index][2] = unwrap[2];             // added by A.Vorontsov
+    }                                        // added by A.Vorontsov
+
+  MPI_Allreduce(&com[0][0],&origin[0][0],3*nchunk,MPI_DOUBLE,MPI_MIN,world);  // added by A.Vorontsov
+
+  for (int i = 0; i < nchunk; i++)              // added by A.Vorontsov
+    com[i][0] = com[i][1] = com[i][2] = 0.0;    // added by A.Vorontsov
+//--------------------------------------------------------------------------------------------------------
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
@@ -245,6 +266,11 @@ void ComputeGyrationChunk::com_chunk()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       domain->unmap(x[i],image[i],unwrap);
+      unwrap[0] -= origin[index][0];                        // added by A.Vorontsov
+      unwrap[1] -= origin[index][1];                        // added by A.Vorontsov
+      unwrap[2] -= origin[index][2];                        // added by A.Vorontsov
+      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]); // added by A.Vorontsov
+
       massproc[index] += massone;
       com[index][0] += unwrap[0] * massone;
       com[index][1] += unwrap[1] * massone;
@@ -259,6 +285,10 @@ void ComputeGyrationChunk::com_chunk()
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
       comall[i][2] /= masstotal[i];
+
+      comall[i][0] += origin[i][0];             // added by A.Vorontsov
+      comall[i][1] += origin[i][1];             // added by A.Vorontsov
+      comall[i][2] += origin[i][2];             // added by A.Vorontsov
     }
   }
 }
@@ -333,11 +363,13 @@ void ComputeGyrationChunk::allocate()
   memory->destroy(rgall);
   memory->destroy(rgt);
   memory->destroy(rgtall);
+  memory->destroy(origin);                                          // added by A.Vorontsov
   maxchunk = nchunk;
   memory->create(massproc,maxchunk,"gyration/chunk:massproc");
   memory->create(masstotal,maxchunk,"gyration/chunk:masstotal");
   memory->create(com,maxchunk,3,"gyration/chunk:com");
   memory->create(comall,maxchunk,3,"gyration/chunk:comall");
+  memory->create(origin,maxchunk,3,"gyration/chunk:origin");        // added by A.Vorontsov
   if (tensor) {
     memory->create(rgt,maxchunk,6,"gyration/chunk:rgt");
     memory->create(rgtall,maxchunk,6,"gyration/chunk:rgtall");
@@ -357,6 +389,7 @@ double ComputeGyrationChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
   bytes += (bigint) maxchunk * 2*3 * sizeof(double);
+  bytes += (bigint) maxchunk * 3 * sizeof(double);                 // added by A.Vorontsov
   if (tensor) bytes += (bigint) maxchunk * 2*6 * sizeof(double);
   else bytes += (bigint) maxchunk * 2 * sizeof(double);
   return bytes;

@@ -47,6 +47,7 @@ class ComputeAngmomChunk : public Compute {
   double *massproc,*masstotal;
   double **com,**comall;
   double **angmom,**angmomall;
+  double **origin;                   //added by A.Vorontsov
 
   void allocate();
 };

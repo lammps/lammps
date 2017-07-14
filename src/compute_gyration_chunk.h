@@ -51,6 +51,7 @@ class ComputeGyrationChunk : public Compute {
   double **com,**comall;
   double *rg,*rgall;
   double **rgt,**rgtall;
+  double **origin;            //added by A.Vorontsov
 
   void com_chunk();
   void allocate();

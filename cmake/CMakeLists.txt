@@ -5,6 +5,7 @@ set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../lib)
 
+# Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_C_FLAGS)
@@ -39,7 +40,7 @@ find_package(UnixCommands)
 
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
-set(PACKAGES ASPHERE REAX)
+set(PACKAGES ASPHERE KSPACE REAX)
 foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -48,6 +49,15 @@ set(ACCEL_PACKAGES USER-OMP)
 foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
+
+if(ENABLE_KSPACE)
+  find_package(FFTW3)
+  if(FFTW3_FOUND)
+    add_definitions(-DFFT_FFTW3)
+    include_directories(${FFTW3_INCLUDE_DIRS})
+    list(APPEND LAMMPS_LINK_LIBS ${FFTW3_LIBRARIES})
+  endif()
+endif()
 
 find_package(JPEG)
 if(JPEG_FOUND)

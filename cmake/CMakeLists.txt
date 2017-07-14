@@ -5,6 +5,8 @@ set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../lib)
 
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_C_FLAGS)
   #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
@@ -39,6 +41,11 @@ option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 set(PACKAGES ASPHERE REAX)
 foreach(PKG ${PACKAGES})
+  option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
+endforeach()
+
+set(ACCEL_PACKAGES USER-OMP)
+foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
@@ -101,13 +108,28 @@ if(NOT ENABLE_MPI)
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
 endif()
 
+include(StyleHeaderUtils)
+RegisterStyles(${LAMMPS_SOURCE_DIR})
+
+# packages which include entire content when enabled
+
 foreach(PKG ${PACKAGES})
   if(ENABLE_${PKG})
-    file(GLOB ${PKG}_SOURCES ${LAMMPS_SOURCE_DIR}/${PKG}/*.cpp)
+    set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
+
+    # detects styles in package and adds them to global list
+    RegisterStyles(${${PKG}_SOURCES_DIR})
+
+    file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
     list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
-    include_directories(${LAMMPS_SOURCE_DIR}/${PKG})
+    include_directories(${${PKG}_SOURCES_DIR})
   endif()
 endforeach()
+
+# packages which selectively include variants based on enabled styles
+# e.g. accelerator packages
+
+# TODO
 
 if(ENABLE_REAX)
   enable_language(Fortran)
@@ -115,10 +137,19 @@ if(ENABLE_REAX)
   list(APPEND LIB_SOURCES ${REAX_SOURCES})
   include_directories(${LAMMPS_LIB_SOURCE_DIR}/reax)
 endif()
+
+
+######################################################
+# Generate style headers based on global list of
+# styles registered during package selection           
+######################################################
+set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
+
+GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
+
 include_directories(${LAMMPS_SOURCE_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/Headers)
-configure_file(${CMAKE_SOURCE_DIR}/Headers/package.h.cmakein ${CMAKE_BINARY_DIR}/cmake/package.h)
-include_directories(${CMAKE_BINARY_DIR}/cmake)
+include_directories(${LAMMPS_STYLE_HEADERS_DIR})
+
 
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})

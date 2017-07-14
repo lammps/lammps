@@ -156,15 +156,16 @@ void ComputeCOMChunk::compute_array()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       domain->unmap(x[i],image[i],unwrap);
-      unwrap[0] -= origin[index][0];                        // added by A.Vorontsov
-      unwrap[1] -= origin[index][1];                        // added by A.Vorontsov
-      unwrap[2] -= origin[index][2];                        // added by A.Vorontsov
-      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]); // added by A.Vorontsov
 
-      massproc[index] += massone;
+      unwrap[0] -= origin[index][0];                          // added by A.Vorontsov
+      unwrap[1] -= origin[index][1];                          // added by A.Vorontsov
+      unwrap[2] -= origin[index][2];                          // added by A.Vorontsov
+      domain->minimum_image(unwrap[0],unwrap[1],unwrap[2]);   // added by A.Vorontsov
+
       com[index][0] += unwrap[0] * massone;
       com[index][1] += unwrap[1] * massone;
       com[index][2] += unwrap[2] * massone;
+      if (massneed) massproc[index] += massone;
     }
 
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
@@ -180,7 +181,8 @@ void ComputeCOMChunk::compute_array()
       comall[i][0] += origin[i][0];             // added by A.Vorontsov
       comall[i][1] += origin[i][1];             // added by A.Vorontsov
       comall[i][2] += origin[i][2];             // added by A.Vorontsov
-    }
+
+    } else comall[i][0] = comall[i][1] = comall[i][2] = 0.0;
   }
 }
 

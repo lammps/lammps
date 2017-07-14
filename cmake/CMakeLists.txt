@@ -50,11 +50,12 @@ if(JPEG_FOUND)
 endif()
 
 find_package(PNG)
-if(PNG_FOUND)
-  include_directories(${PNG_INCLUDE_DIR})
-  list(APPEND LAMMPS_LINK_LIBS ${PNG_LIBRARIES})
+find_package(ZLIB)
+if(PNG_FOUND AND ZLIB_FOUND)
+  include_directories(${PNG_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
   add_definitions(-DLAMMPS_PNG)
-endif(PNG_FOUND)
+endif()
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

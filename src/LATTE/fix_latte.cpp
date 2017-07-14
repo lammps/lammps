@@ -46,7 +46,8 @@ using namespace FixConst;
 
 extern "C" {
   void latte(int *, int *, double *, int *, int *,
-             double *, double *, double *, double *, int*,
+             double *, double *, double *, double *,
+             double *, double *, double *, int*,
              double *, double *, double *, double * );
 }
 
@@ -281,8 +282,9 @@ void FixLatte::post_force(int vflag)
   else forces = &atom->f[0][0];
 
   int maxiter = -1;
-
-  latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,
+  
+  latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
+        &domain->xz,&domain->yz,
         forces,&maxiter,&latte_energy,&atom->v[0][0],&update->dt,virial);
 
   // sum LATTE forces to LAMMPS (Coulombic) forces

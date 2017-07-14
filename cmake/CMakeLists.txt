@@ -57,6 +57,11 @@ if(PNG_FOUND AND ZLIB_FOUND)
   add_definitions(-DLAMMPS_PNG)
 endif()
 
+find_program(GZIP gzip)
+if(GZIP)
+  add_definitions(-DLAMMPS_GZIP)
+endif()
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################

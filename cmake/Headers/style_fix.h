@@ -82,6 +82,9 @@
 #include "fix_temp_csvr.h"
 #include "fix_temp_rescale.h"
 #include "fix_tmd.h"
+#ifdef ENABLE_KSPACE
+#include "fix_tune_kspace.h"
+#endif
 #include "fix_vector.h"
 #include "fix_viscous.h"
 #include "fix_wall_harmonic.h"

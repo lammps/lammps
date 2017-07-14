@@ -2105,6 +2105,14 @@ accordingly zero.
 This function should be kept in sync with bondorder(), i.e. changes
 there probably also need to be performed here.
 
+The OpenKIM Fortran implementation chooses option (1) instead, which
+means that the internal values computed by the two codes are not
+directly comparable.
+Note that of 7/2017 the OpenKIM code contains an issue where the it
+assumes dt2dij[] to be zero (since it is a r_ij derivative). This is
+incorrect since dt2dij is not a derivative of the scalar distance r_ij,
+but of the vector r_ij.
+
 */
 
 double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mod,

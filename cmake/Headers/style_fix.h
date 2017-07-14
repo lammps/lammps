@@ -62,6 +62,9 @@
 #include "fix_print.h"
 #include "fix_property_atom.h"
 #include "fix_read_restart.h"
+#ifdef ENABLE_REAX
+#include "fix_reax_bonds.h"
+#endif
 #include "fix_recenter.h"
 #include "fix_respa.h"
 #include "fix_restrain.h"

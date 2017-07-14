@@ -1,3 +1,4 @@
+#include "package.h"
 #include "balance.h"
 #include "change_box.h"
 #include "create_atoms.h"
@@ -19,5 +20,4 @@
 #include "write_coeff.h"
 #include "write_data.h"
 #include "write_dump.h"
-#include "package.h"
 #include "write_restart.h"

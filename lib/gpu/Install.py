@@ -8,14 +8,17 @@ import sys,os,re,commands
 # help message
 
 help = """
-Syntax: python Install.py -i isuffix -h hdir -a arch -p precision -e esuffix -m -o osuffix
-  specify one or more options, order does not matter
-  copies an existing Makefile.isuffix in lib/gpu to Makefile.auto 
-  optionally edits these variables in Makefile.auto:
-    CUDA_HOME, CUDA_ARCH, CUDA_PRECISION, EXTRAMAKE
-  optionally uses Makefile.auto to build the GPU library -> libgpu.a
-    and to copy a Makefile.lammps.esuffix -> Makefile.lammps
-  optionally copies Makefile.auto to a new Makefile.osuffix
+Syntax from src dir: make lib-gpu args="-i isuffix -h hdir -a arch -p precision -e esuffix -m -o osuffix"
+Syntax from lib dir: python Install.py -i isuffix -h hdir -a arch -p precision -e esuffix -m -o osuffix
+
+specify one or more options, order does not matter
+
+copies an existing Makefile.isuffix in lib/gpu to Makefile.auto 
+optionally edits these variables in Makefile.auto:
+  CUDA_HOME, CUDA_ARCH, CUDA_PRECISION, EXTRAMAKE
+optionally uses Makefile.auto to build the GPU library -> libgpu.a
+  and to copy a Makefile.lammps.esuffix -> Makefile.lammps
+optionally copies Makefile.auto to a new Makefile.osuffix
 
   -i = use Makefile.isuffix as starting point, copy to Makefile.auto
        default isuffix = linux
@@ -34,6 +37,12 @@ Syntax: python Install.py -i isuffix -h hdir -a arch -p precision -e esuffix -m 
        also copies EXTRAMAKE file -> Makefile.lammps
          -e can set which Makefile.lammps.esuffix file is copied
   -o = copy final Makefile.auto to Makefile.osuffix
+
+Examples:
+
+make lib-gpu args="-m"      # build GPU lib with default Makefile.linux
+make lib-gpu args="-i xk7 -p single -o xk7.single"      # create new Makefile.xk7.single, altered for single-precision
+make lib-gpu args="-i xk7 -p single -o xk7.single -m"   # ditto, also build GPU lib
 """
 
 # print error message or help

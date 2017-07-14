@@ -8,8 +8,11 @@ import sys,os,re,glob,commands
 # help message
 
 help = """
-Syntax: python Install.py -h hpath hdir -g -l
-  specify one or more options, order does not matter
+Syntax from src dir: make lib-smd args="-h hpath hdir -g -l"
+Syntax from lib dir: python Install.py -h hpath hdir -g -l
+
+specify one or more options, order does not matter
+
   -h = set home dir of Eigen to be hpath/hdir
        hpath can be full path, contain '~' or '.' chars
        default hpath = . = lib/smd
@@ -19,6 +22,10 @@ Syntax: python Install.py -h hpath hdir -g -l
        hpath must already exist
        if hdir already exists, it will be deleted before unpack
   -l = create softlink (includelink) in lib/smd to Eigen src dir
+
+Example:
+
+make lib-smd args="-g -l"   # download/build in default lib/smd/eigen-eigen-*
 """
 
 # settings

@@ -58,6 +58,7 @@ These are the sample problems and their output in the various
 sub-directories:
 
 accelerate: use of all the various accelerator packages
+airebo:   polyethylene with AIREBO potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field

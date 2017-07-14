@@ -8,8 +8,11 @@ import sys,os,re,urllib,commands
 # help message
 
 help = """
-Syntax: python Install.py -v version -h hpath hdir -g -b -l
-  specify one or more options, order does not matter
+Syntax from src dir: make lib-voronoi args="-v version -h hpath hdir -g -b -l"
+Syntax from lib dir: python Install.py -v version -h hpath hdir -g -b -l
+
+specify one or more options, order does not matter
+
   -v = version of Voro++ to download and build
        default version = voro++-0.4.6 (current as of Jan 2015)
   -h = set home dir of Voro++ to be hpath/hdir
@@ -22,6 +25,10 @@ Syntax: python Install.py -v version -h hpath hdir -g -b -l
        if hdir already exists, it will be deleted before unpack
   -b = build Voro++ library in its src dir
   -l = create 2 softlinks (includelink,liblink) in lib/voronoi to Voro++ src dir
+
+Example:
+
+make lib-voronoi args="-g -b -l"   # download/build in lib/voronoi/voro++-0.4.6
 """
 
 # settings

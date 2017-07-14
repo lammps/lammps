@@ -9,12 +9,21 @@ import sys,commands,os
 # help message
 
 help = """
-Syntax: python Install.py -m machine -e suffix
-  specify -m and optionally -e, order does not matter
+Syntax from src dir: make lib-libname args="-m machine -e suffix"
+Syntax from lib dir: python Install.py -m machine -e suffix
+
+libname = name of lib dir (e.g. atc, colvars, h5md, meam, poems, etc)
+specify -m and optionally -e, order does not matter
+
   -m = peform a clean followed by "make -f Makefile.machine"
        machine = suffix of a lib/Makefile.* file
   -e = set EXTRAMAKE variable in Makefile.machine to Makefile.lammps.suffix
        does not alter existing Makefile.machine
+
+Examplesx:
+
+make lib-colvars args="-m g++"     # build COLVARS lib with GNU g++ compiler
+make lib-meam args="-m ifort"      # build MEAM lib with Intel ifort compiler
 """
 
 # print error message or help

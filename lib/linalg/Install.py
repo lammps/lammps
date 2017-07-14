@@ -8,9 +8,15 @@ import sys,commands,os
 # help message
 
 help = """
-Syntax: python Install.py -m machine
+Syntax from src dir: make lib-linalg args="-m machine"
+Syntax from lib dir: python Install.py -m machine
+
   -m = peform a clean followed by "make -f Makefile.machine"
        machine = suffix of a lib/Makefile.* file
+
+Example:
+
+make lib-linalg args="-m gfortran"   # build with GNU Fortran compiler
 """
 
 # print error message or help

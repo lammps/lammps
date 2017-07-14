@@ -51,6 +51,14 @@ else()
   set(JPEG_LIBRARIES)
 endif()
 
+find_package(PNG)
+if(PNG_FOUND)
+  include_directories(${PNG_INCLUDE_DIR})
+  add_definitions(-DLAMMPS_PNG)
+else(PNG_FOUND)
+  set(PNG_LIBRARIES)
+endif(PNG_FOUND)
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -103,7 +111,7 @@ configure_file(${CMAKE_SOURCE_DIR}/Headers/package.h.cmakein ${CMAKE_BINARY_DIR}
 include_directories(${CMAKE_BINARY_DIR}/cmake)
 
 add_library(lammps ${LIB_SOURCES} ${MPI_SOURCES})
-target_link_libraries(lammps ${MPI_CXX_LIBRARIES} ${JPEG_LIBRARIES} ${MATH_LIBRARIES})
+target_link_libraries(lammps ${MPI_CXX_LIBRARIES} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${MATH_LIBRARIES})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
 install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 

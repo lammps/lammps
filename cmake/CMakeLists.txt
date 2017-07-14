@@ -29,14 +29,27 @@ if(ENABLE_MPI)
   include_directories(${MPI_C_INCLUDE_PATH})
   set(MPI_SOURCES)
 else()
-  file(GLOB MPI_SOURCES src/STUBS/mpi.c)
-  include_directories(src/STUBS)
+  file(GLOB MPI_SOURCES ${CMAKE_SOURCE_DIR}/../src/STUBS/mpi.c)
+  include_directories(${CMAKE_SOURCE_DIR}/../src/STUBS)
   set(MPI_CXX_LIBRARIES)
 endif()
 
 find_package(UnixCommands)
 
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
+
+set(PACKAGES ASPHERE)
+foreach(PKG ${PACKAGES})
+  option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
+endforeach()
+
+find_package(JPEG)
+if(JPEG_FOUND)
+  add_definitions(-DLAMMPS_JPEG)
+  include_directories(${JPEG_INCLUDE_DIR})
+else()
+  set(JPEG_LIBRARIES)
+endif()
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
@@ -66,16 +79,24 @@ endforeach(FUNC)
 #Do NOT go into src to not conflict with old Makefile build system
 #add_subdirectory(src)
 
-file(GLOB LIB_SOURCES src/*.cpp)
-file(GLOB LMP_SOURCES src/main.cpp)
+file(GLOB LIB_SOURCES ${CMAKE_SOURCE_DIR}/../src/*.cpp)
+file(GLOB LMP_SOURCES ${CMAKE_SOURCE_DIR}/../src/main.cpp)
 list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
 
-add_custom_target(style COMMAND ${BASH} Make.sh style WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
+foreach(PKG ${PACKAGES})
+  if(ENABLE_${PKG})
+    file(GLOB ${PKG}_SOURCES ${CMAKE_SOURCE_DIR}/../src/${PKG}/*.cpp)
+    list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
+    include_directories(${CMAKE_SOURCE_DIR}/../src/${PKG})
+  endif()
+endforeach()
+include_directories(${CMAKE_SOURCE_DIR}/../src)
+include_directories(${CMAKE_SOURCE_DIR}/Headers)
+configure_file(${CMAKE_SOURCE_DIR}/Headers/package.h.cmakein ${CMAKE_BINARY_DIR}/cmake/package.h)
+include_directories(${CMAKE_BINARY_DIR}/cmake)
+
 add_library(lammps ${LIB_SOURCES} ${MPI_SOURCES})
-add_dependencies(lammps style)
-# better but slower
-#add_custom_command(TARGET lammps PRE_BUILD COMMAND ${BASH} Make.sh style WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(lammps ${MPI_CXX_LIBRARIES} ${MATH_LIBRARIES})
+target_link_libraries(lammps ${MPI_CXX_LIBRARIES} ${JPEG_LIBRARIES} ${MATH_LIBRARIES})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
 install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 

@@ -26,6 +26,7 @@ include(CheckCCompilerFlag)
 # User input options                                                   #
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" OFF)
+option(INSTALL_LIB "Install lammps library and header" ON)
 include(GNUInstallDirs)
 
 set(LAMMPS_LINK_LIBS)
@@ -40,9 +41,10 @@ find_package(UnixCommands)
 
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
+option(ENABLE_ALL "Build all packages" OFF)
 set(PACKAGES ASPHERE BODY COLLOID CLASS2 COMPRESS CORESHELL DIPOLE GRANULAR KSPACE MC MOLECULE MANYBODY RIGID REAX)
 foreach(PKG ${PACKAGES})
-  option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
+  option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
 
 set(ACCEL_PACKAGES USER_OMP)
@@ -188,8 +190,19 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
-install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if(INSTALL_LIB)
+  install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(FILES ${LAMMPS_SOURCE_DIR}/lammps.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+elseif(NOT BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "Shared library has to install, use -DBUILD_SHARED_LIBS=OFF to install lammps with a a library")
+endif()
 
 add_executable(lmp ${LMP_SOURCES})
 target_link_libraries(lmp lammps)
-install(TARGETS lammps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+foreach(PKG ${PACKAGES} ${ACCEL_PACKAGES})
+  if(ENABLE_${PKG})
+    message(STATUS "Building package: ${PKG}")
+  endif()
+endforeach()

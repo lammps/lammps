@@ -994,7 +994,7 @@ double PairLJCharmmCoulLongSoft::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq) {
     philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
-      (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
+      (1.0/(denlj*denlj) - 1.0/denlj);
     if (rsq > cut_lj_innersq) {
       switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
         (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;

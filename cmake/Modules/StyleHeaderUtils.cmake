@@ -24,7 +24,7 @@ function(CreateStyleHeader path filename)
             set(temp "${temp}#include \"${FNAME}\"\n")
         endforeach()
     endif()
-    message("Generating ${filename}...")
+    message(STATUS "Generating ${filename}...")
     file(WRITE "${path}/${filename}" "${temp}" )
 endfunction(CreateStyleHeader)
 

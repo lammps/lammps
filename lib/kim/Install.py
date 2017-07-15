@@ -2,8 +2,8 @@
 
 # install.pa tool to setup the kim-api library
 # used to automate the steps described in the README file in this dir
-
-import sys,os,re,urllib,commands
+from __future__ import print_function
+import sys,os,re,urllib,subprocess
 
 help = """
 Syntax from src dir: make lib-kim args="-v version -b kim-install-dir kim-name -a kim-name"
@@ -42,7 +42,7 @@ in the "What is in the KIM API source package?" section
 """
 
 def error():
-  print help
+  print(help)
   sys.exit()
 
 # parse args
@@ -54,8 +54,8 @@ if nargs == 0: error()
 thisdir = os.environ['PWD']
 version = "kim-api-v1.8.2"
 
-buildflag = 0
-addflag = 0
+buildflag = False
+addflag = False
 
 iarg = 0
 while iarg < len(args):
@@ -64,13 +64,13 @@ while iarg < len(args):
     version = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-b":
-    buildflag = 1
+    buildflag = True
     if iarg+3 > len(args): error()
     dir = args[iarg+1]
     modelname = args[iarg+2]
     iarg += 3
   elif args[iarg] == "-a":
-    addflag = 1
+    addflag = True
     if iarg+2 > len(args): error()
     addmodelname = args[iarg+1]
     iarg += 2
@@ -82,176 +82,175 @@ url = "https://s3.openkim.org/kim-api/%s.tgz" % version
 # download KIM tarball, unpack, build KIM
 # either in lib/kim or user-requested location
 
-if buildflag == 1:
+if buildflag:
 
   # set install directory
-  dir = os.path.abspath(dir) + "/installed-" + version
+  dir = os.path.join(os.path.abspath(dir), "installed-" + version)
 
   # check to see if an installed kim-api already exists
 
   if os.path.isdir(dir):
-     print "kim-api is already installed at %s" % dir
-     print "Must remove this directory in order to resintall at this location"
+     print("kim-api is already installed at %s" % dir)
+     print("Must remove this directory in order to resintall at this location")
      sys.exit()
 
   # configure LAMMPS to use kim-api to be installed
 
-  mkfle = open("%s/Makefile.KIM_DIR" % thisdir, 'w')
-  mkfle.write("KIM_INSTALL_DIR=%s\n" % dir)
-  mkfle.write("\n")
-  mkfle.write(".DUMMY: print_dir\n")
-  mkfle.write("\n")
-  mkfle.write("print_dir:\n")
-  mkfle.write("	@printf $(KIM_INSTALL_DIR)\n")
-  mkfle.close()
-  open("%s/Makefile.KIM_Config" % thisdir, 'w'). \
-    write("include %s/lib/kim-api/Makefile.KIM_Config" % dir)
-  print "Created %s/Makefile.KIM_DIR : using %s" % (thisdir,dir)
+  with open("%s/Makefile.KIM_DIR" % thisdir, 'w') as mkfile:
+    mkfle.write("KIM_INSTALL_DIR=%s\n\n" % dir)
+    mkfle.write(".DUMMY: print_dir\n\n")
+    mkfle.write("print_dir:\n")
+    mkfle.write("	@printf $(KIM_INSTALL_DIR)\n")
+
+  with open("%s/Makefile.KIM_Config" % thisdir, 'w') as cfgfile:
+    cfgfile.write("include %s/lib/kim-api/Makefile.KIM_Config" % dir)
+
+  print("Created %s/Makefile.KIM_DIR : using %s" % (thisdir,dir))
 
   # download entire kim-api tarball
   # try first via urllib
   # if fails (probably due to no SSL support), use wget
 
-  print "Downloading kim-api tarball ..."
+  print("Downloading kim-api tarball ...")
 
   try: urllib.urlretrieve(url,"%s/%s.tgz" % (thisdir,version))
   except:
     cmd = "wget %s %s/%s.tgz" % (url,thisdir,version)
-    txt = commands.getstatusoutput(cmd)
-    print txt[1]
+    txt = subprocess.getstatusoutput(cmd)
+    print(txt[1])
     if not os.path.isfile("%s/%s.tgz" % (thisdir,version)):
-      print "Both urllib.urlretrieve() and wget command failed to download"
+      print("Both urllib.urlretrieve() and wget command failed to download")
       sys.exit()
 
-  print "Unpacking kim-api tarball ..."
+  print("Unpacking kim-api tarball ...")
   cmd = "cd %s; rm -rf %s; tar zxvf %s.tgz" % (thisdir,version,version)
-  txt = commands.getstatusoutput(cmd)
+  txt = subprocess.getstatusoutput(cmd)
   if txt[0] != 0: error()
 
   # configure kim-api
 
-  print "Configuring kim-api ..."
+  print("Configuring kim-api ...")
   cmd = "cd %s/%s; ./configure --prefix='%s'" % (thisdir,version,dir)
-  txt = commands.getstatusoutput(cmd)
-  print txt[1]
+  txt = subprocess.getstatusoutput(cmd)
+  print(txt[1])
   if txt[0] != 0: error()
 
   # build kim-api
 
-  print "Configuring model : %s" % modelname
+  print("Configuring model : %s" % modelname)
   if modelname == "none":
     cmd = "cd %s/%s; make add-examples" % (thisdir,version)
   else:
     if modelname == "OpenKIM":
-      print "configuring all OpenKIM models, this will take a while ..."
+      print("configuring all OpenKIM models, this will take a while ...")
     cmd = "cd %s/%s; make add-examples; make add-%s" % \
         (thisdir,version,modelname)
-  txt = commands.getstatusoutput(cmd)
-  print txt[1]
+  txt = subprocess.getstatusoutput(cmd)
+  print(txt[1])
   if txt[0] != 0: error()
 
-  print "Building kim-api ..."
+  print("Building kim-api ...")
   cmd = "cd %s/%s; make" % (thisdir,version)
-  txt = commands.getstatusoutput(cmd)
-  print txt[1]
+  txt = subprocess.getstatusoutput(cmd)
+  print(txt[1])
   if txt[0] != 0: error()
 
   # install kim-api
 
-  print "Installing kim-api ..."
+  print("Installing kim-api ...")
   cmd = "cd %s/%s; make install" % (thisdir,version)
-  txt = commands.getstatusoutput(cmd)
-  print txt[1]
+  txt = subprocess.getstatusoutput(cmd)
+  print(txt[1])
   if txt[0] != 0: error()
 
   cmd = "cd %s/%s; make install-set-default-to-v1" %(thisdir,version)
-  txt = commands.getstatusoutput(cmd)
-  print txt[1]
+  txt = subprocess.getstatusoutput(cmd)
+  print(txt[1])
   if txt[0] != 0: error()
 
   # remove source files
 
-  print "Removing kim-api source and build files ..."
+  print("Removing kim-api source and build files ...")
   cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" % (thisdir,version,version)
-  txt = commands.getstatusoutput(cmd)
-  print txt[1]
+  txt = subprocess.getstatusoutput(cmd)
+  print(txt[1])
   if txt[0] != 0: error()
 
 # add a single model (and possibly its driver) to existing KIM installation
 
-if addflag == 1:
+if addflag:
 
   # get location of installed kim-api
 
   if not os.path.isfile("%s/Makefile.KIM_DIR" % thisdir):
-    print "kim-api is not installed"
+    print("kim-api is not installed")
     error()
   else:
     cmd = "cd %s; make -f Makefile.KIM_DIR print_dir" % thisdir
-    dir = commands.getstatusoutput(cmd)[1]
+    dir = subprocess.getstatusoutput(cmd)[1]
 
   # download single model
   # try first via urllib
   # if fails (probably due to no SSL support), use wget
 
-  print "Downloading item tarball ..."
+  print("Downloading item tarball ...")
 
   url = "https://openkim.org/download/%s.tgz" % addmodelname
 
   try: urllib.urlretrieve(url,"%s/%s.tgz" % (thisdir,addmodelname))
   except:
     cmd = "wget %s %s/%s.tgz" % (url,thisdir,addmodelname)
-    txt = commands.getstatusoutput(cmd)
-    print txt[1]
+    txt = subprocess.getstatusoutput(cmd)
+    print(txt[1])
     if not os.path.isfile("%s/%s.tgz" % (thisdir,addmodelname)):
-      print "Both urllib.urlretrieve() and wget command failed to download"
+      print("Both urllib.urlretrieve() and wget command failed to download")
       sys.exit()
 
-  print "Unpacking item tarball ..."
+  print("Unpacking item tarball ...")
   cmd = "cd %s; tar zxvf %s.tgz" % (thisdir,addmodelname)
-  txt = commands.getstatusoutput(cmd)
+  txt = subprocess.getstatusoutput(cmd)
   if txt[0] != 0: error()
 
-  print "Building item ..."
+  print("Building item ...")
   cmd = "cd %s/%s; make; make install" %(thisdir,addmodelname)
-  txt = commands.getstatusoutput(cmd)
+  txt = subprocess.getstatusoutput(cmd)
   firstRunOutput = txt[1]
   if txt[0] != 0:
     # Error: but first, check to see if it needs a driver
 
     cmd = "cd %s/%s; make kim-item-type" % (thisdir,addmodelname)
-    txt = commands.getstatusoutput(cmd)
+    txt = subprocess.getstatusoutput(cmd)
     if txt[1] == "ParameterizedModel":
 
       # Get and install driver
 
       cmd = "cd %s/%s; make model-driver-name" % (thisdir,addmodelname)
-      txt = commands.getstatusoutput(cmd)
+      txt = subprocess.getstatusoutput(cmd)
       adddrivername = txt[1]
-      print "First Installing model driver: %s" % adddrivername
+      print("First Installing model driver: %s" % adddrivername)
       cmd = "cd %s; python Install.py -a %s" % (thisdir,adddrivername)
-      txt = commands.getstatusoutput(cmd)
+      txt = subprocess.getstatusoutput(cmd)
       if txt[0] != 0:
-         print firstRunOutput
-         print txt[1]
+         print(firstRunOutput)
+         print(txt[1])
          error()
       else:
-        print txt[1]
+        print(txt[1])
       cmd = "cd %s; python Install.py -a %s" % (thisdir,addmodelname)
-      txt = commands.getstatusoutput(cmd)
-      print txt[1]
+      txt = subprocess.getstatusoutput(cmd)
+      print(txt[1])
       if txt[0] != 0:
         error()
     else:
-      print firstRunOutput
+      print(firstRunOutput)
       error()
   else:
 
     # success
 
-    print firstRunOutput
-    print "Removing kim item source and build files ..."
+    print(firstRunOutput)
+    print("Removing kim item source and build files ...")
     cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" %(thisdir,addmodelname,addmodelname)
-    txt = commands.getstatusoutput(cmd)
-    print txt[1]
+    txt = subprocess.getstatusoutput(cmd)
+    print(txt[1])
     if txt[0] != 0: error()

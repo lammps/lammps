@@ -45,7 +45,7 @@ foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
-set(ACCEL_PACKAGES USER-OMP)
+set(ACCEL_PACKAGES USER_OMP)
 foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -139,7 +139,31 @@ endforeach()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 
-# TODO
+if(ENABLE_USER_OMP)
+    find_package(OpenMP REQUIRED)
+    if (OPENMP_FOUND)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    else()
+        message(FATAL_ERROR "USER-OMP requires a compiler with OpenMP support")
+    endif()
+
+    set(USER_OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
+    set(USER_OMP_SOURCES ${USER_OMP_SOURCES_DIR}/thr_data.cpp
+                         ${USER_OMP_SOURCES_DIR}/thr_omp.cpp
+                         ${USER_OMP_SOURCES_DIR}/fix_nh_omp.cpp
+                         ${USER_OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp)
+    set_property(GLOBAL PROPERTY "OMP_SOURCES" "${USER_OMP_SOURCES}")
+
+    # detects styles which have USER-OMP version
+    RegisterStylesExt(${USER_OMP_SOURCES_DIR} omp OMP_SOURCES)
+
+    get_property(USER_OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
+
+    list(APPEND LIB_SOURCES ${USER_OMP_SOURCES})
+    include_directories(${USER_OMP_SOURCES_DIR})
+endif()
+
 
 if(ENABLE_REAX)
   enable_language(Fortran)

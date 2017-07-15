@@ -242,7 +242,6 @@ void Pair::init()
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
       cut = init_one(i,j);
-      if (cut <= 0.0) error->all(FLERR,"Illegal pair style cutoff <= 0.0");
       cutsq[i][j] = cutsq[j][i] = cut*cut;
       cutforce = MAX(cutforce,cut);
       if (tail_flag) {

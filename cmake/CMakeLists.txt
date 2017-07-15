@@ -4,6 +4,7 @@ project(lammps)
 set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../lib)
+set(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib)
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
@@ -47,7 +48,7 @@ foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
 
-set(ACCEL_PACKAGES USER_OMP)
+set(ACCEL_PACKAGES USER_OMP KOKKOS)
 foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -59,6 +60,24 @@ if(ENABLE_KSPACE)
     include_directories(${FFTW3_INCLUDE_DIRS})
     list(APPEND LAMMPS_LINK_LIBS ${FFTW3_LIBRARIES})
   endif()
+endif()
+
+if(ENABLE_KOKKOS)
+  # starting with CMake 3.1 this is all you have to do to enforce C++11
+  set (CMAKE_CXX_STANDARD 11)
+  set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
+  set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
+  add_definitions(-DLMP_KOKKOS)
+  add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+  message("KOKKOS_DIRS: ${Kokkos_INCLUDE_DIRS}")
+
+  # TODO there probably is a better way
+  set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
+                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
+                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
+                          ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+  include_directories(${Kokkos_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${Kokkos_LIBRARIES})
 endif()
 
 find_package(JPEG)
@@ -166,6 +185,38 @@ if(ENABLE_USER_OMP)
     include_directories(${USER_OMP_SOURCES_DIR})
 endif()
 
+if(ENABLE_KOKKOS)
+    find_package(OpenMP REQUIRED)
+    if (OPENMP_FOUND)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    else()
+        message(FATAL_ERROR "USER-OMP requires a compiler with OpenMP support")
+    endif()
+
+    set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
+    set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/neighbor_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
+                           ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
+    set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
+
+    # detects styles which have KOKKOS version
+    RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
+
+    get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+
+    list(APPEND LIB_SOURCES ${KOKKOS_PKG_SOURCES})
+    include_directories(${KOKKOS_PKG_SOURCES_DIR})
+endif()
+
 
 if(ENABLE_REAX)
   enable_language(Fortran)
@@ -190,6 +241,11 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
+
+if(ENABLE_KOKKOS)
+    target_link_libraries(lammps kokkos)
+endif()
+
 if(INSTALL_LIB)
   install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${LAMMPS_SOURCE_DIR}/lammps.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -199,6 +255,7 @@ endif()
 
 add_executable(lmp ${LMP_SOURCES})
 target_link_libraries(lmp lammps)
+
 install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 foreach(PKG ${PACKAGES} ${ACCEL_PACKAGES})

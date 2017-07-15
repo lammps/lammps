@@ -4,9 +4,14 @@ import ctypes
 import traceback
 import numpy as np
 
-class LAMMPSIntegrator(object):
-    def __init__(self, ptr):
+class LAMMPSFix(object):
+    def __init__(self, ptr, group_name="all"):
         self.lmp = lammps.lammps(ptr=ptr)
+        self.group_name = group_name
+
+class LAMMPSIntegrator(LAMMPSFix):
+    def __init__(self, ptr, group_name="all"):
+        super(LAMMPSIntegrator, self).__init__(ptr, group_name)
 
     def init(self):
         pass
@@ -29,8 +34,9 @@ class LAMMPSIntegrator(object):
 
 class NVE(LAMMPSIntegrator):
     """ Python implementation of fix/nve """
-    def __init__(self, ptr):
+    def __init__(self, ptr, group_name="all"):
         super(NVE, self).__init__(ptr)
+        assert(self.group_name == "all")
 
     def init(self):
         dt = self.lmp.extract_global("dt", 1)
@@ -66,8 +72,9 @@ class NVE(LAMMPSIntegrator):
 
 class NVE_Opt(LAMMPSIntegrator):
     """ Tuned Python implementation of fix/nve """
-    def __init__(self, ptr):
+    def __init__(self, ptr, group_name="all"):
         super(NVE_Opt, self).__init__(ptr)
+        assert(self.group_name == "all")
 
     def init(self):
         dt = self.lmp.extract_global("dt", 1)

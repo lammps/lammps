@@ -43,7 +43,7 @@ option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 option(ENABLE_ALL "Build all packages" OFF)
 set(PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
   KSPACE MANYBODY MC MEAM MISC MOLECULE MSCG MPIIO PERI POEMS PYTHON QEQ
-  REAX REPLICA RIGID SHOCK SNAP SRD VORONOI)
+  REAX REPLICA RIGID SHOCK SNAP SRD VORONOI USER-ATC)
 foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
@@ -55,12 +55,13 @@ endforeach()
 
 macro(pkg_depends PKG1 PKG2)
   if(ENABLE_${PKG1} AND NOT ENABLE_${PKG2})
-    message(FATAL_ERROR "${PKG1} package needed to LAMMPS to be build with ${PKG2}")
+    message(FATAL_ERROR "${PKG1} package needs LAMMPS to be build with ${PKG2}")
   endif()
 endmacro()
 
 pkg_depends(MPIIO MPI)
 pkg_depends(QEQ MANYBODY)
+pkg_depends(USER-ATC MANYBODY)
 
 if(ENABLE_KSPACE)
   find_package(FFTW3)
@@ -84,6 +85,11 @@ if(ENABLE_KOKKOS)
                           ${LAMMPS_LIB_KOKKOS_BIN_DIR})
   include_directories(${Kokkos_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS kokkos)
+endif()
+
+if(ENABLE_MSCG OR ENABLE_USER-ATC)
+  find_package(LAPACK REQUIRED)
+  list(APPEND LAMMPS_LINK_LIBS ${LAPACK_LIBRARIES})
 endif()
 
 if(ENABLE_PYTHON)
@@ -195,8 +201,9 @@ if(ENABLE_USER_OMP OR ENABLE_KOKKOS)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-foreach(SIMPLE_LIB REAX MEAM POEMS)
+foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC)
   if(ENABLE_${SIMPLE_LIB})
+    string(REGEX REPLACE "^USER-" "" SIMPLE_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${SIMPLE_LIB}" INC_DIR)
     file(GLOB ${SIMPLE_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.F
       ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.cpp)
@@ -207,7 +214,6 @@ endforeach()
 
 if(ENABLE_MSCG)
   find_package(GSL REQUIRED)
-  find_package(LAPACK REQUIRED)
   set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/mscg)
   set(MSCG_TARBALL ${LAMMPS_LIB_MSCG_BIN_DIR}/MS-CG-master.zip)
   set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_MSCG_BIN_DIR}/MSCG-release-master/src)
@@ -229,7 +235,7 @@ if(ENABLE_MSCG)
       DIMENSION=3 _exclude_gromacs=1)
   endforeach()
   include_directories(${LAMMPS_LIB_MSCG_BIN_DIR} ${GSL_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES})
 endif()
 
 ######################################################################

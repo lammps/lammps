@@ -42,8 +42,8 @@ option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_ALL "Build all packages" OFF)
 set(PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MISC MOLECULE MSCG MPIIO PERI POEMS PYTHON RIGID QEQ
-  REAX)
+  KSPACE MANYBODY MC MEAM MISC MOLECULE MSCG MPIIO PERI POEMS PYTHON QEQ
+  REAX REPLICA RIGID SHOCK SNAP SRD VORONOI)
 foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
@@ -111,6 +111,13 @@ endif()
 find_program(GZIP gzip)
 if(GZIP)
   add_definitions(-DLAMMPS_GZIP)
+endif()
+
+if(ENABLE_VORONOI)
+  find_package(VORO REQUIRED) #some distros
+  include_directories(${VORO_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${VORO_LIBRARIES})
+  #TODO download and build voro++
 endif()
 
 ########################################################################

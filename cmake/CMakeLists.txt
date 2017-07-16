@@ -42,7 +42,7 @@ option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_ALL "Build all packages" OFF)
 set(PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
-	KSPACE MANYBODY MC MEAM MISC MOLECULE PYTHON RIGID REAX)
+	KSPACE MANYBODY MC MEAM MISC MOLECULE MPIIO PYTHON RIGID REAX)
 foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
@@ -51,6 +51,10 @@ set(ACCEL_PACKAGES USER_OMP KOKKOS)
 foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
+
+if(ENABLE_MPIIO AND NOT ENABLE_MPI)
+  message(FATAL_ERROR "MPIIO package needed to LAMMPS to be build with mpi")
+endif()
 
 if(ENABLE_KSPACE)
   find_package(FFTW3)

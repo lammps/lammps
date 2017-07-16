@@ -38,8 +38,6 @@ if(ENABLE_MPI)
   list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
 endif()
 
-find_package(UnixCommands)
-
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_ALL "Build all packages" OFF)
@@ -64,13 +62,10 @@ if(ENABLE_KSPACE)
 endif()
 
 if(ENABLE_KOKKOS)
-  # starting with CMake 3.1 this is all you have to do to enforce C++11
-  set (CMAKE_CXX_STANDARD 11)
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
   set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
   add_definitions(-DLMP_KOKKOS)
   add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-  message("KOKKOS_DIRS: ${Kokkos_INCLUDE_DIRS}")
 
   # TODO there probably is a better way
   set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
@@ -78,18 +73,14 @@ if(ENABLE_KOKKOS)
                           ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
                           ${LAMMPS_LIB_KOKKOS_BIN_DIR})
   include_directories(${Kokkos_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${Kokkos_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS kokkos)
 endif()
 
 if(ENABLE_PYTHON)
-  find_package(PythonLibs)
-  if(PYTHONLIBS_FOUND)
-    add_definitions(-DLMP_PYTHON)
-    include_directories(${PYTHON_INCLUDE_DIR})
-    list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  else()
-    message(FATAL_ERROR "Could not find needed Python libraries and headers")
-  endif()
+  find_package(PythonLibs REQUIRED)
+  add_definitions(-DLMP_PYTHON)
+  include_directories(${PYTHON_INCLUDE_DIR})
+  list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
 endif()
 
 find_package(JPEG)
@@ -169,18 +160,43 @@ foreach(PKG ${PACKAGES})
   endif()
 endforeach()
 
+if(ENABLE_REAX OR ENABLE_MEAM)
+  enable_language(Fortran)
+endif()
+
+
+if(ENABLE_KOKKOS)
+  # starting with CMake 3.1 this is all you have to do to enforce C++11
+  set(CMAKE_CXX_STANDARD 11) # C++11...
+  set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
+  set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+endif()
+
+if(ENABLE_USER_OMP OR ENABLE_KOKKOS)
+  find_package(OpenMP REQUIRED)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
+
+if(ENABLE_REAX)
+  file(GLOB REAX_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/reax/*.F)
+  list(APPEND LIB_SOURCES ${REAX_SOURCES})
+  include_directories(${LAMMPS_LIB_SOURCE_DIR}/reax)
+endif()
+
+if(ENABLE_MEAM)
+  file(GLOB MEAM_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/meam/*.F ${LAMMPS_LIB_SOURCE_DIR}/meam/*.c)
+  list(APPEND LIB_SOURCES ${MEAM_SOURCES})
+  include_directories(${LAMMPS_LIB_SOURCE_DIR}/meam)
+endif()
+
+######################################################################
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
+######################################################################
 
 if(ENABLE_USER_OMP)
-    find_package(OpenMP REQUIRED)
-    if (OPENMP_FOUND)
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    else()
-        message(FATAL_ERROR "USER-OMP requires a compiler with OpenMP support")
-    endif()
-
     set(USER_OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
     set(USER_OMP_SOURCES ${USER_OMP_SOURCES_DIR}/thr_data.cpp
                          ${USER_OMP_SOURCES_DIR}/thr_omp.cpp
@@ -198,14 +214,6 @@ if(ENABLE_USER_OMP)
 endif()
 
 if(ENABLE_KOKKOS)
-    find_package(OpenMP REQUIRED)
-    if (OPENMP_FOUND)
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    else()
-        message(FATAL_ERROR "USER-OMP requires a compiler with OpenMP support")
-    endif()
-
     set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
     set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                            ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
@@ -230,23 +238,6 @@ if(ENABLE_KOKKOS)
 endif()
 
 
-if(ENABLE_REAX OR ENABLE_MEAM)
-  enable_language(Fortran)
-endif()
-
-if(ENABLE_REAX)
-  file(GLOB REAX_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/reax/*.F)
-  list(APPEND LIB_SOURCES ${REAX_SOURCES})
-  include_directories(${LAMMPS_LIB_SOURCE_DIR}/reax)
-endif()
-
-if(ENABLE_MEAM)
-  file(GLOB MEAM_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/meam/*.F ${LAMMPS_LIB_SOURCE_DIR}/meam/*.c)
-  list(APPEND LIB_SOURCES ${MEAM_SOURCES})
-  include_directories(${LAMMPS_LIB_SOURCE_DIR}/meam)
-endif()
-
-
 ######################################################
 # Generate style headers based on global list of
 # styles registered during package selection           
@@ -262,10 +253,6 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
-
-if(ENABLE_KOKKOS)
-    target_link_libraries(lammps kokkos)
-endif()
 
 if(INSTALL_LIB)
   install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})

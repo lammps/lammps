@@ -42,7 +42,7 @@ option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_ALL "Build all packages" OFF)
 set(PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
-	KSPACE MANYBODY MC MEAM MISC MOLECULE MPIIO PYTHON RIGID REAX)
+    KSPACE MANYBODY MC MEAM MISC MOLECULE MSCG MPIIO PYTHON RIGID REAX)
 foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
@@ -169,7 +169,7 @@ if(ENABLE_REAX OR ENABLE_MEAM)
 endif()
 
 
-if(ENABLE_KOKKOS)
+if(ENABLE_KOKKOS OR ENABLE_MSCG)
   # starting with CMake 3.1 this is all you have to do to enforce C++11
   set(CMAKE_CXX_STANDARD 11) # C++11...
   set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
@@ -193,6 +193,33 @@ if(ENABLE_MEAM)
   file(GLOB MEAM_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/meam/*.F ${LAMMPS_LIB_SOURCE_DIR}/meam/*.c)
   list(APPEND LIB_SOURCES ${MEAM_SOURCES})
   include_directories(${LAMMPS_LIB_SOURCE_DIR}/meam)
+endif()
+
+if(ENABLE_MSCG)
+  find_package(GSL REQUIRED)
+  find_package(LAPACK REQUIRED)
+  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/mscg)
+  set(MSCG_TARBALL ${LAMMPS_LIB_MSCG_BIN_DIR}/MS-CG-master.zip)
+  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_MSCG_BIN_DIR}/MSCG-release-master/src)
+  if(NOT EXISTS ${LAMMPS_LIB_MSCG_BIN_DIR})
+    if(NOT EXISTS ${MSCG_TARBALL})
+      message(STATUS "Downloading ${MSCG_TARBALL}")
+      file(DOWNLOAD
+        https://github.com/uchicago-voth/MSCG-release/archive/master.zip
+        ${MSCG_TARBALL} SHOW_PROGRESS) #EXPECTED_MD5 cannot be due due to master
+    endif()
+    message(STATUS "Unpacking ${MSCG_TARBALL}")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${MSCG_TARBALL}
+      WORKING_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/mscg)
+  endif()
+  file(GLOB MSCG_SOURCES ${LAMMPS_LIB_MSCG_BIN_DIR}/*.cpp)
+  list(APPEND LIB_SOURCES ${MSCG_SOURCES})
+  foreach(MSCG_SOURCE ${MSCG_SOURCES})
+    set_property(SOURCE ${MSCG_SOURCE} APPEND PROPERTY COMPILE_DEFINITIONS
+      DIMENSION=3 _exclude_gromacs=1)
+  endforeach()
+  include_directories(${LAMMPS_LIB_MSCG_BIN_DIR} ${GSL_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 ######################################################################

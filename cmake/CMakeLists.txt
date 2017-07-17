@@ -421,6 +421,7 @@ endif()
 
 if(ENABLE_GPU)
     find_package(CUDA REQUIRED)
+    include_directories(${CUDA_TOOLKIT_INCLUDE})
 
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h)

@@ -60,7 +60,7 @@ foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
 
-set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL)
+set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -383,6 +383,29 @@ if(ENABLE_USER-INTEL)
 
     list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
     include_directories(${USER-INTEL_SOURCES_DIR})
+endif()
+
+if(ENABLE_GPU)
+    find_package(CUDA REQUIRED)
+
+    set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
+    set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h)
+
+    set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
+
+    # detects styles which have GPU version
+    RegisterStylesExt(${GPU_SOURCES_DIR} opt GPU_SOURCES)
+
+    get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
+
+    
+    file(GLOB_RECURSE GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp
+      ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu
+    cuda_add_library(lammps_gpu ${GPU_LIB_SOURCES})
+
+    list(APPEND LAMMPS_LINK_LIBS lammps_gpu)
+    list(APPEND LIB_SOURCES ${GPU_SOURCES})
+    include_directories(${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu)
 endif()
 
 ######################################################

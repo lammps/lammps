@@ -6,6 +6,10 @@ set(LAMMPS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../lib)
 set(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib)
 
+file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/*.cpp)
+file(GLOB LMP_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
+list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
+
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
@@ -113,9 +117,14 @@ if(ENABLE_KOKKOS)
 endif()
 
 if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
-  find_package(LAPACK REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${LAPACK_LIBRARIES})
-  #TODO use lib/lapack
+  find_package(LAPACK)
+  if(LAPACK_FOUND)
+    list(APPEND LAMMPS_LINK_LIBS ${LAPACK_LIBRARIES})
+  else()
+    enable_language(Fortran)
+    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.f)
+    list(APPEND LIB_SOURCES ${LAPACK_SOURCES})
+  endif()
 endif()
 
 if(ENABLE_PYTHON)
@@ -201,10 +210,6 @@ list(APPEND LAMMPS_LINK_LIBS ${MATH_LIBRARIES})
 
 #Do NOT go into src to not conflict with old Makefile build system
 #add_subdirectory(src)
-
-file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/*.cpp)
-file(GLOB LMP_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
-list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
 
 if(NOT ENABLE_MPI)
   file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)

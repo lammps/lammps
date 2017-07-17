@@ -47,7 +47,7 @@ set(PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
   USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD 
-  USER-SMTBQ USER-SPH USER-TALLY USER-VTK)
+  USER-SMTBQ USER-SPH USER-TALLY USER-VTK USER-QUIP)
 foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
@@ -70,6 +70,23 @@ pkg_depends(USER-H5MD MPI)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
+
+if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP)
+  enable_language(Fortran)
+endif()
+
+if(ENABLE_KOKKOS OR ENABLE_MSCG)
+  # starting with CMake 3.1 this is all you have to do to enforce C++11
+  set(CMAKE_CXX_STANDARD 11) # C++11...
+  set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
+  set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+endif()
+
+if(ENABLE_USER-OMP OR ENABLE_KOKKOS)
+  find_package(OpenMP REQUIRED)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 if(ENABLE_KSPACE)
   find_package(FFTW3)
@@ -95,7 +112,7 @@ if(ENABLE_KOKKOS)
   list(APPEND LAMMPS_LINK_LIBS kokkos)
 endif()
 
-if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD)
+if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
   find_package(LAPACK REQUIRED)
   list(APPEND LAMMPS_LINK_LIBS ${LAPACK_LIBRARIES})
   #TODO use lib/lapack
@@ -149,6 +166,11 @@ endif()
 if(ENABLE_USER-SMD)
   find_package(Eigen3 REQUIRED)
   include_directories(${EIGEN3_INCLUDE_DIR})
+endif()
+
+if(ENABLE_USER-QUIP)
+  find_package(QUIP REQUIRED)
+  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 ########################################################################
@@ -207,24 +229,6 @@ foreach(PKG ${PACKAGES})
     include_directories(${${PKG}_SOURCES_DIR})
   endif()
 endforeach()
-
-if(ENABLE_REAX OR ENABLE_MEAM)
-  enable_language(Fortran)
-endif()
-
-
-if(ENABLE_KOKKOS OR ENABLE_MSCG)
-  # starting with CMake 3.1 this is all you have to do to enforce C++11
-  set(CMAKE_CXX_STANDARD 11) # C++11...
-  set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
-  set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-endif()
-
-if(ENABLE_USER-OMP OR ENABLE_KOKKOS)
-  find_package(OpenMP REQUIRED)
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
 
 foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
   USER-MOLFILE)

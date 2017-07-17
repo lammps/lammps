@@ -33,28 +33,41 @@ class FixNVESpin : public FixNVE {
   virtual void initial_integrate(int);
   void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
-
-//#define SEQ
-#define SEQNEI   
   void ComputeSpinInteractions();   
-  void ComputeSpinInteractionsNei(int);   
+  void ComputeSpinInteractionsNeigh(int);   
+  
+//#define SECTORING
+#if defined SECTORING
+  void sectoring();
+  int coords2sector(double *);
+#endif  
 
  protected:
   int extra;
   double dts;
-  //double alpha_t;
- 
-#if defined SEQNEI 
- private:
+  
   int exch_flag, dmi_flag, me_flag;
   int zeeman_flag, aniso_flag;
+  int tdamp_flag, temp_flag;
+
   class PairSpin *lockpairspin;
-  double *spi, *fmi, *fmj; //Temp var. for compute
   class FixForceSpin *lockforcespin;
+  class FixLangevinSpin *locklangevinspin; 
+
+  double *spi, *spj, *fmi, *fmj; //Temp var. for compute
+  double *xi;
+ 
+#if defined SECTORING 
+  int nsectors;
+  int *sec;
+  int *seci;
+  double *rsec;
 #endif
 
- //private:
-  //class FixSpinDamping *lockspindamping;
+//#define SECTOR_PRINT
+#if defined SECTOR_PRINT
+  FILE* file_sect=NULL;
+#endif
 };
 
 }

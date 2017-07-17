@@ -33,10 +33,12 @@ class FixLangevinSpin : public Fix {
   void setup(int);
   virtual void post_force(int);
   void post_force_respa(int, int, int);
+  void add_tdamping(double *, double *);
+  void add_temperature(double *);
+  int tdamp_flag, ldamp_flag, temp_flag;
 
  protected:
-  //First mag. quantities
-  int transv_damp_flag, long_damp_flag; //Flags for transverse or longitudinal mag. dampings
+  double *spi, *fmi;
   double alpha_t, alpha_l; //Transverse and long. damping value
   double dts,temp,D,sigma;//timestep, temp, noise  
   double Gil_factor;//Gilbert's prefactor 

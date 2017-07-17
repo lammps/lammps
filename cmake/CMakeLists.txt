@@ -56,7 +56,7 @@ foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
 
-set(ACCEL_PACKAGES USER-OMP KOKKOS OPT)
+set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL)
 foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -86,7 +86,7 @@ if(ENABLE_KOKKOS OR ENABLE_MSCG)
   set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 endif()
 
-if(ENABLE_USER-OMP OR ENABLE_KOKKOS)
+if(ENABLE_USER-OMP OR ENABLE_KOKKOS OR ENABLE_USER-INTEL)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -363,6 +363,29 @@ if(ENABLE_OPT)
     include_directories(${OPT_SOURCES_DIR})
 endif()
 
+if(ENABLE_USER-INTEL)
+    set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
+    set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/intel_preprocess.h
+                           ${USER-INTEL_SOURCES_DIR}/intel_buffers.h
+                           ${USER-INTEL_SOURCES_DIR}/intel_buffers.cpp
+                           ${USER-INTEL_SOURCES_DIR}/math_extra_intel.h
+                           ${USER-INTEL_SOURCES_DIR}/nbin_intel.h
+                           ${USER-INTEL_SOURCES_DIR}/nbin_intel.cpp
+                           ${USER-INTEL_SOURCES_DIR}/npair_intel.h
+                           ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp
+                           ${USER-INTEL_SOURCES_DIR}/intel_simd.h
+                           ${USER-INTEL_SOURCES_DIR}/intel_intrinsics.h)
+
+    set_property(GLOBAL PROPERTY "USER-INTEL_SOURCES" "${USER-INTEL_SOURCES}")
+
+    # detects styles which have USER-INTEL version
+    RegisterStylesExt(${USER-INTEL_SOURCES_DIR} opt USER-INTEL_SOURCES)
+
+    get_property(USER-INTEL_SOURCES GLOBAL PROPERTY USER-INTEL_SOURCES)
+
+    list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
+    include_directories(${USER-INTEL_SOURCES_DIR})
+endif()
 
 ######################################################
 # Generate style headers based on global list of

@@ -8,15 +8,22 @@
 
 find_path(QE_INCLUDE_DIR libqecouple.h PATH_SUFFIXES COUPLE/include)
 
-find_library(QE_LIBRARY NAMES libqefft)
+find_library(QECOUPLE_LIBRARY NAMES qecouple)
+find_library(PW_LIBRARY NAMES pw)
+find_library(QEMOD_LIBRARY NAMES qemod)
+find_library(QEFFT_LIBRARY NAMES qefft)
+find_library(QELA_LIBRARY NAMES qela)
+find_library(CLIB_LIBRARY NAMES clib)
+find_library(IOTK_LIBRARY NAMES iotk)
 
-set(QE_LIBRARIES ${QE_LIBRARY})
+
+set(QE_LIBRARIES ${QECOUPLE_LIBRARY} ${PW_LIBRARY} ${QEMOD_LIBRARY} ${QEFFT_LIBRARY} ${QELA_LIBRARY} ${CLIB_LIBRARY} ${IOTK_LIBRARY})
 set(QE_INCLUDE_DIRS ${QE_INCLUDE_DIR})
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set QE_FOUND to TRUE
 # if all listed variables are TRUE
 
-find_package_handle_standard_args(QE DEFAULT_MSG QE_LIBRARY QE_INCLUDE_DIR)
+find_package_handle_standard_args(QE DEFAULT_MSG QECOUPLE_LIBRARY PW_LIBRARY QEMOD_LIBRARY QEFFT_LIBRARY QELA_LIBRARY CLIB_LIBRARY IOTK_LIBRARY QE_INCLUDE_DIR)
 
-mark_as_advanced(QE_INCLUDE_DIR QE_LIBRARY )
+mark_as_advanced(QE_INCLUDE_DIR QECOUPLE_LIBRARY PW_LIBRARY QEMOD_LIBRARY QEFFT_LIBRARY QELA_LIBRARY CLIB_LIBRARY IOTK_LIBRARY)

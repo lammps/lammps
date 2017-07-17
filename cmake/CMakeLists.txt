@@ -75,7 +75,7 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
 
-if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP)
+if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM)
   enable_language(Fortran)
 endif()
 
@@ -185,7 +185,7 @@ endif()
 if(ENABLE_USER-QMMM)
   find_package(QE REQUIRED)
   include_directories(${QE_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 ########################################################################

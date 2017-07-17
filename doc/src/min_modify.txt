@@ -14,11 +14,12 @@ min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
 keyword = {dmax} or {line} or {delaystep} or {dt_grow} or {dt_shrink}
-          or {alpha0} or {alpha_shrink} or {tmax} or {tmin}
+          or {alpha0} or {alpha_shrink} or {tmax} or {tmin} or {integrator}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero}
     backtrack,quadratic,forcezero = style of linesearch to use
+  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}  for adaptglok :pre
   {delaystep} value = {int} for adaptglok
   {dt_grow} value = {float}  for adaptglok
   {dt_shrink} value = {float}  for adaptglok
@@ -74,10 +75,10 @@ that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 
 The style {adaptglok} has several parameters that can be tuned in order
-to optimize the relaxation: {delaystep}, {dt_grow}, {dt_shrink}, 
+to optimize the relaxation: {integrator}, {delaystep}, {dt_grow}, {dt_shrink}, 
 {alpha0}, {alpha_shrink}, {tmax} and {tmin}. The default values have 
 been chosen to be reliable in most cases, but one could be willing 
-to adapt them for particular cases. 
+to adapt them for particular cases.
 
 [Restrictions:] none
 
@@ -87,6 +88,6 @@ to adapt them for particular cases.
 
 [Default:]
 
-The option defaults are dmax = 0.1,  line = quadratic, delaystep = 20, 
+The option defaults are dmax = 0.1,  line = quadratic, integrator = eulerimplicit, delaystep = 20, 
 dt_grow = 1.1, dt_shrink = 0.5, alpha0 = 0.25, alpha_shrink = 0.99, 
 tmax = 2.0 and tmin = 0.02.

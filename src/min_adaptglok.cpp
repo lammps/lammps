@@ -92,6 +92,10 @@ int MinAdaptGlok::iterate(int maxiter)
     double *mass = atom->mass;
     int *type = atom->type;
     int nlocal = atom->nlocal;
+
+    energy_force(0);
+    neval++;
+
     dtf = 0.5 * dt * force->ftm2v;
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {
@@ -277,6 +281,10 @@ int MinAdaptGlok::iterate(int maxiter)
       }
     }
 
+    eprevious = ecurrent;
+    ecurrent = energy_force(0);
+    neval++;
+
 
   // Velocity Verlet integration
 
@@ -316,8 +324,9 @@ int MinAdaptGlok::iterate(int maxiter)
       }
     }
     
-    double **f = atom->f;
-    double **v = atom->v;
+    eprevious = ecurrent;
+    ecurrent = energy_force(0);
+    neval++;
 
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {
@@ -373,6 +382,10 @@ int MinAdaptGlok::iterate(int maxiter)
       }
     }
 
+    eprevious = ecurrent;
+    ecurrent = energy_force(0);
+    neval++;
+
   // Standard Euler integration
 
   }else if (integrator == 3) {
@@ -411,11 +424,11 @@ int MinAdaptGlok::iterate(int maxiter)
       }
     }
 
-  }
-
     eprevious = ecurrent;
     ecurrent = energy_force(0);
     neval++;
+
+  }
 
     // energy tolerance criterion
     // only check after delaystep elapsed since velocties reset to 0

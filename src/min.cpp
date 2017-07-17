@@ -682,10 +682,10 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;       
      } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"euler") == 0) integrator = 0;
+      if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = 0;
       else if (strcmp(arg[iarg+1],"verlet") == 0) integrator = 1;
       else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = 2;
-      else if (strcmp(arg[iarg+1],"eulerstandard") == 0) integrator = 3;
+      else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = 3;
      else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;       
    } else if (strcmp(arg[iarg],"line") == 0) {

@@ -400,7 +400,7 @@ if(ENABLE_GPU)
 
     
     file(GLOB_RECURSE GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp
-      ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu
+      ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
     cuda_add_library(lammps_gpu ${GPU_LIB_SOURCES})
 
     list(APPEND LAMMPS_LINK_LIBS lammps_gpu)

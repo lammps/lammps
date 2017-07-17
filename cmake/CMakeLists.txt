@@ -187,6 +187,11 @@ if(GZIP)
   add_definitions(-DLAMMPS_GZIP)
 endif()
 
+find_program(FFMPEG ffmpeg)
+if(FFMPEG)
+  add_definitions(-DLAMMPS_FFMPEG)
+endif()
+
 if(ENABLE_VORONOI)
   find_package(VORO REQUIRED) #some distros
   include_directories(${VORO_INCLUDE_DIRS})

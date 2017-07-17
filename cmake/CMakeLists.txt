@@ -54,6 +54,10 @@ else()
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
 endif()
 
+set(LAMMPS_SIZE_LIMIT "LAMMPS_SMALLBIG" CACHE STRING "Lammps size limit")
+set_property(CACHE LAMMPS_SIZE_LIMIT PROPERTY STRINGS LAMMPS_SMALLBIG LAMMPS_BIGBIG LAMMPS_SMALLSMALL)
+add_definitions(-D${LAMMPS_SIZE_LIMIT})
+
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_ALL "Build all packages" OFF)

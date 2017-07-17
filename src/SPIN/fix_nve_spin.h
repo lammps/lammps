@@ -36,7 +36,7 @@ class FixNVESpin : public FixNVE {
   void ComputeSpinInteractions();   
   void ComputeSpinInteractionsNeigh(int);   
   
-#define SECTORING
+//#define SECTORING
 #if defined SECTORING
   void sectoring();
   int coords2sector(double *);

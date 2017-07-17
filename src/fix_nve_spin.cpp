@@ -27,14 +27,13 @@
 #include "modify.h" 
 
 //Add headers (see delete later)
-#include "pair.h"
-#include "timer.h"
-#include "integrate.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "pair.h"
 #include "pair_spin.h"
 #include "memory.h"
 #include "fix_force_spin.h"
+#include "fix_langevin_spin.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -65,23 +64,32 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix nve/spin requires spin attribute mumag");
 
-#if defined SEQNEI
-  lockpairspin = NULL;
-  lockforcespin = NULL;
   exch_flag = dmi_flag = me_flag = 0;
   zeeman_flag = aniso_flag = 0;
-#endif 
+  tdamp_flag = temp_flag = 0;
+
+  lockpairspin = NULL;
+  lockforcespin = NULL;
+  locklangevinspin = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 FixNVESpin::~FixNVESpin(){
-#if defined SEQNEI
   //delete lockpairspin;
   //delete lockforcespin;
+  memory->destroy(xi);
+#if defined SECTORING  
+  memory->destroy(sec);
+  memory->destroy(rsec);
+  memory->destroy(seci);
+#endif
+#if defined SECTOR_PRINT
+  fclose(file_sect);
+#endif
   memory->destroy(spi);
+  memory->destroy(spj);
   memory->destroy(fmi);
   memory->destroy(fmj);
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,18 +99,27 @@ void FixNVESpin::init()
   FixNVE::init();       
   
   dts = update->dt;
-
-  #if defined SEQNEI
-  lockpairspin = (PairSpin *) force->pair;
-
+  memory->create(xi,3,"nves:xi");
+#if defined SECTORING
+  memory->create(sec,3,"nves:sec");
+  memory->create(rsec,3,"nves:rsec");
+  memory->create(seci,3,"nves:seci");
+#endif
   memory->create(spi,3,"nves:spi");
+  memory->create(spj,3,"nves:spj");
   memory->create(fmi,3,"nves:fmi");
   memory->create(fmj,3,"nves:fmj");
+
+  lockpairspin = (PairSpin *) force->pair;
 
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++)
     if (strstr(modify->fix[iforce]->style,"force/spin")) break;
   lockforcespin = (FixForceSpin *) modify->fix[iforce]; 
+
+  for (iforce = 0; iforce < modify->nfix; iforce++)
+    if (strstr(modify->fix[iforce]->style,"langevin/spin")) break;
+  locklangevinspin = (FixLangevinSpin *) modify->fix[iforce]; 
 
   exch_flag = lockpairspin->exch_flag;
   dmi_flag = lockpairspin->dmi_flag;
@@ -110,17 +127,28 @@ void FixNVESpin::init()
 
   zeeman_flag = lockforcespin->zeeman_flag;
   aniso_flag = lockforcespin->aniso_flag;
-  #endif
-  
-  /*int idamp;
-  for (idamp = 0; idamp < modify->nfix; idamp++)
-    if (strstr(modify->fix[idamp]->style,"damping/spin")) break;
-  if (idamp == modify->nfix)
-    error->all(FLERR,"Integration of spin systems requires use of fix damping (set damping to 0.0 for NVE)");
-  
-  lockspindamping = (FixSpinDamping *) modify->fix[idamp]; 
-  alpha_t = lockspindamping->get_damping(0); 
-  */
+
+  tdamp_flag = locklangevinspin->tdamp_flag;
+  temp_flag = locklangevinspin->temp_flag;
+
+
+#if defined SECTORING 
+  sectoring();
+#endif
+
+#if defined SECTOR_PRINT
+  file_sect=fopen("sectoring.lammpstrj", "w");
+  fprintf(file_sect,"ITEM: TIMESTEP\n");
+  fprintf(file_sect,"%g\n",0.0);
+  fprintf(file_sect,"ITEM: NUMBER OF ATOMS\n");
+  //int natoms = atom->natoms;
+  int natoms = atom->nlocal;
+  fprintf(file_sect,"%d\n",natoms);
+  fprintf(file_sect,"ITEM: BOX BOUNDS\n");
+  for(int d=0; d<3; d++) fprintf(file_sect,"%lf %lf\n",domain->boxlo[d],domain->boxhi[d]);
+  fprintf(file_sect,"ITEM: ATOMS type x y z vx vy vz\n"); 
+#endif
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,22 +170,6 @@ void FixNVESpin::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;  
 
-  // Advance half spins all particles
-  //See Omelyan et al., PRL 86, 2001 and P.W. Ma et al, PRB 83, 2011
-  if (extra == SPIN) {
-#if defined SEQNEI
-    for (int i = 0; i < nlocal; i++){
-      ComputeSpinInteractionsNei(i);
-      AdvanceSingleSpin(i,0.5*dts,sp,fm);
-    }
-#endif
-#if defined SEQ
-    for (int i = 0; i < nlocal; i++){
-      AdvanceSingleSpin(i,0.5*dts,sp,fm);
-      ComputeSpinInteractions();
-    }
-#endif 
-  }
   
   // update half v all particles
   for (int i = 0; i < nlocal; i++) {
@@ -170,6 +182,59 @@ void FixNVESpin::initial_integrate(int vflag)
       }
   }
 
+  // update half x for all particles
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      x[i][0] += 0.5 * dtv * v[i][0];
+      x[i][1] += 0.5 * dtv * v[i][1];
+      x[i][2] += 0.5 * dtv * v[i][2];
+      }
+  }
+
+#if defined SECTORING
+  int nseci;
+  // Seq. update spins for all particles
+  if (extra == SPIN) {
+    for (int j = 0; j < nsectors; j++) { 
+      comm->forward_comm();
+      for (int i = 0; i < nlocal; i++) {
+        xi[0] = x[i][0];
+        xi[1] = x[i][1];
+        xi[2] = x[i][2];
+        nseci = coords2sector(xi);
+        if (j != nseci) continue;
+        ComputeSpinInteractionsNeigh(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }    
+    }
+    for (int j = nsectors-1; j >= 0; j--) { 
+      comm->forward_comm();
+      for (int i = nlocal-1; i >= 0; i--) {
+        xi[0] = x[i][0];
+        xi[1] = x[i][1];
+        xi[2] = x[i][2];
+        nseci = coords2sector(xi);
+        if (j != nseci) continue;
+        ComputeSpinInteractionsNeigh(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }    
+    }
+  }
+#else 
+  // Seq. update spins for all particles
+  if (extra == SPIN) {
+    for (int i = 0; i < nlocal; i++){
+      ComputeSpinInteractionsNeigh(i);
+      AdvanceSingleSpin(i,0.5*dts,sp,fm);
+    }
+
+    for (int i = nlocal-1; i >= 0; i--){
+      ComputeSpinInteractionsNeigh(i);
+      AdvanceSingleSpin(i,0.5*dts,sp,fm);
+    }
+  }
+#endif
+  
   // update x for all particles
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -177,26 +242,32 @@ void FixNVESpin::initial_integrate(int vflag)
       x[i][1] += 0.5 * dtv * v[i][1];
       x[i][2] += 0.5 * dtv * v[i][2];
       }
-  }  
+  }
+
+
+#if defined SECTOR_PRINT
+  int my_rank;
+  MPI_Comm_rank(world, &my_rank);
+  if (my_rank == 0) { 
+  for (int j = 0; j < nsectors; j++) { 
+    for (int i = 0; i < nlocal; i++) {
+      xi[0] = x[i][0];
+      xi[1] = x[i][1];
+      xi[2] = x[i][2];
+      nseci = coords2sector(xi);
+      if (j != nseci) continue;
+      fprintf(file_sect,"%d %lf %lf %lf %lf %lf %lf\n",j,xi[0],xi[1],xi[2],0.0,0.0,1.0);
+    }    
+  }
+  }
+#endif
+
 }
 
-#if defined SEQNEI
 /* ---------------------------------------------------------------------- */
-void FixNVESpin::ComputeSpinInteractionsNei(int ii)
+void FixNVESpin::ComputeSpinInteractionsNeigh(int ii)
 {
-  int nflag,sortflag;
-  int nlocal = atom->nlocal;
-
-  int n_post_integrate = modify->n_post_integrate;
-  int n_pre_exchange = modify->n_pre_exchange;
-  int n_pre_neighbor = modify->n_pre_neighbor;
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
-  int n_end_of_step = modify->n_end_of_step;
-
-  bigint ntimestep;
-  ntimestep = update->ntimestep;
+  const int nlocal = atom->nlocal;
 
   //Force compute quantities
   int i,j,jj,inum,jnum,itype,jtype;
@@ -205,7 +276,7 @@ void FixNVESpin::ComputeSpinInteractionsNei(int ii)
   double **sp = atom->sp;
   double **fm = atom->fm;
   int *type = atom->type;
-  int newton_pair = force->newton_pair;
+  const int newton_pair = force->newton_pair;
 
   inum = lockpairspin->list->inum;
   ilist = lockpairspin->list->ilist;
@@ -221,69 +292,39 @@ void FixNVESpin::ComputeSpinInteractionsNei(int ii)
   int vflag = 0;
   int pair_compute_flag = 1;
 
-  if (atom->sortfreq > 0) sortflag = 1;
-  else sortflag = 0;
-  if (n_post_integrate) modify->post_integrate();
-  timer->stamp(Timer::MODIFY);
-
-  // regular communication vs neighbor list rebuild
-  nflag = neighbor->decide();
-  if (nflag == 0) {
-  timer->stamp();
+#if !defined(SECTORING)
   comm->forward_comm();
-  timer->stamp(Timer::COMM);
-  } else {
-    if (n_pre_exchange) {
-      timer->stamp();
-      modify->pre_exchange();
-      timer->stamp(Timer::MODIFY);
-    }
-    //if (triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc();
-    if (domain->box_change) {
-      domain->reset_box();
-      comm->setup();
-      if (neighbor->style) neighbor->setup_bins();
-    }
-    timer->stamp();
-    comm->exchange();
-    if (sortflag && ntimestep >= atom->nextsort) atom->sort();
-    comm->borders();
-    //if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-    timer->stamp(Timer::COMM);
-    if (n_pre_neighbor) {
-      modify->pre_neighbor();
-      timer->stamp(Timer::MODIFY);
-    }
-    neighbor->build();
-    timer->stamp(Timer::NEIGH);
-  }
+#endif
 
   ///////Force computation for spin i/////////////
   i = ilist[ii];
+  
   //Clear atom i 
   fm[i][0] = fm[i][1] = fm[i][2] = 0.0;
-
-  timer->stamp();
-
-  xtmp = x[i][0];
-  ytmp = x[i][1];
-  ztmp = x[i][2];
+  
+  spi[0] = sp[i][0];
+  spi[1] = sp[i][1];
+  spi[2] = sp[i][2];
+ 
+  xi[0] = x[i][0];
+  xi[1] = x[i][1];
+  xi[2] = x[i][2];
   fmi[0] = fmi[1] = fmi[2] = 0.0;
   fmj[0] = fmj[1] = fmj[2] = 0.0;
   jlist = firstneigh[i];
   jnum = numneigh[i];
 
-//  printf("Test inum: %g \n",inum);
-/*
   //Pair interaction
-  for (int jj = 0; jj < inum; jj++) {
+  for (int jj = 0; jj < jnum; jj++) {
     j = jlist[jj];
     j &= NEIGHMASK;
+    spj[0] = sp[j][0];
+    spj[1] = sp[j][1];
+    spj[2] = sp[j][2];
 
-    delx = xtmp - x[j][0];
-    dely = ytmp - x[j][1];
-    delz = ztmp - x[j][2];
+    delx = xi[0] - x[j][0];
+    dely = xi[1] - x[j][1];
+    delz = xi[2] - x[j][2];
     rsq = delx*delx + dely*dely + delz*delz;
     itype = type[ii];
     jtype = type[j];
@@ -291,191 +332,144 @@ void FixNVESpin::ComputeSpinInteractionsNei(int ii)
     if (exch_flag) {
       cut_ex_2 = (lockpairspin->cut_spin_exchange[itype][jtype])*(lockpairspin->cut_spin_exchange[itype][jtype]);
       if (rsq <= cut_ex_2) {
-        lockpairspin->compute_exchange(i,j,rsq,fmi,fmj);
+        lockpairspin->compute_exchange(i,j,rsq,fmi,fmj,spi,spj);
       }  
     }
+
     if (dmi_flag) {
       cut_dmi_2 = (lockpairspin->cut_spin_dmi[itype][jtype])*(lockpairspin->cut_spin_dmi[itype][jtype]);
       if (rsq <= cut_dmi_2) {
-        lockpairspin->compute_dmi(i,j,fmi,fmj);
+        lockpairspin->compute_dmi(i,j,fmi,fmj,spi,spj);
       }  
     }
+
     if (me_flag) {
       cut_me_2 = (lockpairspin->cut_spin_me[itype][jtype])*(lockpairspin->cut_spin_me[itype][jtype]);
       if (rsq <= cut_me_2) {
-        lockpairspin->compute_me(i,j,fmi,fmj);
+        lockpairspin->compute_me(i,j,fmi,fmj,spi,spj);
       }  
     }
   }
-*/
-  
-  //Pair interaction
-  int natom = nlocal + atom->nghost;
-  for (int k = 0; k < natom; k++) {
-    delx = xtmp - x[k][0];
-    dely = ytmp - x[k][1];
-    delz = ztmp - x[k][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    itype = type[ii];
-    jtype = type[k];
-
-    if (exch_flag) {
-      cut_ex_2 = (lockpairspin->cut_spin_exchange[itype][jtype])*(lockpairspin->cut_spin_exchange[itype][jtype]);
-      if (rsq <= cut_ex_2) {
-        lockpairspin->compute_exchange(i,k,rsq,fmi,fmj);
-      }  
-    }
-    if (dmi_flag) {
-      cut_dmi_2 = (lockpairspin->cut_spin_dmi[itype][jtype])*(lockpairspin->cut_spin_dmi[itype][jtype]);
-      if (rsq <= cut_dmi_2) {
-        lockpairspin->compute_dmi(i,k,fmi,fmj);
-      }  
-    }
-    if (me_flag) {
-      cut_me_2 = (lockpairspin->cut_spin_me[itype][jtype])*(lockpairspin->cut_spin_me[itype][jtype]);
-      if (rsq <= cut_me_2) {
-        lockpairspin->compute_me(i,k,fmi,fmj);
-      }  
-    }
-  }
-
 
   //post force
   if (zeeman_flag) {
     lockforcespin->compute_zeeman(i,fmi);
   }
+
   if (aniso_flag) {
     spi[0] = sp[i][0];
     spi[1] = sp[i][1];                                       
     spi[2] = sp[i][2]; 
     lockforcespin->compute_anisotropy(i,spi,fmi);
   }
-    
+
+  if (tdamp_flag) {
+    locklangevinspin->add_tdamping(spi,fmi);   
+  }
+
+  if (temp_flag) {
+    locklangevinspin->add_temperature(fmi);
+  } 
+ 
   //Replace the force by its new value
   fm[i][0] = fmi[0];
   fm[i][1] = fmi[1];
   fm[i][2] = fmi[2];
 
 }
-#endif
 
+#if defined SECTORING
 /* ---------------------------------------------------------------------- */
-void FixNVESpin::ComputeSpinInteractions()
+void FixNVESpin::sectoring()
 {
-  int nflag,sortflag;
-  int nlocal = atom->nlocal;
-
-  int n_post_integrate = modify->n_post_integrate;
-  int n_pre_exchange = modify->n_pre_exchange;
-  int n_pre_neighbor = modify->n_pre_neighbor;
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
-  int n_end_of_step = modify->n_end_of_step;
-
-  bigint ntimestep;
-  ntimestep = update->ntimestep; 
-
-  //int eflag = update->integrate->eflag;
-  //int vflag = update->integrate->vflag;
-  int eflag = 1;
-  int vflag = 0;
-  int pair_compute_flag = 1;
-
-  if (atom->sortfreq > 0) sortflag = 1;
-  else sortflag = 0;
-  if (n_post_integrate) modify->post_integrate();
-  timer->stamp(Timer::MODIFY);
-
-  // regular communication vs neighbor list rebuild
-  nflag = neighbor->decide();
-  if (nflag == 0) {
-  timer->stamp();
-  comm->forward_comm();
-  timer->stamp(Timer::COMM);
-  } else {
-    if (n_pre_exchange) {
-      timer->stamp();
-      modify->pre_exchange();
-      timer->stamp(Timer::MODIFY);
-    }
-    //if (triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc();
-    if (domain->box_change) {
-      domain->reset_box();
-      comm->setup();
-      if (neighbor->style) neighbor->setup_bins();
-    }
-    timer->stamp();
-    comm->exchange();
-    if (sortflag && ntimestep >= atom->nextsort) atom->sort();
-    comm->borders();
-    //if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-    timer->stamp(Timer::COMM);
-    if (n_pre_neighbor) {
-      modify->pre_neighbor();
-      timer->stamp(Timer::MODIFY);
-    }
-    neighbor->build();
-    timer->stamp(Timer::NEIGH);
+  double sublo[3],subhi[3];
+  double* sublotmp = domain->sublo;
+  double* subhitmp = domain->subhi;
+  for (int dim = 0 ; dim<3 ; dim++) {
+    sublo[dim]=sublotmp[dim];
+    subhi[dim]=subhitmp[dim];
   }
 
-  // force computations
-  // important for pair to come before bonded contributions
-  // since some bonded potentials tally pairwise energy/virial
-  // and Pair:ev_tally() needs to be called before any tallying
+  const double rsx = subhi[0] - sublo[0];  
+  const double rsy = subhi[1] - sublo[1];  
+  const double rsz = subhi[2] - sublo[2];  
 
-  size_t nbytes;
-  nbytes = sizeof(double) * nlocal;
-  if (force->newton) nbytes += sizeof(double) * atom->nghost;
+  const double rv = lockpairspin->cut_spin_pair_global;
 
-  atom->avec->force_clear(0,nbytes); 
+  double rax = rsx/rv;  
+  double ray = rsy/rv;  
+  double raz = rsz/rv;  
+ 
+  sec[0] = 1;
+  sec[1] = 1;
+  sec[2] = 1;
+  if (rax >= 2.0) sec[0] = 2;
+  if (ray >= 2.0) sec[1] = 2;
+  if (raz >= 2.0) sec[2] = 2;
 
-  timer->stamp();
+  nsectors = sec[0]*sec[1]*sec[2];
 
-  if (n_pre_force) {
-    modify->pre_force(vflag);
-    timer->stamp(Timer::MODIFY);
-  }
+  rsec[0] = rsx;
+  rsec[1] = rsy;
+  rsec[2] = rsz;
+  if (sec[0] == 2) rsec[0] = rsx/2.0;
+  if (sec[1] == 2) rsec[1] = rsy/2.0;
+  if (sec[2] == 2) rsec[2] = rsz/2.0;
 
-  if (pair_compute_flag) {
-    force->pair->compute(eflag,vflag);
-    timer->stamp(Timer::PAIR);
- }
- 
-  /*if (kspace_compute_flag) {
-    force->kspace->compute(eflag,vflag);
-    timer->stamp(Timer::KSPACE);
-  }*/
- 
-  if (n_pre_reverse) {
-    modify->pre_reverse(eflag,vflag);
-    timer->stamp(Timer::MODIFY);
-  }
-  
-  // reverse communication of forces
- 
-  if (force->newton) {
-    comm->reverse_comm();
-    timer->stamp(Timer::COMM);
-  }
- 
-  // force modifications
- 
-  if (n_post_force) modify->post_force(vflag);
-  timer->stamp(Timer::MODIFY);
+  if (2.0 * rv >= rsx && sec[0] >= 2)
+    error->all(FLERR,"Illegal number of sectors"); 
+
+  if (2.0 * rv >= rsy && sec[1] >= 2)
+    error->all(FLERR,"Illegal number of sectors"); 
+
+  if (2.0 * rv >= rsz && sec[2] >= 2)
+    error->all(FLERR,"Illegal number of sectors"); 
 
 }
+
+/* ---------------------------------------------------------------------- */
+int FixNVESpin::coords2sector(double *xi)
+{
+  int nseci;
+  double sublo[3];
+  double* sublotmp = domain->sublo;
+  for (int dim = 0 ; dim<3 ; dim++) {
+    sublo[dim]=sublotmp[dim];
+  }
+
+  double rix = (xi[0] - sublo[0])/rsec[0];
+  double riy = (xi[1] - sublo[1])/rsec[1];
+  double riz = (xi[2] - sublo[2])/rsec[2];
+
+  seci[0] = (int)rix;
+  seci[1] = (int)riy;
+  seci[2] = (int)riz;
+
+  if (nsectors == 1) {
+    nseci == 0;
+  } else if (nsectors == 2) {
+    nseci = seci[0] + seci[1] + seci[2];
+  } else if (nsectors == 4) {
+    if (sec[1]*sec[2] == 4) { //plane normal to x
+      nseci = (seci[1] + 2*seci[2]);
+    } else if (sec[0]*sec[2] == 4) { //plane normal to y
+      nseci = (seci[0] + 2*seci[2]);
+    } else if (sec[0]*sec[1] == 4) { //plane normal to z
+      nseci = (seci[0] + 2*seci[1]);
+    }
+  } else if (nsectors == 8) {
+    nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
+  }
+
+  return nseci;
+}
+
+#endif
 
 /* ---------------------------------------------------------------------- */
 
 void FixNVESpin::AdvanceSingleSpin(int i, double dts, double **sp, double **fm)
 {
-  int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;  
-  int *type = atom->type;
-  int *mask = atom->mask; 
-  
   double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy;
   double cp[3],g[3]; 	
 
@@ -523,8 +517,6 @@ void FixNVESpin::final_integrate()
   double **x = atom->x;	
   double **v = atom->v;
   double **f = atom->f;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
   double *rmass = atom->rmass;
   double *mass = atom->mass;  
   int nlocal = atom->nlocal;
@@ -543,20 +535,4 @@ void FixNVESpin::final_integrate()
       }
   }
 
-  // Advance half spins all particles
-  //See Omelyan et al., PRL 86, 2001 and P.W. Ma et al, PRB 83, 2011
-  if (extra == SPIN) {
-#if defined SEQNEI
-    for (int i = nlocal-1; i >= 0; i--){
-      ComputeSpinInteractionsNei(i);
-      AdvanceSingleSpin(i,0.5*dts,sp,fm);
-    }
-#endif
-#if defined SEQ
-    for (int i = nlocal-1; i >= 0; i--){
-      AdvanceSingleSpin(i,0.5*dts,sp,fm);
-      ComputeSpinInteractions();
-    }
-#endif 
-  }
 }

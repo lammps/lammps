@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <string.h>
 #include "compute_spin.h"
 #include "atom.h"
@@ -112,7 +113,7 @@ void ComputeSpin::compute_vector()
   MPI_Allreduce(&magenergy,&magenergytot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&tempnum,&tempnumtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&tempdenom,&tempdenomtot,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&countsp,&countsptot,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&countsp,&countsptot,1,MPI_INT,MPI_SUM,world);
   
   double scale = 1.0/countsptot;
   magtot[0] *= scale;

@@ -292,7 +292,9 @@ void FixNVESpin::ComputeSpinInteractionsNeigh(int ii)
   int vflag = 0;
   int pair_compute_flag = 1;
 
-//  comm->forward_comm();
+#if !defined(SECTORING)
+  comm->forward_comm();
+#endif
 
   ///////Force computation for spin i/////////////
   i = ilist[ii];

@@ -40,6 +40,10 @@ if(ENABLE_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_C_INCLUDE_PATH})
   list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
+else()
+  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
+  list(APPEND LIB_SOURCES ${MPI_SOURCES})
+  include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
 endif()
 
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
@@ -216,12 +220,6 @@ list(APPEND LAMMPS_LINK_LIBS ${MATH_LIBRARIES})
 
 #Do NOT go into src to not conflict with old Makefile build system
 #add_subdirectory(src)
-
-if(NOT ENABLE_MPI)
-  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
-  list(APPEND LIB_SOURCES ${MPI_SOURCES})
-  include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
-endif()
 
 include(StyleHeaderUtils)
 RegisterStyles(${LAMMPS_SOURCE_DIR})

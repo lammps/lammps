@@ -52,7 +52,7 @@ foreach(PKG ${PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
 
-set(ACCEL_PACKAGES USER_OMP KOKKOS OPT)
+set(ACCEL_PACKAGES USER-OMP KOKKOS OPT)
 foreach(PKG ${ACCEL_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -220,7 +220,7 @@ if(ENABLE_KOKKOS OR ENABLE_MSCG)
   set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 endif()
 
-if(ENABLE_USER_OMP OR ENABLE_KOKKOS)
+if(ENABLE_USER-OMP OR ENABLE_KOKKOS)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -293,21 +293,21 @@ endif()
 # e.g. accelerator packages
 ######################################################################
 
-if(ENABLE_USER_OMP)
-    set(USER_OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
-    set(USER_OMP_SOURCES ${USER_OMP_SOURCES_DIR}/thr_data.cpp
-                         ${USER_OMP_SOURCES_DIR}/thr_omp.cpp
-                         ${USER_OMP_SOURCES_DIR}/fix_nh_omp.cpp
-                         ${USER_OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp)
-    set_property(GLOBAL PROPERTY "OMP_SOURCES" "${USER_OMP_SOURCES}")
+if(ENABLE_USER-OMP)
+    set(USER-OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
+    set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
+                         ${USER-OMP_SOURCES_DIR}/thr_omp.cpp
+                         ${USER-OMP_SOURCES_DIR}/fix_nh_omp.cpp
+                         ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp)
+    set_property(GLOBAL PROPERTY "OMP_SOURCES" "${USER-OMP_SOURCES}")
 
     # detects styles which have USER-OMP version
-    RegisterStylesExt(${USER_OMP_SOURCES_DIR} omp OMP_SOURCES)
+    RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
 
-    get_property(USER_OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
+    get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 
-    list(APPEND LIB_SOURCES ${USER_OMP_SOURCES})
-    include_directories(${USER_OMP_SOURCES_DIR})
+    list(APPEND LIB_SOURCES ${USER-OMP_SOURCES})
+    include_directories(${USER-OMP_SOURCES_DIR})
 endif()
 
 if(ENABLE_KOKKOS)

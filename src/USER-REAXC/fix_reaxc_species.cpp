@@ -195,8 +195,10 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+ntypes+1 > narg) error->all(FLERR,"Illegal fix reax/c/species command");
 
       eletype = (char**) malloc(ntypes*sizeof(char*));
+      int len;
       for (int i = 0; i < ntypes; i ++) {
-        eletype[i] = (char*) malloc(2*sizeof(char));
+        len = strlen(arg[iarg+1+i])+1;
+        eletype[i] = (char*) malloc(len*sizeof(char));
         strcpy(eletype[i],arg[iarg+1+i]);
       }
       eleflag = 1;

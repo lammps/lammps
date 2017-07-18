@@ -74,13 +74,8 @@ Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) t
 This requires two steps (a,b): build the GPU library, then build
 LAMMPS with the GPU package.
 
-You can do both these steps in one line, using the src/Make.py script,
-described in "Section 4"_Section_packages.html of the manual.
-Type "Make.py -h" for help.  If run from the src directory, this
-command will create src/lmp_gpu using src/MAKE/Makefile.mpi as the
-starting Makefile.machine:
-
-Make.py -p gpu -gpu mode=single arch=31 -o gpu -a lib-gpu file mpi :pre
+You can do both these steps in one line as described in
+"Section 4"_Section_packages.html of the manual.
 
 Or you can follow these two (a,b) steps:
 

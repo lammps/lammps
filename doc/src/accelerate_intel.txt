@@ -225,11 +225,9 @@ source /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
 # or psxevars.csh for C-shell
 make intel_cpu_intelmpi :pre
 
-Alternatively, the build can be accomplished with the src/Make.py
-script, described in "Section 4"_Section_packages.html of the
-manual. Type "Make.py -h" for help. For an example:
-
-Make.py -v -p intel omp -intel cpu -a file intel_cpu_intelmpi :pre
+Alternatively this can be done as a single command with
+suitable make command invocations. This is discussed in "Section
+4"_Section_packages.html of the manual.
 
 Note that if you build with support for a Phi coprocessor, the same
 binary can be used on nodes with or without coprocessors installed.
@@ -244,8 +242,7 @@ highly recommended for CCFLAGS and LINKFLAGS. LIB should include
 is required for CCFLAGS and "-qoffload" is required for LINKFLAGS.
 Other recommended CCFLAG options for best performance are
 "-O2 -fno-alias -ansi-alias -qoverride-limits fp-model fast=2
--no-prec-div". The Make.py command will add all of these
-automatically.
+-no-prec-div".
 
 NOTE: The vectorization and math capabilities can differ depending on
 the CPU. For Intel compilers, the "-x" flag specifies the type of

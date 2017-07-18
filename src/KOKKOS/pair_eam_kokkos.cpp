@@ -405,7 +405,7 @@ int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMPackForwardComm>(0,n),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMPackForwardComm>(0,n),*this);
   return n;
 }
 
@@ -423,7 +423,7 @@ void PairEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, 
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMUnpackForwardComm>(0,n),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMUnpackForwardComm>(0,n),*this);
 }
 
 template<class DeviceType>

@@ -540,11 +540,11 @@ void pair_virial_fdotr_compute(PairStyle* fpair) {
   EV_FLOAT virial;
   if (fpair->neighbor->includegroup == 0) {
     int nall = fpair->atom->nlocal + fpair->atom->nghost;
-    Kokkos::parallel_reduce(nall,PairVirialFDotRCompute<typename PairStyle::device_type>(fpair->x,fpair->f,0),virial);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<typename PairStyle::device_type>(0,nall),PairVirialFDotRCompute<typename PairStyle::device_type>(fpair->x,fpair->f,0),virial);
   } else {
-    Kokkos::parallel_reduce(fpair->atom->nfirst,PairVirialFDotRCompute<typename PairStyle::device_type>(fpair->x,fpair->f,0),virial);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<typename PairStyle::device_type>(0,fpair->atom->nfirst),PairVirialFDotRCompute<typename PairStyle::device_type>(fpair->x,fpair->f,0),virial);
     EV_FLOAT virial_ghost;
-    Kokkos::parallel_reduce(fpair->atom->nghost,PairVirialFDotRCompute<typename PairStyle::device_type>(fpair->x,fpair->f,fpair->atom->nlocal),virial_ghost);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<typename PairStyle::device_type>(0,fpair->atom->nghost),PairVirialFDotRCompute<typename PairStyle::device_type>(fpair->x,fpair->f,fpair->atom->nlocal),virial_ghost);
     virial+=virial_ghost;
   }
   fpair->vflag_fdotr = 0;

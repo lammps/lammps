@@ -14,6 +14,8 @@
 #ifdef ATOM_CLASS
 
 AtomStyle(angle/kk,AtomVecAngleKokkos)
+AtomStyle(angle/kk/device,AtomVecAngleKokkos)
+AtomStyle(angle/kk/host,AtomVecAngleKokkos)
 
 #else
 

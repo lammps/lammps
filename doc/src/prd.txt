@@ -63,7 +63,7 @@ event to occur.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.7"_Section_start.html#start_7 of the manual.
+switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
 Note that if you have MPI installed, you can run a multi-replica
 simulation with more replicas (partitions) than you have physical
 processors, e.g you can run a 10-replica simulation on one or two

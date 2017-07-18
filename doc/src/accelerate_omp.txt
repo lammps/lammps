@@ -41,7 +41,7 @@ each MPI task running on a CPU.
 The lines above illustrate how to include/build with the USER-OMP
 package in two steps, using the "make" command.  Or how to do it with
 one command via the src/Make.py script, described in "Section
-2.4"_Section_start.html#start_4 of the manual.  Type "Make.py -h" for
+4"_Section_packages.html of the manual.  Type "Make.py -h" for
 help.
 
 Note that the CCFLAGS and LINKFLAGS settings in Makefile.machine must
@@ -62,14 +62,14 @@ threads/task should not exceed the physical number of cores (on a
 node), otherwise performance will suffer.
 
 As in the lines above, use the "-sf omp" "command-line
-switch"_Section_start.html#start_7, which will automatically append
+switch"_Section_start.html#start_6, which will automatically append
 "omp" to styles that support it.  The "-sf omp" switch also issues a
 default "package omp 0"_package.html command, which will set the
 number of threads per MPI task via the OMP_NUM_THREADS environment
 variable.
 
 You can also use the "-pk omp Nt" "command-line
-switch"_Section_start.html#start_7, to explicitly set Nt = # of OpenMP
+switch"_Section_start.html#start_6, to explicitly set Nt = # of OpenMP
 threads per MPI task to use, as well as additional options.  Its
 syntax is the same as the "package omp"_package.html command whose doc
 page gives details, including the default values used if it is not

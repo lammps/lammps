@@ -30,7 +30,8 @@ using namespace LAMMPS_NS;
 
 ThrData::ThrData(int tid, Timer *t)
   : _f(0),_torque(0),_erforce(0),_de(0),_drho(0),_mu(0),_lambda(0),_rhoB(0),
-    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid), _timer(t)
+    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_rho1d_6(0),_drho1d_6(0),
+    _tid(tid), _timer(t)
 {
   _timer_active = 0;
 }

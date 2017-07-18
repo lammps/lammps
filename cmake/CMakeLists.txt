@@ -421,7 +421,16 @@ endif()
 
 if(ENABLE_GPU)
     find_package(CUDA REQUIRED)
+    find_program(BIN2C bin2c)
+    if(NOT BIN2C)
+      message(FATAL_ERROR "Couldn't find bin2c")
+    endif()
     include_directories(${CUDA_TOOLKIT_INCLUDE})
+    set(CUDA_BUILD_CUBIN ON)
+    set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "Lammps gpu precision size")
+    set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
+    add_definitions(-D_${GPU_PREC})
+    add_definitions(-DNV_KERNEL -DUSE_CUDPP -DUCL_CUDADR -DCMAKE_GPU)
 
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h)
@@ -432,15 +441,29 @@ if(ENABLE_GPU)
     RegisterStylesExt(${GPU_SOURCES_DIR} opt GPU_SOURCES)
 
     get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
-
     
     file(GLOB_RECURSE GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp
       ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
     cuda_add_library(lammps_gpu ${GPU_LIB_SOURCES})
-
+    #add_custom_target(cubin_headers)
+    #file(GLOB_RECURSE GPU_LIB_CUBIN ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cubin)
+    #file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
+    #foreach(CUBIN ${GPU_LIB_CUBIN})
+    #  get_filename_component(CUBIN_NAME NAME_WE ${CUBIN})
+    #  message("XXX ${CUBIN_NAME}_cubin.h")
+    #  add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR/gpu/${CUBIN_NAME}_cubin.h
+    #    COMMAND ${BIN2C} -c -n ${CUBIN_NAME} ${CUBIN} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CUBIN_NAME}_cubin.h
+    #    DEPENDS ${CUBIN}
+    #    COMMENT "Generating ${CUBIN_NAME}_cubin.h")
+    #  add_custom_target(${CUBIN_NAME}_cubin DEPENDS ${LAMMPS_LIB_BINARY_DIR/gpu/${CUBIN_NAME}_cubin.h)
+    #  add_dependencies(cubin_headers ${CUBIN_NAME}_cubin)
+    #endforeach()
+    #add_dependencies(lammps_gpu cubin_headers)
+    
     list(APPEND LAMMPS_LINK_LIBS lammps_gpu)
     list(APPEND LIB_SOURCES ${GPU_SOURCES})
-    include_directories(${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu)
+    include_directories(${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu
+      ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini ${LAMMPS_LIB_BINARY_DIR}/gpu)
 endif()
 
 ######################################################

@@ -13,6 +13,11 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
+#ifdef CMAKE_GPU
+#define grdtyp float 
+#define grdtyp4 float4
+#endif
+
 #ifdef NV_KERNEL
 
 #include "lal_preprocessor.h"

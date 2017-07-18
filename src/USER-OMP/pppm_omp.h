@@ -28,12 +28,11 @@ namespace LAMMPS_NS {
 class PPPMOMP : public PPPM, public ThrOMP {
  public:
   PPPMOMP(class LAMMPS *, int, char **);
-  virtual ~PPPMOMP () {};
+  virtual ~PPPMOMP ();
   virtual void compute(int, int);
 
  protected:
   virtual void allocate();
-  virtual void deallocate();
 
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();

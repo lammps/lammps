@@ -55,6 +55,26 @@ PPPMCGOMP::PPPMCGOMP(LAMMPS *lmp, int narg, char **arg) :
 }
 
 /* ----------------------------------------------------------------------
+   clean up per-thread allocations
+------------------------------------------------------------------------- */
+
+PPPMCGOMP::~PPPMCGOMP()
+{
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+  {
+#if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+#else
+    const int tid = 0;
+#endif
+    ThrData *thr = fix->get_thr(tid);
+    thr->init_pppm(-order,memory);
+  }
+}
+
+/* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
@@ -73,28 +93,6 @@ void PPPMCGOMP::allocate()
 #endif
     ThrData *thr = fix->get_thr(tid);
     thr->init_pppm(order,memory);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   free memory that depends on # of K-vectors and order
-------------------------------------------------------------------------- */
-
-void PPPMCGOMP::deallocate()
-{
-  PPPMCG::deallocate();
-
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    ThrData *thr = fix->get_thr(tid);
-    thr->init_pppm(-order,memory);
   }
 }
 

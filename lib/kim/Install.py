@@ -3,7 +3,9 @@
 # install.pa tool to setup the kim-api library
 # used to automate the steps described in the README file in this dir
 from __future__ import print_function
-import sys,os,re,urllib,subprocess
+import sys,os,re,subprocess
+try: from urllib.request import urlretrieve as geturl
+except: from urllib import urlretrieve as geturl
 
 help = """
 Syntax from src dir: make lib-kim args="-v version -b kim-install-dir kim-name -a kim-name"
@@ -97,10 +99,10 @@ if buildflag:
   # configure LAMMPS to use kim-api to be installed
 
   with open("%s/Makefile.KIM_DIR" % thisdir, 'w') as mkfile:
-    mkfle.write("KIM_INSTALL_DIR=%s\n\n" % dir)
-    mkfle.write(".DUMMY: print_dir\n\n")
-    mkfle.write("print_dir:\n")
-    mkfle.write("	@printf $(KIM_INSTALL_DIR)\n")
+    mkfile.write("KIM_INSTALL_DIR=%s\n\n" % dir)
+    mkfile.write(".DUMMY: print_dir\n\n")
+    mkfile.write("print_dir:\n")
+    mkfile.write("	@printf $(KIM_INSTALL_DIR)\n")
 
   with open("%s/Makefile.KIM_Config" % thisdir, 'w') as cfgfile:
     cfgfile.write("include %s/lib/kim-api/Makefile.KIM_Config" % dir)
@@ -113,27 +115,23 @@ if buildflag:
 
   print("Downloading kim-api tarball ...")
 
-  try: urllib.urlretrieve(url,"%s/%s.tgz" % (thisdir,version))
+  try: geturl(url,"%s/%s.tgz" % (thisdir,version))
   except:
     cmd = "wget %s %s/%s.tgz" % (url,thisdir,version)
-    txt = subprocess.getstatusoutput(cmd)
-    print(txt[1])
+    subprocess.check_output(cmd,shell=True)
     if not os.path.isfile("%s/%s.tgz" % (thisdir,version)):
-      print("Both urllib.urlretrieve() and wget command failed to download")
+      print("Both urllib and wget command failed to download")
       sys.exit()
 
   print("Unpacking kim-api tarball ...")
   cmd = "cd %s; rm -rf %s; tar zxvf %s.tgz" % (thisdir,version,version)
-  txt = subprocess.getstatusoutput(cmd)
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
   # configure kim-api
 
   print("Configuring kim-api ...")
   cmd = "cd %s/%s; ./configure --prefix='%s'" % (thisdir,version,dir)
-  txt = subprocess.getstatusoutput(cmd)
-  print(txt[1])
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
   # build kim-api
 
@@ -145,36 +143,26 @@ if buildflag:
       print("configuring all OpenKIM models, this will take a while ...")
     cmd = "cd %s/%s; make add-examples; make add-%s" % \
         (thisdir,version,modelname)
-  txt = subprocess.getstatusoutput(cmd)
-  print(txt[1])
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
   print("Building kim-api ...")
   cmd = "cd %s/%s; make" % (thisdir,version)
-  txt = subprocess.getstatusoutput(cmd)
-  print(txt[1])
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
   # install kim-api
 
   print("Installing kim-api ...")
   cmd = "cd %s/%s; make install" % (thisdir,version)
-  txt = subprocess.getstatusoutput(cmd)
-  print(txt[1])
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
   cmd = "cd %s/%s; make install-set-default-to-v1" %(thisdir,version)
-  txt = subprocess.getstatusoutput(cmd)
-  print(txt[1])
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
   # remove source files
 
   print("Removing kim-api source and build files ...")
   cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" % (thisdir,version,version)
-  txt = subprocess.getstatusoutput(cmd)
-  print(txt[1])
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
 # add a single model (and possibly its driver) to existing KIM installation
 
@@ -187,7 +175,7 @@ if addflag:
     error()
   else:
     cmd = "cd %s; make -f Makefile.KIM_DIR print_dir" % thisdir
-    dir = subprocess.getstatusoutput(cmd)[1]
+    dir = subprocess.check_output(cmd,shell=True)[1]
 
   # download single model
   # try first via urllib
@@ -197,10 +185,10 @@ if addflag:
 
   url = "https://openkim.org/download/%s.tgz" % addmodelname
 
-  try: urllib.urlretrieve(url,"%s/%s.tgz" % (thisdir,addmodelname))
+  try: geturl(url,"%s/%s.tgz" % (thisdir,addmodelname))
   except:
     cmd = "wget %s %s/%s.tgz" % (url,thisdir,addmodelname)
-    txt = subprocess.getstatusoutput(cmd)
+    txt = subprocess.check_output(cmd,shell=True)
     print(txt[1])
     if not os.path.isfile("%s/%s.tgz" % (thisdir,addmodelname)):
       print("Both urllib.urlretrieve() and wget command failed to download")
@@ -208,28 +196,27 @@ if addflag:
 
   print("Unpacking item tarball ...")
   cmd = "cd %s; tar zxvf %s.tgz" % (thisdir,addmodelname)
-  txt = subprocess.getstatusoutput(cmd)
-  if txt[0] != 0: error()
+  subprocess.check_output(cmd,shell=True)
 
   print("Building item ...")
   cmd = "cd %s/%s; make; make install" %(thisdir,addmodelname)
-  txt = subprocess.getstatusoutput(cmd)
+  subprocess.check_output(cmd,shell=True)
   firstRunOutput = txt[1]
   if txt[0] != 0:
     # Error: but first, check to see if it needs a driver
 
     cmd = "cd %s/%s; make kim-item-type" % (thisdir,addmodelname)
-    txt = subprocess.getstatusoutput(cmd)
+    txt = subprocess.check_output(cmd,shell=True)
     if txt[1] == "ParameterizedModel":
 
       # Get and install driver
 
       cmd = "cd %s/%s; make model-driver-name" % (thisdir,addmodelname)
-      txt = subprocess.getstatusoutput(cmd)
+      txt = subprocess.check_output(cmd,shell=True)
       adddrivername = txt[1]
       print("First Installing model driver: %s" % adddrivername)
       cmd = "cd %s; python Install.py -a %s" % (thisdir,adddrivername)
-      txt = subprocess.getstatusoutput(cmd)
+      txt = subprocess.check_output(cmd,shell=True)
       if txt[0] != 0:
          print(firstRunOutput)
          print(txt[1])
@@ -237,7 +224,7 @@ if addflag:
       else:
         print(txt[1])
       cmd = "cd %s; python Install.py -a %s" % (thisdir,addmodelname)
-      txt = subprocess.getstatusoutput(cmd)
+      txt = subprocess.check_output(cmd,shell=True)
       print(txt[1])
       if txt[0] != 0:
         error()
@@ -251,6 +238,5 @@ if addflag:
     print(firstRunOutput)
     print("Removing kim item source and build files ...")
     cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" %(thisdir,addmodelname,addmodelname)
-    txt = subprocess.getstatusoutput(cmd)
-    print(txt[1])
-    if txt[0] != 0: error()
+    subprocess.check_output(cmd,shell=True)
+

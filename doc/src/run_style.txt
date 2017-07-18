@@ -69,7 +69,7 @@ The {verlet} style is a standard velocity-Verlet integrator.
 
 The {verlet/split} style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
-processors.  See "Section 2.7"_Section_start.html#start_7 for an
+processors.  See "Section 2.6"_Section_start.html#start_6 for an
 explanation of the -partition command-line switch.
 
 Specifically, this style performs all computation except the
@@ -115,7 +115,7 @@ When you run in 2-partition mode with the {verlet/split} style, the
 thermodynamic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
 screen.0 by default; see the "-plog and -pscreen command-line
-switches"_Section_start.html#start_7 to change this.  The log and
+switches"_Section_start.html#start_6 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
 output beyond the 1st timestep of the run.
 
@@ -259,7 +259,7 @@ Accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 
 You can specify {respa/omp} explicitly in your input script, or
-you can use the "-suffix command-line switch"_Section_start.html#start_7
+you can use the "-suffix command-line switch"_Section_start.html#start_6
 when you invoke LAMMPS, or you can use the "suffix"_suffix.html
 command in your input script.
 

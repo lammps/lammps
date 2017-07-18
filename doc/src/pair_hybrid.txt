@@ -330,7 +330,7 @@ LAMMPS was built with those packages.  See the
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

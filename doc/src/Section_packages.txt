@@ -369,7 +369,7 @@ suffix in their style name.  "Section 5.3.1"_accelerate_gpu.html gives
 details of what hardware and Cuda software is required on your system,
 and details on how to build and use this package.  Its styles can be
 invoked at run time via the "-sf gpu" or "-suffix gpu" "command-line
-switches"_Section_start.html#start_7.  See also the "KOKKOS"_#KOKKOS
+switches"_Section_start.html#start_6.  See also the "KOKKOS"_#KOKKOS
 package, which has GPU-enabled styles.
 
 [Authors:] Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
@@ -427,8 +427,8 @@ src/GPU/README
 lib/gpu/README
 "Section 5.3"_Section_accelerate.html#acc_3
 "Section 5.3.1"_accelerate_gpu.html
-"Section 2.7 -sf gpu"_Section_start.html#start_7
-"Section 2.7 -pk gpu"_Section_start.html#start_7
+"Section 2.6 -sf gpu"_Section_start.html#start_6
+"Section 2.6 -pk gpu"_Section_start.html#start_6
 "package gpu"_package.html
 Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (g)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
@@ -553,7 +553,7 @@ style name.  "Section 5.3.3"_accelerate_kokkos.html gives details of
 what hardware and software is required on your system, and how to
 build and use this package.  Its styles can be invoked at run time via
 the "-sf kk" or "-suffix kk" "command-line
-switches"_Section_start.html#start_7.  Also see the "GPU"_#GPU,
+switches"_Section_start.html#start_6.  Also see the "GPU"_#GPU,
 "OPT"_#OPT, "USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP
 packages, which have styles optimized for CPUs, KNLs, and GPUs.
 
@@ -621,9 +621,9 @@ src/KOKKOS/README
 lib/kokkos/README
 "Section 5.3"_Section_accelerate.html#acc_3
 "Section 5.3.3"_accelerate_kokkos.html
-"Section 2.7 -k on ..."_Section_start.html#start_7
-"Section 2.7 -sf kk"_Section_start.html#start_7
-"Section 2.7 -pk kokkos"_Section_start.html#start_7
+"Section 2.6 -k on ..."_Section_start.html#start_6
+"Section 2.6 -sf kk"_Section_start.html#start_6
+"Section 2.6 -pk kokkos"_Section_start.html#start_6
 "package kokkos"_package.html
 Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (k)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
@@ -950,7 +950,7 @@ CHARMM, and Morse potentials.  The styles have an "opt" suffix in
 their style name.  "Section 5.3.5"_accelerate_opt.html gives details
 of how to build and use this package.  Its styles can be invoked at
 run time via the "-sf opt" or "-suffix opt" "command-line
-switches"_Section_start.html#start_7.  See also the "KOKKOS"_#KOKKOS,
+switches"_Section_start.html#start_6.  See also the "KOKKOS"_#KOKKOS,
 "USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP packages, which
 have styles optimized for CPU performance.
 
@@ -977,7 +977,7 @@ CCFLAGS: add -restrict :ul
 src/OPT: filenames -> commands
 "Section 5.3"_Section_accelerate.html#acc_3
 "Section 5.3.5"_accelerate_opt.html
-"Section 2.7 -sf opt"_Section_start.html#start_7
+"Section 2.6 -sf opt"_Section_start.html#start_6
 Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (t)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
@@ -1887,7 +1887,7 @@ All of them have an "intel" in their style name.  "Section
 5.3.2"_accelerate_intel.html gives details of what hardware and
 compilers are required on your system, and how to build and use this
 package.  Its styles can be invoked at run time via the "-sf intel" or
-"-suffix intel" "command-line switches"_Section_start.html#start_7.
+"-suffix intel" "command-line switches"_Section_start.html#start_6.
 Also see the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and "USER-OMP"_#USER-OMP
 packages, which have styles optimized for CPUs and KNLs.
 
@@ -1943,8 +1943,8 @@ src/USER-INTEL: filenames -> commands
 src/USER-INTEL/README
 "Section 5.3"_Section_accelerate.html#acc_3
 "Section 5.3.2"_accelerate_gpu.html
-"Section 2.7 -sf intel"_Section_start.html#start_7
-"Section 2.7 -pk intel"_Section_start.html#start_7
+"Section 2.6 -sf intel"_Section_start.html#start_6
+"Section 2.6 -pk intel"_Section_start.html#start_6
 "package intel"_package.html
 Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (i)
 src/USER-INTEL/TEST
@@ -2217,7 +2217,7 @@ via OpenMP directives.  All of them have an "omp" in their style name.
 "Section 5.3.4"_accelerate_omp.html gives details of what hardware and
 compilers are required on your system, and how to build and use this
 package.  Its styles can be invoked at run time via the "-sf omp" or
-"-suffix omp" "command-line switches"_Section_start.html#start_7.
+"-suffix omp" "command-line switches"_Section_start.html#start_6.
 Also see the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and
 "USER-INTEL"_#USER-INTEL packages, which have styles optimized for
 CPUs.
@@ -2250,8 +2250,8 @@ src/USER-OMP: filenames -> commands
 src/USER-OMP/README
 "Section 5.3"_Section_accelerate.html#acc_3
 "Section 5.3.4"_accelerate_omp.html
-"Section 2.7 -sf omp"_Section_start.html#start_7
-"Section 2.7 -pk omp"_Section_start.html#start_7
+"Section 2.6 -sf omp"_Section_start.html#start_6
+"Section 2.6 -pk omp"_Section_start.html#start_6
 "package omp"_package.html
 Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (o)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul

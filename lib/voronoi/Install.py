@@ -98,13 +98,13 @@ if grabflag:
   
   print("Unpacking Voro++ tarball ...")
   if os.path.exists("%s/%s" % (homepath,version)):
-    cmd = ['rm -rf "%s/%s"' % (homepath,version)]
+    cmd = 'rm -rf "%s/%s"' % (homepath,version)
     subprocess.check_output(cmd,shell=True)
-  cmd = ['cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)]
+  cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
   subprocess.check_output(cmd,shell=True)
   if os.path.basename(homedir) != version:
     if os.path.exists(homedir):
-      cmd = ['rm -rf "%s"' % homedir]
+      cmd = 'rm -rf "%s"' % homedir
       subprocess.check_output(cmd,shell=True)
     os.rename("%s/%s" % (homepath,version),homedir)
 
@@ -112,7 +112,7 @@ if grabflag:
 
 if buildflag:
   print("Building Voro++ ...")
-  cmd = ['cd "%s"; make' % homedir]
+  cmd = 'cd "%s"; make' % homedir
   txt = subprocess.check_output(cmd,shell=True)
   print(txt)
 

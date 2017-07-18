@@ -427,6 +427,7 @@ if(ENABLE_GPU)
     endif()
     include_directories(${CUDA_TOOLKIT_INCLUDE})
     set(CUDA_BUILD_CUBIN ON)
+    set(CUDA_GENERATED_OUTPUT_DIR ${LAMMPS_LIB_BINARY_DIR}/gpu)
     set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "Lammps gpu precision size")
     set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
     add_definitions(-D_${GPU_PREC})
@@ -442,28 +443,29 @@ if(ENABLE_GPU)
 
     get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
     
-    file(GLOB_RECURSE GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp
-      ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
-    cuda_add_library(lammps_gpu ${GPU_LIB_SOURCES})
-    #add_custom_target(cubin_headers)
-    #file(GLOB_RECURSE GPU_LIB_CUBIN ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cubin)
-    #file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    #foreach(CUBIN ${GPU_LIB_CUBIN})
-    #  get_filename_component(CUBIN_NAME NAME_WE ${CUBIN})
-    #  message("XXX ${CUBIN_NAME}_cubin.h")
-    #  add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR/gpu/${CUBIN_NAME}_cubin.h
-    #    COMMAND ${BIN2C} -c -n ${CUBIN_NAME} ${CUBIN} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CUBIN_NAME}_cubin.h
-    #    DEPENDS ${CUBIN}
-    #    COMMENT "Generating ${CUBIN_NAME}_cubin.h")
-    #  add_custom_target(${CUBIN_NAME}_cubin DEPENDS ${LAMMPS_LIB_BINARY_DIR/gpu/${CUBIN_NAME}_cubin.h)
-    #  add_dependencies(cubin_headers ${CUBIN_NAME}_cubin)
-    #endforeach()
-    #add_dependencies(lammps_gpu cubin_headers)
-    
+    file(GLOB_RECURSE GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
+    file(GLOB_RECURSE GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
+    file(GLOB_RECURSE GPU_NOT_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
+    list(REMOVE_ITEM GPU_LIB_CU ${GPU_NOT_LIB_CU})
+    cuda_add_library(lammps_gpu ${GPU_LIB_CU})
+    file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
+    add_custom_target(cubin_headers)
+    foreach(CU ${GPU_LIB_CU})
+      get_filename_component(CU_NAME ${CU} NAME_WE)
+      set(CU_OBJ ${CUDA_GENERATED_OUTPUT_DIR}/lammps_gpu_generated_${CU_NAME}.cu.o.cubin.txt)
+      string(REGEX REPLACE "^lal_" "" CU_HEADER "${CU_NAME}")
+      add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h
+        COMMAND ${BIN2C} -c -n ${CU_HEADER} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h
+        DEPENDS ${CU_OBJ} 
+        COMMENT "Generating ${CU_HEADER}_cubin.h")
+      add_custom_target(${CU_HEADER}_cubin DEPENDS ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h)
+      add_dependencies(cubin_headers ${CU_HEADER}_cubin)
+    endforeach()
     list(APPEND LAMMPS_LINK_LIBS lammps_gpu)
-    list(APPEND LIB_SOURCES ${GPU_SOURCES})
+    list(APPEND LIB_SOURCES ${GPU_SOURCES} ${GPU_LIB_SOURCES})
     include_directories(${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu
       ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini ${LAMMPS_LIB_BINARY_DIR}/gpu)
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${AMMPS_LIB_BINARY_DIR}/gpu")
 endif()
 
 ######################################################
@@ -479,6 +481,9 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 
 
 add_library(lammps ${LIB_SOURCES})
+if(ENABLE_GPU)
+  add_dependencies(lammps cubin_headers)
+endif()
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
 

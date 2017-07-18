@@ -42,6 +42,7 @@ PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
    single_enable = 0;
    one_coeff = 1;
    no_virial_fdotr_compute = 1;
+   manybody_flag = 1;
 }
 
 PairQUIP::~PairQUIP()
@@ -99,7 +100,7 @@ void PairQUIP::compute(int eflag, int vflag)
     jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
-       quip_neigh[iquip] = jlist[jj]+1;
+       quip_neigh[iquip] = (jlist[jj] & NEIGHMASK) + 1;
        iquip++;
     }
   }
@@ -131,7 +132,7 @@ void PairQUIP::compute(int eflag, int vflag)
     tmptag[ii] = tag[ii];
     if (tag[ii] > MAXSMALLINT) tmplarge=1;
   }
-  MPI_Allreduce(&tmplarge,&toolarge,1,MPI_INT,MPI_MAX,comm);
+  MPI_Allreduce(&tmplarge,&toolarge,1,MPI_INT,MPI_MAX,world);
   if (toolarge > 0)
     error->all(FLERR,"Pair style quip does not support 64-bit atom IDs");
 
@@ -213,7 +214,7 @@ void PairQUIP::compute(int eflag, int vflag)
 void PairQUIP::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  if (strncmp(force->pair->style,"hybrid",6) == 0)
+  if (strncmp(force->pair_style,"hybrid",6) == 0)
     error->all(FLERR,"Pair style quip is not compatible with hybrid styles");
 }
 

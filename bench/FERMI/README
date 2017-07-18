@@ -1,55 +1,21 @@
 These are input scripts used to run versions of several of the
-benchmarks in the top-level bench directory using the GPU and
-USER-CUDA accelerator packages.  The results of running these scripts
-on two different machines (a desktop with 2 Tesla GPUs and the ORNL
-Titan supercomputer) are shown on the "GPU (Fermi)" section of the
-Benchmark page of the LAMMPS WWW site: lammps.sandia.gov/bench.
+benchmarks in the top-level bench directory using the GPU accelerator
+package.  The results of running these scripts on two different machines
+(a desktop with 2 Tesla GPUs and the ORNL Titan supercomputer) are shown
+on the "GPU (Fermi)" section of the Benchmark page of the LAMMPS WWW
+site: lammps.sandia.gov/bench.
 
 Examples are shown below of how to run these scripts.  This assumes
-you have built 3 executables with both the GPU and USER-CUDA packages
+you have built 3 executables with the GPU package
 installed, e.g.
 
 lmp_linux_single
 lmp_linux_mixed
 lmp_linux_double
 
-The precision (single, mixed, double) refers to the GPU and USER-CUDA
-package precision.  See the README files in the lib/gpu and lib/cuda
-directories for instructions on how to build the packages with
-different precisions.  The GPU and USER-CUDA sub-sections of the
-doc/Section_accelerate.html file also describes this process.
-
-Make.py -d ~/lammps -j 16 -p #all orig -m linux -o cpu -a exe
-Make.py -d ~/lammps -j 16 -p #all opt orig -m linux -o opt -a exe
-Make.py -d ~/lammps -j 16 -p #all omp orig -m linux -o omp -a exe
-Make.py -d ~/lammps -j 16 -p #all gpu orig -m linux \
-        -gpu mode=double arch=20 -o gpu_double -a libs exe
-Make.py -d ~/lammps -j 16 -p #all gpu orig -m linux \
-        -gpu mode=mixed arch=20 -o gpu_mixed -a libs exe
-Make.py -d ~/lammps -j 16 -p #all gpu orig -m linux \
-        -gpu mode=single arch=20 -o gpu_single -a libs exe
-Make.py -d ~/lammps -j 16 -p #all cuda orig -m linux \
-        -cuda mode=double arch=20 -o cuda_double -a libs exe
-Make.py -d ~/lammps -j 16 -p #all cuda orig -m linux \
-        -cuda mode=mixed arch=20 -o cuda_mixed -a libs exe
-Make.py -d ~/lammps -j 16 -p #all cuda orig -m linux \
-        -cuda mode=single arch=20 -o cuda_single -a libs exe
-Make.py -d ~/lammps -j 16 -p #all intel orig -m linux -o intel_cpu -a exe
-Make.py -d ~/lammps -j 16 -p #all kokkos orig -m linux -o kokkos_omp -a exe
-Make.py -d ~/lammps -j 16 -p #all kokkos orig -kokkos cuda arch=20 \
-        -m cuda -o kokkos_cuda -a exe
-
-Make.py -d ~/lammps -j 16 -p #all opt omp gpu cuda intel kokkos orig \
-        -gpu mode=double arch=20 -cuda mode=double arch=20 -m linux \
-        -o all -a libs exe
-
-Make.py -d ~/lammps -j 16 -p #all opt omp gpu cuda intel kokkos orig \
-        -kokkos cuda arch=20 -gpu mode=double arch=20 \
-        -cuda mode=double arch=20 -m cuda -o all_cuda -a libs exe
-
 ------------------------------------------------------------------------
 
-To run on just CPUs (without using the GPU or USER-CUDA styles),
+To run on just CPUs (without using the GPU styles),
 do something like the following:
 
 mpirun -np 1 lmp_linux_double -v x 8 -v y 8 -v z 8 -v t 100 < in.lj
@@ -74,24 +40,6 @@ many MPI tasks (per node) the problem will run on.  The numeric
 argument to the "-pk" setting is the number of GPUs (per node); 1 GPU
 is the default.  Note that you can use more MPI tasks than GPUs (per
 node) with the GPU package.
-
-These mpirun commands run on a single node.  To run on multiple nodes,
-scale up the "-np" setting, and control the number of MPI tasks per
-node via a "-ppn" setting.
-
-------------------------------------------------------------------------
-
-To run with the USER-CUDA package, do something like the following:
-
-mpirun -np 1 lmp_linux_single -c on -sf cuda -v x 16 -v y 16 -v z 16 -v t 100 < in.lj
-mpirun -np 2 lmp_linux_double -c on -sf cuda -pk cuda 2 -v x 32 -v y 64 -v z 64 -v t 100 < in.eam
-
-The "xyz" settings determine the problem size.  The "t" setting
-determines the number of timesteps.  The "np" setting determines how
-many MPI tasks (per node) the problem will run on.  The numeric
-argument to the "-pk" setting is the number of GPUs (per node); 1 GPU
-is the default.  Note that the number of MPI tasks must equal the
-number of GPUs (both per node) with the USER-CUDA package.
 
 These mpirun commands run on a single node.  To run on multiple nodes,
 scale up the "-np" setting, and control the number of MPI tasks per

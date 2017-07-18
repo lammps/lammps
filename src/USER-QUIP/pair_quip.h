@@ -29,11 +29,6 @@ extern "C"
       int*, int*, double*,
       int*, int*, double*,
       double*, double*, double*, double*, double*);
-   // void quip_lammps_longint_wrapper(int*, int*, int*, int64_t*,
-   //   int*, int*, int*,
-   //   int*, int*, double*,
-   //   int*, int*, double*,
-   //   double*, double*, double*, double*, double*);
    void quip_lammps_potential_initialise(int*, int*, double*, char*, int*, char*, int*);
 }
 

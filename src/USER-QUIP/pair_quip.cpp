@@ -125,26 +125,37 @@ void PairQUIP::compute(int eflag, int vflag)
   lattice[8] = domain->zprd;
 
 #if defined(LAMMPS_BIGBIG)
-  error->all(FLERR,"Pair style quip does not support -DLAMMPS_BIGBIG");
-  // quip_lammps_longint_wrapper(
-  // (&nlocal,&nghost,atomic_numbers,tag,
-  //   &inum,&sum_num_neigh,ilist,
-  //   quip_num_neigh,quip_neigh,lattice,
-  //   quip_potential,&n_quip_potential,&x[0][0],
-  //   &quip_energy,quip_local_e,quip_virial,quip_local_virial,quip_force);
+  int *tmptag = new int[ntotal];
+  int tmplarge = 0, toolarge = 0;
+  for (ii = 0; ii < ntotal; ++ii) {
+    tmptag[ii] = tag[ii];
+    if (tag[ii] > MAXSMALLINT) tmplarge=1;
+  }
+  MPI_Allreduce(&tmplarge,&toolarge,1,MPI_INT,MPI_MAX,comm);
+  if (toolarge > 0)
+    error->all(FLERR,"Pair style quip does not support 64-bit atom IDs");
+
+  quip_lammps_wrapper(&nlocal,&nghost,atomic_numbers,tmptag,
+                      &inum,&sum_num_neigh,ilist,
+                      quip_num_neigh,quip_neigh,lattice,
+                      quip_potential,&n_quip_potential,&x[0][0],
+                      &quip_energy,quip_local_e,quip_virial,
+                      quip_local_virial,quip_force);
+
+  delete[] tmptag;
 #else
-  quip_lammps_wrapper
-    (&nlocal,&nghost,atomic_numbers,tag,
-     &inum,&sum_num_neigh,ilist,
-     quip_num_neigh,quip_neigh,lattice,
-     quip_potential,&n_quip_potential,&x[0][0],
-     &quip_energy,quip_local_e,quip_virial,quip_local_virial,quip_force);
+  quip_lammps_wrapper(&nlocal,&nghost,atomic_numbers,tag,
+                      &inum,&sum_num_neigh,ilist,
+                      quip_num_neigh,quip_neigh,lattice,
+                      quip_potential,&n_quip_potential,&x[0][0],
+                      &quip_energy,quip_local_e,quip_virial,
+                      quip_local_virial,quip_force);
 #endif
 
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
      for( jj = 0; jj < 3; jj++ ) {
-        f[ii][jj] = quip_force[iquip];
+        f[ii][jj] += quip_force[iquip];
         iquip++;
      }
   }
@@ -175,11 +186,11 @@ void PairQUIP::compute(int eflag, int vflag)
        vatom[ii][1] += quip_local_virial[iatom+4];
        vatom[ii][2] += quip_local_virial[iatom+8];
        vatom[ii][3] += (quip_local_virial[iatom+3] +
-			quip_local_virial[iatom+1])*0.5;
+                        quip_local_virial[iatom+1])*0.5;
        vatom[ii][4] += (quip_local_virial[iatom+2] +
-			quip_local_virial[iatom+6])*0.5;
+                        quip_local_virial[iatom+6])*0.5;
        vatom[ii][5] += (quip_local_virial[iatom+5] +
-			quip_local_virial[iatom+7])*0.5;
+                        quip_local_virial[iatom+7])*0.5;
        iatom += 9;
      }
   }
@@ -202,6 +213,8 @@ void PairQUIP::compute(int eflag, int vflag)
 void PairQUIP::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (strncmp(force->pair->style,"hybrid",6) == 0)
+    error->all(FLERR,"Pair style quip is not compatible with hybrid styles");
 }
 
 /* ----------------------------------------------------------------------

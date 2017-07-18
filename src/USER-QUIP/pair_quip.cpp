@@ -255,11 +255,11 @@ void PairQUIP::coeff(int narg, char **arg)
       error->all(FLERR,"Incorrect args for pair coefficients");
 
    n_quip_file = strlen(arg[2]);
-   quip_file = new char[n_quip_file];
+   quip_file = new char[n_quip_file+1];
    strcpy(quip_file,arg[2]);
 
    n_quip_string = strlen(arg[3]);
-   quip_string = new char[n_quip_string];
+   quip_string = new char[n_quip_string+1];
    strcpy(quip_string,arg[3]);
 
    for (int i = 4; i < narg; i++) {

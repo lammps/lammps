@@ -124,12 +124,23 @@ void PairQUIP::compute(int eflag, int vflag)
   lattice[7] = domain->yz;
   lattice[8] = domain->zprd;
 
+#if defined(LAMMPS_BIGBIG)
+  error->all(FLERR,"Pair style quip does not support -DLAMMPS_BIGBIG");
+  // quip_lammps_longint_wrapper(
+  // (&nlocal,&nghost,atomic_numbers,tag,
+  //   &inum,&sum_num_neigh,ilist,
+  //   quip_num_neigh,quip_neigh,lattice,
+  //   quip_potential,&n_quip_potential,&x[0][0],
+  //   &quip_energy,quip_local_e,quip_virial,quip_local_virial,quip_force);
+#else
   quip_lammps_wrapper
     (&nlocal,&nghost,atomic_numbers,tag,
      &inum,&sum_num_neigh,ilist,
      quip_num_neigh,quip_neigh,lattice,
      quip_potential,&n_quip_potential,&x[0][0],
      &quip_energy,quip_local_e,quip_virial,quip_local_virial,quip_force);
+#endif
+
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
      for( jj = 0; jj < 3; jj++ ) {

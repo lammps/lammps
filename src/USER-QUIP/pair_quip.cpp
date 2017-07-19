@@ -214,8 +214,14 @@ void PairQUIP::compute(int eflag, int vflag)
 void PairQUIP::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  if (strncmp(force->pair_style,"hybrid",6) == 0)
-    error->all(FLERR,"Pair style quip is not compatible with hybrid styles");
+  if (strcmp(force->pair_style,"hybrid") == 0)
+    error->all(FLERR,"Pair style quip is only compatible with hybrid/overlay");
+
+  // check if linked to the correct QUIP library API version
+  // as of 2017-07-19 this is API_VERSION 1
+  if (quip_lammps_api_version() != 1)
+    error->all(FLERR,"QUIP LAMMPS wrapper API version is not compatible "
+        "with this version of LAMMPS");
 }
 
 /* ----------------------------------------------------------------------

@@ -168,10 +168,18 @@ if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
 endif()
 
 if(ENABLE_PYTHON)
+  find_package(PythonInterp REQUIRED)
   find_package(PythonLibs REQUIRED)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
+  execute_process(COMMAND ${PYTHON_EXECUTABLE}
+	  -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+    OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  install(FILES ${CMAKE_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
+  if(NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "Python package need lammps to be build shared, -DBUILD_SHARED_LIBS=ON")
+  endif()
 endif()
 
 find_package(JPEG)

@@ -41,22 +41,30 @@ public:
   /// If an error is returned by one of the methods, it should set this to the error message
   std::string result;
 
-  /// Run script command with given positional arguments
-  int run(int argc, char const *argv[]);
+  /// Run script command with given positional arguments (objects)
+  int run(int objc, unsigned char *const objv[]);
 
 private:
   /// Run subcommands on colvar
-  int proc_colvar(int argc, char const *argv[]);
+  int proc_colvar(colvar *cv, int argc, unsigned char *const argv[]);
 
   /// Run subcommands on bias
-  int proc_bias(int argc, char const *argv[]);
+  int proc_bias(colvarbias *b, int argc, unsigned char *const argv[]);
 
   /// Run subcommands on base colvardeps object (colvar, bias, ...)
   int proc_features(colvardeps *obj,
-                    int argc, char const *argv[]);
+                    int argc, unsigned char *const argv[]);
 
-  /// Builds and return a short help
+  /// Build and return a short help
   std::string help_string(void);
+
+public:
+
+  inline char const *obj_to_str(unsigned char *const obj)
+  {
+    return cvm::proxy->script_obj_to_str(obj);
+  }
+
 };
 
 

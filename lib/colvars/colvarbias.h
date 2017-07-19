@@ -56,7 +56,7 @@ public:
 
   /// \brief Compute the energy of the bias with alternative values of the
   /// collective variables (suitable for bias exchange)
-  virtual int calc_energy(std::vector<colvarvalue> const &values = 
+  virtual int calc_energy(std::vector<colvarvalue> const &values =
                           std::vector<colvarvalue>(0))
   {
     cvm::error("Error: calc_energy() not implemented.\n", COLVARS_NOT_IMPLEMENTED);

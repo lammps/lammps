@@ -449,7 +449,6 @@ if(ENABLE_GPU)
     list(REMOVE_ITEM GPU_LIB_CU ${GPU_NOT_LIB_CU})
     cuda_add_library(lammps_gpu ${GPU_LIB_CU})
     file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    add_custom_target(cubin_headers)
     foreach(CU ${GPU_LIB_CU})
       get_filename_component(CU_NAME ${CU} NAME_WE)
       set(CU_OBJ ${CUDA_GENERATED_OUTPUT_DIR}/lammps_gpu_generated_${CU_NAME}.cu.o.cubin.txt)
@@ -458,8 +457,7 @@ if(ENABLE_GPU)
         COMMAND ${BIN2C} -c -n ${CU_HEADER} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h
         DEPENDS ${CU_OBJ} 
         COMMENT "Generating ${CU_HEADER}_cubin.h")
-      add_custom_target(${CU_HEADER}_cubin DEPENDS ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h)
-      add_dependencies(cubin_headers ${CU_HEADER}_cubin)
+      list(APPEND LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h)
     endforeach()
     list(APPEND LAMMPS_LINK_LIBS lammps_gpu)
     list(APPEND LIB_SOURCES ${GPU_SOURCES} ${GPU_LIB_SOURCES})
@@ -481,9 +479,6 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 
 
 add_library(lammps ${LIB_SOURCES})
-if(ENABLE_GPU)
-  add_dependencies(lammps cubin_headers)
-endif()
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
 

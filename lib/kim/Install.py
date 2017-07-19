@@ -87,14 +87,15 @@ url = "https://s3.openkim.org/kim-api/%s.tgz" % version
 if buildflag:
 
   # set install directory
+
   dir = os.path.join(os.path.abspath(dir), "installed-" + version)
 
-  # check to see if an installed kim-api already exists
+  # check to see if an installed kim-api already exists and wipe it out.
 
   if os.path.isdir(dir):
-     print("kim-api is already installed at %s" % dir)
-     print("Must remove this directory in order to resintall at this location")
-     sys.exit()
+    print("kim-api is already installed at %s.\nRemoving it for re-install" % dir)
+    cmd = "rm -rf %s" % dir
+    subprocess.check_output(cmd,shell=True)
 
   # configure LAMMPS to use kim-api to be installed
 
@@ -110,19 +111,9 @@ if buildflag:
   print("Created %s/Makefile.KIM_DIR : using %s" % (thisdir,dir))
 
   # download entire kim-api tarball
-  # try first via urllib
-  # if fails (probably due to no SSL support), use wget
 
   print("Downloading kim-api tarball ...")
-
-  try: geturl(url,"%s/%s.tgz" % (thisdir,version))
-  except:
-    cmd = "wget %s %s/%s.tgz" % (url,thisdir,version)
-    subprocess.check_output(cmd,shell=True)
-    if not os.path.isfile("%s/%s.tgz" % (thisdir,version)):
-      print("Both urllib and wget command failed to download")
-      sys.exit()
-
+  geturl(url,"%s/%s.tgz" % (thisdir,version))
   print("Unpacking kim-api tarball ...")
   cmd = "cd %s; rm -rf %s; tar zxvf %s.tgz" % (thisdir,version,version)
   subprocess.check_output(cmd,shell=True)
@@ -182,17 +173,8 @@ if addflag:
   # if fails (probably due to no SSL support), use wget
 
   print("Downloading item tarball ...")
-
   url = "https://openkim.org/download/%s.tgz" % addmodelname
-
-  try: geturl(url,"%s/%s.tgz" % (thisdir,addmodelname))
-  except:
-    cmd = "wget %s %s/%s.tgz" % (url,thisdir,addmodelname)
-    txt = subprocess.check_output(cmd,shell=True)
-    print(txt[1])
-    if not os.path.isfile("%s/%s.tgz" % (thisdir,addmodelname)):
-      print("Both urllib.urlretrieve() and wget command failed to download")
-      sys.exit()
+  geturl(url,"%s/%s.tgz" % (thisdir,addmodelname))
 
   print("Unpacking item tarball ...")
   cmd = "cd %s; tar zxvf %s.tgz" % (thisdir,addmodelname)
@@ -205,19 +187,19 @@ if addflag:
   except subprocess.CalledProcessError as e:
 
     # Error: but first, check to see if it needs a driver
-
-    firstRunOutput = e.output
+    firstRunOutput = e.output.decode()
 
     cmd = "cd %s/%s; make kim-item-type" % (thisdir,addmodelname)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    txt = txt.decode().strip()
     if txt == "ParameterizedModel":
 
       # Get and install driver
 
       cmd = "cd %s/%s; make model-driver-name" % (thisdir,addmodelname)
       txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      adddrivername = txt
-      print("First Installing model driver: %s" % adddrivername)
+      adddrivername = txt.decode().strip()
+      print("First installing model driver: %s" % adddrivername)
       cmd = "cd %s; python Install.py -a %s" % (thisdir,adddrivername)
       try:
         txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
@@ -225,17 +207,16 @@ if addflag:
         print(e.output)
         sys.exit()
 
-      print(txt)
-
       # now install the model that needed the driver
 
+      print("Now installing model : %s" % addmodelname)
       cmd = "cd %s; python Install.py -a %s" % (thisdir,addmodelname)
       try:
         txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       except subprocess.CalledProcessError as e:
         print(e.output)
         sys.exit()
-      print(txt)
+      print(txt.decode())
       sys.exit()
     else:
       print(firstRunOutput)

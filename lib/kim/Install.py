@@ -200,43 +200,52 @@ if addflag:
 
   print("Building item ...")
   cmd = "cd %s/%s; make; make install" %(thisdir,addmodelname)
-  subprocess.check_output(cmd,shell=True)
-  firstRunOutput = txt[1]
-  if txt[0] != 0:
+  try:
+    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  except subprocess.CalledProcessError as e:
+
     # Error: but first, check to see if it needs a driver
 
+    firstRunOutput = e.output
+
     cmd = "cd %s/%s; make kim-item-type" % (thisdir,addmodelname)
-    txt = subprocess.check_output(cmd,shell=True)
-    if txt[1] == "ParameterizedModel":
+    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    if txt == "ParameterizedModel":
 
       # Get and install driver
 
       cmd = "cd %s/%s; make model-driver-name" % (thisdir,addmodelname)
-      txt = subprocess.check_output(cmd,shell=True)
-      adddrivername = txt[1]
+      txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      adddrivername = txt
       print("First Installing model driver: %s" % adddrivername)
       cmd = "cd %s; python Install.py -a %s" % (thisdir,adddrivername)
-      txt = subprocess.check_output(cmd,shell=True)
-      if txt[0] != 0:
-         print(firstRunOutput)
-         print(txt[1])
-         error()
-      else:
-        print(txt[1])
+      try:
+        txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e:
+        print(e.output)
+        sys.exit()
+
+      print(txt)
+
+      # now install the model that needed the driver
+
       cmd = "cd %s; python Install.py -a %s" % (thisdir,addmodelname)
-      txt = subprocess.check_output(cmd,shell=True)
-      print(txt[1])
-      if txt[0] != 0:
-        error()
+      try:
+        txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e:
+        print(e.output)
+        sys.exit()
+      print(txt)
+      sys.exit()
     else:
       print(firstRunOutput)
-      error()
-  else:
+      print("Error, unable to build and install OpenKIM item: %s" \
+            % addmodelname)
+      sys.exit()
 
-    # success
+  # success the first time
 
-    print(firstRunOutput)
-    print("Removing kim item source and build files ...")
-    cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" %(thisdir,addmodelname,addmodelname)
-    subprocess.check_output(cmd,shell=True)
-
+  print(txt)
+  print("Removing kim item source and build files ...")
+  cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" %(thisdir,addmodelname,addmodelname)
+  subprocess.check_output(cmd,shell=True)

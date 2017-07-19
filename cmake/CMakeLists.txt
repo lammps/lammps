@@ -447,23 +447,22 @@ if(ENABLE_GPU)
     file(GLOB_RECURSE GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
     file(GLOB_RECURSE GPU_NOT_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
     list(REMOVE_ITEM GPU_LIB_CU ${GPU_NOT_LIB_CU})
-    cuda_add_library(lammps_gpu ${GPU_LIB_CU})
+    add_custom_target(gpu_objs)
+    cuda_wrap_srcs(gpu_objs OBJ GPU_OBJS ${GPU_LIB_CU})
     file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    foreach(CU ${GPU_LIB_CU})
-      get_filename_component(CU_NAME ${CU} NAME_WE)
-      set(CU_OBJ ${CUDA_GENERATED_OUTPUT_DIR}/lammps_gpu_generated_${CU_NAME}.cu.o.cubin.txt)
-      string(REGEX REPLACE "^lal_" "" CU_HEADER "${CU_NAME}")
-      add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h
-        COMMAND ${BIN2C} -c -n ${CU_HEADER} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h
+    foreach(CU_OBJ ${GPU_OBJS})
+      get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
+      string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
+      add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+        COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ}.cubin.txt > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
         DEPENDS ${CU_OBJ} 
-        COMMENT "Generating ${CU_HEADER}_cubin.h")
-      list(APPEND LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_HEADER}_cubin.h)
+        COMMENT "Generating ${CU_NAME}_cubin.h")
+      list(APPEND LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
     endforeach()
-    list(APPEND LAMMPS_LINK_LIBS lammps_gpu)
-    list(APPEND LIB_SOURCES ${GPU_SOURCES} ${GPU_LIB_SOURCES})
+    list(APPEND LIB_SOURCES ${GPU_SOURCES} ${GPU_LIB_SOURCES} ${GPU_OBJS})
     include_directories(${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu
       ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${AMMPS_LIB_BINARY_DIR}/gpu")
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${AMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 endif()
 
 ######################################################

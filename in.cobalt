@@ -48,7 +48,7 @@ lattice sc 2.50
     
 #Defining a geometric region of space. Sets ID(user's choice), style(block, sphere, ...), then, args depends on the style chosen
 #(for block, one has x0, xf, y0, yf, z0, zf, in distance units)
-region box block 0.0 32.0 0.0 32.0 0.0 32.0
+region box block 0.0 2.0 0.0 2.0 0.0 16.0
 
 #Creating a simulation box based on the specified region. Entries: number of atom types and box ref. 
 create_box 1 box

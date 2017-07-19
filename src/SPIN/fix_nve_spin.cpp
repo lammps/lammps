@@ -192,6 +192,9 @@ void FixNVESpin::initial_integrate(int vflag)
   }
 
 #if defined SECTORING
+
+  printf("Nsectors: %d, Nlocal: %d \n",nsectors,nlocal);
+
   int nseci;
   // Seq. update spins for all particles
   if (extra == SPIN) {
@@ -202,8 +205,11 @@ void FixNVESpin::initial_integrate(int vflag)
         xi[1] = x[i][1];
         xi[2] = x[i][2];
         nseci = coords2sector(xi);
-        if (j != nseci) continue;
-        ComputeSpinInteractionsNeigh(i);
+	if (j != nseci) continue;
+
+	printf("sector number: %d, nseci: %d \n",j,nseci);  
+
+	ComputeSpinInteractionsNeigh(i);
         AdvanceSingleSpin(i,0.5*dts,sp,fm);
       }    
     }
@@ -220,6 +226,7 @@ void FixNVESpin::initial_integrate(int vflag)
       }    
     }
   }
+
 #else 
   // Seq. update spins for all particles
   if (extra == SPIN) {
@@ -249,16 +256,16 @@ void FixNVESpin::initial_integrate(int vflag)
   int my_rank;
   MPI_Comm_rank(world, &my_rank);
   if (my_rank == 0) { 
-  for (int j = 0; j < nsectors; j++) { 
-    for (int i = 0; i < nlocal; i++) {
-      xi[0] = x[i][0];
-      xi[1] = x[i][1];
-      xi[2] = x[i][2];
-      nseci = coords2sector(xi);
-      if (j != nseci) continue;
-      fprintf(file_sect,"%d %lf %lf %lf %lf %lf %lf\n",j,xi[0],xi[1],xi[2],0.0,0.0,1.0);
-    }    
-  }
+    for (int j = 0; j < nsectors; j++) { 
+      for (int i = 0; i < nlocal; i++) {
+        xi[0] = x[i][0];
+        xi[1] = x[i][1];
+        xi[2] = x[i][2];
+        nseci = coords2sector(xi);
+        if (j != nseci) continue;
+        fprintf(file_sect,"%d %lf %lf %lf %lf %lf %lf\n",j,xi[0],xi[1],xi[2],0.0,0.0,1.0);
+      }    
+    }
   }
 #endif
 
@@ -446,7 +453,7 @@ int FixNVESpin::coords2sector(double *xi)
   seci[2] = (int)riz;
 
   if (nsectors == 1) {
-    nseci == 0;
+    nseci = 0;
   } else if (nsectors == 2) {
     nseci = seci[0] + seci[1] + seci[2];
   } else if (nsectors == 4) {

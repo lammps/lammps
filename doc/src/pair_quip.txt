@@ -80,6 +80,14 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 QUIP potentials are parametrized in electron-volts and Angstroms and
 therefore should be used with LAMMPS metal "units"_units.html.
 
+QUIP potentials are generally not designed to work with the scaling
+factors set by the "special_bonds"_special_bonds.html command.  The
+recommended setting in molecular systems is to include all
+interactions, i.e. to use {special_bonds lj 1.0 1.0 1.0}.  The only
+exception to this rule is if you know that your QUIP potential needs
+to exclude bonded, 1-3, or 1-4 interactions and does not already do
+this exclusion within QUIP.
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

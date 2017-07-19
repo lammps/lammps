@@ -192,9 +192,6 @@ void FixNVESpin::initial_integrate(int vflag)
   }
 
 #if defined SECTORING
-
-  printf("Nsectors: %d, Nlocal: %d \n",nsectors,nlocal);
-
   int nseci;
   // Seq. update spins for all particles
   if (extra == SPIN) {
@@ -206,9 +203,6 @@ void FixNVESpin::initial_integrate(int vflag)
         xi[2] = x[i][2];
         nseci = coords2sector(xi);
 	if (j != nseci) continue;
-
-	printf("sector number: %d, nseci: %d \n",j,nseci);  
-
 	ComputeSpinInteractionsNeigh(i);
         AdvanceSingleSpin(i,0.5*dts,sp,fm);
       }    

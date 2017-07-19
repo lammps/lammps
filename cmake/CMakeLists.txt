@@ -426,7 +426,6 @@ if(ENABLE_GPU)
       message(FATAL_ERROR "Couldn't find bin2c")
     endif()
     include_directories(${CUDA_TOOLKIT_INCLUDE})
-    set(CUDA_BUILD_CUBIN ON)
     set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "Lammps gpu precision size")
     set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
     add_definitions(-D_${GPU_PREC})
@@ -453,7 +452,7 @@ if(ENABLE_GPU)
       get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
       string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
       add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-        COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ}.cubin.txt > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+        COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
         DEPENDS ${CU_OBJ} 
         COMMENT "Generating ${CU_NAME}_cubin.h")
       list(APPEND LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)

@@ -126,9 +126,9 @@ fp.close()
 
 print("Building lib%s.a ..." % lib)
 cmd = ["make -f Makefile.auto clean"]
-print(subprocess.check_output(cmd, shell=True))
+print(subprocess.check_output(cmd, shell=True).decode())
 cmd = ["make -f Makefile.auto -j12"]
-print(subprocess.check_output(cmd, shell=True))
+print(subprocess.check_output(cmd, shell=True).decode())
 
 if os.path.exists("lib%s.a" % lib): print("Build was successful")
 else: error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))

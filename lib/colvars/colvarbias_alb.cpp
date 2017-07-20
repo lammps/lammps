@@ -156,8 +156,8 @@ int colvarbias_alb::update()
                                               colvars[i],
                                               colvar_centers[i]);
     bias_energy += restraint_potential(restraint_convert_k(current_coupling[i], colvars[i]->width),
-				       colvars[i],
-				       colvar_centers[i]);
+                                       colvars[i],
+                                       colvar_centers[i]);
 
     if (!b_equilibration) {
       //Welford, West, and Hanso online variance method
@@ -169,26 +169,26 @@ int colvarbias_alb::update()
     } else {
       //check if we've reached the setpoint
       if (coupling_rate[i] == 0 || pow(current_coupling[i] - set_coupling[i],2)  < pow(coupling_rate[i],2)) {
-	finished_equil_flag &= 1; //we continue equilibrating as long as we haven't reached all the set points
+        finished_equil_flag &= 1; //we continue equilibrating as long as we haven't reached all the set points
       }
       else {
-	current_coupling[i] += coupling_rate[i];
-	finished_equil_flag = 0;
+        current_coupling[i] += coupling_rate[i];
+        finished_equil_flag = 0;
       }
 
 
       //update max_coupling_range
       if (!b_hard_coupling_range && fabs(current_coupling[i]) > max_coupling_range[i]) {
-	std::ostringstream logStream;
-	logStream << "Coupling constant for "
-		  << colvars[i]->name
-		  << " has exceeded coupling range of "
-		  << max_coupling_range[i]
-		  << ".\n";
+        std::ostringstream logStream;
+        logStream << "Coupling constant for "
+                  << colvars[i]->name
+                  << " has exceeded coupling range of "
+                  << max_coupling_range[i]
+                  << ".\n";
 
-	max_coupling_range[i] *= 1.25;
-	logStream << "Expanding coupling range to "  << max_coupling_range[i] << ".\n";
-	cvm::log(logStream.str());
+        max_coupling_range[i] *= 1.25;
+        logStream << "Expanding coupling range to "  << max_coupling_range[i] << ".\n";
+        cvm::log(logStream.str());
       }
 
 
@@ -214,23 +214,23 @@ int colvarbias_alb::update()
       temp = 2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (update_calls - 1);
 
       if (cvm::temperature() > 0)
-	step_size = temp / (cvm::temperature()  * cvm::boltzmann());
+        step_size = temp / (cvm::temperature()  * cvm::boltzmann());
       else
-	step_size = temp / cvm::boltzmann();
+        step_size = temp / cvm::boltzmann();
 
       means[i] = 0;
       ssd[i] = 0;
 
       //stochastic if we do that update or not
       if (colvars.size() == 1 || rand() < RAND_MAX / ((int) colvars.size())) {
-	coupling_accum[i] += step_size * step_size;
-	current_coupling[i] = set_coupling[i];
-	set_coupling[i] += max_coupling_range[i] / sqrt(coupling_accum[i]) * step_size;
-	coupling_rate[i] = (set_coupling[i] - current_coupling[i]) / update_freq;
-	//set to the minimum rate and then put the sign back on it
-	coupling_rate[i] = copysign(fmin(fabs(coupling_rate[i]), max_coupling_rate[i]), coupling_rate[i]);
+        coupling_accum[i] += step_size * step_size;
+        current_coupling[i] = set_coupling[i];
+        set_coupling[i] += max_coupling_range[i] / sqrt(coupling_accum[i]) * step_size;
+        coupling_rate[i] = (set_coupling[i] - current_coupling[i]) / update_freq;
+        //set to the minimum rate and then put the sign back on it
+        coupling_rate[i] = copysign(fmin(fabs(coupling_rate[i]), max_coupling_rate[i]), coupling_rate[i]);
       } else {
-	coupling_rate[i] = 0;
+        coupling_rate[i] = 0;
       }
 
     }
@@ -339,14 +339,14 @@ std::ostream & colvarbias_alb::write_traj_label(std::ostream &os)
   if (b_output_coupling)
     for (size_t i = 0; i < current_coupling.size(); i++) {
       os << " ForceConst_" << i
-	 <<std::setw(cvm::en_width - 6 - (i / 10 + 1))
-	 << "";
+         <<std::setw(cvm::en_width - 6 - (i / 10 + 1))
+         << "";
     }
 
   if (b_output_grad)
     for (size_t i = 0; i < means.size(); i++) {
       os << "Grad_"
-	 << cvm::wrap_string(colvars[i]->name, cvm::cv_width - 4);
+         << cvm::wrap_string(colvars[i]->name, cvm::cv_width - 4);
     }
 
   if (b_output_centers)
@@ -372,8 +372,8 @@ std::ostream & colvarbias_alb::write_traj(std::ostream &os)
   if (b_output_coupling)
     for (size_t i = 0; i < current_coupling.size(); i++) {
       os << " "
-	 << std::setprecision(cvm::en_prec) << std::setw(cvm::en_width)
-	 << current_coupling[i];
+         << std::setprecision(cvm::en_prec) << std::setw(cvm::en_width)
+         << current_coupling[i];
     }
 
 
@@ -387,8 +387,8 @@ std::ostream & colvarbias_alb::write_traj(std::ostream &os)
   if (b_output_grad)
     for (size_t i = 0; i < means.size(); i++) {
       os << " "
-	 << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-	 << -2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (fmax(update_calls,2) - 1);
+         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
+         << -2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (fmax(update_calls,2) - 1);
 
     }
 

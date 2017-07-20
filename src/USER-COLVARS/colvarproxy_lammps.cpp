@@ -308,10 +308,6 @@ void colvarproxy_lammps::error(std::string const &message)
 void colvarproxy_lammps::fatal_error(std::string const &message)
 {
   log(message);
-  // if (!cvm::debug())
-  //   log("If this error message is unclear, try recompiling the "
-  //        "colvars library and LAMMPS with -DCOLVARS_DEBUG.\n");
-
   _lmp->error->one(FLERR,
                    "Fatal error in the collective variables module.\n");
 }

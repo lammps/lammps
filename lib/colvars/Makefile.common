@@ -1,7 +1,7 @@
 # Shared -*- makefile -*- for multiple architectures
 
 # Detect settings from PYTHON package (if defined)
-include ../../src/Makefile.package.settings
+sinclude ../../src/Makefile.package.settings
 ifeq ($(python_SYSINC),)
 COLVARS_PYTHON_INCFLAGS =
 else

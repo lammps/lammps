@@ -1,3 +1,7 @@
+########################################
+# CMake build system
+# This file is part of LAMMPS
+# Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.1)
 
 project(lammps)
@@ -6,6 +10,7 @@ set(LAMMPS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../lib)
 set(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib)
 
+#To not conflict with old Makefile build system, we build everything here
 file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/*.cpp)
 file(GLOB LMP_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
@@ -32,7 +37,6 @@ enable_language(CXX)
 # compiler tests
 # these need ot be done early (before further tests).
 #####################################################################
-
 include(CheckCCompilerFlag)
 
 ########################################################################
@@ -98,6 +102,9 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
 
+######################################################
+# packages with special compiler needs or external libs
+######################################################
 if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM)
   enable_language(Fortran)
 endif()
@@ -137,21 +144,6 @@ if(ENABLE_MISC)
   if(LAMMPS_XDR)
     add_definitions(-DLAMMPS_XDR)
   endif()
-endif()
-
-if(ENABLE_KOKKOS)
-  set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
-  set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
-  add_definitions(-DLMP_KOKKOS)
-  add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-
-  # TODO there probably is a better way
-  set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
-                          ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-  include_directories(${Kokkos_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS kokkos)
 endif()
 
 if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
@@ -209,7 +201,6 @@ if(ENABLE_VORONOI)
   find_package(VORO REQUIRED) #some distros
   include_directories(${VORO_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${VORO_LIBRARIES})
-  #TODO download and build voro++
 endif()
 
 if(ENABLE_USER-MOLFILE)
@@ -238,65 +229,6 @@ if(ENABLE_USER-QMMM)
   include_directories(${QE_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
-
-########################################################################
-# Basic system tests (standard libraries, headers, functions, types)   #
-########################################################################
-include(CheckIncludeFile)
-foreach(HEADER math.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
-  if(NOT FOUND_${HEADER})
-    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
-  endif(NOT FOUND_${HEADER})
-endforeach(HEADER)
-
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
-mark_as_advanced( MATH_LIBRARIES )
-include(CheckLibraryExists)
-foreach(FUNC sin cos)
-  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
-  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-endforeach(FUNC)
-list(APPEND LAMMPS_LINK_LIBS ${MATH_LIBRARIES})
-
-######################################
-# Include the following subdirectory # 
-######################################
-
-#Do NOT go into src to not conflict with old Makefile build system
-#add_subdirectory(src)
-
-include(StyleHeaderUtils)
-RegisterStyles(${LAMMPS_SOURCE_DIR})
-
-# packages which include entire content when enabled
-
-foreach(PKG ${PACKAGES} ${USER-PACKAGES})
-  if(ENABLE_${PKG})
-    set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
-
-    # detects styles in package and adds them to global list
-    RegisterStyles(${${PKG}_SOURCES_DIR})
-
-    file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
-    list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
-    include_directories(${${PKG}_SOURCES_DIR})
-  endif()
-endforeach()
-
-foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
-  USER-MOLFILE USER-QMMM)
-  if(ENABLE_${SIMPLE_LIB})
-    string(REGEX REPLACE "^USER-" "" SIMPLE_LIB "${SIMPLE_LIB}")
-    string(TOLOWER "${SIMPLE_LIB}" INC_DIR)
-    file(GLOB_RECURSE ${SIMPLE_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.F
-      ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.cpp)
-    list(APPEND LIB_SOURCES ${${SIMPLE_LIB}_SOURCES})
-    include_directories(${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR})
-  endif()
-endforeach()
 
 if(ENABLE_USER-AWPMD)
   include_directories(${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact
@@ -348,11 +280,69 @@ if(ENABLE_MSCG)
   list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES})
 endif()
 
+########################################################################
+# Basic system tests (standard libraries, headers, functions, types)   #
+########################################################################
+include(CheckIncludeFile)
+foreach(HEADER math.h)
+  check_include_file(${HEADER} FOUND_${HEADER})
+  if(NOT FOUND_${HEADER})
+    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
+  endif(NOT FOUND_${HEADER})
+endforeach(HEADER)
+
+set(MATH_LIBRARIES "m" CACHE STRING "math library")
+mark_as_advanced( MATH_LIBRARIES )
+include(CheckLibraryExists)
+foreach(FUNC sin cos)
+  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
+  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
+    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
+  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
+endforeach(FUNC)
+list(APPEND LAMMPS_LINK_LIBS ${MATH_LIBRARIES})
+
+######################################
+# Generate Basic Style files 
+######################################
+include(StyleHeaderUtils)
+RegisterStyles(${LAMMPS_SOURCE_DIR})
+
+##############################################
+# add sources of enabled packages
+############################################
+foreach(PKG ${PACKAGES} ${USER-PACKAGES})
+  if(ENABLE_${PKG})
+    set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
+
+    # detects styles in package and adds them to global list
+    RegisterStyles(${${PKG}_SOURCES_DIR})
+
+    file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
+    list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
+    include_directories(${${PKG}_SOURCES_DIR})
+  endif()
+endforeach()
+
+##############################################
+# add lib sources of (simple) enabled packages
+############################################
+foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
+  USER-MOLFILE USER-QMMM)
+  if(ENABLE_${SIMPLE_LIB})
+    string(REGEX REPLACE "^USER-" "" SIMPLE_LIB "${SIMPLE_LIB}")
+    string(TOLOWER "${SIMPLE_LIB}" INC_DIR)
+    file(GLOB_RECURSE ${SIMPLE_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.cpp)
+    list(APPEND LIB_SOURCES ${${SIMPLE_LIB}_SOURCES})
+    include_directories(${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR})
+  endif()
+endforeach()
+
 ######################################################################
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-
 if(ENABLE_USER-OMP)
     set(USER-OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
     set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
@@ -371,27 +361,39 @@ if(ENABLE_USER-OMP)
 endif()
 
 if(ENABLE_KOKKOS)
-    set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
-    set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/neighbor_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
-                           ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
-    set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
+  set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
+  set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
+  add_definitions(-DLMP_KOKKOS)
+  add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
 
-    # detects styles which have KOKKOS version
-    RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
+  set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
+                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
+                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
+                          ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+  include_directories(${Kokkos_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS kokkos)
 
-    get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+  set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
+  set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/neighbor_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
+  set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
 
-    list(APPEND LIB_SOURCES ${KOKKOS_PKG_SOURCES})
-    include_directories(${KOKKOS_PKG_SOURCES_DIR})
+  # detects styles which have KOKKOS version
+  RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
+
+  get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+
+  list(APPEND LIB_SOURCES ${KOKKOS_PKG_SOURCES})
+  include_directories(${KOKKOS_PKG_SOURCES_DIR})
 endif()
 
 if(ENABLE_OPT)
@@ -487,11 +489,12 @@ GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 include_directories(${LAMMPS_SOURCE_DIR})
 include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 
-
+###########################################
+# Actually add executable and lib to build
+############################################
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
-
 if(INSTALL_LIB)
   install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${LAMMPS_SOURCE_DIR}/lammps.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -501,9 +504,11 @@ endif()
 
 add_executable(lmp ${LMP_SOURCES})
 target_link_libraries(lmp lammps)
-
 install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+##################################
+# Print package summary
+##################################
 foreach(PKG ${PACKAGES} ${USER-PACKAGES} ${ACCEL_PACKAGES})
   if(ENABLE_${PKG})
     message(STATUS "Building package: ${PKG}")

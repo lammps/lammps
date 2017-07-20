@@ -71,7 +71,7 @@ style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
 available styles in your executable can be listed by using "the -h
-command-line argument"_Section_start.html#start_7.  The installation
+command-line argument"_Section_start.html#start_6.  The installation
 and compilation of optional packages is explained in the "installation
 instructions"_Section_start.html#start_3.
 

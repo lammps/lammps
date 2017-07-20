@@ -115,7 +115,7 @@ their initialization, before a simulation is defined.
 
 This command can also be specified from the command-line when
 launching LAMMPS, using the "-pk" "command-line
-switch"_Section_start.html#start_7.  The syntax is exactly the same as
+switch"_Section_start.html#start_6.  The syntax is exactly the same as
 when used in an input script.
 
 Note that all of the accelerator packages require the package command
@@ -126,18 +126,18 @@ a default version of the command is typically invoked by other
 accelerator settings.
 
 The KOKKOS package requires a "-k on" "command-line
-switch"_Section_start.html#start_7 respectively, which invokes a
+switch"_Section_start.html#start_6 respectively, which invokes a
 "package kokkos" command with default settings.
 
 For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
-intel" or "-sf omp" "command-line switch"_Section_start.html#start_7
+intel" or "-sf omp" "command-line switch"_Section_start.html#start_6
 is used to auto-append accelerator suffixes to various styles in the
 input script, then those switches also invoke a "package gpu",
 "package intel", or "package omp" command with default settings.
 
 NOTE: A package command for a particular style can be invoked multiple
 times when a simulation is setup, e.g. by the "-c on", "-k on", "-sf",
-and "-pk" "command-line switches"_Section_start.html#start_7, and by
+and "-pk" "command-line switches"_Section_start.html#start_6, and by
 using this command in an input script.  Each time it is used all of
 the style options are set, either to default values or to specified
 settings.  I.e. settings from previous invocations do not persist
@@ -305,7 +305,7 @@ value via their package commands, but there is only a single global
 invoked, you should insure the two values are consistent.  If they are
 not, the last one invoked will take precedence, for both packages.
 Also note that if the "-sf hybrid intel omp" "command-line
-switch"_"_Section_start.html#start_7 is used, it invokes a "package
+switch"_"_Section_start.html#start_6 is used, it invokes a "package
 intel" command, followed by a "package omp" command, both with a
 setting of {Nthreads} = 0.
 
@@ -550,7 +550,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "suffix"_suffix.html, "-pk" "command-line
-setting"_Section_start.html#start_7
+setting"_Section_start.html#start_6
 
 [Default:]
 
@@ -558,9 +558,9 @@ For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
 to Ngpu-1, tpa = 1, and device = not used.  These settings are made
 automatically if the "-sf gpu" "command-line
-switch"_Section_start.html#start_7 is used.  If it is not used, you
+switch"_Section_start.html#start_6 is used.  If it is not used, you
 must invoke the package gpu command in your input script or via the
-"-pk gpu" "command-line switch"_Section_start.html#start_7.
+"-pk gpu" "command-line switch"_Section_start.html#start_6.
 
 For the USER-INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
@@ -569,21 +569,21 @@ style being used.  This value is output to the screen in the offload
 report at the end of each run.  Note that all of these settings,
 except "omp" and "mode", are ignored if LAMMPS was not built with
 Xeon Phi coprocessor support.  These settings are made automatically
-if the "-sf intel" "command-line switch"_Section_start.html#start_7
+if the "-sf intel" "command-line switch"_Section_start.html#start_6
 is used.  If it is not used, you must invoke the package intel
 command in your input script or or via the "-pk intel" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
 For the KOKKOS package, the option defaults neigh = full,
 neigh/qeq = full, newton = off, binsize = 0.0, and comm = device.
 These settings are made automatically by the required "-k on" "command-line
-switch"_Section_start.html#start_7.  You can change them bu using the
+switch"_Section_start.html#start_6.  You can change them bu using the
 package kokkos command in your input script or via the "-pk kokkos"
-"command-line switch"_Section_start.html#start_7.
+"command-line switch"_Section_start.html#start_6.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if
-the "-sf omp" "command-line switch"_Section_start.html#start_7 is
+the "-sf omp" "command-line switch"_Section_start.html#start_6 is
 used.  If it is not used, you must invoke the package omp command in
 your input script or via the "-pk omp" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.

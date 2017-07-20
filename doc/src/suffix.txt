@@ -28,7 +28,7 @@ suffix kk :pre
 
 This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the "-suffix
-command-line switch"_Section_start.html#start_7.  It also has options
+command-line switch"_Section_start.html#start_6.  It also has options
 to turn off or back on any suffix setting made via the command line.
 
 The specified style can be {gpu}, {intel}, {kk}, {omp}, {opt} or
@@ -105,6 +105,6 @@ input script.
 
 [Related commands:]
 
-"Command-line switch -suffix"_Section_start.html#start_7
+"Command-line switch -suffix"_Section_start.html#start_6
 
 [Default:] none

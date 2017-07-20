@@ -14,11 +14,11 @@ experienced users.
 2.1 "What's in the LAMMPS distribution"_#start_1
 2.2 "Making LAMMPS"_#start_2
 2.3 "Making LAMMPS with optional packages"_#start_3
-2.5 "Building LAMMPS as a library"_#start_4
-2.6 "Running LAMMPS"_#start_5
-2.7 "Command-line options"_#start_6
-2.8 "Screen output"_#start_7
-2.9 "Tips for users of previous versions"_#start_8 :all(b)
+2.4 "Building LAMMPS as a library"_#start_4
+2.5 "Running LAMMPS"_#start_5
+2.6 "Command-line options"_#start_6
+2.7 "Screen output"_#start_7
+2.8 "Tips for users of previous versions"_#start_8 :all(b)
 
 :line
 
@@ -714,7 +714,7 @@ type
 lmp_machine -h :pre
 
 to run your executable with the optional "-h command-line
-switch"_#start_7 for "help", which will list the styles and commands
+switch"_#start_6 for "help", which will list the styles and commands
 known to your executable, and immediately exit.
 
 :line

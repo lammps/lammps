@@ -1,35 +1,17 @@
 These are example scripts that can be run with any of
 the acclerator packages in LAMMPS:
 
-USER-CUDA, GPU, USER-INTEL, KOKKOS, USER-OMP, OPT
+GPU, USER-INTEL, KOKKOS, USER-OMP, OPT
 
 The easiest way to build LAMMPS with these packages
-is via the src/Make.py tool described in Section 2.4
-of the manual.  You can also type "Make.py -h" to see
-its options.  The easiest way to run these scripts
-is by using the appropriate
-
+is via the flags described in Section 4 of the manual.
+The easiest way to run these scripts is by using the appropriate
 Details on the individual accelerator packages
 can be found in doc/Section_accelerate.html.
 
 ---------------------
 
 Build LAMMPS with one or more of the accelerator packages
-
-The following command will invoke the src/Make.py tool with one of the
-command-lines from the Make.list file:
-
-../../src/Make.py -r Make.list target
-
-target = one or more of the following:
-  cpu, omp, opt
-  cuda_double, cuda_mixed, cuda_single
-  gpu_double, gpu_mixed, gpu_single
-  intel_cpu, intel_phi
-  kokkos_omp, kokkos_cuda, kokkos_phi
-
-If successful, the build will produce the file lmp_target in this
-directory.
 
 Note that in addition to any accelerator packages, these packages also
 need to be installed to run all of the example scripts: ASPHERE,
@@ -38,39 +20,11 @@ MOLECULE, KSPACE, RIGID.
 These two targets will build a single LAMMPS executable with all the
 CPU accelerator packages installed (USER-INTEL for CPU, KOKKOS for
 OMP, USER-OMP, OPT) or all the GPU accelerator packages installed
-(USER-CUDA, GPU, KOKKOS for CUDA):
+(GPU, KOKKOS for CUDA):
 
-target = all_cpu, all_gpu
-
-Note that the Make.py commands in Make.list assume an MPI environment
-exists on your machine and use mpicxx as the wrapper compiler with
-whatever underlying compiler it wraps by default.  If you add "-cc mpi
-wrap=g++" or "-cc mpi wrap=icc" after the target, you can choose the
-underlying compiler for mpicxx to invoke.  E.g.
-
-../../src/Make.py -r Make.list intel_cpu -cc mpi wrap=icc
-
-You should do this for any build that includes the USER-INTEL
-package, since it will perform best with the Intel compilers.
-
-Note that for kokkos_cuda, it needs to be "-cc nvcc" instead of "mpi",
-since a KOKKOS for CUDA build requires NVIDIA nvcc as the wrapper
-compiler.
-
-Also note that the Make.py commands in Make.list use the default
-FFT support which is via the KISS library.  If you want to
-build with another FFT library, e.g. FFTW3, then you can add
-"-fft fftw3" after the target, e.g.
-
-../../src/Make.py -r Make.list gpu -fft fftw3
-
-For any build with USER-CUDA, GPU, or KOKKOS for CUDA, be sure to set
+For any build with GPU, or KOKKOS for CUDA, be sure to set
 the arch=XX setting to the appropriate value for the GPUs and Cuda
-environment on your system.  What is defined in the Make.list file is
-arch=21 for older Fermi GPUs.  This can be overridden as follows,
-e.g. for Kepler GPUs:
-
-../../src/Make.py -r Make.list gpu_double -gpu mode=double arch=35
+environment on your system.
 
 ---------------------
 
@@ -117,12 +71,6 @@ mpirun -np 4 lmp_gpu_double -sf gpu -pk gpu 2 tpa 8 < in.lj.5.0   # 4 MPI, 2 MPI
 Note that when running in.lj.5.0 (which has a long cutoff) with the
 GPU package, the "-pk tpa" setting should be > 1 (e.g. 8) for best
 performance.
-
-** USER-CUDA package
-
-lmp_machine -c on -sf cuda < in.lj
-mpirun -np 1 lmp_machine -c on -sf cuda < in.lj    # 1 MPI, 1 MPI/GPU
-mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 < in.lj  # 2 MPI, 1 MPI/GPU
 
 ** KOKKOS package for OMP
 

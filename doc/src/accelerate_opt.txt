@@ -36,7 +36,7 @@ None.
 The lines above illustrate how to build LAMMPS with the OPT package in
 two steps, using the "make" command.  Or how to do it with one command
 via the src/Make.py script, described in "Section
-2.4"_Section_start.html#start_4 of the manual.  Type "Make.py -h" for
+4"_Section_packages.html of the manual.  Type "Make.py -h" for
 help.
 
 Note that if you use an Intel compiler to build with the OPT package,
@@ -46,7 +46,7 @@ The Make.py command will add this automatically.
 [Run with the OPT package from the command line:]
 
 As in the lines above, use the "-sf opt" "command-line
-switch"_Section_start.html#start_7, which will automatically append
+switch"_Section_start.html#start_6, which will automatically append
 "opt" to styles that support it.
 
 [Or run with the OPT package by editing an input script:]

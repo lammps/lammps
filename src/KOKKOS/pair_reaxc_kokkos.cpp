@@ -3335,7 +3335,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     const F_FLOAT BO_pi_i = d_BO_pi(i,j_index);
     const F_FLOAT BO_pi2_i = d_BO_pi2(i,j_index);
 
-    pow_BOs_be2 = pow(BO_s_i,p_be2);
+    if (BO_s_i == 0.0) pow_BOs_be2 = 0.0;
+    else pow_BOs_be2 = pow(BO_s_i,p_be2);
     exp_be12 = exp(p_be1*(1.0-pow_BOs_be2));
     CEbo = -De_s*exp_be12*(1.0-p_be1*p_be2*pow_BOs_be2);
     ebond = -De_s*BO_s_i*exp_be12

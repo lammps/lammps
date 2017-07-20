@@ -124,10 +124,16 @@ fp.close()
 
 # make the library via Makefile.auto
 
+try:
+  import multiprocessing
+  n_cpus = multiprocessing.cpu_count()
+except:
+  n_cpus = 1
+
 print("Building lib%s.a ..." % lib)
 cmd = ["make -f Makefile.auto clean"]
 print(subprocess.check_output(cmd, shell=True).decode())
-cmd = ["make -f Makefile.auto -j12"]
+cmd = ["make -f Makefile.auto -j%d" % n_cpus]
 print(subprocess.check_output(cmd, shell=True).decode())
 
 if os.path.exists("lib%s.a" % lib): print("Build was successful")

@@ -1,12 +1,12 @@
 # Shared -*- makefile -*- for multiple architectures
 
-# Detect settings from PYTHON package (if defined)
-include ../../src/Makefile.package.settings
-ifeq ($(python_SYSINC),)
-COLVARS_PYTHON_INCFLAGS =
-else
-COLVARS_PYTHON_INCFLAGS = -DCOLVARS_PYTHON $(python_SYSINC)
-endif
+# # Detect settings from PYTHON package (if defined)
+# sinclude ../../src/Makefile.package.settings
+# ifeq ($(python_SYSINC),)
+# COLVARS_PYTHON_INCFLAGS =
+# else
+# COLVARS_PYTHON_INCFLAGS = -DCOLVARS_PYTHON $(python_SYSINC)
+# endif
 
 # Detect debug settings
 ifeq ($(COLVARS_DEBUG),)

@@ -11,11 +11,11 @@ AR =		ar
 ARFLAGS =	-rscv
 SHELL =		/bin/sh
 
-include Makefile.common
-
 .PHONY: default clean
 
 default: $(COLVARS_LIB) Makefile.lammps
+
+include Makefile.common
 
 clean:
 	-rm -f $(COLVARS_OBJS) $(COLVARS_LIB)

@@ -18,13 +18,17 @@ For a brief description see:
 This directory has source files to build a library that LAMMPS
 links against when using the USER-COLVARS package.
 
-This library must be built with a C++ compiler, *before* LAMMPS is built, so
-that LAMMPS can link against it.  You can use the provided Makefile.* files or
-create your own, specific to your compiler and system.  For example:
+This library must be built with a C++ compiler, *before* LAMMPS is built and
+*after* packages are configured, so that LAMMPS can link against it.
+You can use the provided Makefile.* files or create your own, specific to your
+compiler and system.  For example:
 
+  cd src
+  make yes-user-colvars
+  cd ../lib/colvars
   make -f Makefile.g++
 
-will use the GNU C++ compiler and is a good template to start.
+where Makefile.g++ uses the GNU C++ compiler and is a good template to start.
 
 **Optional**: if you use the Install.py script provided in this folder, you
 can give the machine name as the '-m' argument.  This can be the suffix of one

@@ -14,11 +14,11 @@ AR =		x86_64-w64-mingw32-ar
 ARFLAGS =	-rscv
 SHELL =		/bin/sh
 
-include Makefile.common
-
 .PHONY: default clean
 
 default: $(COLVARS_OBJ_DIR) $(COLVARS_LIB) Makefile.lammps
+
+include Makefile.common
 
 $(COLVARS_OBJ_DIR):
 	mkdir $(COLVARS_OBJ_DIR)

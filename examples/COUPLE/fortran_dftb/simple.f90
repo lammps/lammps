@@ -13,7 +13,7 @@
        type(c_ptr) :: c_pos, c_fext, c_ids
        double precision, pointer :: fext(:,:), pos(:,:)
        integer, intent(in) :: ids(nlocal)
-       real (C_double), dimension(:), pointer :: virial => NULL()
+       real(C_double) :: virial(6)
        real (C_double) :: etot
        real(C_double), pointer :: ts_lmp
        double precision :: stress(3,3), ts_dftb
@@ -61,26 +61,21 @@
          read(10,*)stress(i,:)
        enddo
        stress (:,:) = stress(:,:)*autoatm
-       etot = etot*econv
-       call lammps_extract_global(ts_lmp, lmp, 'TS_dftb')
-       ts_lmp = ts_dftb
-       do i = 1, nlocal
-         read(10,*)fext(:,ids(i))
-         fext(:,ids(i)) = fext(:,ids(i))*fconv
-       enddo
-       close(10)
-       call lammps_set_user_energy (lmp, etot)
-       call lammps_extract_atom (virial, lmp, 'virial')
-       if (.not. associated(virial)) then
-         print*,'virial pointer not associated.'
-         STOP
-       endif
        virial(1) = stress(1,1)/(nktv2p/volume)
        virial(2) = stress(2,2)/(nktv2p/volume)
        virial(3) = stress(3,3)/(nktv2p/volume)
        virial(4) = stress(1,2)/(nktv2p/volume)
        virial(5) = stress(1,3)/(nktv2p/volume)
        virial(6) = stress(2,3)/(nktv2p/volume)
+       etot = etot*econv
+       call lammps_set_external_vector(lmp,1,ts_dftb*econv)
+       do i = 1, nlocal
+         read(10,*)fext(:,ids(i))
+         fext(:,ids(i)) = fext(:,ids(i))*fconv
+       enddo
+       close(10)
+       call lammps_set_user_energy (lmp, etot)
+       call lammps_set_user_virial (lmp, virial)
 
        end  subroutine
     end module callback
@@ -103,6 +98,7 @@ program simple_fortran_callback
    call lammps_open_no_mpi ('lmp -log log.simple', lmp)
    call lammps_file (lmp, 'in.simple')
    call lammps_set_callback(lmp)
+   call lammps_set_external_vector_length(lmp,2)
 
    call lammps_command (lmp, 'run 10')
    call lammps_close (lmp)

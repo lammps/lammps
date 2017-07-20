@@ -26,6 +26,9 @@ extern "C" {
 /* Prototypes for auxiliary functions */
 void lammps_set_callback (void *); 
 void lammps_set_user_energy (void*, double); 
+void lammps_set_user_virial (void*, double*); 
+void lammps_set_external_vector_length (void*, int); 
+void lammps_set_external_vector (void*, int, double); 
 
 #ifdef __cplusplus
 }

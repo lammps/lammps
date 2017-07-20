@@ -47,11 +47,35 @@ void lammps_set_callback (void *ptr) {
   return;
 }
 
+void lammps_set_external_vector_length (void *ptr, int n) {
+  class LAMMPS *lmp = (class LAMMPS *) ptr;
+  int ifix = lmp->modify->find_fix_by_style("external");
+  FixExternal *fix = (FixExternal *) lmp->modify->fix[ifix];
+  fix->set_vector_length(n);
+  return;
+}
+
+void lammps_set_external_vector (void *ptr, int n, double val) {
+  class LAMMPS *lmp = (class LAMMPS *) ptr;
+  int ifix = lmp->modify->find_fix_by_style("external");
+  FixExternal *fix = (FixExternal *) lmp->modify->fix[ifix];
+  fix->set_vector (n, val);
+  return;
+}
+
 void lammps_set_user_energy (void *ptr, double energy) {
   class LAMMPS *lmp = (class LAMMPS *) ptr;
   int ifix = lmp->modify->find_fix_by_style("external");
   FixExternal *fix = (FixExternal *) lmp->modify->fix[ifix];
-  fix->set_energy(energy);
+  fix->set_energy_global(energy);
+  return;
+}
+
+void lammps_set_user_virial (void *ptr, double *virial) {
+  class LAMMPS *lmp = (class LAMMPS *) ptr;
+  int ifix = lmp->modify->find_fix_by_style("external");
+  FixExternal *fix = (FixExternal *) lmp->modify->fix[ifix];
+  fix->set_virial_global(virial);
   return;
 }
 

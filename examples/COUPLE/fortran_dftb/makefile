@@ -21,7 +21,7 @@ liblammps_fortran.so : LAMMPS.o LAMMPS-wrapper.o LAMMPS-wrapper2.o
 	$(FC) $(FFLAGS) -shared -o $@ $^
 
 simpleF.x: simple.o LAMMPS.o LAMMPS-wrapper.o LAMMPS-wrapper2.o
-	$(FC) $(FFLAGS) simple.o -o simpleF.x liblammps_fortran.a $(LAMMPS_SRC)/liblammps_mvapich.a -lstdc++ /usr/local/tools/fftw/lib/libfftw.a
+	$(FC) $(FFLAGS) simple.o -o simpleF.x liblammps_fortran.a $(LAMMPS_SRC)/liblammps_mvapich.a -lstdc++ /usr/lib64/libfftw3.a 
 
 liblammps_fortran.a : LAMMPS.o LAMMPS-wrapper.o LAMMPS-wrapper2.o
 	$(AR) rs $@ $^

@@ -71,6 +71,11 @@ add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
+option(ENABLE_TESTING "Enable testing" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
+
 option(ENABLE_ALL "Build all default packages" OFF)
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
   KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ
@@ -519,6 +524,9 @@ endif()
 add_executable(lmp ${LMP_SOURCES})
 target_link_libraries(lmp lammps)
 install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(ENABLE_TESTING)
+  add_test(ShowHelp lmp -help)
+endif()
 
 ##################################
 # Print package summary

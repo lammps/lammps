@@ -53,6 +53,26 @@ PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
 }
 
 /* ----------------------------------------------------------------------
+   clean up per-thread allocations
+------------------------------------------------------------------------- */
+
+PPPMTIP4POMP::~PPPMTIP4POMP()
+{
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+  {
+#if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+#else
+    const int tid = 0;
+#endif
+    ThrData *thr = fix->get_thr(tid);
+    thr->init_pppm(-order,memory);
+  }
+}
+
+/* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
@@ -71,28 +91,6 @@ void PPPMTIP4POMP::allocate()
 #endif
     ThrData *thr = fix->get_thr(tid);
     thr->init_pppm(order,memory);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   free memory that depends on # of K-vectors and order
-------------------------------------------------------------------------- */
-
-void PPPMTIP4POMP::deallocate()
-{
-  PPPMTIP4P::deallocate();
-
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    ThrData *thr = fix->get_thr(tid);
-    thr->init_pppm(-order,memory);
   }
 }
 

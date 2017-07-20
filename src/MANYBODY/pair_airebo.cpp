@@ -4165,7 +4165,7 @@ def output_matrix(n, k, A):
 
 void PairAIREBO::Sptricubic_patch_adjust(double * dl, double wid, double lo,
                                          char dir) {
-  int rowOuterL = 16, rowInnerL = 1, colL;
+  int rowOuterL = 16, rowInnerL = 1, colL = 4;
   if (dir == 'R') {
     rowOuterL = 4;
     colL = 16;

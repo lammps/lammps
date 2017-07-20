@@ -86,7 +86,7 @@ void BondsOMP( reax_system *system, control_params *control,
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
 
   pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-				    system->pair_ptr->vflag_either, natoms,
+				    system->pair_ptr->vflag_either, system->N,
 				    system->pair_ptr->eatom, system->pair_ptr->vatom, thr);
 
 #if defined(_OPENMP)

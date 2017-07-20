@@ -39,7 +39,7 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
-// Functions definedd in reaxc_init_md.cpp
+// Functions defined in reaxc_init_md.cpp
 extern int Init_MPI_Datatypes(reax_system*, storage*, mpi_datatypes*, MPI_Comm, char*);
 extern int Init_System(reax_system*, control_params*, char*);
 extern int Init_Simulation_Data(reax_system*, control_params*, simulation_data*, char*);
@@ -104,7 +104,7 @@ int Init_ListsOMP( reax_system *system, control_params *control,
   /* 3bodies list */
   cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
   if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
-		  *lists+THREE_BODIES, comm ) ){
+                  *lists+THREE_BODIES, comm ) ){
 
     fprintf( stderr, "Problem in initializing angles list. Terminating!\n" );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );

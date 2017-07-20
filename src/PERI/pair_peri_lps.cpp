@@ -33,6 +33,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 
@@ -174,7 +175,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
         // of the bond-based theory used in PMB model
 
         double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
-          (3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
+          (MathConst::MY_PI * cutsq[itype][jtype] * cutsq[itype][jtype]);
         rk = (kshort * vfrac[j]) * (dr / cut[itype][jtype]);
 
         if (r > 0.0) fpair = -(rk/r);
@@ -285,13 +286,14 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
       omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       omega_minus = influence_function(delx0,dely0,delz0);
-
-      rk = ( (3.0 * bulkmodulus[itype][itype]) -
-             (5.0 * shearmodulus[itype][itype]) ) * vfrac[j] * vfrac_scale *
-        ( (omega_plus * theta[i] / wvolume[i]) +
-          ( omega_minus * theta[j] / wvolume[j] ) ) * r0[i][jj];
-      rk +=  15.0 * ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale ) *
-        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr;
+      if ((wvolume[i] > 0.0) && (wvolume[j] > 0.0)) {
+        rk = ( (3.0 * bulkmodulus[itype][itype]) -
+               (5.0 * shearmodulus[itype][itype]) ) * vfrac[j] * vfrac_scale *
+          ( (omega_plus * theta[i] / wvolume[i]) +
+            ( omega_minus * theta[j] / wvolume[j] ) ) * r0[i][jj];
+        rk +=  15.0 * ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale ) *
+          ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr;
+      } else rk = 0.0;
 
       if (r > 0.0) fbond = -(rk/r);
       else fbond = 0.0;
@@ -305,9 +307,11 @@ void PairPeriLPS::compute(int eflag, int vflag)
       double deviatoric_extension = dr - (theta[i]* r0[i][jj] / 3.0);
 
 
-      if (eflag) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) *
+      if (eflag && (wvolume[i] > 0.0))
+        evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) *
                    omega_plus*(deviatoric_extension * deviatoric_extension) *
                    vfrac[j] * vfrac_scale;
+      else evdwl = 0.0;
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,
                            0.5*fbond*vfrac[i],delx,dely,delz);
 

@@ -93,6 +93,7 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
 
   suffix_flag |= Suffix::OMP;
   system->pair_ptr = this;
+  system->omp_active = 1;
 
   num_nbrs_offset = NULL;
 

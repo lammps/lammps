@@ -127,7 +127,7 @@ G (force/area units)
 horizon (distance units)
 s00 (unitless)
 alpha (unitless)
-m_yield_stress (force/area units)
+m_yield_stress (force/area units) :ul
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance and s00 and alpha are used as a bond breaking

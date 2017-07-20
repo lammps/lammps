@@ -46,7 +46,7 @@ PairPeriEPS::PairPeriEPS(LAMMPS *lmp) : Pair(lmp)
 
   ifix_peri = -1;
 
-  nmax = 0;
+  nmax = -1;
   s0_new = NULL;
   theta = NULL;
 
@@ -209,7 +209,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
   for (i = 0; i < nlocal; i++) maxpartner = MAX(maxpartner,npartner[i]);
 
 
-  if (atom->nmax > nmax) {
+  if (nlocal > nmax) {
     memory->destroy(s0_new);
     memory->destroy(theta);
     nmax = atom->nmax;
@@ -220,12 +220,12 @@ void PairPeriEPS::compute(int eflag, int vflag)
 
   // ******** temp array to store Plastic extension *********** ///
   // create on heap to reduce stack use and to allow for faster zeroing
-  double **deviatorPlasticExtTemp;
-  memory->create(deviatorPlasticExtTemp,nlocal,maxpartner,"pair:plastext");
-  memset(&(deviatorPlasticExtTemp[0][0]),0,sizeof(double)*nlocal*maxpartner);
+  double **deviatorPlasticExtTemp = NULL;
+  if (nlocal*maxpartner > 0) {
+    memory->create(deviatorPlasticExtTemp,nlocal,maxpartner,"pair:plastext");
+    memset(&(deviatorPlasticExtTemp[0][0]),0,sizeof(double)*nlocal*maxpartner);
+  }
   // ******** temp array to store Plastic extension *********** ///
-
-
 
   // compute the dilatation on each particle
   compute_dilatation();
@@ -280,12 +280,10 @@ void PairPeriEPS::compute(int eflag, int vflag)
     double fsurf = (tdnorm * tdnorm)/2 - pointwiseYieldvalue;
     bool elastic = true;
 
-    double alphavalue = (15 * shearmodulus[itype][itype]) /wvolume[i];
-
-
-    if (fsurf>0) {
+    if (fsurf > 0) {
       elastic = false;
-      deltalambda = ((tdnorm /sqrt(2.0 * pointwiseYieldvalue)) - 1.0) / alphavalue;
+      deltalambda = ((tdnorm /sqrt(2.0 * pointwiseYieldvalue)) - 1.0) * wvolume[i]
+              / (15 * shearmodulus[itype][itype]);
       double templambda = lambdaValue[i];
       lambdaValue[i] = templambda + deltalambda;
     }
@@ -348,10 +346,9 @@ void PairPeriEPS::compute(int eflag, int vflag)
         ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) *
            (deviatoric_extension - edpNp1);
 
-      if(elastic) {
+      if (elastic) {
         rkNew = tdtrialValue;
-      }
-      else {
+      } else {
         rkNew = (sqrt(2.0*pointwiseYieldvalue) * tdtrialValue) / tdnorm;
         deviatorPlasticExtTemp[i][jj] = edpNp1 + rkNew * deltalambda;
       }
@@ -402,10 +399,12 @@ void PairPeriEPS::compute(int eflag, int vflag)
 
   memcpy(s0,s0_new,sizeof(double)*nlocal);
 
-  memcpy(&(deviatorPlasticextension[0][0]),
-         &(deviatorPlasticExtTemp[0][0]),
-         sizeof(double)*nlocal*maxpartner);
-  memory->destroy(deviatorPlasticExtTemp);
+  if (nlocal*maxpartner > 0) {
+    memcpy(&(deviatorPlasticextension[0][0]),
+           &(deviatorPlasticExtTemp[0][0]),
+           sizeof(double)*nlocal*maxpartner);
+    memory->destroy(deviatorPlasticExtTemp);
+  }
 }
 
 /* ----------------------------------------------------------------------

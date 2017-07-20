@@ -59,7 +59,6 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
   const double p_ovun7 = system->reax_param.gp.l[8];
   const double p_ovun8 = system->reax_param.gp.l[9];
 
-  const int natoms = system->n;
   reax_list *bonds = (*lists) + BONDS;
 
   double total_Elp = 0.0;
@@ -98,10 +97,6 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
-
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-				    system->pair_ptr->vflag_either, natoms,
-				    system->pair_ptr->eatom, system->pair_ptr->vatom, thr);
 
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
@@ -280,10 +275,6 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // UnCoor-2b
     }
   }
-
-  pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
-				  system->pair_ptr->vflag_either, thr);
-
  }
 
  data->my_en.e_lp += total_Elp;

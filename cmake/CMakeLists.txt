@@ -320,7 +320,7 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ##############################################
 # add sources of enabled packages
 ############################################
-foreach(PKG ${PACKAGES} ${OTHER-PACKAGES})
+foreach(PKG ${PACKAGES} ${OTHER_PACKAGES})
   if(ENABLE_${PKG})
     set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 

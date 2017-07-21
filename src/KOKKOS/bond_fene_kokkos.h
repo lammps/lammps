@@ -85,10 +85,10 @@ class BondFENEKokkos : public BondFENE {
   DAT::tdual_ffloat_1d k_epsilon;
   DAT::tdual_ffloat_1d k_sigma;
 
-  DAT::t_ffloat_1d d_k;
-  DAT::t_ffloat_1d d_r0;
-  DAT::t_ffloat_1d d_epsilon;
-  DAT::t_ffloat_1d d_sigma;
+  typename AT::t_ffloat_1d d_k;
+  typename AT::t_ffloat_1d d_r0;
+  typename AT::t_ffloat_1d d_epsilon;
+  typename AT::t_ffloat_1d d_sigma;
 
   virtual void allocate();
 };

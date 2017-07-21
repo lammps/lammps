@@ -96,8 +96,8 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     nmax = atom->nmax;
     k_rho = DAT::tdual_ffloat_1d("pair:rho",nmax);
     k_fp = DAT::tdual_ffloat_1d("pair:fp",nmax);
-    d_rho = k_rho.d_view;
-    d_fp = k_fp.d_view;
+    d_rho = k_rho.template view<DeviceType>();
+    d_fp = k_fp.template view<DeviceType>();
     h_rho = k_rho.h_view;
     h_fp = k_fp.h_view;
   }
@@ -322,9 +322,9 @@ void PairEAMKokkos<DeviceType>::file2array()
   k_type2z2r.template modify<LMPHostType>();
   k_type2z2r.template sync<DeviceType>();
 
-  d_type2frho = k_type2frho.d_view;
-  d_type2rhor = k_type2rhor.d_view;
-  d_type2z2r = k_type2z2r.d_view;
+  d_type2frho = k_type2frho.template view<DeviceType>();
+  d_type2rhor = k_type2rhor.template view<DeviceType>();
+  d_type2z2r = k_type2z2r.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -358,9 +358,9 @@ void PairEAMKokkos<DeviceType>::array2spline()
   k_z2r_spline.template modify<LMPHostType>();
   k_z2r_spline.template sync<DeviceType>();
 
-  d_frho_spline = k_frho_spline.d_view;
-  d_rhor_spline = k_rhor_spline.d_view;
-  d_z2r_spline = k_z2r_spline.d_view;
+  d_frho_spline = k_frho_spline.template view<DeviceType>();
+  d_rhor_spline = k_rhor_spline.template view<DeviceType>();
+  d_z2r_spline = k_z2r_spline.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -142,7 +142,7 @@ if(ENABLE_KSPACE)
     list(APPEND LAMMPS_LINK_LIBS ${${FFT}_LIBRARIES})
   endif()
   set(PACK_OPTIMIZATION "PACK_ARRAY" CACHE STRING "Optimization for FFT")
-  set_property(CACHE LAMMPS_SIZE_LIMIT PROPERTY STRINGS PACK_ARRAY PACK_POINTER PACK_MEMCPY)
+  set_property(CACHE PACK_OPTIMIZATION PROPERTY STRINGS PACK_ARRAY PACK_POINTER PACK_MEMCPY)
   if(NOT PACK_OPTIMIZATION STREQUAL "PACK_ARRAY")
     add_definitions(-D${PACK_OPTIMIZATION})
   endif()
@@ -320,7 +320,7 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ##############################################
 # add sources of enabled packages
 ############################################
-foreach(PKG ${PACKAGES} ${USER-PACKAGES})
+foreach(PKG ${PACKAGES} ${OTHER-PACKAGES})
   if(ENABLE_${PKG})
     set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 

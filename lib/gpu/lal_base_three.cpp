@@ -20,7 +20,7 @@ using namespace LAMMPS_AL;
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0), _short_nbor(false) {
+BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -73,6 +73,7 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (_threads_per_atom>1 && gpu_nbor==0) { // neigh no and tpa > 1
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);
+    _threads_per_atom = 1; // enforce tpa = 1 for now
   } else  // neigh yes or tpa == 1
     _nbor_data=&(nbor->dev_nbor);
   if (_threads_per_atom*_threads_per_atom>device->warp_size())
@@ -113,14 +114,10 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   _max_an_bytes+=ans2->gpu_bytes();
   #endif
 
-  // if short neighbor list is supported
-  if (short_nbor) {
-    _short_nbor = true;
-    int ef_nall=nall;
-    if (ef_nall==0)
-      ef_nall=2000;
-    dev_short_nbor.alloc(ef_nall*(2+max_nbors),*(this->ucl_device),UCL_READ_WRITE);
-  }
+  int ef_nall=nall;
+  if (ef_nall==0)
+    ef_nall=2000;
+  dev_short_nbor.alloc(ef_nall*(2+max_nbors),*(this->ucl_device),UCL_READ_WRITE);
 
   return 0;
 }
@@ -269,14 +266,10 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
   hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
 
-  // if short neighbor list is supported
-  if (_short_nbor) {
-
-    // re-allocate dev_short_nbor if necessary
-    if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
-      int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
-      dev_short_nbor.resize((2+_max_nbors)*_nmax);
-    }
+  // re-allocate dev_short_nbor if necessary
+  if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
+    dev_short_nbor.resize((2+_max_nbors)*_nmax);
   }
 
   // _ainum to be used in loop() for short neighbor list build
@@ -342,14 +335,10 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
   *ilist=nbor->host_ilist.begin();
   *jnum=nbor->host_acc.begin();
 
-  // if short neighbor list is supported
-  if (_short_nbor) {
-
-    // re-allocate dev_short_nbor if necessary
-    if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
-      int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
-      dev_short_nbor.resize((2+_max_nbors)*_nmax);
-    }
+  // re-allocate dev_short_nbor if necessary
+  if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
+    dev_short_nbor.resize((2+_max_nbors)*_nmax);
   }
 
   // _ainum to be used in loop() for short neighbor list build
@@ -394,7 +383,7 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_three_end.set_function(*pair_program,three_end);
   k_three_end_vatom.set_function(*pair_program,vatom_name.c_str());
   k_pair.set_function(*pair_program,two);
-  if (short_nbor) k_short_nbor.set_function(*pair_program,short_nbor);
+  k_short_nbor.set_function(*pair_program,short_nbor);
   pos_tex.get_texture(*pair_program,"pos_tex");
 
   #ifdef THREE_CONCURRENT

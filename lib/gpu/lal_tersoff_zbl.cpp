@@ -293,7 +293,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                                (BX/(JTHREADS*KTHREADS))));
 
   this->k_zeta.set_size(GX,BX);
-  this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &cutsq,
+  this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6, &cutsq,
                    &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                    &this->dev_short_nbor,

@@ -199,7 +199,7 @@ class BaseThree {
   UCL_Texture pos_tex;
 
  protected:
-  bool _compiled,_short_nbor;
+  bool _compiled;
   int _block_pair, _block_size, _threads_per_atom, _end_command_queue;
   int _gpu_nbor;
   double _max_bytes, _max_an_bytes;

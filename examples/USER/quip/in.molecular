@@ -7,13 +7,17 @@ timestep 0.0001 # 0.1 fs
 read_data methane-box-8.data
 
 pair_style hybrid/overlay lj/cut 8.0 quip
-special_bonds lj/coul 0.999999999 0.999999999 0.999999999 # for quip
+
+# exclusion setting for quip; cannot be exactly 1.0 1.0 1.0,
+# since that would not flag 1-2, 1-3, and 1-4 pairs in lj/cut
+special_bonds lj/coul 0.999999999 0.999999999 0.999999999
 
 # Intermolecular: OPLS (JACS 118 (45), p. 11225 (1996))
 pair_coeff 1 1 lj/cut 0.0028619844 3.5 # CT
 pair_coeff 2 2 lj/cut 0.0013009018 2.5 # HC
 pair_coeff 1 2 lj/cut 0.0019295487 2.95
 pair_modify shift no
+# change exclusion settings for lj/cut only: exclude bonded pairs
 pair_modify pair lj/cut special lj/coul 0.0 0.0 0.0
 
 # Intramolecular
@@ -32,7 +36,7 @@ compute vir all pressure NULL virial
 thermo_style custom step epair ke etotal temp press c_vir c_evdw c_equip
 thermo 1
 
-dump 1 all custom 1 dump.molecular id type x y z fx fy fz
-dump_modify 1 sort id
+# dump 1 all custom 1 dump.molecular id type x y z fx fy fz
+# dump_modify 1 sort id
 
 run 10

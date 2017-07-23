@@ -242,7 +242,7 @@ void ComputeStressTally::compute_peratom()
 
 double ComputeStressTally::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax*size_peratom_cols * sizeof(double);
   return bytes;
 }
 

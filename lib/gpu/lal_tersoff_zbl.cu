@@ -314,8 +314,6 @@ __kernel void k_tersoff_zbl_zeta(const __global numtyp4 *restrict x_,
       delr1.z = jx.z-ix.z;
       numtyp rsq1 = delr1.x*delr1.x+delr1.y*delr1.y+delr1.z*delr1.z;
 
-//      if (rsq1 > cutsq[ijparam]) continue;
-
       // compute zeta_ij
       z = (acctyp)0;
 
@@ -601,7 +599,6 @@ __kernel void k_tersoff_zbl_three_center(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-//      if (rsq1 > cutsq[ijparam]) continue;
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
 
@@ -789,8 +786,6 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
       delr1[1] = jx.y-ix.y;
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-
-//      if (rsq1 > cutsq[ijparam]) continue;
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -1036,8 +1031,6 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
       delr1[1] = jx.y-ix.y;
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-
-//      if (rsq1 > cutsq[ijparam]) continue;
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];

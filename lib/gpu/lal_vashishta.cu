@@ -474,9 +474,7 @@ __kernel void k_vashishta_three_center(const __global numtyp4 *restrict x_,
       
       numtyp4 param4_ijparam; fetch4(param4_ijparam,ijparam,param4_tex);
       param_r0sq_ij=param4_ijparam.x;
-
-//      if (rsq1 > param_r0sq_ij) continue;
-
+      if (rsq1 > param_r0sq_ij) continue; // still keep this for neigh no and tpa > 1
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij=param4_ijparam.w;
       
@@ -617,8 +615,7 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       numtyp4 param4_ijparam; fetch4(param4_ijparam,ijparam,param4_tex);
       param_r0sq_ij = param4_ijparam.x;
-
-//      if (rsq1 > param_r0sq_ij) continue;
+      if (rsq1 > param_r0sq_ij) continue; // still keep this for neigh no and tpa > 1
 
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij = param4_ijparam.w;
@@ -773,8 +770,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       numtyp4 param4_ijparam; fetch4(param4_ijparam,ijparam,param4_tex);
       param_r0sq_ij=param4_ijparam.x;
-
-//      if (rsq1 > param_r0sq_ij) continue;
+      if (rsq1 > param_r0sq_ij) continue;  // still keep this for neigh no and tpa > 1
 
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij=param4_ijparam.w;

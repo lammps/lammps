@@ -167,7 +167,6 @@ __kernel void k_sw_short_nbor(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
@@ -217,8 +216,8 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   __syncthreads();
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int nbor, nbor_end, i, numj;
+    const int* nbor_mem = dev_packed;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -227,13 +226,16 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
     itype=map[itype];
 
     // recalculate numj and nbor_end for use of the short nbor list
-    numj = dev_short_nbor[nbor];
-    nbor += n_stride;
-    nbor_end = nbor+fast_mul(numj,n_stride);
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int j=dev_short_nbor[nbor];
+      int j=nbor_mem[nbor];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -426,7 +428,7 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end;
-
+    const int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -437,14 +439,17 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
     itype=map[itype];
 
     // recalculate numj and nbor_end for use of the short nbor list
-    numj = dev_short_nbor[nbor_j];
-    nbor_j += n_stride;
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
     int nborj_start = nbor_j;
-    nbor_end = nbor_j+fast_mul(numj,n_stride);
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=dev_short_nbor[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -466,15 +471,22 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
       sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_ijparam.x;
 
-      int nbor_k=nborj_start-offset_j+offset_k;
-      int numk = dev_short_nbor[nbor_k-n_stride];
-      int k_end = nbor_k+fast_mul(numk,n_stride);
+      int nbor_k,k_end;
+      if (dev_packed==dev_nbor) {
+        nbor_k=nborj_start-offset_j+offset_k;
+        int numk = dev_short_nbor[nbor_k-n_stride];
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      } else {
+        nbor_k = nbor_j-offset_j+offset_k;
+        if (nbor_k<=nbor_j) nbor_k += n_stride;
+        k_end = nbor_end;
+      }
 
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_short_nbor[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
-        if (k <= j) continue;
+        if (dev_packed==dev_nbor && k <= j) continue;
 
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
@@ -558,7 +570,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -569,12 +581,15 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
     itype=map[itype];
 
     // recalculate numj and nbor_end for use of the short nbor list
-    numj = dev_short_nbor[nbor_j];
-    nbor_j += n_stride;
-    nbor_end = nbor_j+fast_mul(numj,n_stride);
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=dev_short_nbor[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -614,12 +629,14 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
       }
 
       // recalculate numk and k_end for the use of short neighbor list
-      numk = dev_short_nbor[nbor_k];
-      nbor_k += n_stride;
-      k_end = nbor_k+fast_mul(numk,n_stride);
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
 
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_short_nbor[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;
@@ -707,7 +724,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -718,12 +735,15 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
     itype=map[itype];
 
     // recalculate numj and nbor_end for use of the short nbor list
-    numj = dev_short_nbor[nbor_j];
-    nbor_j += n_stride;
-    nbor_end = nbor_j+fast_mul(numj,n_stride);
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=dev_short_nbor[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -763,12 +783,14 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
       }
 
       // recalculate numk and k_end for the use of short neighbor list
-      numk = dev_short_nbor[nbor_k];
-      nbor_k += n_stride;
-      k_end = nbor_k+fast_mul(numk,n_stride);
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
 
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_short_nbor[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;

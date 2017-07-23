@@ -73,7 +73,6 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (_threads_per_atom>1 && gpu_nbor==0) { // neigh no and tpa > 1
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);
-    _threads_per_atom = 1; // enforce tpa = 1 for now
   } else  // neigh yes or tpa == 1
     _nbor_data=&(nbor->dev_nbor);
   if (_threads_per_atom*_threads_per_atom>device->warp_size())

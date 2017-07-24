@@ -53,13 +53,18 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   
   extra = NONE;
+  mpi_flag = NONE;
 
   int iarg = 2;
   if (strcmp(arg[iarg],"nve/spin") == 0) {
-	  if (iarg+1 > narg) error->all(FLERR,"Illegal fix nve/spin command");
-	  extra = SPIN;
-  }
-  
+    extra = SPIN;
+    if (strcmp(arg[iarg+1],"serial") == 0){
+      mpi_flag = 0;
+    } else if (strcmp(arg[iarg+1],"mpi") == 0) {
+      mpi_flag = 1;
+    } else error->all(FLERR,"Illegal fix nve/spin command");
+  } else error->all(FLERR,"Illegal fix nve/spin command");
+
   // error checks
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix nve/spin requires spin attribute mumag");
@@ -78,11 +83,11 @@ FixNVESpin::~FixNVESpin(){
   //delete lockpairspin;
   //delete lockforcespin;
   memory->destroy(xi);
-#if defined SECTORING  
+
   memory->destroy(sec);
   memory->destroy(rsec);
   memory->destroy(seci);
-#endif
+
 #if defined SECTOR_PRINT
   fclose(file_sect);
 #endif
@@ -100,11 +105,10 @@ void FixNVESpin::init()
   
   dts = update->dt;
   memory->create(xi,3,"nves:xi");
-#if defined SECTORING
   memory->create(sec,3,"nves:sec");
   memory->create(rsec,3,"nves:rsec");
   memory->create(seci,3,"nves:seci");
-#endif
+
   memory->create(spi,3,"nves:spi");
   memory->create(spj,3,"nves:spj");
   memory->create(fmi,3,"nves:fmi");
@@ -131,10 +135,9 @@ void FixNVESpin::init()
   tdamp_flag = locklangevinspin->tdamp_flag;
   temp_flag = locklangevinspin->temp_flag;
 
-
-#if defined SECTORING 
-  sectoring();
-#endif
+  if (mpi_flag == 1) {
+    sectoring();
+  }
 
 #if defined SECTOR_PRINT
   file_sect=fopen("sectoring.lammpstrj", "w");
@@ -191,50 +194,47 @@ void FixNVESpin::initial_integrate(int vflag)
       }
   }
 
-#if defined SECTORING
-  int nseci;
-  // Seq. update spins for all particles
+  
   if (extra == SPIN) {
-    for (int j = 0; j < nsectors; j++) { 
-      comm->forward_comm();
-      for (int i = 0; i < nlocal; i++) {
-        xi[0] = x[i][0];
-        xi[1] = x[i][1];
-        xi[2] = x[i][2];
-        nseci = coords2sector(xi);
-	if (j != nseci) continue;
-	ComputeSpinInteractionsNeigh(i);
+    if (mpi_flag == 1) {
+      int nseci;
+      // mpi seq. update spins for all particles
+      for (int j = 0; j < nsectors; j++) { 
+        comm->forward_comm();
+        for (int i = 0; i < nlocal; i++) {
+       	  xi[0] = x[i][0];
+	  xi[1] = x[i][1];
+       	  xi[2] = x[i][2];
+       	  nseci = coords2sector(xi);
+	  if (j != nseci) continue;
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      	}    
+      }
+      for (int j = nsectors-1; j >= 0; j--) { 
+        comm->forward_comm();
+        for (int i = nlocal-1; i >= 0; i--) {
+          xi[0] = x[i][0];
+          xi[1] = x[i][1];
+          xi[2] = x[i][2];
+          nseci = coords2sector(xi);
+          if (j != nseci) continue;
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i,0.5*dts,sp,fm);
+        }    
+      }
+    } else if (mpi_flag == 0) {
+      // serial seq. update spins for all particles
+      for (int i = 0; i < nlocal; i++){
+        ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,0.5*dts,sp,fm);
-      }    
-    }
-    for (int j = nsectors-1; j >= 0; j--) { 
-      comm->forward_comm();
-      for (int i = nlocal-1; i >= 0; i--) {
-        xi[0] = x[i][0];
-        xi[1] = x[i][1];
-        xi[2] = x[i][2];
-        nseci = coords2sector(xi);
-        if (j != nseci) continue;
-        ComputeSpinInteractionsNeigh(i);
+      }
+      for (int i = nlocal-1; i >= 0; i--){
+        ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,0.5*dts,sp,fm);
-      }    
-    }
+      }
+    } else error->all(FLERR,"Illegal fix nve/spin command");
   }
-
-#else 
-  // Seq. update spins for all particles
-  if (extra == SPIN) {
-    for (int i = 0; i < nlocal; i++){
-      ComputeSpinInteractionsNeigh(i);
-      AdvanceSingleSpin(i,0.5*dts,sp,fm);
-    }
-
-    for (int i = nlocal-1; i >= 0; i--){
-      ComputeSpinInteractionsNeigh(i);
-      AdvanceSingleSpin(i,0.5*dts,sp,fm);
-    }
-  }
-#endif
   
   // update x for all particles
   for (int i = 0; i < nlocal; i++) {
@@ -242,7 +242,7 @@ void FixNVESpin::initial_integrate(int vflag)
       x[i][0] += 0.5 * dtv * v[i][0];
       x[i][1] += 0.5 * dtv * v[i][1];
       x[i][2] += 0.5 * dtv * v[i][2];
-      }
+    }
   }
 
 
@@ -266,11 +266,11 @@ void FixNVESpin::initial_integrate(int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void FixNVESpin::ComputeSpinInteractionsNeigh(int ii)
+void FixNVESpin::ComputeInteractionsSpin(int ii)
 {
   const int nlocal = atom->nlocal;
 
-  //Force compute quantities
+  // force compute quantities
   int i,j,jj,inum,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double **x = atom->x;
@@ -293,14 +293,14 @@ void FixNVESpin::ComputeSpinInteractionsNeigh(int ii)
   int vflag = 0;
   int pair_compute_flag = 1;
 
-#if !defined(SECTORING)
-  comm->forward_comm();
-#endif
+  if (mpi_flag == 0) {
+    comm->forward_comm();
+  }
 
-  ///////Force computation for spin i/////////////
+  // force computation for spin i
   i = ilist[ii];
   
-  //Clear atom i 
+  // clear atom i 
   fm[i][0] = fm[i][1] = fm[i][2] = 0.0;
   
   spi[0] = sp[i][0];
@@ -315,7 +315,7 @@ void FixNVESpin::ComputeSpinInteractionsNeigh(int ii)
   jlist = firstneigh[i];
   jnum = numneigh[i];
 
-  //Pair interaction
+  // pair interaction
   for (int jj = 0; jj < jnum; jj++) {
     j = jlist[jj];
     j &= NEIGHMASK;
@@ -352,7 +352,7 @@ void FixNVESpin::ComputeSpinInteractionsNeigh(int ii)
     }
   }
 
-  //post force
+  // post force
   if (zeeman_flag) {
     lockforcespin->compute_zeeman(i,fmi);
   }
@@ -372,14 +372,13 @@ void FixNVESpin::ComputeSpinInteractionsNeigh(int ii)
     locklangevinspin->add_temperature(fmi);
   } 
  
-  //Replace the force by its new value
+  // replace the force by its new value
   fm[i][0] = fmi[0];
   fm[i][1] = fmi[1];
   fm[i][2] = fmi[2];
 
 }
 
-#if defined SECTORING
 /* ---------------------------------------------------------------------- */
 void FixNVESpin::sectoring()
 {
@@ -410,6 +409,9 @@ void FixNVESpin::sectoring()
 
   nsectors = sec[0]*sec[1]*sec[2];
 
+  if (mpi_flag == 1 && nsectors != 8) 
+    error->all(FLERR,"System too small for sectoring operation");
+
   rsec[0] = rsx;
   rsec[1] = rsy;
   rsec[2] = rsz;
@@ -417,6 +419,7 @@ void FixNVESpin::sectoring()
   if (sec[1] == 2) rsec[1] = rsy/2.0;
   if (sec[2] == 2) rsec[2] = rsz/2.0;
 
+  /*
   if (2.0 * rv >= rsx && sec[0] >= 2)
     error->all(FLERR,"Illegal number of sectors"); 
 
@@ -425,6 +428,7 @@ void FixNVESpin::sectoring()
 
   if (2.0 * rv >= rsz && sec[2] >= 2)
     error->all(FLERR,"Illegal number of sectors"); 
+*/
 
 }
 
@@ -442,10 +446,11 @@ int FixNVESpin::coords2sector(double *xi)
   double riy = (xi[1] - sublo[1])/rsec[1];
   double riz = (xi[2] - sublo[2])/rsec[2];
 
-  seci[0] = (int)rix;
-  seci[1] = (int)riy;
-  seci[2] = (int)riz;
+  seci[0] = static_cast<int>(rix);
+  seci[1] = static_cast<int>(riy);
+  seci[2] = static_cast<int>(riz);
 
+  /*
   if (nsectors == 1) {
     nseci = 0;
   } else if (nsectors == 2) {
@@ -461,11 +466,12 @@ int FixNVESpin::coords2sector(double *xi)
   } else if (nsectors == 8) {
     nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
   }
+  */
+  nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
 
   return nseci;
 }
 
-#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -500,7 +506,7 @@ void FixNVESpin::AdvanceSingleSpin(int i, double dts, double **sp, double **fm)
   sp[i][1] = g[1];
   sp[i][2] = g[2];			  
 			  
-  //Renormalization (may not be necessary)
+  // renormalization (may not be necessary)
   msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
   scale = 1.0/sqrt(msq);
   sp[i][0] *= scale;
@@ -535,5 +541,4 @@ void FixNVESpin::final_integrate()
       v[i][2] += dtfm * f[i][2];  
       }
   }
-
 }

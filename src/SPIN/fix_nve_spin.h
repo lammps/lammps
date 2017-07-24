@@ -34,16 +34,13 @@ class FixNVESpin : public FixNVE {
   void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
   void ComputeSpinInteractions();   
-  void ComputeSpinInteractionsNeigh(int);   
+  void ComputeInteractionsSpin(int);   
   
-#define SECTORING
-#if defined SECTORING
   void sectoring();
   int coords2sector(double *);
-#endif  
 
  protected:
-  int extra;
+  int extra, mpi_flag;
   double dts;
   
   int exch_flag, dmi_flag, me_flag;
@@ -54,15 +51,12 @@ class FixNVESpin : public FixNVE {
   class FixForceSpin *lockforcespin;
   class FixLangevinSpin *locklangevinspin; 
 
-  double *spi, *spj, *fmi, *fmj; //Temp var. for compute
+  double *spi, *spj, *fmi, *fmj; //Temp var.
   double *xi;
  
-#if defined SECTORING 
   int nsectors;
-  int *sec;
-  int *seci;
+  int *sec, *seci;
   double *rsec;
-#endif
 
 //#define SECTOR_PRINT
 #if defined SECTOR_PRINT

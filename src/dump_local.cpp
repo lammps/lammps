@@ -49,6 +49,9 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
 
+  if (binary)
+    error->all(FLERR,"Binary files are not supported with dump local");
+
   nfield = narg - 5;
 
   // expand args if any have wildcard character "*"

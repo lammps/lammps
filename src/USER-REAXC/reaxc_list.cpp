@@ -37,7 +37,7 @@ int Make_List(int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
   l->num_intrs = num_intrs;
 
   if (l->index) sfree(l->index, "list:index");
-  if (l->end_index) sfree(l->index, "list:end_index");
+  if (l->end_index) sfree(l->end_index, "list:end_index");
   l->index = (int*) smalloc( n * sizeof(int), "list:index", comm );
   l->end_index = (int*) smalloc( n * sizeof(int), "list:end_index", comm );
 

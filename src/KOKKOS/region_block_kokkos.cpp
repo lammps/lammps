@@ -54,10 +54,10 @@ int RegBlockKokkos<DeviceType>::k_inside(double x, double y, double z) const
 }
 
 template<class DeviceType>
-void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::t_int_1d d_match_in)
+void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
   groupbit = groupbit_in;
-  d_match = d_match_in;
+  d_match = k_match_in.template view<DeviceType>();
 
   atomKK->sync(Device, X_MASK | MASK_MASK);
 
@@ -69,6 +69,8 @@ void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::t_int_1d
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagRegBlockMatchAll>(0,nlocal),*this);
   DeviceType::fence();
   copymode = 0;
+
+  k_match_in.template modify<DeviceType>();
 }
 
 template<class DeviceType>

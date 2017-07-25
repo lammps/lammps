@@ -99,7 +99,7 @@ class Region : protected Pointers {
 
   // Kokkos function, implemented by each Kokkos region
 
-  virtual void match_all_kokkos(int, DAT::t_int_1d);
+  virtual void match_all_kokkos(int, DAT::tdual_int_1d);
 
  protected:
   void add_contact(int, double *, double, double, double);

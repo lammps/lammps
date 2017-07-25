@@ -39,14 +39,14 @@ class RegBlockKokkos : public RegBlock {
 
   RegBlockKokkos(class LAMMPS *, int, char **);
   ~RegBlockKokkos();
-  void match_all_kokkos(int, DAT::t_int_1d);
+  void match_all_kokkos(int, DAT::tdual_int_1d);
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRegBlockMatchAll, const int&) const;
 
  private:
   int groupbit;
-  DAT::t_int_1d d_match;
+  typename AT::t_int_1d d_match;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_int_1d_randomread mask;

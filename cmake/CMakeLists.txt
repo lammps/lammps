@@ -172,9 +172,11 @@ if(ENABLE_PYTHON)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  execute_process(COMMAND ${PYTHON_EXECUTABLE}
+  if(NOT PYTHON_INSTDIR)
+    execute_process(COMMAND ${PYTHON_EXECUTABLE}
 	  -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-    OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+      OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
   install(FILES ${CMAKE_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
   if(NOT BUILD_SHARED_LIBS)
     message(FATAL_ERROR "Python package need lammps to be build shared, -DBUILD_SHARED_LIBS=ON")

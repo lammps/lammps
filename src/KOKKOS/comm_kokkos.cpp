@@ -488,6 +488,7 @@ void CommKokkos::exchange_device()
 
     if (true) {
       if (k_sendflag.h_view.dimension_0()<nlocal) k_sendflag.resize(nlocal);
+      k_sendflag.sync<DeviceType>();
       k_count.h_view(0) = k_exchange_sendlist.h_view.dimension_0();
       while (k_count.h_view(0)>=k_exchange_sendlist.h_view.dimension_0()) {
         k_count.h_view(0) = 0;

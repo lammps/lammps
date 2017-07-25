@@ -87,10 +87,6 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
 
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-				    system->pair_ptr->vflag_either,
-				    natoms, system->pair_ptr->eatom,
-				    system->pair_ptr->vatom, thr);
   e_core = 0;
   e_vdW = 0;
   e_lg = 0;
@@ -290,11 +286,6 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
-
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-				    system->pair_ptr->vflag_either,
-				    natoms, system->pair_ptr->eatom,
-				    system->pair_ptr->vatom, thr);
 
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)

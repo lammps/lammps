@@ -3,8 +3,9 @@ forces from a fortran code for a LAMMPS simulation.  The reader should
 refer to the README file in COUPLE/fortran2 before proceeding. Here,
 the LAMMPS.F90 file has been modified slightly and additional files
 named LAMMPS-wrapper2.h and LAMMPS-wrapper2.cpp have been included in
-order to supply wrapper functions to set the LAMMPS callback function
-and total energy.
+order to supply wrapper functions to set the LAMMPS callback function,
+total energy, virial, and electronic entropy contribution (needed for 
+MSST simulations with a quantum code).
 
 In this example, the callback function is set to run the
 semi-empirical quantum code DFTB+ in serial and then read in the total
@@ -20,11 +21,14 @@ etc.
 
 A few more important notes: 
 
--The stress tensor from DFTB+ is passed in to LAMMPS via pointer.
 -Calling the subroutine lammps_set_callback() is required in order to set
        a pointer to the callback function in LAMMPS.
 -The subroutine lammps_set_user_energy() passes in the potential energy
-       from DFTB+ to LAMMPS.
+       from DFTB+ to LAMMPS. Similarly, lammps_set_user_virial passes the stress tensor.
+
+-The electronic entropy contribution is set via lammps_set_external_vector(). Their needs
+	to be a call to lammps_set_external_vector_length() before this value can be
+	passed to LAMMPS.
 
 This example was created by Nir Goldman, whom you can contact with
 questions:

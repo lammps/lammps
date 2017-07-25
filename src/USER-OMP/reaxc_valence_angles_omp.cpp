@@ -173,12 +173,6 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
     class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
 
-    pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-                                      system->pair_ptr->vflag_either,
-                                      system->N, system->pair_ptr->eatom,
-                                      system->pair_ptr->vatom, thr);
-
-
     // Run through a minimal for(j<N) loop once to precompute offsets with safe number of threads
 
     const int per_thread = thb_intrs->num_intrs / nthreads;
@@ -600,9 +594,6 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
         Set_End_Index(pi, my_offset, thb_intrs );
       } // for(pi)
     } // for(j)
-
-    pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
-                                    system->pair_ptr->vflag_either, thr);
   } // end omp parallel
 
   data->my_en.e_ang = total_Eang;

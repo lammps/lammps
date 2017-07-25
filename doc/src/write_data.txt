@@ -59,7 +59,7 @@ If you want to do more exact restarts, using binary files, see the
 "restart"_restart.html, "write_restart"_write_restart.html, and
 "read_restart"_read_restart.html commands.  You can also convert
 binary restart files to text data files, after a simulation has run,
-using the "-r command-line switch"_Section_start.html#start_7.
+using the "-r command-line switch"_Section_start.html#start_6.
 
 NOTE: Only limited information about a simulation is stored in a data
 file.  For example, no information about atom "groups"_group.html and

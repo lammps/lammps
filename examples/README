@@ -58,6 +58,7 @@ These are the sample problems and their output in the various
 sub-directories:
 
 accelerate: use of all the various accelerator packages
+airebo:   example for using AIREBO and AIREBO-M
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
@@ -105,20 +106,11 @@ tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 
-Here is a src/Make.py command which will perform a parallel build of a
-LAMMPS executable "lmp_mpi" with all the packages needed by all the
-examples, with the exception of the accelerate sub-directory.  See the
-accelerate/README for Make.py commands suitable for its example
-scripts.
-
-cd src
-Make.py -j 16 -p none std no-lib reax meam poems reaxc orig -a lib-all mpi
-
 Here is how you might run and visualize one of the sample problems:
 
 cd indent
 cp ../../src/lmp_mpi .           # copy LAMMPS executable to this dir
-lmp_mpi < in.indent              # run the problem
+lmp_mpi -in in.indent              # run the problem
 
 Running the simulation produces the files {dump.indent} and
 {log.lammps}.  You can visualize the dump file as follows:

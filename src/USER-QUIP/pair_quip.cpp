@@ -42,6 +42,7 @@ PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
    single_enable = 0;
    one_coeff = 1;
    no_virial_fdotr_compute = 1;
+   manybody_flag = 1;
 }
 
 PairQUIP::~PairQUIP()
@@ -66,6 +67,7 @@ void PairQUIP::compute(int eflag, int vflag)
   int nghost = atom->nghost;
   int ntotal = nlocal + nghost;
   int *type = atom->type;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -98,7 +100,7 @@ void PairQUIP::compute(int eflag, int vflag)
     jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
-       quip_neigh[iquip] = jlist[jj]+1;
+       quip_neigh[iquip] = (jlist[jj] & NEIGHMASK) + 1;
        iquip++;
     }
   }
@@ -123,16 +125,38 @@ void PairQUIP::compute(int eflag, int vflag)
   lattice[7] = domain->yz;
   lattice[8] = domain->zprd;
 
-  quip_lammps_wrapper
-    (&nlocal,&nghost,atomic_numbers,
-     &inum,&sum_num_neigh,ilist,
-     quip_num_neigh,quip_neigh,lattice,
-     quip_potential,&n_quip_potential,&x[0][0],
-     &quip_energy,quip_local_e,quip_virial,quip_local_virial,quip_force);
+#if defined(LAMMPS_BIGBIG)
+  int *tmptag = new int[ntotal];
+  int tmplarge = 0, toolarge = 0;
+  for (ii = 0; ii < ntotal; ++ii) {
+    tmptag[ii] = tag[ii];
+    if (tag[ii] > MAXSMALLINT) tmplarge=1;
+  }
+  MPI_Allreduce(&tmplarge,&toolarge,1,MPI_INT,MPI_MAX,world);
+  if (toolarge > 0)
+    error->all(FLERR,"Pair style quip does not support 64-bit atom IDs");
+
+  quip_lammps_wrapper(&nlocal,&nghost,atomic_numbers,tmptag,
+                      &inum,&sum_num_neigh,ilist,
+                      quip_num_neigh,quip_neigh,lattice,
+                      quip_potential,&n_quip_potential,&x[0][0],
+                      &quip_energy,quip_local_e,quip_virial,
+                      quip_local_virial,quip_force);
+
+  delete[] tmptag;
+#else
+  quip_lammps_wrapper(&nlocal,&nghost,atomic_numbers,tag,
+                      &inum,&sum_num_neigh,ilist,
+                      quip_num_neigh,quip_neigh,lattice,
+                      quip_potential,&n_quip_potential,&x[0][0],
+                      &quip_energy,quip_local_e,quip_virial,
+                      quip_local_virial,quip_force);
+#endif
+
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
      for( jj = 0; jj < 3; jj++ ) {
-        f[ii][jj] = quip_force[iquip];
+        f[ii][jj] += quip_force[iquip];
         iquip++;
      }
   }
@@ -163,11 +187,11 @@ void PairQUIP::compute(int eflag, int vflag)
        vatom[ii][1] += quip_local_virial[iatom+4];
        vatom[ii][2] += quip_local_virial[iatom+8];
        vatom[ii][3] += (quip_local_virial[iatom+3] +
-			quip_local_virial[iatom+1])*0.5;
+                        quip_local_virial[iatom+1])*0.5;
        vatom[ii][4] += (quip_local_virial[iatom+2] +
-			quip_local_virial[iatom+6])*0.5;
+                        quip_local_virial[iatom+6])*0.5;
        vatom[ii][5] += (quip_local_virial[iatom+5] +
-			quip_local_virial[iatom+7])*0.5;
+                        quip_local_virial[iatom+7])*0.5;
        iatom += 9;
      }
   }
@@ -190,6 +214,14 @@ void PairQUIP::compute(int eflag, int vflag)
 void PairQUIP::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (strcmp(force->pair_style,"hybrid") == 0)
+    error->all(FLERR,"Pair style quip is only compatible with hybrid/overlay");
+
+  // check if linked to the correct QUIP library API version
+  // as of 2017-07-19 this is API_VERSION 1
+  if (quip_lammps_api_version() != 1)
+    error->all(FLERR,"QUIP LAMMPS wrapper API version is not compatible "
+        "with this version of LAMMPS");
 }
 
 /* ----------------------------------------------------------------------
@@ -229,11 +261,11 @@ void PairQUIP::coeff(int narg, char **arg)
       error->all(FLERR,"Incorrect args for pair coefficients");
 
    n_quip_file = strlen(arg[2]);
-   quip_file = new char[n_quip_file];
+   quip_file = new char[n_quip_file+1];
    strcpy(quip_file,arg[2]);
 
    n_quip_string = strlen(arg[3]);
-   quip_string = new char[n_quip_string];
+   quip_string = new char[n_quip_string+1];
    strcpy(quip_string,arg[3]);
 
    for (int i = 4; i < narg; i++) {

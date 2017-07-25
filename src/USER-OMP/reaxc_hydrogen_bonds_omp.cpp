@@ -102,11 +102,6 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
 
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
 
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-				    system->pair_ptr->vflag_either,
-				    natoms, system->pair_ptr->eatom,
-				    system->pair_ptr->vatom, thr);
-
   /* loops below discover the Hydrogen bonds between i-j-k triplets.
      here j is H atom and there has to be some bond between i and j.
      Hydrogen bond is between j and k.
@@ -242,9 +237,6 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   {
     data->my_en.e_hb += e_hb_thr;
   }
-
-  pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
-				  system->pair_ptr->vflag_either, thr);
 }
 
 #ifdef OMP_TIMING

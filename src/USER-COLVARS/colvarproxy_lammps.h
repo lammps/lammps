@@ -7,9 +7,10 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-
 #ifndef COLVARPROXY_LAMMPS_H
 #define COLVARPROXY_LAMMPS_H
+
+#include "colvarproxy_lammps_version.h"
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
@@ -26,10 +27,6 @@
 
 #if defined(_OPENMP)
 #include <omp.h>
-#endif
-
-#ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2017-01-09"
 #endif
 
 /* struct for packed data communication of coordinates and forces. */

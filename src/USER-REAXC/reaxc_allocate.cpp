@@ -367,8 +367,9 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
   *total_bonds = (int)(MAX( *total_bonds * safezone, mincap*MIN_BONDS ));
 
 #ifdef LMP_USER_OMP
-  for (i = 0; i < bonds->num_intrs; ++i)
-    sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+  if (system->omp_active)
+    for (i = 0; i < bonds->num_intrs; ++i)
+      sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
 #endif
 
   Delete_List( bonds, comm );
@@ -384,9 +385,10 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
   int nthreads = 1;
 #endif
 
-  for (i = 0; i < bonds->num_intrs; ++i)
-    bonds->select.bond_list[i].bo_data.CdboReduction =
-      (double*) smalloc(sizeof(double)*nthreads, "CdboReduction", comm);
+  if (system->omp_active)
+    for (i = 0; i < bonds->num_intrs; ++i)
+      bonds->select.bond_list[i].bo_data.CdboReduction =
+        (double*) smalloc(sizeof(double)*nthreads, "CdboReduction", comm);
 #endif
 
   return SUCCESS;

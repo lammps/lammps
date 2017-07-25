@@ -86,8 +86,9 @@ int colvarbias_histogram::init(std::string const &conf)
 
   {
     std::string grid_conf;
-    if (key_lookup(conf, "histogramGrid", grid_conf)) {
+    if (key_lookup(conf, "histogramGrid", &grid_conf)) {
       grid->parse_params(grid_conf);
+      grid->check_keywords(grid_conf, "histogramGrid");
     }
   }
 
@@ -176,26 +177,27 @@ int colvarbias_histogram::write_output_files()
   if (out_name.size()) {
     cvm::log("Writing the histogram file \""+out_name+"\".\n");
     cvm::backup_file(out_name.c_str());
-    cvm::ofstream grid_os(out_name.c_str());
-    if (!grid_os.is_open()) {
-      cvm::error("Error opening histogram file " + out_name + " for writing.\n", FILE_ERROR);
+    std::ostream *grid_os = cvm::proxy->output_stream(out_name);
+    if (!grid_os) {
+      return cvm::error("Error opening histogram file "+out_name+
+                        " for writing.\n", FILE_ERROR);
     }
-    // TODO add return code here
-    grid->write_multicol(grid_os);
-    grid_os.close();
+    grid->write_multicol(*grid_os);
+    cvm::proxy->close_output_stream(out_name);
   }
 
   if (out_name_dx.size()) {
     cvm::log("Writing the histogram file \""+out_name_dx+"\".\n");
     cvm::backup_file(out_name_dx.c_str());
-    cvm::ofstream grid_os(out_name_dx.c_str());
-    if (!grid_os.is_open()) {
-      cvm::error("Error opening histogram file " + out_name_dx + " for writing.\n", FILE_ERROR);
+    std::ostream *grid_os = cvm::proxy->output_stream(out_name_dx);
+    if (!grid_os) {
+      return cvm::error("Error opening histogram file "+out_name_dx+
+                        " for writing.\n", FILE_ERROR);
     }
-    // TODO add return code here
-    grid->write_opendx(grid_os);
-    grid_os.close();
+    grid->write_opendx(*grid_os);
+    cvm::proxy->close_output_stream(out_name_dx);
   }
+
   return COLVARS_OK;
 }
 

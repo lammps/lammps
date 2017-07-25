@@ -198,7 +198,6 @@ public:
   /// Default constructor
   colvar_grid() : has_data(false)
   {
-    save_delimiters = false;
     nd = nt = 0;
     mult = 1;
     this->setup();
@@ -225,7 +224,6 @@ public:
                                          widths(g.widths),
                                          has_data(false)
   {
-    save_delimiters = false;
   }
 
   /// \brief Constructor from explicit grid sizes \param nx_i Number
@@ -237,7 +235,6 @@ public:
               size_t mult_i = 1)
     : has_data(false)
   {
-    save_delimiters = false;
     this->setup(nx_i, t, mult_i);
   }
 
@@ -248,7 +245,6 @@ public:
               bool margin = false)
     : has_data(false)
   {
-    save_delimiters = false;
     this->init_from_colvars(colvars, t, mult_i, margin);
   }
 
@@ -840,7 +836,7 @@ public:
     // reallocate the array in case the grid params have just changed
     if (new_params) {
       init_from_boundaries();
-      // data.resize(0); // no longer needed: setup calls clear()
+      // data.clear(); // no longer needed: setup calls clear()
       return this->setup(nx, T(), mult);
     }
 

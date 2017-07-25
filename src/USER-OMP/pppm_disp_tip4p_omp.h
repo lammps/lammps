@@ -28,11 +28,10 @@ namespace LAMMPS_NS {
   class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
  public:
   PPPMDispTIP4POMP(class LAMMPS *, int, char **);
-  virtual ~PPPMDispTIP4POMP () {};
+  virtual ~PPPMDispTIP4POMP ();
 
  protected:
   virtual void allocate();
-  virtual void deallocate();
 
   virtual void compute_gf();
   virtual void compute_gf_6();

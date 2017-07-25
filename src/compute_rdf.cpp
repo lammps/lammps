@@ -41,7 +41,7 @@ using namespace MathConst;
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   rdfpair(NULL), nrdfpair(NULL), ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL),
-  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL), 
+  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL),
   duplicates(NULL)
 {
   if (narg < 4 || (narg-4) % 2) error->all(FLERR,"Illegal compute rdf command");
@@ -72,7 +72,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal compute rdf command");
   }
-    
+
   // pairwise args
 
   if (nargpair == 0) npairs = 1;
@@ -162,12 +162,12 @@ void ComputeRDF::init()
     mycutneigh = cutoff_user + skin;
 
     double cutghost;            // as computed by Neighbor and Comm
-    if (force->pair) 
+    if (force->pair)
       cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
-    else 
+    else
       cutghost = comm->cutghostuser;
 
-    if (mycutneigh > cutghost) 
+    if (mycutneigh > cutghost)
       error->all(FLERR,"Compure rdf cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
     if (force->pair && mycutneigh < force->pair->cutforce + skin)

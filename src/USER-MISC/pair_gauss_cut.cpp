@@ -196,6 +196,9 @@ void PairGaussCut::coeff(int narg, char **arg)
   double hgauss_one = force->numeric(FLERR,arg[2]);
   double rmh_one = force->numeric(FLERR,arg[3]);
   double sigmah_one = force->numeric(FLERR,arg[4]);
+  if (sigmah_one <= 0.0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
 
   double cut_one = cut_global;
   if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);

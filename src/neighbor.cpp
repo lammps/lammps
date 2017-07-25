@@ -197,7 +197,7 @@ Neighbor::~Neighbor()
   delete [] slist;
   delete [] plist;
 
-  for (int i = 0; i < nlist; i++) 
+  for (int i = 0; i < nrequest; i++) 
     if (requests[i]) delete requests[i];
   memory->sfree(requests);
   for (int i = 0; i < old_nrequest; i++)

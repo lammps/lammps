@@ -1617,6 +1617,12 @@ void FixShake::shake3(int m)
 
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
+
+    // stop iterations before we have a floating point overflow
+    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+
+    if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150) done = 1;
+
     niter++;
   }
 
@@ -1854,6 +1860,13 @@ void FixShake::shake4(int m)
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
     lamda03 = lamda03_new;
+
+    // stop iterations before we have a floating point overflow
+    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+
+    if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150
+        || fabs(lamda03) > 1e150) done = 1;
+
     niter++;
   }
 
@@ -2097,6 +2110,13 @@ void FixShake::shake3angle(int m)
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
     lamda12 = lamda12_new;
+
+    // stop iterations before we have a floating point overflow
+    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+
+    if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150
+        || fabs(lamda12) > 1e150) done = 1;
+
     niter++;
   }
 

@@ -575,7 +575,7 @@ double PairMIECut::init_one(int i, int j)
   mie3[i][j] = Cmie[i][j] * epsilon[i][j] * pow(sigma[i][j],gamR[i][j]);
   mie4[i][j] = Cmie[i][j] * epsilon[i][j] * pow(sigma[i][j],gamA[i][j]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];
     offset[i][j] = Cmie[i][j] * epsilon[i][j] *
       (pow(ratio,gamR[i][j]) - pow(ratio,gamA[i][j]));

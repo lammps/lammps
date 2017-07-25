@@ -149,13 +149,13 @@ void PPPMIntel::init()
     memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdxy_brick, nzlo_out, nylo_out, 2*nxlo_out);
-    memory->create3d_offset(vdxy_brick, nzlo_out, nzhi_out+2,
-                            nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
-                            "pppmintel:vdxy_brick");
+    create3d_offset(vdxy_brick, nzlo_out, nzhi_out+2,
+		    nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
+		    "pppmintel:vdxy_brick");
     memory->destroy3d_offset(vdz0_brick, nzlo_out, nylo_out, 2*nxlo_out);
-    memory->create3d_offset(vdz0_brick, nzlo_out, nzhi_out+2,
-                            nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
-                            "pppmintel:vdz0_brick");
+    create3d_offset(vdz0_brick, nzlo_out, nzhi_out+2,
+		    nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
+		    "pppmintel:vdz0_brick");
     memory->destroy(work3);
     memory->create(work3, 2*nfft_both, "pppmintel:work3");
 
@@ -555,13 +555,13 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
       FFT_SCALAR z0 = fdelvolinv * q[i];
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma loop_count=7
+      #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
       for (int n = 0; n < order; n++) {
         int mz = n*nix*niy + nzsum;
         FFT_SCALAR y0 = z0*rho[2][n];
         #if defined(LMP_SIMD_COMPILER)
-        #pragma loop_count=7
+        #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
         #endif
         for (int m = 0; m < order; m++) {
           int mzy = m*nix + mz;
@@ -708,13 +708,13 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
       _alignvar(FFT_SCALAR ekz0_arr[2 * INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma loop_count=7
+      #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
       for (int n = 0; n < order; n++) {
         int mz = n+nzsum;
         FFT_SCALAR z0 = rho2[n];
         #if defined(LMP_SIMD_COMPILER)
-        #pragma loop_count=7
+        #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
         #endif
         for (int m = 0; m < order; m++) {
           int my = m+nysum;
@@ -742,13 +742,13 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
       ekx = eky = ekz = ZEROF;
 
       if (use_packing) {
-        for (int l = 0; l < 2*INTEL_P3M_ALIGNED_MAXORDER; l += 2) {
+        for (int l = 0; l < 2*order; l += 2) {
           ekx += ekxy_arr[l];
           eky += ekxy_arr[l+1];
           ekz += ekz0_arr[l];
         }
       } else {
-        for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
+        for (int l = 0; l < order; l++) {
           ekx += ekx_arr[l];
           eky += eky_arr[l];
           ekz += ekz_arr[l];
@@ -896,12 +896,12 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       particle_ekx[i] = particle_eky[i] = particle_ekz[i] = ZEROF;
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma loop_count=7
+      #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
       for (int n = 0; n < order; n++) {
         int mz = n + nzsum;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma loop_count=7
+        #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
         #endif
         for (int m = 0; m < order; m++) {
           int my = m + nysum;
@@ -921,9 +921,9 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       }
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma simd
+      #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
-      for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++){
+      for (int l = 0; l < order; l++){
         particle_ekx[i] += ekx[l];
         particle_eky[i] += eky[l];
         particle_ekz[i] += ekz[l];
@@ -1238,6 +1238,73 @@ void PPPMIntel::pack_buffers()
       fix->get_single_buffers()->thr_pack(ifrom,ito,1);
   }
   fix->stop_watch(TIME_PACK);
+}
+
+/* ----------------------------------------------------------------------
+   Allocate density_brick with extra padding for vector writes
+------------------------------------------------------------------------- */
+
+void PPPMIntel::allocate()
+{
+  PPPM::allocate();
+  memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
+  create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+		  nxlo_out,nxhi_out,"pppm:density_brick");
+
+  if (differentiation_flag == 1) {
+    memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
+    create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+	            nxlo_out,nxhi_out,"pppm:u_brick");
+  } else {
+    memory->destroy3d_offset(vdx_brick,nzlo_out,nylo_out,nxlo_out);
+    memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
+    memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
+    create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+	            nxlo_out,nxhi_out,"pppm:vdx_brick");
+    create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+	            nxlo_out,nxhi_out,"pppm:vdy_brick");
+    create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+	            nxlo_out,nxhi_out,"pppm:vdz_brick");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Create 3D-offset allocation with extra padding for vector writes
+------------------------------------------------------------------------- */
+
+FFT_SCALAR *** PPPMIntel::create3d_offset(FFT_SCALAR ***&array, int n1lo, 
+	                                  int n1hi, int n2lo, int n2hi, 
+	                                  int n3lo, int n3hi,
+	                                  const char *name)
+{
+  int n1 = n1hi - n1lo + 1;
+  int n2 = n2hi - n2lo + 1;
+  int n3 = n3hi - n3lo + 1;
+
+  bigint nbytes = ((bigint) sizeof(FFT_SCALAR)) * n1*n2*n3 + 
+    INTEL_P3M_ALIGNED_MAXORDER*2;
+  FFT_SCALAR *data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
+  nbytes = ((bigint) sizeof(FFT_SCALAR *)) * n1*n2;
+  FFT_SCALAR **plane = (FFT_SCALAR **) memory->smalloc(nbytes,name);
+  nbytes = ((bigint) sizeof(FFT_SCALAR **)) * n1;
+  array = (FFT_SCALAR ***) memory->smalloc(nbytes,name);
+
+  bigint m;
+  bigint n = 0;
+  for (int i = 0; i < n1; i++) {
+    m = ((bigint) i) * n2;
+    array[i] = &plane[m];
+    for (int j = 0; j < n2; j++) {
+      plane[m+j] = &data[n];
+      n += n3;
+    }
+  }
+
+  m = ((bigint) n1) * n2;
+  for (bigint i = 0; i < m; i++) array[0][i] -= n3lo;
+  for (int i = 0; i < n1; i++) array[i] -= n2lo;
+  array -= n1lo;
+  return array;
 }
 
 /* ----------------------------------------------------------------------

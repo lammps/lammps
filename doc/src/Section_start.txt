@@ -14,11 +14,11 @@ experienced users.
 2.1 "What's in the LAMMPS distribution"_#start_1
 2.2 "Making LAMMPS"_#start_2
 2.3 "Making LAMMPS with optional packages"_#start_3
-2.5 "Building LAMMPS as a library"_#start_4
-2.6 "Running LAMMPS"_#start_5
-2.7 "Command-line options"_#start_6
-2.8 "Screen output"_#start_7
-2.9 "Tips for users of previous versions"_#start_8 :all(b)
+2.4 "Building LAMMPS as a library"_#start_4
+2.5 "Running LAMMPS"_#start_5
+2.6 "Command-line options"_#start_6
+2.7 "Screen output"_#start_7
+2.8 "Tips for users of previous versions"_#start_8 :all(b)
 
 :line
 
@@ -434,20 +434,39 @@ files.  Note that on some large parallel machines which use "modules"
 for their compile/link environements, you may simply need to include
 the correct module in your build environment.  Or the parallel machine
 may have a vendor-provided FFT library which the compiler has no
-trouble finding.
+trouble finding.  See the src/MAKE/OPTIONS/Makefile.fftw file for an
+example of how to specify these variables to use the FFTW3 library.
 
-FFTW is a fast, portable library that should also work on any
-platform.  You can download it from
+FFTW is fast, portable library that should also work on any platform
+and typically be faster than KISS FFT.  You can download it from
 "www.fftw.org"_http://www.fftw.org.  Both the legacy version 2.1.X and
 the newer 3.X versions are supported as -DFFT_FFTW2 or -DFFT_FFTW3.
-Building FFTW for your box should be as simple as ./configure; make.
-Note that on some platforms FFTW2 has been pre-installed, and uses
-renamed files indicating the precision it was compiled with,
-e.g. sfftw.h, or dfftw.h instead of fftw.h.  In this case, you can
-specify an additional define variable for FFT_INC called -DFFTW_SIZE,
-which will select the correct include file.  In this case, for FFT_LIB
-you must also manually specify the correct library, namely -lsfftw or
--ldfftw.
+Building FFTW for your box should be as simple as ./configure; make;
+make install.  The install command typically requires root privileges
+(e.g. invoke it via sudo), unless you specify a local directory with
+the "--prefix" option of configure.  Type "./configure --help" to see
+various options.
+
+If you wish to have FFTW support for single-precision FFTs (see below
+about -DFFT_SINGLE) in addition to the default double-precision FFTs,
+you will need to build FFTW a second time for single-precision.  For
+FFTW3, do this via:
+
+make clean
+./configure --enable-single; make; make install :pre
+
+which should produce the additional library libfftw3f.a.
+
+For FFTW2, do this:
+
+make clean
+./configure --enable-float --enable-type-prefix; make; make install :pre
+
+which should produce the additional library libsfftw.a and additional
+include file sfttw.a.  Note that on some platforms FFTW2 has been
+pre-installed for both single- and double-precision, and may already
+have these files as well as libdfftw.a and dfftw.h for double
+precision.
 
 The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
 use single-precision FFTs with PPPM, which can speed-up long-range
@@ -458,6 +477,16 @@ double precision.  Using the -DFFT_SINGLE setting trades off a little
 accuracy for reduced memory use and parallel communication costs for
 transposing 3d FFT data.  Note that single precision FFTs have only
 been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
+
+When using -DFFT_SINGLE with FFTW3 or FFTW2, you need to build FFTW
+with support for single-precision, as explained above.  For FFTW3 you
+also need to include -lfftw3f with the FFT_LIB setting, in addition to
+-lfftw3.  For FFTW2, you also need to specify -DFFT_SIZE with the
+FFT_INC setting and -lsfftw with the FFT_LIB setting (in place of
+-lfftw).  Similarly, if FFTW2 has been preinstalled with an explicit
+double-precision library (libdfftw.a and not the default libfftw.a),
+then you can specify -DFFT_SIZE (and not -DFFT_SINGLE), and specify
+-ldfftw to use double-precision FFTs.
 
 Step 7 :h6
 
@@ -685,7 +714,7 @@ type
 lmp_machine -h :pre
 
 to run your executable with the optional "-h command-line
-switch"_#start_7 for "help", which will list the styles and commands
+switch"_#start_6 for "help", which will list the styles and commands
 known to your executable, and immediately exit.
 
 :line

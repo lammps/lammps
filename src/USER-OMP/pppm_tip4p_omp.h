@@ -28,12 +28,11 @@ namespace LAMMPS_NS {
 class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
  public:
   PPPMTIP4POMP(class LAMMPS *, int, char **);
-  virtual ~PPPMTIP4POMP () {};
+  virtual ~PPPMTIP4POMP ();
   virtual void compute(int, int);
 
  protected:
   virtual void allocate();
-  virtual void deallocate();
 
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();

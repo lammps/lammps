@@ -996,7 +996,6 @@ int Modify::check_package(const char *package_fix_name)
   return 1;
 }
 
-
 /* ----------------------------------------------------------------------
    check if the group indicated by groupbit overlaps with any
    currently existing rigid fixes. return 1 in this case otherwise 0
@@ -1067,7 +1066,6 @@ int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
 
 int Modify::check_rigid_list_overlap(int *select)
 {
-  const int * const mask = atom->mask;
   const int nlocal = atom->nlocal;
   int dim;
 

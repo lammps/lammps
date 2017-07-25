@@ -212,8 +212,9 @@ pour"_fix_pour.html.
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for the {rigid} styles.
 
-For bodystyle {molecule}, each set of atoms in the fix group with a
-different molecule ID is treated as a rigid body.  This option is
+For bodystyle {molecule}, atoms are grouped into rigid bodies by their
+respective molecule IDs: each set of atoms in the fix group with the
+same molecule ID is treated as a different rigid body.  This option is
 allowed for both the {rigid} and {rigid/small} styles.  Note that
 atoms with a molecule ID = 0 will be treated as a single rigid body.
 For a system with atomic solvent (typically this is atoms with
@@ -675,7 +676,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

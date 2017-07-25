@@ -33,7 +33,6 @@ namespace LAMMPS_NS {
 
  protected:
   virtual void allocate();
-  virtual void deallocate();
 
   virtual void compute_gf();
   virtual void compute_gf_6();

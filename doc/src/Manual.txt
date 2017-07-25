@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="23 Jun 2017 version">
+<META NAME="docnumber" CONTENT="24 Jul 2017 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-23 Jun 2017 version :c,h4
+24 Jul 2017 version :c,h4
 
 Version info: :h4
 
@@ -261,7 +261,6 @@ END_RST -->
 :link(start_6,Section_start.html#start_6)
 :link(start_7,Section_start.html#start_7)
 :link(start_8,Section_start.html#start_8)
-:link(start_9,Section_start.html#start_9)
 
 :link(cmd_1,Section_commands.html#cmd_1)
 :link(cmd_2,Section_commands.html#cmd_2)

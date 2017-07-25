@@ -12,12 +12,26 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Hasan Metin Aktulga, Purdue University
-   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
-   Per-atom energy/virial added by Ray Shan (Sandia)
-   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by
-   	Ray Shan (Sandia)
-------------------------------------------------------------------------- */
+   Contributing author:
+   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
+
+   Per-atom energy/virial added by Ray Shan (Materials Design, Inc.)
+   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added
+   by Ray Shan (Materials Design)
+
+   OpenMP based threading support for pair_style reax/c/omp added
+   by Hasan Metin Aktulga (MSU), Chris Knight (ALCF), Paul Coffman (ALCF),
+   Kurt O'Hearn (MSU), Ray Shan (Materials Design), Wei Jiang (ALCF)
+
+   Integration of the pair_style reax/c/omp into the User-OMP package
+   by Axel Kohlmeyer (Temple U.)
+
+   Please cite the related publication:
+   H. M. Aktulga, C. Knight, P. Coffman, K. A. O'Hearn, T. R. Shan,
+   W. Jiang, "Optimizing the performance of reactive molecular dynamics
+   simulations for multi-core architectures", International Journal of
+   High Performance Computing Applications, to appear.
+ ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_omp.h"
 #include "atom.h"
@@ -62,12 +76,24 @@ int ompTimingCount[LASTTIMINGINDEX];
 int ompTimingCGCount[LASTTIMINGINDEX];
 #endif
 
+static const char cite_pair_reax_c_omp[] =
+  "pair reax/c/omp and fix qeq/reax/omp command:\n\n"
+  "@Article{Aktulga17,\n"
+  " author =  {H. M. Aktulga, C. Knight, P. Coffman, K. A. OHearn, T. R. Shan, W. Jiang},\n"
+  " title =   {Optimizing the performance of reactive molecular dynamics simulations for multi-core architectures},\n"
+  " journal = {International Journal of High Performance Computing Applications},\n"
+  " year =    to appear\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_pair_reax_c_omp);
+
   suffix_flag |= Suffix::OMP;
   system->pair_ptr = this;
+  system->omp_active = 1;
 
   num_nbrs_offset = NULL;
 
@@ -84,10 +110,11 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
 
 PairReaxCOMP::~PairReaxCOMP()
 {
-  reax_list * bonds = lists+BONDS;
-  for (int i=0; i<bonds->num_intrs; ++i)
-    sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
-
+  if (setup_flag) {
+    reax_list * bonds = lists+BONDS;
+    for (int i=0; i<bonds->num_intrs; ++i)
+      sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+  }
   memory->destroy(num_nbrs_offset);
 
 #ifdef OMP_TIMING

@@ -84,6 +84,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
     memory->smalloc(sizeof(storage),"reax:storage");
   lists = (reax_list *)
     memory->smalloc(LIST_N * sizeof(reax_list),"reax:lists");
+  memset(lists,0,LIST_N * sizeof(reax_list));
   out_control = (output_controls *)
     memory->smalloc(sizeof(output_controls),"reax:out_control");
   mpi_data = (mpi_datatypes *)
@@ -107,6 +108,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_cutoff = 0;
   system->my_atoms = NULL;
   system->pair_ptr = this;
+
+  system->omp_active = 0;
 
   fix_reax = NULL;
   tmpid = NULL;

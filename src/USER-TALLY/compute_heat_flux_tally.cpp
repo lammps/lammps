@@ -275,7 +275,7 @@ void ComputeHeatFluxTally::compute_vector()
 
 double ComputeHeatFluxTally::memory_usage()
 {
-  double bytes = nmax*comm_reverse * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax*comm_reverse * sizeof(double);
   return bytes;
 }
 

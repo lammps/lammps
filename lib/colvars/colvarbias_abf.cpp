@@ -71,10 +71,17 @@ int colvarbias_abf::init(std::string const &conf)
   // shared ABF
   get_keyval(conf, "shared", shared_on, false);
   if (shared_on) {
-    if (!cvm::replica_enabled() || cvm::replica_num() <= 1)
+    if (!cvm::replica_enabled() || cvm::replica_num() <= 1) {
       cvm::error("Error: shared ABF requires more than one replica.");
-    else
-      cvm::log("shared ABF will be applied among "+ cvm::to_str(cvm::replica_num()) + " replicas.\n");
+      return COLVARS_ERROR;
+    }
+    cvm::log("shared ABF will be applied among "+ cvm::to_str(cvm::replica_num()) + " replicas.\n");
+    if (cvm::proxy->smp_enabled() == COLVARS_OK) {
+      cvm::error("Error: shared ABF is currently not available with SMP parallelism; "
+                 "please set \"SMP off\" at the top of the Colvars configuration file.\n",
+                 COLVARS_NOT_IMPLEMENTED);
+      return COLVARS_NOT_IMPLEMENTED;
+    }
 
     // If shared_freq is not set, we default to output_freq
     get_keyval(conf, "sharedFreq", shared_freq, output_freq);
@@ -84,11 +91,11 @@ int colvarbias_abf::init(std::string const &conf)
 
   if (colvars.size() == 0) {
     cvm::error("Error: no collective variables specified for the ABF bias.\n");
+    return COLVARS_ERROR;
   }
 
   if (update_bias) {
-  // Request calculation of total force (which also checks for availability)
-  // TODO - change this to a dependency - needs ABF-specific features
+    // Request calculation of total force
     if(enable(f_cvb_get_total_force)) return cvm::get_error();
   }
 
@@ -107,6 +114,16 @@ int colvarbias_abf::init(std::string const &conf)
     // system gradient
     if (colvars[i]->is_enabled(f_cv_extended_Lagrangian))
       b_extended = true;
+
+    // Cannot mix and match coarse time steps with ABF because it gives
+    // wrong total force averages - total force needs to be averaged over
+    // every time step
+    if (colvars[i]->get_time_step_factor() != time_step_factor) {
+      cvm::error("Error: " + colvars[i]->description + " has a value of timeStepFactor ("
+        + cvm::to_str(colvars[i]->get_time_step_factor()) + ") different from that of "
+        + description + " (" + cvm::to_str(time_step_factor) + ").\n");
+      return COLVARS_ERROR;
+    }
 
     // Here we could check for orthogonality of the Cartesian coordinates
     // and make it just a warning if some parameter is set?
@@ -282,12 +299,12 @@ int colvarbias_abf::update()
   // Compute and apply the new bias, if applicable
   if (is_enabled(f_cvb_apply_force) && samples->index_ok(bin)) {
 
-    size_t  count = samples->value(bin);
-    cvm::real	fact = 1.0;
+    size_t count = samples->value(bin);
+    cvm::real fact = 1.0;
 
     // Factor that ensures smooth introduction of the force
     if ( count < full_samples ) {
-      fact = ( count < min_samples) ? 0.0 :
+      fact = (count < min_samples) ? 0.0 :
         (cvm::real(count - min_samples)) / (cvm::real(full_samples - min_samples));
     }
 
@@ -434,62 +451,57 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
   std::string  gradients_out_name = prefix + ".grad";
   std::ios::openmode mode = (append ? std::ios::app : std::ios::out);
 
-  cvm::ofstream samples_os;
-  cvm::ofstream gradients_os;
-
-  if (!append) cvm::backup_file(samples_out_name.c_str());
-  samples_os.open(samples_out_name.c_str(), mode);
-  if (!samples_os.is_open()) {
+  std::ostream *samples_os =
+    cvm::proxy->output_stream(samples_out_name, mode);
+  if (!samples_os) {
     cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
   }
-  samples->write_multicol(samples_os);
-  samples_os.close();
+  samples->write_multicol(*samples_os);
+  cvm::proxy->close_output_stream(samples_out_name);
 
-  if (!append) cvm::backup_file(gradients_out_name.c_str());
-  gradients_os.open(gradients_out_name.c_str(), mode);
-  if (!gradients_os.is_open()) {
+  std::ostream *gradients_os =
+    cvm::proxy->output_stream(gradients_out_name, mode);
+  if (!gradients_os) {
     cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
   }
-  gradients->write_multicol(gradients_os);
-  gradients_os.close();
+  gradients->write_multicol(*gradients_os);
+  cvm::proxy->close_output_stream(gradients_out_name);
 
   if (colvars.size() == 1) {
-    std::string  pmf_out_name = prefix + ".pmf";
-    if (!append) cvm::backup_file(pmf_out_name.c_str());
-    cvm::ofstream pmf_os;
     // Do numerical integration and output a PMF
-    pmf_os.open(pmf_out_name.c_str(), mode);
-    if (!pmf_os.is_open())  cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
-    gradients->write_1D_integral(pmf_os);
-    pmf_os << std::endl;
-    pmf_os.close();
+    std::string  pmf_out_name = prefix + ".pmf";
+    std::ostream *pmf_os = cvm::proxy->output_stream(pmf_out_name, mode);
+    if (!pmf_os) {
+      cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
+    }
+    gradients->write_1D_integral(*pmf_os);
+    *pmf_os << std::endl;
+    cvm::proxy->close_output_stream(pmf_out_name);
   }
 
   if (z_gradients) {
     // Write eABF-related quantities
 
     std::string  z_samples_out_name = prefix + ".zcount";
-    cvm::ofstream z_samples_os;
 
-    if (!append) cvm::backup_file(z_samples_out_name.c_str());
-    z_samples_os.open(z_samples_out_name.c_str(), mode);
-    if (!z_samples_os.is_open()) {
+    std::ostream *z_samples_os =
+      cvm::proxy->output_stream(z_samples_out_name, mode);
+    if (!z_samples_os) {
       cvm::error("Error opening eABF z-histogram file " + z_samples_out_name + " for writing");
     }
-    z_samples->write_multicol(z_samples_os);
-    z_samples_os.close();
+    z_samples->write_multicol(*z_samples_os);
+    cvm::proxy->close_output_stream(z_samples_out_name);
 
     if (b_czar_window_file) {
       std::string  z_gradients_out_name = prefix + ".zgrad";
-      cvm::ofstream z_gradients_os;
 
-      if (!append) cvm::backup_file(z_gradients_out_name.c_str());
-      z_gradients_os.open(z_gradients_out_name.c_str(), mode);
-      if (!z_gradients_os.is_open()) {
+      std::ostream *z_gradients_os =
+        cvm::proxy->output_stream(z_gradients_out_name, mode);
+      if (!z_gradients_os) {
         cvm::error("Error opening eABF z-gradient file " + z_gradients_out_name + " for writing");
       }
-      z_gradients->write_multicol(z_gradients_os);
-      z_gradients_os.close();
+      z_gradients->write_multicol(*z_gradients_os);
+      cvm::proxy->close_output_stream(z_gradients_out_name);
     }
 
     // Calculate CZAR estimator of gradients
@@ -503,26 +515,24 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
     }
 
     std::string  czar_gradients_out_name = prefix + ".czar.grad";
-    cvm::ofstream czar_gradients_os;
 
-    if (!append) cvm::backup_file(czar_gradients_out_name.c_str());
-    czar_gradients_os.open(czar_gradients_out_name.c_str(), mode);
-    if (!czar_gradients_os.is_open()) {
+    std::ostream *czar_gradients_os =
+      cvm::proxy->output_stream(czar_gradients_out_name, mode);
+    if (!czar_gradients_os) {
       cvm::error("Error opening CZAR gradient file " + czar_gradients_out_name + " for writing");
     }
-    czar_gradients->write_multicol(czar_gradients_os);
-    czar_gradients_os.close();
+    czar_gradients->write_multicol(*czar_gradients_os);
+    cvm::proxy->close_output_stream(czar_gradients_out_name);
 
     if (colvars.size() == 1) {
-      std::string  czar_pmf_out_name = prefix + ".czar.pmf";
-      if (!append) cvm::backup_file(czar_pmf_out_name.c_str());
-      cvm::ofstream czar_pmf_os;
       // Do numerical integration and output a PMF
-      czar_pmf_os.open(czar_pmf_out_name.c_str(), mode);
-      if (!czar_pmf_os.is_open())  cvm::error("Error opening CZAR pmf file " + czar_pmf_out_name + " for writing");
-      czar_gradients->write_1D_integral(czar_pmf_os);
-      czar_pmf_os << std::endl;
-      czar_pmf_os.close();
+      std::string  czar_pmf_out_name = prefix + ".czar.pmf";
+      std::ostream *czar_pmf_os =
+        cvm::proxy->output_stream(czar_pmf_out_name, mode);
+      if (!czar_pmf_os)  cvm::error("Error opening CZAR pmf file " + czar_pmf_out_name + " for writing");
+      czar_gradients->write_1D_integral(*czar_pmf_os);
+      *czar_pmf_os << std::endl;
+      cvm::proxy->close_output_stream(czar_pmf_out_name);
     }
   }
   return;
@@ -570,9 +580,13 @@ void colvarbias_abf::read_gradients_samples()
     is.clear();
 
     is.open(gradients_in_name.c_str());
-    if (!is.is_open())	cvm::error("Error opening ABF gradient file " + gradients_in_name + " for reading");
-    gradients->read_multicol(is, true);
-    is.close();
+    if (!is.is_open()) {
+      cvm::error("Error opening ABF gradient file " +
+                 gradients_in_name + " for reading", INPUT_ERROR);
+    } else {
+      gradients->read_multicol(is, true);
+      is.close();
+    }
 
     if (z_gradients) {
       // Read eABF z-averaged data for CZAR

@@ -74,13 +74,11 @@ void PPPMOMP::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   free memory that depends on # of K-vectors and order
+   clean up per-thread allocations
 ------------------------------------------------------------------------- */
 
-void PPPMOMP::deallocate()
+PPPMOMP::~PPPMOMP()
 {
-  PPPM::deallocate();
-
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif

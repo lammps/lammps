@@ -53,7 +53,7 @@ PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
   map = NULL;
 
   // always compute energy offset
-  offset_flag = true;
+  offset_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -285,7 +285,7 @@ double PairKolmogorovCrespiZ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
     Param& p = params[iparam_ij];
     offset[i][j] = -p.A*pow(p.z0/cut[i][j],6);

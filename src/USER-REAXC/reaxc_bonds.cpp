@@ -82,7 +82,8 @@ void Bonds( reax_system *system, control_params *control,
       bo_ij = &( bonds->select.bond_list[pj].bo_data );
 
       /* calculate the constants */
-      pow_BOs_be2 = pow( bo_ij->BO_s, twbp->p_be2 );
+      if (bo_ij->BO_s == 0.0) pow_BOs_be2 = 0.0;
+      else pow_BOs_be2 = pow( bo_ij->BO_s, twbp->p_be2 );
       exp_be12 = exp( twbp->p_be1 * ( 1.0 - pow_BOs_be2 ) );
       CEbo = -twbp->De_s * exp_be12 *
 	( 1.0 - twbp->p_be1 * twbp->p_be2 * pow_BOs_be2 );

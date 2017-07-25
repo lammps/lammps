@@ -106,6 +106,8 @@ $t should be 2 for Intel Xeon CPUs and 2 or 4 for Intel Xeon Phi :l
 For some of the simple 2-body potentials without long-range
 electrostatics, performance and scalability can be better with
 the "newton off" setting added to the input script :l
+For simulations on higher node counts, add "processors * * * grid 
+numa" to the beginning of the input script for better scalability :l
 If using {kspace_style pppm} in the input script, add
 "kspace_modify diff ad" for better performance :l
 :ule
@@ -224,7 +226,7 @@ source /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
 make intel_cpu_intelmpi :pre
 
 Alternatively, the build can be accomplished with the src/Make.py
-script, described in "Section 2.4"_Section_start.html#start_4 of the
+script, described in "Section 4"_Section_packages.html of the
 manual. Type "Make.py -h" for help. For an example:
 
 Make.py -v -p intel omp -intel cpu -a file intel_cpu_intelmpi :pre
@@ -299,7 +301,7 @@ Hyper-Threading technology disabled.
 
 To enable USER-INTEL optimizations for all available styles used in
 the input script, the "-sf intel"
-"command-line switch"_Section_start.html#start_7 can be used without
+"command-line switch"_Section_start.html#start_6 can be used without
 any requirement for editing the input script. This switch will
 automatically append "intel" to styles that support it. It also
 invokes a default command: "package intel 1"_package.html. This
@@ -312,7 +314,7 @@ support, that 1 coprocessor per node will be used with automatic
 balancing of work between the CPU and the coprocessor.
 
 You can specify different options for the USER-INTEL package by using
-the "-pk intel Nphi" "command-line switch"_Section_start.html#start_7
+the "-pk intel Nphi" "command-line switch"_Section_start.html#start_6
 with keyword/value pairs as specified in the documentation. Here,
 Nphi = # of Xeon Phi coprocessors/node (ignored without offload
 support). Common options to the USER-INTEL package include {omp} to
@@ -385,12 +387,16 @@ can performed automatically by using "-sf hybrid intel opt" or
 and "omp" suffixes can be appended manually in the input script. For
 the latter, the "package omp"_package.html command must be in the
 input script or the "-pk omp Nt" "command-line
-switch"_Section_start.html#start_7 must be used where Nt is the
+switch"_Section_start.html#start_6 must be used where Nt is the
 number of OpenMP threads. The number of OpenMP threads should not be
 set differently for the different packages. Note that the "suffix
 hybrid intel omp"_suffix.html command can also be used within the
 input script to automatically append the "omp" suffix to styles when
 USER-INTEL styles are not available.
+
+NOTE: For simulations on higher node counts, add "processors * * * 
+grid numa"_processors.html" to the beginning of the input script for
+better scalability.
 
 When running on many nodes, performance might be better when using
 fewer OpenMP threads and more MPI tasks. This will depend on the
@@ -480,7 +486,7 @@ sorting"_atom_modify.html is changed to 1 so that the per-atom data is
 effectively sorted at every rebuild of the neighbor lists. All the
 available coprocessor threads on each Phi will be divided among MPI
 tasks, unless the {tptask} option of the "-pk intel" "command-line
-switch"_Section_start.html#start_7 is used to limit the coprocessor
+switch"_Section_start.html#start_6 is used to limit the coprocessor
 threads per MPI task.
 
 [Restrictions:]

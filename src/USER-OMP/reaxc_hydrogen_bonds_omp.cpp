@@ -1,16 +1,18 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-
+  Website: https://www.cs.purdue.edu/puremd
+  
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, hmaktulga@lbl.gov
-  Joseph Fogarty, jcfogart@mail.usf.edu
-  Sagar Pandit, pandit@usf.edu
-  Ananth Y Grama, ayg@cs.purdue.edu
+  
+  Contributing authors: 
+  H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
+  Corresponding author: 
+  Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-  Algorithmic Techniques", Parallel Computing, in press.
+  Algorithmic Techniques", Parallel Computing, 38 (4-5), 245-259
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -99,11 +101,6 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
 
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
-
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-				    system->pair_ptr->vflag_either,
-				    natoms, system->pair_ptr->eatom,
-				    system->pair_ptr->vatom, thr);
 
   /* loops below discover the Hydrogen bonds between i-j-k triplets.
      here j is H atom and there has to be some bond between i and j.
@@ -240,9 +237,6 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   {
     data->my_en.e_hb += e_hb_thr;
   }
-
-  pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
-				  system->pair_ptr->vflag_either, thr);
 }
 
 #ifdef OMP_TIMING

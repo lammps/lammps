@@ -39,7 +39,6 @@ class PPPMTIP4P : public PPPM {
 
  private:
   void find_M(int, int &, int &, double *);
-  void find_M_triclinic(int, int, int, double *);
 };
 
 }

@@ -1,16 +1,18 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-
+  Website: https://www.cs.purdue.edu/puremd
+  
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, hmaktulga@lbl.gov
-  Joseph Fogarty, jcfogart@mail.usf.edu
-  Sagar Pandit, pandit@usf.edu
-  Ananth Y Grama, ayg@cs.purdue.edu
+  
+  Contributing authors: 
+  H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
+  Corresponding author: 
+  Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-  Algorithmic Techniques", Parallel Computing, in press.
+  Algorithmic Techniques", Parallel Computing, 38 (4-5), 245-259
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -37,7 +39,7 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
-// Functions definedd in reaxc_init_md.cpp
+// Functions defined in reaxc_init_md.cpp
 extern int Init_MPI_Datatypes(reax_system*, storage*, mpi_datatypes*, MPI_Comm, char*);
 extern int Init_System(reax_system*, control_params*, char*);
 extern int Init_Simulation_Data(reax_system*, control_params*, simulation_data*, char*);
@@ -102,7 +104,7 @@ int Init_ListsOMP( reax_system *system, control_params *control,
   /* 3bodies list */
   cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
   if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
-		  *lists+THREE_BODIES, comm ) ){
+                  *lists+THREE_BODIES, comm ) ){
 
     fprintf( stderr, "Problem in initializing angles list. Terminating!\n" );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );

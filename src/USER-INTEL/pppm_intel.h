@@ -74,9 +74,10 @@ class PPPMIntel : public PPPM {
   int _use_base;
   #endif
 
-    template<class flt_t, class acc_t>
-    void test_function(IntelBuffers<flt_t,acc_t> *buffers);
+  virtual void allocate();
 
+  template<class flt_t, class acc_t>
+  void test_function(IntelBuffers<flt_t,acc_t> *buffers);
 
   void precompute_rho();
   template<class flt_t, class acc_t>
@@ -120,6 +121,8 @@ class PPPMIntel : public PPPM {
       fieldforce_ad<flt_t,acc_t,0>(buffers);
     }
   }
+  FFT_SCALAR ***create3d_offset(FFT_SCALAR ***&, int, int, int,
+				int, int, int, const char *name);
 };
 
 }

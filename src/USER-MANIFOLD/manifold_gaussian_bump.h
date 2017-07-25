@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -50,8 +50,8 @@ namespace user_manifold {
   class manifold_gaussian_bump : public manifold {
    public:
     enum { NPARAMS = 4 };
-    manifold_gaussian_bump(class LAMMPS*, int, char **) : manifold(lmp) {}
-    virtual ~manifold_gaussian_bump(){}
+    manifold_gaussian_bump(class LAMMPS*, int, char **);
+    virtual ~manifold_gaussian_bump();
 
     virtual double g( const double * );
     virtual void   n( const double *, double * );
@@ -66,12 +66,29 @@ namespace user_manifold {
     virtual void post_param_init();
    private:
     // Some private constants:
-    double aa, bb, cc, dd, AA, ll, ll2, f_at_rc, fp_at_rc;
+    double AA, ll, ll2, f_at_rc, fp_at_rc;
     double rc1, rc2, rc12, rc22, dr, inv_dr;
 
-    double gaussian_bump    ( double );
-    double gaussian_bump_x2 ( double );
-    double gaussian_bump_der( double );
+    // Stuff for the look-up table:
+    double lut_x0, lut_x1;
+    int lut_Nbins;
+    double lut_dx;
+    double *lut_z;
+    double *lut_zp;
+
+    double gaussian_bump    ( double ) const;
+    double gaussian_bump_x2 ( double ) const;
+    double gaussian_bump_der( double ) const;
+
+    void   make_lut();
+    double lut_get_z ( double rr ) const;
+    double lut_get_zp( double rr ) const;
+    void lut_get_z_and_zp( double rr, double &zz, double &zzp ) const;
+
+    void test_lut();
+
+    double taper( double );
+    double taper_der( double );
 
   };
 }

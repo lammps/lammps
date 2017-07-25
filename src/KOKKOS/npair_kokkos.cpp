@@ -201,14 +201,20 @@ if (GHOST) {
   if (newton_pair) {
     NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef KOKKOS_HAVE_CUDA
-    Kokkos::parallel_for(config, f);
+    if (ExecutionSpaceFromDevice<DeviceType>::space == Device)
+      Kokkos::parallel_for(config, f);
+    else
+      Kokkos::parallel_for(nall, f);
 #else
     Kokkos::parallel_for(nall, f);
 #endif
   } else {
     NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef KOKKOS_HAVE_CUDA
-    Kokkos::parallel_for(config, f);
+    if (ExecutionSpaceFromDevice<DeviceType>::space == Device)
+      Kokkos::parallel_for(config, f);
+    else
+      Kokkos::parallel_for(nall, f);
 #else
     Kokkos::parallel_for(nall, f);
 #endif

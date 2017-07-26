@@ -446,7 +446,7 @@ void FixMSST::initial_integrate(int vflag)
 {
   int i,k;
   double p_msst;                       // MSST driving pressure
-  double vol,TS,TS_term,escale_term;
+  double vol;
 
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -469,12 +469,16 @@ void FixMSST::initial_integrate(int vflag)
   // must convert energy to mv^2 units
 
   if (dftb) {
-    double TS_dftb = fix_external->compute_vector(0);
-    TS = force->ftm2v*TS_dftb;
+    const double TS_dftb = fix_external->compute_vector(0);
+    const double TS = force->ftm2v*TS_dftb;
+    // update S_elec terms and compute TS_dot via finite differences
+    S_elec_2 = S_elec_1;
+    S_elec_1 = S_elec;
+    const double Temp = temperature->compute_scalar();
+    S_elec = TS/Temp;
+    TS_dot = Temp*(3.0*S_elec-4.0*S_elec_1+S_elec_2)/(2.0*update->dt);
+    TS_int += (update->dt*TS_dot);
     if (update->ntimestep == 1) T0S0 = TS;
-  } else {
-    TS = 0.0;
-    T0S0 = 0.0;
   }
 
   // compute new pressure and volume
@@ -483,16 +487,6 @@ void FixMSST::initial_integrate(int vflag)
   pressure->compute_vector();
   couple();
   vol = compute_vol();
-
-  // update S_elec terms and compute TS_dot via finite differences
-
-  S_elec_2 = S_elec_1;
-  S_elec_1 = S_elec;
-  double Temp = temperature->compute_scalar();
-  S_elec = TS/Temp;
-  TS_dot = Temp*(3.0*S_elec-4.0*S_elec_1+S_elec_2)/(2.0*update->dt);
-  TS_int += (update->dt*TS_dot);
-  //TS_int += (update->dt*TS_dot)/total_mass;
 
   // compute etot + extra terms for conserved quantity
 
@@ -530,9 +524,9 @@ void FixMSST::initial_integrate(int vflag)
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
-          double C = f[i][k] * force->ftm2v / mass[type[i]];
-          TS_term = TS_dot/(mass[type[i]]*velocity_sum);
-          escale_term = force->ftm2v*beta*(e0-e_scale) /
+          const double C = f[i][k] * force->ftm2v / mass[type[i]];
+          const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
+          const double escale_term = force->ftm2v*beta*(e0-e_scale) /
             (mass[type[i]]*velocity_sum);
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
@@ -540,7 +534,7 @@ void FixMSST::initial_integrate(int vflag)
           old_velocity[i][k] = v[i][k];
           if ( k == direction ) D -= 2.0 * omega[sd] / vol;
           if ( fabs(dthalf * D) > 1.0e-06 ) {
-            double expd = exp(D * dthalf);
+            const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
             v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
@@ -553,15 +547,15 @@ void FixMSST::initial_integrate(int vflag)
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
-          double C = f[i][k] * force->ftm2v / mass[type[i]];
+          const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           old_velocity[i][k] = v[i][k];
           if ( k == direction ) {
-            D = D - 2.0 * omega[sd] / vol;
+            D -= 2.0 * omega[sd] / vol;
           }
           if ( fabs(dthalf * D) > 1.0e-06 ) {
-            double expd = exp(D * dthalf);
+            const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
             v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
@@ -590,16 +584,16 @@ void FixMSST::initial_integrate(int vflag)
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
-          double C = f[i][k] * force->ftm2v / mass[type[i]];
-          TS_term = TS_dot/(mass[type[i]]*velocity_sum);
-          escale_term = force->ftm2v*beta*(e0-e_scale) /
+          const double C = f[i][k] * force->ftm2v / mass[type[i]];
+          const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
+          const double escale_term = force->ftm2v*beta*(e0-e_scale) /
             (mass[type[i]]*velocity_sum);
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
           if ( k == direction ) D -= 2.0 * omega[sd] / vol;
           if ( fabs(dthalf * D) > 1.0e-06 ) {
-            double expd = exp(D * dthalf);
+            const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
             v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
@@ -612,14 +606,14 @@ void FixMSST::initial_integrate(int vflag)
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
-          double C = f[i][k] * force->ftm2v / mass[type[i]];
+          const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           if ( k == direction ) {
-            D = D - 2.0 * omega[sd] / vol;
+            D -= 2.0 * omega[sd] / vol;
           }
           if ( fabs(dthalf * D) > 1.0e-06 ) {
-            double expd = exp(D * dthalf);
+            const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
             v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
@@ -669,7 +663,6 @@ void FixMSST::final_integrate()
 {
   int i;
   double p_msst;                  // MSST driving pressure
-  double TS_term,escale_term;
 
   // v update only for atoms in MSST group
 
@@ -687,22 +680,38 @@ void FixMSST::final_integrate()
 
   double e_scale = compute_etotal() + compute_scalar();
 
+  // for DFTB, extract TS_dftb from fix external
+  // must convert energy to mv^2 units
+
+  if (dftb) {
+    const double TS_dftb = fix_external->compute_vector(0);
+    const double TS = force->ftm2v*TS_dftb;
+    S_elec_2 = S_elec_1;
+    S_elec_1 = S_elec;
+    const double Temp = temperature->compute_scalar();
+    // update S_elec terms and compute TS_dot via finite differences
+    S_elec = TS/Temp;
+    TS_dot = Temp*(3.0*S_elec-4.0*S_elec_1+S_elec_2)/(2.0*update->dt);
+    TS_int += (update->dt*TS_dot);
+    if (update->ntimestep == 1) T0S0 = TS;
+  }
+
   // propagate particle velocities 1/2 step
 
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         for ( int k = 0; k < 3; k++ ) {
-          double C = f[i][k] * force->ftm2v / mass[type[i]];
-          TS_term = TS_dot/(mass[type[i]]*velocity_sum);
-          escale_term = force->ftm2v*beta*(e0-e_scale) /
+          const double C = f[i][k] * force->ftm2v / mass[type[i]];
+          const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
+          const double escale_term = force->ftm2v*beta*(e0-e_scale) /
             (mass[type[i]]*velocity_sum);
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
           if ( k == direction ) D -= 2.0 * omega[sd] / vol;
           if ( fabs(dthalf * D) > 1.0e-06 ) {
-            double expd = exp(D * dthalf);
+            const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
             v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
@@ -715,14 +724,14 @@ void FixMSST::final_integrate()
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         for ( int k = 0; k < 3; k++ ) {
-          double C = f[i][k] * force->ftm2v / mass[type[i]];
+          const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           if ( k == direction ) {
-            D = D - 2.0 * omega[sd] / vol;
+            D -= 2.0 * omega[sd] / vol;
           }
           if ( fabs(dthalf * D) > 1.0e-06 ) {
-            double expd = exp(D * dthalf);
+            const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
             v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
@@ -748,7 +757,7 @@ void FixMSST::final_integrate()
     ( v0 - vol )/( v0 * v0 );
   double A = total_mass * ( p_current[sd] - p0 - p_msst ) /
     ( qmass * nktv2p * mvv2e );
-  double B = total_mass * mu  / ( qmass * vol );
+  const double B = total_mass * mu  / ( qmass * vol );
 
   // prevent blow-up of the volume
 
@@ -950,7 +959,9 @@ double FixMSST::compute_scalar()
 
   // subtract off precomputed TS_int integral value
 
-  energy -= TS_int;
+  if (dftb) { // TS_int == 0 for non DFTB calculations
+    energy -= TS_int;
+  }
 
   return energy;
 }

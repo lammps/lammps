@@ -81,7 +81,7 @@ class Balance : protected Pointers {
   FILE *fp;                  // balance output file
   int firststep;
 
-  double imbalance_splits(int &);
+  double imbalance_splits();
   void shift_setup_static(char *);
   void tally(int, int, double *);
   int adjust(int, double *);

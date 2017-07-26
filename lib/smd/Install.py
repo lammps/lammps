@@ -3,13 +3,19 @@
 # Install.py tool to download, unpack, and point to the Eigen library
 # used to automate the steps described in the README file in this dir
 
-import sys,os,re,glob,commands
+from __future__ import print_function
+import sys,os,re,glob,subprocess
+try: from urllib.request import urlretrieve as geturl
+except: from urllib import urlretrieve as geturl
 
 # help message
 
 help = """
-Syntax: python Install.py -h hpath hdir -g -l
-  specify one or more options, order does not matter
+Syntax from src dir: make lib-smd args="-h hpath hdir -g -l"
+Syntax from lib dir: python Install.py -h hpath hdir -g -l
+
+specify one or more options, order does not matter
+
   -h = set home dir of Eigen to be hpath/hdir
        hpath can be full path, contain '~' or '.' chars
        default hpath = . = lib/smd
@@ -19,18 +25,23 @@ Syntax: python Install.py -h hpath hdir -g -l
        hpath must already exist
        if hdir already exists, it will be deleted before unpack
   -l = create softlink (includelink) in lib/smd to Eigen src dir
+
+Example:
+
+make lib-smd args="-g -l"   # download/build in default lib/smd/eigen-eigen-*
 """
 
 # settings
 
-url = "http://bitbucket.org/eigen/eigen/get/3.3.3.tar.gz"
+version = '3.3.4'
+url = "http://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
 tarball = "eigen.tar.gz"
 
 # print error message or help
 
 def error(str=None):
-  if not str: print help
-  else: print "ERROR",str
+  if not str: print(help)
+  else: print("ERROR",str)
   sys.exit()
 
 # expand to full path name
@@ -73,26 +84,26 @@ if not os.path.isdir(homepath): error("Eigen path does not exist")
 # glob to find name of dir it unpacks to
 
 if grabflag:
-  print "Downloading Eigen ..."
-  cmd = "curl -L %s > %s/%s" % (url,homepath,tarball)
-  print cmd
-  print commands.getoutput(cmd)
+  print("Downloading Eigen ...")
+  geturl(url,"%s/%s" % (homepath,tarball))
 
-  print "Unpacking Eigen tarball ..."
+  print("Unpacking Eigen tarball ...")
   edir = glob.glob("%s/eigen-eigen-*" % homepath)
   for one in edir:
-    if os.path.isdir(one): commands.getoutput("rm -rf %s" % one)
-  cmd = "cd %s; tar zxvf %s" % (homepath,tarball)
-  commands.getoutput(cmd)
+    if os.path.isdir(one):
+      subprocess.check_output("rm -rf %s" % one,shell=True)
+  cmd = 'cd "%s"; tar -xzvf %s' % (homepath,tarball)
+  subprocess.check_output(cmd,shell=True)
   if homedir != "ee":
-    if os.path.exists(homedir): commands.getoutput("rm -rf %s" % homedir)
+    if os.path.exists(homedir):
+      subprocess.check_output("rm -rf %s" % homedir,shell=True)
     edir = glob.glob("%s/eigen-eigen-*" % homepath)
     os.rename(edir[0],"%s/%s" % (homepath,homedir))
 
 # create link in lib/smd to Eigen src dir
 
 if linkflag:
-  print "Creating link to Eigen files"
+  print("Creating link to Eigen files")
   if os.path.isfile("includelink") or os.path.islink("includelink"):
     os.remove("includelink")
   if homedir == "ee":
@@ -100,4 +111,4 @@ if linkflag:
     linkdir = edir[0]
   else: linkdir = "%s/%s" % (homepath,homedir)
   cmd = "ln -s %s includelink" % linkdir
-  commands.getoutput(cmd)
+  subprocess.check_output(cmd,shell=True)

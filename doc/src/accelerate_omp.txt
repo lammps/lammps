@@ -23,8 +23,7 @@ one or more 16-core nodes.  More details follow.
 use -fopenmp with CCFLAGS and LINKFLAGS in Makefile.machine
 make yes-user-omp
 make mpi                                   # build with USER-OMP package, if settings added to Makefile.mpi
-make omp                                   # or Makefile.omp already has settings
-Make.py -v -p omp -o mpi -a file mpi       # or one-line build via Make.py :pre
+make omp                                   # or Makefile.omp already has settings :pre
 
 lmp_mpi -sf omp -pk omp 16 < in.script                         # 1 MPI task, 16 threads
 mpirun -np 4 lmp_mpi -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
@@ -40,14 +39,11 @@ each MPI task running on a CPU.
 
 The lines above illustrate how to include/build with the USER-OMP
 package in two steps, using the "make" command.  Or how to do it with
-one command via the src/Make.py script, described in "Section
-4"_Section_packages.html of the manual.  Type "Make.py -h" for
-help.
+one command as described in "Section 4"_Section_packages.html of the manual.
 
 Note that the CCFLAGS and LINKFLAGS settings in Makefile.machine must
 include "-fopenmp".  Likewise, if you use an Intel compiler, the
-CCFLAGS setting must include "-restrict".  The Make.py command will
-add these automatically.
+CCFLAGS setting must include "-restrict".
 
 [Run with the USER-OMP package from the command line:]
 

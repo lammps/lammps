@@ -9,12 +9,12 @@
 #ifndef CH5MD_H
 #define CH5MD_H
 
+#include "hdf5.h"
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "hdf5.h"
-#include <stdbool.h>
 
 #define CH5MD_RANK_ERROR -10
 

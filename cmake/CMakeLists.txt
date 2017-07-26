@@ -18,10 +18,10 @@ list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_C_FLAGS)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_C_FLAGS)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
 foreach(STYLE_FILE style_angle.h style_atom.h style_body.h style_bond.h style_command.h style_compute.h style_dihedral.h style_dump.h
              style_fix.h style_improper.h style_integrate.h style_kspace.h style_minimize.h style_nbin.h style_npair.h style_nstencil.h
@@ -498,7 +498,7 @@ if(ENABLE_GPU)
     endforeach()
     list(REMOVE_ITEM GPU_OBJS "${CU_FORBIDDEN_OBJ}")
     list(APPEND LIB_SOURCES ${GPU_SOURCES} ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${AMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 endif()
 
 ######################################################
@@ -529,7 +529,7 @@ add_executable(lmp ${LMP_SOURCES})
 target_link_libraries(lmp lammps)
 install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
 if(ENABLE_TESTING)
-  add_test(ShowHelp lmp -help)
+  add_test(ShowHelp ${CMAKE_CURRENT_BINARY_DIR}/lmp -help)
 endif()
 
 ##################################

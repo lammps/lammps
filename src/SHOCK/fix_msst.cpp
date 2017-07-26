@@ -939,7 +939,7 @@ int FixMSST::modify_param(int narg, char **arg)
 
 double FixMSST::compute_scalar()
 {
-  // compute new pressure and volume.
+  // compute new pressure and volume
 
   temperature->compute_vector();
   pressure->compute_vector();
@@ -958,10 +958,9 @@ double FixMSST::compute_scalar()
   energy -= p0 * ( v0 - volume ) / nktv2p;
 
   // subtract off precomputed TS_int integral value
+  // TS_int = 0 for non DFTB calculations
 
-  if (dftb) { // TS_int == 0 for non DFTB calculations
-    energy -= TS_int;
-  }
+  if (dftb) energy -= TS_int;
 
   return energy;
 }
@@ -987,7 +986,7 @@ double FixMSST::compute_vector(int n)
 
 /* ----------------------------------------------------------------------
    Computes the deviation of the current point
-   from the Hugoniot in Kelvin for the MSST.
+   from the Hugoniot in Kelvin for the MSST
 ------------------------------------------------------------------------- */
 
 double FixMSST::compute_hugoniot()
@@ -1012,7 +1011,7 @@ double FixMSST::compute_hugoniot()
 
 /* ----------------------------------------------------------------------
    Computes the deviation of the current point from the Rayleigh
-   in pressure units for the MSST.
+   in pressure units for the MSST
 ------------------------------------------------------------------------- */
 
 double FixMSST::compute_rayleigh()
@@ -1108,4 +1107,3 @@ double FixMSST::memory_usage()
   double bytes = 3*atom->nmax * sizeof(double);
   return bytes;
 }
-

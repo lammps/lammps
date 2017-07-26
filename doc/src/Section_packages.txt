@@ -503,7 +503,7 @@ make lib-kim                    # print help message
 make lib-kim args="-b . none"   # install KIM API lib with only example models
 make lib-kim args="-b . Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
 make lib-kim args="-b . OpenKIM"   # install KIM API lib with all models
-make lib-kim args="-a EAM_Dynamo_Ackland_W__MO_141627196590_002"   # add one model or model driver :pre
+make lib-kim args="-a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver :pre
 
 Note that in LAMMPS lingo, a KIM model driver is a pair style
 (e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
@@ -519,8 +519,8 @@ See the list of all KIM models here:
 https://openkim.org/kim-items/models/by-model-drivers
 
 See the list of example KIM models included by default here:
-https://openkim.org/kim-api
-in the "What is in the KIM API source package?" section
+https://openkim.org/kim-api in the "What is in the KIM API source
+package?" section
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:

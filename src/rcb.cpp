@@ -288,7 +288,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
         // use old value on 1st iteration if old cut dimension is the same
         // on 2nd option: could push valuehalf towards geometric center
         //   with "1.0-factor" to force overshoot
-        
+
         if (first_iteration && reuse && dim == tree[procmid].dim) {
           counters[5]++;
           valuehalf = tree[procmid].cut;
@@ -310,7 +310,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
         medme.wtlo = medme.wthi = 0.0;
         medme.countlo = medme.counthi = 0;
         medme.proclo = medme.prochi = me;
-        
+
         // mark all active dots on one side or other of bisector
         // also set all fields in median data struct
         // save indices of closest dots on either side
@@ -391,11 +391,11 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
 
           wtlo += med.wthi;
           if (targetlo-wtlo <= tolerance) break;  // close enough
-          
+
           valuemin = med.valuehi;                   // iterate again
           markactive = 1;
         }
-        
+
         else if (wthi + med.totalhi < targethi) {  // upper half TOO SMALL
 
           wthi += med.totalhi;
@@ -431,7 +431,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
             }
             if (breakflag) break;                   // done if moved enough
           }
-          
+
           wthi += med.wtlo;
           if (targethi-wthi <= tolerance) break;  // close enough
 
@@ -455,13 +455,13 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       // cut produces 2 sub-boxes with reduced size in dim
       // compare smaller of the 2 sizes to previous dims
       // keep dim that has the largest smaller
-      
+
       smaller = MIN(valuehalf-lo[dim],hi[dim]-valuehalf);
       if (smaller > largest) {
         largest = smaller;
         dim_select = dim;
         valuehalf_select = valuehalf;
-        memcpy(dotmark_select,dotmark,ndot*sizeof(int));
+        if (ndot > 0) memcpy(dotmark_select,dotmark,ndot*sizeof(int));
       }
     }
 
@@ -469,11 +469,11 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
 
     dim = dim_select;
     valuehalf = valuehalf_select;
-    memcpy(dotmark,dotmark_select,ndot*sizeof(int));
+    if (ndot > 0) memcpy(dotmark,dotmark_select,ndot*sizeof(int));
 
     // found median
     // store cut info only if I am procmid
-    
+
     if (me == procmid) {
       cut = valuehalf;
       cutdim = dim;

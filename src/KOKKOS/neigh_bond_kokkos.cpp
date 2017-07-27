@@ -439,6 +439,8 @@ void NeighBondKokkos<DeviceType>::bond_check()
   int flag = 0;
 
   update_domain_variables();
+  atomKK->sync(execution_space, X_MASK);
+  k_bondlist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondCheck>(0,neighbor->nbondlist),*this,flag);
   DeviceType::fence();
@@ -672,6 +674,8 @@ void NeighBondKokkos<DeviceType>::angle_check()
   // in case angle potential computes any of them
 
   update_domain_variables();
+  atomKK->sync(execution_space, X_MASK);
+  k_anglelist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleCheck>(0,neighbor->nanglelist),*this,flag);
   DeviceType::fence();
@@ -927,6 +931,8 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
   // in case dihedral/improper potential computes any of them
 
   update_domain_variables();
+  atomKK->sync(execution_space, X_MASK);
+  k_dihedrallist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralCheck>(0,nlist),*this,flag);
   DeviceType::fence();

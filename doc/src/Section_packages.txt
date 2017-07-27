@@ -492,14 +492,38 @@ Minnesota).
 
 [Install or un-install:]
 
-Using this package requires the KIM library and its models
-(interatomic potentials) to be downloaded and installed on your
-system.  The library can be downloaded and built in lib/kim or
-elsewhere on your system.  Details of the download, build, and install
-process for KIM are given in the lib/kim/README file.
+Before building LAMMPS with this package, you must first download and
+build the KIM library and include the KIM models that you want to
+use. You can do this manually if you prefer; follow the instructions
+in lib/kim/README.  You can also do it in one step from the lammps/src
+dir, using a command like these, which simply invoke the
+lib/kim/Install.py script with the specified args.
 
-Once that process is complete, you can then install/un-install the
-package and build LAMMPS in the usual manner:
+make lib-kim                    # print help message
+make lib-kim args="-b . none"   # install KIM API lib with only example models
+make lib-kim args="-b . Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
+make lib-kim args="-b . OpenKIM"   # install KIM API lib with all models
+make lib-kim args="-a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver :pre
+
+Note that in LAMMPS lingo, a KIM model driver is a pair style
+(e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
+element or alloy and set of parameters, e.g. EAM for Cu with a
+specific EAM potential file.  Also note that installing the KIM API
+library with all its models, may take around 30 min to build.  Of
+course you only need to do that once.
+
+See the list of KIM model drivers here:
+https://openkim.org/kim-items/model-drivers/alphabetical
+
+See the list of all KIM models here:
+https://openkim.org/kim-items/models/by-model-drivers
+
+See the list of example KIM models included by default here:
+https://openkim.org/kim-api in the "What is in the KIM API source
+package?" section
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
 
 make yes-kim
 make machine :pre

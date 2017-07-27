@@ -387,16 +387,6 @@ void NeighborKokkos::build_topology() {
     k_dihedrallist = neighbond_device.k_dihedrallist;
     k_improperlist = neighbond_device.k_improperlist;
 
-    k_bondlist.sync<LMPDeviceType>();
-    k_anglelist.sync<LMPDeviceType>();
-    k_dihedrallist.sync<LMPDeviceType>();
-    k_improperlist.sync<LMPDeviceType>();
-
-    k_bondlist.modify<LMPDeviceType>();
-    k_anglelist.modify<LMPDeviceType>();
-    k_dihedrallist.modify<LMPDeviceType>();
-    k_improperlist.modify<LMPDeviceType>();
-
     // Transfer topology neighbor lists to Host for non-Kokkos styles
  
     if (force->bond && force->bond->execution_space == Host)
@@ -415,15 +405,5 @@ void NeighborKokkos::build_topology() {
     k_anglelist = neighbond_host.k_anglelist;
     k_dihedrallist = neighbond_host.k_dihedrallist;
     k_improperlist = neighbond_host.k_improperlist;
-
-    k_bondlist.sync<LMPHostType>();
-    k_anglelist.sync<LMPHostType>();
-    k_dihedrallist.sync<LMPHostType>();
-    k_improperlist.sync<LMPHostType>();
-
-    k_bondlist.modify<LMPHostType>();
-    k_anglelist.modify<LMPHostType>();
-    k_dihedrallist.modify<LMPHostType>();
-    k_improperlist.modify<LMPHostType>();
   }
 }

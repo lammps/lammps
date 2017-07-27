@@ -307,6 +307,8 @@ void NeighBondKokkos<DeviceType>::bond_all()
             "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -401,6 +403,8 @@ void NeighBondKokkos<DeviceType>::bond_partial()
             "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -521,6 +525,8 @@ void NeighBondKokkos<DeviceType>::angle_all()
             "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -622,6 +628,8 @@ void NeighBondKokkos<DeviceType>::angle_partial()
             "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -762,6 +770,8 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
             "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -868,6 +878,8 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
             "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -1030,6 +1042,8 @@ void NeighBondKokkos<DeviceType>::improper_all()
             "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -1136,6 +1150,8 @@ void NeighBondKokkos<DeviceType>::improper_partial()
             "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>

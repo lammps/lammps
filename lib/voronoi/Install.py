@@ -99,6 +99,7 @@ if grabflag:
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  os.remove("%s/%s.tar.gz" % (homepath,version))
   if os.path.basename(homedir) != version:
     if os.path.exists(homedir):
       cmd = 'rm -rf "%s"' % homedir

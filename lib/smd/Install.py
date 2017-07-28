@@ -103,6 +103,7 @@ if buildflag:
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   edir = glob.glob("%s/eigen-eigen-*" % homepath)
   os.rename(edir[0],"%s/%s" % (homepath,homedir))
+  os.remove(tarball)
 
 # create link in lib/smd to Eigen src dir
 

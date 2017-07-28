@@ -2,6 +2,7 @@
 
 # Install.py tool to download, unpack, build, and link to the Voro++ library
 # used to automate the steps described in the README file in this dir
+
 from __future__ import print_function
 import sys,os,re,subprocess
 try: from urllib.request import urlretrieve as geturl
@@ -21,8 +22,7 @@ specify one or more options, order does not matter
 
   -b = download and build the Voro++ library (default)
   -p = specify folder of existing Voro++ installation 
-  -v = version of Voro++ to download and build
-       default version = voro++-0.4.6 (current as of Jan 2015)
+  -v = set version of Voro++ to download and build (default voro++-0.4.6)
 
 Example:
 
@@ -51,7 +51,6 @@ def fullpath(path):
 
 args = sys.argv[1:]
 nargs = len(args)
-if nargs == 0: error()
 
 homepath = "."
 homedir = version

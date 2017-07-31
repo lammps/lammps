@@ -45,7 +45,7 @@
 #include <Kokkos_Macros.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
 #include <impl/Kokkos_Error.hpp>
-#include <impl/Kokkos_spinwait.hpp>
+#include <impl/Kokkos_Spinwait.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -58,9 +58,11 @@ void HostThreadTeamData::organize_pool
 {
   bool ok = true ;
 
+  memory_fence();
+
   // Verify not already a member of a pool:
   for ( int rank = 0 ; rank < size && ok ; ++rank ) {
-    ok = ( 0 != members[rank] ) && ( 0 == members[rank]->m_pool_scratch );
+    ok = ( nullptr != members[rank] ) && ( 0 == members[rank]->m_pool_scratch );
   }
 
   if ( ok ) {
@@ -89,7 +91,6 @@ void HostThreadTeamData::organize_pool
         mem->m_team_alloc   = 1 ;
         mem->m_league_rank  = rank ;
         mem->m_league_size  = size ;
-        mem->m_pool_rendezvous_step = 0 ;
         mem->m_team_rendezvous_step = 0 ;
         pool[ rank ] = mem ;
       }
@@ -116,7 +117,6 @@ void HostThreadTeamData::disband_pool()
    m_team_alloc   = 1 ;
    m_league_rank  = 0 ;
    m_league_size  = 1 ;
-   m_pool_rendezvous_step = 0 ;
    m_team_rendezvous_step = 0 ;
 }
 
@@ -256,11 +256,6 @@ int HostThreadTeamData::rendezvous( int64_t * const buffer
 
   const int sync_offset = ( step & mask_mem_cycle ) + size_mem_cycle ;
 
-  union {
-    int64_t full ;
-    int8_t  byte[8] ;
-  } value ;
-
   if ( rank ) {
 
     const int group_begin = rank << shift_byte ; // == rank * size_byte
@@ -275,13 +270,14 @@ int HostThreadTeamData::rendezvous( int64_t * const buffer
       const int end = group_begin + size_byte < size
                     ? size_byte : size - group_begin ;
 
-      value.full = 0 ;
-      for ( int i = 0 ; i < end ; ++i ) value.byte[i] = int8_t( step );
+      int64_t value = 0 ;
 
-      store_fence(); // This should not be needed but fixes #742
+      for ( int i = 0 ; i < end ; ++i ) {
+        ((int8_t*) & value )[i] = int8_t( step );
+      }
 
       spinwait_until_equal( buffer[ (rank << shift_mem_cycle) + sync_offset ]
-                          , value.full );
+                          , value );
     }
 
     {
@@ -316,10 +312,12 @@ int HostThreadTeamData::rendezvous( int64_t * const buffer
 
     const int end = size_byte < size ? 8 : size ;
 
-    value.full = 0 ;
-    for ( int i = 1 ; i < end ; ++i ) value.byte[i] = int8_t( step );
+    int64_t value = 0 ;
+    for ( int i = 1 ; i < end ; ++i ) {
+      ((int8_t *) & value)[i] = int8_t( step );
+    }
 
-    spinwait_until_equal( buffer[ sync_offset ], value.full );
+    spinwait_until_equal( buffer[ sync_offset ], value );
   }
 
   return rank ? 0 : 1 ;

@@ -50,7 +50,7 @@
 #include <cstdio>
 
 #include <utility>
-#include <impl/Kokkos_spinwait.hpp>
+#include <impl/Kokkos_Spinwait.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
 
@@ -482,6 +482,8 @@ public:
   void next_static()
     {
       if ( m_league_rank < m_league_end ) {
+        // Make sure all stores are complete before entering the barrier
+        memory_fence();
         team_barrier();
         set_team_shared();
       }
@@ -518,6 +520,8 @@ public:
       return;
 
     if ( m_league_rank < m_league_chunk_end ) {
+      // Make sure all stores are complete before entering the barrier
+      memory_fence();
       team_barrier();
       set_team_shared();
     }

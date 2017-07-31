@@ -20,8 +20,10 @@ Kokkos_TaskQueue.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Ta
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_TaskQueue.cpp
 Kokkos_HostThreadTeam.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostThreadTeam.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostThreadTeam.cpp
-Kokkos_spinwait.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_spinwait.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_spinwait.cpp
+Kokkos_Spinwait.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Spinwait.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Spinwait.cpp
+Kokkos_Rendezvous.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Rendezvous.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Rendezvous.cpp
 Kokkos_Profiling_Interface.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Profiling_Interface.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Profiling_Interface.cpp
 Kokkos_SharedAlloc.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_SharedAlloc.cpp
@@ -36,6 +38,8 @@ Kokkos_CudaSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cu
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
 Kokkos_Cuda_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Task.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Task.cpp
+Kokkos_Cuda_Locks.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Locks.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Locks.cpp
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -57,7 +57,7 @@ namespace Experimental {
  */
 template< typename DataType , typename ... P >
 class DynamicView : public Kokkos::ViewTraits< DataType , P ... >
-{ 
+{
 public:
 
   typedef Kokkos::ViewTraits< DataType , P ... >  traits ;
@@ -68,7 +68,7 @@ private:
 
   typedef Kokkos::Experimental::Impl::SharedAllocationTracker   track_type ;
 
-  static_assert( traits::rank == 1 && traits::rank_dynamic == 1 
+  static_assert( traits::rank == 1 && traits::rank_dynamic == 1
                , "DynamicView must be rank-one" );
 
   static_assert( std::is_trivial< typename traits::value_type >::value &&
@@ -216,14 +216,14 @@ public:
         // Verify that allocation of the requested chunk in in progress.
 
         // The allocated chunk counter is m_chunks[ m_chunk_max ]
-        const uintptr_t n = 
+        const uintptr_t n =
           *reinterpret_cast<uintptr_t volatile *>( m_chunks + m_chunk_max );
 
         if ( n <= ic ) {
           Kokkos::abort("Kokkos::DynamicView array bounds error");
         }
 
-        // Allocation of this chunk is in progress 
+        // Allocation of this chunk is in progress
         // so wait for allocation to complete.
         while ( 0 == *ch );
       }
@@ -267,7 +267,7 @@ public:
         const uintptr_t jc_try = jc ;
 
         // Jump iteration to the chunk counter.
-        
+
         jc = atomic_compare_exchange( pc , jc_try , jc_try + 1 );
 
         if ( jc_try == jc ) {
@@ -316,7 +316,7 @@ public:
       }
       else {
         while ( NC + 1 <= *pc ) {
-          --*pc ;        
+          --*pc ;
           m_pool.deallocate( m_chunks[*pc]
                            , sizeof(value_type) << m_chunk_shift );
           m_chunks[*pc] = 0 ;
@@ -331,7 +331,7 @@ public:
     typename traits::value_type ** m_chunks ;
     uintptr_t                    * m_pc ;
     uintptr_t                      m_nc ;
-    unsigned                       m_chunk_shift ;  
+    unsigned                       m_chunk_shift ;
 
     KOKKOS_INLINE_FUNCTION
     void operator()( int ) const
@@ -348,7 +348,7 @@ public:
         }
         else {
           while ( m_nc + 1 <= *m_pc ) {
-            --*m_pc ;        
+            --*m_pc ;
             m_pool.deallocate( m_chunks[*m_pc]
                              , sizeof(value_type) << m_chunk_shift );
             m_chunks[*m_pc] = 0 ;
@@ -482,7 +482,7 @@ public:
   };
 
 
-  /**\brief  Allocation constructor 
+  /**\brief  Allocation constructor
    *
    *  Memory is allocated in chunks from the memory pool.
    *  The chunk size conforms to the memory pool's chunk size.
@@ -557,7 +557,7 @@ void deep_copy( const View<T,DP...> & dst
 
   if ( DstExecCanAccessSrc ) {
     // Copying data between views in accessible memory spaces and either non-contiguous or incompatible shape.
-    Kokkos::Experimental::Impl::ViewRemap< dst_type , src_type >( dst , src );
+    Kokkos::Impl::ViewRemap< dst_type , src_type >( dst , src );
   }
   else {
     Kokkos::Impl::throw_runtime_exception("deep_copy given views that would require a temporary allocation");
@@ -581,7 +581,7 @@ void deep_copy( const DynamicView<T,DP...> & dst
 
   if ( DstExecCanAccessSrc ) {
     // Copying data between views in accessible memory spaces and either non-contiguous or incompatible shape.
-    Kokkos::Experimental::Impl::ViewRemap< dst_type , src_type >( dst , src );
+    Kokkos::Impl::ViewRemap< dst_type , src_type >( dst , src );
   }
   else {
     Kokkos::Impl::throw_runtime_exception("deep_copy given views that would require a temporary allocation");

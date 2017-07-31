@@ -81,23 +81,11 @@ typedef void (*popFunction)();
 typedef void (*allocateDataFunction)(const SpaceHandle, const char*, const void*, const uint64_t);
 typedef void (*deallocateDataFunction)(const SpaceHandle, const char*, const void*, const uint64_t);
 
-
-static initFunction initProfileLibrary = NULL;
-static finalizeFunction finalizeProfileLibrary = NULL;
-
-static beginFunction beginForCallee = NULL;
-static beginFunction beginScanCallee = NULL;
-static beginFunction beginReduceCallee = NULL;
-static endFunction endForCallee = NULL;
-static endFunction endScanCallee = NULL;
-static endFunction endReduceCallee = NULL;
-
-static pushFunction pushRegionCallee = NULL;
-static popFunction popRegionCallee = NULL;
-
-static allocateDataFunction allocateDataCallee = NULL;
-static deallocateDataFunction deallocateDataCallee = NULL;
-
+typedef void (*beginDeepCopyFunction)(
+    SpaceHandle, const char*, const void*,
+    SpaceHandle, const char*, const void*,
+    uint64_t);
+typedef void (*endDeepCopyFunction)();
 
 bool profileLibraryLoaded();
 
@@ -114,34 +102,13 @@ void popRegion();
 void allocateData(const SpaceHandle space, const std::string label, const void* ptr, const uint64_t size);
 void deallocateData(const SpaceHandle space, const std::string label, const void* ptr, const uint64_t size);
 
+void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label, const void* dst_ptr,
+    const SpaceHandle src_space, const std::string src_label, const void* src_ptr,
+    const uint64_t size);
+void endDeepCopy();
+
 void initialize();
 void finalize();
-
-//Define finalize_fake inline to get rid of warnings for unused static variables
-inline void finalize_fake() {
-  if(NULL != finalizeProfileLibrary) {
-    (*finalizeProfileLibrary)();
-
-    // Set all profile hooks to NULL to prevent
-    // any additional calls. Once we are told to
-    // finalize, we mean it
-    beginForCallee = NULL;
-    beginScanCallee = NULL;
-    beginReduceCallee = NULL;
-    endScanCallee = NULL;
-    endForCallee = NULL;
-    endReduceCallee = NULL;
-
-    allocateDataCallee = NULL;
-    deallocateDataCallee = NULL;
-
-    initProfileLibrary = NULL;
-    finalizeProfileLibrary = NULL;
-    pushRegionCallee = NULL;
-    popRegionCallee = NULL;
-  }
-}
-
 
 }
 }

@@ -69,6 +69,8 @@
 #include <Kokkos_ErrorReporter.hpp>
 #include <TestErrorReporter.hpp>
 
+#include <TestViewCtorPropEmbeddedDim.hpp>
+
 //----------------------------------------------------------------------------
 
 
@@ -92,6 +94,10 @@ protected:
 
 TEST_F( cuda , dyn_view_api) {
   TestDynViewAPI< double , Kokkos::Cuda >();
+}
+
+TEST_F( cuda, viewctorprop_embedded_dim ) {
+  TestViewCtorProp_EmbeddedDim< Kokkos::Cuda >::test_vcpt( 2, 3 );
 }
 
 TEST_F( cuda , staticcrsgraph )

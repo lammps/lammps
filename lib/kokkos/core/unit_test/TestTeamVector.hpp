@@ -838,6 +838,18 @@ public:
     }, result );
 
     const ScalarType solution = (ScalarType) nrows * (ScalarType) ncols;
+
+    if ( int64_t(solution) != int64_t(result) ) {
+      printf( "  TestTripleNestedReduce failed solution(%ld) != result(%ld), nrows(%d) ncols(%d) league_size(%d) team_size(%d)\n"
+            , int64_t(solution)
+            , int64_t(result)
+            , int32_t(nrows)
+            , int32_t(ncols)
+            , int32_t(nrows/chunk_size)
+            , int32_t(team_size)
+            );
+    }
+
     ASSERT_EQ( solution, result );
   }
 };

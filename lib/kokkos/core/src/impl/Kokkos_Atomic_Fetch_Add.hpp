@@ -41,6 +41,10 @@
 //@HEADER
 */
 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+#include <xmmintrin.h>
+#endif
+
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_FETCH_ADD_HPP )
 #define KOKKOS_ATOMIC_FETCH_ADD_HPP
@@ -161,36 +165,60 @@ T atomic_fetch_add( volatile T * const dest ,
 inline
 int atomic_fetch_add( volatile int * dest , const int val )
 {
-        int original = val;
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH ) 
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
 
-        __asm__ __volatile__(
-                "lock xadd %1, %0"
-                : "+m" (*dest), "+r" (original)
-                : "m" (*dest), "r" (original)
-                : "memory"
+  int original = val;
+
+  __asm__ __volatile__(
+  	"lock xadd %1, %0"
+        : "+m" (*dest), "+r" (original)
+        : "m" (*dest), "r" (original)
+        : "memory"
         );
 
-        return original;
+  return original;
 }
 #else
 inline
 int atomic_fetch_add( volatile int * const dest , const int val )
-{ return __sync_fetch_and_add(dest, val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_add(dest, val);
+}
 #endif
 
 inline
 long int atomic_fetch_add( volatile long int * const dest , const long int val )
-{ return __sync_fetch_and_add(dest,val); }
+{ 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_add(dest,val);
+}
 
 #if defined( KOKKOS_ENABLE_GNU_ATOMICS )
 
 inline
 unsigned int atomic_fetch_add( volatile unsigned int * const dest , const unsigned int val )
-{ return __sync_fetch_and_add(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_add(dest,val);
+}
 
 inline
 unsigned long int atomic_fetch_add( volatile unsigned long int * const dest , const unsigned long int val )
-{ return __sync_fetch_and_add(dest,val); }
+{ 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_add(dest,val);
+}
 
 #endif
 
@@ -204,6 +232,10 @@ T atomic_fetch_add( volatile T * const dest ,
     T t ;
     inline U() {};
   } assume , oldval , newval ;
+
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
 
   oldval.t = *dest ;
 
@@ -227,6 +259,10 @@ T atomic_fetch_add( volatile T * const dest ,
     T t ;
     inline U() {};
   } assume , oldval , newval ;
+
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
 
   oldval.t = *dest ;
 
@@ -252,6 +288,10 @@ T atomic_fetch_add( volatile T * const dest ,
     T t ;
     inline U() {};
   } assume , oldval , newval ;
+
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
 
   oldval.t = *dest ;
 

@@ -50,6 +50,7 @@
 #include <Kokkos_ExecPolicy.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
+#include <impl/Kokkos_Rendezvous.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -67,14 +68,12 @@ public:
 
   // Assume upper bounds on number of threads:
   //   pool size       <= 1024 threads
-  //   pool rendezvous <= ( 1024 / 8 ) * 4 + 4 = 2052
   //   team size       <= 64 threads
-  //   team rendezvous <= ( 64 / 8 ) * 4 + 4 = 36
 
   enum : int { max_pool_members  = 1024 };
   enum : int { max_team_members  = 64 };
-  enum : int { max_pool_rendezvous  = ( max_pool_members / 8 ) * 4 + 4 };
-  enum : int { max_team_rendezvous  = ( max_team_members / 8 ) * 4 + 4 };
+  enum : int { max_pool_rendezvous = rendezvous_buffer_size( max_pool_members ) };
+  enum : int { max_team_rendezvous = rendezvous_buffer_size( max_team_members ) };
 
 private:
 
@@ -114,7 +113,6 @@ private:
   int         m_league_size ;
   int         m_work_chunk ;
   int         m_steal_rank ; // work stealing rank
-  int mutable m_pool_rendezvous_step ;
   int mutable m_team_rendezvous_step ;
 
   HostThreadTeamData * team_member( int r ) const noexcept
@@ -147,6 +145,7 @@ public:
   int team_rendezvous( int const root ) const noexcept
     {
       return 1 == m_team_size ? 1 :
+             HostThreadTeamData::
              rendezvous( m_team_scratch + m_team_rendezvous
                        , m_team_rendezvous_step
                        , m_team_size
@@ -157,6 +156,7 @@ public:
   int team_rendezvous() const noexcept
     {
       return 1 == m_team_size ? 1 :
+             HostThreadTeamData::
              rendezvous( m_team_scratch + m_team_rendezvous
                        , m_team_rendezvous_step
                        , m_team_size
@@ -167,6 +167,7 @@ public:
   void team_rendezvous_release() const noexcept
     {
       if ( 1 < m_team_size ) {
+        HostThreadTeamData::
         rendezvous_release( m_team_scratch + m_team_rendezvous
                           , m_team_rendezvous_step );
       }
@@ -175,19 +176,30 @@ public:
   inline
   int pool_rendezvous() const noexcept
     {
+      static constexpr int yield_wait =
+        #if defined( KOKKOS_COMPILER_IBM )
+            // If running on IBM POWER architecture the global
+            // level rendzvous should immediately yield when
+            // waiting for other threads in the pool to arrive.
+          1
+        #else
+          0
+        #endif
+          ;
       return 1 == m_pool_size ? 1 :
+             Kokkos::Impl::
              rendezvous( m_pool_scratch + m_pool_rendezvous
-                       , m_pool_rendezvous_step
                        , m_pool_size
-                       , m_pool_rank );
+                       , m_pool_rank
+                       , yield_wait );
     }
 
   inline
   void pool_rendezvous_release() const noexcept
     {
       if ( 1 < m_pool_size ) {
-        rendezvous_release( m_pool_scratch + m_pool_rendezvous
-                          , m_pool_rendezvous_step );
+        Kokkos::Impl::
+        rendezvous_release( m_pool_scratch + m_pool_rendezvous );
       }
     }
 
@@ -213,7 +225,6 @@ public:
     , m_league_size(1)
     , m_work_chunk(0)
     , m_steal_rank(0)
-    , m_pool_rendezvous_step(0)
     , m_team_rendezvous_step(0)
     {}
 
@@ -406,7 +417,7 @@ fflush(stdout);
       // Steal from next team, round robin
       // The next team is offset by m_team_alloc if it fits in the pool.
 
-      m_steal_rank = m_team_base + m_team_alloc + m_team_size <= m_pool_size ? 
+      m_steal_rank = m_team_base + m_team_alloc + m_team_size <= m_pool_size ?
                      m_team_base + m_team_alloc : 0 ;
     }
 

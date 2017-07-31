@@ -57,6 +57,7 @@ IF(Kokkos_ENABLE_Serial)
       serial/TestSerial_ViewMapping_b.cpp
       serial/TestSerial_ViewMapping_subview.cpp
       serial/TestSerial_ViewOfClass.cpp
+      serial/TestSerial_WorkGraph.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -102,6 +103,7 @@ IF(Kokkos_ENABLE_Pthread)
       threads/TestThreads_ViewMapping_b.cpp
       threads/TestThreads_ViewMapping_subview.cpp
       threads/TestThreads_ViewOfClass.cpp
+      threads/TestThreads_WorkGraph.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -147,6 +149,8 @@ IF(Kokkos_ENABLE_OpenMP)
       openmp/TestOpenMP_ViewMapping_b.cpp
       openmp/TestOpenMP_ViewMapping_subview.cpp
       openmp/TestOpenMP_ViewOfClass.cpp
+      openmp/TestOpenMP_WorkGraph.cpp
+      openmp/TestOpenMP_UniqueToken.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -237,6 +241,7 @@ IF(Kokkos_ENABLE_Cuda)
       cuda/TestCuda_ViewMapping_b.cpp
       cuda/TestCuda_ViewMapping_subview.cpp
       cuda/TestCuda_ViewOfClass.cpp
+      cuda/TestCuda_WorkGraph.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -253,6 +258,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
     default/TestDefaultDeviceType_b.cpp
     default/TestDefaultDeviceType_c.cpp
     default/TestDefaultDeviceType_d.cpp
+    default/TestDefaultDeviceTypeResize.cpp
   COMM serial mpi
   NUM_MPI_PROCS 1
   FAIL_REGULAR_EXPRESSION "  FAILED  "

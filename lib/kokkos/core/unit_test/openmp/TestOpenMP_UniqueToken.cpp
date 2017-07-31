@@ -41,40 +41,6 @@
 //@HEADER
 */
 
-
-#ifndef KOKKOS_SPINWAIT_HPP
-#define KOKKOS_SPINWAIT_HPP
-
-#include <Kokkos_Macros.hpp>
-
-#include <cstdint>
-
-namespace Kokkos {
-namespace Impl {
-
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-
-void spinwait_while_equal( volatile int32_t & flag , const int32_t value );
-void spinwait_until_equal( volatile int32_t & flag , const int32_t value );
-
-void spinwait_while_equal( volatile int64_t & flag , const int64_t value );
-void spinwait_until_equal( volatile int64_t & flag , const int64_t value );
-#else
-
-KOKKOS_INLINE_FUNCTION
-void spinwait_while_equal( volatile int32_t & , const int32_t ) {}
-KOKKOS_INLINE_FUNCTION
-void spinwait_until_equal( volatile int32_t & , const int32_t ) {}
-
-KOKKOS_INLINE_FUNCTION
-void spinwait_while_equal( volatile int64_t & , const int64_t ) {}
-KOKKOS_INLINE_FUNCTION
-void spinwait_until_equal( volatile int64_t & , const int64_t ) {}
-
-#endif
-
-} /* namespace Impl */
-} /* namespace Kokkos */
-
-#endif /* #ifndef KOKKOS_SPINWAIT_HPP */
+#include<openmp/TestOpenMP_Category.hpp>
+#include<TestUniqueToken.hpp>
 

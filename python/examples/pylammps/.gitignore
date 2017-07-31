@@ -1,1 +1,4 @@
 *.orig
+*-checkpoint.ipynb
+*.png
+*.mp4

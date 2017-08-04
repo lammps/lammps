@@ -19,14 +19,17 @@ keyword = {dmax} or {line} or {delaystep} or {dt_grow} or {dt_shrink}
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero}
     backtrack,quadratic,forcezero = style of linesearch to use
-  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}  for adaptglok :pre
   {delaystep} value = {int} for adaptglok
   {dt_grow} value = {float}  for adaptglok
-  {dt_shrink} value = {float}  for adaptglok
+  {dt_shrink} value = {float} for adaptglok
   {alpha0} value = {float}  for adaptglok
   {alpha_shrink} value = {float}  for adaptglok
   {tmax} value = {float}  for adaptglok
-  {tmin} value = {float}  for adaptglok :pre
+  {tmin} value = {float}  for adaptglok
+  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} 
+                       or {leapfrog}  for adaptglok
+  {adaptstep} arg = {yes} or {no}  for adaptglok
+  {halfstepback} value = {yes} or {no}  for adaptglok :pre
 :ule
 
 [Examples:]
@@ -79,6 +82,9 @@ to optimize the relaxation: {integrator}, {delaystep}, {dt_grow}, {dt_shrink},
 {alpha0}, {alpha_shrink}, {tmax} and {tmin}. The default values have 
 been chosen to be reliable in most cases, but one could be willing 
 to adapt them for particular cases.
+In particular for debugging purpose, it is possible to switch off the 
+variable timestep and the backstep when downhill, by using {adaptstep} 
+and {halfstepback}.
 
 [Restrictions:] none
 
@@ -90,4 +96,4 @@ to adapt them for particular cases.
 
 The option defaults are dmax = 0.1,  line = quadratic, integrator = eulerimplicit, delaystep = 20, 
 dt_grow = 1.1, dt_shrink = 0.5, alpha0 = 0.25, alpha_shrink = 0.99, 
-tmax = 2.0 and tmin = 0.02.
+tmax = 2.0, tmin = 0.02, adaptstep = yes and halfstepback = yes.

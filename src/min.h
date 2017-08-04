@@ -63,6 +63,8 @@ class Min : protected Pointers {
   double alpha0,alpha_shrink; // mixing velocities+forces coefficient (adaptglok)
   double tmax,tmin;           // timestep max, min (adaptglok)
   int integrator;             // choose the style of time integrator (adaptglok)
+  int halfstepback_flag;      // 1: half step backward when v.f <= 0.0 (adaptglok)
+  int adaptstep_flag;         // 1: variable timestep, 0: constant (adaptglok)
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

@@ -64,8 +64,8 @@ a minimization.
 Style {adaptglok} is a re-implementation of the style {fire} to better 
 fit the published and unpublished optimizations of the method described
 in "(Bitzek)"_#Bitzek. It includes a temporization of the variable
-timestep, a backstep when uphill and different integration
-schemes (Euler, Leap Frog, Velocity-Verlet).
+timestep, a backstep when downhill and different integration
+schemes.
 
 Either the {quickmin} and {fire} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.

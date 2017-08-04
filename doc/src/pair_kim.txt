@@ -47,7 +47,7 @@ API source package?" section.
 
 To use this pair style, you must first download and install the KIM
 API library from the "OpenKIM website"_https://openkim.org.  The "KIM
-section of Section packages"_Section_packages.html#kim-package has
+section of Section packages"_Section_packages.html#KIM has
 instructions on how to do this with a simple make command, when
 building LAMMPS.
 

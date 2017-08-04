@@ -80,7 +80,7 @@ Package, Description, Doc page, Example, Library
 "DIPOLE"_#DIPOLE, point dipole particles, "pair_style dipole/cut"_pair_dipole.html, dipole, -
 "GPU"_#GPU, GPU-enabled styles, "Section 5.3.1"_accelerate_gpu.html, WWW bench, int
 "GRANULAR"_#GRANULAR, granular systems, "Section 6.6.6"_Section_howto.html#howto_6, pour, -
-"KIM"_#KIM, openKIM wrapper, "pair_style kim"_pair_kim.html, kim, ext
+"KIM"_#KIM, OpenKIM wrapper, "pair_style kim"_pair_kim.html, kim, ext
 "KOKKOS"_#KOKKOS, Kokkos-enabled styles, "Section 5.3.3"_accelerate_kokkos.html, WWW bench, -
 "KSPACE"_#KSPACE, long-range Coulombic solvers, "kspace_style"_kspace_style.html, peptide, -
 "MANYBODY"_#MANYBODY, many-body potentials, "pair_style tersoff"_pair_tersoff.html, shear, -

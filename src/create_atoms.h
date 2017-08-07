@@ -30,6 +30,7 @@ class CreateAtoms : protected Pointers {
   void command(int, char **);
 
  private:
+  int me,nprocs;
   int ntype,style,mode,nregion,nbasis,nrandom,seed;
   int *basistype;
   double xone[3],quatone[4];
@@ -41,15 +42,20 @@ class CreateAtoms : protected Pointers {
 
   class Molecule *onemol;
   class RanMars *ranmol;
-
+  class RanMars *ranbox;
+  
   int triclinic;
   double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
 
   void add_single();
   void add_random();
   void add_lattice();
+  void lattice_mask();
   void add_molecule(double *, double * = NULL);
-  int vartest(double *);        // evaluate a variable with new atom position
+  int nlattpts;                // number of eligible lattice points
+  int *Nmask;                  // used to insert N number of particles on lattice
+  int created_Nmask,nbox,nboxflag; 
+  int vartest(double *);       // evaluate a variable with new atom position
 };
 
 }
@@ -149,6 +155,14 @@ E: Too many total atoms
 See the setting for bigint in the src/lmptype.h file.
 
 E: No overlap of box and region for create_atoms
+
+Self-explanatory.
+
+E: Attempting to insert more particles than available lattice points
+
+Self-explanatory.
+
+W: Specifying an 'insert' value of '0' is equivalent to no 'insert' keyword
 
 Self-explanatory.
 

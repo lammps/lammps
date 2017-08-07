@@ -54,6 +54,9 @@ CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 
 void CreateAtoms::command(int narg, char **arg)
 {
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
+  
   if (domain->box_exist == 0)
     error->all(FLERR,"Create_atoms command before simulation box is defined");
   if (modify->nfix_restart_peratom)
@@ -107,10 +110,13 @@ void CreateAtoms::command(int narg, char **arg)
   remapflag = 0;
   mode = ATOM;
   int molseed;
+  int nboxseed;
   varflag = 0;
   vstr = xstr = ystr = zstr = NULL;
   quatone[0] = quatone[1] = quatone[2] = 0.0;
-
+  nlattpts = created_Nmask = nbox = nboxflag = 0;
+  Nmask = NULL;
+  
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
   for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
@@ -192,6 +198,12 @@ void CreateAtoms::command(int narg, char **arg)
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone,thetaone,quatone);
       iarg += 5;
+    } else if (strcmp(arg[iarg],"insert") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
+      nbox = force->inumeric(FLERR,arg[iarg+1]);
+      nboxseed = force->inumeric(FLERR,arg[iarg+2]);
+      nboxflag = 1;
+      iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
 
@@ -229,6 +241,10 @@ void CreateAtoms::command(int narg, char **arg)
     ranmol = new RanMars(lmp,molseed+comm->me);
   }
 
+  if (nboxflag) {
+    ranbox = new RanMars(lmp,nboxseed+comm->me);
+  }
+  
   // error check and further setup for variable test
 
   if (!vstr && (xstr || ystr || zstr))
@@ -517,7 +533,8 @@ void CreateAtoms::command(int narg, char **arg)
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-
+  delete [] Nmask;
+  
   // print status
 
   if (comm->me == 0) {
@@ -735,44 +752,146 @@ void CreateAtoms::add_lattice()
   double *coord;
 
   int i,j,k,m;
-  for (k = klo; k <= khi; k++)
-    for (j = jlo; j <= jhi; j++)
-      for (i = ilo; i <= ihi; i++)
-        for (m = 0; m < nbasis; m++) {
+  
+  // first pass: count how many particles will be inserted
+  // second pass: filter to N number of particles (and insert)
+  int maskcntr = 0;
+  for (int pass = 0; pass < 2; pass++) {
+    if (pass == 1) lattice_mask();
+    for (k = klo; k <= khi; k++)
+      for (j = jlo; j <= jhi; j++)
+        for (i = ilo; i <= ihi; i++)
+          for (m = 0; m < nbasis; m++) {
+    
+            x[0] = i + basis[m][0];
+            x[1] = j + basis[m][1];
+            x[2] = k + basis[m][2];
+    
+            // convert from lattice coords to box coords
+    
+            domain->lattice->lattice2box(x[0],x[1],x[2]);
+    
+            // if a region was specified, test if atom is in it
+    
+            if (style == REGION)
+              if (!domain->regions[nregion]->match(x[0],x[1],x[2])) continue;
+    
+            // if variable test specified, eval variable
+    
+            if (varflag && vartest(x) == 0) continue;
+    
+            // test if atom/molecule position is in my subbox
+    
+            if (triclinic) {
+              domain->x2lamda(x,lamda);
+              coord = lamda;
+            } else coord = x;
+    
+            if (coord[0] < sublo[0] || coord[0] >= subhi[0] ||
+                coord[1] < sublo[1] || coord[1] >= subhi[1] ||
+                coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
+    
+            // add the atom or entire molecule to my list of atoms
+            if (pass == 0) nlattpts++;
+            else {
+              if (Nmask[maskcntr++])
+                if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
+                else add_molecule(x);
+            }
+          }
+  }
+}
 
-          x[0] = i + basis[m][0];
-          x[1] = j + basis[m][1];
-          x[2] = k + basis[m][2];
+/* ----------------------------------------------------------------------
+   define a random mask to insert only N particles on lattice
+------------------------------------------------------------------------- */
 
-          // convert from lattice coords to box coords
+void CreateAtoms::lattice_mask()
+{
 
-          domain->lattice->lattice2box(x[0],x[1],x[2]);
-
-          // if a region was specified, test if atom is in it
-
-          if (style == REGION)
-            if (!domain->regions[nregion]->match(x[0],x[1],x[2])) continue;
-
-          // if variable test specified, eval variable
-
-          if (varflag && vartest(x) == 0) continue;
-
-          // test if atom/molecule position is in my subbox
-
-          if (triclinic) {
-            domain->x2lamda(x,lamda);
-            coord = lamda;
-          } else coord = x;
-
-          if (coord[0] < sublo[0] || coord[0] >= subhi[0] ||
-              coord[1] < sublo[1] || coord[1] >= subhi[1] ||
-              coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
-
-          // add the atom or entire molecule to my list of atoms
-
-          if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
-          else add_molecule(x);
+  Nmask = new int[nlattpts];
+  for (int i = 0; i < nlattpts; i++) 
+    Nmask[i] = 1;
+  
+  if (nbox == 0 && nboxflag && me == 0) error->warning(FLERR,"Specifying an 'insert' value of '0' is equivalent to no 'insert' keyword");
+  
+  int nboxme = 0;
+  if (nbox > 0) {
+    if (nprocs > 1) {
+      int *allnlattpts = new int[nprocs]();
+      
+      MPI_Allgather(&nlattpts, 1, MPI_INT, allnlattpts, 1, MPI_INT, world);
+      
+      int total_lattpts = 0;
+      for (int i = 0; i < nprocs; i++)
+        total_lattpts += allnlattpts[i];
+      
+      if (nbox > total_lattpts) error->all(FLERR,"Attempting to insert more particles than available lattice points");
+      if (nbox < 0) error->all(FLERR,"Cannot insert a negative number of particles (in this universe)");
+      
+      // adjust nboxme based on personal number of eligible lattice points
+      
+      nboxme = round(nbox*nlattpts/total_lattpts);
+      
+      // readjust so that all nboxme's add to exactly nbox
+      
+      int sum_nboxme;
+      MPI_Allreduce(&nboxme,&sum_nboxme,1,MPI_INT,MPI_SUM,world);
+      
+      if (nbox != sum_nboxme) {
+      
+        int diff = nbox - sum_nboxme;
+        int diff_sign = 1;
+        if (diff < 0) {
+          diff_sign = -1;
+          diff = -diff;
         }
+        
+        // go around adding or subtracting one from all processors (if there's space) until equal
+        int which_proc = 0;
+        int success_me = 0, success_all = 0;
+        int failed_me = 0, failed_all = 0;
+        while (success_all < diff && failed_all < nprocs) {
+          if (me == which_proc++ && !failed_me)
+            if (nboxme < nlattpts) {
+              nboxme += diff_sign;
+              success_me++;
+            } else {
+              failed_me == 1;
+            }
+          MPI_Allreduce(&success_me,&success_all,1,MPI_INT,MPI_SUM,world);
+          MPI_Allreduce(&failed_me,&failed_all,1,MPI_INT,MPI_SUM,world);
+          if (which_proc > nprocs)
+            which_proc = 0;
+        }
+        // should have guaranteed success at this point
+        if (failed_all == nprocs) error->warning(FLERR,"This is an uncaught error. Ask developer");
+      }
+      
+    } else nboxme = nbox;
+    
+    // let's insert N particles onto available lattice points by instead
+    // poking [nlattpts - N] holes into the lattice, randomly
+    int nholes = nlattpts - nboxme;
+    int noptions = nlattpts;
+    for (int i = 0; i < nholes; i++) {
+      int hindex = ceil(ranbox->uniform()*noptions);
+      int optcount = 0;
+      for (int j = 0; j < nlattpts; j++) {
+        if (Nmask[j] == 1) {
+          optcount++;
+          if (optcount == hindex) {
+            Nmask[j] = 0;
+            noptions--;
+            break;
+          }  
+        }
+      }
+    }
+  }
+  
+  created_Nmask = 1;
+  
 }
 
 /* ----------------------------------------------------------------------

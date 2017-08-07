@@ -790,6 +790,8 @@
 /pair_peri_pmb.h
 /pair_peri_ves.cpp
 /pair_peri_ves.h
+/pair_quip.cpp
+/pair_quip.h
 /pair_reax.cpp
 /pair_reax.h
 /pair_reax_fortran.h

@@ -1,1 +1,1 @@
-Install.py
+../Install.py

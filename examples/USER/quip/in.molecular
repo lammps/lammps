@@ -1,7 +1,6 @@
 units metal
 atom_style full
 boundary p p p
-processors 1 1 1
 timestep 0.0001 # 0.1 fs
 
 read_data methane-box-8.data
@@ -28,7 +27,7 @@ pair_modify pair lj/cut special lj/coul 0.0 0.0 0.0
 
 # Intramolecular
 # Tell QUIP to pretend this is silane (which is covered by the parameter file)
-pair_coeff * * quip ip.parms.SW.xml "IP SW" 14 1
+pair_coeff * * quip sw_example.xml "IP SW" 14 1
 bond_style none
 angle_style none
 

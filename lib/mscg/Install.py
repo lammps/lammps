@@ -8,8 +8,11 @@ import sys,os,re,commands
 # help message
 
 help = """
-Syntax: python Install.py -h hpath hdir -g -b [suffix] -l
-  specify one or more options, order does not matter
+Syntax from src dir: make lib-mscg args="-h hpath hdir -g -b [suffix] -l"
+Syntax from lib dir: python Install.py -h hpath hdir -g -b [suffix] -l
+
+specify one or more options, order does not matter
+
   -h = set home dir of MS-CG to be hpath/hdir
        hpath can be full path, contain '~' or '.' chars
        default hpath = . = lib/mscg
@@ -22,6 +25,10 @@ Syntax: python Install.py -h hpath hdir -g -b [suffix] -l
        optional suffix specifies which src/Make/Makefile.suffix to use
        default suffix = g++_simple
   -l = create 2 softlinks (includelink,liblink) in lib/mscg to MS-CG src dir
+
+Example:
+
+make lib-mscg args="-g -b -l"   # download/build in lib/mscg/MSCG-release-master
 """
 
 # settings

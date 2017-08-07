@@ -28,7 +28,7 @@ make lib-colvars args="-m g++"     # build COLVARS lib with GNU g++ compiler
 
 def error(str=None):
   if not str: print(help)
-  else: print("ERROR"),str
+  else: print("ERROR",str)
   sys.exit()
 
 # parse args

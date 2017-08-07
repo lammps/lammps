@@ -2,7 +2,7 @@ SHELL = /bin/sh
 
 # which file will be copied to Makefile.lammps
 
-EXTRAMAKE = Makefile.lammps.installed
+EXTRAMAKE = Makefile.lammps.linalg
 
 # ------ FILES ------
 
@@ -36,9 +36,9 @@ OBJ =   $(SRC:.cpp=.o)
 # include any MPI settings needed for the ATC library to build with
 # the same MPI library that LAMMPS is built with
 
-CC =	    mpicxx
+CC =	    g++
 CCFLAGS = -O3 -fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include \
-	  -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1
+	  -I../../src/STUBS
 
 ARCHIVE =	ar
 ARCHFLAG =	-rc

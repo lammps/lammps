@@ -25,6 +25,8 @@ class Dump : protected Pointers {
   char *id;                  // user-defined name of Dump
   char *style;               // style of Dump
   char *filename;            // user-specified file
+  char *filename2a;          // used for dashcam option
+  char *filename2b;          // used for dashcam option
   int igroup,groupbit;       // group that Dump is performed on
 
   int first_flag;            // 0 if no initial dump, 1 if yes initial dump
@@ -59,6 +61,8 @@ class Dump : protected Pointers {
   int multifile;             // 0 = one big file, 1 = one file per timestep
   int multiproc;             // 0 = proc 0 writes for all,
                              // else # of procs writing files
+  int dashcam_nevery;         // number of timesteps to contiguously record
+    
   int nclusterprocs;         // # of procs in my cluster that write to one file
   int filewriter;            // 1 if this proc writes a file, else 0
   int fileproc;              // ID of proc in my cluster who writes to file

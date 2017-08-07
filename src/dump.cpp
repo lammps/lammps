@@ -112,6 +112,9 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   compressed = 0;
   binary = 0;
   multifile = 0;
+  dashcam_nevery = 0;
+  filename2a = NULL;
+  filename2b = NULL;
 
   multiproc = 0;
   nclusterprocs = nprocs;
@@ -151,6 +154,8 @@ Dump::~Dump()
   delete [] id;
   delete [] style;
   delete [] filename;
+  delete [] filename2a;
+  delete [] filename2b;
   delete [] multiname;
 
   delete [] format;
@@ -238,7 +243,7 @@ void Dump::init()
     int gcmcflag = 0;
     for (int i = 0; i < modify->nfix; i++)
       if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
-	gcmcflag = 1;
+  gcmcflag = 1;
 
     if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
       tagint *tag = atom->tag;
@@ -306,7 +311,7 @@ void Dump::write()
 
   // if file per timestep, open new file
 
-  if (multifile) openfile();
+  if (multifile || dashcam_nevery > 0) openfile();
 
   // simulation box bounds
 
@@ -498,14 +503,42 @@ void Dump::write()
 
 void Dump::openfile()
 {
-  // single file, already opened, so just return
+  double dashcam_status;
+  if (dashcam_nevery > 0) {
+    dashcam_status = (double) (update->ntimestep % (2*dashcam_nevery)) / dashcam_nevery;
+    if (dashcam_status == 0 || dashcam_status == 1) {
+      if (singlefile_opened) {
+        if (multifile == 0 && fp != NULL) {
+          if (compressed) {
+            if (filewriter) pclose(fp);
+          } else {
+            if (filewriter) fclose(fp);
+          }
+          fp = NULL;
+        }  
+        singlefile_opened = 0;
+      }
+    }
+  }
 
+  // single file, already opened, so just return
   if (singlefile_opened) return;
   if (multifile == 0) singlefile_opened = 1;
 
+  // if dashcam mode, toggle filecurrent appropriately
+  
+  char *filecurrent;
+  
+  if (dashcam_nevery > 0) {
+  // this switches between files every 'dashcam_nevery' timesteps
+    if (dashcam_status < 1) 
+      filecurrent = filename2a;
+    else
+      filecurrent = filename2b;
+  } else filecurrent = filename;
+  
   // if one file per timestep, replace '*' with current timestep
-
-  char *filecurrent = filename;
+  
   if (multiproc) filecurrent = multiname;
 
   if (multifile) {
@@ -898,7 +931,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"fileper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use dump_modify fileper "
+  error->all(FLERR,"Cannot use dump_modify fileper "
                    "without % in dump file name");
       int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
@@ -922,7 +955,17 @@ void Dump::modify_params(int narg, char **arg)
       sprintf(multiname,"%s%d%s",filename,icluster,ptr+1);
       *ptr = '%';
       iarg += 2;
-
+    } else if (strcmp(arg[iarg],"dashcam") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      dashcam_nevery = force->inumeric(FLERR,arg[iarg+1]);
+      if (dashcam_nevery <= 0) error->all(FLERR,"Illegal dump_modify command");
+      filename2a = new char[strlen(filename) + 3];
+      filename2b = new char[strlen(filename) + 3];
+      strcpy(filename2a,(char *) "a_");
+      strcpy(filename2b,(char *) "b_");
+      strcat(filename2a,filename);
+      strcat(filename2b,filename);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) first_flag = 1;
@@ -973,7 +1016,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use dump_modify nfile "
+  error->all(FLERR,"Cannot use dump_modify nfile "
                    "without % in dump file name");
       int nfile = force->inumeric(FLERR,arg[iarg+1]);
       if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");

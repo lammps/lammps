@@ -184,7 +184,7 @@ int MinAdaptGlok::iterate(int maxiter)
       if (fdotfall <= 1e-20) scale2 = 0.0;
       else scale2 = alpha * sqrt(vdotvall/fdotfall);
 
-      if (ntimestep - last_negative > delaystep && adaptstep_flag) {
+      if (ntimestep - last_negative > delaystep) {
         dt = MIN(dt*dt_grow,dtmax);
         update->dt = dt;
         alpha *= alpha_shrink;
@@ -201,7 +201,7 @@ int MinAdaptGlok::iterate(int maxiter)
     } else {
       last_negative = ntimestep;
       // Limit decrease of timestep
-      if (ntimestep - ntimestep_fire > delaystep && adaptstep_flag) {
+      if (ntimestep - ntimestep_fire > delaystep) {
         alpha = alpha0;
         if (dt > dtmin) {
           dt *= dt_shrink;

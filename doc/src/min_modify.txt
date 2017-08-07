@@ -28,7 +28,6 @@ keyword = {dmax} or {line} or {delaystep} or {dt_grow} or {dt_shrink}
   {tmin} value = {float}  for adaptglok
   {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} 
                        or {leapfrog}  for adaptglok
-  {adaptstep} arg = {yes} or {no}  for adaptglok
   {halfstepback} value = {yes} or {no}  for adaptglok :pre
 :ule
 
@@ -83,8 +82,7 @@ to optimize the relaxation: {integrator}, {delaystep}, {dt_grow}, {dt_shrink},
 been chosen to be reliable in most cases, but one could be willing 
 to adapt them for particular cases.
 In particular for debugging purpose, it is possible to switch off the 
-variable timestep and the backstep when downhill, by using {adaptstep} 
-and {halfstepback}.
+the backstep when downhill, by using and {halfstepback}.
 
 [Restrictions:] none
 

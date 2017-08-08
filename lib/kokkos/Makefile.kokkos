@@ -87,12 +87,6 @@ ifneq ($(MPICH_CXX),)
 endif
 KOKKOS_INTERNAL_COMPILER_CLANG       := $(strip $(shell $(CXX) --version       2>&1 | grep clang               | wc -l))
 KOKKOS_INTERNAL_COMPILER_APPLE_CLANG := $(strip $(shell $(CXX) --version       2>&1 | grep "apple-darwin"      | wc -l))
-ifneq ($(OMPI_CXX),)
-  KOKKOS_INTERNAL_COMPILER_NVCC  := $(strip $(shell $(OMPI_CXX) --version   2>&1 | grep "nvcc" | wc -l))
-endif
-ifneq ($(MPICH_CXX),)
-  KOKKOS_INTERNAL_COMPILER_NVCC  := $(strip $(shell $(MPICH_CXX) --version  2>&1 | grep "nvcc" | wc -l))
-endif
 
 ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 2)
   KOKKOS_INTERNAL_COMPILER_CLANG = 1

@@ -98,7 +98,7 @@ if buildflag:
   edir = glob.glob("%s/eigen-eigen-*" % homepath)
   for one in edir:
     if os.path.isdir(one):
-      subprocess.check_output("rm -rf %s" % one,stderr=subprocess.STDOUT,shell=True)
+      subprocess.check_output('rm -rf "%s"' % one,stderr=subprocess.STDOUT,shell=True)
   cmd = 'cd "%s"; tar -xzvf %s' % (homepath,tarball)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   edir = glob.glob("%s/eigen-eigen-*" % homepath)
@@ -113,5 +113,5 @@ if linkflag:
     os.remove("includelink")
   if pathflag: linkdir = eigenpath
   else: linkdir = "%s/%s" % (homepath,homedir)
-  cmd = "ln -s %s includelink" % linkdir
+  cmd = 'ln -s "%s" includelink' % linkdir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

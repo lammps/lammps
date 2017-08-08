@@ -5,8 +5,16 @@
 
 from __future__ import print_function
 import sys,os,re,subprocess
-try: from urllib.request import urlretrieve as geturl
-except: from urllib import urlretrieve as geturl
+
+try:
+  import ssl
+  try: from urllib.request import urlretrieve as geturl
+  except: from urllib import urlretrieve as geturl
+except:
+  def geturl(url,fname):
+    cmd = 'curl -L -o "%s" %s' % (fname,url)
+    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    return txt
 
 # help message
 
@@ -55,7 +63,6 @@ nargs = len(args)
 homepath = "."
 homedir = version
 
-grabflag = True
 buildflag = True
 pathflag = False
 linkflag = True
@@ -89,7 +96,7 @@ if (buildflag and pathflag):
 
 # download and unpack Voro++ tarball
 
-if grabflag:
+if buildflag:
   print("Downloading Voro++ ...")
   geturl(url,"%s/%s.tar.gz" % (homepath,version))
 
@@ -122,7 +129,7 @@ if linkflag:
     os.remove("includelink")
   if os.path.isfile("liblink") or os.path.islink("liblink"):
     os.remove("liblink")
-  cmd = ['ln -s "%s/src" includelink' % homedir, 'includelink']
+  cmd = 'ln -s "%s/src" includelink' % homedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = ['ln -s "%s/src" liblink' % homedir]
+  cmd = 'ln -s "%s/src" liblink' % homedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

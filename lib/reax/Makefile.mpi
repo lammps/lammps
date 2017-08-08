@@ -12,7 +12,7 @@ SHELL = /bin/sh
 
 # which file will be copied to Makefile.lammps
 
-EXTRAMAKE = Makefile.lammps.gfortran
+EXTRAMAKE = Makefile.lammps.empty
 
 # ------ FILES ------
 
@@ -27,8 +27,8 @@ OBJ =   $(SRC:.F=.o)
 
 # ------ SETTINGS ------
 
-F90 =           gfortran
-F90FLAGS =      -O3 -fPIC -fno-second-underscore
+F90 =           mpifort
+F90FLAGS =      -O3 -fPIC
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =

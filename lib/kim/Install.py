@@ -12,7 +12,7 @@ try:
   except: from urllib import urlretrieve as geturl
 except:
   def geturl(url,fname):
-    cmd = "curl -o %s %s" % (fname,url)
+    cmd = 'curl -L -o "%s" %s' % (fname,url)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     return txt
 
@@ -139,7 +139,7 @@ if buildflag:
 
   if os.path.isdir(kimdir):
     print("kim-api is already installed at %s.\nRemoving it for re-install" % kimdir)
-    cmd = "rm -rf %s" % kimdir
+    cmd = 'rm -rf "%s"' % kimdir
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   # configure LAMMPS to use kim-api to be installed
@@ -160,48 +160,48 @@ if buildflag:
   print("Downloading kim-api tarball ...")
   geturl(url,"%s/%s.tgz" % (thisdir,version))
   print("Unpacking kim-api tarball ...")
-  cmd = "cd %s; rm -rf %s; tar zxvf %s.tgz" % (thisdir,version,version)
+  cmd = 'cd "%s"; rm -rf "%s"; tar -xzvf %s.tgz' % (thisdir,version,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   # configure kim-api
 
   print("Configuring kim-api ...")
-  cmd = "cd %s/%s; ./configure --prefix='%s'" % (thisdir,version,kimdir)
+  cmd = 'cd "%s/%s"; ./configure --prefix="%s"' % (thisdir,version,kimdir)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   # build kim-api
 
   print("Configuring example Models")
-  cmd = "cd %s/%s; make add-examples" % (thisdir,version)
+  cmd = 'cd "%s/%s"; make add-examples' % (thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print (txt.decode("UTF-8"))
 
   if everythingflag:
     print("Configuring all OpenKIM models, this will take a while ...")
-    cmd = "cd %s/%s; make add-OpenKIM" % (thisdir,version)
+    cmd = 'cd "%s/%s"; make add-OpenKIM' % (thisdir,version)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     if verboseflag: print(txt.decode("UTF-8"))
 
   print("Building kim-api ...")
-  cmd = "cd %s/%s; make" % (thisdir,version)
+  cmd = 'cd "%s/%s"; make' % (thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 
   # install kim-api
 
   print("Installing kim-api ...")
-  cmd = "cd %s/%s; make install" % (thisdir,version)
+  cmd = 'cd "%s/%s"; make install' % (thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 
-  cmd = "cd %s/%s; make install-set-default-to-v1" %(thisdir,version)
+  cmd = 'cd "%s/%s"; make install-set-default-to-v1' %(thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 
   # remove source files
 
   print("Removing kim-api source and build files ...")
-  cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" % (thisdir,version,version)
+  cmd = 'cd "%s"; rm -rf %s; rm -rf %s.tgz' % (thisdir,version,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
 # add a single model (and possibly its driver) to existing KIM installation
@@ -219,11 +219,11 @@ if addflag:
   geturl(url,"%s/%s.tgz" % (thisdir,addmodelname))
 
   print("Unpacking item tarball ...")
-  cmd = "cd %s; tar zxvf %s.tgz" % (thisdir,addmodelname)
+  cmd = 'cd "%s"; tar -xzvf %s.tgz' % (thisdir,addmodelname)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   print("Building item ...")
-  cmd = "cd %s/%s; make; make install" %(thisdir,addmodelname)
+  cmd = 'cd "%s/%s"; make; make install' %(thisdir,addmodelname)
   try:
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   except subprocess.CalledProcessError as e:
@@ -231,18 +231,18 @@ if addflag:
     # Error: but first, check to see if it needs a driver
     firstRunOutput = e.output.decode("UTF-8")
 
-    cmd = "cd %s/%s; make kim-item-type" % (thisdir,addmodelname)
+    cmd = 'cd "%s/%s"; make kim-item-type' % (thisdir,addmodelname)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     txt = txt.decode("UTF-8")
     if txt == "ParameterizedModel":
 
       # Get and install driver
 
-      cmd = "cd %s/%s; make model-driver-name" % (thisdir,addmodelname)
+      cmd = 'cd "%s/%s"; make model-driver-name' % (thisdir,addmodelname)
       txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       adddrivername = txt.decode("UTF-8").strip()
       print("First installing model driver: %s..." % adddrivername)
-      cmd = "cd %s; python Install.py -n -a %s" % (thisdir,adddrivername)
+      cmd = 'cd "%s"; python Install.py -n -a %s' % (thisdir,adddrivername)
       try:
         txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       except subprocess.CalledProcessError as e:
@@ -254,7 +254,7 @@ if addflag:
       # now install the model that needed the driver
 
       print("Now installing model : %s" % addmodelname)
-      cmd = "cd %s; python Install.py -n -a %s" % (thisdir,addmodelname)
+      cmd = 'cd "%s"; python Install.py -n -a %s' % (thisdir,addmodelname)
       try:
         txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       except subprocess.CalledProcessError as e:
@@ -272,5 +272,5 @@ if addflag:
 
   if verboseflag: print(txt.decode("UTF-8"))
   print("Removing kim item source and build files ...")
-  cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" %(thisdir,addmodelname,addmodelname)
+  cmd = 'cd "%s"; rm -rf %s; rm -rf %s.tgz' %(thisdir,addmodelname,addmodelname)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

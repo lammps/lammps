@@ -116,10 +116,24 @@ if buildflag:
 
 if buildflag:
   print("Building MS-CG ...")
-  cmd = 'cd "%s/src"; cp Make/Makefile.%s .; make -f Makefile.%s' % \
-      (homedir,msuffix,msuffix)
+  if os.path.exists("%s/src/Make/Makefile.%s" % (homedir,msuffix)):
+    cmd = 'cd "%s/src"; cp Make/Makefile.%s .; make -f Makefile.%s' % \
+        (homedir,msuffix,msuffix)
+  elif os.path.exists("Makefile.%s" % msuffix):
+    cmd = 'cd "%s/src"; cp ../../Makefile.%s .; make -f Makefile.%s' % \
+        (homedir,msuffix,msuffix)
+  else:
+    error("Cannot find Makefile.%s" % msuffix)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   print(txt.decode('UTF-8'))
+  if not os.path.exists("Makefile.lammps"):
+    print("Creating Makefile.lammps")
+    if os.path.exists("Makefile.lammps.%s" % msuffix):
+      cmd = 'cp Makefile.lammps.%s Makefile.lammps' % msuffix
+    else:
+      cmd = 'cp Makefile.lammps.default Makefile.lammps'
+    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  else: print("Makefile.lammps exists. Please check its settings")
 
 # create 2 links in lib/mscg to MS-CG src dir
 

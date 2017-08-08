@@ -5,22 +5,20 @@
 
 from __future__ import print_function
 import sys,os,re,glob,subprocess
-try: from urllib.request import urlretrieve as geturl
-except: from urllib import urlretrieve as geturl
 
 # help message
 
 help = """
-Syntax from src dir: make lib-smd
+Syntax from src dir: make lib-smd args="-b"
                  or: make lib-smd args="-p /usr/include/eigen3"
 
-Syntax from lib dir: python Install.py
+Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/include/eigen3"
                  or: python Install.py -v 3.3.4 -b
 
 specify one or more options, order does not matter
 
-  -b = download and unpack/configure the Eigen library (default)
+  -b = download and unpack/configure the Eigen library
   -p = specify folder holding an existing installation of Eigen
   -v = set version of Eigen library to download and set up (default = 3.3.4)
 
@@ -28,6 +26,7 @@ specify one or more options, order does not matter
 Example:
 
 make lib-smd args="-b"   # download/build in default lib/smd/eigen-eigen-*
+make lib-smd args="-p /usr/include/eigen3" # use existing Eigen installation in /usr/include/eigen3
 """
 
 # settings
@@ -48,16 +47,21 @@ def error(str=None):
 def fullpath(path):
   return os.path.abspath(os.path.expanduser(path))
 
+def geturl(url,fname):
+  cmd = 'curl -L -o "%s" %s' % (fname,url)
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  return txt
+
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
+if nargs == 0: error()
 
 homepath = "."
 homedir = "eigen3"
 
-grabflag = True
-buildflag = True
+buildflag = False
 pathflag = False
 linkflag = True
 
@@ -71,7 +75,6 @@ while iarg < nargs:
     if iarg+2 > nargs: error()
     eigenpath = fullpath(args[iarg+1])
     pathflag = True
-    buildflag = False
     iarg += 2
   elif args[iarg] == "-b":
     buildflag = True
@@ -85,6 +88,9 @@ if (pathflag):
 
 if (buildflag and pathflag):
     error("Cannot use -b and -p flag at the same time")
+
+if (not buildflag and not pathflag):
+    error("Have to use either -b or -p flag")
 
 # download and unpack Eigen tarball
 # use glob to find name of dir it unpacks to

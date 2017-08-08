@@ -6,35 +6,26 @@
 from __future__ import print_function
 import sys,os,re,subprocess
 
-try:
-  import ssl
-  try: from urllib.request import urlretrieve as geturl
-  except: from urllib import urlretrieve as geturl
-except:
-  def geturl(url,fname):
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    return txt
-
 # help message
 
 help = """
-Syntax from src dir: make lib-voronoi
+Syntax from src dir: make lib-voronoi args="-b"
                  or: make lib-voronoi args="-p /usr/local/voro++-0.4.6"
-                 or: make lib-voronoi args="-v voro++-0.4.6 -b"
-Syntax from lib dir: python Install.py -v voro++-0.4.6 -b
-                 or: python Install.py
+                 or: make lib-voronoi args="-b -v voro++-0.4.6"
+Syntax from lib dir: python Install.py -b -v voro++-0.4.6
+                 or: python Install.py -b
                  or: python Install.py -p /usr/local/voro++-0.4.6
 
 specify one or more options, order does not matter
 
-  -b = download and build the Voro++ library (default)
-  -p = specify folder of existing Voro++ installation 
+  -b = download and build the Voro++ library
+  -p = specify folder of existing Voro++ installation
   -v = set version of Voro++ to download and build (default voro++-0.4.6)
 
 Example:
 
 make lib-voronoi args="-b"   # download/build in lib/voronoi/voro++-0.4.6
+make lib-voronoi args="-p $HOME/voro++-0.4.6" # use existing Voro++ installation in $HOME/voro++-0.4.6
 """
 
 # settings
@@ -55,15 +46,21 @@ def error(str=None):
 def fullpath(path):
   return os.path.abspath(os.path.expanduser(path))
 
+def geturl(url,fname):
+  cmd = 'curl -L -o "%s" %s' % (fname,url)
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  return txt
+
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
+if nargs == 0: error()
 
 homepath = "."
 homedir = version
 
-buildflag = True
+buildflag = False
 pathflag = False
 linkflag = True
 
@@ -77,7 +74,6 @@ while iarg < nargs:
     if iarg+2 > nargs: error()
     voropath = fullpath(args[iarg+1])
     pathflag = True
-    buildflag = False
     iarg += 2
   elif args[iarg] == "-b":
     buildflag = True
@@ -93,6 +89,9 @@ if (pathflag):
 
 if (buildflag and pathflag):
     error("Cannot use -b and -p flag at the same time")
+
+if (not buildflag and not pathflag):
+    error("Have to use either -b or -p flag")
 
 # download and unpack Voro++ tarball
 

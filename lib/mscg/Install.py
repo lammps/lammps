@@ -6,32 +6,26 @@
 from __future__ import print_function
 import sys,os,re,subprocess
 
-try:
-  import ssl
-  try: from urllib.request import urlretrieve as geturl
-  except: from urllib import urlretrieve as geturl
-except:
-  def geturl(url,fname):
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    return txt
-
 # help message
 
 help = """
 Syntax from src dir: make lib-mscg args="-p [path] -m [suffix]"
+                 or: make lib-mscg args="-b -m [suffix]"
 Syntax from lib dir: python Install.py -p [path]  -m [suffix]
+Syntax from lib dir: python Install.py -b -m [suffix]
 
 specify one or more options, order does not matter
 
-  -b = download and build MS-CG library (default)
+  -b = download and build MS-CG library
   -p = specify folder of existing MS-CG installation
   -m = machine suffix specifies which src/Make/Makefile.suffix to use
        default suffix = g++_simple
 
 Example:
 
-make lib-mscg args="-b "   # download/build in lib/mscg/MSCG-release-master
+make lib-mscg args="-b -m serial " # download/build in lib/mscg/MSCG-release-master with settings compatible with "make serial"
+make lib-mscg args="-b -m mpi " # download/build in lib/mscg/MSCG-release-master with settings compatible with "make mpi"
+make lib-mscg args="-p /usr/local/mscg-release " # use existing MS-CG installation in /usr/local/mscg-release
 """
 
 # settings
@@ -53,15 +47,21 @@ def error(str=None):
 def fullpath(path):
   return os.path.abspath(os.path.expanduser(path))
 
+def geturl(url,fname):
+  cmd = 'curl -L -o "%s" %s' % (fname,url)
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  return txt
+
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
+if nargs == 0: error()
 
 homepath = "."
 homedir = tardir
 
-buildflag = True
+buildflag = False
 pathflag = False
 linkflag = True
 msuffix = "g++_simple"
@@ -72,7 +72,6 @@ while iarg < nargs:
     if iarg+2 > nargs: error()
     mscgpath = fullpath(args[iarg+1])
     pathflag = True
-    buildflag = False
     iarg += 2
   elif args[iarg] == "-m":
     if iarg+2 > nargs: error()
@@ -92,6 +91,9 @@ if (pathflag):
 
 if (buildflag and pathflag):
     error("Cannot use -b and -p flag at the same time")
+
+if (not buildflag and not pathflag):
+    error("Have to use either -b or -p flag")
 
 # download and unpack MS-CG tarfile
 

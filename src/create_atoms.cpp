@@ -809,6 +809,7 @@ void CreateAtoms::add_lattice()
 void CreateAtoms::lattice_mask()
 {
 
+  // Nmask will be used to choose which lattice points to insert
   Nmask = new int[nlattpts];
   for (int i = 0; i < nlattpts; i++) 
     Nmask[i] = 1;
@@ -832,6 +833,10 @@ void CreateAtoms::lattice_mask()
       // adjust nboxme based on personal number of eligible lattice points
       
       nboxme = round(nbox*nlattpts/total_lattpts);
+      
+      // limit nboxme to available lattice points on this processor
+      
+      if (nboxme > nlattpts) nboxme = nlattpts;
       
       // readjust so that all nboxme's add to exactly nbox
       
@@ -867,7 +872,7 @@ void CreateAtoms::lattice_mask()
         // should have guaranteed success at this point
         if (failed_all == nprocs) error->warning(FLERR,"This is an uncaught error. Ask developer");
       }
-      
+      delete [] allnlattpts;
     } else nboxme = nbox;
     
     // let's insert N particles onto available lattice points by instead

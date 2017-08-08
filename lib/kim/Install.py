@@ -1,44 +1,41 @@
 #!/usr/bin/env python
 
-# install.py tool to setup the kim-api library
+# install.py tool to download, compile, and setup the kim-api library
 # used to automate the steps described in the README file in this dir
+
 from __future__ import print_function
 import sys,os,re,subprocess
 
-# transparently use either urllib or an external tool
-try:
-  import ssl
-  try: from urllib.request import urlretrieve as geturl
-  except: from urllib import urlretrieve as geturl
-except:
-  def geturl(url,fname):
-    cmd = "curl -o %s %s" % (fname,url)
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    return txt
-
 help = """
-Syntax from src dir: make lib-kim args="-v version  -a kim-name"
-Syntax from lib dir: python Install.py -v version  -a kim-name
+Syntax from src dir: make lib-kim args="-b -v version  -a kim-name"
+                 or: make lib-kim args="-b -a everything"
+                 or: make lib-kim args="-n -a kim-name"
+                 or: make lib-kim args="-p /usr/local/open-kim -a kim-name"
+Syntax from lib dir: python Install.py -b -v version  -a kim-name
+                 or: python Install.py -b -a everything
+                 or: python Install.py -n -a kim-name
+                 or: python Install.py -p /usr/local/open-kim -a kim-name
 
 specify one or more options, order does not matter
 
   -v = version of KIM API library to use
        default = kim-api-v1.8.2 (current as of June 2017)
-  -b = download and build base KIM API library with example Models (default)
+  -b = download and build base KIM API library with example Models
        this will delete any previous installation in the current folder
-  -n = do NOT download and build base KIM API library. Use an existing installation
+  -n = do NOT download and build base KIM API library.
+       Use an existing installation 
   -p = specify location of KIM API installation (implies -n)
   -a = add single KIM model or model driver with kim-name
        to existing KIM API lib (see example below).
        If kim-name = everything, then rebuild KIM API library with
-       all available OpenKIM Models (this implies -b).
+       *all* available OpenKIM Models (make take a long time).
   -vv = be more verbose about what is happening while the script runs
 
 Examples:
 
-make lib-kim           # install KIM API lib with only example models
+make lib-kim args="-b" # install KIM API lib with only example models
 make lib-kim args="-a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # Ditto plus one model
-make lib-kim args="-a everything"   # install KIM API lib with all models
+make lib-kim args="-b -a everything"   # install KIM API lib with all models
 make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"   # only add one model or model driver
 
 See the list of KIM model drivers here:
@@ -52,8 +49,9 @@ https://openkim.org/kim-api
 in the "What is in the KIM API source package?" section
 """
 
-def error():
-  print(help)
+def error(str=None):
+  if not str: print(help)
+  else: print("ERROR",str)
   sys.exit()
 
 # expand to full path name
@@ -62,15 +60,21 @@ def error():
 def fullpath(path):
   return os.path.abspath(os.path.expanduser(path))
 
+def geturl(url,fname):
+  cmd = 'curl -L -o "%s" %s' % (fname,url)
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  return txt
+
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
+if nargs == 0: error()
 
 thisdir = os.environ['PWD']
 version = "kim-api-v1.8.2"
 
-buildflag = True
+buildflag = False
 everythingflag = False
 addflag = False
 verboseflag = False
@@ -139,7 +143,7 @@ if buildflag:
 
   if os.path.isdir(kimdir):
     print("kim-api is already installed at %s.\nRemoving it for re-install" % kimdir)
-    cmd = "rm -rf %s" % kimdir
+    cmd = 'rm -rf "%s"' % kimdir
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   # configure LAMMPS to use kim-api to be installed
@@ -160,48 +164,48 @@ if buildflag:
   print("Downloading kim-api tarball ...")
   geturl(url,"%s/%s.tgz" % (thisdir,version))
   print("Unpacking kim-api tarball ...")
-  cmd = "cd %s; rm -rf %s; tar zxvf %s.tgz" % (thisdir,version,version)
+  cmd = 'cd "%s"; rm -rf "%s"; tar -xzvf %s.tgz' % (thisdir,version,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   # configure kim-api
 
   print("Configuring kim-api ...")
-  cmd = "cd %s/%s; ./configure --prefix='%s'" % (thisdir,version,kimdir)
+  cmd = 'cd "%s/%s"; ./configure --prefix="%s"' % (thisdir,version,kimdir)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   # build kim-api
 
   print("Configuring example Models")
-  cmd = "cd %s/%s; make add-examples" % (thisdir,version)
+  cmd = 'cd "%s/%s"; make add-examples' % (thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print (txt.decode("UTF-8"))
 
   if everythingflag:
     print("Configuring all OpenKIM models, this will take a while ...")
-    cmd = "cd %s/%s; make add-OpenKIM" % (thisdir,version)
+    cmd = 'cd "%s/%s"; make add-OpenKIM' % (thisdir,version)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     if verboseflag: print(txt.decode("UTF-8"))
 
   print("Building kim-api ...")
-  cmd = "cd %s/%s; make" % (thisdir,version)
+  cmd = 'cd "%s/%s"; make' % (thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 
   # install kim-api
 
   print("Installing kim-api ...")
-  cmd = "cd %s/%s; make install" % (thisdir,version)
+  cmd = 'cd "%s/%s"; make install' % (thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 
-  cmd = "cd %s/%s; make install-set-default-to-v1" %(thisdir,version)
+  cmd = 'cd "%s/%s"; make install-set-default-to-v1' %(thisdir,version)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 
   # remove source files
 
   print("Removing kim-api source and build files ...")
-  cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" % (thisdir,version,version)
+  cmd = 'cd "%s"; rm -rf %s; rm -rf %s.tgz' % (thisdir,version,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
 # add a single model (and possibly its driver) to existing KIM installation
@@ -219,11 +223,11 @@ if addflag:
   geturl(url,"%s/%s.tgz" % (thisdir,addmodelname))
 
   print("Unpacking item tarball ...")
-  cmd = "cd %s; tar zxvf %s.tgz" % (thisdir,addmodelname)
+  cmd = 'cd "%s"; tar -xzvf %s.tgz' % (thisdir,addmodelname)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   print("Building item ...")
-  cmd = "cd %s/%s; make; make install" %(thisdir,addmodelname)
+  cmd = 'cd "%s/%s"; make; make install' %(thisdir,addmodelname)
   try:
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   except subprocess.CalledProcessError as e:
@@ -231,18 +235,18 @@ if addflag:
     # Error: but first, check to see if it needs a driver
     firstRunOutput = e.output.decode("UTF-8")
 
-    cmd = "cd %s/%s; make kim-item-type" % (thisdir,addmodelname)
+    cmd = 'cd "%s/%s"; make kim-item-type' % (thisdir,addmodelname)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     txt = txt.decode("UTF-8")
     if txt == "ParameterizedModel":
 
       # Get and install driver
 
-      cmd = "cd %s/%s; make model-driver-name" % (thisdir,addmodelname)
+      cmd = 'cd "%s/%s"; make model-driver-name' % (thisdir,addmodelname)
       txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       adddrivername = txt.decode("UTF-8").strip()
       print("First installing model driver: %s..." % adddrivername)
-      cmd = "cd %s; python Install.py -n -a %s" % (thisdir,adddrivername)
+      cmd = 'cd "%s"; python Install.py -n -a %s' % (thisdir,adddrivername)
       try:
         txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       except subprocess.CalledProcessError as e:
@@ -254,7 +258,7 @@ if addflag:
       # now install the model that needed the driver
 
       print("Now installing model : %s" % addmodelname)
-      cmd = "cd %s; python Install.py -n -a %s" % (thisdir,addmodelname)
+      cmd = 'cd "%s"; python Install.py -n -a %s' % (thisdir,addmodelname)
       try:
         txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       except subprocess.CalledProcessError as e:
@@ -272,5 +276,5 @@ if addflag:
 
   if verboseflag: print(txt.decode("UTF-8"))
   print("Removing kim item source and build files ...")
-  cmd = "cd %s; rm -rf %s; rm -rf %s.tgz" %(thisdir,addmodelname,addmodelname)
+  cmd = 'cd "%s"; rm -rf %s; rm -rf %s.tgz' %(thisdir,addmodelname,addmodelname)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

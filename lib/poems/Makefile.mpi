@@ -62,40 +62,31 @@ FILES = $(SRC) $(INC) Makefile Authors_List.txt Grants_List.txt POEMS_License.tx
 
 # ------ DEFINITIONS ------
 
-DIR = Obj_mingw32/
-LIB = $(DIR)libpoems.a
-OBJ = $(SRC:%.cpp=$(DIR)%.o)
+LIB = libpoems.a
+OBJ =   $(SRC:.cpp=.o)
 
 # ------ SETTINGS ------
 
-CC =	        i686-w64-mingw32-g++
-CCFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64	\
-		-ffast-math -funroll-loops -finline-functions -fno-rtti	\
-		-fno-exceptions -fstrict-aliasing \
-		-Wall -W -Wno-uninitialized 
-ARCHIVE =	i686-w64-mingw32-ar
-ARCHFLAG =	-rcs
+CC =	        mpicxx
+CCFLAGS =       -O3 -g -fPIC -Wall #-Wno-deprecated
+ARCHIVE =	ar
+ARCHFLAG =	-rc
 DEPFLAGS =      -M
-LINK =         	i686-w64-mingw32-g++
+LINK =         	mpicxx
 LINKFLAGS =	-O
 USRLIB =
 SYSLIB =
 
 # ------ MAKE PROCEDURE ------
 
-default: $(DIR) $(LIB)
-
-$(DIR):
-	-mkdir $(DIR)
-
-$(LIB): $(OBJ)
+lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
 	@cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ COMPILE RULES ------
 
-$(DIR)%.o:%.cpp
-	$(CC) $(CCFLAGS) -c $< -o $@
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
 
 # ------ DEPENDENCIES ------
 
@@ -104,7 +95,7 @@ include .depend
 # ------ CLEAN ------
 
 clean:
-	-rm $(DIR)*.o $(DIR)*.d *~ $(LIB)
+	-rm *.o *.d *~ $(LIB)
 
 tar:
 	-tar -cvf ../POEMS.tar $(FILES)

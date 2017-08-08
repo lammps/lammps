@@ -17,9 +17,9 @@ OBJ =   $(SRC:.f=.o)
 
 # ------ SETTINGS ------
 
-FC =           gfortran
-FFLAGS =      -O3 -fPIC -ffast-math -fstrict-aliasing -fno-second-underscore
-FFLAGS0 =     -O0 -fPIC -fno-second-underscore
+FC =          mpifort
+FFLAGS =      -O3 -fPIC
+FFLAGS0 =     -O0 -fPIC
 ARCHIVE =	ar
 AR =	ar
 ARCHFLAG =	-rcs

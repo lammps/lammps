@@ -13,7 +13,7 @@ Syntax from lib/colvars dir: python Install.py -m machine -e suffix
 
 specify -m and optionally -e, order does not matter
 
-  -m = peform a clean followed by "make -f Makefile.machine"
+  -m = delete all existing objects, followed by "make -f Makefile.machine"
        machine = suffix of a lib/colvars/Makefile.* or of a
          src/MAKE/MACHINES/Makefile.* file
   -e = set EXTRAMAKE variable in Makefile.machine to Makefile.lammps.suffix
@@ -21,7 +21,7 @@ specify -m and optionally -e, order does not matter
 
 Examples:
 
-make lib-colvars args="-m g++"     # build COLVARS lib with GNU g++ compiler
+make lib-colvars args="-m mpi"     # build COLVARS lib with default mpi compiler wrapper
 """
 
 # print error message or help
@@ -122,7 +122,7 @@ for line in lines:
   fp.write(line)
 fp.close()
 
-# make the library via Makefile.auto
+# make the library via Makefile.auto optionally with parallel make
 
 try:
   import multiprocessing
@@ -132,9 +132,9 @@ except:
 
 print("Building lib%s.a ..." % lib)
 cmd = ["make -f Makefile.auto clean"]
-print(subprocess.check_output(cmd, shell=True).decode())
+print(subprocess.check_output(cmd, shell=True).decode('UTF-8'))
 cmd = ["make -f Makefile.auto -j%d" % n_cpus]
-print(subprocess.check_output(cmd, shell=True).decode())
+print(subprocess.check_output(cmd, shell=True).decode('UTF-8'))
 
 if os.path.exists("lib%s.a" % lib): print("Build was successful")
 else: error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))

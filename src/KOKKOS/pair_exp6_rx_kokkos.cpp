@@ -426,7 +426,7 @@ KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   {
-    const bool one_type = (atom->ntypes == 1);
+    const bool one_type = (ntypes == 1);
     if (isite1 == isite2)
       if (one_type)
         this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, true, true>(ii, ev);
@@ -797,7 +797,7 @@ KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   {
-    const bool one_type = (atom->ntypes == 1);
+    const bool one_type = (ntypes == 1);
     if (isite1 == isite2)
       if (one_type)
         this->vectorized_operator<NEIGHFLAG,NEWTON_PAIR,EVFLAG,true, false, true>(ii, ev);
@@ -1653,18 +1653,18 @@ template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  ntypes = atom->ntypes;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  memory->create(setflag,ntypes+1,ntypes+1,"pair:setflag");
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = i; j <= ntypes; j++)
       setflag[i][j] = 0;
 
-  memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
+  memory->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_cutsq.template modify<LMPHostType>();
 
-  memory->create(cut,n+1,n+1,"pair:cut_lj");
+  memory->create(cut,ntypes+1,ntypes+1,"pair:cut_lj");
 }
 
 

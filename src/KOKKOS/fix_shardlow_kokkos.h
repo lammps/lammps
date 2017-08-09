@@ -30,6 +30,12 @@ FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
+template<bool STACKPARAMS>
+struct TagFixShardlowSSAUpdateDPDE{};
+
+template<bool STACKPARAMS>
+struct TagFixShardlowSSAUpdateDPDEGhost{};
+
 template<class DeviceType>
 class FixShardlowKokkos : public FixShardlow {
  public:
@@ -60,6 +66,14 @@ class FixShardlowKokkos : public FixShardlow {
     F_FLOAT cutinv,halfsigma,kappa,alpha;
   };
 
+  template<bool STACKPARAMS>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixShardlowSSAUpdateDPDE<STACKPARAMS>, const int&) const;
+
+  template<bool STACKPARAMS>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixShardlowSSAUpdateDPDEGhost<STACKPARAMS>, const int&) const;
+
 #ifdef DEBUG_PAIR_CT
   typename AT::t_int_2d d_counters;
   typename HAT::t_int_2d h_counters;
@@ -68,6 +82,9 @@ class FixShardlowKokkos : public FixShardlow {
 #endif
 
  protected:
+  int workPhase;
+  double theta_ij_inv,boltz_inv,ftm2v,dt;
+
 //  class PairDPDfdt *pairDPD;
   PairDPDfdtEnergyKokkos<DeviceType> *k_pairDPDE;
 
@@ -125,7 +142,7 @@ class FixShardlowKokkos : public FixShardlow {
 //  void ssa_update_dpd(int, int);  // Constant Temperature
   template<bool STACKPARAMS>
   KOKKOS_INLINE_FUNCTION
-  void ssa_update_dpde(int, int, int); // Constant Energy
+  void ssa_update_dpde(int, int, int) const; // Constant Energy
 
 };
 

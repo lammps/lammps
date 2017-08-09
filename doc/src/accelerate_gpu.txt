@@ -62,7 +62,7 @@ respectively to your input script.
 [Required hardware/software:]
 
 To use this package, you currently need to have an NVIDIA GPU and
-install the NVIDIA Cuda software on your system:
+install the NVIDIA CUDA software on your system:
 
 Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/0/information
 Go to http://www.nvidia.com/object/cuda_get.html
@@ -85,7 +85,7 @@ The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
 lib/gpu) appropriate for your system.  You should pay special
 attention to 3 settings in this makefile.
 
-CUDA_HOME = needs to be where NVIDIA Cuda software is installed on your system
+CUDA_HOME = needs to be where NVIDIA CUDA software is installed on your system
 CUDA_ARCH = needs to be appropriate to your GPUs
 CUDA_PREC = precision (double, mixed, single) you desire :ul
 

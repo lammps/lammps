@@ -113,7 +113,7 @@ To build with Kokkos support for CPUs, your compiler must support the
 OpenMP interface.  You should have one or more multi-core CPUs so that
 multiple threads can be launched by each MPI task running on a CPU.
 
-To build with Kokkos support for NVIDIA GPUs, NVIDIA Cuda software
+To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA software
 version 7.5 or later must be installed on your system.  See the
 discussion for the "GPU"_accelerate_gpu.html package for details of
 how to check and do this.

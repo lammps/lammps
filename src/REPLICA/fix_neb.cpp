@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author for: Emile Maras (CEA, France)
+     new options for inter-replica forces, first/last replica treatment
+------------------------------------------------------------------------- */
+
 #include <mpi.h>
 #include <math.h>
 #include <stdlib.h>

@@ -48,8 +48,8 @@ static const char *keywords[] = {
 PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 {
   if (comm->me == 0)
-    error->warning(FLERR,"The pair_style meam command is unsupported "
-                   "- please use pair_style meam/c instead");
+    error->warning(FLERR,"The pair_style meam command is unsupported. "
+                   "Please use pair_style meam/c instead");
 
   single_enable = 0;
   restartinfo = 0;

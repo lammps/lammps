@@ -50,7 +50,7 @@ Intel(R) Xeon Phi(TM) coprocessors. :l
 
 KOKKOS = a collection of atom, pair, and fix styles optimized to run
 using the Kokkos library on various kinds of hardware, including GPUs
-via Cuda and many-core chips via OpenMP or threading. :l
+via CUDA and many-core chips via OpenMP or threading. :l
 
 USER-OMP = a collection of pair, bond, angle, dihedral, improper,
 kspace, compute, and fix styles with support for OpenMP

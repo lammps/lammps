@@ -909,7 +909,7 @@ src/MAKE/OPTIONS, which include the settings.  Note that the
 USER-INTEL and KOKKOS packages can use settings that build LAMMPS for
 different hardware.  The USER-INTEL package can be compiled for Intel
 CPUs and KNLs; the KOKKOS package builds for CPUs (OpenMP), GPUs
-(Cuda), and Intel KNLs.
+(CUDA), and Intel KNLs.
 
 Makefile.intel_cpu
 Makefile.intel_phi

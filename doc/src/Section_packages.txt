@@ -25,6 +25,17 @@ There are two kinds of packages in LAMMPS, standard and user packages:
 "Table of standard packages"_#table_standard
 "Table of user packages"_#table_user :ul
 
+Either of these kinds of packages may work as is, may require some
+additional code compiled located in the lib folder, or may require
+an external library to be downloaded, compiled, installed, and LAMMPS
+configured to know about its location and additional compiler flags.
+You can often do the build of the internal or external libraries
+in one step by typing "make lib-name args='...'" from the src dir,
+with appropriate arguments included in args='...'. If you just type
+"make lib-name" you should see a help message about supported flags
+and some examples. For more details about this, please study the
+tables below and the sections about the individual packages.
+
 Standard packages are supported by the LAMMPS developers and are
 written in a syntax and style consistent with the rest of LAMMPS.
 This means the developers will answer questions about them, debug and
@@ -34,7 +45,9 @@ LAMMPS.
 User packages have been contributed by users, and begin with the
 "user" prefix.  If they are a single command (single file), they are
 typically in the user-misc package.  User packages don't necessarily
-meet the requirements of the standard packages.  If you have problems
+meet the requirements of the standard packages. This means the
+developers will try to keep things working and usually can answer
+technical questions about compiling the package. If you have problems
 using a feature provided in a user package, you may need to contact
 the contributor directly to get help.  Information on how to submit
 additions you make to LAMMPS as single files or as a standard or user
@@ -78,10 +91,10 @@ Package, Description, Doc page, Example, Library
 "COMPRESS"_#COMPRESS, I/O compression, "dump */gz"_dump.html, -, sys
 "CORESHELL"_#CORESHELL, adiabatic core/shell model, "Section 6.6.25"_Section_howto.html#howto_25, coreshell, -
 "DIPOLE"_#DIPOLE, point dipole particles, "pair_style dipole/cut"_pair_dipole.html, dipole, -
-"GPU"_#GPU, GPU-enabled styles, "Section 5.3.1"_accelerate_gpu.html, WWW bench, int
+"GPU"_#GPU, GPU-enabled styles, "Section 5.3.1"_accelerate_gpu.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, int
 "GRANULAR"_#GRANULAR, granular systems, "Section 6.6.6"_Section_howto.html#howto_6, pour, -
 "KIM"_#KIM, OpenKIM wrapper, "pair_style kim"_pair_kim.html, kim, ext
-"KOKKOS"_#KOKKOS, Kokkos-enabled styles, "Section 5.3.3"_accelerate_kokkos.html, WWW bench, -
+"KOKKOS"_#KOKKOS, Kokkos-enabled styles, "Section 5.3.3"_accelerate_kokkos.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
 "KSPACE"_#KSPACE, long-range Coulombic solvers, "kspace_style"_kspace_style.html, peptide, -
 "MANYBODY"_#MANYBODY, many-body potentials, "pair_style tersoff"_pair_tersoff.html, shear, -
 "MC"_#MC, Monte Carlo options, "fix gcmc"_fix_gcmc.html, -, -
@@ -90,7 +103,7 @@ Package, Description, Doc page, Example, Library
 "MOLECULE"_#MOLECULE, molecular system force fields, "Section 6.6.3"_Section_howto.html#howto_3, peptide, -
 "MPIIO"_#MPIIO, MPI parallel I/O dump and restart, "dump"_dump.html, -, -
 "MSCG"_#MSCG, multi-scale coarse-graining wrapper, "fix mscg"_fix_mscg.html, mscg, ext
-"OPT"_#OPT, optimized pair styles, "Section 5.3.5"_accelerate_opt.html, WWW bench, -
+"OPT"_#OPT, optimized pair styles, "Section 5.3.5"_accelerate_opt.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
 "PERI"_#PERI, Peridynamics models, "pair_style peri"_pair_peri.html, peri, -
 "POEMS"_#POEMS, coupled rigid body motion, "fix poems"_fix_poems.html, rigid, int
 "PYTHON"_#PYTHON, embed Python code in an input script, "python"_python.html, python, sys
@@ -101,8 +114,7 @@ Package, Description, Doc page, Example, Library
 "SHOCK"_#SHOCK, shock loading methods, "fix msst"_fix_msst.html, -, -
 "SNAP"_#SNAP, quantum-fitted potential, "pair snap"_pair_snap.html, snap, -
 "SRD"_#SRD, stochastic rotation dynamics, "fix srd"_fix_srd.html, srd, -
-"VORONOI"_#VORONOI, Voronoi tesselation, "compute voronoi/atom"_compute_voronoi_atom.html, -, ext
-:tb(ea=c,ca1=l)
+"VORONOI"_#VORONOI, Voronoi tesselation, "compute voronoi/atom"_compute_voronoi_atom.html, -, ext :tb(ea=c,ca1=l)
 
 [USER packages] :link(table_user),p
 
@@ -118,7 +130,7 @@ Package, Description, Doc page, Example, Library
 "USER-EFF"_#USER-EFF, electron force field,"pair_style eff/cut"_pair_eff.html, USER/eff, -
 "USER-FEP"_#USER-FEP, free energy perturbation,"compute fep"_compute_fep.html, USER/fep, -
 "USER-H5MD"_#USER-H5MD, dump output via HDF5,"dump h5md"_dump_h5md.html, -, ext
-"USER-INTEL"_#USER-INTEL, optimized Intel CPU and KNL styles,"Section 5.3.2"_accelerate_intel.html, WWW bench, -
+"USER-INTEL"_#USER-INTEL, optimized Intel CPU and KNL styles,"Section 5.3.2"_accelerate_intel.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
 "USER-LB"_#USER-LB, Lattice Boltzmann fluid,"fix lb/fluid"_fix_lb_fluid.html, USER/lb, -
 "USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, -
 "USER-MEAMC"_#USER-MEAMC, modified EAM potential (C++), "pair_style meam/c"_pair_meam.html, meam, -
@@ -126,7 +138,7 @@ Package, Description, Doc page, Example, Library
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
 "USER-NETCDF"_#USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, -, ext
-"USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, WWW bench, -
+"USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
 "USER-PHONON"_#USER-PHONON, phonon dynamical matrix,"fix phonon"_fix_phonon.html, USER/phonon, -
 "USER-QMMM"_#USER-QMMM, QM/MM coupling,"fix qmmm"_fix_qmmm.html, USER/qmmm, ext
 "USER-QTB"_#USER-QTB, quantum nuclear effects,"fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, -
@@ -136,8 +148,7 @@ Package, Description, Doc page, Example, Library
 "USER-SMTBQ"_#USER-SMTBQ, second moment tight binding QEq potential,"pair_style smtbq"_pair_smtbq.html, USER/smtbq, -
 "USER-SPH"_#USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, -
 "USER-TALLY"_#USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, -
-"USER-VTK"_#USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, -, ext
-:tb(ea=c,ca1=l)
+"USER-VTK"_#USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, -, ext :tb(ea=c,ca1=l)
 
 :line
 :line
@@ -364,9 +375,12 @@ GPU package :link(GPU),h4
 [Contents:]
 
 Dozens of pair styles and a version of the PPPM long-range Coulombic
-solver optimized for NVIDIA GPUs.  All such styles have a "gpu" as a
-suffix in their style name.  "Section 5.3.1"_accelerate_gpu.html gives
-details of what hardware and Cuda software is required on your system,
+solver optimized for GPUs.  All such styles have a "gpu" as a
+suffix in their style name. The GPU code can be compiled with either
+CUDA or OpenCL, however the OpenCL variants are no longer actively
+maintained and only the CUDA versions are regularly tested.
+"Section 5.3.1"_accelerate_gpu.html gives details of what
+hardware and GPU software is required on your system,
 and details on how to build and use this package.  Its styles can be
 invoked at run time via the "-sf gpu" or "-suffix gpu" "command-line
 switches"_Section_start.html#start_6.  See also the "KOKKOS"_#KOKKOS
@@ -378,32 +392,41 @@ package, which has GPU-enabled styles.
 [Install or un-install:]
 
 Before building LAMMPS with this package, you must first build the GPU
-library in lib/gpu from a set of provided C and Cuda files.  You can
+library in lib/gpu from a set of provided C and CUDA files.  You can
 do this manually if you prefer; follow the instructions in
-lib/gpu/README.  You can also do it in one step from the lammps/src
+lib/gpu/README. Please note, that the GPU library uses MPI calls, so
+you have to make certain to use the same MPI library (or the STUBS
+library) settings as the main LAMMPS code. That same applies to the
+-DLAMMPS_BIGBIG, -DLAMMPS_SMALLBIG, or -DLAMMPS_SMALLSMALL define.
+
+You can also do it in one step from the lammps/src
 dir, using a command like these, which simply invoke the
 lib/gpu/Install.py script with the specified args:
 
-make lib-gpu                                # print help message
-make lib-gpu args="-m"                      # build GPU library with default Makefile.linux
-make lib-gpu args="-i xk7 -p single -o xk7.single"      # create new Makefile.xk7.single, altered for single-precision
-make lib-gpu args="-i xk7 -p single -o xk7.single -m"   # ditto, also build GPU library
+make lib-gpu               # print help message
+make lib-gpu args="-b"     # build GPU library with default Makefile.linux
+make lib-gpu args="-m xk7 -p single -o xk7.single"  # create new Makefile.xk7.single, altered for single-precision
+make lib-gpu args="-m mpi -p mixed -b" # build GPU library with mixed precision using settings in Makefile.mpi :pre
 
-Note that this procedure starts with one of the existing
-Makefile.machine files in lib/gpu.  It allows you to alter 4 important
-settings in that Makefile, via the -h, -a, -p, -e switches,
-and save the new Makefile, if desired:
+Note that this procedure through the '-m machine' flag starts with one of
+the existing Makefile.machine files in lib/gpu. For your convenience,
+machine makefiles for "mpi" and "serial" are provided, which have the
+same settings as the corresponding machine makefiles in the main LAMMPS
+source folder. In addition you can alter 4 important settings in that
+Makefile, via the -h, -a, -p, -e switches, and also save a copy of the
+new Makefile, if desired:
 
-CUDA_HOME = where NVIDIA Cuda software is installed on your system
+CUDA_HOME = where NVIDIA CUDA software is installed on your system
 CUDA_ARCH = what GPU hardware you have (see help message for details)
 CUDA_PRECISION = precision (double, mixed, single)
 EXTRAMAKE = which Makefile.lammps.* file to copy to Makefile.lammps :ul
 
-If the library build is successful, 2 files should be created:
-lib/gpu/libgpu.a and lib/gpu/Makefile.lammps.  The latter has settings
-that enable LAMMPS to link with Cuda libraries.  If the settings in
-Makefile.lammps for your machine are not correct, the LAMMPS build
-will fail.
+If the library build is successful, at least 3 files should be created:
+lib/gpu/libgpu.a, lib/gpu/nvc_get_devices, and lib/gpu/Makefile.lammps.
+The latter has settings that enable LAMMPS to link with CUDA libraries.
+If the settings in Makefile.lammps for your machine are not correct,
+the LAMMPS build will fail, and lib/gpu/Makefile.lammps may need to
+be edited.
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:
@@ -499,11 +522,13 @@ in lib/kim/README.  You can also do it in one step from the lammps/src
 dir, using a command like these, which simply invoke the
 lib/kim/Install.py script with the specified args.
 
-make lib-kim                    # print help message
-make lib-kim args="-b . none"   # install KIM API lib with only example models
-make lib-kim args="-b . Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
-make lib-kim args="-b . OpenKIM"   # install KIM API lib with all models
-make lib-kim args="-a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver :pre
+make lib-kim              # print help message
+make lib-kim args="-b "   # (re-)install KIM API lib with only example models
+make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
+make lib-kim args="-b -a everything"     # install KIM API lib with all models
+make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver
+make lib-kim args="-p /usr/local/kim-api" # use an existing KIM API installation at the provided location
+make lib-kim args="-p /usr/local/kim-api -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver :pre
 
 Note that in LAMMPS lingo, a KIM model driver is a pair style
 (e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
@@ -547,7 +572,7 @@ KOKKOS package :link(KOKKOS),h4
 
 Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
 styles adapted to compile using the Kokkos library which can convert
-them to OpenMP or Cuda code so that they run efficiently on multicore
+them to OpenMP or CUDA code so that they run efficiently on multicore
 CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
 style name.  "Section 5.3.3"_accelerate_kokkos.html gives details of
 what hardware and software is required on your system, and how to
@@ -577,28 +602,28 @@ files for examples.
 For multicore CPUs using OpenMP:
 
 KOKKOS_DEVICES = OpenMP
-KOKKOS_ARCH = HSW           # HSW = Haswell, SNB = SandyBridge, BDW = Broadwell, etc
+KOKKOS_ARCH = HSW           # HSW = Haswell, SNB = SandyBridge, BDW = Broadwell, etc :pre
 
 For Intel KNLs using OpenMP:
 
 KOKKOS_DEVICES = OpenMP
-KOKKOS_ARCH = KNL
+KOKKOS_ARCH = KNL :pre
 
-For NVIDIA GPUs using Cuda:
+For NVIDIA GPUs using CUDA:
 
 KOKKOS_DEVICES = Cuda
 KOKKOS_ARCH = Pascal60,Power8     # P100 hosted by an IBM Power8, etc
-KOKKOS_ARCH = Kepler37,Power8     # K80 hosted by an IBM Power8, etc
+KOKKOS_ARCH = Kepler37,Power8     # K80 hosted by an IBM Power8, etc :pre
 
 For GPUs, you also need these 2 lines in your Makefile.machine before
 the CC line is defined, in this case for use with OpenMPI mpicxx.  The
 2 lines define a nvcc wrapper compiler, which will use nvcc for
-compiling Cuda files or use a C++ compiler for non-Kokkos, non-Cuda
+compiling CUDA files or use a C++ compiler for non-Kokkos, non-CUDA
 files.
 
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-CC =		mpicxx
+CC =		mpicxx :pre
 
 Once you have an appropriate Makefile.machine, you can
 install/un-install the package and build LAMMPS in the usual manner.
@@ -734,6 +759,12 @@ MEAM package :link(MEAM),h4
 
 A pair style for the modified embedded atom (MEAM) potential.
 
+Please note that the MEAM package has been superseded by the
+"USER-MEAMC"_#USER-MEAMC package, which is a direct translation
+of the MEAM package to C++. USER-MEAMC contains additional
+optimizations making it run faster than MEAM on most machines,
+while providing the identical features and USER interface.
+
 [Author:] Greg Wagner (Northwestern U) while at Sandia.
 
 [Install or un-install:]
@@ -744,9 +775,10 @@ follow the instructions in lib/meam/README.  You can also do it in one
 step from the lammps/src dir, using a command like these, which simply
 invoke the lib/meam/Install.py script with the specified args:
 
-make lib-meam                      # print help message
-make lib-meam args="-m gfortran"   # build with GNU Fortran compiler
-make lib-meam args="-m ifort"      # build with Intel ifort compiler :pre
+make lib-meam                  # print help message
+make lib-meam args="-m mpi"    # build with default Fortran compiler compatible with your MPI library
+make lib-meam args="-m serial" # build with compiler compatible with "make serial" (GNU Fortran)
+make lib-meam args="-m ifort"  # build with Intel Fortran compiler using Makefile.ifort :pre
 
 The build should produce two files: lib/meam/libmeam.a and
 lib/meam/Makefile.lammps.  The latter is copied from an existing
@@ -788,6 +820,9 @@ MISC package :link(MISC),h4
 A variety of compute, fix, pair, dump styles with specialized
 capabilities that don't align with other packages.  Do a directory
 listing, "ls src/MISC", to see the list of commands.
+
+NOTE: the MISC package contains styles that require using the
+-restrict flag, when compiling with Intel compilers.
 
 [Install or un-install:]
 
@@ -902,9 +937,9 @@ University of Chicago.
 
 Before building LAMMPS with this package, you must first download and
 build the MS-CG library.  Building the MS-CG library and using it from
-LAMMPS requires a C++11 compatible compiler, and that LAPACK and GSL
-(GNU Scientific Library) libraries be installed on your machine.  See
-the lib/mscg/README and MSCG/Install files for more details.
+LAMMPS requires a C++11 compatible compiler and that the GSL
+(GNU Scientific Library) headers and libraries are installed on your
+machine.  See the lib/mscg/README and MSCG/Install files for more details.
 
 Assuming these libraries are in place, you can do the download and
 build of MS-CG manually if you prefer; follow the instructions in
@@ -912,15 +947,16 @@ lib/mscg/README.  You can also do it in one step from the lammps/src
 dir, using a command like these, which simply invoke the
 lib/mscg/Install.py script with the specified args:
 
-make lib-mscg                                # print help message
-make lib-mscg args="-g -b -l"                # download and build in default lib/mscg/MSCG-release-master
-make lib-mscg args="-h . MSCG -g -b -l"      # download and build in lib/mscg/MSCG
-make lib-mscg args="-h ~ MSCG -g -b -l"      # download and build in ~/mscg :pre
+make lib-mscg             # print help message
+make lib-mscg args="-b -m serial"   # download and build in lib/mscg/MSCG-release-master
+                                    # with the settings compatible with "make serial"
+make lib-mscg args="-b -m mpi"      # download and build in lib/mscg/MSCG-release-master
+                                    # with the settings compatible with "make mpi"
+make lib-mscg args="-p /usr/local/mscg-release" # use the existing MS-CG installation in /usr/local/mscg-release :pre
 
-Note that the final -l switch is to create 2 symbolic (soft) links,
-"includelink" and "liblink", in lib/mscg to point to the MS-CG src
-dir.  When LAMMPS builds it will use these links.  You should not need
-to edit the lib/mscg/Makefile.lammps file.
+Note that 2 symbolic (soft) links, "includelink" and "liblink", will be created in lib/mscg
+to point to the MS-CG src/installation dir.  When LAMMPS is built in src it will use these links.
+You should not need to edit the lib/mscg/Makefile.lammps file.
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:
@@ -966,11 +1002,11 @@ make no-opt
 make machine :pre
 
 NOTE: The compile flag "-restrict" must be used to build LAMMPS with
-the OPT package.  It should be added to the CCFLAGS line of your
-Makefile.machine.  See Makefile.opt in src/MAKE/OPTIONS for an
-example.
+the OPT package when using Intel compilers.  It should be added to
+the CCFLAGS line of your Makefile.machine.  See Makefile.opt in
+src/MAKE/OPTIONS for an example.
 
-CCFLAGS: add -restrict :ul
+CCFLAGS: add -restrict for Intel compilers :ul
 
 [Supporting info:]
 
@@ -1039,9 +1075,10 @@ follow the instructions in lib/poems/README.  You can also do it in
 one step from the lammps/src dir, using a command like these, which
 simply invoke the lib/poems/Install.py script with the specified args:
 
-make lib-poems                      # print help message
-make lib-poems args="-m g++"        # build with GNU g++ compiler
-make lib-poems args="-m icc"        # build with Intel icc compiler :pre
+make lib-poems                   # print help message
+make lib-poems args="-m serial"  # build with GNU g++ compiler (settings as with "make serial")
+make lib-poems args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
+make lib-poems args="-m icc"     # build with Intel icc compiler :pre
 
 The build should produce two files: lib/poems/libpoems.a and
 lib/poems/Makefile.lammps.  The latter is copied from an existing
@@ -1151,9 +1188,10 @@ follow the instructions in lib/reax/README.  You can also do it in one
 step from the lammps/src dir, using a command like these, which simply
 invoke the lib/reax/Install.py script with the specified args:
 
-make lib-reax                      # print help message
-make lib-reax args="-m gfortran"   # build with GNU Fortran compiler
-make lib-reax args="-m ifort"      # build with Intel ifort compiler :pre
+make lib-reax                    # print help message
+make lib-reax args="-m serial"   # build with GNU Fortran compiler (settings as with "make serial")
+make lib-reax args="-m mpi"      # build with default MPI Fortran compiler (settings as with "make mpi")
+make lib-reax args="-m ifort"    # build with Intel ifort compiler :pre
 
 The build should produce two files: lib/reax/libreax.a and
 lib/reax/Makefile.lammps.  The latter is copied from an existing
@@ -1370,15 +1408,15 @@ one step from the lammps/src dir, using a command like these, which
 simply invoke the lib/voronoi/Install.py script with the specified
 args:
 
-make lib-voronoi                                # print help message
-make lib-voronoi args="-g -b -l"                # download and build in default lib/voronoi/voro++-0.4.6
-make lib-voronoi args="-h . voro++ -g -b -l"    # download and build in lib/voronoi/voro++
-make lib-voronoi args="-h ~ voro++ -g -b -l"    # download and build in ~/voro++ :pre
+make lib-voronoi                          # print help message
+make lib-voronoi args="-b"                # download and build the default version in lib/voronoi/voro++-<version>
+make lib-voronoi args="-p $HOME/voro++"   # use existing Voro++ installation in $HOME/voro++
+make lib-voronoi args="-b -v voro++0.4.6" # download and build the 0.4.6 version in lib/voronoi/voro++-0.4.6 :pre
 
-Note that the final -l switch is to create 2 symbolic (soft) links,
-"includelink" and "liblink", in lib/voronoi to point to the Voro++ src
-dir.  When LAMMPS builds it will use these links.  You should not need
-to edit the lib/voronoi/Makefile.lammps file.
+Note that 2 symbolic (soft) links, "includelink" and "liblink", are
+created in lib/voronoi to point to the Voro++ src dir.  When LAMMPS
+builds in src it will use these links.  You should not need to edit
+the lib/voronoi/Makefile.lammps file.
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:
@@ -1420,7 +1458,8 @@ from the lammps/src dir, using a command like these, which simply
 invoke the lib/atc/Install.py script with the specified args:
 
 make lib-atc                      # print help message
-make lib-atc args="-m g++"        # build with GNU g++ compiler
+make lib-atc args="-m serial"     # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+make lib-atc args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
 make lib-atc args="-m icc"        # build with Intel icc compiler :pre
 
 The build should produce two files: lib/atc/libatc.a and
@@ -1437,8 +1476,10 @@ can either exist on your system, or you can use the files provided in
 lib/linalg.  In the latter case you also need to build the library
 in lib/linalg with a command like these:
 
-make lib-linalg                      # print help message
-make lib-linalg args="-m gfortran"   # build with GNU Fortran compiler
+make lib-linalg                     # print help message
+make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler :pre
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:
@@ -1478,9 +1519,10 @@ follow the instructions in lib/awpmd/README.  You can also do it in
 one step from the lammps/src dir, using a command like these, which
 simply invoke the lib/awpmd/Install.py script with the specified args:
 
-make lib-awpmd                      # print help message
-make lib-awpmd args="-m g++"        # build with GNU g++ compiler
-make lib-awpmd args="-m icc"        # build with Intel icc compiler :pre
+make lib-awpmd                   # print help message
+make lib-awpmd args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+make lib-awpmd args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
+make lib-awpmd args="-m icc"     # build with Intel icc compiler :pre
 
 The build should produce two files: lib/awpmd/libawpmd.a and
 lib/awpmd/Makefile.lammps.  The latter is copied from an existing
@@ -1496,8 +1538,10 @@ these can either exist on your system, or you can use the files
 provided in lib/linalg.  In the latter case you also need to build the
 library in lib/linalg with a command like these:
 
-make lib-linalg                      # print help message
-make lib-atc args="-m gfortran"      # build with GNU Fortran compiler
+make lib-linalg                     # print help message
+make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler :pre
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:
@@ -1590,9 +1634,11 @@ Restraints.  A "fix colvars"_fix_colvars.html command is implemented
 which wraps a COLVARS library, which implements these methods.
 simulations.
 
-[Authors:] Axel Kohlmeyer (Temple U).  The COLVARS library was written
-by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and
-Jerome Henin (LISM, CNRS, Marseille, France).
+[Authors:] The COLVARS library is written and maintained by
+Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA)
+and Jerome Henin (LISM, CNRS, Marseille, France), originally for
+the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
+(Temple U) provided the interface to LAMMPS.
 
 [Install or un-install:]
 
@@ -1604,7 +1650,9 @@ which simply invoke the lib/colvars/Install.py script with the
 specified args:
 
 make lib-colvars                      # print help message
-make lib-colvars args="-m g++"        # build with GNU g++ compiler :pre
+make lib-colvars args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+make lib-colvars args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+make lib-colvars args="-m g++-debug"  # build with GNU g++ compiler and colvars debugging enabled :pre
 
 The build should produce two files: lib/colvars/libcolvars.a and
 lib/colvars/Makefile.lammps.  The latter is copied from an existing
@@ -1892,7 +1940,12 @@ Also see the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and "USER-OMP"_#USER-OMP
 packages, which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
-advantage of this package.
+advantage of this package. While compilation with GNU compilers is
+supported, performance will be suboptimal.
+
+NOTE: the USER-INTEL package contains styles that require using the
+-restrict flag, when compiling with Intel compilers.
+
 
 [Author:] Mike Brown (Intel).
 
@@ -1909,17 +1962,17 @@ For CPUs:
 
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+-fno-alias -ansi-alias -restrict $(OPTFLAGS)
 LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
-LIB =           -ltbbmalloc -ltbbmalloc_proxy
+LIB =           -ltbbmalloc -ltbbmalloc_proxy :pre
 
 For KNLs:
 
 OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+-fno-alias -ansi-alias -restrict $(OPTFLAGS)
 LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
-LIB =           -ltbbmalloc
+LIB =           -ltbbmalloc :pre
 
 Once you have an appropriate Makefile.machine, you can
 install/un-install the package and build LAMMPS in the usual manner.
@@ -2224,11 +2277,15 @@ CPUs.
 
 [Author:] Axel Kohlmeyer (Temple U).
 
-NOTE: The compile flags "-restrict" and "-fopenmp" must be used to
-build LAMMPS with the USER-OMP package, as well as the link flag
-"-fopenmp".  They should be added to the CCFLAGS and LINKFLAGS lines
-of your Makefile.machine.  See src/MAKE/OPTIONS/Makefile.omp for an
-example.
+NOTE: To enable multi-threading support the compile flag "-fopenmp"
+and the link flag "-fopenmp" (for GNU compilers, you have to look up
+the equivalent flags for other compilers) must be used to build LAMMPS.
+When using Intel compilers, also the "-restrict" flag is required.
+The USER-OMP package can be compiled without enabling OpenMP; then
+all code will be compiled as serial and the only improvement over the
+regular styles are some data access optimization. These flags should
+be added to the CCFLAGS and LINKFLAGS lines of your Makefile.machine.
+See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 Once you have an appropriate Makefile.machine, you can
 install/un-install the package and build LAMMPS in the usual manner:
@@ -2241,7 +2298,7 @@ make machine :pre
 make no-user-omp
 make machine :pre
 
-CCFLAGS: add -fopenmp and -restrict
+CCFLAGS: add -fopenmp (and -restrict when using Intel compilers)
 LINKFLAGS: add -fopenmp :ul
 
 [Supporting info:]
@@ -2310,12 +2367,14 @@ without changes to LAMMPS itself.
 
 Before building LAMMPS with this package, you must first build the
 QMMM library in lib/qmmm.  You can do this manually if you prefer;
-follow the first two steps explained in lib/colvars/README.  You can
+follow the first two steps explained in lib/qmmm/README.  You can
 also do it in one step from the lammps/src dir, using a command like
-these, which simply invoke the lib/colvars/Install.py script with the
+these, which simply invoke the lib/qmmm/Install.py script with the
 specified args:
 
 make lib-qmmm                      # print help message
+make lib-qmmm args="-m serial"     # build with GNU Fortran compiler (settings as in "make serial")
+make lib-qmmm args="-m mpi"        # build with default MPI compiler (settings as in "make mpi")
 make lib-qmmm args="-m gfortran"   # build with GNU Fortran compiler :pre
 
 The build should produce two files: lib/qmmm/libqmmm.a and
@@ -2492,15 +2551,13 @@ follow the instructions in lib/smd/README.  You can also do it in one
 step from the lammps/src dir, using a command like these, which simply
 invoke the lib/smd/Install.py script with the specified args:
 
-make lib-smd                            # print help message
-make lib-smd args="-g -l"               # download and build in default lib/smd/eigen-eigen-*
-make lib-smd args="-h . eigen -g -l"    # download and build in lib/smd/eigen
-make lib-smd args="-h ~ eigen -g -l"    # download and build in ~/eigen :pre
+make lib-smd                         # print help message
+make lib-smd args="-b"               # download and build in default lib/smd/eigen-eigen-...
+make lib-smd args="-p /usr/include/eigen3"    # use existing Eigen installation in /usr/include/eigen3 :pre
 
-Note that the final -l switch is to create a symbolic (soft) link
-named "includelink" in lib/smd to point to the Eigen dir.  When LAMMPS
-builds it will use this link.  You should not need to edit the
-lib/smd/Makefile.lammps file.
+Note that a symbolic (soft) link named "includelink" is created in
+lib/smd to point to the Eigen dir.  When LAMMPS builds it will use
+this link.  You should not need to edit the lib/smd/Makefile.lammps file.
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:

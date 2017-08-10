@@ -150,10 +150,9 @@ atoms.  Note that adding a single bond always adds a new 1st neighbor
 but may also induce *many* new 2nd and 3rd neighbors, depending on the
 molecular topology of your system.  The "extra special per atom"
 parameter must typically be set to allow for the new maximum total
-size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 3
+size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 2
 ways to do this.  See the "read_data"_read_data.html or
-"create_box"_create_box.html or "special_bonds extra" commands for
-details.
+"create_box"_create_box.html commands for details.
 
 NOTE: Even if you do not use the {atype}, {dtype}, or {itype}
 keywords, the list of topological neighbors is updated for atoms

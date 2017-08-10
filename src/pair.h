@@ -194,8 +194,8 @@ class Pair : protected Pointers {
   int num_tally_compute;
   class Compute **list_tally_compute;
  public:
-  void add_tally_callback(class Compute *);
-  void del_tally_callback(class Compute *);
+  virtual void add_tally_callback(class Compute *);
+  virtual void del_tally_callback(class Compute *);
 
  protected:
   int instance_me;        // which Pair class instantiation I am
@@ -247,7 +247,7 @@ class Pair : protected Pointers {
     ubuf(int arg) : i(arg) {}
   };
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 };

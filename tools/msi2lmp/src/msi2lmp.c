@@ -142,9 +142,6 @@
 * and to make the program fully dynamic. The second version used
 * fixed dimension arrays for the internal coordinates.
 *
-* John Carpenter can be contacted by sending email to
-* jec374@earthlink.net
-*
 * November 2000
 */
 
@@ -356,7 +353,7 @@ int main (int argc, char *argv[])
     if (centerflag) puts(" Output is recentered around geometrical center");
     if (hintflag) puts(" Output contains style flag hints");
     else puts(" Style flag hints disabled");
-    printf(" System translated by: %g %g %g\n",shift[0],shift[1],shift[2]); 
+    printf(" System translated by: %g %g %g\n",shift[0],shift[1],shift[2]);
   }
 
   n = 0;
@@ -374,7 +371,7 @@ int main (int argc, char *argv[])
   if (n == 0) {
     if (iflag > 0) fputs(" WARNING",stderr);
     else           fputs(" Error  ",stderr);
-    
+
     fputs("- forcefield name and class appear to be inconsistent\n\n",stderr);
     if (iflag == 0) return 7;
   }

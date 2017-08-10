@@ -15,7 +15,7 @@ rerun file1 file2 ... keyword args ... :pre
 file1,file2,... = dump file(s) to read :ulb,l
 one or more keywords may be appended, keyword {dump} must appear and be last :l
 keyword = {first} or {last} or {every} or {skip} or {start} or {stop} or {dump}
- {first} args = Nfirts
+ {first} args = Nfirst
    Nfirst = dump timestep to start on
  {last} args = Nlast
    Nlast = dumptimestep to stop on

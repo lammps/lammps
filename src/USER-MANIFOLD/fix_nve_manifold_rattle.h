@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -81,7 +81,7 @@ namespace LAMMPS_NS {
 
    protected:
 
-    int nevery;
+    int nevery, next_output;
 
     double dtv, dtf;
     double tolerance;

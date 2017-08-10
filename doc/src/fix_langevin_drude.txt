@@ -67,11 +67,11 @@ The Langevin forces are computed as
 \(F_r'\) is a random force proportional to
 \(\sqrt \{ \frac \{2\, k_B \mathtt\{Tcom\}\, m'\}
                  \{\mathrm dt\, \mathtt\{damp\_com\} \}
-        \} \). :b
+        \} \).
 \(f_r'\) is a random force proportional to
 \(\sqrt \{ \frac \{2\, k_B \mathtt\{Tdrude\}\, m'\}
                  \{\mathrm dt\, \mathtt\{damp\_drude\} \}
-        \} \). :b
+        \} \).
 Then the real forces acting on the particles are computed from the inverse
 transform:
 \begin\{equation\} F = \frac M \{M'\}\, F' - f' \end\{equation\}

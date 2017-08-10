@@ -22,6 +22,7 @@ colvar::orientation::orientation(std::string const &conf)
 {
   function_type = "orientation";
   atoms = parse_group(conf, "atoms");
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_quaternion);
 
   ref_pos.reserve(atoms->size());
@@ -29,8 +30,9 @@ colvar::orientation::orientation(std::string const &conf)
   if (get_keyval(conf, "refPositions", ref_pos, ref_pos)) {
     cvm::log("Using reference positions from input file.\n");
     if (ref_pos.size() != atoms->size()) {
-      cvm::fatal_error("Error: reference positions do not "
+      cvm::error("Error: reference positions do not "
                         "match the number of requested atoms.\n");
+      return;
     }
   }
 
@@ -43,9 +45,11 @@ colvar::orientation::orientation(std::string const &conf)
       if (get_keyval(conf, "refPositionsCol", file_col, std::string(""))) {
         // use PDB flags if column is provided
         bool found = get_keyval(conf, "refPositionsColValue", file_col_value, 0.0);
-        if (found && file_col_value==0.0)
-          cvm::fatal_error("Error: refPositionsColValue, "
+        if (found && file_col_value==0.0) {
+          cvm::error("Error: refPositionsColValue, "
                             "if provided, must be non-zero.\n");
+          return;
+        }
       } else {
         // if not, use atom indices
         atoms->create_sorted_ids();
@@ -56,8 +60,9 @@ colvar::orientation::orientation(std::string const &conf)
   }
 
   if (!ref_pos.size()) {
-    cvm::fatal_error("Error: must define a set of "
+    cvm::error("Error: must define a set of "
                       "reference coordinates.\n");
+    return;
   }
 
 
@@ -88,6 +93,7 @@ colvar::orientation::orientation()
   : cvc()
 {
   function_type = "orientation";
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_quaternion);
 }
 

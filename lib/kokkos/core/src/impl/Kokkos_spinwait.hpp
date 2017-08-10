@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -47,14 +47,30 @@
 
 #include <Kokkos_Macros.hpp>
 
+#include <cstdint>
+
 namespace Kokkos {
 namespace Impl {
 
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-void spinwait( volatile int & flag , const int value );
+
+void spinwait_while_equal( volatile int32_t & flag , const int32_t value );
+void spinwait_until_equal( volatile int32_t & flag , const int32_t value );
+
+void spinwait_while_equal( volatile int64_t & flag , const int64_t value );
+void spinwait_until_equal( volatile int64_t & flag , const int64_t value );
 #else
+
 KOKKOS_INLINE_FUNCTION
-void spinwait( volatile int & , const int ) {}
+void spinwait_while_equal( volatile int32_t & , const int32_t ) {}
+KOKKOS_INLINE_FUNCTION
+void spinwait_until_equal( volatile int32_t & , const int32_t ) {}
+
+KOKKOS_INLINE_FUNCTION
+void spinwait_while_equal( volatile int64_t & , const int64_t ) {}
+KOKKOS_INLINE_FUNCTION
+void spinwait_until_equal( volatile int64_t & , const int64_t ) {}
+
 #endif
 
 } /* namespace Impl */

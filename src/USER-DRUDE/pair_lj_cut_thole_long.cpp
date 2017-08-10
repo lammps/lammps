@@ -295,11 +295,11 @@ void PairLJCutTholeLong::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-          if (setflag[i][j]) {
-              thole[i][j] = thole_global;
-              cut_lj[i][j] = cut_lj_global;
-          }
+      for (j = i; j <= atom->ntypes; j++)
+        if (setflag[i][j]) {
+          thole[i][j] = thole_global;
+          cut_lj[i][j] = cut_lj_global;
+        }
   }
 }
 
@@ -417,7 +417,7 @@ double PairLJCutTholeLong::init_one(int i, int j)
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
 
-  if (offset_flag) {
+  if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;

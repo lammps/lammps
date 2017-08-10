@@ -78,8 +78,6 @@ class Variable : protected Pointers {
   int precedence[18];      // precedence level of math operators
                            // set length to include up to XOR in enum
 
-  class Python *python;    // ptr to embedded Python interpreter
-
   struct Tree {            // parse tree for atom-style or vector-style vars
     double value;          // single scalar
     double *array;         // per-atom or per-type list of doubles

@@ -136,7 +136,7 @@ You must choose at build time whether to build for CPUs (OpenMP),
 GPUs, or Phi.
 
 You can do any of these in one line, using the src/Make.py script,
-described in "Section 2.4"_Section_start.html#start_4 of the manual.
+described in "Section 4"_Section_packages.html of the manual.
 Type "Make.py -h" for help.  If run from the src directory, these
 commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
 lmp_kokkos_phi.  Note that the OMP and PHI options use
@@ -144,7 +144,7 @@ src/MAKE/Makefile.mpi as the starting Makefile.machine.  The CUDA
 option uses src/MAKE/OPTIONS/Makefile.kokkos_cuda.
 
 The latter two steps can be done using the "-k on", "-pk kokkos" and
-"-sf kk" "command-line switches"_Section_start.html#start_7
+"-sf kk" "command-line switches"_Section_start.html#start_6
 respectively.  Or the effect of the "-pk" or "-sf" switches can be
 duplicated by adding the "package kokkos"_package.html or "suffix
 kk"_suffix.html commands respectively to your input script.
@@ -280,10 +280,10 @@ specify how many Phi coprocessors there are per node; each
 coprocessors is simply treated as running some number of MPI tasks.
 
 You must use the "-k on" "command-line
-switch"_Section_start.html#start_7 to enable the KOKKOS package.  It
+switch"_Section_start.html#start_6 to enable the KOKKOS package.  It
 takes additional arguments for hardware settings appropriate to your
 system.  Those arguments are "documented
-here"_Section_start.html#start_7.  The two most commonly used
+here"_Section_start.html#start_6.  The two most commonly used
 options are:
 
 -k on t Nt g Ng :pre
@@ -304,12 +304,12 @@ The "-k on" switch also issues a "package kokkos" command (with no
 additional arguments) which sets various KOKKOS options to default
 values, as discussed on the "package"_package.html command doc page.
 
-Use the "-sf kk" "command-line switch"_Section_start.html#start_7,
+Use the "-sf kk" "command-line switch"_Section_start.html#start_6,
 which will automatically append "kk" to styles that support it.  Use
-the "-pk kokkos" "command-line switch"_Section_start.html#start_7 if
+the "-pk kokkos" "command-line switch"_Section_start.html#start_6 if
 you wish to change any of the default "package kokkos"_package.html
 optionns set by the "-k on" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
 
 
@@ -323,7 +323,7 @@ However, when running in MPI-only mode with 1 thread per MPI task, it
 will typically be faster to use "half" neighbor lists and set the
 Newton flag to "on", just as is the case for non-accelerated pair
 styles.  You can do this with the "-pk" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
 [Or run with the KOKKOS package by editing an input script:]
 
@@ -332,7 +332,7 @@ appropriate thread and GPU values for host=OMP or host=MIC or
 device=CUDA are the same.
 
 You must still use the "-k on" "command-line
-switch"_Section_start.html#start_7 to enable the KOKKOS package, and
+switch"_Section_start.html#start_6 to enable the KOKKOS package, and
 specify its additional arguments for hardware options appropriate to
 your system, as documented above.
 
@@ -343,7 +343,7 @@ pair_style lj/cut/kk 2.5 :pre
 
 You only need to use the "package kokkos"_package.html command if you
 wish to change any of its option defaults, as set by the "-k on"
-"command-line switch"_Section_start.html#start_7.
+"command-line switch"_Section_start.html#start_6.
 
 [Speed-ups to expect:]
 
@@ -389,7 +389,7 @@ If N is the number of physical cores/node, then the number of MPI
 tasks/node * number of threads/task should not exceed N, and should
 typically equal N.  Note that the default threads/task is 1, as set by
 the "t" keyword of the "-k" "command-line
-switch"_Section_start.html#start_7.  If you do not change this, no
+switch"_Section_start.html#start_6.  If you do not change this, no
 additional parallelism (beyond MPI) will be invoked on the host
 CPU(s).
 
@@ -415,21 +415,21 @@ For binding threads with the KOKKOS OMP option, use thread affinity
 environment variables to force binding.  With OpenMP 3.1 (gcc 4.7 or
 later, intel 12 or later) setting the environment variable
 OMP_PROC_BIND=true should be sufficient.  For binding threads with the
-KOKKOS pthreads option, compile LAMMPS the KOKKOS HWLOC=yes option, as
-discussed in "Section 2.3.4"_Sections_start.html#start_3_4 of the
-manual.
+KOKKOS pthreads option, compile LAMMPS the KOKKOS HWLOC=yes option
+(see "this section"_Section_packages.html#KOKKOS of the manual for
+details).
 
 [Running on GPUs:]
 
 Insure the -arch setting in the machine makefile you are using,
-e.g. src/MAKE/Makefile.cuda, is correct for your GPU hardware/software
-(see "this section"_Section_start.html#start_3_4 of the manual for
+e.g. src/MAKE/Makefile.cuda, is correct for your GPU hardware/software.
+(see "this section"_Section_packages.html#KOKKOS of the manual for
 details).
 
 The -np setting of the mpirun command should set the number of MPI
 tasks/node to be equal to the # of physical GPUs on the node.
 
-Use the "-k" "command-line switch"_Section_commands.html#start_7 to
+Use the "-k" "command-line switch"_Section_commands.html#start_6 to
 specify the number of GPUs per node, and the number of threads per MPI
 task.  As above for multi-core CPUs (and no GPU), if N is the number
 of physical cores/node, then the number of MPI tasks/node * number of

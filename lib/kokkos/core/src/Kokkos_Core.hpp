@@ -57,7 +57,16 @@
 #include <Kokkos_OpenMP.hpp>
 #endif
 
-#if defined( KOKKOS_ENABLE_PTHREAD )
+//#if defined( KOKKOS_ENABLE_OPENMPTARGET )
+#include <Kokkos_OpenMPTarget.hpp>
+#include <Kokkos_OpenMPTargetSpace.hpp>
+//#endif
+
+#if defined( KOKKOS_ENABLE_QTHREADS )
+#include <Kokkos_Qthreads.hpp>
+#endif
+
+#if defined( KOKKOS_ENABLE_THREADS )
 #include <Kokkos_Threads.hpp>
 #endif
 
@@ -65,8 +74,8 @@
 #include <Kokkos_Cuda.hpp>
 #endif
 
-#include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Pair.hpp>
+#include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
 #include <Kokkos_Vectorization.hpp>
@@ -76,6 +85,7 @@
 
 #include <Kokkos_Complex.hpp>
 
+#include <iosfwd>
 
 //----------------------------------------------------------------------------
 
@@ -104,6 +114,9 @@ void finalize();
 void finalize_all();
 
 void fence();
+
+/** \brief Print "Bill of Materials" */
+void print_configuration( std::ostream & , const bool detail = false );
 
 } // namespace Kokkos
 

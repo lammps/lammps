@@ -74,7 +74,7 @@ NOTE: The "fix qeq/comb"_fix_qeq_comb.html command must still be used
 to perform charge equilibration with the "COMB
 potential"_pair_comb.html.  The "fix qeq/reax"_fix_qeq_reax.html
 command can be used to perform charge equilibration with the "ReaxFF
-force field"_pair_reax_c.html, although fix qeq/shielded yields the
+force field"_pair_reaxc.html, although fix qeq/shielded yields the
 same results as fix qeq/reax if {Nevery}, {cutoff}, and {tolerance}
 are the same.  Eventually the fix qeq/reax command will be deprecated.
 
@@ -116,7 +116,7 @@ the shielded Coulomb is given by equation (13) of the "ReaxFF force
 field"_#vanDuin paper.  The shielding accounts for charge overlap
 between charged particles at small separation.  This style is the same
 as "fix qeq/reax"_fix_qeq_reax.html, and can be used with "pair_style
-reax/c"_pair_reax_c.html.  Only the {chi}, {eta}, and {gamma}
+reax/c"_pair_reaxc.html.  Only the {chi}, {eta}, and {gamma}
 parameters from the {qfile} file are used.  This style solves partial
 charges on atoms via the matrix inversion method.  A tolerance of
 1.0e-6 is usually a good number.

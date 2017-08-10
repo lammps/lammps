@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,14 +36,15 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#include <Kokkos_Core.hpp>
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_SERIAL ) && defined( KOKKOS_ENABLE_TASKDAG )
+
+#include <Kokkos_Core.hpp>
 
 #include <impl/Kokkos_Serial_Task.hpp>
 #include <impl/Kokkos_TaskQueue_impl.hpp>
@@ -62,11 +63,20 @@ void TaskQueueSpecialization< Kokkos::Serial >::execute
   using execution_space = Kokkos::Serial ;
   using queue_type      = TaskQueue< execution_space > ;
   using task_root_type  = TaskBase< execution_space , void , void > ;
-  using Member          = TaskExec< execution_space > ;
+  using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
-  Member exec ;
+  // Set default buffers
+  serial_resize_thread_team_data( 0   /* global reduce buffer */
+                                , 512 /* team reduce buffer */
+                                , 0   /* team shared buffer */
+                                , 0   /* thread local buffer */
+                                );
+
+  Impl::HostThreadTeamData * const data = Impl::serial_get_thread_team_data();
+
+  Member exec( *data );
 
   // Loop until all queues are empty
   while ( 0 < queue->m_ready_count ) {
@@ -75,13 +85,13 @@ void TaskQueueSpecialization< Kokkos::Serial >::execute
 
     for ( int i = 0 ; i < queue_type::NumQueue && end == task ; ++i ) {
       for ( int j = 0 ; j < 2 && end == task ; ++j ) {
-        task = queue_type::pop_task( & queue->m_ready[i][j] );
+        task = queue_type::pop_ready_task( & queue->m_ready[i][j] );
       }
     }
 
     if ( end != task ) {
 
-      // pop_task resulted in lock == task->m_next
+      // pop_ready_task resulted in lock == task->m_next
       // In the executing state
 
       (*task->m_apply)( task , & exec );
@@ -113,23 +123,25 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
   using execution_space = Kokkos::Serial ;
   using queue_type      = TaskQueue< execution_space > ;
   using task_root_type  = TaskBase< execution_space , void , void > ;
-  using Member          = TaskExec< execution_space > ;
+  using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
-  Member exec ;
+  Impl::HostThreadTeamData * const data = Impl::serial_get_thread_team_data();
+
+  Member exec( *data );
 
   // Loop until no runnable task
 
   task_root_type * task = end ;
-  
+
   do {
 
     task = end ;
 
     for ( int i = 0 ; i < queue_type::NumQueue && end == task ; ++i ) {
       for ( int j = 0 ; j < 2 && end == task ; ++j ) {
-        task = queue_type::pop_task( & queue->m_ready[i][j] );
+        task = queue_type::pop_ready_task( & queue->m_ready[i][j] );
       }
     }
 
@@ -144,5 +156,7 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
 
 }} /* namespace Kokkos::Impl */
 
+#else
+void KOKKOS_CORE_SRC_IMPL_SERIAL_TASK_PREVENT_LINK_ERROR() {}
 #endif /* #if defined( KOKKOS_ENABLE_SERIAL ) && defined( KOKKOS_ENABLE_TASKDAG ) */
 

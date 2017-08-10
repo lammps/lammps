@@ -104,7 +104,7 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut_buck[i][j] = cut_buck_global;
   }
 }
@@ -330,7 +330,7 @@ double PairBuckLongCoulLong::init_one(int i, int j)
   if (cut_respa && MIN(cut_buck[i][j],cut_coul) < cut_respa[3])
     error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
-  if (offset_flag) {
+  if (offset_flag && (cut_buck[i][j] > 0.0)) {
     double rexp = exp(-cut_buck[i][j]/buck_rho[i][j]);
     offset[i][j] = buck_a[i][j]*rexp - buck_c[i][j]/pow(cut_buck[i][j],6.0);
   } else offset[i][j] = 0.0;

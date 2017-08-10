@@ -125,7 +125,6 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist),*this);
     }
   }
-  DeviceType::fence();
 
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();

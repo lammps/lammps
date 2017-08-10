@@ -102,6 +102,7 @@ KOKKOS_IMPL_IS_CONCEPT( memory_traits )
 KOKKOS_IMPL_IS_CONCEPT( execution_space )
 KOKKOS_IMPL_IS_CONCEPT( execution_policy )
 KOKKOS_IMPL_IS_CONCEPT( array_layout )
+KOKKOS_IMPL_IS_CONCEPT( reducer )
 
 namespace Impl {
 
@@ -199,7 +200,14 @@ public:
     , Kokkos::DefaultHostExecutionSpace , execution_space
     >::type  host_execution_space ;
 #else
-  typedef execution_space  host_execution_space ;
+  #if defined( KOKKOS_ENABLE_OPENMPTARGET )
+    typedef typename std::conditional
+      < std::is_same< execution_space , Kokkos::Experimental::OpenMPTarget >::value
+      , Kokkos::DefaultHostExecutionSpace , execution_space
+      >::type  host_execution_space ;
+  #else
+    typedef execution_space  host_execution_space ;
+  #endif
 #endif
 
   typedef typename std::conditional

@@ -28,7 +28,7 @@ NStencilFullBin2d::NStencilFullBin2d(LAMMPS *lmp) : NStencil(lmp) {}
 void NStencilFullBin2d::create()
 {
   int i,j;
-  
+
   nstencil = 0;
 
   for (j = -sy; j <= sy; j++)

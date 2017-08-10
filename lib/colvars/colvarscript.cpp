@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "colvarscript.h"
+#include "colvarproxy.h"
 #include "colvardeps.h"
 
 
@@ -27,7 +28,7 @@ extern "C" {
 
   // Generic hooks; NAMD and VMD have Tcl-specific versions in the respective proxies
 
-  int run_colvarscript_command(int argc, const char **argv)
+  int run_colvarscript_command(int objc, unsigned char *const objv[])
   {
     colvarproxy *cvp = cvm::proxy;
     if (!cvp) {
@@ -37,7 +38,7 @@ extern "C" {
       cvm::error("Called run_colvarscript_command without a script object initialized.\n");
       return -1;
     }
-    return cvp->script->run(argc, argv);
+    return cvp->script->run(objc, objv);
   }
 
   const char * get_colvarscript_result()
@@ -53,30 +54,52 @@ extern "C" {
 
 
 /// Run method based on given arguments
-int colvarscript::run(int argc, char const *argv[]) {
-
-  result = "";
+int colvarscript::run(int objc, unsigned char *const objv[])
+{
+  result.clear();
 
   if (cvm::debug()) {
-    cvm::log("Called script run with " + cvm::to_str(argc) + " args");
-    for (int i = 0; i < argc; i++) { cvm::log(argv[i]); }
+    cvm::log("Called script run with " + cvm::to_str(objc) + " args:");
+    for (int i = 0; i < objc; i++) {
+      cvm::log(obj_to_str(objv[i]));
+    }
   }
 
-  if (argc < 2) {
+  if (objc < 2) {
     result = help_string();
     return COLVARS_OK;
   }
 
-  std::string cmd = argv[1];
+  std::string const cmd(obj_to_str(objv[1]));
 
   int error_code = COLVARS_OK;
 
   if (cmd == "colvar") {
-    return proc_colvar(argc-1, &(argv[1]));
+    if (objc < 3) {
+      result = "Missing parameters\n" + help_string();
+      return COLVARSCRIPT_ERROR;
+    }
+    std::string const name(obj_to_str(objv[2]));
+    colvar *cv = cvm::colvar_by_name(name);
+    if (cv == NULL) {
+      result = "Colvar not found: " + name;
+      return COLVARSCRIPT_ERROR;
+    }
+    return proc_colvar(cv, objc-1, &(objv[1]));
   }
 
   if (cmd == "bias") {
-    return proc_bias(argc-1, &(argv[1]));
+    if (objc < 3) {
+      result = "Missing parameters\n" + help_string();
+      return COLVARSCRIPT_ERROR;
+    }
+    std::string const name(obj_to_str(objv[2]));
+    colvarbias *b = cvm::bias_by_name(name);
+    if (b == NULL) {
+      result = "Bias not found: " + name;
+      return COLVARSCRIPT_ERROR;
+    }
+    return proc_bias(b, objc-1, &(objv[1]));
   }
 
   if (cmd == "version") {
@@ -102,20 +125,20 @@ int colvarscript::run(int argc, char const *argv[]) {
     error_code |= colvars->calc();
     error_code |= proxy->update_output();
     if (error_code) {
-      result += "Error updating the colvars module.\n";
+      result += "Error updating the Colvars module.\n";
     }
     return error_code;
   }
 
   if (cmd == "list") {
-    if (argc == 2) {
+    if (objc == 2) {
       for (std::vector<colvar *>::iterator cvi = colvars->colvars.begin();
            cvi != colvars->colvars.end();
            ++cvi) {
         result += (cvi == colvars->colvars.begin() ? "" : " ") + (*cvi)->name;
       }
       return COLVARS_OK;
-    } else if (argc == 3 && !strcmp(argv[2], "biases")) {
+    } else if (objc == 3 && !strcmp(obj_to_str(objv[2]), "biases")) {
       for (std::vector<colvarbias *>::iterator bi = colvars->biases.begin();
            bi != colvars->biases.end();
            ++bi) {
@@ -130,11 +153,11 @@ int colvarscript::run(int argc, char const *argv[]) {
 
   /// Parse config from file
   if (cmd == "configfile") {
-    if (argc < 3) {
+    if (objc < 3) {
       result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
-    if (colvars->read_config_file(argv[2]) == COLVARS_OK) {
+    if (colvars->read_config_file(obj_to_str(objv[2])) == COLVARS_OK) {
       return COLVARS_OK;
     } else {
       result = "Error parsing configuration file";
@@ -144,11 +167,11 @@ int colvarscript::run(int argc, char const *argv[]) {
 
   /// Parse config from string
   if (cmd == "config") {
-    if (argc < 3) {
+    if (objc < 3) {
       result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
-    std::string conf = argv[2];
+    std::string const conf(obj_to_str(objv[2]));
     if (colvars->read_config_string(conf) == COLVARS_OK) {
       return COLVARS_OK;
     } else {
@@ -159,11 +182,11 @@ int colvarscript::run(int argc, char const *argv[]) {
 
   /// Load an input state file
   if (cmd == "load") {
-    if (argc < 3) {
+    if (objc < 3) {
       result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
-    proxy->input_prefix() = argv[2];
+    proxy->input_prefix() = obj_to_str(objv[2]);
     if (colvars->setup_input() == COLVARS_OK) {
       return COLVARS_OK;
     } else {
@@ -174,11 +197,11 @@ int colvarscript::run(int argc, char const *argv[]) {
 
   /// Save to an output state file
   if (cmd == "save") {
-    if (argc < 3) {
+    if (objc < 3) {
       result = "Missing arguments";
       return COLVARSCRIPT_ERROR;
     }
-    proxy->output_prefix_str = argv[2];
+    proxy->output_prefix() = obj_to_str(objv[2]);
     int error = 0;
     error |= colvars->setup_output();
     error |= colvars->write_output_files();
@@ -200,7 +223,7 @@ int colvarscript::run(int argc, char const *argv[]) {
   }
 
   if (cmd == "frame") {
-    if (argc == 2) {
+    if (objc == 2) {
       long int f;
       int error = proxy->get_frame(f);
       if (error == COLVARS_OK) {
@@ -210,10 +233,10 @@ int colvarscript::run(int argc, char const *argv[]) {
         result = "Frame number is not available";
         return COLVARSCRIPT_ERROR;
       }
-    } else if (argc == 3) {
+    } else if (objc == 3) {
       // Failure of this function does not trigger an error, but
       // returns nonzero, to let scripts detect available frames
-      int error = proxy->set_frame(strtol(argv[2], NULL, 10));
+      int error = proxy->set_frame(strtol(obj_to_str(objv[2]), NULL, 10));
       result = cvm::to_str(error == COLVARS_OK ? 0 : -1);
       return COLVARS_OK;
     } else {
@@ -223,8 +246,8 @@ int colvarscript::run(int argc, char const *argv[]) {
   }
 
   if (cmd == "addenergy") {
-    if (argc == 3) {
-      colvars->total_bias_energy += strtod(argv[2], NULL);
+    if (objc == 3) {
+      colvars->total_bias_energy += strtod(obj_to_str(objv[2]), NULL);
       return COLVARS_OK;
     } else {
       result = "Wrong arguments to command \"addenergy\"\n" + help_string();
@@ -237,19 +260,9 @@ int colvarscript::run(int argc, char const *argv[]) {
 }
 
 
-int colvarscript::proc_colvar(int argc, char const *argv[]) {
-  if (argc < 3) {
-    result = "Missing parameters\n" + help_string();
-    return COLVARSCRIPT_ERROR;
-  }
+int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[]) {
 
-  std::string name = argv[1];
-  colvar *cv = cvm::colvar_by_name(name);
-  if (cv == NULL) {
-    result = "Colvar not found: " + name;
-    return COLVARSCRIPT_ERROR;
-  }
-  std::string subcmd = argv[2];
+  std::string const subcmd(obj_to_str(objv[2]));
 
   if (subcmd == "value") {
     result = (cv->value()).to_simple_string();
@@ -278,11 +291,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     for (i = 0; i < cv->biases.size(); i++) {
       delete cv->biases[i];
     }
-    cv->biases.resize(0);
+    cv->biases.clear();
     // colvar destructor is tasked with the cleanup
     delete cv;
     // TODO this could be done by the destructors
-    colvars->write_traj_label(colvars->cv_traj_os);
+    colvars->write_traj_label(*(colvars->cv_traj_os));
     return COLVARS_OK;
   }
 
@@ -308,11 +321,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if (subcmd == "addforce") {
-    if (argc < 4) {
+    if (objc < 4) {
       result = "addforce: missing parameter: force value\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
-    std::string f_str = argv[3];
+    std::string const f_str(obj_to_str(objv[3]));
     std::istringstream is(f_str);
     is.width(cvm::cv_width);
     is.precision(cvm::cv_prec);
@@ -328,11 +341,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if (subcmd == "cvcflags") {
-    if (argc < 4) {
+    if (objc < 4) {
       result = "cvcflags: missing parameter: vector of flags";
       return COLVARSCRIPT_ERROR;
     }
-    std::string flags_str = argv[3];
+    std::string const flags_str(obj_to_str(objv[3]));
     std::istringstream is(flags_str);
     std::vector<bool> flags;
 
@@ -351,7 +364,7 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if ((subcmd == "get") || (subcmd == "set") || (subcmd == "state")) {
-    return proc_features(cv, argc, argv);
+    return proc_features(cv, objc, objv);
   }
 
   result = "Syntax error\n" + help_string();
@@ -359,20 +372,10 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
 }
 
 
-int colvarscript::proc_bias(int argc, char const *argv[]) {
-  if (argc < 3) {
-    result = "Missing parameters\n" + help_string();
-    return COLVARSCRIPT_ERROR;
-  }
+int colvarscript::proc_bias(colvarbias *b, int objc, unsigned char *const objv[]) {
 
-  std::string name = argv[1];
-  colvarbias *b = cvm::bias_by_name(name);
-  if (b == NULL) {
-    result = "Bias not found: " + name;
-    return COLVARSCRIPT_ERROR;
-  }
-
-  std::string subcmd = argv[2];
+  std::string const key(obj_to_str(objv[0]));
+  std::string const subcmd(obj_to_str(objv[2]));
 
   if (subcmd == "energy") {
     result = cvm::to_str(b->get_energy());
@@ -422,16 +425,16 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
     // the bias destructor takes care of the cleanup at cvm level
     delete b;
     // TODO this could be done by the destructors
-    colvars->write_traj_label(colvars->cv_traj_os);
+    colvars->write_traj_label(*(colvars->cv_traj_os));
     return COLVARS_OK;
   }
 
   if ((subcmd == "get") || (subcmd == "set") || (subcmd == "state")) {
-    return proc_features(b, argc, argv);
+    return proc_features(b, objc, objv);
   }
 
-  if (argc >= 4) {
-    std::string param = argv[3];
+  if (objc >= 4) {
+    std::string const param(obj_to_str(objv[3]));
     if (subcmd == "count") {
       int index;
       if (!(std::istringstream(param) >> index)) {
@@ -452,11 +455,11 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
 
 
 int colvarscript::proc_features(colvardeps *obj,
-                                int argc, char const *argv[]) {
+                                int objc, unsigned char *const objv[]) {
   // size was already checked before calling
-  std::string subcmd = argv[2];
+  std::string const subcmd(obj_to_str(objv[2]));
 
-  if (argc == 3) {
+  if (objc == 3) {
     if (subcmd == "state") {
       // TODO make this returned as result?
       obj->print_state();
@@ -470,7 +473,7 @@ int colvarscript::proc_features(colvardeps *obj,
 
   if ((subcmd == "get") || (subcmd == "set")) {
     std::vector<colvardeps::feature *> &features = obj->features();
-    std::string const req_feature(argv[3]);
+    std::string const req_feature(obj_to_str(objv[3]));
     colvardeps::feature *f = NULL;
     int fid = 0;
     for (fid = 0; fid < int(features.size()); fid++) {
@@ -499,9 +502,9 @@ int colvarscript::proc_features(colvardeps *obj,
       }
 
       if (subcmd == "set") {
-        if (argc == 5) {
+        if (objc == 5) {
           std::string const yesno =
-            colvarparse::to_lower_cppstr(std::string(argv[4]));
+            colvarparse::to_lower_cppstr(std::string(obj_to_str(objv[4])));
           if ((yesno == std::string("yes")) ||
               (yesno == std::string("on")) ||
               (yesno == std::string("1"))) {
@@ -510,10 +513,7 @@ int colvarscript::proc_features(colvardeps *obj,
           } else if ((yesno == std::string("no")) ||
               (yesno == std::string("off")) ||
               (yesno == std::string("0"))) {
-            // TODO disable() function does not exist yet,
-            // dependencies will not be resolved
-            // obj->disable(fid);
-            obj->set_enabled(fid, false);
+            obj->disable(fid);
             return COLVARS_OK;
           }
         }
@@ -533,11 +533,11 @@ std::string colvarscript::help_string()
   std::string buf;
   buf = "Usage: cv <subcommand> [args...]\n\
 \n\
-Managing the colvars module:\n\
+Managing the Colvars module:\n\
   configfile <file name>      -- read configuration from a file\n\
   config <string>             -- read configuration from the given string\n\
   reset                       -- delete all internal configuration\n\
-  delete                      -- delete this colvars module instance\n\
+  delete                      -- delete this Colvars module instance\n\
   version                     -- return version of colvars code\n\
   \n\
 Input and output:\n\

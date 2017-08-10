@@ -24,25 +24,25 @@ pair_coeff 1 2 kolmogorov/crespi/z  CC.KC      C C :pre
 
 [Description:]
 
-The {kolmogorov/crespi/z} style computes the Kolmogorov-Crespi interaction 
-potential as described in "(KC05)"_#KC05. An important simplification is made, 
-which is to take all normals along the z-axis. 
+The {kolmogorov/crespi/z} style computes the Kolmogorov-Crespi interaction
+potential as described in "(KC05)"_#KC05. An important simplification is made,
+which is to take all normals along the z-axis.
 
 :c,image(Eqs/pair_kolmogorov_crespi_z.jpg)
 
-It is important to have a suffiently large cutoff to ensure smooth forces. 
-Energies are shifted so that they go continously to zero at the cutoff assuming 
+It is important to have a suffiently large cutoff to ensure smooth forces.
+Energies are shifted so that they go continously to zero at the cutoff assuming
 that the exponential part of {Vij} (first term) decays sufficiently fast.
 This shift is achieved by the last term in the equation for {Vij} above.
 
-This potential is intended for interactions between two layers of graphene. 
-Therefore, to avoid interaction between layers in multi-layered materials, 
-each layer should have a separate atom type and interactions should only 
+This potential is intended for interactions between two layers of graphene.
+Therefore, to avoid interaction between layers in multi-layered materials,
+each layer should have a separate atom type and interactions should only
 be computed between atom types of neighbouring layers.
 
-The parameter file (e.g. CC.KC), is intended for use with metal 
-"units"_units.html, with energies in meV. An additional parameter, {S}, 
-is available to facilitate scaling of energies in accordance with 
+The parameter file (e.g. CC.KC), is intended for use with metal
+"units"_units.html, with energies in meV. An additional parameter, {S},
+is available to facilitate scaling of energies in accordance with
 "(vanWijk)"_#vanWijk.
 
 This potential must be used in combination with hybrid/overlay.
@@ -64,7 +64,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(KC05) 
+:link(KC05)
 [(KC05)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
 :link(vanWijk)

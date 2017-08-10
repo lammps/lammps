@@ -302,9 +302,15 @@ void FixPeriNeigh::setup(int vflag)
   double **x0 = atom->x0;
   double half_lc = 0.5*(domain->lattice->xlattice);
   double vfrac_scale;
-  PairPeriLPS *pairlps = static_cast<PairPeriLPS*>(anypair);
-  PairPeriVES *pairves = static_cast<PairPeriVES*>(anypair);
-  PairPeriEPS *paireps = static_cast<PairPeriEPS*>(anypair);
+  PairPeriLPS *pairlps = NULL;
+  PairPeriVES *pairves = NULL;
+  PairPeriEPS *paireps = NULL;
+  if (isLPS)
+    pairlps = static_cast<PairPeriLPS*>(anypair);
+  else if (isVES)
+    pairves = static_cast<PairPeriVES*>(anypair);
+  else if (isEPS)
+    paireps = static_cast<PairPeriEPS*>(anypair);
 
   for (i = 0; i < nlocal; i++) {
     double xtmp0 = x0[i][0];

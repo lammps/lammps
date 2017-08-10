@@ -1,5 +1,6 @@
 # Rhodopsin model
 
+variable        N index on      # Newton Setting
 variable	w index 10	# Warmup Timesteps
 variable	t index 520	# Main Run Timesteps
 variable	m index 1	# Main Run Timestep Multiplier
@@ -16,10 +17,11 @@ variable	z index 2
 variable	rr equal floor($t*$m)
 variable        root getenv LMP_ROOT
 
+newton          $N
 if "$n > 0"	then "processors * * * grid numa"
 
 units           real  
-neigh_modify    delay 5 every 1 binsize $b
+neigh_modify    delay 5 every 1
 
 atom_style      full  
 bond_style      harmonic 

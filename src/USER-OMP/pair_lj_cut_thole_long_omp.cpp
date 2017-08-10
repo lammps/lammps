@@ -44,7 +44,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTholeLongOMP::PairLJCutTholeLongOMP(LAMMPS *lmp) : 
+PairLJCutTholeLongOMP::PairLJCutTholeLongOMP(LAMMPS *lmp) :
     PairLJCutTholeLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
     suffix_flag |= Suffix::OMP;
@@ -108,9 +108,9 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   const tagint * _noalias const drudeid = fix_drude->drudeid;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,fxtmp,fytmp,fztmp;
-  
+
   const int nlocal = atom->nlocal;
-  
+
   int j,jj,jnum,jtype,itable;
   double ecoul,fpair,evdwl;
   double r,rsq,r2inv,forcecoul,factor_coul,forcelj,factor_lj,r6inv;
@@ -137,7 +137,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     const double * _noalias const lj2i = lj2[itype];
     const double * _noalias const lj3i = lj3[itype];
     const double * _noalias const lj4i = lj4[itype];
-    
+
     xtmp = x[i].x;
     ytmp = x[i].y;
     ztmp = x[i].z;

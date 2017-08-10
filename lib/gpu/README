@@ -17,6 +17,11 @@ links against when using the GPU package.
 This library must be built with a C++ compiler, before LAMMPS is
 built, so LAMMPS can link against it.
 
+You can type "make lib-gpu" from the src directory to see help on how
+to build this library via make commands, or you can do the same thing
+by typing "python Install.py" from within this directory, or you can
+do it manually by following the instructions below.
+
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:
 
@@ -164,9 +169,9 @@ this directory).
 The gpu library supports 3 precision modes as determined by 
 the CUDA_PRECISION variable:
 
-  CUDA_PREC = -D_SINGLE_SINGLE  # Single precision for all calculations
-  CUDA_PREC = -D_DOUBLE_DOUBLE  # Double precision for all calculations
-  CUDA_PREC = -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
+  CUDA_PRECISION = -D_SINGLE_SINGLE  # Single precision for all calculations
+  CUDA_PRECISION = -D_DOUBLE_DOUBLE  # Double precision for all calculations
+  CUDA_PRECISION = -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
 
 NOTE: PPPM acceleration can only be run on GPUs with compute capability>=1.1.
       You will get the error "GPU library not compiled for this accelerator."

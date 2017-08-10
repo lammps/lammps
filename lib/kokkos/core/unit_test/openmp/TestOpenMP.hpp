@@ -40,11 +40,14 @@
 // ************************************************************************
 //@HEADER
 */
+
 #ifndef KOKKOS_TEST_OPENMP_HPP
 #define KOKKOS_TEST_OPENMP_HPP
+
 #include <gtest/gtest.h>
 
 #include <Kokkos_Macros.hpp>
+
 #ifdef KOKKOS_LAMBDA
 #undef KOKKOS_LAMBDA
 #endif
@@ -53,13 +56,8 @@
 #include <Kokkos_Core.hpp>
 
 #include <TestTile.hpp>
-
-//----------------------------------------------------------------------------
-
 #include <TestSharedAlloc.hpp>
 #include <TestViewMapping.hpp>
-
-
 #include <TestViewAPI.hpp>
 #include <TestViewOfClass.hpp>
 #include <TestViewSubview.hpp>
@@ -74,16 +72,13 @@
 #include <TestCompilerMacros.hpp>
 #include <TestTaskScheduler.hpp>
 #include <TestMemoryPool.hpp>
-
-
 #include <TestCXX11.hpp>
 #include <TestCXX11Deduction.hpp>
 #include <TestTeamVector.hpp>
 #include <TestTemplateMetaFunctions.hpp>
-
 #include <TestPolicyConstruction.hpp>
-
 #include <TestMDRange.hpp>
+#include <TestConcurrentBitset.hpp>
 
 namespace Test {
 
@@ -95,23 +90,24 @@ protected:
     const unsigned cores_per_numa   = Kokkos::hwloc::get_available_cores_per_numa();
     const unsigned threads_per_core = Kokkos::hwloc::get_available_threads_per_core();
 
-    const unsigned threads_count = std::max( 1u , numa_count ) *
-                                   std::max( 2u , ( cores_per_numa * threads_per_core ) / 2 );
+    const unsigned threads_count = std::max( 1u, numa_count ) *
+                                   std::max( 2u, ( cores_per_numa * threads_per_core ) / 2 );
 
     Kokkos::OpenMP::initialize( threads_count );
-    Kokkos::OpenMP::print_configuration( std::cout , true );
-    srand(10231);
+    Kokkos::print_configuration( std::cout, true );
+    srand( 10231 );
   }
 
   static void TearDownTestCase()
   {
     Kokkos::OpenMP::finalize();
 
-    omp_set_num_threads(1);
+    omp_set_num_threads( 1 );
 
-    ASSERT_EQ( 1 , omp_get_max_threads() );
+    ASSERT_EQ( 1, omp_get_max_threads() );
   }
 };
 
-}
+} // namespace Test
+
 #endif

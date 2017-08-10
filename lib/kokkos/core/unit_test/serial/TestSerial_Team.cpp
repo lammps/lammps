@@ -40,78 +40,36 @@
 // ************************************************************************
 //@HEADER
 */
-#include <serial/TestSerial.hpp>
+
+#include <serial/TestSerial_Category.hpp>
+#include <TestTeam.hpp>
 
 namespace Test {
 
-TEST_F( serial , team_tag )
+TEST_F( TEST_CATEGORY, team_for )
 {
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_for(0);
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_reduce(0);
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(0);
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(0);
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_for( 0 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 0 );
 
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_for(1000);
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_reduce(1000);
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(1000);
-  TestTeamPolicy< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(1000);
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_for( 2 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 2 );
+
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_for( 1000 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 1000 );
 }
 
-TEST_F( serial , team_shared_request) {
-  TestSharedTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >();
-  TestSharedTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
 
-TEST_F( serial, team_scratch_request) {
-  TestScratchTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >();
-  TestScratchTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
-
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-TEST_F( serial , team_lambda_shared_request) {
-  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >();
-  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
-#endif
-
-TEST_F( serial, shmem_size) {
-  TestShmemSize< Kokkos::Serial >();
-}
-
-TEST_F( serial, multi_level_scratch) {
-  TestMultiLevelScratchTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >();
-  TestMultiLevelScratchTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
-
-TEST_F( serial , team_vector )
+TEST_F( TEST_CATEGORY, team_reduce )
 {
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(0) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(1) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(2) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(3) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(4) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(5) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(6) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(7) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(8) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(9) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(10) ) );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 0 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 0 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 2 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 2 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 1000 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 1000 );
+}
 }
 
-#ifdef KOKKOS_COMPILER_GNU
-#if ( KOKKOS_COMPILER_GNU == 472 )
-#define SKIP_TEST
-#endif
-#endif
+#include <TestTeamVector.hpp>
 
-#ifndef SKIP_TEST
-TEST_F( serial, triple_nested_parallelism )
-{
-  TestTripleNestedReduce< double, Kokkos::Serial >( 8192, 2048 , 32 , 32 );
-  TestTripleNestedReduce< double, Kokkos::Serial >( 8192, 2048 , 32 , 16 );
-  TestTripleNestedReduce< double, Kokkos::Serial >( 8192, 2048 , 16 , 16 );
-}
-#endif
-
-} // namespace test
 

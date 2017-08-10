@@ -85,13 +85,13 @@ No information about this fix is written to "binary restart
 files"_restart.html.
 
 The "thermo_modify"_thermo_modify.html {press} option is supported
-by this fix to add the rescaled kinetic pressure as part of 
+by this fix to add the rescaled kinetic pressure as part of
 "thermodynamic output"_thermo_style.html.
 
 [Restrictions:]
 
-This fix is part of the USER-MISC package. It is only enabled if 
-LAMMPS was built with that package. See the "Making 
+This fix is part of the USER-MISC package. It is only enabled if
+LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]

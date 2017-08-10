@@ -15,7 +15,7 @@
 
 NPairStyle(half/respa/nsq/newtoff/omp,
            NPairHalfRespaNsqNewtoffOmp,
-           NP_HALF | NP_RESPA | NP_NSQ | NP_NEWTOFF | NP_OMP | 
+           NP_HALF | NP_RESPA | NP_NSQ | NP_NEWTOFF | NP_OMP |
            NP_ORTHO | NP_TRI)
 
 #else

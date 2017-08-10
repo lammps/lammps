@@ -24,13 +24,13 @@
 * and to make the program fully dynamic. The second version used
 * fixed dimension arrays for the internal coordinates.
 *
-* The thrid version was revised in Fall 2011 by 
+* The third version was revised in Fall 2011 by
 * Stephanie Teich-McGoldrick to add support non-orthogonal cells.
 *
 * The next revision was started in Summer/Fall 2013 by
 * Axel Kohlmeyer to improve portability to Windows compilers,
 * clean up command line parsing and improve compatibility with
-* the then current LAMMPS versions. This revision removes 
+* the then current LAMMPS versions. This revision removes
 * compatibility with the obsolete LAMMPS version written in Fortran 90.
 */
 

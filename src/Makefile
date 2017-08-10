@@ -43,21 +43,39 @@ endif
 
 # Package variables
 
+# PACKAGE    = standard packages
+# PACKUSER   = user packagse
+# PACKLIB    = all packages that require an additional lib
+#              should be PACKSYS + PACKINT + PACKEXT
+# PACKSYS    = subset that reqiure a common system library
+#              include MPIIO and LB b/c require full MPI, not just STUBS
+# PACKINT    = subset that require an internal (provided) library
+# PACKEXT    = subset that require an external (downloaded) library
+
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace manybody mc meam misc molecule \
 	  mpiio mscg opt peri poems \
 	  python qeq reax replica rigid shock snap srd voronoi
 
-PACKUSER = user-atc user-awpmd user-cg-cmm user-cgdna user-colvars \
+PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-mgpt user-misc user-molfile \
-	   user-nc-dump user-omp user-phonon user-qmmm user-qtb \
+	   user-intel user-lb user-manifold user-meamc user-mgpt user-misc user-molfile \
+	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-vtk
 
-PACKLIB = compress gpu kim kokkos meam mpiio mscg poems python reax voronoi \
+PACKLIB = compress gpu kim kokkos meam mpiio mscg poems \
+	  python reax voronoi \
 	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
-	  user-nc-dump user-qmmm user-quip user-smd user-vtk
+	  user-netcdf user-qmmm user-quip user-smd user-vtk
+
+PACKSYS = compress mpiio python user-lb
+
+PACKINT = gpu kokkos meam poems reax user-atc user-awpmd user-colvars
+
+PACKEXT = kim mscg voronoi \
+	  user-h5md user-molfile user-netcdf user-qmmm user-quip \
+	  user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -66,6 +84,8 @@ PACKUSERUC = $(shell echo $(PACKUSER) | tr a-z A-Z)
 
 YESDIR = $(shell echo $(@:yes-%=%) | tr a-z A-Z)
 NODIR  = $(shell echo $(@:no-%=%) | tr a-z A-Z)
+LIBDIR = $(shell echo $(@:lib-%=%))
+LIBUSERDIR = $(shell echo $(@:lib-user-%=%))
 
 # List of all targets
 
@@ -75,9 +95,9 @@ help:
 	@echo 'make clean-machine       delete object files for one machine'
 	@echo 'make mpi-stubs           build dummy MPI library in STUBS'
 	@echo 'make install-python      install LAMMPS wrapper in Python'
-	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
+	@echo 'make tar                 create lmp_src.tar.gz for src dir and packages'
 	@echo ''
-	@echo 'make package                 list available packages'
+	@echo 'make package                 list available packages and their dependencies'
 	@echo 'make package-status (ps)     status of all packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
@@ -87,11 +107,16 @@ help:
 	@echo 'make no-standard (no-std)    remove all standard pkgs'
 	@echo 'make yes-user                install all user pkgs'
 	@echo 'make no-user                 remove all user pkgs'
-	@echo 'make no-lib                  remove all pkgs with external libs'
+	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
+	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
+	@echo 'make yes-ext                 install all pkgs with external libs'
+	@echo 'make no-ext                  remove all pkgs with external libs'
 	@echo ''
 	@echo 'make package-update (pu) replace src files with updated package files'
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff (pd)   diff src files against package files'
+	@echo ''
+	@echo 'make lib-package         download/build/install a package library'
 	@echo 'make purge               purge obsolete copies of source files'
 	@echo ''
 	@echo 'make machine             build LAMMPS for machine'
@@ -198,7 +223,10 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
+# include python package settings to 
+#   automatically adapt name of python interpreter
 
+sinclude ../lib/python/Makefile.lammps
 install-python:
 	@$(PYTHON) ../python/install.py
 
@@ -221,6 +249,13 @@ package:
 	@echo ''
 	@echo 'User-contributed packages:' $(PACKUSER)
 	@echo ''
+	@echo 'Packages that need system libraries:' $(PACKSYS)
+	@echo ''
+	@echo 'Packages that need provided libraries:' $(PACKINT)
+	@echo ''
+	@echo 'Packages that need external libraries:' $(PACKEXT)
+	@echo ''
+	@echo 'make package                 list available packages'
 	@echo 'make package                 list available packages'
 	@echo 'make package-status (ps)     status of all packages'
 	@echo 'make yes-package             install a single pgk in src dir'
@@ -229,13 +264,18 @@ package:
 	@echo 'make no-all                  remove all pkgs from src dir'
 	@echo 'make yes-standard (yes-std)  install all standard pkgs'
 	@echo 'make no-standard (no-srd)    remove all standard pkgs'
-	@echo ''
 	@echo 'make yes-user                install all user pkgs'
 	@echo 'make no-user                 remove all user pkgs'
-	@echo 'make no-lib                  remove all pkgs with external libs'
+	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
+	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
+	@echo 'make yes-ext                 install all pkgs with external libs'
+	@echo 'make no-ext                  remove all pkgs with external libs'
+	@echo ''
 	@echo 'make package-update (pu)  replace src files with package files'
 	@echo 'make package-overwrite    replace package files with src files'
 	@echo 'make package-diff (pd)    diff src files against package file'
+	@echo ''
+	@echo 'make lib-package      build and/or download a package library'
 
 yes-all:
 	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
@@ -255,8 +295,17 @@ yes-user:
 no-user:
 	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
 
+yes-lib:
+	@for p in $(PACKLIB); do $(MAKE) yes-$$p; done
+
 no-lib:
 	@for p in $(PACKLIB); do $(MAKE) no-$$p; done
+
+yes-ext:
+	@for p in $(PACKEXT); do $(MAKE) yes-$$p; done
+
+no-ext:
+	@for p in $(PACKEXT); do $(MAKE) no-$$p; done
 
 yes-%:
 	@if [ ! -e Makefile.package ]; \
@@ -287,6 +336,19 @@ no-%:
 	  cd $(NODIR); $(SHELL) ../Install.sh 0; cd ..; \
 		$(SHELL) Depend.sh $(NODIR) 0; \
         fi;
+
+# download/build/install a package library
+
+lib-%:
+	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
+	  echo "Installing lib $(@:lib-%=%)"; \
+	  cd ../lib/$(LIBDIR); python Install.py $(args); \
+	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
+	  echo "Installing lib $(@:lib-user-%=%)"; \
+	  cd ../lib/$(LIBUSERDIR); python Install.py $(args); \
+	else \
+	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
+	fi;
 
 # status = list src files that differ from package files
 # update = replace src files with newer package files

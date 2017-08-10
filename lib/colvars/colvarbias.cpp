@@ -23,9 +23,7 @@ colvarbias::colvarbias(char const *key)
   b_output_energy = false;
   reset();
   state_file_step = 0;
-
-  // Start in active state by default
-  enable(f_cvb_active);
+  description = "uninitialized " + cvm::to_str(key) + " bias";
 }
 
 
@@ -74,7 +72,6 @@ int colvarbias::init(std::string const &conf)
       cvm::error("Error: no collective variables specified.\n", INPUT_ERROR);
       return INPUT_ERROR;
     }
-
   } else {
     cvm::log("Reinitializing bias \""+name+"\".\n");
   }
@@ -82,6 +79,16 @@ int colvarbias::init(std::string const &conf)
   output_prefix = cvm::output_prefix();
 
   get_keyval(conf, "outputEnergy", b_output_energy, b_output_energy);
+
+  get_keyval(conf, "timeStepFactor", time_step_factor, 1);
+  if (time_step_factor < 1) {
+    cvm::error("Error: timeStepFactor must be 1 or greater.\n");
+    return COLVARS_ERROR;
+  }
+
+  // Now that children are defined, we can solve dependencies
+  enable(f_cvb_active);
+  if (cvm::debug()) print_state();
 
   return COLVARS_OK;
 }
@@ -110,6 +117,8 @@ colvarbias::~colvarbias()
 
 int colvarbias::clear()
 {
+  free_children_deps();
+
   // Remove references to this bias from colvars
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end();
@@ -200,7 +209,12 @@ void colvarbias::communicate_forces()
       cvm::log("Communicating a force to colvar \""+
                variables(i)->name+"\".\n");
     }
-    variables(i)->add_bias_force(colvar_forces[i]);
+    // Impulse-style multiple timestep
+    // Note that biases with different values of time_step_factor
+    // may send forces to the same colvar
+    // which is why rescaling has to happen now: the colvar is not
+    // aware of this bias' time_step_factor
+    variables(i)->add_bias_force(cvm::real(time_step_factor) * colvar_forces[i]);
   }
 }
 

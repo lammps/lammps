@@ -238,5 +238,3 @@ T safe_load(T const * const ptr)
 
 #endif
 
-
-

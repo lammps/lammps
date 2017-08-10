@@ -53,6 +53,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_extra = 0;
 
   dielectric = 1.0;
+  qqr2e_lammps_real = 332.06371;          // these constants are toggled
+  qqr2e_charmm_real = 332.0716;           // by new CHARMM pair styles
 
   pair = NULL;
   bond = NULL;

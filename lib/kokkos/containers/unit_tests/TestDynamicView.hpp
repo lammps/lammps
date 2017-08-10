@@ -61,9 +61,10 @@ struct TestDynamicView
   typedef typename Space::execution_space  execution_space ;
   typedef typename Space::memory_space     memory_space ;
 
-  typedef Kokkos::Experimental::MemoryPool<typename Space::device_type> memory_pool_type;
+  typedef Kokkos::MemoryPool<typename Space::device_type> memory_pool_type;
 
   typedef Kokkos::Experimental::DynamicView<Scalar*,Space> view_type;
+  typedef typename view_type::const_type const_view_type ;
 
   typedef typename Kokkos::TeamPolicy<execution_space>::member_type member_type ;
   typedef double value_type;
@@ -130,11 +131,18 @@ struct TestDynamicView
 
 // printf("TestDynamicView::run(%d) construct memory pool\n",arg_total_size);
 
-    memory_pool_type pool( memory_space() , arg_total_size * sizeof(Scalar) * 1.2 );
+    memory_pool_type pool( memory_space()
+                         , arg_total_size * sizeof(Scalar) * 1.2
+                         ,     500 /* min block size in bytes */
+                         ,   30000 /* max block size in bytes */
+                         , 1000000 /* min superblock size in bytes */
+                         );
 
 // printf("TestDynamicView::run(%d) construct dynamic view\n",arg_total_size);
 
     view_type da("A",pool,arg_total_size);
+
+    const_view_type ca(da);
 
 // printf("TestDynamicView::run(%d) construct test functor\n",arg_total_size);
 

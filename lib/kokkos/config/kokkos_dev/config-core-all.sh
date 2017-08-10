@@ -6,14 +6,14 @@
 #-----------------------------------------------------------------------------
 # Building on 'kokkos-dev.sandia.gov' with enabled capabilities:
 #
-#   Cuda, OpenMP, Threads, Qthread, hwloc
+#   Cuda, OpenMP, Threads, Qthreads, hwloc
 #
 # module loaded on 'kokkos-dev.sandia.gov' for this build
 #
 #  module load  cmake/2.8.11.2  gcc/4.8.3  cuda/6.5.14  nvcc-wrapper/gnu
 #
 # The 'nvcc-wrapper' module should load a script that matches
-# kokkos/config/nvcc_wrapper
+# kokkos/bin/nvcc_wrapper
 #
 #-----------------------------------------------------------------------------
 # Source and installation directories:
@@ -82,13 +82,13 @@ CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D Trilinos_ENABLE_OpenMP:BOOL=ON"
 CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D Kokkos_ENABLE_OpenMP:BOOL=ON"
 
 #-----------------------------------------------------------------------------
-# Qthread
+# Qthreads
 
-QTHREAD_BASE_DIR="/home/projects/qthreads/2014-07-08/host/gnu/4.7.3"
+QTHREADS_BASE_DIR="/home/projects/qthreads/2014-07-08/host/gnu/4.7.3"
 
-CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D TPL_ENABLE_QTHREAD:BOOL=ON"
-CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREAD_INCLUDE_DIRS:FILEPATH=${QTHREAD_BASE_DIR}/include"
-CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREAD_LIBRARY_DIRS:FILEPATH=${QTHREAD_BASE_DIR}/lib"
+CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D TPL_ENABLE_QTHREADS:BOOL=ON"
+CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREADS_INCLUDE_DIRS:FILEPATH=${QTHREADS_BASE_DIR}/include"
+CMAKE_CONFIGURE="${CMAKE_CONFIGURE} -D QTHREADS_LIBRARY_DIRS:FILEPATH=${QTHREADS_BASE_DIR}/lib"
 
 #-----------------------------------------------------------------------------
 # C++11
@@ -108,6 +108,3 @@ rm -rf CMake* Trilinos* packages Dart* Testing cmake_install.cmake MakeFile*
 echo cmake ${CMAKE_CONFIGURE} ${TRILINOS_SOURCE_DIR}
 
 cmake ${CMAKE_CONFIGURE} ${TRILINOS_SOURCE_DIR}
-
-#-----------------------------------------------------------------------------
-

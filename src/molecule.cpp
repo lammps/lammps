@@ -219,7 +219,7 @@ void Molecule::compute_mass()
   if (massflag) return;
   massflag = 1;
 
-  if (!rmassflag) atom->check_mass(FLERR);
+  atom->check_mass(FLERR);
 
   masstotal = 0.0;
   for (int i = 0; i < natoms; i++) {
@@ -243,7 +243,7 @@ void Molecule::compute_com()
   if (!comflag) {
     comflag = 1;
 
-    if (!rmassflag) atom->check_mass(FLERR);
+    atom->check_mass(FLERR);
 
     double onemass;
     com[0] = com[1] = com[2] = 0.0;
@@ -308,7 +308,7 @@ void Molecule::compute_inertia()
   if (!inertiaflag) {
     inertiaflag = 1;
 
-    if (!rmassflag) atom->check_mass(FLERR);
+    atom->check_mass(FLERR);
 
     double onemass,dx,dy,dz;
     for (int i = 0; i < 6; i++) itensor[i] = 0.0;

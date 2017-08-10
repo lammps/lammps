@@ -40,13 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
-#include <openmp/TestOpenMP.hpp>
+
+#include <openmp/TestOpenMP_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( openmp, view_subview_1d_assign_randomaccess ) {
-  TestViewSubview::test_1d_assign< Kokkos::OpenMP , Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+TEST_F( TEST_CATEGORY, view_subview_1d_assign_randomaccess )
+{
+  TestViewSubview::test_1d_assign< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-} // namespace test
-
+} // namespace Test

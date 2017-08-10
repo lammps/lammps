@@ -147,7 +147,7 @@ double PairYukawaColloid::init_one(int i, int j)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 
-  if (offset_flag) {
+  if (offset_flag && (kappa != 0.0)) {
     double screening = exp(-kappa * (cut[i][j] - (rad[i]+rad[j])));
     offset[i][j] = a[i][j]/kappa * screening;
   } else offset[i][j] = 0.0;

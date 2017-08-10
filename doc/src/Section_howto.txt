@@ -54,7 +54,7 @@ restart files can be saved to disk using the "restart"_restart.html
 command.  At a later time, these binary files can be read via a
 "read_restart"_read_restart.html command in a new script.  Or they can
 be converted to text data files using the "-r command-line
-switch"_Section_start.html#start_7 and read by a
+switch"_Section_start.html#start_6 and read by a
 "read_data"_read_data.html command in a new script.
 
 Here we give examples of 2 scripts that read either a binary restart
@@ -215,7 +215,7 @@ documentation for the formula it computes.
 "special_bonds"_special_bonds.html charmm
 "special_bonds"_special_bonds.html amber :ul
 
-NOTE: For CHARMM, the newer {charmmfsw} or {charmmfsh} styles were
+NOTE: For CHARMM, newer {charmmfsw} or {charmmfsh} styles were
 released in March 2017.  We recommend they be used instead of the
 older {charmm} styles.  See discussion of the differences on the "pair
 charmm"_pair_charmm.html and "dihedral charmm"_dihedral_charmm.html
@@ -337,7 +337,7 @@ All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
 the "-partition" command-line switch as described in "this
-section"_Section_start.html#start_7 of the manual.
+section"_Section_start.html#start_6 of the manual.
 
 In the last 2 examples, if LAMMPS were run on 3 partitions, the same
 scripts could be used if the "index" and "loop" variables were
@@ -387,7 +387,7 @@ for more info on packages.
 In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
 run-time by using the "-partition command-line
-switch"_Section_start.html#start_7 to launch LAMMPS on multiple
+switch"_Section_start.html#start_6 to launch LAMMPS on multiple
 partitions, which in this context are the same as replicas.  E.g.
 these commands:
 
@@ -395,7 +395,7 @@ mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
 mpirun -np 8 lmp_linux -partition 8x1 -in in.neb :pre
 
 would each run 8 replicas, on either 16 or 8 processors.  Note the use
-of the "-in command-line switch"_Section_start.html#start_7 to specify
+of the "-in command-line switch"_Section_start.html#start_6 to specify
 the input script which is required when running in multi-replica mode.
 
 Also note that with MPI installed on a machine (e.g. your desktop),
@@ -1872,7 +1872,7 @@ void lammps_free(void *) :pre
 
 The lammps_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were "command-line
-arguments"_Section_start.html#start_7 when LAMMPS is run in
+arguments"_Section_start.html#start_6 when LAMMPS is run in
 stand-alone mode from the command line, and a MPI communicator for
 LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
 created, and which is used in subsequent library calls.  The
@@ -1938,7 +1938,7 @@ documentation in the src/library.cpp file for details, including
 which quantities can be queried by name:
 
 void *lammps_extract_global(void *, char *)
-void lammps_extract_box(void *, double *, double *, 
+void lammps_extract_box(void *, double *, double *,
                         double *, double *, double *, int *, int *)
 void *lammps_extract_atom(void *, char *)
 void *lammps_extract_compute(void *, char *, int, int)
@@ -2682,14 +2682,14 @@ bond_coeff      2 25.724 0.0 :pre
 
 When running dynamics with the adiabatic core/shell model, the
 following issues should be considered.  The relative motion of
-the core and shell particles corresponds to the polarization, 
-hereby an instantaneous relaxation of the shells is approximated 
+the core and shell particles corresponds to the polarization,
+hereby an instantaneous relaxation of the shells is approximated
 and a fast core/shell spring frequency ensures a nearly constant
-internal kinetic energy during the simulation. 
+internal kinetic energy during the simulation.
 Thermostats can alter this polarization behaviour, by scaling the
-internal kinetic energy, meaning the shell will not react freely to 
-its electrostatic environment. 
-Therefore it is typically desirable to decouple the relative motion of 
+internal kinetic energy, meaning the shell will not react freely to
+its electrostatic environment.
+Therefore it is typically desirable to decouple the relative motion of
 the core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the "compute
 temp/cs"_compute_temp_cs.html command can be used, in conjunction with
@@ -2721,13 +2721,13 @@ fix thermostatequ all nve                               # integrator as needed f
 fix_modify thermoberendsen temp CSequ
 thermo_modify temp CSequ                                # output of center-of-mass derived temperature :pre
 
-The pressure for the core/shell system is computed via the regular 
-LAMMPS convention by "treating the cores and shells as individual 
-particles"_#MitchellFincham2. For the thermo output of the pressure 
-as well as for the application of a barostat, it is necessary to 
-use an additional "pressure"_compute_pressure compute based on the 
-default "temperature"_compute_temp and specifying it as a second 
-argument in "fix modify"_fix_modify.html and 
+The pressure for the core/shell system is computed via the regular
+LAMMPS convention by "treating the cores and shells as individual
+particles"_#MitchellFincham2. For the thermo output of the pressure
+as well as for the application of a barostat, it is necessary to
+use an additional "pressure"_compute_pressure compute based on the
+default "temperature"_compute_temp and specifying it as a second
+argument in "fix modify"_fix_modify.html and
 "thermo_modify"_thermo_modify.html resulting in:
 
 (...)
@@ -2757,18 +2757,18 @@ temp/cs"_compute_temp_cs.html command to the {temp} keyword of the
 velocity all create 1427 134 bias yes temp CSequ
 velocity all scale 1427 temp CSequ :pre
 
-To maintain the correct polarizability of the core/shell pairs, the 
-kinetic energy of the internal motion shall remain nearly constant. 
-Therefore the choice of spring force and mass ratio need to ensure 
-much faster relative motion of the 2 atoms within the core/shell pair 
-than their center-of-mass velocity. This allows the shells to 
-effectively react instantaneously to the electrostatic environment and 
+To maintain the correct polarizability of the core/shell pairs, the
+kinetic energy of the internal motion shall remain nearly constant.
+Therefore the choice of spring force and mass ratio need to ensure
+much faster relative motion of the 2 atoms within the core/shell pair
+than their center-of-mass velocity. This allows the shells to
+effectively react instantaneously to the electrostatic environment and
 limits energy transfer to or from the core/shell oscillators.
 This fast movement also dictates the timestep that can be used.
 
 The primary literature of the adiabatic core/shell model suggests that
 the fast relative motion of the core/shell pairs only allows negligible
-energy transfer to the environment. 
+energy transfer to the environment.
 The mentioned energy transfer will typically lead to a small drift
 in total energy over time.  This internal energy can be monitored
 using the "compute chunk/atom"_compute_chunk_atom.html and "compute
@@ -2790,7 +2790,7 @@ pairs as chunks.
 
 For example if core/shell pairs are the only molecules:
 
-read_data NaCl_CS_x0.1_prop.data 
+read_data NaCl_CS_x0.1_prop.data
 compute prop all property/atom molecule
 compute cs_chunk all chunk/atom c_prop
 compute cstherm all temp/chunk cs_chunk temp internal com yes cdof 3.0     # note the chosen degrees of freedom for the core/shell pairs

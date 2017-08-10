@@ -6,11 +6,15 @@ The Voro++ library is available at http://math.lbl.gov/voro++ and was
 developed by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
 Laboratory.
 
+You can type "make lib-voronoi" from the src directory to see help on
+how to download and build this library via make commands, or you can
+do the same thing by typing "python Install.py" from within this
+directory, or you can do it manually by following the instructions
+below.
+
 -----------------
 
-You must perform the following steps yourself, or you can use the
-install.py Python script to automate any or all steps of the process.
-Type "python install.py" for instructions.
+Instructions:
 
 1.  Download Voro++ at http://math.lbl.gov/voro++/download
     either as a tarball or via SVN, and unpack the

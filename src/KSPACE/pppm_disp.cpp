@@ -121,6 +121,13 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
+  nfft_both = nfft_both_6 = 0;
+  nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
+  nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
+  nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
+  nxhi_in_6 = nxlo_in_6 = nxhi_out_6 = nxlo_out_6 = 0;
+  nyhi_in_6 = nylo_in_6 = nyhi_out_6 = nylo_out_6 = 0;
+  nzhi_in_6 = nzlo_in_6 = nzhi_out_6 = nzlo_out_6 = 0;
 
   csumflag = 0;
   B = NULL;
@@ -380,18 +387,18 @@ void PPPMDisp::init()
     alpha = qdist / (cos(0.5*theta) * blen);
   }
 
+  //if g_ewald and g_ewald_6 have not been specified, set some initial value
+  //  to avoid problems when calculating the energies!
+
+  if (!gewaldflag) g_ewald = 1;
+  if (!gewaldflag_6) g_ewald_6 = 1;
+
   // initialize the pair style to get the coefficients
 
   neighrequest_flag = 0;
   pair->init();
   neighrequest_flag = 1;
   init_coeffs();
-
-  //if g_ewald and g_ewald_6 have not been specified, set some initial value
-  //  to avoid problems when calculating the energies!
-
-  if (!gewaldflag) g_ewald = 1;
-  if (!gewaldflag_6) g_ewald_6 = 1;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 

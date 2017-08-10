@@ -111,6 +111,7 @@ Fixes :h1
    fix_press_berendsen
    fix_print
    fix_property_atom
+   fix_python
    fix_qbmsst
    fix_qeq
    fix_qeq_comb
@@ -155,6 +156,7 @@ Fixes :h1
    fix_viscosity
    fix_viscous
    fix_wall
+   fix_wall_ees
    fix_wall_gran
    fix_wall_gran_region
    fix_wall_piston

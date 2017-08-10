@@ -35,6 +35,6 @@ for file in *.cpp *.h; do
   elif (test $file = "pair_cdeam.h") then
     action pair_cdeam.h pair_eam_alloy.cpp
   else
-    action $file
+    test -f ${file} && action $file
   fi
 done

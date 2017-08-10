@@ -138,13 +138,14 @@ void EwaldDisp::init()
       nsums += n[k];
     }
 
-  if (!gewaldflag) g_ewald = 0.0;
+  if (!gewaldflag) g_ewald = g_ewald_6 = 1.0;
   pair->init();  // so B is defined
   init_coeffs();
   init_coeff_sums();
   if (function[0]) qsum_qsq();
   else qsqsum = qsum = 0.0;
   natoms_original = atom->natoms;
+  if (!gewaldflag) g_ewald = g_ewald_6 = 0.0;
 
   // turn off coulombic if no charge
 
@@ -218,8 +219,8 @@ void EwaldDisp::init()
   }
 
   if (!comm->me) {
-      if (screen) fprintf(screen, "  G vector = %g\n", g_ewald);
-      if (logfile) fprintf(logfile, "  G vector = %g\n", g_ewald);
+      if (screen) fprintf(screen, "  G vector = %g,   accuracy = %g\n", g_ewald,accuracy);
+      if (logfile) fprintf(logfile, "  G vector = %g   accuracy = %g\n", g_ewald,accuracy);
   }
 
   g_ewald_6 = g_ewald;

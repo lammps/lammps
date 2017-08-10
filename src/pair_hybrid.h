@@ -55,6 +55,9 @@ class PairHybrid : public Pair {
 
   int check_ijtype(int, int, char *);
 
+  virtual void add_tally_callback(class Compute *);
+  virtual void del_tally_callback(class Compute *);
+
  protected:
   int nstyles;                  // # of sub-styles
   Pair **styles;                // list of Pair style classes
@@ -69,6 +72,7 @@ class PairHybrid : public Pair {
   int ***map;                   // list of sub-styles itype,jtype points to
   double **special_lj;          // list of per style LJ exclusion factors
   double **special_coul;        // list of per style Coulomb exclusion factors
+  int *compute_tally;           // list of on/off flags for tally computes
 
   void allocate();
   void flags();

@@ -219,10 +219,10 @@ instead of using the virial equation. This option cannot be used to access
 individual components of the pressure tensor, to compute per-atom virial,
 or with suffix kspace/pair styles of MSM, like OMP or GPU.
 
-The {fftbench} keyword applies only to PPPM. It is on by default. If
-this option is turned off, LAMMPS will not take the time at the end
-of a run to give FFT benchmark timings, and will finish a few seconds
-faster than it would if this option were on.
+The {fftbench} keyword applies only to PPPM. It is off by default. If
+this option is turned on, LAMMPS will perform a short FFT benchmark
+computation and report its timings, and will thus finish a some seconds
+later than it would if this option were off.
 
 The {collective} keyword applies only to PPPM.  It is set to {no} by
 default, except on IBM BlueGene machines.  If this option is set to
@@ -290,9 +290,10 @@ to be specified using the {gewald/disp}, {mesh/disp},
 {force/disp/real} or {force/disp/kspace} keywords, or
 the code will stop with an error message. When this option is set to
 {yes}, the error message will not appear and the simulation will start.
-For a typical application, using the automatic parameter generation will provide
-simulations that are either inaccurate or slow. Using this option is thus not
-recommended. For guidelines on how to obtain good parameters, see the "How-To"_Section_howto.html#howto_23 discussion.
+For a typical application, using the automatic parameter generation
+will provide simulations that are either inaccurate or slow. Using this
+option is thus not recommended. For guidelines on how to obtain good
+parameters, see the "How-To"_Section_howto.html#howto_24 discussion.
 
 [Restrictions:] none
 
@@ -305,9 +306,10 @@ recommended. For guidelines on how to obtain good parameters, see the "How-To"_S
 The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
+yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff = ik
 (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
-split = 0, tol = 1.0e-6, and disp/auto = no.
+split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel, order =
+order/disp = 7.
 
 :line
 

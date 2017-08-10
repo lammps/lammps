@@ -10,28 +10,31 @@ neb command :h3
 
 [Syntax:]
 
-neb etol ftol N1 N2 Nevery file-style arg :pre
+neb etol ftol N1 N2 Nevery file-style arg keyword :pre
 
 etol = stopping tolerance for energy (energy units) :ulb,l
 ftol = stopping tolerance for force (force units) :l
 N1 = max # of iterations (timesteps) to run initial NEB :l
 N2 = max # of iterations (timesteps) to run barrier-climbing NEB :l
 Nevery = print replica energies and reaction coordinates every this many timesteps :l
-file-style= {final} or {each} or {none} :l
+file-style = {final} or {each} or {none} :l
   {final} arg = filename
     filename = file with initial coords for final replica
-      coords for intermediate replicas are linearly interpolated between first and last replica
+      coords for intermediate replicas are linearly interpolated
+      between first and last replica
   {each} arg = filename
-    filename = unique filename for each replica (except first) with its initial coords
-  {none} arg = no argument
-    all replicas assumed to already have their initial coords :pre
+    filename = unique filename for each replica (except first)
+      with its initial coords
+  {none} arg = no argument all replicas assumed to already have
+      their initial coords :pre
+keyword = {verbose}
 :ule
 
 [Examples:]
 
 neb 0.1 0.0 1000 500 50 final coords.final
 neb 0.0 0.001 1000 500 50 each coords.initial.$i
-neb 0.0 0.001 1000 500 50 none :pre
+neb 0.0 0.001 1000 500 50 none verbose :pre
 
 [Description:]
 
@@ -43,12 +46,12 @@ NEB is a method for finding both the atomic configurations and height
 of the energy barrier associated with a transition state, e.g. for an
 atom to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 3 papers: "(HenkelmanA)"_#HenkelmanA,
-"(HenkelmanB)"_#HenkelmanB, and "(Nakano)"_#Nakano3.
+follows the discussion in these 4 papers: "(HenkelmanA)"_#HenkelmanA,
+"(HenkelmanB)"_#HenkelmanB, "(Nakano)"_#Nakano3 and "(Maras)"_#Maras2.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.7"_Section_start.html#start_7 of the manual.
+switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
 Note that if you have MPI installed, you can run a multi-replica
 simulation with more replicas (partitions) than you have physical
 processors, e.g you can run a 10-replica simulation on just one or two
@@ -70,18 +73,17 @@ I.e. the simulation domain, the number of atoms, the interaction
 potentials, and the starting configuration when the neb command is
 issued should be the same for every replica.
 
-In a NEB calculation each atom in a replica is connected to the same
-atom in adjacent replicas by springs, which induce inter-replica
-forces.  These forces are imposed by the "fix neb"_fix_neb.html
-command, which must be used in conjunction with the neb command.  The
-group used to define the fix neb command defines the NEB atoms which
-are the only ones that inter-replica springs are applied to.  If the
-group does not include all atoms, then non-NEB atoms have no
-inter-replica springs and the forces they feel and their motion is
-computed in the usual way due only to other atoms within their
-replica.  Conceptually, the non-NEB atoms provide a background force
-field for the NEB atoms.  They can be allowed to move during the NEB
-minimization procedure (which will typically induce different
+In a NEB calculation each replica is connected to other replicas by
+inter-replica nudging forces.  These forces are imposed by the "fix
+neb"_fix_neb.html command, which must be used in conjunction with the
+neb command.  The group used to define the fix neb command defines the
+NEB atoms which are the only ones that inter-replica springs are
+applied to.  If the group does not include all atoms, then non-NEB
+atoms have no inter-replica springs and the forces they feel and their
+motion is computed in the usual way due only to other atoms within
+their replica.  Conceptually, the non-NEB atoms provide a background
+force field for the NEB atoms.  They can be allowed to move during the
+NEB minimization procedure (which will typically induce different
 coordinates for non-NEB atoms in different replicas), or held fixed
 using other LAMMPS commands such as "fix setforce"_fix_setforce.html.
 Note that the "partition"_partition.html command can be used to invoke
@@ -93,33 +95,18 @@ specified in different manners via the {file-style} setting, as
 discussed below.  Only atoms whose initial coordinates should differ
 from the current configuration need be specified.
 
-Conceptually, the initial configuration for the first replica should
-be a state with all the atoms (NEB and non-NEB) having coordinates on
-one side of the energy barrier.  A perfect energy minimum is not
-required, since atoms in the first replica experience no spring forces
-from the 2nd replica.  Thus the damped dynamics minimization will
-drive the first replica to an energy minimum if it is not already
-there.  However, you will typically get better convergence if the
-initial state is already at a minimum.  For example, for a system with
-a free surface, the surface should be fully relaxed before attempting
-a NEB calculation.
-
-Likewise, the initial configuration of the final replica should be a
-state with all the atoms (NEB and non-NEB) on the other side of the
-energy barrier.  Again, a perfect energy minimum is not required,
-since the atoms in the last replica also experience no spring forces
-from the next-to-last replica, and thus the damped dynamics
-minimization will drive it to an energy minimum.
+Conceptually, the initial and final configurations for the first
+replica should be states on either side of an energy barrier.
 
 As explained below, the initial configurations of intermediate
 replicas can be atomic coordinates interpolated in a linear fashion
-between the first and last replicas.  This is often adequate state for
+between the first and last replicas.  This is often adequate for
 simple transitions.  For more complex transitions, it may lead to slow
 convergence or even bad results if the minimum energy path (MEP, see
 below) of states over the barrier cannot be correctly converged to
-from such an initial configuration.  In this case, you will want to
-generate initial states for the intermediate replicas that are
-geometrically closer to the MEP and read them in.
+from such an initial path.  In this case, you will want to generate
+initial states for the intermediate replicas that are geometrically
+closer to the MEP and read them in.
 
 :line
 
@@ -135,10 +122,11 @@ is assigned to be a fraction of the distance.  E.g. if there are 10
 replicas, the 2nd replica will assign a position that is 10% of the
 distance along a line between the starting and final point, and the
 9th replica will assign a position that is 90% of the distance along
-the line.  Note that this procedure to produce consistent coordinates
-across all the replicas, the current coordinates need to be the same
-in all replicas.  LAMMPS does not check for this, but invalid initial
-configurations will likely result if it is not the case.
+the line.  Note that for this procedure to produce consistent
+coordinates across all the replicas, the current coordinates need to
+be the same in all replicas.  LAMMPS does not check for this, but
+invalid initial configurations will likely result if it is not the
+case.
 
 NOTE: The "distance" between the starting and final point is
 calculated in a minimum-image sense for a periodic simulation box.
@@ -150,8 +138,8 @@ interpolation is outside the periodic box, the atom will be wrapped
 back into the box when the NEB calculation begins.
 
 For a {file-style} setting of {each}, a filename is specified which is
-assumed to be unique to each replica.  This can be done by
-using a variable in the filename, e.g.
+assumed to be unique to each replica.  This can be done by using a
+variable in the filename, e.g.
 
 variable i equal part
 neb 0.0 0.001 1000 500 50 each coords.initial.$i :pre
@@ -198,11 +186,10 @@ The minimizer tolerances for energy and force are set by {etol} and
 A non-zero {etol} means that the NEB calculation will terminate if the
 energy criterion is met by every replica.  The energies being compared
 to {etol} do not include any contribution from the inter-replica
-forces, since these are non-conservative.  A non-zero {ftol} means
-that the NEB calculation will terminate if the force criterion is met
-by every replica.  The forces being compared to {ftol} include the
-inter-replica forces between an atom and its images in adjacent
-replicas.
+nudging forces, since these are non-conservative.  A non-zero {ftol}
+means that the NEB calculation will terminate if the force criterion
+is met by every replica.  The forces being compared to {ftol} include
+the inter-replica nudging forces.
 
 The maximum number of iterations in each stage is set by {N1} and
 {N2}.  These are effectively timestep counts since each iteration of
@@ -220,27 +207,27 @@ finding a good energy barrier.  {N1} and {N2} must both be multiples
 of {Nevery}.
 
 In the first stage of NEB, the set of replicas should converge toward
-the minimum energy path (MEP) of conformational states that transition
-over the barrier.  The MEP for a barrier is defined as a sequence of
-3N-dimensional states that cross the barrier at its saddle point, each
-of which has a potential energy gradient parallel to the MEP itself.
-The replica states will also be roughly equally spaced along the MEP
-due to the inter-replica spring force added by the "fix
-neb"_fix_neb.html command.
+a minimum energy path (MEP) of conformational states that transition
+over a barrier.  The MEP for a transition is defined as a sequence of
+3N-dimensional states, each of which has a potential energy gradient
+parallel to the MEP itself.  The configuration of highest energy along
+a MEP corresponds to a saddle point.  The replica states will also be
+roughly equally spaced along the MEP due to the inter-replica nugding
+force added by the "fix neb"_fix_neb.html command.
 
-In the second stage of NEB, the replica with the highest energy
-is selected and the inter-replica forces on it are converted to a
-force that drives its atom coordinates to the top or saddle point of
-the barrier, via the barrier-climbing calculation described in
+In the second stage of NEB, the replica with the highest energy is
+selected and the inter-replica forces on it are converted to a force
+that drives its atom coordinates to the top or saddle point of the
+barrier, via the barrier-climbing calculation described in
 "(HenkelmanB)"_#HenkelmanB.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
 When both stages are complete, if the NEB calculation was successful,
-one of the replicas should be an atomic configuration at the top or
-saddle point of the barrier, the potential energies for the set of
-replicas should represent the energy profile of the barrier along the
-MEP, and the configurations of the replicas should be a sequence of
-configurations along the MEP.
+the configurations of the replicas should be along (close to) the MEP
+and the replica with the highest energy should be an atomic
+configuration at (close to) the saddle point of the transition. The
+potential energies for the set of replicas represents the energy
+profile of the transition along the MEP.
 
 :line
 
@@ -284,9 +271,9 @@ ID2 x2 y2 z2
 ...
 IDN xN yN zN :pre
 
-The fields are the atom ID, followed by the x,y,z coordinates.
-The lines can be listed in any order.  Additional trailing information
-on the line is OK, such as a comment.
+The fields are the atom ID, followed by the x,y,z coordinates.  The
+lines can be listed in any order.  Additional trailing information on
+the line is OK, such as a comment.
 
 Note that for a typical NEB calculation you do not need to specify
 initial coordinates for very many atoms to produce differing starting
@@ -310,38 +297,54 @@ this case), the print-out to the screen and master log.lammps file
 contains a line of output, printed once every {Nevery} timesteps.  It
 contains the timestep, the maximum force per replica, the maximum
 force per atom (in any replica), potential gradients in the initial,
-final, and climbing replicas, the forward and backward energy barriers,
-the total reaction coordinate (RDT), and the normalized reaction
-coordinate and potential energy of each replica.
+final, and climbing replicas, the forward and backward energy
+barriers, the total reaction coordinate (RDT), and the normalized
+reaction coordinate and potential energy of each replica.
 
-The "maximum force per replica" is
-the two-norm of the 3N-length force vector for the atoms in each
-replica, maximized across replicas, which is what the {ftol} setting
-is checking against.  In this case, N is all the atoms in each
-replica.  The "maximum force per atom" is the maximum force component
-of any atom in any replica.  The potential gradients are the two-norm
-of the 3N-length force vector solely due to the interaction potential i.e.
-without adding in inter-replica forces. Note that inter-replica forces
-are zero in the initial and final replicas, and only affect
-the direction in the climbing replica. For this reason, the "maximum
-force per replica" is often equal to the potential gradient in the
-climbing replica. In the first stage of NEB, there is no climbing
-replica, and so the potential gradient in the highest energy replica
-is reported, since this replica will become the climbing replica
-in the second stage of NEB.
+The "maximum force per replica" is the two-norm of the 3N-length force
+vector for the atoms in each replica, maximized across replicas, which
+is what the {ftol} setting is checking against.  In this case, N is
+all the atoms in each replica.  The "maximum force per atom" is the
+maximum force component of any atom in any replica.  The potential
+gradients are the two-norm of the 3N-length force vector solely due to
+the interaction potential i.e.  without adding in inter-replica
+forces.
 
-The "reaction coordinate" (RD) for each
-replica is the two-norm of the 3N-length vector of distances between
-its atoms and the preceding replica's atoms, added to the RD of the
-preceding replica. The RD of the first replica RD1 = 0.0;
-the RD of the final replica RDN = RDT, the total reaction coordinate.
-The normalized RDs are divided by RDT,
-so that they form a monotonically increasing sequence
-from zero to one. When computing RD, N only includes the atoms
-being operated on by the fix neb command.
+The "reaction coordinate" (RD) for each replica is the two-norm of the
+3N-length vector of distances between its atoms and the preceding
+replica's atoms, added to the RD of the preceding replica. The RD of
+the first replica RD1 = 0.0; the RD of the final replica RDN = RDT,
+the total reaction coordinate.  The normalized RDs are divided by RDT,
+so that they form a monotonically increasing sequence from zero to
+one. When computing RD, N only includes the atoms being operated on by
+the fix neb command.
 
-The forward (reverse) energy barrier is the potential energy of the highest
-replica minus the energy of the first (last) replica.
+The forward (reverse) energy barrier is the potential energy of the
+highest replica minus the energy of the first (last) replica.
+
+Supplementary informations for all replicas can be printed out to the
+screen and master log.lammps file by adding the verbose keyword. These
+informations include the following.  The "path angle" (pathangle) for
+the replica i which is the angle between the 3N-length vectors (Ri-1 -
+Ri) and (Ri+1 - Ri) (where Ri is the atomic coordinates of replica
+i). A "path angle" of 180 indicates that replicas i-1, i and i+1 are
+aligned.  "angletangrad" is the angle between the 3N-length tangent
+vector and the 3N-length force vector at image i. The tangent vector
+is calculated as in "(HenkelmanA)"_#HenkelmanA for all intermediate
+replicas and at R2 - R1 and RM - RM-1 for the first and last replica,
+respectively.  "anglegrad" is the angle between the 3N-length energy
+gradient vector of replica i and that of replica i+1. It is not
+defined for the final replica and reads nan.  gradV is the norm of the
+energy gradient of image i.  ReplicaForce is the two-norm of the
+3N-length force vector (including nudging forces) for replica i.
+MaxAtomForce is the maximum force component of any atom in replica i.
+
+When a NEB calculation does not converge properly, these suplementary
+informations can help understanding what is going wrong. For instance
+when the path angle becomes accute the definition of tangent used in
+the NEB calculation is questionable and the NEB cannot may diverge
+"(Maras)"_#Maras2.
+
 
 When running on multiple partitions, LAMMPS produces additional log
 files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For a
@@ -396,12 +399,16 @@ This command can only be used if LAMMPS was built with the REPLICA
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info on packages.
 
+:line
+
 [Related commands:]
 
-"prd"_prd.html, "temper"_temper.html, "fix
-langevin"_fix_langevin.html, "fix viscous"_fix_viscous.html
+"prd"_prd.html, "temper"_temper.html, "fix langevin"_fix_langevin.html,
+"fix viscous"_fix_viscous.html
 
-[Default:] none
+[Default:]
+
+none
 
 :line
 
@@ -414,3 +421,7 @@ langevin"_fix_langevin.html, "fix viscous"_fix_viscous.html
 
 :link(Nakano3)
 [(Nakano)] Nakano, Comp Phys Comm, 178, 280-289 (2008).
+
+:link(Maras2)
+[(Maras)] Maras, Trushin, Stukowski, Ala-Nissila, Jonsson,
+Comp Phys Comm, 205, 13-21 (2016)

@@ -25,6 +25,7 @@
 #include <string.h>
 #include "pair_lj_charmmfsw_coul_long.h"
 #include "atom.h"
+#include "update.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
@@ -57,6 +58,19 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
+
+  // short-range/long-range flag accessed by DihedralCharmmfsw
+
+  dihedflag = 1;
+
+  // switch qqr2e from LAMMPS value to CHARMM value
+
+  if (strcmp(update->unit_style,"real") == 0) {
+    if ((comm->me == 0) && (force->qqr2e != force->qqr2e_charmm_real))
+      error->message(FLERR,"Switching to CHARMM coulomb energy"
+                     " conversion constant");
+    force->qqr2e = force->qqr2e_charmm_real;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,6 +96,15 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
       memory->destroy(lj14_4);
     }
     if (ftable) free_tables();
+  }
+
+  // switch qqr2e back from CHARMM value to LAMMPS value
+
+  if (update && strcmp(update->unit_style,"real") == 0) {
+    if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
+      error->message(FLERR,"Restoring original LAMMPS coulomb energy"
+                     " conversion constant");
+    force->qqr2e = force->qqr2e_lammps_real;
   }
 }
 
@@ -669,10 +692,6 @@ void PairLJCharmmfswCoulLong::settings(int narg, char **arg)
   cut_lj = force->numeric(FLERR,arg[1]);
   if (narg == 2) cut_coul = cut_lj;
   else cut_coul = force->numeric(FLERR,arg[2]);
-
-  // indicates pair_style being used for dihedral_charmm
-
-  dihedflag = 1;
 }
 
 /* ----------------------------------------------------------------------

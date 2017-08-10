@@ -14,7 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing author: Ase Henry (MIT)
    Bugfixes and optimizations:
-     Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
+     Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U),
+     Markus Hoehnerbach (RWTH Aachen), Cyril Falvo (Universite Paris Sud)
    AIREBO-M modification to optionally replace LJ with Morse potentials.
      Thomas C. O'Connor (JHU) 2014
 ------------------------------------------------------------------------- */
@@ -68,6 +69,10 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   nC = nH = NULL;
   map = NULL;
   manybody_flag = 1;
+
+  sigwid = 0.84;
+  sigcut = 3.0;
+  sigmin = sigcut - sigwid;
 }
 
 /* ----------------------------------------------------------------------
@@ -147,18 +152,24 @@ void PairAIREBO::allocate()
 
 void PairAIREBO::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1 && narg != 3 && narg != 4)
+    error->all(FLERR,"Illegal pair_style command");
 
   cutlj = force->numeric(FLERR,arg[0]);
 
-  if (narg == 3) {
+  if (narg >= 3) {
     ljflag = force->inumeric(FLERR,arg[1]);
     torflag = force->inumeric(FLERR,arg[2]);
+  }
+  if (narg == 4) {
+    sigcut = cutlj;
+    sigmin = force->numeric(FLERR,arg[3]);
+    sigwid = sigcut - sigmin;
   }
 
   // this one parameter for C-C interactions is different in AIREBO vs REBO
   // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-  
+
   PCCf_2_0 = -0.0276030;
 }
 
@@ -523,7 +534,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   double delij[3],rijsq,delik[3],rik,deljk[3];
   double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
   double vdw,slw,dvdw,dslw,drij,swidth,tee,tee2;
-  double rljmin,rljmax,sigcut,sigmin,sigwid;
+  double rljmin,rljmax;
   double delkm[3],rkm,deljm[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *REBO_neighs_i,*REBO_neighs_k;
@@ -539,10 +550,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   evdwl = 0.0;
   rljmin = 0.0;
   rljmax = 0.0;
-  sigcut = 0.0;
-  sigmin = 0.0;
-  sigwid = 0.0;
-
 
   double **x = atom->x;
   double **f = atom->f;
@@ -735,10 +742,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       if (cij == 0.0) continue;
 
       // compute LJ forces and energy
-
-      sigwid = 0.84;
-      sigcut = 3.0;
-      sigmin = sigcut - sigwid;
 
       rljmin = sigma[itype][jtype];
       rljmax = sigcut * rljmin;
@@ -1271,7 +1274,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
   double cross321[3],cross234[3],prefactor,SpN;
   double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
-  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
+  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
   double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
   double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
@@ -1335,7 +1338,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[0] = 0.0;
   dN2[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
-  pij = pow(1.0+Etmp+PijS,-0.5);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmp = -0.5*cube(pij);
 
   // pij forces
@@ -1480,7 +1483,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[0] = 0.0;
   dN2[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
-  pji = pow(1.0+Etmp+PjiS,-0.5);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmp = -0.5*cube(pji);
 
   REBO_neighs = REBO_firstneigh[j];
@@ -1615,6 +1618,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
       if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+      // due to kronecker(ktype, 0) term in contribution
+      // to NconjtmpI and later Nijconj
+      if (ktype != 0) continue;
+
       tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
       f[atomi][0] -= tmp2*rik[0];
       f[atomi][1] -= tmp2*rik[1];
@@ -1677,6 +1684,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
       f[atoml][2] += tmp2*rjl[2];
 
       if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+
+      // due to kronecker(ltype, 0) term in contribution
+      // to NconjtmpJ and later Nijconj
+      if (ltype != 0) continue;
 
       tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
       f[atomj][0] -= tmp2*rjl[0];
@@ -1848,9 +1859,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
                 aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                   (1.0-tspjik)*(1.0-tspijl);
-                aaa1 = -prefactor*(1.0-square(om1234)) *
-                  (1.0-tspjik)*(1.0-tspijl);
-                aaa2 = aaa1*w21*w34;
+                aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
                 at2 = aa*cwnum;
 
                 fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
@@ -1960,6 +1969,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
         if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
         f[atomi][0] -= tmp2*rik[0];
         f[atomi][1] -= tmp2*rik[1];
@@ -2023,6 +2036,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
         if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
 
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
         f[atomj][0] -= tmp2*rjl[0];
         f[atomj][1] -= tmp2*rjl[1];
@@ -2067,46 +2084,70 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
 /* ----------------------------------------------------------------------
    Bij* function
-------------------------------------------------------------------------- */
+------------------------------------------------------------------------- 
 
-double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
-                               double VA, double rij0[3], double rij0mag,
+This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
+To do so, it needs to compute b_ij*, i.e. the bondorder given that the
+atoms i and j are placed a ficticious distance rijmag_mod apart.
+Now there are two approaches to calculate the resulting forces:
+1. Carry through the ficticious distance and corresponding vector
+   rij_mod, correcting afterwards using the derivative of r/|r|.
+2. Perform all the calculations using the real distance, and do not
+   use a correction, only using rijmag_mod where necessary.
+This code opts for (2). Mathematically, the approaches are equivalent
+if implemented correctly, since in terms where only the normalized
+vector is used, both calculations necessarily lead to the same result
+since if f(x) = g(x/|x|) then for x = y/|y| f(x) = g(y/|y|/1).
+The actual modified distance is only used in the lamda terms.
+Note that these do not contribute to the forces between i and j, since
+rijmag_mod is a constant and the corresponding derivatives are
+accordingly zero.
+This function should be kept in sync with bondorder(), i.e. changes
+there probably also need to be performed here.
+
+The OpenKIM Fortran implementation chooses option (1) instead, which
+means that the internal values computed by the two codes are not
+directly comparable.
+Note that of 7/2017 the OpenKIM code contains an issue where the it
+assumes dt2dij[] to be zero (since it is a r_ij derivative). This is
+incorrect since dt2dij is not a derivative of the scalar distance r_ij,
+but of the vector r_ij.
+
+*/
+
+double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mod,
+                               double VA, double rij[3], double rijmag,
                                double **f, int vflag_atom)
 {
-  int k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
-  int atomi,atomj,itype,jtype,ktype,ltype,ntype;
-  double rik[3], rjl[3], rkn[3],rknmag,dNki;
+  int atomi,atomj,k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
+  int itype,jtype,ktype,ltype,ntype;
+  double rik[3],rjl[3],rkn[3],rji[3],rki[3],rlj[3],rknmag,dNki,dwjl,bij;
   double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
   double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
-  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ;
-  double Nki,Nlj,dS,lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
+  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ,Nki,Nlj,dS;
+  double lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
   double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
   double dN2[2],dN3[3];
-  double dcosijldrj[3],dcosijldrl[3],dcosjikdrj[3],dwjl;
-  double Tij,crosskij[3],crosskijmag;
-  double crossijl[3],crossijlmag,omkijl;
-  double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
-  double bij,tmp3pij,tmp3pji,Stb,dStb;
-  double r32[3],r32mag,cos321;
+  double dcosjikdrj[3],dcosijldrj[3],dcosijldrl[3];
+  double Tij;
+  double r32[3],r32mag,cos321,r43[3],r13[3];
+  double dNlj;
   double om1234,rln[3];
   double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
   double cross321[3],cross234[3],prefactor,SpN;
-  double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
-  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
+  double fcikpc,fcjlpc,fcjkpc,fcilpc,fcijpc;
+  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
   double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
   double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
-  double dNlj;
+  double F23[3],F12[3],F34[3],F31[3],F24[3],fi[3],fj[3],fk[3],fl[3];
+  double f1[3],f2[3],f3[3],f4[4];
   double PijS,PjiS;
   double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
   int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
-  double F12[3],F23[3],F34[3],F31[3],F24[3];
-  double fi[3],fj[3],fk[3],fl[3],f1[3],f2[3],f3[3],f4[4];
-  double rji[3],rki[3],rlj[3],r13[3],r43[3];
-  double realrij[3], realrijmag;
-  double rjkmag, rilmag, dctdjk, dctdik, dctdil, dctdjl;
-  double fjk[3], fil[3], rijmbr;
+  double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
+  double tmp3pij,tmp3pji,Stb,dStb;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -2115,12 +2156,11 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   atomj = j;
   itype = map[type[atomi]];
   jtype = map[type[atomj]];
-  wij = Sp(rij0mag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+  wij = Sp(rijmag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
   NijC = nC[atomi]-(wij*kronecker(jtype,0));
   NijH = nH[atomi]-(wij*kronecker(jtype,1));
   NjiC = nC[atomj]-(wij*kronecker(itype,0));
   NjiH = nH[atomj]-(wij*kronecker(itype,1));
-
   bij = 0.0;
   tmp = 0.0;
   tmp2 = 0.0;
@@ -2133,12 +2173,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   Stb = 0.0;
   dStb = 0.0;
 
-  realrij[0] = x[atomi][0] - x[atomj][0];
-  realrij[1] = x[atomi][1] - x[atomj][1];
-  realrij[2] = x[atomi][2] - x[atomj][2];
-  realrijmag = sqrt(realrij[0] * realrij[0] + realrij[1] * realrij[1] 
-                                            + realrij[2] * realrij[2]);
-
   REBO_neighs = REBO_firstneigh[i];
   for (k = 0; k < REBO_numneigh[i]; k++) {
     atomk = REBO_neighs[k];
@@ -2149,9 +2183,9 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
       rik[2] = x[atomi][2]-x[atomk][2];
       rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
       lamdajik = 4.0*kronecker(itype,1) *
-        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
+        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag_mod));
       wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
-      Nki = nC[atomk]-(wik*kronecker(itype,0)) +
+      Nki = nC[atomk]-(wik*kronecker(itype,0))+
         nH[atomk]-(wik*kronecker(itype,1));
       cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
         (rijmag*rikmag);
@@ -2171,9 +2205,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PIJ[0] = 0.0;
   dN2PIJ[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
-  pij = pow(1.0+Etmp+PijS,-0.5);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmppij = -.5*cube(pij);
   tmp3pij = tmp3;
+
   tmp = 0.0;
   tmp2 = 0.0;
   tmp3 = 0.0;
@@ -2189,7 +2224,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
       rjl[2] = x[atomj][2]-x[atoml][2];
       rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
       lamdaijl = 4.0*kronecker(jtype,1) *
-        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
+        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag_mod));
       wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
       Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
         (wjl*kronecker(jtype,1));
@@ -2211,7 +2246,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PJI[0] = 0.0;
   dN2PJI[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
-  pji = pow(1.0+Etmp+PjiS,-0.5);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmppji = -.5*cube(pji);
   tmp3pji = tmp3;
 
@@ -2219,82 +2254,80 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
   Nijconj = 1.0+(NconjtmpI*NconjtmpI)+(NconjtmpJ*NconjtmpJ);
   piRC = piRCSpline(NijC+NijH,NjiC+NjiH,Nijconj,itype,jtype,dN3piRC);
+
   Tij = 0.0;
   dN3Tij[0] = 0.0;
   dN3Tij[1] = 0.0;
   dN3Tij[2] = 0.0;
   if (itype == 0 && jtype == 0)
     Tij=TijSpline((NijC+NijH),(NjiC+NjiH),Nijconj,dN3Tij);
-
   Etmp = 0.0;
+
   if (fabs(Tij) > TOL) {
+    atom2 = atomi;
+    atom3 = atomj;
+    r32[0] = x[atom3][0]-x[atom2][0];
+    r32[1] = x[atom3][1]-x[atom2][1];
+    r32[2] = x[atom3][2]-x[atom2][2];
+    r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
+    r23[0] = -r32[0];
+    r23[1] = -r32[1];
+    r23[2] = -r32[2];
+    r23mag = r32mag;
     REBO_neighs_i = REBO_firstneigh[i];
     for (k = 0; k < REBO_numneigh[i]; k++) {
       atomk = REBO_neighs_i[k];
+      atom1 = atomk;
       ktype = map[type[atomk]];
       if (atomk != atomj) {
-        rik[0] = x[atomi][0]-x[atomk][0];
-        rik[1] = x[atomi][1]-x[atomk][1];
-        rik[2] = x[atomi][2]-x[atomk][2];
-        rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-        cos321 = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
-          (rijmag*rikmag);
+        r21[0] = x[atom2][0]-x[atom1][0];
+        r21[1] = x[atom2][1]-x[atom1][1];
+        r21[2] = x[atom2][2]-x[atom1][2];
+        r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
+        cos321 = -1.0*((r21[0]*r32[0])+(r21[1]*r32[1])+(r21[2]*r32[2])) /
+          (r21mag*r32mag);
         cos321 = MIN(cos321,1.0);
         cos321 = MAX(cos321,-1.0);
+        sin321 = sqrt(1.0 - cos321*cos321);
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21); 
+          tspjik = Sp2(cos321,thmin,thmax,dtsjik);
 
-        rjk[0] = rik[0]-rij[0];
-        rjk[1] = rik[1]-rij[1];
-        rjk[2] = rik[2]-rij[2];
-        rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
-        rij2 = rijmag*rijmag;
-        rik2 = rikmag*rikmag;
-        costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
-        tspjik = Sp2(costmp,thmin,thmax,dtsjik);
-
-        if (sqrt(1.0 - cos321*cos321) > sqrt(TOL)) {
-          wik = Sp(rikmag,rcmin[itype][ktype],rcmaxp[itype][ktype],dwik);
           REBO_neighs_j = REBO_firstneigh[j];
           for (l = 0; l < REBO_numneigh[j]; l++) {
             atoml = REBO_neighs_j[l];
+            atom4 = atoml;
             ltype = map[type[atoml]];
             if (!(atoml == atomi || atoml == atomk)) {
-              rjl[0] = x[atomj][0]-x[atoml][0];
-              rjl[1] = x[atomj][1]-x[atoml][1];
-              rjl[2] = x[atomj][2]-x[atoml][2];
-              rjlmag = sqrt(rjl[0]*rjl[0] + rjl[1]*rjl[1] + rjl[2]*rjl[2]);
-              cos234 = -((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
-                (rijmag*rjlmag);
+              r34[0] = x[atom3][0]-x[atom4][0];
+              r34[1] = x[atom3][1]-x[atom4][1];
+              r34[2] = x[atom3][2]-x[atom4][2];
+              r34mag = sqrt((r34[0]*r34[0])+(r34[1]*r34[1])+(r34[2]*r34[2]));
+              cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
+                (r32mag*r34mag);
               cos234 = MIN(cos234,1.0);
               cos234 = MAX(cos234,-1.0);
+              sin234 = sqrt(1.0 - cos234*cos234);
 
-              ril[0] = rij[0]+rjl[0];
-              ril[1] = rij[1]+rjl[1];
-              ril[2] = rij[2]+rjl[2];
-              ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-              rjl2 = rjlmag*rjlmag;
-              costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
-              tspijl = Sp2(costmp,thmin,thmax,dtsijl);
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
+                tspijl = Sp2(cos234,thmin,thmax,dtsijl);
 
-              if (sqrt(1.0 - cos234*cos234) > sqrt(TOL)) {
-                wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dS);
-                crosskij[0] = (rij[1]*rik[2]-rij[2]*rik[1]);
-                crosskij[1] = (rij[2]*rik[0]-rij[0]*rik[2]);
-                crosskij[2] = (rij[0]*rik[1]-rij[1]*rik[0]);
-                crosskijmag = sqrt(crosskij[0]*crosskij[0] +
-                                   crosskij[1]*crosskij[1] +
-                                   crosskij[2]*crosskij[2]);
-                crossijl[0] = (rij[1]*rjl[2]-rij[2]*rjl[1]);
-                crossijl[1] = (rij[2]*rjl[0]-rij[0]*rjl[2]);
-                crossijl[2] = (rij[0]*rjl[1]-rij[1]*rjl[0]);
-                crossijlmag = sqrt(crossijl[0]*crossijl[0] +
-                                   crossijl[1]*crossijl[1] +
-                                   crossijl[2]*crossijl[2]);
-                omkijl = -1.0*(((crosskij[0]*crossijl[0]) +
-                                (crosskij[1]*crossijl[1]) +
-                                (crosskij[2]*crossijl[2])) /
-                               (crosskijmag*crossijlmag));
-                Etmp += ((1.0-square(omkijl))*wik*wjl) *
+                cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
+                cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
+                cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
+                cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
+                cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
+                cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
+
+                cwnum = (cross321[0]*cross234[0]) +
+                  (cross321[1]*cross234[1]) + (cross321[2]*cross234[2]);
+                cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
+                om1234 = cwnum/cwnom;
+                cw = om1234;
+                Etmp += ((1.0-square(om1234))*w21*w34) *
                   (1.0-tspjik)*(1.0-tspijl);
+
               }
             }
           }
@@ -2326,50 +2359,43 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         rik[2] = x[atomi][2]-x[atomk][2];
         rikmag = sqrt(rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2]);
         lamdajik = 4.0*kronecker(itype,1) *
-          ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
+          ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag_mod));
         wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-        rjk[0] = rik[0] - rij[0];
-        rjk[1] = rik[1] - rij[1];
-        rjk[2] = rik[2] - rij[2];
-        rjkmag = sqrt(rjk[0] * rjk[0] + rjk[1] * rjk[1] + rjk[2] * rjk[2]);
-        rijrik = 2 * rijmag * rikmag;
-        rr = rijmag * rijmag - rikmag * rikmag;
-        cosjik = (rijmag * rijmag + rikmag * rikmag - rjkmag * rjkmag) / rijrik;
+        cosjik = (rij[0]*rik[0] + rij[1]*rik[1] + rij[2]*rik[2]) /
+          (rijmag*rikmag);
         cosjik = MIN(cosjik,1.0);
         cosjik = MAX(cosjik,-1.0);
-        dctdjk = -2 / rijrik;
-        dctdik = (-rr + rjkmag * rjkmag) / (rijrik * rikmag * rikmag);
-        // evaluate splines g and derivatives dg
+
+        dcosjikdri[0] = ((rij[0]+rik[0])/(rijmag*rikmag)) -
+          (cosjik*((rij[0]/(rijmag*rijmag))+(rik[0]/(rikmag*rikmag))));
+        dcosjikdri[1] = ((rij[1]+rik[1])/(rijmag*rikmag)) -
+          (cosjik*((rij[1]/(rijmag*rijmag))+(rik[1]/(rikmag*rikmag))));
+        dcosjikdri[2] = ((rij[2]+rik[2])/(rijmag*rikmag)) -
+          (cosjik*((rij[2]/(rijmag*rijmag))+(rik[2]/(rikmag*rikmag))));
+        dcosjikdrk[0] = (-rij[0]/(rijmag*rikmag)) +
+          (cosjik*(rik[0]/(rikmag*rikmag)));
+        dcosjikdrk[1] = (-rij[1]/(rijmag*rikmag)) +
+          (cosjik*(rik[1]/(rikmag*rikmag)));
+        dcosjikdrk[2] = (-rij[2]/(rijmag*rikmag)) +
+          (cosjik*(rik[2]/(rikmag*rikmag)));
+        dcosjikdrj[0] = (-rik[0]/(rijmag*rikmag)) +
+          (cosjik*(rij[0]/(rijmag*rijmag)));
+        dcosjikdrj[1] = (-rik[1]/(rijmag*rikmag)) +
+          (cosjik*(rij[1]/(rijmag*rijmag)));
+        dcosjikdrj[2] = (-rik[2]/(rijmag*rikmag)) +
+          (cosjik*(rij[2]/(rijmag*rijmag)));
 
         g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-
         tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
-
-        fi[0] = -tmp2 * dctdik * rik[0];
-        fi[1] = -tmp2 * dctdik * rik[1];
-        fi[2] = -tmp2 * dctdik * rik[2];
-        fk[0] =  tmp2 * dctdik * rik[0];
-        fk[1] =  tmp2 * dctdik * rik[1];
-        fk[2] =  tmp2 * dctdik * rik[2];
-        fj[0] = 0;
-        fj[1] = 0;
-        fj[2] = 0;
-        fjk[0] = -tmp2 * dctdjk * rjk[0];
-        fjk[1] = -tmp2 * dctdjk * rjk[1];
-        fjk[2] = -tmp2 * dctdjk * rjk[2];
-        fi[0] += fjk[0];
-        fi[1] += fjk[1];
-        fi[2] += fjk[2];
-        fk[0] -= fjk[0];
-        fk[1] -= fjk[1];
-        fk[2] -= fjk[2];
-        rijmbr = rcmin[itype][jtype] / realrijmag;
-        fj[0] += rijmbr * (fjk[0] - (realrij[0] * realrij[0] * fjk[0] + realrij[0] * realrij[1] * fjk[1] + realrij[0] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fj[1] += rijmbr * (fjk[1] - (realrij[1] * realrij[0] * fjk[0] + realrij[1] * realrij[1] * fjk[1] + realrij[1] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fj[2] += rijmbr * (fjk[2] - (realrij[2] * realrij[0] * fjk[0] + realrij[2] * realrij[1] * fjk[1] + realrij[2] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fi[0] -= rijmbr * (fjk[0] - (realrij[0] * realrij[0] * fjk[0] + realrij[0] * realrij[1] * fjk[1] + realrij[0] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fi[1] -= rijmbr * (fjk[1] - (realrij[1] * realrij[0] * fjk[0] + realrij[1] * realrij[1] * fjk[1] + realrij[1] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
-        fi[2] -= rijmbr * (fjk[2] - (realrij[2] * realrij[0] * fjk[0] + realrij[2] * realrij[1] * fjk[1] + realrij[2] * realrij[2] * fjk[2]) / (realrijmag * realrijmag));
+        fj[0] = -tmp2*dcosjikdrj[0];
+        fj[1] = -tmp2*dcosjikdrj[1];
+        fj[2] = -tmp2*dcosjikdrj[2];
+        fi[0] = -tmp2*dcosjikdri[0];
+        fi[1] = -tmp2*dcosjikdri[1];
+        fi[2] = -tmp2*dcosjikdri[2];
+        fk[0] = -tmp2*dcosjikdrk[0];
+        fk[1] = -tmp2*dcosjikdrk[1];
+        fk[2] = -tmp2*dcosjikdrk[2];
 
         tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
         fi[0] += tmp2*(rik[0]/rikmag);
@@ -2427,6 +2453,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
     tmp3 = tmp3pji;
     dN2[0] = dN2PJI[0];
     dN2[1] = dN2PJI[1];
+
     REBO_neighs  =  REBO_firstneigh[j];
     for (l = 0; l < REBO_numneigh[j]; l++) {
       atoml = REBO_neighs[l];
@@ -2437,51 +2464,43 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         rjl[2] = x[atomj][2]-x[atoml][2];
         rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
         lamdaijl = 4.0*kronecker(jtype,1) *
-          ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
+          ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag_mod));
         wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-        ril[0] = rij[0] + rjl[0];
-        ril[1] = rij[1] + rjl[1];
-        ril[2] = rij[2] + rjl[2];
-        rilmag = sqrt(ril[0] * ril[0] + ril[1] * ril[1] + ril[2] * ril[2]);
-        rijrjl = 2 * rijmag * rjlmag;
-        rr = rijmag * rijmag - rjlmag * rjlmag;
-        cosijl = (rijmag * rijmag + rjlmag * rjlmag - rilmag * rilmag) / rijrjl;
+        cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2]))) /
+          (rijmag*rjlmag);
         cosijl = MIN(cosijl,1.0);
         cosijl = MAX(cosijl,-1.0);
-        dctdil = -2 / rijrjl;
-        dctdjl = (-rr + rilmag * rilmag) / (rijrjl * rjlmag * rjlmag);
+        
+        dcosijldri[0] = (-rjl[0]/(rijmag*rjlmag)) -
+          (cosijl*rij[0]/(rijmag*rijmag));
+        dcosijldri[1] = (-rjl[1]/(rijmag*rjlmag)) -
+          (cosijl*rij[1]/(rijmag*rijmag));
+        dcosijldri[2] = (-rjl[2]/(rijmag*rjlmag)) -
+          (cosijl*rij[2]/(rijmag*rijmag));
+        dcosijldrj[0] = ((-rij[0]+rjl[0])/(rijmag*rjlmag)) +
+          (cosijl*((rij[0]/square(rijmag))-(rjl[0]/(rjlmag*rjlmag))));
+        dcosijldrj[1] = ((-rij[1]+rjl[1])/(rijmag*rjlmag)) +
+          (cosijl*((rij[1]/square(rijmag))-(rjl[1]/(rjlmag*rjlmag))));
+        dcosijldrj[2] = ((-rij[2]+rjl[2])/(rijmag*rjlmag)) +
+          (cosijl*((rij[2]/square(rijmag))-(rjl[2]/(rjlmag*rjlmag))));
+        dcosijldrl[0] = (rij[0]/(rijmag*rjlmag))+(cosijl*rjl[0]/(rjlmag*rjlmag));
+        dcosijldrl[1] = (rij[1]/(rijmag*rjlmag))+(cosijl*rjl[1]/(rjlmag*rjlmag));
+        dcosijldrl[2] = (rij[2]/(rijmag*rjlmag))+(cosijl*rjl[2]/(rjlmag*rjlmag));
 
         // evaluate splines g and derivatives dg
 
         g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
         tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
-        fj[0] = -tmp2 * dctdjl * rjl[0];
-        fj[1] = -tmp2 * dctdjl * rjl[1];
-        fj[2] = -tmp2 * dctdjl * rjl[2];
-        fl[0] =  tmp2 * dctdjl * rjl[0];
-        fl[1] =  tmp2 * dctdjl * rjl[1];
-        fl[2] =  tmp2 * dctdjl * rjl[2];
-        fi[0] = 0;
-        fi[1] = 0;
-        fi[2] = 0;
-        fil[0] = -tmp2 * dctdil * ril[0];
-        fil[1] = -tmp2 * dctdil * ril[1];
-        fil[2] = -tmp2 * dctdil * ril[2];
-        fj[0] += fil[0];
-        fj[1] += fil[1];
-        fj[2] += fil[2];
-        fl[0] -= fil[0];
-        fl[1] -= fil[1];
-        fl[2] -= fil[2];
-        rijmbr = rcmin[itype][jtype] / realrijmag;
-        fi[0] += rijmbr * (fil[0] - (realrij[0] * realrij[0] * fil[0] + realrij[0] * realrij[1] * fil[1] + realrij[0] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fi[1] += rijmbr * (fil[1] - (realrij[1] * realrij[0] * fil[0] + realrij[1] * realrij[1] * fil[1] + realrij[1] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fi[2] += rijmbr * (fil[2] - (realrij[2] * realrij[0] * fil[0] + realrij[2] * realrij[1] * fil[1] + realrij[2] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fj[0] -= rijmbr * (fil[0] - (realrij[0] * realrij[0] * fil[0] + realrij[0] * realrij[1] * fil[1] + realrij[0] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fj[1] -= rijmbr * (fil[1] - (realrij[1] * realrij[0] * fil[0] + realrij[1] * realrij[1] * fil[1] + realrij[1] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-        fj[2] -= rijmbr * (fil[2] - (realrij[2] * realrij[0] * fil[0] + realrij[2] * realrij[1] * fil[1] + realrij[2] * realrij[2] * fil[2]) / (realrijmag * realrijmag));
-
- 
+        fi[0] = -tmp2*dcosijldri[0];
+        fi[1] = -tmp2*dcosijldri[1];
+        fi[2] = -tmp2*dcosijldri[2];
+        fj[0] = -tmp2*dcosijldrj[0];
+        fj[1] = -tmp2*dcosijldrj[1];
+        fj[2] = -tmp2*dcosijldrj[2];
+        fl[0] = -tmp2*dcosijldrl[0];
+        fl[1] = -tmp2*dcosijldrl[1];
+        fl[2] = -tmp2*dcosijldrl[2];
+  
         tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
         fj[0] += tmp2*(rjl[0]/rjlmag);
         fj[1] += tmp2*(rjl[1]/rjlmag);
@@ -2491,6 +2510,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         fl[2] -= tmp2*(rjl[2]/rjlmag);
 
          // coordination forces
+
         // dwik forces
 
         tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))/rjlmag;
@@ -2562,6 +2582,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
         if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
         tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
         f[atomi][0] -= tmp2*rik[0];
         f[atomi][1] -= tmp2*rik[1];
@@ -2601,8 +2625,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
     // piRC forces to J side
 
-    REBO_neighs = REBO_firstneigh[j];
-    for (l = 0; l < REBO_numneigh[j]; l++) {
+    REBO_neighs = REBO_firstneigh[atomj];
+    for (l = 0; l < REBO_numneigh[atomj]; l++) {
       atoml = REBO_neighs[l];
       if (atoml != atomi) {
         ltype = map[type[atoml]];
@@ -2624,6 +2648,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         f[atoml][2] += tmp2*rjl[2];
 
         if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
 
         tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
         f[atomj][0] -= tmp2*rjl[0];
@@ -2668,15 +2696,14 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
       dN3[2] = dN3Tij[2];
       atom2 = atomi;
       atom3 = atomj;
-      r32[0] = -rij[0];
-      r32[1] = -rij[1];
-      r32[2] = -rij[2];
-      r23[0] = rij[0];
-      r23[1] = rij[1];
-      r23[2] = rij[2];
-      r32mag = rijmag;
-      r23mag = rijmag;
-
+      r32[0] = x[atom3][0]-x[atom2][0];
+      r32[1] = x[atom3][1]-x[atom2][1];
+      r32[2] = x[atom3][2]-x[atom2][2];
+      r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
+      r23[0] = -r32[0];
+      r23[1] = -r32[1];
+      r23[2] = -r32[2];
+      r23mag = r32mag;
       REBO_neighs_i = REBO_firstneigh[i];
       for (k = 0; k < REBO_numneigh[i]; k++) {
         atomk = REBO_neighs_i[k];
@@ -2692,20 +2719,21 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
           cos321 = MIN(cos321,1.0);
           cos321 = MAX(cos321,-1.0);
           sin321 = sqrt(1.0 - cos321*cos321);
-
           if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
             sink2i = 1.0/(sin321*sin321);
             rik2i = 1.0/(r21mag*r21mag);
             rr = (rijmag*rijmag)-(r21mag*r21mag);
-            rjk[0] = r21[0]-rij[0];
-            rjk[1] = r21[1]-rij[1];
-            rjk[2] = r21[2]-rij[2];
+            rjk[0] = r21[0]-r23[0];
+            rjk[1] = r21[1]-r23[1];
+            rjk[2] = r21[2]-r23[2];
             rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
-            rijrik = 2.0*rijmag*r21mag;
+            rijrik = 2.0*r23mag*r21mag;
             rik2 = r21mag*r21mag;
             dctik = (-rr+rjk2)/(rijrik*rik2);
+            dctij = (rr+rjk2)/(rijrik*r23mag*r23mag);
             dctjk = -2.0/rijrik;
             w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
+            rijmag = r32mag;
             rikmag = r21mag;
             rij2 = r32mag*r32mag;
             rik2 = r21mag*r21mag;
@@ -2723,8 +2751,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                 r34[1] = x[atom3][1]-x[atom4][1];
                 r34[2] = x[atom3][2]-x[atom4][2];
                 r34mag = sqrt(r34[0]*r34[0] + r34[1]*r34[1] + r34[2]*r34[2]);
-                cos234 = -1.0*((rij[0]*r34[0])+(rij[1]*r34[1]) +
-                               (rij[2]*r34[2]))/(rijmag*r34mag);
+                cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
+                  (r32mag*r34mag);
                 cos234 = MIN(cos234,1.0);
                 cos234 = MAX(cos234,-1.0);
                 sin234 = sqrt(1.0 - cos234*cos234);
@@ -2742,6 +2770,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   rijrjl = 2.0*r23mag*r34mag;
                   rjl2 = r34mag*r34mag;
                   dctjl = (-rr+ril2)/(rijrjl*rjl2);
+                  dctji = (rr+ril2)/(rijrjl*r23mag*r23mag);
                   dctil = -2.0/rijrjl;
                   rjlmag = r34mag;
                   rjl2 = r34mag*r34mag;
@@ -2767,6 +2796,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   dt1djk = (-dctjk*sink2i*cos321);
                   dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
                   dt1dil = (-dctil*sinl2i*cos234);
+                  dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
+                    (dctji*sinl2i*cos234);
 
                   dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
                   dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
@@ -2776,17 +2807,28 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
                   dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
 
+                  dt2dij[0] = (r21[2]*cross234[1])-(r34[2]*cross321[1]) -
+                    (r21[1]*cross234[2])+(r34[1]*cross321[2]);
+                  dt2dij[1] = (r21[0]*cross234[2])-(r34[0]*cross321[2]) -
+                    (r21[2]*cross234[0])+(r34[2]*cross321[0]);
+                  dt2dij[2] = (r21[1]*cross234[0])-(r34[1]*cross321[0]) -
+                    (r21[0]*cross234[1])+(r34[0]*cross321[1]);
+
                   aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                     (1.0-tspjik)*(1.0-tspijl);
-                  aaa1 = -prefactor*(1.0-square(om1234)) *
-                    (1.0-tspjik)*(1.0-tspijl);
-                  aaa2 = aaa1*w21*w34;
+                  aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
                   at2 = aa*cwnum;
 
+                  fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
+                    (aaa2*dtsijl*dctji*(1.0-tspjik));
                   fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
                   fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
                   fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
                   fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
+
+                  F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
+                  F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
+                  F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
 
                   F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
                   F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
@@ -2807,30 +2849,15 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   f1[0] = -F12[0]-F31[0];
                   f1[1] = -F12[1]-F31[1];
                   f1[2] = -F12[2]-F31[2];
-                  f2[0] = F12[0]+F31[0];
-                  f2[1] = F12[1]+F31[1];
-                  f2[2] = F12[2]+F31[2];
-                  f3[0] = F34[0]+F24[0];
-                  f3[1] = F34[1]+F24[1];
-                  f3[2] = F34[2]+F24[2];
+                  f2[0] = F23[0]+F12[0]+F24[0];
+                  f2[1] = F23[1]+F12[1]+F24[1];
+                  f2[2] = F23[2]+F12[2]+F24[2];
+                  f3[0] = -F23[0]+F34[0]+F31[0];
+                  f3[1] = -F23[1]+F34[1]+F31[1];
+                  f3[2] = -F23[2]+F34[2]+F31[2];
                   f4[0] = -F34[0]-F24[0];
                   f4[1] = -F34[1]-F24[1];
                   f4[2] = -F34[2]-F24[2];
-
-                  rijmbr = rcmin[itype][jtype] / realrijmag;
-                  f2[0] += rijmbr * (F24[0] - (realrij[0] * realrij[0] * F24[0] + realrij[0] * realrij[1] * F24[1] + realrij[0] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f2[1] += rijmbr * (F24[1] - (realrij[1] * realrij[0] * F24[0] + realrij[1] * realrij[1] * F24[1] + realrij[1] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f2[2] += rijmbr * (F24[2] - (realrij[2] * realrij[0] * F24[0] + realrij[2] * realrij[1] * F24[1] + realrij[2] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f3[0] -= rijmbr * (F24[0] - (realrij[0] * realrij[0] * F24[0] + realrij[0] * realrij[1] * F24[1] + realrij[0] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f3[1] -= rijmbr * (F24[1] - (realrij[1] * realrij[0] * F24[0] + realrij[1] * realrij[1] * F24[1] + realrij[1] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-                  f3[2] -= rijmbr * (F24[2] - (realrij[2] * realrij[0] * F24[0] + realrij[2] * realrij[1] * F24[1] + realrij[2] * realrij[2] * F24[2]) / (realrijmag * realrijmag));
-
-                  f2[0] -= rijmbr * (F31[0] - (realrij[0] * realrij[0] * F31[0] + realrij[0] * realrij[1] * F31[1] + realrij[0] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f2[1] -= rijmbr * (F31[1] - (realrij[1] * realrij[0] * F31[0] + realrij[1] * realrij[1] * F31[1] + realrij[1] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f2[2] -= rijmbr * (F31[2] - (realrij[2] * realrij[0] * F31[0] + realrij[2] * realrij[1] * F31[1] + realrij[2] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f3[0] += rijmbr * (F31[0] - (realrij[0] * realrij[0] * F31[0] + realrij[0] * realrij[1] * F31[1] + realrij[0] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f3[1] += rijmbr * (F31[1] - (realrij[1] * realrij[0] * F31[0] + realrij[1] * realrij[1] * F31[1] + realrij[1] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
-                  f3[2] += rijmbr * (F31[2] - (realrij[2] * realrij[0] * F31[0] + realrij[2] * realrij[1] * F31[1] + realrij[2] * realrij[2] * F31[2]) / (realrijmag * realrijmag));
 
                   // coordination forces
 
@@ -2897,6 +2924,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
           if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
+          // due to kronecker(ktype, 0) term in contribution
+          // to NconjtmpI and later Nijconj
+          if (ktype != 0) continue;
+
           tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
           f[atomi][0] -= tmp2*rik[0];
           f[atomi][1] -= tmp2*rik[1];
@@ -2959,6 +2990,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
           f[atoml][2] += tmp2*rjl[2];
 
           if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+
+          // due to kronecker(ltype, 0) term in contribution
+          // to NconjtmpJ and later Nijconj
+          if (ltype != 0) continue;
 
           tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
           f[atomj][0] -= tmp2*rjl[0];
@@ -3094,72 +3129,58 @@ double PairAIREBO::gSpline(double costh, double Nij, int typei,
 double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
                              double dN2[2])
 {
-  int x,y,i,done;
-  double Pij,coeffs[16];
-
-  for (i = 0; i < 16; i++) coeffs[i]=0.0;
+  int x,y;
+  double Pij;
 
   x = 0;
   y = 0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  done = 0;
+  Pij = 0.0;
 
-  // if inputs are out of bounds set them back to a point in bounds
+  if (typei == 1) return Pij;
 
-  if (typei == 0 && typej == 0) {
+  if (typej == 0) {
+
+    // if inputs are out of bounds set them back to a point in bounds
+
     if (NijC < pCCdom[0][0]) NijC=pCCdom[0][0];
     if (NijC > pCCdom[0][1]) NijC=pCCdom[0][1];
     if (NijH < pCCdom[1][0]) NijH=pCCdom[1][0];
     if (NijH > pCCdom[1][1]) NijH=pCCdom[1][1];
+    x = (int) floor(NijC);
+    y = (int) floor(NijH);
 
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {
-      Pij = PCCf[(int) NijC][(int) NijH];
-      dN2[0] = PCCdfdx[(int) NijC][(int) NijH];
-      dN2[1] = PCCdfdy[(int) NijC][(int) NijH];
-      done = 1;
+      Pij    = PCCf[x][y];
+      dN2[0] = PCCdfdx[x][y];
+      dN2[1] = PCCdfdy[x][y];
+    } else {
+      if (NijC == pCCdom[0][1]) --x;
+      if (NijH == pCCdom[1][1]) --y;
+      Pij = Spbicubic(NijC,NijH,pCC[x][y],dN2);
     }
-    if (done == 0) {
-      x = (int) (floor(NijC));
-      y = (int) (floor(NijH));
-      for (i = 0; i<16; i++) coeffs[i] = pCC[x][y][i];
-      Pij = Spbicubic(NijC,NijH,coeffs,dN2);
-    }
-  }
 
-  // if inputs are out of bounds set them back to a point in bounds
+  } else if (typej == 1) {
 
-   if (typei == 0 && typej == 1){
-     if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
-     if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
-      if (NijH < pCHdom[1][0]) NijH=pCHdom[1][0];
-      if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
+    // if inputs are out of bounds set them back to a point in bounds
+
+    if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
+    if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
+    if (NijH < pCHdom[1][0]) NijH=pCHdom[1][0];
+    if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
+    x = (int) floor(NijC);
+    y = (int) floor(NijH);
 
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {
-      Pij = PCHf[(int) NijC][(int) NijH];
-      dN2[0] = PCHdfdx[(int) NijC][(int) NijH];
-      dN2[1] = PCHdfdy[(int) NijC][(int) NijH];
-      done = 1;
+      Pij = PCHf[x][y];
+      dN2[0] = PCHdfdx[x][y];
+      dN2[1] = PCHdfdy[x][y];
+    } else {
+      if (NijC == pCHdom[0][1]) --x;
+      if (NijH == pCHdom[1][1]) --y;
+      Pij = Spbicubic(NijC,NijH,pCH[x][y],dN2);
     }
-    if (done == 0) {
-      x = (int) (floor(NijC));
-      y = (int) (floor(NijH));
-      for (i = 0; i<16; i++) coeffs[i] = pCH[x][y][i];
-      Pij = Spbicubic(NijC,NijH,coeffs,dN2);
-    }
-  }
-
-  if (typei == 1 && typej == 0) {
-    Pij = 0.0;
-    dN2[0] = 0.0;
-    dN2[1] = 0.0;
-  }
-
-
-  if (typei == 1 && typej == 1) {
-    Pij = 0.0;
-    dN2[0] = 0.0;
-    dN2[1] = 0.0;
   }
   return Pij;
 }
@@ -3171,115 +3192,93 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
                               int typei, int typej, double dN3[3])
 {
-  int x,y,z,i,done;
-  double piRC,coeffs[64];
+  int x,y,z;
+  double piRC;
   x=0;
   y=0;
   z=0;
-  i=0;
-
-  done=0;
-
-  for (i=0; i<64; i++) coeffs[i]=0.0;
+  dN3[0]=0.0;
+  dN3[1]=0.0;
+  dN3[2]=0.0;
 
   if (typei==0 && typej==0) {
 
-    // if the inputs are out of bounds set them back to a point in bounds
-
-    if (Nij<piCCdom[0][0]) Nij=piCCdom[0][0];
-    if (Nij>piCCdom[0][1]) Nij=piCCdom[0][1];
-    if (Nji<piCCdom[1][0]) Nji=piCCdom[1][0];
-    if (Nji>piCCdom[1][1]) Nji=piCCdom[1][1];
-    if (Nijconj<piCCdom[2][0]) Nijconj=piCCdom[2][0];
-    if (Nijconj>piCCdom[2][1]) Nijconj=piCCdom[2][1];
-
-    if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-        fabs(Nijconj-floor(Nijconj))<TOL) {
-      piRC=piCCf[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[0]=piCCdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[1]=piCCdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[2]=piCCdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-      done=1;
-    }
-
-    if (done==0) {
-      for (i=0; i<piCCdom[0][1]; i++)
-        if (Nij>=(double) i && Nij<=(double) i+1) x=i;
-      for (i=0; i<piCCdom[1][1]; i++)
-        if (Nji>=(double) i && Nji<=(double) i+1) y=i;
-      for (i=0; i<piCCdom[2][1]; i++)
-        if (Nijconj>=(double) i && Nijconj<=(double) i+1) z=i;
-
-      for (i=0; i<64; i++) coeffs[i]=piCC[x][y][z][i];
-      piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
-    }
-  }
-
-  // CH interaction
-
-  if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
+    // CC interaction
 
     // if the inputs are out of bounds set them back to a point in bounds
 
-    if (Nij<piCHdom[0][0] || Nij>piCHdom[0][1] ||
-        Nji<piCHdom[1][0] || Nji>piCHdom[1][1] ||
-        Nijconj<piCHdom[2][0] || Nijconj>piCHdom[2][1]) {
-      if (Nij<piCHdom[0][0]) Nij=piCHdom[0][0];
-      if (Nij>piCHdom[0][1]) Nij=piCHdom[0][1];
-      if (Nji<piCHdom[1][0]) Nji=piCHdom[1][0];
-      if (Nji>piCHdom[1][1]) Nji=piCHdom[1][1];
-      if (Nijconj<piCHdom[2][0]) Nijconj=piCHdom[2][0];
-      if (Nijconj>piCHdom[2][1]) Nijconj=piCHdom[2][1];
-    }
+    if (Nij < piCCdom[0][0]) Nij=piCCdom[0][0];
+    if (Nij > piCCdom[0][1]) Nij=piCCdom[0][1];
+    if (Nji < piCCdom[1][0]) Nji=piCCdom[1][0];
+    if (Nji > piCCdom[1][1]) Nji=piCCdom[1][1];
+    if (Nijconj < piCCdom[2][0]) Nijconj=piCCdom[2][0];
+    if (Nijconj > piCCdom[2][1]) Nijconj=piCCdom[2][1];
+    x = (int) floor(Nij);
+    y = (int) floor(Nji);
+    z = (int) floor(Nijconj);
 
-    if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-        fabs(Nijconj-floor(Nijconj))<TOL) {
-      piRC=piCHf[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[0]=piCHdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[1]=piCHdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[2]=piCHdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-      done=1;
+    if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+        && fabs(Nijconj-floor(Nijconj)) < TOL) {
+      piRC=piCCf[x][y][z];
+      dN3[0]=piCCdfdx[x][y][z];
+      dN3[1]=piCCdfdy[x][y][z];
+      dN3[2]=piCCdfdz[x][y][z];
+    } else {
+      if (Nij == piCCdom[0][1]) --x;
+      if (Nji == piCCdom[1][1]) --y;
+      if (Nijconj == piCCdom[2][1]) --z;
+      piRC=Sptricubic(Nij,Nji,Nijconj,piCC[x][y][z],dN3);
     }
+  } else if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
 
-    if (done==0) {
-      for (i=0; i<piCHdom[0][1]; i++)
-        if (Nij>=i && Nij<=i+1) x=i;
-      for (i=0; i<piCHdom[1][1]; i++)
-        if (Nji>=i && Nji<=i+1) y=i;
-      for (i=0; i<piCHdom[2][1]; i++)
-        if (Nijconj>=i && Nijconj<=i+1) z=i;
+    // CH interaction
 
-      for (i=0; i<64; i++) coeffs[i]=piCH[x][y][z][i];
-      piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
+    // if the inputs are out of bounds set them back to a point in bounds
+
+    if (Nij < piCHdom[0][0]) Nij=piCHdom[0][0];
+    if (Nij > piCHdom[0][1]) Nij=piCHdom[0][1];
+    if (Nji < piCHdom[1][0]) Nji=piCHdom[1][0];
+    if (Nji > piCHdom[1][1]) Nji=piCHdom[1][1];
+    if (Nijconj < piCHdom[2][0]) Nijconj=piCHdom[2][0];
+    if (Nijconj > piCHdom[2][1]) Nijconj=piCHdom[2][1];
+    x = (int) floor(Nij);
+    y = (int) floor(Nji);
+    z = (int) floor(Nijconj);
+
+    if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+        && fabs(Nijconj-floor(Nijconj)) < TOL) {
+      piRC=piCHf[x][y][z];
+      dN3[0]=piCHdfdx[x][y][z];
+      dN3[1]=piCHdfdy[x][y][z];
+      dN3[2]=piCHdfdz[x][y][z];
+    } else {
+      if (Nij == piCHdom[0][1]) --x;
+      if (Nji == piCHdom[1][1]) --y;
+      if (Nijconj == piCHdom[2][1]) --z;
+      piRC=Sptricubic(Nij,Nji,Nijconj,piCH[x][y][z],dN3);
     }
-  }
+  } else if (typei==1 && typej==1) {
+    if (Nij < piHHdom[0][0]) Nij=piHHdom[0][0];
+    if (Nij > piHHdom[0][1]) Nij=piHHdom[0][1];
+    if (Nji < piHHdom[1][0]) Nji=piHHdom[1][0];
+    if (Nji > piHHdom[1][1]) Nji=piHHdom[1][1];
+    if (Nijconj < piHHdom[2][0]) Nijconj=piHHdom[2][0];
+    if (Nijconj > piHHdom[2][1]) Nijconj=piHHdom[2][1];
+    x = (int) floor(Nij);
+    y = (int) floor(Nji);
+    z = (int) floor(Nijconj);
 
-  if (typei==1 && typej==1) {
-    if (Nij<piHHdom[0][0] || Nij>piHHdom[0][1] ||
-        Nji<piHHdom[1][0] || Nji>piHHdom[1][1] ||
-        Nijconj<piHHdom[2][0] || Nijconj>piHHdom[2][1]) {
-      Nij=0.0;
-      Nji=0.0;
-      Nijconj=0.0;
-    }
-    if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-        fabs(Nijconj-floor(Nijconj))<TOL) {
-      piRC=piHHf[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[0]=piHHdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[1]=piHHdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-      dN3[2]=piHHdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-      done=1;
-    }
-    if (done==0) {
-      for (i=0; i<piHHdom[0][1]; i++)
-        if (Nij>=i && Nij<=i+1) x=i;
-      for (i=0; i<piHHdom[1][1]; i++)
-        if (Nji>=i && Nji<=i+1) y=i;
-      for (i=0; i<piHHdom[2][1]; i++)
-        if (Nijconj>=i && Nijconj<=i+1) z=i;
-
-      for (i=0; i<64; i++) coeffs[i]=piHH[x][y][z][i];
-      piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
+    if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+        && fabs(Nijconj-floor(Nijconj)) < TOL) {
+      piRC=piHHf[x][y][z];
+      dN3[0]=piHHdfdx[x][y][z];
+      dN3[1]=piHHdfdy[x][y][z];
+      dN3[2]=piHHdfdz[x][y][z];
+    } else {
+      if (Nij == piHHdom[0][1]) --x;
+      if (Nji == piHHdom[1][1]) --y;
+      if (Nijconj == piHHdom[2][1]) --z;
+      piRC=Sptricubic(Nij,Nji,Nijconj,piHH[x][y][z],dN3);
     }
   }
 
@@ -3293,45 +3292,40 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 double PairAIREBO::TijSpline(double Nij, double Nji,
                              double Nijconj, double dN3[3])
 {
-  int x,y,z,i,done;
-  double Tijf,coeffs[64];
+  int x,y,z;
+  double Tijf;
 
   x=0;
   y=0;
   z=0;
-  i=0;
   Tijf=0.0;
-  done=0;
-  for (i=0; i<64; i++) coeffs[i]=0.0;
+  dN3[0]=0.0;
+  dN3[1]=0.0;
+  dN3[2]=0.0;
 
   //if the inputs are out of bounds set them back to a point in bounds
 
-  if (Nij<Tijdom[0][0]) Nij=Tijdom[0][0];
-  if (Nij>Tijdom[0][1]) Nij=Tijdom[0][1];
-  if (Nji<Tijdom[1][0]) Nji=Tijdom[1][0];
-  if (Nji>Tijdom[1][1]) Nji=Tijdom[1][1];
-  if (Nijconj<Tijdom[2][0]) Nijconj=Tijdom[2][0];
-  if (Nijconj>Tijdom[2][1]) Nijconj=Tijdom[2][1];
+  if (Nij < Tijdom[0][0]) Nij=Tijdom[0][0];
+  if (Nij > Tijdom[0][1]) Nij=Tijdom[0][1];
+  if (Nji < Tijdom[1][0]) Nji=Tijdom[1][0];
+  if (Nji > Tijdom[1][1]) Nji=Tijdom[1][1];
+  if (Nijconj < Tijdom[2][0]) Nijconj=Tijdom[2][0];
+  if (Nijconj > Tijdom[2][1]) Nijconj=Tijdom[2][1];
+  x = (int) floor(Nij);
+  y = (int) floor(Nji);
+  z = (int) floor(Nijconj);
 
-  if (fabs(Nij-floor(Nij))<TOL && fabs(Nji-floor(Nji))<TOL &&
-      fabs(Nijconj-floor(Nijconj))<TOL) {
-    Tijf=Tf[(int) Nij][(int) Nji][(int) Nijconj];
-    dN3[0]=Tdfdx[(int) Nij][(int) Nji][(int) Nijconj];
-    dN3[1]=Tdfdy[(int) Nij][(int) Nji][(int) Nijconj];
-    dN3[2]=Tdfdz[(int) Nij][(int) Nji][(int) Nijconj];
-    done=1;
-  }
-
-  if (done==0) {
-    for (i=0; i<Tijdom[0][1]; i++)
-      if (Nij>=i && Nij<=i+1) x=i;
-    for (i=0; i<Tijdom[1][1]; i++)
-      if (Nji>=i && Nji<=i+1) y=i;
-    for (i=0; i<Tijdom[2][1]; i++)
-      if (Nijconj>=i && Nijconj<=i+1) z=i;
-
-    for (i=0; i<64; i++) coeffs[i]=Tijc[x][y][z][i];
-    Tijf=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
+  if (fabs(Nij-floor(Nij)) < TOL && fabs(Nji-floor(Nji)) < TOL
+      && fabs(Nijconj-floor(Nijconj)) < TOL) {
+    Tijf=Tf[x][y][z];
+    dN3[0]=Tdfdx[x][y][z];
+    dN3[1]=Tdfdy[x][y][z];
+    dN3[2]=Tdfdz[x][y][z];
+  } else {
+    if (Nij == Tijdom[0][1]) --x;
+    if (Nji == Tijdom[1][1]) --y;
+    if (Nijconj == Tijdom[2][1]) --z;
+    Tijf=Sptricubic(Nij,Nji,Nijconj,Tijc[x][y][z],dN3);
   }
 
   return Tijf;
@@ -4082,6 +4076,276 @@ double PairAIREBO::Sptricubic(double x, double y, double z,
 }
 
 /* ----------------------------------------------------------------------
+   spline coefficient matrix python script
+-------------------------------------------------------------------------
+
+import numpy as np
+import numpy.linalg as lin
+
+# Generate all the derivatives that are spline conditions
+# Ordered such that df / dx_i / d_xj i < j.
+# Gives the derivatives at which the spline's values are prescribed.
+def generate_derivs(n):
+  def generate_derivs_order(n, m):
+    if m == 0:
+      return [tuple()]
+    if m == 1:
+      return [tuple([i]) for i in range(n)]
+    rec = generate_derivs_order(n, m - 1)
+    return [tuple([i]+list(j)) for i in range(n) for j in rec if j[0] > i]
+  ret = []
+  m = 0
+  while m <= n:
+    ret += generate_derivs_order(n, m)
+    m += 1
+  return ret
+
+# Generate all the points in an n-dimensional unit cube.
+# Gives the points at which the spline's values are prescribed.
+def generate_points(n):
+  if n == 1:
+    return [(0,), (1,)]
+  rec = generate_points(n - 1)
+  return [tuple([j]+list(i)) for j in range(2) for i in rec]
+
+# Generate all the coefficients in the order later expected.
+def generate_coeffs(n):
+  if n == 1:
+    return [tuple([i]) for i in range(4)] # cubic
+  rec = generate_coeffs(n-1)
+  return [tuple([i]+list(j)) for i in range(4) for j in rec]
+
+# Evaluate the `deriv`'s derivative at `point` symbolically
+# with respect to the coefficients `coeffs`.
+def eval_at(n, coeffs, deriv, point):
+  def eval_single(order, value, the_deriv):
+    if the_deriv:
+      if order == 0:
+        return 0
+      if order == 1:
+        return 1
+      return order * value
+    else:
+      if order == 0:
+        return 1
+      else:
+        return value
+  result = {}
+  for c in coeffs:
+    result[c] = 1
+    for i in range(n):
+      result[c] *= eval_single(c[i], point[i], i in deriv)
+  return result
+
+# Build the matrix transforming prescribed values to coefficients.
+def get_matrix(n):
+  coeffs = generate_coeffs(n)
+  points = generate_points(n)
+  derivs = generate_derivs(n)
+  assert(len(coeffs) == len(points)*len(derivs))
+  i = 0
+  A = np.zeros((len(coeffs), len(points)*len(derivs)))
+  for d in derivs:
+    for p in points:
+      coeff = eval_at(n, coeffs, d, p)
+      for j, c in enumerate(coeffs):
+        A[i, j] = coeff[c]
+      i += 1
+  return lin.inv(A)
+
+# Output the first k values with padding n from A.
+def output_matrix(n, k, A):
+  print('\n'.join([''.join([("%{}d,".format(n+1)) % i for i in j[:k]]) for j in A]))
+
+*/
+
+/* ----------------------------------------------------------------------
+   tricubic spline coefficient calculation
+------------------------------------------------------------------------- */
+
+void PairAIREBO::Sptricubic_patch_adjust(double * dl, double wid, double lo,
+                                         char dir) {
+  int rowOuterL = 16, rowInnerL = 1, colL = 4;
+  if (dir == 'R') {
+    rowOuterL = 4;
+    colL = 16;
+  } else if (dir == 'M') {
+    colL = 4;
+  } else if (dir == 'L') {
+    rowInnerL = 4;
+    colL = 1;
+  }
+  double binomial[5] = {1, 1, 2, 6};
+  for (int rowOuter = 0; rowOuter < 4; rowOuter++) {
+    for (int rowInner = 0; rowInner < 4; rowInner++) {
+      for (int col = 0; col < 4; col++) {
+        double acc = 0;
+        for (int k = col; k < 4; k++) {
+          acc += dl[rowOuterL * rowOuter + rowInnerL * rowInner + colL * k]
+               * pow(wid, -k) * pow(-lo, k - col) * binomial[k] / binomial[col]
+               / binomial[k - col];
+        }
+        dl[rowOuterL * rowOuter + rowInnerL * rowInner + colL * col] = acc;
+      }
+    }
+  }
+}
+
+void PairAIREBO::Sptricubic_patch_coeffs(
+    double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
+    double * y, double * y1, double * y2, double * y3, double * dl
+) {
+  const double C_inv[64][32] = {
+    // output_matrix(2, 8*4, get_matrix(3))
+      1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,
+     -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,
+      2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,
+      9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6, -6,  3, -3,  0,  0,  0,  0,  6,  3, -6, -3,  0,  0,  0,  0,
+     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4, -2,  2,  0,  0,  0,  0, -3, -3,  3,  3,  0,  0,  0,  0,
+      2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,
+     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3, -3,  3,  0,  0,  0,  0, -4, -2,  4,  2,  0,  0,  0,  0,
+      4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  2, -2,  0,  0,  0,  0,  2,  2, -2, -2,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     -3,  0,  0,  0,  3,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,
+      9, -9,  0,  0, -9,  9,  0,  0,  6, -6,  0,  0,  3, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  3,  0,  0, -6, -3,  0,  0,
+     -6,  6,  0,  0,  6, -6,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9, -9,  0,  0, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      9,  0, -9,  0, -9,  0,  9,  0,  6,  0, -6,  0,  3,  0, -3,  0,  6,  0,  3,  0, -6,  0, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9,  0, -9,  0, -9,  0,  9,  0,
+    -27, 27, 27,-27, 27,-27,-27, 27,-18, 18, 18,-18, -9,  9,  9, -9,-18, 18, -9,  9, 18,-18,  9, -9,-18, -9, 18,  9, 18,  9,-18, -9,
+     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6, 12,-12,  6, -6,-12, 12, -6,  6,  9,  9, -9, -9, -9, -9,  9,  9,
+     -6,  0,  6,  0,  6,  0, -6,  0, -4,  0,  4,  0, -2,  0,  2,  0, -3,  0, -3,  0,  3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
+     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6,  9, -9,  9, -9, -9,  9, -9,  9, 12,  6,-12, -6,-12, -6, 12,  6,
+    -12, 12, 12,-12, 12,-12,-12, 12, -8,  8,  8, -8, -4,  4,  4, -4, -6,  6, -6,  6,  6, -6,  6, -6, -6, -6,  6,  6,  6,  6, -6, -6,
+      2,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,
+     -6,  6,  0,  0,  6, -6,  0,  0, -3,  3,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4, -2,  0,  0,  4,  2,  0,  0,
+      4, -4,  0,  0, -4,  4,  0,  0,  2, -2,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,  0, -2, -2,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, -4,  0,  0, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     -6,  0,  6,  0,  6,  0, -6,  0, -3,  0,  3,  0, -3,  0,  3,  0, -4,  0, -2,  0,  4,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
+     18,-18,-18, 18,-18, 18, 18,-18,  9, -9, -9,  9,  9, -9, -9,  9, 12,-12,  6, -6,-12, 12, -6,  6, 12,  6,-12, -6,-12, -6, 12,  6,
+    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -8,  8, -4,  4,  8, -8,  4, -4, -6, -6,  6,  6,  6,  6, -6, -6,
+      4,  0, -4,  0, -4,  0,  4,  0,  2,  0, -2,  0,  2,  0, -2,  0,  2,  0,  2,  0, -2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0,
+    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -6,  6, -6,  6,  6, -6,  6, -6, -8, -4,  8,  4,  8,  4, -8, -4,
+      8, -8, -8,  8, -8,  8,  8, -8,  4, -4, -4,  4,  4, -4, -4,  4,  4, -4,  4, -4, -4,  4, -4,  4,  4,  4, -4, -4, -4, -4,  4,  4,
+  };
+  double dx = xmax - xmin;
+  double dy = ymax - ymin;
+  double dz = zmax - zmin;
+  double x[32];
+  for (int i = 0; i < 8; i++) {
+    x[i+0*8] = y[i];
+    x[i+1*8] = y1[i] * dx;
+    x[i+2*8] = y2[i] * dy;
+    x[i+3*8] = y3[i] * dz;
+  }
+  for (int i = 0; i < 64; i++) {
+    dl[i] = 0;
+    for (int k = 0; k < 32; k++) {
+      dl[i] += x[k] * C_inv[i][k];
+    }
+  }
+  Sptricubic_patch_adjust(dl, dx, xmin, 'R');
+  Sptricubic_patch_adjust(dl, dy, ymin, 'M');
+  Sptricubic_patch_adjust(dl, dz, zmin, 'L');
+}
+
+/* ----------------------------------------------------------------------
+   bicubic spline coefficient calculation
+------------------------------------------------------------------------- */
+
+void PairAIREBO::Spbicubic_patch_adjust(double * dl, double wid, double lo,
+                                        char dir) {
+  int rowL = dir == 'R' ? 1 : 4;
+  int colL = dir == 'L' ? 1 : 4;
+  double binomial[5] = {1, 1, 2, 6};
+  for (int row = 0; row < 4; row++) {
+    for (int col = 0; col < 4; col++) {
+      double acc = 0;
+      for (int k = col; k < 4; k++) {
+        acc += dl[rowL * row + colL * k] * pow(wid, -k) * pow(-lo, k - col)
+             * binomial[k] / binomial[col] / binomial[k - col];
+      }
+      dl[rowL * row + colL * col] = acc;
+    }
+  }
+}
+
+void PairAIREBO::Spbicubic_patch_coeffs(
+    double xmin, double xmax, double ymin, double ymax, double * y,
+    double * y1, double * y2, double * dl
+) {
+  const double C_inv[16][12] = {
+     // output_matrix(1, 4*3, get_matrix(2))
+      1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+     -3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0,
+      2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+      0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0,
+     -3, 0, 3, 0,-2, 0,-1, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0,
+      9,-9,-9, 9, 6,-6, 3,-3, 6, 3,-6,-3,
+     -6, 6, 6,-6,-4, 4,-2, 2,-3,-3, 3, 3,
+      2, 0,-2, 0, 1, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0,
+     -6, 6, 6,-6,-3, 3,-3, 3,-4,-2, 4, 2,
+      4,-4,-4, 4, 2,-2, 2,-2, 2, 2,-2,-2,
+  };
+  double dx = xmax - xmin;
+  double dy = ymax - ymin;
+  double x[12];
+  for (int i = 0; i < 4; i++) {
+    x[i+0*4] = y[i];
+    x[i+1*4] = y1[i] * dx;
+    x[i+2*4] = y2[i] * dy;
+  }
+  for (int i = 0; i < 16; i++) {
+    dl[i] = 0;
+    for (int k = 0; k < 12; k++) {
+      dl[i] += x[k] * C_inv[i][k];
+    }
+  }
+  Spbicubic_patch_adjust(dl, dx, xmin, 'R');
+  Spbicubic_patch_adjust(dl, dy, ymin, 'L');
+}
+
+/* ----------------------------------------------------------------------
    initialize spline knot values
 ------------------------------------------------------------------------- */
 
@@ -4121,6 +4385,22 @@ void PairAIREBO::spline_init()
   PCHf[2][0] = -0.122042146;
   PCHf[2][1] = -0.300529172;
   PCHf[3][0] = -0.307584705;
+
+  for (int nH = 0; nH < 4; nH++) {
+    for (int nC = 0; nC < 4; nC++) {
+      double y[4] = {0}, y1[4] = {0}, y2[4] = {0};
+      y[0] = PCCf[nC][nH];
+      y[1] = PCCf[nC][nH+1];
+      y[2] = PCCf[nC+1][nH];
+      y[3] = PCCf[nC+1][nH+1];
+      Spbicubic_patch_coeffs(nC, nC+1, nH, nH+1, y, y1, y2, &pCC[nC][nH][0]);
+      y[0] = PCHf[nC][nH];
+      y[1] = PCHf[nC][nH+1];
+      y[2] = PCHf[nC+1][nH];
+      y[3] = PCHf[nC+1][nH+1];
+      Spbicubic_patch_coeffs(nC, nC+1, nH, nH+1, y, y1, y2, &pCH[nC][nH][0]);
+    }
+  }
 
   for (i = 0; i < 5; i++) {
     for (j = 0; j < 5; j++) {
@@ -4286,6 +4566,46 @@ void PairAIREBO::spline_init()
 
   Tf[2][2][1] = -0.035140;
   for (i = 2; i < 10; i++) Tf[2][2][i] = -0.0040480;
+
+  for (int nH = 0; nH < 4; nH++) {
+    for (int nC = 0; nC < 4; nC++) {
+      // Note: Spline knot values exist up to "10", but are never used because
+      // they are clamped down to 9.
+      for (int nConj = 0; nConj < 9; nConj++) {
+        double y[8] = {0}, y1[8] = {0}, y2[8] = {0}, y3[8] = {0};
+        #define FILL_KNOTS_TRI(dest, src)      \
+          dest[0] = src[nC+0][nH+0][nConj+0];  \
+          dest[1] = src[nC+0][nH+0][nConj+1];  \
+          dest[2] = src[nC+0][nH+1][nConj+0];  \
+          dest[3] = src[nC+0][nH+1][nConj+1];  \
+          dest[4] = src[nC+1][nH+0][nConj+0];  \
+          dest[5] = src[nC+1][nH+0][nConj+1];  \
+          dest[6] = src[nC+1][nH+1][nConj+0];  \
+          dest[7] = src[nC+1][nH+1][nConj+1];
+        FILL_KNOTS_TRI(y, piCCf)
+        FILL_KNOTS_TRI(y1, piCCdfdx)
+        FILL_KNOTS_TRI(y2, piCCdfdy)
+        FILL_KNOTS_TRI(y3, piCCdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &piCC[nC][nH][nConj][0]);
+        FILL_KNOTS_TRI(y, piCHf)
+        FILL_KNOTS_TRI(y1, piCHdfdx)
+        FILL_KNOTS_TRI(y2, piCHdfdy)
+        FILL_KNOTS_TRI(y3, piCHdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &piCH[nC][nH][nConj][0]);
+        FILL_KNOTS_TRI(y, piHHf)
+        FILL_KNOTS_TRI(y1, piHHdfdx)
+        FILL_KNOTS_TRI(y2, piHHdfdy)
+        FILL_KNOTS_TRI(y3, piHHdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &piHH[nC][nH][nConj][0]);
+        FILL_KNOTS_TRI(y, Tf)
+        FILL_KNOTS_TRI(y1, Tdfdx)
+        FILL_KNOTS_TRI(y2, Tdfdy)
+        FILL_KNOTS_TRI(y3, Tdfdz)
+        Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &Tijc[nC][nH][nConj][0]);
+        #undef FILL_KNOTS_TRI
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

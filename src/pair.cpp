@@ -196,10 +196,10 @@ void Pair::init()
     error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
-  if (!compute_flag && tail_flag)
+  if (!compute_flag && tail_flag && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with "
                    "pair_modify compute no");
-  if (!compute_flag && offset_flag)
+  if (!compute_flag && offset_flag && comm->me == 0)
     error->warning(FLERR,"Using pair potential shift with "
                    "pair_modify compute no");
 
@@ -814,6 +814,16 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     if (vflag_atom == 0) vflag_either = 0;
     if (vflag_either == 0 && eflag_either == 0) evflag = 0;
   } else vflag_fdotr = 0;
+
+
+  // run ev_setup option for USER-TALLY computes
+
+  if (num_tally_compute > 0) {
+    for (int k=0; k < num_tally_compute; ++k) {
+      Compute *c = list_tally_compute[k];
+      c->pair_setup_callback(eflag,vflag);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

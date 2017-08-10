@@ -76,6 +76,7 @@ class Output : protected Pointers {
   void add_dump(int, char **);       // add a Dump to Dump list
   void modify_dump(int, char **);    // modify a Dump
   void delete_dump(char *);          // delete a Dump from Dump list
+  int find_dump(const char *);       // find a Dump ID
 
   void set_thermo(int, char **);     // set thermo output freqquency
   void create_thermo(int, char **);  // create a thermo style

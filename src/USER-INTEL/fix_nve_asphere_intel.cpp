@@ -36,7 +36,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNVEAsphereIntel::FixNVEAsphereIntel(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg) 
+  FixNVE(lmp, narg, arg)
 {
   _dtfm = 0;
   _nlocal3 = 0;
@@ -129,9 +129,9 @@ void FixNVEAsphereIntel::initial_integrate(int vflag)
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	double *quat = bonus[ellipsoid[i]].quat;
-	ME_omega_richardson(dtf, dtq, angmom[i], quat, torque[i], _inertia0[i],
-			    _inertia1[i], _inertia2[i]);
+        double *quat = bonus[ellipsoid[i]].quat;
+        ME_omega_richardson(dtf, dtq, angmom[i], quat, torque[i], _inertia0[i],
+                            _inertia1[i], _inertia2[i]);
       }
     }
   }
@@ -168,7 +168,7 @@ void FixNVEAsphereIntel::reset_dt() {
   dtf = 0.5 * update->dt * force->ftm2v;
 
   const int * const mask = atom->mask;
-  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : 
+  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
 
   if (nlocal > _nlocal_max) {
@@ -211,27 +211,27 @@ void FixNVEAsphereIntel::reset_dt() {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         _dtfm[n++] = dtf / rmass[i];
-	_dtfm[n++] = dtf / rmass[i];
-	_dtfm[n++] = dtf / rmass[i];
-	double *shape = bonus[ellipsoid[i]].shape;
-	double idot = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-	if (idot != 0.0) idot = 1.0 / idot;
-	_inertia0[i] = idot;
-	idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-	if (idot != 0.0) idot = 1.0 / idot;
-	_inertia1[i] = idot;
-	idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
-	if (idot != 0.0) idot = 1.0 / idot;
-	_inertia2[i] = idot;
+        _dtfm[n++] = dtf / rmass[i];
+        _dtfm[n++] = dtf / rmass[i];
+        double *shape = bonus[ellipsoid[i]].shape;
+        double idot = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+        if (idot != 0.0) idot = 1.0 / idot;
+        _inertia0[i] = idot;
+        idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+        if (idot != 0.0) idot = 1.0 / idot;
+        _inertia1[i] = idot;
+        idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        if (idot != 0.0) idot = 1.0 / idot;
+        _inertia2[i] = idot;
       } else {
         _dtfm[n++] = 0.0;
-	_dtfm[n++] = 0.0;
-	_dtfm[n++] = 0.0;
+        _dtfm[n++] = 0.0;
+        _dtfm[n++] = 0.0;
       }
     }
   }
 }
-double FixNVEAsphereIntel::memory_usage() 
+double FixNVEAsphereIntel::memory_usage()
 {
   return FixNVE::memory_usage() + _nlocal_max * 12 * sizeof(double);
 }

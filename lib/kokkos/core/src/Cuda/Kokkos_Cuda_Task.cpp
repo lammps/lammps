@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,14 +36,15 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#include <Kokkos_Core.hpp>
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_CUDA ) && defined( KOKKOS_ENABLE_TASKDAG )
+
+#include <Kokkos_Core.hpp>
 
 #include <impl/Kokkos_TaskQueue_impl.hpp>
 
@@ -91,7 +92,7 @@ void TaskQueueSpecialization< Kokkos::Cuda >::driver
       // Loop by priority and then type
       for ( int i = 0 ; i < Queue::NumQueue && end == task.ptr ; ++i ) {
         for ( int j = 0 ; j < 2 && end == task.ptr ; ++j ) {
-          task.ptr = Queue::pop_task( & queue->m_ready[i][j] );
+          task.ptr = Queue::pop_ready_task( & queue->m_ready[i][j] );
         }
       }
 
@@ -120,7 +121,7 @@ printf("TaskQueue<Cuda>::driver(%d,%d) task(%lx)\n",threadIdx.z,blockIdx.x
       }
 
       if ( 0 == warp_lane ) {
-        queue->complete( task.ptr ); 
+        queue->complete( task.ptr );
       }
     }
   } while(1);
@@ -157,7 +158,7 @@ printf("cuda_task_queue_execute before\n");
   // If not large enough then set the stack size, in bytes:
   //
   // CUDA_SAFE_CALL( cudaDeviceSetLimit( cudaLimitStackSize , stack_size ) );
- 
+
   cuda_task_queue_execute<<< grid , block , shared , stream >>>( queue );
 
   CUDA_SAFE_CALL( cudaGetLastError() );
@@ -173,7 +174,7 @@ printf("cuda_task_queue_execute after\n");
 }} /* namespace Kokkos::Impl */
 
 //----------------------------------------------------------------------------
-
+#else
+void KOKKOS_CORE_SRC_CUDA_KOKKOS_CUDA_TASK_PREVENT_LINK_ERROR() {}
 #endif /* #if defined( KOKKOS_ENABLE_CUDA ) && defined( KOKKOS_ENABLE_TASKDAG ) */
-
 

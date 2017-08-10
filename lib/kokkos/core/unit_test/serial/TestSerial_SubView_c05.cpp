@@ -40,13 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
-#include <serial/TestSerial.hpp>
+
+#include <serial/TestSerial_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_2d_from_3d_atomic ) {
-  TestViewSubview::test_2d_subview_3d< Kokkos::Serial , Kokkos::MemoryTraits<Kokkos::Atomic> >();
+TEST_F( serial, view_subview_2d_from_3d_atomic )
+{
+  TestViewSubview::test_2d_subview_3d< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Atomic> >();
 }
 
-} // namespace test
-
+} // namespace Test

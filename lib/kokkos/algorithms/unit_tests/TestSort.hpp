@@ -1,12 +1,12 @@
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,15 +35,16 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
-#ifndef TESTSORT_HPP_
-#define TESTSORT_HPP_
+#ifndef KOKKOS_ALGORITHMS_UNITTESTS_TESTSORT_HPP
+#define KOKKOS_ALGORITHMS_UNITTESTS_TESTSORT_HPP
 
 #include <gtest/gtest.h>
 #include<Kokkos_Core.hpp>
+#include<Kokkos_DynamicView.hpp>
 #include<Kokkos_Random.hpp>
 #include<Kokkos_Sort.hpp>
 
@@ -192,10 +193,78 @@ void test_3D_sort(unsigned int n) {
   double epsilon = 1e-10;
   unsigned int equal_sum = (ratio > (1.0-epsilon)) && (ratio < (1.0+epsilon)) ? 1 : 0;
 
-  printf("3D Sort Sum: %f %f Fails: %u\n",sum_before,sum_after,sort_fails);
+  if ( sort_fails )
+    printf("3D Sort Sum: %f %f Fails: %u\n",sum_before,sum_after,sort_fails);
+
   ASSERT_EQ(sort_fails,0);
   ASSERT_EQ(equal_sum,1);
 }
+
+//----------------------------------------------------------------------------
+
+template<class ExecutionSpace, typename KeyType>
+void test_dynamic_view_sort(unsigned int n )
+{
+  typedef typename ExecutionSpace::memory_space memory_space ;
+  typedef Kokkos::Experimental::DynamicView<KeyType*,ExecutionSpace> KeyDynamicViewType;
+  typedef Kokkos::View<KeyType*,ExecutionSpace> KeyViewType;
+
+  const size_t upper_bound = 2 * n ;
+
+  typename KeyDynamicViewType::memory_pool
+    pool( memory_space()
+        , n * sizeof(KeyType) * 1.2
+        ,     500 /* min block size in bytes */
+        ,   30000 /* max block size in bytes */
+        , 1000000 /* min superblock size in bytes */
+        );
+
+  KeyDynamicViewType keys("Keys",pool,upper_bound);
+
+  keys.resize_serial(n);
+
+  KeyViewType keys_view("KeysTmp", n );
+
+  // Test sorting array with all numbers equal
+  Kokkos::deep_copy(keys_view,KeyType(1));
+  Kokkos::Experimental::deep_copy(keys,keys_view);
+  Kokkos::sort(keys, 0 /* begin */ , n /* end */ );
+
+  Kokkos::Random_XorShift64_Pool<ExecutionSpace> g(1931);
+  Kokkos::fill_random(keys_view,g,Kokkos::Random_XorShift64_Pool<ExecutionSpace>::generator_type::MAX_URAND);
+
+  Kokkos::Experimental::deep_copy(keys,keys_view);
+
+  double sum_before = 0.0;
+  double sum_after = 0.0;
+  unsigned int sort_fails = 0;
+
+  Kokkos::parallel_reduce(n,sum<ExecutionSpace, KeyType>(keys_view),sum_before);
+
+  Kokkos::sort(keys, 0 /* begin */ , n /* end */ );
+
+  Kokkos::Experimental::deep_copy( keys_view , keys );
+
+  Kokkos::parallel_reduce(n,sum<ExecutionSpace, KeyType>(keys_view),sum_after);
+  Kokkos::parallel_reduce(n-1,is_sorted_struct<ExecutionSpace, KeyType>(keys_view),sort_fails);
+
+  double ratio = sum_before/sum_after;
+  double epsilon = 1e-10;
+  unsigned int equal_sum = (ratio > (1.0-epsilon)) && (ratio < (1.0+epsilon)) ? 1 : 0;
+
+  if ( sort_fails != 0 || equal_sum != 1 ) {
+    std::cout << " N = " << n
+              << " ; sum_before = " << sum_before
+              << " ; sum_after = " << sum_after
+              << " ; ratio = " << ratio
+              << std::endl ;
+  }
+
+  ASSERT_EQ(sort_fails,0);
+  ASSERT_EQ(equal_sum,1);
+}
+
+//----------------------------------------------------------------------------
 
 template<class ExecutionSpace, typename KeyType>
 void test_sort(unsigned int N)
@@ -203,8 +272,9 @@ void test_sort(unsigned int N)
   test_1D_sort<ExecutionSpace,KeyType>(N*N*N, true);
   test_1D_sort<ExecutionSpace,KeyType>(N*N*N, false);
   test_3D_sort<ExecutionSpace,KeyType>(N);
+  test_dynamic_view_sort<ExecutionSpace,KeyType>(N*N);
 }
 
 }
 }
-#endif /* TESTSORT_HPP_ */
+#endif /* KOKKOS_ALGORITHMS_UNITTESTS_TESTSORT_HPP */

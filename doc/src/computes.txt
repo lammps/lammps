@@ -17,6 +17,7 @@ Computes :h1
    compute_chunk_atom
    compute_cluster_atom
    compute_cna_atom
+   compute_cnp_atom
    compute_com
    compute_com_chunk
    compute_contact_atom

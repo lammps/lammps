@@ -48,7 +48,7 @@ class Respa : public Integrate {
   Respa(class LAMMPS *, int, char **);
   virtual ~Respa();
   virtual void init();
-  virtual void setup();
+  virtual void setup(int flag=1);
   virtual void setup_minimal(int);
   virtual void run(int);
   virtual void cleanup();

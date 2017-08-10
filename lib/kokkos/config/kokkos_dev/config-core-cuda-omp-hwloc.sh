@@ -13,7 +13,7 @@
 #  module load  cmake/2.8.11.2  gcc/4.8.3  cuda/6.5.14  nvcc-wrapper/gnu
 #
 # The 'nvcc-wrapper' module should load a script that matches
-# kokkos/config/nvcc_wrapper
+# kokkos/bin/nvcc_wrapper
 #
 #-----------------------------------------------------------------------------
 # Source and installation directories:

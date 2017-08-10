@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fix_qeq_reax.h"
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -64,11 +64,11 @@ static const char cite_fix_qeq_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), pertype_option(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reax);
 
-  if (narg != 8) error->all(FLERR,"Illegal fix qeq/reax command");
+  if (narg<8 || narg>9) error->all(FLERR,"Illegal fix qeq/reax command");
 
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reax command");
@@ -76,8 +76,17 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   swa = force->numeric(FLERR,arg[4]);
   swb = force->numeric(FLERR,arg[5]);
   tolerance = force->numeric(FLERR,arg[6]);
-  pertype_parameters(arg[7]);
+  int len = strlen(arg[7]) + 1;
+  pertype_option = new char[len];
+  strcpy(pertype_option,arg[7]);
 
+  // dual CG support only available for USER-OMP variant
+  // check for compatibility is in Fix::post_constructor()
+  dual_enabled = 0;
+  if (narg == 9) {
+    if (strcmp(arg[8],"dual") == 0) dual_enabled = 1;
+    else error->all(FLERR,"Illegal fix qeq/reax command");
+  }
   shld = NULL;
 
   n = n_cap = 0;
@@ -106,30 +115,36 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   H.jlist = NULL;
   H.val = NULL;
 
-  comm_forward = comm_reverse = 1;
+  // dual CG support
+  // Update comm sizes for this fix
+  if (dual_enabled) comm_forward = comm_reverse = 2;
+  else comm_forward = comm_reverse = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  s_hist = t_hist = NULL;
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  for( int i = 0; i < atom->nmax; i++ )
-    for (int j = 0; j < nprev; ++j )
-      s_hist[i][j] = t_hist[i][j] = 0;
-
   reaxc = NULL;
-  reaxc = (PairReaxC *) force->pair_match("reax/c",1);
+  reaxc = (PairReaxC *) force->pair_match("reax/c",0);
 
+  if (reaxc) {
+    s_hist = t_hist = NULL;
+    grow_arrays(atom->nmax);
+    atom->add_callback(0);
+    for (int i = 0; i < atom->nmax; i++)
+      for (int j = 0; j < nprev; ++j)
+        s_hist[i][j] = t_hist[i][j] = 0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::~FixQEqReax()
 {
-  // unregister callbacks to this fix from Atom class
-
   if (copymode) return;
+
+  delete[] pertype_option;
+
+  // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,0);
 
@@ -150,6 +165,15 @@ FixQEqReax::~FixQEqReax()
 
 /* ---------------------------------------------------------------------- */
 
+void FixQEqReax::post_constructor()
+{
+  pertype_parameters(pertype_option);
+  if (dual_enabled)
+    error->all(FLERR,"Dual keyword only supported with fix qeq/reax/omp");
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixQEqReax::setmask()
 {
   int mask = 0;
@@ -165,11 +189,9 @@ void FixQEqReax::pertype_parameters(char *arg)
 {
   if (strcmp(arg,"reax/c") == 0) {
     reaxflag = 1;
-    Pair *pair = force->pair_match("reax/c",1);
-    if (pair == NULL)
-      pair = force->pair_match("reax/c/kk",1);
-
+    Pair *pair = force->pair_match("reax/c",0);
     if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/reax");
+
     int tmp;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
@@ -227,10 +249,14 @@ void FixQEqReax::allocate_storage()
   memory->create(b_prc,nmax,"qeq:b_prc");
   memory->create(b_prm,nmax,"qeq:b_prm");
 
-  memory->create(p,nmax,"qeq:p");
-  memory->create(q,nmax,"qeq:q");
-  memory->create(r,nmax,"qeq:r");
-  memory->create(d,nmax,"qeq:d");
+  // dual CG support
+  int size = nmax;
+  if (dual_enabled) size*= 2;
+
+  memory->create(p,size,"qeq:p");
+  memory->create(q,size,"qeq:q");
+  memory->create(r,size,"qeq:r");
+  memory->create(d,size,"qeq:d");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -271,7 +297,7 @@ void FixQEqReax::allocate_matrix()
   int mincap;
   double safezone;
 
-  if( reaxflag ) {
+  if (reaxflag) {
     mincap = reaxc->system->mincap;
     safezone = reaxc->system->safezone;
   } else {
@@ -280,7 +306,7 @@ void FixQEqReax::allocate_matrix()
   }
 
   n = atom->nlocal;
-  n_cap = MAX( (int)(n * safezone), mincap );
+  n_cap = MAX( (int)(n * safezone), mincap);
 
   // determine the total space for the H matrix
 
@@ -295,11 +321,11 @@ void FixQEqReax::allocate_matrix()
   }
 
   m = 0;
-  for( ii = 0; ii < inum; ii++ ) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     m += numneigh[i];
   }
-  m_cap = MAX( (int)(m * safezone), mincap * MIN_NBRS );
+  m_cap = MAX( (int)(m * safezone), mincap * MIN_NBRS);
 
   H.n = n_cap;
   H.m = m_cap;
@@ -331,17 +357,11 @@ void FixQEqReax::reallocate_matrix()
 
 void FixQEqReax::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR,"Fix qeq/reax requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/reax group has no atoms");
-
-  /*
-  if (reaxc)
-    if (ngroup != reaxc->ngroup)
-      error->all(FLERR,"Fix qeq/reax group and pair reax/c have "
-		       "different numbers of atoms");
-  */
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -375,11 +395,11 @@ void FixQEqReax::init_shielding()
 
   ntypes = atom->ntypes;
   if (shld == NULL)
-    memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
+    memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
 
-  for( i = 1; i <= ntypes; ++i )
-    for( j = 1; j <= ntypes; ++j )
-      shld[i][j] = pow( gamma[i] * gamma[j], -1.5 );
+  for (i = 1; i <= ntypes; ++i)
+    for (j = 1; j <= ntypes; ++j)
+      shld[i][j] = pow( gamma[i] * gamma[j], -1.5);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -395,30 +415,27 @@ void FixQEqReax::init_taper()
   else if (swb < 5 && comm->me == 0)
     error->warning(FLERR,"Fix qeq/reax has very low Taper radius cutoff");
 
-  d7 = pow( swb - swa, 7 );
-  swa2 = SQR( swa );
-  swa3 = CUBE( swa );
-  swb2 = SQR( swb );
-  swb3 = CUBE( swb );
+  d7 = pow( swb - swa, 7);
+  swa2 = SQR( swa);
+  swa3 = CUBE( swa);
+  swb2 = SQR( swb);
+  swb3 = CUBE( swb);
 
   Tap[7] =  20.0 / d7;
   Tap[6] = -70.0 * (swa + swb) / d7;
   Tap[5] =  84.0 * (swa2 + 3.0*swa*swb + swb2) / d7;
-  Tap[4] = -35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3 ) / d7;
-  Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3 ) / d7;
+  Tap[4] = -35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3) / d7;
+  Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7;
   Tap[2] =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   Tap[1] = 140.0 * swa3 * swb3 / d7;
   Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 +
-            7.0*swa*swb3*swb3 + swb3*swb3*swb ) / d7;
+            7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReax::setup_pre_force(int vflag)
 {
-  // should not be needed
-  // neighbor->build_one(list);
-
   deallocate_storage();
   allocate_storage();
 
@@ -440,6 +457,13 @@ void FixQEqReax::setup_pre_force_respa(int vflag, int ilevel)
 
 /* ---------------------------------------------------------------------- */
 
+void FixQEqReax::min_setup_pre_force(int vflag)
+{
+  setup_pre_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixQEqReax::init_storage()
 {
   int NN;
@@ -449,7 +473,7 @@ void FixQEqReax::init_storage()
   else
     NN = list->inum + list->gnum;
 
-  for( int i = 0; i < NN; i++ ) {
+  for (int i = 0; i < NN; i++) {
     Hdia_inv[i] = 1. / eta[atom->type[i]];
     b_s[i] = -chi[atom->type[i]];
     b_t[i] = -1.0;
@@ -466,7 +490,7 @@ void FixQEqReax::pre_force(int vflag)
   double t_start, t_end;
 
   if (update->ntimestep % nevery) return;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0) t_start = MPI_Wtime();
 
   n = atom->nlocal;
   N = atom->nlocal + atom->nghost;
@@ -474,16 +498,19 @@ void FixQEqReax::pre_force(int vflag)
   // grow arrays if necessary
   // need to be atom->nmax in length
 
-  if( atom->nmax > nmax ) reallocate_storage();
-  if( n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if (atom->nmax > nmax) reallocate_storage();
+  if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   init_matvec();
-  matvecs = CG(b_s, s);    	// CG on s - parallel
-  matvecs += CG(b_t, t); 	// CG on t - parallel
+
+  matvecs_s = CG(b_s, s);    	// CG on s - parallel
+  matvecs_t = CG(b_t, t);       // CG on t - parallel
+  matvecs = matvecs_s + matvecs_t;
+
   calculate_Q();
 
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     qeq_time = t_end - t_start;
   }
@@ -521,7 +548,7 @@ void FixQEqReax::init_matvec()
     ilist = list->ilist;
   }
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
 
@@ -536,7 +563,7 @@ void FixQEqReax::init_matvec()
 
       /* quadratic extrapolation for s & t from previous solutions */
       //s[i] = s_hist[i][2] + 3 * ( s_hist[i][0] - s_hist[i][1] );
-      t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1] );
+      t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1]);
 
       /* cubic extrapolation for s & t from previous solutions */
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
@@ -556,12 +583,12 @@ void FixQEqReax::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
   int i, j, ii, jj, flag;
-  double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr;
+  const double SMALL = 0.0001;
 
   int *type = atom->type;
   tagint *tag = atom->tag;
-  x = atom->x;
+  double **x = atom->x;
   int *mask = atom->mask;
 
   if (reaxc) {
@@ -579,14 +606,14 @@ void FixQEqReax::compute_H()
   // fill in the H matrix
   m_fill = 0;
   r_sqr = 0;
-  for( ii = 0; ii < inum; ii++ ) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (mask[i] & groupbit) {
       jlist = firstneigh[i];
       jnum = numneigh[i];
       H.firstnbr[i] = m_fill;
 
-      for( jj = 0; jj < jnum; jj++ ) {
+      for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
 
         dx = x[j][0] - x[i][0];
@@ -608,9 +635,9 @@ void FixQEqReax::compute_H()
 	  }
 	}
 
-        if( flag ) {
+        if (flag) {
           H.jlist[m_fill] = j;
-          H.val[m_fill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]] );
+          H.val[m_fill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]]);
           m_fill++;
         }
       }
@@ -621,7 +648,7 @@ void FixQEqReax::compute_H()
   if (m_fill >= H.m) {
     char str[128];
     sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
-             m_fill, H.m );
+             m_fill, H.m);
     error->warning(FLERR,str);
     error->all(FLERR,"Fix qeq/reax has insufficient QEq matrix size");
   }
@@ -629,7 +656,7 @@ void FixQEqReax::compute_H()
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReax::calculate_H( double r, double gamma )
+double FixQEqReax::calculate_H( double r, double gamma)
 {
   double Taper, denom;
 
@@ -649,7 +676,7 @@ double FixQEqReax::calculate_H( double r, double gamma )
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReax::CG( double *b, double *x )
+int FixQEqReax::CG( double *b, double *x)
 {
   int  i, j, imax;
   double tmp, alpha, beta, b_norm;
@@ -668,21 +695,21 @@ int FixQEqReax::CG( double *b, double *x )
   imax = 200;
 
   pack_flag = 1;
-  sparse_matvec( &H, x, q );
-  comm->reverse_comm_fix( this ); //Coll_Vector( q );
+  sparse_matvec( &H, x, q);
+  comm->reverse_comm_fix(this); //Coll_Vector( q );
 
-  vector_sum( r , 1.,  b, -1., q, nn );
+  vector_sum( r , 1.,  b, -1., q, nn);
 
-  for( jj = 0; jj < nn; ++jj ) {
+  for (jj = 0; jj < nn; ++jj) {
     j = ilist[jj];
     if (atom->mask[j] & groupbit)
       d[j] = r[j] * Hdia_inv[j]; //pre-condition
   }
 
-  b_norm = parallel_norm( b, nn );
+  b_norm = parallel_norm( b, nn);
   sig_new = parallel_dot( r, d, nn);
 
-  for( i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i ) {
+  for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
     comm->forward_comm_fix(this); //Dist_vector( d );
     sparse_matvec( &H, d, q );
     comm->reverse_comm_fix(this); //Coll_vector( q );
@@ -694,7 +721,7 @@ int FixQEqReax::CG( double *b, double *x )
     vector_add( r, -alpha, q, nn );
 
     // pre-conditioning
-    for( jj = 0; jj < nn; ++jj ) {
+    for (jj = 0; jj < nn; ++jj) {
       j = ilist[jj];
       if (atom->mask[j] & groupbit)
         p[j] = r[j] * Hdia_inv[j];
@@ -705,7 +732,6 @@ int FixQEqReax::CG( double *b, double *x )
 
     beta = sig_new / sig_old;
     vector_sum( d, 1., p, beta, d, nn );
-
   }
 
   if (i >= imax && comm->me == 0) {
@@ -721,7 +747,7 @@ int FixQEqReax::CG( double *b, double *x )
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReax::sparse_matvec( sparse_matrix *A, double *x, double *b )
+void FixQEqReax::sparse_matvec( sparse_matrix *A, double *x, double *b)
 {
   int i, j, itr_j;
   int nn, NN, ii;
@@ -737,22 +763,22 @@ void FixQEqReax::sparse_matvec( sparse_matrix *A, double *x, double *b )
     ilist = list->ilist;
   }
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       b[i] = eta[ atom->type[i] ] * x[i];
   }
 
-  for( ii = nn; ii < NN; ++ii ) {
+  for (ii = nn; ii < NN; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       b[i] = 0;
   }
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
-      for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];
         b[i] += A->val[itr_j] * x[j];
         b[j] += A->val[itr_j] * x[i];
@@ -781,17 +807,17 @@ void FixQEqReax::calculate_Q()
     ilist = list->ilist;
   }
 
-  s_sum = parallel_vector_acc( s, nn );
+  s_sum = parallel_vector_acc( s, nn);
   t_sum = parallel_vector_acc( t, nn);
   u = s_sum / t_sum;
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       q[i] = s[i] - u * t[i];
 
       /* backup s & t */
-      for( k = 4; k > 0; --k ) {
+      for (k = 4; k > 0; --k) {
         s_hist[i][k] = s_hist[i][k-1];
         t_hist[i][k] = t_hist[i][k-1];
       }
@@ -801,7 +827,7 @@ void FixQEqReax::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix( this ); //Dist_vector( atom->q );
+  comm->forward_comm_fix(this); //Dist_vector( atom->q );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -811,15 +837,23 @@ int FixQEqReax::pack_forward_comm(int n, int *list, double *buf,
 {
   int m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0; m < n; m++) buf[m] = d[list[m]];
-  else if( pack_flag == 2 )
+  else if (pack_flag == 2)
     for(m = 0; m < n; m++) buf[m] = s[list[m]];
-  else if( pack_flag == 3 )
+  else if (pack_flag == 3)
     for(m = 0; m < n; m++) buf[m] = t[list[m]];
-  else if( pack_flag == 4 )
+  else if (pack_flag == 4)
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
-
+  else if (pack_flag == 5) {
+    m = 0;
+    for(int i = 0; i < n; i++) {
+      int j = 2 * list[i];
+      buf[m++] = d[j  ];
+      buf[m++] = d[j+1];
+    }
+    return m;
+  }
   return n;
 }
 
@@ -829,14 +863,23 @@ void FixQEqReax::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
-  else if( pack_flag == 2)
+  else if (pack_flag == 2)
     for(m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
-  else if( pack_flag == 3)
+  else if (pack_flag == 3)
     for(m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
-  else if( pack_flag == 4)
+  else if (pack_flag == 4)
     for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  else if (pack_flag == 5) {
+    int last = first + n;
+    m = 0;
+    for(i = first; i < last; i++) {
+      int j = 2 * i;
+      d[j  ] = buf[m++];
+      d[j+1] = buf[m++];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -844,15 +887,35 @@ void FixQEqReax::unpack_forward_comm(int n, int first, double *buf)
 int FixQEqReax::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) buf[m] = q[i];
-  return n;
+  if (pack_flag == 5) {
+    m = 0;
+    int last = first + n;
+    for(i = first; i < last; i++) {
+      int indxI = 2 * i;
+      buf[m++] = q[indxI  ];
+      buf[m++] = q[indxI+1];
+    }
+    return m;
+  } else {
+    for (m = 0, i = first; m < n; m++, i++) buf[m] = q[i];
+    return n;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReax::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  for(int m = 0; m < n; m++) q[list[m]] += buf[m];
+  if (pack_flag == 5) {
+    int m = 0;
+    for(int i = 0; i < n; i++) {
+      int indxI = 2 * list[i];
+      q[indxI  ] += buf[m++];
+      q[indxI+1] += buf[m++];
+    }
+  } else {
+    for (int m = 0; m < n; m++) q[list[m]] += buf[m];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -868,6 +931,9 @@ double FixQEqReax::memory_usage()
   bytes += n_cap*2 * sizeof(int); // matrix...
   bytes += m_cap * sizeof(int);
   bytes += m_cap * sizeof(double);
+
+  if (dual_enabled)
+    bytes += atom->nmax*4 * sizeof(double); // double size for q, d, r, and p
 
   return bytes;
 }
@@ -918,7 +984,7 @@ int FixQEqReax::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReax::parallel_norm( double *v, int n )
+double FixQEqReax::parallel_norm( double *v, int n)
 {
   int  i;
   double my_sum, norm_sqr;
@@ -933,15 +999,15 @@ double FixQEqReax::parallel_norm( double *v, int n )
 
   my_sum = 0.0;
   norm_sqr = 0.0;
-  for( ii = 0; ii < n; ++ii ) {
+  for (ii = 0; ii < n; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
-      my_sum += SQR( v[i] );
+      my_sum += SQR( v[i]);
   }
 
-  MPI_Allreduce( &my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce( &my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
 
-  return sqrt( norm_sqr );
+  return sqrt( norm_sqr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -961,20 +1027,20 @@ double FixQEqReax::parallel_dot( double *v1, double *v2, int n)
 
   my_dot = 0.0;
   res = 0.0;
-  for( ii = 0; ii < n; ++ii ) {
+  for (ii = 0; ii < n; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       my_dot += v1[i] * v2[i];
   }
 
-  MPI_Allreduce( &my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce( &my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world);
 
   return res;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReax::parallel_vector_acc( double *v, int n )
+double FixQEqReax::parallel_vector_acc( double *v, int n)
 {
   int  i;
   double my_acc, res;
@@ -989,13 +1055,13 @@ double FixQEqReax::parallel_vector_acc( double *v, int n )
 
   my_acc = 0.0;
   res = 0.0;
-  for( ii = 0; ii < n; ++ii ) {
+  for (ii = 0; ii < n; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       my_acc += v[i];
   }
 
-  MPI_Allreduce( &my_acc, &res, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce( &my_acc, &res, 1, MPI_DOUBLE, MPI_SUM, world);
 
   return res;
 }
@@ -1003,7 +1069,7 @@ double FixQEqReax::parallel_vector_acc( double *v, int n )
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReax::vector_sum( double* dest, double c, double* v,
-                                double d, double* y, int k )
+                                double d, double* y, int k)
 {
   int kk;
   int *ilist;
@@ -1013,7 +1079,7 @@ void FixQEqReax::vector_sum( double* dest, double c, double* v,
   else
     ilist = list->ilist;
 
-  for( --k; k>=0; --k ) {
+  for (--k; k>=0; --k) {
     kk = ilist[k];
     if (atom->mask[kk] & groupbit)
       dest[kk] = c * v[kk] + d * y[kk];
@@ -1022,7 +1088,7 @@ void FixQEqReax::vector_sum( double* dest, double c, double* v,
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReax::vector_add( double* dest, double c, double* v, int k )
+void FixQEqReax::vector_add( double* dest, double c, double* v, int k)
 {
   int kk;
   int *ilist;
@@ -1032,10 +1098,9 @@ void FixQEqReax::vector_add( double* dest, double c, double* v, int k )
   else
     ilist = list->ilist;
 
-  for( --k; k>=0; --k ) {
+  for (--k; k>=0; --k) {
     kk = ilist[k];
     if (atom->mask[kk] & groupbit)
       dest[kk] += c * v[kk];
   }
-
 }

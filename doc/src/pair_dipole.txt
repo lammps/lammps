@@ -71,6 +71,14 @@ and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  These formulas are discussed in
 "(Allen)"_#Allen2 and in "(Toukmaji)"_#Toukmaji2.
 
+Also note, that in the code, all of these terms (except Elj) have a
+C/epsilon prefactor, the same as the Coulombic term in the LJ +
+Coulombic pair styles discussed "here"_pair_lj.html.  C is an
+energy-conversion constant and epsilon is the dielectric constant
+which can be set by the "dielectric"_dielectric.html command.  The
+same is true of the equations that follow for other dipole pair
+styles.
+
 Style {lj/sf/dipole/sf} computes "shifted-force" interactions between
 pairs of particles that each have a charge and/or a point dipole
 moment. In general, a shifted-force potential is a (sligthly) modified
@@ -190,7 +198,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

@@ -49,11 +49,8 @@ above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands:
 
-K (energy/radian^2)
+K (energy)
 theta0 (degrees) :ul
-
-theta0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian^2.
 
 :line
 
@@ -72,7 +69,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

@@ -16,7 +16,8 @@ dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
 keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
-  {append} arg = {yes} or {no}
+  {append} arg = {yes} or {no} or {at} N
+    N = index of frame written upon first dump
   {buffer} arg = {yes} or {no}
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
@@ -41,6 +42,7 @@ keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} o
   {region} arg = region-ID or "none"
   {scale} arg = {yes} or {no}
   {sfactor} arg = coordinate scaling factor (> 0.0)
+  {thermo} arg = {yes} or {no}
   {tfactor} arg = time scaling factor (> 0.0)
   {sort} arg = {off} or {id} or N or -N
      off = no sorting of per-atom lines within a snapshot
@@ -139,12 +141,13 @@ and {dcd}.  It also applies only to text output files, not to binary
 or gzipped or image/movie files.  If specified as {yes}, then dump
 snapshots are appended to the end of an existing dump file.  If
 specified as {no}, then a new dump file will be created which will
-overwrite an existing file with the same name.  This keyword can only
-take effect if the dump_modify command is used after the
-"dump"_dump.html command, but before the first command that causes
-dump snapshots to be output, e.g. a "run"_run.html or
-"minimize"_minimize.html command.  Once the dump file has been opened,
-this keyword has no further effect.
+overwrite an existing file with the same name.  If the {at} option is present
+({netcdf} only), then the frame to append to can be specified.  Negative values
+are counted from the end of the file.  This keyword can only take effect if the
+dump_modify command is used after the "dump"_dump.html command, but before the
+first command that causes dump snapshots to be output, e.g. a "run"_run.html or
+"minimize"_minimize.html command.  Once the dump file has been opened, this
+keyword has no further effect.
 
 :line
 
@@ -410,6 +413,13 @@ units far from nm and psec, you may wish to write XTC files with
 different units, since the compression algorithm used in XTC files is
 most effective when the typical magnitude of position data is between
 10.0 and 0.1.
+
+:line
+
+The {thermo} keyword ({netcdf} only) triggers writing of "thermo"_thermo.html
+information to the dump file alongside per-atom data. The data included in the
+dump file is identical to the data specified by
+"thermo_style"_thermo_style.html.
 
 :line
 

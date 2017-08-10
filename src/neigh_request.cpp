@@ -50,6 +50,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default is no Intel-specific neighbor list build
   // default is no Kokkos neighbor list build
   // default is no Shardlow Splitting Algorithm (SSA) neighbor list build
+  // default is no list-specific cutoff
   // default is no storage of auxiliary floating point values
 
   occasional = 0;
@@ -227,7 +228,6 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
 
   dnum = other->dnum;
 
-  iskip = other->iskip;
   iskip = NULL;
   ijskip = NULL;
 

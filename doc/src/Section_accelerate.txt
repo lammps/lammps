@@ -56,7 +56,7 @@ timings; you can simply extrapolate from short runs.
 
 For the set of runs, look at the timing data printed to the screen and
 log file at the end of each LAMMPS run.  "This
-section"_Section_start.html#start_8 of the manual has an overview.
+section"_Section_start.html#start_7 of the manual has an overview.
 
 Running on one (or a few processors) should give a good estimate of
 the serial performance and what portions of the timestep are taking
@@ -226,16 +226,16 @@ re-build LAMMPS |
   make machine |
 prepare and test a regular LAMMPS simulation |
   lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script |
-enable specific accelerator support via '-k on' "command-line switch"_Section_start.html#start_7, |
+enable specific accelerator support via '-k on' "command-line switch"_Section_start.html#start_6, |
   only needed for KOKKOS package |
-set any needed options for the package via "-pk" "command-line switch"_Section_start.html#start_7 or "package"_package.html command, |
+set any needed options for the package via "-pk" "command-line switch"_Section_start.html#start_6 or "package"_package.html command, |
   only if defaults need to be changed |
-use accelerated styles in your input via "-sf" "command-line switch"_Section_start.html#start_7 or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
+use accelerated styles in your input via "-sf" "command-line switch"_Section_start.html#start_6 or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
 :tb(c=2,s=|)
 
 Note that the first 4 steps can be done as a single command, using the
 src/Make.py tool.  This tool is discussed in "Section
-2.4"_Section_start.html#start_4 of the manual, and its use is
+4"_Section_packages.html of the manual, and its use is
 illustrated in the individual accelerator sections.  Typically these
 steps only need to be done once, to create an executable that uses one
 or more accelerator packages.

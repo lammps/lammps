@@ -46,8 +46,29 @@ def error(str=None):
 def fullpath(path):
   return os.path.abspath(os.path.expanduser(path))
 
+def which(program):
+  def is_exe(fpath):
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+  fpath, fname = os.path.split(program)
+  if fpath:
+    if is_exe(program):
+      return program
+  else:
+    for path in os.environ["PATH"].split(os.pathsep):
+      path = path.strip('"')
+      exe_file = os.path.join(path, program)
+      if is_exe(exe_file):
+        return exe_file
+
+  return None
+
 def geturl(url,fname):
-  cmd = 'curl -L -o "%s" %s' % (fname,url)
+  if which('curl') != None:
+    cmd = 'curl -L -o "%s" %s' % (fname,url)
+  elif which('wget') != None:
+    cmd = 'wget -O "%s" %s' % (fname,url)
+  else: error("cannot find 'wget' or 'curl' to download source code")
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   return txt
 
@@ -116,7 +137,7 @@ if buildflag:
 
 if buildflag:
   print("Building Voro++ ...")
-  cmd = 'cd "%s"; make' % homedir
+  cmd = 'cd "%s"; make CXX=g++ CFLAGS="-fPIC -O3"' % homedir
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   print(txt.decode('UTF-8'))
 

@@ -587,8 +587,7 @@ Typing "make clean-all" or "make clean-machine" will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
 particular machine.
 
-Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
--DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :h6
+Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :h6
 
 As explained above, any of these 3 settings can be specified on the
 LMP_INC line in your low-level src/MAKE/Makefile.foo.
@@ -659,7 +658,16 @@ utilities.
 For Cygwin and the MinGW cross-compilers, suitable makefiles are
 provided in src/MAKE/MACHINES. When using other compilers, like
 Visual C++ or Intel compilers for Windows, you may have to implement
-your own build system. Since none of the current LAMMPS core developers
+your own build system. Due to differences between the Windows OS
+and Windows system libraries to Unix-like environments like Linux
+or MacOS, when compiling for Windows a few adjustments may be needed:
+
+Do not set the -DLAMMPS_MEMALIGN define (see LMP_INC makefile variable)
+Add -lwsock32 -lpsapi to the linker flags (see LIB makefile variable)
+Try adding -static-libgcc or -static or both to the linker flags when your
+LAMMPS executable complains about missing .dll files  :ul
+
+Since none of the current LAMMPS core developers
 has significant experience building executables on Windows, we are
 happy to distribute contributed instructions and modifications, but
 we cannot provide support for those.

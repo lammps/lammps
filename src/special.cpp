@@ -561,7 +561,13 @@ void Special::combine()
     for (j = 0; j < nspecial[i][2]; j++) atom->map_one(onefour[i][j],-1);
   }
 
-  // compute global maxspecial, must be at least 1
+  // if atom->maxspecial has been updated before, make certain
+  // we do not reset it to a smaller value. Since atom->maxspecial
+  // is initialized to 1, this ensures that it is larger than zero.
+
+  maxspecial = MAX(atom->maxspecial,maxspecial);
+
+  // compute global maxspecial
   // add in extra factor from special_bonds command
   // allocate correct special array with same nmax, new maxspecial
   // previously allocated one must be destroyed
@@ -569,7 +575,10 @@ void Special::combine()
 
   MPI_Allreduce(&maxspecial,&atom->maxspecial,1,MPI_INT,MPI_MAX,world);
   atom->maxspecial += force->special_extra;
-  atom->maxspecial = MAX(atom->maxspecial,1);
+
+  // add force->special_extra only once
+
+  force->special_extra = 0;
 
   if (me == 0) {
     if (screen)

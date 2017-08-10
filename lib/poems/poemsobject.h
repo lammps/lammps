@@ -26,7 +26,7 @@ class POEMSObject {
 public: 
   POEMSObject();
   virtual ~POEMSObject();
-  void ChangeName(char* newname);
+  void ChangeName(const char* newname);
   char* GetName();
   int GetID();
   void SetID(int id);

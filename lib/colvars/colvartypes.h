@@ -1020,16 +1020,6 @@ inline cvm::rvector operator * (cvm::rmatrix const &m,
 }
 
 
-/// Numerical recipes diagonalization
-void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
-
-/// Eigenvector sort
-void eigsrt(cvm::real *d, cvm::real **v);
-
-/// Transpose the matrix
-void transpose(cvm::real **v);
-
-
 
 
 /// \brief 1-dimensional vector of real numbers with four components and

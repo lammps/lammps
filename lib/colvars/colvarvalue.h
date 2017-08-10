@@ -193,6 +193,12 @@ public:
   /// Derivative with respect to this \link colvarvalue \endlink of the square distance
   colvarvalue dist2_grad(colvarvalue const &x2) const;
 
+  /// Return the midpoint between x1 and x2, optionally weighted by lambda
+  /// (which must be between 0.0 and 1.0)
+  static colvarvalue const interpolate(colvarvalue const &x1,
+                                       colvarvalue const &x2,
+                                       cvm::real const lambda = 0.5);
+
   /// Assignment operator (type of x is checked)
   colvarvalue & operator = (colvarvalue const &x);
 
@@ -285,10 +291,10 @@ public:
   cvm::real & operator [] (int const i);
 
   /// Ensure that the two types are the same within a binary operator
-  int static check_types(colvarvalue const &x1, colvarvalue const &x2);
+  static int check_types(colvarvalue const &x1, colvarvalue const &x2);
 
   /// Ensure that the two types are the same within an assignment, or that the left side is type_notset
-  int static check_types_assign(Type const &vt1, Type const &vt2);
+  static int check_types_assign(Type const &vt1, Type const &vt2);
 
   /// Undefined operation
   void undef_op() const;
@@ -317,14 +323,14 @@ public:
 
   /// \brief Optimized routine for the inner product of one collective
   /// variable with an array
-  void static inner_opt(colvarvalue const                        &x,
+  static void inner_opt(colvarvalue const                        &x,
                         std::vector<colvarvalue>::iterator       &xv,
                         std::vector<colvarvalue>::iterator const &xv_end,
                         std::vector<cvm::real>::iterator         &result);
 
   /// \brief Optimized routine for the inner product of one collective
   /// variable with an array
-  void static inner_opt(colvarvalue const                        &x,
+  static void inner_opt(colvarvalue const                        &x,
                         std::list<colvarvalue>::iterator         &xv,
                         std::list<colvarvalue>::iterator const   &xv_end,
                         std::vector<cvm::real>::iterator         &result);
@@ -332,14 +338,14 @@ public:
   /// \brief Optimized routine for the second order Legendre
   /// polynomial, (3cos^2(w)-1)/2, of one collective variable with an
   /// array
-  void static p2leg_opt(colvarvalue const                        &x,
+  static void p2leg_opt(colvarvalue const                        &x,
                         std::vector<colvarvalue>::iterator       &xv,
                         std::vector<colvarvalue>::iterator const &xv_end,
                         std::vector<cvm::real>::iterator         &result);
 
   /// \brief Optimized routine for the second order Legendre
   /// polynomial of one collective variable with an array
-  void static p2leg_opt(colvarvalue const                        &x,
+  static void p2leg_opt(colvarvalue const                        &x,
                         std::list<colvarvalue>::iterator         &xv,
                         std::list<colvarvalue>::iterator const   &xv_end,
                         std::vector<cvm::real>::iterator         &result);

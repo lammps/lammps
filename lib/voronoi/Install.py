@@ -116,7 +116,7 @@ if buildflag:
 
 if buildflag:
   print("Building Voro++ ...")
-  cmd = 'cd "%s"; make' % homedir
+  cmd = 'cd "%s"; make CXX=g++ CFLAGS="-fPIC -O3"' % homedir
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   print(txt.decode('UTF-8'))
 

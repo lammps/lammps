@@ -105,8 +105,8 @@ class Comm : protected Pointers {
 
   // non-virtual functions common to all Comm styles
 
-  void ring(int, int, void *, int, void (*)(int, char *),
-            void *, int self = 1);
+  void ring(int, int, void *, int, void (*)(int, char *, void *),
+            void *, void *, int self = 1);
   int read_lines_from_file(FILE *, int, int, char *);
   int read_lines_from_file_universe(FILE *, int, int, char *);
 

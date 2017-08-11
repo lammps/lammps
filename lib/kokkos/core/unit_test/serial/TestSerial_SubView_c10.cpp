@@ -40,13 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
-#include <serial/TestSerial.hpp>
+
+#include <serial/TestSerial_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_3d_from_5d_right ) {
-  TestViewSubview::test_3d_subview_5d_right< Kokkos::Serial >();
+TEST_F( TEST_CATEGORY, view_subview_3d_from_5d_right )
+{
+  TestViewSubview::test_3d_subview_5d_right< TEST_EXECSPACE >();
 }
 
-} // namespace test
-
+} // namespace Test

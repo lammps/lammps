@@ -1,35 +1,41 @@
 # Design Notes for Execution and Memory Space Instances
 
+## Objective
 
-## Execution Spaces
+ * Enable Kokkos interoperability with coarse-grain tasking models
+ 
+## Requirements
 
-  *  Work is *dispatched* to an execution space instance
+ * Backwards compatable with existing Kokkos API
+ * Support existing Host execution spaces (Serial, Threads, OpenMP, maybe Qthreads)
+ * Support DARMA threading model (may require a new Host execution space)
+ * Support Uintah threading model, i.e. indepentant worker threadpools working of of shared task queues
+ 
+  
+## Execution Space
 
+  * Parallel work is *dispatched* on an execution space instance
+  
+  * Execution space instances are conceptually disjoint/independant from each other 
+  
 
-
-## Host Associated Execution Space Instances
-
-Vocabulary and examples assuming C++11 Threads Support Library
+## Host Execution Space Instances
 
   *  A host-side *control* thread dispatches work to an instance
 
-  * `this_thread` is the control thread
-
   * `main` is the initial control thread
 
-  *  An execution space instance is a pool of threads
+  *  A host execution space instance is an organized thread pool
 
-  *  All instances are disjoint thread pools
+  *  All instances are disjoint, i.e. hardware resources are not shared between instances
 
   *  Exactly one control thread is associated with
      an instance and only that control thread may
      dispatch work to to that instance
 
-  *  A control thread may be a member of an instance,
-     if so then it is also the control thread associated
-     with that instance
+  *  The control thread is a member of the instance
 
-  *  The pool of threads associated with an instances is not mutatable
+  *  The pool of threads associated with an instances is not mutatable during that instance existance
 
   *  The pool of threads associated with an instance may be masked
 
@@ -37,130 +43,89 @@ Vocabulary and examples assuming C++11 Threads Support Library
 
     -  Example: only one hyperthread per core of the instance
 
-    -  When a mask is applied to an instance that mask
-       remains until cleared or another mask is applied
-
-    -  Masking is portable by defining it as using a fraction
-       of the available resources (threads)
-
-  *  Instances are shared (referenced counted) objects,
-     just like `Kokkos::View`
+    -  A mask can be applied during the policy creation of a parallel algorithm
+ 
+    -  Masking is portable by defining it as ceiling of fraction between [0.0, 1.0] 
+       of the available resources
 
 ```
-struct StdThread {
-  void mask( float fraction );
-  void unmask() { mask( 1.0 ); }
-};
-```
+class ExecutionSpace {
+public:
+  using execution_space = ExecutionSpace;
+  using memory_space = ...;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
+  using array_layout = ...;
+  using size_type = ...;
+  using scratch_memory_space = ...;
+  
+  
+  class Instance
+  {
+    int thread_pool_size( int depth = 0 );
+    ...
+  };
+  
+  class InstanceRequest
+  {
+  public:
+    using Control = std::function< void( Instance * )>;
+    
+    InstanceRequest( Control control
+                   , unsigned thread_count
+                   , unsigned use_numa_count = 0
+                   , unsigned use_cores_per_numa = 0
+                   );    
+  
+  };
+  
+  static bool in_parallel();
+  
+  static bool sleep();
+  static bool wake();
+  
+  static void fence();
+  
+  static void print_configuration( std::ostream &, const bool detailed = false );
+  
+  static void initialize( unsigned thread_count = 0
+                        , unsigned use_numa_count = 0
+                        , unsigned use_cores_per_numa = 0
+                        );
+  
+  // Partition the current instance into the requested instances
+  // and run the given functions on the cooresponding instances
+  // will block until all the partitioned instances complete and 
+  // the original instance will be restored 
+  //
+  // Requires that the space has already been initialized
+  // Requires that the request can be statisfied by the current instance
+  //   i.e. the sum of number of requested threads must be less than the 
+  //   max_hardware_threads
+  //
+  // Each control functor will accept a handle to its new default instance
+  // Each instance must be independant of all other instances 
+  //   i.e. no assumption on scheduling between instances
+  // The user is responible for checking the return code for errors
+  static int run_instances( std::vector< InstanceRequest> const& requests );
+  
+  static void finalize();
 
-
-
-### Requesting an Execution Space Instance
-
-  *  `Space::request(` *who* `,` *what* `,` *control-opt* `)`
-
-  *  *who* is an identifier for subsquent queries regarding
-    who requested each instance
-
-  *  *what* is the number of threads and how they should be placed
-
-    -  Placement within locality-topology hierarchy; e.g., HWLOC
-
-    -  Compact within a level of hierarchy, or striped across that level;
-       e.g., socket or NUMA region
-
-    -  Granularity of request is core
-
-  *  *control-opt*  optionally specifies whether the instance
-     has a new control thread
-
-    -  *control-opt* includes a control function / closure
-
-    -  The new control thread is a member of the instance
-
-    -  The control function is called by the new control thread
-       and is passed a `const` instance
-
-    -  The instance is **not** returned to the creating control thread
-
-  *  `std::thread` that is not a member of an instance is
-     *hard blocked* on a `std::mutex`
-
-    -  One global mutex or one mutex per thread?
-
-  *  `std::thread` that is a member of an instance is
-     *spinning* waiting for work, or are working
-
-```
-struct StdThread {
-
-  struct Resource ;
-
-  static StdThread request(); // default
-
-  static StdThread request( const std::string & , const Resource & );
-
-  // If the instance can be reserved then
-  // allocate a copy of ControlClosure and invoke
-  //   ControlClosure::operator()( const StdThread intance ) const
-  template< class ControlClosure >
-  static bool request( const std::string & , const Resource &
-                     , const ControlClosure & );
-};
-```
-
-### Relinquishing an Execution Space Instance
-
-  *  De-referencing the last reference-counted instance
-     relinquishes the pool of threads
-
-  *  If a control thread was created for the instance then
-     it is relinquished when that control thread returns
-     from the control function
-
-    -  Requires the reference count to be zero, an error if not
-
-  *  No *forced* relinquish
-
-
-
-## CUDA Associated Execution Space Instances
-
-  *  Only a signle CUDA architecture
-
-  *  An instance is a device + stream
-
-  *  A stream is exclusive to an instance
-
-  *  Only a host-side control thread can dispatch work to an instance
-
-  *  Finite number of streams per device
-
-  *  ISSUE:  How to use CUDA `const` memory with multiple streams?
-
-  *  Masking can be mapped to restricting the number of CUDA blocks
-     to the fraction of available resources; e.g., maximum resident blocks
-
-
-### Requesting an Execution Space Instance
-
-  *  `Space::request(` *who* `,` *what* `)`
-
-  *  *who* is an identifier for subsquent queries regarding
-    who requested each instance
-
-  *  *what* is which device, the stream is a requested/relinquished resource
-
+  static int is_initialized();
+  
+  static int concurrency();
+  
+  static int thread_pool_size( int depth = 0 );
+  
+  static int thread_pool_rank();
+  
+  static int max_hardware_threads();
+  
+  static int hardware_thread_id();
+                        
+ };
 
 ```
-struct Cuda {
+ 
 
-  struct Resource ;
-
-  static Cuda request();
-
-  static Cuda request( const std::string & , const Resource & );
-};
-```
 
 

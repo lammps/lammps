@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -47,17 +47,17 @@
 
 namespace TestCompilerMacros {
 
-template<class DEVICE_TYPE>
+template< class DEVICE_TYPE >
 struct AddFunctor {
   typedef DEVICE_TYPE execution_space;
-  typedef typename Kokkos::View<int**,execution_space> type;
-  type a,b;
+  typedef typename Kokkos::View< int**, execution_space > type;
+  type a, b;
   int length;
 
-  AddFunctor(type a_, type b_):a(a_),b(b_),length(a.dimension_1()) {}
+  AddFunctor( type a_, type b_ ) : a( a_ ), b( b_ ), length( a.dimension_1() ) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i) const {
+  void operator()( int i ) const {
 #ifdef KOKKOS_ENABLE_PRAGMA_UNROLL
     #pragma unroll
 #endif
@@ -75,21 +75,30 @@ struct AddFunctor {
     #pragma simd
 #endif
 #endif
-    for(int j=0;j<length;j++)
-      a(i,j) += b(i,j);
+    for ( int j = 0; j < length; j++ ) {
+      a( i, j ) += b( i, j );
+    }
   }
 };
 
-template<class DeviceType>
+template< class DeviceType >
 bool Test() {
-  typedef typename Kokkos::View<int**,DeviceType> type;
-  type a("A",1024,128);
-  type b("B",1024,128);
+  typedef typename Kokkos::View< int**, DeviceType > type;
+  type a( "A", 1024, 128 );
+  type b( "B", 1024, 128 );
 
-  AddFunctor<DeviceType> f(a,b);
-  Kokkos::parallel_for(1024,f);
+  AddFunctor< DeviceType > f( a, b );
+  Kokkos::parallel_for( 1024, f );
   DeviceType::fence();
+
   return true;
 }
 
+} // namespace TestCompilerMacros
+
+namespace Test {
+TEST_F( TEST_CATEGORY, compiler_macros )
+{
+  ASSERT_TRUE( ( TestCompilerMacros::Test< TEST_EXECSPACE >() ) );
+}
 }

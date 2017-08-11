@@ -35,6 +35,10 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define MAXWORD 3
 
+// Outstanding issues with quadratic term
+// 1. there seems to a problem with compute_optimized energy calc
+// it does not match compute_regular, even when quadratic coeffs = 0
+
 /* ---------------------------------------------------------------------- */
 
 PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
@@ -232,10 +236,6 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
     snaptr->compute_ui(ninside);
     snaptr->compute_zi();
-    if (!gammaoneflag) {
-      snaptr->compute_bi();
-      snaptr->copy_bi2bvec();
-    }
 
     // for neighbors of I within cutoff:
     // compute dUi/drj and dBi/drj
@@ -255,15 +255,39 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       fij[1] = 0.0;
       fij[2] = 0.0;
 
+      // linear contributions
+      
       for (int k = 1; k <= ncoeff; k++) {
-	double bgb;
-	if (gammaoneflag)
-	  bgb = coeffi[k];
-	else bgb = coeffi[k]*
-	       gamma*pow(snaptr->bvec[k-1],gamma-1.0);
+	double bgb = coeffi[k];
 	fij[0] += bgb*snaptr->dbvec[k-1][0];
 	fij[1] += bgb*snaptr->dbvec[k-1][1];
 	fij[2] += bgb*snaptr->dbvec[k-1][2];
+      }
+
+      // quadratic contributions
+      
+      if (quadraticflag) {
+        snaptr->compute_bi();
+        snaptr->copy_bi2bvec();
+        int k = ncoeff+1;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+          double bveci = snaptr->bvec[icoeff];
+          double fack = coeffi[k]*bveci;
+          double* dbveci = snaptr->dbvec[icoeff];
+          fij[0] += fack*snaptr->dbvec[icoeff][0];
+          fij[1] += fack*snaptr->dbvec[icoeff][1];
+          fij[2] += fack*snaptr->dbvec[icoeff][2];
+          k++;
+          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+            double facki = coeffi[k]*bveci;
+            double fackj = coeffi[k]*snaptr->bvec[jcoeff];
+            double* dbvecj = snaptr->dbvec[jcoeff];
+            fij[0] += facki*dbvecj[0]+fackj*dbveci[0];
+            fij[1] += facki*dbvecj[1]+fackj*dbveci[1];
+            fij[2] += facki*dbvecj[2]+fackj*dbveci[2];
+            k++;
+          }
+        }
       }
 
       f[i][0] += fij[0];
@@ -273,27 +297,50 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       f[j][1] -= fij[1];
       f[j][2] -= fij[2];
 
-      if (evflag)
-	ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
+      // tally per-atom virial contribution
+      
+      if (vflag)
+        ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
 		     fij[0],fij[1],fij[2],
-		     snaptr->rij[jj][0],snaptr->rij[jj][1],
-		     snaptr->rij[jj][2]);
+		     -snaptr->rij[jj][0],-snaptr->rij[jj][1],
+		     -snaptr->rij[jj][2]);
     }
+
+    // tally energy contribution
 
     if (eflag) {
 
       // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
       evdwl = coeffi[0];
-      if (gammaoneflag) {
-	snaptr->compute_bi();
-	snaptr->copy_bi2bvec();
-	for (int k = 1; k <= ncoeff; k++)
-	  evdwl += coeffi[k]*snaptr->bvec[k-1];
-      } else
-      	for (int k = 1; k <= ncoeff; k++)
-      	  evdwl += coeffi[k]*pow(snaptr->bvec[k-1],gamma);
-      ev_tally_full(i,2.0*evdwl,0.0,0.0,delx,dely,delz);
+      if (!quadraticflag) {
+        snaptr->compute_bi();
+        snaptr->copy_bi2bvec();
+      }
+      
+      // E = beta.B + 0.5*B^t.alpha.B
+      // coeff[k] = beta[k-1] or
+      // coeff[k] = alpha_ii or
+      // coeff[k] = alpha_ij = alpha_ji, j != i
+
+      // linear contributions
+
+      for (int k = 1; k <= ncoeff; k++)
+        evdwl += coeffi[k]*snaptr->bvec[k-1];
+
+      // quadratic contributions
+
+      if (quadraticflag) {
+        int k = ncoeff+1;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+          double bveci = snaptr->bvec[icoeff];
+          evdwl += 0.5*coeffi[k++]*bveci*bveci;
+          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+            evdwl += coeffi[k++]*bveci*snaptr->bvec[jcoeff];
+          }
+        }
+      }
+      ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
     }
 
   }
@@ -562,25 +609,45 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
 
         sna[tid]->compute_dbidrj();
         sna[tid]->copy_dbi2dbvec();
-	if (!gammaoneflag) {
-	  sna[tid]->compute_bi();
-	  sna[tid]->copy_bi2bvec();
-	}
 
         fij[0] = 0.0;
         fij[1] = 0.0;
         fij[2] = 0.0;
 
+        // linear contributions
+
         for (k = 1; k <= ncoeff; k++) {
-	  double bgb;
-	  if (gammaoneflag)
-	    bgb = coeffi[k];
-	  else bgb = coeffi[k]*
-		 gamma*pow(sna[tid]->bvec[k-1],gamma-1.0);
+	  double bgb = coeffi[k];
 	  fij[0] += bgb*sna[tid]->dbvec[k-1][0];
 	  fij[1] += bgb*sna[tid]->dbvec[k-1][1];
 	  fij[2] += bgb*sna[tid]->dbvec[k-1][2];
         }
+
+      // quadratic contributions
+        
+      if (quadraticflag) {
+        sna[tid]->compute_bi();
+        sna[tid]->copy_bi2bvec();
+        int k = ncoeff+1;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+          double bveci = sna[tid]->bvec[icoeff];
+          double fack = coeffi[k]*bveci;
+          double* dbveci = sna[tid]->dbvec[icoeff];
+          fij[0] += fack*sna[tid]->dbvec[icoeff][0];
+          fij[1] += fack*sna[tid]->dbvec[icoeff][1];
+          fij[2] += fack*sna[tid]->dbvec[icoeff][2];
+          k++;
+          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+            double facki = coeffi[k]*bveci;
+            double fackj = coeffi[k]*sna[tid]->bvec[jcoeff];
+            double* dbvecj = sna[tid]->dbvec[jcoeff];
+            fij[0] += facki*dbvecj[0]+fackj*dbveci[0];
+            fij[1] += facki*dbvecj[1]+fackj*dbveci[1];
+            fij[2] += facki*dbvecj[2]+fackj*dbveci[2];
+            k++;
+          }
+        }
+      }
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -592,11 +659,14 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
           f[j][0] -= fij[0];
           f[j][1] -= fij[1];
           f[j][2] -= fij[2];
-          if (evflag)
+
+          // tally per-atom virial contribution
+
+          if (vflag)
             ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
                          fij[0],fij[1],fij[2],
-                         sna[tid]->rij[jj][0],sna[tid]->rij[jj][1],
-                         sna[tid]->rij[jj][2]);
+                         -sna[tid]->rij[jj][0],-sna[tid]->rij[jj][1],
+                         -sna[tid]->rij[jj][2]);
         }
       }
 
@@ -606,19 +676,37 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
 
       if (eflag&&pairs[iijj][1] == 0) {
 	evdwl = coeffi[0];
-	if (gammaoneflag) {
-	  sna[tid]->compute_bi();
-	  sna[tid]->copy_bi2bvec();
-	  for (int k = 1; k <= ncoeff; k++)
-	    evdwl += coeffi[k]*sna[tid]->bvec[k-1];
-	} else
-	  for (int k = 1; k <= ncoeff; k++)
-	    evdwl += coeffi[k]*pow(sna[tid]->bvec[k-1],gamma);
 
+        sna[tid]->compute_bi();
+        sna[tid]->copy_bi2bvec();
+
+        // E = beta.B + 0.5*B^t.alpha.B
+        // coeff[k] = beta[k-1] or
+        // coeff[k] = alpha_ii or
+        // coeff[k] = alpha_ij = alpha_ji, j != i
+
+        // linear contributions
+        
+        for (int k = 1; k <= ncoeff; k++)
+          evdwl += coeffi[k]*sna[tid]->bvec[k-1];
+
+        // quadratic contributions
+        
+        if (quadraticflag) {
+          int k = ncoeff+1;
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bveci = sna[tid]->bvec[icoeff];
+            evdwl += 0.5*coeffi[k++]*bveci*bveci;
+            for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+              evdwl += coeffi[k++]*bveci*sna[tid]->bvec[jcoeff];
+            }
+          }
+        }
+        
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-        ev_tally_full(i,2.0*evdwl,0.0,0.0,delx,dely,delz);
+        ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
       }
 
     }
@@ -1363,6 +1451,22 @@ void PairSNAP::coeff(int narg, char **arg)
 
   read_files(coefffilename,paramfilename);
 
+  if (!quadraticflag)
+    ncoeff = ncoeffall - 1;
+  else {
+
+    // ncoeffall should be (ncoeff+2)*(ncoeff+1)/2
+    // so, ncoeff = floor(sqrt(2*ncoeffall))-1
+    
+    ncoeff = sqrt(2*ncoeffall)-1; 
+    ncoeffq = (ncoeff*(ncoeff+1))/2;
+    int ntmp = 1+ncoeff+ncoeffq;
+    if (ntmp != ncoeffall) {
+      printf("ncoeffall = %d ntmp = %d ncoeff = %d \n",ncoeffall,ntmp,ncoeff);
+      error->all(FLERR,"Incorrect SNAP coeff file");
+    }
+  }
+
   // read args that map atom types to SNAP elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
@@ -1416,6 +1520,7 @@ void PairSNAP::coeff(int narg, char **arg)
       sna[tid]->grow_rij(nmax);
   }
 
+  printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
   if (ncoeff != sna[0]->ncoeff) {
     printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
     error->all(FLERR,"Incorrect SNAP parameter file");
@@ -1470,7 +1575,7 @@ double PairSNAP::init_one(int i, int j)
 void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 {
 
-  // open SNAP ceofficient file on proc 0
+  // open SNAP coefficient file on proc 0
 
   FILE *fpcoeff;
   if (comm->me == 0) {
@@ -1518,13 +1623,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   words[iword] = strtok(NULL,"' \t\n\r\f");
 
   int nelemfile = atoi(words[0]);
-  ncoeff = atoi(words[1])-1;
-
+  ncoeffall = atoi(words[1]);
+  
   // Set up element lists
 
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
-  memory->create(coeffelem,nelements,ncoeff+1,"pair:coeffelem");
+  memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
 
   int *found = new int[nelements];
   for (int ielem = 0; ielem < nelements; ielem++)
@@ -1569,7 +1674,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (strcmp(elemtmp,elements[ielem]) == 0) break;
     if (ielem == nelements) {
       if (comm->me == 0)
-	for (int icoeff = 0; icoeff <= ncoeff; icoeff++)
+	for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
 	  ptr = fgets(line,MAXLINE,fpcoeff);
       continue;
     }
@@ -1578,7 +1683,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     if (found[ielem]) {
       if (comm->me == 0)
-	for (int icoeff = 0; icoeff <= ncoeff; icoeff++)
+	for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
 	  ptr = fgets(line,MAXLINE,fpcoeff);
       continue;
     }
@@ -1595,7 +1700,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 			  elements[ielem], radelem[ielem], wjelem[ielem]);
     }
 
-    for (int icoeff = 0; icoeff <= ncoeff; icoeff++) {
+    for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
 	ptr = fgets(line,MAXLINE,fpcoeff);
 	if (ptr == NULL) {
@@ -1629,13 +1734,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   // Set defaults for optional keywords
 
-  gamma = 1.0;
-  gammaoneflag = 1;
   rfac0 = 0.99363;
   rmin0 = 0.0;
   diagonalstyle = 3;
   switchflag = 1;
-  bzeroflag = 0;
+  bzeroflag = 1;
+  quadraticflag = 0;
+  
   // open SNAP parameter file on proc 0
 
   FILE *fpparam;
@@ -1688,9 +1793,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     } else if (strcmp(keywd,"twojmax") == 0) {
       twojmax = atoi(keyval);
       twojmaxflag = 1;
-    } else if (strcmp(keywd,"gamma") == 0)
-      gamma = atof(keyval);
-    else if (strcmp(keywd,"rfac0") == 0)
+    } else if (strcmp(keywd,"rfac0") == 0)
       rfac0 = atof(keyval);
     else if (strcmp(keywd,"rmin0") == 0)
       rmin0 = atof(keyval);
@@ -1700,15 +1803,14 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       switchflag = atoi(keyval);
     else if (strcmp(keywd,"bzeroflag") == 0)
       bzeroflag = atoi(keyval);
+    else if (strcmp(keywd,"quadraticflag") == 0)
+      quadraticflag = atoi(keyval);
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }
 
   if (rcutfacflag == 0 || twojmaxflag == 0)
     error->all(FLERR,"Incorrect SNAP parameter file");
-
-  if (gamma == 1.0) gammaoneflag = 1;
-  else gammaoneflag = 0;
 
   delete[] found;
 }
@@ -1725,7 +1827,7 @@ double PairSNAP::memory_usage()
   bytes += n*n*sizeof(double);
   bytes += 3*nmax*sizeof(double);
   bytes += nmax*sizeof(int);
-  bytes += (2*ncoeff+1)*sizeof(double);
+  bytes += (2*ncoeffall)*sizeof(double);
   bytes += (ncoeff*3)*sizeof(double);
   bytes += sna[0]->memory_usage()*nthreads;
   return bytes;

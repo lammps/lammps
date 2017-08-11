@@ -22,6 +22,11 @@ attribute = {pair} or {kspace} or {atom} :l
     pparam = parameter to adapt over time
     I,J = type pair(s) to set parameter for
     v_name = variable with name that calculates value of pparam
+  {bond} args = bstyle bparam I v_name
+    bstyle = bond style name, e.g. harmonic
+    bparam = parameter to adapt over time
+    I = type bond to set parameter for
+    v_name = variable with name that calculates value of bparam
   {kspace} arg = v_name
     v_name = variable with name that calculates scale factor on K-space terms
   {atom} args = aparam v_name
@@ -43,6 +48,9 @@ fix 1 all adapt 1 pair soft a 1 1 v_prefactor
 fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
 fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
 fix 1 all adapt 10 atom diameter v_size :pre
+
+variable ramp_up equal "ramp(0.01,0.5)"
+fix stretch all adapt 1 bond harmonic r0 1 v_ramp_up :pre
 
 [Description:]
 
@@ -189,6 +197,19 @@ linear fashion over the course of a simulation:
 
 variable prefactor equal ramp(10,30)
 fix 1 all adapt 1 pair soft a * * v_prefactor :pre
+
+:line
+
+The {bond} keyword uses the specified variable to change the value of
+a bond coefficient over time, very similar to how the {pair} keyword
+operates. The only difference is that now a bond coefficient for a
+given bond type is adapted.
+
+Currently {bond} does not support bond_style hybrid nor bond_style
+hybrid/overlay as bond styles. The only bonds that currently are
+working with fix_adapt are
+
+"harmonic"_bond_harmonic.html: k,r0: type bonds :tb(c=3,s=:)
 
 :line
 

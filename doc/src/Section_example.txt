@@ -49,6 +49,7 @@ Lists of both kinds of directories are given below.
 Lowercase directories :h4
 
 accelerate: run with various acceleration options (OpenMP, GPU, Phi)
+airebo:   polyethylene with AIREBO potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field

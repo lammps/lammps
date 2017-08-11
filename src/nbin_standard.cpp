@@ -211,12 +211,14 @@ void NBinStandard::bin_atoms()
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
         ibin = coord2bin(x[i]);
+        atom2bin[i] = ibin;
         bins[i] = binhead[ibin];
         binhead[ibin] = i;
       }
     }
     for (i = atom->nfirst-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
+      atom2bin[i] = ibin;
       bins[i] = binhead[ibin];
       binhead[ibin] = i;
     }
@@ -224,6 +226,7 @@ void NBinStandard::bin_atoms()
   } else {
     for (i = nall-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
+      atom2bin[i] = ibin;
       bins[i] = binhead[ibin];
       binhead[ibin] = i;
     }

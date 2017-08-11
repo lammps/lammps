@@ -44,8 +44,8 @@ class DihedralCharmmIntel : public DihedralCharmm {
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers, 
-	    const ForceConst<flt_t> &fc);
+  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers,
+            const ForceConst<flt_t> &fc);
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc,
                         IntelBuffers<flt_t, acc_t> *buffers);
@@ -58,7 +58,7 @@ class DihedralCharmmIntel : public DihedralCharmm {
   class ForceConst {
    public:
     typedef struct { flt_t lj1, lj2, lj3, lj4; } fc_packed1;
-    typedef struct { flt_t cos_shift, sin_shift, k; 
+    typedef struct { flt_t cos_shift, sin_shift, k;
                      int multiplicity; } fc_packed3;
 
     fc_packed1 **ljp;

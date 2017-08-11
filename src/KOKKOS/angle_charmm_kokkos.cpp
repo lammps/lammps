@@ -111,7 +111,6 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagAngleCharmmCompute<0,0> >(0,nanglelist),*this);
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) energy += ev.evdwl;
   if (vflag_global) {

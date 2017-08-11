@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,21 +36,20 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#include <stdlib.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_CUDA
+
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
 #include <atomic>
-#include <Kokkos_Macros.hpp>
-
-/* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_ENABLE_CUDA
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Cuda.hpp>
@@ -59,7 +58,7 @@
 #include <Cuda/Kokkos_Cuda_Internal.hpp>
 #include <impl/Kokkos_Error.hpp>
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #endif
 
@@ -184,7 +183,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
 
   enum { max_uvm_allocations = 65536 };
 
-  if ( arg_alloc_size > 0 ) 
+  if ( arg_alloc_size > 0 )
   {
     Kokkos::Impl::num_uvm_allocations++;
 
@@ -193,7 +192,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
     }
 
     CUDA_SAFE_CALL( cudaMallocManaged( &ptr, arg_alloc_size , cudaMemAttachGlobal ) );
-  } 
+  }
 
   return ptr ;
 }
@@ -375,7 +374,7 @@ deallocate( SharedAllocationRecord< void , void > * arg_rec )
 SharedAllocationRecord< Kokkos::CudaSpace , void >::
 ~SharedAllocationRecord()
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
 
     SharedAllocationHeader header ;
@@ -395,7 +394,7 @@ SharedAllocationRecord< Kokkos::CudaSpace , void >::
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
 ~SharedAllocationRecord()
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::fence(); //Make sure I can access the label ...
     Kokkos::Profiling::deallocateData(
@@ -412,7 +411,7 @@ SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::
 ~SharedAllocationRecord()
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::CudaHostPinnedSpace::name()),RecordBase::m_alloc_ptr->m_label,
@@ -442,7 +441,7 @@ SharedAllocationRecord( const Kokkos::CudaSpace & arg_space
   , m_tex_obj( 0 )
   , m_space( arg_space )
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(Kokkos::Profiling::SpaceHandle(arg_space.name()),arg_label,data(),arg_alloc_size);
   }
@@ -479,7 +478,7 @@ SharedAllocationRecord( const Kokkos::CudaUVMSpace & arg_space
   , m_tex_obj( 0 )
   , m_space( arg_space )
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(Kokkos::Profiling::SpaceHandle(arg_space.name()),arg_label,data(),arg_alloc_size);
   }
@@ -510,7 +509,7 @@ SharedAllocationRecord( const Kokkos::CudaHostPinnedSpace & arg_space
       )
   , m_space( arg_space )
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(Kokkos::Profiling::SpaceHandle(arg_space.name()),arg_label,data(),arg_alloc_size);
   }
@@ -745,14 +744,14 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
       //Formatting dependent on sizeof(uintptr_t)
       const char * format_string;
 
-      if (sizeof(uintptr_t) == sizeof(unsigned long)) { 
+      if (sizeof(uintptr_t) == sizeof(unsigned long)) {
         format_string = "Cuda addr( 0x%.12lx ) list( 0x%.12lx 0x%.12lx ) extent[ 0x%.12lx + %.8ld ] count(%d) dealloc(0x%.12lx) %s\n";
       }
-      else if (sizeof(uintptr_t) == sizeof(unsigned long long)) { 
+      else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
         format_string = "Cuda addr( 0x%.12llx ) list( 0x%.12llx 0x%.12llx ) extent[ 0x%.12llx + %.8ld ] count(%d) dealloc(0x%.12llx) %s\n";
       }
 
-      snprintf( buffer , 256 
+      snprintf( buffer , 256
               , format_string
               , reinterpret_cast<uintptr_t>( r )
               , reinterpret_cast<uintptr_t>( r->m_prev )
@@ -776,14 +775,14 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
         //Formatting dependent on sizeof(uintptr_t)
         const char * format_string;
 
-        if (sizeof(uintptr_t) == sizeof(unsigned long)) { 
+        if (sizeof(uintptr_t) == sizeof(unsigned long)) {
           format_string = "Cuda [ 0x%.12lx + %ld ] %s\n";
         }
-        else if (sizeof(uintptr_t) == sizeof(unsigned long long)) { 
+        else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
           format_string = "Cuda [ 0x%.12llx + %ld ] %s\n";
         }
 
-        snprintf( buffer , 256 
+        snprintf( buffer , 256
                 , format_string
                 , reinterpret_cast< uintptr_t >( r->data() )
                 , r->size()
@@ -883,15 +882,16 @@ void init_lock_arrays_cuda_space() {
     locks.atomic = atomic_lock_array_cuda_space_ptr(false);
     locks.scratch = scratch_lock_array_cuda_space_ptr(false);
     locks.threadid = threadid_lock_array_cuda_space_ptr(false);
+    locks.n = Kokkos::Cuda::concurrency();
     cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
     init_lock_array_kernel_atomic<<<(CUDA_SPACE_ATOMIC_MASK+255)/256,256>>>();
     init_lock_array_kernel_scratch_threadid<<<(Kokkos::Cuda::concurrency()+255)/256,256>>>(Kokkos::Cuda::concurrency());
   }
 }
 
-void* cuda_resize_scratch_space(size_t bytes, bool force_shrink) {
+void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
   static void* ptr = NULL;
-  static size_t current_size = 0;
+  static std::int64_t current_size = 0;
   if(current_size == 0) {
     current_size = bytes;
     ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",current_size);
@@ -910,5 +910,7 @@ void* cuda_resize_scratch_space(size_t bytes, bool force_shrink) {
 
 }
 }
+#else
+void KOKKOS_CORE_SRC_CUDA_CUDASPACE_PREVENT_LINK_ERROR() {}
 #endif // KOKKOS_ENABLE_CUDA
 

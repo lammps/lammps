@@ -150,6 +150,8 @@ hybrid"_pair_hybrid.html.
 This pair style requires the "newton"_newton.html command to be {on}
 for non-bonded interactions.
 
+This pair style is not compatible with "rigid body integrators"_fix_rigid.html
+
 [Related commands:]
 
 "pair_style hybrid"_pair_hybrid.html, "pair_coeff"_pair_coeff.html,

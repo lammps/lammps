@@ -45,17 +45,17 @@ pair_coeff * * oxdna2/dh      0.1 1.0 0.815 :pre
 
 [Description:]
 
-The {oxdna2} pair styles compute the pairwise-additive parts of the oxDNA force field 
-for coarse-grained modelling of DNA. The effective interaction between the nucleotides consists of potentials for the 
+The {oxdna2} pair styles compute the pairwise-additive parts of the oxDNA force field
+for coarse-grained modelling of DNA. The effective interaction between the nucleotides consists of potentials for the
 excluded volume interaction {oxdna2/excv}, the stacking {oxdna2/stk}, cross-stacking {oxdna2/xstk}
 and coaxial stacking interaction {oxdna2/coaxstk}, electrostatic Debye-Hueckel interaction {oxdna2/dh}
 as well as the hydrogen-bonding interaction {oxdna2/hbond} between complementary pairs of nucleotides on
 opposite strands.
 
-The exact functional form of the pair styles is rather complex. 
-The individual potentials consist of products of modulation factors, 
-which themselves are constructed from a number of more basic potentials 
-(Morse, Lennard-Jones, harmonic angle and distance) as well as quadratic smoothing and modulation terms. 
+The exact functional form of the pair styles is rather complex.
+The individual potentials consist of products of modulation factors,
+which themselves are constructed from a number of more basic potentials
+(Morse, Lennard-Jones, harmonic angle and distance) as well as quadratic smoothing and modulation terms.
 We refer to "(Snodin)"_#Snodin and the original oxDNA publications "(Ouldridge-DPhil)"_#Ouldridge-DPhil2
 and  "(Ouldridge)"_#Ouldridge2 for a detailed description of the oxDNA2 force field.
 
@@ -63,7 +63,7 @@ NOTE: These pair styles have to be used together with the related oxDNA2 bond st
 {oxdna2/fene} for the connectivity of the phosphate backbone (see also documentation of
 "bond_style oxdna2/fene"_bond_oxdna.html). Almost all coefficients
 in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
-Exceptions are the first coefficient after {oxdna2/stk} (T=0.1 in the above example) and the coefficients 
+Exceptions are the first coefficient after {oxdna2/stk} (T=0.1 in the above example) and the coefficients
 after {oxdna2/dh} (T=0.1, rhos=1.0, qeff=0.815 in the above example). When using a Langevin thermostat
 e.g. through "fix langevin"_fix_langevin.html or "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
 the temperature coefficients have to be matched to the one used in the fix.
@@ -86,7 +86,7 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 [Related commands:]
 
 "bond_style oxdna2/fene"_bond_oxdna.html, "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html, "pair_coeff"_pair_coeff.html,
-"bond_style oxdna/fene"_bond_oxdna.html, "pair_style oxdna/excv"_pair_oxdna.html 
+"bond_style oxdna/fene"_bond_oxdna.html, "pair_style oxdna/excv"_pair_oxdna.html
 
 [Default:] none
 

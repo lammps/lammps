@@ -31,11 +31,12 @@ bodystyle = {single} or {molecule} or {group} :l
     groupID1, groupID2, ... = list of N group IDs :pre
 
 zero or more keyword/value pairs may be appended :l
-keyword = {langevin} or {temp} or {iso} or {aniso} or {x} or {y} or {z} or {couple} or {tparam} or {pchain} or {dilate} or {force} or {torque} or {infile} :l
+keyword = {langevin} or {reinit} or {temp} or {iso} or {aniso} or {x} or {y} or {z} or {couple} or {tparam} or {pchain} or {dilate} or {force} or {torque} or {infile} :l
   {langevin} values = Tstart Tstop Tperiod seed
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
     Tdamp = temperature damping parameter (time units)
     seed = random number seed to use for white noise (positive integer)
+  {reinit} = {yes} or {no}
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
     Tdamp = temperature damping parameter (time units)
@@ -68,10 +69,10 @@ keyword = {langevin} or {temp} or {iso} or {aniso} or {x} or {y} or {z} or {coup
 
 [Examples:]
 
-fix 1 clump rigid single
+fix 1 clump rigid single reinit yes
 fix 1 clump rigid/small molecule
 fix 1 clump rigid single force 1 off off on langevin 1.0 1.0 1.0 428984
-fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0
+fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0 reinit no
 fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
 fix 1 polychains rigid/small molecule langevin 1.0 1.0 1.0 428984
 fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off
@@ -87,7 +88,12 @@ means that each timestep the total force and torque on each rigid body
 is computed as the sum of the forces and torques on its constituent
 particles.  The coordinates, velocities, and orientations of the atoms
 in each body are then updated so that the body moves and rotates as a
-single entity.
+single entity.  This is implemented by creating internal data structures
+for each rigid body and performing time integration on these data
+structures.  Positions, velocities, and orientations of the constituent
+particles are regenerated from the rigid body data structures in every
+time step. This restricts which operations and fixes can be applied to
+rigid bodies. See below for a detailed discussion.
 
 Examples of large rigid bodies are a colloidal particle, or portions
 of a biomolecule such as a protein.
@@ -148,8 +154,9 @@ differences may accumulate to produce divergent trajectories.
 
 NOTE: You should not update the atoms in rigid bodies via other
 time-integration fixes (e.g. "fix nve"_fix_nve.html, "fix
-nvt"_fix_nh.html, "fix npt"_fix_nh.html), or you will be integrating
-their motion more than once each timestep.  When performing a hybrid
+nvt"_fix_nh.html, "fix npt"_fix_nh.html, "fix move"_fix_move.html),
+or you will have conflicting updates to positions and velocities
+resulting in unphysical behavior in most cases. When performing a hybrid
 simulation with some atoms in rigid bodies, and some not, a separate
 time integration fix like "fix nve"_fix_nve.html or "fix
 nvt"_fix_nh.html should be used for the non-rigid particles.
@@ -165,23 +172,29 @@ setting the force on them to 0.0 (via the "fix
 setforce"_fix_setforce.html command), and integrating them as usual
 (e.g. via the "fix nve"_fix_nve.html command).
 
-NOTE: The aggregate properties of each rigid body are calculated one
-time at the start of the first simulation run after these fixes are
-specified.  The properties include the position and velocity of the
-center-of-mass of the body, its moments of inertia, and its angular
-momentum.  This is done using the properties of the constituent atoms
-of the body at that point in time (or see the {infile} keyword
-option).  Thereafter, changing properties of individual atoms in the
-body will have no effect on a rigid body's dynamics, unless they
-affect the "pair_style"_pair_style.html interactions that individual
-particles are part of.  For example, you might think you could
-displace the atoms in a body or add a large velocity to each atom in a
-body to make it move in a desired direction before a 2nd run is
+IMPORTANT NOTE: The aggregate properties of each rigid body are
+calculated at the start of a simulation run and are maintained in
+internal data structures. The properties include the position and
+velocity of the center-of-mass of the body, its moments of inertia, and
+its angular momentum.  This is done using the properties of the
+constituent atoms of the body at that point in time (or see the {infile}
+keyword option).  Thereafter, changing these properties of individual
+atoms in the body will have no effect on a rigid body's dynamics, unless
+they effect any computation of per-atom forces or torques. If the
+keyword {reinit} is set to {yes} (the default), the rigid body data
+structures will be recreated at the beginning of each {run} command;
+if the keyword {reinit} is set to {no}, the rigid body data structures
+will be built only at the very first {run} command and maintained for
+as long as the rigid fix is defined. For example, you might think you
+could displace the atoms in a body or add a large velocity to each atom
+in a body to make it move in a desired direction before a 2nd run is
 performed, using the "set"_set.html or
 "displace_atoms"_displace_atoms.html or "velocity"_velocity.html
-command.  But these commands will not affect the internal attributes
-of the body, and the position and velocity of individual atoms in the
-body will be reset when time integration starts.
+commands.  But these commands will not affect the internal attributes
+of the body unless {reinit} is set to {yes}. With {reinit} set to {no}
+(or using the {infile} option, which implies {reinit} {no}) the position
+and velocity of individual atoms in the body will be reset when time
+integration starts again.
 
 :line
 
@@ -199,8 +212,9 @@ pour"_fix_pour.html.
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for the {rigid} styles.
 
-For bodystyle {molecule}, each set of atoms in the fix group with a
-different molecule ID is treated as a rigid body.  This option is
+For bodystyle {molecule}, atoms are grouped into rigid bodies by their
+respective molecule IDs: each set of atoms in the fix group with the
+same molecule ID is treated as a different rigid body.  This option is
 allowed for both the {rigid} and {rigid/small} styles.  Note that
 atoms with a molecule ID = 0 will be treated as a single rigid body.
 For a system with atomic solvent (typically this is atoms with
@@ -400,6 +414,14 @@ couple none :pre
 :line
 
 The keyword/value option pairs are used in the following ways.
+
+The {reinit} keyword determines, whether the rigid body properties
+are reinitialized between run commands. With the option {yes} (the
+default) this is done, with the option {no} this is not done. Turning
+off the reinitialization can be helpful to protect rigid bodies against
+unphysical manipulations between runs or when properties cannot be
+easily recomputed (e.g. when read from a file). When using the {infile}
+keyword, the {reinit} option is automatically set to {no}.
 
 The {langevin} and {temp} and {tparam} keywords perform thermostatting
 of the rigid bodies, altering both their translational and rotational
@@ -654,7 +676,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -778,7 +800,7 @@ exclude, "fix shake"_fix_shake.html
 
 The option defaults are force * on on on and torque * on on on,
 meaning all rigid bodies are acted on by center-of-mass force and
-torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3.
+torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes.
 
 :line
 

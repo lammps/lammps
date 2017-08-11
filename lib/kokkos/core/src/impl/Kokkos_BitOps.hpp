@@ -45,23 +45,50 @@
 #define KOKKOS_BITOPS_HPP
 
 #include <Kokkos_Macros.hpp>
-#include <stdint.h>
+#include <cstdint>
 #include <climits>
 
 namespace Kokkos {
 namespace Impl {
+
+/**\brief  Find first zero bit.
+ *
+ *  If none then return -1 ;
+ */
+KOKKOS_FORCEINLINE_FUNCTION
+int bit_first_zero( unsigned i ) noexcept
+{
+  enum : unsigned { full = ~0u };
+
+#if defined( __CUDA_ARCH__ )
+  return full != i ? __ffs( ~i ) - 1 : -1 ;
+#elif defined( KOKKOS_COMPILER_INTEL )
+  return full != i ? _bit_scan_forward( ~i ) : -1 ;
+#elif defined( KOKKOS_COMPILER_IBM )
+  return full != i ? __cnttz4( ~i ) : -1 ;
+#elif defined( KOKKOS_COMPILER_GNU ) || defined( __GNUC__ ) || defined( __GNUG__ )
+  return full != i ? __builtin_ffs( ~i ) - 1 : -1 ;
+#else
+  int offset = -1 ;
+  if ( full != i ) {
+    for ( offset = 0 ; i & ( 1 << offset ) ; ++offset );
+  }
+  return offset ;
+#endif
+}
 
 KOKKOS_FORCEINLINE_FUNCTION
 int bit_scan_forward( unsigned i )
 {
 #if defined( __CUDA_ARCH__ )
   return __ffs(i) - 1;
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-  return __builtin_ffs(i) - 1;
-#elif defined( __INTEL_COMPILER )
+#elif defined( KOKKOS_COMPILER_INTEL )
   return _bit_scan_forward(i);
+#elif defined( KOKKOS_COMPILER_IBM )
+  return __cnttz4(i);
+#elif defined( KOKKOS_COMPILER_GNU ) || defined( __GNUC__ ) || defined( __GNUG__ )
+  return __builtin_ffs(i) - 1;
 #else
-
   unsigned t = 1u;
   int r = 0;
   while ( i && ( i & t == 0 ) )
@@ -79,10 +106,12 @@ int bit_scan_reverse( unsigned i )
   enum { shift = static_cast<int>( sizeof(unsigned) * CHAR_BIT - 1 ) };
 #if defined( __CUDA_ARCH__ )
   return shift - __clz(i);
+#elif defined( KOKKOS_COMPILER_INTEL )
+  return _bit_scan_reverse(i);
+#elif defined( KOKKOS_COMPILER_IBM )
+  return shift - __cntlz4(i);
 #elif defined( __GNUC__ ) || defined( __GNUG__ )
   return shift - __builtin_clz(i);
-#elif defined( __INTEL_COMPILER )
-  return _bit_scan_reverse(i);
 #else
   unsigned t = 1u << shift;
   int r = 0;
@@ -101,10 +130,12 @@ int bit_count( unsigned i )
 {
 #if defined( __CUDA_ARCH__ )
   return __popc(i);
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-  return __builtin_popcount(i);
 #elif defined ( __INTEL_COMPILER )
   return _popcnt32(i);
+#elif defined( KOKKOS_COMPILER_IBM )
+  return __popcnt4(i);
+#elif defined( __GNUC__ ) || defined( __GNUG__ )
+  return __builtin_popcount(i);
 #else
   // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetNaive
   i = i - ( ( i >> 1 ) & ~0u / 3u );                             // temp
@@ -116,7 +147,16 @@ int bit_count( unsigned i )
 #endif
 }
 
+KOKKOS_INLINE_FUNCTION
+unsigned integral_power_of_two_that_contains( const unsigned N )
+{
+  const unsigned i = Kokkos::Impl::bit_scan_reverse( N );
+  return ( (1u << i) < N ) ? i + 1 : i ;
+}
+
+
 } // namespace Impl
 } // namespace Kokkos
 
 #endif // KOKKOS_BITOPS_HPP
+

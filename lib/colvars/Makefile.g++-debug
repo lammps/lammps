@@ -1,0 +1,5 @@
+# -*- makefile -*- to build Colvars module with GNU compiler
+
+COLVARS_DEBUG = "YES"
+
+include Makefile.g++

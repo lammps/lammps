@@ -25,13 +25,14 @@ run		10
 # example of catching a syntax error
 
 python          simple here """
+from __future__ import print_function
+
 def simple():
-  import exceptions
-  print "Inside simple function"
+  print("Inside simple function")
   try:
     foo += 1
-  except Exception, e:
-    print "FOO error:",e
+  except Exception as e:
+    print("FOO error:", e)
 """
 
 python          simple invoke

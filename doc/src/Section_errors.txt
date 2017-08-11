@@ -71,7 +71,7 @@ style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
 available styles in your executable can be listed by using "the -h
-command-line argument"_Section_start.html#start_7.  The installation
+command-line argument"_Section_start.html#start_6.  The installation
 and compilation of optional packages is explained in the "installation
 instructions"_Section_start.html#start_3.
 
@@ -4696,9 +4696,9 @@ Self-explanatory. :dd
 
 {Fix bond/create induced too many angles/dihedrals/impropers per atom} :dt
 
-See the read_data command for info on setting the "extra angle per
-atom", etc header values to allow for additional angles, etc to be
-formed. :dd
+See the read_data command for info on using the "extra/angle/per/atom",
+(or dihedral, improper) keywords to allow for additional
+angles, dihedrals, and impropers to be formed. :dd
 
 {Fix bond/create needs ghost atoms from further away} :dt
 
@@ -7876,18 +7876,20 @@ See the setting for tagint in the src/lmptype.h file. :dd
 
 {New bond exceeded bonds per atom in create_bonds} :dt
 
-See the read_data command for info on setting the "extra bond per
-atom" header value to allow for additional bonds to be formed. :dd
+See the read_data command for info on using the "extra/bond/per/atom"
+keyword to allow for additional bonds to be formed
 
 {New bond exceeded bonds per atom in fix bond/create} :dt
 
-See the read_data command for info on setting the "extra bond per
-atom" header value to allow for additional bonds to be formed. :dd
+See the read_data command for info on using the "extra/bond/per/atom"
+keyword to allow for additional bonds to be formed :dd
 
 {New bond exceeded special list size in fix bond/create} :dt
 
-See the special_bonds extra command for info on how to leave space in
-the special bonds list to allow for additional bonds to be formed. :dd
+See the "special_bonds extra" command
+(or the "read_data extra/special/per/atom" command)
+for info on how to leave space in the special bonds
+list to allow for additional bonds to be formed. :dd
 
 {Newton bond change after simulation box is defined} :dt
 
@@ -8890,6 +8892,14 @@ This is a requirement to use this potential. :dd
 
 See the newton command.  This is a restriction to use this potential. :dd
 
+{Pair style vashishta/gpu requires atom IDs} :dt
+
+This is a requirement to use this potential. :dd
+
+{Pair style vashishta/gpu requires newton pair off} :dt
+
+See the newton command.  This is a restriction to use this potential. :dd
+
 {Pair style tersoff/gpu requires atom IDs} :dt
 
 This is a requirement to use the tersoff/gpu potential. :dd
@@ -9656,9 +9666,10 @@ you are running. :dd
 
 {Special list size exceeded in fix bond/create} :dt
 
-See the read_data command for info on setting the "extra special per
-atom" header value to allow for additional special values to be
-stored. :dd
+See the special_bonds extra command
+(or the read_data extra/special/per/atom command)
+for info on how to leave space in the special bonds
+list to allow for additional bonds to be formed. :dd
 
 {Specified processors != physical processors} :dt
 
@@ -9675,23 +9686,23 @@ Self-explanatory. :dd
 
 {Subsequent read data induced too many angles per atom} :dt
 
-See the create_box extra/angle/per/atom or read_data "extra angle per
-atom" header value to set this limit larger. :dd
+See the extra/angle/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many bonds per atom} :dt
 
-See the create_box extra/bond/per/atom or read_data "extra bond per
-atom" header value to set this limit larger. :dd
+See the extra/bond/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many dihedrals per atom} :dt
 
-See the create_box extra/dihedral/per/atom or read_data "extra
-dihedral per atom" header value to set this limit larger. :dd
+See the extra/dihedral/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many impropers per atom} :dt
 
-See the create_box extra/improper/per/atom or read_data "extra
-improper per atom" header value to set this limit larger. :dd
+See the extra/improper/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Substitution for illegal variable} :dt
 
@@ -11170,6 +11181,12 @@ Self-explanatory. :dd
 
 If the fix changes the timestep, the dump dcd file will not
 reflect the change. :dd
+
+{Energy due to X extra global DOFs will be included in minimizer energies} :dt
+
+When using fixes like box/relax, the potential energy used by the minimizer
+is augmented by an additional energy provided by the fix. Thus the printed
+converged energy may be different from the total potential energy. :dd
 
 {Energy tally does not account for 'zero yes'} :dt
 

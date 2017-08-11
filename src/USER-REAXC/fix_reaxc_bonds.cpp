@@ -21,7 +21,7 @@
 #include "fix_reaxc_bonds.h"
 #include "atom.h"
 #include "update.h"
-#include "pair_reax_c.h"
+#include "pair_reaxc.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -58,7 +58,21 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix reax/c/bonds command");
 
   if (me == 0) {
-    fp = fopen(arg[4],"w");
+    char *suffix = strrchr(arg[4],'.');
+    if (suffix && strcmp(suffix,".gz") == 0) {
+#ifdef LAMMPS_GZIP
+      char gzip[128];
+      sprintf(gzip,"gzip -6 > %s",arg[4]);
+#ifdef _WIN32
+      fp = _popen(gzip,"wb");
+#else
+      fp = popen(gzip,"w");
+#endif
+#else
+      error->one(FLERR,"Cannot open gzipped file");
+#endif
+    } else fp = fopen(arg[4],"w");
+
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open fix reax/c/bonds file %s",arg[4]);
@@ -107,12 +121,9 @@ void FixReaxCBonds::setup(int vflag)
 
 void FixReaxCBonds::init()
 {
-  reaxc = (PairReaxC *) force->pair_match("reax/c",1);
-  if (reaxc == NULL)
-    reaxc = (PairReaxC *) force->pair_match("reax/c/kk",1);
-
+  reaxc = (PairReaxC *) force->pair_match("reax/c",0);
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
-                  "pair_style reax/c");
+                                "pair_style reax/c, reax/c/kk, or reax/c/omp");
 
 }
 

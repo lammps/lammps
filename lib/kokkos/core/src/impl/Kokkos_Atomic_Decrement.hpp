@@ -41,6 +41,7 @@
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP) && ! defined( KOKKOS_ATOMIC_DECREMENT_HPP )
 #define KOKKOS_ATOMIC_DECREMENT_HPP
 
@@ -117,3 +118,4 @@ void atomic_decrement(volatile T* a) {
 
 } // End of namespace Kokkos
 #endif
+

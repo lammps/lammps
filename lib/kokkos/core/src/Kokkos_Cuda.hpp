@@ -44,11 +44,10 @@
 #ifndef KOKKOS_CUDA_HPP
 #define KOKKOS_CUDA_HPP
 
-#include <Kokkos_Core_fwd.hpp>
-
-// If CUDA execution space is enabled then use this header file.
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_CUDA )
+
+#include <Kokkos_Core_fwd.hpp>
 
 #include <iosfwd>
 #include <vector>
@@ -62,7 +61,6 @@
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
-#include <KokkosExp_MDRangePolicy.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -215,6 +213,8 @@ public:
   //@}
   //--------------------------------------------------------------------------
 
+  static const char* name();
+
 private:
 
   cudaStream_t m_stream ;
@@ -292,13 +292,13 @@ struct VerifyExecutionCanAccessMemorySpace
 
 #include <Cuda/Kokkos_CudaExec.hpp>
 #include <Cuda/Kokkos_Cuda_View.hpp>
+#include <Cuda/Kokkos_Cuda_Team.hpp>
 #include <Cuda/Kokkos_Cuda_Parallel.hpp>
 #include <Cuda/Kokkos_Cuda_Task.hpp>
 
+#include <KokkosExp_MDRangePolicy.hpp>
 //----------------------------------------------------------------------------
 
 #endif /* #if defined( KOKKOS_ENABLE_CUDA ) */
 #endif /* #ifndef KOKKOS_CUDA_HPP */
-
-
 

@@ -46,7 +46,7 @@ namespace Kokkos {
 namespace Example {
 namespace FENL {
 
-#if defined( KOKKOS_ENABLE_PTHREAD )
+#if defined( KOKKOS_ENABLE_THREADS )
 
 template
 Perf fenl< Kokkos::Threads , Kokkos::Example::BoxElemPart::ElemLinear >(

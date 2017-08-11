@@ -7,11 +7,13 @@
 :line
 
 pair_style edip command :h3
+pair_style edip/multi command :h3
 
 [Syntax:]
 
-pair_style edip :pre
-pair_style edip/omp :pre
+pair_style style :pre
+
+style = {edip} or {edip/multi} :ul
 
 [Examples:]
 
@@ -20,11 +22,14 @@ pair_coeff * * Si.edip Si
 
 [Description:]
 
-The {edip} style computes a 3-body "EDIP"_#EDIP potential which is
-popular for modeling silicon materials where it can have advantages
-over other models such as the "Stillinger-Weber"_pair_sw.html or
-"Tersoff"_pair_tersoff.html potentials.  In EDIP, the energy E of a
-system of atoms is
+The {edip} and {edip/multi} styles compute a 3-body "EDIP"_#EDIP
+potential which is popular for modeling silicon materials where
+it can have advantages over other models such as the
+"Stillinger-Weber"_pair_sw.html or "Tersoff"_pair_tersoff.html
+potentials. The {edip} style has been programmed for single element
+potentials, while {edip/multi} supports multi-element EDIP runs.
+
+In EDIP, the energy E of a system of atoms is
 
 :c,image(Eqs/pair_edip.jpg)
 
@@ -116,7 +121,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -142,7 +147,7 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This angle style can only be used if LAMMPS was built with the
+This pair style can only be used if LAMMPS was built with the
 USER-MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
 
@@ -151,7 +156,7 @@ for pair interactions.
 
 The EDIP potential files provided with LAMMPS (see the potentials directory)
 are parameterized for metal "units"_units.html.
-You can use the SW potential with any LAMMPS units, but you would need
+You can use the EDIP potential with any LAMMPS units, but you would need
 to create your own EDIP potential file with coefficients listed in the
 appropriate units if your simulation doesn't use "metal" units.
 
@@ -164,4 +169,4 @@ appropriate units if your simulation doesn't use "metal" units.
 :line
 
 :link(EDIP)
-[(EDIP)] J. F. Justo et al., Phys. Rev. B 58, 2539 (1998).
+[(EDIP)] J F Justo et al, Phys Rev B 58, 2539 (1998).

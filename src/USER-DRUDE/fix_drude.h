@@ -50,16 +50,15 @@ class FixDrude : public Fix {
 
 private:
   int rebuildflag;
-  static FixDrude *sptr;
   std::set<tagint> * partner_set;
 
   void build_drudeid();
-  static void ring_search_drudeid(int size, char *cbuf);
-  static void ring_build_partner(int size, char *cbuf);
+  static void ring_search_drudeid(int size, char *cbuf, void *ptr);
+  static void ring_build_partner(int size, char *cbuf, void *ptr);
   void rebuild_special();
-  static void ring_remove_drude(int size, char *cbuf);
-  static void ring_add_drude(int size, char *cbuf);
-  static void ring_copy_drude(int size, char *cbuf);
+  static void ring_remove_drude(int size, char *cbuf, void *ptr);
+  static void ring_add_drude(int size, char *cbuf, void *ptr);
+  static void ring_copy_drude(int size, char *cbuf, void *ptr);
 };
 
 }

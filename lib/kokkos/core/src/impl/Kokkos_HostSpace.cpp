@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,16 +36,17 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
 #include <algorithm>
 #include <Kokkos_Macros.hpp>
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #endif
+
 /*--------------------------------------------------------------------------*/
 
 #if defined( __INTEL_COMPILER ) && ! defined ( KOKKOS_ENABLE_CUDA )
@@ -85,10 +86,10 @@
 
 /*--------------------------------------------------------------------------*/
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <memory.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 #include <iostream>
 #include <sstream>
@@ -97,6 +98,10 @@
 #include <Kokkos_HostSpace.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Kokkos_Atomic.hpp>
+
+#if ( defined( KOKKOS_ENABLE_ASM ) || defined ( KOKKOS_ENABLE_TM ) ) && defined ( KOKKOS_ENABLE_ISA_X86_64 )
+#include <immintrin.h>
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -292,7 +297,7 @@ void * HostSpace::allocate( const size_t arg_alloc_size ) const
     case INTEL_MM_ALLOC: msg << "INTEL_MM_ALLOC" ; break ;
     }
     msg << " ]( " << arg_alloc_size << " ) FAILED" ;
-    if ( ptr == NULL ) { msg << " NULL" ; } 
+    if ( ptr == NULL ) { msg << " NULL" ; }
     else { msg << " NOT ALIGNED " << ptr ; }
 
     std::cerr << msg.str() << std::endl ;
@@ -312,7 +317,7 @@ void HostSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_
     if ( m_alloc_mech == STD_MALLOC ) {
       void * alloc_ptr = *(reinterpret_cast<void **>(arg_alloc_ptr) -1);
       free( alloc_ptr );
-    }    
+    }
 
 #if defined( KOKKOS_ENABLE_INTEL_MM_ALLOC )
     else if ( m_alloc_mech == INTEL_MM_ALLOC ) {
@@ -359,7 +364,7 @@ deallocate( SharedAllocationRecord< void , void > * arg_rec )
 SharedAllocationRecord< Kokkos::HostSpace , void >::
 ~SharedAllocationRecord()
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::HostSpace::name()),RecordBase::m_alloc_ptr->m_label,
@@ -388,7 +393,7 @@ SharedAllocationRecord( const Kokkos::HostSpace & arg_space
       )
   , m_space( arg_space )
 {
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(Kokkos::Profiling::SpaceHandle(arg_space.name()),arg_label,data(),arg_alloc_size);
    }
@@ -406,7 +411,7 @@ SharedAllocationRecord( const Kokkos::HostSpace & arg_space
 
 void * SharedAllocationRecord< Kokkos::HostSpace , void >::
 allocate_tracked( const Kokkos::HostSpace & arg_space
-                , const std::string & arg_alloc_label 
+                , const std::string & arg_alloc_label
                 , const size_t arg_alloc_size )
 {
   if ( ! arg_alloc_size ) return (void *) 0 ;
@@ -490,16 +495,50 @@ void init_lock_array_host_space() {
 }
 
 bool lock_address_host_space(void* ptr) {
+#if defined( KOKKOS_ENABLE_ISA_X86_64 ) && defined ( KOKKOS_ENABLE_TM )
+  const unsigned status = _xbegin();
+
+  if( _XBEGIN_STARTED == status ) {
+	const int val = HOST_SPACE_ATOMIC_LOCKS[(( size_t(ptr) >> 2 ) &
+		HOST_SPACE_ATOMIC_MASK) ^ HOST_SPACE_ATOMIC_XOR_MASK];
+
+	if( 0 == val ) {
+		HOST_SPACE_ATOMIC_LOCKS[(( size_t(ptr) >> 2 ) &
+                   HOST_SPACE_ATOMIC_MASK) ^ HOST_SPACE_ATOMIC_XOR_MASK] = 1;
+	} else {
+		_xabort( 1 );
+	}
+
+	_xend();
+
+	return 1;
+  } else {
+#endif
   return 0 == atomic_compare_exchange( &HOST_SPACE_ATOMIC_LOCKS[
       (( size_t(ptr) >> 2 ) & HOST_SPACE_ATOMIC_MASK) ^ HOST_SPACE_ATOMIC_XOR_MASK] ,
                                   0 , 1);
+#if defined( KOKKOS_ENABLE_ISA_X86_64 ) && defined ( KOKKOS_ENABLE_TM )
+  }
+#endif
 }
 
 void unlock_address_host_space(void* ptr) {
+#if defined( KOKKOS_ENABLE_ISA_X86_64 ) && defined ( KOKKOS_ENABLE_TM )
+  const unsigned status = _xbegin();
+
+  if( _XBEGIN_STARTED == status ) {
+	HOST_SPACE_ATOMIC_LOCKS[(( size_t(ptr) >> 2 ) &
+        	HOST_SPACE_ATOMIC_MASK) ^ HOST_SPACE_ATOMIC_XOR_MASK] = 0;
+  } else {
+#endif
    atomic_exchange( &HOST_SPACE_ATOMIC_LOCKS[
       (( size_t(ptr) >> 2 ) & HOST_SPACE_ATOMIC_MASK) ^ HOST_SPACE_ATOMIC_XOR_MASK] ,
                     0);
+#if defined( KOKKOS_ENABLE_ISA_X86_64 ) && defined ( KOKKOS_ENABLE_TM )
+  }
+#endif
 }
 
 }
 }
+

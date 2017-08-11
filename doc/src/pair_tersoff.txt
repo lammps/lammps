@@ -18,7 +18,7 @@ pair_style tersoff/table/omp command :h3
 
 pair_style style :pre
 
-style = {tersoff} or {tersoff/table} or {tersoff/gpu} or {tersoff/omp} or {tersoff/table/omp}
+style = {tersoff} or {tersoff/table} or {tersoff/gpu} or {tersoff/omp} or {tersoff/table/omp} :ul
 
 [Examples:]
 
@@ -191,7 +191,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

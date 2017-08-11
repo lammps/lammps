@@ -102,23 +102,22 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         if (qlist[iw] > qmax) qmax = qlist[iw];
       }
       iarg += nqlist;
-      if (strcmp(arg[iarg],"components") == 0) {
-        qlcompflag = 1;
-        if (iarg+2 > narg)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
-        qlcomp = force->numeric(FLERR,arg[iarg+1]);
-        if (qlcomp <= 0)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
-        iqlcomp = -1;
-        for (int iw = 0; iw < nqlist; iw++)
-          if (qlcomp == qlist[iw]) {
-            iqlcomp = iw;
-            break;
-          }
-        if (iqlcomp < 0)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
-        iarg += 2;
-      }
+    } else if (strcmp(arg[iarg],"components") == 0) {
+      qlcompflag = 1;
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      qlcomp = force->numeric(FLERR,arg[iarg+1]);
+      if (qlcomp <= 0)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      iqlcomp = -1;
+      for (int iw = 0; iw < nqlist; iw++)
+        if (qlcomp == qlist[iw]) {
+          iqlcomp = iw;
+          break;
+        }
+      if (iqlcomp < 0)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");

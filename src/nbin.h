@@ -31,10 +31,11 @@ class NBin : protected Pointers {
   double binsizex,binsizey,binsizez;  // bin sizes and inverse sizes
   double bininvx,bininvy,bininvz;
 
-  int *binhead;                    // index of first atom in each bin
-  int *bins;                       // index of next atom in same bin
+  int *binhead;                // index of first atom in each bin
+  int *bins;                   // index of next atom in same bin
+  int *atom2bin;               // bin assignment for each atom (local+ghost)
 
-  double cutoff_custom;            // cutoff set by requestor
+  double cutoff_custom;        // cutoff set by requestor
 
   NBin(class LAMMPS *);
   ~NBin();

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,10 +44,10 @@
 /*--------------------------------------------------------------------------*/
 /* Kokkos interfaces */
 
-#include <Kokkos_Core.hpp>
-
-/* only compile this file if CUDA is enabled for Kokkos */
+#include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_CUDA
+
+#include <Kokkos_Core.hpp>
 
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 #include <Cuda/Kokkos_Cuda_Internal.hpp>
@@ -56,7 +56,7 @@
 
 /*--------------------------------------------------------------------------*/
 /* Standard 'C' libraries */
-#include <stdlib.h>
+#include <cstdlib>
 
 /* Standard 'C++' libraries */
 #include <vector>
@@ -404,9 +404,23 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     // Query what compute capability architecture a kernel executes:
     m_cudaArch = cuda_kernel_arch();
 
-    if ( m_cudaArch != cudaProp.major * 100 + cudaProp.minor * 10 ) {
+    int compiled_major = m_cudaArch / 100;
+    int compiled_minor = ( m_cudaArch % 100 ) / 10;
+
+    if ( compiled_major < 5 && cudaProp.major >= 5 ) {
+      std::stringstream ss;
+      ss << "Kokkos::Cuda::initialize ERROR: running kernels compiled for compute capability "
+         << compiled_major << "." << compiled_minor
+         << " (< 5.0) on device with compute capability "
+         << cudaProp.major << "." << cudaProp.minor
+         << " (>=5.0), this would give incorrect results!"
+         << std::endl ;
+      std::string msg = ss.str();
+      Kokkos::abort( msg.c_str() );
+    }
+    if ( compiled_major != cudaProp.major || compiled_minor != cudaProp.minor ) {
       std::cerr << "Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability "
-                << ( m_cudaArch / 100 ) << "." << ( ( m_cudaArch % 100 ) / 10 )
+                << compiled_major << "." << compiled_minor
                 << " on device with compute capability "
                 << cudaProp.major << "." << cudaProp.minor
                 << " , this will likely reduce potential performance."
@@ -505,18 +519,18 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
       std::cout << "                                  The code must call Cuda::fence() after each kernel" << std::endl;
-      std::cout << "                                  or will likely crash when accessing data on the host." << std::endl; 
+      std::cout << "                                  or will likely crash when accessing data on the host." << std::endl;
     }
 
     const char * env_force_device_alloc = getenv("CUDA_MANAGED_FORCE_DEVICE_ALLOC");
     bool force_device_alloc;
     if (env_force_device_alloc == 0) force_device_alloc=false;
     else force_device_alloc=atoi(env_force_device_alloc)!=0;
-  
+
     const char * env_visible_devices = getenv("CUDA_VISIBLE_DEVICES");
     bool visible_devices_one=true;
     if (env_visible_devices == 0) visible_devices_one=false;
-    
+
     if(!visible_devices_one && !force_device_alloc) {
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_MANAGED_FORCE_DEVICE_ALLOC=1 or " << std::endl;
@@ -536,6 +550,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
   locks.atomic = atomic_lock_array_cuda_space_ptr(false);
   locks.scratch = scratch_lock_array_cuda_space_ptr(false);
   locks.threadid = threadid_lock_array_cuda_space_ptr(false);
+  locks.n = Kokkos::Cuda::concurrency();
   cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
   #endif
 }
@@ -620,9 +635,9 @@ void CudaInternal::finalize()
   was_finalized = 1;
   if ( 0 != m_scratchSpace || 0 != m_scratchFlags ) {
 
-    atomic_lock_array_cuda_space_ptr(false);
-    scratch_lock_array_cuda_space_ptr(false);
-    threadid_lock_array_cuda_space_ptr(false);
+    atomic_lock_array_cuda_space_ptr(true);
+    scratch_lock_array_cuda_space_ptr(true);
+    threadid_lock_array_cuda_space_ptr(true);
 
     if ( m_stream ) {
       for ( size_type i = 1 ; i < m_streamCount ; ++i ) {
@@ -659,6 +674,15 @@ void CudaInternal::finalize()
 
 Cuda::size_type cuda_internal_multiprocessor_count()
 { return CudaInternal::singleton().m_multiProcCount ; }
+
+CudaSpace::size_type cuda_internal_maximum_concurrent_block_count()
+{
+  // Compute capability 5.0 through 6.2
+  enum : int { max_resident_blocks_per_multiprocessor = 32 };
+
+   return CudaInternal::singleton().m_multiProcCount
+          * max_resident_blocks_per_multiprocessor ;
+};
 
 Cuda::size_type cuda_internal_maximum_warp_count()
 { return CudaInternal::singleton().m_maxWarpCount ; }
@@ -700,7 +724,7 @@ void Cuda::initialize( const Cuda::SelectDevice config , size_t num_instances )
 {
   Impl::CudaInternal::singleton().initialize( config.cuda_device_id , num_instances );
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
 }
@@ -739,7 +763,7 @@ void Cuda::finalize()
 {
   Impl::CudaInternal::singleton().finalize();
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
   #endif
 }
@@ -771,8 +795,10 @@ void Cuda::fence()
   Kokkos::Impl::cuda_device_synchronize();
 }
 
-} // namespace Kokkos
+const char* Cuda::name() { return "Cuda"; }
 
+} // namespace Kokkos
+#else
+void KOKKOS_CORE_SRC_CUDA_IMPL_PREVENT_LINK_ERROR() {}
 #endif // KOKKOS_ENABLE_CUDA
-//----------------------------------------------------------------------------
 

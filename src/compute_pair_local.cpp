@@ -126,11 +126,15 @@ void ComputePairLocal::init()
                  " requested by compute pair/local");
 
   // need an occasional half neighbor list
+  // set size to same value as request made by force->pair
+  // this should enable it to always be a copy list (e.g. for granular pstyle)
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;
+  NeighRequest *pairrequest = neighbor->find_request((void *) force->pair);
+  if (pairrequest) neighbor->requests[irequest]->size = pairrequest->size;
 }
 
 /* ---------------------------------------------------------------------- */

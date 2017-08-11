@@ -144,7 +144,8 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
   os << "#       xi            A(xi)\n";
 
   if ( cv.size() != 1 ) {
-    cvm::fatal_error("Cannot write integral for multi-dimensional gradient grids.");
+    cvm::error("Cannot write integral for multi-dimensional gradient grids.");
+    return;
   }
 
   integral = 0.0;

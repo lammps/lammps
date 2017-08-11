@@ -25,6 +25,7 @@
 #include <string.h>
 #include "pair_lj_charmmfsw_coul_charmmfsh.h"
 #include "atom.h"
+#include "update.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -42,6 +43,19 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
+
+  // short-range/long-range flag accessed by DihedralCharmmfsw
+
+  dihedflag = 0;
+
+  // switch qqr2e from LAMMPS value to CHARMM value
+
+  if (strcmp(update->unit_style,"real") == 0) {
+    if ((comm->me == 0) && (force->qqr2e != force->qqr2e_charmm_real))
+      error->message(FLERR,"Switching to CHARMM coulomb energy"
+                     " conversion constant");
+    force->qqr2e = force->qqr2e_charmm_real;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,6 +80,15 @@ PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
       memory->destroy(lj14_3);
       memory->destroy(lj14_4);
     }
+  }
+
+  // switch qqr2e back from CHARMM value to LAMMPS value
+
+  if (update && strcmp(update->unit_style,"real") == 0) {
+    if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
+      error->message(FLERR,"Restoring original LAMMPS coulomb energy"
+                     " conversion constant");
+    force->qqr2e = force->qqr2e_lammps_real;
   }
 }
 
@@ -235,10 +258,6 @@ void PairLJCharmmfswCoulCharmmfsh::settings(int narg, char **arg)
   } else {
     cut_coul = force->numeric(FLERR,arg[2]);
   }
-
-  // indicates pair_style being used for dihedral_charmm
-
-  dihedflag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -393,10 +412,10 @@ void PairLJCharmmfswCoulCharmmfsh::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&eps14[i][j],sizeof(double),1,fp);
-	fwrite(&sigma14[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&eps14[i][j],sizeof(double),1,fp);
+        fwrite(&sigma14[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -535,7 +554,7 @@ void *PairLJCharmmfswCoulCharmmfsh::extract(const char *str, int &dim)
   dim = 0;
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;
 
-  // info extracted by dihedral_charmmf
+  // info extracted by dihedral_charmmfsw
 
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   if (strcmp(str,"cut_lj_inner") == 0) return (void *) &cut_lj_inner;

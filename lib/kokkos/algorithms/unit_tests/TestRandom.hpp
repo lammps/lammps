@@ -295,7 +295,7 @@ struct test_random_scalar {
       parallel_reduce (num_draws/1024, functor_type (pool, density_1d, density_3d), result);
 
       //printf("Result: %lf %lf %lf\n",result.mean/num_draws/3,result.variance/num_draws/3,result.covariance/num_draws/2);
-      double tolerance = 1.6*sqrt(1.0/num_draws);
+      double tolerance = 1.6*std::sqrt(1.0/num_draws);
       double mean_expect = 0.5*Kokkos::rand<rnd_type,Scalar>::max();
       double variance_expect = 1.0/3.0*mean_expect*mean_expect;
       double mean_eps = mean_expect/(result.mean/num_draws/3)-1.0;
@@ -321,7 +321,7 @@ struct test_random_scalar {
       typedef test_histogram1d_functor<typename RandomGenerator::device_type> functor_type;
       parallel_reduce (HIST_DIM1D, functor_type (density_1d, num_draws), result);
 
-      double tolerance = 6*sqrt(1.0/HIST_DIM1D);
+      double tolerance = 6*std::sqrt(1.0/HIST_DIM1D);
       double mean_expect = 1.0*num_draws*3/HIST_DIM1D;
       double variance_expect = 1.0*num_draws*3/HIST_DIM1D*(1.0-1.0/HIST_DIM1D);
       double covariance_expect = -1.0*num_draws*3/HIST_DIM1D/HIST_DIM1D;
@@ -354,7 +354,7 @@ struct test_random_scalar {
       typedef test_histogram3d_functor<typename RandomGenerator::device_type> functor_type;
       parallel_reduce (HIST_DIM1D, functor_type (density_3d, num_draws), result);
 
-      double tolerance = 6*sqrt(1.0/HIST_DIM1D);
+      double tolerance = 6*std::sqrt(1.0/HIST_DIM1D);
       double mean_expect = 1.0*num_draws/HIST_DIM1D;
       double variance_expect = 1.0*num_draws/HIST_DIM1D*(1.0-1.0/HIST_DIM1D);
       double covariance_expect = -1.0*num_draws/HIST_DIM1D/HIST_DIM1D;

@@ -372,7 +372,7 @@ void PairBody::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }

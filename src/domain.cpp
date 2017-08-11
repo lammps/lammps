@@ -60,6 +60,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
+  box_change = 0;
 
   dimension = 3;
   nonperiodic = 0;
@@ -944,6 +945,10 @@ void Domain::subbox_too_small_check(double thresh)
    changed "if" to "while" to enable distance to
      far-away ghost atom returned by atom->map() to be wrapped back into box
      could be problem for looking up atom IDs when cutoff > boxsize
+   this should not be used if atom has moved infinitely far outside box
+     b/c while could iterate forever
+     e.g. fix shake prediction of new position with highly overlapped atoms
+     use minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
 void Domain::minimum_image(double &dx, double &dy, double &dz)
@@ -1009,6 +1014,10 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
    changed "if" to "while" to enable distance to
      far-away ghost atom returned by atom->map() to be wrapped back into box
      could be problem for looking up atom IDs when cutoff > boxsize
+   this should not be used if atom has moved infinitely far outside box
+     b/c while could iterate forever
+     e.g. fix shake prediction of new position with highly overlapped atoms
+     use minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
 void Domain::minimum_image(double *delta)
@@ -1060,6 +1069,70 @@ void Domain::minimum_image(double *delta)
     }
     if (xperiodic) {
       while (fabs(delta[0]) > xprd_half) {
+        if (delta[0] < 0.0) delta[0] += xprd;
+        else delta[0] -= xprd;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   minimum image convention in periodic dimensions
+   use 1/2 of box size as test
+   for triclinic, also add/subtract tilt factors in other dims as needed
+   only shift by one box length in each direction
+   this should not be used if multiple box shifts are required
+------------------------------------------------------------------------- */
+
+void Domain::minimum_image_once(double *delta)
+{
+  if (triclinic == 0) {
+    if (xperiodic) {
+      if (fabs(delta[0]) > xprd_half) {
+        if (delta[0] < 0.0) delta[0] += xprd;
+        else delta[0] -= xprd;
+      }
+    }
+    if (yperiodic) {
+      if (fabs(delta[1]) > yprd_half) {
+        if (delta[1] < 0.0) delta[1] += yprd;
+        else delta[1] -= yprd;
+      }
+    }
+    if (zperiodic) {
+      if (fabs(delta[2]) > zprd_half) {
+        if (delta[2] < 0.0) delta[2] += zprd;
+        else delta[2] -= zprd;
+      }
+    }
+
+  } else {
+    if (zperiodic) {
+      if (fabs(delta[2]) > zprd_half) {
+        if (delta[2] < 0.0) {
+          delta[2] += zprd;
+          delta[1] += yz;
+          delta[0] += xz;
+        } else {
+          delta[2] -= zprd;
+          delta[1] -= yz;
+          delta[0] -= xz;
+        }
+      }
+    }
+    if (yperiodic) {
+      if (fabs(delta[1]) > yprd_half) {
+        if (delta[1] < 0.0) {
+          delta[1] += yprd;
+          delta[0] += xy;
+        } else {
+          delta[1] -= yprd;
+          delta[0] -= xy;
+        }
+      }
+    }
+    if (xperiodic) {
+      if (fabs(delta[0]) > xprd_half) {
         if (delta[0] < 0.0) delta[0] += xprd;
         else delta[0] -= xprd;
       }
@@ -1625,6 +1698,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
+  lattice = NULL;
   lattice = new Lattice(lmp,narg,arg);
 }
 

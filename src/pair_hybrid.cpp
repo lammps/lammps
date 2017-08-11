@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
   styles(NULL), keywords(NULL), multiple(NULL), nmap(NULL),
-  map(NULL), special_lj(NULL), special_coul(NULL)
+  map(NULL), special_lj(NULL), special_coul(NULL), compute_tally(NULL)
 {
   nstyles = 0;
   
@@ -59,6 +59,7 @@ PairHybrid::~PairHybrid()
 
   delete [] special_lj;
   delete [] special_coul;
+  delete [] compute_tally;
 
   delete [] svector;
 
@@ -166,6 +167,23 @@ void PairHybrid::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::add_tally_callback(Compute *ptr)
+{
+  for (int m = 0; m < nstyles; m++)
+    if (compute_tally[m]) styles[m]->add_tally_callback(ptr);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::del_tally_callback(Compute *ptr)
+{
+  for (int m = 0; m < nstyles; m++)
+    if (compute_tally[m]) styles[m]->del_tally_callback(ptr);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairHybrid::compute_inner()
@@ -250,6 +268,8 @@ void PairHybrid::settings(int narg, char **arg)
   special_lj = new double*[narg];
   special_coul = new double*[narg];
 
+  compute_tally = new int[narg];
+
   // allocate each sub-style
   // allocate uses suffix, but don't store suffix version in keywords,
   //   else syntax in coeff() will not match
@@ -269,6 +289,7 @@ void PairHybrid::settings(int narg, char **arg)
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
     force->store_style(keywords[nstyles],arg[iarg],0);
     special_lj[nstyles] = special_coul[nstyles] = NULL;
+    compute_tally[nstyles] = 1;
 
     jarg = iarg + 1;
     while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;
@@ -777,6 +798,20 @@ void PairHybrid::modify_params(int narg, char **arg)
         error->all(FLERR,"Illegal pair_modify special command");
       modify_special(m,narg-iarg,&arg[iarg+1]);
       iarg += 5;
+    }
+
+    // if 2nd keyword (after pair) is compute/tally:
+    // set flag to register USER-TALLY computes accordingly
+
+    if (iarg < narg && strcmp(arg[iarg],"compute/tally") == 0) {
+      if (narg < iarg+2)
+        error->all(FLERR,"Illegal pair_modify compute/tally command");
+      if (strcmp(arg[iarg+1],"yes") == 0) {
+        compute_tally[m] = 1;
+      } else if (strcmp(arg[iarg+1],"no") == 0) {
+        compute_tally[m] = 0;
+      } else error->all(FLERR,"Illegal pair_modify compute/tally command");
+      iarg += 2;
     }
 
     // apply the remaining keywords to the base pair style itself and the

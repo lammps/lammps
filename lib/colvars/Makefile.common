@@ -1,0 +1,65 @@
+# Shared -*- makefile -*- for multiple architectures
+
+# # Detect settings from PYTHON package (if defined)
+# sinclude ../../src/Makefile.package.settings
+# ifeq ($(python_SYSINC),)
+# COLVARS_PYTHON_INCFLAGS =
+# else
+# COLVARS_PYTHON_INCFLAGS = -DCOLVARS_PYTHON $(python_SYSINC)
+# endif
+
+# Detect debug settings
+ifeq ($(COLVARS_DEBUG),)
+COLVARS_DEBUG_INCFLAGS =
+else
+COLVARS_DEBUG_INCFLAGS= -DCOLVARS_DEBUG
+endif
+
+COLVARS_INCFLAGS = $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_INCFLAGS)
+
+
+.SUFFIXES:
+.SUFFIXES: .cpp .o
+
+COLVARS_SRCS = \
+        colvaratoms.cpp \
+        colvarbias_abf.cpp \
+        colvarbias_alb.cpp \
+        colvarbias.cpp \
+        colvarbias_histogram.cpp \
+        colvarbias_meta.cpp \
+        colvarbias_restraint.cpp \
+        colvarcomp_angles.cpp \
+        colvarcomp_coordnums.cpp \
+        colvarcomp.cpp \
+        colvarcomp_distances.cpp \
+        colvarcomp_protein.cpp \
+        colvarcomp_rotations.cpp \
+        colvar.cpp \
+        colvardeps.cpp \
+        colvargrid.cpp \
+        colvarmodule.cpp \
+        colvarparse.cpp \
+        colvarproxy.cpp \
+        colvarscript.cpp \
+        colvartypes.cpp \
+        colvarvalue.cpp
+
+COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) $(COLVARS_INCFLAGS) -c $<
+
+$(COLVARS_LIB):	Makefile.deps $(COLVARS_OBJS)
+	$(AR) $(ARFLAGS) $(COLVARS_LIB) $(COLVARS_OBJS)
+
+
+Makefile.deps: $(COLVARS_SRCS)
+	@echo > $@
+	@for src in $^ ; do \
+	  obj=`basename $$src .cpp`.o ; \
+	  $(CXX) -MM $(COLVARS_INCFLAGS) \
+	    -MT '$$(COLVARS_OBJ_DIR)'$$obj $$src >> $@ ; \
+	  done
+
+include Makefile.deps

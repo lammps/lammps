@@ -39,10 +39,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-// allocate space for static class variable
-
-FixShake *FixShake::fsptr;
-
 #define BIG 1.0e20
 #define MASSDELTA 0.1
 
@@ -844,8 +840,7 @@ void FixShake::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf);
+  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf,(void *)this);
 
   // store partner info returned to me
 
@@ -970,8 +965,7 @@ void FixShake::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf);
+  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf,(void *)this);
 
   // store partner info returned to me
   
@@ -1123,8 +1117,7 @@ void FixShake::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL);
+  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL,(void *)this);
 
   memory->destroy(buf);
 
@@ -1211,8 +1204,9 @@ void FixShake::find_clusters()
      search for bond with 1st atom and fill in bondtype
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_bonds(int ndatum, char *cbuf)
+void FixShake::ring_bonds(int ndatum, char *cbuf, void *ptr)
 {
+  FixShake *fsptr = (FixShake *)ptr;
   Atom *atom = fsptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -1248,8 +1242,9 @@ void FixShake::ring_bonds(int ndatum, char *cbuf)
    if I own partner, fill in nshake value
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_nshake(int ndatum, char *cbuf)
+void FixShake::ring_nshake(int ndatum, char *cbuf, void *ptr)
 {
+  FixShake *fsptr = (FixShake *)ptr;
   Atom *atom = fsptr->atom;
   int nlocal = atom->nlocal;
 
@@ -1269,8 +1264,9 @@ void FixShake::ring_nshake(int ndatum, char *cbuf)
    if I own partner, fill in nshake value
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_shake(int ndatum, char *cbuf)
+void FixShake::ring_shake(int ndatum, char *cbuf, void *ptr)
 {
+  FixShake *fsptr = (FixShake *)ptr;
   Atom *atom = fsptr->atom;
   int nlocal = atom->nlocal;
 
@@ -1419,12 +1415,14 @@ void FixShake::shake(int m)
   domain->minimum_image(r01);
 
   // s01 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   // scalar distances between atoms
 
@@ -1526,18 +1524,20 @@ void FixShake::shake3(int m)
   domain->minimum_image(r02);
 
   // s01,s02 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image(s02);
+  domain->minimum_image_once(s02);
 
   // scalar distances between atoms
 
@@ -1617,6 +1617,12 @@ void FixShake::shake3(int m)
 
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
+
+    // stop iterations before we have a floating point overflow
+    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+
+    if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150) done = 1;
+
     niter++;
   }
 
@@ -1699,24 +1705,26 @@ void FixShake::shake4(int m)
   domain->minimum_image(r03);
 
   // s01,s02,s03 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image(s02);
+  domain->minimum_image_once(s02);
 
   double s03[3];
   s03[0] = xshake[i0][0] - xshake[i3][0];
   s03[1] = xshake[i0][1] - xshake[i3][1];
   s03[2] = xshake[i0][2] - xshake[i3][2];
-  domain->minimum_image(s03);
+  domain->minimum_image_once(s03);
 
   // scalar distances between atoms
 
@@ -1852,6 +1860,13 @@ void FixShake::shake4(int m)
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
     lamda03 = lamda03_new;
+
+    // stop iterations before we have a floating point overflow
+    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+
+    if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150
+        || fabs(lamda03) > 1e150) done = 1;
+
     niter++;
   }
 
@@ -1941,24 +1956,26 @@ void FixShake::shake3angle(int m)
   domain->minimum_image(r12);
 
   // s01,s02,s12 = distance vec after unconstrained update, with PBC
+  // use Domain::minimum_image_once(), not minimum_image()
+  // b/c xshake values might be huge, due to e.g. fix gcmc
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image(s01);
+  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image(s02);
+  domain->minimum_image_once(s02);
 
   double s12[3];
   s12[0] = xshake[i1][0] - xshake[i2][0];
   s12[1] = xshake[i1][1] - xshake[i2][1];
   s12[2] = xshake[i1][2] - xshake[i2][2];
-  domain->minimum_image(s12);
+  domain->minimum_image_once(s12);
 
   // scalar distances between atoms
 
@@ -2055,6 +2072,7 @@ void FixShake::shake3angle(int m)
   double quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda12_new;
 
   while (!done && niter < max_iter) {
+
     quad1 = quad1_0101 * lamda01*lamda01 +
       quad1_0202 * lamda02*lamda02 +
       quad1_1212 * lamda12*lamda12 +
@@ -2092,6 +2110,13 @@ void FixShake::shake3angle(int m)
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
     lamda12 = lamda12_new;
+
+    // stop iterations before we have a floating point overflow
+    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+
+    if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150
+        || fabs(lamda12) > 1e150) done = 1;
+
     niter++;
   }
 

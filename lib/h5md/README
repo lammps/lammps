@@ -3,6 +3,11 @@ LAMMPS under its own BSD license; see below.  This library is used
 when the USER-H5MD package is included in a LAMMPS build and the dump
 h5md command is invoked in a LAMMPS input script.
 
+You can type "make lib-h5md" from the src directory to see help on how
+to build this library via make commands, or you can do the same thing
+by typing "python Install.py" from within this directory, or you can
+do it manually by following the instructions below.
+
 ---------------------
 
 ch5md : Read and write H5MD files in C
@@ -17,8 +22,14 @@ molecular data, whose development is found at <http://nongnu.org/h5md/>.
 ch5md is developped by Pierre de Buyl and is released under the 3-clause BSD
 license that can be found in the file LICENSE.
 
-To use the h5md dump style in lammps, execute make in this directory then 'make
-yes-user-h5md' in the src directory of lammps. Rebuild lammps. 
+To use the h5md dump style in lammps, execute
+make -f Makefile.h5cc
+in this directory then
+make yes-user-h5md
+in the src directory of LAMMPS to rebuild LAMMPS. 
+
+Note that you must have the h5cc compiler installed to use
+Makefile.h5cc.  It should be part
 
 If HDF5 is not in a standard system location, edit Makefile.lammps accordingly.
 

@@ -1,0 +1,26 @@
+This package implements the MEAM/C potential as a LAMMPS pair style.
+
+==============================================================================
+
+This package is a translation of the MEAM package to native C++. See
+that package as well as the Fortran code distributed in lib/meam for
+the original sources and information.
+
+
+Translation by
+ Sebastian Hütter, sebastian.huetter@ovgu.de
+ Institute of Materials and Joining Technology
+ Otto-von-Guericke University Magdeburg, Germany
+
+The original Fortran implementation was created by
+  Greg Wagner (while at Sandia, now at Northwestern U).
+
+==============================================================================
+
+Use "make yes-user-meamc" to enable this package when building LAMMPS.
+
+In your LAMMPS input script, specifiy
+  pair_style meam/c
+to enable the use of this implementation. All parameters, input files and
+outputs are exactly identical to these used with pair_style meam.
+

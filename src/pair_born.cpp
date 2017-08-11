@@ -185,7 +185,7 @@ void PairBorn::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -243,7 +243,7 @@ double PairBorn::init_one(int i, int j)
   born2[i][j] = 6.0*c[i][j];
   born3[i][j] = 8.0*d[i][j];
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double rexp = exp((sigma[i][j]-cut[i][j])*rhoinv[i][j]);
     offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0) +
       d[i][j]/pow(cut[i][j],8.0);

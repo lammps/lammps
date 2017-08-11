@@ -82,6 +82,7 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 
   pppmflag = 1;
   group_group_enable = 1;
+  triclinic = domain->triclinic;
 
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
@@ -93,6 +94,11 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
+
+  nfft_both = 0;
+  nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
+  nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
+  nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
 
   density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
   density_fft = NULL;
@@ -185,6 +191,10 @@ void PPPM::init()
   // error check
 
   triclinic_check();
+
+  if (triclinic != domain->triclinic)
+    error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
+
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box "
                "and kspace_modify diff ad");

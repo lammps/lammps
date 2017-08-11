@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) : 
+NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -35,7 +35,7 @@ NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
    iskip and ijskip flag which atom types and type pairs to skip
    parent non-skip list used newton off and was not onesided,
      this skip list is newton on and onesided
-   if list requests it, preserve shear history via fix shear/history 
+   if list requests it, preserve shear history via fix shear/history
 ------------------------------------------------------------------------- */
 
 void NPairSkipSizeOff2onOneside::build(NeighList *list)

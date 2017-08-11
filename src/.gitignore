@@ -31,6 +31,11 @@
 /fix_*manifold*.cpp
 /fix_*manifold*.h
 
+/meam*.h
+/meam*.cpp
+/pair_meamc.cpp
+/pair_meamc.h
+
 /fix_qeq*.cpp
 /fix_qeq*.h
 
@@ -47,8 +52,6 @@
 /dump_molfile.h
 /molfile_interface.cpp
 /molfile_interface.h
-/molfile_plugin.h
-/vmdplugin.h
 /type_detector.h
 
 /intel_buffers.cpp
@@ -76,8 +79,8 @@
 /pair_awpmd_cut.cpp
 /pair_awpmd_cut.h
 
-/dihedral_charmmfsh.cpp
-/dihedral_charmmfsh.h
+/dihedral_charmmfsw.cpp
+/dihedral_charmmfsw.h
 /pair_lj_charmmfsw_coul_charmmfsh.cpp
 /pair_lj_charmmfsw_coul_charmmfsh.h
 /pair_lj_charmmfsw_coul_long.cpp
@@ -163,6 +166,8 @@
 /bond_nonlinear.h
 /bond_oxdna_fene.cpp
 /bond_oxdna_fene.h
+/bond_oxdna2_fene.cpp
+/bond_oxdna2_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
 /bond_table.cpp
@@ -177,8 +182,8 @@
 /compute_basal_atom.h
 /compute_body_local.cpp
 /compute_body_local.h
-/compute_cna_atom2.cpp
-/compute_cna_atom2.h
+/compute_cnp_atom.cpp
+/compute_cnp_atom.h
 /compute_damage_atom.cpp
 /compute_damage_atom.h
 /compute_dilatation_atom.cpp
@@ -281,14 +286,14 @@
 /dump_custom_gz.h
 /dump_custom_mpiio.cpp
 /dump_custom_mpiio.h
-/dump_custom_vtk.cpp
-/dump_custom_vtk.h
 /dump_h5md.cpp
 /dump_h5md.h
-/dump_nc.cpp
-/dump_nc.h
-/dump_nc_mpiio.cpp
-/dump_nc_mpiio.h
+/dump_netcdf.cpp
+/dump_netcdf.h
+/dump_netcdf_mpiio.cpp
+/dump_netcdf_mpiio.h
+/dump_vtk.cpp
+/dump_vtk.h
 /dump_xtc.cpp
 /dump_xtc.h
 /dump_xyz_mpiio.cpp
@@ -461,8 +466,8 @@
 /fix_qmmm.h
 /fix_reax_bonds.cpp
 /fix_reax_bonds.h
-/fix_reax_c.cpp
-/fix_reax_c.h
+/fix_reaxc.cpp
+/fix_reaxc.h
 /fix_reaxc_bonds.cpp
 /fix_reaxc_bonds.h
 /fix_reaxc_species.cpp
@@ -517,6 +522,10 @@
 /fix_tune_kspace.h
 /fix_wall_colloid.cpp
 /fix_wall_colloid.h
+/fix_wall_ees.cpp
+/fix_wall_ees.h
+/fix_wall_region_ees.cpp
+/fix_wall_region_ees.h
 /fix_wall_gran.cpp
 /fix_wall_gran.h
 /fix_wall_gran_region.cpp
@@ -637,6 +646,8 @@
 /pair_eam_fs_opt.h
 /pair_edip.cpp
 /pair_edip.h
+/pair_edip_multi.cpp
+/pair_edip_multi.h
 /pair_eff_cut.cpp
 /pair_eff_cut.h
 /pair_eff_inline.h
@@ -738,8 +749,6 @@
 /pair_lj_sdk_coul_long.h
 /pair_lj_sdk_coul_msm.cpp
 /pair_lj_sdk_coul_msm.h
-/pair_lj_sf.cpp
-/pair_lj_sf.h
 /pair_lj_sf_dipole_sf.cpp
 /pair_lj_sf_dipole_sf.h
 /pair_lubricateU.cpp
@@ -770,6 +779,8 @@
 /pair_nm_cut_coul_long.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
+/pair_oxdna2_*.cpp
+/pair_oxdna2_*.h
 /mf_oxdna.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h
@@ -779,11 +790,13 @@
 /pair_peri_pmb.h
 /pair_peri_ves.cpp
 /pair_peri_ves.h
+/pair_quip.cpp
+/pair_quip.h
 /pair_reax.cpp
 /pair_reax.h
 /pair_reax_fortran.h
-/pair_reax_c.cpp
-/pair_reax_c.h
+/pair_reaxc.cpp
+/pair_reaxc.h
 /pair_rebo.cpp
 /pair_rebo.h
 /pair_resquared.cpp
@@ -846,8 +859,13 @@
 /pppm_tip4p_cg.h
 /prd.cpp
 /prd.h
-/python.cpp
-/python.h
+/python_impl.cpp
+/python_impl.h
+/python_compat.h
+/fix_python.cpp
+/fix_python.h
+/pair_python.cpp
+/pair_python.h
 /reader_molfile.cpp
 /reader_molfile.h
 /reaxc_allocate.cpp

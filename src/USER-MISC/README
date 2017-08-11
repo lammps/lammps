@@ -28,6 +28,7 @@ bond_style harmonic/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
 compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
+compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017
 compute temp/rotate, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 compute PRESSURE/GREM, David Stelter, dstelter@bu.edu, 22 Nov 16
 dihedral_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
@@ -49,6 +50,8 @@ fix pimd, Yuxing Peng (U Chicago), yuxing at uchicago.edu, 24 Nov 2014
 fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
 fix ti/spring, Rodrigo Freitas (Unicamp/Brazil), rodrigohb at gmail.com, 7 Nov 2013
 fix ttm/mod, Sergey Starikov and Vasily Pisarev (JIHT), pisarevvv at gmail.com, 2 Feb 2015
+fix wall/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
+fix wall/region/ees, Abdoreza Ershadinia, a.ershadinia at gmail.com, Jul 2017
 improper_style cossq, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 improper_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 improper_style ring, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
@@ -63,7 +66,6 @@ pair_style gauss/cut, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style lennard/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style list, Axel Kohlmeyer (Temple U), akohlmey at gmail.com, 1 Jun 13
 pair_style lj/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
-pair_style lj/sf, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 pair_style kolmogorov/crespi/z, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Feb 17
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12
 pair_style meam/sw/spline, Robert Rudd (LLNL), robert.rudd at llnl.gov, 1 Oct 12

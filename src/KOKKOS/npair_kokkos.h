@@ -382,7 +382,7 @@ struct NPairKokkosBuildFunctor {
   }
 #ifdef KOKKOS_HAVE_CUDA
   __device__ inline
-  
+
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
     c.template build_ItemCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
   }

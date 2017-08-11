@@ -15,7 +15,7 @@
 
 NPairStyle(full/nsq/ghost/omp,
            NPairFullNsqGhostOmp,
-           NP_FULL | NP_NSQ | NP_GHOST | NP_OMP | NP_NEWTON | NP_NEWTOFF | 
+           NP_FULL | NP_NSQ | NP_GHOST | NP_OMP | NP_NEWTON | NP_NEWTOFF |
            NP_ORTHO | NP_TRI)
 
 #else

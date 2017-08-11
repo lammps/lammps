@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "fix_mscg.h"
+#include "mscg.h"
 #include "atom.h"
 #include "domain.h"
 #include "error.h"

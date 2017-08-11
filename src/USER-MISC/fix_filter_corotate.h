@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  http://lammps.sandia.gov, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
@@ -120,13 +120,11 @@ namespace LAMMPS_NS
     int bondtype_findset(int, tagint, tagint, int);
     int angletype_findset(int, tagint, tagint, int);
 
-    // static variable for ring communication callback to access class data
     // callback functions for ring communication
 
-    static FixFilterCorotate *fsptr;
-    static void ring_bonds(int, char *);
-    static void ring_nshake(int, char *);
-    static void ring_shake(int, char *);
+    static void ring_bonds(int, char *, void *);
+    static void ring_nshake(int, char *, void *);
+    static void ring_shake(int, char *, void *);
 
     int sgn(double val) {
       return (0 < val) - (val < 0);

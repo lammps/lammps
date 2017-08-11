@@ -40,83 +40,36 @@
 // ************************************************************************
 //@HEADER
 */
-#include <openmp/TestOpenMP.hpp>
+
+#include <openmp/TestOpenMP_Category.hpp>
+#include <TestTeam.hpp>
 
 namespace Test {
 
-TEST_F( openmp , team_tag )
+TEST_F( TEST_CATEGORY, team_for )
 {
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_for(0);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_reduce(0);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(0);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(0);
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_for( 0 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 0 );
 
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_for(2);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_reduce(2);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(2);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(2);
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_for( 2 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 2 );
 
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_for(1000);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_reduce(1000);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(1000);
-  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(1000);
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_for( 1000 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 1000 );
 }
 
-TEST_F( openmp , team_shared_request) {
-  TestSharedTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >();
-  TestSharedTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
 
-TEST_F( openmp, team_scratch_request) {
-  TestScratchTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >();
-  TestScratchTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
-
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-TEST_F( openmp , team_lambda_shared_request) {
-  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >();
-  TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
-#endif
-
-TEST_F( openmp, shmem_size) {
-  TestShmemSize< Kokkos::OpenMP >();
-}
-
-TEST_F( openmp, multi_level_scratch) {
-  TestMultiLevelScratchTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >();
-  TestMultiLevelScratchTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >();
-}
-
-TEST_F( openmp , team_vector )
+TEST_F( TEST_CATEGORY, team_reduce )
 {
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(0) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(1) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(2) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(3) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(4) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(5) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(6) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(7) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(8) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(9) ) );
-  ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(10) ) );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 0 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 0 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 2 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 2 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 1000 );
+  TestTeamPolicy< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 1000 );
+}
 }
 
-#ifdef KOKKOS_COMPILER_GNU
-#if ( KOKKOS_COMPILER_GNU == 472 )
-#define SKIP_TEST
-#endif
-#endif
+#include <TestTeamVector.hpp>
 
-#ifndef SKIP_TEST
-TEST_F( openmp, triple_nested_parallelism )
-{
-  TestTripleNestedReduce< double, Kokkos::OpenMP >( 8192, 2048 , 32 , 32 );
-  TestTripleNestedReduce< double, Kokkos::OpenMP >( 8192, 2048 , 32 , 16 );
-  TestTripleNestedReduce< double, Kokkos::OpenMP >( 8192, 2048 , 16 , 16 );
-}
-#endif
-
-} // namespace test
 

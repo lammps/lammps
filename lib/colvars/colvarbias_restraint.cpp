@@ -853,6 +853,21 @@ int colvarbias_restraint_harmonic_walls::init(std::string const &conf)
   get_keyval(conf, "upperWallConstant", upper_wall_k,
              (upper_wall_k > 0.0) ? upper_wall_k : force_k);
 
+  if (lower_wall_k * upper_wall_k > 0.0) {
+    for (size_t i = 0; i < num_variables(); i++) {
+      if (variables(i)->width != 1.0)
+        cvm::log("The lower and upper wall force constants for colvar \""+
+                 variables(i)->name+
+                 "\" will be rescaled to "+
+                 cvm::to_str(lower_wall_k /
+                             (variables(i)->width * variables(i)->width))+
+                 " and "+
+                 cvm::to_str(upper_wall_k /
+                             (variables(i)->width * variables(i)->width))+
+                 " according to the specified width.\n");
+    }
+  }
+
   enable(f_cvb_scalar_variables);
 
   size_t i;
@@ -869,7 +884,7 @@ int colvarbias_restraint_harmonic_walls::init(std::string const &conf)
   if (!get_keyval(conf, "lowerWalls", lower_walls, lower_walls) &&
       b_null_lower_walls) {
     cvm::log("Lower walls were not provided.\n");
-    lower_walls.resize(0);
+    lower_walls.clear();
   }
 
   bool b_null_upper_walls = false;
@@ -884,7 +899,7 @@ int colvarbias_restraint_harmonic_walls::init(std::string const &conf)
   if (!get_keyval(conf, "upperWalls", upper_walls, upper_walls) &&
       b_null_upper_walls) {
     cvm::log("Upper walls were not provided.\n");
-    upper_walls.resize(0);
+    upper_walls.clear();
   }
 
   if ((lower_walls.size() == 0) && (upper_walls.size() == 0)) {
@@ -954,7 +969,8 @@ void colvarbias_restraint_harmonic_walls::communicate_forces()
       cvm::log("Communicating a force to colvar \""+
                variables(i)->name+"\".\n");
     }
-    variables(i)->add_bias_force_actual_value(colvar_forces[i]);
+    // Impulse-style multiple timestep
+    variables(i)->add_bias_force_actual_value(cvm::real(time_step_factor) * colvar_forces[i]);
   }
 }
 
@@ -1282,9 +1298,9 @@ int colvarbias_restraint_histogram::init(std::string const &conf)
 
 colvarbias_restraint_histogram::~colvarbias_restraint_histogram()
 {
-  p.resize(0);
-  ref_p.resize(0);
-  p_diff.resize(0);
+  p.clear();
+  ref_p.clear();
+  p_diff.clear();
 }
 
 
@@ -1382,23 +1398,23 @@ std::ostream & colvarbias_restraint_histogram::write_restart(std::ostream &os)
 {
   if (b_write_histogram) {
     std::string file_name(cvm::output_prefix()+"."+this->name+".hist.dat");
-    std::ofstream os(file_name.c_str());
-    os << "# " << cvm::wrap_string(variables(0)->name, cvm::cv_width)
-       << "  " << "p(" << cvm::wrap_string(variables(0)->name, cvm::cv_width-3)
-       << ")\n";
+    std::ostream *os = cvm::proxy->output_stream(file_name);
+    *os << "# " << cvm::wrap_string(variables(0)->name, cvm::cv_width)
+        << "  " << "p(" << cvm::wrap_string(variables(0)->name, cvm::cv_width-3)
+        << ")\n";
     size_t igrid;
     for (igrid = 0; igrid < p.size(); igrid++) {
       cvm::real const x_grid = (lower_boundary + (igrid+1)*width);
-      os << "  "
-         << std::setprecision(cvm::cv_prec)
-         << std::setw(cvm::cv_width)
-         << x_grid
-         << "  "
-         << std::setprecision(cvm::cv_prec)
-         << std::setw(cvm::cv_width)
-         << p[igrid] << "\n";
+      *os << "  "
+          << std::setprecision(cvm::cv_prec)
+          << std::setw(cvm::cv_width)
+          << x_grid
+          << "  "
+          << std::setprecision(cvm::cv_prec)
+          << std::setw(cvm::cv_width)
+          << p[igrid] << "\n";
     }
-    os.close();
+    cvm::proxy->close_output_stream(file_name);
   }
   return os;
 }

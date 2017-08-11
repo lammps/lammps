@@ -21,7 +21,7 @@
 
 POEMSObject::POEMSObject(){
   name = 0;
-  ChangeName("unnamed");
+  ChangeName((const char*)"unnamed");
   ID = -1;
 }
 
@@ -29,7 +29,7 @@ POEMSObject::~POEMSObject(){
   delete [] name;
 }
 
-void POEMSObject::ChangeName(char* newname){
+void POEMSObject::ChangeName(const char* newname){
   delete [] name;
   name = new char[strlen(newname)+1];
   strcpy(name,newname);

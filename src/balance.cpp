@@ -782,7 +782,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 
 int Balance::shift()
 {
-  int i,j,k,m,np,max;
+  int i,j,k,m,np;
   double mycost,totalcost;
   double *split;
 
@@ -936,7 +936,7 @@ int Balance::shift()
     // stop at this point in bstr if imbalance factor < threshold
     // this is a true 3d test of particle count per processor
 
-    double imbfactor = imbalance_splits(max);
+    double imbfactor = imbalance_splits();
     if (imbfactor <= stopthresh) break;
   }
 
@@ -1047,11 +1047,10 @@ int Balance::adjust(int n, double *split)
    calculate imbalance based on processor splits in 3 dims
    atoms must be in lamda coords (0-1) before called
    map particles to 3d grid of procs
-   return maxcost = max load per proc
    return imbalance factor = max load per proc / ave load per proc
 ------------------------------------------------------------------------- */
 
-double Balance::imbalance_splits(int &maxcost)
+double Balance::imbalance_splits()
 {
   double *xsplit = comm->xsplit;
   double *ysplit = comm->ysplit;
@@ -1088,7 +1087,7 @@ double Balance::imbalance_splits(int &maxcost)
 
   MPI_Allreduce(proccost,allproccost,nprocs,MPI_DOUBLE,MPI_SUM,world);
 
-  maxcost = 0.0;
+  double maxcost = 0.0;
   double totalcost = 0.0;
   for (int i = 0; i < nprocs; i++) {
     maxcost = MAX(maxcost,allproccost[i]);

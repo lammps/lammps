@@ -41,11 +41,13 @@
 //@HEADER
 */
 
+
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_THREADS )
+
 #include <Kokkos_Core_fwd.hpp>
 
-#if defined( KOKKOS_ENABLE_PTHREAD ) || defined( KOKKOS_ENABLE_WINTHREAD )
-
-#include <stdint.h>
+#include <cstdint>
 #include <limits>
 #include <utility>
 #include <iostream>
@@ -264,7 +266,7 @@ void ThreadsExec::execute_sleep( ThreadsExec & exec , const void * )
   const int rank_rev = exec.m_pool_size - ( exec.m_pool_rank + 1 );
 
   for ( int i = 0 ; i < n ; ++i ) {
-    Impl::spinwait( exec.m_pool_base[ rank_rev + (1<<i) ]->m_pool_state , ThreadsExec::Active );
+    Impl::spinwait_while_equal( exec.m_pool_base[ rank_rev + (1<<i) ]->m_pool_state , ThreadsExec::Active );
   }
 
   exec.m_pool_state = ThreadsExec::Inactive ;
@@ -308,7 +310,7 @@ void ThreadsExec::fence()
 {
   if ( s_thread_pool_size[0] ) {
     // Wait for the root thread to complete:
-    Impl::spinwait( s_threads_exec[0]->m_pool_state , ThreadsExec::Active );
+    Impl::spinwait_while_equal( s_threads_exec[0]->m_pool_state , ThreadsExec::Active );
   }
 
   s_current_function     = 0 ;
@@ -512,8 +514,8 @@ void ThreadsExec::print_configuration( std::ostream & s , const bool detail )
 
   s << "Kokkos::Threads" ;
 
-#if defined( KOKKOS_ENABLE_PTHREAD )
-  s << " KOKKOS_ENABLE_PTHREAD" ;
+#if defined( KOKKOS_ENABLE_THREADS )
+  s << " KOKKOS_ENABLE_THREADS" ;
 #endif
 #if defined( KOKKOS_ENABLE_HWLOC )
   s << " hwloc[" << numa_count << "x" << cores_per_numa << "x" << threads_per_core << "]" ;
@@ -724,7 +726,7 @@ void ThreadsExec::initialize( unsigned thread_count ,
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
 }
@@ -777,7 +779,7 @@ void ThreadsExec::finalize()
   s_threads_process.m_pool_fan_size   = 0 ;
   s_threads_process.m_pool_state = ThreadsExec::Inactive ;
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
   #endif
 }
@@ -817,10 +819,12 @@ int Threads::thread_pool_rank()
 }
 #endif
 
+const char* Threads::name() { return "Threads"; }
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-
-#endif /* #if defined( KOKKOS_ENABLE_PTHREAD ) || defined( KOKKOS_ENABLE_WINTHREAD ) */
+#else
+void KOKKOS_CORE_SRC_THREADS_EXEC_PREVENT_LINK_ERROR() {}
+#endif /* #if defined( KOKKOS_ENABLE_THREADS ) */
 

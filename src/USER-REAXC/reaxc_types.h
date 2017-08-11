@@ -38,6 +38,40 @@
 #include "sys/time.h"
 #include <time.h>
 
+#if defined LMP_USER_OMP
+#define OMP_TIMING 1
+
+#ifdef OMP_TIMING
+// pkcoff timing fields
+enum {
+        COMPUTEINDEX=0,
+        COMPUTEWLINDEX,
+        COMPUTEBFINDEX,
+        COMPUTEQEQINDEX,
+        COMPUTENBFINDEX,
+        COMPUTEIFINDEX,
+        COMPUTETFINDEX,
+        COMPUTEBOINDEX,
+        COMPUTEBONDSINDEX,
+        COMPUTEATOMENERGYINDEX,
+        COMPUTEVALENCEANGLESBOINDEX,
+        COMPUTETORSIONANGLESBOINDEX,
+        COMPUTEHBONDSINDEX,
+        COMPUTECG1INDEX,
+        COMPUTECG2INDEX,
+        COMPUTECGCOMPUTEINDEX,
+        COMPUTECALCQINDEX,
+        COMPUTEINITMVINDEX,
+        COMPUTEMVCOMPINDEX,
+        LASTTIMINGINDEX
+};
+
+extern double ompTimingData[LASTTIMINGINDEX];
+extern int ompTimingCount[LASTTIMINGINDEX];
+extern int ompTimingCGCount[LASTTIMINGINDEX];
+#endif
+#endif
+
 /************* SOME DEFS - crucial for reax_types.h *********/
 
 #define LAMMPS_REAX
@@ -61,12 +95,11 @@
 #define MAX_BOND                    20  // same as reaxc_defs.h
 
 /********************** TYPE DEFINITIONS ********************/
-typedef int  ivec[3];
+typedef int ivec[3];
 typedef double rvec[3];
 typedef double rtensor[3][3];
 typedef double rvec2[2];
 typedef double rvec4[4];
-
 
 // import LAMMPS' definition of tagint and bigint
 typedef LAMMPS_NS::tagint rc_tagint;
@@ -78,7 +111,6 @@ typedef struct
   int *index;
   void *out_atoms;
 } mpi_out_data;
-
 
 typedef struct
 {
@@ -107,15 +139,12 @@ typedef struct
   void *in2_buffer;
 } mpi_datatypes;
 
-
 typedef struct
 {
   int n_global;
   double* l;
   int vdw_type;
 } global_parameters;
-
-
 
 typedef struct
 {
@@ -163,8 +192,6 @@ typedef struct
 
 } single_body_parameters;
 
-
-
 /* Two Body Parameters */
 typedef struct {
   /* Bond Order parameters */
@@ -193,8 +220,6 @@ typedef struct {
   double v13cor, ovc;
 } two_body_parameters;
 
-
-
 /* 3-body parameters */
 typedef struct {
   /* valence angle */
@@ -214,14 +239,10 @@ typedef struct{
   three_body_parameters prm[REAX_MAX_3BODY_PARAM];
 } three_body_header;
 
-
-
 /* hydrogen-bond parameters */
 typedef struct{
   double r0_hb, p_hb1, p_hb2, p_hb3;
 } hbond_parameters;
-
-
 
 /* 4-body parameters */
 typedef struct {
@@ -234,13 +255,11 @@ typedef struct {
   double p_cot1;
 } four_body_parameters;
 
-
 typedef struct
 {
   int cnt;
   four_body_parameters prm[REAX_MAX_4BODY_PARAM];
 } four_body_header;
-
 
 typedef struct
 {
@@ -252,8 +271,6 @@ typedef struct
   hbond_parameters ***hbp;
   four_body_header ****fbp;
 } reax_interaction;
-
-
 
 struct _reax_atom
 {
@@ -283,8 +300,6 @@ struct _reax_atom
 };
 typedef _reax_atom reax_atom;
 
-
-
 typedef struct
 {
   double V;
@@ -294,8 +309,6 @@ typedef struct
   rtensor trans, trans_inv;
   rtensor g;
 } simulation_box;
-
-
 
 struct grid_cell
 {
@@ -402,6 +415,7 @@ struct _reax_system
   int mincap;
   double safezone, saferzone;
 
+  int omp_active;
 };
 typedef _reax_system reax_system;
 
@@ -412,6 +426,7 @@ typedef struct
 {
   char sim_name[REAX_MAX_STR];
   int  nprocs;
+  int  nthreads;
   ivec procs_by_dim;
   /* ensemble values:
      0 : NVE
@@ -471,6 +486,7 @@ typedef struct
   int  restrict_type;
 
   int lgflag;
+  int enobondsflag;
 
 } control_params;
 
@@ -636,6 +652,7 @@ typedef struct{
   double C1dbopi, C2dbopi, C3dbopi, C4dbopi;
   double C1dbopi2, C2dbopi2, C3dbopi2, C4dbopi2;
   rvec dBOp, dln_BOp_s, dln_BOp_pi, dln_BOp_pi2;
+  double *CdboReduction;
 } bond_order_data;
 
 typedef struct {
@@ -721,6 +738,12 @@ typedef struct
   /* force calculations */
   double *CdDelta;  // coefficient of dDelta
   rvec *f;
+
+  /* omp */
+  rvec *forceReduction;
+  rvec *my_ext_pressReduction;
+  double *CdDeltaReduction;
+  int *valence_angle_atom_myoffset;
 
   reallocate_data realloc;
 } storage;

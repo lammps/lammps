@@ -29,6 +29,8 @@ using namespace FixConst;
 FixLineForce::FixLineForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  dynamic_group_allow = 1;
+
   if (narg != 6) error->all(FLERR,"Illegal fix lineforce command");
   xdir = force->numeric(FLERR,arg[3]);
   ydir = force->numeric(FLERR,arg[4]);

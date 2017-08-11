@@ -140,6 +140,9 @@ do
   #strip of pedantic because it produces endless warnings about #LINE added by the preprocessor
   -pedantic|-Wpedantic|-ansi)
     ;;
+  #strip of -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
+  -Woverloaded-virtual)
+    ;;
   #strip -Xcompiler because we add it
   -Xcompiler)
     if [ $first_xcompiler_arg -eq 1 ]; then
@@ -190,7 +193,7 @@ do
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;
   #Handle object files which always need to use "-Xlinker": -x cu applies to all input files, so give them to linker, except if only linking
-  *.dylib)
+  @*|*.dylib)
     object_files="$object_files -Xlinker $1"
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;

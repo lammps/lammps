@@ -40,13 +40,15 @@
 // ************************************************************************
 //@HEADER
 */
-#include <threads/TestThreads.hpp>
+
+#include <threads/TestThreads_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( threads, view_subview_3d_from_5d_right_randomaccess ) {
-  TestViewSubview::test_3d_subview_5d_right< Kokkos::Threads , Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
+TEST_F( TEST_CATEGORY, view_subview_3d_from_5d_right_randomaccess )
+{
+  TestViewSubview::test_3d_subview_5d_right< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::RandomAccess> >();
 }
 
-} // namespace test
-
+} // namespace Test

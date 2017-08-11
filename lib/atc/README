@@ -15,6 +15,11 @@ links against when using the USER-ATC package.
 This library must be built with a C++ compiler, before LAMMPS is
 built, so LAMMPS can link against it.
 
+You can type "make lib-atc" from the src directory to see help on how
+to build this library via make commands, or you can do the same thing
+by typing "python Install.py" from within this directory, or you can
+do it manually by following the instructions below.
+
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:
 
@@ -44,16 +49,16 @@ user-atc_SYSINC = leave blank for this package
 user-atc_SYSLIB = BLAS and LAPACK libraries needed by this package
 user-atc_SYSPATH = path(s) to where those libraries are
 
-You have several choices for these settings:
+You have 3 choices for these settings:
 
-If the 2 libraries are already installed on your system, the settings
-in Makefile.lammps.installed should work.
+a) If the 2 libraries are already installed on your system, the
+settings in Makefile.lammps.installed should work.
 
-If they are not, you can install them yourself, and speficy the
-appropriate settings accordingly.
+b) If they are not, you can install them yourself, and specify the
+appropriate settings accordingly in a Makefile.lammps.* file
+and set the EXTRAMAKE setting in Makefile.* to that file.
 
-If you want to use the minimalist version of these libraries provided
-with LAMMPS in lib/linalg, then the settings in Makefile.lammps.linalg
-should work.  Note that in this case you also need to build the
-linear-algebra in lib/linalg; see the lib/linalg/README for more
-details.
+c) Use the minimalist version of these libraries provided with LAMMPS
+in lib/linalg, by using Makefile.lammps.linalg.  In this case you also
+need to build the library in lib/linalg; see the lib/linalg/README
+file for more details.

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -61,7 +61,7 @@
 
 #include <iostream>
 
-#include <stdint.h>
+#include <cstdint>
 #include <stdexcept>
 
 
@@ -230,16 +230,17 @@ public:
   typedef typename Impl::remove_const<declared_value_type>::type value_type;
   typedef typename Impl::add_const<value_type>::type const_value_type;
 
-  typedef Device execution_space;
+  typedef Device device_type;
+  typedef typename Device::execution_space execution_space;
   typedef Hasher hasher_type;
   typedef EqualTo  equal_to_type;
   typedef uint32_t size_type;
 
   //map_types
-  typedef UnorderedMap<declared_key_type,declared_value_type,execution_space,hasher_type,equal_to_type> declared_map_type;
-  typedef UnorderedMap<key_type,value_type,execution_space,hasher_type,equal_to_type>                   insertable_map_type;
-  typedef UnorderedMap<const_key_type,value_type,execution_space,hasher_type,equal_to_type>             modifiable_map_type;
-  typedef UnorderedMap<const_key_type,const_value_type,execution_space,hasher_type,equal_to_type>       const_map_type;
+  typedef UnorderedMap<declared_key_type,declared_value_type,device_type,hasher_type,equal_to_type> declared_map_type;
+  typedef UnorderedMap<key_type,value_type,device_type,hasher_type,equal_to_type>                   insertable_map_type;
+  typedef UnorderedMap<const_key_type,value_type,device_type,hasher_type,equal_to_type>             modifiable_map_type;
+  typedef UnorderedMap<const_key_type,const_value_type,device_type,hasher_type,equal_to_type>       const_map_type;
 
   static const bool is_set = std::is_same<void,value_type>::value;
   static const bool has_const_key = std::is_same<const_key_type,declared_key_type>::value;
@@ -264,18 +265,18 @@ private:
   typedef typename Impl::if_c< is_set, int, declared_value_type>::type impl_value_type;
 
   typedef typename Impl::if_c<   is_insertable_map
-                               , View< key_type *, execution_space>
-                               , View< const key_type *, execution_space, MemoryTraits<RandomAccess> >
+                               , View< key_type *, device_type>
+                               , View< const key_type *, device_type, MemoryTraits<RandomAccess> >
                              >::type key_type_view;
 
   typedef typename Impl::if_c<   is_insertable_map || is_modifiable_map
-                               , View< impl_value_type *, execution_space>
-                               , View< const impl_value_type *, execution_space, MemoryTraits<RandomAccess> >
+                               , View< impl_value_type *, device_type>
+                               , View< const impl_value_type *, device_type, MemoryTraits<RandomAccess> >
                              >::type value_type_view;
 
   typedef typename Impl::if_c<   is_insertable_map
-                               , View< size_type *, execution_space>
-                               , View< const size_type *, execution_space, MemoryTraits<RandomAccess> >
+                               , View< size_type *, device_type>
+                               , View< const size_type *, device_type, MemoryTraits<RandomAccess> >
                              >::type size_type_view;
 
   typedef typename Impl::if_c<   is_insertable_map
@@ -285,7 +286,7 @@ private:
 
   enum { modified_idx = 0, erasable_idx = 1, failed_insert_idx = 2 };
   enum { num_scalars = 3 };
-  typedef View< int[num_scalars], LayoutLeft, execution_space> scalars_view;
+  typedef View< int[num_scalars], LayoutLeft, device_type> scalars_view;
 
 public:
   //! \name Public member functions
@@ -757,7 +758,7 @@ public:
 
       Kokkos::deep_copy(tmp.m_available_indexes, src.m_available_indexes);
 
-      typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, typename SDevice::memory_space > raw_deep_copy;
+      typedef Kokkos::Impl::DeepCopy< typename device_type::memory_space, typename SDevice::memory_space > raw_deep_copy;
 
       raw_deep_copy(tmp.m_hash_lists.ptr_on_device(), src.m_hash_lists.ptr_on_device(), sizeof(size_type)*src.m_hash_lists.dimension_0());
       raw_deep_copy(tmp.m_next_index.ptr_on_device(), src.m_next_index.ptr_on_device(), sizeof(size_type)*src.m_next_index.dimension_0());
@@ -781,21 +782,21 @@ private: // private member functions
 
   void set_flag(int flag) const
   {
-    typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, Kokkos::HostSpace > raw_deep_copy;
+    typedef Kokkos::Impl::DeepCopy< typename device_type::memory_space, Kokkos::HostSpace > raw_deep_copy;
     const int true_ = true;
     raw_deep_copy(m_scalars.ptr_on_device() + flag, &true_, sizeof(int));
   }
 
   void reset_flag(int flag) const
   {
-    typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, Kokkos::HostSpace > raw_deep_copy;
+    typedef Kokkos::Impl::DeepCopy< typename device_type::memory_space, Kokkos::HostSpace > raw_deep_copy;
     const int false_ = false;
     raw_deep_copy(m_scalars.ptr_on_device() + flag, &false_, sizeof(int));
   }
 
   bool get_flag(int flag) const
   {
-    typedef Kokkos::Impl::DeepCopy< Kokkos::HostSpace, typename execution_space::memory_space > raw_deep_copy;
+    typedef Kokkos::Impl::DeepCopy< Kokkos::HostSpace, typename device_type::memory_space > raw_deep_copy;
     int result = false;
     raw_deep_copy(&result, m_scalars.ptr_on_device() + flag, sizeof(int));
     return result;
@@ -846,3 +847,4 @@ inline void deep_copy(         UnorderedMap<DKey, DT, DDevice, Hasher, EqualTo> 
 } // namespace Kokkos
 
 #endif //KOKKOS_UNORDERED_MAP_HPP
+

@@ -113,6 +113,8 @@ action pair_soft_gpu.cpp
 action pair_soft_gpu.h
 action pair_sw_gpu.cpp pair_sw.cpp
 action pair_sw_gpu.h pair_sw.h
+action pair_vashishta_gpu.cpp pair_vashishta.cpp
+action pair_vashishta_gpu.h pair_vashishta.h
 action pair_table_gpu.cpp pair_table.cpp
 action pair_table_gpu.h pair_table.cpp
 action pair_tersoff_gpu.cpp pair_tersoff.cpp

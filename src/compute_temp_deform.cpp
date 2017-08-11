@@ -222,6 +222,26 @@ void ComputeTempDeform::remove_bias(int i, double *v)
 }
 
 /* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempDeform::remove_bias_thr(int i, double *v, double *b)
+{
+  double lamda[3];
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  domain->x2lamda(atom->x[i],lamda);
+  b[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+    h_rate[4]*lamda[2] + h_ratelo[0];
+  b[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
+  b[2] = h_rate[2]*lamda[2] + h_ratelo[2];
+  v[0] -= b[0];
+  v[1] -= b[1];
+  v[2] -= b[2];
+}
+
+/* ----------------------------------------------------------------------
    remove velocity bias from all atoms to leave thermal velocity
 ------------------------------------------------------------------------- */
 
@@ -264,6 +284,18 @@ void ComputeTempDeform::restore_bias(int i, double *v)
   v[0] += vbias[0];
   v[1] += vbias[1];
   v[2] += vbias[2];
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias_thr()
+   assume remove_bias_thr() was previously called with the same buffer b
+------------------------------------------------------------------------- */
+
+void ComputeTempDeform::restore_bias_thr(int i, double *v, double *b)
+{
+  v[0] += b[0];
+  v[1] += b[1];
+  v[2] += b[2];
 }
 
 /* ----------------------------------------------------------------------

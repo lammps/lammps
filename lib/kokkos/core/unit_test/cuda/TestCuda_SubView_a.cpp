@@ -40,53 +40,65 @@
 // ************************************************************************
 //@HEADER
 */
-#include <cuda/TestCuda.hpp>
+
+#include <cuda/TestCudaUVM_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( cuda, view_subview_auto_1d_left ) {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutLeft,Kokkos::Cuda >();
+TEST_F( TEST_CATEGORY, view_subview_auto_1d_left )
+{
+  TestViewSubview::test_auto_1d< Kokkos::LayoutLeft, TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_auto_1d_right ) {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutRight,Kokkos::Cuda >();
+TEST_F( TEST_CATEGORY, view_subview_auto_1d_right )
+{
+  TestViewSubview::test_auto_1d< Kokkos::LayoutRight, TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_auto_1d_stride ) {
-  TestViewSubview::test_auto_1d< Kokkos::LayoutStride,Kokkos::Cuda >();
+TEST_F( TEST_CATEGORY, view_subview_auto_1d_stride )
+{
+  TestViewSubview::test_auto_1d< Kokkos::LayoutStride, TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_assign_strided ) {
-  TestViewSubview::test_1d_strided_assignment< Kokkos::Cuda >();
+TEST_F( TEST_CATEGORY, view_subview_assign_strided )
+{
+  TestViewSubview::test_1d_strided_assignment< TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_left_0 ) {
-  TestViewSubview::test_left_0< Kokkos::CudaUVMSpace >();
+TEST_F( TEST_CATEGORY, view_subview_left_0 )
+{
+  TestViewSubview::test_left_0< TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_left_1 ) {
-  TestViewSubview::test_left_1< Kokkos::CudaUVMSpace >();
+TEST_F( TEST_CATEGORY, view_subview_left_1 )
+{
+  TestViewSubview::test_left_1< TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_left_2 ) {
-  TestViewSubview::test_left_2< Kokkos::CudaUVMSpace >();
+TEST_F( TEST_CATEGORY, view_subview_left_2 )
+{
+  TestViewSubview::test_left_2< TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_left_3 ) {
-  TestViewSubview::test_left_3< Kokkos::CudaUVMSpace >();
+TEST_F( TEST_CATEGORY, view_subview_left_3 )
+{
+  TestViewSubview::test_left_3< TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_right_0 ) {
-  TestViewSubview::test_right_0< Kokkos::CudaUVMSpace >();
+TEST_F( TEST_CATEGORY, view_subview_right_0 )
+{
+  TestViewSubview::test_right_0< TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_right_1 ) {
-  TestViewSubview::test_right_1< Kokkos::CudaUVMSpace >();
+TEST_F( TEST_CATEGORY, view_subview_right_1 )
+{
+  TestViewSubview::test_right_1< TEST_EXECSPACE >();
 }
 
-TEST_F( cuda, view_subview_right_3 ) {
-  TestViewSubview::test_right_3< Kokkos::CudaUVMSpace >();
+TEST_F( TEST_CATEGORY, view_subview_right_3 )
+{
+  TestViewSubview::test_right_3< TEST_EXECSPACE >();
 }
 
-} // namespace test
-
+} // namespace Test

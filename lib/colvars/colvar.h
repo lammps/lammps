@@ -19,6 +19,9 @@
 #include "colvarparse.h"
 #include "colvardeps.h"
 
+#ifdef LEPTON
+#include "Lepton.h" // for runtime custom expressions
+#endif
 
 /// \brief A collective variable (main class); to be defined, it needs
 /// at least one object of a derived class of colvar::cvc; it
@@ -89,7 +92,10 @@ public:
     return cv_features;
   }
 
-  int refresh_deps();
+  /// Implements possible actions to be carried out
+  /// when a given feature is enabled
+  /// This overloads the base function in colvardeps
+  void do_feature_side_effects(int id);
 
   /// List of biases that depend on this colvar
   std::vector<colvarbias *> biases;
@@ -235,6 +241,9 @@ public:
   /// Parse the CVC configuration and allocate their data
   int init_components(std::string const &conf);
 
+  /// Parse parameters for custom function with Lepton
+  int init_custom_function(std::string const &conf);
+
   /// Init defaults for grid options
   int init_grid_parameters(std::string const &conf);
 
@@ -334,23 +343,12 @@ protected:
   /// Sum of square coefficients for active cvcs
   cvm::real active_cvc_square_norm;
 
-  /// Time step multiplier (for coarse-time-step colvars)
-  /// Colvar will only be calculated at those times; biases may ignore the information and
-  /// always update their own forces (which is typically inexpensive) especially if
-  /// they rely on other colvars. In this case, the colvar will accumulate forces applied between
-  /// colvar updates. Alternately they may use it to calculate "impulse" biasing
-  /// forces at longer intervals. Impulse forces must be multiplied by the timestep factor.
-  int   time_step_factor;
-
-  /// Biasing force collected between updates, to be applied at next update for coarse-time-step colvars
-  colvarvalue f_accumulated;
+  /// \brief Absolute timestep number when this colvar was last updated
+  int prev_timestep;
 
 public:
   /// \brief Return the number of CVC objects with an active flag (as set by update_cvc_flags)
   inline size_t num_active_cvcs() const { return n_active_cvcs; }
-
-  /// \brief returns time_step_factor
-  inline int get_time_step_factor() const {return time_step_factor;}
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
@@ -484,7 +482,9 @@ protected:
   /// Timesteps to skip between two values in the running average series
   size_t         runave_stride;
   /// Name of the file to write the running average
-  cvm::ofstream  runave_os;
+  std::string    runave_outfile;
+  /// File to write the running average
+  std::ostream  *runave_os;
   /// Current value of the running average
   colvarvalue    runave;
   /// Current value of the square deviation from the running average
@@ -508,6 +508,8 @@ public:
   class distance;
   class distance_z;
   class distance_xy;
+  class polar_theta;
+  class polar_phi;
   class distance_inv;
   class distance_pairs;
   class angle;
@@ -555,6 +557,21 @@ private:
   /// Current cvc values in the order requested by script
   /// when using scriptedFunction
   std::vector<const colvarvalue *> sorted_cvc_values;
+
+#ifdef LEPTON
+  /// Vector of evaluators for custom functions using Lepton
+  std::vector<Lepton::CompiledExpression *> value_evaluators;
+
+  /// Vector of evaluators for gradients of custom functions
+  std::vector<Lepton::CompiledExpression *> gradient_evaluators;
+
+  /// Vector of references to cvc values to be passed to Lepton evaluators
+  std::vector<double *> value_eval_var_refs;
+  std::vector<double *> grad_eval_var_refs;
+
+  /// Unused value that is written to when a variable simplifies out of a Lepton expression
+  double dev_null;
+#endif
 
 public:
   /// \brief Sorted array of (zero-based) IDs for all atoms involved

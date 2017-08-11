@@ -64,7 +64,7 @@ fix_modify	myrigidnvt dynamic/dof no
 # gcmc
 
 variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
-fix             mygcmc all gcmc 100 100 100 0 54341 ${temp} ${mu} ${disp} mol &
+fix             mygcmc all gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
                 co2mol tfac_insert ${tfac} group co2 rigid myrigidnvt
 
 # output

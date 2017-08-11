@@ -89,7 +89,7 @@ NOTE: The center of mass of a group of atoms is calculated in
 group can straddle a periodic boundary.  See the "dump"_dump.html doc
 page for a discussion of unwrapped coordinates.  It also means that a
 spring connecting two groups or a group and the tether point can cross
-a periodic boundary and its length be calculated correctly.  
+a periodic boundary and its length be calculated correctly.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

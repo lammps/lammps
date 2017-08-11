@@ -17,9 +17,7 @@ group-ID = ID of the group of atoms to be imaged :l
 h5md = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
 N = dump every this many timesteps :l
 file.h5 = name of file to write to :l
-args = list of data elements to dump, with their dump "subintervals".
-At least one element must be given and image may only be present if
-position is specified first. :l
+args = list of data elements to dump, with their dump "subintervals"
   position options
   image
   velocity options
@@ -29,15 +27,17 @@ position is specified first. :l
   box value = {yes} or {no}
   create_group value = {yes} or {no}
   author value = quoted string :pre
+:ule
 
-For the elements {position}, {velocity}, {force} and {species}, one
-may specify a sub-interval to write the data only every N_element
+Note that at least one element must be specified and image may only be
+present if position is specified first.
+
+For the elements {position}, {velocity}, {force} and {species}, a
+sub-interval may be specified to write the data only every N_element
 iterations of the dump (i.e. every N*N_element time steps). This is
-specified by the option
+specified by this option directly following the element declaration:
 
-  every N_element :pre
-
-that follows directly the element declaration.
+every N_element :pre
 
 :ule
 

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,11 +44,10 @@
 
 #include <Kokkos_Macros.hpp>
 
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <memory.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 #include <iostream>
 #include <sstream>
@@ -62,7 +61,7 @@
 #include <memkind.h>
 #endif
 
-#if (KOKKOS_ENABLE_PROFILING)
+#if defined(KOKKOS_ENABLE_PROFILING)
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #endif
 
@@ -198,7 +197,7 @@ void * HBWSpace::allocate( const size_t arg_alloc_size ) const
     case STD_MALLOC: msg << "STD_MALLOC" ; break ;
     }
     msg << " ]( " << arg_alloc_size << " ) FAILED" ;
-    if ( ptr == NULL ) { msg << " NULL" ; } 
+    if ( ptr == NULL ) { msg << " NULL" ; }
     else { msg << " NOT ALIGNED " << ptr ; }
 
     std::cerr << msg.str() << std::endl ;
@@ -218,7 +217,7 @@ void HBWSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_s
     if ( m_alloc_mech == STD_MALLOC ) {
       void * alloc_ptr = *(reinterpret_cast<void **>(arg_alloc_ptr) -1);
       memkind_free(MEMKIND_TYPE, alloc_ptr );
-    }    
+    }
 
   }
 }
@@ -249,7 +248,7 @@ deallocate( SharedAllocationRecord< void , void > * arg_rec )
 SharedAllocationRecord< Kokkos::Experimental::HBWSpace , void >::
 ~SharedAllocationRecord()
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::Experimental::HBWSpace::name()),RecordBase::m_alloc_ptr->m_label,
@@ -278,7 +277,7 @@ SharedAllocationRecord( const Kokkos::Experimental::HBWSpace & arg_space
       )
   , m_space( arg_space )
 {
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(Kokkos::Profiling::SpaceHandle(arg_space.name()),arg_label,data(),arg_alloc_size);
   }
@@ -297,7 +296,7 @@ SharedAllocationRecord( const Kokkos::Experimental::HBWSpace & arg_space
 
 void * SharedAllocationRecord< Kokkos::Experimental::HBWSpace , void >::
 allocate_tracked( const Kokkos::Experimental::HBWSpace & arg_space
-                , const std::string & arg_alloc_label 
+                , const std::string & arg_alloc_label
                 , const size_t arg_alloc_size )
 {
   if ( ! arg_alloc_size ) return (void *) 0 ;
@@ -397,3 +396,4 @@ void unlock_address_hbw_space(void* ptr) {
 }
 }
 #endif
+

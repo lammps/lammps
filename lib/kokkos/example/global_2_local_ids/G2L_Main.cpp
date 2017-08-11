@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -59,7 +59,7 @@ size_t run_serial(unsigned num_ids, unsigned num_find_iterations)
 
 size_t run_threads(unsigned num_ids, unsigned num_find_iterations)
 {
-#ifdef KOKKOS_ENABLE_PTHREAD
+#ifdef KOKKOS_ENABLE_THREADS
   std::cout << "Threads" << std::endl;
   return run_test<Kokkos::Threads>(num_ids,num_find_iterations);
 #else
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
   Kokkos::HostSpace::execution_space::finalize();
 #endif
 
-#ifdef KOKKOS_ENABLE_PTHREAD
+#ifdef KOKKOS_ENABLE_THREADS
   Kokkos::Threads::initialize( threads_count );
   num_errors += G2L::run_threads(num_ids,num_find_iterations);
   Kokkos::Threads::finalize();

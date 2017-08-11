@@ -52,6 +52,31 @@ PPPMDispTIP4POMP::PPPMDispTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
   suffix_flag |= Suffix::OMP;
 }
 
+/* ---------------------------------------------------------------------- */
+
+PPPMDispTIP4POMP::~PPPMDispTIP4POMP()
+{
+
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+  {
+#if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+#else
+    const int tid = 0;
+#endif
+    if (function[0]) {
+      ThrData * thr = fix->get_thr(tid);
+      thr->init_pppm(-order,memory);
+    }
+    if (function[1] + function[2]) {
+      ThrData * thr = fix->get_thr(tid);
+      thr->init_pppm_disp(-order_6,memory);
+    }
+  }
+}
+
 /* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
@@ -80,35 +105,6 @@ void PPPMDispTIP4POMP::allocate()
     }
   }
 }
-
-/* ----------------------------------------------------------------------
-   free memory that depends on # of K-vectors and order
-------------------------------------------------------------------------- */
-
-void PPPMDispTIP4POMP::deallocate()
-{
-  PPPMDispTIP4P::deallocate();
-
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    if (function[0]) {
-      ThrData * thr = fix->get_thr(tid);
-      thr->init_pppm(-order,memory);
-    }
-    if (function[1] + function[2]) {
-      ThrData * thr = fix->get_thr(tid);
-      thr->init_pppm_disp(-order_6,memory);
-    }
-  }
-}
-
 
 /* ----------------------------------------------------------------------
    Compute the modified (hockney-eastwood) coulomb green function

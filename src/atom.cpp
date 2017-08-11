@@ -40,6 +40,10 @@
 #include "memory.h"
 #include "error.h"
 
+#ifdef LMP_USER_INTEL
+#include "neigh_request.h"
+#endif
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -1510,12 +1514,13 @@ void Atom::set_mass(double *values)
 }
 
 /* ----------------------------------------------------------------------
-   check that all masses have been set
+   check that all per-atom-type masses have been set
 ------------------------------------------------------------------------- */
 
 void Atom::check_mass(const char *file, int line)
 {
   if (mass == NULL) return;
+  if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
     if (mass_setflag[itype] == 0) 
       error->all(file,line,"Not all per-type masses are set");
@@ -1881,6 +1886,53 @@ void Atom::setup_sort_bins()
   bininvx = nbinx / (bboxhi[0]-bboxlo[0]);
   bininvy = nbiny / (bboxhi[1]-bboxlo[1]);
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
+
+  #ifdef LMP_USER_INTEL
+  int intel_neigh = 0;
+  if (neighbor->nrequest) {
+    if (neighbor->requests[0]->intel) intel_neigh = 1;
+  } else if (neighbor->old_nrequest)
+    if (neighbor->old_requests[0]->intel) intel_neigh = 1;
+  if (intel_neigh && userbinsize == 0.0) {
+    if (neighbor->binsizeflag) bininv = 1.0/neighbor->binsize_user;
+
+    double nx_low = neighbor->bboxlo[0];
+    double ny_low = neighbor->bboxlo[1];
+    double nz_low = neighbor->bboxlo[2];
+    double nxbbox = neighbor->bboxhi[0] - nx_low;
+    double nybbox = neighbor->bboxhi[1] - ny_low;
+    double nzbbox = neighbor->bboxhi[2] - nz_low;
+    int nnbinx = static_cast<int> (nxbbox * bininv);
+    int nnbiny = static_cast<int> (nybbox * bininv);
+    int nnbinz = static_cast<int> (nzbbox * bininv);
+    if (domain->dimension == 2) nnbinz = 1;
+
+    if (nnbinx == 0) nnbinx = 1;
+    if (nnbiny == 0) nnbiny = 1;
+    if (nnbinz == 0) nnbinz = 1;
+
+    double binsizex = nxbbox/nnbinx;
+    double binsizey = nybbox/nnbiny;
+    double binsizez = nzbbox/nnbinz;
+
+    bininvx = 1.0 / binsizex;
+    bininvy = 1.0 / binsizey;
+    bininvz = 1.0 / binsizez;
+
+    int lxo = (bboxlo[0] - nx_low) * bininvx;
+    int lyo = (bboxlo[1] - ny_low) * bininvy;
+    int lzo = (bboxlo[2] - nz_low) * bininvz;
+    bboxlo[0] = nx_low + static_cast<double>(lxo) / bininvx;
+    bboxlo[1] = ny_low + static_cast<double>(lyo) / bininvy;
+    bboxlo[2] = nz_low + static_cast<double>(lzo) / bininvz;
+    nbinx = static_cast<int>((bboxhi[0] - bboxlo[0]) * bininvx) + 1;
+    nbiny = static_cast<int>((bboxhi[1] - bboxlo[1]) * bininvy) + 1;
+    nbinz = static_cast<int>((bboxhi[2] - bboxlo[2]) * bininvz) + 1;
+    bboxhi[0] = bboxlo[0] + static_cast<double>(nbinx) / bininvx;
+    bboxhi[1] = bboxlo[1] + static_cast<double>(nbiny) / bininvy;
+    bboxhi[2] = bboxlo[2] + static_cast<double>(nbinz) / bininvz;
+  }
+  #endif
 
   if (1.0*nbinx*nbiny*nbinz > INT_MAX)
     error->one(FLERR,"Too many atom sorting bins");

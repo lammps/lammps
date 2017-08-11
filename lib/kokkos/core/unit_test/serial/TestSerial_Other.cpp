@@ -1,3 +1,4 @@
+
 /*
 //@HEADER
 // ************************************************************************
@@ -40,126 +41,10 @@
 // ************************************************************************
 //@HEADER
 */
-#include <serial/TestSerial.hpp>
 
-namespace Test {
-
-TEST_F( serial , md_range ) {
-  TestMDRange_2D< Kokkos::Serial >::test_for2(100,100);
-
-  TestMDRange_3D< Kokkos::Serial >::test_for3(100,100,100);
-}
-
-TEST_F( serial, policy_construction) {
-  TestRangePolicyConstruction< Kokkos::Serial >();
-  TestTeamPolicyConstruction< Kokkos::Serial >();
-}
-
-TEST_F( serial , range_tag )
-{
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_for(0);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_reduce(0);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_scan(0);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(0);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(0);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_scan(0);
-
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_for(1000);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_reduce(1000);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >::test_scan(1000);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(1001);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(1001);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_scan(1001);
-  TestRange< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >::test_dynamic_policy(1000);
-}
-
-
-//----------------------------------------------------------------------------
-
-TEST_F( serial , compiler_macros )
-{
-  ASSERT_TRUE( ( TestCompilerMacros::Test< Kokkos::Serial >() ) );
-}
-
-//----------------------------------------------------------------------------
-
-TEST_F( serial , memory_pool )
-{
-  bool val = TestMemoryPool::test_mempool< Kokkos::Serial >( 128, 128000000 );
-  ASSERT_TRUE( val );
-
-  TestMemoryPool::test_mempool2< Kokkos::Serial >( 64, 4, 1000000, 2000000 );
-
-  TestMemoryPool::test_memory_exhaustion< Kokkos::Serial >();
-}
-
-//----------------------------------------------------------------------------
-
-#if defined( KOKKOS_ENABLE_TASKDAG )
-
-TEST_F( serial , task_fib )
-{
-  for ( int i = 0 ; i < 25 ; ++i ) {
-    TestTaskScheduler::TestFib< Kokkos::Serial >::run(i);
-  }
-}
-
-TEST_F( serial , task_depend )
-{
-  for ( int i = 0 ; i < 25 ; ++i ) {
-    TestTaskScheduler::TestTaskDependence< Kokkos::Serial >::run(i);
-  }
-}
-
-TEST_F( serial , task_team )
-{
-  TestTaskScheduler::TestTaskTeam< Kokkos::Serial >::run(1000);
-  //TestTaskScheduler::TestTaskTeamValue< Kokkos::Serial >::run(1000); //put back after testing
-}
-
-#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
-
-//----------------------------------------------------------------------------
-
-#if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
-TEST_F( serial , cxx11 )
-{
-  if ( std::is_same< Kokkos::DefaultExecutionSpace , Kokkos::Serial >::value ) {
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::Serial >(1) ) );
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::Serial >(2) ) );
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::Serial >(3) ) );
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::Serial >(4) ) );
-  }
-}
-#endif
-
-TEST_F( serial, tile_layout )
-{
-  TestTile::test< Kokkos::Serial , 1 , 1 >( 1 , 1 );
-  TestTile::test< Kokkos::Serial , 1 , 1 >( 2 , 3 );
-  TestTile::test< Kokkos::Serial , 1 , 1 >( 9 , 10 );
-
-  TestTile::test< Kokkos::Serial , 2 , 2 >( 1 , 1 );
-  TestTile::test< Kokkos::Serial , 2 , 2 >( 2 , 3 );
-  TestTile::test< Kokkos::Serial , 2 , 2 >( 4 , 4 );
-  TestTile::test< Kokkos::Serial , 2 , 2 >( 9 , 9 );
-
-  TestTile::test< Kokkos::Serial , 2 , 4 >( 9 , 9 );
-  TestTile::test< Kokkos::Serial , 4 , 2 >( 9 , 9 );
-
-  TestTile::test< Kokkos::Serial , 4 , 4 >( 1 , 1 );
-  TestTile::test< Kokkos::Serial , 4 , 4 >( 4 , 4 );
-  TestTile::test< Kokkos::Serial , 4 , 4 >( 9 , 9 );
-  TestTile::test< Kokkos::Serial , 4 , 4 >( 9 , 11 );
-
-  TestTile::test< Kokkos::Serial , 8 , 8 >( 1 , 1 );
-  TestTile::test< Kokkos::Serial , 8 , 8 >( 4 , 4 );
-  TestTile::test< Kokkos::Serial , 8 , 8 >( 9 , 9 );
-  TestTile::test< Kokkos::Serial , 8 , 8 >( 9 , 11 );
-}
-
-
-
-
-} // namespace test
-
+#include<serial/TestSerial_Category.hpp>
+#include<TestTemplateMetaFunctions.hpp>
+#include<TestAggregate.hpp>
+#include<TestMemoryPool.hpp>
+#include<TestCXX11.hpp>
+#include<TestTile.hpp>

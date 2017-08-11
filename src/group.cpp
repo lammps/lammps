@@ -45,10 +45,6 @@ enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
 
-// allocate space for static class variable
-
-Group *Group::cptr;
-
 /* ----------------------------------------------------------------------
    initialize group memory
 ------------------------------------------------------------------------- */
@@ -654,9 +650,8 @@ void Group::add_molecules(int igroup, int bit)
   std::map<tagint,int>::iterator pos;
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
-  cptr = this;
   molbit = bit;
-  comm->ring(n,sizeof(tagint),list,1,molring,NULL);
+  comm->ring(n,sizeof(tagint),list,1,molring,NULL,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -669,14 +664,15 @@ void Group::add_molecules(int igroup, int bit)
      add atom to group flagged by molbit
 ------------------------------------------------------------------------- */
 
-void Group::molring(int n, char *cbuf)
+void Group::molring(int n, char *cbuf, void *ptr)
 {
+  Group *gptr = (Group *) ptr;
   tagint *list = (tagint *) cbuf;
-  std::map<tagint,int> *hash = cptr->hash;
-  int nlocal = cptr->atom->nlocal;
-  tagint *molecule = cptr->atom->molecule;
-  int *mask = cptr->atom->mask;
-  int molbit = cptr->molbit;
+  std::map<tagint,int> *hash = gptr->hash;
+  int nlocal = gptr->atom->nlocal;
+  tagint *molecule = gptr->atom->molecule;
+  int *mask = gptr->atom->mask;
+  int molbit = gptr->molbit;
 
   hash->clear();
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;

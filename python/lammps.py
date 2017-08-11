@@ -30,7 +30,7 @@ from collections import namedtuple
 import os
 import select
 import re
-
+import sys
 
 class MPIAbortException(Exception):
   def __init__(self, message):
@@ -151,9 +151,16 @@ class lammps(object):
 
     else:
       # magic to convert ptr to ctypes ptr
-      pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
-      pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
-      self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
+      if sys.version_info >= (3, 0):
+        # Python 3 (uses PyCapsule API)
+        pythonapi.PyCapsule_GetPointer.restype = c_void_p
+        pythonapi.PyCapsule_GetPointer.argtypes = [py_object, c_char_p]
+        self.lmp = c_void_p(pythonapi.PyCapsule_GetPointer(ptr, None))
+      else:
+        # Python 2 (uses PyCObject API)
+        pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
+        pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
+        self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
 
   def __del__(self):
     if self.lmp and self.opened:
@@ -305,7 +312,7 @@ class lammps(object):
   def set_variable(self,name,value):
     if name: name = name.encode()
     if value: value = str(value).encode()
-    return self.lib.lammps_set_variable(self.lmp,name,str(value))
+    return self.lib.lammps_set_variable(self.lmp,name,value)
 
   # return current value of thermo keyword
 
@@ -549,9 +556,10 @@ def get_thermo_data(output):
     runs = []
     columns = []
     in_run = False
+    current_run = {}
 
     for line in lines:
-        if line.startswith("Memory usage per processor"):
+        if line.startswith("Per MPI rank memory allocation"):
             in_run = True
         elif in_run and len(columns) == 0:
             # first line after memory usage are column names

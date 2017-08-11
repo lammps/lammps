@@ -14,12 +14,11 @@ experienced users.
 2.1 "What's in the LAMMPS distribution"_#start_1
 2.2 "Making LAMMPS"_#start_2
 2.3 "Making LAMMPS with optional packages"_#start_3
-2.4 "Building LAMMPS via the Make.py script"_#start_4
-2.5 "Building LAMMPS as a library"_#start_5
-2.6 "Running LAMMPS"_#start_6
-2.7 "Command-line options"_#start_7
-2.8 "Screen output"_#start_8
-2.9 "Tips for users of previous versions"_#start_9 :all(b)
+2.4 "Building LAMMPS as a library"_#start_4
+2.5 "Running LAMMPS"_#start_5
+2.6 "Command-line options"_#start_6
+2.7 "Screen output"_#start_7
+2.8 "Tips for users of previous versions"_#start_8 :all(b)
 
 :line
 
@@ -80,7 +79,7 @@ This section has the following sub-sections:
 
 Read this first :h5,link(start_2_1)
 
-If you want to avoid building LAMMPS yourself, read the preceding
+If you want to avoid building LAMMPS yourself, read the preceeding
 section about options available for downloading and installing
 executables.  Details are discussed on the "download"_download page.
 
@@ -96,7 +95,7 @@ make serial :pre
 Note that on a facility supercomputer, there are often "modules"
 loaded in your environment that provide the compilers and MPI you
 should use.  In this case, the "mpicxx" compile/link command in
-Makefile.mpi should just work by accessing those modules.
+Makefile.mpi should simply work by accessing those modules.
 
 It may be the case that one of the other Makefile.machine files in the
 src/MAKE sub-directories is a better match to your system (type "make"
@@ -107,33 +106,35 @@ make stampede :pre
 If any of these builds (with an existing Makefile.machine) works on
 your system, then you're done!
 
+If you need to install an optional package with a LAMMPS command you
+want to use, and the package does not depend on an extra library, you
+can simply type
+
+make name :pre
+
+before invoking (or re-invoking) the above steps.  "Name" is the
+lower-case name of the package, e.g. replica or user-misc.
+
 If you want to do one of the following:
 
-use optional LAMMPS features that require additional libraries
-use optional packages that require additional libraries
-use optional accelerator packages that require special compiler/linker settings
-run on a specialized platform that has its own compilers, settings, or other libs to use :ul
+use a LAMMPS command that requires an extra library (e.g. "dump image"_dump_image.html)
+build with a package that requires an extra library
+build with an accelerator package that requires special compiler/linker settings
+run on a machine that has its own compilers, settings, or libraries :ul
 
 then building LAMMPS is more complicated.  You may need to find where
-auxiliary libraries exist on your machine or install them if they
-don't.  You may need to build additional libraries that are part of
-the LAMMPS package, before building LAMMPS.  You may need to edit a
+extra libraries exist on your machine or install them if they don't.
+You may need to build extra libraries that are included in the LAMMPS
+distribution, before building LAMMPS itself.  You may need to edit a
 Makefile.machine file to make it compatible with your system.
-
-Note that there is a Make.py tool in the src directory that automates
-several of these steps, but you still have to know what you are doing.
-"Section 2.4"_#start_4 below describes the tool.  It is a convenient
-way to work with installing/un-installing various packages, the
-Makefile.machine changes required by some packages, and the auxiliary
-libraries some of them use.
 
 Please read the following sections carefully.  If you are not
 comfortable with makefiles, or building codes on a Unix platform, or
 running an MPI job on your machine, please find a local expert to help
-you.  Many compilation, linking, and run problems that users have are
-often not really LAMMPS issues - they are peculiar to the user's
-system, compilers, libraries, etc.  Such questions are better answered
-by a local expert.
+you.  Many compilation, linking, and run problems users experience are
+often not LAMMPS issues - they are peculiar to the user's system,
+compilers, libraries, etc.  Such questions are better answered by a
+local expert.
 
 If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
@@ -251,7 +252,7 @@ re-compile, after typing "make clean" (which will describe different
 clean options).
 
 The LMP_INC variable is used to include options that turn on ifdefs
-within the LAMMPS code.  The options that are currently recognized are:
+within the LAMMPS code.  The options that are currently recogized are:
 
 -DLAMMPS_GZIP
 -DLAMMPS_JPEG
@@ -362,7 +363,7 @@ installed on your platform.  If MPI is installed on your system in the
 usual place (under /usr/local), you also may not need to specify these
 3 variables, assuming /usr/local is in your path.  On some large
 parallel machines which use "modules" for their compile/link
-environments, you may simply need to include the correct module in
+environements, you may simply need to include the correct module in
 your build environment, before building LAMMPS.  Or the parallel
 machine may have a vendor-provided MPI which the compiler has no
 trouble finding.
@@ -430,33 +431,62 @@ use the KISS library described above.
 You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
 so the compiler and linker can find the needed FFT header and library
 files.  Note that on some large parallel machines which use "modules"
-for their compile/link environments, you may simply need to include
+for their compile/link environements, you may simply need to include
 the correct module in your build environment.  Or the parallel machine
 may have a vendor-provided FFT library which the compiler has no
-trouble finding.
+trouble finding.  See the src/MAKE/OPTIONS/Makefile.fftw file for an
+example of how to specify these variables to use the FFTW3 library.
 
-FFTW is a fast, portable library that should also work on any
-platform.  You can download it from
+FFTW is fast, portable library that should also work on any platform
+and typically be faster than KISS FFT.  You can download it from
 "www.fftw.org"_http://www.fftw.org.  Both the legacy version 2.1.X and
 the newer 3.X versions are supported as -DFFT_FFTW2 or -DFFT_FFTW3.
-Building FFTW for your box should be as simple as ./configure; make.
-Note that on some platforms FFTW2 has been pre-installed, and uses
-renamed files indicating the precision it was compiled with,
-e.g. sfftw.h, or dfftw.h instead of fftw.h.  In this case, you can
-specify an additional define variable for FFT_INC called -DFFTW_SIZE,
-which will select the correct include file.  In this case, for FFT_LIB
-you must also manually specify the correct library, namely -lsfftw or
--ldfftw.
+Building FFTW for your box should be as simple as ./configure; make;
+make install.  The install command typically requires root privileges
+(e.g. invoke it via sudo), unless you specify a local directory with
+the "--prefix" option of configure.  Type "./configure --help" to see
+various options.
+
+If you wish to have FFTW support for single-precision FFTs (see below
+about -DFFT_SINGLE) in addition to the default double-precision FFTs,
+you will need to build FFTW a second time for single-precision.  For
+FFTW3, do this via:
+
+make clean
+./configure --enable-single; make; make install :pre
+
+which should produce the additional library libfftw3f.a.
+
+For FFTW2, do this:
+
+make clean
+./configure --enable-float --enable-type-prefix; make; make install :pre
+
+which should produce the additional library libsfftw.a and additional
+include file sfttw.a.  Note that on some platforms FFTW2 has been
+pre-installed for both single- and double-precision, and may already
+have these files as well as libdfftw.a and dfftw.h for double
+precision.
 
 The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
 use single-precision FFTs with PPPM, which can speed-up long-range
-calculations, particularly in parallel or on GPUs.  Fourier transform
+calulations, particularly in parallel or on GPUs.  Fourier transform
 and related PPPM operations are somewhat insensitive to floating point
 truncation errors and thus do not always need to be performed in
 double precision.  Using the -DFFT_SINGLE setting trades off a little
 accuracy for reduced memory use and parallel communication costs for
 transposing 3d FFT data.  Note that single precision FFTs have only
 been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
+
+When using -DFFT_SINGLE with FFTW3 or FFTW2, you need to build FFTW
+with support for single-precision, as explained above.  For FFTW3 you
+also need to include -lfftw3f with the FFT_LIB setting, in addition to
+-lfftw3.  For FFTW2, you also need to specify -DFFT_SIZE with the
+FFT_INC setting and -lsfftw with the FFT_LIB setting (in place of
+-lfftw).  Similarly, if FFTW2 has been preinstalled with an explicit
+double-precision library (libdfftw.a and not the default libfftw.a),
+then you can specify -DFFT_SIZE (and not -DFFT_SINGLE), and specify
+-ldfftw to use double-precision FFTs.
 
 Step 7 :h6
 
@@ -508,13 +538,13 @@ You should get the executable lmp_foo when the build is complete.
 
 Errors that can occur when making LAMMPS: h5 :link(start_2_3)
 
-NOTE: If an error occurs when building LAMMPS, the compiler or linker
-will state very explicitly what the problem is.  The error message
-should give you a hint as to which of the steps above has failed, and
-what you need to do in order to fix it.  Building a code with a
-Makefile is a very logical process.  The compiler and linker need to
-find the appropriate files and those files need to be compatible with
-LAMMPS source files.  When a make fails, there is usually a very
+If an error occurs when building LAMMPS, the compiler or linker will
+state very explicitly what the problem is.  The error message should
+give you a hint as to which of the steps above has failed, and what
+you need to do in order to fix it.  Building a code with a Makefile is
+a very logical process.  The compiler and linker need to find the
+appropriate files and those files need to be compatible with LAMMPS
+settings and source files.  When a make fails, there is usually a very
 simple reason, which you or a local expert will need to fix.
 
 Here are two non-obvious errors that can occur:
@@ -628,7 +658,16 @@ utilities.
 For Cygwin and the MinGW cross-compilers, suitable makefiles are
 provided in src/MAKE/MACHINES. When using other compilers, like
 Visual C++ or Intel compilers for Windows, you may have to implement
-your own build system. Since none of the current LAMMPS core developers
+your own build system. Due to differences between the Windows OS
+and Windows system libraries to Unix-like environments like Linux
+or MacOS, when compiling for Windows a few adjustments may be needed:
+
+Do not set the -DLAMMPS_MEMALIGN define (see LMP_INC makefile variable)
+Add -lwsock32 -lpsapi to the linker flags (see LIB makefile variable)
+Try adding -static-libgcc or -static or both to the linker flags when your
+LAMMPS executable complains about missing .dll files  :ul
+
+Since none of the current LAMMPS core developers
 has significant experience building executables on Windows, we are
 happy to distribute contributed instructions and modifications, but
 we cannot provide support for those.
@@ -653,13 +692,7 @@ This section has the following sub-sections:
 
 2.3.1 "Package basics"_#start_3_1
 2.3.2 "Including/excluding packages"_#start_3_2
-2.3.3 "Packages that require extra libraries"_#start_3_3
-2.3.4 "Packages that require Makefile.machine settings"_#start_3_4 :all(b)
-
-Note that the following "Section 2.4"_#start_4 describes the Make.py
-tool which can be used to install/un-install packages and build the
-auxiliary libraries which some of them use.  It can also auto-edit a
-Makefile.machine to add settings needed by some packages.
+2.3.3 "Packages that require extra libraries"_#start_3_3 :all(b)
 
 :line
 
@@ -670,235 +703,221 @@ are always included, plus optional packages.  Packages are groups of
 files that enable a specific set of features.  For example, force
 fields for molecular systems or granular systems are in packages.
 
-"Section 4"_Section_packages.html in the manual has details
-about all the packages, including specific instructions for building
-LAMMPS with each package, which are covered in a more general manner
+"Section 4"_Section_packages.html in the manual has details about all
+the packages, which come in two flavors: [standard] and [user]
+packages. It also has specific instructions for building LAMMPS with
+any package which requires an extra library.  General instructions are
 below.
 
 You can see the list of all packages by typing "make package" from
-within the src directory of the LAMMPS distribution.  This also lists
-various make commands that can be used to manipulate packages.
+within the src directory of the LAMMPS distribution.  It will also
+list various make commands that can be used to manage packages.
 
 If you use a command in a LAMMPS input script that is part of a
 package, you must have built LAMMPS with that package, else you will
 get an error that the style is invalid or the command is unknown.
-Every command's doc page specifies if it is part of a package.  You can
-also type
+Every command's doc page specfies if it is part of a package.  You can
+type
 
 lmp_machine -h :pre
 
 to run your executable with the optional "-h command-line
-switch"_#start_7 for "help", which will simply list the styles and
-commands known to your executable, and immediately exit.
-
-There are two kinds of packages in LAMMPS, standard and user packages.
-More information about the contents of standard and user packages is
-given in "Section 4"_Section_packages.html of the manual.  The
-difference between standard and user packages is as follows:
-
-Standard packages, such as molecule or kspace, are supported by the
-LAMMPS developers and are written in a syntax and style consistent
-with the rest of LAMMPS.  This means we will answer questions about
-them, debug and fix them if necessary, and keep them compatible with
-future changes to LAMMPS.
-
-User packages, such as user-atc or user-omp, have been contributed by
-users, and always begin with the user prefix.  If they are a single
-command (single file), they are typically in the user-misc package.
-Otherwise, they are a set of files grouped together which add a
-specific functionality to the code.
-
-User packages don't necessarily meet the requirements of the standard
-packages.  If you have problems using a feature provided in a user
-package, you may need to contact the contributor directly to get help.
-Information on how to submit additions you make to LAMMPS as single
-files or either a standard or user-contributed package are given in
-"this section"_Section_modify.html#mod_15 of the documentation.
+switch"_#start_6 for "help", which will list the styles and commands
+known to your executable, and immediately exit.
 
 :line
 
 Including/excluding packages :h5,link(start_3_2)
 
-To use (or not use) a package you must include it (or exclude it)
-before building LAMMPS.  From the src directory, this is typically as
-simple as:
+To use (or not use) a package you must install it (or un-install it)
+before building LAMMPS.  From the src directory, this is as simple as:
 
 make yes-colloid
 make mpi :pre
 
 or
 
-make no-manybody
+make no-user-omp
 make mpi :pre
 
-NOTE: You should NOT include/exclude packages and build LAMMPS in a
+NOTE: You should NOT install/un-install packages and build LAMMPS in a
 single make command using multiple targets, e.g. make yes-colloid mpi.
 This is because the make procedure creates a list of source files that
 will be out-of-date for the build if the package configuration changes
 within the same command.
 
-Some packages have individual files that depend on other packages
-being included.  LAMMPS checks for this and does the right thing.
-I.e. individual files are only included if their dependencies are
-already included.  Likewise, if a package is excluded, other files
+Any package can be installed or not in a LAMMPS build, independent of
+all other packages.  However, some packages include files derived from
+files in other packages.  LAMMPS checks for this and does the right
+thing.  I.e. individual files are only included if their dependencies
+are already included.  Likewise, if a package is excluded, other files
 dependent on that package are also excluded.
+
+NOTE: The one exception is that we do not recommend building with both
+the KOKKOS package installed and any of the other acceleration
+packages (GPU, OPT, USER-INTEL, USER-OMP) also installed.  This is
+because of how Kokkos sometimes builds using a wrapper compiler which
+can make it difficult to invoke all the compile/link flags correctly
+for both Kokkos and non-Kokkos files.
 
 If you will never run simulations that use the features in a
 particular packages, there is no reason to include it in your build.
-For some packages, this will keep you from having to build auxiliary
-libraries (see below), and will also produce a smaller executable
-which may run a bit faster.
+For some packages, this will keep you from having to build extra
+libraries, and will also produce a smaller executable which may run a
+bit faster.
 
-When you download a LAMMPS tarball, these packages are pre-installed
-in the src directory: KSPACE, MANYBODY,MOLECULE, because they are so
-commonly used.  When you download LAMMPS source files from the SVN or
-Git repositories, no packages are pre-installed.
+When you download a LAMMPS tarball, three packages are pre-installed
+in the src directory -- KSPACE, MANYBODY, MOLECULE -- because they are
+so commonly used.  When you download LAMMPS source files from the SVN
+or Git repositories, no packages are pre-installed.
 
-Packages are included or excluded by typing "make yes-name" or "make
-no-name", where "name" is the name of the package in lower-case, e.g.
-name = kspace for the KSPACE package or name = user-atc for the
-USER-ATC package.  You can also type "make yes-standard", "make
-no-standard", "make yes-std", "make no-std", "make yes-user", "make
-no-user", "make yes-lib", "make no-lib", "make yes-all", or "make
-no-all" to include/exclude various sets of packages.  Type "make
-package" to see all of the package-related make options.
+Packages are installed or un-installed by typing
 
-NOTE: Inclusion/exclusion of a package works by simply moving files
-back and forth between the main src directory and sub-directories with
-the package name (e.g. src/KSPACE, src/USER-ATC), so that the files
-are seen or not seen when LAMMPS is built.  After you have included or
-excluded a package, you must re-build LAMMPS.
+make yes-name
+make no-name :pre
 
-Additional package-related make options exist to help manage LAMMPS
-files that exist in both the src directory and in package
-sub-directories.  You do not normally need to use these commands
-unless you are editing LAMMPS files or have downloaded a patch from
-the LAMMPS WWW site.
+where "name" is the name of the package in lower-case, e.g.  name =
+kspace for the KSPACE package or name = user-atc for the USER-ATC
+package.  You can also type any of these commands:
 
-Typing "make package-update" or "make pu" will overwrite src files
-with files from the package sub-directories if the package has been
-included.  It should be used after a patch is installed, since patches
-only update the files in the package sub-directory, but not the src
-files.  Typing "make package-overwrite" will overwrite files in the
-package sub-directories with src files.
+make yes-all | install all packages
+make no-all | un-install all packages
+make yes-standard or make yes-std | install standard packages
+make no-standard or make no-std| un-install standard packages
+make yes-user | install user packages
+make no-user | un-install user packages
+make yes-lib | install packages that require extra libraries
+make no-lib | un-install packages that require extra libraries
+make yes-ext | install packages that require external libraries
+make no-ext | un-install packages that require external libraries :tb(s=|)
+
+which install/un-install various sets of packages.  Typing "make
+package" will list all the these commands.
+
+NOTE: Installing or un-installing a package works by simply moving
+files back and forth between the main src directory and
+sub-directories with the package name (e.g. src/KSPACE, src/USER-ATC),
+so that the files are included or excluded when LAMMPS is built.
+After you have installed or un-installed a package, you must re-build
+LAMMPS for the action to take effect.
+
+The following make commands help manage files that exist in both the
+src directory and in package sub-directories.  You do not normally
+need to use these commands unless you are editing LAMMPS files or have
+downloaded a patch from the LAMMPS web site.
 
 Typing "make package-status" or "make ps" will show which packages are
-currently included. For those that are included, it will list any
+currently installed. For those that are installed, it will list any
 files that are different in the src directory and package
-sub-directory.  Typing "make package-diff" lists all differences
-between these files.  Again, type "make package" to see all of the
-package-related make options.
+sub-directory.
+
+Typing "make package-update" or "make pu" will overwrite src files
+with files from the package sub-directories if the package is
+installed.  It should be used after a patch has been applied, since
+patches only update the files in the package sub-directory, but not
+the src files.
+
+Typing "make package-overwrite" will overwrite files in the package
+sub-directories with src files.
+
+Typing "make package-diff" lists all differences between these files.
+
+Again, just type "make package" to see all of the package-related make
+options.
 
 :line
 
 Packages that require extra libraries :h5,link(start_3_3)
 
-A few of the standard and user packages require additional auxiliary
-libraries.  Many of them are provided with LAMMPS, in which case they
-must be compiled first, before LAMMPS is built, if you wish to include
-that package.  If you get a LAMMPS build error about a missing
-library, this is likely the reason.  See the
-"Section 4"_Section_packages.html doc page for a list of
-packages that have these kinds of auxiliary libraries.
+A few of the standard and user packages require extra libraries.  See
+"Section 4"_Section_packages.html for two tables of packages which
+indicate which ones require libraries.  For each such package, the
+Section 4 doc page gives details on how to build the extra library,
+including how to download it if necessary.  The basic ideas are
+summarized here.
 
-The lib directory in the distribution has sub-directories with package
-names that correspond to the needed auxiliary libs, e.g. lib/gpu.
-Each sub-directory has a README file that gives more details.  Code
-for most of the auxiliary libraries is included in that directory.
-Examples are the USER-ATC and MEAM packages.
+[System libraries:]
 
-A few of the lib sub-directories do not include code, but do include
-instructions (and sometimes scripts) that automate the process of
-downloading the auxiliary library and installing it so LAMMPS can link
-to it.  Examples are the KIM, VORONOI, USER-MOLFILE, and USER-SMD
-packages.
+Packages in the tables "Section 4"_Section_packages.html with a "sys"
+in the last column link to system libraries that typically already
+exist on your machine.  E.g. the python package links to a system
+Python library.  If your machine does not have the required library,
+you will have to download and install it on your machine, in either
+the system or user space.
 
-The lib/python directory (for the PYTHON package) contains only a
-choice of Makefile.lammps.* files.  This is because no auxiliary code
-or libraries are needed, only the Python library and other system libs
-that should already available on your system.  However, the
-Makefile.lammps file is needed to tell LAMMPS which libs to use and
-where to find them.
+[Internal libraries:]
 
-For libraries with provided code, the sub-directory README file
-(e.g. lib/atc/README) has instructions on how to build that library.
-This information is also summarized in "Section
-4"_Section_packages.html.  Typically this is done by typing
-something like:
+Packages in the tables "Section 4"_Section_packages.html with an "int"
+in the last column link to internal libraries whose source code is
+included with LAMMPS, in the lib/name directory where name is the
+package name.  You must first build the library in that directory
+before building LAMMPS with that package installed.  E.g. the gpu
+package links to a library you build in the lib/gpu dir.  You can
+often do the build in one step by typing "make lib-name args=..."
+from the src dir, with appropriate arguments.  You can leave off the
+args to see a help message.  See "Section 4"_Section_packages.html for
+details for each package.
 
-make -f Makefile.g++ :pre
+[External libraries:]
 
-If one of the provided Makefiles is not appropriate for your system
-you will need to edit or add one.  Note that all the Makefiles have a
-setting for EXTRAMAKE at the top that specifies a Makefile.lammps.*
-file.
+Packages in the tables "Section 4"_Section_packages.html with an "ext"
+in the last column link to exernal libraries whose source code is not
+included with LAMMPS.  You must first download and install the library
+before building LAMMPS with that package installed.  E.g. the voronoi
+package links to the freely available "Voro++ library"_voro_home2.  You
+can often do the download/build in one step by typing "make lib-name
+args=..." from the src dir, with appropriate arguments.  You can leave
+off the args to see a help message.  See "Section
+4"_Section_packages.html for details for each package.
 
-If the library build is successful, it will produce 2 files in the lib
-directory:
+:link(voro_home2,http://math.lbl.gov/voro++)
 
-libpackage.a
-Makefile.lammps :pre
+[Possible errors:]
 
-The Makefile.lammps file will typically be a copy of one of the
-Makefile.lammps.* files in the library directory.
+There are various common errors which can occur when building extra
+libraries or when building LAMMPS with packages that require the extra
+libraries.
 
-Note that you must insure that the settings in Makefile.lammps are
-appropriate for your system.  If they are not, the LAMMPS build may
-fail.  To fix this, you can edit or create a new Makefile.lammps.*
-file for your system, and copy it to Makefile.lammps.
+If you cannot build the extra library itself successfully, you may
+need to edit or create an appropriate Makefile for your machine, e.g.
+with appropriate compiler or system settings.  Provided makefiles are
+typically in the lib/name directory.  E.g. see the Makefile.* files in
+lib/gpu.
 
-As explained in the lib/package/README files, the settings in
-Makefile.lammps are used to specify additional system libraries and
-their locations so that LAMMPS can build with the auxiliary library.
-For example, if the MEAM package is used, the auxiliary library
-consists of F90 code, built with a Fortran complier.  To link that
-library with LAMMPS (a C++ code) via whatever C++ compiler LAMMPS is
-built with, typically requires additional Fortran-to-C libraries be
-included in the link.  Another example are the BLAS and LAPACK
-libraries needed to use the USER-ATC or USER-AWPMD packages.
+The LAMMPS build often uses settings in a lib/name/Makefile.lammps
+file which either exists in the LAMMPS distribution or is created or
+copied from a lib/name/Makefile.lammps.* file when the library is
+built.  If those settings are not correct for your machine you will
+need to edit or create an appropriate Makefile.lammps file.
 
-For libraries without provided code, the sub-directory README file has
-information on where to download the library and how to build it,
-e.g. lib/voronoi/README and lib/smd/README.  The README files also
-describe how you must either (a) create soft links, via the "ln"
-command, in those directories to point to where you built or installed
-the packages, or (b) check or edit the Makefile.lammps file in the
-same directory to provide that information.
+Package-specific details for these steps are given in "Section
+4"_Section_packages.html an in README files in the lib/name
+directories.
 
-Some of the sub-directories, e.g. lib/voronoi, also have an install.py
-script which can be used to automate the process of
-downloading/building/installing the auxiliary library, and setting the
-needed soft links.  Type "python install.py" for further instructions.
+[Compiler options needed for accelerator packages:]
 
-As with the sub-directories containing library code, if the soft links
-or settings in the lib/package/Makefile.lammps files are not correct,
-the LAMMPS build will typically fail.
+Several packages contain code that is optimized for specific hardware,
+e.g. CPU, KNL, or GPU.  These are the OPT, GPU, KOKKOS, USER-INTEL,
+and USER-OMP packages.  Compiling and linking the source files in
+these accelerator packages for optimal performance requires specific
+settings in the Makefile.machine file you use.
 
-:line
-
-Packages that require Makefile.machine settings :h5,link(start_3_4)
-
-A few packages require specific settings in Makefile.machine, to
-either build or use the package effectively.  These are the
-USER-INTEL, KOKKOS, USER-OMP, and OPT packages, used for accelerating
-code performance on CPUs or other hardware, as discussed in "Section
-5.3"_Section_accelerate.html#acc_3.
-
-A summary of what Makefile.machine changes are needed for each of
-these packages is given in "Section 4"_Section_packages.html.
-The details are given on the doc pages that describe each of these
-accelerator packages in detail:
+A summary of the Makefile.machine settings needed for each of these
+packages is given in "Section 4"_Section_packages.html.  More info is
+given on the doc pages that describe each package in detail:
 
 5.3.1 "USER-INTEL package"_accelerate_intel.html
+5.3.2 "GPU package"_accelerate_intel.html
 5.3.3 "KOKKOS package"_accelerate_kokkos.html
 5.3.4 "USER-OMP package"_accelerate_omp.html
 5.3.5 "OPT package"_accelerate_opt.html :all(b)
 
-You can also look at the following machine Makefiles in
-src/MAKE/OPTIONS, which include the changes.  Note that the USER-INTEL
-and KOKKOS packages allow for settings that build LAMMPS for different
-hardware.  The USER-INTEL package builds for CPU and the Xeon Phi, the
-KOKKOS package builds for OpenMP, GPUs (Cuda), and the Xeon Phi.
+You can also use or examine the following machine Makefiles in
+src/MAKE/OPTIONS, which include the settings.  Note that the
+USER-INTEL and KOKKOS packages can use settings that build LAMMPS for
+different hardware.  The USER-INTEL package can be compiled for Intel
+CPUs and KNLs; the KOKKOS package builds for CPUs (OpenMP), GPUs
+(CUDA), and Intel KNLs.
 
 Makefile.intel_cpu
 Makefile.intel_phi
@@ -908,127 +927,9 @@ Makefile.kokkos_phi
 Makefile.omp
 Makefile.opt :ul
 
-Also note that the Make.py tool, described in the next "Section
-2.4"_#start_4 can automatically add the needed info to an existing
-machine Makefile, using simple command-line arguments.
-
 :line
 
-2.4 Building LAMMPS via the Make.py tool :h4,link(start_4)
-
-The src directory includes a Make.py script, written in Python, which
-can be used to automate various steps of the build process.  It is
-particularly useful for working with the accelerator packages, as well
-as other packages which require auxiliary libraries to be built.
-
-The goal of the Make.py tool is to allow any complex multi-step LAMMPS
-build to be performed as a single Make.py command.  And you can
-archive the commands, so they can be re-invoked later via the -r
-(redo) switch.  If you find some LAMMPS build procedure that can't be
-done in a single Make.py command, let the developers know, and we'll
-see if we can augment the tool.
-
-You can run Make.py from the src directory by typing either:
-
-Make.py -h
-python Make.py -h :pre
-
-which will give you help info about the tool.  For the former to work,
-you may need to edit the first line of Make.py to point to your local
-Python.  And you may need to insure the script is executable:
-
-chmod +x Make.py :pre
-
-Here are examples of build tasks you can perform with Make.py:
-
-Install/uninstall packages: Make.py -p no-lib kokkos omp intel
-Build specific auxiliary libs: Make.py -a lib-atc lib-meam
-Build libs for all installed packages: Make.py -p cuda gpu -gpu mode=double arch=31 -a lib-all
-Create a Makefile from scratch with compiler and MPI settings: Make.py -m none -cc g++ -mpi mpich -a file
-Augment Makefile.serial with settings for installed packages: Make.py -p intel -intel cpu -m serial -a file
-Add JPG and FFTW support to Makefile.mpi: Make.py -m mpi -jpg -fft fftw -a file
-Build LAMMPS with a parallel make using Makefile.mpi: Make.py -j 16 -m mpi -a exe
-Build LAMMPS and libs it needs using Makefile.serial with accelerator settings: Make.py -p gpu intel -intel cpu -a lib-all file serial :tb(s=:)
-
-The bench and examples directories give Make.py commands that can be
-used to build LAMMPS with the various packages and options needed to
-run all the benchmark and example input scripts.  See these files for
-more details:
-
-bench/README
-bench/FERMI/README
-bench/KEPLER/README
-bench/PHI/README
-examples/README
-examples/accelerate/README
-examples/accelerate/make.list :ul
-
-All of the Make.py options and syntax help can be accessed by using
-the "-h" switch.
-
-E.g. typing "Make.py -h" gives
-
-Syntax: Make.py switch args ...
-  switches can be listed in any order
-  help switch:
-    -h prints help and syntax for all other specified switches
-  switch for actions:
-    -a lib-all, lib-dir, clean, file, exe or machine
-    list one or more actions, in any order
-    machine is a Makefile.machine suffix, must be last if used
-  one-letter switches:
-    -d (dir), -j (jmake), -m (makefile), -o (output),
-    -p (packages), -r (redo), -s (settings), -v (verbose)
-  switches for libs:
-    -atc, -awpmd, -colvars, -cuda
-    -gpu, -meam, -poems, -qmmm, -reax
-  switches for build and makefile options:
-    -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png :pre
-
-Using the "-h" switch with other switches and actions gives additional
-info on all the other specified switches or actions.  The "-h" can be
-anywhere in the command-line and the other switches do not need their
-arguments.  E.g. type "Make.py -h -d -atc -intel" will print:
-
--d dir
-  dir = LAMMPS home dir
-  if -d not specified, working dir must be lammps/src :pre
-
--atc make=suffix lammps=suffix2
-  all args are optional and can be in any order
-  make = use Makefile.suffix (def = g++)
-  lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile) :pre
-
--intel mode
-  mode = cpu or phi (def = cpu)
-    build Intel package for CPU or Xeon Phi :pre
-
-Note that Make.py never overwrites an existing Makefile.machine.
-Instead, it creates src/MAKE/MINE/Makefile.auto, which you can save or
-rename if desired.  Likewise it creates an executable named
-src/lmp_auto, which you can rename using the -o switch if desired.
-
-The most recently executed Make.py command is saved in
-src/Make.py.last.  You can use the "-r" switch (for redo) to re-invoke
-the last command, or you can save a sequence of one or more Make.py
-commands to a file and invoke the file of commands using "-r".  You
-can also label the commands in the file and invoke one or more of them
-by name.
-
-A typical use of Make.py is to start with a valid Makefile.machine for
-your system, that works for a vanilla LAMMPS build, i.e. when optional
-packages are not installed.  You can then use Make.py to add various
-settings (FFT, JPG, PNG) to the Makefile.machine as well as change its
-compiler and MPI options.  You can also add additional packages to the
-build, as well as build the needed supporting libraries.
-
-You can also use Make.py to create a new Makefile.machine from
-scratch, using the "-m none" switch, if you also specify what compiler
-and MPI options to use, via the "-cc" and "-mpi" switches.
-
-:line
-
-2.5 Building LAMMPS as a library :h4,link(start_5)
+2.4 Building LAMMPS as a library :h4,link(start_4)
 
 LAMMPS can be built as either a static or shared library, which can
 then be called from another application or a scripting language.  See
@@ -1064,7 +965,7 @@ src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
 -fPIC flag which is required for inclusion in a shared library.  The
 build will create the file liblammps_foo.so which another application
-can link to dynamically.  It will also create a soft link liblammps.so,
+can link to dyamically.  It will also create a soft link liblammps.so,
 which will point to the most recently built shared library.  This is
 the file the Python wrapper loads by default.
 
@@ -1150,7 +1051,7 @@ interface and how to extend it for your needs.
 
 :line
 
-2.6 Running LAMMPS :h4,link(start_6)
+2.5 Running LAMMPS :h4,link(start_5)
 
 By default, LAMMPS runs by reading commands from standard input.  Thus
 if you run the LAMMPS executable by itself, e.g.
@@ -1282,7 +1183,7 @@ more processors or setup a smaller problem.
 
 :line
 
-2.7 Command-line options :h4,link(start_7)
+2.6 Command-line options :h4,link(start_6)
 
 At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
@@ -1416,8 +1317,8 @@ LAMMPS is compiled with CUDA=yes.
 numa Nm :pre
 
 This option is only relevant when using pthreads with hwloc support.
-In this case Nm defines the number of NUMA regions (typically sockets)
-on a node which will be utilized by a single MPI rank.  By default Nm
+In this case Nm defines the number of NUMA regions (typicaly sockets)
+on a node which will be utilizied by a single MPI rank.  By default Nm
 = 1.  If this option is used the total number of worker-threads per
 MPI rank is threads*numa.  Currently it is always almost better to
 assign at least one MPI rank per NUMA region, and leave numa set to
@@ -1481,7 +1382,7 @@ replica runs on on one or a few processors.  Note that with MPI
 installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.
 
-To run multiple independent simulations from one input script, using
+To run multiple independent simulatoins from one input script, using
 multiple partitions, see "Section 6.4"_Section_howto.html#howto_4
 of the manual.  World- and universe-style "variables"_variable.html
 are useful in this context.
@@ -1712,7 +1613,7 @@ negative numeric value.  It is OK if the first value1 starts with a
 
 :line
 
-2.8 LAMMPS screen output :h4,link(start_8)
+2.7 LAMMPS screen output :h4,link(start_7)
 
 As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
@@ -1760,7 +1661,7 @@ The first section provides a global loop timing summary. The {loop time}
 is the total wall time for the section.  The {Performance} line is
 provided for convenience to help predicting the number of loop
 continuations required and for comparing performance with other,
-similar MD codes.  The {CPU use} line provides the CPU utilization per
+similar MD codes.  The {CPU use} line provides the CPU utilzation per
 MPI task; it should be close to 100% times the number of OpenMP
 threads (or 1 of no OpenMP). Lower numbers correspond to delays due
 to file I/O or insufficient thread utilization.
@@ -1868,7 +1769,7 @@ communication, roughly 75% in the example above.
 
 :line
 
-2.9 Tips for users of previous LAMMPS versions :h4,link(start_9)
+2.8 Tips for users of previous LAMMPS versions :h4,link(start_8)
 
 The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed

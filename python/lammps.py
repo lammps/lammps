@@ -556,9 +556,10 @@ def get_thermo_data(output):
     runs = []
     columns = []
     in_run = False
+    current_run = {}
 
     for line in lines:
-        if line.startswith("Memory usage per processor"):
+        if line.startswith("Per MPI rank memory allocation"):
             in_run = True
         elif in_run and len(columns) == 0:
             # first line after memory usage are column names

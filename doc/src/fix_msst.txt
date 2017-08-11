@@ -75,7 +75,7 @@ equations, but is used in calculating the deviation from the Hugoniot.
 The keyword {beta} is a scaling term that can be added to the MSST
 ionic equations of motion to account for drift in the conserved
 quantity during long timescale simulations, similar to a Berendson
-thermostat. See "(Reed)"_#Reed and "(Goldman)"_#Goldman for more
+thermostat. See "(Reed)"_#Reed and "(Goldman)"_#Goldman2 for more
 details.  The value of {beta} must be between 0.0 and 1.0 inclusive.
 A value of 0.0 means no contribution, a value of 1.0 means a full
 contribution.
@@ -108,7 +108,7 @@ being driven by DFTB+, a density-functional tight-binding code. If the
 keyword {dftb} is used with a value of {yes}, then the MSST equations
 are altered to account for the electron entropy contribution to the
 Hugonio relations and total energy.  See "(Reed2)"_#Reed2 and
-"(Goldman)"_#Goldman for details on this contribution.  In this case,
+"(Goldman)"_#Goldman2 for details on this contribution.  In this case,
 you must define a "fix external"_fix_external.html command in your
 input script, which is used to callback to DFTB+ during the LAMMPS
 timestepping.  DFTB+ will communicate its info to LAMMPS via that fix.
@@ -188,6 +188,6 @@ timestep.
 :link(Reed2)
 [(Reed2)] Reed, J. Phys. Chem. C, 116, 2205 (2012).
 
-:link(Goldman)
+:link(Goldman2)
 [(Goldman)] Goldman, Srinivasan, Hamel, Fried, Gaus, and Elstner,
 J. Phys. Chem. C, 117, 7885 (2013).

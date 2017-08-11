@@ -6,12 +6,11 @@ The MS-CG library is available at
 https://github.com/uchicago-voth/MSCG-release and was developed by
 Jacob Wagner in Greg Voth's group at the University of Chicago.
 
-This library requires a compiler with C++11 support (e.g., g++ v4.9+),
-LAPACK, and the GNU scientific library (GSL v 2.1+).
+This library requires a the GNU scientific library (GSL v 2.1+).
 
 You can type "make lib-mscg" from the src directory to see help on how
 to download and build this library via make commands, or you can do
-the same thing by typing "python Install.py" from within this
+the same thing by typing "python Install.py -m <machine>" from within this
 directory, or you can do it manually by following the instructions
 below.
 
@@ -21,17 +20,17 @@ You must perform the following steps yourself.
 
 1.  Download MS-CG at https://github.com/uchicago-voth/MSCG-release
     either as a tarball or via SVN, and unpack the tarball either in
-    this /lib/mscg directory or somewhere else on your system.
+    this lib/mscg directory or somewhere else on your system.
 
-2.  Ensure that you have LAPACK and GSL (or Intel MKL) as well as a compiler
-    with support for C++11.
-    
+2.  Ensure that you have GSL installed and a compiler with support for C++11.
+
 3.  Compile MS-CG from within its home directory using your makefile of choice:
-    % make -f Makefile."name" libmscg.a
-	It is recommended that you start with Makefile.g++_simple
-        for most machines
+    % make -f Makefile.<machine> libmscg.a
+    It is recommended that you start with Makefile.g++_simple for
+    most machines. There are also two Makefile with settings matching
+    the "mpi" and "serial" makefiles in the main LAMMPS folder.
 
-4.  There is no need to install MS-CG if you only wish 
+4.  There is no need to install MS-CG system-wide if you only wish
     to use it from LAMMPS.
 
 5.  Create two soft links in this dir (lib/mscg) to the MS-CG src
@@ -42,6 +41,9 @@ You must perform the following steps yourself.
     directories created by a MS-CG install, e.g.
       % ln -s /usr/local/include includelink
       % ln -s /usr/local/lib liblink
+
+6.  Copy a suitable Makefile.lammps.<machine> to Makefile.lammps or
+    copy Makefile.lammps.default to Makefile.lammps and edit as needed.
 
 -----------------
 

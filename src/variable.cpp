@@ -2148,8 +2148,10 @@ double Variable::evaluate(char *str, Tree **tree)
             argstack[nargstack++] = fmod(value1,value2);
           } else if (opprevious == CARAT) {
             if (value2 == 0.0)
-              error->all(FLERR,"Power by 0 in variable formula");
-            argstack[nargstack++] = pow(value1,value2);
+              argstack[nargstack++] = 1.0;
+            else if ((value1 == 0.0) && (value2 < 0.0))
+              error->all(FLERR,"Invalid power expression in variable formula");
+            else argstack[nargstack++] = pow(value1,value2);
           } else if (opprevious == UNARY) {
             argstack[nargstack++] = -value2;
           } else if (opprevious == NOT) {

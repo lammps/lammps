@@ -8,13 +8,15 @@ James Sethna (Cornell U).  Ryan Elliott is the main developer for the
 KIM API and he also maintains the code that implements the pair_style
 kim command.
 
-To download, build, and install the KIM API on your system, follow
-these steps.  You can use the install.py script to automate these steps.
+You can type "make lib-kim" from the src directory to see help on
+how to download and build this library via make commands, or you can
+do the same thing by typing "python Install.py" from within this
+directory, or you can do it manually by following the instructions
+below.
 
 -----------------
 
 Instructions:
-
 
 1. Configure lammps for use with the kim-api library installed in this directory
 
@@ -65,7 +67,7 @@ $ rm -rf EAM_Johnson_NearestNeighbor_Cu__MO_887933271505_001.tgz
 When these steps are complete you can build LAMMPS with the KIM
 package installed:
 
-$ cd ../../src
+$ cd lammpos/src
 $ make yes-kim
 $ make g++ (or whatever target you wish)
 

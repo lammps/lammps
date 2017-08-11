@@ -21,7 +21,6 @@ FixStyle(mscg,FixMSCG)
 #define LMP_FIX_MSCG_H
 
 #include "fix.h"
-#include "mscg.h"
 
 namespace LAMMPS_NS {
 

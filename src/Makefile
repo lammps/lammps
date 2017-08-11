@@ -116,7 +116,8 @@ help:
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo ''
-	@echo 'make lib-package         download/build/install a package library'
+	@echo 'make lib-package         help for download/build/install a package library'
+	@echo 'make lib-package args="..."    download/build/install a package library'
 	@echo 'make purge               purge obsolete copies of source files'
 	@echo ''
 	@echo 'make machine             build LAMMPS for machine'
@@ -223,7 +224,7 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to 
+# include python package settings to
 #   automatically adapt name of python interpreter
 
 sinclude ../lib/python/Makefile.lammps
@@ -342,10 +343,10 @@ no-%:
 lib-%:
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
-	  cd ../lib/$(LIBDIR); python Install.py $(args); \
+	  cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args); \
 	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-user-%=%)"; \
-	  cd ../lib/$(LIBUSERDIR); python Install.py $(args); \
+	  cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi;

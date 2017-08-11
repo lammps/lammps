@@ -36,8 +36,10 @@ OBJ =   $(SRC:.cpp=.o)
 # include any MPI settings needed for the ATC library to build with
 # the same MPI library that LAMMPS is built with
 
-CC =	    mpic++ 
-CCFLAGS = -O -fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include
+CC =	    mpicxx
+CCFLAGS = -O3 -fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include \
+	  -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1
+
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =  -M
@@ -66,4 +68,4 @@ DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 
 clean:
-	-rm *.d *~ $(OBJ) $(LIB)
+	-rm -f *.d *~ $(OBJ) $(LIB)

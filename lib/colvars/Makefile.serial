@@ -1,0 +1,25 @@
+# -*- makefile -*- to build Colvars module with GNU compiler
+
+EXTRAMAKE = Makefile.lammps.empty
+
+COLVARS_LIB = libcolvars.a
+COLVARS_OBJ_DIR =
+
+CXX =		g++
+CXXFLAGS =	-O2 -g -Wall -fPIC -funroll-loops
+AR =		ar
+ARFLAGS =	-rscv
+SHELL =		/bin/sh
+
+.PHONY: default clean
+
+default: $(COLVARS_LIB) Makefile.lammps
+
+include Makefile.common
+
+clean:
+	-rm -f $(COLVARS_OBJS) $(COLVARS_LIB)
+
+Makefile.lammps:
+	-cp $(EXTRAMAKE) Makefile.lammps
+

@@ -28,7 +28,7 @@ OBJ =   $(SRC:.F=.o)
 # ------ SETTINGS ------
 
 F90 =           gfortran
-F90FLAGS =      -O -fPIC -fno-second-underscore
+F90FLAGS =      -O3 -fPIC -fno-second-underscore
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =

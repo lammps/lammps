@@ -45,12 +45,12 @@ while iarg < nargs:
   if args[iarg] == "-m":
     if iarg+2 > len(args): error()
     machine = args[iarg+1]
-    iarg += 2  
+    iarg += 2
   elif args[iarg] == "-e":
     if iarg+2 > len(args): error()
     extraflag = True
     suffix = args[iarg+1]
-    iarg += 2  
+    iarg += 2
   else: error()
 
 # set lib from working dir

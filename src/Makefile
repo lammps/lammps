@@ -339,17 +339,18 @@ no-%:
         fi;
 
 # download/build/install a package library
+# update the timestamp on main.cpp to trigger a relink with "make machine"
 
 lib-%:
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
-	  cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args); \
+	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
 	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-user-%=%)"; \
-	  cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args); \
+	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
-	fi;
+	fi; touch main.cpp
 
 # status = list src files that differ from package files
 # update = replace src files with newer package files

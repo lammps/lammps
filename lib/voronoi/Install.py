@@ -64,13 +64,27 @@ def which(program):
   return None
 
 def geturl(url,fname):
+  success = False
+
   if which('curl') != None:
     cmd = 'curl -L -o "%s" %s' % (fname,url)
-  elif which('wget') != None:
+    try:
+      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      success = True
+    except subprocess.CalledProcessError as e:
+      print("Calling curl failed with: %s" % e.output.decode('UTF-8'))
+
+  if not success and which('wget') != None:
     cmd = 'wget -O "%s" %s' % (fname,url)
-  else: error("cannot find 'wget' or 'curl' to download source code")
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  return txt
+    try:
+      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      success = True
+    except subprocess.CalledProcessError as e:
+      print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
+
+  if not success:
+    error("Failed to download source code with 'curl' or 'wget'")
+  return
 
 # parse args
 

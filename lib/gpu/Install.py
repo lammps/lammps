@@ -14,7 +14,7 @@ Syntax from lib dir: python Install.py -m machine -h hdir -a arch -p precision -
 
 specify one or more options, order does not matter
 
-copies an existing Makefile.machine in lib/gpu to Makefile.auto 
+copies an existing Makefile.machine in lib/gpu to Makefile.auto
 optionally edits these variables in Makefile.auto:
   CUDA_HOME, CUDA_ARCH, CUDA_PRECISION, EXTRAMAKE
 optionally uses Makefile.auto to build the GPU library -> libgpu.a
@@ -26,7 +26,7 @@ optionally copies Makefile.auto to a new Makefile.osuffix
   -h = set CUDA_HOME variable in Makefile.auto to hdir
        hdir = path to NVIDIA Cuda software, e.g. /usr/local/cuda
   -a = set CUDA_ARCH variable in Makefile.auto to arch
-       use arch = 20 for Tesla C2050/C2070 (Fermi) (deprecated as of CUDA 8.0) 
+       use arch = 20 for Tesla C2050/C2070 (Fermi) (deprecated as of CUDA 8.0)
                      or GeForce GTX 580 or similar
        use arch = 30 for Tesla K10 (Kepler)
        use arch = 35 for Tesla K40 (Kepler) or GeForce GTX Titan or similar
@@ -108,10 +108,10 @@ if pflag:
   elif precision == "mixed": precstr = "-D_SINGLE_DOUBLE"
   elif precision == "single": precstr = "-D_SINGLE_SINGLE"
   else: error("Invalid precision setting")
-  
+
 # create Makefile.auto
 # reset EXTRAMAKE, CUDA_HOME, CUDA_ARCH, CUDA_PRECISION if requested
-  
+
 if not os.path.exists("Makefile.%s" % isuffix):
   error("lib/gpu/Makefile.%s does not exist" % isuffix)
 

@@ -63,7 +63,10 @@ class Min : protected Pointers {
   double alpha0,alpha_shrink; // mixing velocities+forces coefficient (adaptglok)
   double tmax,tmin;           // timestep max, min (adaptglok)
   int integrator;             // choose the style of time integrator (adaptglok)
+  double relaxbox_modulus;        // Bulk modulus used for box relax (for adaptglok)
+  double relaxbox_rate;      // for box relaxation to 0 pressure (for adaptglok)
   int halfstepback_flag;      // 1: half step backward when v.f <= 0.0 (adaptglok)
+  int relaxbox_flag;          // 1: box relaxation iso; 2: axial
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

@@ -20,6 +20,10 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
+#include "variable.h"
+#include "modify.h"
+#include "compute.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -42,6 +46,13 @@ void MinAdaptGlok::init()
   dtmin = tmin * dt;
   alpha = alpha0;
   last_negative = ntimestep_fire = update->ntimestep;
+  
+  if (relaxbox_flag){
+    int icompute = modify->find_compute("thermo_temp");
+    temperature = modify->compute[icompute];
+    icompute = modify->find_compute("thermo_press");
+    pressure = modify->compute[icompute];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,6 +78,68 @@ void MinAdaptGlok::reset_vectors()
   nvec = 3 * atom->nlocal;
   if (nvec) xvec = atom->x[0];
   if (nvec) fvec = atom->f[0];
+}
+
+/* ----------------------------------------------------------------------
+   save current box state for converting atoms to lamda coords
+------------------------------------------------------------------------- */
+
+void MinAdaptGlok::save_box_state()
+{
+  boxlo[0] = domain->boxlo[0];
+  boxlo[1] = domain->boxlo[1];
+  boxlo[2] = domain->boxlo[2];
+
+  for (int i = 0; i < 6; i++)
+    h_inv[i] = domain->h_inv[i];
+}
+
+/* ----------------------------------------------------------------------
+   deform the simulation box and remap the particles
+------------------------------------------------------------------------- */
+
+void MinAdaptGlok::relax_box()
+{
+  int i,n;
+      
+  // rescale simulation box from linesearch starting point
+  // scale atom coords for all atoms or only for fix group atoms
+
+  double **x = atom->x;
+  double epsilon;
+  double *current_pressure_v;
+  int *mask = atom->mask;
+  n = atom->nlocal + atom->nghost;
+  save_box_state();
+
+  // convert pertinent atoms and rigid bodies to lamda coords
+
+  domain->x2lamda(n);
+
+  // ensure the virial is tallied
+
+  update->vflag_global = update->ntimestep;
+
+  // compute pressure and change simulation box
+
+  pressure->compute_scalar();
+  pressure->compute_vector();
+  epsilon = pressure->scalar / relaxbox_modulus;
+  current_pressure_v = pressure->vector;
+  for (int i = 0; i < 3; i++) {
+    if (relaxbox_flag == 2) epsilon = current_pressure_v[i] / relaxbox_modulus;
+    domain->boxhi[i] += domain->boxhi[i] * epsilon * relaxbox_rate;;
+  }
+
+  // reset global and local box to new size/shape
+
+  domain->set_global_box();
+  domain->set_local_box();
+
+  // convert atoms and back to box coords
+
+  domain->lamda2x(n);
+  save_box_state();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,7 +196,11 @@ int MinAdaptGlok::iterate(int maxiter)
     ntimestep = ++update->ntimestep;
     niter++;
 
-    // vdotfall = v dot f
+    // Relax the simulation box
+
+    if (relaxbox_flag) relax_box();
+
+   // vdotfall = v dot f
 
     // Euler || Leap Frog integration
 
@@ -132,6 +209,7 @@ int MinAdaptGlok::iterate(int maxiter)
       double **f = atom->f;
     }
     int nlocal = atom->nlocal;
+    double **x = atom->x;
 
     vdotf = 0.0;
     for (int i = 0; i < nlocal; i++)
@@ -243,9 +321,7 @@ int MinAdaptGlok::iterate(int maxiter)
       MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
     }
 
-  double **x = atom->x;
-
-  // Semi-implicit Euler integration
+    // Semi-implicit Euler integration
 
   if (integrator == 0) {
 

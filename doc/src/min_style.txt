@@ -66,6 +66,8 @@ fit the published and unpublished optimizations of the method described
 in "(Bitzek)"_#Bitzek. It includes a temporization of the variable
 timestep, a backstep when downhill and different integration
 schemes.
+Note that a basic scheme for having a stress-free simulation box is 
+implemented within that style.
 
 Either the {quickmin} and {fire} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.

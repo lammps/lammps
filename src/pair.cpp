@@ -75,7 +75,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
   reinitflag = 1;
 
-  // pair_modify settingsx
+  // pair_modify settings
 
   compute_flag = 1;
   manybody_flag = 0;

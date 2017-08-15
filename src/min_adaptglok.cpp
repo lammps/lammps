@@ -20,10 +20,6 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
-#include "variable.h"
-#include "modify.h"
-#include "compute.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,18 +37,15 @@ void MinAdaptGlok::init()
 {
   Min::init();
 
+  if (tmax < tmin) error->all(FLERR,"tmax cannot be smaller than tmin");
+  if (dtgrow < 1.0) error->all(FLERR,"dtgrow cannot be smaller than 1.0");
+  if (dtshrink > 1.0) error->all(FLERR,"dtshrink cannot be greater than 1.0");
+
   dt = dtinit = update->dt;
   dtmax = tmax * dt;
   dtmin = tmin * dt;
   alpha = alpha0;
-  last_negative = ntimestep_fire = update->ntimestep;
-  
-  if (relaxbox_flag){
-    int icompute = modify->find_compute("thermo_temp");
-    temperature = modify->compute[icompute];
-    icompute = modify->find_compute("thermo_press");
-    pressure = modify->compute[icompute];
-  }
+  last_negative = ntimestep_start = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,68 +73,6 @@ void MinAdaptGlok::reset_vectors()
   if (nvec) fvec = atom->f[0];
 }
 
-/* ----------------------------------------------------------------------
-   save current box state for converting atoms to lamda coords
-------------------------------------------------------------------------- */
-
-void MinAdaptGlok::save_box_state()
-{
-  boxlo[0] = domain->boxlo[0];
-  boxlo[1] = domain->boxlo[1];
-  boxlo[2] = domain->boxlo[2];
-
-  for (int i = 0; i < 6; i++)
-    h_inv[i] = domain->h_inv[i];
-}
-
-/* ----------------------------------------------------------------------
-   deform the simulation box and remap the particles
-------------------------------------------------------------------------- */
-
-void MinAdaptGlok::relax_box()
-{
-  int i,n;
-      
-  // rescale simulation box from linesearch starting point
-  // scale atom coords for all atoms or only for fix group atoms
-
-  double **x = atom->x;
-  double epsilon;
-  double *current_pressure_v;
-  int *mask = atom->mask;
-  n = atom->nlocal + atom->nghost;
-  save_box_state();
-
-  // convert pertinent atoms and rigid bodies to lamda coords
-
-  domain->x2lamda(n);
-
-  // ensure the virial is tallied
-
-  update->vflag_global = update->ntimestep;
-
-  // compute pressure and change simulation box
-
-  pressure->compute_scalar();
-  pressure->compute_vector();
-  epsilon = pressure->scalar / relaxbox_modulus;
-  current_pressure_v = pressure->vector;
-  for (int i = 0; i < 3; i++) {
-    if (relaxbox_flag == 2) epsilon = current_pressure_v[i] / relaxbox_modulus;
-    domain->boxhi[i] += domain->boxhi[i] * epsilon * relaxbox_rate;;
-  }
-
-  // reset global and local box to new size/shape
-
-  domain->set_global_box();
-  domain->set_local_box();
-
-  // convert atoms and back to box coords
-
-  domain->lamda2x(n);
-  save_box_state();
-}
-
 /* ---------------------------------------------------------------------- */
 
 int MinAdaptGlok::iterate(int maxiter)
@@ -154,13 +85,12 @@ int MinAdaptGlok::iterate(int maxiter)
 
   alpha_final = 0.0;
 
-  double **f = atom->f;
-  double **v = atom->v;
-
   // Leap Frog integration initialization
 
   if (integrator == 2) {
 
+    double **f = atom->f;
+    double **v = atom->v;
     double *rmass = atom->rmass;
     double *mass = atom->mass;
     int *type = atom->type;
@@ -170,6 +100,7 @@ int MinAdaptGlok::iterate(int maxiter)
     neval++;
 
     dtf = 0.5 * dt * force->ftm2v;
+
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {
         dtfm = dtf / rmass[i];
@@ -185,7 +116,6 @@ int MinAdaptGlok::iterate(int maxiter)
         v[i][2] = dtfm * f[i][2];
       }
     }
-
   }
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -196,20 +126,17 @@ int MinAdaptGlok::iterate(int maxiter)
     ntimestep = ++update->ntimestep;
     niter++;
 
-    // Relax the simulation box
+    // pointers
 
-    if (relaxbox_flag) relax_box();
+    int nlocal = atom->nlocal;
+    double **v = atom->v;
+    double **f = atom->f;
+    double **x = atom->x;
+    double *rmass = atom->rmass;
+    double *mass = atom->mass;
+    int *type = atom->type;
 
    // vdotfall = v dot f
-
-    // Euler || Leap Frog integration
-
-    if (integrator == 0 || integrator == 2) {
-      double **v = atom->v;
-      double **f = atom->f;
-    }
-    int nlocal = atom->nlocal;
-    double **x = atom->x;
 
     vdotf = 0.0;
     for (int i = 0; i < nlocal; i++)
@@ -227,9 +154,10 @@ int MinAdaptGlok::iterate(int maxiter)
     // if (v dot f) > 0:
     // v = (1-alpha) v + alpha |v| Fhat
     // |v| = length of v, Fhat = unit f
-    // The modificatin of v is made wihtin the Verlet integration, after v update
+    // Only: (1-alpha) and alpha |v| Fhat is calculated here
+    // the modificatin of v is made wihtin the integration, after v update
     // if more than delaystep since v dot f was negative:
-    // increase timestep and decrease alpha
+    // increase timestep, update global timestep and decrease alpha
 
     if (vdotfall > 0.0) {
       vdotv = 0.0;
@@ -263,30 +191,29 @@ int MinAdaptGlok::iterate(int maxiter)
       else scale2 = alpha * sqrt(vdotvall/fdotfall);
 
       if (ntimestep - last_negative > delaystep) {
-        dt = MIN(dt*dt_grow,dtmax);
+        dt = MIN(dt*dtgrow,dtmax);
         update->dt = dt;
-        alpha *= alpha_shrink;
+        alpha *= alphashrink;
       }
 
     // else (v dot f) <= 0
     // if more than delaystep since starting the relaxation:
     // reset alpha
-    //    if dt > dtmin:
+    //    if dt*dtshrink > dtmin:
     //    decrease timestep
-    // set x(t) = x(t-0.5*dt)
-    // set v = 0
+    //    update global timestep (for thermo output)
+    // half step back within the dynamics: x(t) = x(t-0.5*dt)
+    // reset velocities: v = 0
 
     } else {
       last_negative = ntimestep;
-      // Limit decrease of timestep
-      if (ntimestep - ntimestep_fire > delaystep) {
+      if (ntimestep - ntimestep_start > delaystep) {
         alpha = alpha0;
-        if (dt > dtmin) {
-          dt *= dt_shrink;
+        if (dt*dtshrink >= dtmin) {
+          dt *= dtshrink;
           update->dt = dt;
         }
       }
-      double **x = atom->x;
       if (halfstepback_flag) {
         for (int i = 0; i < nlocal; i++) {
           x[i][0] -= 0.5 * dtv * v[i][0];
@@ -299,10 +226,6 @@ int MinAdaptGlok::iterate(int maxiter)
     }
 
     // limit timestep so no particle moves further than dmax
-
-    double *rmass = atom->rmass;
-    double *mass = atom->mass;
-    int *type = atom->type;
 
     dtvone = dt;
 
@@ -321,57 +244,20 @@ int MinAdaptGlok::iterate(int maxiter)
       MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
     }
 
-    // Semi-implicit Euler integration
+    // Dynamic integration scheme:
+    // 0: semi-implicit Euler 
+    // 1: velocity Verlet
+    // 2: leapfrog (initial half step before the iteration loop)
+    // 3: explicit Euler 
 
-  if (integrator == 0) {
+    // Semi-implicit Euler OR Leap Frog integration
 
-    dtf = dtv * force->ftm2v; 
+    if (integrator == 0 || integrator == 2) {
 
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / rmass[i];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-        if (vdotfall > 0.0) {
-          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-        }
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / mass[type[i]];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-        if (vdotfall > 0.0) {
-          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-        }
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-      }
-    }
+      dtf = dtv * force->ftm2v; 
 
-    eprevious = ecurrent;
-    ecurrent = energy_force(0);
-    neval++;
-
-
-  // Velocity Verlet integration
-
-  }else if (integrator == 1) {
-
-    dtf = 0.5 * dtv * force->ftm2v;
-
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
+      if (rmass) {
+        for (int i = 0; i < nlocal; i++) {
           dtfm = dtf / rmass[i];
           v[i][0] += dtfm * f[i][0];
           v[i][1] += dtfm * f[i][1];
@@ -384,9 +270,9 @@ int MinAdaptGlok::iterate(int maxiter)
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];
           x[i][2] += dtv * v[i][2];
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
+        }
+      } else {
+        for (int i = 0; i < nlocal; i++) {
           dtfm = dtf / mass[type[i]];
           v[i][0] += dtfm * f[i][0];
           v[i][1] += dtfm * f[i][1];
@@ -399,123 +285,124 @@ int MinAdaptGlok::iterate(int maxiter)
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];
           x[i][2] += dtv * v[i][2];
+        }
       }
-    }
-    
-    eprevious = ecurrent;
-    ecurrent = energy_force(0);
-    neval++;
 
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
+      eprevious = ecurrent;
+      ecurrent = energy_force(0);
+      neval++;
+
+    // Velocity Verlet integration
+
+    }else if (integrator == 1) {
+
+      dtf = 0.5 * dtv * force->ftm2v;
+
+      if (rmass) {
+        for (int i = 0; i < nlocal; i++) {
           dtfm = dtf / rmass[i];
           v[i][0] += dtfm * f[i][0];
           v[i][1] += dtfm * f[i][1];
           v[i][2] += dtfm * f[i][2];
+          if (vdotfall > 0.0) {
+            v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+            v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+            v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+          }
+          x[i][0] += dtv * v[i][0];
+          x[i][1] += dtv * v[i][1];
+          x[i][2] += dtv * v[i][2];
         }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / mass[type[i]];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
+      } else {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] += dtfm * f[i][0];
+          v[i][1] += dtfm * f[i][1];
+          v[i][2] += dtfm * f[i][2];
+          if (vdotfall > 0.0) {
+            v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+            v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+            v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+          }
+          x[i][0] += dtv * v[i][0];
+          x[i][1] += dtv * v[i][1];
+          x[i][2] += dtv * v[i][2];
+        }
       }
+      
+      eprevious = ecurrent;
+      ecurrent = energy_force(0);
+      neval++;
+
+      if (rmass) {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / rmass[i];
+          v[i][0] += dtfm * f[i][0];
+          v[i][1] += dtfm * f[i][1];
+          v[i][2] += dtfm * f[i][2];
+          }
+      } else {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] += dtfm * f[i][0];
+          v[i][1] += dtfm * f[i][1];
+          v[i][2] += dtfm * f[i][2];
+        }
+      }
+
+    // Standard Euler integration
+
+    }else if (integrator == 3) {
+
+      dtf = dtv * force->ftm2v; 
+
+      if (rmass) {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / rmass[i];
+          if (vdotfall > 0.0) {
+            v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+            v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+            v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+          }
+          x[i][0] += dtv * v[i][0];
+          x[i][1] += dtv * v[i][1];
+          x[i][2] += dtv * v[i][2];
+          v[i][0] += dtfm * f[i][0];
+          v[i][1] += dtfm * f[i][1];
+          v[i][2] += dtfm * f[i][2];
+        }
+      } else {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / mass[type[i]];
+          if (vdotfall > 0.0) {
+            v[i][0] = scale1*v[i][0] + scale2*f[i][0];
+            v[i][1] = scale1*v[i][1] + scale2*f[i][1];
+            v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+          }
+          x[i][0] += dtv * v[i][0];
+          x[i][1] += dtv * v[i][1];
+          x[i][2] += dtv * v[i][2];
+          v[i][0] += dtfm * f[i][0];
+          v[i][1] += dtfm * f[i][1];
+          v[i][2] += dtfm * f[i][2];
+        }
+      }
+
+      eprevious = ecurrent;
+      ecurrent = energy_force(0);
+      neval++;
+
     }
-
-  // Leap Frog integration
-
-  }else if (integrator == 2) {
-
-    dtf = dtv * force->ftm2v; 
-
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / rmass[i];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-        if (vdotfall > 0.0) {
-          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-        }
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / mass[type[i]];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-        if (vdotfall > 0.0) {
-          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-        }
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-      }
-    }
-
-    eprevious = ecurrent;
-    ecurrent = energy_force(0);
-    neval++;
-
-  // Standard Euler integration
-
-  }else if (integrator == 3) {
-
-    dtf = dtv * force->ftm2v; 
-
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / rmass[i];
-        if (vdotfall > 0.0) {
-          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-        }
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-        dtfm = dtf / mass[type[i]];
-        if (vdotfall > 0.0) {
-          v[i][0] = scale1*v[i][0] + scale2*f[i][0];
-          v[i][1] = scale1*v[i][1] + scale2*f[i][1];
-          v[i][2] = scale1*v[i][2] + scale2*f[i][2];
-        }
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-      }
-    }
-
-    eprevious = ecurrent;
-    ecurrent = energy_force(0);
-    neval++;
-
-  }
 
     // energy tolerance criterion
     // only check after delaystep elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
+    // reset the timestep to the initial value
 
     if (update->etol > 0.0 && ntimestep-last_negative > delaystep) {
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
-            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)) {
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)){
           update->dt = dtinit;
           return ETOL;
         }
@@ -534,6 +421,7 @@ int MinAdaptGlok::iterate(int maxiter)
 
     // force tolerance criterion
     // sync across replicas if running multi-replica minimization
+    // reset the timestep to the initial value
 
     if (update->ftol > 0.0) {
       fdotf = fnorm_sqr();
@@ -561,6 +449,8 @@ int MinAdaptGlok::iterate(int maxiter)
       timer->stamp(Timer::OUTPUT);
     }
   }
+
+  // reset the timestep to the initial value
 
   update->dt = dtinit;
   return MAXITER;

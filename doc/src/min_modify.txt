@@ -19,19 +19,24 @@ keyword = {dmax} or {line} or {delaystep} or {dt_grow} or {dt_shrink}
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero}
     backtrack,quadratic,forcezero = style of linesearch to use
-  {delaystep} value = {int} for adaptglok
-  {dt_grow} value = {float}  for adaptglok
-  {dt_shrink} value = {float} for adaptglok
-  {alpha0} value = {float}  for adaptglok
-  {alpha_shrink} value = {float}  for adaptglok
-  {tmax} value = {float}  for adaptglok
-  {tmin} value = {float}  for adaptglok
+  {delaystep} value = steps
+    steps = number of steps for dynamics temporization, adaptglok only
+  {dtgrow} value = grow
+    grow = factor increasing the timestep, adaptglok only
+  {dtshrink} value = shrink
+    shrink = factor decreasing the timestep, adaptglok only
+  {alpha0} value = alpha
+    alpha = coefficient mixing velocities and forces, adaptglok only
+  {alphashrink} value = shrink
+    shrink = factor decreasing alpha, adaptglok only
+  {tmax} value = coef
+    coef = factor defining the maximum timestep, adaptglok only
+  {tmin} value = coef
+    coef = factor defining the minimum timestep, adaptglok only
   {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} 
-                       or {leapfrog}  for adaptglok
-  {halfstepback} value = {yes} or {no} for adaptglok :pre
-  {relaxbox} value = {no} or {iso} or {axial} for adaptglok 
-  {relaxbox_modulus} value = {float} for adaptglok 
-  {relaxbox_rate} value = {float} for adaptglok 
+                       or {leapfrog}
+    eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme, adaptglok
+  {halfstepback} value = {yes} or {no}, adaptglok only :pre
 :ule
 
 [Examples:]
@@ -80,18 +85,20 @@ that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 
 The style {adaptglok} has several parameters that can be tuned in order
-to optimize the relaxation: {integrator}, {delaystep}, {dt_grow}, {dt_shrink}, 
-{alpha0}, {alpha_shrink}, {tmax} and {tmin}. The default values have 
-been chosen to be reliable in most cases, but one could be willing 
-to adapt them for particular cases.
-In particular for debugging purpose, it is possible to switch off the 
-the backstep when downhill, by using and {halfstepback}.
-
-The style {adaptglok} allows for a basic box relaxation to a stress-free 
-state by choosing {relaxbox} {iso} or {axial}. One should give an
-approximated value for the bulk modulus {relaxbox_modulus} of the system.
-The default value of the relaxation rate {relaxbox_rate} should be 
-optimum in most situations.
+to optimize the relaxation: {integrator}, {delaystep}, {dtgrow}, {dtshrink}, 
+{alpha0}, {alphashrink}, {tmax} and {tmin}.
+Different Newton {integrator} can be selected: explicit Euler, 
+semi-implicit Euler (= symplectic Euler), leapfrog, and velocity Verlet.
+The parameters {tmax} and {tmin} define the maximum and minimum timestep 
+allowed during an adaptglok minimization. Those are not in time unit, but are 
+multiplication factor applied to the "timestep"_timestep.html. For example, 
+{tmax} = 2.0 means that the maximum value the timestep can reach is twice the 
+value defined by "timestep"_timestep.html.
+Note that even with the default parameters being chosen to be reliable in most
+cases, adjusting "timestep"_timestep.html, {tmax} and {tmin} should be consider
+to optimize the minimization, in particular for large/complex system.
+For debugging purposes, it is possible to switch off the back step when 
+downhill with {halfstepback} = 0.
 
 [Restrictions:] none
 
@@ -101,7 +108,7 @@ optimum in most situations.
 
 [Default:]
 
-The option defaults are dmax = 0.1,  line = quadratic, integrator = eulerimplicit, delaystep = 20, 
-dt_grow = 1.1, dt_shrink = 0.5, alpha0 = 0.25, alpha_shrink = 0.99, 
-tmax = 2.0, tmin = 0.02,  adaptstep = yes, halfstepback = yes,
-relaxbox = no, relaxbox_modulus = 1000000 and relaxbox_rate = 0.33.
+The option defaults are dmax = 0.1, line = quadratic, 
+integrator = eulerimplicit, delaystep = 20, dt_grow = 1.1, dt_shrink = 0.5, 
+alpha0 = 0.25, alpha_shrink = 0.99, tmax = 2.0, tmin = 0.02,  adaptstep = yes 
+and halfstepback = yes.

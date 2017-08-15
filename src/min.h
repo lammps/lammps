@@ -58,15 +58,13 @@ class Min : protected Pointers {
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
 
-  int delaystep;              // minium steps of dynamics (adaptglok)
-  double dt_grow,dt_shrink;   // timestep increase, decrease (adaptglok)
-  double alpha0,alpha_shrink; // mixing velocities+forces coefficient (adaptglok)
-  double tmax,tmin;           // timestep max, min (adaptglok)
-  int integrator;             // choose the style of time integrator (adaptglok)
-  double relaxbox_modulus;        // Bulk modulus used for box relax (for adaptglok)
-  double relaxbox_rate;      // for box relaxation to 0 pressure (for adaptglok)
-  int halfstepback_flag;      // 1: half step backward when v.f <= 0.0 (adaptglok)
-  int relaxbox_flag;          // 1: box relaxation iso; 2: axial
+  // only for min_adaptglok
+  int delaystep;              // minium steps of dynamics
+  double dtgrow,dtshrink;     // timestep increase, decrease 
+  double alpha0,alphashrink;  // mixing velocities+forces coefficient
+  double tmax,tmin;           // timestep multiplicators max, min
+  int integrator;             // Newton integration: euler, leapfrog, verlet...
+  int halfstepback_flag;      // half step backward when v.f <= 0.0
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

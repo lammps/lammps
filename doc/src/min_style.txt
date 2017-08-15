@@ -66,10 +66,8 @@ fit the published and unpublished optimizations of the method described
 in "(Bitzek)"_#Bitzek. It includes a temporization of the variable
 timestep, a backstep when downhill and different integration
 schemes.
-Note that a basic scheme for having a stress-free simulation box is 
-implemented within that style.
 
-Either the {quickmin} and {fire} styles are useful in the context of
+Either the {quickmin}, {fire} and {adaptglok} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.
 
 NOTE: The damped dynamic minimizers use whatever timestep you have
@@ -77,7 +75,7 @@ defined via the "timestep"_timestep.html command.  Often they will
 converge more quickly if you use a timestep about 10x larger than you
 would normally use for dynamics simulations.
 
-NOTE: The {quickmin}, {fire}, and {hftn} styles do not yet support the
+NOTE: The {quickmin}, {fire}, {adaptglok}, and {hftn} styles do not yet support the
 use of the "fix box/relax"_fix_box_relax.html command or minimizations
 involving the electron radius in "eFF"_pair_eff.html models.
 

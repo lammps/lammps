@@ -48,7 +48,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
 	
-  if (narg < 3) error->all(FLERR,"Illegal fix nve/spin command");	
+  if (narg != 4) error->all(FLERR,"Illegal fix nve/spin command");	
 
   time_integrate = 1;
   

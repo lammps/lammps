@@ -24,6 +24,7 @@ log.cite
 .vagrant
 \#*#
 .#*
+.vscode
 
 .DS_Store
 .DS_Store?
@@ -32,3 +33,10 @@ log.cite
 .Trashes
 ehthumbs.db
 Thumbs.db
+test
+test_meam
+srcBACKUP
+model
+doc/old
+doc/html
+

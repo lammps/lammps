@@ -109,12 +109,14 @@ class IntelBuffers {
 
   void free_ncache();
   void grow_ncache(const int off_flag, const int nthreads);
+  void grow_ncachetag(const int off_flag, const int nthreads);
   inline int ncache_stride() { return _ncache_stride; }
   inline flt_t * get_ncachex() { return _ncachex; }
   inline flt_t * get_ncachey() { return _ncachey; }
   inline flt_t * get_ncachez() { return _ncachez; }
   inline int * get_ncachej() { return _ncachej; }
   inline int * get_ncachejtype() { return _ncachejtype; }
+  inline int * get_ncachetag() { return _ncachetag; }
 
   inline int get_max_nbors() {
     int mn = lmp->neighbor->oneatom * sizeof(int) /
@@ -131,7 +133,7 @@ class IntelBuffers {
       _grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
   }
 
-  void set_ntypes(const int ntypes);
+  void set_ntypes(const int ntypes, const int use_ghost_cut = 0);
 
   inline int * firstneigh(const NeighList *list) { return _list_alloc; }
   inline int * cnumneigh(const NeighList *list) { return _cnumneigh; }
@@ -162,6 +164,7 @@ class IntelBuffers {
   inline void zero_ev()
     { for (int i = 0; i < 8; i++) _ev_global[i] = _ev_global_host[i] = 0.0; }
   inline flt_t ** get_cutneighsq() { return _cutneighsq; }
+  inline flt_t ** get_cutneighghostsq() { return _cutneighghostsq; }
   inline int get_off_threads() { return _off_threads; }
   #ifdef _LMP_INTEL_OFFLOAD
   inline void set_off_params(const int n, const int cop,
@@ -274,13 +277,10 @@ class IntelBuffers {
              used_ghost * sizeof(flt_t));
     }
   }
+  #endif
 
   inline int need_tag() { return _need_tag; }
   inline void need_tag(const int nt) { _need_tag = nt; }
-  #else
-  inline int need_tag() { return 0; }
-  inline void need_tag(const int nt) { }
-  #endif
 
   double memory_usage(const int nthreads);
 
@@ -298,7 +298,7 @@ class IntelBuffers {
   int _list_alloc_atoms;
   int *_list_alloc, *_cnumneigh, *_atombin, *_binpacked;
 
-  flt_t **_cutneighsq;
+  flt_t **_cutneighsq, **_cutneighghostsq;
   int _ntypes;
 
   int _ccache_stride;
@@ -307,7 +307,10 @@ class IntelBuffers {
 
   int _ncache_stride, _ncache_alloc;
   flt_t *_ncachex, *_ncachey, *_ncachez;
-  int *_ncachej, *_ncachejtype;
+  int *_ncachej, *_ncachejtype, *_ncachetag;
+
+  int _need_tag, _host_nmax;
+
   #ifdef LMP_USE_AVXCD
   int _ccache_stride3;
   acc_t * _ccachef;
@@ -324,7 +327,6 @@ class IntelBuffers {
   int *_off_map_special, *_off_map_nspecial, *_off_map_tag;
   int *_off_map_numneigh;
   bool _off_list_alloc;
-  int _need_tag, _host_nmax;
   #endif
 
   int _buf_size, _buf_local_size;

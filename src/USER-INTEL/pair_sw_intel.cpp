@@ -345,16 +345,17 @@ void PairSWIntel::eval(const int offload, const int vflag,
             if (jj < jnumhalf) ejnumhalf++;
           }
         }
-        int ejnum_pad = ejnum;
 
-        while ( (ejnum_pad % pad_width) != 0) {
-          tdelx[ejnum_pad] = (flt_t)0.0;
-          tdely[ejnum_pad] = (flt_t)0.0;
-          tdelz[ejnum_pad] = (flt_t)0.0;
-          trsq[ejnum_pad] = p2[3].cutsq + (flt_t)1.0;
-          tj[ejnum_pad] = nall;
-          if (!ONETYPE) tjtype[ejnum_pad] = 0;
-          ejnum_pad++;
+	int ejrem = ejnum & (pad_width - 1);
+	if (ejrem) ejrem = pad_width - ejrem;
+	const int ejnum_pad = ejnum + ejrem;
+	for (int jj = ejnum; jj < ejnum_pad; jj++) {
+          tdelx[jj] = (flt_t)0.0;
+          tdely[jj] = (flt_t)0.0;
+          tdelz[jj] = (flt_t)0.0;
+          trsq[jj] = p2[3].cutsq + (flt_t)1.0;
+          tj[jj] = nall;
+          if (!ONETYPE) tjtype[jj] = 0;
         }
 
         #if defined(LMP_SIMD_COMPILER)

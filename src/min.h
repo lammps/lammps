@@ -65,10 +65,12 @@ class Min : protected Pointers {
   double tmax,tmin;           // timestep multiplicators max, min
   int integrator;             // Newton integration: euler, leapfrog, verlet...
   int halfstepback_flag;      // half step backward when v.f <= 0.0
-  double relaxbox_modulus;    // Bulk modulus used for box relax
+  double relaxbox_mod;        // Bulk modulus used for box relax
   double relaxbox_rate;       // for box relaxation to 0 pressure
-  int relaxbox_flag;          // 1: box relaxation iso; 2: axial
+  int relaxbox_flag;          // 1: box relaxation iso; 2: aniso
   double ptol;                // pressure threshold for boxrelax
+  int p_flag[3];
+  int dimension;
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

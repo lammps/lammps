@@ -20,6 +20,10 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
+#include "variable.h"
+#include "modify.h"
+#include "compute.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,15 +41,35 @@ void MinAdaptGlok::init()
 {
   Min::init();
 
-  if (tmax < tmin) error->all(FLERR,"tmax cannot be smaller than tmin");
-  if (dtgrow < 1.0) error->all(FLERR,"dtgrow cannot be smaller than 1.0");
-  if (dtshrink > 1.0) error->all(FLERR,"dtshrink cannot be greater than 1.0");
+  // simple parameters validation
+
+  if (tmax < tmin) error->all(FLERR,"tmax has to be larger than tmin");
+  if (dtgrow < 1.0) error->all(FLERR,"dtgrow has to be larger than 1.0");
+  if (dtshrink > 1.0) error->all(FLERR,"dtshrink has to be smaller than 1.0");
+  if (relaxbox_mod < 0.0) 
+      error->all(FLERR,"relaxbox_mod has to be positif");
+
+  // require periodicity in boxrelax dimensions
+
+  if (p_flag[0] && domain->xperiodic == 0)
+    error->all(FLERR,"Cannot use boxrelax on a non-periodic dimension");
+  if (p_flag[1] && domain->yperiodic == 0)
+    error->all(FLERR,"Cannot use boxrelax on a non-periodic dimension");
+  if (p_flag[2] && domain->zperiodic == 0)
+    error->all(FLERR,"Cannot use boxrelax on a non-periodic dimension");
 
   dt = dtinit = update->dt;
   dtmax = tmax * dt;
   dtmin = tmin * dt;
   alpha = alpha0;
   last_negative = ntimestep_start = update->ntimestep;
+
+if (relaxbox_flag){
+  int icompute = modify->find_compute("thermo_temp");
+  temperature = modify->compute[icompute];
+  icompute = modify->find_compute("thermo_press");
+  pressure = modify->compute[icompute];
+}
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,6 +95,67 @@ void MinAdaptGlok::reset_vectors()
   nvec = 3 * atom->nlocal;
   if (nvec) xvec = atom->x[0];
   if (nvec) fvec = atom->f[0];
+}
+
+/* ----------------------------------------------------------------------
+   save current box state for converting atoms to lamda coords
+------------------------------------------------------------------------- */
+
+void MinAdaptGlok::save_box_state()
+{
+  boxlo[0] = domain->boxlo[0];
+  boxlo[1] = domain->boxlo[1];
+  boxlo[2] = domain->boxlo[2];
+
+  for (int i = 0; i < 6; i++)
+    h_inv[i] = domain->h_inv[i];
+}
+
+/* ----------------------------------------------------------------------
+   deform the simulation box and remap the particles
+------------------------------------------------------------------------- */
+
+void MinAdaptGlok::relax_box()
+{
+  int i,n;
+      
+  // rescale simulation box and scale atom coords for all atoms
+
+  double **x = atom->x;
+  double epsilon;
+  double *current_pressure_v;
+  int *mask = atom->mask;
+  n = atom->nlocal + atom->nghost;
+  save_box_state();
+
+  // convert pertinent atoms and rigid bodies to lamda coords
+
+  domain->x2lamda(n);
+
+  // ensure the virial is tallied, update the flag
+
+  pressure->addstep(update->ntimestep);
+  update->vflag_global = update->ntimestep;
+
+  // compute pressure and change simulation box
+
+  pressure->compute_scalar();
+  pressure->compute_vector();
+  epsilon = pressure->scalar / relaxbox_mod;
+  for (int i = 0; i < 3; i++) {
+    if (relaxbox_flag == 2) epsilon = pressure->vector[i] / relaxbox_mod;
+    domain->boxhi[i] += p_flag[i] * domain->boxhi[i] * epsilon * relaxbox_rate;
+  }
+
+  // reset global and local box to new size/shape
+
+  domain->set_global_box();
+  domain->set_local_box();
+
+  // convert atoms and back to box coords
+
+  domain->lamda2x(n);
+  save_box_state();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,6 +210,10 @@ int MinAdaptGlok::iterate(int maxiter)
 
     ntimestep = ++update->ntimestep;
     niter++;
+
+    // Relax the simulation box
+
+    if (relaxbox_flag) relax_box();
 
     // pointers
 
@@ -394,6 +483,21 @@ int MinAdaptGlok::iterate(int maxiter)
 
     }
 
+    // Pressure relaxation criterion
+    // set pflag = 0 if relaxbox is activated and pressure > ptol
+    // pflag = 0 will hinder the energy or force criterion
+
+    pflag = 1;
+    if (relaxbox_flag == 1){
+      pressure->compute_scalar();
+      if (fabs(pressure->scalar) > ptol) pflag = 0;
+      
+    }else if (relaxbox_flag == 2){
+      pressure->compute_vector();
+      for (int i = 0; i < 3; i++)
+        if (fabs(pressure->vector[i]) * p_flag[i] > ptol) pflag = 0;
+    }
+
     // energy tolerance criterion
     // only check after delaystep elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
@@ -402,13 +506,15 @@ int MinAdaptGlok::iterate(int maxiter)
     if (update->etol > 0.0 && ntimestep-last_negative > delaystep) {
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
-            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)){
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)
+            && pflag) {
           update->dt = dtinit;
           return ETOL;
         }
       } else {
         if (fabs(ecurrent-eprevious) <
-            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)
+            && pflag)
           flag = 0;
         else flag = 1;
         MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
@@ -426,12 +532,12 @@ int MinAdaptGlok::iterate(int maxiter)
     if (update->ftol > 0.0) {
       fdotf = fnorm_sqr();
       if (update->multireplica == 0) {
-        if (fdotf < update->ftol*update->ftol) {
+        if (fdotf < update->ftol*update->ftol && pflag) {
           update->dt = dtinit;
           return FTOL;
         }
       } else {
-        if (fdotf < update->ftol*update->ftol) flag = 0;
+        if (fdotf < update->ftol*update->ftol && pflag) flag = 0;
         else flag = 1;
         MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
         if (flagall == 0) {

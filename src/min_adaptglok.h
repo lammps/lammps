@@ -31,6 +31,8 @@ class MinAdaptGlok : public Min {
   void init();
   void setup_style();
   void reset_vectors();
+  void save_box_state();
+  void relax_box();
   int iterate(int);
 
  private:

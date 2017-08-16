@@ -450,23 +450,6 @@ int FixNVESpin::coords2sector(double *xi)
   seci[1] = static_cast<int>(riy);
   seci[2] = static_cast<int>(riz);
 
-  /*
-  if (nsectors == 1) {
-    nseci = 0;
-  } else if (nsectors == 2) {
-    nseci = seci[0] + seci[1] + seci[2];
-  } else if (nsectors == 4) {
-    if (sec[1]*sec[2] == 4) { //plane normal to x
-      nseci = (seci[1] + 2*seci[2]);
-    } else if (sec[0]*sec[2] == 4) { //plane normal to y
-      nseci = (seci[0] + 2*seci[2]);
-    } else if (sec[0]*sec[1] == 4) { //plane normal to z
-      nseci = (seci[0] + 2*seci[1]);
-    }
-  } else if (nsectors == 8) {
-    nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
-  }
-  */
   nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
 
   return nseci;
@@ -539,6 +522,6 @@ void FixNVESpin::final_integrate()
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];  
-      }
+    }
   }
 }

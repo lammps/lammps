@@ -30,8 +30,8 @@ Dihedral Styles: charmm, harmonic, opls :l
 Fixes: nve, npt, nvt, nvt/sllod :l
 Improper Styles: cvff, harmonic :l
 Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long, 
-buck, eam, eam/alloy, eam/fs, gayberne, charmm/coul/charmm, 
-charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long, rebo,
+buck, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm, 
+lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long, rebo,
 sw, tersoff :l
 K-Space Styles: pppm, pppm/disp :l
 :ule

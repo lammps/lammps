@@ -37,6 +37,9 @@ class MinAdaptGlok : public Min {
   double dt,dtmax,dtmin,dtinit;
   double alpha;
   bigint last_negative,ntimestep_start;
+  int pflag;
+  class Compute *temperature,*pressure;
+  double boxlo[3],h_inv[6];
 };
 
 }

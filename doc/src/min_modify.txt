@@ -13,35 +13,45 @@ min_modify command :h3
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {dmax} or {line} or {delaystep} or {dt_grow} or {dt_shrink}
-          or {alpha0} or {alpha_shrink} or {tmax} or {tmin} or {integrator}
+keyword = {dmax} or {line} 
+          or {integrator} or {tmax} or {tmin} 
+          or {delaystep} or {dt_grow} or {dt_shrink} or {alpha0} or {alpha_shrink}
+          or {relaxbox} or {relaxbox_mod} or {relaxbox_rate} or {ptol}
+          or {halfstepback}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero}
     backtrack,quadratic,forcezero = style of linesearch to use
-  {delaystep} value = steps
-    steps = number of steps for dynamics temporization, adaptglok only
-  {dtgrow} value = grow
-    grow = factor increasing the timestep, adaptglok only
-  {dtshrink} value = shrink
-    shrink = factor decreasing the timestep, adaptglok only
-  {alpha0} value = alpha
-    alpha = coefficient mixing velocities and forces, adaptglok only
-  {alphashrink} value = shrink
-    shrink = factor decreasing alpha, adaptglok only
+  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}
+    eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme (adaptglok)
   {tmax} value = coef
-    coef = factor defining the maximum timestep, adaptglok only
+    coef = factor defining the maximum timestep (adaptglok)
   {tmin} value = coef
-    coef = factor defining the minimum timestep, adaptglok only
-  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} 
-                       or {leapfrog}
-    eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme, adaptglok
-  {halfstepback} value = {yes} or {no}, adaptglok only :pre
+    coef = factor defining the minimum timestep (adaptglok)
+  {delaystep} value = steps
+    steps = number of steps for dynamics temporization (adaptglok)
+  {dtgrow} value = grow
+    grow = factor increasing the timestep (adaptglok)
+  {dtshrink} value = shrink
+    shrink = factor decreasing the timestep (adaptglok)
+  {alpha0} value = alpha
+    alpha = coefficient mixing velocities and forces (adaptglok)
+  {alphashrink} value = shrink
+    shrink = factor decreasing alpha (adaptglok)
+  {relaxbox} value = {no} or {iso} or {axial} or {x} or {y} or {z}
+    no = no changes in box dimension (default)
+    iso,aniso,x,y,z = type of box relaxation  (adaptglok)
+  {relaxbox_mod} value = modulus
+    modulus = bulk modulus of the system, order of magnitude (adaptglok)
+  {relaxbox_rate} value = rate
+    rate = scaling factor to relax the box dimensions (adaptglok) 
+  {halfstepback} value = {yes} or {no} (adaptglok) :pre
 :ule
 
 [Examples:]
 
-min_modify dmax 0.2 :pre
+min_modify dmax 0.2
+min_modify integrator verlet tmax 0.4 relaxbox y relaxbox_mod 2e7 :pre
 
 [Description:]
 
@@ -85,20 +95,33 @@ that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 
 The style {adaptglok} has several parameters that can be tuned in order
-to optimize the relaxation: {integrator}, {delaystep}, {dtgrow}, {dtshrink}, 
-{alpha0}, {alphashrink}, {tmax} and {tmin}.
+to optimize the relaxation: {integrator}, {tmax}, {tmin}, {delaystep}, {dtgrow}, {dtshrink}, 
+{alpha0}, and {alphashrink}.
 Different Newton {integrator} can be selected: explicit Euler, 
 semi-implicit Euler (= symplectic Euler), leapfrog, and velocity Verlet.
 The parameters {tmax} and {tmin} define the maximum and minimum timestep 
 allowed during an adaptglok minimization. Those are not in time unit, but are 
-multiplication factor applied to the "timestep"_timestep.html. For example, 
-{tmax} = 2.0 means that the maximum value the timestep can reach is twice the 
-value defined by "timestep"_timestep.html.
+multiplication factor applied to the "timestep"_timestep.html. Thus 
+{tmax} = 2.0 in metal "units"_units.html means that the maximum value
+the timestep can reached during the relaxation is 2 ps (with the default
+"timestep"_timestep.html value).
 Note that even with the default parameters being chosen to be reliable in most
 cases, adjusting "timestep"_timestep.html, {tmax} and {tmin} should be consider
 to optimize the minimization, in particular for large/complex system.
 For debugging purposes, it is possible to switch off the back step when 
 downhill with {halfstepback} = 0.
+
+The style {adaptglok} performing a damped dynamics, it is not possible to use
+"fix box/relax"_fix_box_relax.html to relax the simulation box.
+Thus {adaptglok} implements a rudimentary box relaxation procedure that can be
+controlled by the keywords {relaxbox}, {relaxbox_mod}, {relaxbox_rate} 
+and {ptol}.
+Note that {relaxbox_mod} doesn't requires the exact value for the bulk modulus,
+but rather the order of magnitude (in pressure "units"_units.html).
+Ultimately, {relaxbox_mod} and {relaxbox_rate} 
+control how fast the relaxation of the box is performed: lower values will slow
+down the box relaxation but improve the stability of the procedure.
+
 
 [Restrictions:] none
 
@@ -109,6 +132,7 @@ downhill with {halfstepback} = 0.
 [Default:]
 
 The option defaults are dmax = 0.1, line = quadratic, 
-integrator = eulerimplicit, delaystep = 20, dt_grow = 1.1, dt_shrink = 0.5, 
-alpha0 = 0.25, alpha_shrink = 0.99, tmax = 2.0, tmin = 0.02,  adaptstep = yes 
+integrator = eulerimplicit, tmax = 2.0, tmin = 0.02,
+delaystep = 20, dt_grow = 1.1, dt_shrink = 0.5, alpha0 = 0.25, alpha_shrink = 0.99,
+relaxbox = no, relaxbox_mod = 1e6 and relaxbox_rate = 0.33, ptol = 0.1
 and halfstepback = yes.

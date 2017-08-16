@@ -24,6 +24,8 @@
 #include "modify.h"
 #include "compute.h"
 #include "domain.h"
+#include "neighbor.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -46,8 +48,7 @@ void MinAdaptGlok::init()
   if (tmax < tmin) error->all(FLERR,"tmax has to be larger than tmin");
   if (dtgrow < 1.0) error->all(FLERR,"dtgrow has to be larger than 1.0");
   if (dtshrink > 1.0) error->all(FLERR,"dtshrink has to be smaller than 1.0");
-  if (relaxbox_mod < 0.0) 
-      error->all(FLERR,"relaxbox_mod has to be positif");
+  if (relaxbox_mod < 0.0) error->all(FLERR,"relaxbox_mod has to be positif");
 
   // require periodicity in boxrelax dimensions
 
@@ -64,12 +65,10 @@ void MinAdaptGlok::init()
   alpha = alpha0;
   last_negative = ntimestep_start = update->ntimestep;
 
-if (relaxbox_flag){
-  int icompute = modify->find_compute("thermo_temp");
-  temperature = modify->compute[icompute];
-  icompute = modify->find_compute("thermo_press");
-  pressure = modify->compute[icompute];
-}
+  if (relaxbox_flag){
+    int icompute = modify->find_compute("thermo_press");
+    pressure = modify->compute[icompute];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +77,24 @@ void MinAdaptGlok::setup_style()
 {
   double **v = atom->v;
   int nlocal = atom->nlocal;
+
+  // print the parameters used within adaptglok into the log
+
+  const char *s1[] = {"eulerimplicit","verlet","leapfrog","eulerexplicit"};
+  const char *s2[] = {"no","yes"};
+  const char *s3[] = {"no","iso","aniso"};
+
+  if (comm->me == 0 && logfile) {
+      fprintf(logfile,"  Parameters for adaptglok: \n"
+      "    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin "
+      "   integrator halfstepback relaxbox relaxbox_mod relaxbox_rate ptol \n"
+      "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s %8s %12g %13g %4g \n",
+      dmax, delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin, 
+      s1[integrator], s2[halfstepback_flag], s3[relaxbox_flag], relaxbox_mod,
+      relaxbox_rate, ptol);
+  }
+
+  // initialize the velocities
 
   for (int i = 0; i < nlocal; i++)
     v[i][0] = v[i][1] = v[i][2] = 0.0;
@@ -122,7 +139,7 @@ void MinAdaptGlok::relax_box()
   // rescale simulation box and scale atom coords for all atoms
 
   double **x = atom->x;
-  double epsilon;
+  double epsilon,disp;
   double *current_pressure_v;
   int *mask = atom->mask;
   n = atom->nlocal + atom->nghost;
@@ -144,7 +161,9 @@ void MinAdaptGlok::relax_box()
   epsilon = pressure->scalar / relaxbox_mod;
   for (int i = 0; i < 3; i++) {
     if (relaxbox_flag == 2) epsilon = pressure->vector[i] / relaxbox_mod;
-    domain->boxhi[i] += p_flag[i] * domain->boxhi[i] * epsilon * relaxbox_rate;
+    disp = domain->boxhi[i] * epsilon * relaxbox_rate;
+    if (fabs(disp) > dmax) disp > 0.0 ? disp = dmax : disp = -1 * dmax;
+    domain->boxhi[i] += p_flag[i] * disp;
   }
 
   // reset global and local box to new size/shape

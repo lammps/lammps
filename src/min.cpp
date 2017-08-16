@@ -67,7 +67,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   relaxbox_mod = 1000000;
   relaxbox_rate = 0.33;
   relaxbox_flag = 0;
-  ptol = 1e-5;
+  ptol = 0.1;
   p_flag[0] = p_flag[1] = p_flag[2] = 0;
 
   elist_global = elist_atom = NULL;

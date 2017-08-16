@@ -77,7 +77,9 @@ would normally use for dynamics simulations.
 
 NOTE: The {quickmin}, {fire}, {adaptglok}, and {hftn} styles do not yet support the
 use of the "fix box/relax"_fix_box_relax.html command or minimizations
-involving the electron radius in "eFF"_pair_eff.html models.
+involving the electron radius in "eFF"_pair_eff.html models. 
+The {adaptglok} style actually support box relaxation by the implementation of
+a basic relaxation scheme, see "min_modify"_min_modify.html.
 
 [Restrictions:] none
 

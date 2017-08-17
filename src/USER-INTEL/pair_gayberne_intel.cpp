@@ -428,7 +428,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           } else
             multiple_forms = true;
         }
-        const int edge = (packed_j % pad_width);
+        const int edge = packed_j & (pad_width - 1);
         if (edge) {
           const int packed_end = packed_j + (pad_width - edge);
           #if defined(LMP_SIMD_COMPILER)

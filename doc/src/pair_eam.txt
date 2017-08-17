@@ -14,6 +14,7 @@ pair_style eam/omp command :h3
 pair_style eam/opt command :h3
 pair_style eam/alloy command :h3
 pair_style eam/alloy/gpu command :h3
+pair_style eam/alloy/intel command :h3
 pair_style eam/alloy/kk command :h3
 pair_style eam/alloy/omp command :h3
 pair_style eam/alloy/opt command :h3
@@ -21,6 +22,7 @@ pair_style eam/cd command :h3
 pair_style eam/cd/omp command :h3
 pair_style eam/fs command :h3
 pair_style eam/fs/gpu command :h3
+pair_style eam/fs/intel command :h3
 pair_style eam/fs/kk command :h3
 pair_style eam/fs/omp command :h3
 pair_style eam/fs/opt command :h3

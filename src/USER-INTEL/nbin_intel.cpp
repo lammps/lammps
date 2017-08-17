@@ -211,6 +211,8 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
         ibin = coord2bin(atom->x[i]);
+	// Only necessary to store when neighboring ghost
+	atombin[i] = ibin;
         bins[i] = binhead[ibin];
         binhead[ibin] = i;
       }
@@ -222,14 +224,10 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
       binhead[ibin] = i;
     }
   } else {
-    for (i = nall-1; i >= nlocal; i--) {
+    for (i = nall-1; i >= 0; i--) {
       ibin = coord2bin(atom->x[i]);
-      bins[i] = binhead[ibin];
-      binhead[ibin] = i;
-    }
-    for (i = nlocal-1; i >= 0; i--) {
-      ibin = coord2bin(atom->x[i]);
-      atombin[i]=ibin;
+      // Only necessary to store for ghost when neighboring ghost
+      atombin[i] = ibin;
       bins[i] = binhead[ibin];
       binhead[ibin] = i;
     }

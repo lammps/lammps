@@ -5,7 +5,6 @@ variable	w index 10      # Warmup Timesteps
 variable	t index 3100    # Main Run Timesteps
 variable	m index 1       # Main Run Timestep Multiplier
 variable	n index 0       # Use NUMA Mapping for Multi-Node
-variable	b index 3       # Neighbor binsize
 variable	p index 0       # Use Power Measurement
 
 variable	x index 4

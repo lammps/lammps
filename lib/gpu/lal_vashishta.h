@@ -82,6 +82,7 @@ class Vashishta : public BaseThree<numtyp, acctyp> {
   UCL_D_Vec<int> elem2param;
   UCL_D_Vec<int> map;
   int _nparams,_nelements;
+  numtyp _cutshortsq;
 
   UCL_Texture param1_tex, param2_tex, param3_tex, param4_tex, param5_tex;
 

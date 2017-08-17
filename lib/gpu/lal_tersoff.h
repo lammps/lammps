@@ -47,21 +47,6 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
            const double* h, const double* gamma, const double* beta,
            const double* powern, const double* cutsq);
 
-  /// Pair loop with host neighboring
-  void compute(const int f_ago, const int inum_full, const int nall,
-               const int nlist, double **host_x, int *host_type,
-               int *ilist, int *numj, int **firstneigh, const bool eflag,
-               const bool vflag, const bool eatom, const bool vatom,
-               int &host_start, const double cpu_time, bool &success);
-
-  /// Pair loop with device neighboring
-  int ** compute(const int ago, const int inum_full,
-                 const int nall, double **host_x, int *host_type, double *sublo,
-                 double *subhi, tagint *tag, int **nspecial,
-                 tagint **special, const bool eflag, const bool vflag,
-                 const bool eatom, const bool vatom, int &host_start,
-                 int **ilist, int **numj, const double cpu_time, bool &success);
-
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
@@ -104,8 +89,7 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
 
   UCL_Kernel k_zeta;
   UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex;
-
-  int _max_nbors;
+  numtyp _cutshortsq;
 
  private:
   bool _allocated;

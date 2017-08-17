@@ -32,3 +32,11 @@ log.cite
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+#cmake
+/build*
+/CMakeCache.txt
+/CMakeFiles/
+/Makefile
+/cmake_install.cmake
+/lmp

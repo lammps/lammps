@@ -384,6 +384,7 @@ std::ostream & colvarbias::write_traj(std::ostream &os)
   os << " ";
   if (b_output_energy)
     os << " "
+       << std::setprecision(cvm::en_prec) << std::setw(cvm::en_width)
        << bias_energy;
   return os;
 }

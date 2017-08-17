@@ -374,8 +374,8 @@ int colvardeps::decr_ref_count(int feature_id) {
 }
 
 void colvardeps::init_feature(int feature_id, const char *description, feature_type type) {
-  features()[feature_id]->description = description;
-  features()[feature_id]->type = type;
+  modify_features()[feature_id]->description = description;
+  modify_features()[feature_id]->type = type;
 }
 
 // Shorthand macros for describing dependencies
@@ -401,7 +401,7 @@ void colvardeps::init_cvb_requires() {
   int i;
   if (features().size() == 0) {
     for (i = 0; i < f_cvb_ntot; i++) {
-      features().push_back(new feature);
+      modify_features().push_back(new feature);
     }
 
     init_feature(f_cvb_active, "active", f_type_dynamic);
@@ -438,7 +438,7 @@ void colvardeps::init_cv_requires() {
   size_t i;
   if (features().size() == 0) {
     for (i = 0; i < f_cv_ntot; i++) {
-      features().push_back(new feature);
+      modify_features().push_back(new feature);
     }
 
     init_feature(f_cv_active, "active", f_type_dynamic);
@@ -554,7 +554,7 @@ void colvardeps::init_cvc_requires() {
   // Initialize static array once and for all
   if (features().size() == 0) {
     for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
-      features().push_back(new feature);
+      modify_features().push_back(new feature);
     }
 
     init_feature(f_cvc_active, "active", f_type_dynamic);
@@ -633,7 +633,7 @@ void colvardeps::init_ag_requires() {
   // Initialize static array once and for all
   if (features().size() == 0) {
     for (i = 0; i < f_ag_ntot; i++) {
-      features().push_back(new feature);
+      modify_features().push_back(new feature);
     }
 
     init_feature(f_ag_active, "active", f_type_dynamic);

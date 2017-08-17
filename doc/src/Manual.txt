@@ -79,7 +79,7 @@ bug reports and feature requests are mainly coordinated through the
 "LAMMPS project on GitHub."_https://github.com/lammps/lammps
 The lammps.org domain, currently hosting "public continuous integration
 testing"_https://ci.lammps.org/job/lammps/ and "precompiled Linux
-RPM and Windows installer packages"_http://rpm.lammps.org is located
+RPM and Windows installer packages"_http://packages.lammps.org is located
 at Temple University and managed by Richard Berger,
 richard.berger at temple.edu.
 

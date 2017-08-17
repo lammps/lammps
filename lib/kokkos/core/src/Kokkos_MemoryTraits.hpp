@@ -72,11 +72,11 @@ struct MemoryTraits {
   //! Tag this class as a kokkos memory traits:
   typedef MemoryTraits memory_traits ;
 
-  enum { Unmanaged    = T & unsigned(Kokkos::Unmanaged) };
-  enum { RandomAccess = T & unsigned(Kokkos::RandomAccess) };
-  enum { Atomic       = T & unsigned(Kokkos::Atomic) };
-  enum { Restrict     = T & unsigned(Kokkos::Restrict) };
-  enum { Aligned      = T & unsigned(Kokkos::Aligned) };
+  enum : bool { Unmanaged    = (unsigned(0) != (T & unsigned(Kokkos::Unmanaged))) };
+  enum : bool { RandomAccess = (unsigned(0) != (T & unsigned(Kokkos::RandomAccess))) };
+  enum : bool { Atomic       = (unsigned(0) != (T & unsigned(Kokkos::Atomic))) };
+  enum : bool { Restrict     = (unsigned(0) != (T & unsigned(Kokkos::Restrict))) };
+  enum : bool { Aligned      = (unsigned(0) != (T & unsigned(Kokkos::Aligned))) };
 
 };
 
@@ -109,7 +109,11 @@ enum { MEMORY_ALIGNMENT =
 #else
     ( 1 << Kokkos::Impl::integral_power_of_two( 128 ) )
 #endif
-  , MEMORY_ALIGNMENT_THRESHOLD = 4 
+#if defined( KOKKOS_MEMORY_ALIGNMENT_THRESHOLD )
+  , MEMORY_ALIGNMENT_THRESHOLD = KOKKOS_MEMORY_ALIGNMENT_THRESHOLD
+#else
+  , MEMORY_ALIGNMENT_THRESHOLD = 4
+#endif
   };
 
 

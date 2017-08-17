@@ -66,6 +66,8 @@
 #include <Kokkos_ErrorReporter.hpp>
 #include <TestErrorReporter.hpp>
 
+#include <TestViewCtorPropEmbeddedDim.hpp>
+
 #include <iomanip>
 
 namespace Test {
@@ -76,14 +78,7 @@ protected:
   {
     std::cout << std::setprecision(5) << std::scientific;
 
-    unsigned threads_count = 4 ;
-
-    if ( Kokkos::hwloc::available() ) {
-      threads_count = Kokkos::hwloc::get_available_numa_count() *
-                      Kokkos::hwloc::get_available_cores_per_numa();
-    }
-
-    Kokkos::OpenMP::initialize( threads_count );
+    Kokkos::OpenMP::initialize();
   }
 
   static void TearDownTestCase()
@@ -94,6 +89,10 @@ protected:
 
 TEST_F( openmp, dyn_view_api) {
   TestDynViewAPI< double , Kokkos::OpenMP >();
+}
+
+TEST_F( openmp, viewctorprop_embedded_dim ) {
+  TestViewCtorProp_EmbeddedDim< Kokkos::OpenMP >::test_vcpt( 2, 3 );
 }
 
 TEST_F( openmp, bitset )

@@ -999,7 +999,11 @@ SET (Kokkos_INCLUDE_DIRS
     ${Kokkos_SOURCE_DIR}/containers/src
     ${Kokkos_SOURCE_DIR}/algorithms/src
     ${Kokkos_BINARY_DIR}  # to find KokkosCore_config.h
+    ${KOKKOS_INCLUDE_DIRS}
 )
+
+# pass include dirs back to parent scope
+SET(Kokkos_INCLUDE_DIRS_RET ${Kokkos_INCLUDE_DIRS} PARENT_SCOPE)
 
 INCLUDE_DIRECTORIES(${Kokkos_INCLUDE_DIRS})
 

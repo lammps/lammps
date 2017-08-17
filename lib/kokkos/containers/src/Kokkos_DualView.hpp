@@ -564,7 +564,7 @@ namespace Impl {
 template< class D, class A1, class A2, class A3, class ... Args >
 struct DualViewSubview {
 
-  typedef typename Kokkos::Experimental::Impl::ViewMapping
+  typedef typename Kokkos::Impl::ViewMapping
     < void
     , Kokkos::ViewTraits< D, A1, A2, A3 >
     , Args ...

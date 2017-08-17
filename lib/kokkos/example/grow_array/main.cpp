@@ -88,7 +88,7 @@ int main( int argc , char ** argv )
 #if defined( KOKKOS_ENABLE_OPENMP )
   {
     std::cout << "Kokkos::OpenMP" << std::endl ;
-    Kokkos::OpenMP::initialize( num_threads , use_numa , use_core );
+    Kokkos::OpenMP::initialize();
     Example::grow_array< Kokkos::OpenMP >( length_array , span_values );
     Kokkos::OpenMP::finalize();
   }

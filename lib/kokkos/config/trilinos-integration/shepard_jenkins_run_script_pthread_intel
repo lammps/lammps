@@ -28,14 +28,14 @@ export JENKINS_DO_PTHREAD=ON
 export JENKINS_DO_SERIAL=OFF
 export JENKINS_DO_COMPLEX=OFF
 
-export ARCH_CXX_FLAG="-xCORE-AVX2 -mkl"
-export ARCH_C_FLAG="-xCORE-AVX2 -mkl"
+export JENKINS_ARCH_CXX_FLAG="-xCORE-AVX2 -mkl"
+export JENKINS_ARCH_C_FLAG="-xCORE-AVX2 -mkl"
 export BLAS_LIBRARIES="-mkl;${MKLROOT}/lib/intel64/libmkl_intel_lp64.a;${MKLROOT}/lib/intel64/libmkl_intel_thread.a;${MKLROOT}/lib/intel64/libmkl_core.a"
 export LAPACK_LIBRARIES=${BLAS_LIBRARIES}
 
 export JENKINS_DO_TESTS=ON
 export JENKINS_DO_EXAMPLES=ON
-export JENKINS_DO_SHARED=OFF
+export JENKINS_DO_SHARED=ON
 
 export QUEUE=haswell
 

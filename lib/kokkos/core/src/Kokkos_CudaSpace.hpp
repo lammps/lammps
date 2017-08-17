@@ -90,7 +90,7 @@ public:
                  , const size_t arg_alloc_size ) const ;
 
   /**\brief Return Name of the MemorySpace */
-  static constexpr const char* name();
+  static constexpr const char* name() { return m_name; }
 
   /*--------------------------------*/
   /** \brief  Error reporting for HostSpace attempt to access CudaSpace */
@@ -186,7 +186,7 @@ public:
                  , const size_t arg_alloc_size ) const ;
 
   /**\brief Return Name of the MemorySpace */
-  static constexpr const char* name();
+  static constexpr const char* name() { return m_name; }
 
   /*--------------------------------*/
 
@@ -234,7 +234,7 @@ public:
                  , const size_t arg_alloc_size ) const ;
 
   /**\brief Return Name of the MemorySpace */
-  static constexpr const char* name();
+  static constexpr const char* name() { return m_name; }
 
 private:
 

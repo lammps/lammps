@@ -177,22 +177,23 @@ void parallel_for( const ExecPolicy  & policy
                  )
 {
 #if defined(KOKKOS_ENABLE_PROFILING)
-    uint64_t kpID = 0;
-     if(Kokkos::Profiling::profileLibraryLoaded()) {
-     	Kokkos::Profiling::beginParallelFor("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
-     }
+  uint64_t kpID = 0;
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Impl::ParallelConstructName<FunctorType, typename ExecPolicy::work_tag> name(str);
+    Kokkos::Profiling::beginParallelFor(name.get(), 0, &kpID);
+  }
 #endif
 
-    Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
+    Kokkos::Impl::shared_allocation_tracking_disable();
     Impl::ParallelFor< FunctorType , ExecPolicy > closure( functor , policy );
-    Kokkos::Impl::shared_allocation_tracking_release_and_enable();
+    Kokkos::Impl::shared_allocation_tracking_enable();
 
    closure.execute();
 
 #if defined(KOKKOS_ENABLE_PROFILING)
-     if(Kokkos::Profiling::profileLibraryLoaded()) {
-        Kokkos::Profiling::endParallelFor(kpID);
-     }
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::endParallelFor(kpID);
+  }
 #endif
 }
 
@@ -210,14 +211,15 @@ void parallel_for( const size_t        work_count
 
 #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
-     if(Kokkos::Profiling::profileLibraryLoaded()) {
-  	Kokkos::Profiling::beginParallelFor("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
-     }
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Impl::ParallelConstructName<FunctorType, void> name(str);
+    Kokkos::Profiling::beginParallelFor(name.get(), 0, &kpID);
+  }
 #endif
 
-  Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
+  Kokkos::Impl::shared_allocation_tracking_disable();
   Impl::ParallelFor< FunctorType , policy > closure( functor , policy(0,work_count) );
-  Kokkos::Impl::shared_allocation_tracking_release_and_enable();
+  Kokkos::Impl::shared_allocation_tracking_enable();
 
   closure.execute();
 
@@ -420,21 +422,22 @@ void parallel_scan( const ExecutionPolicy & policy
 {
 #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
-     if(Kokkos::Profiling::profileLibraryLoaded()) {
-	Kokkos::Profiling::beginParallelScan("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
-     }
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Impl::ParallelConstructName<FunctorType, typename ExecutionPolicy::work_tag> name(str);
+    Kokkos::Profiling::beginParallelScan(name.get(), 0, &kpID);
+  }
 #endif
 
-  Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
+  Kokkos::Impl::shared_allocation_tracking_disable();
   Impl::ParallelScan< FunctorType , ExecutionPolicy > closure( functor , policy );
-  Kokkos::Impl::shared_allocation_tracking_release_and_enable();
+  Kokkos::Impl::shared_allocation_tracking_enable();
 
   closure.execute();
 
 #if defined(KOKKOS_ENABLE_PROFILING)
-     if(Kokkos::Profiling::profileLibraryLoaded()) {
-	Kokkos::Profiling::endParallelScan(kpID);
-     }
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::endParallelScan(kpID);
+  }
 #endif
 
 }
@@ -453,21 +456,22 @@ void parallel_scan( const size_t        work_count
 
 #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
-     if(Kokkos::Profiling::profileLibraryLoaded()) {
-	Kokkos::Profiling::beginParallelScan("" == str ? typeid(FunctorType).name() : str, 0, &kpID);
-     }
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Impl::ParallelConstructName<FunctorType, void> name(str);
+    Kokkos::Profiling::beginParallelScan(name.get(), 0, &kpID);
+  }
 #endif
 
-  Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
+  Kokkos::Impl::shared_allocation_tracking_disable();
   Impl::ParallelScan< FunctorType , policy > closure( functor , policy(0,work_count) );
-  Kokkos::Impl::shared_allocation_tracking_release_and_enable();
+  Kokkos::Impl::shared_allocation_tracking_enable();
 
   closure.execute();
 
 #if defined(KOKKOS_ENABLE_PROFILING)
-     if(Kokkos::Profiling::profileLibraryLoaded()) {
-	Kokkos::Profiling::endParallelScan(kpID);
-     }
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::endParallelScan(kpID);
+  }
 #endif
 
 }

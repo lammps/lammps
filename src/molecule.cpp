@@ -1113,9 +1113,12 @@ void Molecule::special_generate()
   tagint atom1,atom2;
   int count[natoms];
 
-  // temporary special array
-  tagint spec_temp[natoms][atom->maxspecial];
-  
+  // temporary array for special atoms
+
+  tagint **tmpspecial;
+  memory->create(tmpspecial,natoms,atom->maxspecial,"molecule:tmpspecial");
+  memset(&tmpspecial[0][0],0,sizeof(tagint)*natoms*atom->maxspecial);
+
   for (int i = 0; i < natoms; i++) count[i] = 0;
 
   // 1-2 neighbors
@@ -1129,8 +1132,8 @@ void Molecule::special_generate()
         nspecial[atom2][0]++;
         if (count[i] >= atom->maxspecial || count[atom2] >= atom->maxspecial)
           error->one(FLERR,"Molecule auto special bond generation overflow");
-        spec_temp[i][count[i]++] = atom2 + 1;
-        spec_temp[atom2][count[atom2]++] = i + 1;
+        tmpspecial[i][count[i]++] = atom2 + 1;
+        tmpspecial[atom2][count[atom2]++] = i + 1;
       }
     }
   } else {
@@ -1141,7 +1144,7 @@ void Molecule::special_generate()
         atom2 = bond_atom[i][j];
         if (count[atom1] >= atom->maxspecial)
           error->one(FLERR,"Molecule auto special bond generation overflow");
-        spec_temp[i][count[atom1]++] = atom2;
+        tmpspecial[i][count[atom1]++] = atom2;
       }
     }
   }
@@ -1153,18 +1156,18 @@ void Molecule::special_generate()
   int dedup;
   for (int i = 0; i < natoms; i++) {
     for (int m = 0; m < nspecial[i][0]; m++) {
-      for (int j = 0; j < nspecial[spec_temp[i][m]-1][0]; j++) {
+      for (int j = 0; j < nspecial[tmpspecial[i][m]-1][0]; j++) {
         dedup = 0;
         for (int k =0; k < count[i]; k++) {
-          if (spec_temp[spec_temp[i][m]-1][j] == spec_temp[i][k] ||
-              spec_temp[spec_temp[i][m]-1][j] == i+1) {
+          if (tmpspecial[tmpspecial[i][m]-1][j] == tmpspecial[i][k] ||
+              tmpspecial[tmpspecial[i][m]-1][j] == i+1) {
             dedup = 1;
           }
         }
         if (!dedup) {
           if (count[i] >= atom->maxspecial)
             error->one(FLERR,"Molecule auto special bond generation overflow");
-          spec_temp[i][count[i]++] = spec_temp[spec_temp[i][m]-1][j];
+          tmpspecial[i][count[i]++] = tmpspecial[tmpspecial[i][m]-1][j];
           nspecial[i][1]++;
         }
       }
@@ -1177,32 +1180,34 @@ void Molecule::special_generate()
 
   for (int i = 0; i < natoms; i++) {
     for (int m = nspecial[i][0]; m < nspecial[i][1]; m++) {
-      for (int j = 0; j < nspecial[spec_temp[i][m]-1][0]; j++) {
+      for (int j = 0; j < nspecial[tmpspecial[i][m]-1][0]; j++) {
         dedup = 0;
         for (int k =0; k < count[i]; k++) {
-          if (spec_temp[spec_temp[i][m]-1][j] == spec_temp[i][k] ||
-              spec_temp[spec_temp[i][m]-1][j] == i+1) {
+          if (tmpspecial[tmpspecial[i][m]-1][j] == tmpspecial[i][k] ||
+              tmpspecial[tmpspecial[i][m]-1][j] == i+1) {
             dedup = 1;
           }
         }
         if (!dedup) {
           if (count[i] >= atom->maxspecial)
             error->one(FLERR,"Molecule auto special bond generation overflow");
-          spec_temp[i][count[i]++] = spec_temp[spec_temp[i][m]-1][j];
+          tmpspecial[i][count[i]++] = tmpspecial[tmpspecial[i][m]-1][j];
           nspecial[i][2]++;
         }
       }
     }
   }
-  
+
   maxspecial = 0;
   for (int i = 0; i < natoms; i++)
     maxspecial = MAX(maxspecial,nspecial[i][2]);
-  
+
   memory->create(special,natoms,maxspecial,"molecule:special");
   for (int i = 0; i < natoms; i++)
     for (int j = 0; j < nspecial[i][2]; j++)
-      special[i][j] = spec_temp[i][j];
+      special[i][j] = tmpspecial[i][j];
+
+  memory->destroy(tmpspecial);
 }
 
 /* ----------------------------------------------------------------------

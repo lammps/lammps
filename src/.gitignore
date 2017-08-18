@@ -57,6 +57,7 @@
 /intel_buffers.cpp
 /intel_buffers.h
 /intel_intrinsics.h
+/intel_intrinsics_airebo.h
 /intel_preprocess.h
 /intel_simd.h
 

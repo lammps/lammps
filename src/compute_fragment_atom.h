@@ -13,23 +13,22 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(cluster/atom,ComputeClusterAtom)
+ComputeStyle(fragment/atom,ComputeFragmentAtom)
 
 #else
 
-#ifndef LMP_COMPUTE_CLUSTER_ATOM_H
-#define LMP_COMPUTE_CLUSTER_ATOM_H
+#ifndef LMP_COMPUTE_FRAGMENT_ATOM_H
+#define LMP_COMPUTE_FRAGMENT_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeClusterAtom : public Compute {
+class ComputeFragmentAtom : public Compute {
  public:
-  ComputeClusterAtom(class LAMMPS *, int, char **);
-  ~ComputeClusterAtom();
+  ComputeFragmentAtom(class LAMMPS *, int, char **);
+  ~ComputeFragmentAtom();
   void init();
-  void init_list(int, class NeighList *);
   void compute_peratom();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -37,9 +36,7 @@ class ComputeClusterAtom : public Compute {
 
  private:
   int nmax,commflag;
-  double cutsq;
-  class NeighList *list;
-  double *clusterID;
+  double *fragmentID;
 };
 
 }
@@ -55,21 +52,16 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot use compute cluster/atom unless atoms have IDs
+E: Cannot use compute fragment/atom unless atoms have IDs
 
-Atom IDs are used to identify clusters.
+Atom IDs are used to identify fragments.
 
-E: Compute cluster/atom requires a pair style to be defined
+E: Compute fragment/atom requires a bond style to be defined
 
-This is so that the pair style defines a cutoff distance which
-is used to find clusters.
+This is so that a bond list is generated which is used to find fragments.
 
-E: Compute cluster/atom cutoff is longer than pairwise cutoff
+W: More than one compute fragment/atom
 
-Cannot identify clusters beyond cutoff.
-
-W: More than one compute cluster/atom
-
-It is not efficient to use compute cluster/atom  more than once.
+It is not efficient to use compute fragment/atom  more than once.
 
 */

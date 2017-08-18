@@ -173,7 +173,7 @@ Molecule::~Molecule()
    compute center = geometric center of molecule
    also compute:
      dx = displacement of each atom from center
-     molradius = radius of molecule from center 
+     molradius = radius of molecule from center
        including finite-size particles or body particles
 ------------------------------------------------------------------------- */
 
@@ -474,7 +474,7 @@ void Molecule::read(int flag)
     } else if (strstr(line,"body")) {
       bodyflag = 1;
       avec_body = (AtomVecBody *) atom->style_match("body");
-      if (!avec_body) 
+      if (!avec_body)
         error->all(FLERR,"Molecule file requires atom style body");
       nmatch = sscanf(line,"%d %d",&nibody,&ndbody);
       nwant = 2;
@@ -486,7 +486,7 @@ void Molecule::read(int flag)
 
   // error checks
 
-  if (natoms < 1) 
+  if (natoms < 1)
     error->all(FLERR,"No count or invalid atom count in molecule file");
   if (nbonds < 0) error->all(FLERR,"Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR,"Invalid angle count in molecule file");
@@ -633,7 +633,7 @@ void Molecule::read(int flag)
 
   if (bodyflag) {
     radiusflag = 1;
-    if (natoms != 1) 
+    if (natoms != 1)
       error->all(FLERR,"Molecule natoms must be 1 for body particle");
     if (sizescale != 1.0)
       error->all(FLERR,"Molecule sizescale must be 1.0 for body particle");
@@ -1331,19 +1331,19 @@ void Molecule::body(int flag, int pflag, char *line)
     ncount = atom->count_words(line);
     if (ncount == 0)
       error->one(FLERR,"Too few values in body section of molecule file");
-    if (nword+ncount > nparam) 
+    if (nword+ncount > nparam)
       error->all(FLERR,"Too many values in body section of molecule file");
-    
+
     if (flag) {
       if (pflag == 0) {
         ibodyparams[nword++] = force->inumeric(FLERR,strtok(line," \t\n\r\f"));
         for (i = 1; i < ncount; i++)
-          ibodyparams[nword++] = 
+          ibodyparams[nword++] =
             force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
       } else {
         dbodyparams[nword++] = force->numeric(FLERR,strtok(line," \t\n\r\f"));
         for (i = 1; i < ncount; i++)
-          dbodyparams[nword++] = 
+          dbodyparams[nword++] =
             force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
       }
     } else nword += ncount;
@@ -1503,8 +1503,8 @@ void Molecule::allocate()
   memory->create(nspecial,natoms,3,"molecule:nspecial");
   for (int i = 0; i < natoms; i++)
     nspecial[i][0] = nspecial[i][1] = nspecial[i][2] = 0;
-  
-  if (specialflag) 
+
+  if (specialflag)
     memory->create(special,natoms,maxspecial,"molecule:special");
 
   if (bondflag) {

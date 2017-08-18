@@ -1,16 +1,18 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-
+  Website: https://www.cs.purdue.edu/puremd
+  
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, hmaktulga@lbl.gov
-  Joseph Fogarty, jcfogart@mail.usf.edu
-  Sagar Pandit, pandit@usf.edu
-  Ananth Y Grama, ayg@cs.purdue.edu
+  
+  Contributing authors: 
+  H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
+  Corresponding author: 
+  Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-  Algorithmic Techniques", Parallel Computing, in press.
+  Algorithmic Techniques", Parallel Computing, 38 (4-5), 245-259
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -57,7 +59,6 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
   const double p_ovun7 = system->reax_param.gp.l[8];
   const double p_ovun8 = system->reax_param.gp.l[9];
 
-  const int natoms = system->n;
   reax_list *bonds = (*lists) + BONDS;
 
   double total_Elp = 0.0;
@@ -96,10 +97,6 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
   class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
-
-  pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
-				    system->pair_ptr->vflag_either, natoms,
-				    system->pair_ptr->eatom, system->pair_ptr->vatom, thr);
 
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
@@ -278,10 +275,6 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // UnCoor-2b
     }
   }
-
-  pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
-				  system->pair_ptr->vflag_either, thr);
-
  }
 
  data->my_en.e_lp += total_Elp;

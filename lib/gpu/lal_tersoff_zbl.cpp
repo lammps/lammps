@@ -62,7 +62,8 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,tersoff_zbl,"k_tersoff_zbl_repulsive",
-                           "k_tersoff_zbl_three_center", "k_tersoff_zbl_three_end");
+                           "k_tersoff_zbl_three_center", "k_tersoff_zbl_three_end",
+                           "k_tersoff_zbl_short_nbor");
   if (success!=0)
     return success;
 
@@ -177,10 +178,15 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
 
   UCL_H_Vec<numtyp> cutsq_view(nparams,*(this->ucl_device),
                                UCL_WRITE_ONLY);
-  for (int i=0; i<nparams; i++)
+  double cutsqmax = 0.0;
+  for (int i=0; i<nparams; i++) {
     cutsq_view[i]=static_cast<numtyp>(host_cutsq[i]);
+    if (cutsqmax < host_cutsq[i]) cutsqmax = host_cutsq[i];
+  }
   cutsq.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(cutsq,cutsq_view,false);
+
+  _cutshortsq = static_cast<numtyp>(cutsqmax);
 
   UCL_H_Vec<int> dview_elem2param(nelements*nelements*nelements,
                            *(this->ucl_device), UCL_WRITE_ONLY);
@@ -245,171 +251,6 @@ double TersoffZT::host_memory_usage() const {
 #define KTHREADS this->_threads_per_atom
 #define JTHREADS this->_threads_per_atom
 // ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, virials,..
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void TersoffZT::compute(const int f_ago, const int inum_full, const int nall,
-                       const int nlist, double **host_x, int *host_type,
-                       int *ilist, int *numj, int **firstneigh,
-                       const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start,
-                       const double cpu_time, bool &success) {
-  this->acc_timers();
-  if (inum_full==0) {
-    host_start=0;
-    // Make sure textures are correct if realloc by a different hybrid style
-    this->resize_atom(0,nall,success);
-    this->zero_timers();
-    return;
-  }
-
-  int ago=this->hd_balancer.ago_first(f_ago);
-  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
-  this->ans->inum(inum);
-  #ifdef THREE_CONCURRENT
-  this->ans2->inum(inum);
-  #endif
-  host_start=inum;
-
-  if (ago==0) {
-    this->reset_nbors(nall, inum, nlist, ilist, numj, firstneigh, success);
-    if (!success)
-      return;
-    _max_nbors = this->nbor->max_nbor_loop(nlist,numj,ilist);
-  }
-
-  this->atom->cast_x_data(host_x,host_type);
-  this->hd_balancer.start_timer();
-  this->atom->add_x_data(host_x,host_type);
-
-  // re-allocate zetaij if necessary
-  if (nall*_max_nbors > _zetaij.cols()) {
-    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
-    _zetaij.resize(_max_nbors*_nmax);
-  }
-
-  int _eflag;
-  if (eflag)
-    _eflag=1;
-  else
-    _eflag=0;
-
-  int ainum=nlist;
-  int nbor_pitch=this->nbor->nbor_pitch();
-  int BX=this->block_pair();
-  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
-                               (BX/(JTHREADS*KTHREADS))));
-
-  this->k_zeta.set_size(GX,BX);
-  this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6, &cutsq,
-                   &map, &elem2param, &_nelements, &_nparams, &_zetaij,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &_eflag, &ainum, &nbor_pitch, &this->_threads_per_atom);
-
-  int evatom=0;
-  if (eatom || vatom)
-    evatom=1;
-  #ifdef THREE_CONCURRENT
-  this->ucl_device->sync();
-  #endif
-  loop(eflag,vflag,evatom);
-  this->ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
-  this->device->add_ans_object(this->ans);
-  #ifdef THREE_CONCURRENT
-  this->ans2->copy_answers(eflag,vflag,eatom,vatom,ilist);
-  this->device->add_ans_object(this->ans2);
-  #endif
-  this->hd_balancer.stop_timer();
-}
-
-// ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary and then compute forces, virials, energies
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-int ** TersoffZT::compute(const int ago, const int inum_full,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag,
-                         int **nspecial, tagint **special, const bool eflag,
-                         const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start,
-                         int **ilist, int **jnum,
-                         const double cpu_time, bool &success) {
-  this->acc_timers();
-
-  if (inum_full==0) {
-    host_start=0;
-    // Make sure textures are correct if realloc by a different hybrid style
-    this->resize_atom(0,nall,success);
-    this->zero_timers();
-    return NULL;
-  }
-
-  this->hd_balancer.balance(cpu_time);
-  int inum=this->hd_balancer.get_gpu_count(ago,inum_full);
-  this->ans->inum(inum);
-  #ifdef THREE_CONCURRENT
-  this->ans2->inum(inum);
-  #endif
-  host_start=inum;
-
-  // Build neighbor list on GPU if necessary
-  if (ago==0) {
-    _max_nbors = this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                    sublo, subhi, tag, nspecial, special, success);
-    if (!success)
-      return NULL;
-    this->hd_balancer.start_timer();
-  } else {
-    this->atom->cast_x_data(host_x,host_type);
-    this->hd_balancer.start_timer();
-    this->atom->add_x_data(host_x,host_type);
-  }
-  *ilist=this->nbor->host_ilist.begin();
-  *jnum=this->nbor->host_acc.begin();
-
-  // re-allocate zetaij if necessary
-  if (nall*_max_nbors > _zetaij.cols()) {
-    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
-    _zetaij.resize(_max_nbors*_nmax);
-  }
-
-  int _eflag;
-  if (eflag)
-    _eflag=1;
-  else
-    _eflag=0;
-
-  int ainum=nall;
-  int nbor_pitch=this->nbor->nbor_pitch();
-  int BX=this->block_pair();
-  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
-                               (BX/(JTHREADS*KTHREADS))));
-
-  this->k_zeta.set_size(GX,BX);
-  this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6, &cutsq,
-                   &map, &elem2param, &_nelements, &_nparams, &_zetaij,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &_eflag, &ainum, &nbor_pitch, &this->_threads_per_atom);
-
-  int evatom=0;
-  if (eatom || vatom)
-    evatom=1;
-  #ifdef THREE_CONCURRENT
-  this->ucl_device->sync();
-  #endif
-  loop(eflag,vflag,evatom);
-  this->ans->copy_answers(eflag,vflag,eatom,vatom);
-  this->device->add_ans_object(this->ans);
-  #ifdef THREE_CONCURRENT
-  this->ans2->copy_answers(eflag,vflag,eatom,vatom);
-  this->device->add_ans_object(this->ans2);
-  #endif
-  this->hd_balancer.stop_timer();
-
-  return this->nbor->host_jlist.begin()-host_start;
-}
-
-// ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
@@ -427,9 +268,40 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   else
     vflag=0;
 
-  int ainum=this->ans->inum();
+  // build the short neighbor list
+  int ainum=this->_ainum;
   int nbor_pitch=this->nbor->nbor_pitch();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
+                               (BX/this->_threads_per_atom)));
+
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &cutsq, &map,
+                 &elem2param, &_nelements, &_nparams,
+                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                 &this->dev_short_nbor, &ainum,
+                 &nbor_pitch, &this->_threads_per_atom);
+
+  // re-allocate zetaij if necessary
+  int nall = this->_nall;
+  if (nall*this->_max_nbors > _zetaij.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
+    _zetaij.resize(this->_max_nbors*_nmax);
+  }
+
+  nbor_pitch=this->nbor->nbor_pitch();
+  GX=static_cast<int>(ceil(static_cast<double>(this->_ainum)/
+                               (BX/(JTHREADS*KTHREADS))));
+
+  this->k_zeta.set_size(GX,BX);
+  this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6, &cutsq,
+                   &map, &elem2param, &_nelements, &_nparams, &_zetaij,
+                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                   &this->dev_short_nbor,
+                   &_eflag, &this->_ainum, &nbor_pitch, &this->_threads_per_atom);
+
+  ainum=this->ans->inum();
+  nbor_pitch=this->nbor->nbor_pitch();
+  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
   this->time_pair.start();
@@ -438,6 +310,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                    &_global_e, &_global_a_0, &_global_epsilon_0, &cutsq,
                    &map, &elem2param, &_nelements, &_nparams,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                   &this->dev_short_nbor,
                    &this->ans->force, &this->ans->engv,
                    &eflag, &vflag, &ainum, &nbor_pitch,
                    &this->_threads_per_atom);
@@ -449,6 +322,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   this->k_three_center.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                            &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                            &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                           &this->dev_short_nbor,
                            &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
                            &nbor_pitch, &this->_threads_per_atom, &evatom);
 
@@ -463,7 +337,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
@@ -472,7 +346,7 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   }

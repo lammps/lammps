@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_QTHREADS )
 
-#include <impl/Kokkos_spinwait.hpp>
+#include <impl/Kokkos_Spinwait.hpp>
 
 //----------------------------------------------------------------------------
 

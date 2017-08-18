@@ -1,3 +1,4 @@
+# library build -*- makefile -*-
 SHELL = /bin/sh
 
 # which file will be copied to Makefile.lammps
@@ -5,6 +6,7 @@ SHELL = /bin/sh
 EXTRAMAKE = Makefile.lammps.installed
 
 # ------ FILES ------
+
 SRC = $(wildcard *.cpp)
 INC = $(wildcard *.h)
 
@@ -47,5 +49,9 @@ DEPENDS = $(OBJ:.o=.d)
 
 # ------ CLEAN ------
 
+.PHONY: clean lib
+
 clean:
 	-rm *.o *.d *~ $(LIB)
+
+sinclude $(DEPENDS)

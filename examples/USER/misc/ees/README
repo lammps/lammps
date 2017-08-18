@@ -1,0 +1,13 @@
+Here one may find simple examples showing how "fix wall/ess" and "fix wall/region/ess" work. 
+
+
+--in.fix_wall_region:
+	
+	This input uses "Data_region" to setup a system of three particles colliding with a
+	cubic region which its walls interact with particle with EES potential. To find out details
+	of how to set parameters of "fix wall/region/ees" see documentaion. 
+
+--in.fix_wall
+	
+	This input uses "Data_wall" to confine a ellipsoidal particle between two EES walls.
+	For more details lookup LAMMPS's documentation under "fix wall/ess" command. 

@@ -14,11 +14,11 @@ experienced users.
 2.1 "What's in the LAMMPS distribution"_#start_1
 2.2 "Making LAMMPS"_#start_2
 2.3 "Making LAMMPS with optional packages"_#start_3
-2.5 "Building LAMMPS as a library"_#start_4
-2.6 "Running LAMMPS"_#start_5
-2.7 "Command-line options"_#start_6
-2.8 "Screen output"_#start_7
-2.9 "Tips for users of previous versions"_#start_8 :all(b)
+2.4 "Building LAMMPS as a library"_#start_4
+2.5 "Running LAMMPS"_#start_5
+2.6 "Command-line options"_#start_6
+2.7 "Screen output"_#start_7
+2.8 "Tips for users of previous versions"_#start_8 :all(b)
 
 :line
 
@@ -434,20 +434,39 @@ files.  Note that on some large parallel machines which use "modules"
 for their compile/link environements, you may simply need to include
 the correct module in your build environment.  Or the parallel machine
 may have a vendor-provided FFT library which the compiler has no
-trouble finding.
+trouble finding.  See the src/MAKE/OPTIONS/Makefile.fftw file for an
+example of how to specify these variables to use the FFTW3 library.
 
-FFTW is a fast, portable library that should also work on any
-platform.  You can download it from
+FFTW is fast, portable library that should also work on any platform
+and typically be faster than KISS FFT.  You can download it from
 "www.fftw.org"_http://www.fftw.org.  Both the legacy version 2.1.X and
 the newer 3.X versions are supported as -DFFT_FFTW2 or -DFFT_FFTW3.
-Building FFTW for your box should be as simple as ./configure; make.
-Note that on some platforms FFTW2 has been pre-installed, and uses
-renamed files indicating the precision it was compiled with,
-e.g. sfftw.h, or dfftw.h instead of fftw.h.  In this case, you can
-specify an additional define variable for FFT_INC called -DFFTW_SIZE,
-which will select the correct include file.  In this case, for FFT_LIB
-you must also manually specify the correct library, namely -lsfftw or
--ldfftw.
+Building FFTW for your box should be as simple as ./configure; make;
+make install.  The install command typically requires root privileges
+(e.g. invoke it via sudo), unless you specify a local directory with
+the "--prefix" option of configure.  Type "./configure --help" to see
+various options.
+
+If you wish to have FFTW support for single-precision FFTs (see below
+about -DFFT_SINGLE) in addition to the default double-precision FFTs,
+you will need to build FFTW a second time for single-precision.  For
+FFTW3, do this via:
+
+make clean
+./configure --enable-single; make; make install :pre
+
+which should produce the additional library libfftw3f.a.
+
+For FFTW2, do this:
+
+make clean
+./configure --enable-float --enable-type-prefix; make; make install :pre
+
+which should produce the additional library libsfftw.a and additional
+include file sfttw.a.  Note that on some platforms FFTW2 has been
+pre-installed for both single- and double-precision, and may already
+have these files as well as libdfftw.a and dfftw.h for double
+precision.
 
 The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
 use single-precision FFTs with PPPM, which can speed-up long-range
@@ -458,6 +477,16 @@ double precision.  Using the -DFFT_SINGLE setting trades off a little
 accuracy for reduced memory use and parallel communication costs for
 transposing 3d FFT data.  Note that single precision FFTs have only
 been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
+
+When using -DFFT_SINGLE with FFTW3 or FFTW2, you need to build FFTW
+with support for single-precision, as explained above.  For FFTW3 you
+also need to include -lfftw3f with the FFT_LIB setting, in addition to
+-lfftw3.  For FFTW2, you also need to specify -DFFT_SIZE with the
+FFT_INC setting and -lsfftw with the FFT_LIB setting (in place of
+-lfftw).  Similarly, if FFTW2 has been preinstalled with an explicit
+double-precision library (libdfftw.a and not the default libfftw.a),
+then you can specify -DFFT_SIZE (and not -DFFT_SINGLE), and specify
+-ldfftw to use double-precision FFTs.
 
 Step 7 :h6
 
@@ -558,8 +587,7 @@ Typing "make clean-all" or "make clean-machine" will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
 particular machine.
 
-Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
--DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :h6
+Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :h6
 
 As explained above, any of these 3 settings can be specified on the
 LMP_INC line in your low-level src/MAKE/Makefile.foo.
@@ -630,22 +658,29 @@ utilities.
 For Cygwin and the MinGW cross-compilers, suitable makefiles are
 provided in src/MAKE/MACHINES. When using other compilers, like
 Visual C++ or Intel compilers for Windows, you may have to implement
-your own build system. Since none of the current LAMMPS core developers
-has significant experience building executables on Windows, we are
-happy to distribute contributed instructions and modifications, but
-we cannot provide support for those.
+your own build system. Due to differences between the Windows OS
+and Windows system libraries to Unix-like environments like Linux
+or MacOS, when compiling for Windows a few adjustments may be needed:
+
+Do [not] set the -DLAMMPS_MEMALIGN define (see LMP_INC makefile variable)
+Add -lwsock32 -lpsapi to the linker flags (see LIB makefile variable)
+Try adding -static-libgcc or -static or both to the linker flags when your LAMMPS executable complains about missing .dll files  :ul
+
+Since none of the current LAMMPS core developers has significant
+experience building executables on Windows, we are happy to distribute
+contributed instructions and modifications to improve the situation,
+but we cannot provide support for those.
 
 With the so-called "Anniversary Update" to Windows 10, there is a
 Ubuntu Linux subsystem available for Windows, that can be installed
 and then used to compile/install LAMMPS as if you are running on a
 Ubuntu Linux system instead of Windows.
 
-As an alternative, you can download "daily builds" (and some older
-versions) of the installer packages from
-"rpm.lammps.org/windows.html"_http://rpm.lammps.org/windows.html.
-These executables are built with most optional packages and the
-download includes documentation, potential files, some tools and
-many examples, but no source code.
+As an alternative, you can download pre-compiled installer packages from
+"packages.lammps.org/windows.html"_http://packages.lammps.org/windows.html.
+These executables are built with most optional packages included and the
+download includes documentation, potential files, some tools and many
+examples, but no source code.
 
 :line
 
@@ -685,7 +720,7 @@ type
 lmp_machine -h :pre
 
 to run your executable with the optional "-h command-line
-switch"_#start_7 for "help", which will list the styles and commands
+switch"_#start_6 for "help", which will list the styles and commands
 known to your executable, and immediately exit.
 
 :line
@@ -880,7 +915,7 @@ src/MAKE/OPTIONS, which include the settings.  Note that the
 USER-INTEL and KOKKOS packages can use settings that build LAMMPS for
 different hardware.  The USER-INTEL package can be compiled for Intel
 CPUs and KNLs; the KOKKOS package builds for CPUs (OpenMP), GPUs
-(Cuda), and Intel KNLs.
+(CUDA), and Intel KNLs.
 
 Makefile.intel_cpu
 Makefile.intel_phi
@@ -1058,7 +1093,7 @@ LAMMPS to be built with one or more of its optional packages.
 :line
 
 On a Windows box, you can skip making LAMMPS and simply download an
-installer package from "here"_http://rpm.lammps.org/windows.html
+installer package from "here"_http://packages.lammps.org/windows.html
 
 For running the non-MPI executable, follow these steps:
 
@@ -1070,18 +1105,27 @@ the [in.lj] input from the bench folder. (e.g. by typing: cd "Documents"). :l
 
 At the command prompt, type "lmp_serial -in in.lj", replacing [in.lj]
 with the name of your LAMMPS input script. :l
+
+The serial executable includes support for multi-threading
+parallelization from the styles in the USER-OMP packages.
+
+To run with, e.g. 4 threads, type "lmp_serial -in in.lj -pk omp 4 -sf omp"
 :ule
 
-For the MPI version, which allows you to run LAMMPS under Windows on
-multiple processors, follow these steps:
+For the MPI version, which allows you to run LAMMPS under Windows with
+the more general message passing parallel library (LAMMPS has been
+designed from ground up to use MPI efficiently), follow these steps:
 
-Download and install
-"MPICH2"_http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
-for Windows. :ulb,l
+Download and install a compatible MPI library binary package:
+for 32-bit Windows
+"mpich2-1.4.1p1-win-ia32.msi"_download.lammps.org/thirdparty/mpich2-1.4.1p1-win-ia32.msi
+and for 64-bit Windows
+"mpich2-1.4.1p1-win-x86-64.msi"_download.lammps.org/thirdparty/mpich2-1.4.1p1-win-x86-64.msi
+:ulb,l
 
 The LAMMPS Windows installer packages will automatically adjust your
 path for the default location of this MPI package. After the installation
-of the MPICH software, it needs to be integrated into the system.
+of the MPICH2 software, it needs to be integrated into the system.
 For this you need to start a Command Prompt in {Administrator Mode}
 (right click on the icon and select it). Change into the MPICH2
 installation directory, then into the subdirectory [bin] and execute
@@ -1100,7 +1144,7 @@ or
 
 mpiexec -np 4 lmp_mpi -in in.lj :pre
 
-replacing in.lj with the name of your LAMMPS input script. For the latter
+replacing [in.lj] with the name of your LAMMPS input script. For the latter
 case, you may be prompted to enter your password. :l
 
 In this mode, output may not immediately show up on the screen, so if
@@ -1111,6 +1155,11 @@ The parallel executable can also run on a single processor by typing
 something like:
 
 lmp_mpi -in in.lj :pre
+
+And the parallel executable also includes OpenMP multi-threading, which
+can be combined with MPI using something like:
+
+mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp :pre
 
 :ule
 

@@ -186,6 +186,21 @@ void check_correct_initialization( const Kokkos::InitArguments & argstruct ) {
   // Figure out the number of threads the HostSpace ExecutionSpace should have initialized to.
   int expected_nthreads = argstruct.num_threads;
 
+#ifdef KOKKOS_ENABLE_OPENMP
+  if ( std::is_same< Kokkos::HostSpace::execution_space, Kokkos::OpenMP >::value ) {
+    // use openmp default num threads
+    if ( expected_nthreads < 0 || ( expected_nthreads == 0 && !Kokkos::hwloc::available() ) ) {
+      expected_nthreads = omp_get_max_threads();
+    }
+    // use hwloc if available
+    else if ( expected_nthreads == 0 && Kokkos::hwloc::available() ) {
+      expected_nthreads = Kokkos::hwloc::get_available_numa_count()
+                        * Kokkos::hwloc::get_available_cores_per_numa()
+                        * Kokkos::hwloc::get_available_threads_per_core();
+    }
+  }
+#endif
+
   if ( expected_nthreads < 1 ) {
     if ( Kokkos::hwloc::available() ) {
       expected_nthreads = Kokkos::hwloc::get_available_numa_count()
@@ -193,12 +208,6 @@ void check_correct_initialization( const Kokkos::InitArguments & argstruct ) {
                         * Kokkos::hwloc::get_available_threads_per_core();
     }
     else {
-#ifdef KOKKOS_ENABLE_OPENMP
-      if ( std::is_same< Kokkos::HostSpace::execution_space, Kokkos::OpenMP >::value ) {
-        expected_nthreads = omp_get_max_threads();
-      }
-      else
-#endif
         expected_nthreads = 1;
     }
 

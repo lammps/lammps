@@ -198,7 +198,7 @@ file and the shared library.
 11.3 Building LAMMPS as a shared library :link(py_3),h4
 
 Instructions on how to build LAMMPS as a shared library are given in
-"Section 2.5"_Section_start.html#start_5.  A shared library is one
+"Section 2.4"_Section_start.html#start_4.  A shared library is one
 that is dynamically loadable, which is what Python requires to wrap
 LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
 
@@ -217,7 +217,7 @@ NOTE: If you are building LAMMPS with an MPI or FFT library or other
 auxiliary libraries (used by various packages), then all of these
 extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
-"Section 2.5"_Section_start.html#start_5 for more details.
+"Section 2.4"_Section_start.html#start_4 for more details.
 
 :line
 
@@ -439,7 +439,7 @@ first importing from the lammps.py file:
 >>> CDLL("liblammps.so") :pre
 
 If an error occurs, carefully go thru the steps in "Section
-2.5"_Section_start.html#start_5 and above about building a shared
+2.4"_Section_start.html#start_4 and above about building a shared
 library and about insuring Python can find the necessary two files
 it needs.
 

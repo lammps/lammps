@@ -60,7 +60,6 @@ test-threads: KokkosContainers_PerformanceTest_Threads
 test-openmp: KokkosContainers_PerformanceTest_OpenMP
 	./KokkosContainers_PerformanceTest_OpenMP
 
-
 build_all: $(TARGETS)
 
 test: $(TEST_TARGETS)

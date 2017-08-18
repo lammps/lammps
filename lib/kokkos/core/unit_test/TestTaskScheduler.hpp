@@ -250,13 +250,21 @@ struct TestTaskDependence {
     const int n = CHUNK < m_count ? CHUNK : m_count;
 
     if ( 1 < m_count ) {
-      future_type f[ CHUNK ];
+      // Test use of memory pool for temporary allocation:
+
+      // Raw allocation:
+      future_type * const f =
+        (future_type *) m_sched.memory()->allocate( sizeof(future_type) * n );
+
+      // In-place construction:
+      for ( int i = 0; i < n; ++i ) new(f+i) future_type();
 
       const int inc = ( m_count + n - 1 ) / n;
 
       for ( int i = 0; i < n; ++i ) {
         long begin = i * inc;
         long count = begin + inc < m_count ? inc : m_count - begin;
+
         f[i] = Kokkos::task_spawn( Kokkos::TaskSingle( m_sched )
                                  , TestTaskDependence( count, m_sched, m_accum ) );
       }
@@ -264,6 +272,12 @@ struct TestTaskDependence {
       m_count = 0;
 
       Kokkos::respawn( this, Kokkos::when_all( f, n ) );
+
+      // In-place destruction to release future:
+      for ( int i = 0; i < n; ++i ) (f+i)->~future_type();
+
+      // Raw deallocation:
+      m_sched.memory()->deallocate( f , sizeof(future_type) * n );
     }
     else if ( 1 == m_count ) {
       Kokkos::atomic_increment( & m_accum() );
@@ -641,18 +655,11 @@ namespace Test {
 
 TEST_F( TEST_CATEGORY, task_fib )
 {
-  const int N = 24 ; // 25 triggers tbd bug on Cuda/Pascal
+  const int N = 27 ;
   for ( int i = 0; i < N; ++i ) {
-    TestTaskScheduler::TestFib< TEST_EXECSPACE >::run( i , ( i + 1 ) * ( i + 1 ) * 10000 );
+    TestTaskScheduler::TestFib< TEST_EXECSPACE >::run( i , ( i + 1 ) * ( i + 1 ) * 2000 );
   }
 }
-
-#if defined(KOKKOS_ARCH_MAXWELL) || defined(KOKKOS_ARCH_PASCAL)
-  // TODO: Resolve bug in task DAG for Pascal
-  #define KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-#endif
-
-#ifndef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
 
 TEST_F( TEST_CATEGORY, task_depend )
 {
@@ -667,11 +674,8 @@ TEST_F( TEST_CATEGORY, task_team )
   //TestTaskScheduler::TestTaskTeamValue< TEST_EXECSPACE >::run( 1000 ); // Put back after testing.
 }
 
-#else //ndef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-#undef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-#endif //ndef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-
 }
+
 #endif // #if defined( KOKKOS_ENABLE_TASKDAG )
 #endif // #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP
 

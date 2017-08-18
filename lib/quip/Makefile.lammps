@@ -1,17 +1,26 @@
 # Settings that the LAMMPS build will import when this package library is used
 
-# include ${QUIP_ROOT}/Makefiles/Makefile.${QUIP_ARCH}
-
-F95=$(shell egrep 'F95[ ]*=' ${QUIP_ROOT}/arch/Makefile.${QUIP_ARCH} | sed 's/.*F95[ ]*=[ ]*//')
+# try to guess settings assuming there is a configured QUIP git checkout inside the lib/quip directory
+QUIPDIR=$(abspath ../../lib/quip/QUIP)
+ifeq (${QUIP_ROOT},)
+  QUIP_ROOT=$(shell test -d $(QUIPDIR) && echo $(QUIPDIR))
+  ifeq (${QUIP_ARCH},)
+    QUIP_ARCH=$(notdir $(wildcard $(QUIP_ROOT)/build/*))
+  endif
+else
+# uncomment and set manually or set the corresponding environment variables
+#  QUIP_ROOT=
+#  QUIP_ARCH=
+endif
 
 ifeq (${QUIP_ROOT},)
-$(error Environment variable QUIP_ROOT must be set.)
+$(error Environment or make variable QUIP_ROOT must be set.)
 endif
-
 ifeq (${QUIP_ARCH},)
-$(error Environment variable QUIP_ARCH must be set.)
+$(error Environment or make variable QUIP_ARCH must be set.)
 endif
 
+F95=$(shell egrep 'F95[ ]*=' ${QUIP_ROOT}/arch/Makefile.${QUIP_ARCH} | sed 's/.*F95[ ]*=[ ]*//')
 include ${QUIP_ROOT}/build/${QUIP_ARCH}/Makefile.inc
 include ${QUIP_ROOT}/Makefile.rules
 
@@ -28,3 +37,4 @@ $(error fortran compiler >>${F95}<< not recognised. Edit lib/quip/Makefile.lammp
 endif
 
 quip_SYSPATH = -L${QUIP_ROOT}/build/${QUIP_ARCH}
+

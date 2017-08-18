@@ -56,7 +56,7 @@ public:
 
   /// \brief Compute the energy of the bias with alternative values of the
   /// collective variables (suitable for bias exchange)
-  virtual int calc_energy(std::vector<colvarvalue> const &values = 
+  virtual int calc_energy(std::vector<colvarvalue> const &values =
                           std::vector<colvarvalue>(0))
   {
     cvm::error("Error: calc_energy() not implemented.\n", COLVARS_NOT_IMPLEMENTED);
@@ -175,7 +175,11 @@ public:
   static std::vector<feature *> cvb_features;
 
   /// \brief Implementation of the feature list accessor for colvarbias
-  virtual std::vector<feature *> &features()
+  virtual const std::vector<feature *> &features()
+  {
+    return cvb_features;
+  }
+  virtual std::vector<feature *> &modify_features()
   {
     return cvb_features;
   }

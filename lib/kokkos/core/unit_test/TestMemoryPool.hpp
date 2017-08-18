@@ -55,6 +55,96 @@
 namespace TestMemoryPool {
 
 template< typename MemSpace = Kokkos::HostSpace >
+void test_host_memory_pool_defaults()
+{
+  typedef typename MemSpace::execution_space   Space ;
+  typedef typename Kokkos::MemoryPool< Space > MemPool ;
+
+  {
+    const size_t MemoryCapacity = 32000 ;
+    const size_t MinBlockSize   =    64 ;
+    const size_t MaxBlockSize   =  1024 ;
+    const size_t SuperBlockSize =  4096 ;
+
+    MemPool pool( MemSpace()
+                , MemoryCapacity
+                , MinBlockSize
+                , MaxBlockSize
+                , SuperBlockSize
+                );
+
+    typename MemPool::usage_statistics stats ;
+
+    pool.get_usage_statistics( stats );
+
+    ASSERT_LE( MemoryCapacity , stats.capacity_bytes );
+    ASSERT_LE( MinBlockSize , stats.min_block_bytes );
+    ASSERT_LE( MaxBlockSize , stats.max_block_bytes );
+    ASSERT_LE( SuperBlockSize , stats.superblock_bytes );
+  }
+
+  {
+    const size_t MemoryCapacity = 10000 ;
+
+    MemPool pool( MemSpace()
+                , MemoryCapacity
+                );
+
+    typename MemPool::usage_statistics stats ;
+
+    pool.get_usage_statistics( stats );
+
+    ASSERT_LE( MemoryCapacity , stats.capacity_bytes );
+    ASSERT_LE( 64u /* default */ , stats.min_block_bytes );
+    ASSERT_LE( stats.min_block_bytes , stats.max_block_bytes );
+    ASSERT_LE( stats.max_block_bytes , stats.superblock_bytes );
+    ASSERT_LE( stats.superblock_bytes , stats.capacity_bytes );
+  }
+
+  {
+    const size_t MemoryCapacity = 10000 ;
+    const size_t MinBlockSize   =    32 ; // power of two is exact
+
+    MemPool pool( MemSpace()
+                , MemoryCapacity
+                , MinBlockSize
+                );
+
+    typename MemPool::usage_statistics stats ;
+
+    pool.get_usage_statistics( stats );
+
+    ASSERT_LE( MemoryCapacity , stats.capacity_bytes );
+    ASSERT_EQ( MinBlockSize , stats.min_block_bytes );
+    ASSERT_LE( stats.min_block_bytes , stats.max_block_bytes );
+    ASSERT_LE( stats.max_block_bytes , stats.superblock_bytes );
+    ASSERT_LE( stats.superblock_bytes , stats.capacity_bytes );
+  }
+
+  {
+    const size_t MemoryCapacity = 32000 ;
+    const size_t MinBlockSize   =    32 ; // power of two is exact
+    const size_t MaxBlockSize   =  1024 ; // power of two is exact
+
+    MemPool pool( MemSpace()
+                , MemoryCapacity
+                , MinBlockSize
+                , MaxBlockSize
+                );
+
+    typename MemPool::usage_statistics stats ;
+
+    pool.get_usage_statistics( stats );
+
+    ASSERT_LE( MemoryCapacity , stats.capacity_bytes );
+    ASSERT_EQ( MinBlockSize , stats.min_block_bytes );
+    ASSERT_EQ( MaxBlockSize , stats.max_block_bytes );
+    ASSERT_LE( stats.max_block_bytes , stats.superblock_bytes );
+    ASSERT_LE( stats.superblock_bytes , stats.capacity_bytes );
+  }
+}
+
+template< typename MemSpace = Kokkos::HostSpace >
 void test_host_memory_pool_stats()
 {
   typedef typename MemSpace::execution_space   Space ;
@@ -188,8 +278,8 @@ void print_memory_pool_stats
             << "  bytes reserved = " << stats.reserved_bytes << std::endl
             << "  bytes free     = " << ( stats.capacity_bytes -
                ( stats.consumed_bytes + stats.reserved_bytes ) ) << std::endl
-            << "  alloc used     = " << stats.consumed_blocks << std::endl
-            << "  alloc reserved = " << stats.reserved_blocks << std::endl
+            << "  block used     = " << stats.consumed_blocks << std::endl
+            << "  block reserved = " << stats.reserved_blocks << std::endl
             << "  super used     = " << stats.consumed_superblocks << std::endl
             << "  super reserved = " << ( stats.capacity_superblocks -
                                     stats.consumed_superblocks ) << std::endl
@@ -302,15 +392,147 @@ void test_memory_pool_v2( const bool print_statistics
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-} // namespace TestMemoryPool {
+template< class DeviceType >
+struct TestMemoryPoolCorners {
+
+  typedef Kokkos::View< uintptr_t * , DeviceType >  ptrs_type ;
+  typedef Kokkos::MemoryPool< DeviceType >          pool_type ;
+
+  pool_type pool ;
+  ptrs_type ptrs ;
+  uint32_t  size ;
+  uint32_t  stride ;
+
+  TestMemoryPoolCorners( const pool_type & arg_pool
+                       , const ptrs_type & arg_ptrs
+                       , const uint32_t arg_base
+                       , const uint32_t arg_stride
+                       )
+    : pool( arg_pool )
+    , ptrs( arg_ptrs )
+    , size( arg_base )
+    , stride( arg_stride )
+    {}
+
+  // Specify reduction argument value_type to
+  // avoid confusion with tag-dispatch.
+
+  using value_type = long ;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int i , long & err ) const noexcept
+    {
+      unsigned alloc_size = size << ( i % stride );
+      if ( 0 == ptrs(i) ) {
+        ptrs(i) = (uintptr_t) pool.allocate( alloc_size );
+        if ( ptrs(i) && ! alloc_size ) { ++err ; }
+      }
+    }
+
+  struct TagDealloc {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int i ) const noexcept
+    {
+      unsigned alloc_size = size << ( i % stride );
+      if ( ptrs(i) ) { pool.deallocate( (void*) ptrs(i) , alloc_size ); }
+      ptrs(i) = 0 ;
+    }
+};
+
+template< class DeviceType >
+void test_memory_pool_corners( const bool print_statistics
+                             , const bool print_superblocks )
+{
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef Kokkos::MemoryPool< DeviceType >      pool_type ;
+  typedef TestMemoryPoolCorners< DeviceType >   functor_type ;
+  typedef typename functor_type::ptrs_type      ptrs_type ;
+
+  {
+    // superblock size 1 << 14 
+    const size_t  min_superblock_size = 1u << 14 ;
+
+    // four superblocks
+    const size_t total_alloc_size = min_superblock_size * 4 ;
+
+    // block sizes  {  64 , 128 , 256 , 512 }
+    // block counts { 256 , 128 ,  64 ,  32 }
+    const unsigned  min_block_size  = 64 ;
+    const unsigned  max_block_size  = 512 ;
+    const unsigned  num_blocks      = 480 ;
+
+    pool_type pool( memory_space()
+                  , total_alloc_size
+                  , min_block_size
+                  , max_block_size
+                  , min_superblock_size );
+
+    // Allocate one block from each superblock to lock that
+    // superblock into the block size.
+
+    ptrs_type ptrs("ptrs",num_blocks);
+
+    long err = 0 ;
+
+    Kokkos::parallel_reduce
+      ( Kokkos::RangePolicy< execution_space >(0,4)
+      , functor_type( pool , ptrs , 64 , 4 )
+      , err
+      );
+
+    if ( print_statistics || err ) {
+
+      typename pool_type::usage_statistics stats ;
+
+      pool.get_usage_statistics( stats );
+
+      print_memory_pool_stats< pool_type >( stats );
+    }
+
+    if ( print_superblocks || err ) {
+      pool.print_state( std::cout );
+    }
+
+    // Now fill remaining allocations with small size
+
+    Kokkos::parallel_reduce
+      ( Kokkos::RangePolicy< execution_space >(0,num_blocks)
+      , functor_type( pool , ptrs , 64 , 1 )
+      , err
+      );
+
+    if ( print_statistics || err ) {
+
+      typename pool_type::usage_statistics stats ;
+
+      pool.get_usage_statistics( stats );
+
+      print_memory_pool_stats< pool_type >( stats );
+    }
+
+    if ( print_superblocks || err ) {
+      pool.print_state( std::cout );
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+} // namespace TestMemoryPool
 
 namespace Test {
 
 TEST_F( TEST_CATEGORY, memory_pool )
 {
+  TestMemoryPool::test_host_memory_pool_defaults<>();
   TestMemoryPool::test_host_memory_pool_stats<>();
   TestMemoryPool::test_memory_pool_v2< TEST_EXECSPACE >(false,false);
+  TestMemoryPool::test_memory_pool_corners< TEST_EXECSPACE >(false,false);
 }
+
 }
 
 #endif

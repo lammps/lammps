@@ -58,7 +58,7 @@ template< class DeviceType >
 void TestViewAggregate()
 {
   typedef Kokkos::Array< double, 32 >  value_type;
-  typedef Kokkos::Experimental::Impl::ViewDataAnalysis< value_type *, Kokkos::LayoutLeft, value_type > analysis_1d;
+  typedef Kokkos::Impl::ViewDataAnalysis< value_type *, Kokkos::LayoutLeft, value_type > analysis_1d;
 
   static_assert( std::is_same< typename analysis_1d::specialize, Kokkos::Array<> >::value, "" );
 

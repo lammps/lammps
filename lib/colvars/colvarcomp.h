@@ -132,9 +132,15 @@ public:
   static std::vector<feature *> cvc_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual std::vector<feature *> &features() {
+  virtual const std::vector<feature *> &features()
+  {
     return cvc_features;
   }
+  virtual std::vector<feature *> &modify_features()
+  {
+    return cvc_features;
+  }
+
 
   /// \brief Obtain data needed for the calculation for the backend
   virtual void read_data();
@@ -146,8 +152,11 @@ public:
   /// order to apply forces
   virtual void calc_gradients() = 0;
 
+  /// \brief Calculate the atomic fit gradients
+  void calc_fit_gradients();
+
   /// \brief Calculate finite-difference gradients alongside the analytical ones, for each Cartesian component
-  virtual void debug_gradients(cvm::atom_group *group);
+  virtual void debug_gradients();
 
   /// \brief Calculate the total force from the system using the
   /// inverse atomic gradients
@@ -227,6 +236,12 @@ public:
   /// \brief Pointers to all atom groups, to let colvars collect info
   /// e.g. atomic gradients
   std::vector<cvm::atom_group *> atom_groups;
+
+  /// \brief Store a pointer to new atom group, and list as child for dependencies
+  inline void register_atom_group(cvm::atom_group *ag) {
+    atom_groups.push_back(ag);
+    add_child((colvardeps *) ag);
+  }
 
   /// \brief Whether or not this CVC will be computed in parallel whenever possible
   bool b_try_scalable;
@@ -427,15 +442,77 @@ public:
 };
 
 
+/// \brief Colvar component: polar coordinate phi of a group
+/// (colvarvalue::type_scalar type, range [-180:180])
+class colvar::polar_phi
+  : public colvar::cvc
+{
+public:
+  polar_phi(std::string const &conf);
+  polar_phi();
+  virtual ~polar_phi() {}
+protected:
+  cvm::atom_group  *atoms;
+  cvm::real r, theta, phi;
+public:
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  /// Redefined to handle the 2*PI periodicity
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual void wrap(colvarvalue &x) const;
+};
+
+
+/// \brief Colvar component: polar coordinate theta of a group
+/// (colvarvalue::type_scalar type, range [0:180])
+class colvar::polar_theta
+  : public colvar::cvc
+{
+public:
+  polar_theta(std::string const &conf);
+  polar_theta();
+  virtual ~polar_theta() {}
+protected:
+  cvm::atom_group  *atoms;
+  cvm::real r, theta, phi;
+public:
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  /// Redefined to override the distance ones
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  /// Redefined to override the distance ones
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to override the distance ones
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+};
 
 /// \brief Colvar component: average distance between two groups of atoms, weighted as the sixth power,
 /// as in NMR refinements(colvarvalue::type_scalar type, range (0:*))
 class colvar::distance_inv
-  : public colvar::distance
+  : public colvar::cvc
 {
 protected:
+  /// First atom group
+  cvm::atom_group  *group1;
+  /// Second atom group
+  cvm::atom_group  *group2;
   /// Components of the distance vector orthogonal to the axis
   int exponent;
+  /// Use absolute positions, ignoring PBCs when present
+  bool b_no_PBC;
 public:
   distance_inv(std::string const &conf);
   distance_inv();

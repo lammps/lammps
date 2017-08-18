@@ -71,7 +71,7 @@ style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
 available styles in your executable can be listed by using "the -h
-command-line argument"_Section_start.html#start_7.  The installation
+command-line argument"_Section_start.html#start_6.  The installation
 and compilation of optional packages is explained in the "installation
 instructions"_Section_start.html#start_3.
 
@@ -7886,8 +7886,8 @@ keyword to allow for additional bonds to be formed :dd
 
 {New bond exceeded special list size in fix bond/create} :dt
 
-See the "special_bonds extra" command
-(or the "read_data extra/special/per/atom" command)
+See the "read_data extra/special/per/atom" command
+(or the "create_box extra/special/per/atom" command)
 for info on how to leave space in the special bonds
 list to allow for additional bonds to be formed. :dd
 
@@ -9666,8 +9666,8 @@ you are running. :dd
 
 {Special list size exceeded in fix bond/create} :dt
 
-See the special_bonds extra command
-(or the read_data extra/special/per/atom command)
+See the "read_data extra/special/per/atom" command
+(or the "create_box extra/special/per/atom" command)
 for info on how to leave space in the special bonds
 list to allow for additional bonds to be formed. :dd
 

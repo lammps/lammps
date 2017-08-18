@@ -484,6 +484,8 @@ void PairLJCutSoft::coeff(int narg, char **arg)
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double lambda_one = force->numeric(FLERR,arg[4]);
+  if (sigma_one <= 0.0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   double cut_one = cut_global;
   if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
@@ -584,7 +586,7 @@ double PairLJCutSoft::init_one(int i, int j)
   lj2[i][j] = pow(sigma[i][j], 6.0);
   lj3[i][j] = alphalj * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double denlj = lj3[i][j] + pow(cut[i][j] / sigma[i][j], 6.0);
     offset[i][j] = lj1[i][j] * 4.0 * epsilon[i][j] * (1.0/(denlj*denlj) - 1.0/denlj);
   } else offset[i][j] = 0.0;

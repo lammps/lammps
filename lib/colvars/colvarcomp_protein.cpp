@@ -20,15 +20,6 @@
 // alpha component
 //////////////////////////////////////////////////////////////////////
 
-    // FIXME: this will not make collect_gradients work
-    // because gradients in individual atom groups
-    // are those of the sub-cvcs (angle, hb), not those
-    // of this cvc (alpha)
-    // This is true of all cvcs with sub-cvcs, and those
-    // that do not calculate explicit gradients
-    // SO: we need a flag giving the availability of
-    // atomic gradients
-
 colvar::alpha_angles::alpha_angles(std::string const &conf)
   : cvc(conf)
 {
@@ -36,6 +27,7 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
     cvm::log("Initializing alpha_angles object.\n");
 
   function_type = "alpha_angles";
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_scalar);
 
   std::string segment_id;
@@ -44,7 +36,7 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
   std::vector<int> residues;
   {
     std::string residues_conf = "";
-    key_lookup(conf, "residueRange", residues_conf);
+    key_lookup(conf, "residueRange", &residues_conf);
     if (residues_conf.size()) {
       std::istringstream is(residues_conf);
       int initial, final;
@@ -57,12 +49,14 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
         }
       }
     } else {
-      cvm::fatal_error("Error: no residues defined in \"residueRange\".\n");
+      cvm::error("Error: no residues defined in \"residueRange\".\n");
+      return;
     }
   }
 
   if (residues.size() < 5) {
-    cvm::fatal_error("Error: not enough residues defined in \"residueRange\".\n");
+    cvm::error("Error: not enough residues defined in \"residueRange\".\n");
+    return;
   }
 
   std::string const &sid    = segment_id;
@@ -71,7 +65,8 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
 
   get_keyval(conf, "hBondCoeff", hb_coeff, 0.5);
   if ( (hb_coeff < 0.0) || (hb_coeff > 1.0) ) {
-    cvm::fatal_error("Error: hBondCoeff must be defined between 0 and 1.\n");
+    cvm::error("Error: hBondCoeff must be defined between 0 and 1.\n");
+    return;
   }
 
 
@@ -84,9 +79,9 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
       theta.push_back(new colvar::angle(cvm::atom(r[i  ], "CA", sid),
                                         cvm::atom(r[i+1], "CA", sid),
                                         cvm::atom(r[i+2], "CA", sid)));
-      atom_groups.push_back(theta.back()->atom_groups[0]);
-      atom_groups.push_back(theta.back()->atom_groups[1]);
-      atom_groups.push_back(theta.back()->atom_groups[2]);
+      register_atom_group(theta.back()->atom_groups[0]);
+      register_atom_group(theta.back()->atom_groups[1]);
+      register_atom_group(theta.back()->atom_groups[2]);
     }
 
   } else {
@@ -106,7 +101,7 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
         hb.push_back(new colvar::h_bond(cvm::atom(r[i  ], "O",  sid),
                                         cvm::atom(r[i+4], "N",  sid),
                                         r0, en, ed));
-        atom_groups.push_back(hb.back()->atom_groups[0]);
+        register_atom_group(hb.back()->atom_groups[0]);
       }
 
     } else {
@@ -123,6 +118,7 @@ colvar::alpha_angles::alpha_angles()
   : cvc()
 {
   function_type = "alpha_angles";
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_scalar);
 }
 
@@ -239,15 +235,6 @@ simple_scalar_dist_functions(alpha_angles)
 // dihedral principal component
 //////////////////////////////////////////////////////////////////////
 
-    // FIXME: this will not make collect_gradients work
-    // because gradients in individual atom groups
-    // are those of the sub-cvcs (dihedral), not those
-    // of this cvc
-    // This is true of all cvcs with sub-cvcs, and those
-    // that do not calculate explicit gradients
-    // SO: we need a flag giving the availability of
-    // atomic gradients
-
 colvar::dihedPC::dihedPC(std::string const &conf)
   : cvc(conf)
 {
@@ -255,6 +242,7 @@ colvar::dihedPC::dihedPC(std::string const &conf)
     cvm::log("Initializing dihedral PC object.\n");
 
   function_type = "dihedPC";
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_scalar);
 
   std::string segment_id;
@@ -263,7 +251,7 @@ colvar::dihedPC::dihedPC(std::string const &conf)
   std::vector<int> residues;
   {
     std::string residues_conf = "";
-    key_lookup(conf, "residueRange", residues_conf);
+    key_lookup(conf, "residueRange", &residues_conf);
     if (residues_conf.size()) {
       std::istringstream is(residues_conf);
       int initial, final;
@@ -276,12 +264,14 @@ colvar::dihedPC::dihedPC(std::string const &conf)
         }
       }
     } else {
-      cvm::fatal_error("Error: no residues defined in \"residueRange\".\n");
+      cvm::error("Error: no residues defined in \"residueRange\".\n");
+      return;
     }
   }
 
   if (residues.size() < 2) {
-    cvm::fatal_error("Error: dihedralPC requires at least two residues.\n");
+    cvm::error("Error: dihedralPC requires at least two residues.\n");
+    return;
   }
 
   std::string const &sid    = segment_id;
@@ -291,13 +281,16 @@ colvar::dihedPC::dihedPC(std::string const &conf)
   int         vecNumber;
   if (get_keyval(conf, "vectorFile", vecFileName, vecFileName)) {
     get_keyval(conf, "vectorNumber", vecNumber, 0);
-    if (vecNumber < 1)
-      cvm::fatal_error("A positive value of vectorNumber is required.");
+    if (vecNumber < 1) {
+      cvm::error("A positive value of vectorNumber is required.");
+      return;
+    }
 
     std::ifstream vecFile;
     vecFile.open(vecFileName.c_str());
-    if (!vecFile.good())
-      cvm::fatal_error("Error opening dihedral PCA vector file " + vecFileName + " for reading");
+    if (!vecFile.good()) {
+      cvm::error("Error opening dihedral PCA vector file " + vecFileName + " for reading");
+    }
 
     // TODO: adapt to different formats by setting this flag
     bool eigenvectors_as_columns = true;
@@ -321,8 +314,9 @@ colvar::dihedPC::dihedPC(std::string const &conf)
       for (int i = 1; i<vecNumber; i++)
         vecFile.ignore(999999, '\n');
 
-      if (!vecFile.good())
-        cvm::fatal_error("Error reading dihedral PCA vector file " + vecFileName);
+      if (!vecFile.good()) {
+        cvm::error("Error reading dihedral PCA vector file " + vecFileName);
+      }
 
       std::string line;
       getline(vecFile, line);
@@ -341,10 +335,11 @@ colvar::dihedPC::dihedPC(std::string const &conf)
   }
 
   if ( coeffs.size() != 4 * (residues.size() - 1)) {
-    cvm::fatal_error("Error: wrong number of coefficients: " +
+    cvm::error("Error: wrong number of coefficients: " +
         cvm::to_str(coeffs.size()) + ". Expected " +
         cvm::to_str(4 * (residues.size() - 1)) +
         " (4 coeffs per residue, minus one residue).\n");
+    return;
   }
 
   for (size_t i = 0; i < residues.size()-1; i++) {
@@ -353,19 +348,19 @@ colvar::dihedPC::dihedPC(std::string const &conf)
                                          cvm::atom(r[i  ], "CA", sid),
                                          cvm::atom(r[i  ], "C", sid),
                                          cvm::atom(r[i+1], "N", sid)));
-    atom_groups.push_back(theta.back()->atom_groups[0]);
-    atom_groups.push_back(theta.back()->atom_groups[1]);
-    atom_groups.push_back(theta.back()->atom_groups[2]);
-    atom_groups.push_back(theta.back()->atom_groups[3]);
+    register_atom_group(theta.back()->atom_groups[0]);
+    register_atom_group(theta.back()->atom_groups[1]);
+    register_atom_group(theta.back()->atom_groups[2]);
+    register_atom_group(theta.back()->atom_groups[3]);
     // Phi (next res)
     theta.push_back(new colvar::dihedral(cvm::atom(r[i  ], "C", sid),
                                          cvm::atom(r[i+1], "N", sid),
                                          cvm::atom(r[i+1], "CA", sid),
                                          cvm::atom(r[i+1], "C", sid)));
-    atom_groups.push_back(theta.back()->atom_groups[0]);
-    atom_groups.push_back(theta.back()->atom_groups[1]);
-    atom_groups.push_back(theta.back()->atom_groups[2]);
-    atom_groups.push_back(theta.back()->atom_groups[3]);
+    register_atom_group(theta.back()->atom_groups[0]);
+    register_atom_group(theta.back()->atom_groups[1]);
+    register_atom_group(theta.back()->atom_groups[2]);
+    register_atom_group(theta.back()->atom_groups[3]);
   }
 
   if (cvm::debug())
@@ -377,6 +372,7 @@ colvar::dihedPC::dihedPC()
   : cvc()
 {
   function_type = "dihedPC";
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_scalar);
 }
 

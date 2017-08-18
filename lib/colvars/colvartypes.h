@@ -91,6 +91,11 @@ public:
     data.resize(n);
   }
 
+  inline void clear()
+  {
+    data.clear();
+  }
+
   inline T & operator [] (size_t const i) {
     return data[i];
   }
@@ -1013,16 +1018,6 @@ inline cvm::rvector operator * (cvm::rmatrix const &m,
                       m.yx()*r.x + m.yy()*r.y + m.yz()*r.z,
                       m.zx()*r.x + m.zy()*r.y + m.zz()*r.z);
 }
-
-
-/// Numerical recipes diagonalization
-void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
-
-/// Eigenvector sort
-void eigsrt(cvm::real *d, cvm::real **v);
-
-/// Transpose the matrix
-void transpose(cvm::real **v);
 
 
 

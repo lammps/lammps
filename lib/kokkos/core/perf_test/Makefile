@@ -79,7 +79,6 @@ test-mempool: KokkosCore_PerformanceTest_Mempool
 test-taskdag: KokkosCore_PerformanceTest_TaskDAG
 	./KokkosCore_PerformanceTest_TaskDAG
 
-
 build_all: $(TARGETS)
 
 test: $(TEST_TARGETS)

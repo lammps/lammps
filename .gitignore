@@ -33,10 +33,11 @@ log.cite
 .Trashes
 ehthumbs.db
 Thumbs.db
-test
-test_meam
-srcBACKUP
-model
-doc/old
-doc/html
 
+#cmake
+/build*
+/CMakeCache.txt
+/CMakeFiles/
+/Makefile
+/cmake_install.cmake
+/lmp

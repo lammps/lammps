@@ -166,15 +166,19 @@ void PairEAMAlloy::read_file(char *filename)
 
   if (me == 0) {
     fgets(line,MAXLINE,fptr);
-    sscanf(line,"%d %lg %d %lg %lg",
+    nwords = sscanf(line,"%d %lg %d %lg %lg",
            &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
 
+  MPI_Bcast(&nwords,1,MPI_INT,0,world);
   MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
   MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&file->nr,1,MPI_INT,0,world);
   MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
+
+  if ((nwords != 5) || (file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+    error->all(FLERR,"Invalid EAM potential file");
 
   file->mass = new double[file->nelements];
   memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");

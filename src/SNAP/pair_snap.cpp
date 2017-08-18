@@ -289,7 +289,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
           }
         }
       }
-      
+
       f[i][0] += fij[0];
       f[i][1] += fij[1];
       f[i][2] += fij[2];
@@ -297,12 +297,16 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       f[j][1] -= fij[1];
       f[j][2] -= fij[2];
 
-      if (evflag)
-	ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
+      // tally per-atom virial contribution
+      
+      if (vflag)
+        ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
 		     fij[0],fij[1],fij[2],
-		     snaptr->rij[jj][0],snaptr->rij[jj][1],
-		     snaptr->rij[jj][2]);
+		     -snaptr->rij[jj][0],-snaptr->rij[jj][1],
+		     -snaptr->rij[jj][2]);
     }
+
+    // tally energy contribution
 
     if (eflag) {
 
@@ -336,7 +340,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
           }
         }
       }
-      ev_tally_full(i,2.0*evdwl,0.0,0.0,delx,dely,delz);
+      ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
     }
 
   }
@@ -655,11 +659,14 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
           f[j][0] -= fij[0];
           f[j][1] -= fij[1];
           f[j][2] -= fij[2];
-          if (evflag)
+
+          // tally per-atom virial contribution
+
+          if (vflag)
             ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
                          fij[0],fij[1],fij[2],
-                         sna[tid]->rij[jj][0],sna[tid]->rij[jj][1],
-                         sna[tid]->rij[jj][2]);
+                         -sna[tid]->rij[jj][0],-sna[tid]->rij[jj][1],
+                         -sna[tid]->rij[jj][2]);
         }
       }
 
@@ -699,7 +706,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-        ev_tally_full(i,2.0*evdwl,0.0,0.0,delx,dely,delz);
+        ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
       }
 
     }

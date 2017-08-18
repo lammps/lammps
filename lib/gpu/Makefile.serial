@@ -1,5 +1,5 @@
 # /* ----------------------------------------------------------------------   
-#  Generic Makefile for CUDA using MPI STUBS library
+#  Generic Linux Makefile for CUDA 
 #     - Change CUDA_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
@@ -7,29 +7,46 @@
 
 EXTRAMAKE = Makefile.lammps.standard
 
-CUDA_HOME = $(HOME)/cuda
+ifeq ($(CUDA_HOME),)
+CUDA_HOME = /usr/local/cuda
+endif
+
 NVCC = nvcc
 
 # Tesla CUDA
-CUDA_ARCH = -arch=sm_20
+CUDA_ARCH = -arch=sm_21
 # newer CUDA
 #CUDA_ARCH = -arch=sm_13
 # older CUDA
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+CUDA_ARCH = -arch=sm_35
+
+# this setting should match LAMMPS Makefile
+# one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+
+LMP_INC = -DLAMMPS_SMALLBIG
+
+# precision for GPU calculations
+# -D_SINGLE_SINGLE  # Single precision for all calculations
+# -D_DOUBLE_DOUBLE  # Double precision for all calculations
+# -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
 
 CUDA_PRECISION = -D_SINGLE_DOUBLE
-CUDA_INCLUDE = -I$(CUDA_HOME)/include
-CUDA_LIB = -L$(CUDA_HOME)/lib64 -L../../src/STUBS -lmpi
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
 
-CUDR_CPP = g++ -DMPI_GERYON -DUCL_NO_EXIT -I../../src/STUBS
-CUDR_OPTS = -O2 
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64 -L../../src/STUBS -lmpi_stubs
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math $(LMP_INC)
+
+CUDR_CPP = g++ -DMPI_GERYON -DUCL_NO_EXIT -fPIC -I../../src/STUBS
+CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias
 
 BIN_DIR = ./
 OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh
+
+CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
 
 include Nvidia.makefile
 

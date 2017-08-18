@@ -60,8 +60,7 @@ More details follow.
 use a C++11 compatible compiler
 make yes-kokkos
 make mpi KOKKOS_DEVICES=OpenMP                 # build with the KOKKOS package
-make kokkos_omp                                # or Makefile.kokkos_omp already has variable set
-Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py :pre
+make kokkos_omp                                # or Makefile.kokkos_omp already has variable set :pre
 
 mpirun -np 16 lmp_mpi -k on -sf kk -in in.lj              # 1 node, 16 MPI tasks/node, no threads
 mpirun -np 2 -ppn 1 lmp_mpi -k on t 16 -sf kk -in in.lj   # 2 nodes, 1 MPI task/node, 16 threads/task
@@ -82,8 +81,7 @@ use a C++11 compatible compiler
 KOKKOS_DEVICES = Cuda, OpenMP
 KOKKOS_ARCH = Kepler35
 make yes-kokkos
-make machine
-Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda :pre
+make machine :pre
 
 mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
 mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes :pre
@@ -98,8 +96,7 @@ use a C++11 compatible compiler
 KOKKOS_DEVICES = OpenMP
 KOKKOS_ARCH = KNC
 make yes-kokkos
-make machine
-Make.py -p kokkos -kokkos phi -o kokkos_phi -a file mpi :pre
+make machine :pre
 
 host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
 mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
@@ -116,7 +113,7 @@ To build with Kokkos support for CPUs, your compiler must support the
 OpenMP interface.  You should have one or more multi-core CPUs so that
 multiple threads can be launched by each MPI task running on a CPU.
 
-To build with Kokkos support for NVIDIA GPUs, NVIDIA Cuda software
+To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA software
 version 7.5 or later must be installed on your system.  See the
 discussion for the "GPU"_accelerate_gpu.html package for details of
 how to check and do this.
@@ -135,16 +132,16 @@ mode like the USER-INTEL package supports.
 You must choose at build time whether to build for CPUs (OpenMP),
 GPUs, or Phi.
 
-You can do any of these in one line, using the src/Make.py script,
-described in "Section 2.4"_Section_start.html#start_4 of the manual.
-Type "Make.py -h" for help.  If run from the src directory, these
+You can do any of these in one line, using the suitable make command
+line flags as described in "Section 4"_Section_packages.html of the
+manual. If run from the src directory, these
 commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
 lmp_kokkos_phi.  Note that the OMP and PHI options use
 src/MAKE/Makefile.mpi as the starting Makefile.machine.  The CUDA
 option uses src/MAKE/OPTIONS/Makefile.kokkos_cuda.
 
 The latter two steps can be done using the "-k on", "-pk kokkos" and
-"-sf kk" "command-line switches"_Section_start.html#start_7
+"-sf kk" "command-line switches"_Section_start.html#start_6
 respectively.  Or the effect of the "-pk" or "-sf" switches can be
 duplicated by adding the "package kokkos"_package.html or "suffix
 kk"_suffix.html commands respectively to your input script.
@@ -280,10 +277,10 @@ specify how many Phi coprocessors there are per node; each
 coprocessors is simply treated as running some number of MPI tasks.
 
 You must use the "-k on" "command-line
-switch"_Section_start.html#start_7 to enable the KOKKOS package.  It
+switch"_Section_start.html#start_6 to enable the KOKKOS package.  It
 takes additional arguments for hardware settings appropriate to your
 system.  Those arguments are "documented
-here"_Section_start.html#start_7.  The two most commonly used
+here"_Section_start.html#start_6.  The two most commonly used
 options are:
 
 -k on t Nt g Ng :pre
@@ -304,12 +301,12 @@ The "-k on" switch also issues a "package kokkos" command (with no
 additional arguments) which sets various KOKKOS options to default
 values, as discussed on the "package"_package.html command doc page.
 
-Use the "-sf kk" "command-line switch"_Section_start.html#start_7,
+Use the "-sf kk" "command-line switch"_Section_start.html#start_6,
 which will automatically append "kk" to styles that support it.  Use
-the "-pk kokkos" "command-line switch"_Section_start.html#start_7 if
+the "-pk kokkos" "command-line switch"_Section_start.html#start_6 if
 you wish to change any of the default "package kokkos"_package.html
 optionns set by the "-k on" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
 
 
@@ -323,7 +320,7 @@ However, when running in MPI-only mode with 1 thread per MPI task, it
 will typically be faster to use "half" neighbor lists and set the
 Newton flag to "on", just as is the case for non-accelerated pair
 styles.  You can do this with the "-pk" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
 [Or run with the KOKKOS package by editing an input script:]
 
@@ -332,7 +329,7 @@ appropriate thread and GPU values for host=OMP or host=MIC or
 device=CUDA are the same.
 
 You must still use the "-k on" "command-line
-switch"_Section_start.html#start_7 to enable the KOKKOS package, and
+switch"_Section_start.html#start_6 to enable the KOKKOS package, and
 specify its additional arguments for hardware options appropriate to
 your system, as documented above.
 
@@ -343,7 +340,7 @@ pair_style lj/cut/kk 2.5 :pre
 
 You only need to use the "package kokkos"_package.html command if you
 wish to change any of its option defaults, as set by the "-k on"
-"command-line switch"_Section_start.html#start_7.
+"command-line switch"_Section_start.html#start_6.
 
 [Speed-ups to expect:]
 
@@ -389,7 +386,7 @@ If N is the number of physical cores/node, then the number of MPI
 tasks/node * number of threads/task should not exceed N, and should
 typically equal N.  Note that the default threads/task is 1, as set by
 the "t" keyword of the "-k" "command-line
-switch"_Section_start.html#start_7.  If you do not change this, no
+switch"_Section_start.html#start_6.  If you do not change this, no
 additional parallelism (beyond MPI) will be invoked on the host
 CPU(s).
 
@@ -429,7 +426,7 @@ details).
 The -np setting of the mpirun command should set the number of MPI
 tasks/node to be equal to the # of physical GPUs on the node.
 
-Use the "-k" "command-line switch"_Section_commands.html#start_7 to
+Use the "-k" "command-line switch"_Section_commands.html#start_6 to
 specify the number of GPUs per node, and the number of threads per MPI
 task.  As above for multi-core CPUs (and no GPU), if N is the number
 of physical cores/node, then the number of MPI tasks/node * number of

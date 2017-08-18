@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -45,7 +45,7 @@
 #define KOKKOS_OPENMPTARGETEXEC_HPP
 
 #include <impl/Kokkos_Traits.hpp>
-#include <impl/Kokkos_spinwait.hpp>
+#include <impl/Kokkos_Spinwait.hpp>
 
 #include <Kokkos_Atomic.hpp>
 #include <iostream>
@@ -59,10 +59,10 @@ namespace Impl {
 
 
 class OpenMPTargetExec {
-public: 
+public:
   enum { MAX_ACTIVE_THREADS = 256*8*56*4 };
   enum { MAX_ACTIVE_TEAMS = MAX_ACTIVE_THREADS/32 };
-  
+
 private:
   static void* scratch_ptr;
 
@@ -70,7 +70,7 @@ public:
   static void verify_is_process( const char * const );
   static void verify_initialized( const char * const );
 
-  static void* get_scratch_ptr();  
+  static void* get_scratch_ptr();
   static void clear_scratch();
   static void resize_scratch( int64_t reduce_bytes , int64_t team_reduce_bytes, int64_t team_shared_bytes, int64_t thread_local_bytes );
 
@@ -159,7 +159,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION void team_barrier() const
     {
-      #pragma omp barrier  
+      #pragma omp barrier
     }
 
   template<class ValueType>
@@ -191,13 +191,13 @@ public:
 
       typedef ValueType value_type;
       const JoinLambdaAdapter<value_type,JoinOp> op(op_in);
-      
+
       // Make sure there is enough scratch space:
       typedef typename if_c< sizeof(value_type) < TEAM_REDUCE_SIZE
                            , value_type , void >::type type ;
 
       const int n_values = TEAM_REDUCE_SIZE/sizeof(value_type);
-      type * team_scratch = (type*) ((char*)m_glb_scratch + TEAM_REDUCE_SIZE*omp_get_team_num()); 
+      type * team_scratch = (type*) ((char*)m_glb_scratch + TEAM_REDUCE_SIZE*omp_get_team_num());
       for(int i = m_team_rank; i < n_values; i+= m_team_size) {
         team_scratch[i] = value_type();
       }
@@ -209,7 +209,7 @@ public:
           team_scratch[m_team_rank%n_values]+=value;
         #pragma omp barrier
       }
-      
+
       for(int d = 1; d<n_values;d*=2) {
         if((m_team_rank+d<n_values) && (m_team_rank%(2*d)==0)) {
           team_scratch[m_team_rank] += team_scratch[m_team_rank+d];
@@ -374,12 +374,12 @@ private:
   int m_chunk_size;
 
   inline void init( const int league_size_request
-                  , const int team_size_request 
+                  , const int team_size_request
                   , const int vector_length_request )
     {
       m_league_size = league_size_request ;
 
-      m_team_size = team_size_request; 
+      m_team_size = team_size_request;
 
       m_vector_length = vector_length_request;
 

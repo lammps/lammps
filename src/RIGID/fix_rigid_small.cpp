@@ -786,7 +786,7 @@ void FixRigidSmall::enforce2d()
     b->angmom[1] = 0.0;
     b->omega[0] = 0.0;
     b->omega[1] = 0.0;
-    if (langflag) {
+    if (langflag && langextra) {
       langextra[ibody][2] = 0.0;
       langextra[ibody][3] = 0.0;
       langextra[ibody][4] = 0.0;

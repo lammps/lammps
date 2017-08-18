@@ -75,7 +75,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
   reinitflag = 1;
 
-  // pair_modify settingsx
+  // pair_modify settings
 
   compute_flag = 1;
   manybody_flag = 0;
@@ -196,10 +196,10 @@ void Pair::init()
     error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
-  if (!compute_flag && tail_flag)
+  if (!compute_flag && tail_flag && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with "
                    "pair_modify compute no");
-  if (!compute_flag && offset_flag)
+  if (!compute_flag && offset_flag && comm->me == 0)
     error->warning(FLERR,"Using pair potential shift with "
                    "pair_modify compute no");
 

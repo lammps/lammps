@@ -48,21 +48,17 @@ System-wide Installation :h3
 Step 1: Building LAMMPS as a shared library :h4
 
 To use LAMMPS inside of Python it has to be compiled as shared library. This
-library is then loaded by the Python interface. In this example, we use the
-Make.py utility to create a Makefile with C++ exceptions, PNG, JPEG and FFMPEG
-output support enabled. Finally, we also enable the MOLECULE package and compile
-using the generated {auto} Makefile.
+library is then loaded by the Python interface. In this example we enable the
+MOLECULE package and compile LAMMPS with C++ exceptions, PNG, JPEG and FFMPEG
+output support enabled.
 
 cd $LAMMPS_DIR/src :pre
-
-# generate custom Makefile
-python Make.py -jpg -png -s ffmpeg exceptions -m mpi -a file :pre
 
 # add packages if necessary
 make yes-MOLECULE :pre
 
 # compile shared library using Makefile
-make mode=shlib auto :pre
+make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG -DLAMMPS_EXCEPTIONS" JPG_LIB="-lpng -ljpeg" :pre
 
 Step 2: Installing the LAMMPS Python package :h4
 

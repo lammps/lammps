@@ -87,17 +87,12 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
 #if defined( KOKKOS_ENABLE_OPENMP )
   if( std::is_same< Kokkos::OpenMP , Kokkos::DefaultExecutionSpace >::value ||
       std::is_same< Kokkos::OpenMP , Kokkos::HostSpace::execution_space >::value ) {
-    if(num_threads>0) {
-      if(use_numa>0) {
-        Kokkos::OpenMP::initialize(num_threads,use_numa);
-      }
-      else {
-        Kokkos::OpenMP::initialize(num_threads);
-      }
-    } else {
-      Kokkos::OpenMP::initialize();
+    if(use_numa>0) {
+      Kokkos::OpenMP::initialize(num_threads,use_numa);
     }
-    //std::cout << "Kokkos::initialize() fyi: OpenMP enabled and initialized" << std::endl ;
+    else {
+      Kokkos::OpenMP::initialize(num_threads);
+    }
   }
   else {
     //std::cout << "Kokkos::initialize() fyi: OpenMP enabled but not initialized" << std::endl ;
@@ -437,10 +432,7 @@ void initialize(int& narg, char* arg[])
       iarg++;
     }
 
-    InitArguments arguments;
-    arguments.num_threads = num_threads;
-    arguments.num_numa = numa;
-    arguments.device_id = device;
+    InitArguments arguments{num_threads, numa, device};
     Impl::initialize_internal(arguments);
 }
 

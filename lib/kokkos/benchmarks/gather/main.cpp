@@ -44,10 +44,10 @@
 #include<Kokkos_Core.hpp>
 #include<impl/Kokkos_Timer.hpp>
 #include<gather.hpp>
+#include<cstdlib>
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
-
 
   if(argc<8) {
     printf("Arguments: S N K D\n");

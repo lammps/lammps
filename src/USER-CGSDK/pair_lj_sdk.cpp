@@ -311,7 +311,7 @@ double PairLJSDK::init_one(int i, int j)
   lj3[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
   lj4[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];
     offset[i][j] = lj_prefact[ljt] * epsilon[i][j] * (pow(ratio,lj_pow1[ljt]) - pow(ratio,lj_pow2[ljt]));
   } else offset[i][j] = 0.0;

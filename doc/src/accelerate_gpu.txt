@@ -54,7 +54,7 @@ specify the # of GPUs per node
 use GPU styles in your input script :ul
 
 The latter two steps can be done using the "-pk gpu" and "-sf gpu"
-"command-line switches"_Section_start.html#start_7 respectively.  Or
+"command-line switches"_Section_start.html#start_6 respectively.  Or
 the effect of the "-pk" or "-sf" switches can be duplicated by adding
 the "package gpu"_package.html or "suffix gpu"_suffix.html commands
 respectively to your input script.
@@ -62,7 +62,7 @@ respectively to your input script.
 [Required hardware/software:]
 
 To use this package, you currently need to have an NVIDIA GPU and
-install the NVIDIA Cuda software on your system:
+install the NVIDIA CUDA software on your system:
 
 Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/0/information
 Go to http://www.nvidia.com/object/cuda_get.html
@@ -74,13 +74,8 @@ Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) t
 This requires two steps (a,b): build the GPU library, then build
 LAMMPS with the GPU package.
 
-You can do both these steps in one line, using the src/Make.py script,
-described in "Section 2.4"_Section_start.html#start_4 of the manual.
-Type "Make.py -h" for help.  If run from the src directory, this
-command will create src/lmp_gpu using src/MAKE/Makefile.mpi as the
-starting Makefile.machine:
-
-Make.py -p gpu -gpu mode=single arch=31 -o gpu -a lib-gpu file mpi :pre
+You can do both these steps in one line as described in
+"Section 4"_Section_packages.html of the manual.
 
 Or you can follow these two (a,b) steps:
 
@@ -90,7 +85,7 @@ The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
 lib/gpu) appropriate for your system.  You should pay special
 attention to 3 settings in this makefile.
 
-CUDA_HOME = needs to be where NVIDIA Cuda software is installed on your system
+CUDA_HOME = needs to be where NVIDIA CUDA software is installed on your system
 CUDA_ARCH = needs to be appropriate to your GPUs
 CUDA_PREC = precision (double, mixed, single) you desire :ul
 
@@ -151,9 +146,9 @@ automatically if you create more MPI tasks/node than there are
 GPUs/mode.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
 shared by 4 MPI tasks.
 
-Use the "-sf gpu" "command-line switch"_Section_start.html#start_7,
+Use the "-sf gpu" "command-line switch"_Section_start.html#start_6,
 which will automatically append "gpu" to styles that support it.  Use
-the "-pk gpu Ng" "command-line switch"_Section_start.html#start_7 to
+the "-pk gpu Ng" "command-line switch"_Section_start.html#start_6 to
 set Ng = # of GPUs/node to use.
 
 lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
@@ -188,7 +183,7 @@ pair_style lj/cut/gpu 2.5 :pre
 
 You must also use the "package gpu"_package.html command to enable the
 GPU package, unless the "-sf gpu" or "-pk gpu" "command-line
-switches"_Section_start.html#start_7 were used.  It specifies the
+switches"_Section_start.html#start_6 were used.  It specifies the
 number of GPUs/node to use, as well as other options.
 
 [Speed-ups to expect:]

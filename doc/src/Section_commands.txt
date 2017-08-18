@@ -734,7 +734,9 @@ package"_Section_start.html#start_3.
 "smd/wall/surface"_fix_smd_wall_surface.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html,
 "ti/spring"_fix_ti_spring.html,
-"ttm/mod"_fix_ttm.html :tb(c=6,ea=c)
+"ttm/mod"_fix_ttm.html,
+"wall/ees"_fix_wall_ees.html,
+"wall/region/ees"_fix_wall_ees.html :tb(c=6,ea=c)
 
 :line
 
@@ -890,8 +892,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "hybrid"_pair_hybrid.html,
 "hybrid/overlay"_pair_hybrid.html,
 "adp (o)"_pair_adp.html,
-"airebo (o)"_pair_airebo.html,
-"airebo/morse (o)"_pair_airebo.html,
+"airebo (oi)"_pair_airebo.html,
+"airebo/morse (oi)"_pair_airebo.html,
 "beck (go)"_pair_beck.html,
 "body"_pair_body.html,
 "bop"_pair_bop.html,
@@ -925,8 +927,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "dpd/tstat (go)"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
 "eam (gkiot)"_pair_eam.html,
-"eam/alloy (gkot)"_pair_eam.html,
-"eam/fs (gkot)"_pair_eam.html,
+"eam/alloy (gkiot)"_pair_eam.html,
+"eam/fs (gkiot)"_pair_eam.html,
 "eim (o)"_pair_eim.html,
 "gauss (go)"_pair_gauss.html,
 "gayberne (gio)"_pair_gayberne.html,
@@ -940,9 +942,9 @@ KOKKOS, o = USER-OMP, t = OPT.
 "kim"_pair_kim.html,
 "lcbop"_pair_lcbop.html,
 "line/lj"_pair_line_lj.html,
-"lj/charmm/coul/charmm (ko)"_pair_charmm.html,
+"lj/charmm/coul/charmm (kio)"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit (ko)"_pair_charmm.html,
-"lj/charmm/coul/long (giko)"_pair_charmm.html,
+"lj/charmm/coul/long (gkio)"_pair_charmm.html,
 "lj/charmm/coul/msm"_pair_charmm.html,
 "lj/charmmfsw/coul/charmmfsh"_pair_charmm.html,
 "lj/charmmfsw/coul/long"_pair_charmm.html,
@@ -988,7 +990,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "polymorphic"_pair_polymorphic.html,
 "python"_pair_python.html,
 "reax"_pair_reax.html,
-"rebo (o)"_pair_airebo.html,
+"rebo (oi)"_pair_airebo.html,
 "resquared (go)"_pair_resquared.html,
 "snap"_pair_snap.html,
 "soft (go)"_pair_soft.html,

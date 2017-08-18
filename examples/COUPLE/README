@@ -41,8 +41,8 @@ fortran             a simple wrapper on the LAMMPS library API that
  		      can be called from Fortran
 fortran2            a more sophisticated wrapper on the LAMMPS library API that
  		      can be called from Fortran
-fortran3            wrapper written by Nir Goldman (LLNL), as an
+fortran_dftb        wrapper written by Nir Goldman (LLNL), as an
                       extension to fortran2, used for calling LAMMPS
-                      from Fortran DFTB+ code
+                      from Fortran DFTB+ tight-binding code
 
 Each sub-directory has its own README with more details.

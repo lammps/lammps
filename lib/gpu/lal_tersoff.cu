@@ -106,7 +106,7 @@ texture<int4> ts5_tex;
     ans[ii]=old;                                                            \
   }
 
-#define store_zeta(z, tid, t_per_atom, offset)                              \
+#define acc_zeta(z, tid, t_per_atom, offset)                                \
   if (t_per_atom>1) {                                                       \
     __local acctyp red_acc[BLOCK_PAIR];                                     \
     red_acc[tid]=z;                                                         \
@@ -155,7 +155,7 @@ texture<int4> ts5_tex;
     ans[ii]=old;                                                            \
   }
 
-#define store_zeta(z, tid, t_per_atom, offset)                              \
+#define acc_zeta(z, tid, t_per_atom, offset)                                \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       z += shfl_xor(z, s, t_per_atom);                                      \
@@ -163,6 +163,65 @@ texture<int4> ts5_tex;
   }
 
 #endif
+
+__kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
+                                   const __global numtyp *restrict cutsq,
+                                   const __global int *restrict map,
+                                   const __global int *restrict elem2param,
+                                   const int nelements, const int nparams,
+                                   const __global int * dev_nbor,
+                                   const __global int * dev_packed,
+                                   __global int * dev_short_nbor,
+                                   const int inum, const int nbor_pitch,
+                                   const int t_per_atom) {
+  __local int n_stride;
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  if (ii<inum) {
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    int itype=ix.w;
+    itype=map[itype];
+
+    int ncount = 0;
+    int m = nbor;
+    dev_short_nbor[m] = 0;
+    int nbor_short = nbor+n_stride;
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int j=dev_packed[nbor];
+      int nj = j;
+      j &= NEIGHMASK;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      int jtype=jx.w;
+      jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<cutsq[ijparam]) {
+        dev_short_nbor[nbor_short] = nj;
+        nbor_short += n_stride;
+        ncount++;
+      }
+    } // for nbor
+
+    // store the number of neighbors for each thread
+    dev_short_nbor[m] = ncount;
+
+  } // if ii
+}
 
 // Tersoff is currently used for 3 elements at most: 3*3*3 = 27 entries
 // while the block size should never be less than 32.
@@ -184,6 +243,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
                              __global acctyp4 * zetaij,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
+                             const __global int * dev_short_nbor,
                              const int eflag, const int inum,
                              const int nbor_pitch, const int t_per_atom) {
   __local int tpa_sq,n_stride;
@@ -211,22 +271,29 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
   __syncthreads();
 
   if (ii<inum) {
-    int nbor_j, nbor_end;
-    int i, numj;
-
+    int nbor_j, nbor_end, i, numj;
+    const int* nbor_mem=dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
-    int nborj_start = nbor_j;
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+    int nborj_start = nbor_j;
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -241,14 +308,20 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
       delr1.z = jx.z-ix.z;
       numtyp rsq1 = delr1.x*delr1.x+delr1.y*delr1.y+delr1.z*delr1.z;
 
-      if (rsq1 > cutsq[ijparam]) continue;
+//      if (rsq1 > cutsq[ijparam]) continue;
 
       // compute zeta_ij
       z = (acctyp)0;
 
       int nbor_k = nborj_start-offset_j+offset_k;
-      for ( ; nbor_k < nbor_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+      int k_end = nbor_end;
+      if (dev_packed==dev_nbor) {
+        int numk = dev_short_nbor[nbor_k-n_stride];
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
+
+      for ( ; nbor_k < k_end; nbor_k+=n_stride) {
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == j) continue;
@@ -284,10 +357,12 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
 
       //int jj = (nbor_j-offset_j-2*nbor_pitch)/n_stride;
       //int idx = jj*n_stride + i*t_per_atom + offset_j;
-      int idx;
-      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-               i, nbor_j, offset_j, idx);
-      store_zeta(z, tid, t_per_atom, offset_k);
+      //idx to zetaij is shifted by n_stride relative to nbor_j in dev_short_nbor
+      int idx = nbor_j;
+      if (dev_packed==dev_nbor) idx -= n_stride;
+//      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+//               i, nbor_j, offset_j, idx);
+      acc_zeta(z, tid, t_per_atom, offset_k);
 
       numtyp4 ts1_ijparam = ts1[ijparam]; //fetch4(ts1_ijparam,ijparam,ts1_tex);
       numtyp ijparam_lam2 = ts1_ijparam.y;
@@ -330,6 +405,7 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
                                   const int nelements, const int nparams,
                                   const __global int * dev_nbor,
                                   const __global int * dev_packed,
+                                  const __global int * dev_short_nbor,
                                   __global acctyp4 *restrict ans,
                                   __global acctyp *restrict engv,
                                   const int eflag, const int vflag,
@@ -356,8 +432,8 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
   __syncthreads();
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int nbor, nbor_end, i, numj;
+    const int* nbor_mem=dev_packed;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -365,9 +441,17 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int j=dev_packed[nbor];
+      int j=nbor_mem[nbor];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -382,32 +466,31 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutsq[ijparam]) {
-        numtyp feng[2];
-        numtyp ijparam_lam1 = ts1[ijparam].x;
-        numtyp4 ts2_ijparam = ts2[ijparam];
-        numtyp ijparam_biga = ts2_ijparam.x;
-        numtyp ijparam_bigr = ts2_ijparam.z;
-        numtyp ijparam_bigd = ts2_ijparam.w;
+      // rsq<cutsq[ijparam]
+      numtyp feng[2];
+      numtyp ijparam_lam1 = ts1[ijparam].x;
+      numtyp4 ts2_ijparam = ts2[ijparam];
+      numtyp ijparam_biga = ts2_ijparam.x;
+      numtyp ijparam_bigr = ts2_ijparam.z;
+      numtyp ijparam_bigd = ts2_ijparam.w;
 
-        repulsive(ijparam_bigr, ijparam_bigd, ijparam_lam1, ijparam_biga,
-                  rsq, eflag, feng);
+      repulsive(ijparam_bigr, ijparam_bigd, ijparam_lam1, ijparam_biga,
+                rsq, eflag, feng);
 
-        numtyp force = feng[0];
-        f.x+=delx*force;
-        f.y+=dely*force;
-        f.z+=delz*force;
+      numtyp force = feng[0];
+      f.x+=delx*force;
+      f.y+=dely*force;
+      f.z+=delz*force;
 
-        if (eflag>0)
-          energy+=feng[1];
-        if (vflag>0) {
-          virial[0] += delx*delx*force;
-          virial[1] += dely*dely*force;
-          virial[2] += delz*delz*force;
-          virial[3] += delx*dely*force;
-          virial[4] += delx*delz*force;
-          virial[5] += dely*delz*force;
-        }
+      if (eflag>0)
+        energy+=feng[1];
+      if (vflag>0) {
+        virial[0] += delx*delx*force;
+        virial[1] += dely*dely*force;
+        virial[2] += delz*delz*force;
+        virial[3] += delx*dely*force;
+        virial[4] += delx*delz*force;
+        virial[5] += dely*delz*force;
       }
     } // for nbor
 
@@ -428,6 +511,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
                                      const __global acctyp4 *restrict zetaij,
                                      const __global int * dev_nbor,
                                      const __global int * dev_packed,
+                                     const __global int * dev_short_nbor,
                                      __global acctyp4 *restrict ans,
                                      __global acctyp *restrict engv,
                                      const int eflag, const int vflag,
@@ -461,20 +545,28 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end;
-
+    const int* nbor_mem=dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
-    int nborj_start = nbor_j;
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+    int nborj_start = nbor_j;
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -489,7 +581,6 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      if (rsq1 > cutsq[ijparam]) continue;
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
 
@@ -497,9 +588,11 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
 
       //int jj = (nbor_j-offset_j-2*nbor_pitch) / n_stride;
       //int idx = jj*n_stride + i*t_per_atom + offset_j;
-      int idx;
-      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-               i, nbor_j, offset_j, idx);
+      //idx to zetaij is shifted by n_stride relative to nbor_j in dev_short_nbor
+      int idx = nbor_j;
+      if (dev_packed==dev_nbor) idx -= n_stride;
+//      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+//               i, nbor_j, offset_j, idx);
       acctyp4 zeta_ij = zetaij[idx]; // fetch(zeta_ij,idx,zeta_tex);
       numtyp force = zeta_ij.x*tpainv;
       numtyp prefactor = zeta_ij.y;
@@ -520,9 +613,15 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
         virial[5] += delr1[1]*delr1[2]*mforce;
       }
 
-      int nbor_k=nborj_start-offset_j+offset_k;
-      for ( ; nbor_k<nbor_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+      int nbor_k = nborj_start-offset_j+offset_k;
+      int k_end = nbor_end;
+      if (dev_packed==dev_nbor) {
+        int numk = dev_short_nbor[nbor_k-n_stride];
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
+
+      for ( ; nbor_k<k_end; nbor_k+=n_stride) {
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (j == k) continue;
@@ -598,6 +697,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
                                   const __global int * dev_nbor,
                                   const __global int * dev_packed,
                                   const __global int * dev_acc,
+                                  const __global int * dev_short_nbor,
                                   __global acctyp4 *restrict ans,
                                   __global acctyp *restrict engv,
                                   const int eflag, const int vflag,
@@ -632,7 +732,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const int* nbor_mem=dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -643,9 +743,18 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
     itype=map[itype];
 
     numtyp tpainv = ucl_recip((numtyp)t_per_atom);
+
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -659,8 +768,6 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       delr1[1] = jx.y-ix.y;
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-
-      if (rsq1 > cutsq[ijparam]) continue;
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -683,13 +790,20 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
         k_end=nbor_k+numk;
         nbor_k+=offset_k;
       }
+
+      // recalculate numk and k_end for the use of short neighbor list
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
       int nbork_start = nbor_k;
 
       // look up for zeta_ji: find i in the j's neighbor list
       int m = tid / t_per_atom;
       int ijnum = -1;
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
@@ -711,9 +825,11 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
 
       //int iix = (ijnum - offset_kf - 2*nbor_pitch) / n_stride;
       //int idx = iix*n_stride + j*t_per_atom + offset_kf;
-      int idx;
-      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-               j, ijnum, offset_kf, idx);
+      //idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
+      int idx = ijnum;
+      if (dev_packed==dev_nbor) idx -= n_stride;
+//      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+//               j, ijnum, offset_kf, idx);
       acctyp4 zeta_ji = zetaij[idx]; // fetch(zeta_ji,idx,zeta_tex);
       numtyp force = zeta_ji.x*tpainv;
       numtyp prefactor_ji = zeta_ji.y;
@@ -736,7 +852,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
 
       // attractive forces
       for (nbor_k = nbork_start ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;
@@ -777,9 +893,11 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
 
         //int kk = (nbor_k - offset_k - 2*nbor_pitch) / n_stride;
         //int idx = kk*n_stride + j*t_per_atom + offset_k;
-        int idx;
-        zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-                 j, nbor_k, offset_k, idx);
+        //idx to zetaij is shifted by n_stride relative to nbor_k in dev_short_nbor
+        int idx = nbor_k;
+        if (dev_packed==dev_nbor) idx -= n_stride;
+//        zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+//                 j, nbor_k, offset_k, idx);
         acctyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
         numtyp prefactor_jk = zeta_jk.y;
         int jkiparam=elem2param[jtype*nelements*nelements+ktype*nelements+itype];
@@ -824,6 +942,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global int * dev_nbor,
                                         const __global int * dev_packed,
                                         const __global int * dev_acc,
+                                        const __global int * dev_short_nbor,
                                         __global acctyp4 *restrict ans,
                                         __global acctyp *restrict engv,
                                         const int eflag, const int vflag,
@@ -858,7 +977,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -869,9 +988,18 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
     itype=map[itype];
 
     numtyp tpainv = ucl_recip((numtyp)t_per_atom);
+
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -885,8 +1013,6 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       delr1[1] = jx.y-ix.y;
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-
-      if (rsq1 > cutsq[ijparam]) continue;
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -909,13 +1035,20 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         k_end=nbor_k+numk;
         nbor_k+=offset_k;
       }
+
+      // recalculate numk and k_end for the use of short neighbor list
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
       int nbork_start = nbor_k;
 
       // look up for zeta_ji
       int m = tid / t_per_atom;
       int ijnum = -1;
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
@@ -937,9 +1070,11 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
 
       //int iix = (ijnum - offset_kf - 2*nbor_pitch) / n_stride;
       //int idx = iix*n_stride + j*t_per_atom + offset_kf;
-      int idx;
-      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-               j, ijnum, offset_kf, idx);
+      //idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
+      int idx = ijnum;
+      if (dev_packed==dev_nbor) idx -= n_stride;
+//      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+//               j, ijnum, offset_kf, idx);
       acctyp4 zeta_ji = zetaij[idx]; //  fetch(zeta_ji,idx,zeta_tex);
       numtyp force = zeta_ji.x*tpainv;
       numtyp prefactor_ji = zeta_ji.y;
@@ -962,7 +1097,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
 
       // attractive forces
       for (nbor_k = nbork_start; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;
@@ -1010,9 +1145,11 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
 
         //int kk = (nbor_k - offset_k - 2*nbor_pitch) / n_stride;
         //int idx = kk*n_stride + j*t_per_atom + offset_k;
-        int idx;
-        zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-                 j, nbor_k, offset_k, idx);
+        //idx to zetaij is shifted by n_stride relative to nbor_k in dev_short_nbor
+        int idx = nbor_k;
+        if (dev_packed==dev_nbor) idx -= n_stride;
+//        zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+//                 j, nbor_k, offset_k, idx);
         acctyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
         numtyp prefactor_jk = zeta_jk.y;
 
@@ -1040,7 +1177,6 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         virial[3] += TWOTHIRD*(delr2[0]*fj[1] + mdelr1[0]*fk[1]);
         virial[4] += TWOTHIRD*(delr2[0]*fj[2] + mdelr1[0]*fk[2]);
         virial[5] += TWOTHIRD*(delr2[1]*fj[2] + mdelr1[1]*fk[2]);
-
       }
     } // for nbor
 

@@ -747,18 +747,26 @@ void FixQEq::read_file(char *file)
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
-    // words = ptrs to all words in line
+    // must have 6 parameters per line.
 
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    if (nwords < 6)
+      error->all(FLERR,"Invalid fix qeq parameter file");
 
-    itype = atoi(words[0]);
-    chi[itype]   = atof(words[1]);
-    eta[itype]   = atof(words[2]);
-    gamma[itype] = atof(words[3]);
-    zeta[itype]  = atof(words[4]);
-    zcore[itype] = atof(words[5]);
+
+    // words = ptrs to first 6 words in line
+
+    for (n=0, words[n] = strtok(line," \t\n\r\f");
+         n < 6;
+         words[++n] = strtok(NULL," \t\n\r\f"));
+
+    itype = force->inumeric(FLERR,words[0]);
+    if ((itype < 1) || (itype > atom->ntypes))
+      error->all(FLERR,"Invalid fix qeq parameter file");
+    chi[itype]   = force->numeric(FLERR,words[1]);
+    eta[itype]   = force->numeric(FLERR,words[2]);
+    gamma[itype] = force->numeric(FLERR,words[3]);
+    zeta[itype]  = force->numeric(FLERR,words[4]);
+    zcore[itype] = force->numeric(FLERR,words[5]);
   }
   delete [] words;
 }

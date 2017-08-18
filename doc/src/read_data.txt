@@ -14,7 +14,7 @@ read_data file keyword args ... :pre
 
 file = name of data file to read in :ulb,l
 zero or more keyword/arg pairs may be appended :l
-keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/types} or {extra/angle/types} or {extra/dihedral/types} or {extra/improper/types} or {extra/bond/per/atom} or {extra/angle/per/atom} or {extra/dihedral/per/atom} or {extra/improper/per/atom} or {group} or {nocoeff} or {fix} :l
+keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/types} or {extra/angle/types} or {extra/dihedral/types} or {extra/improper/types} or {group} or {nocoeff} or {fix} :l
   {add} arg = {append} or {Nstart} or {merge}
     append = add new atoms with IDs appended to current IDs
     Nstart = add new atoms with IDs starting with Nstart
@@ -32,11 +32,6 @@ keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/type
   {extra/angle/types} arg = # of extra angle types
   {extra/dihedral/types} arg = # of extra dihedral types
   {extra/improper/types} arg = # of extra improper types
-  {extra/bond/per/atom} arg = leave space for this many new bonds per atom
-  {extra/angle/per/atom} arg = leave space for this many new angles per atom
-  {extra/dihedral/per/atom} arg = leave space for this many new dihedrals per atom
-  {extra/improper/per/atom} arg = leave space for this many new impropers per atom
-  {extra/special/per/atom} arg = leave space for extra 1-2,1-3,1-4 interactions per atom
   {group} args = groupID
     groupID = add atoms in data file to this group
   {nocoeff} = ignore force field parameters
@@ -62,7 +57,7 @@ simulation.  The file can be ASCII text or a gzipped text file
 atom coordinates; see the "read_restart"_read_restart.html and
 "create_atoms"_create_atoms.html commands for alternative methods.
 Also see the explanation of the "-restart command-line
-switch"_Section_start.html#start_6 which can convert a restart file to
+switch"_Section_start.html#start_7 which can convert a restart file to
 a data file.
 
 This command can be used multiple times to add new atoms and their
@@ -269,11 +264,11 @@ is different than the default.
 {angle types} = # of angle types in system
 {dihedral types} = # of dihedral types in system
 {improper types} = # of improper types in system
-{extra bond per atom} = leave space for this many new bonds per atom (deprecated, use extra/bond/per/atom keyword)
-{extra angle per atom} = leave space for this many new angles per atom (deprecated, use extra/angle/per/atom keyword)
-{extra dihedral per atom} = leave space for this many new dihedrals per atom (deprecated, use extra/dihedral/per/atom keyword)
-{extra improper per atom} = leave space for this many new impropers per atom (deprecated, use extra/improper/per/atom keyword)
-{extra special per atom} = leave space for this many new special bonds per atom (deprecated, use extra/special/per/atom keyword)
+{extra bond per atom} = leave space for this many new bonds per atom
+{extra angle per atom} = leave space for this many new angles per atom
+{extra dihedral per atom} = leave space for this many new dihedrals per atom
+{extra improper per atom} = leave space for this many new impropers per atom
+{extra special per atom} = leave space for this many new special bonds per atom
 {ellipsoids} = # of ellipsoids in system
 {lines} = # of line segments in system
 {triangles} = # of triangles in system
@@ -372,32 +367,25 @@ read_data command will generate an error in this case.
 The "extra bond per atom" setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to
 the system when a simulation runs, e.g. by using the "fix
-bond/create"_fix_bond_create.html command. Using this header flag
-is deprecated; please use the {extra/bond/per/atom} keyword (and
-correspondingly for angles, dihedrals and impropers) in the
-read_data command instead. Either will pre-allocate space in LAMMPS
- data structures for storing the new bonds (angles,
+bond/create"_fix_bond_create.html command.  This will pre-allocate
+space in LAMMPS data structures for storing the new bonds (angles,
 dihedrals, impropers).
 
 The "extra special per atom" setting is typically only needed if new
 bonds/angles/etc will be added to the system, e.g. by using the "fix
 bond/create"_fix_bond_create.html command.  Or if entire new molecules
-will be added to the system, e.g. by using the
-"fix deposit"_fix_deposit.html or "fix pour"_fix_pour.html commands,
-which will have more special 1-2,1-3,1-4 neighbors than any other
-molecules defined in the data file.  Using this header flag is
-deprecated; please use the {extra/special/per/atom} keyword instead.
-Using this setting will pre-allocate space in the LAMMPS data
-structures for storing these neighbors.  See the
+will be added to the system, e.g. by using the "fix
+deposit"_fix_deposit.html or "fix pour"_fix_pour.html commands, which
+will have more special 1-2,1-3,1-4 neighbors than any other molecules
+defined in the data file.  Using this setting will pre-allocate space
+in the LAMMPS data structures for storing these neighbors.  See the
 "special_bonds"_special_bonds.html and "molecule"_molecule.html doc
 pages for more discussion of 1-2,1-3,1-4 neighbors.
 
-NOTE: All of the "extra" settings are only applied in the first data
-file read and when no simulation box has yet been created; as soon as
-the simulation box is created (and read_data implies that), these
-settings are {locked} and cannot be changed anymore. Please see the
-description of the {add} keyword above for reading multiple data files.
-If they appear in later data files, they are ignored.
+NOTE: All of the "extra" settings are only used if they appear in the
+first data file read; see the description of the {add} keyword above
+for reading multiple data files.  If they appear in later data files,
+they are ignored.
 
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
 only used with "atom_style ellipsoid or line or tri or
@@ -547,6 +535,9 @@ bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 dipole: atom-ID atom-type q x y z mux muy muz
 dpd: atom-ID atom-type theta x y z
+edpd: atom-ID atom-type edpd_temp edpd_cv x y z 
+mdpd: atom-ID atom-type x y z
+tdpd: atom-ID atom-type x y z cc1 cc2 ... ccNspecies
 electron: atom-ID atom-type q spin eradius x y z
 ellipsoid: atom-ID atom-type ellipsoidflag density x y z
 full: atom-ID molecule-ID atom-type q x y z
@@ -566,12 +557,15 @@ The per-atom values have these meanings and units, listed alphabetically:
 atom-ID = integer ID of atom
 atom-type = type of atom (1-Ntype)
 bodyflag = 1 for body particles, 0 for point particles
+cc = chemical concentration for tDPD particles for each species (mole/volume units)
 contact-radius = ??? (distance units)
 cs_re,cs_im = real/imaginary parts of wavepacket coefficients
 cv = heat capacity (need units) for SPH particles
 density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
 diameter = diameter of spherical atom (distance units)
 e = energy (need units) for SPH particles
+edpd_temp = temperature for eDPD particles (temperature units)
+edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 eradius = electron radius (or fixed-core radius)
 etag = integer ID of electron that each wavepacket belongs to

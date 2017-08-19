@@ -328,13 +328,32 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 # add sources of enabled packages
 ############################################
 foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES})
-  if(ENABLE_${PKG})
-    set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
+  set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
+  # ignore PKG files which were manually installed in src folder
+  # headers are ignored during RegisterStyles
+  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
+  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/*.h)
+
+  foreach(PKG_FILE in ${${PKG}_SOURCES})
+      get_filename_component(FNAME ${PKG_FILE} NAME)
+      list(FIND LIB_SOURCES ${LAMMPS_SOURCE_DIR}/${FNAME} IDX)
+
+      if(NOT (IDX LESS 0))
+          #message("Ignoring ${PKG_FILE}...")
+          list(REMOVE_AT LIB_SOURCES ${IDX})
+      endif()
+  endforeach()
+
+  foreach(PKG_FILE in ${${PKG}_HEADERS})
+      get_filename_component(FNAME ${PKG_FILE} NAME)
+      DetectAndRemovePackageHeader(${LAMMPS_SOURCE_DIR}/${FNAME})
+  endforeach()
+
+  if(ENABLE_${PKG})
     # detects styles in package and adds them to global list
     RegisterStyles(${${PKG}_SOURCES_DIR})
 
-    file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
     list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
     include_directories(${${PKG}_SOURCES_DIR})
   endif()

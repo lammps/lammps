@@ -775,6 +775,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "erotate/sphere"_compute_erotate_sphere.html,
 "erotate/sphere/atom"_compute_erotate_sphere_atom.html,
 "event/displace"_compute_event_displace.html,
+"fragment/atom"_compute_cluster_atom.html,
 "global/atom"_compute_global_atom.html,
 "group/group"_compute_group_group.html,
 "gyration"_compute_gyration.html,

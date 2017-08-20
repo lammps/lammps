@@ -520,12 +520,12 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ###########################################
 # Actually add executable and lib to build
 ############################################
-set(LAMMPS_SUFFIX "" CACHE STRING "Suffix to append to lmp binary and liblammps")
-mark_as_advanced(LAMMPS_SUFFIX)
+set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps")
+mark_as_advanced(LAMMPS_MACHINE)
 
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
-set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION} OUTPUT_NAME lammps${LAMMPS_SUFFIX})
+set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION} OUTPUT_NAME lammps${LAMMPS_MACHINE})
 if(INSTALL_LIB)
   install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${LAMMPS_SOURCE_DIR}/lammps.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -535,10 +535,10 @@ endif()
 
 add_executable(lmp ${LMP_SOURCES})
 target_link_libraries(lmp lammps)
-set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_SUFFIX})
+set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
 install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
 if(ENABLE_TESTING)
-  add_test(ShowHelp lmp${LAMMPS_SUFFIX} -help)
+  add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
 endif()
 
 ##################################

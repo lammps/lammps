@@ -23,13 +23,11 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
-foreach(STYLE_FILE style_angle.h style_atom.h style_body.h style_bond.h style_command.h style_compute.h style_dihedral.h style_dump.h
-             style_fix.h style_improper.h style_integrate.h style_kspace.h style_minimize.h style_nbin.h style_npair.h style_nstencil.h
-             style_ntopo.h style_pair.h style_reader.h style_region.h)
-  if(EXISTS ${LAMMPS_SOURCE_DIR}/${STYLE_FILE})
-    message(FATAL_ERROR "There is a ${STYLE_FILE} in ${LAMMPS_SOURCE_DIR}, please clean up the source directory first")
-  endif()
-endforeach()
+# remove any style headers in the src dir
+file(GLOB SRC_STYLE_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
+if(SRC_STYLE_FILES)
+  file(REMOVE ${SRC_STYLE_FILES})
+endif()
 
 enable_language(CXX)
 
@@ -330,13 +328,27 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 # add sources of enabled packages
 ############################################
 foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES})
-  if(ENABLE_${PKG})
-    set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
+  set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
+  # ignore PKG files which were manually installed in src folder
+  # headers are ignored during RegisterStyles
+  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
+  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/*.h)
+
+  foreach(PKG_FILE in ${${PKG}_SOURCES})
+      get_filename_component(FNAME ${PKG_FILE} NAME)
+      list(REMOVE_ITEM LIB_SOURCES ${LAMMPS_SOURCE_DIR}/${FNAME})
+  endforeach()
+
+  foreach(PKG_FILE in ${${PKG}_HEADERS})
+      get_filename_component(FNAME ${PKG_FILE} NAME)
+      DetectAndRemovePackageHeader(${LAMMPS_SOURCE_DIR}/${FNAME})
+  endforeach()
+
+  if(ENABLE_${PKG})
     # detects styles in package and adds them to global list
     RegisterStyles(${${PKG}_SOURCES_DIR})
 
-    file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
     list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
     include_directories(${${PKG}_SOURCES_DIR})
   endif()

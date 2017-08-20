@@ -90,9 +90,6 @@ void ComputeFragmentAtom::compute_peratom()
     vector_atom = fragmentID;
   }
 
-  int nbondlist = neighbor->nbondlist;
-  int **bondlist = neighbor->bondlist;
-
   // if group is dynamic, insure ghost atom masks are current
 
   if (group->dynamic[igroup]) {
@@ -100,21 +97,17 @@ void ComputeFragmentAtom::compute_peratom()
     comm->forward_comm_compute(this);
   }
 
-  // every bond starts in its own fragment,
-  // with fragmentID = MIN(b1atomID,b2atomID)
-  // only bonds wholly contained in the group are considered
+  // each atom starts in its own fragment,
 
+  int nlocal = atom->nlocal;
   tagint *tag = atom->tag;
   int *mask = atom->mask;
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
 
-  for (i = 0; i < nbondlist; i++) {
-    const int b1 = bondlist[i][0];
-    const int b2 = bondlist[i][1];
-
-    if ((mask[b1] & groupbit) && (mask[b2] & groupbit))
-      fragmentID[b1] = fragmentID[b2] = MIN(tag[b1],tag[b2]);
-    else fragmentID[b1] = fragmentID[b2] = 0;
-  }
+  for (i = 0; i < nlocal + atom->nghost; i++)
+    if (mask[i] & groupbit) fragmentID[i] = tag[i];
+    else fragmentID[i] = 0;
 
   // loop until no more changes on any proc:
   // acquire fragmentIDs of ghost atoms
@@ -124,9 +117,6 @@ void ComputeFragmentAtom::compute_peratom()
   // then check if any proc made changes
 
   commflag = 1;
-  int nlocal = atom->nlocal;
-  int *num_bond = atom->num_bond;
-  tagint **bond_atom = atom->bond_atom;
 
   int change,done,anychange;
 
@@ -138,9 +128,10 @@ void ComputeFragmentAtom::compute_peratom()
       done = 1;
       for (i = 0; i < nlocal; i++) {
         if (!(mask[i] & groupbit)) continue;
-        
+
         for (j = 0; j < num_bond[i]; j++) {
-          k = bond_atom[i][j];
+          k = atom->map(bond_atom[i][j]);
+          if (k < 0) continue;
           if (!(mask[k] & groupbit)) continue;
           if (fragmentID[i] == fragmentID[k]) continue;
 

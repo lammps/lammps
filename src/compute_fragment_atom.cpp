@@ -101,6 +101,7 @@ void ComputeFragmentAtom::compute_peratom()
   tagint *tag = atom->tag;
   int *mask = atom->mask;
   int *num_bond = atom->num_bond;
+  int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
 
   for (i = 0; i < nlocal + atom->nghost; i++)
@@ -128,6 +129,7 @@ void ComputeFragmentAtom::compute_peratom()
         if (!(mask[i] & groupbit)) continue;
 
         for (j = 0; j < num_bond[i]; j++) {
+          if (bond_type[i][j] == 0) continue;
           k = atom->map(bond_atom[i][j]);
           if (k < 0) continue;
           if (!(mask[k] & groupbit)) continue;

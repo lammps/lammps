@@ -87,13 +87,8 @@ endfunction(RegisterStyles)
 
 function(RemovePackageHeader headers pkg_header)
     get_property(hlist GLOBAL PROPERTY ${headers})
-
-    list(FIND hlist ${pkg_header} idx)
-    if(NOT (idx LESS 0))
-      list(REMOVE_AT hlist ${idx})
-      #message("Ignoring ${pkg_header}...")
-      set_property(GLOBAL PROPERTY ${headers} "${hlist}")
-    endif()
+    list(REMOVE_ITEM hlist ${pkg_header})
+    set_property(GLOBAL PROPERTY ${headers} "${hlist}")
 endfunction(RemovePackageHeader)
 
 function(DetectAndRemovePackageHeader fname)

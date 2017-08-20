@@ -337,12 +337,7 @@ foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES})
 
   foreach(PKG_FILE in ${${PKG}_SOURCES})
       get_filename_component(FNAME ${PKG_FILE} NAME)
-      list(FIND LIB_SOURCES ${LAMMPS_SOURCE_DIR}/${FNAME} IDX)
-
-      if(NOT (IDX LESS 0))
-          #message("Ignoring ${PKG_FILE}...")
-          list(REMOVE_AT LIB_SOURCES ${IDX})
-      endif()
+      list(REMOVE_ITEM LIB_SOURCES ${LAMMPS_SOURCE_DIR}/${FNAME})
   endforeach()
 
   foreach(PKG_FILE in ${${PKG}_HEADERS})

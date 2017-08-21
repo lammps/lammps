@@ -74,6 +74,9 @@ if(LAMMPS_EXCEPTIONS)
   add_definitions(-DLAMMPS_EXCEPTIONS)
 endif()
 
+set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps")
+mark_as_advanced(LAMMPS_MACHINE)
+
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_TESTING "Enable testing" OFF)
@@ -520,9 +523,6 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ###########################################
 # Actually add executable and lib to build
 ############################################
-set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps")
-mark_as_advanced(LAMMPS_MACHINE)
-
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION} OUTPUT_NAME lammps$<$<BOOL:${LAMMPS_MACHINE}>:_>${LAMMPS_MACHINE})

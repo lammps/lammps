@@ -8,35 +8,47 @@
 
 compute cluster/atom command :h3
 compute fragment/atom command :h3
+compute aggregate/atom command :h3
 
 [Syntax:]
 
 compute ID group-ID cluster/atom cutoff
-compute ID group-ID fragment/atom :pre
+compute ID group-ID fragment/atom
+compute ID group-ID aggregate/atom cutoff :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-{cluster/atom} or {fragment/atom} = style name of this compute command
-cutoff = distance within which to label atoms as part of same cluster (distance units, cluster/atom only) :ul
+{cluster/atom} or {fragment/atom} or {aggregate/atom} = style name of this compute command
+cutoff = distance within which to label atoms as part of same cluster (distance units) :ul
 
 [Examples:]
 
 compute 1 all cluster/atom 3.5
 compute 1 all fragment/atom :pre
+compute 1 all aggregate/atom 3.5 :pre
 
 [Description:]
 
-Define a computation that assigns each atom a cluster ID or fragment ID.
+Define a computation that assigns each atom a cluster, fragement,
+or aggregate ID.
 
 A cluster is defined as a set of atoms, each of which is within the
 cutoff distance from one or more other atoms in the cluster.  If an
 atom has no neighbors within the cutoff distance, then it is a 1-atom
-cluster.  A fragment is similarly define as a set of atoms, each of
+cluster.
+
+A fragment is similarly defined as a set of atoms, each of
 which has an explicit bond (i.e. defined via a "data file"_read_data.html,
 the "create_bonds"_create_bonds.html command, or through fixes like
 "fix bond/create"_fix_bond_create.html, "fix bond/swap"_fix_bond_swap.html,
 or "fix bond/break"_fix_bond_break.html).  The cluster ID or fragment ID
 of every atom in the cluster will be set to the smallest atom ID of any atom
 in the cluster or fragment, respectively.
+
+An aggregate is defined by combining the rules for clusters and
+fragments, i.e. a set of atoms, where each of it is within the cutoff
+distance from one or more atoms within a fragment that is part of
+the same cluster. This measure can be used to track molecular assemblies
+like micelles.
 
 Only atoms in the compute group are clustered and assigned cluster
 IDs. Atoms not in the compute group are assigned a cluster ID = 0.
@@ -45,11 +57,12 @@ in the compute group are assigned to fragments, so that only fragmets
 are detected where [all] atoms are in the compute group. Thus atoms
 may be included in the compute group, yes still have a fragment ID of 0.
 
-For compute {cluster/atom} the neighbor list needed to compute this quantity
-is constructed each time the calculation is performed (i.e. each time a
-snapshot of atoms is dumped).  Thus it can be inefficient to compute/dump
-this quantity too frequently or to have multiple compute/dump commands,
-each of a {cluster/atom} style.
+For computes {cluster/atom} and {aggregate/atom} the neighbor list needed
+to compute this quantity is constructed each time the calculation is
+performed (i.e. each time a snapshot of atoms is dumped).  Thus it can be
+inefficient to compute/dump this quantity too frequently or to have
+multiple compute/dump commands, each of a {cluster/atom} or
+{aggregate/atom} style.
 
 NOTE: If you have a bonded system, then the settings of
 "special_bonds"_special_bonds.html command can remove pairwise

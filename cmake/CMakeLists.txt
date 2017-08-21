@@ -248,11 +248,6 @@ if(ENABLE_USER-QMMM)
   list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
-if(ENABLE_USER-AWPMD)
-  include_directories(${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact
-    ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
-endif()
-
 if(ENABLE_USER-H5MD)
   find_package(HDF5 REQUIRED)
   list(APPEND LAMMPS_LINK_LIBS ${HDF5_LIBRARIES})
@@ -366,10 +361,20 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
     endif()
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
     foreach(PKG_SRC ${${SIMPLE_LIB}_SOURCES})
-      set_property(SOURCE ${PKG_SRC} APPEND PROPERTY COMPILE_FLAGS -I${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
+      if(PKG_LIB STREQUAL awpmd)
+        set_property(SOURCE ${PKG_SRC} APPEND PROPERTY COMPILE_FLAGS -I${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/systems/interact)
+        set_property(SOURCE ${PKG_SRC} APPEND APPEND_STRING PROPERTY COMPILE_FLAGS " -I${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/ivutils/include")
+      else()
+        set_property(SOURCE ${PKG_SRC} APPEND PROPERTY COMPILE_FLAGS -I${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
+      endif()
     endforeach()
   endif()
 endforeach()
+
+if(ENABLE_USER-AWPMD)
+  set_target_properties(awpmd PROPERTIES INCLUDE_DIRECTORIES 
+    "${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact;${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
+endif()
 
 ######################################################################
 # packages which selectively include variants based on enabled styles

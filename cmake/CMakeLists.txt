@@ -555,7 +555,6 @@ message(STATUS "<<< Build configuration >>>
        Type         ${CMAKE_CXX_COMPILER_ID}
    C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}")
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
-list(FIND LANGUAGES "Fortran" FORTRAN_ENABLED)
 if(LANGUAGES MATCHES ".*Fortran.*")
   message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER} 
            Type     ${CMAKE_Fortran_COMPILER_ID}
@@ -564,9 +563,9 @@ endif()
 message(STATUS "Linker flags:
    Executable      ${CMAKE_EXE_LINKER_FLAGS}")
 if(BUILD_SHARED_LIBS)
-  message(STATUS "Shared          ${CMAKE_SHARED_LINKER_FLAGS}")
+  message(STATUS "Shared libries  ${CMAKE_SHARED_LINKER_FLAGS}")
 else()
-  message(STATUS "Static          ${CMAKE_STATIC_LINKER_FLAGS}")
+  message(STATUS "Static libries  ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
 

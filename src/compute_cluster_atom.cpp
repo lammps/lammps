@@ -63,7 +63,7 @@ void ComputeClusterAtom::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute cluster/atom unless atoms have IDs");
   if (force->pair == NULL)
-    error->all(FLERR,"Compute cluster/atom requires a pair style be defined");
+    error->all(FLERR,"Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,
                "Compute cluster/atom cutoff is longer than pairwise cutoff");

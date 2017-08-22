@@ -1,5 +1,46 @@
 # Change Log
 
+## [2.03.13](https://github.com/kokkos/kokkos/tree/2.03.13) (2017-07-27)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.03.05...2.03.13)
+
+**Implemented enhancements:**
+
+- Disallow enabling both OpenMP and Threads in the same executable [\#406](https://github.com/kokkos/kokkos/issues/406)
+- Make Kokkos::OpenMP respect OMP environment even if hwloc is available [\#630](https://github.com/kokkos/kokkos/issues/630)
+- Improve Atomics Performance on KNL/Broadwell where PREFETCHW/RFO is Available [\#898](https://github.com/kokkos/kokkos/issues/898)
+- Kokkos::resize should test whether dimensions have changed before resizing [\#904](https://github.com/kokkos/kokkos/issues/904)
+- Develop performance-regression/acceptance tests [\#737](https://github.com/kokkos/kokkos/issues/737)
+- Make the deep\_copy Profiling hook a start/end system [\#890](https://github.com/kokkos/kokkos/issues/890)
+- Add deep\_copy Profiling hook [\#843](https://github.com/kokkos/kokkos/issues/843)
+- Append tag name to parallel construct name for Profiling [\#842](https://github.com/kokkos/kokkos/issues/842)
+- Add view label to `View bounds error` message for CUDA backend [\#870](https://github.com/kokkos/kokkos/issues/870)
+- Disable printing the loaded profiling library [\#824](https://github.com/kokkos/kokkos/issues/824)
+- "Declared but never referenced" warnings [\#853](https://github.com/kokkos/kokkos/issues/853)
+- Warnings about lock\_address\_cuda\_space [\#852](https://github.com/kokkos/kokkos/issues/852)
+- WorkGraph execution policy [\#771](https://github.com/kokkos/kokkos/issues/771)
+- Simplify makefiles by guarding compilation with appropriate KOKKOS\_ENABLE\_\#\#\# macros [\#716](https://github.com/kokkos/kokkos/issues/716)
+- Cmake build: wrong include install directory [\#668](https://github.com/kokkos/kokkos/issues/668)
+- Derived View type and allocation [\#566](https://github.com/kokkos/kokkos/issues/566)
+- Fix Compiler warnings when compiling core unit tests for Cuda [\#214](https://github.com/kokkos/kokkos/issues/214)
+
+**Fixed bugs:**
+
+- Out-of-bounds read in Kokkos\_Layout.hpp [\#975](https://github.com/kokkos/kokkos/issues/975)
+- CudaClang: Fix failing test with Clang 4.0 [\#941](https://github.com/kokkos/kokkos/issues/941)
+- Respawn when memory pool allocation fails \(not available memory\) [\#940](https://github.com/kokkos/kokkos/issues/940)
+- Memory pool aborts on zero allocation request, returns NULL for \< minimum [\#939](https://github.com/kokkos/kokkos/issues/939)
+- Error with TaskScheduler query of underlying memory pool [\#917](https://github.com/kokkos/kokkos/issues/917)
+- Profiling::\*Callee static variables declared in header [\#863](https://github.com/kokkos/kokkos/issues/863)
+- calling \*Space::name\(\) causes compile error [\#862](https://github.com/kokkos/kokkos/issues/862)
+- bug in Profiling::deallocateData [\#860](https://github.com/kokkos/kokkos/issues/860)
+- task\_depend test failing, CUDA 8.0 + Pascal + RDC [\#829](https://github.com/kokkos/kokkos/issues/829)
+- \[develop branch\] Standalone cmake issues [\#826](https://github.com/kokkos/kokkos/issues/826)
+- Kokkos CUDA failes to compile with OMPI\_CXX and MPICH\_CXX wrappers [\#776](https://github.com/kokkos/kokkos/issues/776)
+- Task Team reduction on Pascal [\#767](https://github.com/kokkos/kokkos/issues/767)
+- CUDA stack overflow with TaskDAG test [\#758](https://github.com/kokkos/kokkos/issues/758)
+- TeamVector test on Cuda [\#670](https://github.com/kokkos/kokkos/issues/670)
+- Clang 4.0 Cuda Build broken again [\#560](https://github.com/kokkos/kokkos/issues/560)
+
 
 ## [2.03.05](https://github.com/kokkos/kokkos/tree/2.03.05) (2017-05-27)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.03.00...2.03.05)

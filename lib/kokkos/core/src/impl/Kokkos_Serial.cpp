@@ -50,6 +50,7 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
 
+#include <impl/Kokkos_SharedAlloc.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -123,7 +124,6 @@ void serial_resize_thread_team_data( size_t pool_reduce_bytes
   }
 }
 
-// Get thread team data structure for omp_get_thread_num()
 HostThreadTeamData * serial_get_thread_team_data()
 {
   return & g_serial_thread_team_data ;
@@ -150,6 +150,8 @@ void Serial::initialize( unsigned threads_count
   (void) use_numa_count;
   (void) use_cores_per_numa;
   (void) allow_asynchronous_threadpool;
+
+  Impl::SharedAllocationRecord< void, void >::tracking_enable();
 
   // Init the array of locks used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();

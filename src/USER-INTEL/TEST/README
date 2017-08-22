@@ -8,6 +8,7 @@
 # in.intel.sw -	        Silicon benchmark with Stillinger-Weber
 # in.intel.tersoff -    Silicon benchmark with Tersoff
 # in.intel.water -      Coarse-grain water benchmark using Stillinger-Weber
+# in.intel.airebo -     Polyethelene benchmark with AIREBO
 #
 #############################################################################
 
@@ -24,6 +25,7 @@
 # in.intel.sw -	           132.4               161.9
 # in.intel.tersoff -        83.3               101.1
 # in.intel.water -          53.4                90.3
+# in.intel.airebo -          7.3                11.8
 #
 #############################################################################
 

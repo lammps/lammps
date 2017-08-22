@@ -88,7 +88,12 @@ public:
   static std::vector<feature *> cv_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  std::vector<feature *> &features() {
+  virtual const std::vector<feature *> &features()
+  {
+    return cv_features;
+  }
+  virtual std::vector<feature *> &modify_features()
+  {
     return cv_features;
   }
 

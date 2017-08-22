@@ -1867,7 +1867,6 @@ void Input::special_bonds()
   double coul3 = force->special_coul[3];
   int angle = force->special_angle;
   int dihedral = force->special_dihedral;
-  int extra = force->special_extra;
 
   force->set_special(narg,arg);
 
@@ -1877,8 +1876,7 @@ void Input::special_bonds()
     if (lj2 != force->special_lj[2] || lj3 != force->special_lj[3] ||
         coul2 != force->special_coul[2] || coul3 != force->special_coul[3] ||
         angle != force->special_angle ||
-        dihedral != force->special_dihedral ||
-        extra != force->special_extra) {
+        dihedral != force->special_dihedral) {
       Special special(lmp);
       special.build();
     }

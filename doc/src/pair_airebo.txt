@@ -7,10 +7,13 @@
 :line
 
 pair_style airebo command :h3
+pair_style airebo/intel command :h3
 pair_style airebo/omp command :h3
 pair_style airebo/morse command :h3
+pair_style airebo/morse/intel command :h3
 pair_style airebo/morse/omp command :h3
 pair_style rebo command :h3
+pair_style rebo/intel command :h3
 pair_style rebo/omp command :h3
 
 [Syntax:]

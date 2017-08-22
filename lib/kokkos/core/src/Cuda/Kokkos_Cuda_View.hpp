@@ -221,7 +221,6 @@ struct CudaLDGFetch {
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 /** \brief  Replace Default ViewDataHandle with Cuda texture fetch specialization
@@ -294,9 +293,8 @@ public:
     }
 };
 
-}
-}
-}
+} // namespace Impl
+} // namespace Kokkos
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

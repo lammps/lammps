@@ -58,25 +58,56 @@ template class TaskQueue< Kokkos::Cuda > ;
 
 //----------------------------------------------------------------------------
 
+#if defined( KOKKOS_DEBUG )
+
+__device__
+void verify_warp_convergence( const char * const where )
+{
+  const unsigned b = __ballot(1);
+
+  if ( b != ~0u ) {
+
+printf(" verify_warp_convergence( %s ) (%d,%d,%d) (%d,%d,%d) failed %x\n"
+      , where
+      , blockIdx.x
+      , blockIdx.y
+      , blockIdx.z
+      , threadIdx.x
+      , threadIdx.y
+      , threadIdx.z
+      , b );
+
+  }
+}
+
+#endif // #if defined( KOKKOS_DEBUG )
+
+//----------------------------------------------------------------------------
+
 __device__
 void TaskQueueSpecialization< Kokkos::Cuda >::driver
-  ( TaskQueueSpecialization< Kokkos::Cuda >::queue_type * const queue )
+  ( TaskQueueSpecialization< Kokkos::Cuda >::queue_type * const queue 
+  , int32_t shmem_per_warp )
 {
   using Member = TaskExec< Kokkos::Cuda > ;
   using Queue  = TaskQueue< Kokkos::Cuda > ;
-  using task_root_type = TaskBase< Kokkos::Cuda , void , void > ;
+  using task_root_type = TaskBase< void , void , void > ;
+
+  extern __shared__ int32_t shmem_all[];
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
-  Member single_exec( 1 );
-  Member team_exec( blockDim.y );
+  int32_t * const warp_shmem =
+    shmem_all + ( threadIdx.z * shmem_per_warp ) / sizeof(int32_t);
+
+  task_root_type * const task_shmem = (task_root_type *) warp_shmem ;
 
   const int warp_lane = threadIdx.x + threadIdx.y * blockDim.x ;
 
-  union {
-    task_root_type * ptr ;
-    int              raw[2] ;
-  } task ;
+  Member single_exec( warp_shmem , 1 );
+  Member team_exec( warp_shmem , blockDim.y );
+
+  task_root_type * task_ptr ;
 
   // Loop until all queues are empty and no tasks in flight
 
@@ -87,41 +118,86 @@ void TaskQueueSpecialization< Kokkos::Cuda >::driver
 
     if ( 0 == warp_lane ) {
 
-      task.ptr = 0 < *((volatile int *) & queue->m_ready_count) ? end : 0 ;
+      task_ptr = 0 < *((volatile int *) & queue->m_ready_count) ? end : 0 ;
 
       // Loop by priority and then type
-      for ( int i = 0 ; i < Queue::NumQueue && end == task.ptr ; ++i ) {
-        for ( int j = 0 ; j < 2 && end == task.ptr ; ++j ) {
-          task.ptr = Queue::pop_ready_task( & queue->m_ready[i][j] );
+      for ( int i = 0 ; i < Queue::NumQueue && end == task_ptr ; ++i ) {
+        for ( int j = 0 ; j < 2 && end == task_ptr ; ++j ) {
+          task_ptr = Queue::pop_ready_task( & queue->m_ready[i][j] );
         }
       }
 
 #if 0
 printf("TaskQueue<Cuda>::driver(%d,%d) task(%lx)\n",threadIdx.z,blockIdx.x
-      , uintptr_t(task.ptr));
+      , uintptr_t(task_ptr));
 #endif
 
     }
 
     // shuffle broadcast
 
-    task.raw[0] = __shfl( task.raw[0] , 0 );
-    task.raw[1] = __shfl( task.raw[1] , 0 );
+    ((int*) & task_ptr )[0] = __shfl( ((int*) & task_ptr )[0] , 0 );
+    ((int*) & task_ptr )[1] = __shfl( ((int*) & task_ptr )[1] , 0 );
 
-    if ( 0 == task.ptr ) break ; // 0 == queue->m_ready_count
+#if defined( KOKKOS_DEBUG )
+    verify_warp_convergence("task_ptr");
+#endif
 
-    if ( end != task.ptr ) {
-      if ( task_root_type::TaskTeam == task.ptr->m_task_type ) {
+    if ( 0 == task_ptr ) break ; // 0 == queue->m_ready_count
+
+    if ( end != task_ptr ) {
+
+      // Whole warp copy task's closure to/from shared memory.
+      // Use all threads of warp for coalesced read/write.
+
+      int32_t const b = sizeof(task_root_type) / sizeof(int32_t);
+      int32_t const e = *((int32_t volatile *)( & task_ptr->m_alloc_size )) / sizeof(int32_t);
+
+      int32_t volatile * const task_mem = (int32_t volatile *) task_ptr ;
+
+      // copy global to shared memory:
+
+      for ( int32_t i = warp_lane ; i < e ; i += CudaTraits::WarpSize ) {
+        warp_shmem[i] = task_mem[i] ;
+      }
+
+      Kokkos::memory_fence();
+
+      // Copy done - use memory fence so that memory writes are visible.
+      // For reliable warp convergence on Pascal and Volta an explicit
+      // warp level synchronization will also be required.
+
+      if ( task_root_type::TaskTeam == task_shmem->m_task_type ) {
         // Thread Team Task
-        (*task.ptr->m_apply)( task.ptr , & team_exec );
+        (*task_shmem->m_apply)( task_shmem , & team_exec );
       }
       else if ( 0 == threadIdx.y ) {
         // Single Thread Task
-        (*task.ptr->m_apply)( task.ptr , & single_exec );
+        (*task_shmem->m_apply)( task_shmem , & single_exec );
       }
 
+      // copy shared to global memory:
+
+      for ( int32_t i = b + warp_lane ; i < e ; i += CudaTraits::WarpSize ) {
+        task_mem[i] = warp_shmem[i] ;
+      }
+
+      Kokkos::memory_fence();
+
+#if defined( KOKKOS_DEBUG )
+    verify_warp_convergence("apply");
+#endif
+
+      // If respawn requested copy respawn data back to main memory
+
       if ( 0 == warp_lane ) {
-        queue->complete( task.ptr );
+
+        if ( ((task_root_type *) task_root_type::LockTag) != task_shmem->m_next ) {
+          ( (volatile task_root_type *) task_ptr )->m_next = task_shmem->m_next ;
+          ( (volatile task_root_type *) task_ptr )->m_priority = task_shmem->m_priority ;
+        }
+
+        queue->complete( task_ptr );
       }
     }
   } while(1);
@@ -130,18 +206,20 @@ printf("TaskQueue<Cuda>::driver(%d,%d) task(%lx)\n",threadIdx.z,blockIdx.x
 namespace {
 
 __global__
-void cuda_task_queue_execute( TaskQueue< Kokkos::Cuda > * queue )
-{ TaskQueueSpecialization< Kokkos::Cuda >::driver( queue ); }
+void cuda_task_queue_execute( TaskQueue< Kokkos::Cuda > * queue 
+                            , int32_t shmem_size )
+{ TaskQueueSpecialization< Kokkos::Cuda >::driver( queue , shmem_size ); }
 
 }
 
 void TaskQueueSpecialization< Kokkos::Cuda >::execute
   ( TaskQueue< Kokkos::Cuda > * const queue )
 {
+  const int shared_per_warp = 2048 ;
   const int warps_per_block = 4 ;
   const dim3 grid( Kokkos::Impl::cuda_internal_multiprocessor_count() , 1 , 1 );
   const dim3 block( 1 , Kokkos::Impl::CudaTraits::WarpSize , warps_per_block );
-  const int shared = 0 ;
+  const int shared_total = shared_per_warp * warps_per_block ;
   const cudaStream_t stream = 0 ;
 
   CUDA_SAFE_CALL( cudaDeviceSynchronize() );
@@ -159,7 +237,7 @@ printf("cuda_task_queue_execute before\n");
   //
   // CUDA_SAFE_CALL( cudaDeviceSetLimit( cudaLimitStackSize , stack_size ) );
 
-  cuda_task_queue_execute<<< grid , block , shared , stream >>>( queue );
+  cuda_task_queue_execute<<< grid , block , shared_total , stream >>>( queue , shared_per_warp );
 
   CUDA_SAFE_CALL( cudaGetLastError() );
 

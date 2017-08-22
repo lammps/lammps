@@ -45,7 +45,7 @@
 #include <algorithm>
 
 #ifdef _WIN32
-#define PSAPI_VERSION=1
+#define PSAPI_VERSION 1
 #include <windows.h>
 #include <stdint.h>
 #include <psapi.h>

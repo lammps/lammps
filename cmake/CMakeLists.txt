@@ -561,3 +561,27 @@ foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES} ${ACCEL_PACKAGES})
     message(STATUS "Building package: ${PKG}")
   endif()
 endforeach()
+
+string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
+message(STATUS "<<< Build configuration >>>
+   Build type       ${CMAKE_BUILD_TYPE}
+   Install path     ${CMAKE_INSTALL_PREFIX}
+   Compilers and Flags:
+   C++ Compiler     ${CMAKE_CXX_COMPILER}
+       Type         ${CMAKE_CXX_COMPILER_ID}
+   C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}")
+get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+if(LANGUAGES MATCHES ".*Fortran.*")
+  message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER} 
+           Type     ${CMAKE_Fortran_COMPILER_ID}
+   Fortran Flags    ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
+endif()
+message(STATUS "Linker flags:
+   Executable      ${CMAKE_EXE_LINKER_FLAGS}")
+if(BUILD_SHARED_LIBS)
+  message(STATUS "Shared libries  ${CMAKE_SHARED_LINKER_FLAGS}")
+else()
+  message(STATUS "Static libries  ${CMAKE_STATIC_LINKER_FLAGS}")
+endif()
+message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
+

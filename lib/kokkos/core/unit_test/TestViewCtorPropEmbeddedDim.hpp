@@ -107,6 +107,7 @@ struct TestViewCtorProp_EmbeddedDim {
         Kokkos::deep_copy( hcv1, cv1 );
 
         ASSERT_EQ( (std::is_same< CommonViewValueType, double >::value) , true ) ;
+        ASSERT_EQ( (std::is_same< typename decltype(view_alloc_arg)::scalar_array_type, CommonViewValueType>::value) , true ) ;
       #if 0
       // debug output
       for ( int i = 0; i < N0*N1; ++i ) {

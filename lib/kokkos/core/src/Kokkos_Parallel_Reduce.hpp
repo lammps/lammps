@@ -1016,7 +1016,7 @@ parallel_reduce( std::string const  & arg_label
 
   //------------------------------
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::beginParallelReduce(arg_label, 0, &kpID);
@@ -1042,7 +1042,7 @@ parallel_reduce( std::string const  & arg_label
 
   //------------------------------
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::endParallelReduce(kpID);
   }

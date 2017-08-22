@@ -143,7 +143,7 @@ public:
 
   //----------------------------------------
 
-  ~ViewOffset() = default ;
+  KOKKOS_FUNCTION_DEFAULTED ~ViewOffset() = default ;
   KOKKOS_INLINE_FUNCTION ViewOffset() = default ;
   KOKKOS_INLINE_FUNCTION ViewOffset( const ViewOffset & ) = default ;
   KOKKOS_INLINE_FUNCTION ViewOffset & operator = ( const ViewOffset & ) = default ;

@@ -250,34 +250,23 @@ struct TestTaskDependence {
     const int n = CHUNK < m_count ? CHUNK : m_count;
 
     if ( 1 < m_count ) {
-      // Test use of memory pool for temporary allocation:
 
-      // Raw allocation:
-      future_type * const f =
-        (future_type *) m_sched.memory()->allocate( sizeof(future_type) * n );
+      const int increment = ( m_count + n - 1 ) / n;
 
-      // In-place construction:
-      for ( int i = 0; i < n; ++i ) new(f+i) future_type();
+      future_type f =
+        m_sched.when_all( n , [this,increment]( int i ) {
+          const long inc   = increment ;
+          const long begin = i * inc ;
+          const long count = begin + inc < m_count ? inc : m_count - begin ;
 
-      const int inc = ( m_count + n - 1 ) / n;
-
-      for ( int i = 0; i < n; ++i ) {
-        long begin = i * inc;
-        long count = begin + inc < m_count ? inc : m_count - begin;
-
-        f[i] = Kokkos::task_spawn( Kokkos::TaskSingle( m_sched )
-                                 , TestTaskDependence( count, m_sched, m_accum ) );
-      }
+          return Kokkos::task_spawn
+            ( Kokkos::TaskSingle( m_sched )
+            , TestTaskDependence( count, m_sched, m_accum ) );
+        });
 
       m_count = 0;
 
-      Kokkos::respawn( this, Kokkos::when_all( f, n ) );
-
-      // In-place destruction to release future:
-      for ( int i = 0; i < n; ++i ) (f+i)->~future_type();
-
-      // Raw deallocation:
-      m_sched.memory()->deallocate( f , sizeof(future_type) * n );
+      Kokkos::respawn( this, f );
     }
     else if ( 1 == m_count ) {
       Kokkos::atomic_increment( & m_accum() );
@@ -372,7 +361,9 @@ struct TestTaskTeam {
                                                  , begin - 1 )
                                    );
 
+        #ifndef __HCC_ACCELERATOR__
         assert( !future.is_null() );
+        #endif
 
         Kokkos::respawn( this, future );
       }
@@ -664,6 +655,7 @@ TEST_F( TEST_CATEGORY, task_fib )
 TEST_F( TEST_CATEGORY, task_depend )
 {
   for ( int i = 0; i < 25; ++i ) {
+printf("\nTest::task_depend %d\n",i);
     TestTaskScheduler::TestTaskDependence< TEST_EXECSPACE >::run( i );
   }
 }

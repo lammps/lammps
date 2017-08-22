@@ -1,5 +1,22 @@
 # Change Log
 
+## [2.04.00](https://github.com/kokkos/kokkos/tree/2.04.00) (2017-08-16)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.03.13...2.04.00)
+
+**Implemented enhancements:**
+
+- Added ROCm backend to support AMD GPUs
+- Kokkos::complex\<T\> behaves slightly differently from std::complex\<T\> [\#1011](https://github.com/kokkos/kokkos/issues/1011)
+- Kokkos::Experimental::Crs constructor arguments were in the wrong order [\#992](https://github.com/kokkos/kokkos/issues/992)
+- Work graph construction ease-of-use (one lambda for count and fill) [\#991](https://github.com/kokkos/kokkos/issues/991)
+- when\_all returns pointer of futures (improved interface) [\#990](https://github.com/kokkos/kokkos/issues/990)
+- Allow assignment of LayoutLeft to LayoutRight or vice versa for rank-0 Views [\#594](https://github.com/kokkos/kokkos/issues/594)
+- Changed the meaning of Kokkos\_ENABLE\_CXX11\_DISPATCH\_LAMBDA [\#1035](https://github.com/kokkos/kokkos/issues/1035)
+
+**Fixed bugs:**
+
+- memory pool default constructor does not properly set member variables. [\#1007](https://github.com/kokkos/kokkos/issues/1007)
+
 ## [2.03.13](https://github.com/kokkos/kokkos/tree/2.03.13) (2017-07-27)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.03.05...2.03.13)
 

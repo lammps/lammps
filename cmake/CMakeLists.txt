@@ -72,7 +72,7 @@ if(LAMMPS_EXCEPTIONS)
   add_definitions(-DLAMMPS_EXCEPTIONS)
 endif()
 
-set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps")
+set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps (WON'T enable any features automatically")
 mark_as_advanced(LAMMPS_MACHINE)
 
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
@@ -550,7 +550,7 @@ target_link_libraries(lmp lammps)
 set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp$<$<BOOL:${LAMMPS_MACHINE}>:_>${LAMMPS_MACHINE})
 install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
 if(ENABLE_TESTING)
-  add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
+  add_test(ShowHelp lmp$<$<BOOL:${LAMMPS_MACHINE}>:_>${LAMMPS_MACHINE} -help)
 endif()
 
 ##################################

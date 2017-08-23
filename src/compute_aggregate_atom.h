@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(cluster/atom,ComputeClusterAtom)
+ComputeStyle(aggregate/atom,ComputeAggregateAtom)
 
 #else
 
-#ifndef LMP_COMPUTE_CLUSTER_ATOM_H
-#define LMP_COMPUTE_CLUSTER_ATOM_H
+#ifndef LMP_COMPUTE_AGGREGATE_ATOM_H
+#define LMP_COMPUTE_AGGREGATE_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeClusterAtom : public Compute {
+class ComputeAggregateAtom : public Compute {
  public:
-  ComputeClusterAtom(class LAMMPS *, int, char **);
-  ~ComputeClusterAtom();
+  ComputeAggregateAtom(class LAMMPS *, int, char **);
+  ~ComputeAggregateAtom();
   void init();
   void init_list(int, class NeighList *);
   void compute_peratom();
@@ -39,7 +39,7 @@ class ComputeClusterAtom : public Compute {
   int nmax,commflag;
   double cutsq;
   class NeighList *list;
-  double *clusterID;
+  double *aggregateID;
 };
 
 }
@@ -55,21 +55,16 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot use compute cluster/atom unless atoms have IDs
+E: Cannot use compute aggregate/atom unless atoms have IDs
 
-Atom IDs are used to identify clusters.
+Atom IDs are used to identify aggregates.
 
-E: Compute cluster/atom requires a pair style to be defined
+E: Compute aggregate/atom requires a bond style to be defined
 
-This is so that the pair style defines a cutoff distance which
-is used to find clusters.
+This is so that a bond list is generated which is used to find aggregates.
 
-E: Compute cluster/atom cutoff is longer than pairwise cutoff
+W: More than one compute aggregate/atom
 
-Cannot identify clusters beyond cutoff.
-
-W: More than one compute cluster/atom
-
-It is not efficient to use compute cluster/atom  more than once.
+It is not efficient to use compute aggregate/atom  more than once.
 
 */

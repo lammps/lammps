@@ -70,6 +70,9 @@ const int THIS_IS_A_BIGINT   = -4;
 
 #define NCERR(x) ncerr(x, NULL, __LINE__)
 #define NCERRX(x, descr) ncerr(x, descr, __LINE__)
+#if !defined(NC_64BIT_DATA)
+#define NC_64BIT_DATA NC_64BIT_OFFSET
+#endif
 
 /* ---------------------------------------------------------------------- */
 

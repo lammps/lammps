@@ -1234,7 +1234,7 @@ void Molecule::shakeflag_read(char *line)
 
 void Molecule::shakeatom_read(char *line)
 {
-  int tmp, nmatch, nwant;
+  int tmp, nmatch=0, nwant=0;
   for (int i = 0; i < natoms; i++) {
     readline(line);
     if (shake_flag[i] == 1) {
@@ -1277,7 +1277,7 @@ void Molecule::shakeatom_read(char *line)
 
 void Molecule::shaketype_read(char *line)
 {
-  int tmp,nmatch,nwant;
+  int tmp, nmatch=0, nwant=0;
   for (int i = 0; i < natoms; i++) {
     readline(line);
     if (shake_flag[i] == 1) {

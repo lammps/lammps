@@ -15,18 +15,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "fix_force_spin.h"
+
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "respa.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
 #include "error.h"
+#include "fix_force_spin.h"
 #include "force.h"
+#include "input.h"
+#include "math_const.h"
 #include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

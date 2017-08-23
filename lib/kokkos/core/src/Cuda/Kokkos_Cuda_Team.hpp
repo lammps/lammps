@@ -106,7 +106,7 @@ private:
   typedef Kokkos::Cuda                           execution_space ;
   typedef execution_space::scratch_memory_space  scratch_memory_space ;
 
-  void                * m_team_reduce ;
+  mutable void        * m_team_reduce ;
   scratch_memory_space  m_team_shared ;
   int                   m_team_reduce_size ;
   int                   m_league_rank ;
@@ -166,7 +166,7 @@ public:
       if ( 1 == blockDim.z ) { // team == block
         __syncthreads();
         // Wait for shared data write until all threads arrive here
-        if ( threadIdx.x == 0 && threadIdx.y == thread_id ) {
+        if ( threadIdx.x == 0u && threadIdx.y == (uint32_t)thread_id ) {
           *((ValueType*) m_team_reduce) = val ;
         }
         __syncthreads(); // Wait for shared data read until root thread writes
@@ -210,7 +210,7 @@ public:
       const int wx =
         ( threadIdx.x + blockDim.x * threadIdx.y ) & CudaTraits::WarpIndexMask ;
 
-      for ( int i = CudaTraits::WarpSize ; blockDim.x <= ( i >>= 1 ) ; ) {
+      for ( int i = CudaTraits::WarpSize ; (int)blockDim.x <= ( i >>= 1 ) ; ) {
 
         cuda_shfl_down( reducer.reference() , tmp , i , CudaTraits::WarpSize );
 
@@ -354,7 +354,7 @@ public:
 
       for ( int i = blockDim.x ; ( i >>= 1 ) ; ) {
         cuda_shfl_down( reducer.reference() , tmp , i , blockDim.x );
-        if ( threadIdx.x < i ) { reducer.join( tmp , reducer.reference() ); }
+        if ( (int)threadIdx.x < i ) { reducer.join( tmp , reducer.reference() ); }
       }
 
       // Broadcast from root lane to all other lanes.
@@ -410,7 +410,7 @@ public:
 
         value_type tmp( reducer.reference() );
 
-        for ( int i = CudaTraits::WarpSize ; blockDim.x <= ( i >>= 1 ) ; ) {
+        for ( int i = CudaTraits::WarpSize ; (int)blockDim.x <= ( i >>= 1 ) ; ) {
 
           cuda_shfl_down( reducer.reference(), tmp, i, CudaTraits::WarpSize );
 
@@ -479,7 +479,7 @@ public:
 
           __threadfence(); // Wait until global write is visible.
 
-          last_block = gridDim.x ==
+          last_block = (int)gridDim.x ==
                        1 + Kokkos::atomic_fetch_add(global_scratch_flags,1);
 
           // If last block then reset count
@@ -509,7 +509,7 @@ public:
         reducer.copy( ((pointer_type)shmem) + offset
                     , ((pointer_type)global_scratch_space) + offset );
 
-        for ( int i = nentry + tid ; i < gridDim.x ; i += nentry ) {
+        for ( int i = nentry + tid ; i < (int)gridDim.x ; i += nentry ) {
           reducer.join( ((pointer_type)shmem) + offset
                       , ((pointer_type)global_scratch_space)
                         + i * reducer.length() );
@@ -576,6 +576,14 @@ public:
     , m_league_size( arg_league_size )
     {}
 
+public:
+  // Declare to avoid unused private member warnings which are trigger
+  // when SFINAE excludes the member function which uses these variables
+  // Making another class a friend also surpresses these warnings
+  bool impl_avoid_sfinae_warning() const noexcept
+  {
+    return m_team_reduce_size > 0 && m_team_reduce != nullptr;
+  }
 };
 
 } // namspace Impl
@@ -913,10 +921,10 @@ void parallel_scan
     //  [t] += [t-4] if t >= 4
     //  ...
 
-    for ( int j = 1 ; j < blockDim.x ; j <<= 1 ) {
+    for ( int j = 1 ; j < (int)blockDim.x ; j <<= 1 ) {
       value_type tmp = 0 ;
       Impl::cuda_shfl_up( tmp , sval , j , blockDim.x );
-      if ( j <= threadIdx.x ) { sval += tmp ; }
+      if ( j <= (int)threadIdx.x ) { sval += tmp ; }
     }
 
     // Include accumulation and remove value for exclusive scan:

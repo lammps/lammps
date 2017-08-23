@@ -67,6 +67,8 @@
 #include <Kokkos_ErrorReporter.hpp>
 #include <TestErrorReporter.hpp>
 
+#include <TestViewCtorPropEmbeddedDim.hpp>
+
 namespace Test {
 
 class serial : public ::testing::Test {
@@ -83,6 +85,10 @@ protected:
 
 TEST_F( serial, dyn_view_api) {
   TestDynViewAPI< double , Kokkos::Serial >();
+}
+
+TEST_F( serial, viewctorprop_embedded_dim ) {
+  TestViewCtorProp_EmbeddedDim< Kokkos::Serial >::test_vcpt( 2, 3 );
 }
 
 TEST_F( serial , staticcrsgraph )

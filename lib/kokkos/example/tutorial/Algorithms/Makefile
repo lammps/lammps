@@ -22,22 +22,22 @@ endif
 build:
 	mkdir -p 01_random_numbers
 	cd ./01_random_numbers; \
-	make build -j 4 -f ${KOKKOS_PATH}/example/tutorial/Algorithms/01_random_numbers/Makefile ${KOKKOS_SETTINGS}
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/Algorithms/01_random_numbers/Makefile ${KOKKOS_SETTINGS}
 
 build-insource:
 	cd ./01_random_numbers; \
-	make build -j 4 ${KOKKOS_SETTINGS}
+	$(MAKE) build ${KOKKOS_SETTINGS}
 test:
 	cd ./01_random_numbers; \
-	make test -j 4 -f ${KOKKOS_PATH}/example/tutorial/Algorithms/01_random_numbers/Makefile ${KOKKOS_SETTINGS}
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/Algorithms/01_random_numbers/Makefile ${KOKKOS_SETTINGS}
 
 test-insource:
 	cd ./01_random_numbers; \
-	make test -j 4 ${KOKKOS_SETTINGS}
+	$(MAKE) test ${KOKKOS_SETTINGS}
 clean:
 	cd ./01_random_numbers; \
-	make clean -f ${KOKKOS_PATH}/example/tutorial/Algorithms/01_random_numbers/Makefile ${KOKKOS_SETTINGS}
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/Algorithms/01_random_numbers/Makefile ${KOKKOS_SETTINGS}
 
 clean-insource:
 	cd ./01_random_numbers; \
-	make clean ${KOKKOS_SETTINGS}
+	$(MAKE) clean ${KOKKOS_SETTINGS}

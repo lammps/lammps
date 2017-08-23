@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -48,7 +48,6 @@
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 // View mapping for rank two tiled array
@@ -144,7 +143,7 @@ public:
 
   //----------------------------------------
 
-  ~ViewOffset() = default ;
+  KOKKOS_FUNCTION_DEFAULTED ~ViewOffset() = default ;
   KOKKOS_INLINE_FUNCTION ViewOffset() = default ;
   KOKKOS_INLINE_FUNCTION ViewOffset( const ViewOffset & ) = default ;
   KOKKOS_INLINE_FUNCTION ViewOffset & operator = ( const ViewOffset & ) = default ;
@@ -195,11 +194,9 @@ struct ViewMapping
 };
 
 } /* namespace Impl */
-} /* namespace Experimental */
 } /* namespace Kokkos */
 
 namespace Kokkos {
-namespace Experimental {
 
 template< typename T , unsigned N0 , unsigned N1 , class ... P >
 KOKKOS_INLINE_FUNCTION
@@ -217,7 +214,6 @@ tile_subview( const Kokkos::View<T**,Kokkos::LayoutTileLeft<N0,N1,true>,P...> & 
     ( src , SrcLayout() , i_tile0 , i_tile1 );
 }
 
-} /* namespace Experimental */
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------

@@ -41,6 +41,10 @@
 //@HEADER
 */
 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+#include <xmmintrin.h>
+#endif
+
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_FETCH_SUB_HPP )
 #define KOKKOS_ATOMIC_FETCH_SUB_HPP
@@ -131,26 +135,47 @@ T atomic_fetch_sub( volatile T * const dest ,
 #endif
 #endif
 //----------------------------------------------------------------------------
+#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
 inline
 int atomic_fetch_sub( volatile int * const dest , const int val )
-{ return __sync_fetch_and_sub(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_sub(dest,val);
+}
 
 inline
 long int atomic_fetch_sub( volatile long int * const dest , const long int val )
-{ return __sync_fetch_and_sub(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_sub(dest,val);
+}
 
 #if defined( KOKKOS_ENABLE_GNU_ATOMICS )
 
 inline
 unsigned int atomic_fetch_sub( volatile unsigned int * const dest , const unsigned int val )
-{ return __sync_fetch_and_sub(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_sub(dest,val);
+}
 
 inline
 unsigned long int atomic_fetch_sub( volatile unsigned long int * const dest , const unsigned long int val )
-{ return __sync_fetch_and_sub(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_sub(dest,val);
+}
 
 #endif
 
@@ -160,6 +185,10 @@ T atomic_fetch_sub( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
   union { int i ; T t ; } assume , oldval , newval ;
+
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
 
   oldval.t = *dest ;
 
@@ -178,6 +207,10 @@ T atomic_fetch_sub( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(long) , const T >::type val )
 {
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+
   union { long i ; T t ; } assume , oldval , newval ;
 
   oldval.t = *dest ;
@@ -202,6 +235,10 @@ T atomic_fetch_sub( volatile T * const dest ,
                && ( sizeof(T) != 8 )
              , const T >::type& val )
 {
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+
   while( !Impl::lock_address_host_space( (void*) dest ) );
   T return_val = *dest;
   *dest = return_val - val;
@@ -227,6 +264,8 @@ T atomic_fetch_sub( volatile T * const dest , const T val )
 
 #endif
 #endif
+#endif // !defined ROCM_ATOMICS
+
 // Simpler version of atomic_fetch_sub without the fetch
 template <typename T>
 KOKKOS_INLINE_FUNCTION

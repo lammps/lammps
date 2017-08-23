@@ -45,7 +45,7 @@
 #define KOKKOS_IMPL_OPENMP_TASK_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ENABLE_TASKDAG )
+#if defined( KOKKOS_ENABLE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ public:
 
   using execution_space = Kokkos::OpenMP ;
   using queue_type      = Kokkos::Impl::TaskQueue< execution_space > ;
-  using task_base_type  = Kokkos::Impl::TaskBase< execution_space , void , void > ;
+  using task_base_type  = Kokkos::Impl::TaskBase< void , void , void > ;
   using member_type     = Kokkos::Impl::HostThreadTeamMember< execution_space > ;
 
   // Must specify memory space

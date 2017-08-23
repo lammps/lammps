@@ -9,30 +9,6 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
 ASSERT_DEFINED(${PROJECT_NAME}_ENABLE_CXX11)
 ASSERT_DEFINED(${PACKAGE_NAME}_ENABLE_CUDA)
 
-# Kokkos_ENABLE_CXX11_DISPATCH_LAMBDA governs whether Kokkos allows
-# use of lambdas at the outer level of parallel dispatch (that is, as
-# the argument to an outer parallel_for, parallel_reduce, or
-# parallel_scan).  This works with non-CUDA execution spaces if C++11
-# is enabled.  It does not currently work with public releases of
-# CUDA.  If that changes, please change the default here to ON if CUDA
-# and C++11 are ON.
-IF (${PROJECT_NAME}_ENABLE_CXX11)
-  IF (${PACKAGE_NAME}_ENABLE_CUDA)
-    SET(Kokkos_ENABLE_CXX11_DISPATCH_LAMBDA_DEFAULT OFF)
-  ELSE ()
-    SET(Kokkos_ENABLE_CXX11_DISPATCH_LAMBDA_DEFAULT ON)
-  ENDIF ()
-ELSE ()
-  SET(Kokkos_ENABLE_CXX11_DISPATCH_LAMBDA_DEFAULT OFF)
-ENDIF ()
-
-TRIBITS_ADD_OPTION_AND_DEFINE(
-  Kokkos_ENABLE_CXX11_DISPATCH_LAMBDA
-  KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA
-  "Whether Kokkos allows use of lambdas at the outer level of parallel dispatch (that is, as the argument to an outer parallel_for, parallel_reduce, or parallel_scan).  This requires C++11.  It also does not currently work with public releases of CUDA.  As a result, even if C++11 is enabled, this will be OFF by default if CUDA is enabled.  If this option is ON, the macro KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA will be defined.  For compatibility with Kokkos' Makefile build system, it is also possible to define that macro on the command line."
-  ${Kokkos_ENABLE_CXX11_DISPATCH_LAMBDA_DEFAULT}
-  )
-
 TRIBITS_CONFIGURE_FILE(${PACKAGE_NAME}_config.h)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})

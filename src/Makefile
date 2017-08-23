@@ -59,7 +59,8 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 
 PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mgpt user-misc user-molfile \
+	   user-intel user-lb user-manifold user-meamc user-meso \
+	   user-mgpt user-misc user-molfile \
 	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-vtk
@@ -339,17 +340,18 @@ no-%:
         fi;
 
 # download/build/install a package library
+# update the timestamp on main.cpp to trigger a relink with "make machine"
 
 lib-%:
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
-	  cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args); \
+	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
 	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-user-%=%)"; \
-	  cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args); \
+	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
-	fi;
+	fi; touch main.cpp
 
 # status = list src files that differ from package files
 # update = replace src files with newer package files

@@ -72,6 +72,10 @@ uint64_t clock_tic(void) noexcept
 
   return clock64();
 
+#elif defined(__HCC_ACCELERATOR__)
+    // Get clock register
+    return hc::__clock_u64();
+
 #elif defined( __i386__ ) || defined( __x86_64 )
 
   // Return value of 64-bit hi-res clock register.

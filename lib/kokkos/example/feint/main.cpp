@@ -69,12 +69,26 @@ int main()
 
 #if defined( KOKKOS_ENABLE_OPENMP )
   {
-    // Use 4 cores per NUMA region, unless fewer available
 
-    const unsigned use_numa_count     = Kokkos::hwloc::get_available_numa_count();
-    const unsigned use_cores_per_numa = std::min( 4u , Kokkos::hwloc::get_available_cores_per_numa() );
+    int num_threads  = 0;
+    if ( Kokkos::hwloc::available() ) {
+      // Use 4 cores per NUMA region, unless fewer available
+      const unsigned use_numa_count     = Kokkos::hwloc::get_available_numa_count();
+      const unsigned use_cores_per_numa = std::min( 4u , Kokkos::hwloc::get_available_cores_per_numa() );
+      num_threads = use_numa_count * use_cores_per_numa;
 
-    Kokkos::OpenMP::initialize( use_numa_count * use_cores_per_numa );
+    }
+    else {
+      #pragma omp parallel
+      {
+        #pragma omp atomic
+        ++num_threads;
+      }
+      num_threads = std::max(4, num_threads/4);
+    }
+
+
+    Kokkos::OpenMP::initialize( num_threads );
 
     std::cout << "feint< OpenMP , NotUsingAtomic >" << std::endl ;
     Kokkos::Example::feint< Kokkos::OpenMP , false >();

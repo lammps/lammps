@@ -132,9 +132,15 @@ public:
   static std::vector<feature *> cvc_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual std::vector<feature *> &features() {
+  virtual const std::vector<feature *> &features()
+  {
     return cvc_features;
   }
+  virtual std::vector<feature *> &modify_features()
+  {
+    return cvc_features;
+  }
+
 
   /// \brief Obtain data needed for the calculation for the backend
   virtual void read_data();

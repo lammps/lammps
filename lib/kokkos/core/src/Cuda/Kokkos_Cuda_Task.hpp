@@ -57,7 +57,7 @@ namespace {
 template< typename TaskType >
 __global__
 void set_cuda_task_base_apply_function_pointer
-  ( TaskBase<Kokkos::Cuda,void,void>::function_type * ptr )
+  ( TaskBase<void,void,void>::function_type * ptr )
 { *ptr = TaskType::apply ; }
 
 }
@@ -78,7 +78,7 @@ public:
   void iff_single_thread_recursive_execute( queue_type * const ) {}
 
   __device__
-  static void driver( queue_type * const );
+  static void driver( queue_type * const , int32_t );
 
   static
   void execute( queue_type * const );
@@ -106,7 +106,14 @@ public:
 
 extern template class TaskQueue< Kokkos::Cuda > ;
 
+}} /* namespace Kokkos::Impl */
+
 //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+namespace Impl {
+
 /**\brief  Impl::TaskExec<Cuda> is the TaskScheduler<Cuda>::member_type
  *         passed to tasks running in a Cuda space.
  *
@@ -134,11 +141,13 @@ private:
   friend class Kokkos::Impl::TaskQueue< Kokkos::Cuda > ;
   friend class Kokkos::Impl::TaskQueueSpecialization< Kokkos::Cuda > ;
 
+  int32_t * m_team_shmem ;
   const int m_team_size ;
 
   __device__
-  TaskExec( int arg_team_size = blockDim.y )
-    : m_team_size( arg_team_size ) {}
+  TaskExec( int32_t * arg_team_shmem , int arg_team_size = blockDim.y )
+    : m_team_shmem( arg_team_shmem )
+    , m_team_size( arg_team_size ) {}
 
 public:
 
@@ -154,7 +163,13 @@ public:
 
 };
 
+}} /* namespace Kokkos::Impl */
+
 //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+namespace Impl {
 
 template<typename iType>
 struct TeamThreadRangeBoundariesStruct<iType, TaskExec< Kokkos::Cuda > >

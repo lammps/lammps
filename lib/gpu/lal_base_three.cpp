@@ -20,7 +20,7 @@ using namespace LAMMPS_AL;
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0)  {
+BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -53,8 +53,8 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
                            const int max_nbors, const int maxspecial,
                            const double cell_size, const double gpu_split,
                            FILE *_screen, const void *pair_program,
-                           const char *k_two, const char *k_three_center,
-                           const char *k_three_end) {
+                           const char *two, const char *three_center,
+                           const char *three_end, const char *short_nbor) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -70,10 +70,10 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
     _gpu_host=1;
 
   _threads_per_atom=device->threads_per_atom();
-  if (_threads_per_atom>1 && gpu_nbor==0) {
+  if (_threads_per_atom>1 && gpu_nbor==0) { // neigh no and tpa > 1
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);
-  } else
+  } else  // neigh yes or tpa == 1
     _nbor_data=&(nbor->dev_nbor);
   if (_threads_per_atom*_threads_per_atom>device->warp_size())
     return -10;
@@ -97,7 +97,7 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
 
   _block_pair=device->pair_block_size();
   _block_size=device->block_ellipse();
-  compile_kernels(*ucl_device,pair_program,k_two,k_three_center,k_three_end);
+  compile_kernels(*ucl_device,pair_program,two,three_center,three_end,short_nbor);
 
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
@@ -112,6 +112,11 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   #ifdef THREE_CONCURRENT
   _max_an_bytes+=ans2->gpu_bytes();
   #endif
+
+  int ef_nall=nall;
+  if (ef_nall==0)
+    ef_nall=2000;
+  dev_short_nbor.alloc(ef_nall*(2+max_nbors),*(this->ucl_device),UCL_READ_WRITE);
 
   return 0;
 }
@@ -136,6 +141,7 @@ void BaseThreeT::clear_atomic() {
     k_three_end.clear();
     k_three_end_vatom.clear();
     k_pair.clear();
+    k_short_nbor.clear();
     delete pair_program;
     _compiled=false;
   }
@@ -143,6 +149,7 @@ void BaseThreeT::clear_atomic() {
   time_pair.clear();
   hd_balancer.clear();
 
+  dev_short_nbor.clear();
   nbor->clear();
   ans->clear();
   #ifdef THREE_CONCURRENT
@@ -168,6 +175,8 @@ int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
   resize_local(nall,mn,success);
   if (!success)
     return NULL;
+
+  _nall = nall;
 
   // originally the requirement that nall == nlist was enforced
   // to allow direct indexing neighbors of neighbors after re-arrangement
@@ -202,6 +211,8 @@ inline int BaseThreeT::build_nbor_list(const int inum, const int host_inum,
   if (!success)
     return 0;
   atom->cast_copy_x(host_x,host_type);
+
+  _nall = nall;
 
   int mn;
   nbor->build_nbor_list(host_x, nall, host_inum, nall, *atom, sublo, subhi, tag,
@@ -247,11 +258,21 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
     reset_nbors(nall, inum, nlist, ilist, numj, firstneigh, success);
     if (!success)
       return;
+    _max_nbors = nbor->max_nbor_loop(nlist,numj,ilist);
   }
 
   atom->cast_x_data(host_x,host_type);
   hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
+
+  // re-allocate dev_short_nbor if necessary
+  if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
+    dev_short_nbor.resize((2+_max_nbors)*_nmax);
+  }
+
+  // _ainum to be used in loop() for short neighbor list build
+  _ainum = nlist;
 
   int evatom=0;
   if (eatom || vatom)
@@ -300,7 +321,7 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
-    build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
+    _max_nbors = build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return NULL;
@@ -312,6 +333,15 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
   }
   *ilist=nbor->host_ilist.begin();
   *jnum=nbor->host_acc.begin();
+
+  // re-allocate dev_short_nbor if necessary
+  if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
+    dev_short_nbor.resize((2+_max_nbors)*_nmax);
+  }
+
+  // _ainum to be used in loop() for short neighbor list build
+  _ainum = nall;
 
   int evatom=0;
   if (eatom || vatom)
@@ -339,19 +369,20 @@ double BaseThreeT::host_memory_usage_atomic() const {
 
 template <class numtyp, class acctyp>
 void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
-                                 const char *ktwo, const char *kthree_center,
-                                 const char *kthree_end) {
+                                 const char *two, const char *three_center,
+                                 const char *three_end, const char* short_nbor) {
   if (_compiled)
     return;
 
-  std::string vatom_name=std::string(kthree_end)+"_vatom";
+  std::string vatom_name=std::string(three_end)+"_vatom";
 
   pair_program=new UCL_Program(dev);
   pair_program->load_string(pair_str,device->compile_string().c_str());
-  k_three_center.set_function(*pair_program,kthree_center);
-  k_three_end.set_function(*pair_program,kthree_end);
+  k_three_center.set_function(*pair_program,three_center);
+  k_three_end.set_function(*pair_program,three_end);
   k_three_end_vatom.set_function(*pair_program,vatom_name.c_str());
-  k_pair.set_function(*pair_program,ktwo);
+  k_pair.set_function(*pair_program,two);
+  k_short_nbor.set_function(*pair_program,short_nbor);
   pos_tex.get_texture(*pair_program,"pos_tex");
 
   #ifdef THREE_CONCURRENT

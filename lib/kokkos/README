@@ -80,6 +80,9 @@ Other compilers working:
   X86:
    Cygwin 2.1.0 64bit with gcc 4.9.3
 
+Limited testing of the following compilers on POWER7+ systems:
+  GCC 4.8.5 (on RHEL7.1 POWER7+)
+
 Known non-working combinations:
   Power8:
    Pthreads backend
@@ -171,3 +174,22 @@ Contributions to Kokkos are welcome. In order to do so, please open an issue
 where a feature request or bug can be discussed. Then issue a pull request
 with your contribution. Pull requests must be issued against the develop branch. 
 
+===========================================================================
+====Citing Kokkos==========================================================
+===========================================================================
+
+If you publish work which mentions Kokkos, please cite the following paper:
+
+@article{CarterEdwards20143202,
+title = "Kokkos: Enabling manycore performance portability through polymorphic memory access patterns ",
+journal = "Journal of Parallel and Distributed Computing ",
+volume = "74",
+number = "12",
+pages = "3202 - 3216",
+year = "2014",
+note = "Domain-Specific Languages and High-Level Frameworks for High-Performance Computing ",
+issn = "0743-7315",
+doi = "https://doi.org/10.1016/j.jpdc.2014.07.003",
+url = "http://www.sciencedirect.com/science/article/pii/S0743731514001257",
+author = "H. Carter Edwards and Christian R. Trott and Daniel Sunderland"
+}

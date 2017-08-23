@@ -75,7 +75,7 @@ void abort( const char * const message ) {
 #ifdef __CUDA_ARCH__
   Kokkos::Impl::cuda_abort(message);
 #else
-  #ifndef KOKKOS_ENABLE_OPENMPTARGET
+  #if !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(__HCC_ACCELERATOR__)
     Kokkos::Impl::host_abort(message);
   #endif
 #endif

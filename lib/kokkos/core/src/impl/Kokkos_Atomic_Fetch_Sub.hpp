@@ -135,6 +135,7 @@ T atomic_fetch_sub( volatile T * const dest ,
 #endif
 #endif
 //----------------------------------------------------------------------------
+#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
@@ -263,6 +264,8 @@ T atomic_fetch_sub( volatile T * const dest , const T val )
 
 #endif
 #endif
+#endif // !defined ROCM_ATOMICS
+
 // Simpler version of atomic_fetch_sub without the fetch
 template <typename T>
 KOKKOS_INLINE_FUNCTION

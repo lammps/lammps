@@ -24,7 +24,7 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
           {bond} or {angle} or {dihedral} or {improper} or \
           {meso/e} or {meso/cv} or {meso/rho} or \
           {smd/contact/radius} or {smd/mass/density} or {dpd/theta} or \
-          {i_name} or {d_name} :l
+          {edpd/temp} or {edpd/cv} or {cc} or {i_name} or {d_name} :l
   {type} value = atom type
     value can be an atom-style variable (see below)
   {type/fraction} values = type fraction seed
@@ -98,6 +98,13 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {dpd/theta} value = internal temperature of DPD particles (temperature units)
     value can be an atom-style variable (see below)
     value can be NULL which sets internal temp of each particle to KE temp
+  {edpd/temp} value = temperature of eDPD particles (temperature units)
+    value can be an atom-style variable (see below)
+  {edpd/cv} value = volumetric heat capacity of eDPD particles (energy/temperature/volume units)
+    value can be an atom-style variable (see below)
+  {cc} values = index cc
+    index = index of a chemical species (1 to Nspecies)
+    cc = chemical concentration of tDPD particles for a species (mole/volume units)
   {i_name} value = value for custom integer vector with name
   {d_name} value = value for custom floating-point vector with name :pre
 :ule
@@ -417,6 +424,19 @@ variable, then the variable is evaluated for each particle.  If a
 value >= 0.0, the internal temperature is set to that value.  If it is
 < 0.0, the computation of Tkin is performed and the internal
 temperature is set to that value.
+
+Keywords {edpd/temp} and {edpd/cv} set the temperature and volumetric
+heat capacity of an eDPD particle as defined by the USER-MESO package.
+Currently, only "atom_style edpd"_atom_style.html defines particles
+with these attributes. The values for the temperature and heat
+capacity must be positive.
+
+Keyword {cc} sets the chemical concentration of a tDPD particle for a
+specified species as defined by the USER-MESO package. Currently, only
+"atom_style tdpd"_atom_style.html defines particles with this
+attribute. An integer for "index" selects a chemical species (1 to
+Nspecies) where Nspecies is set by the atom_style command. The value
+for the chemical concentration must be >= 0.0.
 
 Keywords {i_name} and {d_name} refer to custom integer and
 floating-point properties that have been added to each atom via the

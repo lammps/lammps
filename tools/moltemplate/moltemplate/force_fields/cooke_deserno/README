@@ -1,0 +1,16 @@
+---Cooke Deserno coarse-grained bilayer model---
+
+This folder contains an lt file for a Cooke-type 3-bead lipid, as described in:
+
+"Tunable generic model for fluid bilayer membranes"
+ Cooke IR, Kremer K, Deserno M, Physical Review E, 2005
+
+Due to the form of the forcefield, this requires a 'tabulated potential' style in lammps. This is easily generated using the included python script. Usage as follows:
+
+  gen_potential-cooke.py w_c
+
+where w_c is an optional parameter as described in the original paper (10.1103/PhysRevE.72.011506) with default value of 1.6
+
+This creates the 'tabulated_potential' file which is needed by lammps during the simulation.
+
+---

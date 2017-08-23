@@ -1012,7 +1012,7 @@ void test_view_mapping()
     ASSERT_EQ( a.use_count(), 1 );
     ASSERT_EQ( b.use_count(), 0 );
 
-#if !defined( KOKKOS_ENABLE_CUDA_LAMBDA )
+#if !defined( KOKKOS_ENABLE_CUDA_LAMBDA ) && !defined( KOKKOS_ENABLE_ROCM )
     // Cannot launch host lambda when CUDA lambda is enabled.
 
     typedef typename Kokkos::Impl::HostMirror< Space >::Space::execution_space host_exec_space;
@@ -1021,6 +1021,7 @@ void test_view_mapping()
       // 'a' is captured by copy, and the capture mechanism converts 'a' to an
       // unmanaged copy.  When the parallel dispatch accepts a move for the
       // lambda, this count should become 1.
+ 
       ASSERT_EQ( a.use_count(), 2 );
       V x = a;
       ASSERT_EQ( a.use_count(), 2 );

@@ -4,10 +4,16 @@
 KOKKOS_PATH=../../lib/kokkos
 CXXFLAGS=$(CCFLAGS)
 
-# Options: Cuda,OpenMP,Pthreads,Qthreads,Serial
+# Options: Cuda,ROCm,OpenMP,Pthreads,Qthreads,Serial
 KOKKOS_DEVICES ?= "OpenMP"
 #KOKKOS_DEVICES ?= "Pthreads"
-# Options: KNC,SNB,HSW,Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,ARMv80,ARMv81,ARMv8-ThunderX,BGQ,Power7,Power8,Power9,KNL,BDW,SKX
+# Options: 
+# Intel:    KNC,KNL,SNB,HSW,BDW,SKX
+# NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61
+# ARM:      ARMv80,ARMv81,ARMv8-ThunderX
+# IBM:      BGQ,Power7,Power8,Power9
+# AMD-GPUS: Kaveri,Carrizo,Fiji,Vega
+# AMD-CPUS: AMDAVX,Ryzen,Epyc
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
@@ -43,8 +49,8 @@ KOKKOS_INTERNAL_CUDA_USE_UVM := $(strip $(shell echo $(KOKKOS_CUDA_OPTIONS) | gr
 KOKKOS_INTERNAL_CUDA_USE_RELOC := $(strip $(shell echo $(KOKKOS_CUDA_OPTIONS) | grep "rdc" | wc -l))
 KOKKOS_INTERNAL_CUDA_USE_LAMBDA := $(strip $(shell echo $(KOKKOS_CUDA_OPTIONS) | grep "enable_lambda" | wc -l))
 
+
 # Check for Kokkos Host Execution Spaces one of which must be on.
-KOKKOS_INTERNAL_USE_OPENMPTARGET := $(strip $(shell echo $(KOKKOS_DEVICES) | grep OpenMPTarget | wc -l))
 KOKKOS_INTERNAL_USE_OPENMP := $(strip $(shell echo $(subst OpenMPTarget,,$(KOKKOS_DEVICES)) | grep OpenMP | wc -l))
 KOKKOS_INTERNAL_USE_PTHREADS := $(strip $(shell echo $(KOKKOS_DEVICES) | grep Pthread | wc -l))
 KOKKOS_INTERNAL_USE_QTHREADS := $(strip $(shell echo $(KOKKOS_DEVICES) | grep Qthreads | wc -l))
@@ -60,6 +66,8 @@ endif
 
 # Check for other Execution Spaces.
 KOKKOS_INTERNAL_USE_CUDA := $(strip $(shell echo $(KOKKOS_DEVICES) | grep Cuda | wc -l))
+KOKKOS_INTERNAL_USE_ROCM := $(strip $(shell echo $(KOKKOS_DEVICES) | grep ROCm | wc -l))
+KOKKOS_INTERNAL_USE_OPENMPTARGET := $(strip $(shell echo $(KOKKOS_DEVICES) | grep OpenMPTarget | wc -l))
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   KOKKOS_INTERNAL_NVCC_PATH := $(shell which nvcc)
@@ -87,6 +95,7 @@ ifneq ($(MPICH_CXX),)
 endif
 KOKKOS_INTERNAL_COMPILER_CLANG       := $(strip $(shell $(CXX) --version       2>&1 | grep clang               | wc -l))
 KOKKOS_INTERNAL_COMPILER_APPLE_CLANG := $(strip $(shell $(CXX) --version       2>&1 | grep "apple-darwin"      | wc -l))
+KOKKOS_INTERNAL_COMPILER_HCC         := $(strip $(shell $(CXX) --version       2>&1 | grep HCC                 | wc -l))
 
 ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 2)
   KOKKOS_INTERNAL_COMPILER_CLANG = 1
@@ -98,6 +107,10 @@ endif
 # Apple Clang passes both clang and apple clang tests, so turn off clang.
 ifeq ($(KOKKOS_INTERNAL_COMPILER_APPLE_CLANG), 1)
   KOKKOS_INTERNAL_COMPILER_CLANG = 0
+endif
+# AMD HCC passes both clang and hcc test so turn off clang
+ifeq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
+  KOKKOS_INTENAL_COMPILER_CLANG = 0
 endif
 
 ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
@@ -183,8 +196,12 @@ else
     ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
       KOKKOS_INTERNAL_CXX11_FLAG := -hstd=c++11
     else
-      KOKKOS_INTERNAL_CXX11_FLAG := --std=c++11
-      KOKKOS_INTERNAL_CXX1Z_FLAG := --std=c++1z
+      ifeq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
+        KOKKOS_INTERNAL_CXX11_FLAG := 
+      else
+        KOKKOS_INTERNAL_CXX11_FLAG := --std=c++11
+        KOKKOS_INTERNAL_CXX1Z_FLAG := --std=c++1z
+      endif
     endif
   endif
 endif
@@ -259,6 +276,13 @@ KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_
 
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(strip $(shell echo $(KOKKOS_ARCH) | grep AMDAVX | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_RYZEN := $(strip $(shell echo $(KOKKOS_ARCH) | grep Ryzen | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_EPYC := $(strip $(shell echo $(KOKKOS_ARCH) | grep Epyc | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_KAVERI := $(strip $(shell echo $(KOKKOS_ARCH) | grep Kaveri | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_CARRIZO := $(strip $(shell echo $(KOKKOS_ARCH) | grep Carrizo | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_FIJI := $(strip $(shell echo $(KOKKOS_ARCH) | grep Fiji | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_VEGA := $(strip $(shell echo $(KOKKOS_ARCH) | grep Vega | wc -l))
+KOKKOS_INTERNAL_USE_ARCH_GFX901 := $(strip $(shell echo $(KOKKOS_ARCH) | grep gfx901 | wc -l))
 
 # Any AVX?
 KOKKOS_INTERNAL_USE_ARCH_SSE42      := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_WSM) | bc ))
@@ -271,6 +295,7 @@ KOKKOS_INTERNAL_USE_ARCH_AVX512XEON := $(strip $(shell echo $(KOKKOS_INTERNAL_US
 KOKKOS_INTERNAL_USE_ISA_X86_64    := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_WSM)+$(KOKKOS_INTERNAL_USE_ARCH_SNB)+$(KOKKOS_INTERNAL_USE_ARCH_HSW)+$(KOKKOS_INTERNAL_USE_ARCH_BDW)+$(KOKKOS_INTERNAL_USE_ARCH_KNL)+$(KOKKOS_INTERNAL_USE_ARCH_SKX) | bc ))
 KOKKOS_INTERNAL_USE_ISA_KNC       := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_KNC) | bc ))
 KOKKOS_INTERNAL_USE_ISA_POWERPCLE := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_POWER8)+$(KOKKOS_INTERNAL_USE_ARCH_POWER9) | bc ))
+KOKKOS_INTERNAL_USE_ISA_POWERPCBE := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_POWER7) | bc ))
 
 # Decide whether we can support transactional memory
 KOKKOS_INTERNAL_USE_TM            := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_BDW)+$(KOKKOS_INTERNAL_USE_ARCH_SKX) | bc ))
@@ -319,8 +344,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   tmp := $(shell echo "\#define KOKKOS_HAVE_CUDA 1" >> KokkosCore_config.tmp )
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
+  tmp := $(shell echo '\#define KOKKOS_ENABLE_ROCM 1' >> KokkosCore_config.tmp)
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
-        tmp := $(shell echo '\#define KOKKOS_ENABLE_OPENMPTARGET 1' >> KokkosCore_config.tmp)
+  tmp := $(shell echo '\#define KOKKOS_ENABLE_OPENMPTARGET 1' >> KokkosCore_config.tmp)
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
@@ -360,6 +389,12 @@ endif
 ifeq ($(KOKKOS_INTERNAL_USE_ISA_POWERPCLE), 1)
   tmp := $(shell echo "\#ifndef __CUDA_ARCH__" >> KokkosCore_config.tmp )
   tmp := $(shell echo "\#define KOKKOS_USE_ISA_POWERPCLE" >> KokkosCore_config.tmp )
+  tmp := $(shell echo "\#endif" >> KokkosCore_config.tmp )
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ISA_POWERPCBE), 1)
+  tmp := $(shell echo "\#ifndef __CUDA_ARCH__" >> KokkosCore_config.tmp )
+  tmp := $(shell echo "\#define KOKKOS_USE_ISA_POWERPCBE" >> KokkosCore_config.tmp )
   tmp := $(shell echo "\#endif" >> KokkosCore_config.tmp )
 endif
 
@@ -561,6 +596,18 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AVX), 1)
   endif
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER7), 1)
+  tmp := $(shell echo "\#define KOKKOS_ARCH_POWER7 1" >> KokkosCore_config.tmp )
+
+  ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
+
+  else
+    # Assume that this is a really a GNU compiler or it could be XL on P8.
+    KOKKOS_CXXFLAGS += -mcpu=power7 -mtune=power7
+    KOKKOS_LDFLAGS  += -mcpu=power7 -mtune=power7
+  endif
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER8), 1)
   tmp := $(shell echo "\#define KOKKOS_ARCH_POWER8 1" >> KokkosCore_config.tmp )
 
@@ -742,7 +789,49 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   endif
 endif
 
+# Figure out the architecture flag for ROCm.
+ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
+  # Lets start with adding architecture defines
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_KAVERI), 1)
+    tmp := $(shell echo "\#define KOKKOS_ARCH_ROCM 701" >> KokkosCore_config.tmp )
+    tmp := $(shell echo "\#define KOKKOS_ARCH_KAVERI 1" >> KokkosCore_config.tmp )
+    KOKKOS_INTERNAL_ROCM_ARCH_FLAG := --amdgpu-target=gfx701 
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_CARRIZO), 1)
+    tmp := $(shell echo "\#define KOKKOS_ARCH_ROCM 801" >> KokkosCore_config.tmp )
+    tmp := $(shell echo "\#define KOKKOS_ARCH_CARRIZO 1" >> KokkosCore_config.tmp )
+    KOKKOS_INTERNAL_ROCM_ARCH_FLAG := --amdgpu-target=gfx801 
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_FIJI), 1)
+    tmp := $(shell echo "\#define KOKKOS_ARCH_ROCM 803" >> KokkosCore_config.tmp )
+    tmp := $(shell echo "\#define KOKKOS_ARCH_FIJI 1" >> KokkosCore_config.tmp )
+    KOKKOS_INTERNAL_ROCM_ARCH_FLAG := --amdgpu-target=gfx803
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA), 1)
+    tmp := $(shell echo "\#define KOKKOS_ARCH_ROCM 900" >> KokkosCore_config.tmp )
+    tmp := $(shell echo "\#define KOKKOS_ARCH_VEGA 1" >> KokkosCore_config.tmp )
+    KOKKOS_INTERNAL_ROCM_ARCH_FLAG := --amdgpu-target=gfx900 
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_GFX901), 1)
+    tmp := $(shell echo "\#define KOKKOS_ARCH_ROCM 901" >> KokkosCore_config.tmp )
+    tmp := $(shell echo "\#define KOKKOS_ARCH_GFX901 1" >> KokkosCore_config.tmp )
+    KOKKOS_INTERNAL_ROCM_ARCH_FLAG := --amdgpu-target=gfx901 
+  endif
+ 
+  
+  KOKKOS_INTERNAL_HCC_PATH := $(shell which $(CXX))
+  ROCM_HCC_PATH ?= $(KOKKOS_INTERNAL_HCC_PATH:/bin/clang++=)
+
+  KOKKOS_CXXFLAGS += $(shell $(ROCM_HCC_PATH)/bin/hcc-config --cxxflags) 
+  KOKKOS_LDFLAGS += $(shell $(ROCM_HCC_PATH)/bin/hcc-config --ldflags) -lhc_am -lm 
+  KOKKOS_LDFLAGS += $(KOKKOS_INTERNAL_ROCM_ARCH_FLAG)
+
+  KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/core/src/ROCm/*.cpp)
+  KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/ROCm/*.hpp)
+endif
+
 KOKKOS_INTERNAL_LS_CONFIG := $(shell ls KokkosCore_config.h 2>&1)
+
 ifeq ($(KOKKOS_INTERNAL_LS_CONFIG), KokkosCore_config.h)
   KOKKOS_INTERNAL_NEW_CONFIG := $(strip $(shell diff KokkosCore_config.h KokkosCore_config.tmp | grep define | wc -l))
 else

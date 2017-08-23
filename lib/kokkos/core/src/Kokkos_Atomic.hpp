@@ -80,6 +80,11 @@
 // Compiling NVIDIA device code, must use Cuda atomics:
 
 #define KOKKOS_ENABLE_CUDA_ATOMICS
+
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU)
+
+#define KOKKOS_ENABLE_ROCM_ATOMICS
+
 #endif
 
 #if ! defined( KOKKOS_ENABLE_GNU_ATOMICS ) && \
@@ -153,6 +158,19 @@ const char * atomic_query_version()
 }
 
 } // namespace Kokkos
+
+#if defined( KOKKOS_ENABLE_ROCM )
+#include <ROCm/Kokkos_ROCm_Atomic.hpp>
+namespace Kokkos {
+namespace Impl {
+extern KOKKOS_INLINE_FUNCTION
+bool lock_address_rocm_space(void* ptr);
+
+extern KOKKOS_INLINE_FUNCTION
+void unlock_address_rocm_space(void* ptr);
+}
+}
+#endif
 
 #ifdef _WIN32
 #include "impl/Kokkos_Atomic_Windows.hpp"

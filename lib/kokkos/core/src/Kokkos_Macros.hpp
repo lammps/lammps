@@ -96,6 +96,14 @@
 
 //----------------------------------------------------------------------------
 
+#if defined(KOKKOS_ENABLE_SERIAL) || defined(KOKKOS_ENABLE_THREADS) || \
+    defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_QTHREADS) || \
+    defined(KOKKOS_ENABLE_ROCM) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+  #define KOKKOS_INTERNAL_ENABLE_NON_CUDA_BACKEND
+#endif
+
+#define KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
+
 #if defined( KOKKOS_ENABLE_CUDA ) && defined( __CUDACC__ )
   // Compiling with a CUDA compiler.
   //
@@ -133,6 +141,9 @@
 
     #if ( CUDA_VERSION < 8000 ) && defined( __NVCC__ )
       #define KOKKOS_LAMBDA [=]__device__
+      #if defined( KOKKOS_INTERNAL_ENABLE_NON_CUDA_BACKEND )
+        #undef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
+      #endif
     #else
       #define KOKKOS_LAMBDA [=]__host__ __device__
 
@@ -141,16 +152,13 @@
       #endif
     #endif
 
-    #define KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA 1
-  #endif
-#endif // #if defined( KOKKOS_ENABLE_CUDA ) && defined( __CUDACC__ )
-
-#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
-   // Cuda version 8.0 still needs the functor wrapper
-   #if /* ( CUDA_VERSION < 8000 ) && */  defined( __NVCC__ )
+    #if defined( __NVCC__ )
       #define KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
-   #endif
-#endif
+    #endif
+  #else // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
+    #undef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
+  #endif // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
+#endif // #if defined( KOKKOS_ENABLE_CUDA ) && defined( __CUDACC__ )
 
 //----------------------------------------------------------------------------
 // Language info: C++, CUDA, OPENMP
@@ -161,7 +169,19 @@
   #define KOKKOS_FORCEINLINE_FUNCTION  __device__  __host__  __forceinline__
   #define KOKKOS_INLINE_FUNCTION       __device__  __host__  inline
   #define KOKKOS_FUNCTION              __device__  __host__
+  #ifdef KOKKOS_COMPILER_CLANG
+  #define KOKKOS_FUNCTION_DEFAULTED KOKKOS_FUNCTION
+  #endif
 #endif // #if defined( __CUDA_ARCH__ )
+
+#if defined( KOKKOS_ENABLE_ROCM ) && defined( __HCC__ )
+
+  #define KOKKOS_FORCEINLINE_FUNCTION  __attribute__((amp,cpu)) inline
+  #define KOKKOS_INLINE_FUNCTION       __attribute__((amp,cpu)) inline
+  #define KOKKOS_FUNCTION              __attribute__((amp,cpu))
+  #define KOKKOS_LAMBDA                [=] __attribute__((amp,cpu))
+  #define KOKKOS_FUNCTION_DEFAULTED    KOKKOS_FUNCTION
+#endif
 
 #if defined( _OPENMP )
   //  Compiling with OpenMP.
@@ -179,15 +199,6 @@
   // Host code is compiled again with another compiler.
   // Device code is compile to 'ptx'.
   #define KOKKOS_COMPILER_NVCC __NVCC__
-#else
-  #if !defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
-    #if !defined( KOKKOS_ENABLE_CUDA ) // Compiling with clang for Cuda does not work with LAMBDAs either
-      // CUDA (including version 6.5) does not support giving lambdas as
-      // arguments to global functions. Thus its not currently possible
-      // to dispatch lambdas from the host.
-      #define KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA 1
-    #endif
-  #endif
 #endif // #if defined( __NVCC__ )
 
 #if !defined( KOKKOS_LAMBDA )
@@ -321,6 +332,10 @@
   //#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
   //#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
   //#define KOKKOS_ENABLE_PRAGMA_SIMD 1
+
+  #if ! defined( KOKKOS_ENABLE_ASM )
+    #define KOKKOS_ENABLE_ASM 1
+  #endif
 #endif
 
 //----------------------------------------------------------------------------
@@ -397,6 +412,10 @@
   #define KOKKOS_FUNCTION /**/
 #endif
 
+#if !defined( KOKKOS_FUNCTION_DEFAULTED )
+  #define KOKKOS_FUNCTION_DEFAULTED /**/
+#endif
+
 //----------------------------------------------------------------------------
 // Define empty macro for restrict if necessary:
 
@@ -424,6 +443,7 @@
 // There is zero or one default execution space specified.
 
 #if 1 < ( ( defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA ) ? 1 : 0 ) + \
+          ( defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM ) ? 1 : 0 ) + \
           ( defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET ) ? 1 : 0 ) + \
           ( defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP ) ? 1 : 0 ) + \
           ( defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS ) ? 1 : 0 ) + \
@@ -435,6 +455,7 @@
 // If default is not specified then chose from enabled execution spaces.
 // Priority: CUDA, OPENMP, THREADS, QTHREADS, SERIAL
 #if   defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA )
+#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM )
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET )
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
@@ -442,6 +463,8 @@
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
 #elif defined( KOKKOS_ENABLE_CUDA )
   #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA
+#elif defined( KOKKOS_ENABLE_ROCM )
+  #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM
 #elif defined( KOKKOS_ENABLE_OPENMPTARGET )
   #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET
 #elif defined( KOKKOS_ENABLE_OPENMP )
@@ -459,6 +482,8 @@
 
 #if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ ) && defined( KOKKOS_ENABLE_CUDA )
   #define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA
+#elif   defined( __HCC__ ) && defined( __HCC_ACCELERATOR__ ) && defined( KOKKOS_ENABLE_ROCM )
+  #define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU
 #else
   #define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
 #endif

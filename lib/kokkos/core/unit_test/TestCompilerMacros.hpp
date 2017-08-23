@@ -43,6 +43,19 @@
 
 #include <Kokkos_Core.hpp>
 
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    ( !defined(KOKKOS_ENABLE_CUDA_LAMBDA) || \
+      (  ( defined(KOKKOS_ENABLE_SERIAL) || defined(KOKKOS_ENABLE_OPENMP) ) && \
+         (  (CUDA_VERSION < 8000) && defined( __NVCC__ ))))
+  #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+    #error "Macro bug: KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA shouldn't be defined"
+  #endif
+#else
+  #if !defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+    #error "Macro bug: KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA should be defined"
+  #endif
+#endif
+
 #define KOKKOS_PRAGMA_UNROLL(a)
 
 namespace TestCompilerMacros {

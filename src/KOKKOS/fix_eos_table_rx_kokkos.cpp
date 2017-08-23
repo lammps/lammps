@@ -197,7 +197,7 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int
   double tmp;
   if (mask[i] & groupbit) {
     if(dpdTheta[i] <= 0.0)
-      k_error_flag.d_view() = 1;
+      k_error_flag.template view<DeviceType>()() = 1;
     energy_lookup(i,dpdTheta[i],tmp);
     uCond[i] = 0.0;
     uMech[i] = tmp;
@@ -239,7 +239,7 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLook
   if (mask[i] & groupbit){
     temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
     if (dpdTheta[i] <= 0.0)
-      k_error_flag.d_view() = 1;
+      k_error_flag.template view<DeviceType>()() = 1;
   }
 }
 
@@ -387,11 +387,11 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   // Apply the Secant Method
   for(it=0; it<maxit; it++){
     if(fabs(f2-f1) < MY_EPSILON){
-      if(isnan(f1) || isnan(f2)) k_error_flag.d_view() = 2;
+      if(isnan(f1) || isnan(f2)) k_error_flag.template view<DeviceType>()() = 2;
       temp = t1;
       temp = MAX(temp,lo);
       temp = MIN(temp,hi);
-      k_warning_flag.d_view() = 1;
+      k_warning_flag.template view<DeviceType>()() = 1;
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
@@ -404,9 +404,9 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   }
   if(it==maxit){
     if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2))
-      k_error_flag.d_view() = 2;
+      k_error_flag.template view<DeviceType>()() = 2;
     else
-      k_error_flag.d_view() = 3;
+      k_error_flag.template view<DeviceType>()() = 3;
   }
   thetai = temp;
 }

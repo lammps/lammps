@@ -153,12 +153,12 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memory->destroy_kokkos(k_eatom,eatom);
     memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.d_view;
+    d_eatom = k_eatom.template view<DeviceType>();
   }
   if (vflag_atom) {
     memory->destroy_kokkos(k_vatom,vatom);
     memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-    d_vatom = k_vatom.d_view;
+    d_vatom = k_vatom.template view<DeviceType>();
   }
 
   x = atomKK->k_x.view<DeviceType>();
@@ -582,7 +582,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
       if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
         if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
-          k_error_flag.d_view() = 1;
+          k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
         rminv = 1.0/rmOld12_ij;
@@ -676,7 +676,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
       if(rm12_ij!=0.0 && rm21_ij!=0.0){
         if(alpha21_ij == 6.0 || alpha12_ij == 6.0)
-          k_error_flag.d_view() = 1;
+          k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
         rminv = 1.0/rm12_ij;
@@ -953,7 +953,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
       if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
         if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
-          k_error_flag.d_view() = 1;
+          k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
         rminv = 1.0/rmOld12_ij;
@@ -1047,7 +1047,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
       if(rm12_ij!=0.0 && rm21_ij!=0.0){
         if(alpha21_ij == 6.0 || alpha12_ij == 6.0)
-          k_error_flag.d_view() = 1;
+          k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
         rminv = 1.0/rm12_ij;
@@ -1592,7 +1592,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   }
 
   if (hasError)
-    k_error_flag.d_view() = 1;
+    k_error_flag.template view<DeviceType>()() = 1;
 
   if (UseAtomics)
   {
@@ -1887,7 +1887,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,doub
     }
   }
   if(nTotal < MY_EPSILON || nTotalold < MY_EPSILON)
-    k_error_flag.d_view() = 1;
+    k_error_flag.template view<DeviceType>()() = 1;
 
   // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
   fractionOFAold = nMoleculesOFAold / nTotalold;
@@ -2042,28 +2042,28 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,doub
   // Check that no fractions are less than zero
   if(fraction1 < 0.0 || nMolecules1 < 0.0){
     if(fraction1 < -MY_EPSILON || nMolecules1 < -MY_EPSILON){
-      k_error_flag.d_view() = 2;
+      k_error_flag.template view<DeviceType>()() = 2;
     }
     nMolecules1 = 0.0;
     fraction1 = 0.0;
   }
   if(fraction2 < 0.0 || nMolecules2 < 0.0){
     if(fraction2 < -MY_EPSILON || nMolecules2 < -MY_EPSILON){
-      k_error_flag.d_view() = 2;
+      k_error_flag.template view<DeviceType>()() = 2;
     }
     nMolecules2 = 0.0;
     fraction2 = 0.0;
   }
   if(fractionOld1 < 0.0 || nMoleculesOld1 < 0.0){
     if(fractionOld1 < -MY_EPSILON || nMoleculesOld1 < -MY_EPSILON){
-      k_error_flag.d_view() = 2;
+      k_error_flag.template view<DeviceType>()() = 2;
     }
     nMoleculesOld1 = 0.0;
     fractionOld1 = 0.0;
   }
   if(fractionOld2 < 0.0 || nMoleculesOld2 < 0.0){
     if(fractionOld2 < -MY_EPSILON || nMoleculesOld2 < -MY_EPSILON){
-      k_error_flag.d_view() = 2;
+      k_error_flag.template view<DeviceType>()() = 2;
     }
     nMoleculesOld2 = 0.0;
     fractionOld2 = 0.0;

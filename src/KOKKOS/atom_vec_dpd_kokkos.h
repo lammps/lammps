@@ -14,6 +14,8 @@
 #ifdef ATOM_CLASS
 
 AtomStyle(dpd/kk,AtomVecDPDKokkos)
+AtomStyle(dpd/kk/device,AtomVecDPDKokkos)
+AtomStyle(dpd/kk/host,AtomVecDPDKokkos)
 
 #else
 

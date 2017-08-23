@@ -74,6 +74,8 @@ typedef struct s_CounterType CounterType;
 template <typename DeviceType>
 class FixRxKokkos : public FixRX {
  public:
+  typedef ArrayTypes<DeviceType> AT;
+
   FixRxKokkos(class LAMMPS *, int, char **);
   virtual ~FixRxKokkos();
   virtual void init();
@@ -202,10 +204,10 @@ class FixRxKokkos : public FixRX {
   DAT::tdual_int_1d k_diagnosticCounterPerODEnFuncs;
   //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnSteps;
   //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnFuncs;
-  typename DAT::t_int_1d d_diagnosticCounterPerODEnSteps;
-  typename DAT::t_int_1d d_diagnosticCounterPerODEnFuncs;
-  typename HAT::t_int_1d h_diagnosticCounterPerODEnSteps;
-  typename HAT::t_int_1d h_diagnosticCounterPerODEnFuncs;
+  typename AT::t_int_1d d_diagnosticCounterPerODEnSteps;
+  typename AT::t_int_1d d_diagnosticCounterPerODEnFuncs;
+  HAT::t_int_1d h_diagnosticCounterPerODEnSteps;
+  HAT::t_int_1d h_diagnosticCounterPerODEnFuncs;
 
   template <typename KokkosDeviceType>
   struct KineticsType
@@ -233,8 +235,8 @@ class FixRxKokkos : public FixRX {
   // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
   DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;
   //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
-  typename DAT::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
-  typename HAT::t_efloat_1d h_dpdThetaLocal, h_sumWeights;
+  typename AT::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
+  HAT::t_efloat_1d h_dpdThetaLocal, h_sumWeights;
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread d_x       ;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread  d_type    ;

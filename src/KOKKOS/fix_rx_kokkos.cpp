@@ -1403,7 +1403,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
       if (y[ispecies] < -1.0e-10)
       {
         //error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
-        k_error_flag.d_view() = 2;
+        k_error_flag.template view<DeviceType>()() = 2;
         // This should be an atomic update.
       }
       else if (y[ispecies] < MY_EPSILON)
@@ -1444,10 +1444,10 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   {
     const int count = nlocal + (newton_pair ? nghost : 0);
 
-    if (count > k_dpdThetaLocal.d_view.dimension_0()) {
+    if (count > k_dpdThetaLocal.template view<DeviceType>().dimension_0()) {
       memory->destroy_kokkos (k_dpdThetaLocal, dpdThetaLocal);
       memory->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
-      this->d_dpdThetaLocal = k_dpdThetaLocal.d_view;
+      this->d_dpdThetaLocal = k_dpdThetaLocal.template view<DeviceType>();
       this->h_dpdThetaLocal = k_dpdThetaLocal.h_view;
     }
 
@@ -1514,8 +1514,8 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
     memory->create_kokkos (k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps, nlocal, "FixRxKokkos::diagnosticCounterPerODEnSteps");
     memory->create_kokkos (k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs, nlocal, "FixRxKokkos::diagnosticCounterPerODEnFuncs");
 
-    d_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.d_view;
-    d_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.d_view;
+    d_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.template view<DeviceType>();
+    d_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.template view<DeviceType>();
 
     Kokkos::parallel_for ( Kokkos::RangePolicy<DeviceType, Tag_FixRxKokkos_zeroCounterViews>(0,nlocal), *this);
     //Kokkos::parallel_for ( nlocal,
@@ -1619,7 +1619,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
           if (y[ispecies] < -1.0e-10)
           {
             //error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
-            k_error_flag.d_view() = 2;
+            k_error_flag.template view<DeviceType>()() = 2;
             // This should be an atomic update.
           }
           else if (y[ispecies] < MY_EPSILON)
@@ -1907,7 +1907,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
 {
   // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
   // for Half/thread scenarios.
-  typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename DAT::t_efloat_1d::device_type, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+  typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
 
   AtomicViewType a_dpdThetaLocal = d_dpdThetaLocal;
   AtomicViewType a_sumWeights    = d_sumWeights;
@@ -2044,10 +2044,10 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   int sumWeightsCt = nlocal + (NEWTON_PAIR ? nghost : 0);
 
   //memory->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
-  if (sumWeightsCt > k_sumWeights.d_view.dimension_0()) {
+  if (sumWeightsCt > k_sumWeights.template view<DeviceType>().dimension_0()) {
     memory->destroy_kokkos(k_sumWeights, sumWeights);
     memory->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
-    d_sumWeights = k_sumWeights.d_view;
+    d_sumWeights = k_sumWeights.template view<DeviceType>();
     h_sumWeights = k_sumWeights.h_view;
   }
 
@@ -2083,7 +2083,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
           // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
           // for Half/thread scenarios.
           //typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
-          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename DAT::t_efloat_1d::device_type, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
 
           AtomicViewType a_dpdThetaLocal = d_dpdThetaLocal;
           AtomicViewType a_sumWeights    = d_sumWeights;

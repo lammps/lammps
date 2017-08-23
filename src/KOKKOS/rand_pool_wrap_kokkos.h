@@ -69,8 +69,6 @@ class RandPoolWrap : protected Pointers {
 
   }
 
-  void clean_copy() { random_thr = NULL; }
-
  private:
   class RanMars **random_thr;
   int nthreads;

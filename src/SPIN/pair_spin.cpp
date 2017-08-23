@@ -39,7 +39,6 @@ PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp)
   exch_flag = 0; 
   dmi_flag = 0;
   me_flag = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -364,7 +363,8 @@ void PairSpin::coeff(int narg, char **arg)
     if (count == 0) error->all(FLERR,"Incorrect args in pair_style command");  
   } else if (strcmp(arg[2],"dmi")==0) {
     if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
-    dmi_flag = 1;    
+    dmi_flag = 1;   
+
     int ilo,ihi,jlo,jhi;
     force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
     force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
@@ -426,7 +426,8 @@ void PairSpin::coeff(int narg, char **arg)
     if (count == 0) error->all(FLERR,"Incorrect args in pair_style command"); 
   } else error->all(FLERR,"Incorrect args in pair_style command");
 
-  //Check if Jex [][] still works for Ferrimagnetic exchange  
+  // check if Jex [][] still works for Ferrimagnetic exchange  
+
 }
 
 

@@ -1,0 +1,86 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, 
+#      or run the file as a script using ./README_setup.sh)
+
+# ------------------------------- Initialization Section --------------------
+
+include         system.in.init
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data       system.data
+
+# ------------------------------- Settings Section --------------------------
+
+include         system.in.settings
+
+# ------------------------------- Run Section -------------------------------
+
+# To avvoid explosions, I have a 4-step equilibraion process (expand, minimize, 
+# reorient, compress).  The system (as defined in the "system.data" file) 
+# is already expanded.  That means there are 3 steps left:
+
+dump            dumpeq1 all custom 50 traj_eq1_min.lammpstrj id mol type x y z ix iy iz
+thermo          50
+
+# -- Equilibration: part 1: initial minimization --
+
+# Note: In general, it's always a good idea to minimize the system at first.
+
+minimize 1.0e-5 1.0e-7 100000 400000
+undump          dumpeq1
+
+write_data   system_after_eq1_min.data
+
+# -- Equilibration part 2: reorienting the molecules (NVT) --
+
+timestep        1.0
+dump dumpeq2 all custom 200 traj_eq2_reorient.lammpstrj id mol type x y z ix iy iz
+
+# Run the system at high temperature (at constant volume) to reorient the
+# the molecules (which would otherwise be pointing in the same direction).
+
+# To speed it up, I randomize the atomic positions for a few thousand steps 
+# using fix langevin (and fix nve).  Then I switch to fix nvt (Nose-Hoover).
+# (If I start with fix nvt (Nose-Hoover), it seems to get "stuck" for a while.)
+
+
+fix fxlan all langevin  900.0 900.0  120 48279
+fix fxnve all nve
+
+run             4000
+
+unfix fxlan
+unfix fxnve
+# Now continue the simulation at high temperature using fix nvt (Nose-Hoover).
+fix fxnvt all nvt temp 900.0 900.0 100.0
+
+run             50000
+undump dumpeq2
+
+
+write_data   system_after_eq2_reorient.data
+
+unfix fxnvt
+
+# -- equilibration part 3: Equilibrating the density (NPT) --
+
+# Originally, the simulation box (in "system.data" and "system.lt") was 
+# unrealistically large.  The spacing between the molecules was large also.
+# I did this to enable the molecules to move freely and reorient themselves.
+# After doing that, we should run the simulation under NPT conditions to 
+# allow the simulation box to contract to it's natural size.  We do that here:
+# We begin the simulation at 100 barr (a relatively low pressure), and
+# slowly decrease it to 1 barr, maintianing the temperature at 300K.
+
+dump dumpeq3 all custom 200 traj_eq3_npt.lammpstrj id mol type x y z ix iy iz
+fix fxnpt all npt temp 900.0 300.0 100.0 iso 100.0 1.0 1000.0 drag 2.0
+
+timestep        1.0
+run             100000
+
+write_data   system_after_eq3_npt.data
+

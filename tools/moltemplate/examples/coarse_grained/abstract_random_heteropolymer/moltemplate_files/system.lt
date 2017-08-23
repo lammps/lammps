@@ -1,0 +1,11 @@
+
+write_once("Data Boundary") {
+  0.0 150.0  xlo xhi
+  0.0 150.0  ylo yhi
+  0.0 150.0  zlo zhi
+}
+
+
+import "polymer.lt"
+
+polymer = new RandomHeteropolymer

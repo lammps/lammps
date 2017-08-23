@@ -1,0 +1,147 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (You do not need to run LAMMPS to equilibrate the system before
+#      using this file.)
+#
+#        Requirements:
+# To run this system at constant pressure, it might help to compile LAMMPS with
+# the optional RIGID package, and use "fix rigid" on the carbon.  (Optional.)
+# The use of fix rigid is controversial.  This method is demonstrated below.
+# THIS EXAMPLE HAS NOT BEEN RIGOROUSLY TESTED.  This simulation may fail.
+# (However the "run.in.nvt" example in this directory should work.)
+# ------------------------------- Initialization Section --------------------
+
+include system.in.init
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data system.data
+
+# ------------------------------- Settings Section --------------------------
+
+include system.in.settings
+
+# Use "neigh_modify" to turn off calculation of interactions between immobilized
+# atoms. (Note: group "cGraphene" was defined in the file "system.insettings")
+neigh_modify exclude group Cgraphene Cgraphene
+
+# ------------------------------- Run Section -------------------------------
+
+
+# Only the Cgraphene atoms are immobile.
+group mobile subtract all Cgraphene
+
+# (Note: The "Cgraphene" group was defined in system.in.settings.)
+
+
+# Unfortunately you can not use the LAMMPS "minimize" command on this system
+# because there is no way to immobilize the carbon graphene & nanotube atoms
+# during minimization.  Instead, we can use langevin dynamics with a fast
+# damping parameter and a small timestep.
+
+print "--------- beginning minimization (using fix langevin) ---------"
+
+timestep        0.1
+fix fxlan mobile langevin 1.0 1.0 100.0 48279
+fix fxnve mobile nve   # <-- needed by fix langevin (see lammps documentation)
+thermo          100
+run 2500
+
+unfix fxlan
+unfix fxnve
+
+# -- simulation protocol --
+
+print "--------- beginning simulation (using fix nvt) ---------"
+
+dump            1 all custom 1000 traj_npt.lammpstrj id mol type x y z ix iy iz
+
+thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
+thermo          200  # time interval for printing out "thermo" data
+
+
+
+
+
+# ------------------------- NPT ---------------------------
+
+
+#  ------ QUESTIONABLE (see below): ------
+
+fix Ffreezestuff Cgraphene rigid single force * off off off torque * off off off
+
+# Comment:
+# The use of "fix rigid" to immobilize an object is somewhat controversial.
+# Feel free to omit it.
+# (Neither Trung or Steve Plimpton use fix rigid for immobilizing 
+#  molecules, but I noticed that at NPT, it does a better job of maintaining 
+#  the correct volume.  However "fix rigid" has changed since then (2011), 
+#  so this may no longer be true.  Please use this example with caution.)
+
+
+
+# Thermostat+Barostat
+# Set temp=300K, pressure=200bar, and equilibrate volume only in the z direction
+
+fix fxMoveStuff mobile npt temp 300 300 100 z 200 200 1000.0 dilate mobile drag 2.0
+
+#  ----------------------------------------
+
+# The next two lines recalculate the temperature using
+# only the mobile degrees of freedom (ie. water atom velocities):
+
+compute tempMobile mobile temp
+compute pressMobile all pressure tempMobile
+
+thermo_style custom step c_tempMobile c_pressMobile temp press vol
+
+fix_modify fxMoveStuff temp tempMobile
+
+reset_timestep 0
+
+timestep 0.25
+
+run    100000
+
+timestep 0.5
+
+run    200000
+
+# Hopefully the barostat is no longer oscillating. Increase the timestep and
+# also get get rid of "drag 2.0". (A non-zero drag parameter will result in
+# unrealistic fluctuations of volume under NPT conditions.)
+# drag 2.0  <-- commenting out
+#
+# Set temp=300K, pressure=0bar, and equilibrate volume only in the z direction
+unfix fxMoveStuff
+fix fxMoveStuff mobile npt temp 300 300 100 z 0 0 1000.0 dilate mobile
+fix_modify fxMoveStuff temp tempMobile
+
+timestep 0.5
+
+run    1000000
+
+write_data  system_after_npt.data
+
+# (The "write_restart" and "read_restart" commands were buggy in 2012, 
+#  but they should work also.)
+
+
+
+
+
+
+
+# ----- Comment: Avoid using fix rigid/npt on large single rigid objects -----
+#
+# Use of the following is not recommended:
+#
+# fix Ffreezestuff Cgraphene rigid/npt single temp 300 300 100 z 200 200 1000.0 force * off off off torque * off off off dilate mobile
+# (temp=300K, pressure=200bar, and equilibrate volume only in the z direction)
+#
+# In my experience, the system becomes unstable when applying "fix rigid/npt"
+# to the immobile atoms, while also applying "fix npt" on the solvent atoms.
+# (It is probably a bad idea to use two barostats simultaneously.)
+# ----------------------------------------------------------------------------

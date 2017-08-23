@@ -1,0 +1,94 @@
+# Description:
+
+# This constructs a bilayer constructed from coarse-grained DPPC lipids
+# (implicit solvent).  The DPPC lipid model is described here:
+#      G. Brannigan, P.F. Philips, and F.L.H. Brown,
+#      Physical Review E, Vol 72, 011915 (2005)
+#
+# NOTE: There is an example of a 50%/50% DPPC & DLPC mixture
+#       in the "membrane+protein" and "vesicle" examples.
+
+
+
+
+
+
+import "CGLipidBr2005Orig.lt"
+
+using namespace CGLipidBr2005
+
+lipids = new DPPC  [32].move(7.5,    0,     0)
+                   [37].move(3.75, 6.49519, 0)
+                    [2].rot(180, 1, 0, 0)
+
+
+# Move the lipds up to the center of the box
+lipids[*][*][*].move(0,0,75.0)
+
+
+# Although this patch of lipids is not square or rectangular, (it looks 
+# like a parallelogram), this is no longer the case after rectangular
+# periodic boundary conditions are applied.  We apply them below:
+#   width:  240     = 32*7.5
+#   height: 240.322 = 37*6.49519
+
+write_once("Data Boundary") {                                        
+  0        240          xlo xhi
+  0        240.322      ylo yhi
+  0        150.0        zlo zhi                                     
+}
+
+
+
+
+
+
+
+
+# -------------- File ends here. Only comments below.-------------------
+
+# ------------------------------------
+# ------------- COMMENTS: ------------
+# ------------------------------------
+#
+# A note on geometry:
+# We want to create a bilayer arranged in a hexagonal lattice consisting of
+#    32 rows     (each row is aligned with the x-axis)
+#    37 columns  (aligned at a 60 degree angle from the x axis)
+# The lattice spacing is 8.0 Angstroms ( ~= 0.95*sigma*2^(1/6), where sigma=7.5)
+# When wrapped onto a rectangular box, the dimensions of the system are:
+#    32 * 7.5 Angstroms           in the X direction
+#    37 * 7.5*sqrt(3)/2 Angstroms in the Y direction
+# ------------------------------------
+#
+# Below I show simple ways to create a lipid bilayer:
+#
+# 1) If you just want to make lipid bilayer out of DPPC,
+#    without specifying the location of each lipid, you could use this syntax:
+#        lipids = new DPPC [32][37][2]   # 3-D array
+#    Later you can load in the coordinates of the lipds from a PDB file.
+#    Alternately you could also use a 1-dimensional array:
+#        lipids = new DPPC [2368]        # 1-D array.  Note: 2368 = 32 x 37 x 2
+#    It does not matter as long as the number of lipids is correct.
+#    Multidimensional arrays are only useful if you plan to apply independent
+#    coordinate transformations to each row and column and monolayer. See below:
+#
+# 2) Instead of loading a PDB file later, we can directly specify the location 
+#    of each DPPC lipid in the LT file itself.  For lipid bilayers, this is
+#    easy, because the bilayer structure resembles 2 planar lattices.
+#    We can use "move" commands to place each lipid, and the "rot" command
+#    to turn the lipids in one of the monolayers upside down.
+#    
+#        lipids = new DPPC [32].move(7.5,    0,     0)
+#                          [37].move(3.75, 6.49519, 0)
+#                           [2].rot(180, 1, 0, 0)
+#
+# 3) If you want to create a bilayer from a mixture of DPPC and DLPC, you must
+#   replace "DPPC" in the command above with random([DPPC,DLPC],[0.5,0.5],12345)
+#   Here "0.5,0.5" are the probabilities for each molecule type, and "12345"
+#   is an optional random seed.
+# lipids = new random([DPPC,DLPC], [0.5,0.5], 12345)
+#                    [32].move(7.5,    0,     0)
+#                    [37].move(3.75, 6.49519, 0)
+#                     [2].rot(180, 1, 0, 0)
+#

@@ -1,0 +1,67 @@
+# We define two molecule classes to represent Na+ and Cl- ions, respectively.
+# This may seem like overkill since they both only consist of one atom each.
+
+
+# Note: Monovalent ion parameters for Ewald and SPC/E water
+#       are from: Joung & Cheatham JPCB (2008)
+# These Lennard Jones parameters match the parameters for ions
+# in SPC/E water in the "frcmod.ionsjc_spce" file distributed 
+# with Amber (the 2010 version).
+
+
+NaIon {
+
+  # The epsilong & sigma parameters from that paper were 0.3526418 & 1.212.
+  # However sigma must be divided by 2^(1/6), because they use the alternate
+  # Lennard-Jones convention: U(r)=epsilon*((s/r)^12 - 2*(s/r)^6), and
+  # pair_style lj/charmm/coul/long uses U(r)=4*epsilon*((s/r)^12 - (s/r)^6)
+  # (Note: This change does not effect the epsilon parameter.)
+
+  write_once("In Settings") {
+    pair_coeff @atom:Na @atom:Na lj/charmm/coul/long 0.3526418 1.079769246386
+  }
+
+  write_once("Data Masses") {
+    @atom:Na 22.9898
+  }
+
+  # assumes "full" atom style
+  write("Data Atoms") {
+    $atom:Na $mol @atom:Na 1.0  0.00000  0.00000   0.000000
+  }
+} # NaIon
+
+
+ClIon {
+  write_once("In Settings") {
+    pair_coeff @atom:Cl @atom:Cl  lj/charmm/coul/long  0.0127850  2.711
+  }
+
+  write_once("Data Masses") {
+    @atom:Cl 35.453
+  }
+
+  # assumes "full" atom style
+  write("Data Atoms") {
+    $atom:Cl $mol @atom:Cl -1.0  0.00000  0.00000   0.000000
+  }
+} # ClIon
+
+
+write_once("In Init") {
+  # -- Default styles for ions --
+  units        real
+  atom_style   full
+  # (Hybrid force fields were not necessary but are used for portability.)
+  pair_style   hybrid lj/charmm/coul/long 9.0 10.0 10.0
+  kspace_style pppm 0.0001
+  pair_modify  mix arithmetic
+}
+
+# Optional: Define a group named "ions" consisting of either Na or Cl ions.
+write_once("In Settings") {
+  group ionNa type  @atom:NaIon/Na @atom:NaIon/Na
+  group ionCl type  @atom:ClIon/Cl @atom:ClIon/Cl
+  group ions  type  @atom:NaIon/Na @atom:ClIon/Cl
+}
+

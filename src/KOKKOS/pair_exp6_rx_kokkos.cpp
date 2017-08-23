@@ -2112,6 +2112,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 
 /* ---------------------------------------------------------------------- */
 
+#ifndef KOKKOS_HAVE_CUDA
 template<class DeviceType>
   template<class ArrayT>
 void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag, 
@@ -2460,6 +2461,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   if (errorFlag2 > 0)
     errorFlag = 2;
 }
+#endif
 
 /* ---------------------------------------------------------------------- */
 

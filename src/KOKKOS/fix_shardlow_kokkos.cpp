@@ -716,7 +716,6 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
         l_uCond(i) = 0.0;
         l_uMech(i) = 0.0;
       });
-      DeviceType::fence();
       atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK);
     }
 

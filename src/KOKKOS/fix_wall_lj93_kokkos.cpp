@@ -62,7 +62,6 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
   copymode = 1;
   FixWallLJ93KokkosFunctor<DeviceType> wp_functor(this);
   Kokkos::parallel_reduce(nlocal,wp_functor,ewall);
-  DeviceType::fence();
   copymode = 0;
 
   atomKK->modified(execution_space, F_MASK);

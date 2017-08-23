@@ -1,0 +1,39 @@
+
+import "gaff.lt"
+
+# The "gaff.lt" file is usually located in "force_fields" subdirectory
+# of the moltemplate distribution.
+# It contains definitions of the atoms "c2", "hc", as well as the bonded
+# and non-bonded interactions between them (and many other atoms).
+#
+# Moltemplate is only a simple text manipulation tool.  It cannot
+# calculate atomic charge using quantom chemistry methods.
+# Atom charges for this example were taken from the OPLSAA force field file:
+# http://dasher.wustl.edu/tinker/distribution/params/oplsaa.prm
+# However, normally simulations in AMBER are assigned charges using the
+# "HF/6-31G* RESP2" or "AM1-BCC3" methods using AmberTools.
+
+
+Ethylene inherits GAFF {
+
+  # atom-id  mol-id  atom-type charge      X         Y        Z
+
+  write('Data Atoms') {
+    $atom:C1  $mol @atom:c2  -0.23  -0.6695    0.000000  0.000000
+    $atom:C2  $mol @atom:c2  -0.23   0.6695    0.000000  0.000000
+    $atom:H11 $mol @atom:hc  0.115  -1.234217 -0.854458  0.000000
+    $atom:H12 $mol @atom:hc  0.115  -1.234217  0.854458  0.000000
+    $atom:H21 $mol @atom:hc  0.115   1.234217 -0.854458  0.000000
+    $atom:H22 $mol @atom:hc  0.115   1.234217  0.854458  0.000000
+  }
+
+  write('Data Bond List') {
+    $bond:C12  $atom:C1 $atom:C2
+    $bond:C1H1 $atom:C1 $atom:H11
+    $bond:C1H2 $atom:C1 $atom:H12
+    $bond:C2H1 $atom:C2 $atom:H21
+    $bond:C2H2 $atom:C2 $atom:H22
+  }
+
+} # Ethylene
+

@@ -13,16 +13,16 @@
 
 #include <mpi.h>
 #include <string.h>
-#include "compute_spin.h"
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
+#include "compute_spin.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "math_special.h"
 #include "math_const.h"
-#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

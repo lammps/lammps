@@ -84,11 +84,11 @@ fix 1 all force/spin zeeman 10.0 0.0 0.0 1.0
 #Fix Langevin spins (merging damping and temperature)
 #Temp | Alpha_trans | Alpha_long | Seed
 #fix 2 all langevin/spin 0.0 0.1 0.0 21
-fix 2 all langevin/spin 1.0 0.1 0.0 21
-#fix 2 all langevin/spin 0.0 0.0 0.0 21
+#fix 2 all langevin/spin 1.0 0.1 0.0 21
+fix 2 all langevin/spin 0.0 0.0 0.0 21
 
 #Magnetic integration fix
-fix 3 all nve/spin mpi
+fix 3 all integration/spin mpi
 
 #compute real time, total magnetization, magnetic energy, and spin temperature
 #Iteration | Time | Mx | My | Mz | |M| | Em | Tm
@@ -96,7 +96,7 @@ compute mag all compute/spin
 fix outmag all ave/time 1 1 10 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5] c_mag[6] c_mag[7] file mag_Co_nodamp.dat format %20.16g
 
 #Setting the timestep for the simulation (in ps)
-timestep	0.00001
+timestep	0.0001
 
 ##################
 #######run########
@@ -106,6 +106,6 @@ timestep	0.00001
 dump 1 all custom 100 dump_spin_MM.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 10000
+run 100000
 #run 1
 

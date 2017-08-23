@@ -13,20 +13,19 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include "pair_spin.h"
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "comm.h"
-#include "force.h"
-#include "memory.h"
-#include "math_const.h"
-#include "error.h"
-#include "update.h"
 #include <string.h>
 
-//Add. lib. for full neighb. list
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "neighbor.h"
+#include "neigh_list.h"
 #include "neigh_request.h"
+#include "math_const.h"
+#include "memory.h"
+#include "pair_spin.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

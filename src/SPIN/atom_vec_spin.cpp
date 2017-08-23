@@ -14,14 +14,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "atom_vec_spin.h"
 #include "atom.h"
+#include "atom_vec_spin.h"
 #include "comm.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 

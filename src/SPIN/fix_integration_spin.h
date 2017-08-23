@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nve/spin,FixNVESpin)
+FixStyle(integration/spin,FixIntegrationSpin)
 
 #else
 
@@ -24,18 +24,18 @@ FixStyle(nve/spin,FixNVESpin)
 
 namespace LAMMPS_NS {
 
-class FixNVESpin : public FixNVE {
+class FixIntegrationSpin : public FixNVE {
 	
  public:
-  FixNVESpin(class LAMMPS *, int, char **);
-  virtual ~FixNVESpin();
+  FixIntegrationSpin(class LAMMPS *, int, char **);
+  virtual ~FixIntegrationSpin();
   void init();
   virtual void initial_integrate(int);
   void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
-  void ComputeSpinInteractions();   
   void ComputeInteractionsSpin(int);   
-  
+  void ComputeMMforce(); 
+
   void sectoring();
   int coords2sector(double *);
 
@@ -59,10 +59,6 @@ class FixNVESpin : public FixNVE {
   int *sec, *seci;
   double *rsec;
 
-//#define SECTOR_PRINT
-#if defined SECTOR_PRINT
-  FILE* file_sect=NULL;
-#endif
 };
 
 }

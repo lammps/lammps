@@ -32,6 +32,21 @@ atom_modify map array
 #Lattice constant of fcc Cobalt
 lattice fcc 3.54
 #lattice sc 2.50
+
+#Test Kagome
+#variable a equal sqrt(3.0)/8.0
+#variable b equal 3.0*sqrt(3.0)/8.0
+#variable c equal sqrt(3.0)/4.0
+
+#lattice custom 2.5 a1    1.0   0.0 0.0 &
+#                   a2    0.0   1.0 0.0 &
+#                   a3    0.0   0.0 1.0 &
+#                   basis 0.0   $a  0.0 &
+#                   basis 0.25  $a  0.0 &
+#                   basis 0.375 0.0 0.0 &
+#                   basis 0.25  $b  0.0 &
+#                   basis 0.5   $b  0.0 &
+#                   basis 0.625 $c  0.0
     
 #Defining a geometric region of space. Sets ID(user's choice), style(block, sphere, ...), then, args depends on the style chosen
 #(for block, one has x0, xf, y0, yf, z0, zf, in distance units)
@@ -43,6 +58,10 @@ create_box 1 box
 #Creating atoms (or molecules) on a lattice, or a single atom (or molecule), ... 
 #Entries: atom type, 
 create_atoms 1 box
+
+#Replicating NxNxN the entire set of atoms
+#replicate 1 1 1
+
 
 #######################
 #######Settings########
@@ -102,6 +121,6 @@ timestep	0.0001
 dump 1 all custom 100 dump_spin_T100.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 20
+run 2000
 #run 1
 

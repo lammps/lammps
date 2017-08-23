@@ -34,6 +34,7 @@
 #include "memory.h"
 #include "fix_force_spin.h"
 #include "fix_langevin_spin.h"
+#include "pair_hybrid.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -114,7 +115,21 @@ void FixNVESpin::init()
   memory->create(fmi,3,"nves:fmi");
   memory->create(fmj,3,"nves:fmj");
 
-  lockpairspin = (PairSpin *) force->pair;
+
+  if (strstr(force->pair_style,"pair/spin")) {
+    lockpairspin = (PairSpin *) force->pair;
+  } else if (strstr(force->pair_style,"hybrid/overlay")) {
+    PairHybrid *lockhybrid = (PairHybrid *) force->pair;
+    int nhybrid_styles = lockhybrid->nstyles;
+    int ipair;
+    for (ipair = 0; ipair < nhybrid_styles; ipair++) {
+      if (strstr(lockhybrid->keywords[ipair],"pair/spin")) {
+	lockpairspin = (PairSpin *) lockhybrid->styles[ipair];
+      }
+    }
+  } else error->all(FLERR,"Illegal fix nve/spin command");
+
+  // check errors, and handle simple hybrid (not overlay)
 
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++)
@@ -125,15 +140,29 @@ void FixNVESpin::init()
     if (strstr(modify->fix[iforce]->style,"langevin/spin")) break;
   locklangevinspin = (FixLangevinSpin *) modify->fix[iforce]; 
 
-  exch_flag = lockpairspin->exch_flag;
-  dmi_flag = lockpairspin->dmi_flag;
-  me_flag = lockpairspin->me_flag; 
+  if (lockpairspin->exch_flag == 1) {
+    exch_flag = lockpairspin->exch_flag;
+  } 
+  if (lockpairspin->dmi_flag == 1) {
+    dmi_flag = lockpairspin->dmi_flag;
+  }
+  if (lockpairspin->me_flag == 1) {
+    me_flag = lockpairspin->me_flag;
+  }
 
-  zeeman_flag = lockforcespin->zeeman_flag;
-  aniso_flag = lockforcespin->aniso_flag;
+  if (lockforcespin->zeeman_flag == 1) {
+    zeeman_flag = lockforcespin->zeeman_flag;
+  }
+  if (lockforcespin->aniso_flag == 1) {
+    aniso_flag = lockforcespin->aniso_flag;
+  }
 
-  tdamp_flag = locklangevinspin->tdamp_flag;
-  temp_flag = locklangevinspin->temp_flag;
+  if (locklangevinspin->tdamp_flag == 1) {
+    tdamp_flag = locklangevinspin->tdamp_flag;
+  }
+  if (locklangevinspin->temp_flag == 1){
+    temp_flag = locklangevinspin->temp_flag;
+  }
 
   if (mpi_flag == 1) {
     sectoring();
@@ -173,7 +202,6 @@ void FixNVESpin::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;  
 
-  
   // update half v all particles
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -193,7 +221,6 @@ void FixNVESpin::initial_integrate(int vflag)
       x[i][2] += 0.5 * dtv * v[i][2];
       }
   }
-
   
   if (extra == SPIN) {
     if (mpi_flag == 1) {
@@ -236,7 +263,7 @@ void FixNVESpin::initial_integrate(int vflag)
     } else error->all(FLERR,"Illegal fix nve/spin command");
   }
   
-  // update x for all particles
+  // update half x for all particles
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       x[i][0] += 0.5 * dtv * v[i][0];
@@ -279,10 +306,13 @@ void FixNVESpin::ComputeInteractionsSpin(int ii)
   int *type = atom->type;
   const int newton_pair = force->newton_pair;
 
-  inum = lockpairspin->list->inum;
-  ilist = lockpairspin->list->ilist;
-  numneigh = lockpairspin->list->numneigh;
-  firstneigh = lockpairspin->list->firstneigh;
+  // add test here
+  if (exch_flag == 1 || dmi_flag == 1 || me_flag == 1 ) { 
+    inum = lockpairspin->list->inum;
+    ilist = lockpairspin->list->ilist;
+    numneigh = lockpairspin->list->numneigh;
+    firstneigh = lockpairspin->list->firstneigh;
+  }
  
   double xtmp,ytmp,ztmp;
   double rsq,rd,delx,dely,delz;
@@ -350,6 +380,7 @@ void FixNVESpin::ComputeInteractionsSpin(int ii)
         lockpairspin->compute_me(i,j,fmi,fmj,spi,spj);
       }  
     }
+
   }
 
   // post force

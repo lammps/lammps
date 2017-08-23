@@ -47,6 +47,7 @@ class FixNVESpin : public FixNVE {
   int zeeman_flag, aniso_flag;
   int tdamp_flag, temp_flag;
 
+  class PairHybrid *lockhybrid; 
   class PairSpin *lockpairspin;
   class FixForceSpin *lockforcespin;
   class FixLangevinSpin *locklangevinspin; 

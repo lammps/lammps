@@ -374,10 +374,9 @@ needed if new bonds (angles, dihedrals, impropers) will be added to
 the system when a simulation runs, e.g. by using the "fix
 bond/create"_fix_bond_create.html command. Using this header flag
 is deprecated; please use the {extra/bond/per/atom} keyword (and
-correspondingly for angles, dihedrals and impropers) in the
-read_data command instead. Either will pre-allocate space in LAMMPS
- data structures for storing the new bonds (angles,
-dihedrals, impropers).
+correspondingly for angles, dihedrals and impropers) in the read_data
+command instead. Either will pre-allocate space in LAMMPS data
+structures for storing the new bonds (angles, dihedrals, impropers).
 
 The "extra special per atom" setting is typically only needed if new
 bonds/angles/etc will be added to the system, e.g. by using the "fix

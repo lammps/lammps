@@ -26,7 +26,8 @@ for each eDPD particle in a group.
 
 The temperature is a local temperature derived from the internal energy 
 of each eDPD particle based on the local equilibrium hypothesis.
-For more details please see "(Espanol1997)"_#Espanol1997 and "(Li2014)"_#Li2014.
+For more details please see "(Espanol1997)"_#Espanol1997 and
+"(Li2014)"_#Li2014a.
 
 [Output info:]
 
@@ -55,7 +56,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [(Espanol1997)] Espanol, Europhys Lett, 40(6): 631-636 (1997).  DOI:
 10.1209/epl/i1997-00515-8
 
-:link(Li2014)
+:link(Li2014a)
 [(Li2014)] Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys, 265:
 113-127 (2014).  DOI: 10.1016/j.jcp.2014.02.003.
 

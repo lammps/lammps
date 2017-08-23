@@ -28,7 +28,7 @@ group.
 
 The chemical concentration of each species is defined as the number of
 molecules carried by a tDPD particle for dilute solution.  For more
-details see "(Li2015)"_#Li2015.
+details see "(Li2015)"_#Li2015a.
 
 [Output info:]
 
@@ -54,7 +54,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Li2015)
+:link(Li2015a)
 [(Li2015)] Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143:
 014101 (2015).  DOI: 10.1063/1.4923254
 

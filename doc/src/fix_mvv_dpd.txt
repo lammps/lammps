@@ -48,7 +48,7 @@ case-by-case basis.  Specification of a {lambda} value is opttional.
 If specified, the setting must be from 0.0 to 1.0.  If not specified,
 a default value of 0.5 is used, which effectively reproduces the
 standard velocity-Verlet (VV) scheme.  For more details, see
-"Groot"_#Groot.
+"Groot"_#Groot2.
 
 Fix {mvv/dpd} updates the position and velocity of each atom.  It can
 be used with the "pair_style mdpd"_pair_meso.html command or other
@@ -91,7 +91,7 @@ The default value for the optional {lambda} parameter is 0.5.
 
 :line
 
-:link(Groot)
+:link(Groot2)
 [(Groot)] Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI:
 10.1063/1.474784
 

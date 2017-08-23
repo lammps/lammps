@@ -46,8 +46,8 @@ where the {source} is in units of mole/volume/time.
 
 This command can be used to give an additional heat/concentration
 source term to atoms in a simulation, such as for a simulation of a
-heat conduction with a source term (see Fig.12 in "(Li2014)"_#Li2014)
-or diffusion with a source term (see Fig.1 in "(Li2015)"_#Li2015), as
+heat conduction with a source term (see Fig.12 in "(Li2014)"_#Li2014b)
+or diffusion with a source term (see Fig.1 in "(Li2015)"_#Li2015b), as
 an analog of a periodic Poiseuille flow problem.
 
 If the {sphere} keyword is used, the {cx,cy,cz,radius} defines a
@@ -88,13 +88,13 @@ tdpd/cc/atom"_compute_tdpd_cc_atom.html
 
 :line
 
-:link(Li2014)
+:link(Li2014b)
 [(Li2014)] Z. Li, Y.-H. Tang, H. Lei, B. Caswell and G.E. Karniadakis,
 "Energy-conserving dissipative particle dynamics with
 temperature-dependent properties", J. Comput. Phys., 265: 113-127
 (2014). DOI: 10.1016/j.jcp.2014.02.003
 
-:link(Li2015)
+:link(Li2015b)
 [(Li2015)] Z. Li, A. Yazdani, A. Tartakovsky and G.E. Karniadakis,
 "Transport dissipative particle dynamics model for mesoscopic
 advection-diffusion-reaction problems", J. Chem. Phys., 143: 014101

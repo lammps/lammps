@@ -35,7 +35,8 @@ class Set : protected Pointers {
   int style,ivalue,newtype,count,index_custom;
   int ximage,yimage,zimage,ximageflag,yimageflag,zimageflag;
   double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
-
+  int cc_index;
+  
   int varflag,varflag1,varflag2,varflag3,varflag4;
   int ivar1,ivar2,ivar3,ivar4;
   double *vec1,*vec2,*vec3,*vec4;

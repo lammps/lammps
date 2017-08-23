@@ -30,6 +30,7 @@ Computes :h1
    compute_displace_atom
    compute_dpd
    compute_dpd_atom
+   compute_edpd_temp_atom
    compute_erotate_asphere
    compute_erotate_rigid
    compute_erotate_sphere
@@ -95,6 +96,7 @@ Computes :h1
    compute_sna_atom
    compute_stress_atom
    compute_tally
+   compute_tdpd_cc_atom
    compute_temp
    compute_temp_asphere
    compute_temp_body

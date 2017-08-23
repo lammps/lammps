@@ -851,8 +851,8 @@ void AtomVecTDPD::write_data(FILE *fp, int n, double **buf)
             (int) ubuf(buf[i][5]).i,(int) ubuf(buf[i][6]).i,
             (int) ubuf(buf[i][7]).i);
     for(int k = 0; k < cc_species; k++)
-       fprintf(fp,TAGINT_FORMAT " %-1.16e",buf[i][8+k]);
-    fprintf(fp,TAGINT_FORMAT "\n");  
+       fprintf(fp," %-1.16e",buf[i][8+k]);
+    fprintf(fp,"\n");
   }
 }
 

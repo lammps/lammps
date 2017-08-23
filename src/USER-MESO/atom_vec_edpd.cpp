@@ -136,7 +136,7 @@ void AtomVecEDPD::force_clear(int n, size_t nbytes)
 int AtomVecEDPD::pack_comm(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
-  int i,j,k,m;
+  int i,j,m;
   double dx,dy,dz;
 
   m = 0;
@@ -182,7 +182,7 @@ int AtomVecEDPD::pack_comm(int n, int *list, double *buf,
 int AtomVecEDPD::pack_comm_vel(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
-  int i,j,k,m;
+  int i,j,m;
   double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;

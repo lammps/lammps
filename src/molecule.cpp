@@ -173,7 +173,7 @@ Molecule::~Molecule()
    compute center = geometric center of molecule
    also compute:
      dx = displacement of each atom from center
-     molradius = radius of molecule from center 
+     molradius = radius of molecule from center
        including finite-size particles or body particles
 ------------------------------------------------------------------------- */
 
@@ -474,7 +474,7 @@ void Molecule::read(int flag)
     } else if (strstr(line,"body")) {
       bodyflag = 1;
       avec_body = (AtomVecBody *) atom->style_match("body");
-      if (!avec_body) 
+      if (!avec_body)
         error->all(FLERR,"Molecule file requires atom style body");
       nmatch = sscanf(line,"%d %d",&nibody,&ndbody);
       nwant = 2;
@@ -486,7 +486,7 @@ void Molecule::read(int flag)
 
   // error checks
 
-  if (natoms < 1) 
+  if (natoms < 1)
     error->all(FLERR,"No count or invalid atom count in molecule file");
   if (nbonds < 0) error->all(FLERR,"Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR,"Invalid angle count in molecule file");
@@ -615,14 +615,12 @@ void Molecule::read(int flag)
   }
 
   // auto-generate special bonds if needed and not in file
-  // set maxspecial on first pass, so allocate() has a size
 
   if (bondflag && specialflag == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot auto-generate special bonds before "
                        "simulation box is defined");
 
-    maxspecial = atom->maxspecial;
     if (flag) {
       special_generate();
       specialflag = 1;
@@ -635,7 +633,7 @@ void Molecule::read(int flag)
 
   if (bodyflag) {
     radiusflag = 1;
-    if (natoms != 1) 
+    if (natoms != 1)
       error->all(FLERR,"Molecule natoms must be 1 for body particle");
     if (sizescale != 1.0)
       error->all(FLERR,"Molecule sizescale must be 1.0 for body particle");
@@ -1115,6 +1113,12 @@ void Molecule::special_generate()
   tagint atom1,atom2;
   int count[natoms];
 
+  // temporary array for special atoms
+
+  tagint **tmpspecial;
+  memory->create(tmpspecial,natoms,atom->maxspecial,"molecule:tmpspecial");
+  memset(&tmpspecial[0][0],0,sizeof(tagint)*natoms*atom->maxspecial);
+
   for (int i = 0; i < natoms; i++) count[i] = 0;
 
   // 1-2 neighbors
@@ -1126,10 +1130,10 @@ void Molecule::special_generate()
         atom2 = bond_atom[i][j]-1;
         nspecial[i][0]++;
         nspecial[atom2][0]++;
-        if (count[i] >= maxspecial || count[atom2] >= maxspecial)
+        if (count[i] >= atom->maxspecial || count[atom2] >= atom->maxspecial)
           error->one(FLERR,"Molecule auto special bond generation overflow");
-        special[i][count[i]++] = atom2 + 1;
-        special[atom2][count[atom2]++] = i + 1;
+        tmpspecial[i][count[i]++] = atom2 + 1;
+        tmpspecial[atom2][count[atom2]++] = i + 1;
       }
     }
   } else {
@@ -1138,9 +1142,9 @@ void Molecule::special_generate()
       for (int j = 0; j < num_bond[i]; j++) {
         atom1 = i;
         atom2 = bond_atom[i][j];
-        if (count[atom1] >= maxspecial)
+        if (count[atom1] >= atom->maxspecial)
           error->one(FLERR,"Molecule auto special bond generation overflow");
-        special[i][count[atom1]++] = atom2;
+        tmpspecial[i][count[atom1]++] = atom2;
       }
     }
   }
@@ -1152,18 +1156,18 @@ void Molecule::special_generate()
   int dedup;
   for (int i = 0; i < natoms; i++) {
     for (int m = 0; m < nspecial[i][0]; m++) {
-      for (int j = 0; j < nspecial[special[i][m]-1][0]; j++) {
+      for (int j = 0; j < nspecial[tmpspecial[i][m]-1][0]; j++) {
         dedup = 0;
         for (int k =0; k < count[i]; k++) {
-          if (special[special[i][m]-1][j] == special[i][k] ||
-              special[special[i][m]-1][j] == i+1) {
+          if (tmpspecial[tmpspecial[i][m]-1][j] == tmpspecial[i][k] ||
+              tmpspecial[tmpspecial[i][m]-1][j] == i+1) {
             dedup = 1;
           }
         }
         if (!dedup) {
-          if (count[i] >= maxspecial)
+          if (count[i] >= atom->maxspecial)
             error->one(FLERR,"Molecule auto special bond generation overflow");
-          special[i][count[i]++] = special[special[i][m]-1][j];
+          tmpspecial[i][count[i]++] = tmpspecial[tmpspecial[i][m]-1][j];
           nspecial[i][1]++;
         }
       }
@@ -1176,23 +1180,34 @@ void Molecule::special_generate()
 
   for (int i = 0; i < natoms; i++) {
     for (int m = nspecial[i][0]; m < nspecial[i][1]; m++) {
-      for (int j = 0; j < nspecial[special[i][m]-1][0]; j++) {
+      for (int j = 0; j < nspecial[tmpspecial[i][m]-1][0]; j++) {
         dedup = 0;
         for (int k =0; k < count[i]; k++) {
-          if (special[special[i][m]-1][j] == special[i][k] ||
-              special[special[i][m]-1][j] == i+1) {
+          if (tmpspecial[tmpspecial[i][m]-1][j] == tmpspecial[i][k] ||
+              tmpspecial[tmpspecial[i][m]-1][j] == i+1) {
             dedup = 1;
           }
         }
         if (!dedup) {
-          if (count[i] >= maxspecial)
+          if (count[i] >= atom->maxspecial)
             error->one(FLERR,"Molecule auto special bond generation overflow");
-          special[i][count[i]++] = special[special[i][m]-1][j];
+          tmpspecial[i][count[i]++] = tmpspecial[tmpspecial[i][m]-1][j];
           nspecial[i][2]++;
         }
       }
     }
   }
+
+  maxspecial = 0;
+  for (int i = 0; i < natoms; i++)
+    maxspecial = MAX(maxspecial,nspecial[i][2]);
+
+  memory->create(special,natoms,maxspecial,"molecule:special");
+  for (int i = 0; i < natoms; i++)
+    for (int j = 0; j < nspecial[i][2]; j++)
+      special[i][j] = tmpspecial[i][j];
+
+  memory->destroy(tmpspecial);
 }
 
 /* ----------------------------------------------------------------------
@@ -1316,19 +1331,19 @@ void Molecule::body(int flag, int pflag, char *line)
     ncount = atom->count_words(line);
     if (ncount == 0)
       error->one(FLERR,"Too few values in body section of molecule file");
-    if (nword+ncount > nparam) 
+    if (nword+ncount > nparam)
       error->all(FLERR,"Too many values in body section of molecule file");
-    
+
     if (flag) {
       if (pflag == 0) {
         ibodyparams[nword++] = force->inumeric(FLERR,strtok(line," \t\n\r\f"));
         for (i = 1; i < ncount; i++)
-          ibodyparams[nword++] = 
+          ibodyparams[nword++] =
             force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
       } else {
         dbodyparams[nword++] = force->numeric(FLERR,strtok(line," \t\n\r\f"));
         for (i = 1; i < ncount; i++)
-          dbodyparams[nword++] = 
+          dbodyparams[nword++] =
             force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
       }
     } else nword += ncount;
@@ -1473,7 +1488,7 @@ void Molecule::allocate()
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");
 
-  // always allocate num_bond,num_angle,etc and special+nspecial
+  // always allocate num_bond,num_angle,etc and nspecial
   // even if not in molecule file, initialize to 0
   // this is so methods that use these arrays don't have to check they exist
 
@@ -1485,12 +1500,12 @@ void Molecule::allocate()
   for (int i = 0; i < natoms; i++) num_dihedral[i] = 0;
   memory->create(num_improper,natoms,"molecule:num_improper");
   for (int i = 0; i < natoms; i++) num_improper[i] = 0;
-
-  memory->create(special,natoms,maxspecial,"molecule:special");
-
   memory->create(nspecial,natoms,3,"molecule:nspecial");
   for (int i = 0; i < natoms; i++)
     nspecial[i][0] = nspecial[i][1] = nspecial[i][2] = 0;
+
+  if (specialflag)
+    memory->create(special,natoms,maxspecial,"molecule:special");
 
   if (bondflag) {
     memory->create(bond_type,natoms,bond_per_atom,

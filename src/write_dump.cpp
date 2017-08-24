@@ -21,6 +21,7 @@
 #include "dump.h"
 #include "dump_image.h"
 #include "atom.h"
+#include "comm.h"
 #include "group.h"
 #include "input.h"
 #include "update.h"
@@ -76,7 +77,7 @@ void WriteDump::command(int narg, char **arg)
   if (strcmp(arg[1],"cfg") == 0)
     ((DumpCFG *) dump)->multifile_override = 1;
 
-  if (update->first_update == 0)
+  if ((update->first_update == 0) && (comm->me == 0))
     error->warning(FLERR,"Calling write_dump before a full system init.");
 
   dump->init();

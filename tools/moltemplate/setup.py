@@ -14,9 +14,13 @@ setup(
 
   url='https://github.com/jewettaij/moltemplate',
 
-  download_url='https://github.com/jewettaij/moltemplate/tarball/v2.2.1',
+  download_url='https://github.com/jewettaij/moltemplate/archive/v2.3.7.zip',
 
-  keywords=['simulation', 'LAMMPS', 'molecule', 'builder', 'ESPResSo'],
+  version='2.3.7',
+
+  keywords=['simulation', 'LAMMPS', 'molecule editor', 'molecule builder',
+            'ESPResSo'],
+            
 
   # BSD 3-Clause License:
   # - http://choosealicense.com/licenses/bsd-3-clause
@@ -28,8 +32,7 @@ setup(
                'License :: OSI Approved :: BSD License',
                'Operating System :: MacOS :: MacOS X',
                'Operating System :: POSIX :: Linux',
-               'Operating System :: Microsoft :: Windows'
-  ],
+               'Operating System :: Microsoft :: Windows'],
 
   scripts=['moltemplate/scripts/moltemplate.sh',
            'moltemplate/scripts/cleanup_moltemplate.sh',
@@ -58,13 +61,12 @@ setup(
         'raw2data.py=moltemplate.raw2data:main',
         'remove_duplicate_atoms.py=moltemplate.remove_duplicate_atoms:main',
         'remove_duplicates_nbody.py=moltemplate.remove_duplicates_nbody:main',
-        'renumber_DATA_first_column.py=moltemplate.renumber_DATA_first_column:main',
-        'tinkerparm2lt.py=moltemplate.tinkerparm2lt.py']},
+        'renumber_DATA_first_column.py=moltemplate.renumber_DATA_first_column:main']},
 
   package_data={'moltemplate': ['force_fields/*.lt']},
   # install_requires=['numpy', 'scipy', 'biopython'],
   setup_requires=['pytest-runner'],
-  tests_require=['pytest', 'pandas'],
+  tests_require=['pytest'],
   zip_safe=True,
   include_package_data=True
 )

@@ -23,7 +23,15 @@ def main():
     section_name = ''
     if len(sys.argv) == 3:
         section_name = sys.argv[1]
-        module_name = sys.argv[2].rstrip('.py')
+        bond_pattern_module_name = sys.argv[2]
+        # If the file name ends in ".py", then strip off this suffix.
+        # The next line does not work. Too lazy do care why.
+        # bond_pattern_module_name=bond_pattern_module_name.rstrip('.py')
+        # Do this instead
+        pc = bond_pattern_module_name.rfind('.py')
+        if pc != -1:
+            bond_pattern_module_name = bond_pattern_module_name[0:pc]
+
     else:
         sys.stderr.write('Usage Example:\n\n'
                          '      ' + g_program_name + ' Angles nbody_angles.py < angles.txt > new_angles.txt\n\n'
@@ -41,8 +49,9 @@ def main():
     # Load that now.
 
     # search locations
-    package_opts = [[module_name, __package__],
-                    ['nbody_alt_symmetry.'+module_name, __package__]]
+    package_opts = [[bond_pattern_module_name, __package__],
+                    ['nbody_alt_symmetry.'+bond_pattern_module_name,
+                     __package__]]
 
     if __package__:
         for i, _ in enumerate(package_opts):
@@ -59,7 +68,7 @@ def main():
 
     if g is None:
         sys.stderr.write('Error: Unable to locate file \"' +
-                         module_name + '\"\n'
+                         bond_pattern_module_name + '\"\n'
                          '       (Did you mispell the file name?\n'
                          '        Check the \"nbody_alternate_symmetry/\" directory.)\n')
         sys.exit(-1)

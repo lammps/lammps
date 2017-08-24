@@ -34,7 +34,6 @@ class FixIntegrationSpin : public FixNVE {
   void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
   void ComputeInteractionsSpin(int);   
-  void ComputeMMforce(); 
 
   void sectoring();
   int coords2sector(double *);

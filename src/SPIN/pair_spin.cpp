@@ -66,6 +66,8 @@ PairSpin::~PairSpin()
     
     memory->destroy(spi);
     memory->destroy(spj);
+    memory->destroy(fi);
+    memory->destroy(fj);
     memory->destroy(fmi);
     memory->destroy(fmj);
 
@@ -73,6 +75,92 @@ PairSpin::~PairSpin()
   }
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+void PairSpin::compute_magnetomech(int eflag, int vflag)
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;  
+  double evdwl,ecoul;
+  double xtmp,ytmp,ztmp;
+  double fix,fiy,fiz,fjx,fjy,fjz;
+  double cut_ex_2,cut_dmi_2,cut_me_2;
+  double rsq,rd,delx,dely,delz;
+  int *ilist,*jlist,*numneigh,**firstneigh;  
+
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
+  
+  double **x = atom->x;
+  double **f = atom->f;
+  double *mumag = atom->mumag;
+  double **sp = atom->sp;	
+  int *type = atom->type;  
+  int nlocal = atom->nlocal;  
+  int newton_pair = force->newton_pair;
+  
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // pair magneto-mechanics interactions
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    jlist = firstneigh[i];
+    jnum = numneigh[i]; 
+    spi[0] = sp[i][0]; 
+    spi[1] = sp[i][1]; 
+    spi[2] = sp[i][2]; 
+
+    //Loop on Neighbors
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      spj[0] = sp[j][0]; 
+      spj[1] = sp[j][1]; 
+      spj[2] = sp[j][2]; 
+
+      fi[0] = fi[1] = fi[2] = 0.0;
+      fj[0] = fj[1] = fj[2] = 0.0;
+     
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;  //square or inter-atomic distance
+      itype = type[i];
+      jtype = type[j];
+
+      // mech. exchange interaction
+      if (exch_flag) {
+        cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+        if (rsq <= cut_ex_2) {
+          compute_exchange_mech(i,j,rsq,fi,fj,spi,spj);   
+        }
+      }
+
+      f[i][0] += fi[0];	 
+      f[i][1] += fi[1];	  	  
+      f[i][2] += fi[2];
+
+      // think about this sign, - or + ?
+      if (newton_pair || j < nlocal) {
+          f[j][0] += fj[0];	 
+          f[j][1] += fj[1];	  	  
+          f[j][2] += fj[2];
+          }
+      }
+  }
+
+  if (vflag_fdotr) virial_fdotr_compute();
+}
+      
 /* ---------------------------------------------------------------------- */
 
 void PairSpin::compute(int eflag, int vflag)
@@ -102,8 +190,8 @@ void PairSpin::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // Pair spin computations
-  // Loop over neighbors of my itoms
+  // pair spin computations
+  // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -176,7 +264,7 @@ void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *
 {
   int *type = atom->type;  
   int itype, jtype;
-  double dmix,dmiy,dmiz;	
+  //double dmix,dmiy,dmiz;	
   double Jex, ra;
   itype = type[i];
   jtype = type[j];
@@ -193,6 +281,33 @@ void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *
   fmj[0] += Jex*spi[0];
   fmj[1] += Jex*spi[1];
   fmj[2] += Jex*spi[2];
+  
+}
+
+/* ---------------------------------------------------------------------- */
+void PairSpin::compute_exchange_mech(int i, int j, double rsq, double *fmi,  double *fmj, double *spi, double *spj)
+{
+  int *type = atom->type;  
+  int itype, jtype;
+  //double dmix,dmiy,dmiz;	
+  double Jex_mech, ra, rr;
+  itype = type[i];
+  jtype = type[j];
+          
+  ra = rsq/J_3[itype][jtype]/J_3[itype][jtype]; 
+  rr = sqrt(rsq)/J_3[itype][jtype]/J_3[itype][jtype];
+  Jex_mech = 1.0-2.0*J_2[itype][jtype]*ra;
+  Jex_mech -= ra*(1.0-J_2[itype][jtype]*ra);
+  Jex_mech *= 8.0*J_1[itype][jtype]*rr*exp(-ra);
+
+
+  fi[0] += Jex_mech*spi[0]*spj[0];
+  fi[1] += Jex_mech*spi[1]*spj[1];
+  fi[2] += Jex_mech*spi[2]*spj[2];
+          
+  fj[0] += Jex_mech*spi[0]*spj[0];
+  fj[1] += Jex_mech*spi[1]*spj[1];
+  fj[2] += Jex_mech*spi[2]*spj[2];
   
 }
 
@@ -289,6 +404,8 @@ void PairSpin::allocate()
  
   memory->create(spi,3,"pair:spi");
   memory->create(spj,3,"pair:spj");
+  memory->create(fi,3,"pair:fmi");
+  memory->create(fj,3,"pair:fmj");
   memory->create(fmi,3,"pair:fmi");
   memory->create(fmj,3,"pair:fmj");
  

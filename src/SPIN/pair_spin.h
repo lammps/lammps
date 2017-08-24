@@ -29,6 +29,7 @@ class PairSpin : public Pair {
   PairSpin(class LAMMPS *);
   virtual ~PairSpin();
   virtual void compute(int, int);
+  virtual void compute_magnetomech(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -40,6 +41,7 @@ class PairSpin : public Pair {
   void read_restart_settings(FILE *);
   
   void compute_exchange(int, int, double, double *, double *,double *, double *);
+  void compute_exchange_mech(int, int, double, double *, double *,double *, double *);
   void compute_dmi(int, int, double *, double *, double *, double *);
   void compute_me(int, int, double *, double *, double *, double *);  
  
@@ -49,23 +51,23 @@ class PairSpin : public Pair {
   double cut_spin_pair_global;
   double cut_spin_dipolar_global;
   
-  double **cut_spin_exchange; //cutting distance exchange
-  double **cut_spin_dmi;      //cutting distance dmi
-  double **cut_spin_me;       //cutting distance me 
+  double **cut_spin_exchange; // cutoff distance exchange
+  double **cut_spin_dmi;      // cutoff distance dmi
+  double **cut_spin_me;       // cutoff distance me 
 
- //Test for seq. integ.
  protected: 
-  double **J_1, **J_2, **J_3; //exchange coeffs Jij
-                              //J1 in eV, J2 adim and J3 in Ang
+  double **J_1, **J_2, **J_3; // exchange coeffs Jij
+                              // J1 in eV, J2 adim and J3 in Ang
   double **DM;
-  double **v_dmx, **v_dmy, **v_dmz;//DMI coeffs
-                                   //DM int. in eV, v direction
+  double **v_dmx, **v_dmy, **v_dmz;// DMI coeffs
+                                   // DM int. in eV, v direction
 
-  double **ME;                     //ME in eV
-  double **v_mex, **v_mey, **v_mez;//ME direction
+  double **ME;                     // ME in eV
+  double **v_mex, **v_mey, **v_mez;// ME direction
 
   double *spi, *spj;
-  double *fmi, *fmj; //Temp var. in compute
+  double *fi, *fj;   // temp. mech. forces  in compute
+  double *fmi, *fmj; // temp. mag. forces in compute
 
   void allocate();
 };

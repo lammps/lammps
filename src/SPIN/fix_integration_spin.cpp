@@ -136,33 +136,19 @@ void FixIntegrationSpin::init()
     if (strstr(modify->fix[iforce]->style,"langevin/spin")) break;
   locklangevinspin = (FixLangevinSpin *) modify->fix[iforce]; 
 
-  if (lockpairspin->exch_flag == 1) {
-    exch_flag = lockpairspin->exch_flag;
-  } 
-  if (lockpairspin->dmi_flag == 1) {
-    dmi_flag = lockpairspin->dmi_flag;
-  }
-  if (lockpairspin->me_flag == 1) {
-    me_flag = lockpairspin->me_flag;
-  }
+  // set flags for the different magnetic interactions
+  if (lockpairspin->exch_flag == 1) exch_flag = 1;
+  if (lockpairspin->dmi_flag == 1) dmi_flag = 1;
+  if (lockpairspin->me_flag == 1) me_flag = 1;
 
-  if (lockforcespin->zeeman_flag == 1) {
-    zeeman_flag = lockforcespin->zeeman_flag;
-  }
-  if (lockforcespin->aniso_flag == 1) {
-    aniso_flag = lockforcespin->aniso_flag;
-  }
+  if (lockforcespin->zeeman_flag == 1) zeeman_flag = 1;
+  if (lockforcespin->aniso_flag == 1) aniso_flag = 1;
 
-  if (locklangevinspin->tdamp_flag == 1) {
-    tdamp_flag = locklangevinspin->tdamp_flag;
-  }
-  if (locklangevinspin->temp_flag == 1){
-    temp_flag = locklangevinspin->temp_flag;
-  }
+  if (locklangevinspin->tdamp_flag == 1) tdamp_flag = 1;
+  if (locklangevinspin->temp_flag == 1) temp_flag = 1;
 
-  if (mpi_flag == 1) {
-    sectoring();
-  }
+  // perform the sectoring if mpi integration
+  if (mpi_flag == 1) sectoring();
 
 }
 
@@ -184,6 +170,11 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;  
   int *type = atom->type;
   int *mask = atom->mask;  
+
+  // compute and add magneto-mech. force 
+  if (exch_flag) {
+      lockpairspin->compute_magnetomech(0,vflag);
+  }
 
   // update half v all particles
   for (int i = 0; i < nlocal; i++) {
@@ -254,20 +245,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       x[i][2] += 0.5 * dtv * v[i][2];
     }
   }
-
-}
-
-/* ---------------------------------------------------------------------- */
-void FixIntegrationSpin::ComputeMMforce()
-{
-  const int nlocal = atom->nlocal;
-  int i,j,jj,inum,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  double **x = atom->x;
-  double **f = atom->f;
-  double **sp = atom->sp;
-  const int newton_pair = force->newton_pair;
-
 
 }
 
@@ -523,6 +500,11 @@ void FixIntegrationSpin::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;  
   int *type = atom->type;
   int *mask = atom->mask; 
+
+  // compute and add exchange magneto-mech. force 
+  if (exch_flag) {
+      lockpairspin->compute_magnetomech(0,0);
+  }
 
   // update half v for all particles
   for (int i = 0; i < nlocal; i++) {

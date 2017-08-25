@@ -212,17 +212,6 @@ void ReadRestart::command(int narg, char **arg)
       int perAtomSize = avec->size_restart(); // ...so we can get its size
       atom->nlocal = 0; // restore nlocal to zero atoms
       int atomCt = (int) (assignedChunkSize / perAtomSize);
-//#define DEBUG_PRE_GROW
-#ifdef DEBUG_PRE_GROW
-fprintf(stdout, "ReadRestart::command %04d: pAS %d, aCt %d, nmax %d, chunckSize %12.0f, %12.0f\n"
-  ,me
-  ,perAtomSize
-  ,atomCt
-  ,atom->nmax
-  ,(double) assignedChunkSize
-  ,((double) perAtomSize) * atomCt
-);
-#endif
       if (atomCt > atom->nmax) avec->grow(atomCt);
     }
     m = 0;
@@ -905,10 +894,8 @@ void ReadRestart::header(int incompatible)
       atom->tag_enable = read_int();
     } else if (flag == ATOM_MAP_STYLE) {
       atom->map_style = read_int();
-      atom->map_style = 0;
     } else if (flag == ATOM_MAP_USER) {
       atom->map_user  = read_int();
-      atom->map_user = 0;
     } else if (flag == ATOM_SORTFREQ) {
       atom->sortfreq = read_int();
     } else if (flag == ATOM_SORTBIN) {
@@ -1068,22 +1055,7 @@ void ReadRestart::file_layout()
               nproc_chunk_sizes[ndx] = base_ct * perAtomSize;
               current_ByteOffset += base_ByteOffset;
             }
-//#define DEBUG_FILE_LAYOUT
-#ifdef DEBUG_FILE_LAYOUT
-fprintf(stdout, "ReadRestart::file_layout: %15.0f/%d = %15.0f totCt, %15.0f natoms, %12.0f baseCt, %12.0f leftover, %d np != %d npf %c%c\n"
-  ,(double) total_size
-  ,perAtomSize
-  ,(double) total_ct
-  ,(double) atom->natoms
-  ,(double) base_ct
-  ,(double) leftover_ct
-  ,nprocs
-  ,nprocs_file
-  ,(total_size == (total_ct * perAtomSize)) ? ' ' : 'E'
-  ,(total_ct == (base_ct * nprocs + leftover_ct)) ? ' ' : 'F'
-);
-#endif
-          } else { // Bummer, we have to read in based on how it was written
+          } else { // we have to read in based on how it was written
             int init_chunk_number = nprocs_file/nprocs;
             int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
 

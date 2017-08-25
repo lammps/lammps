@@ -50,7 +50,7 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 256
 #define LB_FACTOR 1.1
-#define CHUNK 4096
+#define CHUNK 1024
 #define DELTA 4            // must be 2 or larger
 #define MAXBODY 32         // max # of lines in one body
 
@@ -1904,12 +1904,8 @@ void ReadData::open(char *file)
   if (!compressed) fp = fopen(file,"r");
   else {
 #ifdef LAMMPS_GZIP
-    char gunzip[2048];
-    // Use taskset to force the gzip process to NOT run on the 0th "CPU", which should
-    // keep it from thrashing with the MPI rank zero process (the one reading the pipe).
-    // This is Linux specific, and the 1023 upper range might also be system specific.
-    // Use of something like hwloc would be more portable... but more complicated.
-    sprintf(gunzip,"taskset -c 1-1023 gzip -c -d %s",file);
+    char gunzip[128];
+    sprintf(gunzip,"gzip -c -d %s",file);
 
 #ifdef _WIN32
     fp = _popen(gunzip,"rb");

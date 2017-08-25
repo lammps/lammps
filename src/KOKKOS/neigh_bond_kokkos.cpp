@@ -307,6 +307,8 @@ void NeighBondKokkos<DeviceType>::bond_all()
             "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -401,6 +403,8 @@ void NeighBondKokkos<DeviceType>::bond_partial()
             "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -435,6 +439,8 @@ void NeighBondKokkos<DeviceType>::bond_check()
   int flag = 0;
 
   update_domain_variables();
+  atomKK->sync(execution_space, X_MASK);
+  k_bondlist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondCheck>(0,neighbor->nbondlist),*this,flag);
   DeviceType::fence();
@@ -521,6 +527,8 @@ void NeighBondKokkos<DeviceType>::angle_all()
             "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -622,6 +630,8 @@ void NeighBondKokkos<DeviceType>::angle_partial()
             "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -664,6 +674,8 @@ void NeighBondKokkos<DeviceType>::angle_check()
   // in case angle potential computes any of them
 
   update_domain_variables();
+  atomKK->sync(execution_space, X_MASK);
+  k_anglelist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleCheck>(0,neighbor->nanglelist),*this,flag);
   DeviceType::fence();
@@ -762,6 +774,8 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
             "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -868,6 +882,8 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
             "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -915,6 +931,8 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
   // in case dihedral/improper potential computes any of them
 
   update_domain_variables();
+  atomKK->sync(execution_space, X_MASK);
+  k_dihedrallist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralCheck>(0,nlist),*this,flag);
   DeviceType::fence();
@@ -1030,6 +1048,8 @@ void NeighBondKokkos<DeviceType>::improper_all()
             "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -1136,6 +1156,8 @@ void NeighBondKokkos<DeviceType>::improper_partial()
             "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>

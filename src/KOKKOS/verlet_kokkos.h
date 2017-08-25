@@ -14,6 +14,8 @@
 #ifdef INTEGRATE_CLASS
 
 IntegrateStyle(verlet/kk,VerletKokkos)
+IntegrateStyle(verlet/kk/device,VerletKokkos)
+IntegrateStyle(verlet/kk/host,VerletKokkos)
 
 #else
 

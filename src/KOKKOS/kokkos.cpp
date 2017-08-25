@@ -34,7 +34,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   lmp->kokkos = this;
 
   auto_sync = 1;
-  gb_test = 1;
 
   int me = 0;
   MPI_Comm_rank(world,&me);
@@ -157,7 +156,6 @@ void KokkosLMP::accelerator(int narg, char **arg)
   neighflag = FULL;
   neighflag_qeq = FULL;
   neighflag_qeq_set = 0;
-  gb_test = 1;
   int newtonflag = 0;
   double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = 0;
@@ -197,12 +195,6 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
       else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
-      else error->all(FLERR,"Illegal package kokkos command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"gb/test") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) gb_test = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) gb_test = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm") == 0) {

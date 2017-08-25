@@ -275,7 +275,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
 
-  if (!lmp->kokkos->gb_test) {
+#ifdef KOKKOS_HAVE_CUDA  // Use atomics
 
   if (neighflag == HALF) {
     if (newton_pair) {
@@ -303,7 +303,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  } else { // No atomics
+#else // No atomics
 
   num_threads = lmp->kokkos->num_threads;
   int nmax = f.dimension_0();
@@ -343,7 +343,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCollapseDupViews>(0,nmax),*this);
 
-  }
+#endif
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();

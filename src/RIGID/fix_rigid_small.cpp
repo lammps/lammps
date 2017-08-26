@@ -482,7 +482,7 @@ int FixRigidSmall::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  if (langflag) mask |= POST_FORCE;
+  mask |= POST_FORCE;
   mask |= PRE_NEIGHBOR;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -716,10 +716,10 @@ void FixRigidSmall::initial_integrate(int vflag)
 /* ----------------------------------------------------------------------
    apply Langevin thermostat to all 6 DOF of rigid bodies I own
    unlike fix langevin, this stores extra force in extra arrays,
-     which are added in when final_integrate() calculates a new fcm/torque
+     which are added in when one calculates a new fcm/torque
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::post_force(int vflag)
+void FixRigidSmall::apply_langevin_thermostat()
 {
   double gamma1,gamma2;
 
@@ -796,10 +796,9 @@ void FixRigidSmall::enforce2d()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmall::final_integrate()
+void FixRigidSmall::compute_forces_and_torques()
 {
   int i,ibody;
-  double dtfm;
 
   //check(3);
 
@@ -877,6 +876,23 @@ void FixRigidSmall::final_integrate()
       tcm[2] += langextra[ibody][5];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::post_force(int vflag)
+{
+  if (langflag) apply_langevin_thermostat();
+  compute_forces_and_torques();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::final_integrate()
+{
+  double dtfm;
+
+  //check(3);
 
   // update vcm and angmom, recompute omega
 

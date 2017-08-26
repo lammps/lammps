@@ -640,7 +640,7 @@ int FixRigid::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  if (langflag) mask |= POST_FORCE;
+  mask |= POST_FORCE;
   mask |= PRE_NEIGHBOR;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -892,10 +892,10 @@ void FixRigid::initial_integrate(int vflag)
    apply Langevin thermostat to all 6 DOF of rigid bodies
    computed by proc 0, broadcast to other procs
    unlike fix langevin, this stores extra force in extra arrays,
-     which are added in when final_integrate() calculates a new fcm/torque
+     which are added in when one calculates a new fcm/torque
 ------------------------------------------------------------------------- */
 
-void FixRigid::post_force(int vflag)
+void FixRigid::apply_langevin_thermostat()
 {
   if (me == 0) {
     double gamma1,gamma2;
@@ -959,10 +959,9 @@ void FixRigid::enforce2d()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::final_integrate()
+void FixRigid::compute_forces_and_torques()
 {
   int i,ibody;
-  double dtfm;
 
   // sum over atoms to get force and torque on rigid body
 
@@ -1013,9 +1012,7 @@ void FixRigid::final_integrate()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
-  // update vcm and angmom
   // include Langevin thermostat forces
-  // fflag,tflag = 0 for some dimensions in 2d
 
   for (ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
@@ -1024,6 +1021,28 @@ void FixRigid::final_integrate()
     torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigid::post_force(int vflag)
+{
+  if (langflag) apply_langevin_thermostat();
+  compute_forces_and_torques();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigid::final_integrate()
+{
+  int ibody;
+  double dtfm;
+
+  // update vcm and angmom
+  // fflag,tflag = 0 for some dimensions in 2d
+
+  for (ibody = 0; ibody < nbody; ibody++) {
 
     // update vcm by 1/2 step
 

@@ -535,36 +535,31 @@ if(ENABLE_GPU)
     if(NOT BIN2C)
       message(FATAL_ERROR "Couldn't find bin2c, use -DBIN2C helping cmake to find it.")
     endif()
-    include_directories(${CUDA_INCLUDE_DIRS})
-    list(APPEND LAMMPS_LINK_LIBS ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
     set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "Lammps gpu precision size")
     set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
-    add_definitions(-D_${GPU_PREC})
-    add_definitions(-DNV_KERNEL -DUCL_CUDADR)
     option(CUDPP_OPT "Enable CUDPP_OPT" ON)
-
-    set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
-    set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h)
-
-    set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
-
-    # detects styles which have GPU version
-    RegisterStylesExt(${GPU_SOURCES_DIR} opt GPU_SOURCES)
-
-    get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
     
     file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
     file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_SOURCE_DIR}/gpu/*.cu)
     file(GLOB_RECURSE GPU_NOT_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
     list(REMOVE_ITEM GPU_LIB_CU ${GPU_NOT_LIB_CU})
-    include_directories(${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
+
+    # still missing a way to limit defines to GPU build only
+    # something like cuda_compile_definitions()
+    # one way is this, the other adding it to OPTIONS
+    add_definitions(-D_${GPU_PREC})
+    add_definitions(-DNV_KERNEL -DUCL_CUDADR)
+
+    cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
+
     if(CUDPP_OPT)
-      include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-      add_definitions(-DCUDPP_OPT)
+      cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
       file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cpp)
       file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
     endif()
+
     cuda_compile(GPU_OBJS ${GPU_LIB_CU} ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>)    
+
     file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
     foreach(CU_OBJ ${GPU_OBJS})
       get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
@@ -573,14 +568,39 @@ if(ENABLE_GPU)
         COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
         DEPENDS ${CU_OBJ} 
         COMMENT "Generating ${CU_NAME}_cubin.h")
-      list(APPEND LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
+      list(APPEND GPU_LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
       if(${CU_NAME} STREQUAL "pppm_d") #pppm_d doesn't get linked into the lib
         set(CU_FORBIDDEN_OBJ "${CU_OBJ}") 
       endif()
     endforeach()
     list(REMOVE_ITEM GPU_OBJS "${CU_FORBIDDEN_OBJ}")
-    list(APPEND LIB_SOURCES ${GPU_SOURCES} ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
     set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
+
+
+    cuda_add_library(gpu ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS} STATIC)
+    target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
+    if(CUDPP_OPT)
+      target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
+      target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
+    endif()
+
+    list(APPEND LAMMPS_LINK_LIBS gpu)
+
+
+    # GPU package
+
+    set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
+    set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h)
+    include_directories(${GPU_SOURCES_DIR})
+
+    set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
+
+    # detects styles which have GPU version
+    RegisterStylesExt(${GPU_SOURCES_DIR} opt GPU_SOURCES)
+
+    get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
+
+    list(APPEND LIB_SOURCES ${GPU_SOURCES})
 endif()
 
 ######################################################

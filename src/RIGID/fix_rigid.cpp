@@ -680,6 +680,24 @@ void FixRigid::init()
         error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
   }
 
+  // error if any non-rigid fix with post_force succeeds any fix rigid:
+  int first_rigid = 0;
+  while (!modify->fix[first_rigid]->rigid_flag)
+    first_rigid++;
+  count = 0;
+  for (i = first_rigid + 1; i < modify->nfix; i++) {
+    Fix *ifix = modify->fix[i];
+    if ( (modify->fmask[i] & POST_FORCE) && (!ifix->rigid_flag) ) {
+      count++;
+      if (comm->me == 0) {
+        if (screen) fprintf(screen,"> fix %s %s\n",ifix->id,ifix->style);
+        if (logfile) fprintf(logfile,"> fix %s %s\n",ifix->id,ifix->style);
+      }
+    }
+  }
+  if (count > 0)
+    error->all(FLERR,"the fixes listed above must preceed all rigid-body fixes");
+
   // timestep info
 
   dtv = update->dt;

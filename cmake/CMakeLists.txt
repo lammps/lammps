@@ -135,6 +135,8 @@ endif()
 ######################################################
 if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM)
   enable_language(Fortran)
+  include(CheckFortranCompilerFlag)
+  check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
 endif()
 
 if(ENABLE_KOKKOS OR ENABLE_MSCG)
@@ -189,7 +191,11 @@ if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
     else()
       add_library(linalg STATIC ${LAPACK_SOURCES})
     endif()
-    target_compile_options(linalg PRIVATE -fno-second-underscore)
+    include(CheckFortranCompilerFlag)
+    check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
+    if(FC_HAS_NO_SECOND_UNDERSCORE)
+      target_compile_options(linalg PRIVATE -fno-second-underscore)
+    endif()
     set(LAPACK_LIBRARIES linalg)
   endif()
 endif()
@@ -399,6 +405,19 @@ if(ENABLE_USER-H5MD)
   target_link_libraries(h5md ${HDF5_LIBRARIES})
   target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
 endif()
+    
+if(ENABLE_MEAM AND FC_HAS_NO_SECOND_UNDERSCORE)
+  foreach(FSRC ${meam_SOURCES})
+    if(FSRC MATCHES "\.F$")
+      set_property(SOURCE ${MSCG_SOURCE} APPEND PROPERTY COMPILE_FLAGS "-fno-second-underscore")
+    endif()
+  endforeach()
+endif()
+
+if(ENABLE_REAX AND FC_HAS_NO_SECOND_UNDERSCORE)
+  target_compile_options(reax PRIVATE -fno-second-underscore)
+endif()
+
 
 ######################################################################
 # packages which selectively include variants based on enabled styles

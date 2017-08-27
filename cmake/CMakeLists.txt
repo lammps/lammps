@@ -355,30 +355,23 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
         add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
       endif()
       list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
-    endif()
-    foreach(PKG_SRC ${${SIMPLE_LIB}_SOURCES})
       if(PKG_LIB STREQUAL awpmd)
-        set_property(SOURCE ${PKG_SRC} APPEND PROPERTY COMPILE_FLAGS -I${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/systems/interact)
-        set_property(SOURCE ${PKG_SRC} APPEND APPEND_STRING PROPERTY COMPILE_FLAGS " -I${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/ivutils/include")
+        target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
       elseif(PKG_LIB STREQUAL h5md)
-        include_directories(${LAMMPS_LIB_SOURCE_DIR}/h5md/include) #ch5md.h is included indirectly in style.h
+        target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
       else()
-        set_property(SOURCE ${PKG_SRC} APPEND PROPERTY COMPILE_FLAGS -I${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
+        target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
       endif()
-    endforeach()
+    else()
+      include_directories(${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
+    endif()
   endif()
 endforeach()
-
-if(ENABLE_USER-AWPMD)
-  set_target_properties(awpmd PROPERTIES INCLUDE_DIRECTORIES 
-    "${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact;${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
-endif()
 
 if(ENABLE_USER-H5MD)
   find_package(HDF5 REQUIRED)
   target_link_libraries(h5md ${HDF5_LIBRARIES})
-  set_target_properties(h5md PROPERTIES INCLUDE_DIRECTORIES
-    "${HDF5_INCLUDE_DIRS};${LAMMPS_LIB_SOURCE_DIR}/h5md/include")
+  target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
 endif()
 
 ######################################################################

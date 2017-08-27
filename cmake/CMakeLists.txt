@@ -171,7 +171,6 @@ endif()
 if(ENABLE_MISC)
   option(LAMMPS_XDR "include XDR compatibility files for doing particle dumps in XTC format" OFF)
   if(LAMMPS_XDR)
-    target_compile_options(pkg_MISC PRIVATE -DLAMMPS_XDR)
     add_definitions(-DLAMMPS_XDR) # for liblammps
   endif()
 endif()

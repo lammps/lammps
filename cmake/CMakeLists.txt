@@ -291,13 +291,11 @@ if(ENABLE_MSCG)
       WORKING_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/mscg)
   endif()
   file(GLOB MSCG_SOURCES ${LAMMPS_LIB_MSCG_BIN_DIR}/*.cpp)
-  list(APPEND LIB_SOURCES ${MSCG_SOURCES})
-  foreach(MSCG_SOURCE ${MSCG_SOURCES})
-    set_property(SOURCE ${MSCG_SOURCE} APPEND PROPERTY COMPILE_DEFINITIONS
-      DIMENSION=3 _exclude_gromacs=1)
-  endforeach()
-  include_directories(${LAMMPS_LIB_MSCG_BIN_DIR} ${GSL_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES})
+  add_library(mscg ${MSCG_SOURCES})
+  list(APPEND LAMMPS_LINK_LIBS mscg)
+  target_compile_options(mscg PRIVATE -DDIMENSION=3 -D_exclude_gromacs=1)
+  target_include_directories(mscg PUBLIC ${LAMMPS_LIB_MSCG_BIN_DIR})
+  target_link_libraries(mscg ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 ########################################################################

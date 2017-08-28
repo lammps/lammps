@@ -504,12 +504,6 @@ if(ENABLE_GPU)
     file(GLOB_RECURSE GPU_NOT_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
     list(REMOVE_ITEM GPU_LIB_CU ${GPU_NOT_LIB_CU})
 
-    # still missing a way to limit defines to GPU build only
-    # something like cuda_compile_definitions()
-    # one way is this, the other adding it to OPTIONS
-    add_definitions(-D_${GPU_PREC})
-    add_definitions(-DNV_KERNEL -DUCL_CUDADR)
-
     cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
     if(CUDPP_OPT)
@@ -518,7 +512,9 @@ if(ENABLE_GPU)
       file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
     endif()
 
-    cuda_compile(GPU_OBJS ${GPU_LIB_CU} ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>)    
+    cuda_compile(GPU_OBJS ${GPU_LIB_CU} ${GPU_LIB_CUDPP_CU} OPTIONS
+                 $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
+                 -DNV_KERNEL -DUCL_CUDADR -D_${GPU_PREC})    
 
     file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
     foreach(CU_OBJ ${GPU_OBJS})

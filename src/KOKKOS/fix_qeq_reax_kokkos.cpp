@@ -79,7 +79,7 @@ template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init()
 {
   atomKK->k_q.modify<LMPHostType>();
-  atomKK->k_q.sync<LMPDeviceType>();
+  atomKK->k_q.sync<DeviceType>();
 
   FixQEqReax::init();
 

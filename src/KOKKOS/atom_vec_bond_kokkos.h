@@ -14,6 +14,8 @@
 #ifdef ATOM_CLASS
 
 AtomStyle(bond/kk,AtomVecBondKokkos)
+AtomStyle(bond/kk/device,AtomVecBondKokkos)
+AtomStyle(bond/kk/host,AtomVecBondKokkos)
 
 #else
 

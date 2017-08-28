@@ -14,6 +14,8 @@
 #ifdef FIX_CLASS
 
 FixStyle(reax/c/species/kk,FixReaxCSpeciesKokkos)
+FixStyle(reax/c/species/kk/device,FixReaxCSpeciesKokkos)
+FixStyle(reax/c/species/kk/host,FixReaxCSpeciesKokkos)
 
 #else
 

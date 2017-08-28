@@ -14,6 +14,8 @@
 #ifdef FIX_CLASS
 
 FixStyle(reax/c/bonds/kk,FixReaxCBondsKokkos)
+FixStyle(reax/c/bonds/kk/device,FixReaxCBondsKokkos)
+FixStyle(reax/c/bonds/kk/host,FixReaxCBondsKokkos)
 
 #else
 

@@ -252,7 +252,7 @@ void PairLJGromacsKokkos<DeviceType>::allocate()
   d_cut_inner_sq = k_cut_inner_sq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJGromacs::params",n+1,n+1);
-  params = k_params.d_view;
+  params = k_params.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

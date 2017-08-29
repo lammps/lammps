@@ -499,11 +499,13 @@ if(ENABLE_GPU)
     set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "Lammps gpu precision size")
     set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
     option(CUDPP_OPT "Enable CUDPP_OPT" ON)
+
+    set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture")
+    set_property(CACHE GPU_ARCH PROPERTY STRINGS sm_10 sm_20 sm_30 sm_60)
     
     file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
     file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_SOURCE_DIR}/gpu/*.cu)
-    file(GLOB_RECURSE GPU_NOT_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
-    list(REMOVE_ITEM GPU_LIB_CU ${GPU_NOT_LIB_CU})
+    list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
     cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
@@ -513,12 +515,14 @@ if(ENABLE_GPU)
       file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
     endif()
 
-    cuda_compile(GPU_OBJS ${GPU_LIB_CU} ${GPU_LIB_CUDPP_CU} OPTIONS
-                 $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
-                 -DNV_KERNEL -DUCL_CUDADR -D_${GPU_PREC})    
+    cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
+                 -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
+
+    cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
+                 -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
 
     file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    foreach(CU_OBJ ${GPU_OBJS})
+    foreach(CU_OBJ ${GPU_GEN_OBJS})
       get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
       string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
       add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
@@ -526,16 +530,13 @@ if(ENABLE_GPU)
         DEPENDS ${CU_OBJ} 
         COMMENT "Generating ${CU_NAME}_cubin.h")
       list(APPEND GPU_LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
-      if(${CU_NAME} STREQUAL "pppm_d") #pppm_d doesn't get linked into the lib
-        set(CU_FORBIDDEN_OBJ "${CU_OBJ}") 
-      endif()
     endforeach()
-    list(REMOVE_ITEM GPU_OBJS "${CU_FORBIDDEN_OBJ}")
     set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 
 
-    cuda_add_library(gpu ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS} STATIC)
-    target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
+    add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
+    target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
+    target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
     if(CUDPP_OPT)
       target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
       target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
@@ -543,21 +544,31 @@ if(ENABLE_GPU)
 
     list(APPEND LAMMPS_LINK_LIBS gpu)
 
+    add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
+    target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
+    target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+    target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
+
 
     # GPU package
+    list(APPEND LAMMPS_LINK_LIBS ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
-    set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h)
+    set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
+                    ${GPU_SOURCES_DIR}/fix_gpu.h
+                    ${GPU_SOURCES_DIR}/fix_gpu.cpp)
+    FindStyleHeaders(${GPU_SOURCES_DIR} FIX_CLASS fix_ FIX)
     include_directories(${GPU_SOURCES_DIR})
 
     set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
 
     # detects styles which have GPU version
-    RegisterStylesExt(${GPU_SOURCES_DIR} opt GPU_SOURCES)
+    RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 
     get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 
     list(APPEND LIB_SOURCES ${GPU_SOURCES})
+    include_directories(${GPU_SOURCES_DIR})
 endif()
 
 ######################################################

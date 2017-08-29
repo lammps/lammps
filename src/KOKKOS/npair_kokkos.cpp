@@ -173,12 +173,6 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
   data.special_flag[2] = special_flag[2];
   data.special_flag[3] = special_flag[3];
 
-  if(list->d_neighbors.dimension_0()<nall) { // Can this EVER be true??? - TIM 20170215
-    list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", nall*1.1, list->maxneighs);
-    list->d_numneigh = typename ArrayTypes<DeviceType>::t_int_1d("numneigh", nall*1.1);
-    data.neigh_list.d_neighbors = list->d_neighbors;
-    data.neigh_list.d_numneigh = list->d_numneigh;
-  }
   data.h_resize()=1;
   while(data.h_resize()) {
     data.h_new_maxneighs() = list->maxneighs;

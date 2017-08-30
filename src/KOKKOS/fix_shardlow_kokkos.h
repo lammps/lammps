@@ -74,7 +74,7 @@ class FixShardlowKokkos : public FixShardlow {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShardlowSSAUpdateDPDEGhost<STACKPARAMS>, const int&) const;
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
   typename AT::t_int_2d d_counters;
   typename HAT::t_int_2d h_counters;
   typename AT::t_int_1d d_hist;

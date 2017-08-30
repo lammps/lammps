@@ -102,7 +102,7 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
   if(/* k_pairDPD == NULL &&*/ k_pairDPDE == NULL)
     error->all(FLERR,"Must use pair_style "/*"dpd/fdt/kk or "*/"dpd/fdt/energy/kk with fix shardlow/kk");
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
   d_counters = typename AT::t_int_2d("FixShardlowKokkos::d_counters", 2, 3);
   d_hist = typename AT::t_int_1d("FixShardlowKokkos::d_hist", 32);
 #ifndef KOKKOS_USE_CUDA_UVM
@@ -319,7 +319,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
       const X_FLOAT dely = ytmp - x(j, 1);
       const X_FLOAT delz = ztmp - x(j, 2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
       if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(0, 0)));
       else Kokkos::atomic_increment(&(d_counters(0, 1)));
       Kokkos::atomic_increment(&(d_counters(0, 2)));
@@ -332,7 +332,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
       // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
       if ((rsq < (STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype)))
         && (rsq >= EPSILON_SQUARED)) {
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
         if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(1, 0)));
         else Kokkos::atomic_increment(&(d_counters(1, 1)));
         Kokkos::atomic_increment(&(d_counters(1, 2)));
@@ -475,7 +475,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
       const X_FLOAT dely = ytmp - x(j, 1);
       const X_FLOAT delz = ztmp - x(j, 2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
       if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(0, 0)));
       else Kokkos::atomic_increment(&(d_counters(0, 1)));
       Kokkos::atomic_increment(&(d_counters(0, 2)));
@@ -488,7 +488,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
       // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
       if ((rsq < (STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype)))
         && (rsq >= EPSILON_SQUARED)) {
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
         if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(1, 0)));
         else Kokkos::atomic_increment(&(d_counters(1, 1)));
         Kokkos::atomic_increment(&(d_counters(1, 2)));
@@ -665,7 +665,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
     maxRNG = maxWorkItemCt;
   }
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
   for (int i = 0; i < 2; ++i)
     for (int j = 0; j < 3; ++j)
       h_counters(i,j) = 0;
@@ -734,7 +734,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
 deep_copy(h_counters, d_counters);
 deep_copy(h_hist, d_hist);
 for (int i = 0; i < 32; ++i) fprintf(stdout, "%8d", h_hist[i]);

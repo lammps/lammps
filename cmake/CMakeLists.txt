@@ -551,14 +551,13 @@ if(ENABLE_GPU)
 
 
     # GPU package
-    list(APPEND LAMMPS_LINK_LIBS ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+    target_link_libraries(gpu ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h
                     ${GPU_SOURCES_DIR}/fix_gpu.cpp)
     FindStyleHeaders(${GPU_SOURCES_DIR} FIX_CLASS fix_ FIX)
-    include_directories(${GPU_SOURCES_DIR})
 
     set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
 

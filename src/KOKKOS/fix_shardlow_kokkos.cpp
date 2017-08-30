@@ -265,7 +265,8 @@ void FixShardlowKokkos<DeviceType>::setup_pre_neighbor()
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef NOTNOW
+#ifdef ENABLE_KOKKOS_DPD_CONSTANT_TEMPERATURE
+#error "FixShardlowKokkos::ssa_update_dpd() is not functional yet - TIM 20170830"
 /* ----------------------------------------------------------------------
    Perform the stochastic integration and Shardlow update for constant temperature
    Allow for both per-type and per-atom mass

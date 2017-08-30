@@ -26,6 +26,9 @@ FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>)
 #include "fix_shardlow.h"
 #include "kokkos_type.h"
 #include "neigh_list_kokkos.h"
+#ifdef ENABLE_KOKKOS_DPD_CONSTANT_TEMPERATURE
+#include "pair_dpd_fdt_kokkos.h"
+#endif
 #include "pair_dpd_fdt_energy_kokkos.h"
 
 namespace LAMMPS_NS {
@@ -85,7 +88,9 @@ class FixShardlowKokkos : public FixShardlow {
   int workPhase;
   double theta_ij_inv,boltz_inv,ftm2v,dt;
 
-//  class PairDPDfdt *pairDPD;
+#ifdef ENABLE_KOKKOS_DPD_CONSTANT_TEMPERATURE
+//  class PairDPDfdt *pairDPD; FIXME as per k_pairDPDE below
+#endif
   PairDPDfdtEnergyKokkos<DeviceType> *k_pairDPDE;
 
   int maxRNG;
@@ -138,8 +143,11 @@ class FixShardlowKokkos : public FixShardlow {
   typename AT::t_int_2d ssa_gitemLoc, ssa_gitemLen;
 
 
-//  template<bool STACKPARAMS>
-//  void ssa_update_dpd(int, int);  // Constant Temperature
+#ifdef ENABLE_KOKKOS_DPD_CONSTANT_TEMPERATURE
+  template<bool STACKPARAMS>
+  KOKKOS_INLINE_FUNCTION
+  void ssa_update_dpd(int, int, int) const;  // Constant Temperature
+#endif
   template<bool STACKPARAMS>
   KOKKOS_INLINE_FUNCTION
   void ssa_update_dpde(int, int, int) const; // Constant Energy

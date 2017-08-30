@@ -38,7 +38,7 @@ class FixShardlow : public Fix {
 
   double memory_usage();
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
   int counters[2][3];
   int hist[32];
 #endif

@@ -212,7 +212,7 @@ void FixShardlow::ssa_update_dpd(
   const double mass_i = (rmass) ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
   const int nlocal = atom->nlocal;
 #endif
 
@@ -225,7 +225,7 @@ void FixShardlow::ssa_update_dpd(
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
     if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
     else ++(counters[0][1]);
     ++(counters[0][2]);
@@ -237,7 +237,7 @@ void FixShardlow::ssa_update_dpd(
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
       if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
       else ++(counters[1][1]);
       ++(counters[1][2]);
@@ -369,7 +369,7 @@ void FixShardlow::ssa_update_dpde(
   const double massinv_i = 1.0 / mass_i;
   const double mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
   const int nlocal = atom->nlocal;
 #endif
 
@@ -382,7 +382,7 @@ void FixShardlow::ssa_update_dpde(
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
     if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
     else ++(counters[0][1]);
     ++(counters[0][2]);
@@ -394,7 +394,7 @@ void FixShardlow::ssa_update_dpde(
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
       if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
       else ++(counters[1][1]);
       ++(counters[1][2]);
@@ -530,7 +530,7 @@ void FixShardlow::initial_integrate(int vflag)
     error->one(FLERR, msg);
   }
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
   for (int i = 0; i < 2; ++i)
     for (int j = 0; j < 3; ++j)
       counters[i][j] = 0;
@@ -598,7 +598,7 @@ void FixShardlow::initial_integrate(int vflag)
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 
-#ifdef DEBUG_PAIR_CT
+#ifdef DEBUG_SSA_PAIR_CT
 for (int i = 0; i < 32; ++i) fprintf(stdout, "%8d", hist[i]);
 fprintf(stdout, "\n%6d %6d,%6d %6d: "
   ,counters[0][2]

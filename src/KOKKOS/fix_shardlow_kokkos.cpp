@@ -164,17 +164,13 @@ void FixShardlowKokkos<DeviceType>::init()
   k_params = Kokkos::DualView<params_ssa**,Kokkos::LayoutRight,DeviceType>
     ("FixShardlowKokkos::params",ntypes+1,ntypes+1);
   params = k_params.template view<DeviceType>();
-//FIXME either create cutsq and fill it in, or just point to pairDPD's...
-//  memory->destroy(cutsq); //FIXME
-//  memory->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"FixShardlowKokkos:cutsq");
   k_pairDPDE->k_cutsq.template sync<DeviceType>();
-  d_cutsq = k_pairDPDE->k_cutsq.template view<DeviceType>(); //FIXME
+  d_cutsq = k_pairDPDE->k_cutsq.template view<DeviceType>();
 
   const double boltz2 = 2.0*force->boltz;
   for (int i = 1; i <= ntypes; i++) {
     for (int j = i; j <= ntypes; j++) {
       F_FLOAT cutone = k_pairDPDE->cut[i][j];
-//      k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone; //FIXME
       if (cutone > EPSILON) k_params.h_view(i,j).cutinv = 1.0/cutone;
       else k_params.h_view(i,j).cutinv = FLT_MAX;
       k_params.h_view(i,j).halfsigma = 0.5*k_pairDPDE->sigma[i][j];
@@ -190,7 +186,6 @@ void FixShardlowKokkos<DeviceType>::init()
     }
   }
 
-  // k_cutsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 }
 

@@ -368,7 +368,7 @@ void FixPOEMS::init()
         error->all(FLERR,"POEMS fix must come before NPT/NPH fix");
   }
 
-  // error if any non-rigid fix with post_force succeeds any fix rigid:
+  // warn if any non-rigid fix with post_force succeeds any fix rigid:
   int first_rigid = 0;
   while (!modify->fix[first_rigid]->rigid_flag)
     first_rigid++;
@@ -378,13 +378,13 @@ void FixPOEMS::init()
     if ( (modify->fmask[i] & POST_FORCE) && (!ifix->rigid_flag) ) {
       count++;
       if (comm->me == 0) {
+      if (count == 1)
+        error->warning(FLERR,"The following fixes must preceed any rigid-body fixes");
         if (screen) fprintf(screen,"> fix %s %s\n",ifix->id,ifix->style);
         if (logfile) fprintf(logfile,"> fix %s %s\n",ifix->id,ifix->style);
       }
     }
   }
-  if (count > 0)
-    error->all(FLERR,"the fixes listed above must preceed all rigid-body fixes");
 
   // timestep info
 

@@ -214,7 +214,6 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
 #endif
       }
     }
-    DeviceType::fence();
     deep_copy(data.h_resize, data.resize);
 
     if(data.h_resize()) {

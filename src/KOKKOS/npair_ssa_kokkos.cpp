@@ -480,7 +480,6 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
       h_ssa_gitemLen(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
     firstTry = false;
 
-    DeviceType::fence();
     deep_copy(data.h_resize, data.resize);
 
     if(data.h_resize()) {

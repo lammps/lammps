@@ -206,7 +206,6 @@ int NeighborKokkos::check_distance_kokkos()
   int flag = 0;
   copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighborCheckDistance<DeviceType> >(0,nlocal),*this,flag);
-  DeviceType::fence();
   copymode = 0;
 
   int flagall;
@@ -273,7 +272,6 @@ void NeighborKokkos::build_kokkos(int topoflag)
     }
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNeighborXhold<DeviceType> >(0,nlocal),*this);
-    DeviceType::fence();
     copymode = 0;
     xhold.modify<DeviceType>();
     if (boxcheck) {

@@ -152,7 +152,6 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
     k_gbincount.modify<LMPHostType>();
     k_gbincount.sync<DeviceType>();
-    DeviceType::fence(); // FIXME?
     ghosts_per_gbin = 0;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall), f, ghosts_per_gbin);
@@ -167,7 +166,6 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
     k_gbincount.modify<LMPHostType>();
     k_gbincount.sync<DeviceType>();
-    DeviceType::fence(); // FIXME?
 
     auto binID_ = binID;
     auto gbincount_ = gbincount;
@@ -198,7 +196,6 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     MemsetZeroFunctor<DeviceType> f_zero;
     f_zero.ptr = (void*) k_bincount.view<DeviceType>().ptr_on_device();
     Kokkos::parallel_for(mbins, f_zero);
-    DeviceType::fence();
 
     auto bincount_ = bincount;
     auto bins_ = bins;
@@ -210,7 +207,6 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
       LAMMPS_LAMBDA (const int i) {
       sortBin(bincount_, bins_, i);
     });
-    DeviceType::fence();
   }
   k_bins.modify<DeviceType>();
   k_bincount.modify<DeviceType>();

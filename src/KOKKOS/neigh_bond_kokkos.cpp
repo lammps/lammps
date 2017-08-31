@@ -274,7 +274,6 @@ void NeighBondKokkos<DeviceType>::bond_all()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondAll>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();
@@ -370,7 +369,6 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondPartial>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();
@@ -443,7 +441,6 @@ void NeighBondKokkos<DeviceType>::bond_check()
   k_bondlist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondCheck>(0,neighbor->nbondlist),*this,flag);
-  DeviceType::fence();
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -494,7 +491,6 @@ void NeighBondKokkos<DeviceType>::angle_all()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleAll>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();
@@ -597,7 +593,6 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAnglePartial>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();
@@ -678,7 +673,6 @@ void NeighBondKokkos<DeviceType>::angle_check()
   k_anglelist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleCheck>(0,neighbor->nanglelist),*this,flag);
-  DeviceType::fence();
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -741,7 +735,6 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralAll>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();
@@ -849,7 +842,6 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralPartial>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();
@@ -935,7 +927,6 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
   k_dihedrallist.sync<DeviceType>();
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralCheck>(0,nlist),*this,flag);
-  DeviceType::fence();
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -1015,7 +1006,6 @@ void NeighBondKokkos<DeviceType>::improper_all()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperAll>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();
@@ -1123,7 +1113,6 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     k_fail_flag.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperPartial>(0,nlocal),*this,nmissing);
-    DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
     k_nlist.template sync<LMPHostType>();

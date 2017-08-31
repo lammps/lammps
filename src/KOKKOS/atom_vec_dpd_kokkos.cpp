@@ -298,7 +298,6 @@ int AtomVecDPDKokkos::pack_comm_kokkos(const int &n,
         Kokkos::parallel_for(n,f);
       }
     }
-    LMPHostType::fence();
   } else {
     sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     if(pbc_flag) {
@@ -334,7 +333,6 @@ int AtomVecDPDKokkos::pack_comm_kokkos(const int &n,
         Kokkos::parallel_for(n,f);
       }
     }
-    LMPDeviceType::fence();
   }
 
 	return n*size_forward;
@@ -443,7 +441,6 @@ int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list
       Kokkos::parallel_for(n,f);
       }
     }
-    LMPHostType::fence();
   } else {
     sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     modified(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
@@ -480,7 +477,6 @@ int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list
       Kokkos::parallel_for(n,f);
       }
     }
-    LMPDeviceType::fence();
   }
 	return n*3;
 }
@@ -534,7 +530,6 @@ void AtomVecDPDKokkos::unpack_comm_kokkos(const int &n, const int &first,
     atomKK->k_dpdTheta,atomKK->k_uCond,atomKK->k_uMech,atomKK->k_uChem,
     buf,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   } else {
     sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     modified(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
@@ -542,7 +537,6 @@ void AtomVecDPDKokkos::unpack_comm_kokkos(const int &n, const int &first,
     atomKK->k_dpdTheta,atomKK->k_uCond,atomKK->k_uMech,atomKK->k_uChem,
     buf,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   }
 }
 
@@ -840,7 +834,6 @@ int AtomVecDPDKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, DA
         h_dpdTheta,h_uCond,h_uMech,h_uChem,h_uCG,h_uCGnew,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPHostType::fence();
     } else {
       AtomVecDPDKokkos_PackBorder<LMPDeviceType,1> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
@@ -848,7 +841,6 @@ int AtomVecDPDKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, DA
         d_dpdTheta,d_uCond,d_uMech,d_uChem,d_uCG,d_uCGnew,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPDeviceType::fence();
     }
 
   } else {
@@ -860,7 +852,6 @@ int AtomVecDPDKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, DA
         h_dpdTheta,h_uCond,h_uMech,h_uChem,h_uCG,h_uCGnew,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPHostType::fence();
     } else {
       AtomVecDPDKokkos_PackBorder<LMPDeviceType,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
@@ -868,7 +859,6 @@ int AtomVecDPDKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, DA
         d_dpdTheta,d_uCond,d_uMech,d_uChem,d_uCG,d_uCGnew,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPDeviceType::fence();
     }
   }
   return n*6;
@@ -1146,14 +1136,12 @@ void AtomVecDPDKokkos::unpack_border_kokkos(const int &n, const int &first,
       h_dpdTheta,h_uCond,h_uMech,h_uChem,h_uCG,h_uCGnew,
       first);
     Kokkos::parallel_for(n,f);
-    LMPHostType::fence();
   } else {
     struct AtomVecDPDKokkos_UnpackBorder<LMPDeviceType> f(buf.view<LMPDeviceType>(),
       d_x,d_tag,d_type,d_mask,
       d_dpdTheta,d_uCond,d_uMech,d_uChem,d_uCG,d_uCGnew,
       first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   }
 }
 
@@ -1399,11 +1387,9 @@ int AtomVecDPDKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d
   if(space == Host) {
     AtomVecDPDKokkos_PackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    LMPHostType::fence();
   } else {
     AtomVecDPDKokkos_PackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    LMPDeviceType::fence();
   }
   return nsend*17;
 }
@@ -1518,14 +1504,12 @@ int AtomVecDPDKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nre
     k_count.h_view(0) = nlocal;
     AtomVecDPDKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
     Kokkos::parallel_for(nrecv/17,f);
-    LMPHostType::fence();
   } else {
     k_count.h_view(0) = nlocal;
     k_count.modify<LMPHostType>();
     k_count.sync<LMPDeviceType>();
     AtomVecDPDKokkos_UnpackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_count,dim,lo,hi);
     Kokkos::parallel_for(nrecv/17,f);
-    LMPDeviceType::fence();
     k_count.modify<LMPDeviceType>();
     k_count.sync<LMPHostType>();
   }

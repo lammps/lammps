@@ -67,7 +67,6 @@ void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_in
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagRegBlockMatchAll>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_match_in.template modify<DeviceType>();

@@ -37,7 +37,7 @@ class FixRigidSmall : public Fix {
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
-  void post_force(int);
+  virtual void post_force(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
@@ -69,6 +69,7 @@ class FixRigidSmall : public Fix {
   double extract_ke();
   double extract_erotational();
   double compute_scalar();
+  virtual int modify_param(int, char **);
   double memory_usage();
 
  protected:
@@ -130,6 +131,7 @@ class FixRigidSmall : public Fix {
   int orientflag;       // 1 if particles store spatial orientation
   int dorientflag;      // 1 if particles store dipole orientation
   int reinitflag;       // 1 if re-initialize rigid bodies between runs
+  int earlyflag;        // 1 if compute body forces and torques early, i.e. in post_force()
 
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;

@@ -403,6 +403,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   avec_line = (AtomVecLine *) atom->style_match("line");
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
+  // compute per body forces and torques inside final_integrate() by default
+
+  earlyflag = 0;
+
   // print statistics
 
   int one = 0;
@@ -516,23 +520,27 @@ void FixRigidSmall::init()
         error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
   }
 
-  // error if any non-rigid fix with post_force succeeds any fix rigid:
-  int first_rigid = 0;
-  while (!modify->fix[first_rigid]->rigid_flag)
-    first_rigid++;
-  count = 0;
-  for (i = first_rigid + 1; i < modify->nfix; i++) {
-    Fix *ifix = modify->fix[i];
-    if ( (modify->fmask[i] & POST_FORCE) && (!ifix->rigid_flag) ) {
-      count++;
-      if (comm->me == 0) {
-        if (screen) fprintf(screen,"> fix %s %s\n",ifix->id,ifix->style);
-        if (logfile) fprintf(logfile,"> fix %s %s\n",ifix->id,ifix->style);
-      }
-    }
-  }
-  if (count > 0)
-    error->all(FLERR,"the fixes listed above must preceed all rigid-body fixes");
+  // warn if any non-rigid fix with post_force succeeds any fix rigid instance
+  // when computing body forces and torques in post_force() instead of final_integrate()
+
+  if (earlyflag) {
+    int first_rigid = 0;
+    while (!modify->fix[first_rigid]->rigid_flag)
+      first_rigid++;
+    count = 0;
+    for (i = first_rigid + 1; i < modify->nfix; i++) {
+      Fix *ifix = modify->fix[i];
+      if ( (modify->fmask[i] & POST_FORCE) && (!ifix->rigid_flag) ) {
+        count++;
+        if (comm->me == 0) {
+          if (count == 1)
+            error->warning(FLERR,"The following fixes must preceed any rigid-body fixes");
+          if (screen) fprintf(screen,"> fix %s %s\n",ifix->id,ifix->style);
+          if (logfile) fprintf(logfile,"> fix %s %s\n",ifix->id,ifix->style);
+        }
+       }
+     }
+   }
 
   // timestep info
 
@@ -901,7 +909,7 @@ void FixRigidSmall::compute_forces_and_torques()
 void FixRigidSmall::post_force(int vflag)
 {
   if (langflag) apply_langevin_thermostat();
-  compute_forces_and_torques();
+  if (earlyflag) compute_forces_and_torques();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -910,7 +918,9 @@ void FixRigidSmall::final_integrate()
 {
   double dtfm;
 
-  //check(3);
+  //check(3)
+
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom, recompute omega
 
@@ -3498,6 +3508,21 @@ double FixRigidSmall::compute_scalar()
   double tfactor = force->mvv2e / ((6.0*nbody - nlinear) * force->boltz);
   tall *= tfactor;
   return tall;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRigidSmall::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (strcmp(arg[1],"early") == 0) earlyflag=1;
+    else if (strcmp(arg[1],"late") == 0) earlyflag=0;
+    else error->all(FLERR,"Illegal fix_modify command");
+
+    return 2;
+  }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

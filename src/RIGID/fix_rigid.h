@@ -38,7 +38,7 @@ class FixRigid : public Fix {
   void final_integrate_respa(int, int);
   void write_restart_file(char *);
   virtual double compute_scalar();
-  virtual int modify_param(int, char **) {return 0;}
+  virtual int modify_param(int, char **);
 
   double memory_usage();
   void grow_arrays(int);
@@ -107,6 +107,7 @@ class FixRigid : public Fix {
   int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
   int reinitflag;           // 1 if re-initialize rigid bodies between runs
+  int earlyflag;            // 1 if compute body forces and torques early, i.e. in post_force()
 
   imageint *xcmimage;       // internal image flags for atoms in rigid bodies
                             // set relative to in-box xcm of each body

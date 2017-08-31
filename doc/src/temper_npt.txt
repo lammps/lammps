@@ -28,9 +28,20 @@ temper/npt 5000000 2000 $t nptfix 0 12523 1 $w :pre
 
 [Description:]
 
-Run a parallel tempering or replica exchange simulation using multiple replicas (ensembles) of a system in the isothermal-isobaric (NPT) ensemble. The command temper/npt works like "temper"_temper.html but is designed for the NPT ensemble instead of the canonical (NVT) ensemble and allows for pressure to be set in the ensembles. The multiple ensembles can run in parallel at different temperatures or different pressures. The acceptance criteria for temper/npt is specific to the NPT ensemble and can be found in references "(Okabe)"_#Okabe and "(Mori)"_#Mori. 
+Run a parallel tempering or replica exchange simulation using multiple
+replicas (ensembles) of a system in the isothermal-isobaric (NPT)
+ensemble.  The command temper/npt works like "temper"_temper.html but
+requires running replicas in the NPT ensemble instead of the canonical
+(NVT) ensemble and allows for pressure to be set in the ensembles.
+These multiple ensembles can run in parallel at different temperatures
+or different pressures.  The acceptance criteria for temper/npt is
+specific to the NPT ensemble and can be found in references
+"(Okabe)"_#Okabe2 and "(Mori)"_#Mori2.
 
-Apart from the difference in acceptance criteria and the specification of pressure, this command works much like the "temper"_temper.html command. See the documentation on "temper"_temper.html for information on how the parallel tempering is handled.
+Apart from the difference in acceptance criteria and the specification
+of pressure, this command works much like the "temper"_temper.html
+command. See the documentation on "temper"_temper.html for information
+on how the parallel tempering is handled in general.
 
 :line 
 
@@ -40,7 +51,8 @@ This command can only be used if LAMMPS was built with the USER-MISC
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info on packages.
 
-This command should be used with a fix that maintains the isothermal-isobaric (NPT) ensemble.
+This command should be used with a fix that maintains the
+isothermal-isobaric (NPT) ensemble.
 
 [Related commands:]
 

@@ -115,6 +115,7 @@ suffix.html
 tad.html
 temper.html
 temper_grem.html
+temper_npt.html
 thermo.html
 thermo_modify.html
 thermo_style.html
@@ -644,4 +645,3 @@ USER/atc/man_unfix_flux.html
 USER/atc/man_unfix_nodes.html
 USER/atc/man_write_atom_weights.html
 USER/atc/man_write_restart.html
-

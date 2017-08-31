@@ -12,14 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Authors: Amulya K. Pervaje and Cody K. Addington
+   Contributing Authors: Amulya K. Pervaje and Cody K. Addington,
+                         (North Carolina State University)
    Contact Email: amulyapervaje@gmail.com
-   temper/npt is a modification of temper that is applicable to the NPT ensemble
-   uses the npt acceptance criteria for parallel tempering (replica exchange) as given in
-   Mori, Y .; Okamoto, Y . Generalized-Ensemble Algorithms for the Isobaric–Isothermal Ensemble. J. Phys. Soc. Japan 2010, 79, 74003.
-   
-   temper/npt  N M temp fix-ID seed1 seed2 pressure index(optional)
-   refer to documentation for temper, only difference with temper/npt is that the pressure is specified as the 7th argument, the 8th argument is the same optional index argument used in temper
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -49,11 +44,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperNpt::TemperNpt(LAMMPS *lmp) : Pointers(lmp) {}
+TemperNPT::TemperNPT(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-TemperNpt::~TemperNpt()
+TemperNPT::~TemperNPT()
 {
   MPI_Comm_free(&roots);
   if (ranswap) delete ranswap;
@@ -68,14 +63,14 @@ TemperNpt::~TemperNpt()
    perform tempering with inter-world swaps
 ------------------------------------------------------------------------- */
 
-void TemperNpt::command(int narg, char **arg)
+void TemperNPT::command(int narg, char **arg)
 {
   if (universe->nworlds == 1)
     error->all(FLERR,"Must have more than one processor partition to temper");
   if (domain->box_exist == 0)
     error->all(FLERR,"temper/npt command before simulation box is defined");
   if (narg != 7 && narg != 8)
-    error->universe_all(FLERR,"Illegal temper command");
+    error->universe_all(FLERR,"Illegal temper/npt command");
 
   int nsteps = force->inumeric(FLERR,arg[0]);
   nevery = force->inumeric(FLERR,arg[1]);
@@ -96,15 +91,19 @@ void TemperNpt::command(int narg, char **arg)
   // swap frequency must evenly divide total # of timesteps
 
   if (nevery <= 0)
-    error->universe_all(FLERR,"Invalid frequency in temper command");
+    error->universe_all(FLERR,"Invalid frequency in temper/npt command");
   nswaps = nsteps/nevery;
   if (nswaps*nevery != nsteps)
-    error->universe_all(FLERR,"Non integer # of swaps in temper command");
+    error->universe_all(FLERR,"Non integer # of swaps in temper/npt command");
 
-  // fix style must be appropriate for temperature control, i.e. it needs
-  // to provide a working Fix::reset_target() and must not change the volume.
+  // fix style must be appropriate for temperature and pressure control,
+  // i.e. it needs to provide a working Fix::reset_target() and must also
+  // change the volume. This currently only applies to fix npt and
+  // fix rigid/npt variants
 
-  if ((strcmp(modify->fix[whichfix]->style,"npt") != 0)) error->universe_all(FLERR,"Tempering temperature fix is not supported");
+  if ((strncmp(modify->fix[whichfix]->style,"npt",3) == 0)
+      || (strncmp(modify->fix[whichfix]->style,"rigid/npt",9) == 0))
+    error->universe_all(FLERR,"Tempering temperature fix is not supported");
 
   // setup for long tempering run
 
@@ -345,7 +344,7 @@ void TemperNpt::command(int narg, char **arg)
    scale kinetic energy via velocities a la Sugita
 ------------------------------------------------------------------------- */
 
-void TemperNpt::scale_velocities(int t_partner, int t_me)
+void TemperNPT::scale_velocities(int t_partner, int t_me)
 {
   double sfactor = sqrt(set_temp[t_partner]/set_temp[t_me]);
 
@@ -363,7 +362,7 @@ void TemperNpt::scale_velocities(int t_partner, int t_me)
    proc 0 prints current tempering status
 ------------------------------------------------------------------------- */
 
-void TemperNpt::print_status()
+void TemperNPT::print_status()
 {
   if (universe->uscreen) {
     fprintf(universe->uscreen,BIGINT_FORMAT,update->ntimestep);

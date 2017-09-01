@@ -33,11 +33,12 @@ class FixRigidSmall : public Fix {
  public:
   FixRigidSmall(class LAMMPS *, int, char **);
   virtual ~FixRigidSmall();
+  int modify_param(int, char **);
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
-  virtual void post_force(int);
+  void post_force(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
@@ -69,7 +70,6 @@ class FixRigidSmall : public Fix {
   double extract_ke();
   double extract_erotational();
   double compute_scalar();
-  virtual int modify_param(int, char **);
   double memory_usage();
 
  protected:
@@ -81,6 +81,7 @@ class FixRigidSmall : public Fix {
 
   char *infile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
+  int earlyflag;     // 1 if forces and torques are computed at post_force()
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
   int nlinear;              // total # of linear rigid bodies
@@ -131,7 +132,6 @@ class FixRigidSmall : public Fix {
   int orientflag;       // 1 if particles store spatial orientation
   int dorientflag;      // 1 if particles store dipole orientation
   int reinitflag;       // 1 if re-initialize rigid bodies between runs
-  int earlyflag;        // 1 if compute body forces and torques early, i.e. in post_force()
 
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;

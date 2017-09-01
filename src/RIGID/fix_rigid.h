@@ -28,6 +28,7 @@ class FixRigid : public Fix {
  public:
   FixRigid(class LAMMPS *, int, char **);
   virtual ~FixRigid();
+  int modify_param(int, char **);
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
@@ -38,7 +39,6 @@ class FixRigid : public Fix {
   void final_integrate_respa(int, int);
   void write_restart_file(char *);
   virtual double compute_scalar();
-  virtual int modify_param(int, char **);
 
   double memory_usage();
   void grow_arrays(int);
@@ -72,6 +72,7 @@ class FixRigid : public Fix {
   char *infile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
   int setupflag;            // 1 if body properties are setup, else 0
+  int earlyflag;     // 1 if forces and torques are computed at post_force()
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
@@ -107,7 +108,6 @@ class FixRigid : public Fix {
   int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
   int reinitflag;           // 1 if re-initialize rigid bodies between runs
-  int earlyflag;            // 1 if compute body forces and torques early, i.e. in post_force()
 
   imageint *xcmimage;       // internal image flags for atoms in rigid bodies
                             // set relative to in-box xcm of each body

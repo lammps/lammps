@@ -28,6 +28,7 @@ class FixPOEMS : public Fix  {
  public:
   FixPOEMS(class LAMMPS *, int narg, char **arg);
   ~FixPOEMS();
+  int modify_param(int, char **);
   int setmask();
   void init();
   void setup(int);
@@ -55,6 +56,8 @@ class FixPOEMS : public Fix  {
   double *step_respa;
   int nlevels_respa;
   double total_ke;
+
+  int earlyflag;    // 1 if forces and torques are computed at post_force()
 
   // atom assignment to rigid bodies
   // double count joint atoms as being in multiple bodies
@@ -96,6 +99,7 @@ class FixPOEMS : public Fix  {
 
   // internal class functions
 
+  void compute_forces_and_torques();
   void readfile(char *);
   int readline(FILE *, char **, int *);
   void jointbuild();

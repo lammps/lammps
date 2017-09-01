@@ -379,7 +379,7 @@ void FixPOEMS::init()
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"poems") == 0) {
       count++;
-      if (strcmp(modify->fix[i]->id,id) != 0) {
+      if (strcmp(modify->fix[i]->id,this->id) == 0) {
         myindex = i;
         myposition = count;
       }

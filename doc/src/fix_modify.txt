@@ -14,13 +14,15 @@ fix_modify fix-ID keyword value ... :pre
 
 fix-ID = ID of the fix to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {press} or {energy} or {respa} or {dynamic/dof} :l
+keyword = {temp} or {press} or {energy} or {respa} or {dynamic/dof} or {bodyforces} :l
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
   {energy} value = {yes} or {no}
   {respa} value = {1} to {max respa level} or {0} (for outermost level)
   {dynamic/dof} value = {yes} or {no}
-    yes/no = do or do not recompute the number of degrees of freedom (DOF) contributing to the temperature :pre
+    yes/no = do or do not recompute the number of degrees of freedom (DOF) contributing to the temperature
+  {bodyforces} value = {early} or {late}
+    early/late = compute per-rigid-body forces and torques at post_force (early) or at final_integrate (late) :pre
 :ule
 
 [Examples:]
@@ -101,6 +103,23 @@ compute to calculate temperature.  See the "compute_modify
 dynamic/dof"_compute_modify.html command for a similar way to insure
 correct temperature normalization for those thermostats.
 
+The {bodyforces} keyword determines whether the resultant forces and
+torques acting on rigid bodies are computed at the post-force stage of
+a time step (i.e. right after per-atom forces have been computed and
+communicated among processors) or at the final-integrate stage (i.e.
+after all other fixes have finished their post-force tasks). This option
+applies for "fix rigid"_fix_rigid.html and "fix rigid/small"_fix_rigid.html,
+along with their nve, nvt, npt, and nph versions. It also applies for
+"fix poems"_fix_poems.html. Few fix styles actually do post-force
+tasks. Some of them cause modifications in the computed per-atoms forces
+(e.g. "fix addforce"_fix_addforce.html, "fix setforce"_fix_setforce.html,
+"fix spring"_fix_spring.html, "fix shake"_fix_shake.html, and
+"fix rattle"_fix_shake.html). These tasks are executed sequentially for
+each fix, following the order of their definitions in the input script.
+Therefore, once the {bodyforces} keyword is set as {early} for a given
+rigid-style fix, per-atom force modifications done by other fixes defined
+afterwards will have no effect on the per-body forces/torques it computes.
+
 [Restrictions:] none
 
 [Related commands:]
@@ -111,4 +130,4 @@ pressure"_compute_pressure.html, "thermo_style"_thermo_style.html
 [Default:]
 
 The option defaults are temp = ID defined by fix, press = ID defined
-by fix, energy = no, respa = 0.
+by fix, energy = no, respa = 0, bodyforces = late.

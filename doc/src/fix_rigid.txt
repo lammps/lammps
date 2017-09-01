@@ -709,6 +709,11 @@ used to calculate the instantaneous pressure tensor.  Note that the 2
 NVT rigid fixes do not use any external compute to compute
 instantaneous temperature.
 
+The "fix_modify"_fix_modify.html {bodyforces} option is supported by
+all rigid styles to set whether per-body forces and torques are
+computed early or late in a time step, i.e., at the post-force stage
+or at the final-integrate stage, respectively.
+
 The 2 NVE rigid fixes compute a global scalar which can be accessed by
 various "output commands"_Section_howto.html#howto_15.  The scalar
 value calculated by these fixes is "intensive".  The scalar is the

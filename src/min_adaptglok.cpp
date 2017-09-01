@@ -315,7 +315,10 @@ int MinAdaptGlok::iterate(int maxiter)
 
     } else {
       last_negative = ntimestep;
-      if (ntimestep - ntimestep_start > delaystep) {
+      int delayflag = 1;
+      if (ntimestep - ntimestep_start < delaystep && delaystep_start_flag)
+        delayflag = 0;
+      if (delayflag) {
         alpha = alpha0;
         if (dt*dtshrink >= dtmin) {
           dt *= dtshrink;

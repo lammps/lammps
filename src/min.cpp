@@ -64,6 +64,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   tmin = 0.02;
   integrator = 0;
   halfstepback_flag = 1;
+  delaystep_start_flag = 1;
   relaxbox_mod = 1000000;
   relaxbox_rate = 0.33;
   relaxbox_flag = 0;
@@ -690,6 +691,12 @@ void Min::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) halfstepback_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) halfstepback_flag = 0;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;       
+    } else if (strcmp(arg[iarg],"initialdelay") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) delaystep_start_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) delaystep_start_flag = 0;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;       
     } else if (strcmp(arg[iarg],"integrator") == 0) {

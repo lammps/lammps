@@ -65,6 +65,7 @@ class Min : protected Pointers {
   double tmax,tmin;           // timestep multiplicators max, min
   int integrator;             // Newton integration: euler, leapfrog, verlet...
   int halfstepback_flag;      // half step backward when v.f <= 0.0
+  int delaystep_start_flag;   // delay the initial dt_shrink
   double relaxbox_mod;        // Bulk modulus used for box relax
   double relaxbox_rate;       // for box relaxation to 0 pressure
   int relaxbox_flag;          // 1: box relaxation iso; 2: aniso

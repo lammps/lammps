@@ -2859,8 +2859,8 @@ The nature of the atoms (core, Drude particle or non-polarizable) is
 specified via the "fix drude"_fix_drude.html command.  The special
 list of neighbors is automatically refactored to account for the
 equivalence of core and Drude particles as regards special 1-2 to 1-4
-screening. It may be necessary to use the {extra} keyword of the
-"special_bonds"_special_bonds.html command. If using "fix
+screening. It may be necessary to use the {extra/special/per/atom}
+keyword of the "read_data"_read_data.html command. If using "fix
 shake"_fix_shake.html, make sure no Drude particle is in this fix
 group.
 

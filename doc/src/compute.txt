@@ -169,6 +169,7 @@ by users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the compute
 section of "this page"_Section_commands.html#cmd_5.
 
+"aggregate/atom"_compute_cluster_atom.html - aggregate ID for aech atom
 "angle/local"_compute_bond_local.html - theta and energy of each angle
 "angmom/chunk"_compute_angmom_chunk.html - angular momentum for each chunk
 "body/local"_compute_body_local.html - attributes of body sub-particles
@@ -191,6 +192,7 @@ section of "this page"_Section_commands.html#cmd_5.
 "erotate/sphere"_compute_erotate_sphere.html - rotational energy of spherical particles
 "erotate/sphere/atom"_compute_erotate_sphere.html - rotational energy for each spherical particle
 "event/displace"_compute_event_displace.html - detect event on atom displacement
+"fragment/atom"_compute_cluster_atom.html - fragment ID for aech atom
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
 "gyration"_compute_gyration.html - radius of gyration of group of atoms
 "gyration/chunk"_compute_gyration_chunk.html - radius of gyration for each chunk

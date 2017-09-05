@@ -755,6 +755,7 @@ package"_Section_accelerate.html.  This is indicated by additional
 letters in parenthesis: g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
+"aggregate/atom"_compute_cluster_atom.html,
 "angle"_compute_angle.html,
 "angle/local"_compute_angle_local.html,
 "angmom/chunk"_compute_angmom_chunk.html,
@@ -829,7 +830,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "temp/sphere"_compute_temp_sphere.html,
 "ti"_compute_ti.html,
 "torque/chunk"_compute_torque_chunk.html,
-"vacf"_compute_vacf.html,
+"vacf"_compute_vacf.html,<
 "vcm/chunk"_compute_vcm_chunk.html,
 "voronoi/atom"_compute_voronoi_atom.html :tb(c=6,ea=c)
 

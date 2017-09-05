@@ -18,7 +18,7 @@ style_neigh_pair.h
 style_neigh_stencil.h
 # deleted on 5 September 2017
 npair_halffull_newton_ssa.cpp
-npair_halffull_newton_ssa.f
+npair_halffull_newton_ssa.h
 # deleted on 6 June 2017
 pair_lj_sf.cpp
 pair_lj_sf.h

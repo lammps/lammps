@@ -94,7 +94,8 @@ and viscosity in the documentation for the "fix
 viscous"_fix_viscous.html command for more details.
 Note that the value 78.9375 in the second example above corresponds 
 to a diffusion constant, which is about an order of magnitude larger 
-than realistic ones. This has been used to sample configurations faster. 
+than realistic ones. This has been used to sample configurations faster
+in Brownian dynamics simulations. 
 
 The random # {seed} must be a positive integer. A Marsaglia random
 number generator is used.  Each processor uses the input seed to

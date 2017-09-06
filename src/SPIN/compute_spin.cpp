@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include <mpi.h>
 #include <string.h>
 #include "atom.h"
@@ -86,9 +91,9 @@ void ComputeSpin::compute_vector()
   double tx,ty,tz;
 	
   int nlocal = atom->nlocal;
-    
+
   // compute total magnetization and magnetic energy 
-  // compute spin temperature; See Nurdin et al., Phys. Rev. E 61, 2000
+  // compute spin temperature (Nurdin et al., Phys. Rev. E 61, 2000)
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->mumag_flag && atom->sp_flag) {
@@ -108,7 +113,7 @@ void ComputeSpin::compute_vector()
       }
       else error->all(FLERR,"Compute spin/compute declared magnetic quantities (sp and mumag flags)");
   }
-  
+ 
   MPI_Allreduce(mag,magtot,4,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&magenergy,&magenergytot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&tempnum,&tempnumtot,1,MPI_DOUBLE,MPI_SUM,world);

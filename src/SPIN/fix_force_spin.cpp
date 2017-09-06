@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +46,7 @@ enum{CONSTANT,EQUAL};
 FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
 	
-  if (narg < 7) error->all(FLERR,"Illegal fix spin command");
+  if (narg < 7) error->all(FLERR,"Illegal force/spin command");
   // 7 arguments for a force/spin fix command:
   //(fix  ID  group  force/spin  magnitude (T or eV)  style (zeeman or anisotropy)  direction (3 cartesian coordinates) 
   
@@ -65,7 +70,7 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
   zeeman_flag = aniso_flag = 0;
  
   if (strcmp(arg[3],"zeeman") == 0) {
-	  if (narg != 8) error->all(FLERR,"Illegal fix zeeman command");
+	  if (narg != 8) error->all(FLERR,"Illegal force/spin command");
 	  style = ZEEMAN;
           zeeman_flag = 1;
 	  H_field = force->numeric(FLERR,arg[4]);
@@ -74,14 +79,14 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 	  Hz = force->numeric(FLERR,arg[7]);	
 	  magfieldstyle = CONSTANT; 	  	  
   } else if (strcmp(arg[3],"anisotropy") == 0) {
-	  if (narg != 8) error->all(FLERR,"Illegal fix anisotropy command");
+	  if (narg != 8) error->all(FLERR,"Illegal force/spin command");
 	  style = ANISOTROPY;
           aniso_flag = 1;
 	  Ka = force->numeric(FLERR,arg[4]);
 	  Kax = force->numeric(FLERR,arg[5]);
 	  Kay = force->numeric(FLERR,arg[6]);
 	  Kaz = force->numeric(FLERR,arg[7]);	  
-  } else error->all(FLERR,"Illegal fix force/spin command");
+  } else error->all(FLERR,"Illegal force/spin command");
  
   degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
@@ -115,12 +120,12 @@ int FixForceSpin::setmask()
 
 void FixForceSpin::init()
 {
-  const double hbar = force->hplanck/MY_2PI; //eV/(rad.THz)
-  const double mub = 5.78901e-5; //in eV/T 
-  const double gyro = mub/hbar; //in rad.THz/T  
+  const double hbar = force->hplanck/MY_2PI; // eV/(rad.THz)
+  const double mub = 5.78901e-5; // in eV/T 
+  const double gyro = mub/hbar; // in rad.THz/T  
 
-  H_field *= gyro; //in rad.THz
-  Ka /= hbar; //in rad.THz
+  H_field *= gyro; // in rad.THz
+  Ka /= hbar; // in rad.THz
 
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
@@ -131,15 +136,15 @@ void FixForceSpin::init()
   if (magstr) {
   magvar = input->variable->find(magstr);
   if (magvar < 0) 
-        error->all(FLERR,"Variable name for fix magnetic field does not exist");
+        error->all(FLERR,"Illegal force/spin command");
   if (!input->variable->equalstyle(magvar))
-        error->all(FLERR,"Variable for fix magnetic field is invalid style");
+        error->all(FLERR,"Illegal force/spin command");
   }
   
   varflag = CONSTANT;
   if (magfieldstyle != CONSTANT) varflag = EQUAL;
  
-  // set magnetic field components once and for all
+  // set magnetic field components
   if (varflag == CONSTANT) set_magneticforce();
   
   memory->create(spi,3,"forcespin:spi"); 
@@ -168,26 +173,23 @@ void FixForceSpin::post_force(int vflag)
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
     modify->addstep_compute(update->ntimestep + 1);
-    set_magneticforce(); //Update value of the mag. field if time-dependent
+    set_magneticforce(); // update mag. field if time-dep.
   }
 
-//  double **x = atom->x;
   double **sp = atom->sp; 
   double *mumag = atom->mumag;
   double **fm = atom->fm; 
   const int nlocal = atom->nlocal;  
   double scalar;
-  
+
   eflag = 0;
   emag = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
     fmi[0] = fmi[1] = fmi[2] = 0.0;
-    //if (style == ZEEMAN) {
     if (zeeman_flag) {
       compute_zeeman(i,fmi);
     }  
-    //if (style == ANISOTROPY) {
     if (aniso_flag) {
       spi[0] = sp[i][0];
       spi[1] = sp[i][1];
@@ -197,7 +199,9 @@ void FixForceSpin::post_force(int vflag)
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
-  }  
+
+  } 
+
 }
 
 
@@ -226,7 +230,6 @@ void FixForceSpin::post_force_respa(int vflag, int ilevel, int iloop)
 }
 
 /* ---------------------------------------------------------------------- */
-//No acceleration for magnetic EOM, only a "magnetic force" 
 void FixForceSpin::set_magneticforce()
 {
   if (style == ZEEMAN) {

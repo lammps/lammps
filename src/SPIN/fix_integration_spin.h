@@ -17,43 +17,57 @@ FixStyle(integration/spin,FixIntegrationSpin)
 
 #else
 
-#ifndef LMP_FIX_NVE_SPIN_H
-#define LMP_FIX_NVE_SPIN_H
+#ifndef LMP_FIX_INTEGRATION_SPIN_H
+#define LMP_FIX_INTEGRATION_SPIN_H
 
-#include "fix_nve.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixIntegrationSpin : public FixNVE {
+class FixIntegrationSpin : public Fix {
 	
  public:
   FixIntegrationSpin(class LAMMPS *, int, char **);
   virtual ~FixIntegrationSpin();
+  int setmask();
   void init();
   virtual void initial_integrate(int);
-  void AdvanceSingleSpin(int, double, double **, double **);
   virtual void final_integrate();
-  void ComputeInteractionsSpin(int);   
 
-  void sectoring();
+  // compute and advance single spin
+  void ComputeInteractionsSpin(int);   
+  void AdvanceSingleSpin(int, double, double **, double **);
+
+  // sectoring operations
+  void sectoring(); 
   int coords2sector(double *);
 
  protected:
   int extra, mpi_flag;
-  double dts;
+
+  // vel., force, and spin timesteps
+  double dtv,dtf,dts;
   
+  // mag. interaction flags
+  int magpair_flag;
   int exch_flag, dmi_flag, me_flag;
+  int magforce_flag;
   int zeeman_flag, aniso_flag;
+  int maglangevin_flag;
   int tdamp_flag, temp_flag;
 
+  // pointers to mag. interaction classes
   class PairHybrid *lockhybrid; 
   class PairSpin *lockpairspin;
   class FixForceSpin *lockforcespin;
   class FixLangevinSpin *locklangevinspin; 
 
-  double *spi, *spj, *fmi, *fmj; //Temp var.
+  // temporary variables
   double *xi;
+  double *spi, *spj;
+  double *fmi, *fmj; 
  
+  // sectoring variables
   int nsectors;
   int *sec, *seci;
   double *rsec;
@@ -67,27 +81,19 @@ class FixIntegrationSpin : public FixNVE {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Illegal fix integration/spin command
 
-Self-explanatory.  Check the input script syntax and compare to the
+Self-explanatory.  Check the input script syntax and compare to the 
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix nve/sphere requires atom style sphere
+E: Fix integration/spin requires spin attribute mumag
 
-Self-explanatory.
+An atom/spin style with this attribute is needed.
 
-E: Fix nve/sphere update dipole requires atom attribute mu
+E: Illegal sectoring operation
 
-An atom style with this attribute is needed.
-
-E: Fix nve/sphere requires extended particles
-
-This fix can only be used for particles of a finite size.
- 
-E: Fix nve/sphere dlm must be used with update dipole
- 
-The DLM algorithm can only be used in conjunction with update dipole.
-
+The number of processes does not match the size of the system. 
+See the documentation of the sectoring method.
 
 */

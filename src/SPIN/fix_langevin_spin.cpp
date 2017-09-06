@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Carolyn Phillips (U Mich), reservoir energy tally
-                         Aidan Thompson (SNL) GJF formulation
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL) 
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -51,7 +51,7 @@ using namespace MathConst;
 FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), id_temp(NULL), random(NULL)
 {
-  if (narg != 7) error->all(FLERR,"Illegal fix langevin/spin command");
+  if (narg != 7) error->all(FLERR,"Illegal langevin/spin command");
 
   dynamic_group_allow = 1;
   scalar_flag = 1;
@@ -65,7 +65,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   seed = force->inumeric(FLERR,arg[6]);
 
   if (alpha_t < 0.0) {
-    error->all(FLERR,"Illegal fix/langevin/spin command");
+    error->all(FLERR,"Illegal langevin/spin command");
   } else if (alpha_t == 0.0) {
     tdamp_flag = 0;
   } else {
@@ -73,7 +73,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (alpha_l < 0.0) {
-    error->all(FLERR,"Illegal fix/langevin/spin command");
+    error->all(FLERR,"Illegal langevin/spin command");
   } else if (alpha_l == 0.0) {
     ldamp_flag = 0;
   } else {
@@ -81,7 +81,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   }
   
   if (temp < 0.0) {
-    error->all(FLERR,"Illegal fix/langevin/spin command");
+    error->all(FLERR,"Illegal langevin/spin command");
   } else if (temp == 0.0) {
     temp_flag = 0;
   } else {
@@ -201,8 +201,9 @@ void FixLangevinSpin::add_tdamping(double *spi, double *fmi)
   double cpx = fmi[1]*spi[2] - fmi[2]*spi[1];
   double cpy = fmi[2]*spi[0] - fmi[0]*spi[2];
   double cpz = fmi[0]*spi[1] - fmi[1]*spi[0];
-		
-  fmi[0] -= alpha_t*cpx;//Taking the damping value away
+	
+  // taking away the transverse damping 
+  fmi[0] -= alpha_t*cpx;
   fmi[1] -= alpha_t*cpy;
   fmi[2] -= alpha_t*cpz;
 }
@@ -212,7 +213,8 @@ void FixLangevinSpin::add_temperature(double *fmi)
 {
 //#define GAUSSIAN_R
 #if defined GAUSSIAN_R
-  double rx = sigma*random->gaussian();//Drawing random dist
+  // drawing gausian random dist
+  double rx = sigma*random->gaussian();
   double ry = sigma*random->gaussian();
   double rz = sigma*random->gaussian();
 #else 
@@ -221,11 +223,13 @@ void FixLangevinSpin::add_temperature(double *fmi)
   double rz = sigma*(random->uniform() - 0.5);
 #endif
 
-  fmi[0] += rx;//Adding random field
+  // adding the random field 
+  fmi[0] += rx; 
   fmi[1] += ry;
   fmi[2] += rz;
-                
-  fmi[0] *= Gil_factor;//Multiplying by Gilbert's prefactor 
+               
+  // adding Gilbert's prefactor 
+  fmi[0] *= Gil_factor; 
   fmi[1] *= Gil_factor; 
   fmi[2] *= Gil_factor; 
 

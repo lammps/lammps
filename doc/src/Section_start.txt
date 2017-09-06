@@ -920,7 +920,7 @@ CPUs and KNLs; the KOKKOS package builds for CPUs (OpenMP), GPUs
 Makefile.intel_cpu
 Makefile.intel_phi
 Makefile.kokkos_omp
-Makefile.kokkos_cuda
+Makefile.kokkos_cuda_mpi
 Makefile.kokkos_phi
 Makefile.omp
 Makefile.opt :ul

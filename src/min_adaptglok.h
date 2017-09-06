@@ -36,10 +36,10 @@ class MinAdaptGlok : public Min {
   int iterate(int);
 
  private:
-  double dt,dtmax,dtmin,dtinit;
+  double dt,dtmax,dtmin;
   double alpha;
   bigint last_negative,ntimestep_start;
-  int pflag;
+  int pflag,vdotf_negatif;
   class Compute *temperature,*pressure;
   double boxlo[3],h_inv[6];
 };

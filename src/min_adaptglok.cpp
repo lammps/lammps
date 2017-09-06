@@ -59,11 +59,12 @@ void MinAdaptGlok::init()
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use boxrelax on a non-periodic dimension");
 
-  dt = dtinit = update->dt;
+  dt = update->dt;
   dtmax = tmax * dt;
   dtmin = tmin * dt;
   alpha = alpha0;
   last_negative = ntimestep_start = update->ntimestep;
+  vdotf_negatif = 0;
 
   if (relaxbox_flag){
     int icompute = modify->find_compute("thermo_press");
@@ -269,6 +270,7 @@ int MinAdaptGlok::iterate(int maxiter)
 
     if (vdotfall > 0.0) {
       vdotv = 0.0;
+      vdotf_negatif = 0;
       for (int i = 0; i < nlocal; i++)
         vdotv += v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       MPI_Allreduce(&vdotv,&vdotvall,1,MPI_DOUBLE,MPI_SUM,world);
@@ -325,6 +327,15 @@ int MinAdaptGlok::iterate(int maxiter)
           update->dt = dt;
         }
       }
+
+      // stopping criterion while stuck in a local bassin
+
+      vdotf_negatif++;
+      if (max_vdotf_negatif > 0 && vdotf_negatif > max_vdotf_negatif)
+        return MAXVDOTF;
+
+      // inertia correction
+      
       if (halfstepback_flag) {
         for (int i = 0; i < nlocal; i++) {
           x[i][0] -= 0.5 * dtv * v[i][0];
@@ -529,10 +540,8 @@ int MinAdaptGlok::iterate(int maxiter)
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
             update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)
-            && pflag) {
-          update->dt = dtinit;
+            && pflag)
           return ETOL;
-        }
       } else {
         if (fabs(ecurrent-eprevious) <
             update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)
@@ -540,10 +549,8 @@ int MinAdaptGlok::iterate(int maxiter)
           flag = 0;
         else flag = 1;
         MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
-        if (flagall == 0) {
-          update->dt = dtinit;
+        if (flagall == 0)
           return ETOL;
-        }
       }
     }
 
@@ -554,18 +561,14 @@ int MinAdaptGlok::iterate(int maxiter)
     if (update->ftol > 0.0) {
       fdotf = fnorm_sqr();
       if (update->multireplica == 0) {
-        if (fdotf < update->ftol*update->ftol && pflag) {
-          update->dt = dtinit;
+        if (fdotf < update->ftol*update->ftol && pflag)
           return FTOL;
-        }
       } else {
         if (fdotf < update->ftol*update->ftol && pflag) flag = 0;
         else flag = 1;
         MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
-        if (flagall == 0) {
-          update->dt = dtinit;
+        if (flagall == 0)
           return FTOL;
-        }
       }
     }
 
@@ -578,8 +581,5 @@ int MinAdaptGlok::iterate(int maxiter)
     }
   }
 
-  // reset the timestep to the initial value
-
-  update->dt = dtinit;
   return MAXITER;
 }

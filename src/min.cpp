@@ -65,6 +65,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   integrator = 0;
   halfstepback_flag = 1;
   delaystep_start_flag = 1;
+  max_vdotf_negatif = 2000;
   relaxbox_mod = 1000000;
   relaxbox_rate = 0.33;
   relaxbox_flag = 0;
@@ -190,6 +191,10 @@ void Min::init()
   neighbor->dist_check = 1;
 
   niter = neval = 0;
+
+  // store timestep size (important for variable timestep minimizer)
+
+  dtinit = update->dt;
 }
 
 /* ----------------------------------------------------------------------
@@ -477,6 +482,10 @@ void Min::cleanup()
 
   modify->delete_fix("MINIMIZE");
   domain->box_too_small_check();
+
+  // reset timestep size (important for variable timestep minimizer)
+
+  update->dt = dtinit;
 }
 
 /* ----------------------------------------------------------------------
@@ -699,6 +708,10 @@ void Min::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) delaystep_start_flag = 0;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;       
+    } else if (strcmp(arg[iarg],"vdfmax") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      max_vdotf_negatif = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = 0;
@@ -924,6 +937,7 @@ char *Min::stopstrings(int n)
                            "quadratic factors are zero",
                            "trust region too small",
                            "HFTN minimizer error",
-                           "walltime limit reached"};
+                           "walltime limit reached",
+                           "max iterations with v.f negative"};
   return (char *) strings[n];
 }

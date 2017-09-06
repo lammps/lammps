@@ -48,7 +48,7 @@ class Min : protected Pointers {
 
   // possible return values of iterate() method
   enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,
-       ZEROQUAD,TRSMALL,INTERROR,TIMEOUT};
+       ZEROQUAD,TRSMALL,INTERROR,TIMEOUT,MAXVDOTF};
 
  protected:
   int eflag,vflag;            // flags for energy/virial computation
@@ -57,6 +57,7 @@ class Min : protected Pointers {
 
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
+  double dtinit;              // store the default timestep
 
   // only for minimize style adaptglok
   int delaystep;              // minium steps of dynamics
@@ -66,6 +67,7 @@ class Min : protected Pointers {
   int integrator;             // Newton integration: euler, leapfrog, verlet...
   int halfstepback_flag;      // half step backward when v.f <= 0.0
   int delaystep_start_flag;   // delay the initial dt_shrink
+  int max_vdotf_negatif;      // maximum iteration with v.f > 0.0
   double relaxbox_mod;        // Bulk modulus used for box relax
   double relaxbox_rate;       // for box relaxation to 0 pressure
   int relaxbox_flag;          // 1: box relaxation iso; 2: aniso

@@ -45,9 +45,6 @@ fix_reax_c_bonds_kokkos.cpp
 fix_reax_c_bonds_kokkos.h
 fix_reax_c_species_kokkos.cpp
 fix_reax_c_species_kokkos.h
-# deleted on 01 Mar 2017
-npair_halffull_newton_ssa.cpp
-npair_halffull_newton_ssa.h
 # deleted on 19 April 2017
 vmdplugin.h
 molfile_plugin.h

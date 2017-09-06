@@ -11,27 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NPAIR_CLASS
+#ifdef PAIR_CLASS
 
-NPairStyle(halffull/newton/ssa,
-           NPairHalffullNewtonSSA,
-           NP_HALF_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON |
-           NP_ORTHO | NP_TRI | NP_SSA)
+PairStyle(hybrid/overlay/kk,PairHybridOverlayKokkos)
 
 #else
 
-#ifndef LMP_NPAIR_HALFFULL_NEWTON_SSA_H
-#define LMP_NPAIR_HALFFULL_NEWTON_SSA_H
+#ifndef LMP_PAIR_HYBRID_OVERLAY_KOKKOS_H
+#define LMP_PAIR_HYBRID_OVERLAY_KOKKOS_H
 
-#include "npair.h"
+#include "pair_hybrid_kokkos.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalffullNewtonSSA : public NPair {
+class PairHybridOverlayKokkos : public PairHybridKokkos {
  public:
-  NPairHalffullNewtonSSA(class LAMMPS *);
-  ~NPairHalffullNewtonSSA() {}
-  void build(class NeighList *);
+  PairHybridOverlayKokkos(class LAMMPS *);
+  virtual ~PairHybridOverlayKokkos() {}
+  void coeff(int, char **);
 };
 
 }
@@ -40,5 +37,13 @@ class NPairHalffullNewtonSSA : public NPair {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Pair coeff for hybrid has invalid style
+
+Style in pair coeff must have been listed in pair_style command.
 
 */

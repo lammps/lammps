@@ -282,9 +282,6 @@ class NeighborKokkosExecute
 #endif
 
   KOKKOS_INLINE_FUNCTION
-  void binatomsItem(const int &i) const;
-
-  KOKKOS_INLINE_FUNCTION
   int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z) const
   {
     int ix,iy,iz;

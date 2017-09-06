@@ -30,12 +30,20 @@ class PairExp6rx : public Pair {
   virtual ~PairExp6rx();
   virtual void compute(int, int);
   void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+
+  struct Param {
+    double epsilon,rm,alpha;
+    int ispecies;
+    char *name, *potential;      // names of unique molecules and interaction type
+    char *tablename;             // name of interaction table
+   int potentialType;              // enumerated interaction potential type.
+  };
 
  protected:
   enum{LINEAR};
@@ -45,21 +53,14 @@ class PairExp6rx : public Pair {
   double **epsilon,**rm,**alpha;
   double **rminv,**buck1,**buck2,**offset;
 
-  void allocate();
+  virtual void allocate();
   int *mol2param;               // mapping from molecule to parameters
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
-  struct Param {
-    double epsilon,rm,alpha;
-    int ispecies;
-    char *name, *potential;      // names of unique molecules and interaction type
-    char *tablename;             // name of interaction table
-   int potentialType;              // enumerated interaction potential type.
-  };
   Param *params;                // parameter set for an I-J-K interaction
 
   int nspecies;
-  void read_file(char *);
+  virtual void read_file(char *);
   void read_file2(char *);
   void setup();
 

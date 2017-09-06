@@ -150,6 +150,8 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
 
 FixEOStableRX::~FixEOStableRX()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) {
     free_table(&tables[m]);
     free_table(&tables2[m]);

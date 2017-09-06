@@ -84,11 +84,15 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
 
 PairExp6rx::~PairExp6rx()
 {
-  for (int i=0; i < nparams; ++i) {
-    delete[] params[i].name;
-    delete[] params[i].potential;
+  if (copymode) return;
+
+  if (params != NULL) {
+    for (int i=0; i < nparams; ++i) {
+      delete[] params[i].name;
+      delete[] params[i].potential;
+    }
+    memory->destroy(params);
   }
-  memory->destroy(params);
   memory->destroy(mol2param);
 
   if (allocated) {

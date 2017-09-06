@@ -66,19 +66,19 @@ class FixRX : public Fix {
   double *kR;
 
   //!< Classic Runge-Kutta 4th-order stepper.
-  void rk4(int,double*);
+  void rk4(int, double*, void*);
 
   //!< Runge-Kutta-Fehlberg ODE Solver.
-  void rkf45(int,double*);
+  void rkf45(int, double*, void*, int ode_counter[]);
 
   //!< Runge-Kutta-Fehlberg ODE stepper function.
   void rkf45_step (const int neq, const double h, double y[], double y_out[],
-                   double rwk[], void* v_param);
+                   double rwk[], void *);
 
   //!< Initial step size estimation for the Runge-Kutta-Fehlberg ODE solver.
   int rkf45_h0 (const int neq, const double t, const double t_stop,
                      const double hmin, const double hmax,
-                     double& h0, double y[], double rwk[], void* v_params);
+                     double& h0, double y[], double rwk[], void *v_params);
 
   class PairDPDfdtEnergy *pairDPDE;
   double *dpdThetaLocal;
@@ -89,6 +89,13 @@ class FixRX : public Fix {
 
   int rhs(double, const double *, double *, void *);
   int rhs_dense (double, const double *, double *, void *);
+
+  // User-defined data container needed in rhs.
+  struct UserRHSData
+  {
+    double *kFor;
+    double *rxnRateLaw;
+  };
 
   // Sparse stoichiometric matrix storage format and methods.
   bool useSparseKinetics;
@@ -116,10 +123,10 @@ class FixRX : public Fix {
   double relTol, absTol; //!< Relative and absolute tolerances for the ODE solver(s).
 
   // ODE Diagnostics
-  int nSteps; //!< # of accepted steps taken over all atoms.
-  int nIters; //!< # of attemped steps for all atoms.
-  int nFuncs; //!< # of RHS evaluations for all atoms.
-  int nFails; //!< # of ODE systems that failed (for some reason).
+  //int nSteps; //!< # of accepted steps taken over all atoms.
+  //int nIters; //!< # of attemped steps for all atoms.
+  //int nFuncs; //!< # of RHS evaluations for all atoms.
+  //int nFails; //!< # of ODE systems that failed (for some reason).
 
   int diagnosticFrequency; //!< Frequency (LMP steps) that run-time diagnostics will be printed to the log.
   enum { numDiagnosticCounters = 5 };

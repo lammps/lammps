@@ -808,7 +808,7 @@ int Neighbor::init_pair()
     }
 
     PairCreator pair_creator = pairclass[flag-1];
-    neigh_pair[i] = pair_creator(lmp);
+    lists[i]->np = neigh_pair[i] = pair_creator(lmp);
     neigh_pair[i]->post_constructor(requests[i]);
     neigh_pair[i]->istyle = flag;
 

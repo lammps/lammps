@@ -79,7 +79,8 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
 
   // USER-DPD package
 
-  ndxAIR_ssa = NULL;
+  for (int i = 0; i < 8; i++) AIRct_ssa[i] = 0;
+  np = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,10 +100,6 @@ NeighList::~NeighList()
 
   delete [] iskip;
   memory->destroy(ijskip);
-
-  if (ssa) {
-    memory->sfree(ndxAIR_ssa);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -203,14 +200,16 @@ void NeighList::grow(int nlocal, int nall)
   if (listmiddle) listmiddle->grow(nlocal,nall);
 
   // skip if data structs are already big enough
-
-  if (ghost) {
+  if (ssa) {
+    if ((nlocal * 3) + nall <= maxatom) return;
+  } else if (ghost) {
     if (nall <= maxatom) return;
   } else {
     if (nlocal <= maxatom) return;
   }
 
-  maxatom = atom->nmax;
+  if (ssa) maxatom = (nlocal * 3) + nall;
+  else maxatom = atom->nmax;
 
   memory->destroy(ilist);
   memory->destroy(numneigh);
@@ -223,12 +222,6 @@ void NeighList::grow(int nlocal, int nall)
     memory->sfree(firstdouble);
     firstdouble = (double **) memory->smalloc(maxatom*sizeof(double *),
                                               "neighlist:firstdouble");
-  }
-
-  if (ssa) {
-    if (ndxAIR_ssa) memory->sfree(ndxAIR_ssa);
-    ndxAIR_ssa = (uint16_t (*)[8]) memory->smalloc(sizeof(uint16_t)*8*maxatom,
-      "neighlist:ndxAIR_ssa");
   }
 }
 
@@ -305,8 +298,6 @@ bigint NeighList::memory_usage()
       bytes += dpage[i].size();
     }
   }
-
-  if (ndxAIR_ssa) bytes += sizeof(uint16_t) * 8 * maxatom;
 
   return bytes;
 }

@@ -103,7 +103,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   uCond = uMech = uChem = uCG = uCGnew = NULL;
   duChem = NULL;
   dpdTheta = NULL;
-  ssaAIR = NULL;
 
   // USER-MESO
 
@@ -305,7 +304,6 @@ Atom::~Atom()
   memory->destroy(uCG);
   memory->destroy(uCGnew);
   memory->destroy(duChem);
-  memory->destroy(ssaAIR);
 
   memory->destroy(cc);
   memory->destroy(cc_flux);
@@ -346,9 +344,11 @@ Atom::~Atom()
     delete [] iname[i];
     memory->destroy(ivector[i]);
   }
-  for (int i = 0; i < ndvector; i++) {
-    delete [] dname[i];
-    memory->destroy(dvector[i]);
+  if (dvector != NULL) {
+    for (int i = 0; i < ndvector; i++) {
+      delete [] dname[i];
+      memory->destroy(dvector[i]);
+    }
   }
 
   memory->sfree(iname);

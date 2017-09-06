@@ -335,7 +335,8 @@ from the USER-INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the "run_style"_run_style.html with the {verlet/lrt/intel} style that
 is identical to the default {verlet} style aside from supporting the
-LRT feature.
+LRT feature. This feature requires setting the preprocessor flag
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
 The {balance} keyword sets the fraction of "pair
 style"_pair_style.html work offloaded to the coprocessor for split

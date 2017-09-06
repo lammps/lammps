@@ -9,6 +9,12 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+
+------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -30,16 +36,16 @@ using namespace LAMMPS_NS;
 AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
-  mass_type = 1; //check why
+  mass_type = 1; // check why
 
   comm_x_only = 0;
-  comm_f_only = 1;
+  comm_f_only = 0;
 
   size_forward = 7;
   size_reverse = 6;
   size_border = 11;
   size_velocity = 3;
-  size_data_atom = 9; //to check later
+  size_data_atom = 10; // to check later
   size_data_vel = 4;
   xcol_data = 4;
  
@@ -67,10 +73,11 @@ void AtomVecSpin::grow(int n)
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
+  // allocating mech. quantities
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
-  //Allocating mag. quantities
+  // allocating mag. quantities
   mumag = memory->grow(atom->mumag,nmax,"atom:mumag");
   sp = memory->grow(atom->sp,nmax,4,"atom:sp");
   fm = memory->grow(atom->fm,nmax*comm->nthreads,3,"atom:fm");
@@ -330,6 +337,7 @@ int AtomVecSpin::pack_reverse(int n, int first, double *buf)
     buf[m++] = fm[i][1];
     buf[m++] = fm[i][2];
   }
+
   return m;
 }
 
@@ -934,9 +942,9 @@ bigint AtomVecSpin::memory_usage()
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
   
-  if (atom->memcheck("fm")) bytes += memory->usage(fm,nmax*comm->nthreads,3);
   if (atom->memcheck("mumag")) bytes += memory->usage(mumag,nmax);
   if (atom->memcheck("sp")) bytes += memory->usage(sp,nmax,4);
+  if (atom->memcheck("fm")) bytes += memory->usage(fm,nmax*comm->nthreads,3);
 
   return bytes;
 }

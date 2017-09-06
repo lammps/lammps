@@ -42,9 +42,9 @@ class FixForceSpin : public Fix {
   void compute_anisotropy(int, double *, double *);
 
  protected:
-  int style;
+  int style; // style of the magnetic force
   
-  double xmag, ymag, zmag; //Magnetic force
+  double xmag, ymag, zmag; // temp. force variables
   double degree2rad;
   int ilevel_respa;
   int time_origin;
@@ -56,13 +56,16 @@ class FixForceSpin : public Fix {
   int magvar;
   char *magstr;
    
-  double H_field; //Zeeman field intensity and direction
+  // zeeman field intensity and direction
+  double H_field; 
   double Hx, Hy, Hz;
   
-  double Ka; //Magnetic anisotropy intensity and direction
+  // magnetic anisotropy intensity and direction
+  double Ka; 
   double Kax, Kay, Kaz;
 
-  double *spi, *fmi; //Temp var. in compute
+  // temp. spin variables
+  double *spi, *fmi;
   
   void set_magneticforce();
  
@@ -75,18 +78,10 @@ class FixForceSpin : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Illegal force/spin command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Variable name for fix force/spin does not exist
-
-Self-explanatory.
-
-E: Variable for fix force/spin is invalid style
-
-Only equal-style variables can be used.
 
 */

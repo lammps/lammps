@@ -41,7 +41,7 @@ class PairSpin : public Pair {
   void read_restart_settings(FILE *);
   
   void compute_exchange(int, int, double, double *, double *,double *, double *);
-  void compute_exchange_mech(int, int, double, double *, double *,double *, double *);
+  void compute_exchange_mech(int, int, double, double *, double *, double *,double *, double *);
   void compute_dmi(int, int, double *, double *, double *, double *);
   void compute_me(int, int, double *, double *, double *, double *);  
  
@@ -56,18 +56,19 @@ class PairSpin : public Pair {
   double **cut_spin_me;       // cutoff distance me 
 
  protected: 
-  double **J_1, **J_2, **J_3; // exchange coeffs Jij
-                              // J1 in eV, J2 adim and J3 in Ang
-  double **DM;
-  double **v_dmx, **v_dmy, **v_dmz;// DMI coeffs
-                                   // DM int. in eV, v direction
+  double **J1_mag, **J1_mech; // exchange coeffs Jij
+  double **J2, **J3; // J1 in eV, J2 adim, J3 in Ang
 
-  double **ME;                     // ME in eV
-  double **v_mex, **v_mey, **v_mez;// ME direction
+  double **DM;                     // dmi coeff in eV 
+  double **v_dmx, **v_dmy, **v_dmz;// dmi direction
 
-  double *spi, *spj;
+  double **ME;                     // me coeff in eV
+  double **v_mex, **v_mey, **v_mez;// me direction
+
+  double *spi, *spj; // temp. spin vals. in compute
   double *fi, *fj;   // temp. mech. forces  in compute
   double *fmi, *fmj; // temp. mag. forces in compute
+  double *del;       // inter atomic distances
 
   void allocate();
 };
@@ -79,7 +80,7 @@ class PairSpin : public Pair {
 
 /* ERROR/WARNING messages:
 
-E: Incorrect args in pair_style command
+E: Incorrect args in pair_spin command
 
 Self-explanatory.
 

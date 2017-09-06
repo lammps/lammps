@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -45,7 +50,7 @@ enum{NONE,SPIN};
 /* ---------------------------------------------------------------------- */
 
 FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg)
+  Fix(lmp, narg, arg)
 {
 	
   if (narg != 4) error->all(FLERR,"Illegal fix integration/spin command");	
@@ -68,9 +73,11 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   // error checks
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
-
+  magpair_flag = 0;
   exch_flag = dmi_flag = me_flag = 0;
+  magforce_flag = 0;
   zeeman_flag = aniso_flag = 0;
+  maglangevin_flag = 0;
   tdamp_flag = temp_flag = 0;
 
   lockpairspin = NULL;
@@ -96,11 +103,25 @@ FixIntegrationSpin::~FixIntegrationSpin(){
 
 /* ---------------------------------------------------------------------- */
 
+int FixIntegrationSpin::setmask()
+{
+  int mask = 0;
+  mask |= INITIAL_INTEGRATE;
+  mask |= FINAL_INTEGRATE;
+  return mask;  
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixIntegrationSpin::init()
 {
-  FixNVE::init();       
+  //FixNVE::init();       
   
+  // set timesteps
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
   dts = update->dt;
+
   memory->create(xi,3,"integrations:xi");
   memory->create(sec,3,"integrations:sec");
   memory->create(rsec,3,"integrations:rsec");
@@ -113,6 +134,7 @@ void FixIntegrationSpin::init()
 
 
   if (strstr(force->pair_style,"pair/spin")) {
+    magpair_flag = 1;
     lockpairspin = (PairSpin *) force->pair;
   } else if (strstr(force->pair_style,"hybrid/overlay")) {
     PairHybrid *lockhybrid = (PairHybrid *) force->pair;
@@ -120,35 +142,48 @@ void FixIntegrationSpin::init()
     int ipair;
     for (ipair = 0; ipair < nhybrid_styles; ipair++) {
       if (strstr(lockhybrid->keywords[ipair],"pair/spin")) {
+        magpair_flag = 1;
 	lockpairspin = (PairSpin *) lockhybrid->styles[ipair];
       }
     }
   } else error->all(FLERR,"Illegal fix integration/spin command");
 
-  // check errors, and handle simple hybrid (not overlay)
+  // check errors, and handle simple hybrid (not overlay), and no pair/spin interaction
 
   int iforce;
-  for (iforce = 0; iforce < modify->nfix; iforce++)
-    if (strstr(modify->fix[iforce]->style,"force/spin")) break;
-  lockforcespin = (FixForceSpin *) modify->fix[iforce]; 
+  for (iforce = 0; iforce < modify->nfix; iforce++) {
+    if (strstr(modify->fix[iforce]->style,"force/spin")) {
+      magforce_flag = 1;
+      lockforcespin = (FixForceSpin *) modify->fix[iforce]; 
+    }
+  }
 
-  for (iforce = 0; iforce < modify->nfix; iforce++)
-    if (strstr(modify->fix[iforce]->style,"langevin/spin")) break;
-  locklangevinspin = (FixLangevinSpin *) modify->fix[iforce]; 
+  for (iforce = 0; iforce < modify->nfix; iforce++) {
+    if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
+      maglangevin_flag = 1;
+      locklangevinspin = (FixLangevinSpin *) modify->fix[iforce]; 
+    } 
+  }
 
-  // set flags for the different magnetic interactions
-  if (lockpairspin->exch_flag == 1) exch_flag = 1;
-  if (lockpairspin->dmi_flag == 1) dmi_flag = 1;
-  if (lockpairspin->me_flag == 1) me_flag = 1;
+  // set flags for the different magnetic interactionsi
+  if (magpair_flag) {
+    if (lockpairspin->exch_flag == 1) exch_flag = 1;
+    if (lockpairspin->dmi_flag == 1) dmi_flag = 1;
+    if (lockpairspin->me_flag == 1) me_flag = 1;
+  }
 
-  if (lockforcespin->zeeman_flag == 1) zeeman_flag = 1;
-  if (lockforcespin->aniso_flag == 1) aniso_flag = 1;
+  if (magforce_flag) { 
+    if (lockforcespin->zeeman_flag == 1) zeeman_flag = 1;
+    if (lockforcespin->aniso_flag == 1) aniso_flag = 1;
+  }
 
-  if (locklangevinspin->tdamp_flag == 1) tdamp_flag = 1;
-  if (locklangevinspin->temp_flag == 1) temp_flag = 1;
+  if (maglangevin_flag) {
+   if (locklangevinspin->tdamp_flag == 1) tdamp_flag = 1;
+   if (locklangevinspin->temp_flag == 1) temp_flag = 1;
+  }
 
   // perform the sectoring if mpi integration
-  if (mpi_flag == 1) sectoring();
+  if (mpi_flag) sectoring();
 
 }
 
@@ -171,10 +206,14 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;  
 
+  printf("before mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
+
   // compute and add magneto-mech. force 
-  if (exch_flag) {
-      lockpairspin->compute_magnetomech(0,vflag);
+  if (magpair_flag == 1) { 
+    if (exch_flag) lockpairspin->compute_magnetomech(0,vflag);
   }
+
+  printf("after mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
 
   // update half v all particles
   for (int i = 0; i < nlocal; i++) {
@@ -263,7 +302,7 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   const int newton_pair = force->newton_pair;
 
   // add test here
-  if (exch_flag == 1 || dmi_flag == 1 || me_flag == 1 ) { 
+  if (magpair_flag) { 
     inum = lockpairspin->list->inum;
     ilist = lockpairspin->list->ilist;
     numneigh = lockpairspin->list->numneigh;
@@ -285,9 +324,6 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
 
   // force computation for spin i
   i = ilist[ii];
-  
-  // clear atom i 
-  fm[i][0] = fm[i][1] = fm[i][2] = 0.0;
   
   spi[0] = sp[i][0];
   spi[1] = sp[i][1];
@@ -316,50 +352,54 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
     itype = type[ii];
     jtype = type[j];
 
-    if (exch_flag) {
-      cut_ex_2 = (lockpairspin->cut_spin_exchange[itype][jtype])*(lockpairspin->cut_spin_exchange[itype][jtype]);
-      if (rsq <= cut_ex_2) {
-        lockpairspin->compute_exchange(i,j,rsq,fmi,fmj,spi,spj);
-      }  
-    }
-
-    if (dmi_flag) {
-      cut_dmi_2 = (lockpairspin->cut_spin_dmi[itype][jtype])*(lockpairspin->cut_spin_dmi[itype][jtype]);
-      if (rsq <= cut_dmi_2) {
-        lockpairspin->compute_dmi(i,j,fmi,fmj,spi,spj);
-      }  
-    }
-
-    if (me_flag) {
-      cut_me_2 = (lockpairspin->cut_spin_me[itype][jtype])*(lockpairspin->cut_spin_me[itype][jtype]);
-      if (rsq <= cut_me_2) {
-        lockpairspin->compute_me(i,j,fmi,fmj,spi,spj);
-      }  
-    }
-
-  }
-
-  // post force
-  if (zeeman_flag) {
-    lockforcespin->compute_zeeman(i,fmi);
-  }
-
-  if (aniso_flag) {
-    spi[0] = sp[i][0];
-    spi[1] = sp[i][1];                                       
-    spi[2] = sp[i][2]; 
-    lockforcespin->compute_anisotropy(i,spi,fmi);
-  }
-
-  if (tdamp_flag) {
-    locklangevinspin->add_tdamping(spi,fmi);   
-  }
-
-  if (temp_flag) {
-    locklangevinspin->add_temperature(fmi);
+    if (magpair_flag) { // mag. pair inter.
+      double temp_cut;
+      if (exch_flag) { // exchange
+        temp_cut = lockpairspin->cut_spin_exchange[itype][jtype];
+	cut_ex_2 = temp_cut*temp_cut;
+        if (rsq <= cut_ex_2) { 
+          lockpairspin->compute_exchange(i,j,rsq,fmi,fmj,spi,spj);
+        }  
+      }
+      if (dmi_flag) { // dmi
+	temp_cut = lockpairspin->cut_spin_dmi[itype][jtype];
+	cut_dmi_2 = temp_cut*temp_cut;
+	if (rsq <= cut_dmi_2) {
+	  lockpairspin->compute_dmi(i,j,fmi,fmj,spi,spj);
+	}
+      }
+      if (me_flag) { // me
+	temp_cut = lockpairspin->cut_spin_me[itype][jtype];
+	cut_me_2 = temp_cut*temp_cut;
+	if (rsq <= cut_me_2) {
+	  lockpairspin->compute_me(i,j,fmi,fmj,spi,spj);
+	}
+      }
+    }  
   } 
- 
-  // replace the magnetic force by its new value
+
+  if (magforce_flag) { // mag. forces
+    if (zeeman_flag) { // zeeman
+      lockforcespin->compute_zeeman(i,fmi);
+    }
+    if (aniso_flag) { // aniso
+      spi[0] = sp[i][0];
+      spi[1] = sp[i][1];                                       
+      spi[2] = sp[i][2];
+      lockforcespin->compute_anisotropy(i,spi,fmi);
+    }
+  }
+
+  if (maglangevin_flag) { // mag. langevin
+    if (tdamp_flag) { // trans. damping
+      locklangevinspin->add_tdamping(spi,fmi);   
+    }
+    if (temp_flag) { // temp.
+      locklangevinspin->add_temperature(fmi);
+    } 
+  }
+
+  // replace the mag. force i by its new value
   fm[i][0] = fmi[0];
   fm[i][1] = fmi[1];
   fm[i][2] = fmi[2];
@@ -397,7 +437,7 @@ void FixIntegrationSpin::sectoring()
   nsectors = sec[0]*sec[1]*sec[2];
 
   if (mpi_flag == 1 && nsectors != 8) 
-    error->all(FLERR,"System too small for sectoring operation");
+    error->all(FLERR,"Illegal sectoring operation");
 
   rsec[0] = rsx;
   rsec[1] = rsy;
@@ -405,17 +445,6 @@ void FixIntegrationSpin::sectoring()
   if (sec[0] == 2) rsec[0] = rsx/2.0;
   if (sec[1] == 2) rsec[1] = rsy/2.0;
   if (sec[2] == 2) rsec[2] = rsz/2.0;
-
-  /*
-  if (2.0 * rv >= rsx && sec[0] >= 2)
-    error->all(FLERR,"Illegal number of sectors"); 
-
-  if (2.0 * rv >= rsy && sec[1] >= 2)
-    error->all(FLERR,"Illegal number of sectors"); 
-
-  if (2.0 * rv >= rsz && sec[2] >= 2)
-    error->all(FLERR,"Illegal number of sectors"); 
-*/
 
 }
 
@@ -501,9 +530,9 @@ void FixIntegrationSpin::final_integrate()
   int *type = atom->type;
   int *mask = atom->mask; 
 
-  // compute and add exchange magneto-mech. force 
-  if (exch_flag) {
-      lockpairspin->compute_magnetomech(0,0);
+  // compute and add magneto-mech. force 
+  if (magpair_flag == 1) { 
+    if (exch_flag) lockpairspin->compute_magnetomech(0,0);
   }
 
   // update half v for all particles

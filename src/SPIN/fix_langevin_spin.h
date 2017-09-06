@@ -33,15 +33,19 @@ class FixLangevinSpin : public Fix {
   void setup(int);
   virtual void post_force(int);
   void post_force_respa(int, int, int);
+  // add transverse damping and temperature
   void add_tdamping(double *, double *);
   void add_temperature(double *);
+  // associated flags
   int tdamp_flag, ldamp_flag, temp_flag;
 
  protected:
   double *spi, *fmi;
-  double alpha_t, alpha_l; //Transverse and long. damping value
-  double dts,temp,D,sigma;//timestep, temp, noise  
-  double Gil_factor;//Gilbert's prefactor 
+  // transverse and longitudinal damping coeff.
+  double alpha_t, alpha_l; 
+  // timestep, temperature, noise intensity
+  double dts,temp,D,sigma;   
+  double Gil_factor; 
  
   char *id_temp;
   class Compute *temperature;
@@ -60,7 +64,7 @@ class FixLangevinSpin : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Illegal langevin/spin command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a

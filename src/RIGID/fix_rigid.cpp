@@ -1082,10 +1082,8 @@ void FixRigid::compute_forces_and_torques()
 
 void FixRigid::post_force(int vflag)
 {
-  if (earlyflag) {
-    if (langflag) apply_langevin_thermostat();
-    compute_forces_and_torques();
-  }
+  if (langflag) apply_langevin_thermostat();
+  if (earlyflag) compute_forces_and_torques();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1095,10 +1093,7 @@ void FixRigid::final_integrate()
   int ibody;
   double dtfm;
 
-  if (!earlyflag) {
-    if (langflag) apply_langevin_thermostat();
-    compute_forces_and_torques();
-  }
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom
   // fflag,tflag = 0 for some dimensions in 2d

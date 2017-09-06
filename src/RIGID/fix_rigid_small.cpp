@@ -936,10 +936,8 @@ void FixRigidSmall::compute_forces_and_torques()
 
 void FixRigidSmall::post_force(int vflag)
 {
-  if (earlyflag) {
-    if (langflag) apply_langevin_thermostat();
-    compute_forces_and_torques();
-  }
+  if (langflag) apply_langevin_thermostat();
+  if (earlyflag) compute_forces_and_torques();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -950,10 +948,7 @@ void FixRigidSmall::final_integrate()
 
   //check(3);
 
-  if (!earlyflag) {
-    if (langflag) apply_langevin_thermostat();
-    compute_forces_and_torques();
-  }
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom, recompute omega
 

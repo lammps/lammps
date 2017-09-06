@@ -645,10 +645,7 @@ void FixRigidNHSmall::final_integrate()
 
   // late calculation of forces and torques (if requested)
 
-  if (!earlyflag) {
-    if (langflag) apply_langevin_thermostat();
-    compute_forces_and_torques();
-  }
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom
   // include Langevin thermostat forces

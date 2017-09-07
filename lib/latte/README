@@ -1,0 +1,43 @@
+This directory contains build settings for the LATTE library which
+is required to use the LATTE package and its fix latte command in a
+LAMMPS input script.
+
+Information about the LATTE DFTB code can be found at: 
+https://github.com/losalamos/LATTE 
+
+The LATTE development effort is led by Marc Cawkwell and
+Anders Niklasson at Los Alamos National Laboratory.
+
+To download, build, and install LATTE as a library on your system,
+follow these steps: 
+  
+- Download or clone the LATTE source code from: 
+  https://github.com/losalamos/LATTE. 
+
+- Modify the makefile.CHOICES according to your system architecture 
+  and compilers.
+ 
+- Set the MAKELIB flag to ON in makefile.CHOICES and finally, build the 
+  code with the make command. 
+
+Note that if you unpack and build LATTE in this directory and you
+download a new LAMMPS tarball, the files you have added here will be
+lost. So you likely want to build it somewhere else. The recommended 
+place is the home directory.
+
+To build LAMMPS with the LATTE library you should follow the following 
+instructions:
+
+- copy makefile.lammps.* to makefile.lammps in the /lammps/lib/latte directory. 
+
+- Change the path, flags and compilers on the makefile.lammps according 
+  to your compilers, architecture and the LATTE location.
+
+- Finally, you should execute the following commands: 
+  $ cd lammps/src
+  $ make yes-latte
+  $ make g++ (or whatever target you wish)
+
+Note that the Makefile.lammps file in this directory is required to
+allow the LAMMPS build to find the necessary LATTE files.  You should
+not normally need to edit this file.

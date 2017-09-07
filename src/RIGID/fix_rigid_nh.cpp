@@ -1249,9 +1249,7 @@ int FixRigidNH::modify_param(int narg, char **arg)
     if (pressure->pressflag == 0)
       error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
     return 2;
-  }
-
-  return 0;
+  } else return FixRigid::modify_param(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

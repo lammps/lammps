@@ -155,11 +155,6 @@ void PairAIREBO::settings(int narg, char **arg)
   if (narg != 1 && narg != 3 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
-  // Pair::settings() is only called after a pair_style command.
-  // this means that after a restart we are now fully initialized.
-
-  did_dummy_restart = 0;
-
   cutlj = force->numeric(FLERR,arg[0]);
 
   if (narg >= 3) {

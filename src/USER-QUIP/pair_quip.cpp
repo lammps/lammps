@@ -214,12 +214,6 @@ void PairQUIP::compute(int eflag, int vflag)
 void PairQUIP::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-
-  // Pair::settings() is only called after a pair_style command.
-  // this means that after a restart we are now fully initialized.
-
-  did_dummy_restart = 0;
-
   if (strcmp(force->pair_style,"hybrid") == 0)
     error->all(FLERR,"Pair style quip is only compatible with hybrid/overlay");
 

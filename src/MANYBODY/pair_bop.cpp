@@ -549,11 +549,6 @@ void PairBOP::settings(int narg, char **arg)
 {
   otfly = 1;
 
-  // Pair::settings() is only called after a pair_style command.
-  // this means that after a restart we are now fully initialized.
-
-  did_dummy_restart = 0;
-
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"save") == 0) {

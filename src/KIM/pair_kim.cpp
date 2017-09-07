@@ -268,6 +268,11 @@ void PairKIM::settings(int narg, char **arg)
    ++settings_call_count;
    init_style_call_count = 0;
 
+   // Pair::settings() is only called after a pair_style command.
+   // this means that after a restart we are now fully initialized.
+
+   did_dummy_restart = 0;
+
    if (narg < 2) error->all(FLERR,"Illegal pair_style command");
    // arg[0] is the virial handling option: "LAMMPSvirial" or "KIMvirial"
    // arg[1] is the KIM Model name
@@ -404,6 +409,10 @@ void PairKIM::init_style()
 {
    // This is called for each "run ...", "minimize ...", etc. read from input
    ++init_style_call_count;
+
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style KIM");
 
    if (domain->dimension != 3)
       error->all(FLERR,"PairKIM only works with 3D problems");

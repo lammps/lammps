@@ -121,6 +121,11 @@ void PairLCBOP::allocate()
 
 void PairLCBOP::settings(int narg, char **arg) {
   if( narg != 0 ) error->all(FLERR,"Illegal pair_style command");
+
+  // Pair::settings() is only called after a pair_style command.
+  // this means that after a restart we are now fully initialized.
+
+  did_dummy_restart = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -185,6 +190,10 @@ void PairLCBOP::init_style()
     error->all(FLERR,"Pair style LCBOP requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style LCBOP requires newton pair on");
+
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style LCBOP");
 
   // need a full neighbor list, including neighbors of ghosts
 

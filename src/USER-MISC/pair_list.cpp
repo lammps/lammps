@@ -207,6 +207,11 @@ void PairList::settings(int narg, char **arg)
   if (narg < 2)
     error->all(FLERR,"Illegal pair_style command");
 
+  // Pair::settings() is only called after a pair_style command.
+  // this means that after a restart we are now fully initialized.
+
+  did_dummy_restart = 0;
+
   cut_global = force->numeric(FLERR,arg[1]);
   if (narg > 2) {
     if (strcmp(arg[2],"nocheck") == 0) check_flag = 0;
@@ -374,6 +379,10 @@ void PairList::init_style()
 
   if (atom->map_style == 0)
     error->all(FLERR,"Pair style list requires an atom map");
+
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style list");
 
   if (offset_flag) {
     for (int n=0; n < npairs; ++n) {

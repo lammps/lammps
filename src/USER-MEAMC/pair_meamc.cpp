@@ -198,6 +198,11 @@ void PairMEAMC::allocate()
 void PairMEAMC::settings(int narg, char **arg)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+
+  // Pair::settings() is only called after a pair_style command.
+  // this means that after a restart we are now fully initialized.
+
+  did_dummy_restart = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -285,7 +290,11 @@ void PairMEAMC::coeff(int narg, char **arg)
 void PairMEAMC::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style MEAM requires newton pair on");
+    error->all(FLERR,"Pair style MEAM/C requires newton pair on");
+
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style MEAM/C");
 
   // need full and half neighbor list
 

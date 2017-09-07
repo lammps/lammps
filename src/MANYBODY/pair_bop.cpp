@@ -549,6 +549,11 @@ void PairBOP::settings(int narg, char **arg)
 {
   otfly = 1;
 
+  // Pair::settings() is only called after a pair_style command.
+  // this means that after a restart we are now fully initialized.
+
+  did_dummy_restart = 0;
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"save") == 0) {
@@ -641,6 +646,10 @@ void PairBOP::init_style()
     error->all(FLERR,"Pair style BOP requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style BOP requires newton pair on");
+
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style BOP");
 
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 

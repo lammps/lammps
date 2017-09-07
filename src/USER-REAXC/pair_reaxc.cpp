@@ -198,6 +198,11 @@ void PairReaxC::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
+  // Pair::settings() is only called after a pair_style command.
+  // this means that after a restart we are now fully initialized.
+
+  did_dummy_restart = 0;
+
   // read name of control file or use default controls
 
   if (strcmp(arg[0],"NULL") == 0) {
@@ -356,6 +361,10 @@ void PairReaxC::init_style( )
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style reax/c requires atom attribute q");
+
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style reax/c");
 
   // firstwarn = 1;
 

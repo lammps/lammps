@@ -618,7 +618,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
 
 void FixRigidNHSmall::final_integrate()
 {
-  int i,ibody;
+  int ibody;
   double tmp,scale_t[3],scale_r;
   double dtfm;
   double mbody[3],tbody[3],fquat[4];
@@ -1367,8 +1367,7 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
     if (pressure->pressflag == 0)
       error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
     return 2;
-  } else
-    return FixRigidSmall::modify_param(narg,arg);
+  } else return FixRigidSmall::modify_param(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

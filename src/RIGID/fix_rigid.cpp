@@ -651,9 +651,7 @@ int FixRigid::modify_param(int narg, char **arg)
     else
       error->all(FLERR,"Illegal fix_modify command");
     return 2;
-  }
-  else
-    return 0;
+  } else return 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -7718,6 +7718,12 @@ The region keyword must be specified with this fix. :dd
 
 Self-explanatory. :dd
 
+{Must specify 'pair_style' command after 'read_restart' for pair style ...} :dt
+
+The pair style does not support reading from restart files and thus
+the 'pair_style' and 'pair_coeff' commands have to be issues again
+with the same settings as in the previous input. :dd
+
 {Must specify at least 2 types in fix atom/swap command} :dt
 
 Self-explanatory. :dd
@@ -11731,6 +11737,13 @@ The restart file value will override the setting in the input script. :dd
 {Restart file used different newton pair setting, using input script value} :dt
 
 The input script value will override the setting in the restart file. :dd
+
+{Restarting a pair style without restart support. May need to specify 'pair_style' command again} :dt
+
+This warning indicates that you have read a restart file with a pair
+style that has no support for reading from and writing to restart
+files. In most cases this requires issuing the same 'pair_style' and
+'pair_coeff' commands with the same settings as in the previous input. :dd
 
 {Restrain problem: %d %ld %d %d %d %d} :dt
 

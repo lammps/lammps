@@ -55,6 +55,7 @@ class Pair : protected Pointers {
   int writedata;                 // 1 if writes coeffs to data file
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
   double **cutghost;             // cutoff for each ghost pair
+  int did_dummy_restart;         // 1 if restarted using dummy restart method
 
   int ewaldflag;                 // 1 if compatible with Ewald solver
   int pppmflag;                  // 1 if compatible with PPPM solver
@@ -161,7 +162,7 @@ class Pair : protected Pointers {
   virtual void free_disp_tables();
 
   virtual void write_restart(FILE *) {}
-  virtual void read_restart(FILE *) {}
+  virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *) {}
   virtual void read_restart_settings(FILE *) {}
   virtual void write_data(FILE *) {}
@@ -294,6 +295,13 @@ W: Using a manybody potential with bonds/angles/dihedrals and special_bond exclu
 This is likely not what you want to do.  The exclusion settings will
 eliminate neighbors in the neighbor list, which the manybody potential
 needs to calculated its terms correctly.
+
+W: Restarting a pair style without restart support. May need to specify 'pair_style' command again.
+
+This warning indicates that you have read a restart file with a pair
+style that has no support for reading from and writing to restart
+files. In most cases this requires issuing the same 'pair_style' and
+'pair_coeff' commands with the same settings as in the previous input.
 
 E: All pair coeffs are not set
 

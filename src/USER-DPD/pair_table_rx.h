@@ -20,11 +20,11 @@ PairStyle(table/rx,PairTableRX)
 #ifndef LMP_PAIR_TABLE_RX_H
 #define LMP_PAIR_TABLE_RX_H
 
-#include "pair.h"
+#include "pair_table.h"
 
 namespace LAMMPS_NS {
 
-class PairTableRX : public Pair {
+class PairTableRX : public PairTable {
  public:
   PairTableRX(class LAMMPS *);
   virtual ~PairTableRX();
@@ -32,42 +32,9 @@ class PairTableRX : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
-
-  int tabstyle,tablength;
-  struct Table {
-    int ninput,rflag,fpflag,match,ntablebits;
-    int nshiftbits,nmask;
-    double rlo,rhi,fplo,fphi,cut;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double innersq,delta,invdelta,deltasq6;
-    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
-  };
-  int ntables;
-  Table *tables;
-
-  int **tabindex;
-
-  void allocate();
-  void read_table(Table *, char *, char *);
-  void param_extract(Table *, char *);
-  void bcast_table(Table *);
-  void spline_table(Table *);
-  void compute_table(Table *);
-  void null_table(Table *);
-  void free_table(Table *);
-  void spline(double *, double *, int, double, double, double *);
-  double splint(double *, double *, double *, int, double);
 
   int nspecies;
   char *site1, *site2;

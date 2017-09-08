@@ -79,6 +79,21 @@ struct IndexType
   using type = T;
 };
 
+/**\brief Specify Launch Bounds for CUDA execution.
+ *
+ *  The "best" defaults may be architecture specific.
+ */
+template< unsigned int maxT = 1024 /* Max threads per block */
+        , unsigned int minB = 1    /* Min blocks per SM */
+        >
+struct LaunchBounds
+{
+  using launch_bounds = LaunchBounds;
+  using type = LaunchBounds<maxT,minB>;
+  static unsigned int constexpr maxTperB {maxT};
+  static unsigned int constexpr minBperSM {minB};
+};
+
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -119,6 +134,7 @@ using Kokkos::is_array_layout ;
 KOKKOS_IMPL_IS_CONCEPT( iteration_pattern )
 KOKKOS_IMPL_IS_CONCEPT( schedule_type )
 KOKKOS_IMPL_IS_CONCEPT( index_type )
+KOKKOS_IMPL_IS_CONCEPT( launch_bounds )
 
 }
 

@@ -71,6 +71,22 @@ static const char cite_gpu_package[] =
   " year =    2013,\n"
   " volume =  184,\n"
   " pages =   {2785--2793}\n"
+  "}\n\n"
+  "@Article{Trung15,\n"
+  " author = {T. D. Nguyen, S. J. Plimpton},\n"
+  " title = {Accelerating dissipative particle dynamics simulations for soft matter systems},\n"
+  " journal = {Comput.~Mater.~Sci.},\n"
+  " year =    2015,\n"
+  " volume =  100,\n"
+  " pages =   {173--180}\n"
+  "}\n\n"
+  "@Article{Trung17,\n"
+  " author = {T. D. Nguyen},\n"
+  " title = {GPU-accelerated Tersoff potentials for massively parallel Molecular Dynamics simulations},\n"
+  " journal = {Comp.~Phys.~Comm.},\n"
+  " year =    2017,\n"
+  " volume =  212,\n"
+  " pages =   {113--122}\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */

@@ -872,13 +872,14 @@ namespace Impl {
         const FunctorType& functor,
         ReturnType& return_value) {
           #if defined(KOKKOS_ENABLE_PROFILING)
-            uint64_t kpID = 0;
-            if(Kokkos::Profiling::profileLibraryLoaded()) {
-              Kokkos::Profiling::beginParallelReduce("" == label ? typeid(FunctorType).name() : label, 0, &kpID);
-            }
+          uint64_t kpID = 0;
+          if(Kokkos::Profiling::profileLibraryLoaded()) {
+            Kokkos::Impl::ParallelConstructName<FunctorType, typename PolicyType::work_tag> name(label);
+            Kokkos::Profiling::beginParallelReduce(name.get(), 0, &kpID);
+          }
           #endif
 
-          Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
+          Kokkos::Impl::shared_allocation_tracking_disable();
           #ifdef KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
           Impl::ParallelReduce<typename functor_adaptor::functor_type, PolicyType, typename return_value_adapter::reducer_type >
              closure(functor_adaptor::functor(functor),
@@ -890,13 +891,13 @@ namespace Impl {
                      policy,
                      return_value_adapter::return_value(return_value,functor));
           #endif
-          Kokkos::Impl::shared_allocation_tracking_release_and_enable();
+          Kokkos::Impl::shared_allocation_tracking_enable();
           closure.execute();
 
           #if defined(KOKKOS_ENABLE_PROFILING)
-            if(Kokkos::Profiling::profileLibraryLoaded()) {
-              Kokkos::Profiling::endParallelReduce(kpID);
-            }
+          if(Kokkos::Profiling::profileLibraryLoaded()) {
+            Kokkos::Profiling::endParallelReduce(kpID);
+          }
           #endif
         }
 
@@ -1015,7 +1016,7 @@ parallel_reduce( std::string const  & arg_label
 
   //------------------------------
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::beginParallelReduce(arg_label, 0, &kpID);
@@ -1041,7 +1042,7 @@ parallel_reduce( std::string const  & arg_label
 
   //------------------------------
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::endParallelReduce(kpID);
   }

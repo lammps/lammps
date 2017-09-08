@@ -1,0 +1,36 @@
+import "martini.lt"
+
+DLPC inherits MARTINI {
+
+  # atomID   molID  atomTyle  charge     X        Y          Z
+  write('Data Atoms') {
+    $atom:NC3 $mol:. @atom:Q0   1.0   0.556   0.486   2.340
+    $atom:PO4 $mol:. @atom:Qa  -1.0   0.522   0.626   2.022
+    $atom:GL1 $mol:. @atom:Na   0.0   0.484   0.520   1.678
+    $atom:GL2 $mol:. @atom:Na   0.0   0.793   0.572   1.640
+    $atom:C1A $mol:. @atom:C1   0.0   0.415   0.488   1.322
+    $atom:C2A $mol:. @atom:C1   0.0   0.388   0.510   1.025
+    $atom:C3A $mol:. @atom:C1   0.0   0.395   0.529   0.684
+    $atom:C1B $mol:. @atom:C1   0.0   0.959   0.570   1.354
+    $atom:C2B $mol:. @atom:C1   0.0   0.885   0.638   1.043
+    $atom:C3B $mol:. @atom:C1   0.0   0.911   0.531   0.691
+  }
+
+  write('Data Bond List') {
+    $bond:b1 $atom:NC3 $atom:PO4
+    $bond:b2 $atom:PO4 $atom:GL1
+    $bond:b3 $atom:GL1 $atom:GL2
+    $bond:b4 $atom:GL1 $atom:C1A
+    $bond:b5 $atom:C1A $atom:C2A
+    $bond:b6 $atom:C2A $atom:C3A
+    $bond:b9 $atom:GL2 $atom:C1B
+    $bond:b10 $atom:C1B $atom:C2B
+    $bond:b11 $atom:C2B $atom:C3B
+  }
+
+} 
+DLPC.scale(10)
+
+# Optional: Move the molecule to a convenient location for buildling a bilayer:
+#           Center the molecule in the X,Y directions and set the min Z value.
+DLPC.move(-6.308,-5.47,-4.49)

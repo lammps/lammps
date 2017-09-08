@@ -92,7 +92,7 @@ struct TestScan {
     Kokkos::deep_copy( errors_a, 0 );
     errors = errors_a;
 
-    parallel_scan( N , *this );
+    Kokkos::parallel_scan( N , *this );
   }
 
   TestScan( const WorkSpec & Start , const WorkSpec & N )
@@ -103,7 +103,7 @@ struct TestScan {
     Kokkos::deep_copy( errors_a, 0 );
     errors = errors_a;
 
-    parallel_scan( exec_policy( Start , N ) , *this );
+    Kokkos::parallel_scan( exec_policy( Start , N ) , *this );
   }
 
   static void test_range( const WorkSpec & begin, const WorkSpec & end )

@@ -140,6 +140,8 @@ msi2lmp has the following known limitations:
 - there is no support for auto-equivalences to supplement fully
   parameterized interactions with heuristic ones
 - there is no support for bond increments
+- there is no support for coordinates defined by symmetry operations,
+  i.e. the .mdf file has to be set up for space group P1
 
 ------------------------------------------------------------------------
 

@@ -44,12 +44,13 @@
 #include<Kokkos_Core.hpp>
 #include<impl/Kokkos_Timer.hpp>
 #include<bench.hpp>
+#include<cstdlib>
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize();
-  
 
-  if(argc<10) { 
+
+  if(argc<10) {
     printf("Arguments: N K R D U F T S\n");
     printf("  P:   Precision (1==float, 2==double)\n");
     printf("  N,K: dimensions of the 2D array to allocate\n");
@@ -68,7 +69,7 @@ int main(int argc, char* argv[]) {
     Kokkos::finalize();
     return 0;
   }
-  
+
 
   int P = atoi(argv[1]);
   int N = atoi(argv[2]);
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
   int T = atoi(argv[8]);
   int S = atoi(argv[9]);
 
-  if(U>8) {printf("U must be 1-8\n"); return 0;} 
+  if(U>8) {printf("U must be 1-8\n"); return 0;}
   if( (D!=1) && (D!=2) && (D!=4) && (D!=8) && (D!=16) && (D!=32)) {printf("D must be one of 1,2,4,8,16,32\n"); return 0;}
   if( (P!=1) && (P!=2) ) {printf("P must be one of 1,2\n"); return 0;}
 

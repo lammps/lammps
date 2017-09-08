@@ -83,10 +83,10 @@ class DihedralOPLSKokkos : public DihedralOPLS {
   DAT::tdual_ffloat_1d k_k3;
   DAT::tdual_ffloat_1d k_k4;
 
-  DAT::t_ffloat_1d d_k1;
-  DAT::t_ffloat_1d d_k2;
-  DAT::t_ffloat_1d d_k3;
-  DAT::t_ffloat_1d d_k4;
+  typename AT::t_ffloat_1d d_k1;
+  typename AT::t_ffloat_1d d_k2;
+  typename AT::t_ffloat_1d d_k3;
+  typename AT::t_ffloat_1d d_k4;
 
   virtual void allocate();
 };

@@ -61,14 +61,19 @@ protected:
   {
     std::cout << std::setprecision(5) << std::scientific;
 
-    unsigned threads_count = omp_get_max_threads();
+    int threads_count = 0;
+    #pragma omp parallel
+    {
+      #pragma omp atomic
+      ++threads_count;
+    }
 
-    if ( Kokkos::hwloc::available() ) {
-      threads_count = Kokkos::hwloc::get_available_numa_count() *
-                      Kokkos::hwloc::get_available_cores_per_numa();
+    if (threads_count > 3) {
+      threads_count /= 2;
     }
 
     Kokkos::OpenMP::initialize( threads_count );
+    Kokkos::OpenMP::print_configuration( std::cout );
   }
 
   static void TearDownTestCase()

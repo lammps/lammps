@@ -472,7 +472,7 @@ int colvarscript::proc_features(colvardeps *obj,
   }
 
   if ((subcmd == "get") || (subcmd == "set")) {
-    std::vector<colvardeps::feature *> &features = obj->features();
+    std::vector<colvardeps::feature *> const &features = obj->features();
     std::string const req_feature(obj_to_str(objv[3]));
     colvardeps::feature *f = NULL;
     int fid = 0;

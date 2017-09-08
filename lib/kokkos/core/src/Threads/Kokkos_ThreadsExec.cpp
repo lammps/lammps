@@ -45,14 +45,14 @@
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_THREADS )
 
-#include <Kokkos_Core_fwd.hpp>
-
 #include <cstdint>
 #include <limits>
 #include <utility>
 #include <iostream>
 #include <sstream>
+
 #include <Kokkos_Core.hpp>
+
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_CPUDiscovery.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
@@ -80,9 +80,7 @@ const void * volatile s_current_function_arg = 0 ;
 
 struct Sentinel {
   Sentinel()
-  {
-    HostSpace::register_in_parallel( ThreadsExec::in_parallel );
-  }
+  {}
 
   ~Sentinel()
   {
@@ -122,6 +120,8 @@ void execute_function_noop( ThreadsExec & , const void * ) {}
 
 void ThreadsExec::driver(void)
 {
+  SharedAllocationRecord< void, void >::tracking_enable();
+
   ThreadsExec this_thread ;
 
   while ( ThreadsExec::Active == this_thread.m_pool_state ) {
@@ -725,6 +725,8 @@ void ThreadsExec::initialize( unsigned thread_count ,
 
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
+
+  Impl::SharedAllocationRecord< void, void >::tracking_enable();
 
   #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();

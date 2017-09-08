@@ -67,6 +67,8 @@ class PairOxdnaHbond : public Pair {
   double **a_hb8, **theta_hb8_0, **dtheta_hb8_ast;
   double **b_hb8, **dtheta_hb8_c;
 
+  int seqdepflag;
+
   virtual void allocate();
 };
 

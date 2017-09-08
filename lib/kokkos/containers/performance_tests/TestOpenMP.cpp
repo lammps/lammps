@@ -69,30 +69,13 @@ protected:
   {
     std::cout << std::setprecision(5) << std::scientific;
 
-    unsigned num_threads = 4;
-
-    if (Kokkos::hwloc::available()) {
-      num_threads = Kokkos::hwloc::get_available_numa_count()
-                    * Kokkos::hwloc::get_available_cores_per_numa()
-                    * Kokkos::hwloc::get_available_threads_per_core()
-                    ;
-
-    }
-
-    std::cout << "OpenMP: " << num_threads << std::endl;
-
-    Kokkos::OpenMP::initialize( num_threads );
-
-    std::cout << "available threads: " << omp_get_max_threads() << std::endl;
+    Kokkos::OpenMP::initialize();
+    Kokkos::OpenMP::print_configuration( std::cout );
   }
 
   static void TearDownTestCase()
   {
     Kokkos::OpenMP::finalize();
-
-    omp_set_num_threads(1);
-
-    ASSERT_EQ( 1 , omp_get_max_threads() );
   }
 };
 

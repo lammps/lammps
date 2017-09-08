@@ -130,14 +130,6 @@ public:
   //! This memory space preferred device_type
   typedef Kokkos::Device< execution_space, memory_space > device_type;
 
-  /*--------------------------------*/
-  /* Functions unique to the HostSpace */
-  static int in_parallel();
-
-  static void register_in_parallel( int (*)() );
-
-  /*--------------------------------*/
-
   /**\brief  Default memory space instance */
   HostSpace();
   HostSpace( HostSpace && rhs ) = default;
@@ -161,7 +153,7 @@ public:
                  , const size_t arg_alloc_size ) const;
 
   /**\brief Return Name of the MemorySpace */
-  static constexpr const char* name();
+  static constexpr const char* name() { return m_name; }
 
 private:
   AllocationMechanism  m_alloc_mech;

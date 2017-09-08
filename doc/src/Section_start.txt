@@ -536,7 +536,7 @@ You should get the executable lmp_foo when the build is complete.
 
 :line
 
-Errors that can occur when making LAMMPS: h5 :link(start_2_3)
+Errors that can occur when making LAMMPS :h5 :link(start_2_3)
 
 If an error occurs when building LAMMPS, the compiler or linker will
 state very explicitly what the problem is.  The error message should
@@ -662,27 +662,25 @@ your own build system. Due to differences between the Windows OS
 and Windows system libraries to Unix-like environments like Linux
 or MacOS, when compiling for Windows a few adjustments may be needed:
 
-Do not set the -DLAMMPS_MEMALIGN define (see LMP_INC makefile variable)
+Do [not] set the -DLAMMPS_MEMALIGN define (see LMP_INC makefile variable)
 Add -lwsock32 -lpsapi to the linker flags (see LIB makefile variable)
-Try adding -static-libgcc or -static or both to the linker flags when your
-LAMMPS executable complains about missing .dll files  :ul
+Try adding -static-libgcc or -static or both to the linker flags when your LAMMPS executable complains about missing .dll files  :ul
 
-Since none of the current LAMMPS core developers
-has significant experience building executables on Windows, we are
-happy to distribute contributed instructions and modifications, but
-we cannot provide support for those.
+Since none of the current LAMMPS core developers has significant
+experience building executables on Windows, we are happy to distribute
+contributed instructions and modifications to improve the situation,
+but we cannot provide support for those.
 
 With the so-called "Anniversary Update" to Windows 10, there is a
 Ubuntu Linux subsystem available for Windows, that can be installed
 and then used to compile/install LAMMPS as if you are running on a
 Ubuntu Linux system instead of Windows.
 
-As an alternative, you can download "daily builds" (and some older
-versions) of the installer packages from
-"rpm.lammps.org/windows.html"_http://rpm.lammps.org/windows.html.
-These executables are built with most optional packages and the
-download includes documentation, potential files, some tools and
-many examples, but no source code.
+As an alternative, you can download pre-compiled installer packages from
+"packages.lammps.org/windows.html"_http://packages.lammps.org/windows.html.
+These executables are built with most optional packages included and the
+download includes documentation, potential files, some tools and many
+examples, but no source code.
 
 :line
 
@@ -1095,7 +1093,7 @@ LAMMPS to be built with one or more of its optional packages.
 :line
 
 On a Windows box, you can skip making LAMMPS and simply download an
-installer package from "here"_http://rpm.lammps.org/windows.html
+installer package from "here"_http://packages.lammps.org/windows.html
 
 For running the non-MPI executable, follow these steps:
 
@@ -1107,18 +1105,27 @@ the [in.lj] input from the bench folder. (e.g. by typing: cd "Documents"). :l
 
 At the command prompt, type "lmp_serial -in in.lj", replacing [in.lj]
 with the name of your LAMMPS input script. :l
+
+The serial executable includes support for multi-threading
+parallelization from the styles in the USER-OMP packages.
+
+To run with, e.g. 4 threads, type "lmp_serial -in in.lj -pk omp 4 -sf omp"
 :ule
 
-For the MPI version, which allows you to run LAMMPS under Windows on
-multiple processors, follow these steps:
+For the MPI version, which allows you to run LAMMPS under Windows with
+the more general message passing parallel library (LAMMPS has been
+designed from ground up to use MPI efficiently), follow these steps:
 
-Download and install
-"MPICH2"_http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
-for Windows. :ulb,l
+Download and install a compatible MPI library binary package:
+for 32-bit Windows
+"mpich2-1.4.1p1-win-ia32.msi"_download.lammps.org/thirdparty/mpich2-1.4.1p1-win-ia32.msi
+and for 64-bit Windows
+"mpich2-1.4.1p1-win-x86-64.msi"_download.lammps.org/thirdparty/mpich2-1.4.1p1-win-x86-64.msi
+:ulb,l
 
 The LAMMPS Windows installer packages will automatically adjust your
 path for the default location of this MPI package. After the installation
-of the MPICH software, it needs to be integrated into the system.
+of the MPICH2 software, it needs to be integrated into the system.
 For this you need to start a Command Prompt in {Administrator Mode}
 (right click on the icon and select it). Change into the MPICH2
 installation directory, then into the subdirectory [bin] and execute
@@ -1137,7 +1144,7 @@ or
 
 mpiexec -np 4 lmp_mpi -in in.lj :pre
 
-replacing in.lj with the name of your LAMMPS input script. For the latter
+replacing [in.lj] with the name of your LAMMPS input script. For the latter
 case, you may be prompted to enter your password. :l
 
 In this mode, output may not immediately show up on the screen, so if
@@ -1148,6 +1155,11 @@ The parallel executable can also run on a single processor by typing
 something like:
 
 lmp_mpi -in in.lj :pre
+
+And the parallel executable also includes OpenMP multi-threading, which
+can be combined with MPI using something like:
+
+mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp :pre
 
 :ule
 

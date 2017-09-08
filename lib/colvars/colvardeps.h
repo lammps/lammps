@@ -135,7 +135,8 @@ public:
   // with a non-static array
   // Intermediate classes (colvarbias and colvarcomp, which are also base classes)
   // implement this as virtual to allow overriding
-  virtual std::vector<feature *>&features() = 0;
+  virtual const std::vector<feature *>&features() = 0;
+  virtual std::vector<feature *>&modify_features() = 0;
 
   void add_child(colvardeps *child);
 

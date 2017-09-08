@@ -22,6 +22,10 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "nbin.h"
+#include "nstencil.h"
+#include "npair.h"
+#include "ntopo.h"
 #include "style_nbin.h"
 #include "style_nstencil.h"
 #include "style_npair.h"
@@ -804,7 +808,7 @@ int Neighbor::init_pair()
     }
 
     PairCreator pair_creator = pairclass[flag-1];
-    neigh_pair[i] = pair_creator(lmp);
+    lists[i]->np = neigh_pair[i] = pair_creator(lmp);
     neigh_pair[i]->post_constructor(requests[i]);
     neigh_pair[i]->istyle = flag;
 

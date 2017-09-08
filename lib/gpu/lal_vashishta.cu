@@ -136,6 +136,64 @@ texture<int4> param5_tex;
 
 #endif
 
+__kernel void k_vashishta_short_nbor(const __global numtyp4 *restrict x_,
+                                     const __global numtyp4 *restrict param4,
+                                     const __global int *restrict map,
+                                     const __global int *restrict elem2param,
+                                     const int nelements, const int nparams,
+                                     const __global int * dev_nbor,
+                                     const __global int * dev_packed,
+                                     __global int * dev_short_nbor,
+                                     const int inum, const int nbor_pitch,
+                                     const int t_per_atom) {
+  __local int n_stride;
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  if (ii<inum) {
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    int itype=ix.w;
+    itype=map[itype];
+
+    int ncount = 0;
+    int m = nbor;
+    dev_short_nbor[m] = 0;
+    int nbor_short = nbor+n_stride;
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int j=dev_packed[nbor];
+      int nj = j;
+      j &= NEIGHMASK;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      int jtype=jx.w;
+      jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<param4[ijparam].x) { //param4[ijparam].x = r0sq; //param4[ijparam].z=cutsq
+        dev_short_nbor[nbor_short] = nj;
+        nbor_short += n_stride;
+        ncount++;
+      }
+    } // for nbor
+
+    // store the number of neighbors for each thread
+    dev_short_nbor[m] = ncount;
+
+  } // if ii
+}
 
 __kernel void k_vashishta(const __global numtyp4 *restrict x_,
                    const __global numtyp4 *restrict param1,
@@ -166,8 +224,7 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
   __syncthreads();
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int nbor, nbor_end, i, numj;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -211,7 +268,7 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
         numtyp param3_dvrc=param3_ijparam.z;
         numtyp param3_c0  =param3_ijparam.w;
 
-        numtyp r=sqrt(rsq);
+        numtyp r=ucl_sqrt(rsq);
         numtyp rinvsq=1.0/rsq;
         numtyp r4inv = rinvsq*rinvsq;
         numtyp r6inv = rinvsq*r4inv;
@@ -219,8 +276,8 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
         numtyp reta = pow(r,-param1_eta);
         numtyp lam1r = r*param1_lam1inv;
         numtyp lam4r = r*param1_lam4inv;
-        numtyp vc2 = param1_zizj * exp(-lam1r)/r;
-        numtyp vc3 = param2_mbigd * r4inv*exp(-lam4r);
+        numtyp vc2 = param1_zizj * ucl_exp(-lam1r)/r;
+        numtyp vc3 = param2_mbigd * r4inv*ucl_exp(-lam4r);
 
         numtyp force = (param2_dvrc*r
             - (4.0*vc3 + lam4r*vc3+param2_big6w*r6inv
@@ -230,6 +287,7 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
+
         if (eflag>0)
           energy += (param3_bigh*reta+vc2-vc3-param3_bigw*r6inv-r*param3_dvrc+param3_c0);
           
@@ -255,31 +313,31 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
   numtyp r1 = ucl_sqrt(rsq1);                                                \
   numtyp rinvsq1 = ucl_recip(rsq1);                                          \
   numtyp rainv1 = ucl_recip(r1 - param_r0_ij);                               \
-  numtyp gsrainv1 = param_gamma_ij * rainv1;                                    \
+  numtyp gsrainv1 = param_gamma_ij * rainv1;                                 \
   numtyp gsrainvsq1 = gsrainv1*rainv1/r1;                                    \
   numtyp expgsrainv1 = ucl_exp(gsrainv1);                                    \
                                                                              \
   numtyp r2 = ucl_sqrt(rsq2);                                                \
   numtyp rinvsq2 = ucl_recip(rsq2);                                          \
   numtyp rainv2 = ucl_recip(r2 - param_r0_ik);                               \
-  numtyp gsrainv2 = param_gamma_ik * rainv2;                                    \
+  numtyp gsrainv2 = param_gamma_ik * rainv2;                                 \
   numtyp gsrainvsq2 = gsrainv2*rainv2/r2;                                    \
   numtyp expgsrainv2 = ucl_exp(gsrainv2);                                    \
                                                                              \
   numtyp rinv12 = ucl_recip(r1*r2);                                          \
   numtyp cs = (delr1x*delr2x + delr1y*delr2y + delr1z*delr2z) * rinv12;      \
-  numtyp delcs = cs - param_costheta_ijk;                                       \
+  numtyp delcs = cs - param_costheta_ijk;                                    \
   numtyp delcssq = delcs*delcs;                                              \
-  numtyp pcsinv = param_bigc_ijk*delcssq+1.0;                                   \
+  numtyp pcsinv = param_bigc_ijk*delcssq+1.0;                                \
   numtyp pcsinvsq = pcsinv*pcsinv;                                           \
   numtyp pcs = delcssq/pcsinv;                                               \
                                                                              \
   numtyp facexp = expgsrainv1*expgsrainv2;                                   \
                                                                              \
-  numtyp facrad = param_bigb_ijk * facexp*pcs;                                  \
+  numtyp facrad = param_bigb_ijk * facexp*pcs;                               \
   numtyp frad1 = facrad*gsrainvsq1;                                          \
   numtyp frad2 = facrad*gsrainvsq2;                                          \
-  numtyp facang = param_big2b_ijk * facexp*delcs/pcsinvsq;                      \
+  numtyp facang = param_big2b_ijk * facexp*delcs/pcsinvsq;                   \
   numtyp facang12 = rinv12*facang;                                           \
   numtyp csfacang = cs*facang;                                               \
   numtyp csfac1 = rinvsq1*csfacang;                                          \
@@ -311,28 +369,28 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
   numtyp r1 = ucl_sqrt(rsq1);                                                \
   numtyp rinvsq1 = ucl_recip(rsq1);                                          \
   numtyp rainv1 = ucl_recip(r1 - param_r0_ij);                               \
-  numtyp gsrainv1 = param_gamma_ij * rainv1;                                    \
+  numtyp gsrainv1 = param_gamma_ij * rainv1;                                 \
   numtyp gsrainvsq1 = gsrainv1*rainv1/r1;                                    \
   numtyp expgsrainv1 = ucl_exp(gsrainv1);                                    \
                                                                              \
   numtyp r2 = ucl_sqrt(rsq2);                                                \
   numtyp rainv2 = ucl_recip(r2 - param_r0_ik);                               \
-  numtyp gsrainv2 = param_gamma_ik * rainv2;                                    \
+  numtyp gsrainv2 = param_gamma_ik * rainv2;                                 \
   numtyp expgsrainv2 = ucl_exp(gsrainv2);                                    \
                                                                              \
   numtyp rinv12 = ucl_recip(r1*r2);                                          \
   numtyp cs = (delr1x*delr2x + delr1y*delr2y + delr1z*delr2z) * rinv12;      \
-  numtyp delcs = cs - param_costheta_ijk;                                       \
+  numtyp delcs = cs - param_costheta_ijk;                                    \
   numtyp delcssq = delcs*delcs;                                              \
-  numtyp pcsinv = param_bigc_ijk*delcssq+1.0;                                   \
+  numtyp pcsinv = param_bigc_ijk*delcssq+1.0;                                \
   numtyp pcsinvsq = pcsinv*pcsinv;                                           \
   numtyp pcs = delcssq/pcsinv;                                               \
                                                                              \
   numtyp facexp = expgsrainv1*expgsrainv2;                                   \
                                                                              \
-  numtyp facrad = param_bigb_ijk * facexp*pcs;                                  \
+  numtyp facrad = param_bigb_ijk * facexp*pcs;                               \
   numtyp frad1 = facrad*gsrainvsq1;                                          \
-  numtyp facang = param_big2b_ijk * facexp*delcs/pcsinvsq;                      \
+  numtyp facang = param_big2b_ijk * facexp*delcs/pcsinvsq;                   \
   numtyp facang12 = rinv12*facang;                                           \
   numtyp csfacang = cs*facang;                                               \
   numtyp csfac1 = rinvsq1*csfacang;                                          \
@@ -353,6 +411,7 @@ __kernel void k_vashishta_three_center(const __global numtyp4 *restrict x_,
                                 const int nelements,
                                 const __global int * dev_nbor,
                                 const __global int * dev_packed,
+                                const __global int * dev_short_nbor,
                                 __global acctyp4 *restrict ans,
                                 __global acctyp *restrict engv,
                                 const int eflag, const int vflag,
@@ -377,7 +436,7 @@ __kernel void k_vashishta_three_center(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end;
-
+    const int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -387,9 +446,18 @@ __kernel void k_vashishta_three_center(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+    int nborj_start = nbor_j;
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -406,17 +474,26 @@ __kernel void k_vashishta_three_center(const __global numtyp4 *restrict x_,
       
       numtyp4 param4_ijparam; fetch4(param4_ijparam,ijparam,param4_tex);
       param_r0sq_ij=param4_ijparam.x;
-      if (rsq1 > param_r0sq_ij) continue;
+      if (rsq1 > param_r0sq_ij) continue; // still keep this for neigh no and tpa > 1
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij=param4_ijparam.w;
       
-      int nbor_k=nbor_j-offset_j+offset_k;
-      if (nbor_k<=nbor_j)
-        nbor_k+=n_stride;
+      int nbor_k,k_end;
+      if (dev_packed==dev_nbor) {
+        nbor_k=nborj_start-offset_j+offset_k;
+        int numk = dev_short_nbor[nbor_k-n_stride];
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      } else {
+        nbor_k = nbor_j-offset_j+offset_k;
+        if (nbor_k<=nbor_j) nbor_k += n_stride;
+        k_end = nbor_end;
+      }
 
-      for ( ; nbor_k<nbor_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+      for ( ; nbor_k<k_end; nbor_k+=n_stride) {
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
+
+        if (dev_packed==dev_nbor && k <= j) continue;
 
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
@@ -478,6 +555,7 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
                              const __global int * dev_acc,
+                             const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
@@ -502,7 +580,7 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -512,8 +590,16 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -529,7 +615,7 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       numtyp4 param4_ijparam; fetch4(param4_ijparam,ijparam,param4_tex);
       param_r0sq_ij = param4_ijparam.x;
-      if (rsq1 > param_r0sq_ij) continue;
+      if (rsq1 > param_r0sq_ij) continue; // still keep this for neigh no and tpa > 1
 
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij = param4_ijparam.w;
@@ -551,8 +637,15 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
         nbor_k+=offset_k;
       }
 
+      // recalculate numk and k_end for the use of short neighbor list
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
+
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;
@@ -617,6 +710,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
                              const __global int * dev_acc,
+                             const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
@@ -641,7 +735,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -651,8 +745,16 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -668,7 +770,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       numtyp4 param4_ijparam; fetch4(param4_ijparam,ijparam,param4_tex);
       param_r0sq_ij=param4_ijparam.x;
-      if (rsq1 > param_r0sq_ij) continue;
+      if (rsq1 > param_r0sq_ij) continue;  // still keep this for neigh no and tpa > 1
 
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij=param4_ijparam.w;
@@ -690,8 +792,15 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
         nbor_k+=offset_k;
       }
 
+      // recalculate numk and k_end for the use of short neighbor list
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
+
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;

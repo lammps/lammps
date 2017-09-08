@@ -14,7 +14,7 @@ SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpiicpc
-LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+LINKFLAGS =	-qopenmp $(OPTFLAGS)
 LIB =           -ltbbmalloc
 SIZE =		size
 

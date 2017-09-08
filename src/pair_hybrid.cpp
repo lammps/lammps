@@ -39,9 +39,6 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
   outerflag = 0;
   respaflag = 0;
-
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -381,6 +378,9 @@ void PairHybrid::coeff(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
+
+  if (lmp->kokkos)
+    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);

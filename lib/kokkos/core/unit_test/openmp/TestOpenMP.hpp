@@ -86,25 +86,26 @@ class openmp : public ::testing::Test {
 protected:
   static void SetUpTestCase()
   {
-    const unsigned numa_count       = Kokkos::hwloc::get_available_numa_count();
-    const unsigned cores_per_numa   = Kokkos::hwloc::get_available_cores_per_numa();
-    const unsigned threads_per_core = Kokkos::hwloc::get_available_threads_per_core();
+    int threads_count = 0;
+    #pragma omp parallel
+    {
+      #pragma omp atomic
+      ++threads_count;
+    }
 
-    const unsigned threads_count = std::max( 1u, numa_count ) *
-                                   std::max( 2u, ( cores_per_numa * threads_per_core ) / 2 );
+    if (threads_count > 3) {
+      threads_count /= 2;
+    }
 
     Kokkos::OpenMP::initialize( threads_count );
     Kokkos::print_configuration( std::cout, true );
+
     srand( 10231 );
   }
 
   static void TearDownTestCase()
   {
     Kokkos::OpenMP::finalize();
-
-    omp_set_num_threads( 1 );
-
-    ASSERT_EQ( 1, omp_get_max_threads() );
   }
 };
 

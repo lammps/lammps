@@ -47,12 +47,18 @@
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_OPENMP )
 
+#if !defined(_OPENMP)
+#error "You enabled Kokkos OpenMP support without enabling OpenMP in the compiler!"
+#endif
+
 #include <Kokkos_OpenMP.hpp>
 
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
 
 #include <Kokkos_Atomic.hpp>
+
+#include <Kokkos_UniqueToken.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -63,8 +69,14 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-namespace Kokkos {
-namespace Impl {
+namespace Kokkos { namespace Impl {
+
+class OpenMPExec;
+
+extern int g_openmp_hardware_max_threads;
+
+extern __thread int t_openmp_hardware_id;
+extern __thread OpenMPExec * t_openmp_instance;
 
 //----------------------------------------------------------------------------
 /** \brief  Data for OpenMP thread execution */
@@ -74,278 +86,278 @@ public:
 
   friend class Kokkos::OpenMP ;
 
-  enum { MAX_THREAD_COUNT = 4096 };
+  enum { MAX_THREAD_COUNT = 512 };
+
+  void clear_thread_data();
+
+  static void validate_partition( const int nthreads
+                                , int & num_partitions
+                                , int & partition_size
+                                );
 
 private:
+  OpenMPExec( int arg_pool_size )
+    : m_pool_size{ arg_pool_size }
+    , m_level{ omp_get_level() }
+    , m_pool()
+  {}
 
-  static int          m_pool_topo[ 4 ];
-  static int          m_map_rank[ MAX_THREAD_COUNT ];
+  ~OpenMPExec()
+  {
+    clear_thread_data();
+  }
 
-  static HostThreadTeamData * m_pool[ MAX_THREAD_COUNT ];
+  int m_pool_size;
+  int m_level;
 
-  static
-  void clear_thread_data();
+  HostThreadTeamData * m_pool[ MAX_THREAD_COUNT ];
 
 public:
 
-  // Topology of a cache coherent thread pool:
-  //   TOTAL = NUMA x GRAIN
-  //   pool_size( depth = 0 )
-  //   pool_size(0) = total number of threads
-  //   pool_size(1) = number of threads per NUMA
-  //   pool_size(2) = number of threads sharing finest grain memory hierarchy
+  static void verify_is_master( const char * const );
 
-  inline static
-  int pool_size( int depth = 0 ) { return m_pool_topo[ depth ]; }
-
-  static void finalize();
-
-  static void initialize( const unsigned team_count ,
-                          const unsigned threads_per_team ,
-                          const unsigned numa_count ,
-                          const unsigned cores_per_numa );
-
-  static void verify_is_process( const char * const );
-  static void verify_initialized( const char * const );
-
-
-  static
   void resize_thread_data( size_t pool_reduce_bytes
                          , size_t team_reduce_bytes
                          , size_t team_shared_bytes
                          , size_t thread_local_bytes );
 
-  inline static
-  HostThreadTeamData * get_thread_data() noexcept
-    { return m_pool[ m_map_rank[ omp_get_thread_num() ] ]; }
+  inline
+  HostThreadTeamData * get_thread_data() const noexcept
+  { return m_pool[ m_level == omp_get_level() ? 0 : omp_get_thread_num() ]; }
 
-  inline static
-  HostThreadTeamData * get_thread_data( int i ) noexcept
-    { return m_pool[i]; }
+  inline
+  HostThreadTeamData * get_thread_data( int i ) const noexcept
+  { return m_pool[i]; }
 };
 
-} // namespace Impl
-} // namespace Kokkos
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-
-template< class ... Properties >
-class TeamPolicyInternal< Kokkos::OpenMP, Properties ... >: public PolicyTraits<Properties ...>
-{
-public:
-
-  //! Tag this class as a kokkos execution policy
-  typedef TeamPolicyInternal      execution_policy ;
-
-  typedef PolicyTraits<Properties ... > traits;
-
-  TeamPolicyInternal& operator = (const TeamPolicyInternal& p) {
-    m_league_size = p.m_league_size;
-    m_team_size = p.m_team_size;
-    m_team_alloc = p.m_team_alloc;
-    m_team_iter = p.m_team_iter;
-    m_team_scratch_size[0] = p.m_team_scratch_size[0];
-    m_thread_scratch_size[0] = p.m_thread_scratch_size[0];
-    m_team_scratch_size[1] = p.m_team_scratch_size[1];
-    m_thread_scratch_size[1] = p.m_thread_scratch_size[1];
-    m_chunk_size = p.m_chunk_size;
-    return *this;
-  }
-
-  //----------------------------------------
-
-  template< class FunctorType >
-  inline static
-  int team_size_max( const FunctorType & ) {
-      int pool_size = traits::execution_space::thread_pool_size(1);
-      int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
-      return pool_size<max_host_team_size?pool_size:max_host_team_size;
-    }
-
-  template< class FunctorType >
-  inline static
-  int team_size_recommended( const FunctorType & )
-    { return traits::execution_space::thread_pool_size(2); }
-
-  template< class FunctorType >
-  inline static
-  int team_size_recommended( const FunctorType &, const int& )
-    { return traits::execution_space::thread_pool_size(2); }
-
-  //----------------------------------------
-
-private:
-
-  int m_league_size ;
-  int m_team_size ;
-  int m_team_alloc ;
-  int m_team_iter ;
-
-  size_t m_team_scratch_size[2];
-  size_t m_thread_scratch_size[2];
-
-  int m_chunk_size;
-
-  inline void init( const int league_size_request
-                  , const int team_size_request )
-    {
-      const int pool_size  = traits::execution_space::thread_pool_size(0);
-      const int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
-      const int team_max   = pool_size<max_host_team_size?pool_size:max_host_team_size;
-      const int team_grain = traits::execution_space::thread_pool_size(2);
-
-      m_league_size = league_size_request ;
-
-      m_team_size = team_size_request < team_max ?
-                    team_size_request : team_max ;
-
-      // Round team size up to a multiple of 'team_gain'
-      const int team_size_grain = team_grain * ( ( m_team_size + team_grain - 1 ) / team_grain );
-      const int team_count      = pool_size / team_size_grain ;
-
-      // Constraint : pool_size = m_team_alloc * team_count
-      m_team_alloc = pool_size / team_count ;
-
-      // Maxumum number of iterations each team will take:
-      m_team_iter  = ( m_league_size + team_count - 1 ) / team_count ;
-
-      set_auto_chunk_size();
-    }
-
-public:
-
-  inline int team_size()   const { return m_team_size ; }
-  inline int league_size() const { return m_league_size ; }
-
-  inline size_t scratch_size(const int& level, int team_size_ = -1) const {
-    if(team_size_ < 0) team_size_ = m_team_size;
-    return m_team_scratch_size[level] + team_size_*m_thread_scratch_size[level] ;
-  }
-
-  /** \brief  Specify league size, request team size */
-  TeamPolicyInternal( typename traits::execution_space &
-            , int league_size_request
-            , int team_size_request
-            , int /* vector_length_request */ = 1 )
-            : m_team_scratch_size { 0 , 0 }
-            , m_thread_scratch_size { 0 , 0 }
-            , m_chunk_size(0)
-    { init( league_size_request , team_size_request ); }
-
-  TeamPolicyInternal( typename traits::execution_space &
-            , int league_size_request
-            , const Kokkos::AUTO_t & /* team_size_request */
-            , int /* vector_length_request */ = 1)
-            : m_team_scratch_size { 0 , 0 }
-            , m_thread_scratch_size { 0 , 0 }
-            , m_chunk_size(0)
-    { init( league_size_request , traits::execution_space::thread_pool_size(2) ); }
-
-  TeamPolicyInternal( int league_size_request
-            , int team_size_request
-            , int /* vector_length_request */ = 1 )
-            : m_team_scratch_size { 0 , 0 }
-            , m_thread_scratch_size { 0 , 0 }
-            , m_chunk_size(0)
-    { init( league_size_request , team_size_request ); }
-
-  TeamPolicyInternal( int league_size_request
-            , const Kokkos::AUTO_t & /* team_size_request */
-            , int /* vector_length_request */ = 1 )
-            : m_team_scratch_size { 0 , 0 }
-            , m_thread_scratch_size { 0 , 0 }
-            , m_chunk_size(0)
-    { init( league_size_request , traits::execution_space::thread_pool_size(2) ); }
-
-  inline int team_alloc() const { return m_team_alloc ; }
-  inline int team_iter()  const { return m_team_iter ; }
-
-  inline int chunk_size() const { return m_chunk_size ; }
-
-  /** \brief set chunk_size to a discrete value*/
-  inline TeamPolicyInternal set_chunk_size(typename traits::index_type chunk_size_) const {
-    TeamPolicyInternal p = *this;
-    p.m_chunk_size = chunk_size_;
-    return p;
-  }
-
-  inline TeamPolicyInternal set_scratch_size(const int& level, const PerTeamValue& per_team) const {
-    TeamPolicyInternal p = *this;
-    p.m_team_scratch_size[level] = per_team.value;
-    return p;
-  };
-
-  inline TeamPolicyInternal set_scratch_size(const int& level, const PerThreadValue& per_thread) const {
-    TeamPolicyInternal p = *this;
-    p.m_thread_scratch_size[level] = per_thread.value;
-    return p;
-  };
-
-  inline TeamPolicyInternal set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) const {
-    TeamPolicyInternal p = *this;
-    p.m_team_scratch_size[level] = per_team.value;
-    p.m_thread_scratch_size[level] = per_thread.value;
-    return p;
-  };
-
-private:
-  /** \brief finalize chunk_size if it was set to AUTO*/
-  inline void set_auto_chunk_size() {
-
-    int concurrency = traits::execution_space::thread_pool_size(0)/m_team_alloc;
-    if( concurrency==0 ) concurrency=1;
-
-    if(m_chunk_size > 0) {
-      if(!Impl::is_integral_power_of_two( m_chunk_size ))
-        Kokkos::abort("TeamPolicy blocking granularity must be power of two" );
-    }
-
-    int new_chunk_size = 1;
-    while(new_chunk_size*100*concurrency < m_league_size)
-      new_chunk_size *= 2;
-    if(new_chunk_size < 128) {
-      new_chunk_size = 1;
-      while( (new_chunk_size*40*concurrency < m_league_size ) && (new_chunk_size<128) )
-        new_chunk_size*=2;
-    }
-    m_chunk_size = new_chunk_size;
-  }
-
-public:
-  typedef Impl::HostThreadTeamMember< Kokkos::OpenMP > member_type ;
-};
-} // namespace Impl
-
-} // namespace Kokkos
+}} // namespace Kokkos::Impl
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 
-inline
-bool OpenMP::in_parallel()
-{ return omp_in_parallel(); }
+inline OpenMP::OpenMP() noexcept
+{}
 
 inline
-int OpenMP::thread_pool_size( int depth )
+bool OpenMP::is_initialized() noexcept
+{ return Impl::t_openmp_instance != nullptr; }
+
+inline
+bool OpenMP::in_parallel( OpenMP const& ) noexcept
 {
-  return Impl::OpenMPExec::pool_size(depth);
+  //t_openmp_instance is only non-null on a master thread
+  return   !Impl::t_openmp_instance
+         || Impl::t_openmp_instance->m_level < omp_get_level()
+         ;
+}
+
+inline
+int OpenMP::thread_pool_size() noexcept
+{
+  return   OpenMP::in_parallel()
+         ? omp_get_num_threads()
+         : Impl::t_openmp_instance->m_pool_size
+         ;
 }
 
 KOKKOS_INLINE_FUNCTION
-int OpenMP::thread_pool_rank()
+int OpenMP::thread_pool_rank() noexcept
 {
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-  return Impl::OpenMPExec::m_map_rank[ omp_get_thread_num() ];
+  return Impl::t_openmp_instance ? 0 : omp_get_thread_num();
 #else
   return -1 ;
 #endif
 }
+
+inline
+void OpenMP::fence( OpenMP const& instance ) noexcept {}
+
+inline
+bool OpenMP::is_asynchronous( OpenMP const& instance ) noexcept
+{ return false; }
+
+template <typename F>
+void OpenMP::partition_master( F const& f
+                             , int num_partitions
+                             , int partition_size
+                             )
+{
+  if (omp_get_nested()) {
+    using Exec = Impl::OpenMPExec;
+
+    Exec * prev_instance = Impl::t_openmp_instance;
+
+    Exec::validate_partition( prev_instance->m_pool_size, num_partitions, partition_size );
+
+    OpenMP::memory_space space;
+
+    #pragma omp parallel num_threads(num_partitions)
+    {
+      void * const ptr = space.allocate( sizeof(Exec) );
+
+      Impl::t_openmp_instance = new (ptr) Exec( partition_size );
+
+      size_t pool_reduce_bytes  =   32 * partition_size ;
+      size_t team_reduce_bytes  =   32 * partition_size ;
+      size_t team_shared_bytes  = 1024 * partition_size ;
+      size_t thread_local_bytes = 1024 ;
+
+      Impl::t_openmp_instance->resize_thread_data( pool_reduce_bytes
+                                                 , team_reduce_bytes
+                                                 , team_shared_bytes
+                                                 , thread_local_bytes
+                                                 );
+
+      f( omp_get_thread_num(), omp_get_num_threads() );
+
+      Impl::t_openmp_instance->~Exec();
+      space.deallocate( Impl::t_openmp_instance, sizeof(Exec) );
+      Impl::t_openmp_instance = nullptr;
+    }
+
+    Impl::t_openmp_instance  = prev_instance;
+  }
+  else {
+    // nested openmp not enabled
+    f(0,1);
+  }
+}
+
+
+namespace Experimental {
+
+template<>
+class MasterLock<OpenMP>
+{
+public:
+  void lock()     { omp_set_lock( &m_lock );   }
+  void unlock()   { omp_unset_lock( &m_lock ); }
+  bool try_lock() { return static_cast<bool>(omp_test_lock( &m_lock )); }
+
+  MasterLock()  { omp_init_lock( &m_lock ); }
+  ~MasterLock() { omp_destroy_lock( &m_lock ); }
+
+  MasterLock( MasterLock const& ) = delete;
+  MasterLock( MasterLock && )     = delete;
+  MasterLock & operator=( MasterLock const& ) = delete;
+  MasterLock & operator=( MasterLock && )     = delete;
+
+private:
+  omp_lock_t m_lock;
+
+};
+
+template<>
+class UniqueToken< OpenMP, UniqueTokenScope::Instance>
+{
+public:
+  using execution_space = OpenMP;
+  using size_type       = int;
+
+  /// \brief create object size for concurrency on the given instance
+  ///
+  /// This object should not be shared between instances
+  UniqueToken( execution_space const& = execution_space() ) noexcept {}
+
+  /// \brief upper bound for acquired values, i.e. 0 <= value < size()
+  KOKKOS_INLINE_FUNCTION
+  int size() const noexcept
+    {
+      #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+      return Kokkos::OpenMP::thread_pool_size();
+      #else
+      return 0 ;
+      #endif
+    }
+
+  /// \brief acquire value such that 0 <= value < size()
+  KOKKOS_INLINE_FUNCTION
+  int acquire() const  noexcept
+    {
+      #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+      return Kokkos::OpenMP::thread_pool_rank();
+      #else
+      return 0 ;
+      #endif
+    }
+
+  /// \brief release a value acquired by generate
+  KOKKOS_INLINE_FUNCTION
+  void release( int ) const noexcept {}
+};
+
+template<>
+class UniqueToken< OpenMP, UniqueTokenScope::Global>
+{
+public:
+  using execution_space = OpenMP;
+  using size_type       = int;
+
+  /// \brief create object size for concurrency on the given instance
+  ///
+  /// This object should not be shared between instances
+  UniqueToken( execution_space const& = execution_space() ) noexcept {}
+
+  /// \brief upper bound for acquired values, i.e. 0 <= value < size()
+  KOKKOS_INLINE_FUNCTION
+  int size() const noexcept
+    {
+      #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+      return Kokkos::Impl::g_openmp_hardware_max_threads ;
+      #else
+      return 0 ;
+      #endif
+    }
+
+  /// \brief acquire value such that 0 <= value < size()
+  KOKKOS_INLINE_FUNCTION
+  int acquire() const noexcept
+    {
+      #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+      return Kokkos::Impl::t_openmp_hardware_id ;
+      #else
+      return 0 ;
+      #endif
+    }
+
+  /// \brief release a value acquired by generate
+  KOKKOS_INLINE_FUNCTION
+  void release( int ) const noexcept {}
+};
+
+} // namespace Experimental
+
+
+#if !defined( KOKKOS_DISABLE_DEPRECATED )
+
+inline
+int OpenMP::thread_pool_size( int depth )
+{
+  return depth < 2
+         ? thread_pool_size()
+         : 1;
+}
+
+KOKKOS_INLINE_FUNCTION
+int OpenMP::hardware_thread_id() noexcept
+{
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+  return Impl::t_openmp_hardware_id;
+#else
+  return -1 ;
+#endif
+}
+
+inline
+int OpenMP::max_hardware_threads() noexcept
+{
+  return Impl::g_openmp_hardware_max_threads;
+}
+
+#endif // KOKKOS_DISABLE_DEPRECATED
 
 } // namespace Kokkos
 

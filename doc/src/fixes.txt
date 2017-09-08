@@ -33,6 +33,7 @@ Fixes :h1
    fix_drude
    fix_drude_transform
    fix_dpd_energy
+   fix_dpd_source
    fix_dt_reset
    fix_efield
    fix_ehex
@@ -71,6 +72,7 @@ Fixes :h1
    fix_move
    fix_mscg
    fix_msst
+   fix_mvv_dpd
    fix_neb
    fix_nh
    fix_nh_eff

@@ -80,24 +80,19 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   const int num_threads = args.num_threads;
   const int use_numa = args.num_numa;
 #endif // defined( KOKKOS_ENABLE_OPENMP ) || defined( KOKKOS_ENABLE_THREADS )
-#if defined( KOKKOS_ENABLE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA ) || defined( KOKKOS_ENABLE_ROCM )
   const int use_gpu = args.device_id;
 #endif // defined( KOKKOS_ENABLE_CUDA )
 
 #if defined( KOKKOS_ENABLE_OPENMP )
   if( std::is_same< Kokkos::OpenMP , Kokkos::DefaultExecutionSpace >::value ||
       std::is_same< Kokkos::OpenMP , Kokkos::HostSpace::execution_space >::value ) {
-    if(num_threads>0) {
-      if(use_numa>0) {
-        Kokkos::OpenMP::initialize(num_threads,use_numa);
-      }
-      else {
-        Kokkos::OpenMP::initialize(num_threads);
-      }
-    } else {
-      Kokkos::OpenMP::initialize();
+    if(use_numa>0) {
+      Kokkos::OpenMP::initialize(num_threads,use_numa);
     }
-    //std::cout << "Kokkos::initialize() fyi: OpenMP enabled and initialized" << std::endl ;
+    else {
+      Kokkos::OpenMP::initialize(num_threads);
+    }
   }
   else {
     //std::cout << "Kokkos::initialize() fyi: OpenMP enabled but not initialized" << std::endl ;
@@ -167,6 +162,18 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   }
 #endif
 
+#if defined( KOKKOS_ENABLE_ROCM )
+  if( std::is_same< Kokkos::Experimental::ROCm , Kokkos::DefaultExecutionSpace >::value || 0 < use_gpu ) {
+    if (use_gpu > -1) {
+      Kokkos::Experimental::ROCm::initialize( Kokkos::Experimental::ROCm::SelectDevice( use_gpu ) );
+    }
+    else {
+      Kokkos::Experimental::ROCm::initialize();
+    }
+    std::cout << "Kokkos::initialize() fyi: ROCm enabled and initialized" << std::endl ;
+  }
+#endif
+
 #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
 #endif
@@ -183,6 +190,13 @@ void finalize_internal( const bool all_spaces = false )
   if( std::is_same< Kokkos::Cuda , Kokkos::DefaultExecutionSpace >::value || all_spaces ) {
     if(Kokkos::Cuda::is_initialized())
       Kokkos::Cuda::finalize();
+  }
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+  if( std::is_same< Kokkos::Experimental::ROCm , Kokkos::DefaultExecutionSpace >::value || all_spaces ) {
+    if(Kokkos::Experimental::ROCm::is_initialized())
+      Kokkos::Experimental::ROCm::finalize();
   }
 #endif
 
@@ -227,6 +241,12 @@ void fence_internal()
 #if defined( KOKKOS_ENABLE_CUDA )
   if( std::is_same< Kokkos::Cuda , Kokkos::DefaultExecutionSpace >::value ) {
     Kokkos::Cuda::fence();
+  }
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+  if( std::is_same< Kokkos::Experimental::ROCm , Kokkos::DefaultExecutionSpace >::value ) {
+    Kokkos::Experimental::ROCm::fence();
   }
 #endif
 
@@ -437,10 +457,7 @@ void initialize(int& narg, char* arg[])
       iarg++;
     }
 
-    InitArguments arguments;
-    arguments.num_threads = num_threads;
-    arguments.num_numa = numa;
-    arguments.device_id = device;
+    InitArguments arguments{num_threads, numa, device};
     Impl::initialize_internal(arguments);
 }
 

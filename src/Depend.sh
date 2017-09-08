@@ -115,6 +115,10 @@ if (test $1 = "USER-CGSDK") then
   depend USER-OMP
 fi
 
+if (test $1 = "USER-DPD") then
+  depend KOKKOS
+fi
+
 if (test $1 = "USER-FEP") then
   depend USER-OMP
 fi

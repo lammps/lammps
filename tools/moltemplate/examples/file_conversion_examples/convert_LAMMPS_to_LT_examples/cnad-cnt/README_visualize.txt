@@ -4,7 +4,7 @@
 
 1) Build a PSF file for use in viewing with VMD.
 
-This step works with VMD 1.9 and topotools 1.2.  
+This step works with VMD 1.9 and topotools 1.2.
 (Older versions, like VMD 1.8.6, don't support this.)
 
 
@@ -40,7 +40,7 @@ d) Enter:
     pbc wrap -compound res -all
     pbc box
 
-3) Optional: If you like, change the atom types in the PSF file so 
+3) Optional: If you like, change the atom types in the PSF file so
    that VMD recognizes the atom types, use something like:
 
 sed -e 's/   1    1      /   C    C      /g' < system.psf > temp1.psf

@@ -80,6 +80,11 @@
 // Compiling NVIDIA device code, must use Cuda atomics:
 
 #define KOKKOS_ENABLE_CUDA_ATOMICS
+
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU)
+
+#define KOKKOS_ENABLE_ROCM_ATOMICS
+
 #endif
 
 #if ! defined( KOKKOS_ENABLE_GNU_ATOMICS ) && \
@@ -114,40 +119,9 @@
 #endif /* Not pre-selected atomic implementation */
 #endif
 
-//----------------------------------------------------------------------------
-
-// Forward decalaration of functions supporting arbitrary sized atomics
-// This is necessary since Kokkos_Atomic.hpp is internally included very early
-// through Kokkos_HostSpace.hpp as well as the allocation tracker.
 #ifdef KOKKOS_ENABLE_CUDA
-namespace Kokkos {
-namespace Impl {
-/// \brief Aquire a lock for the address
-///
-/// This function tries to aquire the lock for the hash value derived
-/// from the provided ptr. If the lock is successfully aquired the
-/// function returns true. Otherwise it returns false.
-#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
-extern
+#include <Cuda/Kokkos_Cuda_Locks.hpp>
 #endif
-__device__ inline
-bool lock_address_cuda_space(void* ptr);
-
-/// \brief Release lock for the address
-///
-/// This function releases the lock for the hash value derived
-/// from the provided ptr. This function should only be called
-/// after previously successfully aquiring a lock with
-/// lock_address.
-#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
-extern
-#endif
-__device__ inline
-void unlock_address_cuda_space(void* ptr);
-}
-}
-#endif
-
 
 namespace Kokkos {
 template <typename T>
@@ -184,6 +158,19 @@ const char * atomic_query_version()
 }
 
 } // namespace Kokkos
+
+#if defined( KOKKOS_ENABLE_ROCM )
+#include <ROCm/Kokkos_ROCm_Atomic.hpp>
+namespace Kokkos {
+namespace Impl {
+extern KOKKOS_INLINE_FUNCTION
+bool lock_address_rocm_space(void* ptr);
+
+extern KOKKOS_INLINE_FUNCTION
+void unlock_address_rocm_space(void* ptr);
+}
+}
+#endif
 
 #ifdef _WIN32
 #include "impl/Kokkos_Atomic_Windows.hpp"

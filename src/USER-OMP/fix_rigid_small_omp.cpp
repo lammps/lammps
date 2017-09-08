@@ -112,7 +112,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmallOMP::final_integrate()
+void FixRigidSmallOMP::compute_forces_and_torques()
 {
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
@@ -201,6 +201,15 @@ void FixRigidSmallOMP::final_integrate()
       tcm[2] += langextra[ibody][5];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmallOMP::final_integrate()
+{
+  int ibody;
+
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom, recompute omega
 
@@ -609,4 +618,3 @@ void FixRigidSmallOMP::set_v_thr()
     }
   }
 }
-

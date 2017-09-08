@@ -33,6 +33,9 @@ class FixRigidOMP : public FixRigid {
   virtual void initial_integrate(int);
   virtual void final_integrate();
 
+ protected:
+  virtual void compute_forces_and_torques();
+
  private:
   template <int, int> void set_xv_thr();
   template <int, int> void set_v_thr();

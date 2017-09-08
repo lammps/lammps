@@ -120,7 +120,7 @@ endif()
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM)
+if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM OR ENABLE_LATTE)
   enable_language(Fortran)
 endif()
 
@@ -223,7 +223,7 @@ endif()
 
 if(ENABLE_LATTE)
   find_package(LATTE REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 if(ENABLE_USER-MOLFILE)

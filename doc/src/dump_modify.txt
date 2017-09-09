@@ -254,7 +254,9 @@ keyword will create two dump files, whose names are created by prepending
 "a_" and "b_" to the 'file' argument of the dump being modified. It will
 toggle between these two dump files, switching files whenever the current
 timestep is a multiple of N. If a file with the next filename already
-exists, it will be overwritten.
+exists, it will be overwritten. The {dashcam} keyword currently supports
+the {atom}, {custom}, {local}, and {xyz} dump styles, as well as the
+compressed and binary variants of these.
 
 :line
 

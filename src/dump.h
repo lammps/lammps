@@ -215,4 +215,8 @@ E: Cannot use dump_modify nfile without % in dump file name
 
 Self-explanatory.
 
+E: Cannot use dump_modify dashcam with this dump style
+
+Self-explanatory.
+
 */

@@ -95,7 +95,7 @@ set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS
    USER-ATC USER-AWPMD USER-CGDNA
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
-  USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD 
+  USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
   USER-SMTBQ USER-SPH USER-TALLY USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -323,7 +323,7 @@ endforeach(FUNC)
 list(APPEND LAMMPS_LINK_LIBS ${MATH_LIBRARIES})
 
 ######################################
-# Generate Basic Style files 
+# Generate Basic Style files
 ######################################
 include(StyleHeaderUtils)
 RegisterStyles(${LAMMPS_SOURCE_DIR})
@@ -379,7 +379,7 @@ if(ENABLE_USER-H5MD)
   target_link_libraries(h5md ${HDF5_LIBRARIES})
   target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
 endif()
-    
+
 if(ENABLE_MEAM AND FC_HAS_NO_SECOND_UNDERSCORE)
   foreach(FSRC ${meam_SOURCES})
     string(REGEX REPLACE "^.*\\." "" FEXT "${FSRC}")
@@ -491,72 +491,116 @@ if(ENABLE_USER-INTEL)
 endif()
 
 if(ENABLE_GPU)
-    find_package(CUDA REQUIRED)
-    find_program(BIN2C bin2c)
-    if(NOT BIN2C)
-      message(FATAL_ERROR "Couldn't find bin2c, use -DBIN2C helping cmake to find it.")
-    endif()
-    set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "Lammps gpu precision size")
-    set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
-    option(CUDPP_OPT "Enable CUDPP_OPT" ON)
-
-    set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture")
-    set_property(CACHE GPU_ARCH PROPERTY STRINGS sm_10 sm_20 sm_30 sm_60)
-    
-    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
-    file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_SOURCE_DIR}/gpu/*.cu)
-    list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
-
-    cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
-
-    if(CUDPP_OPT)
-      cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-      file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cpp)
-      file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
-    endif()
-
-    cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
-                 -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
-
-    cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
-                 -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
-
-    file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    foreach(CU_OBJ ${GPU_GEN_OBJS})
-      get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
-      string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
-      add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-        COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-        DEPENDS ${CU_OBJ} 
-        COMMENT "Generating ${CU_NAME}_cubin.h")
-      list(APPEND GPU_LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
-    endforeach()
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
-
-
-    add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
-    target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
-    target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
-    if(CUDPP_OPT)
-      target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-      target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
-    endif()
-
-    list(APPEND LAMMPS_LINK_LIBS gpu)
-
-    add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
-    target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
-    target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-    target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
-
-
-    # GPU package
-    target_link_libraries(gpu ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h
                     ${GPU_SOURCES_DIR}/fix_gpu.cpp)
+
+    set(GPU_API "OpenCL" CACHE STRING "API used by GPU package")
+    set_property(CACHE GPU_API PROPERTY STRINGS OpenCL CUDA)
+
+    set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "LAMMPS GPU precision size")
+    set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
+
+    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
+    file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
+
+    if(GPU_API STREQUAL "CUDA")
+      find_package(CUDA REQUIRED)
+      find_program(BIN2C bin2c)
+      if(NOT BIN2C)
+        message(FATAL_ERROR "Couldn't find bin2c, use -DBIN2C helping cmake to find it.")
+      endif()
+      option(CUDPP_OPT "Enable CUDPP_OPT" ON)
+
+      set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture")
+      set_property(CACHE GPU_ARCH PROPERTY STRINGS sm_10 sm_20 sm_30 sm_60)
+
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_SOURCE_DIR}/gpu/*.cu)
+      list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
+
+      cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
+
+      if(CUDPP_OPT)
+        cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
+        file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cpp)
+        file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
+      endif()
+
+      cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
+                   -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
+
+      cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
+                   -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
+
+      foreach(CU_OBJ ${GPU_GEN_OBJS})
+        get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
+        string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
+        add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+          COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+          DEPENDS ${CU_OBJ}
+          COMMENT "Generating ${CU_NAME}_cubin.h")
+        list(APPEND GPU_LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
+      endforeach()
+      set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
+
+
+      add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
+      target_link_libraries(gpu ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+      target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
+      if(CUDPP_OPT)
+        target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
+        target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
+      endif()
+
+      list(APPEND LAMMPS_LINK_LIBS gpu)
+
+      add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
+      target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
+      target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+      target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
+
+
+    elseif(GPU_API STREQUAL "OpenCL")
+      find_package(OpenCL REQUIRED)
+      if(OpenCL_FOUND)
+        set(OCL_TUNE "GENERIC" CACHE STRING "OpenCL Device Tuning")
+        set_property(CACHE OCL_TUNE PROPERTY STRINGS INTEL FERMI KEPLER CYPRESS GENERIC)
+
+        include(OpenCLUtils)
+        set(OCL_COMMON_HEADERS ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_preprocessor.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_aux_fun1.h)
+
+        file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
+        list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
+
+        foreach(GPU_KERNEL ${GPU_LIB_CU})
+            get_filename_component(basename ${GPU_KERNEL} NAME_WE)
+            string(SUBSTRING ${basename} 4 -1 KERNEL_NAME)
+            GenerateOpenCLHeader(${KERNEL_NAME} ${CMAKE_CURRENT_BINARY_DIR}/gpu/${KERNEL_NAME}_cl.h ${OCL_COMMON_HEADERS} ${GPU_KERNEL})
+            list(APPEND GPU_LIB_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/gpu/${KERNEL_NAME}_cl.h)
+        endforeach()
+
+        GenerateOpenCLHeader(gayberne ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu)
+        GenerateOpenCLHeader(gayberne_lj ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_lj_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
+        list(APPEND GPU_LIB_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_lj_cl.h)
+
+        add_library(gpu STATIC ${GPU_LIB_SOURCES})
+        target_link_libraries(gpu ${OpenCL_LIBRARIES})
+        target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu ${OpenCL_INCLUDE_DIRS})
+        target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
+        target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
+
+        list(APPEND LAMMPS_LINK_LIBS gpu)
+
+        add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
+        target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)
+        target_link_libraries(ocl_get_devices PRIVATE ${OpenCL_LIBRARIES})
+        target_include_directories(ocl_get_devices PRIVATE ${OpenCL_INCLUDE_DIRS})
+      endif()
+    endif()
+
+    # GPU package
     FindStyleHeaders(${GPU_SOURCES_DIR} FIX_CLASS fix_ FIX)
 
     set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
@@ -572,7 +616,7 @@ endif()
 
 ######################################################
 # Generate style headers based on global list of
-# styles registered during package selection           
+# styles registered during package selection
 ######################################################
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 

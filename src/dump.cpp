@@ -956,6 +956,11 @@ void Dump::modify_params(int narg, char **arg)
       *ptr = '%';
       iarg += 2;
     } else if (strcmp(arg[iarg],"dashcam") == 0) {
+      if (!(strcmp(style,"atom") == 0 || strcmp(style,"custom") == 0 || 
+             strcmp(style,"xyz") == 0 || strcmp(style,"local") == 0 ||
+             strcmp(style,"xyz\gz") == 0 || strcmp(style,"atom\gz") == 0 ||
+             strcmp(style,"custom\gz") == 0))
+        error->all(FLERR,"Cannot use dump_modify dashcam with this dump style");
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       dashcam_nevery = force->inumeric(FLERR,arg[iarg+1]);
       if (dashcam_nevery <= 0) error->all(FLERR,"Illegal dump_modify command");

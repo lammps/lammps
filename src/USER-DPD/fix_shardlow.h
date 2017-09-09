@@ -35,20 +35,13 @@ class FixShardlow : public Fix {
   virtual void init_list(int, class NeighList *);
   virtual void setup(int);
   virtual void initial_integrate(int);
-  void setup_pre_exchange();
-  void pre_exchange();
-  void min_pre_exchange();
-
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-
-  int pack_border(int, int *, double *);
-  int unpack_border(int, int, double *);
-  int unpack_exchange(int, double *);
-  void unpack_restart(int, int);
 
   double memory_usage();
+
+#ifdef DEBUG_SSA_PAIR_CT
+  int counters[2][3];
+  int hist[32];
+#endif
 
  protected:
   int pack_reverse_comm(int, int, double *);
@@ -63,7 +56,6 @@ class FixShardlow : public Fix {
  private:
   double dtsqrt; // = sqrt(update->dt);
 
-  int coord2ssaAIR(double *);  // map atom coord to an AIR number
   void ssa_update_dpd(int, int *, int);  // Constant Temperature
   void ssa_update_dpde(int, int *, int); // Constant Energy
 

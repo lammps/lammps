@@ -374,10 +374,9 @@ needed if new bonds (angles, dihedrals, impropers) will be added to
 the system when a simulation runs, e.g. by using the "fix
 bond/create"_fix_bond_create.html command. Using this header flag
 is deprecated; please use the {extra/bond/per/atom} keyword (and
-correspondingly for angles, dihedrals and impropers) in the
-read_data command instead. Either will pre-allocate space in LAMMPS
- data structures for storing the new bonds (angles,
-dihedrals, impropers).
+correspondingly for angles, dihedrals and impropers) in the read_data
+command instead. Either will pre-allocate space in LAMMPS data
+structures for storing the new bonds (angles, dihedrals, impropers).
 
 The "extra special per atom" setting is typically only needed if new
 bonds/angles/etc will be added to the system, e.g. by using the "fix
@@ -547,6 +546,9 @@ bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 dipole: atom-ID atom-type q x y z mux muy muz
 dpd: atom-ID atom-type theta x y z
+edpd: atom-ID atom-type edpd_temp edpd_cv x y z 
+mdpd: atom-ID atom-type x y z
+tdpd: atom-ID atom-type x y z cc1 cc2 ... ccNspecies
 electron: atom-ID atom-type q spin eradius x y z
 ellipsoid: atom-ID atom-type ellipsoidflag density x y z
 full: atom-ID molecule-ID atom-type q x y z
@@ -566,12 +568,15 @@ The per-atom values have these meanings and units, listed alphabetically:
 atom-ID = integer ID of atom
 atom-type = type of atom (1-Ntype)
 bodyflag = 1 for body particles, 0 for point particles
+cc = chemical concentration for tDPD particles for each species (mole/volume units)
 contact-radius = ??? (distance units)
 cs_re,cs_im = real/imaginary parts of wavepacket coefficients
 cv = heat capacity (need units) for SPH particles
 density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
 diameter = diameter of spherical atom (distance units)
 e = energy (need units) for SPH particles
+edpd_temp = temperature for eDPD particles (temperature units)
+edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 eradius = electron radius (or fixed-core radius)
 etag = integer ID of electron that each wavepacket belongs to

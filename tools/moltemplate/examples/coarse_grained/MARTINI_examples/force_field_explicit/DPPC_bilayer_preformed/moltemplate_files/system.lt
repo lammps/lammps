@@ -1,0 +1,27 @@
+import "water.lt"
+import "lipid.lt"
+
+write_once("Data Boundary") {
+  0.0   100.0  xlo xhi
+  0.0   100.0  ylo yhi
+ -50.0   50.0  zlo zhi
+}
+
+lipids = new DPPC [13].move(7.6923,  0,  0)
+                  [13].move(0, 7.6923,  0)
+                   [2].rot(180, 1, 0, 0)
+
+waters = new MW [25].move(4.0, 0, 0)
+                [25].move(0, 4.0, 0)
+                [13].move(0, 0, 4.23)
+
+# Move the waters upwards so that they don't overlap with the lipids.
+
+waters[*][*][*].move(0, 0, 22.4)
+
+write_once("In Settings") {
+pair_coeff @atom:MW/P4 @atom:DPPC/Q0 lj/gromacs/coul/gromacs 1.3384321223709 4.7
+pair_coeff @atom:MW/P4 @atom:DPPC/Qa lj/gromacs/coul/gromacs 1.3384321223709 4.7
+pair_coeff @atom:MW/P4 @atom:DPPC/Na lj/gromacs/coul/gromacs 0.9560229445507 4.7
+pair_coeff @atom:MW/P4 @atom:DPPC/C1 lj/gromacs/coul/gromacs 0.4780114722753 4.7
+}

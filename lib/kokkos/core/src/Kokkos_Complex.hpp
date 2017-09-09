@@ -107,6 +107,11 @@ public:
     re_ (val), im_ (0.0)
   {}
 
+  // BUG HCC WORKAROUND
+  KOKKOS_INLINE_FUNCTION complex( const RealType& re, const RealType& im):
+    re_ (re), im_ (im)
+  {}
+ 
   //! Constructor that takes the real and imaginary parts.
   template<class RealType1, class RealType2>
   KOKKOS_INLINE_FUNCTION complex (const RealType1& re, const RealType2& im) :
@@ -227,6 +232,16 @@ public:
     return re_;
   }
 
+  //! Set the imaginary part of this complex number.
+  KOKKOS_INLINE_FUNCTION void imag (RealType v) {
+    im_ = v;
+  }
+
+  //! Set the real part of this complex number.
+  KOKKOS_INLINE_FUNCTION void real (RealType v) {
+    re_ = v;
+  }
+
   KOKKOS_INLINE_FUNCTION
   complex<RealType>& operator += (const complex<RealType>& src) {
     re_ += src.re_;
@@ -299,7 +314,7 @@ public:
     // Scale (by the "1-norm" of y) to avoid unwarranted overflow.
     // If the real part is +/-Inf and the imaginary part is -/+Inf,
     // this won't change the result.
-    const RealType s = ::fabs (y.real ()) + ::fabs (y.imag ());
+    const RealType s = std::fabs (y.real ()) + std::fabs (y.imag ());
 
     // If s is 0, then y is zero, so x/y == real(x)/0 + i*imag(x)/0.
     // In that case, the relation x/y == (x/s) / (y/s) doesn't hold,
@@ -537,7 +552,7 @@ operator / (const complex<RealType>& x, const complex<RealType>& y) {
   // Scale (by the "1-norm" of y) to avoid unwarranted overflow.
   // If the real part is +/-Inf and the imaginary part is -/+Inf,
   // this won't change the result.
-  const RealType s = ::fabs (real (y)) + ::fabs (imag (y));
+  const RealType s = std::fabs (real (y)) + std::fabs (imag (y));
 
   // If s is 0, then y is zero, so x/y == real(x)/0 + i*imag(x)/0.
   // In that case, the relation x/y == (x/s) / (y/s) doesn't hold,

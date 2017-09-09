@@ -536,7 +536,7 @@ You should get the executable lmp_foo when the build is complete.
 
 :line
 
-Errors that can occur when making LAMMPS: h5 :link(start_2_3)
+Errors that can occur when making LAMMPS :h5 :link(start_2_3)
 
 If an error occurs when building LAMMPS, the compiler or linker will
 state very explicitly what the problem is.  The error message should

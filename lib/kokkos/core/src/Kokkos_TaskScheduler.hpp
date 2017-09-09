@@ -681,6 +681,67 @@ public:
       return f ;
     }
 
+  template < class F >
+  KOKKOS_FUNCTION
+  Future< execution_space >
+  when_all( int narg , F const func )
+    {
+      using input_type  = decltype( func(0) );
+      using future_type = Future< execution_space > ;
+      using task_base   = Kokkos::Impl::TaskBase< void , void , void > ;
+
+      static_assert( is_future< input_type >::value
+                   , "Functor must return a Kokkos::Future" );
+
+      future_type f ;
+
+      if ( 0 == narg ) return f ;
+
+      size_t const alloc_size = m_queue->when_all_allocation_size( narg );
+
+      f.m_task =
+        reinterpret_cast< task_base * >( m_queue->allocate( alloc_size ) );
+
+      if ( f.m_task ) {
+
+        // Reference count starts at two:
+        // +1 to match decrement when task completes
+        // +1 for the future
+
+        new( f.m_task ) task_base();
+
+        f.m_task->m_queue      = m_queue ;
+        f.m_task->m_ref_count  = 2 ;
+        f.m_task->m_alloc_size = alloc_size ;
+        f.m_task->m_dep_count  = narg ;
+        f.m_task->m_task_type  = task_base::Aggregate ;
+
+        // Assign dependences, reference counts were already incremented
+
+        task_base * volatile * const dep =
+          f.m_task->aggregate_dependences();
+
+        for ( int i = 0 ; i < narg ; ++i ) {
+          const input_type arg_f = func(i);
+          if ( 0 != arg_f.m_task ) {
+
+            if ( m_queue != static_cast< queue_type * >( arg_f.m_task->m_queue ) ) {
+              Kokkos::abort("Kokkos when_all Futures must be in the same scheduler" );
+            }
+            // Increment reference count to track subsequent assignment.
+            Kokkos::atomic_increment( &(arg_f.m_task->m_ref_count) );
+            dep[i] = arg_f.m_task ;
+          }
+        }
+
+        Kokkos::memory_fence();
+
+        m_queue->schedule_aggregate( f.m_task );
+        // this when_all may be processed at any moment
+      }
+      return f ;
+    }
+
   //----------------------------------------
 
   KOKKOS_INLINE_FUNCTION

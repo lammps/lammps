@@ -80,7 +80,7 @@ void FixNHKokkos<DeviceType>::init()
   FixNH::init();
 
   atomKK->k_mass.modify<LMPHostType>();
-  atomKK->k_mass.sync<LMPDeviceType>();
+  atomKK->k_mass.sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

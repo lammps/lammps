@@ -62,6 +62,8 @@ int bit_first_zero( unsigned i ) noexcept
 
 #if defined( __CUDA_ARCH__ )
   return full != i ? __ffs( ~i ) - 1 : -1 ;
+#elif defined( __HCC_ACCELERATOR__ )
+  return full != i ? (int)hc::__firstbit_u32_u32(~i) : -1 ;
 #elif defined( KOKKOS_COMPILER_INTEL )
   return full != i ? _bit_scan_forward( ~i ) : -1 ;
 #elif defined( KOKKOS_COMPILER_IBM )
@@ -82,6 +84,8 @@ int bit_scan_forward( unsigned i )
 {
 #if defined( __CUDA_ARCH__ )
   return __ffs(i) - 1;
+#elif defined( __HCC_ACCELERATOR__ )
+  return  (int)hc::__firstbit_u32_u32(i);
 #elif defined( KOKKOS_COMPILER_INTEL )
   return _bit_scan_forward(i);
 #elif defined( KOKKOS_COMPILER_IBM )
@@ -106,6 +110,8 @@ int bit_scan_reverse( unsigned i )
   enum { shift = static_cast<int>( sizeof(unsigned) * CHAR_BIT - 1 ) };
 #if defined( __CUDA_ARCH__ )
   return shift - __clz(i);
+#elif defined( __HCC_ACCELERATOR__ )
+  return  (int)hc::__firstbit_u32_u32(i);
 #elif defined( KOKKOS_COMPILER_INTEL )
   return _bit_scan_reverse(i);
 #elif defined( KOKKOS_COMPILER_IBM )
@@ -130,6 +136,8 @@ int bit_count( unsigned i )
 {
 #if defined( __CUDA_ARCH__ )
   return __popc(i);
+#elif defined( __HCC_ACCELERATOR__ )
+  return  (int)hc::__popcount_u32_b32(i);
 #elif defined ( __INTEL_COMPILER )
   return _popcnt32(i);
 #elif defined( KOKKOS_COMPILER_IBM )

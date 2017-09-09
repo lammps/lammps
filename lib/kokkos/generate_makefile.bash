@@ -31,6 +31,9 @@ do
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Cuda"
       CUDA_PATH="${key#*=}"
       ;;
+    --with-rocm)
+      KOKKOS_DEVICES="${KOKKOS_DEVICES},ROCm"
+      ;;
     --with-openmp)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},OpenMP"
       ;;
@@ -55,6 +58,9 @@ do
       ;;
     --with-hwloc*)
       HWLOC_PATH="${key#*=}"
+      ;;
+    --with-memkind*)
+      MEMKIND_PATH="${key#*=}"
       ;;
     --arch*)
       KOKKOS_ARCH="${key#*=}"
@@ -117,6 +123,7 @@ do
       echo "                 ARMv81         = ARMv8.1 Compatible CPU"
       echo "                 ARMv8-ThunderX = ARMv8 Cavium ThunderX CPU"
       echo "               [IBM]"
+      echo "                 Power7         = IBM POWER7 and POWER7+ CPUs"
       echo "                 Power8         = IBM POWER8 CPUs"
       echo "                 Power9         = IBM POWER9 CPUs"
       echo "               [Intel]"
@@ -151,7 +158,8 @@ do
       echo "                                -lpthread, etc.)."
       echo "--with-gtest=/Path/To/Gtest:  Set path to gtest.  (Used in unit and performance"
       echo "                                tests.)"
-      echo "--with-hwloc=/Path/To/Hwloc:  Set path to hwloc."
+      echo "--with-hwloc=/Path/To/Hwloc:  Set path to hwloc library."
+      echo "--with-memkind=/Path/To/MemKind:  Set path to memkind library."
       echo "--with-options=[OPT]:         Additional options to Kokkos:"
       echo "                                compiler_warnings"
       echo "                                aggressive_vectorization = add ivdep on loops"
@@ -228,7 +236,17 @@ else
 fi
 
 if [ ${#HWLOC_PATH} -gt 0 ]; then
-  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HWLOC_PATH=${HWLOC_PATH} KOKKOS_USE_TPLS=hwloc"
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HWLOC_PATH=${HWLOC_PATH}"
+  KOKKOS_USE_TPLS="${KOKKOS_USE_TPLS},hwloc"
+fi
+
+if [ ${#MEMKIND_PATH} -gt 0 ]; then
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} MEMKIND_PATH=${MEMKIND_PATH}" 
+  KOKKOS_USE_TPLS="${KOKKOS_USE_TPLS},experimental_memkind"
+fi
+
+if [ ${#KOKKOS_USE_TPLS} -gt 0 ]; then
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_USE_TPLS=${KOKKOS_USE_TPLS}"
 fi
 
 if [ ${#QTHREADS_PATH} -gt 0 ]; then

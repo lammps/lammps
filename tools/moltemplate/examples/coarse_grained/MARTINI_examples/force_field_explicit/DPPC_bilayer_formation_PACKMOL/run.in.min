@@ -1,0 +1,32 @@
+# PREREQUISITES:
+#
+#      You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+
+# ------------------------------- Initialization Section --------------------
+
+include         "system.in.init"
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data       "system.data"
+
+# ------------------------------- Settings Section --------------------------
+
+include         "system.in.settings"
+
+# ------------------------------- Settings Section --------------------------
+
+include         system.in.settings
+
+# ------------------------------- Run Section -------------------------------
+
+# -- simulation protocol --
+
+thermo          5
+dump  1 all custom 100 traj_equib0_min.lammpstrj id mol type x y z ix iy iz
+min_style sd
+min_modify dmax 0.01
+minimize 1.0e-4 1.0e-6 100000 400000
+
+write_data   system_after_min.data

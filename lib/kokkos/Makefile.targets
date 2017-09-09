@@ -42,6 +42,17 @@ Kokkos_Cuda_Locks.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_C
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Locks.cpp
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
+Kokkos_ROCm_Exec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Exec.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Exec.cpp
+Kokkos_ROCm_Space.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Space.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Space.cpp
+Kokkos_ROCm_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Task.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Task.cpp
+Kokkos_ROCm_Impl.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Impl.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/ROCm/Kokkos_ROCm_Impl.cpp
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
 Kokkos_ThreadsExec_base.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec_base.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec_base.cpp

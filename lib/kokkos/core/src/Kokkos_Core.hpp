@@ -74,6 +74,10 @@
 #include <Kokkos_Cuda.hpp>
 #endif
 
+#if defined( KOKKOS_ENABLE_ROCM )
+#include <Kokkos_ROCm.hpp>
+#endif
+
 #include <Kokkos_Pair.hpp>
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>

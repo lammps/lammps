@@ -9,8 +9,8 @@ import sys,os,subprocess
 # help message
 
 help = """
-Syntax from src dir: make lib-gpu args="-m machine -h hdir -a arch -p precision -e esuffix -m -o osuffix"
-Syntax from lib dir: python Install.py -m machine -h hdir -a arch -p precision -e esuffix -m -o osuffix
+Syntax from src dir: make lib-gpu args="-m machine -h hdir -a arch -p precision -e esuffix -b -o osuffix"
+Syntax from lib dir: python Install.py -m machine -h hdir -a arch -p precision -e esuffix -b -o osuffix
 
 specify one or more options, order does not matter
 

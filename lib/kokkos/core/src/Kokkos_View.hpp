@@ -2429,6 +2429,7 @@ template < class ValueType >
 struct CommonViewAllocProp< void, ValueType >
 {
   using value_type = ValueType;
+  using scalar_array_type = ValueType;
 
   template < class ... Views >
   CommonViewAllocProp( const Views & ... ) {}

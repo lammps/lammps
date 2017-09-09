@@ -1,7 +1,7 @@
 # --- Running LAMMPS ---
 #  -- Prerequisites: --
-# The "run.in.nvt" LAMMPS input script links to the input 
-# scripts and data files you hopefully have created earlier 
+# The "run.in.nvt" LAMMPS input script links to the input
+# scripts and data files you hopefully have created earlier
 # with moltemplate.sh:
 #   system.in.init, system.in.settings, system.data
 # If not, carry out the instructions in "README_run_moltemplate.sh".

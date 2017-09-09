@@ -1015,8 +1015,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
   constexpr ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutRight , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutLeft and LayoutRight are only compatible when rank == 1" );
+      static_assert(
+        ( DimRHS::rank == 0 &&
+          dimension_type::rank == 0 ) ||
+        ( DimRHS::rank == 1 &&
+          dimension_type::rank == 1 &&
+          dimension_type::rank_dynamic == 1 )
+        , "ViewOffset LayoutLeft and LayoutRight are only compatible when rank <= 1" );
     }
 
   template< class DimRHS >
@@ -1024,8 +1029,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
   ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutStride , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutLeft and LayoutStride are only compatible when rank == 1" );
+      static_assert( 
+        ( DimRHS::rank == 0 &&
+          dimension_type::rank == 0 ) ||
+        ( DimRHS::rank == 1 &&
+          dimension_type::rank == 1 &&
+          dimension_type::rank_dynamic == 1 )
+        , "ViewOffset LayoutLeft and LayoutStride are only compatible when rank <= 1" );
       if ( rhs.m_stride.S0 != 1 ) {
         Kokkos::abort("Kokkos::Impl::ViewOffset assignment of LayoutLeft from LayoutStride  requires stride == 1" );
       }
@@ -1493,8 +1503,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutRight
   constexpr ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutLeft , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutRight and LayoutLeft are only compatible when rank == 1" );
+      static_assert(
+       ( DimRHS::rank == 0 &&
+         dimension_type::rank == 0 ) ||
+       ( DimRHS::rank == 1 &&
+         dimension_type::rank == 1 &&
+         dimension_type::rank_dynamic == 1 )
+      , "ViewOffset LayoutRight and LayoutLeft are only compatible when rank <= 1" );
     }
 
   template< class DimRHS >
@@ -1502,8 +1517,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutRight
   ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutStride , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutLeft/Right and LayoutStride are only compatible when rank == 1" );
+      static_assert(
+       ( DimRHS::rank == 0 &&
+         dimension_type::rank == 0 ) ||
+       ( DimRHS::rank == 1 &&
+         dimension_type::rank == 1 &&
+         dimension_type::rank_dynamic == 1 )
+      , "ViewOffset LayoutRight and LayoutString are only compatible when rank <= 1" );
       if ( rhs.m_stride.S0 != 1 ) {
         Kokkos::abort("Kokkos::Impl::ViewOffset assignment of LayoutLeft/Right from LayoutStride  requires stride == 1" );
       }

@@ -98,18 +98,18 @@ public:
   typedef View<size_type* , array_layout, device_type> row_map_type;
   typedef View<DataType*  , array_layout, device_type> entries_type;
 
-  entries_type entries;
   row_map_type row_map;
+  entries_type entries;
 
   //! Construct an empty view.
-  Crs () : entries(), row_map() {}
+  Crs() : row_map(), entries() {}
 
   //! Copy constructor (shallow copy).
-  Crs (const Crs& rhs) : entries (rhs.entries), row_map (rhs.row_map)
+  Crs(const Crs& rhs) : row_map(rhs.row_map), entries(rhs.entries)
   {}
 
   template<class EntriesType, class RowMapType>
-  Crs (const EntriesType& entries_,const RowMapType& row_map_) : entries (entries_), row_map (row_map_)
+  Crs(const RowMapType& row_map_, const EntriesType& entries_) : row_map(row_map_), entries(entries_)
   {}
 
   /** \brief  Assign to a view of the rhs array.
@@ -117,8 +117,8 @@ public:
    *          then allocated memory is deallocated.
    */
   Crs& operator= (const Crs& rhs) {
-    entries = rhs.entries;
     row_map = rhs.row_map;
+    entries = rhs.entries;
     return *this;
   }
 
@@ -151,7 +151,7 @@ void get_crs_transpose_counts(
 
 template< class OutCounts,
           class InCrs>
-void get_crs_row_map_from_counts(
+typename OutCounts::value_type get_crs_row_map_from_counts(
     OutCounts& out,
     InCrs const& in,
     std::string const& name = "row_map");
@@ -204,18 +204,20 @@ class CrsRowMapFromCounts {
   using execution_space = typename InCounts::execution_space;
   using value_type = typename OutRowMap::value_type;
   using index_type = typename InCounts::size_type;
+  using last_value_type = Kokkos::View<value_type, execution_space>;
  private:
-  InCounts in;
-  OutRowMap out;
+  InCounts m_in;
+  OutRowMap m_out;
+  last_value_type m_last_value;
  public:
   KOKKOS_INLINE_FUNCTION
   void operator()(index_type i, value_type& update, bool final_pass) const {
-    update += in(i);
-    if (final_pass) {
-      out(i + 1) = update;
-      if (i == 0) {
-        out(0) = 0;
-      }
+    if (i < m_in.size()) {
+      update += m_in(i);
+      if (final_pass) m_out(i + 1) = update;
+    } else if (final_pass) {
+      m_out(0) = 0;
+      m_last_value() = update;
     }
   }
   KOKKOS_INLINE_FUNCTION
@@ -226,12 +228,16 @@ class CrsRowMapFromCounts {
   }
   using self_type = CrsRowMapFromCounts<InCounts, OutRowMap>;
   CrsRowMapFromCounts(InCounts const& arg_in, OutRowMap const& arg_out):
-    in(arg_in),out(arg_out) {
+    m_in(arg_in), m_out(arg_out), m_last_value("last_value") {
+  }
+  value_type execute() {
     using policy_type = RangePolicy<index_type, execution_space>;
     using closure_type = Kokkos::Impl::ParallelScan<self_type, policy_type>;
-    closure_type closure(*this, policy_type(0, in.size()));
+    closure_type closure(*this, policy_type(0, m_in.size() + 1));
     closure.execute();
-    execution_space::fence();
+    auto last_value = Kokkos::create_mirror_view(m_last_value);
+    Kokkos::deep_copy(last_value, m_last_value);
+    return last_value();
   }
 };
 
@@ -297,13 +303,14 @@ void get_crs_transpose_counts(
 
 template< class OutRowMap,
           class InCounts>
-void get_crs_row_map_from_counts(
+typename OutRowMap::value_type get_crs_row_map_from_counts(
     OutRowMap& out,
     InCounts const& in,
     std::string const& name) {
   out = OutRowMap(ViewAllocateWithoutInitializing(name), in.size() + 1);
   Kokkos::Impl::Experimental::
     CrsRowMapFromCounts<InCounts, OutRowMap> functor(in, out);
+  return functor.execute();
 }
 
 template< class DataType,
@@ -326,6 +333,65 @@ void transpose_crs(
   out.entries = decltype(out.entries)("transpose_entries", in.entries.size());
   Kokkos::Impl::Experimental::
     FillCrsTransposeEntries<crs_type, crs_type> entries_functor(in, out);
+}
+
+template< class CrsType,
+          class Functor>
+struct CountAndFill {
+  using data_type = typename CrsType::size_type;
+  using size_type = typename CrsType::size_type;
+  using row_map_type = typename CrsType::row_map_type;
+  using entries_type = typename CrsType::entries_type;
+  using counts_type = row_map_type;
+  CrsType m_crs;
+  Functor m_functor;
+  counts_type m_counts;
+  struct Count {};
+  KOKKOS_INLINE_FUNCTION void operator()(Count, size_type i) const {
+    m_counts(i) = m_functor(i, nullptr);
+  }
+  struct Fill {};
+  KOKKOS_INLINE_FUNCTION void operator()(Fill, size_type i) const {
+    auto j = m_crs.row_map(i);
+    data_type* fill = &(m_crs.entries(j));
+    m_functor(i, fill);
+  }
+  using self_type = CountAndFill<CrsType, Functor>;
+  CountAndFill(CrsType& crs, size_type nrows, Functor const& f):
+    m_crs(crs),
+    m_functor(f)
+  {
+    using execution_space = typename CrsType::execution_space;
+    m_counts = counts_type("counts", nrows);
+    {
+    using count_policy_type = RangePolicy<size_type, execution_space, Count>;
+    using count_closure_type =
+      Kokkos::Impl::ParallelFor<self_type, count_policy_type>;
+    const count_closure_type closure(*this, count_policy_type(0, nrows));
+    closure.execute();
+    }
+    auto nentries = Kokkos::Experimental::
+      get_crs_row_map_from_counts(m_crs.row_map, m_counts);
+    m_counts = counts_type();
+    m_crs.entries = entries_type("entries", nentries);
+    {
+    using fill_policy_type = RangePolicy<size_type, execution_space, Fill>;
+    using fill_closure_type =
+      Kokkos::Impl::ParallelFor<self_type, fill_policy_type>;
+    const fill_closure_type closure(*this, fill_policy_type(0, nrows));
+    closure.execute();
+    }
+    crs = m_crs;
+  }
+};
+
+template< class CrsType,
+          class Functor>
+void count_and_fill_crs(
+    CrsType& crs,
+    typename CrsType::size_type nrows,
+    Functor const& f) {
+  Kokkos::Experimental::CountAndFill<CrsType, Functor>(crs, nrows, f);
 }
 
 }} // namespace Kokkos::Experimental

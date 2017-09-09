@@ -112,7 +112,7 @@ Package, Description, Doc page, Example, Library
 "REPLICA"_#REPLICA, multi-replica methods, "Section 6.6.5"_Section_howto.html#howto_5, tad, -
 "RIGID"_#RIGID, rigid bodies and constraints, "fix rigid"_fix_rigid.html, rigid, -
 "SHOCK"_#SHOCK, shock loading methods, "fix msst"_fix_msst.html, -, -
-"SNAP"_#SNAP, quantum-fitted potential, "pair snap"_pair_snap.html, snap, -
+"SNAP"_#SNAP, quantum-fitted potential, "pair_style snap"_pair_snap.html, snap, -
 "SRD"_#SRD, stochastic rotation dynamics, "fix srd"_fix_srd.html, srd, -
 "VORONOI"_#VORONOI, Voronoi tesselation, "compute voronoi/atom"_compute_voronoi_atom.html, -, ext :tb(ea=c,ca1=l)
 
@@ -134,6 +134,7 @@ Package, Description, Doc page, Example, Library
 "USER-LB"_#USER-LB, Lattice Boltzmann fluid,"fix lb/fluid"_fix_lb_fluid.html, USER/lb, -
 "USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, -
 "USER-MEAMC"_#USER-MEAMC, modified EAM potential (C++), "pair_style meam/c"_pair_meam.html, meam, -
+"USER-MESO"_#USER-MESO, mesoscale DPD models, "pair_style edpd"_pair_meso.html, USER/meso, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
@@ -1342,7 +1343,7 @@ make machine :pre
 [Supporting info:]
 
 src/SNAP: filenames -> commands
-"pair snap"_pair_snap.html
+"pair_style snap"_pair_snap.html
 "compute sna/atom"_compute_sna_atom.html
 "compute snad/atom"_compute_sna_atom.html
 "compute snav/atom"_compute_sna_atom.html
@@ -1556,7 +1557,7 @@ make machine :pre
 
 src/USER-AWPMD: filenames -> commands
 src/USER-AWPMD/README
-"pair awpmd/cut"_pair_awpmd.html
+"pair_style awpmd/cut"_pair_awpmd.html
 examples/USER/awpmd :ul
 
 :line
@@ -1745,12 +1746,12 @@ src/USER-DPD: filenames -> commands
 "fix eos/table/rx"_fix_eos_table_rx.html
 "fix shardlow"_fix_shardlow.html
 "fix rx"_fix_rx.html
-"pair table/rx"_pair_table_rx.html
-"pair dpd/fdt"_pair_dpd_fdt.html
-"pair dpd/fdt/energy"_pair_dpd_fdt.html
-"pair exp6/rx"_pair_exp6_rx.html
-"pair multi/lucy"_pair_multi_lucy.html
-"pair multi/lucy/rx"_pair_multi_lucy_rx.html
+"pair_style table/rx"_pair_table_rx.html
+"pair_style dpd/fdt"_pair_dpd_fdt.html
+"pair_style dpd/fdt/energy"_pair_dpd_fdt.html
+"pair_style exp6/rx"_pair_exp6_rx.html
+"pair_style multi/lucy"_pair_multi_lucy.html
+"pair_style multi/lucy/rx"_pair_multi_lucy_rx.html
 examples/USER/dpd :ul
 
 :line
@@ -1785,8 +1786,8 @@ src/USER-DRUDE/README
 "fix drude"_fix_drude.html
 "fix drude/transform/*"_fix_drude_transform.html
 "compute temp/drude"_compute_temp_drude.html
-"pair thole"_pair_thole.html
-"pair lj/cut/thole/long"_pair_thole.html
+"pair_style thole"_pair_thole.html
+"pair_style lj/cut/thole/long"_pair_thole.html
 examples/USER/drude
 tools/drude :ul
 
@@ -1824,8 +1825,8 @@ src/USER-EFF/README
 "fix npt/eff"_fix_nh_eff.html
 "fix langevin/eff"_fix_langevin_eff.html
 "compute temp/eff"_compute_temp_eff.html
-"pair eff/cut"_pair_eff.html
-"pair eff/inline"_pair_eff.html
+"pair_style eff/cut"_pair_eff.html
+"pair_style eff/inline"_pair_eff.html
 examples/USER/eff
 tools/eff/README
 tools/eff
@@ -2155,8 +2156,44 @@ make machine :pre
 
 src/USER-MEAMC: filenames -> commands
 src/USER-MEAMC/README
-"pair meam/c"_pair_meam.html
+"pair_style meam/c"_pair_meam.html
 examples/meam :ul
+
+:line
+
+USER-MESO package :link(USER-MESO),h4
+
+[Contents:]
+
+Several extensions of the the dissipative particle dynamics (DPD)
+method.  Specifically, energy-conserving DPD (eDPD) that can model
+non-isothermal processes, many-body DPD (mDPD) for simulating
+vapor-liquid coexistence, and transport DPD (tDPD) for modeling
+advection-diffuion-reaction systems. The equations of motion of these
+DPD extensions are integrated through a modified velocity-Verlet (MVV)
+algorithm.
+
+[Author:] Zhen Li (Division of Applied Mathematics, Brown University)
+
+[Install or un-install:]
+  
+make yes-user-meso
+make machine :pre
+ 
+make no-user-meso
+make machine :pre
+ 
+[Supporting info:]
+
+src/USER-MESO: filenames -> commands
+src/USER-MESO/README
+"atom_style edpd"_atom_style.html
+"pair_style edpd"_pair_meso.html
+"pair_style mdpd"_pair_meso.html
+"pair_style tdpd"_pair_meso.html
+"fix mvv/dpd"_fix_mvv.html
+examples/USER/meso
+http://lammps.sandia.gov/movies.html#mesodpd :ul
 
 :line
 

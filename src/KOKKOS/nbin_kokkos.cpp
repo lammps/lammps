@@ -95,7 +95,6 @@ void NBinKokkos<DeviceType>::bin_atoms()
     MemsetZeroFunctor<DeviceType> f_zero;
     f_zero.ptr = (void*) k_bincount.view<DeviceType>().ptr_on_device();
     Kokkos::parallel_for(mbins, f_zero);
-    DeviceType::fence();
 
     atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
     x = atomKK->k_x.view<DeviceType>();
@@ -106,7 +105,6 @@ void NBinKokkos<DeviceType>::bin_atoms()
     NPairKokkosBinAtomsFunctor<DeviceType> f(*this);
 
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
-    DeviceType::fence();
 
     deep_copy(h_resize, d_resize);
     if(h_resize()) {

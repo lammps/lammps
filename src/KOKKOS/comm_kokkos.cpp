@@ -488,6 +488,7 @@ void CommKokkos::exchange_device()
 
     if (true) {
       if (k_sendflag.h_view.dimension_0()<nlocal) k_sendflag.resize(nlocal);
+      k_sendflag.sync<DeviceType>();
       k_count.h_view(0) = k_exchange_sendlist.h_view.dimension_0();
       while (k_count.h_view(0)>=k_exchange_sendlist.h_view.dimension_0()) {
         k_count.h_view(0) = 0;
@@ -498,7 +499,6 @@ void CommKokkos::exchange_device()
           f(atomKK->k_x,k_exchange_sendlist,k_count,k_sendflag,
             nlocal,dim,lo,hi);
         Kokkos::parallel_for(nlocal,f);
-        DeviceType::fence();
         k_exchange_sendlist.modify<DeviceType>();
         k_sendflag.modify<DeviceType>();
         k_count.modify<DeviceType>();
@@ -534,7 +534,6 @@ void CommKokkos::exchange_device()
                                    k_exchange_sendlist,k_exchange_copylist,
                                    ExecutionSpaceFromDevice<DeviceType>::
                                    space,dim,lo,hi);
-      DeviceType::fence();
 
     } else {
       while (i < nlocal) {
@@ -559,7 +558,6 @@ void CommKokkos::exchange_device()
         atom->nlocal=avec->
           unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
                                  ExecutionSpaceFromDevice<DeviceType>::space);
-        DeviceType::fence();
       }
     } else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
@@ -592,7 +590,6 @@ void CommKokkos::exchange_device()
         atom->nlocal = avec->
           unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
                                  ExecutionSpaceFromDevice<DeviceType>::space);
-        DeviceType::fence();
       }
     }
 
@@ -764,7 +761,6 @@ void CommKokkos::borders_device() {
                 total_send,nfirst,nlast,dim,lo,hi,iswap,maxsendlist[iswap]);
             Kokkos::TeamPolicy<DeviceType> config((nlast-nfirst+127)/128,128);
             Kokkos::parallel_for(config,f);
-            DeviceType::fence();
 
             total_send.template modify<DeviceType>();
             total_send.template sync<LMPHostType>();
@@ -781,7 +777,6 @@ void CommKokkos::borders_device() {
                   total_send,nfirst,nlast,dim,lo,hi,iswap,maxsendlist[iswap]);
               Kokkos::TeamPolicy<DeviceType> config((nlast-nfirst+127)/128,128);
               Kokkos::parallel_for(config,f);
-              DeviceType::fence();
               total_send.template modify<DeviceType>();
               total_send.template sync<LMPHostType>();
             }
@@ -910,7 +905,6 @@ void CommKokkos::borders_device() {
 
   if (exec_space == Host) k_sendlist.sync<LMPDeviceType>();
   atomKK->modified(exec_space,ALL_MASK);
-  DeviceType::fence();
   atomKK->sync(Host,TAG_MASK);
   if (map_style) atom->map_set();
 }

@@ -1,0 +1,21 @@
+# The two files "wall_particle.lt" and "solvent_particle.lt" 
+# define two very simple molecules containing one atom each.
+# Both atoms have the same size (the have the same LJ sigma parameter).
+
+WallParticle {
+
+  # atomID molID atomType charge  x  y  z
+  write("Data Atoms") {
+    $atom:w $mol:. @atom:w  0.0  0.0 0.0 0.0
+  }
+  write_once("Data Masses") {
+    @atom:w 10.0
+  }
+  write_once("In Settings") {
+    #            i     j     epsilon sigma cutoff
+    pair_coeff @atom:w @atom:w  0.05  3.0   7.5    #<--repulsive (approximately)
+    group groupW type @atom:w  #(Atoms of this type belong to the "W" group)
+  }
+
+}
+

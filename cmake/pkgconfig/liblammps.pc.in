@@ -8,11 +8,11 @@ prefix=@CMAKE_INSTALL_FULL_PREFIX@
 libdir=@CMAKE_INSTALL_FULL_LIBDIR@
 includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
-Name: liblammps
+Name: liblammps@LAMMPS_MACHINE@
 Description: Large-scale Atomic/Molecular Massively Parallel Simulator Library
 URL: http://lammps.sandia.gov
 Version:
 Requires:
-Libs: -L${libdir} -llammps
+Libs: -L${libdir} -llammps@LAMMPS_MACHINE@
 Libs.private: -lm
 Cflags: -I${includedir} @LAMMPS_API_DEFINES@

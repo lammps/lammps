@@ -41,10 +41,13 @@ include(CheckCCompilerFlag)
 # User input options                                                   #
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" OFF)
-option(INSTALL_LIB "Install lammps library and header" ON)
+if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
 include(GNUInstallDirs)
 
 set(LAMMPS_LINK_LIBS)
+set(LAMMPS_API_DEFINES)
 option(ENABLE_MPI "Build MPI version" OFF)
 if(ENABLE_MPI)
   find_package(MPI REQUIRED)
@@ -56,13 +59,15 @@ if(ENABLE_MPI)
   endif()
 else()
   file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
-  list(APPEND LIB_SOURCES ${MPI_SOURCES})
+  add_library(mpi_stubs STATIC ${MPI_SOURCES})
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
+  list(APPEND LAMMPS_LINK_LIBS mpi_stubs)
 endif()
 
 set(LAMMPS_SIZE_LIMIT "LAMMPS_SMALLBIG" CACHE STRING "Lammps size limit")
 set_property(CACHE LAMMPS_SIZE_LIMIT PROPERTY STRINGS LAMMPS_SMALLBIG LAMMPS_BIGBIG LAMMPS_SMALLSMALL)
 add_definitions(-D${LAMMPS_SIZE_LIMIT})
+set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -D${LAMMPS_SIZE_LIMIT}")
 
 set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS")
 add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
@@ -70,6 +75,7 @@ add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
 if(LAMMPS_EXCEPTIONS)
   add_definitions(-DLAMMPS_EXCEPTIONS)
+  set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES -DLAMMPS_EXCEPTIONS")
 endif()
 
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps (WON'T enable any features automatically")
@@ -90,7 +96,7 @@ set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS
    USER-ATC USER-AWPMD USER-CGDNA
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
-  USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD 
+  USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
   USER-SMTBQ USER-SPH USER-TALLY USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -123,6 +129,8 @@ endif()
 ######################################################
 if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM)
   enable_language(Fortran)
+  include(CheckFortranCompilerFlag)
+  check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
 endif()
 
 if(ENABLE_KOKKOS OR ENABLE_MSCG)
@@ -157,18 +165,22 @@ endif()
 if(ENABLE_MISC)
   option(LAMMPS_XDR "include XDR compatibility files for doing particle dumps in XTC format" OFF)
   if(LAMMPS_XDR)
-    add_definitions(-DLAMMPS_XDR)
+    add_definitions(-DLAMMPS_XDR) # for liblammps
   endif()
 endif()
 
 if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
   find_package(LAPACK)
-  if(LAPACK_FOUND)
-    list(APPEND LAMMPS_LINK_LIBS ${LAPACK_LIBRARIES})
-  else()
+  if(NOT LAPACK_FOUND)
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.f)
-    list(APPEND LIB_SOURCES ${LAPACK_SOURCES})
+    add_library(linalg STATIC ${LAPACK_SOURCES})
+    include(CheckFortranCompilerFlag)
+    check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
+    if(FC_HAS_NO_SECOND_UNDERSCORE)
+      target_compile_options(linalg PRIVATE -fno-second-underscore)
+    endif()
+    set(LAPACK_LIBRARIES linalg)
   endif()
 endif()
 
@@ -223,7 +235,10 @@ if(ENABLE_VORONOI)
 endif()
 
 if(ENABLE_USER-MOLFILE)
-  list(APPEND LAMMPS_LINK_LIBS ${CMAKE_DL_LIBS})
+  add_library(molfile INTERFACE)
+  target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
+  target_link_libraries(molfile INTERFACE ${CMAKE_DL_LIBS})
+  list(APPEND LAMMPS_LINK_LIBS molfile)
 endif()
 
 if(ENABLE_USER-NETCDF)
@@ -240,24 +255,13 @@ endif()
 
 if(ENABLE_USER-QUIP)
   find_package(QUIP REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 if(ENABLE_USER-QMMM)
   find_package(QE REQUIRED)
   include_directories(${QE_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
-endif()
-
-if(ENABLE_USER-AWPMD)
-  include_directories(${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact
-    ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
-endif()
-
-if(ENABLE_USER-H5MD)
-  find_package(HDF5 REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${HDF5_LIBRARIES})
-  include_directories(${HDF5_INCLUDE_DIRS} ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
 endif()
 
 if(ENABLE_USER-VTK)
@@ -290,13 +294,11 @@ if(ENABLE_MSCG)
       WORKING_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/mscg)
   endif()
   file(GLOB MSCG_SOURCES ${LAMMPS_LIB_MSCG_BIN_DIR}/*.cpp)
-  list(APPEND LIB_SOURCES ${MSCG_SOURCES})
-  foreach(MSCG_SOURCE ${MSCG_SOURCES})
-    set_property(SOURCE ${MSCG_SOURCE} APPEND PROPERTY COMPILE_DEFINITIONS
-      DIMENSION=3 _exclude_gromacs=1)
-  endforeach()
-  include_directories(${LAMMPS_LIB_MSCG_BIN_DIR} ${GSL_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES})
+  add_library(mscg STATIC ${MSCG_SOURCES})
+  list(APPEND LAMMPS_LINK_LIBS mscg)
+  target_compile_options(mscg PRIVATE -DDIMENSION=3 -D_exclude_gromacs=1)
+  target_include_directories(mscg PUBLIC ${LAMMPS_LIB_MSCG_BIN_DIR})
+  target_link_libraries(mscg ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 ########################################################################
@@ -322,7 +324,7 @@ endforeach(FUNC)
 list(APPEND LAMMPS_LINK_LIBS ${MATH_LIBRARIES})
 
 ######################################
-# Generate Basic Style files 
+# Generate Basic Style files
 ######################################
 include(StyleHeaderUtils)
 RegisterStyles(${LAMMPS_SOURCE_DIR})
@@ -361,16 +363,52 @@ endforeach()
 # add lib sources of (simple) enabled packages
 ############################################
 foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
-  USER-MOLFILE USER-QMMM)
+  USER-QMMM)
   if(ENABLE_${SIMPLE_LIB})
-    string(REGEX REPLACE "^USER-" "" SIMPLE_LIB "${SIMPLE_LIB}")
-    string(TOLOWER "${SIMPLE_LIB}" INC_DIR)
-    file(GLOB_RECURSE ${SIMPLE_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.F
-      ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR}/*.cpp)
-    list(APPEND LIB_SOURCES ${${SIMPLE_LIB}_SOURCES})
-    include_directories(${LAMMPS_LIB_SOURCE_DIR}/${INC_DIR})
+    string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
+    string(TOLOWER "${PKG_LIB}" PKG_LIB)
+    file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.cpp)
+    add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
+    list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
+    if(PKG_LIB STREQUAL awpmd)
+      target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
+    elseif(PKG_LIB STREQUAL h5md)
+      target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
+    else()
+      target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
+    endif()
   endif()
 endforeach()
+
+if(ENABLE_USER-AWPMD)
+  target_link_libraries(awpmd ${LAPACK_LIBRARIES})
+endif()
+
+if(ENABLE_USER-ATC)
+  target_link_libraries(atc ${LAPACK_LIBRARIES})
+endif()
+
+if(ENABLE_USER-H5MD)
+  find_package(HDF5 REQUIRED)
+  target_link_libraries(h5md ${HDF5_LIBRARIES})
+  target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
+endif()
+
+if(ENABLE_MEAM AND FC_HAS_NO_SECOND_UNDERSCORE)
+  foreach(FSRC ${meam_SOURCES})
+    string(REGEX REPLACE "^.*\\." "" FEXT "${FSRC}")
+    list(FIND CMAKE_Fortran_SOURCE_FILE_EXTENSIONS "${FEXT}" FINDEX)
+    if(FINDEX GREATER -1)
+      set_property(SOURCE ${FSRC} APPEND PROPERTY COMPILE_FLAGS "-fno-second-underscore")
+    endif()
+  endforeach()
+endif()
+
+if(ENABLE_REAX AND FC_HAS_NO_SECOND_UNDERSCORE)
+  target_compile_options(reax PRIVATE -fno-second-underscore)
+endif()
+
 
 ######################################################################
 # packages which selectively include variants based on enabled styles
@@ -468,62 +506,132 @@ if(ENABLE_USER-INTEL)
 endif()
 
 if(ENABLE_GPU)
-    find_package(CUDA REQUIRED)
-    find_program(BIN2C bin2c)
-    if(NOT BIN2C)
-      message(FATAL_ERROR "Couldn't find bin2c, use -DBIN2C helping cmake to find it.")
-    endif()
-    include_directories(${CUDA_INCLUDE_DIRS})
-    list(APPEND LAMMPS_LINK_LIBS ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-    set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "Lammps gpu precision size")
-    set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
-    add_definitions(-D_${GPU_PREC})
-    add_definitions(-DNV_KERNEL -DUCL_CUDADR)
-    option(CUDPP_OPT "Enable CUDPP_OPT" ON)
-
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
-    set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h)
+    set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
+                    ${GPU_SOURCES_DIR}/fix_gpu.h
+                    ${GPU_SOURCES_DIR}/fix_gpu.cpp)
+
+    set(GPU_API "OpenCL" CACHE STRING "API used by GPU package")
+    set_property(CACHE GPU_API PROPERTY STRINGS OpenCL CUDA)
+
+    set(GPU_PREC "SINGLE_DOUBLE" CACHE STRING "LAMMPS GPU precision size")
+    set_property(CACHE GPU_PREC PROPERTY STRINGS SINGLE_DOUBLE SINGLE_SINGLE DOUBLE_DOUBLE)
+
+    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
+    file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
+
+    if(GPU_API STREQUAL "CUDA")
+      find_package(CUDA REQUIRED)
+      find_program(BIN2C bin2c)
+      if(NOT BIN2C)
+        message(FATAL_ERROR "Couldn't find bin2c, use -DBIN2C helping cmake to find it.")
+      endif()
+      option(CUDPP_OPT "Enable CUDPP_OPT" ON)
+
+      set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture")
+      set_property(CACHE GPU_ARCH PROPERTY STRINGS sm_10 sm_20 sm_30 sm_60)
+
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_SOURCE_DIR}/gpu/*.cu)
+      list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
+
+      cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
+
+      if(CUDPP_OPT)
+        cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
+        file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cpp)
+        file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
+      endif()
+
+      cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
+                   -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
+
+      cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
+                   -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC})
+
+      foreach(CU_OBJ ${GPU_GEN_OBJS})
+        get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
+        string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
+        add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+          COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+          DEPENDS ${CU_OBJ}
+          COMMENT "Generating ${CU_NAME}_cubin.h")
+        list(APPEND GPU_LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
+      endforeach()
+      set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
+
+
+      add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
+      target_link_libraries(gpu ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+      target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
+      if(CUDPP_OPT)
+        target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
+        target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
+      endif()
+
+      list(APPEND LAMMPS_LINK_LIBS gpu)
+
+      add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
+      target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
+      target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+      target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
+
+
+    elseif(GPU_API STREQUAL "OpenCL")
+      find_package(OpenCL REQUIRED)
+      if(OpenCL_FOUND)
+        set(OCL_TUNE "GENERIC" CACHE STRING "OpenCL Device Tuning")
+        set_property(CACHE OCL_TUNE PROPERTY STRINGS INTEL FERMI KEPLER CYPRESS GENERIC)
+
+        include(OpenCLUtils)
+        set(OCL_COMMON_HEADERS ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_preprocessor.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_aux_fun1.h)
+
+        file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
+        list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
+
+        foreach(GPU_KERNEL ${GPU_LIB_CU})
+            get_filename_component(basename ${GPU_KERNEL} NAME_WE)
+            string(SUBSTRING ${basename} 4 -1 KERNEL_NAME)
+            GenerateOpenCLHeader(${KERNEL_NAME} ${CMAKE_CURRENT_BINARY_DIR}/gpu/${KERNEL_NAME}_cl.h ${OCL_COMMON_HEADERS} ${GPU_KERNEL})
+            list(APPEND GPU_LIB_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/gpu/${KERNEL_NAME}_cl.h)
+        endforeach()
+
+        GenerateOpenCLHeader(gayberne ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu)
+        GenerateOpenCLHeader(gayberne_lj ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_lj_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
+        list(APPEND GPU_LIB_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_lj_cl.h)
+
+        add_library(gpu STATIC ${GPU_LIB_SOURCES})
+        target_link_libraries(gpu ${OpenCL_LIBRARIES})
+        target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu ${OpenCL_INCLUDE_DIRS})
+        target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
+        target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
+
+        list(APPEND LAMMPS_LINK_LIBS gpu)
+
+        add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
+        target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)
+        target_link_libraries(ocl_get_devices PRIVATE ${OpenCL_LIBRARIES})
+        target_include_directories(ocl_get_devices PRIVATE ${OpenCL_INCLUDE_DIRS})
+      endif()
+    endif()
+
+    # GPU package
+    FindStyleHeaders(${GPU_SOURCES_DIR} FIX_CLASS fix_ FIX)
 
     set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
 
     # detects styles which have GPU version
-    RegisterStylesExt(${GPU_SOURCES_DIR} opt GPU_SOURCES)
+    RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 
     get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
-    
-    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
-    file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_SOURCE_DIR}/gpu/*.cu)
-    file(GLOB_RECURSE GPU_NOT_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
-    list(REMOVE_ITEM GPU_LIB_CU ${GPU_NOT_LIB_CU})
-    include_directories(${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    if(CUDPP_OPT)
-      include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-      add_definitions(-DCUDPP_OPT)
-      file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cpp)
-      file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
-    endif()
-    cuda_compile(GPU_OBJS ${GPU_LIB_CU} ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>)    
-    file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
-    foreach(CU_OBJ ${GPU_OBJS})
-      get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
-      string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
-      add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-        COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-        DEPENDS ${CU_OBJ} 
-        COMMENT "Generating ${CU_NAME}_cubin.h")
-      list(APPEND LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
-      if(${CU_NAME} STREQUAL "pppm_d") #pppm_d doesn't get linked into the lib
-        set(CU_FORBIDDEN_OBJ "${CU_OBJ}") 
-      endif()
-    endforeach()
-    list(REMOVE_ITEM GPU_OBJS "${CU_FORBIDDEN_OBJ}")
-    list(APPEND LIB_SOURCES ${GPU_SOURCES} ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
+
+    list(APPEND LIB_SOURCES ${GPU_SOURCES})
+    include_directories(${GPU_SOURCES_DIR})
 endif()
 
 ######################################################
 # Generate style headers based on global list of
-# styles registered during package selection           
+# styles registered during package selection
 ######################################################
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
@@ -537,12 +645,12 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ############################################
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
-set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION} OUTPUT_NAME lammps$<$<BOOL:${LAMMPS_MACHINE}>:_>${LAMMPS_MACHINE})
-if(INSTALL_LIB)
+if(BUILD_SHARED_LIBS)
+  set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
   install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${LAMMPS_SOURCE_DIR}/lammps.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-elseif(BUILD_SHARED_LIBS)
-  message(FATAL_ERROR "Shared library has to be installed, use -DINSTALL_LIB=ON to install lammps with a library")
+  install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
+  configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps.pc @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
 
 add_executable(lmp ${LMP_SOURCES})

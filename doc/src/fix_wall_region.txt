@@ -15,7 +15,7 @@ fix ID group-ID wall/region region-ID style epsilon sigma cutoff :pre
 ID, group-ID are documented in "fix"_fix.html command
 wall/region = style name of this fix command
 region-ID = region whose boundary will act as wall
-style = {lj93} or {lj126} or {colloid} or {harmonic}
+style = {lj93} or {lj126} or {lj1043} or {colloid} or {harmonic}
 epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
 sigma = size factor for wall-particle interaction (distance units)
 cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :ul
@@ -112,6 +112,10 @@ For style {lj126}, the energy E is given by the 12/6 potential:
 
 :c,image(Eqs/pair_lj.jpg)
 
+For style {wall/lj1043}, the energy E is given by the 10/4/3 potential:
+
+:c,image(Eqs/fix_wall_lj1043.jpg)
+
 For style {colloid}, the energy E is given by an integrated form of
 the "pair_style colloid"_pair_colloid.html potential:
 
@@ -128,49 +132,8 @@ surface no longer interact.  The energy of the wall potential is
 shifted so that the wall-particle interaction energy is 0.0 at the
 cutoff distance.
 
-For the {lj93} and {lj126} styles, {epsilon} and {sigma} are the usual
-Lennard-Jones parameters, which determine the strength and size of the
-particle as it interacts with the wall.  Epsilon has energy units.
-Note that this {epsilon} and {sigma} may be different than any
-{epsilon} or {sigma} values defined for a pair style that computes
-particle-particle interactions.
-
-The {lj93} interaction is derived by integrating over a 3d
-half-lattice of Lennard-Jones 12/6 particles.  The {lj126} interaction
-is effectively a harder, more repulsive wall interaction.
-
-For the {colloid} style, {epsilon} is effectively a Hamaker constant
-with energy units for the colloid-wall interaction, {R} is the radius
-of the colloid particle, {D} is the distance from the surface of the
-colloid particle to the wall (r-R), and {sigma} is the size of a
-constituent LJ particle inside the colloid particle.  Note that the
-cutoff distance Rc in this case is the distance from the colloid
-particle center to the wall.
-
-The {colloid} interaction is derived by integrating over constituent
-LJ particles of size {sigma} within the colloid particle and a 3d
-half-lattice of Lennard-Jones 12/6 particles of size {sigma} in the
-wall.
-
-For the {wall/harmonic} style, {epsilon} is effectively the spring
-constant K, and has units (energy/distance^2).  The input parameter
-{sigma} is ignored.  The minimum energy position of the harmonic
-spring is at the {cutoff}.  This is a repulsive-only spring since the
-interaction is truncated at the {cutoff}
-
-NOTE: For all of the styles, you must insure that r is always > 0 for
-all particles in the group, or LAMMPS will generate an error.  This
-means you cannot start your simulation with particles on the region
-surface (r = 0) or with particles on the wrong side of the region
-surface (r < 0).  For the {wall/lj93} and {wall/lj126} styles, the
-energy of the wall/particle interaction (and hence the force on the
-particle) blows up as r -> 0.  The {wall/colloid} style is even more
-restrictive, since the energy blows up as D = r-R -> 0.  This means
-the finite-size particles of radius R must be a distance larger than R
-from the region surface.  The {harmonic} style is a softer potential
-and does not blow up as r -> 0, but you must use a large enough
-{epsilon} that particles always reamin on the correct side of the
-region surface (r > 0).
+For a full description of these wall styles, see fix_style
+"wall"_fix_wall.html
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -181,6 +144,11 @@ The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy of interaction between atoms and the wall to the
 system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
+
+The "fix_modify"_fix_modify.html {virial} option is supported by this
+fix to add the contribution due to the interaction between
+atoms and each wall to the system's virial as part of "thermodynamic
+output"_thermo_style.html. The default is {virial no}
 
 The "fix_modify"_fix_modify.html {respa} option is supported by this
 fix. This allows to set at which level of the "r-RESPA"_run_style.html

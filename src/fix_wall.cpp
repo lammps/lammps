@@ -45,6 +45,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
+  virial_flag = 1;
 
   // parse args
 
@@ -298,7 +299,12 @@ void FixWall::pre_force(int vflag)
 
 void FixWall::post_force(int vflag)
 {
+
+  // energy and virial setup
+
   eflag = 0;
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall

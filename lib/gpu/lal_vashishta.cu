@@ -436,7 +436,7 @@ __kernel void k_vashishta_three_center(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end;
-    const int* nbor_mem = dev_packed;
+    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -580,7 +580,7 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-    const int* nbor_mem = dev_packed;
+    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -735,7 +735,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-    const int* nbor_mem = dev_packed;
+    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);

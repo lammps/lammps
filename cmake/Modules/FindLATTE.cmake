@@ -1,8 +1,8 @@
 # - Find latte
 # Find the native LATTE libraries.
 #
-#  LATTE_LIBRARIES    - List of libraries when using fftw3.
-#  LATTE_FOUND        - True if fftw3 found.
+#  LATTE_LIBRARIES    - List of libraries when using latte.
+#  LATTE_FOUND        - True if latte found.
 #
 
 find_library(LATTE_LIBRARY NAMES latte)

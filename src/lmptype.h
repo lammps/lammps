@@ -40,6 +40,8 @@
 #include <stdint.h>   // <cstdint> requires C++-11
 #include <inttypes.h> // <cinttypes> requires C++-11
 
+#include "lmpconfig.h"
+
 // grrr - IBM Power6 does not provide this def in their system header files
 
 #ifndef PRId64

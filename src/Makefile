@@ -163,6 +163,7 @@ help:
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
+	@if [ ! -e lmp_config.h ]; then $(SHELL) Config.sh default; fi
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \
@@ -202,6 +203,11 @@ ifeq ($(mode),shlib)
 	@rm -f $(SHLINK)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
+
+# change global configuration settings:
+
+config:
+	@$(SHELL) Config.sh
 
 # Remove machine-specific object files
 

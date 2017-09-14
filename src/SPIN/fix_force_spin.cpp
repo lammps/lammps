@@ -50,7 +50,9 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
   // 7 arguments for a force/spin fix command:
   //(fix  ID  group  force/spin  magnitude (T or eV)  style (zeeman or anisotropy)  direction (3 cartesian coordinates) 
   
-  //Magnetic interactions only coded for cartesian coordinates
+  // magnetic interactions coded for cartesian coordinates
+
+  hbar = force->hplanck/MY_2PI;
 
   dynamic_group_allow = 1;
   scalar_flag = 1;
@@ -200,6 +202,9 @@ void FixForceSpin::post_force(int vflag)
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
 
+    emag -= mumag[i]*spi[0]*fmi[0];
+    emag -= mumag[i]*spi[1]*fmi[1];
+    emag -= mumag[i]*spi[2]*fmi[2];
   } 
 
 }
@@ -213,6 +218,8 @@ double *mumag = atom->mumag;
   fmi[1] += mumag[i]*ymag;
   fmi[2] += mumag[i]*zmag;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixForceSpin::compute_anisotropy(int i, double * spi, double *fmi)
 {
@@ -255,5 +262,8 @@ double FixForceSpin::compute_scalar()
     MPI_Allreduce(&emag,&emag_all,1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;
   }
+  
+  emag *= hbar;
+
   return emag_all;
 }

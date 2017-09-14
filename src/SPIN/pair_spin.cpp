@@ -39,10 +39,15 @@ using namespace MathConst;
 
 PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp)
 {
+  hbar = force->hplanck/MY_2PI;
+
+  newton_pair_spin = 0; // no newton pair for now
   single_enable = 0;
   exch_flag = 0; 
   dmi_flag = 0;
   me_flag = 0;
+
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,92 +87,6 @@ PairSpin::~PairSpin()
   }
 }
 
-
-/* ---------------------------------------------------------------------- */
-
-void PairSpin::compute_magnetomech(int eflag, int vflag)
-{
-  int i,j,ii,jj,inum,jnum,itype,jtype;  
-  double evdwl,ecoul;
-  double xtmp,ytmp,ztmp;
-  double fix,fiy,fiz,fjx,fjy,fjz;
-  double cut_ex_2,cut_dmi_2,cut_me_2;
-  double rsq,rd;
-  int *ilist,*jlist,*numneigh,**firstneigh;  
-
-  evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
-  
-  double **x = atom->x;
-  double **f = atom->f;
-  double *mumag = atom->mumag;
-  double **sp = atom->sp;	
-  int *type = atom->type;  
-  int nlocal = atom->nlocal;  
-  int newton_pair = force->newton_pair;
-  
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  // pair magneto-mechanics interactions
-  // loop over neighbors of my atoms
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    jlist = firstneigh[i];
-    jnum = numneigh[i]; 
-    spi[0] = sp[i][0]; 
-    spi[1] = sp[i][1]; 
-    spi[2] = sp[i][2]; 
-
-    // loop on neighbors
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      spj[0] = sp[j][0]; 
-      spj[1] = sp[j][1]; 
-      spj[2] = sp[j][2]; 
-      fi[0] = fi[1] = fi[2] = 0.0;
-      fj[0] = fj[1] = fj[2] = 0.0;
-      del[0] = del[1] = del[2] = 0.0;
-
-      del[0] = x[j][0] - xtmp;
-      del[1] = x[j][1] - ytmp;
-      del[2] = x[j][2] - ztmp;
-      rsq = del[0]*del[0] + del[1]*del[1] + del[2]*del[2];  //square or inter-atomic distance
-      itype = type[i];
-      jtype = type[j];
-
-      // mech. exchange interaction
-      if (exch_flag) {
-        cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
-        if (rsq <= cut_ex_2) {
-          compute_exchange_mech(i,j,rsq,del,fi,fj,spi,spj);   
-        }
-      }
-
-      f[i][0] += fi[0];	 
-      f[i][1] += fi[1];	  	  
-      f[i][2] += fi[2];
-
-      // think about this sign, - or + ?
-      if (newton_pair || j < nlocal) {
-          f[j][0] += fj[0];	 
-          f[j][1] += fj[1];	  	  
-          f[j][2] += fj[2];
-          }
-      }
-  }
-
-  if (vflag_fdotr) virial_fdotr_compute();
-}
-      
 /* ---------------------------------------------------------------------- */
 
 void PairSpin::compute(int eflag, int vflag)
@@ -175,16 +94,19 @@ void PairSpin::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl,ecoul;
   double xtmp,ytmp,ztmp;
+  double fix,fiy,fiz,fjx,fjy,fjz;
   double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
-  double cut_ex_2,cut_dmi_2,cut_me_2;
-  double rsq,rd,delx,dely,delz;
+  double cut_ex_2,cut_dmi_2,cut_me_2,cut_spin_pair_global2;
+  double rsq,rd;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
+  cut_spin_pair_global2 = cut_spin_pair_global*cut_spin_pair_global;
   
   double **x = atom->x;
+  double **f = atom->f;
   double **fm = atom->fm;
   double *mumag = atom->mumag;
   double **sp = atom->sp;	
@@ -209,7 +131,7 @@ void PairSpin::compute(int eflag, int vflag)
     jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
     spi[1] = sp[i][1]; 
-    spi[2] = sp[i][2]; 
+    spi[2] = sp[i][2];
    
     // loop on neighbors
     for (jj = 0; jj < jnum; jj++) {
@@ -219,14 +141,18 @@ void PairSpin::compute(int eflag, int vflag)
       spj[1] = sp[j][1]; 
       spj[2] = sp[j][2]; 
 
+      fi[0] = fi[1] = fi[2] = 0.0;
+      fj[0] = fj[1] = fj[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
       fmj[0] = fmj[1] = fmj[2] = 0.0;
+      del[0] = del[1] = del[2] = 0.0;
      
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      // square or inter-atomic distance
-      rsq = delx*delx + dely*dely + delz*delz; 
+      del[0] = x[j][0] - xtmp;
+      del[1] = x[j][1] - ytmp;
+      del[2] = x[j][2] - ztmp;
+
+      // square of inter-atomic distance
+      rsq = del[0]*del[0] + del[1]*del[1] + del[2]*del[2]; 
 
       itype = type[i];
       jtype = type[j];
@@ -236,6 +162,7 @@ void PairSpin::compute(int eflag, int vflag)
         cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
         if (rsq <= cut_ex_2) {
           compute_exchange(i,j,rsq,fmi,fmj,spi,spj);   
+	  compute_exchange_mech(i,j,rsq,del,fi,fj,spi,spj);
         }
       }
       // dm interaction
@@ -253,15 +180,35 @@ void PairSpin::compute(int eflag, int vflag)
         } 
       }
 
+      f[i][0] += fi[0];	 
+      f[i][1] += fi[1];	  	  
+      f[i][2] += fi[2];
       fm[i][0] += fmi[0];	 
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-      if (newton_pair || j < nlocal) {
+ /*     if (newton_pair || j < nlocal) {*/
+      if (newton_pair_spin) {
+	f[j][0] += fj[0];	 
+        f[j][1] += fj[1];	  	  
+        f[j][2] += fj[2];
         fm[j][0] += fmj[0];	 
         fm[j][1] += fmj[1];	  	  
         fm[j][2] += fmj[2];
       }
+ 
+      if (eflag) {
+	if (rsq <= cut_spin_pair_global2) {
+	  evdwl -= mumag[i]*spi[0]*fmi[0];
+	  evdwl -= mumag[i]*spi[1]*fmi[1];
+	  evdwl -= mumag[i]*spi[2]*fmi[2];
+	}
+      }
+
+      evdwl *= hbar;	
+
+      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+	  evdwl,ecoul,fi[0],fi[1],fi[2],del[0],del[1],del[2]);
     }
   }  
 
@@ -289,7 +236,7 @@ void PairSpin::compute_exchange(int i, int j, double rsq, double *fmi,  double *
   fmj[0] += Jex*spi[0];
   fmj[1] += Jex*spi[1];
   fmj[2] += Jex*spi[2];
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -639,7 +586,7 @@ void PairSpin::read_restart(FILE *fp)
 
   int i,j;
   int me = comm->me;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
@@ -658,6 +605,7 @@ void PairSpin::read_restart(FILE *fp)
         MPI_Bcast(&cut_spin_exchange[i][j],1,MPI_DOUBLE,0,world);
       }
     }
+  }
 }
 
  

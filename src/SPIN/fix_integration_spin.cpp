@@ -206,14 +206,14 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;  
 
-  printf("before mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
+//  printf("before mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
 
   // compute and add magneto-mech. force 
-  if (magpair_flag == 1) { 
-    if (exch_flag) lockpairspin->compute_magnetomech(0,vflag);
-  }
+//  if (magpair_flag == 1) { 
+//    if (exch_flag) lockpairspin->compute_magnetomech(0,vflag);
+//  }
 
-  printf("after mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
+//  printf("after mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
 
   // update half v all particles
   for (int i = 0; i < nlocal; i++) {
@@ -531,9 +531,9 @@ void FixIntegrationSpin::final_integrate()
   int *mask = atom->mask; 
 
   // compute and add magneto-mech. force 
-  if (magpair_flag == 1) { 
-    if (exch_flag) lockpairspin->compute_magnetomech(0,0);
-  }
+//  if (magpair_flag == 1) { 
+//    if (exch_flag) lockpairspin->compute_magnetomech(0,0);
+//  }
 
   // update half v for all particles
   for (int i = 0; i < nlocal; i++) {

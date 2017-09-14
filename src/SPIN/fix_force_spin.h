@@ -46,6 +46,7 @@ class FixForceSpin : public Fix {
   
   double xmag, ymag, zmag; // temp. force variables
   double degree2rad;
+  double hbar;
   int ilevel_respa;
   int time_origin;
   int eflag;

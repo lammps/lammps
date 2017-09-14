@@ -100,9 +100,9 @@ void ComputeSpin::compute_vector()
 		mag[0] += sp[i][0];
 		mag[1] += sp[i][1];
 		mag[2] += sp[i][2];
-		magenergy += mumag[i]*sp[i][0]*fm[i][0];  
-		magenergy += mumag[i]*sp[i][1]*fm[i][1]; 
-		magenergy += mumag[i]*sp[i][2]*fm[i][2];
+		magenergy += sp[i][0]*fm[i][0];  
+		magenergy += sp[i][1]*fm[i][1]; 
+		magenergy += sp[i][2]*fm[i][2];
                 tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
                 ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
                 tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
@@ -113,7 +113,7 @@ void ComputeSpin::compute_vector()
       }
       else error->all(FLERR,"Compute spin/compute declared magnetic quantities (sp and mumag flags)");
   }
- 
+
   MPI_Allreduce(mag,magtot,4,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&magenergy,&magenergytot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&tempnum,&tempnumtot,1,MPI_DOUBLE,MPI_SUM,world);

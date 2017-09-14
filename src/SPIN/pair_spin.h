@@ -29,7 +29,6 @@ class PairSpin : public Pair {
   PairSpin(class LAMMPS *);
   virtual ~PairSpin();
   virtual void compute(int, int);
-  virtual void compute_magnetomech(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -45,9 +44,7 @@ class PairSpin : public Pair {
   void compute_dmi(int, int, double *, double *, double *, double *);
   void compute_me(int, int, double *, double *, double *, double *);  
  
- //Test for seq. integ.
- //protected: 
-  int exch_flag,dmi_flag,me_flag;
+  int exch_flag, dmi_flag, me_flag;
   double cut_spin_pair_global;
   double cut_spin_dipolar_global;
   
@@ -55,7 +52,10 @@ class PairSpin : public Pair {
   double **cut_spin_dmi;      // cutoff distance dmi
   double **cut_spin_me;       // cutoff distance me 
 
- protected: 
+ protected:
+  int newton_pair_spin; 
+  double hbar;
+
   double **J1_mag, **J1_mech; // exchange coeffs Jij
   double **J2, **J3; // J1 in eV, J2 adim, J3 in Ang
 

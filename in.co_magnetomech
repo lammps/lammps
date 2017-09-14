@@ -35,7 +35,7 @@ lattice fcc 3.54
     
 #Defining a geometric region of space. Sets ID(user's choice), style(block, sphere, ...), then, args depends on the style chosen
 #(for block, one has x0, xf, y0, yf, z0, zf, in distance units)
-region box block 0.0 5.0 0.0 5.0 0.0 5.0
+region box block 0.0 2.0 0.0 2.0 0.0 2.0
 
 #Creating a simulation box based on the specified region. Entries: number of atom types and box ref. 
 create_box 1 box
@@ -53,8 +53,8 @@ create_atoms 1 box
 mass		1 1.0
 #set		group all mass 1.0
 #Setting spins orientation and moment 
-#set group all spin/random 11 1.72
-set group all spin 1.72 1.0 0.0 0.0 
+set group all spin/random 11 1.72
+#set group all spin 1.72 0.0 0.0 1.0 
 
 #Magneto-mechanic interactions for bulk fcc Cobalt
 pair_style hybrid/overlay eam/alloy pair/spin 4.0
@@ -77,7 +77,7 @@ neigh_modify every 1 check no delay 0
 
 #Magnetic field fix
 #Type | Intensity (T or eV) | Direction
-fix 1 all force/spin zeeman 0.1 0.0 0.0 1.0
+fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 #fix 1 all force/spin anisotropy 0.01 0.0 0.0 1.0
 #fix 1 all force/spin anisotropy -0.1 0.0 0.0 1.0
 #fix 1 all force/spin anisotropy 0.1 0.0 1.0 0.0
@@ -86,10 +86,10 @@ fix 1 all force/spin zeeman 0.1 0.0 0.0 1.0
 #Temp | Alpha_trans | Alpha_long | Seed
 #fix 2 all langevin/spin 0.0 0.1 0.0 21
 #fix 2 all langevin/spin 1.0 0.1 0.0 21
-fix 2 all langevin/spin 0.1 0.01 0.0 21
+fix 2 all langevin/spin 0.0 0.0 0.0 21
 
 #Magnetic integration fix
-fix 3 all integration/spin mpi
+fix 3 all integration/spin serial
 
 #compute real time, total magnetization, magnetic energy, and spin temperature
 #Iteration | Time | Mx | My | Mz | |M| | Em | Tm
@@ -111,10 +111,12 @@ timestep	0.0001
 #######run########
 ##################
 
+thermo 500
+
 #Dump the positions and spin directions of magnetic particles (vmd format)
-dump 1 all custom 100 dump_spin_MM.lammpstrj type x y z spx spy spz
+dump 1 all custom 10 dump_spin_MM.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 50000
+run 100000
 #run 1
 

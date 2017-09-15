@@ -2191,7 +2191,7 @@ src/USER-MESO/README
 "pair_style edpd"_pair_meso.html
 "pair_style mdpd"_pair_meso.html
 "pair_style tdpd"_pair_meso.html
-"fix mvv/dpd"_fix_mvv.html
+"fix mvv/dpd"_fix_mvv_dpd.html
 examples/USER/meso
 http://lammps.sandia.gov/movies.html#mesodpd :ul
 

@@ -423,9 +423,6 @@ atom_vec_granular.h
 # deleted on Fri Nov 19 12:53:07 2010 -0500
 fix_pour_omp.cpp
 fix_pour_omp.h
-# deleted on Thu Aug 19 23:20:14 2010 +0000
-fix_qeq.cpp
-fix_qeq.h
 # deleted on Thu Jun 17 01:34:38 2010 +0000
 compute_vsum.cpp
 compute_vsum.h

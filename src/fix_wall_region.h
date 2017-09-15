@@ -47,10 +47,12 @@ class FixWallRegion : public Fix {
   char *idregion;
 
   double coeff1,coeff2,coeff3,coeff4,offset;
+  double coeff5,coeff6,coeff7;
   double eng,fwall;
 
   void lj93(double);
   void lj126(double);
+  void lj1043(double);
   void colloid(double, double);
   void harmonic(double);
 };

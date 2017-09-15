@@ -703,6 +703,11 @@ NVT, NPT, NPH rigid styles to add the energy change induced by the
 thermostatting to the system's potential energy as part of
 "thermodynamic output"_thermo_style.html.
 
+The "fix_modify"_fix_modify.html {virial} option is supported by this
+fix to add the contribution due to keeping the objects rigid to the
+system's virial as part of "thermodynamic output"_thermo_style.html.
+The default is {virial yes}
+
 The "fix_modify"_fix_modify.html {temp} and {press} options are
 supported by the 4 NPT and NPH rigid styles to change the computes
 used to calculate the instantaneous pressure tensor.  Note that the 2

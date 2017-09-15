@@ -46,6 +46,7 @@
 
 /colvarproxy_lammps.cpp
 /colvarproxy_lammps.h
+/colvarproxy_lammps_version.h
 /fix_colvars.cpp
 /fix_colvars.h
 /dump_molfile.cpp

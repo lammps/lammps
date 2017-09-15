@@ -252,6 +252,11 @@ fix to add the energy of interaction between atoms and each wall to
 the system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
+The "fix_modify"_fix_modify.html {virial} option is supported by this
+fix to add the contribution due to the interaction between
+atoms and each wall to the system's virial as part of "thermodynamic
+output"_thermo_style.html. The default is {virial no}
+
 The "fix_modify"_fix_modify.html {respa} option is supported by this
 fix. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator the fix is adding its forces. Default is the outermost level.

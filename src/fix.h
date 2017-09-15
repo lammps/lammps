@@ -36,6 +36,7 @@ class Fix : protected Pointers {
 
   bigint next_reneighbor;        // next timestep to force a reneighboring
   int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not
+  int thermo_virial;             // 1 if fix_modify enabled ThVir, 0 if not
   int nevery;                    // how often to call an end_of_step fix
   int rigid_flag;                // 1 if Fix integrates rigid bodies, 0 if not
   int peatom_flag;               // 1 if Fix contributes per-atom eng, 0 if not
@@ -223,6 +224,8 @@ class Fix : protected Pointers {
   void ev_tally(int, int *, double, double, double *);
   void v_setup(int);
   void v_tally(int, int *, double, double *);
+  void v_tally(int, double *);
+  void v_tally(int, int, double);
 
   // union data struct for packing 32-bit and 64-bit ints into double bufs
   // see atom_vec.h for documentation

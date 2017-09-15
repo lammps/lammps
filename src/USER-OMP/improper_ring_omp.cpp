@@ -206,7 +206,7 @@ void ImproperRingOMP::eval(int nfrom, int nto, ThrData * const thr)
         cfact2 = ckjji / ckjkj;
         cfact3 = ckjji / cjiji;
 
-        /* Calculate the force acted on the thrid atom of the angle. */
+        /* Calculate the force acted on the third atom of the angle. */
         fkx = cfact2 * bvec2x[icomb] - bvec1x[icomb];
         fky = cfact2 * bvec2y[icomb] - bvec1y[icomb];
         fkz = cfact2 * bvec2z[icomb] - bvec1z[icomb];

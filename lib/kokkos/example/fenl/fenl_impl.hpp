@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef KOKKOS_EXAMPLE_FENL_IMPL_HPP
 #define KOKKOS_EXAMPLE_FENL_IMPL_HPP
 
-#include <math.h>
+#include <cmath>
 
 // Kokkos libraries' headers:
 
@@ -71,7 +71,7 @@ inline
 double maximum( MPI_Comm comm , double local )
 {
   double global = local ;
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
   MPI_Allreduce( & local , & global , 1 , MPI_DOUBLE , MPI_MAX , comm );
 #endif
   return global ;
@@ -126,8 +126,8 @@ public:
     , zmax( arg_zmax )
     , T_zmin( arg_T_zmin )
     , T_zmax( arg_T_zmax )
-    , a( ( 1.0 / sqrt(T_zmax) - 1.0 / sqrt(T_zmin) ) / ( zmax - zmin ) )
-    , b( 1.0 / sqrt(T_zmin) )
+    , a( ( 1.0 / std::sqrt(T_zmax) - 1.0 / std::sqrt(T_zmin) ) / ( zmax - zmin ) )
+    , b( 1.0 / std::sqrt(T_zmin) )
     , K( 1.0 / ( 6.0 * a * a ) )
     {}
 
@@ -192,7 +192,7 @@ Perf fenl(
 
   //------------------------------------
 
-  const int print_flag = use_print && Kokkos::Impl::is_same< Kokkos::HostSpace , typename Space::memory_space >::value ;
+  const int print_flag = use_print && std::is_same< Kokkos::HostSpace , typename Space::memory_space >::value ;
 
   int comm_rank ;
   int comm_size ;
@@ -214,7 +214,7 @@ Perf fenl(
   {
     int global_error = ! fixture.ok();
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
     int local_error = global_error ;
     global_error = 0 ;
     MPI_Allreduce( & local_error , & global_error , 1 , MPI_INT , MPI_SUM , comm );
@@ -269,7 +269,7 @@ Perf fenl(
                   << ")" ;
       }
       std::cout << " }" << std::endl ;
-  
+
       std::cout << "Node coord {" ;
       for ( unsigned inode = 0 ; inode < fixture.node_count() ; ++inode ) {
         std::cout << " (" << h_node_coord(inode,0)

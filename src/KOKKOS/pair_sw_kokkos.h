@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -103,7 +103,7 @@ class PairSWKokkos : public PairSW {
   typedef typename tdual_int_3d::t_host t_host_int_3d;
 
   t_int_3d_randomread d_elem2param;
-  DAT::t_int_1d_randomread d_map;
+  typename AT::t_int_1d_randomread d_map;
 
   typedef Kokkos::DualView<Param*,DeviceType> tdual_param_1d;
   typedef typename tdual_param_1d::t_dev t_param_1d;
@@ -118,23 +118,23 @@ class PairSWKokkos : public PairSW {
   void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                  F_FLOAT *) const;
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_f_array f;
+  typename AT::t_tagint_1d tag;
+  typename AT::t_int_1d_randomread type;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
-  DAT::t_int_1d_randomread d_type2frho;
-  DAT::t_int_2d_randomread d_type2rhor;
-  DAT::t_int_2d_randomread d_type2z2r;
+  typename AT::t_int_1d_randomread d_type2frho;
+  typename AT::t_int_2d_randomread d_type2rhor;
+  typename AT::t_int_2d_randomread d_type2z2r;
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
   //NeighListKokkos<DeviceType> k_list;
 
   int neighflag,newton_pair;

@@ -43,6 +43,12 @@ enum{NONE,RLINEAR,RSQ};
 
 #define MAXLINE 1024
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
 #define oneFluidParameter (-1)
 #define isOneFluid(_site) ( (_site) == oneFluidParameter )
 
@@ -72,12 +78,15 @@ PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp),
   comm_forward = 1;
   comm_reverse = 1;
 
+  fractionalWeighting = true;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairMultiLucyRX::~PairMultiLucyRX()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 
@@ -112,9 +121,9 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   int nghost = atom->nghost;
   int newton_pair = force->newton_pair;
 
-  double fractionOld1_i,fractionOld1_j;
-  double fractionOld2_i,fractionOld2_j;
-  double fraction1_i;
+  double mixWtSite1old_i,mixWtSite1old_j;
+  double mixWtSite2old_i,mixWtSite2old_j;
+  double mixWtSite1_i;
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
@@ -124,20 +133,20 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   int jtable;
   double *rho = atom->rho;
 
-  double *fractionOld1 = NULL;
-  double *fractionOld2 = NULL;
-  double *fraction1 = NULL;
-  double *fraction2 = NULL;
+  double *mixWtSite1old = NULL;
+  double *mixWtSite2old = NULL;
+  double *mixWtSite1 = NULL;
+  double *mixWtSite2 = NULL;
 
   {
     const int ntotal = nlocal + nghost;
-    memory->create(fractionOld1, ntotal, "PairMultiLucyRX::fractionOld1");
-    memory->create(fractionOld2, ntotal, "PairMultiLucyRX::fractionOld2");
-    memory->create(fraction1, ntotal, "PairMultiLucyRX::fraction1");
-    memory->create(fraction2, ntotal, "PairMultiLucyRX::fraction2");
+    memory->create(mixWtSite1old, ntotal, "PairMultiLucyRX::mixWtSite1old");
+    memory->create(mixWtSite2old, ntotal, "PairMultiLucyRX::mixWtSite2old");
+    memory->create(mixWtSite1, ntotal, "PairMultiLucyRX::mixWtSite1");
+    memory->create(mixWtSite2, ntotal, "PairMultiLucyRX::mixWtSite2");
 
     for (int i = 0; i < ntotal; ++i)
-       getParams(i, fractionOld1[i], fractionOld2[i], fraction1[i], fraction2[i]);
+       getMixingWeights(i, mixWtSite1old[i], mixWtSite2old[i], mixWtSite1[i], mixWtSite2[i]);
   }
 
   inum = list->inum;
@@ -162,9 +171,9 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
     double fy_i = 0.0;
     double fz_i = 0.0;
 
-    fractionOld1_i = fractionOld1[i];
-    fractionOld2_i = fractionOld2[i];
-    fraction1_i = fraction1[i];
+    mixWtSite1old_i = mixWtSite1old[i];
+    mixWtSite2old_i = mixWtSite2old[i];
+    mixWtSite1_i = mixWtSite1[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -179,8 +188,8 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         fpair = 0.0;
 
-        fractionOld1_j = fractionOld1[j];
-        fractionOld2_j = fractionOld2[j];
+        mixWtSite1old_j = mixWtSite1old[j];
+        mixWtSite2old_j = mixWtSite2old[j];
 
         tb = &tables[tabindex[itype][jtype]];
         if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
@@ -235,8 +244,8 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
         } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
-        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
-        else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
+        if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpair;
+        else fpair = (sqrt(mixWtSite1old_i*mixWtSite2old_j) + sqrt(mixWtSite2old_i*mixWtSite1old_j))*fpair;
 
         fx_i += delx*fpair;
         fy_i += dely*fpair;
@@ -268,8 +277,8 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
     evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
-    evdwlOld = fractionOld1_i*evdwl;
-    evdwl = fraction1_i*evdwl;
+    evdwlOld = mixWtSite1old_i*evdwl;
+    evdwl = mixWtSite1_i*evdwl;
 
     uCG[i] += evdwlOld;
     uCGnew[i] += evdwl;
@@ -281,10 +290,10 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 
-  memory->destroy(fractionOld1);
-  memory->destroy(fractionOld2);
-  memory->destroy(fraction1);
-  memory->destroy(fraction2);
+  memory->destroy(mixWtSite1old);
+  memory->destroy(mixWtSite2old);
+  memory->destroy(mixWtSite1);
+  memory->destroy(mixWtSite2);
 }
 
 /* ----------------------------------------------------------------------
@@ -311,7 +320,7 @@ void PairMultiLucyRX::allocate()
 
 void PairMultiLucyRX::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
   // new settings
 
@@ -321,6 +330,16 @@ void PairMultiLucyRX::settings(int narg, char **arg)
 
   tablength = force->inumeric(FLERR,arg[1]);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
+
+  // optional keywords
+
+  int iarg = 2;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"fractional") == 0)   fractionalWeighting = true;
+    else if (strcmp(arg[iarg],"molecular") == 0)   fractionalWeighting = false;
+    else error->all(FLERR,"Illegal pair_style command");
+    iarg++;
+  }
 
   // delete old tables, since cannot just change settings
 
@@ -368,11 +387,11 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 
   nspecies = atom->nspecies_dpd;
   int n;
-  n = strlen(arg[3]) + 1;
+  n = strlen(arg[4]) + 1;
   site1 = new char[n];
   strcpy(site1,arg[4]);
 
-  n = strlen(arg[4]) + 1;
+  n = strlen(arg[5]) + 1;
   site2 = new char[n];
   strcpy(site2,arg[5]);
 
@@ -906,15 +925,15 @@ void PairMultiLucyRX::computeLocalDensity()
           rho_i += factor;
           if (newton_pair || j < nlocal)
             rho[j] += factor;
-        } else if (rsq < cutsq[itype][jtype]) {
-          const double rcut = sqrt(cutsq[itype][jtype]);
-          const double tmpFactor = 1.0-sqrt(rsq)/rcut;
-          const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-          const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
-          rho_i += factor;
-          if (newton_pair || j < nlocal)
-            rho[j] += factor;
         }
+      } else if (rsq < cutsq[itype][jtype]) {
+        const double rcut = sqrt(cutsq[itype][jtype]);
+        const double tmpFactor = 1.0-sqrt(rsq)/rcut;
+        const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+        const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+        rho_i += factor;
+        if (newton_pair || j < nlocal)
+          rho[j] += factor;
       }
     }
 
@@ -928,9 +947,14 @@ void PairMultiLucyRX::computeLocalDensity()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMultiLucyRX::getParams(int id, double &fractionOld1, double &fractionOld2, double &fraction1, double &fraction2)
+void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtSite2old, double &mixWtSite1, double &mixWtSite2)
 {
-  double fractionOld, fraction;
+  double fractionOFAold, fractionOFA;
+  double fractionOld1, fraction1;
+  double fractionOld2, fraction2;
+  double nMoleculesOFAold, nMoleculesOFA;
+  double nMoleculesOld1, nMolecules1;
+  double nMoleculesOld2, nMolecules2;
   double nTotal, nTotalOld;
 
   nTotal = 0.0;
@@ -941,31 +965,55 @@ void PairMultiLucyRX::getParams(int id, double &fractionOld1, double &fractionOl
   }
 
   if (isOneFluid(isite1) == false){
-    fractionOld1 = atom->dvector[isite1+nspecies][id]/nTotalOld;
-    fraction1 = atom->dvector[isite1][id]/nTotal;
+    nMoleculesOld1 = atom->dvector[isite1+nspecies][id];
+    nMolecules1 = atom->dvector[isite1][id];
+    fractionOld1 = nMoleculesOld1/nTotalOld;
+    fraction1 = nMolecules1/nTotal;
   }
   if (isOneFluid(isite2) == false){
-    fractionOld2 = atom->dvector[isite2+nspecies][id]/nTotalOld;
-    fraction2 = atom->dvector[isite2][id]/nTotal;
+    nMoleculesOld2 = atom->dvector[isite2+nspecies][id];
+    nMolecules2 = atom->dvector[isite2][id];
+    fractionOld2 = nMoleculesOld2/nTotalOld;
+    fraction2 = nMolecules2/nTotal;
   }
 
   if (isOneFluid(isite1) || isOneFluid(isite2)){
-    fractionOld  = 0.0;
-    fraction  = 0.0;
+    nMoleculesOFAold  = 0.0;
+    nMoleculesOFA  = 0.0;
+    fractionOFAold  = 0.0;
+    fractionOFA  = 0.0;
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++){
       if (isite1 == ispecies || isite2 == ispecies) continue;
-      fractionOld += atom->dvector[ispecies+nspecies][id] / nTotalOld;
-      fraction += atom->dvector[ispecies][id] / nTotal;
+      nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
+      nMoleculesOFA += atom->dvector[ispecies][id];
+      fractionOFAold += atom->dvector[ispecies+nspecies][id] / nTotalOld;
+      fractionOFA += atom->dvector[ispecies][id] / nTotal;
     }
     if (isOneFluid(isite1)){
-      fractionOld1 = fractionOld;
-      fraction1 = fraction;
+      nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld1 = fractionOFAold;
+      fraction1 = fractionOFA;
     }
     if (isOneFluid(isite2)){
-      fractionOld2 = fractionOld;
-      fraction2 = fraction;
+      nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
+      nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
+      fractionOld2 = fractionOFAold;
+      fraction2 = fractionOFA;
     }
+  }
+
+  if(fractionalWeighting){
+    mixWtSite1old = fractionOld1;
+    mixWtSite1 = fraction1;
+    mixWtSite2old = fractionOld2;
+    mixWtSite2 = fraction2;
+  } else {
+    mixWtSite1old = nMoleculesOld1;
+    mixWtSite1 = nMolecules1;
+    mixWtSite2old = nMoleculesOld2;
+    mixWtSite2 = nMolecules2;
   }
 }
 

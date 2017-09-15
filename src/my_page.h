@@ -57,10 +57,10 @@ namespace LAMMPS_NS {
 
 template<class T>
 class MyPage {
+ public:
   int ndatum;      // total # of stored datums
   int nchunk;      // total # of stored chunks
 
- public:
   MyPage() {
     ndatum = nchunk = 0;
     pages = NULL;

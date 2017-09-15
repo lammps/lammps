@@ -53,7 +53,7 @@ void AtomVecCharge::grow(int n)
   if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0)
+  if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");

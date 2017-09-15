@@ -798,6 +798,9 @@ void PairEDIP::coeff(int narg, char **arg)
     }
   }
 
+  if (nelements != 1)
+    error->all(FLERR,"Pair style edip only supports single element potentials");
+  
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
@@ -836,7 +839,7 @@ void PairEDIP::coeff(int narg, char **arg)
 void PairEDIP::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style EDIP requires newton pair on");
+    error->all(FLERR,"Pair style edip requires newton pair on");
 
   // need a full neighbor list
 
@@ -1034,7 +1037,7 @@ void PairEDIP::setup_params()
     if (rtmp > cutmax) cutmax = rtmp;
   }
 
-  // this should be removed for multi species parametrizations
+  // this should be removed for multi species parameterization
 
   A = params[0].A;
   B = params[0].B;

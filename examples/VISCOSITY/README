@@ -24,7 +24,7 @@ times; the G-K and Einstein systems need to run longer to generate good statisti
 
 The scripts were all run on a single processor.  They all run in a
 minute or so and produce the accompanying log files and profile files
-(for velocity or momemtum flux).
+(for velocity or momentum flux).
 
 See the Movies page of the LAMMPS web site
 (http://lammps.sandia.gov/movies.html), for animations of the NEMD
@@ -74,7 +74,7 @@ eta = 0.997 = running average output as last log file column
 
 eta is computed directly within the script, by performing a time
 integration of the formula discussed in Section 6.21 of the manual,
-analagous to the formula for thermal conductivity given on the compute
+analogous to the formula for thermal conductivity given on the compute
 heat/flux doc page - the resulting value prints at the end of the run
 and is in the log file
 
@@ -84,7 +84,7 @@ eta = 1.07
 
 eta is computed directly within the script, by performing a time
 integration of the formula discussed in Section 6.21 of the manual,
-analagous to the formula for thermal conductivity given on the compute
+analogous to the formula for thermal conductivity given on the compute
 heat/flux doc page - the resulting value prints at the end of the run
 and is in the log file
 

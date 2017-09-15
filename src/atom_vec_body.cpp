@@ -118,7 +118,7 @@ void AtomVecBody::grow(int n)
   if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0)
+  if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
@@ -847,6 +847,7 @@ void AtomVecBody::unpack_border(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = (int) ubuf(buf[m++]).i;
       bonus[j].ndouble = (int) ubuf(buf[m++]).i;
+      // corresponding put() calls are in clear_bonus()
       bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
       bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
@@ -897,6 +898,7 @@ void AtomVecBody::unpack_border_vel(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = (int) ubuf(buf[m++]).i;
       bonus[j].ndouble = (int) ubuf(buf[m++]).i;
+      // corresponding put() calls are in clear_bonus()
       bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
       bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
@@ -946,6 +948,7 @@ int AtomVecBody::unpack_border_hybrid(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = (int) ubuf(buf[m++]).i;
       bonus[j].ndouble = (int) ubuf(buf[m++]).i;
+      // corresponding put() calls are in clear_bonus()
       bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
       bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
@@ -1050,6 +1053,7 @@ int AtomVecBody::unpack_exchange(double *buf)
     inertia[2] = buf[m++];
     bonus[nlocal_bonus].ninteger = (int) ubuf(buf[m++]).i;
     bonus[nlocal_bonus].ndouble = (int) ubuf(buf[m++]).i;
+    // corresponding put() calls are in copy()
     bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
 					  bonus[nlocal_bonus].iindex);
     bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,

@@ -240,7 +240,7 @@ void cgsolve(
 
   double old_rdot = dot( count_owned , r , data_map.machine );
 
-  normr     = sqrt( old_rdot );
+  normr     = std::sqrt( old_rdot );
   iteration = 0 ;
 
   Kokkos::Timer wall_clock ;
@@ -262,7 +262,7 @@ void cgsolve(
 
     /* p = r + beta * p ; */ xpby( count_owned , r , beta , p );
 
-    normr = sqrt( old_rdot = r_dot );
+    normr = std::sqrt( old_rdot = r_dot );
     ++iteration ;
   }
 
@@ -276,7 +276,7 @@ void cgsolve(
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 #if ( CUDA_VERSION < 6000 )
 #pragma message "cusparse_v2.h"
@@ -391,7 +391,7 @@ public:
 } /* namespace Impl */
 } /* namespace Kokkos */
 
-#endif /* #if defined( KOKKOS_HAVE_CUDA ) */
+#endif /* #if defined( KOKKOS_ENABLE_CUDA ) */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

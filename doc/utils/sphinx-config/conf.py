@@ -299,4 +299,11 @@ more information about the code and its uses.
 
 epub_author = 'The LAMMPS Developers'
 
+# configure spelling extension if present
+import importlib.util
+spelling_spec = importlib.util.find_spec("sphinxcontrib.spelling")
+if spelling_spec:
+    extensions.append('sphinxcontrib.spelling')
 
+    spelling_lang='en_US'
+    spelling_word_list_filename='false_positives.txt'

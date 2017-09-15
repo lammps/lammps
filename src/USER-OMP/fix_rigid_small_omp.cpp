@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
+#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
 
 enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 

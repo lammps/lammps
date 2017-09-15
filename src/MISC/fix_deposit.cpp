@@ -234,7 +234,7 @@ void FixDeposit::init()
   fixrigid = NULL;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
-    if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
+    if (ifix < 0) error->all(FLERR,"Fix deposit rigid fix does not exist");
     fixrigid = modify->fix[ifix];
     int tmp;
     if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))

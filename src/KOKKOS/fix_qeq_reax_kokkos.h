@@ -146,7 +146,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
   double memory_usage();
 
  protected:
-  int inum,use_pair_list;
+  int inum;
   int allocated_flag;
 
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;
@@ -159,7 +159,8 @@ class FixQEqReaxKokkos : public FixQEqReax {
   //typename ArrayTypes<DeviceType>::t_float_1d_randomread mass, q;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
   typename ArrayTypes<DeviceType>::t_float_1d q;
-  typename ArrayTypes<DeviceType>::t_int_1d type, tag, mask;
+  typename ArrayTypes<DeviceType>::t_int_1d type, mask;
+  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
 
   DAT::tdual_float_1d k_q;
   typename AT::t_float_1d d_q;

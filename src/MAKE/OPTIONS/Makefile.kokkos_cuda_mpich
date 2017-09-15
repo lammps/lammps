@@ -7,13 +7,14 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-CC =		mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
+export MPICH_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
+CC =		mpicxx
 CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-LINKFLAGS =	-g -O
+LINK =		mpicxx
+LINKFLAGS =	-g -O3
 LIB = 
 SIZE =		size
 

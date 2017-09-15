@@ -34,11 +34,9 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
-  int twojmax, switchflag;
+  int twojmax, switchflag, bzeroflag;
   radelem = NULL;
   wjelem = NULL;
-
-  nvirial = 6;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -50,8 +48,11 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   diagonalstyle = 0;
   rmin0 = 0.0;
   switchflag = 1;
+  bzeroflag = 1;
+  quadraticflag = 0;
 
   // process required arguments
+  
   memory->create(radelem,ntypes+1,"sna/atom:radelem"); // offset by 1 to match up with types
   memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
   rcutfac = atof(arg[3]);
@@ -95,25 +96,45 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all(FLERR,"Illegal compute snav/atom command");
       switchflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal compute snav/atom command");
+      quadraticflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute snav/atom command");
   }
 
   snaptr = new SNA*[comm->nthreads];
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag)
+#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag,bzeroflag)
 #endif
   {
     int tid = omp_get_thread_num();
 
     // always unset use_shared_arrays since it does not work with computes
     snaptr[tid] = new SNA(lmp,rfac0,twojmax,diagonalstyle,
-                          0 /*use_shared_arrays*/, rmin0,switchflag);
+                          0 /*use_shared_arrays*/, rmin0,switchflag,bzeroflag);
   }
 
   ncoeff = snaptr[0]->ncoeff;
-  peratom_flag = 1;
-  size_peratom_cols = nvirial*ncoeff*atom->ntypes;
+  twoncoeff = 2*ncoeff;
+  threencoeff = 3*ncoeff;
+  fourncoeff = 4*ncoeff;
+  fivencoeff = 5*ncoeff;
+  sixncoeff = 6*ncoeff;
+  size_peratom_cols = sixncoeff*atom->ntypes;
+  if (quadraticflag) {
+    ncoeffq = ncoeff*ncoeff;
+    twoncoeffq = 2*ncoeffq;
+    threencoeffq = 3*ncoeffq;
+    fourncoeffq = 4*ncoeffq;
+    fivencoeffq = 5*ncoeffq;
+    sixncoeffq = 6*ncoeffq;
+    size_peratom_cols +=
+      sixncoeffq*atom->ntypes;
+  }
   comm_reverse = size_peratom_cols;
+  peratom_flag = 1;
 
   nmax = 0;
   njmax = 0;
@@ -230,7 +251,9 @@ void ComputeSNAVAtom::compute_peratom()
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
 
-      const int typeoffset = nvirial*ncoeff*(atom->type[i]-1);
+      const int typeoffset = sixncoeff*(atom->type[i]-1);
+      const int quadraticoffset = sixncoeff*atom->ntypes +
+        sixncoeffq*(atom->type[i]-1);
 
       // insure rij, inside, and typej  are of size jnum
 
@@ -264,6 +287,10 @@ void ComputeSNAVAtom::compute_peratom()
 
       snaptr[tid]->compute_ui(ninside);
       snaptr[tid]->compute_zi();
+      if (quadraticflag) {
+        snaptr[tid]->compute_bi();
+        snaptr[tid]->copy_bi2bvec();
+      }
 
       for (int jj = 0; jj < ninside; jj++) {
 	const int j = snaptr[tid]->inside[jj];
@@ -280,19 +307,55 @@ void ComputeSNAVAtom::compute_peratom()
 	double *snavj = snav[j]+typeoffset;
 
 	for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	  snavi[icoeff]          += snaptr[tid]->dbvec[icoeff][0]*xtmp;
-	  snavi[icoeff+ncoeff]   += snaptr[tid]->dbvec[icoeff][1]*ytmp;
-	  snavi[icoeff+2*ncoeff] += snaptr[tid]->dbvec[icoeff][2]*ztmp;
-	  snavi[icoeff+3*ncoeff] += snaptr[tid]->dbvec[icoeff][1]*ztmp;
-	  snavi[icoeff+4*ncoeff] += snaptr[tid]->dbvec[icoeff][0]*ztmp;
-	  snavi[icoeff+5*ncoeff] += snaptr[tid]->dbvec[icoeff][0]*ytmp;
-	  snavj[icoeff]          -= snaptr[tid]->dbvec[icoeff][0]*x[j][0];
-	  snavj[icoeff+ncoeff]   -= snaptr[tid]->dbvec[icoeff][1]*x[j][1];
-	  snavj[icoeff+2*ncoeff] -= snaptr[tid]->dbvec[icoeff][2]*x[j][2];
-	  snavj[icoeff+3*ncoeff] -= snaptr[tid]->dbvec[icoeff][1]*x[j][2];
-	  snavj[icoeff+4*ncoeff] -= snaptr[tid]->dbvec[icoeff][0]*x[j][2];
-	  snavj[icoeff+5*ncoeff] -= snaptr[tid]->dbvec[icoeff][0]*x[j][1];
+	  snavi[icoeff]             += snaptr[tid]->dbvec[icoeff][0]*xtmp;
+	  snavi[icoeff+ncoeff]      += snaptr[tid]->dbvec[icoeff][1]*ytmp;
+	  snavi[icoeff+twoncoeff]   += snaptr[tid]->dbvec[icoeff][2]*ztmp;
+	  snavi[icoeff+threencoeff] += snaptr[tid]->dbvec[icoeff][1]*ztmp;
+	  snavi[icoeff+fourncoeff]  += snaptr[tid]->dbvec[icoeff][0]*ztmp;
+	  snavi[icoeff+fivencoeff]  += snaptr[tid]->dbvec[icoeff][0]*ytmp;
+	  snavj[icoeff]             -= snaptr[tid]->dbvec[icoeff][0]*x[j][0];
+	  snavj[icoeff+ncoeff]      -= snaptr[tid]->dbvec[icoeff][1]*x[j][1];
+	  snavj[icoeff+twoncoeff]   -= snaptr[tid]->dbvec[icoeff][2]*x[j][2];
+	  snavj[icoeff+threencoeff] -= snaptr[tid]->dbvec[icoeff][1]*x[j][2];
+	  snavj[icoeff+fourncoeff]  -= snaptr[tid]->dbvec[icoeff][0]*x[j][2];
+	  snavj[icoeff+fivencoeff]  -= snaptr[tid]->dbvec[icoeff][0]*x[j][1];
 	}
+
+        if (quadraticflag) {
+          double *snavi = snav[i]+quadraticoffset;
+          double *snavj = snav[j]+quadraticoffset;
+          int ncount = 0;
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bi = snaptr[tid]->bvec[icoeff];
+            double bix = snaptr[tid]->dbvec[icoeff][0];
+            double biy = snaptr[tid]->dbvec[icoeff][1];
+            double biz = snaptr[tid]->dbvec[icoeff][2];
+
+            // upper-triangular elements of quadratic matrix
+          
+            for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++) {
+              double dbxtmp = bi*snaptr[tid]->dbvec[jcoeff][0]
+                + bix*snaptr[tid]->bvec[jcoeff];
+              double dbytmp = bi*snaptr[tid]->dbvec[jcoeff][1]
+                + biy*snaptr[tid]->bvec[jcoeff];
+              double dbztmp = bi*snaptr[tid]->dbvec[jcoeff][2]
+                + biz*snaptr[tid]->bvec[jcoeff];
+              snavi[ncount] +=               dbxtmp*xtmp;
+              snavi[ncount+ncoeffq] +=      dbytmp*ytmp;
+              snavi[ncount+twoncoeffq] +=   dbztmp*ztmp;
+              snavi[ncount+threencoeffq] += dbytmp*ztmp;
+              snavi[ncount+fourncoeffq] +=  dbxtmp*ztmp;
+              snavi[ncount+fivencoeffq] +=  dbxtmp*ytmp;
+              snavj[ncount] -=               dbxtmp*x[j][0];
+              snavj[ncount+ncoeffq] -=      dbytmp*x[j][1];
+              snavj[ncount+twoncoeffq] -=   dbztmp*x[j][2];
+              snavj[ncount+threencoeffq] -= dbytmp*x[j][2];
+              snavj[ncount+fourncoeffq] -=  dbxtmp*x[j][2];
+              snavj[ncount+fivencoeffq] -=  dbxtmp*x[j][1];
+              ncount++;
+            }
+          }
+        }
       }
     }
   }
@@ -340,7 +403,8 @@ double ComputeSNAVAtom::memory_usage()
   double bytes = nmax*size_peratom_cols * sizeof(double);
   bytes += 3*njmax*sizeof(double);
   bytes += njmax*sizeof(int);
-  bytes += ncoeff*nvirial;
+  bytes += sixncoeff*atom->ntypes;
+  if (quadraticflag) bytes += sixncoeffq*atom->ntypes;
   bytes += snaptr[0]->memory_usage()*comm->nthreads;
   return bytes;
 }

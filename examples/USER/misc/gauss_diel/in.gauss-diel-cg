@@ -1,0 +1,93 @@
+# Ionic surfactant system: S12S
+
+units           lj
+dimension       3
+atom_style      full
+
+read_data       data.gauss-diel
+
+pair_style      hybrid/overlay              &
+                lj/cut 3.5                  &
+                lj/cut/coul/long 8.0 18.0   &
+                gauss/cut 3.4               &
+                coul/diel 2.5
+pair_modify    shift yes
+
+dielectric      0.4255
+kspace_style    pppm/cg 0.0001
+kspace_modify   mesh 12 12 12 order 3
+
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  opls
+
+pair_coeff  1     1     lj/cut/coul/long 0.5 1.775 3.268        # HG   HG  
+pair_coeff  1     1     gauss/cut        0.1 2.549 0.1525           
+pair_coeff  1     2     lj/cut           0.31623 1.5329 1.7206  # HG   CM  
+pair_coeff  1     3     lj/cut           0.31623 1.5329 1.7206  # HG   CT  
+pair_coeff  1     4     lj/cut/coul/long 0.05 1.75 4.375        # HG   CI  
+pair_coeff  1     4     gauss/cut        0.2805 1.45 0.112 
+pair_coeff  1     4     coul/diel        78. 1.375 0.112 
+pair_coeff  2     2     lj/cut           0.2000 1.2910 3.2275   # CM   CM  
+pair_coeff  2     3     lj/cut           0.2000 1.2910 3.2275   # CM   CT  
+pair_coeff  2     4     lj/cut           0.4472 1.1455 1.28585  # CM   CI  
+pair_coeff  3     3     lj/cut           1.95 1.291 3.2275      # CT   CT  
+pair_coeff  3     4     lj/cut           0.4472 1.1455 1.28585  # CT   CI  
+pair_coeff  4     4     lj/cut/coul/long 1.0 10. 1.12246          # CI   CI 
+
+bond_coeff  1      12650.0000   0.7500 # HG CM FROM TOP
+bond_coeff  2      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  3      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  4      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  5      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  6      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  7      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  8      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  9      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  10     12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  11     12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  12     12650.0000   0.5000 # CM CT FROM TOP
+
+angle_coeff 1           85.7600 109.5000 # HG CM CM FROM TOP
+angle_coeff 2           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 3           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 4           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 5           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 6           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 7           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 8           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 9           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 10          85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 11          85.7600 111.0000 # CM CM CT FROM TOP
+
+dihedral_coeff 1     5.7431 -2.53241 5.0742 0.0 # HG CM CM CM FROM TOP
+dihedral_coeff 2     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 3     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 4     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 5     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 6     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 7     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 8     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 9     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 10    5.7431 -2.53241 5.0742 0.0 # CM CM CM CT FROM TOP
+
+timestep        0.002  
+
+reset_timestep  0
+
+group           cions type 4
+group           sds subtract all cions
+
+velocity        all create 1. 87287 dist gaussian
+
+neighbor        1.5 multi
+neigh_modify    exclude molecule/intra sds
+neigh_modify    every 5 delay 0 check yes
+
+fix             1 all nve/limit 0.2
+fix             2 all langevin 1.0 1.0 0.05 18273
+
+thermo_style    multi
+thermo          500
+
+run             2000

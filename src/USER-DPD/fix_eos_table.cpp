@@ -34,7 +34,6 @@ FixEOStable::FixEOStable(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), ntables(0), tables(NULL)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix eos/table command");
-  restart_peratom = 1;
   nevery = 1;
 
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
@@ -122,8 +121,8 @@ void FixEOStable::init()
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(dpdTheta[i],tmp);
-        uCond[i] = tmp / 2.0;
-        uMech[i] = tmp / 2.0;
+        uCond[i] = 0.0;
+        uMech[i] = tmp;
       }
   }
 }

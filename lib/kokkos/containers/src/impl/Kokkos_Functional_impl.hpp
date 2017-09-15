@@ -1,12 +1,12 @@
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,7 +35,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
@@ -43,7 +43,7 @@
 #define KOKKOS_FUNCTIONAL_IMPL_HPP
 
 #include <Kokkos_Macros.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace Kokkos { namespace Impl {
 
@@ -133,11 +133,11 @@ uint32_t MurmurHash3_x86_32 ( const void * key, int len, uint32_t seed )
     defined( __GNUG__ ) /* GNU C++ */ || \
     defined( __clang__ )
 
-#define KOKKOS_MAY_ALIAS __attribute__((__may_alias__))
+#define KOKKOS_IMPL_MAY_ALIAS __attribute__((__may_alias__))
 
 #else
 
-#define KOKKOS_MAY_ALIAS
+#define KOKKOS_IMPL_MAY_ALIAS
 
 #endif
 
@@ -145,10 +145,10 @@ template <typename T>
 KOKKOS_FORCEINLINE_FUNCTION
 bool bitwise_equal(T const * const a_ptr, T const * const b_ptr)
 {
-  typedef uint64_t KOKKOS_MAY_ALIAS T64;
-  typedef uint32_t KOKKOS_MAY_ALIAS T32;
-  typedef uint16_t KOKKOS_MAY_ALIAS T16;
-  typedef uint8_t  KOKKOS_MAY_ALIAS T8;
+  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;
+  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;
+  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;
+  typedef uint8_t  KOKKOS_IMPL_MAY_ALIAS T8;
 
   enum {
     NUM_8  = sizeof(T),
@@ -188,8 +188,9 @@ bool bitwise_equal(T const * const a_ptr, T const * const b_ptr)
 
 
 
-#undef KOKKOS_MAY_ALIAS
+#undef KOKKOS_IMPL_MAY_ALIAS
 
 }} // namespace Kokkos::Impl
 
 #endif //KOKKOS_FUNCTIONAL_IMPL_HPP
+

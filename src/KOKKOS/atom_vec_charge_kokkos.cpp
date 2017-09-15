@@ -236,7 +236,6 @@ int AtomVecChargeKokkos::pack_comm_kokkos(const int &n,
         Kokkos::parallel_for(n,f);
       }
     }
-    LMPHostType::fence();
   } else {
     sync(Device,X_MASK);
     if(pbc_flag) {
@@ -264,7 +263,6 @@ int AtomVecChargeKokkos::pack_comm_kokkos(const int &n,
         Kokkos::parallel_for(n,f);
       }
     }
-    LMPDeviceType::fence();
   }
 
 	return n*size_forward;
@@ -323,7 +321,7 @@ struct AtomVecChargeKokkos_PackCommSelf {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecChargeKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, const int & iswap,
-										const int nfirst, const int &pbc_flag, const int* const pbc) {
+                                        const int nfirst, const int &pbc_flag, const int* const pbc) {
   if(commKK->forward_comm_on_host) {
     sync(Host,X_MASK);
     modified(Host,X_MASK);
@@ -352,7 +350,6 @@ int AtomVecChargeKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &l
       Kokkos::parallel_for(n,f);
       }
     }
-    LMPHostType::fence();
   } else {
     sync(Device,X_MASK);
     modified(Device,X_MASK);
@@ -381,7 +378,6 @@ int AtomVecChargeKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &l
       Kokkos::parallel_for(n,f);
       }
     }
-    LMPDeviceType::fence();
   }
 	return n*3;
 }
@@ -419,13 +415,11 @@ void AtomVecChargeKokkos::unpack_comm_kokkos(const int &n, const int &first,
     modified(Host,X_MASK);
     struct AtomVecChargeKokkos_UnpackComm<LMPHostType> f(atomKK->k_x,buf,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   } else {
     sync(Device,X_MASK);
     modified(Device,X_MASK);
     struct AtomVecChargeKokkos_UnpackComm<LMPDeviceType> f(atomKK->k_x,buf,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   }
 }
 
@@ -631,17 +625,17 @@ struct AtomVecChargeKokkos_PackBorder {
           _buf(i,0) = _x(j,0);
           _buf(i,1) = _x(j,1);
           _buf(i,2) = _x(j,2);
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
           _buf(i,6) = _q(j);
       } else {
           _buf(i,0) = _x(j,0) + _dx;
           _buf(i,1) = _x(j,1) + _dy;
           _buf(i,2) = _x(j,2) + _dz;
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
           _buf(i,6) = _q(j);
       }
   }
@@ -669,13 +663,11 @@ int AtomVecChargeKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_q,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPHostType::fence();
     } else {
       AtomVecChargeKokkos_PackBorder<LMPDeviceType,1> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
         iswap,d_x,d_tag,d_type,d_mask,d_q,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPDeviceType::fence();
     }
 
   } else {
@@ -685,13 +677,11 @@ int AtomVecChargeKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_q,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPHostType::fence();
     } else {
       AtomVecChargeKokkos_PackBorder<LMPDeviceType,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
         iswap,d_x,d_tag,d_type,d_mask,d_q,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPDeviceType::fence();
     }
   }
   return n*size_border;
@@ -872,9 +862,9 @@ struct AtomVecChargeKokkos_UnpackBorder {
       _x(i+_first,0) = _buf(i,0);
       _x(i+_first,1) = _buf(i,1);
       _x(i+_first,2) = _buf(i,2);
-      _tag(i+_first) = static_cast<int> (_buf(i,3));
-      _type(i+_first) = static_cast<int>  (_buf(i,4));
-      _mask(i+_first) = static_cast<int>  (_buf(i,5));
+      _tag(i+_first) = (tagint) d_ubuf(_buf(i,3)).i;
+      _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
+      _mask(i+_first) = (int) d_ubuf(_buf(i,5)).i;
       _q(i+_first) = _buf(i,6);
   }
 };
@@ -890,12 +880,10 @@ void AtomVecChargeKokkos::unpack_border_kokkos(const int &n, const int &first,
     struct AtomVecChargeKokkos_UnpackBorder<LMPHostType>
       f(buf.view<LMPHostType>(),h_x,h_tag,h_type,h_mask,h_q,first);
     Kokkos::parallel_for(n,f);
-    LMPHostType::fence();
   } else {
     struct AtomVecChargeKokkos_UnpackBorder<LMPDeviceType>
       f(buf.view<LMPDeviceType>(),d_x,d_tag,d_type,d_mask,d_q,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   }
   modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
 }
@@ -1039,10 +1027,10 @@ struct AtomVecChargeKokkos_PackExchangeFunctor {
     _buf(mysend,4) = _v(i,0);
     _buf(mysend,5) = _v(i,1);
     _buf(mysend,6) = _v(i,2);
-    _buf(mysend,7) = _tag[i];
-    _buf(mysend,8) = _type[i];
-    _buf(mysend,9) = _mask[i];
-    _buf(mysend,10) = _image[i];
+    _buf(mysend,7) = d_ubuf(_tag[i]).d;
+    _buf(mysend,8) = d_ubuf(_type[i]).d;
+    _buf(mysend,9) = d_ubuf(_mask[i]).d;
+    _buf(mysend,10) = d_ubuf(_image[i]).d;
     _buf(mysend,11) = _q[i];
     const int j = _copylist(mysend);
 
@@ -1078,13 +1066,11 @@ int AtomVecChargeKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat
     AtomVecChargeKokkos_PackExchangeFunctor<LMPHostType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    LMPHostType::fence();
     return nsend*12;
   } else {
     AtomVecChargeKokkos_PackExchangeFunctor<LMPDeviceType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    LMPDeviceType::fence();
     return nsend*12;
   }
 }
@@ -1163,10 +1149,10 @@ struct AtomVecChargeKokkos_UnpackExchangeFunctor {
       _v(i,0) = _buf(myrecv,4);
       _v(i,1) = _buf(myrecv,5);
       _v(i,2) = _buf(myrecv,6);
-      _tag[i] = _buf(myrecv,7);
-      _type[i] = _buf(myrecv,8);
-      _mask[i] = _buf(myrecv,9);
-      _image[i] = _buf(myrecv,10);
+      _tag[i] = (tagint) d_ubuf(_buf(myrecv,7)).i;
+      _type[i] = (int) d_ubuf(_buf(myrecv,8)).i;
+      _mask[i] = (int) d_ubuf(_buf(myrecv,9)).i;
+      _image[i] = (imageint) d_ubuf(_buf(myrecv,10)).i;
       _q[i] = _buf(myrecv,11);
     }
   }
@@ -1181,7 +1167,6 @@ int AtomVecChargeKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int 
     k_count.h_view(0) = nlocal;
     AtomVecChargeKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
     Kokkos::parallel_for(nrecv/12,f);
-    LMPHostType::fence();
     return k_count.h_view(0);
   } else {
     k_count.h_view(0) = nlocal;
@@ -1190,7 +1175,6 @@ int AtomVecChargeKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int 
     AtomVecChargeKokkos_UnpackExchangeFunctor<LMPDeviceType>
       f(atomKK,k_buf,k_count,dim,lo,hi);
     Kokkos::parallel_for(nrecv/12,f);
-    LMPDeviceType::fence();
     k_count.modify<LMPDeviceType>();
     k_count.sync<LMPHostType>();
 
@@ -1314,7 +1298,7 @@ int AtomVecChargeKokkos::unpack_restart(double *buf)
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
-    int size = static_cast<int> (ubuf(buf[m++]).i) - m;
+    int size = static_cast<int> (buf[0]) - m;
     for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
   }
 

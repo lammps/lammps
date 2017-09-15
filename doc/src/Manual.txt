@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="30 Nov 2016 version">
+<META NAME="docnumber" CONTENT="1 Sep 2017 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-30 Nov 2016 version :c,h4
+1 Sep 2017 version :c,h4
 
 Version info: :h4
 
@@ -39,7 +39,7 @@ directory name created when you unpack a tarball, and at the top of
 the first page of the manual (this page).
 
 If you browse the HTML doc pages on the LAMMPS WWW site, they always
-describe the most current version of LAMMPS. :ulb,l
+describe the most current [development] version of LAMMPS. :ulb,l
 
 If you browse the HTML doc pages included in your tarball, they
 describe the version you have. :l
@@ -67,7 +67,7 @@ Labs and Temple University:
 
 "Steve Plimpton"_sjp, sjplimp at sandia.gov :ulb,l
 Aidan Thompson, athomps at sandia.gov :l
-Stan Moore, stamoore at sandia.gov :l
+Stan Moore, stamoor at sandia.gov :l
 "Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
 :ule
 
@@ -79,7 +79,7 @@ bug reports and feature requests are mainly coordinated through the
 "LAMMPS project on GitHub."_https://github.com/lammps/lammps
 The lammps.org domain, currently hosting "public continuous integration
 testing"_https://ci.lammps.org/job/lammps/ and "precompiled Linux
-RPM and Windows installer packages"_http://rpm.lammps.org is located
+RPM and Windows installer packages"_http://packages.lammps.org is located
 at Temple University and managed by Richard Berger,
 richard.berger at temple.edu.
 
@@ -158,12 +158,11 @@ END_RST -->
   2.1 "What's in the LAMMPS distribution"_start_1 :ulb,b
   2.2 "Making LAMMPS"_start_2 :b
   2.3 "Making LAMMPS with optional packages"_start_3 :b
-  2.4 "Building LAMMPS via the Make.py script"_start_4 :b
-  2.5 "Building LAMMPS as a library"_start_5 :b
-  2.6 "Running LAMMPS"_start_6 :b
-  2.7 "Command-line options"_start_7 :b
-  2.8 "Screen output"_start_8 :b
-  2.9 "Tips for users of previous versions"_start_9 :ule,b
+  2.4 "Building LAMMPS as a library"_start_4 :b
+  2.5 "Running LAMMPS"_start_5 :b
+  2.6 "Command-line options"_start_6 :b
+  2.7 "Screen output"_start_7 :b
+  2.8 "Tips for users of previous versions"_start_8 :ule,b
 "Commands"_Section_commands.html :l
   3.1 "LAMMPS input script"_cmd_1 :ulb,b
   3.2 "Parsing rules"_cmd_2 :b
@@ -262,7 +261,6 @@ END_RST -->
 :link(start_6,Section_start.html#start_6)
 :link(start_7,Section_start.html#start_7)
 :link(start_8,Section_start.html#start_8)
-:link(start_9,Section_start.html#start_9)
 
 :link(cmd_1,Section_commands.html#cmd_1)
 :link(cmd_2,Section_commands.html#cmd_2)

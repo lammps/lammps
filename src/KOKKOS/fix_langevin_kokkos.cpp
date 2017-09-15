@@ -177,11 +177,12 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
 
   // account for bias velocity
   if(tbiasflag == BIAS){
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
     temperature->compute_scalar();
     temperature->remove_bias_all(); // modifies velocities
     // if temeprature compute is kokkosized host-devcie comm won't be needed
-    atomKK->modified(Host,V_MASK);
-    atomKK->sync(execution_space,V_MASK);
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
   }
 
   // compute langevin force in parallel on the device
@@ -505,11 +506,12 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
               Kokkos::parallel_for(nlocal,post_functor);
             }
 
-  DeviceType::fence();
 
   if(tbiasflag == BIAS){
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
     temperature->restore_bias_all(); // modifies velocities
-    atomKK->modified(Host,V_MASK);
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
   }
 
   // set modify flags for the views modified in post_force functor
@@ -528,7 +530,6 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
     // set total force zero in parallel on the device
     FixLangevinKokkosZeroForceFunctor<DeviceType> zero_functor(this);
     Kokkos::parallel_for(nlocal,zero_functor);
-    DeviceType::fence();
   }
   // f is modified by both post_force and zero_force functors
   atomKK->modified(execution_space,datamask_modify);
@@ -723,7 +724,6 @@ double FixLangevinKokkos<DeviceType>::compute_scalar()
     k_flangevin.template sync<DeviceType>();
     FixLangevinKokkosTallyEnergyFunctor<DeviceType> scalar_functor(this);
     Kokkos::parallel_reduce(nlocal,scalar_functor,energy_onestep);
-    DeviceType::fence();
     energy = 0.5*energy_onestep*update->dt;
   }
 
@@ -767,7 +767,6 @@ void FixLangevinKokkos<DeviceType>::end_of_step()
   k_flangevin.template sync<DeviceType>();
   FixLangevinKokkosTallyEnergyFunctor<DeviceType> tally_functor(this);
   Kokkos::parallel_reduce(nlocal,tally_functor,energy_onestep);
-  DeviceType::fence();
 
   energy += energy_onestep*update->dt;
 }

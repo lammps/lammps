@@ -38,7 +38,7 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   npartner(NULL), partner(NULL), shearpartner(NULL), pair(NULL), 
   ipage(NULL), dpage(NULL)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY commmand");
+  if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY command");
 
   restart_peratom = 1;
   create_attribute = 1;
@@ -206,8 +206,8 @@ void FixShearHistory::pre_exchange_onesided()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -302,8 +302,8 @@ void FixShearHistory::pre_exchange_newton()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -389,7 +389,7 @@ void FixShearHistory::pre_exchange_newton()
 
   maxtouch = 0;
   for (i = 0; i < nlocal_neigh; i++) maxtouch = MAX(maxtouch,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxtouch+1);
+  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxtouch+1);
 
   // zero npartner values from previous nlocal_neigh to current nlocal
 
@@ -430,8 +430,8 @@ void FixShearHistory::pre_exchange_no_newton()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -526,7 +526,7 @@ double FixShearHistory::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
-  bytes += nmax * sizeof(int *);
+  bytes += nmax * sizeof(tagint *);
   bytes += nmax * sizeof(double *);
 
   int nmypage = comm->nthreads;
@@ -590,7 +590,7 @@ int FixShearHistory::pack_reverse_comm_size(int n, int first)
   last = first + n;
 
   for (i = first; i < last; i++)
-    m += 1 + 4*npartner[i];
+    m += 1 + (dnum+1)*npartner[i];
 
   return m;
 }

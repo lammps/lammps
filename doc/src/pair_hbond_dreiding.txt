@@ -101,13 +101,13 @@ pair_coeff settings for all possible I,J type pairs.  Only I,J type
 pairs for atoms which act as joint donors/acceptors need to be
 specified; all other type pairs are assumed to be inactive.
 
-NOTE: A "pair_coeff"_pair_coeff.html command can be speficied multiple
+NOTE: A "pair_coeff"_pair_coeff.html command can be specified multiple
 times for the same donor/acceptor type pair.  This enables multiple
 hydrogen types to be assigned to the same donor/acceptor type pair.
 For other pair_styles, if the pair_coeff command is re-used for the
 same I.J type pair, the settings for that type pair are overwritten.
 For the hydrogen bond potentials this is not the case; the settings
-are cummulative.  This means the only way to turn off a previous
+are cumulative.  This means the only way to turn off a previous
 setting, is to re-use the pair_style command and start over.
 
 For the {hbond/dreiding/lj} style the list of coefficients is as
@@ -178,7 +178,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

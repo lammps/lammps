@@ -34,7 +34,8 @@ class NeighList : protected Pointers {
   int occasional;                  // 0 if build every reneighbor, 1 if not
   int ghost;                       // 1 if list stores neighbors of ghosts
   int ssa;                         // 1 if list stores Shardlow data
-  int copy;                        // 1 if this list copied from another list
+  int copy;                        // 1 if this list is (host) copied from another list
+  int copymode;                    // 1 if this is a Kokkos on-device copy
   int dnum;                        // # of doubles per neighbor, 0 if none
 
   // data structs to store neighbor pairs I,J and associated values
@@ -45,6 +46,7 @@ class NeighList : protected Pointers {
   int *numneigh;                   // # of J neighbors for each I atom
   int **firstneigh;                // ptr to 1st J int value of each I atom
   double **firstdouble;            // ptr to 1st J double value of each I atom
+  int maxatom;                     // size of allocated per-atom arrays
 
   int pgsize;                      // size of each page
   int oneatom;                     // max size for one atom
@@ -59,15 +61,18 @@ class NeighList : protected Pointers {
 
   // settings and pointers for related neighbor lists and fixes
 
-  NeighList *listgranhistory;          // point at list storing shear history
-  class FixShearHistory *fix_history;  // fix that stores history info
+  NeighList *listcopy;          // me = copy list, point to list I copy from
+  NeighList *listskip;          // me = skip list, point to list I skip from
+  NeighList *listfull;          // me = half list, point to full I derive from
+
+  NeighList *listhistory;       // list storing neigh history
+  class Fix *fix_history;       // fix that stores history info
 
   int respamiddle;              // 1 if this respaouter has middle list
   NeighList *listinner;         // me = respaouter, point to respainner
   NeighList *listmiddle;        // me = respaouter, point to respamiddle
-  NeighList *listfull;          // me = half list, point to full I derive from
-  NeighList *listcopy;          // me = copy list, point to list I copy from
-  NeighList *listskip;          // me = skip list, point to list I skip from
+
+  class Fix *fix_bond;          // fix that stores bond info
 
   // Kokkos package
 
@@ -76,7 +81,8 @@ class NeighList : protected Pointers {
 
   // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
 
-  uint16_t (*ndxAIR_ssa)[8]; // for each atom, last neighbor index of each AIR
+  int AIRct_ssa[8]; // count of how many atoms in each AIR
+  class NPair *np;           // ptr to NPair instance I depend on
 
   // methods
 
@@ -88,9 +94,6 @@ class NeighList : protected Pointers {
   void print_attributes();              // debug routine
   int get_maxlocal() {return maxatom;}
   bigint memory_usage();
-
- protected:
-  int maxatom;                    // size of allocated per-atom arrays
 };
 
 }

@@ -17,6 +17,7 @@
 #include "error.h"
 #include "universe.h"
 #include "output.h"
+#include "input.h"
 
 using namespace LAMMPS_NS;
 
@@ -107,11 +108,18 @@ void Error::all(const char *file, int line, const char *str)
   MPI_Barrier(world);
 
   int me;
+  const char *lastcmd = (const char*)"(unknown)";
+
   MPI_Comm_rank(world,&me);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"ERROR: %s (%s:%d)\n",str,file,line);
-    if (logfile) fprintf(logfile,"ERROR: %s (%s:%d)\n",str,file,line);
+    if (input && input->line) lastcmd = input->line;
+    if (screen) fprintf(screen,"ERROR: %s (%s:%d)\n"
+		        "Last command: %s\n",
+                        str,file,line,lastcmd);
+    if (logfile) fprintf(logfile,"ERROR: %s (%s:%d)\n"
+		         "Last command: %s\n",
+                         str,file,line,lastcmd);
   }
 
 #ifdef LAMMPS_EXCEPTIONS

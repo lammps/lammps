@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Paul Crozier (SNL)
+   Contributing author: Christian Trott (SNL)
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -33,20 +33,13 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,RLINEAR,RSQ,BMP};
-enum{FULL,HALFTHREAD,HALF};
-
-#define MAXLINE 1024
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairTableKokkos<DeviceType>::PairTableKokkos(LAMMPS *lmp) : Pair(lmp)
+PairTableKokkos<DeviceType>::PairTableKokkos(LAMMPS *lmp) : PairTable(lmp)
 {
   update_table = 0;
   atomKK = (AtomKokkos *) atom;
-  ntables = 0;
-  tables = NULL;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -59,17 +52,12 @@ PairTableKokkos<DeviceType>::PairTableKokkos(LAMMPS *lmp) : Pair(lmp)
 template<class DeviceType>
 PairTableKokkos<DeviceType>::~PairTableKokkos()
 {
-/*  for (int m = 0; m < ntables; m++) free_table(&tables[m]);
-  memory->sfree(tables);
-
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
-    memory->destroy(tabindex);
-  }*/
+  if (copymode) return;
   delete h_table;
+  h_table = nullptr;
   delete d_table;
-
+  d_table = nullptr;
+  copymode = true; //prevents base class destructor from running
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,8 +86,21 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom) {
+    memory->destroy_kokkos(k_eatom,eatom);
+    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    d_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom) {
+    memory->destroy_kokkos(k_vatom,vatom);
+    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    d_vatom = k_vatom.view<DeviceType>();
+  }
 
   atomKK->sync(execution_space,datamask_read);
   //k_cutsq.template sync<DeviceType>();
@@ -177,7 +178,18 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.template sync<LMPHostType>();
+  }
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.template sync<LMPHostType>();
+  }
+
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
+
 }
 
 template<class DeviceType>
@@ -190,26 +202,15 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   union_int_float_t rsq_lookup;
   double fpair;
   const int tidx = d_table_const.tabindex(itype,jtype);
-  //const Table* const tb = &tables[tabindex[itype][jtype]];
-
-  //if (rsq < d_table_const.innersq(tidx))
-  //  error->one(FLERR,"Pair distance < table inner cutoff");
-
   if (Specialisation::TabStyle == LOOKUP) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     fpair = d_table_const.f(tidx,itable);
   } else if (Specialisation::TabStyle == LINEAR) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   } else if (Specialisation::TabStyle == SPLINE) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     const double a = 1.0 - b;
     fpair = a * d_table_const.f(tidx,itable) + b * d_table_const.f(tidx,itable+1) +
@@ -235,26 +236,15 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   double evdwl;
   union_int_float_t rsq_lookup;
   const int tidx = d_table_const.tabindex(itype,jtype);
-  //const Table* const tb = &tables[tabindex[itype][jtype]];
-
-  //if (rsq < d_table_const.innersq(tidx))
-  //  error->one(FLERR,"Pair distance < table inner cutoff");
-
   if (Specialisation::TabStyle == LOOKUP) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     evdwl = d_table_const.e(tidx,itable);
   } else if (Specialisation::TabStyle == LINEAR) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
   } else if (Specialisation::TabStyle == SPLINE) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    //if (itable >= tlm1)
-    //  error->one(FLERR,"Pair distance > table outer cutoff");
     const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     const double a = 1.0 - b;
     evdwl = a * d_table_const.e(tidx,itable) + b * d_table_const.e(tidx,itable+1) +
@@ -343,36 +333,69 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
 
 
   Kokkos::deep_copy(d_table->nshiftbits,h_table->nshiftbits);
-  Kokkos::deep_copy(d_table->nmask,h_table->nmask);
-  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
-  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
-  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
-  Kokkos::deep_copy(d_table->rsq,h_table->rsq);
-  Kokkos::deep_copy(d_table->drsq,h_table->drsq);
-  Kokkos::deep_copy(d_table->e,h_table->e);
-  Kokkos::deep_copy(d_table->de,h_table->de);
-  Kokkos::deep_copy(d_table->f,h_table->f);
-  Kokkos::deep_copy(d_table->df,h_table->df);
-  Kokkos::deep_copy(d_table->e2,h_table->e2);
-  Kokkos::deep_copy(d_table->f2,h_table->f2);
-  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
-
   d_table_const.nshiftbits = d_table->nshiftbits;
+  Kokkos::deep_copy(d_table->nmask,h_table->nmask);
   d_table_const.nmask = d_table->nmask;
+  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
   d_table_const.innersq = d_table->innersq;
+  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
   d_table_const.invdelta = d_table->invdelta;
+  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
   d_table_const.deltasq6 = d_table->deltasq6;
-  d_table_const.rsq = d_table->rsq;
-  d_table_const.drsq = d_table->drsq;
-  d_table_const.e = d_table->e;
-  d_table_const.de = d_table->de;
-  d_table_const.f = d_table->f;
-  d_table_const.df = d_table->df;
-  d_table_const.e2 = d_table->e2;
-  d_table_const.f2 = d_table->f2;
 
+  if(tabstyle == LOOKUP) {
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+  }
+
+  if(tabstyle == LINEAR) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->de,h_table->de);
+    d_table_const.de = d_table->de;
+    Kokkos::deep_copy(d_table->df,h_table->df);
+    d_table_const.df = d_table->df;
+  }
+
+  if(tabstyle == SPLINE) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->e2,h_table->e2);
+    d_table_const.e2 = d_table->e2;
+    Kokkos::deep_copy(d_table->f2,h_table->f2);
+    d_table_const.f2 = d_table->f2;
+  }
+
+  if(tabstyle == BITMAP) {
+    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    d_table_const.rsq = d_table->rsq;
+    Kokkos::deep_copy(d_table->e,h_table->e);
+    d_table_const.e = d_table->e;
+    Kokkos::deep_copy(d_table->f,h_table->f);
+    d_table_const.f = d_table->f;
+    Kokkos::deep_copy(d_table->de,h_table->de);
+    d_table_const.de = d_table->de;
+    Kokkos::deep_copy(d_table->df,h_table->df);
+    d_table_const.df = d_table->df;
+    Kokkos::deep_copy(d_table->drsq,h_table->drsq);
+    d_table_const.drsq = d_table->drsq;
+  }
 
   Kokkos::deep_copy(d_table->cutsq,h_table->cutsq);
+  d_table_const.cutsq = d_table->cutsq;
+  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
+  d_table_const.tabindex = d_table->tabindex;
+
   update_table = 0;
 }
 
@@ -389,9 +412,9 @@ void PairTableKokkos<DeviceType>::allocate()
   memory->create(setflag,nt,nt,"pair:setflag");
   memory->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
   memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
-
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
+
   memset(&setflag[0][0],0,nt*nt*sizeof(int));
   memset(&cutsq[0][0],0,nt*nt*sizeof(double));
   memset(&tabindex[0][0],0,nt*nt*sizeof(int));
@@ -452,85 +475,6 @@ void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::coeff(int narg, char **arg)
-{
-  if (narg != 4 && narg != 5) error->all(FLERR,"Illegal pair_coeff command");
-  if (!allocated) allocate();
-
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-
-  int me;
-  MPI_Comm_rank(world,&me);
-  tables = (Table *)
-    memory->srealloc(tables,(ntables+1)*sizeof(Table),"pair:tables");
-  Table *tb = &tables[ntables];
-  null_table(tb);
-  if (me == 0) read_table(tb,arg[2],arg[3]);
-  bcast_table(tb);
-
-  // set table cutoff
-
-  if (narg == 5) tb->cut = force->numeric(FLERR,arg[4]);
-  else if (tb->rflag) tb->cut = tb->rhi;
-  else tb->cut = tb->rfile[tb->ninput-1];
-
-  // error check on table parameters
-  // insure cutoff is within table
-  // for BITMAP tables, file values can be in non-ascending order
-
-  if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
-  double rlo,rhi;
-  if (tb->rflag == 0) {
-    rlo = tb->rfile[0];
-    rhi = tb->rfile[tb->ninput-1];
-  } else {
-    rlo = tb->rlo;
-    rhi = tb->rhi;
-  }
-  if (tb->cut <= rlo || tb->cut > rhi)
-    error->all(FLERR,"Invalid pair table cutoff");
-  if (rlo <= 0.0) error->all(FLERR,"Invalid pair table cutoff");
-
-  // match = 1 if don't need to spline read-in tables
-  // this is only the case if r values needed by final tables
-  //   exactly match r values read from file
-  // for tabstyle SPLINE, always need to build spline tables
-
-  tb->match = 0;
-  if (tabstyle == LINEAR && tb->ninput == tablength &&
-      tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
-  if (tabstyle == BITMAP && tb->ninput == 1 << tablength &&
-      tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
-  if (tb->rflag == BMP && tb->match == 0)
-    error->all(FLERR,"Bitmapped table in file does not match requested table");
-
-  // spline read-in values and compute r,e,f vectors within table
-
-  if (tb->match == 0) spline_table(tb);
-  compute_table(tb);
-
-  // store ptr to table in tabindex
-
-  int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      tabindex[i][j] = ntables;
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
-
-  if (count == 0) error->all(FLERR,"Illegal pair_coeff command");
-  ntables++;
-}
-
-/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -549,202 +493,6 @@ double PairTableKokkos<DeviceType>::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   read a table section from a tabulated potential file
-   only called by proc 0
-   this function sets these values in Table:
-     ninput,rfile,efile,ffile,rflag,rlo,rhi,fpflag,fplo,fphi,ntablebits
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::read_table(Table *tb, char *file, char *keyword)
-{
-  char line[MAXLINE];
-
-  // open file
-
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    char str[128];
-    sprintf(str,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
-
-  // loop until section found with matching keyword
-
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
-    param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
-  }
-
-  // read args on 2nd line of section
-  // allocate table arrays for file values
-
-  fgets(line,MAXLINE,fp);
-  param_extract(tb,line);
-  memory->create(tb->rfile,tb->ninput,"pair:rfile");
-  memory->create(tb->efile,tb->ninput,"pair:efile");
-  memory->create(tb->ffile,tb->ninput,"pair:ffile");
-
-  // setup bitmap parameters for table to read in
-
-  tb->ntablebits = 0;
-  int masklo,maskhi,nmask,nshiftbits;
-  if (tb->rflag == BMP) {
-    while (1 << tb->ntablebits < tb->ninput) tb->ntablebits++;
-    if (1 << tb->ntablebits != tb->ninput)
-      error->one(FLERR,"Bitmapped table is incorrect length in table file");
-    init_bitmap(tb->rlo,tb->rhi,tb->ntablebits,masklo,maskhi,nmask,nshiftbits);
-  }
-
-  // read r,e,f table values from file
-  // if rflag set, compute r
-  // if rflag not set, use r from file
-
-  int itmp;
-  double rtmp;
-  union_int_float_t rsq_lookup;
-
-  fgets(line,MAXLINE,fp);
-  for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg %lg %lg",&itmp,&rtmp,&tb->efile[i],&tb->ffile[i]);
-
-    if (tb->rflag == RLINEAR)
-      rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
-    else if (tb->rflag == RSQ) {
-      rtmp = tb->rlo*tb->rlo +
-        (tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
-      rtmp = sqrt(rtmp);
-    } else if (tb->rflag == BMP) {
-      rsq_lookup.i = i << nshiftbits;
-      rsq_lookup.i |= masklo;
-      if (rsq_lookup.f < tb->rlo*tb->rlo) {
-        rsq_lookup.i = i << nshiftbits;
-        rsq_lookup.i |= maskhi;
-      }
-      rtmp = sqrtf(rsq_lookup.f);
-    }
-
-    tb->rfile[i] = rtmp;
-  }
-
-  // close file
-
-  fclose(fp);
-}
-
-/* ----------------------------------------------------------------------
-   broadcast read-in table info from proc 0 to other procs
-   this function communicates these values in Table:
-     ninput,rfile,efile,ffile,rflag,rlo,rhi,fpflag,fplo,fphi
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::bcast_table(Table *tb)
-{
-  MPI_Bcast(&tb->ninput,1,MPI_INT,0,world);
-
-  int me;
-  MPI_Comm_rank(world,&me);
-  if (me > 0) {
-    memory->create(tb->rfile,tb->ninput,"pair:rfile");
-    memory->create(tb->efile,tb->ninput,"pair:efile");
-    memory->create(tb->ffile,tb->ninput,"pair:ffile");
-  }
-
-  MPI_Bcast(tb->rfile,tb->ninput,MPI_DOUBLE,0,world);
-  MPI_Bcast(tb->efile,tb->ninput,MPI_DOUBLE,0,world);
-  MPI_Bcast(tb->ffile,tb->ninput,MPI_DOUBLE,0,world);
-
-  MPI_Bcast(&tb->rflag,1,MPI_INT,0,world);
-  if (tb->rflag) {
-    MPI_Bcast(&tb->rlo,1,MPI_DOUBLE,0,world);
-    MPI_Bcast(&tb->rhi,1,MPI_DOUBLE,0,world);
-  }
-  MPI_Bcast(&tb->fpflag,1,MPI_INT,0,world);
-  if (tb->fpflag) {
-    MPI_Bcast(&tb->fplo,1,MPI_DOUBLE,0,world);
-    MPI_Bcast(&tb->fphi,1,MPI_DOUBLE,0,world);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   build spline representation of e,f over entire range of read-in table
-   this function sets these values in Table: e2file,f2file
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::spline_table(Table *tb)
-{
-  memory->create(tb->e2file,tb->ninput,"pair:e2file");
-  memory->create(tb->f2file,tb->ninput,"pair:f2file");
-
-  double ep0 = - tb->ffile[0];
-  double epn = - tb->ffile[tb->ninput-1];
-  spline(tb->rfile,tb->efile,tb->ninput,ep0,epn,tb->e2file);
-
-  if (tb->fpflag == 0) {
-    tb->fplo = (tb->ffile[1] - tb->ffile[0]) / (tb->rfile[1] - tb->rfile[0]);
-    tb->fphi = (tb->ffile[tb->ninput-1] - tb->ffile[tb->ninput-2]) /
-      (tb->rfile[tb->ninput-1] - tb->rfile[tb->ninput-2]);
-  }
-
-  double fp0 = tb->fplo;
-  double fpn = tb->fphi;
-  spline(tb->rfile,tb->ffile,tb->ninput,fp0,fpn,tb->f2file);
-}
-
-/* ----------------------------------------------------------------------
-   extract attributes from parameter line in table section
-   format of line: N value R/RSQ/BITMAP lo hi FP fplo fphi
-   N is required, other params are optional
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::param_extract(Table *tb, char *line)
-{
-  tb->ninput = 0;
-  tb->rflag = NONE;
-  tb->fpflag = 0;
-
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->ninput = atoi(word);
-    } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0 ||
-               strcmp(word,"BITMAP") == 0) {
-      if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
-      else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
-      else if (strcmp(word,"BITMAP") == 0) tb->rflag = BMP;
-      word = strtok(NULL," \t\n\r\f");
-      tb->rlo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->rhi = atof(word);
-    } else if (strcmp(word,"FP") == 0) {
-      tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
-      tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->fphi = atof(word);
-    } else {
-      error->one(FLERR,"Invalid keyword in pair table parameters");
-    }
-    word = strtok(NULL," \t\n\r\f");
-  }
-
-  if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");
-}
-
-/* ----------------------------------------------------------------------
    compute r,e,f vectors from splined values
 ------------------------------------------------------------------------- */
 
@@ -752,471 +500,7 @@ template<class DeviceType>
 void PairTableKokkos<DeviceType>::compute_table(Table *tb)
 {
   update_table = 1;
-  int tlm1 = tablength-1;
-
-  // inner = inner table bound
-  // cut = outer table bound
-  // delta = table spacing in rsq for N-1 bins
-
-  double inner;
-  if (tb->rflag) inner = tb->rlo;
-  else inner = tb->rfile[0];
-  tb->innersq = inner*inner;
-  tb->delta = (tb->cut*tb->cut - tb->innersq) / tlm1;
-  tb->invdelta = 1.0/tb->delta;
-
-  // direct lookup tables
-  // N-1 evenly spaced bins in rsq from inner to cut
-  // e,f = value at midpt of bin
-  // e,f are N-1 in length since store 1 value at bin midpt
-  // f is converted to f/r when stored in f[i]
-  // e,f are never a match to read-in values, always computed via spline interp
-
-  if (tabstyle == LOOKUP) {
-    memory->create(tb->e,tlm1,"pair:e");
-    memory->create(tb->f,tlm1,"pair:f");
-
-    double r,rsq;
-    for (int i = 0; i < tlm1; i++) {
-      rsq = tb->innersq + (i+0.5)*tb->delta;
-      r = sqrt(rsq);
-      tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-      tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
-    }
-  }
-
-  // linear tables
-  // N-1 evenly spaced bins in rsq from inner to cut
-  // rsq,e,f = value at lower edge of bin
-  // de,df values = delta from lower edge to upper edge of bin
-  // rsq,e,f are N in length so de,df arrays can compute difference
-  // f is converted to f/r when stored in f[i]
-  // e,f can match read-in values, else compute via spline interp
-
-  if (tabstyle == LINEAR) {
-    memory->create(tb->rsq,tablength,"pair:rsq");
-    memory->create(tb->e,tablength,"pair:e");
-    memory->create(tb->f,tablength,"pair:f");
-    memory->create(tb->de,tlm1,"pair:de");
-    memory->create(tb->df,tlm1,"pair:df");
-
-    double r,rsq;
-    for (int i = 0; i < tablength; i++) {
-      rsq = tb->innersq + i*tb->delta;
-      r = sqrt(rsq);
-      tb->rsq[i] = rsq;
-      if (tb->match) {
-        tb->e[i] = tb->efile[i];
-        tb->f[i] = tb->ffile[i]/r;
-      } else {
-        tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-        tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
-      }
-    }
-
-    for (int i = 0; i < tlm1; i++) {
-      tb->de[i] = tb->e[i+1] - tb->e[i];
-      tb->df[i] = tb->f[i+1] - tb->f[i];
-    }
-  }
-
-  // cubic spline tables
-  // N-1 evenly spaced bins in rsq from inner to cut
-  // rsq,e,f = value at lower edge of bin
-  // e2,f2 = spline coefficient for each bin
-  // rsq,e,f,e2,f2 are N in length so have N-1 spline bins
-  // f is converted to f/r after e is splined
-  // e,f can match read-in values, else compute via spline interp
-
-  if (tabstyle == SPLINE) {
-    memory->create(tb->rsq,tablength,"pair:rsq");
-    memory->create(tb->e,tablength,"pair:e");
-    memory->create(tb->f,tablength,"pair:f");
-    memory->create(tb->e2,tablength,"pair:e2");
-    memory->create(tb->f2,tablength,"pair:f2");
-
-    tb->deltasq6 = tb->delta*tb->delta / 6.0;
-
-    double r,rsq;
-    for (int i = 0; i < tablength; i++) {
-      rsq = tb->innersq + i*tb->delta;
-      r = sqrt(rsq);
-      tb->rsq[i] = rsq;
-      if (tb->match) {
-        tb->e[i] = tb->efile[i];
-        tb->f[i] = tb->ffile[i]/r;
-      } else {
-        tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-        tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r);
-      }
-    }
-
-    // ep0,epn = dh/dg at inner and at cut
-    // h(r) = e(r) and g(r) = r^2
-    // dh/dg = (de/dr) / 2r = -f/2r
-
-    double ep0 = - tb->f[0] / (2.0 * sqrt(tb->innersq));
-    double epn = - tb->f[tlm1] / (2.0 * tb->cut);
-    spline(tb->rsq,tb->e,tablength,ep0,epn,tb->e2);
-
-    // fp0,fpn = dh/dg at inner and at cut
-    // h(r) = f(r)/r and g(r) = r^2
-    // dh/dg = (1/r df/dr - f/r^2) / 2r
-    // dh/dg in secant approx = (f(r2)/r2 - f(r1)/r1) / (g(r2) - g(r1))
-
-    double fp0,fpn;
-    double secant_factor = 0.1;
-    if (tb->fpflag) fp0 = (tb->fplo/sqrt(tb->innersq) - tb->f[0]/tb->innersq) /
-      (2.0 * sqrt(tb->innersq));
-    else {
-      double rsq1 = tb->innersq;
-      double rsq2 = rsq1 + secant_factor*tb->delta;
-      fp0 = (splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,sqrt(rsq2)) /
-             sqrt(rsq2) - tb->f[0] / sqrt(rsq1)) / (secant_factor*tb->delta);
-    }
-
-    if (tb->fpflag && tb->cut == tb->rfile[tb->ninput-1]) fpn =
-      (tb->fphi/tb->cut - tb->f[tlm1]/(tb->cut*tb->cut)) / (2.0 * tb->cut);
-    else {
-      double rsq2 = tb->cut * tb->cut;
-      double rsq1 = rsq2 - secant_factor*tb->delta;
-      fpn = (tb->f[tlm1] / sqrt(rsq2) -
-             splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,sqrt(rsq1)) /
-             sqrt(rsq1)) / (secant_factor*tb->delta);
-    }
-
-    for (int i = 0; i < tablength; i++) tb->f[i] /= sqrt(tb->rsq[i]);
-    spline(tb->rsq,tb->f,tablength,fp0,fpn,tb->f2);
-  }
-
-  // bitmapped linear tables
-  // 2^N bins from inner to cut, spaced in bitmapped manner
-  // f is converted to f/r when stored in f[i]
-  // e,f can match read-in values, else compute via spline interp
-
-  if (tabstyle == BITMAP) {
-    double r;
-    union_int_float_t rsq_lookup;
-    int masklo,maskhi;
-
-    // linear lookup tables of length ntable = 2^n
-    // stored value = value at lower edge of bin
-
-    init_bitmap(inner,tb->cut,tablength,masklo,maskhi,tb->nmask,tb->nshiftbits);
-    int ntable = 1 << tablength;
-    int ntablem1 = ntable - 1;
-
-    memory->create(tb->rsq,ntable,"pair:rsq");
-    memory->create(tb->e,ntable,"pair:e");
-    memory->create(tb->f,ntable,"pair:f");
-    memory->create(tb->de,ntable,"pair:de");
-    memory->create(tb->df,ntable,"pair:df");
-    memory->create(tb->drsq,ntable,"pair:drsq");
-
-    union_int_float_t minrsq_lookup;
-    minrsq_lookup.i = 0 << tb->nshiftbits;
-    minrsq_lookup.i |= maskhi;
-
-    for (int i = 0; i < ntable; i++) {
-      rsq_lookup.i = i << tb->nshiftbits;
-      rsq_lookup.i |= masklo;
-      if (rsq_lookup.f < tb->innersq) {
-        rsq_lookup.i = i << tb->nshiftbits;
-        rsq_lookup.i |= maskhi;
-      }
-      r = sqrtf(rsq_lookup.f);
-      tb->rsq[i] = rsq_lookup.f;
-      if (tb->match) {
-        tb->e[i] = tb->efile[i];
-        tb->f[i] = tb->ffile[i]/r;
-      } else {
-        tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-        tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
-      }
-      minrsq_lookup.f = MIN(minrsq_lookup.f,rsq_lookup.f);
-    }
-
-    tb->innersq = minrsq_lookup.f;
-
-    for (int i = 0; i < ntablem1; i++) {
-      tb->de[i] = tb->e[i+1] - tb->e[i];
-      tb->df[i] = tb->f[i+1] - tb->f[i];
-      tb->drsq[i] = 1.0/(tb->rsq[i+1] - tb->rsq[i]);
-    }
-
-    // get the delta values for the last table entries
-    // tables are connected periodically between 0 and ntablem1
-
-    tb->de[ntablem1] = tb->e[0] - tb->e[ntablem1];
-    tb->df[ntablem1] = tb->f[0] - tb->f[ntablem1];
-    tb->drsq[ntablem1] = 1.0/(tb->rsq[0] - tb->rsq[ntablem1]);
-
-    // get the correct delta values at itablemax
-    // smallest r is in bin itablemin
-    // largest r is in bin itablemax, which is itablemin-1,
-    //   or ntablem1 if itablemin=0
-
-    // deltas at itablemax only needed if corresponding rsq < cut*cut
-    // if so, compute deltas between rsq and cut*cut
-    //   if tb->match, data at cut*cut is unavailable, so we'll take
-    //   deltas at itablemax-1 as a good approximation
-
-    double e_tmp,f_tmp;
-    int itablemin = minrsq_lookup.i & tb->nmask;
-    itablemin >>= tb->nshiftbits;
-    int itablemax = itablemin - 1;
-    if (itablemin == 0) itablemax = ntablem1;
-    int itablemaxm1 = itablemax - 1;
-    if (itablemax == 0) itablemaxm1 = ntablem1;
-    rsq_lookup.i = itablemax << tb->nshiftbits;
-    rsq_lookup.i |= maskhi;
-    if (rsq_lookup.f < tb->cut*tb->cut) {
-      if (tb->match) {
-        tb->de[itablemax] = tb->de[itablemaxm1];
-        tb->df[itablemax] = tb->df[itablemaxm1];
-        tb->drsq[itablemax] = tb->drsq[itablemaxm1];
-      } else {
-            rsq_lookup.f = tb->cut*tb->cut;
-        r = sqrtf(rsq_lookup.f);
-        e_tmp = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-        f_tmp = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
-        tb->de[itablemax] = e_tmp - tb->e[itablemax];
-        tb->df[itablemax] = f_tmp - tb->f[itablemax];
-        tb->drsq[itablemax] = 1.0/(rsq_lookup.f - tb->rsq[itablemax]);
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   set all ptrs in a table to NULL, so can be freed safely
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::null_table(Table *tb)
-{
-  tb->rfile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->rsq = tb->drsq = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
-}
-
-/* ----------------------------------------------------------------------
-   free all arrays in a table
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::free_table(Table *tb)
-{
-  memory->destroy(tb->rfile);
-  memory->destroy(tb->efile);
-  memory->destroy(tb->ffile);
-  memory->destroy(tb->e2file);
-  memory->destroy(tb->f2file);
-
-  memory->destroy(tb->rsq);
-  memory->destroy(tb->drsq);
-  memory->destroy(tb->e);
-  memory->destroy(tb->de);
-  memory->destroy(tb->f);
-  memory->destroy(tb->df);
-  memory->destroy(tb->e2);
-  memory->destroy(tb->f2);
-}
-
-/* ----------------------------------------------------------------------
-   spline and splint routines modified from Numerical Recipes
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::spline(double *x, double *y, int n,
-                       double yp1, double ypn, double *y2)
-{
-  int i,k;
-  double p,qn,sig,un;
-  double *u = new double[n];
-
-  if (yp1 > 0.99e30) y2[0] = u[0] = 0.0;
-  else {
-    y2[0] = -0.5;
-    u[0] = (3.0/(x[1]-x[0])) * ((y[1]-y[0]) / (x[1]-x[0]) - yp1);
-  }
-  for (i = 1; i < n-1; i++) {
-    sig = (x[i]-x[i-1]) / (x[i+1]-x[i-1]);
-    p = sig*y2[i-1] + 2.0;
-    y2[i] = (sig-1.0) / p;
-    u[i] = (y[i+1]-y[i]) / (x[i+1]-x[i]) - (y[i]-y[i-1]) / (x[i]-x[i-1]);
-    u[i] = (6.0*u[i] / (x[i+1]-x[i-1]) - sig*u[i-1]) / p;
-  }
-  if (ypn > 0.99e30) qn = un = 0.0;
-  else {
-    qn = 0.5;
-    un = (3.0/(x[n-1]-x[n-2])) * (ypn - (y[n-1]-y[n-2]) / (x[n-1]-x[n-2]));
-  }
-  y2[n-1] = (un-qn*u[n-2]) / (qn*y2[n-2] + 1.0);
-  for (k = n-2; k >= 0; k--) y2[k] = y2[k]*y2[k+1] + u[k];
-
-  delete [] u;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-double PairTableKokkos<DeviceType>::splint(double *xa, double *ya, double *y2a, int n, double x)
-{
-  int klo,khi,k;
-  double h,b,a,y;
-
-  klo = 0;
-  khi = n-1;
-  while (khi-klo > 1) {
-    k = (khi+klo) >> 1;
-    if (xa[k] > x) khi = k;
-    else klo = k;
-  }
-  h = xa[khi]-xa[klo];
-  a = (xa[khi]-x) / h;
-  b = (x-xa[klo]) / h;
-  y = a*ya[klo] + b*ya[khi] +
-    ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
-  return y;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes to restart file
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::write_restart(FILE *fp)
-{
-  write_restart_settings(fp);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::read_restart(FILE *fp)
-{
-  read_restart_settings(fp);
-  allocate();
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes to restart file
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::write_restart_settings(FILE *fp)
-{
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
-  fwrite(&ewaldflag,sizeof(int),1,fp);
-  fwrite(&pppmflag,sizeof(int),1,fp);
-  fwrite(&msmflag,sizeof(int),1,fp);
-  fwrite(&dispersionflag,sizeof(int),1,fp);
-  fwrite(&tip4pflag,sizeof(int),1,fp);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::read_restart_settings(FILE *fp)
-{
-  if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
-    fread(&ewaldflag,sizeof(int),1,fp);
-    fread(&pppmflag,sizeof(int),1,fp);
-    fread(&msmflag,sizeof(int),1,fp);
-    fread(&dispersionflag,sizeof(int),1,fp);
-    fread(&tip4pflag,sizeof(int),1,fp);
-  }
-  MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
-  MPI_Bcast(&tablength,1,MPI_INT,0,world);
-  MPI_Bcast(&ewaldflag,1,MPI_INT,0,world);
-  MPI_Bcast(&pppmflag,1,MPI_INT,0,world);
-  MPI_Bcast(&msmflag,1,MPI_INT,0,world);
-  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
-  MPI_Bcast(&tip4pflag,1,MPI_INT,0,world);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-double PairTableKokkos<DeviceType>::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
-                         double &fforce)
-{
-  int itable;
-  double fraction,value,a,b,phi;
-  int tlm1 = tablength - 1;
-
-  Table *tb = &tables[tabindex[itype][jtype]];
-  if (rsq < tb->innersq) error->one(FLERR,"Pair distance < table inner cutoff");
-
-  if (tabstyle == LOOKUP) {
-    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
-    fforce = factor_lj * tb->f[itable];
-  } else if (tabstyle == LINEAR) {
-    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
-    fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
-    value = tb->f[itable] + fraction*tb->df[itable];
-    fforce = factor_lj * value;
-  } else if (tabstyle == SPLINE) {
-    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
-    b = (rsq - tb->rsq[itable]) * tb->invdelta;
-    a = 1.0 - b;
-    value = a * tb->f[itable] + b * tb->f[itable+1] +
-      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
-      tb->deltasq6;
-    fforce = factor_lj * value;
-  } else {
-    union_int_float_t rsq_lookup;
-    rsq_lookup.f = rsq;
-    itable = rsq_lookup.i & tb->nmask;
-    itable >>= tb->nshiftbits;
-    fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
-    value = tb->f[itable] + fraction*tb->df[itable];
-    fforce = factor_lj * value;
-  }
-
-  if (tabstyle == LOOKUP)
-    phi = tb->e[itable];
-  else if (tabstyle == LINEAR || tabstyle == BITMAP)
-    phi = tb->e[itable] + fraction*tb->de[itable];
-  else
-    phi = a * tb->e[itable] + b * tb->e[itable+1] +
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
-  return factor_lj*phi;
-}
-
-/* ----------------------------------------------------------------------
-   return the Coulomb cutoff for tabled potentials
-   called by KSpace solvers which require that all pairwise cutoffs be the same
-   loop over all tables not just those indexed by tabindex[i][j] since
-     no way to know which tables are active since pair::init() not yet called
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void *PairTableKokkos<DeviceType>::extract(const char *str, int &dim)
-{
-  if (strcmp(str,"cut_coul") != 0) return NULL;
-  if (ntables == 0) error->all(FLERR,"All pair coeffs are not set");
-
-  double cut_coul = tables[0].cut;
-  for (int m = 1; m < ntables; m++)
-    if (tables[m].cut != cut_coul)
-      error->all(FLERR,
-                 "Pair table cutoffs must all be equal to use with KSpace");
-  dim = 0;
-  return &tables[0].cut;
+  PairTable::compute_table(tb);
 }
 
 template<class DeviceType>
@@ -1246,91 +530,6 @@ void PairTableKokkos<DeviceType>::init_style()
   }
 }
 
-/*
-template <class DeviceType> template<int NEIGHFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairTableKokkos<DeviceType>::
-ev_tally(EV_FLOAT &ev, const int &i, const int &j, const F_FLOAT &fpair,
-         const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
-{
-  const int EFLAG = eflag;
-  const int NEWTON_PAIR = newton_pair;
-  const int VFLAG = vflag_either;
-
-  if (EFLAG) {
-    if (eflag_atom) {
-      E_FLOAT epairhalf = 0.5 * (ev.evdwl + ev.ecoul);
-      if (NEWTON_PAIR || i < nlocal) eatom[i] += epairhalf;
-      if (NEWTON_PAIR || j < nlocal) eatom[j] += epairhalf;
-    }
-  }
-
-  if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
-
-    if (vflag_global) {
-      if (NEIGHFLAG) {
-        if (NEWTON_PAIR) {
-          ev.v[0] += v0;
-          ev.v[1] += v1;
-          ev.v[2] += v2;
-          ev.v[3] += v3;
-          ev.v[4] += v4;
-          ev.v[5] += v5;
-        } else {
-          if (i < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-          if (j < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-        }
-      } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
-    }
-
-    if (vflag_atom) {
-      if (NEWTON_PAIR || i < nlocal) {
-        d_vatom(i,0) += 0.5*v0;
-        d_vatom(i,1) += 0.5*v1;
-        d_vatom(i,2) += 0.5*v2;
-        d_vatom(i,3) += 0.5*v3;
-        d_vatom(i,4) += 0.5*v4;
-        d_vatom(i,5) += 0.5*v5;
-      }
-      if (NEWTON_PAIR || (NEIGHFLAG && j < nlocal)) {
-        d_vatom(j,0) += 0.5*v0;
-        d_vatom(j,1) += 0.5*v1;
-        d_vatom(j,2) += 0.5*v2;
-        d_vatom(j,3) += 0.5*v3;
-        d_vatom(j,4) += 0.5*v4;
-        d_vatom(j,5) += 0.5*v5;
-      }
-    }
-  }
-}
-*/
 template<class DeviceType>
 void PairTableKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays

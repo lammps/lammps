@@ -464,7 +464,7 @@ the angletype option can only be assigned to a "fix style" of "shake",
   entirely rigid (e.g. water)
 the angletype option enables an additional check when SHAKE constraints
   are computed: if a cluster is of size 3 and both bonds in
-  the cluster are of a bondtype specified by the 2nd paramter of
+  the cluster are of a bondtype specified by the 2nd parameter of
   angletype, then the cluster is SHAKEn with an additional angle
   constraint that makes it rigid, using the equilibrium angle appropriate
   to the specified angletype
@@ -476,7 +476,7 @@ IMPORTANT NOTE: the angletype option has one additional affect, namely
   since they will not be SHAKEn but neither will the angle force by computed
 for style region, a coeff of INF means + or - infinity (all the way 
   to the boundary)
-an atom can be assigned to multiple constraints, the contraints will be
+an atom can be assigned to multiple constraints, the constraints will be
   applied in the reverse order they are assigned to that atom
   (e.g. each timestep, the last fix assigned to an atom will be applied 
   to it first, then the next-to-last applied second, etc)
@@ -689,7 +689,7 @@ coeffs:  types
          remainder
                no other parameters required
        
-used with &quot;create temp&quot; commmand to initialize velocities of atoms
+used with &quot;create temp&quot; command to initialize velocities of atoms
 by default, the &quot;create temp&quot; command initializes the velocities of all atoms,
   this command limits the initialization to a group of atoms
 this command is only in force for the next &quot;create temp&quot; command, any
@@ -1263,7 +1263,7 @@ when using constraints with the minimizer, fixes are
   applied when atoms move except for the following
 fixes associated with temperature control are not allowed
   (rescale, hoover/drag, langevin)
-the minimizer does not invoke the &quot;fix style shake&quot; contraints on
+the minimizer does not invoke the &quot;fix style shake&quot; constraints on
   bond lengths
 the minimizer does not invoke pressure control or volume control settings
 for good convergence, should specify use of smooth nonbond force fields 
@@ -1566,7 +1566,7 @@ mesh dimensions that are power-of-two are fastest for FFTs, but any sizes
   can be used that are supported by native machine libraries
 this command is optional - if not used, a default
   mesh size will be chosen to satisfy accuracy criterion - if used, the
-  specifed mesh size will override the default
+  specified mesh size will override the default
 </PRE>
 <HR>
 <H3>
@@ -1788,7 +1788,7 @@ if the style is 2, restart information will be written alternately to files
 when the minimizer is invoked this command means create a restart file
   at the end of the minimization with the filename filename.timestep.min
 a restart file stores atom and force-field information in binary form
-allows program to restart from where it left off (see &quot;read restart&quot; commmand)
+allows program to restart from where it left off (see &quot;read restart&quot; command)
 
 Default = 0
 </PRE>

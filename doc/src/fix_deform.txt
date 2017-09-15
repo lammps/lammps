@@ -557,7 +557,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -565,8 +565,10 @@ more instructions on how to use the accelerated styles effectively.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+This fix will restore the initial box settings from "binary restart
+files"_restart.html, which allows the fix to be properly continue
+deformation, when using the start/stop options of the "run"_run.html
+command.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various "output
 commands"_Section_howto.html#howto_15.
@@ -580,10 +582,10 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 You cannot apply x, y, or z deformations to a dimension that is
-shrink-wrapped via the "boundary"_boundary.html comamnd.
+shrink-wrapped via the "boundary"_boundary.html command.
 
 You cannot apply xy, yz, or xz deformations to a 2nd dimension (y in
-xy) that is shrink-wrapped via the "boundary"_boundary.html comamnd.
+xy) that is shrink-wrapped via the "boundary"_boundary.html command.
 
 [Related commands:]
 

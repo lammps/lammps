@@ -350,15 +350,15 @@ void Input::parse()
     }
     if (quoteflag == 0) {
       if (strstr(ptr,"\"\"\"") == ptr) {
-	quoteflag = 3;
-	ptr += 2;
+        quoteflag = 3;
+        ptr += 2;
       }
       else if (*ptr == '"') quoteflag = 2;
       else if (*ptr == '\'') quoteflag = 1;
     } else {
       if (quoteflag == 3 && strstr(ptr,"\"\"\"") == ptr) {
-	quoteflag = 0;
-	ptr += 2;
+        quoteflag = 0;
+        ptr += 2;
       }
       else if (quoteflag == 2 && *ptr == '"') quoteflag = 0;
       else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
@@ -1478,7 +1478,7 @@ void Input::comm_style()
 
 void Input::compute()
 {
-  modify->add_compute(narg,arg,1);
+  modify->add_compute(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1556,7 +1556,7 @@ void Input::dump_modify()
 
 void Input::fix()
 {
-  modify->add_fix(narg,arg,1);
+  modify->add_fix(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1867,7 +1867,6 @@ void Input::special_bonds()
   double coul3 = force->special_coul[3];
   int angle = force->special_angle;
   int dihedral = force->special_dihedral;
-  int extra = force->special_extra;
 
   force->set_special(narg,arg);
 
@@ -1877,8 +1876,7 @@ void Input::special_bonds()
     if (lj2 != force->special_lj[2] || lj3 != force->special_lj[3] ||
         coul2 != force->special_coul[2] || coul3 != force->special_coul[3] ||
         angle != force->special_angle ||
-        dihedral != force->special_dihedral ||
-        extra != force->special_extra) {
+        dihedral != force->special_dihedral) {
       Special special(lmp);
       special.build();
     }

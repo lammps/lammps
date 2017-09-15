@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,14 +44,18 @@
 #ifndef KOKKOS_THREADSEXEC_HPP
 #define KOKKOS_THREADSEXEC_HPP
 
-#include <stdio.h>
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_THREADS )
+
+#include <cstdio>
 
 #include <utility>
-#include <impl/Kokkos_spinwait.hpp>
+#include <impl/Kokkos_Spinwait.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
 #include <Kokkos_Atomic.hpp>
 
+#include <Kokkos_UniqueToken.hpp>
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
@@ -103,7 +107,7 @@ private:
   // Which thread am I stealing from currently
   int m_current_steal_target;
   // This thread's owned work_range
-  Kokkos::pair<long,long> m_work_range KOKKOS_ALIGN_16;
+  Kokkos::pair<long,long> m_work_range KOKKOS_ALIGN(16);
   // Team Offset if one thread determines work_range for others
   long m_team_work_index;
 
@@ -187,13 +191,13 @@ public:
       // Fan-in reduction with highest ranking thread as the root
       for ( int i = 0 ; i < m_pool_fan_size ; ++i ) {
         // Wait: Active -> Rendezvous
-        Impl::spinwait( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Active );
+        Impl::spinwait_while_equal( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Active );
       }
 
       if ( rev_rank ) {
         m_pool_state = ThreadsExec::Rendezvous ;
         // Wait: Rendezvous -> Active
-        Impl::spinwait( m_pool_state , ThreadsExec::Rendezvous );
+        Impl::spinwait_while_equal( m_pool_state , ThreadsExec::Rendezvous );
       }
       else {
         // Root thread does the reduction and broadcast
@@ -229,13 +233,13 @@ public:
       // Fan-in reduction with highest ranking thread as the root
       for ( int i = 0 ; i < m_pool_fan_size ; ++i ) {
         // Wait: Active -> Rendezvous
-        Impl::spinwait( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Active );
+        Impl::spinwait_while_equal( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Active );
       }
 
       if ( rev_rank ) {
         m_pool_state = ThreadsExec::Rendezvous ;
         // Wait: Rendezvous -> Active
-        Impl::spinwait( m_pool_state , ThreadsExec::Rendezvous );
+        Impl::spinwait_while_equal( m_pool_state , ThreadsExec::Rendezvous );
       }
       else {
         // Root thread does the reduction and broadcast
@@ -264,7 +268,7 @@ public:
 
         ThreadsExec & fan = *m_pool_base[ rev_rank + ( 1 << i ) ] ;
 
-        Impl::spinwait( fan.m_pool_state , ThreadsExec::Active );
+        Impl::spinwait_while_equal( fan.m_pool_state , ThreadsExec::Active );
 
         Join::join( f , reduce_memory() , fan.reduce_memory() );
       }
@@ -272,6 +276,17 @@ public:
       if ( ! rev_rank ) {
         Final::final( f , reduce_memory() );
       }
+
+      //  This thread has updated 'reduce_memory()' and upon returning
+      //  from this function will set 'm_pool_state' to inactive.
+      //  If this is a non-root thread then setting 'm_pool_state'
+      //  to inactive triggers another thread to exit a spinwait
+      //  and read the 'reduce_memory'.
+      //  Must 'memory_fence()' to guarantee that storing the update to
+      //  'reduce_memory()' will complete before storing the the update to
+      //  'm_pool_state'.
+
+      memory_fence();
     }
 
   inline
@@ -280,7 +295,7 @@ public:
       const int rev_rank = m_pool_size - ( m_pool_rank + 1 );
 
       for ( int i = 0 ; i < m_pool_fan_size ; ++i ) {
-        Impl::spinwait( m_pool_base[rev_rank+(1<<i)]->m_pool_state , ThreadsExec::Active );
+        Impl::spinwait_while_equal( m_pool_base[rev_rank+(1<<i)]->m_pool_state , ThreadsExec::Active );
       }
     }
 
@@ -312,7 +327,7 @@ public:
         ThreadsExec & fan = *m_pool_base[ rev_rank + (1<<i) ];
 
         // Wait: Active -> ReductionAvailable (or ScanAvailable)
-        Impl::spinwait( fan.m_pool_state , ThreadsExec::Active );
+        Impl::spinwait_while_equal( fan.m_pool_state , ThreadsExec::Active );
         Join::join( f , work_value , fan.reduce_memory() );
       }
 
@@ -330,8 +345,8 @@ public:
 
           // Wait: Active             -> ReductionAvailable
           // Wait: ReductionAvailable -> ScanAvailable
-          Impl::spinwait( th.m_pool_state , ThreadsExec::Active );
-          Impl::spinwait( th.m_pool_state , ThreadsExec::ReductionAvailable );
+          Impl::spinwait_while_equal( th.m_pool_state , ThreadsExec::Active );
+          Impl::spinwait_while_equal( th.m_pool_state , ThreadsExec::ReductionAvailable );
 
           Join::join( f , work_value + count , ((scalar_type *)th.reduce_memory()) + count );
         }
@@ -342,7 +357,7 @@ public:
 
         // Wait for all threads to complete inclusive scan
         // Wait: ScanAvailable -> Rendezvous
-        Impl::spinwait( m_pool_state , ThreadsExec::ScanAvailable );
+        Impl::spinwait_while_equal( m_pool_state , ThreadsExec::ScanAvailable );
       }
 
       //--------------------------------
@@ -350,7 +365,7 @@ public:
       for ( int i = 0 ; i < m_pool_fan_size ; ++i ) {
         ThreadsExec & fan = *m_pool_base[ rev_rank + (1<<i) ];
         // Wait: ReductionAvailable -> ScanAvailable
-        Impl::spinwait( fan.m_pool_state , ThreadsExec::ReductionAvailable );
+        Impl::spinwait_while_equal( fan.m_pool_state , ThreadsExec::ReductionAvailable );
         // Set: ScanAvailable -> Rendezvous
         fan.m_pool_state = ThreadsExec::Rendezvous ;
       }
@@ -377,13 +392,13 @@ public:
       // Wait for all threads to copy previous thread's inclusive scan value
       // Wait for all threads: Rendezvous -> ScanCompleted
       for ( int i = 0 ; i < m_pool_fan_size ; ++i ) {
-        Impl::spinwait( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Rendezvous );
+        Impl::spinwait_while_equal( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Rendezvous );
       }
       if ( rev_rank ) {
         // Set: ScanAvailable -> ScanCompleted
         m_pool_state = ThreadsExec::ScanCompleted ;
         // Wait: ScanCompleted -> Active
-        Impl::spinwait( m_pool_state , ThreadsExec::ScanCompleted );
+        Impl::spinwait_while_equal( m_pool_state , ThreadsExec::ScanCompleted );
       }
       // Set: ScanCompleted -> Active
       for ( int i = 0 ; i < m_pool_fan_size ; ++i ) {
@@ -410,7 +425,7 @@ public:
       // Fan-in reduction with highest ranking thread as the root
       for ( int i = 0 ; i < m_pool_fan_size ; ++i ) {
         // Wait: Active -> Rendezvous
-        Impl::spinwait( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Active );
+        Impl::spinwait_while_equal( m_pool_base[ rev_rank + (1<<i) ]->m_pool_state , ThreadsExec::Active );
       }
 
       for ( unsigned i = 0 ; i < count ; ++i ) { work_value[i+count] = work_value[i]; }
@@ -418,7 +433,7 @@ public:
       if ( rev_rank ) {
         m_pool_state = ThreadsExec::Rendezvous ;
         // Wait: Rendezvous -> Active
-        Impl::spinwait( m_pool_state , ThreadsExec::Rendezvous );
+        Impl::spinwait_while_equal( m_pool_state , ThreadsExec::Rendezvous );
       }
       else {
         // Root thread does the thread-scan before releasing threads
@@ -627,5 +642,61 @@ inline void Threads::fence()
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+namespace Kokkos { namespace Experimental {
+
+template<>
+class UniqueToken< Threads, UniqueTokenScope::Instance>
+{
+public:
+  using execution_space = Threads;
+  using size_type       = int;
+
+  /// \brief create object size for concurrency on the given instance
+  ///
+  /// This object should not be shared between instances
+  UniqueToken( execution_space const& = execution_space() ) noexcept {}
+
+  /// \brief upper bound for acquired values, i.e. 0 <= value < size()
+  inline
+  int size() const noexcept { return Threads::thread_pool_size(); }
+
+  /// \brief acquire value such that 0 <= value < size()
+  inline
+  int acquire() const  noexcept { return Threads::thread_pool_rank(); }
+
+  /// \brief release a value acquired by generate
+  inline
+  void release( int ) const noexcept {}
+};
+
+template<>
+class UniqueToken< Threads, UniqueTokenScope::Global>
+{
+public:
+  using execution_space = Threads;
+  using size_type       = int;
+
+  /// \brief create object size for concurrency on the given instance
+  ///
+  /// This object should not be shared between instances
+  UniqueToken( execution_space const& = execution_space() ) noexcept {}
+
+  /// \brief upper bound for acquired values, i.e. 0 <= value < size()
+  inline
+  int size() const noexcept { return Threads::thread_pool_size(); }
+
+  /// \brief acquire value such that 0 <= value < size()
+  inline
+  int acquire() const  noexcept { return Threads::thread_pool_rank(); }
+
+  /// \brief release a value acquired by generate
+  inline
+  void release( int ) const noexcept {}
+};
+
+}} // namespace Kokkos::Experimental
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+#endif
 #endif /* #define KOKKOS_THREADSEXEC_HPP */
 

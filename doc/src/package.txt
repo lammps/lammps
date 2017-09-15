@@ -62,12 +62,13 @@ args = arguments specific to the style :l
       {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = {neigh} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward}
-      {neigh} value = {full} or {half} or {n2} or {full/cluster}
+    keywords = {neigh} or {neigh/qeq} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward}
+      {neigh} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
-        n2 = non-binning neighbor list build, O(N^2) algorithm
-        full/cluster = full neighbor list with clustered groups of atoms
+      {neigh/qeq} value = {full} or {half}
+        full = full neighbor list
+        half = half neighbor list built in thread-safe manner
       {newton} = {off} or {on}
         off = set Newton pairwise and bonded flags off (default)
         on = set Newton pairwise and bonded flags on
@@ -110,11 +111,11 @@ USER-OMP.
 If this command is specified in an input script, it must be near the
 top of the script, before the simulation box has been defined.  This
 is because it specifies settings that the accelerator packages use in
-their intialization, before a simultion is defined.
+their initialization, before a simulation is defined.
 
 This command can also be specified from the command-line when
 launching LAMMPS, using the "-pk" "command-line
-switch"_Section_start.html#start_7.  The syntax is exactly the same as
+switch"_Section_start.html#start_6.  The syntax is exactly the same as
 when used in an input script.
 
 Note that all of the accelerator packages require the package command
@@ -125,18 +126,18 @@ a default version of the command is typically invoked by other
 accelerator settings.
 
 The KOKKOS package requires a "-k on" "command-line
-switch"_Section_start.html#start_7 respectively, which invokes a
+switch"_Section_start.html#start_6 respectively, which invokes a
 "package kokkos" command with default settings.
 
 For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
-intel" or "-sf omp" "command-line switch"_Section_start.html#start_7
+intel" or "-sf omp" "command-line switch"_Section_start.html#start_6
 is used to auto-append accelerator suffixes to various styles in the
 input script, then those switches also invoke a "package gpu",
 "package intel", or "package omp" command with default settings.
 
 NOTE: A package command for a particular style can be invoked multiple
 times when a simulation is setup, e.g. by the "-c on", "-k on", "-sf",
-and "-pk" "command-line switches"_Section_start.html#start_7, and by
+and "-pk" "command-line switches"_Section_start.html#start_6, and by
 using this command in an input script.  Each time it is used all of
 the style options are set, either to default values or to specified
 settings.  I.e. settings from previous invocations do not persist
@@ -166,7 +167,7 @@ neighbor list building is performed on the CPU.  GPU neighbor list
 building currently cannot be used with a triclinic box.  GPU neighbor
 list calculation currently cannot be used with
 "hybrid"_pair_hybrid.html pair styles.  GPU neighbor lists are not
-compatible with comannds that are not GPU-enabled.  When a non-GPU
+compatible with commands that are not GPU-enabled.  When a non-GPU
 enabled command requires a neighbor list, it will also be built on the
 CPU.  In these cases, it will typically be more efficient to only use
 CPU neighbor list builds.
@@ -199,7 +200,7 @@ the default.
 The {split} keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < {split} <
 1.0, a fixed fraction of particles is offloaded to the GPU while force
-calculation for the other particles occurs simulataneously on the CPU.
+calculation for the other particles occurs simultaneously on the CPU.
 If {split} < 0.0, the optimal fraction (based on CPU and GPU timings)
 is calculated every 25 timesteps, i.e. dynamic load-balancing across
 the CPU and GPU is performed.  If {split} = 1.0, all force
@@ -295,7 +296,7 @@ For more details, including examples of how to set the OMP_NUM_THREADS
 environment variable, see the discussion of the {Nthreads} setting on
 this doc page for the "package omp" command.  Nthreads is a required
 argument for the USER-OMP package.  Its meaning is exactly the same
-for the USER-INTEL pacakge.
+for the USER-INTEL package.
 
 NOTE: If you build LAMMPS with both the USER-INTEL and USER-OMP
 packages, be aware that both packages allow setting of the {Nthreads}
@@ -304,7 +305,7 @@ value via their package commands, but there is only a single global
 invoked, you should insure the two values are consistent.  If they are
 not, the last one invoked will take precedence, for both packages.
 Also note that if the "-sf hybrid intel omp" "command-line
-switch"_"_Section_start.html#start_7 is used, it invokes a "package
+switch"_"_Section_start.html#start_6 is used, it invokes a "package
 intel" command, followed by a "package omp" command, both with a
 setting of {Nthreads} = 0.
 
@@ -347,7 +348,7 @@ automatically throughout the run.  This typically give performance
 within 5 to 10 percent of the optimal fixed fraction.
 
 The {ghost} keyword determines whether or not ghost atoms, i.e. atoms
-at the boundaries of proessor sub-domains, are offloaded for neighbor
+at the boundaries of processor sub-domains, are offloaded for neighbor
 and force calculations.  When the value = "no", ghost atoms are not
 offloaded.  This option can reduce the amount of data transfer with
 the coprocessor and can also overlap MPI communication of forces with
@@ -392,10 +393,7 @@ default value as listed below.
 
 The {neigh} keyword determines how neighbor lists are built.  A value
 of {half} uses a thread-safe variant of half-neighbor lists,
-the same as used by most pair styles in LAMMPS.  A value of
-{n2} uses an O(N^2) algorithm to build the neighbor list without
-binning, where N = # of atoms on a processor.  It is typically slower
-than the other methods, which use binning.
+the same as used by most pair styles in LAMMPS.
 
 A value of {full} uses a full neighbor lists and is the default.  This
 performs twice as much computation as the {half} option, however that
@@ -403,15 +401,9 @@ is often a win because it is thread-safe and doesn't require atomic
 operations in the calculation of pair forces.  For that reason, {full}
 is the default setting.  However, when running in MPI-only mode with 1
 thread per MPI task, {half} neighbor lists will typically be faster,
-just as it is for non-accelerated pair styles.
-
-A value of {full/cluster} is an experimental neighbor style, where
-particles interact with all particles within a small cluster, if at
-least one of the clusters particles is within the neighbor cutoff
-range.  This potentially allows for better vectorization on
-architectures such as the Intel Phi.  If also reduces the size of the
-neighbor list by roughly a factor of the cluster size, thus reducing
-the total memory footprint considerably.
+just as it is for non-accelerated pair styles. Similarly, the {neigh/qeq}
+keyword determines how neighbor lists are built for "fix qeq/reax/kk"_fix_qeq_reax.html.
+If not explicitly set, the value of {neigh/qeq} will match {neigh}.
 
 The {newton} keyword sets the Newton flags for pairwise and bonded
 interactions to {off} or {on}, the same as the "newton"_newton.html
@@ -516,7 +508,7 @@ for OpenMPI.  Check your MPI documentation for additional details.
 What combination of threads and MPI tasks gives the best performance
 is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
-USER-OMP packaage and the parallel efficiency can be very different,
+USER-OMP package and the parallel efficiency can be very different,
 too.
 
 Optional keyword/value pairs can also be specified.  Each has a
@@ -527,7 +519,7 @@ multi-threaded in addition to force calculations.  If {neigh} is set
 to {no} then neighbor list calculation is performed only by MPI tasks
 with no OpenMP threading.  If {mode} is {yes} (the default), a
 multi-threaded neighbor list build is used.  Using {neigh} = {yes} is
-almost always faster and should produce idential neighbor lists at the
+almost always faster and should produce identical neighbor lists at the
 expense of using more memory.  Specifically, neighbor list pages are
 allocated for all threads at the same time and each thread works
 within its own pages.
@@ -558,7 +550,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "suffix"_suffix.html, "-pk" "command-line
-setting"_Section_start.html#start_7
+setting"_Section_start.html#start_6
 
 [Default:]
 
@@ -566,9 +558,9 @@ For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
 to Ngpu-1, tpa = 1, and device = not used.  These settings are made
 automatically if the "-sf gpu" "command-line
-switch"_Section_start.html#start_7 is used.  If it is not used, you
+switch"_Section_start.html#start_6 is used.  If it is not used, you
 must invoke the package gpu command in your input script or via the
-"-pk gpu" "command-line switch"_Section_start.html#start_7.
+"-pk gpu" "command-line switch"_Section_start.html#start_6.
 
 For the USER-INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
@@ -577,21 +569,21 @@ style being used.  This value is output to the screen in the offload
 report at the end of each run.  Note that all of these settings,
 except "omp" and "mode", are ignored if LAMMPS was not built with
 Xeon Phi coprocessor support.  These settings are made automatically
-if the "-sf intel" "command-line switch"_Section_start.html#start_7
+if the "-sf intel" "command-line switch"_Section_start.html#start_6
 is used.  If it is not used, you must invoke the package intel
 command in your input script or or via the "-pk intel" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
-For the KOKKOS package, the option defaults neigh = full, newton =
-off, binsize = 0.0, and comm = device.  These settings are made
-automatically by the required "-k on" "command-line
-switch"_Section_start.html#start_7.  You can change them bu using the
+For the KOKKOS package, the option defaults neigh = full,
+neigh/qeq = full, newton = off, binsize = 0.0, and comm = device.
+These settings are made automatically by the required "-k on" "command-line
+switch"_Section_start.html#start_6.  You can change them bu using the
 package kokkos command in your input script or via the "-pk kokkos"
-"command-line switch"_Section_start.html#start_7.
+"command-line switch"_Section_start.html#start_6.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if
-the "-sf omp" "command-line switch"_Section_start.html#start_7 is
+the "-sf omp" "command-line switch"_Section_start.html#start_6 is
 used.  If it is not used, you must invoke the package omp command in
 your input script or via the "-pk omp" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.

@@ -58,7 +58,7 @@ nve"_fix_nve.html command).  It is up to you to decide whether
 periodic boundaries are appropriate with the kind of atom motion you
 are prescribing with this fix.
 
-NOTE: As dicsussed below, atoms are moved relative to their initial
+NOTE: As discussed below, atoms are moved relative to their initial
 position at the time the fix is specified.  These initial coordinates
 are stored by the fix in "unwrapped" form, by using the image flags
 associated with each atom.  See the "dump custom"_dump.html command
@@ -131,7 +131,7 @@ This style also sets the velocity of each atom to (omega cross Rperp)
 where omega is its angular velocity around the rotation axis and Rperp
 is a perpendicular vector from the rotation axis to the atom.  If the
 defined "atom_style"_atom_style.html assigns an angular velocity or
-angular moementum or orientation to each atom ("atom
+angular momentum or orientation to each atom ("atom
 styles"_atom_style.html sphere, ellipsoid, line, tri, body), then
 those properties are also updated appropriately to correspond to the
 atom's motion and rotation over time.

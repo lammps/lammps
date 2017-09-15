@@ -7,12 +7,12 @@
 :line
 
 dump command :h3
-"dump custom/vtk"_dump_custom_vtk.html command :h3
+"dump vtk"_dump_vtk.html command :h3
 "dump h5md"_dump_h5md.html command :h3
+"dump molfile"_dump_molfile.html command :h3
+"dump netcdf"_dump_netcdf.html command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
-"dump molfile"_dump_molfile.html command :h3
-"dump nc"_dump_nc.html command :h3
 
 [Syntax:]
 
@@ -20,7 +20,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {dcd} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} or {h5md} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/gz} or {custom/mpiio} :l
+style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {custom} or {custom/gz} or {custom/mpiio} or {dcd} or {h5md} or {image} or or {local} or {molfile} or {movie} or {netcdf} or {netcdf/mpiio} or {vtk} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -30,33 +30,22 @@ args = list of arguments for a particular style :l
   {cfg} args = same as {custom} args, see below
   {cfg/gz} args = same as {custom} args, see below
   {cfg/mpiio} args = same as {custom} args, see below
+  {custom}, {custom/gz}, {custom/mpiio} args = see below
   {dcd} args = none
+  {h5md} args = discussed on "dump h5md"_dump_h5md.html doc page
+  {image} args = discussed on "dump image"_dump_image.html doc page
+  {local} args = see below
+  {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page
+  {movie} args = discussed on "dump image"_dump_image.html doc page
+  {netcdf} args = discussed on "dump netcdf"_dump_netcdf.html doc page
+  {netcdf/mpiio} args = discussed on "dump netcdf"_dump_netcdf.html doc page
+  {vtk} args = same as {custom} args, see below, also "dump vtk"_dump_vtk.html doc page
   {xtc} args = none
-  {xyz} args = none :pre
-  {xyz/gz} args = none :pre
+  {xyz} args = none
+  {xyz/gz} args = none
   {xyz/mpiio} args = none :pre
 
-  {custom/vtk} args = similar to custom args below, discussed on "dump custom/vtk"_dump_custom_vtk.html doc page :pre
-
-  {h5md} args = discussed on "dump h5md"_dump_h5md.html doc page :pre
-
-  {image} args = discussed on "dump image"_dump_image.html doc page :pre
-
-  {movie} args = discussed on "dump image"_dump_image.html doc page :pre
-
-  {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page
-
-  {nc} args = discussed on "dump nc"_dump_nc.html doc page :pre
-
-  {local} args = list of local attributes
-    possible attributes = index, c_ID, c_ID\[I\], f_ID, f_ID\[I\]
-      index = enumeration of local values
-      c_ID = local vector calculated by a compute with ID
-      c_ID\[I\] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
-      f_ID = local vector calculated by a fix with ID
-      f_ID\[I\] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below) :pre
-
-  {custom} or {custom/gz} or {custom/mpiio} args = list of atom attributes
+{custom} or {custom/gz} or {custom/mpiio} args = list of atom attributes :l
     possible attributes = id, mol, proc, procp1, type, element, mass,
                           x, y, z, xs, ys, zs, xu, yu, zu,
                           xsu, ysu, zsu, ix, iy, iz,
@@ -94,6 +83,15 @@ args = list of arguments for a particular style :l
       v_name = per-atom vector calculated by an atom-style variable with name
       d_name = per-atom floating point vector with name, managed by fix property/atom
       i_name = per-atom integer vector with name, managed by fix property/atom :pre
+
+{local} args = list of local attributes :l
+    possible attributes = index, c_ID, c_ID\[I\], f_ID, f_ID\[I\]
+      index = enumeration of local values
+      c_ID = local vector calculated by a compute with ID
+      c_ID\[I\] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
+      f_ID = local vector calculated by a fix with ID
+      f_ID\[I\] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below) :pre
+
 :ule
 
 [Examples:]
@@ -225,7 +223,7 @@ This bounding box is convenient for many visualization programs.  The
 meaning of the 6 character flags for "xx yy zz" is the same as above.
 
 Note that the first two numbers on each line are now xlo_bound instead
-of xlo, etc, since they repesent a bounding box.  See "this
+of xlo, etc, since they represent a bounding box.  See "this
 section"_Section_howto.html#howto_12 of the doc pages for a geometric
 description of triclinic boxes, as defined by LAMMPS, simple formulas
 for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
@@ -331,10 +329,7 @@ bonds and colors.
 
 Note that {atom}, {custom}, {dcd}, {xtc}, and {xyz} style dump files
 can be read directly by "VMD"_http://www.ks.uiuc.edu/Research/vmd, a
-popular molecular viewing program.  See
-"Section 9"_Section_tools.html#vmd of the manual and the
-tools/lmp2vmd/README.txt file for more information about support in
-VMD for reading and visualizing LAMMPS dump files.
+popular molecular viewing program.
 
 :line
 
@@ -545,7 +540,7 @@ that the coordinate values may be far outside the box bounds printed
 with the snapshot.  Using {xsu}, {ysu}, {zsu} is similar to using
 {xu}, {yu}, {zu}, except that the unwrapped coordinates are scaled by
 the box size. Atoms that have passed through a periodic boundary will
-have the corresponding cooordinate increased or decreased by 1.0.
+have the corresponding coordinate increased or decreased by 1.0.
 
 The image flags can be printed directly using the {ix}, {iy}, {iz}
 attributes.  For periodic dimensions, they specify which image of the

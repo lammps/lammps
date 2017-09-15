@@ -27,7 +27,7 @@ partition yes 6* fix all nvt temp 1.0 1.0 0.1 :pre
 
 This command invokes the specified command on a subset of the
 partitions of processors you have defined via the -partition
-command-line switch.  See "Section 2.6"_Section_start.html#start_7
+command-line switch.  See "Section 2.6"_Section_start.html#start_6
 for an explanation of the switch.
 
 Normally, every input script command in your script is invoked by
@@ -39,7 +39,7 @@ such a variable is used in a "jump"_jump.html command.
 
 The "partition" command is another mechanism for having as input
 script operate differently on different partitions.  It is basically a
-prefix on any LAMMPS command.  The commmand will only be invoked on
+prefix on any LAMMPS command.  The command will only be invoked on
 the partition(s) specified by the {style} and {N} arguments.
 
 If the {style} is {yes}, the command will be invoked on any partition
@@ -49,7 +49,7 @@ argument.
 
 Partitions are numbered from 1 to Np, where Np is the number of
 partitions specified by the "-partition command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
 {N} can be specified in one of two ways.  An explicit numeric value
 can be used, as in the 1st example above.  Or a wild-card asterisk can

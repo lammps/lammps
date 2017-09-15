@@ -211,7 +211,7 @@ void PairLJCutCoulCutSoft::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
           cut_lj[i][j] = cut_lj_global;
           cut_coul[i][j] = cut_coul_global;
@@ -236,6 +236,8 @@ void PairLJCutCoulCutSoft::coeff(int narg, char **arg)
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double lambda_one = force->numeric(FLERR,arg[4]);
+  if (sigma_one <= 0.0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
@@ -296,7 +298,7 @@ double PairLJCutCoulCutSoft::init_one(int i, int j)
   lj3[i][j] = alphalj * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
   lj4[i][j] = alphac  * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double denlj = lj3[i][j] + pow(cut_lj[i][j] / sigma[i][j], 6.0);
     offset[i][j] = lj1[i][j] * 4.0 * epsilon[i][j] * (1.0/(denlj*denlj) - 1.0/denlj);
   } else offset[i][j] = 0.0;

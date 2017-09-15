@@ -33,10 +33,6 @@
 
 using namespace LAMMPS_NS;
 
-// allocate space for static class variable
-
-DeleteAtoms *DeleteAtoms::cptr;
-
 /* ---------------------------------------------------------------------- */
 
 DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Pointers(lmp) {}
@@ -69,6 +65,15 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
   else error->all(FLERR,"Illegal delete_atoms command");
 
+  if (allflag) {
+    int igroup = group->find("all");
+    if ((igroup >= 0) && modify->check_rigid_group_overlap(group->bitmask[igroup]))
+      error->warning(FLERR,"Attempting to delete atoms in rigid bodies");
+  } else {
+    if (modify->check_rigid_list_overlap(dlist))
+      error->warning(FLERR,"Attempting to delete atoms in rigid bodies");
+  }
+
   // if allflag = 1, just reset atom->nlocal
   // else delete atoms one by one
 
@@ -89,16 +94,16 @@ void DeleteAtoms::command(int narg, char **arg)
     int i = 0;
     while (i < nlocal) {
       if (dlist[i]) {
-	avec->copy(nlocal-1,i,1);
-	dlist[i] = dlist[nlocal-1];
-	nlocal--;
+        avec->copy(nlocal-1,i,1);
+        dlist[i] = dlist[nlocal-1];
+        nlocal--;
       } else i++;
     }
-    
+
     atom->nlocal = nlocal;
     memory->destroy(dlist);
   }
-  
+
   // if non-molecular system and compress flag set,
   // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
@@ -201,7 +206,7 @@ void DeleteAtoms::delete_group(int narg, char **arg)
     allflag = 1;
     return;
   }
-  
+
   // allocate and initialize deletion list
 
   int nlocal = atom->nlocal;
@@ -464,8 +469,7 @@ void DeleteAtoms::delete_bond()
   for (int i = 0; i < nlocal; i++)
     if (dlist[i]) list[n++] = tag[i];
 
-  cptr = this;
-  comm->ring(n,sizeof(tagint),list,1,bondring,NULL);
+  comm->ring(n,sizeof(tagint),list,1,bondring,NULL,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -503,8 +507,7 @@ void DeleteAtoms::delete_molecule()
   std::map<tagint,int>::iterator pos;
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
-  cptr = this;
-  comm->ring(n,sizeof(tagint),list,1,molring,NULL);
+  comm->ring(n,sizeof(tagint),list,1,molring,NULL,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -576,37 +579,38 @@ void DeleteAtoms::recount_topology()
    callback from comm->ring() in delete_bond()
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::bondring(int nbuf, char *cbuf)
+void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 {
+  DeleteAtoms *daptr = (DeleteAtoms *) ptr;
   tagint *list = (tagint *) cbuf;
-  std::map<tagint,int> *hash = cptr->hash;
+  std::map<tagint,int> *hash = daptr->hash;
 
-  int *num_bond = cptr->atom->num_bond;
-  int *num_angle = cptr->atom->num_angle;
-  int *num_dihedral = cptr->atom->num_dihedral;
-  int *num_improper = cptr->atom->num_improper;
+  int *num_bond = daptr->atom->num_bond;
+  int *num_angle = daptr->atom->num_angle;
+  int *num_dihedral = daptr->atom->num_dihedral;
+  int *num_improper = daptr->atom->num_improper;
 
-  int **bond_type = cptr->atom->bond_type;
-  tagint **bond_atom = cptr->atom->bond_atom;
+  int **bond_type = daptr->atom->bond_type;
+  tagint **bond_atom = daptr->atom->bond_atom;
 
-  int **angle_type = cptr->atom->angle_type;
-  tagint **angle_atom1 = cptr->atom->angle_atom1;
-  tagint **angle_atom2 = cptr->atom->angle_atom2;
-  tagint **angle_atom3 = cptr->atom->angle_atom3;
+  int **angle_type = daptr->atom->angle_type;
+  tagint **angle_atom1 = daptr->atom->angle_atom1;
+  tagint **angle_atom2 = daptr->atom->angle_atom2;
+  tagint **angle_atom3 = daptr->atom->angle_atom3;
 
-  int **dihedral_type = cptr->atom->dihedral_type;
-  tagint **dihedral_atom1 = cptr->atom->dihedral_atom1;
-  tagint **dihedral_atom2 = cptr->atom->dihedral_atom2;
-  tagint **dihedral_atom3 = cptr->atom->dihedral_atom3;
-  tagint **dihedral_atom4 = cptr->atom->dihedral_atom4;
+  int **dihedral_type = daptr->atom->dihedral_type;
+  tagint **dihedral_atom1 = daptr->atom->dihedral_atom1;
+  tagint **dihedral_atom2 = daptr->atom->dihedral_atom2;
+  tagint **dihedral_atom3 = daptr->atom->dihedral_atom3;
+  tagint **dihedral_atom4 = daptr->atom->dihedral_atom4;
 
-  int **improper_type = cptr->atom->improper_type;
-  tagint **improper_atom1 = cptr->atom->improper_atom1;
-  tagint **improper_atom2 = cptr->atom->improper_atom2;
-  tagint **improper_atom3 = cptr->atom->improper_atom3;
-  tagint **improper_atom4 = cptr->atom->improper_atom4;
+  int **improper_type = daptr->atom->improper_type;
+  tagint **improper_atom1 = daptr->atom->improper_atom1;
+  tagint **improper_atom2 = daptr->atom->improper_atom2;
+  tagint **improper_atom3 = daptr->atom->improper_atom3;
+  tagint **improper_atom4 = daptr->atom->improper_atom4;
 
-  int nlocal = cptr->atom->nlocal;
+  int nlocal = daptr->atom->nlocal;
 
   // cbuf = list of N deleted atom IDs from other proc, put them in hash
 
@@ -692,13 +696,14 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf)
    callback from comm->ring() in delete_molecule()
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::molring(int n, char *cbuf)
+void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
 {
+  DeleteAtoms *daptr = (DeleteAtoms *)ptr;
   tagint *list = (tagint *) cbuf;
-  int *dlist = cptr->dlist;
-  std::map<tagint,int> *hash = cptr->hash;
-  int nlocal = cptr->atom->nlocal;
-  tagint *molecule = cptr->atom->molecule;
+  int *dlist = daptr->dlist;
+  std::map<tagint,int> *hash = daptr->hash;
+  int nlocal = daptr->atom->nlocal;
+  tagint *molecule = daptr->atom->molecule;
 
   // cbuf = list of N molecule IDs from other proc, put them in hash
 

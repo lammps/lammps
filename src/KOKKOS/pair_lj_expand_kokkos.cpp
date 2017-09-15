@@ -88,8 +88,21 @@ void PairLJExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom) {
+    memory->destroy_kokkos(k_eatom,eatom);
+    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    d_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom) {
+    memory->destroy_kokkos(k_vatom,vatom);
+    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    d_vatom = k_vatom.view<DeviceType>();
+  }
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
@@ -124,6 +137,16 @@ void PairLJExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[3] += ev.v[3];
     virial[4] += ev.v[4];
     virial[5] += ev.v[5];
+  }
+
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.template sync<LMPHostType>();
+  }
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.template sync<LMPHostType>();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -182,7 +205,7 @@ void PairLJExpandKokkos<DeviceType>::allocate()
   memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJExpand::params",n+1,n+1);
-  params = k_params.d_view;
+  params = k_params.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -262,7 +285,8 @@ double PairLJExpandKokkos<DeviceType>::init_one(int i, int j)
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
-  k_cutsq.h_view(i,j) = cutone*cutone;
+
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 

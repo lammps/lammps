@@ -115,14 +115,15 @@ using namespace MathConst;
 
 SNA::SNA(LAMMPS* lmp, double rfac0_in,
          int twojmax_in, int diagonalstyle_in, int use_shared_arrays_in,
-         double rmin0_in, int switch_flag_in) : Pointers(lmp)
+         double rmin0_in, int switch_flag_in, int bzero_flag_in) : Pointers(lmp)
 {
   wself = 1.0;
-
+  
   use_shared_arrays = use_shared_arrays_in;
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
+  bzero_flag = bzero_flag_in;
 
   twojmax = twojmax_in;
   diagonalstyle = diagonalstyle_in;
@@ -142,6 +143,12 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
   nmax = 0;
   idxj = NULL;
 
+  if (bzero_flag) {
+    double www = wself*wself*wself;
+    for(int j = 0; j <= twojmax; j++)
+      bzero[j] = www*(j+1);
+  }
+  
 #ifdef TIMING_INFO
   timers = new double[20];
   for(int i = 0; i < 20; i++) timers[i] = 0;
@@ -151,6 +158,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
 
   build_indexlist();
 
+  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -539,13 +547,11 @@ void SNA::compute_bi()
           j <= MIN(twojmax, j1 + j2); j += 2) {
         barray[j1][j2][j] = 0.0;
 
-	for(int mb = 0; 2*mb < j; mb++) {
-	  for(int ma = 0; ma <= j; ma++) {
+	for(int mb = 0; 2*mb < j; mb++)
+	  for(int ma = 0; ma <= j; ma++)
             barray[j1][j2][j] +=
               uarraytot_r[j][ma][mb] * zarray_r[j1][j2][j][ma][mb] +
 	      uarraytot_i[j][ma][mb] * zarray_i[j1][j2][j][ma][mb];
-	  }
-	}
 
 	// For j even, special treatment for middle column
 
@@ -562,6 +568,8 @@ void SNA::compute_bi()
 	}
 
         barray[j1][j2][j] *= 2.0;
+	if (bzero_flag)
+	  barray[j1][j2][j] -= bzero[j];
       }
     }
 
@@ -815,7 +823,7 @@ void SNA::compute_dbidrj()
   //        for mb1 = 0,...,j1mid
   //          for ma1 = 0,...,j1
   //            zdb +=
-  //              Conj(dudr(j1,ma1,mb1))*z(j1,j2,j,ma1,mb1)
+  //              Conj(dudr(j1,ma1,mb1))*z(j,j2,j1,ma1,mb1)
   //        dbdr(j1,j2,j) += 2*zdb*(j+1)/(j1+1)
   //        zdb = 0
   //        for mb2 = 0,...,j2mid
@@ -1512,6 +1520,12 @@ void SNA::create_twojmax_arrays()
   memory->create(uarray_i, jdim, jdim, jdim,
                  "sna:uarray");
 
+  if (bzero_flag)
+    memory->create(bzero, jdim,"sna:bzero");
+  else
+    bzero = NULL;
+  
+
   if(!use_shared_arrays) {
     memory->create(uarraytot_r, jdim, jdim, jdim,
                    "sna:uarraytot");
@@ -1540,6 +1554,9 @@ void SNA::destroy_twojmax_arrays()
 
   memory->destroy(uarray_r);
   memory->destroy(uarray_i);
+
+  if (bzero_flag)
+    memory->destroy(bzero);
 
   if(!use_shared_arrays) {
     memory->destroy(uarraytot_r);

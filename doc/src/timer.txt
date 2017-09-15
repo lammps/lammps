@@ -16,7 +16,7 @@ timer args :pre
   {off} = do not collect or print any timing information
   {loop} = collect only the total time for the simulation loop
   {normal} = collect timer information broken down by sections (default)
-  {full} = like {normal} but also include CPU and thread utilzation
+  {full} = like {normal} but also include CPU and thread utilization
   {sync} = explicitly synchronize MPI tasks between sections
   {nosync} = do not synchronize MPI tasks between sections (default)
   {timeout} elapse = set walltime limit to {elapse}
@@ -33,14 +33,14 @@ timer loop :pre
 Select the level of detail at which LAMMPS performs its CPU timings.
 Multiple keywords can be specified with the {timer} command.  For
 keywords that are mutually exclusive, the last one specified takes
-effect.
+precedence.
 
 During a simulation run LAMMPS collects information about how much
 time is spent in different sections of the code and thus can provide
 information for determining performance and load imbalance problems.
 This can be done at different levels of detail and accuracy.  For more
 information about the timing output, see this "discussion of screen
-output"_Section_start.html#start_8.
+output in Section 2.7"_Section_start.html#start_7.
 
 The {off} setting will turn all time measurements off. The {loop}
 setting will only measure the total time for a run and not collect any
@@ -48,24 +48,26 @@ detailed per section information.  With the {normal} setting, timing
 information for portions of the timestep (pairwise calculations,
 neighbor list construction, output, etc) are collected as well as
 information about load imbalances for those sections across
-procsessors.  The {full} setting adds information about CPU
+processors.  The {full} setting adds information about CPU
 utilization and thread utilization, when multi-threading is enabled.
 
 With the {sync} setting, all MPI tasks are synchronized at each timer
-call which meaures load imbalance more accuractly, though it can also
-slow down the simulation.  Using the {nosync} setting (which is the
-default) turns off this synchronization.
+call which measures load imbalance for each section more accurately,
+though it can also slow down the simulation by prohibiting overlapping
+independent computations on different MPI ranks  Using the {nosync}
+setting (which is the default) turns this synchronization off.
 
-With the {timeout} keyword a walltime limit can be imposed that
+With the {timeout} keyword a walltime limit can be imposed, that
 affects the "run"_run.html and "minimize"_minimize.html commands.
-This can be convenient when runs have to confirm to time limits,
-e.g. when running under a batch system and you want to maximize
-the utilization of the batch time slot, especially when the time
-per timestep varies and is thus difficult to predict how many
-steps a simulation can perform, or for difficult to converge
-minimizations. The timeout {elapse} value should be somewhat smaller
-than the time requested from the batch system, as there is usually
-some overhead to launch jobs, and it may be advisable to write
+This can be convenient when calculations have to comply with execution
+time limits, e.g. when running under a batch system when you want to
+maximize the utilization of the batch time slot, especially for runs
+where the time per timestep varies much and thus it becomes difficult
+to predict how many steps a simulation can perform for a given walltime
+limit. This also applies for difficult to converge minimizations.
+The timeout {elapse} value should be somewhat smaller than the maximum
+wall time requested from the batch system, as there is usually
+some overhead to launch jobs, and it is advisable to write
 out a restart after terminating a run due to a timeout.
 
 The timeout timer starts when the command is issued. When the time

@@ -1,14 +1,15 @@
-The Makefile.lammps file in this directory is used when building LAMMPS with
-its USER-VTK package installed.  The file has several settings needed to
-compile and link LAMMPS with the VTK library.  You should choose a
-Makefile.lammps.* file compatible with your system and your version of VTK, and
-copy it to Makefile.lammps before building LAMMPS itself.  You may need to edit
-one of the provided files to match your system.
+The Makefile.lammps file in this directory is used when building
+LAMMPS with its USER-VTK package installed.  The file has several
+settings needed to compile and link LAMMPS with the VTK library.  You
+should choose a Makefile.lammps.* file compatible with your system and
+your version of VTK, and copy it to Makefile.lammps before building
+LAMMPS itself.  You may need to edit one of the provided files to
+match your system.
 
-If you create a new Makefile.lammps file suitable for some version of VTK on
-some system, that is not a match to one of the provided Makefile.lammps.*
-files, you can send it to the developers, and we can include it in the
-distribution for others to use.
+If you create a new Makefile.lammps file suitable for some version of
+VTK on some system, that is not a match to one of the provided
+Makefile.lammps.* files, you can send it to the developers, and we can
+include it in the distribution for others to use.
 
 To illustrate, these are example settings from the
 Makefile.lammps.ubuntu14.04_vtk6 file:
@@ -19,10 +20,11 @@ vtk_SYSPATH =
 
 vtk_SYSINC refers to the include directory of the installed VTK library
 
-vtk_SYSLIB refers to the libraries needed to link to from an application
-(LAMMPS in this case) to "embed" VTK in the application. VTK consists of
-multiple shared libraries which are needed when using the USER-VTK package.
+vtk_SYSLIB refers to the libraries needed to link to from an
+application (LAMMPS in this case) to "embed" VTK in the
+application. VTK consists of multiple shared libraries which are
+needed when using the USER-VTK package.
 
-vtk_SYSPATH = refers to the path (e.g. -L/usr/local/lib) where the VTK library
-can be found.  You may not need this setting if the path is already included in
-your LD_LIBRARY_PATH environment variable.
+vtk_SYSPATH = refers to the path (e.g. -L/usr/local/lib) where the VTK
+library can be found.  You may not need this setting if the path is
+already included in your LD_LIBRARY_PATH environment variable.

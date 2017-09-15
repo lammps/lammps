@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeNsqNewtonOmp::NPairHalfSizeNsqNewtonOmp(LAMMPS *lmp) : 
+NPairHalfSizeNsqNewtonOmp::NPairHalfSizeNsqNewtonOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -46,8 +46,8 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;;
 
-  FixShearHistory * const fix_history = list->fix_history;
-  NeighList * listgranhistory = list->listgranhistory;
+  FixShearHistory * const fix_history = (FixShearHistory *) list->fix_history;
+  NeighList * listhistory = list->listhistory;
   if (fix_history) {
     fix_history->nlocal_neigh = nlocal;
     fix_history->nall_neigh = nlocal+atom->nghost;
@@ -56,7 +56,7 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
   NPAIR_OMP_INIT;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list,listgranhistory)
+#pragma omp parallel default(none) shared(list,listhistory)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
@@ -94,11 +94,11 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
     npartner = fix_history->npartner;
     partner = fix_history->partner;
     shearpartner = fix_history->shearpartner;
-    firsttouch = listgranhistory->firstneigh;
-    firstshear = listgranhistory->firstdouble;
-    ipage_touch = listgranhistory->ipage+tid;
-    dpage_shear = listgranhistory->dpage+tid;
-    dnum = listgranhistory->dnum;
+    firsttouch = listhistory->firstneigh;
+    firstshear = listhistory->firstdouble;
+    ipage_touch = listhistory->ipage+tid;
+    dpage_shear = listhistory->dpage+tid;
+    dnum = listhistory->dnum;
     dnumbytes = dnum * sizeof(double);
     ipage_touch->reset();
     dpage_shear->reset();

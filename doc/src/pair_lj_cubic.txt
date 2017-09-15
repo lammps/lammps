@@ -42,7 +42,7 @@ A3*rmin^3/epsilon = 27.93... is given in the paper by
 Holian and Ravelo "(Holian)"_#Holian.
 
 This potential is commonly used to study the shock mechanics of FCC
-solids, as in Ravelo et al. "(Ravelo)"_#Ravelo.
+solids, as in Ravelo et al. "(Ravelo)"_#Ravelo2.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the example above,
@@ -75,7 +75,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -125,5 +125,5 @@ support the {inner}, {middle}, {outer} keywords.
 
 :link(Holian)
 [(Holian)] Holian and Ravelo, Phys Rev B, 51, 11275 (1995).
-:link(Ravelo)
+:link(Ravelo2)
 [(Ravelo)] Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).

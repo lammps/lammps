@@ -48,7 +48,7 @@ ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;
 
-  // fix event ID will be set later by PRD
+  // fix event ID will be set later by accelerated dynamics method
 
   id_event = NULL;
 }
@@ -75,7 +75,8 @@ void ComputeEventDisplace::init()
     fix_event = (FixEvent*) modify->fix[ifix];
 
     if (strcmp(fix_event->style,"EVENT/PRD") != 0 &&
-        strcmp(fix_event->style,"EVENT/TAD") != 0)
+        strcmp(fix_event->style,"EVENT/TAD") != 0 &&
+        strcmp(fix_event->style,"EVENT/HYPER") != 0)
       error->all(FLERR,"Compute event/displace has invalid fix event assigned");
   }
 
@@ -83,7 +84,7 @@ void ComputeEventDisplace::init()
 }
 
 /* ----------------------------------------------------------------------
-   return non-zero if an atom has moved > displace_dist since last event
+   return non-zero if any atom has moved > displace_dist since last event
 ------------------------------------------------------------------------- */
 
 double ComputeEventDisplace::compute_scalar()
@@ -144,6 +145,62 @@ double ComputeEventDisplace::compute_scalar()
   return scalar;
 }
 
+/* ----------------------------------------------------------------------
+   return count of atoms that have moved > displace_dist since last event
+------------------------------------------------------------------------- */
+
+int ComputeEventDisplace::all_events()
+{
+  invoked_scalar = update->ntimestep;
+
+  if (id_event == NULL) return 0.0;
+
+  int event = 0;
+  double **xevent = fix_event->array_atom;
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *h = domain->h;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  int xbox,ybox,zbox;
+  double dx,dy,dz,rsq;
+
+  if (triclinic == 0) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
+        dx = x[i][0] + xbox*xprd - xevent[i][0];
+        dy = x[i][1] + ybox*yprd - xevent[i][1];
+        dz = x[i][2] + zbox*zprd - xevent[i][2];
+        rsq = dx*dx + dy*dy + dz*dz;
+        if (rsq >= displace_distsq) event++;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
+        dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xevent[i][0];
+        dy = x[i][1] + h[1]*ybox + h[3]*zbox - xevent[i][1];
+        dz = x[i][2] + h[2]*zbox - xevent[i][2];
+        rsq = dx*dx + dy*dy + dz*dz;
+        if (rsq >= displace_distsq) event++;
+      }
+  }
+
+  int allevents;
+  MPI_Allreduce(&event,&allevents,1,MPI_INT,MPI_SUM,world);
+
+  return allevents;
+}
 
 /* ---------------------------------------------------------------------- */
 

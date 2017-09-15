@@ -43,6 +43,8 @@ using namespace LAMMPS_NS;
 PairDPDfdt::PairDPDfdt(LAMMPS *lmp) : Pair(lmp)
 {
   random = NULL;
+  splitFDT_flag = false;
+  a0_is_zero = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,7 +96,7 @@ void PairDPDfdt::compute(int eflag, int vflag)
   // loop over neighbors of my atoms
 
   if (splitFDT_flag) {
-    for (ii = 0; ii < inum; ii++) {
+    if (!a0_is_zero) for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -182,7 +184,7 @@ void PairDPDfdt::compute(int eflag, int vflag)
           wr = 1.0 - r/cut[itype][jtype];
           wd = wr*wr;
           randnum = random->gaussian();
-	  gamma_ij = sigma[itype][jtype]*sigma[itype][jtype]
+          gamma_ij = sigma[itype][jtype]*sigma[itype][jtype]
                      / (2.0*force->boltz*temperature);
 
           // conservative force = a0 * wd
@@ -265,7 +267,7 @@ void PairDPDfdt::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -286,6 +288,8 @@ void PairDPDfdt::coeff(int narg, char **arg)
   double a0_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double cut_one = cut_global;
+
+  a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
 
   if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
 
@@ -312,18 +316,17 @@ void PairDPDfdt::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair dpd/fdt requires ghost atoms store velocity");
 
-  // if newton off, forces between atoms ij will be double computed
-  // using different random numbers
-
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
-      "Pair dpd/fdt requires newton pair on");
-
   splitFDT_flag = false;
   int irequest = neighbor->request(this,instance_me);
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shardlow") == 0){
+    if (strncmp(modify->fix[i]->style,"shardlow", 8) == 0){
       splitFDT_flag = true;
     }
+
+  // if newton off, forces between atoms ij will be double computed
+  // using different random numbers if splitFDT_flag is false
+  if (!splitFDT_flag && (force->newton_pair == 0) && (comm->me == 0)) error->warning(FLERR,
+      "Pair dpd/fdt requires newton pair on if not also using fix shardlow");
 }
 
 /* ----------------------------------------------------------------------
@@ -371,6 +374,7 @@ void PairDPDfdt::read_restart(FILE *fp)
 
   allocate();
 
+  a0_is_zero = true; // start with assumption that a0 is zero
   int i,j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
@@ -386,6 +390,7 @@ void PairDPDfdt::read_restart(FILE *fp)
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        a0_is_zero = a0_is_zero && (a0[i][j] == 0.0); // verify the zero assumption
       }
     }
 }

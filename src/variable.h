@@ -78,8 +78,6 @@ class Variable : protected Pointers {
   int precedence[18];      // precedence level of math operators
                            // set length to include up to XOR in enum
 
-  class Python *python;    // ptr to embedded Python interpreter
-
   struct Tree {            // parse tree for atom-style or vector-style vars
     double value;          // single scalar
     double *array;         // per-atom or per-type list of doubles
@@ -210,7 +208,7 @@ This is to insure they stay in sync.
 E: Variable has circular dependency
 
 A circular dependency is when variable "a" in used by variable "b" and
-variable "b" is also used by varaible "a".  Circular dependencies with
+variable "b" is also used by variable "a".  Circular dependencies with
 longer chains of dependence are also not allowed.
 
 E: Python variable does not match Python function
@@ -355,7 +353,7 @@ Self-explanatory.
 
 E: Non digit character between brackets in variable
 
-Self-explantory.
+Self-explanatory.
 
 E: Mismatched brackets in variable
 

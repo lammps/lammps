@@ -31,7 +31,7 @@ information is stored (and not stored) in a restart file is given
 below.  Basically this operation will re-create the simulation box
 with all its atoms and their attributes as well as some related global
 settings, at the point in time it was written to the restart file by a
-previous simluation.  The simulation box will be partitioned into a
+previous simulation.  The simulation box will be partitioned into a
 regular 3d grid of rectangular bricks, one per processor, based on the
 number of processors in the current simulation and the settings of the
 "processors"_processors.html command.  The partitioning can later be
@@ -81,7 +81,7 @@ wrong.
 
 Because restart files are binary, they may not be portable to other
 machines.  In this case, you can use the "-restart command-line
-switch"_Section_start.html#start_7 to convert a restart file to a data
+switch"_Section_start.html#start_6 to convert a restart file to a data
 file.
 
 Similar to how restart files are written (see the

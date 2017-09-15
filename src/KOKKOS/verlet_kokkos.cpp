@@ -64,14 +64,17 @@ VerletKokkos::VerletKokkos(LAMMPS *lmp, int narg, char **arg) :
    setup before run
 ------------------------------------------------------------------------- */
 
-void VerletKokkos::setup()
+void VerletKokkos::setup(int flag)
 {
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up Verlet run ...\n");
-    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(screen,"  Time step     : %g\n", update->dt);
-    timer->print_timeout(screen);
+    if (flag) {
+      fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",
+              update->ntimestep);
+      fprintf(screen,"  Time step     : %g\n", update->dt);
+      timer->print_timeout(screen);
+    }
   }
 
   update->setupflag = 1;
@@ -169,8 +172,8 @@ void VerletKokkos::setup()
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
-  output->setup();
-  lmp->kokkos->auto_sync = 0;
+  output->setup(flag);
+  lmp->kokkos->auto_sync = 1;
   update->setupflag = 1;
 }
 

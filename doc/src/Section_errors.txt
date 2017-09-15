@@ -22,7 +22,7 @@ either conceptually, or as printed out by the program.
 
 12.1 Common problems :link(err_1),h4
 
-If two LAMMPS runs do not produce the same answer on different
+If two LAMMPS runs do not produce the exact same answer on different
 machines or different numbers of processors, this is typically not a
 bug.  In theory you should get identical answers on any number of
 processors and on any machine.  In practice, numerical round-off can
@@ -55,12 +55,13 @@ LAMMPS errors are detected at setup time; others like a bond
 stretching too far may not occur until the middle of a run.
 
 LAMMPS tries to flag errors and print informative error messages so
-you can fix the problem.  Of course, LAMMPS cannot figure out your
-physics or numerical mistakes, like choosing too big a timestep,
-specifying erroneous force field coefficients, or putting 2 atoms on
-top of each other!  If you run into errors that LAMMPS doesn't catch
-that you think it should flag, please send an email to the
-"developers"_http://lammps.sandia.gov/authors.html.
+you can fix the problem.  For most errors it will also print the last
+input script command that it was processing.  Of course, LAMMPS cannot
+figure out your physics or numerical mistakes, like choosing too big a
+timestep, specifying erroneous force field coefficients, or putting 2
+atoms on top of each other!  If you run into errors that LAMMPS
+doesn't catch that you think it should flag, please send an email to
+the "developers"_http://lammps.sandia.gov/authors.html.
 
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by
@@ -70,7 +71,7 @@ style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
 available styles in your executable can be listed by using "the -h
-command-line argument"_Section_start.html#start_7.  The installation
+command-line argument"_Section_start.html#start_6.  The installation
 and compilation of optional packages is explained in the "installation
 instructions"_Section_start.html#start_3.
 
@@ -79,12 +80,24 @@ order.  If you mess this up, LAMMPS will often flag the error, but it
 may also simply read a bogus argument and assign a value that is
 valid, but not what you wanted.  E.g. trying to read the string "abc"
 as an integer value of 0.  Careful reading of the associated doc page
-for the command should allow you to fix these problems.  Note that
-some commands allow for variables to be specified in place of numeric
-constants so that the value can be evaluated and change over the
-course of a run.  This is typically done with the syntax {v_name} for
-a parameter, where name is the name of the variable.  This is only
-allowed if the command documentation says it is.
+for the command should allow you to fix these problems. In most cases,
+where LAMMPS expects to read a number, either integer or floating point,
+it performs a stringent test on whether the provided input actually
+is an integer or floating-point number, respectively, and reject the
+input with an error message (for instance, when an integer is required,
+but a floating-point number 1.0 is provided):
+
+ERROR: Expected integer parameter in input script or data file :pre
+
+Some commands allow for using variable references in place of numeric
+constants so that the value can be evaluated and may change over the
+course of a run.  This is typically done with the syntax {v_name} for a
+parameter, where name is the name of the variable. On the other hand,
+immediate variable expansion with the syntax ${name} is performed while
+reading the input and before parsing commands,
+
+NOTE: Using a variable reference (i.e. {v_name}) is only allowed if
+the documentation of the corresponding command explicitly says it is.
 
 Generally, LAMMPS will print a message to the screen and logfile and
 exit gracefully when it encounters a fatal error.  Sometimes it will
@@ -561,11 +574,11 @@ group of atoms correctly. :dd
 
 {Bad quadratic solve for particle/line collision} :dt
 
-This is an internal error.  It should nornally not occur. :dd
+This is an internal error.  It should normally not occur. :dd
 
 {Bad quadratic solve for particle/tri collision} :dt
 
-This is an internal error.  It should nornally not occur. :dd
+This is an internal error.  It should normally not occur. :dd
 
 {Bad real space Coulomb cutoff in fix tune/kspace} :dt
 
@@ -899,7 +912,7 @@ Atoms can not be added afterwards to this fix option. :dd
 
 {Cannot append atoms to a triclinic box} :dt
 
-The simulation box must be defined with edges alligned with the
+The simulation box must be defined with edges aligned with the
 Cartesian axes. :dd
 
 {Cannot balance in z dimension for 2d simulation} :dt
@@ -979,7 +992,7 @@ file. :dd
 
 LAMMPS failed to compute an initial guess for the PPPM_disp g_ewald_6
 factor that partitions the computation between real space and k-space
-for Disptersion interactions. :dd
+for Dispersion interactions. :dd
 
 {Cannot create an atom map unless atoms have IDs} :dt
 
@@ -1314,7 +1327,7 @@ Self-explanatory. :dd
 
 This file is created when you use some LAMMPS features, to indicate
 what paper you should cite on behalf of those who implemented
-the feature.  Check that you have write priveleges into the directory
+the feature.  Check that you have write privileges into the directory
 you are running in. :dd
 
 {Cannot open log.lammps for writing} :dt
@@ -1992,7 +2005,7 @@ Self-explanatory. :dd
 
 {Cannot use fix reax/bonds without pair_style reax} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Cannot use fix rigid npt/nph and fix deform on same component of stress tensor} :dt
 
@@ -2075,7 +2088,7 @@ Self-explanatory. :dd
 
 {Cannot use lines with fix srd unless overlap is set} :dt
 
-This is because line segements are connected to each other. :dd
+This is because line segments are connected to each other. :dd
 
 {Cannot use multiple fix wall commands with pair brownian} :dt
 
@@ -2118,7 +2131,7 @@ Self-explanatory. :dd
 
 {Cannot use newton pair with born/gpu pair style} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Cannot use newton pair with buck/coul/cut/gpu pair style} :dt
 
@@ -2278,7 +2291,7 @@ Self-explanatory. :dd
 
 {Cannot use newton pair with zbl/gpu pair style} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Cannot use non-zero forces in an energy minimization} :dt
 
@@ -2628,11 +2641,11 @@ uses a pairwise neighbor list. :dd
 
 {Compute chunk/atom bin/cylinder radius is too large for periodic box} :dt
 
-Radius cannot be bigger than 1/2 of a non-axis  periodic dimention. :dd
+Radius cannot be bigger than 1/2 of a non-axis  periodic dimension. :dd
 
 {Compute chunk/atom bin/sphere radius is too large for periodic box} :dt
 
-Radius cannot be bigger than 1/2 of any periodic dimention. :dd
+Radius cannot be bigger than 1/2 of any periodic dimension. :dd
 
 {Compute chunk/atom compute array is accessed out-of-range} :dt
 
@@ -2693,15 +2706,15 @@ It will only store IDs if its compress option is enabled. :dd
 
 {Compute chunk/atom stores no coord1 for compute property/chunk} :dt
 
-Only certain binning options for comptue chunk/atom store coordinates. :dd
+Only certain binning options for compute chunk/atom store coordinates. :dd
 
 {Compute chunk/atom stores no coord2 for compute property/chunk} :dt
 
-Only certain binning options for comptue chunk/atom store coordinates. :dd
+Only certain binning options for compute chunk/atom store coordinates. :dd
 
 {Compute chunk/atom stores no coord3 for compute property/chunk} :dt
 
-Only certain binning options for comptue chunk/atom store coordinates. :dd
+Only certain binning options for compute chunk/atom store coordinates. :dd
 
 {Compute chunk/atom variable is not atom-style variable} :dt
 
@@ -2722,11 +2735,11 @@ is used to find clusters. :dd
 
 {Compute cna/atom cutoff is longer than pairwise cutoff} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute cna/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute com/chunk does not use chunk/atom compute} :dt
 
@@ -2734,7 +2747,7 @@ The style of the specified compute is not chunk/atom. :dd
 
 {Compute contact/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute contact/atom requires atom style sphere} :dt
 
@@ -2747,7 +2760,7 @@ since those atoms are not in the neighbor list. :dd
 
 {Compute coord/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute damage/atom requires peridynamic potential} :dt
 
@@ -2777,7 +2790,7 @@ Self-explanatory. :dd
 
 {Compute erotate/asphere requires extended particles} :dt
 
-This compute cannot be used with point paritlces. :dd
+This compute cannot be used with point particles. :dd
 
 {Compute erotate/rigid with non-rigid fix-ID} :dt
 
@@ -2822,7 +2835,7 @@ Cannot compute order parameter beyond cutoff. :dd
 
 {Compute hexorder/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute improper/local used when impropers are not allowed} :dt
 
@@ -2868,11 +2881,11 @@ Cannot compute order parameter beyond cutoff. :dd
 
 {Compute orientorder/atom requires a pair style be defined} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Compute pair must use group all} :dt
 
-Pair styles accumlate energy on all atoms. :dd
+Pair styles accumulate energy on all atoms. :dd
 
 {Compute pe must use group all} :dt
 
@@ -2922,7 +2935,7 @@ The style of the specified compute is not chunk/atom. :dd
 {Compute property/local cannot use these inputs together} :dt
 
 Only inputs that generate the same number of datums can be used
-togther.  E.g. bond and angle quantities cannot be mixed. :dd
+together.  E.g. bond and angle quantities cannot be mixed. :dd
 
 {Compute property/local does not (yet) work with atom_style template} :dt
 
@@ -3066,7 +3079,7 @@ Self-explanatory. :dd
 
 {Compute temp/asphere requires extended particles} :dt
 
-This compute cannot be used with point paritlces. :dd
+This compute cannot be used with point particles. :dd
 
 {Compute temp/body requires atom style body} :dt
 
@@ -3511,12 +3524,12 @@ path and name are correct. :dd
 
 {Could not process Python file} :dt
 
-The Python code in the specified file was not run sucessfully by
+The Python code in the specified file was not run successfully by
 Python, probably due to errors in the Python code. :dd
 
 {Could not process Python string} :dt
 
-The Python code in the here string was not run sucessfully by Python,
+The Python code in the here string was not run successfully by Python,
 probably due to errors in the Python code. :dd
 
 {Coulomb PPPMDisp order has been reduced below minorder} :dt
@@ -3625,7 +3638,7 @@ Self-explanatory. :dd
 
 {Cutoffs missing in pair_style buck/long/coul/long} :dt
 
-Self-exlanatory. :dd
+Self-explanatory. :dd
 
 {Cutoffs missing in pair_style lj/long/coul/long} :dt
 
@@ -4372,7 +4385,7 @@ Self-explanatory. :dd
 
 {Fix ave/chunk does not use chunk/atom compute} :dt
 
-The specified conpute is not for a compute chunk/atom command. :dd
+The specified compute is not for a compute chunk/atom command. :dd
 
 {Fix ave/chunk fix does not calculate a per-atom array} :dt
 
@@ -4604,11 +4617,11 @@ An index for the array is out of bounds. :dd
 
 {Fix ave/time compute does not calculate a scalar} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Fix ave/time compute does not calculate a vector} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Fix ave/time compute does not calculate an array} :dt
 
@@ -4683,9 +4696,9 @@ Self-explanatory. :dd
 
 {Fix bond/create induced too many angles/dihedrals/impropers per atom} :dt
 
-See the read_data command for info on setting the "extra angle per
-atom", etc header values to allow for additional angles, etc to be
-formed. :dd
+See the read_data command for info on using the "extra/angle/per/atom",
+(or dihedral, improper) keywords to allow for additional
+angles, dihedrals, and impropers to be formed. :dd
 
 {Fix bond/create needs ghost atoms from further away} :dt
 
@@ -4957,7 +4970,7 @@ Self-explanatory. :dd
 
 {Fix langevin angmom requires extended particles} :dt
 
-This fix option cannot be used with point paritlces. :dd
+This fix option cannot be used with point particles. :dd
 
 {Fix langevin omega is not yet implemented with kokkos} :dt
 
@@ -6158,7 +6171,7 @@ map command will force an atom map to be created. :dd
 
 {Initial temperatures not all set in fix ttm} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Input line quote not followed by whitespace} :dt
 
@@ -6186,7 +6199,7 @@ Eigensolve for rigid body was not sufficiently accurate. :dd
 
 {Insufficient Jacobi rotations for triangle} :dt
 
-The calculation of the intertia tensor of the triangle failed.  This
+The calculation of the inertia tensor of the triangle failed.  This
 should not happen if it is a reasonably shaped triangle. :dd
 
 {Insufficient memory on accelerator} :dt
@@ -6450,15 +6463,15 @@ Self-explanatory. :dd
 
 {Invalid attribute in dump custom command} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid attribute in dump local command} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid attribute in dump modify command} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid basis setting in create_atoms command} :dt
 
@@ -6724,7 +6737,7 @@ or cause multiple files to be written. :dd
 Filenames used with the dump xyz style cannot be binary or cause files
 to be written by each processor. :dd
 
-{Invalid dump_modify threshhold operator} :dt
+{Invalid dump_modify threshold operator} :dt
 
 Operator keyword used for threshold specification in not recognized. :dd
 
@@ -6738,7 +6751,7 @@ The fix is not recognized. :dd
 
 {Invalid fix ave/time off column} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Invalid fix box/relax command for a 2d simulation} :dt
 
@@ -7300,7 +7313,7 @@ Self-explanatory. Check the input script or data file. :dd
 
 {LJ6 off not supported in pair_style buck/long/coul/long} :dt
 
-Self-exlanatory. :dd
+Self-explanatory. :dd
 
 {Label wasn't found in input script} :dt
 
@@ -7348,7 +7361,7 @@ This should not occur.  Report the problem to the developers. :dd
 Lost atoms are checked for each time thermo output is done.  See the
 thermo_modify lost command for options.  Lost atoms usually indicate
 bad dynamics, e.g. atoms have been blown far out of the simulation
-box, or moved futher than one processor's sub-domain away before
+box, or moved further than one processor's sub-domain away before
 reneighboring. :dd
 
 {MEAM library error %d} :dt
@@ -7513,7 +7526,7 @@ Self-explanatory. :dd
 
 {Molecule template ID for create_atoms does not exist} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Molecule template ID for fix deposit does not exist} :dt
 
@@ -7539,7 +7552,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Molecule toplogy/atom exceeds system topology/atom} :dt
+{Molecule topology/atom exceeds system topology/atom} :dt
 
 The number of bonds, angles, etc per-atom in the molecule exceeds the
 system setting.  See the create_box command for how to specify these
@@ -7779,7 +7792,7 @@ Self-explanatory. :dd
 
 {Must use variable energy with fix addforce} :dt
 
-Must define an energy vartiable when applyting a dynamic
+Must define an energy variable when applying a dynamic
 force during minimization. :dd
 
 {Must use variable energy with fix efield} :dt
@@ -7863,18 +7876,20 @@ See the setting for tagint in the src/lmptype.h file. :dd
 
 {New bond exceeded bonds per atom in create_bonds} :dt
 
-See the read_data command for info on setting the "extra bond per
-atom" header value to allow for additional bonds to be formed. :dd
+See the read_data command for info on using the "extra/bond/per/atom"
+keyword to allow for additional bonds to be formed
 
 {New bond exceeded bonds per atom in fix bond/create} :dt
 
-See the read_data command for info on setting the "extra bond per
-atom" header value to allow for additional bonds to be formed. :dd
+See the read_data command for info on using the "extra/bond/per/atom"
+keyword to allow for additional bonds to be formed :dd
 
 {New bond exceeded special list size in fix bond/create} :dt
 
-See the special_bonds extra command for info on how to leave space in
-the special bonds list to allow for additional bonds to be formed. :dd
+See the "read_data extra/special/per/atom" command
+(or the "create_box extra/special/per/atom" command)
+for info on how to leave space in the special bonds
+list to allow for additional bonds to be formed. :dd
 
 {Newton bond change after simulation box is defined} :dt
 
@@ -8029,7 +8044,7 @@ Self-explanatory. :dd
 
 {Non digit character between brackets in variable} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Non integer # of swaps in temper command} :dt
 
@@ -8650,7 +8665,7 @@ not be invoked by bond_style quartic. :dd
 {Pair style does not support compute group/group} :dt
 
 The pair_style does not have a single() function, so it cannot be
-invokded by the compute group/group command. :dd
+invoked by the compute group/group command. :dd
 
 {Pair style does not support compute pair/local} :dt
 
@@ -8877,6 +8892,14 @@ This is a requirement to use this potential. :dd
 
 See the newton command.  This is a restriction to use this potential. :dd
 
+{Pair style vashishta/gpu requires atom IDs} :dt
+
+This is a requirement to use this potential. :dd
+
+{Pair style vashishta/gpu requires newton pair off} :dt
+
+See the newton command.  This is a restriction to use this potential. :dd
+
 {Pair style tersoff/gpu requires atom IDs} :dt
 
 This is a requirement to use the tersoff/gpu potential. :dd
@@ -8935,11 +8958,11 @@ Self-explanatory. :dd
 
 {Pair yukawa/colloid requires atom style sphere} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Pair yukawa/colloid requires atoms with same type have same radius} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Pair yukawa/colloid/gpu requires atom style sphere} :dt
 
@@ -9153,7 +9176,7 @@ Self-explanatory. :dd
 
 {Python function evaluation failed} :dt
 
-The Python function did not run succesfully and/or did not return a
+The Python function did not run successfully and/or did not return a
 value (if it is supposed to return a value).  This is probably due to
 some error condition in the function. :dd
 
@@ -9643,9 +9666,10 @@ you are running. :dd
 
 {Special list size exceeded in fix bond/create} :dt
 
-See the read_data command for info on setting the "extra special per
-atom" header value to allow for additional special values to be
-stored. :dd
+See the "read_data extra/special/per/atom" command
+(or the "create_box extra/special/per/atom" command)
+for info on how to leave space in the special bonds
+list to allow for additional bonds to be formed. :dd
 
 {Specified processors != physical processors} :dt
 
@@ -9662,23 +9686,23 @@ Self-explanatory. :dd
 
 {Subsequent read data induced too many angles per atom} :dt
 
-See the create_box extra/angle/per/atom or read_data "extra angle per
-atom" header value to set this limit larger. :dd
+See the extra/angle/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many bonds per atom} :dt
 
-See the create_box extra/bond/per/atom or read_data "extra bond per
-atom" header value to set this limit larger. :dd
+See the extra/bond/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many dihedrals per atom} :dt
 
-See the create_box extra/dihedral/per/atom or read_data "extra
-dihedral per atom" header value to set this limit larger. :dd
+See the extra/dihedral/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Subsequent read data induced too many impropers per atom} :dt
 
-See the create_box extra/improper/per/atom or read_data "extra
-improper per atom" header value to set this limit larger. :dd
+See the extra/improper/per/atom keyword for the create_box
+or the read_data command to set this limit larger :dd
 
 {Substitution for illegal variable} :dt
 
@@ -10012,7 +10036,7 @@ make sense in between runs. :dd
 
 {Threshhold for an atom property that isn't allocated} :dt
 
-A dump threshhold has been requested on a quantity that is
+A dump threshold has been requested on a quantity that is
 not defined by the atom style used in this simulation. :dd
 
 {Timestep must be >= 0} :dt
@@ -10074,7 +10098,7 @@ to a large size. :dd
 {Too many atom triplets for pair bop} :dt
 
 The number of three atom groups for angle determinations exceeds the
-expected number.  Check your atomic structrure to ensure that it is
+expected number.  Check your atomic structure to ensure that it is
 realistic. :dd
 
 {Too many atoms for dump dcd} :dt
@@ -10142,7 +10166,7 @@ to a large size. :dd
 
 {Too many timesteps} :dt
 
-The cummulative timesteps must fit in a 64-bit integer. :dd
+The cumulative timesteps must fit in a 64-bit integer. :dd
 
 {Too many timesteps for NEB} :dt
 
@@ -10641,7 +10665,7 @@ Only atom-style variables can be used. :dd
 
 {Variable for region cylinder is invalid style} :dt
 
-Only equal-style varaibles are allowed. :dd
+Only equal-style variables are allowed. :dd
 
 {Variable for region is invalid style} :dt
 
@@ -10653,7 +10677,7 @@ Self-explanatory. :dd
 
 {Variable for region sphere is invalid style} :dt
 
-Only equal-style varaibles are allowed. :dd
+Only equal-style variables are allowed. :dd
 
 {Variable for restart is invalid style} :dt
 
@@ -10694,7 +10718,7 @@ Self-explanatory. :dd
 {Variable has circular dependency} :dt
 
 A circular dependency is when variable "a" in used by variable "b" and
-variable "b" is also used by varaible "a".  Circular dependencies with
+variable "b" is also used by variable "a".  Circular dependencies with
 longer chains of dependence are also not allowed. :dd
 
 {Variable name between brackets must be alphanumeric or underscore characters} :dt
@@ -10783,7 +10807,7 @@ Self-explanatory. :dd
 
 {Variable name for fix deform does not exist} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Variable name for fix efield does not exist} :dt
 
@@ -11070,7 +11094,7 @@ for a dihedral) and adding a small amount of stretch. :dd
 
 {Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Calling write_dump before a full system init.} :dt
 
@@ -11157,6 +11181,12 @@ Self-explanatory. :dd
 
 If the fix changes the timestep, the dump dcd file will not
 reflect the change. :dd
+
+{Energy due to X extra global DOFs will be included in minimizer energies} :dt
+
+When using fixes like box/relax, the potential energy used by the minimizer
+is augmented by an additional energy provided by the fix. Thus the printed
+converged energy may be different from the total potential energy. :dd
 
 {Energy tally does not account for 'zero yes'} :dt
 
@@ -11401,7 +11431,7 @@ The command options you have used caused atoms to be lost. :dd
 Lost atoms are checked for each time thermo output is done.  See the
 thermo_modify lost command for options.  Lost atoms usually indicate
 bad dynamics, e.g. atoms have been blown far out of the simulation
-box, or moved futher than one processor's sub-domain away before
+box, or moved further than one processor's sub-domain away before
 reneighboring. :dd
 
 {MSM mesh too small, increasing to 2 points in each direction} :dt
@@ -11439,7 +11469,7 @@ i.e. the first molecule in the template. :dd
 
 {Molecule template for fix shake has multiple molecules} :dt
 
-The fix shake command will only recoginze molecules of a single
+The fix shake command will only recognize molecules of a single
 type, i.e. the first molecule in the template. :dd
 
 {More than one compute centro/atom} :dt
@@ -11524,7 +11554,7 @@ neigh_modify exclude command. :dd
 
 If a thermo_style command is used after a thermo_modify command, the
 settings changed by the thermo_modify command will be reset to their
-default values.  This is because the thermo_modify commmand acts on
+default values.  This is because the thermo_modify command acts on
 the currently defined thermo style, and a thermo_style command creates
 a new style. :dd
 
@@ -11576,7 +11606,7 @@ This may not be what you intended. :dd
 
 {One or more dynamic groups may not be updated at correct point in timestep} :dt
 
-If there are other fixes that act immediately after the intitial stage
+If there are other fixes that act immediately after the initial stage
 of time integration within a timestep (i.e. after atoms move), then
 the command that sets up the dynamic group should appear after those
 fixes.  This will insure that dynamic group assignments are made
@@ -11873,7 +11903,7 @@ Self-explanatory. :dd
 
 {Using largest cutoff for buck/long/coul/long} :dt
 
-Self-exlanatory. :dd
+Self-explanatory. :dd
 
 {Using largest cutoff for lj/long/coul/long} :dt
 

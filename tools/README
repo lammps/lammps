@@ -18,7 +18,6 @@ ch2lmp		       convert CHARMM files to LAMMPS input
 chain		       create a data file of bead-spring chains
 colvars		       post-process output of the fix colvars command        
 createatoms	       generate lattices of atoms within a geometry
-data2xmovie	       convert a data file to a snapshot that xmovie can viz
 drude                  create Drude core/electron atom pairs in a data file
 eam_database	       one tool to generate EAM alloy potential files
 eam_generate	       2nd tool to generate EAM alloy potential files
@@ -27,19 +26,20 @@ emacs		       add-ons to EMACS editor for editing LAMMPS input scripts
 fep		       scripts for free-energy perturbation with USER-FEP pkg
 i-pi                   Python wrapper for performing path-integral MD (PIMD)
 ipp		       input pre-processor Perl tool for creating input scripts
+kate                   add-ons to Kate editor for editing LAMMPS input scripts
 lmp2arc		       convert LAMMPS output to Accelrys Insight format
 lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz
-lmp2traj	       convert LAMMPS output to contour, density profiles
-lmp2vmd                tools for visualizing and analyzing LAMMPS data with VMD
 matlab		       MatLab scripts for post-processing LAMMPS output
 micelle2d	       create a data file of small lipid chains in solvent
+moltemplate            Moltemplate builder program
 msi2lmp		       use Accelrys Insight code to setup LAMMPS input
 phonon                 post-process output of the fix phonon command
+polybond               Python tool for programmable polymer bonding
 pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
 python		       Python scripts for post-processing LAMMPS output
 reax	       	       Tools for analyzing output of ReaxFF simulations
+smd                    convert Smooth Mach Dynamics triangles to VTK
 vim		       add-ons to VIM editor for editing LAMMPS input scripts
-xmovie		       a quick/simple viz package (2d projections of 3d)
 xmgrace                a collection of scripts to generate xmgrace plots
 
 For tools that are single C, C++, or Fortran files, a Makefile for

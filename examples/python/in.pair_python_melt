@@ -1,0 +1,58 @@
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		* 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	python 2.5
+pair_coeff	* * py_pot.LJCutMelt lj
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+thermo		50
+run		250
+
+write_data      melt.data
+write_restart   melt.restart
+
+clear
+
+read_restart    melt.restart
+
+pair_style	python 2.5
+pair_coeff	* * py_pot.LJCutMelt lj
+
+fix		1 all nve
+
+thermo		50
+run		250
+
+clear
+
+units		lj
+atom_style	atomic
+
+read_data       melt.data
+
+pair_style	python 2.5
+pair_coeff	* * py_pot.LJCutMelt lj
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+thermo		50
+run		250
+
+shell rm melt.data melt.restart

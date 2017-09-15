@@ -21,9 +21,7 @@ namespace LAMMPS_NS {
 class NBin : protected Pointers {
  public:
   int istyle;                      // 1-N index into binnames
-
-  bigint last_setup,last_bin;      // timesteps for last operations performed
-  bigint last_bin_memory;
+  bigint last_bin;                 // last timestep atoms were binned
 
   int nbinx,nbiny,nbinz;           // # of global bins
   int mbins;                       // # of local bins and offset on this proc
@@ -33,12 +31,16 @@ class NBin : protected Pointers {
   double binsizex,binsizey,binsizez;  // bin sizes and inverse sizes
   double bininvx,bininvy,bininvz;
 
-  int *binhead;                    // index of first atom in each bin
-  int *bins;                       // index of next atom in same bin
+  int *binhead;                // index of first atom in each bin
+  int *bins;                   // index of next atom in same bin
+  int *atom2bin;               // bin assignment for each atom (local+ghost)
+
+  double cutoff_custom;        // cutoff set by requestor
 
   NBin(class LAMMPS *);
   ~NBin();
-  void copy_neighbor_info();
+  void post_constructor(class NeighRequest *);
+  virtual void copy_neighbor_info();
   virtual void bin_atoms_setup(int);
   bigint memory_usage();
 

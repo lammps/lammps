@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -89,7 +89,7 @@ class FixQBMSST : public Fix {
   int seed;                                                       // seed for the random number generator
   double f_max;                                                   // frequency cutoff
   int N_f;                                                        // number of frequency grid
-  double eta;                                                     // coupling coefficient bewteen shock and the qtb
+  double eta;                                                     // coupling coefficient between shock and the qtb
   int beta;                                                       // average beta steps before updating the qtb temperature
   double t_init;                                                  // initial qtb temperature
   int qtb_set;                                                    // 1 if its a restarting qbmsst, 0 if not

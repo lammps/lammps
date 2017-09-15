@@ -118,8 +118,8 @@ of new bonds, angles, etc.
 
 NOTE: One data structure that is not updated when a bond breaks are
 the molecule IDs stored by each atom.  Even though two molecules
-become one moleclue due to the created bond, all atoms in the new
-moleclue retain their original molecule IDs.
+become one molecule due to the created bond, all atoms in the new
+molecule retain their original molecule IDs.
 
 If the {atype} keyword is used and if an angle potential is defined
 via the "angle_style"_angle_style.html command, then any new 3-body
@@ -150,10 +150,9 @@ atoms.  Note that adding a single bond always adds a new 1st neighbor
 but may also induce *many* new 2nd and 3rd neighbors, depending on the
 molecular topology of your system.  The "extra special per atom"
 parameter must typically be set to allow for the new maximum total
-size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 3
+size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 2
 ways to do this.  See the "read_data"_read_data.html or
-"create_box"_create_box.html or "special_bonds extra" commands for
-details.
+"create_box"_create_box.html commands for details.
 
 NOTE: Even if you do not use the {atype}, {dtype}, or {itype}
 keywords, the list of topological neighbors is updated for atoms
@@ -218,7 +217,7 @@ by this fix are "intensive".
 These are the 2 quantities:
 
 (1) # of bonds created on the most recent creation timestep
-(2) cummulative # of bonds created :ul
+(2) cumulative # of bonds created :ul
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

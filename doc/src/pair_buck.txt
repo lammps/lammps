@@ -120,6 +120,9 @@ cutoff (distance units)
 cutoff2 (distance units) :ul
 
 The second coefficient, rho, must be greater than zero.
+The coefficients A, rho, and C can be written as analytical expressions
+of epsilon and sigma, in analogy to the Lennard-Jones potential
+"(Khrapak)"_#Khrapak.
 
 The latter 2 coefficients are optional.  If not specified, the global
 A,C and Coulombic cutoffs are used.  If only one cutoff is specified,
@@ -127,7 +130,6 @@ it is used as the cutoff for both A,C and Coulombic interactions for
 this type pair.  If both coefficients are specified, they are used as
 the A,C and Coulombic cutoffs for this type pair.  You cannot specify
 2 cutoffs for style {buck}, since it has no Coulombic terms.
-
 For {buck/coul/long} only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
@@ -150,7 +152,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -194,3 +196,6 @@ only enabled if LAMMPS was built with that package.  See the
 "pair_coeff"_pair_coeff.html, "pair_style born"_pair_born.html
 
 [Default:] none
+
+:link(Khrapak)
+[(Khrapak)] Khrapak, Chaudhuri, and Morfill, J Chem Phys, 134, 054120 (2011).

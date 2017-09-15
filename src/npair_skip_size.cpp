@@ -32,7 +32,7 @@ NPairSkipSize::NPairSkipSize(LAMMPS *lmp) : NPair(lmp) {}
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
    iskip and ijskip flag which atom types and type pairs to skip
-   if list requests it, preserve shear history via fix shear/history 
+   if list requests it, preserve shear history via fix shear/history
 ------------------------------------------------------------------------- */
 
 void NPairSkipSize::build(NeighList *list)
@@ -49,7 +49,7 @@ void NPairSkipSize::build(NeighList *list)
   double **firstshear;
   MyPage<int> *ipage_touch;
   MyPage<double> *dpage_shear;
-  NeighList *listgranhistory;
+  NeighList *listhistory;
 
   tagint *tag = atom->tag;
   int *type = atom->type;
@@ -68,19 +68,19 @@ void NPairSkipSize::build(NeighList *list)
   int *iskip = list->iskip;
   int **ijskip = list->ijskip;
 
-  FixShearHistory *fix_history = list->fix_history;
+  FixShearHistory *fix_history = (FixShearHistory *) list->fix_history;
   if (fix_history) {
     fix_history->nlocal_neigh = nlocal;
     fix_history->nall_neigh = nlocal + atom->nghost;
     npartner = fix_history->npartner;
     partner = fix_history->partner;
     shearpartner = fix_history->shearpartner;
-    listgranhistory = list->listgranhistory;
-    firsttouch = listgranhistory->firstneigh;
-    firstshear = listgranhistory->firstdouble;
-    ipage_touch = listgranhistory->ipage;
-    dpage_shear = listgranhistory->dpage;
-    dnum = listgranhistory->dnum;
+    listhistory = list->listhistory;
+    firsttouch = listhistory->firstneigh;
+    firstshear = listhistory->firstdouble;
+    ipage_touch = listhistory->ipage;
+    dpage_shear = listhistory->dpage;
+    dnum = listhistory->dnum;
     dnumbytes = dnum * sizeof(double);
   }
 

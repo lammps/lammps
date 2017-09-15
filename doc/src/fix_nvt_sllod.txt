@@ -54,9 +54,9 @@ by fix nvt/sllod.  LAMMPS will give an error if this setting is not
 consistent.
 
 The SLLOD equations of motion, originally proposed by Hoover and Ladd
-(see "(Evans and Morriss)"_#Evans), were proven to be equivalent to
+(see "(Evans and Morriss)"_#Evans3), were proven to be equivalent to
 Newton's equations of motion for shear flow by "(Evans and
-Morriss)"_#Evans. They were later shown to generate the desired
+Morriss)"_#Evans3. They were later shown to generate the desired
 velocity gradient and the correct production of work by stresses for
 all forms of homogeneous flow by "(Daivis and Todd)"_#Daivis.  As
 implemented in LAMMPS, they are coupled to a Nose/Hoover chain
@@ -121,7 +121,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -173,7 +173,7 @@ Same as "fix nvt"_fix_nh.html, except tchain = 1.
 
 :line
 
-:link(Evans)
+:link(Evans3)
 [(Evans and Morriss)] Evans and Morriss, Phys Rev A, 30, 1528 (1984).
 
 :link(Daivis)

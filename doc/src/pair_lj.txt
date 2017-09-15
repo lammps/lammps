@@ -149,7 +149,7 @@ where kappa is the inverse of the Debye length.  This potential is
 another way to mimic the screening effect of a polar solvent.
 
 Style {lj/cut/coul/dsf} computes the Coulombic term via the damped
-shifted force model described in "Fennell"_#Fennell, given by:
+shifted force model described in "Fennell"_#Fennell2, given by:
 
 :c,image(Eqs/pair_coul_dsf.jpg)
 
@@ -180,7 +180,7 @@ model"_Section_howto.html#howto_25 to allow charges on core and shell
 particles to be separated by r = 0.0.
 
 Styles {lj/cut/tip4p/cut} and {lj/cut/tip4p/long} implement the TIP4P
-water model of "(Jorgensen)"_#Jorgensen, which introduces a massless
+water model of "(Jorgensen)"_#Jorgensen2, which introduces a massless
 site located a short distance away from the oxygen atom along the
 bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
@@ -197,7 +197,7 @@ molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
 See the "howto section"_Section_howto.html#howto_8 for more
 information on how to use the TIP4P pair styles and lists of
-parameters to set.  Note that the neighobr list cutoff for Coulomb
+parameters to set.  Note that the neighbor list cutoff for Coulomb
 interactions is effectively extended by a distance 2*qdist when using
 the TIP4P pair style, to account for the offset distance of the
 fictitious charges on O atoms in water molecules.  Thus it is
@@ -253,7 +253,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -311,10 +311,10 @@ installed by default.
 
 :line
 
-:link(Jorgensen)
+:link(Jorgensen2)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
-:link(Fennell)
+:link(Fennell2)
 [(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).

@@ -59,8 +59,8 @@ between pairs of particles:
 where H determines together with the standard deviation sigma_h the
 peak height of the Gaussian function, and r_mh the peak position.
 Examples of the use of the Gaussian potentials include implicit
-solvent simulations of salt ions "(Lenart)"_#Lenart and of surfactants
-"(Jusufi)"_#Jusufi.  In these instances the Gaussian potential mimics
+solvent simulations of salt ions "(Lenart)"_#Lenart2 and of surfactants
+"(Jusufi)"_#Jusufi2.  In these instances the Gaussian potential mimics
 the hydration barrier between a pair of particles. The hydration
 barrier is located at r_mh and has a width of sigma_h. The prefactor
 determines the height of the potential barrier.
@@ -128,7 +128,7 @@ The B parameter is converted to a distance (sigma), before mixing
 afterwards (using B=sigma^2).
 Negative A values are converted to positive A values (using abs(A))
 before mixing, and converted back after mixing
-(by multiplying by sign(Ai)*sign(Aj)).
+(by multiplying by min(sign(Ai),sign(Aj))).
 This way, if either particle is repulsive (if Ai<0 or Aj<0),
 then the default interaction between both particles will be repulsive.
 
@@ -178,11 +178,11 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Default:] none
 
-:link(Lenart)
+:link(Lenart2)
 [(Lenart)] Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
 044509 (2007).
 
-:link(Jusufi)
+:link(Jusufi2)
 [(Jusufi)] Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
 13783 (2008).
 

@@ -374,7 +374,6 @@ void PPPMKokkos<DeviceType>::setup()
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
-  int i,j,k,n;
   double *prd;
 
   // volume-dependent factors
@@ -404,22 +403,15 @@ void PPPMKokkos<DeviceType>::setup()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup1>(nxlo_fft,nxhi_fft+1),*this);
-  DeviceType::fence();
   copymode = 0;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup2>(nylo_fft,nyhi_fft+1),*this);
-  DeviceType::fence();
   copymode = 0;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup3>(nzlo_fft,nzhi_fft+1),*this);
-  DeviceType::fence();
   copymode = 0;
-
-  // virial coefficients
-
-  double sqk,vterm;
 
   // merge three outer loops into one for better threading
 
@@ -430,7 +422,6 @@ void PPPMKokkos<DeviceType>::setup()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup4>(0,inum_fft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   compute_gf_ik();
@@ -615,12 +606,12 @@ void PPPMKokkos<DeviceType>::setup_grid()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 {
-  int i,j;
+  int i;
 
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = evflag_atom = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
 
@@ -646,10 +637,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   q = atomKK->k_q.view<DeviceType>();
- 
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
- 
+
   //nlocal = atomKK->nlocal;
   //nall = atomKK->nlocal + atomKK->nghost;
   //newton_pair = force->newton_pair;
@@ -761,7 +749,6 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     if (eflag_atom) {
       copymode = 1;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self1>(0,nlocal),*this);
-      DeviceType::fence();
       copymode = 0;
       //for (i = nlocal; i < ntotal; i++) d_eatom[i] *= 0.5*qscale;
     }
@@ -769,7 +756,6 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     if (vflag_atom) {
       copymode = 1;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self2>(0,ntotal),*this);
-      DeviceType::fence();
       copymode = 0;
     }
   }
@@ -977,7 +963,6 @@ void PPPMKokkos<DeviceType>::set_grid_global()
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
-  double h;
   bigint natoms = atomKK->natoms;
 
   if (!gewaldflag) {
@@ -1424,7 +1409,6 @@ void PPPMKokkos<DeviceType>::compute_gf_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_compute_gf_ik>(0,inum_fft),*this);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -1504,7 +1488,6 @@ void PPPMKokkos<DeviceType>::compute_gf_ik_triclinic()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_compute_gf_ik_triclinic>(nzlo_fft,nzhi_fft+1),*this);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -1597,7 +1580,6 @@ void PPPMKokkos<DeviceType>::particle_map()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_particle_map>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_flag.template modify<DeviceType>();
@@ -1639,9 +1621,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_particle_map, const int &i) cons
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::make_rho()
 {
-  int l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0;
-
   // clear 3d density array
 
   //memset(&(density_brick(nzlo_out,nylo_out,nxlo_out)),0,
@@ -1653,7 +1632,6 @@ void PPPMKokkos<DeviceType>::make_rho()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_make_rho_zero>(0,inum_out),*this);
-  DeviceType::fence();
   copymode = 0;
 
   // loop over my charges, add their contribution to nearby grid points
@@ -1666,7 +1644,6 @@ void PPPMKokkos<DeviceType>::make_rho()
 #ifdef KOKKOS_HAVE_CUDA
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_make_rho_atomic>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 #else
   ix = nxhi_out-nxlo_out + 1;
@@ -1675,7 +1652,6 @@ void PPPMKokkos<DeviceType>::make_rho()
   copymode = 1;
   Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho> config(lmp->kokkos->num_threads,1);
   Kokkos::parallel_for(config,*this);
-  DeviceType::fence();
   copymode = 0;
 #endif
 }
@@ -1806,7 +1782,6 @@ void PPPMKokkos<DeviceType>::brick2fft()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_brick2fft>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_density_fft.template modify<DeviceType>();
@@ -1848,14 +1823,12 @@ void PPPMKokkos<DeviceType>::poisson()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_ik()
 {
-  int i,j,k,n;
-  double eng;
+  int j;
 
   // transform charge density (r -> k)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik1>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work1.template modify<DeviceType>();
@@ -1875,15 +1848,12 @@ void PPPMKokkos<DeviceType>::poisson_ik()
     if (vflag_global) {
       copymode = 1;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik2>(0,nfft),*this,ev);
-      DeviceType::fence();
       copymode = 0;
       for (j = 0; j < 6; j++) virial[j] += ev.v[j];
       energy += ev.ecoul;
     } else {
-      n = 0;
       copymode = 1;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik3>(0,nfft),*this,ev);
-      DeviceType::fence();
       copymode = 0;
       energy += ev.ecoul;
     }
@@ -1894,7 +1864,6 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik4>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   // extra FFTs for per-atomKK energy/virial
@@ -1928,7 +1897,6 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik5>(0,inum_fft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -1940,7 +1908,6 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik6>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
 
@@ -1948,7 +1915,6 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik7>(0,inum_fft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -1960,14 +1926,12 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik8>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
   // z direction gradient
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik9>(0,inum_fft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -1979,7 +1943,6 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik10>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
 }
@@ -2217,8 +2180,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic6, const int
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_peratom()
 {
-  int i,j,k,n;
-
   // merge three outer loops into one for better threading
 
   numz_inout = (nzhi_in-nzlo_out)-(nzlo_in-nzlo_out) + 1;
@@ -2231,7 +2192,6 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   if (eflag_atom) {
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom1>(0,nfft),*this);
-    DeviceType::fence();
     copymode = 0;
 
     k_work2.template modify<DeviceType>();
@@ -2243,7 +2203,6 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom2>(0,inum_inout),*this);
-    DeviceType::fence();
     copymode = 0;
 
   }
@@ -2254,7 +2213,6 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom3>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -2266,13 +2224,11 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom4>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom5>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -2284,13 +2240,11 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom6>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom7>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -2302,12 +2256,10 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom8>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom9>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -2319,13 +2271,11 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom10>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom11>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -2337,13 +2287,11 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom12>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom13>(0,nfft),*this);
-  DeviceType::fence();
   copymode = 0;
 
   k_work2.template modify<DeviceType>();
@@ -2355,7 +2303,6 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom14>(0,inum_inout),*this);
-  DeviceType::fence();
   copymode = 0;
 
 }
@@ -2561,7 +2508,6 @@ void PPPMKokkos<DeviceType>::fieldforce_ik()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_fieldforce_ik>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -2570,21 +2516,16 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_fieldforce_ik, const int &i) const
 {
   int l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR x0,y0,z0;
   FFT_SCALAR ekx,eky,ekz;
 
   nx = d_part2grid(i,0);
   ny = d_part2grid(i,1);
   nz = d_part2grid(i,2);
-  dx = nx+shiftone - (x(i,0)-boxlo[0])*delxinv;
-  dy = ny+shiftone - (x(i,1)-boxlo[1])*delyinv;
-  dz = nz+shiftone - (x(i,2)-boxlo[2])*delzinv;
 
   nz -= nzlo_out;
   ny -= nylo_out;
   nx -= nxlo_out;
-
-  //compute_rho1d(i,dx,dy,dz); // hasn't changed from make_rho
 
   ekx = eky = ekz = ZEROF;
   for (n = nlower; n <= nupper; n++) {
@@ -2627,7 +2568,6 @@ void PPPMKokkos<DeviceType>::fieldforce_peratom()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_fieldforce_peratom>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -2703,12 +2643,10 @@ void PPPMKokkos<DeviceType>::pack_forward_kokkos(int flag, Kokkos::DualView<FFT_
   if (flag == FORWARD_IK) {
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_pack_forward1>(0,nlist),*this);
-    DeviceType::fence();
     copymode = 0;
   } else if (flag == FORWARD_IK_PERATOM) {
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_pack_forward2>(0,nlist),*this);
-    DeviceType::fence();
     copymode = 0;
   }
 }
@@ -2761,12 +2699,10 @@ void PPPMKokkos<DeviceType>::unpack_forward_kokkos(int flag, Kokkos::DualView<FF
   if (flag == FORWARD_IK) {
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_unpack_forward1>(0,nlist),*this);
-    DeviceType::fence();
     copymode = 0;
   } else if (flag == FORWARD_IK_PERATOM) {
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_unpack_forward2>(0,nlist),*this);
-    DeviceType::fence();
     copymode = 0;
   }
 }
@@ -2819,7 +2755,6 @@ void PPPMKokkos<DeviceType>::pack_reverse_kokkos(int flag, Kokkos::DualView<FFT_
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_pack_reverse>(0,nlist),*this);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -2845,12 +2780,11 @@ void PPPMKokkos<DeviceType>::unpack_reverse_kokkos(int flag, Kokkos::DualView<FF
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
   d_buf = k_buf.view<DeviceType>();
 
-  int nx = (nxhi_out-nxlo_out+1);
-  int ny = (nyhi_out-nylo_out+1);
+  nx = (nxhi_out-nxlo_out+1);
+  ny = (nyhi_out-nylo_out+1);
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_unpack_reverse>(0,nlist),*this);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -3010,12 +2944,10 @@ void PPPMKokkos<DeviceType>::slabcorr()
   double dipole = 0.0;
   copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_slabcorr1>(0,nlocal),*this,dipole);
-  DeviceType::fence();
   copymode = 0;
 
   // sum local contributions to get global dipole moment
 
-  dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
   // need to make non-neutral systems and/or
@@ -3025,7 +2957,6 @@ void PPPMKokkos<DeviceType>::slabcorr()
   if (eflag_atom || fabs(qsum) > SMALL) {
     copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_slabcorr2>(0,nlocal),*this,dipole_r2);
-    DeviceType::fence();
     copymode = 0;
 
     // sum local contributions
@@ -3049,7 +2980,6 @@ void PPPMKokkos<DeviceType>::slabcorr()
     efact = qscale * MY_2PI/volume;
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_slabcorr3>(0,nlocal),*this);
-    DeviceType::fence();
     copymode = 0;
   }
 
@@ -3059,7 +2989,6 @@ void PPPMKokkos<DeviceType>::slabcorr()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_slabcorr4>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -3103,7 +3032,6 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_timing_zero>(0,2*nfft_both),*this);
-  DeviceType::fence();
   copymode = 0;
 
   MPI_Barrier(world);
@@ -3141,7 +3069,6 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_timing_zero>(0,2*nfft_both),*this);
-  DeviceType::fence();
   copymode = 0;
 
   MPI_Barrier(world);
@@ -3180,7 +3107,7 @@ double PPPMKokkos<DeviceType>::memory_usage()
   if (peratom_allocate_flag)
     bytes += 6 * nbrick * sizeof(FFT_SCALAR);
 
-  bytes += cg->memory_usage();
+  if (cg) bytes += cg->memory_usage();
 
   return bytes;
 }

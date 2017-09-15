@@ -30,7 +30,14 @@ from collections import namedtuple
 import os
 import select
 import re
+import sys
 
+def get_ctypes_int(size):
+  if size == 4:
+    return c_int32
+  elif size == 8:
+    return c_int64
+  return c_int
 
 class MPIAbortException(Exception):
   def __init__(self, message):
@@ -151,9 +158,24 @@ class lammps(object):
 
     else:
       # magic to convert ptr to ctypes ptr
-      pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
-      pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
-      self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
+      if sys.version_info >= (3, 0):
+        # Python 3 (uses PyCapsule API)
+        pythonapi.PyCapsule_GetPointer.restype = c_void_p
+        pythonapi.PyCapsule_GetPointer.argtypes = [py_object, c_char_p]
+        self.lmp = c_void_p(pythonapi.PyCapsule_GetPointer(ptr, None))
+      else:
+        # Python 2 (uses PyCObject API)
+        pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
+        pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
+        self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
+
+    # optional numpy support (lazy loading)
+    self._numpy = None
+
+    # set default types
+    self.c_bigint = get_ctypes_int(self.extract_setting("bigint"))
+    self.c_tagint = get_ctypes_int(self.extract_setting("tagint"))
+    self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
 
   def __del__(self):
     if self.lmp and self.opened:
@@ -190,12 +212,15 @@ class lammps(object):
   # send a list of commands
 
   def commands_list(self,cmdlist):
-    args = (c_char_p * len(cmdlist))(*cmdlist)
+    cmds = [x.encode() for x in cmdlist if type(x) is str]
+    args = (c_char_p * len(cmdlist))(*cmds)
     self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
     
   # send a string of commands
 
   def commands_string(self,multicmd):
+    if type(multicmd) is str:
+        multicmd = multicmd.encode()
     self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
     
   # extract global info
@@ -225,6 +250,48 @@ class lammps(object):
     else: return None
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
     return ptr
+
+  # extract lammps type byte sizes
+
+  def extract_setting(self, name):
+    if name: name = name.encode()
+    self.lib.lammps_extract_atom.restype = c_int
+    return int(self.lib.lammps_extract_setting(self.lmp,name))
+
+  @property
+  def numpy(self):
+    if not self._numpy:
+      import numpy as np
+      class LammpsNumpyWrapper:
+        def __init__(self, lmp):
+          self.lmp = lmp
+
+        def extract_atom_iarray(self, name, nelem, dim=1):
+          if dim == 1:
+              tmp = self.lmp.extract_atom(name, 0)
+              ptr = cast(tmp, POINTER(c_int * nelem))
+          else:
+              tmp = self.lmp.extract_atom(name, 1)
+              ptr = cast(tmp[0], POINTER(c_int * nelem * dim))
+
+          a = np.frombuffer(ptr.contents, dtype=np.intc)
+          a.shape = (nelem, dim)
+          return a
+
+        def extract_atom_darray(self, name, nelem, dim=1):
+          if dim == 1:
+              tmp = self.lmp.extract_atom(name, 2)
+              ptr = cast(tmp, POINTER(c_double * nelem))
+          else:
+              tmp = self.lmp.extract_atom(name, 3)
+              ptr = cast(tmp[0], POINTER(c_double * nelem * dim))
+
+          a = np.frombuffer(ptr.contents)
+          a.shape = (nelem, dim)
+          return a
+
+      self._numpy = LammpsNumpyWrapper(self)
+    return self._numpy
 
   # extract compute info
   
@@ -302,7 +369,7 @@ class lammps(object):
   def set_variable(self,name,value):
     if name: name = name.encode()
     if value: value = str(value).encode()
-    return self.lib.lammps_set_variable(self.lmp,name,str(value))
+    return self.lib.lammps_set_variable(self.lmp,name,value)
 
   # return current value of thermo keyword
 
@@ -359,19 +426,27 @@ class lammps(object):
   #   e.g. for Python list or NumPy, etc
   #   ditto for gather_atoms() above
 
-  def create_atoms(self,n,id,type,x,v):
+  def create_atoms(self,n,id,type,x,v,image=None,shrinkexceed=False):
     if id:
       id_lmp = (c_int * n)()
       id_lmp[:] = id
-    else: id_lmp = id
+    else:
+      id_lmp = id
+
+    if image:
+      image_lmp = (c_int * n)()
+      image_lmp[:] = image
+    else:
+      image_lmp = image
+
     type_lmp = (c_int * n)()
     type_lmp[:] = type
-    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v)
+    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,shrinkexceed)
 
-  # document this?
-    
+
   @property
   def uses_exceptions(self):
+    """ Return whether the LAMMPS shared library was compiled with C++ exceptions handling enabled """
     try:
       if self.lib.lammps_has_error:
         return True
@@ -538,9 +613,10 @@ def get_thermo_data(output):
     runs = []
     columns = []
     in_run = False
+    current_run = {}
 
     for line in lines:
-        if line.startswith("Memory usage per processor"):
+        if line.startswith("Per MPI rank memory allocation"):
             in_run = True
         elif in_run and len(columns) == 0:
             # first line after memory usage are column names

@@ -290,7 +290,7 @@ int main()
     Kokkos::HostSpace::execution_space::finalize();
   }
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   {
     std::cout << "test_fixture< Cuda >" << std::endl ;
     Kokkos::HostSpace::execution_space::initialize();

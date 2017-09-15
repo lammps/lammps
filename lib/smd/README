@@ -4,9 +4,12 @@ to use the USER-SMD package in a LAMMPS input script.
 The Eigen library is available at http://eigen.tuxfamily.org.  It's
 a general C++ template library for linear algebra.
 
-You must perform the following steps yourself, or you can use the
-install.py Python script to automate any or all steps of the process.
-Type "python install.py" for instructions.
+You can type "make lib-smd" from the src directory to see help on how
+to download build this library via make commands, or you can do the
+same thing by typing "python Install.py" from within this directory,
+or you can do it manually by following the instructions below.
+
+Instructions:
 
 1.  Download the Eigen tarball at http://eigen.tuxfamily.org and
     unpack the tarball either in this /lib/smd directory or somewhere

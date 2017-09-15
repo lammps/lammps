@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,11 +36,16 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+#include <xmmintrin.h>
+#endif
+
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_FETCH_AND_HPP )
 #define KOKKOS_ATOMIC_FETCH_AND_HPP
 
@@ -48,7 +53,8 @@ namespace Kokkos {
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_ATOMICS_USE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
+#if defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 
 // Support for int, unsigned int, unsigned long long int, and float
 
@@ -66,34 +72,55 @@ unsigned long long int atomic_fetch_and( volatile unsigned long long int * const
                                          const unsigned long long int val )
 { return atomicAnd((unsigned long long int*)dest,val); }
 #endif
-
+#endif
+#endif
 //----------------------------------------------------------------------------
+#if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
+#if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
-#elif defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
-
-KOKKOS_INLINE_FUNCTION
+inline
 int atomic_fetch_and( volatile int * const dest , const int val )
-{ return __sync_fetch_and_and(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
-KOKKOS_INLINE_FUNCTION
+inline
 long int atomic_fetch_and( volatile long int * const dest , const long int val )
-{ return __sync_fetch_and_and(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
-#if defined( KOKKOS_ATOMICS_USE_GCC )
+#if defined( KOKKOS_ENABLE_GNU_ATOMICS )
 
-KOKKOS_INLINE_FUNCTION
+inline
 unsigned int atomic_fetch_and( volatile unsigned int * const dest , const unsigned int val )
-{ return __sync_fetch_and_and(dest,val); }
+{ 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
-KOKKOS_INLINE_FUNCTION
+inline
 unsigned long int atomic_fetch_and( volatile unsigned long int * const dest , const unsigned long int val )
-{ return __sync_fetch_and_and(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
 #endif
 
 //----------------------------------------------------------------------------
 
-#elif defined( KOKKOS_ATOMICS_USE_OMP31 )
+#elif defined( KOKKOS_ENABLE_OPENMP_ATOMICS )
 
 template< typename T >
 T atomic_fetch_and( volatile T * const dest , const T val )
@@ -108,7 +135,7 @@ T atomic_fetch_and( volatile T * const dest , const T val )
 }
 
 #endif
-
+#endif
 //----------------------------------------------------------------------------
 
 // Simpler version of atomic_fetch_and without the fetch
@@ -121,5 +148,4 @@ void atomic_and(volatile T * const dest, const T src) {
 }
 
 #endif
-
 

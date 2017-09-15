@@ -22,6 +22,10 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "nbin.h"
+#include "nstencil.h"
+#include "npair.h"
+#include "ntopo.h"
 #include "style_nbin.h"
 #include "style_nstencil.h"
 #include "style_npair.h"
@@ -73,7 +77,8 @@ static const char cite_neigh_multi[] =
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
+Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
+pairclass(NULL), pairnames(NULL), pairmasks(NULL)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -165,7 +170,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   ex1_group = ex2_group = ex1_bit = ex2_bit = NULL;
 
   nex_mol = maxex_mol = 0;
-  ex_mol_group = ex_mol_bit = NULL;
+  ex_mol_group = ex_mol_bit = ex_mol_intra = NULL;
 
   // Kokkos setting
 
@@ -196,9 +201,11 @@ Neighbor::~Neighbor()
   delete [] slist;
   delete [] plist;
 
-  for (int i = 0; i < nrequest; i++) delete requests[i];
+  for (int i = 0; i < nrequest; i++) 
+    if (requests[i]) delete requests[i];
   memory->sfree(requests);
-  for (int i = 0; i < old_nrequest; i++) delete old_requests[i];
+  for (int i = 0; i < old_nrequest; i++)
+    if (old_requests[i]) delete old_requests[i];
   memory->sfree(old_requests);
 
   delete [] zeroes;
@@ -231,6 +238,7 @@ Neighbor::~Neighbor()
 
   memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
+  memory->destroy(ex_mol_intra);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -476,7 +484,7 @@ void Neighbor::init()
   if (firsttime) init_styles();
   firsttime = 0;
 
-  init_pair();
+  int same = init_pair();
 
   // invoke copy_neighbor_info() in Bin,Stencil,Pair classes
   // copied once per run in case any cutoff, exclusion, special info changed
@@ -487,7 +495,16 @@ void Neighbor::init()
     if (neigh_pair[i]) neigh_pair[i]->copy_neighbor_info();
 
   if (!same && comm->me == 0) print_pairwise_info();
-  requests_new2old();
+
+  // can now delete requests so next run can make new ones
+  // print_pairwise_info() made use of requests
+  // set of NeighLists now stores all needed info
+
+  for (int i = 0; i < nrequest; i++) {
+    delete requests[i];
+    requests[i] = NULL;
+  }
+  nrequest = 0;
 
   // ------------------------------------------------------------------
   // create topology lists
@@ -581,7 +598,7 @@ void Neighbor::init_styles()
    create and initialize NPair classes
 ------------------------------------------------------------------------- */
 
-void Neighbor::init_pair()
+int Neighbor::init_pair()
 {
   int i,j,k,m;
 
@@ -589,16 +606,21 @@ void Neighbor::init_pair()
   // no need to re-create if:
   //   neigh style, triclinic, pgsize, oneatom have not changed
   //   current requests = old requests
-  // first archive request params for current requests
-  //   before possibly changing them below
+  // so just return:
+  //   delete requests so next run can make new ones
+  //   current set of NeighLists already stores all needed info
+  // requests are compared via identical() before:
+  //   any requests are morphed using logic below
+  //   any requests are added below, e.g. as parents of pair hybrid skip lists
+  // copy them via requests_new2old() BEFORE any changes made to requests
+  //   necessary b/c morphs can change requestor settings (see comment below)
 
-  for (i = 0; i < nrequest; i++) requests[i]->archive();
-
-  same = 1;
+  int same = 1;
   if (style != old_style) same = 0;
   if (triclinic != old_triclinic) same = 0;
   if (pgsize != old_pgsize) same = 0;
   if (oneatom != old_oneatom) same = 0;
+
   if (nrequest != old_nrequest) same = 0;
   else
     for (i = 0; i < nrequest; i++)
@@ -608,9 +630,10 @@ void Neighbor::init_pair()
   if (comm->me == 0) printf("SAME flag %d\n",same);
 #endif
 
-  if (same) return;
-  
-  // delete old lists and create new ones
+  if (same) return same;
+  requests_new2old();
+
+  // delete old lists since creating new ones
 
   for (i = 0; i < nlist; i++) delete lists[i];
   for (i = 0; i < nbin; i++) delete neigh_bin[i];
@@ -621,134 +644,87 @@ void Neighbor::init_pair()
   delete [] neigh_stencil;
   delete [] neigh_pair;
 
+  // error check on requests
+  // do not allow occasional, ghost, bin list
+  //   b/c it still uses variant of coord2bin() in NPair() method
+  //     instead of atom2bin, this could cause error b/c stoms have
+  //     moved out of proc domain by time occasional list is built
+  //   solution would be to use a different NBin variant
+  //     that used Npair::coord2bin(x,ix,iy,iz) (then delete it from NPair)
+  //     and stored the ix,iy,iz values for all atoms (including ghosts)
+  //     at time of binning when neighbor lists are rebuilt,
+  //     similar to what vanilla Nbin::coord2atom() does now in atom2bin
+
+  if (style == BIN) {
+    for (i = 0; i < nrequest; i++)
+      if (requests[i]->occasional && requests[i]->ghost)
+        error->all(FLERR,"Cannot request an occasional binned neighbor list "
+                   "with ghost info");
+  }
+
+  // morph requests in various ways
+  // purpose is to avoid duplicate or inefficient builds
+  // may add new requests if a needed request to derive from does not exist
+  // methods:
+  //   (1) other = point history and rRESPA lists at their partner lists
+  //   (2) skip = create any new non-skip lists needed by pair hybrid skip lists
+  //   (3) granular = adjust parent and skip lists for granular onesided usage
+  //   (4) h/f = pair up any matching half/full lists
+  //   (5) copy = convert as many lists as possible to copy lists
+  // order of morph methods matters:
+  //   (1) before (2), b/c (2) needs to know history partner pairings
+  //   (2) after (1), b/c (2) may also need to create new history lists
+  //   (3) after (2), b/c it adjusts lists created by (2)
+  //   (4) after (2) and (3), 
+  //       b/c (2) may create new full lists, (3) may change them
+  //   (5) last, after all lists are finalized, so all possible copies found
+
+  int nrequest_original = nrequest;
+
+  morph_other();
+  morph_skip();
+  morph_granular();     // this method can change flags set by requestor
+  morph_halffull();
+  morph_copy();
+    
+  // create new lists, one per request including added requests
+  // wait to allocate initial pages until copy lists are detected
+  // NOTE: can I allocate now, instead of down below?
+
   nlist = nrequest;
   
   lists = new NeighList*[nrequest];
   neigh_bin = new NBin*[nrequest];
   neigh_stencil = new NStencil*[nrequest];
   neigh_pair = new NPair*[nrequest];
-  
-  // create individual lists, one per request
+
+  // allocate new lists
   // pass list ptr back to requestor (except for Command class)
-  // wait to allocate initial pages until copy lists are detected
-  
+  // only for original requests, not ones added by Neighbor class
+
   for (i = 0; i < nrequest; i++) {
-    if (requests[i]->kokkos_host || requests[i]->kokkos_device)
+    if (requests[i]->kokkos_host || requests[i]->kokkos_device) 
       create_kokkos_list(i);
-    else
-      lists[i] = new NeighList(lmp);
+    else lists[i] = new NeighList(lmp);
     lists[i]->index = i;
     
-    if (requests[i]->pair) {
+    if (requests[i]->pair && i < nrequest_original) {
       Pair *pair = (Pair *) requests[i]->requestor;
       pair->init_list(requests[i]->id,lists[i]);
-    } else if (requests[i]->fix) {
+    } else if (requests[i]->fix && i < nrequest_original) {
       Fix *fix = (Fix *) requests[i]->requestor;
       fix->init_list(requests[i]->id,lists[i]);
-    } else if (requests[i]->compute) {
+    } else if (requests[i]->compute && i < nrequest_original) {
       Compute *compute = (Compute *) requests[i]->requestor;
       compute->init_list(requests[i]->id,lists[i]);
     }
   }
 
-  // morph requests via A,B,C rules
-  // this is to avoid duplicate or inefficient builds
-  // update both request and list when morph
-
-  // (A) rule: 
   // invoke post_constructor() for all lists
-  // processes copy,skip,half_from_full,granhistory,respaouter lists
-  // error checks and resets internal ptrs to other lists that now exist
+  // copies info from requests to lists, sets ptrs to related lists
 
   for (i = 0; i < nrequest; i++)
     lists[i]->post_constructor(requests[i]);
-  
-  // (B) rule:
-  // if request = pair, half, newton != 2
-  //    and full perpetual non-skip/copy list exists,
-  // then morph to half_from_full of matching parent list
-  // NOTE: should be OK if parent is skip list?
-  //       see build method comments
-  // parent can be pair or fix, so long as perpetual fix
-  // NOTE: could remove newton != 2 restriction if added 
-  //       half_from_full_newtoff_ghost NPair class
-  //       this would require full list having ghost info
-  //       would be useful when reax/c used in hybrid mode, e.g. with airebo
-
-  for (i = 0; i < nrequest; i++) {
-    if (requests[i]->pair && requests[i]->half && requests[i]->newton != 2) {
-      for (j = 0; j < nrequest; j++) {
-        // Kokkos doesn't yet support half from full
-        if (requests[i]->kokkos_device || requests[j]->kokkos_device) continue;
-        if (requests[i]->kokkos_host || requests[j]->kokkos_host) continue;
-
-        if (requests[j]->full && requests[j]->occasional == 0 &&
-            !requests[j]->skip && !requests[j]->copy) break;
-      }
-      if (j < nrequest) {
-        requests[i]->half = 0;
-        requests[i]->half_from_full = 1;
-        lists[i]->listfull = lists[j];
-      }
-    }
-  }
-      
-  // (C) rule: 
-  // for fix/compute requests, occasional or not does not matter
-  // 1st check:
-  // if request = half and non-skip/copy pair half/respaouter request exists,
-  // or if request = full and non-skip/copy pair full request exists,
-  // or if request = gran and non-skip/copy pair gran request exists,
-  // then morph to copy of the matching parent list
-  // 2nd check: only if no match to 1st check
-  // if request = half and non-skip/copy pair full request exists,
-  // then morph to half_from_full of the matching parent list
-  // for 1st or 2nd check, parent can be copy list or pair or fix
-  
-  for (i = 0; i < nrequest; i++) {
-    if (!requests[i]->fix && !requests[i]->compute) continue;
-    for (j = 0; j < nrequest; j++) {
-      // Kokkos flags must match
-      if (requests[i]->kokkos_device != requests[j]->kokkos_device) continue;
-      if (requests[i]->kokkos_host != requests[j]->kokkos_host) continue;
-
-      if (requests[i]->ssa != requests[j]->ssa) continue;
-
-      if (requests[i]->half && requests[j]->pair && 
-          !requests[j]->skip && requests[j]->half && !requests[j]->copy)
-        break;
-      if (requests[i]->half && requests[j]->pair &&
-          !requests[j]->skip && requests[j]->respaouter && !requests[j]->copy)
-        break;
-      if (requests[i]->full && requests[j]->pair &&
-          !requests[j]->skip && requests[j]->full && !requests[j]->copy) 
-        break;
-      if (requests[i]->gran && requests[j]->pair &&
-          !requests[j]->skip && requests[j]->gran && !requests[j]->copy)
-        break;
-    }
-    if (j < nrequest) {
-      requests[i]->copy = 1;
-      requests[i]->otherlist = j;
-      lists[i]->copy = 1;
-      lists[i]->listcopy = lists[j];
-      continue;
-    }
-    for (j = 0; j < nrequest; j++) {
-      // Kokkos doesn't yet support half from full
-      if (requests[i]->kokkos_device || requests[j]->kokkos_device) continue;
-      if (requests[i]->kokkos_host || requests[j]->kokkos_host) continue;
-
-      if (requests[i]->half && requests[j]->pair &&
-          !requests[j]->skip && requests[j]->full && !requests[j]->copy)
-        break;
-    }
-    if (j < nrequest) {
-      requests[i]->half = 0;
-      requests[i]->half_from_full = 1;
-      lists[i]->listfull = lists[j];
-    }
-  }
 
   // assign Bin,Stencil,Pair style to each list
   
@@ -771,77 +747,83 @@ void Neighbor::init_pair()
   }
 
   // instantiate unique Bin,Stencil classes in neigh_bin & neigh_stencil vecs
-  // instantiate one Pair class per list in neigh_pair vec
+  // unique = only one of its style, or request unique flag set (custom cutoff)
 
   nbin = 0;
   for (i = 0; i < nrequest; i++) {
+    requests[i]->index_bin = -1;
     flag = lists[i]->bin_method;
     if (flag == 0) continue;
     for (j = 0; j < nbin; j++)
       if (neigh_bin[j]->istyle == flag) break;
-    if (j < nbin) continue;
+    if (j < nbin && !requests[i]->unique) {
+      requests[i]->index_bin = j;
+      continue;
+    }
+
     BinCreator bin_creator = binclass[flag-1];
     neigh_bin[nbin] = bin_creator(lmp);
+    neigh_bin[nbin]->post_constructor(requests[i]);
     neigh_bin[nbin]->istyle = flag;
+
+    requests[i]->index_bin = nbin;
     nbin++;
   }
 
   nstencil = 0;
   for (i = 0; i < nrequest; i++) {
+    requests[i]->index_stencil = -1;
     flag = lists[i]->stencil_method;
     if (flag == 0) continue;
     for (j = 0; j < nstencil; j++)
       if (neigh_stencil[j]->istyle == flag) break;
-    if (j < nstencil) continue;
+    if (j < nstencil && !requests[i]->unique) {
+      requests[i]->index_stencil = j;
+      continue;
+    }
+
     StencilCreator stencil_creator = stencilclass[flag-1];
     neigh_stencil[nstencil] = stencil_creator(lmp);
+    neigh_stencil[nstencil]->post_constructor(requests[i]);
     neigh_stencil[nstencil]->istyle = flag;
-    int bin_method = lists[i]->bin_method;
-    for (k = 0; k < nbin; k++) {
-      if (neigh_bin[k]->istyle == bin_method) {
-        neigh_stencil[nstencil]->nb = neigh_bin[k];
-        break;
-      }
+
+    if (lists[i]->bin_method > 0) {
+      neigh_stencil[nstencil]->nb = neigh_bin[requests[i]->index_bin];
+      if (neigh_stencil[nstencil]->nb == NULL)
+        error->all(FLERR,"Could not assign bin method to neighbor stencil");
     }
-    if (k == nbin) 
-      error->all(FLERR,"Could not assign bin method to neighbor stencil");
+
+    requests[i]->index_stencil = nstencil;
     nstencil++;
   }
 
+  // instantiate one Pair class per list in neigh_pair vec
+
   for (i = 0; i < nrequest; i++) {
+    requests[i]->index_pair = -1;
     flag = lists[i]->pair_method;
     if (flag == 0) {
       neigh_pair[i] = NULL;
       continue;
     }
+
     PairCreator pair_creator = pairclass[flag-1];
-    neigh_pair[i] = pair_creator(lmp);
+    lists[i]->np = neigh_pair[i] = pair_creator(lmp);
+    neigh_pair[i]->post_constructor(requests[i]);
     neigh_pair[i]->istyle = flag;
 
-    int bin_method = lists[i]->bin_method;
-    if (bin_method == 0) neigh_pair[i]->nb = NULL;
-    else {
-      for (k = 0; k < nbin; k++) {
-        if (neigh_bin[k]->istyle == bin_method) {
-          neigh_pair[i]->nb = neigh_bin[k];
-          break;
-        }
-      }
-      if (k == nbin) 
+    if (lists[i]->bin_method > 0) {
+      neigh_pair[i]->nb = neigh_bin[requests[i]->index_bin];
+      if (neigh_pair[i]->nb == NULL)
         error->all(FLERR,"Could not assign bin method to neighbor pair");
     }
-    int stencil_method = lists[i]->stencil_method;
-    if (stencil_method == 0) neigh_pair[i]->ns = NULL;
-    else {
-      for (k = 0; k < nstencil; k++) {
-        if (neigh_stencil[k]->istyle == stencil_method) {
-          neigh_pair[i]->ns = neigh_stencil[k];
-          break;
-        }
-      }
-      if (k == nstencil) 
+    if (lists[i]->stencil_method > 0) {
+      neigh_pair[i]->ns = neigh_stencil[requests[i]->index_stencil];
+      if (neigh_pair[i]->ns == NULL)
         error->all(FLERR,"Could not assign stencil method to neighbor pair");
     }
+
+    requests[i]->index_pair = i;
   }
 
   // allocate initial pages for each list, except if copy flag set
@@ -890,37 +872,43 @@ void Neighbor::init_pair()
   for (i = 0; i < nstencil; i++) {
     flag = 0;
     for (j = 0; j < npair_perpetual; j++)
-      if (lists[plist[j]]->stencil_method == neigh_stencil[i]->istyle) flag = 1;
+      if (lists[plist[j]]->stencil_method == neigh_stencil[i]->istyle) 
+        flag = 1;
     if (flag) slist[nstencil_perpetual++] = i;
   }
 
   // reorder plist vector if necessary
-  // relevant for lists that copy/skip/half-full from parent
+  // relevant for lists that are derived from a parent list:
+  //   half-full,copy,skip
   // the child index must appear in plist after the parent index
   // swap two indices within plist when dependency is mis-ordered
-  // done when entire pass thru plist results in no swaps
-  
+  // start double loop check again whenever a swap is made
+  // done when entire double loop test results in no swaps
+
   NeighList *ptr;
 
   int done = 0;
   while (!done) {
     done = 1;
     for (i = 0; i < npair_perpetual; i++) {
-      ptr = NULL;
-      if (lists[plist[i]]->listcopy) ptr = lists[plist[i]]->listcopy;
-      if (lists[plist[i]]->listskip) ptr = lists[plist[i]]->listskip;
-      if (lists[plist[i]]->listfull) ptr = lists[plist[i]]->listfull;
-      if (ptr == NULL) continue;
-      for (m = 0; m < nrequest; m++)
-        if (ptr == lists[m]) break;
-      for (j = 0; j < npair_perpetual; j++)
-        if (m == plist[j]) break;
-      if (j < i) continue;
-      int tmp = plist[i];     // swap I,J indices
-      plist[i] = plist[j];
-      plist[j] = tmp;
-      done = 0;
-      break;
+      for (k = 0; k < 3; k++) {
+        ptr = NULL;
+        if (k == 0) ptr = lists[plist[i]]->listcopy;
+        if (k == 1) ptr = lists[plist[i]]->listskip;
+        if (k == 2) ptr = lists[plist[i]]->listfull;
+        if (ptr == NULL) continue;
+        for (m = 0; m < nrequest; m++)
+          if (ptr == lists[m]) break;
+        for (j = 0; j < npair_perpetual; j++)
+          if (m == plist[j]) break;
+        if (j < i) continue;
+        int tmp = plist[i];     // swap I,J indices
+        plist[i] = plist[j];
+        plist[j] = tmp;
+        done = 0;
+        break;
+      }
+      if (!done) break;
     }
   }
 
@@ -929,6 +917,405 @@ void Neighbor::init_pair()
 #ifdef NEIGH_LIST_DEBUG
   for (i = 0; i < nrequest; i++) lists[i]->print_attributes();
 #endif
+
+  return same;
+}
+
+/* ----------------------------------------------------------------------
+   scan NeighRequests to set additional flags
+   only for history, respaouter, custom cutoff lists
+------------------------------------------------------------------------- */
+
+void Neighbor::morph_other()
+{
+  NeighRequest *irq;
+  
+  for (int i = 0; i < nrequest; i++) {
+    irq = requests[i];
+
+    // if history, point this list and partner list at each other
+
+    if (irq->history) {
+      irq->historylist = i-1;
+      requests[i-1]->history_partner = 1;
+      requests[i-1]->historylist = i;
+    }
+
+    // if respaouter, point all associated rRESPA lists at each other
+
+    if (irq->respaouter) {
+      if (requests[i-1]->respainner) {
+        irq->respainnerlist = i-1;
+        requests[i-1]->respaouterlist = i;
+      } else {
+        irq->respamiddlelist = i-1;
+        requests[i-1]->respaouterlist = i;
+        requests[i-1]->respainnerlist = i-1;
+        irq->respainnerlist = i-2;
+        requests[i-2]->respaouterlist = i;
+        requests[i-2]->respamiddlelist = i-1;
+      }
+    }
+    
+    // if cut flag set by requestor, set unique flag
+    // this forces Pair,Stencil,Bin styles to be instantiated separately
+
+    if (irq->cut) irq->unique = 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   scan NeighRequests to process all skip lists
+   look for a matching non-skip list
+   if one exists, point at it via skiplist
+   else make new parent via copy_request() and point at it
+------------------------------------------------------------------------- */
+
+void Neighbor::morph_skip()
+{
+  int i,j,inewton,jnewton;
+  NeighRequest *irq,*jrq,*nrq;
+
+  for (i = 0; i < nrequest; i++) {
+    irq = requests[i];
+
+    // only processing skip lists
+
+    if (!irq->skip) continue;
+
+    // these lists are created other ways, no need for skipping
+    // halffull list and its full parent may both skip,
+    //   but are checked to insure matching skip info
+
+    if (irq->history) continue;
+    if (irq->respainner || irq->respamiddle) continue;
+    if (irq->halffull) continue;
+    if (irq->copy) continue;
+
+    // check all other lists
+
+    for (j = 0; j < nrequest; j++) {
+      if (i == j) continue;
+      jrq = requests[j];
+      
+      // can only skip from a perpetual non-skip list
+
+      if (jrq->occasional) continue;
+      if (jrq->skip) continue;
+
+      // both lists must be half, or both full
+
+      if (irq->half != jrq->half) continue;
+      if (irq->full != jrq->full) continue;
+
+      // both lists must be newton on, or both newton off
+      // IJ newton = 1 for newton on, 2 for newton off
+
+      inewton = irq->newton;
+      if (inewton == 0) inewton = force->newton_pair ? 1 : 2; 
+      jnewton = jrq->newton;
+      if (jnewton == 0) jnewton = force->newton_pair ? 1 : 2;
+      if (inewton != jnewton) continue;
+
+      // these flags must be same,
+      //   else 2 lists do not store same pairs
+      //   or their data structures are different
+      // this includes custom cutoff set by requestor
+      // no need to check respaouter b/c it stores same pairs
+      // no need to check dnum b/c only set for history
+      // NOTE: need check for 2 Kokkos flags?
+
+      if (irq->ghost != jrq->ghost) continue;
+      if (irq->size != jrq->size) continue;
+      if (irq->bond != jrq->bond) continue;
+      if (irq->omp != jrq->omp) continue;
+      if (irq->intel != jrq->intel) continue;
+      if (irq->kokkos_host != jrq->kokkos_host) continue;
+      if (irq->kokkos_device != jrq->kokkos_device) continue;
+      if (irq->ssa != jrq->ssa) continue;
+      if (irq->cut != jrq->cut) continue;
+      if (irq->cutoff != jrq->cutoff) continue;
+
+      // 2 lists are a match
+
+      break;
+    }
+
+    // if matching list exists, point to it
+    // else create a new identical list except non-skip
+    // for new list, set neigh = 1, skip = 0, no skip vec/array,
+    //   copy unique flag (since copy_request() will not do it)
+    // note: parents of skip lists do not have associated history list
+    //   b/c child skip lists store their own history info
+
+    if (j < nrequest) irq->skiplist = j;
+    else {
+      int newrequest = request(this,-1);
+      irq->skiplist = newrequest;
+
+      nrq = requests[newrequest];
+      nrq->copy_request(irq,0);
+      nrq->pair = nrq->fix = nrq->compute = nrq->command = 0;
+      nrq->neigh = 1;
+      nrq->skip = 0;
+      if (irq->unique) nrq->unique = 1;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   scan NeighRequests just added by morph_skip for hybrid granular
+   adjust newton/oneside parent settings if children require onesided skipping
+   also set children off2on flag if parent becomes a newton off list
+   this is needed because line/gran and tri/gran pair styles
+     require onesided neigh lists and system newton on,
+     but parent list must be newton off to enable the onesided skipping
+------------------------------------------------------------------------- */
+
+void Neighbor::morph_granular()
+{
+  int i,j;
+  NeighRequest *irq,*jrq;
+
+  for (i = 0; i < nrequest; i++) {
+    irq = requests[i];
+
+    // only examine NeighRequests added by morph_skip()
+    // only those with size attribute for granular systems
+
+    if (!irq->neigh) continue;
+    if (!irq->size) continue;
+
+    // check children of this list
+
+    int onesided = -1;
+    for (j = 0; j < nrequest; j++) {
+      jrq = requests[j];
+
+      // only consider JRQ pair, size lists that skip from Irq list
+
+      if (!jrq->pair) continue;
+      if (!jrq->size) continue;
+      if (!jrq->skip || jrq->skiplist != i) continue;
+
+      // onesided = -1 if no children
+      // onesided = 0/1 = child granonesided value if same for all children
+      // onesided = 2 if children have different granonesided values
+
+      if (onesided < 0) onesided = jrq->granonesided;
+      else if (onesided != jrq->granonesided) onesided = 2;
+      if (onesided == 2) break;
+    }
+
+
+    // if onesided = 2, parent has children with both granonesided = 0/1
+    // force parent newton off (newton = 2) to enable onesided skip by child
+    // set parent granonesided = 0, so it stores all neighs in usual manner
+    // set off2on = 1 for all children, since they expect newton on lists
+    //   this is b/c granonesided only set by line/gran and tri/gran which
+    //   both require system newton on
+
+    if (onesided == 2) {
+      irq->newton = 2;
+      irq->granonesided = 0;
+
+      for (j = 0; j < nrequest; j++) {
+        jrq = requests[j];
+
+        // only consider JRQ pair, size lists that skip from Irq list
+
+        if (!jrq->pair) continue;
+        if (!jrq->size) continue;
+        if (!jrq->skip || jrq->skiplist != i) continue;
+
+        jrq->off2on = 1;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   scan NeighRequests for possible half lists to derive from full lists
+   if 2 requests match, set half list to derive from full list
+------------------------------------------------------------------------- */
+
+void Neighbor::morph_halffull()
+{
+  int i,j;
+  NeighRequest *irq,*jrq;
+
+  for (i = 0; i < nrequest; i++) {
+    irq = requests[i];
+
+    // only processing half lists
+
+    if (!irq->half) continue;
+
+    // Kokkos doesn't yet support half from full
+
+    if (irq->kokkos_host) continue;
+    if (irq->kokkos_device) continue;
+
+    // these lists are created other ways, no need for halffull
+    // do want to process skip lists
+
+    if (irq->history) continue;
+    if (irq->respainner || irq->respamiddle) continue;
+    if (irq->copy) continue;
+
+    // check all other lists
+
+    for (j = 0; j < nrequest; j++) {
+      if (i == j) continue;
+      jrq = requests[j];
+
+      // can only derive from a perpetual full list
+      // newton setting of derived list does not matter
+
+      if (jrq->occasional) continue;
+      if (!jrq->full) continue;
+
+      // these flags must be same,
+      //   else 2 lists do not store same pairs
+      //   or their data structures are different
+      // this includes custom cutoff set by requestor
+      // no need to check respaouter b/c it stores same pairs
+      // no need to check dnum b/c only set for history
+
+      if (irq->ghost != jrq->ghost) continue;
+      if (irq->size != jrq->size) continue;
+      if (irq->bond != jrq->bond) continue;
+      if (irq->omp != jrq->omp) continue;
+      if (irq->intel != jrq->intel) continue;
+      if (irq->kokkos_host != jrq->kokkos_host) continue;
+      if (irq->kokkos_device != jrq->kokkos_device) continue;
+      if (irq->ssa != jrq->ssa) continue;
+      if (irq->cut != jrq->cut) continue;
+      if (irq->cutoff != jrq->cutoff) continue;
+
+      // skip flag must be same
+      // if both are skip lists, skip info must match
+
+      if (irq->skip != jrq->skip) continue;
+      if (irq->skip && irq->same_skip(jrq) == 0) continue;
+
+      // 2 lists are a match
+
+      break;
+    }
+    
+    // if matching list exists, point to it
+
+    if (j < nrequest) {
+      irq->halffull = 1;
+      irq->halffulllist = j;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   scan NeighRequests for possible copies
+   if 2 requests match, turn one into a copy of the other
+------------------------------------------------------------------------- */
+
+void Neighbor::morph_copy()
+{
+  int i,j,inewton,jnewton;
+  NeighRequest *irq,*jrq;
+  
+  for (i = 0; i < nrequest; i++) {
+    irq = requests[i];
+
+    // this list is already a copy list due to another morph method
+
+    if (irq->copy) continue;
+
+    // these lists are created other ways, no need to copy
+    // skip lists are eligible to become a copy list
+
+    if (irq->history) continue;
+    if (irq->respainner || irq->respamiddle) continue;
+    
+    // check all other lists
+
+    for (j = 0; j < nrequest; j++) {
+      if (i == j) continue;
+      jrq = requests[j];
+
+      // other list is already copied from this one
+
+      if (jrq->copy && jrq->copylist == i) continue;
+
+      // other list (jrq) to copy from must be perpetual
+      // list that becomes a copy list (irq) can be perpetual or occasional
+      // if both lists are perpetual, require j < i
+      //   to prevent circular dependence with 3 or more copies of a list
+
+      if (jrq->occasional) continue;
+      if (!irq->occasional && j > i) continue;
+
+      // both lists must be half, or both full
+
+      if (irq->half != jrq->half) continue;
+      if (irq->full != jrq->full) continue;
+
+      // both lists must be newton on, or both newton off
+      // IJ newton = 1 for newton on, 2 for newton off
+
+      inewton = irq->newton;
+      if (inewton == 0) inewton = force->newton_pair ? 1 : 2; 
+      jnewton = jrq->newton;
+      if (jnewton == 0) jnewton = force->newton_pair ? 1 : 2;
+      if (inewton != jnewton) continue;
+
+      // ok for non-ghost list to copy from ghost list, but not vice versa
+
+      if (irq->ghost && !jrq->ghost) continue;
+
+      // do not copy from a history list or a respa middle/inner list
+
+      if (jrq->history) continue;
+      if (jrq->respamiddle) continue;
+      if (jrq->respainner) continue;
+
+      // these flags must be same,
+      //   else 2 lists do not store same pairs
+      //   or their data structures are different
+      // this includes custom cutoff set by requestor
+      // no need to check respaouter b/c it stores same pairs
+      // no need to check omp b/c it stores same pairs
+      // no need to check dnum b/c only set for history
+      // NOTE: need check for 2 Kokkos flags?
+
+      if (irq->size != jrq->size) continue;
+      if (irq->bond != jrq->bond) continue;
+      if (irq->intel != jrq->intel) continue;
+      if (irq->kokkos_host != jrq->kokkos_host) continue;
+      if (irq->kokkos_device != jrq->kokkos_device) continue;
+      if (irq->ssa != jrq->ssa) continue;
+      if (irq->cut != jrq->cut) continue;
+      if (irq->cutoff != jrq->cutoff) continue;
+
+      // skip flag must be same
+      // if both are skip lists, skip info must match
+
+      if (irq->skip != jrq->skip) continue;
+      if (irq->skip && irq->same_skip(jrq) == 0) continue;
+
+      // 2 lists are a match
+
+      break;
+    }
+
+    // turn list I into a copy of list J
+    // do not copy a list from another copy list, but from its parent list
+
+    if (j < nrequest) {
+      irq->copy = 1;
+      if (jrq->copy) irq->copylist = jrq->copylist;
+      else irq->copylist = j;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1080,9 +1467,9 @@ void Neighbor::init_topology()
 
 void Neighbor::print_pairwise_info()
 {
-  int i,j,m;
+  int i,m;
   char str[128];
-  const char *kind;
+  NeighRequest *rq;
   FILE *out;
 
   const double cutghost = MAX(cutneighmax,comm->cutghostuser);
@@ -1125,55 +1512,81 @@ void Neighbor::print_pairwise_info()
       fprintf(out,"  %d neighbor lists, "
               "perpetual/occasional/extra = %d %d %d\n",
               nlist,nperpetual,noccasional,nextra);
-      
+
       for (i = 0; i < nlist; i++) {
-        if (requests[i]->pair) {
-          char *pname = force->pair_match_ptr((Pair *) requests[i]->requestor);
+	rq = requests[i];
+        if (rq->pair) {
+          char *pname = force->pair_match_ptr((Pair *) rq->requestor);
           sprintf(str,"  (%d) pair %s",i+1,pname);
-        } else if (requests[i]->fix) {
-          sprintf(str,"  (%d) fix %s",i+1,
-                  ((Fix *) requests[i]->requestor)->style);
-        } else if (requests[i]->compute) {
+        } else if (rq->fix) {
+          sprintf(str,"  (%d) fix %s",i+1,((Fix *) rq->requestor)->style);
+        } else if (rq->compute) {
           sprintf(str,"  (%d) compute %s",i+1,
-                  ((Compute *) requests[i]->requestor)->style);
-        } else {
-          sprintf(str,"  (%d) command %s",i+1,requests[i]->command_style);
+                  ((Compute *) rq->requestor)->style);
+        } else if (rq->command) {
+          sprintf(str,"  (%d) command %s",i+1,rq->command_style);
+        } else if (rq->neigh) {
+          sprintf(str,"  (%d) neighbor class addition",i+1);
         }
-        fprintf(out,"%s\n",str);
-        
-        if (requests[i]->half) kind = "half";
-        else if (requests[i]->full) kind = "full";
-        else if (requests[i]->gran) kind = "size";
-        else if (requests[i]->granhistory) kind = "size/history";
-        else if (requests[i]->respainner) kind = "respa/inner";
-        else if (requests[i]->respamiddle) kind = "respa/middle";
-        else if (requests[i]->respaouter) kind = "respa/outer";
-        else if (requests[i]->half_from_full) kind = "half/from/full";
-        if (requests[i]->occasional) fprintf(out,", occasional");
+        fprintf(out,"%s",str);
+
+        if (rq->occasional) fprintf(out,", occasional");
         else fprintf(out,", perpetual");
-        if (requests[i]->ghost) fprintf(out,", ghost");
-        if (requests[i]->ssa) fprintf(out,", ssa");
-        if (requests[i]->omp) fprintf(out,", omp");
-        if (requests[i]->intel) fprintf(out,", intel");
-        if (requests[i]->kokkos_device) fprintf(out,", kokkos_device");
-        if (requests[i]->kokkos_host) fprintf(out,", kokkos_host");
-        if (requests[i]->copy) 
-          fprintf(out,", copy from (%d)",requests[i]->otherlist+1);
-        if (requests[i]->skip)
-          fprintf(out,", skip from (%d)",requests[i]->otherlist+1);
-        if (requests[i]->off2on) fprintf(out,", off2on");
+
+        // order these to get single output of most relevant
+
+        if (rq->history) 
+          fprintf(out,", history for (%d)",rq->historylist+1);
+        else if (rq->copy)
+          fprintf(out,", copy from (%d)",rq->copylist+1);
+        else if (rq->halffull) 
+          fprintf(out,", half/full from (%d)",rq->halffulllist+1);
+        else if (rq->skip)
+          fprintf(out,", skip from (%d)",rq->skiplist+1);
+
         fprintf(out,"\n");
+
+        // list of neigh list attributes
+
+        fprintf(out,"      attributes: ");
+        if (rq->half) fprintf(out,"half");
+        else if (rq->full) fprintf(out,"full");
+
+	if (rq->newton == 0) {
+	  if (force->newton_pair) fprintf(out,", newton on");
+	  else fprintf(out,", newton off");
+	} else if (rq->newton == 1) fprintf(out,", newton on");
+	else if (rq->newton == 2) fprintf(out,", newton off");
+	
+        if (rq->ghost) fprintf(out,", ghost");
+        if (rq->size) fprintf(out,", size");
+        if (rq->history) fprintf(out,", history");
+        if (rq->granonesided) fprintf(out,", onesided");
+        if (rq->respainner) fprintf(out,", respa outer");
+        if (rq->respamiddle) fprintf(out,", respa middle");
+        if (rq->respaouter) fprintf(out,", respa inner");
+        if (rq->bond) fprintf(out,", bond");
+        if (rq->omp) fprintf(out,", omp");
+        if (rq->intel) fprintf(out,", intel");
+        if (rq->kokkos_device) fprintf(out,", kokkos_device");
+        if (rq->kokkos_host) fprintf(out,", kokkos_host");
+        if (rq->ssa) fprintf(out,", ssa");
+        if (rq->cut) fprintf(out,", cut %g",rq->cutoff);
+        if (rq->off2on) fprintf(out,", off2on");
+        fprintf(out,"\n");
+
+        fprintf(out,"      ");
+        if (lists[i]->pair_method == 0) fprintf(out,"pair build: none\n");
+        else fprintf(out,"pair build: %s\n",pairnames[lists[i]->pair_method-1]);
         
-        if (lists[i]->pair_method == 0) fprintf(out,"      pair build: none\n");
-        else fprintf(out,"      pair build: %s\n",
-                     pairnames[lists[i]->pair_method-1]);
-        
-        if (lists[i]->stencil_method == 0) fprintf(out,"      stencil: none\n");
-        else fprintf(out,"      stencil: %s\n",
+        fprintf(out,"      ");
+        if (lists[i]->stencil_method == 0) fprintf(out,"stencil: none\n");
+        else fprintf(out,"stencil: %s\n",
                      stencilnames[lists[i]->stencil_method-1]);
         
-        if (lists[i]->bin_method == 0) fprintf(out,"      bin: none\n");
-        else fprintf(out,"      bin: %s\n",binnames[lists[i]->bin_method-1]);
+        fprintf(out,"      ");
+        if (lists[i]->bin_method == 0) fprintf(out,"bin: none\n");
+        else fprintf(out,"bin: %s\n",binnames[lists[i]->bin_method-1]);
       }
       
       /*
@@ -1191,8 +1604,8 @@ void Neighbor::print_pairwise_info()
 }
   
 /* ----------------------------------------------------------------------
-   delete old NeighRequests
-   copy current requests and params to old for next run
+   make copy of current requests and Neighbor params
+   used to compare to when next run occurs
 ------------------------------------------------------------------------- */
 
 void Neighbor::requests_new2old()
@@ -1201,13 +1614,34 @@ void Neighbor::requests_new2old()
   memory->sfree(old_requests);
 
   old_nrequest = nrequest;
-  old_requests = requests;
-  nrequest = maxrequest = 0;
-  requests = NULL;
+  old_requests = (NeighRequest **)
+      memory->smalloc(old_nrequest*sizeof(NeighRequest *),
+                      "neighbor:old_requests");
+
+  for (int i = 0; i < old_nrequest; i++) {
+    old_requests[i] = new NeighRequest(lmp);
+    old_requests[i]->copy_request(requests[i],1);
+  }
+
   old_style = style;
   old_triclinic = triclinic;
   old_pgsize = pgsize;
   old_oneatom = oneatom;
+}
+
+/* ----------------------------------------------------------------------
+   find and return request made by classptr
+   if not found or classpt = NULL, return NULL
+------------------------------------------------------------------------- */
+
+NeighRequest *Neighbor::find_request(void *classptr)
+{
+  if (classptr == NULL) return NULL;
+
+  for (int i = 0; i < nrequest; i++)
+    if (requests[i]->requestor == classptr) return requests[i];
+
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -1224,36 +1658,25 @@ int Neighbor::choose_bin(NeighRequest *rq)
   // no binning needed
 
   if (style == NSQ) return 0;
-  if (rq->skip || rq->copy || rq->half_from_full) return 0;
-  if (rq->granhistory) return 0;
+  if (rq->skip || rq->copy || rq->halffull) return 0;
+  if (rq->history) return 0;
   if (rq->respainner || rq->respamiddle) return 0;
 
-  // flags for settings the request + system requires of NBin class
-  //   ssaflag = no/yes ssa request
-  //   intelflag = no/yes intel request
-  //   kokkos_device_flag = no/yes kokkos device request
-  //   kokkos_host_flag = no/yes kokkos host request
-
-  int ssaflag,intelflag,kokkos_device_flag,kokkos_host_flag;
-
-  ssaflag = intelflag = kokkos_device_flag = kokkos_host_flag = 0;
-
-  if (rq->ssa) ssaflag = NB_SSA;
-  if (rq->intel) intelflag = NB_INTEL;
-  if (rq->kokkos_device) kokkos_device_flag = NB_KOKKOS_DEVICE;
-  if (rq->kokkos_host) kokkos_host_flag = NB_KOKKOS_HOST;
-
-  // use flags to match exactly one of NBin class masks, bit by bit
+  // use request settings to match exactly one NBin class mask
+  // checks are bitwise using NeighConst bit masks
 
   int mask;
 
   for (int i = 0; i < nbclass; i++) {
     mask = binmasks[i];
 
-    if (ssaflag != (mask & NB_SSA)) continue;
-    if (intelflag != (mask & NB_INTEL)) continue;
-    if (kokkos_device_flag != (mask & NB_KOKKOS_DEVICE)) continue;
-    if (kokkos_host_flag != (mask & NB_KOKKOS_HOST)) continue;
+    // require match of these request flags and mask bits
+    // (!A != !B) is effectively a logical xor
+
+    if (!rq->intel != !(mask & NB_INTEL)) continue;
+    if (!rq->ssa != !(mask & NB_SSA)) continue;
+    if (!rq->kokkos_device != !(mask & NB_KOKKOS_DEVICE)) continue;
+    if (!rq->kokkos_host != !(mask & NB_KOKKOS_HOST)) continue;
 
     return i+1;
   }
@@ -1277,30 +1700,11 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   // no stencil creation needed
 
   if (style == NSQ) return 0;
-  if (rq->skip || rq->copy || rq->half_from_full) return 0;
-  if (rq->granhistory) return 0;
+  if (rq->skip || rq->copy || rq->halffull) return 0;
+  if (rq->history) return 0;
   if (rq->respainner || rq->respamiddle) return 0;
 
-  // flags for settings the request + system requires of NStencil class
-  //   halfflag = half request (gran and respa are also half lists)
-  //   fullflag = full request
-  //   ghostflag = no/yes ghost request
-  //   ssaflag = no/yes ssa request
-  //   dimension = 2d/3d
-  //   newtflag = newton off/on request
-  //   triclinic = orthgonal/triclinic box
-
-  int halfflag,fullflag,ghostflag,ssaflag;
-
-  halfflag = fullflag = ghostflag = ssaflag = 0;
-
-  if (rq->half) halfflag = 1;
-  if (rq->full) fullflag = 1;
-  if (rq->gran) halfflag = 1;
-  if (rq->respaouter) halfflag = 1;
-
-  if (rq->ghost) ghostflag = NS_GHOST;
-  if (rq->ssa) ssaflag = NS_SSA;
+  // convert newton request to newtflag = on or off
 
   int newtflag;
   if (rq->newton == 0 && newton_pair) newtflag = 1;
@@ -1308,35 +1712,67 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   else if (rq->newton == 1) newtflag = 1;
   else if (rq->newton == 2) newtflag = 0;
 
-  // use flags to match exactly one of NStencil class masks, bit by bit
-  // exactly one of halfflag,fullflag is set and thus must match
+  //printf("STENCIL RQ FLAGS: hff %d %d n %d g %d s %d newtflag %d\n",
+  //       rq->half,rq->full,rq->newton,rq->ghost,rq->ssa,
+  //       newtflag);
+
+  // use request and system settings to match exactly one NStencil class mask
+  // checks are bitwise using NeighConst bit masks
 
   int mask;
 
   for (int i = 0; i < nsclass; i++) {
     mask = stencilmasks[i];
 
-    if (halfflag) {
+    //printf("III %d: half %d full %d newton %d newtoff %d ghost %d ssa %d\n",
+    //       i,mask & NS_HALF,mask & NS_FULL,mask & NS_NEWTON,
+    //       mask & NS_NEWTOFF,mask & NS_GHOST,mask & NS_SSA);
+
+    // exactly one of half or full is set and must match
+    
+    if (rq->half) {
       if (!(mask & NS_HALF)) continue;
-    } else if (fullflag) {
+    } else if (rq->full) {
       if (!(mask & NS_FULL)) continue;
     }
 
-    if (ghostflag != (mask & NS_GHOST)) continue;
-    if (ssaflag != (mask & NS_SSA)) continue;
+    // newtflag is on or off and must match
 
-    if (style == BIN && !(mask & NS_BIN)) continue;
-    if (style == MULTI && !(mask & NS_MULTI)) continue;
+    if (newtflag) {
+      if (!(mask & NS_NEWTON)) continue;
+    } else if (!newtflag) {
+      if (!(mask & NS_NEWTOFF)) continue;
+    }
 
+    // require match of these request flags and mask bits 
+    // (!A != !B) is effectively a logical xor
 
-    if (dimension == 2 && !(mask & NS_2D)) continue;
-    if (dimension == 3 && !(mask & NS_3D)) continue;
+    if (!rq->ghost != !(mask & NS_GHOST)) continue;
+    if (!rq->ssa != !(mask & NS_SSA)) continue;
 
-    if (newtflag && !(mask & NS_NEWTON)) continue;
-    if (!newtflag && !(mask & NS_NEWTOFF)) continue;
+    // neighbor style is BIN or MULTI and must match
 
-    if (!triclinic && !(mask & NS_ORTHO)) continue;
-    if (triclinic && !(mask & NS_TRI)) continue;
+    if (style == BIN) {
+      if (!(mask & NS_BIN)) continue;
+    } else if (style == MULTI) {
+      if (!(mask & NS_MULTI)) continue;
+    }
+
+    // dimension is 2 or 3 and must match
+
+    if (dimension == 2) {
+      if (!(mask & NS_2D)) continue;
+    } else if (dimension == 3) {
+      if (!(mask & NS_3D)) continue;
+    }
+
+    // domain triclinic flag is on or off and must match
+    
+    if (triclinic) {
+      if (!(mask & NS_TRI)) continue;
+    } else if (!triclinic) {
+      if (!(mask & NS_ORTHO)) continue;
+    }
 
     return i+1;
   }
@@ -1357,74 +1793,17 @@ int Neighbor::choose_stencil(NeighRequest *rq)
 
 int Neighbor::choose_pair(NeighRequest *rq)
 {
-  // no NPair build performed
+  // no neighbor list build performed
 
-  if (rq->granhistory) return 0;
+  if (rq->history) return 0;
   if (rq->respainner || rq->respamiddle) return 0;
 
   // error check for includegroup with ghost neighbor request
 
   if (includegroup && rq->ghost)
-    error->all(FLERR,"Neighbor include group not allowed "
-               "with ghost neighbors");
+    error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
 
-  // flags for settings the request + system requires of NPair class
-  //   copyflag = no/yes copy request
-  //   skipflag = no/yes skip request
-  //   halfflag = half request (gran and respa are also half lists)
-  //   fullflag = full request
-  //   halffullflag = half_from_full request
-  //   sizeflag = no/yes gran request for finite-size particles
-  //   ghostflag = no/yes ghost request
-  //   respaflag = no/yes respa request
-  //   off2onflag = no/yes off2on request
-  //   onesideflag = no/yes granonesided request
-  //   ssaflag = no/yes request
-  //   ompflag = no/yes omp request
-  //   intelflag = no/yes intel request
-  //   kokkos_device_flag = no/yes Kokkos device request
-  //   kokkos_host_flag = no/yes Kokkos host request
-  //   newtflag = newton off/on request
-  //   style = NSQ/BIN/MULTI neighbor style
-  //   triclinic = orthgonal/triclinic box
-
-  int copyflag,skipflag,halfflag,fullflag,halffullflag,sizeflag,respaflag,
-    ghostflag,off2onflag,onesideflag,ssaflag,ompflag,intelflag,kokkos_device_flag,kokkos_host_flag;
-
-  copyflag = skipflag = halfflag = fullflag = halffullflag = sizeflag = 
-    ghostflag = respaflag = off2onflag = onesideflag = ssaflag = 
-    ompflag = intelflag = kokkos_device_flag = kokkos_host_flag = 0;
-
-  if (rq->copy) copyflag = NP_COPY;
-  if (rq->skip) skipflag = NP_SKIP;
-
-  // NOTE: exactly one of these request flags is set (see neigh_request.h)
-  //       this requires gran/respaouter also set halfflag
-  //       can simplify this logic, if follow NOTE in neigh_request.h
-  //       all why do size/off2on and size/off2on/oneside set NP_HALF
-  //         either should set both half & full, or half should be in file name
-  //         to be consistent with how other NP classes use "half"
-
-  if (rq->half) halfflag = 1;
-  if (rq->full) fullflag = 1;
-  if (rq->half_from_full) halffullflag = 1;
-  if (rq->gran) {
-    sizeflag = NP_SIZE;
-    halfflag = 1;
-  }
-  if (rq->respaouter) {
-    respaflag = NP_RESPA;
-    halfflag = 1;
-  }
-
-  if (rq->ghost) ghostflag = NP_GHOST;
-  if (rq->off2on) off2onflag = NP_OFF2ON;
-  if (rq->granonesided) onesideflag = NP_ONESIDE;
-  if (rq->ssa) ssaflag = NP_SSA;
-  if (rq->omp) ompflag = NP_OMP;
-  if (rq->intel) intelflag = NP_INTEL;
-  if (rq->kokkos_device) kokkos_device_flag = NP_KOKKOS_DEVICE;
-  if (rq->kokkos_host) kokkos_host_flag = NP_KOKKOS_HOST;
+  // convert newton request to newtflag = on or off
 
   int newtflag;
   if (rq->newton == 0 && newton_pair) newtflag = 1;
@@ -1432,60 +1811,101 @@ int Neighbor::choose_pair(NeighRequest *rq)
   else if (rq->newton == 1) newtflag = 1;
   else if (rq->newton == 2) newtflag = 0;
 
-  // use flags to match exactly one of NPair class masks, bit by bit
-  // copyflag match returns with no further checks
-  // exactly one of halfflag,fullflag,halffullflag is set and thus must match
+  int molecular = atom->molecular;
+  
+  //printf("PAIR RQ FLAGS: hf %d %d n %d g %d sz %d gos %d r %d b %d o %d i %d "
+  //       "kk %d %d ss %d dn %d sk %d cp %d hf %d oo %d\n",
+  //        rq->half,rq->full,rq->newton,rq->ghost,rq->size,
+  //        rq->granonesided,rq->respaouter,rq->bond,rq->omp,rq->intel,
+  //       rq->kokkos_host,rq->kokkos_device,rq->ssa,rq->dnum,
+  //      rq->skip,rq->copy,rq->halffull,rq->off2on);
+
+  // use request and system settings to match exactly one NPair class mask
+  // checks are bitwise using NeighConst bit masks
 
   int mask;
-
-  //printf("FLAGS: %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
-  //       copyflag,skipflag,halfflag,fullflag,halffullflag,
-  //       sizeflag,respaflag,ghostflag,off2onflag,onesideflag,ssaflag,
-  //       ompflag,intelflag,newtflag);
 
   for (int i = 0; i < npclass; i++) {
     mask = pairmasks[i];
 
-    if (copyflag && (mask & NP_COPY)) {
-      if (kokkos_device_flag != (mask & NP_KOKKOS_DEVICE)) continue;
-      if (kokkos_host_flag != (mask & NP_KOKKOS_HOST)) continue;
+    //printf("  PAIR NAMES i %d %d name %s mask %d\n",i,nrequest,
+    //       pairnames[i],pairmasks[i]);
+
+    // if copy request, no further checks needed, just return or continue
+    // Kokkos device/host flags must also match in order to copy
+
+    if (rq->copy) {
+      if (!(mask & NP_COPY)) continue;
+      if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
+      if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
       return i+1;
     }
-    if (skipflag != (mask & NP_SKIP)) continue;
 
-    if (halfflag) {
+    // exactly one of half or full is set and must match
+
+    if (rq->half) {
       if (!(mask & NP_HALF)) continue;
-    } else if (fullflag) {
+    } else if (rq->full) {
       if (!(mask & NP_FULL)) continue;
-    } else if (halffullflag) {
-      if (!(mask & NP_HALFFULL)) continue;
     }
 
-    if (sizeflag != (mask & NP_SIZE)) continue;
-    if (respaflag != (mask & NP_RESPA)) continue;
-    if (ghostflag != (mask & NP_GHOST)) continue;
-    if (off2onflag != (mask & NP_OFF2ON)) continue;
-    if (onesideflag != (mask & NP_ONESIDE)) continue;
-    if (ssaflag != (mask & NP_SSA)) continue;
-    if (ompflag != (mask & NP_OMP)) continue;
-    if (intelflag != (mask & NP_INTEL)) continue;
-    if (kokkos_device_flag != (mask & NP_KOKKOS_DEVICE)) continue;
-    if (kokkos_host_flag != (mask & NP_KOKKOS_HOST)) continue;
+    // newtflag is on or off and must match
 
-    if (style == NSQ && !(mask & NP_NSQ)) continue;
-    if (style == BIN && !(mask & NP_BIN)) continue;
-    if (style == MULTI && !(mask & NP_MULTI)) continue;
+    if (newtflag) {
+      if (!(mask & NP_NEWTON)) continue;
+    } else if (!newtflag) {
+      if (!(mask & NP_NEWTOFF)) continue;
+    }
 
-    if (newtflag && !(mask & NP_NEWTON)) continue;
-    if (!newtflag && !(mask & NP_NEWTOFF)) continue;
+    // if molecular on, do not match ATOMONLY (b/c a MOLONLY Npair exists)
+    // if molecular off, do not match MOLONLY (b/c an ATOMONLY Npair exists)
 
-    if (!triclinic && !(mask & NP_ORTHO)) continue;
-    if (triclinic && !(mask & NP_TRI)) continue;
+    if (molecular) {
+      if (mask & NP_ATOMONLY) continue;
+    } else if (!molecular) {
+      if (mask & NP_MOLONLY) continue;
+    }
+
+    // require match of these request flags and mask bits 
+    // (!A != !B) is effectively a logical xor
+
+    if (!rq->ghost != !(mask & NP_GHOST)) continue;
+    if (!rq->size != !(mask & NP_SIZE)) continue;
+    if (!rq->respaouter != !(mask & NP_RESPA)) continue;
+    if (!rq->granonesided != !(mask & NP_ONESIDE)) continue;
+    if (!rq->respaouter != !(mask & NP_RESPA)) continue;
+    if (!rq->bond != !(mask & NP_BOND)) continue;
+    if (!rq->omp != !(mask & NP_OMP)) continue;
+    if (!rq->intel != !(mask & NP_INTEL)) continue;
+    if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
+    if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
+    if (!rq->ssa != !(mask & NP_SSA)) continue;
+    
+    if (!rq->skip != !(mask & NP_SKIP)) continue;
+
+    if (!rq->halffull != !(mask & NP_HALF_FULL)) continue;
+    if (!rq->off2on != !(mask & NP_OFF2ON)) continue;
+
+    // neighbor style is one of NSQ,BIN,MULTI and must match
+
+    if (style == NSQ) {
+      if (!(mask & NP_NSQ)) continue;
+    } else if (style == BIN) {
+      if (!(mask & NP_BIN)) continue;
+    } else if (style == MULTI) {
+      if (!(mask & NP_MULTI)) continue;
+    }
+
+    // domain triclinic flag is on or off and must match
+
+    if (triclinic) {
+      if (!(mask & NP_TRI)) continue;
+    } else if (!triclinic) {
+      if (!(mask & NP_ORTHO)) continue;
+    }
 
     return i+1;
   }
-
-  //printf("NO MATCH\n");
 
   // error return if matched none
 
@@ -1709,7 +2129,7 @@ void Neighbor::build(int topoflag)
   }
 
   // bin atoms for all NBin instances
-  // not just NBin associated with perpetual lists
+  // not just NBin associated with perpetual lists, also occasional lists
   // b/c cannot wait to bin occasional lists in build_one() call
   // if bin then, atoms may have moved outside of proc domain & bin extent,
   //   leading to errors or even a crash
@@ -1726,7 +2146,7 @@ void Neighbor::build(int topoflag)
 
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
-    lists[m]->grow(nlocal,nall);
+    if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
   }
@@ -1797,7 +2217,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   }
 
   // if this is copy list and parent is occasional list,
-  // or this is half_from_full and parent is occasional list,
+  // or this is halffull and parent is occasional list,
   // insure parent is current 
 
   if (mylist->listcopy && mylist->listcopy->occasional)
@@ -1808,13 +2228,14 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // create stencil if hasn't been created since last setup_bins() call
 
   NStencil *ns = np->ns;
-  if (ns && ns->last_create < last_setup_bins) {
+  if (ns && ns->last_stencil < last_setup_bins) {
     ns->create_setup();
     ns->create();
   }
 
   // build the list
 
+  if (!mylist->copy) mylist->grow(atom->nlocal,atom->nlocal+atom->nghost);
   np->build_setup();
   np->build(mylist);
 }
@@ -1841,29 +2262,22 @@ void Neighbor::set(int narg, char **arg)
 /* ----------------------------------------------------------------------
    reset timestamps in all NeignBin, NStencil, NPair classes
    so that neighbor lists will rebuild properly with timestep change
+   ditto for lastcall and last_setup_bins
 ------------------------------------------------------------------------- */
 
 void Neighbor::reset_timestep(bigint ntimestep)
 {
-  for (int i = 0; i < nbin; i++) {
-    neigh_bin[i]->last_setup = -1;
+  for (int i = 0; i < nbin; i++)
     neigh_bin[i]->last_bin = -1;
-    neigh_bin[i]->last_bin_memory = -1;
-  }
-
-  for (int i = 0; i < nstencil; i++) {
-    neigh_stencil[i]->last_create = -1;
-    neigh_stencil[i]->last_stencil_memory = -1;
-    neigh_stencil[i]->last_copy_bin = -1;
-  }
-
+  for (int i = 0; i < nstencil; i++)
+    neigh_stencil[i]->last_stencil = -1;
   for (int i = 0; i < nlist; i++) {
     if (!neigh_pair[i]) continue;
     neigh_pair[i]->last_build = -1;
-    neigh_pair[i]->last_copy_bin_setup = -1;
-    neigh_pair[i]->last_copy_bin = -1;
-    neigh_pair[i]->last_copy_stencil = -1;
   }
+
+  lastcall = -1;
+  last_setup_bins = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1959,7 +2373,8 @@ void Neighbor::modify_params(int narg, char **arg)
         nex_group++;
         iarg += 4;
 
-      } else if (strcmp(arg[iarg+1],"molecule") == 0) {
+      } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||
+		 strcmp(arg[iarg+1],"molecule/intra") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal neigh_modify command");
         if (atom->molecule_flag == 0)
           error->all(FLERR,"Neigh_modify exclude molecule "
@@ -1967,13 +2382,21 @@ void Neighbor::modify_params(int narg, char **arg)
         if (nex_mol == maxex_mol) {
           maxex_mol += EXDELTA;
           memory->grow(ex_mol_group,maxex_mol,"neigh:ex_mol_group");
+          if (lmp->kokkos)
+            grow_ex_mol_intra_kokkos();
+          else
+            memory->grow(ex_mol_intra,maxex_mol,"neigh:ex_mol_intra");
         }
         ex_mol_group[nex_mol] = group->find(arg[iarg+2]);
         if (ex_mol_group[nex_mol] == -1)
           error->all(FLERR,"Invalid group ID in neigh_modify command");
+	if (strcmp(arg[iarg+1],"molecule/intra") == 0)
+	  ex_mol_intra[nex_mol] = 1;
+	else
+	  ex_mol_intra[nex_mol] = 0;
         nex_mol++;
         iarg += 3;
-
+	
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         nex_type = nex_group = nex_mol = 0;
         iarg += 2;

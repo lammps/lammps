@@ -87,8 +87,8 @@ void PairLJCutTIP4PCut::compute(int eflag, int vflag)
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
   double cforce;
-  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
-  double *x1,*x2;
+  double fO[3],fH[3],fd[3],v[6];
+  double *x1,*x2,*xH1,*xH2;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -139,14 +139,20 @@ void PairLJCutTIP4PCut::compute(int eflag, int vflag)
 
     if (itype == typeO) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
-        hneigh[i][2] = 1;
+        iH1 = atom->map(tag[i] + 1);
+        iH2 = atom->map(tag[i] + 2);
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        // set iH1,iH2 to index of closest image to O
+        iH1 = domain->closest_image(i,iH1);
+        iH2 = domain->closest_image(i,iH2);
         compute_newsite(x[i],x[iH1],x[iH2],newsite[i]);
+        hneigh[i][0] = iH1;
+        hneigh[i][1] = iH2;
+        hneigh[i][2] = 1;
+
       } else {
         iH1 = hneigh[i][0];
         iH2 = hneigh[i][1];
@@ -209,14 +215,20 @@ void PairLJCutTIP4PCut::compute(int eflag, int vflag)
 
           if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
-              hneigh[j][2] = 1;
+              jH1 = atom->map(tag[j] + 1);
+              jH2 = atom->map(tag[j] + 2);
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              // set jH1,jH2 to closest image to O
+              jH1 = domain->closest_image(j,jH1);
+              jH2 = domain->closest_image(j,jH2);
               compute_newsite(x[j],x[jH1],x[jH2],newsite[j]);
+              hneigh[j][0] = jH1;
+              hneigh[j][1] = jH2;
+              hneigh[j][2] = 1;
+
             } else {
               jH1 = hneigh[j][0];
               jH2 = hneigh[j][1];
@@ -294,10 +306,9 @@ void PairLJCutTIP4PCut::compute(int eflag, int vflag)
             f[iH2][1] += fH[1];
             f[iH2][2] += fH[2];
 
-            if(vflag) {
-              domain->closest_image(x[i],x[iH1],xH1);
-              domain->closest_image(x[i],x[iH2],xH2);
-
+            if (vflag) {
+              xH1 = x[iH1];
+              xH2 = x[iH2];
               v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
               v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
               v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
@@ -353,9 +364,8 @@ void PairLJCutTIP4PCut::compute(int eflag, int vflag)
             f[jH2][2] += fH[2];
 
             if (vflag) {
-              domain->closest_image(x[j],x[jH1],xH1);
-              domain->closest_image(x[j],x[jH2],xH2);
-
+              xH1 = x[jH1];
+              xH2 = x[jH2];
               v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
               v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
               v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
@@ -431,7 +441,7 @@ void PairLJCutTIP4PCut::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
@@ -521,7 +531,7 @@ double PairLJCutTIP4PCut::init_one(int i, int j)
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
 
-  if (offset_flag) {
+  if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;
@@ -586,7 +596,7 @@ void PairLJCutTIP4PCut::write_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j]){
+      if (setflag[i][j]) {
         fwrite(&epsilon[i][j],sizeof(double),1,fp);
         fwrite(&sigma[i][j],sizeof(double),1,fp);
         fwrite(&cut_lj[i][j],sizeof(double),1,fp);
@@ -711,12 +721,10 @@ void PairLJCutTIP4PCut::compute_newsite(double *xO,  double *xH1,
   double delx1 = xH1[0] - xO[0];
   double dely1 = xH1[1] - xO[1];
   double delz1 = xH1[2] - xO[2];
-  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = xH2[0] - xO[0];
   double dely2 = xH2[1] - xO[1];
   double delz2 = xH2[2] - xO[2];
-  domain->minimum_image(delx2,dely2,delz2);
 
   xM[0] = xO[0] + alpha * 0.5 * (delx1 + delx2);
   xM[1] = xO[1] + alpha * 0.5 * (dely1 + dely2);

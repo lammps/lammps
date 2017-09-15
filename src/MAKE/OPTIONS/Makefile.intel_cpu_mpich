@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx -cxx=icc
-OPTFLAGS =      -xAVX -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
                 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
 SHFLAGS =	-fPIC

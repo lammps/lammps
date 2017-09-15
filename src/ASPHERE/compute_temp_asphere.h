@@ -35,6 +35,8 @@ class ComputeTempAsphere : public Compute {
 
   void remove_bias(int, double *);
   void restore_bias(int, double *);
+  void remove_bias_thr(int, double *, double *);
+  void restore_bias_thr(int, double *, double *);
 
  private:
   int mode;
@@ -65,7 +67,7 @@ Self-explanatory.
 
 E: Compute temp/asphere requires extended particles
 
-This compute cannot be used with point paritlces.
+This compute cannot be used with point particles.
 
 E: Could not find compute ID for temperature bias
 

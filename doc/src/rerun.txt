@@ -15,7 +15,7 @@ rerun file1 file2 ... keyword args ... :pre
 file1,file2,... = dump file(s) to read :ulb,l
 one or more keywords may be appended, keyword {dump} must appear and be last :l
 keyword = {first} or {last} or {every} or {skip} or {start} or {stop} or {dump}
- {first} args = Nfirts
+ {first} args = Nfirst
    Nfirst = dump timestep to start on
  {last} args = Nlast
    Nlast = dumptimestep to stop on
@@ -40,7 +40,7 @@ rerun ../run7/dump.file.gz skip 2 dump x y z box yes :pre
 
 [Description:]
 
-Perform a psuedo simulation run where atom information is read one
+Perform a pseudo simulation run where atom information is read one
 snapshot at a time from a dump file(s), and energies and forces are
 computed on the shapshot to produce thermodynamic or other output.
 
@@ -121,7 +121,7 @@ with the {start/stop} keywords.  Note that if you define neither of
 the {start}/{stop} or {first}/{last} keywords, then LAMMPS treats the
 pseudo run as going from 0 to a huge value (effectively infinity).
 This means that any quantity that a fix scales as a fraction of
-elapsed time in the run, will essentially remain at its intiial value.
+elapsed time in the run, will essentially remain at its initial value.
 Also note that an error will occur if you read a snapshot from the
 dump file with a timestep value larger than the {stop} setting you
 have specified.
@@ -178,7 +178,7 @@ a timestep it expects to be, LAMMPS will flag an error.
 The various forms of LAMMPS output, as defined by the
 "thermo_style"_thermo_style.html, "thermo"_thermo.html,
 "dump"_dump.html, and "restart"_restart.html commands occur on
-specific timesteps.  If successvive dump snapshots skip those
+specific timesteps.  If successive dump snapshots skip those
 timesteps, then no output will be produced.  E.g. if you request
 thermodynamic output every 100 steps, but the dump file snapshots are
 every 1000 steps, then you will only see thermodynamic output every

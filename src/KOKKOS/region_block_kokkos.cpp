@@ -46,7 +46,7 @@ RegBlockKokkos<DeviceType>::~RegBlockKokkos()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::inside(double x, double y, double z) const
+int RegBlockKokkos<DeviceType>::k_inside(double x, double y, double z) const
 {
   if (x >= xlo && x <= xhi && y >= ylo && y <= yhi && z >= zlo && z <= zhi)
     return 1;
@@ -54,10 +54,10 @@ int RegBlockKokkos<DeviceType>::inside(double x, double y, double z) const
 }
 
 template<class DeviceType>
-void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::t_int_1d d_match_in)
+void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
   groupbit = groupbit_in;
-  d_match = d_match_in;
+  d_match = k_match_in.template view<DeviceType>();
 
   atomKK->sync(Device, X_MASK | MASK_MASK);
 
@@ -67,8 +67,9 @@ void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::t_int_1d
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagRegBlockMatchAll>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
+
+  k_match_in.template modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -85,7 +86,7 @@ void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) c
 /* ----------------------------------------------------------------------
    determine if point x,y,z is a match to region volume
    XOR computes 0 if 2 args are the same, 1 if different
-   note that inside() returns 1 for points on surface of region
+   note that k_inside() returns 1 for points on surface of region
    thus point on surface of exterior region will not match
    if region has variable shape, invoke shape_update() once per timestep
    if region is dynamic, apply inverse transform to x,y,z
@@ -99,7 +100,7 @@ KOKKOS_INLINE_FUNCTION
 int RegBlockKokkos<DeviceType>::match(double x, double y, double z) const
 {
   if (dynamic) inverse_transform(x,y,z);
-  return !(inside(x,y,z) ^ interior);
+  return !(k_inside(x,y,z) ^ interior);
 }
 
 /* ----------------------------------------------------------------------

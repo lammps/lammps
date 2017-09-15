@@ -46,7 +46,7 @@ namespace Kokkos {
 namespace Example {
 namespace FENL {
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_THREADS )
 
 template
 Perf fenl< Kokkos::Threads , Kokkos::Example::BoxElemPart::ElemLinear >(
@@ -68,7 +68,7 @@ Perf fenl< Kokkos::Threads , Kokkos::Example::BoxElemPart::ElemQuadratic >(
 #endif
 
 
-#if defined (KOKKOS_HAVE_OPENMP)
+#if defined (KOKKOS_ENABLE_OPENMP)
 
 template
 Perf fenl< Kokkos::OpenMP , Kokkos::Example::BoxElemPart::ElemLinear >(
@@ -89,7 +89,7 @@ Perf fenl< Kokkos::OpenMP , Kokkos::Example::BoxElemPart::ElemQuadratic >(
 
 #endif
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 template
 Perf fenl< Kokkos::Cuda , Kokkos::Example::BoxElemPart::ElemLinear >(

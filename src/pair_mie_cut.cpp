@@ -447,7 +447,7 @@ void PairMIECut::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -509,24 +509,19 @@ void PairMIECut::init_style()
     else if (respa == 1) {
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     } else {
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respamiddle = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     }
 
@@ -580,7 +575,7 @@ double PairMIECut::init_one(int i, int j)
   mie3[i][j] = Cmie[i][j] * epsilon[i][j] * pow(sigma[i][j],gamR[i][j]);
   mie4[i][j] = Cmie[i][j] * epsilon[i][j] * pow(sigma[i][j],gamA[i][j]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];
     offset[i][j] = Cmie[i][j] * epsilon[i][j] *
       (pow(ratio,gamR[i][j]) - pow(ratio,gamA[i][j]));

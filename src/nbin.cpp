@@ -13,6 +13,7 @@
 
 #include "nbin.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "domain.h"
 #include "update.h"
 #include "memory.h"
@@ -24,10 +25,11 @@ using namespace LAMMPS_NS;
 
 NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 {
-  last_setup = last_bin = last_bin_memory = -1;
+  last_bin = -1;
   maxbin = maxatom = 0;
   binhead = NULL;
   bins = NULL;
+  atom2bin = NULL;
 
   // geometry settings
 
@@ -41,6 +43,15 @@ NBin::~NBin()
 {
   memory->destroy(binhead);
   memory->destroy(bins);
+  memory->destroy(atom2bin);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NBin::post_constructor(NeighRequest *nrq)
+{
+  cutoff_custom = 0.0;
+  if (nrq->cut) cutoff_custom = nrq->cutoff;
 }
 
 /* ----------------------------------------------------------------------
@@ -56,6 +67,11 @@ void NBin::copy_neighbor_info()
   binsize_user = neighbor->binsize_user;
   bboxlo = neighbor->bboxlo;
   bboxhi = neighbor->bboxhi;
+
+  // overwrite Neighbor cutoff with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) cutneighmax = cutoff_custom;
 }
 
 /* ----------------------------------------------------------------------
@@ -71,19 +87,18 @@ void NBin::bin_atoms_setup(int nall)
     maxbin = mbins;
     memory->destroy(binhead);
     memory->create(binhead,maxbin,"neigh:binhead");
-    last_bin_memory = update->ntimestep;
   }
 
-  // bins = per-atom vector
+  // bins and atom2bin = per-atom vectors
+  // for both local and ghost atoms
 
   if (nall > maxatom) {
     maxatom = nall;
     memory->destroy(bins);
     memory->create(bins,maxatom,"neigh:bins");
-    last_bin_memory = update->ntimestep;
+    memory->destroy(atom2bin);
+    memory->create(atom2bin,maxatom,"neigh:atom2bin");
   }
-
-  last_bin = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -138,6 +153,6 @@ bigint NBin::memory_usage()
 {
   bigint bytes = 0;
   bytes += maxbin*sizeof(int);
-  bytes += maxatom*sizeof(int);
+  bytes += 2*maxatom*sizeof(int);
   return bytes;
 }

@@ -36,7 +36,7 @@ pair_coeff 1 1 1.0 1.0 :pre
 [Description:]
 
 Style {dpd} computes a force field for dissipative particle dynamics
-(DPD) following the exposition in "(Groot)"_#Groot.
+(DPD) following the exposition in "(Groot)"_#Groot1.
 
 Style {dpd/tstat} invokes a DPD thermostat on pairwise interactions,
 which is equivalent to the non-conservative portion of the DPD force
@@ -88,7 +88,7 @@ cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the "pair_style"_pair_style.html
 command so it does not need to be specified.
 
-For style {dpd/tstat}, the coefficiencts defined for each pair of
+For style {dpd/tstat}, the coefficients defined for each pair of
 atoms types via the "pair_coeff"_pair_coeff.html command is the same,
 except that A is not included.
 
@@ -121,7 +121,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -196,7 +196,7 @@ langevin"_fix_langevin.html, "pair_style srp"_pair_srp.html
 
 :line
 
-:link(Groot)
+:link(Groot1)
 [(Groot)] Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
 :link(Afshar)

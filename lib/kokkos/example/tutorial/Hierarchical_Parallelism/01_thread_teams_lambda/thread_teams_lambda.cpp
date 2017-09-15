@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -77,6 +77,9 @@ int main (int narg, char* args[]) {
   // region."  That is, every team member is active and will execute
   // the body of the lambda.
   int sum = 0;
+  // We also need to protect the usage of a lambda against compiling
+  // with a backend which doesn't support it (i.e. Cuda 6.5/7.0).
+  #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   parallel_reduce (policy, KOKKOS_LAMBDA (const team_member& thread, int& lsum) {
       lsum += 1;
       // TeamPolicy<>::member_type provides functions to query the
@@ -85,7 +88,7 @@ int main (int narg, char* args[]) {
       printf ("Hello World: %i %i // %i %i\n", thread.league_rank (),
               thread.team_rank (), thread.league_size (), thread.team_size ());
     }, sum);
-
+  #endif
   // The result will be 12*team_policy::team_size_max([=]{})
   printf ("Result %i\n",sum);
 

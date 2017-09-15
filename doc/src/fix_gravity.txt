@@ -76,7 +76,7 @@ specified as an equal-style "variable"_variable.html.  If the value is
 a variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated each
 timestep, and its value used to determine the quantity.  You should
-insure that the variable calculates a result in the approriate units,
+insure that the variable calculates a result in the appropriate units,
 e.g. force/mass or degrees.
 
 Equal-style variables can specify formulas with various mathematical
@@ -102,7 +102,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

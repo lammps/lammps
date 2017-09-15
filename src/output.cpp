@@ -49,18 +49,18 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   newarg[0] = (char *) "thermo_temp";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg,1);
+  modify->add_compute(3,newarg);
 
   newarg[0] = (char *) "thermo_press";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pressure";
   newarg[3] = (char *) "thermo_temp";
-  modify->add_compute(4,newarg,1);
+  modify->add_compute(4,newarg);
 
   newarg[0] = (char *) "thermo_pe";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg,1);
+  modify->add_compute(3,newarg);
 
   delete [] newarg;
 
@@ -653,6 +653,21 @@ void Output::delete_dump(char *id)
 }
 
 /* ----------------------------------------------------------------------
+   find a dump by ID
+   return index of dump or -1 if not found
+------------------------------------------------------------------------- */
+
+int Output::find_dump(const char *id)
+{
+  if (id == NULL) return -1;
+  int idump;
+  for (idump = 0; idump < ndump; idump++)
+    if (strcmp(id,dump[idump]->id) == 0) break;
+  if (idump == ndump) return -1;
+  return idump;
+}
+
+/* ----------------------------------------------------------------------
    set thermo output frequency from input script
 ------------------------------------------------------------------------- */
 
@@ -812,9 +827,9 @@ void Output::create_restart(int narg, char **arg)
    sum and print memory usage
    result is only memory on proc 0, not averaged across procs
 ------------------------------------------------------------------------- */
-
 void Output::memory_usage()
 {
+
   bigint bytes = 0;
   bytes += atom->memory_usage();
   bytes += neighbor->memory_usage();
@@ -825,11 +840,18 @@ void Output::memory_usage()
   for (int i = 0; i < ndump; i++) bytes += dump[i]->memory_usage();
 
   double mbytes = bytes/1024.0/1024.0;
+  double mbavg,mbmin,mbmax;
+  MPI_Reduce(&mbytes,&mbavg,1,MPI_DOUBLE,MPI_SUM,0,world);
+  MPI_Reduce(&mbytes,&mbmin,1,MPI_DOUBLE,MPI_MIN,0,world);
+  MPI_Reduce(&mbytes,&mbmax,1,MPI_DOUBLE,MPI_MAX,0,world);
+  mbavg /= comm->nprocs;
 
   if (comm->me == 0) {
     if (screen)
-      fprintf(screen,"Memory usage per processor = %g Mbytes\n",mbytes);
+      fprintf(screen,"Per MPI rank memory allocation (min/avg/max) = "
+              "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);
     if (logfile)
-      fprintf(logfile,"Memory usage per processor = %g Mbytes\n",mbytes);
+      fprintf(logfile,"Per MPI rank memory allocation (min/avg/max) = "
+              "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);
   }
 }

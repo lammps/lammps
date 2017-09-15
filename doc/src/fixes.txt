@@ -33,6 +33,7 @@ Fixes :h1
    fix_drude
    fix_drude_transform
    fix_dpd_energy
+   fix_dpd_source
    fix_dt_reset
    fix_efield
    fix_ehex
@@ -42,6 +43,7 @@ Fixes :h1
    fix_eos_table_rx
    fix_evaporate
    fix_external
+   fix_filter_corotate
    fix_flow_gauss
    fix_freeze
    fix_gcmc
@@ -68,7 +70,9 @@ Fixes :h1
    fix_meso_stationary
    fix_momentum
    fix_move
+   fix_mscg
    fix_msst
+   fix_mvv_dpd
    fix_neb
    fix_nh
    fix_nh_eff
@@ -83,6 +87,8 @@ Fixes :h1
    fix_nve_asphere
    fix_nve_asphere_noforce
    fix_nve_body
+   fix_nve_dot
+   fix_nve_dotc_langevin
    fix_nve_eff
    fix_nve_limit
    fix_nve_line
@@ -90,6 +96,7 @@ Fixes :h1
    fix_nve_noforce
    fix_nve_sphere
    fix_nve_tri
+   fix_nvk
    fix_nvt_asphere
    fix_nvt_body
    fix_nvt_manifold_rattle
@@ -106,6 +113,7 @@ Fixes :h1
    fix_press_berendsen
    fix_print
    fix_property_atom
+   fix_python
    fix_qbmsst
    fix_qeq
    fix_qeq_comb
@@ -150,6 +158,7 @@ Fixes :h1
    fix_viscosity
    fix_viscous
    fix_wall
+   fix_wall_ees
    fix_wall_gran
    fix_wall_gran_region
    fix_wall_piston

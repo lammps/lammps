@@ -37,6 +37,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -140,7 +141,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 /* ----------------------------------------------------------------------
    create an instance of LAMMPS and return pointer to it
    caller doesn't know MPI communicator, so use MPI_COMM_WORLD
-   intialize MPI if needed
+   initialize MPI if needed
 ------------------------------------------------------------------------- */
 
 void lammps_open_no_mpi(int argc, char **argv, void **ptr)
@@ -277,12 +278,21 @@ void lammps_commands_string(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    char *ptr = strtok(copy,"\n");
-    if (ptr) concatenate_lines(ptr);
-    while (ptr) {
-      lmp->input->one(ptr);
-      ptr = strtok(NULL,"\n");
-      if (ptr) concatenate_lines(ptr);
+    char *ptr = copy;
+    for (int i=0; i < n-1; ++i) {
+
+      // handle continuation character as last character in line or string
+      if ((copy[i] == '&') && (copy[i+1] == '\n'))
+        copy[i+1] = copy[i] = ' ';
+      else if ((copy[i] == '&') && (copy[i+1] == '\0'))
+        copy[i] = ' ';
+
+      if (copy[i] == '\n') {
+        copy[i] = '\0';
+        lmp->input->one(ptr);
+        ptr = copy + i+1;
+      } else if (copy[i+1] == '\0')
+        lmp->input->one(ptr);
     }
   }
   END_CAPTURE
@@ -317,8 +327,6 @@ void lammps_free(void *ptr)
 
 int lammps_extract_setting(void *ptr, char *name)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
-
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);
   if (strcmp(name,"imageint") == 0) return sizeof(imageint);
@@ -363,6 +371,7 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"nghost") == 0) return (void *) &lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
+  if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
@@ -376,6 +385,28 @@ void *lammps_extract_global(void *ptr, char *name)
 
   if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
   if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
+
+  // global constants defined by units
+
+  if (strcmp(name,"boltz") == 0) return (void *) &lmp->force->boltz;
+  if (strcmp(name,"hplanck") == 0) return (void *) &lmp->force->hplanck;
+  if (strcmp(name,"mvv2e") == 0) return (void *) &lmp->force->mvv2e;
+  if (strcmp(name,"ftm2v") == 0) return (void *) &lmp->force->ftm2v;
+  if (strcmp(name,"mv2d") == 0) return (void *) &lmp->force->mv2d;
+  if (strcmp(name,"nktv2p") == 0) return (void *) &lmp->force->nktv2p;
+  if (strcmp(name,"qqr2e") == 0) return (void *) &lmp->force->qqr2e;
+  if (strcmp(name,"qe2f") == 0) return (void *) &lmp->force->qe2f;
+  if (strcmp(name,"vxmu2f") == 0) return (void *) &lmp->force->vxmu2f;
+  if (strcmp(name,"xxt2kmu") == 0) return (void *) &lmp->force->xxt2kmu;
+  if (strcmp(name,"dielectric") == 0) return (void *) &lmp->force->dielectric;
+  if (strcmp(name,"qqrd2e") == 0) return (void *) &lmp->force->qqrd2e;
+  if (strcmp(name,"e_mass") == 0) return (void *) &lmp->force->e_mass;
+  if (strcmp(name,"hhmrr2e") == 0) return (void *) &lmp->force->hhmrr2e;
+  if (strcmp(name,"mvh2r") == 0) return (void *) &lmp->force->mvh2r;
+
+  if (strcmp(name,"angstrom") == 0) return (void *) &lmp->force->angstrom;
+  if (strcmp(name,"femtosecond") == 0) return (void *) &lmp->force->femtosecond;
+  if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   return NULL;
 }
@@ -648,7 +679,7 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 /* ----------------------------------------------------------------------
    reset simulation box parameters
    see domain.h for definition of these arguments
-   assumes domain->set_intiial_box() has been invoked previously
+   assumes domain->set_initial_box() has been invoked previously
 ------------------------------------------------------------------------- */
 
 void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
@@ -763,6 +794,10 @@ void lammps_gather_atoms(void *ptr, char *name,
 
     int i,j,offset;
     void *vptr = lmp->atom->extract(name);
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
+        return;
+    }
 
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy
@@ -771,7 +806,9 @@ void lammps_gather_atoms(void *ptr, char *name,
     if (type == 0) {
       int *vector = NULL;
       int **array = NULL;
-      if (count == 1) vector = (int *) vptr;
+      const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgunpack) vector = (int *) vptr;
       else array = (int **) vptr;
 
       int *copy;
@@ -784,11 +821,19 @@ void lammps_gather_atoms(void *ptr, char *name,
       if (count == 1)
         for (i = 0; i < nlocal; i++)
           copy[tag[i]-1] = vector[i];
-      else
+      else if (imgunpack) {
+        for (i = 0; i < nlocal; i++) {
+          offset = count*(tag[i]-1);
+          const int image = vector[i];
+          copy[offset++] = (image & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMGBITS) & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMG2BITS) & IMGMASK) - IMGMAX;
+        }
+      } else
         for (i = 0; i < nlocal; i++) {
           offset = count*(tag[i]-1);
           for (j = 0; j < count; j++)
-            copy[offset++] = array[i][0];
+            copy[offset++] = array[i][j];
         }
       
       MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
@@ -859,6 +904,11 @@ void lammps_scatter_atoms(void *ptr, char *name,
 
     int i,j,m,offset;
     void *vptr = lmp->atom->extract(name);
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,
+                            "lammps_scatter_atoms: unknown property name");
+        return;
+    }
 
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy
@@ -867,7 +917,9 @@ void lammps_scatter_atoms(void *ptr, char *name,
     if (type == 0) {
       int *vector = NULL;
       int **array = NULL;
-      if (count == 1) vector = (int *) vptr;
+      const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgpack) vector = (int *) vptr;
       else array = (int **) vptr;
       int *dptr = (int *) data;
 
@@ -875,6 +927,15 @@ void lammps_scatter_atoms(void *ptr, char *name,
         for (i = 0; i < natoms; i++)
           if ((m = lmp->atom->map(i+1)) >= 0)
             vector[m] = dptr[i];
+      } else if (imgpack) {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0) {
+            offset = count*i;
+            int image = dptr[offset++] + IMGMAX;
+            image += (dptr[offset++] + IMGMAX) << IMGBITS;
+            image += (dptr[offset++] + IMGMAX) << IMG2BITS;
+            vector[m] = image;
+          }
       } else {
         for (i = 0; i < natoms; i++)
           if ((m = lmp->atom->map(i+1)) >= 0) {
@@ -965,11 +1026,9 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      if (image) {
-        if (!domain->ownatom(id[i],xdata,&image[i],shrinkexceed)) continue;
-      } else {
-        if (!domain->ownatom(id[i],xdata,NULL,shrinkexceed)) continue;
-      }
+      imageint * img = image ? &image[i] : NULL;
+      tagint     tag = id    ? id[i]     : -1;
+      if (!domain->ownatom(tag, xdata, img, shrinkexceed)) continue;
   
       atom->avec->create_atom(type[i],xdata);
       if (id) atom->tag[nlocal] = id[i];

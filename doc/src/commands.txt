@@ -32,12 +32,12 @@ Commands :h1
    dimension
    displace_atoms
    dump
-   dump_custom_vtk
    dump_h5md
    dump_image
    dump_modify
    dump_molfile
-   dump_nc
+   dump_netcdf
+   dump_vtk
    echo
    fix
    fix_modify
@@ -91,6 +91,8 @@ Commands :h1
    suffix
    tad
    temper
+   temper_grem
+   temper_npt
    thermo
    thermo_modify
    thermo_style

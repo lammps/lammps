@@ -24,13 +24,13 @@
 * and to make the program fully dynamic. The second version used
 * fixed dimension arrays for the internal coordinates.
 *
-* The thrid version was revised in Fall 2011 by 
+* The third version was revised in Fall 2011 by
 * Stephanie Teich-McGoldrick to add support non-orthogonal cells.
 *
 * The next revision was started in Summer/Fall 2013 by
 * Axel Kohlmeyer to improve portability to Windows compilers,
 * clean up command line parsing and improve compatibility with
-* the then current LAMMPS versions. This revision removes 
+* the then current LAMMPS versions. This revision removes
 * compatibility with the obsolete LAMMPS version written in Fortran 90.
 */
 
@@ -172,7 +172,7 @@ extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
 extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
 extern int    forcefield;    /* BitMask: the value FF_TYPE_COMMON is set for common components of the options below,
                               * FF_TYPE_CLASS1 = ClassI,  FF_TYPE_CLASS2 = ClassII, FF_TYPE_OPLSAA = OPLS-AA*/
-extern int    ljtypeflag;    /* how LJ paramters are stored: 0 = A-B, 1 = r-eps */
+extern int    ljtypeflag;    /* how LJ parameters are stored: 0 = A-B, 1 = r-eps */
 extern int    centerflag;    /* 1= center box  0= keep box */
 extern int    hintflag;      /* 1= print style hint comments  0= no hints */
 extern int    pflag;         /* print level: 0, 1, 2, 3 */

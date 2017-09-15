@@ -98,7 +98,7 @@ Coulombics.
 
 The {overlap} keyword can be used in conjunction with the {minorder}
 keyword with the PPPM styles to adjust the amount of communication
-that occurs when values on the FFT grid are exchangeed between
+that occurs when values on the FFT grid are exchanged between
 processors.  This communication is distinct from the communication
 inherent in the parallel FFTs themselves, and is required because
 processors interpolate charge and field values using grid point values
@@ -122,7 +122,7 @@ neighbor processors.  The {minorder} keyword limits how small the
 {order} setting can become.  The minimum allowed value for PPPM is 2,
 which is the default.  If {minorder} is set to the same value as
 {order} then no reduction is allowed, and LAMMPS will generate an
-error if the grid communcation is non-nearest-neighbor and {overlap}
+error if the grid communication is non-nearest-neighbor and {overlap}
 is set to {no}. The {minorder} keyword is not currently supported in
 MSM.
 
@@ -206,7 +206,7 @@ beginning of the run to give the desired estimated error. Other
 cutoffs such as LJ will not be affected. If the grid is not set using
 the {mesh} command, this command will also attempt to use the optimal
 grid that minimizes cost using an estimate given by
-"(Hardy)"_#Hardy. Note that this cost estimate is not exact, somewhat
+"(Hardy)"_#Hardy1. Note that this cost estimate is not exact, somewhat
 experimental, and still may not yield the optimal parameters.
 
 The {pressure/scalar} keyword applies only to MSM. If this option is
@@ -219,10 +219,10 @@ instead of using the virial equation. This option cannot be used to access
 individual components of the pressure tensor, to compute per-atom virial,
 or with suffix kspace/pair styles of MSM, like OMP or GPU.
 
-The {fftbench} keyword applies only to PPPM. It is on by default. If
-this option is turned off, LAMMPS will not take the time at the end
-of a run to give FFT benchmark timings, and will finish a few seconds
-faster than it would if this option were on.
+The {fftbench} keyword applies only to PPPM. It is off by default. If
+this option is turned on, LAMMPS will perform a short FFT benchmark
+computation and report its timings, and will thus finish a some seconds
+later than it would if this option were off.
 
 The {collective} keyword applies only to PPPM.  It is set to {no} by
 default, except on IBM BlueGene machines.  If this option is set to
@@ -235,7 +235,7 @@ collective operations and adequate hardware.
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The {ik} approach is the default for
-PPPM and is the original formulation used in "(Hockney)"_#Hockney.  It
+PPPM and is the original formulation used in "(Hockney)"_#Hockney1.  It
 performs differentiation in Kspace, and uses 3 FFTs to transfer each
 component of the computed fields back to real space for total of 4
 FFTs per timestep.
@@ -271,7 +271,7 @@ speed-up the simulations but introduces some error in the force
 computations, as shown in "(Wennberg)"_#Wennberg.  With {none}, it is
 assumed that no mixing rule is applicable. Splitting of the dispersion
 coefficients will be performed as described in
-"(Isele-Holder)"_#Isele-Holder.  This splitting can be influenced with
+"(Isele-Holder)"_#Isele-Holder1.  This splitting can be influenced with
 the {splittol} keywords. Only the eigenvalues that are larger than tol
 compared to the largest eigenvalues are included. Using this keywords
 the original matrix of dispersion coefficients is approximated. This
@@ -280,19 +280,20 @@ computations of the dispersion part is decreased.
 
 The {force/disp/real} and {force/disp/kspace} keywords set the force
 accuracy for the real and space computations for the dispersion part
-of pppm/disp. As shown in "(Isele-Holder)"_#Isele-Holder, optimal
+of pppm/disp. As shown in "(Isele-Holder)"_#Isele-Holder1, optimal
 performance and accuracy in the results is obtained when these values
 are different.
 
-The {disp/auto} option controlls whether the pppm/disp is allowed to
+The {disp/auto} option controls whether the pppm/disp is allowed to
 generate PPPM parameters automatically. If set to {no}, parameters have
 to be specified using the {gewald/disp}, {mesh/disp},
 {force/disp/real} or {force/disp/kspace} keywords, or
 the code will stop with an error message. When this option is set to
 {yes}, the error message will not appear and the simulation will start.
-For a typical application, using the automatic parameter generation will provide
-simulations that are either inaccurate or slow. Using this option is thus not
-recommended. For guidelines on how to obtain good parameters, see the "How-To"_Section_howto.html#howto_23 discussion.
+For a typical application, using the automatic parameter generation
+will provide simulations that are either inaccurate or slow. Using this
+option is thus not recommended. For guidelines on how to obtain good
+parameters, see the "How-To"_Section_howto.html#howto_24 discussion.
 
 [Restrictions:] none
 
@@ -305,13 +306,14 @@ recommended. For guidelines on how to obtain good parameters, see the "How-To"_S
 The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
+yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff = ik
 (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
-split = 0, tol = 1.0e-6, and disp/auto = no.
+split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel, order =
+order/disp = 7.
 
 :line
 
-:link(Hockney)
+:link(Hockney1)
 [(Hockney)] Hockney and Eastwood, Computer Simulation Using Particles,
 Adam Hilger, NY (1989).
 
@@ -325,7 +327,7 @@ Adam Hilger, NY (1989).
 :link(Klapp)
 [(Klapp)] Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
 
-:link(Hardy)
+:link(Hardy1)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
@@ -333,7 +335,7 @@ Illinois at Urbana-Champaign, (2006).
 :link(Hummer)
 [(Hummer)] Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 
-:link(Isele-Holder)
+:link(Isele-Holder1)
 [(Isele-Holder)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
 Chem Theory Comput, 9, 5412 (2013).
 

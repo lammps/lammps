@@ -97,7 +97,7 @@ current LAMMPS library interface and how to call them from Python.
 Section 11.8 gives some examples of coupling LAMMPS to other tools via
 Python.  For example, LAMMPS can easily be coupled to a GUI or other
 visualization tools that display graphs or animations in real time as
-LAMMPS runs.  Examples of such scripts are inlcluded in the python
+LAMMPS runs.  Examples of such scripts are included in the python
 directory.
 
 Two advantages of using Python to run LAMMPS are how concise the
@@ -118,18 +118,21 @@ check which version of Python you have installed, by simply typing
 
 11.2 Overview of using Python from a LAMMPS script :link(py_2),h4
 
-NOTE: It is not currently possible to use the "python"_python.html
-command described in this section with Python 3, only with Python 2.
-The C API changed from Python 2 to 3 and the LAMMPS code is not
-compatible with both.
+LAMMPS has several commands which can be used to invoke Python
+code directly from an input script:
 
-LAMMPS has a "python"_python.html command which can be used in an
-input script to define and execute a Python function that you write
-the code for.  The Python function can also be assigned to a LAMMPS
-python-style variable via the "variable"_variable.html command.  Each
-time the variable is evaluated, either in the LAMMPS input script
-itself, or by another LAMMPS command that uses the variable, this will
-trigger the Python function to be invoked.
+"python"_python.html
+"variable python"_variable.html
+"fix python"_fix_python.html
+"pair_style python"_pair_python.html :ul
+
+The "python"_python.html command which can be used to define and
+execute a Python function that you write the code for.  The Python
+function can also be assigned to a LAMMPS python-style variable via
+the "variable"_variable.html command.  Each time the variable is
+evaluated, either in the LAMMPS input script itself, or by another
+LAMMPS command that uses the variable, this will trigger the Python
+function to be invoked.
 
 The Python code for the function can be included directly in the input
 script or in an auxiliary file.  The function can have arguments which
@@ -162,8 +165,16 @@ doc page for its python-style variables for more info, including
 examples of Python code you can write for both pure Python operations
 and callbacks to LAMMPS.
 
-To run pure Python code from LAMMPS, you only need to build LAMMPS
-with the PYTHON package installed:
+The "fix python"_fix_python.html command can execute
+Python code at selected timesteps during a simulation run.
+
+The "pair_style python"_pair_python command allows you to define
+pairwise potentials as python code which encodes a single pairwise
+interaction.  This is useful for rapid-developement and debugging of a
+new potential.
+
+To use any of these commands, you only need to build LAMMPS with the
+PYTHON package installed:
 
 make yes-python
 make machine :pre
@@ -177,7 +188,7 @@ of Python and your machine to successfully build LAMMPS.  See the
 lib/python/README file for more info.
 
 If you want to write Python code with callbacks to LAMMPS, then you
-must also follow the steps overviewed in the preceeding section (11.1)
+must also follow the steps overviewed in the preceding section (11.1)
 for running LAMMPS from Python.  I.e. you must build LAMMPS as a
 shared library and insure that Python can find the python/lammps.py
 file and the shared library.
@@ -187,7 +198,7 @@ file and the shared library.
 11.3 Building LAMMPS as a shared library :link(py_3),h4
 
 Instructions on how to build LAMMPS as a shared library are given in
-"Section 2.5"_Section_start.html#start_5.  A shared library is one
+"Section 2.4"_Section_start.html#start_4.  A shared library is one
 that is dynamically loadable, which is what Python requires to wrap
 LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
 
@@ -206,7 +217,7 @@ NOTE: If you are building LAMMPS with an MPI or FFT library or other
 auxiliary libraries (used by various packages), then all of these
 extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
-"Section 2.5"_Section_start.html#start_5 for more details.
+"Section 2.4"_Section_start.html#start_4 for more details.
 
 :line
 
@@ -325,7 +336,7 @@ sudo python setup.py install :pre
 Again, the "sudo" is only needed if required to copy PyPar files into
 your Python distribution's site-packages directory.
 
-If you have successully installed PyPar, you should be able to run
+If you have successfully installed PyPar, you should be able to run
 Python and type
 
 import pypar :pre
@@ -369,7 +380,7 @@ user privilege into the user local directory type
 
 python setup.py install --user :pre
 
-If you have successully installed mpi4py, you should be able to run
+If you have successfully installed mpi4py, you should be able to run
 Python and type
 
 from mpi4py import MPI :pre
@@ -428,7 +439,7 @@ first importing from the lammps.py file:
 >>> CDLL("liblammps.so") :pre
 
 If an error occurs, carefully go thru the steps in "Section
-2.5"_Section_start.html#start_5 and above about building a shared
+2.4"_Section_start.html#start_4 and above about building a shared
 library and about insuring Python can find the necessary two files
 it needs.
 
@@ -594,10 +605,10 @@ flag = lmp.set_variable(name,value)       # set existing named string-style vari
 value = lmp.get_thermo(name)              # return current value of a thermo keyword
 
 natoms = lmp.get_natoms()                 # total # of atoms as int
-data = lmp.gather_atoms(name,type,count)  # return atom attribute of all atoms gathered into data, ordered by atom ID
+data = lmp.gather_atoms(name,type,count)  # return per-atom property of all atoms gathered into data, ordered by atom ID
                                           # name = "x", "charge", "type", etc
                                           # count = # of per-atom values, 1 or 3, etc
-lmp.scatter_atoms(name,type,count,data)   # scatter atom attribute of all atoms from data, ordered by atom ID
+lmp.scatter_atoms(name,type,count,data)   # scatter per-atom property to all atoms from data, ordered by atom ID
                                           # name = "x", "charge", "type", etc
                                           # count = # of per-atom values, 1 or 3, etc :pre
 
@@ -610,7 +621,7 @@ lmp = lammps() :pre
 
 create an instance of LAMMPS, wrapped in a Python class by the lammps
 Python module, and return an instance of the Python class as lmp.  It
-is used to make all subequent calls to the LAMMPS library.
+is used to make all subsequent calls to the LAMMPS library.
 
 Additional arguments to lammps() can be used to tell Python the name
 of the shared library to load or to pass arguments to the LAMMPS
@@ -656,13 +667,13 @@ argument.
 For extract_atom(), a pointer to internal LAMMPS atom-based data is
 returned, which you can use via normal Python subscripting.  See the
 extract() method in the src/atom.cpp file for a list of valid names.
-Again, new names could easily be added.  A pointer to a vector of
-doubles or integers, or a pointer to an array of doubles (double **)
-or integers (int **) is returned.  You need to specify the appropriate
-data type via the type argument.
+Again, new names could easily be added if the property you want is not
+listed.  A pointer to a vector of doubles or integers, or a pointer to
+an array of doubles (double **) or integers (int **) is returned.  You
+need to specify the appropriate data type via the type argument.
 
 For extract_compute() and extract_fix(), the global, per-atom, or
-local data calulated by the compute or fix can be accessed.  What is
+local data calculated by the compute or fix can be accessed.  What is
 returned depends on whether the compute or fix calculates a scalar or
 vector or array.  For a scalar, a single double value is returned.  If
 the compute or fix calculates a vector or array, a pointer to the
@@ -689,12 +700,21 @@ specified group.
 The get_natoms() method returns the total number of atoms in the
 simulation, as an int.
 
-The gather_atoms() method returns a ctypes vector of ints or doubles
-as specified by type, of length count*natoms, for the property of all
-the atoms in the simulation specified by name, ordered by count and
-then by atom ID.  The vector can be used via normal Python
-subscripting.  If atom IDs are not consecutively ordered within
-LAMMPS, a None is returned as indication of an error.
+The gather_atoms() method allows any per-atom property (coordinates,
+velocities, etc) to be extracted from LAMMPS.  It returns a ctypes
+vector of ints or doubles as specified by type, of length
+count*natoms, for the named property for all atoms in the simulation.
+The data is ordered by count and then by atom ID.  See the extract()
+method in the src/atom.cpp file for a list of valid names.  Again, new
+names could easily be added if the property you want is missing.  The
+vector can be used via normal Python subscripting.  If atom IDs are
+not consecutively ordered within LAMMPS, a None is returned as
+indication of an error. A special treatment is applied for image flags
+stored in the "image" property. All three image flags are stored in
+a packed format in a single integer, so count would be 1 to retrieve
+that integer, however also a count value of 3 can be used and then
+the image flags will be unpacked into 3 individual integers, ordered
+in a similar fashion as coordinates.
 
 Note that the data structure gather_atoms("x") returns is different
 from the data structure returned by extract_atom("x") in four ways.
@@ -711,14 +731,22 @@ assigning a new values to the extract_atom() array.  To do this with
 the gather_atoms() vector, you need to change values in the vector,
 then invoke the scatter_atoms() method.
 
-The scatter_atoms() method takes a vector of ints or doubles as
-specified by type, of length count*natoms, for the property of all the
-atoms in the simulation specified by name, ordered by bount and then
-by atom ID.  It uses the vector of data to overwrite the corresponding
-properties for each atom inside LAMMPS.  This requires LAMMPS to have
-its "map" option enabled; see the "atom_modify"_atom_modify.html
-command for details.  If it is not, or if atom IDs are not
-consecutively ordered, no coordinates are reset.
+The scatter_atoms() method allows any per-atom property (coordinates,
+velocities, etc) to be inserted into LAMMPS, overwriting the current
+property.  It takes a vector of ints or doubles as specified by type,
+of length count*natoms, for the named property for all atoms in the
+simulation.  The data should be ordered by count and then by atom ID.
+See the extract() method in the src/atom.cpp file for a list of valid
+names.  Again, new names could easily be added if the property you
+want is missing.  It uses the vector of data to overwrite the
+corresponding properties for each atom inside LAMMPS.  This requires
+LAMMPS to have its "map" option enabled; see the
+"atom_modify"_atom_modify.html command for details.  If it is not, or
+if atom IDs are not consecutively ordered, no coordinates are reset.
+Similar as for gather_atoms() a special treatment is applied for image
+flags, which can be provided in packed (count = 1) or unpacked (count = 3)
+format and in the latter case, they will be packed before applied to
+atoms.
 
 The array of coordinates passed to scatter_atoms() must be a ctypes
 vector of ints or doubles, allocated and initialized something like
@@ -734,7 +762,7 @@ x\[2\] = z coord of atom with ID 1
 x\[3\] = x coord of atom with ID 2
 ...
 x\[n3-1\] = z coord of atom with ID natoms
-lmp.scatter_coords("x",1,3,x) :pre
+lmp.scatter_atoms("x",1,3,x) :pre
 
 Alternatively, you can just change values in the vector returned by
 gather_atoms("x",1,3), since it is a ctypes vector of doubles.
@@ -774,7 +802,7 @@ demo.py, invoke various LAMMPS library interface routines,
 simple.py, run in parallel, similar to examples/COUPLE/simple/simple.cpp,
 split.py, same as simple.py but running in parallel on a subset of procs,
 gui.py, GUI go/stop/temperature-slider to control LAMMPS,
-plot.py, real-time temeperature plot with GnuPlot via Pizza.py,
+plot.py, real-time temperature plot with GnuPlot via Pizza.py,
 viz_tool.py, real-time viz via some viz package,
 vizplotgui_tool.py, combination of viz_tool.py and plot.py and gui.py :tb(c=2)
 

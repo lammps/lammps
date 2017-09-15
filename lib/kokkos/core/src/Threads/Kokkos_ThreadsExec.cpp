@@ -41,16 +41,18 @@
 //@HEADER
 */
 
-#include <Kokkos_Core_fwd.hpp>
 
-#if defined( KOKKOS_HAVE_PTHREAD ) || defined( KOKKOS_HAVE_WINTHREAD )
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_THREADS )
 
-#include <stdint.h>
+#include <cstdint>
 #include <limits>
 #include <utility>
 #include <iostream>
 #include <sstream>
+
 #include <Kokkos_Core.hpp>
+
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_CPUDiscovery.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
@@ -78,9 +80,7 @@ const void * volatile s_current_function_arg = 0 ;
 
 struct Sentinel {
   Sentinel()
-  {
-    HostSpace::register_in_parallel( ThreadsExec::in_parallel );
-  }
+  {}
 
   ~Sentinel()
   {
@@ -120,6 +120,8 @@ void execute_function_noop( ThreadsExec & , const void * ) {}
 
 void ThreadsExec::driver(void)
 {
+  SharedAllocationRecord< void, void >::tracking_enable();
+
   ThreadsExec this_thread ;
 
   while ( ThreadsExec::Active == this_thread.m_pool_state ) {
@@ -264,7 +266,7 @@ void ThreadsExec::execute_sleep( ThreadsExec & exec , const void * )
   const int rank_rev = exec.m_pool_size - ( exec.m_pool_rank + 1 );
 
   for ( int i = 0 ; i < n ; ++i ) {
-    Impl::spinwait( exec.m_pool_base[ rank_rev + (1<<i) ]->m_pool_state , ThreadsExec::Active );
+    Impl::spinwait_while_equal( exec.m_pool_base[ rank_rev + (1<<i) ]->m_pool_state , ThreadsExec::Active );
   }
 
   exec.m_pool_state = ThreadsExec::Inactive ;
@@ -308,7 +310,7 @@ void ThreadsExec::fence()
 {
   if ( s_thread_pool_size[0] ) {
     // Wait for the root thread to complete:
-    Impl::spinwait( s_threads_exec[0]->m_pool_state , ThreadsExec::Active );
+    Impl::spinwait_while_equal( s_threads_exec[0]->m_pool_state , ThreadsExec::Active );
   }
 
   s_current_function     = 0 ;
@@ -512,10 +514,10 @@ void ThreadsExec::print_configuration( std::ostream & s , const bool detail )
 
   s << "Kokkos::Threads" ;
 
-#if defined( KOKKOS_HAVE_PTHREAD )
-  s << " KOKKOS_HAVE_PTHREAD" ;
+#if defined( KOKKOS_ENABLE_THREADS )
+  s << " KOKKOS_ENABLE_THREADS" ;
 #endif
-#if defined( KOKKOS_HAVE_HWLOC )
+#if defined( KOKKOS_ENABLE_HWLOC )
   s << " hwloc[" << numa_count << "x" << cores_per_numa << "x" << threads_per_core << "]" ;
 #endif
 
@@ -714,17 +716,19 @@ void ThreadsExec::initialize( unsigned thread_count ,
   }
 
   // Check for over-subscription
-  if( Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node() ) {
-    std::cout << "Kokkos::Threads::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
-    std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
-    std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
-    std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
-  }
+  //if( Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node() ) {
+  //  std::cout << "Kokkos::Threads::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
+  //  std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
+  //  std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
+  //  std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
+  //}
 
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  Impl::SharedAllocationRecord< void, void >::tracking_enable();
+
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
 }
@@ -777,7 +781,7 @@ void ThreadsExec::finalize()
   s_threads_process.m_pool_fan_size   = 0 ;
   s_threads_process.m_pool_state = ThreadsExec::Inactive ;
 
-  #if (KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
   #endif
 }
@@ -817,10 +821,12 @@ int Threads::thread_pool_rank()
 }
 #endif
 
+const char* Threads::name() { return "Threads"; }
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-
-#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) || defined( KOKKOS_HAVE_WINTHREAD ) */
+#else
+void KOKKOS_CORE_SRC_THREADS_EXEC_PREVENT_LINK_ERROR() {}
+#endif /* #if defined( KOKKOS_ENABLE_THREADS ) */
 

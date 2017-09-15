@@ -92,6 +92,10 @@ E: eos/table values are not increasing
 
 The EOS must be a monotonically, increasing function
 
+E:  FixEOStable requires atom_style with internal temperature and energies (e.g. dpd)
+
+Self-explanatory.
+
 E: Internal temperature < zero
 
 Self-explanatory.  EOS may not be valid under current simulation conditions.

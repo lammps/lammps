@@ -82,7 +82,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   delete [] allstyles;
 
   // hybrid settings are MAX or MIN of sub-style settings
-  // hybrid sizes are minimial values plus extra values for each sub-style
+  // hybrid sizes are minimal values plus extra values for each sub-style
 
   molecular = 0;
   comm_x_only = comm_f_only = 1;
@@ -144,7 +144,7 @@ void AtomVecHybrid::grow(int n)
   if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0)
+  if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 
   // sub-styles perform all reallocation

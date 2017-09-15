@@ -55,16 +55,19 @@ template < typename ExecutionSpace   = void
          , typename WorkTag          = void
          , typename IndexType        = void
          , typename IterationPattern = void
+         , typename LaunchBounds     = void
          >
 struct PolicyTraitsBase
 {
-  using type = PolicyTraitsBase< ExecutionSpace, Schedule, WorkTag, IndexType, IterationPattern>;
+  using type = PolicyTraitsBase< ExecutionSpace, Schedule, WorkTag, IndexType, 
+               IterationPattern, LaunchBounds>;
 
   using execution_space   = ExecutionSpace;
   using schedule_type     = Schedule;
   using work_tag          = WorkTag;
   using index_type        = IndexType;
   using iteration_pattern = IterationPattern;
+  using launch_bounds     = LaunchBounds;
 };
 
 
@@ -78,6 +81,7 @@ struct SetExecutionSpace
                                , typename PolicyBase::work_tag
                                , typename PolicyBase::index_type
                                , typename PolicyBase::iteration_pattern
+                               , typename PolicyBase::launch_bounds
                                >;
 };
 
@@ -91,6 +95,7 @@ struct SetSchedule
                                , typename PolicyBase::work_tag
                                , typename PolicyBase::index_type
                                , typename PolicyBase::iteration_pattern
+                               , typename PolicyBase::launch_bounds
                                >;
 };
 
@@ -104,6 +109,7 @@ struct SetWorkTag
                                , WorkTag
                                , typename PolicyBase::index_type
                                , typename PolicyBase::iteration_pattern
+                               , typename PolicyBase::launch_bounds
                                >;
 };
 
@@ -117,6 +123,7 @@ struct SetIndexType
                                , typename PolicyBase::work_tag
                                , IndexType
                                , typename PolicyBase::iteration_pattern
+                               , typename PolicyBase::launch_bounds
                                >;
 };
 
@@ -131,6 +138,22 @@ struct SetIterationPattern
                                , typename PolicyBase::work_tag
                                , typename PolicyBase::index_type
                                , IterationPattern
+                               , typename PolicyBase::launch_bounds
+                               >;
+};
+
+
+template <typename PolicyBase, typename LaunchBounds>
+struct SetLaunchBounds
+{
+  static_assert( is_void<typename PolicyBase::launch_bounds>::value
+               , "Kokkos Error: More than one launch_bounds given" );
+  using type = PolicyTraitsBase< typename PolicyBase::execution_space
+                               , typename PolicyBase::schedule_type
+                               , typename PolicyBase::work_tag
+                               , typename PolicyBase::index_type
+                               , typename PolicyBase::iteration_pattern
+                               , LaunchBounds
                                >;
 };
 
@@ -146,8 +169,9 @@ struct AnalyzePolicy<Base, T, Traits...> : public
     , typename std::conditional< is_index_type<T>::value       , SetIndexType<Base,T>
     , typename std::conditional< std::is_integral<T>::value    , SetIndexType<Base, IndexType<T> >
     , typename std::conditional< is_iteration_pattern<T>::value, SetIterationPattern<Base,T>
+    , typename std::conditional< is_launch_bounds<T>::value    , SetLaunchBounds<Base,T>
     , SetWorkTag<Base,T>
-    >::type >::type >::type >::type>::type::type
+    >::type >::type >::type >::type >::type>::type::type
   , Traits...
   >
 {};
@@ -178,11 +202,18 @@ struct AnalyzePolicy<Base>
                                                      , void // TODO set default iteration pattern
                                                      , typename Base::iteration_pattern
                                                      >::type;
+
+  using launch_bounds = typename std::conditional< is_void< typename Base::launch_bounds >::value
+                                                     , LaunchBounds<>
+                                                     , typename Base::launch_bounds
+                                                     >::type;
+
   using type = PolicyTraitsBase< execution_space
                                , schedule_type
                                , work_tag
                                , index_type
                                , iteration_pattern
+                               , launch_bounds
                                >;
 };
 
@@ -195,3 +226,4 @@ struct PolicyTraits
 
 
 #endif //KOKKOS_IMPL_ANALYZE_POLICY_HPP
+

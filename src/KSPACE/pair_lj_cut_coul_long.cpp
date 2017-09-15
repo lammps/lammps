@@ -608,7 +608,7 @@ void PairLJCutCoulLong::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
@@ -669,24 +669,19 @@ void PairLJCutCoulLong::init_style()
     else if (respa == 1) {
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     } else {
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respamiddle = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     }
 
@@ -748,7 +743,7 @@ double PairLJCutCoulLong::init_one(int i, int j)
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
 
-  if (offset_flag) {
+  if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;

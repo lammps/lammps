@@ -148,7 +148,9 @@ described further below where the keywords are discussed.
 The {binning} styles perform a spatial binning of atoms, and assign an
 atom the chunk ID corresponding to the bin number it is in.  {Nchunk}
 is set to the number of bins, which can change if the simulation box
-size changes.
+size changes.  This also depends on the setting of the {units}
+keyword; e.g. for {reduced} units the number of chunks may not change
+even if the box size does.
 
 The {bin/1d}, {bin/2d}, and {bin/3d} styles define bins as 1d layers
 (slabs), 2d pencils, or 3d boxes.  The {dim}, {origin}, and {delta}
@@ -386,7 +388,7 @@ If {compress yes} is set, and the {compress} keyword comes before the
 {limit} keyword, the compression operation is performed first, as
 described below, which resets {Nchunk}.  The {limit} keyword is then
 applied to the new {Nchunk} value, exactly as described in the
-preceeding paragraph.  Note that in this case, all atoms will end up
+preceding paragraph.  Note that in this case, all atoms will end up
 with chunk IDs <= {Nc}, but their original values (e.g. molecule ID or
 compute/fix/variable value) may have been > {Nc}, because of the
 compression operation.
@@ -459,7 +461,7 @@ The original chunk IDs (before renumbering) can be accessed by the
 which outputs the original IDs as one of the columns in its global
 output array.  For example, using the "compute cluster/atom" command
 discussed above, the original 5 unique chunk IDs might be atom IDs
-(27,4982,58374,857838,1000000).  After compresion, these will be
+(27,4982,58374,857838,1000000).  After compression, these will be
 renumbered to (1,2,3,4,5).  The original values (27,...,1000000) can
 be output to a file by the "fix ave/chunk"_fix_ave_chunk.html command,
 or by using the "fix ave/time"_fix_ave_time.html command in
@@ -538,7 +540,7 @@ is set to {yes}, an out-of-domain atom will have its chunk ID set to
 to the first or last bin in both the radial and axis dimensions.  If
 {discard} is set to {mixed}, which is the default, the radial
 dimension is treated the same as for {discard} = no.  But for the axis
-dimensinon, it will only have its chunk ID set to the first or last
+dimension, it will only have its chunk ID set to the first or last
 bin if bins extend to the simulation box boundary in the axis
 dimension.  This is the case if the {bound} keyword settings are
 {lower} and {upper}, which is the default.  If the {bound} keyword

@@ -13,6 +13,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "bond_harmonic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +27,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonic::BondHarmonic(LAMMPS *lmp) : Bond(lmp) {}
+BondHarmonic::BondHarmonic(LAMMPS *lmp) : Bond(lmp)
+{
+  reinitflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -196,3 +200,16 @@ double BondHarmonic::single(int type, double rsq, int i, int j,
   if (r > 0.0) fforce = -2.0*rk/r;
   return rk*dr;
 }
+
+/* ----------------------------------------------------------------------
+    Return ptr to internal members upon request.
+------------------------------------------------------------------------ */
+void *BondHarmonic::extract( char *str, int &dim )
+{
+  dim = 1;
+  if( strcmp(str,"kappa")==0) return (void*) k;
+  if( strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
+}
+
+

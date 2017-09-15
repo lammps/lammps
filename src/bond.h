@@ -27,8 +27,10 @@ class Bond : protected Pointers {
   int *setflag;
   int writedata;                  // 1 if writes coeffs to data file
   double energy;                  // accumulated energies
-  double virial[6];               // accumlated virial
+  double virial[6];               // accumulated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
+
+  int reinitflag;                // 1 if compatible with fix adapt and alike
 
   // KOKKOS host/device flag and data masks
 
@@ -49,6 +51,8 @@ class Bond : protected Pointers {
   virtual void write_data(FILE *) {}
   virtual double single(int, double, int, int, double &) = 0;
   virtual double memory_usage();
+  virtual void *extract(char *, int &) {return NULL;}
+  virtual void reinit();
 
   void write_file(int, char**);
 
@@ -60,7 +64,7 @@ class Bond : protected Pointers {
   int vflag_either,vflag_global,vflag_atom;
   int maxeatom,maxvatom;
 
-  void ev_setup(int, int);
+  void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, double, double, double, double, double);
 };
 

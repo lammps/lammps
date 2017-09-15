@@ -26,7 +26,7 @@
                     (2002)
                   This potential does not affect small amplitude vibrations
                   but is used in an ad hoc way to prevent the onset of
-                  accidentially large amplitude fluctuations leading to
+                  accidentally large amplitude fluctuations leading to
                   the occurrence of a planar conformation of the three
                   bonds i, i + 1 and i', an intermediate conformation
                   toward the chiral inversion of a methine carbon.
@@ -204,7 +204,7 @@ void ImproperRing::compute(int eflag, int vflag)
          cfact2 = ckjji / ckjkj;
          cfact3 = ckjji / cjiji;
 
-         /* Calculate the force acted on the thrid atom of the angle. */
+         /* Calculate the force acted on the third atom of the angle. */
          fkx = cfact2 * bvec2x[icomb] - bvec1x[icomb];
          fky = cfact2 * bvec2y[icomb] - bvec1y[icomb];
          fkz = cfact2 * bvec2z[icomb] - bvec1z[icomb];

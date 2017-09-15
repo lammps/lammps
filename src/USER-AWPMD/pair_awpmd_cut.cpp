@@ -454,16 +454,6 @@ void PairAWPMDCut::settings(int narg, char **arg){
     else if(!strcmp(arg[i],"flex_press"))
       flexible_pressure_flag = 1;
   }
-
-
-  // reset cutoffs that have been explicitly set
-  /*
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
-  }*/
 }
 
 /* ----------------------------------------------------------------------
@@ -489,7 +479,7 @@ void PairAWPMDCut::coeff(int narg, char **arg)
   else{
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -47,7 +47,7 @@
 #ifndef KOKKOS_LAYOUT_HPP
 #define KOKKOS_LAYOUT_HPP
 
-#include <stddef.h>
+#include <cstddef>
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
@@ -62,7 +62,7 @@ enum { ARRAY_LAYOUT_MAX_RANK = 8 };
 ///
 /// This is an example of a \c MemoryLayout template parameter of
 /// View.  The memory layout describes how View maps from a
-/// multi-index (i0, i1, ..., ik) to a memory location.  
+/// multi-index (i0, i1, ..., ik) to a memory location.
 ///
 /// "Layout left" indicates a mapping where the leftmost index i0
 /// refers to contiguous access, and strides increase for dimensions
@@ -82,7 +82,7 @@ struct LayoutLeft {
   LayoutLeft & operator = ( LayoutLeft && ) = default ;
 
   KOKKOS_INLINE_FUNCTION
-  constexpr
+  explicit constexpr
   LayoutLeft( size_t N0 = 0 , size_t N1 = 0 , size_t N2 = 0 , size_t N3 = 0
             , size_t N4 = 0 , size_t N5 = 0 , size_t N6 = 0 , size_t N7 = 0 )
     : dimension { N0 , N1 , N2 , N3 , N4 , N5 , N6 , N7 } {}
@@ -95,7 +95,7 @@ struct LayoutLeft {
 ///
 /// This is an example of a \c MemoryLayout template parameter of
 /// View.  The memory layout describes how View maps from a
-/// multi-index (i0, i1, ..., ik) to a memory location.  
+/// multi-index (i0, i1, ..., ik) to a memory location.
 ///
 /// "Right layout" indicates a mapping where the rightmost index ik
 /// refers to contiguous access, and strides increase for dimensions
@@ -114,7 +114,7 @@ struct LayoutRight {
   LayoutRight & operator = ( LayoutRight && ) = default ;
 
   KOKKOS_INLINE_FUNCTION
-  constexpr
+  explicit constexpr
   LayoutRight( size_t N0 = 0 , size_t N1 = 0 , size_t N2 = 0 , size_t N3 = 0
              , size_t N4 = 0 , size_t N5 = 0 , size_t N6 = 0 , size_t N7 = 0 )
     : dimension { N0 , N1 , N2 , N3 , N4 , N5 , N6 , N7 } {}
@@ -130,7 +130,12 @@ struct LayoutStride {
   typedef LayoutStride array_layout ;
 
   size_t dimension[ ARRAY_LAYOUT_MAX_RANK ] ;
-  size_t stride[ ARRAY_LAYOUT_MAX_RANK ] ; 
+  size_t stride[ ARRAY_LAYOUT_MAX_RANK ] ;
+
+  LayoutStride( LayoutStride const & ) = default ;
+  LayoutStride( LayoutStride && ) = default ;
+  LayoutStride & operator = ( LayoutStride const & ) = default ;
+  LayoutStride & operator = ( LayoutStride && ) = default ;
 
   /** \brief  Compute strides from ordered dimensions.
    *
@@ -151,6 +156,8 @@ struct LayoutStride {
       for ( int r = 0 ; r < ARRAY_LAYOUT_MAX_RANK ; ++r ) {
         tmp.dimension[r] = 0 ;
         tmp.stride[r]    = 0 ;
+      }
+      for ( int r = 0 ; r < rank ; ++r ) {
         check_input &= ~int( 1 << order[r] );
       }
       if ( 0 == check_input ) {
@@ -164,7 +171,8 @@ struct LayoutStride {
       return tmp ;
     }
 
-  KOKKOS_INLINE_FUNCTION constexpr
+  KOKKOS_INLINE_FUNCTION
+  explicit constexpr
   LayoutStride( size_t N0 = 0 , size_t S0 = 0
               , size_t N1 = 0 , size_t S1 = 0
               , size_t N2 = 0 , size_t S2 = 0
@@ -186,7 +194,7 @@ struct LayoutStride {
 ///
 /// This is an example of a \c MemoryLayout template parameter of
 /// View.  The memory layout describes how View maps from a
-/// multi-index (i0, i1, ..., ik) to a memory location.  
+/// multi-index (i0, i1, ..., ik) to a memory location.
 ///
 /// "Tiled layout" indicates a mapping to contiguously stored
 /// <tt>ArgN0</tt> by <tt>ArgN1</tt> tiles for the rightmost two
@@ -220,7 +228,7 @@ struct LayoutTileLeft {
   LayoutTileLeft & operator = ( LayoutTileLeft && ) = default ;
 
   KOKKOS_INLINE_FUNCTION
-  constexpr
+  explicit constexpr
   LayoutTileLeft( size_t argN0 = 0 , size_t argN1 = 0 , size_t argN2 = 0 , size_t argN3 = 0
                 , size_t argN4 = 0 , size_t argN5 = 0 , size_t argN6 = 0 , size_t argN7 = 0
                 )

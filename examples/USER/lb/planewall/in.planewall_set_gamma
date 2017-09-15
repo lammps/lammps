@@ -54,7 +54,7 @@ velocity       all set 0.0 0.0 0.0 units box
 #----------------------------------------------------------------------------
 # Create a lattice-Boltzmann fluid covering the simulation domain.
 # All of the particles in the simulation apply a force to the fluid.
-#   (however, this fix does not explicity apply a force back on to these 
+#   (however, this fix does not explicitly apply a force back on to these 
 #    particles...this is accomplished through the use of the rigid_pc_sphere
 #    fix).
 # Use the LB integration scheme of Ollila et. al. (for stability reasons,

@@ -23,6 +23,7 @@ namespace LAMMPS_NS {
 
 class Input : protected Pointers {
   friend class Info;
+  friend class Error;
  public:
   int narg;                    // # of command args
   char **arg;                  // parsed args for command

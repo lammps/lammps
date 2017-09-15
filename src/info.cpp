@@ -1,5 +1,4 @@
 /* ----------------------------------------------------------------------
-  fputs
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -46,7 +45,7 @@
 #include <algorithm>
 
 #ifdef _WIN32
-#define PSAPI_VERSION=1
+#define PSAPI_VERSION 1
 #include <windows.h>
 #include <stdint.h>
 #include <psapi.h>
@@ -72,31 +71,32 @@ enum {COMPUTES=1<<0,
       REGIONS=1<<4,
       CONFIG=1<<5,
       TIME=1<<6,
-      VARIABLES=1<<7,
-      SYSTEM=1<<8,
-      COMM=1<<9,
-      ATOM_STYLES=1<<10,
-      INTEGRATE_STYLES=1<<11,
-      MINIMIZE_STYLES=1<<12,
-      PAIR_STYLES=1<<13,
-      BOND_STYLES=1<<14,
-      ANGLE_STYLES=1<<15,
-      DIHEDRAL_STYLES=1<<16,
-      IMPROPER_STYLES=1<<17,
-      KSPACE_STYLES=1<<18,
-      FIX_STYLES=1<<19,
-      COMPUTE_STYLES=1<<20,
-      REGION_STYLES=1<<21,
-      DUMP_STYLES=1<<22,
-      COMMAND_STYLES=1<<23,
+      MEMORY=1<<7,
+      VARIABLES=1<<8,
+      SYSTEM=1<<9,
+      COMM=1<<10,
+      ATOM_STYLES=1<<11,
+      INTEGRATE_STYLES=1<<12,
+      MINIMIZE_STYLES=1<<13,
+      PAIR_STYLES=1<<14,
+      BOND_STYLES=1<<15,
+      ANGLE_STYLES=1<<16,
+      DIHEDRAL_STYLES=1<<17,
+      IMPROPER_STYLES=1<<18,
+      KSPACE_STYLES=1<<19,
+      FIX_STYLES=1<<20,
+      COMPUTE_STYLES=1<<21,
+      REGION_STYLES=1<<22,
+      DUMP_STYLES=1<<23,
+      COMMAND_STYLES=1<<24,
       ALL=~0};
 
-static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES | PAIR_STYLES | BOND_STYLES | \
-                         ANGLE_STYLES | DIHEDRAL_STYLES | IMPROPER_STYLES | KSPACE_STYLES | FIX_STYLES | \
-                         COMPUTE_STYLES | REGION_STYLES | DUMP_STYLES | COMMAND_STYLES;
-
+static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
+                        | PAIR_STYLES | BOND_STYLES | ANGLE_STYLES
+                        | DIHEDRAL_STYLES | IMPROPER_STYLES | KSPACE_STYLES
+                        | FIX_STYLES | COMPUTE_STYLES | REGION_STYLES
+                        | DUMP_STYLES | COMMAND_STYLES;
 }
-
 
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
@@ -173,6 +173,9 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if (strncmp(arg[idx],"time",3) == 0) {
       flags |= TIME;
+      ++idx;
+    } else if (strncmp(arg[idx],"memory",3) == 0) {
+      flags |= MEMORY;
       ++idx;
     } else if (strncmp(arg[idx],"variables",3) == 0) {
       flags |= VARIABLES;
@@ -293,27 +296,42 @@ void Info::command(int narg, char **arg)
     fprintf(out,"\nOS information: %s %s on %s\n",
             ut.sysname, ut.release, ut.machine);
 #endif
+  }
+  
+  if (flags & MEMORY) {
 
-    fprintf(out,"\nMemory allocation information (MPI rank 0)\n");
+    fprintf(out,"\nMemory allocation information (MPI rank 0):\n\n");
+
+    bigint bytes = 0;
+    bytes += atom->memory_usage();
+    bytes += neighbor->memory_usage();
+    bytes += comm->memory_usage();
+    bytes += update->memory_usage();
+    bytes += force->memory_usage();
+    bytes += modify->memory_usage();
+    for (int i = 0; i < output->ndump; i++)
+      bytes += output->dump[i]->memory_usage();
+    double mbytes = bytes/1024.0/1024.0;
+    fprintf(out,"Total dynamically allocated memory: %.4g Mbyte\n",mbytes);
 
 #if defined(_WIN32)
     HANDLE phandle = GetCurrentProcess();
     PROCESS_MEMORY_COUNTERS_EX pmc;
     GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
-    fprintf(out,"Non-shared memory use: %.3g Mbyte\n",
+    fprintf(out,"Non-shared memory use: %.4g Mbyte\n",
             (double)pmc.PrivateUsage/1048576.0);
-    fprintf(out,"Maximum working set size: %.3g Mbyte\n",
+    fprintf(out,"Maximum working set size: %.4g Mbyte\n",
             (double)pmc.PeakWorkingSetSize/1048576.0);
 #else
 #if defined(__linux)
     struct mallinfo mi;
     mi = mallinfo();
-    fprintf(out,"Total dynamically allocated memory: %.3g Mbyte\n",
-            (double)mi.uordblks/1048576.0);
+    fprintf(out,"Current reserved memory pool size: %.4g Mbyte\n",
+            (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0);
 #endif
     struct rusage ru;
     if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      fprintf(out,"Maximum resident set size: %.3g Mbyte\n",
+      fprintf(out,"Maximum resident set size: %.4g Mbyte\n",
               (double)ru.ru_maxrss/1024.0);
     }
 #endif

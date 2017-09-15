@@ -54,8 +54,6 @@ NBinStandard::NBinStandard(LAMMPS *lmp) : NBin(lmp) {}
 
 void NBinStandard::setup_bins(int style)
 {
-  last_setup = update->ntimestep;
-
   // bbox = size of bbox of entire domain
   // bsubbox lo/hi = bounding box of my subdomain extended by comm->cutghost
   // for triclinic:
@@ -197,6 +195,7 @@ void NBinStandard::bin_atoms()
 {
   int i,ibin;
 
+  last_bin = update->ntimestep;
   for (i = 0; i < mbins; i++) binhead[i] = -1;
 
   // bin in reverse order so linked list will be in forward order
@@ -212,12 +211,14 @@ void NBinStandard::bin_atoms()
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
         ibin = coord2bin(x[i]);
+        atom2bin[i] = ibin;
         bins[i] = binhead[ibin];
         binhead[ibin] = i;
       }
     }
     for (i = atom->nfirst-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
+      atom2bin[i] = ibin;
       bins[i] = binhead[ibin];
       binhead[ibin] = i;
     }
@@ -225,6 +226,7 @@ void NBinStandard::bin_atoms()
   } else {
     for (i = nall-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
+      atom2bin[i] = ibin;
       bins[i] = binhead[ibin];
       binhead[ibin] = i;
     }

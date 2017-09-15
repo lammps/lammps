@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -67,9 +67,13 @@ int main (int argc, char* argv[]) {
   int sum = 0;
   // The KOKKOS_LAMBDA macro replaces the capture-by-value clause [=].
   // It also handles any other syntax needed for CUDA.
+  // We also need to protect the usage of a lambda against compiling
+  // with a backend which doesn't support it (i.e. Cuda 6.5/7.0).
+  #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   Kokkos::parallel_reduce (n, KOKKOS_LAMBDA (const int i, int& lsum) {
       lsum += i*i;
     }, sum);
+  #endif
   printf ("Sum of squares of integers from 0 to %i, "
           "computed in parallel, is %i\n", n - 1, sum);
 
@@ -81,6 +85,10 @@ int main (int argc, char* argv[]) {
   printf ("Sum of squares of integers from 0 to %i, "
           "computed sequentially, is %i\n", n - 1, seqSum);
   Kokkos::finalize ();
+#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   return (sum == seqSum) ? 0 : -1;
+#else
+  return 0;
+#endif
 }
 

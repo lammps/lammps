@@ -1,0 +1,13 @@
+# DATE: 2017-01-25 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov,  CITATION: Lee, Baskes, Kim, Cho. Phys. Rev. B, 64, 184102 (2001) 
+rc = 3.8
+delr = 0.1
+augt1 = 0
+erose_form = 2
+zbl(1,1) = 0
+nn2(1,1) = 1
+Ec(1,1) = 8.66
+re(1,1) = 2.74
+attrac(1,1) = 0
+repuls(1,1) = 0
+Cmin(1,1,1) = 0.49
+Cmax(1,1,1) = 2.8

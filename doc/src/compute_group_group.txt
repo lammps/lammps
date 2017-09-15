@@ -16,10 +16,11 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 group/group = style name of this compute command :l
 group2-ID = group ID of second (or same) group :l
 zero or more keyword/value pairs may be appended :l
-keyword = {pair} or {kspace} or {boundary} :l
+keyword = {pair} or {kspace} or {boundary} or {molecule} :l
   {pair} value = {yes} or {no}
   {kspace} value = {yes} or {no}
-  {boundary} value = {yes} or {no} :pre
+  {boundary} value = {yes} or {no}
+  {molecule} value = {off} or {inter} or {intra} :pre
 :ule
 
 [Examples:]
@@ -46,6 +47,13 @@ NOTE: The energies computed by the {pair} keyword do not include tail
 corrections, even if they are enabled via the
 "pair_modify"_pair_modify.html command.
 
+If the {molecule} keyword is set to {inter} or {intra} than an
+additional check is made based on the molecule IDs of the two atoms in
+each pair before including their pairwise interaction energy and
+force.  For the {inter} setting, the two atoms must be in different
+molecules.  For the {intra} setting, the two atoms must be in the same
+molecule.
+
 If the {kspace} keyword is set to {yes}, which is not the default, and
 if a "kspace_style"_kspace_style.html is defined, then the interaction
 energy will include a Kspace component which is the long-range
@@ -66,6 +74,10 @@ affect the force calculation and will be zero if one or both of the
 groups are charge neutral.  This energy correction term is the same as
 that included in the regular Ewald and PPPM routines.
 
+NOTE: The {molecule} setting only affects the group/group
+contributions calculated by the {pair} keyword.  It does not affect
+the group/group contributions calculated by the {kspace} keyword.
+
 This compute does not calculate any bond or angle or dihedral or
 improper interactions between atoms in the two groups.
 
@@ -77,6 +89,22 @@ to the group-group interactions require essentially the same amount of
 work (FFTs, Ewald summation) as computing long-range forces for the
 entire system.  Thus it can be costly to invoke this compute too
 frequently.
+
+NOTE: If you have a bonded system, then the settings of
+"special_bonds"_special_bonds.html command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the "special_bonds"_special_bonds.html
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this compute uses a neighbor list, it also
+means those pairs will not be included in the group/group interaction.
+This does not apply when using long-range coulomb interactions
+({coul/long}, {coul/msm}, {coul/wolf} or similar.  One way to get
+around this would be to set special_bond scaling factors to very tiny
+numbers that are not exactly zero (e.g. 1.0e-50). Another workaround
+is to write a dump file, and use the "rerun"_rerun.html command to
+compute the group/group interactions for snapshots in the dump file.
+The rerun script can use a "special_bonds"_special_bonds.html command
+that includes all pairs in the neighbor list.
 
 If you desire a breakdown of the interactions into a pairwise and
 Kspace component, simply invoke the compute twice with the appropriate
@@ -119,7 +147,8 @@ The {ewald} and {pppm} styles do.
 
 [Default:]
 
-The option defaults are pair = yes, kspace = no, and boundary = yes.
+The option defaults are pair = yes, kspace = no, boundary = yes,
+molecule = off.
 
 :line
 

@@ -27,6 +27,9 @@ namespace MathSpecial {
   // fast 2**x function without argument checks for little endian CPUs
   extern double exp2_x86(double x);
 
+// fast e**x function for little endian CPUs, falls back to libc on other platforms
+  extern double fm_exp(double x);
+
   // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
 
   static inline double my_erfcx(const double x)
@@ -41,12 +44,11 @@ namespace MathSpecial {
   {
     x *= x;
     x *= 1.4426950408889634074; // log_2(e)
-#if defined(__BYTE_ORDER__)
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return (x < 1023.0) ? exp2_x86(-x) : 0.0;
-#endif
-#endif
+#else
     return (x < 1023.0) ? exp2(-x) : 0.0;
+#endif
   }
 
   // x**2, use instead of pow(x,2.0)

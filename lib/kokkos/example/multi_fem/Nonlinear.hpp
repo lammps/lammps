@@ -141,8 +141,8 @@ public:
     , zmax( arg_zmax )
     , T_zmin( arg_T_zmin )
     , T_zmax( arg_T_zmax )
-    , a( ( 1.0 / sqrt(T_zmax) - 1.0 / sqrt(T_zmin) ) / ( zmax - zmin ) )
-    , b( 1.0 / sqrt(T_zmin) )
+    , a( ( 1.0 / std::sqrt(T_zmax) - 1.0 / std::sqrt(T_zmin) ) / ( zmax - zmin ) )
+    , b( 1.0 / std::sqrt(T_zmin) )
     , K( 1.0 / ( 6.0 * a * a ) )
     {}
 
@@ -299,7 +299,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
 
   for(;;) { // Nonlinear loop
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
 
     { //------------------------------------
       // Import off-processor nodal solution values

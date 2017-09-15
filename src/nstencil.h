@@ -22,10 +22,7 @@ class NStencil : protected Pointers {
  public:
   int istyle;                      // 1-N index into binnames
   class NBin *nb;                  // ptr to NBin instance I depend on
-
-  bigint last_create;              // timesteps for last operations performed
-  bigint last_stencil_memory;
-  bigint last_copy_bin;
+  bigint last_stencil;             // last timestep stencil was created
 
   int nstencil;                    // # of bins in stencil
   int *stencil;                    // list of bin offsets
@@ -33,9 +30,13 @@ class NStencil : protected Pointers {
   int *nstencil_multi;             // # bins in each type-based multi stencil
   int **stencil_multi;             // list of bin offsets in each stencil
   double **distsq_multi;           // sq distances to bins in each stencil
+  int sx,sy,sz;                    // extent of stencil in each dim
+
+  double cutoff_custom;            // cutoff set by requestor
 
   NStencil(class LAMMPS *);
   virtual ~NStencil();
+  void post_constructor(class NeighRequest *);
   void copy_neighbor_info();
   virtual void create_setup();
   bigint memory_usage();
@@ -64,7 +65,6 @@ class NStencil : protected Pointers {
   int xyzflag;                     // 1 if stencilxyz is allocated
   int maxstencil;                  // max size of stencil
   int maxstencil_multi;            // max sizes of stencils
-  int sx,sy,sz;                    // extent of stencil in each dim
 
   int dimension;
 

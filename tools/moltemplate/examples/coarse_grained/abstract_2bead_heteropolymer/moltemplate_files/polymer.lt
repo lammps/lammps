@@ -1,0 +1,64 @@
+import "monomer_H.lt"      # defines the "H" molecular subunit
+import "monomer_P.lt"      # defines the "P" molecular subunit
+
+
+
+Polymer {
+
+  create_var {$mol}  # optional:force all monomers to share the same molecule-ID
+                     # (The "Data Atoms" in H and P must use "$mol:..." notation.)
+
+  # This causes mon1,mon2,mon3,...,mon14 to share the same molecule counter
+  # because in the forcefield.lt file, the "..." in "$mol:..." preferentially 
+  # looks for a counter of that type in a parent molecule or earlier ancestor.
+
+
+  # A polymer of alternating "H" and "P" monomers:
+
+  mon1 = new P
+  mon2 = new P.rot(180.0, 1,0,0).move(3.2,0,0)
+  mon3 = new H.rot(  0.0, 1,0,0).move(6.4,0,0)
+  mon4 = new H.rot(180.0, 1,0,0).move(9.6,0,0)
+  mon5 = new H.rot(  0.0, 1,0,0).move(12.8,0,0)
+  mon6 = new H.rot(180.0, 1,0,0).move(16.0,0,0)
+  mon7 = new P.rot(  0.0, 1,0,0).move(19.2,0,0)
+  mon8 = new P.rot(180.0, 1,0,0).move(22.4,0,0)
+  mon9 = new P.rot(  0.0, 1,0,0).move(25.6,0,0)
+  mon10 = new H.rot(180.0, 1,0,0).move(28.8,0,0)
+  mon11 = new H.rot( 0.0, 1,0,0).move(32.0,0,0)
+  mon12 = new H.rot(180.0, 1,0,0).move(35.2,0,0)
+  mon13 = new P.rot(  0.0, 1,0,0).move(38.4,0,0)
+  mon14 = new P.rot(180.0, 1,0,0).move(41.6,0,0)
+
+
+  # Now, link the monomers together this way:
+  write("Data Bond List") {
+    $bond:backbone1  $atom:mon1/ca   $atom:mon2/ca
+    $bond:backbone2  $atom:mon2/ca   $atom:mon3/ca
+    $bond:backbone3  $atom:mon3/ca   $atom:mon4/ca
+    $bond:backbone4  $atom:mon4/ca   $atom:mon5/ca
+    $bond:backbone5  $atom:mon5/ca   $atom:mon6/ca
+    $bond:backbone6  $atom:mon6/ca   $atom:mon7/ca
+    $bond:backbone7  $atom:mon7/ca   $atom:mon8/ca
+    $bond:backbone8  $atom:mon8/ca   $atom:mon9/ca
+    $bond:backbone9  $atom:mon9/ca   $atom:mon10/ca
+    $bond:backbone10  $atom:mon10/ca   $atom:mon11/ca
+    $bond:backbone11  $atom:mon11/ca   $atom:mon12/ca
+    $bond:backbone12  $atom:mon12/ca   $atom:mon13/ca
+    $bond:backbone13  $atom:mon13/ca   $atom:mon14/ca
+  }
+
+
+  # Use "Data Bonds" instead if you prefer to assign the bond types manually:
+  # write("Data Bonds") {
+  #  $bond:backbone1 @bond:Backbone $atom:mon1/ca $atom:mon2/ca
+  #  $bond:backbone2 @bond:Backbone $atom:mon2/ca $atom:mon3/ca
+  #       :               :              :             :
+  # }
+
+} # Polymer
+
+
+
+# Angle, dihedral and improper interactions between monomers will be generated
+# automatically according to the instructions in the "forcefield.lt" file.

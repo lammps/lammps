@@ -106,7 +106,7 @@ pair_coeff 1 1 1.0 9.5 :pre
 The {lj/cut/soft} style and substyles compute the 12/6 Lennard-Jones
 and Coulomb potential modified by a soft core, in order to avoid
 singularities during free energy calculations when sites are created
-or anihilated "(Beutler)"_#Beutler,
+or annihilated "(Beutler)"_#Beutler,
 
 :c,image(Eqs/pair_lj_soft.jpg)
 
@@ -120,14 +120,14 @@ are the charges on the 2 atoms, and epsilon is the dielectric constant
 which can be set by the "dielectric"_dielectric.html command.
 
 The coefficient lambda is an activation parameter. When lambda = 1 the
-pair potentiel is identical to a Lennard-Jones term or a Coulomb term
+pair potential is identical to a Lennard-Jones term or a Coulomb term
 or a combination of both. When lambda = 0 the interactions are
 deactivated. The transition between these two extrema is smoothed by a
 soft repulsive core in order to avoid singularities in potential
-energy and forces when sites are created or anihilated and can overlap
+energy and forces when sites are created or annihilated and can overlap
 "(Beutler)"_#Beutler.
 
-The paratemers n, alpha_LJ and alpha_C are set in the
+The parameters n, alpha_LJ and alpha_C are set in the
 "pair_style"_pair_style.html command, before the cutoffs.  Usual
 choices for the exponent are n = 2 or n = 1. For the remaining
 coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
@@ -164,7 +164,7 @@ Style {lj/cut/tip4p/long/soft} implements a soft-core version of the
 TIP4P water model. The usage of this pair style is documented in the
 "pair_lj"_pair_lj.html styles. The soft-core version introduces the
 lambda parameter to the list of arguments, after epsilon and sigma in
-the "pair_coeff"_pair_coeff.html command. The paratemers n, alpha_LJ
+the "pair_coeff"_pair_coeff.html command. The parameters n, alpha_LJ
 and alpha_C are set in the "pair_style"_pair_style.html command,
 before the cutoffs.
 
@@ -175,7 +175,7 @@ an inner and outer cutoff. The usage of this pair style is documented
 in the "pair_charmm"_pair_charmm.html styles. The soft-core version
 introduces the lambda parameter to the list of arguments, after
 epsilon and sigma in the "pair_coeff"_pair_coeff.html command (and
-before the optional eps14 and sigma14). The paratemers n,
+before the optional eps14 and sigma14). The parameters n,
 alpha_LJ and alpha_C are set in the "pair_style"_pair_style.html
 command, before the cutoffs.
 
@@ -192,7 +192,7 @@ in several water models).
 NOTES: When using the core-softed Coulomb potentials with long-range
 solvers ({coul/long/soft}, {lj/cut/coul/long/soft}, etc.)  in a free
 energy calculation in which sites holding electrostatic charges are
-being created or anihilated (using "fix adapt/fep"_fix_adapt_fep.html
+being created or annihilated (using "fix adapt/fep"_fix_adapt_fep.html
 and "compute fep"_compute_fep.html) it is important to adapt both the
 lambda activation parameter (from 0 to 1, or the reverse) and the
 value of the charge (from 0 to its final value, or the reverse). This
@@ -219,7 +219,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

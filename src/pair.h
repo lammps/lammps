@@ -92,7 +92,7 @@ class Pair : protected Pointers {
   class NeighList *list;         // standard neighbor list used by most pairs
   class NeighList *listhalf;     // half list used by some pairs
   class NeighList *listfull;     // full list used by some pairs
-  class NeighList *listgranhistory;  // granular history list used by some pairs
+  class NeighList *listhistory;  // neighbor history list used by some pairs
   class NeighList *listinner;    // rRESPA lists used by some pairs
   class NeighList *listmiddle;
   class NeighList *listouter;
@@ -194,8 +194,8 @@ class Pair : protected Pointers {
   int num_tally_compute;
   class Compute **list_tally_compute;
  public:
-  void add_tally_callback(class Compute *);
-  void del_tally_callback(class Compute *);
+  virtual void add_tally_callback(class Compute *);
+  virtual void del_tally_callback(class Compute *);
 
  protected:
   int instance_me;        // which Pair class instantiation I am
@@ -211,17 +211,19 @@ class Pair : protected Pointers {
   double tabinner;                     // inner cutoff for Coulomb table
   double tabinner_disp;                 // inner cutoff for dispersion table
 
+ public:
   // custom data type for accessing Coulomb tables
 
   typedef union {int i; float f;} union_int_float_t;
 
+ protected:
   int vflag_fdotr;
   int maxeatom,maxvatom;
 
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
 
-  virtual void ev_setup(int, int);
+  virtual void ev_setup(int, int, int alloc = 1);
   void ev_unset();
   void ev_tally_full(int, double, double, double, double, double, double);
   void ev_tally_xyz_full(int, double, double,
@@ -245,7 +247,7 @@ class Pair : protected Pointers {
     ubuf(int arg) : i(arg) {}
   };
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 };

@@ -69,7 +69,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = 0;
 
   // reallocate per-atom arrays if necessary
@@ -77,21 +77,18 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memory->destroy_kokkos(k_eatom,eatom);
     memory->create_kokkos(k_eatom,eatom,maxeatom,"bond:eatom");
-    d_eatom = k_eatom.d_view;
+    d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
     memory->destroy_kokkos(k_vatom,vatom);
     memory->create_kokkos(k_vatom,vatom,maxvatom,6,"bond:vatom");
-    d_vatom = k_vatom.d_view;
+    d_vatom = k_vatom.view<DeviceType>();
   }
 
-  atomKK->sync(execution_space,datamask_read);
   k_k.template sync<DeviceType>();
   k_r0.template sync<DeviceType>();
   k_epsilon.template sync<DeviceType>();
   k_sigma.template sync<DeviceType>();
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -128,7 +125,6 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist),*this);
     }
   }
-  DeviceType::fence();
 
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
@@ -257,10 +253,10 @@ void BondFENEKokkos<DeviceType>::allocate()
   k_epsilon = DAT::tdual_ffloat_1d("BondFene::epsilon",n+1);
   k_sigma = DAT::tdual_ffloat_1d("BondFene::sigma",n+1);
 
-  d_k = k_k.d_view;
-  d_r0 = k_r0.d_view;
-  d_epsilon = k_epsilon.d_view;
-  d_sigma = k_sigma.d_view;
+  d_k = k_k.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
+  d_epsilon = k_epsilon.template view<DeviceType>();
+  d_sigma = k_sigma.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

@@ -502,17 +502,20 @@ void PPPMDispTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
+  // set iH1,iH2 to index of closest image to O
+
+  iH1 = domain->closest_image(i,iH1);
+  iH2 = domain->closest_image(i,iH2);
+
   double **x = atom->x;
 
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];
   double delz1 = x[iH1][2] - x[i][2];
-  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = x[iH2][0] - x[i][0];
   double dely2 = x[iH2][1] - x[i][1];
   double delz2 = x[iH2][2] - x[i][2];
-  domain->minimum_image(delx2,dely2,delz2);
 
   xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
   xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);

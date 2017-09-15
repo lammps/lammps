@@ -1,3 +1,11 @@
+// -*- c++ -*-
+
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
 
 
 #include <sstream>
@@ -9,10 +17,7 @@
 
 
 // space & tab
-std::string const colvarparse::white_space = " \t";
-
-std::string colvarparse::dummy_string = "";
-size_t      colvarparse::dummy_pos = 0;
+char const * const colvarparse::white_space = " \t";
 
 
 // definition of single-value keyword parsers
@@ -29,7 +34,7 @@ template<typename TYPE> bool colvarparse::_get_keyval_scalar_(std::string const 
 
   do {
     std::string data_this = "";
-    b_found = key_lookup(conf, key, data_this, save_pos);
+    b_found = key_lookup(conf, key, &data_this, &save_pos);
     if (b_found) {
       if (!b_found_any)
         b_found_any = true;
@@ -84,7 +89,7 @@ bool colvarparse::_get_keyval_scalar_string_(std::string const &conf,
 
   do {
     std::string data_this = "";
-    b_found = key_lookup(conf, key, data_this, save_pos);
+    b_found = key_lookup(conf, key, &data_this, &save_pos);
     if (b_found) {
       if (!b_found_any)
         b_found_any = true;
@@ -148,7 +153,7 @@ template<typename TYPE> bool colvarparse::_get_keyval_vector_(std::string const 
 
   do {
     std::string data_this = "";
-    b_found = key_lookup(conf, key, data_this, save_pos);
+    b_found = key_lookup(conf, key, &data_this, &save_pos);
     if (b_found) {
       if (!b_found_any)
         b_found_any = true;
@@ -305,7 +310,7 @@ bool colvarparse::get_keyval(std::string const &conf,
 
   do {
     std::string data_this = "";
-    b_found = key_lookup(conf, key, data_this, save_pos);
+    b_found = key_lookup(conf, key, &data_this, &save_pos);
     if (b_found) {
       if (!b_found_any)
         b_found_any = true;
@@ -495,7 +500,7 @@ int colvarparse::check_keywords(std::string &conf, char const *key)
 
   std::string line;
   std::istringstream is(conf);
-  while (std::getline(is, line)) {
+  while (cvm::getline(is, line)) {
     if (line.size() == 0)
       continue;
     if (line.find_first_not_of(white_space) ==
@@ -531,10 +536,9 @@ int colvarparse::check_keywords(std::string &conf, char const *key)
 
 
 std::istream & colvarparse::getline_nocomments(std::istream &is,
-                                               std::string &line,
-                                               char const delim)
+                                               std::string &line)
 {
-  std::getline(is, line, delim);
+  cvm::getline(is, line);
   size_t const comment = line.find('#');
   if (comment != std::string::npos) {
     line.erase(comment);
@@ -545,8 +549,8 @@ std::istream & colvarparse::getline_nocomments(std::istream &is,
 
 bool colvarparse::key_lookup(std::string const &conf,
                              char const *key_in,
-                             std::string &data,
-                             size_t &save_pos)
+                             std::string *data,
+                             size_t *save_pos)
 {
   if (cvm::debug()) {
     cvm::log("Looking for the keyword \""+std::string(key_in)+"\" and its value.\n");
@@ -563,14 +567,12 @@ bool colvarparse::key_lookup(std::string const &conf,
   std::string const conf_lower(to_lower_cppstr(conf));
 
   // by default, there is no value, unless we found one
-  data = "";
-
-  // when the function is invoked without save_pos, ensure that we
-  // start from zero
-  colvarparse::dummy_pos = 0;
+  if (data != NULL) {
+    data->clear();
+  }
 
   // start from the first occurrence of key
-  size_t pos = conf_lower.find(key, save_pos);
+  size_t pos = conf_lower.find(key, (save_pos != NULL) ? *save_pos : 0);
 
   // iterate over all instances of the substring until it finds it as isolated keyword
   while (true) {
@@ -586,7 +588,7 @@ bool colvarparse::key_lookup(std::string const &conf,
     bool b_isolated_left = true, b_isolated_right = true;
 
     if (pos > 0) {
-      if ( std::string("\n"+white_space+
+      if ( std::string("\n"+std::string(white_space)+
                        "}").find(conf[pos-1]) ==
            std::string::npos ) {
         // none of the valid delimiting characters is on the left of key
@@ -595,7 +597,7 @@ bool colvarparse::key_lookup(std::string const &conf,
     }
 
     if (pos < conf.size()-key.size()-1) {
-      if ( std::string("\n"+white_space+
+      if ( std::string("\n"+std::string(white_space)+
                        "{").find(conf[pos+key.size()]) ==
            std::string::npos ) {
         // none of the valid delimiting characters is on the right of key
@@ -618,9 +620,11 @@ bool colvarparse::key_lookup(std::string const &conf,
     }
   }
 
+  if (save_pos != NULL) {
   // save the pointer for a future call (when iterating over multiple
   // valid instances of the same keyword)
-  save_pos = pos + key.size();
+    *save_pos = pos + key.size();
+  }
 
   // get the remainder of the line
   size_t pl = conf.rfind("\n", pos);
@@ -709,19 +713,21 @@ bool colvarparse::key_lookup(std::string const &conf,
                                        data_end) + 1;
     }
 
-    data.append(line, data_begin, (data_end-data_begin));
+    if (data != NULL) {
+      data->append(line, data_begin, (data_end-data_begin));
 
-    if (cvm::debug()) {
-      cvm::log("Keyword value = \""+data+"\".\n");
-    }
+      if (cvm::debug()) {
+        cvm::log("Keyword value = \""+*data+"\".\n");
+      }
 
-    if (data.size() && save_delimiters) {
-      data_begin_pos.push_back(conf.find(data, pos+key.size()));
-      data_end_pos.push_back(data_begin_pos.back()+data.size());
+      if (data->size()) {
+        data_begin_pos.push_back(conf.find(*data, pos+key.size()));
+        data_end_pos.push_back(data_begin_pos.back()+data->size());
+      }
     }
   }
 
-  save_pos = line_end;
+  if (save_pos != NULL) *save_pos = line_end;
 
   return true;
 }

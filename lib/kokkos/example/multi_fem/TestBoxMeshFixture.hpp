@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef TESTFEMESHBOXFIXTURE_HPP
 #define TESTFEMESHBOXFIXTURE_HPP
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <stdexcept>
 #include <limits>
@@ -127,7 +127,7 @@ public:
 
 //----------------------------------------------------------------------------
 
-#ifdef KOKKOS_HAVE_MPI
+#ifdef KOKKOS_ENABLE_MPI
 
 namespace TestFEMesh {
 
@@ -190,7 +190,7 @@ void verify_parallel(
 
 } // namespace TestFEMesh
 
-#else /* ! #ifdef KOKKOS_HAVE_MPI */
+#else /* ! #ifdef KOKKOS_ENABLE_MPI */
 
 namespace TestFEMesh {
 
@@ -205,7 +205,7 @@ void verify_parallel(
 
 } // namespace TestFEMesh
 
-#endif /* ! #ifdef KOKKOS_HAVE_MPI */
+#endif /* ! #ifdef KOKKOS_ENABLE_MPI */
 
 //----------------------------------------------------------------------------
 

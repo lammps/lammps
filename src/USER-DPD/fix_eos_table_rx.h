@@ -67,7 +67,7 @@ class FixEOStableRX : public Fix {
 
   void read_file(char *);
 
-  double *dHf;
+  double *dHf,*energyCorr,*tempCorrCoeff,*moleculeCorrCoeff;
 
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
@@ -76,6 +76,7 @@ class FixEOStableRX : public Fix {
 
   int *eosSpecies;
   int ncolumn;
+  bool rx_flag;
   };
 }
 
@@ -105,6 +106,10 @@ The eos/table/rx table must have more than one entry.
 E:  eos/table/rx values are not increasing
 
 The equation-of-state must an increasing function
+
+E:  FixEOStableRX requires atom_style with internal temperature and energies (e.g. dpd)
+
+Self-explanatory.
 
 E:  Internal temperature <= zero.
 
@@ -152,6 +157,6 @@ Self-explanatory.
 
 E: Maxit exceeded in secant solver
 
-The maximum number of interations was exceeded in the secant solver
+The maximum number of iterations was exceeded in the secant solver
 
 */

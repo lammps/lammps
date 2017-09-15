@@ -49,7 +49,7 @@ fix myhug all nphug temp 1.0 1.0 10.0 iso 40.0 40.0 70.0 drag 200.0 tchain 1 pch
 This command is a variant of the Nose-Hoover
 "fix npt"_fix_nh.html fix style.
 It performs time integration of the Hugoniostat equations
-of motion developed by Ravelo et al. "(Ravelo)"_#Ravelo.
+of motion developed by Ravelo et al. "(Ravelo)"_#Ravelo1.
 These equations compress the system to a state with average
 axial stress or pressure equal to the specified target value
 and that satisfies the Rankine-Hugoniot (RH)
@@ -152,7 +152,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -225,5 +225,5 @@ The keyword defaults are the same as those for "fix npt"_fix_nh.html
 
 :line
 
-:link(Ravelo)
+:link(Ravelo1)
 [(Ravelo)] Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).

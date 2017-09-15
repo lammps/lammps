@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #ifndef COLVARTYPES_H
 #define COLVARTYPES_H
 
@@ -82,6 +89,11 @@ public:
   inline void resize(size_t const n)
   {
     data.resize(n);
+  }
+
+  inline void clear()
+  {
+    data.clear();
   }
 
   inline T & operator [] (size_t const i) {
@@ -1006,16 +1018,6 @@ inline cvm::rvector operator * (cvm::rmatrix const &m,
                       m.yx()*r.x + m.yy()*r.y + m.yz()*r.z,
                       m.zx()*r.x + m.zy()*r.y + m.zz()*r.z);
 }
-
-
-/// Numerical recipes diagonalization
-void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
-
-/// Eigenvector sort
-void eigsrt(cvm::real *d, cvm::real **v);
-
-/// Transpose the matrix
-void transpose(cvm::real **v);
 
 
 

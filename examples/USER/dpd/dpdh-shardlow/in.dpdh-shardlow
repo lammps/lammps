@@ -18,7 +18,7 @@ neigh_modify    every 1 delay 0 check no once no
 timestep        0.001
 
 compute         dpdU all dpd
-variable        totEnergy equal pe+ke+c_dpdU[1]+c_dpdU[1]+press*vol
+variable        totEnergy equal pe+ke+c_dpdU[1]+c_dpdU[2]+press*vol
 
 thermo          1
 thermo_style    custom step temp press vol pe ke v_totEnergy cella cellb cellc

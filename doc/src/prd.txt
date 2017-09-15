@@ -48,11 +48,11 @@ replicas of a system.  One or more replicas can be used.  The total
 number of steps {N} to run can be interpreted in one of two ways; see
 discussion of the {time} keyword below.
 
-PRD is described in "this paper"_#Voter by Art Voter.  It is a method
+PRD is described in "this paper"_#Voter1998 by Art Voter.  It is a method
 for performing accelerated dynamics that is suitable for
 infrequent-event systems that obey first-order kinetics.  A good
 overview of accelerated dynamics methods for such systems in given in
-"this review paper"_#Voter2 from the same group.  To quote from the
+"this review paper"_#Voter2002prd from the same group.  To quote from the
 paper: "The dynamical evolution is characterized by vibrational
 excursions within a potential basin, punctuated by occasional
 transitions between basins."  The transition probability is
@@ -63,7 +63,7 @@ event to occur.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.7"_Section_start.html#start_7 of the manual.
+switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
 Note that if you have MPI installed, you can run a multi-replica
 simulation with more replicas (partitions) than you have physical
 processors, e.g you can run a 10-replica simulation on one or two
@@ -133,7 +133,7 @@ event.
 
 The event check is performed by a compute with the specified
 {compute-ID}.  Currently there is only one compute that works with the
-PRD commmand, which is the "compute
+PRD command, which is the "compute
 event/displace"_compute_event_displace.html command.  Other
 event-checking computes may be added.  "Compute
 event/displace"_compute_event_displace.html checks whether any atom in
@@ -230,7 +230,7 @@ files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For
 the PRD command, these contain the thermodynamic output for each
 replica.  You will see short runs and minimizations corresponding to
 the dynamics and quench operations of the loop listed above.  The
-timestep will be reset aprpopriately depending on whether the
+timestep will be reset appropriately depending on whether the
 operation advances time or not.
 
 After the PRD command completes, timing statistics for the PRD run are
@@ -316,9 +316,9 @@ geom gaussian, and time = steps.
 
 :line
 
-:link(Voter)
-[(Voter)] Voter, Phys Rev B, 57, 13985 (1998).
+:link(Voter1998)
+[(Voter1998)] Voter, Phys Rev B, 57, 13985 (1998).
 
-:link(Voter2)
-[(Voter2)] Voter, Montalenti, Germann, Annual Review of Materials
+:link(Voter2002prd)
+[(Voter2002)] Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

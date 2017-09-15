@@ -1,144 +1,174 @@
-default:
-	cd ./01_hello_world; \
-	make -j 4
-	cd ./01_hello_world_lambda; \
-	make -j 4
-	cd ./02_simple_reduce; \
-	make -j 4
-	cd ./02_simple_reduce_lambda; \
-	make -j 4
-	cd ./03_simple_view; \
-	make -j 4
-	cd ./03_simple_view_lambda; \
-	make -j 4
-	cd ./04_simple_memoryspaces; \
-	make -j 4
-	cd ./05_simple_atomics; \
-	make -j 4
-	cd ./Advanced_Views; \
-	make -j 4
-	cd ./Algorithms; \
-	make -j 4
-	cd ./Hierarchical_Parallelism; \
-	make -j 4
 
-openmp:
-	cd ./01_hello_world; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./01_hello_world_lambda; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./02_simple_reduce; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./02_simple_reduce_lambda; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./03_simple_view; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./03_simple_view_lambda; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./04_simple_memoryspaces; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./05_simple_atomics; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./Advanced_Views; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./Algorithms; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
-	cd ./Hierarchical_Parallelism; \
-	make -j 4 KOKKOS_DEVICES=OpenMP
+ifndef KOKKOS_PATH
+  MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+  KOKKOS_PATH = $(subst Makefile,,$(MAKEFILE_PATH))../..
+endif
 
-pthreads:
-	cd ./01_hello_world; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./01_hello_world_lambda; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./02_simple_reduce; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./02_simple_reduce_lambda; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./03_simple_view; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./03_simple_view_lambda; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./04_simple_memoryspaces; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./05_simple_atomics; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./Advanced_Views; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./Algorithms; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
-	cd ./Hierarchical_Parallelism; \
-	make -j 4 KOKKOS_DEVICES=Pthreads
+ifndef KOKKOS_SETTINGS
+  KOKKOS_SETTINGS = "KOKKOS_PATH=${KOKKOS_PATH}"
+  ifdef KOKKOS_ARCH
+    KOKKOS_SETTINGS += "KOKKOS_ARCH=${KOKKOS_ARCH}"
+  endif
+  ifdef KOKKOS_DEVICES
+    KOKKOS_SETTINGS += "KOKKOS_DEVICES=${KOKKOS_DEVICES}"
+  endif
+  ifdef KOKKOS_OPTIONS
+    KOKKOS_SETTINGS += "KOKKOS_OPTIONS=${KOKKOS_OPTIONS}"
+  endif
+  ifdef KOKKOS_CUDA_OPTIONS
+    KOKKOS_SETTINGS += "KOKKOS_CUDA_OPTIONS=${KOKKOS_CUDA_OPTIONS}"
+  endif
+endif
 
-serial:
+build:
+	mkdir -p 01_hello_world
 	cd ./01_hello_world; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/01_hello_world/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p 01_hello_world_lambda
 	cd ./01_hello_world_lambda; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/01_hello_world_lambda/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p 02_simple_reduce
 	cd ./02_simple_reduce; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/02_simple_reduce/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p 02_simple_reduce_lambda
 	cd ./02_simple_reduce_lambda; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/02_simple_reduce_lambda/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p 03_simple_view
 	cd ./03_simple_view; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/03_simple_view/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p 03_simple_view_lambda
 	cd ./03_simple_view_lambda; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/03_simple_view_lambda/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p 04_simple_memoryspaces
 	cd ./04_simple_memoryspaces; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/04_simple_memoryspaces/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p 05_simple_atomics
 	cd ./05_simple_atomics; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/05_simple_atomics/Makefile ${KOKKOS_SETTINGS}
+	mkdir -p Advanced_Views
 	cd ./Advanced_Views; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/Advanced_Views/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	mkdir -p Algorithms
 	cd ./Algorithms; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/Algorithms/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	mkdir -p Hierarchical_Parallelism
 	cd ./Hierarchical_Parallelism; \
-	make -j 4 KOKKOS_DEVICES=Serial
+	$(MAKE) build -f ${KOKKOS_PATH}/example/tutorial/Hierarchical_Parallelism/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 
-cuda:
+build-insource:
 	cd ./01_hello_world; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./01_hello_world_lambda; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./02_simple_reduce; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./02_simple_reduce_lambda; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./03_simple_view; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./03_simple_view_lambda; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./04_simple_memoryspaces; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./05_simple_atomics; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build ${KOKKOS_SETTINGS}
 	cd ./Advanced_Views; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 	cd ./Algorithms; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 	cd ./Hierarchical_Parallelism; \
-	make -j 4 KOKKOS_DEVICES=Cuda,Serial
+	$(MAKE) build KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+test:
+	cd ./01_hello_world; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/01_hello_world/Makefile ${KOKKOS_SETTINGS}
+	cd ./01_hello_world_lambda; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/01_hello_world_lambda/Makefile ${KOKKOS_SETTINGS}
+	cd ./02_simple_reduce; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/02_simple_reduce/Makefile ${KOKKOS_SETTINGS}
+	cd ./02_simple_reduce_lambda; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/02_simple_reduce_lambda/Makefile ${KOKKOS_SETTINGS}
+	cd ./03_simple_view; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/03_simple_view/Makefile ${KOKKOS_SETTINGS}
+	cd ./03_simple_view_lambda; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/03_simple_view_lambda/Makefile ${KOKKOS_SETTINGS}
+	cd ./04_simple_memoryspaces; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/04_simple_memoryspaces/Makefile ${KOKKOS_SETTINGS}
+	cd ./05_simple_atomics; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/05_simple_atomics/Makefile ${KOKKOS_SETTINGS}
+	cd ./Advanced_Views; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/Advanced_Views/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	cd ./Algorithms; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/Algorithms/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	cd ./Hierarchical_Parallelism; \
+	$(MAKE) test -f ${KOKKOS_PATH}/example/tutorial/Hierarchical_Parallelism/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 
+test-insource:
+	cd ./01_hello_world; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./01_hello_world_lambda; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./02_simple_reduce; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./02_simple_reduce_lambda; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./03_simple_view; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./03_simple_view_lambda; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./04_simple_memoryspaces; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./05_simple_atomics; \
+	$(MAKE) test ${KOKKOS_SETTINGS}
+	cd ./Advanced_Views; \
+	$(MAKE) test KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	cd ./Algorithms; \
+	$(MAKE) test KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	cd ./Hierarchical_Parallelism; \
+	$(MAKE) test KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 clean:
 	cd ./01_hello_world; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/01_hello_world/Makefile ${KOKKOS_SETTINGS}
 	cd ./01_hello_world_lambda; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/01_hello_world_lambda/Makefile ${KOKKOS_SETTINGS}
 	cd ./02_simple_reduce; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/02_simple_reduce/Makefile ${KOKKOS_SETTINGS}
 	cd ./02_simple_reduce_lambda; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/02_simple_reduce_lambda/Makefile ${KOKKOS_SETTINGS}
 	cd ./03_simple_view; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/03_simple_view/Makefile ${KOKKOS_SETTINGS}
 	cd ./03_simple_view_lambda; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/03_simple_view_lambda/Makefile ${KOKKOS_SETTINGS}
 	cd ./04_simple_memoryspaces; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/04_simple_memoryspaces/Makefile ${KOKKOS_SETTINGS}
 	cd ./05_simple_atomics; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/05_simple_atomics/Makefile ${KOKKOS_SETTINGS}
 	cd ./Advanced_Views; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/Advanced_Views/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 	cd ./Algorithms; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/Algorithms/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 	cd ./Hierarchical_Parallelism; \
-	make clean
+	$(MAKE) clean -f ${KOKKOS_PATH}/example/tutorial/Hierarchical_Parallelism/Makefile KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
 
+clean-insource:
+	cd ./01_hello_world; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./01_hello_world_lambda; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./02_simple_reduce; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./02_simple_reduce_lambda; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./03_simple_view; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./03_simple_view_lambda; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./04_simple_memoryspaces; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./05_simple_atomics; \
+	$(MAKE) clean ${KOKKOS_SETTINGS}
+	cd ./Advanced_Views; \
+	$(MAKE) clean KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	cd ./Algorithms; \
+	$(MAKE) clean KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'
+	cd ./Hierarchical_Parallelism; \
+	$(MAKE) clean KOKKOS_SETTINGS='${KOKKOS_SETTINGS}'

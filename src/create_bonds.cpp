@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Mike Salerno (NRL) added single methods
+------------------------------------------------------------------------- */
+
 #include <stdlib.h>
 #include <string.h>
 #include "create_bonds.h"
@@ -27,6 +31,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{MANY,SBOND,SANGLE,SDIHEDRAL};
+
 /* ---------------------------------------------------------------------- */
 
 CreateBonds::CreateBonds(LAMMPS *lmp) : Pointers(lmp) {}
@@ -42,25 +48,104 @@ void CreateBonds::command(int narg, char **arg)
   if (atom->molecular != 1)
     error->all(FLERR,"Cannot use create_bonds with non-molecular system");
 
-  if (narg != 5) error->all(FLERR,"Illegal create_bonds command");
+  if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
 
   // parse args
 
-  int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
-  int group1bit = group->bitmask[igroup];
-  igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
-  int group2bit = group->bitmask[igroup];
+  int style;
 
-  int btype = force->inumeric(FLERR,arg[2]);
-  double rmin = force->numeric(FLERR,arg[3]);
-  double rmax = force->numeric(FLERR,arg[4]);
+  int iarg;
+  if (strcmp(arg[0],"many") == 0) {
+    style = MANY;
+    if (narg != 6) error->all(FLERR,"Illegal create_bonds command");
+    igroup = group->find(arg[1]);
+    if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
+    group1bit = group->bitmask[igroup];
+    igroup = group->find(arg[2]);
+    if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
+    group2bit = group->bitmask[igroup];
+    btype = force->inumeric(FLERR,arg[3]);
+    rmin = force->numeric(FLERR,arg[4]);
+    rmax = force->numeric(FLERR,arg[5]);
+    if (rmin > rmax) error->all(FLERR,"Illegal create_bonds command");
+    iarg = 6;
+  } else if (strcmp(arg[0],"single/bond") == 0) {
+    style = SBOND;
+    if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
+    btype = force->inumeric(FLERR,arg[1]);
+    batom1 = force->tnumeric(FLERR,arg[2]);
+    batom2 = force->tnumeric(FLERR,arg[3]);
+    iarg = 4;
+  } else if (strcmp(arg[0],"single/angle") == 0) {
+    style = SANGLE;
+    if (narg < 5) error->all(FLERR,"Illegal create_bonds command");
+    atype = force->inumeric(FLERR,arg[1]);
+    aatom1 = force->tnumeric(FLERR,arg[2]);
+    aatom2 = force->tnumeric(FLERR,arg[3]);
+    aatom3 = force->tnumeric(FLERR,arg[4]);
+    iarg = 5;
+  } else if (strcmp(arg[0],"single/dihedral") == 0) {
+    style = SDIHEDRAL;
+    if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
+    dtype = force->inumeric(FLERR,arg[1]);
+    datom1 = force->tnumeric(FLERR,arg[2]);
+    datom2 = force->tnumeric(FLERR,arg[3]);
+    datom3 = force->tnumeric(FLERR,arg[4]);
+    datom4 = force->tnumeric(FLERR,arg[5]);
+    iarg = 6;
+  } else error->all(FLERR,"Illegal create_bonds command");
 
-  if (btype <= 0 || btype > atom->nbondtypes)
-    error->all(FLERR,"Invalid bond type in create_bonds command");
-  if (rmin > rmax) error->all(FLERR,"Illegal create_bonds command");
+  // optional args
 
+  int specialflag = 1;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"special") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal create_bonds command");
+      if (strcmp(arg[iarg+1],"yes") == 0) specialflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) specialflag = 0;
+      else error->all(FLERR,"Illegal create_bonds command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal create_bonds command");
+  }
+
+  // error checks
+
+  if (style == MANY) {
+    if (btype <= 0 || btype > atom->nbondtypes)
+      error->all(FLERR,"Invalid bond type in create_bonds command");
+    if (specialflag == 0)
+      error->all(FLERR,"Cannot use special no with create_bonds many");
+  } else if (style == SBOND) {
+    if (btype <= 0 || btype > atom->nbondtypes)
+      error->all(FLERR,"Invalid bond type in create_bonds command");
+  } else if (style == SANGLE) {
+    if (atype <= 0 || atype > atom->nangletypes)
+      error->all(FLERR,"Invalid angle type in create_bonds command");
+  } else if (style == SDIHEDRAL) {
+    if (dtype <= 0 || dtype > atom->ndihedraltypes)
+      error->all(FLERR,"Invalid dihedral type in create_bonds command");
+  }
+
+  // invoke creation method
+
+  if (style == MANY) many();
+  else if (style == SBOND) single_bond();
+  else if (style == SANGLE) single_angle();
+  else if (style == SDIHEDRAL) single_dihedral();
+
+  // trigger special list build
+
+  if (specialflag) {
+    Special special(lmp);
+    special.build();
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void CreateBonds::many()
+{
   double rminsq = rmin*rmin;
   double rmaxsq = rmax*rmax;
 
@@ -221,9 +306,184 @@ void CreateBonds::command(int narg, char **arg)
               nadd_bonds,atom->nbonds);
     }
   }
+}
 
-  // re-trigger special list build
+/* ---------------------------------------------------------------------- */
 
-  Special special(lmp);
-  special.build();
+void CreateBonds::single_bond()
+{
+  int m;
+
+  // check that 2 atoms exist
+
+  int count = 0;
+  if (atom->map(batom1) >= 0) count++;
+  if (atom->map(batom2) >= 0) count++;
+
+  int allcount;
+  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
+  if (allcount != 2) 
+    error->all(FLERR,"Create_bonds single/bond atoms do not exist");
+
+  // create bond once or 2x if newton_bond set
+
+  int *num_bond = atom->num_bond;
+  int **bond_type = atom->bond_type;
+  tagint **bond_atom = atom->bond_atom;
+
+  if ((m = atom->map(batom1)) >= 0) {
+    if (num_bond[m] == atom->bond_per_atom)
+      error->one(FLERR,"New bond exceeded bonds per atom in create_bonds");
+    bond_type[m][num_bond[m]] = btype;
+    bond_atom[m][num_bond[m]] = batom2;
+    num_bond[m]++;
+  }
+
+  if (force->newton_bond) return;
+
+  if ((m = atom->map(batom2)) >= 0) {
+    if (num_bond[m] == atom->bond_per_atom)
+      error->one(FLERR,"New bond exceeded bonds per atom in create_bonds");
+    bond_type[m][num_bond[m]] = btype;
+    bond_atom[m][num_bond[m]] = batom1;
+    num_bond[m]++;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void CreateBonds::single_angle()
+{
+  int m;
+
+  // check that 3 atoms exist
+
+  int count = 0;
+  if (atom->map(aatom1) >= 0) count++;
+  if (atom->map(aatom2) >= 0) count++;
+  if (atom->map(aatom3) >= 0) count++;
+
+  int allcount;
+  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
+  if (allcount != 3) 
+    error->all(FLERR,"Create_bonds single/angle atoms do not exist");
+
+  // create angle once or 3x if newton_bond set
+
+  int *num_angle = atom->num_angle;
+  int **angle_type = atom->angle_type;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
+
+  if ((m = atom->map(aatom2)) >= 0) {
+    if (num_angle[m] == atom->angle_per_atom)
+      error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
+    angle_type[m][num_angle[m]] = atype;
+    angle_atom1[m][num_angle[m]] = aatom1;
+    angle_atom2[m][num_angle[m]] = aatom2;
+    angle_atom3[m][num_angle[m]] = aatom3;
+    num_angle[m]++;
+  }
+
+  if (force->newton_bond) return;
+
+  if ((m = atom->map(aatom1)) >= 0) {
+    if (num_angle[m] == atom->angle_per_atom)
+      error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
+    angle_type[m][num_angle[m]] = atype;
+    angle_atom1[m][num_angle[m]] = aatom1;
+    angle_atom2[m][num_angle[m]] = aatom2;
+    angle_atom3[m][num_angle[m]] = aatom3;
+    num_angle[m]++;
+  }
+
+  if ((m = atom->map(aatom3)) >= 0) {
+    if (num_angle[m] == atom->angle_per_atom)
+      error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
+    angle_type[m][num_angle[m]] = atype;
+    angle_atom1[m][num_angle[m]] = aatom1;
+    angle_atom2[m][num_angle[m]] = aatom2;
+    angle_atom3[m][num_angle[m]] = aatom3;
+    num_angle[m]++;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void CreateBonds::single_dihedral()
+{
+  int m;
+
+  // check that 4 atoms exist
+
+  int count = 0;
+  if (atom->map(datom1) >= 0) count++;
+  if (atom->map(datom2) >= 0) count++;
+  if (atom->map(datom3) >= 0) count++;
+  if (atom->map(datom4) >= 0) count++;
+
+  int allcount;
+  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
+  if (allcount != 4) 
+    error->all(FLERR,"Create_bonds single/dihedral atoms do not exist");
+
+  // create bond once or 4x if newton_bond set
+
+  int *num_dihedral = atom->num_dihedral;
+  int **dihedral_type = atom->dihedral_type;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
+
+  if ((m = atom->map(datom2)) >= 0) {
+    if (num_dihedral[m] == atom->dihedral_per_atom)
+      error->one(FLERR,
+                 "New dihedral exceeded dihedrals per atom in create_bonds");
+    dihedral_type[m][num_dihedral[m]] = dtype;
+    dihedral_atom1[m][num_dihedral[m]] = datom1;
+    dihedral_atom2[m][num_dihedral[m]] = datom2;
+    dihedral_atom3[m][num_dihedral[m]] = datom3;
+    dihedral_atom4[m][num_dihedral[m]] = datom4;
+    num_dihedral[m]++;
+  }
+
+  if (force->newton_bond) return;
+
+  if ((m = atom->map(datom1)) >= 0) {
+    if (num_dihedral[m] == atom->dihedral_per_atom)
+      error->one(FLERR,
+                 "New dihedral exceeded dihedrals per atom in create_bonds");
+    dihedral_type[m][num_dihedral[m]] = dtype;
+    dihedral_atom1[m][num_dihedral[m]] = datom1;
+    dihedral_atom2[m][num_dihedral[m]] = datom2;
+    dihedral_atom3[m][num_dihedral[m]] = datom3;
+    dihedral_atom4[m][num_dihedral[m]] = datom4;
+    num_dihedral[m]++;
+  }
+
+  if ((m = atom->map(datom3)) >= 0) {
+    if (num_dihedral[m] == atom->dihedral_per_atom)
+      error->one(FLERR,
+                 "New dihedral exceeded dihedrals per atom in create_bonds");
+    dihedral_type[m][num_dihedral[m]] = dtype;
+    dihedral_atom1[m][num_dihedral[m]] = datom1;
+    dihedral_atom2[m][num_dihedral[m]] = datom2;
+    dihedral_atom3[m][num_dihedral[m]] = datom3;
+    dihedral_atom4[m][num_dihedral[m]] = datom4;
+    num_dihedral[m]++;
+  }
+
+  if ((m = atom->map(datom4)) >= 0) {
+    if (num_dihedral[m] == atom->dihedral_per_atom)
+      error->one(FLERR,
+                 "New dihedral exceeded dihedrals per atom in create_bonds");
+    dihedral_type[m][num_dihedral[m]] = dtype;
+    dihedral_atom1[m][num_dihedral[m]] = datom1;
+    dihedral_atom2[m][num_dihedral[m]] = datom2;
+    dihedral_atom3[m][num_dihedral[m]] = datom3;
+    dihedral_atom4[m][num_dihedral[m]] = datom4;
+    num_dihedral[m]++;
+  }
 }

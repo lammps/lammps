@@ -67,7 +67,7 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // zero
   for (int i = 0; i < atom->nmax; i++)
-    for (int m = 0; m < 3; m++)
+    for (int m = 0; m < 2; m++)
       array[i][m] = 0.0;
 }
 
@@ -100,6 +100,13 @@ void FixSRP::init()
 {
   if (force->pair_match("hybrid",1) == NULL)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
+
+  int has_rigid = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strncmp(modify->fix[i]->style,"rigid",5) == 0) ++has_rigid;
+
+  if (has_rigid > 0)
+    error->all(FLERR,"Pair srp is not compatible with rigid fixes.");
 
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR,"Illegal bond particle type");
@@ -170,7 +177,7 @@ void FixSRP::setup_pre_force(int zz)
     xold[i][2] = x[i][2];
     tagold[i]=tag[i];
     dlist[i] = (type[i] == bptype) ? 1 : 0;
-    for (n = 0; n < 3; n++)
+    for (n = 0; n < 2; n++)
       array[i][n] = 0.0;
   }
 
@@ -264,14 +271,11 @@ void FixSRP::setup_pre_force(int zz)
   if (cutghostmin > comm->cutghost[2])
     cutghostmin = comm->cutghost[2];
 
-  // reset cutghost if needed
+  // stop if cutghost is insufficient
   if (cutneighmax_srp > cutghostmin){
-    if(comm->me == 0){
-      sprintf(str, "Extending ghost comm cutoff. New %f, old %f.", cutneighmax_srp, cutghostmin);
-      error->message(FLERR,str);
-    }
-    // cutghost updated by comm->setup
-    comm->cutghostuser = cutneighmax_srp;
+    sprintf(str, "Communication cutoff too small for fix srp. "
+            "Need %f, current %f.", cutneighmax_srp, cutghostmin);
+    error->all(FLERR,str);
   }
 
   // assign tags for new atoms, update map

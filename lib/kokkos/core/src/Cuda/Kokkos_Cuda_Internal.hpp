@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,19 +36,18 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
 #ifndef KOKKOS_CUDA_INTERNAL_HPP
 #define KOKKOS_CUDA_INTERNAL_HPP
-#include<iostream>
+
 #include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_CUDA
 
-/* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_HAVE_CUDA
-
+#include<iostream>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 
 namespace Kokkos { namespace Impl {
@@ -197,6 +196,6 @@ struct CudaGetOptBlockSize<DriverType,false> {
 
 }} // namespace Kokkos::Impl
 
-#endif // KOKKOS_HAVE_CUDA
+#endif // KOKKOS_ENABLE_CUDA
 #endif /* #ifndef KOKKOS_CUDA_INTERNAL_HPP */
 

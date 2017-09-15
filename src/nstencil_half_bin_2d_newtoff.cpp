@@ -19,7 +19,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin2dNewtoff::NStencilHalfBin2dNewtoff(LAMMPS *lmp) : 
+NStencilHalfBin2dNewtoff::NStencilHalfBin2dNewtoff(LAMMPS *lmp) :
   NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------

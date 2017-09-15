@@ -112,8 +112,21 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::compute(int eflag_in, int
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom) {
+    memory->destroy_kokkos(k_eatom,eatom);
+    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    d_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom) {
+    memory->destroy_kokkos(k_vatom,vatom);
+    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    d_vatom = k_vatom.view<DeviceType>();
+  }
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
@@ -165,6 +178,16 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::compute(int eflag_in, int
     virial[3] += ev.v[3];
     virial[4] += ev.v[4];
     virial[5] += ev.v[5];
+  }
+
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.template sync<LMPHostType>();
+  }
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.template sync<LMPHostType>();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -303,7 +326,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::allocate()
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmCoulCharmmImplicit::params",n+1,n+1);
-  params = k_params.d_view;
+  params = k_params.template view<DeviceType>();
 }
 
 template<class DeviceType>
@@ -490,14 +513,11 @@ double PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_one(int i, int j)
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
   }
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
-  k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
-  k_cut_ljsq.h_view(i,j) = cut_ljsqm;
-  k_cut_ljsq.h_view(j,i) = k_cut_ljsq.h_view(i,j);
+  k_cut_ljsq.h_view(i,j) = k_cut_ljsq.h_view(j,i) = cut_ljsqm;
   k_cut_ljsq.template modify<LMPHostType>();
-  k_cut_coulsq.h_view(i,j) = cut_coulsqm;
-  k_cut_coulsq.h_view(j,i) = k_cut_coulsq.h_view(i,j);
+  k_cut_coulsq.h_view(i,j) = k_cut_coulsq.h_view(j,i) = cut_coulsqm;
   k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 

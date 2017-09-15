@@ -94,6 +94,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   dof_flag = 1;
 
   nevery = 0;
+  next_output = 0;
   dtv = dtf = 0;
 
   tolerance = force->numeric( FLERR, arg[3] );
@@ -114,6 +115,13 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
     error->all(FLERR, "Error creating manifold arg arrays");
   }
 
+  // Check if you have enough args:
+  if( 6 + nvars > narg ){
+    char msg[2048];
+    sprintf(msg, "Not enough args for manifold %s, %d expected but got %d\n",
+            ptr_m->id(), nvars, narg - 6);
+    error->all(FLERR, msg);
+  }
   // Loop over manifold args:
   for( int i = 0; i < nvars; ++i ){
     int len = 0, offset = 0;
@@ -131,11 +139,11 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
     strcpy( tstrs[i], arg[i+6] + offset );
   }
 
-  *ptr_m->get_params() = new double[nvars];
-  if( !(*ptr_m->get_params()) ) error->all(FLERR,"Failed to allocate params!");
+  ptr_m->params = new double[nvars];
+  if( !ptr_m->params ) error->all(FLERR,"Failed to allocate params!");
   for( int i = 0; i < nvars; ++i ){
     // If param i was variable type, it will be set later...
-    (*ptr_m->get_params())[i] = is_var[i] ? 0.0 : force->numeric( FLERR, arg[i+6] );
+    ptr_m->params[i] = is_var[i] ? 0.0 : force->numeric( FLERR, arg[i+6] );
   }
   ptr_m->post_param_init();
 
@@ -145,6 +153,11 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   while( argi < narg ){
     if( strcmp(arg[argi], "every") == 0 ){
       nevery = force->inumeric(FLERR,arg[argi+1]);
+      next_output = update->ntimestep + nevery;
+      if( comm->me == 0 ){
+        fprintf(screen,"Outputing every %d steps, next is %d\n",
+			nevery, next_output);
+      }
       argi += 2;
     }else if( error_on_unknown_keyword ){
       char msg[2048];
@@ -220,6 +233,11 @@ void FixNVEManifoldRattle::print_stats( const char *header )
             x_iters * inv_tdiff, v_iters * inv_tdiff, stats.dofs_removed);
     fprintf(screen,"\n");
   }
+
+  stats.x_iters_per_atom = 0;
+  stats.v_iters_per_atom = 0;
+  stats.x_iters = 0;
+  stats.v_iters = 0;
 }
 
 
@@ -262,15 +280,9 @@ void FixNVEManifoldRattle::init()
 
 void FixNVEManifoldRattle::update_var_params()
 {
-  if( nevery > 0 ){
-    stats.x_iters = 0;
-    stats.v_iters = 0;
-    stats.natoms  = 0;
-    stats.x_iters_per_atom = 0.0;
-    stats.v_iters_per_atom = 0.0;
-  }
-
-  double **ptr_params = ptr_m->get_params();
+ 
+  double *ptr_params = ptr_m->params;
+  
   for( int i = 0; i < nvars; ++i ){
     if( is_var[i] ){
       tvars[i] = input->variable->find(tstrs[i]);
@@ -281,8 +293,8 @@ void FixNVEManifoldRattle::update_var_params()
       if( input->variable->equalstyle(tvars[i]) ){
         tstyle[i] = EQUAL;
         double new_val = input->variable->compute_equal(tvars[i]);
-        // fprintf( stdout, "New value of var %d is now %f\n", i+1, new_val );
-        *(ptr_params[i]) = new_val;
+        
+        ptr_params[i] = new_val;
       }else{
         error->all(FLERR,
                    "Variable for fix nve/manifold/rattle is invalid style");
@@ -356,7 +368,12 @@ void FixNVEManifoldRattle::final_integrate()
    ---------------------------------------------------------------------------*/
 void FixNVEManifoldRattle::end_of_step()
 {
-  print_stats( "nve/manifold/rattle" );
+  if (nevery && (update->ntimestep == next_output)){
+    if( comm->me == 0 ){
+      print_stats( "nve/manifold/rattle" );
+      next_output += nevery;
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------

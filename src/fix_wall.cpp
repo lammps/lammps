@@ -201,6 +201,8 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
 FixWall::~FixWall()
 {
+  if (copymode) return;
+
   for (int m = 0; m < nwall; m++) {
     delete [] xstr[m];
     delete [] estr[m];

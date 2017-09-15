@@ -140,7 +140,7 @@ the atom coordinate.
 
 E: Insufficient Jacobi rotations for triangle
 
-The calculation of the intertia tensor of the triangle failed.  This
+The calculation of the inertia tensor of the triangle failed.  This
 should not happen if it is a reasonably shaped triangle.
 
 */

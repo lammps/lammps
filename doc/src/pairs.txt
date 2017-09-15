@@ -36,9 +36,11 @@ Pair Styles :h1
    pair_gayberne
    pair_gran
    pair_gromacs
+   pair_gw
    pair_hbond_dreiding
    pair_hybrid
    pair_kim
+   pair_kolmogorov_crespi_z
    pair_lcbop
    pair_line_lj
    pair_list
@@ -47,7 +49,6 @@ Pair Styles :h1
    pair_lj_cubic
    pair_lj_expand
    pair_lj_long
-   pair_lj_sf
    pair_lj_smooth
    pair_lj_smooth_linear
    pair_lj_soft
@@ -57,19 +58,24 @@ Pair Styles :h1
    pair_meam
    pair_meam_spline
    pair_meam_sw_spline
+   pair_meso
    pair_mgpt
    pair_mie
+   pair_momb
    pair_morse
    pair_multi_lucy
    pair_multi_lucy_rx
    pair_nb3b_harmonic
    pair_nm
    pair_none
+   pair_oxdna
+   pair_oxdna2
    pair_peri
    pair_polymorphic
+   pair_python
    pair_quip
    pair_reax
-   pair_reax_c
+   pair_reaxc
    pair_resquared
    pair_sdk
    pair_smd_hertz

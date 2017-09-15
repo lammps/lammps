@@ -21,7 +21,7 @@
 #include "fix_reaxc_bonds_kokkos.h"
 #include "atom.h"
 #include "update.h"
-#include "pair_reax_c_kokkos.h"
+#include "pair_reaxc_kokkos.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -64,7 +64,7 @@ FixReaxCBondsKokkos::~FixReaxCBondsKokkos()
 
 void FixReaxCBondsKokkos::init()
 {
-  Pair *pair_kk = force->pair_match("reax/c/kk",1);
+  Pair *pair_kk = force->pair_match("reax/c/kk",0);
   if (pair_kk == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                   "pair_style reax/c/kk");
 
@@ -76,7 +76,6 @@ void FixReaxCBondsKokkos::init()
 void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 {
-  int i, j;
   int nbuf_local;
   int nlocal_max, numbonds, numbonds_max;
   double *buf;

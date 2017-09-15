@@ -58,7 +58,7 @@ void FixQEqPoint::init()
   neighbor->requests[irequest]->full = 1;
 
   int ntypes = atom->ntypes;
-  memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
+  memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;

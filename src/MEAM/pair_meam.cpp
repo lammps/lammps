@@ -47,6 +47,10 @@ static const char *keywords[] = {
 
 PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 {
+  if (comm->me == 0)
+    error->warning(FLERR,"The pair_style meam command is unsupported. "
+                   "Please use pair_style meam/c instead");
+
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
@@ -421,9 +425,6 @@ void PairMEAM::init_style()
   neighbor->requests[irequest_full]->full = 1;
   int irequest_half = neighbor->request(this,instance_me);
   neighbor->requests[irequest_half]->id = 2;
-  neighbor->requests[irequest_half]->half = 0;
-  neighbor->requests[irequest_half]->half_from_full = 1;
-  neighbor->requests[irequest_half]->otherlist = irequest_full;
 
   // setup Fortran-style mapping array needed by MEAM package
   // fmap is indexed from 1:ntypes by Fortran and stores a Fortran index

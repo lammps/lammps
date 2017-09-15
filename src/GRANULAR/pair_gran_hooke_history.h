@@ -43,6 +43,7 @@ class PairGranHookeHistory : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
+  void *extract(const char *, int &);
 
  protected:
   double kn,kt,gamman,gammat,xmu;

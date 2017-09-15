@@ -31,21 +31,19 @@ fix abf all colvars colvars.inp tstat 1 :pre
 
 [Description:]
 
-This fix interfaces LAMMPS to a "collective variables" or "colvars"
-module library which allows to calculate potentials of mean force
+This fix interfaces LAMMPS to the collective variables "Colvars"
+library, which allows to calculate potentials of mean force
 (PMFs) for any set of colvars, using different sampling methods:
 currently implemented are the Adaptive Biasing Force (ABF) method,
 metadynamics, Steered Molecular Dynamics (SMD) and Umbrella Sampling
-(US) via a flexible harmonic restraint bias. The colvars library is
-hosted at "http://colvars.github.io/"_http://colvars.github.io/
+(US) via a flexible harmonic restraint bias.
 
 This documentation describes only the fix colvars command itself and
 LAMMPS specific parts of the code.  The full documentation of the
 colvars library is available as "this supplementary PDF document"_PDF/colvars-refman-lammps.pdf
 
-A detailed discussion of the implementation of the portable collective
-variable library is in "(Fiorin)"_#Fiorin. Additional information can
-be found in "(Henin)"_#Henin.
+The Colvars library is developed at "https://github.com/colvars/colvars"_https://github.com/colvars/colvars
+A detailed discussion of its implementation is in "(Fiorin)"_#Fiorin.
 
 There are some example scripts for using this package with LAMMPS in the
 examples/USER/colvars directory.
@@ -61,7 +59,7 @@ always apply to the entire system and there can only be one instance
 of the colvars fix at a time. The colvars fix will only communicate
 the minimum information necessary and the colvars library supports
 multiple, completely independent collective variables, so there is
-no restriction to functionaliry by limiting the number of colvars fixes.
+no restriction to functionality by limiting the number of colvars fixes.
 
 The {input} keyword allows to specify a state file that would contain
 the restart information required in order to continue a calculation from
@@ -102,7 +100,7 @@ output"_thermo_style.html.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative energy change due to this fix.  The scalar value
+cumulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".
 
 [Restrictions:]
@@ -129,8 +127,3 @@ and tstat = NULL.
 
 :link(Fiorin)
 [(Fiorin)] Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
-
-:link(Henin)
-[(Henin)] Henin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
-35-47 (2010)
-

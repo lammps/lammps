@@ -57,11 +57,11 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute cna/atom requires a pair style be defined
 
-Self-explantory.
+Self-explanatory.
 
 E: Compute cna/atom cutoff is longer than pairwise cutoff
 
-Self-explantory.
+Self-explanatory.
 
 W: Compute cna/atom cutoff may be too large to find ghost atom neighbors
 

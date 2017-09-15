@@ -1,12 +1,12 @@
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,7 +35,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
@@ -283,19 +283,19 @@ struct test_random_scalar {
                       RandomGenerator& pool,
                       unsigned int num_draws)
   {
-    using std::cerr;
+    using std::cout;
     using std::endl;
     using Kokkos::parallel_reduce;
 
     {
-      cerr << " -- Testing randomness properties" << endl;
+      cout << " -- Testing randomness properties" << endl;
 
       RandomProperties result;
       typedef test_random_functor<RandomGenerator, Scalar> functor_type;
       parallel_reduce (num_draws/1024, functor_type (pool, density_1d, density_3d), result);
 
       //printf("Result: %lf %lf %lf\n",result.mean/num_draws/3,result.variance/num_draws/3,result.covariance/num_draws/2);
-      double tolerance = 1.6*sqrt(1.0/num_draws);
+      double tolerance = 1.6*std::sqrt(1.0/num_draws);
       double mean_expect = 0.5*Kokkos::rand<rnd_type,Scalar>::max();
       double variance_expect = 1.0/3.0*mean_expect*mean_expect;
       double mean_eps = mean_expect/(result.mean/num_draws/3)-1.0;
@@ -307,7 +307,7 @@ struct test_random_scalar {
                     ( 1.5*tolerance > variance_eps)) ? 1:0;
       pass_covar = ((-2.0*tolerance < covariance_eps) &&
                     ( 2.0*tolerance > covariance_eps)) ? 1:0;
-      cerr << "Pass: " << pass_mean
+      cout << "Pass: " << pass_mean
            << " " << pass_var
            << " " << mean_eps
            << " " << variance_eps
@@ -315,13 +315,13 @@ struct test_random_scalar {
            << " || " << tolerance << endl;
     }
     {
-      cerr << " -- Testing 1-D histogram" << endl;
+      cout << " -- Testing 1-D histogram" << endl;
 
       RandomProperties result;
       typedef test_histogram1d_functor<typename RandomGenerator::device_type> functor_type;
       parallel_reduce (HIST_DIM1D, functor_type (density_1d, num_draws), result);
 
-      double tolerance = 6*sqrt(1.0/HIST_DIM1D);
+      double tolerance = 6*std::sqrt(1.0/HIST_DIM1D);
       double mean_expect = 1.0*num_draws*3/HIST_DIM1D;
       double variance_expect = 1.0*num_draws*3/HIST_DIM1D*(1.0-1.0/HIST_DIM1D);
       double covariance_expect = -1.0*num_draws*3/HIST_DIM1D/HIST_DIM1D;
@@ -335,7 +335,7 @@ struct test_random_scalar {
       pass_hist1d_covar = ((-0.06 < covariance_eps) &&
                            ( 0.06 > covariance_eps)) ? 1:0;
 
-      cerr << "Density 1D: " << mean_eps
+      cout << "Density 1D: " << mean_eps
            << " " << variance_eps
            << " " << (result.covariance/HIST_DIM1D/HIST_DIM1D)
            << " || " << tolerance
@@ -348,13 +348,13 @@ struct test_random_scalar {
            << endl;
     }
     {
-      cerr << " -- Testing 3-D histogram" << endl;
+      cout << " -- Testing 3-D histogram" << endl;
 
       RandomProperties result;
       typedef test_histogram3d_functor<typename RandomGenerator::device_type> functor_type;
       parallel_reduce (HIST_DIM1D, functor_type (density_3d, num_draws), result);
 
-      double tolerance = 6*sqrt(1.0/HIST_DIM1D);
+      double tolerance = 6*std::sqrt(1.0/HIST_DIM1D);
       double mean_expect = 1.0*num_draws/HIST_DIM1D;
       double variance_expect = 1.0*num_draws/HIST_DIM1D*(1.0-1.0/HIST_DIM1D);
       double covariance_expect = -1.0*num_draws/HIST_DIM1D/HIST_DIM1D;
@@ -368,7 +368,7 @@ struct test_random_scalar {
       pass_hist3d_covar = ((-tolerance < covariance_eps) &&
                            ( tolerance > covariance_eps)) ? 1:0;
 
-      cerr << "Density 3D: " << mean_eps
+      cout << "Density 3D: " << mean_eps
            << " " << variance_eps
            << " " << result.covariance/HIST_DIM1D/HIST_DIM1D
            << " || " << tolerance
@@ -381,18 +381,18 @@ struct test_random_scalar {
 template <class RandomGenerator>
 void test_random(unsigned int num_draws)
 {
-  using std::cerr;
+  using std::cout;
   using std::endl;
   typename test_random_functor<RandomGenerator,int>::type_1d density_1d("D1d");
   typename test_random_functor<RandomGenerator,int>::type_3d density_3d("D3d");
 
 
   uint64_t ticks = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-  cerr << "Test Seed:" << ticks << endl;
+  cout << "Test Seed:" << ticks << endl;
 
   RandomGenerator pool(ticks);
 
-  cerr << "Test Scalar=int" << endl;
+  cout << "Test Scalar=int" << endl;
   test_random_scalar<RandomGenerator,int> test_int(density_1d,density_3d,pool,num_draws);
   ASSERT_EQ( test_int.pass_mean,1);
   ASSERT_EQ( test_int.pass_var,1);
@@ -406,7 +406,7 @@ void test_random(unsigned int num_draws)
   deep_copy(density_1d,0);
   deep_copy(density_3d,0);
 
-  cerr << "Test Scalar=unsigned int" << endl;
+  cout << "Test Scalar=unsigned int" << endl;
   test_random_scalar<RandomGenerator,unsigned int> test_uint(density_1d,density_3d,pool,num_draws);
   ASSERT_EQ( test_uint.pass_mean,1);
   ASSERT_EQ( test_uint.pass_var,1);
@@ -420,7 +420,7 @@ void test_random(unsigned int num_draws)
   deep_copy(density_1d,0);
   deep_copy(density_3d,0);
 
-  cerr << "Test Scalar=int64_t" << endl;
+  cout << "Test Scalar=int64_t" << endl;
   test_random_scalar<RandomGenerator,int64_t> test_int64(density_1d,density_3d,pool,num_draws);
   ASSERT_EQ( test_int64.pass_mean,1);
   ASSERT_EQ( test_int64.pass_var,1);
@@ -434,7 +434,7 @@ void test_random(unsigned int num_draws)
   deep_copy(density_1d,0);
   deep_copy(density_3d,0);
 
-  cerr << "Test Scalar=uint64_t" << endl;
+  cout << "Test Scalar=uint64_t" << endl;
   test_random_scalar<RandomGenerator,uint64_t> test_uint64(density_1d,density_3d,pool,num_draws);
   ASSERT_EQ( test_uint64.pass_mean,1);
   ASSERT_EQ( test_uint64.pass_var,1);
@@ -448,7 +448,7 @@ void test_random(unsigned int num_draws)
   deep_copy(density_1d,0);
   deep_copy(density_3d,0);
 
-  cerr << "Test Scalar=float" << endl;
+  cout << "Test Scalar=float" << endl;
   test_random_scalar<RandomGenerator,float> test_float(density_1d,density_3d,pool,num_draws);
   ASSERT_EQ( test_float.pass_mean,1);
   ASSERT_EQ( test_float.pass_var,1);
@@ -462,7 +462,7 @@ void test_random(unsigned int num_draws)
   deep_copy(density_1d,0);
   deep_copy(density_3d,0);
 
-  cerr << "Test Scalar=double" << endl;
+  cout << "Test Scalar=double" << endl;
   test_random_scalar<RandomGenerator,double> test_double(density_1d,density_3d,pool,num_draws);
   ASSERT_EQ( test_double.pass_mean,1);
   ASSERT_EQ( test_double.pass_var,1);

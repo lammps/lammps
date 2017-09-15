@@ -33,12 +33,16 @@ kokkos        Kokkos package for GPU and many-core acceleration
                 from Kokkos development team (Sandia)
 linalg        set of BLAS and LAPACK routines needed by USER-ATC package
 	        from Axel Kohlmeyer (Temple U)
-poems	      POEMS rigid-body integration package, POEMS package
-                from Rudranarayan Mukherjee (RPI)
 meam	      modified embedded atom method (MEAM) potential, MEAM package
                 from Greg Wagner (Sandia)
 molfile       hooks to VMD molfile plugins, used by the USER-MOLFILE package
                 from Axel Kohlmeyer (Temple U) and the VMD development team
+mscg          hooks to the MSCG library, used by fix_mscg command
+                from Jacob Wagner and Greg Voth group (U Chicago)
+netcdf        hooks to a NetCDF library installed on your system
+                from Lars Pastewka (Karlsruhe Institute of Technology)
+poems	      POEMS rigid-body integration package, POEMS package
+                from Rudranarayan Mukherjee (RPI)
 python        hooks to the system Python library, used by the PYTHON package
                 from the LAMMPS development team
 qmmm	      quantum mechanics/molecular mechanics coupling interface

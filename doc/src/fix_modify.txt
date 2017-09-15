@@ -14,11 +14,13 @@ fix_modify fix-ID keyword value ... :pre
 
 fix-ID = ID of the fix to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {press} or {energy} or {respa} :l
+keyword = {temp} or {press} or {energy} or {respa} or {dynamic/dof} :l
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
   {energy} value = {yes} or {no}
-  {respa} value = {1} to {max respa level} or {0} (for outermost level) :pre
+  {respa} value = {1} to {max respa level} or {0} (for outermost level)
+  {dynamic/dof} value = {yes} or {no}
+    yes/no = do or do not recompute the number of degrees of freedom (DOF) contributing to the temperature :pre
 :ule
 
 [Examples:]
@@ -53,7 +55,7 @@ default method for computing P.
 For fixes that calculate a contribution to the potential energy of the
 system, the {energy} keyword will include that contribution in
 thermodynamic output of potential energy.  This is because the {energy
-yes} setting must be specfied to include the fix's global or per-atom
+yes} setting must be specified to include the fix's global or per-atom
 energy in the calculation performed by the "compute
 pe"_compute_pe.html or "compute pe/atom"_compute_pe_atom.html
 commands.  See the "thermo_style"_thermo_style.html command for info
@@ -77,6 +79,27 @@ using a value of {0} for the RESPA level. The affected fix has to be
 enabled to support this feature; if not, {fix_modify} will report an
 error. Active fixes with a custom RESPA level setting are reported
 with their specified level at the beginning of a r-RESPA run.
+
+The {dynamic/dof} keyword determines whether the number of atoms N in
+the fix group and their associated degrees of freedom are re-computed
+each time a temperature is computed.  Only fix styles that calculate
+their own internal temperature use this option.  Currently this is
+only the "fix rigid/nvt/small"_fix_rigid.html and "fix
+rigid/npt/small"_fix_rigid.html commands for the purpose of
+thermostatting rigid body translation and rotation.  By default, N and
+their DOF are assumed to be constant.  If you are adding atoms or
+molecules to the system (see the "fix pour"_fix_pour.html, "fix
+deposit"_fix_deposit.html, and "fix gcmc"_fix_gcmc.html commands) or
+expect atoms or molecules to be lost (e.g. due to exiting the
+simulation box or via "fix evaporate"_fix_evaporate.html), then
+this option should be used to insure the temperature is correctly
+normalized.
+
+NOTE: Other thermostatting fixes, such as "fix nvt"_fix_nh.html, do
+not use the {dynamic/dof} keyword because they use a temperature
+compute to calculate temperature.  See the "compute_modify
+dynamic/dof"_compute_modify.html command for a similar way to insure
+correct temperature normalization for those thermostats.
 
 [Restrictions:] none
 

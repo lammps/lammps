@@ -37,8 +37,8 @@ keyword = {file} or {ave} or {start} or {file} or {overwrite}:l
 compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
 compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo :pre
 
-fix saed/vtk 1 1 1 c_1 file Al2O3_001.saed
-fix saed/vtk 1 1 1 c_2 file Ni_000.saed :pre
+fix 1 all saed/vtk 1 1 1 c_1 file Al2O3_001.saed
+fix 2 all saed/vtk 1 1 1 c_2 file Ni_000.saed :pre
 
 [Description:]
 
@@ -52,7 +52,7 @@ intensities at a single snapshot.
 To produce output in the image data vtk format ghost data is added
 outside the {Kmax} range assigned in the compute saed. The ghost data is
 assigned a value of -1 and can be removed setting a minimum isovolume
-of 0 within the vizualiziton software. SAED images can be created by
+of 0 within the visualization software. SAED images can be created by
 visualizing a spherical slice of the data that is centered at
 R_Ewald*\[h k l\]/norm(\[h k l\]), where R_Ewald=1/lambda.
 
@@ -88,7 +88,7 @@ averaging is done; values are simply generated on timesteps
 
 :line
 
-The output for fix ave/time/saed is a file writen with the 3rd generation
+The output for fix ave/time/saed is a file written with the 3rd generation
 vtk image data formatting.  The filename assigned by the {file} keyword is
 appended with _N.vtk where N is an index (0,1,2...) to account for multiple
 diffraction intensity outputs.

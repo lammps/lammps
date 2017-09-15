@@ -1,13 +1,13 @@
 
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
@@ -180,8 +180,8 @@ void test_dynrankview_op_perf( const int par_size )
 
   typedef DeviceType execution_space;
   typedef typename execution_space::size_type size_type;
-  const size_type dim2 = 900;
-  const size_type dim3 = 300;
+  const size_type dim2 = 90;
+  const size_type dim3 = 30;
 
   double elapsed_time_view = 0;
   double elapsed_time_compview = 0;
@@ -263,3 +263,4 @@ void test_dynrankview_op_perf( const int par_size )
 
 } //end Performance
 #endif
+

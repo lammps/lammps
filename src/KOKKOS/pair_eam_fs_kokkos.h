@@ -125,20 +125,20 @@ class PairEAMFSKokkos : public PairEAM {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
+  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
   DAT::tdual_ffloat_1d k_rho;
   DAT::tdual_ffloat_1d k_fp;
-  DAT::t_ffloat_1d d_rho;
+  typename AT::t_ffloat_1d d_rho;
   typename AT::t_ffloat_1d v_rho;
-  DAT::t_ffloat_1d d_fp;
+  typename AT::t_ffloat_1d d_fp;
   HAT::t_ffloat_1d h_rho;
   HAT::t_ffloat_1d h_fp;
 
-  DAT::t_int_1d_randomread d_type2frho;
-  DAT::t_int_2d_randomread d_type2rhor;
-  DAT::t_int_2d_randomread d_type2z2r;
+  typename AT::t_int_1d_randomread d_type2frho;
+  typename AT::t_int_2d_randomread d_type2rhor;
+  typename AT::t_int_2d_randomread d_type2z2r;
 
   typedef Kokkos::DualView<F_FLOAT**[7],Kokkos::LayoutRight,DeviceType> tdual_ffloat_2d_n7;
   typedef typename tdual_ffloat_2d_n7::t_dev_const_randomread t_ffloat_2d_n7_randomread;
@@ -154,9 +154,9 @@ class PairEAMFSKokkos : public PairEAM {
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
   void read_file(char *);
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
   //NeighListKokkos<DeviceType> k_list;
 
   int iswap;

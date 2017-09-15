@@ -1,0 +1,17 @@
+# DATE: 2016-12-21 CONTRIBUTOR: Sayyed Jalil Mahdizadh, saja.mahdizadeh@gmail.com CITATION: Mahdizadeh, Akhlamadi, J. Mol. Graph. Model. 72, 1-5 (2017)  
+
+# Tersoff parameters for various elements and mixtures
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# these entries are in LAMMPS "metal" units:
+#   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms
+#   other quantities are unitless
+
+# This is the Ge reparameterization from the following paper:
+# Optimized  Tersoff  empirical  potential for germanene
+# Mahdizadeh, Akhlamadi, J. Mol. Graph. Model. 72, 1-5 (2017)
+
+# format of a single entry (one or more lines):
+#   element 1, element 2, element 3, 
+#   m, gamma, lambda3, c, d, costheta0, n, beta, lambda2, B, R, D, lambda1, A
+
+Ge     Ge      Ge        3.0 1.0 0.0 1.0643e5 15.2 -0.35 0.75627 5.017e-7  1.71  430.0    2.95    0.15   2.4451  1760.1

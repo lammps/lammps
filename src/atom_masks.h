@@ -42,6 +42,18 @@
 #define ENERGY_MASK    0x00010000
 #define VIRIAL_MASK    0x00020000
 
+// DPD
+
+#define DPDRHO_MASK       0x00040000
+#define DPDTHETA_MASK     0x00080000
+#define UCOND_MASK        0x00100000
+#define UMECH_MASK        0x00200000
+#define UCHEM_MASK        0x00400000
+#define UCG_MASK          0x00800000
+#define UCGNEW_MASK       0x01000000
+#define DUCHEM_MASK       0x02000000
+#define DVECTOR_MASK      0x04000000
+
 // granular
 
 #define RADIUS_MASK    0x00100000

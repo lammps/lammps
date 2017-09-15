@@ -101,7 +101,7 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
 
 
@@ -168,8 +168,6 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
-
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
@@ -179,6 +177,9 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
+
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -312,7 +313,7 @@ void PairLJCutCoulLongKokkos<DeviceType>::allocate()
   memory->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCutCoulLong::params",n+1,n+1);
-  params = k_params.d_view;
+  params = k_params.template view<DeviceType>();
 }
 
 template<class DeviceType>
@@ -499,11 +500,11 @@ double PairLJCutCoulLongKokkos<DeviceType>::init_one(int i, int j)
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
   }
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
-  k_cut_ljsq.h_view(i,j) = cut_ljsqm;
+  k_cut_ljsq.h_view(i,j) = k_cut_ljsq.h_view(j,i) = cut_ljsqm;
   k_cut_ljsq.template modify<LMPHostType>();
-  k_cut_coulsq.h_view(i,j) = cut_coulsqm;
+  k_cut_coulsq.h_view(i,j) = k_cut_coulsq.h_view(j,i) = cut_coulsqm;
   k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 

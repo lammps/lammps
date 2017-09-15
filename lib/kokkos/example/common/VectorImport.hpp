@@ -63,7 +63,7 @@ struct VectorImport ;
 } // namespace Example
 } // namespace Kokkos
 
-#if ! defined( KOKKOS_HAVE_MPI )
+#if ! defined( KOKKOS_ENABLE_MPI )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ struct VectorImport {
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#else /* defined( KOKKOS_HAVE_MPI ) */
+#else /* defined( KOKKOS_ENABLE_MPI ) */
 
 namespace Kokkos {
 namespace Example {
@@ -112,13 +112,13 @@ private:
   // rank == 1 or array_layout == LayoutRight
   enum { OK = Kokkos::Impl::StaticAssert<
            ( VectorType::rank == 1 ) ||
-           Kokkos::Impl::is_same< typename VectorType::array_layout , Kokkos::LayoutRight >::value
+           std::is_same< typename VectorType::array_layout , Kokkos::LayoutRight >::value
          >::value };
 
   typedef typename VectorType::HostMirror HostVectorType ;
 
   enum { ReceiveInPlace =
-    Kokkos::Impl::is_same< typename VectorType::memory_space ,
+    std::is_same< typename VectorType::memory_space ,
                            typename HostVectorType::memory_space >::value };
 
   const CommMessageType  recv_msg ;

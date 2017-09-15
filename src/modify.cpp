@@ -23,6 +23,7 @@
 #include "group.h"
 #include "update.h"
 #include "domain.h"
+#include "region.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -47,7 +48,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_thermo_energy_atom = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
-  n_min_pre_exchange = n_min_pre_force = n_min_post_force = n_min_energy = 0;
+  n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
+  n_min_post_force = n_min_energy = 0;
 
   fix = NULL;
   fmask = NULL;
@@ -60,7 +62,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
   list_min_pre_exchange = list_min_pre_neighbor = NULL;
-  list_min_pre_force = list_min_post_force = NULL;
+  list_min_pre_force = list_min_pre_reverse = list_min_post_force = NULL;
   list_min_energy = NULL;
 
   end_of_step_every = NULL;
@@ -136,6 +138,7 @@ Modify::~Modify()
   delete [] list_min_pre_exchange;
   delete [] list_min_pre_neighbor;
   delete [] list_min_pre_force;
+  delete [] list_min_pre_reverse;
   delete [] list_min_post_force;
   delete [] list_min_energy;
 
@@ -188,6 +191,7 @@ void Modify::init()
   list_init(MIN_PRE_EXCHANGE,n_min_pre_exchange,list_min_pre_exchange);
   list_init(MIN_PRE_NEIGHBOR,n_min_pre_neighbor,list_min_pre_neighbor);
   list_init(MIN_PRE_FORCE,n_min_pre_force,list_min_pre_force);
+  list_init(MIN_PRE_REVERSE,n_min_pre_reverse,list_min_pre_reverse);
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
@@ -307,7 +311,7 @@ void Modify::setup_pre_exchange()
       fix[list_pre_exchange[i]]->setup_pre_exchange();
   else if (update->whichflag == 2)
     for (int i = 0; i < n_min_pre_exchange; i++)
-      fix[list_min_pre_exchange[i]]->min_setup_pre_exchange();
+      fix[list_min_pre_exchange[i]]->setup_pre_exchange();
 }
 
 /* ----------------------------------------------------------------------
@@ -322,7 +326,7 @@ void Modify::setup_pre_neighbor()
       fix[list_pre_neighbor[i]]->setup_pre_neighbor();
   else if (update->whichflag == 2)
     for (int i = 0; i < n_min_pre_neighbor; i++)
-      fix[list_min_pre_neighbor[i]]->min_setup_pre_neighbor();
+      fix[list_min_pre_neighbor[i]]->setup_pre_neighbor();
 }
 
 /* ----------------------------------------------------------------------
@@ -337,7 +341,22 @@ void Modify::setup_pre_force(int vflag)
       fix[list_pre_force[i]]->setup_pre_force(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < n_min_pre_force; i++)
-      fix[list_min_pre_force[i]]->min_setup_pre_force(vflag);
+      fix[list_min_pre_force[i]]->setup_pre_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   setup pre_reverse call, only for fixes that define pre_reverse
+   called from Verlet, RESPA, Min
+------------------------------------------------------------------------- */
+
+void Modify::setup_pre_reverse(int eflag, int vflag)
+{
+  if (update->whichflag == 1)
+    for (int i = 0; i < n_pre_reverse; i++)
+      fix[list_pre_reverse[i]]->setup_pre_reverse(eflag,vflag);
+  else if (update->whichflag == 2)
+    for (int i = 0; i < n_min_pre_reverse; i++)
+      fix[list_min_pre_reverse[i]]->setup_pre_reverse(eflag,vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -581,6 +600,16 @@ void Modify::min_pre_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   minimizer pre-reverse call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::min_pre_reverse(int eflag, int vflag)
+{
+  for (int i = 0; i < n_min_pre_reverse; i++)
+    fix[list_min_pre_reverse[i]]->min_pre_reverse(eflag,vflag);
+}
+
+/* ----------------------------------------------------------------------
    minimizer force adjustment call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
@@ -767,7 +796,8 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
       }
     }
-    if (!match) error->all(FLERR,"Replacing a fix, but new style != old style");
+    if (!match) error->all(FLERR,
+                           "Replacing a fix, but new style != old style");
 
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
@@ -790,20 +820,26 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
-      }
+        delete[] fix[ifix]->style;
+        fix[ifix]->style = estyle;
+      } else delete[] estyle;
     }
     if (fix[ifix] == NULL && lmp->suffix2) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
-      }
+        delete[] fix[ifix]->style;
+        fix[ifix]->style = estyle;
+      } else delete[] estyle;
     }
   }
 
@@ -812,7 +848,11 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL) error->all(FLERR,"Unknown fix style");
+  if (fix[ifix] == NULL) {
+    char str[128];
+    sprintf(str,"Unknown fix style %s",arg[2]);
+    error->all(FLERR,str);
+  }
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -921,10 +961,24 @@ void Modify::delete_fix(const char *id)
 
 int Modify::find_fix(const char *id)
 {
-  if(id==NULL) return -1;
+  if (id == NULL) return -1;
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
     if (strcmp(id,fix[ifix]->id) == 0) break;
+  if (ifix == nfix) return -1;
+  return ifix;
+}
+
+/* ----------------------------------------------------------------------
+   find a fix by style
+   return index of fix or -1 if not found
+------------------------------------------------------------------------- */
+
+int Modify::find_fix_by_style(const char *style)
+{
+  int ifix;
+  for (ifix = 0; ifix < nfix; ifix++)
+    if (strcmp(style,fix[ifix]->style) == 0) break;
   if (ifix == nfix) return -1;
   return ifix;
 }
@@ -940,6 +994,97 @@ int Modify::check_package(const char *package_fix_name)
 {
   if (fix_map->find(package_fix_name) == fix_map->end()) return 0;
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   check if the group indicated by groupbit overlaps with any
+   currently existing rigid fixes. return 1 in this case otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_group_overlap(int groupbit)
+{
+  const int * const mask = atom->mask;
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if the atoms in the group indicated by groupbit _and_ region
+   indicated by regionid overlap with any currently existing rigid fixes.
+   return 1 in this case, otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
+{
+  const int * const mask = atom->mask;
+  const double * const * const x = atom->x;
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  reg->prematch();
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((mask[i] & groupbit) && (body[i] >= 0)
+            && reg->match(x[i][0],x[i][1],x[i][2])) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if the atoms in the selection list (length atom->nlocal,
+   content: 1 if atom is contained, 0 if not) overlap with currently
+   existing rigid fixes. return 1 in this case otherwise 0
+------------------------------------------------------------------------- */
+
+int Modify::check_rigid_list_overlap(int *select)
+{
+  const int nlocal = atom->nlocal;
+  int dim;
+
+  int n = 0;
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+      const int * const body = (const int *)fix[ifix]->extract("body",dim);
+      if ((body == NULL) || (dim != 1)) break;
+
+      for (int i=0; (i < nlocal) && (n == 0); ++i)
+        if ((body[i] >= 0) && select[i]) ++n;
+    }
+  }
+
+  int n_all = 0;
+  MPI_Allreduce(&n,&n_all,1,MPI_INT,MPI_SUM,world);
+
+  if (n_all > 0) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -971,20 +1116,26 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
-      }
+        delete[] compute[ncompute]->style;
+        compute[ncompute]->style = estyle;
+      } else delete[] estyle;
     }
     if (compute[ncompute] == NULL && lmp->suffix2) {
-      char estyle[256];
+      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
+      char *estyle = new char[n];
       sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
-      }
+        delete[] compute[ncompute]->style;
+        compute[ncompute]->style = estyle;
+      } else delete[] estyle;
     }
   }
 
@@ -994,7 +1145,11 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL) error->all(FLERR,"Unknown compute style");
+  if (compute[ncompute] == NULL) {
+    char str[128];
+    sprintf(str,"Unknown compute style %s",arg[2]);
+    error->all(FLERR,str);
+  }
 
   ncompute++;
 }

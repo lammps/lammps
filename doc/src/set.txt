@@ -20,11 +20,11 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
           {quat/random} or {diameter} or {shape} or \
           {length} or {tri} or {theta} or {theta/random} or \
           {angmom} or {omega} or \
-          {mass} or {density} or {volume} or {image} or \
+          {mass} or {density} or {density/disc} or {volume} or {image} or \
           {bond} or {angle} or {dihedral} or {improper} or \
           {meso/e} or {meso/cv} or {meso/rho} or \
           {smd/contact/radius} or {smd/mass/density} or {dpd/theta} or \
-          {i_name} or {d_name} :l
+          {edpd/temp} or {edpd/cv} or {cc} or {i_name} or {d_name} :l
   {type} value = atom type
     value can be an atom-style variable (see below)
   {type/fraction} values = type fraction seed
@@ -72,12 +72,15 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
     any of wx,wy,wz can be an atom-style variable (see below)
   {mass} value = per-atom mass (mass units)
     value can be an atom-style variable (see below)
-  {density} value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
+  {density} value = particle density for a sphere or ellipsoid (mass/distance^3 units), or for a triangle (mass/distance^2 units) or line (mass/distance units) particle
+    value can be an atom-style variable (see below)
+  {density/disc} value = particle density for a 2d disc or ellipse (mass/distance^2 units)
     value can be an atom-style variable (see below)
   {volume} value = particle volume for Peridynamic particle (distance^3 units)
     value can be an atom-style variable (see below)
   {image} nx ny nz
     nx,ny,nz = which periodic image of the simulation box the atom is in
+    any of nx,ny,nz can be an atom-style variable (see below)
   {bond} value = bond type for all bonds between selected atoms
   {angle} value = angle type for all angles between selected atoms
   {dihedral} value = dihedral type for all dihedrals between selected atoms
@@ -95,6 +98,13 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {dpd/theta} value = internal temperature of DPD particles (temperature units)
     value can be an atom-style variable (see below)
     value can be NULL which sets internal temp of each particle to KE temp
+  {edpd/temp} value = temperature of eDPD particles (temperature units)
+    value can be an atom-style variable (see below)
+  {edpd/cv} value = volumetric heat capacity of eDPD particles (energy/temperature/volume units)
+    value can be an atom-style variable (see below)
+  {cc} values = index cc
+    index = index of a chemical species (1 to Nspecies)
+    cc = chemical concentration of tDPD particles for a species (mole/volume units)
   {i_name} value = value for custom integer vector with name
   {d_name} value = value for custom floating-point vector with name :pre
 :ule
@@ -318,23 +328,36 @@ must have a per-atom mass attribute, as defined by the
 "atom_style"_atom_style.html command.  See the "mass" command for how
 to set mass values on a per-type basis.
 
-Keyword {density} also sets the mass of all selected particles, but in
-a different way.  The particles must have a per-atom mass attribute,
-as defined by the "atom_style"_atom_style.html command.  If the atom
-has a radius attribute (see "atom_style sphere"_atom_style.html) and
-its radius is non-zero, its mass is set from the density and particle
-volume.  If the atom has a shape attribute (see "atom_style
+Keyword {density} or {density/disc} also sets the mass of all selected
+particles, but in a different way.  The particles must have a per-atom
+mass attribute, as defined by the "atom_style"_atom_style.html
+command.  If the atom has a radius attribute (see "atom_style
+sphere"_atom_style.html) and its radius is non-zero, its mass is set
+from the density and particle volume for 3d systems (the input density
+is assumed to be in mass/distance^3 units).  For 2d, the default is
+for LAMMPS to model particles with a radius attribute as spheres.
+However, if the {density/disc} keyword is used, then they can be
+modeled as 2d discs (circles).  Their mass is set from the density and
+particle area (the input density is assumed to be in mass/distance^2
+units).
+
+If the atom has a shape attribute (see "atom_style
 ellipsoid"_atom_style.html) and its 3 shape parameters are non-zero,
-then its mass is set from the density and particle volume.  If the
-atom has a length attribute (see "atom_style line"_atom_style.html)
-and its length is non-zero, then its mass is set from the density and
-line segment length (the input density is assumed to be in
-mass/distance units).  If the atom has an area attribute (see
-"atom_style tri"_atom_style.html) and its area is non-zero, then its
-mass is set from the density and triangle area (the input density is
-assumed to be in mass/distance^2 units).  If none of these cases are
-valid, then the mass is set to the density value directly (the input
-density is assumed to be in mass units).
+then its mass is set from the density and particle volume (the input
+density is assumed to be in mass/distance^3 units).  The
+{density/disc} keyword has no effect; it does not (yet) treat 3d
+ellipsoids as 2d ellipses.
+
+If the atom has a length attribute (see "atom_style
+line"_atom_style.html) and its length is non-zero, then its mass is
+set from the density and line segment length (the input density is
+assumed to be in mass/distance units).  If the atom has an area
+attribute (see "atom_style tri"_atom_style.html) and its area is
+non-zero, then its mass is set from the density and triangle area (the
+input density is assumed to be in mass/distance^2 units).
+
+If none of these cases are valid, then the mass is set to the density
+value directly (the input density is assumed to be in mass units).
 
 Keyword {volume} sets the volume of all selected particles.
 Currently, only the "atom_style peri"_atom_style.html command defines
@@ -348,9 +371,8 @@ A value of -1 means subtract 1 box length to get the true value.
 LAMMPS updates these flags as atoms cross periodic boundaries during
 the simulation.  The flags can be output with atom snapshots via the
 "dump"_dump.html command.  If a value of NULL is specified for any of
-nx,ny,nz, then the current image value for that dimension is
-unchanged.  For non-periodic dimensions only a value of 0 can be
-specified.  This keyword does not allow use of atom-style variables.
+nx,ny,nz, then the current image value for that dimension is unchanged.
+For non-periodic dimensions only a value of 0 can be specified.
 This command can be useful after a system has been equilibrated and
 atoms have diffused one or more box lengths in various directions.
 This command can then reset the image values for atoms so that they
@@ -374,7 +396,7 @@ header of the data file read by the "read_data"_read_data.html
 command.  These keywords do not allow use of an atom-style variable.
 
 Keywords {meso/e}, {meso/cv}, and {meso/rho} set the energy, heat
-capacity, and density of smmothed particle hydrodynamics (SPH)
+capacity, and density of smoothed particle hydrodynamics (SPH)
 particles.  See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to
 using SPH in LAMMPS.
 
@@ -402,6 +424,19 @@ variable, then the variable is evaluated for each particle.  If a
 value >= 0.0, the internal temperature is set to that value.  If it is
 < 0.0, the computation of Tkin is performed and the internal
 temperature is set to that value.
+
+Keywords {edpd/temp} and {edpd/cv} set the temperature and volumetric
+heat capacity of an eDPD particle as defined by the USER-MESO package.
+Currently, only "atom_style edpd"_atom_style.html defines particles
+with these attributes. The values for the temperature and heat
+capacity must be positive.
+
+Keyword {cc} sets the chemical concentration of a tDPD particle for a
+specified species as defined by the USER-MESO package. Currently, only
+"atom_style tdpd"_atom_style.html defines particles with this
+attribute. An integer for "index" selects a chemical species (1 to
+Nspecies) where Nspecies is set by the atom_style command. The value
+for the chemical concentration must be >= 0.0.
 
 Keywords {i_name} and {d_name} refer to custom integer and
 floating-point properties that have been added to each atom via the

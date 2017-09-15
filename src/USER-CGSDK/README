@@ -1,0 +1,38 @@
+This package implements 3 commands which can be used in a LAMMPS input
+script:
+
+pair_style lj/sdk
+pair_style lj/sdk/coul/long
+angle_style sdk
+
+These styles allow coarse grained MD simulations with the
+parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007)
+(SDK), with extensions to simulate ionic liquids, electrolytes,
+lipids and charged amino acids.
+
+See the doc pages for these commands for details.
+
+There are example scripts for using this package in
+examples/USER/cgsdk
+
+This is the second generation implementation reducing the the clutter
+of the previous version. For many systems with long range
+electrostatics, it will be faster to use pair_style hybrid/overlay
+with lj/sdk and coul/long instead of the combined lj/sdk/coul/long
+style, since the number of charged atom types is usually small.
+To exploit this property, the use of the kspace_style pppm/cg is
+recommended over regular pppm.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+ 
+---------------------------------
+
+Thanks for contributions, support and testing goes to
+
+Wataru Shinoda (Nagoya University)
+Russell DeVane (Procter & Gamble)
+Michael L. Klein (Temple University, Philadelphia)
+Balasubramanian Sundaram (JNCASR, Bangalore)
+
+version: 1.0 / 2017-04-26

@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfRespaNsqNewtonOmp::NPairHalfRespaNsqNewtonOmp(LAMMPS *lmp) : 
+NPairHalfRespaNsqNewtonOmp::NPairHalfRespaNsqNewtonOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------

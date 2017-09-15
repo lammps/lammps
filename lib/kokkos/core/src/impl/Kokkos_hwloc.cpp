@@ -207,7 +207,7 @@ unsigned thread_mapping( const char * const label ,
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 
-#if defined( KOKKOS_HAVE_HWLOC )
+#if defined( KOKKOS_ENABLE_HWLOC )
 
 #include <iostream>
 #include <sstream>
@@ -691,7 +691,7 @@ std::pair<unsigned,unsigned> get_this_thread_coordinate()
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#else /* ! defined( KOKKOS_HAVE_HWLOC ) */
+#else /* ! defined( KOKKOS_ENABLE_HWLOC ) */
 
 namespace Kokkos {
 namespace hwloc {
@@ -722,5 +722,4 @@ std::pair<unsigned,unsigned> get_this_thread_coordinate()
 //----------------------------------------------------------------------------
 
 #endif
-
 

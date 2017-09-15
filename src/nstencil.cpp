@@ -13,6 +13,7 @@
 
 #include "nstencil.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "nbin.h"
 #include "atom.h"
 #include "update.h"
@@ -56,11 +57,9 @@ enum{NSQ,BIN,MULTI};     // also in Neighbor
 
 NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
 {
-  last_create = last_stencil_memory = -1;
-  last_copy_bin = -1;
+  last_stencil = -1;
 
   xyzflag = 0;
-
   maxstencil = maxstencil_multi = 0;
   stencil = NULL;
   stencilxyz = NULL;
@@ -90,6 +89,14 @@ NStencil::~NStencil()
   delete [] distsq_multi;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void NStencil::post_constructor(NeighRequest *nrq)
+{
+  cutoff_custom = 0.0;
+  if (nrq->cut) cutoff_custom = nrq->cutoff;
+}
+
 /* ----------------------------------------------------------------------
    copy needed info from Neighbor class to this stencil class
 ------------------------------------------------------------------------- */
@@ -100,6 +107,14 @@ void NStencil::copy_neighbor_info()
   cutneighmax = neighbor->cutneighmax;
   cutneighmaxsq = neighbor->cutneighmaxsq;
   cuttypesq = neighbor->cuttypesq;
+
+  // overwrite Neighbor cutoff with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) {
+    cutneighmax = cutoff_custom;
+    cutneighmaxsq = cutneighmax * cutneighmax;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -126,10 +141,8 @@ void NStencil::copy_bin_info()
 
 void NStencil::create_setup()
 {
-  if (nb && last_copy_bin < nb->last_setup) {
-    copy_bin_info();
-    last_copy_bin = update->ntimestep;
-  }
+  if (nb) copy_bin_info();
+  last_stencil = update->ntimestep;
 
   // sx,sy,sz = max range of stencil in each dim
   // smax = max possible size of entire 3d stencil
@@ -157,7 +170,6 @@ void NStencil::create_setup()
         memory->destroy(stencilxyz);
         memory->create(stencilxyz,maxstencil,3,"neighstencil:stencilxyz");
       }
-      last_stencil_memory = update->ntimestep;
     }
 
   } else {
@@ -172,7 +184,6 @@ void NStencil::create_setup()
         stencil_multi[i] = NULL;
         distsq_multi[i] = NULL;
       }
-      last_stencil_memory = update->ntimestep;
     }
     if (smax > maxstencil_multi) {
       maxstencil_multi = smax;
@@ -183,12 +194,9 @@ void NStencil::create_setup()
                        "neighstencil:stencil_multi");
         memory->create(distsq_multi[i],maxstencil_multi,
                        "neighstencil:distsq_multi");
-        last_stencil_memory = update->ntimestep;
       }
     }
   }
-
-  last_create = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------

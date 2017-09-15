@@ -23,7 +23,7 @@
 #include "fix_reaxc_species_kokkos.h"
 #include "domain.h"
 #include "update.h"
-#include "pair_reax_c_kokkos.h"
+#include "pair_reaxc_kokkos.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -48,7 +48,7 @@ FixReaxCSpeciesKokkos::FixReaxCSpeciesKokkos(LAMMPS *lmp, int narg, char **arg) 
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  
+
   // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added
 
   datamask_read = X_MASK | V_MASK | Q_MASK | MASK_MASK;
@@ -66,7 +66,7 @@ FixReaxCSpeciesKokkos::~FixReaxCSpeciesKokkos()
 
 void FixReaxCSpeciesKokkos::init()
 {
-  Pair* pair_kk = force->pair_match("reax/c/kk",1);
+  Pair* pair_kk = force->pair_match("reax/c/kk",0);
   if (pair_kk == NULL) error->all(FLERR,"Cannot use fix reax/c/species/kk without "
                   "pair_style reax/c/kk");
 
@@ -116,35 +116,30 @@ void FixReaxCSpeciesKokkos::FindMolecule()
       done = 1;
 
       for (ii = 0; ii < inum; ii++) {
-      	i = ilist[ii];
-      	if (!(mask[i] & groupbit)) continue;
+        i = ilist[ii];
+        if (!(mask[i] & groupbit)) continue;
 
-      	itype = atom->type[i];
+        itype = atom->type[i];
 
         for (jj = 0; jj < MAXSPECBOND; jj++) {
-      	  j = reaxc->tmpid[i][jj];
+          j = reaxc->tmpid[i][jj];
 
-      	  if (j < i) continue;
-      	  if (!(mask[j] & groupbit)) continue;
+          if ((j == 0) && (j < i)) continue;
+          if (!(mask[j] & groupbit)) continue;
 
-      	  if (clusterID[i] == clusterID[j] && PBCconnected[i] == PBCconnected[j]
-	    && x0[i].x == x0[j].x && x0[i].y == x0[j].y && x0[i].z == x0[j].z) continue;
+          if (clusterID[i] == clusterID[j]
+            && x0[i].x == x0[j].x && x0[i].y == x0[j].y && x0[i].z == x0[j].z) continue;
 
           jtype = atom->type[j];
-      	  bo_cut = BOCut[itype][jtype];
-      	  bo_tmp = spec_atom[i][jj+7];
+          bo_cut = BOCut[itype][jtype];
+          bo_tmp = spec_atom[i][jj+7];
 
-      	  if (bo_tmp > bo_cut) {
+          if (bo_tmp > bo_cut) {
             clusterID[i] = clusterID[j] = MIN(clusterID[i], clusterID[j]);
-            PBCconnected[i] = PBCconnected[j] = MAX(PBCconnected[i], PBCconnected[j]);
             x0[i] = x0[j] = chAnchor(x0[i], x0[j]);
-            if ((fabs(spec_atom[i][1] - spec_atom[j][1]) > reaxc->control->bond_cut)
-             || (fabs(spec_atom[i][2] - spec_atom[j][2]) > reaxc->control->bond_cut)
-             || (fabs(spec_atom[i][3] - spec_atom[j][3]) > reaxc->control->bond_cut))
-              PBCconnected[i] = PBCconnected[j] = 1;
-      	    done = 0;
-      	  }
-      	}
+            done = 0;
+          }
+        }
       }
       if (!done) change = 1;
       if (done) break;

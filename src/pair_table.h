@@ -30,19 +30,19 @@ class PairTable : public Pair {
   virtual ~PairTable();
 
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual double single(int, int, int, int, double, double, double, double &);
   void *extract(const char *, int &);
 
- protected:
   enum{LOOKUP,LINEAR,SPLINE,BITMAP};
 
+ protected:
   int tabstyle,tablength;
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;
@@ -58,16 +58,16 @@ class PairTable : public Pair {
 
   int **tabindex;
 
-  void allocate();
+  virtual void allocate();
   void read_table(Table *, char *, char *);
   void param_extract(Table *, char *);
   void bcast_table(Table *);
   void spline_table(Table *);
-  void compute_table(Table *);
+  virtual void compute_table(Table *);
   void null_table(Table *);
   void free_table(Table *);
-  void spline(double *, double *, int, double, double, double *);
-  double splint(double *, double *, double *, int, double);
+  static void spline(double *, double *, int, double, double, double *);
+  static double splint(double *, double *, double *, int, double);
 };
 
 }

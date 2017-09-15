@@ -101,7 +101,7 @@ positions.
 For the {random} style, N particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
-speficied random number {seed}, resulting in the same set of particles
+specified random number {seed}, resulting in the same set of particles
 coordinates, independent of how many processors are being used in the
 simulation.  If the {region-ID} argument is specified as NULL, then
 the created particles will be anywhere in the simulation box.  If a
@@ -133,6 +133,17 @@ In all these cases, care should be taken to insure that new atoms do
 not overlap existing atoms inappropriately, especially if molecules
 are being added.  The "delete_atoms"_delete_atoms.html command can be
 used to remove overlapping atoms or molecules.
+
+NOTE: You cannot use any of the styles explained above to create atoms
+that are outside the simulation box; they will just be ignored by
+LAMMPS.  This is true even if you are using shrink-wrapped box
+boundaries, as specified by the "boundary"_boundary.html command.
+However, you can first use the "change_box"_change_box.html command to
+temporarily expand the box, then add atoms via create_atoms, then
+finally use change_box command again if needed to re-shrink-wrap the
+new atoms.  See the "change_box"_change_box.html doc page for an
+example of how to do this, using the create_atoms {single} style to
+insert a new atom outside the current simulation box.
 
 :line
 

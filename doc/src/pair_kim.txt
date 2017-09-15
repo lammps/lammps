@@ -27,13 +27,34 @@ pair_coeff * * Ar Ar :pre
 [Description:]
 
 This pair style is a wrapper on the "Knowledge Base for Interatomic
-Models (KIM)"_https://openkim.org repository of interatomic potentials,
-so that they can be used by LAMMPS scripts.
+Models (OpenKIM)"_https://openkim.org repository of interatomic
+potentials, so that they can be used by LAMMPS scripts.
 
-In KIM lingo, a potential is a "model" and a model contains both the
-analytic formulas that define the potential as well as the parameters
-needed to run it for one or more materials, including coefficients and
-cutoffs.
+Note that in LAMMPS lingo, a KIM model driver is a pair style
+(e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
+element or alloy and set of parameters, e.g. EAM for Cu with a
+specific EAM potential file.
+
+See the current list of "KIM model
+drivers"_https://openkim.org/kim-items/model-drivers/alphabetical.
+
+See the current list of all "KIM
+models"_https://openkim.org/kim-items/models/by-model-drivers
+
+See the list of "example KIM models"_https://openkim.org/kim-api which
+are included in the KIM library by default, in the "What is in the KIM
+API source package?" section.
+
+To use this pair style, you must first download and install the KIM
+API library from the "OpenKIM website"_https://openkim.org.  The "KIM
+section of Section packages"_Section_packages.html#KIM has
+instructions on how to do this with a simple make command, when
+building LAMMPS.
+
+See the examples/kim dir for an input script that uses a KIM model
+(potential) for Lennard-Jones.
+
+:line
 
 The argument {virialmode} determines how the global virial is
 calculated.  If {KIMvirial} is specified, the KIM model performs the
@@ -46,7 +67,7 @@ model.  You should get an error or warning message from either LAMMPS
 or KIM if there is an incompatibility.
 
 The argument {printflag} is optional.  If it is set to a non-zero
-value then a KIM dsecriptor file is printed when KIM is invoked.  This
+value then a KIM descriptor file is printed when KIM is invoked.  This
 can be useful for debugging.  The default is to not print this file.
 
 Only a single pair_coeff command is used with the {kim} style which

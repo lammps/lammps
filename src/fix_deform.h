@@ -35,6 +35,8 @@ class FixDeform : public Fix {
   void init();
   virtual void pre_exchange();
   virtual void end_of_step();
+  virtual void write_restart(FILE *);
+  virtual void restart(char *buf);
   double memory_usage();
 
  protected:
@@ -107,7 +109,7 @@ Only one fix deform can be defined at a time.
 
 E: Variable name for fix deform does not exist
 
-Self-explantory.
+Self-explanatory.
 
 E: Variable for fix deform is invalid style
 

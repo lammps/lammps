@@ -33,7 +33,7 @@ pair_coeff * 3 morse.table ENTRY1 7.0 :pre
 
 Style {table} creates interpolation tables from potential energy and
 force values listed in a file(s) as a function of distance.  When
-performing dynamics or minimation, the interpolation tables are used
+performing dynamics or minimization, the interpolation tables are used
 to evaluate energy and forces for pairwise interactions between
 particles, similar to how analytic formulas are used for other pair
 styles.
@@ -64,7 +64,7 @@ computes the energy or force.
 For the {bitmap} style, the specified {N} is used to create
 interpolation tables that are 2^N in length.  The distance {R} is used
 to index into the table via a fast bit-mapping technique due to
-"(Wolff)"_#Wolff, and a linear interpolation is performed between
+"(Wolff)"_#Wolff2, and a linear interpolation is performed between
 adjacent table values.
 
 The following coefficients must be defined for each pair of atoms
@@ -180,7 +180,7 @@ NOTE: If you use "R" or "RSQ", the tabulated distance values in the
 file are effectively ignored, and replaced by new values as described
 in the previous paragraph.  If the distance value in the table is not
 very close to the new value (i.e. round-off difference), then you will
-be assingning energy/force values to a different distance, which is
+be assigning energy/force values to a different distance, which is
 probably not what you want.  LAMMPS will warn if this is occurring.
 
 If used, the parameter "BITMAP" is also followed by 2 values {rlo} and
@@ -229,7 +229,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -268,5 +268,5 @@ This pair style can only be used via the {pair} keyword of the
 
 :line
 
-:link(Wolff)
+:link(Wolff2)
 [(Wolff)] Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).

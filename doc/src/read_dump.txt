@@ -15,11 +15,12 @@ read_dump file Nstep field1 field2 ... keyword values ... :pre
 file = name of dump file to read :ulb,l
 Nstep = snapshot timestep to read from file :l
 one or more fields may be appended :l
-field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {q} or {ix} or {iy} or {iz}
+field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {q} or {ix} or {iy} or {iz} or {fx} or {fy} or {fz}
   {x},{y},{z} = atom coordinates
   {vx},{vy},{vz} = velocity components
   {q} = charge
-  {ix},{iy},{iz} = image flags in each dimension :pre
+  {ix},{iy},{iz} = image flags in each dimension
+  {fx},{fy},{fz} = force components :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled} or {wrapped} or {format} :l
   {box} value = {yes} or {no} = replace simulation box with dump box
@@ -57,7 +58,7 @@ read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/
 
 Read atom information from a dump file to overwrite the current atom
 coordinates, and optionally the atom velocities and image flags and
-the simluation box dimensions.  This is useful for restarting a run
+the simulation box dimensions.  This is useful for restarting a run
 from a particular snapshot in a dump file.  See the
 "read_restart"_read_restart.html and "read_data"_read_data.html
 commands for alternative methods to do this.  Also see the
@@ -213,7 +214,7 @@ you wish to change this after the dump snapshot is read.
 If the {box} keyword is specified with a {yes} value, then the current
 simulation box dimensions are replaced by the dump snapshot box
 dimensions.  If the {box} keyword is specified with a {no} value, the
-current simulatoin box is unchanged.
+current simulation box is unchanged.
 
 If the {purge} keyword is specified with a {yes} value, then all
 current atoms in the system are deleted before any of the operations

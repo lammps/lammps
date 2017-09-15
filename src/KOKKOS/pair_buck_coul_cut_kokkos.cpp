@@ -92,7 +92,7 @@ void PairBuckCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
 
   // reallocate per-atom arrays if necessary
@@ -154,7 +154,7 @@ void PairBuckCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) virial_fdotr_compute();
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
@@ -261,7 +261,7 @@ void PairBuckCoulCutKokkos<DeviceType>::allocate()
   memory->create_kokkos(k_cut_coulsq,cut_coulsq,n+1,n+1,"pair:cut_coulsq");
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_buck_coul**,Kokkos::LayoutRight,DeviceType>("PairBuckCoulCut::params",n+1,n+1);
-  params = k_params.d_view;
+  params = k_params.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

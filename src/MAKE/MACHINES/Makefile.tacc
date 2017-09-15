@@ -53,7 +53,7 @@ MPI_LIB =	-lmpich -lpthread
 FFTW_INC = ${TACC_FFTW2_INC}
 FFTW_LIB = ${TACC_FFTW2_LIB}
 
-FFT_INC =       -DFFT_FFTW -I${FFTW_INC}
+FFT_INC =       -DFFT_FFTW2 -I${FFTW_INC}
 FFT_PATH =	-L${FFTW_LIB}
 FFT_LIB =	${FFTW_LIB}/libfftw.a
 

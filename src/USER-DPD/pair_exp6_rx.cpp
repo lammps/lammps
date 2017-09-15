@@ -35,6 +35,12 @@ using namespace MathSpecial;
 #define MAXLINE 1024
 #define DELTA 4
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
 #define oneFluidApproxParameter (-1)
 #define isOneFluidApprox(_site) ( (_site) == oneFluidApproxParameter )
 
@@ -47,17 +53,17 @@ using namespace MathSpecial;
 struct PairExp6ParamDataType
 {
    int n;
-   double *epsilon1, *alpha1, *rm1, *fraction1,
-          *epsilon2, *alpha2, *rm2, *fraction2,
-          *epsilonOld1, *alphaOld1, *rmOld1, *fractionOld1,
-          *epsilonOld2, *alphaOld2, *rmOld2, *fractionOld2;
+   double *epsilon1, *alpha1, *rm1, *mixWtSite1,
+          *epsilon2, *alpha2, *rm2, *mixWtSite2,
+          *epsilonOld1, *alphaOld1, *rmOld1, *mixWtSite1old,
+          *epsilonOld2, *alphaOld2, *rmOld2, *mixWtSite2old;
 
    // Default constructor -- nullify everything.
    PairExp6ParamDataType(void)
-      : n(0), epsilon1(NULL), alpha1(NULL), rm1(NULL), fraction1(NULL),
-              epsilon2(NULL), alpha2(NULL), rm2(NULL), fraction2(NULL),
-              epsilonOld1(NULL), alphaOld1(NULL), rmOld1(NULL), fractionOld1(NULL),
-              epsilonOld2(NULL), alphaOld2(NULL), rmOld2(NULL), fractionOld2(NULL)
+      : n(0), epsilon1(NULL), alpha1(NULL), rm1(NULL), mixWtSite1(NULL),
+              epsilon2(NULL), alpha2(NULL), rm2(NULL), mixWtSite2(NULL),
+              epsilonOld1(NULL), alphaOld1(NULL), rmOld1(NULL), mixWtSite1old(NULL),
+              epsilonOld2(NULL), alphaOld2(NULL), rmOld2(NULL), mixWtSite2old(NULL)
    {}
 };
 
@@ -71,23 +77,33 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   mol2param = NULL;
+  fractionalWeighting = true;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairExp6rx::~PairExp6rx()
 {
-  for (int i=0; i < nparams; ++i) {
-    delete[] params[i].name;
-    delete[] params[i].potential;
+  if (copymode) return;
+
+  if (params != NULL) {
+    for (int i=0; i < nparams; ++i) {
+      delete[] params[i].name;
+      delete[] params[i].potential;
+    }
+    memory->destroy(params);
   }
-  memory->destroy(params);
   memory->destroy(mol2param);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cut);
+  }
+  if(scalingFlag == POLYNOMIAL){
+    memory->destroy(coeffAlpha);
+    memory->destroy(coeffEps);
+    memory->destroy(coeffRm);
   }
 }
 
@@ -130,10 +146,10 @@ void PairExp6rx::compute(int eflag, int vflag)
   double epsilon2_j,alpha2_j,rm2_j;
   double evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
   double evdwlEXP6_12, evdwlEXP6_21;
-  double fractionOld1_i, fractionOld1_j;
-  double fractionOld2_i, fractionOld2_j;
-  double fraction1_i, fraction1_j;
-  double fraction2_i, fraction2_j;
+  double mixWtSite1old_i, mixWtSite1old_j;
+  double mixWtSite2old_i, mixWtSite2old_j;
+  double mixWtSite1_i, mixWtSite1_j;
+  double mixWtSite2_i, mixWtSite2_j;
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
@@ -153,38 +169,38 @@ void PairExp6rx::compute(int eflag, int vflag)
      memory->create( PairExp6ParamData.epsilon1     , np_total, "PairExp6ParamData.epsilon1");
      memory->create( PairExp6ParamData.alpha1       , np_total, "PairExp6ParamData.alpha1");
      memory->create( PairExp6ParamData.rm1          , np_total, "PairExp6ParamData.rm1");
-     memory->create( PairExp6ParamData.fraction1    , np_total, "PairExp6ParamData.fraction1");
+     memory->create( PairExp6ParamData.mixWtSite1    , np_total, "PairExp6ParamData.mixWtSite1");
      memory->create( PairExp6ParamData.epsilon2     , np_total, "PairExp6ParamData.epsilon2");
      memory->create( PairExp6ParamData.alpha2       , np_total, "PairExp6ParamData.alpha2");
      memory->create( PairExp6ParamData.rm2          , np_total, "PairExp6ParamData.rm2");
-     memory->create( PairExp6ParamData.fraction2    , np_total, "PairExp6ParamData.fraction2");
+     memory->create( PairExp6ParamData.mixWtSite2    , np_total, "PairExp6ParamData.mixWtSite2");
      memory->create( PairExp6ParamData.epsilonOld1  , np_total, "PairExp6ParamData.epsilonOld1");
      memory->create( PairExp6ParamData.alphaOld1    , np_total, "PairExp6ParamData.alphaOld1");
      memory->create( PairExp6ParamData.rmOld1       , np_total, "PairExp6ParamData.rmOld1");
-     memory->create( PairExp6ParamData.fractionOld1 , np_total, "PairExp6ParamData.fractionOld1");
+     memory->create( PairExp6ParamData.mixWtSite1old , np_total, "PairExp6ParamData.mixWtSite1old");
      memory->create( PairExp6ParamData.epsilonOld2  , np_total, "PairExp6ParamData.epsilonOld2");
      memory->create( PairExp6ParamData.alphaOld2    , np_total, "PairExp6ParamData.alphaOld2");
      memory->create( PairExp6ParamData.rmOld2       , np_total, "PairExp6ParamData.rmOld2");
-     memory->create( PairExp6ParamData.fractionOld2 , np_total, "PairExp6ParamData.fractionOld2");
+     memory->create( PairExp6ParamData.mixWtSite2old , np_total, "PairExp6ParamData.mixWtSite2old");
 
      for (i = 0; i < np_total; ++i)
      {
-        getParamsEXP6 (i, PairExp6ParamData.epsilon1[i],
+        getMixingWeights (i, PairExp6ParamData.epsilon1[i],
                           PairExp6ParamData.alpha1[i],
                           PairExp6ParamData.rm1[i],
-                          PairExp6ParamData.fraction1[i],
+                          PairExp6ParamData.mixWtSite1[i],
                           PairExp6ParamData.epsilon2[i],
                           PairExp6ParamData.alpha2[i],
                           PairExp6ParamData.rm2[i],
-                          PairExp6ParamData.fraction2[i],
+                          PairExp6ParamData.mixWtSite2[i],
                           PairExp6ParamData.epsilonOld1[i],
                           PairExp6ParamData.alphaOld1[i],
                           PairExp6ParamData.rmOld1[i],
-                          PairExp6ParamData.fractionOld1[i],
+                          PairExp6ParamData.mixWtSite1old[i],
                           PairExp6ParamData.epsilonOld2[i],
                           PairExp6ParamData.alphaOld2[i],
                           PairExp6ParamData.rmOld2[i],
-                          PairExp6ParamData.fractionOld2[i]);
+                          PairExp6ParamData.mixWtSite2old[i]);
      }
   }
 
@@ -208,19 +224,19 @@ void PairExp6rx::compute(int eflag, int vflag)
        epsilon1_i     = PairExp6ParamData.epsilon1[i];
        alpha1_i       = PairExp6ParamData.alpha1[i];
        rm1_i          = PairExp6ParamData.rm1[i];
-       fraction1_i    = PairExp6ParamData.fraction1[i];
+       mixWtSite1_i    = PairExp6ParamData.mixWtSite1[i];
        epsilon2_i     = PairExp6ParamData.epsilon2[i];
        alpha2_i       = PairExp6ParamData.alpha2[i];
        rm2_i          = PairExp6ParamData.rm2[i];
-       fraction2_i    = PairExp6ParamData.fraction2[i];
+       mixWtSite2_i    = PairExp6ParamData.mixWtSite2[i];
        epsilonOld1_i  = PairExp6ParamData.epsilonOld1[i];
        alphaOld1_i    = PairExp6ParamData.alphaOld1[i];
        rmOld1_i       = PairExp6ParamData.rmOld1[i];
-       fractionOld1_i = PairExp6ParamData.fractionOld1[i];
+       mixWtSite1old_i = PairExp6ParamData.mixWtSite1old[i];
        epsilonOld2_i  = PairExp6ParamData.epsilonOld2[i];
        alphaOld2_i    = PairExp6ParamData.alphaOld2[i];
        rmOld2_i       = PairExp6ParamData.rmOld2[i];
-       fractionOld2_i = PairExp6ParamData.fractionOld2[i];
+       mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
     }
 
     for (jj = 0; jj < jnum; jj++) {
@@ -255,19 +271,19 @@ void PairExp6rx::compute(int eflag, int vflag)
            epsilon1_j     = PairExp6ParamData.epsilon1[j];
            alpha1_j       = PairExp6ParamData.alpha1[j];
            rm1_j          = PairExp6ParamData.rm1[j];
-           fraction1_j    = PairExp6ParamData.fraction1[j];
+           mixWtSite1_j    = PairExp6ParamData.mixWtSite1[j];
            epsilon2_j     = PairExp6ParamData.epsilon2[j];
            alpha2_j       = PairExp6ParamData.alpha2[j];
            rm2_j          = PairExp6ParamData.rm2[j];
-           fraction2_j    = PairExp6ParamData.fraction2[j];
+           mixWtSite2_j    = PairExp6ParamData.mixWtSite2[j];
            epsilonOld1_j  = PairExp6ParamData.epsilonOld1[j];
            alphaOld1_j    = PairExp6ParamData.alphaOld1[j];
            rmOld1_j       = PairExp6ParamData.rmOld1[j];
-           fractionOld1_j = PairExp6ParamData.fractionOld1[j];
+           mixWtSite1old_j = PairExp6ParamData.mixWtSite1old[j];
            epsilonOld2_j  = PairExp6ParamData.epsilonOld2[j];
            alphaOld2_j    = PairExp6ParamData.alphaOld2[j];
            rmOld2_j       = PairExp6ParamData.rmOld2[j];
-           fractionOld2_j = PairExp6ParamData.fractionOld2[j];
+           mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
         }
 
         // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
@@ -284,6 +300,13 @@ void PairExp6rx::compute(int eflag, int vflag)
         alpha21_ij = sqrt(alpha2_i*alpha1_j);
         rm21_ij = 0.5*(rm2_i + rm1_j);
         epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+
+        evdwlOldEXP6_12 = 0.0;
+        evdwlOldEXP6_21 = 0.0;
+        evdwlEXP6_12 = 0.0;
+        evdwlEXP6_21 = 0.0;
+        fpairOldEXP6_12 = 0.0;
+        fpairOldEXP6_21 = 0.0;
 
         if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
           if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
@@ -310,13 +333,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+            aRep = win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
-            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
+            forceExp6 = double(nRep)*aRep/powint(r,nRep);
             fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
             evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -350,13 +373,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+            aRep = win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
-            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
+            forceExp6 = double(nRep)*aRep/powint(r,nRep);
             fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
             evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -368,9 +391,9 @@ void PairExp6rx::compute(int eflag, int vflag)
           }
 
           if (isite1 == isite2)
-            evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12;
+            evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
           else
-            evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*evdwlOldEXP6_21;
+            evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
 
           evdwlOld *= factor_lj;
 
@@ -405,9 +428,9 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+            aRep = win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
@@ -437,9 +460,9 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
+            aRep = win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
@@ -447,33 +470,33 @@ void PairExp6rx::compute(int eflag, int vflag)
           } else {
             evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
-
-          //
-          // Apply Mixing Rule to get the overall force for the CG pair
-          //
-          if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12;
-          else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairOldEXP6_21;
-
-          f[i][0] += delx*fpair;
-          f[i][1] += dely*fpair;
-          f[i][2] += delz*fpair;
-          if (newton_pair || j < nlocal) {
-            f[j][0] -= delx*fpair;
-            f[j][1] -= dely*fpair;
-            f[j][2] -= delz*fpair;
-          }
-
-          if (isite1 == isite2) evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12;
-          else evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12 + sqrt(fraction2_i*fraction1_j)*evdwlEXP6_21;
-          evdwl *= factor_lj;
-
-          uCGnew[i]   += 0.5*evdwl;
-          if (newton_pair || j < nlocal)
-            uCGnew[j] += 0.5*evdwl;
-          evdwl = evdwlOld;
-          if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                               evdwl,0.0,fpair,delx,dely,delz);
         }
+
+        //
+        // Apply Mixing Rule to get the overall force for the CG pair
+        //
+        if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+        else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+        else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+        evdwl *= factor_lj;
+
+        uCGnew[i]   += 0.5*evdwl;
+        if (newton_pair || j < nlocal)
+          uCGnew[j] += 0.5*evdwl;
+        evdwl = evdwlOld;
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -484,19 +507,19 @@ void PairExp6rx::compute(int eflag, int vflag)
      if (PairExp6ParamData.epsilon1    ) memory->destroy(PairExp6ParamData.epsilon1);
      if (PairExp6ParamData.alpha1      ) memory->destroy(PairExp6ParamData.alpha1);
      if (PairExp6ParamData.rm1         ) memory->destroy(PairExp6ParamData.rm1);
-     if (PairExp6ParamData.fraction1   ) memory->destroy(PairExp6ParamData.fraction1);
+     if (PairExp6ParamData.mixWtSite1   ) memory->destroy(PairExp6ParamData.mixWtSite1);
      if (PairExp6ParamData.epsilon2    ) memory->destroy(PairExp6ParamData.epsilon2);
      if (PairExp6ParamData.alpha2      ) memory->destroy(PairExp6ParamData.alpha2);
      if (PairExp6ParamData.rm2         ) memory->destroy(PairExp6ParamData.rm2);
-     if (PairExp6ParamData.fraction2   ) memory->destroy(PairExp6ParamData.fraction2);
+     if (PairExp6ParamData.mixWtSite2   ) memory->destroy(PairExp6ParamData.mixWtSite2);
      if (PairExp6ParamData.epsilonOld1 ) memory->destroy(PairExp6ParamData.epsilonOld1);
      if (PairExp6ParamData.alphaOld1   ) memory->destroy(PairExp6ParamData.alphaOld1);
      if (PairExp6ParamData.rmOld1      ) memory->destroy(PairExp6ParamData.rmOld1);
-     if (PairExp6ParamData.fractionOld1) memory->destroy(PairExp6ParamData.fractionOld1);
+     if (PairExp6ParamData.mixWtSite1old) memory->destroy(PairExp6ParamData.mixWtSite1old);
      if (PairExp6ParamData.epsilonOld2 ) memory->destroy(PairExp6ParamData.epsilonOld2);
      if (PairExp6ParamData.alphaOld2   ) memory->destroy(PairExp6ParamData.alphaOld2);
      if (PairExp6ParamData.rmOld2      ) memory->destroy(PairExp6ParamData.rmOld2);
-     if (PairExp6ParamData.fractionOld2) memory->destroy(PairExp6ParamData.fractionOld2);
+     if (PairExp6ParamData.mixWtSite2old) memory->destroy(PairExp6ParamData.mixWtSite2old);
   }
 
 }
@@ -526,14 +549,24 @@ void PairExp6rx::allocate()
 
 void PairExp6rx::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(FLERR,arg[0]);
+
+  // optional keywords
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"fractional") == 0) fractionalWeighting = true;
+    else if (strcmp(arg[iarg],"molecular") == 0) fractionalWeighting = false;
+    else error->all(FLERR,"Illegal pair_style command");
+    iarg++;
+  }
 
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 
@@ -547,7 +580,7 @@ void PairExp6rx::settings(int narg, char **arg)
 
 void PairExp6rx::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 9) error->all(FLERR,"Incorrect args for pair coefficients");
 
   bool rx_flag = false;
   for (int i = 0; i < modify->nfix; i++)
@@ -624,21 +657,36 @@ void PairExp6rx::coeff(int narg, char **arg)
           params[iparam].potentialType = exp6PotentialType;
         else
           error->all(FLERR,"params[].potential type unknown");
-
-        //printf("params[%d].name= %s ispecies= %d potential= %s potentialType= %d\n", iparam, params[iparam].name, params[iparam].ispecies, params[iparam].potential, params[iparam].potentialType);
       }
   }
   delete[] site1;
   delete[] site2;
   site1 = site2 = NULL;
 
-  fuchslinR = force->numeric(FLERR,arg[5]);
-  fuchslinEpsilon = force->numeric(FLERR,arg[6]);
-
   setup();
 
   double cut_one = cut_global;
-  if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
+  if (strcmp(arg[5],"exponent") == 0){
+    scalingFlag = EXPONENT;
+    exponentR = force->numeric(FLERR,arg[6]);
+    exponentEpsilon = force->numeric(FLERR,arg[7]);
+    if (narg > 9) error->all(FLERR,"Incorrect args for pair coefficients");
+    if (narg == 9) cut_one = force->numeric(FLERR,arg[8]);
+  } else if (strcmp(arg[5],"polynomial") == 0){
+    scalingFlag = POLYNOMIAL;
+    memory->create(coeffAlpha,6,"pair:coeffAlpha");
+    memory->create(coeffEps,6,"pair:coeffEps");
+    memory->create(coeffRm,6,"pair:coeffRm");
+    read_file2(arg[6]);
+    if (narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
+    if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
+  } else if (strcmp(arg[5],"none") == 0){
+    scalingFlag = NONE;
+    if (narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
+    if (narg == 7) cut_one = force->numeric(FLERR,arg[6]);
+  } else {
+    error->all(FLERR,"Incorrect args for pair coefficients");
+  }
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -780,6 +828,95 @@ void PairExp6rx::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
+void PairExp6rx::read_file2(char *file)
+{
+  int params_per_line = 7;
+  char **words = new char*[params_per_line+1];
+
+  // open file on proc 0
+
+  FILE *fp;
+  fp = NULL;
+  if (comm->me == 0) {
+    fp = fopen(file,"r");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open polynomial file %s",file);
+      error->one(FLERR,str);
+    }
+  }
+
+  // one set of params can span multiple lines
+  int n,nwords;
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+
+  while (1) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fp);
+      if (ptr == NULL) {
+        eof = 1;
+        fclose(fp);
+      } else n = strlen(line) + 1;
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+    // strip comment, skip line if blank
+
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
+    nwords = atom->count_words(line);
+    if (nwords == 0) continue;
+
+    // concatenate additional lines until have params_per_line words
+
+    while (nwords < params_per_line) {
+      n = strlen(line);
+      if (comm->me == 0) {
+        ptr = fgets(&line[n],MAXLINE-n,fp);
+        if (ptr == NULL) {
+          eof = 1;
+          fclose(fp);
+        } else n = strlen(line) + 1;
+      }
+      MPI_Bcast(&eof,1,MPI_INT,0,world);
+      if (eof) break;
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      MPI_Bcast(line,n,MPI_CHAR,0,world);
+      if ((ptr = strchr(line,'#'))) *ptr = '\0';
+      nwords = atom->count_words(line);
+    }
+
+    if (nwords != params_per_line)
+      error->all(FLERR,"Incorrect format in polynomial file");
+
+    // words = ptrs to all words in line
+
+    nwords = 0;
+    words[nwords++] = strtok(line," \t\n\r\f");
+    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+
+    if (strcmp(words[0],"alpha") == 0){
+      for (int ii=1; ii<params_per_line; ii++)
+        coeffAlpha[ii-1] = atof(words[ii]);
+    }
+    if (strcmp(words[0],"epsilon") == 0){
+      for (int ii=1; ii<params_per_line; ii++)
+        coeffEps[ii-1] = atof(words[ii]);
+    }
+    if (strcmp(words[0],"rm") == 0){
+      for (int ii=1; ii<params_per_line; ii++)
+        coeffRm[ii-1] = atof(words[ii]);
+    }
+  }
+
+  delete [] words;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void PairExp6rx::setup()
 {
   int i,j,n;
@@ -877,7 +1014,7 @@ void PairExp6rx::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm1, double &fraction1,double &epsilon2,double &alpha2,double &rm2,double &fraction2,double &epsilon1_old,double &alpha1_old,double &rm1_old, double &fraction1_old,double &epsilon2_old,double &alpha2_old,double &rm2_old,double &fraction2_old) const
+void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double &rm1, double &mixWtSite1,double &epsilon2,double &alpha2,double &rm2,double &mixWtSite2,double &epsilon1_old,double &alpha1_old,double &rm1_old, double &mixWtSite1old,double &epsilon2_old,double &alpha2_old,double &rm2_old,double &mixWtSite2old) const
 {
   int iparam, jparam;
   double rmi, rmj, rmij, rm3ij;
@@ -885,10 +1022,15 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   double alphai, alphaj, alphaij;
   double epsilon_old, rm3_old, alpha_old;
   double epsilon, rm3, alpha;
-  double fractionOFA, fractionOFA_old;
-  double nTotalOFA, nTotalOFA_old;
-  double nTotal, nTotal_old;
   double xMolei, xMolej, xMolei_old, xMolej_old;
+
+  double fractionOFAold, fractionOFA;
+  double fractionOld1, fraction1;
+  double fractionOld2, fraction2;
+  double nMoleculesOFAold, nMoleculesOFA;
+  double nMoleculesOld1, nMolecules1;
+  double nMoleculesOld2, nMolecules2;
+  double nTotal, nTotalOld;
 
   rm3 = 0.0;
   epsilon = 0.0;
@@ -897,32 +1039,32 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   rm3_old = 0.0;
   alpha_old = 0.0;
   fractionOFA = 0.0;
-  fractionOFA_old = 0.0;
-  nTotalOFA = 0.0;
-  nTotalOFA_old = 0.0;
+  fractionOFAold = 0.0;
+  nMoleculesOFA = 0.0;
+  nMoleculesOFAold = 0.0;
   nTotal = 0.0;
-  nTotal_old = 0.0;
+  nTotalOld = 0.0;
 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
     nTotal += atom->dvector[ispecies][id];
-    nTotal_old += atom->dvector[ispecies+nspecies][id];
+    nTotalOld += atom->dvector[ispecies+nspecies][id];
 
     iparam = mol2param[ispecies];
 
     if (iparam < 0 || params[iparam].potentialType != exp6PotentialType ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == params[iparam].ispecies || isite2 == params[iparam].ispecies) continue;
-      nTotalOFA_old += atom->dvector[ispecies+nspecies][id];
-      nTotalOFA += atom->dvector[ispecies][id];
+      nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
+      nMoleculesOFA += atom->dvector[ispecies][id];
     }
   }
-  if(nTotal < 1e-8 || nTotal_old < 1e-8)
-    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
+  if(nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+    error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
-  fractionOFA_old = nTotalOFA_old / nTotal_old;
-  fractionOFA = nTotalOFA / nTotal;
+  fractionOFAold = nMoleculesOFAold / nTotalOld;
+  fractionOFA = nMoleculesOFA / nTotal;
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     iparam = mol2param[ispecies];
@@ -938,8 +1080,10 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       alpha1 = params[iparam].alpha;
 
       // Compute the mole fraction of Site1
-      fraction1_old = atom->dvector[ispecies+nspecies][id]/nTotal_old;
-      fraction1 = atom->dvector[ispecies][id]/nTotal;
+      nMoleculesOld1 = atom->dvector[ispecies+nspecies][id];
+      nMolecules1 = atom->dvector[ispecies][id];
+      fractionOld1 = nMoleculesOld1/nTotalOld;
+      fraction1 = nMolecules1/nTotal;
     }
 
     // If Site2 matches a pure species, then grab the parameters
@@ -952,18 +1096,22 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       alpha2 = params[iparam].alpha;
 
       // Compute the mole fraction of Site2
-      fraction2_old = atom->dvector[ispecies+nspecies][id]/nTotal_old;
+      nMoleculesOld2 = atom->dvector[ispecies+nspecies][id];
+      nMolecules2 = atom->dvector[ispecies][id];
+      fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fraction2 = atom->dvector[ispecies][id]/nTotal;
     }
 
-    // If Site1 or Site2 matches is a fluid, then compute the paramters
+    // If Site1 or Site2 matches is a fluid, then compute the parameters
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == params[iparam].ispecies || isite2 == params[iparam].ispecies) continue;
       rmi = params[iparam].rm;
       epsiloni = params[iparam].epsilon;
       alphai = params[iparam].alpha;
-      xMolei = atom->dvector[ispecies][id]/nTotalOFA;
-      xMolei_old = atom->dvector[ispecies+nspecies][id]/nTotalOFA_old;
+      if(nMoleculesOFA<MY_EPSILON) xMolei = 0.0;
+      else xMolei = atom->dvector[ispecies][id]/nMoleculesOFA;
+      if(nMoleculesOFAold<MY_EPSILON) xMolei_old = 0.0;
+      else xMolei_old = atom->dvector[ispecies+nspecies][id]/nMoleculesOFAold;
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
         jparam = mol2param[jspecies];
@@ -972,15 +1120,17 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
         rmj = params[jparam].rm;
         epsilonj = params[jparam].epsilon;
         alphaj = params[jparam].alpha;
-        xMolej = atom->dvector[jspecies][id]/nTotalOFA;
-        xMolej_old = atom->dvector[jspecies+nspecies][id]/nTotalOFA_old;
+        if(nMoleculesOFA<MY_EPSILON) xMolej = 0.0;
+        else xMolej = atom->dvector[jspecies][id]/nMoleculesOFA;
+        if(nMoleculesOFAold<MY_EPSILON) xMolej_old = 0.0;
+        else xMolej_old = atom->dvector[jspecies+nspecies][id]/nMoleculesOFAold;
 
         rmij = (rmi+rmj)/2.0;
         rm3ij = rmij*rmij*rmij;
         epsilonij = sqrt(epsiloni*epsilonj);
         alphaij = sqrt(alphai*alphaj);
 
-        if(fractionOFA_old > 0.0){
+        if(fractionOFAold > 0.0){
           rm3_old += xMolei_old*xMolej_old*rm3ij;
           epsilon_old += xMolei_old*xMolej_old*rm3ij*epsilonij;
           alpha_old += xMolei_old*xMolej_old*rm3ij*epsilonij*alphaij;
@@ -996,7 +1146,7 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
 
   if (isOneFluidApprox(isite1)){
     rm1 = cbrt(rm3);
-    if(rm1 < 1e-16) {
+    if(rm1 < MY_EPSILON) {
       rm1 = 0.0;
       epsilon1 = 0.0;
       alpha1 = 0.0;
@@ -1004,11 +1154,11 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       epsilon1 = epsilon / rm3;
       alpha1 = alpha / epsilon1 / rm3;
     }
-
+    nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
     fraction1 = fractionOFA;
 
     rm1_old = cbrt(rm3_old);
-    if(rm1_old < 1e-16) {
+    if(rm1_old < MY_EPSILON) {
       rm1_old = 0.0;
       epsilon1_old = 0.0;
       alpha1_old = 0.0;
@@ -1016,42 +1166,21 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       epsilon1_old = epsilon_old / rm3_old;
       alpha1_old = alpha_old / epsilon1_old / rm3_old;
     }
-    fraction1_old = fractionOFA_old;
+    nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
+    fractionOld1 = fractionOFAold;
 
-    // Fuchslin-Like Exp-6 Scaling
-    double powfuch = 0.0;
-    if(fuchslinEpsilon < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon1 = 0.0;
-      else epsilon1 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon1_old = 0.0;
-      else epsilon1_old *= 1.0/powfuch;
-
-    } else {
-      epsilon1 *= pow(nTotalOFA,fuchslinEpsilon);
-      epsilon1_old *= pow(nTotalOFA_old,fuchslinEpsilon);
-    }
-
-    if(fuchslinR < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinR);
-      if(powfuch<1e-15) rm1 = 0.0;
-      else rm1 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinR);
-      if(powfuch<1e-15) rm1_old = 0.0;
-      else rm1_old *= 1.0/powfuch;
-
-    } else {
-      rm1 *= pow(nTotalOFA,fuchslinR);
-      rm1_old *= pow(nTotalOFA_old,fuchslinR);
+    if(scalingFlag == EXPONENT){
+      exponentScaling(nMoleculesOFA,epsilon1,rm1);
+      exponentScaling(nMoleculesOFAold,epsilon1_old,rm1_old);
+    } else if(scalingFlag == POLYNOMIAL){
+      polynomialScaling(nMoleculesOFA,alpha1,epsilon1,rm1);
+      polynomialScaling(nMoleculesOFAold,alpha1_old,epsilon1_old,rm1_old);
     }
   }
 
   if (isOneFluidApprox(isite2)){
     rm2 = cbrt(rm3);
-    if(rm2 < 1e-16) {
+    if(rm2 < MY_EPSILON) {
       rm2 = 0.0;
       epsilon2 = 0.0;
       alpha2 = 0.0;
@@ -1059,10 +1188,11 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       epsilon2 = epsilon / rm3;
       alpha2 = alpha / epsilon2 / rm3;
     }
+    nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
     fraction2 = fractionOFA;
 
     rm2_old = cbrt(rm3_old);
-    if(rm2_old < 1e-16) {
+    if(rm2_old < MY_EPSILON) {
       rm2_old = 0.0;
       epsilon2_old = 0.0;
       alpha2_old = 0.0;
@@ -1070,38 +1200,96 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       epsilon2_old = epsilon_old / rm3_old;
       alpha2_old = alpha_old / epsilon2_old / rm3_old;
     }
-    fraction2_old = fractionOFA_old;
+    nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
+    fractionOld2 = fractionOFAold;
 
-    // Fuchslin-Like Exp-6 Scaling
-    double powfuch = 0.0;
-    if(fuchslinEpsilon < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon2 = 0.0;
-      else epsilon2 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinEpsilon);
-      if(powfuch<1e-15) epsilon2_old = 0.0;
-      else epsilon2_old *= 1.0/powfuch;
-
-    } else {
-      epsilon2 *= pow(nTotalOFA,fuchslinEpsilon);
-      epsilon2_old *= pow(nTotalOFA_old,fuchslinEpsilon);
-    }
-
-    if(fuchslinR < 0.0){
-      powfuch = pow(nTotalOFA,-fuchslinR);
-      if(powfuch<1e-15) rm2 = 0.0;
-      else rm2 *= 1.0/powfuch;
-
-      powfuch = pow(nTotalOFA_old,-fuchslinR);
-      if(powfuch<1e-15) rm2_old = 0.0;
-      else rm2_old *= 1.0/powfuch;
-
-    } else {
-      rm2 *= pow(nTotalOFA,fuchslinR);
-      rm2_old *= pow(nTotalOFA_old,fuchslinR);
+    if(scalingFlag == EXPONENT){
+      exponentScaling(nMoleculesOFA,epsilon2,rm2);
+      exponentScaling(nMoleculesOFAold,epsilon2_old,rm2_old);
+    } else if(scalingFlag == POLYNOMIAL){
+      polynomialScaling(nMoleculesOFA,alpha2,epsilon2,rm2);
+      polynomialScaling(nMoleculesOFAold,alpha2_old,epsilon2_old,rm2_old);
     }
   }
+
+  // Check that no fractions are less than zero
+  if(fraction1 < 0.0 || nMolecules1 < 0.0){
+    if(fraction1 < -MY_EPSILON || nMolecules1 < -MY_EPSILON){
+      error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
+    }
+    nMolecules1 = 0.0;
+    fraction1 = 0.0;
+  }
+  if(fraction2 < 0.0 || nMolecules2 < 0.0){
+    if(fraction2 < -MY_EPSILON || nMolecules2 < -MY_EPSILON){
+      error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
+    }
+    nMolecules2 = 0.0;
+    fraction2 = 0.0;
+  }
+  if(fractionOld1 < 0.0 || nMoleculesOld1 < 0.0){
+    if(fractionOld1 < -MY_EPSILON || nMoleculesOld1 < -MY_EPSILON){
+      error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
+    }
+    nMoleculesOld1 = 0.0;
+    fractionOld1 = 0.0;
+  }
+  if(fractionOld2 < 0.0 || nMoleculesOld2 < 0.0){
+    if(fractionOld2 < -MY_EPSILON || nMoleculesOld2 < -MY_EPSILON){
+      error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
+    }
+    nMoleculesOld2 = 0.0;
+    fractionOld2 = 0.0;
+  }
+
+  if(fractionalWeighting){
+    mixWtSite1old = fractionOld1;
+    mixWtSite1 = fraction1;
+    mixWtSite2old = fractionOld2;
+    mixWtSite2 = fraction2;
+  } else {
+    mixWtSite1old = nMoleculesOld1;
+    mixWtSite1 = nMolecules1;
+    mixWtSite2old = nMoleculesOld2;
+    mixWtSite2 = nMolecules2;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairExp6rx::exponentScaling(double phi, double &epsilon, double &rm) const
+{
+  double powfuch;
+
+  if(exponentEpsilon < 0.0){
+    powfuch = pow(phi,-exponentEpsilon);
+    if(powfuch<MY_EPSILON) epsilon = 0.0;
+    else epsilon *= 1.0/powfuch;
+  } else {
+    epsilon *= pow(phi,exponentEpsilon);
+  }
+
+  if(exponentR < 0.0){
+    powfuch = pow(phi,-exponentR);
+    if(powfuch<MY_EPSILON) rm = 0.0;
+    else rm *= 1.0/powfuch;
+  } else {
+    rm *= pow(phi,exponentR);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairExp6rx::polynomialScaling(double phi, double &alpha, double &epsilon, double &rm) const
+{
+    double phi2 = phi*phi;
+    double phi3 = phi2*phi;
+    double phi4 = phi2*phi2;
+    double phi5 = phi2*phi3;
+
+    alpha = (coeffAlpha[0]*phi5 + coeffAlpha[1]*phi4 + coeffAlpha[2]*phi3 + coeffAlpha[3]*phi2 + coeffAlpha[4]*phi + coeffAlpha[5]);
+    epsilon *= (coeffEps[0]*phi5 + coeffEps[1]*phi4 + coeffEps[2]*phi3 + coeffEps[3]*phi2 + coeffEps[4]*phi + coeffEps[5]);
+    rm *= (coeffRm[0]*phi5 + coeffRm[1]*phi4 + coeffRm[2]*phi3 + coeffRm[3]*phi2 + coeffRm[4]*phi + coeffRm[5]);
 }
 
 /* ---------------------------------------------------------------------- */

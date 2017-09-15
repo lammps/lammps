@@ -7,17 +7,21 @@
 :line
 
 pair_style multi/lucy/rx command :h3
+pair_style multi/lucy/rx/kk command :h3
 
 [Syntax:]
 
 pair_style multi/lucy/rx style N keyword ... :pre
 
 style = {lookup} or {linear} = method of interpolation
-N = use N values in {lookup}, {linear} tables :ul
+N = use N values in {lookup}, {linear} tables
+weighting = fractional or molecular (optional) :ul
 
 [Examples:]
 
 pair_style multi/lucy/rx linear 1000
+pair_style multi/lucy/rx linear 1000 fractional
+pair_style multi/lucy/rx linear 1000 molecular
 pair_coeff * * multibody.table ENTRY1 h2o h2o 7.0
 pair_coeff * * multibody.table ENTRY1 h2o 1fluid 7.0 :pre
 
@@ -30,8 +34,8 @@ equations through the "fix rx"_fix_rx.html command.  The species of
 one CG particle can interact with a species in a neighboring CG
 particle through a site-site interaction potential model.  Style
 {multi/lucy/rx} computes the site-site density-dependent force
-following from the many-body form described in "(Moore)"_#Moore and
-"(Warren)"_#Warren as
+following from the many-body form described in "(Moore)"_#Moore2 and
+"(Warren)"_#Warren2 as
 
 :c,image(Eqs/pair_multi_lucy.jpg)
 
@@ -45,8 +49,8 @@ The density-dependent energy for a given particle is given by:
 
 :c,image(Eqs/pair_multi_lucy_energy.jpg)
 
-See the supporting information of "(Brennan)"_#Brennan or the
-publication by "(Moore)"_#Moore for more details on the functional
+See the supporting information of "(Brennan)"_#Brennan2 or the
+publication by "(Moore)"_#Moore2 for more details on the functional
 form.
 
 An interpolation table is used to evaluate the density-dependent
@@ -94,8 +98,10 @@ tags must either correspond to the species defined in the reaction
 kinetics files specified with the "fix rx"_fix_rx.html command or they
 must correspond to the tag "1fluid", signifying interaction with a
 product species mixture determined through a one-fluid approximation.
-The interaction potential is weighted by the geometric average of the
-concentrations of the two species.  The coarse-grained potential is
+The interaction potential is weighted by the geometric average of
+either the mole fraction concentrations or the number of molecules
+associated with the interacting coarse-grained particles (see the
+{fractional} or {molecular} weighting pair style options). The coarse-grained potential is
 stored before and after the reaction kinetics solver is applied, where
 the difference is defined to be the internal chemical energy (uChem).
 
@@ -195,6 +201,29 @@ This pair style can only be used via the {pair} keyword of the
 
 :line
 
+Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "Section 5"_Section_accelerate.html
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section 5"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
+
+:line
+
 [Restrictions:]
 
 This command is part of the USER-DPD package.  It is only enabled if
@@ -205,16 +234,16 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 "pair_coeff"_pair_coeff.html
 
-[Default:] none
+[Default:] fractional weighting
 
 :line
 
-:link(Warren)
+:link(Warren2)
 [(Warren)] Warren, Phys Rev E, 68, 066702 (2003).
 
-:link(Brennan)
+:link(Brennan2)
 [(Brennan)] Brennan, J Chem Phys Lett, 5, 2144-2149 (2014).
 
-:link(Moore)
+:link(Moore2)
 [(Moore)] Moore, J Chem Phys, 144, 104501 (2016).
 

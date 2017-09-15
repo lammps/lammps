@@ -53,6 +53,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_extra = 0;
 
   dielectric = 1.0;
+  qqr2e_lammps_real = 332.06371;          // these constants are toggled
+  qqr2e_charmm_real = 332.0716;           // by new CHARMM pair styles
 
   pair = NULL;
   bond = NULL;
@@ -195,6 +197,8 @@ void Force::create_pair(const char *style, int trysuffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
+  pair_style = NULL;
+  pair = NULL;
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);
@@ -237,7 +241,10 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
     return pair_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown pair style");
+  char str[128];
+  sprintf(str,"Unknown pair style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -362,7 +369,10 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
     return bond_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown bond style");
+  char str[128];
+  sprintf(str,"Unknown bond style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -440,7 +450,10 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
     return angle_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown angle style");
+  char str[128];
+  sprintf(str,"Unknown angle style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -519,7 +532,10 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
     return dihedral_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown dihedral style");
+  char str[128];
+  sprintf(str,"Unknown dihedral style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -597,7 +613,10 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
     return improper_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown improper style");
+  char str[128];
+  sprintf(str,"Unknown improper style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -679,7 +698,10 @@ KSpace *Force::new_kspace(int narg, char **arg, int trysuffix, int &sflag)
     return kspace_creator(lmp, narg-1, &arg[1]);
   }
 
-  error->all(FLERR,"Unknown kspace style");
+  char str[128];
+  sprintf(str,"Unknown kspace style %s",arg[0]);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -811,10 +833,6 @@ void Force::set_special(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"yes") == 0) special_dihedral = 1;
       else error->all(FLERR,"Illegal special_bonds command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"extra") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_extra = atoi(arg[iarg+1]);
-      iarg += 2;
     } else error->all(FLERR,"Illegal special_bonds command");
   }
 
@@ -822,8 +840,6 @@ void Force::set_special(int narg, char **arg)
     if (special_lj[i] < 0.0 || special_lj[i] > 1.0 ||
         special_coul[i] < 0.0 || special_coul[i] > 1.0)
       error->all(FLERR,"Illegal special_bonds command");
-
-  if (special_extra < 0) error->all(FLERR,"Illegal special_bonds command");
 }
 
 /* ----------------------------------------------------------------------

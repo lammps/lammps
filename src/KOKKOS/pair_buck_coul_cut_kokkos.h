@@ -34,6 +34,7 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   PairBuckCoulCutKokkos(class LAMMPS *);
   ~PairBuckCoulCutKokkos();
 
@@ -44,7 +45,9 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   double init_one(int, int);
 
   struct params_buck_coul{
+    KOKKOS_INLINE_FUNCTION
     params_buck_coul(){cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    KOKKOS_INLINE_FUNCTION
     params_buck_coul(int i){cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     F_FLOAT cut_ljsq,cut_coulsq,a,c,rhoinv,buck1,buck2,offset;
   };
@@ -75,31 +78,31 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   Kokkos::DualView<params_buck_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_buck_coul**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  // hardwired to space for 15 atom types
+  // hardwired to space for 12 atom types
   params_buck_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_x_array c_x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread q;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_x_array c_x;
+  typename AT::t_f_array f;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_float_1d_randomread q;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
   int newton_pair;
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cut_ljsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cut_ljsq;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cut_coulsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cut_coulsq;
+  typename AT::tdual_ffloat_2d k_cutsq;
+  typename AT::t_ffloat_2d d_cutsq;
+  typename AT::tdual_ffloat_2d k_cut_ljsq;
+  typename AT::t_ffloat_2d d_cut_ljsq;
+  typename AT::tdual_ffloat_2d k_cut_coulsq;
+  typename AT::t_ffloat_2d d_cut_coulsq;
 
 
   int neighflag;
@@ -121,6 +124,7 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulCutKokkos,HALFTHREAD,void>(PairBuckCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairBuckCoulCutKokkos,void>(PairBuckCoulCutKokkos*,
                                                             NeighListKokkos<DeviceType>*);
+  friend void pair_virial_fdotr_compute<PairBuckCoulCutKokkos>(PairBuckCoulCutKokkos*);
 
 };
 

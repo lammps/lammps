@@ -7,6 +7,7 @@
 :line
 
 pair_style lj/long/coul/long command :h3
+pair_style lj/long/coul/long/intel command :h3
 pair_style lj/long/coul/long/omp command :h3
 pair_style lj/long/coul/long/opt command :h3
 pair_style lj/long/tip4p/long command :h3
@@ -72,12 +73,12 @@ used as cutoffs for the LJ and Coulombic terms respectively.
 The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r^6 Lennard-Jones and Coulombic 1/r
 interactions.  This is done by use of the {flag_lj} and {flag_coul}
-settings.  The "In 't Veld"_#Veld paper has more details on when it is
+settings.  The "In 't Veld"_#Veld2 paper has more details on when it is
 appropriate to include long-range 1/r^6 interactions, using this
 potential.
 
 Style {lj/long/tip4p/long} implements the TIP4P water model of
-"(Jorgensen)"_#Jorgensen, which introduces a massless site located a
+"(Jorgensen)"_#Jorgensen4, which introduces a massless site located a
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
 and angle types for OH and HOH interactions, and the distance to the
@@ -91,7 +92,7 @@ molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
 See the "howto section"_Section_howto.html#howto_8 for more
 information on how to use the TIP4P pair style.  Note that the
-neighobr list cutoff for Coulomb interactions is effectively extended
+neighbor list cutoff for Coulomb interactions is effectively extended
 by a distance 2*qdist when using the TIP4P pair style, to account for
 the offset distance of the fictitious charges on O atoms in water
 molecules.  Thus it is typically best in an efficiency sense to use a
@@ -167,7 +168,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -221,5 +222,9 @@ the KSPACE package is installed by default.
 
 :line
 
-:link(Veld)
+:link(Veld2)
 [(In 't Veld)] In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
+
+:link(Jorgensen4)
+[(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
+Phys, 79, 926 (1983).

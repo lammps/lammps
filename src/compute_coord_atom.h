@@ -31,7 +31,10 @@ class ComputeCoordAtom : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_peratom();
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   double memory_usage();
+  enum {NONE,CUTOFF,ORIENT};
 
  private:
   int nmax,ncol;
@@ -41,6 +44,12 @@ class ComputeCoordAtom : public Compute {
   int *typelo,*typehi;
   double *cvec;
   double **carray;
+
+  class ComputeOrientOrderAtom *c_orientorder;
+  char *id_orientorder;
+  double threshold;
+  double **normv;
+  int cstyle,nqlist,l;
 };
 
 }
@@ -58,7 +67,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute coord/atom requires a pair style be defined
 
-Self-explantory.
+Self-explanatory.
 
 E: Compute coord/atom cutoff is longer than pairwise cutoff
 

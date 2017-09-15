@@ -22,7 +22,7 @@ PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
 #ifndef LMP_PAIR_TABLE_KOKKOS_H
 #define LMP_PAIR_TABLE_KOKKOS_H
 
-#include "pair.h"
+#include "pair_table.h"
 #include "pair_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "atom_kokkos.h"
@@ -31,19 +31,20 @@ namespace LAMMPS_NS {
 
 template<class Device,int TABSTYLE>
 struct S_TableCompute {
-  enum {TabStyle = TABSTYLE};
+  static constexpr int TabStyle = TABSTYLE;
 };
 
 template <class DeviceType, int NEIGHFLAG, int TABSTYLE>
 class PairTableComputeFunctor;
 
 template<class DeviceType>
-class PairTableKokkos : public Pair {
+class PairTableKokkos : public PairTable {
  public:
 
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
   PairTableKokkos(class LAMMPS *);
   virtual ~PairTableKokkos();
@@ -53,50 +54,36 @@ class PairTableKokkos : public Pair {
   template<int TABSTYLE>
   void compute_style(int, int);
 
-  /*template<int EVFLAG, int NEIGHFLAG, int NEWTON_PAIR, int TABSTYLE>
-  KOKKOS_FUNCTION
-  EV_FLOAT compute_item(const int& i,
-                        const NeighListKokkos<DeviceType> &list) const;
-*/
   void settings(int, char **);
-  void coeff(int, char **);
   double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
 
   void init_style();
 
 
  protected:
-  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
 
-  int tabstyle,tablength;
   /*struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d_randomread tabindex;
-    typename ArrayTypes<DeviceType>::t_int_1d_randomread nshiftbits,nmask;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_ffloat_2d_randomread cutsq;
+    typename AT::t_int_2d_randomread tabindex;
+    typename AT::t_int_1d_randomread nshiftbits,nmask;
+    typename AT::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
+    typename AT::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
   };*/
  //Its faster not to use texture fetch if the number of tables is less than 32!
   struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
-    typename ArrayTypes<DeviceType>::t_int_1d nshiftbits,nmask;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_ffloat_2d cutsq;
+    typename AT::t_int_2d tabindex;
+    typename AT::t_int_1d nshiftbits,nmask;
+    typename AT::t_ffloat_1d innersq,invdelta,deltasq6;
+    typename AT::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
   };
 
   struct TableDevice {
-    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
-    typename ArrayTypes<DeviceType>::t_int_1d nshiftbits,nmask;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_ffloat_2d cutsq;
+    typename AT::t_int_2d tabindex;
+    typename AT::t_int_1d nshiftbits,nmask;
+    typename AT::t_ffloat_1d innersq,invdelta,deltasq6;
+    typename AT::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
   };
 
   struct TableHost {
@@ -107,43 +94,26 @@ class PairTableKokkos : public Pair {
     typename ArrayTypes<LMPHostType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
   };
 
-  struct Table {
-    int ninput,rflag,fpflag,match,ntablebits;
-    int nshiftbits,nmask;
-    double rlo,rhi,fplo,fphi,cut;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double innersq,delta,invdelta,deltasq6;
-    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
-  };
-  int ntables;
-  Table *tables;
   TableDeviceConst d_table_const;
   TableDevice* d_table;
   TableHost* h_table;
 
-  int **tabindex;
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+  typename AT::t_ffloat_2d d_cutsq;
 
-  void allocate();
-  void read_table(Table *, char *, char *);
-  void param_extract(Table *, char *);
-  void bcast_table(Table *);
-  void spline_table(Table *);
+  virtual void allocate();
   void compute_table(Table *);
-  void null_table(Table *);
-  void free_table(Table *);
-  void spline(double *, double *, int, double, double, double *);
-  double splint(double *, double *, double *, int, double);
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_x_array_const c_x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_x_array_const c_x;
+  typename AT::t_f_array f;
+  typename AT::t_int_1d_randomread type;
+
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
  protected:
   int nlocal,nall,eflag,vflag,neighflag,newton_pair;

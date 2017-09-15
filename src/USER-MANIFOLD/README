@@ -7,9 +7,13 @@ box). It achieves this using the RATTLE constraint algorithm applied
 to single-particle constraint functions g(xi,yi,zi) = 0 and their
 derivative (i.e. the normal of the manifold) n = grad(g).
 
-Stefan Paquay, s.paquay@tue.nl
-Applied Physics/Theory of Polymers and Soft Matter,
+Stefan Paquay, stefanpaquay@gmail.com
+
+until 2017: Applied Physics/Theory of Polymers and Soft Matter,
 Eindhoven University of Technology (TU/e), The Netherlands
+
+since 2017: Brandeis University, Waltham, MA, USA.
+
 
 Thanks to Remy Kusters at TU/e for testing.
 
@@ -31,7 +35,7 @@ To add a new manifold, do the following in the "USER-MANIFOLD" directory:
    e. The header file has to contain somewhere the macro ManifoldStyle with as
      first argument the name of the manifold and as second argument the name
      of the class implementing this manifold. The macro expands into some code
-     that registers the manifold during static initialisation, before main is
+     that registers the manifold during static initialization, before main is
      entered.
 
 2. In the source file, make sure you implement the following (of course,
@@ -51,7 +55,7 @@ To add a new manifold, do the following in the "USER-MANIFOLD" directory:
 |                                    | manifold in LAMMPS input scripts.       |
 |  const char *id()                  | Should return whatever type() returns.  |
 |  static int expected_argc()        | Returns the number of arguments needed  |
-|                                    | for the construction/initialisation of  |
+|                                    | for the construction/initialization of  |
 |                                    | your manifold. Example: Sphere only     |
 |                                    | needs a radius, so it returns 1. The    |
 |                                    | spine needs 5 parameters, so it         |

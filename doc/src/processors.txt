@@ -27,7 +27,7 @@ keyword = {grid} or {map} or {part} or {file} :l
   {map} arg = {cart} or {cart/reorder} or {xyz} or {xzy} or {yxz} or {yzx} or {zxy} or {zyx}
      cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
      cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
-     xyz,xzy,yxz,yzx,zxy,zyx = map procesors to 3d grid in IJK ordering
+     xyz,xzy,yxz,yzx,zxy,zyx = map processors to 3d grid in IJK ordering
   {numa} arg = none
   {part} args = Psend Precv cstyle
     Psend = partition # (1 to Np) which will send its processor layout
@@ -82,7 +82,7 @@ sub-domain.
 
 Also note that if multiple partitions are being used then P is the
 number of processors in this partition; see "this
-section"_Section_start.html#start_7 for an explanation of the
+section"_Section_start.html#start_6 for an explanation of the
 -partition command-line switch.  Also note that you can prefix the
 processors command with the "partition"_partition.html command to
 easily specify different Px,Py,Pz values for different partitions.
@@ -104,7 +104,7 @@ regular grid is initially created, regardless of which
 If load-balancing is never invoked via the "balance"_balance.html or
 "fix balance"_fix_balance.html commands, then the initial regular grid
 will persist for all simulations.  If balancing is performed, some of
-the methods invoked by those commands retain the logical toplogy of
+the methods invoked by those commands retain the logical topology of
 the initial 3d grid, and the mapping of processors to the grid
 specified by the processors command.  However the grid spacings in
 different dimensions may change, so that processors own sub-domains of
@@ -179,7 +179,7 @@ The first non-blank, non-comment line should have
 Px Py Py :pre
 
 These must be compatible with the total number of processors
-and the Px, Py, Pz settings of the processors commmand.
+and the Px, Py, Pz settings of the processors command.
 
 This line should be immediately followed by
 P = Px*Py*Pz lines of the form:
@@ -244,12 +244,12 @@ The {part} keyword affects the factorization of P into Px,Py,Pz.
 
 It can be useful when running in multi-partition mode, e.g. with the
 "run_style verlet/split"_run_style.html command.  It specifies a
-dependency bewteen a sending partition {Psend} and a receiving
+dependency between a sending partition {Psend} and a receiving
 partition {Precv} which is enforced when each is setting up their own
 mapping of their processors to the simulation box.  Each of {Psend}
 and {Precv} must be integers from 1 to Np, where Np is the number of
 partitions you have defined via the "-partition command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
 A "dependency" means that the sending partition will create its
 regular 3d grid as Px by Py by Pz and after it has done this, it will
@@ -271,7 +271,7 @@ processors, it could create a 4x2x10 grid, but it will not create a
 4.
 
 NOTE: If you use the "partition"_partition.html command to invoke
-different "processsors" commands on different partitions, and you also
+different "processors" commands on different partitions, and you also
 use the {part} keyword, then you must insure that both the sending and
 receiving partitions invoke the "processors" command that connects the
 2 partitions via the {part} keyword.  LAMMPS cannot easily check for
@@ -286,7 +286,7 @@ processors and their mapping to the 3d grid to the specified file
 processors in the manner you desired, which can be tricky to figure
 out, especially when running on multiple partitions or on, a multicore
 machine or when the processor ranks were reordered by use of the
-"-reorder command-line switch"_Section_start.html#start_7 or due to
+"-reorder command-line switch"_Section_start.html#start_6 or due to
 use of MPI-specific launch options such as a config file.
 
 If you have multiple partitions you should insure that each one writes
@@ -300,9 +300,9 @@ The IDs are the processor's rank in this simulation (the world), the
 universe (of multiple simulations), and the original MPI communicator
 used to instantiate LAMMPS, respectively.  The world and universe IDs
 will only be different if you are running on more than one partition;
-see the "-partition command-line switch"_Section_start.html#start_7.
+see the "-partition command-line switch"_Section_start.html#start_6.
 The universe and original IDs will only be different if you used the
-"-reorder command-line switch"_Section_start.html#start_7 to reorder
+"-reorder command-line switch"_Section_start.html#start_6 to reorder
 the processors differently than their rank in the original
 communicator LAMMPS was instantiated with.
 
@@ -332,7 +332,7 @@ The {part} keyword (for the receiving partition) only works with the
 
 [Related commands:]
 
-"partition"_partition.html, "-reorder command-line switch"_Section_start.html#start_7
+"partition"_partition.html, "-reorder command-line switch"_Section_start.html#start_6
 
 [Default:]
 

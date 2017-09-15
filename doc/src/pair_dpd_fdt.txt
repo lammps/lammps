@@ -8,6 +8,7 @@
 
 pair_style dpd/fdt command :h3
 pair_style dpd/fdt/energy command :h3
+pair_style dpd/fdt/energy/kk command :h3
 
 [Syntax:]
 
@@ -37,7 +38,7 @@ Styles {dpd/fdt} and {dpd/fdt/energy} compute the force for dissipative
 particle dynamics (DPD) simulations.  The {dpd/fdt} style is used to
 perform DPD simulations under isothermal and isobaric conditions,
 while the {dpd/fdt/energy} style is used to perform DPD simulations
-under isoenergetic and isoenthalpic conditions (see "(Lisal)"_#Lisal).
+under isoenergetic and isoenthalpic conditions (see "(Lisal)"_#Lisal3).
 For DPD simulations in general, the force on atom I due to atom J is
 given as a sum of 3 terms
 
@@ -111,7 +112,7 @@ calculated using only the conservative term.
 
 The forces computed through the {dpd/fdt} and {dpd/fdt/energy} styles
 can be integrated with the velocity-Verlet integration scheme or the
-Shardlow splitting integration scheme described by "(Lisal)"_#Lisal.
+Shardlow splitting integration scheme described by "(Lisal)"_#Lisal3.
 In the cases when these pair styles are combined with the
 "fix shardlow"_fix_shardlow.html, these pair styles differ from the
 other dpd styles in that the dissipative and random forces are split
@@ -122,6 +123,29 @@ are handled through the Shardlow splitting algorithm approach.  The
 Shardlow splitting algorithm is advantageous, especially when
 performing DPD under isoenergetic conditions, as it allows
 significantly larger timesteps to be taken.
+
+:line
+
+Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "Section 5"_Section_accelerate.html
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section 5"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -147,7 +171,7 @@ energies and temperatures.
 
 :line
 
-:link(Lisal)
+:link(Lisal3)
 [(Lisal)] M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
 particle dynamics at isothermal, isobaric, isoenergetic, and
 isoenthalpic conditions using Shardlow-like splitting algorithms.",

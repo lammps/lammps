@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef EXAMPLE_SORT_ARRAY
 #define EXAMPLE_SORT_ARRAY
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include <Kokkos_Core.hpp>
@@ -68,7 +68,7 @@ struct SortView {
 
 }
 
-#if defined(KOKKOS_HAVE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA)
 
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
@@ -102,10 +102,10 @@ void sort_array( const size_t array_length /* length of spans of array to sort *
   typedef Device execution_space ;
   typedef Kokkos::View<int*,Device>  device_array_type ;
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
   typedef typename
-    Kokkos::Impl::if_c< Kokkos::Impl::is_same< Device , Kokkos::Cuda >::value
+    Kokkos::Impl::if_c< std::is_same< Device , Kokkos::Cuda >::value
                       , Kokkos::View<int*,Kokkos::Cuda::array_layout,Kokkos::CudaHostPinnedSpace>
                       , typename device_array_type::HostMirror
                       >::type  host_array_type ;

@@ -35,7 +35,7 @@ class FixIPI : public Fix {
 
  protected:
   char *host; int port; int inet, master, hasdata;
-  int ipisock, me; double *buffer; long bsize;
+  int ipisock, me, socketflag; double *buffer; long bsize;
   int kspace_flag;
   int reset_flag;
 

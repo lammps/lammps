@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -18,7 +18,7 @@ PairStyle(multi/lucy/rx,PairMultiLucyRX)
 #else
 
 #ifndef LMP_PAIR_MULTI_LUCY_RX_H
-#define LMP_PAIR_MUTLI_LUCY_RX_H
+#define LMP_PAIR_MULTI_LUCY_RX_H
 
 #include "pair.h"
 
@@ -30,17 +30,17 @@ class PairMultiLucyRX : public Pair {
   virtual ~PairMultiLucyRX();
 
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  virtual int pack_forward_comm(int, int *, double *, int, int *);
+  virtual void unpack_forward_comm(int, int, double *);
+  virtual int pack_reverse_comm(int, int, double *);
+  virtual void unpack_reverse_comm(int, int *, double *);
   void computeLocalDensity();
   double rho_0;
 
@@ -64,7 +64,7 @@ class PairMultiLucyRX : public Pair {
 
   int **tabindex;
 
-  void allocate();
+  virtual void allocate();
   void read_table(Table *, char *, char *);
   void param_extract(Table *, char *);
   void bcast_table(Table *);
@@ -78,7 +78,8 @@ class PairMultiLucyRX : public Pair {
   int nspecies;
   char *site1, *site2;
   int isite1, isite2;
-  void getParams(int, double &, double &, double &, double &);
+  void getMixingWeights(int, double &, double &, double &, double &);
+  bool fractionalWeighting;
 
 };
 

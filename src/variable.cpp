@@ -34,7 +34,7 @@
 #include "random_mars.h"
 #include "math_const.h"
 #include "atom_masks.h"
-#include "python_wrapper.h"
+#include "python.h"
 #include "memory.h"
 #include "info.h"
 #include "error.h"
@@ -111,10 +111,6 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[MULTIPLY] = precedence[DIVIDE] = precedence[MODULO] = 6;
   precedence[CARAT] = 7;
   precedence[UNARY] = precedence[NOT] = 8;
-
-  // Python wrapper, real or dummy
-
-  python = new Python(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,7 +140,6 @@ Variable::~Variable()
   delete randomequal;
   delete randomatom;
 
-  delete python;
 }
 
 /* ----------------------------------------------------------------------
@@ -464,7 +459,7 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1],"python") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal variable command");
-    if (!python->python_exists)
+    if (!python->is_enabled())
       error->all(FLERR,"LAMMPS is not built with Python embedded");
     int ivar = find(arg[0]);
     if (ivar >= 0) {
@@ -735,7 +730,7 @@ void Variable::set_arrays(int i)
 
 void Variable::python_command(int narg, char **arg)
 {
-  if (!python->python_exists)
+  if (!python->is_enabled())
     error->all(FLERR,"LAMMPS is not built with Python embedded");
   python->command(narg,arg);
 }
@@ -875,6 +870,10 @@ char *Variable::retrieve(char *name)
       error->all(FLERR,"Python variable does not match Python function");
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
+    // if Python func returns a string longer than VALUELENGTH
+    // then the Python class stores the result, query it via long_string()
+    char *strlong = python->long_string(ifunc);
+    if (strlong) str = strlong;
   } else if (style[ivar] == INTERNAL) {
     sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
     str = data[ivar][0];
@@ -1000,7 +999,7 @@ void Variable::compute_atom(int ivar, int igroup,
    return length of vector and result pointer to vector values
      if length == 0 or -1 (mismatch), generate an error
    if variable already computed on this timestep, just return
-   else evaulate the formula and its length, store results in VecVar entry
+   else evaluate the formula and its length, store results in VecVar entry
 ------------------------------------------------------------------------- */
 
 int Variable::compute_vector(int ivar, double **result)
@@ -2149,8 +2148,10 @@ double Variable::evaluate(char *str, Tree **tree)
             argstack[nargstack++] = fmod(value1,value2);
           } else if (opprevious == CARAT) {
             if (value2 == 0.0)
-              error->all(FLERR,"Power by 0 in variable formula");
-            argstack[nargstack++] = pow(value1,value2);
+              argstack[nargstack++] = 1.0;
+            else if ((value1 == 0.0) && (value2 < 0.0))
+              error->all(FLERR,"Invalid power expression in variable formula");
+            else argstack[nargstack++] = pow(value1,value2);
           } else if (opprevious == UNARY) {
             argstack[nargstack++] = -value2;
           } else if (opprevious == NOT) {
@@ -2743,7 +2744,7 @@ double Variable::collapse_tree(Tree *tree)
 /* ----------------------------------------------------------------------
    evaluate an atom-style or vector-style variable parse tree
    index I = atom I or vector index I
-   tree was created by one-time parsing of formula string via evaulate()
+   tree was created by one-time parsing of formula string via evaluate()
    customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),

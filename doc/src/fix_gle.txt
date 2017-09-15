@@ -62,14 +62,15 @@ as a (Ns+1 x Ns+1) matrix in inverse time units. Matrices that are
 optimal for a given application and the system of choice can be
 obtained from "(GLE4MD)"_#GLE4MD.
 
-Equilibrium sampling a temperature T is obtained by specifiying the
+Equilibrium sampling a temperature T is obtained by specifying the
 target value as the {Tstart} and {Tstop} arguments, so that the diffusion
 matrix that gives canonical sampling for a given A is computed automatically.
 However, the GLE framework also allow for non-equilibrium sampling, that
 can be used for instance to model inexpensively zero-point energy
-effects "(Ceriotti2)"_#Ceriotti2. This is achieved specifying the
-{noneq} keyword followed by the name of the file that contains the
-static covariance matrix for the non-equilibrium dynamics.
+effects "(Ceriotti2)"_#Ceriotti2. This is achieved specifying the {noneq}
+keyword followed by the name of the file that contains the static covariance
+matrix for the non-equilibrium dynamics.  Please note, that the covariance
+matrix is expected to be given in [temperature units].
 
 Since integrating GLE dynamics can be costly when used together with
 simple potentials, one can use the {every} optional keyword to
@@ -116,7 +117,7 @@ output"_thermo_style.html.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative energy change due to this fix.  The scalar value
+cumulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".
 
 [Restrictions:]
@@ -148,7 +149,7 @@ dpd/tstat"_pair_dpd.html, "fix gld"_fix_gld.html
 1170-80 (2010)
 
 :link(GLE4MD)
-[(GLE4MD)] "http://epfl-cosmo.github.io/gle4md/"_http://epfl-cosmo.github.io/gle4md/
+[(GLE4MD)] "http://gle4md.org/"_http://gle4md.org/
 
 :link(Ceriotti2)
 [(Ceriotti2)] Ceriotti, Bussi and Parrinello, Phys Rev Lett 103,

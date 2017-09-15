@@ -139,11 +139,11 @@ void FixNHSphereOMP::nh_v_temp()
     for (i = 0; i < nlocal; i++) {
       double buf[3];
       if (mask[i] & groupbit) {
-        temperature->remove_bias(i,&v[i].x);
+        temperature->remove_bias_thr(i,&v[i].x,buf);
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;
         v[i].z *= factor_eta;
-        temperature->restore_bias(i,&v[i].x);
+        temperature->restore_bias_thr(i,&v[i].x,buf);
         omega[i].x *= factor_eta;
         omega[i].y *= factor_eta;
         omega[i].z *= factor_eta;

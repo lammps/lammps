@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -30,24 +30,13 @@ class PairExp6rx : public Pair {
   virtual ~PairExp6rx();
   virtual void compute(int, int);
   void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- protected:
-  enum{LINEAR};
-  double cut_global;
-  double **cut;
-  double **epsilon,**rm,**alpha;
-  double **rminv,**buck1,**buck2,**offset;
-
-  void allocate();
-  int *mol2param;               // mapping from molecule to parameters
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
   struct Param {
     double epsilon,rm,alpha;
     int ispecies;
@@ -55,16 +44,35 @@ class PairExp6rx : public Pair {
     char *tablename;             // name of interaction table
    int potentialType;              // enumerated interaction potential type.
   };
+
+ protected:
+  enum{LINEAR};
+  enum{NONE,EXPONENT,POLYNOMIAL};
+  double cut_global;
+  double **cut;
+  double **epsilon,**rm,**alpha;
+  double **rminv,**buck1,**buck2,**offset;
+
+  virtual void allocate();
+  int *mol2param;               // mapping from molecule to parameters
+  int nparams;                  // # of stored parameter sets
+  int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
 
   int nspecies;
-  void read_file(char *);
+  virtual void read_file(char *);
+  void read_file2(char *);
   void setup();
 
   int isite1, isite2;
   char *site1, *site2;
-  double fuchslinR, fuchslinEpsilon;
-  void getParamsEXP6(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
+  void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
+  double exponentR, exponentEpsilon;
+  int scalingFlag;
+  void exponentScaling(double, double &, double &) const;
+  void polynomialScaling(double, double &, double &, double &) const;
+  double *coeffAlpha, *coeffEps, *coeffRm;
+  bool fractionalWeighting;
 
   inline double func_rin(const double &) const;
   inline double expValue(const double) const;
@@ -128,7 +136,7 @@ E:  Potential file has duplicate entry.
 
 Self-explanatory
 
-E:  The number of molecules in CG particle is less than 1e-8.
+E:  The number of molecules in CG particle is less than 10*DBL_EPSILON.
 
 Self-explanatory.  Check the species concentrations have been properly set
 and check the reaction kinetic solver parameters in fix rx to more for

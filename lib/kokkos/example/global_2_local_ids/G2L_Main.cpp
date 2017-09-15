@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -49,17 +49,17 @@ namespace G2L {
 
 size_t run_serial(unsigned num_ids, unsigned num_find_iterations)
 {
-#ifdef KOKKOS_HAVE_SERIAL
+#ifdef KOKKOS_ENABLE_SERIAL
   std::cout << "Serial" << std::endl;
   return run_test<Kokkos::Serial>(num_ids,num_find_iterations);
 #else
   return 0;
-#endif // KOKKOS_HAVE_SERIAL
+#endif // KOKKOS_ENABLE_SERIAL
 }
 
 size_t run_threads(unsigned num_ids, unsigned num_find_iterations)
 {
-#ifdef KOKKOS_HAVE_PTHREAD
+#ifdef KOKKOS_ENABLE_THREADS
   std::cout << "Threads" << std::endl;
   return run_test<Kokkos::Threads>(num_ids,num_find_iterations);
 #else
@@ -69,7 +69,7 @@ size_t run_threads(unsigned num_ids, unsigned num_find_iterations)
 
 size_t run_openmp(unsigned num_ids, unsigned num_find_iterations)
 {
-#ifdef KOKKOS_HAVE_OPENMP
+#ifdef KOKKOS_ENABLE_OPENMP
   std::cout << "OpenMP" << std::endl;
   return run_test<Kokkos::OpenMP>(num_ids,num_find_iterations);
 #else
@@ -79,7 +79,7 @@ size_t run_openmp(unsigned num_ids, unsigned num_find_iterations)
 
 size_t run_cuda(unsigned num_ids, unsigned num_find_iterations)
 {
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   std::cout << "Cuda" << std::endl;
   return run_test<Kokkos::Cuda>(num_ids,num_find_iterations);
 #else
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 
   num_errors += G2L::run_serial(num_ids,num_find_iterations);
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   Kokkos::HostSpace::execution_space::initialize(threads_count);
   Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice(0) );
   num_errors += G2L::run_cuda(num_ids,num_find_iterations);
@@ -131,14 +131,23 @@ int main(int argc, char *argv[])
   Kokkos::HostSpace::execution_space::finalize();
 #endif
 
-#ifdef KOKKOS_HAVE_PTHREAD
+#ifdef KOKKOS_ENABLE_THREADS
   Kokkos::Threads::initialize( threads_count );
   num_errors += G2L::run_threads(num_ids,num_find_iterations);
   Kokkos::Threads::finalize();
 #endif
 
-#ifdef KOKKOS_HAVE_OPENMP
-  Kokkos::OpenMP::initialize( threads_count );
+#ifdef KOKKOS_ENABLE_OPENMP
+  int num_threads = 0;
+  #pragma omp parallel
+  {
+    #pragma omp atomic
+    ++num_threads;
+  }
+  if( num_threads > 3 ) {
+    num_threads = std::max(4, num_threads/4);
+  }
+  Kokkos::OpenMP::initialize( num_threads );
   num_errors += G2L::run_openmp(num_ids,num_find_iterations);
   Kokkos::OpenMP::finalize();
 #endif

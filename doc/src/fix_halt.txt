@@ -15,15 +15,16 @@ fix ID group-ID halt N attribute operator avalue keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 halt = style name of this fix command :l
 N = check halt condition every N steps :l
-attribute = hstyle or v_name :l
-  hstyle = {bondmax}
+attribute = {bondmax} or {tlimit} or v_name :l
+  bondmax = length of longest bond in the system
+  tlimit = elapsed CPU time
   v_name = name of "equal-style variable"_variable.html :pre
 operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "|^" :l
 avalue = numeric value to compare attribute to :l
-string = text string to print with optional variable names :l
 zero or more keyword/value pairs may be appended :l
-keyword = {error} :l
-  {error} value = {hard} or {soft} or {continue} :pre
+keyword = {error} or {message} :l
+  {error} value = {hard} or {soft} or {continue}
+  {message} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
@@ -40,14 +41,33 @@ specified by the "run"_run.html or "minimize"_minimize.html command.
 
 The specified group-ID is ignored by this fix.
 
-The specified {attribute} can be one of the {hstyle} options listed
-above, or an "equal-style variable"_variable.html referenced as
-{v_name}, where "name" is the name of a variable that has been defined
-previously in the input script.
+The specified {attribute} can be one of the options listed above,
+namely {bondmax} or {tlimit}, or an "equal-style
+variable"_variable.html referenced as {v_name}, where "name" is the
+name of a variable that has been defined previously in the input
+script.
 
-The only {hstyle} option currently implemented is {bondmax}.  This
-will loop over all bonds in the system, compute their current
-lengths, and set {attribute} to the longest bond distance.
+The {bondmax} attribute will loop over all bonds in the system,
+compute their current lengths, and set {attribute} to the longest bond
+distance.
+
+The {tlimit} attribute queries the elapsed CPU time (in seconds) since
+the current run began, and sets {attribute} to that value.  This is an
+alternative way to limit the length of a simulation run, similar to
+the "timer"_timer.html timeout command.  There are two differences in
+using this method versus the timer command option.  The first is that
+the clock starts at the beginning of the current run (not when the
+timer or fix command is specified), so that any setup time for the run
+is not included in the elapsed time.  The second is that the timer
+invocation and syncing across all processors (via MPI_Allreduce) is
+not performed once every {N} steps by this command.  Instead it is
+performed (typically) only a small number of times and the elapsed
+times are used to predict when the end-of-the-run will be.  Both of
+these attributes can be useful when performing benchmark calculations
+for a desired length of time with minmimal overhead.  For example, if
+a run is performing 1000s of timesteps/sec, the overhead for syncing
+the timer frequently across a large number of processors may be
+non-negligble.
 
 Equal-style variables evaluate to a numeric value.  See the
 "variable"_variable.html command for a description.  They calculate
@@ -100,6 +120,14 @@ Note that you may wish use the "unfix"_unfix.html command on the fix
 halt ID, so that the same condition is not immediately triggered in a
 subsequent run.
 
+The optional {message} keyword determines whether a message is printed
+to the screen and logfile when the halt condition is triggered.  If
+{message} is set to yes, a one line message with the values that
+triggered the halt is printed.  If {message} is set to no, no message
+is printed; the run simply exits.  The latter may be desirable for
+post-processing tools that extract thermodyanmic information from log
+files.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
@@ -118,4 +146,4 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Default:]
 
-The option defaults are error = hard.
+The option defaults are error = hard and message = yes.

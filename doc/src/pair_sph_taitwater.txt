@@ -28,7 +28,7 @@ where gamma = 7 and B = c_0^2 rho_0 / gamma, with rho_0 being the
 reference density and c_0 the reference speed of sound.
 
 This pair style also computes Monaghan's artificial viscosity to
-prevent particles from interpentrating "(Monaghan)"_#Monaghan.
+prevent particles from interpenetrating "(Monaghan)"_#Monaghan.
 
 See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
 LAMMPS.

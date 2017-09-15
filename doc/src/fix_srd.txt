@@ -54,25 +54,25 @@ fix 1 srd srd 10 big 0.5 0.25 482984 collision slip search 0.5 :pre
 
 [Description:]
 
-Treat a group of partilces as stochastic rotation dynamics (SRD)
+Treat a group of particles as stochastic rotation dynamics (SRD)
 particles that serve as a background solvent when interacting with big
 (colloidal) particles in groupbig-ID.  The SRD formalism is described
 in "(Hecht)"_#Hecht.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
 can be spheroids, ellipsoids, or line segments, or triangles, or rigid
-bodies containing multiple spherioids or ellipsoids or line segments
+bodies containing multiple spheriods or ellipsoids or line segments
 or triangles.  The collision and rotation properties of the model
 imbue the SRD particles with fluid-like properties, including an
 effective viscosity.  Thus simulations with large solute particles can
-be run more quickly, to measure solute propoerties like diffusivity
+be run more quickly, to measure solute properties like diffusivity
 and viscosity in a background fluid.  The usual LAMMPS fixes for such
 simulations, such as "fix deform"_fix_deform.html, "fix
 viscosity"_fix_viscosity.html, and "fix nvt/sllod"_fix_nvt_sllod.html,
 can be used in conjunction with the SRD model.
 
 For more details on how the SRD model is implemented in LAMMPS, "this
-paper"_#Petersen describes the implementation and usage of pure SRD
+paper"_#Petersen1 describes the implementation and usage of pure SRD
 fluids.  "This paper"_#Lechman, which is nearly complete, describes
 the implementation and usage of mixture systems (solute particles in
 an SRD fluid).  See the examples/srd directory for sample input
@@ -182,7 +182,7 @@ can be used to scale down their effective collision radius by an
 amount {rfactor}, so that SRD particle will only collide with one big
 particle at a time.  For example, in a Lennard-Jones system at a
 temperature of 1.0 (in reduced LJ units), the minimum separation
-bewteen two big particles is as small as about 0.88 sigma.  Thus an
+between two big particles is as small as about 0.88 sigma.  Thus an
 {rfactor} value of 0.85 should prevent dual collisions.
 
 The {bounce} keyword can be used to limit the maximum number of
@@ -230,7 +230,7 @@ error or warning is generated.  Similarly, if the ratio of any bin
 dimension with {hgrid} exceeds (1 +/- tolerance), then an error or
 warning is generated.
 
-NOTE: The fix srd command can be used with simluations the size and/or
+NOTE: The fix srd command can be used with simulations the size and/or
 shape of the simulation box changes.  This can be due to non-periodic
 boundary conditions or the use of fixes such as the "fix
 deform"_fix_deform.html or "fix wall/srd"_fix_wall_srd.html commands
@@ -241,7 +241,7 @@ box shape changes.  This re-binning is always done so as to fit an
 integer number of bins in the current box dimension, whether it be a
 fixed, shrink-wrapped, or periodic boundary, as set by the
 "boundary"_boundary.html command.  If the box size or shape changes,
-then the size of the search bins must be recalculated avery
+then the size of the search bins must be recalculated every
 reneighboring.  Note that changing the SRD bin size may alter the
 properties of the SRD fluid, such as its viscosity.
 
@@ -345,15 +345,15 @@ commands"_Section_howto.html#howto_15.  The vector values calculated
 by this fix are "intensive", meaning they do not scale with the size
 of the simulation.  Technically, the first 8 do scale with the size of
 the simulation, but treating them as intensive means they are not
-scaled when printed as part of thermodyanmic output.
+scaled when printed as part of thermodynamic output.
 
 These are the 12 quantities.  All are values for the current timestep,
 except for quantity 5 and the last three, each of which are
-cummulative quantities since the beginning of the run.
+cumulative quantities since the beginning of the run.
 
 (1) # of SRD/big collision checks performed
 (2) # of SRDs which had a collision
-(3) # of SRD/big colllisions (including multiple bounces)
+(3) # of SRD/big collisions (including multiple bounces)
 (4) # of SRD particles inside a big particle
 (5) # of SRD particles whose velocity was rescaled to be < Vmax
 (6) # of bins for collision searching
@@ -390,7 +390,7 @@ rescale = yes.
 :link(Hecht)
 [(Hecht)] Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).
 
-:link(Petersen)
+:link(Petersen1)
 [(Petersen)] Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
 Chem Phys, 132, 174106 (2010).
 

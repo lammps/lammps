@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -10,9 +12,8 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "ndx_group.h"
@@ -35,7 +36,7 @@ static char *find_section(FILE *fp, const char *name)
 {
   char linebuf[BUFLEN];
   char *n,*p,*t,*r;
-  
+
   while ((p = fgets(linebuf,BUFLEN,fp))) {
     t = strtok(p," \t\n\r\f");
     if ((t != NULL) && *t == '[') {

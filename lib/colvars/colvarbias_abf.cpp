@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvarbias_abf.h"
@@ -23,7 +30,8 @@ int colvarbias_abf::init(std::string const &conf)
 {
   colvarbias::init(conf);
 
-  provide(f_cvb_history_dependent);
+  enable(f_cvb_scalar_variables);
+  enable(f_cvb_calc_pmf);
 
   // TODO relax this in case of VMD plugin
   if (cvm::temperature() == 0.0)
@@ -63,10 +71,17 @@ int colvarbias_abf::init(std::string const &conf)
   // shared ABF
   get_keyval(conf, "shared", shared_on, false);
   if (shared_on) {
-    if (!cvm::replica_enabled() || cvm::replica_num() <= 1)
+    if (!cvm::replica_enabled() || cvm::replica_num() <= 1) {
       cvm::error("Error: shared ABF requires more than one replica.");
-    else
-      cvm::log("shared ABF will be applied among "+ cvm::to_str(cvm::replica_num()) + " replicas.\n");
+      return COLVARS_ERROR;
+    }
+    cvm::log("shared ABF will be applied among "+ cvm::to_str(cvm::replica_num()) + " replicas.\n");
+    if (cvm::proxy->smp_enabled() == COLVARS_OK) {
+      cvm::error("Error: shared ABF is currently not available with SMP parallelism; "
+                 "please set \"SMP off\" at the top of the Colvars configuration file.\n",
+                 COLVARS_NOT_IMPLEMENTED);
+      return COLVARS_NOT_IMPLEMENTED;
+    }
 
     // If shared_freq is not set, we default to output_freq
     get_keyval(conf, "sharedFreq", shared_freq, output_freq);
@@ -76,11 +91,11 @@ int colvarbias_abf::init(std::string const &conf)
 
   if (colvars.size() == 0) {
     cvm::error("Error: no collective variables specified for the ABF bias.\n");
+    return COLVARS_ERROR;
   }
 
   if (update_bias) {
-  // Request calculation of total force (which also checks for availability)
-  // TODO - change this to a dependency - needs ABF-specific features
+    // Request calculation of total force
     if(enable(f_cvb_get_total_force)) return cvm::get_error();
   }
 
@@ -99,6 +114,16 @@ int colvarbias_abf::init(std::string const &conf)
     // system gradient
     if (colvars[i]->is_enabled(f_cv_extended_Lagrangian))
       b_extended = true;
+
+    // Cannot mix and match coarse time steps with ABF because it gives
+    // wrong total force averages - total force needs to be averaged over
+    // every time step
+    if (colvars[i]->get_time_step_factor() != time_step_factor) {
+      cvm::error("Error: " + colvars[i]->description + " has a value of timeStepFactor ("
+        + cvm::to_str(colvars[i]->get_time_step_factor()) + ") different from that of "
+        + description + " (" + cvm::to_str(time_step_factor) + ").\n");
+      return COLVARS_ERROR;
+    }
 
     // Here we could check for orthogonality of the Cartesian coordinates
     // and make it just a warning if some parameter is set?
@@ -212,9 +237,6 @@ colvarbias_abf::~colvarbias_abf()
     delete [] system_force;
     system_force = NULL;
   }
-
-  if (cvm::n_abf_biases > 0)
-    cvm::n_abf_biases -= 1;
 }
 
 
@@ -277,12 +299,12 @@ int colvarbias_abf::update()
   // Compute and apply the new bias, if applicable
   if (is_enabled(f_cvb_apply_force) && samples->index_ok(bin)) {
 
-    size_t  count = samples->value(bin);
-    cvm::real	fact = 1.0;
+    size_t count = samples->value(bin);
+    cvm::real fact = 1.0;
 
     // Factor that ensures smooth introduction of the force
     if ( count < full_samples ) {
-      fact = ( count < min_samples) ? 0.0 :
+      fact = (count < min_samples) ? 0.0 :
         (cvm::real(count - min_samples)) / (cvm::real(full_samples - min_samples));
     }
 
@@ -310,11 +332,11 @@ int colvarbias_abf::update()
   }
 
   // update the output prefix; TODO: move later to setup_output() function
-  if ( cvm::n_abf_biases == 1 && cvm::n_meta_biases == 0 ) {
-    // This is the only ABF bias
-    output_prefix = cvm::output_prefix;
+  if (cvm::num_biases_feature(colvardeps::f_cvb_calc_pmf) == 1) {
+    // This is the only bias computing PMFs
+    output_prefix = cvm::output_prefix();
   } else {
-    output_prefix = cvm::output_prefix + "." + this->name;
+    output_prefix = cvm::output_prefix() + "." + this->name;
   }
 
   if (output_freq && (cvm::step_absolute() % output_freq) == 0) {
@@ -429,62 +451,57 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
   std::string  gradients_out_name = prefix + ".grad";
   std::ios::openmode mode = (append ? std::ios::app : std::ios::out);
 
-  cvm::ofstream samples_os;
-  cvm::ofstream gradients_os;
-
-  if (!append) cvm::backup_file(samples_out_name.c_str());
-  samples_os.open(samples_out_name.c_str(), mode);
-  if (!samples_os.is_open()) {
+  std::ostream *samples_os =
+    cvm::proxy->output_stream(samples_out_name, mode);
+  if (!samples_os) {
     cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
   }
-  samples->write_multicol(samples_os);
-  samples_os.close();
+  samples->write_multicol(*samples_os);
+  cvm::proxy->close_output_stream(samples_out_name);
 
-  if (!append) cvm::backup_file(gradients_out_name.c_str());
-  gradients_os.open(gradients_out_name.c_str(), mode);
-  if (!gradients_os.is_open()) {
+  std::ostream *gradients_os =
+    cvm::proxy->output_stream(gradients_out_name, mode);
+  if (!gradients_os) {
     cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
   }
-  gradients->write_multicol(gradients_os);
-  gradients_os.close();
+  gradients->write_multicol(*gradients_os);
+  cvm::proxy->close_output_stream(gradients_out_name);
 
   if (colvars.size() == 1) {
-    std::string  pmf_out_name = prefix + ".pmf";
-    if (!append) cvm::backup_file(pmf_out_name.c_str());
-    cvm::ofstream pmf_os;
     // Do numerical integration and output a PMF
-    pmf_os.open(pmf_out_name.c_str(), mode);
-    if (!pmf_os.is_open())  cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
-    gradients->write_1D_integral(pmf_os);
-    pmf_os << std::endl;
-    pmf_os.close();
+    std::string  pmf_out_name = prefix + ".pmf";
+    std::ostream *pmf_os = cvm::proxy->output_stream(pmf_out_name, mode);
+    if (!pmf_os) {
+      cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
+    }
+    gradients->write_1D_integral(*pmf_os);
+    *pmf_os << std::endl;
+    cvm::proxy->close_output_stream(pmf_out_name);
   }
 
   if (z_gradients) {
     // Write eABF-related quantities
 
     std::string  z_samples_out_name = prefix + ".zcount";
-    cvm::ofstream z_samples_os;
 
-    if (!append) cvm::backup_file(z_samples_out_name.c_str());
-    z_samples_os.open(z_samples_out_name.c_str(), mode);
-    if (!z_samples_os.is_open()) {
+    std::ostream *z_samples_os =
+      cvm::proxy->output_stream(z_samples_out_name, mode);
+    if (!z_samples_os) {
       cvm::error("Error opening eABF z-histogram file " + z_samples_out_name + " for writing");
     }
-    z_samples->write_multicol(z_samples_os);
-    z_samples_os.close();
+    z_samples->write_multicol(*z_samples_os);
+    cvm::proxy->close_output_stream(z_samples_out_name);
 
     if (b_czar_window_file) {
       std::string  z_gradients_out_name = prefix + ".zgrad";
-      cvm::ofstream z_gradients_os;
 
-      if (!append) cvm::backup_file(z_gradients_out_name.c_str());
-      z_gradients_os.open(z_gradients_out_name.c_str(), mode);
-      if (!z_gradients_os.is_open()) {
+      std::ostream *z_gradients_os =
+        cvm::proxy->output_stream(z_gradients_out_name, mode);
+      if (!z_gradients_os) {
         cvm::error("Error opening eABF z-gradient file " + z_gradients_out_name + " for writing");
       }
-      z_gradients->write_multicol(z_gradients_os);
-      z_gradients_os.close();
+      z_gradients->write_multicol(*z_gradients_os);
+      cvm::proxy->close_output_stream(z_gradients_out_name);
     }
 
     // Calculate CZAR estimator of gradients
@@ -498,26 +515,24 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
     }
 
     std::string  czar_gradients_out_name = prefix + ".czar.grad";
-    cvm::ofstream czar_gradients_os;
 
-    if (!append) cvm::backup_file(czar_gradients_out_name.c_str());
-    czar_gradients_os.open(czar_gradients_out_name.c_str(), mode);
-    if (!czar_gradients_os.is_open()) {
+    std::ostream *czar_gradients_os =
+      cvm::proxy->output_stream(czar_gradients_out_name, mode);
+    if (!czar_gradients_os) {
       cvm::error("Error opening CZAR gradient file " + czar_gradients_out_name + " for writing");
     }
-    czar_gradients->write_multicol(czar_gradients_os);
-    czar_gradients_os.close();
+    czar_gradients->write_multicol(*czar_gradients_os);
+    cvm::proxy->close_output_stream(czar_gradients_out_name);
 
     if (colvars.size() == 1) {
-      std::string  czar_pmf_out_name = prefix + ".czar.pmf";
-      if (!append) cvm::backup_file(czar_pmf_out_name.c_str());
-      cvm::ofstream czar_pmf_os;
       // Do numerical integration and output a PMF
-      czar_pmf_os.open(czar_pmf_out_name.c_str(), mode);
-      if (!czar_pmf_os.is_open())  cvm::error("Error opening CZAR pmf file " + czar_pmf_out_name + " for writing");
-      czar_gradients->write_1D_integral(czar_pmf_os);
-      czar_pmf_os << std::endl;
-      czar_pmf_os.close();
+      std::string  czar_pmf_out_name = prefix + ".czar.pmf";
+      std::ostream *czar_pmf_os =
+        cvm::proxy->output_stream(czar_pmf_out_name, mode);
+      if (!czar_pmf_os)  cvm::error("Error opening CZAR pmf file " + czar_pmf_out_name + " for writing");
+      czar_gradients->write_1D_integral(*czar_pmf_os);
+      *czar_pmf_os << std::endl;
+      cvm::proxy->close_output_stream(czar_pmf_out_name);
     }
   }
   return;
@@ -565,9 +580,13 @@ void colvarbias_abf::read_gradients_samples()
     is.clear();
 
     is.open(gradients_in_name.c_str());
-    if (!is.is_open())	cvm::error("Error opening ABF gradient file " + gradients_in_name + " for reading");
-    gradients->read_multicol(is, true);
-    is.close();
+    if (!is.is_open()) {
+      cvm::error("Error opening ABF gradient file " +
+                 gradients_in_name + " for reading", INPUT_ERROR);
+    } else {
+      gradients->read_multicol(is, true);
+      is.close();
+    }
 
     if (z_gradients) {
       // Read eABF z-averaged data for CZAR
@@ -590,15 +609,9 @@ void colvarbias_abf::read_gradients_samples()
 }
 
 
-std::ostream & colvarbias_abf::write_restart(std::ostream& os)
+std::ostream & colvarbias_abf::write_state_data(std::ostream& os)
 {
-
   std::ios::fmtflags flags(os.flags());
-
-  os << "abf {\n"
-     << "  configuration {\n"
-     << "    name " << this->name << "\n";
-  os << "  }\n";
 
   os.setf(std::ios::fmtflags(0), std::ios::floatfield); // default floating-point format
   os << "\nsamples\n";
@@ -617,117 +630,47 @@ std::ostream & colvarbias_abf::write_restart(std::ostream& os)
     z_gradients->write_raw(os, 8);
   }
 
-  os << "}\n\n";
-
   os.flags(flags);
   return os;
 }
 
 
-std::istream & colvarbias_abf::read_restart(std::istream& is)
+std::istream & colvarbias_abf::read_state_data(std::istream& is)
 {
   if ( input_prefix.size() > 0 ) {
     cvm::error("ERROR: cannot provide both inputPrefix and a colvars state file.\n", INPUT_ERROR);
   }
 
-  size_t const start_pos = is.tellg();
-
-  cvm::log("Restarting ABF bias \""+
-            this->name+"\".\n");
-  std::string key, brace, conf;
-
-  if ( !(is >> key)   || !(key == "abf") ||
-       !(is >> brace) || !(brace == "{") ||
-       !(is >> colvarparse::read_block("configuration", conf)) ) {
-    cvm::log("Error: in reading restart configuration for ABF bias \""+
-              this->name+"\" at position "+
-              cvm::to_str(is.tellg())+" in stream.\n");
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
-    return is;
-  }
-
-  std::string name = "";
-  if ( (colvarparse::get_keyval(conf, "name", name, std::string(""), colvarparse::parse_silent)) &&
-         (name != this->name) )
-    cvm::error("Error: in the restart file, the "
-                      "\"abf\" block has wrong name(" + name + ")\n");
-  if ( name == "" ) {
-    cvm::error("Error: \"abf\" block in the restart file has no name.\n");
-  }
-
-  if ( !(is >> key)   || !(key == "samples")) {
-    cvm::log("Error: in reading restart configuration for ABF bias \""+
-              this->name+"\" at position "+
-              cvm::to_str(is.tellg())+" in stream.\n");
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
+  if (! read_state_data_key(is, "samples")) {
     return is;
   }
   if (! samples->read_raw(is)) {
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
     return is;
   }
 
-  if ( !(is >> key)   || !(key == "gradient")) {
-    cvm::log("Error: in reading restart configuration for ABF bias \""+
-              this->name+"\" at position "+
-              cvm::to_str(is.tellg())+" in stream.\n");
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
+  if (! read_state_data_key(is, "gradient")) {
     return is;
   }
   if (! gradients->read_raw(is)) {
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
     return is;
   }
 
   if (z_gradients) {
-    if ( !(is >> key) || !(key == "z_samples")) {
-      cvm::log("Error: in reading restart configuration for ABF bias \""+
-                this->name+"\" at position "+
-                cvm::to_str(is.tellg())+" in stream.\n");
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
+
+    if (! read_state_data_key(is, "z_samples")) {
       return is;
     }
     if (! z_samples->read_raw(is)) {
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
       return is;
     }
 
-    if ( !(is >> key)   || !(key == "z_gradient")) {
-      cvm::log("Error: in reading restart configuration for ABF bias \""+
-                this->name+"\" at position "+
-                cvm::to_str(is.tellg())+" in stream.\n");
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
+    if (! read_state_data_key(is, "z_gradient")) {
       return is;
     }
     if (! z_gradients->read_raw(is)) {
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
       return is;
     }
   }
-  is >> brace;
-  if (brace != "}") {
-    cvm::error("Error: corrupt restart information for ABF bias \""+
-                      this->name+"\": no matching brace at position "+
-                      cvm::to_str(is.tellg())+" in the restart file.\n");
-    is.setstate(std::ios::failbit);
-  }
+
   return is;
 }

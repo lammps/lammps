@@ -105,7 +105,7 @@ void DihedralHybrid::compute(int eflag, int vflag)
   // accumulate sub-style global/peratom energy/virial in hybrid
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
 
   for (m = 0; m < nstyles; m++) {
     neighbor->ndihedrallist = ndihedrallist[m];

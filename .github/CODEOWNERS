@@ -1,0 +1,21 @@
+# This file contains file patterns that triggers automatic
+# code review requests from users that are owners of these files
+# Order matters, the last match has the highest precedence
+
+# library folders
+lib/colvars/*         @giacomofiorin
+lib/compress/*        @akohlmey
+lib/kokkos/*          @stanmoore1
+lib/molfile/*         @akohlmey
+lib/qmmm/*            @akohlmey
+lib/vtk/*             @rbberger
+
+# packages
+src/KOKKOS            @stanmoore1
+src/USER-CGSDK        @akohlmey
+src/USER-COLVARS      @giacomofiorin
+src/USER-OMP          @akohlmey
+src/USER-QMMM         @akohlmey
+
+# tools
+tools/msi2lmp/*       @akohlmey

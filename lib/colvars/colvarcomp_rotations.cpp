@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -15,6 +22,7 @@ colvar::orientation::orientation(std::string const &conf)
 {
   function_type = "orientation";
   atoms = parse_group(conf, "atoms");
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_quaternion);
 
   ref_pos.reserve(atoms->size());
@@ -22,8 +30,9 @@ colvar::orientation::orientation(std::string const &conf)
   if (get_keyval(conf, "refPositions", ref_pos, ref_pos)) {
     cvm::log("Using reference positions from input file.\n");
     if (ref_pos.size() != atoms->size()) {
-      cvm::fatal_error("Error: reference positions do not "
+      cvm::error("Error: reference positions do not "
                         "match the number of requested atoms.\n");
+      return;
     }
   }
 
@@ -36,9 +45,11 @@ colvar::orientation::orientation(std::string const &conf)
       if (get_keyval(conf, "refPositionsCol", file_col, std::string(""))) {
         // use PDB flags if column is provided
         bool found = get_keyval(conf, "refPositionsColValue", file_col_value, 0.0);
-        if (found && file_col_value==0.0)
-          cvm::fatal_error("Error: refPositionsColValue, "
+        if (found && file_col_value==0.0) {
+          cvm::error("Error: refPositionsColValue, "
                             "if provided, must be non-zero.\n");
+          return;
+        }
       } else {
         // if not, use atom indices
         atoms->create_sorted_ids();
@@ -49,8 +60,9 @@ colvar::orientation::orientation(std::string const &conf)
   }
 
   if (!ref_pos.size()) {
-    cvm::fatal_error("Error: must define a set of "
+    cvm::error("Error: must define a set of "
                       "reference coordinates.\n");
+    return;
   }
 
 
@@ -81,6 +93,7 @@ colvar::orientation::orientation()
   : cvc()
 {
   function_type = "orientation";
+  enable(f_cvc_implicit_gradient);
   x.type(colvarvalue::type_quaternion);
 }
 
@@ -120,6 +133,27 @@ void colvar::orientation::apply_force(colvarvalue const &force)
       }
     }
   }
+}
+
+
+cvm::real colvar::orientation::dist2(colvarvalue const &x1,
+                                     colvarvalue const &x2) const
+{
+  return x1.quaternion_value.dist2(x2);
+}
+
+
+colvarvalue colvar::orientation::dist2_lgrad(colvarvalue const &x1,
+                                             colvarvalue const &x2) const
+{
+  return x1.quaternion_value.dist2_grad(x2);
+}
+
+
+colvarvalue colvar::orientation::dist2_rgrad(colvarvalue const &x1,
+                                             colvarvalue const &x2) const
+{
+  return x2.quaternion_value.dist2_grad(x1);
 }
 
 
@@ -176,6 +210,9 @@ void colvar::orientation_angle::apply_force(colvarvalue const &force)
 }
 
 
+simple_scalar_dist_functions(orientation_angle)
+
+
 
 colvar::orientation_proj::orientation_proj(std::string const &conf)
   : orientation(conf)
@@ -218,6 +255,9 @@ void colvar::orientation_proj::apply_force(colvarvalue const &force)
     atoms->apply_colvar_force(fw);
   }
 }
+
+
+simple_scalar_dist_functions(orientation_proj)
 
 
 
@@ -276,6 +316,9 @@ void colvar::tilt::apply_force(colvarvalue const &force)
     atoms->apply_colvar_force(fw);
   }
 }
+
+
+simple_scalar_dist_functions(tilt)
 
 
 
@@ -338,4 +381,47 @@ void colvar::spin_angle::apply_force(colvarvalue const &force)
   if (!atoms->noforce) {
     atoms->apply_colvar_force(fw);
   }
+}
+
+
+cvm::real colvar::spin_angle::dist2(colvarvalue const &x1,
+                                    colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return diff * diff;
+}
+
+
+colvarvalue colvar::spin_angle::dist2_lgrad(colvarvalue const &x1,
+                                            colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return 2.0 * diff;
+}
+
+
+colvarvalue colvar::spin_angle::dist2_rgrad(colvarvalue const &x1,
+                                            colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return (-2.0) * diff;
+}
+
+
+void colvar::spin_angle::wrap(colvarvalue &x) const
+{
+  if ((x.real_value - wrap_center) >= 180.0) {
+    x.real_value -= 360.0;
+    return;
+  }
+
+  if ((x.real_value - wrap_center) < -180.0) {
+    x.real_value += 360.0;
+    return;
+  }
+
+  return;
 }

@@ -37,7 +37,7 @@ timestep        0.001
 
 pair_style      hybrid/overlay dpd/fdt/energy 16.00 234324 exp6/rx 16.00
 pair_coeff      * * dpd/fdt/energy 0.0 0.05 10.0 16.00
-pair_coeff      * * exp6/rx params.exp6 1fluid 1fluid 1.0 1.0 16.00
+pair_coeff      * * exp6/rx params.exp6 1fluid 1fluid exponent 1.0 1.0 16.00
 
 fix             1 all shardlow
 fix             2 all nve

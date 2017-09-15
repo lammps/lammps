@@ -34,8 +34,10 @@ keyword = {delay} or {every} or {check} or {once} or {cluster} or {include} or {
       M,N = exclude if one atom in pair is type M, other is type N
     group group1-ID group2-ID
       group1-ID,group2-ID = exclude if one atom is in 1st group, other in 2nd
-    molecule group-ID
-      groupname = exclude if both atoms are in the same molecule and in the same group
+    molecule/intra group-ID
+      group-ID = exclude if both atoms are in the same molecule and in group
+    molecule/inter group-ID
+      group-ID = exclude if both atoms are in different molecules and in group
     none
       delete all exclude settings
   {page} value = N
@@ -52,7 +54,7 @@ neigh_modify every 2 delay 10 check yes page 100000
 neigh_modify exclude type 2 3
 neigh_modify exclude group frozen frozen check no
 neigh_modify exclude group residue1 chain3
-neigh_modify exclude molecule rigid :pre
+neigh_modify exclude molecule/intra rigid :pre
 
 [Description:]
 
@@ -107,7 +109,8 @@ atoms in the specified group.  This can be useful for models where a
 large portion of the simulation is particles that do not interact with
 other particles or with each other via pairwise interactions.  The
 group specified with this option must also be specified via the
-"atom_modify first"_atom_modify.html command.
+"atom_modify first"_atom_modify.html command.  Note that specifying
+"all" as the group-ID effectively turns off the {include} option.
 
 The {exclude} option turns off pairwise interactions between certain
 pairs of atoms, by not including them in the neighbor list.  These are
@@ -130,9 +133,11 @@ The {exclude type} option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The
 {exclude group} option turns off the interaction if one atom is in the
 first group and the other is the second.  Group1-ID can equal
-group2-ID.  The {exclude molecule} option turns off the interaction if
-both atoms are in the specified group and in the same molecule, as
-determined by their molecule ID.
+group2-ID.  The {exclude molecule/intra} option turns off the
+interaction if both atoms are in the specified group and in the same
+molecule, as determined by their molecule ID.  The {exclude
+molecule/inter} turns off the interaction between pairs of atoms that
+have different molecule IDs and are both in the specified group.
 
 Each of the exclude options can be specified multiple times.  The
 {exclude type} option is the most efficient option to use; it requires
@@ -195,8 +200,8 @@ binsize of 1/2 the cutoff.
 If the "delay" setting is non-zero, then it must be a multiple of the
 "every" setting.
 
-The exclude molecule option can only be used with atom styles that
-define molecule IDs.
+The molecule/intra and molecule/inter exclude options can only be used
+with atom styles that define molecule IDs.
 
 The value of the {page} setting must be at least 10x larger than the
 {one} setting.  This insures neighbor pages are not mostly empty
@@ -209,5 +214,5 @@ space.
 [Default:]
 
 The option defaults are delay = 10, every = 1, check = yes, once = no,
-cluster = no, include = all, exclude = none, page = 100000, one =
-2000, and binsize = 0.0.
+cluster = no, include = all (same as no include option defined),
+exclude = none, page = 100000, one = 2000, and binsize = 0.0.

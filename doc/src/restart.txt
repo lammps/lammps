@@ -97,7 +97,7 @@ timestep of a run unless it is a multiple of N.  A restart file is
 written on the last timestep of a minimization if N > 0 and the
 minimization converges.
 
-Instead of a numeric value, N can be specifed as an "equal-style
+Instead of a numeric value, N can be specified as an "equal-style
 variable"_variable.html, which should be specified as v_name, where
 name is the variable name.  In this case, the variable is evaluated at
 the beginning of a run to determine the next timestep at which a
@@ -125,7 +125,7 @@ Restart files can be read by a "read_restart"_read_restart.html
 command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
 another machine.  In this case, you can use the "-r command-line
-switch"_Section_start.html#start_7 to convert a restart file to a data
+switch"_Section_start.html#start_6 to convert a restart file to a data
 file.
 
 NOTE: Although the purpose of restart files is to enable restarting a

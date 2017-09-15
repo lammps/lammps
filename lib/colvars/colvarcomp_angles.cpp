@@ -1,10 +1,18 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvarcomp.h"
 
 #include <cmath>
+
 
 
 colvar::angle::angle(std::string const &conf)
@@ -13,7 +21,7 @@ colvar::angle::angle(std::string const &conf)
   function_type = "angle";
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
-  provide(f_cvc_com_based);
+  enable(f_cvc_com_based);
 
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
@@ -32,14 +40,14 @@ colvar::angle::angle(cvm::atom const &a1,
   function_type = "angle";
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
-  provide(f_cvc_com_based);
+  enable(f_cvc_com_based);
 
   group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
   group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
   group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
-  atom_groups.push_back(group1);
-  atom_groups.push_back(group2);
-  atom_groups.push_back(group3);
+  register_atom_group(group1);
+  register_atom_group(group2);
+  register_atom_group(group3);
 
   x.type(colvarvalue::type_scalar);
 }
@@ -58,12 +66,16 @@ void colvar::angle::calc_value()
   cvm::atom_pos const g2_pos = group2->center_of_mass();
   cvm::atom_pos const g3_pos = group3->center_of_mass();
 
-  r21  = cvm::position_distance(g2_pos, g1_pos);
+  r21  = is_enabled(f_cvc_pbc_minimum_image) ?
+    cvm::position_distance(g2_pos, g1_pos) :
+    g1_pos - g2_pos;
   r21l = r21.norm();
-  r23  = cvm::position_distance(g2_pos, g3_pos);
+  r23  = is_enabled(f_cvc_pbc_minimum_image) ?
+    cvm::position_distance(g2_pos, g3_pos) :
+    g3_pos - g2_pos;
   r23l = r23.norm();
 
-  cvm::real     const cos_theta = (r21*r23)/(r21l*r23l);
+  cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
 
   x.real_value = (180.0/PI) * std::acos(cos_theta);
 }
@@ -84,6 +96,7 @@ void colvar::angle::calc_gradients()
   group2->set_weighted_gradient((dxdr1 + dxdr3) * (-1.0));
   group3->set_weighted_gradient(dxdr3);
 }
+
 
 void colvar::angle::calc_force_invgrads()
 {
@@ -107,6 +120,7 @@ void colvar::angle::calc_force_invgrads()
   return;
 }
 
+
 void colvar::angle::calc_Jacobian_derivative()
 {
   // det(J) = (2 pi) r^2 * sin(theta)
@@ -128,6 +142,8 @@ void colvar::angle::apply_force(colvarvalue const &force)
     group3->apply_colvar_force(force.real_value);
 }
 
+
+simple_scalar_dist_functions(angle)
 
 
 
@@ -154,9 +170,9 @@ colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
   group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
   group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
   group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
-  atom_groups.push_back(group1);
-  atom_groups.push_back(group2);
-  atom_groups.push_back(group3);
+  register_atom_group(group1);
+  register_atom_group(group2);
+  register_atom_group(group3);
 
   x.type(colvarvalue::type_scalar);
 }
@@ -179,10 +195,12 @@ void colvar::dipole_angle::calc_value()
 
   r21 = group1->dipole();
   r21l = r21.norm();
-  r23  = cvm::position_distance(g2_pos, g3_pos);
+  r23  = is_enabled(f_cvc_pbc_minimum_image) ?
+    cvm::position_distance(g2_pos, g3_pos) :
+    g3_pos - g2_pos;
   r23l = r23.norm();
 
-  cvm::real     const cos_theta = (r21*r23)/(r21l*r23l);
+  cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
 
   x.real_value = (180.0/PI) * std::acos(cos_theta);
 }
@@ -235,6 +253,8 @@ void colvar::dipole_angle::apply_force(colvarvalue const &force)
 }
 
 
+simple_scalar_dist_functions(dipole_angle)
+
 
 
 colvar::dihedral::dihedral(std::string const &conf)
@@ -245,7 +265,7 @@ colvar::dihedral::dihedral(std::string const &conf)
   b_periodic = true;
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
-  provide(f_cvc_com_based);
+  enable(f_cvc_com_based);
 
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
@@ -271,7 +291,7 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
   b_periodic = true;
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
-  provide(f_cvc_com_based);
+  enable(f_cvc_com_based);
 
   b_1site_force = false;
 
@@ -279,10 +299,10 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
   group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
   group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
   group4 = new cvm::atom_group(std::vector<cvm::atom>(1, a4));
-  atom_groups.push_back(group1);
-  atom_groups.push_back(group2);
-  atom_groups.push_back(group3);
-  atom_groups.push_back(group4);
+  register_atom_group(group1);
+  register_atom_group(group2);
+  register_atom_group(group3);
+  register_atom_group(group4);
 
   x.type(colvarvalue::type_scalar);
 
@@ -310,9 +330,15 @@ void colvar::dihedral::calc_value()
   cvm::atom_pos const g4_pos = group4->center_of_mass();
 
   // Usual sign convention: r12 = r2 - r1
-  r12 = cvm::position_distance(g1_pos, g2_pos);
-  r23 = cvm::position_distance(g2_pos, g3_pos);
-  r34 = cvm::position_distance(g3_pos, g4_pos);
+  r12 = is_enabled(f_cvc_pbc_minimum_image) ?
+    cvm::position_distance(g1_pos, g2_pos) :
+    g2_pos - g1_pos;
+  r23 = is_enabled(f_cvc_pbc_minimum_image) ?
+    cvm::position_distance(g2_pos, g3_pos) :
+    g3_pos - g2_pos;
+  r34 = is_enabled(f_cvc_pbc_minimum_image) ?
+    cvm::position_distance(g3_pos, g4_pos) :
+    g4_pos - g3_pos;
 
   cvm::rvector const n1 = cvm::rvector::outer(r12, r23);
   cvm::rvector const n2 = cvm::rvector::outer(r23, r34);
@@ -351,10 +377,10 @@ void colvar::dihedral::calc_gradients()
 
     cvm::real const K = (1.0/sin_phi) * (180.0/PI);
 
-	f1 = K * cvm::rvector::outer(r23, dcosdA);
-	f3 = K * cvm::rvector::outer(dcosdB, r23);
-	f2 = K * (cvm::rvector::outer(dcosdA, r12)
-		   +  cvm::rvector::outer(r34, dcosdB));
+        f1 = K * cvm::rvector::outer(r23, dcosdA);
+        f3 = K * cvm::rvector::outer(dcosdB, r23);
+        f2 = K * (cvm::rvector::outer(dcosdA, r12)
+                   +  cvm::rvector::outer(r34, dcosdB));
   }
   else {
     rC = 1.0/rC;
@@ -425,7 +451,7 @@ void colvar::dihedral::calc_force_invgrads()
     // Default case: use groups 1 and 4
     group4->read_total_forces();
     ft.real_value = PI/180.0 * 0.5 * (fact1 * (cross1 * group1->total_force())
-				      + fact4 * (cross4 * group4->total_force()));
+                                      + fact4 * (cross4 * group4->total_force()));
   }
 }
 
@@ -453,3 +479,191 @@ void colvar::dihedral::apply_force(colvarvalue const &force)
 }
 
 
+// metrics functions for cvc implementations with a periodicity
+
+cvm::real colvar::dihedral::dist2(colvarvalue const &x1,
+                                  colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return diff * diff;
+}
+
+
+colvarvalue colvar::dihedral::dist2_lgrad(colvarvalue const &x1,
+                                          colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return 2.0 * diff;
+}
+
+
+colvarvalue colvar::dihedral::dist2_rgrad(colvarvalue const &x1,
+                                          colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return (-2.0) * diff;
+}
+
+
+void colvar::dihedral::wrap(colvarvalue &x) const
+{
+  if ((x.real_value - wrap_center) >= 180.0) {
+    x.real_value -= 360.0;
+    return;
+  }
+
+  if ((x.real_value - wrap_center) < -180.0) {
+    x.real_value += 360.0;
+    return;
+  }
+
+  return;
+}
+
+
+colvar::polar_theta::polar_theta(std::string const &conf)
+  : cvc(conf)
+{
+  function_type = "polar_theta";
+  enable(f_cvc_com_based);
+
+  atoms = parse_group(conf, "atoms");
+  init_total_force_params(conf);
+  x.type(colvarvalue::type_scalar);
+}
+
+
+colvar::polar_theta::polar_theta()
+{
+  function_type = "polar_theta";
+  x.type(colvarvalue::type_scalar);
+}
+
+
+void colvar::polar_theta::calc_value()
+{
+  cvm::rvector pos = atoms->center_of_mass();
+  r = atoms->center_of_mass().norm();
+  // Internal values of theta and phi are radians
+  theta = (r > 0.) ? std::acos(pos.z / r) : 0.;
+  phi = std::atan2(pos.y, pos.x);
+  x.real_value = (180.0/PI) * theta;
+}
+
+
+void colvar::polar_theta::calc_gradients()
+{
+  if (r == 0.)
+    atoms->set_weighted_gradient(cvm::rvector(0., 0., 0.));
+  else
+    atoms->set_weighted_gradient(cvm::rvector(
+      (180.0/PI) *  std::cos(theta) * std::cos(phi) / r,
+      (180.0/PI) *  std::cos(theta) * std::sin(phi) / r,
+      (180.0/PI) * -std::sin(theta) / r));
+}
+
+
+void colvar::polar_theta::apply_force(colvarvalue const &force)
+{
+  if (!atoms->noforce)
+    atoms->apply_colvar_force(force.real_value);
+}
+
+
+simple_scalar_dist_functions(polar_theta)
+
+
+colvar::polar_phi::polar_phi(std::string const &conf)
+  : cvc(conf)
+{
+  function_type = "polar_phi";
+  period = 360.0;
+  enable(f_cvc_com_based);
+
+  atoms = parse_group(conf, "atoms");
+  init_total_force_params(conf);
+  x.type(colvarvalue::type_scalar);
+}
+
+
+colvar::polar_phi::polar_phi()
+{
+  function_type = "polar_phi";
+  period = 360.0;
+  x.type(colvarvalue::type_scalar);
+}
+
+
+void colvar::polar_phi::calc_value()
+{
+  cvm::rvector pos = atoms->center_of_mass();
+  r = atoms->center_of_mass().norm();
+  // Internal values of theta and phi are radians
+  theta = (r > 0.) ? std::acos(pos.z / r) : 0.;
+  phi = std::atan2(pos.y, pos.x);
+  x.real_value = (180.0/PI) * phi;
+}
+
+
+void colvar::polar_phi::calc_gradients()
+{
+  atoms->set_weighted_gradient(cvm::rvector(
+    (180.0/PI) * -std::sin(phi) / (r*std::sin(theta)),
+    (180.0/PI) *  std::cos(phi) / (r*std::sin(theta)),
+    0.));
+}
+
+
+void colvar::polar_phi::apply_force(colvarvalue const &force)
+{
+  if (!atoms->noforce)
+    atoms->apply_colvar_force(force.real_value);
+}
+
+
+// Same as dihedral, for polar_phi
+
+cvm::real colvar::polar_phi::dist2(colvarvalue const &x1,
+                                  colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return diff * diff;
+}
+
+
+colvarvalue colvar::polar_phi::dist2_lgrad(colvarvalue const &x1,
+                                          colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return 2.0 * diff;
+}
+
+
+colvarvalue colvar::polar_phi::dist2_rgrad(colvarvalue const &x1,
+                                          colvarvalue const &x2) const
+{
+  cvm::real diff = x1.real_value - x2.real_value;
+  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+  return (-2.0) * diff;
+}
+
+
+void colvar::polar_phi::wrap(colvarvalue &x) const
+{
+  if ((x.real_value - wrap_center) >= 180.0) {
+    x.real_value -= 360.0;
+    return;
+  }
+
+  if ((x.real_value - wrap_center) < -180.0) {
+    x.real_value += 360.0;
+    return;
+  }
+
+  return;
+}

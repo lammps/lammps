@@ -30,12 +30,13 @@ enum{PF_CALLBACK,PF_ARRAY};
 
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  fexternal(NULL)
+  fexternal(NULL), caller_vector(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix external command");
 
   scalar_flag = 1;
   global_freq = 1;
+  virial_flag = 1;
   extscalar = 1;
 
   if (strcmp(arg[3],"pf/callback") == 0) {
@@ -61,6 +62,11 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
 
   user_energy = 0.0;
+
+  // optional vector of values provided by caller
+  // vector_flag and size_vector are setup via set_vector_length()
+
+  caller_vector = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,6 +78,7 @@ FixExternal::~FixExternal()
   atom->delete_callback(id,0);
 
   memory->destroy(fexternal);
+  delete [] caller_vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,6 +87,7 @@ int FixExternal::setmask()
 {
   int mask = 0;
   if (mode == PF_CALLBACK || mode == PF_ARRAY) {
+    mask |= PRE_REVERSE;
     mask |= POST_FORCE;
     mask |= THERMO_ENERGY;
     mask |= MIN_POST_FORCE;
@@ -102,6 +110,13 @@ void FixExternal::setup(int vflag)
   post_force(vflag);
 }
 
+/* --------------------------------------------------------------------- */
+
+void FixExternal::setup_pre_reverse(int eflag, int vflag)
+{
+  pre_reverse(eflag,vflag);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixExternal::min_setup(int vflag)
@@ -109,11 +124,24 @@ void FixExternal::min_setup(int vflag)
   post_force(vflag);
 }
 
+/* ----------------------------------------------------------------------
+   store eflag, so can use it in post_force to tally per-atom energies
+------------------------------------------------------------------------- */
+
+void FixExternal::pre_reverse(int eflag, int vflag)
+{
+  eflag_caller = eflag;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixExternal::post_force(int vflag)
 {
   bigint ntimestep = update->ntimestep;
+
+  int eflag = eflag_caller;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   // invoke the callback in driver program
   // it will fill fexternal with forces
@@ -145,11 +173,90 @@ void FixExternal::min_post_force(int vflag)
   post_force(vflag);
 }
 
-/* ---------------------------------------------------------------------- */
+// ----------------------------------------------------------------------
+// "set" methods caller can invoke directly
+// ----------------------------------------------------------------------
 
-void FixExternal::set_energy(double eng)
+/* ----------------------------------------------------------------------
+   caller invokes this method to set its contribution to global energy
+   unlike other energy/virial set methods:
+     do not just return if eflag_global is not set
+     b/c input script could access this quantity via compute_scalar()
+     even if eflag is not set on a particular timestep
+------------------------------------------------------------------------- */
+
+void FixExternal::set_energy_global(double caller_energy)
 {
-  user_energy = eng;
+  user_energy = caller_energy;
+}
+
+/* ----------------------------------------------------------------------
+   caller invokes this method to set its contribution to global virial
+------------------------------------------------------------------------- */
+
+void FixExternal::set_virial_global(double *caller_virial)
+{
+  if (!vflag_global) return;
+
+  for (int i = 0; i < 6; i++)
+    virial[i] = caller_virial[i];
+}
+
+/* ----------------------------------------------------------------------
+   caller invokes this method to set its contribution to peratom energy
+------------------------------------------------------------------------- */
+
+void FixExternal::set_energy_peratom(double *caller_energy)
+{
+  if (!eflag_atom) return;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++)
+    eatom[i] = caller_energy[i];
+}
+
+/* ----------------------------------------------------------------------
+   caller invokes this method to set its contribution to peratom virial
+------------------------------------------------------------------------- */
+
+void FixExternal::set_virial_peratom(double **caller_virial)
+{
+  int i,j;
+
+  if (!vflag_atom) return;
+
+  int nlocal = atom->nlocal;
+  for (i = 0; i < nlocal; i++)
+    for (j = 0; j < 6; j++)
+      vatom[i][j] = caller_virial[i][j];
+}
+
+/* ----------------------------------------------------------------------
+   caller invokes this method to set length of vector of values
+   assume all vector values are extensive, could make this an option
+------------------------------------------------------------------------- */
+
+void FixExternal::set_vector_length(int n)
+{
+  delete [] caller_vector;
+
+  vector_flag = 1;
+  size_vector = n;
+  extvector = 1;
+
+  caller_vector = new double[n];
+}
+
+/* ----------------------------------------------------------------------
+   caller invokes this method to set Index value in vector
+   index ranges from 1 to N inclusive
+------------------------------------------------------------------------- */
+
+void FixExternal::set_vector(int index, double value)
+{
+  if (index >= size_vector)
+    error->all(FLERR,"Invalid set_vector index in fix external");
+  caller_vector[index-1] = value;
 }
 
 /* ----------------------------------------------------------------------
@@ -160,6 +267,16 @@ void FixExternal::set_energy(double eng)
 double FixExternal::compute_scalar()
 {
   return user_energy;
+}
+
+/* ----------------------------------------------------------------------
+   arbitrary value computed by caller
+   up to user to set it via set_vector()
+------------------------------------------------------------------------- */
+
+double FixExternal::compute_vector(int n)
+{
+  return caller_vector[n];
 }
 
 /* ----------------------------------------------------------------------

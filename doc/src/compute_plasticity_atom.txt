@@ -44,7 +44,7 @@ This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input. See
 Section_howto 15 for an overview of LAMMPS output options.
 
-The per-atom vector values are unitlesss numbers (lambda) >= 0.0.
+The per-atom vector values are unitless numbers (lambda) >= 0.0.
 
 [Restrictions:]
 

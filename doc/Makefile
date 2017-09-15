@@ -6,6 +6,7 @@ BUILDDIR      = /tmp/lammps-docs-$(SHA1)
 RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
+ANCHORCHECK   = $(VENV)/bin/doc_anchor_check
 
 PYTHON        = $(shell which python3)
 HAS_PYTHON3    = NO
@@ -22,7 +23,7 @@ endif
 SOURCES=$(wildcard src/*.txt)
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub html pdf old venv
+.PHONY: help clean-all clean epub html pdf old venv spelling anchor_check
 
 # ------------------------------------------
 
@@ -36,6 +37,7 @@ help:
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
+	@echo "  anchor_check  scan for duplicate anchor labels"
 
 # ------------------------------------------
 
@@ -44,12 +46,19 @@ clean-all:
 
 clean:
 	rm -rf $(RSTDIR) html
+	rm -rf spelling
 
-html: $(OBJECTS)
+clean-spelling:
+	rm -rf spelling
+
+html: $(OBJECTS) $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build -j 8 -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		echo "############################################" ;\
+		doc_anchor_check src/*.txt ;\
+		echo "############################################" ;\
 		deactivate ;\
 	)
 	-rm html/searchindex.js
@@ -63,6 +72,17 @@ html: $(OBJECTS)
 	@rm -rf html/USER/*/.[sg]*
 	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
+
+spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
+	@(\
+		. $(VENV)/bin/activate ;\
+		pip install sphinxcontrib-spelling ;\
+		cp -r src/* $(RSTDIR)/ ;\
+        cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		deactivate ;\
+	)
+	@echo "Spell check finished."
 
 epub: $(OBJECTS)
 	@mkdir -p epub
@@ -80,6 +100,7 @@ epub: $(OBJECTS)
 
 pdf: utils/txt2html/txt2html.exe
 	@(\
+		set -e; \
 		cd src; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
 		htmldoc --batch lammps.book;          \
@@ -112,6 +133,13 @@ fetch:
 
 txt2html: utils/txt2html/txt2html.exe
 
+anchor_check : $(ANCHORCHECK)
+	@(\
+		. $(VENV)/bin/activate ;\
+		doc_anchor_check src/*.txt ;\
+		deactivate ;\
+	)
+
 # ------------------------------------------
 
 utils/txt2html/txt2html.exe: utils/txt2html/txt2html.cpp
@@ -131,12 +159,12 @@ $(VENV):
 	@( \
 		virtualenv -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install Sphinx; \
+		pip install Sphinx==1.5.6; \
 		pip install sphinxcontrib-images; \
 		deactivate;\
 	)
 
-$(TXT2RST): $(VENV)
+$(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \
 		. $(VENV)/bin/activate; \
 		(cd utils/converters;\

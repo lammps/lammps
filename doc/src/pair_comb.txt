@@ -50,7 +50,7 @@ atoms {i} and {j},
 
 The COMB potentials (styles {comb} and {comb3}) are variable charge
 potentials.  The equilibrium charge on each atom is calculated by the
-electronegativity equalization (QEq) method.  See "Rick"_#Rick for
+electronegativity equalization (QEq) method.  See "Rick"_#Rick2 for
 further details.  This is implemented by the "fix
 qeq/comb"_fix_qeq_comb.html command, which should normally be
 specified in the input script when running a model with the COMB
@@ -86,7 +86,7 @@ For style {comb}, the provided potential file {ffield.comb} contains
 all currently-available 2nd generation COMB parameterizations: for Si,
 Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
 {comb3}, the potential file {ffield.comb3} contains all
-currently-available 3rd generation COMB paramterizations: O, Cu, N, C,
+currently-available 3rd generation COMB parameterizations: O, Cu, N, C,
 H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
 example Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the
 following table:
@@ -124,7 +124,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -187,6 +187,6 @@ S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)
 Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74,
 255-279 (2013).
 
-:link(Rick)
+:link(Rick2)
 [(Rick)] S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).

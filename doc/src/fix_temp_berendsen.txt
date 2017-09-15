@@ -26,7 +26,7 @@ fix 1 all temp/berendsen 300.0 300.0 100.0 :pre
 [Description:]
 
 Reset the temperature of a group of atoms by using a Berendsen
-thermostat "(Berendsen)"_#Berendsen, which rescales their velocities
+thermostat "(Berendsen)"_#Berendsen2, which rescales their velocities
 every timestep.
 
 The thermostat is applied to only the translational degrees of freedom
@@ -127,7 +127,7 @@ output"_thermo_style.html.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative energy change due to this fix.  The scalar value
+cumulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the
@@ -157,7 +157,7 @@ temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
 
 :line
 
-:link(Berendsen)
+:link(Berendsen2)
 
 [(Berendsen)] Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
 Phys, 81, 3684 (1984).

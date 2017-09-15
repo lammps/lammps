@@ -79,8 +79,8 @@ part of bonds, angles, etc.
 
 NOTE: One data structure that is not updated when a bond breaks are
 the molecule IDs stored by each atom.  Even though one molecule
-becomes two moleclues due to the broken bond, all atoms in both new
-moleclues retain their original molecule IDs.
+becomes two molecules due to the broken bond, all atoms in both new
+molecules retain their original molecule IDs.
 
 Computationally, each timestep this fix operates, it loops over all
 the bonds in the system and computes distances between pairs of bonded
@@ -122,7 +122,7 @@ by this fix are "intensive".
 These are the 2 quantities:
 
 (1) # of bonds broken on the most recent breakage timestep
-(2) cummulative # of bonds broken :ul
+(2) cumulative # of bonds broken :ul
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

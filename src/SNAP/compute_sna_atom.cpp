@@ -34,7 +34,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rmin0, rfac0;
-  int twojmax, switchflag;
+  int twojmax, switchflag, bzeroflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -48,6 +48,8 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   diagonalstyle = 0;
   rmin0 = 0.0;
   switchflag = 1;
+  bzeroflag = 1;
+  quadraticflag = 0;
 
   // offset by 1 to match up with types
 
@@ -100,24 +102,35 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all(FLERR,"Illegal compute sna/atom command");
       switchflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"bzeroflag") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal compute sna/atom command");
+      bzeroflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal compute sna/atom command");
+      quadraticflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute sna/atom command");
   }
 
   snaptr = new SNA*[comm->nthreads];
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag)
+#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag,bzeroflag)
 #endif
   {
     int tid = omp_get_thread_num();
 
     // always unset use_shared_arrays since it does not work with computes
     snaptr[tid] = new SNA(lmp,rfac0,twojmax,diagonalstyle,
-                          0 /*use_shared_arrays*/, rmin0,switchflag);
+                          0 /*use_shared_arrays*/, rmin0,switchflag,bzeroflag);
   }
 
   ncoeff = snaptr[0]->ncoeff;
-  peratom_flag = 1;
   size_peratom_cols = ncoeff;
+  if (quadraticflag) size_peratom_cols += (ncoeff*(ncoeff+1))/2;
+  peratom_flag = 1;
 
   nmax = 0;
   njmax = 0;
@@ -258,8 +271,19 @@ void ComputeSNAAtom::compute_peratom()
       snaptr[tid]->copy_bi2bvec();
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
 	sna[i][icoeff] = snaptr[tid]->bvec[icoeff];
+      if (quadraticflag) {
+        int ncount = ncoeff;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+          double bi = snaptr[tid]->bvec[icoeff];
+
+          // upper-triangular elements of quadratic matrix
+          
+          for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++)
+            sna[i][ncount++] = bi*snaptr[tid]->bvec[jcoeff];
+        }
+      }
     } else {
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+      for (int icoeff = 0; icoeff < size_peratom_cols; icoeff++)
 	sna[i][icoeff] = 0.0;
     }
   }

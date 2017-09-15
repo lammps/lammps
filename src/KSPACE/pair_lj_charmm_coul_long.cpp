@@ -700,24 +700,19 @@ void PairLJCharmmCoulLong::init_style()
     else if (respa == 1) {
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     } else {
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respamiddle = 1;
       irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     }
 

@@ -811,7 +811,7 @@ void FixSRD::post_force(int vflag)
   }
 
   // if wall has moved too far, trigger reneigh on next step
-  // analagous to neighbor check for big particle moving 1/2 of skin distance
+  // analogous to neighbor check for big particle moving 1/2 of skin distance
 
   if (wallexist) {
     for (m = 0; m < nwall; m++)

@@ -41,8 +41,13 @@
 //@HEADER
 */
 
-#if defined( KOKKOS_ATOMIC_HPP) && ! defined( KOKKOS_ATOMIC_INCREMENT )
-#define KOKKOS_ATOMIC_INCREMENT
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+#include <xmmintrin.h>
+#endif
+
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ATOMIC_HPP) && ! defined( KOKKOS_ATOMIC_INCREMENT_HPP )
+#define KOKKOS_ATOMIC_INCREMENT_HPP
 
 namespace Kokkos {
 
@@ -50,7 +55,10 @@ namespace Kokkos {
 template<>
 KOKKOS_INLINE_FUNCTION
 void atomic_increment<char>(volatile char* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_USE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
+#endif
   __asm__ __volatile__(
       "lock incb %0"
       : /* no output registers */
@@ -65,7 +73,10 @@ void atomic_increment<char>(volatile char* a) {
 template<>
 KOKKOS_INLINE_FUNCTION
 void atomic_increment<short>(volatile short* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_USE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
+#endif
   __asm__ __volatile__(
       "lock incw %0"
       : /* no output registers */
@@ -80,7 +91,10 @@ void atomic_increment<short>(volatile short* a) {
 template<>
 KOKKOS_INLINE_FUNCTION
 void atomic_increment<int>(volatile int* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_USE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
+#endif
   __asm__ __volatile__(
       "lock incl %0"
       : /* no output registers */
@@ -95,7 +109,10 @@ void atomic_increment<int>(volatile int* a) {
 template<>
 KOKKOS_INLINE_FUNCTION
 void atomic_increment<long long int>(volatile long long int* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_USE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
+#endif
   __asm__ __volatile__(
       "lock incq %0"
       : /* no output registers */
@@ -115,3 +132,4 @@ void atomic_increment(volatile T* a) {
 
 } // End of namespace Kokkos
 #endif
+

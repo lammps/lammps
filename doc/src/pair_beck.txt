@@ -63,7 +63,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -73,7 +73,7 @@ more instructions on how to use the accelerated styles effectively.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-For atom type pairs I,J and I != J, coeffiecients must be specified.
+For atom type pairs I,J and I != J, coefficients must be specified.
 No default mixing rules are used.
 
 This pair style does not support the "pair_modify"_pair_modify.html shift

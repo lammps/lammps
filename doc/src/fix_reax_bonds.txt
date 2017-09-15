@@ -28,13 +28,30 @@ fix 1 all reax/c/bonds 100 bonds.reaxc :pre
 
 Write out the bond information computed by the ReaxFF potential
 specified by "pair_style reax"_pair_reax.html or "pair_style
-reax/c"_pair_reax_c.html in the exact same format as the original
+reax/c"_pair_reaxc.html in the exact same format as the original
 stand-alone ReaxFF code of Adri van Duin.  The bond information is
 written to {filename} on timesteps that are multiples of {Nevery},
 including timestep 0.  For time-averaged chemical species analysis,
 please see the "fix reaxc/c/species"_fix_reaxc_species.html command.
 
-The format of the output file should be self-explantory.
+The format of the output file should be reasonably self-explanatory.
+The meaning of the column header abbreviations is as follows:
+
+id = atom id
+type = atom type
+nb = number of bonds
+id_1 = atom id of first bond
+id_nb = atom id of Nth bond
+mol = molecule id
+bo_1 = bond order of first bond
+bo_nb = bond order of Nth bond
+abo = atom bond order (sum of all bonds)
+nlp = number of lone pairs
+q = atomic charge :ul
+
+If the filename ends with ".gz", the output file is written in gzipped
+format.  A gzipped dump file will be about 3x smaller than the text
+version, but will also take longer to write.
 
 :line
 
@@ -65,7 +82,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section_accelerate"_Section_accelerate.html of the manual for
@@ -80,14 +97,17 @@ reax"_pair_reax.html be invoked.  This fix is part of the REAX
 package.  It is only enabled if LAMMPS was built with that package,
 which also requires the REAX library be built and linked with LAMMPS.
 The fix reax/c/bonds command requires that the "pair_style
-reax/c"_pair_reax_c.html be invoked.  This fix is part of the
+reax/c"_pair_reaxc.html be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info.
 
+To write gzipped bond files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option.
+
 [Related commands:]
 
 "pair_style reax"_pair_reax.html, "pair_style
-reax/c"_pair_reax_c.html, "fix reax/c/species"_fix_reaxc_species.html
+reax/c"_pair_reaxc.html, "fix reax/c/species"_fix_reaxc_species.html
 
 [Default:] none

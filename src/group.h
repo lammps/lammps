@@ -70,11 +70,9 @@ class Group : protected Pointers {
   int find_unused();
   void add_molecules(int, int);
 
-  // static variable for ring communication callback to access class data
   // callback functions for ring communication
 
-  static Group *cptr;
-  static void molring(int, char *);
+  static void molring(int, char *, void *);
   int molbit;
 };
 

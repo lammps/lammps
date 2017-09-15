@@ -128,7 +128,7 @@ void Update::set_units(const char *style)
 
   if (strcmp(style,"lj") == 0) {
     force->boltz = 1.0;
-    force->hplanck = 0.18292026;  // using LJ parameters for argon
+    force->hplanck = 1.0;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;
@@ -154,7 +154,7 @@ void Update::set_units(const char *style)
     force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
     force->mv2d = 1.0 / 0.602214129;
     force->nktv2p = 68568.415;
-    force->qqr2e = 332.06371;
+    force->qqr2e = 332.06371;     // see also force->qqr2d_lammps_real
     force->qe2f = 23.060549;
     force->vxmu2f = 1.4393264316e4;
     force->xxt2kmu = 0.1;

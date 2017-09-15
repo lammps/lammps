@@ -146,6 +146,8 @@ d.extra(data)				   extract bond/tri/line list from data
 # History
 #   8/05, Steve Plimpton (SNL): original version
 #   12/09, David Hart (SNL): allow use of NumPy or Numeric
+#   03/17, Richard Berger (Temple U): improve Python 3 compatibility,
+#                                     simplify read_snapshot by using reshape
 
 # ToDo list
 #   try to optimize this line in read_snap: words += f.readline().split()
@@ -224,7 +226,7 @@ class dump:
     self.flist = []
     for word in words: self.flist += glob.glob(word)
     if len(self.flist) == 0 and len(list) == 1:
-      raise StandardError("no dump file specified")
+      raise Exception("no dump file specified")
     
     if len(list) == 1:
       self.increment = 0
@@ -299,7 +301,7 @@ class dump:
 
   def next(self):
 
-    if not self.increment: raise StandardError("cannot read incrementally")
+    if not self.increment: raise Exception("cannot read incrementally")
 
     # read next snapshot in current file using eof as pointer
     # if fail, try next file
@@ -344,13 +346,13 @@ class dump:
     try:
       snap = Snap()
       item = f.readline()
-      snap.time = int(f.readline().split()[0])    # just grab 1st field
+      snap.time = int(f.readline().decode().split()[0])    # just grab 1st field
       item = f.readline()
-      snap.natoms = int(f.readline())
+      snap.natoms = int(f.readline().decode())
 
       snap.aselect = np.zeros(snap.natoms)
 
-      item = f.readline()
+      item = f.readline().decode()
       words = f.readline().split()
       snap.xlo,snap.xhi = float(words[0]),float(words[1])
       words = f.readline().split()
@@ -358,7 +360,7 @@ class dump:
       words = f.readline().split()
       snap.zlo,snap.zhi = float(words[0]),float(words[1])
 
-      item = f.readline()
+      item = f.readline().decode()
       if len(self.names) == 0:
         words = item.split()[2:]
         if len(words):
@@ -372,24 +374,22 @@ class dump:
             else: self.names[words[i]] = i
 
       if snap.natoms:
-        words = f.readline().split()
+        words = f.readline().decode().split()
         ncol = len(words)
         for i in range(1,snap.natoms):
-          words += f.readline().split()
+          words += f.readline().decode().split()
         floats = map(float,words)
-        if oldnumeric: atoms = np.zeros((snap.natoms,ncol),np.Float)
-        else: atoms = np.zeros((snap.natoms,ncol),np.float)
-        start = 0
-        stop = ncol
-        for i in range(snap.natoms):
-          atoms[i] = floats[start:stop]
-          start = stop
-          stop += ncol
-      else: atoms = None
-      snap.atoms = atoms
+        if oldnumeric:
+          atom_data = np.array(list(floats),np.Float)
+        else:
+          atom_data = np.array(list(floats),np.float)
+
+        snap.atoms = atom_data.reshape((snap.natoms, ncol))
+      else:
+        snap.atoms = None
       return snap
     except:
-      return 0
+      return None
 
   # --------------------------------------------------------------------
   # decide if snapshot i is scaled/unscaled from coords of first and last atom
@@ -417,7 +417,7 @@ class dump:
   
   def map(self,*pairs):
     if len(pairs) % 2 != 0:
-      raise StandardError("dump map() requires pairs of mappings")
+      raise Exception("dump map() requires pairs of mappings")
     for i in range(0,len(pairs),2):
       j = i + 1
       self.names[pairs[j]] = pairs[i]-1
@@ -734,7 +734,7 @@ class dump:
     for snap in self.snaps:
       if not snap.tselect: continue
       if snap.nselect != len(vec):
-        raise StandardError("vec length does not match # of selected atoms")
+        raise Exception("vec length does not match # of selected atoms")
       atoms = snap.atoms
       m = 0
       for i in range(snap.natoms):
@@ -800,7 +800,7 @@ class dump:
 
   def atom(self,n,*list):
     if len(list) == 0:
-      raise StandardError("no columns specified")
+      raise Exception("no columns specified")
     columns = []
     values = []
     for name in list:
@@ -816,7 +816,7 @@ class dump:
       for i in range(snap.natoms):
         if atoms[i][id] == n: break
       if atoms[i][id] != n:
-        raise StandardError("could not find atom ID in snapshot")
+        raise Exception("could not find atom ID in snapshot")
       for j in range(ncol):
         values[j][m] = atoms[i][columns[j]]
       m += 1
@@ -831,7 +831,7 @@ class dump:
     snap = self.snaps[self.findtime(n)]
     
     if len(list) == 0:
-      raise StandardError("no columns specified")
+      raise Exception("no columns specified")
     columns = []
     values = []
     for name in list:
@@ -957,9 +957,9 @@ class dump:
   # --------------------------------------------------------------------
 
   def findtime(self,n):
-    for i in range(self.nsnaps):
-      if self.snaps[i].time == n: return i
-    raise StandardError("no step %d exists" % n)
+    for i, snap in enumerate(self.snaps):
+      if snap.time == n: return i
+    raise Exception("no step %d exists" % n)
 
   # --------------------------------------------------------------------
   # return maximum box size across all selected snapshots
@@ -1008,7 +1008,7 @@ class dump:
         nbonds = int(f.readline())
         item = f.readline()
         if not re.search("BONDS",item):
-          raise StandardError("could not read bonds from dump file")
+          raise Exception("could not read bonds from dump file")
 
         words = f.readline().split()
         ncol = len(words)
@@ -1031,7 +1031,7 @@ class dump:
           self.bondflag = 1
           self.bondlist = bondlist
       except:
-        raise StandardError("could not read from bond dump file")
+        raise Exception("could not read from bond dump file")
       
     # request bonds from data object
     
@@ -1047,7 +1047,7 @@ class dump:
           self.bondflag = 1
           self.bondlist = bondlist
       except:
-        raise StandardError("could not extract bonds from data object")
+        raise Exception("could not extract bonds from data object")
 
     # request tris/lines from cdata object
     
@@ -1061,7 +1061,7 @@ class dump:
           self.lineflag = 1
           self.linelist = lines
       except:
-        raise StandardError("could not extract tris/lines from cdata object")
+        raise Exception("could not extract tris/lines from cdata object")
 
     # request tris from mdump object
     
@@ -1070,10 +1070,10 @@ class dump:
         self.triflag = 2
         self.triobj = arg
       except:
-        raise StandardError("could not extract tris from mdump object")
+        raise Exception("could not extract tris from mdump object")
 
     else:
-      raise StandardError("unrecognized argument to dump.extra()")
+      raise Exception("unrecognized argument to dump.extra()")
       
   # --------------------------------------------------------------------
 

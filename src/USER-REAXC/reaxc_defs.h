@@ -116,8 +116,8 @@
 
 #define MAX_BOND 20
 
-#define MAXREAXBOND 24 /* used in fix_reaxc_bonds.cpp and pair_reax_c.cpp */
-#define MAXSPECBOND 24 /* used in fix_reaxc_species.cpp and pair_reax_c.cpp */
+#define MAXREAXBOND 24 /* used in fix_reaxc_bonds.cpp and pair_reaxc.cpp */
+#define MAXSPECBOND 24 /* used in fix_reaxc_species.cpp and pair_reaxc.cpp */
 
 /******************* ENUMERATIONS *************************/
 enum geo_formats { CUSTOM, PDB, ASCII_RESTART, BINARY_RESTART, GF_N };

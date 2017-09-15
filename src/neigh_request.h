@@ -26,102 +26,102 @@ class NeighRequest : protected Pointers {
   int id;                   // ID of request as stored by requestor
                             // used to track multiple requests from one class
 
-  // which class style requests the list, one flag is 1, others are 0
+  // -----------------------------  
+  // flags set by requesting class for attributes of neighor list they need
+  // all must be set appropriately, all have defaults
+  // -----------------------------  
 
-  int pair;              // set by default
+  // which class style requests the list
+  // one flag is 1, others are 0
+
+  int pair;              // pair is set by default
   int fix;
   int compute;
   int command;
+  int neigh;
 
-  // kind of list requested, one flag is 1, others are 0
-  // NOTE: should make only the first 3 settings be unique,
-  //         allow others as add-on flags
-  //       this will require changed flags in pair requestors
-  //       this will lead to simpler logic in Neighbor::choose_build()
+  // half/full setting, determines which neighbors appear in list
+  // one flag is 1, other is 0
 
-  int half;              // 1 if half neigh list (set by default)
-  int full;              // 1 if full neigh list
-  int half_from_full;    // 1 if half list computed from previous full list
-  int gran;              // 1 if granular list
-  int granhistory;       // 1 if history info for granular contact pairs
+  int half;              // half neigh list (set by default)
+  int full;              // full neigh list
+
+  // attribute flags, all are 0 by default
+
+  int occasional;        // how often list is built
+                         // 0 if needed every reneighboring during run
+                         // 1 if only occasionally needed by a fix, compute, etc
+
+  int newton;            // which owned/ghost pairs appear in list
+                         // 0 if use force::newton_pair setting
+                         // 1 if override with pair newton on
+                         // 2 if override with pair newton off
+  
+  int ghost;             // 1 if includes ghost atom neighbors
+  int size;              // 1 if pair cutoff set by particle radius
+  int history;           // 1 if stores neighbor history info
+  int granonesided;      // 1 if one-sided granular list for 
+                         //   sphere/surf interactions
   int respainner;        // 1 if a rRESPA inner list
   int respamiddle;       // 1 if a rRESPA middle list
   int respaouter;        // 1 if a rRESPA outer list
-  int full_cluster;      // only used by Kokkos pair styles
+  int bond;              // 1 if store bond neighbors instead of atom neighs
+  int omp;               // set by USER-OMP package
+  int intel;             // set by USER-INTEL package
+  int kokkos_host;       // set by KOKKOS package
+  int kokkos_device;
+  int ssa;               // set by USER-DPD package, for Shardlow lists
+  int cut;               // 1 if use a non-standard cutoff length
+  double cutoff;         // special cutoff distance for this list
+
+  int dnum;              // # of extra floating point values stored in list
+
+  // flags set by pair hybrid
+
+  int skip;              // 1 if this list skips atom types from another list
+  int *iskip;            // iskip[i] if atoms of type I are not in list
+  int **ijskip;          // ijskip[i][j] if pairs of type I,J are not in list
 
   // command_style only set if command = 1
   // allows print_pair_info() to access command name
 
   const char *command_style;
 
-  // -----------------
-  // optional settings, set by caller, all are 0 by default
-  // -----------------
+  // -----------------------------  
+  // flags set by Neighbor class to morph original requests
+  // -----------------------------  
 
-  // 0 if needed every reneighboring during run
-  // 1 if occasionally needed by a fix, compute, etc
-
-  int occasional;
-
-  // 0 if use force::newton_pair setting
-  // 1 if override with pair newton on
-  // 2 if override with pair newton off
-
-  int newton;
-
-  // 1 if one-sided granular list for sphere/surf interactions (gran = 1)
-
-  int granonesided;
-
-  // number of auxiliary floating point values to store, 0 if none set
-
-  int dnum;
-
-  // 1 if also need neighbors of ghosts
-
-  int ghost;
-
-  // 1 if using multi-threaded neighbor list build for USER-OMP or USER-INTEL
-
-  int omp;
-  int intel;
-
-  // 1 if using Kokkos neighbor build
-
-  int kokkos_host;
-  int kokkos_device;
-
-  // 1 if using Shardlow Splitting Algorithm (SSA) neighbor list build
-  
-  int ssa;
-
-  // -----------------
-  // end of optional settings
-  // -----------------
-  
-  // set by pair_hybrid and neighbor after all requests are made
-  // these settings do not change kind value or optional settings
-
-  int copy;              // 1 if this list copied from another list
-
-  int skip;              // 1 if this list skips atom types from another list
-  int *iskip;            // iskip[i] if atoms of type I are not in list
-  int **ijskip;          // ijskip[i][j] if pairs of type I,J are not in list
+  int skiplist;          // index of list to skip from
   int off2on;            // 1 if this is newton on list, but skips from off list
 
-  int otherlist;         // index of other list to copy or skip from
+  int copy;              // 1 if this list copied from another list
+  int copylist;          // index of list to copy from
 
-  // original params by requestor
-  // stored to compare against in identical() in case Neighbor changes them
+  int halffull;          // 1 if half list computed from another full list
+  int halffulllist;      // index of full list to derive half from
 
-  int half_original;
-  int half_from_full_original;
-  int copy_original;
-  int otherlist_original;
+  int history_partner;   // 1 if this list partners with a history list
+  int historylist;       // index of the associated history list
+                         // for history = 1, index of the non-history partner
 
-  // pointer to FSH class, set by caller
+  int respaouterlist;    // index of respaouter/middle/inner lists
+  int respamiddlelist;   // which this rREPSA list is associated with
+  int respainnerlist;    // each rRESPA style list points at the others
 
-  class FixShearHistory *fix_history;  // fix that stores history info
+  int unique;            // 1 if this list requires its own
+                         // NStencil, Nbin class - because of requestor cutoff
+
+  // pointer to FSH class, set by requestor class (not by Neighbor)
+
+  class FixShearHistory *fix_history;  // fix that stores per-atom history info
+
+  // -----------------------------  
+  // internal settings made by Neighbor class
+  // -----------------------------  
+
+  int index_bin;         // index of NBin class assigned to this request
+  int index_stencil;     // index of NStencil class assigned to this request
+  int index_pair;        // index of NPair class assigned to this request
 
   // methods
 
@@ -129,9 +129,8 @@ class NeighRequest : protected Pointers {
   ~NeighRequest();
   void archive();
   int identical(NeighRequest *);
-  int same_kind(NeighRequest *);
   int same_skip(NeighRequest *);
-  void copy_request(NeighRequest *);
+  void copy_request(NeighRequest *, int);
 };
 
 }

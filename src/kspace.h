@@ -33,7 +33,7 @@ class KSpace : protected Pointers {
  public:
   double energy;                 // accumulated energies
   double energy_1,energy_6;
-  double virial[6];              // accumlated virial
+  double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
   double e2group;                // accumulated group-group energy
   double f2group[3];             // accumulated group-group force
@@ -62,14 +62,14 @@ class KSpace : protected Pointers {
 
   int order,order_6,order_allocated;
   double accuracy;                  // accuracy of KSpace solver (force units)
-  double accuracy_absolute;         // user-specifed accuracy in force units
+  double accuracy_absolute;         // user-specified accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
                                     // accurary = acc_rel * two_charge_force
   double accuracy_real_6;           // real space accuracy for
                                     // dispersion solver (force units)
   double accuracy_kspace_6;         // reciprocal space accuracy for
                                     // dispersion solver (force units)
-  int auto_disp_flag;		    // use automatic paramter generation for pppm/disp
+  int auto_disp_flag;		    // use automatic parameter generation for pppm/disp
   double two_charge_force;          // force in user units of two point
                                     // charges separated by 1 Angstrom
 
@@ -197,7 +197,7 @@ class KSpace : protected Pointers {
   int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
 
   void pair_check();
-  void ev_setup(int, int);
+  void ev_setup(int, int, int alloc = 1);
   double estimate_table_accuracy(double, double);
 };
 

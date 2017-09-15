@@ -49,10 +49,11 @@ class Balance : protected Pointers {
  private:
   int me,nprocs;
 
-  double thresh;                                    // threshhold to perform LB
+  double thresh;                                    // threshold to perform LB
   int style;                                        // style of LB
   int xflag,yflag,zflag;                            // xyz LB flags
   double *user_xsplit,*user_ysplit,*user_zsplit;    // params for xyz LB
+  int oldrcb;                                    // use old-style RCB compute
 
   int nitermax;              // params for shift LB
   double stopthresh;
@@ -63,10 +64,10 @@ class Balance : protected Pointers {
   int *bdim;                 // XYZ for each character in bstr
   double *onecost;           // work vector of counts in one dim
   double *allcost;           // counts for slices in one dim
-  double *sum;               // cummulative count for slices in one dim
+  double *sum;               // cumulative count for slices in one dim
   double *target;            // target sum for slices in one dim
   double *lo,*hi;            // lo/hi split coords that bound each target
-  double *losum,*hisum;      // cummulative counts at lo/hi coords
+  double *losum,*hisum;      // cumulative counts at lo/hi coords
   int rho;                   // 0 for geometric recursion
                              // 1 for density weighted recursion
 
@@ -80,7 +81,7 @@ class Balance : protected Pointers {
   FILE *fp;                  // balance output file
   int firststep;
 
-  double imbalance_splits(int &);
+  double imbalance_splits();
   void shift_setup_static(char *);
   void tally(int, int, double *);
   int adjust(int, double *);

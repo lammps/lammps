@@ -18,6 +18,7 @@
 #include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "compute_rdf.h"
 #include "atom.h"
 #include "update.h"
@@ -40,18 +41,42 @@ using namespace MathConst;
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   rdfpair(NULL), nrdfpair(NULL), ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL),
-  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL), duplicates(NULL)
+  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL),
+  duplicates(NULL)
 {
   if (narg < 4 || (narg-4) % 2) error->all(FLERR,"Illegal compute rdf command");
 
   array_flag = 1;
   extarray = 0;
-  dynamic_group_allow = 0;
 
   nbin = force->inumeric(FLERR,arg[3]);
   if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
-  if (narg == 4) npairs = 1;
-  else npairs = (narg-4)/2;
+
+  // optional args
+  // nargpair = # of pairwise args, starting at iarg = 4
+
+  cutflag = 0;
+
+  int iarg;
+  for (iarg = 4; iarg < narg; iarg++)
+    if (strcmp(arg[iarg],"cutoff") == 0) break;
+
+  int nargpair = iarg - 4;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"cutoff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute rdf command");
+      cutoff_user = force->numeric(FLERR,arg[iarg+1]);
+      if (cutoff_user <= 0.0) cutflag = 0;
+      else cutflag = 1;
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute rdf command");
+  }
+
+  // pairwise args
+
+  if (nargpair == 0) npairs = 1;
+  else npairs = nargpair/2;
 
   size_array_rows = nbin;
   size_array_cols = 1 + 2*npairs;
@@ -64,15 +89,15 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   jlo = new int[npairs];
   jhi = new int[npairs];
 
-  if (narg == 4) {
+  if (nargpair == 0) {
     ilo[0] = 1; ihi[0] = ntypes;
     jlo[0] = 1; jhi[0] = ntypes;
     npairs = 1;
 
   } else {
     npairs = 0;
-    int iarg = 4;
-    while (iarg < narg) {
+    iarg = 4;
+    while (iarg < 4+nargpair) {
       force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
       force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
       if (ilo[npairs] > ihi[npairs] || jlo[npairs] > jhi[npairs])
@@ -99,6 +124,9 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   icount = new int[npairs];
   jcount = new int[npairs];
   duplicates = new int[npairs];
+
+  dynamic = 0;
+  natoms_old = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,10 +152,32 @@ ComputeRDF::~ComputeRDF()
 
 void ComputeRDF::init()
 {
-  int i,j,m;
 
-  if (force->pair) delr = force->pair->cutforce / nbin;
-  else error->all(FLERR,"Compute rdf requires a pair style be defined");
+  if (!force->pair && !cutflag)
+    error->all(FLERR,"Compute rdf requires a pair style be defined "
+               "or cutoff specified");
+
+  if (cutflag) {
+    double skin = neighbor->skin;
+    mycutneigh = cutoff_user + skin;
+
+    double cutghost;            // as computed by Neighbor and Comm
+    if (force->pair)
+      cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
+    else
+      cutghost = comm->cutghostuser;
+
+    if (mycutneigh > cutghost)
+      error->all(FLERR,"Compure rdf cutoff exceeds ghost atom range - "
+                 "use comm_modify cutoff command");
+    if (force->pair && mycutneigh < force->pair->cutforce + skin)
+      if (comm->me == 0)
+        error->warning(FLERR,"Compute rdf cutoff less than neighbor cutoff - "
+                       "forcing a needless neighbor list build");
+
+    delr = cutoff_user / nbin;
+  } else delr = force->pair->cutforce / nbin;
+
   delrinv = 1.0/delr;
 
   // set 1st column of output array to bin coords
@@ -135,12 +185,50 @@ void ComputeRDF::init()
   for (int i = 0; i < nbin; i++)
     array[i][0] = (i+0.5) * delr;
 
+  // initialize normalization, finite size correction, and changing atom counts
+
+  natoms_old = atom->natoms;
+  dynamic = group->dynamic[igroup];
+  if (dynamic_user) dynamic = 1;
+  init_norm();
+
+  // need an occasional half neighbor list
+  // if user specified, request a cutoff = cutoff_user + skin
+  // skin is included b/c Neighbor uses this value similar
+  //   to its cutneighmax = force cutoff + skin
+  // also, this NeighList may be used by this compute for multiple steps
+  //   (until next reneighbor), so it needs to contain atoms further
+  //   than cutoff_user apart, just like a normal neighbor list does
+
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->compute = 1;
+  neighbor->requests[irequest]->occasional = 1;
+  if (cutflag) {
+    neighbor->requests[irequest]->cut = 1;
+    neighbor->requests[irequest]->cutoff = mycutneigh;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeRDF::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeRDF::init_norm()
+{
+  int i,j,m;
+
   // count atoms of each type that are also in group
 
-  int *mask = atom->mask;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int ntypes = atom->ntypes;
+  const int nlocal = atom->nlocal;
+  const int ntypes = atom->ntypes;
+  const int * const mask = atom->mask;
+  const int * const type = atom->type;
 
   for (i = 1; i <= ntypes; i++) typecount[i] = 0;
   for (i = 0; i < nlocal; i++)
@@ -169,20 +257,6 @@ void ComputeRDF::init()
   MPI_Allreduce(duplicates,scratch,npairs,MPI_INT,MPI_SUM,world);
   for (i = 0; i < npairs; i++) duplicates[i] = scratch[i];
   delete [] scratch;
-
-  // need an occasional half neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeRDF::init_list(int id, NeighList *ptr)
-{
-  list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -193,6 +267,17 @@ void ComputeRDF::compute_array()
   double xtmp,ytmp,ztmp,delx,dely,delz,r;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_lj,factor_coul;
+
+  if (natoms_old != atom->natoms) {
+    dynamic = 1;
+    natoms_old = atom->natoms;
+  }
+
+  // if the number of atoms has changed or we have a dynamic group
+  // or dynamic updates are requested (e.g. when changing atom types)
+  // we need to recompute some normalization parameters
+
+  if (dynamic) init_norm();
 
   invoked_array = update->ntimestep;
 

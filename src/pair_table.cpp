@@ -46,6 +46,8 @@ PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 
 PairTable::~PairTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 
@@ -451,20 +453,25 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   double r,e,f,rprev,rnext,eprev,enext,fleft,fright;
 
   int ferror = 0;
-  for (int i = 1; i < tb->ninput-1; i++) {
-    r = tb->rfile[i];
-    rprev = tb->rfile[i-1];
-    rnext = tb->rfile[i+1];
-    e = tb->efile[i];
-    eprev = tb->efile[i-1];
-    enext = tb->efile[i+1];
-    f = tb->ffile[i];
-    fleft = - (e-eprev) / (r-rprev);
-    fright = - (enext-e) / (rnext-r);
-    if (f < fleft && f < fright) ferror++;
-    if (f > fleft && f > fright) ferror++;
-    //printf("Values %d: %g %g %g\n",i,r,e,f);
-    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
+
+  // bitmapped tables do not follow regular ordering, so we cannot check them here
+
+  if (tb->rflag != BMP) {
+    for (int i = 1; i < tb->ninput-1; i++) {
+      r = tb->rfile[i];
+      rprev = tb->rfile[i-1];
+      rnext = tb->rfile[i+1];
+      e = tb->efile[i];
+      eprev = tb->efile[i-1];
+      enext = tb->efile[i+1];
+      f = tb->ffile[i];
+      fleft = - (e-eprev) / (r-rprev);
+      fright = - (enext-e) / (rnext-r);
+      if (f < fleft && f < fright) ferror++;
+      if (f > fleft && f > fright) ferror++;
+      //printf("Values %d: %g %g %g\n",i,r,e,f);
+      //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
+    }
   }
 
   if (ferror) {

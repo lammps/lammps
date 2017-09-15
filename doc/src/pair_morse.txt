@@ -13,6 +13,7 @@ pair_style morse/opt command :h3
 pair_style morse/smooth/linear command :h3
 pair_style morse/smooth/linear/omp command :h3
 pair_style morse/soft command :h3
+pair_style morse/kk command :h3
 
 [Syntax:]
 
@@ -25,7 +26,7 @@ args = list of arguments for a particular style :ul
  {morse/smooth/linear} args = cutoff
    cutoff = global cutoff for Morse interactions (distance units)
  {morse/soft} args = n lf cutoff
-   n = soft-core parameter
+   n       = soft-core parameter
    lf      = transformation range is lf < lambda < 1
    cutoff  = global cutoff for Morse interactions (distance units)
 :pre
@@ -35,7 +36,7 @@ args = list of arguments for a particular style :ul
 pair_style morse 2.5
 pair_style morse/smooth/linear 2.5
 pair_coeff * * 100.0 2.0 1.5
-pair_coeff 1 1 100.0 2.0 1.5 3.0
+pair_coeff 1 1 100.0 2.0 1.5 3.0 :pre
 
 pair_style morse/soft 4 0.9 10.0
 pair_coeff * * 100.0 2.0 1.5 1.0
@@ -79,7 +80,7 @@ the {morse} and {morse/smooth/linear} styles.
 The {morse/soft} variant is similar to the {lj/cut/soft} pair style
 in that it modifies the potential at short range to have a soft core.
 This helps to avoid singularities during free energy calculation in
-which sites are created or anihilated. The formula differs from that
+which sites are created or annihilated. The formula differs from that
 of {lj/cut/soft}, and is instead given by:
 
 :c,image(Eqs/pair_morse_soft.jpg)
@@ -112,7 +113,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

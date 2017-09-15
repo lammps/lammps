@@ -256,7 +256,7 @@ void PairColloid::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -354,7 +354,7 @@ double PairColloid::init_one(int i, int j)
   lj4[j][i] = lj4[i][j] = 4.0 * epsilon * sigma6[i][j];
 
   offset[j][i] = offset[i][j] = 0.0;
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double tmp;
     offset[j][i] = offset[i][j] =
       single(0,0,i,j,cut[i][j]*cut[i][j],0.0,1.0,tmp);

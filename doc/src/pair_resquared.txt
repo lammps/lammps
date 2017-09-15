@@ -24,7 +24,7 @@ pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0 :pre
 [Description:]
 
 Style {resquared} computes the RE-squared anisotropic interaction
-"(Everaers)"_#Everaers, "(Babadi)"_#Babadi between pairs of
+"(Everaers)"_#Everaers3, "(Babadi)"_#Babadi between pairs of
 ellipsoidal and/or spherical Lennard-Jones particles.  For ellipsoidal
 interactions, the potential considers the ellipsoid as being comprised
 of small spheres of size sigma.  LJ particles are a single sphere of
@@ -58,18 +58,18 @@ cutoff (distance units) :ul
 
 The parameters used depend on the type of the interacting particles,
 i.e. ellipsoids or LJ spheres.  The type of a particle is determined
-by the diameters specified for its 3 shape paramters.  If all 3 shape
+by the diameters specified for its 3 shape parameters.  If all 3 shape
 parameters = 0.0, then the particle is treated as an LJ sphere.  The
 epsilon_i_* or epsilon_j_* parameters are ignored for LJ spheres.  If
-the 3 shape paraemters are > 0.0, then the particle is treated as an
+the 3 shape parameters are > 0.0, then the particle is treated as an
 ellipsoid (even if the 3 parameters are equal to each other).
 
 A12 specifies the energy prefactor which depends on the types of the
 two interacting particles.
 
 For ellipsoid/ellipsoid interactions, the interaction is computed by
-the formulas in the supplementary docuement referenced above.  A12 is
-the Hamaker constant as described in "(Everaers)"_#Everaers. In LJ
+the formulas in the supplementary document referenced above.  A12 is
+the Hamaker constant as described in "(Everaers)"_#Everaers3. In LJ
 units:
 
 :c,image(Eqs/pair_resquared.jpg)
@@ -79,8 +79,8 @@ composing the ellipsoids and epsilon_LJ determines the interaction
 strength of the spherical particles.
 
 For ellipsoid/LJ sphere interactions, the interaction is also computed
-by the formulas in the supplementary docuement referenced above.  A12
-has a modifed form (see "here"_PDF/pair_resquared_extra.pdf for
+by the formulas in the supplementary document referenced above.  A12
+has a modified form (see "here"_PDF/pair_resquared_extra.pdf for
 details):
 
 :c,image(Eqs/pair_resquared2.jpg)
@@ -131,7 +131,7 @@ that type in a "pair_coeff I J" command.
 
 For large uniform molecules it has been shown that the epsilon_*_*
 energy parameters are approximately representable in terms of local
-contact curvatures "(Everaers)"_#Everaers:
+contact curvatures "(Everaers)"_#Everaers3:
 
 :c,image(Eqs/pair_resquared4.jpg)
 
@@ -157,7 +157,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -228,7 +228,7 @@ gayberne"_pair_gayberne.html
 
 :line
 
-:link(Everaers)
+:link(Everaers3)
 [(Everaers)] Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 :link(Babadi)

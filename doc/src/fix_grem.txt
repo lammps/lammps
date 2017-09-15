@@ -29,7 +29,7 @@ fix             fxgREM all grem 502 -0.15 -80000 fxnvt :pre
 [Description:]
 
 This fix implements the molecular dynamics version of the generalized
-replica exchange method (gREM) originally developed by "(Kim)"_#Kim,
+replica exchange method (gREM) originally developed by "(Kim)"_#Kim2010,
 which uses non-Boltzmann ensembles to sample over first order phase
 transitions. The is done by defining replicas with an enthalpy
 dependent effective temperature
@@ -85,13 +85,13 @@ No information about this fix is written to "binary restart
 files"_restart.html.
 
 The "thermo_modify"_thermo_modify.html {press} option is supported
-by this fix to add the rescaled kinetic pressure as part of 
+by this fix to add the rescaled kinetic pressure as part of
 "thermodynamic output"_thermo_style.html.
 
 [Restrictions:]
 
-This fix is part of the USER-MISC package. It is only enabled if 
-LAMMPS was built with that package. See the "Making 
+This fix is part of the USER-MISC package. It is only enabled if
+LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
@@ -103,7 +103,7 @@ npt"_fix_nh.html, "thermo_modify"_thermo_modify.html
 
 :line
 
-:link(Kim)
+:link(Kim2010)
 [(Kim)] Kim, Keyes, Straub, J Chem. Phys, 132, 224107 (2010).
 
 :link(Malolepsza)

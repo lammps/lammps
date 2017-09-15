@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeBinNewtonTri::NPairHalfSizeBinNewtonTri(LAMMPS *lmp) : 
+NPairHalfSizeBinNewtonTri::NPairHalfSizeBinNewtonTri(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -53,7 +53,7 @@ void NPairHalfSizeBinNewtonTri::build(NeighList *list)
   double **firstshear;
   MyPage<int> *ipage_touch;
   MyPage<double> *dpage_shear;
-  NeighList *listgranhistory;
+  NeighList *listhistory;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -69,19 +69,19 @@ void NPairHalfSizeBinNewtonTri::build(NeighList *list)
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  FixShearHistory *fix_history = list->fix_history;
+  FixShearHistory *fix_history = (FixShearHistory *) list->fix_history;
   if (fix_history) {
     fix_history->nlocal_neigh = nlocal;
     fix_history->nall_neigh = nlocal + atom->nghost;
     npartner = fix_history->npartner;
     partner = fix_history->partner;
     shearpartner = fix_history->shearpartner;
-    listgranhistory = list->listgranhistory;
-    firsttouch = listgranhistory->firstneigh;
-    firstshear = listgranhistory->firstdouble;
-    ipage_touch = listgranhistory->ipage;
-    dpage_shear = listgranhistory->dpage;
-    dnum = listgranhistory->dnum;
+    listhistory = list->listhistory;
+    firsttouch = listhistory->firstneigh;
+    firstshear = listhistory->firstdouble;
+    ipage_touch = listhistory->ipage;
+    dpage_shear = listhistory->dpage;
+    dnum = listhistory->dnum;
     dnumbytes = dnum * sizeof(double);
   }
 
@@ -112,7 +112,7 @@ void NPairHalfSizeBinNewtonTri::build(NeighList *list)
     //         (equal zyx and j <= i)
     // latter excludes self-self interaction but allows superposed atoms
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
         if (x[j][2] < ztmp) continue;

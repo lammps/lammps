@@ -36,11 +36,11 @@ developed by Pettifor ("Pettifor_1"_#Pettifor_1,
 "Pettifor_2"_#Pettifor_2, "Pettifor_3"_#Pettifor_3) and later updated
 by Murdick, Zhou, and Ward ("Murdick"_#Murdick, "Ward"_#Ward).
 Currently, BOP potential files for these systems are provided with
-LAMMPS: AlCu, CCu, CdTe, CdTeSe, CdZnTe, CuH, GaAs.  A sysstem with
+LAMMPS: AlCu, CCu, CdTe, CdTeSe, CdZnTe, CuH, GaAs.  A system with
 only a subset of these elements, including a single element (e.g. C or
 Cu or Al or Ga or Zn or CdZn), can also be modeled by using the
 appropriate alloy file and assigning all atom types to the
-singleelement or subset of elements via the pair_coeff command, as
+single element or subset of elements via the pair_coeff command, as
 discussed below.
 
 The BOP potential consists of three terms:
@@ -49,7 +49,7 @@ The BOP potential consists of three terms:
 
 where phi_ij(r_ij) is a short-range two-body function representing the
 repulsion between a pair of ion cores, beta_(sigma,ij)(r_ij) and
-beta_(sigma,ij)(r_ij) are respectively sigma and pi bond ingtegrals,
+beta_(sigma,ij)(r_ij) are respectively sigma and pi bond integrals,
 THETA_(sigma,ij) and THETA_(pi,ij) are sigma and pi bond-orders, and
 U_prom is the promotion energy for sp-valent systems.
 
@@ -78,8 +78,8 @@ levels of the recursive representations for both the sigma and the pi
 bond-orders. Bond-order terms can be understood in terms of molecular
 orbital hopping paths based upon the Cyrot-Lackmann theorem
 ("Pettifor_1"_#Pettifor_1).  The sigma bond-order with a half-full
-valence shell is used to interpolate the bond-order expressiont that
-incorporated explicite valance band filling.  This pi bond-order
+valence shell is used to interpolate the bond-order expression that
+incorporated explicit valance band filling.  This pi bond-order
 expression also contains also contains a three-member ring term that
 allows implementation of an asymmetric density of states, which helps
 to either stabilize or destabilize close-packed structures.  The pi
@@ -137,7 +137,7 @@ and beta_pi,ij)(r_ij).
 
 The parameters/coefficients format for the different kinds of BOP
 files are given below with variables matching the formulation of Ward
-("Ward"_#Ward) and Zhou ("Zhou"_#Zhou). Each header line containing a
+("Ward"_#Ward) and Zhou ("Zhou"_#Zhou1). Each header line containing a
 ":" is preceded by a blank line.
 
 
@@ -258,7 +258,7 @@ Line 2: (A_ij)^(mu*nu) (for e1-e2 and repeats as above) :ul
 The parameters/coefficients format for the BOP potentials input file
 containing pre-tabulated functions of g is given below with variables
 matching the formulation of Ward ("Ward"_#Ward).  This format also
-assumes the angular functions have the formulation of ("Zhou"_#Zhou).
+assumes the angular functions have the formulation of ("Zhou"_#Zhou1).
 
 Line 1: # elements N :ul
 
@@ -299,7 +299,7 @@ of the g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction.  The
 function can contain up to 10 term thus 10 constants.  The first line
 can contain up to five constants.  If the spline has more than five
 terms the second line will contain the remaining constants The
-following lines will then contain the constants for the remainaing g0,
+following lines will then contain the constants for the remaining g0,
 g1, g2... (for e_1-e_1-e_2) and the other three body
 interactions :l
 :ule
@@ -314,7 +314,7 @@ The rest of the table has the same structure as the previous section
 The parameters/coefficients format for the BOP potentials input file
 containing pre-tabulated functions of g is given below with variables
 matching the formulation of Ward ("Ward"_#Ward).  This format also
-assumes the angular functions have the formulation of ("Zhou"_#Zhou).
+assumes the angular functions have the formulation of ("Zhou"_#Zhou1).
 
 Line 1: # elements N :ul
 
@@ -425,5 +425,5 @@ Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006).
 [(Ward)] D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A.
 Zimmerman, Phys. Rev. B, 85,115206 (2012).
 
-:link(Zhou)
+:link(Zhou1)
 [(Zhou)] X.W. Zhou, D.K. Ward, M. Foster (TBP).

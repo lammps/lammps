@@ -429,6 +429,7 @@ double PairEAM::init_one(int i, int j)
   // for funcfl could be multiple files
   // for setfl or fs, just one file
 
+  if (setflag[i][j] == 0) scale[i][j] = 1.0;
   scale[j][i] = scale[i][j];
 
   if (funcfl) {
@@ -464,22 +465,26 @@ void PairEAM::read_file(char *filename)
     }
   }
 
-  int tmp;
+  int tmp,nwords;
   if (me == 0) {
     fgets(line,MAXLINE,fptr);
     fgets(line,MAXLINE,fptr);
     sscanf(line,"%d %lg",&tmp,&file->mass);
     fgets(line,MAXLINE,fptr);
-    sscanf(line,"%d %lg %d %lg %lg",
+    nwords = sscanf(line,"%d %lg %d %lg %lg",
            &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
 
+  MPI_Bcast(&nwords,1,MPI_INT,0,world);
   MPI_Bcast(&file->mass,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
   MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&file->nr,1,MPI_INT,0,world);
   MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
+
+  if ((nwords != 5) || (file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+    error->all(FLERR,"Invalid EAM potential file");
 
   memory->create(file->frho,(file->nrho+1),"pair:frho");
   memory->create(file->rhor,(file->nr+1),"pair:rhor");

@@ -1,4 +1,3 @@
-
 IF(COMMAND TRIBITS_PACKAGE_DECL)
   SET(KOKKOS_HAS_TRILINOS ON CACHE BOOL "")
 ELSE()
@@ -6,10 +5,12 @@ ELSE()
 ENDIF()
 
 IF(NOT KOKKOS_HAS_TRILINOS)
-  CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11 FATAL_ERROR)
-  INCLUDE(cmake/tribits.cmake)
-ENDIF()
+  cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+  project(Kokkos CXX)
 
+  INCLUDE(cmake/kokkos.cmake)
+ELSE()
+#------------------------------------------------------------------------------
 #
 # A) Forward delcare the package so that certain options are also defined for
 # subpackages
@@ -17,13 +18,12 @@ ENDIF()
 
 TRIBITS_PACKAGE_DECL(Kokkos) # ENABLE_SHADOWING_WARNINGS)
 
+
 #------------------------------------------------------------------------------
 #
 # B) Define the common options for Kokkos first so they can be used by
 # subpackages as well.
 #
-
-
 
 # mfh 01 Aug 2016: See Issue #61:
 #
@@ -34,8 +34,8 @@ TRIBITS_PACKAGE_DECL(Kokkos) # ENABLE_SHADOWING_WARNINGS)
 # for compatibility with Kokkos' Makefile build system.
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
-  ${PACKAGE_NAME}_ENABLE_DEBUG
-  ${PACKAGE_NAME_UC}_HAVE_DEBUG
+  Kokkos_ENABLE_DEBUG
+  KOKKOS_HAVE_DEBUG
   "Enable run-time debug checks.  These checks may be expensive, so they are disabled by default in a release build."
   ${${PROJECT_NAME}_ENABLE_DEBUG}
 )
@@ -57,7 +57,21 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_Cuda_UVM
   KOKKOS_USE_CUDA_UVM
-  "Enable CUDA Unified Virtual Memory support in Kokkos."
+  "Enable CUDA Unified Virtual Memory as the default in Kokkos."
+  OFF
+  )
+
+TRIBITS_ADD_OPTION_AND_DEFINE(
+  Kokkos_ENABLE_Cuda_RDC
+  KOKKOS_HAVE_CUDA_RDC
+  "Enable CUDA Relocatable Device Code support in Kokkos."
+  OFF
+  )
+
+TRIBITS_ADD_OPTION_AND_DEFINE(
+  Kokkos_ENABLE_Cuda_Lambda
+  KOKKOS_HAVE_CUDA_LAMBDA
+  "Enable CUDA LAMBDA support in Kokkos."
   OFF
   )
 
@@ -69,9 +83,12 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   )
 
 ASSERT_DEFINED(TPL_ENABLE_Pthread)
-IF (Kokkos_ENABLE_Pthread AND NOT TPL_ENABLE_Pthread)
+IF(Kokkos_ENABLE_Pthread AND NOT TPL_ENABLE_Pthread)
   MESSAGE(FATAL_ERROR "You set Kokkos_ENABLE_Pthread=ON, but Trilinos' support for Pthread(s) is not enabled (TPL_ENABLE_Pthread=OFF).  This is not allowed.  Please enable Pthreads in Trilinos before attempting to enable Kokkos' support for Pthreads.")
-ENDIF ()
+ENDIF()
+IF(NOT TPL_ENABLE_Pthread)
+  ADD_DEFINITIONS(-DGTEST_HAS_PTHREAD=0)
+ENDIF()
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_OpenMP
@@ -82,18 +99,19 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_QTHREAD
-  KOKKOS_HAVE_QTHREAD
-  "Enable QTHREAD support in Kokkos."
+  KOKKOS_HAVE_QTHREADS
+  "Enable Qthreads support in Kokkos."
   "${TPL_ENABLE_QTHREAD}"
   )
 
+# TODO: No longer an option in Kokkos.  Needs to be removed.
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_CXX11
   KOKKOS_HAVE_CXX11
   "Enable C++11 support in Kokkos."
   "${${PROJECT_NAME}_ENABLE_CXX11}"
   )
-  
+
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_HWLOC
   KOKKOS_HAVE_HWLOC
@@ -101,6 +119,7 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   "${TPL_ENABLE_HWLOC}"
   )
 
+# TODO: This is currently not used in Kokkos.  Should it be removed?
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_MPI
   KOKKOS_HAVE_MPI
@@ -138,10 +157,24 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   )
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
+  Kokkos_ENABLE_Debug_DualView_Modify_Check
+  KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
+  "Enable abort when Kokkos::DualView modified on host and device without sync."
+  "${Kokkos_ENABLE_DEBUG}"
+  )
+
+TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_Profiling
-  KOKKOS_ENABLE_PROFILING_INTERNAL
+  KOKKOS_ENABLE_PROFILING
   "Enable KokkosP profiling support for kernel data collections."
   "${TPL_ENABLE_DLlib}"
+  )
+
+TRIBITS_ADD_OPTION_AND_DEFINE(
+  Kokkos_ENABLE_Profiling_Load_Print
+  KOKKOS_ENABLE_PROFILING_LOAD_PRINT
+  "Print to standard output which profiling library was loaded."
+  OFF
   )
 
 # placeholder for future device...
@@ -152,6 +185,7 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   "${TPL_ENABLE_Winthread}"
   )
 
+# TODO: No longer an option in Kokkos.  Needs to be removed.
 # use new/old View
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_USING_DEPRECATED_VIEW
@@ -160,15 +194,32 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   OFF
   )
 
+
 #------------------------------------------------------------------------------
 #
-# C) Process the subpackages for Kokkos
+# C) Install Kokkos' executable scripts
+#
+
+# nvcc_wrapper is Kokkos' wrapper for NVIDIA's NVCC CUDA compiler.
+# Kokkos needs nvcc_wrapper in order to build.  Other libraries and
+# executables also need nvcc_wrapper.  Thus, we need to install it.
+# If the argument of DESTINATION is a relative path, CMake computes it
+# as relative to ${CMAKE_INSTALL_PATH}.
+
+INSTALL(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper DESTINATION bin)
+
+
+#------------------------------------------------------------------------------
+#
+# D) Process the subpackages for Kokkos
 #
 
 TRIBITS_PROCESS_SUBPACKAGES()
 
+
+#------------------------------------------------------------------------------
 #
-# D) If Kokkos itself is enabled, process the Kokkos package
+# E) If Kokkos itself is enabled, process the Kokkos package
 #
 
 TRIBITS_PACKAGE_DEF()
@@ -181,4 +232,4 @@ TRIBITS_EXCLUDE_FILES(
   )
 
 TRIBITS_PACKAGE_POSTPROCESS()
-
+ENDIF()

@@ -15,6 +15,7 @@ bond_style      harmonic
 bond_coeff      * 225.0 0.85
 
 comm_modify vel yes
+comm_modify cutoff 3.6
 
 # must use pair hybrid, since srp bond particles
 # do not interact with other atoms types
@@ -23,7 +24,7 @@ pair_coeff      1 1 dpd 60.0 4.5 1.0
 pair_coeff      1 2 none
 pair_coeff      2 2 srp 100.0 
 
-# auto normalization of thermo quantites is turned off by pair srp
+# auto normalization of thermo quantities is turned off by pair srp
 # just divide by natoms 
 variable        natoms equal count(all)
 variable        nPotEng equal c_thermo_pe/v_natoms 

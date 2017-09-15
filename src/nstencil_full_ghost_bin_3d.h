@@ -15,7 +15,7 @@
 
 NStencilStyle(full/ghost/bin/3d,
               NStencilFullGhostBin3d,
-              NS_FULL | NS_GHOST | NS_BIN | NS_3D | 
+              NS_FULL | NS_GHOST | NS_BIN | NS_3D |
               NS_NEWTON | NS_NEWTOFF | NS_ORTHO | NS_TRI)
 
 #else

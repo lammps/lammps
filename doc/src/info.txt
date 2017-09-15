@@ -12,7 +12,7 @@ info command :h3
 
 info args :pre
 
-args = one or more of the following keywords: {out}, {all}, {system}, {communication}, {computes}, {dumps}, {fixes}, {groups}, {regions}, {variables}, {styles}, {time}, or {configuration}
+args = one or more of the following keywords: {out}, {all}, {system}, {memory}, {communication}, {computes}, {dumps}, {fixes}, {groups}, {regions}, {variables}, {styles}, {time}, or {configuration}
      {out} values = {screen}, {log}, {append} filename, {overwrite} filename
      {styles} values = {all}, {angle}, {atom}, {bond}, {compute}, {command}, {dump}, {dihedral}, {fix}, {improper}, {integrate}, {kspace}, {minimize}, {pair}, {region} :ul
 
@@ -39,6 +39,17 @@ to one target. By default this is the screen, if it is active. The
 to that file, which is either appended to or overwritten, respectively.
 
 The {all} flag activates printing all categories listed below.
+
+The {configuration} category prints some information about the
+LAMMPS version as well as architecture and OS it is run on.
+
+The {memory} category prints some information about the current
+memory allocation of MPI rank 0 (this the amount of dynamically
+allocated memory reported by LAMMPS classes). Where supported,
+also some OS specific information about the size of the reserved
+memory pool size (this is where malloc() and the new operator
+request memory from) and the maximum resident set size is reported
+(this is the maximum amount of physical memory occupied so far).
 
 The {system} category prints a general system overview listing.  This
 includes the unit style, atom style, number of atoms, bonds, angles,
@@ -92,11 +103,6 @@ region :ul
 
 The {time} category prints the accumulated CPU and wall time for the
 process that writes output (usually MPI rank 0).
-
-The {configuration} command prints some information about the LAMMPS
-version and architection and OS it is run on. Where supported, also
-information about the memory consumption provided by the OS is
-reported.
 
 [Restrictions:] none
 

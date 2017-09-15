@@ -60,6 +60,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
+  box_change = 0;
 
   dimension = 3;
   nonperiodic = 0;
@@ -514,7 +515,7 @@ void Domain::pbc()
 
   double *coord;
   int n3 = 3*nlocal;
-  coord = &x[0][0];  // note: x is always initialzed to at least one element.
+  coord = &x[0][0];  // note: x is always initialized to at least one element.
   int flag = 0;
   for (i = 0; i < n3; i++)
     if (!ISFINITE(*coord++)) flag = 1;
@@ -938,28 +939,35 @@ void Domain::subbox_too_small_check(double thresh)
 }
 
 /* ----------------------------------------------------------------------
-   minimum image convention
+   minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
+   changed "if" to "while" to enable distance to
+     far-away ghost atom returned by atom->map() to be wrapped back into box
+     could be problem for looking up atom IDs when cutoff > boxsize
+   this should not be used if atom has moved infinitely far outside box
+     b/c while could iterate forever
+     e.g. fix shake prediction of new position with highly overlapped atoms
+     use minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
 void Domain::minimum_image(double &dx, double &dy, double &dz)
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      if (fabs(dx) > xprd_half) {
+      while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > yprd_half) {
+      while (fabs(dy) > yprd_half) {
         if (dy < 0.0) dy += yprd;
         else dy -= yprd;
       }
     }
     if (zperiodic) {
-      if (fabs(dz) > zprd_half) {
+      while (fabs(dz) > zprd_half) {
         if (dz < 0.0) dz += zprd;
         else dz -= zprd;
       }
@@ -967,7 +975,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
   } else {
     if (zperiodic) {
-      if (fabs(dz) > zprd_half) {
+      while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
           dy += yz;
@@ -980,7 +988,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > yprd_half) {
+      while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
           dx += xy;
@@ -991,7 +999,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (xperiodic) {
-      if (fabs(dx) > xprd_half) {
+      while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
@@ -1000,12 +1008,83 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 }
 
 /* ----------------------------------------------------------------------
-   minimum image convention
+   minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
+   changed "if" to "while" to enable distance to
+     far-away ghost atom returned by atom->map() to be wrapped back into box
+     could be problem for looking up atom IDs when cutoff > boxsize
+   this should not be used if atom has moved infinitely far outside box
+     b/c while could iterate forever
+     e.g. fix shake prediction of new position with highly overlapped atoms
+     use minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
 void Domain::minimum_image(double *delta)
+{
+  if (triclinic == 0) {
+    if (xperiodic) {
+      while (fabs(delta[0]) > xprd_half) {
+        if (delta[0] < 0.0) delta[0] += xprd;
+        else delta[0] -= xprd;
+      }
+    }
+    if (yperiodic) {
+      while (fabs(delta[1]) > yprd_half) {
+        if (delta[1] < 0.0) delta[1] += yprd;
+        else delta[1] -= yprd;
+      }
+    }
+    if (zperiodic) {
+      while (fabs(delta[2]) > zprd_half) {
+        if (delta[2] < 0.0) delta[2] += zprd;
+        else delta[2] -= zprd;
+      }
+    }
+
+  } else {
+    if (zperiodic) {
+      while (fabs(delta[2]) > zprd_half) {
+        if (delta[2] < 0.0) {
+          delta[2] += zprd;
+          delta[1] += yz;
+          delta[0] += xz;
+        } else {
+          delta[2] -= zprd;
+          delta[1] -= yz;
+          delta[0] -= xz;
+        }
+      }
+    }
+    if (yperiodic) {
+      while (fabs(delta[1]) > yprd_half) {
+        if (delta[1] < 0.0) {
+          delta[1] += yprd;
+          delta[0] += xy;
+        } else {
+          delta[1] -= yprd;
+          delta[0] -= xy;
+        }
+      }
+    }
+    if (xperiodic) {
+      while (fabs(delta[0]) > xprd_half) {
+        if (delta[0] < 0.0) delta[0] += xprd;
+        else delta[0] -= xprd;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   minimum image convention in periodic dimensions
+   use 1/2 of box size as test
+   for triclinic, also add/subtract tilt factors in other dims as needed
+   only shift by one box length in each direction
+   this should not be used if multiple box shifts are required
+------------------------------------------------------------------------- */
+
+void Domain::minimum_image_once(double *delta)
 {
   if (triclinic == 0) {
     if (xperiodic) {
@@ -1092,12 +1171,50 @@ int Domain::closest_image(int i, int j)
       closest = j;
     }
   }
+
+  return closest;
+}
+
+/* ----------------------------------------------------------------------
+   return local index of atom J or any of its images that is closest to pos
+   if J is not a valid index like -1, just return it
+------------------------------------------------------------------------- */
+
+int Domain::closest_image(double *pos, int j)
+{
+  if (j < 0) return j;
+
+  int *sametag = atom->sametag;
+  double **x = atom->x;
+
+  int closest = j;
+  double delx = pos[0] - x[j][0];
+  double dely = pos[1] - x[j][1];
+  double delz = pos[2] - x[j][2];
+  double rsqmin = delx*delx + dely*dely + delz*delz;
+  double rsq;
+
+  while (sametag[j] >= 0) {
+    j = sametag[j];
+    delx = pos[0] - x[j][0];
+    dely = pos[1] - x[j][1];
+    delz = pos[2] - x[j][2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq < rsqmin) {
+      rsqmin = rsq;
+      closest = j;
+    }
+  }
+
   return closest;
 }
 
 /* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
+   not currently used (Jan 2017):
+     used to be called by pair TIP4P styles but no longer,
+       due to use of other closest_image() method
 ------------------------------------------------------------------------- */
 
 void Domain::closest_image(const double * const xi, const double * const xj,
@@ -1441,7 +1558,7 @@ void Domain::unmap(double *x, imageint image)
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::unmap(double *x, imageint image, double *y)
+void Domain::unmap(const double *x, imageint image, double *y)
 {
   int xbox = (image & IMGMASK) - IMGMAX;
   int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
@@ -1556,10 +1673,10 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
     if (coord[0] < blo[0] && boundary[0][0] > 1) newcoord[0] = blo[0];
     else if (coord[0] >= bhi[0] && boundary[0][1] > 1) newcoord[0] = bhi[0];
     else newcoord[0] = coord[0];
-    if (coord[1] < blo[1] && boundary[1][1] > 1) newcoord[1] = blo[1];
+    if (coord[1] < blo[1] && boundary[1][0] > 1) newcoord[1] = blo[1];
     else if (coord[1] >= bhi[1] && boundary[1][1] > 1) newcoord[1] = bhi[1];
     else newcoord[1] = coord[1];
-    if (coord[2] < blo[2] && boundary[2][2] > 1) newcoord[2] = blo[2];
+    if (coord[2] < blo[2] && boundary[2][0] > 1) newcoord[2] = blo[2];
     else if (coord[2] >= bhi[2] && boundary[2][1] > 1) newcoord[2] = bhi[2];
     else newcoord[2] = coord[2];
 
@@ -1581,6 +1698,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
+  lattice = NULL;
   lattice = new Lattice(lmp,narg,arg);
 }
 
@@ -1984,7 +2102,7 @@ void Domain::subbox_corners()
 
 /* ----------------------------------------------------------------------
    compute 8 corner pts of any triclinic box with lo/hi in lamda coords
-   8 output conners are ordered with x changing fastest, then y, finally z
+   8 output corners are ordered with x changing fastest, then y, finally z
    could be more efficient if just coded with xy,yz,xz explicitly
 ------------------------------------------------------------------------- */
 
@@ -2004,6 +2122,6 @@ void Domain::lamda_box_corners(double *lo, double *hi)
   lamda2x(corners[5],corners[5]);
   corners[6][0] = lo[0]; corners[6][1] = hi[1]; corners[6][2] = hi[2];
   lamda2x(corners[6],corners[6]);
-  corners[7][0] = hi[0]; corners[7][1] = hi[1]; corners[7][2] = subhi_lamda[2];
+  corners[7][0] = hi[0]; corners[7][1] = hi[1]; corners[7][2] = hi[2];
   lamda2x(corners[7],corners[7]);
 }

@@ -70,7 +70,7 @@ means include all terms except the kinetic energy {ke}.
 Details of how LAMMPS computes the virial efficiently for the entire
 system, including for manybody potentials and accounting for the
 effects of periodic boundary conditions are discussed in
-"(Thompson)"_#Thompson.
+"(Thompson)"_#Thompson1.
 
 The temperature and kinetic energy tensor is not calculated by this
 compute, but rather by the temperature compute specified with the
@@ -89,7 +89,7 @@ commands"_compute.html to determine which ones include a bias.
 
 Also note that the N in the first formula above is really
 degrees-of-freedom divided by d = dimensionality, where the DOF value
-is calcluated by the temperature compute.  See the various "compute
+is calculated by the temperature compute.  See the various "compute
 temperature"_compute.html styles for details.
 
 A compute of this style with the ID of "thermo_press" is created when
@@ -117,7 +117,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -150,5 +150,5 @@ stress/atom"_compute_stress_atom.html,
 
 :line
 
-:link(Thompson)
+:link(Thompson1)
 [(Thompson)] Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).

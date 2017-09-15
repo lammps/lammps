@@ -41,7 +41,7 @@ angle.
 
 The torque on the dipole can be obtained by differentiating the
 potential using the 'chain rule' as in appendix C.3 of
-"(Allen)"_#Allen:
+"(Allen)"_#Allen1:
 
 :c,image(Eqs/angle_dipole_torque.jpg)
 
@@ -121,6 +121,6 @@ This angle style should not be used with SHAKE.
 [(Orsi)] Orsi & Essex, The ELBA force field for coarse-grain modeling of
 lipid membranes, PloS ONE 6(12): e28637, 2011.
 
-:link(Allen)
+:link(Allen1)
 [(Allen)] Allen & Tildesley, Computer Simulation of Liquids,
 Clarendon Press, Oxford, 1987.

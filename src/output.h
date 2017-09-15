@@ -76,6 +76,7 @@ class Output : protected Pointers {
   void add_dump(int, char **);       // add a Dump to Dump list
   void modify_dump(int, char **);    // modify a Dump
   void delete_dump(char *);          // delete a Dump from Dump list
+  int find_dump(const char *);       // find a Dump ID
 
   void set_thermo(int, char **);     // set thermo output freqquency
   void create_thermo(int, char **);  // create a thermo style
@@ -172,7 +173,7 @@ W: New thermo_style command, previous thermo_modify settings will be lost
 
 If a thermo_style command is used after a thermo_modify command, the
 settings changed by the thermo_modify command will be reset to their
-default values.  This is because the thermo_modify commmand acts on
+default values.  This is because the thermo_modify command acts on
 the currently defined thermo style, and a thermo_style command creates
 a new style.
 

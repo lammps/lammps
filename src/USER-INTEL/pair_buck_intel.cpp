@@ -48,7 +48,7 @@ PairBuckIntel::~PairBuckIntel()
 void PairBuckIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED)
-    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(), 
+    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
                           force_const_single);
   else if (fix->precision()==FixIntel::PREC_MODE_DOUBLE)
     compute<double,double>(eflag, vflag, fix->get_double_buffers(),
@@ -63,8 +63,8 @@ void PairBuckIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void PairBuckIntel::compute(int eflag, int vflag,
-			    IntelBuffers<flt_t,acc_t> *buffers,
-			    const ForceConst<flt_t> &fc)
+                            IntelBuffers<flt_t,acc_t> *buffers,
+                            const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -78,57 +78,51 @@ void PairBuckIntel::compute(int eflag, int vflag,
 
   if (ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
+
+    int packthreads;
+    if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
+    else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #pragma omp parallel if(packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, 
-				nthreads, sizeof(ATOM_T));
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
+                                packthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
-  
-  if (evflag || vflag_fdotr) {
-    int ovflag = 0;
-    if (vflag_fdotr) ovflag = 2;
-    else if (vflag) ovflag = 1;
-    if (eflag) {
-      if (force->newton_pair) {
-	eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-	eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+
+  int ovflag = 0;
+  if (vflag_fdotr) ovflag = 2;
+  else if (vflag) ovflag = 1;
+  if (eflag) {
+    if (force->newton_pair) {
+      eval<1,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      if (force->newton_pair) {
-	eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-	eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-	eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+      eval<1,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   } else {
     if (force->newton_pair) {
-      eval<0,0,1>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,1>(0, 0, buffers, fc, host_start, inum);
+      eval<0,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      eval<0,0,0>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,0>(0, 0, buffers, fc, host_start, inum);
+      eval<0,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
 void PairBuckIntel::eval(const int offload, const int vflag,
-				     IntelBuffers<flt_t,acc_t> *buffers,
-				     const ForceConst<flt_t> &fc,
-				     const int astart, const int aend)
+                         IntelBuffers<flt_t,acc_t> *buffers,
+                         const ForceConst<flt_t> &fc,
+                         const int astart, const int aend)
 {
   const int inum = aend - astart;
   if (inum == 0) return;
@@ -152,9 +146,9 @@ void PairBuckIntel::eval(const int offload, const int vflag,
 
   // Determine how much data to transfer
   int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EVFLAG, EFLAG, vflag,
-		       buffers, offload, fix, separate_flag,
-		       x_size, q_size, ev_size, f_stride);
+  IP_PRE_get_transfern(ago, NEWTON_PAIR, EFLAG, vflag,
+                       buffers, offload, fix, separate_flag,
+                       x_size, q_size, ev_size, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
@@ -166,7 +160,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
   int *overflow = fix->get_off_overflow_flag();
   double *timer_compute = fix->off_watch_pair();
   // Redeclare as local variables for offload
- 
+
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
   #pragma offload target(mic:_cop) if(offload)                 \
     in(special_lj:length(0) alloc_if(0) free_if(0)) \
@@ -188,31 +182,30 @@ void PairBuckIntel::eval(const int offload, const int vflag,
     *timer_compute = MIC_Wtime();
     #endif
 
-    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall, 
-			      f_stride, x, 0);
+    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall,
+                              f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EVFLAG) {
-      oevdwl =  (acc_t)0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
-    }
+    if (EFLAG) oevdwl =  (acc_t)0;
+    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
-    #pragma omp parallel default(none)        \
-      shared(f_start,f_stride,nlocal,nall,minlocal)	\
-      reduction(+:oevdwl,ov0,ov1,ov2,ov3,ov4,ov5)
+    #pragma omp parallel reduction(+:oevdwl,ov0,ov1,ov2,ov3,ov4,ov5)
     #endif
     {
-      int iifrom, iito, tid;
-      IP_PRE_omp_range_id(iifrom, iito, tid, inum, nthreads);
+      int iifrom, iip, iito, tid;
+      IP_PRE_omp_stride_id(iifrom, iip, iito, tid, inum, nthreads);
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * _noalias const f = f_start - minlocal + (tid * f_stride);
-      memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
+      int foff;
+      if (NEWTON_PAIR) foff = tid * f_stride - minlocal;
+      else foff = -minlocal;
+      FORCE_T * _noalias const f = f_start + foff;
+      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
-      for (int i = iifrom; i < iito; ++i) {
+      for (int i = iifrom; i < iito; i += iip) {
         const int itype = x[i].w;
 
         const int ptr_off = itype * ntypes;
@@ -222,24 +215,23 @@ void PairBuckIntel::eval(const int offload, const int vflag,
         const int jnum = numneigh[i];
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
-	acc_t sevdwl,  sv0, sv1, sv2, sv3, sv4, sv5;
+        acc_t sevdwl,  sv0, sv1, sv2, sv3, sv4, sv5;
 
         const flt_t xtmp = x[i].x;
         const flt_t ytmp = x[i].y;
         const flt_t ztmp = x[i].z;
         fxtmp = fytmp = fztmp = (acc_t)0;
-        if (EVFLAG) {
-          if (EFLAG) fwtmp = sevdwl =  (acc_t)0;
+        if (EFLAG) fwtmp = sevdwl =  (acc_t)0;
+        if (NEWTON_PAIR == 0)
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
-        }
 
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-	                       sv0, sv1, sv2, sv3, sv4, sv5)
+        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                               sv0, sv1, sv2, sv3, sv4, sv5)
         #endif
         for (int jj = 0; jj < jnum; jj++) {
-          
+
           flt_t  forcebuck, evdwl;
           forcebuck = evdwl =  (flt_t)0.0;
 
@@ -253,7 +245,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
           const flt_t r = sqrt(rsq);
           const flt_t r2inv = (flt_t)1.0 / rsq;
-	  
+
           #ifdef INTEL_VMASK
           if (rsq < c_forcei[jtype].cutsq) {
           #endif
@@ -265,7 +257,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
             #ifndef INTEL_VMASK
             if (rsq > c_forcei[jtype].cutsq)
               forcebuck =(flt_t)0.0;
-            #endif 
+            #endif
             if (EFLAG) {
               evdwl = rexp * c_energyi[jtype].a -
                 r6inv * c_energyi[jtype].c -
@@ -280,73 +272,74 @@ void PairBuckIntel::eval(const int offload, const int vflag,
             if (sbindex) {
               const flt_t factor_lj = special_lj[sbindex];
               forcebuck *= factor_lj;
-              if (EFLAG) 
+              if (EFLAG)
                 evdwl *= factor_lj;
             }
             const flt_t fpair =  forcebuck * r2inv;
-            fxtmp += delx * fpair;
-            fytmp += dely * fpair;
-            fztmp += delz * fpair;
-            if (NEWTON_PAIR || j < nlocal) {
-              f[j].x -= delx * fpair;
-              f[j].y -= dely * fpair;
-              f[j].z -= delz * fpair;
-            }
-            
-            if (EVFLAG) {
-              flt_t ev_pre = (flt_t)0;
-              if (NEWTON_PAIR || i < nlocal)
-                ev_pre += (flt_t)0.5;
-              if (NEWTON_PAIR || j < nlocal)
-                ev_pre += (flt_t)0.5;
-              
-              if (EFLAG) {
-                sevdwl += ev_pre * evdwl;
-                if (eatom) {
-                  if (NEWTON_PAIR || i < nlocal)
-                    fwtmp += (flt_t)0.5 * evdwl;
-                  if (NEWTON_PAIR || j < nlocal) 
-                    f[j].w += (flt_t)0.5 * evdwl;
-                }
+            const flt_t fpx = fpair * delx;
+            fxtmp += fpx;
+            if (NEWTON_PAIR) f[j].x -= fpx;
+            const flt_t fpy = fpair * dely;
+            fytmp += fpy;
+            if (NEWTON_PAIR) f[j].y -= fpy;
+            const flt_t fpz = fpair * delz;
+            fztmp += fpz;
+            if (NEWTON_PAIR) f[j].z -= fpz;
+
+            if (EFLAG) {
+              sevdwl += evdwl;
+              if (eatom) {
+                fwtmp += (flt_t)0.5 * evdwl;
+                if (NEWTON_PAIR)
+                  f[j].w += (flt_t)0.5 * evdwl;
               }
-              IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair, delx, dely, delz);
             }
+            if (NEWTON_PAIR == 0)
+              IP_PRE_ev_tally_nborv(vflag, delx, dely, delz, fpx, fpy, fpz);
           #ifdef INTEL_VMASK
           }
           #endif
         } // for jj
-
-        f[i].x += fxtmp;
-        f[i].y += fytmp;
-        f[i].z += fztmp;
-        IP_PRE_ev_tally_atom(EVFLAG, EFLAG, vflag, f, fwtmp);
+        if (NEWTON_PAIR) {
+          f[i].x += fxtmp;
+          f[i].y += fytmp;
+          f[i].z += fztmp;
+        } else {
+          f[i].x = fxtmp;
+          f[i].y = fytmp;
+          f[i].z = fztmp;
+        }
+        IP_PRE_ev_tally_atom(NEWTON_PAIR, EFLAG, vflag, f, fwtmp);
       } // for ii
 
-      #ifndef _LMP_INTEL_OFFLOAD
-      if (vflag == 2)
-      #endif
-      {
-        #if defined(_OPENMP)
-        #pragma omp barrier
-        #endif
-        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			       nlocal, minlocal, nthreads, f_start, f_stride, 
-			       x, offload);
-      }
+      IP_PRE_fdotr_reduce_omp(NEWTON_PAIR, nall, minlocal, nthreads, f_start,
+                              f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+                              ov4, ov5);
     } // end of omp parallel region
-    if (EVFLAG) {
-      if (EFLAG) {
-        ev_global[0] = oevdwl;
-        ev_global[1] = (acc_t)0;
+
+    IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
+                        ov0, ov1, ov2, ov3, ov4, ov5);
+
+    if (EFLAG) {
+      if (NEWTON_PAIR == 0) oevdwl *= (acc_t)0.5;
+      ev_global[0] = oevdwl;
+      ev_global[1] = (acc_t)0;
+    }
+    if (vflag) {
+      if (NEWTON_PAIR == 0) {
+        ov0 *= (acc_t)0.5;
+        ov1 *= (acc_t)0.5;
+        ov2 *= (acc_t)0.5;
+        ov3 *= (acc_t)0.5;
+        ov4 *= (acc_t)0.5;
+        ov5 *= (acc_t)0.5;
       }
-      if (vflag) {
-        ev_global[2] = ov0;
-        ev_global[3] = ov1;
-        ev_global[4] = ov2;
-        ev_global[5] = ov3;
-        ev_global[6] = ov4;
-        ev_global[7] = ov5;
-      }
+      ev_global[2] = ov0;
+      ev_global[3] = ov1;
+      ev_global[4] = ov2;
+      ev_global[5] = ov3;
+      ev_global[6] = ov4;
+      ev_global[7] = ov5;
     }
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
@@ -358,7 +351,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
   else
     fix->stop_watch(TIME_HOST_PAIR);
 
-  if (EVFLAG)
+  if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
@@ -367,6 +360,10 @@ void PairBuckIntel::eval(const int offload, const int vflag,
 void PairBuckIntel::init_style()
 {
   PairBuck::init_style();
+  if (force->newton_pair == 0) {
+    neighbor->requests[neighbor->nrequest-1]->half = 0;
+    neighbor->requests[neighbor->nrequest-1]->full = 1;
+  }
   neighbor->requests[neighbor->nrequest-1]->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
@@ -374,7 +371,7 @@ void PairBuckIntel::init_style()
     error->all(FLERR,
                "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
-  
+
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
   _cop = fix->coprocessor_number();
@@ -445,7 +442,7 @@ void PairBuckIntel::pack_force_const(ForceConst<flt_t> &fc,
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
-void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes, 
+void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                   Memory *memory,
                                                   const int cop) {
   if ( (ntypes != _ntypes ) ) {
@@ -455,8 +452,8 @@ void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       c_force_t * oc_force = c_force[0];
       c_energy_t * oc_energy = c_energy[0];
 
-      if (ospecial_lj != NULL && oc_force != NULL && 
-          oc_energy != NULL  && 
+      if (ospecial_lj != NULL && oc_force != NULL &&
+          oc_energy != NULL  &&
           _cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: alloc_if(0) free_if(1)) \
@@ -479,8 +476,8 @@ void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       c_force_t * oc_force = c_force[0];
       c_energy_t * oc_energy = c_energy[0];
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oc_force != NULL && 
-          oc_energy != NULL &&  
+      if (ospecial_lj != NULL && oc_force != NULL &&
+          oc_energy != NULL &&
           cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \

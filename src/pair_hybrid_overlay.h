@@ -27,11 +27,8 @@ namespace LAMMPS_NS {
 class PairHybridOverlay : public PairHybrid {
  public:
   PairHybridOverlay(class LAMMPS *);
-  ~PairHybridOverlay() {}
+  virtual ~PairHybridOverlay() {}
   void coeff(int, char **);
-
- private:
-  void modify_requests();
 };
 
 }

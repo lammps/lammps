@@ -53,7 +53,7 @@ top of each other.
 
 NOTE: You cannot use the replicate command on a system which has a
 molecule that spans the box and is bonded to itself across a periodic
-boundary, so that the molecule is efffectively a loop.  A simple
+boundary, so that the molecule is effectively a loop.  A simple
 example would be a linear polymer chain that spans the simulation box
 and bonds back to itself across the periodic boundary.  More realistic
 examples would be a CNT (meant to be an infinitely long CNT) or a

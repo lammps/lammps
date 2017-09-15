@@ -1,5 +1,5 @@
 This directory illustrates the usage of fix-phonon to calculate the dynamical
-matrix as well as phonon dispersion curve for FCC Cu based on EAM potentail.
+matrix as well as phonon dispersion curve for FCC Cu based on EAM potential.
 
 The files under this directory:
 

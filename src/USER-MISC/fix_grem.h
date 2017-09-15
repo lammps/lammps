@@ -34,6 +34,7 @@ class FixGrem : public Fix {
   void min_setup(int);
   void post_force(int);
   void *extract(const char *, int &);
+  double compute_scalar();
   double scale_grem,lambda,eta,h0;
   int pressflag;
 
@@ -77,7 +78,7 @@ in energy directly.
 
 E: Must use variable energy with fix grem
 
-Must define an energy vartiable when applyting a dynamic
+Must define an energy variable when applying a dynamic
 force during minimization.
 
 */

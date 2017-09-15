@@ -47,13 +47,13 @@ enables a longer timestep.
 [SHAKE vs RATTLE:]
 
 The SHAKE algorithm was invented for schemes such as standard Verlet
-timesteppnig, where only the coordinates are integrated and the
+timestepping, where only the coordinates are integrated and the
 velocities are approximated as finite differences to the trajectories
 ("Ryckaert et al. (1977)"_#Ryckaert).  If the velocities are
 integrated explicitly, as with velocity Verlet which is what LAMMPS
 uses as an integration method, a second set of constraining forces is
 required in order to eliminate velocity components along the bonds
-("Andersen (1983)"_#Andersen).
+("Andersen (1983)"_#Andersen3).
 
 In order to formulate individual constraints for SHAKE and RATTLE,
 focus on a single molecule whose bonds are constrained.  Let Ri and Vi
@@ -119,7 +119,7 @@ contribution to the pressure of the system (virial) is also accounted
 for.
 
 NOTE: This command works by using the current forces on atoms to
-caculate an additional constraint force which when added will leave
+calculate an additional constraint force which when added will leave
 the atoms in positions that satisfy the SHAKE constraints (e.g. bond
 length) after the next time integration step.  If you define fixes
 (e.g. "fix efield"_fix_efield.html) that add additional force to the
@@ -133,7 +133,7 @@ forces (to atoms that fix shake operates on).
 
 The {mol} keyword should be used when other commands, such as "fix
 deposit"_fix_deposit.html or "fix pour"_fix_pour.html, add molecules
-on-the-fly during a simulation, and you wish to contrain the new
+on-the-fly during a simulation, and you wish to constrain the new
 molecules via SHAKE.  You specify a {template-ID} previously defined
 using the "molecule"_molecule.html command, which reads a file that
 defines the molecule.  You must use the same {template-ID} that the
@@ -159,7 +159,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -171,7 +171,7 @@ more instructions on how to use the accelerated styles effectively.
 
 The velocity constraints lead to a linear system of equations which
 can be solved analytically.  The implementation of the algorithm in
-LAMMPS closely follows ("Andersen (1983)"_#Andersen).
+LAMMPS closely follows ("Andersen (1983)"_#Andersen3).
 
 NOTE: The fix rattle command modifies forces and velocities and thus
 should be defined after all other integration fixes in your input
@@ -210,7 +210,7 @@ which can lead to poor energy conservation.  You can test for this in
 your system by running a constant NVE simulation with a particular set
 of SHAKE parameters and monitoring the energy versus time.
 
-SHAKE or RATTLE should not be used to contrain an angle at 180 degrees
+SHAKE or RATTLE should not be used to constrain an angle at 180 degrees
 (e.g. linear CO2 molecule).  This causes numeric difficulties.
 
 [Related commands:] none
@@ -223,5 +223,5 @@ SHAKE or RATTLE should not be used to contrain an angle at 180 degrees
 [(Ryckaert)] J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen,
 J of Comp Phys, 23, 327-341 (1977).
 
-:link(Andersen)
+:link(Andersen3)
 [(Andersen)] H. Andersen, J of Comp Phys, 52, 24-34 (1983).

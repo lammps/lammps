@@ -56,11 +56,11 @@ Run a temperature accelerated dynamics (TAD) simulation. This method
 requires two or more partitions to perform NEB transition state
 searches.
 
-TAD is described in "this paper"_#Voter by Art Voter.  It is a method
+TAD is described in "this paper"_#Voter2000 by Art Voter.  It is a method
 that uses accelerated dynamics at an elevated temperature to generate
 results at a specified lower temperature.  A good overview of
 accelerated dynamics methods for such systems is given in "this review
-paper"_#Voter2 from the same group. In general, these methods assume
+paper"_#Voter2002 from the same group. In general, these methods assume
 that the long-time dynamics is dominated by infrequent events i.e. the
 system is is confined to low energy basins for long periods,
 punctuated by brief, randomly-occurring transitions to adjacent
@@ -130,7 +130,7 @@ transition event.
 
 The event check is performed by a compute with the specified
 {compute-ID}.  Currently there is only one compute that works with the
-TAD commmand, which is the "compute
+TAD command, which is the "compute
 event/displace"_compute_event_displace.html command.  Other
 event-checking computes may be added.  "Compute
 event/displace"_compute_event_displace.html checks whether any atom in
@@ -144,7 +144,7 @@ NEB is determined by the {neb_style} keyword and must be a damped
 dynamics minimizer.  The tolerances and limits for each NEB
 calculation can be set by the {neb} keyword.  As discussed on the
 "neb"_neb.html, it is often advantageous to use a larger timestep for
-NEB than for normal dyanmics.  Since the size of the timestep set by
+NEB than for normal dynamics.  Since the size of the timestep set by
 the "timestep"_timestep.html command is used by TAD for performing
 dynamics, there is a {neb_step} keyword which can be used to set a
 larger timestep for each NEB calculation if desired.
@@ -258,7 +258,7 @@ number of replicas or processors.
 
 Note that within a single state, the dynamics will typically
 temporarily continue beyond the event that is ultimately chosen, until
-the stopping criterionis satisfied.  When the event is eventually
+the stopping criterion is satisfied.  When the event is eventually
 executed, the timestep counter is reset to the value when the event
 was detected. Similarly, after each quench and NEB minimization, the
 timestep counter is reset to the value at the start of the
@@ -304,9 +304,9 @@ the "timestep"_timestep.html command, and {neb_log} = "none".
 
 :line
 
-:link(Voter)
-[(Voter)] Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
+:link(Voter2000)
+[(Voter2000)] Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
 
-:link(Voter2)
-[(Voter2)] Voter, Montalenti, Germann, Annual Review of Materials
+:link(Voter2002)
+[(Voter2002)] Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

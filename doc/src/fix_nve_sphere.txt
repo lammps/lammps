@@ -16,16 +16,18 @@ fix ID group-ID nve/sphere :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 nve/sphere = style name of this fix command :l
 zero or more keyword/value pairs may be appended :l
-keyword = {update}
+keyword = {update} or {disc} :l
   {update} value = {dipole} or {dipole/dlm}
     dipole = update orientation of dipole moment during integration
-    dipole/dlm = use DLM integrator to update dipole orientation :pre
+    dipole/dlm = use DLM integrator to update dipole orientation
+  {disc} value = none = treat particles as 2d discs, not spheres :pre
 :ule
 
 [Examples:]
 
 fix 1 all nve/sphere
 fix 1 all nve/sphere update dipole
+fix 1 all nve/sphere disc
 fix 1 all nve/sphere update dipole/dlm :pre
 
 [Description:]
@@ -52,6 +54,12 @@ Dullweber-Leimkuhler-McLachlan integration scheme
 giving better energy conservation and allows slightly longer timesteps
 at only a small additional computational cost.
 
+If the {disc} keyword is used, then each particle is treated as a 2d
+disc (circle) instead of as a sphere.  This is only possible for 2d
+simulations, as defined by the "dimension"_dimension.html keyword.
+The only difference between discs and spheres in this context is their
+moment of inertia, as used in the time integration.
+
 :line
 
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
@@ -69,7 +77,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -97,6 +105,9 @@ command.
 
 All particles in the group must be finite-size spheres.  They cannot
 be point particles.
+
+Use of the {disc} keyword is only allowed for 2d simulations, as
+defined by the "dimension"_dimension.html keyword.
 
 [Related commands:]
 

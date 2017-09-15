@@ -71,6 +71,8 @@ class Neighbor : protected Pointers {
   int nex_mol;                     // # of entries in molecule exclusion list
   int *ex_mol_group;               // molecule group #'s to exclude
   int *ex_mol_bit;                 // molecule group bits to exclude
+  int *ex_mol_intra;               // 0 = exclude if in 2 molecules (inter)
+                                   // 1 = exclude if in same molecule (intra)
 
   // special info, used by NeighPair
 
@@ -84,11 +86,11 @@ class Neighbor : protected Pointers {
 
   int nlist;                           // # of pairwise neighbor lists
   int nrequest;                        // # of requests, same as nlist
-  int old_nrequest;                    // RQ count for run that just finished
+  int old_nrequest;                    // # of requests for previous run
 
   class NeighList **lists;
   class NeighRequest **requests;       // from Pair,Fix,Compute,Command classes
-  class NeighRequest **old_requests;   // accessed by Finish
+  class NeighRequest **old_requests;   // copy of requests to compare to
 
   // data from topology neighbor lists
 
@@ -120,6 +122,7 @@ class Neighbor : protected Pointers {
 
   void exclusion_group_group_delete(int, int);  // rm a group-group exclusion
   int exclude_setting();            // return exclude value to accelerator pkg
+  class NeighRequest *find_request(void *);  // find a neighbor request
 
   bigint memory_usage();
 
@@ -150,12 +153,11 @@ class Neighbor : protected Pointers {
 
   double inner[2],middle[2];       // rRESPA cutoffs for extra lists
 
-  int same;                        // 1 if NeighRequests are same as last run
   int old_style,old_triclinic;     // previous run info
   int old_pgsize,old_oneatom;      // used to avoid re-creating neigh lists
 
   int nstencil_perpetual;         // # of perpetual NeighStencil classes
-  int npair_perpetual;            // # of perpetual NeighPair classes
+  int npair_perpetual;            // #x of perpetual NeighPair classes
   int *slist;                     // indices of them in neigh_stencil
   int *plist;                     // indices of them in neigh_pair
 
@@ -163,8 +165,8 @@ class Neighbor : protected Pointers {
   int maxex_group;                 // max # in exclusion group list
   int maxex_mol;                   // max # in exclusion molecule list
 
-  int maxatom;                     // size of atom-based NeighList arrays
-  int maxrequest;                  // size of NeighRequest list
+  int maxatom;                     // max size of atom-based NeighList arrays
+  int maxrequest;                  // max size of NeighRequest list
   int maxwt;                       // max weighting factor applied + 1
 
   // info for other Neigh classes: NBin,NStencil,NPair,NTopo
@@ -200,8 +202,14 @@ class Neighbor : protected Pointers {
   // including creator methods for Nbin,Nstencil,Npair instances
 
   void init_styles();
-  void init_pair();
+  int init_pair();
   virtual void init_topology();
+
+  void morph_other();
+  void morph_skip();
+  void morph_granular();
+  void morph_halffull();
+  void morph_copy();
 
   void print_pairwise_info();
   void requests_new2old();
@@ -224,49 +232,53 @@ class Neighbor : protected Pointers {
   virtual void init_ex_type_kokkos(int) {}
   virtual void init_ex_bit_kokkos() {}
   virtual void init_ex_mol_bit_kokkos() {}
+  virtual void grow_ex_mol_intra_kokkos() {}
 };
 
 namespace NeighConst {
-  static const int NB_SSA     = 1<<0;
-  static const int NB_INTEL   = 1<<1;
-  static const int NB_KOKKOS_DEVICE  = 1<<2;
-  static const int NB_KOKKOS_HOST    = 1<<3;
+  static const int NB_INTEL         = 1<<0;
+  static const int NB_KOKKOS_DEVICE = 1<<1;
+  static const int NB_KOKKOS_HOST   = 1<<2;
+  static const int NB_SSA           = 1<<3;
 
-  static const int NS_HALF    = 1<<0;
-  static const int NS_FULL    = 1<<1;
-  static const int NS_GHOST   = 1<<2;
-  static const int NS_SSA     = 1<<3;
-  static const int NS_BIN     = 1<<4;
-  static const int NS_MULTI   = 1<<5;
-  static const int NS_2D      = 1<<6;
-  static const int NS_3D      = 1<<7;
-  static const int NS_NEWTON  = 1<<8;
-  static const int NS_NEWTOFF = 1<<9;
-  static const int NS_ORTHO   = 1<<10;
-  static const int NS_TRI     = 1<<11;
+  static const int NS_BIN     = 1<<0;
+  static const int NS_MULTI   = 1<<1;
+  static const int NS_HALF    = 1<<2;
+  static const int NS_FULL    = 1<<3;
+  static const int NS_2D      = 1<<4;
+  static const int NS_3D      = 1<<5;
+  static const int NS_NEWTON  = 1<<6;
+  static const int NS_NEWTOFF = 1<<7;
+  static const int NS_ORTHO   = 1<<8;
+  static const int NS_TRI     = 1<<9;
+  static const int NS_GHOST   = 1<<10;
+  static const int NS_SSA     = 1<<11;
 
-  static const int NP_COPY     = 1<<0;
-  static const int NP_SKIP     = 1<<1;
-  static const int NP_HALF     = 1<<2;
-  static const int NP_FULL     = 1<<3;
-  static const int NP_HALFFULL = 1<<4;
-  static const int NP_SIZE     = 1<<5;
-  static const int NP_RESPA    = 1<<6;
-  static const int NP_GHOST    = 1<<7;
-  static const int NP_OFF2ON   = 1<<8;
-  static const int NP_ONESIDE  = 1<<9;
-  static const int NP_SSA      = 1<<10;
-  static const int NP_OMP      = 1<<11;
-  static const int NP_INTEL    = 1<<12;
-  static const int NP_NSQ      = 1<<13;
-  static const int NP_BIN      = 1<<14;
-  static const int NP_MULTI    = 1<<15;
-  static const int NP_NEWTON   = 1<<16;
-  static const int NP_NEWTOFF  = 1<<17;
-  static const int NP_ORTHO    = 1<<18;
-  static const int NP_TRI      = 1<<19;
-  static const int NP_KOKKOS_DEVICE = 1<<20;
-  static const int NP_KOKKOS_HOST   = 1<<21;
+  static const int NP_NSQ           = 1<<0;
+  static const int NP_BIN           = 1<<1;
+  static const int NP_MULTI         = 1<<2;
+  static const int NP_HALF          = 1<<3;
+  static const int NP_FULL          = 1<<4;
+  static const int NP_ORTHO         = 1<<5;
+  static const int NP_TRI           = 1<<6;
+  static const int NP_ATOMONLY      = 1<<7;
+  static const int NP_MOLONLY       = 1<<8;
+  static const int NP_NEWTON        = 1<<9;
+  static const int NP_NEWTOFF       = 1<<10;
+  static const int NP_GHOST         = 1<<11;
+  static const int NP_SIZE          = 1<<12;
+  static const int NP_ONESIDE       = 1<<13;
+  static const int NP_RESPA         = 1<<14;
+  static const int NP_BOND          = 1<<15;
+  static const int NP_OMP           = 1<<16;
+  static const int NP_INTEL         = 1<<17;
+  static const int NP_KOKKOS_DEVICE = 1<<18;
+  static const int NP_KOKKOS_HOST   = 1<<19;
+  static const int NP_SSA           = 1<<20;
+  static const int NP_COPY          = 1<<21;
+  static const int NP_SKIP          = 1<<22;
+  static const int NP_HALF_FULL     = 1<<23;
+  static const int NP_OFF2ON        = 1<<24;
 }
 
 }

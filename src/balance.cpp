@@ -256,6 +256,7 @@ void Balance::command(int narg, char **arg)
   // insure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+  // must reset atom map after exchange() since it clears it
 
   MPI_Barrier(world);
   double start_time = MPI_Wtime();
@@ -267,6 +268,7 @@ void Balance::command(int narg, char **arg)
   domain->reset_box();
   comm->setup();
   comm->exchange();
+  if (atom->map_style) atom->map_set();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance
@@ -276,7 +278,7 @@ void Balance::command(int narg, char **arg)
   set_weights();
   double imbinit = imbalance_factor(maxinit);
 
-  // no load-balance if imbalance doesn't exceed threshhold
+  // no load-balance if imbalance doesn't exceed threshold
   // unless switching from tiled to non tiled layout, then force rebalance
 
   if (comm->layout == LAYOUT_TILED && style != BISECTION) {
@@ -456,6 +458,7 @@ void Balance::options(int iarg, int narg, char **arg)
 
   wtflag = 0;
   varflag = 0;
+  oldrcb = 0;
   outflag = 0;
   int outarg = 0;
   fp = NULL;
@@ -491,6 +494,9 @@ void Balance::options(int iarg, int narg, char **arg)
       }
       iarg += 2+nopt;
 
+    } else if (strcmp(arg[iarg],"old") == 0) {
+      oldrcb = 1;
+      iarg++;
     } else if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal (fix) balance command");
       outflag = 1;
@@ -640,13 +646,22 @@ int *Balance::bisection(int sortflag)
   double *shrinkhi = &shrinkall[3];
 
   // invoke RCB
-  // then invert() to create list of proc assignements for my atoms
+  // then invert() to create list of proc assignments for my atoms
+  // NOTE: (3/2017) can remove undocumented "old" option at some point
+  //       ditto in rcb.cpp
 
-  if (wtflag) {
-    weight = fixstore->vstore;
-    rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-  } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
-
+  if (oldrcb) {
+    if (wtflag) {
+      weight = fixstore->vstore;
+      rcb->compute_old(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
+    } else rcb->compute_old(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+  } else {
+    if (wtflag) {
+      weight = fixstore->vstore;
+      rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
+    } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+  }
+    
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed
@@ -767,7 +782,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 
 int Balance::shift()
 {
-  int i,j,k,m,np,max;
+  int i,j,k,m,np;
   double mycost,totalcost;
   double *split;
 
@@ -776,7 +791,7 @@ int Balance::shift()
   bigint natoms = atom->natoms;
   if (natoms == 0) return 0;
 
-  // set delta for 1d balancing = root of threshhold
+  // set delta for 1d balancing = root of threshold
   // root = # of dimensions being balanced on
 
   double delta = pow(stopthresh,1.0/ndim) - 1.0;
@@ -865,7 +880,7 @@ int Balance::shift()
       // stop if all split sums are within delta of targets
       // this is a 1d test of particle count per slice
       // assumption is that this is sufficient accuracy
-      //   for 3d imbalance factor to reach threshhold
+      //   for 3d imbalance factor to reach threshold
 
       doneflag = 1;
       for (i = 1; i < np; i++)
@@ -918,10 +933,10 @@ int Balance::shift()
       }
     */
 
-    // stop at this point in bstr if imbalance factor < threshhold
+    // stop at this point in bstr if imbalance factor < threshold
     // this is a true 3d test of particle count per processor
 
-    double imbfactor = imbalance_splits(max);
+    double imbfactor = imbalance_splits();
     if (imbfactor <= stopthresh) break;
   }
 
@@ -937,7 +952,7 @@ int Balance::shift()
    N = # of slices
    split = N+1 cuts between N slices
    return updated count = particles per slice
-   return updated sum = cummulative count below each of N+1 splits
+   return updated sum = cumulative count below each of N+1 splits
    use binary search to find which slice each atom is in
 ------------------------------------------------------------------------- */
 
@@ -972,8 +987,8 @@ void Balance::tally(int dim, int n, double *split)
 /* ----------------------------------------------------------------------
    adjust cuts between N slices in a dim via recursive multisectioning method
    split = current N+1 cuts, with 0.0 and 1.0 at end points
-   sum = cummulative count up to each split
-   target = desired cummulative count up to each split
+   sum = cumulative count up to each split
+   target = desired cumulative count up to each split
    lo/hi = split values that bound current split
    update lo/hi to reflect sums at current split values
    overwrite split with new cuts
@@ -1032,11 +1047,10 @@ int Balance::adjust(int n, double *split)
    calculate imbalance based on processor splits in 3 dims
    atoms must be in lamda coords (0-1) before called
    map particles to 3d grid of procs
-   return maxcost = max load per proc
    return imbalance factor = max load per proc / ave load per proc
 ------------------------------------------------------------------------- */
 
-double Balance::imbalance_splits(int &maxcost)
+double Balance::imbalance_splits()
 {
   double *xsplit = comm->xsplit;
   double *ysplit = comm->ysplit;
@@ -1073,7 +1087,7 @@ double Balance::imbalance_splits(int &maxcost)
 
   MPI_Allreduce(proccost,allproccost,nprocs,MPI_DOUBLE,MPI_SUM,world);
 
-  maxcost = 0.0;
+  double maxcost = 0.0;
   double totalcost = 0.0;
   for (int i = 0; i < nprocs; i++) {
     maxcost = MAX(maxcost,allproccost[i]);

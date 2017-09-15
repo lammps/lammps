@@ -28,8 +28,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp),
-  id(NULL), style(NULL), contact(NULL), list(NULL), xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
+Region::Region(LAMMPS *lmp, int narg, char **arg) : 
+  Pointers(lmp),
+  id(NULL), style(NULL), contact(NULL), list(NULL), 
+  xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
 {
   int n = strlen(arg[0]) + 1;
   id = new char[n];
@@ -144,7 +146,7 @@ int Region::match(double x, double y, double z)
    generate error if Kokkos function defaults to base class
 ------------------------------------------------------------------------- */
 
-void Region::match_all_kokkos(int, DAT::t_int_1d)
+void Region::match_all_kokkos(int, DAT::tdual_int_1d)
 {
   error->all(FLERR,"Can only use Kokkos supported regions with Kokkos package");
 }

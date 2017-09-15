@@ -10,6 +10,7 @@ pair_style hybrid command :h3
 pair_style hybrid/omp command :h3
 pair_style hybrid/overlay command :h3
 pair_style hybrid/overlay/omp command :h3
+pair_style hybrid/overlay/kk command :h3
 
 [Syntax:]
 
@@ -63,7 +64,7 @@ Note that an individual pair style can be used multiple times as a
 sub-style.  For efficiency this should only be done if your model
 requires it.  E.g. if you have different regions of Si and C atoms and
 wish to use a Tersoff potential for pure Si for one set of atoms, and
-a Tersoff potetnial for pure C for the other set (presumably with some
+a Tersoff potential for pure C for the other set (presumably with some
 3rd potential for Si-C interactions), then the sub-style {tersoff}
 could be listed twice.  But if you just want to use a Lennard-Jones or
 other pairwise potential for several different atom type pairs in your
@@ -73,7 +74,7 @@ pair_coeff command to assign parameters for the different type pairs.
 NOTE: There are two exceptions to this option to list an individual
 pair style multiple times.  The first is for pair styles implemented
 as Fortran libraries: "pair_style meam"_pair_meam.html and "pair_style
-reax"_pair_reax.html ("pair_style reax/c"_pair_reax_c.html is OK).
+reax"_pair_reax.html ("pair_style reax/c"_pair_reaxc.html is OK).
 This is because unlike a C++ class, they can not be instantiated
 multiple times, due to the manner in which they were coded in Fortran.
 The second is for GPU-enabled pair styles in the GPU package.  This is
@@ -189,7 +190,7 @@ potentials.
 
 Different force fields (e.g. CHARMM vs AMBER) may have different rules
 for applying weightings that change the strength of pairwise
-interactions bewteen pairs of atoms that are also 1-2, 1-3, and 1-4
+interactions between pairs of atoms that are also 1-2, 1-3, and 1-4
 neighbors in the molecular bond topology, as normally set by the
 "special_bonds"_special_bonds.html command.  Different weights can be
 assigned to different pair hybrid sub-styles via the "pair_modify
@@ -224,6 +225,12 @@ effectively {lj/coul 0.0 0.0 0.5} as required for OPLS/AA:
 special_bonds lj/coul 1e-20 1e-20 0.5
 pair_hybrid tersoff lj/cut/coul/long 12.0
 pair_modify pair tersoff special lj/coul 1.0 1.0 1.0 :pre
+
+For use with the various "compute */tally"_compute_tally.html
+computes, the "pair_modify compute/tally"_pair_modify.html
+command can be used to selectively turn off processing of
+the compute tally styles, for example, if those pair styles
+(e.g. manybody styles) do not support this feature.
 
 See the "pair_modify"_pair_modify.html doc page for details on
 the specific syntax, requirements and restrictions.
@@ -324,7 +331,7 @@ LAMMPS was built with those packages.  See the
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

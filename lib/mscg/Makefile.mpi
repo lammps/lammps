@@ -1,0 +1,104 @@
+# This Makefile is meant for use after
+# module load gsl/2.2.1+gcc-6.1 
+# module load gcc/6.1
+# It also requires LAPACK
+# Module names refer to those on any of RCC's clusters at UChicago.
+
+# This makefile does NOT include GROMACS reading or MKL (sparse matrix)
+# It uses the gcc/g++ compiler (v4.9+) for C++11 support
+
+# 1) Try this first (as it is the easiest)
+NO_GRO_LIBS    = -lgsl -lgslcblas
+
+# 2) If it does not find your libraries automatically, you can specify them manually
+# # A) Set the GSL_LIB to the location of your GSL library's lib directory (must be V2+)
+GSL_LIB = /software/gsl-2.2.1-el6-x86_64+gcc-6.1/lib
+# # B) Set the LAPACK_DIR to the location of your LAPACK library base directory 
+LAPACK_LIB = $(HOME)/local/lapack-3.7.0
+# # C) Uncomment this next line and then run again (after cleaning up any object files)
+#NO_GRO_LIBS    = -L$(GSL_LIB) -L$(LAPACK_LIB) -lgsl -lgslcblas -llapack -lm  
+
+OPT            = -O2
+NO_GRO_LDFLAGS = $(OPT)
+NO_GRO_CFLAGS  = $(OPT)
+DIMENSION      = 3
+CC             = mpicc
+
+COMMON_SOURCE = control_input.h fm_output.h force_computation.h geometry.h interaction_hashing.h interaction_model.h matrix.h splines.h topology.h trajectory_input.h misc.h mscg.h
+NO_GRO_COMMON_OBJECTS = control_input.o fm_output.o force_computation.o geometry.o interaction_hashing.o interaction_model.o matrix.o splines.o topology.o trajectory_input_no_gro.o misc.o
+
+# Target executables
+# The library for LAMMPS is lib_mscg.a
+libmscg.a: mscg.o $(NO_GRO_COMMON_OBJECTS)
+	ar rvs libmscg.a *.o
+
+newfm_no_gro.x: newfm.o $(NO_GRO_COMMON_OBJECTS)
+	$(CC) $(NO_GRO_LDFLAGS) -o $@ newfm.o $(NO_GRO_COMMON_OBJECTS) -D"_exclude_gromacs=1" $(NO_GRO_LIBS)
+	
+combinefm_no_gro.x: combinefm.o batch_fm_combination.o $(NO_GRO_COMMON_OBJECTS)
+	$(CC) $(NO_GRO_LDFLAGS) -o $@ combinefm.o batch_fm_combination.o $(NO_GRO_COMMON_OBJECTS) -D"_exclude_gromacs=1" $(NO_GRO_LIBS)
+
+rangefinder_no_gro.x: rangefinder.o range_finding.o $(NO_GRO_COMMON_OBJECTS)
+	$(CC) $(NO_GRO_LDFLAGS) -o $@ rangefinder.o range_finding.o $(NO_GRO_COMMON_OBJECTS) -D"_exclude_gromacs=1" $(NO_GRO_LIBS) 
+
+# Target objects
+
+mscg.o: mscg.cpp $(COMMON_SOURCE) range_finding.o
+	$(CC) $(NO_GRO_CFLAGS) -c mscg.cpp -o mscg.o $(NO_GRO_LIBS)
+
+newfm.o: newfm.cpp $(COMMON_SOURCE)
+	$(CC) $(NO_GRO_CFLAGS) -c newfm.cpp
+	
+combinefm.o: combinefm.cpp batch_fm_combination.h $(COMMON_SOURCE)
+	$(CC) $(NO_GRO_CFLAGS) -c combinefm.cpp
+
+rangefinder.o: rangefinder.cpp range_finding.h $(COMMON_SOURCE)
+	$(CC) $(NO_GRO_CFLAGS) -c rangefinder.cpp
+
+scalarfm.o: scalarfm.cpp $(COMMON_SOURCE)
+	$(CC) $(NO_GRO_CFLAGS) -c scalarfm.cpp
+
+batch_fm_combination.o: batch_fm_combination.cpp batch_fm_combination.h external_matrix_routines.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c batch_fm_combination.cpp
+
+control_input.o: control_input.cpp control_input.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c control_input.cpp
+
+geometry.o: geometry.cpp geometry.h
+	$(CC) $(NO_GRO_CFLAGS) -c geometry.cpp -DDIMENSION=$(DIMENSION)
+
+fm_output.o: fm_output.cpp fm_output.h force_computation.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c fm_output.cpp
+
+force_computation.o: force_computation.cpp force_computation.h interaction_model.h matrix.h trajectory_input.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c force_computation.cpp -DDIMENSION=$(DIMENSION)
+
+interaction_hashing.o: interaction_hashing.cpp interaction_hashing.h
+	$(CC) $(NO_GRO_CFLAGS) -c interaction_hashing.cpp
+
+interaction_model.o: interaction_model.cpp interaction_model.h control_input.h interaction_hashing.h topology.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c interaction_model.cpp -DDIMENSION=$(DIMENSION)
+
+matrix.o: matrix.cpp matrix.h control_input.h external_matrix_routines.h interaction_model.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c matrix.cpp -DDIMENSION=$(DIMENSION)
+
+misc.o: misc.cpp misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c misc.cpp
+
+range_finding.o: range_finding.cpp range_finding.h force_computation.h interaction_model.h matrix.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c range_finding.cpp -DDIMENSION=$(DIMENSION)
+
+splines.o: splines.cpp splines.h interaction_model.h
+	$(CC) $(NO_GRO_CFLAGS) -c splines.cpp -DDIMENSION=$(DIMENSION)
+
+topology.o: topology.cpp topology.h interaction_model.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c topology.cpp -DDIMENSION=$(DIMENSION)
+
+trajectory_input_no_gro.o: trajectory_input.cpp trajectory_input.h control_input.h misc.h
+	$(CC) $(NO_GRO_CFLAGS) -c trajectory_input.cpp -D"_exclude_gromacs=1" -o trajectory_input_no_gro.o
+
+# Other convenient commands
+clean:
+	rm *.[o]
+
+all: libmscg.a newfm_no_gro.x rangefinder_no_gro.x combinefm_no_gro.x

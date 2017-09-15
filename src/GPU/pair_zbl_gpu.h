@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -53,6 +53,6 @@ package
 
 E: Cannot use newton pair with zbl/gpu pair style
 
-Self-explantory.
+Self-explanatory.
 
 */

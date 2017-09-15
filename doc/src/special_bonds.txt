@@ -25,9 +25,7 @@ keyword = {amber} or {charmm} or {dreiding} or {fene} or {lj/coul} or {lj} or {c
   {coul} values = w1,w2,w3
     w1,w2,w3 = weights (0.0 to 1.0) on pairwise Coulombic interactions
   {angle} value = {yes} or {no}
-  {dihedral} value = {yes} or {no}
-  {extra} value = N
-    N = number of extra 1-2,1-3,1-4 interactions to save space for :pre
+  {dihedral} value = {yes} or {no} :pre
 :ule
 
 Examples:
@@ -36,8 +34,7 @@ special_bonds amber
 special_bonds charmm
 special_bonds fene dihedral no
 special_bonds lj/coul 0.0 0.0 0.5 angle yes dihedral yes
-special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.0 dihedral yes
-special_bonds lj/coul 0 1 1 extra 2 :pre
+special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.0 dihedral yes :pre
 
 [Description:]
 
@@ -65,7 +62,13 @@ sense to define permanent bonds between atoms that interact via these
 potentials, though such bonds may exist elsewhere in your system,
 e.g. when using the "pair_style hybrid"_pair_hybrid.html command.
 Thus LAMMPS ignores special_bonds settings when manybody potentials
-are calculated.
+are calculated.  Please note, that the existence of explicit bonds
+for atoms that are described by a manybody potential will alter the
+neigborlist and thus can render the computation of those interactions
+invalid, since those pairs are not only used to determine direct
+pairwise interactions but also neighbors of neighbors and more.
+The recommended course of action is to remove such bonds, or - if
+that is not possible - use a special bonds setting of 1.0 1.0 1.0.
 
 NOTE: Unlike some commands in LAMMPS, you cannot use this command
 multiple times in an incremental fashion: e.g. to first set the LJ
@@ -172,14 +175,6 @@ interaction between atoms 2 and 5 will be unaffected (full weighting
 of 1.0).  If the {dihedral} keyword is specified as {no} which is the
 default, then the 2,5 interaction will also be weighted by 0.5.
 
-The {extra} keyword can be used when additional bonds will be created
-during a simulation run, e.g. by the "fix
-bond/create"_fix_bond_create.html command.  It can also be used if
-molecules will be added to the system, e.g. via the "fix
-deposit"_fix_deposit.html, or "fix pour"_fix_pour.html commands, which
-will have atoms with more special neighbors than any atom in the
-current system has.
-
 :line
 
 NOTE: LAMMPS stores and maintains a data structure with a list of the
@@ -188,8 +183,9 @@ the system).  If new bonds are created (or molecules added containing
 atoms with more special neighbors), the size of this list needs to
 grow.  Note that adding a single bond always adds a new 1st neighbor
 but may also induce *many* new 2nd and 3rd neighbors, depending on the
-molecular topology of your system.  Using the {extra} keyword leaves
-empty space in the list for this N additional 1st, 2nd, or 3rd
+molecular topology of your system.  Using the {extra/special/per/atom}
+keyword to either "read_data"_read_data.html or "create_box"_create_box.html
+reserves empty space in the list for this N additional 1st, 2nd, or 3rd
 neighbors to be added.  If you do not do this, you may get an error
 when bonds (or molecules) are added.
 
@@ -197,8 +193,7 @@ when bonds (or molecules) are added.
 
 NOTE: If you reuse this command in an input script, you should set all
 the options you need each time.  This command cannot be used a 2nd
-time incrementally, e.g. to add some extra storage locations via the
-{extra} keyword.  E.g. these two commands:
+time incrementally.  E.g. these two commands:
 
 special_bonds lj 0.0 1.0 1.0
 special_bonds coul 0.0 0.0 1.0
@@ -214,25 +209,6 @@ Coul: coul 0.0 0.0 1.0
 
 because the LJ settings are reset to their default values
 each time the command is issued.
-
-Likewise
-
-special_bonds amber
-special_bonds extra 2 :pre
-
-is not the same as this single command:
-
-special_bonds amber extra 2 :pre
-
-since in the former case, the 2nd command will reset all the LJ and
-Coulombic weights to 0.0 (the default).
-
-One exception to this rule is the {extra} option itself.  It is not
-reset to its default value of 0 each time the special_bonds command is
-invoked.  This is because it can also be set by the
-"read_data"_read_data.html and "create_box"_create_box.html commands,
-so this command will not override those settings unless you explicitly
-use {extra} as an option.
 
 [Restrictions:] none
 

@@ -74,7 +74,7 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
 
   // reallocate per-atom arrays if necessary
@@ -82,12 +82,12 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memory->destroy_kokkos(k_eatom,eatom);
     memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.d_view;
+    d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
     memory->destroy_kokkos(k_vatom,vatom);
     memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-    d_vatom = k_vatom.d_view;
+    d_vatom = k_vatom.view<DeviceType>();
   }
 
   atomKK->sync(execution_space,datamask_read);
@@ -101,8 +101,8 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     nmax = atom->nmax;
     k_rho = DAT::tdual_ffloat_1d("pair:rho",nmax);
     k_fp = DAT::tdual_ffloat_1d("pair:fp",nmax);
-    d_rho = k_rho.d_view;
-    d_fp = k_fp.d_view;
+    d_rho = k_rho.template view<DeviceType>();
+    d_fp = k_fp.template view<DeviceType>();
     h_rho = k_rho.h_view;
     h_fp = k_fp.h_view;
   }
@@ -122,9 +122,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
   int inum = list->inum;
 
-  // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
-
-  k_list->clean_copy();
   copymode = 1;
 
   // zero out density
@@ -133,7 +130,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSInitialize>(0,nall),*this);
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSInitialize>(0,nlocal),*this);
-  DeviceType::fence();
 
   // loop over neighbors of my atoms
 
@@ -156,7 +152,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelA<HALFTHREAD,0> >(0,inum),*this);
       }
     }
-    DeviceType::fence();
 
     // communicate and sum densities (on the host)
 
@@ -174,7 +169,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelB<0> >(0,inum),*this);
-    DeviceType::fence();
 
   } else if (neighflag == FULL) {
 
@@ -184,7 +178,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelAB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelAB<0> >(0,inum),*this);
-    DeviceType::fence();
   }
 
   if (eflag) {
@@ -239,7 +232,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -330,9 +322,9 @@ void PairEAMFSKokkos<DeviceType>::file2array()
   k_type2z2r.template modify<LMPHostType>();
   k_type2z2r.template sync<DeviceType>();
 
-  d_type2frho = k_type2frho.d_view;
-  d_type2rhor = k_type2rhor.d_view;
-  d_type2z2r = k_type2z2r.d_view;
+  d_type2frho = k_type2frho.template view<DeviceType>();
+  d_type2rhor = k_type2rhor.template view<DeviceType>();
+  d_type2z2r = k_type2z2r.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -366,9 +358,9 @@ void PairEAMFSKokkos<DeviceType>::array2spline()
   k_z2r_spline.template modify<LMPHostType>();
   k_z2r_spline.template sync<DeviceType>();
 
-  d_frho_spline = k_frho_spline.d_view;
-  d_rhor_spline = k_rhor_spline.d_view;
-  d_z2r_spline = k_z2r_spline.d_view;
+  d_frho_spline = k_frho_spline.template view<DeviceType>();
+  d_rhor_spline = k_rhor_spline.template view<DeviceType>();
+  d_z2r_spline = k_z2r_spline.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -413,8 +405,7 @@ int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMFSPackForwardComm>(0,n),*this);
-  DeviceType::fence();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSPackForwardComm>(0,n),*this);
   return n;
 }
 
@@ -432,8 +423,7 @@ void PairEAMFSKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairEAMFSUnpackForwardComm>(0,n),*this);
-  DeviceType::fence();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSUnpackForwardComm>(0,n),*this);
 }
 
 template<class DeviceType>

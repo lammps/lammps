@@ -65,7 +65,7 @@ according to the lever rule,
 
 where {L} is the normalized distance from the atom to the point of
 closest approach of bond {i} and {j}. The {mid} option takes {L} as
-0.5 for each interaction as described in "(Sirk)"_#Sirk.
+0.5 for each interaction as described in "(Sirk)"_#Sirk2.
 
 The following coefficients must be defined via the
 "pair_coeff"_pair_coeff.html command as in the examples above, or in
@@ -86,7 +86,7 @@ the beginning of a run. This means you must specify the number of
 types in your system accordingly; usually to be one larger than what
 would normally be the case, e.g. via the "create_box"_create_box.html
 or by changing the header in your "data file"_read_data.html.  The
-ficitious "bond particles" are inserted at the beginning of the run,
+fictitious "bond particles" are inserted at the beginning of the run,
 and serve as placeholders that define the position of the bonds.  This
 allows neighbor lists to be constructed and pairwise interactions to
 be computed in almost the same way as is done for actual particles.
@@ -150,6 +150,8 @@ hybrid"_pair_hybrid.html.
 This pair style requires the "newton"_newton.html command to be {on}
 for non-bonded interactions.
 
+This pair style is not compatible with "rigid body integrators"_fix_rigid.html
+
 [Related commands:]
 
 "pair_style hybrid"_pair_hybrid.html, "pair_coeff"_pair_coeff.html,
@@ -161,6 +163,6 @@ The default keyword value is exclude = yes.
 
 :line
 
-:link(Sirk)
+:link(Sirk2)
 [(Sirk)] Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
 Chem Phys, 136 (13) 134903, 2012.

@@ -155,31 +155,31 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   // face[2]
 
-  MathExtra::copy3(corners[2][0],corners[0][0]);
-  MathExtra::copy3(corners[2][1],corners[1][0]);
-  MathExtra::copy3(corners[2][2],corners[1][1]);
-  MathExtra::copy3(corners[2][3],corners[0][1]);
+  MathExtra::copy3(corners[0][0], corners[2][0]);
+  MathExtra::copy3(corners[1][0], corners[2][1]);
+  MathExtra::copy3(corners[1][1], corners[2][2]);
+  MathExtra::copy3(corners[0][1], corners[2][3]);
 
   // face[3]
 
-  MathExtra::copy3(corners[3][0],corners[0][3]);
-  MathExtra::copy3(corners[3][1],corners[0][2]);
-  MathExtra::copy3(corners[3][2],corners[1][2]);
-  MathExtra::copy3(corners[3][3],corners[1][3]);
+  MathExtra::copy3(corners[0][3], corners[3][0]);
+  MathExtra::copy3(corners[0][2], corners[3][1]);
+  MathExtra::copy3(corners[1][2], corners[3][2]);
+  MathExtra::copy3(corners[1][3], corners[3][3]);
 
   // face[4]
 
-  MathExtra::copy3(corners[4][0],corners[0][0]);
-  MathExtra::copy3(corners[4][1],corners[0][3]);
-  MathExtra::copy3(corners[4][2],corners[1][3]);
-  MathExtra::copy3(corners[4][3],corners[1][0]);
+  MathExtra::copy3(corners[0][0], corners[4][0]);
+  MathExtra::copy3(corners[0][3], corners[4][1]);
+  MathExtra::copy3(corners[1][3], corners[4][2]);
+  MathExtra::copy3(corners[1][0], corners[4][3]);
 
   // face[5]
 
-  MathExtra::copy3(corners[5][0],corners[0][1]);
-  MathExtra::copy3(corners[5][1],corners[1][1]);
-  MathExtra::copy3(corners[5][2],corners[1][2]);
-  MathExtra::copy3(corners[5][3],corners[0][2]);
+  MathExtra::copy3(corners[0][1], corners[5][0]);
+  MathExtra::copy3(corners[1][1], corners[5][1]);
+  MathExtra::copy3(corners[1][2], corners[5][2]);
+  MathExtra::copy3(corners[0][2], corners[5][3]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -401,7 +401,7 @@ double RegBlock::find_closest_point(int i, double *x,
       zc = p[2];
     }
 
-    point_on_line_segment(corners[i][3],corners[i][4],x,p);
+    point_on_line_segment(corners[i][3],corners[i][0],x,p);
     d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) +
       (p[2]-x[2])*(p[2]-x[2]);
     if (d2 < d2min) {

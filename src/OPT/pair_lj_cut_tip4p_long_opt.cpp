@@ -111,9 +111,9 @@ void PairLJCutTIP4PLongOpt::eval()
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double v[6],xH1[3],xH2[3];
+  double v[6];
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
-  const double *x1,*x2;
+  const double *x1,*x2,*xH1,*xH2;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
   int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
@@ -155,14 +155,21 @@ void PairLJCutTIP4PLongOpt::eval()
 
     if (itype == typeO) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
+        iH1 = atom->map(tag[i] + 1);
+        iH2 = atom->map(tag[i] + 2);
         hneigh[i][2] = 1;
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        // set iH1,iH2 to closest image to O
+        iH1 = domain->closest_image(i,iH1);
+        iH2 = domain->closest_image(i,iH2);
         compute_newsite_opt(x[i],x[iH1],x[iH2],newsite[i]);
+        hneigh[i][0] = iH1;
+        hneigh[i][1] = iH2;
+        hneigh[i][2] = 1;
+
       } else {
         iH1 = hneigh[i][0];
         iH2 = hneigh[i][1];
@@ -226,14 +233,21 @@ void PairLJCutTIP4PLongOpt::eval()
 
           if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
+              jH1 = atom->map(tag[j] + 1);
+              jH2 = atom->map(tag[j] + 2);
               hneigh[j][2] = 1;
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              // set jH1,jH2 to closest image to O
+              jH1 = domain->closest_image(j,jH1);
+              jH2 = domain->closest_image(j,jH2);
               compute_newsite_opt(x[j],x[jH1],x[jH2],newsite[j]);
+              hneigh[j][0] = jH1;
+              hneigh[j][1] = jH2;
+              hneigh[j][2] = 1;
+
             } else {
               jH1 = hneigh[j][0];
               jH2 = hneigh[j][1];
@@ -339,9 +353,8 @@ void PairLJCutTIP4PLongOpt::eval()
             f[iH2][2] += fHz;
 
             if (VFLAG) {
-              domain->closest_image(x[i],x[iH1],xH1);
-              domain->closest_image(x[i],x[iH2],xH2);
-
+              xH1 = x[iH1];
+              xH2 = x[iH2];
               v[0] = x[i][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
               v[1] = x[i][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
               v[2] = x[i][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
@@ -399,9 +412,8 @@ void PairLJCutTIP4PLongOpt::eval()
             f[jH2][2] += fHz;
 
             if (VFLAG) {
-              domain->closest_image(x[j],x[jH1],xH1);
-              domain->closest_image(x[j],x[jH2],xH2);
-
+              xH1 = x[jH1];
+              xH2 = x[jH2];
               v[0] += x[j][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
               v[1] += x[j][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
               v[2] += x[j][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
@@ -448,12 +460,10 @@ void PairLJCutTIP4PLongOpt::compute_newsite_opt(const double * xO,
   double delx1 = xH1[0] - xO[0];
   double dely1 = xH1[1] - xO[1];
   double delz1 = xH1[2] - xO[2];
-  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = xH2[0] - xO[0];
   double dely2 = xH2[1] - xO[1];
   double delz2 = xH2[2] - xO[2];
-  domain->minimum_image(delx2,dely2,delz2);
 
   const double prefac = alpha * 0.5;
   xM[0] = xO[0] + prefac * (delx1 + delx2);

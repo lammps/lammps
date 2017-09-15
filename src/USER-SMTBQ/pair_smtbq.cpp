@@ -548,7 +548,7 @@ void PairSMTBQ::read_file(char *file)
     //  ---------------------------------
     m += 1;
 
-    // Ligne 5 - parametre des potentiels
+    // Ligne 5 - parametre des potentials
     fgets(ptr,MAXLINE,fp);  if (verbose) printf ("%s",ptr);
 
     // Lecture des protagonistes
@@ -615,7 +615,7 @@ void PairSMTBQ::read_file(char *file)
       if (verbose) printf (" %s %f %f %f %f\n",words[0],
                            intparams[m].a,intparams[m].p,intparams[m].ksi,intparams[m].q);
 
-      // Ligne 6 - rayon de coupure potentiel SM
+      // Ligne 6 - rayon de coupure potential SM
 
       fgets( ptr, MAXLINE, fp);
       Tokenize( ptr, &words );
@@ -1724,7 +1724,7 @@ void PairSMTBQ::pot_ES (int i, int j, double rsq, double &eng)
 {
 
   /* ===================================================================
-     Coulombian potentiel energy calcul between i and j atoms
+     Coulombian potential energy calcul between i and j atoms
      with fafb table make in sm_table().
      fafb[i][j] : i is the table's step (r)
      j is the interaction's # (in intype[itype][jtype])
@@ -2655,7 +2655,7 @@ void PairSMTBQ::Charge()
     forward(q) ; // reverse(q);
 
 
-    //   Calcul des potentiel
+    //   Calcul des potential
     //  ----------------------
     QForce_charge(iloop);
 
@@ -2736,7 +2736,7 @@ void PairSMTBQ::Charge()
 
   //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   // ==========================================
-  //   Ecriture des potentiels dans un fichier
+  //   Ecriture des potentials dans un fichier
   // ==========================================
 
   if (strcmp(writepot,"true") == 0 && fmod(static_cast<double>(step), Neverypot) == 0.0) {
@@ -3561,7 +3561,7 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
 
 void PairSMTBQ::CheckEnergyVSForce()
 {
-  double drL,iq,jq,rsq,evdwlCoul,fpairCoul,eflag,ErepR,frepR,fpair,evdwl;
+  double drL,iq,jq,rsq,evdwlCoul,fpairCoul,eflag=0,ErepR,frepR,fpair,evdwl;
   int i,j,iiiMax,iii,iCoord;
   int itype,jtype,l,m;
   double r,t1,t2,sds,xi,engSurf,fforceSurf;

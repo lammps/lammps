@@ -47,9 +47,13 @@
 #include <cstdio>
 #include <cstdlib>
 
-typedef Kokkos::View<double*> view_type;
-typedef Kokkos::View<int**> idx_type;
-
+#ifdef KOKKOS_ENABLE_CUDA
+typedef Kokkos::View<double*, Kokkos::CudaUVMSpace> view_type;
+typedef Kokkos::View<int**, Kokkos::CudaUVMSpace> idx_type;
+#else
+typedef Kokkos::View<double*,Kokkos::HostSpace> view_type;
+typedef Kokkos::View<int**,Kokkos::HostSpace> idx_type;
+#endif
 
 template<class Device>
 struct localsum {
@@ -59,7 +63,7 @@ struct localsum {
   // Get the view types on the particular device the functor is instantiated for
   idx_type::const_type idx;
   view_type dest;
-  Kokkos::View<view_type::const_data_type, view_type::array_layout, view_type::execution_space, Kokkos::MemoryRandomAccess > src;
+  Kokkos::View<view_type::const_data_type, view_type::array_layout, view_type::device_type, Kokkos::MemoryRandomAccess > src;
 
   localsum(idx_type idx_, view_type dest_,
       view_type src_):idx(idx_),dest(dest_),src(src_) {
@@ -68,7 +72,7 @@ struct localsum {
   KOKKOS_INLINE_FUNCTION
   void operator() (int i) const {
     double tmp = 0.0;
-    for(int j = 0; j < idx.dimension_1(); j++) {
+    for(int j = 0; j < int(idx.dimension_1()); j++) {
       const double val = src(idx(i,j));
       tmp += val*val + 0.5*(idx.dimension_0()*val -idx.dimension_1()*val);
     }
@@ -88,9 +92,11 @@ int main(int narg, char* arg[]) {
 
   srand(134231);
 
+  Kokkos::fence();
+
   // When using UVM Cuda views can be accessed on the Host directly
   for(int i=0; i<size; i++) {
-    for(int j=0; j<idx.dimension_1(); j++)
+    for(int j=0; j<int(idx.dimension_1()); j++)
       idx(i,j) = (size + i + (rand()%500 - 250))%size;
   }
 
@@ -126,8 +132,8 @@ int main(int narg, char* arg[]) {
 
 
 
-  printf("Device Time with Sync: %lf without Sync: %lf \n",sec1_dev,sec2_dev);
-  printf("Host   Time with Sync: %lf without Sync: %lf \n",sec1_host,sec2_host);
+  printf("Device Time with Sync: %e without Sync: %e \n",sec1_dev,sec2_dev);
+  printf("Host   Time with Sync: %e without Sync: %e \n",sec1_host,sec2_host);
 
   Kokkos::finalize();
 }

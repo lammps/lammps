@@ -90,10 +90,10 @@ GetSystemInfo(&info);
 int mpi_ranks_per_node() {
   char *str;
   int ppn = 1;
-  if ((str = getenv("SLURM_TASKS_PER_NODE"))) {
-    ppn = atoi(str);
-    if(ppn<=0) ppn = 1;
-  }
+  //if ((str = getenv("SLURM_TASKS_PER_NODE"))) {
+  //  ppn = atoi(str);
+  //  if(ppn<=0) ppn = 1;
+  //}
   if ((str = getenv("MV2_COMM_WORLD_LOCAL_SIZE"))) {
     ppn = atoi(str);
     if(ppn<=0) ppn = 1;
@@ -108,9 +108,9 @@ int mpi_ranks_per_node() {
 int mpi_local_rank_on_node() {
   char *str;
   int local_rank=0;
-  if ((str = getenv("SLURM_LOCALID"))) {
-    local_rank = atoi(str);
-  }
+  //if ((str = getenv("SLURM_LOCALID"))) {
+  //  local_rank = atoi(str);
+  //}
   if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
     local_rank = atoi(str);
   }
@@ -122,3 +122,4 @@ int mpi_local_rank_on_node() {
 
 }
 }
+

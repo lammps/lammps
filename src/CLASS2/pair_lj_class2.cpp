@@ -174,7 +174,7 @@ void PairLJClass2::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -235,7 +235,7 @@ double PairLJClass2::init_one(int i, int j)
   lj3[i][j] = 2.0 * epsilon[i][j] * pow(sigma[i][j],9.0);
   lj4[i][j] = 3.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];
     offset[i][j] = epsilon[i][j] * (2.0*pow(ratio,9.0) - 3.0*pow(ratio,6.0));
   } else offset[i][j] = 0.0;

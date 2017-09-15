@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #ifndef COLVARBIAS_META_H
 #define COLVARBIAS_META_H
 
@@ -29,12 +36,30 @@ public:
 
   colvarbias_meta(char const *key);
   virtual int init(std::string const &conf);
+  virtual int init_well_tempered_params(std::string const &conf);
+  virtual int init_ebmeta_params(std::string const &conf);
   virtual ~colvarbias_meta();
+
   virtual int update();
-  virtual std::istream & read_restart(std::istream &is);
-  virtual std::ostream & write_restart(std::ostream &os);
+  virtual int update_grid_params();
+  virtual int update_bias();
+  virtual int update_grid_data();
+  virtual int replica_share();
+
+  virtual int calc_energy(std::vector<colvarvalue> const &values =
+                          std::vector<colvarvalue>(0));
+  virtual int calc_forces(std::vector<colvarvalue> const &values =
+                          std::vector<colvarvalue>(0));
+
+  virtual std::string const get_state_params() const;
+  virtual int set_state_params(std::string const &state_conf);
+  virtual std::ostream & write_state_data(std::ostream &os);
+  virtual std::istream & read_state_data(std::istream &os);
+
   virtual int setup_output();
+  virtual int write_output_files();
   virtual void write_pmf();
+  virtual int write_state_to_replicas();
 
   class hill;
   typedef std::list<hill>::iterator hill_iter;
@@ -53,7 +78,10 @@ protected:
   /// Write the hill logfile
   bool           b_hills_traj;
   /// Logfile of hill management (creation and deletion)
-  cvm::ofstream  hills_traj_os;
+  std::ostream  *hills_traj_os;
+
+  /// Name of the hill logfile
+  std::string const hills_traj_file_name() const;
 
   /// \brief List of hills used on this bias (total); if a grid is
   /// employed, these don't need to be updated at every time step
@@ -77,13 +105,6 @@ protected:
   /// Read a hill from a file
   std::istream & read_hill(std::istream &is);
 
-  /// \brief step present in a state file
-  ///
-  /// When using grids and reading state files containing them
-  /// (multiple replicas), this is used to check whether a hill is
-  /// newer or older than the grids
-  size_t                   state_file_step;
-
   /// \brief Add a new hill; if a .hills trajectory is written,
   /// write it there; if there is more than one replica, communicate
   /// it to the others
@@ -96,18 +117,18 @@ protected:
   /// \brief Calculate the values of the hills, incrementing
   /// bias_energy
   virtual void calc_hills(hill_iter  h_first,
-                           hill_iter  h_last,
-                           cvm::real &energy,
-                           std::vector<colvarvalue> const &values = std::vector<colvarvalue> (0));
+                          hill_iter  h_last,
+                          cvm::real &energy,
+                          std::vector<colvarvalue> const &values = std::vector<colvarvalue>(0));
 
   /// \brief Calculate the forces acting on the i-th colvar,
   /// incrementing colvar_forces[i]; must be called after calc_hills
   /// each time the values of the colvars are changed
   virtual void calc_hills_force(size_t const &i,
-                                 hill_iter h_first,
-                                 hill_iter h_last,
-                                 std::vector<colvarvalue> &forces,
-                                 std::vector<colvarvalue> const &values = std::vector<colvarvalue> (0));
+                                hill_iter h_first,
+                                hill_iter h_last,
+                                std::vector<colvarvalue> &forces,
+                                std::vector<colvarvalue> const &values = std::vector<colvarvalue>(0));
 
 
   /// Height of new hills
@@ -187,7 +208,7 @@ protected:
   virtual void read_replica_files();
 
   /// \brief Write data to other replicas
-  virtual void write_replica_state_file();
+  virtual int write_replica_state_file();
 
   /// \brief Additional, "mirror" metadynamics biases, to collect info
   /// from the other replicas
@@ -223,7 +244,7 @@ protected:
   std::string            replica_hills_file;
 
   /// \brief Output stream corresponding to replica_hills_file
-  cvm::ofstream          replica_hills_os;
+  std::ostream          *replica_hills_os;
 
   /// Position within replica_hills_file (when reading it)
   int                    replica_hills_file_pos;

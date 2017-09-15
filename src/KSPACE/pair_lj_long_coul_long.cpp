@@ -81,10 +81,12 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
 {
   if (narg != 3 && narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  ewald_off = 0;
   ewald_order = 0;
-  options(arg, 6);
-  options(++arg, 1);
+  ewald_off = 0;
+
+  options(arg,6);
+  options(++arg,1);
+
   if (!comm->me && ewald_order == ((1<<1) | (1<<6)))
     error->warning(FLERR,"Using largest cutoff for lj/long/coul/long");
   if (!*(++arg))
@@ -101,7 +103,7 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
@@ -226,7 +228,26 @@ void PairLJLongCoulLong::init_style()
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(FLERR,
-        "Invoking coulombic in pair style lj/coul requires atom attribute q");
+        "Invoking coulombic in pair style lj/long/coul/long requires atom attribute q");
+
+  // ensure use of KSpace long-range solver, set two g_ewalds
+
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requires a KSpace style");
+  if (ewald_order&(1<<1)) g_ewald = force->kspace->g_ewald;
+  if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
+
+  // set rRESPA cutoffs
+
+  if (strstr(update->integrate_style,"respa") &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;
+
+  // setup force tables
+
+  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
+  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_lj_global);
 
   // request regular or rRESPA neighbor lists if neighrequest_flag != 0
 
@@ -242,50 +263,26 @@ void PairLJLongCoulLong::init_style()
       else if (respa == 1) {
         irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respainner = 1;
         irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respaouter = 1;
       } else {
         irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respainner = 1;
         irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 2;
-        neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respamiddle = 1;
         irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respaouter = 1;
       }
 
     } else irequest = neighbor->request(this,instance_me);
   }
+
   cut_coulsq = cut_coul * cut_coul;
-
-  // set rRESPA cutoffs
-
-  if (strstr(update->integrate_style,"respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;
-
-  // ensure use of KSpace long-range solver, set g_ewald
-
-  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
-  if (force->kspace) g_ewald = force->kspace->g_ewald;
-  if (force->kspace) g_ewald_6 = force->kspace->g_ewald_6;
-
-  // setup force tables
-
-  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
-  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_lj_global);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -336,7 +333,7 @@ double PairLJLongCoulLong::init_one(int i, int j)
   if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
     error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
-  if (offset_flag) {
+  if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;

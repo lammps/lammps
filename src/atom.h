@@ -93,11 +93,17 @@ class Atom : protected Pointers {
   double *duChem;
   double *dpdTheta;
   int nspecies_dpd;
-  int *ssaAIR; // Shardlow Splitting Algorithm Active Interaction Region number
+
+  // USER-MESO package
+
+  double **cc, **cc_flux;        // cc = chemical concentration
+  double *edpd_temp,*edpd_flux;  // temperature and heat flux
+  double *edpd_cv;               // heat capacity 
+  int cc_species;
 
   // molecular info
 
-  int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
+  int **nspecial;               // 0,1,2 = cumulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
   int maxspecial;               // special[nlocal][maxspecial]
 
@@ -138,7 +144,7 @@ class Atom : protected Pointers {
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
-  int dpd_flag;
+  int dpd_flag,edpd_flag,tdpd_flag;
 
   // USER-SMD package
 
@@ -255,8 +261,8 @@ class Atom : protected Pointers {
   void update_callback(int);
 
   int find_custom(const char *, int &);
-  int add_custom(const char *, int);
-  void remove_custom(int, int);
+  virtual int add_custom(const char *, int);
+  virtual void remove_custom(int, int);
 
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 

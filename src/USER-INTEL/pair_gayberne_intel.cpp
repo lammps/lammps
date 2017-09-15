@@ -88,23 +88,27 @@ void PairGayBerneIntel::compute(int eflag, int vflag,
     const AtomVecEllipsoid::Bonus * const bonus = avec->bonus;
     const int * const ellipsoid = atom->ellipsoid;
     QUAT_T * _noalias const quat = buffers->get_quat();
+
+    int packthreads;
+    if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
+    else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #pragma omp parallel if(packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
-				sizeof(ATOM_T));
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, packthreads,
+                                sizeof(ATOM_T));
       if (ago != 0) buffers->thr_pack(ifrom,ito,ago);
 
       for (int i = ifrom; i < ito; i++) {
-	int qi = ellipsoid[i];
-	if (qi > -1) {
-	  quat[i].w = bonus[qi].quat[0];
-	  quat[i].i = bonus[qi].quat[1];
-	  quat[i].j = bonus[qi].quat[2];
-	  quat[i].k = bonus[qi].quat[3];
-	}
+        int qi = ellipsoid[i];
+        if (qi > -1) {
+          quat[i].w = bonus[qi].quat[0];
+          quat[i].i = bonus[qi].quat[1];
+          quat[i].j = bonus[qi].quat[2];
+          quat[i].k = bonus[qi].quat[3];
+        }
       }
     }
     quat[nall].w = (flt_t)1.0;
@@ -114,39 +118,29 @@ void PairGayBerneIntel::compute(int eflag, int vflag,
     fix->stop_watch(TIME_PACK);
   }
 
-  if (evflag || vflag_fdotr) {
-    int ovflag = 0;
-    if (vflag_fdotr) ovflag = 2;
-    else if (vflag) ovflag = 1;
-    if (eflag) {
-      if (force->newton_pair) {
-        eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-        eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+  int ovflag = 0;
+  if (vflag_fdotr) ovflag = 2;
+  else if (vflag) ovflag = 1;
+  if (eflag) {
+    if (force->newton_pair) {
+      eval<1,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      if (force->newton_pair) {
-        eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
-      } else {
-        eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum);
-      }
+      eval<1,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<1,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   } else {
     if (force->newton_pair) {
-      eval<0,0,1>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,1>(0, 0, buffers, fc, host_start, inum);
+      eval<0,1>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,1>(0, ovflag, buffers, fc, host_start, inum);
     } else {
-      eval<0,0,0>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,0>(0, 0, buffers, fc, host_start, inum);
+      eval<0,0>(1, ovflag, buffers, fc, 0, offload_end);
+      eval<0,0>(0, ovflag, buffers, fc, host_start, inum);
     }
   }
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
 void PairGayBerneIntel::eval(const int offload, const int vflag,
                              IntelBuffers<flt_t,acc_t> *buffers,
                              const ForceConst<flt_t> &fc,
@@ -167,66 +161,65 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   if (fix->separate_buffers()) {
     fix->start_watch(TIME_PACK);
     if (offload) {
-      #pragma omp parallel default(none) \
-	shared(buffers,nlocal,nall,bonus,ellipsoid)
+      #pragma omp parallel
       {
         int ifrom, ito, tid;
-	int nthreads = comm->nthreads;
-	IP_PRE_omp_range_id_align(ifrom, ito, tid, nlocal,
-				  nthreads, sizeof(ATOM_T));
-	if (ago != 0) buffers->thr_pack_cop(ifrom, ito, 0);
-	for (int i = ifrom; i < ito; i++) {
-	  int qi = ellipsoid[i];
-	  if (qi > -1) {
-	    quat[i].w = bonus[qi].quat[0];
-	    quat[i].i = bonus[qi].quat[1];
-	    quat[i].j = bonus[qi].quat[2];
-	    quat[i].k = bonus[qi].quat[3];
-	  }
-	}
-	int nghost = nall - nlocal;
-	if (nghost) {
-	  IP_PRE_omp_range_align(ifrom, ito, tid, nall - nlocal,
-				 nthreads, sizeof(ATOM_T));
-	  int offset = 0;
-	  ifrom += nlocal;
-	  ito += nlocal;
-	  if (ago != 0) {
-	    offset = fix->offload_min_ghost() - nlocal;
-	    buffers->thr_pack_cop(ifrom, ito, offset, ago == 1);
-	  }
-	  for (int i = ifrom; i < ito; i++) {
-	    int qi = ellipsoid[i + offset];
-	    if (qi > -1) {
-	      quat[i].w = bonus[qi].quat[0];
-	      quat[i].i = bonus[qi].quat[1];
-	      quat[i].j = bonus[qi].quat[2];
-	      quat[i].k = bonus[qi].quat[3];
-	    }
-	  }
-	}
+        int nthreads = comm->nthreads;
+        IP_PRE_omp_range_id_align(ifrom, ito, tid, nlocal,
+                                  nthreads, sizeof(ATOM_T));
+        if (ago != 0) buffers->thr_pack_cop(ifrom, ito, 0);
+        for (int i = ifrom; i < ito; i++) {
+          int qi = ellipsoid[i];
+          if (qi > -1) {
+            quat[i].w = bonus[qi].quat[0];
+            quat[i].i = bonus[qi].quat[1];
+            quat[i].j = bonus[qi].quat[2];
+            quat[i].k = bonus[qi].quat[3];
+          }
+        }
+        int nghost = nall - nlocal;
+        if (nghost) {
+          IP_PRE_omp_range_align(ifrom, ito, tid, nall - nlocal,
+                                 nthreads, sizeof(ATOM_T));
+          int offset = 0;
+          ifrom += nlocal;
+          ito += nlocal;
+          if (ago != 0) {
+            offset = fix->offload_min_ghost() - nlocal;
+            buffers->thr_pack_cop(ifrom, ito, offset, ago == 1);
+          }
+          for (int i = ifrom; i < ito; i++) {
+            int qi = ellipsoid[i + offset];
+            if (qi > -1) {
+              quat[i].w = bonus[qi].quat[0];
+              quat[i].i = bonus[qi].quat[1];
+              quat[i].j = bonus[qi].quat[2];
+              quat[i].k = bonus[qi].quat[3];
+            }
+          }
+        }
       }
     } else {
       if (ago != 0) buffers->thr_pack_host(fix->host_min_local(), nlocal, 0);
       for (int i = fix->host_min_local(); i < nlocal; i++) {
-	int qi = ellipsoid[i];
-	if (qi > -1) {
-	  quat[i].w = bonus[qi].quat[0];
-	  quat[i].i = bonus[qi].quat[1];
-	  quat[i].j = bonus[qi].quat[2];
-	  quat[i].k = bonus[qi].quat[3];
-	}
+        int qi = ellipsoid[i];
+        if (qi > -1) {
+          quat[i].w = bonus[qi].quat[0];
+          quat[i].i = bonus[qi].quat[1];
+          quat[i].j = bonus[qi].quat[2];
+          quat[i].k = bonus[qi].quat[3];
+        }
       }
       int offset = fix->host_min_ghost() - nlocal;
       if (ago != 0) buffers->thr_pack_host(nlocal, nall, offset);
       for (int i = nlocal; i < nall; i++) {
-	int qi = ellipsoid[i + offset];
-	if (qi > -1) {
-	  quat[i].w = bonus[qi].quat[0];
-	  quat[i].i = bonus[qi].quat[1];
-	  quat[i].j = bonus[qi].quat[2];
-	  quat[i].k = bonus[qi].quat[3];
-	}
+        int qi = ellipsoid[i + offset];
+        if (qi > -1) {
+          quat[i].w = bonus[qi].quat[0];
+          quat[i].i = bonus[qi].quat[1];
+          quat[i].j = bonus[qi].quat[2];
+          quat[i].k = bonus[qi].quat[3];
+        }
       }
     }
     fix->stop_watch(TIME_PACK);
@@ -258,9 +251,9 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
   // Determine how much data to transfer
   int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EVFLAG, EFLAG, vflag,
-		       buffers, offload, fix, separate_flag,
-		       x_size, q_size, ev_size, f_stride);
+  IP_PRE_get_transfern(ago, NEWTON_PAIR, EFLAG, vflag,
+                       buffers, offload, fix, separate_flag,
+                       x_size, q_size, ev_size, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
@@ -310,30 +303,31 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
     #ifdef _LMP_INTEL_OFFLOAD
     if (separate_flag) {
       if (separate_flag < 3) {
-	int all_local = nlocal;
-	int ghost_min = overflow[LMP_GHOST_MIN];
-	nlocal = overflow[LMP_LOCAL_MAX] + 1;
-	int nghost = overflow[LMP_GHOST_MAX] + 1 - ghost_min;
-	if (nghost < 0) nghost = 0;
-	nall = nlocal + nghost;
-	separate_flag--;
-	int flength;
-	if (NEWTON_PAIR) flength = nall;
-	else flength = nlocal;
-	IP_PRE_get_stride(f_stride, flength, sizeof(FORCE_T),
-			     separate_flag);
-	if (nghost) {
-	  if (nlocal < all_local || ghost_min > all_local) {
-	    memmove(x + nlocal, x + ghost_min,
-		    (nall - nlocal) * sizeof(ATOM_T));
-	    memmove(quat + nlocal, quat + ghost_min,
-		    (nall - nlocal) * sizeof(QUAT_T));
-	  }
-	}
+        int all_local = nlocal;
+        int ghost_min = overflow[LMP_GHOST_MIN];
+        nlocal = overflow[LMP_LOCAL_MAX] + 1;
+        int nghost = overflow[LMP_GHOST_MAX] + 1 - ghost_min;
+        if (nghost < 0) nghost = 0;
+        nall = nlocal + nghost;
+        separate_flag--;
+        int flength;
+        if (NEWTON_PAIR) flength = nall;
+        else flength = nlocal;
+        IP_PRE_get_stride(f_stride, flength, sizeof(FORCE_T),
+                             separate_flag);
+        if (nghost) {
+          if (nlocal < all_local || ghost_min > all_local) {
+            memmove(x + nlocal, x + ghost_min,
+                    (nall - nlocal) * sizeof(ATOM_T));
+            memmove(quat + nlocal, quat + ghost_min,
+                    (nall - nlocal) * sizeof(QUAT_T));
+          }
+        }
       }
       x[nall].x = (flt_t)INTEL_BIGP;
       x[nall].y = (flt_t)INTEL_BIGP;
       x[nall].z = (flt_t)INTEL_BIGP;
+      x[nall].w = 1;
       quat[nall].w = (flt_t)1.0;
       quat[nall].i = (flt_t)0.0;
       quat[nall].j = (flt_t)0.0;
@@ -342,25 +336,25 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
     #endif
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EVFLAG) {
-      oevdwl = (acc_t)0.0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
-    }
+    if (EFLAG) oevdwl = (acc_t)0.0;
+    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
+    if (NEWTON_PAIR == 0) f_start[1].w = 0;
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
-      shared(f_start,f_stride,nlocal,nall,minlocal) \
-      reduction(+:oevdwl,ov0,ov1,ov2,ov3,ov4,ov5)
+    #pragma omp parallel reduction(+:oevdwl,ov0,ov1,ov2,ov3,ov4,ov5)
     #endif
     {
-      int iifrom, iito, tid;
-      IP_PRE_omp_range_id(iifrom, iito, tid, inum, nthreads);
+      int iifrom, iip, iito, tid;
+      IP_PRE_omp_stride_id(iifrom, iip, iito, tid, inum, nthreads);
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * _noalias const f = f_start - minlocal * 2 + (tid * f_stride);
-      memset(f + minlocal * 2, 0, f_stride * sizeof(FORCE_T));
+      int foff;
+      if (NEWTON_PAIR) foff = tid * f_stride - minlocal * 2;
+      else foff = minlocal*-2;
+      FORCE_T * _noalias const f = f_start + foff;
+      if (NEWTON_PAIR) memset(f + minlocal * 2, 0, f_stride * sizeof(FORCE_T));
 
       flt_t * _noalias const rsq_form = rsq_formi + tid * max_nbors;
       flt_t * _noalias const delx_form = delx_formi + tid * max_nbors;
@@ -370,7 +364,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       int * _noalias const jlist_form = jlist_formi + tid * max_nbors;
 
       int ierror = 0;
-      for (int i = iifrom; i < iito; ++i) {
+      for (int i = iifrom; i < iito; i += iip) {
         // const int i = ilist[ii];
         const int itype = x[i].w;
         const int ptr_off = itype * ntypes;
@@ -401,13 +395,16 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         acc_t sevdwl, sv0, sv1, sv2, sv3, sv4, sv5;
         fxtmp = fytmp = fztmp = t1tmp = t2tmp = t3tmp = (acc_t)0.0;
 
-        if (EVFLAG) {
-          if (EFLAG) fwtmp = sevdwl = (acc_t)0.0;
+        if (EFLAG) fwtmp = sevdwl = (acc_t)0.0;
+        if (NEWTON_PAIR == 0)
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
-        }
 
         bool multiple_forms = false;
         int packed_j = 0;
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma ivdep
+        #endif
         for (int jj = 0; jj < jnum; jj++) {
           int jm = jlist[jj];
           int j = jm & NEIGHMASK;
@@ -431,27 +428,27 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           } else
             multiple_forms = true;
         }
-	const int edge = (packed_j % pad_width);
-	if (edge) {
-	  const int packed_end = packed_j + (pad_width - edge);
+        const int edge = packed_j & (pad_width - 1);
+        if (edge) {
+          const int packed_end = packed_j + (pad_width - edge);
           #if defined(LMP_SIMD_COMPILER)
           #pragma loop_count min=1, max=15, avg=8
           #endif
-	  for ( ; packed_j < packed_end; packed_j++)
-	    jlist_form[packed_j] = nall;
-	}
-	  
+          for ( ; packed_j < packed_end; packed_j++)
+            jlist_form[packed_j] = nall;
+        }
+
         // -------------------------------------------------------------
 
-	#ifdef INTEL_V512
-	__assume(packed_j % INTEL_VECTOR_WIDTH == 0);
-	__assume(packed_j % 8 == 0);
-	__assume(packed_j % INTEL_MIC_VECTOR_WIDTH == 0);
-	#endif
+        #ifdef INTEL_V512
+        __assume(packed_j % INTEL_VECTOR_WIDTH == 0);
+        __assume(packed_j % 8 == 0);
+        __assume(packed_j % INTEL_MIC_VECTOR_WIDTH == 0);
+        #endif
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp,t3tmp, \
-	                         sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
+        #pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp,t3tmp, \
+                                 sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
         #endif
         for (int jj = 0; jj < packed_j; jj++) {
           flt_t a2_0, a2_1, a2_2, a2_3, a2_4, a2_5, a2_6, a2_7, a2_8;
@@ -461,15 +458,15 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           flt_t fforce_0, fforce_1, fforce_2, ttor_0, ttor_1, ttor_2;
           flt_t rtor_0, rtor_1, rtor_2;
 
-	  const int sbindex = jlist_form[jj] >> SBBITS & 3;
-	  const int j = jlist_form[jj] & NEIGHMASK;
+          const int sbindex = jlist_form[jj] >> SBBITS & 3;
+          const int j = jlist_form[jj] & NEIGHMASK;
           flt_t factor_lj = special_lj[sbindex];
           const int jtype = jtype_form[jj];
-	  const flt_t sigma = ijci[jtype].sigma;
-	  const flt_t epsilon = ijci[jtype].epsilon;
-	  const flt_t shape2_0 = ic[jtype].shape2[0];
-	  const flt_t shape2_1 = ic[jtype].shape2[1];
-	  const flt_t shape2_2 = ic[jtype].shape2[2];
+          const flt_t sigma = ijci[jtype].sigma;
+          const flt_t epsilon = ijci[jtype].epsilon;
+          const flt_t shape2_0 = ic[jtype].shape2[0];
+          const flt_t shape2_1 = ic[jtype].shape2[1];
+          const flt_t shape2_2 = ic[jtype].shape2[2];
           flt_t one_eng, evdwl;
 
           ME_quat_to_mat_trans(quat[j], a2);
@@ -491,7 +488,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           ME_plus3(g1, g2, g12);
           flt_t kappa_0, kappa_1, kappa_2;
           ME_mldivide3(g12, delx_form[jj], dely_form[jj], delz_form[jj],
-		       kappa, ierror);
+                       kappa, ierror);
 
           // tempv = G12^-1*r12hat
 
@@ -523,7 +520,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           flt_t iota_0, iota_1, iota_2;
           ME_plus3(b1, b2, b12);
           ME_mldivide3(b12, delx_form[jj], dely_form[jj], delz_form[jj],
-		       iota, ierror);
+                       iota, ierror);
 
           // tempv = G12^-1*r12hat
 
@@ -537,7 +534,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           // compute dUr/dr
 
           temp1 = ((flt_t)2.0 * varrho12 * varrho - varrho6 * varrho) /
-	    sigma;
+            sigma;
           temp1 = temp1 * (flt_t)24.0 * epsilon;
           flt_t u_slj = temp1 * std::pow(sigma12, (flt_t)3.0) * (flt_t)0.5;
           flt_t dUr_0, dUr_1, dUr_2;
@@ -551,8 +548,8 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
           flt_t dchi_0, dchi_1, dchi_2;
           temp1 = ME_dot3(iota, r12hat);
-          temp2 = (flt_t)-4.0 / rsq_form[jj] * mu * 
-	    std::pow(chi, (mu - (flt_t)1.0) / mu);
+          temp2 = (flt_t)-4.0 / rsq_form[jj] * mu *
+            std::pow(chi, (mu - (flt_t)1.0) / mu);
           dchi_0 = temp2 * (iota_0 - temp1 * r12hat_0);
           dchi_1 = temp2 * (iota_1 - temp1 * r12hat_1);
           dchi_2 = temp2 * (iota_2 - temp1 * r12hat_2);
@@ -573,7 +570,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           ME_cross3(tempv, tempv2, dUr);
           flt_t dUr2_0, dUr2_1, dUr2_2;
 
-          if (NEWTON_PAIR || j < nlocal) {
+          if (NEWTON_PAIR) {
             ME_vecmat(kappa, g2, tempv2);
             ME_cross3(tempv, tempv2, dUr2);
           }
@@ -588,7 +585,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           dchi_2 *= temp1;
           flt_t dchi2_0, dchi2_1, dchi2_2;
 
-          if (NEWTON_PAIR || j < nlocal) {
+          if (NEWTON_PAIR) {
             ME_vecmat(iota, b2, tempv);
             ME_cross3(tempv, iota, dchi2);
             dchi2_0 *= temp1;
@@ -630,7 +627,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           // compute d_eta for particle 2
 
           flt_t deta2_0, deta2_1, deta2_2;
-          if (NEWTON_PAIR || j < nlocal) {
+          if (NEWTON_PAIR) {
             deta2_0 = deta2_1 = deta2_2 = (flt_t)0.0;
             ME_compute_eta_torque(g12, a2, shape2, temp);
 
@@ -666,36 +663,36 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           temp3 = chi * eta;
 
           ttor_0 = (temp1 * dchi_0 + temp2 * deta_0 + temp3 * dUr_0) *
-	    (flt_t)-1.0;
+            (flt_t)-1.0;
           ttor_1 = (temp1 * dchi_1 + temp2 * deta_1 + temp3 * dUr_1) *
-	    (flt_t)-1.0;
+            (flt_t)-1.0;
           ttor_2 = (temp1 * dchi_2 + temp2 * deta_2 + temp3 * dUr_2) *
-	    (flt_t)-1.0;
+            (flt_t)-1.0;
 
-          if (NEWTON_PAIR || j < nlocal) {
+          if (NEWTON_PAIR) {
             rtor_0 = (temp1 * dchi2_0 + temp2 * deta2_0 + temp3 * dUr2_0) *
-	      (flt_t)-1.0;
+              (flt_t)-1.0;
             rtor_1 = (temp1 * dchi2_1 + temp2 * deta2_1 + temp3 * dUr2_1) *
-	      (flt_t)-1.0;
+              (flt_t)-1.0;
             rtor_2 = (temp1 * dchi2_2 + temp2 * deta2_2 + temp3 * dUr2_2) *
-	      (flt_t)-1.0;
+              (flt_t)-1.0;
           }
 
           one_eng = temp1 * chi;
-	  #ifndef INTEL_VMASK
-	  if (jlist_form[jj] == nall) {
-	    one_eng = (flt_t)0.0;
-	    fforce_0 = 0.0;
-	    fforce_1 = 0.0;
-	    fforce_2 = 0.0;
-	    ttor_0 = 0.0;
-	    ttor_1 = 0.0;
-	    ttor_2 = 0.0;
-	    rtor_0 = 0.0;
-	    rtor_1 = 0.0;
-	    rtor_2 = 0.0;
-	  }
-	  #endif
+          #ifndef INTEL_VMASK
+          if (jlist_form[jj] == nall) {
+            one_eng = (flt_t)0.0;
+            fforce_0 = 0.0;
+            fforce_1 = 0.0;
+            fforce_2 = 0.0;
+            ttor_0 = 0.0;
+            ttor_1 = 0.0;
+            ttor_2 = 0.0;
+            rtor_0 = 0.0;
+            rtor_1 = 0.0;
+            rtor_2 = 0.0;
+          }
+          #endif
 
           fforce_0 *= factor_lj;
           fforce_1 *= factor_lj;
@@ -704,61 +701,53 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           ttor_1 *= factor_lj;
           ttor_2 *= factor_lj;
 
-	  #ifdef INTEL_VMASK
-	  if (jlist_form[jj] < nall) {
-	  #endif
-	    fxtmp += fforce_0;
-	    fytmp += fforce_1;
-	    fztmp += fforce_2;
-	    t1tmp += ttor_0;
-	    t2tmp += ttor_1;
-	    t3tmp += ttor_2;
+          #ifdef INTEL_VMASK
+          if (jlist_form[jj] < nall) {
+          #endif
+            fxtmp += fforce_0;
+            fytmp += fforce_1;
+            fztmp += fforce_2;
+            t1tmp += ttor_0;
+            t2tmp += ttor_1;
+            t3tmp += ttor_2;
 
-	    if (NEWTON_PAIR || j < nlocal) {
-	      rtor_0 *= factor_lj;
-	      rtor_1 *= factor_lj;
-	      rtor_2 *= factor_lj;
-	      int jp = j * 2;
-	      f[jp].x -= fforce_0;
-	      f[jp].y -= fforce_1;
-	      f[jp].z -= fforce_2;
-	      jp++;
-	      f[jp].x += rtor_0;
-	      f[jp].y += rtor_1;
-	      f[jp].z += rtor_2;
-	    }
+            if (NEWTON_PAIR) {
+              rtor_0 *= factor_lj;
+              rtor_1 *= factor_lj;
+              rtor_2 *= factor_lj;
+              int jp = j * 2;
+              f[jp].x -= fforce_0;
+              f[jp].y -= fforce_1;
+              f[jp].z -= fforce_2;
+              jp++;
+              f[jp].x += rtor_0;
+              f[jp].y += rtor_1;
+              f[jp].z += rtor_2;
+            }
 
-	    if (EVFLAG) {
-	      flt_t ev_pre = (flt_t)0.0;
-	      if (NEWTON_PAIR || i < nlocal)
-		ev_pre += (flt_t)0.5;
-	      if (NEWTON_PAIR || j < nlocal)
-		ev_pre += (flt_t)0.5;
+            if (EFLAG) {
+              evdwl = factor_lj * one_eng;
+              sevdwl += evdwl;
+              if (eatom) {
+                fwtmp += (flt_t)0.5 * evdwl;
+                if (NEWTON_PAIR)
+                  f[j*2].w += (flt_t)0.5 * evdwl;
+              }
+            }
 
-	      if (EFLAG) {
-		evdwl = factor_lj * one_eng;
-		sevdwl += ev_pre * evdwl;
-		if (eatom) {
-		  if (NEWTON_PAIR || i < nlocal)
-		    fwtmp += (flt_t)0.5 * evdwl;
-		  if (NEWTON_PAIR || j < nlocal)
-		    f[j*2].w += (flt_t)0.5 * evdwl;
-		}
-	      }
-
-	      if (vflag == 1) {
-		ev_pre *= (flt_t)-1.0;
-		sv0 += ev_pre * delx_form[jj] * fforce_0;
-		sv1 += ev_pre * dely_form[jj] * fforce_1;
-		sv2 += ev_pre * delz_form[jj] * fforce_2;
-		sv3 += ev_pre * delx_form[jj] * fforce_1;
-		sv4 += ev_pre * delx_form[jj] * fforce_2;
-		sv5 += ev_pre * dely_form[jj] * fforce_2;
-	      }
-	    } // EVFLAG
-	  #ifdef INTEL_VMASK
-	  }
-	  #endif
+            if (NEWTON_PAIR == 0) {
+              if (vflag == 1) {
+                sv0 += delx_form[jj] * fforce_0;
+                sv1 += dely_form[jj] * fforce_1;
+                sv2 += delz_form[jj] * fforce_2;
+                sv3 += delx_form[jj] * fforce_1;
+                sv4 += delx_form[jj] * fforce_2;
+                sv5 += dely_form[jj] * fforce_2;
+              }
+            } // EVFLAG
+          #ifdef INTEL_VMASK
+          }
+          #endif
         } // for jj
 
         // -------------------------------------------------------------
@@ -767,19 +756,29 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           ierror = 2;
 
         int ip = i * 2;
-        f[ip].x += fxtmp;
-        f[ip].y += fytmp;
-        f[ip].z += fztmp;
-        ip++;
-        f[ip].x += t1tmp;
-        f[ip].y += t2tmp;
-        f[ip].z += t3tmp;
+        if (NEWTON_PAIR) {
+          f[ip].x += fxtmp;
+          f[ip].y += fytmp;
+          f[ip].z += fztmp;
+          ip++;
+          f[ip].x += t1tmp;
+          f[ip].y += t2tmp;
+          f[ip].z += t3tmp;
+        } else {
+          f[ip].x = fxtmp;
+          f[ip].y = fytmp;
+          f[ip].z = fztmp;
+          ip++;
+          f[ip].x = t1tmp;
+          f[ip].y = t2tmp;
+          f[ip].z = t3tmp;
+        }
 
-        if (EVFLAG) {
-          if (EFLAG) {
-            if (eatom) f[i * 2].w += fwtmp;
-            oevdwl += sevdwl;
-          }
+        if (EFLAG) {
+          oevdwl += sevdwl;
+          if (eatom) f[i * 2].w += fwtmp;
+        }
+        if (NEWTON_PAIR == 0) {
           if (vflag == 1) {
             ov0 += sv0;
             ov1 += sv1;
@@ -791,57 +790,32 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         }
       } // for i
       int o_range;
-      if (NEWTON_PAIR)
+      if (NEWTON_PAIR) {
         o_range = nall;
-      else
-        o_range = nlocal;
-      if (offload == 0) o_range -= minlocal;
-      IP_PRE_omp_range_align(iifrom, iito, tid, o_range, nthreads,
-			     sizeof(FORCE_T));
-      const int two_iito = iito * 2;
-
-      acc_t *facc = &(f_start[0].x);
-      const int sto = two_iito * 4;
-      const int fst4 = f_stride * 4;
-      #if defined(_OPENMP)
-      #pragma omp barrier
-      #endif
-      int t_off = f_stride;
-      if (EFLAG && eatom) {
+        if (offload == 0) o_range -= minlocal;
+        IP_PRE_omp_range_align(iifrom, iito, tid, o_range, nthreads,
+                               sizeof(FORCE_T));
+        const int sto = iito * 8;
+        const int fst4 = f_stride * 4;
+        #if defined(_OPENMP)
+        #pragma omp barrier
+        #endif
+        acc_t *f_scalar = &f_start[0].x;
+        acc_t *f_scalar2 = f_scalar + fst4;
         for (int t = 1; t < nthreads; t++) {
           #if defined(LMP_SIMD_COMPILER)
-	  #pragma vector nontemporal
-	  #pragma novector
+          #pragma vector aligned
+          #pragma simd
           #endif
-          for (int n = iifrom * 2; n < two_iito; n++) {
-            f_start[n].x += f_start[n + t_off].x;
-            f_start[n].y += f_start[n + t_off].y;
-            f_start[n].z += f_start[n + t_off].z;
-            f_start[n].w += f_start[n + t_off].w;
-          }
-          t_off += f_stride;
+          for (int n = iifrom * 8; n < sto; n++)
+            f_scalar[n] += f_scalar2[n];
+          f_scalar2 += fst4;
         }
-      } else {
-        for (int t = 1; t < nthreads; t++) {
-          #if defined(LMP_SIMD_COMPILER)
-	  #pragma vector nontemporal
-	  #pragma novector
-          #endif
-          for (int n = iifrom * 2; n < two_iito; n++) {
-            f_start[n].x += f_start[n + t_off].x;
-            f_start[n].y += f_start[n + t_off].y;
-            f_start[n].z += f_start[n + t_off].z;
-          }
-          t_off += f_stride;
-        }
-      }
 
-      if (EVFLAG) {
         if (vflag==2) {
           const ATOM_T * _noalias const xo = x + minlocal;
           #if defined(LMP_SIMD_COMPILER)
-	  #pragma vector nontemporal
-	  #pragma novector
+          #pragma novector
           #endif
           for (int n = iifrom; n < iito; n++) {
             const int nt2 = n * 2;
@@ -859,19 +833,26 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         f_start[1].w = ierror;
     } // omp
 
-    if (EVFLAG) {
-      if (EFLAG) {
-        ev_global[0] = oevdwl;
-        ev_global[1] = (acc_t)0.0;
+    if (EFLAG) {
+      if (NEWTON_PAIR == 0) oevdwl *= (acc_t)0.5;
+      ev_global[0] = oevdwl;
+      ev_global[1] = (acc_t)0.0;
+    }
+    if (vflag) {
+      if (NEWTON_PAIR == 0) {
+        ov0 *= (acc_t)-0.5;
+        ov1 *= (acc_t)-0.5;
+        ov2 *= (acc_t)-0.5;
+        ov3 *= (acc_t)-0.5;
+        ov4 *= (acc_t)-0.5;
+        ov5 *= (acc_t)-0.5;
       }
-      if (vflag) {
-        ev_global[2] = ov0;
-        ev_global[3] = ov1;
-        ev_global[4] = ov2;
-        ev_global[5] = ov3;
-        ev_global[6] = ov4;
-        ev_global[7] = ov5;
-      }
+      ev_global[2] = ov0;
+      ev_global[3] = ov1;
+      ev_global[4] = ov2;
+      ev_global[5] = ov3;
+      ev_global[6] = ov4;
+      ev_global[7] = ov5;
     }
 
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
@@ -884,7 +865,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   else
     fix->stop_watch(TIME_HOST_PAIR);
 
-  if (EVFLAG)
+  if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, 2);
   else
     fix->add_result_array(f_start, 0, offload, 0, 0, 2);
@@ -895,6 +876,10 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 void PairGayBerneIntel::init_style()
 {
   PairGayBerne::init_style();
+  if (force->newton_pair == 0) {
+    neighbor->requests[neighbor->nrequest-1]->half = 0;
+    neighbor->requests[neighbor->nrequest-1]->full = 1;
+  }
   neighbor->requests[neighbor->nrequest-1]->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
@@ -997,7 +982,7 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                       const int one_length,
                                                       const int nthreads,
                                                       Memory *memory,
-						      const int cop) {
+                                                      const int cop) {
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       fc_packed3 *oic = ic;
@@ -1014,9 +999,9 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       int * ojlist_form = jlist_form[0];
 
       if (ospecial_lj != NULL && oijc != NULL && olj34 != NULL &&
-	  orsq_form != NULL && odelx_form != NULL && odely_form != NULL &&
-	  odelz_form != NULL && ojtype_form != NULL && ojlist_form != NULL &&
-	  _cop >= 0) {
+          orsq_form != NULL && odelx_form != NULL && odely_form != NULL &&
+          odelz_form != NULL && ojtype_form != NULL && ojlist_form != NULL &&
+          _cop >= 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(ospecial_lj, oijc, olj34, oic: alloc_if(0) free_if(1)) \
           nocopy(orsq_form, odelx_form, odely_form: alloc_if(0) free_if(1)) \
@@ -1048,14 +1033,14 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       memory->create(jlist_form, nthreads, one_length, "jlist_form");
 
       for (int zn = 0; zn < nthreads; zn++)
-	for (int zo = 0; zo < one_length; zo++) {
-	  rsq_form[zn][zo] = 10.0;
-	  delx_form[zn][zo] = 10.0;
-	  dely_form[zn][zo] = 10.0;
-	  delz_form[zn][zo] = 10.0;
-	  jtype_form[zn][zo] = 1;
-	  jlist_form[zn][zo] = 0;
-	}
+        for (int zo = 0; zo < one_length; zo++) {
+          rsq_form[zn][zo] = 10.0;
+          delx_form[zn][zo] = 10.0;
+          dely_form[zn][zo] = 10.0;
+          delz_form[zn][zo] = 10.0;
+          jtype_form[zn][zo] = 1;
+          jlist_form[zn][zo] = 0;
+        }
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -1072,9 +1057,9 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
 
       int tp1sq = ntypes*ntypes;
       if (ospecial_lj != NULL && oijc != NULL && olj34 != NULL &&
-	  oic != NULL && orsq_form != NULL && odelx_form != NULL &&
-	  odely_form != NULL && odelz_form != NULL && ojtype_form !=NULL &&
-	  ojlist_form !=NULL && cop >= 0) {
+          oic != NULL && orsq_form != NULL && odelx_form != NULL &&
+          odely_form != NULL && odelz_form != NULL && ojtype_form !=NULL &&
+          ojlist_form !=NULL && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(oijc,olj34: length(tp1sq) alloc_if(1) free_if(0)) \

@@ -48,6 +48,7 @@ depend () {
 if (test $1 = "ASPHERE") then
   depend GPU
   depend USER-OMP
+  depend USER-CGDNA
   depend USER-INTEL
 fi
 
@@ -96,6 +97,7 @@ if (test $1 = "MOLECULE") then
   depend USER-MISC
   depend USER-OMP
   depend USER-FEP
+  depend USER-CGDNA
   depend USER-INTEL
 fi
 
@@ -107,10 +109,14 @@ if (test $1 = "RIGID") then
   depend USER-OMP
 fi
 
-if (test $1 = "USER-CG-CMM") then
+if (test $1 = "USER-CGSDK") then
   depend GPU
   depend KOKKOS
   depend USER-OMP
+fi
+
+if (test $1 = "USER-DPD") then
+  depend KOKKOS
 fi
 
 if (test $1 = "USER-FEP") then
@@ -124,4 +130,5 @@ fi
 
 if (test $1 = "USER-REAXC") then
   depend KOKKOS
+  depend USER-OMP
 fi

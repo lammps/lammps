@@ -136,7 +136,7 @@ void GetParameters()
       if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
         bondtypes[i].params[0] = ff_bond.data[k].ff_param[1];
         bondtypes[i].params[1] = ff_bond.data[k].ff_param[0];
-      } 
+      }
 
       if (forcefield & FF_TYPE_CLASS2) {
         for (j=0; j < 4; j++)

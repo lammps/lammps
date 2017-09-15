@@ -33,7 +33,7 @@ fix step all nve/manifold/rattle 1e-8 100 ellipsoid 2.5 2.5 5.0 every 25 :pre
 
 Perform constant NVE integration to update position and velocity for
 atoms constrained to a curved surface (manifold) in the group each
-timestep. The constraint is handled by RATTLE "(Andersen)"_#Andersen
+timestep. The constraint is handled by RATTLE "(Andersen)"_#Andersen1
 written out for the special case of single-particle constraints as
 explained in "(Paquay)"_#Paquay2.  V is volume; E is energy. This way,
 the dynamics of particles constrained to curved surfaces can be
@@ -92,7 +92,7 @@ manifoldforce"_fix_manifoldforce.html
 
 :line
 
-:link(Andersen)
+:link(Andersen1)
 [(Andersen)] Andersen, J. Comp. Phys. 52, 24, (1983).
 
 :link(Paquay2)

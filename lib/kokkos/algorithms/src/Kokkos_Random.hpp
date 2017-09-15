@@ -476,54 +476,54 @@ namespace Kokkos {
   };
 
   template<class Generator>
-  struct rand<Generator, ::Kokkos::complex<float> > {
+  struct rand<Generator, Kokkos::complex<float> > {
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> max () {
-      return ::Kokkos::complex<float> (1.0, 1.0);
+    static Kokkos::complex<float> max () {
+      return Kokkos::complex<float> (1.0, 1.0);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> draw (Generator& gen) {
+    static Kokkos::complex<float> draw (Generator& gen) {
       const float re = gen.frand ();
       const float im = gen.frand ();
-      return ::Kokkos::complex<float> (re, im);
+      return Kokkos::complex<float> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> draw (Generator& gen, const ::Kokkos::complex<float>& range) {
+    static Kokkos::complex<float> draw (Generator& gen, const Kokkos::complex<float>& range) {
       const float re = gen.frand (real (range));
       const float im = gen.frand (imag (range));
-      return ::Kokkos::complex<float> (re, im);
+      return Kokkos::complex<float> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<float> draw (Generator& gen, const ::Kokkos::complex<float>& start, const ::Kokkos::complex<float>& end) {
+    static Kokkos::complex<float> draw (Generator& gen, const Kokkos::complex<float>& start, const Kokkos::complex<float>& end) {
       const float re = gen.frand (real (start), real (end));
       const float im = gen.frand (imag (start), imag (end));
-      return ::Kokkos::complex<float> (re, im);
+      return Kokkos::complex<float> (re, im);
     }
   };
 
   template<class Generator>
-  struct rand<Generator, ::Kokkos::complex<double> > {
+  struct rand<Generator, Kokkos::complex<double> > {
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> max () {
-      return ::Kokkos::complex<double> (1.0, 1.0);
+    static Kokkos::complex<double> max () {
+      return Kokkos::complex<double> (1.0, 1.0);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> draw (Generator& gen) {
+    static Kokkos::complex<double> draw (Generator& gen) {
       const double re = gen.drand ();
       const double im = gen.drand ();
-      return ::Kokkos::complex<double> (re, im);
+      return Kokkos::complex<double> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> draw (Generator& gen, const ::Kokkos::complex<double>& range) {
+    static Kokkos::complex<double> draw (Generator& gen, const Kokkos::complex<double>& range) {
       const double re = gen.drand (real (range));
       const double im = gen.drand (imag (range));
-      return ::Kokkos::complex<double> (re, im);
+      return Kokkos::complex<double> (re, im);
     }
     KOKKOS_INLINE_FUNCTION
-    static ::Kokkos::complex<double> draw (Generator& gen, const ::Kokkos::complex<double>& start, const ::Kokkos::complex<double>& end) {
+    static Kokkos::complex<double> draw (Generator& gen, const Kokkos::complex<double>& start, const Kokkos::complex<double>& end) {
       const double re = gen.drand (real (start), real (end));
       const double im = gen.drand (imag (start), imag (end));
-      return ::Kokkos::complex<double> (re, im);
+      return Kokkos::complex<double> (re, im);
     }
   };
 
@@ -547,7 +547,7 @@ namespace Kokkos {
 
     KOKKOS_INLINE_FUNCTION
     Random_XorShift64 (uint64_t state, int state_idx = 0)
-     : state_(state),state_idx_(state_idx){}
+     : state_(state==0?uint64_t(1318319):state),state_idx_(state_idx){}
 
     KOKKOS_INLINE_FUNCTION
     uint32_t urand() {
@@ -670,11 +670,11 @@ namespace Kokkos {
       double S = 2.0;
       double U;
       while(S>=1.0) {
-        U = drand();
-        const double V = drand();
+        U = 2.0*drand() - 1.0;
+        const double V = 2.0*drand() - 1.0;
         S = U*U+V*V;
       }
-      return U*sqrt(-2.0*log(S)/S);
+      return U*std::sqrt(-2.0*log(S)/S);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -719,6 +719,9 @@ namespace Kokkos {
     }
 
     void init(uint64_t seed, int num_states) {
+      if(seed==0)
+        seed = uint64_t(1318319);
+
       num_states_ = num_states;
 
       locks_ = lock_type("Kokkos::Random_XorShift64::locks",num_states_);
@@ -750,6 +753,12 @@ namespace Kokkos {
     Random_XorShift64<DeviceType> get_state() const {
       const int i = DeviceType::hardware_thread_id();;
       return Random_XorShift64<DeviceType>(state_(i),i);
+    }
+
+    // NOTE: state_idx MUST be unique and less than num_states
+    KOKKOS_INLINE_FUNCTION
+    Random_XorShift64<DeviceType> get_state(const int state_idx) const {
+      return Random_XorShift64<DeviceType>(state_(state_idx),state_idx);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -910,11 +919,11 @@ namespace Kokkos {
       double S = 2.0;
       double U;
       while(S>=1.0) {
-        U = drand();
-        const double V = drand();
+        U = 2.0*drand() - 1.0;
+        const double V = 2.0*drand() - 1.0;
         S = U*U+V*V;
       }
-      return U*sqrt(-2.0*log(S)/S);
+      return U*std::sqrt(-2.0*log(S)/S);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -968,8 +977,9 @@ namespace Kokkos {
 
     inline
     void init(uint64_t seed, int num_states) {
+      if(seed==0)
+        seed = uint64_t(1318319);
       num_states_ = num_states;
-
       locks_ = int_view_type("Kokkos::Random_XorShift1024::locks",num_states_);
       state_ = state_data_type("Kokkos::Random_XorShift1024::state",num_states_);
       p_ = int_view_type("Kokkos::Random_XorShift1024::p",num_states_);
@@ -1006,6 +1016,12 @@ namespace Kokkos {
       return Random_XorShift1024<DeviceType>(state_,p_(i),i);
     };
 
+    // NOTE: state_idx MUST be unique and less than num_states
+    KOKKOS_INLINE_FUNCTION
+    Random_XorShift1024<DeviceType> get_state(const int state_idx) const {
+      return Random_XorShift1024<DeviceType>(state_,p_(state_idx),state_idx);
+    }
+
     KOKKOS_INLINE_FUNCTION
     void free_state(const Random_XorShift1024<DeviceType>& state) const {
       for(int i = 0; i<16; i++)
@@ -1014,7 +1030,7 @@ namespace Kokkos {
     }
   };
 
-#if defined(KOKKOS_HAVE_CUDA) && defined(__CUDACC__)
+#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)
 
   template<>
   class Random_XorShift1024<Kokkos::Cuda> {
@@ -1163,11 +1179,11 @@ namespace Kokkos {
       double S = 2.0;
       double U;
       while(S>=1.0) {
-        U = drand();
-        const double V = drand();
+        U = 2.0*drand() - 1.0;
+        const double V = 2.0*drand() - 1.0;
         S = U*U+V*V;
       }
-      return U*sqrt(-2.0*log(S)/S);
+      return U*std::sqrt(-2.0*log(S)/S);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -1204,8 +1220,8 @@ Random_XorShift64<Kokkos::Cuda> Random_XorShift64_Pool<Kokkos::Cuda>::get_state(
 template<>
 KOKKOS_INLINE_FUNCTION
 void Random_XorShift64_Pool<Kokkos::Cuda>::free_state(const Random_XorShift64<Kokkos::Cuda> &state) const {
-#ifdef __CUDA_ARCH__
   state_(state.state_idx_) = state.state_;
+#ifdef __CUDA_ARCH__
   locks_(state.state_idx_) = 0;
   return;
 #endif
@@ -1240,9 +1256,9 @@ Random_XorShift1024<Kokkos::Cuda> Random_XorShift1024_Pool<Kokkos::Cuda>::get_st
 template<>
 KOKKOS_INLINE_FUNCTION
 void Random_XorShift1024_Pool<Kokkos::Cuda>::free_state(const Random_XorShift1024<Kokkos::Cuda> &state) const {
-#ifdef __CUDA_ARCH__
   for(int i=0; i<16; i++)
     state_(state.state_idx_,i) = state.state_[i];
+#ifdef __CUDA_ARCH__
   locks_(state.state_idx_) = 0;
   return;
 #endif

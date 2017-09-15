@@ -1,5 +1,12 @@
 // -*- c++ -*-
 
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -13,10 +20,10 @@
 
 template<bool calculate_gradients>
 cvm::real colvar::coordnum::switching_function(cvm::real const &r0,
-                                                int const &en,
-                                                int const &ed,
-                                                cvm::atom &A1,
-                                                cvm::atom &A2)
+                                               int const &en,
+                                               int const &ed,
+                                               cvm::atom &A1,
+                                               cvm::atom &A2)
 {
   cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
   cvm::real const l2 = diff.norm2()/(r0*r0);
@@ -42,10 +49,10 @@ cvm::real colvar::coordnum::switching_function(cvm::real const &r0,
 
 template<bool calculate_gradients>
 cvm::real colvar::coordnum::switching_function(cvm::rvector const &r0_vec,
-                                                int const &en,
-                                                int const &ed,
-                                                cvm::atom &A1,
-                                                cvm::atom &A2)
+                                               int const &en,
+                                               int const &ed,
+                                               cvm::atom &A1,
+                                               cvm::atom &A2)
 {
   cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
   cvm::rvector const scal_diff(diff.x/r0_vec.x, diff.y/r0_vec.y, diff.z/r0_vec.z);
@@ -80,8 +87,10 @@ colvar::coordnum::coordnum(std::string const &conf)
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
 
-  if (group1->b_dummy)
-    cvm::fatal_error("Error: only group2 is allowed to be a dummy atom\n");
+  if (group1->b_dummy) {
+    cvm::error("Error: only group2 is allowed to be a dummy atom\n");
+    return;
+  }
 
   bool const b_isotropic = get_keyval(conf, "cutoff", r0,
                                       cvm::real(4.0 * cvm::unit_angstrom()));
@@ -92,6 +101,7 @@ colvar::coordnum::coordnum(std::string const &conf)
     if (b_isotropic) {
       cvm::error("Error: cannot specify \"cutoff\" and \"cutoff3\" at the same time.\n",
                  INPUT_ERROR);
+      return;
     }
 
     b_anisotropic = true;
@@ -106,6 +116,10 @@ colvar::coordnum::coordnum(std::string const &conf)
 
   if ( (en%2) || (ed%2) ) {
     cvm::error("Error: odd exponents provided, can only use even ones.\n", INPUT_ERROR);
+  }
+
+  if (!is_enabled(f_cvc_pbc_minimum_image)) {
+    cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 
   get_keyval(conf, "group2CenterOnly", b_group2_center_only, group2->b_dummy);
@@ -190,6 +204,7 @@ void colvar::coordnum::calc_gradients()
   }
 }
 
+
 void colvar::coordnum::apply_force(colvarvalue const &force)
 {
   if (!group1->noforce)
@@ -198,6 +213,9 @@ void colvar::coordnum::apply_force(colvarvalue const &force)
   if (!group2->noforce)
     group2->apply_colvar_force(force.real_value);
 }
+
+
+simple_scalar_dist_functions(coordnum)
 
 
 
@@ -217,12 +235,13 @@ colvar::h_bond::h_bond(std::string const &conf)
   get_keyval(conf, "donor",    d_num, -1);
 
   if ( (a_num == -1) || (d_num == -1) ) {
-    cvm::fatal_error("Error: either acceptor or donor undefined.\n");
+    cvm::error("Error: either acceptor or donor undefined.\n");
+    return;
   }
 
   cvm::atom acceptor = cvm::atom(a_num);
   cvm::atom donor    = cvm::atom(d_num);
-  atom_groups.push_back(new cvm::atom_group);
+  register_atom_group(new cvm::atom_group);
   atom_groups[0]->add_atom(acceptor);
   atom_groups[0]->add_atom(donor);
 
@@ -231,7 +250,8 @@ colvar::h_bond::h_bond(std::string const &conf)
   get_keyval(conf, "expDenom", ed, 8);
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponents provided, can only use even ones.\n");
+    return;
   }
 
   if (cvm::debug())
@@ -247,10 +267,11 @@ colvar::h_bond::h_bond(cvm::atom const &acceptor,
   function_type = "h_bond";
   x.type(colvarvalue::type_scalar);
 
-  atom_groups.push_back(new cvm::atom_group);
+  register_atom_group(new cvm::atom_group);
   atom_groups[0]->add_atom(acceptor);
   atom_groups[0]->add_atom(donor);
 }
+
 
 colvar::h_bond::h_bond()
   : cvc()
@@ -284,6 +305,8 @@ void colvar::h_bond::apply_force(colvarvalue const &force)
 }
 
 
+simple_scalar_dist_functions(h_bond)
+
 
 
 colvar::selfcoordnum::selfcoordnum(std::string const &conf)
@@ -299,7 +322,12 @@ colvar::selfcoordnum::selfcoordnum(std::string const &conf)
   get_keyval(conf, "expDenom", ed, int(12));
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponents provided, can only use even ones.\n");
+    return;
+  }
+
+  if (!is_enabled(f_cvc_pbc_minimum_image)) {
+    cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 }
 
@@ -339,6 +367,9 @@ void colvar::selfcoordnum::apply_force(colvarvalue const &force)
 }
 
 
+simple_scalar_dist_functions(selfcoordnum)
+
+
 // groupcoordnum member functions
 colvar::groupcoordnum::groupcoordnum(std::string const &conf)
   : distance(conf), b_anisotropic(false)
@@ -347,8 +378,10 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
   x.type(colvarvalue::type_scalar);
 
   // group1 and group2 are already initialized by distance()
-  if (group1->b_dummy || group2->b_dummy)
-    cvm::fatal_error("Error: neither group can be a dummy atom\n");
+  if (group1->b_dummy || group2->b_dummy) {
+    cvm::error("Error: neither group can be a dummy atom\n");
+    return;
+  }
 
   bool const b_scale = get_keyval(conf, "cutoff", r0,
                                   cvm::real(4.0 * cvm::unit_angstrom()));
@@ -356,9 +389,11 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
   if (get_keyval(conf, "cutoff3", r0_vec,
                  cvm::rvector(4.0, 4.0, 4.0), parse_silent)) {
 
-    if (b_scale)
-      cvm::fatal_error("Error: cannot specify \"scale\" and "
+    if (b_scale) {
+      cvm::error("Error: cannot specify \"scale\" and "
                        "\"scale3\" at the same time.\n");
+      return;
+    }
     b_anisotropic = true;
     // remove meaningless negative signs
     if (r0_vec.x < 0.0) r0_vec.x *= -1.0;
@@ -370,7 +405,12 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
   get_keyval(conf, "expDenom", ed, int(12));
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponents provided, can only use even ones.\n");
+    return;
+  }
+
+  if (!is_enabled(f_cvc_pbc_minimum_image)) {
+    cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 
 }
@@ -448,7 +488,6 @@ cvm::real colvar::groupcoordnum::switching_function(cvm::rvector const &r0_vec,
 #endif
 
 
-
 void colvar::groupcoordnum::calc_value()
 {
 
@@ -460,7 +499,6 @@ void colvar::groupcoordnum::calc_value()
 
   x.real_value = coordnum::switching_function<false>(r0, en, ed,
                                                      group1_com_atom, group2_com_atom);
-
 }
 
 
@@ -486,3 +524,6 @@ void colvar::groupcoordnum::apply_force(colvarvalue const &force)
   if (!group2->noforce)
     group2->apply_colvar_force(force.real_value);
 }
+
+
+simple_scalar_dist_functions(groupcoordnum)

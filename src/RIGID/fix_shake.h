@@ -134,10 +134,9 @@ class FixShake : public Fix {
   // static variable for ring communication callback to access class data
   // callback functions for ring communication
 
-  static FixShake *fsptr;
-  static void ring_bonds(int, char *);
-  static void ring_nshake(int, char *);
-  static void ring_shake(int, char *);
+  static void ring_bonds(int, char *, void *);
+  static void ring_nshake(int, char *, void *);
+  static void ring_shake(int, char *, void *);
 };
 
 }
@@ -184,7 +183,7 @@ Self-explanatory.
 
 W: Molecule template for fix shake has multiple molecules
 
-The fix shake command will only recoginze molecules of a single
+The fix shake command will only recognize molecules of a single
 type, i.e. the first molecule in the template.
 
 E: Fix shake molecule template must have shake info

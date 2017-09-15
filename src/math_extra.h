@@ -40,6 +40,7 @@ namespace MathExtra {
   inline void sub3(const double *v1, const double *v2, double *ans);
   inline double len3(const double *v);
   inline double lensq3(const double *v);
+  inline double distsq3(const double *v1, const double *v2);
   inline double dot3(const double *v1, const double *v2);
   inline void cross3(const double *v1, const double *v2, double *ans);
 
@@ -263,6 +264,18 @@ inline double MathExtra::len3(const double *v)
 inline double MathExtra::lensq3(const double *v)
 {
   return v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+}
+
+/* ----------------------------------------------------------------------
+   ans = distance squared between pts v1 and v2
+------------------------------------------------------------------------- */
+
+inline double MathExtra::distsq3(const double *v1, const double *v2)
+{
+  double dx = v1[0] - v2[0];
+  double dy = v1[1] - v2[1];
+  double dz = v1[2] - v2[2];
+  return dx*dx + dy*dy + dz*dz;
 }
 
 /* ----------------------------------------------------------------------

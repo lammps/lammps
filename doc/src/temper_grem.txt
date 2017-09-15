@@ -32,7 +32,7 @@ Run a parallel tempering or replica exchange simulation in LAMMPS
 partition mode using multiple generalized replicas (ensembles) of a
 system defined by "fix grem"_fix_grem.html, which stands for the
 generalized replica exchange method (gREM) originally developed by
-"(Kim)"_#Kim.  It uses non-Boltzmann ensembles to sample over first
+"(Kim)"_#KimStraub.  It uses non-Boltzmann ensembles to sample over first
 order phase transitions. The is done by defining replicas with an
 enthalpy dependent effective temperature
 
@@ -105,5 +105,5 @@ This command must be used with "fix grem"_fix_grem.html.
 
 [Default:] none
 
-:link(Kim)
+:link(KimStraub)
 [(Kim)] Kim, Keyes, Straub, J Chem Phys, 132, 224107 (2010).

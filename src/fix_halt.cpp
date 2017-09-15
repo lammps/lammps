@@ -30,9 +30,10 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{BONDMAX,VARIABLE};
+enum{BONDMAX,TLIMIT,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{HARD,SOFT,CONTINUE};
+enum{NOMSG,YESMSG};
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,7 +48,8 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 
   idvar = NULL;
 
-  if (strcmp(arg[4],"bondmax") == 0) attribute = BONDMAX;
+  if (strcmp(arg[4],"tlimit") == 0) attribute = TLIMIT;
+  else if (strcmp(arg[4],"bondmax") == 0) attribute = BONDMAX;
   else if (strncmp(arg[4],"v_",2) == 0) {
     attribute = VARIABLE;
     int n = strlen(arg[4]);
@@ -73,6 +75,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
   // parse optional args
 
   eflag = SOFT;
+  msgflag = YESMSG;
 
   int iarg = 7;
   while (iarg < narg) {
@@ -81,6 +84,12 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"hard") == 0) eflag = HARD;
       else if (strcmp(arg[iarg+1],"soft") == 0) eflag = SOFT;
       else if (strcmp(arg[iarg+1],"continue") == 0) eflag = CONTINUE;
+      else error->all(FLERR,"Illegal fix halt command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"message") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
+      if (strcmp(arg[iarg+1],"no") == 0) msgflag = NOMSG;
+      else if (strcmp(arg[iarg+1],"yes") == 0) msgflag = YESMSG;
       else error->all(FLERR,"Illegal fix halt command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix halt command");
@@ -125,6 +134,11 @@ void FixHalt::init()
     if (input->variable->equalstyle(ivar) == 0)
       error->all(FLERR,"Fix halt variable is not equal-style variable");
   }
+
+  // settings used by TLIMIT
+
+  nextstep = (update->ntimestep/nevery)*nevery + nevery;
+  tratio = 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,8 +149,12 @@ void FixHalt::end_of_step()
 
   double attvalue;
 
-  if (attribute == BONDMAX) attvalue = bondmax();
-  else {
+  if (attribute == TLIMIT) {
+    if (update->ntimestep != nextstep) return;
+    attvalue = tlimit();
+  } else if (attribute == BONDMAX) {
+    attvalue = bondmax();
+  } else {
     modify->clearstep_compute();
     attvalue = input->variable->compute_equal(ivar);
     modify->addstep_compute(update->ntimestep + nevery);
@@ -169,9 +187,10 @@ void FixHalt::end_of_step()
   sprintf(str,"Fix halt %s condition met on step %ld with value %g",
           id,update->ntimestep,attvalue);
 
-  if (eflag == HARD) error->all(FLERR,str);
-  else if (eflag == SOFT || eflag == CONTINUE) {
-    if (comm->me == 0) error->message(FLERR,str);
+  if (eflag == HARD) {
+    error->all(FLERR,str);
+  } else if (eflag == SOFT || eflag == CONTINUE) {
+    if (comm->me == 0 && msgflag == YESMSG) error->message(FLERR,str);
     timer->force_timeout();
   }
 }
@@ -217,4 +236,27 @@ double FixHalt::bondmax()
   MPI_Allreduce(&maxone,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
 
   return sqrt(maxall);
+}
+
+/* ----------------------------------------------------------------------
+   compute synced elapsed time
+   reset nextstep = estimate of timestep when run will end
+   first project to 1/2 the run time, thereafter to end of run
+------------------------------------------------------------------------- */
+
+double FixHalt::tlimit()
+{
+  double cpu = timer->elapsed(Timer::TOTAL);
+  MPI_Bcast(&cpu,1,MPI_DOUBLE,0,world);
+
+  if (cpu < value) {
+    bigint elapsed = update->ntimestep - update->firststep;
+    bigint final = update->firststep + 
+      static_cast<bigint> (tratio*value/cpu * elapsed);
+    nextstep = (final/nevery)*nevery + nevery;
+    if (nextstep == update->ntimestep) nextstep += nevery;
+    tratio = 1.0;
+  }
+
+  return cpu;
 }

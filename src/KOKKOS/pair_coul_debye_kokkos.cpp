@@ -87,8 +87,21 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom) {
+    memory->destroy_kokkos(k_eatom,eatom);
+    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    d_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom) {
+    memory->destroy_kokkos(k_vatom,vatom);
+    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    d_vatom = k_vatom.view<DeviceType>();
+  }
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
@@ -136,7 +149,17 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) virial_fdotr_compute();
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.template sync<LMPHostType>();
+  }
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.template sync<LMPHostType>();
+  }
+
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   copymode = 0;
 }
@@ -198,7 +221,7 @@ void PairCoulDebyeKokkos<DeviceType>::allocate()
   memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_coul**,Kokkos::LayoutRight,DeviceType>("PairCoulDebye::params",n+1,n+1);
-  params = k_params.d_view;
+  params = k_params.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -218,7 +241,7 @@ void PairCoulDebyeKokkos<DeviceType>::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 

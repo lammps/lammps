@@ -95,8 +95,8 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
+  firsttouch = list->listhistory->firstneigh;
+  firstshear = list->listhistory->firstdouble;
 
   // loop over neighbors of my atoms
 
@@ -407,7 +407,7 @@ double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
 
   int jnum = list->numneigh[i];
   int *jlist = list->firstneigh[i];
-  double *allshear = list->listgranhistory->firstdouble[i];
+  double *allshear = list->listhistory->firstdouble[i];
 
   for (int jj = 0; jj < jnum; jj++) {
     neighprev++;

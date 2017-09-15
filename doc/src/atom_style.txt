@@ -13,17 +13,19 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
-        {dpd} or {electron} or {ellipsoid} or {full} or {line} or {meso} or \
-        {molecular} or {peri} or {smd} or {sphere} or {tri} or \
-        {template} or {hybrid} :ulb,l
+        {dpd} or {edpd} or {mdpd} or {tdpd} or {electron} or {ellipsoid} or \
+        {full} or {line} or {meso} or {molecular} or {peri} or {smd} or \
+        {sphere} or {tri} or {template} or {hybrid} :ulb,l
   args = none for any style except the following
-  {body} args = bstyle bstyle-args
-    bstyle = style of body particles
-    bstyle-args = additional arguments specific to the bstyle
-                  see the "body"_body.html doc page for details
-  {template} args = template-ID
-    template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
-  {hybrid} args = list of one or more sub-styles, each with their args :pre
+    {body} args = bstyle bstyle-args
+      bstyle = style of body particles
+      bstyle-args = additional arguments specific to the bstyle
+                    see the "body"_body.html doc page for details
+    {tdpd} arg = Nspecies
+      Nspecies = # of chemical species
+    {template} arg = template-ID
+      template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
+    {hybrid} args = list of one or more sub-styles, each with their args :pre
 
 accelerated styles (with same args) = {angle/kk} or {atomic/kk} or {bond/kk} or {charge/kk} or {full/kk} or {molecular/kk} :l
 :ule
@@ -36,7 +38,8 @@ atom_style full
 atom_style body nparticle 2 10
 atom_style hybrid charge bond
 atom_style hybrid charge body nparticle 2 5
-atom_style template myMols :pre
+atom_style template myMols 
+atom_style tdpd 2 :pre
 
 [Description:]
 
@@ -74,6 +77,9 @@ quantities.
 {charge} | charge | atomic system with charges |
 {dipole} | charge and dipole moment | system with dipolar particles |
 {dpd} | internal temperature and internal energies | DPD particles |
+{edpd} | temperature and heat capacity | eDPD particles |
+{mdpd} | density | mDPD particles |
+{tdpd} | chemical concentration | tDPD particles |
 {electron} | charge and spin and eradius | electronic force field |
 {ellipsoid} | shape, quaternion, angular momentum | aspherical particles |
 {full} | molecular + charge | bio-molecules |
@@ -110,12 +116,17 @@ basis.
 For the {sphere} style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
 is a finite-size sphere.  If the diameter = 0.0, it is a point
-particle.
+particle.  Note that by use of the {disc} keyword with the "fix
+nve/sphere"_fix_nve_sphere.html, "fix nvt/sphere"_fix_nvt_sphere.html,
+"fix nph/sphere"_fix_nph_sphere.html, "fix
+npt/sphere"_fix_npt_sphere.html commands, spheres can be effectively
+treated as 2d discs for a 2d simulation if desired.  See also the "set
+density/disc"_set.html command.
 
 For the {ellipsoid} style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
 a point particle.  If it is an ellipsoid, it also stores a shape
-vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
+vector with the 3 diameters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
 For the {dipole} style, a point dipole is defined for each point
@@ -140,6 +151,19 @@ properties with internal temperature (dpdTheta), internal conductive
 energy (uCond), internal mechanical energy (uMech), and internal
 chemical energy (uChem).
 
+The {edpd} style is for energy-conserving dissipative particle
+dynamics (eDPD) particles which store a temperature (edpd_temp), and
+heat capacity(edpd_cv).
+
+The {mdpd} style is for many-body dissipative particle dynamics (mDPD)
+particles which store a density (rho) for considering
+density-dependent many-body interactions.
+
+The {tdpd} style is for transport dissipative particle dynamics (tDPD)
+particles which store a set of chemical concentration. An integer
+"cc_species" is required to specify the number of chemical species
+involved in a tDPD system.
+
 The {meso} style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
 (cv).
@@ -149,7 +173,7 @@ Hydrodynamics.  Both fluids and solids can be modeled.  Particles
 store the mass and volume of an integration point, a kernel diameter
 used for calculating the field variables (e.g. stress and deformation)
 and a contact radius for calculating repulsive forces which prevent
-individual physical bodies from penetretating each other.
+individual physical bodies from penetrating each other.
 
 The {wavepacket} style is similar to {electron}, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
@@ -165,7 +189,7 @@ For the {tri} style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 
-The {template} style allows molecular topolgy (bonds,angles,etc) to be
+The {template} style allows molecular topology (bonds,angles,etc) to be
 defined via a molecule template using the "molecule"_molecule.html
 command.  The template stores one or more molecules with a single copy
 of the topology info (bonds,angles,etc) of each.  Individual atoms
@@ -195,7 +219,7 @@ the {bstyle} argument.  Body particles can represent complex entities,
 such as surface meshes of discrete points, collections of
 sub-particles, deformable objects, etc.
 
-The "body"_body.html doc page descibes the body styles LAMMPS
+The "body"_body.html doc page describes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body
 particles they represent.  For all styles, each body particle stores
 moments of inertia and a quaternion 4-vector, so that its orientation
@@ -279,8 +303,13 @@ force fields"_pair_eff.html.
 The {dpd} style is part of the USER-DPD package for dissipative
 particle dynamics (DPD).
 
+The {edpd}, {mdpd}, and {tdpd} styles are part of the USER-MESO package 
+for energy-conserving dissipative particle dynamics (eDPD), many-body 
+dissipative particle dynamics (mDPD), and transport dissipative particle 
+dynamics (tDPD), respectively.
+
 The {meso} style is part of the USER-SPH package for smoothed particle
-hydrodyanmics (SPH).  See "this PDF
+hydrodynamics (SPH).  See "this PDF
 guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.
 
 The {wavepacket} style is part of the USER-AWPMD package for the

@@ -121,6 +121,10 @@ do
   -gencode*|--dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|--resource-usage|-Xptxas*)
     cuda_args="$cuda_args $1"
     ;;
+  #Handle more known nvcc args
+  --expt-extended-lambda|--expt-relaxed-constexpr)
+    cuda_args="$cuda_args $1"
+    ;;
   #Handle known nvcc args that have an argument
   -rdc|-maxrregcount|--default-stream)
     cuda_args="$cuda_args $1 $2"

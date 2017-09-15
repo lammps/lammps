@@ -15,7 +15,7 @@ fix ID group-ID deposit N type M seed keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 deposit = style name of this fix command :l
 N = # of atoms or molecules to insert :l
-type = atom type to assign to inserted atoms (offset for moleclue insertion) :l
+type = atom type to assign to inserted atoms (offset for molecule insertion) :l
 M = insert a single atom or molecule every M steps :l
 seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
@@ -140,7 +140,7 @@ the molecule.
 
 If the molecule template contains more than one molecule, the relative
 probability of depositing each molecule can be specified by the
-{molfrac} keyword.  N relative probablities, each from 0.0 to 1.0, are
+{molfrac} keyword.  N relative probabilities, each from 0.0 to 1.0, are
 specified, where N is the number of molecules in the template.  Each
 time a molecule is deposited, a random number is used to sample from
 the list of relative probabilities.  The N values must sum to 1.0.
@@ -149,6 +149,12 @@ If you wish to insert molecules via the {mol} keyword, that will be
 treated as rigid bodies, use the {rigid} keyword, specifying as its
 value the ID of a separate "fix rigid/small"_fix_rigid.html
 command which also appears in your input script.
+
+NOTE: If you wish the new rigid molecules (and other rigid molecules)
+to be thermostatted correctly via "fix rigid/small/nvt"_fix_rigid.html
+or "fix rigid/small/npt"_fix_rigid.html, then you need to use the
+"fix_modify dynamic/dof yes" command for the rigid fix.  This is to
+inform that fix that the molecule count will vary dynamically.
 
 If you wish to insert molecules via the {mol} keyword, that will have
 their bonds or angles constrained via SHAKE, use the {shake} keyword,
@@ -192,7 +198,7 @@ LAMMPS prints a warning message.
 NOTE: If you are inserting finite size particles or a molecule or
 rigid body consisting of finite-size particles, then you should
 typically set R larger than the distance at which any inserted
-particle may overlap with either a previouly inserted particle or an
+particle may overlap with either a previously inserted particle or an
 existing particle.  LAMMPS will issue a warning if R is smaller than
 this value, based on the radii of existing and inserted particles.
 

@@ -28,7 +28,7 @@ suffix kk :pre
 
 This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the "-suffix
-command-line switch"_Section_start.html#start_7.  It also has options
+command-line switch"_Section_start.html#start_6.  It also has options
 to turn off or back on any suffix setting made via the command line.
 
 The specified style can be {gpu}, {intel}, {kk}, {omp}, {opt} or
@@ -50,7 +50,7 @@ Intel(R) Xeon Phi(TM) coprocessors. :l
 
 KOKKOS = a collection of atom, pair, and fix styles optimized to run
 using the Kokkos library on various kinds of hardware, including GPUs
-via Cuda and many-core chips via OpenMP or threading. :l
+via CUDA and many-core chips via OpenMP or threading. :l
 
 USER-OMP = a collection of pair, bond, angle, dihedral, improper,
 kspace, compute, and fix styles with support for OpenMP
@@ -91,7 +91,7 @@ a disabled suffix is turned back on.  The use of these 2 commands lets
 your input script use a standard LAMMPS style (i.e. a non-accelerated
 variant), which can be useful for testing or benchmarking purposes.
 Of course this is also possible by not using any suffix commands, and
-explictly appending or not appending the suffix to the relevant
+explicitly appending or not appending the suffix to the relevant
 commands in your input script.
 
 NOTE: The default "run_style"_run_style.html verlet is invoked prior to
@@ -105,6 +105,6 @@ input script.
 
 [Related commands:]
 
-"Command-line switch -suffix"_Section_start.html#start_7
+"Command-line switch -suffix"_Section_start.html#start_6
 
 [Default:] none

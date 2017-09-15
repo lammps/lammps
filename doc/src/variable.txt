@@ -178,7 +178,7 @@ This means variables can NOT be re-defined in an input script (with
 two exceptions, read further).  This is to allow an input script to be
 processed multiple times without resetting the variables; see the
 "jump"_jump.html or "include"_include.html commands.  It also means
-that using the "command-line switch"_Section_start.html#start_7 -var
+that using the "command-line switch"_Section_start.html#start_6 -var
 will override a corresponding index variable setting in the input
 script.
 
@@ -248,7 +248,7 @@ variable.
 
 {Index} style variables with a single string value can also be set by
 using the command-line switch -var; see "this
-section"_Section_start.html#start_7 for details.
+section"_Section_start.html#start_6 for details.
 
 The {loop} style is identical to the {index} style except that the
 strings are the integers from 1 to N inclusive, if only one argument N
@@ -264,7 +264,7 @@ N1 <= N2 and N2 >= 0 is required.
 
 For the {world} style, one or more strings are specified.  There must
 be one string for each processor partition or "world".  See "this
-section"_Section_start.html#start_7 of the manual for information on
+section"_Section_start.html#start_6 of the manual for information on
 running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command assigns one string to each
 world.  All processors in the world are assigned the same string.  The
@@ -277,7 +277,7 @@ different partitions.
 
 For the {universe} style, one or more strings are specified.  There
 must be at least as many strings as there are processor partitions or
-"worlds".  See "this page"_Section_start.html#start_7 for information
+"worlds".  See "this page"_Section_start.html#start_6 for information
 on running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command initially assigns one
 string to each world.  When a "next"_next.html command is encountered
@@ -501,7 +501,7 @@ the group.
 
 :line
 
-Numers, constants, and thermo keywords :h4
+Numbers, constants, and thermo keywords :h4
 
 Numbers can contain digits, scientific notation
 (3.0e20,3.0e-20,3.0E20,3.0E-20), and leading minus signs.
@@ -576,7 +576,7 @@ returns 0.0.
 
 These relational and logical operators can be used as a masking or
 selection operation in a formula.  For example, the number of atoms
-whose properties satifsy one or more criteria could be calculated by
+whose properties satisfy one or more criteria could be calculated by
 taking the returned per-atom vector of ones and zeroes and passing it
 to the "compute reduce"_compute_reduce.html command.
 
@@ -623,7 +623,7 @@ Floor() if the largest integer not greater than its argument.  Round()
 is the nearest integer to its argument.
 
 The ramp(x,y) function uses the current timestep to generate a value
-linearly intepolated between the specified x,y values over the course
+linearly interpolated between the specified x,y values over the course
 of a run, according to this formula:
 
 value = x + (y-x) * (timestep-startstep) / (stopstep-startstep) :pre
@@ -669,7 +669,7 @@ sequence of output timesteps:
 The stride(x,y,z) function uses the current timestep to generate a new
 timestep.  X,y >= 0 and z > 0 and x <= y are required.  The generated
 timesteps increase in increments of z, from x to y, i.e. it generates
-the sequece x,x+z,x+2z,...,y.  If y-x is not a multiple of z, then
+the sequence x,x+z,x+2z,...,y.  If y-x is not a multiple of z, then
 similar to the way a for loop operates, the last value will be one
 that does not exceed y.  For any current timestep, the next timestep
 in the sequence is returned.  Thus if stride(1000,2000,100) is used
@@ -781,7 +781,7 @@ is for a vector-style variable where "name" is replaced by the name of
 the variable.
 
 These functions operate on a global vector of inputs and reduce it to
-a single scalar value.  This is analagous to the operation of the
+a single scalar value.  This is analogous to the operation of the
 "compute reduce"_compute_reduce.html command, which performs similar
 operations on per-atom and local vectors.
 
@@ -1068,7 +1068,7 @@ in the reference should be replaced by the name of a variable defined
 elsewhere in the input script.
 
 As discussed on this doc page, equal-style variables generate a single
-global numeric value, vector-style variables gerarate a vector of
+global numeric value, vector-style variables generate a vector of
 global numeric values, and atom-style and atomfile-style variables
 generate a per-atom vector of numeric values.  All other variables
 store one or more strings.
@@ -1169,7 +1169,7 @@ would print out both the current and initial volume periodically
 during the run.
 
 Note that it is a mistake to enclose a variable formula in double
-quotes if it contains variables preceeded by $ signs.  For example,
+quotes if it contains variables preceded by $ signs.  For example,
 
 variable vratio equal "$\{vfinal\}/$\{v0\}" :pre
 
@@ -1214,7 +1214,7 @@ three kinds of behavior:
 
 (1) The variable may be evaluated accurately.  If it contains
 references to a compute or fix, and these values were calculated on
-the last timestep of a preceeding run, then they will be accessed and
+the last timestep of a preceding run, then they will be accessed and
 used by the variable and the result will be accurate.
 
 (2) LAMMPS may not be able to evaluate the variable and will generate

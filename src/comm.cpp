@@ -266,7 +266,8 @@ void Comm::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (mode == MULTI)
-        error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
+        error->all(FLERR,
+                   "Use cutoff/multi keyword to set cutoff in multi mode");
       cutghostuser = force->numeric(FLERR,arg[iarg+1]);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
@@ -677,10 +678,12 @@ int Comm::binary(double value, int n, double *vec)
      using original inbuf, which may have been updated
    for non-NULL outbuf, final updated inbuf is copied to it
      ok to specify outbuf = inbuf
+   the ptr argument is a pointer to the instance of calling class
 ------------------------------------------------------------------------- */
 
 void Comm::ring(int n, int nper, void *inbuf, int messtag,
-                void (*callback)(int, char *), void *outbuf, int self)
+                void (*callback)(int, char *, void *),
+                void *outbuf, void *ptr, int self)
 {
   MPI_Request request;
   MPI_Status status;
@@ -711,7 +714,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
       MPI_Get_count(&status,MPI_CHAR,&nbytes);
       memcpy(buf,bufcopy,nbytes);
     }
-    if (self || loop < nprocs-1) callback(nbytes/nper,buf);
+    if (self || loop < nprocs-1) callback(nbytes/nper,buf,ptr);
   }
 
   if (outbuf) memcpy(outbuf,buf,nbytes);

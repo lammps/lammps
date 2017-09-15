@@ -31,7 +31,7 @@ pair_coeff i j *COMMON rho0 c0 Q1 Cp hg &
 
 Here, {i} and {j} denote the {LAMMPS} particle types for which this pair style is
 defined. Note that {i} and {j} can be different, i.e., {ulsph} cross interactions
-between different particle types are allowed. However, {i}--{i} respectively {j}--{j} pair_coeff lines have to preceed a cross interaction.
+between different particle types are allowed. However, {i}--{i} respectively {j}--{j} pair_coeff lines have to precede a cross interaction.
 In contrast to the usual {LAMMPS} {pair coeff} definitions, which are given solely a
 number of floats and integers, the {ulsph} {pair coeff} definition is organised using
 keywords. These keywords mark the beginning of different sets of parameters for particle properties,

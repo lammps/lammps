@@ -1,11 +1,16 @@
 This package implements GPU optimizations of various LAMMPS styles.
 
-This package uses an external library in lib/gpu which must be
-compiled before making LAMMPS.  See the lib/gpu/README file and the
+Section 5.3.1 on the manual gives details of what hardware and Cuda
+software is required on your system, and full details on how to build
+and use this package.  See the KOKKOS package, which also has
+GPU-enabled styles.
+
+This package uses an external library provided in lib/gpu which must
+be compiled before making LAMMPS.  See the lib/gpu/README file and the
 LAMMPS manual for information on building LAMMPS with external
 libraries.  The settings in the Makefile.lammps file in that directory
 must be correct for LAMMPS to build correctly with this package
 installed.
 
-The people who created this package are Mike Brown (while at Sandia
-and ORNL) and Trung Nguyen (while at ORNL).
+The GPU package and its associated library was created by Mike Brown
+while at Sandia and ORNL, and by Trung Nguyen while at ORNL.

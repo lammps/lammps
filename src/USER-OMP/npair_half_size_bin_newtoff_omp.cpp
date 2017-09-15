@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeBinNewtoffOmp::NPairHalfSizeBinNewtoffOmp(LAMMPS *lmp) : 
+NPairHalfSizeBinNewtoffOmp::NPairHalfSizeBinNewtoffOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -44,13 +44,13 @@ void NPairHalfSizeBinNewtoffOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
 
-  FixShearHistory * const fix_history = list->fix_history;
-  NeighList * listgranhistory = list->listgranhistory;
+  FixShearHistory * const fix_history = (FixShearHistory *) list->fix_history;
+  NeighList * listhistory = list->listhistory;
 
   NPAIR_OMP_INIT;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list,listgranhistory)
+#pragma omp parallel default(none) shared(list,listhistory)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
@@ -89,11 +89,11 @@ void NPairHalfSizeBinNewtoffOmp::build(NeighList *list)
     npartner = fix_history->npartner;
     partner = fix_history->partner;
     shearpartner = fix_history->shearpartner;
-    firsttouch = listgranhistory->firstneigh;
-    firstshear = listgranhistory->firstdouble;
-    ipage_touch = listgranhistory->ipage+tid;
-    dpage_shear = listgranhistory->dpage+tid;
-    dnum = listgranhistory->dnum;
+    firsttouch = listhistory->firstneigh;
+    firstshear = listhistory->firstdouble;
+    ipage_touch = listhistory->ipage+tid;
+    dpage_shear = listhistory->dpage+tid;
+    dnum = listhistory->dnum;
     dnumbytes = dnum * sizeof(double);
     ipage_touch->reset();
     dpage_shear->reset();
@@ -113,7 +113,7 @@ void NPairHalfSizeBinNewtoffOmp::build(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
 
     // loop over all atoms in surrounding bins in stencil including self
     // only store pair if i < j

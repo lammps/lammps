@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,16 +36,17 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_THREADS
+
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-
-#if defined( KOKKOS_HAVE_PTHREAD )
 
 #include <Kokkos_Bitset.hpp>
 #include <Kokkos_UnorderedMap.hpp>
@@ -62,10 +63,14 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestDynamicView.hpp>
-#include <TestSegmentedView.hpp>
 
 #include <Kokkos_DynRankView.hpp>
 #include <TestDynViewAPI.hpp>
+
+#include <Kokkos_ErrorReporter.hpp>
+#include <TestErrorReporter.hpp>
+
+#include <TestViewCtorPropEmbeddedDim.hpp>
 
 namespace Test {
 
@@ -100,10 +105,26 @@ TEST_F( threads , dyn_view_api) {
   TestDynViewAPI< double , Kokkos::Threads >();
 }
 
+TEST_F( threads, viewctorprop_embedded_dim ) {
+  TestViewCtorProp_EmbeddedDim< Kokkos::Threads >::test_vcpt( 2, 3 );
+}
+
 TEST_F( threads , staticcrsgraph )
 {
   TestStaticCrsGraph::run_test_graph< Kokkos::Threads >();
   TestStaticCrsGraph::run_test_graph2< Kokkos::Threads >();
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(1, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(3, 100000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 0);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 1000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 10000);
+  TestStaticCrsGraph::run_test_graph3< Kokkos::Threads >(75, 100000);
 }
 
 /*TEST_F( threads, bitset )
@@ -145,12 +166,6 @@ TEST_F( threads , staticcrsgraph )
       test_dualview_combinations<int,Kokkos::Threads>(size);                     \
   }
 
-#define THREADS_SEGMENTEDVIEW_TEST( size )                             \
-  TEST_F( threads, segmentedview_##size##x) {       \
-      test_segmented_view<double,Kokkos::Threads>(size);                     \
-  }
-
-
 THREADS_INSERT_TEST(far, 100000, 90000, 100, 500, false)
 THREADS_FAILED_INSERT_TEST( 10000, 1000 )
 THREADS_DEEP_COPY( 10000, 1 )
@@ -158,7 +173,6 @@ THREADS_DEEP_COPY( 10000, 1 )
 THREADS_VECTOR_COMBINE_TEST( 10 )
 THREADS_VECTOR_COMBINE_TEST( 3057 )
 THREADS_DUALVIEW_COMBINE_TEST( 10 )
-THREADS_SEGMENTEDVIEW_TEST( 10000 )
 
 
 #undef THREADS_INSERT_TEST
@@ -167,8 +181,6 @@ THREADS_SEGMENTEDVIEW_TEST( 10000 )
 #undef THREADS_DEEP_COPY
 #undef THREADS_VECTOR_COMBINE_TEST
 #undef THREADS_DUALVIEW_COMBINE_TEST
-#undef THREADS_SEGMENTEDVIEW_TEST
-
 
 
 TEST_F( threads , dynamic_view )
@@ -181,8 +193,22 @@ TEST_F( threads , dynamic_view )
   }
 }
 
+
+#if defined(KOKKOS_CLASS_LAMBDA)
+TEST_F(threads, ErrorReporterViaLambda)
+{
+  TestErrorReporter<ErrorReporterDriverUseLambda<Kokkos::Threads>>();
+}
+#endif
+
+TEST_F(threads, ErrorReporter)
+{
+  TestErrorReporter<ErrorReporterDriver<Kokkos::Threads>>();
+}
+
 } // namespace Test
 
-
-#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) */
+#else
+void KOKKOS_CONTAINERS_UNIT_TESTS_TESTTHREADS_PREVENT_EMPTY_LINK_ERROR() {}
+#endif /* #if defined( KOKKOS_ENABLE_THREADS ) */
 

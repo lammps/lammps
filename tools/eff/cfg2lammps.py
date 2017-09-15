@@ -217,7 +217,7 @@ def generate_lammps_input(infile):
         if line.find("e_field_packet_duration")>=0:
           continue
         if line.find("set_limit")>=0:
-          continue	# need to add this contraint
+          continue	# need to add this constraint
         if line.find("set_limit_stiffness")>=0:
           continue
         if line.find("output_position")>=0:

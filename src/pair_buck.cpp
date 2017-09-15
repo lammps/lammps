@@ -176,7 +176,7 @@ void PairBuck::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -187,7 +187,8 @@ void PairBuck::settings(int narg, char **arg)
 
 void PairBuck::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -229,7 +230,7 @@ double PairBuck::init_one(int i, int j)
   buck1[i][j] = a[i][j]/rho[i][j];
   buck2[i][j] = 6.0*c[i][j];
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double rexp = exp(-cut[i][j]/rho[i][j]);
     offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0);
   } else offset[i][j] = 0.0;

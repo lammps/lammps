@@ -33,11 +33,15 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
     accuracy = desired relative error in forces
   {pppm/gpu} value = accuracy
     accuracy = desired relative error in forces
+  {pppm/intel} value = accuracy
+    accuracy = desired relative error in forces
   {pppm/kk} value = accuracy
     accuracy = desired relative error in forces
   {pppm/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/cg/omp} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/disp/intel} value = accuracy
     accuracy = desired relative error in forces
   {pppm/tip4p/omp} value = accuracy
     accuracy = desired relative error in forces
@@ -131,7 +135,7 @@ reduce force aliasing errors and increase the accuracy of the method
 for a given mesh size.  Or a coarser mesh can be used for the same
 target accuracy, which saves CPU time.  However, there is a trade-off
 since FFTs on two meshes are now performed which increases the
-compuation required.  See "(Cerutti)"_#Cerutti, "(Neelov)"_#Neelov,
+computation required.  See "(Cerutti)"_#Cerutti, "(Neelov)"_#Neelov,
 and "(Hockney)"_#Hockney for details of the method.
 
 For high relative accuracy, using staggered PPPM allows the mesh size
@@ -152,7 +156,7 @@ such as when using a barostat.
 :line
 
 The {pppm/disp} and {pppm/disp/tip4p} styles add a mesh-based long-range
-dispersion sum option for 1/r^6 potentials "(Isele-Holder)"_#Isele-Holder,
+dispersion sum option for 1/r^6 potentials "(Isele-Holder)"_#Isele-Holder2012,
 similar to the {ewald/disp} style. The 1/r^6 capability means
 that Lennard-Jones or Buckingham potentials can be used without a cutoff,
 i.e. they become full long-range potentials.
@@ -163,8 +167,8 @@ This can be done by either choosing the Ewald and grid parameters, or
 by specifying separate accuracies for the real and kspace
 calculations. When not making any settings, the simulation will stop with
 an error message. Further information on the influence of the parameters
-and how to choose them is described in "(Isele-Holder)"_#Isele-Holder,
-"(Isele-Holder2)"_#Isele-Holder2 and the
+and how to choose them is described in "(Isele-Holder)"_#Isele-Holder2012,
+"(Isele-Holder2)"_#Isele-Holder2013 and the
 "How-To"_Section_howto.html#howto_24 discussion.
 
 :line
@@ -174,7 +178,7 @@ using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
 lo-level Makefile.  This setting also changes some of the PPPM
 operations (e.g. mapping charge to mesh and interpolating electric
 fields to particles) to be performed in single precision.  This option
-can speed-up long-range calulations, particularly in parallel or on
+can speed-up long-range calculations, particularly in parallel or on
 GPUs.  The use of the -DFFT_SINGLE flag is discussed in "this
 section"_Section_start.html#start_2_4 of the manual. MSM does not
 currently support the -DFFT_SINGLE compiler switch.
@@ -182,13 +186,13 @@ currently support the -DFFT_SINGLE compiler switch.
 :line
 
 The {msm} style invokes a multi-level summation method MSM solver,
-"(Hardy)"_#Hardy or "(Hardy2)"_#Hardy2, which maps atom charge to a 3d
-mesh, and uses a multi-level hierarchy of coarser and coarser meshes
-on which direct coulomb solves are done.  This method does not use
-FFTs and scales as N. It may therefore be faster than the other
+"(Hardy)"_#Hardy2006 or "(Hardy2)"_#Hardy2009, which maps atom charge
+to a 3d mesh, and uses a multi-level hierarchy of coarser and coarser
+meshes on which direct coulomb solves are done.  This method does not
+use FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
-core counts. MSM can also be used for non-periodic boundary conditions and
-for mixed periodic and non-periodic boundaries.
+core counts. MSM can also be used for non-periodic boundary conditions
+and for mixed periodic and non-periodic boundaries.
 
 MSM is most competitive versus Ewald and PPPM when only relatively
 low accuracy forces, about 1e-4 relative error or less accurate,
@@ -229,11 +233,16 @@ dramatically in z.  For example, for a triclinic system with all three
 tilt factors set to the maximum limit, the PPPM grid should be
 increased roughly by a factor of 1.5 in the y direction and 2.0 in the
 z direction as compared to the same system using a cubic orthogonal
-simulation cell. One way to ensure the accuracy requirement is being
-met is to run a short simulation at the maximum expected tilt or
-length, note the required grid size, and then use the
+simulation cell.  One way to handle this issue if you have a long
+simulation where the box size changes dramatically, is to break it
+into shorter simulations (multiple "run"_run.html commands).  This
+works because the grid size is re-computed at the beginning of each
+run.  Another way to ensure the described accuracy requirement is met
+is to run a short simulation at the maximum expected tilt or length,
+note the required grid size, and then use the
 "kspace_modify"_kspace_modify.html {mesh} command to manually set the
-PPPM grid size to this value.
+PPPM grid size to this value for the long run.  The simulation then
+will be "too accurate" for some portion of the run.
 
 RMS force errors in real space for {ewald} and {pppm} are estimated
 using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as
@@ -242,7 +251,7 @@ equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space for
 which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force
 errors in K-space for {pppm} are estimated using equation 38 of
 "(Deserno)"_#Deserno. RMS force errors for {msm} are estimated
-using ideas from chapter 3 of "(Hardy)"_#Hardy, with equation 3.197
+using ideas from chapter 3 of "(Hardy)"_#Hardy2006, with equation 3.197
 of particular note. When using {msm} with non-periodic boundary
 conditions, it is expected that the error estimation will be too
 pessimistic. RMS force errors for dipoles when using {ewald/disp}
@@ -250,7 +259,7 @@ are estimated using equations 33 and 46 of "(Wang)"_#Wang.
 
 See the "kspace_modify"_kspace_modify.html command for additional
 options of the K-space solvers that can be set, including a {force}
-option for setting an absoulte RMS error in forces, as opposed to a
+option for setting an absolute RMS error in forces, as opposed to a
 relative RMS error.
 
 :line
@@ -284,6 +293,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
+
+:line
 
 [Restrictions:]
 
@@ -334,7 +345,7 @@ kspace_style none :pre
 Adam Hilger, NY (1989).
 
 :link(Kolafa)
-[(Kolafa)] Kolafa and Perram, Molecular Simualtion, 9, 351 (1992).
+[(Kolafa)] Kolafa and Perram, Molecular Simulation, 9, 351 (1992).
 
 :link(Petersen)
 [(Petersen)] Petersen, J Chem Phys, 103, 3668 (1995).
@@ -359,19 +370,19 @@ and Computation 5, 2322 (2009)
 [(Toukmaji)] Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
 10913 (2000).
 
-:link(Isele-Holder)
+:link(Isele-Holder2012)
 [(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137,
 174107 (2012).
 
-:link(Isele-Holder2)
+:link(Isele-Holder2013)
 [(Isele-Holder2)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail,
 J Chem Theory Comput 9, 5412 (2013).
 
-:link(Hardy)
+:link(Hardy2006)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
 
-:link(Hardy2)
-[(Hardy)] Hardy, Stone, Schulten, Parallel Computing 35 (2009)
+:link(Hardy2009)
+[(Hardy2)] Hardy, Stone, Schulten, Parallel Computing 35 (2009)
 164-177.

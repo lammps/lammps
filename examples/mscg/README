@@ -1,0 +1,10 @@
+Running this example requires that LAMMPS be built with the MSCG
+package and its fix mscg command.  The fix uses the Multi-Scale
+Coarse-Graining (MS-CG) library, freely available at
+https://github.com/uchicago-voth/MSCG-release, to compute optimized
+coarse-grained force field parameters.  The MS-CG library was
+developed by Jacob Wagner in Greg Voth's group at the University of
+Chicago.
+
+See the lib/mscg/README file for instructions on how to download and
+install the MS-CG library for use with LAMMPS.

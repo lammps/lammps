@@ -35,7 +35,7 @@ enum{TYPE,RADIUS};
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  indices(NULL), pack_choice(NULL), vlocal(NULL), alocal(NULL)
+  vlocal(NULL), alocal(NULL), indices(NULL), pack_choice(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/local command");
 
@@ -280,12 +280,16 @@ void ComputePropertyLocal::init()
   }
 
   // for NEIGH/PAIR need an occasional half neighbor list
+  // set size to same value as request made by force->pair
+  // this should enable it to always be a copy list  (e.g. for granular pstyle)
 
   if (kindflag == NEIGH || kindflag == PAIR) {
     int irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->pair = 0;
     neighbor->requests[irequest]->compute = 1;
     neighbor->requests[irequest]->occasional = 1;
+    NeighRequest *pairrequest = neighbor->find_request((void *) force->pair);
+    if (pairrequest) neighbor->requests[irequest]->size = pairrequest->size;
   }
 
   // do initial memory allocation so that memory_usage() is correct

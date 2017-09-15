@@ -39,7 +39,7 @@ using namespace MathConst;
 
 enum{SINGLE,MOLECULE,GROUP};	// same as in FixRigid
 
-#define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
+#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
 
 typedef struct { double x,y,z; } dbl3_t;
 

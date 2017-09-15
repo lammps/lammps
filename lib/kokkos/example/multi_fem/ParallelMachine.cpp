@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,21 +36,21 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
 #if 0
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include <ParallelMachine.hpp>
 
 #include <Kokkos_Core.hpp>
 
-#if ! defined( KOKKOS_HAVE_MPI )
+#if ! defined( KOKKOS_ENABLE_MPI )
 #define MPI_COMM_NULL 0
 #endif
 
@@ -65,7 +65,7 @@ Machine::Machine( int * argc , char *** argv )
   , m_mpi_gpu(0)
 {
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   //------------------------------------
   // Might be using a Cuda aware version of MPI.
   // Must select Cuda device before initializing MPI.
@@ -103,7 +103,7 @@ Machine::Machine( int * argc , char *** argv )
 
   //------------------------------------
 
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
   MPI_Init( argc , argv );
   m_mpi_comm = MPI_COMM_WORLD ;
   MPI_Comm_size( m_mpi_comm , & m_mpi_size );
@@ -122,7 +122,7 @@ Machine::Machine( int * argc , char *** argv )
       unsigned team_count       = Kokkos::hwloc::get_available_numa_count();
       unsigned threads_per_team = Kokkos::hwloc::get_available_cores_per_numa() *
                                   Kokkos::hwloc::get_available_threads_per_core();
- 
+
       if ( i + 2 < *argc ) {
         team_count       = atoi( (*argv)[i+1] );
         threads_per_team = atoi( (*argv)[i+2] );
@@ -132,7 +132,7 @@ Machine::Machine( int * argc , char *** argv )
     }
   }
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   //------------------------------------
   // Request to use Cuda device and not already initialized.
   if ( ! m_mpi_gpu ) {
@@ -155,10 +155,10 @@ Machine::Machine( int * argc , char *** argv )
 Machine::~Machine()
 {
   Kokkos::Threads::finalize();
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   Kokkos::Cuda::finalize();
 #endif
-#if defined( KOKKOS_HAVE_MPI )
+#if defined( KOKKOS_ENABLE_MPI )
   MPI_Finalize();
 #endif
 }
@@ -167,7 +167,7 @@ void Machine::print_configuration( std::ostream & msg ) const
 {
   msg << "MPI [ " << m_mpi_rank << " / " << m_mpi_size << " ]" << std::endl ;
   Kokkos::Threads::print_configuration( msg );
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   Kokkos::Cuda::print_configuration( msg );
 #endif
 }

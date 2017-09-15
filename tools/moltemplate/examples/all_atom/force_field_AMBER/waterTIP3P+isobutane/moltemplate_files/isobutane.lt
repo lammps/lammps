@@ -1,0 +1,57 @@
+
+import "gaff.lt"
+
+# The "gaff.lt" file is usually located in "force_fields" subdirectory
+# of the moltemplate distribution.
+# It contains definitions of the atoms "c3", "h1", as well as the bonded
+# and non-bonded interactions between them (and many other atoms).
+#
+# Moltemplate is only a simple text manipulation tool.  It cannot
+# calculate atomic charge using quantom chemistry methods.
+# Atom charges for this example were taken from the OPLSAA force field file:
+# http://dasher.wustl.edu/tinker/distribution/params/oplsaa.prm
+# However, normally simulations in AMBER are assigned charges using the
+# "HF/6-31G* RESP2" or "AM1-BCC3" methods using AmberTools.
+
+
+Isobutane inherits GAFF {
+
+  # atomID   molID  atomTyle   charge     X       Y        Z
+  write('Data Atoms') {
+    $atom:C0 $mol:. @atom:c3   -0.0600  -0.001  -0.001  -0.439
+    $atom:C1 $mol:. @atom:c3   -0.1800  -1.257  -0.726   0.078
+    $atom:C2 $mol:. @atom:c3   -0.1800   1.258  -0.726   0.072
+    $atom:C3 $mol:. @atom:c3   -0.1800  -0.001   1.453   0.069
+    $atom:H0 $mol:. @atom:hc    0.0600  -0.003  -0.004  -1.439
+    $atom:H11 $mol:. @atom:hc   0.0600  -2.075  -0.255  -0.254
+    $atom:H12 $mol:. @atom:hc   0.0600  -1.256  -0.724   1.078
+    $atom:H13 $mol:. @atom:hc   0.0600  -1.259  -1.669  -0.253
+    $atom:H21 $mol:. @atom:hc   0.0600   2.074  -0.255  -0.264
+    $atom:H22 $mol:. @atom:hc   0.0600   1.258  -1.669  -0.259
+    $atom:H23 $mol:. @atom:hc   0.0600   1.261  -0.724   1.072
+    $atom:H31 $mol:. @atom:hc   0.0600  -0.817   1.923  -0.263
+    $atom:H32 $mol:. @atom:hc   0.0600   0.816   1.923  -0.268
+    $atom:H33 $mol:. @atom:hc   0.0600   0.003   1.456   1.070
+  }
+
+  #  The "." in "$mol:." refers to this molecule object's molecule ID
+  #  (It means we do not expect this molecule to be a group or a subunit
+  #   of a larger molecule.  Otherwise we would use "$mol:..." instead.)
+
+  write('Data Bond List') {
+    $bond:C01 $atom:C0 $atom:C1
+    $bond:C02 $atom:C0 $atom:C2
+    $bond:C03 $atom:C0 $atom:C3
+    $bond:C0H $atom:C0 $atom:H0
+    $bond:C1H1 $atom:C1 $atom:H11
+    $bond:C1H2 $atom:C1 $atom:H12
+    $bond:C1H3 $atom:C1 $atom:H13
+    $bond:C2H1 $atom:C2 $atom:H21
+    $bond:C2H2 $atom:C2 $atom:H22
+    $bond:C2H3 $atom:C2 $atom:H23
+    $bond:C3H1 $atom:C3 $atom:H31
+    $bond:C3H2 $atom:C3 $atom:H32
+    $bond:C3H3 $atom:C3 $atom:H33
+  }
+
+} # Isobutane

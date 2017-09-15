@@ -183,7 +183,7 @@ bool run_host( std::istream & input ,
   return cmd_error ;
 }
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 bool run_cuda( std::istream & input , comm::Machine machine )
 {
   bool cmd_error = false ;
@@ -259,7 +259,7 @@ void run( const std::string & argline , comm::Machine machine )
               << " CORE[" << cores_per_numa << "]"
               << " PU[" << threads_per_core << "] }"
               << std::endl ;
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
     test_cuda_query( machine );
 #endif
   }
@@ -290,7 +290,7 @@ void run( const std::string & argline , comm::Machine machine )
 
       cmd_error = run_host( input , machine , host_gang_count , host_gang_worker_count );
     }
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
     else if ( which == std::string("cuda") ) {
       cmd_error = run_cuda( input , machine );
     }

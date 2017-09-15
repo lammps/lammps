@@ -50,7 +50,7 @@
 
 #include <SparseLinearSystem.hpp>
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
 
 //----------------------------------------------------------------------------
 
@@ -188,5 +188,5 @@ void test_cuda_nonlinear_quadratic( comm::Machine machine ,
 
 //----------------------------------------------------------------------------
 
-#endif  /* #if defined( KOKKOS_HAVE_CUDA ) */
+#endif  /* #if defined( KOKKOS_ENABLE_CUDA ) */
 

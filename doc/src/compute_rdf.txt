@@ -10,21 +10,27 @@ compute rdf command :h3
 
 [Syntax:]
 
-compute ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ... :pre
+compute ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ... keyword/value ... :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-rdf = style name of this compute command
-Nbin = number of RDF bins
-itypeN = central atom type for Nth RDF histogram (see asterisk form below)
-jtypeN = distribution atom type for Nth RDF histogram (see asterisk form below) :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+rdf = style name of this compute command :l
+Nbin = number of RDF bins :l
+itypeN = central atom type for Nth RDF histogram (see asterisk form below) :l
+jtypeN = distribution atom type for Nth RDF histogram (see asterisk form below) :l
+
+zero or more keyword/value pairs may be appended :l
+keyword = {cutoff} :l
+  {cutoff} value = Rcut
+    Rcut = cutoff distance for RDF computation (distance units) :pre
+:ule
 
 [Examples:]
 
 compute 1 all rdf 100
 compute 1 all rdf 100 1 1
-compute 1 all rdf 100 * 3
+compute 1 all rdf 100 * 3 cutoff 5.0
 compute 1 fluid rdf 500 1 1 1 2 2 1 2 2
-compute 1 fluid rdf 500 1*3 2 5 *10 :pre
+compute 1 fluid rdf 500 1*3 2 5 *10 cutoff 3.5 :pre
 
 [Description:]
 
@@ -32,7 +38,8 @@ Define a computation that calculates the radial distribution function
 (RDF), also called g(r), and the coordination number for a group of
 particles.  Both are calculated in histogram form by binning pairwise
 distances into {Nbin} bins from 0.0 to the maximum force cutoff
-defined by the "pair_style"_pair_style.html command.  The bins are of
+defined by the "pair_style"_pair_style.html command or the cutoff
+distance {Rcut} specified via the {cutoff} keyword.  The bins are of
 uniform size in radial distance.  Thus a single bin encompasses a thin
 shell of distances in 3d and a thin ring of distances in 2d.
 
@@ -41,16 +48,40 @@ NOTE: If you have a bonded system, then the settings of
 interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the "special_bonds"_special_bonds.html
 command, and means those pairwise interactions do not appear in the
-neighbor list.  Because this fix uses the neighbor list, it also means
+neighbor list.  Because this fix uses a neighbor list, it also means
 those pairs will not be included in the RDF. This does not apply when
-using long-range coulomb ({coul/long}, {coul/msm}, {coul/wolf} or
-similar.  One way to get around this would be to set special_bond
-scaling factors to very tiny numbers that are not exactly zero
-(e.g. 1.0e-50). Another workaround is to write a dump file, and use
-the "rerun"_rerun.html command to compute the RDF for snapshots in the
-dump file.  The rerun script can use a
+using long-range coulomb interactions ({coul/long}, {coul/msm},
+{coul/wolf} or similar.  One way to get around this would be to set
+special_bond scaling factors to very tiny numbers that are not exactly
+zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
+use the "rerun"_rerun.html command to compute the RDF for snapshots in
+the dump file.  The rerun script can use a
 "special_bonds"_special_bonds.html command that includes all pairs in
 the neighbor list.
+
+By default the RDF is computed out to the maximum force cutoff defined
+by the "pair_style"_pair_style.html command.  If the {cutoff} keyword
+is used, then the RDF is computed accurately out to the {Rcut} > 0.0
+distance specified.
+
+NOTE: Normally, you should only use the {cutoff} keyword if no pair
+style is defined, e.g. the "rerun"_rerun.html command is being used to
+post-process a dump file of snapshots.  Or if you really want the RDF
+for distances beyond the pair_style force cutoff and cannot easily
+post-process a dump file to calculate it.  This is because using the
+{cutoff} keyword incurs extra computation and possibly communication,
+which may slow down your simulation.  If you specify a {Rcut} <= force
+cutoff, you will force an additional neighbor list to be built at
+every timestep this command is invoked (or every reneighboring
+timestep, whichever is less frequent), which is inefficient.  LAMMPS
+will warn you if this is the case.  If you specify a {Rcut} > force
+cutoff, you must insure ghost atom information out to {Rcut} + {skin}
+is communicated, via the "comm_modify cutoff"_comm_modify.html
+command, else the RDF computation cannot be performed, and LAMMPS will
+give an error message.  The {skin} value is what is specified with the
+"neighbor"_neighbor.html command.  In this case, you are forcing a
+large neighbor list to be built just for the RDF computation, and
+extra communication to be performed every timestep.
 
 The {itypeN} and {jtypeN} arguments are optional.  These arguments
 must come in pairs.  If no pairs are listed, then a single histogram
@@ -149,8 +180,19 @@ will register an arbitrarily large spike at whatever distance they
 happen to be at, and zero everywhere else.  Coord(r) will show a step
 change from zero to one at the location of the spike in g(r).
 
+NOTE: compute rdf can handle dynamic groups and systems where atoms
+are added or removed, but this causes that certain normalization
+parameters need to be recomputed in every step and include collective
+communication operations. This will reduce performance and limit
+parallel efficiency and scaling. For systems, where only the type
+of atoms changes (e.g. when using "fix atom/swap"_fix_atom_swap.html),
+you need to explicitly request the dynamic normalization updates
+via "compute_modify dynamic yes"_compute_modify.html
+
 [Related commands:]
 
-"fix ave/time"_fix_ave_time.html
+"fix ave/time"_fix_ave_time.html, "compute_modify"_compute_modify.html
 
-[Default:] none
+[Default:]
+
+The keyword defaults are cutoff = 0.0 (use the pairwise force cutoff).

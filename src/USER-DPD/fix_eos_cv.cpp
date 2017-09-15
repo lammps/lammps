@@ -34,7 +34,6 @@ FixEOScv::FixEOScv(LAMMPS *lmp, int narg, char **arg) :
   cvEOS = force->numeric(FLERR,arg[3]);
   if(cvEOS <= 0.0) error->all(FLERR,"EOS cv must be > 0.0");
 
-  restart_peratom = 1;
   nevery = 1;
 
   if (atom->dpd_flag != 1)
@@ -70,8 +69,8 @@ void FixEOScv::init()
       if (mask[i] & groupbit) {
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
-        uCond[i] = 0.5*cvEOS*dpdTheta[i];
-        uMech[i] = 0.5*cvEOS*dpdTheta[i];
+        uCond[i] = 0.0;
+        uMech[i] = cvEOS*dpdTheta[i];
       }
   }
 }

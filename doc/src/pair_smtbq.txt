@@ -36,7 +36,7 @@ atoms. This interactions depend on interatomic distance
 
 The parameters appearing in the upper expressions are set in the
 ffield.SMTBQ.Syst file where Syst corresponds to the selected system
-(e.g. field.SMTBQ.Al2O3). Exemples for TiO<sub>2</sub>,
+(e.g. field.SMTBQ.Al2O3). Examples for TiO<sub>2</sub>,
 Al<sub>2</sub>O<sub>3</sub> are provided.  A single pair_coeff command
 is used with the SMTBQ styles which provides the path to the potential
 file with parameters for needed elements. These are mapped to LAMMPS
@@ -51,7 +51,7 @@ pair_coeff * * PathToLammps/potentials/ffield.smtbq.TiO2 O Ti :pre
 The electrostatic part of the energy consists of two components :
 self-energy of atom {i} in the form of a second order charge dependent
 polynomial and a long-range Coulombic electrostatic interaction. The
-latter uses the wolf summation method described in "Wolf"_#Wolf,
+latter uses the wolf summation method described in "Wolf"_#Wolf2,
 spherically truncated at a longer cutoff, {R<sub>coul</sub>}. The
 charge of each ion is modeled by an orbital Slater which depends on
 the principal quantum number ({n}) of the outer orbital shared by the
@@ -117,7 +117,7 @@ neighbors.
 
 The SMTB-Q potential is a variable charge potential. The equilibrium
 charge on each atom is calculated by the electronegativity
-equalization (QEq) method. See "Rick"_#Rick for further detail. One
+equalization (QEq) method. See "Rick"_#Rick3 for further detail. One
 can adjust the frequency, the maximum number of iterative loop and the
 convergence of the equilibrium charge calculation. To obtain the
 energy conservation in NVE thermodynamic ensemble, we recommend to use
@@ -252,10 +252,10 @@ H. Jonsson, J. Phys. Chem. C 2015, 119, 10391-10399
 [(SMTB-Q_3)] R. Tetot, N. Salles, S. Landron, E. Amzallag, Surface
 Science 616, 19-8722 28 (2013)
 
-:link(Wolf)
+:link(Wolf2)
 [(Wolf)] D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
 Phys, 110, 8254 (1999).
 
-:link(Rick)
+:link(Rick3)
 [(Rick)] S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).

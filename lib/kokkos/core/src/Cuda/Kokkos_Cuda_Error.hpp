@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -45,9 +45,7 @@
 #define KOKKOS_CUDA_ERROR_HPP
 
 #include <Kokkos_Macros.hpp>
-
-/* only compile this file if CUDA is enabled for Kokkos */
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 namespace Kokkos { namespace Impl {
 
@@ -65,5 +63,6 @@ inline void cuda_internal_safe_call( cudaError e , const char * name, const char
 
 }} // namespace Kokkos::Impl
 
-#endif //KOKKOS_HAVE_CUDA
+#endif //KOKKOS_ENABLE_CUDA
 #endif //KOKKOS_CUDA_ERROR_HPP
+

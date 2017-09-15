@@ -151,9 +151,9 @@ The option default for the {energy} keyword is energy = no.
 :line
 
 :link(Strong)
-[(Strong)] Strong and Eaves, J. Phys. Chem. Lett. 7, 1907 (2016).
+[(Strong)] Strong and Eaves, J. Phys. Chem. B 121, 189 (2017).
 
-:link(Evans)
+:link(Evans2)
 [(Evans)] Evans and Morriss, Phys. Rev. Lett. 56, 2172 (1986).
 
 :link(Zhu)

@@ -18,7 +18,8 @@
 
 NPairStyle(skip/omp,
            NPairSkip,
-           NP_SKIP | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI |
+           NP_SKIP | NP_HALF | NP_FULL |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_OMP)
 
 NPairStyle(skip/half/respa/omp,
@@ -43,6 +44,12 @@ NPairStyle(skip/size/off2on/oneside/omp,
            NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF |
            NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON | NP_NEWTOFF |
            NP_ORTHO | NP_TRI | NP_OMP)
+
+NPairStyle(skip/ghost/omp,
+           NPairSkip,
+           NP_SKIP | NP_HALF | NP_FULL |
+           NP_NSQ | NP_BIN | NP_MULTI |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_OMP | NP_GHOST)
 
 #endif
 

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,13 +36,13 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 
@@ -53,7 +53,7 @@
 
 int main( int argc , char ** argv )
 {
-#if defined( KOKKOS_HAVE_CUDA ) || defined( KOKKOS_HAVE_PTHREAD ) || defined( KOKKOS_HAVE_OPENMP )
+#if defined( KOKKOS_ENABLE_CUDA ) || defined( KOKKOS_ENABLE_THREADS ) || defined( KOKKOS_ENABLE_OPENMP )
   Kokkos::initialize( argc , argv );
 
   int length_array = 100000 ;
@@ -66,21 +66,21 @@ int main( int argc , char ** argv )
 
   int length_total_array  = length_array * 100;
 
-#if defined( KOKKOS_HAVE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA )
   if ( Kokkos::Cuda::is_initialized() ) {
     std::cout << "Kokkos::Cuda" << std::endl ;
     Example::sort_array< Kokkos::Cuda >( length_array , length_total_array );
   }
 #endif
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_ENABLE_THREADS )
   if ( Kokkos::Threads::is_initialized() ) {
     std::cout << "Kokkos::Threads" << std::endl ;
     Example::sort_array< Kokkos::Threads >( length_array , length_total_array );
   }
 #endif
 
-#if defined( KOKKOS_HAVE_OPENMP )
+#if defined( KOKKOS_ENABLE_OPENMP )
   if ( Kokkos::OpenMP::is_initialized() ) {
     std::cout << "Kokkos::OpenMP" << std::endl ;
     Example::sort_array< Kokkos::OpenMP >( length_array , length_total_array );

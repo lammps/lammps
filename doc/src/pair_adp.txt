@@ -68,7 +68,7 @@ See the "pair_coeff"_pair_coeff.html doc page for alternate ways to
 specify the path for the potential file.
 
 As an example, the potentials/AlCu.adp file, included in the
-potentials directory of the LAMMPS distrbution, is an extended {setfl}
+potentials directory of the LAMMPS distribution, is an extended {setfl}
 file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
 and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
@@ -137,7 +137,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

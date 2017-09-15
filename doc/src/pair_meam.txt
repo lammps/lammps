@@ -7,10 +7,13 @@
 :line
 
 pair_style meam command :h3
+pair_style meam/c command :h3
 
 [Syntax:]
 
-pair_style meam :pre
+pair_style style :pre
+
+style = {meam} or {meam/c}
 
 [Examples:]
 
@@ -30,7 +33,8 @@ using modified embedded-atom method (MEAM) potentials
 "EAM potentials"_pair_eam.html which adds angular forces.  It is
 thus suitable for modeling metals and alloys with fcc, bcc, hcp and
 diamond cubic structures, as well as covalently bonded materials like
-silicon and carbon.
+silicon and carbon. Style {meam/c} is a translation of the {meam} code
+from (mostly) Fortran to C++. It is functionally equivalent to {meam}.
 
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
@@ -259,7 +263,7 @@ The augt1 parameter is related to modifications in the MEAM
 formulation of the partial electron density function.  In recent
 literature, an extra term is included in the expression for the
 third-order density in order to make the densities orthogonal (see for
-example "(Wang)"_#Wang, equation 3d); this term is included in the
+example "(Wang)"_#Wang2, equation 3d); this term is included in the
 MEAM implementation in lammps.  However, in earlier published work
 this term was not included when deriving parameters, including most of
 those provided in the library.meam file included with lammps, and to
@@ -331,10 +335,14 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This style is part of the MEAM package.  It is only enabled if LAMMPS
+The {meam} style is part of the MEAM package.  It is only enabled if LAMMPS
 was built with that package, which also requires the MEAM library be
-built and linked with LAMMPS.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built and linked with LAMMPS.
+The {meam/c} style is provided in the USER-MEAMC package. It is only enabled
+if LAMMPS was built with that package. In contrast to the {meam} style,
+{meam/c} does not require a separate library to be compiled and it can be
+instantiated multiple times in a "hybrid"_pair_hybrid.html pair style.
+See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
@@ -363,7 +371,7 @@ This report may be accessed on-line via "this link"_sandreport.
 :link(Valone)
 [(Valone)] Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
 
-:link(Wang)
+:link(Wang2)
 [(Wang)] Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
 
 :link(ZBL)

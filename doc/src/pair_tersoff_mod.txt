@@ -31,7 +31,7 @@ pair_coeff * * Si.tersoff.modc Si Si :pre
 
 The {tersoff/mod} and {tersoff/mod/c} styles computes a bond-order type
 interatomic potential "(Kumagai)"_#Kumagai based on a 3-body Tersoff
-potential "(Tersoff_1)"_#Tersoff_1, "(Tersoff_2)"_#Tersoff_2 with
+potential "(Tersoff_1)"_#Tersoff_12, "(Tersoff_2)"_#Tersoff_22 with
 modified cutoff function and angular-dependent term, giving the energy
 E of a system of atoms as
 
@@ -143,7 +143,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -194,10 +194,10 @@ appropriate units if your simulation doesn't use "metal" units.
 [(Kumagai)] T. Kumagai, S. Izumi, S. Hara, S. Sakai,
 Comp. Mat. Science, 39, 457 (2007).
 
-:link(Tersoff_1)
+:link(Tersoff_12)
 [(Tersoff_1)] J. Tersoff, Phys Rev B, 37, 6991 (1988).
 
-:link(Tersoff_2)
+:link(Tersoff_22)
 [(Tersoff_2)] J. Tersoff, Phys Rev B, 38, 9902 (1988).
 
 :link(Murty)

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,11 +44,10 @@
 
 #include <Kokkos_Macros.hpp>
 
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <memory.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 #include <iostream>
 #include <sstream>
@@ -58,70 +57,18 @@
 #include <Kokkos_HBWSpace.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Kokkos_Atomic.hpp>
-#ifdef KOKKOS_HAVE_HBWSPACE
+#ifdef KOKKOS_ENABLE_HBWSPACE
 #include <memkind.h>
+#endif
+
+#if defined(KOKKOS_ENABLE_PROFILING)
+#include <impl/Kokkos_Profiling_Interface.hpp>
 #endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-#ifdef KOKKOS_HAVE_HBWSPACE
+#ifdef KOKKOS_ENABLE_HBWSPACE
 #define MEMKIND_TYPE MEMKIND_HBW //hbw_get_kind(HBW_PAGESIZE_4KB)
-
-namespace Kokkos {
-namespace Experimental {
-namespace {
-
-static const int QUERY_SPACE_IN_PARALLEL_MAX = 16 ;
-
-typedef int (* QuerySpaceInParallelPtr )();
-
-QuerySpaceInParallelPtr s_in_parallel_query[ QUERY_SPACE_IN_PARALLEL_MAX ] ;
-int s_in_parallel_query_count = 0 ;
-
-} // namespace <empty>
-
-void HBWSpace::register_in_parallel( int (*device_in_parallel)() )
-{
-  if ( 0 == device_in_parallel ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Experimental::HBWSpace::register_in_parallel ERROR : given NULL" ) );
-  }
-
-  int i = -1 ;
-
-  if ( ! (device_in_parallel)() ) {
-    for ( i = 0 ; i < s_in_parallel_query_count && ! (*(s_in_parallel_query[i]))() ; ++i );
-  }
-
-  if ( i < s_in_parallel_query_count ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Experimental::HBWSpace::register_in_parallel_query ERROR : called in_parallel" ) );
-
-  }
-
-  if ( QUERY_SPACE_IN_PARALLEL_MAX <= i ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Experimental::HBWSpace::register_in_parallel_query ERROR : exceeded maximum" ) );
-
-  }
-
-  for ( i = 0 ; i < s_in_parallel_query_count && s_in_parallel_query[i] != device_in_parallel ; ++i );
-
-  if ( i == s_in_parallel_query_count ) {
-    s_in_parallel_query[s_in_parallel_query_count++] = device_in_parallel ;
-  }
-}
-
-int HBWSpace::in_parallel()
-{
-  const int n = s_in_parallel_query_count ;
-
-  int i = 0 ;
-
-  while ( i < n && ! (*(s_in_parallel_query[i]))() ) { ++i ; }
-
-  return i < n ;
-}
-
-} // namespace Experiemtal
-} // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 
@@ -194,7 +141,7 @@ void * HBWSpace::allocate( const size_t arg_alloc_size ) const
     case STD_MALLOC: msg << "STD_MALLOC" ; break ;
     }
     msg << " ]( " << arg_alloc_size << " ) FAILED" ;
-    if ( ptr == NULL ) { msg << " NULL" ; } 
+    if ( ptr == NULL ) { msg << " NULL" ; }
     else { msg << " NOT ALIGNED " << ptr ; }
 
     std::cerr << msg.str() << std::endl ;
@@ -214,9 +161,13 @@ void HBWSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_s
     if ( m_alloc_mech == STD_MALLOC ) {
       void * alloc_ptr = *(reinterpret_cast<void **>(arg_alloc_ptr) -1);
       memkind_free(MEMKIND_TYPE, alloc_ptr );
-    }    
+    }
 
   }
+}
+
+constexpr const char* HBWSpace::name() {
+  return m_name;
 }
 
 } // namespace Experimental
@@ -226,7 +177,6 @@ void HBWSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_s
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 SharedAllocationRecord< void , void >
@@ -242,6 +192,14 @@ deallocate( SharedAllocationRecord< void , void > * arg_rec )
 SharedAllocationRecord< Kokkos::Experimental::HBWSpace , void >::
 ~SharedAllocationRecord()
 {
+  #if defined(KOKKOS_ENABLE_PROFILING)
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::deallocateData(
+      Kokkos::Profiling::SpaceHandle(Kokkos::Experimental::HBWSpace::name()),RecordBase::m_alloc_ptr->m_label,
+      data(),size());
+  }
+  #endif
+
   m_space.deallocate( SharedAllocationRecord< void , void >::m_alloc_ptr
                     , SharedAllocationRecord< void , void >::m_alloc_size
                     );
@@ -263,6 +221,12 @@ SharedAllocationRecord( const Kokkos::Experimental::HBWSpace & arg_space
       )
   , m_space( arg_space )
 {
+  #if defined(KOKKOS_ENABLE_PROFILING)
+  if(Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::allocateData(Kokkos::Profiling::SpaceHandle(arg_space.name()),arg_label,data(),arg_alloc_size);
+  }
+  #endif
+
   // Fill in the Header information
   RecordBase::m_alloc_ptr->m_record = static_cast< SharedAllocationRecord< void , void > * >( this );
 
@@ -276,7 +240,7 @@ SharedAllocationRecord( const Kokkos::Experimental::HBWSpace & arg_space
 
 void * SharedAllocationRecord< Kokkos::Experimental::HBWSpace , void >::
 allocate_tracked( const Kokkos::Experimental::HBWSpace & arg_space
-                , const std::string & arg_alloc_label 
+                , const std::string & arg_alloc_label
                 , const size_t arg_alloc_size )
 {
   if ( ! arg_alloc_size ) return (void *) 0 ;
@@ -306,7 +270,7 @@ reallocate_tracked( void * const arg_alloc_ptr
   SharedAllocationRecord * const r_old = get_record( arg_alloc_ptr );
   SharedAllocationRecord * const r_new = allocate( r_old->m_space , r_old->get_label() , arg_alloc_size );
 
-  Kokkos::Impl::DeepCopy<HBWSpace,HBWSpace>( r_new->data() , r_old->data()
+  Kokkos::Impl::DeepCopy<Kokkos::Experimental::HBWSpace,Kokkos::Experimental::HBWSpace>( r_new->data() , r_old->data()
                                              , std::min( r_old->size() , r_new->size() ) );
 
   RecordBase::increment( r_new );
@@ -325,7 +289,7 @@ SharedAllocationRecord< Kokkos::Experimental::HBWSpace , void >::get_record( voi
   RecordHost                   * const record = head ? static_cast< RecordHost * >( head->m_record ) : (RecordHost *) 0 ;
 
   if ( ! alloc_ptr || record->m_alloc_ptr != head ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::Experimental::HBWSpace , void >::get_record ERROR" ) );
+    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::HBWSpace , void >::get_record ERROR" ) );
   }
 
   return record ;
@@ -339,7 +303,6 @@ print_records( std::ostream & s , const Kokkos::Experimental::HBWSpace & space ,
 }
 
 } // namespace Impl
-} // namespace Experimental
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -377,3 +340,4 @@ void unlock_address_hbw_space(void* ptr) {
 }
 }
 #endif
+

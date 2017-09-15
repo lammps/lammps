@@ -85,7 +85,7 @@ Kappa = 3.45
 (4) in.mp 
 
 dQ = 15087 / 100 / 18.82^2 / 2
-  15087 = cummulative delta energy, tallied by fix thermal/conductivity
+  15087 = cumulative delta energy, tallied by fix thermal/conductivity
   100 = 20,000 steps at 0.005 tau timestep = run time in tau
   xy box area = 18.82^2
   divide by 2 since energy flux goes in 2 directions due to periodic z

@@ -1,5 +1,5 @@
 #!/usr/bin/env python -i
-# preceeding line should have path for Python on your machine
+# preceding line should have path for Python on your machine
 
 # vizplotgui_atomeye.py
 # Purpose: viz running LAMMPS simulation via AtomEye with plot and GUI
@@ -73,7 +73,7 @@ lmp = lammps()
 
 lmp.file(infile)
 lmp.command("thermo %d" % nfreq)
-lmp.command("dump python all cfg %d tmp.cfg.* id type xs ys zs" % nfreq)
+lmp.command("dump python all cfg %d tmp.cfg.* mass type xs ys zs id" % nfreq)
 
 # initial 0-step run to generate initial 1-point plot, dump file, and image
 

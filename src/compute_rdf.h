@@ -35,8 +35,11 @@ class ComputeRDF : public Compute {
 
  private:
   int nbin;              // # of rdf bins
+  int cutflag;           // user cutoff flag
   int npairs;            // # of rdf pairs
   double delr,delrinv;   // bin width and its inverse
+  double cutoff_user;    // user-specified cutoff
+  double mycutneigh;     // user-specified cutoff + neighbor skin
   int ***rdfpair;        // map 2 type pair to rdf pair for each histo
   int **nrdfpair;        // # of histograms for each type pair
   int *ilo,*ihi,*jlo,*jhi;
@@ -48,6 +51,8 @@ class ComputeRDF : public Compute {
   int *duplicates;
 
   class NeighList *list; // half neighbor list
+  void init_norm();
+  bigint natoms_old;
 };
 
 }

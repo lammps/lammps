@@ -136,7 +136,7 @@ An array is produced if multiple input values are specified.
 The length of the vector or the number of rows in the array grows
 by 1 every {Nevery} timesteps.
 
-If the fix prouduces a vector, then the entire vector will be either
+If the fix produces a vector, then the entire vector will be either
 "intensive" or "extensive", depending on whether the values stored in
 the vector are "intensive" or "extensive".  If the fix produces an
 array, then all elements in the array must be the same, either

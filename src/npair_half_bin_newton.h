@@ -15,7 +15,7 @@
 
 NPairStyle(half/bin/newton,
            NPairHalfBinNewton,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO)
+           NP_HALF | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO)
 
 #else
 

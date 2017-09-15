@@ -12,7 +12,7 @@ balance command :h3
 
 balance thresh style args ... keyword args ... :pre
 
-thresh = imbalance threshhold that must be exceeded to perform a re-balance :ulb,l
+thresh = imbalance threshold that must be exceeded to perform a re-balance :ulb,l
 one style/arg pair can be used (or multiple for {x},{y},{z}) :l
 style = {x} or {y} or {z} or {shift} or {rcb} :l
   {x} args = {uniform} or Px-1 numbers between 0 and 1
@@ -30,7 +30,7 @@ style = {x} or {y} or {z} or {shift} or {rcb} :l
   {shift} args = dimstr Niter stopthresh
     dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
     Niter = # of times to iterate within each dimension of dimstr sequence
-    stopthresh = stop balancing when this imbalance threshhold is reached
+    stopthresh = stop balancing when this imbalance threshold is reached
   {rcb} args = none :pre
 zero or more keyword/arg pairs may be appended :l
 keyword = {weight} or {out} :l
@@ -76,13 +76,13 @@ sub-domain sizes and shapes on-the-fly during a "run"_run.html.
 
 Load-balancing is typically most useful if the particles in the
 simulation box have a spatially-varying density distribution or when
-the computational cost varies signficantly between different
+the computational cost varies significantly between different
 particles.  E.g. a model of a vapor/liquid interface, or a solid with
 an irregular-shaped geometry containing void regions, or "hybrid pair
 style simulations"_pair_hybrid.html which combine pair styles with
 different computational cost.  In these cases, the LAMMPS default of
 dividing the simulation box volume into a regular-spaced grid of 3d
-bricks, with one equal-volume sub-domain per procesor, may assign
+bricks, with one equal-volume sub-domain per processor, may assign
 numbers of particles per processor in a way that the computational
 effort varies significantly.  This can lead to poor performance when
 the simulation is run in parallel.
@@ -91,7 +91,7 @@ The balancing can be performed with or without per-particle weighting.
 With no weighting, the balancing attempts to assign an equal number of
 particles to each processor.  With weighting, the balancing attempts
 to assign an equal aggregate computational weight to each processor,
-which typically inducces a diffrent number of atoms assigned to each
+which typically induces a different number of atoms assigned to each
 processor.  Details on the various weighting options and examples for
 how they can be used are "given below"_#weighted_balance.
 
@@ -222,7 +222,7 @@ listed in ascending order.  They represent the fractional position of
 the cutting place.  The left (or lower) edge of the box is 0.0, and
 the right (or upper) edge is 1.0.  Neither of these values is
 specified.  Only the interior Ps-1 positions are specified.  Thus is
-there are 2 procesors in the x dimension, you specify a single value
+there are 2 processors in the x dimension, you specify a single value
 such as 0.75, which would make the left processor's sub-domain 3x
 larger than the right processor's sub-domain.
 
@@ -266,7 +266,7 @@ assigned, particles are migrated to their new owning processor, and
 the balance procedure ends.
 
 NOTE: At each rebalance operation, the bisectioning for each cutting
-plane (line in 2d) typcially starts with low and high bounds separated
+plane (line in 2d) typically starts with low and high bounds separated
 by the extent of a processor's sub-domain in one dimension.  The size
 of this bracketing region shrinks by 1/2 every iteration.  Thus if
 {Niter} is specified as 10, the cutting plane will typically be
@@ -286,24 +286,32 @@ above.  It performs a recursive coordinate bisectioning (RCB) of the
 simulation domain. The basic idea is as follows.
 
 The simulation domain is cut into 2 boxes by an axis-aligned cut in
-the longest dimension, leaving one new box on either side of the cut.
-All the processors are also partitioned into 2 groups, half assigned
-to the box on the lower side of the cut, and half to the box on the
-upper side.  (If the processor count is odd, one side gets an extra
-processor.)  The cut is positioned so that the number of particles in
-the lower box is exactly the number that the processors assigned to
-that box should own for load balance to be perfect.  This also makes
-load balance for the upper box perfect.  The positioning is done
-iteratively, by a bisectioning method.  Note that counting particles
-on either side of the cut requires communication between all
-processors at each iteration.
+one of the dimensions, leaving one new sub-box on either side of the
+cut.  Which dimension is chosen for the cut depends on the particle
+(weight) distribution within the parent box.  Normally the longest
+dimension of the box is cut, but if all (or most) of the particles are
+at one end of the box, a cut may be performed in another dimension to
+induce sub-boxes that are more cube-ish (3d) or square-ish (2d) in
+shape.
+
+After the cut is made, all the processors are also partitioned into 2
+groups, half assigned to the box on the lower side of the cut, and
+half to the box on the upper side.  (If the processor count is odd,
+one side gets an extra processor.)  The cut is positioned so that the
+number of (weighted) particles in the lower box is exactly the number
+that the processors assigned to that box should own for load balance
+to be perfect.  This also makes load balance for the upper box
+perfect.  The positioning of the cut is done iteratively, by a
+bisectioning method (median search).  Note that counting particles on
+either side of the cut requires communication between all processors
+at each iteration.
 
 That is the procedure for the first cut.  Subsequent cuts are made
 recursively, in exactly the same manner.  The subset of processors
-assigned to each box make a new cut in the longest dimension of that
-box, splitting the box, the subset of processsors, and the particles
-in the box in two.  The recursion continues until every processor is
-assigned a sub-box of the entire simulation domain, and owns the
+assigned to each box make a new cut in one dimension of that box,
+splitting the box, the subset of processors, and the particles in the
+box in two.  The recursion continues until every processor is assigned
+a sub-box of the entire simulation domain, and owns the (weighted)
 particles in that sub-box.
 
 :line
@@ -368,7 +376,7 @@ of about 0.8 often results in the best performance, since the number
 of neighbors is likely to overestimate the ideal weight.
 
 This weight style is useful for systems where there are different
-cutoffs used for different pairs of interations, or the density
+cutoffs used for different pairs of interactions, or the density
 fluctuates, or a large number of particles are in the vicinity of a
 wall, or a combination of these effects.  If a simulation uses
 multiple neighbor lists, this weight style will use the first suitable
@@ -386,7 +394,7 @@ weights.  It assigns the same weight to each particle owned by a
 processor based on the total computational time spent by that
 processor.  See details below on what time window is used.  It uses
 the same timing information as is used for the "MPI task timing
-breakdown"_Section_start.html#start_8, namely, for sections {Pair},
+breakdown"_Section_start.html#start_7, namely, for sections {Pair},
 {Bond}, {Kspace}, and {Neigh}.  The time spent in those portions of
 the timestep are measured for each MPI rank, summed, then divided by
 the number of particles owned by that processor.  I.e. the weight is
@@ -402,7 +410,7 @@ decrease the weights so that the ratio of max weight to min weight
 decreases by {factor}.  In both cases the intermediate weight values
 increase/decrease proportionally as well.  A value = 1.0 has no effect
 on the {time} weights.  As a rule of thumb, effective values to use
-are typicall between 0.5 and 1.2.  Note that the timer quantities
+are typically between 0.5 and 1.2.  Note that the timer quantities
 mentioned above can be affected by communication which occurs in the
 middle of the operations, e.g. pair styles with intermediate exchange
 of data witin the force computation, and likewise for KSpace solves.

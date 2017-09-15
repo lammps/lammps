@@ -44,11 +44,11 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
-  did_compute = 0;
-  invoked_peratom = invoked_scalar = -1;
+  did_setup = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
   stress = NULL;
   vector = new double[size_peratom_cols];
+  virial = new double[size_peratom_cols];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,6 +57,7 @@ ComputeStressTally::~ComputeStressTally()
 {
   if (force && force->pair) force->pair->del_tally_callback(this);
   memory->destroy(stress);
+  delete[] virial;
   delete[] vector;
 }
 
@@ -65,59 +66,54 @@ ComputeStressTally::~ComputeStressTally()
 void ComputeStressTally::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR,"Trying to use compute stress/tally with no pair style");
+    error->all(FLERR,"Trying to use compute stress/tally without pair style");
   else
     force->pair->add_tally_callback(this);
 
-  if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-    error->all(FLERR,"Compute stress/tally used with incompatible pair style.");
+  if (comm->me == 0) {
+    if (force->pair->single_enable == 0 || force->pair->manybody_flag)
+      error->warning(FLERR,"Compute stress/tally used with incompatible pair style");
 
-  if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
-                          || force->improper || force->kspace))
-    error->warning(FLERR,"Compute stress/tally only called from pair style");
-
-  did_compute = -1;
+    if (force->bond || force->angle || force->dihedral
+                    || force->improper || force->kspace)
+      error->warning(FLERR,"Compute stress/tally only called from pair style");
+  }
+  did_setup = -1;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeStressTally::pair_setup_callback(int, int)
+{
+  const int ntotal = atom->nlocal + atom->nghost;
+
+  // grow per-atom storage, if needed
+
+  if (atom->nmax > nmax) {
+    memory->destroy(stress);
+    nmax = atom->nmax;
+    memory->create(stress,nmax,size_peratom_cols,"stress/tally:stress");
+    array_atom = stress;
+  }
+
+  // clear storage
+
+  for (int i=0; i < ntotal; ++i)
+    for (int j=0; j < size_peratom_cols; ++j)
+      stress[i][j] = 0.0;
+
+  for (int i=0; i < size_peratom_cols; ++i)
+    vector[i] = virial[i] = 0.0;
+
+  did_setup = update->ntimestep;
+}
 
 /* ---------------------------------------------------------------------- */
 void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newton,
                                              double, double, double fpair,
                                              double dx, double dy, double dz)
 {
-  const int ntotal = atom->nlocal + atom->nghost;
   const int * const mask = atom->mask;
-
-  // do setup work that needs to be done only once per timestep
-
-  if (did_compute != update->ntimestep) {
-    did_compute = update->ntimestep;
-
-    // grow local stress array if necessary
-    // needs to be atom->nmax in length
-
-    if (atom->nmax > nmax) {
-      memory->destroy(stress);
-      nmax = atom->nmax;
-      memory->create(stress,nmax,size_peratom_cols,"stress/tally:stress");
-      array_atom = stress;
-    }
-
-    // clear storage as needed
-
-    if (newton) {
-      for (int i=0; i < ntotal; ++i)
-        for (int j=0; j < size_peratom_cols; ++j)
-          stress[i][j] = 0.0;
-    } else {
-      for (int i=0; i < atom->nlocal; ++i)
-        for (int j=0; j < size_peratom_cols; ++j)
-          stress[i][j] = 0.0;
-    }
-
-    for (int i=0; i < size_peratom_cols; ++i)
-      vector[i] = virial[i] = 0.0;
-  }
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
        || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
@@ -191,7 +187,8 @@ void ComputeStressTally::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputeStressTally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
-  if ((did_compute != invoked_scalar) || (update->eflag_global != invoked_scalar))
+  if ((did_setup != invoked_scalar)
+      || (update->eflag_global != invoked_scalar))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // sum accumulated forces across procs
@@ -211,7 +208,8 @@ double ComputeStressTally::compute_scalar()
 void ComputeStressTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
-  if ((did_compute != invoked_peratom) || (update->eflag_global != invoked_peratom))
+  if ((did_setup != invoked_peratom)
+      || (update->eflag_global != invoked_peratom))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms
@@ -244,7 +242,7 @@ void ComputeStressTally::compute_peratom()
 
 double ComputeStressTally::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax*size_peratom_cols * sizeof(double);
   return bytes;
 }
 

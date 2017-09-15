@@ -2,7 +2,7 @@
 # polarizer.py - add Drude oscillators to LAMMPS data file.
 # Agilio Padua <agilio.padua@univ-bpclermont.fr>
 # Alain Dequidt <alain.dequidt@univ-bpclermont.fr>
-# version 2015/07/17
+# version 2017/02/08
 
 import sys
 import argparse
@@ -38,9 +38,9 @@ identification of the atom types within the force field database:
 This script will add new atom types, new bond types, new atoms and
 new bonds to the data file.
 
-It will also print some commands to be included in the LAMMPS input script,
+It will also generate some commands to be included in the LAMMPS input script,
 which are related to the topology and force field, namely fix drude,
-pair_style and pair coeff_commands. For information on thermostating please
+pair_style and pair_coeff commands. For information on thermostating please
 read the documentation of the USER-DRUDE package.
 
 This tool can also be used to revert a Drude-polarized data file to a
@@ -549,6 +549,8 @@ class Data(object):
     def lmpscript(self, drude, outfile, thole = 2.6, cutoff = 12.0):
         """print lines for input script, including pair_style thole"""
 
+        pairfile = "pair-drude.lmp"
+        
         dfound = False
         for att in self.atomtypes:
             if att['dflag'] == 'd':
@@ -560,48 +562,58 @@ class Data(object):
 
         print("# Commands to include in the LAMMPS input script\n")
 
-        print("# adapt the pair_style line as needed")
-        print("pair_style hybrid/overlay ... coul/long {0:.1f} "\
+        print("# adapt the pair_style command as needed")
+        print("pair_style hybrid/overlay ... coul/long/cs {0:.1f} "\
               "thole {1:.3f} {0:.1f}\n".format(cutoff, thole))
 
+        print("# data file with Drude oscillators added")
         print("read_data {0}\n".format(outfile))
 
-        print("# add interactions between any atoms and Drude particles")
-        print("pair_coeff    *   {0}* coul/long".format(att['id']))
+        print("# pair interactions with Drude particles written to file")
+        print("# Thole damping recommended if more than 1 Drude per molecule")
+        print("include {0}\n".format(pairfile))
 
-        # Thole parameters for I,J pairs
-        print("# add Thole screening if more than 1 Drude per molecule")
-        ifound = False
-        for atti in self.atomtypes:
-            itype = atti['type'].split()[0]
-            for ddt in drude.types:
-                dtype = ddt['type'].split()[0]
-                if dtype == itype:
-                    alphai = ddt['alpha']
-                    tholei = ddt['thole']
-                    ifound = True
-                    break
-            jfound = False
-            for attj in self.atomtypes:
-                if attj['id'] < atti['id']:
-                    continue
-                jtype = attj['type'].split()[0]
+        with open(pairfile, "w") as f:
+            f.write("# interactions involving Drude particles\n")
+            f.write("pair_coeff    * {0:3d}* coul/long/cs\n".format(att['id']))
+
+            f.write("# Thole damping if more than 1 Drude per molecule\n")
+            # Thole parameters for I,J pairs
+            ifound = False
+            for atti in self.atomtypes:
+                itype = atti['type'].split()[0]
                 for ddt in drude.types:
                     dtype = ddt['type'].split()[0]
-                    if dtype == jtype:
-                        alphaj = ddt['alpha']
-                        tholej = ddt['thole']
-                        jfound = True
+                    if dtype == itype:
+                        alphai = ddt['alpha']
+                        tholei = ddt['thole']
+                        ifound = True
                         break
-                if ifound and jfound:
-                    alphaij = (alphai * alphaj)**0.5
-                    tholeij = (tholei + tholej) / 2.0
-                    print("pair_coeff {0:4} {1:4} thole {2:7.3f} "\
-                          "{3:7.3f}".format(atti['id'], attj['id'],
-                                            alphaij, tholeij))
                 jfound = False
-            ifound = False
-        print("")
+                for attj in self.atomtypes:
+                    if attj['id'] < atti['id']:
+                        continue
+                    jtype = attj['type'].split()[0]
+                    for ddt in drude.types:
+                        dtype = ddt['type'].split()[0]
+                        if dtype == jtype:
+                            alphaj = ddt['alpha']
+                            tholej = ddt['thole']
+                            jfound = True
+                            break
+                    if ifound and jfound:
+                        alphaij = (alphai * alphaj)**0.5
+                        tholeij = (tholei + tholej) / 2.0
+                        if tholeij == thole:
+                            f.write("pair_coeff {0:4} {1:4} thole "\
+                                  "{2:7.3f}\n".format(atti['id'], attj['id'],
+                                                      alphaij))
+                        else:
+                            f.write("pair_coeff {0:4} {1:4} thole {2:7.3f} "\
+                                  "{3:7.3f}\n".format(atti['id'],attj['id'],
+                                                        alphaij, tholeij))
+                    jfound = False
+                ifound = False
 
         print("# atom groups convenient for thermostats (see package "
               "documentation), etc.")
@@ -626,12 +638,19 @@ class Data(object):
         print("")
 
         print("# ATTENTION!")
-        print("#  * special_bonds may need 'extra' keyword, LAMMPS will exit "
-              "with a message")
-        print("#  * give all I<=J pair interactions, no mixing")
-        print("#  * if using fix shake the group-ID must not include "
-              "Drude particles")
-        print("#    use group ATOMS for example")
+        print("#  * read_data may need 'extra/special/per/atom' keyword, "
+              "LAMMPS will exit with a message.")
+        print("#  * If using fix shake the group-ID must not include "
+              "Drude particles.")
+        print("#    Use group ATOMS for example.")
+        print("#  * Give all I<=J pair interactions, no mixing.")
+        print("#  * Pair style coul/long/cs from CORESHELL package is used "\
+              "for interactions")
+        print("#    of Drude particles. Alternatively pair lj/cut/thole/long "\
+              "could be used,")
+        print("#    avoiding hybrid/overlay and allowing mixing. See doc "\
+              "pages.")
+
 
 # --------------------------------------
 

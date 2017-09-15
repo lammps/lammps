@@ -84,1757 +84,100 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   Bij function
+   create REBO neighbor list from main neighbor list
+   REBO neighbor list stores neighbors of ghost atoms
 ------------------------------------------------------------------------- */
 
-double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
-                                    double VA, int vflag_atom, ThrData * const thr)
+void PairAIREBOOMP::REBO_neigh_thr()
 {
-  int atomi,atomj,k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
-  int itype,jtype,ktype,ltype,ntype;
-  double rik[3],rjl[3],rkn[3],rji[3],rki[3],rlj[3],rknmag,dNki,dwjl,bij;
-  double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
-  double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
-  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ,Nki,Nlj,dS;
-  double lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
-  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
-  double dN2[2],dN3[3];
-  double dcosjikdrj[3],dcosijldrj[3],dcosijldrl[3];
-  double Tij;
-  double r32[3],r32mag,cos321,r43[3],r13[3];
-  double dNlj;
-  double om1234,rln[3];
-  double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
-  double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
-  double cross321[3],cross234[3],prefactor,SpN;
-  double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
-  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
-  double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
-  double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
-  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
-  double F23[3],F12[3],F34[3],F31[3],F24[3],fi[3],fj[3],fk[3],fl[3];
-  double f1[3],f2[3],f3[3],f4[4];
-  double dcut321,PijS,PjiS;
-  double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
-  int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
+  const int nthreads = comm->nthreads;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  int *type = atom->type;
-
-  atomi = i;
-  atomj = j;
-  itype = map[type[i]];
-  jtype = map[type[j]];
-  wij = Sp(rijmag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
-  NijC = nC[i]-(wij*kronecker(jtype,0));
-  NijH = nH[i]-(wij*kronecker(jtype,1));
-  NjiC = nC[j]-(wij*kronecker(itype,0));
-  NjiH = nH[j]-(wij*kronecker(itype,1));
-  bij = 0.0;
-  tmp = 0.0;
-  tmp2 = 0.0;
-  tmp3 = 0.0;
-  dgdc = 0.0;
-  dgdN = 0.0;
-  NconjtmpI = 0.0;
-  NconjtmpJ = 0.0;
-  Etmp = 0.0;
-
-  REBO_neighs = REBO_firstneigh[i];
-  for (k = 0; k < REBO_numneigh[i]; k++) {
-    atomk = REBO_neighs[k];
-    if (atomk != atomj) {
-      ktype = map[type[atomk]];
-      rik[0] = x[atomi][0]-x[atomk][0];
-      rik[1] = x[atomi][1]-x[atomk][1];
-      rik[2] = x[atomi][2]-x[atomk][2];
-      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-      lamdajik = 4.0*kronecker(itype,1) *
-        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
-      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
-      Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
-        (wik*kronecker(itype,1));
-      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
-        (rijmag*rikmag);
-      cosjik = MIN(cosjik,1.0);
-      cosjik = MAX(cosjik,-1.0);
-
-      // evaluate splines g and derivatives dg
-
-      g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-      Etmp = Etmp+(wik*g*exp(lamdajik));
-      tmp3 = tmp3+(wik*dgdN*exp(lamdajik));
-      NconjtmpI = NconjtmpI+(kronecker(ktype,0)*wik*Sp(Nki,Nmin,Nmax,dS));
-    }
+  if (atom->nmax > maxlocal) {
+    maxlocal = atom->nmax;
+    memory->destroy(REBO_numneigh);
+    memory->sfree(REBO_firstneigh);
+    memory->destroy(nC);
+    memory->destroy(nH);
+    memory->create(REBO_numneigh,maxlocal,"AIREBO:numneigh");
+    REBO_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
+                                               "AIREBO:firstneigh");
+    memory->create(nC,maxlocal,"AIREBO:nC");
+    memory->create(nH,maxlocal,"AIREBO:nH");
   }
 
-  PijS = 0.0;
-  dN2[0] = 0.0;
-  dN2[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
-  pij = 1.0/sqrt(1.0+Etmp+PijS);
-  tmp = -0.5*pij*pij*pij;
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+  {
+    int i,j,ii,jj,n,jnum,itype,jtype;
+    double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
+    int *ilist,*jlist,*numneigh,**firstneigh;
+    int *neighptr;
 
-  const double invrijm = 1.0/rijmag;
-  const double invrijm2 = invrijm*invrijm;
+    double **x = atom->x;
+    int *type = atom->type;
 
-  // pij forces
+    const int allnum = list->inum + list->gnum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
 
-  REBO_neighs = REBO_firstneigh[i];
-  for (k = 0; k < REBO_numneigh[i]; k++) {
-    atomk = REBO_neighs[k];
-    if (atomk != atomj) {
-      ktype = map[type[atomk]];
-      rik[0] = x[atomi][0]-x[atomk][0];
-      rik[1] = x[atomi][1]-x[atomk][1];
-      rik[2] = x[atomi][2]-x[atomk][2];
-      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-      lamdajik = 4.0*kronecker(itype,1) *
-        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
-      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+#if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+#else
+    const int tid = 0;
+#endif
 
-      const double invrikm = 1.0/rikmag;
-      const double invrijkm = invrijm*invrikm;
-      const double invrikm2 = invrikm*invrikm;
+    const int iidelta = 1 + allnum/nthreads;
+    const int iifrom = tid*iidelta;
+    const int iito = ((iifrom+iidelta)>allnum) ? allnum : (iifrom+iidelta);
 
-      cosjik = (rij[0]*rik[0] + rij[1]*rik[1] + rij[2]*rik[2]) * invrijkm;
-      cosjik = MIN(cosjik,1.0);
-      cosjik = MAX(cosjik,-1.0);
+    // store all REBO neighs of owned and ghost atoms
+    // scan full neighbor list of I
 
-      dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) -
-        (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
-      dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) -
-        (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
-      dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) -
-        (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
-      dcosjikdrk[0] = (-rij[0]*invrijkm) + (cosjik*(rik[0]*invrikm2));
-      dcosjikdrk[1] = (-rij[1]*invrijkm) + (cosjik*(rik[1]*invrikm2));
-      dcosjikdrk[2] = (-rij[2]*invrijkm) + (cosjik*(rik[2]*invrikm2));
-      dcosjikdrj[0] = (-rik[0]*invrijkm) + (cosjik*(rij[0]*invrijm2));
-      dcosjikdrj[1] = (-rik[1]*invrijkm) + (cosjik*(rij[1]*invrijm2));
-      dcosjikdrj[2] = (-rik[2]*invrijkm) + (cosjik*(rij[2]*invrijm2));
+    // each thread has its own page allocator
+    MyPage<int> &ipg = ipage[tid];
+    ipg.reset();
 
-      g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-      tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
-      fj[0] = -tmp2*dcosjikdrj[0];
-      fj[1] = -tmp2*dcosjikdrj[1];
-      fj[2] = -tmp2*dcosjikdrj[2];
-      fi[0] = -tmp2*dcosjikdri[0];
-      fi[1] = -tmp2*dcosjikdri[1];
-      fi[2] = -tmp2*dcosjikdri[2];
-      fk[0] = -tmp2*dcosjikdrk[0];
-      fk[1] = -tmp2*dcosjikdrk[1];
-      fk[2] = -tmp2*dcosjikdrk[2];
+    for (ii = iifrom; ii < iito; ii++) {
+      i = ilist[ii];
 
-      tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
-      fj[0] -= tmp2*(-rij[0]*invrijm);
-      fj[1] -= tmp2*(-rij[1]*invrijm);
-      fj[2] -= tmp2*(-rij[2]*invrijm);
-      fi[0] -= tmp2*((-rik[0]*invrikm)+(rij[0]*invrijm));
-      fi[1] -= tmp2*((-rik[1]*invrikm)+(rij[1]*invrijm));
-      fi[2] -= tmp2*((-rik[2]*invrikm)+(rij[2]*invrijm));
-      fk[0] -= tmp2*(rik[0]*invrikm);
-      fk[1] -= tmp2*(rik[1]*invrikm);
-      fk[2] -= tmp2*(rik[2]*invrikm);
+      n = 0;
+      neighptr = ipg.vget();
 
-      // coordination forces
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = map[type[i]];
+      nC[i] = nH[i] = 0.0;
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-      // dwik forces
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        jtype = map[type[j]];
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
 
-      tmp2 = VA*.5*(tmp*dwik*g*exp(lamdajik))*invrikm;
-      fi[0] -= tmp2*rik[0];
-      fi[1] -= tmp2*rik[1];
-      fi[2] -= tmp2*rik[2];
-      fk[0] += tmp2*rik[0];
-      fk[1] += tmp2*rik[1];
-      fk[2] += tmp2*rik[2];
-
-      // PIJ forces
-
-      tmp2 = VA*.5*(tmp*dN2[ktype]*dwik)*invrikm;
-      fi[0] -= tmp2*rik[0];
-      fi[1] -= tmp2*rik[1];
-      fi[2] -= tmp2*rik[2];
-      fk[0] += tmp2*rik[0];
-      fk[1] += tmp2*rik[1];
-      fk[2] += tmp2*rik[2];
-
-      // dgdN forces
-
-      tmp2 = VA*.5*(tmp*tmp3*dwik)*invrikm;
-      fi[0] -= tmp2*rik[0];
-      fi[1] -= tmp2*rik[1];
-      fi[2] -= tmp2*rik[2];
-      fk[0] += tmp2*rik[0];
-      fk[1] += tmp2*rik[1];
-      fk[2] += tmp2*rik[2];
-
-      f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
-      f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
-      f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
-
-      if (vflag_atom) {
-        rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
-        rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
-        v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,thr);
+        if (rsq < rcmaxsq[itype][jtype]) {
+          neighptr[n++] = j;
+          if (jtype == 0)
+            nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+          else
+            nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+        }
       }
+
+      REBO_firstneigh[i] = neighptr;
+      REBO_numneigh[i] = n;
+      ipg.vgot(n);
+      if (ipg.status())
+        error->one(FLERR,"REBO list overflow, boost neigh_modify one");
     }
   }
-
-  tmp = 0.0;
-  tmp2 = 0.0;
-  tmp3 = 0.0;
-  Etmp = 0.0;
-
-  REBO_neighs = REBO_firstneigh[j];
-  for (l = 0; l < REBO_numneigh[j]; l++) {
-    atoml = REBO_neighs[l];
-    if (atoml != atomi) {
-      ltype = map[type[atoml]];
-      rjl[0] = x[atomj][0]-x[atoml][0];
-      rjl[1] = x[atomj][1]-x[atoml][1];
-      rjl[2] = x[atomj][2]-x[atoml][2];
-      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-      lamdaijl = 4.0*kronecker(jtype,1) *
-        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
-      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
-      Nlj = nC[atoml]-(wjl*kronecker(jtype,0)) +
-        nH[atoml]-(wjl*kronecker(jtype,1));
-      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
-        (rijmag*rjlmag);
-      cosijl = MIN(cosijl,1.0);
-      cosijl = MAX(cosijl,-1.0);
-
-      // evaluate splines g and derivatives dg
-
-      g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-      Etmp = Etmp+(wjl*g*exp(lamdaijl));
-      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl));
-      NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
-    }
-  }
-
-  PjiS = 0.0;
-  dN2[0] = 0.0;
-  dN2[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
-  pji = 1.0/sqrt(1.0+Etmp+PjiS);
-  tmp = -0.5*pji*pji*pji;
-
-  REBO_neighs = REBO_firstneigh[j];
-  for (l = 0; l < REBO_numneigh[j]; l++) {
-    atoml = REBO_neighs[l];
-    if (atoml != atomi) {
-      ltype = map[type[atoml]];
-      rjl[0] = x[atomj][0]-x[atoml][0];
-      rjl[1] = x[atomj][1]-x[atoml][1];
-      rjl[2] = x[atomj][2]-x[atoml][2];
-      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-      lamdaijl = 4.0*kronecker(jtype,1) *
-        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
-      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-
-      const double invrjlm = 1.0/rjlmag;
-      const double invrijlm = invrijm*invrjlm;
-      const double invrjlm2 = invrjlm*invrjlm;
-
-      cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])))
-        * invrijlm;
-
-      cosijl = MIN(cosijl,1.0);
-      cosijl = MAX(cosijl,-1.0);
-
-      dcosijldri[0] = (-rjl[0]*invrijlm) - (cosijl*rij[0]*invrijm2);
-      dcosijldri[1] = (-rjl[1]*invrijlm) - (cosijl*rij[1]*invrijm2);
-      dcosijldri[2] = (-rjl[2]*invrijlm) - (cosijl*rij[2]*invrijm2);
-      dcosijldrj[0] = ((-rij[0]+rjl[0])*invrijlm) +
-        (cosijl*((rij[0]*invrijm2)-(rjl[0]*invrjlm2)));
-      dcosijldrj[1] = ((-rij[1]+rjl[1])*invrijlm) +
-        (cosijl*((rij[1]*invrijm2)-(rjl[1]*invrjlm2)));
-      dcosijldrj[2] = ((-rij[2]+rjl[2])*invrijlm) +
-        (cosijl*((rij[2]*invrijm2)-(rjl[2]*invrjlm2)));
-      dcosijldrl[0] = (rij[0]*invrijlm)+(cosijl*rjl[0]*invrjlm2);
-      dcosijldrl[1] = (rij[1]*invrijlm)+(cosijl*rjl[1]*invrjlm2);
-      dcosijldrl[2] = (rij[2]*invrijlm)+(cosijl*rjl[2]*invrjlm2);
-
-      // evaluate splines g and derivatives dg
-
-      g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-      tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
-      fi[0] = -tmp2*dcosijldri[0];
-      fi[1] = -tmp2*dcosijldri[1];
-      fi[2] = -tmp2*dcosijldri[2];
-      fj[0] = -tmp2*dcosijldrj[0];
-      fj[1] = -tmp2*dcosijldrj[1];
-      fj[2] = -tmp2*dcosijldrj[2];
-      fl[0] = -tmp2*dcosijldrl[0];
-      fl[1] = -tmp2*dcosijldrl[1];
-      fl[2] = -tmp2*dcosijldrl[2];
-
-      tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
-      fi[0] -= tmp2*(rij[0]*invrijm);
-      fi[1] -= tmp2*(rij[1]*invrijm);
-      fi[2] -= tmp2*(rij[2]*invrijm);
-      fj[0] -= tmp2*((-rjl[0]*invrjlm)-(rij[0]*invrijm));
-      fj[1] -= tmp2*((-rjl[1]*invrjlm)-(rij[1]*invrijm));
-      fj[2] -= tmp2*((-rjl[2]*invrjlm)-(rij[2]*invrijm));
-      fl[0] -= tmp2*(rjl[0]*invrjlm);
-      fl[1] -= tmp2*(rjl[1]*invrjlm);
-      fl[2] -= tmp2*(rjl[2]*invrjlm);
-
-      // coordination forces
-
-      // dwik forces
-
-      tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))*invrjlm;
-      fj[0] -= tmp2*rjl[0];
-      fj[1] -= tmp2*rjl[1];
-      fj[2] -= tmp2*rjl[2];
-      fl[0] += tmp2*rjl[0];
-      fl[1] += tmp2*rjl[1];
-      fl[2] += tmp2*rjl[2];
-
-      // PIJ forces
-
-      tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)*invrjlm;
-      fj[0] -= tmp2*rjl[0];
-      fj[1] -= tmp2*rjl[1];
-      fj[2] -= tmp2*rjl[2];
-      fl[0] += tmp2*rjl[0];
-      fl[1] += tmp2*rjl[1];
-      fl[2] += tmp2*rjl[2];
-
-      // dgdN forces
-
-      tmp2 = VA*.5*(tmp*tmp3*dwjl)*invrjlm;
-      fj[0] -= tmp2*rjl[0];
-      fj[1] -= tmp2*rjl[1];
-      fj[2] -= tmp2*rjl[2];
-      fl[0] += tmp2*rjl[0];
-      fl[1] += tmp2*rjl[1];
-      fl[2] += tmp2*rjl[2];
-
-      f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
-      f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
-      f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
-
-      if (vflag_atom) {
-        rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
-        v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,thr);
-      }
-    }
-  }
-
-  // evaluate Nij conj
-
-  Nijconj = 1.0+(NconjtmpI*NconjtmpI)+(NconjtmpJ*NconjtmpJ);
-  piRC = piRCSpline(NijC+NijH,NjiC+NjiH,Nijconj,itype,jtype,dN3);
-
-  // piRC forces
-
-  REBO_neighs_i = REBO_firstneigh[i];
-  for (k = 0; k < REBO_numneigh[i]; k++) {
-    atomk = REBO_neighs_i[k];
-    if (atomk !=atomj) {
-      ktype = map[type[atomk]];
-      rik[0] = x[atomi][0]-x[atomk][0];
-      rik[1] = x[atomi][1]-x[atomk][1];
-      rik[2] = x[atomi][2]-x[atomk][2];
-      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-      Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
-        (wik*kronecker(itype,1));
-      SpN = Sp(Nki,Nmin,Nmax,dNki);
-
-      tmp2 = VA*dN3[0]*dwik/rikmag;
-      f[atomi][0] -= tmp2*rik[0];
-      f[atomi][1] -= tmp2*rik[1];
-      f[atomi][2] -= tmp2*rik[2];
-      f[atomk][0] += tmp2*rik[0];
-      f[atomk][1] += tmp2*rik[1];
-      f[atomk][2] += tmp2*rik[2];
-
-      if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-      tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
-      f[atomi][0] -= tmp2*rik[0];
-      f[atomi][1] -= tmp2*rik[1];
-      f[atomi][2] -= tmp2*rik[2];
-      f[atomk][0] += tmp2*rik[0];
-      f[atomk][1] += tmp2*rik[1];
-      f[atomk][2] += tmp2*rik[2];
-
-      if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-      if (fabs(dNki) > TOL) {
-        REBO_neighs_k = REBO_firstneigh[atomk];
-        for (n = 0; n < REBO_numneigh[atomk]; n++) {
-          atomn = REBO_neighs_k[n];
-          if (atomn != atomi) {
-            ntype = map[type[atomn]];
-            rkn[0] = x[atomk][0]-x[atomn][0];
-            rkn[1] = x[atomk][1]-x[atomn][1];
-            rkn[2] = x[atomk][2]-x[atomn][2];
-            rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-            Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
-
-            tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
-            f[atomk][0] -= tmp2*rkn[0];
-            f[atomk][1] -= tmp2*rkn[1];
-            f[atomk][2] -= tmp2*rkn[2];
-            f[atomn][0] += tmp2*rkn[0];
-            f[atomn][1] += tmp2*rkn[1];
-            f[atomn][2] += tmp2*rkn[2];
-
-            if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
-          }
-        }
-      }
-    }
-  }
-
-  // piRC forces
-
-  REBO_neighs = REBO_firstneigh[atomj];
-  for (l = 0; l < REBO_numneigh[atomj]; l++) {
-    atoml = REBO_neighs[l];
-    if (atoml !=atomi) {
-      ltype = map[type[atoml]];
-      rjl[0] = x[atomj][0]-x[atoml][0];
-      rjl[1] = x[atomj][1]-x[atoml][1];
-      rjl[2] = x[atomj][2]-x[atoml][2];
-      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
-        (wjl*kronecker(jtype,1));
-      SpN = Sp(Nlj,Nmin,Nmax,dNlj);
-
-      tmp2 = VA*dN3[1]*dwjl/rjlmag;
-      f[atomj][0] -= tmp2*rjl[0];
-      f[atomj][1] -= tmp2*rjl[1];
-      f[atomj][2] -= tmp2*rjl[2];
-      f[atoml][0] += tmp2*rjl[0];
-      f[atoml][1] += tmp2*rjl[1];
-      f[atoml][2] += tmp2*rjl[2];
-
-      if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-      tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
-      f[atomj][0] -= tmp2*rjl[0];
-      f[atomj][1] -= tmp2*rjl[1];
-      f[atomj][2] -= tmp2*rjl[2];
-      f[atoml][0] += tmp2*rjl[0];
-      f[atoml][1] += tmp2*rjl[1];
-      f[atoml][2] += tmp2*rjl[2];
-
-      if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-      if (fabs(dNlj) > TOL) {
-        REBO_neighs_l = REBO_firstneigh[atoml];
-        for (n = 0; n < REBO_numneigh[atoml]; n++) {
-          atomn = REBO_neighs_l[n];
-          if (atomn != atomj) {
-            ntype = map[type[atomn]];
-            rln[0] = x[atoml][0]-x[atomn][0];
-            rln[1] = x[atoml][1]-x[atomn][1];
-            rln[2] = x[atoml][2]-x[atomn][2];
-            rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-            Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
-
-            tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
-            f[atoml][0] -= tmp2*rln[0];
-            f[atoml][1] -= tmp2*rln[1];
-            f[atoml][2] -= tmp2*rln[2];
-            f[atomn][0] += tmp2*rln[0];
-            f[atomn][1] += tmp2*rln[1];
-            f[atomn][2] += tmp2*rln[2];
-
-            if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
-          }
-        }
-      }
-    }
-  }
-
-  Tij = 0.0;
-  dN3[0] = 0.0;
-  dN3[1] = 0.0;
-  dN3[2] = 0.0;
-  if (itype == 0 && jtype == 0)
-    Tij=TijSpline((NijC+NijH),(NjiC+NjiH),Nijconj,dN3);
-  Etmp = 0.0;
-
-  if (fabs(Tij) > TOL) {
-    atom2 = atomi;
-    atom3 = atomj;
-    r32[0] = x[atom3][0]-x[atom2][0];
-    r32[1] = x[atom3][1]-x[atom2][1];
-    r32[2] = x[atom3][2]-x[atom2][2];
-    r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
-    r23[0] = -r32[0];
-    r23[1] = -r32[1];
-    r23[2] = -r32[2];
-    r23mag = r32mag;
-    REBO_neighs_i = REBO_firstneigh[i];
-    for (k = 0; k < REBO_numneigh[i]; k++) {
-      atomk = REBO_neighs_i[k];
-      atom1 = atomk;
-      ktype = map[type[atomk]];
-      if (atomk != atomj) {
-        r21[0] = x[atom2][0]-x[atom1][0];
-        r21[1] = x[atom2][1]-x[atom1][1];
-        r21[2] = x[atom2][2]-x[atom1][2];
-        r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
-        cos321 = -1.0*((r21[0]*r32[0])+(r21[1]*r32[1])+(r21[2]*r32[2])) /
-          (r21mag*r32mag);
-        cos321 = MIN(cos321,1.0);
-        cos321 = MAX(cos321,-1.0);
-        Sp2(cos321,thmin,thmax,dcut321);
-        sin321 = sqrt(1.0 - cos321*cos321);
-        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
-          sink2i = 1.0/(sin321*sin321);
-          rik2i = 1.0/(r21mag*r21mag);
-          rr = (r23mag*r23mag)-(r21mag*r21mag);
-          rjk[0] = r21[0]-r23[0];
-          rjk[1] = r21[1]-r23[1];
-          rjk[2] = r21[2]-r23[2];
-          rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
-          rijrik = 2.0*r23mag*r21mag;
-          rik2 = r21mag*r21mag;
-          dctik = (-rr+rjk2)/(rijrik*rik2);
-          dctij = (rr+rjk2)/(rijrik*r23mag*r23mag);
-          dctjk = -2.0/rijrik;
-          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
-          rijmag = r32mag;
-          rikmag = r21mag;
-          rij2 = r32mag*r32mag;
-          rik2 = r21mag*r21mag;
-          costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
-          tspjik = Sp2(costmp,thmin,thmax,dtsjik);
-          dtsjik = -dtsjik;
-
-          REBO_neighs_j = REBO_firstneigh[j];
-          for (l = 0; l < REBO_numneigh[j]; l++) {
-            atoml = REBO_neighs_j[l];
-            atom4 = atoml;
-            ltype = map[type[atoml]];
-            if (!(atoml == atomi || atoml == atomk)) {
-              r34[0] = x[atom3][0]-x[atom4][0];
-              r34[1] = x[atom3][1]-x[atom4][1];
-              r34[2] = x[atom3][2]-x[atom4][2];
-              r34mag = sqrt((r34[0]*r34[0])+(r34[1]*r34[1])+(r34[2]*r34[2]));
-              cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
-                (r32mag*r34mag);
-              cos234 = MIN(cos234,1.0);
-              cos234 = MAX(cos234,-1.0);
-              sin234 = sqrt(1.0 - cos234*cos234);
-
-              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
-                sinl2i = 1.0/(sin234*sin234);
-                rjl2i = 1.0/(r34mag*r34mag);
-                w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
-                rr = (r23mag*r23mag)-(r34mag*r34mag);
-                ril[0] = r23[0]+r34[0];
-                ril[1] = r23[1]+r34[1];
-                ril[2] = r23[2]+r34[2];
-                ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-                rijrjl = 2.0*r23mag*r34mag;
-                rjl2 = r34mag*r34mag;
-                dctjl = (-rr+ril2)/(rijrjl*rjl2);
-                dctji = (rr+ril2)/(rijrjl*r23mag*r23mag);
-                dctil = -2.0/rijrjl;
-                rjlmag = r34mag;
-                rjl2 = r34mag*r34mag;
-                costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
-                tspijl = Sp2(costmp,thmin,thmax,dtsijl);
-                dtsijl = -dtsijl;
-                prefactor = VA*Tij;
-
-                cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
-                cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
-                cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
-                cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
-                cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
-                cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
-
-                cwnum = (cross321[0]*cross234[0]) +
-                  (cross321[1]*cross234[1]) + (cross321[2]*cross234[2]);
-                cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
-                om1234 = cwnum/cwnom;
-                cw = om1234;
-                Etmp += ((1.0-square(om1234))*w21*w34) *
-                  (1.0-tspjik)*(1.0-tspijl);
-
-                dt1dik = (rik2i)-(dctik*sink2i*cos321);
-                dt1djk = (-dctjk*sink2i*cos321);
-                dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
-                dt1dil = (-dctil*sinl2i*cos234);
-                dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
-                  (dctji*sinl2i*cos234);
-
-                dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
-                dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
-                dt2dik[2] = (-r23[1]*cross234[0])+(r23[0]*cross234[1]);
-
-                dt2djl[0] = (-r23[1]*cross321[2])+(r23[2]*cross321[1]);
-                dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
-                dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
-
-                dt2dij[0] = (r21[2]*cross234[1])-(r34[2]*cross321[1]) -
-                  (r21[1]*cross234[2])+(r34[1]*cross321[2]);
-                dt2dij[1] = (r21[0]*cross234[2])-(r34[0]*cross321[2]) -
-                  (r21[2]*cross234[0])+(r34[2]*cross321[0]);
-                dt2dij[2] = (r21[1]*cross234[0])-(r34[1]*cross321[0]) -
-                  (r21[0]*cross234[1])+(r34[0]*cross321[1]);
-
-                aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
-                  (1.0-tspjik)*(1.0-tspijl);
-                aaa1 = -prefactor*(1.0-square(om1234)) *
-                  (1.0-tspjik)*(1.0-tspijl);
-                aaa2 = aaa1*w21*w34;
-                at2 = aa*cwnum;
-
-                fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
-                  (aaa2*dtsijl*dctji*(1.0-tspjik));
-                fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
-                fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
-                fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
-                fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
-
-                F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
-                F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
-                F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
-
-                F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
-                F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
-                F12[2] = (fcikpc*r21[2])+(aa*dt2dik[2]);
-
-                F34[0] = (fcjlpc*r34[0])+(aa*dt2djl[0]);
-                F34[1] = (fcjlpc*r34[1])+(aa*dt2djl[1]);
-                F34[2] = (fcjlpc*r34[2])+(aa*dt2djl[2]);
-
-                F31[0] = (fcjkpc*rjk[0]);
-                F31[1] = (fcjkpc*rjk[1]);
-                F31[2] = (fcjkpc*rjk[2]);
-
-                F24[0] = (fcilpc*ril[0]);
-                F24[1] = (fcilpc*ril[1]);
-                F24[2] = (fcilpc*ril[2]);
-
-                f1[0] = -F12[0]-F31[0];
-                f1[1] = -F12[1]-F31[1];
-                f1[2] = -F12[2]-F31[2];
-                f2[0] = F23[0]+F12[0]+F24[0];
-                f2[1] = F23[1]+F12[1]+F24[1];
-                f2[2] = F23[2]+F12[2]+F24[2];
-                f3[0] = -F23[0]+F34[0]+F31[0];
-                f3[1] = -F23[1]+F34[1]+F31[1];
-                f3[2] = -F23[2]+F34[2]+F31[2];
-                f4[0] = -F34[0]-F24[0];
-                f4[1] = -F34[1]-F24[1];
-                f4[2] = -F34[2]-F24[2];
-
-                // coordination forces
-
-                tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
-                  (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
-                f2[0] -= tmp2*r21[0];
-                f2[1] -= tmp2*r21[1];
-                f2[2] -= tmp2*r21[2];
-                f1[0] += tmp2*r21[0];
-                f1[1] += tmp2*r21[1];
-                f1[2] += tmp2*r21[2];
-
-                tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
-                  (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
-                f3[0] -= tmp2*r34[0];
-                f3[1] -= tmp2*r34[1];
-                f3[2] -= tmp2*r34[2];
-                f4[0] += tmp2*r34[0];
-                f4[1] += tmp2*r34[1];
-                f4[2] += tmp2*r34[2];
-
-                f[atom1][0] += f1[0]; f[atom1][1] += f1[1];
-                f[atom1][2] += f1[2];
-                f[atom2][0] += f2[0]; f[atom2][1] += f2[1];
-                f[atom2][2] += f2[2];
-                f[atom3][0] += f3[0]; f[atom3][1] += f3[1];
-                f[atom3][2] += f3[2];
-                f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
-                f[atom4][2] += f4[2];
-
-                if (vflag_atom) {
-                  r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
-                  r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
-                  v_tally4_thr(atom1,atom2,atom3,atom4,f1,f2,f4,r13,r23,r43,thr);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Tij forces now that we have Etmp
-
-    REBO_neighs = REBO_firstneigh[i];
-    for (k = 0; k < REBO_numneigh[i]; k++) {
-      atomk = REBO_neighs[k];
-      if (atomk != atomj) {
-        ktype = map[type[atomk]];
-        rik[0] = x[atomi][0]-x[atomk][0];
-        rik[1] = x[atomi][1]-x[atomk][1];
-        rik[2] = x[atomi][2]-x[atomk][2];
-        rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-        wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-        Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
-          (wik*kronecker(itype,1));
-        SpN = Sp(Nki,Nmin,Nmax,dNki);
-
-        tmp2 = VA*dN3[0]*dwik*Etmp/rikmag;
-        f[atomi][0] -= tmp2*rik[0];
-        f[atomi][1] -= tmp2*rik[1];
-        f[atomi][2] -= tmp2*rik[2];
-        f[atomk][0] += tmp2*rik[0];
-        f[atomk][1] += tmp2*rik[1];
-        f[atomk][2] += tmp2*rik[2];
-
-        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-        tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
-        f[atomi][0] -= tmp2*rik[0];
-        f[atomi][1] -= tmp2*rik[1];
-        f[atomi][2] -= tmp2*rik[2];
-        f[atomk][0] += tmp2*rik[0];
-        f[atomk][1] += tmp2*rik[1];
-        f[atomk][2] += tmp2*rik[2];
-
-        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-        if (fabs(dNki) > TOL) {
-          REBO_neighs_k = REBO_firstneigh[atomk];
-          for (n = 0; n < REBO_numneigh[atomk]; n++) {
-            atomn = REBO_neighs_k[n];
-            ntype = map[type[atomn]];
-            if (atomn != atomi) {
-              rkn[0] = x[atomk][0]-x[atomn][0];
-              rkn[1] = x[atomk][1]-x[atomn][1];
-              rkn[2] = x[atomk][2]-x[atomn][2];
-              rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-              Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
-
-              tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
-              f[atomk][0] -= tmp2*rkn[0];
-              f[atomk][1] -= tmp2*rkn[1];
-              f[atomk][2] -= tmp2*rkn[2];
-              f[atomn][0] += tmp2*rkn[0];
-              f[atomn][1] += tmp2*rkn[1];
-              f[atomn][2] += tmp2*rkn[2];
-
-              if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
-            }
-          }
-        }
-      }
-    }
-
-    // Tij forces
-
-    REBO_neighs = REBO_firstneigh[j];
-    for (l = 0; l < REBO_numneigh[j]; l++) {
-      atoml = REBO_neighs[l];
-      if (atoml != atomi) {
-        ltype = map[type[atoml]];
-        rjl[0] = x[atomj][0]-x[atoml][0];
-        rjl[1] = x[atomj][1]-x[atoml][1];
-        rjl[2] = x[atomj][2]-x[atoml][2];
-        rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-        wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-        Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
-          (wjl*kronecker(jtype,1));
-        SpN = Sp(Nlj,Nmin,Nmax,dNlj);
-
-        tmp2 = VA*dN3[1]*dwjl*Etmp/rjlmag;
-        f[atomj][0] -= tmp2*rjl[0];
-        f[atomj][1] -= tmp2*rjl[1];
-        f[atomj][2] -= tmp2*rjl[2];
-        f[atoml][0] += tmp2*rjl[0];
-        f[atoml][1] += tmp2*rjl[1];
-        f[atoml][2] += tmp2*rjl[2];
-
-        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-        tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
-        f[atomj][0] -= tmp2*rjl[0];
-        f[atomj][1] -= tmp2*rjl[1];
-        f[atomj][2] -= tmp2*rjl[2];
-        f[atoml][0] += tmp2*rjl[0];
-        f[atoml][1] += tmp2*rjl[1];
-        f[atoml][2] += tmp2*rjl[2];
-
-        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-        if (fabs(dNlj) > TOL) {
-          REBO_neighs_l = REBO_firstneigh[atoml];
-          for (n = 0; n < REBO_numneigh[atoml]; n++) {
-            atomn = REBO_neighs_l[n];
-            ntype = map[type[atomn]];
-            if (atomn !=atomj) {
-              rln[0] = x[atoml][0]-x[atomn][0];
-              rln[1] = x[atoml][1]-x[atomn][1];
-              rln[2] = x[atoml][2]-x[atomn][2];
-              rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-              Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
-
-              tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)*Etmp/rlnmag;
-              f[atoml][0] -= tmp2*rln[0];
-              f[atoml][1] -= tmp2*rln[1];
-              f[atoml][2] -= tmp2*rln[2];
-              f[atomn][0] += tmp2*rln[0];
-              f[atomn][1] += tmp2*rln[1];
-              f[atomn][2] += tmp2*rln[2];
-
-              if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  bij = (0.5*(pij+pji))+piRC+(Tij*Etmp);
-  return bij;
-}
-
-/* ----------------------------------------------------------------------
-   Bij* function
-------------------------------------------------------------------------- */
-
-double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag,
-                                      double VA, double rij0[3], double rij0mag,
-                                      int vflag_atom, ThrData * const thr)
-{
-  int k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
-  int atomi,atomj,itype,jtype,ktype,ltype,ntype;
-  double rik[3], rjl[3], rkn[3],rknmag,dNki;
-  double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
-  double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
-  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ;
-  double Nki,Nlj,dS,lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
-  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
-  double dN2[2],dN3[3];
-  double dcosijldrj[3],dcosijldrl[3],dcosjikdrj[3],dwjl;
-  double Tij,crosskij[3],crosskijmag;
-  double crossijl[3],crossijlmag,omkijl;
-  double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
-  double bij,tmp3pij,tmp3pji,Stb,dStb;
-  double r32[3],r32mag,cos321;
-  double om1234,rln[3];
-  double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
-  double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
-  double cross321[3],cross234[3],prefactor,SpN;
-  double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
-  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
-  double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
-  double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
-  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
-  double dNlj;
-  double PijS,PjiS;
-  double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
-  int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
-  double F12[3],F23[3],F34[3],F31[3],F24[3];
-  double fi[3],fj[3],fk[3],fl[3],f1[3],f2[3],f3[3],f4[4];
-  double rji[3],rki[3],rlj[3],r13[3],r43[3];
-
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const type = atom->type;
-
-  atomi = i;
-  atomj = j;
-  itype = map[type[atomi]];
-  jtype = map[type[atomj]];
-  wij = Sp(rij0mag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
-  NijC = nC[atomi]-(wij*kronecker(jtype,0));
-  NijH = nH[atomi]-(wij*kronecker(jtype,1));
-  NjiC = nC[atomj]-(wij*kronecker(itype,0));
-  NjiH = nH[atomj]-(wij*kronecker(itype,1));
-
-  bij = 0.0;
-  tmp = 0.0;
-  tmp2 = 0.0;
-  tmp3 = 0.0;
-  dgdc = 0.0;
-  dgdN = 0.0;
-  NconjtmpI = 0.0;
-  NconjtmpJ = 0.0;
-  Etmp = 0.0;
-
-  REBO_neighs = REBO_firstneigh[i];
-  for (k = 0; k < REBO_numneigh[i]; k++) {
-    atomk = REBO_neighs[k];
-    if (atomk != atomj) {
-      ktype = map[type[atomk]];
-      rik[0] = x[atomi][0]-x[atomk][0];
-      rik[1] = x[atomi][1]-x[atomk][1];
-      rik[2] = x[atomi][2]-x[atomk][2];
-      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-      lamdajik = 4.0*kronecker(itype,1) *
-        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
-      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
-      Nki = nC[atomk]-(wik*kronecker(itype,0)) +
-        nH[atomk]-(wik*kronecker(itype,1));
-      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
-        (rijmag*rikmag);
-      cosjik = MIN(cosjik,1.0);
-      cosjik = MAX(cosjik,-1.0);
-
-      // evaluate splines g and derivatives dg
-
-      g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-      Etmp += (wik*g*exp(lamdajik));
-      tmp3 += (wik*dgdN*exp(lamdajik));
-      NconjtmpI = NconjtmpI+(kronecker(ktype,0)*wik*Sp(Nki,Nmin,Nmax,dS));
-    }
-  }
-
-  PijS = 0.0;
-  dN2PIJ[0] = 0.0;
-  dN2PIJ[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
-  pij = 1.0/sqrt(1.0+Etmp+PijS);
-  tmppij = -.5*pij*pij*pij;
-  tmp3pij = tmp3;
-  tmp = 0.0;
-  tmp2 = 0.0;
-  tmp3 = 0.0;
-  Etmp = 0.0;
-
-  REBO_neighs = REBO_firstneigh[j];
-  for (l = 0; l < REBO_numneigh[j]; l++) {
-    atoml = REBO_neighs[l];
-    if (atoml != atomi) {
-      ltype = map[type[atoml]];
-      rjl[0] = x[atomj][0]-x[atoml][0];
-      rjl[1] = x[atomj][1]-x[atoml][1];
-      rjl[2] = x[atomj][2]-x[atoml][2];
-      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-      lamdaijl = 4.0*kronecker(jtype,1) *
-        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
-      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
-      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
-        (wjl*kronecker(jtype,1));
-      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
-        (rijmag*rjlmag);
-      cosijl = MIN(cosijl,1.0);
-      cosijl = MAX(cosijl,-1.0);
-
-      // evaluate splines g and derivatives dg
-
-      g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-      Etmp += (wjl*g*exp(lamdaijl));
-      tmp3 += (wjl*dgdN*exp(lamdaijl));
-      NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
-    }
-  }
-
-  PjiS = 0.0;
-  dN2PJI[0] = 0.0;
-  dN2PJI[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
-  pji = 1.0/sqrt(1.0+Etmp+PjiS);
-  tmppji = -.5*pji*pji*pji;
-  tmp3pji = tmp3;
-
-  // evaluate Nij conj
-
-  Nijconj = 1.0+(NconjtmpI*NconjtmpI)+(NconjtmpJ*NconjtmpJ);
-  piRC = piRCSpline(NijC+NijH,NjiC+NjiH,Nijconj,itype,jtype,dN3piRC);
-  Tij = 0.0;
-  dN3Tij[0] = 0.0;
-  dN3Tij[1] = 0.0;
-  dN3Tij[2] = 0.0;
-  if (itype == 0 && jtype == 0)
-    Tij=TijSpline((NijC+NijH),(NjiC+NjiH),Nijconj,dN3Tij);
-
-  Etmp = 0.0;
-  if (fabs(Tij) > TOL) {
-    REBO_neighs_i = REBO_firstneigh[i];
-    for (k = 0; k < REBO_numneigh[i]; k++) {
-      atomk = REBO_neighs_i[k];
-      ktype = map[type[atomk]];
-      if (atomk != atomj) {
-        rik[0] = x[atomi][0]-x[atomk][0];
-        rik[1] = x[atomi][1]-x[atomk][1];
-        rik[2] = x[atomi][2]-x[atomk][2];
-        rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-        cos321 = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
-          (rijmag*rikmag);
-        cos321 = MIN(cos321,1.0);
-        cos321 = MAX(cos321,-1.0);
-
-        rjk[0] = rik[0]-rij[0];
-        rjk[1] = rik[1]-rij[1];
-        rjk[2] = rik[2]-rij[2];
-        rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
-        rij2 = rijmag*rijmag;
-        rik2 = rikmag*rikmag;
-        costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
-        tspjik = Sp2(costmp,thmin,thmax,dtsjik);
-
-        if (sqrt(1.0 - cos321*cos321) > sqrt(TOL)) {
-          wik = Sp(rikmag,rcmin[itype][ktype],rcmaxp[itype][ktype],dwik);
-          REBO_neighs_j = REBO_firstneigh[j];
-          for (l = 0; l < REBO_numneigh[j]; l++) {
-            atoml = REBO_neighs_j[l];
-            ltype = map[type[atoml]];
-            if (!(atoml == atomi || atoml == atomk)) {
-              rjl[0] = x[atomj][0]-x[atoml][0];
-              rjl[1] = x[atomj][1]-x[atoml][1];
-              rjl[2] = x[atomj][2]-x[atoml][2];
-              rjlmag = sqrt(rjl[0]*rjl[0] + rjl[1]*rjl[1] + rjl[2]*rjl[2]);
-              cos234 = -((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
-                (rijmag*rjlmag);
-              cos234 = MIN(cos234,1.0);
-              cos234 = MAX(cos234,-1.0);
-
-              ril[0] = rij[0]+rjl[0];
-              ril[1] = rij[1]+rjl[1];
-              ril[2] = rij[2]+rjl[2];
-              ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-              rjl2 = rjlmag*rjlmag;
-              costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
-              tspijl = Sp2(costmp,thmin,thmax,dtsijl);
-
-              if (sqrt(1.0 - cos234*cos234) > sqrt(TOL)) {
-                wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dS);
-                crosskij[0] = (rij[1]*rik[2]-rij[2]*rik[1]);
-                crosskij[1] = (rij[2]*rik[0]-rij[0]*rik[2]);
-                crosskij[2] = (rij[0]*rik[1]-rij[1]*rik[0]);
-                crosskijmag = sqrt(crosskij[0]*crosskij[0] +
-                                   crosskij[1]*crosskij[1] +
-                                   crosskij[2]*crosskij[2]);
-                crossijl[0] = (rij[1]*rjl[2]-rij[2]*rjl[1]);
-                crossijl[1] = (rij[2]*rjl[0]-rij[0]*rjl[2]);
-                crossijl[2] = (rij[0]*rjl[1]-rij[1]*rjl[0]);
-                crossijlmag = sqrt(crossijl[0]*crossijl[0] +
-                                   crossijl[1]*crossijl[1] +
-                                   crossijl[2]*crossijl[2]);
-                omkijl = -1.0*(((crosskij[0]*crossijl[0]) +
-                                (crosskij[1]*crossijl[1]) +
-                                (crosskij[2]*crossijl[2])) /
-                               (crosskijmag*crossijlmag));
-                Etmp += ((1.0-square(omkijl))*wik*wjl) *
-                  (1.0-tspjik)*(1.0-tspijl);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  bij = (.5*(pij+pji))+piRC+(Tij*Etmp);
-  Stb = Sp2(bij,bLJmin[itype][jtype],bLJmax[itype][jtype],dStb);
-  VA = VA*dStb;
-
-  if (dStb != 0.0) {
-    tmp = tmppij;
-    dN2[0] = dN2PIJ[0];
-    dN2[1] = dN2PIJ[1];
-    tmp3 = tmp3pij;
-
-    const double invrijm = 1.0/rijmag;
-    const double invrijm2 = invrijm*invrijm;
-
-    // pij forces
-
-    REBO_neighs_i = REBO_firstneigh[i];
-    for (k = 0; k < REBO_numneigh[i]; k++) {
-      atomk = REBO_neighs_i[k];
-      ktype = map[type[atomk]];
-      if (atomk != atomj) {
-        lamdajik = 0.0;
-        rik[0] = x[atomi][0]-x[atomk][0];
-        rik[1] = x[atomi][1]-x[atomk][1];
-        rik[2] = x[atomi][2]-x[atomk][2];
-        rikmag = sqrt(rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2]);
-        lamdajik = 4.0*kronecker(itype,1) *
-          ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
-        wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-
-        const double invrikm = 1.0/rikmag;
-        const double invrijkm = invrijm*invrikm;
-        const double invrikm2 = invrikm*invrikm;
-
-        cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2]))
-          * invrijkm;
-        cosjik = MIN(cosjik,1.0);
-        cosjik = MAX(cosjik,-1.0);
-
-        dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) -
-          (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
-        dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) -
-          (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
-        dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) -
-          (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
-        dcosjikdrk[0] = (-rij[0]*invrijkm) + (cosjik*(rik[0]*invrikm2));
-        dcosjikdrk[1] = (-rij[1]*invrijkm) + (cosjik*(rik[1]*invrikm2));
-        dcosjikdrk[2] = (-rij[2]*invrijkm) + (cosjik*(rik[2]*invrikm2));
-        dcosjikdrj[0] = (-rik[0]*invrijkm) + (cosjik*(rij[0]*invrijm2));
-        dcosjikdrj[1] = (-rik[1]*invrijkm) + (cosjik*(rij[1]*invrijm2));
-        dcosjikdrj[2] = (-rik[2]*invrijkm) + (cosjik*(rij[2]*invrijm2));
-
-        g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-
-        tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
-        fj[0] = -tmp2*dcosjikdrj[0];
-        fj[1] = -tmp2*dcosjikdrj[1];
-        fj[2] = -tmp2*dcosjikdrj[2];
-        fi[0] = -tmp2*dcosjikdri[0];
-        fi[1] = -tmp2*dcosjikdri[1];
-        fi[2] = -tmp2*dcosjikdri[2];
-        fk[0] = -tmp2*dcosjikdrk[0];
-        fk[1] = -tmp2*dcosjikdrk[1];
-        fk[2] = -tmp2*dcosjikdrk[2];
-
-        tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
-        fj[0] -= tmp2*(-rij[0]*invrijm);
-        fj[1] -= tmp2*(-rij[1]*invrijm);
-        fj[2] -= tmp2*(-rij[2]*invrijm);
-        fi[0] -= tmp2*((-rik[0]/rikmag)+(rij[0]*invrijm));
-        fi[1] -= tmp2*((-rik[1]/rikmag)+(rij[1]*invrijm));
-        fi[2] -= tmp2*((-rik[2]/rikmag)+(rij[2]*invrijm));
-        fk[0] -= tmp2*(rik[0]/rikmag);
-        fk[1] -= tmp2*(rik[1]/rikmag);
-        fk[2] -= tmp2*(rik[2]/rikmag);
-
-        // coordination forces
-
-        // dwik forces
-
-        tmp2 = VA*.5*(tmp*dwik*g*exp(lamdajik))/rikmag;
-        fi[0] -= tmp2*rik[0];
-        fi[1] -= tmp2*rik[1];
-        fi[2] -= tmp2*rik[2];
-        fk[0] += tmp2*rik[0];
-        fk[1] += tmp2*rik[1];
-        fk[2] += tmp2*rik[2];
-
-        // PIJ forces
-
-        tmp2 = VA*.5*(tmp*dN2[ktype]*dwik)/rikmag;
-        fi[0] -= tmp2*rik[0];
-        fi[1] -= tmp2*rik[1];
-        fi[2] -= tmp2*rik[2];
-        fk[0] += tmp2*rik[0];
-        fk[1] += tmp2*rik[1];
-        fk[2] += tmp2*rik[2];
-
-        // dgdN forces
-
-        tmp2 = VA*.5*(tmp*tmp3*dwik)/rikmag;
-        fi[0] -= tmp2*rik[0];
-        fi[1] -= tmp2*rik[1];
-        fi[2] -= tmp2*rik[2];
-        fk[0] += tmp2*rik[0];
-        fk[1] += tmp2*rik[1];
-        fk[2] += tmp2*rik[2];
-
-        f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
-        f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
-        f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
-
-        if (vflag_atom) {
-          rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
-          rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
-          v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,thr);
-        }
-      }
-    }
-
-    tmp = tmppji;
-    tmp3 = tmp3pji;
-    dN2[0] = dN2PJI[0];
-    dN2[1] = dN2PJI[1];
-    REBO_neighs  =  REBO_firstneigh[j];
-    for (l = 0; l < REBO_numneigh[j]; l++) {
-      atoml = REBO_neighs[l];
-      if (atoml !=atomi) {
-        ltype = map[type[atoml]];
-        rjl[0] = x[atomj][0]-x[atoml][0];
-        rjl[1] = x[atomj][1]-x[atoml][1];
-        rjl[2] = x[atomj][2]-x[atoml][2];
-        rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-        lamdaijl = 4.0*kronecker(jtype,1) *
-          ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
-        wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-
-        const double invrjlm = 1.0/rjlmag;
-        const double invrijlm = invrijm*invrjlm;
-        const double invrjlm2 = invrjlm*invrjlm;
-
-        cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2]))) *
-          invrijlm;
-        cosijl = MIN(cosijl,1.0);
-        cosijl = MAX(cosijl,-1.0);
-
-        dcosijldri[0] = (-rjl[0]*invrijlm) - (cosijl*rij[0]*invrijm2);
-        dcosijldri[1] = (-rjl[1]*invrijlm) - (cosijl*rij[1]*invrijm2);
-        dcosijldri[2] = (-rjl[2]*invrijlm) - (cosijl*rij[2]*invrijm2);
-        dcosijldrj[0] = ((-rij[0]+rjl[0])*invrijlm) +
-          (cosijl*((rij[0]*invrijm2)-(rjl[0]*invrjlm2)));
-        dcosijldrj[1] = ((-rij[1]+rjl[1])*invrijlm) +
-          (cosijl*((rij[1]*invrijm2)-(rjl[1]*invrjlm2)));
-        dcosijldrj[2] = ((-rij[2]+rjl[2])*invrijlm) +
-          (cosijl*((rij[2]*invrijm2)-(rjl[2]*invrjlm2)));
-        dcosijldrl[0] = (rij[0]*invrijlm) + (cosijl*rjl[0]*invrjlm2);
-        dcosijldrl[1] = (rij[1]*invrijlm) + (cosijl*rjl[1]*invrjlm2);
-        dcosijldrl[2] = (rij[2]*invrijlm) + (cosijl*rjl[2]*invrjlm2);
-
-        // evaluate splines g and derivatives dg
-
-        g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-        tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
-        fi[0] = -tmp2*dcosijldri[0];
-        fi[1] = -tmp2*dcosijldri[1];
-        fi[2] = -tmp2*dcosijldri[2];
-        fj[0] = -tmp2*dcosijldrj[0];
-        fj[1] = -tmp2*dcosijldrj[1];
-        fj[2] = -tmp2*dcosijldrj[2];
-        fl[0] = -tmp2*dcosijldrl[0];
-        fl[1] = -tmp2*dcosijldrl[1];
-        fl[2] = -tmp2*dcosijldrl[2];
-
-        tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
-        fi[0] -= tmp2*(rij[0]*invrijm);
-        fi[1] -= tmp2*(rij[1]*invrijm);
-        fi[2] -= tmp2*(rij[2]*invrijm);
-        fj[0] -= tmp2*((-rjl[0]*invrjlm)-(rij[0]*invrijm));
-        fj[1] -= tmp2*((-rjl[1]*invrjlm)-(rij[1]*invrijm));
-        fj[2] -= tmp2*((-rjl[2]*invrjlm)-(rij[2]*invrijm));
-        fl[0] -= tmp2*(rjl[0]*invrjlm);
-        fl[1] -= tmp2*(rjl[1]*invrjlm);
-        fl[2] -= tmp2*(rjl[2]*invrjlm);
-
-         // coordination forces
-        // dwik forces
-
-        tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))*invrjlm;
-        fj[0] -= tmp2*rjl[0];
-        fj[1] -= tmp2*rjl[1];
-        fj[2] -= tmp2*rjl[2];
-        fl[0] += tmp2*rjl[0];
-        fl[1] += tmp2*rjl[1];
-        fl[2] += tmp2*rjl[2];
-
-        // PIJ forces
-
-        tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)*invrjlm;
-        fj[0] -= tmp2*rjl[0];
-        fj[1] -= tmp2*rjl[1];
-        fj[2] -= tmp2*rjl[2];
-        fl[0] += tmp2*rjl[0];
-        fl[1] += tmp2*rjl[1];
-        fl[2] += tmp2*rjl[2];
-
-        // dgdN forces
-
-        tmp2=VA*.5*(tmp*tmp3*dwjl)*invrjlm;
-        fj[0] -= tmp2*rjl[0];
-        fj[1] -= tmp2*rjl[1];
-        fj[2] -= tmp2*rjl[2];
-        fl[0] += tmp2*rjl[0];
-        fl[1] += tmp2*rjl[1];
-        fl[2] += tmp2*rjl[2];
-
-        f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
-        f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
-        f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
-
-        if (vflag_atom) {
-          rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
-          v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,thr);
-        }
-      }
-    }
-
-    // piRC forces
-
-    dN3[0] = dN3piRC[0];
-    dN3[1] = dN3piRC[1];
-    dN3[2] = dN3piRC[2];
-
-    REBO_neighs_i = REBO_firstneigh[i];
-    for (k = 0; k < REBO_numneigh[i]; k++) {
-      atomk = REBO_neighs_i[k];
-      if (atomk != atomj) {
-        ktype = map[type[atomk]];
-        rik[0] = x[atomi][0]-x[atomk][0];
-        rik[1] = x[atomi][1]-x[atomk][1];
-        rik[2] = x[atomi][2]-x[atomk][2];
-        rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-        wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-        Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
-          (wik*kronecker(itype,1));
-        SpN = Sp(Nki,Nmin,Nmax,dNki);
-
-        tmp2 = VA*dN3[0]*dwik/rikmag;
-        f[atomi][0] -= tmp2*rik[0];
-        f[atomi][1] -= tmp2*rik[1];
-        f[atomi][2] -= tmp2*rik[2];
-        f[atomk][0] += tmp2*rik[0];
-        f[atomk][1] += tmp2*rik[1];
-        f[atomk][2] += tmp2*rik[2];
-
-        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-        tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
-        f[atomi][0] -= tmp2*rik[0];
-        f[atomi][1] -= tmp2*rik[1];
-        f[atomi][2] -= tmp2*rik[2];
-        f[atomk][0] += tmp2*rik[0];
-        f[atomk][1] += tmp2*rik[1];
-        f[atomk][2] += tmp2*rik[2];
-
-        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-        if (fabs(dNki) > TOL) {
-          REBO_neighs_k = REBO_firstneigh[atomk];
-          for (n = 0; n < REBO_numneigh[atomk]; n++) {
-            atomn = REBO_neighs_k[n];
-            if (atomn != atomi) {
-              ntype = map[type[atomn]];
-              rkn[0] = x[atomk][0]-x[atomn][0];
-              rkn[1] = x[atomk][1]-x[atomn][1];
-              rkn[2] = x[atomk][2]-x[atomn][2];
-              rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-              Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
-
-              tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
-              f[atomk][0] -= tmp2*rkn[0];
-              f[atomk][1] -= tmp2*rkn[1];
-              f[atomk][2] -= tmp2*rkn[2];
-              f[atomn][0] += tmp2*rkn[0];
-              f[atomn][1] += tmp2*rkn[1];
-              f[atomn][2] += tmp2*rkn[2];
-
-              if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
-            }
-          }
-        }
-      }
-    }
-
-    // piRC forces to J side
-
-    REBO_neighs = REBO_firstneigh[j];
-    for (l = 0; l < REBO_numneigh[j]; l++) {
-      atoml = REBO_neighs[l];
-      if (atoml != atomi) {
-        ltype = map[type[atoml]];
-        rjl[0] = x[atomj][0]-x[atoml][0];
-        rjl[1] = x[atomj][1]-x[atoml][1];
-        rjl[2] = x[atomj][2]-x[atoml][2];
-        rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-        wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-        Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
-          (wjl*kronecker(jtype,1));
-        SpN = Sp(Nlj,Nmin,Nmax,dNlj);
-
-        tmp2 = VA*dN3[1]*dwjl/rjlmag;
-        f[atomj][0] -= tmp2*rjl[0];
-        f[atomj][1] -= tmp2*rjl[1];
-        f[atomj][2] -= tmp2*rjl[2];
-        f[atoml][0] += tmp2*rjl[0];
-        f[atoml][1] += tmp2*rjl[1];
-        f[atoml][2] += tmp2*rjl[2];
-
-        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-        tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
-        f[atomj][0] -= tmp2*rjl[0];
-        f[atomj][1] -= tmp2*rjl[1];
-        f[atomj][2] -= tmp2*rjl[2];
-        f[atoml][0] += tmp2*rjl[0];
-        f[atoml][1] += tmp2*rjl[1];
-        f[atoml][2] += tmp2*rjl[2];
-
-        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-        if (fabs(dNlj) > TOL) {
-          REBO_neighs_l = REBO_firstneigh[atoml];
-          for (n = 0; n < REBO_numneigh[atoml]; n++) {
-            atomn = REBO_neighs_l[n];
-            if (atomn != atomj) {
-              ntype = map[type[atomn]];
-              rln[0] = x[atoml][0]-x[atomn][0];
-              rln[1] = x[atoml][1]-x[atomn][1];
-              rln[2] = x[atoml][2]-x[atomn][2];
-              rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-              Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
-
-              tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
-              f[atoml][0] -= tmp2*rln[0];
-              f[atoml][1] -= tmp2*rln[1];
-              f[atoml][2] -= tmp2*rln[2];
-              f[atomn][0] += tmp2*rln[0];
-              f[atomn][1] += tmp2*rln[1];
-              f[atomn][2] += tmp2*rln[2];
-
-              if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
-            }
-          }
-        }
-      }
-    }
-
-    if (fabs(Tij) > TOL) {
-      dN3[0] = dN3Tij[0];
-      dN3[1] = dN3Tij[1];
-      dN3[2] = dN3Tij[2];
-      atom2 = atomi;
-      atom3 = atomj;
-      r32[0] = x[atom3][0]-x[atom2][0];
-      r32[1] = x[atom3][1]-x[atom2][1];
-      r32[2] = x[atom3][2]-x[atom2][2];
-      r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
-      r23[0] = -r32[0];
-      r23[1] = -r32[1];
-      r23[2] = -r32[2];
-      r23mag = r32mag;
-
-      REBO_neighs_i = REBO_firstneigh[i];
-      for (k = 0; k < REBO_numneigh[i]; k++) {
-        atomk = REBO_neighs_i[k];
-        atom1 = atomk;
-        ktype = map[type[atomk]];
-        if (atomk != atomj) {
-          r21[0] = x[atom2][0]-x[atom1][0];
-          r21[1] = x[atom2][1]-x[atom1][1];
-          r21[2] = x[atom2][2]-x[atom1][2];
-          r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
-          cos321 = ((r21[0]*rij[0])+(r21[1]*rij[1])+(r21[2]*rij[2])) /
-            (r21mag*rijmag);
-          cos321 = MIN(cos321,1.0);
-          cos321 = MAX(cos321,-1.0);
-          sin321 = sqrt(1.0 - cos321*cos321);
-
-          if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
-            sink2i = 1.0/(sin321*sin321);
-            rik2i = 1.0/(r21mag*r21mag);
-            rr = (rijmag*rijmag)-(r21mag*r21mag);
-            rjk[0] = r21[0]-rij[0];
-            rjk[1] = r21[1]-rij[1];
-            rjk[2] = r21[2]-rij[2];
-            rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
-            rijrik = 2.0*rijmag*r21mag;
-            rik2 = r21mag*r21mag;
-            dctik = (-rr+rjk2)/(rijrik*rik2);
-            dctij = (rr+rjk2)/(rijrik*rijmag*rijmag);
-            dctjk = -2.0/rijrik;
-            w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
-            rikmag = r21mag;
-            rij2 = r32mag*r32mag;
-            rik2 = r21mag*r21mag;
-            costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
-            tspjik = Sp2(costmp,thmin,thmax,dtsjik);
-            dtsjik = -dtsjik;
-
-            REBO_neighs_j = REBO_firstneigh[j];
-            for (l = 0; l < REBO_numneigh[j]; l++) {
-              atoml = REBO_neighs_j[l];
-              atom4 = atoml;
-              ltype = map[type[atoml]];
-              if (!(atoml == atomi || atoml == atomk)) {
-                r34[0] = x[atom3][0]-x[atom4][0];
-                r34[1] = x[atom3][1]-x[atom4][1];
-                r34[2] = x[atom3][2]-x[atom4][2];
-                r34mag = sqrt(r34[0]*r34[0] + r34[1]*r34[1] + r34[2]*r34[2]);
-                cos234 = -1.0*((rij[0]*r34[0])+(rij[1]*r34[1]) +
-                               (rij[2]*r34[2]))/(rijmag*r34mag);
-                cos234 = MIN(cos234,1.0);
-                cos234 = MAX(cos234,-1.0);
-                sin234 = sqrt(1.0 - cos234*cos234);
-
-                if ((sin234 > TOL) && (r34mag > TOL)) { // XXX was sin234 != 0.0
-                  sinl2i = 1.0/(sin234*sin234);
-                  rjl2i = 1.0/(r34mag*r34mag);
-                  w34 = Sp(r34mag,rcmin[jtype][ltype],
-                           rcmaxp[jtype][ltype],dw34);
-                  rr = (r23mag*r23mag)-(r34mag*r34mag);
-                  ril[0] = r23[0]+r34[0];
-                  ril[1] = r23[1]+r34[1];
-                  ril[2] = r23[2]+r34[2];
-                  ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-                  rijrjl = 2.0*r23mag*r34mag;
-                  rjl2 = r34mag*r34mag;
-                  dctjl = (-rr+ril2)/(rijrjl*rjl2);
-                  dctji = (rr+ril2)/(rijrjl*r23mag*r23mag);
-                  dctil = -2.0/rijrjl;
-                  rjlmag = r34mag;
-                  rjl2 = r34mag*r34mag;
-                  costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
-                  tspijl = Sp2(costmp,thmin,thmax,dtsijl);
-                  dtsijl = -dtsijl; //need minus sign
-                  prefactor = VA*Tij;
-
-                  cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
-                  cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
-                  cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
-                  cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
-                  cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
-                  cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
-
-                  cwnum = (cross321[0]*cross234[0]) +
-                    (cross321[1]*cross234[1])+(cross321[2]*cross234[2]);
-                  cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
-                  om1234 = cwnum/cwnom;
-                  cw = om1234;
-                  Etmp += ((1.0-square(om1234))*w21*w34) *
-                    (1.0-tspjik)*(1.0-tspijl);
-
-                  dt1dik = (rik2i)-(dctik*sink2i*cos321);
-                  dt1djk = (-dctjk*sink2i*cos321);
-                  dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
-                  dt1dil = (-dctil*sinl2i*cos234);
-                  dt1dij = (2.0/(r23mag*r23mag)) -
-                    (dctij*sink2i*cos321)-(dctji*sinl2i*cos234);
-
-                  dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
-                  dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
-                  dt2dik[2] = (-r23[1]*cross234[0])+(r23[0]*cross234[1]);
-
-                  dt2djl[0] = (-r23[1]*cross321[2])+(r23[2]*cross321[1]);
-                  dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
-                  dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
-
-                  dt2dij[0] = (r21[2]*cross234[1]) -
-                    (r34[2]*cross321[1])-(r21[1]*cross234[2]) +
-                    (r34[1]*cross321[2]);
-                  dt2dij[1] = (r21[0]*cross234[2]) -
-                    (r34[0]*cross321[2])-(r21[2]*cross234[0]) +
-                    (r34[2]*cross321[0]);
-                  dt2dij[2] = (r21[1]*cross234[0]) -
-                    (r34[1]*cross321[0])-(r21[0]*cross234[1]) +
-                    (r34[0]*cross321[1]);
-
-                  aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
-                    (1.0-tspjik)*(1.0-tspijl);
-                  aaa1 = -prefactor*(1.0-square(om1234)) *
-                    (1.0-tspjik)*(1.0-tspijl);
-                  aaa2 = aaa1*w21*w34;
-                  at2 = aa*cwnum;
-
-                  fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
-                    (aaa2*dtsijl*dctji*(1.0-tspjik));
-                  fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
-                  fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
-                  fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
-                  fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
-
-                  F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
-                  F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
-                  F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
-
-                  F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
-                  F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
-                  F12[2] = (fcikpc*r21[2])+(aa*dt2dik[2]);
-
-                  F34[0] = (fcjlpc*r34[0])+(aa*dt2djl[0]);
-                  F34[1] = (fcjlpc*r34[1])+(aa*dt2djl[1]);
-                  F34[2] = (fcjlpc*r34[2])+(aa*dt2djl[2]);
-
-                  F31[0] = (fcjkpc*rjk[0]);
-                  F31[1] = (fcjkpc*rjk[1]);
-                  F31[2] = (fcjkpc*rjk[2]);
-
-                  F24[0] = (fcilpc*ril[0]);
-                  F24[1] = (fcilpc*ril[1]);
-                  F24[2] = (fcilpc*ril[2]);
-
-                  f1[0] = -F12[0]-F31[0];
-                  f1[1] = -F12[1]-F31[1];
-                  f1[2] = -F12[2]-F31[2];
-                  f2[0] = F23[0]+F12[0]+F24[0];
-                  f2[1] = F23[1]+F12[1]+F24[1];
-                  f2[2] = F23[2]+F12[2]+F24[2];
-                  f3[0] = -F23[0]+F34[0]+F31[0];
-                  f3[1] = -F23[1]+F34[1]+F31[1];
-                  f3[2] = -F23[2]+F34[2]+F31[2];
-                  f4[0] = -F34[0]-F24[0];
-                  f4[1] = -F34[1]-F24[1];
-                  f4[2] = -F34[2]-F24[2];
-
-                  // coordination forces
-
-                  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
-                    (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
-                  f2[0] -= tmp2*r21[0];
-                  f2[1] -= tmp2*r21[1];
-                  f2[2] -= tmp2*r21[2];
-                  f1[0] += tmp2*r21[0];
-                  f1[1] += tmp2*r21[1];
-                  f1[2] += tmp2*r21[2];
-
-                  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
-                    (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
-                  f3[0] -= tmp2*r34[0];
-                  f3[1] -= tmp2*r34[1];
-                  f3[2] -= tmp2*r34[2];
-                  f4[0] += tmp2*r34[0];
-                  f4[1] += tmp2*r34[1];
-                  f4[2] += tmp2*r34[2];
-
-                  f[atom1][0] += f1[0]; f[atom1][1] += f1[1];
-                  f[atom1][2] += f1[2];
-                  f[atom2][0] += f2[0]; f[atom2][1] += f2[1];
-                  f[atom2][2] += f2[2];
-                  f[atom3][0] += f3[0]; f[atom3][1] += f3[1];
-                  f[atom3][2] += f3[2];
-                  f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
-                  f[atom4][2] += f4[2];
-
-                  if (vflag_atom) {
-                    r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
-                    r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
-                    v_tally4_thr(atom1,atom2,atom3,atom4,f1,f2,f4,r13,r23,r43,thr);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      REBO_neighs = REBO_firstneigh[i];
-      for (k = 0; k < REBO_numneigh[i]; k++) {
-        atomk = REBO_neighs[k];
-        if (atomk != atomj) {
-          ktype = map[type[atomk]];
-          rik[0] = x[atomi][0]-x[atomk][0];
-          rik[1] = x[atomi][1]-x[atomk][1];
-          rik[2] = x[atomi][2]-x[atomk][2];
-          rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-          wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-          Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
-            (wik*kronecker(itype,1));
-          SpN = Sp(Nki,Nmin,Nmax,dNki);
-
-          tmp2 = VA*dN3[0]*dwik*Etmp/rikmag;
-          f[atomi][0] -= tmp2*rik[0];
-          f[atomi][1] -= tmp2*rik[1];
-          f[atomi][2] -= tmp2*rik[2];
-          f[atomk][0] += tmp2*rik[0];
-          f[atomk][1] += tmp2*rik[1];
-          f[atomk][2] += tmp2*rik[2];
-
-          if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-          tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
-          f[atomi][0] -= tmp2*rik[0];
-          f[atomi][1] -= tmp2*rik[1];
-          f[atomi][2] -= tmp2*rik[2];
-          f[atomk][0] += tmp2*rik[0];
-          f[atomk][1] += tmp2*rik[1];
-          f[atomk][2] += tmp2*rik[2];
-
-          if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
-
-          if (fabs(dNki)  >TOL) {
-            REBO_neighs_k = REBO_firstneigh[atomk];
-            for (n = 0; n < REBO_numneigh[atomk]; n++) {
-              atomn = REBO_neighs_k[n];
-              ntype = map[type[atomn]];
-              if (atomn !=atomi) {
-                rkn[0] = x[atomk][0]-x[atomn][0];
-                rkn[1] = x[atomk][1]-x[atomn][1];
-                rkn[2] = x[atomk][2]-x[atomn][2];
-                rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-                Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
-
-                tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
-                f[atomk][0] -= tmp2*rkn[0];
-                f[atomk][1] -= tmp2*rkn[1];
-                f[atomk][2] -= tmp2*rkn[2];
-                f[atomn][0] += tmp2*rkn[0];
-                f[atomn][1] += tmp2*rkn[1];
-                f[atomn][2] += tmp2*rkn[2];
-
-                if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
-              }
-            }
-          }
-        }
-      }
-
-      // Tij forces
-
-      REBO_neighs = REBO_firstneigh[j];
-      for (l = 0; l < REBO_numneigh[j]; l++) {
-        atoml = REBO_neighs[l];
-        if (atoml != atomi) {
-          ltype = map[type[atoml]];
-          rjl[0] = x[atomj][0]-x[atoml][0];
-          rjl[1] = x[atomj][1]-x[atoml][1];
-          rjl[2] = x[atomj][2]-x[atoml][2];
-          rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-          wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-          Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
-            (wjl*kronecker(jtype,1));
-          SpN = Sp(Nlj,Nmin,Nmax,dNlj);
-
-          tmp2 = VA*dN3[1]*dwjl*Etmp/rjlmag;
-          f[atomj][0] -= tmp2*rjl[0];
-          f[atomj][1] -= tmp2*rjl[1];
-          f[atomj][2] -= tmp2*rjl[2];
-          f[atoml][0] += tmp2*rjl[0];
-          f[atoml][1] += tmp2*rjl[1];
-          f[atoml][2] += tmp2*rjl[2];
-
-          if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-          tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
-          f[atomj][0] -= tmp2*rjl[0];
-          f[atomj][1] -= tmp2*rjl[1];
-          f[atomj][2] -= tmp2*rjl[2];
-          f[atoml][0] += tmp2*rjl[0];
-          f[atoml][1] += tmp2*rjl[1];
-          f[atoml][2] += tmp2*rjl[2];
-
-          if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
-
-          if (fabs(dNlj) > TOL) {
-            REBO_neighs_l = REBO_firstneigh[atoml];
-            for (n = 0; n < REBO_numneigh[atoml]; n++) {
-              atomn = REBO_neighs_l[n];
-              ntype = map[type[atomn]];
-              if (atomn != atomj) {
-                rln[0] = x[atoml][0]-x[atomn][0];
-                rln[1] = x[atoml][1]-x[atomn][1];
-                rln[2] = x[atoml][2]-x[atomn][2];
-                rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-                Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
-
-                tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)*Etmp/rlnmag;
-                f[atoml][0] -= tmp2*rln[0];
-                f[atoml][1] -= tmp2*rln[1];
-                f[atoml][2] -= tmp2*rln[2];
-                f[atomn][0] += tmp2*rln[0];
-                f[atomn][1] += tmp2*rln[1];
-                f[atomn][2] += tmp2*rln[2];
-
-                if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return Stb;
 }
 
 /* ----------------------------------------------------------------------
@@ -1951,7 +294,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
   double delij[3],rijsq,delik[3],rik,deljk[3];
   double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
   double vdw,slw,dvdw,dslw,drij,swidth,tee,tee2;
-  double rljmin,rljmax,sigcut,sigmin,sigwid;
+  double rljmin,rljmax;
   double delkm[3],rkm,deljm[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *REBO_neighs_i,*REBO_neighs_k;
@@ -1967,9 +310,6 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
   evdwl = 0.0;
   rljmin = 0.0;
   rljmax = 0.0;
-  sigcut = 0.0;
-  sigmin = 0.0;
-  sigwid = 0.0;
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
@@ -2161,10 +501,6 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
 
       // compute LJ forces and energy
 
-      sigwid = 0.84;
-      sigcut = 3.0;
-      sigmin = sigcut - sigwid;
-
       rljmin = sigma[itype][jtype];
       rljmax = sigcut * rljmin;
       rljmin = sigmin * rljmin;
@@ -2178,7 +514,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
         tee = drij / swidth;
         tee2 = tee*tee;
         slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
-        dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
+        dslw = -6.0 * tee * (1.0 - tee) / swidth;
       } else {
         slw = 1.0;
         dslw = 0.0;
@@ -2671,102 +1007,1790 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito, int evflag, int eflag,
 }
 
 /* ----------------------------------------------------------------------
-   create REBO neighbor list from main neighbor list
-   REBO neighbor list stores neighbors of ghost atoms
+   Bij function
 ------------------------------------------------------------------------- */
 
-void PairAIREBOOMP::REBO_neigh_thr()
+double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
+                                    double VA, int vflag_atom, ThrData * const thr)
 {
-  const int nthreads = comm->nthreads;
+  int atomi,atomj,k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
+  int itype,jtype,ktype,ltype,ntype;
+  double rik[3],rjl[3],rkn[3],rji[3],rki[3],rlj[3],rknmag,dNki,dwjl,bij;
+  double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
+  double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
+  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ,Nki,Nlj,dS;
+  double lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
+  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
+  double dN2[2],dN3[3];
+  double dcosjikdrj[3],dcosijldrj[3],dcosijldrl[3];
+  double Tij;
+  double r32[3],r32mag,cos321,r43[3],r13[3];
+  double dNlj;
+  double om1234,rln[3];
+  double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
+  double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
+  double cross321[3],cross234[3],prefactor,SpN;
+  double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
+  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa2,at2,cw,cwnum,cwnom;
+  double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
+  double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
+  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
+  double F23[3],F12[3],F34[3],F31[3],F24[3],fi[3],fj[3],fk[3],fl[3];
+  double f1[3],f2[3],f3[3],f4[4];
+  double dcut321,PijS,PjiS;
+  double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
+  int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
 
-  if (atom->nmax > maxlocal) {
-    maxlocal = atom->nmax;
-    memory->destroy(REBO_numneigh);
-    memory->sfree(REBO_firstneigh);
-    memory->destroy(nC);
-    memory->destroy(nH);
-    memory->create(REBO_numneigh,maxlocal,"AIREBO:numneigh");
-    REBO_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
-                                               "AIREBO:firstneigh");
-    memory->create(nC,maxlocal,"AIREBO:nC");
-    memory->create(nH,maxlocal,"AIREBO:nH");
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  int *type = atom->type;
+
+  atomi = i;
+  atomj = j;
+  itype = map[type[i]];
+  jtype = map[type[j]];
+  wij = Sp(rijmag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+  NijC = nC[i]-(wij*kronecker(jtype,0));
+  NijH = nH[i]-(wij*kronecker(jtype,1));
+  NjiC = nC[j]-(wij*kronecker(itype,0));
+  NjiH = nH[j]-(wij*kronecker(itype,1));
+  bij = 0.0;
+  tmp = 0.0;
+  tmp2 = 0.0;
+  tmp3 = 0.0;
+  dgdc = 0.0;
+  dgdN = 0.0;
+  NconjtmpI = 0.0;
+  NconjtmpJ = 0.0;
+  Etmp = 0.0;
+
+  REBO_neighs = REBO_firstneigh[i];
+  for (k = 0; k < REBO_numneigh[i]; k++) {
+    atomk = REBO_neighs[k];
+    if (atomk != atomj) {
+      ktype = map[type[atomk]];
+      rik[0] = x[atomi][0]-x[atomk][0];
+      rik[1] = x[atomi][1]-x[atomk][1];
+      rik[2] = x[atomi][2]-x[atomk][2];
+      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+      lamdajik = 4.0*kronecker(itype,1) *
+        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
+      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
+      Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
+        (wik*kronecker(itype,1));
+      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
+        (rijmag*rikmag);
+      cosjik = MIN(cosjik,1.0);
+      cosjik = MAX(cosjik,-1.0);
+
+      // evaluate splines g and derivatives dg
+
+      g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
+      Etmp = Etmp+(wik*g*exp(lamdajik));
+      tmp3 = tmp3+(wik*dgdN*exp(lamdajik));
+      NconjtmpI = NconjtmpI+(kronecker(ktype,0)*wik*Sp(Nki,Nmin,Nmax,dS));
+    }
   }
 
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-    int i,j,ii,jj,n,jnum,itype,jtype;
-    double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
-    int *ilist,*jlist,*numneigh,**firstneigh;
-    int *neighptr;
+  PijS = 0.0;
+  dN2[0] = 0.0;
+  dN2[1] = 0.0;
+  PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
+  tmp = -0.5*pij*pij*pij;
 
-    double **x = atom->x;
-    int *type = atom->type;
+  const double invrijm = 1.0/rijmag;
+  const double invrijm2 = invrijm*invrijm;
 
-    const int allnum = list->inum + list->gnum;
-    ilist = list->ilist;
-    numneigh = list->numneigh;
-    firstneigh = list->firstneigh;
+  // pij forces
 
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
+  REBO_neighs = REBO_firstneigh[i];
+  for (k = 0; k < REBO_numneigh[i]; k++) {
+    atomk = REBO_neighs[k];
+    if (atomk != atomj) {
+      ktype = map[type[atomk]];
+      rik[0] = x[atomi][0]-x[atomk][0];
+      rik[1] = x[atomi][1]-x[atomk][1];
+      rik[2] = x[atomi][2]-x[atomk][2];
+      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+      lamdajik = 4.0*kronecker(itype,1) *
+        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
+      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
 
-    const int iidelta = 1 + allnum/nthreads;
-    const int iifrom = tid*iidelta;
-    const int iito = ((iifrom+iidelta)>allnum) ? allnum : (iifrom+iidelta);
+      const double invrikm = 1.0/rikmag;
+      const double invrijkm = invrijm*invrikm;
+      const double invrikm2 = invrikm*invrikm;
 
-    // store all REBO neighs of owned and ghost atoms
-    // scan full neighbor list of I
+      cosjik = (rij[0]*rik[0] + rij[1]*rik[1] + rij[2]*rik[2]) * invrijkm;
+      cosjik = MIN(cosjik,1.0);
+      cosjik = MAX(cosjik,-1.0);
 
-    // each thread has its own page allocator
-    MyPage<int> &ipg = ipage[tid];
-    ipg.reset();
+      dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) -
+        (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
+      dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) -
+        (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
+      dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) -
+        (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
+      dcosjikdrk[0] = (-rij[0]*invrijkm) + (cosjik*(rik[0]*invrikm2));
+      dcosjikdrk[1] = (-rij[1]*invrijkm) + (cosjik*(rik[1]*invrikm2));
+      dcosjikdrk[2] = (-rij[2]*invrijkm) + (cosjik*(rik[2]*invrikm2));
+      dcosjikdrj[0] = (-rik[0]*invrijkm) + (cosjik*(rij[0]*invrijm2));
+      dcosjikdrj[1] = (-rik[1]*invrijkm) + (cosjik*(rij[1]*invrijm2));
+      dcosjikdrj[2] = (-rik[2]*invrijkm) + (cosjik*(rij[2]*invrijm2));
 
-    for (ii = iifrom; ii < iito; ii++) {
-      i = ilist[ii];
+      g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
+      tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
+      fj[0] = -tmp2*dcosjikdrj[0];
+      fj[1] = -tmp2*dcosjikdrj[1];
+      fj[2] = -tmp2*dcosjikdrj[2];
+      fi[0] = -tmp2*dcosjikdri[0];
+      fi[1] = -tmp2*dcosjikdri[1];
+      fi[2] = -tmp2*dcosjikdri[2];
+      fk[0] = -tmp2*dcosjikdrk[0];
+      fk[1] = -tmp2*dcosjikdrk[1];
+      fk[2] = -tmp2*dcosjikdrk[2];
 
-      n = 0;
-      neighptr = ipg.vget();
+      tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
+      fj[0] -= tmp2*(-rij[0]*invrijm);
+      fj[1] -= tmp2*(-rij[1]*invrijm);
+      fj[2] -= tmp2*(-rij[2]*invrijm);
+      fi[0] -= tmp2*((-rik[0]*invrikm)+(rij[0]*invrijm));
+      fi[1] -= tmp2*((-rik[1]*invrikm)+(rij[1]*invrijm));
+      fi[2] -= tmp2*((-rik[2]*invrikm)+(rij[2]*invrijm));
+      fk[0] -= tmp2*(rik[0]*invrikm);
+      fk[1] -= tmp2*(rik[1]*invrikm);
+      fk[2] -= tmp2*(rik[2]*invrikm);
 
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      itype = map[type[i]];
-      nC[i] = nH[i] = 0.0;
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+      // coordination forces
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
-        jtype = map[type[j]];
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+      // dwik forces
 
-        if (rsq < rcmaxsq[itype][jtype]) {
-          neighptr[n++] = j;
-          if (jtype == 0)
-            nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-          else
-            nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+      tmp2 = VA*.5*(tmp*dwik*g*exp(lamdajik))*invrikm;
+      fi[0] -= tmp2*rik[0];
+      fi[1] -= tmp2*rik[1];
+      fi[2] -= tmp2*rik[2];
+      fk[0] += tmp2*rik[0];
+      fk[1] += tmp2*rik[1];
+      fk[2] += tmp2*rik[2];
+
+      // PIJ forces
+
+      tmp2 = VA*.5*(tmp*dN2[ktype]*dwik)*invrikm;
+      fi[0] -= tmp2*rik[0];
+      fi[1] -= tmp2*rik[1];
+      fi[2] -= tmp2*rik[2];
+      fk[0] += tmp2*rik[0];
+      fk[1] += tmp2*rik[1];
+      fk[2] += tmp2*rik[2];
+
+      // dgdN forces
+
+      tmp2 = VA*.5*(tmp*tmp3*dwik)*invrikm;
+      fi[0] -= tmp2*rik[0];
+      fi[1] -= tmp2*rik[1];
+      fi[2] -= tmp2*rik[2];
+      fk[0] += tmp2*rik[0];
+      fk[1] += tmp2*rik[1];
+      fk[2] += tmp2*rik[2];
+
+      f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
+      f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
+      f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
+
+      if (vflag_atom) {
+        rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
+        rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
+        v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,thr);
+      }
+    }
+  }
+
+  tmp = 0.0;
+  tmp2 = 0.0;
+  tmp3 = 0.0;
+  Etmp = 0.0;
+
+  REBO_neighs = REBO_firstneigh[j];
+  for (l = 0; l < REBO_numneigh[j]; l++) {
+    atoml = REBO_neighs[l];
+    if (atoml != atomi) {
+      ltype = map[type[atoml]];
+      rjl[0] = x[atomj][0]-x[atoml][0];
+      rjl[1] = x[atomj][1]-x[atoml][1];
+      rjl[2] = x[atomj][2]-x[atoml][2];
+      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+      lamdaijl = 4.0*kronecker(jtype,1) *
+        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
+      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
+      Nlj = nC[atoml]-(wjl*kronecker(jtype,0)) +
+        nH[atoml]-(wjl*kronecker(jtype,1));
+      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
+        (rijmag*rjlmag);
+      cosijl = MIN(cosijl,1.0);
+      cosijl = MAX(cosijl,-1.0);
+
+      // evaluate splines g and derivatives dg
+
+      g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
+      Etmp = Etmp+(wjl*g*exp(lamdaijl));
+      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl));
+      NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
+    }
+  }
+
+  PjiS = 0.0;
+  dN2[0] = 0.0;
+  dN2[1] = 0.0;
+  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
+  tmp = -0.5*pji*pji*pji;
+
+  REBO_neighs = REBO_firstneigh[j];
+  for (l = 0; l < REBO_numneigh[j]; l++) {
+    atoml = REBO_neighs[l];
+    if (atoml != atomi) {
+      ltype = map[type[atoml]];
+      rjl[0] = x[atomj][0]-x[atoml][0];
+      rjl[1] = x[atomj][1]-x[atoml][1];
+      rjl[2] = x[atomj][2]-x[atoml][2];
+      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+      lamdaijl = 4.0*kronecker(jtype,1) *
+        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
+      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+
+      const double invrjlm = 1.0/rjlmag;
+      const double invrijlm = invrijm*invrjlm;
+      const double invrjlm2 = invrjlm*invrjlm;
+
+      cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])))
+        * invrijlm;
+
+      cosijl = MIN(cosijl,1.0);
+      cosijl = MAX(cosijl,-1.0);
+
+      dcosijldri[0] = (-rjl[0]*invrijlm) - (cosijl*rij[0]*invrijm2);
+      dcosijldri[1] = (-rjl[1]*invrijlm) - (cosijl*rij[1]*invrijm2);
+      dcosijldri[2] = (-rjl[2]*invrijlm) - (cosijl*rij[2]*invrijm2);
+      dcosijldrj[0] = ((-rij[0]+rjl[0])*invrijlm) +
+        (cosijl*((rij[0]*invrijm2)-(rjl[0]*invrjlm2)));
+      dcosijldrj[1] = ((-rij[1]+rjl[1])*invrijlm) +
+        (cosijl*((rij[1]*invrijm2)-(rjl[1]*invrjlm2)));
+      dcosijldrj[2] = ((-rij[2]+rjl[2])*invrijlm) +
+        (cosijl*((rij[2]*invrijm2)-(rjl[2]*invrjlm2)));
+      dcosijldrl[0] = (rij[0]*invrijlm)+(cosijl*rjl[0]*invrjlm2);
+      dcosijldrl[1] = (rij[1]*invrijlm)+(cosijl*rjl[1]*invrjlm2);
+      dcosijldrl[2] = (rij[2]*invrijlm)+(cosijl*rjl[2]*invrjlm2);
+
+      // evaluate splines g and derivatives dg
+
+      g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
+      tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
+      fi[0] = -tmp2*dcosijldri[0];
+      fi[1] = -tmp2*dcosijldri[1];
+      fi[2] = -tmp2*dcosijldri[2];
+      fj[0] = -tmp2*dcosijldrj[0];
+      fj[1] = -tmp2*dcosijldrj[1];
+      fj[2] = -tmp2*dcosijldrj[2];
+      fl[0] = -tmp2*dcosijldrl[0];
+      fl[1] = -tmp2*dcosijldrl[1];
+      fl[2] = -tmp2*dcosijldrl[2];
+
+      tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
+      fi[0] -= tmp2*(rij[0]*invrijm);
+      fi[1] -= tmp2*(rij[1]*invrijm);
+      fi[2] -= tmp2*(rij[2]*invrijm);
+      fj[0] -= tmp2*((-rjl[0]*invrjlm)-(rij[0]*invrijm));
+      fj[1] -= tmp2*((-rjl[1]*invrjlm)-(rij[1]*invrijm));
+      fj[2] -= tmp2*((-rjl[2]*invrjlm)-(rij[2]*invrijm));
+      fl[0] -= tmp2*(rjl[0]*invrjlm);
+      fl[1] -= tmp2*(rjl[1]*invrjlm);
+      fl[2] -= tmp2*(rjl[2]*invrjlm);
+
+      // coordination forces
+
+      // dwik forces
+
+      tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))*invrjlm;
+      fj[0] -= tmp2*rjl[0];
+      fj[1] -= tmp2*rjl[1];
+      fj[2] -= tmp2*rjl[2];
+      fl[0] += tmp2*rjl[0];
+      fl[1] += tmp2*rjl[1];
+      fl[2] += tmp2*rjl[2];
+
+      // PIJ forces
+
+      tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)*invrjlm;
+      fj[0] -= tmp2*rjl[0];
+      fj[1] -= tmp2*rjl[1];
+      fj[2] -= tmp2*rjl[2];
+      fl[0] += tmp2*rjl[0];
+      fl[1] += tmp2*rjl[1];
+      fl[2] += tmp2*rjl[2];
+
+      // dgdN forces
+
+      tmp2 = VA*.5*(tmp*tmp3*dwjl)*invrjlm;
+      fj[0] -= tmp2*rjl[0];
+      fj[1] -= tmp2*rjl[1];
+      fj[2] -= tmp2*rjl[2];
+      fl[0] += tmp2*rjl[0];
+      fl[1] += tmp2*rjl[1];
+      fl[2] += tmp2*rjl[2];
+
+      f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
+      f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
+      f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
+
+      if (vflag_atom) {
+        rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
+        v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,thr);
+      }
+    }
+  }
+
+  // evaluate Nij conj
+
+  Nijconj = 1.0+(NconjtmpI*NconjtmpI)+(NconjtmpJ*NconjtmpJ);
+  piRC = piRCSpline(NijC+NijH,NjiC+NjiH,Nijconj,itype,jtype,dN3);
+
+  // piRC forces
+
+  REBO_neighs_i = REBO_firstneigh[i];
+  for (k = 0; k < REBO_numneigh[i]; k++) {
+    atomk = REBO_neighs_i[k];
+    if (atomk !=atomj) {
+      ktype = map[type[atomk]];
+      rik[0] = x[atomi][0]-x[atomk][0];
+      rik[1] = x[atomi][1]-x[atomk][1];
+      rik[2] = x[atomi][2]-x[atomk][2];
+      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+      Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
+        (wik*kronecker(itype,1));
+      SpN = Sp(Nki,Nmin,Nmax,dNki);
+
+      tmp2 = VA*dN3[0]*dwik/rikmag;
+      f[atomi][0] -= tmp2*rik[0];
+      f[atomi][1] -= tmp2*rik[1];
+      f[atomi][2] -= tmp2*rik[2];
+      f[atomk][0] += tmp2*rik[0];
+      f[atomk][1] += tmp2*rik[1];
+      f[atomk][2] += tmp2*rik[2];
+
+      if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+      // due to kronecker(ktype, 0) term in contribution
+      // to NconjtmpI and later Nijconj
+      if (ktype != 0) continue;
+
+      tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
+      f[atomi][0] -= tmp2*rik[0];
+      f[atomi][1] -= tmp2*rik[1];
+      f[atomi][2] -= tmp2*rik[2];
+      f[atomk][0] += tmp2*rik[0];
+      f[atomk][1] += tmp2*rik[1];
+      f[atomk][2] += tmp2*rik[2];
+
+      if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+      if (fabs(dNki) > TOL) {
+        REBO_neighs_k = REBO_firstneigh[atomk];
+        for (n = 0; n < REBO_numneigh[atomk]; n++) {
+          atomn = REBO_neighs_k[n];
+          if (atomn != atomi) {
+            ntype = map[type[atomn]];
+            rkn[0] = x[atomk][0]-x[atomn][0];
+            rkn[1] = x[atomk][1]-x[atomn][1];
+            rkn[2] = x[atomk][2]-x[atomn][2];
+            rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
+            Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+
+            tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
+            f[atomk][0] -= tmp2*rkn[0];
+            f[atomk][1] -= tmp2*rkn[1];
+            f[atomk][2] -= tmp2*rkn[2];
+            f[atomn][0] += tmp2*rkn[0];
+            f[atomn][1] += tmp2*rkn[1];
+            f[atomn][2] += tmp2*rkn[2];
+
+            if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
+          }
+        }
+      }
+    }
+  }
+
+  // piRC forces
+
+  REBO_neighs = REBO_firstneigh[atomj];
+  for (l = 0; l < REBO_numneigh[atomj]; l++) {
+    atoml = REBO_neighs[l];
+    if (atoml !=atomi) {
+      ltype = map[type[atoml]];
+      rjl[0] = x[atomj][0]-x[atoml][0];
+      rjl[1] = x[atomj][1]-x[atoml][1];
+      rjl[2] = x[atomj][2]-x[atoml][2];
+      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
+        (wjl*kronecker(jtype,1));
+      SpN = Sp(Nlj,Nmin,Nmax,dNlj);
+
+      tmp2 = VA*dN3[1]*dwjl/rjlmag;
+      f[atomj][0] -= tmp2*rjl[0];
+      f[atomj][1] -= tmp2*rjl[1];
+      f[atomj][2] -= tmp2*rjl[2];
+      f[atoml][0] += tmp2*rjl[0];
+      f[atoml][1] += tmp2*rjl[1];
+      f[atoml][2] += tmp2*rjl[2];
+
+      if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+      // due to kronecker(ltype, 0) term in contribution
+      // to NconjtmpJ and later Nijconj
+      if (ltype != 0) continue;
+
+      tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
+      f[atomj][0] -= tmp2*rjl[0];
+      f[atomj][1] -= tmp2*rjl[1];
+      f[atomj][2] -= tmp2*rjl[2];
+      f[atoml][0] += tmp2*rjl[0];
+      f[atoml][1] += tmp2*rjl[1];
+      f[atoml][2] += tmp2*rjl[2];
+
+      if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+      if (fabs(dNlj) > TOL) {
+        REBO_neighs_l = REBO_firstneigh[atoml];
+        for (n = 0; n < REBO_numneigh[atoml]; n++) {
+          atomn = REBO_neighs_l[n];
+          if (atomn != atomj) {
+            ntype = map[type[atomn]];
+            rln[0] = x[atoml][0]-x[atomn][0];
+            rln[1] = x[atoml][1]-x[atomn][1];
+            rln[2] = x[atoml][2]-x[atomn][2];
+            rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
+            Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+
+            tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
+            f[atoml][0] -= tmp2*rln[0];
+            f[atoml][1] -= tmp2*rln[1];
+            f[atoml][2] -= tmp2*rln[2];
+            f[atomn][0] += tmp2*rln[0];
+            f[atomn][1] += tmp2*rln[1];
+            f[atomn][2] += tmp2*rln[2];
+
+            if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
+          }
+        }
+      }
+    }
+  }
+
+  Tij = 0.0;
+  dN3[0] = 0.0;
+  dN3[1] = 0.0;
+  dN3[2] = 0.0;
+  if (itype == 0 && jtype == 0)
+    Tij=TijSpline((NijC+NijH),(NjiC+NjiH),Nijconj,dN3);
+  Etmp = 0.0;
+
+  if (fabs(Tij) > TOL) {
+    atom2 = atomi;
+    atom3 = atomj;
+    r32[0] = x[atom3][0]-x[atom2][0];
+    r32[1] = x[atom3][1]-x[atom2][1];
+    r32[2] = x[atom3][2]-x[atom2][2];
+    r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
+    r23[0] = -r32[0];
+    r23[1] = -r32[1];
+    r23[2] = -r32[2];
+    r23mag = r32mag;
+    REBO_neighs_i = REBO_firstneigh[i];
+    for (k = 0; k < REBO_numneigh[i]; k++) {
+      atomk = REBO_neighs_i[k];
+      atom1 = atomk;
+      ktype = map[type[atomk]];
+      if (atomk != atomj) {
+        r21[0] = x[atom2][0]-x[atom1][0];
+        r21[1] = x[atom2][1]-x[atom1][1];
+        r21[2] = x[atom2][2]-x[atom1][2];
+        r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
+        cos321 = -1.0*((r21[0]*r32[0])+(r21[1]*r32[1])+(r21[2]*r32[2])) /
+          (r21mag*r32mag);
+        cos321 = MIN(cos321,1.0);
+        cos321 = MAX(cos321,-1.0);
+        Sp2(cos321,thmin,thmax,dcut321);
+        sin321 = sqrt(1.0 - cos321*cos321);
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          sink2i = 1.0/(sin321*sin321);
+          rik2i = 1.0/(r21mag*r21mag);
+          rr = (r23mag*r23mag)-(r21mag*r21mag);
+          rjk[0] = r21[0]-r23[0];
+          rjk[1] = r21[1]-r23[1];
+          rjk[2] = r21[2]-r23[2];
+          rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
+          rijrik = 2.0*r23mag*r21mag;
+          rik2 = r21mag*r21mag;
+          dctik = (-rr+rjk2)/(rijrik*rik2);
+          dctij = (rr+rjk2)/(rijrik*r23mag*r23mag);
+          dctjk = -2.0/rijrik;
+          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
+          rijmag = r32mag;
+          rikmag = r21mag;
+          rij2 = r32mag*r32mag;
+          rik2 = r21mag*r21mag;
+          costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
+          tspjik = Sp2(costmp,thmin,thmax,dtsjik);
+          dtsjik = -dtsjik;
+
+          REBO_neighs_j = REBO_firstneigh[j];
+          for (l = 0; l < REBO_numneigh[j]; l++) {
+            atoml = REBO_neighs_j[l];
+            atom4 = atoml;
+            ltype = map[type[atoml]];
+            if (!(atoml == atomi || atoml == atomk)) {
+              r34[0] = x[atom3][0]-x[atom4][0];
+              r34[1] = x[atom3][1]-x[atom4][1];
+              r34[2] = x[atom3][2]-x[atom4][2];
+              r34mag = sqrt((r34[0]*r34[0])+(r34[1]*r34[1])+(r34[2]*r34[2]));
+              cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
+                (r32mag*r34mag);
+              cos234 = MIN(cos234,1.0);
+              cos234 = MAX(cos234,-1.0);
+              sin234 = sqrt(1.0 - cos234*cos234);
+
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                sinl2i = 1.0/(sin234*sin234);
+                rjl2i = 1.0/(r34mag*r34mag);
+                w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
+                rr = (r23mag*r23mag)-(r34mag*r34mag);
+                ril[0] = r23[0]+r34[0];
+                ril[1] = r23[1]+r34[1];
+                ril[2] = r23[2]+r34[2];
+                ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
+                rijrjl = 2.0*r23mag*r34mag;
+                rjl2 = r34mag*r34mag;
+                dctjl = (-rr+ril2)/(rijrjl*rjl2);
+                dctji = (rr+ril2)/(rijrjl*r23mag*r23mag);
+                dctil = -2.0/rijrjl;
+                rjlmag = r34mag;
+                rjl2 = r34mag*r34mag;
+                costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
+                tspijl = Sp2(costmp,thmin,thmax,dtsijl);
+                dtsijl = -dtsijl;
+                prefactor = VA*Tij;
+
+                cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
+                cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
+                cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
+                cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
+                cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
+                cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
+
+                cwnum = (cross321[0]*cross234[0]) +
+                  (cross321[1]*cross234[1]) + (cross321[2]*cross234[2]);
+                cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
+                om1234 = cwnum/cwnom;
+                cw = om1234;
+                Etmp += ((1.0-square(om1234))*w21*w34) *
+                  (1.0-tspjik)*(1.0-tspijl);
+
+                dt1dik = (rik2i)-(dctik*sink2i*cos321);
+                dt1djk = (-dctjk*sink2i*cos321);
+                dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
+                dt1dil = (-dctil*sinl2i*cos234);
+                dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
+                  (dctji*sinl2i*cos234);
+
+                dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
+                dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
+                dt2dik[2] = (-r23[1]*cross234[0])+(r23[0]*cross234[1]);
+
+                dt2djl[0] = (-r23[1]*cross321[2])+(r23[2]*cross321[1]);
+                dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
+                dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
+
+                dt2dij[0] = (r21[2]*cross234[1])-(r34[2]*cross321[1]) -
+                  (r21[1]*cross234[2])+(r34[1]*cross321[2]);
+                dt2dij[1] = (r21[0]*cross234[2])-(r34[0]*cross321[2]) -
+                  (r21[2]*cross234[0])+(r34[2]*cross321[0]);
+                dt2dij[2] = (r21[1]*cross234[0])-(r34[1]*cross321[0]) -
+                  (r21[0]*cross234[1])+(r34[0]*cross321[1]);
+
+                aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
+                  (1.0-tspjik)*(1.0-tspijl);
+                aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
+                at2 = aa*cwnum;
+
+                fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
+                  (aaa2*dtsijl*dctji*(1.0-tspjik));
+                fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
+                fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
+                fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
+                fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
+
+                F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
+                F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
+                F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
+
+                F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
+                F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
+                F12[2] = (fcikpc*r21[2])+(aa*dt2dik[2]);
+
+                F34[0] = (fcjlpc*r34[0])+(aa*dt2djl[0]);
+                F34[1] = (fcjlpc*r34[1])+(aa*dt2djl[1]);
+                F34[2] = (fcjlpc*r34[2])+(aa*dt2djl[2]);
+
+                F31[0] = (fcjkpc*rjk[0]);
+                F31[1] = (fcjkpc*rjk[1]);
+                F31[2] = (fcjkpc*rjk[2]);
+
+                F24[0] = (fcilpc*ril[0]);
+                F24[1] = (fcilpc*ril[1]);
+                F24[2] = (fcilpc*ril[2]);
+
+                f1[0] = -F12[0]-F31[0];
+                f1[1] = -F12[1]-F31[1];
+                f1[2] = -F12[2]-F31[2];
+                f2[0] = F23[0]+F12[0]+F24[0];
+                f2[1] = F23[1]+F12[1]+F24[1];
+                f2[2] = F23[2]+F12[2]+F24[2];
+                f3[0] = -F23[0]+F34[0]+F31[0];
+                f3[1] = -F23[1]+F34[1]+F31[1];
+                f3[2] = -F23[2]+F34[2]+F31[2];
+                f4[0] = -F34[0]-F24[0];
+                f4[1] = -F34[1]-F24[1];
+                f4[2] = -F34[2]-F24[2];
+
+                // coordination forces
+
+                tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                  (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
+                f2[0] -= tmp2*r21[0];
+                f2[1] -= tmp2*r21[1];
+                f2[2] -= tmp2*r21[2];
+                f1[0] += tmp2*r21[0];
+                f1[1] += tmp2*r21[1];
+                f1[2] += tmp2*r21[2];
+
+                tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                  (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
+                f3[0] -= tmp2*r34[0];
+                f3[1] -= tmp2*r34[1];
+                f3[2] -= tmp2*r34[2];
+                f4[0] += tmp2*r34[0];
+                f4[1] += tmp2*r34[1];
+                f4[2] += tmp2*r34[2];
+
+                f[atom1][0] += f1[0]; f[atom1][1] += f1[1];
+                f[atom1][2] += f1[2];
+                f[atom2][0] += f2[0]; f[atom2][1] += f2[1];
+                f[atom2][2] += f2[2];
+                f[atom3][0] += f3[0]; f[atom3][1] += f3[1];
+                f[atom3][2] += f3[2];
+                f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
+                f[atom4][2] += f4[2];
+
+                if (vflag_atom) {
+                  r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
+                  r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
+                  v_tally4_thr(atom1,atom2,atom3,atom4,f1,f2,f4,r13,r23,r43,thr);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Tij forces now that we have Etmp
+
+    REBO_neighs = REBO_firstneigh[i];
+    for (k = 0; k < REBO_numneigh[i]; k++) {
+      atomk = REBO_neighs[k];
+      if (atomk != atomj) {
+        ktype = map[type[atomk]];
+        rik[0] = x[atomi][0]-x[atomk][0];
+        rik[1] = x[atomi][1]-x[atomk][1];
+        rik[2] = x[atomi][2]-x[atomk][2];
+        rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+        wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+        Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
+          (wik*kronecker(itype,1));
+        SpN = Sp(Nki,Nmin,Nmax,dNki);
+
+        tmp2 = VA*dN3[0]*dwik*Etmp/rikmag;
+        f[atomi][0] -= tmp2*rik[0];
+        f[atomi][1] -= tmp2*rik[1];
+        f[atomi][2] -= tmp2*rik[2];
+        f[atomk][0] += tmp2*rik[0];
+        f[atomk][1] += tmp2*rik[1];
+        f[atomk][2] += tmp2*rik[2];
+
+        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
+        tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
+        f[atomi][0] -= tmp2*rik[0];
+        f[atomi][1] -= tmp2*rik[1];
+        f[atomi][2] -= tmp2*rik[2];
+        f[atomk][0] += tmp2*rik[0];
+        f[atomk][1] += tmp2*rik[1];
+        f[atomk][2] += tmp2*rik[2];
+
+        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+        if (fabs(dNki) > TOL) {
+          REBO_neighs_k = REBO_firstneigh[atomk];
+          for (n = 0; n < REBO_numneigh[atomk]; n++) {
+            atomn = REBO_neighs_k[n];
+            ntype = map[type[atomn]];
+            if (atomn != atomi) {
+              rkn[0] = x[atomk][0]-x[atomn][0];
+              rkn[1] = x[atomk][1]-x[atomn][1];
+              rkn[2] = x[atomk][2]-x[atomn][2];
+              rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
+              Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+
+              tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
+              f[atomk][0] -= tmp2*rkn[0];
+              f[atomk][1] -= tmp2*rkn[1];
+              f[atomk][2] -= tmp2*rkn[2];
+              f[atomn][0] += tmp2*rkn[0];
+              f[atomn][1] += tmp2*rkn[1];
+              f[atomn][2] += tmp2*rkn[2];
+
+              if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
+            }
+          }
+        }
+      }
+    }
+
+    // Tij forces
+
+    REBO_neighs = REBO_firstneigh[j];
+    for (l = 0; l < REBO_numneigh[j]; l++) {
+      atoml = REBO_neighs[l];
+      if (atoml != atomi) {
+        ltype = map[type[atoml]];
+        rjl[0] = x[atomj][0]-x[atoml][0];
+        rjl[1] = x[atomj][1]-x[atoml][1];
+        rjl[2] = x[atomj][2]-x[atoml][2];
+        rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+        wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+        Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
+          (wjl*kronecker(jtype,1));
+        SpN = Sp(Nlj,Nmin,Nmax,dNlj);
+
+        tmp2 = VA*dN3[1]*dwjl*Etmp/rjlmag;
+        f[atomj][0] -= tmp2*rjl[0];
+        f[atomj][1] -= tmp2*rjl[1];
+        f[atomj][2] -= tmp2*rjl[2];
+        f[atoml][0] += tmp2*rjl[0];
+        f[atoml][1] += tmp2*rjl[1];
+        f[atoml][2] += tmp2*rjl[2];
+
+        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
+
+        tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
+        f[atomj][0] -= tmp2*rjl[0];
+        f[atomj][1] -= tmp2*rjl[1];
+        f[atomj][2] -= tmp2*rjl[2];
+        f[atoml][0] += tmp2*rjl[0];
+        f[atoml][1] += tmp2*rjl[1];
+        f[atoml][2] += tmp2*rjl[2];
+
+        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+        if (fabs(dNlj) > TOL) {
+          REBO_neighs_l = REBO_firstneigh[atoml];
+          for (n = 0; n < REBO_numneigh[atoml]; n++) {
+            atomn = REBO_neighs_l[n];
+            ntype = map[type[atomn]];
+            if (atomn !=atomj) {
+              rln[0] = x[atoml][0]-x[atomn][0];
+              rln[1] = x[atoml][1]-x[atomn][1];
+              rln[2] = x[atoml][2]-x[atomn][2];
+              rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
+              Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+
+              tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)*Etmp/rlnmag;
+              f[atoml][0] -= tmp2*rln[0];
+              f[atoml][1] -= tmp2*rln[1];
+              f[atoml][2] -= tmp2*rln[2];
+              f[atomn][0] += tmp2*rln[0];
+              f[atomn][1] += tmp2*rln[1];
+              f[atomn][2] += tmp2*rln[2];
+
+              if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  bij = (0.5*(pij+pji))+piRC+(Tij*Etmp);
+  return bij;
+}
+
+/* ----------------------------------------------------------------------
+   Bij* function
+------------------------------------------------------------------------- 
+
+This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
+To do so, it needs to compute b_ij*, i.e. the bondorder given that the
+atoms i and j are placed a ficticious distance rijmag_mod apart.
+Now there are two approaches to calculate the resulting forces:
+1. Carry through the ficticious distance and corresponding vector
+   rij_mod, correcting afterwards using the derivative of r/|r|.
+2. Perform all the calculations using the real distance, and do not
+   use a correction, only using rijmag_mod where necessary.
+This code opts for (2). Mathematically, the approaches are equivalent
+if implemented correctly, since in terms where only the normalized
+vector is used, both calculations necessarily lead to the same result
+since if f(x) = g(x/|x|) then for x = y/|y| f(x) = g(y/|y|/1).
+The actual modified distance is only used in the lamda terms.
+Note that these do not contribute to the forces between i and j, since
+rijmag_mod is a constant and the corresponding derivatives are
+accordingly zero.
+This function should be kept in sync with bondorder(), i.e. changes
+there probably also need to be performed here.
+
+*/
+
+double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij_mod[3], double rijmag_mod,
+                                      double VA, double rij[3], double rijmag,
+                                      int vflag_atom, ThrData * const thr)
+{
+  int atomi,atomj,k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
+  int itype,jtype,ktype,ltype,ntype;
+  double rik[3],rjl[3],rkn[3],rji[3],rki[3],rlj[3],rknmag,dNki,dwjl,bij;
+  double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
+  double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
+  double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ,Nki,Nlj,dS;
+  double lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
+  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
+  double dN2[2],dN3[3];
+  double dcosjikdrj[3],dcosijldrj[3],dcosijldrl[3];
+  double Tij;
+  double r32[3],r32mag,cos321,r43[3],r13[3];
+  double dNlj;
+  double om1234,rln[3];
+  double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
+  double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
+  double cross321[3],cross234[3],prefactor,SpN;
+  double fcikpc,fcjlpc,fcjkpc,fcilpc,fcijpc;
+  double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa2,at2,cw,cwnum,cwnom;
+  double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
+  double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
+  double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
+  double F23[3],F12[3],F34[3],F31[3],F24[3],fi[3],fj[3],fk[3],fl[3];
+  double f1[3],f2[3],f3[3],f4[4];
+  double PijS,PjiS;
+  double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
+  int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
+  double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
+  double tmp3pij,tmp3pji,Stb,dStb;
+
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const int * const type = atom->type;
+
+  atomi = i;
+  atomj = j;
+  itype = map[type[atomi]];
+  jtype = map[type[atomj]];
+  wij = Sp(rijmag,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+  NijC = nC[atomi]-(wij*kronecker(jtype,0));
+  NijH = nH[atomi]-(wij*kronecker(jtype,1));
+  NjiC = nC[atomj]-(wij*kronecker(itype,0));
+  NjiH = nH[atomj]-(wij*kronecker(itype,1));
+  bij = 0.0;
+  tmp = 0.0;
+  tmp2 = 0.0;
+  tmp3 = 0.0;
+  dgdc = 0.0;
+  dgdN = 0.0;
+  NconjtmpI = 0.0;
+  NconjtmpJ = 0.0;
+  Etmp = 0.0;
+  Stb = 0.0;
+  dStb = 0.0;
+
+  REBO_neighs = REBO_firstneigh[i];
+  for (k = 0; k < REBO_numneigh[i]; k++) {
+    atomk = REBO_neighs[k];
+    if (atomk != atomj) {
+      ktype = map[type[atomk]];
+      rik[0] = x[atomi][0]-x[atomk][0];
+      rik[1] = x[atomi][1]-x[atomk][1];
+      rik[2] = x[atomi][2]-x[atomk][2];
+      rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+      lamdajik = 4.0*kronecker(itype,1) *
+        ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag_mod));
+      wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
+      Nki = nC[atomk]-(wik*kronecker(itype,0))+
+        nH[atomk]-(wik*kronecker(itype,1));
+      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
+        (rijmag*rikmag);
+      cosjik = MIN(cosjik,1.0);
+      cosjik = MAX(cosjik,-1.0);
+
+      // evaluate splines g and derivatives dg
+
+      g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
+      Etmp += (wik*g*exp(lamdajik));
+      tmp3 += (wik*dgdN*exp(lamdajik));
+      NconjtmpI = NconjtmpI+(kronecker(ktype,0)*wik*Sp(Nki,Nmin,Nmax,dS));
+    }
+  }
+
+  PijS = 0.0;
+  dN2PIJ[0] = 0.0;
+  dN2PIJ[1] = 0.0;
+  PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
+  tmppij = -.5*pij*pij*pij;
+  tmp3pij = tmp3;
+
+  tmp = 0.0;
+  tmp2 = 0.0;
+  tmp3 = 0.0;
+  Etmp = 0.0;
+
+  REBO_neighs = REBO_firstneigh[j];
+  for (l = 0; l < REBO_numneigh[j]; l++) {
+    atoml = REBO_neighs[l];
+    if (atoml != atomi) {
+      ltype = map[type[atoml]];
+      rjl[0] = x[atomj][0]-x[atoml][0];
+      rjl[1] = x[atomj][1]-x[atoml][1];
+      rjl[2] = x[atomj][2]-x[atoml][2];
+      rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+      lamdaijl = 4.0*kronecker(jtype,1) *
+        ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag_mod));
+      wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
+      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
+        (wjl*kronecker(jtype,1));
+      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
+        (rijmag*rjlmag);
+      cosijl = MIN(cosijl,1.0);
+      cosijl = MAX(cosijl,-1.0);
+
+      // evaluate splines g and derivatives dg
+
+      g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
+      Etmp += (wjl*g*exp(lamdaijl));
+      tmp3 += (wjl*dgdN*exp(lamdaijl));
+      NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
+    }
+  }
+
+  PjiS = 0.0;
+  dN2PJI[0] = 0.0;
+  dN2PJI[1] = 0.0;
+  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
+  tmppji = -.5*pji*pji*pji;
+  tmp3pji = tmp3;
+
+  // evaluate Nij conj
+
+  Nijconj = 1.0+(NconjtmpI*NconjtmpI)+(NconjtmpJ*NconjtmpJ);
+  piRC = piRCSpline(NijC+NijH,NjiC+NjiH,Nijconj,itype,jtype,dN3piRC);
+
+  Tij = 0.0;
+  dN3Tij[0] = 0.0;
+  dN3Tij[1] = 0.0;
+  dN3Tij[2] = 0.0;
+  if (itype == 0 && jtype == 0)
+    Tij=TijSpline((NijC+NijH),(NjiC+NjiH),Nijconj,dN3Tij);
+  Etmp = 0.0;
+
+  if (fabs(Tij) > TOL) {
+    atom2 = atomi;
+    atom3 = atomj;
+    r32[0] = x[atom3][0]-x[atom2][0];
+    r32[1] = x[atom3][1]-x[atom2][1];
+    r32[2] = x[atom3][2]-x[atom2][2];
+    r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
+    r23[0] = -r32[0];
+    r23[1] = -r32[1];
+    r23[2] = -r32[2];
+    r23mag = r32mag;
+    REBO_neighs_i = REBO_firstneigh[i];
+    for (k = 0; k < REBO_numneigh[i]; k++) {
+      atomk = REBO_neighs_i[k];
+      atom1 = atomk;
+      ktype = map[type[atomk]];
+      if (atomk != atomj) {
+        r21[0] = x[atom2][0]-x[atom1][0];
+        r21[1] = x[atom2][1]-x[atom1][1];
+        r21[2] = x[atom2][2]-x[atom1][2];
+        r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
+        cos321 = -1.0*((r21[0]*r32[0])+(r21[1]*r32[1])+(r21[2]*r32[2])) /
+          (r21mag*r32mag);
+        cos321 = MIN(cos321,1.0);
+        cos321 = MAX(cos321,-1.0);
+        sin321 = sqrt(1.0 - cos321*cos321);
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21); 
+          tspjik = Sp2(cos321,thmin,thmax,dtsjik);
+
+          REBO_neighs_j = REBO_firstneigh[j];
+          for (l = 0; l < REBO_numneigh[j]; l++) {
+            atoml = REBO_neighs_j[l];
+            atom4 = atoml;
+            ltype = map[type[atoml]];
+            if (!(atoml == atomi || atoml == atomk)) {
+              r34[0] = x[atom3][0]-x[atom4][0];
+              r34[1] = x[atom3][1]-x[atom4][1];
+              r34[2] = x[atom3][2]-x[atom4][2];
+              r34mag = sqrt((r34[0]*r34[0])+(r34[1]*r34[1])+(r34[2]*r34[2]));
+              cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
+                (r32mag*r34mag);
+              cos234 = MIN(cos234,1.0);
+              cos234 = MAX(cos234,-1.0);
+              sin234 = sqrt(1.0 - cos234*cos234);
+
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
+                tspijl = Sp2(cos234,thmin,thmax,dtsijl);
+
+                cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
+                cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
+                cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
+                cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
+                cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
+                cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
+
+                cwnum = (cross321[0]*cross234[0]) +
+                  (cross321[1]*cross234[1]) + (cross321[2]*cross234[2]);
+                cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
+                om1234 = cwnum/cwnom;
+                cw = om1234;
+                Etmp += ((1.0-square(om1234))*w21*w34) *
+                  (1.0-tspjik)*(1.0-tspijl);
+
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  bij = (.5*(pij+pji))+piRC+(Tij*Etmp);
+  Stb = Sp2(bij,bLJmin[itype][jtype],bLJmax[itype][jtype],dStb);
+  VA = VA*dStb;
+
+  if (dStb != 0.0) {
+    tmp = tmppij;
+    dN2[0] = dN2PIJ[0];
+    dN2[1] = dN2PIJ[1];
+    tmp3 = tmp3pij;
+
+    // pij forces
+
+    REBO_neighs_i = REBO_firstneigh[i];
+    for (k = 0; k < REBO_numneigh[i]; k++) {
+      atomk = REBO_neighs_i[k];
+      ktype = map[type[atomk]];
+      if (atomk != atomj) {
+        lamdajik = 0.0;
+        rik[0] = x[atomi][0]-x[atomk][0];
+        rik[1] = x[atomi][1]-x[atomk][1];
+        rik[2] = x[atomi][2]-x[atomk][2];
+        rikmag = sqrt(rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2]);
+        lamdajik = 4.0*kronecker(itype,1) *
+          ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag_mod));
+        wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+        cosjik = (rij[0]*rik[0] + rij[1]*rik[1] + rij[2]*rik[2]) /
+          (rijmag*rikmag);
+        cosjik = MIN(cosjik,1.0);
+        cosjik = MAX(cosjik,-1.0);
+
+        dcosjikdri[0] = ((rij[0]+rik[0])/(rijmag*rikmag)) -
+          (cosjik*((rij[0]/(rijmag*rijmag))+(rik[0]/(rikmag*rikmag))));
+        dcosjikdri[1] = ((rij[1]+rik[1])/(rijmag*rikmag)) -
+          (cosjik*((rij[1]/(rijmag*rijmag))+(rik[1]/(rikmag*rikmag))));
+        dcosjikdri[2] = ((rij[2]+rik[2])/(rijmag*rikmag)) -
+          (cosjik*((rij[2]/(rijmag*rijmag))+(rik[2]/(rikmag*rikmag))));
+        dcosjikdrk[0] = (-rij[0]/(rijmag*rikmag)) +
+          (cosjik*(rik[0]/(rikmag*rikmag)));
+        dcosjikdrk[1] = (-rij[1]/(rijmag*rikmag)) +
+          (cosjik*(rik[1]/(rikmag*rikmag)));
+        dcosjikdrk[2] = (-rij[2]/(rijmag*rikmag)) +
+          (cosjik*(rik[2]/(rikmag*rikmag)));
+        dcosjikdrj[0] = (-rik[0]/(rijmag*rikmag)) +
+          (cosjik*(rij[0]/(rijmag*rijmag)));
+        dcosjikdrj[1] = (-rik[1]/(rijmag*rikmag)) +
+          (cosjik*(rij[1]/(rijmag*rijmag)));
+        dcosjikdrj[2] = (-rik[2]/(rijmag*rikmag)) +
+          (cosjik*(rij[2]/(rijmag*rijmag)));
+
+        g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
+        tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
+        fj[0] = -tmp2*dcosjikdrj[0];
+        fj[1] = -tmp2*dcosjikdrj[1];
+        fj[2] = -tmp2*dcosjikdrj[2];
+        fi[0] = -tmp2*dcosjikdri[0];
+        fi[1] = -tmp2*dcosjikdri[1];
+        fi[2] = -tmp2*dcosjikdri[2];
+        fk[0] = -tmp2*dcosjikdrk[0];
+        fk[1] = -tmp2*dcosjikdrk[1];
+        fk[2] = -tmp2*dcosjikdrk[2];
+
+        tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
+        fi[0] += tmp2*(rik[0]/rikmag);
+        fi[1] += tmp2*(rik[1]/rikmag);
+        fi[2] += tmp2*(rik[2]/rikmag);
+        fk[0] -= tmp2*(rik[0]/rikmag);
+        fk[1] -= tmp2*(rik[1]/rikmag);
+        fk[2] -= tmp2*(rik[2]/rikmag);
+
+        // coordination forces
+
+        // dwik forces
+
+        tmp2 = VA*.5*(tmp*dwik*g*exp(lamdajik))/rikmag;
+        fi[0] -= tmp2*rik[0];
+        fi[1] -= tmp2*rik[1];
+        fi[2] -= tmp2*rik[2];
+        fk[0] += tmp2*rik[0];
+        fk[1] += tmp2*rik[1];
+        fk[2] += tmp2*rik[2];
+
+        // PIJ forces
+
+        tmp2 = VA*.5*(tmp*dN2[ktype]*dwik)/rikmag;
+        fi[0] -= tmp2*rik[0];
+        fi[1] -= tmp2*rik[1];
+        fi[2] -= tmp2*rik[2];
+        fk[0] += tmp2*rik[0];
+        fk[1] += tmp2*rik[1];
+        fk[2] += tmp2*rik[2];
+
+        // dgdN forces
+
+        tmp2 = VA*.5*(tmp*tmp3*dwik)/rikmag;
+        fi[0] -= tmp2*rik[0];
+        fi[1] -= tmp2*rik[1];
+        fi[2] -= tmp2*rik[2];
+        fk[0] += tmp2*rik[0];
+        fk[1] += tmp2*rik[1];
+        fk[2] += tmp2*rik[2];
+
+        f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
+        f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
+        f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
+
+        if (vflag_atom) {
+          rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
+          rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
+          v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,thr);
+        }
+      }
+    }
+
+    tmp = tmppji;
+    tmp3 = tmp3pji;
+    dN2[0] = dN2PJI[0];
+    dN2[1] = dN2PJI[1];
+
+    REBO_neighs  =  REBO_firstneigh[j];
+    for (l = 0; l < REBO_numneigh[j]; l++) {
+      atoml = REBO_neighs[l];
+      if (atoml !=atomi) {
+        ltype = map[type[atoml]];
+        rjl[0] = x[atomj][0]-x[atoml][0];
+        rjl[1] = x[atomj][1]-x[atoml][1];
+        rjl[2] = x[atomj][2]-x[atoml][2];
+        rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+        lamdaijl = 4.0*kronecker(jtype,1) *
+          ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag_mod));
+        wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+        cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2]))) /
+          (rijmag*rjlmag);
+        cosijl = MIN(cosijl,1.0);
+        cosijl = MAX(cosijl,-1.0);
+        
+        dcosijldri[0] = (-rjl[0]/(rijmag*rjlmag)) -
+          (cosijl*rij[0]/(rijmag*rijmag));
+        dcosijldri[1] = (-rjl[1]/(rijmag*rjlmag)) -
+          (cosijl*rij[1]/(rijmag*rijmag));
+        dcosijldri[2] = (-rjl[2]/(rijmag*rjlmag)) -
+          (cosijl*rij[2]/(rijmag*rijmag));
+        dcosijldrj[0] = ((-rij[0]+rjl[0])/(rijmag*rjlmag)) +
+          (cosijl*((rij[0]/square(rijmag))-(rjl[0]/(rjlmag*rjlmag))));
+        dcosijldrj[1] = ((-rij[1]+rjl[1])/(rijmag*rjlmag)) +
+          (cosijl*((rij[1]/square(rijmag))-(rjl[1]/(rjlmag*rjlmag))));
+        dcosijldrj[2] = ((-rij[2]+rjl[2])/(rijmag*rjlmag)) +
+          (cosijl*((rij[2]/square(rijmag))-(rjl[2]/(rjlmag*rjlmag))));
+        dcosijldrl[0] = (rij[0]/(rijmag*rjlmag))+(cosijl*rjl[0]/(rjlmag*rjlmag));
+        dcosijldrl[1] = (rij[1]/(rijmag*rjlmag))+(cosijl*rjl[1]/(rjlmag*rjlmag));
+        dcosijldrl[2] = (rij[2]/(rijmag*rjlmag))+(cosijl*rjl[2]/(rjlmag*rjlmag));
+
+        // evaluate splines g and derivatives dg
+
+        g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
+        tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
+        fi[0] = -tmp2*dcosijldri[0];
+        fi[1] = -tmp2*dcosijldri[1];
+        fi[2] = -tmp2*dcosijldri[2];
+        fj[0] = -tmp2*dcosijldrj[0];
+        fj[1] = -tmp2*dcosijldrj[1];
+        fj[2] = -tmp2*dcosijldrj[2];
+        fl[0] = -tmp2*dcosijldrl[0];
+        fl[1] = -tmp2*dcosijldrl[1];
+        fl[2] = -tmp2*dcosijldrl[2];
+  
+        tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
+        fj[0] += tmp2*(rjl[0]/rjlmag);
+        fj[1] += tmp2*(rjl[1]/rjlmag);
+        fj[2] += tmp2*(rjl[2]/rjlmag);
+        fl[0] -= tmp2*(rjl[0]/rjlmag);
+        fl[1] -= tmp2*(rjl[1]/rjlmag);
+        fl[2] -= tmp2*(rjl[2]/rjlmag);
+
+         // coordination forces
+
+        // dwik forces
+
+        tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))/rjlmag;
+        fj[0] -= tmp2*rjl[0];
+        fj[1] -= tmp2*rjl[1];
+        fj[2] -= tmp2*rjl[2];
+        fl[0] += tmp2*rjl[0];
+        fl[1] += tmp2*rjl[1];
+        fl[2] += tmp2*rjl[2];
+
+        // PIJ forces
+
+        tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)/rjlmag;
+        fj[0] -= tmp2*rjl[0];
+        fj[1] -= tmp2*rjl[1];
+        fj[2] -= tmp2*rjl[2];
+        fl[0] += tmp2*rjl[0];
+        fl[1] += tmp2*rjl[1];
+        fl[2] += tmp2*rjl[2];
+
+        // dgdN forces
+
+        tmp2=VA*.5*(tmp*tmp3*dwjl)/rjlmag;
+        fj[0] -= tmp2*rjl[0];
+        fj[1] -= tmp2*rjl[1];
+        fj[2] -= tmp2*rjl[2];
+        fl[0] += tmp2*rjl[0];
+        fl[1] += tmp2*rjl[1];
+        fl[2] += tmp2*rjl[2];
+
+        f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
+        f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
+        f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
+
+        if (vflag_atom) {
+          rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
+          v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,thr);
+        }
+      }
+    }
+
+    // piRC forces
+
+    dN3[0] = dN3piRC[0];
+    dN3[1] = dN3piRC[1];
+    dN3[2] = dN3piRC[2];
+
+    REBO_neighs_i = REBO_firstneigh[i];
+    for (k = 0; k < REBO_numneigh[i]; k++) {
+      atomk = REBO_neighs_i[k];
+      if (atomk != atomj) {
+        ktype = map[type[atomk]];
+        rik[0] = x[atomi][0]-x[atomk][0];
+        rik[1] = x[atomi][1]-x[atomk][1];
+        rik[2] = x[atomi][2]-x[atomk][2];
+        rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+        wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+        Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
+          (wik*kronecker(itype,1));
+        SpN = Sp(Nki,Nmin,Nmax,dNki);
+
+        tmp2 = VA*dN3[0]*dwik/rikmag;
+        f[atomi][0] -= tmp2*rik[0];
+        f[atomi][1] -= tmp2*rik[1];
+        f[atomi][2] -= tmp2*rik[2];
+        f[atomk][0] += tmp2*rik[0];
+        f[atomk][1] += tmp2*rik[1];
+        f[atomk][2] += tmp2*rik[2];
+
+        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+        // due to kronecker(ktype, 0) term in contribution
+        // to NconjtmpI and later Nijconj
+        if (ktype != 0) continue;
+
+        tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
+        f[atomi][0] -= tmp2*rik[0];
+        f[atomi][1] -= tmp2*rik[1];
+        f[atomi][2] -= tmp2*rik[2];
+        f[atomk][0] += tmp2*rik[0];
+        f[atomk][1] += tmp2*rik[1];
+        f[atomk][2] += tmp2*rik[2];
+
+        if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+        if (fabs(dNki) > TOL) {
+          REBO_neighs_k = REBO_firstneigh[atomk];
+          for (n = 0; n < REBO_numneigh[atomk]; n++) {
+            atomn = REBO_neighs_k[n];
+            if (atomn != atomi) {
+              ntype = map[type[atomn]];
+              rkn[0] = x[atomk][0]-x[atomn][0];
+              rkn[1] = x[atomk][1]-x[atomn][1];
+              rkn[2] = x[atomk][2]-x[atomn][2];
+              rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
+              Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+
+              tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
+              f[atomk][0] -= tmp2*rkn[0];
+              f[atomk][1] -= tmp2*rkn[1];
+              f[atomk][2] -= tmp2*rkn[2];
+              f[atomn][0] += tmp2*rkn[0];
+              f[atomn][1] += tmp2*rkn[1];
+              f[atomn][2] += tmp2*rkn[2];
+
+              if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
+            }
+          }
+        }
+      }
+    }
+
+    // piRC forces to J side
+
+    REBO_neighs = REBO_firstneigh[atomj];
+    for (l = 0; l < REBO_numneigh[atomj]; l++) {
+      atoml = REBO_neighs[l];
+      if (atoml != atomi) {
+        ltype = map[type[atoml]];
+        rjl[0] = x[atomj][0]-x[atoml][0];
+        rjl[1] = x[atomj][1]-x[atoml][1];
+        rjl[2] = x[atomj][2]-x[atoml][2];
+        rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+        wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+        Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
+          (wjl*kronecker(jtype,1));
+        SpN = Sp(Nlj,Nmin,Nmax,dNlj);
+
+        tmp2 = VA*dN3[1]*dwjl/rjlmag;
+        f[atomj][0] -= tmp2*rjl[0];
+        f[atomj][1] -= tmp2*rjl[1];
+        f[atomj][2] -= tmp2*rjl[2];
+        f[atoml][0] += tmp2*rjl[0];
+        f[atoml][1] += tmp2*rjl[1];
+        f[atoml][2] += tmp2*rjl[2];
+
+        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+        // due to kronecker(ltype, 0) term in contribution
+        // to NconjtmpJ and later Nijconj
+        if (ltype != 0) continue;
+
+        tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
+        f[atomj][0] -= tmp2*rjl[0];
+        f[atomj][1] -= tmp2*rjl[1];
+        f[atomj][2] -= tmp2*rjl[2];
+        f[atoml][0] += tmp2*rjl[0];
+        f[atoml][1] += tmp2*rjl[1];
+        f[atoml][2] += tmp2*rjl[2];
+
+        if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+        if (fabs(dNlj) > TOL) {
+          REBO_neighs_l = REBO_firstneigh[atoml];
+          for (n = 0; n < REBO_numneigh[atoml]; n++) {
+            atomn = REBO_neighs_l[n];
+            if (atomn != atomj) {
+              ntype = map[type[atomn]];
+              rln[0] = x[atoml][0]-x[atomn][0];
+              rln[1] = x[atoml][1]-x[atomn][1];
+              rln[2] = x[atoml][2]-x[atomn][2];
+              rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
+              Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+
+              tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
+              f[atoml][0] -= tmp2*rln[0];
+              f[atoml][1] -= tmp2*rln[1];
+              f[atoml][2] -= tmp2*rln[2];
+              f[atomn][0] += tmp2*rln[0];
+              f[atomn][1] += tmp2*rln[1];
+              f[atomn][2] += tmp2*rln[2];
+
+              if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
+            }
+          }
+        }
+      }
+    }
+
+    if (fabs(Tij) > TOL) {
+      dN3[0] = dN3Tij[0];
+      dN3[1] = dN3Tij[1];
+      dN3[2] = dN3Tij[2];
+      atom2 = atomi;
+      atom3 = atomj;
+      r32[0] = x[atom3][0]-x[atom2][0];
+      r32[1] = x[atom3][1]-x[atom2][1];
+      r32[2] = x[atom3][2]-x[atom2][2];
+      r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
+      r23[0] = -r32[0];
+      r23[1] = -r32[1];
+      r23[2] = -r32[2];
+      r23mag = r32mag;
+      REBO_neighs_i = REBO_firstneigh[i];
+      for (k = 0; k < REBO_numneigh[i]; k++) {
+        atomk = REBO_neighs_i[k];
+        atom1 = atomk;
+        ktype = map[type[atomk]];
+        if (atomk != atomj) {
+          r21[0] = x[atom2][0]-x[atom1][0];
+          r21[1] = x[atom2][1]-x[atom1][1];
+          r21[2] = x[atom2][2]-x[atom1][2];
+          r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
+          cos321 = ((r21[0]*rij[0])+(r21[1]*rij[1])+(r21[2]*rij[2])) /
+            (r21mag*rijmag);
+          cos321 = MIN(cos321,1.0);
+          cos321 = MAX(cos321,-1.0);
+          sin321 = sqrt(1.0 - cos321*cos321);
+          if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+            sink2i = 1.0/(sin321*sin321);
+            rik2i = 1.0/(r21mag*r21mag);
+            rr = (rijmag*rijmag)-(r21mag*r21mag);
+            rjk[0] = r21[0]-r23[0];
+            rjk[1] = r21[1]-r23[1];
+            rjk[2] = r21[2]-r23[2];
+            rjk2 = (rjk[0]*rjk[0])+(rjk[1]*rjk[1])+(rjk[2]*rjk[2]);
+            rijrik = 2.0*r23mag*r21mag;
+            rik2 = r21mag*r21mag;
+            dctik = (-rr+rjk2)/(rijrik*rik2);
+            dctij = (rr+rjk2)/(rijrik*r23mag*r23mag);
+            dctjk = -2.0/rijrik;
+            w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
+            rijmag = r32mag;
+            rikmag = r21mag;
+            rij2 = r32mag*r32mag;
+            rik2 = r21mag*r21mag;
+            costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
+            tspjik = Sp2(costmp,thmin,thmax,dtsjik);
+            dtsjik = -dtsjik;
+
+            REBO_neighs_j = REBO_firstneigh[j];
+            for (l = 0; l < REBO_numneigh[j]; l++) {
+              atoml = REBO_neighs_j[l];
+              atom4 = atoml;
+              ltype = map[type[atoml]];
+              if (!(atoml == atomi || atoml == atomk)) {
+                r34[0] = x[atom3][0]-x[atom4][0];
+                r34[1] = x[atom3][1]-x[atom4][1];
+                r34[2] = x[atom3][2]-x[atom4][2];
+                r34mag = sqrt(r34[0]*r34[0] + r34[1]*r34[1] + r34[2]*r34[2]);
+                cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
+                  (r32mag*r34mag);
+                cos234 = MIN(cos234,1.0);
+                cos234 = MAX(cos234,-1.0);
+                sin234 = sqrt(1.0 - cos234*cos234);
+
+                if ((sin234 > TOL) && (r34mag > TOL)) { // XXX was sin234 != 0.0
+                  sinl2i = 1.0/(sin234*sin234);
+                  rjl2i = 1.0/(r34mag*r34mag);
+                  w34 = Sp(r34mag,rcmin[jtype][ltype],
+                           rcmaxp[jtype][ltype],dw34);
+                  rr = (r23mag*r23mag)-(r34mag*r34mag);
+                  ril[0] = r23[0]+r34[0];
+                  ril[1] = r23[1]+r34[1];
+                  ril[2] = r23[2]+r34[2];
+                  ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
+                  rijrjl = 2.0*r23mag*r34mag;
+                  rjl2 = r34mag*r34mag;
+                  dctjl = (-rr+ril2)/(rijrjl*rjl2);
+                  dctji = (rr+ril2)/(rijrjl*r23mag*r23mag);
+                  dctil = -2.0/rijrjl;
+                  rjlmag = r34mag;
+                  rjl2 = r34mag*r34mag;
+                  costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
+                  tspijl = Sp2(costmp,thmin,thmax,dtsijl);
+                  dtsijl = -dtsijl; //need minus sign
+                  prefactor = VA*Tij;
+
+                  cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
+                  cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
+                  cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
+                  cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
+                  cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
+                  cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
+
+                  cwnum = (cross321[0]*cross234[0]) +
+                    (cross321[1]*cross234[1])+(cross321[2]*cross234[2]);
+                  cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
+                  om1234 = cwnum/cwnom;
+                  cw = om1234;
+
+                  dt1dik = (rik2i)-(dctik*sink2i*cos321);
+                  dt1djk = (-dctjk*sink2i*cos321);
+                  dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
+                  dt1dil = (-dctil*sinl2i*cos234);
+                  dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
+                    (dctji*sinl2i*cos234);
+
+                  dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
+                  dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
+                  dt2dik[2] = (-r23[1]*cross234[0])+(r23[0]*cross234[1]);
+
+                  dt2djl[0] = (-r23[1]*cross321[2])+(r23[2]*cross321[1]);
+                  dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
+                  dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
+
+                  dt2dij[0] = (r21[2]*cross234[1])-(r34[2]*cross321[1]) -
+                    (r21[1]*cross234[2])+(r34[1]*cross321[2]);
+                  dt2dij[1] = (r21[0]*cross234[2])-(r34[0]*cross321[2]) -
+                    (r21[2]*cross234[0])+(r34[2]*cross321[0]);
+                  dt2dij[2] = (r21[1]*cross234[0])-(r34[1]*cross321[0]) -
+                    (r21[0]*cross234[1])+(r34[0]*cross321[1]);
+
+                  aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
+                    (1.0-tspjik)*(1.0-tspijl);
+                  aaa2 = -prefactor*(1.0-square(om1234)) * w21*w34;
+                  at2 = aa*cwnum;
+
+                  fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
+                    (aaa2*dtsijl*dctji*(1.0-tspjik));
+                  fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
+                  fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
+                  fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
+                  fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
+
+                  F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
+                  F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
+                  F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
+
+                  F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
+                  F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
+                  F12[2] = (fcikpc*r21[2])+(aa*dt2dik[2]);
+
+                  F34[0] = (fcjlpc*r34[0])+(aa*dt2djl[0]);
+                  F34[1] = (fcjlpc*r34[1])+(aa*dt2djl[1]);
+                  F34[2] = (fcjlpc*r34[2])+(aa*dt2djl[2]);
+
+                  F31[0] = (fcjkpc*rjk[0]);
+                  F31[1] = (fcjkpc*rjk[1]);
+                  F31[2] = (fcjkpc*rjk[2]);
+
+                  F24[0] = (fcilpc*ril[0]);
+                  F24[1] = (fcilpc*ril[1]);
+                  F24[2] = (fcilpc*ril[2]);
+
+                  f1[0] = -F12[0]-F31[0];
+                  f1[1] = -F12[1]-F31[1];
+                  f1[2] = -F12[2]-F31[2];
+                  f2[0] = F23[0]+F12[0]+F24[0];
+                  f2[1] = F23[1]+F12[1]+F24[1];
+                  f2[2] = F23[2]+F12[2]+F24[2];
+                  f3[0] = -F23[0]+F34[0]+F31[0];
+                  f3[1] = -F23[1]+F34[1]+F31[1];
+                  f3[2] = -F23[2]+F34[2]+F31[2];
+                  f4[0] = -F34[0]-F24[0];
+                  f4[1] = -F34[1]-F24[1];
+                  f4[2] = -F34[2]-F24[2];
+
+                  // coordination forces
+
+                  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                    (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
+                  f2[0] -= tmp2*r21[0];
+                  f2[1] -= tmp2*r21[1];
+                  f2[2] -= tmp2*r21[2];
+                  f1[0] += tmp2*r21[0];
+                  f1[1] += tmp2*r21[1];
+                  f1[2] += tmp2*r21[2];
+
+                  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                    (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
+                  f3[0] -= tmp2*r34[0];
+                  f3[1] -= tmp2*r34[1];
+                  f3[2] -= tmp2*r34[2];
+                  f4[0] += tmp2*r34[0];
+                  f4[1] += tmp2*r34[1];
+                  f4[2] += tmp2*r34[2];
+
+                  f[atom1][0] += f1[0]; f[atom1][1] += f1[1];
+                  f[atom1][2] += f1[2];
+                  f[atom2][0] += f2[0]; f[atom2][1] += f2[1];
+                  f[atom2][2] += f2[2];
+                  f[atom3][0] += f3[0]; f[atom3][1] += f3[1];
+                  f[atom3][2] += f3[2];
+                  f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
+                  f[atom4][2] += f4[2];
+
+                  if (vflag_atom) {
+                    r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
+                    r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
+                    v_tally4_thr(atom1,atom2,atom3,atom4,f1,f2,f4,r13,r23,r43,thr);
+                  }
+                }
+              }
+            }
+          }
         }
       }
 
-      REBO_firstneigh[i] = neighptr;
-      REBO_numneigh[i] = n;
-      ipg.vgot(n);
-      if (ipg.status())
-        error->one(FLERR,"REBO list overflow, boost neigh_modify one");
+      REBO_neighs = REBO_firstneigh[i];
+      for (k = 0; k < REBO_numneigh[i]; k++) {
+        atomk = REBO_neighs[k];
+        if (atomk != atomj) {
+          ktype = map[type[atomk]];
+          rik[0] = x[atomi][0]-x[atomk][0];
+          rik[1] = x[atomi][1]-x[atomk][1];
+          rik[2] = x[atomi][2]-x[atomk][2];
+          rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+          wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+          Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
+            (wik*kronecker(itype,1));
+          SpN = Sp(Nki,Nmin,Nmax,dNki);
+
+          tmp2 = VA*dN3[0]*dwik*Etmp/rikmag;
+          f[atomi][0] -= tmp2*rik[0];
+          f[atomi][1] -= tmp2*rik[1];
+          f[atomi][2] -= tmp2*rik[2];
+          f[atomk][0] += tmp2*rik[0];
+          f[atomk][1] += tmp2*rik[1];
+          f[atomk][2] += tmp2*rik[2];
+
+          if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+          // due to kronecker(ktype, 0) term in contribution
+          // to NconjtmpI and later Nijconj
+          if (ktype != 0) continue;
+
+          tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
+          f[atomi][0] -= tmp2*rik[0];
+          f[atomi][1] -= tmp2*rik[1];
+          f[atomi][2] -= tmp2*rik[2];
+          f[atomk][0] += tmp2*rik[0];
+          f[atomk][1] += tmp2*rik[1];
+          f[atomk][2] += tmp2*rik[2];
+
+          if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,thr);
+
+          if (fabs(dNki) > TOL) {
+            REBO_neighs_k = REBO_firstneigh[atomk];
+            for (n = 0; n < REBO_numneigh[atomk]; n++) {
+              atomn = REBO_neighs_k[n];
+              ntype = map[type[atomn]];
+              if (atomn !=atomi) {
+                rkn[0] = x[atomk][0]-x[atomn][0];
+                rkn[1] = x[atomk][1]-x[atomn][1];
+                rkn[2] = x[atomk][2]-x[atomn][2];
+                rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
+                Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+
+                tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
+                f[atomk][0] -= tmp2*rkn[0];
+                f[atomk][1] -= tmp2*rkn[1];
+                f[atomk][2] -= tmp2*rkn[2];
+                f[atomn][0] += tmp2*rkn[0];
+                f[atomn][1] += tmp2*rkn[1];
+                f[atomn][2] += tmp2*rkn[2];
+
+                if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,thr);
+              }
+            }
+          }
+        }
+      }
+
+      // Tij forces
+
+      REBO_neighs = REBO_firstneigh[j];
+      for (l = 0; l < REBO_numneigh[j]; l++) {
+        atoml = REBO_neighs[l];
+        if (atoml != atomi) {
+          ltype = map[type[atoml]];
+          rjl[0] = x[atomj][0]-x[atoml][0];
+          rjl[1] = x[atomj][1]-x[atoml][1];
+          rjl[2] = x[atomj][2]-x[atoml][2];
+          rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+          wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+          Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
+            (wjl*kronecker(jtype,1));
+          SpN = Sp(Nlj,Nmin,Nmax,dNlj);
+
+          tmp2 = VA*dN3[1]*dwjl*Etmp/rjlmag;
+          f[atomj][0] -= tmp2*rjl[0];
+          f[atomj][1] -= tmp2*rjl[1];
+          f[atomj][2] -= tmp2*rjl[2];
+          f[atoml][0] += tmp2*rjl[0];
+          f[atoml][1] += tmp2*rjl[1];
+          f[atoml][2] += tmp2*rjl[2];
+
+          if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+          // due to kronecker(ltype, 0) term in contribution
+          // to NconjtmpJ and later Nijconj
+          if (ltype != 0) continue;
+
+          tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
+          f[atomj][0] -= tmp2*rjl[0];
+          f[atomj][1] -= tmp2*rjl[1];
+          f[atomj][2] -= tmp2*rjl[2];
+          f[atoml][0] += tmp2*rjl[0];
+          f[atoml][1] += tmp2*rjl[1];
+          f[atoml][2] += tmp2*rjl[2];
+
+          if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,thr);
+
+          if (fabs(dNlj) > TOL) {
+            REBO_neighs_l = REBO_firstneigh[atoml];
+            for (n = 0; n < REBO_numneigh[atoml]; n++) {
+              atomn = REBO_neighs_l[n];
+              ntype = map[type[atomn]];
+              if (atomn != atomj) {
+                rln[0] = x[atoml][0]-x[atomn][0];
+                rln[1] = x[atoml][1]-x[atomn][1];
+                rln[2] = x[atoml][2]-x[atomn][2];
+                rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
+                Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+
+                tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)*Etmp/rlnmag;
+                f[atoml][0] -= tmp2*rln[0];
+                f[atoml][1] -= tmp2*rln[1];
+                f[atoml][2] -= tmp2*rln[2];
+                f[atomn][0] += tmp2*rln[0];
+                f[atomn][1] += tmp2*rln[1];
+                f[atomn][2] += tmp2*rln[2];
+
+                if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,thr);
+              }
+            }
+          }
+        }
+      }
     }
   }
-}
 
+  return Stb;
+}
 
 /* ---------------------------------------------------------------------- */
 

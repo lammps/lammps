@@ -638,7 +638,7 @@ class gl:
                           fraction*(self.scale_stop - self.scale_start)
           self.viewupright()
 
-	if n == nstart or self.panflag: self.center = compute_center(box)
+        if n == nstart or self.panflag: self.center = compute_center(box)
 
         if bonds: self.bonds_augment(bonds)
 

@@ -5,6 +5,9 @@ Kokkos is designed to target complex node architectures with N-level memory
 hierarchies and multiple types of execution resources. It currently can use
 OpenMP, Pthreads and CUDA as backend programming models.
 
+Kokkos is licensed under standard 3-clause BSD terms of use. For specifics
+see the LICENSE file contained in the repository or distribution.
+
 The core developers of Kokkos are Carter Edwards and Christian Trott
 at the Computer Science Research Institute of the Sandia National
 Laboratories.
@@ -42,34 +45,46 @@ Primary tested compilers on X86 are:
   GCC 4.8.4
   GCC 4.9.2
   GCC 5.1.0
+  GCC 5.2.0
   Intel 14.0.4
   Intel 15.0.2
   Intel 16.0.1
+  Intel 17.0.098
+  Intel 17.1.132
   Clang 3.5.2
   Clang 3.6.1
+  Clang 3.7.1
+  Clang 3.8.1
+  Clang 3.9.0
+  PGI 17.1
 
 Primary tested compilers on Power 8 are:
-  IBM XL 13.1.3 (OpenMP,Serial)
-  GCC 4.9.2 (OpenMP,Serial)
-  GCC 5.3.0 (OpenMP,Serial)
+  GCC 5.4.0 (OpenMP,Serial)
+  IBM XL 13.1.3 (OpenMP, Serial) (There is a workaround in place to avoid a compiler bug)
+
+Primary tested compilers on Intel KNL are:
+   GCC 6.2.0
+   Intel 16.2.181 (with gcc 4.7.2)
+   Intel 17.0.098 (with gcc 4.7.2)
+   Intel 17.1.132 (with gcc 4.9.3)
+   Intel 17.2.174 (with gcc 4.9.3)
+   Intel 18.0.061 (beta) (with gcc 4.9.3)
 
 Secondary tested compilers are:
-  CUDA 6.5 (with gcc 4.7.2)
-  CUDA 7.0 (with gcc 4.7.2)
+  CUDA 7.0 (with gcc 4.8.4)
   CUDA 7.5 (with gcc 4.8.4)
+  CUDA 8.0 (with gcc 5.3.0 on X86 and gcc 5.4.0 on Power8)
+  CUDA/Clang 8.0 using Clang/Trunk compiler
 
 Other compilers working:
   X86:
-   Intel 17.0.042 (the FENL example causes internal compiler error)
-   PGI 15.4
    Cygwin 2.1.0 64bit with gcc 4.9.3
-  KNL:
-   Intel 16.2.181 (the FENL example causes internal compiler error)
-   Intel 17.0.042 (the FENL example causes internal compiler error)
+
+Limited testing of the following compilers on POWER7+ systems:
+  GCC 4.8.5 (on RHEL7.1 POWER7+)
 
 Known non-working combinations:
   Power8:
-   GCC 6.1.0
    Pthreads backend
 
 
@@ -92,9 +107,10 @@ master branch, without -Werror and only for a select set of backends.
 
 In the 'example/tutorial' directory you will find step by step tutorial
 examples which explain many of the features of Kokkos. They work with
-simple Makefiles. To build with g++ and OpenMP simply type 'make openmp'
+simple Makefiles. To build with g++ and OpenMP simply type 'make'
 in the 'example/tutorial' directory. This will build all examples in the
-subfolders.
+subfolders. To change the build options refer to the Programming Guide
+in the compilation section. 
 
 ============================================================================
 ====Running Unit Tests======================================================
@@ -149,4 +165,31 @@ MPI rank of an application uses a single GPU [can be the same GPU for
 multiple MPI ranks]) you can set CUDA_MANAGED_FORCE_DEVICE_ALLOC=1.
 This will enforce proper UVM allocations, but can lead to errors if 
 more than a single GPU is used by a single process.
- 
+
+===========================================================================
+====Contributing===========================================================
+===========================================================================
+
+Contributions to Kokkos are welcome. In order to do so, please open an issue
+where a feature request or bug can be discussed. Then issue a pull request
+with your contribution. Pull requests must be issued against the develop branch. 
+
+===========================================================================
+====Citing Kokkos==========================================================
+===========================================================================
+
+If you publish work which mentions Kokkos, please cite the following paper:
+
+@article{CarterEdwards20143202,
+title = "Kokkos: Enabling manycore performance portability through polymorphic memory access patterns ",
+journal = "Journal of Parallel and Distributed Computing ",
+volume = "74",
+number = "12",
+pages = "3202 - 3216",
+year = "2014",
+note = "Domain-Specific Languages and High-Level Frameworks for High-Performance Computing ",
+issn = "0743-7315",
+doi = "https://doi.org/10.1016/j.jpdc.2014.07.003",
+url = "http://www.sciencedirect.com/science/article/pii/S0743731514001257",
+author = "H. Carter Edwards and Christian R. Trott and Daniel Sunderland"
+}

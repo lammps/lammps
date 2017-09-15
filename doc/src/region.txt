@@ -212,7 +212,7 @@ both of the spheres.
 
 The {units} keyword determines the meaning of the distance units used
 to define the region for any argument above listed as having distance
-units.  It also affects the scaling of the velocity vector specfied
+units.  It also affects the scaling of the velocity vector specified
 with the {vel} keyword, the amplitude vector specified with the
 {wiggle} keyword, and the rotation point specified with the {rotate}
 keyword, since they each involve a distance metric.
@@ -283,9 +283,9 @@ velocity:
 variable dx equal ramp(0,10)
 region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL :pre
 
-Note that the initial displacemet is 0.0, though that is not required.
+Note that the initial displacement is 0.0, though that is not required.
 
-Either of these varaibles would "wiggle" the region back and forth in
+Either of these variables would "wiggle" the region back and forth in
 the y direction:
 
 variable dy equal swiggle(0,5,100)
@@ -352,7 +352,7 @@ high-coordinate flat end cap, and index 3 is the curved cone surface.
 In the last example above, a {cone} region is defined along the z-axis
 that is open at the zlo value (e.g. for use as a funnel).
 
-For all other styles, the {open} keyword is ignored.  As inidcated
+For all other styles, the {open} keyword is ignored.  As indicated
 above, this includes the {intersect} and {union} regions, though their
 sub-regions can be defined with the {open} keyword.
 
@@ -375,7 +375,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

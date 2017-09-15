@@ -42,7 +42,7 @@ RCB::RCB(LAMMPS *lmp) : Pointers(lmp)
   dots = NULL;
 
   nlist = maxlist = 0;
-  dotlist = dotmark = NULL;
+  dotlist = dotmark = dotmark_select = NULL;
 
   maxbuf = 0;
   buf = NULL;
@@ -73,6 +73,7 @@ RCB::~RCB()
   memory->sfree(dots);
   memory->destroy(dotlist);
   memory->destroy(dotmark);
+  memory->destroy(dotmark_select);
   memory->sfree(buf);
 
   memory->destroy(recvproc);
@@ -91,6 +92,9 @@ RCB::~RCB()
 
 /* ----------------------------------------------------------------------
    perform RCB balancing of N particles at coords X in bounding box LO/HI
+   NEW version: each RCB cut is tested in all dimensions
+     dimeension that produces 2 boxes with largest min size is selected
+     this is to prevent very narrow boxes from being produced
    if wt = NULL, ignore per-particle weights
    if wt defined, per-particle weights > 0.0
    dimension = 2 or 3
@@ -103,6 +107,523 @@ RCB::~RCB()
 
 void RCB::compute(int dimension, int n, double **x, double *wt,
                   double *bboxlo, double *bboxhi)
+{
+  int i,j,k;
+  int keep,outgoing,incoming,incoming2;
+  int dim,markactive;
+  int indexlo,indexhi;
+  int first_iteration,breakflag;
+  double wttot,wtlo,wthi,wtsum,wtok,wtupto,wtmax;
+  double targetlo,targethi;
+  double valuemin,valuemax,valuehalf,valuehalf_select,smaller;
+  double tolerance;
+  MPI_Comm comm,comm_half;
+  MPI_Request request,request2;
+  Median med,medme;
+
+  // create list of my Dots
+
+  ndot = nkeep = noriginal = n;
+
+  if (ndot > maxdot) {
+    maxdot = ndot;
+    memory->sfree(dots);
+    dots = (Dot *) memory->smalloc(ndot*sizeof(Dot),"RCB:dots");
+  }
+
+  for (i = 0; i < ndot; i++) {
+    dots[i].x[0] = x[i][0];
+    dots[i].x[1] = x[i][1];
+    dots[i].x[2] = x[i][2];
+    dots[i].proc = me;
+    dots[i].index = i;
+  }
+
+  if (wt)
+    for (i = 0; i < ndot; i++) dots[i].wt = wt[i];
+  else
+    for (i = 0; i < ndot; i++) dots[i].wt = 1.0;
+
+  // initial bounding box = simulation box
+  // includes periodic or shrink-wrapped boundaries
+
+  lo = bbox.lo;
+  hi = bbox.hi;
+
+  lo[0] = bboxlo[0];
+  lo[1] = bboxlo[1];
+  lo[2] = bboxlo[2];
+  hi[0] = bboxhi[0];
+  hi[1] = bboxhi[1];
+  hi[2] = bboxhi[2];
+
+  cut = 0.0;
+  cutdim = -1;
+
+  // initialize counters
+
+  counters[0] = 0;
+  counters[1] = 0;
+  counters[2] = 0;
+  counters[3] = ndot;
+  counters[4] = maxdot;
+  counters[5] = 0;
+  counters[6] = 0;
+
+  // create communicator for use in recursion
+
+  MPI_Comm_dup(world,&comm);
+
+  // recurse until partition is a single proc = me
+  // proclower,procupper = lower,upper procs in partition
+  // procmid = 1st proc in upper half of partition
+
+  int procpartner,procpartner2;
+
+  int procmid;
+  int proclower = 0;
+  int procupper = nprocs - 1;
+
+  while (proclower != procupper) {
+
+    // if odd # of procs, lower partition gets extra one
+
+    procmid = proclower + (procupper - proclower) / 2 + 1;
+
+    // determine communication partner(s)
+    // readnumber = # of proc partners to read from
+
+    if (me < procmid)
+      procpartner = me + (procmid - proclower);
+    else
+      procpartner = me - (procmid - proclower);
+
+    int readnumber = 1;
+    if (procpartner > procupper) {
+      readnumber = 0;
+      procpartner--;
+    }
+    if (me == procupper && procpartner != procmid - 1) {
+      readnumber = 2;
+      procpartner2 = procpartner + 1;
+    }
+
+    // wttot = summed weight of entire partition
+    // search tolerance = largest single weight (plus epsilon)
+    // targetlo = desired weight in lower half of partition
+    // targethi = desired weight in upper half of partition
+
+    wtmax = wtsum = 0.0;
+
+    if (wt) {
+      for (i = 0; i < ndot; i++) {
+        wtsum += dots[i].wt;
+        if (dots[i].wt > wtmax) wtmax = dots[i].wt;
+      }
+    } else {
+      for (i = 0; i < ndot; i++) wtsum += dots[i].wt;
+      wtmax = 1.0;
+    }
+
+    MPI_Allreduce(&wtsum,&wttot,1,MPI_DOUBLE,MPI_SUM,comm);
+    if (wt) MPI_Allreduce(&wtmax,&tolerance,1,MPI_DOUBLE,MPI_MAX,comm);
+    else tolerance = 1.0;
+
+    tolerance *= 1.0 + TINY;
+    targetlo = wttot * (procmid - proclower) / (procupper + 1 - proclower);
+    targethi = wttot - targetlo;
+
+    // attempt a cut in each dimension
+    // each cut produces 2 boxes, each with a reduced box length in that dim
+    // smaller = the smaller of the 2 reduced box lengths in that dimension
+    // choose to cut in dimension which produces largest smaller value
+    // this should induce final proc sub-boxes to be as cube-ish as possible
+    // dim_select = selected cut dimension
+    // valuehalf_select = valuehalf in that dimension
+    // dotmark_select = dot markings in that dimension
+
+    int dim_select = -1;
+    double largest = 0.0;
+
+    for (dim = 0; dim < dimension; dim++) {
+
+      // create active list and mark array for dots
+      // initialize active list to all dots
+
+      if (ndot > maxlist) {
+        memory->destroy(dotlist);
+        memory->destroy(dotmark);
+        memory->destroy(dotmark_select);
+        maxlist = maxdot;
+        memory->create(dotlist,maxlist,"RCB:dotlist");
+        memory->create(dotmark,maxlist,"RCB:dotmark");
+        memory->create(dotmark_select,maxlist,"RCB:dotmark_select");
+      }
+
+      nlist = ndot;
+      for (i = 0; i < nlist; i++) dotlist[i] = i;
+
+      // median iteration
+      // zoom in on bisector until correct # of dots in each half of partition
+      // as each iteration of median-loop begins, require:
+      //   all non-active dots are marked with 0/1 in dotmark
+      //   valuemin <= every active dot <= valuemax
+      //   wtlo, wthi = total wt of non-active dots
+      // when leave median-loop, require only:
+      //   valuehalf = correct cut position
+      //   all dots <= valuehalf are marked with 0 in dotmark
+      //   all dots >= valuehalf are marked with 1 in dotmark
+      // markactive = which side of cut is active = 0/1
+      // indexlo,indexhi = indices of dot closest to median
+
+      wtlo = wthi = 0.0;
+      valuemin = lo[dim];
+      valuemax = hi[dim];
+      first_iteration = 1;
+      indexlo = indexhi = 0;
+
+      while (1) {
+
+        // choose bisector value
+        // use old value on 1st iteration if old cut dimension is the same
+        // on 2nd option: could push valuehalf towards geometric center
+        //   with "1.0-factor" to force overshoot
+
+        if (first_iteration && reuse && dim == tree[procmid].dim) {
+          counters[5]++;
+          valuehalf = tree[procmid].cut;
+          if (valuehalf < valuemin || valuehalf > valuemax)
+            valuehalf = 0.5 * (valuemin + valuemax);
+        } else if (wt)
+          valuehalf = valuemin + (targetlo - wtlo) /
+            (wttot - wtlo - wthi) * (valuemax - valuemin);
+        else
+          valuehalf = 0.5 * (valuemin + valuemax);
+
+        first_iteration = 0;
+
+        // initialize local median data structure
+
+        medme.totallo = medme.totalhi = 0.0;
+        medme.valuelo = -MYHUGE;
+        medme.valuehi = MYHUGE;
+        medme.wtlo = medme.wthi = 0.0;
+        medme.countlo = medme.counthi = 0;
+        medme.proclo = medme.prochi = me;
+
+        // mark all active dots on one side or other of bisector
+        // also set all fields in median data struct
+        // save indices of closest dots on either side
+
+        for (j = 0; j < nlist; j++) {
+          i = dotlist[j];
+          if (dots[i].x[dim] <= valuehalf) {            // in lower part
+            medme.totallo += dots[i].wt;
+            dotmark[i] = 0;
+            if (dots[i].x[dim] > medme.valuelo) {       // my closest dot
+              medme.valuelo = dots[i].x[dim];
+              medme.wtlo = dots[i].wt;
+              medme.countlo = 1;
+              indexlo = i;
+            } else if (dots[i].x[dim] == medme.valuelo) {   // tied for closest
+              medme.wtlo += dots[i].wt;
+              medme.countlo++;
+            }
+          }
+          else {                                        // in upper part
+            medme.totalhi += dots[i].wt;
+            dotmark[i] = 1;
+            if (dots[i].x[dim] < medme.valuehi) {       // my closest dot
+              medme.valuehi = dots[i].x[dim];
+              medme.wthi = dots[i].wt;
+              medme.counthi = 1;
+              indexhi = i;
+            } else if (dots[i].x[dim] == medme.valuehi) {   // tied for closest
+              medme.wthi += dots[i].wt;
+              medme.counthi++;
+            }
+          }
+        }
+
+        // combine median data struct across current subset of procs
+
+        counters[0]++;
+        MPI_Allreduce(&medme,&med,1,med_type,med_op,comm);
+
+        // test median guess for convergence
+        // move additional dots that are next to cut across it
+
+        if (wtlo + med.totallo < targetlo) {    // lower half TOO SMALL
+
+          wtlo += med.totallo;
+          valuehalf = med.valuehi;
+
+          if (med.counthi == 1) {                  // only one dot to move
+            if (wtlo + med.wthi < targetlo) {  // move it, keep iterating
+              if (me == med.prochi) dotmark[indexhi] = 0;
+            }
+            else {                                 // only move if beneficial
+              if (wtlo + med.wthi - targetlo < targetlo - wtlo)
+                if (me == med.prochi) dotmark[indexhi] = 0;
+              break;                               // all done
+            }
+          }
+          else {                                   // multiple dots to move
+            breakflag = 0;
+            wtok = 0.0;
+            if (medme.valuehi == med.valuehi) wtok = medme.wthi;
+            if (wtlo + med.wthi >= targetlo) {                // all done
+              MPI_Scan(&wtok,&wtupto,1,MPI_DOUBLE,MPI_SUM,comm);
+              wtmax = targetlo - wtlo;
+              if (wtupto > wtmax) wtok = wtok - (wtupto - wtmax);
+              breakflag = 1;
+            }                                      // wtok = most I can move
+            for (j = 0, wtsum = 0.0; j < nlist && wtsum < wtok; j++) {
+              i = dotlist[j];
+              if (dots[i].x[dim] == med.valuehi) { // only move if better
+                if (wtsum + dots[i].wt - wtok < wtok - wtsum)
+                  dotmark[i] = 0;
+                wtsum += dots[i].wt;
+              }
+            }
+            if (breakflag) break;                   // done if moved enough
+          }
+
+          wtlo += med.wthi;
+          if (targetlo-wtlo <= tolerance) break;  // close enough
+
+          valuemin = med.valuehi;                   // iterate again
+          markactive = 1;
+        }
+
+        else if (wthi + med.totalhi < targethi) {  // upper half TOO SMALL
+
+          wthi += med.totalhi;
+          valuehalf = med.valuelo;
+
+          if (med.countlo == 1) {                  // only one dot to move
+            if (wthi + med.wtlo < targethi) {  // move it, keep iterating
+              if (me == med.proclo) dotmark[indexlo] = 1;
+            }
+            else {                                 // only move if beneficial
+              if (wthi + med.wtlo - targethi < targethi - wthi)
+                if (me == med.proclo) dotmark[indexlo] = 1;
+              break;                               // all done
+            }
+          }
+          else {                                   // multiple dots to move
+            breakflag = 0;
+            wtok = 0.0;
+            if (medme.valuelo == med.valuelo) wtok = medme.wtlo;
+            if (wthi + med.wtlo >= targethi) {                // all done
+              MPI_Scan(&wtok,&wtupto,1,MPI_DOUBLE,MPI_SUM,comm);
+              wtmax = targethi - wthi;
+              if (wtupto > wtmax) wtok = wtok - (wtupto - wtmax);
+              breakflag = 1;
+            }                                      // wtok = most I can move
+            for (j = 0, wtsum = 0.0; j < nlist && wtsum < wtok; j++) {
+              i = dotlist[j];
+              if (dots[i].x[dim] == med.valuelo) { // only move if better
+                if (wtsum + dots[i].wt - wtok < wtok - wtsum)
+                  dotmark[i] = 1;
+                wtsum += dots[i].wt;
+              }
+            }
+            if (breakflag) break;                   // done if moved enough
+          }
+
+          wthi += med.wtlo;
+          if (targethi-wthi <= tolerance) break;  // close enough
+
+          valuemax = med.valuelo;                   // iterate again
+          markactive = 0;
+        }
+
+        else                  // Goldilocks result: both partitions just right
+          break;
+
+        // shrink the active list
+
+        k = 0;
+        for (j = 0; j < nlist; j++) {
+          i = dotlist[j];
+          if (dotmark[i] == markactive) dotlist[k++] = i;
+        }
+        nlist = k;
+      }
+
+      // cut produces 2 sub-boxes with reduced size in dim
+      // compare smaller of the 2 sizes to previous dims
+      // keep dim that has the largest smaller
+
+      smaller = MIN(valuehalf-lo[dim],hi[dim]-valuehalf);
+      if (smaller > largest) {
+        largest = smaller;
+        dim_select = dim;
+        valuehalf_select = valuehalf;
+        if (ndot > 0) memcpy(dotmark_select,dotmark,ndot*sizeof(int));
+      }
+    }
+
+    // copy results for best dim cut into dim,valuehalf,dotmark
+
+    dim = dim_select;
+    valuehalf = valuehalf_select;
+    if (ndot > 0) memcpy(dotmark,dotmark_select,ndot*sizeof(int));
+
+    // found median
+    // store cut info only if I am procmid
+
+    if (me == procmid) {
+      cut = valuehalf;
+      cutdim = dim;
+    }
+
+    // use cut to shrink my RCB bounding box
+
+    if (me < procmid) hi[dim] = valuehalf;
+    else lo[dim] = valuehalf;
+
+    // outgoing = number of dots to ship to partner
+    // nkeep = number of dots that have never migrated
+
+    markactive = (me < procpartner);
+    for (i = 0, keep = 0, outgoing = 0; i < ndot; i++)
+      if (dotmark[i] == markactive) outgoing++;
+      else if (i < nkeep) keep++;
+    nkeep = keep;
+
+    // alert partner how many dots I'll send, read how many I'll recv
+
+    MPI_Send(&outgoing,1,MPI_INT,procpartner,0,world);
+    incoming = 0;
+    if (readnumber) {
+      MPI_Recv(&incoming,1,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
+      if (readnumber == 2) {
+	MPI_Recv(&incoming2,1,MPI_INT,procpartner2,0,world,MPI_STATUS_IGNORE);
+	incoming += incoming2;
+      }
+    }
+
+    // check if need to alloc more space
+
+    int ndotnew = ndot - outgoing + incoming;
+    if (ndotnew > maxdot) {
+      while (maxdot < ndotnew) maxdot += DELTA;
+      dots = (Dot *) memory->srealloc(dots,maxdot*sizeof(Dot),"RCB::dots");
+      counters[6]++;
+    }
+
+    counters[1] += outgoing;
+    counters[2] += incoming;
+    if (ndotnew > counters[3]) counters[3] = ndotnew;
+    if (maxdot > counters[4]) counters[4] = maxdot;
+
+    // malloc comm send buffer
+
+    if (outgoing > maxbuf) {
+      memory->sfree(buf);
+      maxbuf = outgoing;
+      buf = (Dot *) memory->smalloc(maxbuf*sizeof(Dot),"RCB:buf");
+    }
+
+    // fill buffer with dots that are marked for sending
+    // pack down the unmarked ones
+
+    keep = outgoing = 0;
+    for (i = 0; i < ndot; i++) {
+      if (dotmark[i] == markactive)
+	memcpy(&buf[outgoing++],&dots[i],sizeof(Dot));
+      else
+	memcpy(&dots[keep++],&dots[i],sizeof(Dot));
+    }
+
+    // post receives for dots
+
+    if (readnumber > 0) {
+      MPI_Irecv(&dots[keep],incoming*sizeof(Dot),MPI_CHAR,
+                procpartner,1,world,&request);
+      if (readnumber == 2) {
+	keep += incoming - incoming2;
+	MPI_Irecv(&dots[keep],incoming2*sizeof(Dot),MPI_CHAR,
+                  procpartner2,1,world,&request2);
+      }
+    }
+
+    // handshake before sending dots to insure recvs have been posted
+
+    if (readnumber > 0) {
+      MPI_Send(NULL,0,MPI_INT,procpartner,0,world);
+      if (readnumber == 2) MPI_Send(NULL,0,MPI_INT,procpartner2,0,world);
+    }
+    MPI_Recv(NULL,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
+
+    // send dots to partner
+
+    MPI_Rsend(buf,outgoing*sizeof(Dot),MPI_CHAR,procpartner,1,world);
+
+    // wait until all dots are received
+
+    if (readnumber > 0) {
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
+      if (readnumber == 2) MPI_Wait(&request2,MPI_STATUS_IGNORE);
+    }
+
+    ndot = ndotnew;
+
+    // cut partition in half, create new communicators of 1/2 size
+
+    int split;
+    if (me < procmid) {
+      procupper = procmid - 1;
+      split = 0;
+    } else {
+      proclower = procmid;
+      split = 1;
+    }
+
+    MPI_Comm_split(comm,split,me,&comm_half);
+    MPI_Comm_free(&comm);
+    comm = comm_half;
+  }
+
+  // clean up
+
+  MPI_Comm_free(&comm);
+
+  // set public variables with results of rebalance
+
+  nfinal = ndot;
+
+  if (nfinal > maxrecv) {
+    memory->destroy(recvproc);
+    memory->destroy(recvindex);
+    maxrecv = nfinal;
+    memory->create(recvproc,maxrecv,"RCB:recvproc");
+    memory->create(recvindex,maxrecv,"RCB:recvindex");
+  }
+
+  for (i = 0; i < nfinal; i++) {
+    recvproc[i] = dots[i].proc;
+    recvindex[i] = dots[i].index;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform RCB balancing of N particles at coords X in bounding box LO/HI
+   OLD version: each RCB cut is made in longest dimension of sub-box
+   if wt = NULL, ignore per-particle weights
+   if wt defined, per-particle weights > 0.0
+   dimension = 2 or 3
+   as documented in rcb.h:
+     sets noriginal,nfinal,nkeep,recvproc,recvindex,lo,hi
+   all proc particles will be inside or on surface of 3-d box
+     defined by final lo/hi
+   // NOTE: worry about re-use of data structs for fix balance?
+------------------------------------------------------------------------- */
+
+void RCB::compute_old(int dimension, int n, double **x, double *wt,
+                      double *bboxlo, double *bboxhi)
 {
   int i,j,k;
   int keep,outgoing,incoming,incoming2;
@@ -655,7 +1176,6 @@ void median_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
 
 void RCB::invert(int sortflag)
 {
-
   // only create Irregular if not previously created
   // allows Irregular to persist for multiple RCB calls by fix balance
 

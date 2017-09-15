@@ -24,7 +24,7 @@ fix 1 all lb/pc :pre
 Update the positions and velocities of the individual particles
 described by {group-ID}, experiencing velocity-dependent hydrodynamic
 forces, using the integration algorithm described in "Mackay et
-al."_#Mackay.  This integration algorithm should only be used if a
+al."_#Mackay1.  This integration algorithm should only be used if a
 user-specified value for the force-coupling constant used in "fix
 lb/fluid"_fix_lb_fluid.html has been set; do not use this integration
 algorithm if the force coupling constant has been set by default.
@@ -58,5 +58,5 @@ lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html
 
 :line
 
-:link(Mackay)
+:link(Mackay1)
 [(Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

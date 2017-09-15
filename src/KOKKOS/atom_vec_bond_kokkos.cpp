@@ -266,7 +266,6 @@ int AtomVecBondKokkos::pack_comm_kokkos(const int &n,
         Kokkos::parallel_for(n,f);
       }
     }
-    LMPHostType::fence();
   } else {
     sync(Device,X_MASK);
     if(pbc_flag) {
@@ -294,7 +293,6 @@ int AtomVecBondKokkos::pack_comm_kokkos(const int &n,
         Kokkos::parallel_for(n,f);
       }
     }
-    LMPDeviceType::fence();
   }
 
 	return n*size_forward;
@@ -382,7 +380,6 @@ int AtomVecBondKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &lis
       Kokkos::parallel_for(n,f);
       }
     }
-    LMPHostType::fence();
   } else {
     sync(Device,X_MASK);
     modified(Device,X_MASK);
@@ -411,7 +408,6 @@ int AtomVecBondKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &lis
       Kokkos::parallel_for(n,f);
       }
     }
-    LMPDeviceType::fence();
   }
 	return n*3;
 }
@@ -449,13 +445,11 @@ void AtomVecBondKokkos::unpack_comm_kokkos(const int &n, const int &first,
     modified(Host,X_MASK);
     struct AtomVecBondKokkos_UnpackComm<LMPHostType> f(atomKK->k_x,buf,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   } else {
     sync(Device,X_MASK);
     modified(Device,X_MASK);
     struct AtomVecBondKokkos_UnpackComm<LMPDeviceType> f(atomKK->k_x,buf,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   }
 }
 
@@ -662,18 +656,18 @@ struct AtomVecBondKokkos_PackBorder {
           _buf(i,0) = _x(j,0);
           _buf(i,1) = _x(j,1);
           _buf(i,2) = _x(j,2);
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
-          _buf(i,6) = _molecule(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
+          _buf(i,6) = d_ubuf(_molecule(j)).d;
       } else {
           _buf(i,0) = _x(j,0) + _dx;
           _buf(i,1) = _x(j,1) + _dy;
           _buf(i,2) = _x(j,2) + _dz;
-          _buf(i,3) = _tag(j);
-          _buf(i,4) = _type(j);
-          _buf(i,5) = _mask(j);
-          _buf(i,6) = _molecule(j);
+          _buf(i,3) = d_ubuf(_tag(j)).d;
+          _buf(i,4) = d_ubuf(_type(j)).d;
+          _buf(i,5) = d_ubuf(_mask(j)).d;
+          _buf(i,6) = d_ubuf(_molecule(j)).d;
       }
   }
 };
@@ -701,13 +695,11 @@ int AtomVecBondKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPHostType::fence();
     } else {
       AtomVecBondKokkos_PackBorder<LMPDeviceType,1> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
         iswap,d_x,d_tag,d_type,d_mask,d_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPDeviceType::fence();
     }
 
   } else {
@@ -717,13 +709,11 @@ int AtomVecBondKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPHostType::fence();
     } else {
       AtomVecBondKokkos_PackBorder<LMPDeviceType,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
         iswap,d_x,d_tag,d_type,d_mask,d_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
-      LMPDeviceType::fence();
     }
   }
   return n*size_border;
@@ -905,10 +895,10 @@ struct AtomVecBondKokkos_UnpackBorder {
       _x(i+_first,0) = _buf(i,0);
       _x(i+_first,1) = _buf(i,1);
       _x(i+_first,2) = _buf(i,2);
-      _tag(i+_first) = static_cast<int> (_buf(i,3));
-      _type(i+_first) = static_cast<int>  (_buf(i,4));
-      _mask(i+_first) = static_cast<int>  (_buf(i,5));
-      _molecule(i+_first) = static_cast<int> (_buf(i,6));
+      _tag(i+_first) = (tagint) d_ubuf(_buf(i,3)).i;
+      _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
+      _mask(i+_first) = (int) d_ubuf(_buf(i,5)).i;
+      _molecule(i+_first) = (tagint) d_ubuf(_buf(i,6)).i;
 
   }
 };
@@ -925,12 +915,10 @@ void AtomVecBondKokkos::unpack_border_kokkos(const int &n, const int &first,
     struct AtomVecBondKokkos_UnpackBorder<LMPHostType>
       f(buf.view<LMPHostType>(),h_x,h_tag,h_type,h_mask,h_molecule,first);
     Kokkos::parallel_for(n,f);
-    LMPHostType::fence();
   } else {
     struct AtomVecBondKokkos_UnpackBorder<LMPDeviceType>
       f(buf.view<LMPDeviceType>(),d_x,d_tag,d_type,d_mask,d_molecule,first);
     Kokkos::parallel_for(n,f);
-    LMPDeviceType::fence();
   }
 }
 
@@ -1095,21 +1083,21 @@ struct AtomVecBondKokkos_PackExchangeFunctor {
     _buf(mysend,m++) = _v(i,0);
     _buf(mysend,m++) = _v(i,1);
     _buf(mysend,m++) = _v(i,2);
-    _buf(mysend,m++) = _tag(i);
-    _buf(mysend,m++) = _type(i);
-    _buf(mysend,m++) = _mask(i);
-    _buf(mysend,m++) = _image(i);
-    _buf(mysend,m++) = _molecule(i);
-    _buf(mysend,m++) = _num_bond(i);
+    _buf(mysend,m++) = d_ubuf(_tag(i)).d;
+    _buf(mysend,m++) = d_ubuf(_type(i)).d;
+    _buf(mysend,m++) = d_ubuf(_mask(i)).d;
+    _buf(mysend,m++) = d_ubuf(_image(i)).d;
+    _buf(mysend,m++) = d_ubuf(_molecule(i)).d;
+    _buf(mysend,m++) = d_ubuf(_num_bond(i)).d;
     for (k = 0; k < _num_bond(i); k++) {
-      _buf(mysend,m++) = _bond_type(i,k);
-      _buf(mysend,m++) = _bond_atom(i,k);
+      _buf(mysend,m++) = d_ubuf(_bond_type(i,k)).d;
+      _buf(mysend,m++) = d_ubuf(_bond_atom(i,k)).d;
     }
-    _buf(mysend,m++) = _nspecial(i,0);
-    _buf(mysend,m++) = _nspecial(i,1);
-    _buf(mysend,m++) = _nspecial(i,2);
+    _buf(mysend,m++) = d_ubuf(_nspecial(i,0)).d;
+    _buf(mysend,m++) = d_ubuf(_nspecial(i,1)).d;
+    _buf(mysend,m++) = d_ubuf(_nspecial(i,2)).d;
     for (k = 0; k < _nspecial(i,2); k++)
-      _buf(mysend,m++) = _special(i,k);
+      _buf(mysend,m++) = d_ubuf(_special(i,k)).d;
 
     const int j = _copylist(mysend);
 
@@ -1157,13 +1145,11 @@ int AtomVecBondKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2
     AtomVecBondKokkos_PackExchangeFunctor<LMPHostType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    LMPHostType::fence();
     return nsend*elements;
   } else {
     AtomVecBondKokkos_PackExchangeFunctor<LMPDeviceType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    LMPDeviceType::fence();
     return nsend*elements;
   }
 }
@@ -1267,23 +1253,23 @@ struct AtomVecBondKokkos_UnpackExchangeFunctor {
       _v(i,0) = _buf(myrecv,m++);
       _v(i,1) = _buf(myrecv,m++);
       _v(i,2) = _buf(myrecv,m++);
-      _tag(i) = _buf(myrecv,m++);
-      _type(i) = _buf(myrecv,m++);
-      _mask(i) = _buf(myrecv,m++);
-      _image(i) = _buf(myrecv,m++);
+      _tag(i) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+      _type(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _mask(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _image(i) = (imageint) d_ubuf(_buf(myrecv,m++)).i;
 
-      _molecule(i) = _buf(myrecv,m++);
-      _num_bond(i) = _buf(myrecv,m++);
+      _molecule(i) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
+      _num_bond(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
       int k;
       for (k = 0; k < _num_bond(i); k++) {
-        _bond_type(i,k) = _buf(myrecv,m++);
-        _bond_atom(i,k) = _buf(myrecv,m++);
+        _bond_type(i,k) = (int) d_ubuf(_buf(myrecv,m++)).i;
+        _bond_atom(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
       }
-      _nspecial(i,0) = _buf(myrecv,m++);
-      _nspecial(i,1) = _buf(myrecv,m++);
-      _nspecial(i,2) = _buf(myrecv,m++);
+      _nspecial(i,0) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _nspecial(i,1) = (int) d_ubuf(_buf(myrecv,m++)).i;
+      _nspecial(i,2) = (int) d_ubuf(_buf(myrecv,m++)).i;
       for (k = 0; k < _nspecial(i,2); k++)
-        _special(i,k) = _buf(myrecv,m++);
+        _special(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
     }
   }
 };
@@ -1299,7 +1285,6 @@ int AtomVecBondKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nr
     AtomVecBondKokkos_UnpackExchangeFunctor<LMPHostType>
       f(atomKK,k_buf,k_count,dim,lo,hi);
     Kokkos::parallel_for(nrecv/elements,f);
-    LMPHostType::fence();
     return k_count.h_view(0);
   } else {
     k_count.h_view(0) = nlocal;
@@ -1308,7 +1293,6 @@ int AtomVecBondKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nr
     AtomVecBondKokkos_UnpackExchangeFunctor<LMPDeviceType>
       f(atomKK,k_buf,k_count,dim,lo,hi);
     Kokkos::parallel_for(nrecv/elements,f);
-    LMPDeviceType::fence();
     k_count.modify<LMPDeviceType>();
     k_count.sync<LMPHostType>();
 
@@ -1460,7 +1444,7 @@ int AtomVecBondKokkos::unpack_restart(double *buf)
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
-    int size = static_cast<int> (ubuf(buf[m++]).i) - m;
+    int size = static_cast<int> (buf[0]) - m;
     for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
   }
 

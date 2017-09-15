@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -46,18 +46,10 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-#include "Kokkos_Macros.hpp"
-#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ ) && defined( KOKKOS_HAVE_CUDA )
+#include <Kokkos_Macros.hpp>
+#if defined( __CUDACC__ ) && defined( KOKKOS_ENABLE_CUDA )
 
 #include <cuda.h>
-
-#if ! defined( CUDA_VERSION ) || ( CUDA_VERSION < 4010 )
-#error "Cuda version 4.1 or greater required"
-#endif
-
-#if ( __CUDA_ARCH__ < 200 )
-#error "Cuda device capability 2.0 or greater required"
-#endif
 
 extern "C" {
 /*  Cuda runtime function, declared in <crt/device_runtime.h>
@@ -90,30 +82,8 @@ void cuda_abort( const char * const message )
 
 } // namespace Impl
 } // namespace Kokkos
-
 #else
-
-namespace Kokkos {
-namespace Impl {
-KOKKOS_INLINE_FUNCTION
-void cuda_abort( const char * const ) {}
-}
-}
-
-#endif /* #if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ ) */
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA )
-namespace Kokkos {
-__device__ inline
-void abort( const char * const message ) { Kokkos::Impl::cuda_abort(message); }
-}
-#endif /* defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) */
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
+void KOKKOS_CORE_SRC_CUDA_ABORT_PREVENT_LINK_ERROR() {}
+#endif /* #if defined(__CUDACC__) && defined( KOKKOS_ENABLE_CUDA ) */
 #endif /* #ifndef KOKKOS_CUDA_ABORT_HPP */
 

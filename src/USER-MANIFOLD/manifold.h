@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -24,7 +24,7 @@
    testing purposes) and a wave-y plane.
    See the README file for more info.
 
-   Stefan Paquay, s.paquay@tue.nl
+   Stefan Paquay, stefanpaquay@gmail.com
    Applied Physics/Theory of Polymers and Soft Matter,
    Eindhoven University of Technology (TU/e), The Netherlands
 
@@ -63,12 +63,12 @@ namespace user_manifold {
 
     virtual void set_atom_id( tagint a_id ){}
     virtual int nparams() = 0;
-    double **get_params(){ return &params; };
+    // double *get_params(){ return params; };
 
-    // Overload if any initialisation depends on params:
+    // Overload if any initialization depends on params:
     virtual void post_param_init(){}
     virtual void checkup(){} // Some diagnostics...
-   protected:
+
     double *params;
   };
 

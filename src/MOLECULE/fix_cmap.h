@@ -31,6 +31,7 @@ class FixCMAP : public Fix {
   void init();
   void setup(int);
   void setup_pre_neighbor();
+  void setup_pre_reverse(int, int);
   void min_setup(int);
   void pre_neighbor();
   void pre_reverse(int, int);

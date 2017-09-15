@@ -35,7 +35,7 @@ class Modify : protected Pointers {
   int n_initial_integrate_respa,n_post_integrate_respa;
   int n_pre_force_respa,n_post_force_respa,n_final_integrate_respa;
   int n_min_pre_exchange,n_min_pre_neighbor;
-  int n_min_pre_force,n_min_post_force,n_min_energy;
+  int n_min_pre_force,n_min_pre_reverse,n_min_post_force,n_min_energy;
 
   int restart_pbc_any;       // 1 if any fix sets restart_pbc
   int nfix_restart_global;   // stored fix global info from restart file
@@ -54,6 +54,7 @@ class Modify : protected Pointers {
   virtual void setup_pre_exchange();
   virtual void setup_pre_neighbor();
   virtual void setup_pre_force(int);
+  virtual void setup_pre_reverse(int, int);
   virtual void initial_integrate(int);
   virtual void post_integrate();
   virtual void pre_exchange();
@@ -78,6 +79,7 @@ class Modify : protected Pointers {
   virtual void min_pre_exchange();
   virtual void min_pre_neighbor();
   virtual void min_pre_force(int);
+  virtual void min_pre_reverse(int,int);
   virtual void min_post_force(int);
 
   virtual double min_energy(double *);
@@ -90,13 +92,17 @@ class Modify : protected Pointers {
   virtual int min_dof();
   virtual int min_reset_ref();
 
-  void add_fix(int, char **, int trysuffix=0);
+  void add_fix(int, char **, int trysuffix=1);
   void modify_fix(int, char **);
   void delete_fix(const char *);
   int find_fix(const char *);
+  int find_fix_by_style(const char *);
   int check_package(const char *);
+  int check_rigid_group_overlap(int);
+  int check_rigid_region_overlap(int, class Region *);
+  int check_rigid_list_overlap(int *);
 
-  void add_compute(int, char **, int trysuffix=0);
+  void add_compute(int, char **, int trysuffix=1);
   void modify_compute(int, char **);
   void delete_compute(const char *);
   int find_compute(const char *);
@@ -124,7 +130,7 @@ class Modify : protected Pointers {
   int *list_pre_force_respa,*list_post_force_respa;
   int *list_final_integrate_respa;
   int *list_min_pre_exchange,*list_min_pre_neighbor;
-  int *list_min_pre_force,*list_min_post_force;
+  int *list_min_pre_force,*list_min_pre_reverse,*list_min_post_force;
   int *list_min_energy;
 
   int *end_of_step_every;

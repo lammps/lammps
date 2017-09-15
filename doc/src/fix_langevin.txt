@@ -49,7 +49,7 @@ fix 1 all langevin 1.0 1.1 100.0 48279 angmom 3.333 :pre
 
 [Description:]
 
-Apply a Langevin thermostat as described in "(Schneider)"_#Schneider
+Apply a Langevin thermostat as described in "(Schneider)"_#Schneider1
 to a group of atoms which models an interaction with a background
 implicit solvent.  Used with "fix nve"_fix_nve.html, this command
 performs Brownian dynamics (BD), since the total force on each atom
@@ -80,7 +80,7 @@ dt damp), where Kb is the Boltzmann constant, T is the desired
 temperature, m is the mass of the particle, dt is the timestep size,
 and damp is the damping factor.  Random numbers are used to randomize
 the direction and magnitude of this force as described in
-"(Dunweg)"_#Dunweg, where a uniform random number is used (instead of
+"(Dunweg)"_#Dunweg1, where a uniform random number is used (instead of
 a Gaussian random number) for speed.
 
 Note that unless you use the {omega} or {angmom} keywords, the
@@ -276,7 +276,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -307,7 +307,7 @@ setting the {tally} keyword to {yes}.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative energy change due to this fix.  The scalar value
+cumulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".  Note that calculation of this
 quantity requires setting the {tally} keyword to {yes}.
 
@@ -332,10 +332,10 @@ types, tally = no, zero = no, gjf = no.
 
 :line
 
-:link(Dunweg)
+:link(Dunweg1)
 [(Dunweg)] Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
-:link(Schneider)
+:link(Schneider1)
 [(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
 
 :link(Gronbech-Jensen)

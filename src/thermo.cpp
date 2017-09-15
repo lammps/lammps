@@ -55,7 +55,8 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, part, timeremain
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, 
+// part, timeremain
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
@@ -394,6 +395,20 @@ void Thermo::compute(int flag)
       if (flushflag) fflush(logfile);
     }
   }
+
+  // set to 1, so that subsequent invocations of CPU time will be non-zero
+  // e.g. via variables in print command
+
+  firststep = 1;
+}
+
+/* ----------------------------------------------------------------------
+   call function to compute property
+------------------------------------------------------------------------- */
+
+void Thermo::call_vfunc(int ifield)
+{
+  (this->*vfunc[ifield])();
 }
 
 /* ----------------------------------------------------------------------
@@ -1054,7 +1069,7 @@ int Thermo::add_variable(const char *id)
    compute a single thermodynamic value, word is any keyword in custom list
    called when a variable is evaluated by Variable class
    return value as double in answer
-   return 0 if str is recoginzed keyword, 1 if unrecognized
+   return 0 if str is recognized keyword, 1 if unrecognized
    customize a new keyword by adding to if statement
 ------------------------------------------------------------------------- */
 
@@ -1137,6 +1152,22 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"bonds") == 0) {
+    compute_bonds();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"angles") == 0) {
+    compute_angles();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"dihedrals") == 0) {
+    compute_dihedrals();
+    dvalue = bivalue;
+
+  } else if (strcmp(word,"impropers") == 0) {
+    compute_impropers();
     dvalue = bivalue;
 
   } else if (strcmp(word,"temp") == 0) {
@@ -1362,11 +1393,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"xlat") == 0) compute_xlat();
   else if (strcmp(word,"ylat") == 0) compute_ylat();
   else if (strcmp(word,"zlat") == 0) compute_zlat();
-
-  else if (strcmp(word,"bonds") == 0) compute_bonds();
-  else if (strcmp(word,"angles") == 0) compute_angles();
-  else if (strcmp(word,"dihedrals") == 0) compute_dihedrals();
-  else if (strcmp(word,"impropers") == 0) compute_impropers();
 
   else if (strcmp(word,"pxx") == 0) {
     if (!pressure)

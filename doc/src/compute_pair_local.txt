@@ -47,7 +47,7 @@ force cutoff distance for that interaction, as defined by the
 "pair_style"_pair_style.html and "pair_coeff"_pair_coeff.html
 commands.
 
-The value {dist} is the distance bewteen the pair of atoms.
+The value {dist} is the distance between the pair of atoms.
 
 The value {eng} is the interaction energy for the pair of atoms.
 
@@ -76,7 +76,9 @@ command for the types of the two atoms is used.  For the {radius}
 setting, the sum of the radii of the two particles is used as a
 cutoff.  For example, this is appropriate for granular particles which
 only interact when they are overlapping, as computed by "granular pair
-styles"_pair_gran.txt.
+styles"_pair_gran.txt.  Note that if a granular model defines atom
+types such that all particles of a specific type are monodisperse
+(same diameter), then the two settings are effectively identical.
 
 Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array

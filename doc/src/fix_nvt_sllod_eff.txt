@@ -35,7 +35,7 @@ radial velocity of electrons are also updated and thermostatted.
 Likewise the temperature calculated by the fix, using the compute it
 creates (as discussed in the "fix nvt, npt, and nph"_fix_nh.html doc
 page), is performed with a "compute
-temp/deform/eff"_compute_temp_deform_eff.html commmand that includes
+temp/deform/eff"_compute_temp_deform_eff.html command that includes
 the eFF contribution to the temperature from the electron radial
 velocity.
 
@@ -89,6 +89,6 @@ Same as "fix nvt/eff"_fix_nh_eff.html, except tchain = 1.
 
 :line
 
-:link(Tuckerman)
+:link(Tuckerman2)
 [(Tuckerman)] Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
 106, 5615 (1997).

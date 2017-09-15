@@ -47,9 +47,9 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 /* ---------------------------------------------------------------------- */
 
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL), 
-  idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL), 
-  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL), 
+  Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL),
+  idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL),
+  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL),
   displs(NULL), random(NULL), random2(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
@@ -545,7 +545,7 @@ void FixPour::pre_exchange()
           delx = coords[m][0] - xnear[i][0];
           dely = coords[m][1] - xnear[i][1];
           delz = coords[m][2] - xnear[i][2];
-	  domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(delx,dely,delz);
           rsq = delx*delx + dely*dely + delz*delz;
           radsum = coords[m][3] + xnear[i][3];
           if (rsq <= radsum*radsum) break;
@@ -650,10 +650,10 @@ void FixPour::pre_exchange()
           atom->radius[n] = radtmp;
           atom->rmass[n] = 4.0*MY_PI/3.0 * radtmp*radtmp*radtmp * denstmp;
         } else {
-	  onemols[imol]->quat_external = quat;
-	  atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
-	}
-	
+          onemols[imol]->quat_external = quat;
+          atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
+        }
+
         modify->create_attribute(n);
       }
     }
@@ -1006,7 +1006,7 @@ void FixPour::options(int narg, char **arg)
         vxhi = force->numeric(FLERR,arg[iarg+2]);
         vylo = force->numeric(FLERR,arg[iarg+3]);
         vyhi = force->numeric(FLERR,arg[iarg+4]);
-        if (vxlo > vxhi || vylo > vyhi) 
+        if (vxlo > vxhi || vylo > vyhi)
           error->all(FLERR,"Illegal fix pour command");
         vz = force->numeric(FLERR,arg[iarg+5]);
         iarg += 6;

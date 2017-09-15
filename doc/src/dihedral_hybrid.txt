@@ -82,7 +82,7 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 Unlike other dihedral styles, the hybrid dihedral style does not store
 dihedral coefficient info for individual sub-styles in a "binary
-restart files"_restart.html.  Thus when retarting a simulation from a
+restart files"_restart.html.  Thus when restarting a simulation from a
 restart file, you need to re-specify dihedral_coeff commands.
 
 [Related commands:]

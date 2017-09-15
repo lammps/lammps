@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -106,15 +106,15 @@ Self-explanatory.
 
 E: Invalid fix ave/time off column
 
-Self-explantory.
+Self-explanatory.
 
 E: Fix ave/time compute does not calculate a scalar
 
-Self-explantory.
+Self-explanatory.
 
 E: Fix ave/time compute does not calculate a vector
 
-Self-explantory.
+Self-explanatory.
 
 E: Fix ave/time compute vector is accessed out-of-range
 

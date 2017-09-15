@@ -43,11 +43,10 @@ struct s_double_3 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  volatile s_double_3& operator+=(const volatile s_double_3 &rhs) volatile {
+  void operator+=(const volatile s_double_3 &rhs) volatile {
     d0 += rhs.d0;
     d1 += rhs.d1;
     d2 += rhs.d2;
-    return *this;
   }
 };
 typedef s_double_3 double_3;
@@ -76,8 +75,8 @@ class FixSetForceKokkos : public FixSetForce {
 
  private:
   DAT::tdual_ffloat_2d k_sforce;
-  DAT::t_ffloat_2d_randomread d_sforce;
-  DAT::t_int_1d d_match;
+  typename AT::t_ffloat_2d_randomread d_sforce;
+  typename AT::t_int_1d d_match;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;

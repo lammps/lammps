@@ -213,7 +213,7 @@ void PairNMCutCoulCut::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
           cut_lj[i][j] = cut_lj_global;
           cut_coul[i][j] = cut_coul_global;
@@ -291,7 +291,7 @@ double PairNMCutCoulCut::init_one(int i, int j)
   r0n[i][j] = pow(r0[i][j],nn[i][j]);
   r0m[i][j] = pow(r0[i][j],mm[i][j]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut_lj[i][j] > 0.0)) {
     offset[i][j] = e0nm[i][j] *
       ((mm[i][j]*r0n[i][j] / pow(cut_lj[i][j],nn[i][j])) -
        (nn[i][j]*r0m[i][j] / pow(cut_lj[i][j],mm[i][j])));

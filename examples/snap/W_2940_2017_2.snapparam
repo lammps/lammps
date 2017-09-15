@@ -1,0 +1,13 @@
+# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
+# 
+# required
+rcutfac 4.73442
+twojmax 8
+
+# optional
+
+rfac0 0.99363
+rmin0 0
+diagonalstyle 3
+bzeroflag 0
+quadraticflag 0

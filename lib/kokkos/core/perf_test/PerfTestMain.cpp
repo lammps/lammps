@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,14 +36,45 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
 #include <gtest/gtest.h>
+#include <cstdlib>
+
+#include <Kokkos_Core.hpp>
+
+namespace Test {
+int command_line_num_args(int n = 0) {
+  static int n_args = 0;
+  if(n>0)
+    n_args = n;
+  return n_args;
+}
+
+const char* command_line_arg(int k, char** input_args = NULL) {
+  static char** args;
+  if(input_args != NULL)
+    args = input_args;
+  if(command_line_num_args() > k)
+    return args[k];
+  else
+    return NULL;
+}
+
+}
 
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc,argv);
-  return RUN_ALL_TESTS();
+  Kokkos::initialize(argc,argv);
+
+  (void) Test::command_line_num_args(argc);
+  (void) Test::command_line_arg(0,argv);
+
+  int result = RUN_ALL_TESTS();
+
+  Kokkos::finalize();
+  return result;
 }

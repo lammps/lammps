@@ -44,7 +44,7 @@ pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50 :pre
 [Description:]
 
 These pair styles are designed to be used with the adiabatic
-core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham.  See
+core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham2.  See
 "Section 6.25"_Section_howto.html#howto_25 of the manual for an
 overview of the model as implemented in LAMMPS.
 
@@ -95,6 +95,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(MitchellFinchham)
+:link(MitchellFinchham2)
 [(Mitchell and Finchham)] Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

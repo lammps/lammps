@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,9 +44,9 @@
 #ifndef KOKKOS_SCRATCHSPACE_HPP
 #define KOKKOS_SCRATCHSPACE_HPP
 
-#include <stdio.h>
+#include <cstdio>
 #include <Kokkos_Core_fwd.hpp>
-#include <impl/Kokkos_Tags.hpp>
+#include <Kokkos_Concepts.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -57,7 +57,7 @@ namespace Kokkos {
  */
 template< class ExecSpace >
 class ScratchMemorySpace {
-  static_assert (Impl::is_execution_space<ExecSpace>::value,"Instantiating ScratchMemorySpace on non-execution-space type.");
+  static_assert (is_execution_space<ExecSpace>::value,"Instantiating ScratchMemorySpace on non-execution-space type.");
 public:
 
   // Alignment of memory chunks returned by 'get'
@@ -106,14 +106,14 @@ public:
       void* tmp = m_iter_L0 + m_offset * align (size);
       if (m_end_L0 < (m_iter_L0 += align (size) * m_multiplier)) {
         m_iter_L0 -= align (size) * m_multiplier; // put it back like it was
-        #ifdef KOKKOS_HAVE_DEBUG
+        #ifdef KOKKOS_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
         // function still returns NULL if not enough memory.
         printf ("ScratchMemorySpace<...>::get_shmem: Failed to allocate "
                 "%ld byte(s); remaining capacity is %ld byte(s)\n", long(size),
                 long(m_end_L0-m_iter_L0));
-        #endif // KOKKOS_HAVE_DEBUG
+        #endif // KOKKOS_DEBUG
         tmp = 0;
       }
       return tmp;
@@ -121,14 +121,14 @@ public:
       void* tmp = m_iter_L1 + m_offset * align (size);
       if (m_end_L1 < (m_iter_L1 += align (size) * m_multiplier)) {
         m_iter_L1 -= align (size) * m_multiplier; // put it back like it was
-        #ifdef KOKKOS_HAVE_DEBUG
+        #ifdef KOKKOS_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
         // function still returns NULL if not enough memory.
         printf ("ScratchMemorySpace<...>::get_shmem: Failed to allocate "
                 "%ld byte(s); remaining capacity is %ld byte(s)\n", long(size),
                 long(m_end_L1-m_iter_L1));
-        #endif // KOKKOS_HAVE_DEBUG
+        #endif // KOKKOS_DEBUG
         tmp = 0;
       }
       return tmp;
@@ -160,7 +160,4 @@ public:
 } // namespace Kokkos
 
 #endif /* #ifndef KOKKOS_SCRATCHSPACE_HPP */
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 

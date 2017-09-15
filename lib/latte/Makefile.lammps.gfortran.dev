@@ -2,7 +2,7 @@
 # Change all the flags and paths accordingly
 # If using PROGRESS/BML set PROGRESS to ON 
 # For more information about these libraries see: 
-# BML: https://github.com/qmmd/bml
+# BML: https://github.com/lanl/bml
 # PROGRESS: https://github.com/losalamos/qmd-progress
 # METIS: http://glaros.dtc.umn.edu/gkhome/metis/metis/download 
 

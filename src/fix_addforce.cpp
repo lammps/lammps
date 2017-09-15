@@ -298,6 +298,7 @@ void FixAddForce::post_force(int vflag)
           v[4] = xvalue * unwrap[2];
           v[5] = yvalue * unwrap[2];
           v_tally(i,v);
+        }
       }
 
   // variable force, wrap with clear/add
@@ -323,7 +324,7 @@ void FixAddForce::post_force(int vflag)
 
     modify->addstep_compute(update->ntimestep + 1);
 
-    for (int i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         domain->unmap(x[i],image[i],unwrap);
@@ -331,8 +332,9 @@ void FixAddForce::post_force(int vflag)
         if (ystyle == ATOM) yvalue = sforce[i][1];
         if (zstyle == ATOM) zvalue = sforce[i][2];
 
-        if (estyle == ATOM) foriginal[0] += sforce[i][3];
-        else {
+        if (estyle == ATOM) {
+          foriginal[0] += sforce[i][3];
+        } else {
           if (xstyle) foriginal[0] -= xvalue*unwrap[0];
           if (ystyle) foriginal[0] -= yvalue*unwrap[1];
           if (zstyle) foriginal[0] -= zvalue*unwrap[2];
@@ -340,19 +342,21 @@ void FixAddForce::post_force(int vflag)
         foriginal[1] += f[i][0];
         foriginal[2] += f[i][1];
         foriginal[3] += f[i][2];
+
         if (xstyle) f[i][0] += xvalue;
         if (ystyle) f[i][1] += yvalue;
         if (zstyle) f[i][2] += zvalue;
         if (evflag) {
-          v[0] = xstyle ? fx*unwrap[0] : 0.0;
-          v[1] = ystyle ? fy*unwrap[1] : 0.0;
-          v[2] = zstyle ? fz*unwrap[2] : 0.0;
-          v[3] = xstyle ? fx*unwrap[1] : 0.0;
-          v[4] = xstyle ? fx*unwrap[2] : 0.0;
-          v[5] = ystyle ? fy*unwrap[2] : 0.0;
+          v[0] = xstyle ? xvalue*unwrap[0] : 0.0;
+          v[1] = ystyle ? yvalue*unwrap[1] : 0.0;
+          v[2] = zstyle ? zvalue*unwrap[2] : 0.0;
+          v[3] = xstyle ? xvalue*unwrap[1] : 0.0;
+          v[4] = xstyle ? xvalue*unwrap[2] : 0.0;
+          v[5] = ystyle ? yvalue*unwrap[2] : 0.0;
           v_tally(i, v);
         }
       }
+    }
   }
 }
 

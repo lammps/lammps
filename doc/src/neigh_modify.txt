@@ -38,6 +38,12 @@ keyword = {delay} or {every} or {check} or {once} or {cluster} or {include} or {
       group-ID = exclude if both atoms are in the same molecule and in group
     molecule/inter group-ID
       group-ID = exclude if both atoms are in different molecules and in group
+    custom/match property group-ID
+      property,group-ID = exclude if both atoms are in group and share the same
+                          value of this user-defined property
+    custom/clash property group-ID
+      property,group-ID = exclude if both atoms are in group and have distinct
+                          values of this user-defined property
     none
       delete all exclude settings
   {page} value = N
@@ -138,6 +144,14 @@ interaction if both atoms are in the specified group and in the same
 molecule, as determined by their molecule ID.  The {exclude
 molecule/inter} turns off the interaction between pairs of atoms that
 have different molecule IDs and are both in the specified group.
+The {exclude custom/match} option turns off the interactions between
+pairs of atoms that are in the specified group and share the same
+value of a custom, integer-valued property previously defined via the
+"fix property/atom"_fix_property_atom.html command. The {exclude
+custom/clash} option turns off the interactions between pairs of atoms
+that are in the specified group and have distinct values of a custom,
+integer-valued property defined via the
+"fix property/atom"_fix_property_atom.html command.
 
 Each of the exclude options can be specified multiple times.  The
 {exclude type} option is the most efficient option to use; it requires

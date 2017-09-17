@@ -172,6 +172,9 @@ pairclass(NULL), pairnames(NULL), pairmasks(NULL)
   nex_mol = maxex_mol = 0;
   ex_mol_group = ex_mol_bit = ex_mol_intra = NULL;
 
+  nex_ivec = maxex_ivec = 0;
+  ex_ivec_group = ex_ivec_bit = ex_ivec_index = NULL;
+
   // Kokkos setting
 
   copymode = 0;
@@ -239,6 +242,10 @@ Neighbor::~Neighbor()
   memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
   memory->destroy(ex_mol_intra);
+
+  memory->destroy(ex_ivec_group);
+  delete [] ex_ivec_bit;
+  memory->destroy(ex_ivec_index);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -470,6 +477,18 @@ void Neighbor::init()
 
     for (i = 0; i < nex_mol; i++)
       ex_mol_bit[i] = group->bitmask[ex_mol_group[i]];
+  }
+
+  if (nex_ivec) {
+//    if (lmp->kokkos)
+//      init_ex_ivec_bit_kokkos();
+//    else {
+      delete [] ex_ivec_bit;
+      ex_ivec_bit = new int[nex_ivec];
+//    }
+
+    for (i = 0; i < nex_ivec; i++)
+      ex_ivec_bit[i] = group->bitmask[ex_ivec_group[i]];
   }
 
   if (exclude && force->kspace && me == 0)
@@ -2396,9 +2415,38 @@ void Neighbor::modify_params(int narg, char **arg)
 	  ex_mol_intra[nex_mol] = 0;
         nex_mol++;
         iarg += 3;
-	
+
+      } else if (strcmp(arg[iarg+1],"custom/match") == 0 ||
+		 strcmp(arg[iarg+1],"custom/clash") == 0) {
+        if (iarg+4 > narg) error->all(FLERR,"Illegal neigh_modify command");
+        int is_double;
+        int index = atom->find_custom(arg[iarg+2],is_double);
+        if (index == -1)
+          error->all(FLERR,"Neigh_modify exclude custom requires predefined property/atom");
+        else if (is_double)
+          error->all(FLERR,"Neigh_modify exclude custom requires integer-valued property/atom");
+
+        if (nex_ivec == maxex_ivec) {
+          maxex_ivec += EXDELTA;
+          memory->grow(ex_ivec_group,maxex_ivec,"neigh:ex_ivec_group");
+          if (lmp->kokkos)
+//            grow_ex_ivec_intra_kokkos();
+            error->all(FLERR,"Neigh_modify exclude custom not implemented for package kokkos");
+          else
+            memory->grow(ex_ivec_index,maxex_ivec,"neigh:ex_ivec_index");
+        }
+        ex_ivec_group[nex_ivec] = group->find(arg[iarg+3]);
+        if (ex_ivec_group[nex_ivec] == -1)
+          error->all(FLERR,"Invalid group ID in neigh_modify exclude custom command");
+	if (strcmp(arg[iarg+1],"custom/match") == 0)
+	  ex_ivec_index[nex_ivec] = index;
+	else
+	  ex_ivec_index[nex_ivec] = -index;
+        nex_ivec++;
+        iarg += 4;
+
       } else if (strcmp(arg[iarg+1],"none") == 0) {
-        nex_type = nex_group = nex_mol = 0;
+        nex_type = nex_group = nex_mol = nex_ivec = 0;
         iarg += 2;
 
       } else error->all(FLERR,"Illegal neigh_modify command");

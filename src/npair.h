@@ -66,6 +66,12 @@ class NPair : protected Pointers {
   int *ex_mol_intra;               // 0 = exclude if in 2 molecules (inter)
                                    // 1 = exclude if in same molecule (intra)
 
+  int nex_ivec;                    // # of entries in property/atom exclusion list
+  int *ex_ivec_bit;                // property/atom group bits to exclude
+  int *ex_ivec_group;              // property/atom group #'s to exclude
+  int *ex_ivec_index;              // -i = exclude if atoms have distinct values of ivector[i]
+                                   // +i = exclude if atoms have equal values of ivector[i]
+
   // special data from Neighbor class
 
   int *special_flag;
@@ -98,8 +104,8 @@ class NPair : protected Pointers {
   virtual void copy_bin_info();
   virtual void copy_stencil_info();
 
-  int exclusion(int, int, int,
-                int, int *, tagint *) const;   // test for pair exclusion
+  int exclusion(int, int, int, int,
+                int *, tagint *, int **) const;   // test for pair exclusion
   int coord2bin(double *);                     // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 

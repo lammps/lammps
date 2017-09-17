@@ -61,6 +61,7 @@ void NPairHalfSizeNsqNewtoff::build(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
+  int **ivector = atom->ivector;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   if (includegroup) {
@@ -114,7 +115,7 @@ void NPairHalfSizeNsqNewtoff::build(NeighList *list)
 
     for (j = i+1; j < nall; j++) {
       if (includegroup && !(mask[j] & bitmask)) continue;
-      if (exclude && exclusion(i,j,type[i],type[j],mask,molecule)) continue;
+      if (exclude && exclusion(i,j,type[i],type[j],mask,molecule,ivector)) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

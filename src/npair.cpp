@@ -168,7 +168,7 @@ void NPair::build_setup()
 ------------------------------------------------------------------------- */
 
 int NPair::exclusion(int i, int j, int itype, int jtype,
-                     int *mask, tagint *molecule) const {
+                     int *mask, tagint *molecule, int **ivector) const {
   int m;
 
   if (nex_type && ex_type[itype][jtype]) return 1;
@@ -194,6 +194,23 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
             molecule[i] != molecule[j]) return 1;
       }
   }
+
+  if (nex_ivec)
+    for (m = 0; m < nex_ivec; m++) {
+
+      // custom/match: exclude i-j pair if ivector values are equal
+      // custom/clash: exclude i-j pair if ivector values are different
+
+      int index = ex_ivec_index[m];
+      if (index > 0) {
+        if (mask[i] & ex_ivec_bit[m] && mask[j] & ex_ivec_bit[m] &&
+            ivector[index] && ivector[index][i] == ivector[index][j]) return 1;
+      } else {
+        index = -index;
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+            ivector[index] && ivector[index][i] == ivector[index][j]) return 1;
+      }
+    }
 
   return 0;
 }

@@ -47,6 +47,7 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  int **ivector = atom->ivector;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -106,7 +107,7 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
           }
         }
 
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule,ivector)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

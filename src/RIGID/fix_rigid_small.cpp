@@ -103,19 +103,46 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // parse args for rigid body specification
 
   if (narg < 4) error->all(FLERR,"Illegal fix rigid/small command");
-  if (strcmp(arg[3],"molecule") != 0)
+
+  int custom_flag, custom_index;
+  if (strcmp(arg[3],"molecule") == 0) {
+    custom_flag = 0;
+    if (atom->molecule_flag == 0)
+      error->all(FLERR,"Fix rigid/small requires atom attribute molecule");
+  }
+  else if (strcmp(arg[3],"custom") == 0) {
+    custom_flag = 1;
+    if (narg < 5) error->all(FLERR,"Illegal fix rigid/small command");
+    int is_double;
+    custom_index = atom->find_custom(arg[4],is_double);
+    if (custom_index == -1)
+      error->all(FLERR,"Fix rigid/small custom requires previously defined property/atom");
+    else if (is_double)
+      error->all(FLERR,"Fix rigid/small custom requires integer-valued property/atom");
+  }
+  else
     error->all(FLERR,"Illegal fix rigid/small command");
 
-  if (atom->molecule_flag == 0)
-    error->all(FLERR,"Fix rigid/small requires atom attribute molecule");
   if (atom->map_style == 0)
     error->all(FLERR,"Fix rigid/small requires an atom map, see atom_modify");
 
   // maxmol = largest molecule #
 
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
+  if (custom_flag) {
+    int minval = INT_MAX;
+    int *value = atom->ivector[custom_index];
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) minval = MIN(minval,value[i]);
+    int vmin = minval;
+    MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+    molecule = new tagint[nlocal];
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) molecule[i] = (tagint)(value[i] - minval + 1);
+  }
+  else
+    molecule = atom->molecule;
 
   maxmol = -1;
   for (i = 0; i < nlocal; i++)
@@ -153,7 +180,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
     p_flag[i] = 0;
   }
 
-  int iarg = 4;
+  int iarg = 4 + custom_flag;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"langevin") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid/small command");
@@ -348,6 +375,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // body attributes are computed later by setup_bodies()
 
   create_bodies();
+
+  if (custom_flag) delete [] molecule;
 
   // set nlocal_body and allocate bodies I own
 
@@ -1475,8 +1504,6 @@ void FixRigidSmall::create_bodies()
   // key = body ID
   // value = index into N-length data structure
   // n = count of unique bodies my atoms are part of
-
-  tagint *molecule = atom->molecule;
 
   n = 0;
   for (i = 0; i < nlocal; i++) {

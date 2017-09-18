@@ -126,15 +126,36 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // nbody = # of non-zero ncount values
   // use nall as incremented ptr to set body[] values for each atom
 
-  } else if (strcmp(arg[3],"molecule") == 0) {
+  } else if (strcmp(arg[3],"molecule") == 0 || strcmp(arg[3],"custom") == 0) {
     rstyle = MOLECULE;
-    iarg = 4;
-    if (atom->molecule_flag == 0)
-      error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
-
+    tagint *molecule;
     int *mask = atom->mask;
-    tagint *molecule = atom->molecule;
     int nlocal = atom->nlocal;
+    int custom_flag = strcmp(arg[3],"custom") == 0;
+    if (custom_flag) {
+      if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
+      int is_double;
+      int custom_index = atom->find_custom(arg[4],is_double);
+      if (custom_index == -1)
+        error->all(FLERR,"Fix rigid custom requires previously defined property/atom");
+      else if (is_double)
+        error->all(FLERR,"Fix rigid custom requires integer-valued property/atom");
+      int minval = INT_MAX;
+      int *value = atom->ivector[custom_index];
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) minval = MIN(minval,value[i]);
+      int vmin = minval;
+      MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+      molecule = new tagint[nlocal];
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) molecule[i] = (tagint)(value[i] - minval + 1);
+    }
+    else {
+      if (atom->molecule_flag == 0)
+        error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
+      molecule = atom->molecule;
+    }
+    iarg = 4 + custom_flag;
 
     tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
@@ -173,6 +194,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     }
 
     memory->destroy(ncount);
+    if (custom_flag) delete [] molecule;
 
   // each listed group is a rigid body
   // check if all listed groups exist

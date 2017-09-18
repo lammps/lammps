@@ -78,6 +78,7 @@ class FixRigid : public Fix {
   int *mol2body;            // convert mol-ID to rigid body index
   int *body2mol;            // convert rigid body index to mol-ID
   int maxmol;               // size of mol2body = max mol-ID
+  tagint *molecule;         // molecule ID's
 
   int *body;                // which body each atom is part of (-1 if none)
   double **displace;        // displacement of each atom in body coords

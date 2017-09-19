@@ -11,19 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// NOTES on possible future issues:
-// LATTE compute and return 6-value virial tensor
-// can LATTE compute per-atom energy and per-atom virial
-// for minimize, what about charge DOFs
-// implement charge DOF integration
-// pass neighbor list to LATTE: half or full
-// will we ever auto-adjust the timestep in reset_dt()
-// could pass an input file to LATTE, specified in LAMMPS input script
-// what units options can LAMMPS be using
-// should LATTE take triclinic box from LAMMPS
-// does Coulomb potential = pe[i]/q[i], is it 0 when q = 0
-// how will this work for serial/parallel LAMMPS with serial/parallel LATTE
-// INPORTANT NOTE: ADD checks for metal units !!!!!!!!!!!!!
+/* ----------------------------------------------------------------------
+   Contributing author: Christian Negre (LANL)
+------------------------------------------------------------------------- */
 
 #include <stdio.h>
 #include <string.h>
@@ -58,10 +48,13 @@ extern "C" {
 FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix latte command");
+  if (strcmp(update->unit_style,"metal") != 0)
+    error->all(FLERR,"Must use units metal with fix latte command");
 
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
+
+  if (narg != 4) error->all(FLERR,"Illegal fix latte command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -76,6 +69,8 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"NULL") != 0) {
     coulomb = 1;
+    error->all(FLERR,"Fix latte does not yet support a LAMMPS calculation "
+               "of a Coulomb potential");
 
     int n = strlen(arg[3]) + 1;
     id_pe = new char[n];
@@ -130,7 +125,7 @@ void FixLatte::init()
 
   if (coulomb) {
     if (atom->q_flag == 0 || force->pair == NULL || force->kspace == NULL)
-      error->all(FLERR,"Fix latte cannot compute Coulombic potential");
+      error->all(FLERR,"Fix latte cannot compute Coulomb potential");
 
     int ipe = modify->find_compute(id_pe);
     if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
@@ -201,6 +196,13 @@ void FixLatte::min_setup(int vflag)
   post_force(vflag);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixLatte::setup_pre_reverse(int eflag, int vflag)
+{
+  pre_reverse(eflag,vflag);
+}
+
 /* ----------------------------------------------------------------------
    integrate electronic degrees of freedom
 ------------------------------------------------------------------------- */
@@ -222,7 +224,6 @@ void FixLatte::post_force(int vflag)
 {
   int eflag = eflag_caller;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  // else evflag = 0;
   else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
 
   // compute Coulombic potential = pe[i]/q[i]

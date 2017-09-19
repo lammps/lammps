@@ -1,27 +1,7 @@
-# Settings that the LAMMPS build will import when this package is installed
-# Change all the flags and paths accordingly
-# If using PROGRESS/BML set PROGRESS to ON 
-# For more information about these libraries see: 
-# BML: https://github.com/lanl/bml
-# PROGRESS: https://github.com/losalamos/qmd-progress
-# METIS: http://glaros.dtc.umn.edu/gkhome/metis/metis/download 
+# Settings that the LAMMPS build will import when this package library is used
 
-latte_PATH = ${HOME}/LATTE
-progress_PATH = ${HOME}/qmd-progress
-bml_PATH = ${HOME}/bml
-metis_PATH = ${HOME}/Programs/metis-5.1.0
+# GNU Fortran settings
 
-latte_SYSINC  = -I${latte_PATH}/src -I${bml_PATH}/install/include -I${progress_PATH}/install/include
-
-#latte_SYSLIB  = -fopenmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte.a -lgfortran \
-#								-lm -Wl,--no-as-needed -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64 -lmkl_gf_lp64 \
-#								-lmkl_gnu_thread -lmkl_core -lmkl_gnu_thread -lmkl_core -ldl -lpthread -lm 
-
-latte_SYSLIB  = -fopenmp ${latte_PATH}/src/latte_c_bind.o ${latte_PATH}/liblatte.a -lgfortran \
-								-llapack -lblas 
-
-# Uncomment the following line to use PROGRESS/BML and metis.
-#latte_SYSLIB  += -L${progress_PATH}/install/lib -lprogress -L${bml_PATH}/install/lib -lbml 
-#latte_SYSLIB  += -L${metis_PATH}/install -lmetis 
-
-
+latte_SYSINC = 
+latte_SYSLIB = ../../lib/latte/filelink -llatte -lgfortran -llapack -lblas 
+latte_SYSPATH = -fopenmp

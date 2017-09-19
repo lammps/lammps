@@ -33,6 +33,7 @@ class FixLatte : public Fix {
   void init_list(int, class NeighList *);
   void setup(int);
   void min_setup(int);
+  void setup_pre_reverse(int, int);
   void initial_integrate(int);
   void pre_reverse(int, int);
   void post_force(int);

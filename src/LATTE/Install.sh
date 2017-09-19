@@ -38,8 +38,8 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*latte[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/latte |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/latte |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/latte/includelink |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/latte/liblink |' ../Makefile.package
     #sed -i -e 's|^PKG_LIB =[ \t]*|&-llatte |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(latte_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(latte_SYSLIB) |' ../Makefile.package

@@ -1,4 +1,4 @@
-# simple water model with LATTE
+# simple sucrose model with LATTE
 
 units		metal
 atom_style	full
@@ -34,10 +34,7 @@ fix_modify      2 energy yes
 
 thermo_style    custom step temp pe etotal
 
-# minimization
+# dynamics
 
-thermo          1
-min_style cg
-min_modify dmax 0.1
-min_modify line quadratic
-minimize        1.0e-6 1.0e-6 10000 10000
+thermo          10
+run		100

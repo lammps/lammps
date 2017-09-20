@@ -47,6 +47,7 @@ endif()
 include(GNUInstallDirs)
 
 set(LAMMPS_LINK_LIBS)
+set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 option(ENABLE_MPI "Build MPI version" OFF)
 if(ENABLE_MPI)
@@ -172,7 +173,7 @@ if(ENABLE_MISC)
   endif()
 endif()
 
-if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
+if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP OR ENABLE_LATTE)
   find_package(LAPACK)
   if(NOT LAPACK_FOUND)
     enable_language(Fortran)
@@ -238,8 +239,21 @@ if(ENABLE_VORONOI)
 endif()
 
 if(ENABLE_LATTE)
-  find_package(LATTE REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  find_package(LATTE QUIET)
+  if(NOT LATTE_FOUND)
+    message(STATUS "LATTE not found - we will build our own")
+    include(ExternalProject)
+    ExternalProject_Add(latte_build
+      URL https://github.com/lanl/LATTE/archive/v1.0.1.tar.gz
+      URL_MD5 5137e28cb1a64444bd571c98c98a6eee
+      SOURCE_SUBDIR cmake
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
+      )
+    ExternalProject_get_property(latte_build INSTALL_DIR)
+    set(LATTE_LIBRARIES ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/liblatte.a)
+    list(APPEND LAMMPS_DEPS latte_build)
+  endif()
+  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 if(ENABLE_USER-MOLFILE)
@@ -651,6 +665,7 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ############################################
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
+add_dependencies(lammps ${LAMMPS_DEPS})
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 if(BUILD_SHARED_LIBS)
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})

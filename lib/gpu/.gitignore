@@ -4,3 +4,4 @@
 /nvc_get_devices
 /*.cubin
 /*_cubin.h
+/*_cl.h

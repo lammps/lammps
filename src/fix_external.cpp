@@ -197,6 +197,7 @@ void FixExternal::set_energy_global(double caller_energy)
 
 void FixExternal::set_virial_global(double *caller_virial)
 {
+  if (!evflag) return;
   if (!vflag_global) return;
 
   for (int i = 0; i < 6; i++)
@@ -224,6 +225,7 @@ void FixExternal::set_virial_peratom(double **caller_virial)
 {
   int i,j;
 
+  if (!evflag) return;
   if (!vflag_atom) return;
 
   int nlocal = atom->nlocal;

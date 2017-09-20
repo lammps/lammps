@@ -255,8 +255,6 @@ pair_dipole_sf_omp.cpp
 pair_dipole_sf_gpu.h
 pair_dipole_sf_gpu.cpp
 # deleted on Wed May 8 15:24:36 2013 +0000
-compute_spec_atom.cpp
-compute_spec_atom.h
 fix_species.cpp
 fix_species.h
 # deleted on Fri Oct 19 15:27:15 2012 +0000
@@ -441,8 +439,6 @@ pair_buck_coul_omp.h
 dump_bond.cpp
 dump_bond.h
 # deleted on Mon Nov 9 18:20:20 2009 +0000
-atom_vec_dpd.cpp
-atom_vec_dpd.h
 style_dpd.h
 # deleted on Mon Jun 22 21:11:31 2009 +0000
 fix_write_reax_bonds.cpp

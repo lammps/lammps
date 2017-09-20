@@ -361,10 +361,14 @@ intel"_package.html command that can improve performance when using
 "PPPM"_kspace_style.html for long-range electrostatics on processors
 with SMT. It generates an extra pthread for each MPI task. The thread
 is dedicated to performing some of the PPPM calculations and MPI
-communications. On Intel Xeon Phi x200 series CPUs, this will likely
-always improve performance, even on a single node. On Intel Xeon
-processors, using this mode might result in better performance when
-using multiple nodes, depending on the machine. To use this mode,
+communications. This feature requires setting the preprocessor flag
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS. It is unset
+in the default makefiles ({Makefile.mpi} and {Makefile.serial}) but
+it is set in all makefiles tuned for the USER-INTEL package.  On Intel
+Xeon Phi x200 series CPUs, the LRT feature will likely improve
+performance, even on a single node. On Intel Xeon processors, using
+this mode might result in better performance when using multiple nodes,
+depending on the specific machine configuration. To enable LRT mode,
 specify that the number of OpenMP threads is one less than would
 normally be used for the run and add the "lrt yes" option to the "-pk"
 command-line suffix or "package intel" command. For example, if a run

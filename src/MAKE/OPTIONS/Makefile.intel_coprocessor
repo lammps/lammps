@@ -9,7 +9,7 @@ SHELL = /bin/sh
 CC =		mpiicpc 
 MIC_OPT =       -qoffload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
 CCFLAGS =	-g -O3 -qopenmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
-                -xHost -fno-alias -ansi-alias -restrict \
+                -xHost -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT \
                 -qoverride-limits $(MIC_OPT)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M

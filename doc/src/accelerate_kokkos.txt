@@ -135,10 +135,10 @@ GPUs, or Phi.
 You can do any of these in one line, using the suitable make command
 line flags as described in "Section 4"_Section_packages.html of the
 manual. If run from the src directory, these
-commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
+commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda_mpi, and
 lmp_kokkos_phi.  Note that the OMP and PHI options use
 src/MAKE/Makefile.mpi as the starting Makefile.machine.  The CUDA
-option uses src/MAKE/OPTIONS/Makefile.kokkos_cuda.
+option uses src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi.
 
 The latter two steps can be done using the "-k on", "-pk kokkos" and
 "-sf kk" "command-line switches"_Section_start.html#start_6
@@ -159,7 +159,7 @@ CPU-only (only MPI, no threading):
 
 cd lammps/src
 make yes-kokkos
-make kokkos_mpi :pre
+make kokkos_mpi_only :pre
 
 Intel Xeon Phi (Intel Compiler, Intel MPI):
 
@@ -167,11 +167,11 @@ cd lammps/src
 make yes-kokkos
 make kokkos_phi :pre
 
-CPUs and GPUs (with MPICH):
+CPUs and GPUs (with MPICH or OpenMPI):
 
 cd lammps/src
 make yes-kokkos
-make kokkos_cuda_mpich :pre
+make kokkos_cuda_mpi :pre
 
 These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
 make command line which requires a GNU-compatible make command.  Try

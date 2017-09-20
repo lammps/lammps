@@ -88,6 +88,11 @@ void NPair::copy_neighbor_info()
   ex_mol_bit = neighbor->ex_mol_bit;
   ex_mol_intra = neighbor->ex_mol_intra;
 
+  nex_ivec = neighbor->nex_ivec;
+  ex_ivec_group = neighbor->ex_ivec_group;
+  ex_ivec_bit = neighbor->ex_ivec_bit;
+  ex_ivec_index = neighbor->ex_ivec_index;
+
   // special info
 
   special_flag = neighbor->special_flag;
@@ -203,10 +208,11 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
 
       int index = ex_ivec_index[m];
       if (index > 0) {
+        index--;
         if (mask[i] & ex_ivec_bit[m] && mask[j] & ex_ivec_bit[m] &&
             ivector[index] && ivector[index][i] == ivector[index][j]) return 1;
       } else {
-        index = -index;
+        index = -(index + 1);
         if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
             ivector[index] && ivector[index][i] == ivector[index][j]) return 1;
       }

@@ -427,7 +427,7 @@ void Neighbor::init()
 
   n = atom->ntypes;
 
-  if (nex_type == 0 && nex_group == 0 && nex_mol == 0) exclude = 0;
+  if (nex_type == 0 && nex_group == 0 && nex_mol == 0 && nex_ivec == 0) exclude = 0;
   else exclude = 1;
 
   if (nex_type) {
@@ -2420,8 +2420,8 @@ void Neighbor::modify_params(int narg, char **arg)
 		 strcmp(arg[iarg+1],"custom/clash") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal neigh_modify command");
         int is_double;
-        int index = atom->find_custom(arg[iarg+2],is_double);
-        if (index == -1)
+        int index = atom->find_custom(arg[iarg+2],is_double) + 1;
+        if (index == 0)
           error->all(FLERR,"Neigh_modify exclude custom requires predefined property/atom");
         else if (is_double)
           error->all(FLERR,"Neigh_modify exclude custom requires integer-valued property/atom");

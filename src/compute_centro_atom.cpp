@@ -39,7 +39,7 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   distsq(NULL), nearest(NULL), centro(NULL)
 {
-  if (narg < 4 || narg > 6) 
+  if (narg < 4 || narg > 6)
     error->all(FLERR,"Illegal compute centro/atom command");
 
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
@@ -49,13 +49,13 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   // default values
 
   axes_flag = 0;
-  
+
   // optional keywords
-  
+
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"axes") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute centro/atom command3");
       if (strcmp(arg[iarg+1],"yes") == 0) axes_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) axes_flag = 0;
@@ -70,7 +70,7 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   if (!axes_flag) size_peratom_cols = 0;
   else size_peratom_cols = 10;
-  
+
   nmax = 0;
   maxneigh = 0;
 }
@@ -205,98 +205,98 @@ void ComputeCentroAtom::compute_peratom()
       }
 
       // check whether to include local crystal symmetry axes
-      
+
       if (!axes_flag) {
-	
-	// if not nnn neighbors, centro = 0.0
+        
+        // if not nnn neighbors, centro = 0.0
 
-	if (n < nnn) {
-	  centro[i] = 0.0;
-	  continue;
-	}
+        if (n < nnn) {
+          centro[i] = 0.0;
+          continue;
+        }
 
-	// store nnn nearest neighs in 1st nnn locations of distsq and nearest
+        // store nnn nearest neighs in 1st nnn locations of distsq and nearest
 
-	select2(nnn,n,distsq,nearest);
+        select2(nnn,n,distsq,nearest);
 
-	// R = Ri + Rj for each of npairs i,j pairs among nnn neighbors
-	// pairs = squared length of each R
+        // R = Ri + Rj for each of npairs i,j pairs among nnn neighbors
+        // pairs = squared length of each R
 
-	n = 0;
-	for (j = 0; j < nnn; j++) {
-	  jj = nearest[j];
-	  for (k = j+1; k < nnn; k++) {
-	    kk = nearest[k];
-	    delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
-	    dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
-	    delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
-	    pairs[n++] = delx*delx + dely*dely + delz*delz;
+        n = 0;
+        for (j = 0; j < nnn; j++) {
+          jj = nearest[j];
+          for (k = j+1; k < nnn; k++) {
+            kk = nearest[k];
+            delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
+            dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
+            delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
+            pairs[n++] = delx*delx + dely*dely + delz*delz;
 
-	  }
-	}
-	
+          }
+        }
+        
       } else {
-	
-	// calculate local crystal symmetry axes
+        
+        // calculate local crystal symmetry axes
 
-	// rsq1, rsq2 are two smallest values of R^2 
-	// R1, R2 are corresponding vectors Ri - Rj
-	// R3 is normal to R1, R2
+        // rsq1, rsq2 are two smallest values of R^2
+        // R1, R2 are corresponding vectors Ri - Rj
+        // R3 is normal to R1, R2
 
-	double rsq1,rsq2;
+        double rsq1,rsq2;
 
-	double* r1 = &array_atom[i][1];
-	double* r2 = &array_atom[i][4];
-	double* r3 = &array_atom[i][7];
-	
-	if (n < nnn) {
-	  centro[i] = 0.0;
-	  MathExtra::zero3(r1);
-	  MathExtra::zero3(r2);
-	  MathExtra::zero3(r3);
-	  continue;
-	}
+        double* r1 = &array_atom[i][1];
+        double* r2 = &array_atom[i][4];
+        double* r3 = &array_atom[i][7];
+        
+        if (n < nnn) {
+          centro[i] = 0.0;
+          MathExtra::zero3(r1);
+          MathExtra::zero3(r2);
+          MathExtra::zero3(r3);
+          continue;
+        }
 
-	// store nnn nearest neighs in 1st nnn locations of distsq and nearest
+        // store nnn nearest neighs in 1st nnn locations of distsq and nearest
 
-	select2(nnn,n,distsq,nearest);
+        select2(nnn,n,distsq,nearest);
 
-	n = 0;
-	rsq1 = rsq2 = cutsq;
-	for (j = 0; j < nnn; j++) {
-	  jj = nearest[j];
-	  for (k = j+1; k < nnn; k++) {
-	    kk = nearest[k];
-	    delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
-	    dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
-	    delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
-	    double rsq = delx*delx + dely*dely + delz*delz;
-	    pairs[n++] = rsq;
-	    
-	    if (rsq < rsq2) {
-	      if (rsq < rsq1) {
-		rsq2 = rsq1;
-		MathExtra::copy3(r1, r2);
-		rsq1 = rsq;
-		MathExtra::sub3(x[jj],x[kk],r1);
-	      } else {
-		rsq2 = rsq;
-		MathExtra::sub3(x[jj],x[kk],r2);
-	      }
+        n = 0;
+        rsq1 = rsq2 = cutsq;
+        for (j = 0; j < nnn; j++) {
+          jj = nearest[j];
+          for (k = j+1; k < nnn; k++) {
+            kk = nearest[k];
+            delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
+            dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
+            delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
+            double rsq = delx*delx + dely*dely + delz*delz;
+            pairs[n++] = rsq;
+        
+            if (rsq < rsq2) {
+              if (rsq < rsq1) {
+                rsq2 = rsq1;
+                MathExtra::copy3(r1, r2);
+                rsq1 = rsq;
+                MathExtra::sub3(x[jj],x[kk],r1);
+              } else {
+                rsq2 = rsq;
+                MathExtra::sub3(x[jj],x[kk],r2);
+              }
             }
-	  }
-	}
+          }
+        }
 
-	MathExtra::cross3(r1,r2,r3);
-	MathExtra::norm3(r1);
-	MathExtra::norm3(r2);
-	MathExtra::norm3(r3);
+        MathExtra::cross3(r1,r2,r3);
+        MathExtra::norm3(r1);
+        MathExtra::norm3(r2);
+        MathExtra::norm3(r3);
       }
-      
+
       // store nhalf smallest pair distances in 1st nhalf locations of pairs
-      
+
       select(nhalf,npairs,pairs);
-      
+
       // centrosymmetry = sum of nhalf smallest squared values
 
       value = 0.0;
@@ -306,9 +306,9 @@ void ComputeCentroAtom::compute_peratom()
     } else {
       centro[i] = 0.0;
       if (axes_flag) {
-	MathExtra::zero3(&array_atom[i][1]);
-	MathExtra::zero3(&array_atom[i][4]);
-	MathExtra::zero3(&array_atom[i][7]);
+        MathExtra::zero3(&array_atom[i][1]);
+        MathExtra::zero3(&array_atom[i][4]);
+        MathExtra::zero3(&array_atom[i][7]);
       }
     }
   }
@@ -319,7 +319,7 @@ void ComputeCentroAtom::compute_peratom()
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit)
-	array_atom[i][0] = centro[i];
+        array_atom[i][0] = centro[i];
     }
 }
 

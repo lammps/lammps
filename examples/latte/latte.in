@@ -1,9 +1,9 @@
 LATTE INPUT FILE
 ================
 #This input file resumes the content of MDcontroller and TBparam/control.in
-#The parser will only read it if it's present inside the running folder. 
+#The parser will only read it is present inside the running folder. 
 #In case this file is not present Latte will read the two files as original.
-#The order of the kewords is not important in this file. 
+#The order of the keywords is not important in this file. 
 #To get a full description of these keywords please see: 
 ## https://github.com/lanl/LATTE/blob/master/Manual/LATTE_manual.pdf
 
@@ -12,6 +12,7 @@ CONTROL{
   xControl= 1
   BASISTYPE= NONORTHO
   COORDSFILE= "./coords.dat"
+  PARAMPATH= "/home/user/LATTE/TBparam"
   KBT= 0.0
   ENTROPYKIND= 1
   PPOTON= 1 

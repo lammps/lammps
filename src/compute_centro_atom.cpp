@@ -39,7 +39,8 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   distsq(NULL), nearest(NULL), centro(NULL)
 {
-  if (narg < 4 || narg > 6) error->all(FLERR,"Illegal compute centro/atom command");
+  if (narg < 4 || narg > 6) 
+    error->all(FLERR,"Illegal compute centro/atom command");
 
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
   else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
@@ -54,7 +55,8 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"axes") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute centro/atom command3");
+      if (iarg+2 > narg) 
+        error->all(FLERR,"Illegal compute centro/atom command3");
       if (strcmp(arg[iarg+1],"yes") == 0) axes_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) axes_flag = 0;
       else error->all(FLERR,"Illegal compute centro/atom command2");
@@ -137,7 +139,8 @@ void ComputeCentroAtom::compute_peratom()
       memory->destroy(array_atom);
       nmax = atom->nmax;
       memory->create(centro,nmax,"centro/atom:centro");
-      memory->create(array_atom,nmax,size_peratom_cols,"centro/atom:array_atom");
+      memory->create(array_atom,nmax,size_peratom_cols,
+                     "centro/atom:array_atom");
     }
   }
 
@@ -320,6 +323,7 @@ void ComputeCentroAtom::compute_peratom()
     }
 }
 
+
 /* ----------------------------------------------------------------------
    2 select routines from Numerical Recipes (slightly modified)
    find k smallest values in array of length n
@@ -434,5 +438,6 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
 double ComputeCentroAtom::memory_usage()
 {
   double bytes = nmax * sizeof(double);
+  if (axes_flag) bytes += size_peratom_cols*nmax * sizeof(double);
   return bytes;
 }

@@ -1,0 +1,39 @@
+variable	base  string sucrose_in_water
+variable	T     equal  298.15
+variable	P     equal  1.0
+variable	rc    equal  10.0
+variable	dt    equal  1.0
+variable	seed  equal  1234
+
+variable	nsteps    equal 3000
+variable	nthermo   equal 10
+variable	ndump     equal 10
+
+atom_style	full
+units		real
+
+pair_style	lj/cut/coul/long ${rc}
+pair_modify	tail yes
+kspace_style	pppm 1.0-4
+bond_style	hybrid harmonic zero
+angle_style	harmonic
+dihedral_style	charmm
+special_bonds	lj 0.0 0.0 0.0 coul 0.0 0.0 1.0
+
+fix		bodies all property/atom i_bodytag
+read_data	${base}.data fix bodies NULL BodyTags
+velocity	all create $T ${seed}
+
+neigh_modify	delay 5 exclude custom/match bodytag all
+
+variable	tdamp equal  100*${dt}
+variable	pdamp equal 1000*${dt}
+fix		NPT all rigid/npt/small custom bodytag temp $T $T ${tdamp} iso $P $P ${pdamp}
+
+thermo_style	custom step temp emol epair ecoul elong pe etotal press density lx
+thermo		${nthermo}
+
+dump		DUMP all custom ${ndump} ${base}.lammpstrj id mol type element xu yu zu
+dump_modify	DUMP element H H O O H H C O
+
+run		${nsteps}

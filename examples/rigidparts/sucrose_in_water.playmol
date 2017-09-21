@@ -1,0 +1,33 @@
+define		base  as sucrose_in_water
+define		g_cm3 as 0.602214
+
+# GLYCAM force field:
+include		GLYCAM_06j.playmol
+
+# Solute molecule (sucrose):
+include		sucrose.playmol
+
+rigid_body	C1_1 H1 C2_1 H2 C3_1 H3_1 C4_1 H4_1 C5_1 H5_1 O5_1 O4_1 H4O_1 O3_1 H3O_1 O2 H2O &
+		C6_1 H62_1 H61_1 O6_1 H6O_1
+
+rigid_body	C2_2 O5_2 C5_2 H5_2 C4_2 H4_2 O4_2 H4O_2 C3_2 H3_2 O3_2 H3O_2 &
+		C6_2 H62_2 H61_2 O6_2 H6O_2 &
+		C1_2 H12 H11 O1_2 H1O
+
+# Solvent molecule (water):
+atom		HW1   HW   0.417
+atom		OW    OW  -0.834
+atom		HW2   HW   0.417
+bond		OW HW1 HW2
+rigid_body	OW HW1 HW2
+
+mixing_rule	* * $pair_style geometric arithmetic
+
+box		density	{0.98*$g_cm3}
+packmol		retry	0.95
+packmol		fix	mol(O1_1)	0.0 0.0 0.0
+packmol		pack	mol(OW)		800
+packmol		action	execute
+
+write		lmp/models $base.lmp
+write		summary

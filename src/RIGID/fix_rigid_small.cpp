@@ -104,7 +104,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 4) error->all(FLERR,"Illegal fix rigid/small command");
 
-  int custom_flag, custom_index;
+  int custom_index;
   if (strcmp(arg[3],"molecule") == 0) {
     custom_flag = 0;
     if (atom->molecule_flag == 0)
@@ -1547,8 +1547,12 @@ void FixRigidSmall::create_bodies()
     if (bbox[i][0] == bbox[i][1] && bbox[i][2] == bbox[i][3] &&
         bbox[i][4] == bbox[i][5]) flag = 1;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && comm->me == 0)
-    error->warning(FLERR,"One or more rigid bodies are a single particle");
+  if (flagall) {
+    if (!custom_flag)
+      error->all(FLERR,"One or more rigid bodies are a single particle");
+    else if (comm->me == 0)
+      error->warning(FLERR,"One or more rigid bodies are a single particle");
+  }
 
   // ctr = center pt of each rigid body my atoms are part of
 

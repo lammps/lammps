@@ -79,6 +79,7 @@ class FixRigidSmall : public Fix {
   char *infile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
   int commflag;             // various modes of forward/reverse comm
+  int custom_flag;          // 1 if bodies are defined via custom property/atom
   int nbody;                // total # of rigid bodies
   int nlinear;              // total # of linear rigid bodies
   tagint *molecule;         // molecule ID's

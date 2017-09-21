@@ -60,6 +60,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   virial_flag = 1;
+  thermo_virial = 1;
 
   // store ID of compute pe/atom used to generate Coulomb potential for LATTE
   // NULL means LATTE will compute Coulombic potential
@@ -258,14 +259,15 @@ void FixLatte::post_force(int vflag)
   neighflag = 0;
 
   // set flags used by LATTE
+  // NOTE: LATTE does not compute per-atom energies or virials
 
   int flags[6];
 
   flags[0] = pbcflag;         // 1 for fully periodic, 0 for fully non-periodic
   flags[1] = coulombflag;     // 1 for LAMMPS computes Coulombics, 0 for LATTE
   flags[2] = eflag_atom;      // 1 to return per-atom energies, 0 for no
-  flags[3] = vflag_global;    // 1 to return global virial 0 for no
-  flags[4] = vflag_atom;      // 1 to return per-atom virial, 0 for no
+  flags[3] = vflag_global && thermo_virial;    // 1 to return global/per-atom
+  flags[4] = vflag_atom && thermo_virial;      //   virial, 0 for no       
   flags[5] = neighflag;       // 1 to pass neighbor list to LATTE, 0 for no
 
   // setup LATTE arguments
@@ -288,7 +290,8 @@ void FixLatte::post_force(int vflag)
         &domain->xz,&domain->yz,
         forces,&maxiter,&latte_energy,&atom->v[0][0],&update->dt,virial);
 
-  // sum LATTE forces to LAMMPS (Coulombic) forces
+  // sum LATTE forces to LAMMPS forces
+  // e.g. LAMMPS may compute Coulombics at some point
 
   if (coulomb) {
     double **f = atom->f;

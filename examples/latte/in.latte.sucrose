@@ -4,7 +4,7 @@ units		metal
 atom_style	full
 atom_modify     sort 0 0.0    # turn off sorting of the coordinates
 
-read_data       data.sucrose.lmp
+read_data       data.sucrose
 
 # replicate system if requested
 
@@ -32,7 +32,7 @@ fix		1 all nve
 fix             2 all latte NULL
 fix_modify      2 energy yes
 
-thermo_style    custom step temp pe etotal
+thermo_style    custom step temp pe etotal press
 
 # dynamics
 

@@ -112,6 +112,11 @@ The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the potential energy computed by LATTE to the system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
+The "fix_modify"_fix_modify.html {virial} option is supported by this
+fix to add the LATTE DFTB contribution to the system's virial as part
+of "thermodynamic output"_thermo_style.html.  The default is {virial
+yes}
+
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
 potential energy discussed above.  The scalar value calculated by this
@@ -136,6 +141,11 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You must use metal units, as set by the "units"_units command to use
 this fix.
+
+LATTE does not currently compute per-atom energy or per-atom virial
+contributions.  So they will not show up as part of the calculations
+performed by the "compute pe/atom"_compute_pe_atom.html or "compute
+stress/atom"_compute_stress_atom.html commands.
 
 Currently, LAMMPS must be run in serial or as a single MPI task, to
 use this fix.  This is typically not a bottleneck, since LATTE will be

@@ -32,10 +32,10 @@ fix		1 all nve
 fix             2 all latte NULL
 fix_modify      2 energy yes
 
-thermo_style    custom step temp pe etotal
+thermo_style    custom step temp pe etotal press
 
 # minimization
 
-thermo          1
+thermo          10
 min_style fire
-minimize        1.0e-9 1.0e-9 1000 1000
+minimize        1.0e-9 1.0e-9 500 500

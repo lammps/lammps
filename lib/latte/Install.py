@@ -114,7 +114,6 @@ while iarg < nargs:
   elif args[iarg] == "-m":
     if iarg+2 > nargs: error()
     suffix = args[iarg+1]
-    print("SUFF",suffix)
     suffixflag = True
     iarg += 2
   else: error()

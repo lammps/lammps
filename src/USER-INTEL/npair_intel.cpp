@@ -108,6 +108,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   #ifndef _LMP_INTEL_OFFLOAD
   int * const mask = atom->mask;
   tagint * const molecule = atom->molecule;
+  int **ivector = atom->ivector;
   #endif
 
   int tnum;
@@ -470,7 +471,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             if (need_ic)
               if (pj < 0) pj = -j - 1;
             const int jtype = x[pj].w;
-            if (exclusion(i,pj,itype,jtype,mask,molecule)) continue;
+            if (exclusion(i,pj,itype,jtype,mask,molecule,ivector)) continue;
             neighptr[n++] = j;
           }
           if (THREE) {
@@ -482,7 +483,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
               if (need_ic)
                 if (pj < 0) pj = -j - 1;
               const int jtype = x[pj].w;
-              if (exclusion(i,pj,itype,jtype,mask,molecule)) continue;
+              if (exclusion(i,pj,itype,jtype,mask,molecule,ivector)) continue;
               neighptr[n2++] = j;
             }
           }

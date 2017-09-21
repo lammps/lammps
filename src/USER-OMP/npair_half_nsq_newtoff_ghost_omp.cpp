@@ -62,6 +62,7 @@ void NPairHalfNsqNewtoffGhostOmp::build(NeighList *list)
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  int **ivector = atom->ivector;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
 
@@ -105,7 +106,7 @@ void NPairHalfNsqNewtoffGhostOmp::build(NeighList *list)
       for (j = i+1; j < nall; j++) {
         if (includegroup && !(mask[j] & bitmask)) continue;
         jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule,ivector)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
@@ -133,7 +134,7 @@ void NPairHalfNsqNewtoffGhostOmp::build(NeighList *list)
       for (j = i+1; j < nall; j++) {
         if (includegroup && !(mask[j] & bitmask)) continue;
         jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule,ivector)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

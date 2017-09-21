@@ -79,6 +79,7 @@ void NPairHalfSizeBinNewtonOmp::build(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
+  int **ivector = atom->ivector;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -130,7 +131,7 @@ void NPairHalfSizeBinNewtonOmp::build(NeighList *list)
         }
       }
 
-      if (exclude && exclusion(i,j,type[i],type[j],mask,molecule)) continue;
+      if (exclude && exclusion(i,j,type[i],type[j],mask,molecule,ivector)) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -171,7 +172,7 @@ void NPairHalfSizeBinNewtonOmp::build(NeighList *list)
     ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
-        if (exclude && exclusion(i,j,type[i],type[j],mask,molecule)) continue;
+        if (exclude && exclusion(i,j,type[i],type[j],mask,molecule,ivector)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

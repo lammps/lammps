@@ -54,6 +54,7 @@ void NPairHalfBinAtomonlyNewtonOmp::build(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
+  int **ivector = atom->ivector;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -87,7 +88,7 @@ void NPairHalfBinAtomonlyNewtonOmp::build(NeighList *list)
       }
 
       jtype = type[j];
-      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+      if (exclude && exclusion(i,j,itype,jtype,mask,molecule,ivector)) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -103,7 +104,7 @@ void NPairHalfBinAtomonlyNewtonOmp::build(NeighList *list)
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule,ivector)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

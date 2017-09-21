@@ -75,6 +75,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  int **ivector = atom->ivector;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
@@ -188,7 +189,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
           else j = bins[i]; // same bin as i, so start just past i in the bin
           for (; j >= 0; j = bins[j]) {
             jtype = type[j];
-            if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+            if (exclude && exclusion(i,j,itype,jtype,mask,molecule,ivector)) continue;
             delx = xtmp - x[j][0];
             dely = ytmp - x[j][1];
             delz = ztmp - x[j][2];
@@ -266,7 +267,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
         for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 
           jtype = type[j];
-          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule,ivector)) continue;
 
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];

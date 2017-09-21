@@ -80,6 +80,7 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
+  int **ivector = atom->ivector;
   int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
@@ -140,7 +141,7 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
         }
       }
 
-      if (exclude && exclusion(i,j,type[i],type[j],mask,molecule)) continue;
+      if (exclude && exclusion(i,j,type[i],type[j],mask,molecule,ivector)) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

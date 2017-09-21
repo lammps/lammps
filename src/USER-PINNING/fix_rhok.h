@@ -1,5 +1,5 @@
 /*
-  fix_rhoK_umbrella.h
+  fix_rhok.h
 
   A fix to do umbrella sampling on rho(k).
 
@@ -15,24 +15,24 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(rhoKUmbrella,FixRhoKUmbrella)
+FixStyle(rhok,FixRhok)
 
 #else
 
-#ifndef __FIX_RHOKUMBRELLA__
-#define __FIX_RHOKUMBRELLA__
+#ifndef __FIX_RHOK__
+#define __FIX_RHOK__
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixRhoKUmbrella : public Fix
+class FixRhok : public Fix
 {
 public:
   // Constructor: all the parameters to this fix specified in
   // the LAMMPS input get passed in
-  FixRhoKUmbrella( LAMMPS* inLMP, int inArgc, char** inArgv );
-  virtual ~FixRhoKUmbrella();
+  FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv );
+  virtual ~FixRhok();
   
   // Methods that this fix implements
   // --------------------------------
@@ -76,6 +76,6 @@ private:
 
 }  // namespace LAMMPS_NS
 
-#endif // __FIX_RHOKUMBRELLA__
+#endif // __FIX_RHOK__
 #endif // FIX_CLASS
 

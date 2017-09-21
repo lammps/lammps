@@ -5,16 +5,17 @@
  
  The usage is as follows:
  
- fix [name] [groupID] rhoKUmbrella [nx] [ny] [nz] [kappa = spring constant] [rhoK0]
+ fix [name] [groupID] rhoK [nx] [ny] [nz] [kappa = spring constant] [rhoK0]
  
  where k_i = (2 pi / L_i) * n_i
  
  Written by Ulf Pedersen and Patrick Varilly, 4 Feb 2010
  Tweaked for LAMMPS 15 Jan 2010 version by Ulf Pedersen, 19 Aug 2010
- Tweaked again March 4th 2012 by Ulf Pedersen.
+ Tweaked again March 4th   2012   by Ulf R. Pedersen,
+               September   2016   by Ulf R. Pedersen
  */
 
-#include "fix_rhoKUmbrella.h"
+#include "fix_rhok.h"
 #include "error.h"
 #include "update.h"
 #include "respa.h"
@@ -32,7 +33,7 @@ using namespace FixConst;
 
 // Constructor: all the parameters to this fix specified in
 // the LAMMPS input get passed in
-FixRhoKUmbrella::FixRhoKUmbrella( LAMMPS* inLMP, int inArgc, char** inArgv )
+FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   : Fix( inLMP, inArgc, inArgv )
 {
   // Check arguments
@@ -64,7 +65,7 @@ FixRhoKUmbrella::FixRhoKUmbrella( LAMMPS* inLMP, int inArgc, char** inArgv )
   mRhoK0 = atof( inArgv[7] );
 }
 
-FixRhoKUmbrella::~FixRhoKUmbrella()
+FixRhok::~FixRhok()
 {
 }
 
@@ -73,7 +74,7 @@ FixRhoKUmbrella::~FixRhoKUmbrella()
 
 // Tells LAMMPS where this fix should act
 int
-FixRhoKUmbrella::setmask()
+FixRhok::setmask()
 {
   int mask = 0;
 
@@ -88,7 +89,7 @@ FixRhoKUmbrella::setmask()
   return mask;
 }
 
-/*int FixRhoKUmbrella::setmask()
+/*int FixRhok::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -100,7 +101,7 @@ FixRhoKUmbrella::setmask()
 
 // Initializes the fix at the beginning of a run
 void
-FixRhoKUmbrella::init()
+FixRhok::init()
 {
   // RESPA boilerplate
   if( strcmp( update->integrate_style, "respa" ) == 0 )
@@ -122,7 +123,7 @@ FixRhoKUmbrella::init()
 
 // Initial application of the fix to a system (when doing MD)
 void
-FixRhoKUmbrella::setup( int inVFlag )
+FixRhok::setup( int inVFlag )
 {
   if( strcmp( update->integrate_style, "verlet" ) == 0 )
 	post_force( inVFlag );
@@ -136,14 +137,14 @@ FixRhoKUmbrella::setup( int inVFlag )
 
 // Initial application of the fix to a system (when doing minimization)
 void
-FixRhoKUmbrella::min_setup( int inVFlag )
+FixRhok::min_setup( int inVFlag )
 {
   post_force( inVFlag );
 }
 
 // Modify the forces calculated in the main force loop of ordinary MD
 void
-FixRhoKUmbrella::post_force( int inVFlag )
+FixRhok::post_force( int inVFlag )
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -168,11 +169,9 @@ FixRhoKUmbrella::post_force( int inVFlag )
 	MPI_Allreduce( mRhoKLocal, mRhoKGlobal,
 				  2, MPI_DOUBLE, MPI_SUM, world );
 	
-	// WARNING!!!!!  < \sum_{i,j} e^{-ik.(r_i - r_j)} > ~ N, so
+	// Info:  < \sum_{i,j} e^{-ik.(r_i - r_j)} > ~ N, so
 	// we define rho_k as (1 / sqrt(N)) \sum_i e^{-i k.r_i}, so that
 	// <rho_k^2> is intensive.
-	//
-	// Don't forget this two years from now when you change the system size!!!
 	mRhoKGlobal[0] /= mSqrtNThis;
 	mRhoKGlobal[1] /= mSqrtNThis;
 	
@@ -207,7 +206,7 @@ FixRhoKUmbrella::post_force( int inVFlag )
 
 // Forces in RESPA loop
 void
-FixRhoKUmbrella::post_force_respa( int inVFlag, int inILevel, int inILoop )
+FixRhok::post_force_respa( int inVFlag, int inILevel, int inILoop )
 {
   if( inILevel == mNLevelsRESPA - 1 )
 	post_force( inVFlag );
@@ -215,14 +214,14 @@ FixRhoKUmbrella::post_force_respa( int inVFlag, int inILevel, int inILoop )
 
 // Forces in minimization loop
 void
-FixRhoKUmbrella::min_post_force( int inVFlag )
+FixRhok::min_post_force( int inVFlag )
 {
   post_force( inVFlag );
 }
 
 // Compute the change in the potential energy induced by this fix
 double
-FixRhoKUmbrella::compute_scalar()
+FixRhok::compute_scalar()
 {
 	double rhoK = sqrt( mRhoKGlobal[0]*mRhoKGlobal[0]
 					   + mRhoKGlobal[1]*mRhoKGlobal[1] );
@@ -232,7 +231,7 @@ FixRhoKUmbrella::compute_scalar()
 
 // Compute the ith component of the vector
 double
-FixRhoKUmbrella::compute_vector( int inI )
+FixRhok::compute_vector( int inI )
 {
 	if( inI == 0 )
 		return mRhoKGlobal[0];   // Real part

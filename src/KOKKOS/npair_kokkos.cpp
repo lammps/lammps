@@ -164,8 +164,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
   k_ex_mol_group.sync<DeviceType>();
   k_ex_mol_bit.sync<DeviceType>();
   k_ex_mol_intra.sync<DeviceType>();
-  k_bincount.sync<DeviceType>(),
-  k_bins.sync<DeviceType>(),
+  k_bincount.sync<DeviceType>();
+  k_bins.sync<DeviceType>();
   atomKK->sync(Device,X_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
 
   data.special_flag[0] = special_flag[0];

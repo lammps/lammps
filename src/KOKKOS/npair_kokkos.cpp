@@ -73,6 +73,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::copy_bin_info()
   atoms_per_bin = nbKK->atoms_per_bin;
   k_bincount = nbKK->k_bincount;
   k_bins = nbKK->k_bins;
+  k_atom2bin = nbKK->k_atom2bin;
 }
 
 /* ----------------------------------------------------------------------
@@ -122,6 +123,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
          k_cutneighsq.view<DeviceType>(),
          k_bincount.view<DeviceType>(),
          k_bins.view<DeviceType>(),
+         k_atom2bin.view<DeviceType>(),
          nstencil,
          k_stencil.view<DeviceType>(),
          k_stencilxyz.view<DeviceType>(),
@@ -166,6 +168,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
   k_ex_mol_intra.sync<DeviceType>();
   k_bincount.sync<DeviceType>();
   k_bins.sync<DeviceType>();
+  k_atom2bin.sync<DeviceType>();
   atomKK->sync(Device,X_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
 
   data.special_flag[0] = special_flag[0];
@@ -317,7 +320,7 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ztmp = x(i, 2);
   const int itype = type(i);
 
-  const int ibin = coord2bin(xtmp, ytmp, ztmp);
+  const int ibin = c_atom2bin(i);
 
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
     = d_stencil;
@@ -678,7 +681,7 @@ void NeighborKokkosExecute<DeviceType>::
   // no molecular test when i = ghost atom
 
   if (i < nlocal) {
-    const int ibin = coord2bin(xtmp, ytmp, ztmp);
+    const int ibin = c_atom2bin(i);
     for (int k = 0; k < nstencil; k++) {
       const int jbin = ibin + stencil[k];
       for(int m = 0; m < c_bincount(jbin); m++) {

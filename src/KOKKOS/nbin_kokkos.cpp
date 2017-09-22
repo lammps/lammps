@@ -75,6 +75,10 @@ void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
     k_bincount = DAT::tdual_int_1d("Neighbor::d_bincount",mbins);
     bincount = k_bincount.view<DeviceType>();
   }
+  if (nall > k_atom2bin.d_view.dimension_0()) {
+    k_atom2bin = DAT::tdual_int_1d("Neighbor::d_atom2bin",nall);
+    atom2bin = k_atom2bin.view<DeviceType>();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -125,6 +129,7 @@ void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 {
   const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2));
 
+  atom2bin(i) = ibin;
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);
   if(ac < bins.dimension_1()) {
     bins(ibin, ac) = i;

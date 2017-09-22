@@ -96,6 +96,7 @@ Package, Description, Doc page, Example, Library
 "KIM"_#KIM, OpenKIM wrapper, "pair_style kim"_pair_kim.html, kim, ext
 "KOKKOS"_#KOKKOS, Kokkos-enabled styles, "Section 5.3.3"_accelerate_kokkos.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
 "KSPACE"_#KSPACE, long-range Coulombic solvers, "kspace_style"_kspace_style.html, peptide, -
+"LATTE"_#LATTE, quantum DFTB forces via LATTE, "fix latte"_fix_latte.html, latte, ext
 "MANYBODY"_#MANYBODY, many-body potentials, "pair_style tersoff"_pair_tersoff.html, shear, -
 "MC"_#MC, Monte Carlo options, "fix gcmc"_fix_gcmc.html, -, -
 "MEAM"_#MEAM, modified EAM potential, "pair_style meam"_pair_meam.html, meam, int
@@ -692,6 +693,65 @@ src/KSPACE: filenames -> commands
 Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 with "long" or "msm" in pair style name
 examples/peptide
 bench/in.rhodo :ul
+
+:line
+
+LATTE package :link(LATTE),h4
+
+[Contents:]
+
+A fix command which wraps the LATTE DFTB code, so that molecular
+dynamics can be run with LAMMPS using density-functional tight-binding
+quantum forces calculated by LATTE.
+
+More information on LATTE can be found at this web site:
+"https://github.com/lanl/LATTE"_#latte_home.  A brief technical
+description is given with the "fix latte"_fix_latte.html command.
+
+:link(latte_home,https://github.com/lanl/LATTE)
+
+[Authors:] Christian Negre (LANL) and Steve Plimpton (Sandia).  LATTE
+itself is developed at Los Alamos National Laboratory by Marc
+Cawkwell, Anders Niklasson, and Christian Negre.
+
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first download and
+build the LATTE library.  You can do this manually if you prefer;
+follow the instructions in lib/latte/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invokes the lib/latte/Install.py script with the specified
+args:
+
+make lib-latte                          # print help message
+make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
+make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
+make lib-latte args="-b -m gfortran"    # download and build in lib/latte and 
+                                        #   copy Makefile.lammps.gfortran to Makefile.lammps
+
+Note that 3 symbolic (soft) links, "includelink" and "liblink" and
+"filelink", are created in lib/latte to point into the LATTE home dir.
+When LAMMPS builds in src it will use these links.  You should 
+also check that the Makefile.lammps file you create is apporpriate
+for the compiler you use on your system to build LATTE.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-latte
+make machine :pre
+
+make no-latte
+make machine :pre
+
+[Supporting info:]
+
+src/LATTE: filenames -> commands
+src/LATTE/README
+lib/latte/README
+"fix latte"_fix_latte.html
+examples/latte
+"LAMMPS-LATTE tutorial"_https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS :ul
 
 :line
 

@@ -1,14 +1,13 @@
-This package contains a bias potential that is used to study solid-liquid transitions with the interface pinning method.
-An interface between a solid and a liquid is simulated by applying a field that bias the system towards two-phase configurations.
-This is done by adding a harmonic potential to the Hamiltonian. The bias field couple to an order-parameter of crystallinity Q:
+This package contains a bias potential that can be used to study solid-liquid transitions with the interface pinning method.
+This is done by adding a harmonic potential to the Hamiltonian that bias the system towards two-phase configurations. 
 
   U_bias = 0.5*k*(Q-a)^2
 
-Here, We user long-range order for "crystallinity". Q=rho_k wher rho_k is the collective density field.
+The bias field couple to an order-parameter of crystallinity Q 
+This implimentation use long-range order: Q=|rho_k|, where rho_k is the collective density field of the wave-vector k.
 
-# References
-The main reference for the method is
- [Ulf R. Pedersen, J. Chem. Phys. 139, 104102 (2013)] 
+# Reference
+[Ulf R. Pedersen, J. Chem. Phys. 139, 104102 (2013)] 
 
 Please visit 
   urp.dk/interface_pinning.htm 
@@ -20,30 +19,34 @@ Remember to include the following command when building LAMMPS
 
 # Use
 
-   fix [name] [groupID] rhok [nx] [ny] [nz] [kappa] [anchor-point]
+   fix [name] [groupID] rhok [nx] [ny] [nz] [spring-constant] [anchor-point]
 
-where the parameters set the harmonic bias potential U=0.5*kappa*(|rho_k|-anchor-point)^2 
-with the wave-vector elements of rho_k to k_x = (2 pi / L_x) * n_x, k_y = (2 pi / L_y) * n_y and k_z = (2 pi / L_z) * n_z.
+include a harmonic bias potential U_bias=0.5*k*(|rho_k|-a)^2 to the force calculation.
+The elements of the wave-vector rho_k is k_x = (2 pi / L_x) * n_x, k_y = (2 pi / L_y) * n_y and k_z = (2 pi / L_z) * n_z.
 
-# Usage example
-In the following we will apply use the interface pinning method for the Lennard-Jones system (trunctaed at 2.5)
-at temperature 0.8 and pressure 2.185. This happens to be a coexistence state-point, but we will later show how interface pinning
-can be used to determine this. The present directory contains input files, that we will use.
+# The Interface Pinning method for studying melting transitions
+We will use the interface pinning method to study melting of the Lennard-Jones system
+at temperature 0.8 and pressure 2.185. This is a coexistence state-point, and the method
+can be used to show this. The present directory contains the input files:
 
-## Density of crystal
-First we will determine the density of the crystal with the following LAMMPS input file
-{crystal.lmp}
-from the output we get that the average density is 0.9731. We need this density to ensure hydrostatic pressure
-when in the crystal slap of a two-phase simulation.
+  crystal.lmp
+  setup.lmp 
+  pinning.lmp
 
-## Setup two-phase configuration
-Next, setup a two-phase configuration using the density determined in the previous step.
-{setup.lmp}
+1.  First we will determine the density of the crystal with the LAMMPS input file crystal.lmp.
+    From the output we get that the average density after equbriliation is 0.9731. 
+    We need this density to ensure hydrostatic pressure when in a two-phase simulation.
 
+2.  Next, we setup a two-phase configuration using setup.lmp.
 
-## Setup two-phase configuration
-Finally, we run simulation with the bias field applied.
-{pinning.lmp}
+3.  Finally, we run a two-phase simulation with the bias-field applied using pinning.lmp.
+    The last coulmn in the output show |rho_k|. We note that after a equbriliation period
+	the value fluctuates aroung the anchor point (a) -- showing that this is indeed a coexistence
+	state point.
+
+The reference [J. Chem. Phys. 139, 104102 (2013)] gives details on using the method to find coexitence state points,
+and the referecee [J. Chem. Phys. 142, 044104 (2015)] show how the crystal growth rate can be computed.
+That method have been experienced to be most effective in the slightly super-heated regime above the melting temperature.
 
 # Contact
   Ulf R. Pedersen
@@ -52,5 +55,4 @@ Finally, we run simulation with the bias field applied.
 
 # Cite
 Please cite 
-  [Ulf R. Pedersen, J. Chem. Phys. 139, 104102 (2013)] 
-when using the package for a publication.
+  [Ulf R. Pedersen, J. Chem. Phys. 139, 104102 (2013)]

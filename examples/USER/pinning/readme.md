@@ -1,5 +1,4 @@
-This package contains a bias potential that can be used to study solid-liquid transitions with the interface pinning method.
-This is done by adding a harmonic potential to the Hamiltonian that bias the system towards two-phase configurations. 
+This example demonstrate using a bias potential that can be used to study solid-liquid transitions with the interface pinning method. This is done by adding a harmonic potential to the Hamiltonian that bias the system towards two-phase configurations. 
 
   U_bias = 0.5*k*(Q-a)^2
 
@@ -12,10 +11,6 @@ This implimentation use long-range order: Q=|rho_k|, where rho_k is the collecti
 Please visit 
   urp.dk/interface_pinning.htm 
 for a detailed bibliography. 
-
-# Build
-Remember to include the following command when building LAMMPS
-  make yes-user-pinning
 
 # Use
 
@@ -52,7 +47,3 @@ That method have been experienced to be most effective in the slightly super-hea
   Ulf R. Pedersen
   http://www.urp.dk
   ulf AT urp.dk
-
-# Cite
-Please cite 
-  [Ulf R. Pedersen, J. Chem. Phys. 139, 104102 (2013)]

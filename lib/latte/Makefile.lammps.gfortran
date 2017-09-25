@@ -3,5 +3,5 @@
 # GNU Fortran settings
 
 latte_SYSINC = 
-latte_SYSLIB = ../../lib/latte/filelink -llatte -lgfortran -llapack -lblas
+latte_SYSLIB = ../../lib/latte/filelink.o -llatte -lgfortran -llapack -lblas
 latte_SYSPATH = -fopenmp

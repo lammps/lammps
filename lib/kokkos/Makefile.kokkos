@@ -5,16 +5,15 @@ KOKKOS_PATH=../../lib/kokkos
 CXXFLAGS=$(CCFLAGS)
 
 # Options: Cuda,ROCm,OpenMP,Pthreads,Qthreads,Serial
-KOKKOS_DEVICES ?= "OpenMP"
+KOKKOS_DEVICES ?= "Cuda, OpenMP"
 #KOKKOS_DEVICES ?= "Pthreads"
 # Options: 
-# Intel:    KNC,KNL,SNB,HSW,BDW,SKX
+KOKKOS_ARCH ?= "Pascal61"
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX
 # IBM:      BGQ,Power7,Power8,Power9
 # AMD-GPUS: Kaveri,Carrizo,Fiji,Vega
 # AMD-CPUS: AMDAVX,Ryzen,Epyc
-KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
 # Options: hwloc,librt,experimental_memkind

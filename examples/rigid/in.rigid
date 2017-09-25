@@ -21,7 +21,10 @@ group		clump7 id <> 55 63
 group		clump8 id <> 64 72
 group		clump9 id <> 73 81
 
-fix 1 all rigid group 9 clump1 clump2 clump3 clump4 clump5 &
+#fix 1 all rigid group 9 clump1 clump2 clump3 clump4 clump5 &
+#	  	      clump6 clump7 clump8 clump9
+
+fix 1 all rigid/small group 9 clump1 clump2 clump3 clump4 clump5 &
 	  	      clump6 clump7 clump8 clump9
 
 # 1 chain of connected bodies
@@ -64,9 +67,9 @@ neigh_modify	exclude group clump7 clump7
 neigh_modify	exclude group clump8 clump8
 neigh_modify	exclude group clump9 clump9
 
-thermo		100
+thermo		10000
 
-#dump		1 all atom 50 dump.rigid
+dump		1 all atom 50 dump.rigid
 
 #dump		2 all image 100 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 60 -30
@@ -77,5 +80,5 @@ thermo		100
 #dump_modify	3 pad 5
 
 timestep 	0.0001
-thermo		50
-run		10000
+thermo		50000
+run		100000

@@ -8,18 +8,18 @@
 EXTRAMAKE = Makefile.lammps.standard
 
 ifeq ($(CUDA_HOME),)
-CUDA_HOME = /usr/local/cuda
+CUDA_HOME = /opt/cuda
 endif
 
 NVCC = nvcc
 
 # Tesla CUDA
-CUDA_ARCH = -arch=sm_21
+#CUDA_ARCH = -arch=sm_21
 # newer CUDA
 #CUDA_ARCH = -arch=sm_13
 # older CUDA
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
-CUDA_ARCH = -arch=sm_35
+CUDA_ARCH = -arch=sm_61
 
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL

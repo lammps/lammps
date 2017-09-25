@@ -4,7 +4,7 @@ units		lj
 atom_style	atomic
 
 lattice		fcc 0.8442
-region		box block 0 10 0 10 0 10
+region		box block 0 $L 0 $L 0 $L
 create_box	1 box
 create_atoms	1 box
 mass		1 1.0

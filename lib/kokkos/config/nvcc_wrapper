@@ -12,7 +12,7 @@
 # or g++ as their back-end compiler.  The defaults can be overwritten
 # by using the usual arguments (e.g., -arch=sm_30 -ccbin icpc).
 
-default_arch="sm_35"
+default_arch="sm_61"
 #default_arch="sm_50"
 
 #

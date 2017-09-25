@@ -25,7 +25,7 @@ fix		2 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
 
 group		peptide type <= 12
 
-#dump		1 peptide atom 10 dump.peptide
+dump		1 peptide atom 10 dump.peptide
 
 #dump		2 peptide image 25 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 60 -30 bond atom 0.5

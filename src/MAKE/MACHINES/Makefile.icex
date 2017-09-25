@@ -6,6 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
+KOKKOS_PATH=/home/stefan/projects/lammps-mine/lib/kokkos
 CC =		mpicxx
 CCFLAGS =	-g -O3 -Wall -Wextra -frounding-math -fsignaling-nans -march=native
 SHFLAGS =	-shared -MD -mcmodel=medium -fpic -fPIC
@@ -19,6 +20,8 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
+KOKKOS_DEVICES = Cuda,OpenMP
+KOKKOS_ARCH =   Pascal61
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

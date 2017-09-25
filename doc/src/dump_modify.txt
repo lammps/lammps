@@ -24,6 +24,8 @@ keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} o
   {every} arg = N
     N = dump every this many timesteps
     N can be a variable (see below)
+  {dashcam} arg = N
+    N = contiguously record this many timesteps before toggling files
   {fileper} arg = Np
     Np = write one file for every this many processors
   {first} arg = {yes} or {no}
@@ -240,6 +242,25 @@ if you wanted output on steps 0,15,100 of a 100-timestep run, the file
 should contain the values 15,100,101 and you should also use the
 dump_modify first command.  Any final value > 100 could be used in
 place of 101.
+
+:line
+
+The {dashcam} keyword allows for continuous 'recording' of a simulation,
+storing a mimimum of N frames. This is useful for obtaining detailed
+trajectory information directly before the unexpected end of a LAMMPS run,
+for example to troubleshoot metastable simulations. It is only usable for
+dumps and dump settings which usually write to one file. The {dashcam}
+keyword will create two dump files, whose names are created by prepending
+"a_" and "b_" to the 'file' argument of the dump being modified. It will
+toggle between these two dump files, switching files whenever the current
+timestep is a multiple of N. If a file with the next filename already
+<<<<<<< HEAD
+exists, it will be overwritten. The {dashcam} keyword currently supports
+the {atom}, {custom}, {local}, and {xyz} dump styles, as well as the
+compressed and binary variants of these.
+=======
+exists, it will be overwritten.
+>>>>>>> continuously record a dump, but with finite memory buffer
 
 :line
 

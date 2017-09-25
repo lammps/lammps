@@ -72,6 +72,26 @@ DumpXYZMPIIO::~DumpXYZMPIIO()
 
 void DumpXYZMPIIO::openfile()
 {
+
+  double dashcam_status;
+  if (dashcam_nevery > 0) {
+    dashcam_status = (double) (update->ntimestep % (2*dashcam_nevery)) / dashcam_nevery;
+    if (dashcam_status == 0 || dashcam_status == 1) {
+      if (singlefile_opened) {
+        if (multifile == 0 && fp != NULL) {
+          if (compressed) {
+            if (filewriter) pclose(fp);
+          } else {
+            if (filewriter) fclose(fp);
+          }
+          fp = NULL;
+        }
+        singlefile_opened = 0;
+      }
+    }
+  }
+
+
   if (singlefile_opened) { // single file already opened, so just return after resetting filesize
     mpifo = currentFileSize;
     MPI_File_set_size(mpifh,mpifo+headerSize+sumFileSize);
@@ -82,7 +102,13 @@ void DumpXYZMPIIO::openfile()
 
   // if one file per timestep, replace '*' with current timestep
 
-  filecurrent = filename;
+  if (dashcam_nevery > 0) {
+  // this switches between files every 'dashcam_nevery' timesteps
+    if (dashcam_status < 1)
+      filecurrent = filename2a;
+    else
+      filecurrent = filename2b;
+  } else filecurrent = filename;
 
   if (multifile) {
     char *filestar = filecurrent;

@@ -271,10 +271,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
   Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
 
-  d_k = k_k.d_view;
-  d_theta0 = k_theta0.d_view;
-  d_k_ub = k_k_ub.d_view;
-  d_r_ub = k_r_ub.d_view;
+  d_k = k_k.template view<DeviceType>();
+  d_theta0 = k_theta0.template view<DeviceType>();
+  d_k_ub = k_k_ub.template view<DeviceType>();
+  d_r_ub = k_r_ub.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];

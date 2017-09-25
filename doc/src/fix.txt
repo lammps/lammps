@@ -193,6 +193,7 @@ of "this page"_Section_commands.html#cmd_5.
 "halt"_fix_halt.html - terminate a dynamics run or minimization
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
 "indent"_fix_indent.html - impose force due to an indenter
+"latte"_fix_latte.html - wrapper on LATTE density-functional tight-binding code
 "langevin"_fix_langevin.html - Langevin temperature control
 "lineforce"_fix_lineforce.html - constrain atoms to move in a line
 "momentum"_fix_momentum.html - zero the linear and/or angular momentum of a group of atoms

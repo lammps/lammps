@@ -53,18 +53,19 @@ endif
 # PACKEXT    = subset that require an external (downloaded) library
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace manybody mc meam misc molecule \
-	  mpiio mscg opt peri poems \
+	  granular kim kokkos kspace latte manybody mc meam misc \
+	  molecule mpiio mscg opt peri poems \
 	  python qeq reax replica rigid shock snap srd voronoi
 
 PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mgpt user-misc user-molfile \
+	   user-intel user-lb user-manifold user-meamc user-meso \
+	   user-mgpt user-misc user-molfile \
 	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-vtk
 
-PACKLIB = compress gpu kim kokkos meam mpiio mscg poems \
+PACKLIB = compress gpu kim kokkos latte meam mpiio mscg poems \
 	  python reax voronoi \
 	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-qmmm user-quip user-smd user-vtk
@@ -363,12 +364,12 @@ package-status ps:
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
 
-package-update pu:
+package-update pu: purge
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
 
-package-overwrite:
+package-overwrite: purge
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done

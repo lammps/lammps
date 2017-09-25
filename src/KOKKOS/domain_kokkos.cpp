@@ -99,7 +99,6 @@ void DomainKokkos::reset_box()
     DomainResetBoxFunctor<LMPDeviceType>
       f(atomKK->k_x);
     Kokkos::parallel_reduce(nlocal,f,result);
-    LMPDeviceType::fence();
 
     double (*extent)[2] = result.value;
     double all[3][2];
@@ -384,7 +383,6 @@ void DomainKokkos::pbc()
       Kokkos::parallel_for(nlocal,f);
     }
   }
-  LMPDeviceType::fence();
 
   atomKK->modified(Device,X_MASK|V_MASK|IMAGE_MASK);
 }
@@ -424,7 +422,6 @@ void DomainKokkos::remap_all()
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_remap_all>(0,nlocal),*this);
-  LMPDeviceType::fence();
   copymode = 0;
 
   atomKK->modified(Device,X_MASK | IMAGE_MASK);
@@ -528,7 +525,6 @@ void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_image_flip>(0,nlocal),*this);
-  LMPDeviceType::fence();
   copymode = 0;
 
   atomKK->modified(Device,IMAGE_MASK);
@@ -561,7 +557,6 @@ void DomainKokkos::lamda2x(int n)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_lamda2x>(0,n),*this);
-  LMPDeviceType::fence();
   copymode = 0;
 
   atomKK->modified(Device,X_MASK);
@@ -587,7 +582,6 @@ void DomainKokkos::x2lamda(int n)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_x2lamda>(0,n),*this);
-  LMPDeviceType::fence();
   copymode = 0;
 
   atomKK->modified(Device,X_MASK);

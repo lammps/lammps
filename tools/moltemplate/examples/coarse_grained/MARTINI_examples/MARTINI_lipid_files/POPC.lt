@@ -1,0 +1,40 @@
+import "martini.lt"
+
+POPC inherits MARTINI {
+
+  # atomID   molID  atomTyle  charge     X        Y          Z
+  write('Data Atoms') {
+    $atom:NC3 $mol:. @atom:Q0   1.0   0.561   0.534   2.457
+    $atom:PO4 $mol:. @atom:Qa  -1.0   0.435   0.553   2.166
+    $atom:GL1 $mol:. @atom:Na   0.0   0.478   0.512   1.813
+    $atom:GL2 $mol:. @atom:Na   0.0   0.778   0.470   1.805
+    $atom:C1A $mol:. @atom:C1   0.0   0.415   0.469   1.422
+    $atom:D2A $mol:. @atom:C3   0.0   0.451   0.703   1.201
+    $atom:C3A $mol:. @atom:C1   0.0   0.412   0.577   0.903
+    $atom:C4A $mol:. @atom:C1   0.0   0.415   0.606   0.559
+    $atom:C1B $mol:. @atom:C1   0.0   0.938   0.611   1.512
+    $atom:C2B $mol:. @atom:C1   0.0   0.919   0.457   1.196
+    $atom:C3B $mol:. @atom:C1   0.0   0.924   0.591   0.907
+    $atom:C4B $mol:. @atom:C1   0.0   0.927   0.557   0.559
+  }
+
+  write('Data Bond List') {
+    $bond:b1 $atom:NC3 $atom:PO4
+    $bond:b2 $atom:PO4 $atom:GL1
+    $bond:b3 $atom:GL1 $atom:GL2
+    $bond:b4 $atom:GL1 $atom:C1A
+    $bond:b5 $atom:C1A $atom:D2A
+    $bond:b6 $atom:D2A $atom:C3A
+    $bond:b9 $atom:C3A $atom:C4A
+    $bond:b10 $atom:GL2 $atom:C1B
+    $bond:b11 $atom:C1B $atom:C2B
+    $bond:b12 $atom:C2B $atom:C3B
+    $bond:b13 $atom:C3B $atom:C4B
+  }
+
+} 
+POPC.scale(10)
+
+# Optional: Move the molecule to a convenient location for buildling a bilayer:
+#           Center the molecule in the X,Y directions and set the min Z value.
+POPC.move(-6.3775,-5.53333,-3.24)

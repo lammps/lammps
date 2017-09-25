@@ -355,7 +355,7 @@ void FixDrude::rebuild_special(){
   }
   if (atom->maxspecial < nspecmax) {
     char str[1024];
-    sprintf(str, "Not enough space in special: special_bonds extra should be at least %d", nspecmax - nspecmax_old);
+    sprintf(str, "Not enough space in special: extra/special/per/atom should be at least %d", nspecmax - nspecmax_old);
     error->all(FLERR, str);
   }
 

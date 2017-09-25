@@ -81,6 +81,7 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
   double r3,rinv3,r2inv3,r4inv3;
   double rad,rad2,rad4,rad8,diam,new_coeff2;
   double eoffset;
+  double vn;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -151,6 +152,12 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       ewall[0] -= eoffset;
 
       ewall[m+1] += fwall;
+
+      if (evflag) {
+        if (side < 0) vn = -fwall*delta;
+        else vn = fwall*delta;
+        v_tally(dim, i, vn);
+      }
     }
 
   if (onflag) error->one(FLERR,"Particle on or inside fix wall surface");

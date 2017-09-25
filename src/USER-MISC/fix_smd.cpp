@@ -58,6 +58,7 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
+  virial_flag = 1;
 
   int argoffs=3;
   if (strcmp(arg[argoffs],"cvel") == 0) {
@@ -181,6 +182,11 @@ void FixSMD::setup(int vflag)
 
 void FixSMD::post_force(int vflag)
 {
+  // energy and virial setup
+
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
+
   if (styleflag & SMD_TETHER) smd_tether();
   else smd_couple();
 
@@ -238,12 +244,15 @@ void FixSMD::smd_tether()
   // apply restoring force to atoms in group
   // f = -k*(r-r0)*mass/masstotal
 
+  double **x = atom->x;
   double **f = atom->f;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   double massfrac;
+  double unwrap[3],v[6];
   int nlocal = atom->nlocal;
 
   ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
@@ -259,6 +268,16 @@ void FixSMD::smd_tether()
         ftotal[0] -= fx*massfrac;
         ftotal[1] -= fy*massfrac;
         ftotal[2] -= fz*massfrac;
+        if (evflag) {
+          domain->unmap(x[i],image[i],unwrap);
+          v[0] = fx*massfrac*unwrap[0];
+          v[1] = fy*massfrac*unwrap[1];
+          v[2] = fz*massfrac*unwrap[2];
+          v[3] = fx*massfrac*unwrap[1];
+          v[4] = fx*massfrac*unwrap[2];
+          v[5] = fy*massfrac*unwrap[2];
+          v_tally(i, v);
+        }
       }
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -270,6 +289,16 @@ void FixSMD::smd_tether()
         ftotal[0] -= fx*massfrac;
         ftotal[1] -= fy*massfrac;
         ftotal[2] -= fz*massfrac;
+        if (evflag) {
+          domain->unmap(x[i],image[i],unwrap);
+          v[0] = fx*massfrac*unwrap[0];
+          v[1] = fy*massfrac*unwrap[1];
+          v[2] = fz*massfrac*unwrap[2];
+          v[3] = fx*massfrac*unwrap[1];
+          v[4] = fx*massfrac*unwrap[2];
+          v[5] = fy*massfrac*unwrap[2];
+          v_tally(i, v);
+        }
       }
   }
 }

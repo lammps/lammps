@@ -14,6 +14,8 @@
 #ifdef ATOM_CLASS
 
 AtomStyle(molecular/kk,AtomVecMolecularKokkos)
+AtomStyle(molecular/kk/device,AtomVecMolecularKokkos)
+AtomStyle(molecular/kk/host,AtomVecMolecularKokkos)
 
 #else
 

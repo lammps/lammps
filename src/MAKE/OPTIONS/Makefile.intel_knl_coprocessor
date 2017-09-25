@@ -10,7 +10,7 @@ CC =		mpiicpc
 MIC_OPT =       -qoffload-arch=mic-avx512 -fp-model fast=2
 CCFLAGS =	-O3 -qopenmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
                 -xHost -fno-alias -ansi-alias -restrict \
-                -qoverride-limits $(MIC_OPT)
+                -qoverride-limits $(MIC_OPT) -DLMP_INTEL_USELRT
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

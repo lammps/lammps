@@ -218,10 +218,10 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
       if (limit) {
-        if (iarg+1 > narg)
+        if (iarg > narg)
           error->all(FLERR,"Illegal compute chunk/atom command");
-        if (strcmp(arg[iarg+1],"max") == 0) limitstyle = LIMITMAX;
-        else if (strcmp(arg[iarg+1],"exact") == 0) limitstyle = LIMITEXACT;
+        if (strcmp(arg[iarg],"max") == 0) limitstyle = LIMITMAX;
+        else if (strcmp(arg[iarg],"exact") == 0) limitstyle = LIMITEXACT;
         else error->all(FLERR,"Illegal compute chunk/atom command");
         iarg++;
       }

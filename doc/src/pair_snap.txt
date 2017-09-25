@@ -10,8 +10,7 @@ pair_style snap command :h3
 
 [Syntax:]
 
-pair_style snap
-:pre
+pair_style snap :pre
 
 [Examples:]
 
@@ -20,17 +19,16 @@ pair_coeff * * InP.snapcoeff In P InP.snapparam In In P P :pre
 
 [Description:]
 
-Pair style {snap} computes interactions
-using the spectral neighbor analysis potential (SNAP)
-"(Thompson)"_#Thompson20142. Like the GAP framework of Bartok et al.
-"(Bartok2010)"_#Bartok20102, "(Bartok2013)"_#Bartok2013
-which uses bispectrum components
+Pair style {snap} computes interactions using the spectral
+neighbor analysis potential (SNAP) "(Thompson)"_#Thompson20142.
+Like the GAP framework of Bartok et al. "(Bartok2010)"_#Bartok20102,
+"(Bartok2013)"_#Bartok2013 which uses bispectrum components
 to characterize the local neighborhood of each atom
 in a very general way. The mathematical definition of the
 bispectrum calculation used by SNAP is identical
 to that used by "compute sna/atom"_compute_sna_atom.html.
 In SNAP, the total energy is decomposed into a sum over
-atom energies. The energy of atom {i } is
+atom energies. The energy of atom {i} is
 expressed as a weighted sum over bispectrum components.
 
 :c,image(Eqs/pair_snap.jpg)

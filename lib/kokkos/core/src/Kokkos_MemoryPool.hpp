@@ -233,11 +233,23 @@ public:
 
   //--------------------------------------------------------------------------
 
-  MemoryPool() = default ;
   MemoryPool( MemoryPool && ) = default ;
   MemoryPool( const MemoryPool & ) = default ;
   MemoryPool & operator = ( MemoryPool && ) = default ;
   MemoryPool & operator = ( const MemoryPool & ) = default ;
+
+  MemoryPool()
+    : m_tracker()
+    , m_sb_state_array(0)
+    , m_sb_state_size(0)
+    , m_sb_size_lg2(0)
+    , m_max_block_size_lg2(0)
+    , m_min_block_size_lg2(0)
+    , m_sb_count(0)
+    , m_hint_offset(0)
+    , m_data_offset(0)
+    , m_unused_padding(0)
+    {}
 
   /**\brief  Allocate a memory pool from 'memspace'.
    *

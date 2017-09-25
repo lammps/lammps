@@ -308,7 +308,7 @@ int colvarbias_restraint_centers_moving::update_centers(cvm::real lambda)
     colvarvalue const c_new = colvarvalue::interpolate(initial_centers[i],
                                                        target_centers[i],
                                                        lambda);
-    centers_incr[i] = (c_new).dist2_grad(colvar_centers[i]);
+    centers_incr[i] = 0.5 * c_new.dist2_grad(colvar_centers[i]);
     colvar_centers[i] = c_new;
     variables(i)->wrap(colvar_centers[i]);
   }

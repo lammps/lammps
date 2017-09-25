@@ -55,6 +55,7 @@
 #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy.h"
 #include "pair.h"
+#include "npair_half_bin_newton_ssa.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -95,6 +96,8 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   pairDPDE = NULL;
   pairDPD = (PairDPDfdt *) force->pair_match("dpd/fdt",1);
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
+  if (pairDPDE == NULL)
+    pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
   if(pairDPDE){
     comm_forward = 3;
@@ -107,26 +110,12 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   if(pairDPD == NULL && pairDPDE == NULL)
     error->all(FLERR,"Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow");
 
-  // Setup the ssaAIR array
-  atom->ssaAIR = NULL;
-  grow_arrays(atom->nmax);
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-
-  // Setup callbacks for maintaining atom->ssaAIR[]
-  atom->add_callback(0); // grow (aka exchange)
-  atom->add_callback(1); // restart
-  atom->add_callback(2); // border
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixShardlow::~FixShardlow()
 {
-  atom->delete_callback(id, 0);
-  atom->delete_callback(id, 1);
-  atom->delete_callback(id, 2);
-
-  memory->destroy(atom->ssaAIR);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,7 +124,6 @@ int FixShardlow::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
-  mask |= PRE_EXCHANGE | MIN_PRE_EXCHANGE;
   return mask;
 }
 
@@ -144,9 +132,11 @@ int FixShardlow::setmask()
 void FixShardlow::init()
 {
   int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->ssa  = 1;
+  neighbor->requests[irequest]->pair   = 0;
+  neighbor->requests[irequest]->fix    = 1;
+  neighbor->requests[irequest]->ghost  = 1;
+  neighbor->requests[irequest]->ssa    = 1;
+  neighbor->requests[irequest]->newton = 1; // SSA requires newton on
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,27 +144,6 @@ void FixShardlow::init()
 void FixShardlow::init_list(int id, NeighList *ptr)
 {
   list = ptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::pre_exchange()
-{
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::setup_pre_exchange()
-{
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::min_pre_exchange()
-{
-  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,6 +212,10 @@ void FixShardlow::ssa_update_dpd(
   const double mass_i = (rmass) ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
 
+#ifdef DEBUG_SSA_PAIR_CT
+  const int nlocal = atom->nlocal;
+#endif
+
   // Loop over Directional Neighbors only
   for (int jj = 0; jj < jlen; jj++) {
     int j = jlist[jj] & NEIGHMASK;
@@ -252,9 +225,23 @@ void FixShardlow::ssa_update_dpd(
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
+#ifdef DEBUG_SSA_PAIR_CT
+    if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
+    else ++(counters[0][1]);
+    ++(counters[0][2]);
+    int rsqi = rsq / 8;
+    if (rsqi < 0) rsqi = 0;
+    else if (rsqi > 31) rsqi = 31;
+    ++(hist[rsqi]);
+#endif
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
+#ifdef DEBUG_SSA_PAIR_CT
+      if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
+      else ++(counters[1][1]);
+      ++(counters[1][2]);
+#endif
       double r = sqrt(rsq);
       double rinv = 1.0/r;
       double delx_rinv = delx*rinv;
@@ -382,6 +369,10 @@ void FixShardlow::ssa_update_dpde(
   const double massinv_i = 1.0 / mass_i;
   const double mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
 
+#ifdef DEBUG_SSA_PAIR_CT
+  const int nlocal = atom->nlocal;
+#endif
+
   // Loop over Directional Neighbors only
   for (int jj = 0; jj < jlen; jj++) {
     int j = jlist[jj] & NEIGHMASK;
@@ -391,9 +382,23 @@ void FixShardlow::ssa_update_dpde(
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
+#ifdef DEBUG_SSA_PAIR_CT
+    if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
+    else ++(counters[0][1]);
+    ++(counters[0][2]);
+    int rsqi = rsq / 8;
+    if (rsqi < 0) rsqi = 0;
+    else if (rsqi > 31) rsqi = 31;
+    ++(hist[rsqi]);
+#endif
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
+#ifdef DEBUG_SSA_PAIR_CT
+      if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
+      else ++(counters[1][1]);
+      ++(counters[1][2]);
+#endif
       double r = sqrt(rsq);
       double rinv = 1.0/r;
       double delx_rinv = delx*rinv;
@@ -518,7 +523,19 @@ void FixShardlow::initial_integrate(int vflag)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
 
   if(rcut >= bbx || rcut >= bby || rcut>= bbz )
-    error->all(FLERR,"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin\n");
+  {
+    char fmt[] = {"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin: rcut= %e bbx= %e bby= %e bbz= %e\n"};
+    char *msg = (char *) malloc(sizeof(fmt) + 4*15);
+    sprintf(msg, fmt, rcut, bbx, bby, bbz);
+    error->one(FLERR, msg);
+  }
+
+#ifdef DEBUG_SSA_PAIR_CT
+  for (int i = 0; i < 2; ++i)
+    for (int j = 0; j < 3; ++j)
+      counters[i][j] = 0;
+  for (int i = 0; i < 32; ++i) hist[i] = 0;
+#endif
 
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
@@ -528,35 +545,68 @@ void FixShardlow::initial_integrate(int vflag)
 
   dtsqrt = sqrt(update->dt);
 
-  //Loop over all 14 directions (8 stages)
-  for (airnum = 1; airnum <=8; airnum++){
+  NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
+  if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
+  int ssa_phaseCt = np_ssa->ssa_phaseCt;
+  int *ssa_phaseLen = np_ssa->ssa_phaseLen;
+  int **ssa_itemLoc = np_ssa->ssa_itemLoc;
+  int **ssa_itemLen = np_ssa->ssa_itemLen;
 
-    if (airnum > 1) {
-      // Communicate the updated velocities to all nodes
-      comm->forward_comm_fix(this);
+  // process neighbors in the local AIR
+  for (int workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
+    int workItemCt = ssa_phaseLen[workPhase];
 
-      if(useDPDE){
-        // Zero out the ghosts' uCond & uMech to be used as delta accumulators
-        memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
-        memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
+    for (int workItem = 0; workItem < workItemCt; ++workItem) {
+      int ct = ssa_itemLen[workPhase][workItem];
+      ii = ssa_itemLoc[workPhase][workItem];
+
+      while (ct-- > 0) {
+        int len = list->numneigh[ii];
+        if (len > 0) {
+          if (useDPDE) ssa_update_dpde(ilist[ii], list->firstneigh[ii], len);
+          else ssa_update_dpd(ilist[ii], list->firstneigh[ii], len);
+        }
+        ii++;
       }
     }
+  }
 
-    // Loop over neighbors of my atoms
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      int start = (airnum < 2) ? 0 : list->ndxAIR_ssa[i][airnum - 2];
-      int len = list->ndxAIR_ssa[i][airnum - 1] - start;
-      if (len > 0) {
-        if (useDPDE) ssa_update_dpde(i, &(list->firstneigh[i][start]), len);
-        else ssa_update_dpd(i, &(list->firstneigh[i][start]), len);
-      }
+  ii = inum;
+  //Loop over all 13 outward directions (7 stages)
+  for (airnum = 1; airnum <=7; airnum++){
+    int ct = list->AIRct_ssa[airnum];
+
+    // Communicate the updated velocities to all nodes
+    comm->forward_comm_fix(this);
+
+    if(useDPDE){
+      // Zero out the ghosts' uCond & uMech to be used as delta accumulators
+      memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
+      memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
+    }
+
+    // process neighbors in this AIR
+    while (ct-- > 0) {
+      int len = list->numneigh[ii];
+      if (useDPDE) ssa_update_dpde(ilist[ii], list->firstneigh[ii], len);
+      else ssa_update_dpd(ilist[ii], list->firstneigh[ii], len);
+      ii++;
     }
 
     // Communicate the ghost deltas to the atom owners
-    if (airnum > 1) comm->reverse_comm_fix(this);
+    comm->reverse_comm_fix(this);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
+
+#ifdef DEBUG_SSA_PAIR_CT
+for (int i = 0; i < 32; ++i) fprintf(stdout, "%8d", hist[i]);
+fprintf(stdout, "\n%6d %6d,%6d %6d: "
+  ,counters[0][2]
+  ,counters[1][2]
+  ,counters[0][1]
+  ,counters[1][1]
+);
+#endif
 
   memory->sfree(v_t0);
   v_t0 = NULL;
@@ -643,91 +693,11 @@ void FixShardlow::unpack_reverse_comm(int n, int *list, double *buf)
   }
 }
 
-/* ----------------------------------------------------------------------
-   convert atom coords into the ssa active interaction region number
-------------------------------------------------------------------------- */
-
-int FixShardlow::coord2ssaAIR(double *x)
-{
-  int ix, iy, iz;
-
-  ix = iy = iz = 0;
-  if (x[2] < domain->sublo[2]) iz = -1;
-  if (x[2] >= domain->subhi[2]) iz = 1;
-  if (x[1] < domain->sublo[1]) iy = -1;
-  if (x[1] >= domain->subhi[1]) iy = 1;
-  if (x[0] < domain->sublo[0]) ix = -1;
-  if (x[0] >= domain->subhi[0]) ix = 1;
-
-  if(iz < 0){
-    return -1;
-  } else if(iz == 0){
-    if( iy<0 ) return -1; // bottom left/middle/right
-    if( (iy==0) && (ix<0)  ) return -1; // left atoms
-    if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
-    if( (iy==0) && (ix>0)  ) return 3; // Right atoms
-    if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
-    if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
-  } else { // iz > 0
-    if((ix==0) && (iy==0)) return 5; // Back atoms
-    if((ix==0) && (iy!=0)) return 6; // Top-back and bottom-back atoms
-    if((ix!=0) && (iy==0)) return 7; // Left-back and right-back atoms
-    if((ix!=0) && (iy!=0)) return 8; // Back corner atoms
-  }
-
-  return -2;
-}
-
 /* ---------------------------------------------------------------------- */
-
-void FixShardlow::grow_arrays(int nmax)
-{
-  memory->grow(atom->ssaAIR,nmax,"fix_shardlow:ssaAIR");
-}
-
-void FixShardlow::copy_arrays(int i, int j, int delflag)
-{
-  atom->ssaAIR[j] = atom->ssaAIR[i];
-}
-
-void FixShardlow::set_arrays(int i)
-{
-  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
-}
-
-int FixShardlow::pack_border(int n, int *list, double *buf)
-{
-  for (int i = 0; i < n; i++) {
-    int j = list[i];
-    if (atom->ssaAIR[j] == 0) atom->ssaAIR[j] = 1; // not purely local anymore
-  }
-  return 0;
-}
-
-int FixShardlow::unpack_border(int n, int first, double *buf)
-{
-  int i,last = first + n;
-  for (i = first; i < last; i++) {
-    atom->ssaAIR[i] = coord2ssaAIR(atom->x[i]);
-  }
-  return 0;
-}
-
-int FixShardlow::unpack_exchange(int i, double *buf)
-{
-  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
-  return 0;
-}
-
-void FixShardlow::unpack_restart(int i, int nth)
-{
-  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
-}
 
 double FixShardlow::memory_usage()
 {
   double bytes = 0.0;
-  bytes += memory->usage(atom->ssaAIR,atom->nmax);
   bytes += sizeof(double)*3*atom->nghost; // v_t0[]
   return bytes;
 }

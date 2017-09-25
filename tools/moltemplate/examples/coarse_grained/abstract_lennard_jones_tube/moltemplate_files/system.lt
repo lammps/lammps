@@ -1,0 +1,53 @@
+import "wall_particle.lt"
+
+# Create an immobile "wall" out of "WallParticle"s
+# arranged in the shape of a tube with radius 9.6
+
+tube = new WallParticle.move(0,9.6,0) [20].rot(18,3.0,0,0)
+                                      [20].move(3.0,0,0)
+
+
+# Add some "SolventParticle"s to the center of the tube:
+
+import "solvent_particle.lt"
+solvent = new SolventParticle [20].move(3.0,0,0)
+                               [3].move(0,3.0,0)
+                               [3].move(0,0,3.0)
+
+# These "solvent" particles currently occupy a rectangular region from
+# 0 to 6.0 in the y and z directions.  Center them all using .move():
+
+solvent[*][*][*].move(0,-3.0,-3.0)
+
+
+# Define the periodic boundary conditions for our system
+
+write_once("Data Boundary") {
+   0.0 60.0 xlo xhi
+  -20.0 20.0 ylo yhi
+  -20.0 20.0 zlo zhi
+}
+
+
+
+
+# LAMMPS supports a large number of force-field styles. We must select
+# which ones we need. This information belongs in the "In Init" section (and
+# (you can specify it anywhere in your LT files, multiple times if you like).
+# If different molecules use different force-field styles, you can use hybrid
+# styles.  (In this example the molecules share the same pair_style.)
+
+write_once("In Init") {
+  units           real
+  atom_style      full
+  pair_style      lj/cut 9.0
+  # If you have charged molecules immersed in a salty implicit
+  # solvent, you might try something like this this instead:
+  #    pair_style      lj/cut/coul/debye 0.1 9.0
+  pair_modify     mix arithmetic
+  dielectric      80.0
+  special_bonds   lj 0.0 0.0 0.0
+}
+
+
+

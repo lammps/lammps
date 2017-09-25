@@ -432,12 +432,12 @@ void DihedralCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   Kokkos::DualView<F_FLOAT*,DeviceType> k_sin_shift("DihedralCharmm::sin_shift",nd+1);
   Kokkos::DualView<F_FLOAT*,DeviceType> k_weight("DihedralCharmm::weight",nd+1);
 
-  d_k = k_k.d_view;
-  d_multiplicity = k_multiplicity.d_view;
-  d_shift = k_shift.d_view;
-  d_cos_shift = k_cos_shift.d_view;
-  d_sin_shift = k_sin_shift.d_view;
-  d_weight = k_weight.d_view;
+  d_k = k_k.template view<DeviceType>();
+  d_multiplicity = k_multiplicity.template view<DeviceType>();
+  d_shift = k_shift.template view<DeviceType>();
+  d_cos_shift = k_cos_shift.template view<DeviceType>();
+  d_sin_shift = k_sin_shift.template view<DeviceType>();
+  d_weight = k_weight.template view<DeviceType>();
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
@@ -479,10 +479,10 @@ void DihedralCharmmKokkos<DeviceType>::init_style()
   Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_3("DihedralCharmm:lj14_3",n+1,n+1);
   Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_4("DihedralCharmm:lj14_4",n+1,n+1);
 
-  d_lj14_1 = k_lj14_1.d_view;
-  d_lj14_2 = k_lj14_2.d_view;
-  d_lj14_3 = k_lj14_3.d_view;
-  d_lj14_4 = k_lj14_4.d_view;
+  d_lj14_1 = k_lj14_1.template view<DeviceType>();
+  d_lj14_2 = k_lj14_2.template view<DeviceType>();
+  d_lj14_3 = k_lj14_3.template view<DeviceType>();
+  d_lj14_4 = k_lj14_4.template view<DeviceType>();
 
 
   if (weightflag) {

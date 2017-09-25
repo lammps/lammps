@@ -275,7 +275,9 @@ int HostThreadTeamData::rendezvous( int64_t * const buffer
       for ( int i = 0 ; i < end ; ++i ) {
         ((int8_t*) & value )[i] = int8_t( step );
       }
-
+      // Do not REMOVE this store fence!!!
+      // Makes stuff hang on GCC with more than 8 threads
+      store_fence();
       spinwait_until_equal( buffer[ (rank << shift_mem_cycle) + sync_offset ]
                           , value );
     }

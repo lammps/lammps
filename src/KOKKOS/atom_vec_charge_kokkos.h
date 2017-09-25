@@ -14,6 +14,8 @@
 #ifdef ATOM_CLASS
 
 AtomStyle(charge/kk,AtomVecChargeKokkos)
+AtomStyle(charge/kk/device,AtomVecChargeKokkos)
+AtomStyle(charge/kk/host,AtomVecChargeKokkos)
 
 #else
 

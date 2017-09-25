@@ -158,7 +158,8 @@ struct TestComplexBasicMath {
     d_results(1) = a-b;
     d_results(2) = a*b;
     d_results(3) = a/b;
-    d_results(4) = Kokkos::complex<double>(1.0,2.0);
+    d_results(4).real(1.0);
+    d_results(4).imag(2.0);
     d_results(4) += a;
     d_results(5) = Kokkos::complex<double>(1.0,2.0);
     d_results(5) -= a;
@@ -173,7 +174,8 @@ struct TestComplexBasicMath {
     d_results(9) = a-c;
     d_results(10) = a*c;
     d_results(11) = a/c;
-    d_results(12) = Kokkos::complex<double>(1.0,2.0);
+    d_results(12).real(1.0);
+    d_results(12).imag(2.0);
     d_results(12) += c;
     d_results(13) = Kokkos::complex<double>(1.0,2.0);
     d_results(13) -= c;

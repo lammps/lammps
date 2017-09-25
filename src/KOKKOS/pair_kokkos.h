@@ -513,6 +513,7 @@ EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::dev
 
 template<class DeviceType>
 struct PairVirialFDotRCompute {
+  typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
   typename AT::t_x_array_const_um x;

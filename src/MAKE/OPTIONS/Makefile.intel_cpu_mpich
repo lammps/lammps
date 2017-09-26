@@ -15,7 +15,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicxx -cxx=icc
 LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
-LIB =           
+LIB =           -ltbbmalloc
 SIZE =		size
 
 ARCHIVE =	ar

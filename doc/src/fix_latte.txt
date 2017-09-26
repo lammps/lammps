@@ -66,7 +66,7 @@ reference charge of overlapping atom-centered densities and bond
 integrals are parameterized using a Slater-Koster tight-binding
 approach. This procedure, which usually is referred to as the DFTB
 method has been described in detail by ("Elstner"_#Elstner) and
-("Finnis"_#Finnis) and coworkers. 
+("Finnis"_#Finnis2) and coworkers. 
 
 The work of the LATTE developers follows that of Elstner closely with
 respect to the physical model.  However, the development of LATTE is
@@ -173,7 +173,7 @@ M. Haugk, T. Frauenheim, S. Suhai, and G. Seifert, Phys. Rev. B, 58,
 M. Haugk, T. Frauenheim, S. Suhai, and G. Seifert, Phys. Rev. B, 58,
 7260 (1998).
 
-:link(Finnis)
+:link(Finnis2)
 [(Finnis)] M. W. Finnis, A. T. Paxton, M. Methfessel, and M. van
 Schilfgarde, Phys. Rev. Lett., 81, 5149 (1998).
 
@@ -197,7 +197,7 @@ J. Sci. Comput. 36 (2), 147-170, (2014).
 [(Niklasson2014)] A. M. N. Niklasson and M. Cawkwell, J. Chem. Phys.,
 141, 164123, (2014).
 
-:link(Niklasson2014)
+:link(Niklasson2017)
 [(Niklasson2017)] A. M. N. Niklasson, J. Chem. Phys., 147, 054103 (2017).
 
 :link(Niklasson2012)

@@ -200,8 +200,8 @@ J. Sci. Comput. 36 (2), 147-170, (2014).
 :link(Niklasson2017)
 [(Niklasson2017)] A. M. N. Niklasson, J. Chem. Phys., 147, 054103 (2017).
 
-:link(Niklasson2012)
-[(Niklasson2017)] A. M. N. Niklasson, M. J. Cawkwell, Phys. Rev. B, 86
+:link(Cawkwell2012)
+[(Cawkwell2012)] A. M. N. Niklasson, M. J. Cawkwell, Phys. Rev. B, 86
 (17), 174308 (2012).
 
 :link(Negre2016)

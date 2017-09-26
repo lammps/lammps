@@ -705,7 +705,7 @@ dynamics can be run with LAMMPS using density-functional tight-binding
 quantum forces calculated by LATTE.
 
 More information on LATTE can be found at this web site:
-"https://github.com/lanl/LATTE"_#latte_home.  A brief technical
+"https://github.com/lanl/LATTE"_latte_home.  A brief technical
 description is given with the "fix latte"_fix_latte.html command.
 
 :link(latte_home,https://github.com/lanl/LATTE)

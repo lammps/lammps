@@ -110,7 +110,7 @@ Modify::~Modify()
   // delete all fixes
   // do it via delete_fix() so callbacks in Atom are also updated correctly
 
-  while (nfix) delete_fix(fix[0]->id);
+  while (nfix) delete_fix(0);
   memory->sfree(fix);
   memory->destroy(fmask);
 
@@ -944,7 +944,13 @@ void Modify::delete_fix(const char *id)
 {
   int ifix = find_fix(id);
   if (ifix < 0) error->all(FLERR,"Could not find fix ID to delete");
-  delete fix[ifix];
+  delete_fix(ifix);
+}
+
+void Modify::delete_fix(int ifix)
+{
+  if(fix[ifix])
+    delete fix[ifix];
   atom->update_callback(ifix);
 
   // move other Fixes and fmask down in list one slot

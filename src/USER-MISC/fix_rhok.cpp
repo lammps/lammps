@@ -5,7 +5,7 @@
  
  The usage is as follows:
  
- fix [name] [groupID] rhoK [nx] [ny] [nz] [kappa = spring constant] [rhoK0]
+ fix [name] [groupID] rhok [nx] [ny] [nz] [K] [a]
  
  where k_i = (2 pi / L_i) * n_i
  

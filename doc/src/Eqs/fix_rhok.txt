@@ -1,0 +1,9 @@
+\documentclass[12pt]{article}
+
+\begin{document}
+
+$$
+   U_\text{bias} = \frac{k}{2}(|\rho_{k}| - a)^2
+$$
+
+\end{document}

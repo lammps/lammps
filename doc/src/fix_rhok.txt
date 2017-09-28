@@ -1,0 +1,40 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix rhok command :h3
+
+fix ID group-ID rhok nx ny nz k a
+
+ID, group-ID are documented in "fix"_fix.html command
+nx,ny,nz = k-vektor of collective density field
+k = spring constant of bias potential
+a = anchor point of bias potential
+
+[Examples:]
+
+fix bias all rhok 16 0 0 4.0 16.0
+fix bias Bs rhok 12 12 0 10.0 32.0
+
+[Description:]
+
+The fix applies an force to atoms 
+:c,image(Eqs/fix_rhok.jpg)
+as described in "(Pedersen)"_#Pedersen.
+
+[Restrictions:]
+
+This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Default:] none
+
+:line
+
+:link(Pedersen)
+[(Pedersen)] Pedersen, J. Chem. Phys., 139, 104102 (2013).

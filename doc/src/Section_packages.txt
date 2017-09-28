@@ -2794,6 +2794,7 @@ make machine :pre
 src/USER-UEF: filenames -> commands
 src/USER-UEF/README
 "fix nvt/uef"_fix_nh_uef.html
+"fix npt/uef"_fix_nh_uef.html
 "compute pressure/uef"_compute_pressure_uef.html
 "compute temp/uef"_compute_temp_uef.html
 "dump cfg/uef"_dump_cfg_uef.html

@@ -11,22 +11,36 @@ fix rhok command :h3
 fix ID group-ID rhok nx ny nz k a :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-nx,ny,nz = k-vektor of collective density field
-k = spring constant of bias potential
+nx, ny, nz = k-vektor of collective density field
+K = spring constant of bias potential
 a = anchor point of bias potential :ul
 
 [Examples:]
 
 fix bias all rhok 16 0 0 4.0 16.0
-fix bias Bs rhok 12 12 0 10.0 32.0 :pre
+fix bias Bs rhok 12 12 0 10.0 24.0 :pre
 
 [Description:]
 
-The fix applies an force to atoms 
+The fix applies an force to atoms given by the potential
 
 :c,image(Eqs/fix_rhok.jpg)
 
-as described in "(Pedersen)"_#Pedersen.
+as described in "(Pedersen)"_#Pedersen. 
+The energy and the value of the
+collective density field can be written by including
+
+# output                                U_bias rho_k_RE  rho_k_IM |rho_k| 
+thermo_style custom step temp pzz pe lz f_bias f_bias\[1\] f_bias\[2\] f_bias\[3\] :pre
+
+to the input script.
+
+This field that bias long-range order 
+can be used to study crystal-liquid interfaces,
+and determine melting temperatures "(Pedersen)"_#Pedersen.
+The folder {examples/pinning} of the source code 
+contains an example of using the interface pinning method 
+on the Lennard-Jones system.
 
 [Restrictions:]
 
@@ -34,9 +48,14 @@ This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
+[Related commands:]
+
+"thermo_style"_thermo_style.html
+
 [Default:] none
 
 :line
 
 :link(Pedersen)
 [(Pedersen)] Pedersen, J. Chem. Phys., 139, 104102 (2013).
+

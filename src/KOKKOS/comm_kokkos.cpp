@@ -379,8 +379,8 @@ void CommKokkos::exchange()
     if(!exchange_comm_classic) {
       static int print = 1;
       if(print && comm->me==0) {
-        error->warning(FLERR,"Fixes cannot send data in Kokkos communication, "
-		       "switching to classic communication");
+        error->warning(FLERR,"Fixes cannot yet send data in Kokkos communication, "
+                      "switching to classic communication");
       }
       print = 0;
       exchange_comm_classic = true;
@@ -620,6 +620,19 @@ void CommKokkos::exchange_device()
 
 void CommKokkos::borders()
 {
+  if (!exchange_comm_classic) {
+    static int print = 1;
+
+    if (style != SINGLE || bordergroup || ghost_velocity) {
+      if (print && comm->me==0) {
+        error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
+                      "switching to classic communication");
+      }
+      print = 0;
+      exchange_comm_classic = true;
+    }
+  }
+  
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) borders_device<LMPHostType>();
     else borders_device<LMPDeviceType>();

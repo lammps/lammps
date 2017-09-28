@@ -580,6 +580,7 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "halt"_fix_halt.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,
+"latte"_fix_latte.html,
 "langevin (k)"_fix_langevin.html,
 "lineforce"_fix_lineforce.html,
 "momentum (k)"_fix_momentum.html,

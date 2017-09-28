@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 3.1)
 
 project(lammps)
 set(SOVERSION 0)
-set(LAMMPS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src)
-set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../lib)
+set(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
 set(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib)
 
 #To not conflict with old Makefile build system, we build everything here
@@ -16,7 +16,7 @@ file(GLOB LMP_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
@@ -47,6 +47,7 @@ endif()
 include(GNUInstallDirs)
 
 set(LAMMPS_LINK_LIBS)
+set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 option(ENABLE_MPI "Build MPI version" OFF)
 if(ENABLE_MPI)
@@ -95,7 +96,7 @@ option(ENABLE_ALL "Build all default packages" OFF)
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
   KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ
   REAX REPLICA RIGID SHOCK SNAP SRD)
-set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS
+set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
   USER-ATC USER-AWPMD USER-CGDNA USER-MESO
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
@@ -130,7 +131,7 @@ endif()
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM)
+if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM OR ENABLE_LATTE)
   enable_language(Fortran)
   include(CheckFortranCompilerFlag)
   check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
@@ -172,7 +173,7 @@ if(ENABLE_MISC)
   endif()
 endif()
 
-if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP)
+if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP OR ENABLE_LATTE)
   find_package(LAPACK)
   if(NOT LAPACK_FOUND)
     enable_language(Fortran)
@@ -198,7 +199,7 @@ if(ENABLE_PYTHON)
 	  -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
       OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
   endif()
-  install(FILES ${CMAKE_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
   if(NOT BUILD_SHARED_LIBS)
     message(FATAL_ERROR "Python package need lammps to be build shared, use -DBUILD_SHARED_LIBS=ON")
   endif()
@@ -235,6 +236,24 @@ if(ENABLE_VORONOI)
   find_package(VORO REQUIRED) #some distros
   include_directories(${VORO_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${VORO_LIBRARIES})
+endif()
+
+if(ENABLE_LATTE)
+  find_package(LATTE QUIET)
+  if(NOT LATTE_FOUND)
+    message(STATUS "LATTE not found - we will build our own")
+    include(ExternalProject)
+    ExternalProject_Add(latte_build
+      URL https://github.com/lanl/LATTE/archive/v1.0.1.tar.gz
+      URL_MD5 5137e28cb1a64444bd571c98c98a6eee
+      SOURCE_SUBDIR cmake
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
+      )
+    ExternalProject_get_property(latte_build INSTALL_DIR)
+    set(LATTE_LIBRARIES ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/liblatte.a)
+    list(APPEND LAMMPS_DEPS latte_build)
+  endif()
+  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 if(ENABLE_USER-MOLFILE)
@@ -534,7 +553,7 @@ if(ENABLE_GPU)
       set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture")
       set_property(CACHE GPU_ARCH PROPERTY STRINGS sm_10 sm_20 sm_30 sm_60)
 
-      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_SOURCE_DIR}/gpu/*.cu)
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
       cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
@@ -646,6 +665,7 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ############################################
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
+add_dependencies(lammps ${LAMMPS_DEPS})
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 if(BUILD_SHARED_LIBS)
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})

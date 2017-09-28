@@ -24,6 +24,7 @@
 #include "compute.h"
 #include "fix.h"
 #include "error.h"
+#include "uef_utils.h"
 #include "dump_cfg_uef.h"
 #include "fix_nh_uef.h"
 
@@ -84,7 +85,7 @@ void DumpCFGUef::write_header(bigint n)
       rot[i][j]=rot[j][i];
       rot[j][i]=t;
     }
-  mul_m2(rot,box);
+  UEF_utils::mul_m2(rot,box);
 
 
   double scale = 1.0;

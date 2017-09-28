@@ -24,8 +24,7 @@
 #include <math.h>
 #include "uef_utils.h"
 
-using namespace LAMMPS_NS;
-using namespace UEF_utils;
+namespace LAMMPS_NS{ namespace UEF_utils{
 
 UEFBox::UEFBox()
 {
@@ -362,4 +361,4 @@ void make_unique(double b[3][3], int r[3][3])
   if (b[1][1] < 0){ neg_col(b,1); neg_col(r,1); }
   if (det(b) < 0){ neg_col(b,2); neg_col(r,2); }
 }
-
+}}

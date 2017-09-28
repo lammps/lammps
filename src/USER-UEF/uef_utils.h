@@ -23,9 +23,10 @@
    http://link.springer.com/chapter/10.1007%2F3-540-44670-2_13
 */
 
+#ifndef UEF_UTILS_H
+#define UEF_UTILS_H
 
-namespace LAMMPS_NS {
-namespace UEF_utils {
+namespace LAMMPS_NS{ namespace UEF_utils{
 
 class UEFBox
 {
@@ -137,3 +138,4 @@ void mul_m2(const T m1[3][3], T m2[3][3])
 
 }
 }
+#endif

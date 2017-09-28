@@ -1,16 +1,5 @@
 /*
   fix_rhok.h
-
-  A fix to do umbrella sampling on rho(k).
-
-  The usage is as follows:
-
-  fix [name] [groupID] rhoKUmbrella [kx] [ky] [kz] [kappa = spring constant] [rhoK0]
-
-  where k_i = (2 pi / L_i) * n_i
-
-  Written by Ulf Pedersen and Patrick Varilly, 4 Feb 2010
-  Tweaked for LAMMPS 15 Jan 2010 version by Ulf Pedersen, 19 Aug 2010
 */
 
 #ifdef FIX_CLASS

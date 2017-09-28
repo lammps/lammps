@@ -8,22 +8,24 @@
 
 fix rhok command :h3
 
-fix ID group-ID rhok nx ny nz k a
+fix ID group-ID rhok nx ny nz k a :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 nx,ny,nz = k-vektor of collective density field
 k = spring constant of bias potential
-a = anchor point of bias potential
+a = anchor point of bias potential :ul
 
 [Examples:]
 
 fix bias all rhok 16 0 0 4.0 16.0
-fix bias Bs rhok 12 12 0 10.0 32.0
+fix bias Bs rhok 12 12 0 10.0 32.0 :pre
 
 [Description:]
 
 The fix applies an force to atoms 
+
 :c,image(Eqs/fix_rhok.jpg)
+
 as described in "(Pedersen)"_#Pedersen.
 
 [Restrictions:]

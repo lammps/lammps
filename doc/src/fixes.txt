@@ -76,6 +76,7 @@ Fixes :h1
    fix_neb
    fix_nh
    fix_nh_eff
+   fix_nh_uef
    fix_nph_asphere
    fix_nph_body
    fix_nph_sphere

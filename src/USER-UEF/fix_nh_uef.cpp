@@ -21,6 +21,7 @@
 #include "force.h"
 #include "group.h"
 #include "comm.h"
+#include "citeme.h"
 #include "irregular.h"
 #include "modify.h"
 #include "compute.h"
@@ -95,6 +96,19 @@ char ** FixNHUef::arg_kludge(int &narg, char **arg, int &rem)
   return arg;
 }
 
+//citation info
+static const char cite_user_uef_package[] =
+  "USER-UEF package:\n\n"
+  "@Article{NicholsonRutledge16,\n"
+  "author = {David A. Nicholson and Gregory C. Rutledge},\n"
+  "title = {Molecular simulation of flow-enhanced nucleation in n-eicosane melts under steady shear and uniaxial extension},\n"
+  "journal = {The Journal of Chemical Physics},\n"
+  "volume = {145},\n"
+  "number = {24},\n"
+  "pages = {244903},\n"
+  "year = {2016}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- 
  * Parse the remaing keywords, do some error checking, and initalize 
  * temp/pressure fixes
@@ -102,6 +116,7 @@ char ** FixNHUef::arg_kludge(int &narg, char **arg, int &rem)
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg_kludge(narg,arg,rem))
 {
+  if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 
   //initialization
   erate[0] = erate[1] = 0;

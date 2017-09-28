@@ -1,7 +1,7 @@
 /*
  fix_rhoK_umbrella.cpp
  
- A fix to do umbrella sampling on rho(k).
+ A fix to do bias potential on rho(k).
  
  The usage is as follows:
  

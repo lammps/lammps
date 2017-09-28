@@ -12,7 +12,7 @@
  Written by Ulf Pedersen and Patrick Varilly, 4 Feb 2010
  Tweaked for LAMMPS 15 Jan 2010 version by Ulf Pedersen, 19 Aug 2010
  Tweaked again March 4th   2012   by Ulf R. Pedersen, and
-               September   2016   by Ulf R. Pedersen.
+               September   2017   by Ulf R. Pedersen.
  */
 
 #include "fix_rhok.h"

@@ -1,7 +1,7 @@
 /*
- fix_rhoK_umbrella.cpp
+ fix_rhok.cpp
  
- A fix to do bias potential on rho(k).
+ A fix to add harmonic potential that bias |rho(k)|.
  
  The usage is as follows:
  
@@ -11,8 +11,8 @@
  
  Written by Ulf Pedersen and Patrick Varilly, 4 Feb 2010
  Tweaked for LAMMPS 15 Jan 2010 version by Ulf Pedersen, 19 Aug 2010
- Tweaked again March 4th   2012   by Ulf R. Pedersen,
-               September   2016   by Ulf R. Pedersen
+ Tweaked again March 4th   2012   by Ulf R. Pedersen, and
+               September   2016   by Ulf R. Pedersen.
  */
 
 #include "fix_rhok.h"

@@ -1,4 +1,4 @@
-LAMMPS (30 Jul 2016)
+LAMMPS (22 Sep 2017)
 # biaxial NPT deformation of WCA fluid
 
 units		lj
@@ -38,14 +38,19 @@ thermo_style    custom step c_1_press[1] c_1_press[2] c_1_press[3]
 thermo		50
 run		10000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 1.62256
   ghost atom cutoff = 1.62256
-  binsize = 0.811281 -> bins = 11 11 11
-Memory usage per processor = 2.40217 Mbytes
-Step 1_press[ 1_press[ 1_press[ 
+  binsize = 0.811281, bins = 11 11 11
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton/tri
+      stencil: half/bin/3d/newton/tri
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.742 | 2.742 | 2.742 Mbytes
+Step c_1_press[1] c_1_press[2] c_1_press[3] 
        0    6.3937851    7.0436438    6.4461087 
       50    7.9020345     7.303289    14.733929 
      100    8.3214325     8.385843    13.166247 
@@ -247,20 +252,20 @@ Step 1_press[ 1_press[ 1_press[
     9900    5.0133498    4.7456254    9.4572653 
     9950    5.3318846    4.6643122    10.096292 
    10000    5.2227687    4.8924305    9.5894615 
-Loop time of 4.42114 on 1 procs for 10000 steps with 500 atoms
+Loop time of 4.5628 on 1 procs for 10000 steps with 500 atoms
 
-Performance: 977122.661 tau/day, 2261.858 timesteps/s
+Performance: 946786.828 tau/day, 2191.636 timesteps/s
 99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.72321    | 0.72321    | 0.72321    |   0.0 | 16.36
-Neigh   | 2.6161     | 2.6161     | 2.6161     |   0.0 | 59.17
-Comm    | 0.30217    | 0.30217    | 0.30217    |   0.0 |  6.83
-Output  | 0.0034378  | 0.0034378  | 0.0034378  |   0.0 |  0.08
-Modify  | 0.67004    | 0.67004    | 0.67004    |   0.0 | 15.16
-Other   |            | 0.1062     |            |       |  2.40
+Pair    | 0.70711    | 0.70711    | 0.70711    |   0.0 | 15.50
+Neigh   | 2.7689     | 2.7689     | 2.7689     |   0.0 | 60.69
+Comm    | 0.30715    | 0.30715    | 0.30715    |   0.0 |  6.73
+Output  | 0.0036616  | 0.0036616  | 0.0036616  |   0.0 |  0.08
+Modify  | 0.67113    | 0.67113    | 0.67113    |   0.0 | 14.71
+Other   |            | 0.1048     |            |       |  2.30
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -273,4 +278,7 @@ Total # of neighbors = 3340
 Ave neighs/atom = 6.68
 Neighbor list builds = 4580
 Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
 Total wall time: 0:00:04

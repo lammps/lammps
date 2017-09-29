@@ -53,6 +53,7 @@ class CommKokkos : public CommBrick {
 
  protected:
   DAT::tdual_int_2d k_sendlist;
+  DAT::tdual_int_scalar k_total_send;
   DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_sendflag;
   DAT::tdual_int_1d k_count;

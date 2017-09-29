@@ -13,7 +13,7 @@ compute temp/uef command :h3
 compute ID group-ID temp/uef :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-temp = style name of this compute command :ul
+temp/uef = style name of this compute command :ul
 
 [Examples:]
 

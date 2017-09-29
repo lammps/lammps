@@ -13,7 +13,7 @@ compute pressure/uef command :h3
 compute ID group-ID pressure/uef temp-ID keyword ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-pressure = style name of this compute command
+pressure/uef = style name of this compute command
 temp-ID = ID of compute that calculates temperature, can be NULL if not needed
 zero or more keywords may be appended
 keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} or {fix} or {virial} :ul

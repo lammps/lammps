@@ -11,7 +11,7 @@ fix npt/uef command :h3
 
 [Syntax:]
 
-fix ID group-ID style_name erate eps_x eps_y temp Tstart Tstop Tdamp keyword value ... :pre
+fix ID group-ID style_name erate edot_x edot_y temp Tstart Tstop Tdamp keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {nvt/uef} or {npt/uef} :l
@@ -31,7 +31,7 @@ keyword = {ext} or {strain} or {iso} or {x} or {y} or {z} or {tchain} or {pchain
 fix uniax_nvt all nvt/uef temp 400 400 100 erate 0.00001 -0.000005
 fix biax_nvt all nvt/uef temp 400 400 100 erate 0.000005 0.000005
 fix uniax_npt all npt/uef temp 400 400 300 iso 1 1 3000 erate 0.00001 -0.000005 ext yz
-fix biax_npt all npt/uef temp 400 400 100 erate 0.00001 -0.000005 :pre
+fix biax_npt all npt/uef temp 400 400 100 erate -0.00001 0.000005 x 1 1 3000 :pre
 
 [Description:]
 
@@ -92,7 +92,7 @@ in "fix npt"_fix_nh.html. There are two ways to control the pressure using this
 fix. The first method involves using the {ext} keyword along with the {iso} pressure 
 style. With this method, the pressure is controlled by scaling the simulation box 
 isotropically to achieve the average pressure only in the directions specified by {ext}.
-For example, if the {ext} values is set to  {xy}, the average pressure (Pxx+Pyy)/2 
+For example, if the {ext} value is set to  {xy}, the average pressure (Pxx+Pyy)/2 
 will be controlled.
 
 This example command will control the total hydrostatic pressure under uniaxial tension:

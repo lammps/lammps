@@ -44,7 +44,7 @@ enum{ISO,ANISO,TRICLINIC};
  so FixNH::FixNH() only sees the keywords it knows. Save the numer of 
  remaining keywords in rem.
  ---------------------------------------------------------------------- */
-char ** FixNHUef::arg_kludge(int &narg, char **arg, int &rem)
+char ** LAMMPS_NS::uef_arg_kludge(int &narg, char **arg, int &rem)
 {
   int iarg = 3;
   bool flags[3]= {false,false,false};
@@ -114,7 +114,7 @@ static const char cite_user_uef_package[] =
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg_kludge(narg,arg,rem))
+  FixNH(lmp, narg, uef_arg_kludge(narg,arg,rem))
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 

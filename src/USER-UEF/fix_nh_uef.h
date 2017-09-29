@@ -21,6 +21,8 @@
 #include "fix_nh.h"
 
 namespace LAMMPS_NS {
+
+char **uef_arg_kludge(int&, char**, int&);
 class FixNHUef : public FixNH {
  public:
   FixNHUef(class LAMMPS *, int, char **);
@@ -46,7 +48,6 @@ class FixNHUef : public FixNH {
   virtual int size_restart_global();
   virtual void nve_x();
   virtual void nve_v();
-  char **arg_kludge(int&, char**, int&);
   void rotate_x(double [3][3]);
   void inv_rotate_x(double[3][3]);
   void rotate_v(double[3][3]);

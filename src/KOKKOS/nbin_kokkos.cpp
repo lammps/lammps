@@ -90,6 +90,10 @@ void NBinKokkos<DeviceType>::bin_atoms()
 {
   last_bin = update->ntimestep;
 
+  k_bins.template sync<DeviceType>();
+  k_bincount.template sync<DeviceType>();
+  k_atom2bin.template sync<DeviceType>();
+
   h_resize() = 1;
 
   while(h_resize() > 0) {
@@ -119,6 +123,10 @@ void NBinKokkos<DeviceType>::bin_atoms()
       c_bins = bins;
     }
   }
+
+  k_bins.template modify<DeviceType>();
+  k_bincount.template modify<DeviceType>();
+  k_atom2bin.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

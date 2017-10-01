@@ -607,6 +607,32 @@ void DumpNetCDF::closefile()
 
 /* ---------------------------------------------------------------------- */
 
+template <typename T>
+int nc_put_var1_x(int ncid, int varid, const size_t index[], const T* tp)
+{
+  return nc_put_var1_double(ncid, varid, index, tp);
+}
+
+template <>
+int nc_put_var1_x<int>(int ncid, int varid, const size_t index[], const int* tp)
+{
+  return nc_put_var1_int(ncid, varid, index, tp);
+}
+
+template <>
+int nc_put_var1_x<long>(int ncid, int varid, const size_t index[],
+                        const long* tp)
+{
+  return nc_put_var1_long(ncid, varid, index, tp);
+}
+
+template <>
+int nc_put_var1_x<long long>(int ncid, int varid, const size_t index[],
+                             const long long* tp)
+{
+  return nc_put_var1_longlong(ncid, varid, index, tp);
+}
+
 void DumpNetCDF::write()
 {
   // open file
@@ -638,13 +664,8 @@ void DumpNetCDF::write()
                   th->keyword[i] );
         }
         else if (th->vtype[i] == BIGINT) {
-#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-          NCERRX( nc_put_var1_long(ncid, thermovar[i], start, &th->bivalue),
+          NCERRX( nc_put_var1_x(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
-#else
-          NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &th->bivalue),
-                  th->keyword[i] );
-#endif
         }
       }
     }
@@ -930,11 +951,7 @@ void DumpNetCDF::write_prmtop()
 
   fprintf(f, "%%FLAG POINTERS\n");
   fprintf(f, "%%FORMAT(10I8)\n");
-#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-  fprintf(f, "%8li", ntotalgr);
-#else
-  fprintf(f, "%8i", ntotalgr);
-#endif
+  fprintf(f, BIGINT_FORMAT, ntotalgr);
   for (int i = 0; i < 11; i++)
     fprintf(f, "%8i", 0);
   fprintf(f, "\n");

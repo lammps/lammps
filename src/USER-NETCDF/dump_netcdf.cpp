@@ -608,26 +608,20 @@ void DumpNetCDF::closefile()
 /* ---------------------------------------------------------------------- */
 
 template <typename T>
-int nc_put_var1_x(int ncid, int varid, const size_t index[], const T* tp)
-{
-  return nc_put_var1_double(ncid, varid, index, tp);
-}
-
-template <>
-int nc_put_var1_x<int>(int ncid, int varid, const size_t index[], const int* tp)
+int nc_put_var1_bigint(int ncid, int varid, const size_t index[], const T* tp)
 {
   return nc_put_var1_int(ncid, varid, index, tp);
 }
 
 template <>
-int nc_put_var1_x<long>(int ncid, int varid, const size_t index[],
+int nc_put_var1_bigint<long>(int ncid, int varid, const size_t index[],
                         const long* tp)
 {
   return nc_put_var1_long(ncid, varid, index, tp);
 }
 
 template <>
-int nc_put_var1_x<long long>(int ncid, int varid, const size_t index[],
+int nc_put_var1_bigint<long long>(int ncid, int varid, const size_t index[],
                              const long long* tp)
 {
   return nc_put_var1_longlong(ncid, varid, index, tp);
@@ -664,7 +658,7 @@ void DumpNetCDF::write()
                   th->keyword[i] );
         }
         else if (th->vtype[i] == BIGINT) {
-          NCERRX( nc_put_var1_x(ncid, thermovar[i], start, &th->bivalue),
+          NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
         }
       }

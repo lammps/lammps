@@ -584,28 +584,21 @@ void DumpNetCDFMPIIO::closefile()
 /* ---------------------------------------------------------------------- */
 
 template <typename T>
-int ncmpi_put_var1_x(int ncid, int varid, const MPI_Offset index[],
+int ncmpi_put_var1_bigint(int ncid, int varid, const MPI_Offset index[],
                      const T* tp)
-{
-  return ncmpi_put_var1_double(ncid, varid, index, tp);
-}
-
-template <>
-int ncmpi_put_var1_x<int>(int ncid, int varid, const MPI_Offset index[],
-                          const int* tp)
 {
   return ncmpi_put_var1_int(ncid, varid, index, tp);
 }
 
 template <>
-int ncmpi_put_var1_x<long>(int ncid, int varid, const MPI_Offset index[],
+int ncmpi_put_var1_bigint<long>(int ncid, int varid, const MPI_Offset index[],
                            const long* tp)
 {
   return ncmpi_put_var1_long(ncid, varid, index, tp);
 }
 
 template <>
-int ncmpi_put_var1_x<long long>(int ncid, int varid, const MPI_Offset index[],
+int ncmpi_put_var1_bigint<long long>(int ncid, int varid, const MPI_Offset index[],
                                 const long long* tp)
 {
   return ncmpi_put_var1_longlong(ncid, varid, index, tp);
@@ -644,7 +637,7 @@ void DumpNetCDFMPIIO::write()
                   th->keyword[i] );
         }
         else if (th->vtype[i] == BIGINT) {
-          NCERRX( ncmpi_put_var1_x(ncid, thermovar[i], start, &th->bivalue),
+          NCERRX( ncmpi_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
         }
       }

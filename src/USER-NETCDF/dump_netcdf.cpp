@@ -947,64 +947,6 @@ int DumpNetCDF::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpNetCDF::write_prmtop()
-{
-  char fn[1024];
-  char tmp[81];
-  FILE *f;
-
-  strcpy(fn, filename);
-  strcat(fn, ".prmtop");
-
-  f = fopen(fn, "w");
-  fprintf(f, "%%VERSION  LAMMPS\n");
-  fprintf(f, "%%FLAG TITLE\n");
-  fprintf(f, "%%FORMAT(20a4)\n");
-  memset(tmp, ' ', 76);
-  tmp[76] = '\0';
-  fprintf(f, "NASN%s\n", tmp);
-
-  fprintf(f, "%%FLAG POINTERS\n");
-  fprintf(f, "%%FORMAT(10I8)\n");
-  fprintf(f, BIGINT_FORMAT, ntotalgr);
-  for (int i = 0; i < 11; i++)
-    fprintf(f, "%8i", 0);
-  fprintf(f, "\n");
-  for (int i = 0; i < 12; i++)
-    fprintf(f, "%8i", 0);
-  fprintf(f, "\n");
-  for (int i = 0; i < 6; i++)
-    fprintf(f, "%8i", 0);
-  fprintf(f, "\n");
-
-  fprintf(f, "%%FLAG ATOM_NAME\n");
-  fprintf(f, "%%FORMAT(20a4)\n");
-  for (int i = 0; i < ntotalgr; i++) {
-    fprintf(f, "%4s", "He");
-    if ((i+1) % 20 == 0)
-      fprintf(f, "\n");
-  }
-
-  fprintf(f, "%%FLAG CHARGE\n");
-  fprintf(f, "%%FORMAT(5E16.5)\n");
-  for (int i = 0; i < ntotalgr; i++) {
-    fprintf(f, "%16.5e", 0.0);
-    if ((i+1) % 5 == 0)
-      fprintf(f, "\n");
-  }
-
-  fprintf(f, "%%FLAG MASS\n");
-  fprintf(f, "%%FORMAT(5E16.5)\n");
-  for (int i = 0; i < ntotalgr; i++) {
-    fprintf(f, "%16.5e", 1.0);
-    if ((i+1) % 5 == 0)
-        fprintf(f, "\n");
-  }
-  fclose(f);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpNetCDF::ncerr(int err, const char *descr, int line)
 {
   if (err != NC_NOERR) {

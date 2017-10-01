@@ -16,7 +16,7 @@ dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
 keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
-  {append} arg = {yes} or {no} or {at} N
+  {append} arg = {yes} or {no} or {yes at} N
     N = index of frame written upon first dump
   {buffer} arg = {yes} or {no}
   {element} args = E1 E2 ... EN, where N = # of atom types

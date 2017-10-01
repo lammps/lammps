@@ -592,13 +592,14 @@ void DumpNetCDFMPIIO::closefile()
   if (singlefile_opened) {
     NCERR( ncmpi_close(ncid) );
     singlefile_opened = 0;
-    // append next time DumpNetCDFMPIIO::openfile is called
-    append_flag = 1;
     // write to next frame upon next open
     if (multifile)
       framei = 1;
-    else
+    else {
+      // append next time DumpNetCDFMPIIO::openfile is called
+      append_flag = 1;
       framei++;
+    }
   }
 }
 

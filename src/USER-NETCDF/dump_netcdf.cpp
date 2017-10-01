@@ -616,13 +616,14 @@ void DumpNetCDF::closefile()
   if (filewriter && singlefile_opened) {
     NCERR( nc_close(ncid) );
     singlefile_opened = 0;
-    // append next time DumpNetCDF::openfile is called
-    append_flag = 1;
     // write to next frame upon next open
     if (multifile)
       framei = 1;
-    else
+    else {
+      // append next time DumpNetCDF::openfile is called
+      append_flag = 1;
       framei++;
+    }
   }
 }
 

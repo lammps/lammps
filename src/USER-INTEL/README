@@ -30,14 +30,15 @@ be added or changed in the Makefile depending on the version:
 
 2017 update 2         - No changes needed
 2017 updates 3 or 4   - Use -xCOMMON-AVX512 and not -xHost or -xCORE-AVX512
-2018 or newer         - Use -xHost or -xCORE-AVX512 and -qopt-zmm-usage=high 
+2018 inital release   - Use -xCOMMON-AVX512 and not -xHost or -xCORE-AVX512
+2018u1 or newer       - Use -xHost or -xCORE-AVX512 and -qopt-zmm-usage=high 
 
 -----------------------------------------------------------------------------
 
 When using the suffix command with "intel", intel styles will be used if they
 exist. If the suffix command is used with "hybrid intel omp" and the USER-OMP 
-USER-OMP styles will be used whenever USER-INTEL styles are not available. This
-allow for running most styles in LAMMPS with threading.
+is installed, USER-OMP styles will be used whenever USER-INTEL styles are not
+available. This allow for running most styles in LAMMPS with threading.
 
 -----------------------------------------------------------------------------
 
@@ -49,6 +50,15 @@ build with compilers that support threads using the C++11 standard. When using
 LRT mode, you might need to disable OpenMP affinity settings (e.g.
 export KMP_AFFINITY=none). LAMMPS will generate a warning if the settings
 need to be changed.
+
+-----------------------------------------------------------------------------
+
+The random number generator for Dissipative Particle Dynamics (DPD) in the 
+Intel package uses the Mersenne Twister pseudorandom number generator as 
+implemented in the Intel Math Kernel Library (MKL). This generator is faster
+and more robust with a significantly longer period than the default DPD
+generator. However, if MKL is not installed, the standard random number
+generator can be used by adding the compile flag "-DLMP_NO_MKL_RNG".
 
 -----------------------------------------------------------------------------
 

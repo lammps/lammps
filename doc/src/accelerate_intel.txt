@@ -25,12 +25,12 @@ LAMMPS to run on the CPU cores and coprocessor cores simultaneously.
 [Currently Available USER-INTEL Styles:]
 
 Angle Styles: charmm, harmonic :ulb,l
-Bond Styles: fene, harmonic :l
+Bond Styles: fene, fourier, harmonic :l
 Dihedral Styles: charmm, harmonic, opls :l
 Fixes: nve, npt, nvt, nvt/sllod :l
 Improper Styles: cvff, harmonic :l
 Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long, 
-buck, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm, 
+buck, dpd, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm, 
 lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long, rebo,
 sw, tersoff :l
 K-Space Styles: pppm, pppm/disp :l
@@ -82,6 +82,10 @@ this order :l
 The {newton} setting applies to all atoms, not just atoms shared
 between MPI tasks :l
 Vectorization can change the order for adding pairwise forces :l
+Unless specified otherwise at build time, the random number 
+generator for dissipative particle dynamics uses the Mersenne 
+Twister generator (that should be more robust than the standard
+generator) :l
 :ule
 
 The precision mode (described below) used with the USER-INTEL

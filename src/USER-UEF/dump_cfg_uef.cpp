@@ -36,8 +36,8 @@ enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
 #define ONEFIELD 32
 #define DELTA 1048576
 
-/* ---------------------------------------------------------------------- 
- * base method is mostly fine, just need to find the FixNHUef 
+/* ----------------------------------------------------------------------
+ * base method is mostly fine, just need to find the FixNHUef
  * ----------------------------------------------------------------------*/
 void DumpCFGUef::init_style()
 {
@@ -58,7 +58,7 @@ void DumpCFGUef::init_style()
   ifix_uef=i;
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * this is really the only difference between the base class and this one.
  * since the output is in scaled coordinates, changing the simulation box
  * edges to the flow frame will put coordinates in the flow frame too.

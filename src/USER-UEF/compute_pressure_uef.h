@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -31,11 +31,11 @@ class ComputePressureUef : public ComputePressure {
   ComputePressureUef(class LAMMPS *, int, char **);
   virtual ~ComputePressureUef(){}
   virtual void init();
-  virtual void compute_vector(); 
-  virtual double compute_scalar(); 
+  virtual void compute_vector();
+  virtual double compute_scalar();
   void update_rot();
   bool in_fix; //true if this compute is used in fix/nvt/npt
-  
+
 
  protected:
   bool ext_flags[3]; // true if used in average output pressure
@@ -57,7 +57,7 @@ only additions are:
 
 E: Can't use compute pressure/uef without defining a fix nvt/npt/uef
 
-Self-explanatory.  
+Self-explanatory.
 
 W: The temperature used in compute pressure/uef is not of style temp/uef
 

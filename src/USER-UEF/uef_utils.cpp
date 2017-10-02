@@ -11,20 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 
    Contributing author: David Nicholson (MIT)
-------------------------------------------------------------------------- 
+-------------------------------------------------------------------------
 
-   This class contains functions to calculate the evolution of the periodic 
+   This class contains functions to calculate the evolution of the periodic
    simulation box under elongational flow as described by Matthew Dobson
    in the arXiv preprint at http://arxiv.org/abs/1408.7078
-  
+
    Additionally, there are methods to do a lattice reduction to further
    reduce the simulation box using the method of Igor Semaev at
    http://link.springer.com/chapter/10.1007%2F3-540-44670-2_13
 */
+
 #include <math.h>
 #include "uef_utils.h"
 
-namespace LAMMPS_NS{ namespace UEF_utils{
+namespace LAMMPS_NS {
+  namespace UEF_utils{
 
 UEFBox::UEFBox()
 {
@@ -46,7 +48,7 @@ UEFBox::UEFBox()
   // strain = w1 * theta1 + w2 * theta2
   theta[0]=theta[1]=0;
 
-  
+
   //set up the initial box l and change of basis matrix r
   for (int k=0;k<3;k++)
     for (int j=0;j<3;j++)
@@ -124,8 +126,8 @@ void UEFBox::step_deform(const double ex, const double ey)
   theta[0] +=winv[0][0]*ex + winv[0][1]*ey;
   theta[1] +=winv[1][0]*ex + winv[1][1]*ey;
 
-  // deformation of the box. reduce() needs to 
-  // be called regularly or calculation will become 
+  // deformation of the box. reduce() needs to
+  // be called regularly or calculation will become
   // unstable
   double eps[3];
   eps[0]=ex; eps[1] = ey; eps[2] = -ex-ey;
@@ -148,7 +150,7 @@ bool UEFBox::reduce()
   theta[0] -= f1;
   theta[1] -= f2;
 
-  // store old change or basis matrix to determine if it 
+  // store old change or basis matrix to determine if it
   // changes
   int r0[3][3];
   for (int k=0;k<3;k++)
@@ -157,7 +159,7 @@ bool UEFBox::reduce()
 
   // this modifies the old change basis matrix to
   // handle the case where the automorphism transforms
-  // the box but the reduced basis doesn't change 
+  // the box but the reduced basis doesn't change
   // (r0 should still equal r at the end)
   if (f1 > 0) for (int k=0;k<f1;k++) mul_m2 (a1,r0);
   if (f1 < 0) for (int k=0;k<-f1;k++) mul_m2 (a1i,r0);
@@ -336,7 +338,7 @@ void greedy_recurse(double b[3][3], int r[3][3])
   red3(b,r); // recursive caller
 }
 
-// set r (change of basis) to be identity then reduce basis and make it unique 
+// set r (change of basis) to be identity then reduce basis and make it unique
 void greedy(double b[3][3],int r[3][3])
 {
   r[0][1]=r[0][2]=r[1][0]=r[1][2]=r[2][0]=r[2][1]=0;
@@ -345,7 +347,7 @@ void greedy(double b[3][3],int r[3][3])
   make_unique(b,r);
 }
 
-// A reduced basis isn't unique. This procedure will make it 
+// A reduced basis isn't unique. This procedure will make it
 // "more" unique. Degenerate cases are possible, but unlikely
 // with floating point math.
 void make_unique(double b[3][3], int r[3][3])

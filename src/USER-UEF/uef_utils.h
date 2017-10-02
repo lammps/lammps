@@ -1,5 +1,4 @@
-
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -12,21 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 
    Contributing author: David Nicholson (MIT)
-------------------------------------------------------------------------- 
+------------------------------------------------------------------------- */
 
-   This class contains functions to calculate the evolution of the periodic 
-   simulation box under elongational flow as described by Matthew Dobson
-   in the arXiv preprint at http://arxiv.org/abs/1408.7078
-  
-   Additionally, there are methods to do a lattice reduction to further
-   reduce the simulation box using the method of Igor Semaev at
-   http://link.springer.com/chapter/10.1007%2F3-540-44670-2_13
-*/
+#ifndef LMP_UEF_UTILS_H
+#define LMP_UEF_UTILS_H
 
-#ifndef UEF_UTILS_H
-#define UEF_UTILS_H
-
-namespace LAMMPS_NS{ namespace UEF_utils{
+namespace LAMMPS_NS{ namespace UEF_utils {
 
 class UEFBox
 {

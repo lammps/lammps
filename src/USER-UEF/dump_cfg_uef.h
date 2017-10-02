@@ -43,7 +43,7 @@ class DumpCFGUef : public DumpCFG {
 #endif
 
 /* ERROR/WARNING messages:
-  
+
 E: Can't use dump cfg/uef without defining a fix nvt/npt/uef
 
 Self-explanatory.

@@ -13,14 +13,10 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
 #include "fix_nvt_uef.h"
-#include "modify.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
-
 
 FixNVTUef::FixNVTUef(LAMMPS *lmp, int narg, char **arg) :
   FixNHUef(lmp, narg, arg)
@@ -29,7 +25,6 @@ FixNVTUef::FixNVTUef(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Temperature control must be used with fix nvt/uef");
   if (pstat_flag)
     error->all(FLERR,"Pressure control can't be used with fix nvt/uef");
-
 }
 
 

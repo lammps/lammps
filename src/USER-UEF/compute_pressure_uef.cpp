@@ -13,9 +13,9 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_pressure_uef.h"
 #include "fix_nh_uef.h"
 #include "update.h"
@@ -118,7 +118,7 @@ void ComputePressureUef::compute_vector()
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
-	       "tensor components with kspace_style msm");
+               "tensor components with kspace_style msm");
 
   // invoke temperature if it hasn't been already
 
@@ -131,7 +131,7 @@ void ComputePressureUef::compute_vector()
 
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-    virial_compute(6,3);                                  
+    virial_compute(6,3);
     if (in_fix)
       virial_rot(virial,rot);
     else
@@ -182,7 +182,7 @@ void ComputePressureUef::virial_rot(double *x, const double r[3][3])
   // [00 10 20 ] [ 0 3 4 ] [00 01 02 ]
   // [01 11 21 ] [ 3 1 5 ] [10 11 12 ]
   // [02 12 22 ] [ 4 5 2 ] [20 21 22 ]
-  for (int k = 0; k<3; ++k) 
+  for (int k = 0; k<3; ++k)
   {
     t[0][k] = x[0]*r[0][k] + x[3]*r[1][k] + x[4]*r[2][k];
     t[1][k] = x[3]*r[0][k] + x[1]*r[1][k] + x[5]*r[2][k];

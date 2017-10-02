@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -31,10 +31,10 @@ class ComputeTempUef : public ComputeTemp {
   ComputeTempUef(class LAMMPS *, int, char **);
   virtual ~ComputeTempUef(){}
   virtual void init();
-  virtual void compute_vector(); 
+  virtual void compute_vector();
   void yes_rot();
   void no_rot();
-  
+
 
  protected:
   bool rot_flag;
@@ -55,6 +55,6 @@ only addition is:
 
 E: Can't use compute temp/uef without defining a fix nvt/npt/uef
 
-Self-explanatory.  
+Self-explanatory.
 
 */

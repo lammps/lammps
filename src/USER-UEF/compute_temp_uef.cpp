@@ -13,8 +13,8 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "compute_temp_uef.h"
 #include "fix_nh_uef.h"
 #include "update.h"
@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
  * Base constructor initialized to use rotation matrix
  * ----------------------------------------------------------------------*/
 ComputeTempUef::ComputeTempUef(LAMMPS *lmp, int narg, char **arg) :
-  ComputeTemp(lmp, narg, arg) 
+  ComputeTemp(lmp, narg, arg)
 {
   rot_flag=true;
 }
@@ -94,7 +94,7 @@ void ComputeTempUef::virial_rot(double *x, const double r[3][3])
   // [00 10 20 ] [ 0 3 4 ] [00 01 02 ]
   // [01 11 21 ] [ 3 1 5 ] [10 11 12 ]
   // [02 12 22 ] [ 4 5 2 ] [20 21 22 ]
-  for (int k = 0; k<3; ++k) 
+  for (int k = 0; k<3; ++k)
   {
     t[0][k] = x[0]*r[0][k] + x[3]*r[1][k] + x[4]*r[2][k];
     t[1][k] = x[3]*r[0][k] + x[1]*r[1][k] + x[5]*r[2][k];

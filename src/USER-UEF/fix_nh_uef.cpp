@@ -34,69 +34,15 @@
 #include "neighbor.h"
 #include "compute_pressure_uef.h"
 #include "compute_temp_uef.h"
+#include "uef_utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{ISO,ANISO,TRICLINIC};
-/* ---------------------------------------------------------------------- 
- Put all of the uef-only keywords at the back of arg and make narg smaller
- so FixNH::FixNH() only sees the keywords it knows. Save the numer of 
- remaining keywords in rem.
- ---------------------------------------------------------------------- */
-char ** LAMMPS_NS::uef_arg_kludge(int &narg, char **arg, int &rem)
-{
-  int iarg = 3;
-  bool flags[3]= {false,false,false};
-  rem=0;
-  char *tmp[3];
-  while (iarg < narg)
-  {
-    if (strcmp(arg[iarg],"erate" ) == 0 && !flags[0])
-    {
-      tmp[0] = arg[iarg];
-      tmp[1] = arg[iarg+1];
-      tmp[2] = arg[iarg+2];
-      for (int k=iarg+3; k<narg; k++)
-        arg[k-3] = arg[k];
-      arg[narg-1] = tmp[2];
-      arg[narg-2] = tmp[1];
-      arg[narg-3] = tmp[0];
-      rem += 3;
-      flags[0] = true;
-    }
-    else if (strcmp(arg[iarg],"strain" ) == 0 && !flags[1])
-    {
-      tmp[0] = arg[iarg];
-      tmp[1] = arg[iarg+1];
-      tmp[2] = arg[iarg+2];
-      for (int k=iarg+3; k<narg; k++)
-        arg[k-3] = arg[k];
-      arg[narg-1] = tmp[2];
-      arg[narg-2] = tmp[1];
-      arg[narg-3] = tmp[0];
-      rem += 3;
-      flags[1] = true;
-    }
-    else if(strcmp(arg[iarg],"ext") == 0 && !flags[2])
-    {
-      tmp[0] = arg[iarg];
-      tmp[1] = arg[iarg+1];
-      for (int k=iarg+2; k<narg; k++)
-        arg[k-2] = arg[k];
-      arg[narg-1] = tmp[1];
-      arg[narg-2] = tmp[0];
-      rem += 2;
-      flags[2] = true;
-    }
-    else
-      iarg++;
-  }
-  narg -= rem;
-  return arg;
-}
 
-//citation info
+// citation info
+
 static const char cite_user_uef_package[] =
   "USER-UEF package:\n\n"
   "@Article{NicholsonRutledge16,\n"
@@ -109,44 +55,46 @@ static const char cite_user_uef_package[] =
   "year = {2016}\n"
   "}\n\n";
 
-/* ---------------------------------------------------------------------- 
- * Parse the remaing keywords, do some error checking, and initalize 
+/* ----------------------------------------------------------------------
+ * Parse fix specific keywords, do some error checking, and initalize
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, uef_arg_kludge(narg,arg,rem))
+  FixNH(lmp, narg, arg), uefbox(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 
   //initialization
+
   erate[0] = erate[1] = 0;
-  //default values 
+
+  // default values
+
   strain[0]=strain[1]= 0;
   ext_flags[0]=ext_flags[1]=ext_flags[2] = true;
 
   // need to initialize these
+
   omega_dot[0]=omega_dot[1]=omega_dot[2]=0;
 
-  // parse remaining input
+  // parse fix nh/uef specific options
+
   bool erate_flag = false;
-  int iarg = narg;
-  narg += rem;
-  while (iarg <narg)
-  {
+  int iarg = 3;
+
+  while (iarg <narg) {
     if (strcmp(arg[iarg],"erate")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
       erate[0] = force->numeric(FLERR,arg[iarg+1]);
       erate[1] = force->numeric(FLERR,arg[iarg+2]);
       erate_flag = true;
       iarg += 3;
-    }
-    else if (strcmp(arg[iarg],"strain")==0) {
+    } else if (strcmp(arg[iarg],"strain")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
       strain[0] = force->numeric(FLERR,arg[iarg+1]);
       strain[1] = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
-    }
-    else if (strcmp(arg[iarg],"ext")==0) {
+    } else if (strcmp(arg[iarg],"ext")==0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
       if (strcmp(arg[iarg+1],"x")==0)
         ext_flags[1] = ext_flags[2] =  false;
@@ -165,9 +113,10 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 
       iarg += 2;
     }
-    else
-      error->all(FLERR,"Illegal fix nvt/npt/uef command");
+    // skip to next argument; argument check for unknown keywords is done in FixNH
+    ++iarg;
   }
+
   if (!erate_flag)
     error->all(FLERR,"Keyword erate must be set for fix npt/npt/uef command");
 
@@ -176,7 +125,8 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   if (!domain->triclinic)
     error->all(FLERR,"Simulation box must be triclinic for fix/nvt/npt/uef");
 
-  //check for conditions that impose a deviatoric stress
+  // check for conditions that impose a deviatoric stress
+
   if (pstyle == TRICLINIC)
     error->all(FLERR,"Only normal stresses can be controlled with fix/nvt/npt/uef");
   double erate_tmp[3];
@@ -184,43 +134,51 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   erate_tmp[1]=erate[1];
   erate_tmp[2]=-erate[0]-erate[1];
 
-  if (pstyle == ANISO)
-  {
+  if (pstyle == ANISO) {
     if (!(ext_flags[0] & ext_flags[1] & ext_flags[2]))
       error->all(FLERR,"The ext keyword may only be used with iso pressure control");
     for (int k=0;k<3;k++)
       for (int j=0;j<3;j++)
-        if (p_flag[k] && p_flag[j])
-        {
+        if (p_flag[k] && p_flag[j]) {
           double tol = 1e-6;
-          if ( !nearly_equal(p_start[k],p_start[j],tol) || !nearly_equal(p_stop[k],p_stop[j],tol))
-            error->all(FLERR,"All controlled stresses must have the same value in fix/nvt/npt/uef");
-          if ( !nearly_equal(erate_tmp[k],erate_tmp[j],tol) || !nearly_equal(erate_tmp[k],erate_tmp[j],tol))
-            error->all(FLERR,"Dimensions with controlled stresses must have same strain rate in fix/nvt/npt/uef");
+          if ( !nearly_equal(p_start[k],p_start[j],tol)
+               || !nearly_equal(p_stop[k],p_stop[j],tol))
+            error->all(FLERR,"All controlled stresses must have the same "
+                       "value in fix/nvt/npt/uef");
+          if ( !nearly_equal(erate_tmp[k],erate_tmp[j],tol)
+               || !nearly_equal(erate_tmp[k],erate_tmp[j],tol))
+            error->all(FLERR,"Dimensions with controlled stresses must have"\
+                       " same strain rate in fix/nvt/npt/uef");
         }
   }
-  // conditions that produce a deviatoric stress have already
-  // been eliminated.
+
+  // conditions that produce a deviatoric stress have already been eliminated.
+
   deviatoric_flag=0;
 
   // need pre_exchange and irregular migration
+
   pre_exchange_flag = 1;
   irregular = new Irregular(lmp);
 
   // flag that I change the box here (in case of nvt)
+
   box_change_shape = 1;
 
   // initialize the UEFBox class which computes the box at each step
+
   uefbox = new UEF_utils::UEFBox();
   uefbox->set_strain(strain[0],strain[1]);
 
-  // reset fixedpoint to the stagnation point. I don't allow fixedpoint 
+  // reset fixedpoint to the stagnation point. I don't allow fixedpoint
   // to be set by the user.
+
   fixedpoint[0] = domain->boxlo[0];
   fixedpoint[1] = domain->boxlo[1];
   fixedpoint[2] = domain->boxlo[2];
 
-  // Create temp and pressure computes for uef
+  // Create temp and pressure computes for nh/uef
+
   int n = strlen(id) + 6;
   id_temp = new char[n];
   strcpy(id_temp,id);
@@ -232,6 +190,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(3,newarg);
   delete [] newarg;
   tcomputeflag = 1;
+
   n = strlen(id) + 7;
   id_press = new char[n];
   strcpy(id_press,id);
@@ -246,12 +205,10 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   pcomputeflag = 1;
 
   nevery = 1;
-
-
 }
 
 /* ----------------------------------------------------------------------
- * Erase the UEFBox object and get rid of the pressure compute if the nvt 
+ * Erase the UEFBox object and get rid of the pressure compute if the nvt
  * version is being used. Everything else will be done in base destructor
  * ---------------------------------------------------------------------- */
 FixNHUef::~FixNHUef()
@@ -275,7 +232,7 @@ int FixNHUef::setmask()
 }
 
 /* ----------------------------------------------------------------------
- * Run FixNH::init() and do more error checking. Set the pressure 
+ * Run FixNH::init() and do more error checking. Set the pressure
  * pointer in the case that the nvt version is used
  * ---------------------------------------------------------------------- */
 void FixNHUef::init()
@@ -294,19 +251,18 @@ void FixNHUef::init()
 
   // this will make the pressure compute for nvt
   if (!pstat_flag)
-    if (pcomputeflag)
-    {
+    if (pcomputeflag) {
       int icomp = modify->find_compute(id_press);
       if (icomp<0)
         error->all(FLERR,"Pressure ID for fix/nvt/uef doesn't exist");
       pressure = modify->compute[icomp];
 
+      if (strcmp(pressure->style,"pressure/uef") != 0)
+        error->all(FLERR,"Using fix nvt/npt/uef without a compute pressure/uef");
     }
-  if (strcmp(pressure->style,"pressure/uef") != 0)
-    error->all(FLERR,"Using fix nvt/npt/uef without a compute pressure/uef");
+
   if (strcmp(temperature->style,"temp/uef") != 0)
     error->all(FLERR,"Using fix nvt/npt/uef without a compute temp/uef");
-  
 }
 
 /* ----------------------------------------------------------------------
@@ -397,7 +353,7 @@ void FixNHUef::final_integrate_respa(int ilevel, int iloop)
   // outermost level - update eta_dot and omega_dot, apply via final_integrate
   // all other levels - NVE update of v
   if (ilevel == nlevels_respa-1) final_integrate();
-  else 
+  else
   {
     inv_rotate_v(rot);
     inv_rotate_f(rot);
@@ -408,7 +364,7 @@ void FixNHUef::final_integrate_respa(int ilevel, int iloop)
 }
 
 /* ----------------------------------------------------------------------
-   SLLOD velocity update in time-reversible (i think) increments 
+   SLLOD velocity update in time-reversible (i think) increments
    v -> exp(-edot*dt/2)*v
    v -> v +f/m*dt
    v -> exp(-edot*dt/2)*v
@@ -496,7 +452,7 @@ void FixNHUef::remap()
 }
 
 /* ----------------------------------------------------------------------
-   SLLOD position update in time-reversible (i think) increments 
+   SLLOD position update in time-reversible (i think) increments
    x -> exp(edot*dt/2)*x
    x -> x + v*dt
    x -> exp(edot*dt/2)*x
@@ -590,11 +546,11 @@ void FixNHUef::pre_exchange()
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * The following are routines to rotate between the lab and upper triangular
- * (UT) frames. For most of the time the simulation is in the UT frame. 
- * To get to the lab frame, apply the inv_rotate_[..](rot) and to 
- * get back to the UT frame apply rotate_[..](rot). 
+ * (UT) frames. For most of the time the simulation is in the UT frame.
+ * To get to the lab frame, apply the inv_rotate_[..](rot) and to
+ * get back to the UT frame apply rotate_[..](rot).
  *
  * Note: the rotate_x() functions also apply a shift to/from the fixedpoint
  * to make the integration a little simpler.
@@ -614,8 +570,8 @@ void FixNHUef::rotate_x(double r[3][3])
       xn[0]=r[0][0]*x[i][0]+r[0][1]*x[i][1]+r[0][2]*x[i][2];
       xn[1]=r[1][0]*x[i][0]+r[1][1]*x[i][1]+r[1][2]*x[i][2];
       xn[2]=r[2][0]*x[i][0]+r[2][1]*x[i][1]+r[2][2]*x[i][2];
-      x[i][0]=xn[0]+domain->boxlo[0]; 
-      x[i][1]=xn[1]+domain->boxlo[1]; 
+      x[i][0]=xn[0]+domain->boxlo[0];
+      x[i][1]=xn[1]+domain->boxlo[1];
       x[i][2]=xn[2]+domain->boxlo[2];
     }
   }
@@ -725,7 +681,7 @@ void FixNHUef::inv_rotate_f(double r[3][3])
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * Increase the size of the restart list to add in the strains
  * ---------------------------------------------------------------------- */
 int FixNHUef::size_restart_global()
@@ -733,7 +689,7 @@ int FixNHUef::size_restart_global()
   return FixNH::size_restart_global() +2;
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * Pack the strains after packing the default FixNH values
  * ---------------------------------------------------------------------- */
 int FixNHUef::pack_restart_data(double *list)
@@ -744,7 +700,7 @@ int FixNHUef::pack_restart_data(double *list)
   return n;
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * read and set the strains after the default FixNH values
  * ---------------------------------------------------------------------- */
 void FixNHUef::restart(char *buf)
@@ -757,10 +713,10 @@ void FixNHUef::restart(char *buf)
   uefbox->set_strain(strain[0],strain[1]);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * If the step writes a restart, reduce the box beforehand. This makes sure
  * the unique box shape can be found once the restart is read and that
- * all of the atoms lie within the box. 
+ * all of the atoms lie within the box.
  * This may only be necessary for RESPA runs, but I'm leaving it in anyway.
  * ---------------------------------------------------------------------- */
 void FixNHUef::end_of_step()
@@ -780,9 +736,9 @@ void FixNHUef::end_of_step()
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * reduce the simulation box after a run is complete. otherwise it won't
- * be possible to resume from a write_restart since the initialization of 
+ * be possible to resume from a write_restart since the initialization of
  * the simulation box requires reduced simulation box
  * ---------------------------------------------------------------------- */
 void FixNHUef::post_run()
@@ -799,7 +755,7 @@ void FixNHUef::post_run()
   timer->stamp(Timer::NEIGH);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * public read for rotation matrix
  * ---------------------------------------------------------------------- */
 void FixNHUef::get_rot(double r[3][3])
@@ -815,7 +771,7 @@ void FixNHUef::get_rot(double r[3][3])
   r[2][2] = rot[2][2];
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * public read for ext flags
  * ---------------------------------------------------------------------- */
 void FixNHUef::get_ext_flags(bool* e)
@@ -825,7 +781,7 @@ void FixNHUef::get_ext_flags(bool* e)
   e[2] = ext_flags[2];
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
  * public read for simulation box
  * ---------------------------------------------------------------------- */
 void FixNHUef::get_box(double b[3][3])
@@ -844,8 +800,8 @@ void FixNHUef::get_box(double b[3][3])
   b[2][2] = box[2][2];
 }
 
-/* ---------------------------------------------------------------------- 
- * comparing floats 
+/* ----------------------------------------------------------------------
+ * comparing floats
  * it's imperfect, but should work provided no infinities
  * ---------------------------------------------------------------------- */
 bool FixNHUef::nearly_equal(double a, double b, double epsilon)

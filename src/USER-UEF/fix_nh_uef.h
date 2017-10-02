@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    www.cs.sandia.gov/~sjplimp/lammps.html
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
@@ -17,12 +17,14 @@
 #ifndef LMP_FIX_NH_UEF_H
 #define LMP_FIX_NH_UEF_H
 
-#include "uef_utils.h"
 #include "fix_nh.h"
 
 namespace LAMMPS_NS {
+  // forward declaration
+  namespace UEF_utils {
+    class UEFBox;
+  };
 
-char **uef_arg_kludge(int&, char**, int&);
 class FixNHUef : public FixNH {
  public:
   FixNHUef(class LAMMPS *, int, char **);
@@ -59,7 +61,7 @@ class FixNHUef : public FixNH {
 
   int rem;                   //this is for the narg kluge
 
-  UEF_utils::UEFBox *uefbox;            // interface for the special simulation box
+  UEF_utils::UEFBox *uefbox;      // interface for the special simulation box
 
   double rot[3][3];          // rotation matrix
   bool ext_flags[3];         // flags for external "free surfaces"

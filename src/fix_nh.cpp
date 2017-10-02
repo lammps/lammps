@@ -353,6 +353,15 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"disc") == 0) {
       iarg++;
 
+    // keywords erate, strain, and ext are also parsed in fix/nh/uef
+
+    } else if (strcmp(arg[iarg],"erate") == 0) {
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"strain") == 0) {
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"ext") == 0) {
+      iarg += 2;
+
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
   }
 

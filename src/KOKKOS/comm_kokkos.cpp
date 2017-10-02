@@ -523,7 +523,7 @@ void CommKokkos::exchange_device()
           k_exchange_copylist.h_view(i) = sendpos;
           sendpos--;
         } else
-        k_exchange_copylist.h_view(i) = -1;
+          k_exchange_copylist.h_view(i) = -1;
       }
 
       k_exchange_copylist.modify<LMPHostType>();
@@ -916,8 +916,10 @@ void CommKokkos::borders_device() {
 
   if (exec_space == Host) k_sendlist.sync<LMPDeviceType>();
   atomKK->modified(exec_space,ALL_MASK);
-  atomKK->sync(Host,TAG_MASK);
-  if (map_style) atom->map_set();
+  if (map_style) {
+    atomKK->sync(Host,TAG_MASK);
+    atom->map_set();
+  }
 }
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra

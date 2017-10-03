@@ -38,12 +38,12 @@ using namespace LAMMPS_NS;
  * ----------------------------------------------------------------------*/
 ComputePressureUef::ComputePressureUef(LAMMPS *lmp, int narg, char **arg) :
   ComputePressure(lmp, narg, arg)
-  {
-    ext_flags[0] = true;
-    ext_flags[1] = true;
-    ext_flags[2] = true;
-    in_fix=false;
-  }
+{
+  ext_flags[0] = true;
+  ext_flags[1] = true;
+  ext_flags[2] = true;
+  in_fix=false;
+}
 
 /* ----------------------------------------------------------------------
  *  Check for the uef fix
@@ -54,8 +54,7 @@ void ComputePressureUef::init()
   // check to make sure the other uef fix is on
   // borrowed from Pieter's nvt/sllod code
   int i=0;
-  for (i=0; i<modify->nfix; i++)
-  {
+  for (i=0; i<modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"nvt/uef")==0)
       break;
     if (strcmp(modify->fix[i]->style,"npt/uef")==0)
@@ -87,18 +86,15 @@ double ComputePressureUef::compute_scalar()
 
   int k =0;
   scalar = 0;
-  if (ext_flags[0])
-  {
+  if (ext_flags[0]) {
     scalar += vector[0];
     k++;
   }
-  if (ext_flags[1])
-  {
+  if (ext_flags[1]) {
     scalar += vector[1];
     k++;
   }
-  if (ext_flags[2])
-  {
+  if (ext_flags[2]) {
     scalar += vector[2];
     k++;
   }
@@ -179,9 +175,11 @@ void ComputePressureUef::virial_rot(double *x, const double r[3][3])
 {
 
   double t[3][3];
+
   // [00 10 20 ] [ 0 3 4 ] [00 01 02 ]
   // [01 11 21 ] [ 3 1 5 ] [10 11 12 ]
   // [02 12 22 ] [ 4 5 2 ] [20 21 22 ]
+
   for (int k = 0; k<3; ++k)
   {
     t[0][k] = x[0]*r[0][k] + x[3]*r[1][k] + x[4]*r[2][k];
@@ -195,4 +193,3 @@ void ComputePressureUef::virial_rot(double *x, const double r[3][3])
   x[5] = r[0][1]*t[0][2] + r[1][1]*t[1][2] + r[2][1]*t[2][2];
   x[2] = r[0][2]*t[0][2] + r[1][2]*t[1][2] + r[2][2]*t[2][2];
 }
-

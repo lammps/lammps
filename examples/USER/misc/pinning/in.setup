@@ -33,8 +33,9 @@ fix langevin left langevin 3.0 0.8 100.0 2017
 # outout
 thermo_style custom step temp pzz pe lz
 thermo 100
-dump dumpXYZ all xyz 100 traj.xyz
+# dump dumpXYZ all xyz 100 traj.xyz
 
-# run
-run 10000
+# run reduced for demonstration purposes
+# run 10000
+run 5000
 write_data data.halfhalf

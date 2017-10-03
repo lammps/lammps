@@ -29,7 +29,8 @@ fix bias all rhok 16 0 0 0.0 0.0
 # output
 thermo 50
 thermo_style custom step temp press density f_bias[3]
-dump dumpXYZ all xyz 2000 traj.xyz
+# dump dumpXYZ all xyz 2000 traj.xyz
 
-# run
-run 100000
+# NOTE: this is cut short to 5000 steps for demonstration purposes
+# run 100000
+run 5000

@@ -42,9 +42,11 @@ Simulations under extensional flow may be carried out for an
 indefinite amount of time. It is an implementation of the boundary 
 conditions from "(Dobson)"_#Dobson, and also uses numerical lattice reduction
 as was proposed by "(Hunt)"_#Hunt. The lattice reduction algorithm is from 
-"(Semaev)"_Semaev. The package is intended for simulations of 
+"(Semaev)"_Semaev. The fix is intended for simulations of 
 homogeneous flows, and integrates the SLLOD equations of motion, 
 originally proposed by Hoover and Ladd (see "(Evans and Morriss)"_#Sllod).
+Additional detail about this implementation can be found in 
+"(Nicholson and Rutledge)"_#Nicholson.
 
 The applied flow field is set by the {eps} keyword. The values {edot_x} 
 and {edot_y} correspond to the strain rates in the xx and yy directions.
@@ -204,3 +206,6 @@ The reason for this change is given in "fix nvt/sllod"_fix_nvt_sllod.html.
 
 :link(Sllod)
 [(Evans and Morriss)] Evans and Morriss, Phys Rev A, 30, 1528 (1984).
+
+:link(Nicholson)
+[(Nicholson and Rutledge)] Nicholson and Rutledge, J Chem Phys, 145, 244903 (2016).

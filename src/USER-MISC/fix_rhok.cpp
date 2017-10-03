@@ -15,6 +15,7 @@
 
 #include "fix_rhok.h"
 #include "error.h"
+#include "citeme.h"
 #include "update.h"
 #include "respa.h"
 #include "atom.h"
@@ -29,14 +30,30 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-// Constructor: all the parameters to this fix specified in
-// the LAMMPS input get passed in
+static const char cite_flow_gauss[] =
+  "Bias on the collective density field (fix rhok):\n\n"
+  "@Article{pedersen_jcp139_104102_2013,\n"
+  "title = {Direct calculation of the solid-liquid Gibbs free energy difference in a single equilibrium simulation},\n"
+  "volume = {139},\n"
+  "number = {10},\n"
+  "url = {http://aip.scitation.org/doi/10.1063/1.4818747},\n"
+  "doi = {10.1063/1.4818747},\n"
+  "urldate = {2017-10-03},\n"
+  "journal = {J. Chem. Phys.},\n"
+  "author = {Pedersen, Ulf R.},\n"
+  "year = {2013},\n"
+  "pages = {104102}\n"
+  "}\n\n";
+
 FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   : Fix( inLMP, inArgc, inArgv )
 {
+  
+  if (lmp->citeme) lmp->citeme->add(cite_flow_gauss);
+  
   // Check arguments
   if( inArgc != 8 ) 
-	error->all(FLERR,"Illegal fix rhoKUmbrella command" );
+  error->all(FLERR,"Illegal fix rhoKUmbrella command" );
 
   // Set up fix flags
   scalar_flag = 1;         // have compute_scalar
@@ -86,16 +103,6 @@ FixRhok::setmask()
 
   return mask;
 }
-
-/*int FixRhok::setmask()
-{
-  int mask = 0;
-  mask |= POST_FORCE;
-  mask |= POST_FORCE_RESPA;
-  mask |= MIN_POST_FORCE;
-  return mask;
-}*/
-
 
 // Initializes the fix at the beginning of a run
 void
@@ -151,7 +158,7 @@ FixRhok::post_force( int inVFlag )
 
   // Loop over locally-owned atoms affected by this fix and calculate the
   // partial rhoK's
-	mRhoKLocal[0] = 0.0;
+  mRhoKLocal[0] = 0.0;
 	mRhoKLocal[1] = 0.0;
 
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU

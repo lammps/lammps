@@ -25,6 +25,10 @@ A detailed bibliography is provided at
 
   <http://urp.dk/interface_pinning.htm>
 
+and a brief introduction can be found at YouTube:
+
+  [![Interface Pinning](http://img.youtube.com/vi/F_79JZNdyoQ/0.jpg)](http://www.youtube.com/watch?v=F_79JZNdyoQ)
+
 ### Use of rhok fix
 
 For this example we will be using the rhok fix.

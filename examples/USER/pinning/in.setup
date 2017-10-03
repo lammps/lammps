@@ -1,11 +1,11 @@
-units		lj
-dimension	3
-boundary	p p p
-atom_style  atomic
+units lj
+dimension 3
+boundary p p p
+atom_style atomic
 
 # truncated and shifted LJ potential
-pair_style	lj/cut 2.5
-pair_modify	shift yes
+pair_style lj/cut 2.5
+pair_modify shift yes
 
 # fcc lattice
 lattice	fcc 0.9731

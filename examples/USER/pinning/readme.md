@@ -21,7 +21,7 @@ It is recommended to get familiar with the interface pinning method by reading:
 
 A detailed bibliography is provided at
 
-  urp.dk/interface_pinning.htm 
+  <http://urp.dk/interface_pinning.htm>
 
 ## Use of rhok fix
 

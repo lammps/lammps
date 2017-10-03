@@ -112,9 +112,12 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal fix nvt/npt/uef command");
 
       iarg += 2;
+    } else {
+
+      // skip to next argument; argument check for unknown keywords is done in FixNH
+
+      ++iarg;
     }
-    // skip to next argument; argument check for unknown keywords is done in FixNH
-    ++iarg;
   }
 
   if (!erate_flag)

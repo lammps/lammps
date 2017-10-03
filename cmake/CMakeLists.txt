@@ -37,6 +37,10 @@ enable_language(CXX)
 #####################################################################
 include(CheckCCompilerFlag)
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -148,11 +152,6 @@ if(ENABLE_USER-OMP OR ENABLE_KOKKOS OR ENABLE_USER-INTEL)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
-
-if((ENABLE_USER-OMP OR ENABLE_OPT OR ENABLE_USER-INTEL) AND
-        (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel"))
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
 endif()
 
 if(ENABLE_KSPACE)

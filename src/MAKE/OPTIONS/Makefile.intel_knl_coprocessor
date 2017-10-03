@@ -9,8 +9,10 @@ SHELL = /bin/sh
 CC =		mpiicpc 
 MIC_OPT =       -qoffload-arch=mic-avx512 -fp-model fast=2
 CCFLAGS =	-O3 -qopenmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
-                -xHost -fno-alias -ansi-alias -restrict \
-                -qoverride-limits $(MIC_OPT) -DLMP_INTEL_USELRT
+		-xHost -fno-alias -ansi-alias -restrict \
+		-qoverride-limits $(MIC_OPT) -DLMP_INTEL_USELRT \
+		-DLMP_USE_MKL_RNG
+
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

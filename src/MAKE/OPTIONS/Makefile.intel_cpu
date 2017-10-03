@@ -9,7 +9,8 @@ SHELL = /bin/sh
 CC =		mpiicpc 
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+                -fno-alias -ansi-alias -restrict $(OPTFLAGS) \
+		-DLMP_USE_MKL_RNG
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

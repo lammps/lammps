@@ -47,12 +47,12 @@ PairDPDIntel::~PairDPDIntel()
 {
   #if defined(_OPENMP)
   if (_nrandom_thread) {
-    #ifdef LMP_NO_MKL_RNG
-    for (int i = 1; i < _nrandom_thread; i++)
-      delete random_thread[i];
-    #else
+    #ifdef LMP_USE_MKL_RNG
     for (int i = 0; i < _nrandom_thread; i++)
       vslDeleteStream(&random_thread[i]);
+    #else
+    for (int i = 1; i < _nrandom_thread; i++)
+      delete random_thread[i];
     #endif
   }
   #endif
@@ -216,10 +216,10 @@ void PairDPDIntel::eval(const int offload, const int vflag,
       iifrom += astart;
       iito += astart;
 
-      #ifdef LMP_NO_MKL_RNG
-      RanMars *my_random = random_thread[tid];
-      #else
+      #ifdef LMP_USE_MKL_RNG
       VSLStreamStatePtr *my_random = &(random_thread[tid]);
+      #else
+      RanMars *my_random = random_thread[tid];
       #endif
       flt_t *my_rand_buffer = fc.rand_buffer_thread[tid];
       int rngi = rngi_thread[tid];
@@ -264,16 +264,16 @@ void PairDPDIntel::eval(const int offload, const int vflag,
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
 	if (rngi + jnum > rng_size) {
-          #ifdef LMP_NO_MKL_RNG
-          for (int jj = 0; jj < rngi; jj++)
-            my_rand_buffer[jj] = my_random->gaussian();
-          #else
+          #ifdef LMP_USE_MKL_RNG
 	  if (sizeof(flt_t) == sizeof(float))
 	    vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
 			  (float*)my_rand_buffer, (float)0.0, (float)1.0 );
 	  else
 	    vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
 	  		  (double*)my_rand_buffer, 0.0, 1.0 );
+          #else
+          for (int jj = 0; jj < rngi; jj++)
+            my_rand_buffer[jj] = my_random->gaussian();
           #endif
 	  rngi = 0;
 	}
@@ -420,12 +420,12 @@ void PairDPDIntel::eval(const int offload, const int vflag,
 void PairDPDIntel::settings(int narg, char **arg) {
   #if defined(_OPENMP)
   if (_nrandom_thread) {
-    #ifdef LMP_NO_MKL_RNG
-    for (int i = 1; i < _nrandom_thread; i++)
-      delete random_thread[i];
-    #else
+    #ifdef LMP_USE_MKL_RNG
     for (int i = 0; i < _nrandom_thread; i++)
       vslDeleteStream(&random_thread[i]);
+    #else
+    for (int i = 1; i < _nrandom_thread; i++)
+      delete random_thread[i];
     #endif
   }
   delete []random_thread;
@@ -433,7 +433,19 @@ void PairDPDIntel::settings(int narg, char **arg) {
   PairDPD::settings(narg,arg);
   _nrandom_thread = comm->nthreads;
 
-  #ifdef LMP_NO_MKL_RNG
+  #ifdef LMP_USE_MKL_RNG
+
+  random_thread=new VSLStreamStatePtr[comm->nthreads];
+  #if defined(_OPENMP)
+  #pragma omp parallel
+  {
+    int tid = omp_get_thread_num();
+    vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
+		 seed + comm->me + comm->nprocs * tid );
+  }
+  #endif
+
+  #else
 
   random_thread =new RanMars*[comm->nthreads];
   random_thread[0] = random;
@@ -443,18 +455,6 @@ void PairDPDIntel::settings(int narg, char **arg) {
     int tid = omp_get_thread_num();
     if (tid > 0)
       random_thread[tid] = new RanMars(lmp, seed+comm->me+comm->nprocs*tid);
-  }
-  #endif
-
-  #else
-
-  random_thread=new VSLStreamStatePtr[comm->nthreads];
-  #if defined(_OPENMP)
-  #pragma omp parallel
-  {
-    int tid = omp_get_thread_num();
-    vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
-		 seed + comm->me + comm->nprocs * tid );
   }
   #endif
 
@@ -575,12 +575,12 @@ void PairDPDIntel::read_restart_settings(FILE *fp)
 {
   #if defined(_OPENMP)
   if (_nrandom_thread) {
-    #ifdef LMP_NO_MKL_RNG
-    for (int i = 1; i < _nrandom_thread; i++)
-      delete random_thread[i];
-    #else
+    #ifdef LMP_USE_MKL_RNG
     for (int i = 0; i < _nrandom_thread; i++)
       vslDeleteStream(&random_thread[i]);
+    #else
+    for (int i = 1; i < _nrandom_thread; i++)
+      delete random_thread[i];
     #endif
   }
   delete []random_thread;
@@ -588,7 +588,19 @@ void PairDPDIntel::read_restart_settings(FILE *fp)
   PairDPD::read_restart_settings(fp);
   _nrandom_thread = comm->nthreads;
 
-  #ifdef LMP_NO_MKL_RNG
+  #ifdef LMP_USE_MKL_RNG
+
+  random_thread=new VSLStreamStatePtr[comm->nthreads];
+  #if defined(_OPENMP)
+  #pragma omp parallel
+  {
+    int tid = omp_get_thread_num();
+    vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
+		 seed + comm->me + comm->nprocs * tid );
+  }
+  #endif
+
+  #else
 
   random_thread =new RanMars*[comm->nthreads];
   random_thread[0] = random;
@@ -598,18 +610,6 @@ void PairDPDIntel::read_restart_settings(FILE *fp)
     int tid = omp_get_thread_num();
     if (tid > 0)
       random_thread[tid] = new RanMars(lmp, seed+comm->me+comm->nprocs*tid);
-  }
-  #endif
-
-  #else
-
-  random_thread=new VSLStreamStatePtr[comm->nthreads];
-  #if defined(_OPENMP)
-  #pragma omp parallel
-  {
-    int tid = omp_get_thread_num();
-    vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
-		 seed + comm->me + comm->nprocs * tid );
   }
   #endif
 

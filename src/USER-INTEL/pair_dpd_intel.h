@@ -28,10 +28,10 @@ PairStyle(dpd/intel,PairDPDIntel)
 #include "pair_dpd.h"
 #include "fix_intel.h"
 
-#ifdef LMP_NO_MKL_RNG
-#include "random_mars.h"
-#else
+#ifdef LMP_USE_MKL_RNG
 #include "mkl_vsl.h"
+#else
+#include "random_mars.h"
 #endif
 
 namespace LAMMPS_NS {
@@ -46,15 +46,15 @@ class PairDPDIntel : public PairDPD {
   void settings(int, char **);
   void init_style();
   void read_restart_settings(FILE *);
- 
+
  private:
   FixIntel *fix;
   int _cop, _onetype, _nrandom_thread;
 
-  #ifdef LMP_NO_MKL_RNG
-  RanMars **random_thread;
-  #else
+  #ifdef LMP_USE_MKL_RNG
   VSLStreamStatePtr *random_thread;
+  #else
+  RanMars **random_thread;
   #endif
 
   template <class flt_t> class ForceConst;
@@ -86,7 +86,7 @@ class PairDPDIntel : public PairDPD {
     ~ForceConst() { set_ntypes(0, 0, 0, NULL, _cop); }
 
     void set_ntypes(const int ntypes, const int nthreads, const int max_nbors, 
-		    Memory *memory, const int cop);
+                    Memory *memory, const int cop);
 
    private:
     int _ntypes, _cop;

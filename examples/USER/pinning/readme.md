@@ -1,8 +1,8 @@
 # The Interface Pinning method for studying solid-liquid transitions
 
-This example demonstrate using a bias potential that can be used to study solid-liquid transitions 
-with the interface pinning method. This is done by adding a harmonic potential to the Hamiltonian 
-that bias the system towards two-phase configurations. 
+In this example we will use the interface pinnig method to study a solid-liquid transition.
+This is done by adding a harmonic potential to the Hamiltonian 
+that bias the system towards two-phase configurations:
 
   U_bias = 0.5*K*(Q-a)^2
 

@@ -42,11 +42,11 @@ available. This allow for running most styles in LAMMPS with threading.
 
 -----------------------------------------------------------------------------
 
-The Long-Range Thread mode (LRT) in the Intel package currently uses
-pthreads by default. If pthreads are not supported in the build environment,
-the compile flag "-DLMP_INTEL_NOLRT" will disable the feature to allow for 
-builds without pthreads. Alternatively, "-DLMP_INTEL_LRT11" can be used to
-build with compilers that support threads using the C++11 standard. When using
+The Long-Range Thread mode (LRT) in the Intel package is enabled through the
+-DLMP_INTEL_USELRT define at compile time. All intel optimized makefiles
+include this define. This feature will use pthreads by default.
+Alternatively, "-DLMP_INTEL_LRT11" can be used to build with compilers that
+support threads intrinsically using the C++11 standard. When using
 LRT mode, you might need to disable OpenMP affinity settings (e.g.
 export KMP_AFFINITY=none). LAMMPS will generate a warning if the settings
 need to be changed.

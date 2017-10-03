@@ -65,6 +65,6 @@ That method have been experienced to be most effective in the slightly super-hea
 
 ## Contact
 
-  Ulf R. Pedersen
-  http://www.urp.dk
+  Ulf R. Pedersen;
+  <http://www.urp.dk>;
   ulf AT urp.dk

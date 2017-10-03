@@ -82,10 +82,11 @@ this order :l
 The {newton} setting applies to all atoms, not just atoms shared
 between MPI tasks :l
 Vectorization can change the order for adding pairwise forces :l
-Unless specified otherwise at build time, the random number 
-generator for dissipative particle dynamics uses the Mersenne 
-Twister generator (that should be more robust than the standard
-generator) :l
+When using the -DLMP_USE_MKL_RNG define (all included intel optimized
+makefiles do) at build time, the random number generator for
+dissipative particle dynamics (pair style dpd/intel) uses the Mersenne
+Twister generator included in the Intel MKL library (that should be
+more robust than the default Masaglia random number generator) :l
 :ule
 
 The precision mode (described below) used with the USER-INTEL

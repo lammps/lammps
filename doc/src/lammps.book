@@ -253,6 +253,7 @@ fix_reaxc_species.html
 fix_recenter.html
 fix_restrain.html
 fix_rigid.html
+fix_rhok.html
 fix_rx.html
 fix_saed_vtk.html
 fix_setforce.html

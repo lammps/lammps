@@ -503,6 +503,8 @@
 /fix_reaxc_bonds.h
 /fix_reaxc_species.cpp
 /fix_reaxc_species.h
+/fix_rhok.cpp
+/fix_rhok.h
 /fix_rigid.cpp
 /fix_rigid.h
 /fix_rigid_nh.cpp

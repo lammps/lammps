@@ -124,6 +124,7 @@ Fixes :h1
    fix_reaxc_species
    fix_recenter
    fix_restrain
+   fix_rhok
    fix_rigid
    fix_rx
    fix_saed_vtk

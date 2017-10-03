@@ -728,6 +728,7 @@ package"_Section_start.html#start_3.
 "qtb"_fix_qtb.html,
 "reax/c/bonds"_fix_reax_bonds.html,
 "reax/c/species"_fix_reaxc_species.html,
+"rhok"_fix_rhok.html,
 "rx"_fix_rx.html,
 "saed/vtk"_fix_saed_vtk.html,
 "shardlow"_fix_shardlow.html,

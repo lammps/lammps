@@ -8,15 +8,14 @@ SHELL = /bin/sh
 
 CC =		mpiicpc 
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS) \
-		-DLMP_USE_MKL_RNG
+CCFLAGS =	-qopenmp -qno-offload -fno-alias -ansi-alias -restrict \
+                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpiicpc
-LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
-LIB =           -ltbbmalloc -ltbbmalloc_proxy
+LINKFLAGS =	-qopenmp $(OPTFLAGS)
+LIB =           -ltbbmalloc
 SIZE =		size
 
 ARCHIVE =	ar

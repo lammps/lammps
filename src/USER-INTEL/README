@@ -53,12 +53,11 @@ need to be changed.
 
 -----------------------------------------------------------------------------
 
-The random number generator for Dissipative Particle Dynamics (DPD) in the 
-Intel package uses the Mersenne Twister pseudorandom number generator as 
-implemented in the Intel Math Kernel Library (MKL). This generator is faster
-and more robust with a significantly longer period than the default DPD
-generator. However, if MKL is not installed, the standard random number
-generator can be used by adding the compile flag "-DLMP_NO_MKL_RNG".
+Unless Intel Math Kernel Library (MKL) is unavailable, -DLMP_USE_MKL_RNG
+should be added to the compile flags. This will enable using the MKL Mersenne
+Twister random number generator (RNG) for Dissipative Particle Dynamics 
+(DPD). This RNG can allow significantly faster performance and it also has a 
+significantly longer period than the standard RNG for DPD.
 
 -----------------------------------------------------------------------------
 

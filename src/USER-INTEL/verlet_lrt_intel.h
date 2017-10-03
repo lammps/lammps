@@ -23,10 +23,7 @@ IntegrateStyle(verlet/lrt/intel,VerletLRTIntel)
 #include "verlet.h"
 #include "pppm_intel.h"
 
-#ifndef LMP_INTEL_USELRT
-#define LMP_INTEL_NOLRT
-#else
-
+#ifdef LMP_INTEL_USELRT
 #ifdef LMP_INTEL_LRT11
 #define _LMP_INTEL_LRT_11
 #include <thread>

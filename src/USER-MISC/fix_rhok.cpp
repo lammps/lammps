@@ -1,19 +1,17 @@
-/*
- fix_rhok.cpp
- 
- A fix to add harmonic potential that bias |rho(k)|.
- 
- The usage is as follows:
- 
- fix [name] [groupID] rhok [nx] [ny] [nz] [K] [a]
- 
- where k_i = (2 pi / L_i) * n_i
- 
- Written by Ulf Pedersen and Patrick Varilly, 4 Feb 2010
- Tweaked for LAMMPS 15 Jan 2010 version by Ulf Pedersen, 19 Aug 2010
- Tweaked again March 4th   2012   by Ulf R. Pedersen, and
-               September   2017   by Ulf R. Pedersen.
- */
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Ulf R. Pedersen, ulf@urp.dk
+------------------------------------------------------------------------- */
 
 #include "fix_rhok.h"
 #include "error.h"

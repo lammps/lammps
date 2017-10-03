@@ -13,7 +13,7 @@ For future reference we note that the structure factor S(k) is given by the vari
 
   S(k)=|rho_k|^2.
 
-# Reference
+## Reference
 
 It is recommended to get familiar with the interface pinning method by reading:
 
@@ -23,7 +23,7 @@ A detailed bibliography is provided at
 
   urp.dk/interface_pinning.htm 
 
-# Use of rhok fix
+## Use of rhok fix
 
 For this example we will be using the rhok fix.
 

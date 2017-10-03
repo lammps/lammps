@@ -15,7 +15,7 @@ For future reference we note that the structure factor S(k) is given by the vari
 
   S(k)=|rho_k|^2.
 
-### Reference
+### About the method
 
 It is recommended to get familiar with the interface pinning method by reading:
 
@@ -29,7 +29,7 @@ and a brief introduction can be found at YouTube:
 
   [![Interface Pinning](http://img.youtube.com/vi/F_79JZNdyoQ/0.jpg)](http://www.youtube.com/watch?v=F_79JZNdyoQ)
 
-### Use of rhok fix
+### Implimentation in LAMMPS
 
 For this example we will be using the rhok fix.
 

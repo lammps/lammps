@@ -1,3 +1,5 @@
+# The Interface Pinning method for studying solid-liquid transitions
+
 This example demonstrate using a bias potential that can be used to study solid-liquid transitions 
 with the interface pinning method. This is done by adding a harmonic potential to the Hamiltonian 
 that bias the system towards two-phase configurations. 
@@ -13,7 +15,7 @@ For future reference we note that the structure factor S(k) is given by the vari
 
   S(k)=|rho_k|^2.
 
-## Reference
+### Reference
 
 It is recommended to get familiar with the interface pinning method by reading:
 
@@ -23,7 +25,7 @@ A detailed bibliography is provided at
 
   <http://urp.dk/interface_pinning.htm>
 
-## Use of rhok fix
+### Use of rhok fix
 
 For this example we will be using the rhok fix.
 
@@ -36,9 +38,9 @@ The elements of the wave-vector k is given by the nx, ny and nz input:
 
 We will use a k vector that correspond to a Bragg peak.
 
-# The Interface Pinning method for studying melting transitions of the Lennard-Jones (LJ) system
+## Example: the Lennard-Jones (LJ) model
 
-We will use the interface pinning method to study melting of the LJ system
+We will use the interface pinning method to study melting of the LJ model
 at temperature 0.8 and pressure 2.185. This is a coexistence state-point, and the method
 can be used to show this. The present directory contains the input files that we will use:
 
@@ -61,7 +63,7 @@ The reference [J. Chem. Phys. 139, 104102 (2013)] gives details on using the met
 and the reference [J. Chem. Phys. 142, 044104 (2015)] show how the crystal growth rate can be computed from fluctuations.
 That method have been experienced to be most effective in the slightly super-heated regime above the melting temperature.
 
-# Contact
+## Contact
 
   Ulf R. Pedersen
   http://www.urp.dk

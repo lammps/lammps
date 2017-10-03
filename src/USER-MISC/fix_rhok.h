@@ -15,8 +15,8 @@ FixStyle(rhok,FixRhok)
 
 #else
 
-#ifndef __FIX_RHOK__
-#define __FIX_RHOK__
+#ifndef LMP_FIX_RHOK_H
+#define LMP_FIX_RHOK_H
 
 #include "fix.h"
 
@@ -28,8 +28,8 @@ public:
   // Constructor: all the parameters to this fix specified in
   // the LAMMPS input get passed in
   FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv );
-  virtual ~FixRhok();
-  
+  virtual ~FixRhok() {};
+
   // Methods that this fix implements
   // --------------------------------
 
@@ -51,23 +51,23 @@ public:
 
   // Compute the change in the potential energy induced by this fix
   double compute_scalar();
-	
-	// Compute the ith component of the vector associated with this fix
+
+        // Compute the ith component of the vector associated with this fix
   double compute_vector( int inI );
-	
+
 private:
   // RESPA boilerplate
   int mNLevelsRESPA;
 
   // Defining parameters for this umbrella
-	double mK[3], mKappa, mRhoK0;
-  
-	// Number of particles affected by the fix
-	int mNThis;
-	double mSqrtNThis;
-	
-	// Real and imaginary parts of rho_k := sum_i exp( - i k . r_i )
-	double mRhoKLocal[2], mRhoKGlobal[2];
+        double mK[3], mKappa, mRhoK0;
+
+        // Number of particles affected by the fix
+        int mNThis;
+        double mSqrtNThis;
+
+        // Real and imaginary parts of rho_k := sum_i exp( - i k . r_i )
+        double mRhoKLocal[2], mRhoKGlobal[2];
 };
 
 }  // namespace LAMMPS_NS

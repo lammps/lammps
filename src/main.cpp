@@ -22,6 +22,10 @@
 #include <fenv.h>
 #endif
 
+#ifdef FFT_FFTW3
+#include <fftw3.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
@@ -62,4 +66,10 @@ int main(int argc, char **argv)
 #endif
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
+
+#ifdef FFT_FFTW3
+  // tell fftw3 to delete its global memory pool
+  // and thus avoid bogus valgrind memory leak reports
+  fftw_cleanup();
+#endif
 }

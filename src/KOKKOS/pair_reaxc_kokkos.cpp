@@ -131,6 +131,8 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
+  if (fix_reax) modify->delete_fix("REAXC"); // not needed in the Kokkos version
+  fix_reax = NULL;
 
   // irequest = neigh request made by parent class
 

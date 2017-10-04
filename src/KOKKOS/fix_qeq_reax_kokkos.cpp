@@ -63,6 +63,7 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = nmax = m_cap = 0;
   allocated_flag = 0;
+  nprev = 4;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,15 +159,15 @@ void FixQEqReaxKokkos<DeviceType>::init_hist()
 {
   int i,j;
 
-  k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",atom->nmax,5);
+  k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",atom->nmax,nprev);
   d_s_hist = k_s_hist.template view<DeviceType>();
   h_s_hist = k_s_hist.h_view;
-  k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",atom->nmax,5);
+  k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",atom->nmax,nprev);
   d_t_hist = k_t_hist.template view<DeviceType>();
   h_t_hist = k_t_hist.h_view;
 
   for( i = 0; i < atom->nmax; i++ )
-    for( j = 0; j < 5; j++ )
+    for( j = 0; j < nprev; j++ )
       k_s_hist.h_view(i,j) = k_t_hist.h_view(i,j) = 0.0;
 
   k_s_hist.template modify<LMPHostType>();
@@ -334,11 +335,11 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
 
-    k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",nmax,5);
+    k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",nmax,nprev);
     d_s_hist = k_s_hist.template view<DeviceType>();
     h_s_hist = k_s_hist.h_view;
 
-    k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",nmax,5);
+    k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",nmax,nprev);
     d_t_hist = k_t_hist.template view<DeviceType>();
     h_t_hist = k_t_hist.h_view;
   }
@@ -368,7 +369,7 @@ void FixQEqReaxKokkos<DeviceType>::zero_item(int ii) const
     d_o[i] = 0.0;
     d_r[i] = 0.0;
     d_d[i] = 0.0;
-    //for( int j = 0; j < 5; j++ )
+    //for( int j = 0; j < nprev; j++ )
       //d_s_hist(i,j) = d_t_hist(i,j) = 0.0;
   }
 
@@ -1173,7 +1174,7 @@ double FixQEqReaxKokkos<DeviceType>::memory_usage()
 {
   double bytes;
 
-  bytes = atom->nmax*5*2 * sizeof(F_FLOAT); // s_hist & t_hist
+  bytes = atom->nmax*nprev*2 * sizeof(F_FLOAT); // s_hist & t_hist
   bytes += atom->nmax*8 * sizeof(F_FLOAT); // storage
   bytes += n_cap*2 * sizeof(int); // matrix...
   bytes += m_cap * sizeof(int);

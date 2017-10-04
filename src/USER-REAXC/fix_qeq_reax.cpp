@@ -95,7 +95,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   pack_flag = 0;
   s = NULL;
   t = NULL;
-  nprev = 5;
+  nprev = 4;
 
   Hdia_inv = NULL;
   b_s = NULL;

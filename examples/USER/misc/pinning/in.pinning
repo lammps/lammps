@@ -20,7 +20,7 @@ fix ensemble all npt temp 0.8 0.8 4.0 z 2.185 2.185 8.0
 fix 100 all momentum 100 linear 1 1 1
 
 # harmonic rho_k bias-field 
-#                 nx ny nz k     a
+#                 nx ny nz K     a
 fix bias all rhok 16 0  0  4.0   26.00
 
 # output                                U_bias rho_k_RE  rho_k_IM |rho_k| 

@@ -294,6 +294,7 @@ void VerletKokkos::run(int n)
   int n_pre_exchange = modify->n_pre_exchange;
   int n_pre_neighbor = modify->n_pre_neighbor;
   int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
 
@@ -304,9 +305,9 @@ void VerletKokkos::run(int n)
 
   f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
 
-  static double time = 0.0;
   atomKK->sync(Device,ALL_MASK);
-  Kokkos::Impl::Timer ktimer;
+  //static double time = 0.0;
+  //Kokkos::Impl::Timer ktimer;
 
   timer->init_timeout();
   for (int i = 0; i < n; i++) {
@@ -320,10 +321,10 @@ void VerletKokkos::run(int n)
 
     // initial time integration
 
-    ktimer.reset();
+    //ktimer.reset();
     timer->stamp();
     modify->initial_integrate(vflag);
-    time += ktimer.seconds();
+    //time += ktimer.seconds();
     if (n_post_integrate) modify->post_integrate();
     timer->stamp(Timer::MODIFY);
 
@@ -523,6 +524,10 @@ void VerletKokkos::run(int n)
       atomKK->k_f.modify<LMPDeviceType>();
     }
 
+    if (n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
+    }
 
     // reverse communication of forces
 

@@ -526,8 +526,11 @@ void VerletKokkos::run(int n)
 
     // reverse communication of forces
 
-    if (force->newton) comm->reverse_comm();
-    timer->stamp(Timer::COMM);
+    if (force->newton) {
+      Kokkos::fence();
+      comm->reverse_comm();
+      timer->stamp(Timer::COMM);
+    }
 
     // force modifications, final time integration, diagnostics
 

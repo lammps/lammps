@@ -93,7 +93,7 @@ intermediate replica with the previous and the next image:
 
 Fnudge_parallel = {Kspring} * (|Ri+1 - Ri| - |Ri - Ri-1|) :pre
 
-Note that in this case the specified {Kspring) is in force/distance
+Note that in this case the specified {Kspring} is in force/distance
 units.
 
 With a value of {ideal}, the spring force is computed as suggested in
@@ -105,7 +105,7 @@ where RD is the "reaction coordinate" see "neb"_neb.html section, and
 RDideal is the ideal RD for which all the images are equally spaced.
 I.e. RDideal = (I-1)*meanDist when the climbing replica is off, where
 I is the replica number).  The meanDist is the average distance
-between replicas.  Note that in this case the specified {Kspring) is
+between replicas.  Note that in this case the specified {Kspring} is
 in force units.
 
 Note that the {ideal} form of nudging can often be more effective at

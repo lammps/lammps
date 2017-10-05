@@ -134,7 +134,7 @@ public:
 // Manifold itself:
 manifold_gaussian_bump::manifold_gaussian_bump(class LAMMPS* lmp,
                                                int narg, char **arg)
-	: manifold(lmp), lut_z(NULL), lut_zp(NULL) {}
+        : manifold(lmp), lut_z(NULL), lut_zp(NULL) {}
 
 
 manifold_gaussian_bump::~manifold_gaussian_bump()
@@ -361,13 +361,13 @@ void manifold_gaussian_bump::test_lut()
     n( x, nn );
     double taper_z;
     if( xx <= rc1 ){
-	    taper_z = gaussian_bump(xx);
+            taper_z = gaussian_bump(xx);
     }else if( xx < rc2 ){
-	    taper_z = lut_get_z( xx );
+            taper_z = lut_get_z( xx );
     }else{
-	    taper_z = 0.0;
+            taper_z = 0.0;
     }
-    fprintf( fp, "%g %g %g %g %g\n", xx, gaussian_bump(xx), taper_z,
+    fprintf( fp, "%g %g %g %g %g %g %g\n", xx, gaussian_bump(xx), taper_z,
              gg, nn[0], nn[1], nn[2] );
   }
   fclose(fp);

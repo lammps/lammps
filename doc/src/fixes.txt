@@ -59,6 +59,7 @@ Fixes :h1
    fix_langevin
    fix_langevin_drude
    fix_langevin_eff
+   fix_latte
    fix_lb_fluid
    fix_lb_momentum
    fix_lb_pc

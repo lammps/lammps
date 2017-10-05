@@ -863,9 +863,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
       fix[ifix]->restart(state_restart_global[i]);
       used_restart_global[i] = 1;
       if (comm->me == 0) {
-	if (screen) 
+        if (screen)
           fprintf(screen,"Resetting global fix info from restart file:\n");
-	if (logfile) 
+        if (logfile)
           fprintf(logfile,"Resetting global fix info from restart file:\n");
         if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
                             fix[ifix]->style,fix[ifix]->id);
@@ -885,9 +885,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0) {
-	if (screen) 
+        if (screen)
           fprintf(screen,"Resetting peratom fix info from restart file:\n");
-	if (logfile) 
+        if (logfile)
           fprintf(logfile,"Resetting peratom fix info from restart file:\n");
         if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
                             fix[ifix]->style,fix[ifix]->id);
@@ -1409,24 +1409,24 @@ void Modify::restart_deallocate(int flag)
     if (flag && comm->me == 0) {
       int i;
       for (i = 0; i < nfix_restart_global; i++)
-	if (used_restart_global[i] == 0) break;
+        if (used_restart_global[i] == 0) break;
       if (i == nfix_restart_global) {
-	if (screen) 
+        if (screen)
           fprintf(screen,"All restart file global fix info "
                   "was re-assigned\n");
-	if (logfile) 
+        if (logfile)
           fprintf(logfile,"All restart file global fix info "
                   "was re-assigned\n");
       } else {
-	if (screen) fprintf(screen,"Unused restart file global fix info:\n");
-	if (logfile) fprintf(logfile,"Unused restart file global fix info:\n");
-	for (i = 0; i < nfix_restart_global; i++) {
-	  if (used_restart_global[i]) continue;
-	  if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-			      style_restart_global[i],id_restart_global[i]);
-	  if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-			       style_restart_global[i],id_restart_global[i]);
-	}
+        if (screen) fprintf(screen,"Unused restart file global fix info:\n");
+        if (logfile) fprintf(logfile,"Unused restart file global fix info:\n");
+        for (i = 0; i < nfix_restart_global; i++) {
+          if (used_restart_global[i]) continue;
+          if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
+                              style_restart_global[i],id_restart_global[i]);
+          if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
+                               style_restart_global[i],id_restart_global[i]);
+        }
       }
     }
 
@@ -1445,24 +1445,24 @@ void Modify::restart_deallocate(int flag)
     if (flag && comm->me == 0) {
       int i;
       for (i = 0; i < nfix_restart_peratom; i++)
-	if (used_restart_peratom[i] == 0) break;
+        if (used_restart_peratom[i] == 0) break;
       if (i == nfix_restart_peratom) {
-	if (screen) 
+        if (screen)
           fprintf(screen,"All restart file peratom fix info "
                   "was re-assigned\n");
-	if (logfile) 
+        if (logfile)
           fprintf(logfile,"All restart file peratom fix info "
                   "was re-assigned\n");
       } else {
-	if (screen) fprintf(screen,"Unused restart file peratom fix info:\n");
-	if (logfile) fprintf(logfile,"Unused restart file peratom fix info:\n");
-	for (i = 0; i < nfix_restart_peratom; i++) {
-	  if (used_restart_peratom[i]) continue;
-	  if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-			      style_restart_peratom[i],id_restart_peratom[i]);
-	  if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-			       style_restart_peratom[i],id_restart_peratom[i]);
-	}
+        if (screen) fprintf(screen,"Unused restart file peratom fix info:\n");
+        if (logfile) fprintf(logfile,"Unused restart file peratom fix info:\n");
+        for (i = 0; i < nfix_restart_peratom; i++) {
+          if (used_restart_peratom[i]) continue;
+          if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
+                              style_restart_peratom[i],id_restart_peratom[i]);
+          if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
+                               style_restart_peratom[i],id_restart_peratom[i]);
+        }
       }
     }
 

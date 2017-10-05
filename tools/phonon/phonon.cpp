@@ -42,7 +42,8 @@ Phonon::Phonon(DynMat *dm)
     printf("\n");
     for (int i = 0; i < 37; ++i) printf("=");
     printf(" Menu ");
-    for (int i = 0; i < 37; ++i) printf("="); printf("\n");
+    for (int i = 0; i < 37; ++i) printf("=");
+    printf("\n");
     printf("  1. Phonon DOS evaluation;\n");
     printf("  2. Phonon dispersion curves;\n");
     printf("  3. Dynamical matrix at arbitrary q;\n");
@@ -60,7 +61,8 @@ Phonon::Phonon(DynMat *dm)
     printf("Your choice [0]: ");
     if (count_words(fgets(str,MAXLINE,stdin)) > 0) job = atoi(strtok(str," \t\n\r\f"));
     printf("\nYour  selection: %d\n", job);
-    for (int i = 0; i < 80; ++i) printf("=");printf("\n\n");
+    for (int i = 0; i < 80; ++i) printf("=");
+    printf("\n\n");
 
     // now to do the job according to user's choice
     if      (job == 1) pdos();
@@ -414,7 +416,8 @@ void Phonon::vfanyq()
     dynmat->geteigen(egvs, 0);
     printf("q-point: [%lg %lg %lg], ", q[0], q[1], q[2]);
     printf("vibrational frequencies at this q-point:\n");
-    for (int i = 0; i < ndim; ++i) printf("%lg ", egvs[i]); printf("\n\n");
+    for (int i = 0; i < ndim; ++i) printf("%lg ", egvs[i]);
+    printf("\n\n");
   }
 
 return;
@@ -1001,7 +1004,8 @@ void Phonon::ShowCell()
   printf("\n");
   for (int i = 0; i < 30; ++i) printf("=");
   printf("   Unit Cell Info   ");
-  for (int i = 0; i < 30; ++i) printf("="); printf("\n");
+  for (int i = 0; i < 30; ++i) printf("=");
+  printf("\n");
   printf("Number of atoms in the unit cell: %d\n", dynmat->nucell);
   printf("Basis  vectors  of the unit cell:\n");
   printf("  %15.8f  %15.8f  %15.8f\n", dynmat->basevec[0],  dynmat->basevec[1],  dynmat->basevec[2]);
@@ -1091,7 +1095,7 @@ int Phonon::count_words(const char *line)
   strcpy(copy,line);
 
   char *ptr;
-  if (ptr = strchr(copy,'#')) *ptr = '\0';
+  if ((ptr = strchr(copy,'#'))) *ptr = '\0';
 
   if (strtok(copy," \t\n\r\f") == NULL) {
     memory->destroy(copy);

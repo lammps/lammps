@@ -3,6 +3,11 @@
 #include "version.h"
 #include "global.h"
 
+extern "C" void zheevd_(char *, char *, long int *, doublecomplex *,
+                       long int *, double *, doublecomplex *,
+                       long int *, double *, long int *, long int *,
+                       long int *, long int *);
+
 // to initialize the class
 DynMat::DynMat(int narg, char **arg)
 {
@@ -81,7 +86,8 @@ DynMat::DynMat(int narg, char **arg)
   printf("Number of atoms per unit cell     : %d\n", nucell);
   printf("System dimension                  : %d\n", sysdim);
   printf("Boltzmann constant in used units  : %g\n", boltz);
-  for (int i = 0; i < 80; ++i) printf("="); printf("\n");
+  for (int i = 0; i < 80; ++i) printf("=");
+  printf("\n");
   if (sysdim < 1||sysdim > 3||nx < 1||ny < 1||nz < 1||nucell < 1){
     printf("Wrong values read from header of file: %s, please check the binary file!\n", binfile);
     fclose(fp); exit(3);
@@ -117,11 +123,11 @@ DynMat::DynMat(int narg, char **arg)
   memory->create(attyp, nucell,         "DynMat:attyp");
   memory->create(M_inv_sqrt, nucell,    "DynMat:M_inv_sqrt");
   
-  if ( fread(&Tmeasure,      sizeof(double), 1,      fp) != 1     ){printf("\nError while reading temperature from file: %s\n",   binfile); fclose(fp); exit(3);}
-  if ( fread(&basevec[0],    sizeof(double), 9,      fp) != 9     ){printf("\nError while reading lattice info from file: %s\n",  binfile); fclose(fp); exit(3);}
-  if ( fread(basis[0],       sizeof(double), fftdim, fp) != fftdim){printf("\nError while reading basis info from file: %s\n",    binfile); fclose(fp); exit(3);}
-  if ( fread(&attyp[0],      sizeof(int),    nucell, fp) != nucell){printf("\nError while reading atom types from file: %s\n",    binfile); fclose(fp); exit(3);}
-  if ( fread(&M_inv_sqrt[0], sizeof(double), nucell, fp) != nucell){printf("\nError while reading atomic masses from file: %s\n", binfile); fclose(fp); exit(3);}
+  if ( (int) fread(&Tmeasure,      sizeof(double), 1,      fp) != 1     ){printf("\nError while reading temperature from file: %s\n",   binfile); fclose(fp); exit(3);}
+  if ( (int) fread(&basevec[0],    sizeof(double), 9,      fp) != 9     ){printf("\nError while reading lattice info from file: %s\n",  binfile); fclose(fp); exit(3);}
+  if ( (int) fread(basis[0],       sizeof(double), fftdim, fp) != fftdim){printf("\nError while reading basis info from file: %s\n",    binfile); fclose(fp); exit(3);}
+  if ( (int) fread(&attyp[0],      sizeof(int),    nucell, fp) != nucell){printf("\nError while reading atom types from file: %s\n",    binfile); fclose(fp); exit(3);}
+  if ( (int) fread(&M_inv_sqrt[0], sizeof(double), nucell, fp) != nucell){printf("\nError while reading atomic masses from file: %s\n", binfile); fclose(fp); exit(3);}
   fclose(fp);
 
   car2dir();
@@ -229,9 +235,9 @@ return;
 int DynMat::geteigen(double *egv, int flag)
 {
   char jobz, uplo;
-  integer n, lda, lwork, lrwork, *iwork, liwork, info;
+  long int n, lda, lwork, lrwork, *iwork, liwork, info;
   doublecomplex *work;
-  doublereal *w = &egv[0], *rwork;
+  double *w = &egv[0], *rwork;
 
   n     = fftdim;
   if (flag) jobz = 'V';
@@ -338,7 +344,8 @@ void DynMat::EnforceASR()
   char *ptr = strtok(str," \t\n\r\f");
   if (ptr) nasr = atoi(ptr);
   if (nasr < 1){
-    for (int i=0; i<80; i++) printf("="); printf("\n");
+    for (int i=0; i<80; i++) printf("=");
+    printf("\n");
     return;
   }
 
@@ -404,7 +411,8 @@ void DynMat::EnforceASR()
     if (i == 99){ printf("...... (%d more skiped)", fftdim-100); break;}
   }
   printf("\n");
-  for (int i = 0; i < 80; ++i) printf("="); printf("\n\n");
+  for (int i = 0; i < 80; ++i) printf("=");
+  printf("\n\n");
 
 return;
 }
@@ -456,7 +464,7 @@ return;
  * --------------------------------------------------------------------*/
 void DynMat::GaussJordan(int n, double *Mat)
 {
-  int i,icol,irow,j,k,l,ll,idr,idc;
+  int i,icol=0,irow=0,j,k,l,ll,idr,idc;
   int *indxc,*indxr,*ipiv;
   double big, nmjk;
   double dum, pivinv;

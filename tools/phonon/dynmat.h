@@ -7,11 +7,6 @@
 #include "memory.h"
 #include "interpolate.h"
 
-extern "C"{
-#include "f2c.h"
-#include "clapack.h"
-}
-
 using namespace std;
 
 class DynMat {

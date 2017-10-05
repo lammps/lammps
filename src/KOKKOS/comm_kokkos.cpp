@@ -135,10 +135,9 @@ void CommKokkos::init()
   if (force->newton == 0) check_reverse = 0;
   if (force->pair) check_reverse += force->pair->comm_reverse_off;
 
-  //if (check_forward)
-  //  forward_comm_classic = true;
+  if (ghost_velocity)
+    forward_comm_classic = true;
 
-  //if (check_reverse || !comm_f_only) // not all Kokkos atom_vec styles have reverse pack/unpack routines yet
   if (!comm_f_only) // not all Kokkos atom_vec styles have reverse pack/unpack routines yet
     reverse_comm_classic = true;
 }

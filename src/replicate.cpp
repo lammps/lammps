@@ -74,6 +74,11 @@ void Replicate::command(int narg, char **arg)
   if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
     error->all(FLERR,"Cannot replicate with fixes that store atom quantities");
 
+  // CPU time
+
+  MPI_Barrier(world);
+  double time1 = MPI_Wtime();
+
   // maxtag = largest atom tag across all existing atoms
 
   tagint maxtag = 0;
@@ -423,5 +428,17 @@ void Replicate::command(int narg, char **arg)
   if (atom->molecular == 1) {
     Special special(lmp);
     special.build();
+  }
+
+  // CPU time
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"  CPU time = %g secs\n",time2-time1);
+    if (logfile)
+      fprintf(logfile,"  CPU time = %g secs\n",time2-time1);
   }
 }

@@ -453,12 +453,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   // if molecular system:
   // atom IDs must be defined
   // force atom map to be created
-  // map style may be reset by map_init() and its call to map_style_set()
+  // map style will be reset to array vs hash to by map_init()
 
   molecular = avec->molecular;
   if (molecular && tag_enable == 0)
     error->all(FLERR,"Atom IDs must be used for molecular systems");
-  if (molecular) map_style = 1;
+  if (molecular) map_style = 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -593,6 +593,7 @@ void Atom::modify_params(int narg, char **arg)
                    "Atom_modify map command after simulation box is defined");
       if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
+      else if (strcmp(arg[iarg+1],"yes") == 0) map_user = 3;
       else error->all(FLERR,"Illegal atom_modify command");
       map_style = map_user;
       iarg += 2;

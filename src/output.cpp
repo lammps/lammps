@@ -827,9 +827,9 @@ void Output::create_restart(int narg, char **arg)
    sum and print memory usage
    result is only memory on proc 0, not averaged across procs
 ------------------------------------------------------------------------- */
+
 void Output::memory_usage()
 {
-
   bigint bytes = 0;
   bytes += atom->memory_usage();
   bytes += neighbor->memory_usage();

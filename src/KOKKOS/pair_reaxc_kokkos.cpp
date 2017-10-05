@@ -557,8 +557,8 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 
   ntypes = atom->ntypes;
 
-  for( i = 0; i < ntypes; ++i ) {
-    for( j = i; j < ntypes; ++j )
+  for( i = 0; i <= ntypes; ++i ) {
+    for( j = i; j <= ntypes; ++j )
       if( LR[i][j].n ) {
         sfree( LR[i][j].y, "LR[i,j].y" );
         sfree( LR[i][j].H, "LR[i,j].H" );

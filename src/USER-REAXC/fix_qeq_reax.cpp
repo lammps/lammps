@@ -817,7 +817,7 @@ void FixQEqReax::calculate_Q()
       q[i] = s[i] - u * t[i];
 
       /* backup s & t */
-      for (k = 4; k > 0; --k) {
+      for (k = nprev-1; k > 0; --k) {
         s_hist[i][k] = s_hist[i][k-1];
         t_hist[i][k] = t_hist[i][k-1];
       }

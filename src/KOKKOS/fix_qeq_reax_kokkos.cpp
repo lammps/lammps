@@ -1088,7 +1088,7 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q_item(int ii) const
   if (mask[i] & groupbit) {
     q(i) = d_s[i] - delta * d_t[i];
 
-    for (int k = 4; k > 0; --k) {
+    for (int k = nprev-1; k > 0; --k) {
       d_s_hist(i,k) = d_s_hist(i,k-1);
       d_t_hist(i,k) = d_t_hist(i,k-1);
     }

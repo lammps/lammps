@@ -164,7 +164,7 @@ static void cuda_parallel_launch_constant_memory()
 
 template< class DriverType, unsigned int maxTperB, unsigned int minBperSM >
 __global__
-__launch_bounds__(maxTperB, minBperSM)
+//__launch_bounds__(maxTperB, minBperSM)
 static void cuda_parallel_launch_constant_memory()
 {
   const DriverType & driver =
@@ -182,7 +182,7 @@ static void cuda_parallel_launch_local_memory( const DriverType driver )
 
 template< class DriverType, unsigned int maxTperB, unsigned int minBperSM >
 __global__
-__launch_bounds__(maxTperB, minBperSM)
+//__launch_bounds__(maxTperB, minBperSM)
 static void cuda_parallel_launch_local_memory( const DriverType driver )
 {
   driver();

@@ -166,10 +166,6 @@ void HBWSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_s
   }
 }
 
-constexpr const char* HBWSpace::name() {
-  return m_name;
-}
-
 } // namespace Experimental
 } // namespace Kokkos
 

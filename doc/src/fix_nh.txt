@@ -393,32 +393,36 @@ thermostatting and barostatting.
 :line
 
 These fixes compute a temperature and pressure each timestep.  To do
-this, the fix creates its own computes of style "temp" and "pressure",
-as if one of these two sets of commands had been issued:
+this, the thermostat and barostat fixes create their own computes of
+style "temp" and "pressure", as if one of these sets of commands had
+been issued:
 
+For fix nvt:
 compute fix-ID_temp group-ID temp
-compute fix-ID_press group-ID pressure fix-ID_temp :pre
 
+For fix npt and fix nph:
 compute fix-ID_temp all temp
 compute fix-ID_press all pressure fix-ID_temp :pre
 
-See the "compute temp"_compute_temp.html and "compute
-pressure"_compute_pressure.html commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
-+ underscore + "press".  For fix nvt, the group for the new computes
-is the same as the fix group.  For fix nph and fix npt, the group for
-the new computes is "all" since pressure is computed for the entire
-system.
+For fix nvt, the group for the new temperature compute is the same as
+the fix group.  For fix npt and fix nph, the group for both the new
+temperature and pressure compute is "all" since pressure is computed
+for the entire system.  In the case of fix nph, the temperature
+compute is not used for thermostatting, but just for a kinetic-energy
+contribution to the pressure.  See the "compute
+temp"_compute_temp.html and "compute pressure"_compute_pressure.html
+commands for details.  Note that the IDs of the new computes are the
+fix-ID + underscore + "temp" or fix_ID + underscore + "press".
 
 Note that these are NOT the computes used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}
-and {thermo_press}.  This means you can change the attributes of this
+and {thermo_press}.  This means you can change the attributes of these
 fix's temperature or pressure via the
-"compute_modify"_compute_modify.html command or print this temperature
-or pressure during thermodynamic output via the "thermo_style
-custom"_thermo_style.html command using the appropriate compute-ID.
-It also means that changing attributes of {thermo_temp} or
-{thermo_press} will have no effect on this fix.
+"compute_modify"_compute_modify.html command.  Or you can print this
+temperature or pressure during thermodynamic output via the
+"thermo_style custom"_thermo_style.html command using the appropriate
+compute-ID.  It also means that changing attributes of {thermo_temp}
+or {thermo_press} will have no effect on this fix.
 
 Like other fixes that perform thermostatting, fix nvt and fix npt can
 be used with "compute commands"_compute.html that calculate a

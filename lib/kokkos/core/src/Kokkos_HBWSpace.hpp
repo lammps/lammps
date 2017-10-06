@@ -147,12 +147,11 @@ public:
                  , const size_t arg_alloc_size ) const;
 
   /**\brief Return Name of the MemorySpace */
-  static constexpr const char* name();
+  static constexpr const char* name() { return "HBW"; }
 
 private:
 
   AllocationMechanism  m_alloc_mech;
-  static constexpr const char* m_name = "HBW";
   friend class Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::HBWSpace, void >;
 };
 

@@ -131,6 +131,8 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
+  if (fix_reax) modify->delete_fix("REAXC"); // not needed in the Kokkos version
+  fix_reax = NULL;
 
   // irequest = neigh request made by parent class
 
@@ -555,8 +557,8 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 
   ntypes = atom->ntypes;
 
-  for( i = 0; i < ntypes; ++i ) {
-    for( j = i; j < ntypes; ++j )
+  for( i = 0; i <= ntypes; ++i ) {
+    for( j = i; j <= ntypes; ++j )
       if( LR[i][j].n ) {
         sfree( LR[i][j].y, "LR[i,j].y" );
         sfree( LR[i][j].H, "LR[i,j].H" );

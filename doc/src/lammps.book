@@ -187,6 +187,7 @@ fix_ipi.html
 fix_langevin.html
 fix_langevin_drude.html
 fix_langevin_eff.html
+fix_latte.html
 fix_lb_fluid.html
 fix_lb_momentum.html
 fix_lb_pc.html

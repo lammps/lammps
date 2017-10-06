@@ -705,7 +705,7 @@ dynamics can be run with LAMMPS using density-functional tight-binding
 quantum forces calculated by LATTE.
 
 More information on LATTE can be found at this web site:
-"https://github.com/lanl/LATTE"_#latte_home.  A brief technical
+"https://github.com/lanl/LATTE"_latte_home.  A brief technical
 description is given with the "fix latte"_fix_latte.html command.
 
 :link(latte_home,https://github.com/lanl/LATTE)
@@ -728,6 +728,7 @@ make lib-latte args="-b"                # download and build in lib/latte/LATTE-
 make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
 make lib-latte args="-b -m gfortran"    # download and build in lib/latte and 
                                         #   copy Makefile.lammps.gfortran to Makefile.lammps
+:pre
 
 Note that 3 symbolic (soft) links, "includelink" and "liblink" and
 "filelink", are created in lib/latte to point into the LATTE home dir.

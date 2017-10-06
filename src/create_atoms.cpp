@@ -343,7 +343,7 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
-  // CPU time
+  // Record wall time for atom creation
 
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
@@ -532,12 +532,12 @@ void CreateAtoms::command(int narg, char **arg)
     if (screen) {
       fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
               atom->natoms-natoms_previous);
-      fprintf(screen,"  CPU time = %g secs\n",time2-time1);
+      fprintf(screen,"  Time spent = %g secs\n",time2-time1);
     }
     if (logfile) {
       fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
               atom->natoms-natoms_previous);
-      fprintf(logfile,"  CPU time = %g secs\n",time2-time1);
+      fprintf(logfile,"  Time spent = %g secs\n",time2-time1);
     }
   }
 

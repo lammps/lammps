@@ -727,7 +727,8 @@ make lib-latte                          # print help message
 make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
 make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
 make lib-latte args="-b -m gfortran"    # download and build in lib/latte and 
-                                        #   copy Makefile.lammps.gfortran to Makefile.lammps :pre
+                                        #   copy Makefile.lammps.gfortran to Makefile.lammps
+:pre
 
 Note that 3 symbolic (soft) links, "includelink" and "liblink" and
 "filelink", are created in lib/latte to point into the LATTE home dir.

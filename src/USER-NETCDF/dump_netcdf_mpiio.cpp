@@ -920,6 +920,8 @@ int DumpNetCDFMPIIO::modify_param(int narg, char **arg)
     return 2;
   }
   else if (strcmp(arg[iarg],"at") == 0) {
+    if (!append_flag)
+      error->all(FLERR,"expected 'append yes' before 'at' keyword");
     iarg++;
     framei = force->inumeric(FLERR,arg[iarg]);
     if (framei < 0)  framei--;

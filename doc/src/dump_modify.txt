@@ -15,9 +15,11 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
-  {append} arg = {yes} or {no} or {yes at} N
+keyword = {append} or {at} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+  {append} arg = {yes} or {no}
+  {at} arg = N
     N = index of frame written upon first dump
+    only available after "append yes"
   {buffer} arg = {yes} or {no}
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga

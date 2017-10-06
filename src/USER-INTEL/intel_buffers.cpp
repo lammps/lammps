@@ -409,6 +409,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
   IP_PRE_get_stride(_ccache_stride3, nsize * 3, sizeof(acc_t), 0);
   lmp->memory->create(_ccachef, _ccache_stride3 * nt, "_ccachef");
   #endif
+  memset(_ccachei, 0, vsize * sizeof(int));
   memset(_ccachej, 0, vsize * sizeof(int));
 
   #ifdef _LMP_INTEL_OFFLOAD
@@ -425,7 +426,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ccachex,ccachey:length(vsize) alloc_if(1) free_if(0)) \
         nocopy(ccachez,ccachew:length(vsize) alloc_if(1) free_if(0)) \
-        nocopy(ccachei:length(vsize) alloc_if(1) free_if(0)) \
+        in(ccachei:length(vsize) alloc_if(1) free_if(0)) \
         in(ccachej:length(vsize) alloc_if(1) free_if(0))
     }
     #ifdef LMP_USE_AVXCD

@@ -92,7 +92,6 @@ class DumpNetCDF : public DumpCustom {
   void closefile();
   virtual void write_header(bigint);
   virtual void write_data(int, double *);
-  void write_prmtop();
 
   virtual int modify_param(int, char **);
 

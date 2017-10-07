@@ -88,8 +88,8 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
 
   if (multiproc)
     error->all(FLERR,"Multi-processor writes are not supported.");
-  if (multifile)
-    error->all(FLERR,"Multiple files are not supported.");
+  if (append_flag && multifile)
+    error->all(FLERR,"Cannot append when writing to multiple files.");
 
   perat = new nc_perat_t[nfield];
 
@@ -217,6 +217,24 @@ DumpNetCDFMPIIO::~DumpNetCDFMPIIO()
 
 void DumpNetCDFMPIIO::openfile()
 {
+  char *filecurrent = filename;
+  if (multifile && !singlefile_opened) {
+    char *filestar = filecurrent;
+    filecurrent = new char[strlen(filestar) + 16];
+    char *ptr = strchr(filestar,'*');
+    *ptr = '\0';
+    if (padflag == 0)
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
+              filestar,update->ntimestep,ptr+1);
+    else {
+      char bif[8],pad[16];
+      strcpy(bif,BIGINT_FORMAT);
+      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
+      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
+    }
+    *ptr = '*';
+  }
+
   if (thermo && !singlefile_opened) {
     if (thermovar)  delete [] thermovar;
     thermovar = new int[output->thermo->nfield];
@@ -260,7 +278,7 @@ void DumpNetCDFMPIIO::openfile()
   // get total number of atoms
   ntotalgr = group->count(igroup);
 
-  if (append_flag && access(filename, F_OK) != -1) {
+  if (append_flag && !multifile && access(filecurrent, F_OK) != -1) {
     // Fixme! Perform checks if dimensions and variables conform with
     // data structure standard.
 
@@ -270,8 +288,8 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_open(MPI_COMM_WORLD, filename, NC_WRITE, MPI_INFO_NULL,
-                       &ncid), filename );
+    NCERRX( ncmpi_open(MPI_COMM_WORLD, filecurrent, NC_WRITE, MPI_INFO_NULL,
+                       &ncid), filecurrent );
 
     // dimensions
     NCERRX( ncmpi_inq_dimid(ncid, NC_FRAME_STR, &frame_dim), NC_FRAME_STR );
@@ -344,8 +362,8 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_create(MPI_COMM_WORLD, filename, NC_64BIT_DATA,
-                         MPI_INFO_NULL, &ncid), filename );
+    NCERRX( ncmpi_create(MPI_COMM_WORLD, filecurrent, NC_64BIT_DATA,
+                         MPI_INFO_NULL, &ncid), filecurrent );
 
     // dimensions
     NCERRX( ncmpi_def_dim(ncid, NC_FRAME_STR, NC_UNLIMITED, &frame_dim),
@@ -574,14 +592,39 @@ void DumpNetCDFMPIIO::closefile()
   if (singlefile_opened) {
     NCERR( ncmpi_close(ncid) );
     singlefile_opened = 0;
-    // append next time DumpNetCDFMPIIO::openfile is called
-    append_flag = 1;
     // write to next frame upon next open
-    framei++;
+    if (multifile)
+      framei = 1;
+    else {
+      // append next time DumpNetCDFMPIIO::openfile is called
+      append_flag = 1;
+      framei++;
+    }
   }
 }
 
 /* ---------------------------------------------------------------------- */
+
+template <typename T>
+int ncmpi_put_var1_bigint(int ncid, int varid, const MPI_Offset index[],
+                     const T* tp)
+{
+  return ncmpi_put_var1_int(ncid, varid, index, tp);
+}
+
+template <>
+int ncmpi_put_var1_bigint<long>(int ncid, int varid, const MPI_Offset index[],
+                           const long* tp)
+{
+  return ncmpi_put_var1_long(ncid, varid, index, tp);
+}
+
+template <>
+int ncmpi_put_var1_bigint<long long>(int ncid, int varid, const MPI_Offset index[],
+                                const long long* tp)
+{
+  return ncmpi_put_var1_longlong(ncid, varid, index, tp);
+}
 
 void DumpNetCDFMPIIO::write()
 {
@@ -616,13 +659,8 @@ void DumpNetCDFMPIIO::write()
                   th->keyword[i] );
         }
         else if (th->vtype[i] == BIGINT) {
-#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-          NCERRX( ncmpi_put_var1_long(ncid, thermovar[i], start, &th->bivalue),
+          NCERRX( ncmpi_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
-#else
-          NCERRX( ncmpi_put_var1_int(ncid, thermovar[i], start, &th->bivalue),
-                  th->keyword[i] );
-#endif
         }
       }
     }
@@ -882,6 +920,8 @@ int DumpNetCDFMPIIO::modify_param(int narg, char **arg)
     return 2;
   }
   else if (strcmp(arg[iarg],"at") == 0) {
+    if (!append_flag)
+      error->all(FLERR,"expected 'append yes' before 'at' keyword");
     iarg++;
     framei = force->inumeric(FLERR,arg[iarg]);
     if (framei < 0)  framei--;

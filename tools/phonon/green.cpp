@@ -224,7 +224,6 @@ void Green::recursion()
 {
   // local variables
   std::complex<double> Z, rec_x, rec_x_inv;
-  std::complex<double> cunit = std::complex<double>(0.,1.);
 
   double w = wmin;
 

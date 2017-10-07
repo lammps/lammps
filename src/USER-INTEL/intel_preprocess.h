@@ -292,6 +292,15 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     ito = inum;                                                 \
   }
 
+#define IP_PRE_omp_stride_id_vec(ifrom, ip, ito, tid, inum,     \
+                                 nthr, vecsize)                 \
+  {                                                             \
+    tid = 0;							\
+    ifrom = 0;							\
+    ip = 1;							\
+    ito = inum;							\
+  }
+
 #endif
 
 #define IP_PRE_fdotr_acc_force_l5(lf, lt, minlocal, nthreads, f_start,  \

@@ -68,7 +68,7 @@ void VerletLRTIntel::init()
 
   _intel_kspace = (PPPMIntel*)(force->kspace_match("pppm/intel", 0));
 
-  #ifdef LMP_INTEL_NOLRT
+  #ifndef LMP_INTEL_USELRT
   error->all(FLERR,
              "LRT otion for Intel package disabled at compile time");
   #endif

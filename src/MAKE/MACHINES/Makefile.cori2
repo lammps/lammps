@@ -15,13 +15,14 @@ SHELL = /bin/sh
 
 CC =		CC
 OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -qno-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS) -DLMP_INTEL_NO_TBB
+CCFLAGS =	-qopenmp -qno-offload -fno-alias -ansi-alias -restrict \
+                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG -DLMP_INTEL_NO_TBB \
+                $(OPTFLAGS)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		CC
-LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+LINKFLAGS =	-qopenmp $(OPTFLAGS)
 LIB =           
 SIZE =		size
 

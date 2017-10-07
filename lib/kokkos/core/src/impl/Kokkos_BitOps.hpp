@@ -68,6 +68,8 @@ int bit_first_zero( unsigned i ) noexcept
   return full != i ? _bit_scan_forward( ~i ) : -1 ;
 #elif defined( KOKKOS_COMPILER_IBM )
   return full != i ? __cnttz4( ~i ) : -1 ;
+#elif defined( KOKKOS_COMPILER_CRAYC )
+  return full != i ? _popcnt( i ^ (i+1) ) - 1 : -1 ;
 #elif defined( KOKKOS_COMPILER_GNU ) || defined( __GNUC__ ) || defined( __GNUG__ )
   return full != i ? __builtin_ffs( ~i ) - 1 : -1 ;
 #else
@@ -90,17 +92,16 @@ int bit_scan_forward( unsigned i )
   return _bit_scan_forward(i);
 #elif defined( KOKKOS_COMPILER_IBM )
   return __cnttz4(i);
+#elif defined( KOKKOS_COMPILER_CRAYC )
+  return i ? _popcnt(~i & (i-1)) : -1;
 #elif defined( KOKKOS_COMPILER_GNU ) || defined( __GNUC__ ) || defined( __GNUG__ )
   return __builtin_ffs(i) - 1;
 #else
-  unsigned t = 1u;
-  int r = 0;
-  while ( i && ( i & t == 0 ) )
-  {
-    t = t << 1;
-    ++r;
+  int offset = -1;
+  if ( i ) {
+    for ( offset = 0 ; (i & ( 1 << offset ) ) == 0 ; ++offset );
   }
-  return r;
+  return offset;
 #endif
 }
 
@@ -116,17 +117,16 @@ int bit_scan_reverse( unsigned i )
   return _bit_scan_reverse(i);
 #elif defined( KOKKOS_COMPILER_IBM )
   return shift - __cntlz4(i);
+#elif defined( KOKKOS_COMPILER_CRAYC )
+  return i ? shift - _leadz32(i) : 0 ;
 #elif defined( __GNUC__ ) || defined( __GNUG__ )
   return shift - __builtin_clz(i);
 #else
-  unsigned t = 1u << shift;
-  int r = 0;
-  while ( i && ( i & t == 0 ) )
-  {
-    t = t >> 1;
-    ++r;
+  int offset = 0;
+  if ( i ) {
+    for ( offset = shift ; (i & ( 1 << offset ) ) == 0 ; --offset );
   }
-  return r;
+  return offset;
 #endif
 }
 
@@ -142,6 +142,8 @@ int bit_count( unsigned i )
   return _popcnt32(i);
 #elif defined( KOKKOS_COMPILER_IBM )
   return __popcnt4(i);
+#elif defined( KOKKOS_COMPILER_CRAYC )
+  return _popcnt(i);
 #elif defined( __GNUC__ ) || defined( __GNUG__ )
   return __builtin_popcount(i);
 #else

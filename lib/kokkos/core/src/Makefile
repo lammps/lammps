@@ -88,6 +88,7 @@ build-makefile-kokkos:
 	echo "KOKKOS_SRC = $(KOKKOS_SRC)" >> Makefile.kokkos
 	echo "" >> Makefile.kokkos
 	echo "#Variables used in application Makefiles" >> Makefile.kokkos
+	echo "KOKKOS_OS = $(KOKKOS_OS)" >> Makefile.kokkos
 	echo "KOKKOS_CPP_DEPENDS = $(KOKKOS_CPP_DEPENDS)" >> Makefile.kokkos
 	echo "KOKKOS_CXXFLAGS = $(KOKKOS_CXXFLAGS)" >> Makefile.kokkos
 	echo "KOKKOS_CPPFLAGS = $(KOKKOS_CPPFLAGS)" >> Makefile.kokkos

@@ -95,6 +95,7 @@ class Modify : protected Pointers {
   void add_fix(int, char **, int trysuffix=1);
   void modify_fix(int, char **);
   void delete_fix(const char *);
+  void delete_fix(int);
   int find_fix(const char *);
   int find_fix_by_style(const char *);
   int check_package(const char *);

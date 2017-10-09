@@ -330,8 +330,7 @@ void DumpNetCDF::openfile()
         // Type mangling
         if (vtype[perat[i].field[0]] == INT) {
           xtype = NC_INT;
-        }
-        else {
+        } else {
           if (double_precision)
             xtype = NC_DOUBLE;
           else
@@ -355,10 +354,13 @@ void DumpNetCDF::openfile()
       NCERR( nc_inq_dimlen(ncid, frame_dim, &nframes) );
       // framei == -1 means append to file, == -2 means override last frame
       // Note that in the input file this translates to 'yes', '-1', etc.
-      if (framei < 0 || (append_flag && framei == 0))  framei = nframes+framei+1;
+
+      if (framei <= 0) framei = nframes+framei+1;
       if (framei < 1)  framei = 1;
-    }
-    else {
+    } else {
+      if (framei != 0)
+        error->all(FLERR,"at keyword requires use of 'append yes'");
+
       int dims[NC_MAX_VAR_DIMS];
       size_t index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
       double d[1];
@@ -924,11 +926,12 @@ int DumpNetCDF::modify_param(int narg, char **arg)
     return 2;
   }
   else if (strcmp(arg[iarg],"at") == 0) {
-    if (!append_flag)
-      error->all(FLERR,"expected 'append yes' before 'at' keyword");
     iarg++;
+    if (iarg >= narg)
+      error->all(FLERR,"expected additional arg after 'at' keyword.");
     framei = force->inumeric(FLERR,arg[iarg]);
-    if (framei < 0)  framei--;
+    if (framei == 0) error->all(FLERR,"frame 0 not allowed for 'at' keyword.");
+    else if (framei < 0) framei--;
     iarg++;
     return 2;
   }

@@ -19,7 +19,6 @@ keyword = {append} or {at} or {buffer} or {element} or {every} or {fileper} or {
   {append} arg = {yes} or {no}
   {at} arg = N
     N = index of frame written upon first dump
-    only available after "append yes"
   {buffer} arg = {yes} or {no}
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
@@ -143,13 +142,18 @@ and {dcd}.  It also applies only to text output files, not to binary
 or gzipped or image/movie files.  If specified as {yes}, then dump
 snapshots are appended to the end of an existing dump file.  If
 specified as {no}, then a new dump file will be created which will
-overwrite an existing file with the same name.  If the {at} option is present
-({netcdf} only), then the frame to append to can be specified.  Negative values
-are counted from the end of the file.  This keyword can only take effect if the
-dump_modify command is used after the "dump"_dump.html command, but before the
-first command that causes dump snapshots to be output, e.g. a "run"_run.html or
-"minimize"_minimize.html command.  Once the dump file has been opened, this
-keyword has no further effect.
+overwrite an existing file with the same name.
+
+:line
+
+The {at} keyword only applies to the {netcdf} dump style.  It can only
+be used if the {append yes} keyword is also used.  The {N} argument is
+the index of which frame to append to.  A negative value can be
+specified for {N}, which means a frame counted from the end of the
+file.  The {at} keyword can only be used if the dump_modify command is
+before the first command that causes dump snapshots to be output,
+e.g. a "run"_run.html or "minimize"_minimize.html command.  Once the
+dump file has been opened, this keyword has no further effect.
 
 :line
 

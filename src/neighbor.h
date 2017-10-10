@@ -54,7 +54,6 @@ class Neighbor : protected Pointers {
 
   double *bboxlo,*bboxhi;          // ptrs to full domain bounding box
                                    // different for orthog vs triclinic
-  double *zeroes;                  // vector of zeroes for shear history init
 
   // exclusion info, used by NeighPair
 

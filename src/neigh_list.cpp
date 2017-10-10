@@ -40,16 +40,15 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   ilist = NULL;
   numneigh = NULL;
   firstneigh = NULL;
-  firstdouble = NULL;
 
   // defaults, but may be reset by post_constructor()
 
   occasional = 0;
   ghost = 0;
   ssa = 0;
+  history = 0;
   copy = 0;
   copymode = 0;
-  dnum = 0;
 
   // ptrs
 
@@ -60,9 +59,6 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   listskip = NULL;
   listfull = NULL;
 
-  listhistory = NULL;
-  fix_history = NULL;
-
   respamiddle = 0;
   listinner = NULL;
   listmiddle = NULL;
@@ -70,7 +66,6 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   fix_bond = NULL;
 
   ipage = NULL;
-  dpage = NULL;
 
   // Kokkos package
 
@@ -92,10 +87,7 @@ NeighList::~NeighList()
     memory->destroy(ilist);
     memory->destroy(numneigh);
     memory->sfree(firstneigh);
-    memory->sfree(firstdouble);
-
     delete [] ipage;
-    delete [] dpage;
   }
 
   delete [] iskip;
@@ -108,7 +100,6 @@ NeighList::~NeighList()
    copy -> set listcopy for list to copy from
    skip -> set listskip for list to skip from, create copy of itype,ijtype
    halffull -> set listfull for full list to derive from
-   history -> set LH and FH ptrs in partner list that uses the history info
    respaouter -> set listinner/listmiddle for other rRESPA lists
    bond -> set fix_bond to Fix that made the request
 ------------------------------------------------------------------------- */
@@ -120,8 +111,8 @@ void NeighList::post_constructor(NeighRequest *nq)
   occasional = nq->occasional;
   ghost = nq->ghost;
   ssa = nq->ssa;
+  history = nq->history;
   copy = nq->copy;
-  dnum = nq->dnum;
 
   if (nq->copy)
     listcopy = neighbor->lists[nq->copylist];
@@ -141,13 +132,6 @@ void NeighList::post_constructor(NeighRequest *nq)
   if (nq->halffull)
     listfull = neighbor->lists[nq->halffulllist];
 
-  if (nq->history) {
-    neighbor->lists[nq->historylist]->listhistory = this;
-    int tmp;
-    neighbor->lists[nq->historylist]->fix_history = 
-      (Fix *) ((Pair *) nq->requestor)->extract("history",tmp);
-  }
-  
   if (nq->respaouter) {
     if (nq->respamiddlelist < 0) {
       respamiddle = 0;
@@ -173,12 +157,6 @@ void NeighList::setup_pages(int pgsize_caller, int oneatom_caller)
   ipage = new MyPage<int>[nmypage];
   for (int i = 0; i < nmypage; i++)
     ipage[i].init(oneatom,pgsize,PGDELTA);
-
-  if (dnum) {
-    dpage = new MyPage<double>[nmypage];
-    for (int i = 0; i < nmypage; i++)
-      dpage[i].init(dnum*oneatom,dnum*pgsize,PGDELTA);
-  } else dpage = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -195,11 +173,11 @@ void NeighList::grow(int nlocal, int nall)
 {
   // trigger grow() in children before possible return
 
-  if (listhistory) listhistory->grow(nlocal,nall);
   if (listinner) listinner->grow(nlocal,nall);
   if (listmiddle) listmiddle->grow(nlocal,nall);
 
   // skip if data structs are already big enough
+
   if (ssa) {
     if ((nlocal * 3) + nall <= maxatom) return;
   } else if (ghost) {
@@ -218,11 +196,6 @@ void NeighList::grow(int nlocal, int nall)
   memory->create(numneigh,maxatom,"neighlist:numneigh");
   firstneigh = (int **) memory->smalloc(maxatom*sizeof(int *),
                                         "neighlist:firstneigh");
-  if (dnum) {
-    memory->sfree(firstdouble);
-    firstdouble = (double **) memory->smalloc(maxatom*sizeof(double *),
-                                              "neighlist:firstdouble");
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -262,13 +235,11 @@ void NeighList::print_attributes()
   printf("  %d = kokkos host\n",rq->kokkos_host);
   printf("  %d = kokkos device\n",rq->kokkos_device);
   printf("  %d = ssa flag\n",ssa);
-  printf("  %d = dnum\n",dnum);
   printf("\n");
   printf("  %d = skip flag\n",rq->skip);
   printf("  %d = off2on\n",rq->off2on);
   printf("  %d = copy flag\n",rq->copy);
   printf("  %d = half/full\n",rq->halffull);
-  printf("  %d = history/partner\n",rq->history_partner);
   printf("\n");
 }
 
@@ -290,13 +261,6 @@ bigint NeighList::memory_usage()
   if (ipage) {
     for (int i = 0; i < nmypage; i++)
       bytes += ipage[i].size();
-  }
-
-  if (dnum && dpage) {
-    for (int i = 0; i < nmypage; i++) {
-      bytes += maxatom * sizeof(double *);
-      bytes += dpage[i].size();
-    }
   }
 
   return bytes;

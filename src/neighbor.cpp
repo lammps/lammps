@@ -133,8 +133,6 @@ pairclass(NULL), pairnames(NULL), pairmasks(NULL)
   old_pgsize = pgsize;
   old_oneatom = oneatom;
 
-  zeroes = NULL;
-
   binclass = NULL;
   binnames = NULL;
   binmasks = NULL;
@@ -207,8 +205,6 @@ Neighbor::~Neighbor()
   for (int i = 0; i < old_nrequest; i++)
     if (old_requests[i]) delete old_requests[i];
   memory->sfree(old_requests);
-
-  delete [] zeroes;
 
   delete [] binclass;
   delete [] binnames;
@@ -666,14 +662,12 @@ int Neighbor::init_pair()
   // purpose is to avoid duplicate or inefficient builds
   // may add new requests if a needed request to derive from does not exist
   // methods:
-  //   (1) other = point history and rRESPA lists at their partner lists
+  //   (1) other = point rRESPA lists at their partner lists
   //   (2) skip = create any new non-skip lists needed by pair hybrid skip lists
   //   (3) granular = adjust parent and skip lists for granular onesided usage
   //   (4) h/f = pair up any matching half/full lists
   //   (5) copy = convert as many lists as possible to copy lists
   // order of morph methods matters:
-  //   (1) before (2), b/c (2) needs to know history partner pairings
-  //   (2) after (1), b/c (2) may also need to create new history lists
   //   (3) after (2), b/c it adjusts lists created by (2)
   //   (4) after (2) and (3), 
   //       b/c (2) may create new full lists, (3) may change them
@@ -827,23 +821,14 @@ int Neighbor::init_pair()
   }
 
   // allocate initial pages for each list, except if copy flag set
-  // allocate dnum vector of zeroes if set
   
-  int dnummax = 0;
   for (i = 0; i < nlist; i++) {
     if (lists[i]->copy) continue;
     lists[i]->setup_pages(pgsize,oneatom);
-    dnummax = MAX(dnummax,lists[i]->dnum);
-  }
-  
-  if (dnummax) {
-    delete [] zeroes;
-    zeroes = new double[dnummax];
-    for (i = 0; i < dnummax; i++) zeroes[i] = 0.0;
   }
 
   // first-time allocation of per-atom data for lists that are built and store
-  // lists that are not built: granhistory, respa inner/middle (no neigh_pair)
+  // lists that are not built: respa inner/middle (no neigh_pair)
   // lists that do not store: copy 
   // use atom->nmax for both grow() args
   //   i.e. grow first time to expanded size to avoid future reallocs
@@ -923,7 +908,7 @@ int Neighbor::init_pair()
 
 /* ----------------------------------------------------------------------
    scan NeighRequests to set additional flags
-   only for history, respaouter, custom cutoff lists
+   only for respaouter, custom cutoff lists
 ------------------------------------------------------------------------- */
 
 void Neighbor::morph_other()
@@ -932,14 +917,6 @@ void Neighbor::morph_other()
   
   for (int i = 0; i < nrequest; i++) {
     irq = requests[i];
-
-    // if history, point this list and partner list at each other
-
-    if (irq->history) {
-      irq->historylist = i-1;
-      requests[i-1]->history_partner = 1;
-      requests[i-1]->historylist = i;
-    }
 
     // if respaouter, point all associated rRESPA lists at each other
 
@@ -987,7 +964,6 @@ void Neighbor::morph_skip()
     // halffull list and its full parent may both skip,
     //   but are checked to insure matching skip info
 
-    if (irq->history) continue;
     if (irq->respainner || irq->respamiddle) continue;
     if (irq->halffull) continue;
     if (irq->copy) continue;
@@ -1022,11 +998,11 @@ void Neighbor::morph_skip()
       //   or their data structures are different
       // this includes custom cutoff set by requestor
       // no need to check respaouter b/c it stores same pairs
-      // no need to check dnum b/c only set for history
       // NOTE: need check for 2 Kokkos flags?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
+      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1045,8 +1021,8 @@ void Neighbor::morph_skip()
     // else create a new identical list except non-skip
     // for new list, set neigh = 1, skip = 0, no skip vec/array,
     //   copy unique flag (since copy_request() will not do it)
-    // note: parents of skip lists do not have associated history list
-    //   b/c child skip lists store their own history info
+    // note: parents of skip lists do not have associated history
+    //   b/c child skip lists have the associated history
 
     if (j < nrequest) irq->skiplist = j;
     else {
@@ -1107,7 +1083,6 @@ void Neighbor::morph_granular()
       if (onesided == 2) break;
     }
 
-
     // if onesided = 2, parent has children with both granonesided = 0/1
     // force parent newton off (newton = 2) to enable onesided skip by child
     // set parent granonesided = 0, so it stores all neighs in usual manner
@@ -1159,7 +1134,6 @@ void Neighbor::morph_halffull()
     // these lists are created other ways, no need for halffull
     // do want to process skip lists
 
-    if (irq->history) continue;
     if (irq->respainner || irq->respamiddle) continue;
     if (irq->copy) continue;
 
@@ -1180,10 +1154,10 @@ void Neighbor::morph_halffull()
       //   or their data structures are different
       // this includes custom cutoff set by requestor
       // no need to check respaouter b/c it stores same pairs
-      // no need to check dnum b/c only set for history
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
+      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1233,7 +1207,6 @@ void Neighbor::morph_copy()
     // these lists are created other ways, no need to copy
     // skip lists are eligible to become a copy list
 
-    if (irq->history) continue;
     if (irq->respainner || irq->respamiddle) continue;
     
     // check all other lists
@@ -1272,9 +1245,8 @@ void Neighbor::morph_copy()
 
       if (irq->ghost && !jrq->ghost) continue;
 
-      // do not copy from a history list or a respa middle/inner list
+      // do not copy from a respa middle/inner list
 
-      if (jrq->history) continue;
       if (jrq->respamiddle) continue;
       if (jrq->respainner) continue;
 
@@ -1284,10 +1256,10 @@ void Neighbor::morph_copy()
       // this includes custom cutoff set by requestor
       // no need to check respaouter b/c it stores same pairs
       // no need to check omp b/c it stores same pairs
-      // no need to check dnum b/c only set for history
       // NOTE: need check for 2 Kokkos flags?
 
       if (irq->size != jrq->size) continue;
+      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
       if (irq->kokkos_host != jrq->kokkos_host) continue;
@@ -1535,9 +1507,7 @@ void Neighbor::print_pairwise_info()
 
         // order these to get single output of most relevant
 
-        if (rq->history) 
-          fprintf(out,", history for (%d)",rq->historylist+1);
-        else if (rq->copy)
+        if (rq->copy)
           fprintf(out,", copy from (%d)",rq->copylist+1);
         else if (rq->halffull) 
           fprintf(out,", half/full from (%d)",rq->halffulllist+1);
@@ -1659,7 +1629,6 @@ int Neighbor::choose_bin(NeighRequest *rq)
 
   if (style == NSQ) return 0;
   if (rq->skip || rq->copy || rq->halffull) return 0;
-  if (rq->history) return 0;
   if (rq->respainner || rq->respamiddle) return 0;
 
   // use request settings to match exactly one NBin class mask
@@ -1701,7 +1670,6 @@ int Neighbor::choose_stencil(NeighRequest *rq)
 
   if (style == NSQ) return 0;
   if (rq->skip || rq->copy || rq->halffull) return 0;
-  if (rq->history) return 0;
   if (rq->respainner || rq->respamiddle) return 0;
 
   // convert newton request to newtflag = on or off
@@ -1795,7 +1763,6 @@ int Neighbor::choose_pair(NeighRequest *rq)
 {
   // no neighbor list build performed
 
-  if (rq->history) return 0;
   if (rq->respainner || rq->respamiddle) return 0;
 
   // error check for includegroup with ghost neighbor request

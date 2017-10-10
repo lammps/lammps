@@ -113,6 +113,7 @@ class Fix : protected Pointers {
   virtual void setup(int) {}
   virtual void setup_pre_exchange() {}
   virtual void setup_pre_neighbor() {}
+  virtual void setup_post_neighbor() {}
   virtual void setup_pre_force(int) {}
   virtual void setup_pre_reverse(int, int) {}
   virtual void min_setup(int) {}
@@ -120,6 +121,7 @@ class Fix : protected Pointers {
   virtual void post_integrate() {}
   virtual void pre_exchange() {}
   virtual void pre_neighbor() {}
+  virtual void post_neighbor() {}
   virtual void pre_force(int) {}
   virtual void pre_reverse(int,int) {}
   virtual void post_force(int) {}
@@ -155,6 +157,7 @@ class Fix : protected Pointers {
 
   virtual void min_pre_exchange() {}
   virtual void min_pre_neighbor() {}
+  virtual void min_post_neighbor() {}
   virtual void min_pre_force(int) {}
   virtual void min_pre_reverse(int,int) {}
   virtual void min_post_force(int) {}
@@ -244,25 +247,27 @@ namespace FixConst {
   static const int POST_INTEGRATE =          1<<1;
   static const int PRE_EXCHANGE =            1<<2;
   static const int PRE_NEIGHBOR =            1<<3;
-  static const int PRE_FORCE =               1<<4;
-  static const int PRE_REVERSE =             1<<5;
-  static const int POST_FORCE =              1<<6;
-  static const int FINAL_INTEGRATE =         1<<7;
-  static const int END_OF_STEP =             1<<8;
-  static const int POST_RUN =                1<<9;
-  static const int THERMO_ENERGY =           1<<10;
-  static const int INITIAL_INTEGRATE_RESPA = 1<<11;
-  static const int POST_INTEGRATE_RESPA =    1<<12;
-  static const int PRE_FORCE_RESPA =         1<<13;
-  static const int POST_FORCE_RESPA =        1<<14;
-  static const int FINAL_INTEGRATE_RESPA =   1<<15;
-  static const int MIN_PRE_EXCHANGE =        1<<16;
-  static const int MIN_PRE_NEIGHBOR =        1<<17;
-  static const int MIN_PRE_FORCE =           1<<18;
-  static const int MIN_PRE_REVERSE =         1<<19;
-  static const int MIN_POST_FORCE =          1<<20;
-  static const int MIN_ENERGY =              1<<21;
-  static const int FIX_CONST_LAST =          1<<22;
+  static const int POST_NEIGHBOR =           1<<4;
+  static const int PRE_FORCE =               1<<5;
+  static const int PRE_REVERSE =             1<<6;
+  static const int POST_FORCE =              1<<7;
+  static const int FINAL_INTEGRATE =         1<<8;
+  static const int END_OF_STEP =             1<<9;
+  static const int POST_RUN =                1<<10;
+  static const int THERMO_ENERGY =           1<<11;
+  static const int INITIAL_INTEGRATE_RESPA = 1<<12;
+  static const int POST_INTEGRATE_RESPA =    1<<13;
+  static const int PRE_FORCE_RESPA =         1<<14;
+  static const int POST_FORCE_RESPA =        1<<15;
+  static const int FINAL_INTEGRATE_RESPA =   1<<16;
+  static const int MIN_PRE_EXCHANGE =        1<<17;
+  static const int MIN_PRE_NEIGHBOR =        1<<18;
+  static const int MIN_POST_NEIGHBOR =       1<<19;
+  static const int MIN_PRE_FORCE =           1<<20;
+  static const int MIN_PRE_REVERSE =         1<<21;
+  static const int MIN_POST_FORCE =          1<<22;
+  static const int MIN_ENERGY =              1<<23;
+  static const int FIX_CONST_LAST =          1<<24;
 }
 
 }

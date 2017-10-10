@@ -34,9 +34,9 @@ class NeighList : protected Pointers {
   int occasional;                  // 0 if build every reneighbor, 1 if not
   int ghost;                       // 1 if list stores neighbors of ghosts
   int ssa;                         // 1 if list stores Shardlow data
-  int copy;                        // 1 if this list is (host) copied from another list
+  int history;                     // 1 if there is neigh history (FixNeighHist)
+  int copy;                        // 1 if this list is copied from another list
   int copymode;                    // 1 if this is a Kokkos on-device copy
-  int dnum;                        // # of doubles per neighbor, 0 if none
 
   // data structs to store neighbor pairs I,J and associated values
 
@@ -45,13 +45,11 @@ class NeighList : protected Pointers {
   int *ilist;                      // local indices of I atoms
   int *numneigh;                   // # of J neighbors for each I atom
   int **firstneigh;                // ptr to 1st J int value of each I atom
-  double **firstdouble;            // ptr to 1st J double value of each I atom
   int maxatom;                     // size of allocated per-atom arrays
 
   int pgsize;                      // size of each page
   int oneatom;                     // max size for one atom
   MyPage<int> *ipage;              // pages of neighbor indices
-  MyPage<double> *dpage;           // pages of neighbor doubles, if dnum > 0
 
   // atom types to skip when building list
   // copied info from corresponding request into realloced vec/array
@@ -64,9 +62,6 @@ class NeighList : protected Pointers {
   NeighList *listcopy;          // me = copy list, point to list I copy from
   NeighList *listskip;          // me = skip list, point to list I skip from
   NeighList *listfull;          // me = half list, point to full I derive from
-
-  NeighList *listhistory;       // list storing neigh history
-  class Fix *fix_history;       // fix that stores history info
 
   int respamiddle;              // 1 if this respaouter has middle list
   NeighList *listinner;         // me = respaouter, point to respainner

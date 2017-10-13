@@ -590,9 +590,12 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 void BondTable::uf_lookup(int type, double x, double &u, double &f)
 {
+  if (!ISFINITE(x)) {
+    error->one(FLERR,"Illegal bond in bond style table");
+  }
+
   double fraction,a,b;
   char estr[128];
-
   const Table *tb = &tables[tabindex[type]];
   const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
   if (itable < 0) {
@@ -603,8 +606,6 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
     sprintf(estr,"Bond length > table outer cutoff: "
             "type %d length %g",type,x);
     error->one(FLERR,estr);
-  } else if (!ISFINITE(itable)) {
-    error->one(FLERR,"Illegal bond length in bond style table");
   }
 
   if (tabstyle == LINEAR) {
@@ -632,17 +633,23 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
 
 void BondTable::u_lookup(int type, double x, double &u)
 {
-  double fraction,a,b;
-
   if (!ISFINITE(x)) {
-    u = 0.0;
-    return;
+    error->one(FLERR,"Illegal bond in bond style table");
   }
 
+  double fraction,a,b;
+  char estr[128];
   const Table *tb = &tables[tabindex[type]];
-  x = MAX(x,tb->lo);
-  x = MIN(x,tb->hi);
   const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
+  if (itable < 0) {
+    sprintf(estr,"Bond length < table inner cutoff: "
+            "type %d length %g",type,x);
+    error->one(FLERR,estr);
+  } else if (itable >= tablength) {
+    sprintf(estr,"Bond length > table outer cutoff: "
+            "type %d length %g",type,x);
+    error->one(FLERR,estr);
+  }
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->r[itable]) * tb->invdelta;

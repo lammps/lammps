@@ -609,14 +609,18 @@ double AngleTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 {
-  double fraction,a,b;
+  if (!ISFINITE(x)) {
+    error->one(FLERR,"Illegal angle in angle style table");
+  }
 
+  double fraction,a,b;
   const Table *tb = &tables[tabindex[type]];
   const int itable = static_cast<int> (x * tb->invdelta);
 
-  if ((itable < 0) || (itable >= tablength) || (!ISFINITE(itable))) {
-    error->one(FLERR,"Illegal angle in angle style table");
-  } else if (tabstyle == LINEAR) {
+  if (itable < 0) itable = 0;
+  if (itable >= tablength) itable = tablength-1;
+
+  if (tabstyle == LINEAR) {
     fraction = (x - tb->ang[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
     f = tb->f[itable] + fraction*tb->df[itable];
@@ -640,10 +644,16 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 
 void AngleTable::u_lookup(int type, double x, double &u)
 {
-  double fraction,a,b;
+  if (!ISFINITE(x)) {
+    error->one(FLERR,"Illegal angle in angle style table");
+  }
 
+  double fraction,a,b;
   const Table *tb = &tables[tabindex[type]];
   const int itable = static_cast<int> ( x * tb->invdelta);
+
+  if (itable < 0) itable = 0;
+  if (itable >= tablength) itable = tablength-1;
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->ang[itable]) * tb->invdelta;

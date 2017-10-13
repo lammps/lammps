@@ -590,29 +590,28 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 void BondTable::uf_lookup(int type, double x, double &u, double &f)
 {
-  int itable;
   double fraction,a,b;
   char estr[128];
 
-  Table *tb = &tables[tabindex[type]];
-  if (x < tb->lo) {
+  const Table *tb = &tables[tabindex[type]];
+  const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
+  if (itable < 0) {
     sprintf(estr,"Bond length < table inner cutoff: "
             "type %d length %g",type,x);
     error->one(FLERR,estr);
-  }
-  if (x > tb->hi) {
+  } else if (itable >= tablength) {
     sprintf(estr,"Bond length > table outer cutoff: "
             "type %d length %g",type,x);
     error->one(FLERR,estr);
+  } else if (!ISFINITE(itable)) {
+    error->one(FLERR,"Illegal bond length in bond style table");
   }
 
   if (tabstyle == LINEAR) {
-    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
     f = tb->f[itable] + fraction*tb->df[itable];
   } else if (tabstyle == SPLINE) {
-    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
 
     b = (x - tb->r[itable]) * tb->invdelta;
@@ -633,19 +632,22 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
 
 void BondTable::u_lookup(int type, double x, double &u)
 {
-  int itable;
   double fraction,a,b;
 
-  Table *tb = &tables[tabindex[type]];
+  if (!ISFINITE(x)) {
+    u = 0.0;
+    return;
+  }
+
+  const Table *tb = &tables[tabindex[type]];
   x = MAX(x,tb->lo);
   x = MIN(x,tb->hi);
+  const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
 
   if (tabstyle == LINEAR) {
-    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
   } else if (tabstyle == SPLINE) {
-    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
 
     b = (x - tb->r[itable]) * tb->invdelta;

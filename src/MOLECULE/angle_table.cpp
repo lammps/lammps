@@ -609,18 +609,18 @@ double AngleTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 {
-  int itable;
   double fraction,a,b;
 
-  Table *tb = &tables[tabindex[type]];
+  const Table *tb = &tables[tabindex[type]];
+  const int itable = static_cast<int> (x * tb->invdelta);
 
-  if (tabstyle == LINEAR) {
-    itable = static_cast<int> ( x * tb->invdelta);
+  if ((itable < 0) || (itable >= tablength) || (!ISFINITE(itable))) {
+    error->one(FLERR,"Illegal angle in angle style table");
+  } else if (tabstyle == LINEAR) {
     fraction = (x - tb->ang[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
     f = tb->f[itable] + fraction*tb->df[itable];
   } else if (tabstyle == SPLINE) {
-    itable = static_cast<int> ( x * tb->invdelta);
     fraction = (x - tb->ang[itable]) * tb->invdelta;
 
     b = (x - tb->ang[itable]) * tb->invdelta;
@@ -640,17 +640,15 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 
 void AngleTable::u_lookup(int type, double x, double &u)
 {
-  int itable;
   double fraction,a,b;
 
-  Table *tb = &tables[tabindex[type]];
+  const Table *tb = &tables[tabindex[type]];
+  const int itable = static_cast<int> ( x * tb->invdelta);
 
   if (tabstyle == LINEAR) {
-    itable = static_cast<int> ( x * tb->invdelta);
     fraction = (x - tb->ang[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
   } else if (tabstyle == SPLINE) {
-    itable = static_cast<int> ( x * tb->invdelta);
     fraction = (x - tb->ang[itable]) * tb->invdelta;
 
     b = (x - tb->ang[itable]) * tb->invdelta;

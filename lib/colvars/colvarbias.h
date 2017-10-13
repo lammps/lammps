@@ -109,6 +109,9 @@ public:
   /// \brief Delete everything
   virtual int clear();
 
+  /// \brief Delete only the allocatable data (save memory)
+  virtual int clear_state_data();
+
   /// Destructor
   virtual ~colvarbias();
 
@@ -183,6 +186,12 @@ public:
   {
     return cvb_features;
   }
+  static void delete_features() {
+    for (size_t i=0; i < cvb_features.size(); i++) {
+      delete cvb_features[i];
+    }
+    cvb_features.clear();
+  }
 
 protected:
 
@@ -193,6 +202,9 @@ protected:
 
   /// \brief Current forces from this bias to the variables
   std::vector<colvarvalue> colvar_forces;
+
+  /// \brief Forces last applied by this bias to the variables
+  std::vector<colvarvalue> previous_colvar_forces;
 
   /// \brief Current energy of this bias (colvar_forces should be obtained by deriving this)
   cvm::real                bias_energy;
@@ -207,6 +219,50 @@ protected:
   /// \brief Step number read from the last state file
   size_t                   state_file_step;
 
+};
+
+
+class colvar_grid_gradient;
+class colvar_grid_count;
+
+/// \brief Base class for unconstrained thermodynamic-integration FE estimator
+class colvarbias_ti : public virtual colvarbias {
+public:
+
+  colvarbias_ti(char const *key);
+  virtual ~colvarbias_ti();
+
+  virtual int clear_state_data();
+
+  virtual int init(std::string const &conf);
+  virtual int init_grids();
+  virtual int update();
+
+  /// Subtract applied forces (either last forces or argument) from the total
+  /// forces
+  virtual int update_system_forces(std::vector<colvarvalue> const
+                                   *subtract_forces);
+
+  virtual std::string const get_state_params() const;
+  virtual int set_state_params(std::string const &state_conf);
+  virtual std::ostream & write_state_data(std::ostream &os);
+  virtual std::istream & read_state_data(std::istream &is);
+  virtual int write_output_files();
+
+protected:
+
+  /// \brief Forces exerted from the system to the associated variables
+  std::vector<colvarvalue> ti_system_forces;
+
+  /// Averaged system forces
+  colvar_grid_gradient *ti_avg_forces;
+
+  /// Histogram of sampled data
+  colvar_grid_count *ti_count;
+
+  /// Because total forces may be from the last simulation step,
+  /// store the index of the variables then
+  std::vector<int> ti_bin;
 };
 
 #endif

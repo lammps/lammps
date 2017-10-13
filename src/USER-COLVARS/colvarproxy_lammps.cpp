@@ -120,12 +120,6 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   if (restart_output_prefix_str.rfind(".*") != std::string::npos)
     restart_output_prefix_str.erase(restart_output_prefix_str.rfind(".*"),2);
 
-#if defined(_OPENMP)
-  if (smp_thread_id() == 0) {
-    omp_init_lock(&smp_lock_state);
-  }
-#endif
-
   // initialize multi-replica support, if available
   if (replica_enabled()) {
     MPI_Comm_rank(inter_comm, &inter_me);
@@ -239,6 +233,9 @@ void colvarproxy_lammps::serialize_status(std::string &rst)
   std::ostringstream os;
   colvars->write_restart(os);
   rst = os.str();
+
+  // TODO separate this as its own function?
+  colvars->write_output_files();
 }
 
 // set status from string
@@ -329,89 +326,6 @@ int colvarproxy_lammps::backup_file(char const *filename)
     return my_backup_file(filename, ".BAK");
   }
 }
-
-
-#if defined(_OPENMP)
-
-
-// SMP support
-
-int colvarproxy_lammps::smp_enabled()
-{
-  if (b_smp_active) {
-    return COLVARS_OK;
-  }
-  return COLVARS_ERROR;
-}
-
-
-int colvarproxy_lammps::smp_colvars_loop()
-{
-  colvarmodule *cv = this->colvars;
-  colvarproxy_lammps *proxy = (colvarproxy_lammps *) cv->proxy;
-#pragma omp parallel for
-  for (size_t i = 0; i < cv->variables_active_smp()->size(); i++) {
-    colvar *x = (*(cv->variables_active_smp()))[i];
-    int x_item = (*(cv->variables_active_smp_items()))[i];
-    if (cvm::debug()) {
-      cvm::log("["+cvm::to_str(proxy->smp_thread_id())+"/"+cvm::to_str(proxy->smp_num_threads())+
-               "]: calc_colvars_items_smp(), i = "+cvm::to_str(i)+", cv = "+
-               x->name+", cvc = "+cvm::to_str(x_item)+"\n");
-    }
-    x->calc_cvcs(x_item, 1);
-  }
-  return cvm::get_error();
-}
-
-
-int colvarproxy_lammps::smp_biases_loop()
-{
-  colvarmodule *cv = this->colvars;
-#pragma omp parallel for
-  for (size_t i = 0; i < cv->biases_active()->size(); i++) {
-    colvarbias *b = (*(cv->biases_active()))[i];
-    if (cvm::debug()) {
-      cvm::log("Calculating bias \""+b->name+"\" on thread "+
-               cvm::to_str(smp_thread_id())+"\n");
-    }
-    b->update();
-  }
-  return cvm::get_error();
-}
-
-
-int colvarproxy_lammps::smp_thread_id()
-{
-  return omp_get_thread_num();
-}
-
-
-int colvarproxy_lammps::smp_num_threads()
-{
-  return omp_get_max_threads();
-}
-
-
-int colvarproxy_lammps::smp_lock()
-{
-  omp_set_lock(&smp_lock_state);
-  return COLVARS_OK;
-}
-
-
-int colvarproxy_lammps::smp_trylock()
-{
-  return omp_test_lock(&smp_lock_state) ? COLVARS_OK : COLVARS_ERROR;
-}
-
-
-int colvarproxy_lammps::smp_unlock()
-{
-  omp_unset_lock(&smp_lock_state);
-  return COLVARS_OK;
-}
-
-#endif
 
 
 // multi-replica support

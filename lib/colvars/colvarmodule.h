@@ -293,10 +293,13 @@ private:
 public:
 
   /// Return how many biases have this feature enabled
-  static int num_biases_feature(int feature_id);
+  int num_biases_feature(int feature_id) const;
 
   /// Return how many biases are defined with this type
-  static int num_biases_type(std::string const &type);
+  int num_biases_type(std::string const &type) const;
+
+  /// Return the names of time-dependent biases with forces enabled
+  std::vector<std::string> const time_dependent_biases() const;
 
 private:
   /// Useful wrapper to interrupt parsing if any error occurs
@@ -334,9 +337,9 @@ public:
 
   /// Write all trajectory files
   int write_traj_files();
-  /// Write all restart files
-  int write_restart_files();
-  /// Write all FINAL output files
+  /// Write a state file useful to resume the simulation
+  int write_restart_file(std::string const &out_name);
+  /// Write all other output files
   int write_output_files();
   /// Backup a file before writing it
   static int backup_file(char const *filename);
@@ -580,7 +583,7 @@ public:
   /// from static functions in the colvarmodule class
   static colvarproxy *proxy;
 
-  /// \brief Accessor for the above
+  /// \brief Access the one instance of the Colvars module
   static colvarmodule *main();
 
 };

@@ -59,8 +59,7 @@ LEPTON_OBJS = \
 COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o) $(LEPTON_OBJS)
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(COLVARS_INCFLAGS) \
-	-Ilepton/include -DLEPTON -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(COLVARS_INCFLAGS) -Ilepton/include -DLEPTON -c -o $@ $<
 
 $(COLVARS_LIB):	Makefile.deps $(COLVARS_OBJS)
 	$(AR) $(ARFLAGS) $(COLVARS_LIB) $(COLVARS_OBJS) $(LEPTON_OBJS)

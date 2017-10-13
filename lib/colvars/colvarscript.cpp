@@ -11,7 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define COLVARSCRIPT_CPP
 #include "colvarscript.h"
+#undef COLVARSCRIPT_CPP
+
 #include "colvarproxy.h"
 #include "colvardeps.h"
 
@@ -21,6 +24,11 @@ colvarscript::colvarscript(colvarproxy *p)
    colvars(p->colvars),
    proxy_error(0)
 {
+  comm_help.resize(colvarscript::cv_n_commands);
+  comm_fns.resize(colvarscript::cv_n_commands);
+#define COLVARSCRIPT_INIT_FN
+#include "colvarscript.h"
+#undef COLVARSCRIPT_INIT_FN
 }
 
 
@@ -66,8 +74,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
   }
 
   if (objc < 2) {
-    result = help_string();
-    return COLVARS_OK;
+    return exec_command(cv_help, NULL, objc, objv);
   }
 
   std::string const cmd(obj_to_str(objv[1]));
@@ -167,17 +174,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
   /// Parse config from string
   if (cmd == "config") {
-    if (objc < 3) {
-      result = "Missing arguments\n" + help_string();
-      return COLVARSCRIPT_ERROR;
-    }
-    std::string const conf(obj_to_str(objv[2]));
-    if (colvars->read_config_string(conf) == COLVARS_OK) {
-      return COLVARS_OK;
-    } else {
-      result = "Error parsing configuration string";
-      return COLVARSCRIPT_ERROR;
-    }
+    return exec_command(cv_config, NULL, objc, objv);
   }
 
   /// Load an input state file
@@ -204,6 +201,8 @@ int colvarscript::run(int objc, unsigned char *const objv[])
     proxy->output_prefix() = obj_to_str(objv[2]);
     int error = 0;
     error |= colvars->setup_output();
+    error |= colvars->write_restart_file(colvars->output_prefix()+
+                                         ".colvars.state");
     error |= colvars->write_output_files();
     return error ? COLVARSCRIPT_ERROR : COLVARS_OK;
   }
@@ -255,6 +254,10 @@ int colvarscript::run(int objc, unsigned char *const objv[])
     }
   }
 
+  if (cmd == "help") {
+    return exec_command(cv_help, NULL, objc, objv);
+  }
+
   result = "Syntax error\n" + help_string();
   return COLVARSCRIPT_ERROR;
 }
@@ -295,7 +298,9 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
     // colvar destructor is tasked with the cleanup
     delete cv;
     // TODO this could be done by the destructors
-    colvars->write_traj_label(*(colvars->cv_traj_os));
+    if (colvars->cv_traj_os != NULL) {
+      colvars->write_traj_label(*(colvars->cv_traj_os));
+    }
     return COLVARS_OK;
   }
 
@@ -374,7 +379,6 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
 
 int colvarscript::proc_bias(colvarbias *b, int objc, unsigned char *const objv[]) {
 
-  std::string const key(obj_to_str(objv[0]));
   std::string const subcmd(obj_to_str(objv[2]));
 
   if (subcmd == "energy") {
@@ -425,7 +429,9 @@ int colvarscript::proc_bias(colvarbias *b, int objc, unsigned char *const objv[]
     // the bias destructor takes care of the cleanup at cvm level
     delete b;
     // TODO this could be done by the destructors
-    colvars->write_traj_label(*(colvars->cv_traj_os));
+    if (colvars->cv_traj_os != NULL) {
+      colvars->write_traj_label(*(colvars->cv_traj_os));
+    }
     return COLVARS_OK;
   }
 
@@ -528,7 +534,7 @@ int colvarscript::proc_features(colvardeps *obj,
 }
 
 
-std::string colvarscript::help_string()
+std::string colvarscript::help_string() const
 {
   std::string buf;
   buf = "Usage: cv <subcommand> [args...]\n\
@@ -538,7 +544,7 @@ Managing the Colvars module:\n\
   config <string>             -- read configuration from the given string\n\
   reset                       -- delete all internal configuration\n\
   delete                      -- delete this Colvars module instance\n\
-  version                     -- return version of colvars code\n\
+  version                     -- return version of Colvars code\n\
   \n\
 Input and output:\n\
   list                        -- return a list of all variables\n\
@@ -564,6 +570,8 @@ Accessing collective variables:\n\
   colvar <name> type          -- return the type of colvar <name>\n\
   colvar <name> delete        -- delete colvar <name>\n\
   colvar <name> addforce <F>  -- apply given force on colvar <name>\n\
+  colvar <name> getappliedforce -- return applied force of colvar <name>\n\
+  colvar <name> gettotalforce -- return total force of colvar <name>\n\
   colvar <name> getconfig     -- return config string of colvar <name>\n\
   colvar <name> cvcflags <fl> -- enable or disable cvcs according to 0/1 flags\n\
   colvar <name> get <f>       -- get the value of the colvar feature <f>\n\

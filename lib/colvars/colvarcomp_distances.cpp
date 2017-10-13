@@ -1066,8 +1066,9 @@ void colvar::rmsd::calc_force_invgrads()
 void colvar::rmsd::calc_Jacobian_derivative()
 {
   // divergence of the rotated coordinates (including only derivatives of the rotation matrix)
-  cvm::real divergence = 0.0;
+  cvm::real rotation_term = 0.0;
 
+  // The rotation term only applies is coordinates are rotated
   if (atoms->b_rotate) {
 
     // gradient of the rotation matrix
@@ -1104,7 +1105,7 @@ void colvar::rmsd::calc_Jacobian_derivative()
 
       for (size_t alpha = 0; alpha < 3; alpha++) {
         for (size_t beta = 0; beta < 3; beta++) {
-          divergence += grad_rot_mat[beta][alpha][alpha] * y[beta];
+          rotation_term += grad_rot_mat[beta][alpha][alpha] * y[beta];
         // Note: equation was derived for inverse rotation (see colvars paper)
         // so here the matrix is transposed
         // (eq would give   divergence += grad_rot_mat[alpha][beta][alpha] * y[beta];)
@@ -1112,7 +1113,13 @@ void colvar::rmsd::calc_Jacobian_derivative()
       }
     }
   }
-  jd.real_value = x.real_value > 0.0 ? (3.0 * atoms->size() - 4.0 - divergence) / x.real_value : 0.0;
+
+  // The translation term only applies is coordinates are centered
+  cvm::real translation_term = atoms->b_center ? 3.0 : 0.0;
+
+  jd.real_value = x.real_value > 0.0 ?
+    (3.0 * atoms->size() - 1.0 - translation_term - rotation_term) / x.real_value :
+    0.0;
 }
 
 

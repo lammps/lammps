@@ -14,7 +14,7 @@ $(COLVARS_OBJ_DIR)colvarbias_abf.o: colvarbias_abf.cpp colvarmodule.h \
  lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
  lepton/include/lepton/Exception.h \
  lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarbias_abf.h colvarbias.h colvargrid.h
+ colvarbias_abf.h colvarbias.h colvargrid.h colvar_UIestimator.h
 $(COLVARS_OBJ_DIR)colvarbias_alb.o: colvarbias_alb.cpp colvarmodule.h \
  colvars_version.h colvartypes.h colvarproxy.h colvarvalue.h \
  colvarbias_alb.h colvar.h colvarparse.h colvardeps.h \
@@ -39,7 +39,8 @@ $(COLVARS_OBJ_DIR)colvarbias.o: colvarbias.cpp colvarmodule.h \
  lepton/include/lepton/ExpressionTreeNode.h \
  lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
  lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h
+ lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
+ colvargrid.h
 $(COLVARS_OBJ_DIR)colvarbias_histogram.o: colvarbias_histogram.cpp \
  colvarmodule.h colvars_version.h colvartypes.h colvarproxy.h \
  colvarvalue.h colvar.h colvarparse.h colvardeps.h \
@@ -198,9 +199,9 @@ $(COLVARS_OBJ_DIR)colvarmodule.o: colvarmodule.cpp colvarmodule.h \
  lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
  lepton/include/lepton/Exception.h \
  lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarbias.h colvarbias_abf.h colvargrid.h colvarbias_alb.h \
- colvarbias_histogram.h colvarbias_meta.h colvarbias_restraint.h \
- colvarscript.h colvaratoms.h
+ colvarbias.h colvarbias_abf.h colvargrid.h colvar_UIestimator.h \
+ colvarbias_alb.h colvarbias_histogram.h colvarbias_meta.h \
+ colvarbias_restraint.h colvarscript.h colvaratoms.h colvarcomp.h
 $(COLVARS_OBJ_DIR)colvarparse.o: colvarparse.cpp colvarmodule.h \
  colvars_version.h colvartypes.h colvarproxy.h colvarvalue.h \
  colvarparse.h

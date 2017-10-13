@@ -615,7 +615,7 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 
   double fraction,a,b;
   const Table *tb = &tables[tabindex[type]];
-  const int itable = static_cast<int> (x * tb->invdelta);
+  int itable = static_cast<int> (x * tb->invdelta);
 
   if (itable < 0) itable = 0;
   if (itable >= tablength) itable = tablength-1;
@@ -650,7 +650,7 @@ void AngleTable::u_lookup(int type, double x, double &u)
 
   double fraction,a,b;
   const Table *tb = &tables[tabindex[type]];
-  const int itable = static_cast<int> ( x * tb->invdelta);
+  int itable = static_cast<int> ( x * tb->invdelta);
 
   if (itable < 0) itable = 0;
   if (itable >= tablength) itable = tablength-1;

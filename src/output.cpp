@@ -844,9 +844,9 @@ void Output::memory_usage()
   MPI_Reduce(&mbytes,&mbavg,1,MPI_DOUBLE,MPI_SUM,0,world);
   MPI_Reduce(&mbytes,&mbmin,1,MPI_DOUBLE,MPI_MIN,0,world);
   MPI_Reduce(&mbytes,&mbmax,1,MPI_DOUBLE,MPI_MAX,0,world);
-  mbavg /= comm->nprocs;
 
   if (comm->me == 0) {
+    mbavg /= comm->nprocs;
     if (screen)
       fprintf(screen,"Per MPI rank memory allocation (min/avg/max) = "
               "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);

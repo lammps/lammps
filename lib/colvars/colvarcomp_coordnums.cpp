@@ -87,6 +87,12 @@ colvar::coordnum::coordnum(std::string const &conf)
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
 
+  if (int atom_number = cvm::atom_group::overlap(*group1, *group2)) {
+    cvm::error("Error: group1 and group2 share a common atom (number: " +
+      cvm::to_str(atom_number) + ")\n");
+    return;
+  }
+
   if (group1->b_dummy) {
     cvm::error("Error: only group2 is allowed to be a dummy atom\n");
     return;

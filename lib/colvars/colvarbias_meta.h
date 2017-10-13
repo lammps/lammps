@@ -19,7 +19,10 @@
 #include "colvargrid.h"
 
 /// Metadynamics bias (implementation of \link colvarbias \endlink)
-class colvarbias_meta : public colvarbias {
+class colvarbias_meta 
+  : public virtual colvarbias, 
+    public virtual colvarbias_ti
+{
 
 public:
 
@@ -35,10 +38,13 @@ public:
   Communication comm;
 
   colvarbias_meta(char const *key);
+  virtual ~colvarbias_meta();
+
   virtual int init(std::string const &conf);
   virtual int init_well_tempered_params(std::string const &conf);
   virtual int init_ebmeta_params(std::string const &conf);
-  virtual ~colvarbias_meta();
+
+  virtual int clear_state_data();
 
   virtual int update();
   virtual int update_grid_params();

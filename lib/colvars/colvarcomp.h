@@ -140,7 +140,12 @@ public:
   {
     return cvc_features;
   }
-
+  static void delete_features() {
+    for (size_t i=0; i < cvc_features.size(); i++) {
+      delete cvc_features[i];
+    }
+    cvc_features.clear();
+  }
 
   /// \brief Obtain data needed for the calculation for the backend
   virtual void read_data();

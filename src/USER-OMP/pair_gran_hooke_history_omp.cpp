@@ -14,6 +14,7 @@
 
 #include <math.h>
 #include "pair_gran_hooke_history_omp.h"
+#include "fix_neigh_history.h"
 #include "atom.h"
 #include "comm.h"
 #include "fix.h"

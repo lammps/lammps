@@ -41,10 +41,7 @@ void NPairCopyKokkos<DeviceType>::build(NeighList *list)
   list->gnum = listcopy->gnum;
   list->ilist = listcopy->ilist;
   list->numneigh = listcopy->numneigh;
-  list->firstneigh = listcopy->firstneigh;
-  list->firstdouble = listcopy->firstdouble;
   list->ipage = listcopy->ipage;
-  list->dpage = listcopy->dpage;
 
   NeighListKokkos<DeviceType>* list_kk = (NeighListKokkos<DeviceType>*) list;
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) list->listcopy;

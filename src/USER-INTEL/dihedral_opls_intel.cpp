@@ -427,7 +427,7 @@ void DihedralOPLSIntel::pack_force_const(ForceConst<flt_t> &fc,
   const int bp1 = atom->ndihedraltypes + 1;
   fc.set_ntypes(bp1,memory);
 
-  for (int i = 0; i < bp1; i++) {
+  for (int i = 1; i < bp1; i++) {
     fc.bp[i].k1 = k1[i];
     fc.bp[i].k2 = k2[i];
     fc.bp[i].k3 = k3[i];

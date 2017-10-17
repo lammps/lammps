@@ -35,6 +35,9 @@ class NeighList : protected Pointers {
   int ghost;                       // 1 if list stores neighbors of ghosts
   int ssa;                         // 1 if list stores Shardlow data
   int history;                     // 1 if there is neigh history (FixNeighHist)
+  int respaouter;                  // 1 if list is a rRespa outer list
+  int respamiddle;                 // 1 if there is also a rRespa middle list
+  int respainner;                  // 1 if there is also a rRespa inner list
   int copy;                        // 1 if this list is copied from another list
   int copymode;                    // 1 if this is a Kokkos on-device copy
 
@@ -51,6 +54,23 @@ class NeighList : protected Pointers {
   int oneatom;                     // max size for one atom
   MyPage<int> *ipage;              // pages of neighbor indices
 
+  // data structs to store rRESPA neighbor pairs I,J and associated values
+
+  int inum_inner;                  // # of I atoms neighbors are stored for
+  int gnum_inner;                  // # of ghost atoms neighbors are stored for
+  int *ilist_inner;                // local indices of I atoms
+  int *numneigh_inner;             // # of J neighbors for each I atom
+  int **firstneigh_inner;          // ptr to 1st J int value of each I atom
+
+  int inum_middle;                 // # of I atoms neighbors are stored for
+  int gnum_middle;                 // # of ghost atoms neighbors are stored for
+  int *ilist_middle;               // local indices of I atoms
+  int *numneigh_middle;            // # of J neighbors for each I atom
+  int **firstneigh_middle;         // ptr to 1st J int value of each I atom
+
+  MyPage<int> *ipage_inner;        // pages of neighbor indices for inner
+  MyPage<int> *ipage_middle;       // pages of neighbor indices for middle
+
   // atom types to skip when building list
   // copied info from corresponding request into realloced vec/array
 
@@ -62,10 +82,6 @@ class NeighList : protected Pointers {
   NeighList *listcopy;          // me = copy list, point to list I copy from
   NeighList *listskip;          // me = skip list, point to list I skip from
   NeighList *listfull;          // me = half list, point to full I derive from
-
-  int respamiddle;              // 1 if this respaouter has middle list
-  NeighList *listinner;         // me = respaouter, point to respainner
-  NeighList *listmiddle;        // me = respaouter, point to respamiddle
 
   class Fix *fix_bond;          // fix that stores bond info
 

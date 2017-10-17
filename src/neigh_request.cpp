@@ -86,9 +86,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   copylist = -1;
   halffull = 0;
   halffulllist = -1;
-  respaouterlist = -1;
-  respamiddlelist = -1;
-  respainnerlist = -1;
   unique = 0;
 
   // internal settings

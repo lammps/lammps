@@ -204,7 +204,7 @@ class Neighbor : protected Pointers {
   int init_pair();
   virtual void init_topology();
 
-  void morph_other();
+  void morph_unique();
   void morph_skip();
   void morph_granular();
   void morph_halffull();

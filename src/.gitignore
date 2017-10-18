@@ -185,6 +185,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
+/bond_gromos.cpp
+/bond_gromos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
 /bond_harmonic_shift.cpp

@@ -515,7 +515,7 @@ pair_zero.html
 bond_class2.html
 bond_fene.html
 bond_fene_expand.html
-bond_oxdna.html
+bond_gromos.html
 bond_harmonic.html
 bond_harmonic_shift.html
 bond_harmonic_shift_cut.html
@@ -523,6 +523,7 @@ bond_hybrid.html
 bond_morse.html
 bond_none.html
 bond_nonlinear.html
+bond_oxdna.html
 bond_quartic.html
 bond_table.html
 bond_zero.html

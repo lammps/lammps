@@ -1111,6 +1111,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "class2 (ko)"_bond_class2.html,
 "fene (iko)"_bond_fene.html,
 "fene/expand (o)"_bond_fene_expand.html,
+"gromos (o)"_bond_gromos.html,
 "harmonic (ko)"_bond_harmonic.html,
 "morse (o)"_bond_morse.html,
 "nonlinear (o)"_bond_nonlinear.html,

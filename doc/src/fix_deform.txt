@@ -86,11 +86,16 @@ Change the volume and/or shape of the simulation box during a dynamics
 run.  Orthogonal simulation boxes have 3 adjustable parameters
 (x,y,z).  Triclinic (non-orthogonal) simulation boxes have 6
 adjustable parameters (x,y,z,xy,xz,yz).  Any or all of them can be
-adjusted independently and simultaneously by this command.  This fix
-can be used to perform non-equilibrium MD (NEMD) simulations of a
-continuously strained system.  See the "fix
+adjusted independently and simultaneously by this command.  
+
+This fix can be used to perform non-equilibrium MD (NEMD) simulations
+of a continuously strained system.  See the "fix
 nvt/sllod"_fix_nvt_sllod.html and "compute
-temp/deform"_compute_temp_deform.html commands for more details.
+temp/deform"_compute_temp_deform.html commands for more details.  Note
+that simulation of a continuously extended (extensional flow) system
+can be modeled using the "USER-UEF
+package"_Section_packages.html#USER-UEF and its "fix
+commands"_fix_nh_uef.html.
 
 For the {x}, {y}, {z} parameters, the associated dimension cannot be
 shrink-wrapped.  For the {xy}, {yz}, {xz} parameters, the associated

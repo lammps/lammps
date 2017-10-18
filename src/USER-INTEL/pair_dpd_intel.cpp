@@ -531,8 +531,8 @@ void PairDPDIntel::pack_force_const(ForceConst<flt_t> &fc,
     fc.special_lj[0] = 1.0;
   }
 
-  for (int i = 0; i < tp1; i++) {
-    for (int j = 0; j < tp1; j++) {
+  for (int i = 1; i < tp1; i++) {
+    for (int j = 1; j < tp1; j++) {
       fc.param[i][j].a0 = a0[i][j];
       fc.param[i][j].gamma = gamma[i][j];
       fc.param[i][j].sigma = sigma[i][j];

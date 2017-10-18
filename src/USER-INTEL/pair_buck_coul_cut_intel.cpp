@@ -458,8 +458,8 @@ void PairBuckCoulCutIntel::pack_force_const(ForceConst<flt_t> &fc,
     fc.special_lj[0] = 1.0;
   }
 
-  for (int i = 0; i < tp1; i++) {
-    for (int j = 0; j < tp1; j++) {
+  for (int i = 1; i < tp1; i++) {
+    for (int j = 1; j < tp1; j++) {
       fc.c_cut[i][j].cutsq = cutsq[i][j];
       fc.c_cut[i][j].cut_ljsq = cut_ljsq[i][j];
       fc.c_cut[i][j].cut_coulsq = cut_coulsq[i][j];

@@ -942,8 +942,8 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
   buffers->set_ntypes(tp1);
 
   if (weightflag) {
-    for (int i = 0; i < tp1; i++) {
-      for (int j = 0; j < tp1; j++) {
+    for (int i = 1; i < tp1; i++) {
+      for (int j = 1; j < tp1; j++) {
         fc.ljp[i][j].lj1 = lj14_1[i][j];
         fc.ljp[i][j].lj2 = lj14_2[i][j];
         fc.ljp[i][j].lj3 = lj14_3[i][j];
@@ -952,7 +952,7 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
     }
   }
 
-  for (int i = 0; i < bp1; i++) {
+  for (int i = 1; i < bp1; i++) {
     fc.bp[i].multiplicity = multiplicity[i];
     fc.bp[i].cos_shift = cos_shift[i];
     fc.bp[i].sin_shift = sin_shift[i];

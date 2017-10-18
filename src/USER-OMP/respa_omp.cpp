@@ -108,6 +108,7 @@ void RespaOMP::setup()
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
   neighbor->build();
+  modify->setup_post_neighbor();
   neighbor->ncalls = 0;
 
   // compute all forces
@@ -200,6 +201,7 @@ void RespaOMP::setup_minimal(int flag)
     domain->box_too_small_check();
     modify->setup_pre_neighbor();
     neighbor->build();
+    modify->setup_post_neighbor();
     neighbor->ncalls = 0;
   }
 
@@ -311,6 +313,10 @@ void RespaOMP::recurse(int ilevel)
         }
         neighbor->build();
         timer->stamp(Timer::NEIGH);
+        if (modify->n_post_neighbor) {
+          modify->post_neighbor();
+          timer->stamp(Timer::MODIFY);
+        }
       } else if (ilevel == 0) {
         timer->stamp();
         comm->forward_comm();

@@ -2777,8 +2777,8 @@ USER-UEF package :link(USER-UEF),h4
 [Contents:]
 
 A fix style for the integration of the equations of motion under
-extensional flow with proper boundary conditions, as well 
-as several supporting compute styles and an output option.
+extensional flow with proper boundary conditions, as well as several
+supporting compute styles and an output option.
 
 [Author:] David Nicholson (MIT).
 
@@ -2807,9 +2807,9 @@ USER-VTK package :link(USER-VTK),h4
 
 [Contents:]
 
-A "dump vtk"_dump_vtk.html command which outputs
-snapshot info in the "VTK format"_vtk, enabling visualization by
-"Paraview"_paraview or other visuzlization packages.
+A "dump vtk"_dump_vtk.html command which outputs snapshot info in the
+"VTK format"_vtk, enabling visualization by "Paraview"_paraview or
+other visuzlization packages.
 
 :link(vtk,http://www.vtk.org)
 :link(paraview,http://www.paraview.org)

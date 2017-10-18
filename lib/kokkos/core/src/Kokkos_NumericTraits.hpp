@@ -192,7 +192,7 @@ template<>
 struct reduction_identity<float> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static float sum()  {return static_cast<float>(0.0f);}
   KOKKOS_FORCEINLINE_FUNCTION constexpr static float prod() {return static_cast<float>(1.0f);}
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static float max()  {return FLT_MIN;}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float max()  {return -FLT_MAX;}
   KOKKOS_FORCEINLINE_FUNCTION constexpr static float min()  {return FLT_MAX;}
 };
 
@@ -200,7 +200,7 @@ template<>
 struct reduction_identity<double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static double sum()  {return static_cast<double>(0.0);}
   KOKKOS_FORCEINLINE_FUNCTION constexpr static double prod() {return static_cast<double>(1.0);}
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static double max()  {return DBL_MIN;}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static double max()  {return -DBL_MAX;}
   KOKKOS_FORCEINLINE_FUNCTION constexpr static double min()  {return DBL_MAX;}
 };
 
@@ -208,7 +208,7 @@ template<>
 struct reduction_identity<long double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long double sum()  {return static_cast<long double>(0.0);}
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long double prod() {return static_cast<long double>(1.0);}
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static long double max()  {return LDBL_MIN;}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static long double max()  {return -LDBL_MAX;}
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long double min()  {return LDBL_MAX;}
 };
 

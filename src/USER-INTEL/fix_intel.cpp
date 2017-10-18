@@ -285,6 +285,7 @@ int FixIntel::setmask()
 {
   int mask = 0;
   mask |= PRE_REVERSE;
+  mask |= MIN_PRE_REVERSE;
   #ifdef _LMP_INTEL_OFFLOAD
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;

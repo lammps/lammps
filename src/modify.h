@@ -29,12 +29,13 @@ class Modify : protected Pointers {
 
  public:
   int nfix,maxfix;
-  int n_initial_integrate,n_post_integrate,n_pre_exchange,n_pre_neighbor;
+  int n_initial_integrate,n_post_integrate,n_pre_exchange;
+  int n_pre_neighbor,n_post_neighbor;
   int n_pre_force,n_pre_reverse,n_post_force;
   int n_final_integrate,n_end_of_step,n_thermo_energy,n_thermo_energy_atom;
   int n_initial_integrate_respa,n_post_integrate_respa;
   int n_pre_force_respa,n_post_force_respa,n_final_integrate_respa;
-  int n_min_pre_exchange,n_min_pre_neighbor;
+  int n_min_pre_exchange,n_min_pre_neighbor,n_min_post_neighbor;
   int n_min_pre_force,n_min_pre_reverse,n_min_post_force,n_min_energy;
 
   int restart_pbc_any;       // 1 if any fix sets restart_pbc
@@ -53,12 +54,14 @@ class Modify : protected Pointers {
   virtual void setup(int);
   virtual void setup_pre_exchange();
   virtual void setup_pre_neighbor();
+  virtual void setup_post_neighbor();
   virtual void setup_pre_force(int);
   virtual void setup_pre_reverse(int, int);
   virtual void initial_integrate(int);
   virtual void post_integrate();
   virtual void pre_exchange();
   virtual void pre_neighbor();
+  virtual void post_neighbor();
   virtual void pre_force(int);
   virtual void pre_reverse(int,int);
   virtual void post_force(int);
@@ -78,6 +81,7 @@ class Modify : protected Pointers {
 
   virtual void min_pre_exchange();
   virtual void min_pre_neighbor();
+  virtual void min_post_neighbor();
   virtual void min_pre_force(int);
   virtual void min_pre_reverse(int,int);
   virtual void min_post_force(int);
@@ -95,6 +99,7 @@ class Modify : protected Pointers {
   void add_fix(int, char **, int trysuffix=1);
   void modify_fix(int, char **);
   void delete_fix(const char *);
+  void delete_fix(int);
   int find_fix(const char *);
   int find_fix_by_style(const char *);
   int check_package(const char *);
@@ -122,14 +127,14 @@ class Modify : protected Pointers {
   // lists of fixes to apply at different stages of timestep
 
   int *list_initial_integrate,*list_post_integrate;
-  int *list_pre_exchange,*list_pre_neighbor;
+  int *list_pre_exchange,*list_pre_neighbor,*list_post_neighbor;
   int *list_pre_force,*list_pre_reverse,*list_post_force;
   int *list_final_integrate,*list_end_of_step,*list_thermo_energy;
   int *list_thermo_energy_atom;
   int *list_initial_integrate_respa,*list_post_integrate_respa;
   int *list_pre_force_respa,*list_post_force_respa;
   int *list_final_integrate_respa;
-  int *list_min_pre_exchange,*list_min_pre_neighbor;
+  int *list_min_pre_exchange,*list_min_pre_neighbor,*list_min_post_neighbor;
   int *list_min_pre_force,*list_min_pre_reverse,*list_min_post_force;
   int *list_min_energy;
 

@@ -353,7 +353,14 @@ struct CountAndFill {
   struct Fill {};
   KOKKOS_INLINE_FUNCTION void operator()(Fill, size_type i) const {
     auto j = m_crs.row_map(i);
-    data_type* fill = &(m_crs.entries(j));
+    /* we don't want to access entries(entries.size()), even if its just to get its
+       address and never use it.
+       this can happen when row (i) is empty and all rows after it are also empty.
+       we could compare to row_map(i + 1), but that is a read from global memory,
+       whereas dimension_0() should be part of the View in registers (or constant memory) */
+    data_type* fill =
+      (j == static_cast<decltype(j)>(m_crs.entries.dimension_0())) ?
+      nullptr : (&(m_crs.entries(j)));
     m_functor(i, fill);
   }
   using self_type = CountAndFill<CrsType, Functor>;

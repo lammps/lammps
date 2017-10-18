@@ -17,8 +17,6 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -32,7 +30,6 @@ NPairHalfSizeBinNewtonTriOmp::NPairHalfSizeBinNewtonTriOmp(LAMMPS *lmp) :
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with Newton's 3rd law for triclinic
-   no shear history is allowed for this option
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
@@ -40,6 +37,8 @@ NPairHalfSizeBinNewtonTriOmp::NPairHalfSizeBinNewtonTriOmp(LAMMPS *lmp) :
 void NPairHalfSizeBinNewtonTriOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int history = list->history;
+  const int mask_history = 3 << SBBITS;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -105,7 +104,12 @@ void NPairHalfSizeBinNewtonTriOmp::build(NeighList *list)
         radsum = radi + radius[j];
         cutsq = (radsum+skin) * (radsum+skin);
 
-        if (rsq <= cutsq) neighptr[n++] = j;
+        if (rsq <= cutsq) {
+          if (history && rsq < radsum*radsum)
+            neighptr[n++] = j ^ mask_history;
+          else
+            neighptr[n++] = j;
+        }
       }
     }
 

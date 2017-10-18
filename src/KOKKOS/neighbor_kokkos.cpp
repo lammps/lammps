@@ -206,7 +206,6 @@ int NeighborKokkos::check_distance_kokkos()
   int flag = 0;
   copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighborCheckDistance<DeviceType> >(0,nlocal),*this,flag);
-  DeviceType::fence();
   copymode = 0;
 
   int flagall;
@@ -273,7 +272,6 @@ void NeighborKokkos::build_kokkos(int topoflag)
     }
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNeighborXhold<DeviceType> >(0,nlocal),*this);
-    DeviceType::fence();
     copymode = 0;
     xhold.modify<DeviceType>();
     if (boxcheck) {
@@ -312,9 +310,9 @@ void NeighborKokkos::build_kokkos(int topoflag)
   // build pairwise lists for all perpetual NPair/NeighList
   // grow() with nlocal/nall args so that only realloc if have to
 
-  atomKK->sync(Host,ALL_MASK);
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
+    if (!lists[m]->kokkos) atomKK->sync(Host,ALL_MASK);
     if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
@@ -387,16 +385,6 @@ void NeighborKokkos::build_topology() {
     k_dihedrallist = neighbond_device.k_dihedrallist;
     k_improperlist = neighbond_device.k_improperlist;
 
-    k_bondlist.sync<LMPDeviceType>();
-    k_anglelist.sync<LMPDeviceType>();
-    k_dihedrallist.sync<LMPDeviceType>();
-    k_improperlist.sync<LMPDeviceType>();
-
-    k_bondlist.modify<LMPDeviceType>();
-    k_anglelist.modify<LMPDeviceType>();
-    k_dihedrallist.modify<LMPDeviceType>();
-    k_improperlist.modify<LMPDeviceType>();
-
     // Transfer topology neighbor lists to Host for non-Kokkos styles
  
     if (force->bond && force->bond->execution_space == Host)
@@ -415,15 +403,5 @@ void NeighborKokkos::build_topology() {
     k_anglelist = neighbond_host.k_anglelist;
     k_dihedrallist = neighbond_host.k_dihedrallist;
     k_improperlist = neighbond_host.k_improperlist;
-
-    k_bondlist.sync<LMPHostType>();
-    k_anglelist.sync<LMPHostType>();
-    k_dihedrallist.sync<LMPHostType>();
-    k_improperlist.sync<LMPHostType>();
-
-    k_bondlist.modify<LMPHostType>();
-    k_anglelist.modify<LMPHostType>();
-    k_dihedrallist.modify<LMPHostType>();
-    k_improperlist.modify<LMPHostType>();
   }
 }

@@ -246,6 +246,7 @@ void Min::setup(int flag)
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
   neighbor->build();
+  modify->setup_post_neighbor();
   neighbor->ncalls = 0;
 
   // remove these restriction eventually
@@ -345,6 +346,7 @@ void Min::setup_minimal(int flag)
     domain->box_too_small_check();
     modify->setup_pre_neighbor();
     neighbor->build();
+    modify->setup_post_neighbor();
     neighbor->ncalls = 0;
   }
 
@@ -503,12 +505,15 @@ double Min::energy_force(int resetflag)
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(Timer::COMM);
     if (modify->n_min_pre_neighbor) {
-      timer->stamp();
       modify->min_pre_neighbor();
       timer->stamp(Timer::MODIFY);
     }
     neighbor->build();
     timer->stamp(Timer::NEIGH);
+    if (modify->n_min_post_neighbor) {
+      modify->min_post_neighbor();
+      timer->stamp(Timer::MODIFY);
+    }
   }
 
   ev_set(update->ntimestep);

@@ -43,6 +43,7 @@ class FixIntel : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
+  inline void min_setup(int in) { setup(in); }
   void setup_pre_reverse(int eflag = 0, int vflag = 0);
 
   void pair_init_check(const bool cdmessage=false);
@@ -50,6 +51,8 @@ class FixIntel : public Fix {
   void kspace_init_check();
 
   void pre_reverse(int eflag = 0, int vflag = 0);
+  inline void min_pre_reverse(int eflag = 0, int vflag = 0)
+    { pre_reverse(eflag, vflag); }
 
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();

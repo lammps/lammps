@@ -207,7 +207,13 @@ void ReadRestart::command(int narg, char **arg)
     memory->create(buf,assignedChunkSize,"read_restart:buf");
     mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
     mpiio->close();
-
+    if (!nextra) { // We can actually calculate number of atoms from assignedChunkSize
+      atom->nlocal = 1; // temporarily claim there is one atom...
+      int perAtomSize = avec->size_restart(); // ...so we can get its size
+      atom->nlocal = 0; // restore nlocal to zero atoms
+      int atomCt = (int) (assignedChunkSize / perAtomSize);
+      if (atomCt > atom->nmax) avec->grow(atomCt);
+    }
     m = 0;
     while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }
@@ -1010,6 +1016,7 @@ void ReadRestart::file_layout()
         // if the number of ranks that did the writing is different
 
         if (me == 0) {
+          int ndx;
           int *all_written_send_sizes;
           memory->create(all_written_send_sizes,nprocs_file,
                          "write_restart:all_written_send_sizes");
@@ -1019,30 +1026,61 @@ void ReadRestart::file_layout()
 
           fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
 
-          int init_chunk_number = nprocs_file/nprocs;
-          int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
+          if ((nprocs != nprocs_file) && !(atom->nextra_store)) {
+            // nprocs differ, but atom sizes are fixed length, yeah!
+            atom->nlocal = 1; // temporarily claim there is one atom...
+            int perAtomSize = atom->avec->size_restart(); // ...so we can get its size
+            atom->nlocal = 0; // restore nlocal to zero atoms
 
-          for (int i = 0; i < nprocs; i++) {
-            if (i < num_extra_chunks)
-              nproc_chunk_number[i] = init_chunk_number+1;
-            else
-              nproc_chunk_number[i] = init_chunk_number;
-          }
+            bigint total_size = 0;
+            for (int i = 0; i < nprocs_file; ++i) {
+              total_size += all_written_send_sizes[i];
+            }
+            bigint total_ct = total_size / perAtomSize;
 
-          int all_written_send_sizes_index = 0;
-          bigint current_offset = 0;
-          for (int i=0;i<nprocs;i++) {
-            nproc_chunk_offsets[i] = current_offset;
-            nproc_chunk_sizes[i] = 0;
-            for (int j=0;j<nproc_chunk_number[i];j++) {
-              nproc_chunk_sizes[i] +=
-                all_written_send_sizes[all_written_send_sizes_index];
-              current_offset +=
-                (all_written_send_sizes[all_written_send_sizes_index] *
-                 sizeof(double));
-              all_written_send_sizes_index++;
+            bigint base_ct = total_ct / nprocs;
+            bigint leftover_ct = total_ct  - (base_ct * nprocs);
+            bigint current_ByteOffset = 0;
+            base_ct += 1;
+            bigint base_ByteOffset = base_ct * (perAtomSize * sizeof(double));
+            for (ndx = 0; ndx < leftover_ct; ++ndx) {
+              nproc_chunk_offsets[ndx] = current_ByteOffset;
+              nproc_chunk_sizes[ndx] = base_ct * perAtomSize;
+              current_ByteOffset += base_ByteOffset;
+            }
+            base_ct -= 1;
+            base_ByteOffset -= (perAtomSize * sizeof(double));
+            for (; ndx < nprocs; ++ndx) {
+              nproc_chunk_offsets[ndx] = current_ByteOffset;
+              nproc_chunk_sizes[ndx] = base_ct * perAtomSize;
+              current_ByteOffset += base_ByteOffset;
+            }
+          } else { // we have to read in based on how it was written
+            int init_chunk_number = nprocs_file/nprocs;
+            int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
+
+            for (int i = 0; i < nprocs; i++) {
+              if (i < num_extra_chunks)
+                nproc_chunk_number[i] = init_chunk_number+1;
+              else
+                nproc_chunk_number[i] = init_chunk_number;
             }
 
+            int all_written_send_sizes_index = 0;
+            bigint current_offset = 0;
+            for (int i=0;i<nprocs;i++) {
+              nproc_chunk_offsets[i] = current_offset;
+              nproc_chunk_sizes[i] = 0;
+              for (int j=0;j<nproc_chunk_number[i];j++) {
+                nproc_chunk_sizes[i] +=
+                  all_written_send_sizes[all_written_send_sizes_index];
+                current_offset +=
+                  (all_written_send_sizes[all_written_send_sizes_index] *
+                   sizeof(double));
+                all_written_send_sizes_index++;
+              }
+
+            }
           }
           memory->destroy(all_written_send_sizes);
           memory->destroy(nproc_chunk_number);

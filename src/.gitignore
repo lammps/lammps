@@ -46,6 +46,7 @@
 
 /colvarproxy_lammps.cpp
 /colvarproxy_lammps.h
+/colvarproxy_lammps_version.h
 /fix_colvars.cpp
 /fix_colvars.h
 /dump_molfile.cpp
@@ -101,6 +102,15 @@
 /pair_snap.h
 /sna.cpp
 /sna.h
+
+/uef_*.cpp
+/uef_*.h
+/compute_*uef.cpp
+/compute_*uef.h
+/dump_*uef.cpp
+/dump_*uef.h
+/fix_*uef.cpp
+/fix_*uef.h
 
 /atom_vec_wavepacket.cpp
 /atom_vec_wavepacket.h
@@ -184,6 +194,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
+/bond_gromos.cpp
+/bond_gromos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
 /bond_harmonic_shift.cpp
@@ -404,6 +416,8 @@
 /fix_lambdah_calc.h
 /fix_langevin_eff.cpp
 /fix_langevin_eff.h
+/fix_latte.cpp
+/fix_latte.h
 /fix_lb_fluid.cpp
 /fix_lb_fluid.h
 /fix_lb_momentum.cpp
@@ -502,6 +516,8 @@
 /fix_reaxc_bonds.h
 /fix_reaxc_species.cpp
 /fix_reaxc_species.h
+/fix_rhok.cpp
+/fix_rhok.h
 /fix_rigid.cpp
 /fix_rigid.h
 /fix_rigid_nh.cpp
@@ -958,6 +974,8 @@
 /temper.h
 /temper_grem.cpp
 /temper_grem.h
+/temper_npt.cpp
+/temper_npt.h
 /thr_data.cpp
 /thr_data.h
 /verlet_split.cpp

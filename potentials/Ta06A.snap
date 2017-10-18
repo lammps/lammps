@@ -2,7 +2,7 @@
 
 # Definition of SNAP potential Ta_Cand06A
 # Assumes 1 LAMMPS atom type
- 
+
 variable zblcutinner equal 4
 variable zblcutouter equal 4.8
 variable zblz equal 73

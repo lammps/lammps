@@ -37,6 +37,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -370,6 +371,7 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"nghost") == 0) return (void *) &lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
+  if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
@@ -383,6 +385,28 @@ void *lammps_extract_global(void *ptr, char *name)
 
   if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
   if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
+
+  // global constants defined by units
+
+  if (strcmp(name,"boltz") == 0) return (void *) &lmp->force->boltz;
+  if (strcmp(name,"hplanck") == 0) return (void *) &lmp->force->hplanck;
+  if (strcmp(name,"mvv2e") == 0) return (void *) &lmp->force->mvv2e;
+  if (strcmp(name,"ftm2v") == 0) return (void *) &lmp->force->ftm2v;
+  if (strcmp(name,"mv2d") == 0) return (void *) &lmp->force->mv2d;
+  if (strcmp(name,"nktv2p") == 0) return (void *) &lmp->force->nktv2p;
+  if (strcmp(name,"qqr2e") == 0) return (void *) &lmp->force->qqr2e;
+  if (strcmp(name,"qe2f") == 0) return (void *) &lmp->force->qe2f;
+  if (strcmp(name,"vxmu2f") == 0) return (void *) &lmp->force->vxmu2f;
+  if (strcmp(name,"xxt2kmu") == 0) return (void *) &lmp->force->xxt2kmu;
+  if (strcmp(name,"dielectric") == 0) return (void *) &lmp->force->dielectric;
+  if (strcmp(name,"qqrd2e") == 0) return (void *) &lmp->force->qqrd2e;
+  if (strcmp(name,"e_mass") == 0) return (void *) &lmp->force->e_mass;
+  if (strcmp(name,"hhmrr2e") == 0) return (void *) &lmp->force->hhmrr2e;
+  if (strcmp(name,"mvh2r") == 0) return (void *) &lmp->force->mvh2r;
+
+  if (strcmp(name,"angstrom") == 0) return (void *) &lmp->force->angstrom;
+  if (strcmp(name,"femtosecond") == 0) return (void *) &lmp->force->femtosecond;
+  if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   return NULL;
 }

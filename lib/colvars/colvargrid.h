@@ -1403,6 +1403,15 @@ public:
   /// Constructor from a vector of colvars
   colvar_grid_gradient(std::vector<colvar *>  &colvars);
 
+  /// \brief Accumulate the value
+  inline void acc_value(std::vector<int> const &ix, std::vector<colvarvalue> const &values) {
+    for (size_t imult = 0; imult < mult; imult++) {
+      data[address(ix) + imult] += values[imult].real_value;
+    }
+    if (samples)
+      samples->incr_count(ix);
+  }
+
   /// \brief Accumulate the gradient
   inline void acc_grad(std::vector<int> const &ix, cvm::real const *grads) {
     for (size_t imult = 0; imult < mult; imult++) {

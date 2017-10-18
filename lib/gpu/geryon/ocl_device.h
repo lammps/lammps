@@ -140,8 +140,13 @@ class UCL_Device {
   inline void push_command_queue() {
     cl_int errorv;
     _cq.push_back(cl_command_queue());
-    _cq.back()=clCreateCommandQueue(_context,_cl_device,
-                                    CL_QUEUE_PROFILING_ENABLE,&errorv);
+
+#ifdef CL_VERSION_2_0
+    cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
+    _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props, &errorv);
+#else
+    _cq.back()=clCreateCommandQueue(_context, _cl_device, CL_QUEUE_PROFILING_ENABLE, &errorv);
+#endif
     if (errorv!=CL_SUCCESS) {
       std::cerr << "Could not create command queue on device: " << name()
                 << std::endl;

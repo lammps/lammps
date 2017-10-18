@@ -348,10 +348,10 @@ void DihedralOPLSKokkos<DeviceType>::allocate()
   k_k3 = DAT::tdual_ffloat_1d("DihedralOPLS::k3",n+1);
   k_k4 = DAT::tdual_ffloat_1d("DihedralOPLS::k4",n+1);
 
-  d_k1 = k_k1.d_view;
-  d_k2 = k_k2.d_view;
-  d_k3 = k_k3.d_view;
-  d_k4 = k_k4.d_view;
+  d_k1 = k_k1.template view<DeviceType>();
+  d_k2 = k_k2.template view<DeviceType>();
+  d_k3 = k_k3.template view<DeviceType>();
+  d_k4 = k_k4.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

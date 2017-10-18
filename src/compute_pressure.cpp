@@ -147,7 +147,7 @@ void ComputePressure::init()
   if (improperflag && atom->molecular && force->improper) nvirial++;
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->virial_flag) nvirial++;
+      if (modify->fix[i]->thermo_virial) nvirial++;
 
   if (nvirial) {
     vptr = new double*[nvirial];
@@ -161,7 +161,7 @@ void ComputePressure::init()
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
       for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->virial_flag)
+        if (modify->fix[i]->thermo_virial)
           vptr[nvirial++] = modify->fix[i]->virial;
   }
 

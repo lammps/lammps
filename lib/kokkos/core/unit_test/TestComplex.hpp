@@ -114,7 +114,7 @@ struct TestComplexBasicMath {
   typename Kokkos::View<Kokkos::complex<double>*,ExecSpace>::HostMirror h_results;
 
   void testit () {
-    d_results = Kokkos::View<Kokkos::complex<double>*,ExecSpace>("TestComplexBasicMath",20);
+    d_results = Kokkos::View<Kokkos::complex<double>*,ExecSpace>("TestComplexBasicMath",24);
     h_results = Kokkos::create_mirror_view(d_results);
 
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace>(0,1), *this);
@@ -125,6 +125,7 @@ struct TestComplexBasicMath {
     std::complex<double> b(3.25,5.75);
     std::complex<double> d(1.0,2.0);
     double c = 9.3;
+    int e = 2;
 
     std::complex<double> r;
     r = a+b; ASSERT_FLOAT_EQ(h_results(0).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(0).imag(),  r.imag());
@@ -147,6 +148,12 @@ struct TestComplexBasicMath {
     r = c-a; ASSERT_FLOAT_EQ(h_results(17).real(), r.real()); ASSERT_FLOAT_EQ(h_results(17).imag(), r.imag());
     r = c*a; ASSERT_FLOAT_EQ(h_results(18).real(), r.real()); ASSERT_FLOAT_EQ(h_results(18).imag(), r.imag());
     r = c/a; ASSERT_FLOAT_EQ(h_results(19).real(), r.real()); ASSERT_FLOAT_EQ(h_results(19).imag(), r.imag());
+
+    r = a; 
+    /* r = a+e; */ ASSERT_FLOAT_EQ(h_results(20).real(),  r.real()+e); ASSERT_FLOAT_EQ(h_results(20).imag(),  r.imag());
+    /* r = a-e; */ ASSERT_FLOAT_EQ(h_results(21).real(),  r.real()-e); ASSERT_FLOAT_EQ(h_results(21).imag(),  r.imag());
+    /* r = a*e; */ ASSERT_FLOAT_EQ(h_results(22).real(),  r.real()*e); ASSERT_FLOAT_EQ(h_results(22).imag(),  r.imag()*e);
+    /* r = a/e; */ ASSERT_FLOAT_EQ(h_results(23).real(),  r.real()/2); ASSERT_FLOAT_EQ(h_results(23).imag(),  r.imag()/e);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -190,6 +197,12 @@ struct TestComplexBasicMath {
     d_results(17) = c-a;
     d_results(18) = c*a;
     d_results(19) = c/a;
+
+    int e = 2;
+    d_results(20) = a+e;
+    d_results(21) = a-e;
+    d_results(22) = a*e;
+    d_results(23) = a/e;
   }
 };
 

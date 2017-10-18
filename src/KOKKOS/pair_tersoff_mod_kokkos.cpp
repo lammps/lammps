@@ -76,7 +76,7 @@ void PairTersoffMODKokkos<DeviceType>::allocate()
 
   k_params = Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType>
 	  ("PairTersoffMOD::paramskk",n+1,n+1,n+1);
-  paramskk = k_params.d_view;
+  paramskk = k_params.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

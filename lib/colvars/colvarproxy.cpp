@@ -10,6 +10,10 @@
 #include <sstream>
 #include <string.h>
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarscript.h"
@@ -35,6 +39,12 @@ void colvarproxy_system::request_total_force(bool yesno)
 
 
 bool colvarproxy_system::total_forces_enabled() const
+{
+  return false;
+}
+
+
+bool colvarproxy_system::total_forces_same_step() const
 {
   return false;
 }
@@ -204,7 +214,13 @@ void colvarproxy_atom_groups::clear_atom_group(int index)
 
 colvarproxy_smp::colvarproxy_smp()
 {
-  b_smp_active = true;
+  b_smp_active = true; // May be disabled by user option
+  omp_lock_state = NULL;
+#if defined(_OPENMP)
+  if (smp_thread_id() == 0) {
+    omp_init_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+  }
+#endif
 }
 
 
@@ -213,57 +229,140 @@ colvarproxy_smp::~colvarproxy_smp() {}
 
 int colvarproxy_smp::smp_enabled()
 {
+#if defined(_OPENMP)
+  if (b_smp_active) {
+    return COLVARS_OK;
+  }
+  return COLVARS_ERROR;
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_colvars_loop()
 {
+#if defined(_OPENMP)
+  colvarmodule *cv = cvm::main();
+  colvarproxy *proxy = cv->proxy;
+#pragma omp parallel for
+  for (size_t i = 0; i < cv->variables_active_smp()->size(); i++) {
+    colvar *x = (*(cv->variables_active_smp()))[i];
+    int x_item = (*(cv->variables_active_smp_items()))[i];
+    if (cvm::debug()) {
+      cvm::log("["+cvm::to_str(proxy->smp_thread_id())+"/"+
+               cvm::to_str(proxy->smp_num_threads())+
+               "]: calc_colvars_items_smp(), i = "+cvm::to_str(i)+", cv = "+
+               x->name+", cvc = "+cvm::to_str(x_item)+"\n");
+    }
+    x->calc_cvcs(x_item, 1);
+  }
+  return cvm::get_error();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_biases_loop()
 {
+#if defined(_OPENMP)
+  colvarmodule *cv = cvm::main();
+#pragma omp parallel
+  {
+#pragma omp for
+    for (size_t i = 0; i < cv->biases_active()->size(); i++) {
+      colvarbias *b = (*(cv->biases_active()))[i];
+      if (cvm::debug()) {
+        cvm::log("Calculating bias \""+b->name+"\" on thread "+
+                 cvm::to_str(smp_thread_id())+"\n");
+      }
+      b->update();
+    }
+  }
+  return cvm::get_error();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_biases_script_loop()
 {
+#if defined(_OPENMP)
+  colvarmodule *cv = cvm::main();
+#pragma omp parallel
+  {
+#pragma omp single nowait
+    {
+      cv->calc_scripted_forces();
+    }
+#pragma omp for
+    for (size_t i = 0; i < cv->biases_active()->size(); i++) {
+      colvarbias *b = (*(cv->biases_active()))[i];
+      if (cvm::debug()) {
+        cvm::log("Calculating bias \""+b->name+"\" on thread "+
+                 cvm::to_str(smp_thread_id())+"\n");
+      }
+      b->update();
+    }
+  }
+  return cvm::get_error();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
+
+
 
 
 int colvarproxy_smp::smp_thread_id()
 {
+#if defined(_OPENMP)
+  return omp_get_thread_num();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_num_threads()
 {
+#if defined(_OPENMP)
+  return omp_get_max_threads();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_lock()
 {
+#if defined(_OPENMP)
+  omp_set_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+#endif
   return COLVARS_OK;
 }
 
 
 int colvarproxy_smp::smp_trylock()
 {
+#if defined(_OPENMP)
+  return omp_test_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state)) ?
+    COLVARS_OK : COLVARS_ERROR;
+#else
   return COLVARS_OK;
+#endif
 }
 
 
 int colvarproxy_smp::smp_unlock()
 {
+#if defined(_OPENMP)
+  omp_unset_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+#endif
   return COLVARS_OK;
 }
-
 
 
 

@@ -37,6 +37,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   virial_flag = 1;
+  thermo_virial = 1;
   extscalar = 1;
 
   if (strcmp(arg[3],"pf/callback") == 0) {
@@ -196,6 +197,7 @@ void FixExternal::set_energy_global(double caller_energy)
 
 void FixExternal::set_virial_global(double *caller_virial)
 {
+  if (!evflag) return;
   if (!vflag_global) return;
 
   for (int i = 0; i < 6; i++)
@@ -223,6 +225,7 @@ void FixExternal::set_virial_peratom(double **caller_virial)
 {
   int i,j;
 
+  if (!evflag) return;
   if (!vflag_atom) return;
 
   int nlocal = atom->nlocal;

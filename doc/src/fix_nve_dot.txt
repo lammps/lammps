@@ -44,7 +44,7 @@ A technical report with more information on this integrator can be found
 [Restrictions:]
 
 These pair styles can only be used if LAMMPS was built with the
-USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
+"USER-CGDNA"_#USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]

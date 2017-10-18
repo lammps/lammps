@@ -14,6 +14,8 @@
 #ifdef FIX_CLASS
 
 FixStyle(deform/kk,FixDeformKokkos)
+FixStyle(deform/kk/device,FixDeformKokkos)
+FixStyle(deform/kk/host,FixDeformKokkos)
 
 #else
 

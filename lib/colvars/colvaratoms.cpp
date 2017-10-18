@@ -817,6 +817,18 @@ int cvm::atom_group::create_sorted_ids(void)
 }
 
 
+int cvm::atom_group::overlap(const atom_group &g1, const atom_group &g2){
+  for (cvm::atom_const_iter ai1 = g1.begin(); ai1 != g1.end(); ai1++) {
+    for (cvm::atom_const_iter ai2 = g2.begin(); ai2 != g2.end(); ai2++) {
+      if (ai1->id == ai2->id) {
+        return (ai1->id + 1); // 1-based index to allow boolean usage
+      }
+    }
+  }
+  return 0;
+}
+
+
 void cvm::atom_group::center_ref_pos()
 {
   ref_pos_cog = cvm::atom_pos(0.0, 0.0, 0.0);

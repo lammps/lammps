@@ -309,8 +309,8 @@ void ImproperHarmonicKokkos<DeviceType>::allocate()
   k_k = Kokkos::DualView<F_FLOAT*,DeviceType>("ImproperHarmonic::k",n+1);
   k_chi = Kokkos::DualView<F_FLOAT*,DeviceType>("ImproperHarmonic::chi",n+1);
 
-  d_k = k_k.d_view;
-  d_chi = k_chi.d_view;
+  d_k = k_k.template view<DeviceType>();
+  d_chi = k_chi.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

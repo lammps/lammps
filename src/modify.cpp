@@ -42,7 +42,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 {
   nfix = maxfix = 0;
   n_initial_integrate = n_post_integrate = 0;
-  n_pre_exchange = n_pre_neighbor = 0;
+  n_pre_exchange = n_pre_neighbor = n_post_neighbor = 0;
   n_pre_force = n_pre_reverse = n_post_force = 0;
   n_final_integrate = n_end_of_step = n_thermo_energy = 0;
   n_thermo_energy_atom = 0;
@@ -54,14 +54,14 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   fix = NULL;
   fmask = NULL;
   list_initial_integrate = list_post_integrate = NULL;
-  list_pre_exchange = list_pre_neighbor = NULL;
+  list_pre_exchange = list_pre_neighbor = list_post_neighbor = NULL;
   list_pre_force = list_pre_reverse = list_post_force = NULL;
   list_final_integrate = list_end_of_step = NULL;
   list_thermo_energy = list_thermo_energy_atom = NULL;
   list_initial_integrate_respa = list_post_integrate_respa = NULL;
   list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
-  list_min_pre_exchange = list_min_pre_neighbor = NULL;
+  list_min_pre_exchange = list_min_pre_neighbor = list_min_post_neighbor = NULL;
   list_min_pre_force = list_min_pre_reverse = list_min_post_force = NULL;
   list_min_energy = NULL;
 
@@ -123,6 +123,7 @@ Modify::~Modify()
   delete [] list_post_integrate;
   delete [] list_pre_exchange;
   delete [] list_pre_neighbor;
+  delete [] list_post_neighbor;
   delete [] list_pre_force;
   delete [] list_pre_reverse;
   delete [] list_post_force;
@@ -137,6 +138,7 @@ Modify::~Modify()
   delete [] list_final_integrate_respa;
   delete [] list_min_pre_exchange;
   delete [] list_min_pre_neighbor;
+  delete [] list_min_post_neighbor;
   delete [] list_min_pre_force;
   delete [] list_min_pre_reverse;
   delete [] list_min_post_force;
@@ -169,6 +171,7 @@ void Modify::init()
   list_init(POST_INTEGRATE,n_post_integrate,list_post_integrate);
   list_init(PRE_EXCHANGE,n_pre_exchange,list_pre_exchange);
   list_init(PRE_NEIGHBOR,n_pre_neighbor,list_pre_neighbor);
+  list_init(POST_NEIGHBOR,n_post_neighbor,list_post_neighbor);
   list_init(PRE_FORCE,n_pre_force,list_pre_force);
   list_init(PRE_REVERSE,n_pre_reverse,list_pre_reverse);
   list_init(POST_FORCE,n_post_force,list_post_force);
@@ -190,6 +193,7 @@ void Modify::init()
 
   list_init(MIN_PRE_EXCHANGE,n_min_pre_exchange,list_min_pre_exchange);
   list_init(MIN_PRE_NEIGHBOR,n_min_pre_neighbor,list_min_pre_neighbor);
+  list_init(MIN_POST_NEIGHBOR,n_min_post_neighbor,list_min_post_neighbor);
   list_init(MIN_PRE_FORCE,n_min_pre_force,list_min_pre_force);
   list_init(MIN_PRE_REVERSE,n_min_pre_reverse,list_min_pre_reverse);
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
@@ -330,6 +334,21 @@ void Modify::setup_pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
+   setup post_neighbor call, only for fixes that define post_neighbor
+   called from Verlet, RESPA
+------------------------------------------------------------------------- */
+
+void Modify::setup_post_neighbor()
+{
+  if (update->whichflag == 1)
+    for (int i = 0; i < n_post_neighbor; i++)
+      fix[list_post_neighbor[i]]->setup_post_neighbor();
+  else if (update->whichflag == 2)
+    for (int i = 0; i < n_min_post_neighbor; i++)
+      fix[list_min_post_neighbor[i]]->setup_post_neighbor();
+}
+
+/* ----------------------------------------------------------------------
    setup pre_force call, only for fixes that define pre_force
    called from Verlet, RESPA, Min
 ------------------------------------------------------------------------- */
@@ -397,6 +416,16 @@ void Modify::pre_neighbor()
 {
   for (int i = 0; i < n_pre_neighbor; i++)
     fix[list_pre_neighbor[i]]->pre_neighbor();
+}
+
+/* ----------------------------------------------------------------------
+   post_neighbor call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::post_neighbor()
+{
+  for (int i = 0; i < n_post_neighbor; i++)
+    fix[list_post_neighbor[i]]->post_neighbor();
 }
 
 /* ----------------------------------------------------------------------
@@ -587,6 +616,16 @@ void Modify::min_pre_neighbor()
 {
   for (int i = 0; i < n_min_pre_neighbor; i++)
     fix[list_min_pre_neighbor[i]]->min_pre_neighbor();
+}
+
+/* ----------------------------------------------------------------------
+   minimizer post-neighbor call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::min_post_neighbor()
+{
+  for (int i = 0; i < n_min_post_neighbor; i++)
+    fix[list_min_post_neighbor[i]]->min_post_neighbor();
 }
 
 /* ----------------------------------------------------------------------

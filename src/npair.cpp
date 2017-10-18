@@ -66,7 +66,6 @@ void NPair::copy_neighbor_info()
   cut_inner_sq = neighbor->cut_inner_sq;
   cut_middle_sq = neighbor->cut_middle_sq;
   cut_middle_inside_sq = neighbor->cut_middle_inside_sq;
-  zeroes = neighbor->zeroes;
   bboxlo = neighbor->bboxlo;
   bboxhi = neighbor->bboxhi;
 

@@ -13,7 +13,7 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "fix_shear_history_omp.h"
+#include "fix_neigh_history_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -31,15 +31,38 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+
+FixNeighHistoryOMP::FixNeighHistoryOMP(class LAMMPS *lmp,int narg,char **argv)
+  : FixNeighHistory(lmp,narg,argv) {
+
+  if (onesided)
+    error->all(FLERR,"tri/lj and line/lj are not supported by USER-OMP");
+  if (!newton_pair)
+    error->all(FLERR,"Newton off for granular is not supported by USER-OMP");
+}
+
+
 /* ----------------------------------------------------------------------
-   copy shear partner info from neighbor lists to per-atom arrays
-   so it can be exchanged with those atoms
+ copy partner info from neighbor data structs (NDS) to atom arrays
+ should be called whenever NDS store current history info
+   and need to transfer the info to owned atoms
+ e.g. when atoms migrate to new procs, new neigh list built, or between runs
+   when atoms may be added or deleted (NDS becomes out-of-date)
+ the next post_neighbor() will put this info back into new NDS
+ called during run before atom exchanges, including for restart files
+ called at end of run via post_run()
+ do not call during setup of run (setup_pre_exchange)
+   b/c there is no guarantee of a current NDS (even on continued run)
+ if run command does a 2nd run with pre = no, then no neigh list
+   will be built, but old neigh list will still have the info
+ 
+ the USER-OMP version only supports newton on
 ------------------------------------------------------------------------- */
 
-void FixShearHistoryOMP::pre_exchange()
+void FixNeighHistoryOMP::pre_exchange()
 {
   const int nthreads = comm->nthreads;
-  maxtouch = 0;
+  maxpartner = 0;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -54,16 +77,16 @@ void FixShearHistoryOMP::pre_exchange()
 
     int i,j,ii,jj,m,n,inum,jnum;
     int *ilist,*jlist,*numneigh,**firstneigh;
-    int *touch,**firsttouch;
-    double *shear,*shearj,*allshear,**firstshear;
+    int *allflags,**firstflag;
+    double *allvalues,*onevalues,*jvalues;
 
-    MyPage <tagint> &ipg = ipage[tid];
-    MyPage <double> &dpg = dpage[tid];
+    MyPage <tagint> &ipg = ipage_atom[tid];
+    MyPage <double> &dpg = dpage_atom[tid];
     ipg.reset();
     dpg.reset();
 
     // 1st loop over neighbor list
-    // calculate nparter for each owned atom
+    // calculate npartner for each owned atom
 
     tagint *tag = atom->tag;
 
@@ -72,8 +95,6 @@ void FixShearHistoryOMP::pre_exchange()
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    firsttouch = list->listhistory->firstneigh;
-    firstshear = list->listhistory->firstdouble;
 
     int nlocal_neigh = 0;
     if (inum) nlocal_neigh = ilist[inum-1] + 1;
@@ -94,10 +115,10 @@ void FixShearHistoryOMP::pre_exchange()
       i = ilist[ii];
       jlist = firstneigh[i];
       jnum = numneigh[i];
-      touch = firsttouch[i];
+      allflags = firstflag[i];
 
       for (jj = 0; jj < jnum; jj++) {
-        if (touch[jj]) {
+        if (allflags[jj]) {
           if ((i >= lfrom) && (i < lto))
             npartner[i]++;
 
@@ -116,55 +137,55 @@ void FixShearHistoryOMP::pre_exchange()
       if ((i >= lfrom) && (i < lto)) {
         n = npartner[i];
         partner[i] = ipg.get(n);
-        shearpartner[i] = dpg.get(dnum*n);
-        if (partner[i] == NULL || shearpartner[i] == NULL)
-          error->one(FLERR,"Shear history overflow, boost neigh_modify one");
+        valuepartner[i] = dpg.get(dnum*n);
+        if (partner[i] == NULL || valuepartner[i] == NULL)
+          error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
       }
     }
 
     // 2nd loop over neighbor list
-    // store atom IDs and shear history for my atoms
-    // re-zero npartner to use as counter for all my atoms
+    // store partner IDs and values for owned+ghost atoms
+    // re-zero npartner to use as counter
 
     for (i = lfrom; i < lto; i++) npartner[i] = 0;
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       jlist = firstneigh[i];
-      allshear = firstshear[i];
       jnum = numneigh[i];
-      touch = firsttouch[i];
+      allflags = firstflag[i];
+      allvalues = firstvalue[i];
 
       for (jj = 0; jj < jnum; jj++) {
-        if (touch[jj]) {
-          shear = &allshear[3*jj];
+        if (allflags[jj]) {
+          onevalues = &allvalues[3*jj];
           j = jlist[jj];
           j &= NEIGHMASK;
 
           if ((i >= lfrom) && (i < lto)) {
             m = npartner[i]++;
             partner[i][m] = tag[j];
-            memcpy(&shearpartner[i][dnum*m],shear,dnumbytes);
+            memcpy(&valuepartner[i][dnum*m],onevalues,dnumbytes);
           }
 
           if ((j >= lfrom) && (j < lto)) {
             m = npartner[j]++;
             partner[j][m] = tag[i];
-            shearj = &shearpartner[j][dnum*m];
-            for (n = 0; n < dnum; n++) shearj[n] = -shear[n];
+            jvalues = &valuepartner[j][dnum*m];
+            for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }
         }
       }
     }
 
-    // set maxtouch = max # of partners of any owned atom
-    maxtouch = m = 0;
+    // set maxpartner = max # of partners of any owned atom
+    maxpartner = m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
 
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-    maxtouch = MAX(m,maxtouch);
+    maxpartner = MAX(m,maxpartner);
   }
 }

@@ -13,22 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(SHEAR_HISTORY/omp,FixShearHistoryOMP)
+FixStyle(NEIGH_HISTORY/omp,FixNeighHistoryOMP)
 
 #else
 
-#ifndef LMP_FIX_SHEAR_HISTORY_OMP_H
-#define LMP_FIX_SHEAR_HISTORY_OMP_H
+#ifndef LMP_FIX_NEIGH_HISTORY_OMP_H
+#define LMP_FIX_NEIGH_HISTORY_OMP_H
 
-#include "fix_shear_history.h"
+#include "fix_neigh_history.h"
 
 namespace LAMMPS_NS {
 
-class FixShearHistoryOMP : public FixShearHistory {
+class FixNeighHistoryOMP : public FixNeighHistory {
 
  public:
-  FixShearHistoryOMP(class LAMMPS *lmp, int narg, char **argv)
-    : FixShearHistory(lmp,narg,argv) {};
+  FixNeighHistoryOMP(class LAMMPS *lmp, int narg, char **argv);
   virtual void pre_exchange();
 };
 

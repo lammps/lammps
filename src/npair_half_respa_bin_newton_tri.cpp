@@ -63,22 +63,19 @@ void NPairHalfRespaBinNewtonTri::build(NeighList *list)
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  NeighList *listinner = list->listinner;
-  int *ilist_inner = listinner->ilist;
-  int *numneigh_inner = listinner->numneigh;
-  int **firstneigh_inner = listinner->firstneigh;
-  MyPage<int> *ipage_inner = listinner->ipage;
+  int *ilist_inner = list->ilist_inner;
+  int *numneigh_inner = list->numneigh_inner;
+  int **firstneigh_inner = list->firstneigh_inner;
+  MyPage<int> *ipage_inner = list->ipage_inner;
 
-  NeighList *listmiddle;
   int *ilist_middle,*numneigh_middle,**firstneigh_middle;
   MyPage<int> *ipage_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
-    listmiddle = list->listmiddle;
-    ilist_middle = listmiddle->ilist;
-    numneigh_middle = listmiddle->numneigh;
-    firstneigh_middle = listmiddle->firstneigh;
-    ipage_middle = listmiddle->ipage;
+    ilist_middle = list->ilist_middle;
+    numneigh_middle = list->numneigh_middle;
+    firstneigh_middle = list->firstneigh_middle;
+    ipage_middle = list->ipage_middle;
   }
 
   int inum = 0;
@@ -193,6 +190,6 @@ void NPairHalfRespaBinNewtonTri::build(NeighList *list)
   }
 
   list->inum = inum;
-  listinner->inum = inum;
-  if (respamiddle) listmiddle->inum = inum;
+  list->inum_inner = inum;
+  if (respamiddle) list->inum_middle = inum;
 }

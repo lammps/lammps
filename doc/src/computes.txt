@@ -65,6 +65,7 @@ Computes :h1
    compute_pe_atom
    compute_plasticity_atom
    compute_pressure
+   compute_pressure_uef
    compute_property_atom
    compute_property_chunk
    compute_property_local
@@ -114,6 +115,7 @@ Computes :h1
    compute_temp_region_eff
    compute_temp_rotate
    compute_temp_sphere
+   compute_temp_uef
    compute_ti
    compute_torque_chunk
    compute_vacf

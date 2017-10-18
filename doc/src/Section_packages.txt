@@ -150,6 +150,7 @@ Package, Description, Doc page, Example, Library
 "USER-SMTBQ"_#USER-SMTBQ, second moment tight binding QEq potential,"pair_style smtbq"_pair_smtbq.html, USER/smtbq, -
 "USER-SPH"_#USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, -
 "USER-TALLY"_#USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, -
+"USER-UEF"_#USER-UEF, extensional flow,"fix nvt/uef"_fix_nh_uef.html, USER/uef, -
 "USER-VTK"_#USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, -, ext :tb(ea=c,ca1=l)
 
 :line
@@ -2768,6 +2769,37 @@ src/USER-TALLY: filenames -> commands
 src/USER-TALLY/README
 "compute */tally"_compute_tally.html
 examples/USER/tally :ul
+
+:line
+
+USER-UEF package :link(USER-UEF),h4
+
+[Contents:]
+
+A fix style for the integration of the equations of motion under
+extensional flow with proper boundary conditions, as well 
+as several supporting compute styles and an output option.
+
+[Author:] David Nicholson (MIT).
+
+[Install or un-install:]
+
+make yes-user-uef
+make machine :pre
+
+make no-user-uef
+make machine :pre
+
+[Supporting info:]
+
+src/USER-UEF: filenames -> commands
+src/USER-UEF/README
+"fix nvt/uef"_fix_nh_uef.html
+"fix npt/uef"_fix_nh_uef.html
+"compute pressure/uef"_compute_pressure_uef.html
+"compute temp/uef"_compute_temp_uef.html
+"dump cfg/uef"_dump_cfg_uef.html
+examples/uef :ul
 
 :line
 

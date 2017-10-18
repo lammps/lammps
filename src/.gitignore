@@ -103,6 +103,15 @@
 /sna.cpp
 /sna.h
 
+/uef_*.cpp
+/uef_*.h
+/compute_*uef.cpp
+/compute_*uef.h
+/dump_*uef.cpp
+/dump_*uef.h
+/fix_*uef.cpp
+/fix_*uef.h
+
 /atom_vec_wavepacket.cpp
 /atom_vec_wavepacket.h
 /fix_nve_awpmd.cpp

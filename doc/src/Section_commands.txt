@@ -720,6 +720,8 @@ package"_Section_start.html#start_3.
 "nve/eff"_fix_nve_eff.html,
 "nvt/eff"_fix_nh_eff.html,
 "nvt/sllod/eff"_fix_nvt_sllod_eff.html,
+"npt/uef"_fix_nh_uef.html,
+"nvt/uef"_fix_nh_uef.html,
 "phonon"_fix_phonon.html,
 "pimd"_fix_pimd.html,
 "qbmsst"_fix_qbmsst.html,
@@ -857,6 +859,7 @@ package"_Section_start.html#start_3.
 "meso/t/atom"_compute_meso_t_atom.html,
 "pe/tally"_compute_tally.html,
 "pe/mol/tally"_compute_tally.html,
+"pressure/uef"_compute_pressure_uef.html,
 "saed"_compute_saed.html,
 "smd/contact/radius"_compute_smd_contact_radius.html,
 "smd/damage"_compute_smd_damage.html,
@@ -885,6 +888,7 @@ package"_Section_start.html#start_3.
 "temp/deform/eff"_compute_temp_deform_eff.html,
 "temp/region/eff"_compute_temp_region_eff.html,
 "temp/rotate"_compute_temp_rotate.html,
+"temp/uef"_compute_temp_uef.html,
 "xrd"_compute_xrd.html :tb(c=6,ea=c)
 
 :line

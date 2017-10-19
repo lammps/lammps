@@ -1,0 +1,65 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix integration/spin command :h3
+
+[Syntax:]
+
+fix ID group-ID integration/spin style :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+integration/spin = style name of this fix command :l
+style = {serial} or {mpi} :l
+  {serial} value = factor
+    factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below :pre
+  {mpi} 
+:ule
+
+[Examples:]
+
+fix 3 all integration/spin serial
+fix 1 all integration/spin mpi
+
+[Description:]
+
+A Suzuki-Trotter decomposition is applied to the integration of the 
+spin-lattice system. 
+
+:line
+
+The {style} value defines if a serial of a parallel 
+algorithm has to be used for the integration. 
+
+The parallel algorithm uses a sectoring method as 
+described in .
+
+:line
+
+[Restrictions:]
+
+This fix style can only be used if LAMMPS was built with the
+SPIN package. See the "Making LAMMPS"_Section_start.html#start_3
+section for more info on packages.
+
+
+[Related commands:]
+
+"fix nve"_fix_nve.html, "pair spin"_pair_spin.html, 
+"compute spin"_compute_spin.html, "fix langevin spin"_fix_langevin_spin.html, 
+
+
+[Default:] none
+
+:line
+
+:link(Davidchack2)
+[(Davidchack)] R.L Davidchack, T.E. Ouldridge, M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
+:link(Miller2)
+[(Miller)] T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
+:link(Dunweg3)
+[(Dunweg)] B. Dunweg, W. Paul, Int. J. Mod. Phys. C, 2, 817-27 (1991).

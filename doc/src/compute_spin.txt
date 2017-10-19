@@ -1,0 +1,63 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute spin command :h3
+
+[Syntax:]
+
+compute ID group-ID spin :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+spin = style name of this compute command
+
+[Examples:]
+
+compute out_mag all spin
+
+[Description:]
+
+Define a computation that calculates the magnetic quantities for a system 
+of atoms having spins.
+
+This compute calculates 6 magnetic quantities.
+The three first ones are the x,y and z cooredinates of the total magnetization.
+The fourth quantity is the norm of the total magnetization.
+The fifth one is referred to as the spin temperature, according
+to the work of "(Nurdin)"_#Nurdin1. 
+  
+The sixth quantity is the magnetic energy. 
+
+
+A simple way to output the results of the compute spin
+calculation to a file is to use the "fix ave/time"_fix_ave_time.html
+command, for example:
+
+compute mag all compute/spin
+fix outmag all ave/time 1 1 50 c_mag[2] c_mag[3] c_mag[4] c_mag[7] file mag.dat
+
+[Output info:]
+
+The array values are "intensive".  The array values will be in
+metal units ("units"_units.html).
+
+[Restrictions:] 
+
+The {spin} compute is part of the SPIN package.
+This compute is only enabled if LAMMPS was built with this package.
+See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:] none
+
+
+[Default:] none
+
+:line
+
+:link(Nurdin1)
+[(Nurdin)] Nurdin and Schotte Phys Rev E, 61(4), 3579 (2000)
+

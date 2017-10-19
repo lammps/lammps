@@ -37,6 +37,11 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "pair_spin.h"
+#include "pair_spin_exchange.h"
+#include "pair_spin_me.h"
+#include "pair_spin_soc_dmi.h"
+#include "pair_spin_soc_neel.h"
+#include "pair_spin_soc_landau.h"
 #include "respa.h"
 #include "update.h"
 
@@ -74,13 +79,16 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
   magpair_flag = 0;
-  exch_flag = dmi_flag = me_flag = 0;
+  soc_flag = 0;
+  exch_flag = 0;
   magforce_flag = 0;
   zeeman_flag = aniso_flag = 0;
   maglangevin_flag = 0;
   tdamp_flag = temp_flag = 0;
 
   lockpairspin = NULL;
+  lockpairspinexchange = NULL;
+  lockpairspinsocneel = NULL;
   lockforcespin = NULL;
   locklangevinspin = NULL;
 }
@@ -95,6 +103,7 @@ FixIntegrationSpin::~FixIntegrationSpin(){
   memory->destroy(rsec);
   memory->destroy(seci);
 
+  memory->destroy(rij);
   memory->destroy(spi);
   memory->destroy(spj);
   memory->destroy(fmi);
@@ -118,32 +127,39 @@ void FixIntegrationSpin::init()
   //FixNVE::init();       
   
   // set timesteps
-  dtv = update->dt;
+  dtv = 0.5 * update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  dts = update->dt;
+  dts = 0.5 * update->dt;
 
   memory->create(xi,3,"integrations:xi");
   memory->create(sec,3,"integrations:sec");
   memory->create(rsec,3,"integrations:rsec");
   memory->create(seci,3,"integrations:seci");
 
+  memory->create(rij,3,"integrations:xi");
   memory->create(spi,3,"integrations:spi");
   memory->create(spj,3,"integrations:spj");
   memory->create(fmi,3,"integrations:fmi");
   memory->create(fmj,3,"integrations:fmj");
 
 
-  if (strstr(force->pair_style,"pair/spin")) {
-    magpair_flag = 1;
-    lockpairspin = (PairSpin *) force->pair;
+  if (strstr(force->pair_style,"pair/spin/exchange")) {
+    exch_flag = 1;
+    lockpairspinexchange = (PairSpinExchange *) force->pair;
+  } else if (strstr(force->pair_style,"pair/spin/soc")) {
+    soc_flag = 1;
+    lockpairspinsocneel = (PairSpinSocNeel *) force->pair;
   } else if (strstr(force->pair_style,"hybrid/overlay")) {
     PairHybrid *lockhybrid = (PairHybrid *) force->pair;
     int nhybrid_styles = lockhybrid->nstyles;
     int ipair;
     for (ipair = 0; ipair < nhybrid_styles; ipair++) {
-      if (strstr(lockhybrid->keywords[ipair],"pair/spin")) {
-        magpair_flag = 1;
-	lockpairspin = (PairSpin *) lockhybrid->styles[ipair];
+      if (strstr(lockhybrid->keywords[ipair],"pair/spin/exchange")) {
+        exch_flag = 1;
+	lockpairspinexchange = (PairSpinExchange *) lockhybrid->styles[ipair];
+      } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/soc")) {
+	soc_flag = 1;
+	lockpairspinsocneel = (PairSpinSocNeel *) lockhybrid->styles[ipair];
       }
     }
   } else error->all(FLERR,"Illegal fix integration/spin command");
@@ -165,12 +181,10 @@ void FixIntegrationSpin::init()
     } 
   }
 
-  // set flags for the different magnetic interactionsi
-  if (magpair_flag) {
-    if (lockpairspin->exch_flag == 1) exch_flag = 1;
-    if (lockpairspin->dmi_flag == 1) dmi_flag = 1;
-    if (lockpairspin->me_flag == 1) me_flag = 1;
-  }
+  // set flags for the different magnetic interactions
+//  if (magpair_flag) {
+//    if (lockpairspinexchange->exch_flag == 1) exch_flag = 1;
+//  }
 
   if (magforce_flag) { 
     if (lockforcespin->zeeman_flag == 1) zeeman_flag = 1;
@@ -206,16 +220,130 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;  
 
-//  printf("before mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
 
-  // compute and add magneto-mech. force 
-//  if (magpair_flag == 1) { 
-//    if (exch_flag) lockpairspin->compute_magnetomech(0,vflag);
-//  }
+#define VSRSV_TEST
+#if defined VSRSV_TEST
 
-//  printf("after mechmag, spin 1: [%g,%g,%g] \n",f[1][0],f[1][1],f[1][2]);
+  // update half v for all particles
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      if (rmass) dtfm = dtf / rmass[i];
+      else dtfm = dtf / mass[type[i]]; 
+      v[i][0] += dtfm * f[i][0];
+      v[i][1] += dtfm * f[i][1];
+      v[i][2] += dtfm * f[i][2];
+      }
+  }
 
-  // update half v all particles
+  // update s for all particles 
+  if (extra == SPIN) {
+    if (mpi_flag == 1) {
+      int nseci;
+      // mpi seq. update
+      for (int j = 0; j < nsectors; j++) { 
+        comm->forward_comm();
+        for (int i = 0; i < nlocal; i++) {
+       	  xi[0] = x[i][0];
+	  xi[1] = x[i][1];
+       	  xi[2] = x[i][2];
+       	  nseci = coords2sector(xi);
+	  if (j != nseci) continue;
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts,sp,fm);
+      	}    
+      }
+      for (int j = nsectors-1; j >= 0; j--) { 
+        comm->forward_comm();
+        for (int i = nlocal-1; i >= 0; i--) {
+          xi[0] = x[i][0];
+          xi[1] = x[i][1];
+          xi[2] = x[i][2];
+          nseci = coords2sector(xi);
+          if (j != nseci) continue;
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i,dts,sp,fm);
+        }    
+      }
+    } else if (mpi_flag == 0) {
+      // serial seq. update
+      // advance quarter s for nlocal-1
+      for (int i = 0; i < nlocal-1; i++){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+      // advance half s for 1
+      ComputeInteractionsSpin(nlocal-1);
+      AdvanceSingleSpin(nlocal-1,dts,sp,fm);
+      // advance quarter s for nlocal-1
+      for (int i = nlocal-2; i >= 0; i--){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+    } else error->all(FLERR,"Illegal fix integration/spin command");
+  }
+
+  // update x for all particles
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      x[i][0] += 2.0 * dtv * v[i][0];
+      x[i][1] += 2.0 * dtv * v[i][1];
+      x[i][2] += 2.0 * dtv * v[i][2];
+      }
+  }
+
+  // update half s for all particles 
+  if (extra == SPIN) {
+    if (mpi_flag == 1) {
+      int nseci;
+      // mpi seq. update
+      for (int j = 0; j < nsectors; j++) { 
+        comm->forward_comm();
+        for (int i = 0; i < nlocal; i++) {
+       	  xi[0] = x[i][0];
+	  xi[1] = x[i][1];
+       	  xi[2] = x[i][2];
+       	  nseci = coords2sector(xi);
+	  if (j != nseci) continue;
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts,sp,fm);
+      	}    
+      }
+      for (int j = nsectors-1; j >= 0; j--) { 
+        comm->forward_comm();
+        for (int i = nlocal-1; i >= 0; i--) {
+          xi[0] = x[i][0];
+          xi[1] = x[i][1];
+          xi[2] = x[i][2];
+          nseci = coords2sector(xi);
+          if (j != nseci) continue;
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i,dts,sp,fm);
+        }    
+      }
+    } else if (mpi_flag == 0) {
+      // serial seq. update
+      // advance quarter s for nlocal-2 particles
+      for (int i = nlocal-1; i >= 1; i--){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+      // advance half s for 1
+      ComputeInteractionsSpin(0);
+      AdvanceSingleSpin(0,dts,sp,fm);
+      // advance quarter s for nlocal-2 particles
+      for (int i = 1; i < nlocal; i++){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+    } else error->all(FLERR,"Illegal fix integration/spin command");
+  }
+
+#endif
+
+
+//#define VRSRV
+#if defined VRSRV
+  // update half v for all particles
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (rmass) dtfm = dtf / rmass[i];
@@ -229,16 +357,17 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   // update half x for all particles
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      x[i][0] += 0.5 * dtv * v[i][0];
-      x[i][1] += 0.5 * dtv * v[i][1];
-      x[i][2] += 0.5 * dtv * v[i][2];
+      x[i][0] += dtv * v[i][0];
+      x[i][1] += dtv * v[i][1];
+      x[i][2] += dtv * v[i][2];
       }
   }
-  
+ 
+  // update s for all particles 
   if (extra == SPIN) {
     if (mpi_flag == 1) {
       int nseci;
-      // mpi seq. update spins for all particles
+      // mpi seq. update
       for (int j = 0; j < nsectors; j++) { 
         comm->forward_comm();
         for (int i = 0; i < nlocal; i++) {
@@ -248,7 +377,7 @@ void FixIntegrationSpin::initial_integrate(int vflag)
        	  nseci = coords2sector(xi);
 	  if (j != nseci) continue;
 	  ComputeInteractionsSpin(i);
-    	  AdvanceSingleSpin(i,0.5*dts,sp,fm);
+    	  AdvanceSingleSpin(i,dts,sp,fm);
       	}    
       }
       for (int j = nsectors-1; j >= 0; j--) { 
@@ -260,18 +389,18 @@ void FixIntegrationSpin::initial_integrate(int vflag)
           nseci = coords2sector(xi);
           if (j != nseci) continue;
           ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i,0.5*dts,sp,fm);
+          AdvanceSingleSpin(i,dts,sp,fm);
         }    
       }
     } else if (mpi_flag == 0) {
-      // serial seq. update spins for all particles
+      // serial seq. update
       for (int i = 0; i < nlocal; i++){
         ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+        AdvanceSingleSpin(i,dts,sp,fm);
       }
       for (int i = nlocal-1; i >= 0; i--){
         ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+        AdvanceSingleSpin(i,dts,sp,fm);
       }
     } else error->all(FLERR,"Illegal fix integration/spin command");
   }
@@ -279,11 +408,75 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   // update half x for all particles
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      x[i][0] += 0.5 * dtv * v[i][0];
-      x[i][1] += 0.5 * dtv * v[i][1];
-      x[i][2] += 0.5 * dtv * v[i][2];
+      x[i][0] += dtv * v[i][0];
+      x[i][1] += dtv * v[i][1];
+      x[i][2] += dtv * v[i][2];
     }
   }
+#endif
+
+
+//#define RSVSR_TEST
+#if defined RSVSR_TEST  
+
+  // update half x for all particles
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      x[i][0] += dtv * v[i][0];
+      x[i][1] += dtv * v[i][1];
+      x[i][2] += dtv * v[i][2];
+    }
+  }
+
+  // update half s for all particles 
+  if (extra == SPIN) {
+    if (mpi_flag == 1) {
+      int nseci;
+      // mpi seq. update
+      for (int j = 0; j < nsectors; j++) { 
+        comm->forward_comm();
+        for (int i = 0; i < nlocal; i++) {
+       	  xi[0] = x[i][0];
+	  xi[1] = x[i][1];
+       	  xi[2] = x[i][2];
+       	  nseci = coords2sector(xi);
+	  if (j != nseci) continue;
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts,sp,fm);
+      	}    
+      }
+      for (int j = nsectors-1; j >= 0; j--) { 
+        comm->forward_comm();
+        for (int i = nlocal-1; i >= 0; i--) {
+          xi[0] = x[i][0];
+          xi[1] = x[i][1];
+          xi[2] = x[i][2];
+          nseci = coords2sector(xi);
+          if (j != nseci) continue;
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i,dts,sp,fm);
+        }    
+      }
+    } else if (mpi_flag == 0) {
+      // serial seq. update
+      // advance quarter s for nlocal-2 particles
+      for (int i = 0; i < nlocal-2; i++){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+      // advance half s for nlocal-1
+      ComputeInteractionsSpin(nlocal-1);
+      AdvanceSingleSpin(nlocal-1,dts,sp,fm);
+      // advance quarter s for nlocal-2 particles
+      for (int i = nlocal-2; i >= 0; i--){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+    } else error->all(FLERR,"Illegal fix integration/spin command");
+  }
+
+#endif
+
 
 }
 
@@ -302,17 +495,17 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   const int newton_pair = force->newton_pair;
 
   // add test here
-  if (magpair_flag) { 
-    inum = lockpairspin->list->inum;
-    ilist = lockpairspin->list->ilist;
-    numneigh = lockpairspin->list->numneigh;
-    firstneigh = lockpairspin->list->firstneigh;
+  if (exch_flag) { 
+    inum = lockpairspinexchange->list->inum;
+    ilist = lockpairspinexchange->list->ilist;
+    numneigh = lockpairspinexchange->list->numneigh;
+    firstneigh = lockpairspinexchange->list->firstneigh;
   }
  
-  double xtmp,ytmp,ztmp;
-  double rsq,rd,delx,dely,delz;
-  double cut_ex_2, cut_dmi_2, cut_me_2;
-  cut_ex_2 = cut_dmi_2 = cut_me_2 = 0.0;  
+  double rsq, rd;
+  double delx, dely, delz;
+  double temp_cut, cut_2, inorm;
+  temp_cut = cut_2 = inorm = 0.0;  
 
   int eflag = 1;
   int vflag = 0;
@@ -341,43 +534,43 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   for (int jj = 0; jj < jnum; jj++) {
     j = jlist[jj];
     j &= NEIGHMASK;
+    itype = type[ii];
+    jtype = type[j];
+
     spj[0] = sp[j][0];
     spj[1] = sp[j][1];
     spj[2] = sp[j][2];
 
-    delx = xi[0] - x[j][0];
-    dely = xi[1] - x[j][1];
-    delz = xi[2] - x[j][2];
+    delx = x[j][0] - xi[0];
+    dely = x[j][1] - xi[1];
+    delz = x[j][2] - xi[2];
     rsq = delx*delx + dely*dely + delz*delz;
-    itype = type[ii];
-    jtype = type[j];
+    inorm = 1.0/sqrt(rsq); 
 
-    if (magpair_flag) { // mag. pair inter.
-      double temp_cut;
-      if (exch_flag) { // exchange
-        temp_cut = lockpairspin->cut_spin_exchange[itype][jtype];
-	cut_ex_2 = temp_cut*temp_cut;
-        if (rsq <= cut_ex_2) { 
-          lockpairspin->compute_exchange(i,j,rsq,fmi,fmj,spi,spj);
-        }  
-      }
-      if (dmi_flag) { // dmi
-	temp_cut = lockpairspin->cut_spin_dmi[itype][jtype];
-	cut_dmi_2 = temp_cut*temp_cut;
-	if (rsq <= cut_dmi_2) {
-	  lockpairspin->compute_dmi(i,j,fmi,fmj,spi,spj);
-	}
-      }
-      if (me_flag) { // me
-	temp_cut = lockpairspin->cut_spin_me[itype][jtype];
-	cut_me_2 = temp_cut*temp_cut;
-	if (rsq <= cut_me_2) {
-	  lockpairspin->compute_me(i,j,fmi,fmj,spi,spj);
-	}
-      }
-    }  
-  } 
+    rij[0] = delx*inorm;
+    rij[1] = dely*inorm;
+    rij[2] = delz*inorm;
 
+    temp_cut = 0.0;
+
+    if (exch_flag) { // exchange
+      temp_cut = lockpairspinexchange->cut_spin_exchange[itype][jtype];
+      cut_2 = temp_cut*temp_cut;
+      if (rsq <= cut_2) { 
+        lockpairspinexchange->compute_exchange(i,j,rsq,fmi,fmj,spi,spj);
+      }  
+    }
+
+    if (soc_flag) { // soc
+      temp_cut = lockpairspinsocneel->cut_soc_neel[itype][jtype];
+      cut_2 = temp_cut*temp_cut;
+      if (rsq <= cut_2) {
+	lockpairspinsocneel->compute_soc_neel(i,j,rsq,rij,fmi,fmj,spi,spj);
+      }
+    }
+
+  }  
+  
   if (magforce_flag) { // mag. forces
     if (zeeman_flag) { // zeeman
       lockforcespin->compute_zeeman(i,fmi);
@@ -421,7 +614,7 @@ void FixIntegrationSpin::sectoring()
   const double rsy = subhi[1] - sublo[1];  
   const double rsz = subhi[2] - sublo[2];  
 
-  const double rv = lockpairspin->cut_spin_pair_global;
+  const double rv = lockpairspinexchange->cut_spin_exchange_global;
 
   double rax = rsx/rv;  
   double ray = rsy/rv;  
@@ -474,9 +667,9 @@ int FixIntegrationSpin::coords2sector(double *xi)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::AdvanceSingleSpin(int i, double dts, double **sp, double **fm)
+void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl, double **sp, double **fm)
 {
-  double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy;
+  double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy,dts2;
   double cp[3],g[3]; 	
 
   cp[0] = cp[1] = cp[2] = 0.0;
@@ -484,22 +677,23 @@ void FixIntegrationSpin::AdvanceSingleSpin(int i, double dts, double **sp, doubl
   fm2 = (fm[i][0]*fm[i][0])+(fm[i][1]*fm[i][1])+(fm[i][2]*fm[i][2]);
   fmsq = sqrt(fm2);
   energy = (sp[i][0]*fm[i][0])+(sp[i][1]*fm[i][1])+(sp[i][2]*fm[i][2]);
-			    
+  dts2 = dtl*dtl;		
+
   cp[0] = fm[i][1]*sp[i][2]-fm[i][2]*sp[i][1];
   cp[1] = fm[i][2]*sp[i][0]-fm[i][0]*sp[i][2];
   cp[2] = fm[i][0]*sp[i][1]-fm[i][1]*sp[i][0];
 
-  g[0] = sp[i][0]+cp[0]*dts;
-  g[1] = sp[i][1]+cp[1]*dts;
-  g[2] = sp[i][2]+cp[2]*dts;
+  g[0] = sp[i][0]+cp[0]*dtl;
+  g[1] = sp[i][1]+cp[1]*dtl;
+  g[2] = sp[i][2]+cp[2]*dtl;
 			  
-  g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts*dts;
-  g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts*dts;
-  g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts*dts;
+  g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
+  g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
+  g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
 			  
-  g[0] /= (1+0.25*fm2*dts*dts);
-  g[1] /= (1+0.25*fm2*dts*dts);
-  g[2] /= (1+0.25*fm2*dts*dts);
+  g[0] /= (1+0.25*fm2*dts2);
+  g[1] /= (1+0.25*fm2*dts2);
+  g[2] /= (1+0.25*fm2*dts2);
 			  
   sp[i][0] = g[0];
   sp[i][1] = g[1];
@@ -523,6 +717,8 @@ void FixIntegrationSpin::final_integrate()
   double **x = atom->x;	
   double **v = atom->v;
   double **f = atom->f;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
   double *rmass = atom->rmass;
   double *mass = atom->mass;  
   int nlocal = atom->nlocal;
@@ -530,13 +726,11 @@ void FixIntegrationSpin::final_integrate()
   int *type = atom->type;
   int *mask = atom->mask; 
 
-  // compute and add magneto-mech. force 
-//  if (magpair_flag == 1) { 
-//    if (exch_flag) lockpairspin->compute_magnetomech(0,0);
-//  }
+#define VSRSV_TEST
+#if defined VSRSV_TEST
 
   // update half v for all particles
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = nlocal-1; i >= 0; i--) {
     if (mask[i] & groupbit) {
       if (rmass) dtfm = dtf / rmass[i];
       else dtfm = dtf / mass[type[i]]; 
@@ -545,4 +739,93 @@ void FixIntegrationSpin::final_integrate()
       v[i][2] += dtfm * f[i][2];  
     }
   }
+
+#endif
+
+//#define VRSRV
+#if defined VRSRV
+  // update half v for all particles
+  for (int i = nlocal-1; i >= 0; i--) {
+    if (mask[i] & groupbit) {
+      if (rmass) dtfm = dtf / rmass[i];
+      else dtfm = dtf / mass[type[i]]; 
+      v[i][0] += dtfm * f[i][0];
+      v[i][1] += dtfm * f[i][1];
+      v[i][2] += dtfm * f[i][2];  
+    }
+  }
+#endif
+
+//#define RSVSR_TEST
+#if defined RSVSR_TEST  
+
+  // update v for all particles
+  for (int i = nlocal-1; i >= 0; i--) {
+    if (mask[i] & groupbit) {
+      if (rmass) dtfm = dtf / rmass[i];
+      else dtfm = dtf / mass[type[i]]; 
+      v[i][0] += 2.0 * dtfm * f[i][0];
+      v[i][1] += 2.0 * dtfm * f[i][1];
+      v[i][2] += 2.0 * dtfm * f[i][2];  
+    }
+  }
+
+  // update half s for all particles 
+  if (extra == SPIN) {
+    if (mpi_flag == 1) {
+      int nseci;
+      // mpi seq. update
+      for (int j = 0; j < nsectors; j++) { 
+        comm->forward_comm();
+        for (int i = 0; i < nlocal; i++) {
+       	  xi[0] = x[i][0];
+	  xi[1] = x[i][1];
+       	  xi[2] = x[i][2];
+       	  nseci = coords2sector(xi);
+	  if (j != nseci) continue;
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts,sp,fm);
+      	}    
+      }
+      for (int j = nsectors-1; j >= 0; j--) { 
+        comm->forward_comm();
+        for (int i = nlocal-1; i >= 0; i--) {
+          xi[0] = x[i][0];
+          xi[1] = x[i][1];
+          xi[2] = x[i][2];
+          nseci = coords2sector(xi);
+          if (j != nseci) continue;
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i,dts,sp,fm);
+        }    
+      }
+    } else if (mpi_flag == 0) {
+      // serial seq. update
+      // advance quarter s for nlocal-2 particles
+      for (int i = nlocal-1; i >= 1; i--){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+      // advance half s for nlocal-1
+      ComputeInteractionsSpin(0);
+      AdvanceSingleSpin(0,dts,sp,fm);
+      // advance quarter s for nlocal-2 particles
+      for (int i = 1; i < nlocal-1; i++){
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,0.5*dts,sp,fm);
+      }
+    } else error->all(FLERR,"Illegal fix integration/spin command");
+  }
+
+  // update half x for all particles
+  for (int i = nlocal-1; i >= 0; i--) {
+    if (mask[i] & groupbit) {
+      x[i][0] += dtv * v[i][0];
+      x[i][1] += dtv * v[i][1];
+      x[i][2] += dtv * v[i][2];
+      }
+  }
+
+#endif
+
 }

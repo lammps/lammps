@@ -65,10 +65,12 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
   magfieldstyle = CONSTANT;
   
   H_field = 0.0;
-  Hx = Hy = Hz = 0.0;
+  nhx = nhy = nhz = 0.0;
+  hx = hy = hz = 0.0;
   Ka = 0.0;
+  nax = nay = naz = 0.0;
   Kax = Kay = Kaz = 0.0;
- 
+
   zeeman_flag = aniso_flag = 0;
  
   if (strcmp(arg[3],"zeeman") == 0) {
@@ -76,25 +78,25 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 	  style = ZEEMAN;
           zeeman_flag = 1;
 	  H_field = force->numeric(FLERR,arg[4]);
-	  Hx = force->numeric(FLERR,arg[5]);
-	  Hy = force->numeric(FLERR,arg[6]);
-	  Hz = force->numeric(FLERR,arg[7]);	
+	  nhx = force->numeric(FLERR,arg[5]);
+	  nhy = force->numeric(FLERR,arg[6]);
+	  nhz = force->numeric(FLERR,arg[7]);	
 	  magfieldstyle = CONSTANT; 	  	  
   } else if (strcmp(arg[3],"anisotropy") == 0) {
 	  if (narg != 8) error->all(FLERR,"Illegal force/spin command");
 	  style = ANISOTROPY;
           aniso_flag = 1;
 	  Ka = force->numeric(FLERR,arg[4]);
-	  Kax = force->numeric(FLERR,arg[5]);
-	  Kay = force->numeric(FLERR,arg[6]);
-	  Kaz = force->numeric(FLERR,arg[7]);	  
+	  nax = force->numeric(FLERR,arg[5]);
+	  nay = force->numeric(FLERR,arg[6]);
+	  naz = force->numeric(FLERR,arg[7]);	  
   } else error->all(FLERR,"Illegal force/spin command");
  
   degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
 
   eflag = 0;
-  emag = 0.0;  
+  emag = 0.0; 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -191,22 +193,23 @@ void FixForceSpin::post_force(int vflag)
     fmi[0] = fmi[1] = fmi[2] = 0.0;
     if (zeeman_flag) {
       compute_zeeman(i,fmi);
+      emag -= sp[i][0] * fmi[0];
+      emag -= sp[i][1] * fmi[1];
+      emag -= sp[i][2] * fmi[2];
     }  
     if (aniso_flag) {
       spi[0] = sp[i][0];
       spi[1] = sp[i][1];
       spi[2] = sp[i][2];
       compute_anisotropy(i,spi,fmi);
+      emag -= 0.5 * sp[i][0] * fmi[0];
+      emag -= 0.5 * sp[i][1] * fmi[1];
+      emag -= 0.5 * sp[i][2] * fmi[2];
     }
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
-
-    emag -= mumag[i]*spi[0]*fmi[0];
-    emag -= mumag[i]*spi[1]*fmi[1];
-    emag -= mumag[i]*spi[2]*fmi[2];
   } 
-
 }
 
 
@@ -214,19 +217,19 @@ void FixForceSpin::post_force(int vflag)
 void FixForceSpin::compute_zeeman(int i, double *fmi)
 {
 double *mumag = atom->mumag;
-  fmi[0] += mumag[i]*xmag;
-  fmi[1] += mumag[i]*ymag;
-  fmi[2] += mumag[i]*zmag;
+  fmi[0] += mumag[i]*hx;
+  fmi[1] += mumag[i]*hy;
+  fmi[2] += mumag[i]*hz;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixForceSpin::compute_anisotropy(int i, double * spi, double *fmi)
 {
-  double scalar = Kax*spi[0] + Kay*spi[1] + Kaz*spi[2];
-  fmi[0] += scalar*xmag;
-  fmi[1] += scalar*ymag;
-  fmi[2] += scalar*zmag;
+  double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
+  fmi[0] += scalar*Kax;
+  fmi[1] += scalar*Kay;
+  fmi[2] += scalar*Kaz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -240,14 +243,14 @@ void FixForceSpin::post_force_respa(int vflag, int ilevel, int iloop)
 void FixForceSpin::set_magneticforce()
 {
   if (style == ZEEMAN) {
-	  xmag = H_field*Hx;
-	  ymag = H_field*Hy;
-	  zmag = H_field*Hz;	  
+	  hx = H_field*nhx;
+	  hy = H_field*nhy;
+	  hz = H_field*nhz;	  
   }
   if (style == ANISOTROPY) {
-	  xmag = 2.0*Ka*Kax;
-	  ymag = 2.0*Ka*Kay;
-	  zmag = 2.0*Ka*Kaz;	  
+	  Kax = 2.0*Ka*nax;
+	  Kay = 2.0*Ka*nay;
+	  Kaz = 2.0*Ka*naz;	  
   }
 }
 
@@ -257,13 +260,14 @@ void FixForceSpin::set_magneticforce()
 
 double FixForceSpin::compute_scalar()
 {
+  double emag_all=0.0;
   // only sum across procs one time
   if (eflag == 0) {
     MPI_Allreduce(&emag,&emag_all,1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;
   }
-  
-  emag *= hbar;
+
+  emag_all *= hbar;
 
   return emag_all;
 }

@@ -50,20 +50,23 @@ class FixIntegrationSpin : public Fix {
   
   // mag. interaction flags
   int magpair_flag;
-  int exch_flag, dmi_flag, me_flag;
+  int soc_flag;
+  int exch_flag;
   int magforce_flag;
   int zeeman_flag, aniso_flag;
   int maglangevin_flag;
   int tdamp_flag, temp_flag;
 
-  // pointers to mag. interaction classes
+  // pointers to interaction classes
   class PairHybrid *lockhybrid; 
   class PairSpin *lockpairspin;
+  class PairSpinExchange *lockpairspinexchange;
+  class PairSpinSocNeel *lockpairspinsocneel;
   class FixForceSpin *lockforcespin;
   class FixLangevinSpin *locklangevinspin; 
 
   // temporary variables
-  double *xi;
+  double *xi, *rij;
   double *spi, *spj;
   double *fmi, *fmj; 
  

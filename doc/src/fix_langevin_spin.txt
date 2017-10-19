@@ -1,0 +1,91 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix langevin/spin command :h3
+
+[Syntax:]
+
+fix ID group-ID langevin/spin T Tdamp Ldamp seed :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+langevin/spin = style name of this fix command :l
+T = desired temperature of the bath (temperature units, K in metal units) :l
+Tdamp = transverse magnetic damping parameter (adim) :l
+Ldamp = longitudinal magnetic damping parameter (adim) :l
+seed = random number seed to use for white noise (positive integer) :l
+:ule
+
+[Examples:]
+
+fix 2 all langevin/spin 300.0 0.01 0.0 21 :pre
+
+[Description:]
+
+Apply a Langevin thermostat as described in "(Mayergoyz)"_#Mayergoyz1
+to the magnetic spins associated to the atoms. 
+Used with "fix integration spin"_fix_integration_spin.html, this 
+command performs Brownian dynamics (BD), apply a random torque 
+and a transverse dissipation to each spin: 
+
+Rand torque = 
+Transverse dmping = 
+D is proportional to sqrt(Kb T m / (hbar dt damp)) :pre
+
+
+Note: The random # {seed} must be a positive integer.  A Marsaglia random
+number generator is used.  Each processor uses the input seed to
+generate its own unique seed and its own stream of random numbers.
+Thus the dynamics of the system will not be identical on two runs on
+different numbers of processors.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do "exact"
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.
+
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:]
+
+The {langevin/spin} fix is part of the SPIN package.
+These styles are only enabled if LAMMPS was built with this package.
+See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+
+The numerical integration has to be performed with {fix/integration/spin} 
+when {langevin/spin} is enabled. 
+
+[Related commands:]
+
+"fix integration spin"_fix_integration_spin.html, 
+"pair spin"_pair_spin.html
+
+[Default:]
+
+The option defaults are angmom = no, omega = no, scale = 1.0 for all
+types, tally = no, zero = no, gjf = no.
+
+:line
+
+:link(Mayergoyz1)
+Mayergoyz, Bertotti, and Serpico (2009). Elsevier (2009)
+
+
+
+:link(Schneider1)
+[(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
+
+:link(Gronbech-Jensen)
+[(Gronbech-Jensen)] Gronbech-Jensen and Farago, Mol Phys, 111, 983
+(2013); Gronbech-Jensen, Hayre, and Farago, Comp Phys Comm,
+185, 524 (2014)

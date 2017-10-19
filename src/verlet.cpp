@@ -312,6 +312,7 @@ void Verlet::run(int n)
       timer->stamp(Timer::PAIR);
     }
 
+
     if (atom->molecular) {
       if (force->bond) force->bond->compute(eflag,vflag);
       if (force->angle) force->angle->compute(eflag,vflag);

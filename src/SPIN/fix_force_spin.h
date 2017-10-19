@@ -44,13 +44,12 @@ class FixForceSpin : public Fix {
  protected:
   int style; // style of the magnetic force
   
-  double xmag, ymag, zmag; // temp. force variables
   double degree2rad;
   double hbar;
   int ilevel_respa;
   int time_origin;
   int eflag;
-  double emag, emag_all;
+  double emag;
 
   int varflag;
   int magfieldstyle;
@@ -59,11 +58,13 @@ class FixForceSpin : public Fix {
    
   // zeeman field intensity and direction
   double H_field; 
-  double Hx, Hy, Hz;
+  double nhx, nhy, nhz;
+  double hx, hy, hz; // temp. force variables
   
   // magnetic anisotropy intensity and direction
   double Ka; 
-  double Kax, Kay, Kaz;
+  double nax, nay, naz;
+  double Kax, Kay, Kaz; // temp. force variables
 
   // temp. spin variables
   double *spi, *fmi;

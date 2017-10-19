@@ -100,14 +100,14 @@ void ComputeSpin::compute_vector()
 		mag[0] += sp[i][0];
 		mag[1] += sp[i][1];
 		mag[2] += sp[i][2];
-		magenergy += sp[i][0]*fm[i][0];  
-		magenergy += sp[i][1]*fm[i][1]; 
-		magenergy += sp[i][2]*fm[i][2];
+		magenergy -= sp[i][0]*fm[i][0];  
+		magenergy -= sp[i][1]*fm[i][1]; 
+		magenergy -= sp[i][2]*fm[i][2];
                 tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
                 ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
                 tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
                 tempnum += tx*tx+ty*ty+tz*tz;
-                tempdenom += sp[i][0]*sp[i][0]+sp[i][1]*sp[i][1]+sp[i][2]*sp[i][2];  	
+                tempdenom += sp[i][0]*fm[i][0]+fm[i][1]*sp[i][1]+sp[i][2]*fm[i][2];  	
 		countsp++;
                 }
       }
@@ -124,15 +124,16 @@ void ComputeSpin::compute_vector()
   magtot[0] *= scale;
   magtot[1] *= scale;
   magtot[2] *= scale;    
-  magtot[3] = sqrt(square(magtot[0])+square(magtot[1])+square(magtot[2]));
-  spintemperature = hbar*tempnumtot/2.0/kb/tempdenomtot;    
+  magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
+  spintemperature = hbar*tempnumtot;    
+  spintemperature /= (2.0*kb*tempdenomtot);
  
   vector[0] = invoked_vector*update->dt;
   vector[1] = magtot[0];
   vector[2] = magtot[1];
   vector[3] = magtot[2];
   vector[4] = magtot[3];
-  vector[5] = -0.5*magenergytot*hbar; 
+  vector[5] = magenergytot*hbar; 
   vector[6] = spintemperature;
  
 }

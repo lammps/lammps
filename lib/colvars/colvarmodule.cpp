@@ -1020,13 +1020,13 @@ colvarmodule::~colvarmodule()
   if ((proxy->smp_thread_id() == COLVARS_NOT_IMPLEMENTED) ||
       (proxy->smp_thread_id() == 0)) {
 
+    reset();
+
     // Delete contents of static arrays
     colvarbias::delete_features();
     colvar::delete_features();
     colvar::cvc::delete_features();
     atom_group::delete_features();
-
-    reset();
 
     delete parse;
     parse = NULL;

@@ -81,7 +81,7 @@ void BondGromos::compute(int eflag, int vflag)
     // force & energy
 
     fbond = -4.0 * kdr;
-    if (eflag) ebond = kdr;
+    if (eflag) ebond = kdr*dr;
 
     // apply force to each of 2 atoms
 
@@ -195,7 +195,7 @@ double BondGromos::single(int type, double rsq, int i, int j,
 {
   double dr = rsq - r0[type]*r0[type];
   fforce = -4.0*k[type] * dr;
-  return k[type]*dr;
+  return k[type]*dr*dr;
 }
 
 /* ----------------------------------------------------------------------

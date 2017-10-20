@@ -70,8 +70,7 @@ void PairBornCoulWolfCS::compute(int eflag, int vflag)
 
   e_self = v_sh = 0.0;
   e_shift = erfc(alf*cut_coul)/cut_coul;
-  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
-    cut_coul;
+  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / cut_coul;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -107,9 +106,9 @@ void PairBornCoulWolfCS::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	rsq += EPSILON;
-	// Add EPISLON for case: r = 0; Interaction must be removed
-	// by special bond
+		rsq += EPSILON;
+		// Add EPISLON for case: r = 0; Interaction must be removed
+		// by special bond
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {

@@ -26,6 +26,9 @@ style = {rigid} or {rigid/nve} or {rigid/nvt} or {rigid/npt} or {rigid/nph} or {
 bodystyle = {single} or {molecule} or {group} :l
   {single} args = none
   {molecule} args = none
+  {custom} args = {i_propname} or {v_varname}
+    i_propname = an integer property defined via fix property/atom
+    v_varname  = an atom-style or atomfile-style variable 
   {group} args = N groupID1 groupID2 ...
     N = # of groups
     groupID1, groupID2, ... = list of N group IDs :pre
@@ -80,6 +83,16 @@ fix 1 rods rigid/npt molecule temp 300.0 300.0 100.0 iso 0.5 0.5 10.0
 fix 1 particles rigid/npt molecule temp 1.0 1.0 5.0 x 0.5 0.5 1.0 z 0.5 0.5 1.0 couple xz
 fix 1 water rigid/nph molecule iso 0.5 0.5 1.0
 fix 1 particles rigid/npt/small molecule temp 1.0 1.0 1.0 iso 0.5 0.5 1.0 :pre
+
+variable bodyid atom 1.0*gmask(clump1)+2.0*gmask(clump2)+3.0*gmask(clump3)
+fix 1 clump rigid custom v_bodyid :pre
+
+variable bodyid atomfile bodies.txt
+fix 1 clump rigid custom v_bodyid :pre
+
+fix 0 all property/atom i_bodyid
+read_restart data.rigid fix 0 NULL Bodies
+fix 1 clump rigid/small custom i_bodyid :pre
 	
 [Description:]
 
@@ -100,7 +113,7 @@ of a biomolecule such as a protein.
 
 Example of small rigid bodies are patchy nanoparticles, such as those
 modeled in "this paper"_#Zhang1 by Sharon Glotzer's group, clumps of
-granular particles, lipid molecules consiting of one or more point
+granular particles, lipid molecules consisting of one or more point
 dipoles connected to other spheroids or ellipsoids, irregular
 particles built from line segments (2d) or triangles (3d), and
 coarse-grain models of nano or colloidal particles consisting of a
@@ -203,11 +216,11 @@ most one rigid body.  Which atoms are in which bodies can be defined
 via several options.
 
 NOTE: With the {rigid/small} styles, which require that {bodystyle} be
-specified as {molecule}, you can define a system that has no rigid
-bodies initially.  This is useful when you are using the {mol} keyword
-in conjunction with another fix that is adding rigid bodies on-the-fly
-as molecules, such as "fix deposit"_fix_deposit.html or "fix
-pour"_fix_pour.html.
+specified as {molecule} or {custom}, you can define a system that has
+no rigid bodies initially.  This is useful when you are using the {mol}
+keyword in conjunction with another fix that is adding rigid bodies
+on-the-fly as molecules, such as "fix deposit"_fix_deposit.html or
+"fix pour"_fix_pour.html.
 
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for the {rigid} styles.
@@ -221,6 +234,15 @@ For a system with atomic solvent (typically this is atoms with
 molecule ID = 0) surrounding rigid bodies, this may not be what you
 want.  Thus you should be careful to use a fix group that only
 includes atoms you want to be part of rigid bodies.
+
+Bodystyle {custom} is similar to bodystyle {molecule}, however some
+custom properties are used to group atoms into rigid bodies. The
+special case for molecule/body ID = 0 is not available. Possible
+custom properties are an integer property associated with atoms through
+"fix property/atom"_fix_property_atom.html or an atom style variable
+or an atomfile style variable. For the latter two, the variable value
+will be rounded to an integer and then rigid bodies defined from
+those values.
 
 For bodystyle {group}, each of the listed groups is treated as a
 separate rigid body.  Only atoms that are also in the fix group are

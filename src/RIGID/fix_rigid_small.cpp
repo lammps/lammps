@@ -114,6 +114,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"molecule") == 0) {
     if (atom->molecule_flag == 0)
       error->all(FLERR,"Fix rigid/small requires atom attribute molecule");
+    bodyid = atom->molecule;
 
   } else if (strcmp(arg[3],"custom") == 0) {
     if (narg < 5) error->all(FLERR,"Illegal fix rigid/small command");

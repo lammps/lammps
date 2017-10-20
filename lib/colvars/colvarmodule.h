@@ -83,6 +83,15 @@ public:
 
   /// Defining an abstract real number allows to switch precision
   typedef  double    real;
+
+  /// Override std::pow with a product for n positive integer
+  static inline real integer_power(real x, int n)
+  {
+    real result = 1.0;
+    for (int i = 0; i < n; i++) result *= x;
+    return result;
+  }
+
   /// Residue identifier
   typedef  int       residue_id;
 

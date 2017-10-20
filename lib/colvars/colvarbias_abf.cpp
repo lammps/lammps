@@ -304,6 +304,10 @@ int colvarbias_abf::update()
         // and subtract previous ABF force if necessary
         update_system_force(i);
       }
+      if (cvm::proxy->total_forces_same_step()) {
+        // e.g. in LAMMPS, total forces are current
+        force_bin = bin;
+      }
       gradients->acc_force(force_bin, system_force);
     }
     if ( z_gradients && update_bias ) {
@@ -321,8 +325,11 @@ int colvarbias_abf::update()
     }
   }
 
-  // save bin for next timestep
-  force_bin = bin;
+  if (!cvm::proxy->total_forces_same_step()) {
+    // e.g. in NAMD, total forces will be available for next timestep
+    // hence we store the current colvar bin
+    force_bin = bin;
+  }
 
   // Reset biasing forces from previous timestep
   for (size_t i = 0; i < colvars.size(); i++) {

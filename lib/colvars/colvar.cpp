@@ -1145,7 +1145,7 @@ int colvar::collect_cvc_values()
       if (!cvcs[i]->is_enabled()) continue;
       x += (cvcs[i])->sup_coeff *
       ( ((cvcs[i])->sup_np != 1) ?
-        std::pow((cvcs[i])->value().real_value, (cvcs[i])->sup_np) :
+        cvm::integer_power((cvcs[i])->value().real_value, (cvcs[i])->sup_np) :
         (cvcs[i])->value().real_value );
     }
   } else {
@@ -1226,7 +1226,7 @@ int colvar::collect_cvc_gradients()
       if (!cvcs[i]->is_enabled()) continue;
       // Coefficient: d(a * x^n) = a * n * x^(n-1) * dx
       cvm::real coeff = (cvcs[i])->sup_coeff * cvm::real((cvcs[i])->sup_np) *
-        std::pow((cvcs[i])->value().real_value, (cvcs[i])->sup_np-1);
+        cvm::integer_power((cvcs[i])->value().real_value, (cvcs[i])->sup_np-1);
 
       for (size_t j = 0; j < cvcs[i]->atom_groups.size(); j++) {
 
@@ -1593,9 +1593,9 @@ void colvar::communicate_forces()
     for (i = 0; i < cvcs.size(); i++) {
       if (!cvcs[i]->is_enabled()) continue;
       (cvcs[i])->apply_force(f * (cvcs[i])->sup_coeff *
-                              cvm::real((cvcs[i])->sup_np) *
-                              (std::pow((cvcs[i])->value().real_value,
-                                      (cvcs[i])->sup_np-1)) );
+                             cvm::real((cvcs[i])->sup_np) *
+                             (cvm::integer_power((cvcs[i])->value().real_value,
+                                                 (cvcs[i])->sup_np-1)) );
     }
 
   } else {

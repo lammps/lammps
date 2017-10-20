@@ -100,6 +100,10 @@ class colvarproxy_lammps : public colvarproxy {
   // set status from string
   bool deserialize_status(std::string &);
 
+  // Write files expected from Colvars (called by post_run())
+  void write_output_files();
+
+
   // implementation of pure methods from base class
  public:
 

@@ -524,9 +524,18 @@ int colvarbias_ti::update_system_forces(std::vector<colvarvalue> const
     cvm::log("Updating system forces for bias "+this->name+"\n");
   }
 
-  // Collect total colvar forces from the previous step
+  colvarproxy *proxy = cvm::main()->proxy;
+
   size_t i;
-  if (cvm::step_relative() > 0) {
+
+  if (proxy->total_forces_same_step()) {
+    for (i = 0; i < num_variables(); i++) {
+      ti_bin[i] = ti_avg_forces->current_bin_scalar(i);
+    }
+  }
+
+  // Collect total colvar forces
+  if ((cvm::step_relative() > 0) || proxy->total_forces_same_step()) {
     if (ti_avg_forces->index_ok(ti_bin)) {
       for (i = 0; i < num_variables(); i++) {
         if (variables(i)->is_enabled(f_cv_subtract_applied_force)) {
@@ -542,9 +551,11 @@ int colvarbias_ti::update_system_forces(std::vector<colvarvalue> const
     }
   }
 
-  // Set the index to be used in the next iteration, when total forces come in
-  for (i = 0; i < num_variables(); i++) {
-    ti_bin[i] = ti_avg_forces->current_bin_scalar(i);
+  if (!proxy->total_forces_same_step()) {
+    // Set the index for use in the next iteration, when total forces come in
+    for (i = 0; i < num_variables(); i++) {
+      ti_bin[i] = ti_avg_forces->current_bin_scalar(i);
+    }
   }
 
   return COLVARS_OK;

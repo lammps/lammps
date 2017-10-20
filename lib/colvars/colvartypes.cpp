@@ -312,7 +312,7 @@ void colvarmodule::rotation::diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
     cvm::real norm2 = 0.0;
     size_t i;
     for (i = 0; i < 4; i++) {
-      norm2 += std::pow(S_eigvec[ie][i], int(2));
+      norm2 += S_eigvec[ie][i] * S_eigvec[ie][i];
     }
     cvm::real const norm = std::sqrt(norm2);
     for (i = 0; i < 4; i++) {

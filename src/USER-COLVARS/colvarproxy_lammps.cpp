@@ -137,7 +137,7 @@ void colvarproxy_lammps::init(const char *conf_file)
   colvars = new colvarmodule(this);
 
   cvm::log("Using LAMMPS interface, version "+
-            cvm::to_str(COLVARPROXY_VERSION)+".\n");
+           cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
   my_angstrom  = _lmp->force->angstrom;
   my_boltzmann = _lmp->force->boltz;
@@ -149,7 +149,8 @@ void colvarproxy_lammps::init(const char *conf_file)
   colvars->setup_output();
 
   if (_lmp->update->ntimestep != 0) {
-    cvm::log("Initializing step number as firstTimestep.\n");
+    cvm::log("Setting initial step number from LAMMPS: "+
+             cvm::to_str(_lmp->update->ntimestep)+"\n");
     colvars->it = colvars->it_restart = _lmp->update->ntimestep;
   }
 
@@ -166,7 +167,6 @@ colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
   if (colvars != NULL) {
-    colvars->write_output_files();
     delete colvars;
     colvars = NULL;
   }
@@ -182,10 +182,18 @@ int colvarproxy_lammps::setup()
 // trigger colvars computation
 double colvarproxy_lammps::compute()
 {
+  if (cvm::debug()) {
+    log(std::string(cvm::line_marker)+
+        "colvarproxy_lammps step no. "+
+        cvm::to_str(_lmp->update->ntimestep)+" [first - last = "+
+        cvm::to_str(_lmp->update->beginstep)+" - "+
+        cvm::to_str(_lmp->update->endstep)+"]\n");
+  }
+
   if (first_timestep) {
     first_timestep = false;
   } else {
-    // Use the time step number inherited from LAMMPS
+    // Use the time step number from LAMMPS Update object
     if ( _lmp->update->ntimestep - previous_step == 1 )
       colvars->it++;
     // Other cases could mean:
@@ -233,8 +241,12 @@ void colvarproxy_lammps::serialize_status(std::string &rst)
   std::ostringstream os;
   colvars->write_restart(os);
   rst = os.str();
+}
 
-  // TODO separate this as its own function?
+void colvarproxy_lammps::write_output_files()
+{
+  // TODO skip output if undefined
+  colvars->write_restart_file(cvm::output_prefix()+".colvars.state");
   colvars->write_output_files();
 }
 

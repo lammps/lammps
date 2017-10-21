@@ -92,7 +92,7 @@ This fix can be used to perform non-equilibrium MD (NEMD) simulations
 of a continuously strained system.  See the "fix
 nvt/sllod"_fix_nvt_sllod.html and "compute
 temp/deform"_compute_temp_deform.html commands for more details.  Note
-that simulation of a continuously extended (extensional flow) system
+that simulation of a continuously extended system (extensional flow)
 can be modeled using the "USER-UEF
 package"_Section_packages.html#USER-UEF and its "fix
 commands"_fix_nh_uef.html.

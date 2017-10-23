@@ -29,7 +29,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{DEFAULT,NPARTNER,PERPARTNER};
+enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history/omp
 
 /* ---------------------------------------------------------------------- */
 
@@ -554,8 +554,6 @@ void FixNeighHistory::post_neighbor()
 {
   int i,j,m,ii,jj,nn,np,inum,jnum,rflag;
   tagint jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double radi,rsq,radsum;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *allflags;
   double *allvalues;

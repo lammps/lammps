@@ -61,31 +61,30 @@ mass		1 58.93
 set group all spin 1.72 0.0 0.0 1.0 
 #set group single_spin spin/random 11 1.72
 
-#velocity all create 600 4928459 rot yes dist gaussian
+#velocity all create 200 4928459 rot yes dist gaussian
 
 #Magneto-mechanic interactions for bulk fcc Cobalt
-#pair_style pair/spin 4.0
+pair_style pair/spin/exchange 4.0
 #pair_style eam/alloy
 #pair_style hybrid/overlay eam/alloy pair/spin/soc 4.0
-pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
-#pair_style hybrid/overlay eam/alloy pair/spin 4.0 pair/spin/soc 4.0
+#pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
+#pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0
 
-pair_coeff * * eam/alloy ../Co_PurjaPun_2012.eam.alloy Co
+#pair_coeff * * eam/alloy ../Co_PurjaPun_2012.eam.alloy Co
 #pair_coeff * * ../Co_PurjaPun_2012.eam.alloy Co
 
 #pair_style pair/spin 4.0
 #type i and j | interaction type | cutoff | J1 (eV) | J2 (adim) | J3 (Ang) (for Exchange)
-#pair_coeff * * exchange 4.0 0.0446928 0.003496 1.4885 
+pair_coeff * * exchange 4.0 0.0446928 0.003496 1.4885 
 #pair_coeff * * exchange 4.0 0.0 0.003496 1.4885 
-pair_coeff * * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
-#pair_coeff * * pair/spin exchange 4.0 0.0 0.003496 1.4885 
+#pair_coeff * * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 
 #type i and j | interaction type | cutoff | Int (eV) | [dx,dy,dz] (for DMI and ME)
 #pair_coeff * * dmi 2.6 0.001 0.0 0.0 1.0
 #pair_coeff * * me 2.6 0.01 1.0 1.0 1.0
 
 #type i and j | interaction type | cutoff | K1 (eV) | K2 (adim) | K3 (Ang) (for SOC)
-pair_coeff * * pair/spin/soc/neel neel 4.0 -0.003330282 0.864159 2.13731 
+#pair_coeff * * pair/spin/soc/neel neel 4.0 -0.003330282 0.864159 2.13731 
 
 #Define a skin distance, update neigh list every 
 #neighbor 1.0 bin
@@ -112,7 +111,7 @@ fix 3 all integration/spin serial
 #fix outmag all ave/time 1 1 50 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5] c_mag[6] c_mag[7] file mag_VSRSV.dat format %20.16g
 
 #Setting the timestep for the simulation (in ps)
-timestep	0.0002
+timestep	0.0001
 
 ##################
 #######run########
@@ -123,6 +122,7 @@ timestep	0.0002
 compute out_mag    all compute/spin
 compute out_pe     all pe
 compute out_ke     all ke
+compute out_temp   all temp
 
 variable magnorm   equal c_out_mag[5]
 variable emag      equal c_out_mag[6]
@@ -130,13 +130,13 @@ variable tmag      equal c_out_mag[7]
 variable mag_force equal f_1
 
 thermo          500
-thermo_style    custom step time v_emag c_out_pe c_out_ke v_mag_force v_magnorm v_tmag etotal
+thermo_style    custom step time v_emag c_out_pe c_out_ke c_out_temp v_mag_force v_magnorm v_tmag etotal
 #fix out_vals all ave/time 1 1 50 step v_emag file temp_lattice_VSRSV.dat format %20.16g
 
 #Dump the positions and spin directions of magnetic particles (vmd format)
 dump 1 all custom 100 dump_VSRSV.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 1000000
+run 40000
 #run 1
 

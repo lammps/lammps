@@ -212,13 +212,13 @@ void PairSpinSocNeel::compute_soc_neel(int i, int j, double rsq, double *rij, do
   scalar = rij[0]*spj[0]+rij[1]*spj[1]+rij[2]*spj[2];
   Kij_3 = Kij/3.0;
 
-  fmi[0] += Kij*scalar*rij[0]-Kij_3*spj[0];
-  fmi[1] += Kij*scalar*rij[1]-Kij_3*spj[1];
-  fmi[2] += Kij*scalar*rij[2]-Kij_3*spj[2];
+  fmi[0] -= Kij*scalar*rij[0]-Kij_3*spj[0];
+  fmi[1] -= Kij*scalar*rij[1]-Kij_3*spj[1];
+  fmi[2] -= Kij*scalar*rij[2]-Kij_3*spj[2];
           
-  fmj[0] -= Kij*scalar*rij[0]+Kij_3*spi[0];
-  fmj[1] -= Kij*scalar*rij[1]+Kij_3*spi[1];
-  fmj[2] -= Kij*scalar*rij[2]+Kij_3*spi[2];
+  fmj[0] += Kij*scalar*rij[0]+Kij_3*spi[0];
+  fmj[1] += Kij*scalar*rij[1]+Kij_3*spi[1];
+  fmj[2] += Kij*scalar*rij[2]+Kij_3*spi[2];
 
 }
 

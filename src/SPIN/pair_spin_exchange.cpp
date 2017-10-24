@@ -83,7 +83,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl,ecoul;
-  double xtmp,ytmp,ztmp;
+  double xi,yi,zi;
   double fix,fiy,fiz,fjx,fjy,fjz;
   double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
   double cut_ex_2,cut_spin_exchange_global2;
@@ -114,9 +114,9 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    xi = x[i][0];
+    yi = x[i][1];
+    zi = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
@@ -140,9 +140,9 @@ void PairSpinExchange::compute(int eflag, int vflag)
       fmj[0] = fmj[1] = fmj[2] = 0.0;
       rij[0] = rij[1] = rij[2] = 0.0;
      
-      rij[0] = x[j][0] - xtmp;
-      rij[1] = x[j][1] - ytmp;
-      rij[2] = x[j][2] - ztmp;
+      rij[0] = x[j][0] - xi;
+      rij[1] = x[j][1] - yi;
+      rij[2] = x[j][2] - zi;
 
       // square of inter-atomic distance
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
@@ -212,13 +212,13 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double *fmi,  
   Jex *= (1.0-J2[itype][jtype]*ra);
   Jex *= exp(-ra);
 
-  fmi[0] += 0.5*Jex*spj[0];
-  fmi[1] += 0.5*Jex*spj[1];
-  fmi[2] += 0.5*Jex*spj[2];
+  fmi[0] -= 0.5*Jex*spj[0];
+  fmi[1] -= 0.5*Jex*spj[1];
+  fmi[2] -= 0.5*Jex*spj[2];
           
-  fmj[0] += 0.5*Jex*spi[0];
-  fmj[1] += 0.5*Jex*spi[1];
-  fmj[2] += 0.5*Jex*spi[2];
+  fmj[0] -= 0.5*Jex*spi[0];
+  fmj[1] -= 0.5*Jex*spi[1];
+  fmj[2] -= 0.5*Jex*spi[2];
 
 }
 

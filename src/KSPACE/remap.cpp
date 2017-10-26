@@ -493,54 +493,85 @@ struct remap_plan_3d *remap_3d_create_plan(
       }
     }
 
+    // Note:
+    //  if we could use a hint for cases where we know all processors will be
+    //  included in commringlist, then we can just duplicate the comm communicator
+    //  and not execute the following O(Nproc^2) commringlist logic.
+
     // collide all inarray extents for the comm ring with all output
     // extents and all outarray extents for the comm ring with all input
     // extents - if there is a collison add the rank to the comm ring,
     // keep iterating until nothing is added to commring
 
+    int istart = 0;
+    int iend   = commringlen;
+
+    int * list_found = (int *) malloc(nprocs*sizeof(int));
+    for (int i=0; i<nprocs; ++i) list_found[i] = 0;
+    for (int i=0; i<commringlen; ++i) list_found[commringlist[i]] = 1;
+
+    int num_remaining_rnks = nprocs;
+    int * remaining_rnks = (int *) malloc(nprocs*sizeof(int));
+    for (int i=0; i<nprocs; ++i) remaining_rnks[i] = i;
+
     int commringappend = 1;
     while (commringappend) {
       int newcommringlen = commringlen;
       commringappend = 0;
-      for (int i=0;i<commringlen;i++) {
-        for (int j=0;j<nprocs;j++) {
-          if (remap_3d_collide(&inarray[commringlist[i]],
-                               &outarray[j],&overlap)) {
-            int alreadyinlist = 0;
-            for (int k=0;k<newcommringlen;k++) {
-              if (commringlist[k] == j) {
-                alreadyinlist = 1;
-              }
-            }
-            if (!alreadyinlist) {
-              commringlist[newcommringlen++] = j;
-              commringappend = 1;
-            }
-          }
-          if (remap_3d_collide(&outarray[commringlist[i]],
-                               &inarray[j],&overlap)) {
-            int alreadyinlist = 0;
-            for (int k=0;k<newcommringlen;k++) {
-              if (commringlist[k] == j) alreadyinlist = 1;
-            }
-            if (!alreadyinlist) {
-              commringlist[newcommringlen++] = j;
-              commringappend = 1;
-            }
-          }
-        }
+
+      // shrink list of remaining ranks to test
+
+      int num_remaining_rnks_new = 0;
+      for (int k=0; k<num_remaining_rnks; ++k) {
+        const int rnk = remaining_rnks[k];
+        if(!list_found[rnk]) remaining_rnks[num_remaining_rnks_new++] = rnk;
       }
+
+      for (int i=istart; i<iend; i++)
+        for (int jj=0; jj<num_remaining_rnks_new; ++jj) {
+          const int j = remaining_rnks[jj];
+
+          if (remap_3d_collide(&inarray[commringlist[i]], &outarray[j], &overlap) ||
+              remap_3d_collide(&outarray[commringlist[i]], &inarray[j], &overlap) ) {
+            commringlist[newcommringlen++] = j;
+            if (newcommringlen == nprocs) goto endloop;
+          }
+
+        }
+
+      // update list of ranks found
+
+      if (newcommringlen > commringlen) {
+        commringappend = 1;
+        for (int i=commringlen; i<newcommringlen; ++i) list_found[commringlist[i]] = 1;
+      }
+
+    endloop:
+
+      // reset indices to only test newest ranks added
+
+      istart = commringlen;
+      iend   = newcommringlen;
       commringlen = newcommringlen;
+      if (commringlen == nprocs) commringappend = 0;
     }
+
+    free(list_found);
+    free(remaining_rnks);
 
     // sort the final commringlist
 
-    for (int c = 0 ; c < ( commringlen - 1 ); c++) {
-      for (int d = 0 ; d < commringlen - c - 1; d++) {
-        if (commringlist[d] > commringlist[d+1]) {
-          swap = commringlist[d];
-          commringlist[d]   = commringlist[d+1];
-          commringlist[d+1] = swap;
+    if (commringlen == nprocs) {
+      for (int i=0; i<commringlen; ++i) commringlist[i] = i;
+    } else {
+
+      for (int c = 0 ; c < ( commringlen - 1 ); c++) {
+        for (int d = 0 ; d < commringlen - c - 1; d++) {
+          if (commringlist[d] > commringlist[d+1]) {
+            swap = commringlist[d];
+            commringlist[d]   = commringlist[d+1];
+            commringlist[d+1] = swap;
+          }
         }
       }
     }
@@ -684,14 +715,18 @@ int remap_3d_collide(struct extent_3d *block1, struct extent_3d *block2,
 {
   overlap->ilo = MAX(block1->ilo,block2->ilo);
   overlap->ihi = MIN(block1->ihi,block2->ihi);
+
+  if (overlap->ilo > overlap->ihi) return 0;
+
   overlap->jlo = MAX(block1->jlo,block2->jlo);
   overlap->jhi = MIN(block1->jhi,block2->jhi);
+
+  if (overlap->jlo > overlap->jhi) return 0;
+
   overlap->klo = MAX(block1->klo,block2->klo);
   overlap->khi = MIN(block1->khi,block2->khi);
 
-  if (overlap->ilo > overlap->ihi ||
-      overlap->jlo > overlap->jhi ||
-      overlap->klo > overlap->khi) return 0;
+  if (overlap->klo > overlap->khi) return 0;
 
   overlap->isize = overlap->ihi - overlap->ilo + 1;
   overlap->jsize = overlap->jhi - overlap->jlo + 1;

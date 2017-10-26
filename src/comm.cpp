@@ -46,6 +46,8 @@ enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
+#define MAX_RING_NEIGHBORS 27
+
 /* ---------------------------------------------------------------------- */
 
 Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
@@ -72,6 +74,9 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   grid2proc = NULL;
   xsplit = ysplit = zsplit = NULL;
   rcbnew = 0;
+
+  neighborflag = 0;
+  ring_neighbors = NULL;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -119,6 +124,8 @@ Comm::~Comm()
   memory->destroy(cutusermulti);
   delete [] customfile;
   delete [] outfile;
+
+  if (ring_neighbors) memory->destroy(ring_neighbors);
 }
 
 /* ----------------------------------------------------------------------
@@ -302,6 +309,9 @@ void Comm::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
       else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"ring_neighbor") == 0) {
+      neighborflag = 1;
+      iarg++;
     } else error->all(FLERR,"Illegal comm_modify command");
   }
 }
@@ -585,6 +595,63 @@ void Comm::set_proc_grid(int outflag)
                universe->uworld);
     }
   }
+
+  // if not uniform layout, then de-activate until support added
+
+  if (neighborflag && layout != LAYOUT_UNIFORM) neighborflag = 0;
+
+  // if using neighbor comm pattern instead of ring() over procs
+
+  if (neighborflag) {
+
+    // maximum number of potential neighbors
+
+    memory->create(ring_neighbors, MAX_RING_NEIGHBORS, "comm:ring_neighbors");
+
+    // Identify MPI ranks of neighboring 26 sub-domains
+
+    int indx = 0;
+    for (int i=-1; i<2; ++i) {
+      int x = myloc[0] + i;
+      if (x == -1         ) x = procgrid[0] - 1;
+      if (x == procgrid[0]) x = 0;
+
+      for (int j=-1; j<2; ++j) {
+        int y = myloc[1] + j;
+        if (y == -1         ) y = procgrid[1] - 1;
+        if (y == procgrid[1]) y = 0;
+
+        for (int k=-1; k<2; ++k) {
+          int z = myloc[2] + k;
+          if (z == -1         ) z = procgrid[2] - 1;
+          if (z == procgrid[2]) z = 0;
+
+          ring_neighbors[indx++] = grid2proc[x][y][z];
+        }
+
+      }
+
+    }
+
+    // due to pbc, there may be duplicates; find unique rank ids and eliminate self
+
+    indx = 0;
+    for (int i=0; i<MAX_RING_NEIGHBORS; ++i) {
+      int new_entry = 1;
+      if (ring_neighbors[i] == me) new_entry = 0;
+      for (int j=0; j<indx; ++j)
+        if (ring_neighbors[j] == ring_neighbors[i]) new_entry = 0;
+      if (new_entry) {
+        ring_neighbors[indx] = ring_neighbors[i];
+        indx++;
+      }
+    }
+    num_ring_neighbors = indx;
+
+    // current implementation only makes sense if 26 unique neighbors
+
+    if (num_ring_neighbors != MAX_RING_NEIGHBORS-1) neighborflag = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -685,6 +752,14 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
                 void (*callback)(int, char *, void *),
                 void *outbuf, void *ptr, int self)
 {
+  // intercept all ring() calls if only communicating with neighbors
+  // -- good chance this isn't appropriate for 100% use cases...
+
+  if (neighborflag) {
+    ring_neighbor(n, nper, inbuf, messtag, callback, outbuf, ptr, self);
+    return;
+  }
+
   MPI_Request request;
   MPI_Status status;
 
@@ -724,6 +799,73 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 }
 
 /* ----------------------------------------------------------------------
+   communicate inbuf only to closest neighboring processors with messtag
+   nbytes = size of inbuf = n datums * nper bytes
+   callback() is invoked to allow caller to process/update each proc's inbuf
+   if self=1 (default), then callback() is invoked on final iteration
+     using original inbuf, which may have been updated
+   for non-NULL outbuf, final updated inbuf is copied to it
+     ok to specify outbuf = inbuf
+   the ptr argument is a pointer to the instance of calling class
+------------------------------------------------------------------------- */
+
+void Comm::ring_neighbor(int n, int nper, void *inbuf, int messtag,
+                         void (*callback)(int, char *, void *),
+                         void *outbuf, void *ptr, int self)
+{
+  MPI_Request request;
+  MPI_Status status;
+
+  int nbytes = n*nper;
+  int maxbytes;
+  MPI_Allreduce(&nbytes,&maxbytes,1,MPI_INT,MPI_MAX,world);
+
+  // no need to communicate without data
+
+  if (maxbytes == 0) return;
+
+  char *buf,*bufcopy;
+  memory->create(buf,    maxbytes,"comm:buf");
+  memory->create(bufcopy,maxbytes,"comm:bufcopy");
+  memcpy(buf, inbuf, nbytes);
+
+  // loop over nearest neighbors ping-ponging buf
+  // -- if smarter, could have buf go around the ring to reduce MPI 2x (worth effort?)
+
+  int irecv = num_ring_neighbors - 1;
+  for (int isend=0; isend<num_ring_neighbors; ++isend) {
+
+    // forward pass buf
+
+    MPI_Irecv(bufcopy, maxbytes, MPI_CHAR, ring_neighbors[irecv], messtag, world, &request);
+    MPI_Send(buf,      nbytes,   MPI_CHAR, ring_neighbors[isend], messtag, world);
+    MPI_Wait(&request, &status);
+    MPI_Get_count(&status, MPI_CHAR, &nbytes);
+
+    // process buf
+
+    callback(nbytes/nper, bufcopy, ptr);
+
+    // reverse pass buf
+
+    MPI_Irecv(buf,    maxbytes, MPI_CHAR, ring_neighbors[isend], messtag, world, &request);
+    MPI_Send(bufcopy, nbytes,   MPI_CHAR, ring_neighbors[irecv], messtag, world);
+    MPI_Wait(&request, &status);
+    MPI_Get_count(&status, MPI_CHAR, &nbytes);
+
+    irecv--;
+  }
+
+  // self process
+
+  if (self) callback(nbytes/nper, buf, ptr);
+  if (outbuf) memcpy(outbuf,buf,nbytes);
+
+  memory->destroy(buf);
+  memory->destroy(bufcopy);
+}
+
+/* ----------------------------------------------------------------------
    proc 0 reads Nlines from file into buf and bcasts buf to all procs
    caller allocates buf to max size needed
    each line is terminated by newline, even if last line in file is not
@@ -738,8 +880,8 @@ int Comm::read_lines_from_file(FILE *fp, int nlines, int maxline, char *buf)
     m = 0;
     for (int i = 0; i < nlines; i++) {
       if (!fgets(&buf[m],maxline,fp)) {
-	m = 0;
-	break;
+        m = 0;
+        break;
       }
       m += strlen(&buf[m]);
     }
@@ -774,8 +916,8 @@ int Comm::read_lines_from_file_universe(FILE *fp, int nlines, int maxline,
     m = 0;
     for (int i = 0; i < nlines; i++) {
       if (!fgets(&buf[m],maxline,fp)) {
-	m = 0;
-	break;
+        m = 0;
+        break;
       }
       m += strlen(&buf[m]);
     }

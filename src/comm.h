@@ -110,6 +110,9 @@ class Comm : protected Pointers {
   int read_lines_from_file(FILE *, int, int, char *);
   int read_lines_from_file_universe(FILE *, int, int, char *);
 
+  void ring_neighbor(int, int, void *, int, void (*)(int, char *, void *),
+                     void *, void *, int self = 1);
+
  protected:
   int bordergroup;           // only communicate this group in borders
 
@@ -137,6 +140,10 @@ class Comm : protected Pointers {
   int ncores;                       // # of cores per node
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
+
+  int neighborflag;                 // 1 if use neighbor only ring communication
+  int num_ring_neighbors;           // number of unique neighbors
+  int * ring_neighbors;             // list of neighboring ranks
 };
 
 }

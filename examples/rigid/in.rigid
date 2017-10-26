@@ -1,0 +1,81 @@
+# Simple rigid body system
+
+units		lj
+atom_style	atomic
+
+pair_style	lj/cut 2.5
+
+read_data	data.rigid
+
+velocity 	all create 100.0 4928459
+
+# unconnected bodies
+
+group		clump1 id <> 1 9
+group		clump2 id <> 10 18
+group		clump3 id <> 19 27
+group		clump4 id <> 28 36
+group		clump5 id <> 37 45
+group		clump6 id <> 46 54
+group		clump7 id <> 55 63
+group		clump8 id <> 64 72
+group		clump9 id <> 73 81
+
+fix 1 all rigid group 9 clump1 clump2 clump3 clump4 clump5 &
+	  	      clump6 clump7 clump8 clump9
+
+# 1 chain of connected bodies
+
+#group		clump1 id <> 1 9
+#group		clump2 id <> 9 18
+#group		clump3 id <> 18 27
+#group		clump4 id <> 27 36
+#group		clump5 id <> 36 45
+#group		clump6 id <> 45 54
+#group		clump7 id <> 54 63
+#group		clump8 id <> 63 72
+#group		clump9 id <> 72 81
+
+#fix 1 all poems group clump1 clump2 clump3 clump4 clump5 &
+#	  	      clump6 clump7 clump8 clump9
+
+# 2 chains of connected bodies
+
+#group		clump1 id <> 1 9
+#group		clump2 id <> 9 18
+#group		clump3 id <> 18 27
+#group		clump4 id <> 27 36
+#group		clump5 id <> 37 45
+#group		clump6 id <> 45 54
+#group		clump7 id <> 54 63
+#group		clump8 id <> 63 72
+#group		clump9 id <> 72 81
+
+#fix 1 all poems group clump1 clump2 clump3 clump4
+#fix 2 all poems group clump5 clump6 clump7 clump8 clump9
+
+neigh_modify	exclude group clump1 clump1
+neigh_modify	exclude group clump2 clump2
+neigh_modify	exclude group clump3 clump3
+neigh_modify	exclude group clump4 clump4
+neigh_modify	exclude group clump5 clump5
+neigh_modify	exclude group clump6 clump6
+neigh_modify	exclude group clump7 clump7
+neigh_modify	exclude group clump8 clump8
+neigh_modify	exclude group clump9 clump9
+
+thermo		100
+
+#dump		1 all atom 50 dump.rigid
+
+#dump		2 all image 100 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 5
+
+#dump		3 all movie 100 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 5
+
+timestep 	0.0001
+thermo		50
+run		10000

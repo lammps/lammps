@@ -78,9 +78,6 @@ temp_dir=${TMPDIR:-/tmp}
 # Check if we have an optimization argument already
 optimization_applied=0
 
-# Check if we have -std=c++X  or --std=c++X already
-stdcxx_applied=0
-
 #echo "Arguments: $# $@"
 
 while [ $# -gt 0 ]
@@ -133,24 +130,15 @@ do
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
-  #Handle c++11
-  --std=c++11|-std=c++11|--std=c++14|-std=c++14|--std=c++1z|-std=c++1z)
-    if [ $stdcxx_applied -eq 1 ]; then
-       echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-std=c++1* or --std=c++1*), only the first is used because nvcc can only accept a single std setting"
-    else
-       shared_args="$shared_args $1"
-       stdcxx_applied=1
-    fi
+  #Handle c++11 setting
+  --std=c++11|-std=c++11)
+    shared_args="$shared_args $1"
     ;;
-
   #strip of -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
   -std=c++98|--std=c++98)
     ;;
   #strip of pedantic because it produces endless warnings about #LINE added by the preprocessor
   -pedantic|-Wpedantic|-ansi)
-    ;;
-  #strip of -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
-  -Woverloaded-virtual)
     ;;
   #strip -Xcompiler because we add it
   -Xcompiler)
@@ -202,7 +190,7 @@ do
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;
   #Handle object files which always need to use "-Xlinker": -x cu applies to all input files, so give them to linker, except if only linking
-  @*|*.dylib)
+  *.dylib)
     object_files="$object_files -Xlinker $1"
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;

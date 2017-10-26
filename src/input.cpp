@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <unistd.h>
-#include "sys/stat.h"
+#include <sys/stat.h>
 #include "input.h"
 #include "style_command.h"
 #include "universe.h"

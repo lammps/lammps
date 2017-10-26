@@ -295,7 +295,7 @@ void BondFENEIntel::pack_force_const(ForceConst<flt_t> &fc,
   const int bp1 = atom->nbondtypes + 1;
   fc.set_ntypes(bp1,memory);
 
-  for (int i = 0; i < bp1; i++) {
+  for (int i = 1; i < bp1; i++) {
     fc.fc[i].k = k[i];
     fc.fc[i].ir0sq = 1.0 / (r0[i] * r0[i]);
     fc.fc[i].sigma = sigma[i];

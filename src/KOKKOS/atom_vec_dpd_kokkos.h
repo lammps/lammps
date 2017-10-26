@@ -111,9 +111,6 @@ class AtomVecDPDKokkos : public AtomVecKokkos {
   DAT::t_x_array d_x;
   DAT::t_v_array d_v;
   DAT::t_f_array d_f;
-  HAT::t_x_array h_x;
-  HAT::t_v_array h_v;
-  HAT::t_f_array h_f;
 
   DAT::tdual_int_1d k_count;
 };

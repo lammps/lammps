@@ -159,13 +159,13 @@ if buildflag or pathflag:
     os.remove("includelink")
   if os.path.isfile("liblink") or os.path.islink("liblink"):
     os.remove("liblink")
-  if os.path.isfile("filelink") or os.path.islink("filelink"):
-    os.remove("filelink")
+  if os.path.isfile("filelink.o") or os.path.islink("filelink.o"):
+    os.remove("filelink.o")
   cmd = 'ln -s "%s/src" includelink' % lattedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   cmd = 'ln -s "%s" liblink' % lattedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/src/latte_c_bind.o" filelink' % lattedir
+  cmd = 'ln -s "%s/src/latte_c_bind.o" filelink.o' % lattedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
 # copy Makefile.lammps.suffix to Makefile.lammps

@@ -476,8 +476,7 @@ void CommBrick::forward_comm(int dummy)
     if (sendproc[iswap] != me) {
       if (comm_x_only) {
         if (size_forward_recv[iswap]) {
-          if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
-          else buf = NULL;
+          buf = x[firstrecv[iswap]];
           MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
                     recvproc[iswap],0,world,&request);
         }
@@ -547,8 +546,7 @@ void CommBrick::reverse_comm()
           MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
                     sendproc[iswap],0,world,&request);
         if (size_reverse_send[iswap]) {
-          if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
-          else buf = NULL;
+          buf = f[firstrecv[iswap]];
           MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
                    recvproc[iswap],0,world);
         }

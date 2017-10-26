@@ -861,6 +861,19 @@ class PyLammps(object):
     """ needed for Python2 compatibility, since print is a reserved keyword """
     return self.__getattr__("print")(s)
 
+  def __dir__(self):
+    return ['angle_coeff', 'angle_style', 'atom_modify', 'atom_style', 'atom_style',
+    'bond_coeff', 'bond_style', 'boundary', 'change_box', 'communicate', 'compute',
+    'create_atoms', 'create_box', 'delete_atoms', 'delete_bonds', 'dielectric',
+    'dihedral_coeff', 'dihedral_style', 'dimension', 'dump', 'fix', 'fix_modify',
+    'group', 'improper_coeff', 'improper_style', 'include', 'kspace_modify',
+    'kspace_style', 'lattice', 'mass', 'minimize', 'min_style', 'neighbor',
+    'neigh_modify', 'newton', 'nthreads', 'pair_coeff', 'pair_modify',
+    'pair_style', 'processors', 'read', 'read_data', 'read_restart', 'region',
+    'replicate', 'reset_timestep', 'restart', 'run', 'run_style', 'thermo',
+    'thermo_modify', 'thermo_style', 'timestep', 'undump', 'unfix', 'units',
+    'variable', 'velocity', 'write_restart']
+
   def __getattr__(self, name):
     def handler(*args, **kwargs):
       cmd_args = [name] + [str(x) for x in args]

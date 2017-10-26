@@ -113,7 +113,6 @@ void reduce_enqueue(
 
   if (output_length < 1) return;
 
-  assert(output_result != nullptr);
   const auto td = get_tile_desc<T>(szElements,output_length,team_size,vector_size, shared_size);
 
   // allocate host and device memory for the results from each team
@@ -176,14 +175,17 @@ void reduce_enqueue(
       }
       
   });
-  ValueInit::init(ReducerConditional::select(f, reducer), output_result);
+  if (output_result != nullptr)
+     ValueInit::init(ReducerConditional::select(f, reducer), output_result);
   fut.wait();
 
   copy(result,result_cpu.data());
-  for(std::size_t i=0;i<td.num_tiles;i++)
-    ValueJoin::join(ReducerConditional::select(f, reducer), output_result, result_cpu.data()+i*output_length);
+  if (output_result != nullptr) {
+    for(std::size_t i=0;i<td.num_tiles;i++)
+       ValueJoin::join(ReducerConditional::select(f, reducer), output_result, result_cpu.data()+i*output_length);
 
-  ValueFinal::final( ReducerConditional::select(f, reducer) , output_result );
+    ValueFinal::final( ReducerConditional::select(f, reducer) , output_result );
+  }
 
 }
 

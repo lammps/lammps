@@ -37,6 +37,10 @@ enable_language(CXX)
 #####################################################################
 include(CheckCCompilerFlag)
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -76,7 +80,7 @@ add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
 if(LAMMPS_EXCEPTIONS)
   add_definitions(-DLAMMPS_EXCEPTIONS)
-  set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES -DLAMMPS_EXCEPTIONS")
+  set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_EXCEPTIONS")
 endif()
 
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps (WON'T enable any features automatically")
@@ -101,7 +105,7 @@ set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
   USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
-  USER-SMTBQ USER-SPH USER-TALLY USER-VTK USER-QUIP USER-QMMM)
+  USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
@@ -665,7 +669,9 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ############################################
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
-add_dependencies(lammps ${LAMMPS_DEPS})
+if(LAMMPS_DEPS)
+  add_dependencies(lammps ${LAMMPS_DEPS})
+endif()
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 if(BUILD_SHARED_LIBS)
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})

@@ -211,6 +211,7 @@ void OpenMP::partition_master( F const& f
                                                  , thread_local_bytes
                                                  );
 
+      omp_set_num_threads(partition_size);
       f( omp_get_thread_num(), omp_get_num_threads() );
 
       Impl::t_openmp_instance->~Exec();

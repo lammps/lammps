@@ -8,6 +8,7 @@
 
 pair_style dpd command :h3
 pair_style dpd/gpu command :h3
+pair_style dpd/intel command :h3
 pair_style dpd/omp command :h3
 pair_style dpd/tstat command :h3
 pair_style dpd/tstat/gpu command :h3

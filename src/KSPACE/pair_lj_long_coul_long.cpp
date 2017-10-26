@@ -253,49 +253,23 @@ void PairLJLongCoulLong::init_style()
 
   if (force->kspace->neighrequest_flag) {
     int irequest;
-
+    int respa = 0;
+    
     if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-      int respa = 0;
       if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
       if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-
-      if (respa == 0) irequest = neighbor->request(this,instance_me);
-      else if (respa == 1) {
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->respaouter = 1;
-      } else {
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 2;
-        neighbor->requests[irequest]->respamiddle = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->respaouter = 1;
-      }
-
-    } else irequest = neighbor->request(this,instance_me);
+    }
+    
+    irequest = neighbor->request(this,instance_me);
+    
+    if (respa >= 1) {
+      neighbor->requests[irequest]->respaouter = 1;
+      neighbor->requests[irequest]->respainner = 1;
+    }
+    if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
   }
 
   cut_coulsq = cut_coul * cut_coul;
-}
-
-/* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   regular or rRESPA
-------------------------------------------------------------------------- */
-
-void PairLJLongCoulLong::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -649,13 +623,13 @@ void PairLJLongCoulLong::compute_inner()
   double qri, *cut_ljsqi, *lj1i, *lj2i;
   vector xi, d;
 
-  ineighn = (ineigh = listinner->ilist)+listinner->inum;
+  ineighn = (ineigh = list->ilist_inner)+list->inum_inner;
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
-    jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
@@ -736,7 +710,7 @@ void PairLJLongCoulLong::compute_middle()
   double qri, *cut_ljsqi, *lj1i, *lj2i;
   vector xi, d;
 
-  ineighn = (ineigh = listmiddle->ilist)+listmiddle->inum;
+  ineighn = (ineigh = list->ilist_middle)+list->inum_middle;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -744,7 +718,7 @@ void PairLJLongCoulLong::compute_middle()
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
-    jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
 
     for (; jneigh<jneighn; ++jneigh) {
       j = *jneigh;
@@ -833,7 +807,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
 
-  ineighn = (ineigh = listouter->ilist)+listouter->inum;
+  ineighn = (ineigh = list->ilist)+list->inum;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -842,7 +816,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;

@@ -47,7 +47,6 @@ class NPair : protected Pointers {
   double cut_inner_sq;
   double cut_middle_sq;
   double cut_middle_inside_sq;
-  double *zeroes;
   double *bboxlo,*bboxhi;
 
   // exclusion data from Neighbor class

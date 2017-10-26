@@ -58,7 +58,6 @@ void FixNVE::init()
     step_respa = ((Respa *) update->integrate)->step;
 }
 
-
 /* ----------------------------------------------------------------------
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */

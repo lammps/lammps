@@ -13,38 +13,35 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(SHEAR_HISTORY,FixShearHistory)
+FixStyle(NEIGH_HISTORY,FixNeighHistory)
 
 #else
 
-#ifndef LMP_FIX_SHEAR_HISTORY_H
-#define LMP_FIX_SHEAR_HISTORY_H
+#ifndef LMP_FIX_NEIGH_HISTORY_H
+#define LMP_FIX_NEIGH_HISTORY_H
 
 #include "fix.h"
 #include "my_page.h"
 
 namespace LAMMPS_NS {
 
-class FixShearHistory : public Fix {
-  //friend class Neighbor;
-  //friend class PairGranHookeHistory;
-  friend class PairLineGranHookeHistory;
-  friend class PairTriGranHookeHistory;
-
+class FixNeighHistory : public Fix {
  public:
   int nlocal_neigh;             // nlocal at last time neigh list was built
   int nall_neigh;               // ditto for nlocal+nghost
-  int *npartner;                // # of touching partners of each atom
-  tagint **partner;             // global atom IDs for the partners
-  double **shearpartner;        // shear values with the partner
-  class Pair *pair;             // ptr to pair style that uses shear history
+  int **firstflag;              // ptr to each atom's neighbor flsg
+  double **firstvalue;          // ptr to each atom's values
+  class Pair *pair;             // ptr to pair style that uses neighbor history
 
-  FixShearHistory(class LAMMPS *, int, char **);
-  ~FixShearHistory();
+  FixNeighHistory(class LAMMPS *, int, char **);
+  ~FixNeighHistory();
   int setmask();
   void init();
-  virtual void pre_exchange();
+  void setup_post_neighbor();
+  void pre_exchange();
   void min_pre_exchange();
+  virtual void post_neighbor();
+  void min_post_neighbor();
   void post_run();
 
   double memory_usage();
@@ -64,20 +61,40 @@ class FixShearHistory : public Fix {
 
  protected:
   int newton_pair;              // same as force setting
-  int dnum,dnumbytes;           // dnum = # of shear history values
+  int dnum,dnumbytes;           // dnum = # of values per neighbor
   int onesided;                 // 1 for line/tri history, else 0
 
-  int maxtouch;                 // max # of touching partners for my atoms
+  int maxatom;                  // max size of firstflag and firstvalue
   int commflag;                 // mode of reverse comm to get ghost info
+  double *zeroes;
+
+  // per-atom data structures
+  // partners = flagged neighbors of an atom
+
+  int *npartner;                // # of partners of each atom
+  tagint **partner;             // global atom IDs for the partners
+  double **valuepartner;        // values for the partners
+  int maxpartner;               // max # of partners for any of my atoms
+
+  // per-atom data structs pointed to by partner & valuepartner
 
   int pgsize,oneatom;           // copy of settings in Neighbor
-  MyPage<tagint> *ipage;        // pages of partner atom IDs
-  MyPage<double> *dpage;        // pages of shear history with partners
+  MyPage<tagint> *ipage_atom;   // pages of partner atom IDs
+  MyPage<double> *dpage_atom;   // pages of partner values
 
-  void pre_exchange_onesided();
-  void pre_exchange_newton();
-  void pre_exchange_no_newton();
+  // per-neighbor data structs pointed to by firstflag & firstvalue
+
+  MyPage<int> *ipage_neigh;     // pages of local atom indices
+  MyPage<double> *dpage_neigh;  // pages of partner values
+
+  virtual void pre_exchange_onesided();
+  virtual void pre_exchange_newton();
+  virtual void pre_exchange_no_newton();
   void allocate_pages();
+
+  inline int sbmask(int j) const {
+    return j >> SBBITS & 3;
+  }
 };
 
 }

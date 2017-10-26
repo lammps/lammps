@@ -88,8 +88,8 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
 
   if (multiproc)
     error->all(FLERR,"Multi-processor writes are not supported.");
-  if (multifile)
-    error->all(FLERR,"Multiple files are not supported.");
+  if (append_flag && multifile)
+    error->all(FLERR,"Cannot append when writing to multiple files.");
 
   perat = new nc_perat_t[nfield];
 
@@ -224,6 +224,24 @@ DumpNetCDF::~DumpNetCDF()
 
 void DumpNetCDF::openfile()
 {
+  char *filecurrent = filename;
+  if (multifile && !singlefile_opened) {
+    char *filestar = filecurrent;
+    filecurrent = new char[strlen(filestar) + 16];
+    char *ptr = strchr(filestar,'*');
+    *ptr = '\0';
+    if (padflag == 0)
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
+              filestar,update->ntimestep,ptr+1);
+    else {
+      char bif[8],pad[16];
+      strcpy(bif,BIGINT_FORMAT);
+      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
+      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
+    }
+    *ptr = '*';
+  }
+
   if (thermo && !singlefile_opened) {
     if (thermovar)  delete [] thermovar;
     thermovar = new int[output->thermo->nfield];
@@ -268,14 +286,14 @@ void DumpNetCDF::openfile()
   ntotalgr = group->count(igroup);
 
   if (filewriter) {
-    if (append_flag && access(filename, F_OK) != -1) {
+    if (append_flag && !multifile && access(filecurrent, F_OK) != -1) {
       // Fixme! Perform checks if dimensions and variables conform with
       // data structure standard.
 
       if (singlefile_opened) return;
       singlefile_opened = 1;
 
-      NCERRX( nc_open(filename, NC_WRITE, &ncid), filename );
+      NCERRX( nc_open(filecurrent, NC_WRITE, &ncid), filecurrent );
 
       // dimensions
       NCERRX( nc_inq_dimid(ncid, NC_FRAME_STR, &frame_dim), NC_FRAME_STR );
@@ -312,8 +330,7 @@ void DumpNetCDF::openfile()
         // Type mangling
         if (vtype[perat[i].field[0]] == INT) {
           xtype = NC_INT;
-        }
-        else {
+        } else {
           if (double_precision)
             xtype = NC_DOUBLE;
           else
@@ -337,10 +354,13 @@ void DumpNetCDF::openfile()
       NCERR( nc_inq_dimlen(ncid, frame_dim, &nframes) );
       // framei == -1 means append to file, == -2 means override last frame
       // Note that in the input file this translates to 'yes', '-1', etc.
-      if (framei < 0 || (append_flag && framei == 0))  framei = nframes+framei+1;
+
+      if (framei <= 0) framei = nframes+framei+1;
       if (framei < 1)  framei = 1;
-    }
-    else {
+    } else {
+      if (framei != 0)
+        error->all(FLERR,"at keyword requires use of 'append yes'");
+
       int dims[NC_MAX_VAR_DIMS];
       size_t index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
       double d[1];
@@ -348,8 +368,8 @@ void DumpNetCDF::openfile()
       if (singlefile_opened) return;
       singlefile_opened = 1;
 
-      NCERRX( nc_create(filename, NC_64BIT_DATA, &ncid),
-          filename );
+      NCERRX( nc_create(filecurrent, NC_64BIT_DATA, &ncid),
+              filecurrent );
 
       // dimensions
       NCERRX( nc_def_dim(ncid, NC_FRAME_STR, NC_UNLIMITED, &frame_dim),
@@ -598,14 +618,38 @@ void DumpNetCDF::closefile()
   if (filewriter && singlefile_opened) {
     NCERR( nc_close(ncid) );
     singlefile_opened = 0;
-    // append next time DumpNetCDF::openfile is called
-    append_flag = 1;
     // write to next frame upon next open
-    framei++;
+    if (multifile)
+      framei = 1;
+    else {
+      // append next time DumpNetCDF::openfile is called
+      append_flag = 1;
+      framei++;
+    }
   }
 }
 
 /* ---------------------------------------------------------------------- */
+
+template <typename T>
+int nc_put_var1_bigint(int ncid, int varid, const size_t index[], const T* tp)
+{
+  return nc_put_var1_int(ncid, varid, index, tp);
+}
+
+template <>
+int nc_put_var1_bigint<long>(int ncid, int varid, const size_t index[],
+                        const long* tp)
+{
+  return nc_put_var1_long(ncid, varid, index, tp);
+}
+
+template <>
+int nc_put_var1_bigint<long long>(int ncid, int varid, const size_t index[],
+                             const long long* tp)
+{
+  return nc_put_var1_longlong(ncid, varid, index, tp);
+}
 
 void DumpNetCDF::write()
 {
@@ -638,13 +682,8 @@ void DumpNetCDF::write()
                   th->keyword[i] );
         }
         else if (th->vtype[i] == BIGINT) {
-#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-          NCERRX( nc_put_var1_long(ncid, thermovar[i], start, &th->bivalue),
+          NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
-#else
-          NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &th->bivalue),
-                  th->keyword[i] );
-#endif
         }
       }
     }
@@ -888,8 +927,11 @@ int DumpNetCDF::modify_param(int narg, char **arg)
   }
   else if (strcmp(arg[iarg],"at") == 0) {
     iarg++;
+    if (iarg >= narg)
+      error->all(FLERR,"expected additional arg after 'at' keyword.");
     framei = force->inumeric(FLERR,arg[iarg]);
-    if (framei < 0)  framei--;
+    if (framei == 0) error->all(FLERR,"frame 0 not allowed for 'at' keyword.");
+    else if (framei < 0) framei--;
     iarg++;
     return 2;
   }
@@ -907,68 +949,6 @@ int DumpNetCDF::modify_param(int narg, char **arg)
     iarg++;
     return 2;
   } else return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpNetCDF::write_prmtop()
-{
-  char fn[1024];
-  char tmp[81];
-  FILE *f;
-
-  strcpy(fn, filename);
-  strcat(fn, ".prmtop");
-
-  f = fopen(fn, "w");
-  fprintf(f, "%%VERSION  LAMMPS\n");
-  fprintf(f, "%%FLAG TITLE\n");
-  fprintf(f, "%%FORMAT(20a4)\n");
-  memset(tmp, ' ', 76);
-  tmp[76] = '\0';
-  fprintf(f, "NASN%s\n", tmp);
-
-  fprintf(f, "%%FLAG POINTERS\n");
-  fprintf(f, "%%FORMAT(10I8)\n");
-#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-  fprintf(f, "%8li", ntotalgr);
-#else
-  fprintf(f, "%8i", ntotalgr);
-#endif
-  for (int i = 0; i < 11; i++)
-    fprintf(f, "%8i", 0);
-  fprintf(f, "\n");
-  for (int i = 0; i < 12; i++)
-    fprintf(f, "%8i", 0);
-  fprintf(f, "\n");
-  for (int i = 0; i < 6; i++)
-    fprintf(f, "%8i", 0);
-  fprintf(f, "\n");
-
-  fprintf(f, "%%FLAG ATOM_NAME\n");
-  fprintf(f, "%%FORMAT(20a4)\n");
-  for (int i = 0; i < ntotalgr; i++) {
-    fprintf(f, "%4s", "He");
-    if ((i+1) % 20 == 0)
-      fprintf(f, "\n");
-  }
-
-  fprintf(f, "%%FLAG CHARGE\n");
-  fprintf(f, "%%FORMAT(5E16.5)\n");
-  for (int i = 0; i < ntotalgr; i++) {
-    fprintf(f, "%16.5e", 0.0);
-    if ((i+1) % 5 == 0)
-      fprintf(f, "\n");
-  }
-
-  fprintf(f, "%%FLAG MASS\n");
-  fprintf(f, "%%FORMAT(5E16.5)\n");
-  for (int i = 0; i < ntotalgr; i++) {
-    fprintf(f, "%16.5e", 1.0);
-    if ((i+1) % 5 == 0)
-        fprintf(f, "\n");
-  }
-  fclose(f);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -9,30 +9,42 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+
+   Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
 
-FixStyle(SHEAR_HISTORY/omp,FixShearHistoryOMP)
+FixStyle(npt/uef,FixNPTUef)
 
 #else
 
-#ifndef LMP_FIX_SHEAR_HISTORY_OMP_H
-#define LMP_FIX_SHEAR_HISTORY_OMP_H
+#ifndef LMP_FIX_NPT_UEF_H
+#define LMP_FIX_NPT_UEF_H
 
-#include "fix_shear_history.h"
+#include "fix_nh_uef.h"
 
 namespace LAMMPS_NS {
 
-class FixShearHistoryOMP : public FixShearHistory {
-
+class FixNPTUef : public FixNHUef {
  public:
-  FixShearHistoryOMP(class LAMMPS *lmp, int narg, char **argv)
-    : FixShearHistory(lmp,narg,argv) {};
-  virtual void pre_exchange();
+  FixNPTUef(class LAMMPS *, int, char **);
+  ~FixNPTUef() {}
 };
 
 }
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Temperature control must be used with fix npt uef
+
+Self-explanatory.
+
+E: Pressure control must be used with fix npt uef
+
+Self-explanatory.
+
+*/

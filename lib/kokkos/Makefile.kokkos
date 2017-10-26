@@ -442,7 +442,7 @@ endif
 ifeq ($(KOKKOS_INTERNAL_USE_MEMKIND), 1)
   KOKKOS_CPPFLAGS += -I$(MEMKIND_PATH)/include
   KOKKOS_LDFLAGS += -L$(MEMKIND_PATH)/lib
-  KOKKOS_LIBS += -lmemkind
+  KOKKOS_LIBS += -lmemkind -lnuma
   tmp := $(shell echo "\#define KOKKOS_HAVE_HBWSPACE 1" >> KokkosCore_config.tmp )
 endif
 
@@ -613,9 +613,18 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER8), 1)
   ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
 
   else
-    # Assume that this is a really a GNU compiler or it could be XL on P8.
-    KOKKOS_CXXFLAGS += -mcpu=power8 -mtune=power8
-    KOKKOS_LDFLAGS  += -mcpu=power8 -mtune=power8
+    ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1) 
+        KOKKOS_CXXFLAGS += -mcpu=power8 -mtune=power8
+        KOKKOS_LDFLAGS  += -mcpu=power8 -mtune=power8
+    else
+      ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
+
+      else 
+        # Assume that this is a really a GNU compiler on P8.
+        KOKKOS_CXXFLAGS += -mcpu=power8 -mtune=power8
+        KOKKOS_LDFLAGS  += -mcpu=power8 -mtune=power8
+      endif
+    endif
   endif
 endif
 
@@ -625,9 +634,18 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER9), 1)
   ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
 
   else
-    # Assume that this is a really a GNU compiler or it could be XL on P9.
-    KOKKOS_CXXFLAGS += -mcpu=power9 -mtune=power9
-    KOKKOS_LDFLAGS  += -mcpu=power9 -mtune=power9
+    ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1) 
+        KOKKOS_CXXFLAGS += -mcpu=power9 -mtune=power9
+        KOKKOS_LDFLAGS  += -mcpu=power9 -mtune=power9
+    else
+      ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
+
+      else 
+        # Assume that this is a really a GNU compiler on P9
+        KOKKOS_CXXFLAGS += -mcpu=power9 -mtune=power9
+        KOKKOS_LDFLAGS  += -mcpu=power9 -mtune=power9
+      endif
+    endif
   endif
 endif
 

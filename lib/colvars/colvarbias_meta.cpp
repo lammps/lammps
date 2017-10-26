@@ -33,7 +33,7 @@
 
 
 colvarbias_meta::colvarbias_meta(char const *key)
-  : colvarbias(key)
+  : colvarbias(key), colvarbias_ti(key)
 {
   new_hills_begin = hills.end();
   hills_traj_os = NULL;
@@ -44,6 +44,7 @@ colvarbias_meta::colvarbias_meta(char const *key)
 int colvarbias_meta::init(std::string const &conf)
 {
   colvarbias::init(conf);
+  colvarbias_ti::init(conf);
 
   enable(f_cvb_calc_pmf);
 
@@ -104,7 +105,7 @@ int colvarbias_meta::init(std::string const &conf)
       get_keyval(conf, "dumpFreeEnergyFile", dump_fes, true, colvarparse::parse_silent);
     if (get_keyval(conf, "saveFreeEnergyFile", dump_fes_save, false, colvarparse::parse_silent)) {
       cvm::log("Option \"saveFreeEnergyFile\" is deprecated, "
-               "please use \"keepFreeEnergyFile\" instead.");
+               "please use \"keepFreeEnergyFiles\" instead.");
     }
     get_keyval(conf, "keepFreeEnergyFiles", dump_fes_save, dump_fes_save);
 
@@ -230,15 +231,7 @@ int colvarbias_meta::init_ebmeta_params(std::string const &conf)
 
 colvarbias_meta::~colvarbias_meta()
 {
-  if (hills_energy) {
-    delete hills_energy;
-    hills_energy = NULL;
-  }
-
-  if (hills_energy_gradients) {
-    delete hills_energy_gradients;
-    hills_energy_gradients = NULL;
-  }
+  colvarbias_meta::clear_state_data();
 
   if (replica_hills_os) {
     cvm::proxy->close_output_stream(replica_hills_file);
@@ -250,12 +243,30 @@ colvarbias_meta::~colvarbias_meta()
     hills_traj_os = NULL;
   }
 
-  if(target_dist) {
+  if (target_dist) {
     delete target_dist;
     target_dist = NULL;
   }
 }
 
+
+int colvarbias_meta::clear_state_data()
+{
+  if (hills_energy) {
+    delete hills_energy;
+    hills_energy = NULL;
+  }
+
+  if (hills_energy_gradients) {
+    delete hills_energy_gradients;
+    hills_energy_gradients = NULL;
+  }
+
+  hills.clear();
+  hills_off_grid.clear();
+
+  return COLVARS_OK;
+}
 
 
 // **********************************************************************
@@ -335,6 +346,9 @@ int colvarbias_meta::update()
 
   // update base class
   error_code |= colvarbias::update();
+
+  // update the TI estimator (if defined)
+  error_code |= colvarbias_ti::update();
 
   // update grid definition, if needed
   error_code |= update_grid_params();
@@ -1000,6 +1014,10 @@ void colvarbias_meta::update_replicas_registry()
           (replicas.back())->hills_energy           = new colvar_grid_scalar(colvars);
           (replicas.back())->hills_energy_gradients = new colvar_grid_gradient(colvars);
         }
+        if (is_enabled(f_cvb_calc_ti_samples)) {
+          (replicas.back())->enable(f_cvb_calc_ti_samples);
+          (replicas.back())->colvarbias_ti::init_grids();
+        }
       }
     }
   } else {
@@ -1374,6 +1392,8 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
     }
   }
 
+  colvarbias_ti::read_state_data(is);
+
   if (cvm::debug())
     cvm::log("colvarbias_meta::read_restart() done\n");
 
@@ -1474,7 +1494,7 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
 int colvarbias_meta::setup_output()
 {
   output_prefix = cvm::output_prefix();
-  if (cvm::num_biases_feature(colvardeps::f_cvb_calc_pmf) > 1) {
+  if (cvm::main()->num_biases_feature(colvardeps::f_cvb_calc_pmf) > 1) {
     // if this is not the only free energy integrator, append
     // this bias's name, to distinguish it from the output of the other
     // biases producing a .pmf file
@@ -1631,6 +1651,7 @@ std::ostream & colvarbias_meta::write_state_data(std::ostream& os)
     }
   }
 
+  colvarbias_ti::write_state_data(os);
   return os;
 }
 
@@ -1651,6 +1672,7 @@ int colvarbias_meta::write_state_to_replicas()
 
 int colvarbias_meta::write_output_files()
 {
+  colvarbias_ti::write_output_files();
   if (dump_fes) {
     write_pmf();
   }

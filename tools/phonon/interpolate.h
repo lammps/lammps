@@ -5,11 +5,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "memory.h"
-#include <tricubic.h>
-extern "C"{
-#include "f2c.h"
-#include "clapack.h"
-}
+
+extern "C" typedef struct { double r, i; } doublecomplex;
 
 using namespace std;
 

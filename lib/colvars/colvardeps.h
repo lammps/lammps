@@ -180,8 +180,6 @@ public:
 
 protected:
 
-
-
   /// Parse a keyword and enable a feature accordingly
   bool get_keyval_feature(colvarparse *cvp,
                           std::string const &conf, char const *key,
@@ -229,10 +227,18 @@ public:
     f_cvb_get_total_force,
     /// \brief depends on simulation history
     f_cvb_history_dependent,
+    /// \brief depends on time
+    f_cvb_time_dependent,
     /// \brief requires scalar colvars
     f_cvb_scalar_variables,
     /// \brief whether this bias will compute a PMF
     f_cvb_calc_pmf,
+    /// \brief whether this bias will compute TI samples
+    f_cvb_calc_ti_samples,
+    /// \brief whether this bias will write TI samples
+    f_cvb_write_ti_samples,
+    /// \brief whether this bias should write the TI PMF
+    f_cvb_write_ti_pmf,
     f_cvb_ntot
   };
 

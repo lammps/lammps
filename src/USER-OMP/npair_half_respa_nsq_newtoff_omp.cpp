@@ -46,12 +46,10 @@ void NPairHalfRespaNsqNewtoffOmp::build(NeighList *list)
 
   NPAIR_OMP_INIT;
 
-  NeighList *listinner = list->listinner;
-  NeighList *listmiddle = list->listmiddle;
   const int respamiddle = list->respamiddle;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list,listinner,listmiddle)
+#pragma omp parallel default(none) shared(list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
@@ -80,26 +78,26 @@ void NPairHalfRespaNsqNewtoffOmp::build(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  int *ilist_inner = listinner->ilist;
-  int *numneigh_inner = listinner->numneigh;
-  int **firstneigh_inner = listinner->firstneigh;
+  int *ilist_inner = list->ilist_inner;
+  int *numneigh_inner = list->numneigh_inner;
+  int **firstneigh_inner = list->firstneigh_inner;
 
   int *ilist_middle,*numneigh_middle,**firstneigh_middle;
   if (respamiddle) {
-    ilist_middle = listmiddle->ilist;
-    numneigh_middle = listmiddle->numneigh;
-    firstneigh_middle = listmiddle->firstneigh;
+    ilist_middle = list->ilist_middle;
+    numneigh_middle = list->numneigh_middle;
+    firstneigh_middle = list->firstneigh_middle;
   }
 
   // each thread has its own page allocator
   MyPage<int> &ipage = list->ipage[tid];
-  MyPage<int> &ipage_inner = listinner->ipage[tid];
+  MyPage<int> &ipage_inner = list->ipage_inner[tid];
   ipage.reset();
   ipage_inner.reset();
 
   MyPage<int> *ipage_middle;
   if (respamiddle) {
-    ipage_middle = listmiddle->ipage + tid;
+    ipage_middle = list->ipage_middle + tid;
     ipage_middle->reset();
   }
 
@@ -193,6 +191,6 @@ void NPairHalfRespaNsqNewtoffOmp::build(NeighList *list)
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;
-  listinner->inum = nlocal;
-  if (respamiddle) listmiddle->inum = nlocal;
+  list->inum_inner = nlocal;
+  if (respamiddle) list->inum_middle = nlocal;
 }

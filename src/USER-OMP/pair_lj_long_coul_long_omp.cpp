@@ -317,7 +317,7 @@ void PairLJLongCoulLongOMP::compute_inner()
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  const int inum = listinner->inum;
+  const int inum = list->inum_inner;
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -341,7 +341,7 @@ void PairLJLongCoulLongOMP::compute_middle()
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  const int inum = listmiddle->inum;
+  const int inum = list->inum_middle;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -371,7 +371,7 @@ void PairLJLongCoulLongOMP::compute_outer(int eflag, int vflag)
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  const int inum = listouter->inum;
+  const int inum = list->inum;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -805,7 +805,7 @@ void PairLJLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr
   const double *x0 = x[0];
   double *f0 = f[0], *fi = 0;
 
-  int *ilist = listinner->ilist;
+  int *ilist = list->ilist_inner;
 
   const int newton_pair = force->newton_pair;
 
@@ -828,7 +828,7 @@ void PairLJLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
-    jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
@@ -896,7 +896,7 @@ void PairLJLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const th
   const double *x0 = x[0];
   double *f0 = f[0], *fi = 0;
 
-  int *ilist = listmiddle->ilist;
+  int *ilist = list->ilist_middle;
 
   const int newton_pair = force->newton_pair;
 
@@ -925,7 +925,7 @@ void PairLJLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const th
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
-    jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
 
     for (; jneigh<jneighn; ++jneigh) {
       j = *jneigh;
@@ -1000,7 +1000,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
   const double *x0 = x[0];
   double *f0 = f[0], *fi = f0;
 
-  int *ilist = listouter->ilist;
+  int *ilist = list->ilist;
 
   int i, j, ii;
   int *jneigh, *jneighn, typei, typej, ni, respa_flag;
@@ -1027,7 +1027,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;

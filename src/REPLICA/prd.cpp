@@ -310,6 +310,7 @@ void PRD::command(int narg, char **arg)
   time_dephase = time_dynamics = time_quench = time_comm = time_output = 0.0;
   bigint clock = 0;
 
+  timer->init();
   timer->barrier_start();
   time_start = timer->get_wall(Timer::TOTAL);
 

@@ -274,6 +274,7 @@ void TAD::command(int narg, char **arg)
   nbuild = ndanger = 0;
   time_neb = time_dynamics = time_quench = time_comm = time_output = 0.0;
 
+  timer->init();
   timer->barrier_start();
   time_start = timer->get_wall(Timer::TOTAL);
 

@@ -3,7 +3,7 @@
 # Intel ifort settings
 
 latte_SYSINC = 
-latte_SYSLIB = ../../lib/latte/filelink \
+latte_SYSLIB = ../../lib/latte/filelink.o \
                -llatte -lifcore -lsvml -lompstub -limf -lmkl_intel_lp64 \
                -lmkl_intel_thread -lmkl_core -lmkl_intel_thread -lpthread \
                -openmp -O0

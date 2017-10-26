@@ -298,12 +298,12 @@ int Atom::map_style_set()
   MPI_Allreduce(&max,&map_tag_max,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
   // set map_style for new map
-  // if user-selected, use that setting
+  // if user-selected to array/hash, use that setting
   // else if map_tag_max > 1M, use hash
   // else use array
 
   int map_style_old = map_style;
-  if (map_user) map_style = map_user;
+  if (map_user == 1 || map_user == 2) map_style = map_user;
   else if (map_tag_max > 1000000) map_style = 2;
   else map_style = 1;
 

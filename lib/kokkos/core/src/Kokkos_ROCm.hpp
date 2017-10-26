@@ -211,6 +211,24 @@ struct VerifyExecutionCanAccessMemorySpace
 } // namespace Kokkos
 
 
+
+#define threadIdx_x (hc_get_workitem_id(0))
+#define threadIdx_y (hc_get_workitem_id(1))
+#define threadIdx_z (hc_get_workitem_id(2))
+
+#define blockIdx_x  (hc_get_group_id(0))
+#define blockIdx_y  (hc_get_group_id(1))
+#define blockIdx_z  (hc_get_group_id(2))
+
+#define blockDim_x  (hc_get_group_size(0))
+#define blockDim_y  (hc_get_group_size(1))
+#define blockDim_z  (hc_get_group_size(2))
+
+#define gridDim_x   (hc_get_num_groups(0))
+#define gridDim_y   (hc_get_num_groups(1))
+#define gridDim_z   (hc_get_num_groups(2))
+
+
 #include <ROCm/Kokkos_ROCm_Parallel.hpp>
 #include <ROCm/Kokkos_ROCm_Task.hpp>
 

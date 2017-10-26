@@ -46,7 +46,7 @@ action nbin_intel.h
 action nbin_intel.cpp
 action npair_intel.h
 action npair_intel.cpp
-action intel_simd.h pair_sw_intel.cpp
+action intel_simd.h
 action intel_intrinsics.h pair_tersoff_intel.cpp
 action intel_intrinsics_airebo.h pair_airebo_intel.cpp
 

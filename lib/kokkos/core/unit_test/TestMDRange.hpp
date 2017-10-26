@@ -286,7 +286,9 @@ struct TestMDRange_2D {
     // Test with reducers - scalar
     {
       typedef typename Kokkos::Experimental::MDRangePolicy< ExecSpace, Rank<2>, Kokkos::IndexType<int> > range_type;
-      range_type range( {{ 0, 0 }}, {{ N0, N1 }}, {{ 3, 3 }} );
+      int s0 = 1;
+      int s1 = 1;
+      range_type range( {{ s0, s1 }}, {{ N0, N1 }}, {{ 3, 3 }} );
 
       TestMDRange_2D functor( N0, N1 );
 
@@ -297,7 +299,7 @@ struct TestMDRange_2D {
 
       parallel_reduce( range, functor, reducer_scalar );
 
-      ASSERT_EQ( sum, 2 * N0 * N1 );
+      ASSERT_EQ( sum, 2 * (N0 - s0) * (N1 - s1) );
     }
     // Test with reducers - scalar view
     {
@@ -445,7 +447,9 @@ struct TestMDRange_2D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0 } }, point_type{ { N0, N1 } }, tile_type{ { 3, 3 } } );
+      const int s0 = 1;
+      const int s1 = 1;
+      range_type range( point_type{ { s0, s1 } }, point_type{ { N0, N1 } }, tile_type{ { 3, 3 } } );
       TestMDRange_2D functor( N0, N1 );
 
       parallel_for( range, functor );
@@ -454,8 +458,8 @@ struct TestMDRange_2D {
       Kokkos::deep_copy( h_view, functor.input_view );
 
       int counter = 0;
-      for ( int i = 0; i < N0; ++i )
-      for ( int j = 0; j < N1; ++j )
+      for ( int i = s0; i < N0; ++i )
+      for ( int j = s1; j < N1; ++j )
       {
         if ( h_view( i, j ) != 3 ) {
           ++counter;
@@ -463,7 +467,7 @@ struct TestMDRange_2D {
       }
 
       if ( counter != 0 ) {
-        printf( "Default Layouts + InitTag op(): Errors in test_for2; mismatches = %d\n\n", counter );
+        printf( "Offset Start + Default Layouts + InitTag op(): Errors in test_for2; mismatches = %d\n\n", counter );
       }
 
       ASSERT_EQ( counter, 0 );
@@ -699,6 +703,7 @@ struct TestMDRange_2D {
 
       ASSERT_EQ( counter, 0 );
     }
+
   } // end test_for2
 }; // MDRange_2D
 
@@ -749,7 +754,10 @@ struct TestMDRange_3D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0 } }, point_type{ { N0, N1, N2 } }, tile_type{ { 3, 3, 3 } } );
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      range_type range( point_type{ { s0, s1, s2 } }, point_type{ { N0, N1, N2 } }, tile_type{ { 3, 3, 3 } } );
 
       TestMDRange_3D functor( N0, N1, N2 );
 
@@ -757,7 +765,7 @@ struct TestMDRange_3D {
       double sum = 0.0;
       parallel_reduce( range, functor, sum );
 
-      ASSERT_EQ( sum, 2 * N0 * N1 * N2 );
+      ASSERT_EQ( sum, 2 * (N0 - s0) * (N1 - s1) * (N2 - s2) );
     }
 
     // Test with reducers - scalar
@@ -952,7 +960,10 @@ struct TestMDRange_3D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0 } }, point_type{ { N0, N1, N2 } }, tile_type{ { 3, 3, 3 } } );
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      range_type range( point_type{ { s0, s1, s2 } }, point_type{ { N0, N1, N2 } }, tile_type{ { 3, 3, 3 } } );
       TestMDRange_3D functor( N0, N1, N2 );
 
       parallel_for( range, functor );
@@ -961,9 +972,9 @@ struct TestMDRange_3D {
       Kokkos::deep_copy( h_view, functor.input_view );
 
       int counter = 0;
-      for ( int i = 0; i < N0; ++i )
-      for ( int j = 0; j < N1; ++j )
-      for ( int k = 0; k < N2; ++k )
+      for ( int i = s0; i < N0; ++i )
+      for ( int j = s1; j < N1; ++j )
+      for ( int k = s2; k < N2; ++k )
       {
         if ( h_view( i, j, k ) != 3 ) {
           ++counter;
@@ -971,7 +982,7 @@ struct TestMDRange_3D {
       }
 
       if ( counter != 0 ) {
-        printf( "Defaults + InitTag op(): Errors in test_for3; mismatches = %d\n\n", counter );
+        printf( "Offset Start + Defaults + InitTag op(): Errors in test_for3; mismatches = %d\n\n", counter );
       }
 
       ASSERT_EQ( counter, 0 );
@@ -1207,7 +1218,11 @@ struct TestMDRange_4D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0, 0 } }, point_type{ { N0, N1, N2, N3 } }, tile_type{ { 3, 3, 3, 3 } } );
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      int s3 = 1;
+      range_type range( point_type{ { s0, s1, s2, s3 } }, point_type{ { N0, N1, N2, N3 } }, tile_type{ { 3, 3, 3, 3 } } );
 
       TestMDRange_4D functor( N0, N1, N2, N3 );
 
@@ -1215,7 +1230,7 @@ struct TestMDRange_4D {
       double sum = 0.0;
       parallel_reduce( range, functor, sum );
 
-      ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 );
+      ASSERT_EQ( sum, 2 * (N0 - s0) * (N1 - s1) * (N2 - s2) * (N3 - s3) );
     }
 
     // Test with reducers - scalar
@@ -1415,7 +1430,11 @@ struct TestMDRange_4D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0, 0 } }, point_type{ { N0, N1, N2, N3 } }, tile_type{ { 3, 11, 3, 3 } } );
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      int s3 = 1;
+      range_type range( point_type{ { s0, s1, s2, s3 } }, point_type{ { N0, N1, N2, N3 } }, tile_type{ { 3, 11, 3, 3 } } );
       TestMDRange_4D functor( N0, N1, N2, N3 );
 
       parallel_for( range, functor );
@@ -1424,10 +1443,10 @@ struct TestMDRange_4D {
       Kokkos::deep_copy( h_view, functor.input_view );
 
       int counter = 0;
-      for ( int i = 0; i < N0; ++i )
-      for ( int j = 0; j < N1; ++j )
-      for ( int k = 0; k < N2; ++k )
-      for ( int l = 0; l < N3; ++l )
+      for ( int i = s0; i < N0; ++i )
+      for ( int j = s1; j < N1; ++j )
+      for ( int k = s2; k < N2; ++k )
+      for ( int l = s3; l < N3; ++l )
       {
         if ( h_view( i, j, k, l ) != 3 ) {
           ++counter;
@@ -1435,7 +1454,7 @@ struct TestMDRange_4D {
       }
 
       if ( counter != 0 ) {
-        printf("Defaults +m_tile > m_upper dim2 InitTag op(): Errors in test_for4; mismatches = %d\n\n",counter);
+        printf("Offset Start + Defaults +m_tile > m_upper dim2 InitTag op(): Errors in test_for4; mismatches = %d\n\n",counter);
       }
 
       ASSERT_EQ( counter, 0 );
@@ -1682,7 +1701,12 @@ struct TestMDRange_5D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0, 0, 0 } }, point_type{ { N0, N1, N2, N3, N4 } }, tile_type{ { 3, 3, 3, 3, 3 } } );
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      int s3 = 1;
+      int s4 = 1;
+      range_type range( point_type{ { s0, s1, s2, s3, s4 } }, point_type{ { N0, N1, N2, N3, N4 } }, tile_type{ { 3, 3, 3, 3, 3 } } );
 
       TestMDRange_5D functor( N0, N1, N2, N3, N4 );
 
@@ -1690,7 +1714,7 @@ struct TestMDRange_5D {
       double sum = 0.0;
       parallel_reduce( range, functor, sum );
 
-      ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 );
+      ASSERT_EQ( sum, 2 * (N0 - s0) * (N1 - s1) * (N2 - s2) * (N3 - s3) * (N4 - s4) );
     }
 
     // Test with reducers - scalar
@@ -1810,7 +1834,12 @@ struct TestMDRange_5D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0, 0, 0 } }, point_type{ { N0, N1, N2, N3, N4 } }, tile_type{ { 3, 3, 3, 3, 5 } } );
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      int s3 = 1;
+      int s4 = 1;
+      range_type range( point_type{ { s0, s1, s2, s3, s4 } }, point_type{ { N0, N1, N2, N3, N4 } }, tile_type{ { 3, 3, 3, 3, 5 } } );
       TestMDRange_5D functor( N0, N1, N2, N3, N4 );
 
       parallel_for( range, functor );
@@ -1819,11 +1848,11 @@ struct TestMDRange_5D {
       Kokkos::deep_copy( h_view, functor.input_view );
 
       int counter = 0;
-      for ( int i = 0; i < N0; ++i )
-      for ( int j = 0; j < N1; ++j )
-      for ( int k = 0; k < N2; ++k )
-      for ( int l = 0; l < N3; ++l )
-      for ( int m = 0; m < N4; ++m )
+      for ( int i = s0; i < N0; ++i )
+      for ( int j = s1; j < N1; ++j )
+      for ( int k = s2; k < N2; ++k )
+      for ( int l = s3; l < N3; ++l )
+      for ( int m = s4; m < N4; ++m )
       {
         if ( h_view( i, j, k, l, m ) != 3 ) {
           ++counter;
@@ -1831,7 +1860,7 @@ struct TestMDRange_5D {
       }
 
       if ( counter != 0 ) {
-        printf( "Defaults + InitTag op(): Errors in test_for5; mismatches = %d\n\n", counter );
+        printf( "Offset Start + Defaults + InitTag op(): Errors in test_for5; mismatches = %d\n\n", counter );
       }
 
       ASSERT_EQ( counter, 0 );
@@ -2084,7 +2113,13 @@ struct TestMDRange_6D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0, 0, 0, 0 } }, point_type{ { N0, N1, N2, N3, N4, N5 } }, tile_type{ { 3, 3, 3, 3, 3, 2 } } );
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      int s3 = 1;
+      int s4 = 1;
+      int s5 = 1;
+      range_type range( point_type{ { s0, s1, s2, s3, s4, s5 } }, point_type{ { N0, N1, N2, N3, N4, N5 } }, tile_type{ { 3, 3, 3, 3, 3, 2 } } );
 
       TestMDRange_6D functor( N0, N1, N2, N3, N4, N5 );
 
@@ -2092,7 +2127,7 @@ struct TestMDRange_6D {
       double sum = 0.0;
       parallel_reduce( range, functor, sum );
 
-      ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 * N5 );
+      ASSERT_EQ( sum, 2 * (N0 - s0) * (N1 - s1) * (N2 - s2) * (N3 - s3) * (N4 - s4) * (N5 - s5) );
     }
 
     // Test with reducers - scalar
@@ -2214,7 +2249,13 @@ struct TestMDRange_6D {
       typedef typename range_type::tile_type tile_type;
       typedef typename range_type::point_type point_type;
 
-      range_type range( point_type{ { 0, 0, 0, 0, 0, 0 } }, point_type{ { N0, N1, N2, N3, N4, N5 } }, tile_type{ { 3, 3, 3, 3, 2, 3 } } ); //tile dims 3,3,3,3,3,3 more than cuda can handle with debugging
+      int s0 = 1;
+      int s1 = 1;
+      int s2 = 1;
+      int s3 = 1;
+      int s4 = 1;
+      int s5 = 1;
+      range_type range( point_type{ { s0, s1, s2, s3, s4, s5 } }, point_type{ { N0, N1, N2, N3, N4, N5 } }, tile_type{ { 3, 3, 3, 3, 2, 3 } } ); //tile dims 3,3,3,3,3,3 more than cuda can handle with debugging
       TestMDRange_6D functor( N0, N1, N2, N3, N4, N5 );
 
       parallel_for( range, functor );
@@ -2223,12 +2264,12 @@ struct TestMDRange_6D {
       Kokkos::deep_copy( h_view, functor.input_view );
 
       int counter = 0;
-      for ( int i = 0; i < N0; ++i )
-      for ( int j = 0; j < N1; ++j )
-      for ( int k = 0; k < N2; ++k )
-      for ( int l = 0; l < N3; ++l )
-      for ( int m = 0; m < N4; ++m )
-      for ( int n = 0; n < N5; ++n )
+      for ( int i = s0; i < N0; ++i )
+      for ( int j = s1; j < N1; ++j )
+      for ( int k = s2; k < N2; ++k )
+      for ( int l = s3; l < N3; ++l )
+      for ( int m = s4; m < N4; ++m )
+      for ( int n = s5; n < N5; ++n )
       {
         if ( h_view( i, j, k, l, m, n ) != 3 ) {
           ++counter;
@@ -2236,7 +2277,7 @@ struct TestMDRange_6D {
       }
 
       if ( counter != 0 ) {
-        printf( "Defaults + InitTag op(): Errors in test_for6; mismatches = %d\n\n", counter );
+        printf( "Offset Start + Defaults + InitTag op(): Errors in test_for6; mismatches = %d\n\n", counter );
       }
 
       ASSERT_EQ( counter, 0 );

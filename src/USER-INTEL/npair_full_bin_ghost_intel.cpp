@@ -319,7 +319,6 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
 	      const int bstart = binhead[ibin + binstart[k]];
 	      const int bend = binhead[ibin + binend[k]];
               #if defined(LMP_SIMD_COMPILER)
-              #pragma vector aligned
               #pragma simd
               #endif
               for (int jj = bstart; jj < bend; jj++)
@@ -341,7 +340,6 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
 	      const int bstart = binhead[ibin + stencil[k]];
 	      const int bend = binhead[ibin + stencil[k] + 1];
               #if defined(LMP_SIMD_COMPILER)
-              #pragma vector aligned
               #pragma simd
               #endif
               for (int jj = bstart; jj < bend; jj++)

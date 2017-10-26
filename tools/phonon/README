@@ -5,15 +5,9 @@
    analyse the phonon related information.
 #-------------------------------------------------------------------------------
 1. Dependencies
-   The clapack library is needed to solve the eigen problems,
-   which could be downloaded from:
-   http://www.netlib.org/clapack/
-   
-   The tricubic library is also needed to do tricubic interpolations,
-   which could be obtained from:
-      http://orca.princeton.edu/francois/software/tricubic/
-   or
-      http://1drv.ms/1J2WFYk
+   The LAPACK library is needed to solve the eigen problems.
+   http://www.netlib.org/lapack/
+   Intel MKL can be used as well.
    
    The spglib is optionally needed, enabling one to evaluate the
    phonon density of states or vibrational thermal properties

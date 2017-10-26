@@ -310,9 +310,9 @@ void NeighborKokkos::build_kokkos(int topoflag)
   // build pairwise lists for all perpetual NPair/NeighList
   // grow() with nlocal/nall args so that only realloc if have to
 
-  atomKK->sync(Host,ALL_MASK);
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
+    if (!lists[m]->kokkos) atomKK->sync(Host,ALL_MASK);
     if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);

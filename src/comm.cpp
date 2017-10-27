@@ -309,9 +309,12 @@ void Comm::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
       else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"ring_neighbor") == 0) {
-      neighborflag = 1;
-      iarg++;
+    } else if (strcmp(arg[iarg],"ring_neighbors") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) neighborflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) neighborflag = 0;
+      else error->all(FLERR,"Illegal comm_modify command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal comm_modify command");
   }
 }

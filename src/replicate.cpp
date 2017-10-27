@@ -58,9 +58,9 @@ void Replicate::command(int narg, char **arg)
   int nz = force->inumeric(FLERR,arg[2]);
   int nrep = nx*ny*nz;
 
-  int use_more_memory = 0;
-  if(narg == 4)
-    if(strcmp(arg[3],"memory") == 0) use_more_memory = 1;
+  int bbox_flag = 0;
+  if (narg == 4)
+    if (strcmp(arg[3],"bbox") == 0) bbox_flag = 1;
 
   // error and warning checks
 
@@ -113,7 +113,7 @@ void Replicate::command(int narg, char **arg)
   _imagehi[1] = 0;
   _imagehi[2] = 0;
 
-  if(use_more_memory) {
+  if (bbox_flag) {
 
     for (i=0; i<atom->nlocal; ++i) {
       imageint image = atom->image[i];
@@ -121,13 +121,13 @@ void Replicate::command(int narg, char **arg)
       int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
       int zbox = (image >> IMG2BITS) - IMGMAX;
 
-      if(xbox < _imagelo[0]) _imagelo[0] = xbox;
-      if(ybox < _imagelo[1]) _imagelo[1] = ybox;
-      if(zbox < _imagelo[2]) _imagelo[2] = zbox;
+      if (xbox < _imagelo[0]) _imagelo[0] = xbox;
+      if (ybox < _imagelo[1]) _imagelo[1] = ybox;
+      if (zbox < _imagelo[2]) _imagelo[2] = zbox;
 
-      if(xbox > _imagehi[0]) _imagehi[0] = xbox;
-      if(ybox > _imagehi[1]) _imagehi[1] = ybox;
-      if(zbox > _imagehi[2]) _imagehi[2] = zbox;
+      if (xbox > _imagehi[0]) _imagehi[0] = xbox;
+      if (ybox > _imagehi[1]) _imagehi[1] = ybox;
+      if (zbox > _imagehi[2]) _imagehi[2] = zbox;
     }
 
     MPI_Allreduce(MPI_IN_PLACE, &(_imagelo[0]), 3, MPI_INT, MPI_MIN, world);
@@ -315,7 +315,7 @@ void Replicate::command(int narg, char **arg)
   double *coord;
   int tag_enable = atom->tag_enable;
 
-  if(use_more_memory) {
+  if (bbox_flag) {
 
     // allgather size of buf on each proc
 
@@ -332,10 +332,10 @@ void Replicate::command(int narg, char **arg)
     int size_buf_all = 0;
     MPI_Allreduce(&n, &size_buf_all, 1, MPI_INT, MPI_SUM, world);
 
-    if(me == 0 && screen) {
-      fprintf(screen,"Replicate::bounding box image: lo= %i %i %i  hi= %i %i %i\n",
+    if (me == 0 && screen) {
+      fprintf(screen,"  bounding box image = (%i %i %i) to (%i %i %i)\n",
               _imagelo[0],_imagelo[1],_imagelo[2],_imagehi[0],_imagehi[1],_imagehi[2]);
-      fprintf(screen,"Replicate:: buf_all memory allocating %10.2f MB\n",
+      fprintf(screen,"  bounding box extra memory = %.2f MB\n",
               (double)size_buf_all*sizeof(double)/1024/1024);
     }
 
@@ -344,7 +344,7 @@ void Replicate::command(int narg, char **arg)
     int * disp_buf_rnk;
     memory->create(disp_buf_rnk, nprocs, "replicate:disp_buf_rnk");
     disp_buf_rnk[0] = 0;
-    for (int i=1; i<nprocs; ++i) disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
+    for (i=1; i<nprocs; ++i) disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
 
     // allgather buf_all
 
@@ -356,11 +356,11 @@ void Replicate::command(int narg, char **arg)
     // bounding box of original unwrapped system
 
     double _orig_lo[3], _orig_hi[3];
-    if(triclinic) {
+    if (triclinic) {
       _orig_lo[0] = domain->boxlo[0] + _imagelo[0] * old_xprd + _imagelo[1] * old_xy + _imagelo[2] * old_xz;
       _orig_lo[1] = domain->boxlo[1] + _imagelo[1] * old_yprd + _imagelo[2] * old_yz;
       _orig_lo[2] = domain->boxlo[2] + _imagelo[2] * old_zprd;
-      
+
       _orig_hi[0] = domain->boxlo[0] + (_imagehi[0]+1) * old_xprd + (_imagehi[1]+1) * old_xy + (_imagehi[2]+1) * old_xz;
       _orig_hi[1] = domain->boxlo[1] + (_imagehi[1]+1) * old_yprd + (_imagehi[2]+1) * old_yz;
       _orig_hi[2] = domain->boxlo[2] + (_imagehi[2]+1) * old_zprd;
@@ -368,7 +368,7 @@ void Replicate::command(int narg, char **arg)
       _orig_lo[0] = domain->boxlo[0] + _imagelo[0] * old_xprd;
       _orig_lo[1] = domain->boxlo[1] + _imagelo[1] * old_yprd;
       _orig_lo[2] = domain->boxlo[2] + _imagelo[2] * old_zprd;
-      
+
       _orig_hi[0] = domain->boxlo[0] + (_imagehi[0]+1) * old_xprd;
       _orig_hi[1] = domain->boxlo[1] + (_imagehi[1]+1) * old_yprd;
       _orig_hi[2] = domain->boxlo[2] + (_imagehi[2]+1) * old_zprd;
@@ -384,25 +384,25 @@ void Replicate::command(int narg, char **arg)
 
           // domain->remap() overwrites coordinates, so always recompute here
 
-	  if(triclinic) {
-	    _lo[0] = _orig_lo[0] + ix * old_xprd + iy * old_xy + iz * old_xz;
-	    _hi[0] = _orig_hi[0] + ix * old_xprd + iy * old_xy + iz * old_xz;
-	    
-	    _lo[1] = _orig_lo[1] + iy * old_yprd + iz * old_yz;
-	    _hi[1] = _orig_hi[1] + iy * old_yprd + iz * old_yz;
-	    
-	    _lo[2] = _orig_lo[2] + iz * old_zprd;
-	    _hi[2] = _orig_hi[2] + iz * old_zprd;
-	  } else {
-	    _lo[0] = _orig_lo[0] + ix * old_xprd;
-	    _hi[0] = _orig_hi[0] + ix * old_xprd;
-	    
-	    _lo[1] = _orig_lo[1] + iy * old_yprd;
-	    _hi[1] = _orig_hi[1] + iy * old_yprd;
-	    
-	    _lo[2] = _orig_lo[2] + iz * old_zprd;
-	    _hi[2] = _orig_hi[2] + iz * old_zprd;
-	  }
+          if (triclinic) {
+            _lo[0] = _orig_lo[0] + ix * old_xprd + iy * old_xy + iz * old_xz;
+            _hi[0] = _orig_hi[0] + ix * old_xprd + iy * old_xy + iz * old_xz;
+
+            _lo[1] = _orig_lo[1] + iy * old_yprd + iz * old_yz;
+            _hi[1] = _orig_hi[1] + iy * old_yprd + iz * old_yz;
+
+            _lo[2] = _orig_lo[2] + iz * old_zprd;
+            _hi[2] = _orig_hi[2] + iz * old_zprd;
+          } else {
+            _lo[0] = _orig_lo[0] + ix * old_xprd;
+            _hi[0] = _orig_hi[0] + ix * old_xprd;
+
+            _lo[1] = _orig_lo[1] + iy * old_yprd;
+            _hi[1] = _orig_hi[1] + iy * old_yprd;
+
+            _lo[2] = _orig_lo[2] + iz * old_zprd;
+            _hi[2] = _orig_hi[2] + iz * old_zprd;
+          }
 
           // test if bounding box of shifted replica overlaps sub-domain of proc
           // if not, then skip testing atoms
@@ -410,27 +410,33 @@ void Replicate::command(int narg, char **arg)
           int xoverlap = 1;
           int yoverlap = 1;
           int zoverlap = 1;
-	  if (triclinic) {
-	    double _llo[3];
-	    domain->x2lamda(_lo,_llo);
-	    double _lhi[3];
-	    domain->x2lamda(_hi,_lhi);
+          if (triclinic) {
+            double _llo[3];
+            domain->x2lamda(_lo,_llo);
+            double _lhi[3];
+            domain->x2lamda(_hi,_lhi);
 
-	    if( _llo[0] > (subhi[0] - EPSILON) || _lhi[0] < (sublo[0] + EPSILON) ) xoverlap = 0;
-	    if( _llo[1] > (subhi[1] - EPSILON) || _lhi[1] < (sublo[1] + EPSILON) ) yoverlap = 0;
-	    if( _llo[2] > (subhi[2] - EPSILON) || _lhi[2] < (sublo[2] + EPSILON) ) zoverlap = 0;
-	  } else {
-	    if( _lo[0] > (subhi[0] - EPSILON) || _hi[0] < (sublo[0] + EPSILON) ) xoverlap = 0;
-	    if( _lo[1] > (subhi[1] - EPSILON) || _hi[1] < (sublo[1] + EPSILON) ) yoverlap = 0;
-	    if( _lo[2] > (subhi[2] - EPSILON) || _hi[2] < (sublo[2] + EPSILON) ) zoverlap = 0;
-	  }
+            if (_llo[0] > (subhi[0] - EPSILON)
+                || _lhi[0] < (sublo[0] + EPSILON) ) xoverlap = 0;
+            if (_llo[1] > (subhi[1] - EPSILON)
+                || _lhi[1] < (sublo[1] + EPSILON) ) yoverlap = 0;
+            if (_llo[2] > (subhi[2] - EPSILON)
+                || _lhi[2] < (sublo[2] + EPSILON) ) zoverlap = 0;
+          } else {
+            if (_lo[0] > (subhi[0] - EPSILON)
+                || _hi[0] < (sublo[0] + EPSILON) ) xoverlap = 0;
+            if (_lo[1] > (subhi[1] - EPSILON)
+                || _hi[1] < (sublo[1] + EPSILON) ) yoverlap = 0;
+            if (_lo[2] > (subhi[2] - EPSILON)
+                || _hi[2] < (sublo[2] + EPSILON) ) zoverlap = 0;
+          }
 
           int overlap = 0;
-          if(xoverlap && yoverlap && zoverlap) overlap = 1;
+          if (xoverlap && yoverlap && zoverlap) overlap = 1;
 
           // if no overlap, test if bounding box wrapped back into new system
 
-          if(!overlap) {
+          if (!overlap) {
 
             // wrap back into cell
 
@@ -448,75 +454,75 @@ void Replicate::command(int narg, char **arg)
             int yboxhi = (imagehi >> IMGBITS & IMGMASK) - IMGMAX;
             int zboxhi = (imagehi >> IMG2BITS) - IMGMAX;
 
-	    if(triclinic) {
-	      double _llo[3];
-	      _llo[0] = _lo[0]; _llo[1] = _lo[1];  _llo[2] = _lo[2];
-	      domain->x2lamda(_llo,_lo);
+            if (triclinic) {
+              double _llo[3];
+              _llo[0] = _lo[0]; _llo[1] = _lo[1];  _llo[2] = _lo[2];
+              domain->x2lamda(_llo,_lo);
 
-	      double _lhi[3];
-	      _lhi[0] = _hi[0]; _lhi[1] = _hi[1];  _lhi[2] = _hi[2];
-	      domain->x2lamda(_lhi,_hi);
-	    }
+              double _lhi[3];
+              _lhi[0] = _hi[0]; _lhi[1] = _hi[1];  _lhi[2] = _hi[2];
+              domain->x2lamda(_lhi,_hi);
+            }
 
             // test all fragments for any overlap; ok to include false positives
 
             int _xoverlap1 = 0;
             int _xoverlap2 = 0;
-            if(!xoverlap) {
-              if(xboxlo < 0) {
+            if (!xoverlap) {
+              if (xboxlo < 0) {
                 _xoverlap1 = 1;
-                if( _lo[0] > (subhi[0] - EPSILON) ) _xoverlap1 = 0;
+                if ( _lo[0] > (subhi[0] - EPSILON) ) _xoverlap1 = 0;
               }
 
-              if(xboxhi > 0) {
+              if (xboxhi > 0) {
                 _xoverlap2 = 1;
-                if( _hi[0] < (sublo[0] + EPSILON) ) _xoverlap2 = 0;
+                if ( _hi[0] < (sublo[0] + EPSILON) ) _xoverlap2 = 0;
               }
 
-              if(_xoverlap1 || _xoverlap2) xoverlap = 1;
+              if (_xoverlap1 || _xoverlap2) xoverlap = 1;
             }
 
             int _yoverlap1 = 0;
             int _yoverlap2 = 0;
-            if(!yoverlap) {
-              if(yboxlo < 0) {
+            if (!yoverlap) {
+              if (yboxlo < 0) {
                 _yoverlap1 = 1;
-                if( _lo[1] > (subhi[1] - EPSILON) ) _yoverlap1 = 0;
+                if ( _lo[1] > (subhi[1] - EPSILON) ) _yoverlap1 = 0;
               }
 
-              if(yboxhi > 0) {
+              if (yboxhi > 0) {
                 _yoverlap2 = 1;
-                if( _hi[1] < (sublo[1] + EPSILON) ) _yoverlap2 = 0;
+                if ( _hi[1] < (sublo[1] + EPSILON) ) _yoverlap2 = 0;
               }
 
-              if(_yoverlap1 || _yoverlap2) yoverlap = 1;
+              if (_yoverlap1 || _yoverlap2) yoverlap = 1;
             }
 
 
             int _zoverlap1 = 0;
             int _zoverlap2 = 0;
-            if(!zoverlap) {
-              if(zboxlo < 0) {
+            if (!zoverlap) {
+              if (zboxlo < 0) {
                 _zoverlap1 = 1;
-                if( _lo[2] > (subhi[2] - EPSILON) ) _zoverlap1 = 0;
+                if ( _lo[2] > (subhi[2] - EPSILON) ) _zoverlap1 = 0;
               }
 
-              if(zboxhi > 0) {
+              if (zboxhi > 0) {
                 _zoverlap2 = 1;
-                if( _hi[2] < (sublo[2] + EPSILON) ) _zoverlap2 = 0;
+                if ( _hi[2] < (sublo[2] + EPSILON) ) _zoverlap2 = 0;
               }
 
-              if(_zoverlap1 || _zoverlap2) zoverlap = 1;
+              if (_zoverlap1 || _zoverlap2) zoverlap = 1;
             }
 
             // does either fragment overlap w/ sub-domain
 
-            if(xoverlap && yoverlap && zoverlap) overlap = 1;
+            if (xoverlap && yoverlap && zoverlap) overlap = 1;
           }
 
           // while loop over one proc's atom list
 
-          if(overlap) {
+          if (overlap) {
             num_replicas_added++;
 
             m = 0;
@@ -588,7 +594,7 @@ void Replicate::command(int narg, char **arg)
                 }
               } else m += static_cast<int> (buf_all[m]);
             }
-          } // if(overlap)
+          } // if (overlap)
 
         }
       }
@@ -602,7 +608,7 @@ void Replicate::command(int narg, char **arg)
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
     double avg = (double) sum / nprocs;
     if (me == 0 && screen)
-      fprintf(screen,"Replicate: average # of replicas added to proc= %f out of %i (%f %%)\n",
+      fprintf(screen,"  average # of replicas added to proc = %.2f out of %i (%.2f %%)\n",
               avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
 
   } else {
@@ -694,8 +700,7 @@ void Replicate::command(int narg, char **arg)
         }
       }
     }
-
-  } // if(use_more_memory)
+  } // if (bbox_flag)
 
   // free communication buffer and old atom class
 

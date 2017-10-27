@@ -344,7 +344,7 @@ void Replicate::command(int narg, char **arg)
     int * disp_buf_rnk;
     memory->create(disp_buf_rnk, nprocs, "replicate:disp_buf_rnk");
     disp_buf_rnk[0] = 0;
-    for (int i=1; i<nprocs; ++i) disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
+    for (i=1; i<nprocs; ++i) disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
 
     // allgather buf_all
 

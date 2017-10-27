@@ -333,9 +333,9 @@ void Replicate::command(int narg, char **arg)
     MPI_Allreduce(&n, &size_buf_all, 1, MPI_INT, MPI_SUM, world);
 
     if (me == 0 && screen) {
-      fprintf(screen,"Replicate::bounding box image: lo= %i %i %i  hi= %i %i %i\n",
+      fprintf(screen,"  bounding box image = (%i %i %i) to (%i %i %i)\n",
               _imagelo[0],_imagelo[1],_imagelo[2],_imagehi[0],_imagehi[1],_imagehi[2]);
-      fprintf(screen,"Replicate:: buf_all memory allocating %10.2f MB\n",
+      fprintf(screen,"  bounding box extra memory = %.2f MB\n",
               (double)size_buf_all*sizeof(double)/1024/1024);
     }
 
@@ -608,7 +608,7 @@ void Replicate::command(int narg, char **arg)
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
     double avg = (double) sum / nprocs;
     if (me == 0 && screen)
-      fprintf(screen,"Replicate: average # of replicas added to proc: %f out of %i (%f %%)\n",
+      fprintf(screen,"  average # of replicas added to proc = %.2f out of %i (%.2f %%)\n",
               avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
 
   } else {

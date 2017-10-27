@@ -234,7 +234,8 @@ struct remap_plan_3d *remap_3d_create_plan(
   int in_klo, int in_khi,
   int out_ilo, int out_ihi, int out_jlo, int out_jhi,
   int out_klo, int out_khi,
-  int nqty, int permute, int memory, int precision, int usecollective)
+  int nqty, int permute, int memory, int precision, int usecollective,
+  int hint_comm_dup)
 
 {
 
@@ -455,135 +456,148 @@ struct remap_plan_3d *remap_3d_create_plan(
   // create sub-comm rank list
 
   if (plan->usecollective) {
-    plan->commringlist = NULL;
 
-    // merge recv and send rank lists
-    // ask Steve Plimpton about method to more accurately determine
-    // maximum number of procs contributing to pencil
+    if (hint_comm_dup) {
 
-    int maxcommsize = nprocs;
-    int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
-    int commringlen = 0;
+      int *commringlist = (int *) malloc(nprocs*sizeof(int));
+      for (int i=0; i<nprocs; ++i) commringlist[i] = i;
+      
+      plan->commringlen  = nprocs;
+      plan->commringlist = commringlist;
 
-    for (int i = 0; i < nrecv; i++) {
-      commringlist[i] = plan->recv_proc[i];
-      commringlen++;
-    }
-
-    for (int i = 0; i < nsend; i++) {
-      int foundentry = 0;
-      for (int j=0;j<commringlen;j++)
-        if (commringlist[j] == plan->send_proc[i]) foundentry = 1;
-      if (!foundentry) {
-        commringlist[commringlen] = plan->send_proc[i];
-        commringlen++;
-      }
-    }
-
-    // sort initial commringlist
-
-    int swap = 0;
-    for (int c = 0 ; c < (commringlen - 1); c++) {
-      for (int d = 0 ; d < commringlen - c - 1; d++) {
-        if (commringlist[d] > commringlist[d+1]) {
-          swap = commringlist[d];
-          commringlist[d]   = commringlist[d+1];
-          commringlist[d+1] = swap;
-        }
-      }
-    }
-
-    // Note:
-    //  if we could use a hint for cases where we know all processors will be
-    //  included in commringlist, then we can just duplicate the comm communicator
-    //  and not execute the following O(Nproc^2) commringlist logic.
-
-    // collide all inarray extents for the comm ring with all output
-    // extents and all outarray extents for the comm ring with all input
-    // extents - if there is a collison add the rank to the comm ring,
-    // keep iterating until nothing is added to commring
-
-    int istart = 0;
-    int iend   = commringlen;
-
-    int * list_found = (int *) malloc(nprocs*sizeof(int));
-    for (int i=0; i<nprocs; ++i) list_found[i] = 0;
-    for (int i=0; i<commringlen; ++i) list_found[commringlist[i]] = 1;
-
-    int num_remaining_rnks = nprocs;
-    int * remaining_rnks = (int *) malloc(nprocs*sizeof(int));
-    for (int i=0; i<nprocs; ++i) remaining_rnks[i] = i;
-
-    int commringappend = 1;
-    while (commringappend) {
-      int newcommringlen = commringlen;
-      commringappend = 0;
-
-      // shrink list of remaining ranks to test
-
-      int num_remaining_rnks_new = 0;
-      for (int k=0; k<num_remaining_rnks; ++k) {
-        const int rnk = remaining_rnks[k];
-        if(!list_found[rnk]) remaining_rnks[num_remaining_rnks_new++] = rnk;
-      }
-
-      for (int i=istart; i<iend; i++)
-        for (int jj=0; jj<num_remaining_rnks_new; ++jj) {
-          const int j = remaining_rnks[jj];
-
-          if (remap_3d_collide(&inarray[commringlist[i]], &outarray[j], &overlap) ||
-              remap_3d_collide(&outarray[commringlist[i]], &inarray[j], &overlap) ) {
-            commringlist[newcommringlen++] = j;
-            if (newcommringlen == nprocs) goto endloop;
-          }
-
-        }
-
-      // update list of ranks found
-
-      if (newcommringlen > commringlen) {
-        commringappend = 1;
-        for (int i=commringlen; i<newcommringlen; ++i) list_found[commringlist[i]] = 1;
-      }
-
-    endloop:
-
-      // reset indices to only test newest ranks added
-
-      istart = commringlen;
-      iend   = newcommringlen;
-      commringlen = newcommringlen;
-      if (commringlen == nprocs) commringappend = 0;
-    }
-
-    free(list_found);
-    free(remaining_rnks);
-
-    // sort the final commringlist
-
-    if (commringlen == nprocs) {
-      for (int i=0; i<commringlen; ++i) commringlist[i] = i;
     } else {
 
-      for (int c = 0 ; c < ( commringlen - 1 ); c++) {
-        for (int d = 0 ; d < commringlen - c - 1; d++) {
-          if (commringlist[d] > commringlist[d+1]) {
-            swap = commringlist[d];
-            commringlist[d]   = commringlist[d+1];
-            commringlist[d+1] = swap;
-          }
-        }
+      plan->commringlist = NULL;
+
+      // merge recv and send rank lists
+      // ask Steve Plimpton about method to more accurately determine
+      // maximum number of procs contributing to pencil
+      
+      int maxcommsize = nprocs;
+      int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
+      int commringlen = 0;
+      
+      for (int i = 0; i < nrecv; i++) {
+	commringlist[i] = plan->recv_proc[i];
+	commringlen++;
       }
+      
+      for (int i = 0; i < nsend; i++) {
+	int foundentry = 0;
+	for (int j=0;j<commringlen;j++)
+	  if (commringlist[j] == plan->send_proc[i]) foundentry = 1;
+	if (!foundentry) {
+	  commringlist[commringlen] = plan->send_proc[i];
+	  commringlen++;
+	}
+      }
+      
+      // sort initial commringlist
+      
+      int swap = 0;
+      for (int c = 0 ; c < (commringlen - 1); c++) {
+	for (int d = 0 ; d < commringlen - c - 1; d++) {
+	  if (commringlist[d] > commringlist[d+1]) {
+	    swap = commringlist[d];
+	    commringlist[d]   = commringlist[d+1];
+	    commringlist[d+1] = swap;
+	  }
+	}
+      }
+      
+      // Note:
+      //  if we could use a hint for cases where we know all processors will be
+      //  included in commringlist, then we can just duplicate the comm communicator
+      //  and not execute the following O(Nproc^2) commringlist logic.
+      
+      // collide all inarray extents for the comm ring with all output
+      // extents and all outarray extents for the comm ring with all input
+      // extents - if there is a collison add the rank to the comm ring,
+      // keep iterating until nothing is added to commring
+      
+      int istart = 0;
+      int iend   = commringlen;
+      
+      int * list_found = (int *) malloc(nprocs*sizeof(int));
+      for (int i=0; i<nprocs; ++i) list_found[i] = 0;
+      for (int i=0; i<commringlen; ++i) list_found[commringlist[i]] = 1;
+      
+      int num_remaining_rnks = nprocs;
+      int * remaining_rnks = (int *) malloc(nprocs*sizeof(int));
+      for (int i=0; i<nprocs; ++i) remaining_rnks[i] = i;
+      
+      int commringappend = 1;
+      while (commringappend) {
+	int newcommringlen = commringlen;
+	commringappend = 0;
+	
+	// shrink list of remaining ranks to test
+	
+	int num_remaining_rnks_new = 0;
+	for (int k=0; k<num_remaining_rnks; ++k) {
+	  const int rnk = remaining_rnks[k];
+	  if(!list_found[rnk]) remaining_rnks[num_remaining_rnks_new++] = rnk;
+	}
+	
+	for (int i=istart; i<iend; i++)
+	  for (int jj=0; jj<num_remaining_rnks_new; ++jj) {
+	    const int j = remaining_rnks[jj];
+	    
+	    if (remap_3d_collide(&inarray[commringlist[i]], &outarray[j], &overlap) ||
+		remap_3d_collide(&outarray[commringlist[i]], &inarray[j], &overlap) ) {
+	      commringlist[newcommringlen++] = j;
+	      if (newcommringlen == nprocs) goto endloop;
+	    }
+	    
+	  }
+	
+	// update list of ranks found
+	
+	if (newcommringlen > commringlen) {
+	  commringappend = 1;
+	  for (int i=commringlen; i<newcommringlen; ++i) list_found[commringlist[i]] = 1;
+	}
+	
+      endloop:
+	
+	// reset indices to only test newest ranks added
+	
+	istart = commringlen;
+	iend   = newcommringlen;
+	commringlen = newcommringlen;
+	if (commringlen == nprocs) commringappend = 0;
+      }
+      
+      free(list_found);
+      free(remaining_rnks);
+      
+      // sort the final commringlist
+      
+      if (commringlen == nprocs) {
+	for (int i=0; i<commringlen; ++i) commringlist[i] = i;
+      } else {
+	
+	for (int c = 0 ; c < ( commringlen - 1 ); c++) {
+	  for (int d = 0 ; d < commringlen - c - 1; d++) {
+	    if (commringlist[d] > commringlist[d+1]) {
+	      swap = commringlist[d];
+	      commringlist[d]   = commringlist[d+1];
+	      commringlist[d+1] = swap;
+	    }
+	  }
+	}
+      }
+      
+      // resize commringlist to final size
+      
+      commringlist = (int *) realloc(commringlist, commringlen*sizeof(int));
+      
+      // set the plan->commringlist
+      
+      plan->commringlen = commringlen;
+      plan->commringlist = commringlist;
     }
-
-    // resize commringlist to final size
-
-    commringlist = (int *) realloc(commringlist, commringlen*sizeof(int));
-
-    // set the plan->commringlist
-
-    plan->commringlen = commringlen;
-    plan->commringlist = commringlist;
+    
   }
 
   // plan->nrecv = # of recvs not including self
@@ -638,11 +652,15 @@ struct remap_plan_3d *remap_3d_create_plan(
   // ranks from the commringlist
 
   if ((plan->usecollective && (plan->commringlen > 0))) {
-    MPI_Group orig_group, new_group;
-    MPI_Comm_group(comm, &orig_group);
-    MPI_Group_incl(orig_group, plan->commringlen,
-                   plan->commringlist, &new_group);
-    MPI_Comm_create(comm, new_group, &plan->comm);
+
+    if (hint_comm_dup) MPI_Comm_dup(comm, &plan->comm);
+    else {
+      MPI_Group orig_group, new_group;
+      MPI_Comm_group(comm, &orig_group);
+      MPI_Group_incl(orig_group, plan->commringlen,
+		     plan->commringlist, &new_group);
+      MPI_Comm_create(comm, new_group, &plan->comm);
+    }
   }
 
   // if using collective and the comm ring list is empty create

@@ -839,7 +839,7 @@ void PPPM::allocate()
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    1,0,0,FFT_PRECISION,collective_flag);
+                    1,0,0,FFT_PRECISION,collective_flag,1);
 
   // create ghost grid object for rho and electric field communication
 

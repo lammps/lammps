@@ -64,7 +64,8 @@ void remap_3d(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *, struct remap_plan_3d *);
 struct remap_plan_3d *remap_3d_create_plan(MPI_Comm,
                                            int, int, int, int, int, int,
                                            int, int, int, int, int, int,
-                                           int, int, int, int, int);
+                                           int, int, int, int, int, 
+					   int hint_comm_dup = 0);
 void remap_3d_destroy_plan(struct remap_plan_3d *);
 int remap_3d_collide(struct extent_3d *,
                      struct extent_3d *, struct extent_3d *);

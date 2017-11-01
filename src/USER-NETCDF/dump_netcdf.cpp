@@ -325,18 +325,6 @@ void DumpNetCDF::openfile()
 
       // variables specified in the input file
       for (int i = 0; i < n_perat; i++) {
-        nc_type xtype;
-
-        // Type mangling
-        if (vtype[perat[i].field[0]] == INT) {
-          xtype = NC_INT;
-        } else {
-          if (double_precision)
-            xtype = NC_DOUBLE;
-          else
-            xtype = NC_FLOAT;
-        }
-
         NCERRX( nc_inq_varid(ncid, perat[i].name, &perat[i].var),
                 perat[i].name );
       }

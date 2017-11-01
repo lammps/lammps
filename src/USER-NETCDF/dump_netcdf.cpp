@@ -497,8 +497,13 @@ void DumpNetCDF::openfile()
                                &thermovar[i]), th->keyword[i] );
           }
           else if (th->vtype[i] == BIGINT) {
+#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
+            NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT64, 1, dims,
+                               &thermovar[i]), th->keyword[i] );
+#else
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_LONG, 1, dims,
                                &thermovar[i]), th->keyword[i] );
+#endif
           }
         }
       }

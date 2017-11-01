@@ -575,6 +575,7 @@ void DumpNetCDFMPIIO::openfile()
 
     NCERR( ncmpi_end_indep_data(ncid) );
 
+    append_flag = 1;
     framei = 1;
   }
 }

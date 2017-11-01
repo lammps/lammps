@@ -599,6 +599,7 @@ void DumpNetCDF::openfile()
       count[1] = 5;
       NCERR( nc_put_vara_text(ncid, cell_angular_var, index, count, "gamma") );
 
+      append_flag = 1;
       framei = 1;
     }
   }

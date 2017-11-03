@@ -92,7 +92,6 @@ class NeighList : protected Pointers {
 
   // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
 
-  int AIRct_ssa[8]; // count of how many atoms in each AIR
   class NPair *np;           // ptr to NPair instance I depend on
 
   // methods

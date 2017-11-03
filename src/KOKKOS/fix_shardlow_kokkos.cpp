@@ -61,6 +61,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace random_external_state;
 
 #define EPSILON 1.0e-10
 #define EPSILON_SQUARED ((EPSILON) * (EPSILON))
@@ -89,10 +90,6 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //   if(k_pairDPDE){
     comm_forward = 3;
     comm_reverse = 5;
-    maxRNG = 0;
-#ifdef DPD_USE_RAN_MARS
-    pp_random = NULL;
-#endif
 //   } else {
 //     comm_forward = 3;
 //     comm_reverse = 3;
@@ -121,13 +118,6 @@ template<class DeviceType>
 FixShardlowKokkos<DeviceType>::~FixShardlowKokkos()
 {
   ghostmax = 0;
-#ifdef DPD_USE_RAN_MARS
-  if (pp_random) {
-    for (int i = 1; i < maxRNG; ++i) delete pp_random[i];
-    delete[] pp_random;
-    pp_random = NULL;
-  }
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -279,11 +269,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
   int start_ii, int count, int id
 )
 {
-#ifdef DPD_USE_RAN_MARS
-  class RanMars *pRNG = pp_random[id];
-#else
-  rand_type rand_gen = rand_pool.get_state(id);
-#endif
+  es_RNG_t RNGstate = d_rand_state(id);
 
   int ct = count;
   int ii = start_ii;
@@ -345,12 +331,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
         double halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
         double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v *
-#ifdef DPD_USE_RAN_MARS
-            pRNG->gaussian();
-#else
-            rand_gen.normal();
-#endif
+        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
         const double mass_j = masses(massPerI ? j : jtype);
         double massinv_j = 1.0 / mass_j;
@@ -412,9 +393,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
     v(i, 2) = vzi;
   }
 
-#ifndef DPD_USE_RAN_MARS
-  rand_pool.free_state(rand_gen);
-#endif
+  d_rand_state(id) = RNGstate;
 }
 #endif
 
@@ -431,11 +410,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
   int start_ii, int count, int id
 ) const
 {
-#ifdef DPD_USE_RAN_MARS
-  class RanMars *pRNG = pp_random[id];
-#else
-  rand_type rand_gen = rand_pool.get_state(id);
-#endif
+  es_RNG_t RNGstate = d_rand_state(id);
 
   int ct = count;
   int ii = start_ii;
@@ -506,12 +481,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         double halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
         double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v *
-#ifdef DPD_USE_RAN_MARS
-            pRNG->gaussian();
-#else
-            rand_gen.normal();
-#endif
+        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
         const double mass_j = masses(massPerI ? j : jtype);
         double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
@@ -520,12 +490,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         // Compute uCond
         double kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
         double alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
-        double del_uCond = alpha_ij*wr*dtsqrt *
-#ifdef DPD_USE_RAN_MARS
-            pRNG->gaussian();
-#else
-            rand_gen.normal();
-#endif
+        double del_uCond = alpha_ij*wr*dtsqrt * es_normal(RNGstate);
 
         del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
         uCond[j] -= del_uCond;
@@ -601,9 +566,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
     ii++;
   }
 
-#ifndef DPD_USE_RAN_MARS
-  rand_pool.free_state(rand_gen);
-#endif
+  d_rand_state(id) = RNGstate;
 }
 
 
@@ -644,20 +607,16 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
     maxWorkItemCt = (int) ssa_gitemLoc.dimension_1();
   }
   if (maxWorkItemCt > maxRNG) {
-#ifdef DPD_USE_RAN_MARS
-    if (pp_random) {
-      for (int i = 1; i < maxRNG; ++i) delete pp_random[i];
-      delete[] pp_random;
-      pp_random = NULL;
+    es_RNG_t serial_rand_state;
+    es_init(serial_rand_state, pairDPDE->seed + comm->me);
+
+    d_rand_state = es_RNGs_type("Kokkos::fix_shardlow::rand_state",maxWorkItemCt);
+    typename es_RNGs_type::HostMirror h_rand_state = create_mirror_view(d_rand_state);
+    for (int i = 0; i < maxWorkItemCt; ++i) {
+      es_genNextParallelState(serial_rand_state, h_rand_state(i));
     }
-    pp_random = new RanMars*[maxWorkItemCt];
-    for (int i = 1; i < maxWorkItemCt; ++i) {
-      pp_random[i] = new RanMars(lmp, k_pairDPDE->seed + comm->me + comm->nprocs*i);
-    }
-    pp_random[0] = k_pairDPDE->random;
-#else
-    rand_pool.init(k_pairDPDE->seed + comm->me, maxWorkItemCt);
-#endif
+    deep_copy(d_rand_state,h_rand_state);
+
     maxRNG = maxWorkItemCt;
   }
 

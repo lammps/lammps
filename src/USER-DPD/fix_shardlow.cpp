@@ -48,7 +48,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "domain.h"
 #include "modify.h"
@@ -60,6 +59,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace random_external_state;
 
 #define EPSILON 1.0e-10
 #define EPSILON_SQUARED ((EPSILON) * (EPSILON))
@@ -87,6 +87,7 @@ static const char cite_fix_shardlow[] =
 
 FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), pairDPD(NULL), pairDPDE(NULL), v_t0(NULL)
+  ,rand_state(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_shardlow);
 
@@ -99,6 +100,7 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   if (pairDPDE == NULL)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
+  maxRNG = 0;
   if(pairDPDE){
     comm_forward = 3;
     comm_reverse = 5;
@@ -116,6 +118,8 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
 
 FixShardlow::~FixShardlow()
 {
+  memory->destroy(rand_state);
+  maxRNG = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,12 +177,12 @@ void FixShardlow::setup(int vflag)
    NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
 void FixShardlow::ssa_update_dpd(
-  int i,
-  int *jlist,
-  int jlen
+  int start_ii,
+  int count,
+  int id
 )
 {
-  class RanMars *pRNG;
+  es_RNG_t RNGstate = rand_state[id];
   double **x = atom->x;
   double **v = atom->v;
   double *rmass = atom->rmass;
@@ -192,6 +196,16 @@ void FixShardlow::ssa_update_dpd(
 
   const double dt     = update->dt;
 
+  int ct = count;
+  int ii = start_ii;
+
+while (ct-- > 0) {
+  const int i = list->ilist[ii];
+  const int *jlist = list->firstneigh[ii];
+  const int jlen = list->numneigh[ii];
+  ii++;
+  if (jlen <= 0) continue;
+
   const double xtmp = x[i][0];
   const double ytmp = x[i][1];
   const double ztmp = x[i][2];
@@ -203,7 +217,6 @@ void FixShardlow::ssa_update_dpd(
 
   int itype = type[i];
 
-  pRNG = pairDPD->random;
   cut2_i = pairDPD->cutsq[itype];
   cut_i  = pairDPD->cut[itype];
   sigma_i = pairDPD->sigma[itype];
@@ -254,7 +267,7 @@ void FixShardlow::ssa_update_dpd(
       double halfsigma_ij = 0.5*sigma_i[jtype];
       double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-      double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * pRNG->gaussian();
+      double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
       double mass_j = (rmass) ? rmass[j] : mass[jtype];
       double massinv_j = 1.0 / mass_j;
@@ -316,6 +329,9 @@ void FixShardlow::ssa_update_dpd(
   v[i][2] = vzi;
 }
 
+  rand_state[id] = RNGstate;
+}
+
 /* ----------------------------------------------------------------------
    Perform the stochastic integration and Shardlow update for constant energy
    Allow for both per-type and per-atom mass
@@ -323,12 +339,12 @@ void FixShardlow::ssa_update_dpd(
    NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
 void FixShardlow::ssa_update_dpde(
-  int i,
-  int *jlist,
-  int jlen
+  int start_ii,
+  int count,
+  int id
 )
 {
-  class RanMars *pRNG;
+  es_RNG_t RNGstate = rand_state[id];
   double **x = atom->x;
   double **v = atom->v;
   double *rmass = atom->rmass;
@@ -346,6 +362,16 @@ void FixShardlow::ssa_update_dpde(
 
   const double dt     = update->dt;
 
+  int ct = count;
+  int ii = start_ii;
+
+while (ct-- > 0) {
+  const int i = list->ilist[ii];
+  const int *jlist = list->firstneigh[ii];
+  const int jlen = list->numneigh[ii];
+  ii++;
+  if (jlen <= 0) continue;
+
   const double xtmp = x[i][0];
   const double ytmp = x[i][1];
   const double ztmp = x[i][2];
@@ -359,7 +385,6 @@ void FixShardlow::ssa_update_dpde(
   double uCond_i = uCond[i];
   int itype = type[i];
 
-  pRNG = pairDPDE->random;
   cut2_i = pairDPDE->cutsq[itype];
   cut_i  = pairDPDE->cut[itype];
   sigma_i = pairDPDE->sigma[itype];
@@ -415,7 +440,7 @@ void FixShardlow::ssa_update_dpde(
       double halfsigma_ij = 0.5*sigma_i[jtype];
       double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-      double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * pRNG->gaussian();
+      double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
       double mass_j = (rmass) ? rmass[j] : mass[jtype];
       double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
@@ -424,7 +449,7 @@ void FixShardlow::ssa_update_dpde(
       // Compute uCond
       double kappa_ij = kappa_i[jtype];
       double alpha_ij = sqrt(boltz2*kappa_ij);
-      double del_uCond = alpha_ij*wr*dtsqrt * pRNG->gaussian();
+      double del_uCond = alpha_ij*wr*dtsqrt * es_normal(RNGstate);
 
       del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
       uCond[j] -= del_uCond;
@@ -499,6 +524,9 @@ void FixShardlow::ssa_update_dpde(
   uCond[i] = uCond_i;
 }
 
+  rand_state[id] = RNGstate;
+}
+
 void FixShardlow::initial_integrate(int vflag)
 {
   int i,ii,inum;
@@ -507,7 +535,6 @@ void FixShardlow::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
 
-  int airnum;
   const bool useDPDE = (pairDPDE != NULL);
 
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
@@ -530,6 +557,30 @@ void FixShardlow::initial_integrate(int vflag)
     error->one(FLERR, msg);
   }
 
+  NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
+  if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
+  int ssa_phaseCt = np_ssa->ssa_phaseCt;
+  int *ssa_phaseLen = np_ssa->ssa_phaseLen;
+  int **ssa_itemLoc = np_ssa->ssa_itemLoc;
+  int **ssa_itemLen = np_ssa->ssa_itemLen;
+  int ssa_gphaseCt = np_ssa->ssa_gphaseCt;
+  int *ssa_gphaseLen = np_ssa->ssa_gphaseLen;
+  int **ssa_gitemLoc = np_ssa->ssa_gitemLoc;
+  int **ssa_gitemLen = np_ssa->ssa_gitemLen;
+
+  int maxWorkItemCt = np_ssa->ssa_maxPhaseLen;
+  if (maxWorkItemCt > maxRNG) {
+    es_RNG_t serial_rand_state;
+    es_init(serial_rand_state, pairDPDE->seed + comm->me);
+
+    memory->grow(rand_state, maxWorkItemCt, "FixShardlow:rand_state");
+    for (int i = 0; i < maxWorkItemCt; ++i) {
+      es_genNextParallelState(serial_rand_state, rand_state[i]);
+    }
+
+    maxRNG = maxWorkItemCt;
+  }
+
 #ifdef DEBUG_SSA_PAIR_CT
   for (int i = 0; i < 2; ++i)
     for (int j = 0; j < 3; ++j)
@@ -545,13 +596,6 @@ void FixShardlow::initial_integrate(int vflag)
 
   dtsqrt = sqrt(update->dt);
 
-  NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
-  if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
-  int ssa_phaseCt = np_ssa->ssa_phaseCt;
-  int *ssa_phaseLen = np_ssa->ssa_phaseLen;
-  int **ssa_itemLoc = np_ssa->ssa_itemLoc;
-  int **ssa_itemLen = np_ssa->ssa_itemLen;
-
   // process neighbors in the local AIR
   for (int workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
     int workItemCt = ssa_phaseLen[workPhase];
@@ -559,22 +603,14 @@ void FixShardlow::initial_integrate(int vflag)
     for (int workItem = 0; workItem < workItemCt; ++workItem) {
       int ct = ssa_itemLen[workPhase][workItem];
       ii = ssa_itemLoc[workPhase][workItem];
-
-      while (ct-- > 0) {
-        int len = list->numneigh[ii];
-        if (len > 0) {
-          if (useDPDE) ssa_update_dpde(ilist[ii], list->firstneigh[ii], len);
-          else ssa_update_dpd(ilist[ii], list->firstneigh[ii], len);
-        }
-        ii++;
-      }
+      if (useDPDE) ssa_update_dpde(ii, ct, workItem);
+      else ssa_update_dpd(ii, ct, workItem);
     }
   }
 
-  ii = inum;
   //Loop over all 13 outward directions (7 stages)
-  for (airnum = 1; airnum <=7; airnum++){
-    int ct = list->AIRct_ssa[airnum];
+  for (int workPhase = 0; workPhase < ssa_gphaseCt; ++workPhase) {
+    int workItemCt = ssa_gphaseLen[workPhase];
 
     // Communicate the updated velocities to all nodes
     comm->forward_comm_fix(this);
@@ -585,12 +621,11 @@ void FixShardlow::initial_integrate(int vflag)
       memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
     }
 
-    // process neighbors in this AIR
-    while (ct-- > 0) {
-      int len = list->numneigh[ii];
-      if (useDPDE) ssa_update_dpde(ilist[ii], list->firstneigh[ii], len);
-      else ssa_update_dpd(ilist[ii], list->firstneigh[ii], len);
-      ii++;
+    for (int workItem = 0; workItem < workItemCt; ++workItem) {
+      int ct = ssa_gitemLen[workPhase][workItem];
+      ii = ssa_gitemLoc[workPhase][workItem];
+      if (useDPDE) ssa_update_dpde(ii, ct, workItem);
+      else ssa_update_dpd(ii, ct, workItem);
     }
 
     // Communicate the ghost deltas to the atom owners
@@ -699,6 +734,7 @@ double FixShardlow::memory_usage()
 {
   double bytes = 0.0;
   bytes += sizeof(double)*3*atom->nghost; // v_t0[]
+  bytes += sizeof(*rand_state)*maxRNG; // rand_state[]
   return bytes;
 }
 

@@ -110,6 +110,7 @@ int lje_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                    offset, shift);
     LJEMF.device->gpu_barrier();
   }
+  return 0;
 }
 
 void lje_gpu_clear() {

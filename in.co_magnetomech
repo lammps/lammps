@@ -68,7 +68,8 @@ velocity all create 200 4928459 rot yes dist gaussian
 #pair_style eam/alloy
 #pair_style hybrid/overlay eam/alloy pair/spin/soc 4.0
 #pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
-pair_style hybrid/overlay eam/alloy pair/spin/exchange 6.5
+#pair_style hybrid/overlay eam/alloy pair/spin/exchange 6.5
+pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0
 
 pair_coeff * * eam/alloy ../Co_PurjaPun_2012.eam.alloy Co
 #pair_coeff * * ../Co_PurjaPun_2012.eam.alloy Co
@@ -132,7 +133,7 @@ variable mag_force equal f_1
 thermo          10
 #thermo_style    custom step time v_emag c_out_pe c_out_ke c_out_temp v_mag_force v_magnorm v_tmag etotal
 #thermo_style    custom step time v_emag c_out_pe c_out_ke etotal
-thermo_style    custom step time v_emag c_out_pe c_out_ke v_magnorm etotal
+thermo_style    custom step time v_magnorm etotal
 thermo_modify format float %20.15g
 #fix out_vals all ave/time 1 1 50 step v_emag file temp_lattice_VSRSV.dat format %20.16g
 
@@ -141,5 +142,5 @@ dump 1 all custom 5000 dump_VSRSV.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
 run 10000
-#run 1
+#run 100
 

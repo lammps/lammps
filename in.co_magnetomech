@@ -129,9 +129,10 @@ variable emag      equal c_out_mag[6]
 variable tmag      equal c_out_mag[7]
 variable mag_force equal f_1
 
-thermo          100
+thermo          10
 #thermo_style    custom step time v_emag c_out_pe c_out_ke c_out_temp v_mag_force v_magnorm v_tmag etotal
-thermo_style    custom step time v_emag c_out_pe c_out_ke etotal
+#thermo_style    custom step time v_emag c_out_pe c_out_ke etotal
+thermo_style    custom step time v_emag c_out_pe c_out_ke v_magnorm etotal
 thermo_modify format float %20.15g
 #fix out_vals all ave/time 1 1 50 step v_emag file temp_lattice_VSRSV.dat format %20.16g
 

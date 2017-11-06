@@ -289,9 +289,9 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   if (extra == SPIN) {
     if (mpi_flag == 1) { // mpi seq. update
       int nseci;
-      for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal
+      for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
         comm->forward_comm();
-        for (int i = nlocal-1; i >= 0; i--) {
+        for (int i = 0; i < nlocal; i++) {
 	  //comm->forward_comm();
        	  xi[0] = x[i][0];
 	  xi[1] = x[i][1];
@@ -302,9 +302,9 @@ void FixIntegrationSpin::initial_integrate(int vflag)
     	  AdvanceSingleSpin(i,dts,sp,fm);
       	}    
       }
-      for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
+      for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
         comm->forward_comm();
-        for (int i = 0; i < nlocal-1; i++) {
+        for (int i = nlocal-1; i >= 0; i--) {
 	  //comm->forward_comm();
           xi[0] = x[i][0];
           xi[1] = x[i][1];
@@ -316,18 +316,19 @@ void FixIntegrationSpin::initial_integrate(int vflag)
         }    
       }
     } else if (mpi_flag == 0) { // serial seq. update
-      for (int i = nlocal-1; i >= 1; i--){ // advance quarter s for nlocal-2 particles
+      for (int i = 0; i < nlocal-1; i++){ // advance quarter s for nlocal
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,dts,sp,fm);
       }
-      ComputeInteractionsSpin(0);
-      AdvanceSingleSpin(0,2.0*dts,sp,fm); // advance half s for 1
-      for (int i = 1; i < nlocal; i++){ // advance quarter s for nlocal-2 particles
+      ComputeInteractionsSpin(nlocal-1);
+      AdvanceSingleSpin(nlocal-1,2.0*dts,sp,fm); // advance half s for 1
+      for (int i = nlocal-2; i >= 0; i--){ // advance quarter s for nlocal
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,dts,sp,fm);
       }
     } else error->all(FLERR,"Illegal fix integration/spin command");
   }
+
 
 }
 
@@ -578,7 +579,7 @@ void FixIntegrationSpin::final_integrate()
   int *mask = atom->mask; 
 
   // update half v for all particles
-  for (int i = nlocal-1; i >= 0; i--) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (rmass) dtfm = dtf / rmass[i];
       else dtfm = dtf / mass[type[i]]; 

@@ -104,7 +104,7 @@ fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 fix 2 all langevin/spin 0.0 0.0 0.0 21
 
 #Magnetic integration fix
-fix 3 all integration/spin mpi
+fix 3 all integration/spin serial
 
 #compute real time, total magnetization, magnetic energy, and spin temperature
 #Iteration | Time | Mx | My | Mz | |M| | Em | Tm

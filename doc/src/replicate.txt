@@ -10,9 +10,11 @@ replicate command :h3
 
 [Syntax:]
 
-replicate nx ny nz :pre
+replicate nx ny nz {keyword} :pre
 
-nx,ny,nz = replication factors in each dimension :ul
+nx,ny,nz = replication factors in each dimension :ulb
+optional {keyword} = {bbox} :l
+  {bbox} = only check atoms in replicas that overlap with a processor's subdomain :ule
 
 [Examples:]
 
@@ -42,6 +44,12 @@ This means that any molecular bond you specify in the original data
 file that crosses a periodic boundary should be between two atoms with
 image flags that differ by 1.  This will allow the bond to be
 unwrapped appropriately.
+
+The optional keyword {bbox} uses a bounding box to only check atoms
+in replicas that overlap with a processor's subdomain when assigning
+atoms to processors, and thus can result in substantial speedups for
+calculations using a large number of processors. It does require
+temporarily using more memory.
 
 [Restrictions:]
 

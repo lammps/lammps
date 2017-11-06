@@ -13,7 +13,7 @@ kspace_modify command :h3
 kspace_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {fftbench} or {collective} or {diff} or {kmax/ewald} or {force/disp/real} or {force/disp/kspace} or {splittol} or {disp/auto}:l
+keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {fftbench} or {collective} or {remap/dup} or {diff} or {kmax/ewald} or {force/disp/real} or {force/disp/kspace} or {splittol} or {disp/auto}:l
   {mesh} value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
   {mesh/disp} value = x y z
@@ -40,6 +40,7 @@ keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minor
   {pressure/scalar} value = {yes} or {no}
   {fftbench} value = {yes} or {no}
   {collective} value = {yes} or {no}
+  {remap/dup} value = {yes} or {no}
   {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode
   {kmax/ewald} value = kx ky kz
     kx,ky,kz = number of Ewald sum kspace vectors in each dimension
@@ -231,6 +232,13 @@ default, except on IBM BlueGene machines.  If this option is set to
 This is faster on IBM BlueGene machines, and may also be faster on
 other machines if they have an efficient implementation of MPI
 collective operations and adequate hardware.
+
+The {remap/dup} keyword applies only to PPPM.  It is set to {no} by
+default.  If this option is set to {yes}, LAMMPS will duplicate the
+MPI communicator in the final remap plan for 3d-FFT operations. In the
+final plan, this is much faster on a large number of MPI ranks than
+iteratively generating the list of all participating MPI ranks, which
+in this case is all MPI ranks in communicator.
 
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic

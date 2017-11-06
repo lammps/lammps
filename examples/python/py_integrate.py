@@ -71,7 +71,7 @@ class NVE(LAMMPSIntegrator):
 
 
 class NVE_Opt(LAMMPSIntegrator):
-    """ Tuned Python implementation of fix/nve """
+    """ Performance-optimized Python implementation of fix/nve """
     def __init__(self, ptr, group_name="all"):
         super(NVE_Opt, self).__init__(ptr)
         assert(self.group_name == "all")
@@ -95,11 +95,11 @@ class NVE_Opt(LAMMPSIntegrator):
         mass = self.mass
 
         dtfm = dtf / np.take(mass, atype)
+        dtfm.reshape((nlocal, 1))
 
-        for i in range(x.shape[0]):
-            vi = v[i,:] 
-            vi += dtfm[i] * f[i,:]
-            x[i,:] += dtv * vi
+        for d in range(x.shape[1]):
+            v[:,d] += dtfm[:,0] * f[:,d]
+            x[:,d] += dtv * v[:,d]
 
     def final_integrate(self):
         nlocal = self.lmp.extract_global("nlocal", 0)
@@ -112,6 +112,7 @@ class NVE_Opt(LAMMPSIntegrator):
         mass = self.mass
 
         dtfm = dtf / np.take(mass, atype)
+        dtfm.reshape((nlocal, 1))
 
-        for i in range(v.shape[0]):
-            v[i,:] += dtfm[i] * f[i,:]
+        for d in range(v.shape[1]):
+            v[:,d] += dtfm[:,0] * f[:,d]

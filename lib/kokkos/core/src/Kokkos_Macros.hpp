@@ -274,18 +274,14 @@
     #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
   #endif
 
+  #if ! defined( KOKKOS_MEMORY_ALIGNMENT )
+    #define KOKKOS_MEMORY_ALIGNMENT 64
+  #endif
+
   #define KOKKOS_RESTRICT __restrict__
 
-  #ifndef KOKKOS_ALIGN
-    #define KOKKOS_ALIGN(size) __attribute__((aligned(size)))
-  #endif
-
-  #ifndef KOKKOS_ALIGN_PTR
-    #define KOKKOS_ALIGN_PTR(size) __attribute__((align_value(size)))
-  #endif
-
-  #ifndef KOKKOS_ALIGN_SIZE
-    #define KOKKOS_ALIGN_SIZE 64
+  #ifndef KOKKOS_IMPL_ALIGN_PTR
+    #define KOKKOS_IMPL_ALIGN_PTR(size) __attribute__((align_value(size)))
   #endif
 
   #if ( 1400 > KOKKOS_COMPILER_INTEL )
@@ -351,6 +347,11 @@
   #if !defined( KOKKOS_FORCEINLINE_FUNCTION )
     #define KOKKOS_FORCEINLINE_FUNCTION  inline __attribute__((always_inline))
   #endif
+
+  #if !defined( KOKKOS_IMPL_ALIGN_PTR )
+    #define KOKKOS_IMPL_ALIGN_PTR(size) __attribute__((aligned(size)))
+  #endif
+
 #endif
 
 //----------------------------------------------------------------------------
@@ -426,16 +427,16 @@
 //----------------------------------------------------------------------------
 // Define Macro for alignment:
 
-#if !defined KOKKOS_ALIGN_SIZE
-  #define KOKKOS_ALIGN_SIZE 16
+#if ! defined( KOKKOS_MEMORY_ALIGNMENT )
+  #define KOKKOS_MEMORY_ALIGNMENT 16
 #endif
 
-#if !defined( KOKKOS_ALIGN )
-  #define KOKKOS_ALIGN(size) __attribute__((aligned(size)))
+#if ! defined( KOKKOS_MEMORY_ALIGNMENT_THRESHOLD )
+  #define KOKKOS_MEMORY_ALIGNMENT_THRESHOLD 4
 #endif
 
-#if !defined( KOKKOS_ALIGN_PTR )
-  #define KOKKOS_ALIGN_PTR(size) __attribute__((aligned(size)))
+#if !defined( KOKKOS_IMPL_ALIGN_PTR )
+  #define KOKKOS_IMPL_ALIGN_PTR(size) /* */
 #endif
 
 //----------------------------------------------------------------------------

@@ -33,6 +33,24 @@ TRIBITS_PACKAGE_DECL(Kokkos) # ENABLE_SHADOWING_WARNINGS)
 # HAVE_KOKKOS_DEBUG.  We define KOKKOS_HAVE_DEBUG here instead,
 # for compatibility with Kokkos' Makefile build system.
 
+if (TPL_ENABLE_CUDA)
+  if (DEFINED CUDA_VERSION)
+    # there is a VERSION_GREATER_EQUAL, but only in CMake >= 3.7
+    if (CUDA_VERSION VERSION_EQUAL "7.5")
+      set(KOKKOS_HAVE_CUDA_GEQ_75 TRUE)
+    endif()
+    if (CUDA_VERSION VERSION_GREATER "7.5")
+      set(KOKKOS_HAVE_CUDA_GEQ_75 TRUE)
+    endif()
+    if (CUDA_VERSION VERSION_EQUAL "8.0")
+      set(KOKKOS_HAVE_CUDA_GEQ_80 TRUE)
+    endif()
+    if (CUDA_VERSION VERSION_GREATER "8.0")
+      set(KOKKOS_HAVE_CUDA_GEQ_80 TRUE)
+    endif()
+  endif()
+endif()
+
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_DEBUG
   KOKKOS_HAVE_DEBUG
@@ -51,7 +69,7 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_Cuda
   KOKKOS_HAVE_CUDA
   "Enable CUDA support in Kokkos."
-  "${TPL_ENABLE_CUDA}"
+  "${KOKKOS_HAVE_CUDA_TPL}"
   )
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
@@ -68,11 +86,27 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   OFF
   )
 
+set(Kokkos_ENABLE_Cuda_Lambda_DEFAULT OFF)
+if (Kokkos_ENABLE_Cuda)
+  if (KOKKOS_HAVE_CUDA_GEQ_75)
+    if (CMAKE_CXX_FLAGS MATCHES "-expt-extended-lambda")
+      set(Kokkos_ENABLE_Cuda_Lambda_DEFAULT ON)
+      message("-- CUDA version is >= 7.5 and CMAKE_CXX_FLAGS contains -expt-extended-lambda,")
+      message("--   Kokkos_ENABLE_Cuda_Lambda defaults to ON")
+    else()
+      message("-- CMAKE_CXX_FLAGS doesn't contain -expt-extended-lambda,")
+      message("--   Kokkos_ENABLE_Cuda_Lambda defaults to OFF")
+    endif()
+  else()
+    message("-- CUDA version is < 7.5, Kokkos_ENABLE_Cuda_Lambda defaults to OFF")
+  endif()
+endif()
+
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_Cuda_Lambda
   KOKKOS_HAVE_CUDA_LAMBDA
   "Enable CUDA LAMBDA support in Kokkos."
-  OFF
+  "${Kokkos_ENABLE_Cuda_Lambda_DEFAULT}"
   )
 
 TRIBITS_ADD_OPTION_AND_DEFINE(

@@ -56,6 +56,7 @@ else
 	OBJ_CUDA += TestCuda_SubView_c04.o TestCuda_SubView_c05.o TestCuda_SubView_c06.o
 	OBJ_CUDA += TestCuda_SubView_c07.o TestCuda_SubView_c08.o TestCuda_SubView_c09.o
 	OBJ_CUDA += TestCuda_SubView_c10.o TestCuda_SubView_c11.o TestCuda_SubView_c12.o
+	OBJ_CUDA += TestCuda_SubView_c13.o
 endif
 	OBJ_CUDA += TestCuda_Reductions.o TestCuda_Scan.o
 	OBJ_CUDA += TestCuda_Complex.o
@@ -169,6 +170,7 @@ else
 	OBJ_OPENMP += TestOpenMP_SubView_c04.o TestOpenMP_SubView_c05.o TestOpenMP_SubView_c06.o
 	OBJ_OPENMP += TestOpenMP_SubView_c07.o TestOpenMP_SubView_c08.o TestOpenMP_SubView_c09.o
 	OBJ_OPENMP += TestOpenMP_SubView_c10.o TestOpenMP_SubView_c11.o TestOpenMP_SubView_c12.o
+	OBJ_OPENMP += TestOpenMP_SubView_c13.o
 endif
 	OBJ_OPENMP += TestOpenMP_Reductions.o TestOpenMP_Scan.o
 	OBJ_OPENMP += TestOpenMP_Complex.o
@@ -258,6 +260,7 @@ else
         OBJ_SERIAL += TestSerial_SubView_c04.o TestSerial_SubView_c05.o TestSerial_SubView_c06.o
         OBJ_SERIAL += TestSerial_SubView_c07.o TestSerial_SubView_c08.o TestSerial_SubView_c09.o
         OBJ_SERIAL += TestSerial_SubView_c10.o TestSerial_SubView_c11.o TestSerial_SubView_c12.o
+        OBJ_SERIAL += TestSerial_SubView_c13.o
 endif
         OBJ_SERIAL += TestSerial_Reductions.o TestSerial_Scan.o
         OBJ_SERIAL += TestSerial_Complex.o

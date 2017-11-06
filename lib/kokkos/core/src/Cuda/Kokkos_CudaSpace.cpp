@@ -713,7 +713,7 @@ SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::get_record( void *
 // Iterate records to print orphaned memory ...
 void
 SharedAllocationRecord< Kokkos::CudaSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaSpace & , bool detail )
 {
   SharedAllocationRecord< void , void > * r = & s_root_record ;
 
@@ -751,7 +751,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
               , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , head.m_label
               );
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
@@ -781,7 +781,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
       else {
         snprintf( buffer , 256 , "Cuda [ 0 + 0 ]\n" );
       }
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
@@ -789,14 +789,14 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
 
 void
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaUVMSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaUVMSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaUVM" , & s_root_record , detail );
 }
 
 void
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaHostPinnedSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaHostPinnedSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaHostPinned" , & s_root_record , detail );
 }

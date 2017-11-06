@@ -381,12 +381,12 @@ public:
 // MDRangePolicy impl
 template< class FunctorType , class ... Traits >
 class ParallelFor< FunctorType
-                 , Kokkos::Experimental::MDRangePolicy< Traits ... >
+                 , Kokkos::MDRangePolicy< Traits ... >
                  , Kokkos::Cuda
                  >
 {
 private:
-  typedef Kokkos::Experimental::MDRangePolicy< Traits ...  > Policy ;
+  typedef Kokkos::MDRangePolicy< Traits ...  > Policy ;
   using RP = Policy;
   typedef typename Policy::array_index_type array_index_type;
   typedef typename Policy::index_type index_type;
@@ -402,7 +402,7 @@ public:
   __device__
   void operator()(void) const
     {
-      Kokkos::Experimental::Impl::Refactor::DeviceIterateTile<Policy::rank,Policy,FunctorType,typename Policy::work_tag>(m_rp,m_functor).exec_range();
+      Kokkos::Impl::Refactor::DeviceIterateTile<Policy::rank,Policy,FunctorType,typename Policy::work_tag>(m_rp,m_functor).exec_range();
     }
 
 
@@ -858,14 +858,14 @@ public:
 // MDRangePolicy impl
 template< class FunctorType , class ReducerType, class ... Traits >
 class ParallelReduce< FunctorType
-                    , Kokkos::Experimental::MDRangePolicy< Traits ... >
+                    , Kokkos::MDRangePolicy< Traits ... >
                     , ReducerType
                     , Kokkos::Cuda
                     >
 {
 private:
 
-  typedef Kokkos::Experimental::MDRangePolicy< Traits ... > Policy ;
+  typedef Kokkos::MDRangePolicy< Traits ... > Policy ;
   typedef typename Policy::array_index_type                 array_index_type;
   typedef typename Policy::index_type                       index_type;
 
@@ -898,7 +898,7 @@ public:
   size_type *         m_scratch_flags ;
   size_type *         m_unified_space ;
 
-  typedef typename Kokkos::Experimental::Impl::Reduce::DeviceIterateTile<Policy::rank, Policy, FunctorType, typename Policy::work_tag, reference_type> DeviceIteratePattern;
+  typedef typename Kokkos::Impl::Reduce::DeviceIterateTile<Policy::rank, Policy, FunctorType, typename Policy::work_tag, reference_type> DeviceIteratePattern;
 
   // Shall we use the shfl based reduction or not (only use it for static sized types of more than 128bit
   enum { UseShflReduction = ((sizeof(value_type)>2*sizeof(double)) && ValueTraits::StaticValueSize) };
@@ -913,7 +913,7 @@ public:
   void
   exec_range( reference_type update ) const
   {
-    Kokkos::Experimental::Impl::Reduce::DeviceIterateTile<Policy::rank,Policy,FunctorType,typename Policy::work_tag, reference_type>(m_policy, m_functor, update).exec_range();
+    Kokkos::Impl::Reduce::DeviceIterateTile<Policy::rank,Policy,FunctorType,typename Policy::work_tag, reference_type>(m_policy, m_functor, update).exec_range();
   }
 
   inline

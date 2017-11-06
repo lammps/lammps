@@ -49,6 +49,7 @@ IF(Kokkos_ENABLE_Serial)
       serial/TestSerial_SubView_c10.cpp
       serial/TestSerial_SubView_c11.cpp
       serial/TestSerial_SubView_c12.cpp
+      serial/TestSerial_SubView_c13.cpp
       serial/TestSerial_Team.cpp
       serial/TestSerial_TeamReductionScan.cpp
       serial/TestSerial_TeamScratch.cpp
@@ -96,6 +97,7 @@ IF(Kokkos_ENABLE_Pthread)
       threads/TestThreads_SubView_c10.cpp
       threads/TestThreads_SubView_c11.cpp
       threads/TestThreads_SubView_c12.cpp
+      threads/TestThreads_SubView_c13.cpp
       threads/TestThreads_Team.cpp
       threads/TestThreads_TeamReductionScan.cpp
       threads/TestThreads_TeamScratch.cpp
@@ -143,6 +145,7 @@ IF(Kokkos_ENABLE_OpenMP)
       openmp/TestOpenMP_SubView_c10.cpp
       openmp/TestOpenMP_SubView_c11.cpp
       openmp/TestOpenMP_SubView_c12.cpp
+      openmp/TestOpenMP_SubView_c13.cpp
       openmp/TestOpenMP_Task.cpp
       openmp/TestOpenMP_Team.cpp
       openmp/TestOpenMP_TeamReductionScan.cpp
@@ -184,6 +187,7 @@ IF(Kokkos_ENABLE_Qthreads)
       qthreads/TestQthreads_SubView_c10.cpp
       qthreads/TestQthreads_SubView_c11.cpp
       qthreads/TestQthreads_SubView_c12.cpp
+      qthreads/TestQthreads_SubView_c13.cpp
       qthreads/TestQthreads_Team.cpp
       qthreads/TestQthreads_ViewAPI_a.cpp
       qthreads/TestQthreads_ViewAPI_b.cpp
@@ -235,6 +239,7 @@ IF(Kokkos_ENABLE_Cuda)
       cuda/TestCuda_SubView_c10.cpp
       cuda/TestCuda_SubView_c11.cpp
       cuda/TestCuda_SubView_c12.cpp
+      cuda/TestCuda_SubView_c13.cpp
       cuda/TestCuda_Task.cpp
       cuda/TestCuda_Team.cpp
       cuda/TestCuda_TeamReductionScan.cpp

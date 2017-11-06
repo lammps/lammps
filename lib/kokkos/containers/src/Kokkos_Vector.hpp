@@ -59,8 +59,8 @@ class vector : public DualView<Scalar*,LayoutLeft,Arg1Type> {
   typedef Scalar value_type;
   typedef Scalar* pointer;
   typedef const Scalar* const_pointer;
-  typedef Scalar* reference;
-  typedef const Scalar* const_reference;
+  typedef Scalar& reference;
+  typedef const Scalar& const_reference;
   typedef Scalar* iterator;
   typedef const Scalar* const_iterator;
 
@@ -73,11 +73,11 @@ private:
 
 public:
 #ifdef KOKKOS_ENABLE_CUDA_UVM
-  KOKKOS_INLINE_FUNCTION Scalar& operator() (int i) const {return DV::h_view(i);};
-  KOKKOS_INLINE_FUNCTION Scalar& operator[] (int i) const {return DV::h_view(i);};
+  KOKKOS_INLINE_FUNCTION reference operator() (int i) const {return DV::h_view(i);};
+  KOKKOS_INLINE_FUNCTION reference operator[] (int i) const {return DV::h_view(i);};
 #else
-  inline Scalar& operator() (int i) const {return DV::h_view(i);};
-  inline Scalar& operator[] (int i) const {return DV::h_view(i);};
+  inline reference operator() (int i) const {return DV::h_view(i);};
+  inline reference operator[] (int i) const {return DV::h_view(i);};
 #endif
 
   /* Member functions which behave like std::vector functions */
@@ -86,7 +86,7 @@ public:
     _size = 0;
     _extra_storage = 1.1;
     DV::modified_host() = 1;
-  };
+  }
 
 
   vector(int n, Scalar val=Scalar()):DualView<Scalar*,LayoutLeft,Arg1Type>("Vector",size_t(n*(1.1))) {
@@ -146,25 +146,32 @@ public:
     DV::h_view(_size) = val;
     _size++;
 
-  };
+  }
 
   void pop_back() {
     _size--;
-  };
+  }
 
   void clear() {
     _size = 0;
   }
 
-  size_type size() const {return _size;};
+  size_type size() const {return _size;}
   size_type max_size() const {return 2000000000;}
-  size_type capacity() const {return DV::capacity();};
-  bool empty() const {return _size==0;};
+  size_type capacity() const {return DV::capacity();}
+  bool empty() const {return _size==0;}
 
-  iterator begin() const {return &DV::h_view(0);};
+  iterator begin() const {return &DV::h_view(0);}
 
-  iterator end() const {return &DV::h_view(_size);};
+  iterator end() const {return &DV::h_view(_size);}
 
+  reference front() {return DV::h_view(0);}
+
+  reference back() {return DV::h_view(_size - 1);}
+
+  const_reference front() const {return DV::h_view(0);}
+
+  const_reference back() const {return DV::h_view(_size - 1);}
 
   /* std::algorithms wich work originally with iterators, here they are implemented as member functions */
 

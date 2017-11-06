@@ -44,6 +44,9 @@
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_MEMORY_FENCE_HPP )
 #define KOKKOS_MEMORY_FENCE_HPP
+
+#include <atomic>
+
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
@@ -53,23 +56,8 @@ void memory_fence()
 {
 #if defined( __CUDA_ARCH__ )
   __threadfence();
-#elif defined( KOKKOS_ENABLE_ROCM_ATOMICS )
-  amp_barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
-#elif defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 )
-  asm volatile (
-	  "mfence" ::: "memory"
-  );
-#elif defined( KOKKOS_ENABLE_GNU_ATOMICS ) || \
-      ( defined( KOKKOS_COMPILER_NVCC ) && defined( KOKKOS_ENABLE_INTEL_ATOMICS ) )
-  __sync_synchronize();
-#elif defined( KOKKOS_ENABLE_INTEL_ATOMICS )
-  _mm_mfence();
-#elif defined( KOKKOS_ENABLE_OPENMP_ATOMICS )
-  #pragma omp flush
-#elif defined( KOKKOS_ENABLE_WINDOWS_ATOMICS )
-  MemoryBarrier();
 #else
- #error "Error: memory_fence() not defined"
+  std::atomic_thread_fence( std::memory_order_seq_cst );
 #endif
 }
 
@@ -81,12 +69,10 @@ void memory_fence()
 KOKKOS_FORCEINLINE_FUNCTION
 void store_fence()
 {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 )
-  asm volatile (
-	  "sfence" ::: "memory"
-  );
+#if defined( __CUDA_ARCH__ )
+  __threadfence();
 #else
-  memory_fence();
+  std::atomic_thread_fence( std::memory_order_seq_cst );
 #endif
 }
 
@@ -98,12 +84,10 @@ void store_fence()
 KOKKOS_FORCEINLINE_FUNCTION
 void load_fence()
 {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 )
-  asm volatile (
-	  "lfence" ::: "memory"
-  );
+#if defined( __CUDA_ARCH__ )
+  __threadfence();
 #else
-  memory_fence();
+  std::atomic_thread_fence( std::memory_order_seq_cst );
 #endif
 }
 

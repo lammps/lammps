@@ -1294,5 +1294,41 @@ void test_layoutright_to_layoutright() {
   }
 }
 
+//----------------------------------------------------------------------------
+
+template< class Space >
+struct TestUnmanagedSubviewReset
+{
+  Kokkos::View<int****,Space> a ;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int ) const noexcept
+    {
+      auto sub_a = Kokkos::subview(a,0,Kokkos::ALL,Kokkos::ALL,Kokkos::ALL);
+
+      for ( int i = 0 ; i < int(a.dimension(0)) ; ++i ) {
+        sub_a.assign_data( & a(i,0,0,0) );
+        if ( & sub_a(1,1,1) != & a(i,1,1,1) ) {
+          Kokkos::abort("TestUnmanagedSubviewReset");
+        }
+      }
+    }
+
+  TestUnmanagedSubviewReset()
+    : a( Kokkos::view_alloc() , 20 , 10 , 5 , 2 )
+    {}
+};
+
+template< class Space >
+void test_unmanaged_subview_reset()
+{
+  Kokkos::parallel_for
+    ( Kokkos::RangePolicy< typename Space::execution_space >(0,1)
+    , TestUnmanagedSubviewReset<Space>()
+    );
+}
+
 } // namespace TestViewSubview
+
 #endif
+

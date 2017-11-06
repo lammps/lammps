@@ -51,9 +51,12 @@
 
 //----------------------------------------------------------------------------
 
-namespace Kokkos {
-namespace Impl {
 namespace {
+bool g_is_initialized = false;
+bool g_show_warnings = true;
+}
+
+namespace Kokkos { namespace Impl { namespace {
 
 bool is_unsigned_int(const char* str)
 {
@@ -74,6 +77,10 @@ void initialize_internal(const InitArguments& args)
 #ifdef KOKKOS_ENABLE_HBWSPACE
 setenv("MEMKIND_HBW_NODES", "1", 0);
 #endif
+
+  if (args.disable_warnings) {
+    g_show_warnings = false;
+  }
 
   // Protect declarations, to prevent "unused variable" warnings.
 #if defined( KOKKOS_ENABLE_OPENMP ) || defined( KOKKOS_ENABLE_THREADS ) || defined( KOKKOS_ENABLE_OPENMPTARGET )
@@ -177,6 +184,7 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
 #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
 #endif
+    g_is_initialized = true;
 }
 
 void finalize_internal( const bool all_spaces = false )
@@ -233,6 +241,9 @@ void finalize_internal( const bool all_spaces = false )
       Kokkos::Serial::finalize();
   }
 #endif
+
+  g_is_initialized = false;
+  g_show_warnings = true;
 }
 
 void fence_internal()
@@ -306,9 +317,7 @@ bool check_int_arg(char const* arg, char const* expected, int* value) {
   return true;
 }
 
-} // namespace
-} // namespace Impl
-} // namespace Kokkos
+}}} // namespace Kokkos::Impl::{unnamed}
 
 //----------------------------------------------------------------------------
 
@@ -319,6 +328,7 @@ void initialize(int& narg, char* arg[])
     int num_threads = -1;
     int numa = -1;
     int device = -1;
+    bool disable_warnings = false;
 
     int kokkos_threads_found = 0;
     int kokkos_numa_found = 0;
@@ -415,6 +425,12 @@ void initialize(int& narg, char* arg[])
         } else {
           iarg++;
         }
+      } else if ( strcmp(arg[iarg],"--kokkos-disable-warnings") == 0) {
+        disable_warnings = true;
+        for(int k=iarg;k<narg-1;k++) {
+          arg[k] = arg[k+1];
+        }
+        narg--;
       } else if ((strcmp(arg[iarg],"--kokkos-help") == 0) || (strcmp(arg[iarg],"--help") == 0)) {
          std::cout << std::endl;
          std::cout << "--------------------------------------------------------------------------------" << std::endl;
@@ -427,6 +443,7 @@ void initialize(int& narg, char* arg[])
          std::cout << "settings." << std::endl;
          std::cout << std::endl;
          std::cout << "--kokkos-help               : print this message" << std::endl;
+         std::cout << "--kokkos-disable-warnings   : disable kokkos warning messages" << std::endl;
          std::cout << "--kokkos-threads=INT        : specify total number of threads or" << std::endl;
          std::cout << "                              number of threads per NUMA region if " << std::endl;
          std::cout << "                              used in conjunction with '--numa' option. " << std::endl;
@@ -457,7 +474,7 @@ void initialize(int& narg, char* arg[])
       iarg++;
     }
 
-    InitArguments arguments{num_threads, numa, device};
+    InitArguments arguments{num_threads, numa, device, disable_warnings};
     Impl::initialize_internal(arguments);
 }
 
@@ -786,6 +803,10 @@ void print_configuration( std::ostream & out , const bool detail )
 
   out << msg.str() << std::endl;
 }
+
+bool is_initialized() noexcept { return g_is_initialized; }
+
+bool show_warnings() noexcept { return g_show_warnings; }
 
 } // namespace Kokkos
 

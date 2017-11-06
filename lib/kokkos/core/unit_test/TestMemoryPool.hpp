@@ -521,6 +521,101 @@ void test_memory_pool_corners( const bool print_statistics
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+template< class DeviceType , class Enable = void >
+struct TestMemoryPoolHuge
+{
+  TestMemoryPoolHuge() {}
+
+  enum : size_t { num_superblock = 0 };
+
+  using value_type = long ;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int i , long & err ) const noexcept {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int i ) const noexcept {}
+};
+
+template< class DeviceType >
+struct TestMemoryPoolHuge< DeviceType
+                         , typename std::enable_if<
+                           std::is_same< Kokkos::HostSpace
+                                       , typename DeviceType::memory_space >
+                             ::value >::type
+                         >
+{
+  typedef Kokkos::View< uintptr_t * , DeviceType >  ptrs_type ;
+  typedef Kokkos::MemoryPool< DeviceType >          pool_type ;
+  typedef typename DeviceType::memory_space         memory_space ;
+
+  pool_type pool ;
+  ptrs_type ptrs ;
+
+  enum : size_t { min_block_size = 512
+                , max_block_size = 1lu << 31
+                , min_superblock_size = max_block_size
+                , num_superblock = 4 
+                , total_alloc_size = num_superblock * max_block_size };
+
+  TestMemoryPoolHuge()
+    : pool( memory_space()
+           , total_alloc_size
+           , min_block_size
+           , max_block_size
+           , min_superblock_size )
+    , ptrs( "ptrs" , num_superblock )
+    {}
+
+  // Specify reduction argument value_type to
+  // avoid confusion with tag-dispatch.
+
+  using value_type = long ;
+
+  void operator()( int i , long & err ) const noexcept
+    {
+      if ( i < int(num_superblock) ) {
+        ptrs(i) = (uintptr_t) pool.allocate( max_block_size );
+#if 0
+        printf("TestMemoryPoolHuge size(0x%lx) ptr(0x%lx)\n"
+              , max_block_size
+              , ptrs(i) );
+#endif
+        if ( ! ptrs(i) ) {
+          Kokkos::abort("TestMemoryPoolHuge");
+          ++err ;
+        }
+      }
+    }
+
+  void operator()( int i ) const noexcept
+    {
+      if ( i < int(num_superblock) ) {
+        pool.deallocate( (void*) ptrs(i) , max_block_size );
+        ptrs(i) = 0 ;
+      }
+    }
+};
+
+template< class DeviceType >
+void test_memory_pool_huge()
+{
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef TestMemoryPoolHuge< DeviceType >      functor_type ;
+  typedef Kokkos::RangePolicy< execution_space > policy_type ;
+
+  functor_type f ;
+  policy_type policy( 0 , functor_type::num_superblock );
+
+  long err = 0 ;
+
+  Kokkos::parallel_reduce( policy , f , err );
+  Kokkos::parallel_for( policy , f );
+}
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
 } // namespace TestMemoryPool
 
 namespace Test {
@@ -531,6 +626,7 @@ TEST_F( TEST_CATEGORY, memory_pool )
   TestMemoryPool::test_host_memory_pool_stats<>();
   TestMemoryPool::test_memory_pool_v2< TEST_EXECSPACE >(false,false);
   TestMemoryPool::test_memory_pool_corners< TEST_EXECSPACE >(false,false);
+  TestMemoryPool::test_memory_pool_huge< TEST_EXECSPACE >();
 }
 
 }

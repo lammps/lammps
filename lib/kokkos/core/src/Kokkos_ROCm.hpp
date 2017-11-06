@@ -204,8 +204,8 @@ struct VerifyExecutionCanAccessMemorySpace
   >
 {
   enum { value = false };
-  inline static void verify( void ) { Experimental::ROCmSpace::access_error(); }
-  inline static void verify( const void * p ) { Experimental::ROCmSpace::access_error(p); }
+  inline static void verify( void ) { Kokkos::Experimental::ROCmSpace::access_error(); }
+  inline static void verify( const void * p ) { Kokkos::Experimental::ROCmSpace::access_error(p); }
 };
 } // namespace Experimental
 } // namespace Kokkos

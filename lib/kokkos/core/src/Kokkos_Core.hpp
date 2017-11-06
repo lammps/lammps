@@ -99,19 +99,27 @@ struct InitArguments {
   int num_threads;
   int num_numa;
   int device_id;
+  bool disable_warnings;
 
   InitArguments( int nt = -1
                , int nn = -1
-               , int dv = -1)
-    : num_threads( nt )
-    , num_numa( nn )
-    , device_id( dv )
+               , int dv = -1
+               , bool dw = false
+               )
+    : num_threads{ nt }
+    , num_numa{ nn }
+    , device_id{ dv }
+    , disable_warnings{ dw }
   {}
 };
 
 void initialize(int& narg, char* arg[]);
 
 void initialize(const InitArguments& args = InitArguments());
+
+bool is_initialized() noexcept;
+
+bool show_warnings() noexcept;
 
 /** \brief  Finalize the spaces that were initialized via Kokkos::initialize */
 void finalize();

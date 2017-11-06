@@ -786,11 +786,40 @@ struct TestViewMirror
     ASSERT_EQ( a_h.dimension_0(), a_d .dimension_0() );
   }
 
+  template< class MemoryTraits >
+  void static test_mirror_copy() {
+    Kokkos::View< double*, Layout, Kokkos::HostSpace > a_org( "A", 10 );
+    a_org(5) = 42.0;
+    Kokkos::View< double*, Layout, Kokkos::HostSpace, MemoryTraits > a_h = a_org;
+    auto a_h2 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_h );
+    auto a_d = Kokkos::create_mirror_view_and_copy( DeviceType(), a_h );
+    auto a_h3 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_d );
+
+    int equal_ptr_h_h2 = a_h.data()  == a_h2.data() ? 1 : 0;
+    int equal_ptr_h_d  = a_h.data()  ==  a_d.data() ? 1 : 0;
+    int equal_ptr_h2_d = a_h2.data() ==  a_d.data() ? 1 : 0;
+    int equal_ptr_h3_d = a_h3.data() ==  a_d.data() ? 1 : 0;
+
+    int is_same_memspace = std::is_same< Kokkos::HostSpace, typename DeviceType::memory_space >::value ? 1 : 0;
+    ASSERT_EQ( equal_ptr_h_h2, 1 );
+    ASSERT_EQ( equal_ptr_h_d, is_same_memspace );
+    ASSERT_EQ( equal_ptr_h2_d, is_same_memspace );
+    ASSERT_EQ( equal_ptr_h3_d, is_same_memspace );
+
+    ASSERT_EQ( a_h.dimension_0(), a_h3.dimension_0() );
+    ASSERT_EQ( a_h.dimension_0(), a_h2.dimension_0() );
+    ASSERT_EQ( a_h.dimension_0(), a_d .dimension_0() );
+    ASSERT_EQ( a_org(5), a_h3(5) );
+  }
+
+
   void static testit() {
     test_mirror< Kokkos::MemoryTraits<0> >();
     test_mirror< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
     test_mirror_view< Kokkos::MemoryTraits<0> >();
     test_mirror_view< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
+    test_mirror_copy< Kokkos::MemoryTraits<0> >();
+    test_mirror_copy< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
   }
 };
 
@@ -1312,10 +1341,12 @@ return;
   }
 };
 
+#if !defined(KOKKOS_ENABLE_ROCM)
 TEST_F( TEST_CATEGORY, view_api )
 {
   TestViewAPI< double, TEST_EXECSPACE >();
 }
+#endif
 
 TEST_F( TEST_CATEGORY, view_remap )
 {

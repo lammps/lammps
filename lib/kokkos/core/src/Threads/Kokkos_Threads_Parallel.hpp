@@ -180,12 +180,12 @@ public:
 // MDRangePolicy impl
 template< class FunctorType , class ... Traits >
 class ParallelFor< FunctorType
-                 , Kokkos::Experimental::MDRangePolicy< Traits ... >
+                 , Kokkos::MDRangePolicy< Traits ... >
                  , Kokkos::Threads
                  >
 {
 private:
-  typedef Kokkos::Experimental::MDRangePolicy< Traits ... > MDRangePolicy ;
+  typedef Kokkos::MDRangePolicy< Traits ... > MDRangePolicy ;
   typedef typename MDRangePolicy::impl_range_policy         Policy ;
 
   typedef typename MDRangePolicy::work_tag                  WorkTag ;
@@ -193,7 +193,7 @@ private:
   typedef typename Policy::WorkRange   WorkRange ;
   typedef typename Policy::member_type Member ;
 
-  typedef typename Kokkos::Experimental::Impl::HostIterateTile< MDRangePolicy, FunctorType, typename MDRangePolicy::work_tag, void > iterate_type;
+  typedef typename Kokkos::Impl::HostIterateTile< MDRangePolicy, FunctorType, typename MDRangePolicy::work_tag, void > iterate_type;
 
   const FunctorType   m_functor ;
   const MDRangePolicy m_mdr_policy ;
@@ -548,14 +548,14 @@ public:
 // MDRangePolicy impl
 template< class FunctorType , class ReducerType, class ... Traits >
 class ParallelReduce< FunctorType
-                    , Kokkos::Experimental::MDRangePolicy< Traits ... >
+                    , Kokkos::MDRangePolicy< Traits ... >
                     , ReducerType
                     , Kokkos::Threads
                     >
 {
 private:
 
-  typedef Kokkos::Experimental::MDRangePolicy< Traits ... > MDRangePolicy ;
+  typedef Kokkos::MDRangePolicy< Traits ... > MDRangePolicy ;
   typedef typename MDRangePolicy::impl_range_policy Policy ;
 
   typedef typename MDRangePolicy::work_tag    WorkTag ;
@@ -573,7 +573,7 @@ private:
   typedef typename ValueTraits::pointer_type    pointer_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
-  using iterate_type = typename Kokkos::Experimental::Impl::HostIterateTile< MDRangePolicy
+  using iterate_type = typename Kokkos::Impl::HostIterateTile< MDRangePolicy
                                                                            , FunctorType
                                                                            , WorkTag
                                                                            , ValueType

@@ -315,7 +315,8 @@ The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff = ik
-(PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
+(PPPM), collective = no (except for IBM BlueGene/Q), remap/dup = no,
+mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
 split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel, order =
 order/disp = 7.
 

@@ -530,8 +530,11 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         value = variable->retrieve(var);
       }
 
-      if (value == NULL) error->one(FLERR,"Substitution for illegal variable");
-
+      if (value == NULL) {
+        char str[128];
+        sprintf(str,"Substitution for illegal variable %s",var);
+        error->one(FLERR,str);
+      }
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
 

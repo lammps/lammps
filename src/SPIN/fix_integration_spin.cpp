@@ -220,6 +220,11 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;  
 
+//#define MAG_TEST
+#if defined MAG_TEST 
+  tagint *tag = atom->tag;
+#endif
+
   // advance spin-lattice system, vsrsv
   // update half v for all particles
   for (int i = 0; i < nlocal; i++) {
@@ -238,8 +243,14 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       int nseci;
       for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
         comm->forward_comm();
+#if defined MAG_TEST 
+        if (j == 0) {
+	  //for (int i = 0; i < nlocal; i++) {
+	    printf("L1: test atom i=%d, tagi=%d \n",0,tag[0]);
+	  //}
+	}
+#endif
         for (int i = 0; i < nlocal; i++) {
-	  //comm->forward_comm();
        	  xi[0] = x[i][0];
 	  xi[1] = x[i][1];
        	  xi[2] = x[i][2];
@@ -252,7 +263,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
         comm->forward_comm();
         for (int i = nlocal-1; i >= 0; i--) {
-	  //comm->forward_comm();
           xi[0] = x[i][0];
           xi[1] = x[i][1];
           xi[2] = x[i][2];
@@ -263,6 +273,7 @@ void FixIntegrationSpin::initial_integrate(int vflag)
         }    
       }
     } else if (mpi_flag == 0) { // serial seq. update
+      comm->forward_comm(); // comm. positions of ghost atoms
       for (int i = 0; i < nlocal-1; i++){ // advance quarter s for nlocal
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,dts,sp,fm);
@@ -290,9 +301,15 @@ void FixIntegrationSpin::initial_integrate(int vflag)
     if (mpi_flag == 1) { // mpi seq. update
       int nseci;
       for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
-        comm->forward_comm();
+        comm->forward_comm(); 
+#if defined MAG_TEST 
+        if (j == 0) {
+	  //for (int i = 0; i < nlocal; i++) {
+	    printf("L2 test atom i=%d, tagi=%d \n",0,tag[0]);
+	  //}
+	}
+#endif
         for (int i = 0; i < nlocal; i++) {
-	  //comm->forward_comm();
        	  xi[0] = x[i][0];
 	  xi[1] = x[i][1];
        	  xi[2] = x[i][2];
@@ -305,7 +322,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
         comm->forward_comm();
         for (int i = nlocal-1; i >= 0; i--) {
-	  //comm->forward_comm();
           xi[0] = x[i][0];
           xi[1] = x[i][1];
           xi[2] = x[i][2];
@@ -316,6 +332,7 @@ void FixIntegrationSpin::initial_integrate(int vflag)
         }    
       }
     } else if (mpi_flag == 0) { // serial seq. update
+      comm->forward_comm(); // comm. positions of ghost atoms
       for (int i = 0; i < nlocal-1; i++){ // advance quarter s for nlocal
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,dts,sp,fm);
@@ -346,6 +363,12 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   int *type = atom->type;
   const int newton_pair = force->newton_pair;
 
+//#define SERIAL2
+#if defined SERIAL2
+  int num_j;  
+  tagint *tag = atom->tag;
+#endif
+
   // add test here
   if (exch_flag) { 
     inum = lockpairspinexchange->list->inum;
@@ -363,9 +386,12 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   int vflag = 0;
   int pair_compute_flag = 1;
 
+//#define SERIAL1
+#if defined SERIAL1
   if (mpi_flag == 0) {
     comm->forward_comm();
   }
+#endif
 
   // force computation for spin i
   i = ilist[ii];
@@ -384,10 +410,22 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
 
   // pair interaction
   for (int jj = 0; jj < jnum; jj++) {
+
     j = jlist[jj];
     j &= NEIGHMASK;
     itype = type[ii];
     jtype = type[j];
+
+#if defined SERIAL2    
+  if (mpi_flag == 0) {
+    if (j >= nlocal) {
+      num_j = atom->map(tag[j]);
+      sp[j][0] = sp[num_j][0];
+      sp[j][1] = sp[num_j][1];
+      sp[j][2] = sp[num_j][2];
+    }
+  }
+#endif
 
     spj[0] = sp[j][0];
     spj[1] = sp[j][1];
@@ -521,6 +559,8 @@ int FixIntegrationSpin::coords2sector(double *xi)
 
 void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl, double **sp, double **fm)
 {
+  int j=0;
+  int *sametag = atom->sametag;
   double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy,dts2;
   double cp[3],g[3]; 	
 
@@ -550,13 +590,27 @@ void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl, double **sp, doubl
   sp[i][0] = g[0];
   sp[i][1] = g[1];
   sp[i][2] = g[2];			  
-			  
+
   // renormalization (may not be necessary)
   msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
   scale = 1.0/sqrt(msq);
   sp[i][0] *= scale;
   sp[i][1] *= scale;
   sp[i][2] *= scale;
+
+  // comm. sp[i] to atoms with same tag (serial algo)
+  if (mpi_flag == 0) {
+    if (sametag[i] >= 0) {
+      j = sametag[i];
+      while (j >= 0) {
+        sp[j][0] = sp[i][0];
+        sp[j][1] = sp[i][1];
+        sp[j][2] = sp[i][2];
+        j = sametag[j];
+      }
+    }
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */

@@ -7,15 +7,17 @@
 :line
 
 fix rigid command :h3
+fix rigid/omp command :h3
 fix rigid/nve command :h3
+fix rigid/nve/omp command :h3
 fix rigid/nvt command :h3
+fix rigid/nvt/omp command :h3
 fix rigid/npt command :h3
+fix rigid/npt/omp command :h3
 fix rigid/nph command :h3
+fix rigid/nph/omp command :h3
 fix rigid/small command :h3
-fix rigid/nve/small command :h3
-fix rigid/nvt/small command :h3
-fix rigid/npt/small command :h3
-fix rigid/nph/small command :h3
+fix rigid/small/omp command :h3
 
 [Syntax:]
 

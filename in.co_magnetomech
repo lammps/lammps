@@ -3,13 +3,8 @@
 ###################
 
 clear 
-#setting units to metal (Ang, picosecs, eV, ...):
 units metal
-
-#setting dimension of the system (N=2 or 3):
 dimension 3
-
-#setting boundary conditions. (p for periodic, f for fixed, ...)
 boundary p p p 
 #boundary f f f
 
@@ -19,29 +14,15 @@ atom_style spin
 #Define sort for paramagnetic simulations (if no pair interaction)
 #atom_modify sort 1000 4.0
 
-#why?
 atom_modify map array 
-
-#newton off for pair spin in SEQNEI
-#newton off off
 
 ###########################
 #######Create atoms########
 ###########################
 
-#Lattice constant of fcc Cobalt
 lattice fcc 3.54
-#lattice sc 2.50
-    
-#Defining a geometric region of space. Sets ID(user's choice), style(block, sphere, ...), then, args depends on the style chosen
-#(for block, one has x0, xf, y0, yf, z0, zf, in distance units)
 region box block 0.0 8.0 0.0 8.0 0.0 8.0
-
-#Creating a simulation box based on the specified region. Entries: number of atom types and box ref. 
 create_box 1 box
-
-#Creating atoms (or molecules) on a lattice, or a single atom (or molecule), ... 
-#Entries: atom type, 
 create_atoms 1 box
 
 #######################
@@ -52,14 +33,12 @@ create_atoms 1 box
 group single_spin id 10
 
 #Setting one or more properties of one or more atoms.
-#Setting mass
 mass		1 58.93
-#set		group all mass 58.93
 
 #Setting spins orientation and moment 
-set group all spin/random 31 1.72
-#set group all spin 1.72 0.0 0.0 1.0 
-#set group single_spin spin/random 11 1.72
+#set group all spin/random 31 1.72
+set group all spin 1.72 0.0 0.0 1.0 
+set group single_spin spin/random 11 1.72
 
 velocity all create 200 4928459 rot yes dist gaussian
 
@@ -108,8 +87,6 @@ fix 3 all integration/spin serial
 
 #compute real time, total magnetization, magnetic energy, and spin temperature
 #Iteration | Time | Mx | My | Mz | |M| | Em | Tm
-#compute mag all compute/spin
-#fix outmag all ave/time 1 1 50 c_mag[1] c_mag[2] c_mag[3] c_mag[4] c_mag[5] c_mag[6] c_mag[7] file mag_VSRSV.dat format %20.16g
 
 #Setting the timestep for the simulation (in ps)
 timestep	0.0001
@@ -117,8 +94,6 @@ timestep	0.0001
 ##################
 #######run########
 ##################
-
-#fix_modify 1 energy yes
 
 compute out_mag    all compute/spin
 compute out_pe     all pe
@@ -132,13 +107,11 @@ variable mag_force equal f_1
 
 thermo          10
 #thermo_style    custom step time v_emag c_out_pe c_out_ke c_out_temp v_mag_force v_magnorm v_tmag etotal
-#thermo_style    custom step time v_emag c_out_pe c_out_ke etotal
 thermo_style    custom step time v_magnorm etotal
-thermo_modify format float %20.15g
-#fix out_vals all ave/time 1 1 50 step v_emag file temp_lattice_VSRSV.dat format %20.16g
+thermo_modify   format float %20.15g
 
 #Dump the positions and spin directions of magnetic particles (vmd format)
-dump 1 all custom 5000 dump_VSRSV.lammpstrj type x y z spx spy spz
+dump 1 all custom 500 dump_VSRSV.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
 run 10000

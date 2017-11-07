@@ -570,8 +570,9 @@ void FixShardlow::initial_integrate(int vflag)
 
   int maxWorkItemCt = np_ssa->ssa_maxPhaseLen;
   if (maxWorkItemCt > maxRNG) {
+    uint64_t my_seed = comm->me + (useDPDE ? pairDPDE->seed : pairDPD->seed);
     es_RNG_t serial_rand_state;
-    es_init(serial_rand_state, pairDPDE->seed + comm->me);
+    es_init(serial_rand_state, my_seed);
 
     memory->grow(rand_state, maxWorkItemCt, "FixShardlow:rand_state");
     for (int i = 0; i < maxWorkItemCt; ++i) {

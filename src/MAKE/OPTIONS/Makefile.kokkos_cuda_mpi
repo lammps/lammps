@@ -22,7 +22,7 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-KOKKOS_DEVICES = Cuda, OpenMP
+KOKKOS_DEVICES = Cuda
 KOKKOS_ARCH =   Kepler35
 
 # ---------------------------------------------------------------------

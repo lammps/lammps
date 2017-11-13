@@ -1,0 +1,136 @@
+LAMMPS (23 Oct 2017)
+  using 1 OpenMP thread(s) per MPI task
+# GCMC for LJ simple fluid, no dynamics
+# T = 2.0
+# rho ~ 0.5
+# p ~ 1.5
+# mu_ex ~ 0.0
+# comparable to Frenkel and Smit GCMC Case Study, Figure 5.8
+
+# variables modifiable using -var command line switch
+
+variable        mu index -1.25
+variable        temp index 2.0
+variable	disp index 1.0
+variable        lbox index 5.0
+
+# global model settings
+
+units           lj
+atom_style      atomic
+pair_style      lj/cut 3.0
+pair_modify	tail no # turn of to avoid triggering full_energy
+
+# box
+
+region		box block 0 ${lbox} 0 ${lbox} 0 ${lbox}
+region		box block 0 5.0 0 ${lbox} 0 ${lbox}
+region		box block 0 5.0 0 5.0 0 ${lbox}
+region		box block 0 5.0 0 5.0 0 5.0
+create_box	1 box
+Created orthogonal box = (0 0 0) to (5 5 5)
+  1 by 1 by 1 MPI processor grid
+
+# lj parameters
+
+pair_coeff	* * 1.0 1.0
+mass		* 1.0
+
+# gcmc
+
+fix             mygcmc all gcmc 1 100 100 1 29494 ${temp} ${mu} ${disp}
+fix             mygcmc all gcmc 1 100 100 1 29494 2.0 ${mu} ${disp}
+fix             mygcmc all gcmc 1 100 100 1 29494 2.0 -1.25 ${disp}
+fix             mygcmc all gcmc 1 100 100 1 29494 2.0 -1.25 1.0
+
+# atom count
+
+variable 	type1 atom "type==1"
+group 		type1 dynamic all var type1
+dynamic group type1 defined
+variable        n1 equal count(type1)
+
+# averaging
+
+variable	rho equal density
+variable	p equal press
+variable	nugget equal 1.0e-8
+variable        lambda equal 1.0
+variable     	muex equal ${mu}-${temp}*ln(density*${lambda}+${nugget})
+variable     	muex equal -1.25-${temp}*ln(density*${lambda}+${nugget})
+variable     	muex equal -1.25-2.0*ln(density*${lambda}+${nugget})
+variable     	muex equal -1.25-2.0*ln(density*1+${nugget})
+variable     	muex equal -1.25-2.0*ln(density*1+1e-08)
+fix 		ave all ave/time 10 100 1000 v_rho v_p v_muex v_n1 ave one file rho_vs_p.dat
+variable	rhoav equal f_ave[1]
+variable	pav equal f_ave[2]
+variable	muexav equal f_ave[3]
+variable	n1av equal f_ave[4]
+
+# output
+
+variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+${nugget})
+variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+1e-08)
+variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+${nugget})
+variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+1e-08)
+variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+${nugget})
+variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+1e-08)
+compute_modify  thermo_temp dynamic yes
+thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_rhoav v_pav v_muexav v_n1av
+thermo          1000
+
+# run
+
+run             10000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.3
+  ghost atom cutoff = 3.3
+  binsize = 1.65, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 0.433 | 0.433 | 0.433 Mbytes
+Step Temp Press PotEng KinEng Density Atoms v_iacc v_dacc v_tacc v_rhoav v_pav v_muexav v_n1av 
+       0            0            0            0           -0            0        0            0            0            0            0            0            0            0 
+    1000    2.4038954    2.1735585   -2.7041368    3.5476844        0.496       62  0.064790036   0.06313096    0.1081294      0.54304    1.4513524 -0.025479219        64.98 
+    2000    2.0461168    1.1913842   -2.9880181    3.0212194        0.512       64  0.067416408  0.066335853   0.11306166      0.52736    1.3274665  0.034690004        62.97 
+    3000    1.7930436    1.3788681   -3.2212667    2.6505861        0.552       69  0.067733191  0.066877836    0.1133516       0.5344    1.3834744 0.0070582537         63.5 
+    4000     1.981449    1.2541054   -2.8222868    2.9217977        0.472       59  0.068546991  0.067856412   0.11442807      0.52504    1.3815629  0.043309657        62.17 
+    5000    2.0946818    1.0701629   -3.5213291    3.0977688        0.568       71   0.06813743  0.067567891   0.11342906      0.53824    1.4049567 -0.0054539777        64.15 
+    6000    1.9793484   0.68224187    -3.410211    2.9247088        0.536       67  0.067797628  0.067420108   0.11295333       0.5384     1.401683 -0.0066894359        64.37 
+    7000    2.1885798    1.6745012    -3.185499    3.2345922        0.544       68  0.068630201  0.068261832   0.11403705       0.5244     1.449239  0.045987399        62.33 
+    8000    2.2175324    1.5897263    -3.078898    3.2759002        0.528       66  0.068180395  0.067899629   0.11332691      0.53928    1.5488388  -0.01075766        64.29 
+    9000    1.8610779    1.0396231    -2.923262    2.7465908        0.496       62  0.068346453  0.068028117    0.1134132      0.52912    1.4352871  0.027082544        62.87 
+   10000    2.1079271    1.1746643   -2.9112062    3.1091925         0.48       60  0.068352878  0.068054948   0.11335434       0.5316    1.4462327  0.018503094         63.2 
+Loop time of 20.4081 on 1 procs for 10000 steps with 60 atoms
+
+Performance: 211680.375 tau/day, 490.001 timesteps/s
+98.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.46484    | 0.46484    | 0.46484    |   0.0 |  2.28
+Neigh   | 1.1447     | 1.1447     | 1.1447     |   0.0 |  5.61
+Comm    | 0.1696     | 0.1696     | 0.1696     |   0.0 |  0.83
+Output  | 0.000319   | 0.000319   | 0.000319   |   0.0 |  0.00
+Modify  | 18.607     | 18.607     | 18.607     |   0.0 | 91.17
+Other   |            | 0.02194    |            |       |  0.11
+
+Nlocal:    60 ave 60 max 60 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    663 ave 663 max 663 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2133 ave 2133 max 2133 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2133
+Ave neighs/atom = 35.55
+Neighbor list builds = 10000
+Dangerous builds = 0
+Total wall time: 0:00:20

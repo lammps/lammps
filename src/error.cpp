@@ -115,10 +115,10 @@ void Error::all(const char *file, int line, const char *str)
   if (me == 0) {
     if (input && input->line) lastcmd = input->line;
     if (screen) fprintf(screen,"ERROR: %s (%s:%d)\n"
-		        "Last command: %s\n",
+                        "Last command: %s\n",
                         str,file,line,lastcmd);
     if (logfile) fprintf(logfile,"ERROR: %s (%s:%d)\n"
-		         "Last command: %s\n",
+                         "Last command: %s\n",
                          str,file,line,lastcmd);
   }
 
@@ -152,9 +152,17 @@ void Error::all(const char *file, int line, const char *str)
 void Error::one(const char *file, int line, const char *str)
 {
   int me;
+  const char *lastcmd = (const char*)"(unknown)";
   MPI_Comm_rank(world,&me);
-  if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n",
-                      me,str,file,line);
+
+  if (input && input->line) lastcmd = input->line;
+  if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n"
+                      "Last command: %s\n",
+                      me,str,file,line,lastcmd);
+  if (logfile) fprintf(logfile,"ERROR on proc %d: %s (%s:%d)\n"
+                       "Last command: %s\n",
+                       me,str,file,line,lastcmd);
+
   if (universe->nworlds > 1)
     if (universe->uscreen)
       fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",

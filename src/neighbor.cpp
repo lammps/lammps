@@ -2144,7 +2144,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   NPair *np = neigh_pair[mylist->index];
 
-  if (preflag) {
+  if (preflag || update->firststep == update->ntimestep) {
     if (np->last_build > lastcall) return;
   } else {
     if (np->last_build >= lastcall) return;

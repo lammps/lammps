@@ -121,7 +121,7 @@ void ComputeAggregateAtom::compute_peratom()
 
   // invoke full neighbor list (will copy or build if necessary)
 
-  neighbor->build_one(list,1);
+  neighbor->build_one(list);
 
   // if group is dynamic, insure ghost atom masks are current
 

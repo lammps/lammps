@@ -227,16 +227,18 @@ the sinusoid would appear to be "smoother".  Also note the use of the
 converts lattice spacings to distance.  Click on the image for a
 larger version.
 
+dimension       2
 variable        x equal 100
 variable        y equal 25
 lattice         hex 0.8442
 region          box block 0 $x 0 $y -0.5 0.5
 create_box      1 box :pre
 
-variable        xx equal 0.0
-variable        yy equal 0.0
+variable        xx internal 0.0
+variable        yy internal 0.0
 variable        v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
-create_atoms    1 box var v set x xx set y yy :pre
+create_atoms    1 box var v set x xx set y yy
+write_dump      all atom sinusoid.lammpstrj :pre
 
 :c,image(JPG/sinusoid_small.jpg,JPG/sinusoid.jpg)
 

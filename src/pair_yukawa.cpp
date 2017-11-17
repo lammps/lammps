@@ -38,6 +38,7 @@ PairYukawa::~PairYukawa()
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
+    memory->destroy(rad);
     memory->destroy(cut);
     memory->destroy(a);
     memory->destroy(offset);
@@ -138,7 +139,7 @@ void PairYukawa::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-
+  memory->create(rad,n+1,"pair:rad");
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(a,n+1,n+1,"pair:a");
   memory->create(offset,n+1,n+1,"pair:offset");

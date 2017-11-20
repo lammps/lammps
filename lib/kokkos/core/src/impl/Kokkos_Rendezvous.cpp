@@ -133,9 +133,9 @@ int rendezvous( volatile int64_t * const buffer
       //   ( rank % size_byte ) +
       //   ( ( rank / size_byte ) * size_byte * size_mem_cycle ) +
       //   ( sync_offset * size_byte )
-      const int offset = ( rank & mask_byte )
-                       + ( ( rank & ~mask_byte ) << shift_mem_cycle )
-                       + ( sync_offset << shift_byte );
+      int offset = ( rank & mask_byte )
+                 + ( ( rank & ~mask_byte ) << shift_mem_cycle )
+                 + ( sync_offset << shift_byte );
 
       // Switch designated byte if running on big endian machine
       volatile uint16_t value = 1;

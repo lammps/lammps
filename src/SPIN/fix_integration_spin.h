@@ -45,7 +45,7 @@ class FixIntegrationSpin : public Fix {
  protected:
   int extra, mpi_flag;
 
-  // vel., force, and spin timesteps
+  // velocity, force, and spin timesteps
   double dtv,dtf,dts;
   
   // mag. interaction flags

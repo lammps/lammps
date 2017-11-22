@@ -33,11 +33,9 @@ class FixLangevinSpin : public Fix {
   void setup(int);
 //  virtual void post_force(int);
   void post_force_respa(int, int, int);
-  // add transverse damping and temperature
-  void add_tdamping(double *, double *);
-  void add_temperature(double *);
-  // associated flags
-  int tdamp_flag, ldamp_flag, temp_flag;
+  void add_tdamping(double *, double *); // add transverse damping
+  void add_temperature(double *); // add temperature
+  int tdamp_flag, ldamp_flag, temp_flag; // damping and temperature flags
 
  protected:
   double *spi, *fmi;

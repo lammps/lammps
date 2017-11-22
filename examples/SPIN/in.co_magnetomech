@@ -83,7 +83,7 @@ fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 fix 2 all langevin/spin 0.0 0.0 0.0 21
 
 #Magnetic integration fix
-fix 3 all integration/spin serial
+fix 3 all integration/spin mpi
 
 #compute real time, total magnetization, magnetic energy, and spin temperature
 #Iteration | Time | Mx | My | Mz | |M| | Em | Tm
@@ -115,5 +115,5 @@ dump 1 all custom 500 dump_VSRSV.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
 run 10000
-#run 100
+#run 2
 

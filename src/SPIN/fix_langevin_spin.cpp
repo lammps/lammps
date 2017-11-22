@@ -220,8 +220,6 @@ void FixLangevinSpin::add_temperature(double *fmi)
   double rz = sigma*(-1.0+2.0*random->uniform());
 #endif
 
-//  printf("test Gaussian vals: %g \n",rx);
-
   // adding the random field 
   fmi[0] += rx; 
   fmi[1] += ry;

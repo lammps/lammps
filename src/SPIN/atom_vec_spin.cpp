@@ -50,7 +50,8 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   xcol_data = 4;
  
   forceclearflag = 1;
-  atom->mumag_flag = atom->sp_flag = 1;
+  atom->mumag_flag = 1;
+  atom->sp_flag = 1;
 
 }
 

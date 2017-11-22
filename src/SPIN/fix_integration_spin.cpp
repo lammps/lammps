@@ -94,7 +94,8 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
 }
 
 /* ---------------------------------------------------------------------- */
-FixIntegrationSpin::~FixIntegrationSpin(){
+FixIntegrationSpin::~FixIntegrationSpin()
+{
   //delete lockpairspin;
   //delete lockforcespin;
   memory->destroy(xi);
@@ -124,8 +125,6 @@ int FixIntegrationSpin::setmask()
 
 void FixIntegrationSpin::init()
 {
-  //FixNVE::init();       
-  
   // set timesteps
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -181,11 +180,6 @@ void FixIntegrationSpin::init()
     } 
   }
 
-  // set flags for the different magnetic interactions
-//  if (magpair_flag) {
-//    if (lockpairspinexchange->exch_flag == 1) exch_flag = 1;
-//  }
-
   if (magforce_flag) { 
     if (lockforcespin->zeeman_flag == 1) zeeman_flag = 1;
     if (lockforcespin->aniso_flag == 1) aniso_flag = 1;
@@ -220,11 +214,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;  
 
-//#define MAG_TEST
-#if defined MAG_TEST 
-  tagint *tag = atom->tag;
-#endif
-
   // advance spin-lattice system, vsrsv
   // update half v for all particles
   for (int i = 0; i < nlocal; i++) {
@@ -234,8 +223,10 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
-      }
+    }
   }
+
+#define MPI_TEST
 
   // update half s for all particles 
   if (extra == SPIN) {
@@ -243,13 +234,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       int nseci;
       for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
         comm->forward_comm();
-#if defined MAG_TEST 
-        if (j == 0) {
-	  //for (int i = 0; i < nlocal; i++) {
-	    printf("L1: test atom i=%d, tagi=%d \n",0,tag[0]);
-	  //}
-	}
-#endif
         for (int i = 0; i < nlocal; i++) {
        	  xi[0] = x[i][0];
 	  xi[1] = x[i][1];
@@ -258,7 +242,10 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 	  if (j != nseci) continue;
 	  ComputeInteractionsSpin(i);
     	  AdvanceSingleSpin(i,dts,sp,fm);
-      	}    
+      	}
+        #if defined MPI_TEST
+        MPI_Barrier(world);
+        #endif	
       }
       for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
         comm->forward_comm();
@@ -271,6 +258,9 @@ void FixIntegrationSpin::initial_integrate(int vflag)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i,dts,sp,fm);
         }    
+        #if defined MPI_TEST 
+        MPI_Barrier(world);
+        #endif	
       }
     } else if (mpi_flag == 0) { // serial seq. update
       comm->forward_comm(); // comm. positions of ghost atoms
@@ -302,13 +292,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       int nseci;
       for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
         comm->forward_comm(); 
-#if defined MAG_TEST 
-        if (j == 0) {
-	  //for (int i = 0; i < nlocal; i++) {
-	    printf("L2 test atom i=%d, tagi=%d \n",0,tag[0]);
-	  //}
-	}
-#endif
         for (int i = 0; i < nlocal; i++) {
        	  xi[0] = x[i][0];
 	  xi[1] = x[i][1];
@@ -318,6 +301,9 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 	  ComputeInteractionsSpin(i);
     	  AdvanceSingleSpin(i,dts,sp,fm);
       	}    
+        #if defined MPI_TEST 
+        MPI_Barrier(world);
+        #endif	
       }
       for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
         comm->forward_comm();
@@ -330,6 +316,9 @@ void FixIntegrationSpin::initial_integrate(int vflag)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i,dts,sp,fm);
         }    
+        #if defined MPI_TEST 
+        MPI_Barrier(world);
+        #endif	
       }
     } else if (mpi_flag == 0) { // serial seq. update
       comm->forward_comm(); // comm. positions of ghost atoms
@@ -363,12 +352,6 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   int *type = atom->type;
   const int newton_pair = force->newton_pair;
 
-//#define SERIAL2
-#if defined SERIAL2
-  int num_j;  
-  tagint *tag = atom->tag;
-#endif
-
   // add test here
   if (exch_flag) { 
     inum = lockpairspinexchange->list->inum;
@@ -385,13 +368,6 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   int eflag = 1;
   int vflag = 0;
   int pair_compute_flag = 1;
-
-//#define SERIAL1
-#if defined SERIAL1
-  if (mpi_flag == 0) {
-    comm->forward_comm();
-  }
-#endif
 
   // force computation for spin i
   i = ilist[ii];
@@ -415,17 +391,6 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
     j &= NEIGHMASK;
     itype = type[ii];
     jtype = type[j];
-
-#if defined SERIAL2    
-  if (mpi_flag == 0) {
-    if (j >= nlocal) {
-      num_j = atom->map(tag[j]);
-      sp[j][0] = sp[num_j][0];
-      sp[j][1] = sp[num_j][1];
-      sp[j][2] = sp[num_j][2];
-    }
-  }
-#endif
 
     spj[0] = sp[j][0];
     spj[1] = sp[j][1];

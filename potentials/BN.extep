@@ -1,42 +1,28 @@
-# B and N mixture, parameterized for Tersoff potential                                                                                                                
-# values are from Albe et.al - Rad. Eff. Def. Sol. 141 (1997) 85.                                                                                                     
-                                                                                                                                                                      
-#values are calculated from Albe et. al from                                                                                                                          
-# m = 3                                                                                                                                                               
-# gamma = 1                                                                                                                                                           
-# c = c, d=d                                                                                                                                                          
-# cos(thetat0) = h                                                                                                                                                    
-# n = n                                                                                                                                                               
-# beta = gamma_albe                                                                                                                                                   
-# lambda1=beta_albe*sqrt(2*S_albe)                                                                                                                                    
-# lambda2=beta_albe*sqrt(2/S_albe)                                                                                                                                    
-# lambda3=lambda3                                                                                                                                                     
-# A=D0/(S-1)*exp(lambda1*r0)                                                                                                                                          
-# B=S*D0/(S-1)*exp(lambda2*r0)                                                                                                                                        
-# R = R, D=D                                                                                                                                                          
-                                                                                                                                                                      
-# Tersoff parameters for various elements and mixtures                                                                                                                
-# multiple entries can be added to this file, LAMMPS reads the ones it needs                                                                                          
-# these entries are in LAMMPS "metal" units:                                                                                                                          
-#   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms                                                                                                  
-#   other quantities are unitless                                                                                                                                     
-                                                                                                                                                                      
-# format of a single entry (one or more lines):                                                                                                                       
-#I  J   K   m, gamma*, lambda3, c,         d,         h,      n,         gamma,      lambda2,   B,            R,   D,   lambda1,   A                                  
-B   B   B   3  1.0     0.0      26617.3000 141.2000  -0.1300  1.1422470  0.01498959  2.5211820  2768.7363631  2.0  0.2  2.6857244  3376.3350735                       
-N   N   N   3  1.0     0.0         23.5000   3.7500  -0.4000  0.6650000  0.01925100  2.6272721  2563.5603417  2.0  0.2  2.8293093  2978.9527928                       
-B   B   N   3  1.0     0.0      26617.3000 141.2000  -0.1300  1.1422470  0.01498959  2.5211820  2768.7363631  2.0  0.2  2.6857244  3376.3350735                       
-N   N   B   3  1.0     0.0         23.5000   3.7500  -0.4000  0.6650000  0.01925100  2.6272721  2563.5603417  2.0  0.2  2.8293093  2978.9527928                       
-B   N   B   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0   
-B   N   N   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0   
-N   B   B   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0   
-N   B   N   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0   
-#                                                                                                                                                                     
-#     1.9925	  Bicubic Splines Parameters                                                                                                                             
-#                                                                                                                                                                     
-#   F_corr   [ B,  B]                                                                                                                                                 
-#                                                                                                                                                                     
-#t1 t2  i   j           val       dx        dy        dxy                                                                                                             
+# B and N mixture, parameterized for Tersoff potential
+# values are from Los et al. PhysRevB.96.184108 (2017)
+
+# Tersoff parameters for various elements and mixtures
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# these entries are in LAMMPS "metal" units:
+#   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms
+#   other quantities are unitless
+
+# format of a single entry (one or more lines):
+#I  J   K   m, gamma*, lambda3, c,         d,         h,      n,         gamma,      lambda2,   B,            R,   D,   lambda1,   A
+B   B   B   3  1.0     0.0      26617.3000 141.2000  -0.1300  1.1422470  0.01498959  2.5211820  2768.7363631  2.0  0.2  2.6857244  3376.3350735
+N   N   N   3  1.0     0.0         23.5000   3.7500  -0.4000  0.6650000  0.01925100  2.6272721  2563.5603417  2.0  0.2  2.8293093  2978.9527928
+B   B   N   3  1.0     0.0      26617.3000 141.2000  -0.1300  1.1422470  0.01498959  2.5211820  2768.7363631  2.0  0.2  2.6857244  3376.3350735
+N   N   B   3  1.0     0.0         23.5000   3.7500  -0.4000  0.6650000  0.01925100  2.6272721  2563.5603417  2.0  0.2  2.8293093  2978.9527928
+B   N   B   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0
+B   N   N   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0
+N   B   B   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0
+N   B   N   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0.0027024851d0  2.69335d0  2595.6860833266d0  2.d0  0.2d0  2.95d0  3330.0655849887d0
+#
+#     1.9925	  Bicubic Splines Parameters
+#
+#   F_corr   [ B,  B]
+#
+#t1 t2  i   j           val       dx        dy        dxy
   B   B     0    0    0.0000    0.0000    0.0000    0.0000
   B   B     0    1    0.0054    0.0000    0.0000    0.0000
   B   B     0    2    0.0182    0.0000    0.0000    0.0000
@@ -62,10 +48,10 @@ N   B   N   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0
   B   B     4    2   -0.0390   -0.0727    0.0000    0.0000
   B   B     4    3   -0.1300    0.0000    0.0000    0.0000
   B   B     4    4   -0.1300    0.0000    0.0000    0.0000
-#                                                                                                                                                                     
-#   F_corr   [ B,  N]                                                                                                                                                 
-#                                                                                                                                                                     
-#t1 t2  i   j          val        dx        dy        dxy                                                                                                             
+#
+#   F_corr   [ B,  N]
+#
+#t1 t2  i   j          val        dx        dy        dxy
   B   N     0    0    0.0170    0.0000    0.0000    0.0000
   B   N     0    1    0.0078    0.0000    0.0000    0.0000
   B   N     0    2    0.0000    0.0000    0.0000    0.0000
@@ -91,10 +77,10 @@ N   B   N   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0
   B   N     4    2   -0.0138    0.0084    0.0000    0.0000
   B   N     4    3    0.0000    0.0000    0.0000    0.0000
   B   N     4    4    0.0000    0.0000    0.0000    0.0000
-#                                                                                                                                                                     
-#   F_corr   [ N,  N]                                                                                                                                                 
-#                                                                                                                                                                     
-#t1 t2  i   j          val        dx        dy        dxy                                                                                                             
+#
+#   F_corr   [ N,  N]
+#
+#t1 t2  i   j          val        dx        dy        dxy
   N   N     0    0    0.0000    0.0000    0.0000    0.0000
   N   N     0    1   -0.0282    0.0000    0.0000    0.0000
   N   N     0    2   -0.0018    0.0000    0.0000    0.0000
@@ -120,8 +106,8 @@ N   B   N   3  1.0   0.0d0  306.586555205d0  10.d0  -0.7218d0  0.6576543657d0  0
   N   N     4    2    0.0060   -0.0073    0.0000    0.0000
   N   N     4    3    0.0000    0.0000    0.0000    0.0000
   N   N     4    4    0.0000    0.0000    0.0000    0.0000
-                                                                                                                                                                      
-#  Elastic properties                                                                                                                                                 
-#  ==================                                                                                                                                                 
-# hBN: B=164 N/M; C11=290 N/M; kappa=0.64 eV                                                                                                                          
-# cBN: B=402 GPa; C11=567 GPa; C66=533 GPa                                                                                                                            
+
+#  Elastic properties
+#  ==================
+# hBN: B=164 N/M; C11=290 N/M; kappa=0.64 eV
+# cBN: B=402 GPa; C11=567 GPa; C66=533 GPa

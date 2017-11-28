@@ -15,10 +15,10 @@
    Contributing author: Jan Los
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_extep.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -100,7 +100,7 @@ PairExTeP::~PairExTeP()
 void PairExTeP::SR_neigh()
 {
   int i,j,ii,jj,n,allnum,jnum,itype,jtype,iparam_ij;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
 
@@ -140,7 +140,7 @@ void PairExTeP::SR_neigh()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-  
+
     Nt[i] = 0.0;
     Nd[i] = 0.0;
 
@@ -162,7 +162,7 @@ void PairExTeP::SR_neigh()
         neighptr[n++] = j;
         double tmp_fc = ters_fc(sqrt(rsq),&params[iparam_ij]);
         Nt[i] += tmp_fc;
-        if(itype!=jtype) {
+        if (itype!=jtype) {
           Nd[i] += tmp_fc;
         }
       }
@@ -184,7 +184,7 @@ void PairExTeP::compute(int eflag, int vflag)
   int itype,jtype,ktype,iparam_ij,iparam_ijk;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,rsq1,rsq2,r,r2;
+  double rsq,rsq1,rsq2,r2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -281,10 +281,10 @@ void PairExTeP::compute(int eflag, int vflag)
       zeta_ij = 0.0;
 
       /* F_IJ (1) */
-        // compute correction to energy and forces
-        // dE/dr = -Fij(Zi,Zj) dV/dr
-        //         - dFij/dZi dZi/dr V
-        //         (conjugate term is computed when j is a central atom) 
+      // compute correction to energy and forces
+      // dE/dr = -Fij(Zi,Zj) dV/dr
+      //         - dFij/dZi dZi/dr V
+      //         (conjugate term is computed when j is a central atom)
 
       double FXY, dFXY_dNdij, dFXY_dNdji, fa, fa_d, deng, fpair;
       double Ntij = Nt[i];
@@ -296,14 +296,14 @@ void PairExTeP::compute(int eflag, int vflag)
 
       Ntij -= fc_ij;
       Ntji -= fc_ij;
-      if(jtype!=itype) {
+      if (jtype!=itype) {
         Ndij -= fc_ij;
         Ndji -= fc_ij;
       }
-      if(Ntij<0) { Ntij=0.; }
-      if(Ndij<0) { Ndij=0.; }
-      if(Ntji<0) { Ntji=0.; } 
-      if(Ndji<0) { Ndji=0.; } 
+      if (Ntij<0) { Ntij=0.; }
+      if (Ndij<0) { Ndij=0.; }
+      if (Ntji<0) { Ntji=0.; }
+      if (Ndji<0) { Ndji=0.; }
       FXY = F_corr(itype, jtype, Ndij, Ndji, &dFXY_dNdij, &dFXY_dNdji);
 
       // envelop functions
@@ -350,7 +350,7 @@ void PairExTeP::compute(int eflag, int vflag)
         /* F_IJ (2) */
         // compute force components due to spline derivatives
         // uses only the part with FXY_x (FXY_y is done when i and j are inversed)
-        int iparam_ik = elem2param[itype][ktype][0]; 
+        int iparam_ik = elem2param[itype][ktype][0];
         double fc_ik_d = ters_fc_d(r2,&params[iparam_ik]);
         double fc_prefac_ik_0 = 1.0 * fc_ik_d * fa / r2;
         double fc_prefac_ik = dFc_dNtij * fc_prefac_ik_0;
@@ -706,7 +706,7 @@ void PairExTeP::read_file(char *file)
       error->all(FLERR,"Illegal ExTeP parameter");
 
     nparams++;
-		if(nparams >= pow(atom->ntypes,3)) break;
+    if (nparams >= pow(atom->ntypes,3)) break;
   }
 
   // deallocate words array
@@ -719,18 +719,18 @@ void PairExTeP::read_file(char *file)
   words = new char*[params_per_line+1];
 
   // intialize F_corr_data to all zeros
-  for(int iel=0;iel<atom->ntypes;iel++)
-    for(int jel=0;jel<atom->ntypes;jel++)
-      for(int in=0;in<4;in++)
-        for(int jn=0;jn<4;jn++)
-          for(int ivar=0;ivar<3;ivar++)
+  for (int iel=0;iel<atom->ntypes;iel++)
+    for (int jel=0;jel<atom->ntypes;jel++)
+      for (int in=0;in<4;in++)
+        for (int jn=0;jn<4;jn++)
+          for (int ivar=0;ivar<3;ivar++)
             F_corr_data[iel][jel][in][jn][ivar]=0;
 
   // loop until EOF
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-			//fputs(line,stdout);
+      //fputs(line,stdout);
       if (ptr == NULL) {
         eof = 1;
         fclose(fp);
@@ -759,7 +759,8 @@ void PairExTeP::read_file(char *file)
     // ielement,jelement = 1st args
     // if all 3 args are in element list, then parse this line
     // else skip to next line
-    // these lines set ielement and jelement to the integers matching the strings from the input
+    // these lines set ielement and jelement to the
+    // integers matching the strings from the input
 
     for (ielement = 0; ielement < nelements; ielement++)
       if (strcmp(words[0],elements[ielement]) == 0) break;
@@ -775,8 +776,9 @@ void PairExTeP::read_file(char *file)
     double spline_dery = atof(words[6]);
 
     // Set value for all pairs of ielement,jelement  (any kelement)
-	  for(int iparam = 0; iparam < nparams; iparam++) {
-	    if( ielement == params[iparam].ielement && jelement == params[iparam].jelement) {
+    for (int iparam = 0; iparam < nparams; iparam++) {
+      if ( ielement == params[iparam].ielement
+           && jelement == params[iparam].jelement) {
         F_corr_data[ielement][jelement][Ni][Nj][0] = spline_val;
         F_corr_data[ielement][jelement][Ni][Nj][1] = spline_derx;
         F_corr_data[ielement][jelement][Ni][Nj][2] = spline_dery;
@@ -785,7 +787,7 @@ void PairExTeP::read_file(char *file)
         F_corr_data[jelement][ielement][Nj][Ni][1] = spline_dery;
         F_corr_data[jelement][ielement][Nj][Ni][2] = spline_derx;
       }
-	  }
+    }
   }
 
   delete [] words;
@@ -820,7 +822,6 @@ void PairExTeP::setup()
         if (n < 0) error->all(FLERR,"Potential file is missing an entry");
         elem2param[i][j][k] = n;
       }
-
 
   // compute parameter values derived from inputs
 
@@ -993,10 +994,10 @@ double PairExTeP::ters_bij_d(double zeta, Param *param)
 /* ---------------------------------------------------------------------- */
 
 void PairExTeP::ters_zetaterm_d(double prefactor,
-                                  double *rij_hat, double rij,
-                                  double *rik_hat, double rik,
-                                  double *dri, double *drj, double *drk,
-                                  Param *param)
+                                double *rij_hat, double rij,
+                                double *rik_hat, double rik,
+                                double *dri, double *drj, double *drk,
+                                Param *param)
 {
   double gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta,tmp;
   double dcosdri[3],dcosdrj[3],dcosdrk[3];
@@ -1052,8 +1053,8 @@ void PairExTeP::ters_zetaterm_d(double prefactor,
 /* ---------------------------------------------------------------------- */
 
 void PairExTeP::costheta_d(double *rij_hat, double rij,
-                             double *rik_hat, double rik,
-                             double *dri, double *drj, double *drk)
+                           double *rik_hat, double rik,
+                           double *dri, double *drj, double *drk)
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
@@ -1074,10 +1075,10 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 // initialize spline for F_corr (based on PairLCBOP::F_conj)
 
 void PairExTeP::spline_init() {
-  for( size_t iel=0; iel<atom->ntypes; iel++) {
-    for( size_t jel=0; jel<atom->ntypes; jel++) {
-      for( size_t N_ij=0; N_ij<4; N_ij++ ) {
-        for( size_t N_ji=0; N_ji<4; N_ji++ ) {
+  for ( size_t iel=0; iel<atom->ntypes; iel++) {
+    for ( size_t jel=0; jel<atom->ntypes; jel++) {
+      for ( size_t N_ij=0; N_ij<4; N_ij++ ) {
+        for ( size_t N_ji=0; N_ji<4; N_ji++ ) {
           TF_corr_param &f = F_corr_param[iel][jel][N_ij][N_ji];
 
           // corner points for each spline function
@@ -1096,7 +1097,6 @@ void PairExTeP::spline_init() {
           f.f_y_01 = -(F_corr_data[iel][jel][N_ij  ][N_ji+1][2] - f.f_01 + f.f_00);
           f.f_y_10 =   F_corr_data[iel][jel][N_ij+1][N_ji  ][2] - f.f_11 + f.f_10;
           f.f_y_11 = -(F_corr_data[iel][jel][N_ij+1][N_ji+1][2] - f.f_11 + f.f_10);
-
         }
       }
     }
@@ -1113,7 +1113,7 @@ double PairExTeP::envelop_function(double x, double y, double *func_der) {
   if (x <= 3.0) {
     fx = 1.0;
     dfx = 0.0;
-    if(x < 1.0 && y < 1.0) { 
+    if (x < 1.0 && y < 1.0) {
       double gx=(1.0-x);
       double gy=(1.0-y);
       double gxsq=gx*gx;
@@ -1122,22 +1122,22 @@ double PairExTeP::envelop_function(double x, double y, double *func_der) {
       dfxydx = 2.0*gx*gysq;
     }
   } else if (x < 4.0) {
-      del = 4.0-x;
-      delsq = del*del;
-      fx = (3.0-2.0*del)*delsq;
-      dfx = - 6.0*del*(1.0-del);
-  } else { 
-      fx = 0.0;
-      dfx = 0.0;
+    del = 4.0-x;
+    delsq = del*del;
+    fx = (3.0-2.0*del)*delsq;
+    dfx = - 6.0*del*(1.0-del);
+  } else {
+    fx = 0.0;
+    dfx = 0.0;
   }
   if (y <= 3.0) {
     fy = 1.0;
   } else if (y < 4.0) {
-      del = 4.0-y;
-      delsq = del*del;
-      fy = (3.0-2.0*del)*delsq;
-  } else { 
-      fy = 0.0;
+    del = 4.0-y;
+    delsq = del*del;
+    fy = (3.0-2.0*del)*delsq;
+  } else {
+    fy = 0.0;
   }
 
   double func_val = fxy*fx*fy;
@@ -1147,22 +1147,38 @@ double PairExTeP::envelop_function(double x, double y, double *func_der) {
 }
 
 double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN_x, double *dFN_y ) {
-  
+
   // compute F_XY
 
   size_t Ndij_int         = static_cast<size_t>( floor( Ndij ) );
   size_t Ndji_int         = static_cast<size_t>( floor( Ndji ) );
   double x                = Ndij - Ndij_int;
   double y                = Ndji - Ndji_int;
-  const TF_corr_param &f  = F_corr_param[iel][jel][Ndij_int][Ndji_int];
+  TF_corr_param &f  = F_corr_param[iel][jel][Ndij_int][Ndji_int];
   double F   = 0;
   double dF_dx = 0, dF_dy = 0;
   double l, r;
-  if(Ndij_int < 4 && Ndji_int < 4) {
-      l = (1-y)* (1-x);   r = ( f.f_00 + x*     x*   f.f_x_10   + y*     y*   f.f_y_01 );    F += l*r;   dF_dx += -(1-y)*r +l*2*x*    f.f_x_10;    dF_dy += -(1-x)*r +l*2*y*    f.f_y_01;
-      l = (1-y)*  x;      r = ( f.f_10 + (1-x)*(1-x)*f.f_x_00   + y*     y*   f.f_y_11 );    F += l*r;   dF_dx +=  (1-y)*r -l*2*(1-x)*f.f_x_00;    dF_dy += -x*    r +l*2*y*    f.f_y_11;
-      l = y*     (1-x);   r = ( f.f_01 + x*     x*   f.f_x_11   + (1-y)*(1-y)*f.f_y_00 );    F += l*r;   dF_dx += -y*    r +l*2*x*    f.f_x_11;    dF_dy +=  (1-x)*r -l*2*(1-y)*f.f_y_00;
-      l = y*      x;      r = ( f.f_11 + (1-x)*(1-x)*f.f_x_01   + (1-y)*(1-y)*f.f_y_10 );    F += l*r;   dF_dx +=  y*    r -l*2*(1-x)*f.f_x_01;    dF_dy +=  x*    r -l*2*(1-y)*f.f_y_10;
+  if (Ndij_int < 4 && Ndji_int < 4) {
+    l = (1-y)* (1-x);
+    r = ( f.f_00 + x*x* f.f_x_10 + y*y* f.f_y_01 );
+    F += l*r;
+    dF_dx += -(1-y)*r +l*2*x* f.f_x_10;
+    dF_dy += -(1-x)*r +l*2*y* f.f_y_01;
+    l = (1-y)*x;
+    r = ( f.f_10 + (1-x)*(1-x)*f.f_x_00 + y*  y* f.f_y_11 );
+    F += l*r;
+    dF_dx += (1-y)*r -l*2*(1-x)*f.f_x_00;
+    dF_dy += -x*r +l*2*y* f.f_y_11;
+    l = y*  (1-x);
+    r = ( f.f_01 + x*x* f.f_x_11 + (1-y)*(1-y)*f.f_y_00 );
+    F += l*r;
+    dF_dx += -y*r +l*2*x* f.f_x_11;
+    dF_dy += (1-x)*r -l*2*(1-y)*f.f_y_00;
+    l = y*  x;
+    r = ( f.f_11 + (1-x)*(1-x)*f.f_x_01 + (1-y)*(1-y)*f.f_y_10 );
+    F += l*r;
+    dF_dx += y*r -l*2*(1-x)*f.f_x_01;
+    dF_dy += x*r -l*2*(1-y)*f.f_y_10;
   }
   double result = F;
   *dFN_x = dF_dx;
@@ -1171,4 +1187,3 @@ double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN
   return result;
 }
 /* F_IJ (4) */
-

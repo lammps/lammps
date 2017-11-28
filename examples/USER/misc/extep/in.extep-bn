@@ -19,7 +19,7 @@ pair_coeff      * * ../../../../potentials/BN.extep B N
 
 # Output 
 thermo          10
-thermo_style    custom step time etotal pe temp lx ly lz pxx pyy pzz spcpu
+thermo_style    custom step time etotal pe temp lx ly lz pxx pyy pzz
 thermo_modify   line one format float %14.8g
 
 # Setup NPT MD run

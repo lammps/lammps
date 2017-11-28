@@ -1,7 +1,8 @@
-# B and N mixture, parameterized for Tersoff potential
-# values are from Los et al. PhysRevB.96.184108 (2017)
+# DATE: 2017-11-28 CONTRIBUTOR: J.H. Los, J.M.H. Kroes CITATION: Los et al. Phys. Rev. B 96, 184108 (2017)
 
-# Tersoff parameters for various elements and mixtures
+# B and N mixture, parameterized for ExTeP potential
+
+# ExTeP parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 # these entries are in LAMMPS "metal" units:
 #   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms

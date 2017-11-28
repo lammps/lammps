@@ -175,9 +175,9 @@ void PairSpinExchange::compute(int eflag, int vflag)
 	f[j][0] += fj[0];	 
         f[j][1] += fj[1];	  	  
         f[j][2] += fj[2];
-        fm[j][0] += fmj[0];	 
-        fm[j][1] += fmj[1];	  	  
-        fm[j][2] += fmj[2];
+        //fm[j][0] += fmj[0];	 
+        //fm[j][1] += fmj[1];	  	  
+        //fm[j][2] += fmj[2];
       }
  
       if (eflag) {

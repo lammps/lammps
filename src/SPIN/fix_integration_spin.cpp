@@ -109,6 +109,7 @@ FixIntegrationSpin::~FixIntegrationSpin()
   memory->destroy(spj);
   memory->destroy(fmi);
   memory->destroy(fmj);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -190,6 +191,7 @@ void FixIntegrationSpin::init()
    if (locklangevinspin->temp_flag == 1) temp_flag = 1;
   }
 
+
   // perform the sectoring if mpi integration
   if (mpi_flag) sectoring();
 
@@ -200,7 +202,6 @@ void FixIntegrationSpin::init()
 void FixIntegrationSpin::initial_integrate(int vflag)
 {
   double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy;
-  double cp[3],g[3]; 	
 	
   double **x = atom->x;	
   double **v = atom->v;
@@ -226,8 +227,72 @@ void FixIntegrationSpin::initial_integrate(int vflag)
     }
   }
 
-#define MPI_TEST
+//#define SEC  
+#define LIST
 
+#if defined LIST
+  //printf("sectors = %d \n",nsectors);
+  int adv_list[nsectors][nlocal];
+  int k[nsectors];
+  for (int j = 0; j < nsectors; j++) {
+    k[j] = 0;
+    for (int i = 0; i < nlocal; i++) {
+      adv_list[j][i] = 0;
+    }
+  }
+  int s, p;
+
+  // update half s for all particles 
+  if (extra == SPIN) {
+    if (mpi_flag == 1) { // mpi seq. update
+      int nseci;
+      for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
+        comm->forward_comm();
+	k[j] = 0;
+        for (int i = 0; i < nlocal; i++) {
+       	  xi[0] = x[i][0];
+	  xi[1] = x[i][1];
+       	  xi[2] = x[i][2];
+       	  nseci = coords2sector(xi);
+	  if (j != nseci) continue;
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts,sp,fm);
+	  adv_list[j][k[j]] = i;
+          k[j]++;   
+      	}
+      }
+      int ntest = 0;
+      for (int j = 0; j < nsectors; j++) {
+	ntest += k[j];
+      }
+      if (ntest != nlocal) error->all(FLERR,"error, S(k[j]) != nlocal"); 
+      
+      for (int j = nsectors-1; j >= 0; j--) {
+	comm->forward_comm();
+        for (int i = k[j]-1; i >= 0; i--) {
+          p = adv_list[j][i];
+	  ComputeInteractionsSpin(p);
+	  AdvanceSingleSpin(p,dts,sp,fm);
+        }
+      }
+    } else if (mpi_flag == 0) { // serial seq. update
+      comm->forward_comm(); // comm. positions of ghost atoms
+      for (int i = 0; i < nlocal-1; i++){ // advance quarter s for nlocal
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,dts,sp,fm);
+      }
+      ComputeInteractionsSpin(nlocal-1);
+      AdvanceSingleSpin(nlocal-1,2.0*dts,sp,fm); // advance half s for 1
+      for (int i = nlocal-2; i >= 0; i--){ // advance quarter s for nlocal
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,dts,sp,fm);
+      }
+    } else error->all(FLERR,"Illegal fix integration/spin command");
+  }
+#endif
+
+
+#if defined SEC
   // update half s for all particles 
   if (extra == SPIN) {
     if (mpi_flag == 1) { // mpi seq. update
@@ -243,9 +308,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 	  ComputeInteractionsSpin(i);
     	  AdvanceSingleSpin(i,dts,sp,fm);
       	}
-        #if defined MPI_TEST
-        MPI_Barrier(world);
-        #endif	
       }
       for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
         comm->forward_comm();
@@ -258,9 +320,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i,dts,sp,fm);
         }    
-        #if defined MPI_TEST 
-        MPI_Barrier(world);
-        #endif	
       }
     } else if (mpi_flag == 0) { // serial seq. update
       comm->forward_comm(); // comm. positions of ghost atoms
@@ -276,6 +335,8 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       }
     } else error->all(FLERR,"Illegal fix integration/spin command");
   }
+#endif
+
 
   // update x for all particles
   for (int i = 0; i < nlocal; i++) {
@@ -286,6 +347,45 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       }
   }
 
+
+#if defined LIST
+  // update half s for all particles 
+  if (extra == SPIN) {
+    if (mpi_flag == 1) { // mpi seq. update
+      int nseci;
+      for (int j = 0; j < nsectors; j++) { // advance quarter s for nlocal
+        comm->forward_comm(); 
+        for (int i = 0; i < k[j]; i++) {
+	  p = adv_list[j][i];
+	  ComputeInteractionsSpin(p);
+    	  AdvanceSingleSpin(p,dts,sp,fm);
+      	}    
+      }
+      for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
+        comm->forward_comm();
+        for (int i = k[j]-1; i >= 0; i--) {
+          p = adv_list[j][i];
+	  ComputeInteractionsSpin(p);
+          AdvanceSingleSpin(p,dts,sp,fm);
+        }    
+      }
+    } else if (mpi_flag == 0) { // serial seq. update
+      comm->forward_comm(); // comm. positions of ghost atoms
+      for (int i = 0; i < nlocal-1; i++){ // advance quarter s for nlocal
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,dts,sp,fm);
+      }
+      ComputeInteractionsSpin(nlocal-1);
+      AdvanceSingleSpin(nlocal-1,2.0*dts,sp,fm); // advance half s for 1
+      for (int i = nlocal-2; i >= 0; i--){ // advance quarter s for nlocal
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i,dts,sp,fm);
+      }
+    } else error->all(FLERR,"Illegal fix integration/spin command");
+  }
+#endif
+
+#if defined SEC
   // update half s for all particles 
   if (extra == SPIN) {
     if (mpi_flag == 1) { // mpi seq. update
@@ -301,9 +401,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 	  ComputeInteractionsSpin(i);
     	  AdvanceSingleSpin(i,dts,sp,fm);
       	}    
-        #if defined MPI_TEST 
-        MPI_Barrier(world);
-        #endif	
       }
       for (int j = nsectors-1; j >= 0; j--) { // advance quarter s for nlocal 
         comm->forward_comm();
@@ -316,9 +413,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i,dts,sp,fm);
         }    
-        #if defined MPI_TEST 
-        MPI_Barrier(world);
-        #endif	
       }
     } else if (mpi_flag == 0) { // serial seq. update
       comm->forward_comm(); // comm. positions of ghost atoms
@@ -334,7 +428,7 @@ void FixIntegrationSpin::initial_integrate(int vflag)
       }
     } else error->all(FLERR,"Illegal fix integration/spin command");
   }
-
+#endif
 
 }
 

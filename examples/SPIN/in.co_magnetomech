@@ -8,6 +8,8 @@ dimension 3
 boundary p p p 
 #boundary f f f
 
+#newton off
+
 #setting atom_style to spin:
 atom_style spin
 
@@ -21,7 +23,7 @@ atom_modify map array
 ###########################
 
 lattice fcc 3.54
-region box block 0.0 8.0 0.0 8.0 0.0 8.0
+region box block 0.0 5.0 0.0 5.0 0.0 5.0
 create_box 1 box
 create_atoms 1 box
 
@@ -36,21 +38,19 @@ group single_spin id 10
 mass		1 58.93
 
 #Setting spins orientation and moment 
-#set group all spin/random 31 1.72
-set group all spin 1.72 0.0 0.0 1.0 
-set group single_spin spin/random 11 1.72
+set group all spin/random 31 1.72
+#set group all spin 1.72 0.0 0.0 1.0 
+#set group single_spin spin/random 11 1.72
 
 velocity all create 200 4928459 rot yes dist gaussian
 
 #Magneto-mechanic interactions for bulk fcc Cobalt
 #pair_style pair/spin/exchange 4.0
 #pair_style eam/alloy
-#pair_style hybrid/overlay eam/alloy pair/spin/soc 4.0
 #pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
-#pair_style hybrid/overlay eam/alloy pair/spin/exchange 6.5
 pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0
 
-pair_coeff * * eam/alloy ../Co_PurjaPun_2012.eam.alloy Co
+pair_coeff * * eam/alloy ../examples/SPIN/Co_PurjaPun_2012.eam.alloy Co
 #pair_coeff * * ../Co_PurjaPun_2012.eam.alloy Co
 
 #pair_style pair/spin 4.0
@@ -114,6 +114,6 @@ thermo_modify   format float %20.15g
 dump 1 all custom 500 dump_VSRSV.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
+#run 100
 run 10000
-#run 2
 

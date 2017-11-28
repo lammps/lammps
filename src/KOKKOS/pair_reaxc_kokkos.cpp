@@ -811,7 +811,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
     else if (neighflag == HALFTHREAD)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALFTHREAD> >(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf_LessAtomics<HALFTHREAD> >(0,ignum),*this);
     else //(neighflag == FULL)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsFull>(0,ignum),*this);
 
@@ -838,9 +838,9 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // allocate duplicated memory
   if (neighflag != FULL) {
     dup_CdDelta = Kokkos::Experimental::create_reduction_view<>(d_CdDelta);
-    dup_Cdbo    = Kokkos::Experimental::create_reduction_view<>(d_Cdbo);
-    dup_Cdbopi  = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi);
-    dup_Cdbopi2 = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi2);
+    //dup_Cdbo    = Kokkos::Experimental::create_reduction_view<>(d_Cdbo);
+    //dup_Cdbopi  = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi);
+    //dup_Cdbopi2 = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi2);
   }
 
   // reduction over duplicated memory
@@ -851,7 +851,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
   } else if (neighflag == HALFTHREAD) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1_LessAtomics>(0,ignum),*this);
   }
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder2>(0,ignum),*this);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder3>(0,ignum),*this);
@@ -955,12 +955,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
     Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
 
-    Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
-    Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
-    Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
-    dup_Cdbo.reset_except(d_Cdbo);
-    dup_Cdbopi.reset_except(d_Cdbopi);
-    dup_Cdbopi2.reset_except(d_Cdbopi2);
+    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
+    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
+    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
+    //dup_Cdbo.reset_except(d_Cdbo);
+    //dup_Cdbopi.reset_except(d_Cdbopi);
+    //dup_Cdbopi2.reset_except(d_Cdbopi2);
   }
 
   // Bond force
@@ -968,11 +968,11 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALF> >(0,ignum),*this);
 
     // reduction over duplicated memory
-    if (neighflag != FULL) {
-      Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-      Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-      Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    }
+    //if (neighflag != FULL) {
+    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //}
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,1> >(0,ignum),*this,ev);
     else
@@ -983,11 +983,11 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALFTHREAD> >(0,ignum),*this);
 
     // reduction over duplicated memory
-    if (neighflag != FULL) {
-      Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-      Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-      Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    }
+    //if (neighflag != FULL) {
+    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //}
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
     else
@@ -1038,9 +1038,9 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     dup_dDeltap_self = decltype(d_dDeltap_self)();
     dup_total_bo     = decltype(d_total_bo)();
     dup_CdDelta      = decltype(d_CdDelta)();
-    dup_Cdbo         = decltype(d_Cdbo)();
-    dup_Cdbopi       = decltype(d_Cdbopi)();
-    dup_Cdbopi2      = decltype(d_Cdbopi2)();
+    //dup_Cdbo         = decltype(d_Cdbo)();
+    //dup_Cdbopi       = decltype(d_Cdbopi)();
+    //dup_Cdbopi2      = decltype(d_Cdbopi2)();
     dup_eatom        = decltype(v_eatom)();
     dup_vatom        = decltype(v_vatom)();
   }
@@ -2316,13 +2316,13 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
   auto a_CdDelta = dup_CdDelta.access();
-  auto a_Cdbo = dup_Cdbo.access();
-  auto a_Cdbopi = dup_Cdbopi.access();
-  auto a_Cdbopi2 = dup_Cdbopi2.access();
+  //auto a_Cdbo = dup_Cdbo.access();
+  //auto a_Cdbopi = dup_Cdbopi.access();
+  //auto a_Cdbopi2 = dup_Cdbopi2.access();
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2474,10 +2474,10 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
   //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
   auto a_f = dup_f.access();
-  auto a_Cdbo = dup_Cdbo.access();
+  //auto a_Cdbo = dup_Cdbo.access();
   auto a_CdDelta = dup_CdDelta.access();
 
 
@@ -2788,10 +2788,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
 
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
   auto a_f = dup_f.access();
   auto a_CdDelta = dup_CdDelta.access();
-  auto a_Cdbo = dup_Cdbo.access();
+  //auto a_Cdbo = dup_Cdbo.access();
 
   // in reaxc_torsion_angles: j = i, k = j, i = k;
 
@@ -3309,12 +3309,12 @@ template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxUpdateBond<NEIGHFLAG>, const int &ii) const {
 
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
-  auto a_Cdbo = dup_Cdbo.access();
-  auto a_Cdbopi = dup_Cdbopi.access();
-  auto a_Cdbopi2 = dup_Cdbopi2.access();
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
+  //auto a_Cdbo = dup_Cdbo.access();
+  //auto a_Cdbopi = dup_Cdbopi.access();
+  //auto a_Cdbopi2 = dup_Cdbopi2.access();
 
   const int i = d_ilist[ii];
   const tagint itag = tag(i);

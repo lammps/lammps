@@ -19,9 +19,10 @@
 #define LMP_PAIR_KOKKOS_H
 
 #include "Kokkos_Macros.hpp"
+#include "Kokkos_Vectorization.hpp"
+#include "Kokkos_ReductionView.hpp"
 #include "pair.h"
 #include "neigh_list_kokkos.h"
-#include "Kokkos_Vectorization.hpp"
 
 namespace LAMMPS_NS {
 
@@ -56,6 +57,18 @@ struct AtomicF {
 template<>
 struct AtomicF<HALFTHREAD> {
   enum {value = Kokkos::Atomic|Kokkos::Unmanaged};
+};
+
+// Determine memory traits for force array
+// Do atomic trait when running HALFTHREAD neighbor list style
+template<int NEIGHFLAG>
+struct AtomicDup {
+  enum {value = Kokkos::Experimental::ReductionNonAtomic};
+};
+
+template<>
+struct AtomicDup<HALFTHREAD> {
+  enum {value = Kokkos::Experimental::ReductionAtomic};
 };
 
 //Specialisation for Neighborlist types Half, HalfThread, Full

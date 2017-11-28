@@ -22,6 +22,7 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
 #ifndef LMP_FIX_QEQ_REAX_KOKKOS_H
 #define LMP_FIX_QEQ_REAX_KOKKOS_H
 
+#include <Kokkos_ReductionView.hpp>
 #include "fix_qeq_reax.h"
 #include "kokkos_type.h"
 #include "neigh_list.h"
@@ -191,6 +192,8 @@ class FixQEqReaxKokkos : public FixQEqReax {
   typename AT::t_ffloat_2d d_shield, d_s_hist, d_t_hist;
   HAT::t_ffloat_2d h_s_hist, h_t_hist;
   typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
+
+  Kokkos::Experimental::ReductionView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, DeviceType> red_o;
 
   void init_shielding_k();
   void init_hist();

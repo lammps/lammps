@@ -716,8 +716,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     dup_f            = Kokkos::Experimental::create_reduction_view<>(f);
     dup_eatom        = Kokkos::Experimental::create_reduction_view<>(v_eatom);
     dup_vatom        = Kokkos::Experimental::create_reduction_view<>(v_vatom);
-    dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
-    dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
   }
 
   if (eflag_global) {
@@ -789,6 +787,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     allocate_array();
   }
 
+  // allocate duplicated memory
+  if (neighflag != FULL) {
+    dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
+    dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
+  }
+
   // Neighbor lists for bond and hbond
 
   // try, resize if necessary
@@ -811,7 +815,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
     else if (neighflag == HALFTHREAD)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf_LessAtomics<HALFTHREAD> >(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALFTHREAD> >(0,ignum),*this);
     else //(neighflag == FULL)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsFull>(0,ignum),*this);
 
@@ -851,7 +855,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
   } else if (neighflag == HALFTHREAD) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1_LessAtomics>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
   }
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder2>(0,ignum),*this);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder3>(0,ignum),*this);
@@ -1034,15 +1038,15 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // free duplicated memory
   if (neighflag != FULL) {
-    dup_f            = decltype(f)();
-    dup_dDeltap_self = decltype(d_dDeltap_self)();
-    dup_total_bo     = decltype(d_total_bo)();
-    dup_CdDelta      = decltype(d_CdDelta)();
-    //dup_Cdbo         = decltype(d_Cdbo)();
-    //dup_Cdbopi       = decltype(d_Cdbopi)();
-    //dup_Cdbopi2      = decltype(d_Cdbopi2)();
-    dup_eatom        = decltype(v_eatom)();
-    dup_vatom        = decltype(v_vatom)();
+    dup_f            = decltype(dup_f)();
+    dup_dDeltap_self = decltype(dup_dDeltap_self)();
+    dup_total_bo     = decltype(dup_total_bo)();
+    dup_CdDelta      = decltype(dup_CdDelta)();
+    //dup_Cdbo         = decltype(dup_Cdbo)();
+    //dup_Cdbopi       = decltype(dup_Cdbopi)();
+    //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
+    dup_eatom        = decltype(dup_eatom)();
+    dup_vatom        = decltype(dup_vatom)();
   }
 
   copymode = 0;

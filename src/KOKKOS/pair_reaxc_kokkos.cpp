@@ -1529,6 +1529,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsFull, const int &
       }
     }
 
+    if (rsq > cut_bosq) continue;
+
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
     const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
@@ -1717,6 +1719,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
         d_hb_list[i_index] = i;
       }
     }
+
+    if (rsq > cut_bosq) continue;
 
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
@@ -1938,6 +1942,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
         d_hb_list[i_index] = i;
       }
     }
+
+    if (rsq > cut_bosq) continue;
 
     // bond_list
     const F_FLOAT rij = sqrt(rsq);

@@ -28,7 +28,20 @@ action () {
 
 # force rebuild of files with LMP_KOKKOS switch
 
-touch ../accelerator_kokkos.h
+KOKKOS_INSTALLED=0
+if (test -e ../Makefile.package) then
+  KOKKOS_INSTALLED=`grep DLMP_KOKKOS ../Makefile.package | wc -l`
+fi 
+
+if (test $mode = 1) then
+  if (test $KOKKOS_INSTALLED = 0) then
+    touch ../accelerator_kokkos.h
+  fi
+elif (test $mode = 0) then
+  if (test $KOKKOS_INSTALLED = 1) then
+    touch ../accelerator_kokkos.h
+  fi
+fi
 
 # list of files with optional dependcies
 

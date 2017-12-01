@@ -91,7 +91,7 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
     region = domain->regions[iregion];
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("setforce:k_match",nlocal);
-    KokkosBase* regionKKBase = (KokkosBase*) region;
+    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
     regionKKBase->match_all_kokkos(groupbit,k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();

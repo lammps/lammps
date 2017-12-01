@@ -380,7 +380,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
   MPI_Request request;
 
   int nsize = pair->comm_forward;
-  KokkosBase* pairKKBase = (KokkosBase*) pair;
+  KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 
   for (iswap = 0; iswap < nswap; iswap++) {
     int n = MAX(max_buf_pair,nsize*sendnum[iswap]);

@@ -516,7 +516,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
   k_packlist.sync<DeviceType>();
   k_unpacklist.sync<DeviceType>();
 
-  KokkosBase* kspaceKKBase = (KokkosBase*) kspace;
+  KokkosBase* kspaceKKBase = dynamic_cast<KokkosBase*>(kspace);
 
   for (int m = 0; m < nswap; m++) {
     if (swap[m].sendproc == me)
@@ -547,7 +547,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
   k_packlist.sync<DeviceType>();
   k_unpacklist.sync<DeviceType>();
 
-  KokkosBase* kspaceKKBase = (KokkosBase*) kspace;
+  KokkosBase* kspaceKKBase = dynamic_cast<KokkosBase*>(kspace);
 
   for (int m = nswap-1; m >= 0; m--) {
     if (swap[m].recvproc == me)

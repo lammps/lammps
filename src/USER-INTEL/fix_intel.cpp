@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #ifdef _LMP_INTEL_OFFLOAD
 #ifndef INTEL_OFFLOAD_NOAFFINITY

@@ -20,6 +20,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "group.h"
 
 using namespace LAMMPS_NS;

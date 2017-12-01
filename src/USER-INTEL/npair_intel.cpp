@@ -15,6 +15,10 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "comm.h"
+#include "domain.h"
+#include "timer.h"
+#include "modify.h"
 #include "npair_intel.h"
 #include "nstencil.h"
 

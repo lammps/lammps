@@ -36,7 +36,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) : 
-  Compute(lmp, narg, arg), mag(NULL)
+  Compute(lmp, narg, arg)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
@@ -54,7 +54,6 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeSpin::~ComputeSpin()
 {
-  memory->destroy(mag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -70,6 +69,12 @@ void ComputeSpin::init()
 void ComputeSpin::compute_vector()
 {
   int i, index;
+  int countsp, countsptot;
+  double mag[3], magtot[3];
+  double magenergy, magenergytot;
+  double tempnum, tempnumtot;
+  double tempdenom, tempdenomtot; 
+  double spintemperature;
  
   invoked_vector = update->ntimestep;
   
@@ -94,6 +99,7 @@ void ComputeSpin::compute_vector()
 
   // compute total magnetization and magnetic energy 
   // compute spin temperature (Nurdin et al., Phys. Rev. E 61, 2000)
+
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->mumag_flag && atom->sp_flag) {
@@ -144,9 +150,6 @@ void ComputeSpin::compute_vector()
 
 void ComputeSpin::allocate()
 {
-  memory->destroy(mag);
-  memory->create(mag,4,"compute/spin:mag");
-  memory->create(magtot,5,"compute/spin:mag");
   memory->create(vector,7,"compute/spin:vector");
 }
 

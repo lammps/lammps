@@ -39,26 +39,21 @@ class PairSpinSocLandau : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_soc_neel(int, int, double, double *, double *, double *,double *, double *);
-  void compute_soc_mech_neel(int, int, double, double *, double *, double *,double *, double *);
+  void compute_soc_landau(int, int, double, double rij[3], double fmi[3], double fmj[3],double spi[3], double spj[3]);
+  void compute_soc_mech_landau(int, int, double, double rij[3], double fi[3], double fj[3], double spi[3], double spj[3]);
  
-  int soc_neel_flag; // soc neel flag
-  int mech_flag; // mech calc. flag
+  int soc_neel_flag;		// soc neel flag
+  int mech_flag; 		// mech calc. flag
 
   double cut_soc_global;
-  double **cut_soc_neel; // cutoff distance exchange
+  double **cut_soc_landau; 	// cutoff distance exchange
 
  protected:
   int newton_pair_spin; 
   double hbar;
 
-  double **K1, **K1_mech; // exchange coeffs Kij
-  double **K2, **K3; // K1 in eV, K2 adim, K3 in Ang
-
-  double *spi, *spj; // temp. spin vals. in compute
-  double *fi, *fj;   // temp. mech. forces  in compute
-  double *fmi, *fmj; // temp. mag. forces in compute
-  double *rij;       // norm. inter atomic vectors
+  double **K1, **K1_mech; 	// exchange coeffs Kij
+  double **K2, **K3; 		// K1 in eV, K2 adim, K3 in Ang
 
   void allocate();
 };

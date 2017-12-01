@@ -48,7 +48,7 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 	
   if (narg < 7) error->all(FLERR,"Illegal force/spin command");
   // 7 arguments for a force/spin fix command:
-  //(fix  ID  group  force/spin  magnitude (T or eV)  style (zeeman or anisotropy)  direction (3 cartesian coordinates) 
+  // fix  ID  group  force/spin  magnitude (T or eV)  style (zeeman or anisotropy)  direction (3 cartesian coordinates) 
   
   // magnetic interactions coded for cartesian coordinates
 
@@ -103,8 +103,6 @@ FixForceSpin::FixForceSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 
 FixForceSpin::~FixForceSpin()
 {
-  memory->destroy(spi);
-  memory->destroy(fmi);
   delete [] magstr;
 }
 
@@ -124,19 +122,18 @@ int FixForceSpin::setmask()
 
 void FixForceSpin::init()
 {
-  const double hbar = force->hplanck/MY_2PI; // eV/(rad.THz)
-  const double mub = 5.78901e-5; // in eV/T 
-  const double gyro = mub/hbar; // in rad.THz/T  
+  const double hbar = force->hplanck/MY_2PI; 	// eV/(rad.THz)
+  const double mub = 5.78901e-5; 		// in eV/T 
+  const double gyro = mub/hbar; 		// in rad.THz/T  
 
-  H_field *= gyro; // in rad.THz
-  Ka /= hbar; // in rad.THz
+  H_field *= gyro; 				// in rad.THz
+  Ka /= hbar; 					// in rad.THz
 
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
-  // check variables
   if (magstr) {
   magvar = input->variable->find(magstr);
   if (magvar < 0) 
@@ -149,11 +146,9 @@ void FixForceSpin::init()
   if (magfieldstyle != CONSTANT) varflag = EQUAL;
  
   // set magnetic field components
+
   if (varflag == CONSTANT) set_magneticforce();
   
-  memory->create(spi,3,"forcespin:spi"); 
-  memory->create(fmi,3,"forcespin:fmi"); 
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,15 +169,17 @@ void FixForceSpin::setup(int vflag)
 void FixForceSpin::post_force(int vflag)
 {
   // update gravity due to variables
+
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
     modify->addstep_compute(update->ntimestep + 1);
-    set_magneticforce(); // update mag. field if time-dep.
+    set_magneticforce(); 		// update mag. field if time-dep.
   }
 
   double **sp = atom->sp; 
   double *mumag = atom->mumag;
-  double **fm = atom->fm; 
+  double **fm = atom->fm;
+  double spi[3], fmi[3]; 
   const int nlocal = atom->nlocal;  
   double scalar;
 
@@ -214,17 +211,18 @@ void FixForceSpin::post_force(int vflag)
 
 
 /* ---------------------------------------------------------------------- */
-void FixForceSpin::compute_zeeman(int i, double *fmi)
+
+void FixForceSpin::compute_zeeman(int i, double fmi[3])
 {
 double *mumag = atom->mumag;
-  fmi[0] += mumag[i]*hx;
-  fmi[1] += mumag[i]*hy;
-  fmi[2] += mumag[i]*hz;
+  fmi[0] -= mumag[i]*hx;
+  fmi[1] -= mumag[i]*hy;
+  fmi[2] -= mumag[i]*hz;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixForceSpin::compute_anisotropy(int i, double * spi, double *fmi)
+void FixForceSpin::compute_anisotropy(int i, double spi[3], double fmi[3])
 {
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
   fmi[0] += scalar*Kax;
@@ -240,6 +238,7 @@ void FixForceSpin::post_force_respa(int vflag, int ilevel, int iloop)
 }
 
 /* ---------------------------------------------------------------------- */
+
 void FixForceSpin::set_magneticforce()
 {
   if (style == ZEEMAN) {
@@ -260,8 +259,10 @@ void FixForceSpin::set_magneticforce()
 
 double FixForceSpin::compute_scalar()
 {
-  double emag_all=0.0;
+  double emag_all = 0.0;
+
   // only sum across procs one time
+  
   if (eflag == 0) {
     MPI_Allreduce(&emag,&emag_all,1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;

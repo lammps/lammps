@@ -38,11 +38,11 @@ class FixForceSpin : public Fix {
   double compute_scalar();
 
   int zeeman_flag, aniso_flag;	
-  void compute_zeeman(int, double *);
-  void compute_anisotropy(int, double *, double *);
+  void compute_zeeman(int, double fmi[3]);
+  void compute_anisotropy(int, double spi[3], double fmi[3]);
 
  protected:
-  int style; // style of the magnetic force
+  int style; 			// style of the magnetic force
   
   double degree2rad;
   double hbar;
@@ -57,18 +57,17 @@ class FixForceSpin : public Fix {
   char *magstr;
    
   // zeeman field intensity and direction
+
   double H_field; 
   double nhx, nhy, nhz;
-  double hx, hy, hz; // temp. force variables
+  double hx, hy, hz; 		// temp. force variables
   
   // magnetic anisotropy intensity and direction
+  
   double Ka; 
   double nax, nay, naz;
-  double Kax, Kay, Kaz; // temp. force variables
+  double Kax, Kay, Kaz; 	// temp. force variables
 
-  // temp. spin variables
-  double *spi, *fmi;
-  
   void set_magneticforce();
  
 };

@@ -42,7 +42,7 @@ PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : Pair(lmp)
 {
   hbar = force->hplanck/MY_2PI;
 
-  newton_pair_spin = 0; // no newton pair for now
+  newton_pair_spin = 0; // no newton pair for now => to be corrected
  // newton_pair = 0;
 
   single_enable = 0;
@@ -64,14 +64,6 @@ PairSpinExchange::~PairSpinExchange()
     memory->destroy(J1_mech);
     memory->destroy(J2);
     memory->destroy(J3);  
-    
-    memory->destroy(spi);
-    memory->destroy(spj);
-    memory->destroy(fi);
-    memory->destroy(fj);
-    memory->destroy(fmi);
-    memory->destroy(fmj);
-    memory->destroy(rij);
 
     memory->destroy(cutsq);
   }
@@ -83,12 +75,13 @@ void PairSpinExchange::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl,ecoul;
-  double xi,yi,zi;
-  double fix,fiy,fiz,fjx,fjy,fjz;
-  double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
+  double xi[3], rij[3];
+  double fi[3], fmi[3];
+  double fj[3], fmj[3];
   double cut_ex_2,cut_spin_exchange_global2;
-  double rsq,rd;
+  double rsq,rd,inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
+  double spi[3],spj[3];
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -109,14 +102,14 @@ void PairSpinExchange::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // pair spin computations
-  // loop over neighbors of my atoms
+  // computation of the exchange interaction
+  // loop over atoms and their neighbors
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    xi = x[i][0];
-    yi = x[i][1];
-    zi = x[i][2];
+    xi[0] = x[i][0];
+    xi[1] = x[i][1];
+    xi[2] = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
@@ -124,6 +117,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
     spi[2] = sp[i][2];
   
     // loop on neighbors
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -138,15 +132,12 @@ void PairSpinExchange::compute(int eflag, int vflag)
       fj[0] = fj[1] = fj[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
       fmj[0] = fmj[1] = fmj[2] = 0.0;
-      rij[0] = rij[1] = rij[2] = 0.0;
      
-      rij[0] = x[j][0] - xi;
-      rij[1] = x[j][1] - yi;
-      rij[2] = x[j][2] - zi;
-
-      // square of inter-atomic distance
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
-      double inorm = 1.0/sqrt(rsq);
+      inorm = 1.0/sqrt(rsq);
       rij[0] *= inorm;
       rij[1] *= inorm;
       rij[2] *= inorm;
@@ -154,7 +145,8 @@ void PairSpinExchange::compute(int eflag, int vflag)
       itype = type[i];
       jtype = type[j];
 
-      // exchange interaction
+      // compute exchange interaction
+
       if (exch_flag) {
         cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
         if (rsq <= cut_ex_2) {
@@ -170,14 +162,15 @@ void PairSpinExchange::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
+      // check newton pair  =>  needs correction
 //      if (newton_pair || j < nlocal) {
       if (newton_pair_spin) {
 	f[j][0] += fj[0];	 
         f[j][1] += fj[1];	  	  
         f[j][2] += fj[2];
-        //fm[j][0] += fmj[0];	 
-        //fm[j][1] += fmj[1];	  	  
-        //fm[j][2] += fmj[2];
+        fm[j][0] += fmj[0];	 
+        fm[j][1] += fmj[1];	  	  
+        fm[j][2] += fmj[2];
       }
  
       if (eflag) {
@@ -199,7 +192,8 @@ void PairSpinExchange::compute(int eflag, int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpinExchange::compute_exchange(int i, int j, double rsq, double *fmi,  double *fmj, double *spi, double *spj)
+
+void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],  double fmj[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -223,7 +217,8 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double *fmi,  
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double *rij, double *fi,  double *fj, double *spi, double *spj)
+
+void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double rij[3], double fi[3],  double fj[3], double *spi, double *spj)
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -270,14 +265,6 @@ void PairSpinExchange::allocate()
   memory->create(J2,n+1,n+1,"pair:J2");  
   memory->create(J3,n+1,n+1,"pair:J3");
  
-  memory->create(spi,3,"pair:spi");
-  memory->create(spj,3,"pair:spj");
-  memory->create(fi,3,"pair:fi");
-  memory->create(fj,3,"pair:fj");
-  memory->create(fmi,3,"pair:fmi");
-  memory->create(fmj,3,"pair:fmj");
-  memory->create(rij,3,"pair:rij");
- 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");  
   
 }
@@ -320,6 +307,7 @@ void PairSpinExchange::coeff(int narg, char **arg)
   if (!allocated) allocate();
   
   // set exch_mech_flag to 1 if magneto-mech simulation
+
   if (strstr(force->pair_style,"pair/spin")) {
     exch_mech_flag = 0;
   } else if (strstr(force->pair_style,"hybrid/overlay")) {
@@ -335,15 +323,15 @@ void PairSpinExchange::coeff(int narg, char **arg)
     force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
     force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
     
-    const double rij = force->numeric(FLERR,arg[3]);
-    const double j1 = (force->numeric(FLERR,arg[4]));
+    const double rc = force->numeric(FLERR,arg[3]);
+    const double j1 = force->numeric(FLERR,arg[4]);
     const double j2 = force->numeric(FLERR,arg[5]);  
     const double j3 = force->numeric(FLERR,arg[6]); 
   
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {
-        cut_spin_exchange[i][j] = rij;   
+        cut_spin_exchange[i][j] = rc;   
         J1_mag[i][j] = j1/hbar;
 	if (exch_mech_flag) {
 	  J1_mech[i][j] = j1;
@@ -373,7 +361,7 @@ void PairSpinExchange::init_style()
 
   neighbor->request(this,instance_me);
 
-  // check this half/full request
+  // check this half/full request  =>  needs correction/review
 #define FULLNEI
 #if defined FULLNEI
   int irequest = neighbor->request(this,instance_me);

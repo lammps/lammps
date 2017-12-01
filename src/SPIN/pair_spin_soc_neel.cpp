@@ -42,7 +42,7 @@ PairSpinSocNeel::PairSpinSocNeel(LAMMPS *lmp) : Pair(lmp)
 {
   hbar = force->hplanck/MY_2PI;
 
-  newton_pair_spin = 0; // no newton pair for now
+  newton_pair_spin = 0; // no newton pair for now => to be corrected
  // newton_pair = 0;
 
   single_enable = 0;
@@ -63,14 +63,6 @@ PairSpinSocNeel::~PairSpinSocNeel()
     memory->destroy(K1_mech);
     memory->destroy(K2);
     memory->destroy(K3);  
-    
-    memory->destroy(spi);
-    memory->destroy(spj);
-    memory->destroy(fi);
-    memory->destroy(fj);
-    memory->destroy(fmi);
-    memory->destroy(fmj);
-    memory->destroy(rij);
 
     memory->destroy(cutsq);
   }
@@ -82,11 +74,12 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl,ecoul;
-  double xi,yi,zi;
-  double fix,fiy,fiz,fjx,fjy,fjz;
-  double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
-  double cut_soc_neel_2,cut_soc_global2;
-  double rsq,rd;
+  double xi[3], rij[3];
+  double spi[3], spj[3];
+  double fi[3], fj[3];
+  double fmi[3], fmj[3];
+  double cut_soc_neel_2, cut_soc_global2;
+  double rsq, rd, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
@@ -109,13 +102,13 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // pair spin computations
-  // loop over neighbors of my atoms
+  // loop over atoms and their neighbors
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    xi = x[i][0];
-    yi = x[i][1];
-    zi = x[i][2];
+    xi[0] = x[i][0];
+    xi[1] = x[i][1];
+    xi[2] = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
@@ -123,6 +116,7 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
     spi[2] = sp[i][2];
   
     // loop on neighbors
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -139,13 +133,11 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
       fmj[0] = fmj[1] = fmj[2] = 0.0;
       rij[0] = rij[1] = rij[2] = 0.0;
      
-      rij[0] = x[j][0] - xi;
-      rij[1] = x[j][1] - yi;
-      rij[2] = x[j][2] - zi;
-
-      // square of inter-atomic distance
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
-      double inorm = 1.0/sqrt(rsq);
+      inorm = 1.0/sqrt(rsq);
       rij[0] *= inorm;
       rij[1] *= inorm;
       rij[2] *= inorm;
@@ -153,7 +145,8 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
       itype = type[i];
       jtype = type[j];
 
-      // compute mag. and mech. components of soc
+      // compute magnetic and mechanical components of soc_neel
+
       cut_soc_neel_2 = cut_soc_neel[itype][jtype]*cut_soc_neel[itype][jtype];
       if (rsq <= cut_soc_neel_2) {
         compute_soc_neel(i,j,rsq,rij,fmi,fmj,spi,spj);   
@@ -167,7 +160,7 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-//      if (newton_pair || j < nlocal) {
+//      if (newton_pair || j < nlocal) {  //  => to be corrected
       if (newton_pair_spin) {
 	f[j][0] += fj[0];	 
         f[j][1] += fj[1];	  	  
@@ -196,7 +189,8 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpinSocNeel::compute_soc_neel(int i, int j, double rsq, double *rij, double *fmi,  double *fmj, double *spi, double *spj)
+
+void PairSpinSocNeel::compute_soc_neel(int i, int j, double rsq, double rij[3], double fmi[3],  double fmj[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -212,18 +206,19 @@ void PairSpinSocNeel::compute_soc_neel(int i, int j, double rsq, double *rij, do
   scalar = rij[0]*spj[0]+rij[1]*spj[1]+rij[2]*spj[2];
   Kij_3 = Kij/3.0;
 
-  fmi[0] -= Kij*scalar*rij[0]-Kij_3*spj[0];
-  fmi[1] -= Kij*scalar*rij[1]-Kij_3*spj[1];
-  fmi[2] -= Kij*scalar*rij[2]-Kij_3*spj[2];
+  fmi[0] -= Kij*scalar*rij[0] - Kij_3*spj[0];
+  fmi[1] -= Kij*scalar*rij[1] - Kij_3*spj[1];
+  fmi[2] -= Kij*scalar*rij[2] - Kij_3*spj[2];
           
-  fmj[0] += Kij*scalar*rij[0]+Kij_3*spi[0];
-  fmj[1] += Kij*scalar*rij[1]+Kij_3*spi[1];
-  fmj[2] += Kij*scalar*rij[2]+Kij_3*spi[2];
+  fmj[0] += Kij*scalar*rij[0] + Kij_3*spi[0];
+  fmj[1] += Kij*scalar*rij[1] + Kij_3*spi[1];
+  fmj[2] += Kij*scalar*rij[2] + Kij_3*spi[2];
 
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpinSocNeel::compute_soc_mech_neel(int i, int j, double rsq, double *rij, double *fi,  double *fj, double *spi, double *spj)
+
+void PairSpinSocNeel::compute_soc_mech_neel(int i, int j, double rsq, double rij[3], double fi[3],  double fj[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -285,14 +280,6 @@ void PairSpinSocNeel::allocate()
   memory->create(K2,n+1,n+1,"pair:K2");  
   memory->create(K3,n+1,n+1,"pair:K3");
  
-  memory->create(spi,3,"pair:spi");
-  memory->create(spj,3,"pair:spj");
-  memory->create(fi,3,"pair:fi");
-  memory->create(fj,3,"pair:fj");
-  memory->create(fmi,3,"pair:fmi");
-  memory->create(fmj,3,"pair:fmj");
-  memory->create(rij,3,"pair:rij");
- 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");  
   
 }
@@ -335,7 +322,7 @@ void PairSpinSocNeel::coeff(int narg, char **arg)
   if (!allocated) allocate();
   
   // set mech_flag to 1 if magneto-mech simulation
-//no longer correct: can be hybrid without magneto-mech
+  //no longer correct: can be hybrid without magneto-mech => needs review/correction
   if (strstr(force->pair_style,"pair/spin")) {
     mech_flag = 0;
   } else if (strstr(force->pair_style,"hybrid/overlay")) {
@@ -377,7 +364,6 @@ void PairSpinSocNeel::coeff(int narg, char **arg)
 
 }
 
-
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
@@ -389,7 +375,7 @@ void PairSpinSocNeel::init_style()
 
   neighbor->request(this,instance_me);
 
-  // check this half/full request
+  // check this half/full request  => to be verified
 #define FULLNEI
 #if defined FULLNEI
   int irequest = neighbor->request(this,instance_me);
@@ -469,7 +455,6 @@ void PairSpinSocNeel::read_restart(FILE *fp)
   }
 }
 
- 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */

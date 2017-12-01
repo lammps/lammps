@@ -34,46 +34,35 @@ class FixIntegrationSpin : public Fix {
   virtual void initial_integrate(int);
   virtual void final_integrate();
 
-  // compute and advance single spin
-  void ComputeInteractionsSpin(int);   
-  void AdvanceSingleSpin(int, double, double **, double **);
+  void ComputeInteractionsSpin(int);	// compute and advance single spin functions 
+  void AdvanceSingleSpin(int, double);
 
-  // sectoring operations
-  void sectoring(); 
-  int coords2sector(double *);
+  void sectoring();			// sectoring operation functions 
+  int coords2sector(double x[3]);
 
  protected:
   int extra, mpi_flag;
 
-  // velocity, force, and spin timesteps
-  double dtv,dtf,dts;
+  double dtv,dtf,dts;		// velocity, force, and spin timesteps
   
-  // mag. interaction flags
-  int magpair_flag;
-  int soc_flag;
-  int exch_flag;
-  int magforce_flag;
+  int magpair_flag;		// magnetic pair flags
+  int soc_flag, exch_flag;
+  int magforce_flag;		// magnetic force flags
   int zeeman_flag, aniso_flag;
-  int maglangevin_flag;
+  int maglangevin_flag;		// magnetic langevin flags
   int tdamp_flag, temp_flag;
 
-  // pointers to interaction classes
-  class PairHybrid *lockhybrid; 
-  class PairSpin *lockpairspin;
+  // pointers to magnetic interaction classes
+
+  class PairHybrid *lockhybrid;    
   class PairSpinExchange *lockpairspinexchange;
   class PairSpinSocNeel *lockpairspinsocneel;
   class FixForceSpin *lockforcespin;
   class FixLangevinSpin *locklangevinspin; 
 
-  // temporary variables
-  double *xi, *rij;
-  double *spi, *spj;
-  double *fmi, *fmj; 
- 
-  // sectoring variables
-  int nsectors;
-  int *sec, *seci;
+  int nsectors;			// sectoring variables
   double *rsec;
+  int *k, **adv_list;
 
 };
 

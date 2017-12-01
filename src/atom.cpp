@@ -98,7 +98,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = e = de = cv = NULL;
   vest = NULL;
 
-  // USER-SPIN
+  // SPIN package
+
   mumag = NULL;
   sp = fm = NULL;
   
@@ -172,7 +173,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
  
-  //Magnetic flags
+  // magnetic flags
+
   sp_flag = mumag_flag = 0;
 
   vfrac_flag = 0;
@@ -428,7 +430,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
 
-  //Magnetic flags
+  // magnetic flags
+
   sp_flag = mumag_flag = 0;
 
   vfrac_flag = 0;

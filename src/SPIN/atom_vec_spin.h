@@ -58,7 +58,8 @@ class AtomVecSpin : public AtomVec {
   int write_data_hybrid(FILE *, double *); 
   bigint memory_usage();
 
-  // clear mag. and mech. forces
+  // clear magnetic and mechanic forces
+
   void force_clear(int, size_t); 
 
 
@@ -66,8 +67,8 @@ class AtomVecSpin : public AtomVec {
   tagint *tag;
   int *type,*mask;
   imageint *image;
-  double **x,**v,**f;       // lattice quantities
-  double *mumag,**sp, **fm; // spin quantities
+  double **x,**v,**f;		// lattice quantities
+  double *mumag,**sp,**fm;	// spin quantities
 
 };
 

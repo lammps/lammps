@@ -62,6 +62,7 @@ class Atom : protected Pointers {
   int *ellipsoid,*line,*tri,*body;
 
   // SPIN package
+
   double *mumag, **sp;
   double **fm;
 

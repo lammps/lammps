@@ -42,7 +42,7 @@ PairSpinSocLandau::PairSpinSocLandau(LAMMPS *lmp) : Pair(lmp)
 {
   hbar = force->hplanck/MY_2PI;
 
-  newton_pair_spin = 0; // no newton pair for now
+  newton_pair_spin = 0; // no newton pair for now => to be corrected
  // newton_pair = 0;
 
   single_enable = 0;
@@ -58,19 +58,11 @@ PairSpinSocLandau::~PairSpinSocLandau()
   if (allocated) {
     memory->destroy(setflag);
     
-    memory->destroy(cut_soc_neel);
+    memory->destroy(cut_soc_landau);
     memory->destroy(K1);
     memory->destroy(K1_mech);
     memory->destroy(K2);
     memory->destroy(K3);  
-    
-    memory->destroy(spi);
-    memory->destroy(spj);
-    memory->destroy(fi);
-    memory->destroy(fj);
-    memory->destroy(fmi);
-    memory->destroy(fmj);
-    memory->destroy(rij);
 
     memory->destroy(cutsq);
   }
@@ -81,12 +73,13 @@ PairSpinSocLandau::~PairSpinSocLandau()
 void PairSpinSocLandau::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
-  double evdwl,ecoul;
-  double xi,yi,zi;
-  double fix,fiy,fiz,fjx,fjy,fjz;
-  double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
-  double cut_soc_neel_2,cut_soc_global2;
-  double rsq,rd;
+  double evdwl, ecoul;
+  double xi[3], rij[3];
+  double spi[3], spj[3];
+  double fi[3], fj[3];
+  double fmi[3], fmj[3];
+  double cut_soc_landau_2, cut_soc_global2;
+  double rsq, rd, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
@@ -113,9 +106,9 @@ void PairSpinSocLandau::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    xi = x[i][0];
-    yi = x[i][1];
-    zi = x[i][2];
+    xi[0] = x[i][0];
+    xi[1] = x[i][1];
+    xi[2] = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
@@ -139,13 +132,11 @@ void PairSpinSocLandau::compute(int eflag, int vflag)
       fmj[0] = fmj[1] = fmj[2] = 0.0;
       rij[0] = rij[1] = rij[2] = 0.0;
      
-      rij[0] = x[j][0] - xi;
-      rij[1] = x[j][1] - yi;
-      rij[2] = x[j][2] - zi;
-
-      // square of inter-atomic distance
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
-      double inorm = 1.0/sqrt(rsq);
+      inorm = 1.0/sqrt(rsq);
       rij[0] *= inorm;
       rij[1] *= inorm;
       rij[2] *= inorm;
@@ -154,10 +145,10 @@ void PairSpinSocLandau::compute(int eflag, int vflag)
       jtype = type[j];
 
       // compute mag. and mech. components of soc
-      cut_soc_neel_2 = cut_soc_neel[itype][jtype]*cut_soc_neel[itype][jtype];
-      if (rsq <= cut_soc_neel_2) {
-        compute_soc_neel(i,j,rsq,rij,fmi,fmj,spi,spj);   
-        compute_soc_mech_neel(i,j,rsq,rij,fi,fj,spi,spj);
+      cut_soc_landau_2 = cut_soc_landau[itype][jtype]*cut_soc_landau[itype][jtype];
+      if (rsq <= cut_soc_landau_2) {
+        compute_soc_landau(i,j,rsq,rij,fmi,fmj,spi,spj);   
+        compute_soc_mech_landau(i,j,rsq,rij,fi,fj,spi,spj);
       }
 
       f[i][0] += fi[0];	 
@@ -167,7 +158,7 @@ void PairSpinSocLandau::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-//      if (newton_pair || j < nlocal) {
+//      if (newton_pair || j < nlocal) {  =>  to be corrected
       if (newton_pair_spin) {
 	f[j][0] += fj[0];	 
         f[j][1] += fj[1];	  	  
@@ -178,7 +169,7 @@ void PairSpinSocLandau::compute(int eflag, int vflag)
       }
  
       if (eflag) {
-	if (rsq <= cut_soc_neel_2) {
+	if (rsq <= cut_soc_landau_2) {
 	  evdwl -= spi[0]*fmi[0];
 	  evdwl -= spi[1]*fmi[1];
 	  evdwl -= spi[2]*fmi[2];
@@ -196,7 +187,8 @@ void PairSpinSocLandau::compute(int eflag, int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpinSocLandau::compute_soc_neel(int i, int j, double rsq, double *rij, double *fmi,  double *fmj, double *spi, double *spj)
+
+void PairSpinSocLandau::compute_soc_landau(int i, int j, double rsq, double rij[3], double fmi[3],  double fmj[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -223,7 +215,8 @@ void PairSpinSocLandau::compute_soc_neel(int i, int j, double rsq, double *rij, 
 }
 
 /* ---------------------------------------------------------------------- */
-void PairSpinSocLandau::compute_soc_mech_neel(int i, int j, double rsq, double *rij, double *fi,  double *fj, double *spi, double *spj)
+
+void PairSpinSocLandau::compute_soc_mech_landau(int i, int j, double rsq, double rij[3], double fi[3],  double fj[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -279,21 +272,13 @@ void PairSpinSocLandau::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
       
-  memory->create(cut_soc_neel,n+1,n+1,"pair:cut_soc_neel");
-  memory->create(K1,n+1,n+1,"pair:K1");
-  memory->create(K1_mech,n+1,n+1,"pair:K1_mech");
-  memory->create(K2,n+1,n+1,"pair:K2");  
-  memory->create(K3,n+1,n+1,"pair:K3");
+  memory->create(cut_soc_landau,n+1,n+1,"pair/spin/soc/landau:cut_soc_landau");
+  memory->create(K1,n+1,n+1,"pair/spin/soc/landau:K1");
+  memory->create(K1_mech,n+1,n+1,"pair/spin/soc/landau:K1_mech");
+  memory->create(K2,n+1,n+1,"pair/spin/soc/landau:K2");  
+  memory->create(K3,n+1,n+1,"pair/spin/soc/landau:K3");
  
-  memory->create(spi,3,"pair:spi");
-  memory->create(spj,3,"pair:spj");
-  memory->create(fi,3,"pair:fi");
-  memory->create(fj,3,"pair:fj");
-  memory->create(fmi,3,"pair:fmi");
-  memory->create(fmj,3,"pair:fmj");
-  memory->create(rij,3,"pair:rij");
- 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");  
+  memory->create(cutsq,n+1,n+1,"pair/spin/soc/landau:cutsq");  
   
 }
 
@@ -318,7 +303,7 @@ void PairSpinSocLandau::settings(int narg, char **arg)
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
-          cut_soc_neel[i][j] = cut_soc_global;
+          cut_soc_landau[i][j] = cut_soc_global;
         }
   }
    
@@ -335,7 +320,7 @@ void PairSpinSocLandau::coeff(int narg, char **arg)
   if (!allocated) allocate();
   
   // set mech_flag to 1 if magneto-mech simulation
-//no longer correct: can be hybrid without magneto-mech
+  //no longer correct: can be hybrid without magneto-mech
   if (strstr(force->pair_style,"pair/spin")) {
     mech_flag = 0;
   } else if (strstr(force->pair_style,"hybrid/overlay")) {
@@ -359,7 +344,7 @@ void PairSpinSocLandau::coeff(int narg, char **arg)
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {
-        cut_soc_neel[i][j] = rij;   
+        cut_soc_landau[i][j] = rij;   
         K1[i][j] = k1/hbar;
 	if (mech_flag) {
 	  K1_mech[i][j] = k1;
@@ -389,7 +374,7 @@ void PairSpinSocLandau::init_style()
 
   neighbor->request(this,instance_me);
 
-  // check this half/full request
+  // check this half/full request  =>  to be corrected
 #define FULLNEI
 #if defined FULLNEI
   int irequest = neighbor->request(this,instance_me);
@@ -429,7 +414,7 @@ void PairSpinSocLandau::write_restart(FILE *fp)
           fwrite(&K1_mech[i][j],sizeof(double),1,fp);
           fwrite(&K2[i][j],sizeof(double),1,fp);
           fwrite(&K3[i][j],sizeof(double),1,fp);
-          fwrite(&cut_soc_neel[i][j],sizeof(double),1,fp);
+          fwrite(&cut_soc_landau[i][j],sizeof(double),1,fp);
         }
       }
     }
@@ -457,13 +442,13 @@ void PairSpinSocLandau::read_restart(FILE *fp)
           fread(&K1_mech[i][j],sizeof(double),1,fp);
           fread(&K2[i][j],sizeof(double),1,fp);
           fread(&K2[i][j],sizeof(double),1,fp);
-          fread(&cut_soc_neel[i][j],sizeof(double),1,fp);
+          fread(&cut_soc_landau[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&K1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&K1_mech[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&K2[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&K3[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_soc_neel[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_soc_landau[i][j],1,MPI_DOUBLE,0,world);
       }
     }
   }

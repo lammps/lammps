@@ -33,6 +33,8 @@
 #include <float.h>
 #include "atom_masks.h"
 #include "neigh_request.h"
+#include "atom_kokkos.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

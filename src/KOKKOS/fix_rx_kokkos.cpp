@@ -26,6 +26,9 @@
 #include "neigh_request.h"
 #include "error.h"
 #include "math_special_kokkos.h"
+#include "comm.h"
+#include "domain.h"
+#include "kokkos.h"
 
 #include <float.h> // DBL_EPSILON
 

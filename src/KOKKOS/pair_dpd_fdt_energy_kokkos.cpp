@@ -33,6 +33,7 @@
 #include "pair_dpd_fdt_energy_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 

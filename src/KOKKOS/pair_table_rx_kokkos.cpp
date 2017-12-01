@@ -32,6 +32,8 @@
 #include "atom_masks.h"
 #include "fix.h"
 #include "kokkos_few.h"
+#include "kokkos.h"
+#include "modify.h"
 #include <cassert>
 
 using namespace LAMMPS_NS;

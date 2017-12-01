@@ -31,7 +31,7 @@
 #include "compute.h"
 #include "input.h"
 #include "variable.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "reaxc_list.h"
 #include "reaxc_types.h"
@@ -95,7 +95,7 @@ void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   MPI_Allreduce(&nlocal,&nlocal_max,1,MPI_INT,MPI_MAX,world);
 
   nbuf = 1+(numbonds_max*2+10)*nlocal_max;
-  memory->create_kokkos(k_buf,buf,nbuf,"reax/c/bonds:buf");
+  memoryKK->create_kokkos(k_buf,buf,nbuf,"reax/c/bonds:buf");
 
   // Pass information to buffer
   if (reaxc->execution_space == Device)
@@ -107,7 +107,7 @@ void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   // Receive information from buffer for output
   RecvBuffer(buf, nbuf, nbuf_local, nlocal_tot, numbonds_max);
 
-  memory->destroy_kokkos(k_buf,buf);
+  memoryKK->destroy_kokkos(k_buf,buf);
 }
 
 /* ---------------------------------------------------------------------- */

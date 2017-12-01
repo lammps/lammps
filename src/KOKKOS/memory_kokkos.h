@@ -11,6 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEMORY_KOKKOS_H
+#define LMP_MEMORY_KOKKOS_H
+
+#ifdef LMP_KOKKOS
+#include "kokkos_type.h"
+#endif
+
+namespace LAMMPS_NS {
+
+class MemoryKokkos : public Memory {
+ public:
+  MemoryKokkos::MemoryKokkos(class LAMMPS *lmp) : Memory(lmp) {}
+
 /* ----------------------------------------------------------------------
    Kokkos versions of create/grow/destroy multi-dimensional arrays
 ------------------------------------------------------------------------- */
@@ -279,3 +292,9 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type** &array)
   sfree(array);
   array = NULL;
 }
+
+};
+
+}
+
+#endif

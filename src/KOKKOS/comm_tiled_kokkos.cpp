@@ -25,7 +25,7 @@
 #include "compute.h"
 #include "output.h"
 #include "dump.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 

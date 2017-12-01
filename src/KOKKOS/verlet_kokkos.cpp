@@ -32,7 +32,7 @@
 #include "compute.h"
 #include "fix.h"
 #include "timer.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 
 #include <ctime>

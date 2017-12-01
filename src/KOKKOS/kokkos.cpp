@@ -23,6 +23,7 @@
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "error.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,6 +33,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   kokkos_exists = 1;
   lmp->kokkos = this;
+
+  memoryKK = (MemoryKokkos*) memory;
 
   auto_sync = 1;
 

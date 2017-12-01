@@ -19,7 +19,7 @@
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -65,21 +65,21 @@ void AtomVecBondKokkos::grow(int n)
   sync(Device,ALL_MASK);
   modified(Device,ALL_MASK);
 
-  memory->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
-  memory->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
-  memory->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
-  memory->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
+  memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
+  memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
+  memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
+  memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memory->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memory->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memory->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
 
-  memory->grow_kokkos(atomKK->k_molecule,atomKK->molecule,nmax,"atom:molecule");
-  memory->grow_kokkos(atomKK->k_nspecial,atomKK->nspecial,nmax,3,"atom:nspecial");
-  memory->grow_kokkos(atomKK->k_special,atomKK->special,nmax,atomKK->maxspecial,"atom:special");
-  memory->grow_kokkos(atomKK->k_num_bond,atomKK->num_bond,nmax,"atom:num_bond");
-  memory->grow_kokkos(atomKK->k_bond_type,atomKK->bond_type,nmax,atomKK->bond_per_atom,"atom:bond_type");
-  memory->grow_kokkos(atomKK->k_bond_atom,atomKK->bond_atom,nmax,atomKK->bond_per_atom,"atom:bond_atom");
+  memoryKK->grow_kokkos(atomKK->k_molecule,atomKK->molecule,nmax,"atom:molecule");
+  memoryKK->grow_kokkos(atomKK->k_nspecial,atomKK->nspecial,nmax,3,"atom:nspecial");
+  memoryKK->grow_kokkos(atomKK->k_special,atomKK->special,nmax,atomKK->maxspecial,"atom:special");
+  memoryKK->grow_kokkos(atomKK->k_num_bond,atomKK->num_bond,nmax,"atom:num_bond");
+  memoryKK->grow_kokkos(atomKK->k_bond_type,atomKK->bond_type,nmax,atomKK->bond_per_atom,"atom:bond_type");
+  memoryKK->grow_kokkos(atomKK->k_bond_atom,atomKK->bond_atom,nmax,atomKK->bond_per_atom,"atom:bond_atom");
 
   grow_reset();
   sync(Host,ALL_MASK);

@@ -15,7 +15,7 @@
 #include "gridcomm_kokkos.h"
 #include "comm.h"
 #include "kspace.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -126,8 +126,8 @@ template<class DeviceType>
 GridCommKokkos<DeviceType>::~GridCommKokkos()
 {
   for (int i = 0; i < nswap; i++) {
-    //memory->destroy_kokkos(swap[i].k_packlist,swap[i].packlist);
-    //memory->destroy_kokkos(swap[i].k_unpacklist,swap[i].unpacklist);
+    //memoryKK->destroy_kokkos(swap[i].k_packlist,swap[i].packlist);
+    //memoryKK->destroy_kokkos(swap[i].k_unpacklist,swap[i].unpacklist);
   }
   memory->sfree(swap);
 

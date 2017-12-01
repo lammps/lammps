@@ -32,7 +32,7 @@
 #include "respa.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "reaxc_defs.h"
@@ -81,12 +81,12 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 {
   if (copymode) return;
 
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
-  memory->destroy_kokkos(k_tmpid,tmpid);
+  memoryKK->destroy_kokkos(k_tmpid,tmpid);
   tmpid = NULL;
-  memory->destroy_kokkos(k_tmpbo,tmpbo);
+  memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
   tmpbo = NULL;
 }
 
@@ -1339,10 +1339,10 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
 
   // FixReaxCSpecies
   if (fixspecies_flag) {
-    memory->destroy_kokkos(k_tmpid,tmpid);
-    memory->destroy_kokkos(k_tmpbo,tmpbo);
-    memory->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
-    memory->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+    memoryKK->destroy_kokkos(k_tmpid,tmpid);
+    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
+    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
   }
 
   // FixReaxCBonds
@@ -3905,14 +3905,14 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     v_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     v_vatom = k_vatom.view<DeviceType>();
   }
 

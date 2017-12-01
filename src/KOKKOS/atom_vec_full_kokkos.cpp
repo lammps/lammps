@@ -19,7 +19,7 @@
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -67,59 +67,59 @@ void AtomVecFullKokkos::grow(int n)
   sync(Device,ALL_MASK);
   modified(Device,ALL_MASK);
 
-  memory->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
-  memory->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
-  memory->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
-  memory->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
+  memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
+  memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
+  memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
+  memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memory->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memory->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memory->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
 
-  memory->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
-  memory->grow_kokkos(atomKK->k_molecule,atomKK->molecule,nmax,"atom:molecule");
+  memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
+  memoryKK->grow_kokkos(atomKK->k_molecule,atomKK->molecule,nmax,"atom:molecule");
 
-  memory->grow_kokkos(atomKK->k_nspecial,atomKK->nspecial,nmax,3,"atom:nspecial");
-  memory->grow_kokkos(atomKK->k_special,atomKK->special,nmax,atomKK->maxspecial,
+  memoryKK->grow_kokkos(atomKK->k_nspecial,atomKK->nspecial,nmax,3,"atom:nspecial");
+  memoryKK->grow_kokkos(atomKK->k_special,atomKK->special,nmax,atomKK->maxspecial,
 		      "atom:special");
-  memory->grow_kokkos(atomKK->k_num_bond,atomKK->num_bond,nmax,"atom:num_bond");
-  memory->grow_kokkos(atomKK->k_bond_type,atomKK->bond_type,nmax,atomKK->bond_per_atom,
+  memoryKK->grow_kokkos(atomKK->k_num_bond,atomKK->num_bond,nmax,"atom:num_bond");
+  memoryKK->grow_kokkos(atomKK->k_bond_type,atomKK->bond_type,nmax,atomKK->bond_per_atom,
 		      "atom:bond_type");
-  memory->grow_kokkos(atomKK->k_bond_atom,atomKK->bond_atom,nmax,atomKK->bond_per_atom,
+  memoryKK->grow_kokkos(atomKK->k_bond_atom,atomKK->bond_atom,nmax,atomKK->bond_per_atom,
 		      "atom:bond_atom");
 
-  memory->grow_kokkos(atomKK->k_num_angle,atomKK->num_angle,nmax,"atom:num_angle");
-  memory->grow_kokkos(atomKK->k_angle_type,atomKK->angle_type,nmax,atomKK->angle_per_atom,
+  memoryKK->grow_kokkos(atomKK->k_num_angle,atomKK->num_angle,nmax,"atom:num_angle");
+  memoryKK->grow_kokkos(atomKK->k_angle_type,atomKK->angle_type,nmax,atomKK->angle_per_atom,
 		      "atom:angle_type");
-  memory->grow_kokkos(atomKK->k_angle_atom1,atomKK->angle_atom1,nmax,atomKK->angle_per_atom,
+  memoryKK->grow_kokkos(atomKK->k_angle_atom1,atomKK->angle_atom1,nmax,atomKK->angle_per_atom,
 		      "atom:angle_atom1");
-  memory->grow_kokkos(atomKK->k_angle_atom2,atomKK->angle_atom2,nmax,atomKK->angle_per_atom,
+  memoryKK->grow_kokkos(atomKK->k_angle_atom2,atomKK->angle_atom2,nmax,atomKK->angle_per_atom,
 		      "atom:angle_atom2");
-  memory->grow_kokkos(atomKK->k_angle_atom3,atomKK->angle_atom3,nmax,atomKK->angle_per_atom,
+  memoryKK->grow_kokkos(atomKK->k_angle_atom3,atomKK->angle_atom3,nmax,atomKK->angle_per_atom,
 		      "atom:angle_atom3");
 
-  memory->grow_kokkos(atomKK->k_num_dihedral,atomKK->num_dihedral,nmax,"atom:num_dihedral");
-  memory->grow_kokkos(atomKK->k_dihedral_type,atomKK->dihedral_type,nmax,
+  memoryKK->grow_kokkos(atomKK->k_num_dihedral,atomKK->num_dihedral,nmax,"atom:num_dihedral");
+  memoryKK->grow_kokkos(atomKK->k_dihedral_type,atomKK->dihedral_type,nmax,
                       atomKK->dihedral_per_atom,"atom:dihedral_type");
-  memory->grow_kokkos(atomKK->k_dihedral_atom1,atomKK->dihedral_atom1,nmax,
+  memoryKK->grow_kokkos(atomKK->k_dihedral_atom1,atomKK->dihedral_atom1,nmax,
                       atomKK->dihedral_per_atom,"atom:dihedral_atom1");
-  memory->grow_kokkos(atomKK->k_dihedral_atom2,atomKK->dihedral_atom2,nmax,
+  memoryKK->grow_kokkos(atomKK->k_dihedral_atom2,atomKK->dihedral_atom2,nmax,
                       atomKK->dihedral_per_atom,"atom:dihedral_atom2");
-  memory->grow_kokkos(atomKK->k_dihedral_atom3,atomKK->dihedral_atom3,nmax,
+  memoryKK->grow_kokkos(atomKK->k_dihedral_atom3,atomKK->dihedral_atom3,nmax,
                       atomKK->dihedral_per_atom,"atom:dihedral_atom3");
-  memory->grow_kokkos(atomKK->k_dihedral_atom4,atomKK->dihedral_atom4,nmax,
+  memoryKK->grow_kokkos(atomKK->k_dihedral_atom4,atomKK->dihedral_atom4,nmax,
                       atomKK->dihedral_per_atom,"atom:dihedral_atom4");
 
-  memory->grow_kokkos(atomKK->k_num_improper,atomKK->num_improper,nmax,"atom:num_improper");
-  memory->grow_kokkos(atomKK->k_improper_type,atomKK->improper_type,nmax,
+  memoryKK->grow_kokkos(atomKK->k_num_improper,atomKK->num_improper,nmax,"atom:num_improper");
+  memoryKK->grow_kokkos(atomKK->k_improper_type,atomKK->improper_type,nmax,
                       atomKK->improper_per_atom,"atom:improper_type");
-  memory->grow_kokkos(atomKK->k_improper_atom1,atomKK->improper_atom1,nmax,
+  memoryKK->grow_kokkos(atomKK->k_improper_atom1,atomKK->improper_atom1,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom1");
-  memory->grow_kokkos(atomKK->k_improper_atom2,atomKK->improper_atom2,nmax,
+  memoryKK->grow_kokkos(atomKK->k_improper_atom2,atomKK->improper_atom2,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom2");
-  memory->grow_kokkos(atomKK->k_improper_atom3,atomKK->improper_atom3,nmax,
+  memoryKK->grow_kokkos(atomKK->k_improper_atom3,atomKK->improper_atom3,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom3");
-  memory->grow_kokkos(atomKK->k_improper_atom4,atomKK->improper_atom4,nmax,
+  memoryKK->grow_kokkos(atomKK->k_improper_atom4,atomKK->improper_atom4,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom4");
 
   grow_reset();

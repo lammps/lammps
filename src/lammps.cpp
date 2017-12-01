@@ -472,6 +472,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   kokkos = NULL;
   if (kokkosflag == 1) {
+    delete memory;
+    memory = new MemoryKokkos(this);
+
     kokkos = new KokkosLMP(this,kklast-kkfirst,&arg[kkfirst]);
     if (!kokkos->kokkos_exists)
       error->all(FLERR,"Cannot use -kokkos on without KOKKOS installed");

@@ -26,7 +26,7 @@
 #include "neigh_list.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
@@ -89,18 +89,18 @@ PairExp6rxKokkos<DeviceType>::~PairExp6rxKokkos()
 {
   if (copymode) return;
 
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
-  memory->destroy_kokkos(k_cutsq,cutsq);
+  memoryKK->destroy_kokkos(k_cutsq,cutsq);
 
   for (int i=0; i < nparams; ++i) {
     delete[] params[i].name;
     delete[] params[i].potential;
   }
-  memory->destroy_kokkos(k_params,params);
+  memoryKK->destroy_kokkos(k_params,params);
 
-  memory->destroy_kokkos(k_mol2param,mol2param);
+  memoryKK->destroy_kokkos(k_mol2param,mol2param);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,13 +151,13 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.template view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -1660,7 +1660,7 @@ void PairExp6rxKokkos<DeviceType>::allocate()
     for (int j = i; j <= ntypes; j++)
       setflag[i][j] = 0;
 
-  memory->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"pair:cutsq");
+  memoryKK->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_cutsq.template modify<LMPHostType>();
 
@@ -1697,7 +1697,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
   int params_per_line = 5;
   char **words = new char*[params_per_line+1];
 
-  memory->destroy_kokkos(k_params,params);
+  memoryKK->destroy_kokkos(k_params,params);
   params = NULL;
   nparams = maxparam = 0;
 
@@ -1777,7 +1777,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     if (nparams == maxparam) {
       k_params.template modify<LMPHostType>();
       maxparam += DELTA;
-      memory->grow_kokkos(k_params,params,maxparam,
+      memoryKK->grow_kokkos(k_params,params,maxparam,
                           "pair:params");
     }
 
@@ -1816,8 +1816,8 @@ void PairExp6rxKokkos<DeviceType>::setup()
   // set mol2param for all combinations
   // must be a single exact match to lines read from file
 
-  memory->destroy_kokkos(k_mol2param,mol2param);
-  memory->create_kokkos(k_mol2param,mol2param,nspecies,"pair:mol2param");
+  memoryKK->destroy_kokkos(k_mol2param,mol2param);
+  memoryKK->create_kokkos(k_mol2param,mol2param,nspecies,"pair:mol2param");
 
   for (i = 0; i < nspecies; i++) {
     n = -1;

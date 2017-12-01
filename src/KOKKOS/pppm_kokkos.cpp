@@ -32,7 +32,7 @@
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "remap_wrap.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -162,8 +162,8 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
   //memory->destroy(part2grid);
   //memory->destroy(acons);
   
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
   eatom = NULL;
   vatom = NULL;
 }
@@ -618,13 +618,13 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -805,12 +805,12 @@ void PPPMKokkos<DeviceType>::allocate()
 {
   d_density_brick = typename AT::t_FFT_SCALAR_3d("pppm:density_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
-  memory->create_kokkos(k_density_fft,density_fft,nfft_both,"pppm:d_density_fft");
+  memoryKK->create_kokkos(k_density_fft,density_fft,nfft_both,"pppm:d_density_fft");
   d_density_fft = k_density_fft.view<DeviceType>();
 
   d_greensfn = typename AT::t_float_1d("pppm:greensfn",nfft_both);
-  memory->create_kokkos(k_work1,work1,2*nfft_both,"pppm:work1");
-  memory->create_kokkos(k_work2,work2,2*nfft_both,"pppm:work2");
+  memoryKK->create_kokkos(k_work1,work1,2*nfft_both,"pppm:work1");
+  memoryKK->create_kokkos(k_work2,work2,2*nfft_both,"pppm:work2");
   d_work1 = k_work1.view<DeviceType>();
   d_work2 = k_work2.view<DeviceType>();
   d_vg = typename AT::t_virial_array("pppm:vg",nfft_both);
@@ -878,13 +878,13 @@ void PPPMKokkos<DeviceType>::allocate()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::deallocate()
 {
-  memory->destroy_kokkos(d_density_fft,density_fft);
+  memoryKK->destroy_kokkos(d_density_fft,density_fft);
   density_fft = NULL;
-  memory->destroy_kokkos(d_greensfn,greensfn);
+  memoryKK->destroy_kokkos(d_greensfn,greensfn);
   greensfn = NULL;
-  memory->destroy_kokkos(d_work1,work1);
+  memoryKK->destroy_kokkos(d_work1,work1);
   work1 = NULL;
-  memory->destroy_kokkos(d_work2,work2);
+  memoryKK->destroy_kokkos(d_work2,work2);
   work2 = NULL;
 
   delete fft1;

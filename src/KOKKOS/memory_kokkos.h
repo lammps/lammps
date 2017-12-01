@@ -14,15 +14,14 @@
 #ifndef LMP_MEMORY_KOKKOS_H
 #define LMP_MEMORY_KOKKOS_H
 
-#ifdef LMP_KOKKOS
+#include "memory.h"
 #include "kokkos_type.h"
-#endif
 
 namespace LAMMPS_NS {
 
 class MemoryKokkos : public Memory {
  public:
-  MemoryKokkos::MemoryKokkos(class LAMMPS *lmp) : Memory(lmp) {}
+  MemoryKokkos(class LAMMPS *lmp) : Memory(lmp) {}
 
 /* ----------------------------------------------------------------------
    Kokkos versions of create/grow/destroy multi-dimensional arrays

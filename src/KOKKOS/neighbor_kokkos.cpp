@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor_kokkos.h"
-#include "atom.h"
+#include "atom_kokkos.h"
 #include "pair.h"
 #include "fix.h"
 #include "neigh_request.h"

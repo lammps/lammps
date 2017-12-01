@@ -91,9 +91,9 @@ class NeighborKokkos : public Neighbor {
   ~NeighborKokkos() {}
 };
 
-class MemoryKokkos : public MemoryBrick {
+class MemoryKokkos : public Memory {
  public:
-  MemoryKokkos(class LAMMPS *lmp) : MemoryBrick(lmp) {}
+  MemoryKokkos(class LAMMPS *lmp) : Memory(lmp) {}
   ~MemoryKokkos() {}
   void grow_kokkos(tagint **, tagint **, int, int, const char*) {}
 };

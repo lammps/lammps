@@ -38,6 +38,7 @@
 #include "reaxc_defs.h"
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
+#include "modify.h"
 
 
 #define TEAMSIZE 128

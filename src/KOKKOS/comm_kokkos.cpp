@@ -28,6 +28,7 @@
 #include "dump.h"
 #include "output.h"
 #include "modify.h"
+#include "kokkos_base.h"
 
 using namespace LAMMPS_NS;
 
@@ -379,6 +380,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
   MPI_Request request;
 
   int nsize = pair->comm_forward;
+  KokkosBase* pairKKBase = (KokkosBase*) pair;
 
   for (iswap = 0; iswap < nswap; iswap++) {
     int n = MAX(max_buf_pair,nsize*sendnum[iswap]);
@@ -391,7 +393,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 
     // pack buffer
 
-    n = pair->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
+    n = pairKKBase->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
                                        iswap,k_buf_send_pair,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
@@ -408,7 +410,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 
     // unpack buffer
 
-    pair->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
+    pairKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
   }
 }
 

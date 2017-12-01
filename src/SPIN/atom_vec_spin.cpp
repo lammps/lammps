@@ -74,11 +74,15 @@ void AtomVecSpin::grow(int n)
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
+
   // allocating mech. quantities
+
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
+
   // allocating mag. quantities
+
   mumag = memory->grow(atom->mumag,nmax,"atom:mumag");
   sp = memory->grow(atom->sp,nmax,4,"atom:sp");
   fm = memory->grow(atom->fm,nmax*comm->nthreads,3,"atom:fm");

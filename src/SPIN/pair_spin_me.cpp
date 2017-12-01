@@ -63,14 +63,6 @@ PairSpinMe::~PairSpinMe()
     memory->destroy(v_mex);
     memory->destroy(v_mey);
     memory->destroy(v_mez);
-    
-    memory->destroy(spi);
-    memory->destroy(spj);
-    memory->destroy(fi);
-    memory->destroy(fj);
-    memory->destroy(fmi);
-    memory->destroy(fmj);
-    memory->destroy(rij);
 
     memory->destroy(cutsq);
   }
@@ -81,12 +73,13 @@ PairSpinMe::~PairSpinMe()
 void PairSpinMe::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
-  double evdwl,ecoul;
-  double xi,yi,zi;
-  double fix,fiy,fiz,fjx,fjy,fjz;
-  double fmix,fmiy,fmiz,fmjx,fmjy,fmjz;
-  double cut_me_2,cut_spin_me_global2;
-  double rsq,rd;
+  double evdwl, ecoul;
+  double xi[3], rij[3];
+  double spi[3], spj[3];
+  double fi[3], fj[3];
+  double fmi[3], fmj[3];
+  double cut_me_2, cut_spin_me_global2;
+  double rsq, rd, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
@@ -109,13 +102,13 @@ void PairSpinMe::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // magneto-electric computation
-  // loop over neighbors of my atoms
+  // loop over atoms and their neighbors
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    xi = x[i][0];
-    yi = x[i][1];
-    zi = x[i][2];
+    xi[0] = x[i][0];
+    xi[1] = x[i][1];
+    xi[2] = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
@@ -123,6 +116,7 @@ void PairSpinMe::compute(int eflag, int vflag)
     spi[2] = sp[i][2];
   
     // loop on neighbors
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -139,13 +133,11 @@ void PairSpinMe::compute(int eflag, int vflag)
       fmj[0] = fmj[1] = fmj[2] = 0.0;
       rij[0] = rij[1] = rij[2] = 0.0;
      
-      rij[0] = x[j][0] - xi;
-      rij[1] = x[j][1] - yi;
-      rij[2] = x[j][2] - zi;
-
-      // square of inter-atomic distance
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
-      double inorm = 1.0/sqrt(rsq);
+      inorm = 1.0/sqrt(rsq);
       rij[0] *= inorm;
       rij[1] *= inorm;
       rij[2] *= inorm;
@@ -154,6 +146,7 @@ void PairSpinMe::compute(int eflag, int vflag)
       jtype = type[j];
 
       // me interaction
+
       if (me_flag){
         cut_me_2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
         if (rsq <= cut_me_2){
@@ -168,7 +161,7 @@ void PairSpinMe::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-//      if (newton_pair || j < nlocal) {
+//      if (newton_pair || j < nlocal) {  => to be corrected
       if (newton_pair_spin) {
 	f[j][0] += fj[0];	 
         f[j][1] += fj[1];	  	  
@@ -198,13 +191,13 @@ void PairSpinMe::compute(int eflag, int vflag)
 
 
 /* ---------------------------------------------------------------------- */
-void PairSpinMe::compute_me(int i, int j, double *fmi,  double *fmj, double *spi, double *spj)
+
+void PairSpinMe::compute_me(int i, int j, double fmi[3],  double fmj[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
   itype = type[i];
   jtype = type[j];
-  double **sp = atom->sp;
   double **x = atom->x;
   double meix,meiy,meiz;
   double rx, ry, rz, inorm;
@@ -254,14 +247,6 @@ void PairSpinMe::allocate()
   memory->create(v_mex,n+1,n+1,"pair:ME_vector_x");
   memory->create(v_mey,n+1,n+1,"pair:ME_vector_y");
   memory->create(v_mez,n+1,n+1,"pair:ME_vector_z");
- 
-  memory->create(spi,3,"pair:spi");
-  memory->create(spj,3,"pair:spj");
-  memory->create(fi,3,"pair:fi");
-  memory->create(fj,3,"pair:fj");
-  memory->create(fmi,3,"pair:fmi");
-  memory->create(fmj,3,"pair:fmj");
-  memory->create(rij,3,"pair:rij");
  
   memory->create(cutsq,n+1,n+1,"pair:cutsq");  
   
@@ -351,7 +336,7 @@ void PairSpinMe::init_style()
 
   neighbor->request(this,instance_me);
 
-  // check this half/full request
+  // check this half/full request  => to be corrected/reviewed
 #define FULLNEI
 #if defined FULLNEI
   int irequest = neighbor->request(this,instance_me);

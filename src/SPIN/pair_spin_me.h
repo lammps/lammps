@@ -39,24 +39,19 @@ class PairSpinMe : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_me(int, int, double *, double *, double *, double *);  
+  void compute_me(int, int, double fmi[3], double fmj[3], double spi[3], double spj[3]);  
  
-  int me_flag;    // me flag
+  int me_flag;				// me flag
 
-  double cut_spin_me_global;    // global me cutoff
-  double **cut_spin_me;       // me cutoff distance 
+  double cut_spin_me_global;		// global me cutoff
+  double **cut_spin_me;			// me cutoff distance 
 
  protected:
   int newton_pair_spin; 
   double hbar;
 
-  double **ME;                     // me coeff in eV
-  double **v_mex, **v_mey, **v_mez;// me direction
-
-  double *spi, *spj; // temp. spin vals. in compute
-  double *fi, *fj;   // temp. mech. forces  in compute
-  double *fmi, *fmj; // temp. mag. forces in compute
-  double *rij;       // norm. inter atomic vectors
+  double **ME;				// me coeff in eV
+  double **v_mex, **v_mey, **v_mez;	// me direction
 
   void allocate();
 };

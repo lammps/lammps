@@ -89,7 +89,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // initialize Marsaglia RNG with processor-unique seed
-  //random = new RanMars(lmp,seed + comm->me);
+  
   random = new RanPark(lmp,seed + comm->me);
 
 }
@@ -135,8 +135,8 @@ void FixLangevinSpin::init()
   gil_factor = 1.0/(1.0+(alpha_t)*(alpha_t));
   dts = update->dt; 
   
-  double hbar = force->hplanck/MY_2PI; // eV/(rad.THz)
-  double kb = force->boltz; // eV/K
+  double hbar = force->hplanck/MY_2PI;	// eV/(rad.THz)
+  double kb = force->boltz;		// eV/K
   D = (MY_2PI*alpha_t*gil_factor*kb*temp);
   D /= (hbar*dts);
   sigma = sqrt(2.0*D);
@@ -156,76 +156,37 @@ void FixLangevinSpin::setup(int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-/*
-void FixLangevinSpin::post_force(int vflag)
-{
-  double **sp = atom->sp;
-  double **fm = atom->fm;
-  int *mask = atom->mask;
-  const int nlocal = atom->nlocal;  
-              
-  // add the damping to the effective field of each spin
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      spi[0] = sp[i][0];
-      spi[1] = sp[i][1];
-      spi[2] = sp[i][2];
- 		
-      fmi[0] = fm[i][0];
-      fmi[1] = fm[i][1];
-      fmi[2] = fm[i][2];
 
-      if (tdamp_flag) {
-        add_tdamping(spi,fmi);
-      }
-
-      if (temp_flag) {
-        add_temperature(fmi);
-      }
-		
-      fm[i][0] = fmi[0];
-      fm[i][1] = fmi[1];
-      fm[i][2] = fmi[2];
-    }
-  }
-
-}
-*/
-
-/* ---------------------------------------------------------------------- */
-void FixLangevinSpin::add_tdamping(double *spi, double *fmi)
+void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 {
   double cpx = fmi[1]*spi[2] - fmi[2]*spi[1];
   double cpy = fmi[2]*spi[0] - fmi[0]*spi[2];
   double cpz = fmi[0]*spi[1] - fmi[1]*spi[0];
 	
-  // taking away the transverse damping 
+  // adding the transverse damping
+
   fmi[0] -= alpha_t*cpx;
   fmi[1] -= alpha_t*cpy;
   fmi[2] -= alpha_t*cpz;
 }
 
 /* ---------------------------------------------------------------------- */
-void FixLangevinSpin::add_temperature(double *fmi) 
+
+void FixLangevinSpin::add_temperature(double fmi[3]) 
 {
-//#define GAUSSIAN_R
-#if defined GAUSSIAN_R
-  // drawing gaussian random dist
-  double rx = sigma*random->gaussian();
-  double ry = sigma*random->gaussian();
-  double rz = sigma*random->gaussian();
-#else 
+
   double rx = sigma*(-1.0+2.0*random->uniform());
   double ry = sigma*(-1.0+2.0*random->uniform());
   double rz = sigma*(-1.0+2.0*random->uniform());
-#endif
 
   // adding the random field 
+
   fmi[0] += rx; 
   fmi[1] += ry;
   fmi[2] += rz;
                
-  // adding Gilbert's prefactor 
+  // adding gilbert's prefactor 
+
   fmi[0] *= gil_factor; 
   fmi[1] *= gil_factor; 
   fmi[2] *= gil_factor; 

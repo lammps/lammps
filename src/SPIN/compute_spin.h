@@ -32,16 +32,7 @@ class ComputeSpin : public Compute {
   void compute_vector();
 
  private:
-  double *mag;
-  double *magtot;
-  double magenergy;
-  double magenergytot;
-  double tempnum,tempnumtot;
-  double tempdenom,tempdenomtot; 
-  double spintemperature;
   double kb,hbar;
-  int countsp;
-  int countsptot;
   int usecenter;
 
   void allocate();

@@ -39,26 +39,21 @@ class PairSpinExchange : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_exchange(int, int, double, double *, double *,double *, double *);
-  void compute_exchange_mech(int, int, double, double *, double *, double *,double *, double *);
+  void compute_exchange(int, int, double, double fmi[3], double fmj[3],double spi[3], double spj[3]);
+  void compute_exchange_mech(int, int, double, double rij[3], double fmi[3], double fmj[3], double spi[3], double spj[3]);
  
-  int exch_flag; // mag. exchange flag
-  int exch_mech_flag; // mech. exchange flags
+  int exch_flag;			// magnetic exchange flag
+  int exch_mech_flag;			// mechanic exchange flags
 
-  double cut_spin_exchange_global;  // global exchange cutoff
-  double **cut_spin_exchange; // cutoff distance exchange
+  double cut_spin_exchange_global;	// global exchange cutoff
+  double **cut_spin_exchange;		// cutoff distance per exchange
 
  protected:
   int newton_pair_spin; 
   double hbar;
 
-  double **J1_mag, **J1_mech; // exchange coeffs Jij
-  double **J2, **J3; // J1 in eV, J2 adim, J3 in Ang
-
-  double *spi, *spj; // temp. spin vals. in compute
-  double *fi, *fj;   // temp. mech. forces  in compute
-  double *fmi, *fmj; // temp. mag. forces in compute
-  double *rij;       // norm. inter atomic vectors
+  double **J1_mag, **J1_mech;		// exchange coeffs Jij
+  double **J2, **J3;			// J1 in eV, J2 adim, J3 in Ang
 
   void allocate();
 };

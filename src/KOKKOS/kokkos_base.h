@@ -21,10 +21,21 @@ namespace LAMMPS_NS {
 class KokkosBase {
  public:
   KokkosBase() {}
+
+  //Kspace
+  virtual void pack_forward_kspace_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_forward_kspace_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void pack_reverse_kspace_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_reverse_kspace_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+
+  // Pair
   virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, 
                                        int, DAT::tdual_xfloat_1d &, 
                                        int, int *) {return 0;};
   virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {}
+
+  // Region
+  virtual void match_all_kokkos(int, DAT::tdual_int_1d) {}
 };
 
 }

@@ -26,6 +26,7 @@
 #include "error.h"
 #include "force.h"
 #include "atom_masks.h"
+#include "kokkos_base.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -90,7 +91,8 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
     region = domain->regions[iregion];
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("setforce:k_match",nlocal);
-    region->match_all_kokkos(groupbit,k_match);
+    KokkosBase* regionKKBase = (KokkosBase*) region;
+    regionKKBase->match_all_kokkos(groupbit,k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();
   }

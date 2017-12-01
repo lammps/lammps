@@ -23,6 +23,7 @@ RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>)
 #define LMP_REGION_BLOCK_KOKKOS_H
 
 #include "region_block.h"
+#include "kokkos_base.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -30,7 +31,7 @@ namespace LAMMPS_NS {
 struct TagRegBlockMatchAll{};
 
 template<class DeviceType>
-class RegBlockKokkos : public RegBlock {
+class RegBlockKokkos : public RegBlock, public KokkosBase {
   friend class FixPour;
 
  public:

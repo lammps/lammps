@@ -17,6 +17,7 @@
 #include "kspace.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "kokkos_base.h"
 
 using namespace LAMMPS_NS;
 
@@ -515,11 +516,13 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
   k_packlist.sync<DeviceType>();
   k_unpacklist.sync<DeviceType>();
 
+  KokkosBase* kspaceKKBase = (KokkosBase*) kspace;
+
   for (int m = 0; m < nswap; m++) {
     if (swap[m].sendproc == me)
-      kspace->pack_forward_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
+      kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
     else
-      kspace->pack_forward_kokkos(which,k_buf1,swap[m].npack,k_packlist,m);
+      kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf1,swap[m].npack,k_packlist,m);
 
     if (swap[m].sendproc != me) {
       MPI_Irecv(k_buf2.view<DeviceType>().ptr_on_device(),nforward*swap[m].nunpack,MPI_FFT_SCALAR,
@@ -529,7 +532,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
       MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 
-    kspace->unpack_forward_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
+    kspaceKKBase->unpack_forward_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
   }
 }
 
@@ -544,11 +547,13 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
   k_packlist.sync<DeviceType>();
   k_unpacklist.sync<DeviceType>();
 
+  KokkosBase* kspaceKKBase = (KokkosBase*) kspace;
+
   for (int m = nswap-1; m >= 0; m--) {
     if (swap[m].recvproc == me)
-      kspace->pack_reverse_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
+      kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
     else
-      kspace->pack_reverse_kokkos(which,k_buf1,swap[m].nunpack,k_unpacklist,m);
+      kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf1,swap[m].nunpack,k_unpacklist,m);
 
     if (swap[m].recvproc != me) {
       MPI_Irecv(k_buf2.view<DeviceType>().ptr_on_device(),nreverse*swap[m].npack,MPI_FFT_SCALAR,
@@ -558,7 +563,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
       MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 
-    kspace->unpack_reverse_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
+    kspaceKKBase->unpack_reverse_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
   }
 }
 

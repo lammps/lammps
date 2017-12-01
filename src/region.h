@@ -15,7 +15,6 @@
 #define LMP_REGION_H
 
 #include "pointers.h"
-#include "accelerator_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -96,10 +95,6 @@ class Region : protected Pointers {
   virtual void pretransform();
   virtual void set_velocity_shape() {}
   virtual void velocity_contact_shape(double*, double*) {}
-
-  // Kokkos function, implemented by each Kokkos region
-
-  virtual void match_all_kokkos(int, DAT::tdual_int_1d);
 
  protected:
   void add_contact(int, double *, double, double, double);

@@ -34,6 +34,7 @@
 #include "timer.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "kokkos.h"
 
 #include <ctime>
 

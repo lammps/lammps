@@ -9,9 +9,9 @@ class LAMMPSFix(object):
         self.lmp = lammps.lammps(ptr=ptr)
         self.group_name = group_name
 
-class LAMMPSIntegrator(LAMMPSFix):
+class LAMMPSFixMove(LAMMPSFix):
     def __init__(self, ptr, group_name="all"):
-        super(LAMMPSIntegrator, self).__init__(ptr, group_name)
+        super(LAMMPSFixMove, self).__init__(ptr, group_name)
 
     def init(self):
         pass
@@ -32,7 +32,7 @@ class LAMMPSIntegrator(LAMMPSFix):
         pass
 
 
-class NVE(LAMMPSIntegrator):
+class NVE(LAMMPSFixMove):
     """ Python implementation of fix/nve """
     def __init__(self, ptr, group_name="all"):
         super(NVE, self).__init__(ptr)
@@ -70,7 +70,7 @@ class NVE(LAMMPSIntegrator):
             v[i,:] += dtfm * f[i,:]
 
 
-class NVE_Opt(LAMMPSIntegrator):
+class NVE_Opt(LAMMPSFixMove):
     """ Performance-optimized Python implementation of fix/nve """
     def __init__(self, ptr, group_name="all"):
         super(NVE_Opt, self).__init__(ptr)

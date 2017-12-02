@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "fix_python_integrate.h"
+#include "fix_python_move.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -34,7 +34,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixPythonIntegrate::FixPythonIntegrate(LAMMPS *lmp, int narg, char **arg) :
+FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   dynamic_group_allow = 1;
@@ -111,7 +111,7 @@ FixPythonIntegrate::FixPythonIntegrate(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixPythonIntegrate::~FixPythonIntegrate()
+FixPythonMove::~FixPythonMove()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   if(py_integrator) Py_DECREF((PyObject*) py_integrator);
@@ -120,7 +120,7 @@ FixPythonIntegrate::~FixPythonIntegrate()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPythonIntegrate::setmask()
+int FixPythonMove::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
@@ -132,7 +132,7 @@ int FixPythonIntegrate::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonIntegrate::init()
+void FixPythonMove::init()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *py_integrator_obj = (PyObject *) py_integrator;
@@ -149,7 +149,7 @@ void FixPythonIntegrate::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonIntegrate::initial_integrate(int vflag)
+void FixPythonMove::initial_integrate(int vflag)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *py_integrator_obj = (PyObject *) py_integrator;
@@ -168,7 +168,7 @@ void FixPythonIntegrate::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonIntegrate::final_integrate()
+void FixPythonMove::final_integrate()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *py_integrator_obj = (PyObject *) py_integrator;
@@ -185,7 +185,7 @@ void FixPythonIntegrate::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonIntegrate::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixPythonMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *py_integrator_obj = (PyObject *) py_integrator;
@@ -204,7 +204,7 @@ void FixPythonIntegrate::initial_integrate_respa(int vflag, int ilevel, int iloo
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonIntegrate::final_integrate_respa(int ilevel, int iloop)
+void FixPythonMove::final_integrate_respa(int ilevel, int iloop)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *py_integrator_obj = (PyObject *) py_integrator;
@@ -223,7 +223,7 @@ void FixPythonIntegrate::final_integrate_respa(int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonIntegrate::reset_dt()
+void FixPythonMove::reset_dt()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *py_integrator_obj = (PyObject *) py_integrator;

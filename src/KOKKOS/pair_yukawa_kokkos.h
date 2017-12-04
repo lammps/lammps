@@ -31,15 +31,15 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairYukawaKokkos : public PairYukawa {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
   PairYukawaKokkos(class LAMMPS *);
   virtual ~PairYukawaKokkos();
 
   void compute(int, int);
-  void settings(int, char**);
   void init_style();
   double init_one(int,int);
 
@@ -78,22 +78,22 @@ class PairYukawaKokkos : public PairYukawa {
   typename Kokkos::DualView<params_yukawa**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   params_yukawa m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_x_array c_x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_x_array c_x;
+  typename AT::t_f_array f;
+  typename AT::t_int_1d_randomread type;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
+  typename AT::t_tagint_1d tag;
 
   int newton_pair;
   double special_lj[4];
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+  typename AT::tdual_ffloat_2d k_cutsq;
+  typename AT::t_ffloat_2d d_cutsq;
 
 
   int neighflag;
@@ -109,15 +109,15 @@ class PairYukawaKokkos : public PairYukawa {
   friend class PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
   friend class PairComputeFunctor<PairYukawaKokkos,N2,false>;
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,void>(
-	  PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALF,void>(
-	  PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALFTHREAD,void>(
-	  PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,N2,void>(
-	  PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairYukawaKokkos,void>(
-	  PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairYukawaKokkos>(PairYukawaKokkos*);
 
 };

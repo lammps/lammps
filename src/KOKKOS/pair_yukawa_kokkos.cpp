@@ -16,15 +16,6 @@
 ------------------------------------------------------------------------- */
 #include <math.h>
 #include <stdlib.h>
-// #include "pair_yukawa.h"
-// #include "atom.h"
-//#include "force.h"
-//#include "comm.h"
-//#include "neigh_list.h"
-//#include "memory.h"
-//#include "error.h"
-
-// These were added.
 #include "pair_yukawa_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -40,7 +31,6 @@
 #include "memory.h"
 #include "error.h"
 #include "atom_masks.h"
-// end These were added.
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -104,23 +94,10 @@ void PairYukawaKokkos<DeviceType>::allocate()
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_yukawa**,
                               Kokkos::LayoutRight,DeviceType>(
-	                              "PairYukawa::params",n+1,n+1);
+                              "PairYukawa::params",n+1,n+1);
 
   params = k_params.template view<DeviceType>();
 }
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairYukawaKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
-
-  PairYukawa::settings(2,arg);
-}
-
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
@@ -158,9 +135,6 @@ void PairYukawaKokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with yukawa/kk");
   }
@@ -241,7 +215,7 @@ void PairYukawaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   EV_FLOAT ev = pair_compute<PairYukawaKokkos<DeviceType>,void >(
-	  this,(NeighListKokkos<DeviceType>*)list);
+    this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {

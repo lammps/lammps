@@ -36,7 +36,6 @@
 #include "neigh_list.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "pair_spin.h"
 #include "pair_spin_exchange.h"
 #include "pair_spin_me.h"
 #include "pair_spin_soc_dmi.h"
@@ -547,7 +546,7 @@ void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl)
   sp[i][1] = g[1];
   sp[i][2] = g[2];			  
 
-  // renormalization (may not be necessary)
+  // renormalization (check if necessary)
 
   msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
   scale = 1.0/sqrt(msq);

@@ -34,6 +34,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   kokkos_exists = 1;
   lmp->kokkos = this;
 
+  delete memory;
+  memory = new MemoryKokkos(lmp);
   memoryKK = (MemoryKokkos*) memory;
 
   auto_sync = 1;

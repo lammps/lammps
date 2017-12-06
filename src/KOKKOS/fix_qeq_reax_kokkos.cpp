@@ -790,7 +790,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.access();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -842,7 +842,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.access();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -901,7 +901,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.access();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {

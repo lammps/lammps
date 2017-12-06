@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "fix_python_move.h"
+#include "fix_move_python.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -34,7 +34,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
+FixMovePython::FixMovePython(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   dynamic_group_allow = 1;
@@ -42,7 +42,7 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
 
   python->init();
 
-  py_integrator = NULL;
+  py_move = NULL;
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -51,12 +51,12 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
 
-  // create integrator instance
+  // create move instance
   char * full_cls_name = arg[3];
   char * lastpos = strrchr(full_cls_name, '.');
 
   if (lastpos == NULL) {
-    error->all(FLERR,"Fix python/integrate requires fully qualified class name");
+    error->all(FLERR,"Fix move/python requires fully qualified class name");
   }
 
   size_t module_name_length = strlen(full_cls_name) - strlen(lastpos);
@@ -74,18 +74,15 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Loading python integrator module failure");
+    error->all(FLERR,"Loading python move module failure");
   }
 
-  // create LAMMPS atom type to potential file type mapping in python class
-  // by calling 'lammps_pair_style.map_coeff(name,type)'
-
-  PyObject *py_integrator_type = PyObject_GetAttrString(pModule, cls_name);
-  if (!py_integrator_type) {
+  PyObject *py_move_type = PyObject_GetAttrString(pModule, cls_name);
+  if (!py_move_type) {
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find integrator class in module'");
+    error->all(FLERR,"Could not find move class in module'");
   }
 
   delete [] module_name;
@@ -93,34 +90,34 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
 
   PyObject * ptr = PY_VOID_POINTER(lmp);
   PyObject * arglist = Py_BuildValue("(O)", ptr);
-  PyObject * py_integrator_obj = PyObject_CallObject(py_integrator_type, arglist);
+  PyObject * py_move_obj = PyObject_CallObject(py_move_type, arglist);
   Py_DECREF(arglist);
 
-  if (!py_integrator_obj) {
+  if (!py_move_obj) {
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Could not instantiate instance of integrator class'");
+    error->all(FLERR,"Could not instantiate instance of move class'");
   }
 
   // check object interface
-  py_integrator = (void *) py_integrator_obj;
+  py_move = (void *) py_move_obj;
 
   PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixPythonMove::~FixPythonMove()
+FixMovePython::~FixMovePython()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  if(py_integrator) Py_DECREF((PyObject*) py_integrator);
+  if(py_move) Py_DECREF((PyObject*) py_move);
   PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixPythonMove::setmask()
+int FixMovePython::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
@@ -132,11 +129,11 @@ int FixPythonMove::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonMove::init()
+void FixMovePython::init()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  PyObject *py_integrator_obj = (PyObject *) py_integrator;
-  PyObject *py_init = PyObject_GetAttrString(py_integrator_obj,"init");
+  PyObject *py_move_obj = (PyObject *) py_move;
+  PyObject *py_init = PyObject_GetAttrString(py_move_obj,"init");
   if (!py_init) {
     PyErr_Print();
     PyErr_Clear();
@@ -149,11 +146,11 @@ void FixPythonMove::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonMove::initial_integrate(int vflag)
+void FixMovePython::initial_integrate(int vflag)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  PyObject *py_integrator_obj = (PyObject *) py_integrator;
-  PyObject *py_initial_integrate = PyObject_GetAttrString(py_integrator_obj,"initial_integrate");
+  PyObject *py_move_obj = (PyObject *) py_move;
+  PyObject *py_initial_integrate = PyObject_GetAttrString(py_move_obj,"initial_integrate");
   if (!py_initial_integrate) {
     PyErr_Print();
     PyErr_Clear();
@@ -168,11 +165,11 @@ void FixPythonMove::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonMove::final_integrate()
+void FixMovePython::final_integrate()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  PyObject *py_integrator_obj = (PyObject *) py_integrator;
-  PyObject *py_final_integrate = PyObject_GetAttrString(py_integrator_obj,"final_integrate");
+  PyObject *py_move_obj = (PyObject *) py_move;
+  PyObject *py_final_integrate = PyObject_GetAttrString(py_move_obj,"final_integrate");
   if (!py_final_integrate) {
     PyErr_Print();
     PyErr_Clear();
@@ -185,11 +182,11 @@ void FixPythonMove::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixMovePython::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  PyObject *py_integrator_obj = (PyObject *) py_integrator;
-  PyObject *py_initial_integrate_respa = PyObject_GetAttrString(py_integrator_obj,"initial_integrate_respa");
+  PyObject *py_move_obj = (PyObject *) py_move;
+  PyObject *py_initial_integrate_respa = PyObject_GetAttrString(py_move_obj,"initial_integrate_respa");
   if (!py_initial_integrate_respa) {
     PyErr_Print();
     PyErr_Clear();
@@ -204,11 +201,11 @@ void FixPythonMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonMove::final_integrate_respa(int ilevel, int iloop)
+void FixMovePython::final_integrate_respa(int ilevel, int iloop)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  PyObject *py_integrator_obj = (PyObject *) py_integrator;
-  PyObject *py_final_integrate_respa = PyObject_GetAttrString(py_integrator_obj,"final_integrate_respa");
+  PyObject *py_move_obj = (PyObject *) py_move;
+  PyObject *py_final_integrate_respa = PyObject_GetAttrString(py_move_obj,"final_integrate_respa");
   if (!py_final_integrate_respa) {
     PyErr_Print();
     PyErr_Clear();
@@ -223,11 +220,11 @@ void FixPythonMove::final_integrate_respa(int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPythonMove::reset_dt()
+void FixMovePython::reset_dt()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  PyObject *py_integrator_obj = (PyObject *) py_integrator;
-  PyObject *py_reset_dt = PyObject_GetAttrString(py_integrator_obj,"reset_dt");
+  PyObject *py_move_obj = (PyObject *) py_move;
+  PyObject *py_reset_dt = PyObject_GetAttrString(py_move_obj,"reset_dt");
   if (!py_reset_dt) {
     PyErr_Print();
     PyErr_Clear();

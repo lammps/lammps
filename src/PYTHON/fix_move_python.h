@@ -23,21 +23,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(python/move,FixPythonMove)
+FixStyle(move/python,FixMovePython)
 
 #else
 
-#ifndef LMP_FIX_PYTHON_MOVE_H
-#define LMP_FIX_PYTHON_MOVE_H
+#ifndef LMP_FIX_MOVE_PYTHON_H
+#define LMP_FIX_MOVE_PYTHON_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixPythonMove : public Fix {
+class FixMovePython : public Fix {
  public:
-  FixPythonMove(LAMMPS *lmp, int narg, char **arg);
-  virtual ~FixPythonMove();
+  FixMovePython(LAMMPS *lmp, int narg, char **arg);
+  virtual ~FixMovePython();
 
   int setmask();
   virtual void init();
@@ -48,7 +48,7 @@ class FixPythonMove : public Fix {
   virtual void reset_dt();
 
  protected:
-  void * py_integrator;
+  void * py_move;
 };
 
 }

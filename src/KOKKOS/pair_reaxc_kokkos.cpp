@@ -712,11 +712,9 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
 
   // allocate duplicated memory
-  if (neighflag != FULL) {
-    dup_f            = Kokkos::Experimental::create_reduction_view<>(f);
-    dup_eatom        = Kokkos::Experimental::create_reduction_view<>(v_eatom);
-    dup_vatom        = Kokkos::Experimental::create_reduction_view<>(v_vatom);
-  }
+  dup_f            = Kokkos::Experimental::create_reduction_view<>(f);
+  dup_eatom        = Kokkos::Experimental::create_reduction_view<>(v_eatom);
+  dup_vatom        = Kokkos::Experimental::create_reduction_view<>(v_vatom);
 
   if (eflag_global) {
     for (int i = 0; i < 14; i++)
@@ -788,10 +786,8 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   // allocate duplicated memory
-  if (neighflag != FULL) {
-    dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
-    dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
-  }
+  dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
+  dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
 
   // Neighbor lists for bond and hbond
 
@@ -832,24 +828,19 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     resize = resize_bo || resize_hb;
     if (resize) {
       allocate_array();
-      if (neighflag != FULL) {
-        dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
-        dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
-      }
+      dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
+      dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
     }
   }
 
   // allocate duplicated memory
-  if (neighflag != FULL) {
-    dup_CdDelta = Kokkos::Experimental::create_reduction_view<>(d_CdDelta);
-    //dup_Cdbo    = Kokkos::Experimental::create_reduction_view<>(d_Cdbo);
-    //dup_Cdbopi  = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi);
-    //dup_Cdbopi2 = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi2);
-  }
+  dup_CdDelta = Kokkos::Experimental::create_reduction_view<>(d_CdDelta);
+  //dup_Cdbo    = Kokkos::Experimental::create_reduction_view<>(d_Cdbo);
+  //dup_Cdbopi  = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi);
+  //dup_Cdbopi2 = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi2);
 
   // reduction over duplicated memory
-  if (neighflag != FULL)
-    Kokkos::Experimental::contribute(d_total_bo, dup_total_bo); // needed in BondOrder1
+  Kokkos::Experimental::contribute(d_total_bo, dup_total_bo); // needed in BondOrder1
 
   // Bond order
   if (neighflag == HALF) {
@@ -955,28 +946,25 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev_all.evdwl += ev.ereax[8];
 
   // reduction over duplicated memory
-  if (neighflag != FULL) {
-    Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
-    Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
+  Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
+  Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
 
-    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
-    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
-    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
-    //dup_Cdbo.reset_except(d_Cdbo);
-    //dup_Cdbopi.reset_except(d_Cdbopi);
-    //dup_Cdbopi2.reset_except(d_Cdbopi2);
-  }
+  //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
+  //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
+  //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
+  //dup_Cdbo.reset_except(d_Cdbo);
+  //dup_Cdbopi.reset_except(d_Cdbopi);
+  //dup_Cdbopi2.reset_except(d_Cdbopi2);
 
   // Bond force
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALF> >(0,ignum),*this);
 
     // reduction over duplicated memory
-    //if (neighflag != FULL) {
-    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    //}
+    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,1> >(0,ignum),*this,ev);
     else
@@ -987,11 +975,10 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALFTHREAD> >(0,ignum),*this);
 
     // reduction over duplicated memory
-    //if (neighflag != FULL) {
-    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    //}
+    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
     else
@@ -1001,8 +988,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   // reduction over duplicated memory
-  if (neighflag != FULL)
-    Kokkos::Experimental::contribute(f, dup_f);
+  Kokkos::Experimental::contribute(f, dup_f);
 
   if (eflag_global) {
     eng_vdwl += ev_all.evdwl;
@@ -1020,15 +1006,13 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
-    if (neighflag != FULL)
-      Kokkos::Experimental::contribute(v_eatom, dup_eatom);
+    Kokkos::Experimental::contribute(v_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
   }
 
   if (vflag_atom) {
-    if (neighflag != FULL)
-      Kokkos::Experimental::contribute(v_vatom, dup_vatom);
+    Kokkos::Experimental::contribute(v_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
@@ -1037,17 +1021,15 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     FindBondSpecies();
 
   // free duplicated memory
-  if (neighflag != FULL) {
-    dup_f            = decltype(dup_f)();
-    dup_dDeltap_self = decltype(dup_dDeltap_self)();
-    dup_total_bo     = decltype(dup_total_bo)();
-    dup_CdDelta      = decltype(dup_CdDelta)();
-    //dup_Cdbo         = decltype(dup_Cdbo)();
-    //dup_Cdbopi       = decltype(dup_Cdbopi)();
-    //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
-    dup_eatom        = decltype(dup_eatom)();
-    dup_vatom        = decltype(dup_vatom)();
-  }
+  dup_f            = decltype(dup_f)();
+  dup_dDeltap_self = decltype(dup_dDeltap_self)();
+  dup_total_bo     = decltype(dup_total_bo)();
+  dup_CdDelta      = decltype(dup_CdDelta)();
+  //dup_Cdbo         = decltype(dup_Cdbo)();
+  //dup_Cdbopi       = decltype(dup_Cdbopi)();
+  //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
+  dup_eatom        = decltype(dup_eatom)();
+  dup_vatom        = decltype(dup_vatom)();
 
   copymode = 0;
 }

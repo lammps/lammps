@@ -31,7 +31,7 @@
 #include "integrate.h"
 #include "respa.h"
 #include "math_const.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -64,8 +64,8 @@ template<class DeviceType>
 PairLJGromacsKokkos<DeviceType>::~PairLJGromacsKokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
     k_cutsq = DAT::tdual_ffloat_2d();
     k_cut_inner_sq = DAT::tdual_ffloat_2d();
     memory->sfree(cutsq);
@@ -106,13 +106,13 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -240,15 +240,15 @@ void PairLJGromacsKokkos<DeviceType>::allocate()
   int n = atom->ntypes;
 
   memory->destroy(cutsq);
-  memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
+  memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
 
   memory->destroy(cut_inner);
-  memory->create_kokkos(k_cut_inner,cut_inner,n+1,n+1,"pair:cut_inner");
+  memoryKK->create_kokkos(k_cut_inner,cut_inner,n+1,n+1,"pair:cut_inner");
   d_cut_inner = k_cut_inner.template view<DeviceType>();
 
   memory->destroy(cut_inner_sq);
-  memory->create_kokkos(k_cut_inner_sq,cut_inner_sq,n+1,n+1,"pair:cut_inner_sq");
+  memoryKK->create_kokkos(k_cut_inner_sq,cut_inner_sq,n+1,n+1,"pair:cut_inner_sq");
   d_cut_inner_sq = k_cut_inner_sq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJGromacs::params",n+1,n+1);

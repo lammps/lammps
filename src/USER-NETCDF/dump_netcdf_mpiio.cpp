@@ -43,7 +43,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{INT,FLOAT,BIGINT}; // same as in thermo.cpp
+enum{THERMO_INT,THERMO_FLOAT,THERMO_BIGINT}; // same as in thermo.cpp
+enum{DUMP_INT,DUMP_DOUBLE,DUMP_STRING,DUMP_BIGINT}; // same as in DumpCFG
 
 const char NC_FRAME_STR[]         = "frame";
 const char NC_SPATIAL_STR[]       = "spatial";
@@ -321,19 +322,6 @@ void DumpNetCDFMPIIO::openfile()
 
     // variables specified in the input file
     for (int i = 0; i < n_perat; i++) {
-      nc_type xtype;
-
-      // Type mangling
-      if (vtype[perat[i].field[0]] == INT) {
-        xtype = NC_INT;
-      }
-      else {
-        if (double_precision)
-          xtype = NC_DOUBLE;
-        else
-          xtype = NC_FLOAT;
-      }
-
       NCERRX( ncmpi_inq_varid(ncid, perat[i].name, &perat[i].var),
               perat[i].name );
     }
@@ -417,10 +405,11 @@ void DumpNetCDFMPIIO::openfile()
       nc_type xtype;
 
       // Type mangling
-      if (vtype[perat[i].field[0]] == INT) {
+      if (vtype[perat[i].field[0]] == DUMP_INT) {
         xtype = NC_INT;
-      }
-      else {
+      } else if (vtype[perat[i].field[0]] == DUMP_BIGINT) {
+        xtype = NC_INT64;
+      } else {
         if (double_precision)
           xtype = NC_DOUBLE;
         else
@@ -456,17 +445,22 @@ void DumpNetCDFMPIIO::openfile()
     if (thermo) {
       Thermo *th = output->thermo;
       for (int i = 0; i < th->nfield; i++) {
-        if (th->vtype[i] == FLOAT) {
+        if (th->vtype[i] == THERMO_FLOAT) {
           NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_DOUBLE, 1, dims,
                                 &thermovar[i]), th->keyword[i] );
         }
-        else if (th->vtype[i] == INT) {
+        else if (th->vtype[i] == THERMO_INT) {
           NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_INT, 1, dims,
                                 &thermovar[i]), th->keyword[i] );
         }
-        else if (th->vtype[i] == BIGINT) {
+        else if (th->vtype[i] == THERMO_BIGINT) {
+#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
+          NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_INT64, 1, dims,
+                                &thermovar[i]), th->keyword[i] );
+#else
           NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_LONG, 1, dims,
                                 &thermovar[i]), th->keyword[i] );
+#endif
         }
       }
     }
@@ -583,6 +577,7 @@ void DumpNetCDFMPIIO::openfile()
 
     NCERR( ncmpi_end_indep_data(ncid) );
 
+    append_flag = 1;
     framei = 1;
   }
 }
@@ -609,23 +604,75 @@ void DumpNetCDFMPIIO::closefile()
 
 template <typename T>
 int ncmpi_put_var1_bigint(int ncid, int varid, const MPI_Offset index[],
-                     const T* tp)
+                          const T* tp)
 {
   return ncmpi_put_var1_int(ncid, varid, index, tp);
 }
 
 template <>
 int ncmpi_put_var1_bigint<long>(int ncid, int varid, const MPI_Offset index[],
-                           const long* tp)
+                                const long* tp)
 {
   return ncmpi_put_var1_long(ncid, varid, index, tp);
 }
 
 template <>
-int ncmpi_put_var1_bigint<long long>(int ncid, int varid, const MPI_Offset index[],
-                                const long long* tp)
+int ncmpi_put_var1_bigint<long long>(int ncid, int varid,
+                                     const MPI_Offset index[],
+                                     const long long* tp)
 {
   return ncmpi_put_var1_longlong(ncid, varid, index, tp);
+}
+
+template <typename T>
+int ncmpi_put_vara_bigint_all(int ncid, int varid, const MPI_Offset start[],
+                              const MPI_Offset count[], const T* tp)
+{
+  return ncmpi_put_vara_int_all(ncid, varid, start, count, tp);
+}
+
+template <>
+int ncmpi_put_vara_bigint_all<long>(int ncid, int varid,
+                                    const MPI_Offset start[],
+                                    const MPI_Offset count[], const long* tp)
+{
+  return ncmpi_put_vara_long_all(ncid, varid, start, count, tp);
+}
+
+template <>
+int ncmpi_put_vara_bigint_all<long long>(int ncid, int varid,
+                                         const MPI_Offset start[],
+                                         const MPI_Offset count[],
+                                         const long long* tp)
+{
+  return ncmpi_put_vara_longlong_all(ncid, varid, start, count, tp);
+}
+
+template <typename T>
+int ncmpi_put_vars_bigint_all(int ncid, int varid, const MPI_Offset start[],
+                              const MPI_Offset count[],
+                              const MPI_Offset stride[], const T* tp)
+{
+  return ncmpi_put_vars_int_all(ncid, varid, start, count, stride, tp);
+}
+
+template <>
+int ncmpi_put_vars_bigint_all<long>(int ncid, int varid,
+                                    const MPI_Offset start[],
+                                    const MPI_Offset count[],
+                                    const MPI_Offset stride[], const long* tp)
+{
+  return ncmpi_put_vars_long_all(ncid, varid, start, count, stride, tp);
+}
+
+template <>
+int ncmpi_put_vars_bigint_all<long long>(int ncid, int varid,
+                                         const MPI_Offset start[],
+                                         const MPI_Offset count[],
+                                         const MPI_Offset stride[],
+                                         const long long* tp)
+{
+  return ncmpi_put_vars_longlong_all(ncid, varid, start, count, stride, tp);
 }
 
 void DumpNetCDFMPIIO::write()
@@ -651,16 +698,16 @@ void DumpNetCDFMPIIO::write()
     for (int i = 0; i < th->nfield; i++) {
       th->call_vfunc(i);
       if (filewriter) {
-        if (th->vtype[i] == FLOAT) {
+        if (th->vtype[i] == THERMO_FLOAT) {
           NCERRX( ncmpi_put_var1_double(ncid, thermovar[i], start,
                                         &th->dvalue),
                   th->keyword[i] );
         }
-        else if (th->vtype[i] == INT) {
+        else if (th->vtype[i] == THERMO_INT) {
           NCERRX( ncmpi_put_var1_int(ncid, thermovar[i], start, &th->ivalue),
                   th->keyword[i] );
         }
-        else if (th->vtype[i] == BIGINT) {
+        else if (th->vtype[i] == THERMO_BIGINT) {
           NCERRX( ncmpi_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
         }
@@ -789,16 +836,16 @@ void DumpNetCDFMPIIO::write_data(int n, double *mybuf)
 
   if (!int_buffer) {
     n_buffer = std::max(1, n);
-    int_buffer = (int *)
-      memory->smalloc(n_buffer*sizeof(int),"dump::int_buffer");
+    int_buffer = (bigint *)
+      memory->smalloc(n_buffer*sizeof(bigint),"dump::int_buffer");
     double_buffer = (double *)
       memory->smalloc(n_buffer*sizeof(double),"dump::double_buffer");
   }
 
   if (n > n_buffer) {
     n_buffer = std::max(1, n);
-    int_buffer = (int *)
-      memory->srealloc(int_buffer, n_buffer*sizeof(int),"dump::int_buffer");
+    int_buffer = (bigint *)
+      memory->srealloc(int_buffer, n_buffer*sizeof(bigint),"dump::int_buffer");
     double_buffer = (double *)
       memory->srealloc(double_buffer, n_buffer*sizeof(double),
                        "dump::double_buffer");
@@ -831,7 +878,7 @@ void DumpNetCDFMPIIO::write_data(int n, double *mybuf)
       error->one(FLERR,errmsg);
     }
 
-    if (vtype[iaux] == INT) {
+    if (vtype[iaux] == DUMP_INT || vtype[iaux] == DUMP_BIGINT) {
       // integers
       if (perat[i].dims > 1) {
 
@@ -846,13 +893,21 @@ void DumpNetCDFMPIIO::write_data(int n, double *mybuf)
               error->one(FLERR,errmsg);
             }
 
-            for (int j = 0; j < n; j++, iaux+=size_one) {
-              int_buffer[j] = mybuf[iaux];
+            if (vtype[iaux] == DUMP_INT) {
+              for (int j = 0; j < n; j++, iaux+=size_one) {
+                int_buffer[j] = static_cast<int>(mybuf[iaux]);
+              }
+            }
+            else { // DUMP_BIGINT
+              for (int j = 0; j < n; j++, iaux+=size_one) {
+                int_buffer[j] = static_cast<bigint>(mybuf[iaux]);
+              }
             }
 
             start[2] = idim;
-            NCERRX( ncmpi_put_vars_int_all(ncid, perat[i].var, start, count,
-                                           stride, int_buffer), perat[i].name );
+            NCERRX( ncmpi_put_vars_bigint_all(ncid, perat[i].var, start, count,
+                                              stride, int_buffer),
+                    perat[i].name );
           }
         }
       }
@@ -861,8 +916,8 @@ void DumpNetCDFMPIIO::write_data(int n, double *mybuf)
             int_buffer[j] = mybuf[iaux];
         }
 
-        NCERRX( ncmpi_put_vara_int_all(ncid, perat[i].var, start, count,
-                                       int_buffer), perat[i].name );
+        NCERRX( ncmpi_put_vara_bigint_all(ncid, perat[i].var, start, count,
+                                          int_buffer), perat[i].name );
       }
     }
     else {

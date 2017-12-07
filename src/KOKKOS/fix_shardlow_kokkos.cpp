@@ -50,7 +50,7 @@
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "domain.h"
 #include "modify.h"
 // #include "pair_dpd_fdt.h"

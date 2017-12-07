@@ -19,7 +19,7 @@
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -64,14 +64,14 @@ void AtomVecAtomicKokkos::grow(int n)
   sync(Device,ALL_MASK);
   modified(Device,ALL_MASK);
 
-  memory->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
-  memory->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
-  memory->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
-  memory->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
+  memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
+  memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
+  memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
+  memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memory->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memory->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memory->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
 
   grow_reset();
   sync(Host,ALL_MASK);

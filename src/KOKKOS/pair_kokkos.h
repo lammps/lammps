@@ -20,6 +20,7 @@
 
 #include "Kokkos_Macros.hpp"
 #include "pair.h"
+#include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "Kokkos_Vectorization.hpp"
 

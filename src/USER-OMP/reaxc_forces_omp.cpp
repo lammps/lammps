@@ -601,44 +601,17 @@ void Compute_ForcesOMP( reax_system *system, control_params *control,
   MPI_Comm comm = mpi_data->world;
 
   // Init Forces
-#if defined(LOG_PERFORMANCE)
-  double t_start = 0;
-  if( system->my_rank == MASTER_NODE )
-    t_start = Get_Time( );
-#endif
-
   Init_Forces_noQEq_OMP( system, control, data, workspace,
-			 lists, out_control, comm );
-
-#if defined(LOG_PERFORMANCE)
-  //MPI_Barrier( comm );
-  if( system->my_rank == MASTER_NODE )
-    Update_Timing_Info( &t_start, &(data->timing.init_forces) );
-#endif
+                      lists, out_control, comm );
 
   // Bonded Interactions
   Compute_Bonded_ForcesOMP( system, control, data, workspace,
                          lists, out_control, mpi_data->world );
 
-#if defined(LOG_PERFORMANCE)
-  if( system->my_rank == MASTER_NODE )
-    Update_Timing_Info( &t_start, &(data->timing.bonded) );
-#endif
-
   // Nonbonded Interactions
   Compute_NonBonded_ForcesOMP( system, control, data, workspace,
                             lists, out_control, mpi_data->world );
 
-#if defined(LOG_PERFORMANCE)
-  if( system->my_rank == MASTER_NODE )
-    Update_Timing_Info( &t_start, &(data->timing.nonb) );
-#endif
-
   // Total Force
   Compute_Total_ForceOMP( system, control, data, workspace, lists, mpi_data );
-
-#if defined(LOG_PERFORMANCE)
-  if( system->my_rank == MASTER_NODE )
-    Update_Timing_Info( &t_start, &(data->timing.bonded) );
-#endif
 }

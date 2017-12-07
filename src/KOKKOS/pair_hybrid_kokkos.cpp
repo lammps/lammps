@@ -23,10 +23,11 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "comm.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "respa.h"
 #include "atom_masks.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 

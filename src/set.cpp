@@ -36,6 +36,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -21,6 +21,8 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
+#include "domain.h"
 #include "molecule.h"
 #include "error.h"
 

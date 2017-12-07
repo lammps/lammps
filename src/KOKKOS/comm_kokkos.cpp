@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "atom_masks.h"
 #include "error.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "force.h"
 #include "pair.h"
 #include "fix.h"
@@ -28,6 +28,7 @@
 #include "dump.h"
 #include "output.h"
 #include "modify.h"
+#include "kokkos_base.h"
 
 using namespace LAMMPS_NS;
 
@@ -71,7 +72,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   for (int i = 0; i < maxswap; i++) {
     maxsendlist[i] = BUFMIN;
   }
-  memory->create_kokkos(k_sendlist,sendlist,maxswap,BUFMIN,"comm:sendlist");
+  memoryKK->create_kokkos(k_sendlist,sendlist,maxswap,BUFMIN,"comm:sendlist");
 
   max_buf_pair = 0;
   k_buf_send_pair = DAT::tdual_xfloat_1d("comm:k_buf_send_pair",1);
@@ -82,11 +83,11 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 
 CommKokkos::~CommKokkos()
 {
-  memory->destroy_kokkos(k_sendlist,sendlist);
+  memoryKK->destroy_kokkos(k_sendlist,sendlist);
   sendlist = NULL;
-  memory->destroy_kokkos(k_buf_send,buf_send);
+  memoryKK->destroy_kokkos(k_buf_send,buf_send);
   buf_send = NULL;
-  memory->destroy_kokkos(k_buf_recv,buf_recv);
+  memoryKK->destroy_kokkos(k_buf_recv,buf_recv);
   buf_recv = NULL;
 }
 
@@ -379,6 +380,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
   MPI_Request request;
 
   int nsize = pair->comm_forward;
+  KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 
   for (iswap = 0; iswap < nswap; iswap++) {
     int n = MAX(max_buf_pair,nsize*sendnum[iswap]);
@@ -391,7 +393,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 
     // pack buffer
 
-    n = pair->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
+    n = pairKKBase->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
                                        iswap,k_buf_send_pair,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
@@ -408,7 +410,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 
     // unpack buffer
 
-    pair->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
+    pairKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
   }
 }
 
@@ -1067,7 +1069,7 @@ void CommKokkos::grow_list(int iswap, int n)
     k_sendlist.modify<LMPHostType>();
   }
 
-  memory->grow_kokkos(k_sendlist,sendlist,maxswap,size,"comm:sendlist");
+  memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,size,"comm:sendlist");
 
   for(int i=0;i<maxswap;i++) {
     maxsendlist[i]=size; sendlist[i]=&k_sendlist.view<LMPHostType>()(i,0);
@@ -1095,7 +1097,7 @@ void CommKokkos::grow_swap(int n)
     k_sendlist.modify<LMPHostType>();
   }
 
-  memory->grow_kokkos(k_sendlist,sendlist,maxswap,size,"comm:sendlist");
+  memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,size,"comm:sendlist");
 
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i=0;i<maxswap;i++) maxsendlist[i]=size;

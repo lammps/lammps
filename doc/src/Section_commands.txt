@@ -585,6 +585,7 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "lineforce"_fix_lineforce.html,
 "momentum (k)"_fix_momentum.html,
 "move"_fix_move.html,
+"move/python"_fix_move_python.html,
 "mscg"_fix_mscg.html,
 "msst"_fix_msst.html,
 "neb"_fix_neb.html,

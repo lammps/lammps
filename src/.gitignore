@@ -908,10 +908,10 @@
 /python_impl.cpp
 /python_impl.h
 /python_compat.h
+/fix_move_python.cpp
+/fix_move_python.h
 /fix_python.cpp
 /fix_python.h
-/fix_python_move.cpp
-/fix_python_move.h
 /pair_python.cpp
 /pair_python.h
 /reader_molfile.cpp

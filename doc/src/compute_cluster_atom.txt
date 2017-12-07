@@ -28,7 +28,7 @@ compute 1 all aggregate/atom 3.5 :pre
 
 [Description:]
 
-Define a computation that assigns each atom a cluster, fragement,
+Define a computation that assigns each atom a cluster, fragment,
 or aggregate ID.
 
 A cluster is defined as a set of atoms, each of which is within the
@@ -53,7 +53,7 @@ like micelles.
 Only atoms in the compute group are clustered and assigned cluster
 IDs. Atoms not in the compute group are assigned a cluster ID = 0.
 For fragments, only bonds where [both] atoms of the bond are included
-in the compute group are assigned to fragments, so that only fragmets
+in the compute group are assigned to fragments, so that only fragments
 are detected where [all] atoms are in the compute group. Thus atoms
 may be included in the compute group, yes still have a fragment ID of 0.
 

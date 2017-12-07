@@ -243,7 +243,7 @@ COLLOID package :link(COLLOID),h4
 
 [Contents:]
 
-Coarse-grained finite-size colloidal particles.  Pair stayle and fix
+Coarse-grained finite-size colloidal particles.  Pair styles and fix
 wall styles for colloidal interactions.  Includes the Fast Lubrication
 Dynamics (FLD) method for hydrodynamic interactions, which is a
 simplified approximation to Stokesian dynamics.
@@ -734,7 +734,7 @@ make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
 Note that 3 symbolic (soft) links, "includelink" and "liblink" and
 "filelink", are created in lib/latte to point into the LATTE home dir.
 When LAMMPS builds in src it will use these links.  You should 
-also check that the Makefile.lammps file you create is apporpriate
+also check that the Makefile.lammps file you create is appropriate
 for the compiler you use on your system to build LATTE.
 
 You can then install/un-install the package and build LAMMPS in the
@@ -984,7 +984,7 @@ MSCG package :link(mscg),h4
 [Contents:]
 
 A "fix mscg"_fix_mscg.html command which can parameterize a
-Mulit-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
+Multi-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
 library"_mscg_home.
 
 :link(mscg_home,https://github.com/uchicago-voth/MSCG-release)
@@ -1781,7 +1781,7 @@ coarse-grained DPD-based models for energetic, reactive molecular
 crystalline materials.  It includes many pair styles specific to these
 systems, including for reactive DPD, where each particle has internal
 state for multiple species and a coupled set of chemical reaction ODEs
-are integrated each timestep.  Highly accurate time intergrators for
+are integrated each timestep.  Highly accurate time integrators for
 isothermal, isoenergetic, isobaric and isenthalpic conditions are
 included.  These enable long timesteps via the Shardlow splitting
 algorithm.
@@ -2231,7 +2231,7 @@ Several extensions of the the dissipative particle dynamics (DPD)
 method.  Specifically, energy-conserving DPD (eDPD) that can model
 non-isothermal processes, many-body DPD (mDPD) for simulating
 vapor-liquid coexistence, and transport DPD (tDPD) for modeling
-advection-diffuion-reaction systems. The equations of motion of these
+advection-diffusion-reaction systems. The equations of motion of these
 DPD extensions are integrated through a modified velocity-Verlet (MVV)
 algorithm.
 
@@ -2495,7 +2495,7 @@ make machine :pre
 
 NOTE: The LAMMPS executable these steps produce is not yet functional
 for a QM/MM simulation.  You must also build Quantum ESPRESSO and
-create a new executable which links LAMMPS and Quanutm ESPRESSO
+create a new executable which links LAMMPS and Quantum ESPRESSO
 together.  These are steps 3 and 4 described in the lib/qmmm/README
 file.
 
@@ -2554,7 +2554,7 @@ developed by the Cambridge University group.
 
 :link(quip,https://github.com/libAtoms/QUIP)
 
-To use this package you must have the QUIP libAatoms library available
+To use this package you must have the QUIP libAtoms library available
 on your system.
 
 [Author:] Albert Bartok (Cambridge University)
@@ -2809,7 +2809,7 @@ USER-VTK package :link(USER-VTK),h4
 
 A "dump vtk"_dump_vtk.html command which outputs snapshot info in the
 "VTK format"_vtk, enabling visualization by "Paraview"_paraview or
-other visuzlization packages.
+other visualization packages.
 
 :link(vtk,http://www.vtk.org)
 :link(paraview,http://www.paraview.org)

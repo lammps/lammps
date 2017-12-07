@@ -322,9 +322,9 @@ the fix neb command.
 The forward (reverse) energy barrier is the potential energy of the
 highest replica minus the energy of the first (last) replica.
 
-Supplementary informations for all replicas can be printed out to the
-screen and master log.lammps file by adding the verbose keyword. These
-informations include the following.  The "path angle" (pathangle) for
+Supplementary information for all replicas can be printed out to the
+screen and master log.lammps file by adding the verbose keyword. This
+information include the following.  The "path angle" (pathangle) for
 the replica i which is the angle between the 3N-length vectors (Ri-1 -
 Ri) and (Ri+1 - Ri) (where Ri is the atomic coordinates of replica
 i). A "path angle" of 180 indicates that replicas i-1, i and i+1 are
@@ -339,8 +339,8 @@ energy gradient of image i.  ReplicaForce is the two-norm of the
 3N-length force vector (including nudging forces) for replica i.
 MaxAtomForce is the maximum force component of any atom in replica i.
 
-When a NEB calculation does not converge properly, these suplementary
-informations can help understanding what is going wrong. For instance
+When a NEB calculation does not converge properly, the suplementary
+information can help understanding what is going wrong. For instance
 when the path angle becomes accute the definition of tangent used in
 the NEB calculation is questionable and the NEB cannot may diverge
 "(Maras)"_#Maras2.

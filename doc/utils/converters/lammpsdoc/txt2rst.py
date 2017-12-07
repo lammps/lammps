@@ -148,15 +148,18 @@ class RSTFormatting(Formatting):
         return "\n----------\n\n" + content.strip()
 
     def image(self, content, file, link=None):
-        if link and (link.lower().endswith('.jpg') or
-                         link.lower().endswith('.jpeg') or
-                         link.lower().endswith('.png') or
-                         link.lower().endswith('.gif')):
-            converted = ".. thumbnail:: " + self.markup.unescape_rst_chars(link) + "\n"
-        else:
-            converted = ".. image:: " + self.markup.unescape_rst_chars(file) + "\n"
-            if link:
-                converted += "   :target: " + self.markup.unescape_rst_chars(link) + "\n"
+        # 2017-12-07: commented out to disable thumbnail processing due to dropping
+        #             support for obsolete sphinxcontrib.images extension
+        #
+        #if link and (link.lower().endswith('.jpg') or
+        #                 link.lower().endswith('.jpeg') or
+        #                 link.lower().endswith('.png') or
+        #                 link.lower().endswith('.gif')):
+        #    converted = ".. thumbnail:: " + self.markup.unescape_rst_chars(link) + "\n"
+        #else:
+        converted = ".. image:: " + self.markup.unescape_rst_chars(file) + "\n"
+        if link:
+            converted += "   :target: " + self.markup.unescape_rst_chars(link) + "\n"
 
         if "c" in self.current_command_list:
             converted += "   :align: center\n"

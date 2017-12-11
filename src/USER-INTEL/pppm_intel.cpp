@@ -23,7 +23,10 @@
 #include <math.h>
 #include "pppm_intel.h"
 #include "atom.h"
+#include "comm.h"
+#include "domain.h"
 #include "error.h"
+#include "modify.h"
 #include "fft3d_wrap.h"
 #include "gridcomm.h"
 #include "math_const.h"

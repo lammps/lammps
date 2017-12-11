@@ -22,6 +22,7 @@
 #include "Kokkos_Vectorization.hpp"
 #include "Kokkos_ReductionView.hpp"
 #include "pair.h"
+#include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 
 namespace LAMMPS_NS {

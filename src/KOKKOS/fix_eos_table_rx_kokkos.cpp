@@ -21,7 +21,7 @@
 #include "atom_kokkos.h"
 #include "error.h"
 #include "force.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "comm.h"
 #include <math.h>
 #include "modify.h"
@@ -517,14 +517,14 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
-  memory->create_kokkos(d_table->lo,h_table->lo,ntables,"Table::lo");
-  memory->create_kokkos(d_table->hi,h_table->hi,ntables,"Table::hi");
-  memory->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
+  memoryKK->create_kokkos(d_table->lo,h_table->lo,ntables,"Table::lo");
+  memoryKK->create_kokkos(d_table->hi,h_table->hi,ntables,"Table::hi");
+  memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
 
   if(tabstyle == LINEAR) {
-    memory->create_kokkos(d_table->r,h_table->r,ntables,tablength,"Table::r");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memory->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
+    memoryKK->create_kokkos(d_table->r,h_table->r,ntables,tablength,"Table::r");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
   }
 
   for(int i=0; i < ntables; i++) {

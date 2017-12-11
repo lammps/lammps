@@ -1023,7 +1023,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "tri/lj"_pair_tri_lj.html,
 "vashishta (ko)"_pair_vashishta.html,
 "vashishta/table (o)"_pair_vashishta.html,
-"yukawa (go)"_pair_yukawa.html,
+"yukawa (gok)"_pair_yukawa.html,
 "yukawa/colloid (go)"_pair_yukawa_colloid.html,
 "zbl (go)"_pair_zbl.html :tb(c=4,ea=c)
 
@@ -1045,6 +1045,7 @@ package"_Section_start.html#start_3.
 "edpd"_pair_meso.html,
 "eff/cut"_pair_eff.html,
 "exp6/rx"_pair_exp6_rx.html,
+"extep"_pair_extep.html,
 "gauss/cut"_pair_gauss.html,
 "kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "lennard/mdf"_pair_mdf.html,

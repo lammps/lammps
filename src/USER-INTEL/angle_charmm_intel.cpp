@@ -23,6 +23,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "modify.h"
 #include "math_const.h"
 #include "memory.h"
 #include "suffix.h"

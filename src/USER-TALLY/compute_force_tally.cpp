@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <string.h>
+#include <math.h>
 #include "compute_force_tally.h"
 #include "atom.h"
 #include "group.h"
@@ -20,6 +21,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 

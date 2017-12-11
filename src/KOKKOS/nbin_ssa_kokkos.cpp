@@ -26,7 +26,7 @@
 #include "error.h"
 #include "atom_masks.h"
 
-// #include "memory.h"
+// #include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 

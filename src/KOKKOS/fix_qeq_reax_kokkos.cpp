@@ -255,7 +255,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   k_t.template sync<DeviceType>();
 
   if (neighflag != FULL)
-    red_o = Kokkos::Experimental::create_reduction_view<> (d_o); // allocate duplicated memory
+    red_o = Kokkos::Experimental::create_scatter_view<> (d_o); // allocate duplicated memory
 
   // 1st cg solve over b_s, s
   cg_solve1();

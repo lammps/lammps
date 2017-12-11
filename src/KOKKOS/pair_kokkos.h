@@ -23,7 +23,7 @@
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "Kokkos_Vectorization.hpp"
-#include "Kokkos_ReductionView.hpp"
+#include "Kokkos_ScatterView.hpp"
 
 namespace LAMMPS_NS {
 
@@ -64,12 +64,12 @@ struct AtomicF<HALFTHREAD> {
 // Do atomic trait when running HALFTHREAD neighbor list style
 template<int NEIGHFLAG>
 struct AtomicDup {
-  enum {value = Kokkos::Experimental::ReductionNonAtomic};
+  enum {value = Kokkos::Experimental::ScatterNonAtomic};
 };
 
 template<>
 struct AtomicDup<HALFTHREAD> {
-  enum {value = Kokkos::Experimental::ReductionAtomic};
+  enum {value = Kokkos::Experimental::ScatterAtomic};
 };
 
 //Specialisation for Neighborlist types Half, HalfThread, Full

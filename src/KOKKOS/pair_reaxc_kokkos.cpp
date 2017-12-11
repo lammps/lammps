@@ -713,9 +713,9 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
 
   // allocate duplicated memory
-  dup_f            = Kokkos::Experimental::create_reduction_view<>(f);
-  dup_eatom        = Kokkos::Experimental::create_reduction_view<>(v_eatom);
-  dup_vatom        = Kokkos::Experimental::create_reduction_view<>(v_vatom);
+  dup_f            = Kokkos::Experimental::create_scatter_view<>(f);
+  dup_eatom        = Kokkos::Experimental::create_scatter_view<>(v_eatom);
+  dup_vatom        = Kokkos::Experimental::create_scatter_view<>(v_vatom);
 
   if (eflag_global) {
     for (int i = 0; i < 14; i++)
@@ -787,8 +787,8 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   // allocate duplicated memory
-  dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
-  dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
+  dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<>(d_dDeltap_self);
+  dup_total_bo     = Kokkos::Experimental::create_scatter_view<>(d_total_bo);
 
   // Neighbor lists for bond and hbond
 
@@ -829,16 +829,16 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     resize = resize_bo || resize_hb;
     if (resize) {
       allocate_array();
-      dup_dDeltap_self = Kokkos::Experimental::create_reduction_view<>(d_dDeltap_self);
-      dup_total_bo     = Kokkos::Experimental::create_reduction_view<>(d_total_bo);
+      dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<>(d_dDeltap_self);
+      dup_total_bo     = Kokkos::Experimental::create_scatter_view<>(d_total_bo);
     }
   }
 
   // allocate duplicated memory
-  dup_CdDelta = Kokkos::Experimental::create_reduction_view<>(d_CdDelta);
-  //dup_Cdbo    = Kokkos::Experimental::create_reduction_view<>(d_Cdbo);
-  //dup_Cdbopi  = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi);
-  //dup_Cdbopi2 = Kokkos::Experimental::create_reduction_view<>(d_Cdbopi2);
+  dup_CdDelta = Kokkos::Experimental::create_scatter_view<>(d_CdDelta);
+  //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<>(d_Cdbo);
+  //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<>(d_Cdbopi);
+  //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<>(d_Cdbopi2);
 
   // reduction over duplicated memory
   Kokkos::Experimental::contribute(d_total_bo, dup_total_bo); // needed in BondOrder1

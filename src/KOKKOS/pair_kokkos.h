@@ -19,11 +19,11 @@
 #define LMP_PAIR_KOKKOS_H
 
 #include "Kokkos_Macros.hpp"
-#include "Kokkos_Vectorization.hpp"
-#include "Kokkos_ReductionView.hpp"
 #include "pair.h"
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
+#include "Kokkos_Vectorization.hpp"
+#include "Kokkos_ReductionView.hpp"
 
 namespace LAMMPS_NS {
 

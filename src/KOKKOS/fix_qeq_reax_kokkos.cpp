@@ -255,7 +255,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   k_t.template sync<DeviceType>();
 
   if (neighflag != FULL)
-    red_o = Kokkos::Experimental::create_reduction_view<> (k_o.d_view); // allocate duplicated memory
+    red_o = Kokkos::Experimental::create_reduction_view<> (d_o); // allocate duplicated memory
 
   // 1st cg solve over b_s, s
   cg_solve1();
@@ -502,7 +502,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
     FixQEqReaxKokkosSparse13Functor<DeviceType,HALFTHREAD> sparse13_functor(this);
     Kokkos::parallel_for(inum,sparse13_functor);
-    Kokkos::Experimental::contribute(k_o.d_view, red_o);
+    Kokkos::Experimental::contribute(d_o, red_o);
   } else {
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> (inum, teamsize), *this);
   }
@@ -553,7 +553,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
       red_o.reset_except(d_o);
       FixQEqReaxKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
       Kokkos::parallel_for(inum,sparse23_functor);
-      Kokkos::Experimental::contribute(k_o.d_view, red_o);
+      Kokkos::Experimental::contribute(d_o, red_o);
     } else {
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
     }
@@ -626,7 +626,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     red_o.reset_except(d_o);
     FixQEqReaxKokkosSparse33Functor<DeviceType,HALFTHREAD> sparse33_functor(this);
     Kokkos::parallel_for(inum,sparse33_functor);
-    Kokkos::Experimental::contribute(k_o.d_view, red_o);
+    Kokkos::Experimental::contribute(d_o, red_o);
   } else {
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> (inum, teamsize), *this);
   }
@@ -677,7 +677,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
       red_o.reset_except(d_o);
       FixQEqReaxKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
       Kokkos::parallel_for(inum,sparse23_functor);
-      Kokkos::Experimental::contribute(k_o.d_view, red_o);
+      Kokkos::Experimental::contribute(d_o, red_o);
     } else {
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
     }
@@ -790,7 +790,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.access();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -842,7 +842,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.access();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -901,7 +901,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.access();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {

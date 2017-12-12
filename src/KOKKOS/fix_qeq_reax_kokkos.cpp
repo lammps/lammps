@@ -160,25 +160,11 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init_hist()
 {
-  int i,j;
+  Kokkos::deep_copy(d_s_hist,0.0);
+  Kokkos::deep_copy(d_t_hist,0.0);
 
-  k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",atom->nmax,nprev);
-  d_s_hist = k_s_hist.template view<DeviceType>();
-  h_s_hist = k_s_hist.h_view;
-  k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",atom->nmax,nprev);
-  d_t_hist = k_t_hist.template view<DeviceType>();
-  h_t_hist = k_t_hist.h_view;
-
-  for( i = 0; i < atom->nmax; i++ )
-    for( j = 0; j < nprev; j++ )
-      k_s_hist.h_view(i,j) = k_t_hist.h_view(i,j) = 0.0;
-
-  k_s_hist.template modify<LMPHostType>();
-  k_s_hist.template sync<DeviceType>();
-
-  k_t_hist.template modify<LMPHostType>();
-  k_t_hist.template sync<DeviceType>();
-
+  k_s_hist.template modify<DeviceType>();
+  k_t_hist.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -341,14 +327,6 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
     k_d = DAT::tdual_ffloat_1d("qeq/kk:h_d",nmax);
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
-
-    k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",nmax,nprev);
-    d_s_hist = k_s_hist.template view<DeviceType>();
-    h_s_hist = k_s_hist.h_view;
-
-    k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",nmax,nprev);
-    d_t_hist = k_t_hist.template view<DeviceType>();
-    h_t_hist = k_t_hist.h_view;
   }
 
   // init_storage
@@ -376,8 +354,6 @@ void FixQEqReaxKokkos<DeviceType>::zero_item(int ii) const
     d_o[i] = 0.0;
     d_r[i] = 0.0;
     d_d[i] = 0.0;
-    //for( int j = 0; j < nprev; j++ )
-      //d_s_hist(i,j) = d_t_hist(i,j) = 0.0;
   }
 
 }
@@ -1203,9 +1179,11 @@ void FixQEqReaxKokkos<DeviceType>::grow_arrays(int nmax)
   memoryKK->grow_kokkos(k_s_hist,s_hist,nmax,nprev,"qeq:s_hist");
   memoryKK->grow_kokkos(k_t_hist,t_hist,nmax,nprev,"qeq:t_hist");
 
+  d_s_hist = k_s_hist.template view<DeviceType>();
+  d_t_hist = k_t_hist.template view<DeviceType>();
+
   k_s_hist.template modify<LMPHostType>();
   k_t_hist.template modify<LMPHostType>();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1225,7 +1203,6 @@ void FixQEqReaxKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 
   k_s_hist.template modify<LMPHostType>();
   k_t_hist.template modify<LMPHostType>();
-
 }
 
 /* ----------------------------------------------------------------------

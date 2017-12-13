@@ -1215,8 +1215,7 @@ int AtomVecSMD::pack_vel_hybrid(int i, double *buf) {
 void AtomVecSMD::write_vel(FILE *fp, int n, double **buf) {
 	for (int i = 0; i < n; i++)
 		fprintf(fp, TAGINT_FORMAT
-		" %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n", (tagint) ubuf(buf[i][0]).i, buf[i][1], buf[i][2], buf[i][3],
-				buf[i][4], buf[i][5], buf[i][6]);
+		" %-1.16e %-1.16e %-1.16e\n", (tagint) ubuf(buf[i][0]).i, buf[i][1], buf[i][2], buf[i][3]);
 }
 
 /* ----------------------------------------------------------------------

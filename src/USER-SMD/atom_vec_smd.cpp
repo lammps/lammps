@@ -1143,10 +1143,14 @@ void AtomVecSMD::pack_data(double **buf) {
 		buf[i][7] = x[i][0];
 		buf[i][8] = x[i][1];
 		buf[i][9] = x[i][2];
+		
+                buf[i][10] = x0[i][0];
+                buf[i][11] = x0[i][1];
+                buf[i][12] = x0[i][2];
 
-		buf[i][10] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
-		buf[i][11] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
-		buf[i][12] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
+		buf[i][13] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+		buf[i][14] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+		buf[i][15] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
 	}
 }
 
@@ -1167,9 +1171,9 @@ void AtomVecSMD::write_data(FILE *fp, int n, double **buf) {
 	for (int i = 0; i < n; i++)
 		fprintf(fp,
 		TAGINT_FORMAT
-		" %d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n", (tagint) ubuf(buf[i][0]).i,
+		" %d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n", (tagint) ubuf(buf[i][0]).i,
 				(int) ubuf(buf[i][1]).i, (int) ubuf(buf[i][2]).i, buf[i][3], buf[i][4], buf[i][5], buf[i][6], buf[i][7], buf[i][8],
-				buf[i][9], (int) ubuf(buf[i][7]).i, (int) ubuf(buf[i][8]).i, (int) ubuf(buf[i][9]).i);
+				buf[i][9], buf[i][10], buf[i][11], buf[i][12]);
 }
 
 /* ----------------------------------------------------------------------

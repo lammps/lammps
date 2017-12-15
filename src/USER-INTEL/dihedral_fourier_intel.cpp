@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"

@@ -28,6 +28,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "modify.h"
 
 #include <map>
 

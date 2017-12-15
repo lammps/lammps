@@ -356,7 +356,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 #endif
     {
       maxpartner = MAX(m,maxpartner);
-      comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxpartner+1);
+      comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
     }
   }
 

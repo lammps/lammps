@@ -27,7 +27,6 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
-#include "accelerator_kokkos.h"
 #include "group.h"
 #include "domain.h"
 #include "output.h"

@@ -619,6 +619,30 @@ class Atom2D(Atom):
             self.lmp.eval("fy[%d]" % self.index))
 
 
+class variable_set:
+    def __init__(self, name, variable_dict):
+        self._name = name
+        array_pattern = re.compile(r"(?P<arr>.+)\[(?P<index>[0-9]+)\]")
+
+        for key, value in variable_dict.items():
+            m = array_pattern.match(key)
+            if m:
+                g = m.groupdict()
+                varname = g['arr']
+                idx = int(g['index'])
+                if varname not in self.__dict__:
+                    self.__dict__[varname] = {}
+                self.__dict__[varname][idx] = value
+            else:
+                self.__dict__[key] = value
+
+    def __str__(self):
+        return "{}({})".format(self._name, ','.join(["{}={}".format(k, self.__dict__[k]) for k in self.__dict__.keys() if not k.startswith('_')]))
+
+    def __repr__(self):
+        return self.__str__()
+
+
 def get_thermo_data(output):
     """ traverse output of runs and extract thermo data columns """
     if isinstance(output, str):
@@ -646,7 +670,7 @@ def get_thermo_data(output):
         elif line.startswith("Loop time of "):
             in_run = False
             columns = None
-            thermo_data = namedtuple('ThermoData', list(current_run.keys()))(*list(current_run.values()))
+            thermo_data = variable_set('ThermoData', current_run)
             r = {'thermo' : thermo_data }
             runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
         elif in_run and len(columns) > 0:

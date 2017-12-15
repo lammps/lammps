@@ -17,12 +17,12 @@ SHLINK = liblammps.so
 OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
 
-SRC =	$(wildcard *.cpp)
-INC =	$(wildcard *.h)
+SRC =	$(filter-out library.cpp,$(wildcard *.cpp))
+INC =	$(filter-out library.h,$(wildcard *.h))
 OBJ = 	$(SRC:.cpp=.o)
 
-SRCLIB = $(filter-out main.cpp,$(SRC))
-OBJLIB = $(filter-out main.o,$(OBJ))
+SRCLIB = $(filter-out main.cpp,$(SRC)) library.cpp
+OBJLIB = $(filter-out main.o,$(OBJ)) library.o
 
 # Command-line options for mode: exe (default), shexe, lib, shlib
 
@@ -176,7 +176,7 @@ help:
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings $(objdir)
 	@cd $(objdir); rm -f .depend; \
-	$(MAKE) $(MFLAGS) "SRC = $(SRC)" "INC = $(INC)" depend || :
+	$(MAKE) $(MFLAGS) "SRC = $(SRC) library.cpp" "INC = $(INC) library.h" depend || :
 ifeq ($(mode),exe)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \

@@ -28,8 +28,20 @@ action () {
 
 # force rebuild of files with LMP_KOKKOS switch
 
-touch ../accelerator_kokkos.h
-touch ../memory.h
+KOKKOS_INSTALLED=0
+if (test -e ../Makefile.package) then
+  KOKKOS_INSTALLED=`grep DLMP_KOKKOS ../Makefile.package | wc -l`
+fi 
+
+if (test $mode = 1) then
+  if (test $KOKKOS_INSTALLED = 0) then
+    touch ../accelerator_kokkos.h
+  fi
+elif (test $mode = 0) then
+  if (test $KOKKOS_INSTALLED = 1) then
+    touch ../accelerator_kokkos.h
+  fi
+fi
 
 # list of files with optional dependcies
 
@@ -125,8 +137,9 @@ action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
 action kokkos.cpp
 action kokkos.h
-action kokkos_type.h
+action kokkos_base.h
 action kokkos_few.h
+action kokkos_type.h
 action memory_kokkos.h
 action modify_kokkos.cpp
 action modify_kokkos.h
@@ -229,6 +242,8 @@ action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
 action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
 action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
+action pair_yukawa_kokkos.cpp
+action pair_yukawa_kokkos.h
 action pppm_kokkos.cpp pppm.cpp
 action pppm_kokkos.h pppm.h
 action rand_pool_wrap_kokkos.cpp

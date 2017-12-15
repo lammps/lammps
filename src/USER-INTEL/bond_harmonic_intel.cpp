@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include "bond_harmonic_intel.h"
 #include "atom.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "comm.h"

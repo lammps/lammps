@@ -25,6 +25,7 @@
 /kokkos.h
 /kokkos_type.h
 /kokkos_few.h
+/kokkos_base.h
 
 /manifold*.cpp
 /manifold*.h
@@ -1085,10 +1086,16 @@
 /pair_born_coul_long_cs.h
 /pair_born_coul_dsf_cs.cpp
 /pair_born_coul_dsf_cs.h
+/pair_born_coul_wolf_cs.cpp
+/pair_born_coul_wolf_cs.h
 /pair_buck_coul_long_cs.cpp
 /pair_buck_coul_long_cs.h
 /pair_coul_long_cs.cpp
 /pair_coul_long_cs.h
+/pair_coul_wolf_cs.cpp
+/pair_coul_wolf_cs.h
+/pair_extep.cpp
+/pair_extep.h
 /pair_lj_cut_thole_long.cpp
 /pair_lj_cut_thole_long.h
 /pair_plum_hb.cpp

@@ -48,7 +48,7 @@ class FixPythonMove : public Fix {
   virtual void reset_dt();
 
  protected:
-  void * py_integrator;
+  void * py_move;
 };
 
 }

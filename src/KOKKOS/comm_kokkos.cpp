@@ -324,6 +324,7 @@ void CommKokkos::reverse_comm_device()
                     size_reverse_recv[iswap],MPI_DOUBLE,
                     sendproc[iswap],0,world,&request);
         n = avec->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
+        DeviceType::fence();
         if (n)
           MPI_Send(k_buf_send.view<DeviceType>().ptr_on_device(),n,
                    MPI_DOUBLE,recvproc[iswap],0,world);
@@ -331,6 +332,7 @@ void CommKokkos::reverse_comm_device()
       }
       avec->unpack_reverse_kokkos(sendnum[iswap],k_sendlist,iswap,
                                 k_buf_recv);
+      DeviceType::fence();
     } else {
       if (sendnum[iswap])
         n = avec->unpack_reverse_self(sendnum[iswap],k_sendlist,iswap,
@@ -933,7 +935,6 @@ void CommKokkos::borders_device() {
                    "implemented with Kokkos");
         n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
                                   pbc_flag[iswap],pbc[iswap]);
-        DeviceType::fence();
       }
       else {
         n = avec->

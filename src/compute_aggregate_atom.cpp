@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <string.h>
+#include <math.h>
 #include "compute_aggregate_atom.h"
 #include "atom.h"
 #include "atom_vec.h"

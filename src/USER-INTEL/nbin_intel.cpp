@@ -18,8 +18,9 @@
 #include "nbin_intel.h"
 #include "atom.h"
 #include "group.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "modify.h"
 #include "update.h"
 #include "error.h"
 

@@ -28,6 +28,7 @@
 #include "error.h"
 #include "neigh_request.h"
 #include "gpu_extra.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 

@@ -25,6 +25,8 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "domain.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 

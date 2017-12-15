@@ -43,7 +43,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{INT,FLOAT,BIGINT}; // same as in thermo.cpp
+enum{THERMO_INT,THERMO_FLOAT,THERMO_BIGINT}; // same as in thermo.cpp
+enum{DUMP_INT,DUMP_DOUBLE,DUMP_STRING,DUMP_BIGINT}; // same as in DumpCFG
 
 const char NC_FRAME_STR[]         = "frame";
 const char NC_SPATIAL_STR[]       = "spatial";
@@ -120,10 +121,6 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
       idim = mangled[1] - 'x';
       ndims = 3;
       strcpy(mangled, "velocities");
-    }
-    // extensions to the AMBER specification
-    else if (!strcmp(mangled, "type")) {
-      strcpy(mangled, "atom_types");
     }
     else if (!strcmp(mangled, "xs") || !strcmp(mangled, "ys") ||
              !strcmp(mangled, "zs")) {
@@ -325,18 +322,6 @@ void DumpNetCDF::openfile()
 
       // variables specified in the input file
       for (int i = 0; i < n_perat; i++) {
-        nc_type xtype;
-
-        // Type mangling
-        if (vtype[perat[i].field[0]] == INT) {
-          xtype = NC_INT;
-        } else {
-          if (double_precision)
-            xtype = NC_DOUBLE;
-          else
-            xtype = NC_FLOAT;
-        }
-
         NCERRX( nc_inq_varid(ncid, perat[i].name, &perat[i].var),
                 perat[i].name );
       }
@@ -421,10 +406,11 @@ void DumpNetCDF::openfile()
         nc_type xtype;
 
         // Type mangling
-        if (vtype[perat[i].field[0]] == INT) {
+        if (vtype[perat[i].field[0]] == DUMP_INT) {
           xtype = NC_INT;
-        }
-        else {
+        } else if (vtype[perat[i].field[0]] == DUMP_BIGINT) {
+          xtype = NC_INT64;
+        } else {
           if (double_precision)
             xtype = NC_DOUBLE;
           else
@@ -488,17 +474,22 @@ void DumpNetCDF::openfile()
       if (thermo) {
         Thermo *th = output->thermo;
         for (int i = 0; i < th->nfield; i++) {
-          if (th->vtype[i] == FLOAT) {
+          if (th->vtype[i] == THERMO_FLOAT) {
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_DOUBLE, 1, dims,
                                &thermovar[i]), th->keyword[i] );
           }
-          else if (th->vtype[i] == INT) {
+          else if (th->vtype[i] == THERMO_INT) {
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT, 1, dims,
                                &thermovar[i]), th->keyword[i] );
           }
-          else if (th->vtype[i] == BIGINT) {
+          else if (th->vtype[i] == THERMO_BIGINT) {
+#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
+            NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT64, 1, dims,
+                               &thermovar[i]), th->keyword[i] );
+#else
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_LONG, 1, dims,
                                &thermovar[i]), th->keyword[i] );
+#endif
           }
         }
       }
@@ -606,6 +597,7 @@ void DumpNetCDF::openfile()
       count[1] = 5;
       NCERR( nc_put_vara_text(ncid, cell_angular_var, index, count, "gamma") );
 
+      append_flag = 1;
       framei = 1;
     }
   }
@@ -651,6 +643,52 @@ int nc_put_var1_bigint<long long>(int ncid, int varid, const size_t index[],
   return nc_put_var1_longlong(ncid, varid, index, tp);
 }
 
+template <typename T>
+int nc_put_vara_bigint(int ncid, int varid, const size_t start[],
+                       const size_t count[], const T* tp)
+{
+  return nc_put_vara_int(ncid, varid, start, count, tp);
+}
+
+template <>
+int nc_put_vara_bigint<long>(int ncid, int varid, const size_t start[],
+                             const size_t count[], const long* tp)
+{
+  return nc_put_vara_long(ncid, varid, start, count, tp);
+}
+
+template <>
+int nc_put_vara_bigint<long long>(int ncid, int varid, const size_t start[],
+                                  const size_t count[], const long long* tp)
+{
+  return nc_put_vara_longlong(ncid, varid, start, count, tp);
+}
+
+template <typename T>
+int nc_put_vars_bigint(int ncid, int varid, const size_t start[],
+                       const size_t count[], const ptrdiff_t stride[],
+                       const T* tp)
+{
+  return nc_put_vars_int(ncid, varid, start, count, stride, tp);
+}
+
+template <>
+int nc_put_vars_bigint<long>(int ncid, int varid, const size_t start[],
+                             const size_t count[], const ptrdiff_t stride[],
+                             const long* tp)
+{
+  return nc_put_vars_long(ncid, varid, start, count, stride, tp);
+}
+
+template <>
+int nc_put_vars_bigint<long long>(int ncid, int varid, const size_t start[],
+                                  const size_t count[],
+                                  const ptrdiff_t stride[],
+                                  const long long* tp)
+{
+  return nc_put_vars_longlong(ncid, varid, start, count, stride, tp);
+}
+
 void DumpNetCDF::write()
 {
   // open file
@@ -672,16 +710,16 @@ void DumpNetCDF::write()
     for (int i = 0; i < th->nfield; i++) {
       th->call_vfunc(i);
       if (filewriter) {
-        if (th->vtype[i] == FLOAT) {
+        if (th->vtype[i] == THERMO_FLOAT) {
           NCERRX( nc_put_var1_double(ncid, thermovar[i], start,
                                      &th->dvalue),
                   th->keyword[i] );
         }
-        else if (th->vtype[i] == INT) {
+        else if (th->vtype[i] == THERMO_INT) {
           NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &th->ivalue),
                   th->keyword[i] );
         }
-        else if (th->vtype[i] == BIGINT) {
+        else if (th->vtype[i] == THERMO_BIGINT) {
           NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
         }
@@ -782,16 +820,16 @@ void DumpNetCDF::write_data(int n, double *mybuf)
 
   if (!int_buffer) {
     n_buffer = n;
-    int_buffer = (int *)
-      memory->smalloc(n*sizeof(int),"dump::int_buffer");
+    int_buffer = (bigint *)
+      memory->smalloc(n*sizeof(bigint),"dump::int_buffer");
     double_buffer = (double *)
       memory->smalloc(n*sizeof(double),"dump::double_buffer");
   }
 
   if (n > n_buffer) {
     n_buffer = n;
-    int_buffer = (int *)
-      memory->srealloc(int_buffer, n*sizeof(int),"dump::int_buffer");
+    int_buffer = (bigint *)
+      memory->srealloc(int_buffer, n*sizeof(bigint),"dump::int_buffer");
     double_buffer = (double *)
       memory->srealloc(double_buffer, n*sizeof(double),"dump::double_buffer");
   }
@@ -811,7 +849,7 @@ void DumpNetCDF::write_data(int n, double *mybuf)
   for (int i = 0; i < n_perat; i++) {
     int iaux = perat[i].field[0];
 
-    if (vtype[iaux] == INT) {
+    if (vtype[iaux] == DUMP_INT || vtype[iaux] == DUMP_BIGINT) {
       // integers
       if (perat[i].dims > 1) {
 
@@ -819,41 +857,55 @@ void DumpNetCDF::write_data(int n, double *mybuf)
           iaux = perat[i].field[idim];
 
           if (iaux >= 0) {
-            for (int j = 0; j < n; j++, iaux+=size_one) {
-              int_buffer[j] = mybuf[iaux];
+            if (vtype[iaux] == DUMP_INT) {
+              for (int j = 0; j < n; j++, iaux+=size_one) {
+                int_buffer[j] = static_cast<int>(mybuf[iaux]);
+              }
+            }
+            else { // DUMP_BIGINT
+              for (int j = 0; j < n; j++, iaux+=size_one) {
+                int_buffer[j] = static_cast<bigint>(mybuf[iaux]);
+              }
             }
 
             start[2] = idim;
 
             if (perat[i].constant) {
               if (perat[i].ndumped < ntotalgr) {
-                NCERR( nc_put_vars_int(ncid, perat[i].var,
-                                       start+1, count+1, stride+1,
-                                       int_buffer) );
+                NCERR( nc_put_vars_bigint(ncid, perat[i].var,
+                                          start+1, count+1, stride+1,
+                                          int_buffer) );
                 perat[i].ndumped += n;
               }
             }
             else
-              NCERR( nc_put_vars_int(ncid, perat[i].var, start, count, stride,
-                                     int_buffer) );
+              NCERR( nc_put_vars_bigint(ncid, perat[i].var, start, count, stride,
+                                        int_buffer) );
           }
         }
       }
       else {
-        for (int j = 0; j < n; j++, iaux+=size_one) {
-            int_buffer[j] = mybuf[iaux];
+        if (vtype[iaux] == DUMP_INT) {
+          for (int j = 0; j < n; j++, iaux+=size_one) {
+              int_buffer[j] = static_cast<int>(mybuf[iaux]);
+          }
+        }
+        else { // DUMP_BIGINT
+          for (int j = 0; j < n; j++, iaux+=size_one) {
+              int_buffer[j] = static_cast<bigint>(mybuf[iaux]);
+          }
         }
 
         if (perat[i].constant) {
           if (perat[i].ndumped < ntotalgr) {
-            NCERR( nc_put_vara_int(ncid, perat[i].var, start+1, count+1,
-                                   int_buffer) );
+            NCERR( nc_put_vara_bigint(ncid, perat[i].var, start+1, count+1,
+                                      int_buffer) );
             perat[i].ndumped += n;
           }
         }
         else
-          NCERR( nc_put_vara_int(ncid, perat[i].var, start, count,
-                                 int_buffer) );
+          NCERR( nc_put_vara_bigint(ncid, perat[i].var, start, count,
+                                    int_buffer) );
       }
     }
     else {

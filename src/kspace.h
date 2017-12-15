@@ -15,7 +15,6 @@
 #define LMP_KSPACE_H
 
 #include "pointers.h"
-#include "accelerator_kokkos.h"
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -123,11 +122,6 @@ class KSpace : protected Pointers {
   virtual void unpack_forward(int, FFT_SCALAR *, int, int *) {};
   virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
-
-  virtual void pack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
-  virtual void unpack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
-  virtual void pack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
-  virtual void unpack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
 
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}

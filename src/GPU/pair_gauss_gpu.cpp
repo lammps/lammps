@@ -43,7 +43,7 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
                    double **b, double **offset, double *special_lj, const int nlocal,
                    const int nall, const int max_nbors, const int maxspecial,
                    const double cell_size, int &gpu_mode, FILE *screen);
-int gauss_gpu_reinit(const int ntypes, double **cutsq, double **host_a,
+void gauss_gpu_reinit(const int ntypes, double **cutsq, double **host_a,
                    double **b, double **offset);
 void gauss_gpu_clear();
 int ** gauss_gpu_compute_n(const int ago, const int inum,

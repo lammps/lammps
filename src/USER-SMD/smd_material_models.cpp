@@ -75,7 +75,7 @@ void ShockEOS(double rho, double rho0, double e, double e0, double c0, double S,
 	double mu = rho / rho0 - 1.0;
 	double pH = rho0 * square(c0) * mu * (1.0 + mu) / square(1.0 - (S - 1.0) * mu);
 
-	pFinal = (pH + rho * Gamma * (e - e0));
+	pFinal = (-pH + rho * Gamma * (e - e0));
 
 	//printf("shock EOS: rho = %g, rho0 = %g, Gamma=%f, c0=%f, S=%f, e=%f, e0=%f\n", rho, rho0, Gamma, c0, S, e, e0);
 	//printf("pFinal = %f\n", pFinal);

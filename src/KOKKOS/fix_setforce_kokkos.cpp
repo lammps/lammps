@@ -22,10 +22,11 @@
 #include "respa.h"
 #include "input.h"
 #include "variable.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "force.h"
 #include "atom_masks.h"
+#include "kokkos_base.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,7 +46,7 @@ FixSetForceKokkos<DeviceType>::FixSetForceKokkos(LAMMPS *lmp, int narg, char **a
   datamask_modify = EMPTY_MASK;
 
   memory->destroy(sforce);
-  memory->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
+  memoryKK->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +56,7 @@ FixSetForceKokkos<DeviceType>::~FixSetForceKokkos()
 {
   if (copymode) return;
 
-  memory->destroy_kokkos(k_sforce,sforce);
+  memoryKK->destroy_kokkos(k_sforce,sforce);
   sforce = NULL;
 }
 
@@ -90,7 +91,8 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
     region = domain->regions[iregion];
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("setforce:k_match",nlocal);
-    region->match_all_kokkos(groupbit,k_match);
+    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
+    regionKKBase->match_all_kokkos(groupbit,k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();
   }
@@ -99,8 +101,8 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
 
   if (varflag == ATOM && atom->nmax > maxatom) {
     maxatom = atom->nmax;
-    memory->destroy_kokkos(k_sforce,sforce);
-    memory->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
+    memoryKK->destroy_kokkos(k_sforce,sforce);
+    memoryKK->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
   }
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;

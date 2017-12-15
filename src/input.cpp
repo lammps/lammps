@@ -27,7 +27,6 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
-#include "accelerator_kokkos.h"
 #include "group.h"
 #include "domain.h"
 #include "output.h"
@@ -530,8 +529,11 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         value = variable->retrieve(var);
       }
 
-      if (value == NULL) error->one(FLERR,"Substitution for illegal variable");
-
+      if (value == NULL) {
+        char str[128];
+        sprintf(str,"Substitution for illegal variable %s",var);
+        error->one(FLERR,str);
+      }
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
 
@@ -1172,6 +1174,7 @@ void Input::print()
 
   FILE *fp = NULL;
   int screenflag = 1;
+  int universeflag = 0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -1194,6 +1197,12 @@ void Input::print()
       else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
       else error->all(FLERR,"Illegal print command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"universe") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
+      if (strcmp(arg[iarg+1],"yes") == 0) universeflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) universeflag = 0;
+      else error->all(FLERR,"Illegal print command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal print command");
   }
 
@@ -1204,6 +1213,10 @@ void Input::print()
       fprintf(fp,"%s\n",line);
       fclose(fp);
     }
+  }
+  if (universeflag && (universe->me == 0)) {
+    if (universe->uscreen)  fprintf(universe->uscreen, "%s\n",line);
+    if (universe->ulogfile) fprintf(universe->ulogfile,"%s\n",line);
   }
 }
 

@@ -7,11 +7,17 @@
 :line
 
 fix rigid command :h3
+fix rigid/omp command :h3
 fix rigid/nve command :h3
+fix rigid/nve/omp command :h3
 fix rigid/nvt command :h3
+fix rigid/nvt/omp command :h3
 fix rigid/npt command :h3
+fix rigid/npt/omp command :h3
 fix rigid/nph command :h3
+fix rigid/nph/omp command :h3
 fix rigid/small command :h3
+fix rigid/small/omp command :h3
 fix rigid/nve/small command :h3
 fix rigid/nvt/small command :h3
 fix rigid/npt/small command :h3
@@ -28,7 +34,7 @@ bodystyle = {single} or {molecule} or {group} :l
   {molecule} args = none
   {custom} args = {i_propname} or {v_varname}
     i_propname = an integer property defined via fix property/atom
-    v_varname  = an atom-style or atomfile-style variable 
+    v_varname  = an atom-style or atomfile-style variable
   {group} args = N groupID1 groupID2 ...
     N = # of groups
     groupID1, groupID2, ... = list of N group IDs :pre
@@ -93,7 +99,7 @@ fix 1 clump rigid custom v_bodyid :pre
 fix 0 all property/atom i_bodyid
 read_restart data.rigid fix 0 NULL Bodies
 fix 1 clump rigid/small custom i_bodyid :pre
-	
+
 [Description:]
 
 Treat one or more sets of atoms as independent rigid bodies.  This

@@ -155,8 +155,7 @@ void FixStore::reset_global(int nrow_caller, int ncol_caller)
   else memory->create(astore,nrow,ncol,"fix/store:astore");
   memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
 
-
-  printf("AAA HOW GET HERE\n");
+ // printf("AAA HOW GET HERE\n");
 }
 
 /* ----------------------------------------------------------------------

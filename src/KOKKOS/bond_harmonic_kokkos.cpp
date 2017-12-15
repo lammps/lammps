@@ -23,7 +23,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -48,8 +48,8 @@ template<class DeviceType>
 BondHarmonicKokkos<DeviceType>::~BondHarmonicKokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
   }
 }
 
@@ -68,15 +68,15 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     //if(k_eatom.dimension_0()<maxeatom) { // won't work without adding zero functor
-      memory->destroy_kokkos(k_eatom,eatom);
-      memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
+      memoryKK->destroy_kokkos(k_eatom,eatom);
+      memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
       d_eatom = k_eatom.template view<DeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.dimension_0()<maxvatom) { // won't work without adding zero functor
-      memory->destroy_kokkos(k_vatom,vatom);
-      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      memoryKK->destroy_kokkos(k_vatom,vatom);
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
     //}
   }

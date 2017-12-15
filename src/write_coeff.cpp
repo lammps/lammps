@@ -23,6 +23,7 @@
 #include "force.h"
 #include "universe.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 

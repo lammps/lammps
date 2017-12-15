@@ -50,7 +50,6 @@
 #include <cstdio>
 
 #include <utility>
-#include <cstdalign>
 #include <impl/Kokkos_Spinwait.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 

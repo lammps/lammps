@@ -58,6 +58,7 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestDynamicView.hpp>
+#include <TestScatterView.hpp>
 
 #include <iomanip>
 
@@ -148,6 +149,11 @@ TEST_F( serial, bitset )
     test_dualview_combinations<int,Kokkos::Serial>(size);               \
   }
 
+#define SERIAL_SCATTERVIEW_TEST( size )             \
+  TEST_F( serial, scatterview_##size##x) {                      \
+    test_scatter_view<Kokkos::Serial>(size);               \
+  }
+
 SERIAL_INSERT_TEST(close, 100000, 90000, 100, 500, true)
 SERIAL_INSERT_TEST(far, 100000, 90000, 100, 500, false)
 SERIAL_FAILED_INSERT_TEST( 10000, 1000 )
@@ -156,6 +162,10 @@ SERIAL_DEEP_COPY( 10000, 1 )
 SERIAL_VECTOR_COMBINE_TEST( 10 )
 SERIAL_VECTOR_COMBINE_TEST( 3057 )
 SERIAL_DUALVIEW_COMBINE_TEST( 10 )
+
+SERIAL_SCATTERVIEW_TEST( 10 )
+
+SERIAL_SCATTERVIEW_TEST( 1000000 )
 
 #undef SERIAL_INSERT_TEST
 #undef SERIAL_FAILED_INSERT_TEST

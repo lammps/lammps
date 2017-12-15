@@ -79,14 +79,18 @@ struct TestViewMappingSubview
   typedef Kokkos::View< int***[13][14], Kokkos::LayoutLeft, ExecSpace >  DLT;
   typedef Kokkos::Subview< DLT, range, int, int, int, int >  DLS1;
 
+  #if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
   static_assert( DLS1::rank == 1 && std::is_same< typename DLS1::array_layout, Kokkos::LayoutLeft >::value
                , "Subview layout error for rank 1 subview of left-most range of LayoutLeft" );
+  #endif
 
   typedef Kokkos::View< int***[13][14], Kokkos::LayoutRight, ExecSpace >  DRT;
   typedef Kokkos::Subview< DRT, int, int, int, int, range >  DRS1;
 
+  #if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
   static_assert( DRS1::rank == 1 && std::is_same< typename DRS1::array_layout, Kokkos::LayoutRight >::value
                , "Subview layout error for rank 1 subview of right-most range of LayoutRight" );
+  #endif
 
   AT Aa;
   AS Ab;

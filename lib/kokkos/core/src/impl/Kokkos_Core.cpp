@@ -132,10 +132,8 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   // struct, you may remove this line of code.
   (void) args;
 
-  if( std::is_same< Kokkos::Serial , Kokkos::DefaultExecutionSpace >::value ||
-      std::is_same< Kokkos::Serial , Kokkos::HostSpace::execution_space >::value ) {
-    Kokkos::Serial::initialize();
-  }
+  // Always initialize Serial if it is configure time enabled
+  Kokkos::Serial::initialize();
 #endif
 
 #if defined( KOKKOS_ENABLE_OPENMPTARGET )
@@ -234,12 +232,8 @@ void finalize_internal( const bool all_spaces = false )
 #endif
 
 #if defined( KOKKOS_ENABLE_SERIAL )
-  if( std::is_same< Kokkos::Serial , Kokkos::DefaultExecutionSpace >::value ||
-      std::is_same< Kokkos::Serial , Kokkos::HostSpace::execution_space >::value ||
-      all_spaces ) {
-    if(Kokkos::Serial::is_initialized())
-      Kokkos::Serial::finalize();
-  }
+  if(Kokkos::Serial::is_initialized())
+    Kokkos::Serial::finalize();
 #endif
 
   g_is_initialized = false;
@@ -383,6 +377,7 @@ void initialize(int& narg, char* arg[])
         }
         if((strncmp(arg[iarg],"--kokkos-ndevices",17) == 0) || !kokkos_ndevices_found)
           ndevices = atoi(num1_only);
+        delete [] num1_only;
 
         if( num2 != NULL ) {
           if(( !Impl::is_unsigned_int(num2+1) ) || (strlen(num2)==1) )
@@ -439,7 +434,7 @@ void initialize(int& narg, char* arg[])
          std::cout << "The following arguments exist also without prefix 'kokkos' (e.g. --help)." << std::endl;
          std::cout << "The prefixed arguments will be removed from the list by Kokkos::initialize()," << std::endl;
          std::cout << "the non-prefixed ones are not removed. Prefixed versions take precedence over " << std::endl;
-         std::cout << "non prefixed ones, and the last occurence of an argument overwrites prior" << std::endl;
+         std::cout << "non prefixed ones, and the last occurrence of an argument overwrites prior" << std::endl;
          std::cout << "settings." << std::endl;
          std::cout << std::endl;
          std::cout << "--kokkos-help               : print this message" << std::endl;

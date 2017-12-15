@@ -52,6 +52,27 @@
 #include <impl/Kokkos_SharedAlloc.hpp>
 
 namespace Kokkos {
+namespace Impl {
+/* Report violation of size constraints:
+ *   min_block_alloc_size <= max_block_alloc_size
+ *   max_block_alloc_size <= min_superblock_size 
+ *   min_superblock_size  <= max_superblock_size
+ *   min_superblock_size  <= min_total_alloc_size
+ *   min_superblock_size  <= min_block_alloc_size * 
+ *                           max_block_per_superblock
+ */
+void memory_pool_bounds_verification
+  ( size_t min_block_alloc_size
+  , size_t max_block_alloc_size
+  , size_t min_superblock_size
+  , size_t max_superblock_size
+  , size_t max_block_per_superblock
+  , size_t min_total_alloc_size
+  );
+}
+}
+
+namespace Kokkos {
 
 template< typename DeviceType >
 class MemoryPool {
@@ -332,39 +353,23 @@ public:
 
       //--------------------------------------------------
 
-      {
-        /* Enforce size constraints:
-         *   min_block_alloc_size <= max_block_alloc_size
-         *   max_block_alloc_size <= min_superblock_size 
-         *   min_superblock_size  <= max_superblock_size
-         *   min_superblock_size  <= min_total_alloc_size
-         *   min_superblock_size  <= min_block_alloc_size * 
-         *                           max_block_per_superblock
-         */
+      /* Enforce size constraints:
+       *   min_block_alloc_size <= max_block_alloc_size
+       *   max_block_alloc_size <= min_superblock_size 
+       *   min_superblock_size  <= max_superblock_size
+       *   min_superblock_size  <= min_total_alloc_size
+       *   min_superblock_size  <= min_block_alloc_size * 
+       *                           max_block_per_superblock
+       */
 
-        const size_t max_superblock =
-          min_block_alloc_size * max_block_per_superblock ;
-
-        if ( ( size_t(max_superblock_size) < min_superblock_size ) ||
-             ( min_total_alloc_size < min_superblock_size ) ||
-             ( max_superblock       < min_superblock_size ) ||
-             ( min_superblock_size  < max_block_alloc_size ) ||
-             ( max_block_alloc_size < min_block_alloc_size ) ) {
-
-#if 1
-  printf( "  MemoryPool min_block_alloc_size(%ld) max_block_alloc_size(%ld) min_superblock_size(%ld) min_total_alloc_size(%ld) ; max_superblock_size(%ld) max_block_per_superblock(%ld)\n"
-        , min_block_alloc_size
+      Kokkos::Impl::memory_pool_bounds_verification
+        ( min_block_alloc_size
         , max_block_alloc_size
         , min_superblock_size
+        , max_superblock_size
+        , max_block_per_superblock
         , min_total_alloc_size
-        , size_t(max_superblock_size)
-        , size_t(max_block_per_superblock)
         );
-#endif
-
-          Kokkos::abort("Kokkos MemoryPool size constraint violation");
-        }
-      }
 
       //--------------------------------------------------
       // Block and superblock size is power of two:

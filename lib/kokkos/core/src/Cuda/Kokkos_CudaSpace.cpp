@@ -366,7 +366,7 @@ SharedAllocationRecord< Kokkos::CudaSpace , void >::
   if(Kokkos::Profiling::profileLibraryLoaded()) {
 
     SharedAllocationHeader header ;
-    Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>::DeepCopy( & header , RecordBase::m_alloc_ptr , sizeof(SharedAllocationHeader) );
+    Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( & header , RecordBase::m_alloc_ptr , sizeof(SharedAllocationHeader) );
 
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::CudaSpace::name()),header.m_label,
@@ -446,7 +446,7 @@ SharedAllocationRecord( const Kokkos::CudaSpace & arg_space
           );
 
   // Copy to device memory
-  Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>::DeepCopy( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
+  Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
 }
 
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
@@ -655,7 +655,7 @@ SharedAllocationRecord< Kokkos::CudaSpace , void >::get_record( void * alloc_ptr
   Header const * const head_cuda = alloc_ptr ? Header::get_header( alloc_ptr ) : (Header*) 0 ;
 
   if ( alloc_ptr ) {
-    Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , head_cuda , sizeof(SharedAllocationHeader) );
+    Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , head_cuda , sizeof(SharedAllocationHeader) );
   }
 
   RecordCuda * const record = alloc_ptr ? static_cast< RecordCuda * >( head.m_record ) : (RecordCuda *) 0 ;
@@ -724,7 +724,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & , bool detail )
   if ( detail ) {
     do {
       if ( r->m_alloc_ptr ) {
-        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
+        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
       }
       else {
         head.m_label[0] = 0 ;
@@ -759,7 +759,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & , bool detail )
     do {
       if ( r->m_alloc_ptr ) {
 
-        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
+        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
 
         //Formatting dependent on sizeof(uintptr_t)
         const char * format_string;

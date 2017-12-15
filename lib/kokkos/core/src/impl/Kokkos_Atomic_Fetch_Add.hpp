@@ -49,6 +49,10 @@
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_FETCH_ADD_HPP )
 #define KOKKOS_ATOMIC_FETCH_ADD_HPP
 
+#if defined(KOKKOS_ENABLE_CUDA)
+#include<Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
+#endif
+
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
@@ -139,7 +143,7 @@ T atomic_fetch_add( volatile T * const dest ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -151,7 +155,7 @@ T atomic_fetch_add( volatile T * const dest ,
         done = 1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 }

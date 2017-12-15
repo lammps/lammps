@@ -73,16 +73,16 @@ public:
   KOKKOS_INLINE_FUNCTION
   UniqueToken() : m_buffer(0), m_count(0) {}
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken( const UniqueToken & ) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken( UniqueToken && )      = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken & operator=( const UniqueToken & ) = default ;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken & operator=( UniqueToken && ) = default ;
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()

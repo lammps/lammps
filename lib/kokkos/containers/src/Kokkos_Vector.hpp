@@ -56,6 +56,7 @@
 template< class Scalar, class Arg1Type = void>
 class vector : public DualView<Scalar*,LayoutLeft,Arg1Type> {
 
+public:
   typedef Scalar value_type;
   typedef Scalar* pointer;
   typedef const Scalar* const_pointer;

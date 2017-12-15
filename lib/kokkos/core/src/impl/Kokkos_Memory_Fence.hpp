@@ -45,7 +45,9 @@
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_MEMORY_FENCE_HPP )
 #define KOKKOS_MEMORY_FENCE_HPP
 
+#if !defined(_OPENMP)
 #include <atomic>
+#endif
 
 namespace Kokkos {
 
@@ -54,8 +56,10 @@ namespace Kokkos {
 KOKKOS_FORCEINLINE_FUNCTION
 void memory_fence()
 {
-#if defined( __CUDA_ARCH__ )
+#if   defined( __CUDA_ARCH__ )
   __threadfence();
+#elif defined( _OPENMP )
+  #pragma omp flush
 #else
   std::atomic_thread_fence( std::memory_order_seq_cst );
 #endif
@@ -71,6 +75,8 @@ void store_fence()
 {
 #if defined( __CUDA_ARCH__ )
   __threadfence();
+#elif defined( _OPENMP )
+  #pragma omp flush
 #else
   std::atomic_thread_fence( std::memory_order_seq_cst );
 #endif
@@ -86,6 +92,8 @@ void load_fence()
 {
 #if defined( __CUDA_ARCH__ )
   __threadfence();
+#elif defined( _OPENMP )
+  #pragma omp flush
 #else
   std::atomic_thread_fence( std::memory_order_seq_cst );
 #endif

@@ -71,7 +71,6 @@ Fixes :h1
    fix_meso_stationary
    fix_momentum
    fix_move
-   fix_move_python
    fix_mscg
    fix_msst
    fix_mvv_dpd
@@ -116,7 +115,8 @@ Fixes :h1
    fix_press_berendsen
    fix_print
    fix_property_atom
-   fix_python
+   fix_python_invoke
+   fix_python_move
    fix_qbmsst
    fix_qeq
    fix_qeq_comb

@@ -16,6 +16,9 @@ style_region.h
 style_neigh_bin.h
 style_neigh_pair.h
 style_neigh_stencil.h
+# deleted on 15 December 2017
+fix_python.cpp
+fix_python.h
 # deleted on 11 October 2017
 fix_shear_history_omp.cpp
 fix_shear_history_omp.h

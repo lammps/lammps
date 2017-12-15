@@ -245,7 +245,8 @@ fix_pour.html
 fix_press_berendsen.html
 fix_print.html
 fix_property_atom.html
-fix_python.html
+fix_python_invoke.html
+fix_python_move.html
 fix_qbmsst.html
 fix_qeq.html
 fix_qeq_comb.html

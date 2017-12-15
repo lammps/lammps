@@ -6,22 +6,22 @@
 
 :line
 
-fix move/python command :h3
+fix python/move command :h3
 
 [Syntax:]
 
-fix move/python pymodule.CLASS :pre
+fix python/move pymodule.CLASS :pre
 
 pymodule.CLASS = use class [CLASS] in module/file [pymodule] to compute how to move atoms
 
 [Examples:]
 
-fix  1 all move/python py_nve.NVE
-fix  1 all move/python py_nve.NVE_OPT :pre
+fix  1 all python/move py_nve.NVE
+fix  1 all python/move py_nve.NVE_OPT :pre
 
 [Description:]
 
-The {move/python} fix style provides a way to define ways how particles
+The {python/move} fix style provides a way to define ways how particles
 are moved during an MD run from python script code, that is loaded from
 a file into LAMMPS and executed at the various steps where other fixes
 can be executed. This python script must contain specific python class
@@ -96,7 +96,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"fix nve"_fix_nve.html, "fix python"_fix_python.html
+"fix nve"_fix_nve.html, "fix python/invoke"_fix_python_invoke.html
 
 [Default:] none
 

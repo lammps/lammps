@@ -523,6 +523,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
       kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
     else
       kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf1,swap[m].npack,k_packlist,m);
+    DeviceType::fence();
 
     if (swap[m].sendproc != me) {
       MPI_Irecv(k_buf2.view<DeviceType>().ptr_on_device(),nforward*swap[m].nunpack,MPI_FFT_SCALAR,
@@ -533,6 +534,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
     }
 
     kspaceKKBase->unpack_forward_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
+    DeviceType::fence();
   }
 }
 
@@ -554,6 +556,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
       kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
     else
       kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf1,swap[m].nunpack,k_unpacklist,m);
+    DeviceType::fence();
 
     if (swap[m].recvproc != me) {
       MPI_Irecv(k_buf2.view<DeviceType>().ptr_on_device(),nreverse*swap[m].npack,MPI_FFT_SCALAR,
@@ -564,6 +567,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
     }
 
     kspaceKKBase->unpack_reverse_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
+    DeviceType::fence();
   }
 }
 

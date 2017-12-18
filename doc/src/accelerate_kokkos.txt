@@ -53,9 +53,9 @@ See the [Advanced Kokkos Options] section below for a listing of all KOKKOS_ARCH
 
 [Compile for CPU-only (MPI only, no threading):]
 
-use a C++11 compatible compiler and
-set KOKKOS_ARCH variable in /src/MAKE/OPTIONS/Makefile.kokkos_mpi_only
-as described above
+use a C++11 compatible compiler and set KOKKOS_ARCH variable in
+/src/MAKE/OPTIONS/Makefile.kokkos_mpi_only as described above. Then do the
+following:
 
 cd lammps/src
 make yes-kokkos
@@ -67,8 +67,9 @@ NOTE: To build with Kokkos support for OpenMP threading, your compiler must supp
 OpenMP interface. You should have one or more multi-core CPUs so that
 multiple threads can be launched by each MPI task running on a CPU.
 
-use a C++11 compatible compiler and
-set KOKKOS_ARCH variable in /src/MAKE/OPTIONS/Makefile.kokkos_omp
+use a C++11 compatible compiler and set KOKKOS_ARCH variable in
+/src/MAKE/OPTIONS/Makefile.kokkos_omp as described above.  Then do the
+following:
 
 cd lammps/src
 make yes-kokkos
@@ -76,7 +77,7 @@ make kokkos_omp :pre
 
 [Compile for Intel KNL Xeon Phi (Intel Compiler, OpenMPI):]
 
-use a C++11 compatible compiler and
+use a C++11 compatible compiler and do the following:
 
 cd lammps/src
 make yes-kokkos
@@ -89,8 +90,9 @@ version 7.5 or later must be installed on your system. See the
 discussion for the "GPU"_accelerate_gpu.html package for details of
 how to check and do this.
 
-use a C++11 compatible compiler and
-set KOKKOS_ARCH variable in /src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi for both GPU and CPU
+use a C++11 compatible compiler and set KOKKOS_ARCH variable in
+/src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi for both GPU and CPU as described
+above.  Then do the following:
 
 cd lammps/src
 make yes-kokkos

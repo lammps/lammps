@@ -64,6 +64,10 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   nmax = nmax = m_cap = 0;
   allocated_flag = 0;
   nprev = 4;
+
+  memory->destroy(s_hist);
+  memory->destroy(t_hist);
+  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */

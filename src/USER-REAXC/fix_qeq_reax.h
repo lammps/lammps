@@ -122,15 +122,15 @@ class FixQEqReax : public Fix {
   //int GMRES(double*,double*);
   virtual void sparse_matvec(sparse_matrix*,double*,double*);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  virtual int pack_forward_comm(int, int *, double *, int, int *);
+  virtual void unpack_forward_comm(int, int, double *);
+  virtual int pack_reverse_comm(int, int, double *);
+  virtual void unpack_reverse_comm(int, int *, double *);
+  virtual double memory_usage();
+  virtual void grow_arrays(int);
+  virtual void copy_arrays(int, int, int);
+  virtual int pack_exchange(int, double *);
+  virtual int unpack_exchange(int, double *);
 
   virtual double parallel_norm( double*, int );
   virtual double parallel_dot( double*, double*, int );

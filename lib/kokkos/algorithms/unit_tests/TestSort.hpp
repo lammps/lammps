@@ -211,12 +211,15 @@ void test_dynamic_view_sort(unsigned int n )
 
   const size_t upper_bound = 2 * n ;
 
+  const size_t total_alloc_size = n * sizeof(KeyType) * 1.2 ;
+  const size_t superblock_size  = std::min(total_alloc_size, size_t(1000000));
+
   typename KeyDynamicViewType::memory_pool
     pool( memory_space()
         , n * sizeof(KeyType) * 1.2
         ,     500 /* min block size in bytes */
         ,   30000 /* max block size in bytes */
-        , 1000000 /* min superblock size in bytes */
+        , superblock_size
         );
 
   KeyDynamicViewType keys("Keys",pool,upper_bound);
@@ -271,8 +274,10 @@ void test_sort(unsigned int N)
 {
   test_1D_sort<ExecutionSpace,KeyType>(N*N*N, true);
   test_1D_sort<ExecutionSpace,KeyType>(N*N*N, false);
+#if !defined(KOKKOS_ENABLE_ROCM)
   test_3D_sort<ExecutionSpace,KeyType>(N);
   test_dynamic_view_sort<ExecutionSpace,KeyType>(N*N);
+#endif
 }
 
 }

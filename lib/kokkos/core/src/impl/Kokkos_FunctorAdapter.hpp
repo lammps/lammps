@@ -476,7 +476,7 @@ template< class FunctorType , class ArgTag , class T , class Enable >
 struct FunctorValueInit< FunctorType , ArgTag , T & , Enable >
 {
   KOKKOS_FORCEINLINE_FUNCTION static
-  T & init( const FunctorType & f , void * p )
+  T & init( const FunctorType & , void * p )
     { return *( new(p) T() ); };
 };
 

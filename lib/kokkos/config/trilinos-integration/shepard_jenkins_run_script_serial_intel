@@ -1,6 +1,6 @@
 #!/bin/bash -el
 ulimit -c 0
-module load devpack/openmpi/1.10.0/intel/16.1.056/cuda/none 
+module load devpack/openmpi/2.1.1/intel/17.4.196/cuda/none
 
 KOKKOS_BRANCH=$1
 TRILINOS_UPDATE_BRANCH=$2

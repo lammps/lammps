@@ -41,47 +41,14 @@
 //@HEADER
 */
 
-#ifndef KOKKOS_IMPL_RENDEZVOUS_HPP
-#define KOKKOS_IMPL_RENDEZVOUS_HPP
+#include <threads/TestThreads_Category.hpp>
+#include <TestViewSubview.hpp>
 
-#include <cstdint>
+namespace Test {
 
-namespace Kokkos { namespace Impl {
-
-inline
-constexpr int rendezvous_buffer_size( int max_members ) noexcept
+TEST_F( TEST_CATEGORY, view_test_unmanaged_subview_reset )
 {
-  return (((max_members + 7) / 8) * 4) + 4 + 4;
+  TestViewSubview::test_unmanaged_subview_reset< TEST_EXECSPACE >();
 }
 
-/** \brief  Thread pool rendezvous
- *
- *  Rendezvous pattern:
- *   if ( rendezvous(root) ) {
- *     ... only root thread here while all others wait ...
- *     rendezvous_release();
- *   }
- *   else {
- *     ... all other threads release here ...
- *   }
- *
- *  Requires: buffer[ rendezvous_buffer_size( max_threads ) ];
- *
- *  When slow != 0 the expectation is thread arrival will be 
- *  slow so the threads that arrive early should quickly yield
- *  their core to the runtime thus possibly allowing the late
- *  arriving threads to have more resources
- *  (e.g., power and clock frequency).
- */
-int rendezvous( volatile int64_t * const buffer
-              , int const size
-              , int const rank
-              , int const slow = 0 ) noexcept ;
-
-void rendezvous_release( volatile int64_t * const buffer ) noexcept ;
-
-
-}} // namespace Kokkos::Impl
-
-#endif // KOKKOS_IMPL_RENDEZVOUS_HPP
-
+} // namespace Test

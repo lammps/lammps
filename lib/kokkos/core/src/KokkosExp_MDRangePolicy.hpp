@@ -55,7 +55,7 @@
 #include <Cuda/KokkosExp_Cuda_IterateTile_Refactor.hpp>
 #endif
 
-namespace Kokkos { namespace Experimental {
+namespace Kokkos {
 
 // ------------------------------------------------------------------ //
 
@@ -331,11 +331,23 @@ struct MDRangePolicy
   }
 
 };
+
+} // namespace Kokkos
+
+// For backward compatibility
+namespace Kokkos { namespace Experimental {
+  using Kokkos::MDRangePolicy;
+  using Kokkos::Rank;
+  using Kokkos::Iterate;
+} } // end Kokkos::Experimental
 // ------------------------------------------------------------------ //
 
 // ------------------------------------------------------------------ //
 //md_parallel_for - deprecated use parallel_for
 // ------------------------------------------------------------------ //
+
+namespace Kokkos { namespace Experimental {
+
 template <typename MDRange, typename Functor, typename Enable = void>
 void md_parallel_for( MDRange const& range
                     , Functor const& f
@@ -347,7 +359,7 @@ void md_parallel_for( MDRange const& range
                       ) >::type* = 0
                     )
 {
-  Impl::MDFunctor<MDRange, Functor, void> g(range, f);
+  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, void> g(range, f);
 
   using range_policy = typename MDRange::impl_range_policy;
 
@@ -365,7 +377,7 @@ void md_parallel_for( const std::string& str
                       ) >::type* = 0
                     )
 {
-  Impl::MDFunctor<MDRange, Functor, void> g(range, f);
+  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, void> g(range, f);
 
   using range_policy = typename MDRange::impl_range_policy;
 
@@ -385,7 +397,7 @@ void md_parallel_for( const std::string& str
                       ) >::type* = 0
                     )
 {
-  Impl::DeviceIterateTile<MDRange, Functor, typename MDRange::work_tag> closure(range, f);
+  Kokkos::Impl::DeviceIterateTile<MDRange, Functor, typename MDRange::work_tag> closure(range, f);
   closure.execute();
 }
 
@@ -400,7 +412,7 @@ void md_parallel_for( MDRange const& range
                       ) >::type* = 0
                     )
 {
-  Impl::DeviceIterateTile<MDRange, Functor, typename MDRange::work_tag> closure(range, f);
+  Kokkos::Impl::DeviceIterateTile<MDRange, Functor, typename MDRange::work_tag> closure(range, f);
   closure.execute();
 }
 #endif
@@ -421,7 +433,7 @@ void md_parallel_reduce( MDRange const& range
                       ) >::type* = 0
                     )
 {
-  Impl::MDFunctor<MDRange, Functor, ValueType> g(range, f);
+  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, ValueType> g(range, f);
 
   using range_policy = typename MDRange::impl_range_policy;
   Kokkos::parallel_reduce( str, range_policy(0, range.m_num_tiles).set_chunk_size(1), g, v );
@@ -439,7 +451,7 @@ void md_parallel_reduce( const std::string& str
                       ) >::type* = 0
                     )
 {
-  Impl::MDFunctor<MDRange, Functor, ValueType> g(range, f);
+  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, ValueType> g(range, f);
 
   using range_policy = typename MDRange::impl_range_policy;
 
@@ -448,7 +460,7 @@ void md_parallel_reduce( const std::string& str
 
 // Cuda - md_parallel_reduce not implemented - use parallel_reduce
 
-}} // namespace Kokkos::Experimental
+} } // namespace Kokkos::Experimental
 
 #endif //KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
 

@@ -517,7 +517,7 @@ public:
 
     size_type find_attempts = 0;
 
-    enum { bounded_find_attempts = 32u };
+    enum : unsigned { bounded_find_attempts = 32u };
     const size_type max_attempts = (m_bounded_insert && (bounded_find_attempts < m_available_indexes.max_hint()) ) ?
                                     bounded_find_attempts :
                                     m_available_indexes.max_hint();

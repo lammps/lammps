@@ -379,12 +379,13 @@ Impl::PerThreadValue PerThread(const int& arg);
  *  uses variadic templates. Each and any of the template arguments can
  *  be omitted.
  *
- *  Possible Template arguments and there default values:
+ *  Possible Template arguments and their default values:
  *    ExecutionSpace (DefaultExecutionSpace): where to execute code. Must be enabled.
  *    WorkTag (none): Tag which is used as the first argument for the functor operator.
  *    Schedule<Type> (Schedule<Static>): Scheduling Policy (Dynamic, or Static).
  *    IndexType<Type> (IndexType<ExecutionSpace::size_type>: Integer Index type used to iterate over the Index space.
- *    LaunchBounds<int,int> (LaunchBounds<1024,1>: Launch Bounds for CUDA compilation.
+ *    LaunchBounds<unsigned,unsigned> Launch Bounds for CUDA compilation,
+ *    default of LaunchBounds<0,0> indicates no launch bounds specified.
  */
 template< class ... Properties>
 class TeamPolicy: public

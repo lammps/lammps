@@ -107,13 +107,13 @@ public:
 
       // Wait for fan-in threads
       for ( n = 1 ; ( ! ( m_team_rank_rev & n ) ) && ( ( j = m_team_rank_rev + n ) < m_team_size ) ; n <<= 1 ) {
-        Impl::spinwait_while_equal( m_team_base[j]->state() , ThreadsExec::Active );
+        Impl::spinwait_while_equal<int>( m_team_base[j]->state() , ThreadsExec::Active );
       }
 
       // If not root then wait for release
       if ( m_team_rank_rev ) {
         m_exec->state() = ThreadsExec::Rendezvous ;
-        Impl::spinwait_while_equal( m_exec->state() , ThreadsExec::Rendezvous );
+        Impl::spinwait_while_equal<int>( m_exec->state() , ThreadsExec::Rendezvous );
       }
 
       return ! m_team_rank_rev ;

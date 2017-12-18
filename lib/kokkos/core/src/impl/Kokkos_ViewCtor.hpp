@@ -111,7 +111,9 @@ struct ViewCtorProp< void , CommonViewAllocProp<Specialize,T> >
 
   using type = CommonViewAllocProp<Specialize,T> ;
 
+  KOKKOS_INLINE_FUNCTION
   ViewCtorProp( const type & arg ) : value( arg ) {}
+  KOKKOS_INLINE_FUNCTION
   ViewCtorProp( type && arg ) : value( arg ) {}
 
   type value ;
@@ -128,6 +130,7 @@ struct ViewCtorProp< void , std::integral_constant<unsigned,I> >
   ViewCtorProp & operator = ( const ViewCtorProp & ) = default ;
 
   template< typename P >
+  KOKKOS_INLINE_FUNCTION
   ViewCtorProp( const P & ) {}
 };
 

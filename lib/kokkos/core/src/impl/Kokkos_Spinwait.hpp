@@ -46,47 +46,95 @@
 #define KOKKOS_SPINWAIT_HPP
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_Atomic.hpp>
 
 #include <cstdint>
+
+#include <type_traits>
 
 namespace Kokkos {
 namespace Impl {
 
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 
-void spinwait_while_equal( volatile int32_t & flag , const int32_t value );
-void spinwait_until_equal( volatile int32_t & flag , const int32_t value );
+enum class WaitMode : int {
+    ACTIVE   // Used for tight loops to keep threads active longest
+  , PASSIVE  // Used to quickly yield the thread to quite down the system
+};
 
-void spinwait_while_equal( volatile int64_t & flag , const int64_t value );
-void spinwait_until_equal( volatile int64_t & flag , const int64_t value );
 
-void yield_while_equal( volatile int32_t & flag , const int32_t value );
-void yield_until_equal( volatile int32_t & flag , const int32_t value );
+void host_thread_yield( const uint32_t i , const WaitMode mode );
 
-void yield_while_equal( volatile int64_t & flag , const int64_t value );
-void yield_until_equal( volatile int64_t & flag , const int64_t value );
+
+template <typename T>
+typename std::enable_if< std::is_integral<T>::value, void>::type
+spinwait_while_equal( T const volatile & flag, const T value )
+{
+  Kokkos::store_fence();
+  uint32_t i = 0 ;
+  while( value == flag ) {
+    host_thread_yield(++i, WaitMode::ACTIVE);
+  }
+  Kokkos::load_fence();
+}
+
+template <typename T>
+typename std::enable_if< std::is_integral<T>::value, void>::type
+yield_while_equal( T const volatile & flag, const T value )
+{
+  Kokkos::store_fence();
+  uint32_t i = 0 ;
+  while( value == flag ) {
+    host_thread_yield(++i, WaitMode::PASSIVE);
+  }
+  Kokkos::load_fence();
+}
+
+template <typename T>
+typename std::enable_if< std::is_integral<T>::value, void>::type
+spinwait_until_equal( T const volatile & flag, const T value )
+{
+  Kokkos::store_fence();
+  uint32_t i = 0 ;
+  while( value != flag ) {
+    host_thread_yield(++i, WaitMode::ACTIVE);
+  }
+  Kokkos::load_fence();
+}
+
+template <typename T>
+typename std::enable_if< std::is_integral<T>::value, void>::type
+yield_until_equal( T const volatile & flag, const T value )
+{
+  Kokkos::store_fence();
+  uint32_t i = 0 ;
+  while( value != flag ) {
+    host_thread_yield(++i, WaitMode::PASSIVE);
+  }
+  Kokkos::load_fence();
+}
 
 #else
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void spinwait_while_equal( volatile int32_t & , const int32_t ) {}
-KOKKOS_INLINE_FUNCTION
-void spinwait_until_equal( volatile int32_t & , const int32_t ) {}
+typename std::enable_if< std::is_integral<T>::value, void>::type
+spinwait_while_equal( T const volatile & flag, const T value ) {}
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void spinwait_while_equal( volatile int64_t & , const int64_t ) {}
-KOKKOS_INLINE_FUNCTION
-void spinwait_until_equal( volatile int64_t & , const int64_t ) {}
+typename std::enable_if< std::is_integral<T>::value, void>::type
+yield_while_equal( T const volatile & flag, const T value ) {}
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void yield_while_equal( volatile int32_t & , const int32_t ) {}
-KOKKOS_INLINE_FUNCTION
-void yield_until_equal( volatile int32_t & , const int32_t ) {}
+typename std::enable_if< std::is_integral<T>::value, void>::type
+spinwait_until_equal( T const volatile & flag, const T value ) {}
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void yield_while_equal( volatile int64_t & , const int64_t ) {}
-KOKKOS_INLINE_FUNCTION
-void yield_until_equal( volatile int64_t & , const int64_t ) {}
+typename std::enable_if< std::is_integral<T>::value, void>::type
+yield_until_equal( T const volatile & flag, const T value ) {}
 
 #endif
 

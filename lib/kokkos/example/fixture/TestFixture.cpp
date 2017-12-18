@@ -53,6 +53,10 @@ template void test_fixture< Kokkos::HostSpace::execution_space >();
 template void test_fixture<Kokkos::Cuda>();
 #endif
 
+#if defined( KOKKOS_ENABLE_ROCM )
+template void test_fixture<Kokkos::Experimental::ROCm>();
+#endif
+
 } /* namespace Example */
 } /* namespace Kokkos */
 

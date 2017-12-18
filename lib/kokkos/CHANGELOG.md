@@ -1,5 +1,75 @@
 # Change Log
 
+## [2.5.00](https://github.com/kokkos/kokkos/tree/2.5.00) (2017-12-15)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.04.11...2.5.00)
+
+**Part of the Kokkos C++ Performance Portability Programming EcoSystem 2.5**      
+
+**Implemented enhancements:**
+
+- Provide Makefile.kokkos logic for CMake and TriBITS [\#878](https://github.com/kokkos/kokkos/issues/878)
+- Add Scatter View [\#825](https://github.com/kokkos/kokkos/issues/825)
+- Drop gcc 4.7 and intel 14 from supported compiler list [\#603](https://github.com/kokkos/kokkos/issues/603)
+- Enable construction of unmanaged view using common\_view\_alloc\_prop [\#1170](https://github.com/kokkos/kokkos/issues/1170)
+- Unused Function Warning with XL [\#1267](https://github.com/kokkos/kokkos/issues/1267)
+- Add memory pool parameter check [\#1218](https://github.com/kokkos/kokkos/issues/1218)
+- CUDA9: Fix warning for unsupported long double [\#1189](https://github.com/kokkos/kokkos/issues/1189)
+- CUDA9: fix warning on defaulted function marking [\#1188](https://github.com/kokkos/kokkos/issues/1188)
+- CUDA9: fix warnings for deprecated warp level functions [\#1187](https://github.com/kokkos/kokkos/issues/1187)
+- Add CUDA 9.0 nightly testing [\#1174](https://github.com/kokkos/kokkos/issues/1174)
+- {OMPI,MPICH}\_CXX hack breaks nvcc\_wrapper use case [\#1166](https://github.com/kokkos/kokkos/issues/1166)
+- KOKKOS\_HAVE\_CUDA\_LAMBDA became KOKKOS\_CUDA\_USE\_LAMBDA [\#1274](https://github.com/kokkos/kokkos/issues/1274)
+
+**Fixed bugs:**
+
+- MinMax Reducer with tagged operator doesn't compile [\#1251](https://github.com/kokkos/kokkos/issues/1251)
+- Reducers for Tagged operators give wrong answer [\#1250](https://github.com/kokkos/kokkos/issues/1250)
+- Kokkos not Compatible with Big Endian Machines? [\#1235](https://github.com/kokkos/kokkos/issues/1235)
+- Parallel Scan hangs forever on BG/Q [\#1234](https://github.com/kokkos/kokkos/issues/1234)
+- Threads backend doesn't compile with Clang on OS X [\#1232](https://github.com/kokkos/kokkos/issues/1232)
+- $\(shell date\) needs quote [\#1264](https://github.com/kokkos/kokkos/issues/1264)
+- Unqualified parallel\_for call conflicts with user-defined parallel\_for [\#1219](https://github.com/kokkos/kokkos/issues/1219)
+- KokkosAlgorithms: CMake issue in unit tests [\#1212](https://github.com/kokkos/kokkos/issues/1212)
+- Intel 18 Error: "simd pragma has been deprecated" [\#1210](https://github.com/kokkos/kokkos/issues/1210)
+- Memory leak in Kokkos::initialize [\#1194](https://github.com/kokkos/kokkos/issues/1194)
+- CUDA9: compiler error with static assert template arguments [\#1190](https://github.com/kokkos/kokkos/issues/1190)
+- Kokkos::Serial::is\_initialized returns always true [\#1184](https://github.com/kokkos/kokkos/issues/1184)
+- Triple nested parallelism still fails on bowman [\#1093](https://github.com/kokkos/kokkos/issues/1093)
+- OpenMP openmp.range on Develop Runs Forever on POWER7+ with RHEL7 and GCC4.8.5 [\#995](https://github.com/kokkos/kokkos/issues/995)
+- Rendezvous performance at global scope [\#985](https://github.com/kokkos/kokkos/issues/985)
+
+
+## [2.04.11](https://github.com/kokkos/kokkos/tree/2.04.11) (2017-10-28)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.04.04...2.04.11)
+
+**Implemented enhancements:**
+
+- Add Subview pattern. [\#648](https://github.com/kokkos/kokkos/issues/648)
+- Add Kokkos "global" is\_initialized [\#1060](https://github.com/kokkos/kokkos/issues/1060)
+- Add create\_mirror\_view\_and\_copy [\#1161](https://github.com/kokkos/kokkos/issues/1161)
+- Add KokkosConcepts SpaceAccessibility function [\#1092](https://github.com/kokkos/kokkos/issues/1092)
+- Option to Disable Initialize Warnings [\#1142](https://github.com/kokkos/kokkos/issues/1142)
+- Mature task-DAG capability [\#320](https://github.com/kokkos/kokkos/issues/320)
+- Promote Work DAG from experimental [\#1126](https://github.com/kokkos/kokkos/issues/1126)
+- Implement new WorkGraph push/pop [\#1108](https://github.com/kokkos/kokkos/issues/1108)
+- Kokkos\_ENABLE\_Cuda\_Lambda should default ON [\#1101](https://github.com/kokkos/kokkos/issues/1101)
+- Add multidimensional parallel for example and improve unit test [\#1064](https://github.com/kokkos/kokkos/issues/1064)
+- Fix ROCm:  Performance tests not building [\#1038](https://github.com/kokkos/kokkos/issues/1038)
+- Make KOKKOS\_ALIGN\_SIZE a configure-time option [\#1004](https://github.com/kokkos/kokkos/issues/1004)
+- Make alignment consistent [\#809](https://github.com/kokkos/kokkos/issues/809)
+- Improve subview construction on Cuda backend [\#615](https://github.com/kokkos/kokkos/issues/615)
+
+**Fixed bugs:**
+
+- Kokkos::vector fixes for application [\#1134](https://github.com/kokkos/kokkos/issues/1134)
+- DynamicView non-power of two value\_type [\#1177](https://github.com/kokkos/kokkos/issues/1177)
+- Memory pool bug [\#1154](https://github.com/kokkos/kokkos/issues/1154)
+- Cuda launch bounds performance regression bug [\#1140](https://github.com/kokkos/kokkos/issues/1140)
+- Significant performance regression in LAMMPS after updating Kokkos [\#1139](https://github.com/kokkos/kokkos/issues/1139)
+- CUDA compile error [\#1128](https://github.com/kokkos/kokkos/issues/1128)
+- MDRangePolicy neg idx test failure in debug mode [\#1113](https://github.com/kokkos/kokkos/issues/1113)
+- subview construction on Cuda backend [\#615](https://github.com/kokkos/kokkos/issues/615)
+
 ## [2.04.04](https://github.com/kokkos/kokkos/tree/2.04.04) (2017-09-11)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.04.00...2.04.04)
 

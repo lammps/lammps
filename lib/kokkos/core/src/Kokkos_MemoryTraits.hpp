@@ -97,25 +97,21 @@ typedef Kokkos::MemoryTraits< Kokkos::Unmanaged | Kokkos::RandomAccess > MemoryR
 namespace Kokkos {
 namespace Impl {
 
+static_assert(
+  ( 0 < int(KOKKOS_MEMORY_ALIGNMENT) ) &&
+  ( 0 == ( int(KOKKOS_MEMORY_ALIGNMENT) & (int(KOKKOS_MEMORY_ALIGNMENT)-1))) ,
+  "KOKKOS_MEMORY_ALIGNMENT must be a power of two" );
+
 /** \brief Memory alignment settings
  *
  *  Sets global value for memory alignment.  Must be a power of two!
  *  Enable compatibility of views from different devices with static stride.
  *  Use compiler flag to enable overwrites.
  */
-enum { MEMORY_ALIGNMENT =
-#if defined( KOKKOS_MEMORY_ALIGNMENT )
-    ( 1 << Kokkos::Impl::integral_power_of_two( KOKKOS_MEMORY_ALIGNMENT ) )
-#else
-    ( 1 << Kokkos::Impl::integral_power_of_two( 128 ) )
-#endif
-#if defined( KOKKOS_MEMORY_ALIGNMENT_THRESHOLD )
+enum : unsigned
+  { MEMORY_ALIGNMENT           = KOKKOS_MEMORY_ALIGNMENT
   , MEMORY_ALIGNMENT_THRESHOLD = KOKKOS_MEMORY_ALIGNMENT_THRESHOLD
-#else
-  , MEMORY_ALIGNMENT_THRESHOLD = 4
-#endif
   };
-
 
 } //namespace Impl
 } // namespace Kokkos

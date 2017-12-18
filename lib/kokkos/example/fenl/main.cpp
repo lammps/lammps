@@ -67,6 +67,7 @@ enum { CMD_USE_THREADS = 0
      , CMD_USE_NUMA
      , CMD_USE_CORE_PER_NUMA
      , CMD_USE_CUDA
+     , CMD_USE_ROCM
      , CMD_USE_OPENMP
      , CMD_USE_CUDA_DEV
      , CMD_USE_FIXTURE_X
@@ -113,6 +114,9 @@ void print_cmdline( std::ostream & s , const int cmd[] )
   }
   if ( cmd[ CMD_USE_CUDA ] ) {
     s << " CUDA(" << cmd[ CMD_USE_CUDA_DEV ] << ")" ;
+  }
+  if ( cmd[ CMD_USE_ROCM ] ) {
+    s << " ROCM" ;
   }
   if ( cmd[ CMD_USE_ATOMIC ] ) {
     s << " ATOMIC" ;
@@ -167,6 +171,7 @@ void run( MPI_Comm comm , const int cmd[] )
     if ( cmd[ CMD_USE_THREADS ] ) { std::cout << "THREADS , " << cmd[ CMD_USE_THREADS ] ; }
     else if ( cmd[ CMD_USE_OPENMP ] ) { std::cout << "OPENMP , " << cmd[ CMD_USE_OPENMP ] ; }
     else if ( cmd[ CMD_USE_CUDA ] ) { std::cout << "CUDA" ; }
+    else if ( cmd[ CMD_USE_ROCM ] ) { std::cout << "ROCM" ; }
 
     if ( cmd[ CMD_USE_FIXTURE_QUADRATIC ] ) { std::cout << " , QUADRATIC-ELEMENT" ; }
     else { std::cout << " , LINEAR-ELEMENT" ; }
@@ -288,6 +293,9 @@ int main( int argc , char ** argv )
         cmdline[ CMD_USE_CUDA ] = 1 ;
         cmdline[ CMD_USE_CUDA_DEV ] = atoi( argv[++i] ) ;
       }
+      else if ( 0 == strcasecmp( argv[i] , "rocm" ) ) {
+        cmdline[ CMD_USE_ROCM ] = 1 ;
+      }
       else if ( 0 == strcasecmp( argv[i] , "fixture" ) ) {
         sscanf( argv[++i] , "%dx%dx%d" ,
                 cmdline + CMD_USE_FIXTURE_X ,
@@ -407,6 +415,21 @@ int main( int argc , char ** argv )
       run< Kokkos::Cuda , Kokkos::Example::BoxElemPart::ElemLinear >( comm , cmdline );
 
       Kokkos::Cuda::finalize();
+      Kokkos::HostSpace::execution_space::finalize();
+    }
+
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+    if ( cmdline[ CMD_USE_ROCM ] ) {
+      // Use the last device:
+
+      Kokkos::HostSpace::execution_space::initialize();
+      Kokkos::Experimental::ROCm::initialize( Kokkos::Experimental::ROCm::SelectDevice( cmdline[ CMD_USE_ROCM ] ) );
+
+      run< Kokkos::Experimental::ROCm , Kokkos::Example::BoxElemPart::ElemLinear >( comm , cmdline );
+
+      Kokkos::Experimental::ROCm::finalize();
       Kokkos::HostSpace::execution_space::finalize();
     }
 

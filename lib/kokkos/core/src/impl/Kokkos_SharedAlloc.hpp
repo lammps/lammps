@@ -294,9 +294,13 @@ public:
 
   template< class MemorySpace >
   constexpr
-  SharedAllocationRecord< MemorySpace , void > &
-  get_record() const
-    { return * static_cast< SharedAllocationRecord< MemorySpace , void > * >( m_record ); }
+  SharedAllocationRecord< MemorySpace , void > *
+  get_record() const noexcept
+    {
+      return ( m_record_bits & DO_NOT_DEREF_FLAG )
+             ? (SharedAllocationRecord< MemorySpace,void>*) 0
+             : static_cast<SharedAllocationRecord<MemorySpace,void>*>(m_record);
+    }
 
   template< class MemorySpace >
   std::string get_label() const
@@ -323,6 +327,16 @@ public:
     return (m_record_bits & (~DO_NOT_DEREF_FLAG)) != 0;
   }
 
+  KOKKOS_FORCEINLINE_FUNCTION
+  void clear()
+    {
+      // If this is tracking then must decrement
+      KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT
+      // Reset to default constructed value.
+      m_record_bits = DO_NOT_DEREF_FLAG ;
+    }
+
+  // Copy:
   KOKKOS_FORCEINLINE_FUNCTION
   ~SharedAllocationTracker()
     { KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT }

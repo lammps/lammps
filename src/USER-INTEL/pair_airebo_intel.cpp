@@ -2165,9 +2165,7 @@ template<typename flt_t, typename acc_t>
 void ref_lennard_jones_single_atom(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i,
 				   int morseflag) {
   AtomAIREBOT<flt_t> * x = ka->x;
-  tagint * tag = ka->tag;
   int jj;
-  tagint itag = tag[i];
   int * neighs = ka->neigh_lmp.entries + ka->neigh_lmp.offset[i];
   int jnum = ka->neigh_lmp.num_half[i];
   for (jj = 0; jj < jnum; jj++) {
@@ -3640,7 +3638,6 @@ static void aut_frebo_batch_of_kind(KernelArgsAIREBOT<flt_t,acc_t> * ka,
 				    int * i_buf, int * j_buf) {
  { // jump-scope for exceed_limits
   AtomAIREBOT<flt_t> * x = ka->x;
-  tagint * tag = ka->tag;
   int * map = ka->map;
   ResultForceT<acc_t> * result_f = ka->result_f;
   flt_t rcminij = ka->params.rcmin[itype][jtype];
@@ -4490,7 +4487,6 @@ exceed_limits:
 template<int MORSEFLAG>
 static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
   AtomAIREBOT<flt_t> * x = ka->x;
-  tagint * tag = ka->tag;
   int * map = ka->map;
   ResultForceT<acc_t> * result_f = ka->result_f;
   ivec c_i1 = ivec::set1(1);
@@ -4521,7 +4517,6 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
   int num_bo[2][2] = {0};
 
   for (int i = ka->frebo_from_atom; i < ka->frebo_to_atom; i++) {
-    ivec itag_bc = ivec::set1(tag[i]);
     int itype = map[x[i].w];
     fvec x_i = fvec::set1(x[i].x);
     fvec y_i = fvec::set1(x[i].y);

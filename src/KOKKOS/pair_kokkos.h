@@ -62,15 +62,17 @@ struct AtomicF<HALFTHREAD> {
 
 // Determine memory traits for force array
 // Do atomic trait when running HALFTHREAD neighbor list style
-template<int NEIGHFLAG>
+template<int NEIGHFLAG, class DeviceType>
 struct AtomicDup {
   enum {value = Kokkos::Experimental::ScatterNonAtomic};
 };
 
+#ifdef KOKKOS_ENABLE_CUDA
 template<>
-struct AtomicDup<HALFTHREAD> {
+struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
   enum {value = Kokkos::Experimental::ScatterAtomic};
 };
+#endif
 
 //Specialisation for Neighborlist types Half, HalfThread, Full
 template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, class Specialisation = void>

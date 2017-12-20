@@ -777,7 +777,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -785,9 +785,9 @@ void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
     for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_s[j];
-      a_o(j) += d_val(jj) * d_s[i];
+      a_o[j] += d_val(jj) * d_s[i];
     }
-    a_o(i) += tmp;
+    a_o[i] += tmp;
   }
 }
 
@@ -829,7 +829,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -837,9 +837,9 @@ void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
     for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_d[j];
-      a_o(j) += d_val(jj) * d_d[i];
+      a_o[j] += d_val(jj) * d_d[i];
     }
-    a_o(i) += tmp;
+    a_o[i] += tmp;
   }
 }
 
@@ -888,7 +888,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG>::value>();
+  auto a_o = red_o.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -896,9 +896,9 @@ void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
     for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_t[j];
-      a_o(j) += d_val(jj) * d_t[i];
+      a_o[j] += d_val(jj) * d_t[i];
     }
-    a_o(i) += tmp;
+    a_o[i] += tmp;
   }
 }
 

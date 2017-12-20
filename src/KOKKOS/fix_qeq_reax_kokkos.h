@@ -58,7 +58,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
   void compute_h_item(int, int &, const bool &) const;
 
   KOKKOS_INLINE_FUNCTION
-  void mat_vec_item(int) const;
+  void matvec_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
   void sparse12_item(int) const;
@@ -146,7 +146,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
- protected:
+ private:
   int inum;
   int allocated_flag;
 
@@ -213,6 +213,10 @@ class FixQEqReaxKokkos : public FixQEqReax {
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
+  void grow_arrays(int);
+  void copy_arrays(int, int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
 };
 
 template <class DeviceType>
@@ -238,7 +242,7 @@ struct FixQEqReaxKokkosMatVecFunctor  {
   };
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii) const {
-    c.mat_vec_item(ii);
+    c.matvec_item(ii);
   }
 };
 

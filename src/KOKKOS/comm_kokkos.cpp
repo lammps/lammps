@@ -200,6 +200,7 @@ void CommKokkos::forward_comm_device(int dummy)
         }
         n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,
                                    iswap,k_buf_send,pbc_flag[iswap],pbc[iswap]);
+        DeviceType::fence();
         if (n) {
           MPI_Send(k_buf_send.view<DeviceType>().ptr_on_device(),
                    n,MPI_DOUBLE,sendproc[iswap],0,world);
@@ -229,11 +230,13 @@ void CommKokkos::forward_comm_device(int dummy)
                     recvproc[iswap],0,world,&request);
         n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,iswap,
                                    k_buf_send,pbc_flag[iswap],pbc[iswap]);
+        DeviceType::fence();
         if (n)
           MPI_Send(k_buf_send.view<DeviceType>().ptr_on_device(),n,
                    MPI_DOUBLE,sendproc[iswap],0,world);
         if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
         avec->unpack_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
+        DeviceType::fence();
       }
 
     } else {
@@ -321,6 +324,7 @@ void CommKokkos::reverse_comm_device()
                     size_reverse_recv[iswap],MPI_DOUBLE,
                     sendproc[iswap],0,world,&request);
         n = avec->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
+        DeviceType::fence();
         if (n)
           MPI_Send(k_buf_send.view<DeviceType>().ptr_on_device(),n,
                    MPI_DOUBLE,recvproc[iswap],0,world);
@@ -328,6 +332,7 @@ void CommKokkos::reverse_comm_device()
       }
       avec->unpack_reverse_kokkos(sendnum[iswap],k_sendlist,iswap,
                                 k_buf_recv);
+      DeviceType::fence();
     } else {
       if (sendnum[iswap])
         n = avec->unpack_reverse_self(sendnum[iswap],k_sendlist,iswap,
@@ -395,6 +400,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 
     n = pairKKBase->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
                                        iswap,k_buf_send_pair,pbc_flag[iswap],pbc[iswap]);
+    DeviceType::fence();
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -411,6 +417,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
     // unpack buffer
 
     pairKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
+    DeviceType::fence();
   }
 }
 
@@ -610,6 +617,7 @@ void CommKokkos::exchange_device()
                                    k_exchange_sendlist,k_exchange_copylist,
                                    ExecutionSpaceFromDevice<DeviceType>::
                                    space,dim,lo,hi);
+      DeviceType::fence();
 
     } else {
       while (i < nlocal) {
@@ -634,6 +642,7 @@ void CommKokkos::exchange_device()
         atom->nlocal=avec->
           unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
                                  ExecutionSpaceFromDevice<DeviceType>::space);
+        DeviceType::fence();
       }
     } else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
@@ -666,6 +675,7 @@ void CommKokkos::exchange_device()
         atom->nlocal = avec->
           unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
                                  ExecutionSpaceFromDevice<DeviceType>::space);
+        DeviceType::fence();
       }
     }
 
@@ -926,10 +936,12 @@ void CommKokkos::borders_device() {
         n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
                                   pbc_flag[iswap],pbc[iswap]);
       }
-      else
+      else {
         n = avec->
           pack_border_kokkos(nsend,k_sendlist,k_buf_send,iswap,
                              pbc_flag[iswap],pbc[iswap],exec_space);
+        DeviceType::fence();
+      }
 
       // swap atoms with other proc
       // no MPI calls except SendRecv if nsend/nrecv = 0
@@ -960,12 +972,15 @@ void CommKokkos::borders_device() {
         avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
       }
       else
-        if (sendproc[iswap] != me)
+        if (sendproc[iswap] != me) {
           avec->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
                                      k_buf_recv,exec_space);
-        else
+          DeviceType::fence();
+        } else {
           avec->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
                                      k_buf_send,exec_space);
+          DeviceType::fence();
+        }
 
       // set all pointers & counters
 

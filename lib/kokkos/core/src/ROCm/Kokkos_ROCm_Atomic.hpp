@@ -125,7 +125,7 @@ namespace Kokkos {
     oldval.t = *dest ;
     assume.i = oldval.i ;
     newval.t = val ;
-    atomic_compare_exchange( reinterpret_cast<int*>(dest) , assume.i, newval.i );
+    atomic_compare_exchange( (int*)(dest) , assume.i, newval.i );
 
     return oldval.t ;    
   }

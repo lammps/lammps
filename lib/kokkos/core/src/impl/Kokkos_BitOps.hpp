@@ -48,6 +48,10 @@
 #include <cstdint>
 #include <climits>
 
+#if defined( __HCC_ACCELERATOR__ )
+#include <hc.hpp>
+#endif
+
 namespace Kokkos {
 namespace Impl {
 

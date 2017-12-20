@@ -17,7 +17,8 @@ endif
 CXXFLAGS = -O3 
 #CXXFLAGS += -DGENERIC_REDUCER
 LINK ?= $(CXX)
-LDFLAGS ?= -lpthread
+LDFLAGS ?=
+override LDFLAGS += -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
@@ -43,6 +44,7 @@ TEST_TARGETS += test-atomic
 
 #
 
+ifneq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
 OBJ_MEMPOOL = test_mempool.o 
 TARGETS += KokkosCore_PerformanceTest_Mempool
 TEST_TARGETS += test-mempool
@@ -52,6 +54,7 @@ TEST_TARGETS += test-mempool
 OBJ_TASKDAG = test_taskdag.o 
 TARGETS += KokkosCore_PerformanceTest_TaskDAG
 TEST_TARGETS += test-taskdag
+endif
 
 #
 

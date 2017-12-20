@@ -48,7 +48,7 @@
 #include <impl/Kokkos_Spinwait.hpp>
 #include <impl/Kokkos_BitOps.hpp>
 
-#if defined( KOKKOS_ENABLE_STDTHREAD )
+#if defined( KOKKOS_ENABLE_STDTHREAD) || defined( _WIN32 )
   #include <thread>
 #elif !defined( _WIN32 )
   #include <sched.h>
@@ -63,9 +63,8 @@
 
 namespace Kokkos {
 namespace Impl {
-namespace {
 
-void host_thread_yield( const uint32_t i , const int force_yield )
+void host_thread_yield( const uint32_t i , const WaitMode mode )
 {
   static constexpr uint32_t sleep_limit = 1 << 13 ;
   static constexpr uint32_t yield_limit = 1 << 12 ;
@@ -76,28 +75,26 @@ void host_thread_yield( const uint32_t i , const int force_yield )
 
     // Attempt to put the thread to sleep for 'c' milliseconds
 
-    #if defined( KOKKOS_ENABLE_STDTHREAD )
-      std::this_thread::sleep_for( std::chrono::nanoseconds( c * 1000 ) )
-    #elif !defined( _WIN32 )
+    #if defined( KOKKOS_ENABLE_STDTHREAD ) || defined( _WIN32 )
+      auto start = std::chrono::high_resolution_clock::now();
+      std::this_thread::yield();
+      std::this_thread::sleep_until( start + std::chrono::nanoseconds( c * 1000 ) );
+    #else
       timespec req ;
       req.tv_sec  = 0 ;
       req.tv_nsec = 1000 * c ;
       nanosleep( &req, nullptr );
-    #else /* defined( _WIN32 ) IS Microsoft Windows */
-      Sleep(c);
     #endif
   }
 
-  else if ( force_yield || yield_limit < i ) {
+  else if ( mode == WaitMode::PASSIVE || yield_limit < i ) {
 
     // Attempt to yield thread resources to runtime
 
-    #if defined( KOKKOS_ENABLE_STDTHREAD )
+    #if defined( KOKKOS_ENABLE_STDTHREAD ) || defined( _WIN32 )
       std::this_thread::yield();
-    #elif !defined( _WIN32 )
+    #else
       sched_yield();
-    #else /* defined( _WIN32 ) IS Microsoft Windows */
-      YieldProcessor();
     #endif
   }
 
@@ -110,9 +107,9 @@ void host_thread_yield( const uint32_t i , const int force_yield )
     for ( int k = 0 ; k < c ; ++k ) {
       #if defined( __amd64 ) || defined( __amd64__ ) || \
        	    defined( __x86_64 ) || defined( __x86_64__ )
-    	#if !defined( _WIN32 ) /* IS NOT Microsoft Windows */
+    	  #if !defined( _WIN32 ) /* IS NOT Microsoft Windows */
           asm volatile( "nop\n" );
-	#else
+	      #else
           __asm__ __volatile__( "nop\n" );
         #endif
       #elif defined(__PPC64__)
@@ -123,86 +120,22 @@ void host_thread_yield( const uint32_t i , const int force_yield )
 
   {
     // Insert memory pause
-      #if defined( __amd64 ) || defined( __amd64__ ) || \
-       	    defined( __x86_64 ) || defined( __x86_64__ )
-    	#if !defined( _WIN32 ) /* IS NOT Microsoft Windows */
+      #if defined( __amd64 )  || defined( __amd64__ ) || \
+       	  defined( __x86_64 ) || defined( __x86_64__ )
+    	  #if !defined( _WIN32 ) /* IS NOT Microsoft Windows */
           asm volatile( "pause\n":::"memory" );
-	#else
+	      #else
           __asm__ __volatile__( "pause\n":::"memory" );
         #endif
       #elif defined(__PPC64__)
-	asm volatile( "or 27, 27, 27" ::: "memory" );
+	      asm volatile( "or 27, 27, 27" ::: "memory" );
       #endif
   }
 
   #endif /* defined( KOKKOS_ENABLE_ASM ) */
 }
 
-}}} // namespace Kokkos::Impl::{anonymous}
-
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-namespace Impl {
-
-void spinwait_while_equal( volatile int32_t & flag , const int32_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value == flag ) host_thread_yield(++i,0);
-  Kokkos::load_fence();
-}
-
-void spinwait_until_equal( volatile int32_t & flag , const int32_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value != flag ) host_thread_yield(++i,0);
-  Kokkos::load_fence();
-}
-
-void spinwait_while_equal( volatile int64_t & flag , const int64_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value == flag ) host_thread_yield(++i,0);
-  Kokkos::load_fence();
-}
-
-void spinwait_until_equal( volatile int64_t & flag , const int64_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value != flag ) host_thread_yield(++i,0);
-  Kokkos::load_fence();
-}
-
-void yield_while_equal( volatile int32_t & flag , const int32_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value == flag ) host_thread_yield(++i,1);
-  Kokkos::load_fence();
-}
-
-void yield_until_equal( volatile int32_t & flag , const int32_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value != flag ) host_thread_yield(++i,1);
-  Kokkos::load_fence();
-}
-
-void yield_while_equal( volatile int64_t & flag , const int64_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value == flag ) host_thread_yield(++i,1);
-  Kokkos::load_fence();
-}
-
-void yield_until_equal( volatile int64_t & flag , const int64_t value )
-{
-  Kokkos::store_fence();
-  uint32_t i = 0 ; while( value != flag ) host_thread_yield(++i,1);
-  Kokkos::load_fence();
-}
-
-} /* namespace Impl */
-} /* namespace Kokkos */
+}} // namespace Kokkos::Impl
 
 #else
 void KOKKOS_CORE_SRC_IMPL_SPINWAIT_PREVENT_LINK_ERROR() {}

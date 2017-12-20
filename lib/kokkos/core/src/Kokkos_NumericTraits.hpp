@@ -204,6 +204,7 @@ struct reduction_identity<double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static double min()  {return DBL_MAX;}
 };
 
+#if !defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA )
 template<>
 struct reduction_identity<long double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long double sum()  {return static_cast<long double>(0.0);}
@@ -211,6 +212,7 @@ struct reduction_identity<long double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long double max()  {return -LDBL_MAX;}
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long double min()  {return LDBL_MAX;}
 };
+#endif
 
 }
 

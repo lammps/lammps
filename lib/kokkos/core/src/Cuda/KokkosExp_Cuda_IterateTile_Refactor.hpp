@@ -63,7 +63,7 @@
 #include <typeinfo>
 #endif
 
-namespace Kokkos { namespace Experimental { namespace Impl {
+namespace Kokkos { namespace Impl {
 
 namespace Refactor {
 
@@ -2709,7 +2709,7 @@ private:
 
 // ----------------------------------------------------------------------------------
 
-} } } //end namespace Kokkos::Experimental::Impl
+} } //end namespace Kokkos::Impl
 
 #endif
 #endif

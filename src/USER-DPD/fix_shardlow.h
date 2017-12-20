@@ -21,6 +21,8 @@ FixStyle(shardlow,FixShardlow)
 #define LMP_FIX_SHARDLOW_H
 
 #include "fix.h"
+#include "random_external_state.h"
+#include <math.h>
 
 namespace LAMMPS_NS {
 
@@ -52,12 +54,14 @@ class FixShardlow : public Fix {
   class PairDPDfdt *pairDPD;
   class PairDPDfdtEnergy *pairDPDE;
   double (*v_t0)[3];
+  int maxRNG;
 
  private:
+  random_external_state::es_RNG_t *rand_state;
   double dtsqrt; // = sqrt(update->dt);
 
-  void ssa_update_dpd(int, int *, int);  // Constant Temperature
-  void ssa_update_dpde(int, int *, int); // Constant Energy
+  void ssa_update_dpd(int, int, int);  // Constant Temperature
+  void ssa_update_dpde(int, int, int); // Constant Energy
 
 };
 

@@ -10,3 +10,4 @@
 #include <qthreads/TestQthreads_SubView_c10.cpp>
 #include <qthreads/TestQthreads_SubView_c11.cpp>
 #include <qthreads/TestQthreads_SubView_c12.cpp>
+#include <qthreads/TestQthreads_SubView_c13.cpp>

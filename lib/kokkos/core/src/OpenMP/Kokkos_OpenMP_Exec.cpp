@@ -294,7 +294,7 @@ void OpenMP::initialize( int thread_count )
   }
 
   {
-    if (nullptr == std::getenv("OMP_PROC_BIND") ) {
+    if ( Kokkos::show_warnings() && nullptr == std::getenv("OMP_PROC_BIND") ) {
       printf("Kokkos::OpenMP::initialize WARNING: OMP_PROC_BIND environment variable not set\n");
       printf("  In general, for best performance with OpenMP 4.0 or better set OMP_PROC_BIND=spread and OMP_PLACES=threads\n");
       printf("  For best performance with OpenMP 3.1 set OMP_PROC_BIND=true\n");
@@ -327,7 +327,7 @@ void OpenMP::initialize( int thread_count )
       omp_set_num_threads(Impl::g_openmp_hardware_max_threads);
     }
     else {
-      if( thread_count > process_num_threads ) {
+      if( Kokkos::show_warnings() && thread_count > process_num_threads ) {
         printf( "Kokkos::OpenMP::initialize WARNING: You are likely oversubscribing your CPU cores.\n");
         printf( "  process threads available : %3d,  requested thread : %3d\n", process_num_threads, thread_count );
       }
@@ -364,12 +364,12 @@ void OpenMP::initialize( int thread_count )
 
 
   // Check for over-subscription
-  //if( Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node() ) {
-  //  std::cout << "Kokkos::OpenMP::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
-  //  std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
-  //  std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
-  //  std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
-  //}
+  if( Kokkos::show_warnings() && (Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node()) ) {
+    std::cout << "Kokkos::OpenMP::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
+    std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
+    std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
+    std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
+  }
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
 

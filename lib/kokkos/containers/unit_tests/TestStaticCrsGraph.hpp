@@ -71,7 +71,7 @@ void run_test_graph()
   }
 
   dx = Kokkos::create_staticcrsgraph<dView>( "dx" , graph );
-    hx = Kokkos::create_mirror( dx );
+  hx = Kokkos::create_mirror( dx );
 
   ASSERT_EQ( hx.row_map.dimension_0() - 1 , LENGTH );
 
@@ -81,6 +81,16 @@ void run_test_graph()
     ASSERT_EQ( n , graph[i].size() );
     for ( size_t j = 0 ; j < n ; ++j ) {
       ASSERT_EQ( (int) hx.entries( j + begin ) , graph[i][j] );
+    }
+  }
+
+  // Test row view access
+  for ( size_t i = 0 ; i < LENGTH ; ++i ) {
+    auto rowView = hx.rowConst(i);
+    ASSERT_EQ( rowView.length, graph[i].size() );
+    for ( size_t j = 0 ; j < rowView.length ; ++j ) {
+      ASSERT_EQ( rowView.colidx( j ) , graph[i][j] );
+      ASSERT_EQ( rowView( j )        , graph[i][j] );
     }
   }
 }
@@ -182,5 +192,6 @@ void run_test_graph3(size_t B, size_t N)
     ASSERT_FALSE((ne>2*((hx.row_map(hx.numRows())+C*hx.numRows())/B))&&(hx.row_block_offsets(i+1)>hx.row_block_offsets(i)+1));
   }
 }
+
 } /* namespace TestStaticCrsGraph */
 

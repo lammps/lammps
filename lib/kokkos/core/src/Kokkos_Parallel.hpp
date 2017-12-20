@@ -241,7 +241,7 @@ void parallel_for( const std::string & str
   std::cout << "KOKKOS_DEBUG Start parallel_for kernel: " << str << std::endl;
   #endif
 
-  parallel_for(policy,functor,str);
+  ::Kokkos::parallel_for(policy,functor,str);
 
   #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
   Kokkos::fence();
@@ -487,7 +487,7 @@ void parallel_scan( const std::string& str
   std::cout << "KOKKOS_DEBUG Start parallel_scan kernel: " << str << std::endl;
   #endif
 
-  parallel_scan(policy,functor,str);
+  ::Kokkos::parallel_scan(policy,functor,str);
 
   #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
   Kokkos::fence();

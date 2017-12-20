@@ -62,6 +62,14 @@ function(GenerateStyleHeader path property style)
     CreateStyleHeader("${path}" "style_${style}.h" ${files})
 endfunction(GenerateStyleHeader)
 
+function(RegisterNBinStyles search_path)
+    FindStyleHeaders(${search_path} NBIN_CLASS      nbin_      NBIN      ) # nbin      ) # neighbor
+endfunction(RegisterNBinStyles)
+
+function(RegisterNPairStyles search_path)
+    FindStyleHeaders(${search_path} NPAIR_CLASS     npair_     NPAIR     ) # npair     ) # neighbor
+endfunction(RegisterNPairStyles)
+
 function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} ANGLE_CLASS     angle_     ANGLE     ) # angle     ) # force
     FindStyleHeaders(${search_path} ATOM_CLASS      atom_vec_  ATOM_VEC  ) # atom      ) # atom      atom_vec_hybrid

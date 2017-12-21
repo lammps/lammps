@@ -392,19 +392,19 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const boo
       const X_FLOAT delz = x(j,2) - ztmp;
 
       if (neighflag != FULL) {
+        // skip half of the interactions
         const tagint jtag = tag(j);
-        flag = 0;
-        if (j < nlocal) flag = 1;
-        else if (itag < jtag) flag = 1;
-        else if (itag == jtag) {
-          if (delz > SMALL) flag = 1;
-          else if (fabs(delz) < SMALL) {
-            if (dely > SMALL) flag = 1;
-            else if (fabs(dely) < SMALL && delx > SMALL)
-              flag = 1;
+        if (j >= nlocal) {
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (x(j,2) < ztmp) continue;
+            if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
+            if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
           }
         }
-        if (!flag) continue;
       }
 
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;

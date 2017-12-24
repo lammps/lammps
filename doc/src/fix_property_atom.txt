@@ -155,7 +155,7 @@ these commands could be used:
 
 fix prop all property/atom mol
 variable cluster atom ((id-1)/10)+1
-set id * mol v_cluster :pre
+set atom * mol v_cluster :pre
 
 The "atom-style variable"_variable.html will create values for atoms
 with IDs 31,32,33,...40 that are 4.0,4.1,4.2,...,4.9.  When the

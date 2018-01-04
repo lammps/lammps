@@ -407,6 +407,10 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       break;
     }
   }
+  // trigger clearing the list of available neighbor list requests
+  // and a full rebuild of them during the next run setup.
+  // otherwise the request from this command may linger around.
+  neighbor->init();
 }
 
 /* ----------------------------------------------------------------------

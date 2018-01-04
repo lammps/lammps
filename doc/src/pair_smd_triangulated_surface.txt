@@ -29,7 +29,7 @@ The parameter <contact_stiffness> has units of pressure and should equal roughly
 of the Young's modulus (or bulk modulus in the case of fluids) of the material model associated with the SPH particle
 
 The parameter {scale_factor} can be used to scale the particles' contact radii. This can be useful to control how close
-particles can approach the triangulated surface. Usually, {scale_factor}=1.0.
+particles can approach the triangulated surface. Usually, {scale_factor} =1.0.
 
 :line
 

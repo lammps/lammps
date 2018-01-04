@@ -47,7 +47,7 @@ keyword = {weight} or {out} :l
       {var} name = take weight from atom-style variable
         name = name of the atom-style variable
       {store} name = store weight in custom atom property defined by "fix property/atom"_fix_property_atom.html command
-        name = atom property name (without d_ prefix)
+        name = atom property name (without d\_ prefix)
   {out} arg = filename
     filename = write each processor's sub-domain to a file :pre
 :ule

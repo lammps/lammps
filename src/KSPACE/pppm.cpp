@@ -1268,6 +1268,7 @@ double PPPM::compute_qopt()
 double PPPM::estimate_ik_error(double h, double prd, bigint natoms)
 {
   double sum = 0.0;
+  if (natoms == 0) return 0.0;
   for (int m = 0; m < order; m++)
     sum += acons[order][m] * pow(h*g_ewald,2.0*m);
   double value = q2 * pow(h*g_ewald,(double)order) *

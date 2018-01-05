@@ -111,6 +111,10 @@ need to communicate their new values to/from ghost atoms, an operation
 that can be invoked from within a "pair style"_pair_style.html or
 "fix"_fix.html or "compute"_compute.html that you write.
 
+NOTE: If this fix is defined [after] the simulation box is created,
+a 'run 0' command should be issued to properly initialize the storage
+created by this fix.
+
 :line
 
 This fix is one of a small number that can be defined in an input

@@ -28,14 +28,15 @@ Instructions:
    and finally, build the code via the make command
    % make
 
-3. Create three soft links in this dir (lib/latte)
+3. Create three symbolic links in this dir (lib/latte)
    E.g if you built LATTE in this dir:
       % ln -s ./LATTE-master/src includelink
       % ln -s ./LATTE-master liblink
-      % ln -s ./LATTE-master/src/latte_c_bind.o filelink
+      % ln -s ./LATTE-master/src/latte_c_bind.o filelink.o
 
 4. Choose a Makefile.lammps.* file appropriate for your compiler
-   (GNU gfortran or Intel ifort) and copy it to Makefile.lammps.
+   (GNU gfortran with external BLAS, GNU gfortran with local liblinalg,
+   or Intel ifort with MKL) and copy it to Makefile.lammps.
    Note that you may need to edit Makefile.lammps for paths
    and compiler options appropriate to your system.
 
@@ -49,7 +50,7 @@ with the LATTE package installed:
 % make g++ (or whatever target you wish)
 
 Note that if you download and unpack a new LAMMPS tarball, the
-"includelink" and "liblink" and "filelink" files will be lost and you
-will need to re-create them (step 3).  If you built LATTE in this
-directory (as opposed to somewhere else on your system), you will also
-need to repeat steps 1,2,4.
+"includelink" and "liblink" and "filelink.o" symbolic links will be
+lost and you will need to re-create them (step 3).  If you built LATTE
+in this directory (as opposed to somewhere else on your system), you
+will also need to repeat steps 1,2,4.

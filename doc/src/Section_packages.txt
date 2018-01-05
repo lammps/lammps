@@ -732,7 +732,7 @@ make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
 :pre
 
 Note that 3 symbolic (soft) links, "includelink" and "liblink" and
-"filelink", are created in lib/latte to point into the LATTE home dir.
+"filelink.o", are created in lib/latte to point into the LATTE home dir.
 When LAMMPS builds in src it will use these links.  You should 
 also check that the Makefile.lammps file you create is apporpriate
 for the compiler you use on your system to build LATTE.

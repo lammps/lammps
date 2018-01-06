@@ -266,9 +266,10 @@ platform.
 
 Doxygen version :h5
 
-The "Doxyfile.lammps" package is using the "doxygen"_doxygenws version
-1.8.15. If the latest features of the "doxygen"_doxygenws documentation
-platform, it can be downloaded and built with the following steps:
+The "Doxyfile.lammps" configuration file is using the "doxygen"_doxygenws
+version 1.8.15. If the latest features of the "doxygen"_doxygenws
+documentation platform are required, it can be downloaded and built with
+the following steps:
 
 user@host:/.../anypath> git clone https://github.com/doxygen/doxygen.git
 user@host:/.../anypath> cd doxygen
@@ -284,14 +285,20 @@ can be found under the path
 
 user@host:/.../installpath/bin/doxygen :pre
 
-With this steps, the most up-to-date version of "doxygen"_doxygenws can
-be obtained. To the generation of the "doxygen"_doxygenws documentation
-in the {make docs} step, additional development packages and numerous
+With this steps, the most up-to-date version of the "doxygen"_doxygenws
+documentation system can be obtained. With appropriate adjustments in
+the "Doxyfile.lammps" configuration file, different documentation
+flavors and representations can be created. The use of an up-do-date
+"doxygen"_doxygenws version is highly recommended for including the
+latest formatting and compatibility features.
+
+To the generation of the "doxygen"_doxygenws documentation in the
+{make docs} step above, additional development packages and numerous
 latex packages may have to be available on the build platform.
 
 The maintenance of the "doxygen"_doxygenws documentation platform
-includes new features, bugfixes and adjustments to advanced coding
-standards or changing operating system platform requirements. The
+continuously includes new features, bugfixes and adjustments to advanced
+coding standards or changing operating system platform requirements. The
 maintenance can be carried out with the outlined build procedure after
 merging the latest commits from the official "doxygen"_doxygenws
 git repository into its local copy (git fetch and git merge or git pull).

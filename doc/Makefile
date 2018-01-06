@@ -159,7 +159,7 @@ $(VENV):
 	@( \
 		virtualenv -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install Sphinx==1.5.6; \
+		pip install Sphinx==1.5.6 \
 		pip install sphinxcontrib-images; \
 		deactivate;\
 	)

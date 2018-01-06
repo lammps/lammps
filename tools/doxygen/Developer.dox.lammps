@@ -9,98 +9,31 @@
 <h2><center>LAMMPS_VERSION</center></h2>
 
 
-This document is a developer guide to the LAMMPS molecular dynamics
-package, whose WWW site is at lammps.sandia.gov. It describes the
-internal structure and algorithms of the code. Sections will be added as
-we have time, and in response to requests from developers and users.
+This document is a developer guide to the LAMMPS molecular dynamics package, whose WWW site is at <a href=http://lammps.sandia.gov> lammps.sandia.gov</a>. It describes the internal structure and algorithms of the code. Sections will be added as we have time, and in response to requests from developers and users.
 
 
 @section SCT_Lammps_source_files  LAMMPS source files
 
-LAMMPS source files are in two directories of the distribution tarball.
-The src directory has the majority of them, all of which are C++ files
-(\*.cpp and \*.h). Many of these files are in the src directory itself.
-There are also dozens of "packages", which can be included or excluded
-when LAMMPS is built. See the doc/Section_build.html section of the
-manual for more information about packages, or type `make` from within
-the src directory, which lists package-related commands, such as "make
-package-status". The source files for each package are in an
-all-uppercase sub-directory of src, like "src/MOLECULE" or
-"src/USER-CUDA". If the package is currently installed, copies of the
-package source files will also exist in the src directory itself. The
-src/STUBS sub-directory is not a package but contains a dummy version of
-the MPI library, used when building a serial version of the code.
+LAMMPS source files are in two directories of the distribution tarball. The src directory has the majority of them, all of which are C++ files (*.cpp and *.h). Many of these files are in the src directory itself. There are also dozens of "packages", which can be included or excluded when LAMMPS is built. See the doc/Section_build.html section of the manual for more information about packages, or type "make" from within the src directory, which lists package-related commands, such as "make package-status". The source files for each package are in an all-uppercase sub-directory of src, like src/MOLECULE or src/USER-CUDA. If the package is currently installed, copies of the package source files will also exist in the src directory itself. The src/STUBS sub-directory is not a package but contains a dummy version of the MPI library, used when building a serial version of the code.
 
-The lib directory also contains source code for external libraries, used
-by a few of the packages. Each sub-directory, like "meam" or "gpu",
-contains the source files, some of which are in different languages such
-as Fortran. The files are compiled into libraries from within each
-sub-directory, e.g. performing a `make` in the "lib/meam" directory
-creates a "libmeam.a" file. These libraries are linked to during a
-LAMMPS build, if the corresponding package is installed.
+The lib directory also contains source code for external libraries, used by a few of the packages. Each sub-directory, like meam or gpu, contains the source files, some of which are in different languages such as Fortran. The files are compiled into libraries from within each sub-directory, e.g. performing a "make" in the lib/meam directory creates a libmeam.a file. These libraries are linked to during a LAMMPS build, if the corresponding package is installed.
 
-LAMMPS C++ source files almost always come in pairs, such as run.cpp and
-run.h. The pair of files defines a C++ class, the Run class in this
-case, which contains the code invoked by the "run" command in a LAMMPS
-input script. As this example illustrates, source file and class names
-often have a one-to-one correspondence with a command used in a LAMMPS
-input script. Some source files and classes do not have a corresponding
-input script command, e.g. force.cpp and the Force class. They are
-discussed in the next section.
+LAMMPS C++ source files almost always come in pairs, such as run.cpp and run.h. The pair of files defines a C++ class, the Run class in this case, which contains the code invoked by the "run" command in a LAMMPS input script. As this example illustrates, source file and class names often have a one-to-one correspondence with a command used in a LAMMPS input script. Some source files and classes do not have a corresponding input script command, e.g. force.cpp and the Force class. They are discussed in the next section.
 
 
 @section SCT_Class_hierarchy_of_LAMMPS  Class hierarchy of LAMMPS
 
-Though LAMMPS has a lot of source files and classes, its class hierarchy
-is quite simple, as outlined in figure @ref classes. Each boxed name
-refers to a class and has a pair of associated source files in
-lammps/src, e.g. memory.cpp and memory.h. More details on the class and
-its methods and data structures can be found by examining its \*.h file.
+Though LAMMPS has a lot of source files and classes, its class hierarchy is quite simple, as outlined in figure @ref classes. Each boxed name refers to a class and has a pair of associated source files in lammps/src, e.g. memory.cpp and memory.h. More details on the class and its methods and data structures can be found by examining its *.h file.
 
-LAMMPS (src/lammps.cpp and src/lammps.h) is the top-level class for the
-entire code. It holds an "instance" of LAMMPS and can be instantiated
-one or more times by a calling code. For example, the file src/main.cpp
-simply instantiates one instance of LAMMPS and passes it the input
-script.
+LAMMPS (src/lammps.cpp and src/lammps.h) is the top-level class for the entire code. It holds an "instance" of LAMMPS and can be instantiated one or more times by a calling code. For example, the file src/main.cpp simply instantiates one instance of LAMMPS and passes it the input script.
 
-The file src/library.cpp contains a C-style library interface to the
-LAMMPS class. See the lammps/couple and lammps/python directories for
-examples of simple programs that use LAMMPS through its library
-interface. A driver program can instantiate the LAMMPS class multiple
-times, e.g. to embed several atomistic simulation regions within a
-mesoscale or continuum simulation domain.
+The file src/library.cpp contains a C-style library interface to the LAMMPS class. See the lammps/couple and lammps/python directories for examples of simple programs that use LAMMPS through its library interface. A driver program can instantiate the LAMMPS class multiple times, e.g. to embed several atomistic simulation regions within a mesoscale or continuum simulation domain.
 
-There are a dozen or so top-level classes within the LAMMPS class that
-are visible everywhere in the code. They are shaded blue in figure @ref
-classes. Thus any class can refer to the y-coordinate of local
-atom `i` as atom@f$\rightarrow@f$x[i][1]. This visibility is enabled by
-a bit of cleverness in the Pointers class (see src/pointers.h) which
-every class inherits from.
+There are a dozen or so top-level classes within the LAMMPS class that are visible everywhere in the code. They are shaded blue in figure @ref classes. Thus any class can refer to the y-coordinate of local atom "i" as atom@f$\rightarrow@f$x[i][1]. This visibility is enabled by a bit of cleverness in the Pointers class (see src/pointers.h) which every class inherits from.
 
-There are a handful of virtual parent classes in LAMMPS that define what
-LAMMPS calls "styles". They are shaded red in figure @ref classes. Each
-of these are parents of a number of child classes that implement the
-interface defined by the parent class. For example, the "fix" style has
-around 100 child classes. They are the possible fixes that can be
-specified by the `fix` command in an input script, e.g. `fix nve`, `fix
-shake`, `fix ave/time`, etc. The corresponding classes are Fix (for the
-parent class), FixNVE, FixShake, FixAveTime, etc. The source files for
-these classes are easy to identify in the "src" directory, since they
-begin with the word "fix", e,g, fix_nve.cpp, fix_shake.cpp,
-fix_ave_time.cpp, etc.
+There are a handful of virtual parent classes in LAMMPS that define what LAMMPS calls "styles". They are shaded red in figure @ref classes. Each of these are parents of a number of child classes that implement the interface defined by the parent class. For example, the fix style has around 100 child classes. They are the possible fixes that can be specified by the fix command in an input script, e.g. fix nve, fix shake, fix ave/time, etc. The corresponding classes are Fix (for the parent class), FixNVE, FixShake, FixAveTime, etc. The source files for these classes are easy to identify in the src directory, since they begin with the word "fix", e,g, fix_nve.cpp, fix_shake.cpp, fix_ave_time.cpp, etc.
 
-The one exception is child class files for the "command" style. These
-implement specific commands in the input script that can be invoked
-before/after/between runs or which launch a simulation. Examples are the
-`create_box`, `minimize`, `run`, and `velocity` commands which encode the
-CreateBox, Minimize, Run, and Velocity classes. The corresponding files
-are create_box,cpp, minimize.cpp, run.cpp, and velocity.cpp. The list
-of command style files can be found by typing "grep COMMAND_CLASS \*.h"
-from within the src directory, since that word in the header file
-identifies the class as an input script command. Similar words can be
-grepped to list files for the other LAMMPS styles. E.g. ATOM_CLASS,
-PAIR_CLASS, BOND_CLASS, REGION_CLASS, FIX_CLASS, COMPUTE_CLASS,
-DUMP_CLASS, etc.
+The one exception is child class files for the "command" style. These implement specific commands in the input script that can be invoked before/after/between runs or which launch a simulation. Examples are the create_box, minimize, run, and velocity commands which encode the CreateBox, Minimize, Run, and Velocity classes. The corresponding files are create_box,cpp, minimize.cpp, run.cpp, and velocity.cpp. The list of command style files can be found by typing "grep COMMAND_CLASS *.h" from within the src directory, since that word in the header file identifies the class as an input script command. Similar words can be grepped to list files for the other LAMMPS styles. E.g. ATOM_CLASS, PAIR_CLASS, BOND_CLASS, REGION_CLASS, FIX_CLASS, COMPUTE_CLASS, DUMP_CLASS, etc.
 
 <br>
 
@@ -117,76 +50,35 @@ follows:
 
 - The Error class prints all error and warning messages.
 
-- The Universe class sets up partitions of processors so that multiple
-  simulations can be run, each on a subset of the processors allocated
-  for a run, e.g. by the mpirun command.
+- The Universe class sets up partitions of processors so that multiple simulations can be run, each on a subset of the processors allocated for a run, e.g. by the mpirun command.
+  
+- The Input class reads an input script, stores variables, and invokes stand-alone commands that are child classes of the Command class.
 
-- The Input class reads an input script, stores variables, and invokes
-  stand-alone commands that are child classes of the Command class.
+- As discussed above, the Command class is a parent class for certain input script commands that perform a one-time operation before/after/between simulations or which invoke a simulation. They are instantiated from within the Input class, invoked, then immediately destructed.
 
-- As discussed above, the Command class is a parent class for certain
-  input script commands that perform a one-time operation
-  before/after/between simulations or which invoke a simulation. They
-  are instantiated from within the Input class, invoked, then
-  immediately destructed.
+- The Finish class is instantiated to print statistics to the screen after a simulation is performed, by commands like run and minimize.
 
-- The Finish class is instantiated to print statistics to the screen
-  after a simulation is performed, by commands like run and minimize.
+- The Special class walks the bond topology of a molecular system to find 1st, 2nd, 3rd neighbors of each atom. It is invoked by several commands, like read_data, read_restart, and replicate.
 
-- The Special class walks the bond topology of a molecular system to
-  find 1st, 2nd, 3rd neighbors of each atom. It is invoked by several
-  commands, like "read\_data", "read\_restart", and "replicate".
+- The Atom class stores all per-atom arrays. More precisely, they are allocated and stored by the AtomVec class, and the Atom class simply stores a pointer to them. The AtomVec class is a parent class for atom styles, defined by the "atom\_style" command.
 
-- The Atom class stores all per-atom arrays. More precisely, they are
-  allocated and stored by the AtomVec class, and the Atom class simply
-  stores a pointer to them. The AtomVec class is a parent class for
-  atom styles, defined by the "atom\_style" command.
+- The Update class holds an integrator and a minimizer. The Integrate class is a parent style for the Verlet and rRESPA time integrators, as defined by the run_style input command. The Min class is a parent style for various energy minimizers.
 
-- The Update class holds an integrator and a minimizer. The `Integrate`
-  class is a parent style for the Verlet and rRESPA time integrators,
-  as defined by the "run\_style" input command. The `Min` class is a
-  parent style for various energy minimizers.
+- The Neighbor class builds and stores neighbor lists. The NeighList class stores a single list (for all atoms). The NeighRequest class is called by pair, fix, or compute styles when they need a particular kind of neighbor list.
 
-- The Neighbor class builds and stores neighbor lists. The `NeighList`
-  class stores a single list (for all atoms). The `NeighRequest` class
-  is called by "pair", "fix", or "compute" styles when they need a
-  particular kind of neighbor list.
+- The Comm class performs interprocessor communication, typically of ghost atom information. This usually involves MPI message exchanges with 6 neighboring processors in the 3d logical grid of processors mapped to the simulation box. Sometimes the Irregular class is used, when atoms may migrate to arbitrary processors.
 
-- The `Comm` class performs interprocessor communication, typically of
-  ghost atom information. This usually involves MPI message exchanges
-  with 6 neighboring processors in the 3d logical grid of processors
-  mapped to the simulation box. Sometimes the `Irregular` class is used,
-  when atoms may migrate to arbitrary processors.
+- The Domain class stores the simulation box geometry, as well as geometric Regions and any user definition of a Lattice. The latter are defined by region and lattice commands in an input script.
 
-- The `Domain` class stores the simulation box geometry, as well as
-  geometric Regions and any user definition of a Lattice. The latter
-  are defined by region and lattice commands in an input script.
+- The Force class computes various forces between atoms. The Pair parent class is for non-bonded or pair-wise forces, which in LAMMPS lingo includes many-body forces such as the Tersoff 3-body potential. The Bond, Angle, Dihedral, Improper parent classes are styles for bonded interactions within a static molecular topology. The KSpace parent class is for computing long-range Coulombic interactions. One of its child classes, PPPM, uses the FFT3D and Remap classes to communicate grid-based information with neighboring processors.
 
-- The `Force` class computes various forces between atoms. The `Pair`
-  parent class is for non-bonded or pair-wise forces, which in LAMMPS
-  lingo includes many-body forces such as the Tersoff 3-body
-  potential. The `Bond`, `Angle`, `Dihedral`, `Improper` parent classes are
-  styles for bonded interactions within a static molecular topology.
-  The `KSpace` parent class is for computing long-range Coulombic
-  interactions. One of its child classes, `PPPM`, uses the `FFT3D` and
-  `Remap` classes to communicate grid-based information with neighboring
-  processors.
+- The Modify class stores lists of Fix and Compute classes, both of which are parent styles.
 
-- The `Modify` class stores lists of `Fix` and `Compute` classes, both of
-  which are parent styles.
+- The Group class manipulates groups that atoms are assigned to via the group command. It also computes various attributes of groups of atoms.
 
-- The `Group` class manipulates groups that atoms are assigned to via
-  the group command. It also computes various attributes of groups of
-  atoms.
+- The Output class is used to generate 3 kinds of output from a LAMMPS simulation: thermodynamic information printed to the screen and log file, dump file snapshots, and restart files. These correspond to the Thermo, Dump, and WriteRestart classes respectively. The Dump class is a parent style.
 
-- The `Output` class is used to generate 3 kinds of output from a LAMMPS
-  simulation: thermodynamic information printed to the screen and log
-  file, dump file snapshots, and restart files. These correspond to
-  the `Thermo`, `Dump`, and `WriteRestart` classes respectively. The `Dump`
-  class is a parent style.
-
-- The `Timer` class logs MPI timing information, output at the end of a
-  run.
+- The Timer class logs MPI timing information, output at the end of a run.
 
 
 @section SCT_How_a_timestep_works  How a timestep works
@@ -281,14 +173,14 @@ loop over N timesteps:
 @anchor Verlet <center> **Pseudo-code for the Verlet::run() method** </center>
 
 
-The ev\_set() method (in the parent Integrate class), sets two flags
+The "ev_set()" method (in the parent Integrate class), sets two flags
 ([*eflag*]{} and [*vflag*]{}) for energy and virial computation. Each
 flag encodes whether global and/or per-atom energy and virial should be
 calculated on this timestep, because some fix or variable or output will
 need it. These flags are passed to the various methods that compute
 particle interactions, so that they can skip the extra calculations if
 the energy and virial are not needed. See the comments with the
-"Integrate::ev\_set()" method which document the flag values.
+"Integrate::ev_set()" method which document the flag values.
 
 At various points of the timestep, fixes are invoked, e.g.
 fix@f$\rightarrow@f$initial_integrate(). In the code, this is actually done
@@ -298,19 +190,19 @@ mechanism for tailoring the operations of a timestep for a particular
 simulation. As described elsewhere (unwritten section), each fix has one
 or more methods, each of which is invoked at a specific stage of the
 timestep, as in figure @ref Verlet. All the fixes defined in an input
-script with an "initial\_integrate()" method are invoked at the beginning
+script with an "initial_integrate()" method are invoked at the beginning
 of each timestep. Fix "nve", "nvt", "npt" are examples, since they perform the
 start-of-timestep velocity-Verlet integration to update velocities by a
-half-step, and coordinates by a full step. The "post\_integrate()" method
+half-step, and coordinates by a full step. The "post_integrate()" method
 is next. Only a few fixes use this, e.g. to reflect particles off box
 boundaries in the "FixWallReflect" class.
 
 The "decide()" method in the Neighbor class determines whether neighbor
 lists need to be rebuilt on the current timestep. If not, coordinates of
-ghost atoms are acquired by each processor via the "forward\_comm()"
+ghost atoms are acquired by each processor via the "forward_comm()"
 method of the Comm class. If neighbor lists need to be built, several
 operations within the inner if clause of figure @ref Verlet are first
-invoked. The "pre\_exchange()" method of any defined fixes is invoked
+invoked. The "pre_exchange()" method of any defined fixes is invoked
 first. Typically this inserts or deletes particles from the system.
 
 Periodic boundary conditions are then applied by the Domain class via
@@ -321,12 +213,12 @@ processor’s sub-domain will have consistent (nearby) atom coordinates
 for its owned and ghost atoms. It is also why dumped atom coordinates
 can be slightly outside the simulation box.
 
-The box boundaries are then reset (if needed) via the "reset\_box()"
+The box boundaries are then reset (if needed) via the "reset_box()"
 method of the Domain class, e.g. if box boundaries are shrink-wrapped to
 current particle coordinates. A change in the box size or shape requires
 internal information for communicating ghost atoms (Comm class) and
 neighbor list bins (Neighbor class) be updated. The "setup()" method of
-the Comm class and "setup\_bins()" method of the Neighbor class perform
+the Comm class and "setup_bins()" method of the Neighbor class perform
 the update.
 
 The code is now ready to migrate atoms that have left a processor’s

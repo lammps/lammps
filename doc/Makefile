@@ -55,7 +55,7 @@ html: $(OBJECTS) $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
-		sphinx-build -j 1 -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		sphinx-build -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		doc_anchor_check src/*.txt ;\
 		echo "############################################" ;\
@@ -91,7 +91,7 @@ epub: $(OBJECTS)
 	@(\
 		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
-		sphinx-build -j 8 -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
+		sphinx-build -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
 	@mv  epub/LAMMPS.epub .
@@ -159,7 +159,7 @@ $(VENV):
 	@( \
 		virtualenv -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install Sphinx==1.5.6 \
+		pip install Sphinx==1.5.6; \
 		pip install sphinxcontrib-images; \
 		deactivate;\
 	)

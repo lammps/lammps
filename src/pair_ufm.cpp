@@ -17,10 +17,10 @@
             Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
  ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_ufm.h"
 #include "atom.h"
 #include "comm.h"

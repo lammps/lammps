@@ -306,6 +306,10 @@ void CreateBonds::many()
               nadd_bonds,atom->nbonds);
     }
   }
+  // trigger clearing the list of available neighbor list requests
+  // and a full rebuild of them during the next run setup.
+  // otherwise the request from this command may linger around.
+  neighbor->init();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -338,6 +342,7 @@ void CreateBonds::single_bond()
     bond_atom[m][num_bond[m]] = batom2;
     num_bond[m]++;
   }
+  ++atom->nbonds;
 
   if (force->newton_bond) return;
 
@@ -385,6 +390,7 @@ void CreateBonds::single_angle()
     angle_atom3[m][num_angle[m]] = aatom3;
     num_angle[m]++;
   }
+  ++atom->nangles;
 
   if (force->newton_bond) return;
 
@@ -448,6 +454,7 @@ void CreateBonds::single_dihedral()
     dihedral_atom4[m][num_dihedral[m]] = datom4;
     num_dihedral[m]++;
   }
+  ++atom->ndihedrals;
 
   if (force->newton_bond) return;
 

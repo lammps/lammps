@@ -113,9 +113,9 @@ keeping the replicas equally spaced.
 
 :line
 
-The keyword {perp} specifies if and how a perpendicual nudging force
+The keyword {perp} specifies if and how a perpendicular nudging force
 is computed.  It adds a spring force perpendicular to the path in
-order to prevent the path from becoming too kinky.  It can
+order to prevent the path from becoming too strongly kinked.  It can
 significantly improve the convergence of the NEB calculation when the
 resolution is poor.  I.e. when few replicas are used; see
 "(Maras)"_#Maras1 for details.

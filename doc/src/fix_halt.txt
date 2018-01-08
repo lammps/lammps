@@ -64,10 +64,10 @@ not performed once every {N} steps by this command.  Instead it is
 performed (typically) only a small number of times and the elapsed
 times are used to predict when the end-of-the-run will be.  Both of
 these attributes can be useful when performing benchmark calculations
-for a desired length of time with minmimal overhead.  For example, if
+for a desired length of time with minimal overhead.  For example, if
 a run is performing 1000s of timesteps/sec, the overhead for syncing
 the timer frequently across a large number of processors may be
-non-negligble.
+non-negligible.
 
 Equal-style variables evaluate to a numeric value.  See the
 "variable"_variable.html command for a description.  They calculate
@@ -125,7 +125,7 @@ to the screen and logfile when the halt condition is triggered.  If
 {message} is set to yes, a one line message with the values that
 triggered the halt is printed.  If {message} is set to no, no message
 is printed; the run simply exits.  The latter may be desirable for
-post-processing tools that extract thermodyanmic information from log
+post-processing tools that extract thermodynamic information from log
 files.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]

@@ -180,8 +180,8 @@ void test_dynrankview_op_perf( const int par_size )
 
   typedef DeviceType execution_space;
   typedef typename execution_space::size_type size_type;
-  const size_type dim2 = 90;
-  const size_type dim3 = 30;
+  const size_type dim_2 = 90;
+  const size_type dim_3 = 30;
 
   double elapsed_time_view = 0;
   double elapsed_time_compview = 0;
@@ -191,7 +191,7 @@ void test_dynrankview_op_perf( const int par_size )
   double elapsed_time_compdrview = 0;
   Kokkos::Timer timer;
   {
-    Kokkos::View<double***,DeviceType> testview("testview",par_size,dim2,dim3);
+    Kokkos::View<double***,DeviceType> testview("testview",par_size,dim_2,dim_3);
     typedef InitViewFunctor<DeviceType> FunctorType;
 
     timer.reset();
@@ -220,7 +220,7 @@ void test_dynrankview_op_perf( const int par_size )
     std::cout << " Strided View time (init only): " << elapsed_time_strideview << std::endl;
   }
   {
-    Kokkos::View<double*******,DeviceType> testview("testview",par_size,dim2,dim3,1,1,1,1);
+    Kokkos::View<double*******,DeviceType> testview("testview",par_size,dim_2,dim_3,1,1,1,1);
     typedef InitViewRank7Functor<DeviceType> FunctorType;
 
     timer.reset();
@@ -231,7 +231,7 @@ void test_dynrankview_op_perf( const int par_size )
     std::cout << " View Rank7 time (init only): " << elapsed_time_view_rank7 << std::endl;
   }
   {
-    Kokkos::DynRankView<double,DeviceType> testdrview("testdrview",par_size,dim2,dim3);
+    Kokkos::DynRankView<double,DeviceType> testdrview("testdrview",par_size,dim_2,dim_3);
     typedef InitDynRankViewFunctor<DeviceType> FunctorType;
 
     timer.reset();

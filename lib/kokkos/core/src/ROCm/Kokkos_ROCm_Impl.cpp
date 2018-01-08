@@ -608,6 +608,7 @@ ROCmInternal::scratch_space( const Kokkos::Experimental::ROCm::size_type size )
 
 void ROCmInternal::finalize()
 {
+  Kokkos::Impl::rocm_device_synchronize();
   was_finalized = 1;
   if ( 0 != m_scratchSpace || 0 != m_scratchFlags ) {
 

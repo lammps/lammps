@@ -369,9 +369,9 @@ private:
 
   template< size_t ... DimArgs >
   KOKKOS_FORCEINLINE_FUNCTION
-  bool set( unsigned domain_rank
-          , unsigned range_rank
-          , const ViewDimension< DimArgs ... > & dim )
+  bool set( unsigned
+          , unsigned
+          , const ViewDimension< DimArgs ... > & )
     { return true ; }
 
   template< class T , size_t ... DimArgs , class ... Args >
@@ -1047,7 +1047,7 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
   template< class DimRHS >
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset(
-    const ViewOffset< DimRHS , Kokkos::LayoutLeft , void > & rhs ,
+    const ViewOffset< DimRHS , Kokkos::LayoutLeft , void > & ,
     const SubviewExtents< DimRHS::rank , dimension_type::rank > & sub )
     : m_dim( sub.range_extent(0), 0, 0, 0, 0, 0, 0, 0 )
     {
@@ -1252,7 +1252,7 @@ public:
   template< unsigned TrivialScalarSize >
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset
-    ( std::integral_constant<unsigned,TrivialScalarSize> const & padding_type_size
+    ( std::integral_constant<unsigned,TrivialScalarSize> const &
     , Kokkos::LayoutLeft const & arg_layout
     )
     : m_dim( arg_layout.dimension[0] , arg_layout.dimension[1]
@@ -1741,7 +1741,7 @@ public:
   template< unsigned TrivialScalarSize >
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset
-    ( std::integral_constant<unsigned,TrivialScalarSize> const & padding_type_size
+    ( std::integral_constant<unsigned,TrivialScalarSize> const &
     , Kokkos::LayoutRight const & arg_layout
     )
     : m_dim( arg_layout.dimension[0] , arg_layout.dimension[1]
@@ -2368,7 +2368,7 @@ struct ViewDataHandle< Traits ,
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
-  typedef typename Traits::value_type * KOKKOS_ALIGN_PTR(KOKKOS_ALIGN_SIZE) handle_type ;
+  typedef typename Traits::value_type * KOKKOS_IMPL_ALIGN_PTR(KOKKOS_MEMORY_ALIGNMENT) handle_type ;
   typedef typename Traits::value_type & return_type ;
   typedef Kokkos::Impl::SharedAllocationTracker  track_type  ;
 
@@ -2376,7 +2376,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( value_type * arg_data_ptr
                            , track_type const & /*arg_tracker*/ )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr );
@@ -2386,7 +2386,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( handle_type const arg_data_ptr
                            , size_t offset )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr + offset );
@@ -2411,7 +2411,7 @@ struct ViewDataHandle< Traits ,
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
-  typedef typename Traits::value_type * KOKKOS_RESTRICT KOKKOS_ALIGN_PTR(KOKKOS_ALIGN_SIZE) handle_type ;
+  typedef typename Traits::value_type * KOKKOS_RESTRICT KOKKOS_IMPL_ALIGN_PTR(KOKKOS_MEMORY_ALIGNMENT) handle_type ;
   typedef typename Traits::value_type & return_type ;
   typedef Kokkos::Impl::SharedAllocationTracker  track_type  ;
 
@@ -2419,7 +2419,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( value_type * arg_data_ptr
                            , track_type const & /*arg_tracker*/ )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr );
@@ -2429,7 +2429,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( handle_type const arg_data_ptr
                            , size_t offset )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr + offset );
@@ -2782,6 +2782,11 @@ public:
     : m_handle( ( (Kokkos::Impl::ViewCtorProp<void,pointer_type> const &) arg_prop ).value )
     , m_offset( std::integral_constant< unsigned , 0 >() , arg_layout )
     {}
+
+  /**\brief  Assign data */
+  KOKKOS_INLINE_FUNCTION
+  void assign_data( pointer_type arg_ptr )
+    { m_handle = handle_type( arg_ptr ); }
 
   //----------------------------------------
   /*  Allocate and construct mapped array.

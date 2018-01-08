@@ -131,11 +131,14 @@ struct TestDynamicView
 
 // printf("TestDynamicView::run(%d) construct memory pool\n",arg_total_size);
 
+    const size_t total_alloc_size = arg_total_size * sizeof(Scalar) * 1.2 ;
+    const size_t superblock = std::min( total_alloc_size , size_t(1000000) );
+
     memory_pool_type pool( memory_space()
-                         , arg_total_size * sizeof(Scalar) * 1.2
+                         , total_alloc_size
                          ,     500 /* min block size in bytes */
                          ,   30000 /* max block size in bytes */
-                         , 1000000 /* min superblock size in bytes */
+                         , superblock
                          );
 
 // printf("TestDynamicView::run(%d) construct dynamic view\n",arg_total_size);

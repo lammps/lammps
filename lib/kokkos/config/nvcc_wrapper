@@ -39,6 +39,12 @@ cuda_args=""
 # Arguments for both NVCC and Host compiler
 shared_args=""
 
+# Argument -c
+compile_arg=""
+
+# Argument -o <obj>
+output_arg=""
+
 # Linker arguments
 xlinker_args=""
 
@@ -66,6 +72,7 @@ dry_run=0
 
 # Skip NVCC compilation and use host compiler directly
 host_only=0
+host_only_args=""
 
 # Enable workaround for CUDA 6.5 for pragma ident 
 replace_pragma_ident=0
@@ -77,6 +84,14 @@ temp_dir=${TMPDIR:-/tmp}
 
 # Check if we have an optimization argument already
 optimization_applied=0
+
+# Check if we have -std=c++X  or --std=c++X already
+stdcxx_applied=0
+
+# Run nvcc a second time to generate dependencies if needed
+depfile_separate=0
+depfile_output_arg=""
+depfile_target_arg=""
 
 #echo "Arguments: $# $@"
 
@@ -109,12 +124,31 @@ do
     fi
     ;;
   #Handle shared args (valid for both nvcc and the host compiler)
-  -D*|-c|-I*|-L*|-l*|-g|--help|--version|-E|-M|-shared)
+  -D*|-I*|-L*|-l*|-g|--help|--version|-E|-M|-shared)
     shared_args="$shared_args $1"
     ;;
-  #Handle shared args that have an argument
-  -o|-MT)
-    shared_args="$shared_args $1 $2"
+  #Handle compilation argument
+  -c)
+    compile_arg="$1"
+    ;;
+  #Handle output argument
+  -o)
+    output_arg="$output_arg $1 $2"
+    shift
+    ;;
+  # Handle depfile arguments.  We map them to a separate call to nvcc.
+  -MD|-MMD)
+    depfile_separate=1
+    host_only_args="$host_only_args $1"
+    ;;
+  -MF)
+    depfile_output_arg="-o $2"
+    host_only_args="$host_only_args $1 $2"
+    shift
+    ;;
+  -MT)
+    depfile_target_arg="$1 $2"
+    host_only_args="$host_only_args $1 $2"
     shift
     ;;
   #Handle known nvcc args
@@ -130,15 +164,24 @@ do
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
-  #Handle c++11 setting
-  --std=c++11|-std=c++11)
-    shared_args="$shared_args $1"
+  #Handle c++11
+  --std=c++11|-std=c++11|--std=c++14|-std=c++14|--std=c++1z|-std=c++1z)
+    if [ $stdcxx_applied -eq 1 ]; then
+       echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-std=c++1* or --std=c++1*), only the first is used because nvcc can only accept a single std setting"
+    else
+       shared_args="$shared_args $1"
+       stdcxx_applied=1
+    fi
     ;;
+
   #strip of -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
   -std=c++98|--std=c++98)
     ;;
   #strip of pedantic because it produces endless warnings about #LINE added by the preprocessor
   -pedantic|-Wpedantic|-ansi)
+    ;;
+  #strip of -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
+  -Woverloaded-virtual)
     ;;
   #strip -Xcompiler because we add it
   -Xcompiler)
@@ -190,7 +233,7 @@ do
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;
   #Handle object files which always need to use "-Xlinker": -x cu applies to all input files, so give them to linker, except if only linking
-  *.dylib)
+  @*|*.dylib)
     object_files="$object_files -Xlinker $1"
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;
@@ -230,7 +273,7 @@ if [ $first_xcompiler_arg -eq 0 ]; then
 fi
 
 #Compose host only command
-host_command="$host_compiler $shared_args $xcompiler_args $host_linker_args $shared_versioned_libraries_host"
+host_command="$host_compiler $shared_args $host_only_args $compile_arg $output_arg $xcompiler_args $host_linker_args $shared_versioned_libraries_host"
 
 #nvcc does not accept '#pragma ident SOME_MACRO_STRING' but it does accept '#ident SOME_MACRO_STRING'
 if [ $replace_pragma_ident -eq 1 ]; then
@@ -262,10 +305,21 @@ else
   host_command="$host_command $object_files"
 fi
 
+if [ $depfile_separate -eq 1 ]; then
+  # run nvcc a second time to generate dependencies (without compiling)
+  nvcc_depfile_command="$nvcc_command -M $depfile_target_arg $depfile_output_arg"
+else
+  nvcc_depfile_command=""
+fi
+
+nvcc_command="$nvcc_command $compile_arg $output_arg"
+
 #Print command for dryrun
 if [ $dry_run -eq 1 ]; then
   if [ $host_only -eq 1 ]; then
     echo $host_command
+  elif [ -n "$nvcc_depfile_command" ]; then
+    echo $nvcc_command "&&" $nvcc_depfile_command
   else
     echo $nvcc_command
   fi
@@ -275,6 +329,8 @@ fi
 #Run compilation command
 if [ $host_only -eq 1 ]; then
   $host_command
+elif [ -n "$nvcc_depfile_command" ]; then
+  $nvcc_command && $nvcc_depfile_command
 else
   $nvcc_command
 fi

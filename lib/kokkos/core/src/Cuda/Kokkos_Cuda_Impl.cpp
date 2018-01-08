@@ -421,7 +421,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
       std::string msg = ss.str();
       Kokkos::abort( msg.c_str() );
     }
-    if ( compiled_major != cudaProp.major || compiled_minor != cudaProp.minor ) {
+    if ( Kokkos::show_warnings() && (compiled_major != cudaProp.major || compiled_minor != cudaProp.minor) ) {
       std::cerr << "Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability "
                 << compiled_major << "." << compiled_minor
                 << " on device with compute capability "
@@ -467,7 +467,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
 
     m_scratchUnifiedSupported = cudaProp.unifiedAddressing ;
 
-    if ( ! m_scratchUnifiedSupported ) {
+    if ( Kokkos::show_warnings() && ! m_scratchUnifiedSupported ) {
       std::cout << "Kokkos::Cuda device "
                 << cudaProp.name << " capability "
                 << cudaProp.major << "." << cudaProp.minor
@@ -545,7 +545,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
   }
 
   #ifdef KOKKOS_ENABLE_CUDA_UVM
-    if(!cuda_launch_blocking()) {
+    if( Kokkos::show_warnings() && !cuda_launch_blocking() ) {
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
       std::cout << "                                  The code must call Cuda::fence() after each kernel" << std::endl;
@@ -561,7 +561,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     bool visible_devices_one=true;
     if (env_visible_devices == 0) visible_devices_one=false;
 
-    if(!visible_devices_one && !force_device_alloc) {
+    if( Kokkos::show_warnings() && (!visible_devices_one && !force_device_alloc) ) {
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_MANAGED_FORCE_DEVICE_ALLOC=1 or " << std::endl;
       std::cout << "                                  setting CUDA_VISIBLE_DEVICES." << std::endl;

@@ -123,6 +123,7 @@ do
       echo "                 ARMv81         = ARMv8.1 Compatible CPU"
       echo "                 ARMv8-ThunderX = ARMv8 Cavium ThunderX CPU"
       echo "               [IBM]"
+      echo "                 BGQ            = IBM Blue Gene Q"
       echo "                 Power7         = IBM POWER7 and POWER7+ CPUs"
       echo "                 Power8         = IBM POWER8 CPUs"
       echo "                 Power9         = IBM POWER9 CPUs"
@@ -271,9 +272,10 @@ else
 fi
 
 mkdir -p install
-echo "#Makefile to satisfy existens of target kokkos-clean before installing the library" > install/Makefile.kokkos
-echo "kokkos-clean:" >> install/Makefile.kokkos
-echo "" >> install/Makefile.kokkos
+gen_makefile=Makefile.kokkos
+echo "#Makefile to satisfy existens of target kokkos-clean before installing the library" > install/${gen_makefile}
+echo "kokkos-clean:" >> install/${gen_makefile}
+echo "" >> install/${gen_makefile}
 mkdir -p core
 mkdir -p core/unit_test
 mkdir -p core/perf_test

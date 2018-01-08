@@ -387,7 +387,7 @@ void PairReaxC::init_style( )
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
 
-  cutmax = MAX3(control->nonb_cut, control->hbond_cut, 2*control->bond_cut);
+  cutmax = MAX3(control->nonb_cut, control->hbond_cut, control->bond_cut);
 
   for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;

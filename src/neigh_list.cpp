@@ -88,7 +88,6 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
 
   // USER-DPD package
 
-  for (int i = 0; i < 8; i++) AIRct_ssa[i] = 0;
   np = NULL;
 }
 

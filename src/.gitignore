@@ -547,6 +547,7 @@
 /fix_shake.h
 /fix_shardlow.cpp
 /fix_shardlow.h
+/random_external_state.h
 /fix_smd.cpp
 /fix_smd.h
 /fix_species.cpp

@@ -480,12 +480,25 @@ if(ENABLE_KOKKOS)
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
   set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
 
   # detects styles which have KOKKOS version
   RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
+
+  # register kokkos-only styles
+  RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
+  RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
+
+  if(ENABLE_USER-DPD)
+    get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+    list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.cpp)
+    RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.h)
+    set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
+  endif()
 
   get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
 

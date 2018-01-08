@@ -1,4 +1,4 @@
-DATE: 2017-03-20 CONTRIBUTOR: Michal Kanski
+DATE: 2017-11-20 CONTRIBUTOR: Michal Kanski Development of a Charge-Implicit ReaxFF Potential for Hydrocarbon Systems DOI: 10.1021/acs.jpclett.7b03155
  39       ! Number of general parameters                                        
    50.0000 !p(boc1)                                                             
     9.5469 !p(boc2)                                                             

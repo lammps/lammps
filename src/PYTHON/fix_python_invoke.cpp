@@ -18,7 +18,7 @@
 #include <Python.h>
 #include <stdio.h>
 #include <string.h>
-#include "fix_python.h"
+#include "fix_python_invoke.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -32,13 +32,13 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixPython::FixPython(LAMMPS *lmp, int narg, char **arg) :
+FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all(FLERR,"Illegal fix python command");
+  if (narg != 6) error->all(FLERR,"Illegal fix python/invoke command");
 
   nevery = force->inumeric(FLERR,arg[3]);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix python command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix python/invoke command");
 
   // ensure Python interpreter is initialized
   python->init();
@@ -48,7 +48,7 @@ FixPython::FixPython(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"end_of_step") == 0) {
     selected_callback = END_OF_STEP;
   } else {
-    error->all(FLERR,"Unsupported callback name for fix/python");
+    error->all(FLERR,"Unsupported callback name for fix python/invoke");
   }
 
   // get Python function
@@ -74,14 +74,14 @@ FixPython::FixPython(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixPython::setmask()
+int FixPythonInvoke::setmask()
 {
   return selected_callback;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPython::end_of_step()
+void FixPythonInvoke::end_of_step()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -96,7 +96,7 @@ void FixPython::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPython::post_force(int vflag)
+void FixPythonInvoke::post_force(int vflag)
 {
   if (update->ntimestep % nevery != 0) return;
 

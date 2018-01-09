@@ -1522,9 +1522,9 @@ void PairSNAP::coeff(int narg, char **arg)
       sna[tid]->grow_rij(nmax);
   }
 
-  printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
-  if (ncoeff != sna[0]->ncoeff) {
+  if (comm->me == 0)
     printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
+  if (ncoeff != sna[0]->ncoeff) {
     error->all(FLERR,"Incorrect SNAP parameter file");
   }
 

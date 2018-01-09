@@ -238,6 +238,10 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
     snaptr->compute_ui(ninside);
     snaptr->compute_zi();
+    if (quadraticflag) {
+      snaptr->compute_bi();
+      snaptr->copy_bi2bvec();
+    }
 
     // for neighbors of I within cutoff:
     // compute dUi/drj and dBi/drj
@@ -269,8 +273,6 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       // quadratic contributions
       
       if (quadraticflag) {
-        snaptr->compute_bi();
-        snaptr->copy_bi2bvec();
         int k = ncoeff+1;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bveci = snaptr->bvec[icoeff];
@@ -594,6 +596,10 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
           sna[tid]->compute_zi();
         }
       }
+      if (quadraticflag) {
+        sna[tid]->compute_bi();
+        sna[tid]->copy_bi2bvec();
+      }
 
       // for neighbors of I within cutoff:
       // compute dUi/drj and dBi/drj
@@ -628,8 +634,6 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
       // quadratic contributions
         
       if (quadraticflag) {
-        sna[tid]->compute_bi();
-        sna[tid]->copy_bi2bvec();
         int k = ncoeff+1;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bveci = sna[tid]->bvec[icoeff];
@@ -679,8 +683,10 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
       if (eflag&&pairs[iijj][1] == 0) {
 	evdwl = coeffi[0];
 
-        sna[tid]->compute_bi();
-        sna[tid]->copy_bi2bvec();
+        if (!quadraticflag) {
+          sna[tid]->compute_bi();
+          sna[tid]->copy_bi2bvec();
+        }
 
         // E = beta.B + 0.5*B^t.alpha.B
         // coeff[k] = beta[k-1] or

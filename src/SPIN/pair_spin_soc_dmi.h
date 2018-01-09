@@ -39,12 +39,13 @@ class PairSpinSocDmi : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_dmi(int, int, double fmi[3], double fmj[3], double spi[3], double spj[3]);
+  void compute_soc_dmi(int, int, double fmi[3], double spi[3], double spj[3]);
+  void compute_soc_dmi_mech(int, int, double fi[3], double spi[3], double spj[3]);
  
-  int dmi_flag;				// dmi flag
+  int soc_dmi_flag;			// dmi flag
 
-  double cut_spin_dmi_global;		// short range pair cutoff
-  double **cut_spin_dmi;      		// cutoff distance dmi
+  double cut_soc_global;		// short range pair cutoff
+  double **cut_soc_dmi;      		// cutoff distance dmi
 
  protected:
   int newton_pair_spin; 

@@ -42,11 +42,8 @@ PairSpinSocDmi::PairSpinSocDmi(LAMMPS *lmp) : Pair(lmp)
 {
   hbar = force->hplanck/MY_2PI;
 
-  newton_pair_spin = 0; // no newton pair for now => to be corrected
- // newton_pair = 0;
-
   single_enable = 0;
-  dmi_flag = 0;
+  soc_dmi_flag = 0;
 
   no_virial_fdotr_compute = 1;
 }
@@ -58,7 +55,7 @@ PairSpinSocDmi::~PairSpinSocDmi()
   if (allocated) {
     memory->destroy(setflag);
     
-    memory->destroy(cut_spin_dmi);
+    memory->destroy(cut_soc_dmi);
     memory->destroy(DM);
     memory->destroy(v_dmx);
     memory->destroy(v_dmy);
@@ -76,16 +73,15 @@ void PairSpinSocDmi::compute(int eflag, int vflag)
   double evdwl, ecoul;
   double xi[3], rij[3];
   double spi[3], spj[3];
-  double fi[3], fj[3];
-  double fmi[3], fmj[3];
-  double cut_dmi_2, cut_spin_me_global2;
+  double fi[3], fmi[3];
+  double cut_soc_dmi_2;
   double rsq, rd, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  cut_dmi_2 = cut_spin_dmi_global*cut_spin_dmi_global;
+  cut_soc_dmi_2 = cut_soc_global*cut_soc_global;
   
   double **x = atom->x;
   double **f = atom->f;
@@ -127,9 +123,7 @@ void PairSpinSocDmi::compute(int eflag, int vflag)
       evdwl = 0.0;
 
       fi[0] = fi[1] = fi[2] = 0.0;
-      fj[0] = fj[1] = fj[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
-      fmj[0] = fmj[1] = fmj[2] = 0.0;
       rij[0] = rij[1] = rij[2] = 0.0;
      
       rij[0] = x[j][0] - xi[0];
@@ -140,15 +134,17 @@ void PairSpinSocDmi::compute(int eflag, int vflag)
       rij[0] *= inorm;
       rij[1] *= inorm;
       rij[2] *= inorm;
-
+      
       itype = type[i];
       jtype = type[j];
 
-      // dm interaction
-      if (dmi_flag){
-        cut_dmi_2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
-        if (rsq <= cut_dmi_2){
-          compute_dmi(i,j,fmi,fmj,spi,spj);
+      // compute magnetic and mechanical components of soc_dmi
+      
+      if (soc_dmi_flag){
+        cut_soc_dmi_2 = cut_soc_dmi[itype][jtype]*cut_soc_dmi[itype][jtype];
+        if (rsq <= cut_soc_dmi_2){
+          compute_soc_dmi(i,j,fmi,spi,spj);
+          compute_soc_dmi_mech(i,j,fi,spi,spj);
         } 
       }
 
@@ -159,18 +155,15 @@ void PairSpinSocDmi::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-//      if (newton_pair || j < nlocal) {
-      if (newton_pair_spin) {
-	f[j][0] += fj[0];	 
-        f[j][1] += fj[1];	  	  
-        f[j][2] += fj[2];
-        fm[j][0] += fmj[0];	 
-        fm[j][1] += fmj[1];	  	  
-        fm[j][2] += fmj[2];
+      // check newton pair  =>  see if needs correction
+      if (newton_pair || j < nlocal) {
+	f[j][0] -= fi[0];	 
+        f[j][1] -= fi[1];	  	  
+        f[j][2] -= fi[2];
       }
  
       if (eflag) {
-	if (rsq <= cut_dmi_2) {
+	if (rsq <= cut_soc_dmi_2) {
 	  evdwl -= spi[0]*fmi[0];
 	  evdwl -= spi[1]*fmi[1];
 	  evdwl -= spi[2]*fmi[2];
@@ -189,7 +182,7 @@ void PairSpinSocDmi::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinSocDmi::compute_dmi(int i, int j, double fmi[3],  double fmj[3], double spi[3], double spj[3])
+void PairSpinSocDmi::compute_soc_dmi(int i, int j, double fmi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -205,10 +198,17 @@ void PairSpinSocDmi::compute_dmi(int i, int j, double fmi[3],  double fmj[3], do
   fmi[1] += spj[2]*dmix-spj[0]*dmiz;
   fmi[2] += spj[0]*dmiy-spj[1]*dmix;
 
-  fmj[0] -= spi[1]*dmiz-spi[2]*dmiy;
-  fmj[1] -= spi[2]*dmix-spi[0]*dmiz;
-  fmj[2] -= spi[0]*dmiy-spi[1]*dmix;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void PairSpinSocDmi::compute_soc_dmi_mech(int i, int j, double fi[3], double spi[3], double spj[3])
+{
+  fi[0] += 0.0;
+  fi[1] += 0.0;
+  fi[2] += 0.0;
+}
+
 
 /* ----------------------------------------------------------------------
    allocate all arrays
@@ -224,7 +224,7 @@ void PairSpinSocDmi::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
       
-  memory->create(cut_spin_dmi,n+1,n+1,"pair:cut_spin_dmi");
+  memory->create(cut_soc_dmi,n+1,n+1,"pair:cut_soc_dmi");
   memory->create(DM,n+1,n+1,"pair:DM");
   memory->create(v_dmx,n+1,n+1,"pair:DM_vector_x");
   memory->create(v_dmy,n+1,n+1,"pair:DM_vector_y");
@@ -246,7 +246,7 @@ void PairSpinSocDmi::settings(int narg, char **arg)
   if (strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"Spin simulations require metal unit style");
     
-  cut_spin_dmi_global = force->numeric(FLERR,arg[0]);
+  cut_soc_global = force->numeric(FLERR,arg[0]);
     
   // reset cutoffs that have been explicitly set
 
@@ -255,7 +255,7 @@ void PairSpinSocDmi::settings(int narg, char **arg)
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
-          cut_spin_dmi[i][j] = cut_spin_dmi_global;
+          cut_soc_dmi[i][j] = cut_soc_global;
         }
   }
    
@@ -273,7 +273,7 @@ void PairSpinSocDmi::coeff(int narg, char **arg)
 
   if (strcmp(arg[2],"dmi")==0) {
     if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
-    dmi_flag = 1;   
+    soc_dmi_flag = 1;   
 
     int ilo,ihi,jlo,jhi;
     force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
@@ -293,7 +293,7 @@ void PairSpinSocDmi::coeff(int narg, char **arg)
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {
-        cut_spin_dmi[i][j] = rij;
+        cut_soc_dmi[i][j] = rij;
         DM[i][j] = dm;
         v_dmx[i][j] = dmx;
         v_dmy[i][j] = dmy;
@@ -319,13 +319,10 @@ void PairSpinSocDmi::init_style()
 
   neighbor->request(this,instance_me);
 
-  // check this half/full request
-#define FULLNEI
-#if defined FULLNEI
+  // check this half/full request  => to be verified
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
-#endif
 
 }
 
@@ -338,7 +335,7 @@ double PairSpinSocDmi::init_one(int i, int j)
    
    if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  return cut_spin_dmi_global;
+  return cut_soc_global;
 }
 
 /* ----------------------------------------------------------------------
@@ -354,12 +351,12 @@ void PairSpinSocDmi::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        if (dmi_flag) {
+        if (soc_dmi_flag) {
           fwrite(&DM[i][j],sizeof(double),1,fp);
           fwrite(&v_dmx[i][j],sizeof(double),1,fp);
           fwrite(&v_dmy[i][j],sizeof(double),1,fp);
           fwrite(&v_dmz[i][j],sizeof(double),1,fp);
-          fwrite(&cut_spin_dmi[i][j],sizeof(double),1,fp);
+          fwrite(&cut_soc_dmi[i][j],sizeof(double),1,fp);
         } 
       }
     }
@@ -387,13 +384,13 @@ void PairSpinSocDmi::read_restart(FILE *fp)
           fread(&v_dmx[i][j],sizeof(double),1,fp);
           fread(&v_dmy[i][j],sizeof(double),1,fp);
           fread(&v_dmz[i][j],sizeof(double),1,fp);
-          fread(&cut_spin_dmi[i][j],sizeof(double),1,fp);
+          fread(&cut_soc_dmi[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&DM[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_dmx[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_dmy[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_dmz[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_spin_dmi[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_soc_dmi[i][j],1,MPI_DOUBLE,0,world);
       }
     }
   }
@@ -406,7 +403,7 @@ void PairSpinSocDmi::read_restart(FILE *fp)
 
 void PairSpinSocDmi::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_spin_dmi_global,sizeof(double),1,fp);
+  fwrite(&cut_soc_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -418,11 +415,11 @@ void PairSpinSocDmi::write_restart_settings(FILE *fp)
 void PairSpinSocDmi::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_dmi_global,sizeof(double),1,fp);
+    fread(&cut_soc_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&cut_spin_dmi_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_soc_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world); 
 }

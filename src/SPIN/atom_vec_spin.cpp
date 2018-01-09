@@ -45,7 +45,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   size_reverse = 6;
   size_border = 11;
   size_velocity = 3;
-  size_data_atom = 10; // to check later
+  size_data_atom = 9; // to check later
   size_data_vel = 4;
   xcol_data = 4;
  

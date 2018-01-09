@@ -55,7 +55,8 @@ enum{NONE,SPIN};
 
 FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), 
-  rsec(NULL), k(NULL), adv_list(NULL),
+  rsec(NULL), stack_head(NULL), stack_foot(NULL), 
+  backward_stacks(NULL), forward_stacks(NULL),
   lockpairspinexchange(NULL), lockpairspinsocneel(NULL), lockforcespin(NULL),
   locklangevinspin(NULL)
 {
@@ -82,7 +83,8 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
 
   magpair_flag = 0;
-  exch_flag = soc_flag = 0;
+  exch_flag = 0;
+  soc_neel_flag = soc_dmi_flag = 0;
   magforce_flag = 0;
   zeeman_flag = aniso_flag = 0;
   maglangevin_flag = 0;
@@ -91,12 +93,15 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
 }
 
 /* ---------------------------------------------------------------------- */
+
 FixIntegrationSpin::~FixIntegrationSpin()
 {
-  memory->destroy(k);
-  memory->destroy(adv_list);
-  
+
   memory->destroy(rsec);
+  memory->destroy(stack_head);
+  memory->destroy(stack_foot);
+  memory->destroy(forward_stacks);
+  memory->destroy(backward_stacks);
 
 }
 
@@ -106,6 +111,7 @@ int FixIntegrationSpin::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
+  mask |= PRE_NEIGHBOR;
   mask |= FINAL_INTEGRATE;
   return mask;  
 }
@@ -126,8 +132,11 @@ void FixIntegrationSpin::init()
     exch_flag = 1;
     lockpairspinexchange = (PairSpinExchange *) force->pair;
   } else if (strstr(force->pair_style,"pair/spin/soc/neel")) {
-    soc_flag = 1;
+    soc_neel_flag = 1;
     lockpairspinsocneel = (PairSpinSocNeel *) force->pair;
+  } else if (strstr(force->pair_style,"pair/spin/soc/dmi")) {
+    soc_dmi_flag = 1;
+    lockpairspinsocdmi = (PairSpinSocDmi *) force->pair;
   } else if (strstr(force->pair_style,"hybrid/overlay")) {
     PairHybrid *lockhybrid = (PairHybrid *) force->pair;
     int nhybrid_styles = lockhybrid->nstyles;
@@ -137,8 +146,11 @@ void FixIntegrationSpin::init()
         exch_flag = 1;
 	lockpairspinexchange = (PairSpinExchange *) lockhybrid->styles[ipair];
       } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/soc/neel")) {
-	soc_flag = 1;
+	soc_neel_flag = 1;
 	lockpairspinsocneel = (PairSpinSocNeel *) lockhybrid->styles[ipair];
+      } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/soc/dmi")) {
+	soc_dmi_flag = 1;
+	lockpairspinsocdmi = (PairSpinSocDmi *) lockhybrid->styles[ipair];
       }
     }
   } else error->all(FLERR,"Illegal fix integration/spin command");
@@ -179,8 +191,10 @@ void FixIntegrationSpin::init()
 
   // grow tables for k and adv_list
 
-  k = memory->grow(k,nsectors,"integration/spin:k");
-  adv_list = memory->grow(adv_list,nsectors,atom->nmax,"integration/spin:adv_list");
+  stack_head = memory->grow(stack_head,nsectors,"integration/spin:stack_head");
+  stack_foot = memory->grow(stack_foot,nsectors,"integration/spin:stack_foot");
+  forward_stacks = memory->grow(forward_stacks,atom->nmax,"integration/spin:forward_stacks");
+  backward_stacks = memory->grow(backward_stacks,atom->nmax,"integration/spin:backward_stacks");
 
 }
 
@@ -189,7 +203,6 @@ void FixIntegrationSpin::init()
 void FixIntegrationSpin::initial_integrate(int vflag)
 {
   double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy;
-  double xi[3];
   double spi[3], fmi[3];
 	
   double **x = atom->x;	
@@ -216,55 +229,37 @@ void FixIntegrationSpin::initial_integrate(int vflag)
     }
   }
 
-  // grow/shrink adv_list table to nlocal
-  // init. tables for mpi-sector storage
-
-  int p;
-  adv_list = memory->grow(adv_list,nsectors,nlocal,"integration/spin:adv_list");
-  for (int j = 0; j < nsectors; j++) {
-    k[j] = 0;
-    for (int i = 0; i < nlocal; i++) {
-      adv_list[j][i] = 0;
-    }
-  }
-
   // update half s for all atoms
 
   if (extra == SPIN) {
     if (mpi_flag) {				// mpi seq. update
-      int nseci;
       for (int j = 0; j < nsectors; j++) {	// advance quarter s for nlocal
         comm->forward_comm();
-	k[j] = 0;
-        for (int i = 0; i < nlocal; i++) {
-       	  xi[0] = x[i][0];
-	  xi[1] = x[i][1];
-       	  xi[2] = x[i][2];
-       	  nseci = coords2sector(xi);
-	  if (j != nseci) continue;
+	int i = stack_foot[j];
+        while (i >= 0) {
 	  ComputeInteractionsSpin(i);
     	  AdvanceSingleSpin(i,dts);
-	  adv_list[j][k[j]] = i;
-          k[j]++;   
-      	}
+	  i = forward_stacks[i];
+	}
       }
-      for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal
-	comm->forward_comm();
-        for (int i = k[j]-1; i >= 0; i--) {
-          p = adv_list[j][i];
-	  ComputeInteractionsSpin(p);
-    	  AdvanceSingleSpin(p,dts);
-        }
+      for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
+        comm->forward_comm();
+	int i = stack_head[j];
+	while (i >= 0) {
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts);
+	  i = backward_stacks[i];
+	}
       }
     } else if (mpi_flag == 0) {			// serial seq. update
       comm->forward_comm();			// comm. positions of ghost atoms
-      for (int i = 0; i < nlocal-1; i++){	// advance quarter s for nlocal
+      for (int i = 0; i < nlocal-1; i++){	// advance quarter s for nlocal-1
         ComputeInteractionsSpin(i);
     	AdvanceSingleSpin(i,dts);
       }
       ComputeInteractionsSpin(nlocal-1);
       AdvanceSingleSpin(nlocal-1,2.0*dts);	// advance half s for 1
-      for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal
+      for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal-1
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,dts);
       }
@@ -287,48 +282,94 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 
   if (extra == SPIN) {
     if (mpi_flag) {				// mpi seq. update
-      int nseci;
       for (int j = 0; j < nsectors; j++) {	// advance quarter s for nlocal
-        comm->forward_comm(); 
-        for (int i = 0; i < k[j]; i++) {
-	  p = adv_list[j][i];
-	  ComputeInteractionsSpin(p);
-    	  AdvanceSingleSpin(p,dts);
-      	}    
+        comm->forward_comm();
+	int i = stack_foot[j];
+        while (i >= 0) {
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts);
+	  i = forward_stacks[i];
+	}
       }
       for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
         comm->forward_comm();
-        for (int i = k[j]-1; i >= 0; i--) {
-          p = adv_list[j][i];
-	  ComputeInteractionsSpin(p);
-    	  AdvanceSingleSpin(p,dts);
-        }    
+	int i = stack_head[j];
+	while (i >= 0) {
+	  ComputeInteractionsSpin(i);
+    	  AdvanceSingleSpin(i,dts);
+	  i = backward_stacks[i];
+	}
       }
     } else if (mpi_flag == 0) {			// serial seq. update
       comm->forward_comm();			// comm. positions of ghost atoms
-      for (int i = 0; i < nlocal-1; i++){	// advance quarter s for nlocal
+      for (int i = 0; i < nlocal-1; i++){	// advance quarter s for nlocal-1
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,dts);
       }
       ComputeInteractionsSpin(nlocal-1);
       AdvanceSingleSpin(nlocal-1,2.0*dts);	// advance half s for 1
-      for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal
+      for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal-1
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i,dts);
       }
     } else error->all(FLERR,"Illegal fix integration/spin command");
   }
 
+}
+
+/* ---------------------------------------------------------------------- 
+   setup pre_neighbor()
+---------------------------------------------------------------------- */
+
+void FixIntegrationSpin::setup_pre_neighbor()
+{
+  pre_neighbor();
+}
+
+/* ---------------------------------------------------------------------- 
+   store in two linked lists the advance order of the spins
+---------------------------------------------------------------------- */
+
+void FixIntegrationSpin::pre_neighbor()
+{
+  double **x = atom->x;	
+  int nlocal = atom->nlocal;
+
+  for (int j = 0; j < nsectors; j++) {
+    stack_head[j] = -1;
+    stack_foot[j] = -1;
+  }
+
+  int nseci;
+  for (int j = 0; j < nsectors; j++) {		// stacking backward order
+    for (int i = 0; i < nlocal; i++) {
+      nseci = coords2sector(x[i]);
+      if (j != nseci) continue;
+      backward_stacks[i] = stack_head[j];
+      stack_head[j] = i;
+    }
+  }
+  for (int j = nsectors-1; j >= 0; j--) {	// stacking forward order
+    for (int i = nlocal-1; i >= 0; i--) {
+      nseci = coords2sector(x[i]);
+      if (j != nseci) continue;
+      forward_stacks[i] = stack_foot[j];
+      stack_foot[j] = i;
+    }
+  }
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- 
+   compute the magnetic force for the spin ii
+---------------------------------------------------------------------- */
+
 void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
 {
   const int nlocal = atom->nlocal;
-  double xi[3], rij[3];
+  double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
-  double fmi[3], fmj[3];
+  double fmi[3];
 
   int i,j,jj,inum,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -338,7 +379,7 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   int *type = atom->type;
   const int newton_pair = force->newton_pair;
 
-  // add test here
+  // add test here (only exchange quantities here)
   if (exch_flag) { 
     inum = lockpairspinexchange->list->inum;
     ilist = lockpairspinexchange->list->ilist;
@@ -366,7 +407,6 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
   xi[1] = x[i][1];
   xi[2] = x[i][2];
   fmi[0] = fmi[1] = fmi[2] = 0.0;
-  fmj[0] = fmj[1] = fmj[2] = 0.0;
   jlist = firstneigh[i];
   jnum = numneigh[i];
 
@@ -383,31 +423,41 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
     spj[1] = sp[j][1];
     spj[2] = sp[j][2];
 
-
     rij[0] = x[j][0] - xi[0];
     rij[1] = x[j][1] - xi[1];
     rij[2] = x[j][2] - xi[2];
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
     inorm = 1.0/sqrt(rsq);
-    rij[0] *= inorm;
-    rij[1] *= inorm;
-    rij[2] *= inorm;
 
     temp_cut = 0.0;
 
     if (exch_flag) {		// exchange
       temp_cut = lockpairspinexchange->cut_spin_exchange[itype][jtype];
       cut_2 = temp_cut*temp_cut;
-      if (rsq <= cut_2) { 
-        lockpairspinexchange->compute_exchange(i,j,rsq,fmi,fmj,spi,spj);
+      if (rsq <= cut_2) {
+	lockpairspinexchange->compute_exchange(i,j,rsq,fmi,spi,spj);
       }  
     }
 
-    if (soc_flag) {		// soc
+    if (soc_neel_flag) {		// soc_neel
       temp_cut = lockpairspinsocneel->cut_soc_neel[itype][jtype];
       cut_2 = temp_cut*temp_cut;
       if (rsq <= cut_2) {
-	//lockpairspinsocneel->compute_soc_neel(i,j,rsq,rij,fmi,fmj,spi,spj);
+	eij[0] = rij[0]*inorm;
+	eij[1] = rij[1]*inorm;
+	eij[2] = rij[2]*inorm;
+	lockpairspinsocneel->compute_soc_neel(i,j,rsq,eij,fmi,spi,spj);
+      }
+    }
+    
+    if (soc_dmi_flag) {		// soc_dmi
+      temp_cut = lockpairspinsocdmi->cut_soc_dmi[itype][jtype];
+      cut_2 = temp_cut*temp_cut;
+      if (rsq <= cut_2) {
+	eij[0] = rij[0]*inorm;
+	eij[1] = rij[1]*inorm;
+	eij[2] = rij[2]*inorm;
+	lockpairspinsocdmi->compute_soc_dmi(i,j,fmi,spi,spj);
       }
     }
 
@@ -431,7 +481,7 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
     } 
   }
 
-  // replace the magnethic force i by its new value
+  // replace the magnetic force fm[i] by its new value
 
   fm[i][0] = fmi[0];
   fm[i][1] = fmi[1];
@@ -439,7 +489,10 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- 
+   divide each domain into sectors
+---------------------------------------------------------------------- */
+
 void FixIntegrationSpin::sectoring()
 {
   int sec[3];
@@ -482,9 +535,11 @@ void FixIntegrationSpin::sectoring()
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- 
+   define sector for an atom at a position x[i]
+---------------------------------------------------------------------- */
 
-int FixIntegrationSpin::coords2sector(double x[3])
+int FixIntegrationSpin::coords2sector(double *x)
 {
   int nseci;
   int seci[3];
@@ -494,6 +549,8 @@ int FixIntegrationSpin::coords2sector(double x[3])
     sublo[dim]=sublotmp[dim];
   }
 
+//#define M1
+#if defined M1
   double rix = (x[0] - sublo[0])/rsec[0];
   double riy = (x[1] - sublo[1])/rsec[1];
   double riz = (x[2] - sublo[2])/rsec[2];
@@ -501,14 +558,23 @@ int FixIntegrationSpin::coords2sector(double x[3])
   seci[0] = static_cast<int>(rix);
   seci[1] = static_cast<int>(riy);
   seci[2] = static_cast<int>(riz);
+#endif
+
+#define M2
+#if defined M2
+  seci[0] = x[0] > (sublo[0] + rsec[0]);
+  seci[1] = x[1] > (sublo[1] + rsec[1]);
+  seci[2] = x[2] > (sublo[2] + rsec[2]);
+#endif
 
   nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
 
   return nseci;
 }
 
-
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- 
+   advance the spin i of a timestep dtl
+---------------------------------------------------------------------- */
 
 void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl)
 {

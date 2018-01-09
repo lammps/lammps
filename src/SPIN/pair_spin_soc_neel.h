@@ -39,17 +39,17 @@ class PairSpinSocNeel : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_soc_neel(int, int, double, double rij[3], double fmi[3], double fmj[3],double spi[3], double spj[3]);
-  void compute_soc_mech_neel(int, int, double, double rij[3], double fi[3], double fj[3],double spi[3], double spj[3]);
+  void compute_soc_neel(int, int, double, double eij[3], double fmi[3], double spi[3], double spj[3]);
+  void compute_soc_mech_neel(int, int, double, double eij[3], double fi[3], double spi[3], double spj[3]);
  
   int soc_neel_flag;		// soc neel flag
-  int mech_flag; 		// mech calc. flag
+  int soc_mech_flag; 		// mech calculation flag
 
   double cut_soc_global;
   double **cut_soc_neel;	// cutoff distance exchange
 
  protected:
-  int newton_pair_spin; 
+  //int newton_pair_spin; 
   double hbar;
 
   double **K1, **K1_mech; 	// exchange coeffs Kij

@@ -38,7 +38,10 @@ class FixIntegrationSpin : public Fix {
   void AdvanceSingleSpin(int, double);
 
   void sectoring();			// sectoring operation functions 
-  int coords2sector(double x[3]);
+  int coords2sector(double *);
+
+  void setup_pre_neighbor();
+  void pre_neighbor();
 
  protected:
   int extra, mpi_flag;
@@ -46,7 +49,8 @@ class FixIntegrationSpin : public Fix {
   double dtv,dtf,dts;		// velocity, force, and spin timesteps
   
   int magpair_flag;		// magnetic pair flags
-  int soc_flag, exch_flag;
+  int exch_flag;
+  int soc_neel_flag, soc_dmi_flag;
   int magforce_flag;		// magnetic force flags
   int zeeman_flag, aniso_flag;
   int maglangevin_flag;		// magnetic langevin flags
@@ -57,12 +61,19 @@ class FixIntegrationSpin : public Fix {
   class PairHybrid *lockhybrid;    
   class PairSpinExchange *lockpairspinexchange;
   class PairSpinSocNeel *lockpairspinsocneel;
+  class PairSpinSocDmi *lockpairspinsocdmi;
   class FixForceSpin *lockforcespin;
   class FixLangevinSpin *locklangevinspin; 
 
   int nsectors;			// sectoring variables
   double *rsec;
-  int *k, **adv_list;
+
+  // stacking variables for sectoring algorithm
+  
+  int *stack_head;	// index of first atom in backward_stacks  
+  int *stack_foot;	// index of first atom in forward_stacks
+  int *backward_stacks;	// index of next atom in backward stack
+  int *forward_stacks;	// index of next atom in forward stack
 
 };
 

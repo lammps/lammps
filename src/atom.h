@@ -152,6 +152,7 @@ class Atom : protected Pointers {
   int dpd_flag,edpd_flag,tdpd_flag;
 
   //USER-SPIN package
+
   int mumag_flag,sp_flag;
 
   // USER-SMD package

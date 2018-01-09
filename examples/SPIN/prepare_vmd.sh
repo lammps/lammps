@@ -14,7 +14,7 @@ FILE=view_${TS}.vmd
 cat >${FILE} <<EOF
 proc vmd_draw_arrow {mol start end} {
      set middle [vecadd \$start [vecscale 0.9 [vecsub \$end \$start]]]
-     graphics \$mol cylinder \$start $middle radius 0.05
+     graphics \$mol cylinder \$start \$middle radius 0.05
      graphics \$mol cone \$middle \$end radius 0.01 color 3
 }
 

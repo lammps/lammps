@@ -66,7 +66,10 @@ PairSNAPKokkos<DeviceType>::PairSNAPKokkos(LAMMPS *lmp) : PairSNAP(lmp)
 template<class DeviceType>
 PairSNAPKokkos<DeviceType>::~PairSNAPKokkos()
 {
-  //if (copymode) return;
+  if (copymode) return;
+
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 }
 
 

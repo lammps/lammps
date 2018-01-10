@@ -1099,7 +1099,7 @@ void AtomVecSMD::data_atom(double *coord, imageint imagetmp, char **values) {
  ------------------------------------------------------------------------- */
 
 int AtomVecSMD::data_atom_hybrid(int nlocal, char **values) {
-	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style tlsph");
+	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
 	return -1;
 }
 
@@ -1121,7 +1121,7 @@ void AtomVecSMD::data_vel(int m, char **values) {
  ------------------------------------------------------------------------- */
 
 int AtomVecSMD::data_vel_hybrid(int m, char **values) {
-	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style tlsph");
+	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
 	return 0;
 }
 
@@ -1143,10 +1143,14 @@ void AtomVecSMD::pack_data(double **buf) {
 		buf[i][7] = x[i][0];
 		buf[i][8] = x[i][1];
 		buf[i][9] = x[i][2];
+		
+                buf[i][10] = x0[i][0];
+                buf[i][11] = x0[i][1];
+                buf[i][12] = x0[i][2];
 
-		buf[i][10] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
-		buf[i][11] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
-		buf[i][12] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
+		buf[i][13] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+		buf[i][14] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+		buf[i][15] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
 	}
 }
 
@@ -1155,7 +1159,7 @@ void AtomVecSMD::pack_data(double **buf) {
  ------------------------------------------------------------------------- */
 
 int AtomVecSMD::pack_data_hybrid(int i, double *buf) {
-	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style tlsph");
+	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
 	return -1;
 }
 
@@ -1167,9 +1171,9 @@ void AtomVecSMD::write_data(FILE *fp, int n, double **buf) {
 	for (int i = 0; i < n; i++)
 		fprintf(fp,
 		TAGINT_FORMAT
-		" %d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n", (tagint) ubuf(buf[i][0]).i,
+		" %d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n", (tagint) ubuf(buf[i][0]).i,
 				(int) ubuf(buf[i][1]).i, (int) ubuf(buf[i][2]).i, buf[i][3], buf[i][4], buf[i][5], buf[i][6], buf[i][7], buf[i][8],
-				buf[i][9], (int) ubuf(buf[i][7]).i, (int) ubuf(buf[i][8]).i, (int) ubuf(buf[i][9]).i);
+				buf[i][9], buf[i][10], buf[i][11], buf[i][12]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1177,7 +1181,7 @@ void AtomVecSMD::write_data(FILE *fp, int n, double **buf) {
  ------------------------------------------------------------------------- */
 
 int AtomVecSMD::write_data_hybrid(FILE *fp, double *buf) {
-	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style tlsph");
+	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
 	return -1;
 }
 
@@ -1200,7 +1204,7 @@ void AtomVecSMD::pack_vel(double **buf) {
  ------------------------------------------------------------------------- */
 
 int AtomVecSMD::pack_vel_hybrid(int i, double *buf) {
-	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style tlsph");
+	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
 	return 0;
 }
 
@@ -1211,8 +1215,7 @@ int AtomVecSMD::pack_vel_hybrid(int i, double *buf) {
 void AtomVecSMD::write_vel(FILE *fp, int n, double **buf) {
 	for (int i = 0; i < n; i++)
 		fprintf(fp, TAGINT_FORMAT
-		" %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n", (tagint) ubuf(buf[i][0]).i, buf[i][1], buf[i][2], buf[i][3],
-				buf[i][4], buf[i][5], buf[i][6]);
+		" %-1.16e %-1.16e %-1.16e\n", (tagint) ubuf(buf[i][0]).i, buf[i][1], buf[i][2], buf[i][3]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1220,7 +1223,7 @@ void AtomVecSMD::write_vel(FILE *fp, int n, double **buf) {
  ------------------------------------------------------------------------- */
 
 int AtomVecSMD::write_vel_hybrid(FILE *fp, double *buf) {
-	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style tlsph");
+	error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
 	return 3;
 }
 

@@ -98,7 +98,7 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
     // nlocal can be larger if other fixes added atoms at this pre_exchange()
 
     // clear per-thread paged data structures
-    
+
     MyPage <tagint> &ipg = ipage_atom[tid];
     MyPage <double> &dpg = dpage_atom[tid];
     ipg.reset();
@@ -540,8 +540,8 @@ void FixNeighHistoryOMP::post_neighbor()
     int *allflags;
     double *allvalues;
 
-    MyPage <tagint> &ipg = ipage_atom[tid];
-    MyPage <double> &dpg = dpage_atom[tid];
+    MyPage <int> &ipg = ipage_neigh[tid];
+    MyPage <double> &dpg = dpage_neigh[tid];
     ipg.reset();
     dpg.reset();
 

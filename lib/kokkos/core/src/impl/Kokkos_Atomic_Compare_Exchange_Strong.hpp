@@ -49,6 +49,10 @@
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_COMPARE_EXCHANGE_STRONG_HPP )
 #define KOKKOS_ATOMIC_COMPARE_EXCHANGE_STRONG_HPP
 
+#if defined(KOKKOS_ENABLE_CUDA)
+#include<Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
+#endif
+
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
@@ -103,7 +107,7 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -115,7 +119,7 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
         done = 1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 }

@@ -54,6 +54,7 @@
 #include <TestUnorderedMapPerformance.hpp>
 
 #include <TestDynRankView.hpp>
+#include <TestScatterView.hpp>
 
 #include <iomanip>
 #include <sstream>
@@ -120,6 +121,18 @@ TEST_F( openmp, unordered_map_performance_far)
   std::ostringstream base_file_name;
   base_file_name << "openmp-" << num_openmp << "-far";
   Perf::run_performance_tests<Kokkos::OpenMP,false>(base_file_name.str());
+}
+
+TEST_F( openmp, scatter_view)
+{
+  std::cout << "ScatterView data-duplicated test:\n";
+  Perf::test_scatter_view<Kokkos::OpenMP, Kokkos::LayoutRight,
+    Kokkos::Experimental::ScatterDuplicated,
+    Kokkos::Experimental::ScatterNonAtomic>(10, 1000 * 1000);
+//std::cout << "ScatterView atomics test:\n";
+//Perf::test_scatter_view<Kokkos::OpenMP, Kokkos::LayoutRight,
+//  Kokkos::Experimental::ScatterNonDuplicated,
+//  Kokkos::Experimental::ScatterAtomic>(10, 1000 * 1000);
 }
 
 } // namespace test

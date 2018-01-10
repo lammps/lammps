@@ -64,6 +64,10 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   nmax = nmax = m_cap = 0;
   allocated_flag = 0;
   nprev = 4;
+
+  memory->destroy(s_hist);
+  memory->destroy(t_hist);
+  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,6 +76,9 @@ template<class DeviceType>
 FixQEqReaxKokkos<DeviceType>::~FixQEqReaxKokkos()
 {
   if (copymode) return;
+
+  memoryKK->destroy_kokkos(k_s_hist,s_hist);
+  memoryKK->destroy_kokkos(k_t_hist,t_hist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -157,25 +164,11 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init_hist()
 {
-  int i,j;
+  Kokkos::deep_copy(d_s_hist,0.0);
+  Kokkos::deep_copy(d_t_hist,0.0);
 
-  k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",atom->nmax,nprev);
-  d_s_hist = k_s_hist.template view<DeviceType>();
-  h_s_hist = k_s_hist.h_view;
-  k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",atom->nmax,nprev);
-  d_t_hist = k_t_hist.template view<DeviceType>();
-  h_t_hist = k_t_hist.h_view;
-
-  for( i = 0; i < atom->nmax; i++ )
-    for( j = 0; j < nprev; j++ )
-      k_s_hist.h_view(i,j) = k_t_hist.h_view(i,j) = 0.0;
-
-  k_s_hist.template modify<LMPHostType>();
-  k_s_hist.template sync<DeviceType>();
-
-  k_t_hist.template modify<LMPHostType>();
-  k_t_hist.template sync<DeviceType>();
-
+  k_s_hist.template modify<DeviceType>();
+  k_t_hist.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -235,6 +228,8 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   Kokkos::parallel_scan(inum,computeH_functor);
 
   // init_matvec
+  k_s_hist.template sync<DeviceType>();
+  k_t_hist.template sync<DeviceType>();
   FixQEqReaxKokkosMatVecFunctor<DeviceType> matvec_functor(this);
   Kokkos::parallel_for(inum,matvec_functor);
 
@@ -262,6 +257,8 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // calculate_Q();
   calculate_q();
+  k_s_hist.template modify<DeviceType>();
+  k_t_hist.template modify<DeviceType>();
 
   copymode = 0;
 
@@ -334,14 +331,6 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
     k_d = DAT::tdual_ffloat_1d("qeq/kk:h_d",nmax);
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
-
-    k_s_hist = DAT::tdual_ffloat_2d("qeq/kk:s_hist",nmax,nprev);
-    d_s_hist = k_s_hist.template view<DeviceType>();
-    h_s_hist = k_s_hist.h_view;
-
-    k_t_hist = DAT::tdual_ffloat_2d("qeq/kk:t_hist",nmax,nprev);
-    d_t_hist = k_t_hist.template view<DeviceType>();
-    h_t_hist = k_t_hist.h_view;
   }
 
   // init_storage
@@ -369,8 +358,6 @@ void FixQEqReaxKokkos<DeviceType>::zero_item(int ii) const
     d_o[i] = 0.0;
     d_r[i] = 0.0;
     d_d[i] = 0.0;
-    //for( int j = 0; j < nprev; j++ )
-      //d_s_hist(i,j) = d_t_hist(i,j) = 0.0;
   }
 
 }
@@ -405,19 +392,19 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const boo
       const X_FLOAT delz = x(j,2) - ztmp;
 
       if (neighflag != FULL) {
+        // skip half of the interactions
         const tagint jtag = tag(j);
-        flag = 0;
-        if (j < nlocal) flag = 1;
-        else if (itag < jtag) flag = 1;
-        else if (itag == jtag) {
-          if (delz > SMALL) flag = 1;
-          else if (fabs(delz) < SMALL) {
-            if (dely > SMALL) flag = 1;
-            else if (fabs(dely) < SMALL && delx > SMALL)
-              flag = 1;
+        if (j >= nlocal) {
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (x(j,2) < ztmp) continue;
+            if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
+            if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
           }
         }
-        if (!flag) continue;
       }
 
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
@@ -462,7 +449,7 @@ double FixQEqReaxKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F_FLO
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::mat_vec_item(int ii) const
+void FixQEqReaxKokkos<DeviceType>::matvec_item(int ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -1183,7 +1170,77 @@ double FixQEqReaxKokkos<DeviceType>::memory_usage()
   return bytes;
 }
 
-/* ---------------------------------------------------------------------- */\
+/* ----------------------------------------------------------------------
+   allocate fictitious charge arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxKokkos<DeviceType>::grow_arrays(int nmax)
+{
+  k_s_hist.template sync<LMPHostType>(); // force reallocation on host
+  k_t_hist.template sync<LMPHostType>();
+
+  memoryKK->grow_kokkos(k_s_hist,s_hist,nmax,nprev,"qeq:s_hist");
+  memoryKK->grow_kokkos(k_t_hist,t_hist,nmax,nprev,"qeq:t_hist");
+
+  d_s_hist = k_s_hist.template view<DeviceType>();
+  d_t_hist = k_t_hist.template view<DeviceType>();
+
+  k_s_hist.template modify<LMPHostType>();
+  k_t_hist.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   copy values within fictitious charge arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+{
+  k_s_hist.template sync<LMPHostType>();
+  k_t_hist.template sync<LMPHostType>();
+
+  for (int m = 0; m < nprev; m++) {
+    s_hist[j][m] = s_hist[i][m];
+    t_hist[j][m] = t_hist[i][m];
+  }
+
+  k_s_hist.template modify<LMPHostType>();
+  k_t_hist.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based array for exchange with another proc
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixQEqReaxKokkos<DeviceType>::pack_exchange(int i, double *buf)
+{
+  k_s_hist.template sync<LMPHostType>();
+  k_t_hist.template sync<LMPHostType>();
+
+  for (int m = 0; m < nprev; m++) buf[m] = s_hist[i][m];
+  for (int m = 0; m < nprev; m++) buf[nprev+m] = t_hist[i][m];
+  return nprev*2;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values in local atom-based array from exchange with another proc
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
+{
+  for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
+  for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
+
+  k_s_hist.template modify<LMPHostType>();
+  k_t_hist.template modify<LMPHostType>();
+
+  return nprev*2;
+}
+
+/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class FixQEqReaxKokkos<LMPDeviceType>;

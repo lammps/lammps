@@ -969,6 +969,8 @@ void PPPMKokkos<DeviceType>::set_grid_global()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
+    if (q2 == 0.0)
+      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
@@ -1179,6 +1181,7 @@ double PPPMKokkos<DeviceType>::final_accuracy()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
   bigint natoms = atomKK->natoms;
+  if (natoms == 0) natoms = 1; // avoid division by zero
 
   double df_kspace = compute_df_kspace();
   double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd);

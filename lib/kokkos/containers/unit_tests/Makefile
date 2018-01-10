@@ -15,7 +15,8 @@ endif
 
 CXXFLAGS = -O3
 LINK ?= $(CXX)
-LDFLAGS ?= -lpthread
+LDFLAGS ?=
+override LDFLAGS += -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
@@ -28,6 +29,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	OBJ_CUDA = TestCuda.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosContainers_UnitTest_Cuda
 	TEST_TARGETS += test-cuda
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
+	OBJ_ROCM = TestROCm.o UnitTestMain.o gtest-all.o
+	TARGETS += KokkosContainers_UnitTest_ROCm
+	TEST_TARGETS += test-rocm
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
@@ -51,6 +58,9 @@ endif
 KokkosContainers_UnitTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_Cuda
 
+KokkosContainers_UnitTest_ROCm: $(OBJ_ROCM) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_ROCM) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_ROCm
+
 KokkosContainers_UnitTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_THREADS) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosContainers_UnitTest_Threads
 
@@ -62,6 +72,9 @@ KokkosContainers_UnitTest_Serial: $(OBJ_SERIAL) $(KOKKOS_LINK_DEPENDS)
 
 test-cuda: KokkosContainers_UnitTest_Cuda
 	./KokkosContainers_UnitTest_Cuda
+
+test-rocm: KokkosContainers_UnitTest_ROCm
+	./KokkosContainers_UnitTest_ROCm
 
 test-threads: KokkosContainers_UnitTest_Threads
 	./KokkosContainers_UnitTest_Threads

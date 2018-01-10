@@ -42,6 +42,10 @@ NPairHalfBinNewtonSSA::NPairHalfBinNewtonSSA(LAMMPS *lmp) : NPair(lmp)
   ssa_phaseLen = NULL;
   ssa_itemLoc = NULL;
   ssa_itemLen = NULL;
+  ssa_gphaseCt = 7;
+  memory->create(ssa_gphaseLen,ssa_gphaseCt,"NPairHalfBinNewtonSSA:ssa_gphaseLen");
+  memory->create(ssa_gitemLoc,ssa_gphaseCt,1,"NPairHalfBinNewtonSSA:ssa_gitemLoc");
+  memory->create(ssa_gitemLen,ssa_gphaseCt,1,"NPairHalfBinNewtonSSA:ssa_gitemLen");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,6 +58,10 @@ NPairHalfBinNewtonSSA::~NPairHalfBinNewtonSSA()
   memory->destroy(ssa_phaseLen);
   memory->destroy(ssa_itemLoc);
   memory->destroy(ssa_itemLen);
+  ssa_gphaseCt = 0;
+  memory->destroy(ssa_gphaseLen);
+  memory->destroy(ssa_gitemLoc);
+  memory->destroy(ssa_gitemLen);
 }
 
 /* ----------------------------------------------------------------------
@@ -236,13 +244,14 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
 
   if (ssa_phaseCt != workPhase) error->one(FLERR,"ssa_phaseCt was wrong");
 
-  list->AIRct_ssa[0] = list->inum = inum;
+  list->inum = inum;
 
   // loop over AIR ghost atoms, storing their local neighbors
   // since these are ghosts, must check if stencil bin is out of bounds
-  for (int airnum = 1; airnum <= 7; airnum++) {
+  for (workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
     int locAIRct = 0;
-    for (i = gairhead_ssa[airnum]; i >= 0; i = bins[i]) {
+    ssa_gitemLoc[workPhase][0] = inum + gnum; // record where workItem starts in ilist
+    for (i = gairhead_ssa[workPhase+1]; i >= 0; i = bins[i]) {
       n = 0;
       neighptr = ipage->vget();
 
@@ -305,7 +314,8 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
       if (ipage->status())
         error->one(FLERR,"Neighbor (ghost) list overflow, boost neigh_modify one");
     }
-    list->AIRct_ssa[airnum] = locAIRct;
+    ssa_gitemLen[workPhase][0] = locAIRct;
+    ssa_gphaseLen[workPhase] = 1;
   }
   list->gnum = gnum;
 }

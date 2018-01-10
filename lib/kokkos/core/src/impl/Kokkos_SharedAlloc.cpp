@@ -306,7 +306,7 @@ print_host_accessible_records( std::ostream & s
               , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , r->m_alloc_ptr->m_label
               );
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != root );
   }
@@ -334,7 +334,7 @@ print_host_accessible_records( std::ostream & s
       else {
         snprintf( buffer , 256 , "%s [ 0 + 0 ]\n" , space_name );
       }
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != root );
   }

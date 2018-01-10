@@ -2489,6 +2489,303 @@ struct TestMDRange_6D {
   }
 };
 
+
+template <typename ExecSpace >
+struct TestMDRange_2D_NegIdx {
+
+  using value_type = double;
+
+  using DataType     = int;
+  using ViewType     = typename Kokkos::View< DataType**, ExecSpace >;
+  using HostViewType = typename ViewType::HostMirror;
+
+  ViewType input_view;
+  DataType lower_offset[2];
+
+  TestMDRange_2D_NegIdx( const DataType L0, const DataType L1, const DataType N0, const DataType N1 ) : input_view( "input_view", N0 - L0, N1 - L1 ) 
+  {
+    lower_offset[0] = L0;
+    lower_offset[1] = L1;
+  }
+
+  // When using negative indices, must offset View appropriately as views cannot take a negative index
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j ) const
+  {
+    input_view( i - lower_offset[0], j - lower_offset[1] ) = 1;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, value_type &lsum ) const
+  {
+    lsum += input_view( i - lower_offset[0], j - lower_offset[1] ) * 2;
+  }
+
+  static void test_2D_negidx( const int N0, const int N1 )
+  {
+    using namespace Kokkos::Experimental;
+
+    {
+      typedef typename Kokkos::Experimental::MDRangePolicy< ExecSpace, Rank<2>, Kokkos::IndexType<int> > range_type;
+      typedef typename range_type::tile_type tile_type;
+      typedef typename range_type::point_type point_type;
+
+      const point_type lower{{-1, -1}};
+      const point_type upper{{N0, N1}};
+      const tile_type  tile{{8,8}};
+
+      range_type range( point_type{{ lower[0], lower[1] }}, point_type{{ upper[0], upper[1] }}, tile_type{{ tile[0], tile[1] }} );
+
+      TestMDRange_2D_NegIdx functor( lower[0], lower[1], upper[0], upper[1] );
+
+      parallel_for( range, functor );
+      double sum = 0.0;
+      parallel_reduce( range, functor, sum );
+
+      ASSERT_EQ( sum, 2 * (upper[0] - lower[0]) * (upper[1] - lower[1]) );
+    }
+  }
+};
+
+template <typename ExecSpace >
+struct TestMDRange_3D_NegIdx {
+
+  using value_type = double;
+
+  using DataType     = int;
+  using ViewType     = typename Kokkos::View< DataType***, ExecSpace >;
+  using HostViewType = typename ViewType::HostMirror;
+
+  ViewType input_view;
+  DataType lower_offset[3];
+
+  TestMDRange_3D_NegIdx( const DataType L0, const DataType L1, const DataType L2, const DataType N0, const DataType N1, const DataType N2 ) : input_view( "input_view", N0 - L0, N1 - L1, N2 - L2 ) 
+  {
+    lower_offset[0] = L0;
+    lower_offset[1] = L1;
+    lower_offset[2] = L2;
+  }
+
+  // When using negative indices, must offset View appropriately as views cannot take a negative index
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k ) const
+  {
+    input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2] ) = 1;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k, value_type &lsum ) const
+  {
+    lsum += input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2] ) * 2;
+  }
+
+  static void test_3D_negidx( const int N0, const int N1, const int N2 )
+  {
+    using namespace Kokkos::Experimental;
+
+    {
+      typedef typename Kokkos::Experimental::MDRangePolicy< ExecSpace, Rank<3>, Kokkos::IndexType<int> > range_type;
+      typedef typename range_type::tile_type tile_type;
+      typedef typename range_type::point_type point_type;
+
+      const point_type lower{{-1, -1, -1}};
+      const point_type upper{{N0, N1, N2}};
+      const tile_type  tile{{8,8,2}};
+
+      range_type range( point_type{{ lower[0], lower[1], lower[2] }}, point_type{{ upper[0], upper[1], upper[2] }}, tile_type{{ tile[0], tile[1], tile[2] }} );
+
+      TestMDRange_3D_NegIdx functor( lower[0], lower[1], lower[2], upper[0], upper[1], upper[2] );
+
+      parallel_for( range, functor );
+      double sum = 0.0;
+      parallel_reduce( range, functor, sum );
+
+      ASSERT_EQ( sum, 2 * (upper[0] - lower[0]) * (upper[1] - lower[1]) * (upper[2] - lower[2]) );
+    }
+  }
+};
+
+template <typename ExecSpace >
+struct TestMDRange_4D_NegIdx {
+
+  using value_type = double;
+
+  using DataType     = int;
+  using ViewType     = typename Kokkos::View< DataType****, ExecSpace >;
+  using HostViewType = typename ViewType::HostMirror;
+
+  ViewType input_view;
+  DataType lower_offset[4];
+
+  TestMDRange_4D_NegIdx( const DataType L0, const DataType L1, const DataType L2, const DataType L3, const DataType N0, const DataType N1, const DataType N2, const DataType N3 ) : input_view( "input_view", N0 - L0, N1 - L1, N2 - L2, N3 - L3 ) 
+  {
+    lower_offset[0] = L0;
+    lower_offset[1] = L1;
+    lower_offset[2] = L2;
+    lower_offset[3] = L3;
+  }
+
+  // When using negative indices, must offset View appropriately as views cannot take a negative index
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k, const int l ) const
+  {
+    input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2], l - lower_offset[3] ) = 1;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k, const int l, value_type &lsum ) const
+  {
+    lsum += input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2], l - lower_offset[3] ) * 2;
+  }
+
+  static void test_4D_negidx( const int N0, const int N1, const int N2, const int N3 )
+  {
+    using namespace Kokkos::Experimental;
+
+    {
+      typedef typename Kokkos::Experimental::MDRangePolicy< ExecSpace, Rank<4>, Kokkos::IndexType<int> > range_type;
+      typedef typename range_type::tile_type tile_type;
+      typedef typename range_type::point_type point_type;
+
+      const point_type lower{{-1, -1, -1, -1}};
+      const point_type upper{{N0, N1, N2, N3}};
+      const tile_type  tile{{8,8,2,2}};
+
+      range_type range( point_type{{ lower[0], lower[1], lower[2], lower[3] }}, point_type{{ upper[0], upper[1], upper[2], upper[3] }}, tile_type{{ tile[0], tile[1], tile[2], tile[3] }} );
+
+      TestMDRange_4D_NegIdx functor( lower[0], lower[1], lower[2], lower[3], upper[0], upper[1], upper[2], upper[3] );
+
+      parallel_for( range, functor );
+      double sum = 0.0;
+      parallel_reduce( range, functor, sum );
+
+      ASSERT_EQ( sum, 2 * (upper[0] - lower[0]) * (upper[1] - lower[1]) * (upper[2] - lower[2]) * (upper[3] - lower[3]) );
+    }
+  }
+};
+
+template <typename ExecSpace >
+struct TestMDRange_5D_NegIdx {
+
+  using value_type = double;
+
+  using DataType     = int;
+  using ViewType     = typename Kokkos::View< DataType*****, ExecSpace >;
+  using HostViewType = typename ViewType::HostMirror;
+
+  ViewType input_view;
+  DataType lower_offset[5];
+
+  TestMDRange_5D_NegIdx( const DataType L0, const DataType L1, const DataType L2, const DataType L3, const DataType L4, const DataType N0, const DataType N1, const DataType N2, const DataType N3, const DataType N4 ) : input_view( "input_view", N0 - L0, N1 - L1, N2 - L2, N3 - L3, N4 - L4 ) 
+  {
+    lower_offset[0] = L0;
+    lower_offset[1] = L1;
+    lower_offset[2] = L2;
+    lower_offset[3] = L3;
+    lower_offset[4] = L4;
+  }
+
+  // When using negative indices, must offset View appropriately as views cannot take a negative index
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k, const int l, const int m ) const
+  {
+    input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2], l - lower_offset[3], m - lower_offset[4] ) = 1;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k, const int l, const int m, value_type &lsum ) const
+  {
+    lsum += input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2], l - lower_offset[3], m - lower_offset[4] ) * 2;
+  }
+
+  static void test_5D_negidx( const int N0, const int N1, const int N2, const int N3, const int N4 )
+  {
+    using namespace Kokkos::Experimental;
+
+    {
+      typedef typename Kokkos::Experimental::MDRangePolicy< ExecSpace, Rank<5>, Kokkos::IndexType<int> > range_type;
+      typedef typename range_type::tile_type tile_type;
+      typedef typename range_type::point_type point_type;
+
+      const point_type lower{{-1, -1, -1, -1, -1}};
+      const point_type upper{{N0, N1, N2, N3, N4}};
+      const tile_type  tile{{8,4,2,2,2}};
+
+      range_type range( point_type{{ lower[0], lower[1], lower[2], lower[3], lower[4] }}, point_type{{ upper[0], upper[1], upper[2], upper[3], upper[4] }}, tile_type{{ tile[0], tile[1], tile[2], tile[3], tile[4] }} );
+
+      TestMDRange_5D_NegIdx functor( lower[0], lower[1], lower[2], lower[3], lower[4], upper[0], upper[1], upper[2], upper[3], upper[4] );
+
+      parallel_for( range, functor );
+      double sum = 0.0;
+      parallel_reduce( range, functor, sum );
+
+      ASSERT_EQ( sum, 2 * (upper[0] - lower[0]) * (upper[1] - lower[1]) * (upper[2] - lower[2]) * (upper[3] - lower[3]) * (upper[4] - lower[4]) );
+    }
+  }
+};
+
+template <typename ExecSpace >
+struct TestMDRange_6D_NegIdx {
+
+  using value_type = double;
+
+  using DataType     = int;
+  using ViewType     = typename Kokkos::View< DataType******, ExecSpace >;
+  using HostViewType = typename ViewType::HostMirror;
+
+  ViewType input_view;
+  DataType lower_offset[6];
+
+  TestMDRange_6D_NegIdx( const DataType L0, const DataType L1, const DataType L2, const DataType L3, const DataType L4, const DataType L5, const DataType N0, const DataType N1, const DataType N2, const DataType N3, const DataType N4, const DataType N5 ) : input_view( "input_view", N0 - L0, N1 - L1, N2 - L2, N3 - L3, N4 - L4, N5 - L5 ) 
+  {
+    lower_offset[0] = L0;
+    lower_offset[1] = L1;
+    lower_offset[2] = L2;
+    lower_offset[3] = L3;
+    lower_offset[4] = L4;
+    lower_offset[5] = L5;
+  }
+
+  // When using negative indices, must offset View appropriately as views cannot take a negative index
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k, const int l, const int m, const int n ) const
+  {
+    input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2], l - lower_offset[3], m - lower_offset[4], n - lower_offset[5] ) = 1;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( const int i, const int j, const int k, const int l, const int m, const int n, value_type &lsum ) const
+  {
+    lsum += input_view( i - lower_offset[0], j - lower_offset[1], k - lower_offset[2], l - lower_offset[3], m - lower_offset[4], n - lower_offset[5] ) * 2;
+  }
+
+  static void test_6D_negidx( const int N0, const int N1, const int N2, const int N3, const int N4, const int N5 )
+  {
+    using namespace Kokkos::Experimental;
+
+    {
+      typedef typename Kokkos::Experimental::MDRangePolicy< ExecSpace, Rank<6>, Kokkos::IndexType<int> > range_type;
+      typedef typename range_type::tile_type tile_type;
+      typedef typename range_type::point_type point_type;
+
+      const point_type lower{{-1, -1, -1, -1, -1, -1}};
+      const point_type upper{{N0, N1, N2, N3, N4, N5}};
+      const tile_type  tile{{8,4,2,2,2,1}};
+
+      range_type range( point_type{{ lower[0], lower[1], lower[2], lower[3], lower[4], lower[5] }}, point_type{{ upper[0], upper[1], upper[2], upper[3], upper[4], upper[5] }}, tile_type{{ tile[0], tile[1], tile[2], tile[3], tile[4], tile[5] }} );
+
+      TestMDRange_6D_NegIdx functor( lower[0], lower[1], lower[2], lower[3], lower[4], lower[5], upper[0], upper[1], upper[2], upper[3], upper[4], upper[5] );
+
+      parallel_for( range, functor );
+      double sum = 0.0;
+      parallel_reduce( range, functor, sum );
+
+      ASSERT_EQ( sum, 2 * (upper[0] - lower[0]) * (upper[1] - lower[1]) * (upper[2] - lower[2]) * (upper[3] - lower[3]) * (upper[4] - lower[4]) * (upper[5] - lower[5]) );
+    }
+  }
+};
+
+
 } // namespace
 
 TEST_F( TEST_CATEGORY , mdrange_for ) {
@@ -2511,6 +2808,14 @@ TEST_F( TEST_CATEGORY , mdrange_reduce ) {
 TEST_F( TEST_CATEGORY , mdrange_array_reduce ) {
   TestMDRange_ReduceArray_2D< TEST_EXECSPACE >::test_arrayreduce2( 4, 5 );
   TestMDRange_ReduceArray_3D< TEST_EXECSPACE >::test_arrayreduce3( 4, 5, 10 );
+}
+
+TEST_F( TEST_CATEGORY , mdrange_neg_idx ) {
+  TestMDRange_2D_NegIdx< TEST_EXECSPACE >::test_2D_negidx( 128, 32 );
+  TestMDRange_3D_NegIdx< TEST_EXECSPACE >::test_3D_negidx( 128, 32, 8 );
+  TestMDRange_4D_NegIdx< TEST_EXECSPACE >::test_4D_negidx( 128, 32, 8, 8 );
+  TestMDRange_5D_NegIdx< TEST_EXECSPACE >::test_5D_negidx( 128, 32, 8, 8, 4 );
+  TestMDRange_6D_NegIdx< TEST_EXECSPACE >::test_6D_negidx( 128, 32, 8, 8, 4, 2 );
 }
 //#endif
 

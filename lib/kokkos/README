@@ -41,47 +41,43 @@ hcedwar(at)sandia.gov and crtrott(at)sandia.gov
 ============================================================================
 
 Primary tested compilers on X86 are:
-  GCC 4.7.2
   GCC 4.8.4
-  GCC 4.9.2
+  GCC 4.9.3
   GCC 5.1.0
-  GCC 5.2.0
-  Intel 14.0.4
+  GCC 5.3.0
+  GCC 6.1.0
   Intel 15.0.2
   Intel 16.0.1
-  Intel 17.0.098
-  Intel 17.1.132
+  Intel 17.1.043
+  Intel 17.4.196
+  Intel 18.0.128
   Clang 3.5.2
   Clang 3.6.1
   Clang 3.7.1
   Clang 3.8.1
   Clang 3.9.0
-  PGI 17.1
+  Clang 4.0.0
+  Clang 4.0.0 for CUDA (CUDA Toolkit 8.0.44)
+  PGI 17.10
+  NVCC 7.0 for CUDA (with gcc 4.8.4)
+  NVCC 7.5 for CUDA (with gcc 4.8.4)
+  NVCC 8.0.44 for CUDA (with gcc 5.3.0)
 
 Primary tested compilers on Power 8 are:
   GCC 5.4.0 (OpenMP,Serial)
-  IBM XL 13.1.3 (OpenMP, Serial) (There is a workaround in place to avoid a compiler bug)
+  IBM XL 13.1.5 (OpenMP, Serial) (There is a workaround in place to avoid a compiler bug)
+  NVCC 8.0.44 for CUDA (with gcc 5.4.0)
+  NVCC 9.0.103 for CUDA (with gcc 6.3.0)
 
 Primary tested compilers on Intel KNL are:
    GCC 6.2.0
-   Intel 16.2.181 (with gcc 4.7.2)
-   Intel 17.0.098 (with gcc 4.7.2)
-   Intel 17.1.132 (with gcc 4.9.3)
+   Intel 16.4.258 (with gcc 4.7.2)
    Intel 17.2.174 (with gcc 4.9.3)
-   Intel 18.0.061 (beta) (with gcc 4.9.3)
-
-Secondary tested compilers are:
-  CUDA 7.0 (with gcc 4.8.4)
-  CUDA 7.5 (with gcc 4.8.4)
-  CUDA 8.0 (with gcc 5.3.0 on X86 and gcc 5.4.0 on Power8)
-  CUDA/Clang 8.0 using Clang/Trunk compiler
+   Intel 18.0.128 (with gcc 4.9.3)
 
 Other compilers working:
   X86:
    Cygwin 2.1.0 64bit with gcc 4.9.3
-
-Limited testing of the following compilers on POWER7+ systems:
-  GCC 4.8.5 (on RHEL7.1 POWER7+)
 
 Known non-working combinations:
   Power8:
@@ -96,8 +92,8 @@ GCC:   -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits
        -Wignored-qualifiers -Wempty-body -Wclobbered -Wuninitialized
 Intel: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 Clang: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
+NVCC: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 
-Secondary compilers are passing without -Werror.
 Other compilers are tested occasionally, in particular when pushing from develop to 
 master branch, without -Werror and only for a select set of backends.
 

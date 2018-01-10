@@ -78,7 +78,7 @@ order of operations compared to LAMMPS without acceleration:
 Neighbor lists can be created in a different order :ulb,l
 Bins used for sorting atoms can be oriented differently :l
 The default stencil order for PPPM is 7. By default, LAMMPS will
-calculate other PPPM parameters to fit the desired acuracy with
+calculate other PPPM parameters to fit the desired accuracy with
 this order :l
 The {newton} setting applies to all atoms, not just atoms shared
 between MPI tasks :l

@@ -110,6 +110,27 @@ Perf fenl< Kokkos::Cuda , Kokkos::Example::BoxElemPart::ElemQuadratic >(
 
 #endif
 
+#if defined( KOKKOS_ENABLE_ROCM )
+
+template
+Perf fenl< Kokkos::Experimental::ROCm , Kokkos::Example::BoxElemPart::ElemLinear >(
+  MPI_Comm comm ,
+  const int use_print ,
+  const int use_trials ,
+  const int use_atomic ,
+  const int global_elems[] );
+
+
+template
+Perf fenl< Kokkos::Experimental::ROCm , Kokkos::Example::BoxElemPart::ElemQuadratic >(
+  MPI_Comm comm ,
+  const int use_print ,
+  const int use_trials ,
+  const int use_atomic ,
+  const int global_elems[] );
+
+#endif
+
 
 } /* namespace FENL */
 } /* namespace Example */

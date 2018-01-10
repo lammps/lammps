@@ -408,7 +408,7 @@ view_alloc( Args const & ... args )
 }
 
 template< class ... Args >
-inline
+KOKKOS_INLINE_FUNCTION
 Impl::ViewCtorProp< typename Impl::ViewCtorProp< void , Args >::type ... >
 view_wrap( Args const & ... args )
 {
@@ -1214,6 +1214,13 @@ public:
 
       // Setup and initialization complete, start tracking
       m_track.assign_allocated_record_to_uninitialized( record );
+    }
+
+  KOKKOS_INLINE_FUNCTION
+  void assign_data( pointer_type arg_data )
+    {
+      m_track.clear();
+      m_map.assign_data( arg_data );
     }
 
   // Wrap memory according to properties and array layout
@@ -2235,6 +2242,29 @@ create_mirror_view(const Space& , const Kokkos::View<T,P...> & src
   return typename Impl::MirrorViewType<Space,T,P ...>::view_type(src.label(),src.layout());
 }
 
+// Create a mirror view and deep_copy in a new space (specialization for same space)
+template<class Space, class T, class ... P>
+typename Impl::MirrorViewType<Space,T,P ...>::view_type
+create_mirror_view_and_copy(const Space& , const Kokkos::View<T,P...> & src
+  , std::string const& name = ""
+  , typename std::enable_if<Impl::MirrorViewType<Space,T,P ...>::is_same_memspace>::type* = 0 ) {
+  (void)name;
+  return src;
+}
+
+// Create a mirror view and deep_copy in a new space (specialization for different space)
+template<class Space, class T, class ... P>
+typename Impl::MirrorViewType<Space,T,P ...>::view_type
+create_mirror_view_and_copy(const Space& , const Kokkos::View<T,P...> & src
+  , std::string const& name = ""
+  , typename std::enable_if<!Impl::MirrorViewType<Space,T,P ...>::is_same_memspace>::type* = 0 ) {
+  using Mirror = typename Impl::MirrorViewType<Space,T,P ...>::view_type;
+  std::string label = name.empty() ? src.label() : name;
+  auto mirror = Mirror(ViewAllocateWithoutInitializing(label), src.layout());
+  deep_copy(mirror, src);
+  return mirror;
+}
+
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
@@ -2432,6 +2462,7 @@ struct CommonViewAllocProp< void, ValueType >
   using scalar_array_type = ValueType;
 
   template < class ... Views >
+  KOKKOS_INLINE_FUNCTION
   CommonViewAllocProp( const Views & ... ) {}
 };
 
@@ -2499,6 +2530,7 @@ using DeducedCommonPropsType = typename Impl::DeduceCommonViewAllocProp<Views...
 
 // User function
 template < class ... Views >
+KOKKOS_INLINE_FUNCTION
 DeducedCommonPropsType<Views...> 
 common_view_alloc_prop( Views const & ... views )
 {

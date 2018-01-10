@@ -10,7 +10,7 @@ ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 CXXFLAGS = -O3
 LINK = ${CXX}
-LINKFLAGS = 
+LDFLAGS = 
 EXE = launch_bounds.cuda
 KOKKOS_DEVICES = "Cuda,OpenMP"
 KOKKOS_ARCH = "SNB,Kepler35"
@@ -18,11 +18,21 @@ else
 CXX = g++
 CXXFLAGS = -O3
 LINK = ${CXX}
-LINKFLAGS =  
+LDFLAGS =  
 EXE = launch_bounds.host
 KOKKOS_DEVICES = "OpenMP"
 KOKKOS_ARCH = "SNB"
 endif
+ifneq (,$(findstring ROCm,$(KOKKOS_DEVICES)))
+CXX = /opt/rocm/hcc/bin/clang++
+CXXFLAGS = -O3
+LINK = ${CXX}
+LDFLAGS =
+EXE = launch_bounds.rocm
+KOKKOS_DEVICES = "ROCm"
+KOKKOS_ARCH = "Fiji"
+endif
+
 
 # WAR for "undefined memcpy" w/ Ubuntu + CUDA 7.5
 CXXFLAGS += -D_FORCE_INLINES
@@ -45,10 +55,10 @@ test: $(EXE)
 	./$(EXE)
 
 $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
+	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
 
 clean: kokkos-clean 
-	rm -f *.o *.cuda *.host
+	rm -f *.o *.cuda *.rocm
 
 # Compilation rules
 

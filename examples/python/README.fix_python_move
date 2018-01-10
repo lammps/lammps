@@ -1,0 +1,16 @@
+This folder contains several LAMMPS input scripts and a python module
+file py_nve.py to demonstrate the use of the fix style python/move
+to reimplement NVE using Python.
+
+in.fix_python_move_nve_melt:
+This is a version of the melt example which replaces the default NVE integrator
+with a Python implementation. Fix python/move is used to create an
+instance of the py_nve.NVE class which implements the required interface.
+It demonstrates how to access LAMMPS data as numpy arrays. This gives direct
+access to memory owned by the C++ code, allows easy manipulation through numpy
+operations and avoids unnecessary copies.
+
+in.fix_python_move_nve_melt_opt:
+This version of melt example uses NVE_Opt instead of NVE. While this Python
+implementation is still much slower than the native version, it shows that
+simple code transformations can lead to speedups.

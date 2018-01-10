@@ -107,6 +107,8 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
 
 PairSNAP::~PairSNAP()
 {
+  if (copymode) return;
+
   if (nelements) {
     for (int i = 0; i < nelements; i++)
       delete[] elements[i];

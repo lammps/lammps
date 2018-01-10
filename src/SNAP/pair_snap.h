@@ -28,14 +28,14 @@ class PairSNAP : public Pair {
 public:
   PairSNAP(class LAMMPS *);
   ~PairSNAP();
-  void compute(int, int);
+  virtual void compute(int, int);
   void compute_regular(int, int);
   void compute_optimized(int, int);
   void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
+  virtual void coeff(int, char **);
+  virtual void init_style();
   double init_one(int, int);
-  double memory_usage();
+  virtual double memory_usage();
 
 protected:
   int ncoeff, ncoeffq, ncoeffall;
@@ -43,7 +43,7 @@ protected:
   class SNA** sna;
   int nmax;
   int nthreads;
-  void allocate();
+  virtual void allocate();
   void read_files(char *, char *);
   inline int equal(double* x,double* y);
   inline double dist2(double* x,double* y);

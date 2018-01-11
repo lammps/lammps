@@ -52,66 +52,50 @@ follows:
 
 - The LAMMPS_NS::Universe class sets up partitions of processors so that multiple simulations can be run, each on a subset of the processors allocated for a run, e.g. by the mpirun command.
   
-- The LAMMPS_NS::Input class reads an input script, stores variables, and invokes stand-alone commands that are child classes of the Command class.
+- The LAMMPS_NS::Input class reads an input script, stores variables, and invokes stand-alone commands that are child classes of the LAMMPS_NS::Command class.
 
-- As discussed above, the LAMMPS_NS::Command class is a parent class for certain input script commands that perform a one-time operation before/after/between simulations or which invoke a simulation. They are instantiated from within the Input class, invoked, then immediately destructed.
+- As discussed above, the LAMMPS_NS::Command class is a parent class for certain input script commands that perform a one-time operation before/after/between simulations or which invoke a simulation. They are instantiated from within the LAMMPS_NS::Input class, invoked, then immediately destructed.
 
 - The LAMMPS_NS::Finish class is instantiated to print statistics to the screen after a simulation is performed, by commands like run and minimize.
 
 - The LAMMPS_NS::Special class walks the bond topology of a molecular system to find 1st, 2nd, 3rd neighbors of each atom. It is invoked by several commands, like read_data, read_restart, and replicate.
 
-- The LAMMPS_NS::Atom class stores all per-atom arrays. More precisely, they are allocated and stored by the AtomVec class, and the Atom class simply stores a pointer to them. The AtomVec class is a parent class for atom styles, defined by the "atom_style" command.
+- The LAMMPS_NS::Atom class stores all per-atom arrays. More precisely, they are allocated and stored by the AtomVec class, and the LAMMPS_NS::Atom class simply stores a pointer to them. The LAMMPS_NS::AtomVec class is a parent class for atom styles, defined by the "atom_style" command.
 
-- The LAMMPS_NS::Update class holds an integrator and a minimizer. The Integrate class is a parent style for the Verlet and rRESPA time integrators, as defined by the run_style input command. The Min class is a parent style for various energy minimizers.
+- The LAMMPS_NS::Update class holds an integrator and a minimizer. The Integrate class is a parent style for the Verlet and rRESPA time integrators, as defined by the run_style input command. The LAMMPS_NS::Min class is a parent style for various energy minimizers.
 
-- The LAMMPS_NS::Neighbor class builds and stores neighbor lists. The NeighList class stores a single list (for all atoms). The NeighRequest class is called by pair, fix, or compute styles when they need a particular kind of neighbor list.
+- The LAMMPS_NS::Neighbor class builds and stores neighbor lists. The LAMMPS_NS::NeighList class stores a single list (for all atoms). The LAMMPS_NS::NeighRequest class is called by pair, fix, or compute styles when they need a particular kind of neighbor list.
 
-- The LAMMPS_NS::Comm class performs interprocessor communication, typically of ghost atom information. This usually involves MPI message exchanges with 6 neighboring processors in the 3d logical grid of processors mapped to the simulation box. Sometimes the Irregular class is used, when atoms may migrate to arbitrary processors.
+- The LAMMPS_NS::Comm class performs interprocessor communication, typically of ghost atom information. This usually involves MPI message exchanges with 6 neighboring processors in the 3d logical grid of processors mapped to the simulation box. Sometimes the LAMMPS_NS::Irregular class is used, when atoms may migrate to arbitrary processors.
 
-- The LAMMPS_NS::Domain class stores the simulation box geometry, as well as geometric Regions and any user definition of a Lattice. The latter are defined by region and lattice commands in an input script.
+- The LAMMPS_NS::Domain class stores the simulation box geometry, as well as the geometric LAMMPS_NS::Region and any user definition of a LAMMPS_NS::Lattice. The latter are defined by region and lattice commands in an input script.
 
 - The LAMMPS_NS::Force class computes various forces between atoms. The Pair parent class is for non-bonded or pair-wise forces, which in LAMMPS lingo includes many-body forces such as the Tersoff 3-body potential. The LAMMPS_NS::Bond, LAMMPS_NS::Angle, LAMMPS_NS::Dihedral, LAMMPS_NS::Improper parent classes are styles for bonded interactions within a static molecular topology. The LAMMPS_NS::KSpace parent class is for computing long-range Coulombic interactions. One of its child classes, PPPM, uses the FFT3d and Remap classes to communicate grid-based information with neighboring processors.
 
-- The Modify class stores lists of Fix and Compute classes, both of which are parent styles.
+- The LAMMPS_NS::Modify class stores lists of LAMMPS_NS::Fix and LAMMPS_NS::Compute classes, both of which are parent styles.
 
-- The Group class manipulates groups that atoms are assigned to via the group command. It also computes various attributes of groups of atoms.
+- The LAMMPS_NS::Group class manipulates groups that atoms are assigned to via the group command. It also computes various attributes of groups of atoms.
 
-- The Output class is used to generate 3 kinds of output from a LAMMPS simulation: thermodynamic information printed to the screen and log file, dump file snapshots, and restart files. These correspond to the Thermo, Dump, and WriteRestart classes respectively. The Dump class is a parent style.
+- The LAMMPS_NS::Output class is used to generate 3 kinds of output from a LAMMPS simulation: thermodynamic information printed to the screen and log file, dump file snapshots, and restart files. These correspond to the LAMMPS_NS::Thermo, LAMMPS_NS::Dump, and LAMMPS_NS::WriteRestart classes respectively. The LAMMPS_NS::Dump class is a parent style.
 
-- The Timer class logs MPI timing information, output at the end of a run.
+- The LAMMPS_NS::Timer class logs MPI timing information, output at the end of a run.
 
 
 @section SCT_How_a_timestep_works  How a timestep works
 
-The first and most fundamental operation within LAMMPS to understand is how a timestep is structured. Timestepping is performed by the Integrate class within the Update class. Since Integrate is a parent class, corresponding to the run_style input script command, it has child classes. In this section, the timestep implemented by the Verlet child class is described. A similar timestep is implemented by the Respa child class, for the rRESPA hierarchical timestepping method. The Min parent class performs energy minimization, so does not perform a literal timestep. But it has logic similar to what is described here, to compute forces and invoke fixes at each iteration of a minimization. Differences between time integration and minimization are highlighted at the end of this section.
+The first and most fundamental operation within LAMMPS to understand is how a timestep is structured. Timestepping is performed by the LAMMPS_NS::Integrate class within the LAMMPS_NS::Update class. Since LAMMPS_NS::Integrate is a parent class, corresponding to the run_style input script command, it has child classes. In this section, the timestep implemented by the LAMMPS_NS::Verlet child class is described. A similar timestep is implemented by the LAMMPS_NS::Respa child class, for the rRESPA hierarchical timestepping method. The LAMMPS_NS::Min parent class performs energy minimization, so does not perform a literal timestep. But it has logic similar to what is described here, to compute forces and invoke fixes at each iteration of a minimization. Differences between time integration and minimization are highlighted at the end of this section.
 
-The Verlet class is encoded in the src/verlet.cpp and verlet.h files. It implements the velocity-Verlet timestepping algorithm. The workhorse method is Verlet::run(), but first we highlight several other methods in the class.
+The LAMMPS_NS::Verlet class is encoded in the src/verlet.cpp and verlet.h files. It implements the velocity-Verlet timestepping algorithm. The workhorse method is LAMMPS_NS::Verlet::run(), but first we highlight several other methods in the class.
 
--   The init() method is called at the beginning of each dynamics run.
+-   The LAMMPS_NS::Verlet::init() method is called at the beginning of each dynamics run.
     It simply sets some internal flags, based on user settings in other
     parts of the code.
 
--   The setup() or setup_minimal() methods are also called before each
-    run. The velocity-Verlet method requires current forces be
-    calculated before the first timestep, so these routines compute
-    forces due to all atomic interactions, using the same logic that
-    appears in the timestepping described next. A few fixes are also
-    invoked, using the mechanism described in the next section. Various
-    counters are also initialized before the run begins. The
-    setup_minimal() method is a variant that has a flag for performing
-    less setup. This is used when runs are continued and information
-    from the previous run is still valid. For example, if repeated short
-    LAMMPS runs are being invoked, interleaved by other commands, via
-    the "pre no" and "every" options of the run command, the
-    setup_minimal() method is used.
+-   The LAMMPS_NS::Verlet::setup() or Verlet::setup_minimal() methods are also called before each run. The velocity-Verlet method requires current forces be calculated before the first timestep, so these routines compute forces due to all atomic interactions, using the same logic that appears in the timestepping described next. A few fixes are also invoked, using the mechanism described in the next section. Various counters are also initialized before the run begins. The LAMMPS_NS::Verlet::setup_minimal() method is a variant that has a flag for performing less setup. This is used when runs are continued and information from the previous run is still valid. For example, if repeated short LAMMPS runs are being invoked, interleaved by other commands, via the "pre no" and "every" options of the run command, the LAMMPS_NS::Verlet::setup_minimal() method is used.
 
--   The force_clear() method initializes force and other arrays to zero
-    before each timestep, so that forces (torques, etc) can be
-    accumulated.
+-   The LAMMPS_NS::Verlet::force_clear() method initializes force and other arrays to zero before each timestep, so that forces (torques, etc) can be accumulated.
 
-Now for the Verlet::run() method. Its structure in hi-level pseudo code
-is shown in figure @ref Verlet. In the actual code in src/verlet.cpp
-some of these operations are conditionally invoked.
+Now for the LAMMPS_NS::Verlet::run() method. Its structure in hi-level pseudo code is shown in figure @ref Verlet. In the actual code in src/verlet.cpp some of these operations are conditionally invoked.
 
 
 @verbatim
@@ -159,18 +143,11 @@ loop over N timesteps:
 @anchor Verlet <center> **Pseudo-code for the Verlet::run() method** </center>
 
 
-The "ev_set()" method (in the parent Integrate class), sets two flags
-([*eflag*]{} and [*vflag*]{}) for energy and virial computation. Each
-flag encodes whether global and/or per-atom energy and virial should be
-calculated on this timestep, because some fix or variable or output will
-need it. These flags are passed to the various methods that compute
-particle interactions, so that they can skip the extra calculations if
-the energy and virial are not needed. See the comments with the
-"Integrate::ev_set()" method which document the flag values.
+The LAMMPS_NS::Integrate::ev_set() method (in the parent LAMMPS_NS::Integrate class), sets two flags LAMMPS_NS::Integrate::eflag and LAMMPS_NS::Integrate::vflag for energy and virial computation. Each flag encodes whether global and/or per-atom energy and virial should be calculated on this timestep, because some fix or variable or output will need it. These flags are passed to the various methods that compute particle interactions, so that they can skip the extra calculations if the energy and virial are not needed. See the comments with the LAMMPS_NS::Integrate::ev_set() method which document the flag values.
 
 At various points of the timestep, fixes are invoked, e.g.
 fix@f$\rightarrow@f$initial_integrate(). In the code, this is actually done
-via the Modify class which stores all the Fix objects and lists of which
+via the LAMMPS_NS::Modify class which stores all the Fix objects and lists of which
 should be invoked at what point in the timestep. Fixes are the LAMMPS
 mechanism for tailoring the operations of a timestep for a particular
 simulation. As described elsewhere (unwritten section), each fix has one

@@ -23,6 +23,16 @@ NPairStyle(halffull/newtoff/skip,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP)
 
+NPairStyle(halffull/newtoff/ghost,
+           NPairHalffullNewtoff,
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
+           NP_ORTHO | NP_TRI | NP_GHOST)
+
+NPairStyle(halffull/newtoff/skip/ghost,
+           NPairHalffullNewtoff,
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
+           NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST)
+
 #else
 
 #ifndef LMP_NPAIR_HALFFULL_NEWTOFF_H

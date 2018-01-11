@@ -48,7 +48,6 @@ public:
   void coeff(int, char**);
   void init_style();
   void compute(int, int);
-  double memory_usage();
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -83,7 +82,7 @@ protected:
   // How much parallelism to use within an interaction
   int vector_length;
 
-  int eflag,vflag,nlocal;
+  int eflag,vflag;
 
   void allocate();
   //void read_files(char *, char *);

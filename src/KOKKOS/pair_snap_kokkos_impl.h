@@ -615,3 +615,22 @@ void PairSNAPKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const i
     v_vatom(j,5) += 0.5*v5;
   }
 }
+
+/* ----------------------------------------------------------------------
+   memory usage
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairSNAPKokkos<DeviceType>::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  int n = atom->ntypes+1;
+  bytes += n*n*sizeof(int);
+  bytes += n*n*sizeof(double);
+  bytes += 3*nmax*sizeof(double);
+  bytes += nmax*sizeof(int);
+  bytes += (2*ncoeffall)*sizeof(double);
+  bytes += (ncoeff*3)*sizeof(double);
+  bytes += snaKK.memory_usage();
+  return bytes;
+}

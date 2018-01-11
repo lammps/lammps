@@ -1269,3 +1269,21 @@ double SNAKokkos<DeviceType>::compute_dsfac(double r, double rcut)
   return 0.0;
 }
 
+/* ----------------------------------------------------------------------
+   memory usage of arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double SNAKokkos<DeviceType>::memory_usage()
+{
+  int jdim = twojmax + 1;
+  double bytes;
+  bytes = jdim * jdim * jdim * jdim * jdim * sizeof(double);
+  bytes += 2 * jdim * jdim * jdim * sizeof(std::complex<double>);
+  bytes += 2 * jdim * jdim * jdim * sizeof(double);
+  bytes += jdim * jdim * jdim * 3 * sizeof(std::complex<double>);
+  bytes += jdim * jdim * jdim * 3 * sizeof(double);
+  bytes += ncoeff * sizeof(double);
+  bytes += jdim * jdim * jdim * jdim * jdim * sizeof(std::complex<double>);
+  return bytes;
+}

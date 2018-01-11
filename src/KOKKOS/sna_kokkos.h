@@ -65,6 +65,8 @@ inline
 inline
   T_INT size_thread_scratch_arrays();
 
+  double memory_usage();
+
   int ncoeff;
 
   // functions for bispectrum coefficients

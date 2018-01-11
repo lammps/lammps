@@ -516,9 +516,12 @@ void Variable::set(int narg, char **arg)
   strcpy(names[nvar],arg[0]);
 
   for (int i = 0; i < n-1; i++)
-    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
-      error->all(FLERR,"Variable name must be alphanumeric or "
-                 "underscore characters");
+    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_') {
+      char errmsg[128];
+      sprintf(errmsg,"Variable name '%s' must have only alphanumeric "
+              "characters or underscore",names[nvar]);
+      error->all(FLERR,errmsg);
+    }
   nvar++;
 }
 
@@ -571,11 +574,15 @@ int Variable::next(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
-    if (ivar < 0) error->all(FLERR,"Invalid variable in next command");
+    if (ivar < 0) {
+      char errmsg[128];
+      sprintf(errmsg,"Invalid variable '%s' in next command",arg[iarg]);
+      error->all(FLERR,errmsg);
+    }
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
-      error->all(FLERR,"All variables in next command must be same style");
+      error->all(FLERR,"All variables in next command must have same style");
   }
 
   // invalid styles: STRING, EQUAL, WORLD, ATOM, VECTOR, GETENV,
@@ -821,8 +828,11 @@ char *Variable::retrieve(char *name)
   if (ivar < 0) return NULL;
   if (which[ivar] >= num[ivar]) return NULL;
 
-  if (eval_in_progress[ivar])
-    error->all(FLERR,"Variable has circular dependency");
+  if (eval_in_progress[ivar]) {
+    char errmsg[128];
+    sprintf(errmsg,"Variable '%s' has a circular dependency",name);
+    error->all(FLERR,errmsg);
+  }
   eval_in_progress[ivar] = 1;
 
   char *str = NULL;
@@ -865,9 +875,12 @@ char *Variable::retrieve(char *name)
     strcpy(data[ivar][1],result);
     str = data[ivar][1];
   } else if (style[ivar] == PYTHON) {
-    int ifunc = python->variable_match(data[ivar][0],names[ivar],0);
-    if (ifunc < 0)
-      error->all(FLERR,"Python variable does not match Python function");
+    int ifunc = python->variable_match(data[ivar][0],name,0);
+    if (ifunc < 0) {
+      char errmsg[128];
+      sprintf(errmsg,"Python variable '%s' does not match Python function",name);
+      error->all(FLERR,errmsg);
+    }
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -894,8 +907,11 @@ char *Variable::retrieve(char *name)
 
 double Variable::compute_equal(int ivar)
 {
-  if (eval_in_progress[ivar])
-    error->all(FLERR,"Variable has circular dependency");
+  if (eval_in_progress[ivar]) {
+    char errmsg[128];
+    sprintf(errmsg,"Variable '%s' has a circular dependency",names[ivar]);
+    error->all(FLERR,errmsg);
+  }
   eval_in_progress[ivar] = 1;
 
   double value = 0.0;
@@ -936,8 +952,11 @@ void Variable::compute_atom(int ivar, int igroup,
   Tree *tree;
   double *vstore;
 
-  if (eval_in_progress[ivar])
-    error->all(FLERR,"Variable has circular dependency");
+  if (eval_in_progress[ivar]) {
+    char errmsg[128];
+    sprintf(errmsg,"Variable '%s' has a circular dependency",names[ivar]);
+    error->all(FLERR,errmsg);
+  }
   eval_in_progress[ivar] = 1;
 
   if (style[ivar] == ATOM) {
@@ -1010,17 +1029,27 @@ int Variable::compute_vector(int ivar, double **result)
     return vecs[ivar].n;
   }
 
-  if (eval_in_progress[ivar])
-    error->all(FLERR,"Variable has circular dependency");
+  if (eval_in_progress[ivar]) {
+    char errmsg[128];
+    sprintf(errmsg,"Variable '%s' has a circular dependency",names[ivar]);
+    error->all(FLERR,errmsg);
+  }
   eval_in_progress[ivar] = 1;
 
   treetype = VECTOR;
   evaluate(data[ivar][0],&tree);
   collapse_tree(tree);
   int nlen = size_tree_vector(tree);
-  if (nlen == 0) error->all(FLERR,"Vector-style variable has zero length");
-  if (nlen < 0) error->all(FLERR,
-                           "Inconsistent lengths in vector-style variable");
+  if (nlen == 0) {
+    char errmsg[128];
+    sprintf(errmsg,"Vector-style variable '%s' has zero length",names[ivar]);
+    error->all(FLERR,errmsg);
+  }
+  if (nlen < 0) {
+    char errmsg[128];
+    sprintf(errmsg,"Inconsistent lengths in vector-style variable '%s'",names[ivar]);
+    error->all(FLERR,errmsg);
+  }
 
   // (re)allocate space for results if necessary
 

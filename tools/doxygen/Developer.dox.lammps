@@ -16,24 +16,26 @@ This document is a developer guide to the LAMMPS molecular dynamics package, who
 
 LAMMPS source files are in two directories of the distribution tarball. The src directory has the majority of them, all of which are C++ files (*.cpp and *.h). Many of these files are in the src directory itself. There are also dozens of "packages", which can be included or excluded when LAMMPS is built. See the doc/Section_build.html section of the manual for more information about packages, or type "make" from within the src directory, which lists package-related commands, such as "make package-status". The source files for each package are in an all-uppercase sub-directory of src, like src/MOLECULE or src/USER-CUDA. If the package is currently installed, copies of the package source files will also exist in the src directory itself. The src/STUBS sub-directory is not a package but contains a dummy version of the MPI library, used when building a serial version of the code.
 
-The lib directory also contains source code for external libraries, used by a few of the packages. Each sub-directory, like meam or gpu, contains the source files, some of which are in different languages such as Fortran. The files are compiled into libraries from within each sub-directory, e.g. performing a "make" in the lib/meam directory creates a libmeam.a file. These libraries are linked to during a LAMMPS build, if the corresponding package is installed.
+The lib directory also contains source code for external libraries, used by a few of the packages. Each sub-directory, like meam or gpu, contains the source files, some of which are in different languages such as Fortran. The files are compiled into libraries from within each sub-directory, e.g. performing a "make" in the lib/meam directory creates a libmeam.a file. These libraries are **statically** linked to during a LAMMPS build, if the corresponding package is installed.
 
-LAMMPS C++ source files almost always come in pairs, such as run.cpp and run.h. The pair of files defines a C++ class, the Run class in this case, which contains the code invoked by the "run" command in a LAMMPS input script. As this example illustrates, source file and class names often have a one-to-one correspondence with a command used in a LAMMPS input script. Some source files and classes do not have a corresponding input script command, e.g. force.cpp and the Force class. They are discussed in the next section.
+LAMMPS C++ source files almost always come in pairs, such as run.cpp and run.h. The pair of files defines a C++ class, the LAMMPS_NS::Run class in this case, which contains the code invoked by the <a href=Manual/run.html><b>run</b></a> command in a LAMMPS input script. As this example illustrates, source file and class names often have a one-to-one correspondence with a command used in a LAMMPS input script. Some source files and classes do not have a corresponding input script command, e.g. force.cpp and the LAMMPS_NS::Force class. They are discussed in the next section.
 
 
 @section SCT_Class_hierarchy_of_LAMMPS  Class hierarchy of LAMMPS
 
 Though LAMMPS has a lot of source files and classes, its class hierarchy is quite simple, as outlined in figure @ref classes. Each boxed name refers to a class and has a pair of associated source files in lammps/src, e.g. memory.cpp and memory.h. More details on the class and its methods and data structures can be found by examining its *.h file.
 
-LAMMPS (src/lammps.cpp and src/lammps.h) is the top-level class for the entire code. It holds an "instance" of LAMMPS and can be instantiated one or more times by a calling code. For example, the file src/main.cpp simply instantiates one instance of LAMMPS and passes it the input script.
+LAMMPS_NS::Lammps (src/lammps.cpp and src/lammps.h) is the top-level class for the entire code. It holds an "instance" of LAMMPS and can be instantiated one or more times by a calling code. For example, the file src/main.cpp simply instantiates one instance of LAMMPS and passes it the input script.
 
 The file src/library.cpp contains a C-style library interface to the LAMMPS class. See the lammps/couple and lammps/python directories for examples of simple programs that use LAMMPS through its library interface. A driver program can instantiate the LAMMPS class multiple times, e.g. to embed several atomistic simulation regions within a mesoscale or continuum simulation domain.
 
-There are a dozen or so top-level classes within the LAMMPS class that are visible everywhere in the code. They are shaded blue in figure @ref classes. Thus any class can refer to the y-coordinate of local atom "i" as atom@f$\rightarrow@f$x[i][1]. This visibility is enabled by a bit of cleverness in the Pointers class (see src/pointers.h) which every class inherits from.
+There are a dozen or so top-level classes within the LAMMPS class that are visible everywhere in the code. They are shaded blue in figure @ref classes. Thus any class can refer to the y-coordinate of local atom "i" as atom@f$\rightarrow@f$x[i][1]. This visibility is enabled by a bit of cleverness in the LAMMPS_NS::Pointers class (see src/pointers.h) which every class inherits from.
 
-There are a handful of virtual parent classes in LAMMPS that define what LAMMPS calls "styles". They are shaded red in figure @ref classes. Each of these are parents of a number of child classes that implement the interface defined by the parent class. For example, the fix style has around 100 child classes. They are the possible fixes that can be specified by the fix command in an input script, e.g. fix nve, fix shake, fix ave/time, etc. The corresponding classes are Fix (for the parent class), FixNVE, FixShake, FixAveTime, etc. The source files for these classes are easy to identify in the src directory, since they begin with the word "fix", e,g, fix_nve.cpp, fix_shake.cpp, fix_ave_time.cpp, etc.
+There are a handful of virtual parent classes in LAMMPS that define what LAMMPS calls "styles". They are shaded red in figure @ref classes. Each of these are parents of a number of child classes that implement the interface defined by the parent class. For example, the "fix style" has around 100 child classes. They are the possible fixes that can be specified by the <a href=Manual/fix.html><b>fix</b></a> command in an input script, e.g. <a href=Manual/fix_nve.html><b>fix nve</b></a>, <a href=Manual/fix_shake.html><b>fix shake</b></a>, <a href=Manual/fix_ave_time.html><b>fix ave/time</b></a>, etc. The corresponding classes are LAMMPS_NS::Fix (for the parent class), LAMMPS_NS::FixNVE, LAMMPS_NS::FixShake, LAMMPS_NS::FixAveTime, etc. The source files for these classes are easy to identify in the src directory, since they begin with the word "fix", e,g, fix_nve.cpp, fix_shake.cpp, fix_ave_time.cpp, etc.
 
-The one exception is child class files for the "command" style. These implement specific commands in the input script that can be invoked before/after/between runs or which launch a simulation. Examples are the create_box, minimize, run, and velocity commands which encode the CreateBox, Minimize, Run, and Velocity classes. The corresponding files are create_box,cpp, minimize.cpp, run.cpp, and velocity.cpp. The list of command style files can be found by typing "grep COMMAND_CLASS *.h" from within the src directory, since that word in the header file identifies the class as an input script command. Similar words can be grepped to list files for the other LAMMPS styles. E.g. ATOM_CLASS, PAIR_CLASS, BOND_CLASS, REGION_CLASS, FIX_CLASS, COMPUTE_CLASS, DUMP_CLASS, etc.
+The one exception is child class files for the "command" style. These implement specific commands in the input script that can be invoked before/after/between runs or which launch a simulation. Examples are the <a href=Manual/create_box.html><b>create_box</b></a>, <a href=Manual/minimize.html><b>minimize</b></a>, <a href=Manual/run.html><b>run</b></a>, and <a href=Manual/velocity.html><b>velocity</b></a> commands which encode the LAMMPS_NS::CreateBox, LAMMPS_NS::Minimize, LAMMPS_NS::Run, and LAMMPS_NS::Velocity classes. The corresponding files are create_box.cpp, minimize.cpp, run.cpp, and velocity.cpp.
+
+The list of command style files can be found by typing "grep COMMAND_CLASS *.h" from within the src directory, since that word in the header file identifies the class as an input script command. Similar words can be grepped to list files for the other LAMMPS styles. E.g. ATOM_CLASS, PAIR_CLASS, BOND_CLASS, REGION_CLASS, FIX_CLASS, COMPUTE_CLASS, DUMP_CLASS, etc.
 
 <br>
 
@@ -145,113 +147,39 @@ loop over N timesteps:
 
 The LAMMPS_NS::Integrate::ev_set() method (in the parent LAMMPS_NS::Integrate class), sets two flags LAMMPS_NS::Integrate::eflag and LAMMPS_NS::Integrate::vflag for energy and virial computation. Each flag encodes whether global and/or per-atom energy and virial should be calculated on this timestep, because some fix or variable or output will need it. These flags are passed to the various methods that compute particle interactions, so that they can skip the extra calculations if the energy and virial are not needed. See the comments with the LAMMPS_NS::Integrate::ev_set() method which document the flag values.
 
-At various points of the timestep, fixes are invoked, e.g.
-fix@f$\rightarrow@f$initial_integrate(). In the code, this is actually done
-via the LAMMPS_NS::Modify class which stores all the Fix objects and lists of which
-should be invoked at what point in the timestep. Fixes are the LAMMPS
-mechanism for tailoring the operations of a timestep for a particular
-simulation. As described elsewhere (unwritten section), each fix has one
-or more methods, each of which is invoked at a specific stage of the
-timestep, as in figure @ref Verlet. All the fixes defined in an input
-script with an "initial_integrate()" method are invoked at the beginning
-of each timestep. Fix "nve", "nvt", "npt" are examples, since they perform the
-start-of-timestep velocity-Verlet integration to update velocities by a
-half-step, and coordinates by a full step. The "post_integrate()" method
-is next. Only a few fixes use this, e.g. to reflect particles off box
-boundaries in the "FixWallReflect" class.
+At various points of the timestep, fixes are invoked, e.g. fix@f$\rightarrow@f$initial_integrate(). In the code, this is actually done via the LAMMPS_NS::Modify class which stores all the Fix objects and lists of which should be invoked at what point in the timestep. Fixes are the LAMMPS mechanism for tailoring the operations of a timestep for a particular simulation. As described elsewhere (unwritten section), each fix has one or more methods, each of which is invoked at a specific stage of the timestep, as in figure @ref Verlet. All the fixes defined in an input script with an "initial_integrate()" method are invoked at the beginning of each timestep. Fix "nve", "nvt", "npt" are examples, since they perform the start-of-timestep velocity-Verlet integration to update velocities by a half-step, and coordinates by a full step. The LAMMPS_NS::Verlet::post_integrate() method is next. Only a few fixes use this, e.g. to reflect particles off box boundaries in the LAMMPS_NS::FixWallReflect class.
 
-The "decide()" method in the Neighbor class determines whether neighbor
-lists need to be rebuilt on the current timestep. If not, coordinates of
-ghost atoms are acquired by each processor via the "forward_comm()"
-method of the Comm class. If neighbor lists need to be built, several
-operations within the inner if clause of figure @ref Verlet are first
-invoked. The "pre_exchange()" method of any defined fixes is invoked
-first. Typically this inserts or deletes particles from the system.
+The LAMMPS_NS::Neighbor::decide() method in the Neighbor class determines whether neighbor lists need to be rebuilt on the current timestep. If not, coordinates of ghost atoms are acquired by each processor via the LAMMPS_NS::Comm::forward_comm() method of the LAMMPS_NS::Comm class. If neighbor lists need to be built, several operations within the inner if clause of figure @ref Verlet are first invoked. The LAMMPS_NS::Fix::pre_exchange() method of any defined fixes is invoked first. Typically this inserts or deletes particles from the system.
 
-Periodic boundary conditions are then applied by the Domain class via
-its pbc() method to remap particles that have moved outside the
-simulation box back into the box. Note that this is not done every
-timestep. but only when neighbor lists are rebuilt. This is so that each
-processor’s sub-domain will have consistent (nearby) atom coordinates
-for its owned and ghost atoms. It is also why dumped atom coordinates
-can be slightly outside the simulation box.
+Periodic boundary conditions are then applied by the LAMMPS_NS::Domain class via its LAMMPS_NS::Domain::pbc() method to remap particles that have moved outside the simulation box back into the box. Note that this is not done every timestep. but only when neighbor lists are rebuilt. This is so that each processor’s sub-domain will have consistent (nearby) atom coordinates for its owned and ghost atoms. It is also why dumped atom coordinates can be slightly outside the simulation box.
 
-The box boundaries are then reset (if needed) via the "reset_box()"
-method of the Domain class, e.g. if box boundaries are shrink-wrapped to
-current particle coordinates. A change in the box size or shape requires
-internal information for communicating ghost atoms (Comm class) and
-neighbor list bins (Neighbor class) be updated. The "setup()" method of
-the Comm class and "setup_bins()" method of the Neighbor class perform
-the update.
+The box boundaries are then reset (if needed) via the LAMMPS_NS::Domain::reset_box() method of the Domain class, e.g. if box boundaries are shrink-wrapped to current particle coordinates. A change in the box size or shape requires internal information for communicating ghost atoms (LAMMPS_NS::Comm class) and neighbor list bins (LAMMPS_NS::Neighbor class) be updated. The LAMMPS_NS::Comm::setup() method of the LAMMPS_NS::Comm class and LAMMPS_NS::Neighbor::setup_bins() method of the LAMMPS_NS::Neighbor class perform the update.
 
-The code is now ready to migrate atoms that have left a processor’s
-geometric sub-domain to new processors. The "exchange()" method of the
-Comm class performs this operation. The "borders()" method of the Comm
-class then identifies ghost atoms surrounding each processor’s
-sub-domain and communicates ghost atom information to neighboring
-processors. It does this by looping over all the atoms owned by a
-processor to make lists of those to send to each neighbor processor. On
-subsequent timesteps, the lists are used by the "Comm::forward\_comm()"
-method.
+The code is now ready to migrate atoms that have left a processor’s geometric sub-domain to new processors. The LAMMPS_NS::Comm::exchange() method of the LAMMPS_NS::Comm class performs this operation. The LAMMPS_NS::Comm::borders() method of the LAMMPS_NS::Comm class then identifies ghost atoms surrounding each processor’s sub-domain and communicates ghost atom information to neighboring processors. It does this by looping over all the atoms owned by a processor to make lists of those to send to each neighbor processor. On subsequent timesteps, the lists are used by the LAMMPS_NS::Comm::forward_comm() method.
 
-Fixes with a "pre\_neighbor()" method are then called. These typically
-re-build some data structure stored by the fix that depends on the
-current atoms owned by each processor.
+Fixes with a LAMMPS_NS::Fix::pre_neighbor() method are then called. These typically re-build some data structure stored by the fix that depends on the current atoms owned by each processor.
 
-Now that each processor has a current list of its owned and ghost atoms,
-LAMMPS is ready to rebuild neighbor lists via the "build()" method of the
-Neighbor class. This is typically done by binning all owned and ghost
-atoms, and scanning a stencil of bins around each owned atom’s bin to
-make a Verlet list of neighboring atoms within the force cutoff plus
-neighbor skin distance.
+Now that each processor has a current list of its owned and ghost atoms, LAMMPS is ready to rebuild neighbor lists via the LAMMPS_NS::Neighbor::build() method of the LAMMPS_NS::Neighbor class. This is typically done by binning all owned and ghost atoms, and scanning a stencil of bins around each owned atom’s bin to make a Verlet list of neighboring atoms within the force cutoff plus neighbor skin distance.
 
-In the next portion of the timestep, all interaction forces between
-particles are computed, after zeroing the per-atom force vector via the
-"force\_clear()" method. If the newton flag is set to "on" by the newton
-command, forces on both owned and ghost atoms are calculated.
+In the next portion of the timestep, all interaction forces between particles are computed, after zeroing the per-atom force vector via the LAMMPS_NS::Verlet::force_clear() method. If the newton flag is set to "on" by the **newton** command, forces on both owned and ghost atoms are calculated.
 
-Pairwise forces are calculated first, which enables the global virial
-(if requested) to be calculated cheaply (at the end of the
-"Pair::compute()" method), by a dot product of atom coordinates and
-forces. By including owned and ghost atoms in the dot product, the
-effect of periodic boundary conditions is correctly accounted for.
-Molecular topology interactions (bonds, angles, dihedrals, impropers)
-are calculated next. The final contribution is from long-range Coulombic
-interactions, invoked by the KSpace class.
+Pairwise forces are calculated first, which enables the global virial (if requested) to be calculated cheaply (at the end of the LAMMPS_NS::Pair::compute() method), by a dot product of atom coordinates and forces. By including owned and ghost atoms in the dot product, the effect of periodic boundary conditions is correctly accounted for. Molecular topology interactions (bonds, angles, dihedrals, impropers) are calculated next. The final contribution is from long-range Coulombic interactions, invoked by the LAMMPS_NS::KSpace class.
 
-If the newton flag is on, forces on ghost atoms are communicated and
-summed back to their corresponding owned atoms. The "reverse\_comm()"
-method of the Comm class performs this operation, which is essentially
-the inverse operation of sending copies of owned atom coordinates to
-other processor’s ghost atoms.
+If the newton flag is on, forces on ghost atoms are communicated and summed back to their corresponding owned atoms. The LAMMPS_NS::Comm::reverse_comm() method of the LAMMPS_NS::Comm class performs this operation, which is essentially the inverse operation of sending copies of owned atom coordinates to other processor’s ghost atoms.
 
-At this point in the timestep, the total force on each atom is known.
-Additional force constraints (external forces, SHAKE, etc) are applied
-by Fixes that have a `post_force()` method. The second half of the
-velocity-Verlet integration is then performed (another half-step update
-of the velocities) via fixes like `nve`, `nvt`, `npt`.
+At this point in the timestep, the total force on each atom is known. Additional force constraints (external forces, SHAKE, etc) are applied by Fixes that have a LAMMPS_NS::Fix::post_force() method. The second half of the velocity-Verlet integration is then performed (another half-step update of the velocities) via fixes like nve, nvt, npt.
 
-At the end of the timestep, fixes that define an `end_of_step()` method
-are invoked. These typically perform a diagnostic calculation, e.g. the
-`ave/time` and `ave/spatial` fixes. The final operation of the timestep is
-to perform any requested output, via the `write()` method of the Output
-class. There are 3 kinds of LAMMPS output: thermodynamic output to the
-screen and log file, snapshots of atom data to a dump file, and restart
-files. See the `thermo_style`, `dump`, and `restart` commands for more
-details.
+At the end of the timestep, fixes that define an LAMMPS_NS::Fix::end_of_step() method are invoked. These typically perform a diagnostic calculation, e.g. the <a href=Manual/fix_ave_time.html><b>fix ave/time</b></a> and <a href=Manual/fix_ave_time.html><b>fix ave/spatial</b></a> fixes.
 
-The iteration performed by an energy minimization is similar to the
-dynamics timestep of figure @ref Verlet. Forces are computed, neighbor
-lists are built as needed, atoms migrate to new processors, and atom
-coordinates and forces are communicated to neighboring processors. The
-only difference is what Fix class operations are invoked when. Only a
-subset of LAMMPS fixes are useful during energy minimization, as
-explained in their individual doc pages. The relevant Fix class methods
-are "min\_pre\_exchange()", "min\_pre\_force()", and "min\_post\_force()".
-Each is invoked at the appropriate place within the minimization
-iteration. For example, the "min\_post\_force()" method is analogous to
-the "post\_force()" method for dynamics; it is used to alter or constrain
-forces on each atom, which affects the minimization procedure.
+The final operation of the timestep is to perform any requested output, via the LAMMPS_NS::Output::write() method of the LAMMPS_NS::Output class. There are 3 kinds of LAMMPS output:
+
+- thermodynamic output to the screen and log file,
+- snapshots of atom data to a dump file, and
+- restart files.
+
+See the <a href=Manual/thermo_style.html><b>thermo_style</b></a>, <a href=Manual/dump.html><b>dump</b></a>, and <a href=Manual/restart.html><b>restart</b></a> commands for more details.
+
+The iteration performed by an energy minimization is similar to the dynamics timestep of figure @ref Verlet. Forces are computed, neighbor lists are built as needed, atoms migrate to new processors, and atom coordinates and forces are communicated to neighboring processors. The only difference is what Fix class operations are invoked when. Only a subset of LAMMPS fixes are useful during energy minimization, as explained in their individual doc pages. The relevant LAMMPS_NS::Fix class methods are LAMMPS_NS::Fix::min_pre_exchange(), LAMMPS_NS::Fix::min_pre_force(), and LAMMPS_NS::Fix::min_post_force(). Each is invoked at the appropriate place within the minimization iteration. For example, the LAMMPS_NS::Fix::min_post_force() method is analogous to the LAMMPS_NS::Fix::post_force() method for dynamics; it is used to alter or constrain forces on each atom, which affects the minimization procedure.
 
 
 @section SCT_Extending_LAMMPS  Extending LAMMPS
@@ -402,25 +330,11 @@ void FixPrintVel::end_of_step()
 @endverbatim
 
 
-In the code above, we use MathExtra routines defined in math_extra.h.
-There are bunch of math functions to work with arrays of doubles as with
-math vectors.
+In the code above, we use MathExtra routines defined in math_extra.h. There are bunch of math functions to work with arrays of doubles as with math vectors.
 
-In this code we use an instance of Atom class. This object is stored in
-the Pointers class (see pointers.h). This object contains all global
-information about the simulation system. Data from Pointers class
-available to all classes inherited from it using protected inheritance.
-Hence when you write you own class, which is going to use LAMMPS data,
-don’t forget to inherit from Pointers. When writing fixes we inherit
-from class Fix which is inherited from Pointers so there is no need to
-inherit from it directly.
+In this code we use an instance of Atom class. This object is stored in the Pointers class (see pointers.h). This object contains all global information about the simulation system. Data from Pointers class available to all classes inherited from it using protected inheritance. Hence when you write you own class, which is going to use LAMMPS data, don’t forget to inherit from Pointers. When writing fixes we inherit from class LAMMPS_NS::Fix which is inherited from Pointers so there is no need to inherit from it directly.
 
-The code above computes average velocity for all particles in the
-simulation. Yet you have one unused parameter in fix call from the
-script - `[group_name]`. This parameter specifies the group of atoms
-used in the fix. So we should compute average for all particles in the
-simulation if `group_name == all`, but it can be any group. The group
-information is specified by groupbit which is defined in class Fix:
+The code above computes average velocity for all particles in the simulation. Yet you have one unused parameter in fix call from the script - `[group_name]`. This parameter specifies the group of atoms used in the fix. So we should compute average for all particles in the simulation if `group_name == all`, but it can be any group. The group information is specified by groupbit which is defined in class LAMMPS_NS::Fix:
 
 @verbatim
 
@@ -432,14 +346,9 @@ for (int particleInd = 0; particleInd < nlocal; ++particleInd) {
 
 @endverbatim
 
-Class Atom encapsulates atoms positions, velocities, forces, etc. User
-can access them using particle index. Note, that particle indexes are
-usually changed every timestep because of sorting.
+Class LAMMPS_NS::Atom encapsulates atoms positions, velocities, forces, etc. The user can access them using particle index. Note, that particle indexes are usually changed every timestep because of sorting.
 
-Lets consider another Fix example. We want to have a fix which stores
-atoms position from previous time step in your fix. The local atoms
-indexes will not be valid on the next iteration. In order to handle this
-situation there are several methods which should be implemented:
+Lets consider another LAMMPS_NS::Fix example. We want to have a fix which stores atoms position from previous time step in your fix. The local atoms indexes will not be valid on the next iteration. In order to handle this situation there are several methods which should be implemented:
 
 -   `double memory_usage` - return how much memory fix uses
 
@@ -452,9 +361,7 @@ situation there are several methods which should be implemented:
 -   `void set_arrays(int i)` - sets i-th particle related information to
     zero
 
-Note, that if your class implements these methods, it must call add
-calls of `add_callback` and `delete_callback` to constructor and
-destructor:
+Note, that if your class implements these methods, it must call add calls of LAMMPS_NS::Atom::add_callback and LAMMPS_NS::Atom::delete_callback to constructor and destructor:
 
 @verbatim
 
@@ -539,12 +446,39 @@ int FixSavePos::unpack_exchange(int nlocal, double *buf)
 
 @endverbatim
 
-Now, a little bit about memory allocation. We used Memory class which is
-just a bunch of template functions for allocating 1D and 2D arrays. So
-you need to add include memory.h to have access to them.
+Now, a little bit about memory allocation. We used LAMMPS_NS::Memory class which is just a bunch of template functions for allocating 1D and 2D arrays. So you need to add include memory.h to have access to them.
 
-Finally, if you need to "write/read" some global information used in your
-fix to the restart file, you might do it by setting flag "restart_global
-= 1" in the constructor and implementing methods `void write_restart(FILE *fp)` and `void restart(char *buf)`.
+Finally, if you need to write or read some global information used in your fix to of from a restart file, you might do it by setting flag
+
+@verbatim
+
+restart_global = 1
+
+@endverbatim
+
+in the constructor and implementing methods LAMMPS_NS::Fix::write_restart() /void write_restart(FILE *fp)/ and LAMMPS_NS::Fix::restart() /void restart(char *buf)/.
+
+
+@subsection SST_New_commands  New commands
+
+
+@subsection SST_New_pair_styles  New pair styles
+
+LAMMPS_NS::Pair class.
+
+
+@subsection SST_New_bonds  New bonds
+
+LAMMPS_NS::Bond class.
+
+
+@subsection SST_New_dihedrals  New dihedrals
+
+LAMMPS_NS::Dihedral class.
+
+
+@subsection SST_New_impropers  New impropers
+
+LAMMPS_NS::Improper class.
 
 */

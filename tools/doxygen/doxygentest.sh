@@ -9,9 +9,9 @@ LAMMPSDOCTMP="/tmp/lammps-docs-*" ;
 LAMMPSDOCMAKE="${LAMMPSDOC}/Makefile" ;
 LAMMPSDOXYGEN="${LAMMPSBASE}/tools/doxygen" ;
 LAMMPSDOXYGENDOC="${LAMMPSDOXYGEN}/doc" ;
-LAMMPSDOXYGENDOCMANUAL="${LAMMPSDOXYGEN}/doc/html/Manual" ;
+LAMMPSDOXYGENDOCMANUAL="${LAMMPSDOXYGEN}/test/html/Manual" ;
 
-LAMMPSDOXYFILE=${LAMMPSDOXYGEN}/Doxyfile.lammps ;
+LAMMPSDOXYTESTFILE=${LAMMPSDOXYGEN}/Doxyfile.test ;
 DOXYFILE=${LAMMPSDOXYGEN}/Doxyfile ;
 
 LAMMPSDEVELOPERDOXFILE=${LAMMPSDOXYGEN}/Developer.dox.lammps ;
@@ -24,10 +24,10 @@ DOXYGEN=`which doxygen` ;
 error=0;
 
 
-if [[ -d ${LAMMPSSRC} && -d ${LAMMPSDEVELOPERDOC} && -d ${LAMMPSDOC} && -f ${LAMMPSDOCMAKE} && -d ${LAMMPSDOXYGEN} && -f ${LAMMPSDOXYFILE} ]] ;
+if [[ -d ${LAMMPSSRC} && -d ${LAMMPSDEVELOPERDOC} && -d ${LAMMPSDOC} && -f ${LAMMPSDOCMAKE} && -d ${LAMMPSDOXYGEN} && -f ${LAMMPSDOXYTESTFILE} ]] ;
  then
    cd ${LAMMPSSRC} ;
-   make no-all ;
+#  make no-all ;
    cd ${LAMMPSBASE} ;
  else
   error=1 ;
@@ -70,12 +70,12 @@ if [ ${error} == 0 ] ;
 
 if [ ${error} == 0 ] ;
   then
-    if [[ -d ${LAMMPSSRC} && -f ${LAMMPSDOXYFILE} && -f ${LAMMPSDEVELOPERDOXFILE} ]] ;
+    if [[ -d ${LAMMPSSRC} && -f ${LAMMPSDOXYTESTFILE} && -f ${LAMMPSDEVELOPERDOXFILE} ]] ;
       then
         ICS=' ';
         read -r -a array < ${LAMMPSSRC}/version.h ;
         version=`echo ${array[2]} ${array[3]} ${array[4]} | sed s/\"//g`;
-        cp -av ${LAMMPSDOXYFILE} ${DOXYFILE} ;
+        cp -av ${LAMMPSDOXYTESTFILE} ${DOXYFILE} ;
         sed -i "s/LAMMPS_VERSION/${version}/g"  ${DOXYFILE} ;
         cp -av ${LAMMPSDEVELOPERDOXFILE} ${DEVELOPERDOXFILE} ;
         sed -i "s/LAMMPS_VERSION/${version}/g"  ${DEVELOPERDOXFILE} ;
@@ -83,27 +83,6 @@ if [ ${error} == 0 ] ;
       else
         echo "Doxyfile prototype not found - Please control Your LAMMPS installation." ;
       fi ;
-  fi ;
-
-
-if [ ${error} == 0 ] ;
-  then
-    if [[ -d ${LAMMPSDOC} && -f ${LAMMPSDOCMAKE} ]] ;
-      then
-        cd ${LAMMPSDOC} ;
-        if [ -d ${LAMMPSDOCTMP} ] ;
-         then
-          rm -vrf ${LAMMPSDOCTMP} ;
-         fi ;
-        make clean ;
-        make html ;
-        make pdf ;
-        cd ${LAMMPSBASE} ;
-      echo "${LAMMPSDOC} exists." ;
-    else
-      error=1 ;
-      echo "Cannot build LAMMPS native documentation - Please run doxygen.sh from the LAMMPS root directory." ;
-    fi ;
   fi ;
 
 
@@ -117,7 +96,7 @@ if [ ${error} == 0 ] ;
             echo "${LAMMPSDOXYGENDOCMANUAL} removed." ;
           fi ;
           cp -av ${LAMMPSDOCHTML} ${LAMMPSDOXYGENDOCMANUAL} ;
-	  cp -av ${LAMMPSDOC}/*.pdf ${LAMMPSDOXYGENDOCMANUAL} ;
+          cp -av ${LAMMPSDOC}/*.pdf ${LAMMPSDOXYGENDOCMANUAL} ;
           echo "${LAMMPSDOXYGENDOCMANUAL} copied." ;
         else
           error=1 ;

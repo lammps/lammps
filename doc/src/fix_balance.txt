@@ -17,7 +17,7 @@ balance = style name of this fix command :l
 Nfreq = perform dynamic load balancing every this many steps :l
 thresh = imbalance threshold that must be exceeded to perform a re-balance :l
 style = {shift} or {rcb} :l
-  shift args = dimstr Niter stopthresh
+  {shift} args = dimstr Niter stopthresh
     dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
     Niter = # of times to iterate within each dimension of dimstr sequence
     stopthresh = stop balancing when this imbalance threshold is reached
@@ -37,7 +37,7 @@ keyword = {weight} or {out} :l
       {var} name = take weight from atom-style variable
         name = name of the atom-style variable
       {store} name = store weight in custom atom property defined by "fix property/atom"_fix_property_atom.html command
-        name = atom property name (without d_ prefix)
+        name = atom property name (without d\_ prefix)
   {out} arg = filename
     filename = write each processor's sub-domain to a file, at each re-balancing :pre
 :ule

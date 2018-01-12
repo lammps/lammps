@@ -326,9 +326,9 @@ include both "Cuda" and "OpenMP", as is the case for /src/MAKE/OPTIONS/Makefile.
 
 KOKKOS_DEVICES=Cuda,OpenMP :pre
 
-The suffix “/kk” is equivalent to “/kk/device”, and for Kokkos CUDA,
-using the “-sf kk” in the command line gives the default CUDA version everywhere.
-However, if the “/kk/host” suffix is added to a specific style in the input
+The suffix "/kk" is equivalent to "/kk/device", and for Kokkos CUDA,
+using the "-sf kk" in the command line gives the default CUDA version everywhere.
+However, if the "/kk/host" suffix is added to a specific style in the input
 script, the Kokkos OpenMP (CPU) version of that specific style will be used instead.
 Set the number of OpenMP threads as "t Nt" and the number of GPUs as "g Ng"
 
@@ -338,16 +338,16 @@ For example, the command to run with 1 GPU and 8 OpenMP threads is then:
 
 mpiexec -np 1 lmp_kokkos_cuda_openmpi -in in.lj -k on g 1 t 8 -sf kk :pre
 
-Conversely, if the “-sf kk/host” is used in the command line and then the
-“/kk” or “/kk/device” suffix is added to a specific style in your input script,
+Conversely, if the "-sf kk/host" is used in the command line and then the
+"/kk" or "/kk/device" suffix is added to a specific style in your input script,
 then only that specific style will run on the GPU while everything else will
 run on the CPU in OpenMP mode. Note that the execution of the CPU and GPU
 styles will NOT overlap, except for a special case:
 
 A kspace style and/or molecular topology (bonds, angles, etc.) running on
 the host CPU can overlap with a pair style running on the GPU. First compile
-with “--default-stream per-thread” added to CCFLAGS in the Kokkos CUDA Makefile.
-Then explicitly use the “/kk/host” suffix for kspace and bonds, angles, etc.
+with "--default-stream per-thread" added to CCFLAGS in the Kokkos CUDA Makefile.
+Then explicitly use the "/kk/host" suffix for kspace and bonds, angles, etc.
 in the input file and the "kk" suffix (equal to "kk/device") on the command line.
 Also make sure the environment variable CUDA_LAUNCH_BLOCKING is not set to "1"
 so CPU/GPU overlap can occur.

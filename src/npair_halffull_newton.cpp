@@ -56,7 +56,6 @@ void NPairHalffullNewton::build(NeighList *list)
   int inum_full = list->listfull->inum;
   if (list->ghost) inum_full += list->listfull->gnum;
 
-  int inum = 0;
   ipage->reset();
 
   // loop over parent full list
@@ -90,7 +89,7 @@ void NPairHalffullNewton::build(NeighList *list)
       neighptr[n++] = joriginal;
     }
 
-    ilist[inum++] = i;
+    ilist[ii] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
@@ -98,13 +97,6 @@ void NPairHalffullNewton::build(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
-  list->inum = inum;
-  if (list->ghost) {
-    int num = 0;
-    for (i = 0; i < inum; i++)
-      if (ilist[i] < nlocal) num++;
-      else break;
-    list->inum = num;
-    list->gnum = inum - num;
-  }
+  list->inum = list->listfull->inum;
+  list->gnum = list->listfull->gnum;
 }

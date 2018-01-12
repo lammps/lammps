@@ -83,7 +83,7 @@ the following dynamic equation:
 :c,image(Eqs/fix_controller1.jpg)
 
 where {c} is the continuous time analog of the control variable,
-{e}={pvar}-{setpoint} is the error in the process variable, and
+{e} ={pvar}-{setpoint} is the error in the process variable, and
 {alpha}, {Kp}, {Ki}, and {Kd} are constants set by the corresponding
 keywords described above. The discretized version of this equation is:
 
@@ -106,10 +106,10 @@ the value of {alpha} to reflect this, while leaving {Kp}, {Ki}, and
 When choosing the values of the four constants, it is best to first
 pick a value and sign for {alpha} that is consistent with the
 magnitudes and signs of {pvar} and {cvar}.  The magnitude of {Kp}
-should then be tested over a large positive range keeping {Ki}={Kd}=0.
+should then be tested over a large positive range keeping {Ki} = {Kd} =0.
 A good value for {Kp} will produce a fast response in {pvar}, without
 overshooting the {setpoint}.  For many applications, proportional
-feedback is sufficient, and so {Ki}={Kd}=0 can be used. In cases where
+feedback is sufficient, and so {Ki} = {Kd} =0 can be used. In cases where
 there is a substantial lag time in the response of {pvar} to a change
 in {cvar}, this can be counteracted by increasing {Kd}. In situations
 where {pvar} plateaus without reaching {setpoint}, this can be

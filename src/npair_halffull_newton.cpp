@@ -32,8 +32,6 @@ NPairHalffullNewton::NPairHalffullNewton(LAMMPS *lmp) : NPair(lmp) {}
    pair stored once if i,j are both owned and i < j
    if j is ghost, only store if j coords are "above and to the right" of i
    works if full list is a skip list
-   works for owned (non-ghost) list, also for ghost list
-   if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
 void NPairHalffullNewton::build(NeighList *list)
@@ -54,8 +52,8 @@ void NPairHalffullNewton::build(NeighList *list)
   int *numneigh_full = list->listfull->numneigh;
   int **firstneigh_full = list->listfull->firstneigh;
   int inum_full = list->listfull->inum;
-  if (list->ghost) inum_full += list->listfull->gnum;
 
+  int inum = 0;
   ipage->reset();
 
   // loop over parent full list
@@ -89,7 +87,7 @@ void NPairHalffullNewton::build(NeighList *list)
       neighptr[n++] = joriginal;
     }
 
-    ilist[ii] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
@@ -97,6 +95,5 @@ void NPairHalffullNewton::build(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
-  list->inum = list->listfull->inum;
-  list->gnum = list->listfull->gnum;
+  list->inum = inum;
 }

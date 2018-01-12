@@ -254,7 +254,9 @@ file "Doxyfile.lammps" may be required. :ulb,l
 tools/doxygen/doc/Manual = an image copy of the the vintage LAMMPS
 documentation for quick reference browsing. In order to read the vintage
 LAMMPS documentation, start with loading the "Manual.html" file into an
-internet browser of your choice from this directory. :l
+internet browser of your choice from this directory. The doxygen
+documentation integrates the vintage LAMMPS documentation with
+appropriate links. :l
 :ule
 
 Important notes :h5

@@ -41,8 +41,6 @@ void NPairHalffullNewtoff::build(NeighList *list)
   int i,j,ii,jj,n,jnum,joriginal;
   int *neighptr,*jlist;
 
-  int nlocal = atom->nlocal;
-
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;

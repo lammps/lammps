@@ -69,7 +69,7 @@ class NPairSkipKokkos : public NPair {
   void operator()(TagNPairSkipCompute, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagNPairSkipCountLocal, const int&, int) const;
+  void operator()(TagNPairSkipCountLocal, const int&, int&) const;
 
  private:
   int nlocal;
@@ -78,9 +78,13 @@ class NPairSkipKokkos : public NPair {
 
   typename AT::t_int_scalar d_inum;
 
-  typename AT::t_neighbors_2d d_neighbors,d_neighbors_skip;
-  typename AT::t_int_1d d_ilist,d_ilist_skip;
-  typename AT::t_int_1d d_numneigh,d_numneigh_skip;
+  typename AT::t_neighbors_2d_const d_neighbors_skip;
+  typename AT::t_int_1d_const d_ilist_skip;
+  typename AT::t_int_1d_const d_numneigh_skip;
+
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d d_ilist;
+  typename AT::t_int_1d d_numneigh;
 
   DAT::tdual_int_1d k_iskip;
   DAT::tdual_int_2d k_ijskip;

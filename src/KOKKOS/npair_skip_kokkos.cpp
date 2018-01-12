@@ -133,9 +133,8 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCountLocal, const int &i, int num) const {
+void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCountLocal, const int &i, int &num) const {
   if (d_ilist[i] < nlocal) num++;
-  else return;
 }
 
 

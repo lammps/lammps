@@ -59,18 +59,21 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   k_list->maxneighs = k_list_full->maxneighs; // simple, but could be made more memory efficient
-  k_list->grow(inum_full);
+  k_list->grow(atom->nmax);
   d_ilist = k_list->d_ilist;
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
 
   // loop over parent full list
 
+  copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNPairHalffullCompute>(0,inum_full),*this);
 
   list->inum = k_list_full->inum;
   list->gnum = k_list_full->gnum;
   k_list->k_ilist.template modify<DeviceType>();
+
+  copymode = 0;
 }
 
 template<class DeviceType, int NEWTON>

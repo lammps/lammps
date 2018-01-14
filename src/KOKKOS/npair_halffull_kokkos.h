@@ -156,8 +156,6 @@ class NPairHalffullKokkos : public NPair {
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
-
-  ExecutionSpace execution_space;
 };
 
 }

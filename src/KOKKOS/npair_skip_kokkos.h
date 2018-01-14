@@ -66,13 +66,13 @@ class NPairSkipKokkos : public NPair {
   void build(class NeighList *);
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagNPairSkipCompute, const int&) const;
+  void operator()(TagNPairSkipCompute, const int&, int&, const bool&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairSkipCountLocal, const int&, int&) const;
 
  private:
-  int nlocal;
+  int nlocal,num_skip;
 
   typename AT::t_int_1d_randomread type;
 
@@ -90,8 +90,6 @@ class NPairSkipKokkos : public NPair {
   DAT::tdual_int_2d k_ijskip;
   typename AT::t_int_1d d_iskip;
   typename AT::t_int_2d d_ijskip;
-
-  ExecutionSpace execution_space;
 };
 
 }

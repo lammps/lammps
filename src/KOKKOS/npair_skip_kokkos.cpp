@@ -54,12 +54,12 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
   d_numneigh_skip = k_list_skip->d_numneigh;
   d_neighbors_skip = k_list_skip->d_neighbors;
 
-  int num_skip = list->listskip->inum;
+  num_skip = list->listskip->inum;
   if (list->ghost) num_skip += list->listskip->gnum;
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   k_list->maxneighs = k_list_skip->maxneighs; // simple, but could be made more memory efficient
-  k_list->grow(num_skip);
+  k_list->grow(atom->nmax);
   d_ilist = k_list->d_ilist;
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -83,13 +83,12 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
   k_iskip.sync<DeviceType>();
   k_ijskip.sync<DeviceType>();
 
-  Kokkos::deep_copy(d_inum,0);
-
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
   // skip I,J pair if ijskip is set for type[I],type[J]
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNPairSkipCompute>(0,num_skip),*this);
+  copymode = 1;
+  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType, TagNPairSkipCompute>(0,num_skip),*this);
 
   auto h_inum = Kokkos::create_mirror_view(d_inum);
   Kokkos::deep_copy(h_inum,d_inum);
@@ -101,34 +100,41 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
     list->inum = num;
     list->gnum = inum - num;
   }
+  copymode = 0;
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii) const {
+void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii, int &inum, const bool &final) const {
 
   const int i = d_ilist_skip(ii);
   const int itype = type(i);
   if (d_iskip(itype)) return;
 
-  int n = 0;
+  if (final) {
 
-  // loop over parent non-skip list
+    int n = 0;
 
-  const int jnum = d_numneigh_skip(i);
-  const AtomNeighbors neighbors_i = AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
-                                                  &d_neighbors(i,1)-&d_neighbors(i,0));
+    // loop over parent non-skip list
 
-  for (int jj = 0; jj < jnum; jj++) {
-    const int joriginal = d_neighbors_skip(i,jj);
-    int j = joriginal & NEIGHMASK;
-    if (d_ijskip(itype,type(j))) continue;
-    neighbors_i(n++) = joriginal;
+    const int jnum = d_numneigh_skip(i);
+    const AtomNeighbors neighbors_i = AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
+                                                    &d_neighbors(i,1)-&d_neighbors(i,0));
+
+    for (int jj = 0; jj < jnum; jj++) {
+      const int joriginal = d_neighbors_skip(i,jj);
+      int j = joriginal & NEIGHMASK;
+      if (d_ijskip(itype,type(j))) continue;
+      neighbors_i(n++) = joriginal;
+    }
+
+    d_numneigh(i) = n;
+    d_ilist(inum) = i;
+    if (ii == num_skip-1)
+      d_inum() = inum+1;
   }
 
-  d_numneigh(i) = n;
-  const int inum = Kokkos::atomic_fetch_add(&d_inum(),1);
-  d_ilist(inum) = i;
+  inum++;
 }
 
 template<class DeviceType>

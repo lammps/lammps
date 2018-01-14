@@ -34,7 +34,7 @@ public:
   void settings(int, char **);
   virtual void coeff(int, char **);
   virtual void init_style();
-  double init_one(int, int);
+  virtual double init_one(int, int);
   virtual double memory_usage();
 
 protected:

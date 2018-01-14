@@ -47,6 +47,7 @@ public:
   
   void coeff(int, char**);
   void init_style();
+  double init_one(int, int);
   void compute(int, int);
   double memory_usage();
 
@@ -118,8 +119,8 @@ inline double dist2(double* x,double* y);
   Kokkos::View<F_FLOAT**, Kokkos::LayoutRight, DeviceType> d_coeffelem;           // element bispectrum coefficients
   Kokkos::View<T_INT*, DeviceType> d_map;                     // mapping from atom types to elements
 
-  typedef Kokkos::View<F_FLOAT**, DeviceType> t_fparams;
-  t_fparams d_cutsq;
+  typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
+  tdual_fparams k_cutsq;
   typedef Kokkos::View<const F_FLOAT**, DeviceType,
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;

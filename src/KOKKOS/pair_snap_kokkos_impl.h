@@ -58,7 +58,9 @@ PairSNAPKokkos<DeviceType>::PairSNAPKokkos(LAMMPS *lmp) : PairSNAP(lmp)
   datamask_modify = EMPTY_MASK;
 
   vector_length = 8;
-  d_cutsq = t_fparams("PairSNAPKokkos::cutsq",atom->ntypes+1,atom->ntypes+1);
+  k_cutsq = tdual_fparams("PairSNAPKokkos::cutsq",atom->ntypes+1,atom->ntypes+1);
+  auto d_cutsq = k_cutsq.template view<DeviceType>();
+  rnd_cutsq = d_cutsq;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,6 +162,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
+  k_cutsq.template sync<DeviceType>();
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
@@ -268,6 +271,19 @@ void PairSNAPKokkos<DeviceType>::allocate()
   d_map = Kokkos::View<T_INT*, DeviceType>("PairSNAPKokkos::map",n+1);
 }
 
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairSNAPKokkos<DeviceType>::init_one(int i, int j)
+{
+  double cutone = PairSNAP::init_one(i,j);
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
+  k_cutsq.template modify<LMPHostType>();
+}
+
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
@@ -287,7 +303,6 @@ void PairSNAPKokkos<DeviceType>::coeff(int narg, char **arg)
   auto h_wjelem = Kokkos::create_mirror_view(d_wjelem);
   auto h_coeffelem = Kokkos::create_mirror_view(d_coeffelem);
   auto h_map = Kokkos::create_mirror_view(d_map);
-  auto h_cutsq = Kokkos::create_mirror_view(d_cutsq);
 
   for (int ielem = 0; ielem < nelements; ielem++) {
     h_radelem(ielem) = radelem[ielem];
@@ -299,19 +314,12 @@ void PairSNAPKokkos<DeviceType>::coeff(int narg, char **arg)
 
   for (int i = 1; i <= atom->ntypes; i++) {
     h_map(i) = map[i];
-    for (int j = 1; j <= atom->ntypes; j++) {
-      double cutone = (radelem[map[i]] +
-        radelem[map[j]])*rcutfac;
-      h_cutsq(i,j) = cutone*cutone;
-    }
   }
 
   Kokkos::deep_copy(d_radelem,h_radelem);
   Kokkos::deep_copy(d_wjelem,h_wjelem);
   Kokkos::deep_copy(d_coeffelem,h_coeffelem);
   Kokkos::deep_copy(d_map,h_map);
-  Kokkos::deep_copy(d_cutsq,h_cutsq);
-  rnd_cutsq = d_cutsq;
 
   // deallocate non-kokkos sna
 

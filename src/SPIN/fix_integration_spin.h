@@ -51,6 +51,7 @@ class FixIntegrationSpin : public Fix {
   int magpair_flag;		// magnetic pair flags
   int exch_flag;
   int soc_neel_flag, soc_dmi_flag;
+  int me_flag;
   int magforce_flag;		// magnetic force flags
   int zeeman_flag, aniso_flag;
   int maglangevin_flag;		// magnetic langevin flags
@@ -62,6 +63,7 @@ class FixIntegrationSpin : public Fix {
   class PairSpinExchange *lockpairspinexchange;
   class PairSpinSocNeel *lockpairspinsocneel;
   class PairSpinSocDmi *lockpairspinsocdmi;
+  class PairSpinMe *lockpairspinme;
   class FixForceSpin *lockforcespin;
   class FixLangevinSpin *locklangevinspin; 
 

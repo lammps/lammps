@@ -109,32 +109,37 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii,
 
   const int i = d_ilist_skip(ii);
   const int itype = type(i);
-  if (d_iskip(itype)) return;
 
-  if (final) {
+  if (!d_iskip(itype)) {
 
-    int n = 0;
+    if (final) {
 
-    // loop over parent non-skip list
+      int n = 0;
 
-    const int jnum = d_numneigh_skip(i);
-    const AtomNeighbors neighbors_i = AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
+      // loop over parent non-skip list
+
+      const int jnum = d_numneigh_skip(i);
+      const AtomNeighbors neighbors_i = AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
                                                     &d_neighbors(i,1)-&d_neighbors(i,0));
 
-    for (int jj = 0; jj < jnum; jj++) {
-      const int joriginal = d_neighbors_skip(i,jj);
-      int j = joriginal & NEIGHMASK;
-      if (d_ijskip(itype,type(j))) continue;
-      neighbors_i(n++) = joriginal;
+      for (int jj = 0; jj < jnum; jj++) {
+        const int joriginal = d_neighbors_skip(i,jj);
+        int j = joriginal & NEIGHMASK;
+        if (d_ijskip(itype,type(j))) continue;
+        neighbors_i(n++) = joriginal;
+      }
+
+      d_numneigh(i) = n;
+      d_ilist(inum) = i;
     }
 
-    d_numneigh(i) = n;
-    d_ilist(inum) = i;
-    if (ii == num_skip-1)
-      d_inum() = inum+1;
+    inum++;
   }
 
-  inum++;
+  if (final) {
+    if (ii == num_skip-1)
+      d_inum() = inum;
+  }
 }
 
 template<class DeviceType>

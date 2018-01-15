@@ -39,8 +39,8 @@ class PairSpinSocNeel : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_soc_neel(int, int, double, double eij[3], double fmi[3], double spi[3], double spj[3]);
-  void compute_soc_mech_neel(int, int, double, double eij[3], double fi[3], double spi[3], double spj[3]);
+  void compute_soc_neel(int, int, double, double [3], double [3], double [3], double [3]);
+  void compute_soc_mech_neel(int, int, double, double [3], double [3], double [3], double [3]);
  
   int soc_neel_flag;		// soc neel flag
   int soc_mech_flag; 		// mech calculation flag

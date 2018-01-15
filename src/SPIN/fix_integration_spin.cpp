@@ -85,6 +85,7 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   magpair_flag = 0;
   exch_flag = 0;
   soc_neel_flag = soc_dmi_flag = 0;
+  me_flag = 0;
   magforce_flag = 0;
   zeeman_flag = aniso_flag = 0;
   maglangevin_flag = 0;
@@ -137,6 +138,9 @@ void FixIntegrationSpin::init()
   } else if (strstr(force->pair_style,"pair/spin/soc/dmi")) {
     soc_dmi_flag = 1;
     lockpairspinsocdmi = (PairSpinSocDmi *) force->pair;
+  } else if (strstr(force->pair_style,"pair/spin/me")) {
+    me_flag = 1;
+    lockpairspinme = (PairSpinMe *) force->pair;
   } else if (strstr(force->pair_style,"hybrid/overlay")) {
     PairHybrid *lockhybrid = (PairHybrid *) force->pair;
     int nhybrid_styles = lockhybrid->nstyles;
@@ -151,6 +155,9 @@ void FixIntegrationSpin::init()
       } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/soc/dmi")) {
 	soc_dmi_flag = 1;
 	lockpairspinsocdmi = (PairSpinSocDmi *) lockhybrid->styles[ipair];
+      } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/me")) {
+	me_flag = 1;
+	lockpairspinme = (PairSpinMe *) lockhybrid->styles[ipair];
       }
     }
   } else error->all(FLERR,"Illegal fix integration/spin command");
@@ -189,7 +196,7 @@ void FixIntegrationSpin::init()
 
   if (mpi_flag) sectoring();
 
-  // grow tables for k and adv_list
+  // grow tables of stacking variables
 
   stack_head = memory->grow(stack_head,nsectors,"integration/spin:stack_head");
   stack_foot = memory->grow(stack_foot,nsectors,"integration/spin:stack_foot");
@@ -458,6 +465,17 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
 	eij[1] = rij[1]*inorm;
 	eij[2] = rij[2]*inorm;
 	lockpairspinsocdmi->compute_soc_dmi(i,j,fmi,spi,spj);
+      }
+    }
+
+    if (me_flag) {		// me
+      temp_cut = lockpairspinme->cut_spin_me[itype][jtype];
+      cut_2 = temp_cut*temp_cut;
+      if (rsq <= cut_2) {
+	eij[0] = rij[0]*inorm;
+	eij[1] = rij[1]*inorm;
+	eij[2] = rij[2]*inorm;
+	lockpairspinme->compute_me(i,j,eij,fmi,spi,spj);
       }
     }
 

@@ -151,6 +151,10 @@ action neighbor_kokkos.cpp
 action neighbor_kokkos.h
 action npair_copy_kokkos.cpp
 action npair_copy_kokkos.h
+action npair_halffull_kokkos.cpp
+action npair_halffull_kokkos.h
+action npair_skip_kokkos.cpp
+action npair_skip_kokkos.h
 action npair_kokkos.cpp
 action npair_kokkos.h
 action npair_ssa_kokkos.cpp npair_half_bin_newton_ssa.cpp

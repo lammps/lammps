@@ -32,12 +32,16 @@ NPair::NPair(LAMMPS *lmp)
   last_build = -1;
   mycutneighsq = NULL;
   molecular = atom->molecular;
+  copymode = 0;
+  execution_space = Host;
 }
 
 /* ---------------------------------------------------------------------- */
 
 NPair::~NPair()
 {
+  if (copymode) return;
+
   memory->destroy(mycutneighsq);
 }
 

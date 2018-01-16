@@ -306,9 +306,11 @@ void CreateBonds::many()
               nadd_bonds,atom->nbonds);
     }
   }
+
   // trigger clearing the list of available neighbor list requests
-  // and a full rebuild of them during the next run setup.
-  // otherwise the request from this command may linger around.
+  // and a full rebuild of them during the next run setup
+  // otherwise the request from this command may linger around
+
   neighbor->init();
 }
 

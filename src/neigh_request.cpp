@@ -36,7 +36,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
   half = 1;
   full = 0;
-  
+
   // attribute flags, mutiple can be set to 1
   // default is every reneighboring, not occasional
   // default is use newton_pair setting in force
@@ -69,7 +69,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   cutoff = 0.0;
 
   // skip info, default is no skipping
-  
+
   skip = 0;
   iskip = NULL;
   ijskip = NULL;
@@ -123,7 +123,7 @@ int NeighRequest::identical(NeighRequest *other)
 
   // only compare settings made by requestors
   // not settings made later by Neighbor class
-  
+
   if (pair != other->pair) same = 0;
   if (fix != other->fix) same = 0;
   if (compute != other->compute) same = 0;
@@ -152,6 +152,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (cutoff != other->cutoff) same = 0;
 
   if (skip != other->skip) same = 0;
+  if (same && skip && other->skip) same = same_skip(other);
   if (skip && other->skip) same = same_skip(other);
 
   return same;

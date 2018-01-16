@@ -164,18 +164,16 @@ void PairSpinMe::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-      if (newton_pair || j < nlocal) { // => to be corrected
-//      if (newton_pair_spin) {
-	f[j][0] += fj[0];	 
-        f[j][1] += fj[1];	  	  
-        f[j][2] += fj[2];
+      // check newton pair  =>  see if needs correction
+      if (newton_pair || j < nlocal) {
+	f[j][0] -= fj[0];	 
+        f[j][1] -= fj[1];	  	  
+        f[j][2] -= fj[2];
       }
  
       if (eflag) {
 	if (rsq <= cut_me_2) {
-	  evdwl -= spi[0]*fmi[0];
-	  evdwl -= spi[1]*fmi[1];
-	  evdwl -= spi[2]*fmi[2];
+	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
 	  evdwl *= hbar;
 	} else evdwl = 0.0;
       }

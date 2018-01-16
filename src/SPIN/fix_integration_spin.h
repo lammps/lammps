@@ -45,6 +45,8 @@ class FixIntegrationSpin : public Fix {
 
  protected:
   int extra, mpi_flag;
+  int mech_flag; 		// mech_flag = 0 if spins only
+  				// mech_flag = 1 if spin-lattice calc. 
 
   double dtv,dtf,dts;		// velocity, force, and spin timesteps
   

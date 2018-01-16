@@ -60,7 +60,9 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   lockpairspinexchange(NULL), lockpairspinsocneel(NULL), lockforcespin(NULL),
   locklangevinspin(NULL)
 {
-	
+
+//#define INIT1
+#if defined INIT1  
   if (narg != 4) error->all(FLERR,"Illegal fix integration/spin command");	
 
   time_integrate = 1;
@@ -77,10 +79,47 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
       mpi_flag = 1;
     } else error->all(FLERR,"Illegal fix integration/spin command");
   } else error->all(FLERR,"Illegal fix integration/spin command");
+#endif
+  
+  
+#define INIT2
+#if defined INIT2
+  if (narg < 4) error->all(FLERR,"Illegal fix/integration/spin command");  
+  
+  time_integrate = 1;
+  
+  extra = NONE;
+  mpi_flag = NONE;
+  mech_flag = 1;
+ 
+  if (strcmp(arg[2],"integration/spin") == 0) {
+    extra = SPIN;
+  } else error->all(FLERR,"Illegal fix integration/spin command");
+  
+  int iarg = 3;
+  while (iarg < narg) { 
+    if (strcmp(arg[iarg],"serial") == 0){
+      mpi_flag = 0;
+      iarg += 1;
+    } else if (strcmp(arg[iarg],"mpi") == 0) {
+      mpi_flag = 1;
+      iarg += 1;
+    } else if (strcmp(arg[iarg],"lattice") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix/integration/spin command");
+      if (strcmp(arg[iarg+1],"no") == 0) mech_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) mech_flag = 1;
+      else error->all(FLERR,"Illegal fix/integration/spin command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal fix langevin command");
+  }
 
-  // error checks
+#endif
+  
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
+
+  if (mpi_flag = NONE)
+    error->all(FLERR,"Illegal fix/integration/spin command");
 
   magpair_flag = 0;
   exch_flag = 0;
@@ -97,13 +136,11 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
 
 FixIntegrationSpin::~FixIntegrationSpin()
 {
-
   memory->destroy(rsec);
   memory->destroy(stack_head);
   memory->destroy(stack_foot);
   memory->destroy(forward_stacks);
   memory->destroy(backward_stacks);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -225,14 +262,16 @@ void FixIntegrationSpin::initial_integrate(int vflag)
   int *mask = atom->mask;  
 
   // update half v for all atoms
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (rmass) dtfm = dtf / rmass[i];
-      else dtfm = dtf / mass[type[i]]; 
-      v[i][0] += dtfm * f[i][0];
-      v[i][1] += dtfm * f[i][1];
-      v[i][2] += dtfm * f[i][2];
+  
+  if (mech_flag) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        if (rmass) dtfm = dtf / rmass[i];
+        else dtfm = dtf / mass[type[i]]; 
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+      }
     }
   }
 
@@ -276,14 +315,15 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 
   // update x for all particles
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
+  if (mech_flag) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
       }
+    }
   }
-
 
   // update half s for all particles
 
@@ -675,13 +715,15 @@ void FixIntegrationSpin::final_integrate()
 
   // update half v for all particles
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (rmass) dtfm = dtf / rmass[i];
-      else dtfm = dtf / mass[type[i]]; 
-      v[i][0] += dtfm * f[i][0];
-      v[i][1] += dtfm * f[i][1];
-      v[i][2] += dtfm * f[i][2];  
+  if (mech_flag) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        if (rmass) dtfm = dtf / rmass[i];
+        else dtfm = dtf / mass[type[i]]; 
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];  
+      }
     }
   }
 

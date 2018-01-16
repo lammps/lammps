@@ -352,6 +352,9 @@ void PairReaxCOMP::init_style( )
   neighbor->requests[irequest]->ghost = 1;
 
   cutmax = MAX3(control->nonb_cut, control->hbond_cut, control->bond_cut);
+  if ((cutmax < 2.0*control->bond_cut) && (comm->me == 0))
+    error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
+                   "increased neighbor list skin.");
 
   for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;

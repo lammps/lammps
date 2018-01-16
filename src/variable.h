@@ -97,18 +97,20 @@ class Variable : protected Pointers {
   void remove(int);
   void grow();
   void copy(int, char **, char **);
-  double evaluate(char *, Tree **, int ivar=-1);
+  double evaluate(char *, Tree **, int);
   double collapse_tree(Tree *);
   double eval_tree(Tree *, int);
   int size_tree_vector(Tree *);
   int compare_tree_vector(int, int);
   void free_tree(Tree *);
-  int find_matching_paren(char *, int, char *&, int ivar=-1);
-  int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
-  int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
-  int region_function(char *);
+  int find_matching_paren(char *, int, char *&, int);
+  int math_function(char *, char *, Tree **, Tree **,
+                    int &, double *, int &, int);
+  int group_function(char *, char *, Tree **, Tree **,
+                     int &, double *, int &, int);
+  int region_function(char *, int);
   int special_function(char *, char *, Tree **, Tree **,
-                       int &, double *, int &);
+                       int &, double *, int &, int);
   void peratom2global(int, char *, double *, int, tagint,
                       Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);

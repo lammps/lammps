@@ -82,12 +82,5 @@ void NPairHalffullNewtoff::build(NeighList *list)
   }
 
   list->inum = inum;
-  if (list->ghost) {
-    int num = 0;
-    for (i = 0; i < inum; i++)
-      if (ilist[i] < nlocal) num++;
-      else break;
-    list->inum = num;
-    list->gnum = inum - num;
-  }
+  if (list->ghost) list->gnum = list->listfull->gnum;
 }

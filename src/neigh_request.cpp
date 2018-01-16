@@ -153,7 +153,6 @@ int NeighRequest::identical(NeighRequest *other)
 
   if (skip != other->skip) same = 0;
   if (same && skip && other->skip) same = same_skip(other);
-  if (skip && other->skip) same = same_skip(other);
 
   return same;
 }

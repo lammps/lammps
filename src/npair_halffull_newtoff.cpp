@@ -32,6 +32,8 @@ NPairHalffullNewtoff::NPairHalffullNewtoff(LAMMPS *lmp) : NPair(lmp) {}
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
    works if full list is a skip list
+   works for owned (non-ghost) list, also for ghost list
+   if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
 void NPairHalffullNewtoff::build(NeighList *list)
@@ -48,8 +50,8 @@ void NPairHalffullNewtoff::build(NeighList *list)
   int *numneigh_full = list->listfull->numneigh;
   int **firstneigh_full = list->listfull->firstneigh;
   int inum_full = list->listfull->inum;
+  if (list->ghost) inum_full += list->listfull->gnum;
 
-  int inum = 0;
   ipage->reset();
 
   // loop over atoms in full list
@@ -70,7 +72,7 @@ void NPairHalffullNewtoff::build(NeighList *list)
       if (j > i) neighptr[n++] = joriginal;
     }
 
-    ilist[inum++] = i;
+    ilist[ii] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
@@ -78,5 +80,6 @@ void NPairHalffullNewtoff::build(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
-  list->inum = inum;
+  list->inum = list->listfull->inum;
+  list->gnum = list->listfull->gnum;
 }

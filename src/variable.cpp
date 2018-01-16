@@ -4589,18 +4589,19 @@ char *Variable::find_next_comma(char *str)
 
 
 /* ----------------------------------------------------------------------
-   debug routine for printing formula tree recursively
+   helper routine for printing variable name with error message
 ------------------------------------------------------------------------- */
 
 void Variable::print_var_error(const char *srcfile, int lineno,
                                const char *errmsg, int ivar)
 {
-  const char *varname = (const char*)"(unknown)";
-  if ((ivar >= 0) && (ivar < nvar)) varname = names[ivar];
+  if ((ivar >= 0) && (ivar < nvar)) {
+    char msg[128];
 
-  char msg[128];
-  sprintf(msg,"Variable %s: %s",varname,errmsg);
-  error->all(srcfile,lineno,msg);}
+    sprintf(msg,"Variable %s: %s",names[ivar],errmsg);
+    error->all(srcfile,lineno,msg);
+  } else error->all(srcfile,lineno,errmsg);
+}
 
 /* ----------------------------------------------------------------------
    debug routine for printing formula tree recursively

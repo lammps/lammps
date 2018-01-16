@@ -187,22 +187,23 @@ void FixForceSpin::post_force(int vflag)
   emag = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
+    spi[0] = sp[i][0];
+    spi[1] = sp[i][1];
+    spi[2] = sp[i][2];
     fmi[0] = fmi[1] = fmi[2] = 0.0;
-    if (zeeman_flag) {
+    
+    if (zeeman_flag) {		// compute Zeeman interaction
       compute_zeeman(i,fmi);
-      emag -= sp[i][0] * fmi[0];
-      emag -= sp[i][1] * fmi[1];
-      emag -= sp[i][2] * fmi[2];
+      emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      emag *= hbar;
     }  
-    if (aniso_flag) {
-      spi[0] = sp[i][0];
-      spi[1] = sp[i][1];
-      spi[2] = sp[i][2];
+    
+    if (aniso_flag) {		// compute magnetic anisotropy
       compute_anisotropy(i,spi,fmi);
-      emag -= 0.5 * sp[i][0] * fmi[0];
-      emag -= 0.5 * sp[i][1] * fmi[1];
-      emag -= 0.5 * sp[i][2] * fmi[2];
+      emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      emag *= hbar;
     }
+
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
@@ -259,16 +260,12 @@ void FixForceSpin::set_magneticforce()
 
 double FixForceSpin::compute_scalar()
 {
-  double emag_all = 0.0;
-
   // only sum across procs one time
+  //printf("test inside compute_scalar \n");
   
   if (eflag == 0) {
     MPI_Allreduce(&emag,&emag_all,1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;
   }
-
-  emag_all *= hbar;
-
   return emag_all;
 }

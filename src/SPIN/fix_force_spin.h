@@ -38,8 +38,8 @@ class FixForceSpin : public Fix {
   double compute_scalar();
 
   int zeeman_flag, aniso_flag;	
-  void compute_zeeman(int, double fmi[3]);
-  void compute_anisotropy(int, double spi[3], double fmi[3]);
+  void compute_zeeman(int, double [3]);
+  void compute_anisotropy(int, double [3], double [3]);
 
  protected:
   int style; 			// style of the magnetic force
@@ -49,7 +49,7 @@ class FixForceSpin : public Fix {
   int ilevel_respa;
   int time_origin;
   int eflag;
-  double emag;
+  double emag, emag_all;
 
   int varflag;
   int magfieldstyle;

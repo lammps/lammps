@@ -1372,7 +1372,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
   fvec vrij_hatx = vrijinv * vdijx;
   fvec vrij_haty = vrijinv * vdijy;
   fvec vrij_hatz = vrijinv * vdijz;
-  fvec rikinv = invsqrt(rsq2);
+  fvec rikinv = v::invsqrt(rsq2);
   fvec rik_hatx = rikinv * dikx;
   fvec rik_haty = rikinv * diky;
   fvec rik_hatz = rikinv * dikz;

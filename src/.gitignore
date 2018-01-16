@@ -11,6 +11,7 @@
 /*_intel.h
 /*_intel.cpp
 /*_kokkos.h
+/*_kokkos_impl.h
 /*_kokkos.cpp
 /*_omp.h
 /*_omp.cpp

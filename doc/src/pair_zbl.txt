@@ -8,6 +8,7 @@
 
 pair_style zbl command :h3
 pair_style zbl/gpu command :h3
+pair_style zbl/kk command :h3
 pair_style zbl/omp command :h3
 
 [Syntax:]

@@ -109,6 +109,10 @@ if (test $1 = "RIGID") then
   depend USER-OMP
 fi
 
+if (test $1 = "SNAP") then
+  depend KOKKOS
+fi
+
 if (test $1 = "USER-CGSDK") then
   depend GPU
   depend KOKKOS

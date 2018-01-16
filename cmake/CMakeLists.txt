@@ -198,14 +198,13 @@ if(ENABLE_PYTHON)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(NOT PYTHON_INSTDIR)
-    execute_process(COMMAND ${PYTHON_EXECUTABLE}
-	  -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-      OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
-  if(NOT BUILD_SHARED_LIBS)
-    message(FATAL_ERROR "Python package need lammps to be build shared, use -DBUILD_SHARED_LIBS=ON")
+  if(BUILD_SHARED_LIBS)
+    if(NOT PYTHON_INSTDIR)
+      execute_process(COMMAND ${PYTHON_EXECUTABLE}
+        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
   endif()
 endif()
 
@@ -401,6 +400,10 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
     elseif(PKG_LIB STREQUAL h5md)
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
+    elseif(PKG_LIB STREQUAL colvars)
+      target_compile_options(colvars PRIVATE -DLEPTON)
+      target_include_directories(colvars PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton/include)
+      target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
     else()
       target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
     endif()

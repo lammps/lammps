@@ -134,6 +134,9 @@ class NPair : protected Pointers {
     }
     return 0;
   };
+
+  int copymode;
+  ExecutionSpace execution_space;
 };
 
 }

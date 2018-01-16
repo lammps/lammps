@@ -48,6 +48,8 @@ PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp) {}
 
 PairZBL::~PairZBL()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

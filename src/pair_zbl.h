@@ -31,8 +31,8 @@ class PairZBL : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  virtual void init_style();
+  virtual double init_one(int, int);
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
@@ -42,7 +42,7 @@ class PairZBL : public Pair {
   double **d1a,**d2a,**d3a,**d4a,**zze;
   double **sw1,**sw2,**sw3,**sw4,**sw5;
 
-  void allocate();
+  virtual void allocate();
   double e_zbl(double, int, int);
   double dzbldr(double, int, int);
   double d2zbldr2(double, int, int);

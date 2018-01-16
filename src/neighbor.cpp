@@ -1107,11 +1107,6 @@ void Neighbor::morph_halffull()
 
     if (!irq->half) continue;
 
-    // Kokkos doesn't yet support half from full
-
-    if (irq->kokkos_host) continue;
-    if (irq->kokkos_device) continue;
-
     // these lists are created other ways, no need for halffull
     // do want to process skip lists
 

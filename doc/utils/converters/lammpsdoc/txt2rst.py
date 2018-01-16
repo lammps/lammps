@@ -67,7 +67,8 @@ class RSTMarkup(Markup):
         text = text.replace('*', '\\*')
         text = text.replace('^', '\\^')
         text = text.replace('|', '\\|')
-        text = re.sub(r'([^"])_', r'\1\\_', text)
+        text = re.sub(r'([^"])_([ \t\n\r\f])', r'\1\\\\_\2', text)
+        text = re.sub(r'([^"])_([^ \t\n\r\f])', r'\1\\_\2', text)
         return text
 
     def unescape_rst_chars(self, text):

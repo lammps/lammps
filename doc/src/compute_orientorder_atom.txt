@@ -67,7 +67,7 @@ parameters. This is followed by that number of integers giving the
 degree of each order parameter. Because {Q}2 and all odd-degree order
 parameters are zero for atoms in cubic crystals (see
 "Steinhardt"_#Steinhardt), the default order parameters are {Q}4,
-{Q}6, {Q}8, {Q}10, and {Q}12. For the FCC crystal with {nnn}=12, {Q}4
+{Q}6, {Q}8, {Q}10, and {Q}12. For the FCC crystal with {nnn} =12, {Q}4
 = sqrt(7/3)/8 = 0.19094....  The numerical values of all order
 parameters up to {Q}12 for a range of commonly encountered
 high-symmetry structures are given in Table I of "Mickel et

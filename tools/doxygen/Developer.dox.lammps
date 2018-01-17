@@ -39,9 +39,9 @@ The list of command style files can be found by typing "grep COMMAND_CLASS *.h" 
 
 <br>
 
-@anchor classes @image html classes.png "Class hierarchy within <a href=Manual/Manual.html><b>LAMMPS</b></a> source code"
+@anchor classes @image html classes.png "Class hierarchy within LAMMPS source code"
 
-@anchor classes @image latex classes.eps "Class hierarchy within <a href=Manual/Manual.html><b>LAMMPS</b></a> source code"
+@anchor classes @image latex classes.eps "Class hierarchy within LAMMPS source code"
 
 <br>
 
@@ -89,13 +89,11 @@ The first and most fundamental operation within <a href=Manual/Manual.html><b>LA
 
 The LAMMPS_NS::Verlet class is encoded in the src/verlet.cpp and verlet.h files. It implements the velocity-Verlet timestepping algorithm. The workhorse method is LAMMPS_NS::Verlet::run(), but first we highlight several other methods in the class.
 
--   The LAMMPS_NS::Verlet::init() method is called at the beginning of each dynamics run.
-    It simply sets some internal flags, based on user settings in other
-    parts of the code.
+- The LAMMPS_NS::Verlet::init() method is called at the beginning of each dynamics run. It simply sets some internal flags, based on user settings in other parts of the code.
 
--   The LAMMPS_NS::Verlet::setup() or LAMMPS_NS::Verlet::setup_minimal() methods are also called before each run. The velocity-Verlet method requires current forces be calculated before the first timestep, so these routines compute forces due to all atomic interactions, using the same logic that appears in the timestepping described next. A few fixes are also invoked, using the mechanism described in the next section. Various counters are also initialized before the run begins. The LAMMPS_NS::Verlet::setup_minimal() method is a variant that has a flag for performing less setup. This is used when runs are continued and information from the previous run is still valid. For example, if repeated short <a href=Manual/Manual.html><b>LAMMPS</b></a> runs are being invoked, interleaved by other commands, via the "pre no" and "every" options of the run command, the LAMMPS_NS::Verlet::setup_minimal() method is used.
+- The LAMMPS_NS::Verlet::setup() or LAMMPS_NS::Verlet::setup_minimal() methods are also called before each run. The velocity-Verlet method requires current forces be calculated before the first timestep, so these routines compute forces due to all atomic interactions, using the same logic that appears in the timestepping described next. A few fixes are also invoked, using the mechanism described in the next section. Various counters are also initialized before the run begins. The LAMMPS_NS::Verlet::setup_minimal() method is a variant that has a flag for performing less setup. This is used when runs are continued and information from the previous run is still valid. For example, if repeated short <a href=Manual/Manual.html><b>LAMMPS</b></a> runs are being invoked, interleaved by other commands, via the "pre no" and "every" options of the run command, the LAMMPS_NS::Verlet::setup_minimal() method is used.
 
--   The LAMMPS_NS::Verlet::force_clear() method initializes force and other arrays to zero before each timestep, so that forces (torques, etc) can be accumulated.
+- The LAMMPS_NS::Verlet::force_clear() method initializes force and other arrays to zero before each timestep, so that forces (torques, etc) can be accumulated.
 
 Now for the LAMMPS_NS::Verlet::run() method. Its structure in hi-level pseudo code is shown in figure @ref Verlet. In the actual code in src/verlet.cpp some of these operations are conditionally invoked.
 
@@ -207,7 +205,7 @@ All fixes are derived from class LAMMPS_NS::Fix and must have constructor with t
 
 @verbatim
 
-`FixMine(class LAMMPS *, int, char **)`
+FixMine(class LAMMPS *, int, char **)
 
 @endverbatim
 
@@ -221,7 +219,7 @@ FixStyle(your/fix/name,FixMine)
 
 @endverbatim
 
-Where `your/fix/name` is a name of your fix in the script and FixMine is the name of the class. This code allows <a href=Manual/Manual.html><b>LAMMPS</b></a> to find your fix when it parses input script. In addition, your fix header must be included in the file style_fix.h. In case if you use <a href=Manual/Manual.html><b>LAMMPS</b></a> make, this file is generated automatically - all files starting with prefix `fix_` are included, so call your header the same way. Otherwise, don’t forget to add your include into style_fix.h.
+Where `your/fix/name` is a name of your fix in the script and `FixMine` is the name of the class. This code allows <a href=Manual/Manual.html><b>LAMMPS</b></a> to find your fix when it parses input script. In addition, your fix header must be included in the file style_fix.h. In case if you use <a href=Manual/Manual.html><b>LAMMPS</b></a> make, this file is generated automatically - all files starting with prefix `fix_` are included, so call your header the same way. Otherwise, don’t forget to add your include into style_fix.h.
 
 Let’s write a simple fix which will print average velocity at the end of each timestep. First of all, implement a constructor:
 
@@ -304,8 +302,7 @@ void FixPrintVel::end_of_step()
   MPI_Allreduce(localAvgVel, globalAvgVel, 4, MPI_DOUBLE, MPI_SUM, world);
   scale3(1.0 / globalAvgVel[3], globalAvgVel);
   if (comm->me == 0) {
-    printf("%e, %e, %e\n", 
-      globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
+    printf("%e, %e, %e\n",  globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
    }
 }
 
@@ -322,7 +319,7 @@ The code above computes average velocity for all particles in the simulation. Ye
 
 for (int particleInd = 0; particleInd < nlocal; ++particleInd) {
   if (atom->mask[particleInd] & groupbit) {
-    //Do all job here
+    // Do all job here
    }
  }
 
@@ -332,7 +329,7 @@ Class LAMMPS_NS::Atom encapsulates atoms positions, velocities, forces, etc. The
 
 Lets consider another LAMMPS_NS::Fix example. We want to have a fix which stores atoms position from previous time step in your fix. The local atoms indexes will not be valid on the next iteration. In order to handle this situation there are several methods which should be implemented:
 
--   LAMMPS_NS::Fix::memory_usage() `/double memory_usage/` - return how much memory fix uses
+-   LAMMPS_NS::Fix::memory_usage() `/double memory_usage(void)/` - return how much memory fix uses
 
 -   LAMMPS_NS::Fix::grow_arrays() `/void grow_arrays(int)/` - do reallocation of the per particle arrays in your fix
 

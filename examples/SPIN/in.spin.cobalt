@@ -6,7 +6,7 @@ clear
 units metal
 dimension 3
 #boundary p p p 
-boundary p p f
+boundary p p p
 
 #newton off
 
@@ -119,6 +119,6 @@ thermo_modify   format float %20.15g
 dump 1 all custom 50 dump_cobalt.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 10000
+run 10
 #run 10000
 

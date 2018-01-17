@@ -60,30 +60,7 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   lockpairspinexchange(NULL), lockpairspinsocneel(NULL), lockforcespin(NULL),
   locklangevinspin(NULL)
 {
-
-//#define INIT1
-#if defined INIT1  
-  if (narg != 4) error->all(FLERR,"Illegal fix integration/spin command");	
-
-  time_integrate = 1;
   
-  extra = NONE;
-  mpi_flag = NONE;
-
-  int iarg = 2;
-  if (strcmp(arg[iarg],"integration/spin") == 0) {
-    extra = SPIN;
-    if (strcmp(arg[iarg+1],"serial") == 0){
-      mpi_flag = 0;
-    } else if (strcmp(arg[iarg+1],"mpi") == 0) {
-      mpi_flag = 1;
-    } else error->all(FLERR,"Illegal fix integration/spin command");
-  } else error->all(FLERR,"Illegal fix integration/spin command");
-#endif
-  
-  
-#define INIT2
-#if defined INIT2
   if (narg < 4) error->all(FLERR,"Illegal fix/integration/spin command");  
   
   time_integrate = 1;
@@ -97,6 +74,7 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   } else error->all(FLERR,"Illegal fix integration/spin command");
   
   int iarg = 3;
+
   while (iarg < narg) { 
     if (strcmp(arg[iarg],"serial") == 0){
       mpi_flag = 0;
@@ -113,12 +91,10 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix langevin command");
   }
 
-#endif
-  
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
 
-  if (mpi_flag = NONE)
+  if (mpi_flag == NONE)
     error->all(FLERR,"Illegal fix/integration/spin command");
 
   magpair_flag = 0;
@@ -231,15 +207,24 @@ void FixIntegrationSpin::init()
   
   // perform the sectoring if mpi integration
 
-  if (mpi_flag) sectoring();
+  if (mpi_flag) {
+    sectoring();
+    
+    // grow tables of stacking variables
+    
+    stack_head = memory->grow(stack_head,nsectors,"integration/spin:stack_head");
+    stack_foot = memory->grow(stack_foot,nsectors,"integration/spin:stack_foot");
+    forward_stacks = memory->grow(forward_stacks,atom->nmax,"integration/spin:forward_stacks");
+    backward_stacks = memory->grow(backward_stacks,atom->nmax,"integration/spin:backward_stacks");
+  }
 
   // grow tables of stacking variables
-
+ /* 
   stack_head = memory->grow(stack_head,nsectors,"integration/spin:stack_head");
   stack_foot = memory->grow(stack_foot,nsectors,"integration/spin:stack_foot");
   forward_stacks = memory->grow(forward_stacks,atom->nmax,"integration/spin:forward_stacks");
   backward_stacks = memory->grow(backward_stacks,atom->nmax,"integration/spin:backward_stacks");
-
+*/
 }
 
 /* ---------------------------------------------------------------------- */

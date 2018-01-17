@@ -44,7 +44,8 @@ class FixIntegrationSpin : public Fix {
   void pre_neighbor();
 
  protected:
-  int extra, mpi_flag;
+  int extra;
+  int mpi_flag;			//mpi_flag =  if parallel algorithm
   int mech_flag; 		// mech_flag = 0 if spins only
   				// mech_flag = 1 if spin-lattice calc. 
 

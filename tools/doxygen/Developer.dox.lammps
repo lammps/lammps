@@ -39,9 +39,9 @@ The list of command style files can be found by typing "grep COMMAND_CLASS *.h" 
 
 <br>
 
-@anchor classes @image html classes.png "Class hierarchy within <a href=Manual/Manual.html><b>LAMMPS</b></a> source code"
+@anchor classes @image html classes.png "Class hierarchy within LAMMPS source code"
 
-@anchor classes @image latex classes.eps "Class hierarchy within <a href=Manual/Manual.html><b>LAMMPS</b></a> source code"
+@anchor classes @image latex classes.eps "Class hierarchy within LAMMPS source code"
 
 <br>
 

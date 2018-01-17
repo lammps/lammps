@@ -1089,7 +1089,7 @@ package"_Section_start.html#start_3.
 "smd/triangulated/surface"_pair_smd_triangulated_surface.html,
 "smd/ulsph"_pair_smd_ulsph.html,
 "smtbq"_pair_smtbq.html,
-"snap (k)"_pair_sap.html,
+"snap (k)"_pair_snap.html,
 "sph/heatconduction"_pair_sph_heatconduction.html,
 "sph/idealgas"_pair_sph_idealgas.html,
 "sph/lj"_pair_sph_lj.html,

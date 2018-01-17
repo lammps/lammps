@@ -52,6 +52,7 @@ void NPairHalffullNewtoff::build(NeighList *list)
   int inum_full = list->listfull->inum;
   if (list->ghost) inum_full += list->listfull->gnum;
 
+  int inum = 0;
   ipage->reset();
 
   // loop over atoms in full list
@@ -72,7 +73,7 @@ void NPairHalffullNewtoff::build(NeighList *list)
       if (j > i) neighptr[n++] = joriginal;
     }
 
-    ilist[ii] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
@@ -80,6 +81,6 @@ void NPairHalffullNewtoff::build(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
-  list->inum = list->listfull->inum;
-  list->gnum = list->listfull->gnum;
+  list->inum = inum;
+  if (list->ghost) list->gnum = list->listfull->gnum;
 }

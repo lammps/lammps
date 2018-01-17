@@ -134,6 +134,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   nmax_old = 0;
+  if (!lmp->kokkos)
+    grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
   if (border) atom->add_callback(2);
@@ -189,8 +191,6 @@ int FixPropertyAtom::setmask()
 
 void FixPropertyAtom::init()
 {
-  grow_arrays(atom->nmax);
-
   // error if atom style has changed since fix was defined
   // don't allow this b/c user could change to style that defines molecule,q
 

@@ -9,6 +9,7 @@
 angle_style class2 command :h3
 angle_style class2/omp command :h3
 angle_style class2/kk command :h3
+angle_style class2/p6 command :h3
 
 [Syntax:]
 
@@ -94,7 +95,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -102,11 +103,29 @@ more instructions on how to use the accelerated styles effectively.
 
 :line
 
+The {class2/p6} angle style uses the {class2} potential expanded to sixth order:
+
+:c,image(Eqs/angle_class2_p6.jpg)
+
+In this expanded term 6 coefficients for the Ea formula need to be set:
+
+theta0 (degrees)
+K2 (energy/radian^2)
+K3 (energy/radian^3)
+K4 (energy/radian^4)
+K5 (energy/radian^5)
+K6 (energy/radian^6) :ul
+
+The bond-bond and bond-angle terms remain unchanged.
+
+:line
+
 [Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the CLASS2
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  For the {class2/p6} style LAMMPS needs to be built with the
+USER-MOFFF package.  See the "Making LAMMPS"_Section_start.html#start_3 
+section for more info on packages.
 
 [Related commands:]
 

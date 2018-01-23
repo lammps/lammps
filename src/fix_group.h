@@ -36,9 +36,9 @@ class FixGroup : public Fix {
 
  private:
   int gbit,gbitinverse;
-  int regionflag,varflag,propflag,typeflag;
-  int iregion,ivar,iprop;
-  char *idregion,*idvar,*idprop;
+  int regionflag,varflag;
+  int iregion,ivar;
+  char *idregion,*idvar;
   class Region *region;
 
   int nlevels_respa;

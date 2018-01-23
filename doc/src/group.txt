@@ -41,6 +41,7 @@ style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
     keyword = {region} or {var} or {every}
       {region} value = region-ID
       {var} value = name of variable
+      {property} value = name of per-atom property
       {every} value = N = update group every this many timesteps
   {static} = no args :pre
 :ule
@@ -215,7 +216,11 @@ conditions are applied.  If the {region} keyword is used, atoms not in
 the specified region are removed from the dynamic group.  If the {var}
 keyword is used, the variable name must be an atom-style or
 atomfile-style variable.  The variable is evaluated and atoms whose
-per-atom values are 0.0, are removed from the dynamic group.
+per-atom values are 0.0, are removed from the dynamic group. If the {property}
+keyword is used, the per-atom property name must be a previously defined
+per-atom property.  The per-atom property is evaluated and atoms whose
+values are 0.0 are removed from the dynamic group, otherwise they
+are added to the group.
 
 The assignment of atoms to a dynamic group is done at the beginning of
 each run and on every timestep that is a multiple of {N}, which is the

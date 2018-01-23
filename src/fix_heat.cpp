@@ -127,7 +127,7 @@ void FixHeat::init()
   }
 
   // check for rigid bodies in region (done here for performance reasons)
-  if (modify->check_rigid_region_overlap(groupbit,domain->regions[iregion]))
+  if (iregion >= 0 && modify->check_rigid_region_overlap(groupbit,domain->regions[iregion]))
     error->warning(FLERR,"Cannot apply fix heat to atoms in rigid bodies");
 
   // cannot have 0 atoms in group

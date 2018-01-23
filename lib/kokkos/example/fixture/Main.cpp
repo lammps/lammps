@@ -300,5 +300,16 @@ int main()
     Kokkos::HostSpace::execution_space::finalize();
   }
 #endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+  {
+    std::cout << "test_fixture< ROCm >" << std::endl ;
+    Kokkos::HostSpace::execution_space::initialize();
+    Kokkos::Experimental::ROCm::initialize( Kokkos::Experimental::ROCm::SelectDevice(0) );
+    Kokkos::Example::test_fixture< Kokkos::Experimental::ROCm >();
+    Kokkos::Experimental::ROCm::finalize();
+    Kokkos::HostSpace::execution_space::finalize();
+  }
+#endif
 }
 

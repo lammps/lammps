@@ -37,6 +37,10 @@ enable_language(CXX)
 #####################################################################
 include(CheckCCompilerFlag)
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -76,7 +80,7 @@ add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
 if(LAMMPS_EXCEPTIONS)
   add_definitions(-DLAMMPS_EXCEPTIONS)
-  set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES -DLAMMPS_EXCEPTIONS")
+  set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_EXCEPTIONS")
 endif()
 
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps (WON'T enable any features automatically")
@@ -101,7 +105,7 @@ set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
   USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
-  USER-SMTBQ USER-SPH USER-TALLY USER-VTK USER-QUIP USER-QMMM)
+  USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
@@ -194,14 +198,13 @@ if(ENABLE_PYTHON)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(NOT PYTHON_INSTDIR)
-    execute_process(COMMAND ${PYTHON_EXECUTABLE}
-	  -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-      OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
-  if(NOT BUILD_SHARED_LIBS)
-    message(FATAL_ERROR "Python package need lammps to be build shared, use -DBUILD_SHARED_LIBS=ON")
+  if(BUILD_SHARED_LIBS)
+    if(NOT PYTHON_INSTDIR)
+      execute_process(COMMAND ${PYTHON_EXECUTABLE}
+        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
   endif()
 endif()
 
@@ -397,6 +400,10 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
     elseif(PKG_LIB STREQUAL h5md)
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
+    elseif(PKG_LIB STREQUAL colvars)
+      target_compile_options(colvars PRIVATE -DLEPTON)
+      target_include_directories(colvars PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton/include)
+      target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
     else()
       target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
     endif()
@@ -476,12 +483,25 @@ if(ENABLE_KOKKOS)
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
   set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
 
   # detects styles which have KOKKOS version
   RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
+
+  # register kokkos-only styles
+  RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
+  RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
+
+  if(ENABLE_USER-DPD)
+    get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+    list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.cpp)
+    RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.h)
+    set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
+  endif()
 
   get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
 
@@ -665,7 +685,9 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ############################################
 add_library(lammps ${LIB_SOURCES})
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
-add_dependencies(lammps ${LAMMPS_DEPS})
+if(LAMMPS_DEPS)
+  add_dependencies(lammps ${LAMMPS_DEPS})
+endif()
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 if(BUILD_SHARED_LIBS)
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})

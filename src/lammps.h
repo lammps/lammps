@@ -53,6 +53,7 @@ class LAMMPS {
 
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
   class AtomKokkos *atomKK;      // KOKKOS version of Atom class
+  class MemoryKokkos *memoryKK;  // KOKKOS version of Memory class
 
   class Python * python;         // Python interface
 

@@ -16,7 +16,6 @@
 #include "fix_addforce.h"
 #include "atom.h"
 #include "atom_masks.h"
-#include "accelerator_kokkos.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"

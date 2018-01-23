@@ -11,6 +11,12 @@ function(FindStyleHeaders path style_class file_pattern headers)
     set_property(GLOBAL PROPERTY ${headers} "${hlist}")
 endfunction(FindStyleHeaders)
 
+function(AddStyleHeader path headers)
+    get_property(hlist GLOBAL PROPERTY ${headers})
+    list(APPEND hlist ${path})
+    set_property(GLOBAL PROPERTY ${headers} "${hlist}")
+endfunction(AddStyleHeader)
+
 function(FindStyleHeadersExt path style_class extension headers sources)
     get_property(hlist GLOBAL PROPERTY ${headers})
     get_property(slist GLOBAL PROPERTY ${sources})
@@ -61,6 +67,22 @@ function(GenerateStyleHeader path property style)
     #message("${property} = ${files}")
     CreateStyleHeader("${path}" "style_${style}.h" ${files})
 endfunction(GenerateStyleHeader)
+
+function(RegisterNBinStyles search_path)
+    FindStyleHeaders(${search_path} NBIN_CLASS      nbin_      NBIN      ) # nbin      ) # neighbor
+endfunction(RegisterNBinStyles)
+
+function(RegisterNPairStyles search_path)
+    FindStyleHeaders(${search_path} NPAIR_CLASS     npair_     NPAIR     ) # npair     ) # neighbor
+endfunction(RegisterNPairStyles)
+
+function(RegisterNBinStyle path)
+    AddStyleHeader(${path} NBIN)
+endfunction(RegisterNBinStyle)
+
+function(RegisterNPairStyle path)
+    AddStyleHeader(${path} NPAIR)
+endfunction(RegisterNPairStyle)
 
 function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} ANGLE_CLASS     angle_     ANGLE     ) # angle     ) # force

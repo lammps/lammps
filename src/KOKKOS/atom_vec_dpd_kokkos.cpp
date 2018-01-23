@@ -19,7 +19,7 @@
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -67,24 +67,24 @@ void AtomVecDPDKokkos::grow(int n)
   sync(Device,ALL_MASK);
   modified(Device,ALL_MASK);
 
-  memory->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
-  memory->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
-  memory->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
-  memory->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
+  memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
+  memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
+  memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
+  memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memory->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memory->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memory->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
 
 
-  memory->grow_kokkos(atomKK->k_rho,atomKK->rho,nmax,"atom:rho");
-  memory->grow_kokkos(atomKK->k_dpdTheta,atomKK->dpdTheta,nmax,"atom:dpdTheta");
-  memory->grow_kokkos(atomKK->k_uCond,atomKK->uCond,nmax,"atom:uCond");
-  memory->grow_kokkos(atomKK->k_uMech,atomKK->uMech,nmax,"atom:uMech");
-  memory->grow_kokkos(atomKK->k_uChem,atomKK->uChem,nmax,"atom:uChem");
-  memory->grow_kokkos(atomKK->k_uCG,atomKK->uCG,nmax,"atom:uCG");
-  memory->grow_kokkos(atomKK->k_uCGnew,atomKK->uCGnew,nmax,"atom:uCGnew");
-  memory->grow_kokkos(atomKK->k_duChem,atomKK->duChem,nmax,"atom:duChem");
+  memoryKK->grow_kokkos(atomKK->k_rho,atomKK->rho,nmax,"atom:rho");
+  memoryKK->grow_kokkos(atomKK->k_dpdTheta,atomKK->dpdTheta,nmax,"atom:dpdTheta");
+  memoryKK->grow_kokkos(atomKK->k_uCond,atomKK->uCond,nmax,"atom:uCond");
+  memoryKK->grow_kokkos(atomKK->k_uMech,atomKK->uMech,nmax,"atom:uMech");
+  memoryKK->grow_kokkos(atomKK->k_uChem,atomKK->uChem,nmax,"atom:uChem");
+  memoryKK->grow_kokkos(atomKK->k_uCG,atomKK->uCG,nmax,"atom:uCG");
+  memoryKK->grow_kokkos(atomKK->k_uCGnew,atomKK->uCGnew,nmax,"atom:uCGnew");
+  memoryKK->grow_kokkos(atomKK->k_duChem,atomKK->duChem,nmax,"atom:duChem");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)

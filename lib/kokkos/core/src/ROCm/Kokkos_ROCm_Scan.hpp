@@ -67,7 +67,7 @@ void scan_enqueue(
     hc::array<value_type> result(td.num_tiles);
     hc::array<value_type> scratch(len);
 
-    tile_for<value_type>(td, [&,len,td](hc::tiled_index<1> t_idx, tile_buffer<value_type> buffer) [[hc]] 
+    tile_for<value_type>(td, [&,f,len,td](hc::tiled_index<1> t_idx, tile_buffer<value_type> buffer) [[hc]] 
     {
         const auto local = t_idx.local[0];
         const auto global = t_idx.global[0];
@@ -135,7 +135,7 @@ void scan_enqueue(
       ValueJoin::join(f, &result_cpu[i], &result_cpu[i-1]);
 
     copy(result_cpu.data(),result);
-    hc::parallel_for_each(hc::extent<1>(len).tile(td.tile_size), [&,len,td](hc::tiled_index<1> t_idx) [[hc]] 
+    hc::parallel_for_each(hc::extent<1>(len).tile(td.tile_size), [&,f,len,td](hc::tiled_index<1> t_idx) [[hc]] 
     {
 //        const auto local = t_idx.local[0];
         const auto global = t_idx.global[0];

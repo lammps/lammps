@@ -57,6 +57,7 @@ class Pointers {
     screen(ptr->screen),
     logfile(ptr->logfile),
     atomKK(ptr->atomKK),
+    memoryKK(ptr->memoryKK),
     python(ptr->python) {}
   virtual ~Pointers() {}
 
@@ -84,6 +85,7 @@ class Pointers {
   FILE *&logfile;
 
   class AtomKokkos *&atomKK;
+  class MemoryKokkos *&memoryKK;
   class Python *&python;
 };
 

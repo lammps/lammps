@@ -62,6 +62,7 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestDynamicView.hpp>
+#include <TestScatterView.hpp>
 
 #include <Kokkos_DynRankView.hpp>
 #include <TestDynViewAPI.hpp>
@@ -201,10 +202,18 @@ void cuda_test_bitset()
       cuda_test_dualview_combinations(size);                     \
   }
 
+#define CUDA_SCATTERVIEW_TEST( size )             \
+  TEST_F( cuda, scatterview_##size##x) {                      \
+    test_scatter_view<Kokkos::Cuda>(size);               \
+  }
+
 CUDA_DUALVIEW_COMBINE_TEST( 10 )
 CUDA_VECTOR_COMBINE_TEST( 10 )
 CUDA_VECTOR_COMBINE_TEST( 3057 )
 
+CUDA_SCATTERVIEW_TEST( 10 )
+
+CUDA_SCATTERVIEW_TEST( 1000000 )
 
 CUDA_INSERT_TEST(close,               100000, 90000, 100, 500)
 CUDA_INSERT_TEST(far,                 100000, 90000, 100, 500)

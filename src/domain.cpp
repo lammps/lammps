@@ -772,7 +772,7 @@ void Domain::image_check()
       delz = unwrap[i][2] - unwrap[k][2];
 
       if (xperiodic && delx > xprd_half) flag = 1;
-      if (xperiodic && dely > yprd_half) flag = 1;
+      if (yperiodic && dely > yprd_half) flag = 1;
       if (dimension == 3 && zperiodic && delz > zprd_half) flag = 1;
       if (!xperiodic && delx > xprd) flag = 1;
       if (!yperiodic && dely > yprd) flag = 1;

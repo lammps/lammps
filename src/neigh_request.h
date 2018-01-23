@@ -59,12 +59,12 @@ class NeighRequest : protected Pointers {
   
   int ghost;             // 1 if includes ghost atom neighbors
   int size;              // 1 if pair cutoff set by particle radius
-  int history;           // 1 if stores neighbor history info
+  int history;           // 1 if there is also neigh history info (FixNeighHist)
   int granonesided;      // 1 if one-sided granular list for 
                          //   sphere/surf interactions
-  int respainner;        // 1 if a rRESPA inner list
-  int respamiddle;       // 1 if a rRESPA middle list
-  int respaouter;        // 1 if a rRESPA outer list
+  int respainner;        // 1 if need a rRESPA inner list
+  int respamiddle;       // 1 if need a rRESPA middle list
+  int respaouter;        // 1 if need a rRESPA outer list
   int bond;              // 1 if store bond neighbors instead of atom neighs
   int omp;               // set by USER-OMP package
   int intel;             // set by USER-INTEL package
@@ -73,8 +73,6 @@ class NeighRequest : protected Pointers {
   int ssa;               // set by USER-DPD package, for Shardlow lists
   int cut;               // 1 if use a non-standard cutoff length
   double cutoff;         // special cutoff distance for this list
-
-  int dnum;              // # of extra floating point values stored in list
 
   // flags set by pair hybrid
 
@@ -100,20 +98,8 @@ class NeighRequest : protected Pointers {
   int halffull;          // 1 if half list computed from another full list
   int halffulllist;      // index of full list to derive half from
 
-  int history_partner;   // 1 if this list partners with a history list
-  int historylist;       // index of the associated history list
-                         // for history = 1, index of the non-history partner
-
-  int respaouterlist;    // index of respaouter/middle/inner lists
-  int respamiddlelist;   // which this rREPSA list is associated with
-  int respainnerlist;    // each rRESPA style list points at the others
-
   int unique;            // 1 if this list requires its own
                          // NStencil, Nbin class - because of requestor cutoff
-
-  // pointer to FSH class, set by requestor class (not by Neighbor)
-
-  class FixShearHistory *fix_history;  // fix that stores per-atom history info
 
   // -----------------------------  
   // internal settings made by Neighbor class

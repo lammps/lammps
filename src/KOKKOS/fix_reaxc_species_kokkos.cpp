@@ -33,7 +33,7 @@
 #include "compute.h"
 #include "input.h"
 #include "variable.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "reaxc_list.h"
 #include "atom_masks.h"

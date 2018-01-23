@@ -36,9 +36,9 @@ keyword = {mol} or {basis} or {remap} or {var} or {set} or {units} :l
   {set} values = dim name
     dim = {x} or {y} or {z}
     name = name of variable to set with x, y, or z atom position
-  {rotate} values = Rx Ry Rz theta
-    Rx,Ry,Rz = rotation vector for single molecule
+  {rotate} values = theta Rx Ry Rz
     theta = rotation angle for single molecule (degrees)
+    Rx,Ry,Rz = rotation vector for single molecule
   {units} value = {lattice} or {box}
     {lattice} = the geometry is defined in lattice units
     {box} = the geometry is defined in simulation box units :pre
@@ -227,28 +227,30 @@ the sinusoid would appear to be "smoother".  Also note the use of the
 converts lattice spacings to distance.  Click on the image for a
 larger version.
 
+dimension       2
 variable        x equal 100
 variable        y equal 25
 lattice         hex 0.8442
 region          box block 0 $x 0 $y -0.5 0.5
 create_box      1 box :pre
 
-variable        xx equal 0.0
-variable        yy equal 0.0
+variable        xx internal 0.0
+variable        yy internal 0.0
 variable        v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
-create_atoms    1 box var v set x xx set y yy :pre
+create_atoms    1 box var v set x xx set y yy
+write_dump      all atom sinusoid.lammpstrj :pre
 
 :c,image(JPG/sinusoid_small.jpg,JPG/sinusoid.jpg)
 
-The {rotate} keyword can be used with the {single} style, when adding
-a single molecule to specify the orientation at which the molecule is
-inserted.  The axis of rotation is determined by the rotation vector
-(Rx,Ry,Rz) that goes through the insertion point.  The specified
-{theta} determines the angle of rotation around that axis.  Note that
-the direction of rotation for the atoms around the rotation axis is
-consistent with the right-hand rule: if your right-hand's thumb points
-along {R}, then your fingers wrap around the axis in the direction of
-rotation.
+The {rotate} keyword can only be used with the {single} style and
+when adding a single molecule. It allows to specify the orientation
+at which the molecule is inserted.  The axis of rotation is
+determined by the rotation vector (Rx,Ry,Rz) that goes through the
+insertion point.  The specified {theta} determines the angle of
+rotation around that axis.  Note that the direction of rotation for
+the atoms around the rotation axis is consistent with the right-hand
+rule: if your right-hand's thumb points along {R}, then your fingers
+wrap around the axis in the direction of rotation.
 
 The {units} keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the {single}

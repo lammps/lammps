@@ -214,6 +214,12 @@ public:
   {
     return ag_features;
   }
+  static void delete_features() {
+    for (size_t i=0; i < ag_features.size(); i++) {
+      delete ag_features[i];
+    }
+    ag_features.clear();
+  }
 
 protected:
 
@@ -279,6 +285,10 @@ public:
 
   /// Allocates and populates the sorted list of atom ids
   int create_sorted_ids(void);
+
+  /// Detect whether two groups share atoms
+  /// If yes, returns 1-based number of a common atom; else, returns 0
+  static int overlap(const atom_group &g1, const atom_group &g2);
 
   /// \brief When updating atomic coordinates, translate them to align with the
   /// center of mass of the reference coordinates

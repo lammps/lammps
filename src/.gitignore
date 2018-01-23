@@ -11,6 +11,7 @@
 /*_intel.h
 /*_intel.cpp
 /*_kokkos.h
+/*_kokkos_impl.h
 /*_kokkos.cpp
 /*_omp.h
 /*_omp.cpp
@@ -25,6 +26,7 @@
 /kokkos.h
 /kokkos_type.h
 /kokkos_few.h
+/kokkos_base.h
 
 /manifold*.cpp
 /manifold*.h
@@ -102,6 +104,15 @@
 /pair_snap.h
 /sna.cpp
 /sna.h
+
+/uef_*.cpp
+/uef_*.h
+/compute_*uef.cpp
+/compute_*uef.h
+/dump_*uef.cpp
+/dump_*uef.h
+/fix_*uef.cpp
+/fix_*uef.h
 
 /atom_vec_wavepacket.cpp
 /atom_vec_wavepacket.h
@@ -185,6 +196,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
+/bond_gromos.cpp
+/bond_gromos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
 /bond_harmonic_shift.cpp
@@ -405,6 +418,8 @@
 /fix_lambdah_calc.h
 /fix_langevin_eff.cpp
 /fix_langevin_eff.h
+/fix_latte.cpp
+/fix_latte.h
 /fix_lb_fluid.cpp
 /fix_lb_fluid.h
 /fix_lb_momentum.cpp
@@ -503,6 +518,8 @@
 /fix_reaxc_bonds.h
 /fix_reaxc_species.cpp
 /fix_reaxc_species.h
+/fix_rhok.cpp
+/fix_rhok.h
 /fix_rigid.cpp
 /fix_rigid.h
 /fix_rigid_nh.cpp
@@ -531,6 +548,7 @@
 /fix_shake.h
 /fix_shardlow.cpp
 /fix_shardlow.h
+/random_external_state.h
 /fix_smd.cpp
 /fix_smd.h
 /fix_species.cpp
@@ -893,8 +911,10 @@
 /python_impl.cpp
 /python_impl.h
 /python_compat.h
-/fix_python.cpp
-/fix_python.h
+/fix_python_move.cpp
+/fix_python_move.h
+/fix_python_invoke.cpp
+/fix_python_invoke.h
 /pair_python.cpp
 /pair_python.h
 /reader_molfile.cpp
@@ -1068,10 +1088,16 @@
 /pair_born_coul_long_cs.h
 /pair_born_coul_dsf_cs.cpp
 /pair_born_coul_dsf_cs.h
+/pair_born_coul_wolf_cs.cpp
+/pair_born_coul_wolf_cs.h
 /pair_buck_coul_long_cs.cpp
 /pair_buck_coul_long_cs.h
 /pair_coul_long_cs.cpp
 /pair_coul_long_cs.h
+/pair_coul_wolf_cs.cpp
+/pair_coul_wolf_cs.h
+/pair_extep.cpp
+/pair_extep.h
 /pair_lj_cut_thole_long.cpp
 /pair_lj_cut_thole_long.h
 /pair_plum_hb.cpp

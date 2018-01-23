@@ -387,8 +387,11 @@ void PairReaxC::init_style( )
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
 
-  cutmax = MAX3(control->nonb_cut, control->hbond_cut, 2*control->bond_cut);
-
+  cutmax = MAX3(control->nonb_cut, control->hbond_cut, control->bond_cut);
+  if ((cutmax < 2.0*control->bond_cut) && (comm->me == 0))
+    error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
+		   "increased neighbor list skin.");
+		   
   for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;
 
@@ -697,7 +700,7 @@ int PairReaxC::write_reax_lists()
   int itr_i, itr_j, i, j;
   int num_nbrs;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double d_sqr;
+  double d_sqr, cutoff_sqr;
   rvec dvec;
   double *dist, **x;
   reax_list *far_nbrs;
@@ -712,6 +715,7 @@ int PairReaxC::write_reax_lists()
   far_list = far_nbrs->select.far_nbr_list;
 
   num_nbrs = 0;
+  int inum = list->inum;
   dist = (double*) calloc( system->N, sizeof(double) );
 
   int numall = list->inum + list->gnum;
@@ -721,12 +725,17 @@ int PairReaxC::write_reax_lists()
     jlist = firstneigh[i];
     Set_Start_Index( i, num_nbrs, far_nbrs );
 
+    if (i < inum)
+      cutoff_sqr = control->nonb_cut*control->nonb_cut;
+    else
+      cutoff_sqr = control->bond_cut*control->bond_cut;
+
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= (control->nonb_cut*control->nonb_cut) ){
+      if( d_sqr <= (cutoff_sqr) ){
         dist[j] = sqrt( d_sqr );
         set_far_nbr( &far_list[num_nbrs], j, dist[j], dvec );
         ++num_nbrs;

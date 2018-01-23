@@ -31,6 +31,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   OBJ_EXAMPLE_FEINT += feint_cuda.o
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
+  OBJ_EXAMPLE_FEINT += feint_rocm.o
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
   OBJ_EXAMPLE_FEINT += feint_threads.o
 endif

@@ -454,7 +454,7 @@ NOTE: By default, for 2d systems, granular particles are still modeled
 as 3d spheres, not 2d discs (circles), meaning their moment of inertia
 will be the same as in 3d.  If you wish to model granular particles in
 2d as 2d discs, see the note on this topic in "Section
-6.2"_Section_howto.html#howto_2, where 2d simulations are disussed.
+6.2"_Section_howto.html#howto_2, where 2d simulations are discussed.
 
 :line
 

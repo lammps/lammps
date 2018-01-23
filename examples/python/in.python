@@ -28,6 +28,7 @@ python          simple here """
 from __future__ import print_function
 
 def simple():
+  foo = 0
   print("Inside simple function")
   try:
     foo += 1

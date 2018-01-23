@@ -25,6 +25,7 @@ PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>)
 
 #include "pair_multi_lucy_rx.h"
 #include "pair_kokkos.h"
+#include "kokkos_base.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -43,7 +44,7 @@ template<int NEIGHFLAG, int NEWTON_PAIR, bool ONE_TYPE>
 struct TagPairMultiLucyRXComputeLocalDensity{};
 
 template<class DeviceType>
-class PairMultiLucyRXKokkos : public PairMultiLucyRX {
+class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;

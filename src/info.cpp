@@ -28,6 +28,10 @@
 #include "force.h"
 #include "pair.h"
 #include "pair_hybrid.h"
+#include "bond.h"
+#include "angle.h"
+#include "dihedral.h"
+#include "improper.h"
 #include "group.h"
 #include "input.h"
 #include "modify.h"
@@ -75,20 +79,21 @@ enum {COMPUTES=1<<0,
       VARIABLES=1<<8,
       SYSTEM=1<<9,
       COMM=1<<10,
-      ATOM_STYLES=1<<11,
-      INTEGRATE_STYLES=1<<12,
-      MINIMIZE_STYLES=1<<13,
-      PAIR_STYLES=1<<14,
-      BOND_STYLES=1<<15,
-      ANGLE_STYLES=1<<16,
-      DIHEDRAL_STYLES=1<<17,
-      IMPROPER_STYLES=1<<18,
-      KSPACE_STYLES=1<<19,
-      FIX_STYLES=1<<20,
-      COMPUTE_STYLES=1<<21,
-      REGION_STYLES=1<<22,
-      DUMP_STYLES=1<<23,
-      COMMAND_STYLES=1<<24,
+      COEFFS=1<<11,
+      ATOM_STYLES=1<<12,
+      INTEGRATE_STYLES=1<<13,
+      MINIMIZE_STYLES=1<<14,
+      PAIR_STYLES=1<<15,
+      BOND_STYLES=1<<16,
+      ANGLE_STYLES=1<<17,
+      DIHEDRAL_STYLES=1<<18,
+      IMPROPER_STYLES=1<<19,
+      KSPACE_STYLES=1<<20,
+      FIX_STYLES=1<<21,
+      COMPUTE_STYLES=1<<22,
+      REGION_STYLES=1<<23,
+      DUMP_STYLES=1<<24,
+      COMMAND_STYLES=1<<25,
       ALL=~0};
 
 static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
@@ -182,6 +187,9 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if (strncmp(arg[idx],"system",3) == 0) {
       flags |= SYSTEM;
+      ++idx;
+    } else if (strncmp(arg[idx],"coeffs",3) == 0) {
+      flags |= COEFFS;
       ++idx;
     } else if (strncmp(arg[idx],"styles",3) == 0) {
       if (idx+1 < narg) {
@@ -437,6 +445,69 @@ void Info::command(int narg, char **arg)
                   domain->xy, domain->xz, domain->yz);
     } else {
       fputs("\nBox has not yet been created\n",out);
+    }
+  }
+
+  if (domain->box_exist && (flags & COEFFS)) {
+    Pair *pair=force->pair;
+
+    fprintf(out,"\nCoeff information:\n");
+    if (pair) {
+      fprintf(out,"Pair Coeffs:\n");
+      for (int i=1; i <= atom->ntypes; ++i)
+        for (int j=i; j <= atom->ntypes; ++j) {
+          fprintf(out,"%3d %3d :",i,j);
+          if (pair->allocated && pair->setflag[i][j]) fputs(" is set\n",out);
+          else fputs (" is not set\n",out);
+        }
+    }
+    if (force->bond) {
+      Bond *bond=force->bond;
+
+      if (bond) {
+        fprintf(out,"Bond Coeffs:\n");
+        for (int i=1; i <= atom->nbondtypes; ++i) {
+          fprintf(out,"%3d :",i);
+          if (bond->allocated && bond->setflag[i]) fputs(" is set\n",out);
+          else fputs (" is not set\n",out);
+        }
+      }
+    }
+    if (force->angle) {
+      Angle *angle=force->angle;
+
+      if (angle) {
+        fprintf(out,"Angle Coeffs:\n");
+        for (int i=1; i <= atom->nangletypes; ++i) {
+          fprintf(out,"%3d :",i);
+          if (angle->allocated && angle->setflag[i]) fputs(" is set\n",out);
+          else fputs (" is not set\n",out);
+        }
+      }
+    }
+    if (force->dihedral) {
+      Dihedral *dihedral=force->dihedral;
+
+      if (dihedral) {
+        fprintf(out,"Dihedral Coeffs:\n");
+        for (int i=1; i <= atom->ndihedraltypes; ++i) {
+          fprintf(out,"%3d :",i);
+          if (dihedral->allocated && dihedral->setflag[i]) fputs(" is set\n",out);
+          else fputs (" is not set\n",out);
+        }
+      }
+    }
+    if (force->improper) {
+      Improper *b=force->improper;
+
+      if (b) {
+        fprintf(out,"Improper Coeffs:\n");
+        for (int i=1; i <= atom->nimpropertypes; ++i) {
+          fprintf(out,"%3d :",i);
+          if (b->allocated && b->setflag[i]) fputs(" is set\n",out);
+          else fputs (" is not set\n",out);
+        }
+      }
     }
   }
 

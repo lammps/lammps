@@ -33,13 +33,18 @@ class NPairHalfBinNewtonSSA : public NPair {
   int *ssa_phaseLen;
   int **ssa_itemLoc;
   int **ssa_itemLen;
+  int ssa_gphaseCt;
+  int *ssa_gphaseLen;
+  int **ssa_gitemLoc;
+  int **ssa_gitemLen;
+
+  int ssa_maxPhaseLen;
 
   NPairHalfBinNewtonSSA(class LAMMPS *);
   ~NPairHalfBinNewtonSSA();
   void build(class NeighList *);
  private:
   int ssa_maxPhaseCt;
-  int ssa_maxPhaseLen;
 };
 
 }

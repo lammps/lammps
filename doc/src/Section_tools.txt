@@ -48,6 +48,7 @@ own sub-directories with their own Makefiles and/or README files.
 "chain"_#chain
 "colvars"_#colvars
 "createatoms"_#createatoms
+"doxygen"_#doxygen
 "drude"_#drude
 "eam database"_#eamdb
 "eam generate"_#eamgn
@@ -169,6 +170,18 @@ coordinates in LAMMPS or other formats.
 See the included Manual.pdf for details.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
+
+:line
+
+doxygen tool :h4,link(doxygen)
+
+The tools/doxygen directory contains a shell script called
+doxygen.sh which can generate a call graph and API lists using
+the Doxygen_http://doxygen.org software.
+
+See the included README file for details.
+
+The tool is authored by Nandor Tamaskovics, numericalfreedom at googlemail.com.
 
 :line
 

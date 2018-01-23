@@ -521,8 +521,8 @@ void PairLJCharmmCoulCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
     fc.special_lj[0] = 1.0;
   }
 
-  for (int i = 0; i < tp1; i++) {
-    for (int j = 0; j < tp1; j++) {
+  for (int i = 1; i < tp1; i++) {
+    for (int j = 1; j < tp1; j++) {
       fc.lj[i][j].x = lj1[i][j];
       fc.lj[i][j].y = lj2[i][j];
       fc.lj[i][j].z = lj3[i][j];

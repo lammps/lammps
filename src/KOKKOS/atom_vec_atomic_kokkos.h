@@ -33,12 +33,6 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   virtual ~AtomVecAtomicKokkos() {}
   void grow(int);
   void copy(int, int, int);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
   int pack_border(int, int *, double *, int, int *);
   int pack_border_vel(int, int *, double *, int, int *);
   void unpack_border(int, int, double *);
@@ -55,15 +49,6 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   bigint memory_usage();
 
   void grow_reset();
-  int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
-                       const int & iswap,
-                       const DAT::tdual_xfloat_2d &buf,
-                       const int &pbc_flag, const int pbc[]);
-  void unpack_comm_kokkos(const int &n, const int &nfirst,
-                          const DAT::tdual_xfloat_2d &buf);
-  int pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
-                     const int & iswap, const int nfirst,
-                     const int &pbc_flag, const int pbc[]);
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
                          int pbc_flag, int *pbc, ExecutionSpace space);
@@ -99,9 +84,6 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   DAT::t_x_array d_x;
   DAT::t_v_array d_v;
   DAT::t_f_array d_f;
-  HAT::t_x_array h_x;
-  HAT::t_v_array h_v;
-  HAT::t_f_array h_f;
 
   DAT::tdual_int_1d k_count;
 };

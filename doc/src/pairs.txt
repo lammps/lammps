@@ -11,6 +11,7 @@ Pair Styles :h1
    pair_awpmd
    pair_beck
    pair_body
+   pair_body_rounded_polygon
    pair_bop
    pair_born
    pair_brownian
@@ -32,6 +33,7 @@ Pair Styles :h1
    pair_eff
    pair_eim
    pair_exp6_rx
+   pair_extep
    pair_gauss
    pair_gayberne
    pair_gran

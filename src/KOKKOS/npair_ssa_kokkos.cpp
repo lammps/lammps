@@ -70,6 +70,7 @@ void NPairSSAKokkos<DeviceType>::copy_neighbor_info()
   k_ex2_bit = neighborKK->k_ex2_bit;
   k_ex_mol_group = neighborKK->k_ex_mol_group;
   k_ex_mol_bit = neighborKK->k_ex_mol_bit;
+  k_ex_mol_intra = neighborKK->k_ex_mol_intra;
 }
 
 /* ----------------------------------------------------------------------
@@ -217,8 +218,12 @@ int NPairSSAKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 
   if (nex_mol) {
     for (m = 0; m < nex_mol; m++)
-      if (mask(i) & ex_mol_bit(m) && mask(j) & ex_mol_bit(m) &&
-          molecule(i) == molecule(j)) return 1;
+      if (ex_mol_intra[m]) { // intra-chain: exclude i-j pair if on same molecule
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+            molecule[i] == molecule[j]) return 1;
+      } else                 // exclude i-j pair if on different molecules
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+            molecule[i] != molecule[j]) return 1;
   }
 
   return 0;
@@ -418,6 +423,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
          nex_mol,
          k_ex_mol_group.view<DeviceType>(),
          k_ex_mol_bit.view<DeviceType>(),
+         k_ex_mol_intra.view<DeviceType>(),
          bboxhi,bboxlo,
          domain->xperiodic,domain->yperiodic,domain->zperiodic,
          domain->xprd_half,domain->yprd_half,domain->zprd_half);
@@ -432,6 +438,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   k_ex2_bit.sync<DeviceType>();
   k_ex_mol_group.sync<DeviceType>();
   k_ex_mol_bit.sync<DeviceType>();
+  k_ex_mol_intra.sync<DeviceType>();
   k_bincount.sync<DeviceType>();
   k_bins.sync<DeviceType>();
   k_gbincount.sync<DeviceType>();

@@ -705,7 +705,7 @@ public:
   {
     std::stringstream stream(s);
     size_t i = 0;
-    while ((stream >> data[i]) && (i < data.size())) {
+    while ((i < data.size()) && (stream >> data[i])) {
       i++;
     }
     if (i < data.size()) {

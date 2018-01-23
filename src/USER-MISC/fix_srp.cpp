@@ -98,7 +98,7 @@ int FixSRP::setmask()
 
 void FixSRP::init()
 {
-  if (force->pair_match("hybrid",1) == NULL)
+  if (force->pair_match("hybrid",1) == NULL && force->pair_match("hybrid/overlay",1) == NULL)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
   int has_rigid = 0;

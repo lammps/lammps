@@ -1,0 +1,19 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style body/rounded/polygon command :h3
+
+[Description:]
+
+Note: This feature is not yet implemented.
+
+[Related commands:]
+
+"pair_style body"_pair_body.html
+
+[Default:] none

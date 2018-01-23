@@ -20,6 +20,7 @@
 
 #include "Kokkos_Macros.hpp"
 #include "pair.h"
+#include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "Kokkos_Vectorization.hpp"
 
@@ -246,8 +247,8 @@ struct PairComputeFunctor  {
     if (EFLAG) {
       if (c.eflag_atom) {
         const E_FLOAT epairhalf = 0.5 * epair;
-        if (NEWTON_PAIR || i < c.nlocal) c.d_eatom[i] += epairhalf;
-        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) c.d_eatom[j] += epairhalf;
+        if (NEWTON_PAIR || i < c.nlocal) eatom[i] += epairhalf;
+        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) eatom[j] += epairhalf;
       }
     }
 
@@ -298,20 +299,20 @@ struct PairComputeFunctor  {
 
       if (c.vflag_atom) {
         if (NEWTON_PAIR || i < c.nlocal) {
-          c.d_vatom(i,0) += 0.5*v0;
-          c.d_vatom(i,1) += 0.5*v1;
-          c.d_vatom(i,2) += 0.5*v2;
-          c.d_vatom(i,3) += 0.5*v3;
-          c.d_vatom(i,4) += 0.5*v4;
-          c.d_vatom(i,5) += 0.5*v5;
+          vatom(i,0) += 0.5*v0;
+          vatom(i,1) += 0.5*v1;
+          vatom(i,2) += 0.5*v2;
+          vatom(i,3) += 0.5*v3;
+          vatom(i,4) += 0.5*v4;
+          vatom(i,5) += 0.5*v5;
         }
         if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) {
-          c.d_vatom(j,0) += 0.5*v0;
-          c.d_vatom(j,1) += 0.5*v1;
-          c.d_vatom(j,2) += 0.5*v2;
-          c.d_vatom(j,3) += 0.5*v3;
-          c.d_vatom(j,4) += 0.5*v4;
-          c.d_vatom(j,5) += 0.5*v5;
+          vatom(j,0) += 0.5*v0;
+          vatom(j,1) += 0.5*v1;
+          vatom(j,2) += 0.5*v2;
+          vatom(j,3) += 0.5*v3;
+          vatom(j,4) += 0.5*v4;
+          vatom(j,5) += 0.5*v5;
         }
       }
     }

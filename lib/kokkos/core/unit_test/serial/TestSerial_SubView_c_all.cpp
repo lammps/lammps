@@ -10,3 +10,4 @@
 #include <serial/TestSerial_SubView_c10.cpp>
 #include <serial/TestSerial_SubView_c11.cpp>
 #include <serial/TestSerial_SubView_c12.cpp>
+#include <serial/TestSerial_SubView_c13.cpp>

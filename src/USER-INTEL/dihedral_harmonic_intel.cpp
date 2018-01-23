@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
@@ -400,7 +401,7 @@ void DihedralHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
   const int bp1 = atom->ndihedraltypes + 1;
   fc.set_ntypes(bp1,memory);
 
-  for (int i = 0; i < bp1; i++) {
+  for (int i = 1; i < bp1; i++) {
     fc.bp[i].multiplicity = multiplicity[i];
     fc.bp[i].cos_shift = cos_shift[i];
     fc.bp[i].sin_shift = sin_shift[i];

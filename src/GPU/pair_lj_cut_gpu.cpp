@@ -45,7 +45,7 @@ int ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  const int nall, const int max_nbors, const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
 
-int ljl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+void ljl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                    double **host_lj2, double **host_lj3, double **host_lj4,
                    double **offset);
 

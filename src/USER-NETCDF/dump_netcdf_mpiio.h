@@ -65,7 +65,7 @@ class DumpNetCDFMPIIO : public DumpCustom {
   bool thermo;                          // write thermo output to netcdf file
 
   bigint n_buffer;                      // size of buffer
-  int *int_buffer;                      // buffer for passing data to netcdf
+  bigint *int_buffer;                   // buffer for passing data to netcdf
   double *double_buffer;                // buffer for passing data to netcdf
 
   int ncid;

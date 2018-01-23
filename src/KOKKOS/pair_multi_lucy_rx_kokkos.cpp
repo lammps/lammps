@@ -31,13 +31,14 @@
 #include "force.h"
 #include "comm.h"
 #include "neigh_list.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "citeme.h"
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"
 #include "neigh_request.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -80,10 +81,10 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
 {
   if (copymode) return;
 
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
-  memory->destroy_kokkos(k_cutsq,cutsq);
+  memoryKK->destroy_kokkos(k_cutsq,cutsq);
 
   delete h_table;
   delete d_table;
@@ -153,13 +154,13 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.template view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -864,20 +865,20 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
-  memory->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
-  memory->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
+  memoryKK->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
+  memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
 
   if(tabstyle == LOOKUP) {
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
   }
 
   if(tabstyle == LINEAR) {
-    memory->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memory->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
-    memory->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
+    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
+    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
   }
 
   for(int i=0; i < ntables; i++) {
@@ -931,11 +932,11 @@ void PairMultiLucyRXKokkos<DeviceType>::allocate()
 
   memory->create(setflag,nt,nt,"pair:setflag");
 
-  memory->create_kokkos(k_cutsq,cutsq,nt,nt,"pair:cutsq");
+  memoryKK->create_kokkos(k_cutsq,cutsq,nt,nt,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_cutsq.template modify<LMPHostType>();
 
-  memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
+  memoryKK->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
   d_table_const.tabindex = d_table->tabindex;
 
   memset(&setflag[0][0],0,nt*nt*sizeof(int));

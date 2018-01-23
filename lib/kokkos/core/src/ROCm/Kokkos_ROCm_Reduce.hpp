@@ -102,18 +102,18 @@ void reduce_enqueue(
 
   typedef Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, F, ReducerType> ReducerConditional;
   typedef typename ReducerConditional::type ReducerTypeFwd;
+  typedef typename Kokkos::Impl::if_c< std::is_same<InvalidType, ReducerType>::value, Tag, void >::type TagFwd;
 
-  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd , Tag > ValueTraits ;
-  typedef Kokkos::Impl::FunctorValueInit< ReducerTypeFwd , Tag >   ValueInit ;
-  typedef Kokkos::Impl::FunctorValueJoin< ReducerTypeFwd , Tag >   ValueJoin ;
-  typedef Kokkos::Impl::FunctorFinal< ReducerTypeFwd , Tag >       ValueFinal ;
+  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd , TagFwd > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit< ReducerTypeFwd , TagFwd >   ValueInit ;
+  typedef Kokkos::Impl::FunctorValueJoin< ReducerTypeFwd , TagFwd >   ValueJoin ;
+  typedef Kokkos::Impl::FunctorFinal< ReducerTypeFwd , TagFwd >       ValueFinal ;
 
   typedef typename ValueTraits::pointer_type   pointer_type ;
   typedef typename ValueTraits::reference_type reference_type ;
 
   if (output_length < 1) return;
 
-  assert(output_result != nullptr);
   const auto td = get_tile_desc<T>(szElements,output_length,team_size,vector_size, shared_size);
 
   // allocate host and device memory for the results from each team
@@ -176,14 +176,17 @@ void reduce_enqueue(
       }
       
   });
-  ValueInit::init(ReducerConditional::select(f, reducer), output_result);
+  if (output_result != nullptr)
+     ValueInit::init(ReducerConditional::select(f, reducer), output_result);
   fut.wait();
 
   copy(result,result_cpu.data());
-  for(std::size_t i=0;i<td.num_tiles;i++)
-    ValueJoin::join(ReducerConditional::select(f, reducer), output_result, result_cpu.data()+i*output_length);
+  if (output_result != nullptr) {
+    for(std::size_t i=0;i<td.num_tiles;i++)
+       ValueJoin::join(ReducerConditional::select(f, reducer), output_result, result_cpu.data()+i*output_length);
 
-  ValueFinal::final( ReducerConditional::select(f, reducer) , output_result );
+    ValueFinal::final( ReducerConditional::select(f, reducer) , output_result );
+  }
 
 }
 

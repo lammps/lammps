@@ -23,6 +23,7 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

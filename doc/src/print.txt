@@ -14,10 +14,11 @@ print string keyword value :pre
 
 string = text string to print, which may contain variables :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {file} or {append} or {screen} :l
+keyword = {file} or {append} or {screen} or {universe} :l
   {file} value = filename
   {append} value = filename
-  {screen} value = {yes} or {no} :pre
+  {screen} value = {yes} or {no}
+  {universe} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
@@ -26,6 +27,7 @@ print "Done with equilibration" file info.dat
 print Vol=$v append info.dat screen no
 print "The system volume is now $v"
 print 'The system volume is now $v'
+print "NEB calculation 1 complete" screen no universe yes
 print """
 System volume = $v
 System temperature = $t
@@ -48,6 +50,11 @@ it does not exist.
 
 If the {screen} keyword is used, output to the screen and logfile can
 be turned on or off as desired.
+
+If the {universe} keyword is used, output to the global screen and
+logfile can be turned on or off as desired. In multi-partition
+calculations, the {screen} option and the corresponding output only
+apply to the screen and logfile of the individual partition.
 
 If you want the print command to be executed multiple times (with
 changing variable values), there are 3 options.  First, consider using
@@ -74,4 +81,4 @@ thermodynamic properties, global values calculated by a
 
 [Default:]
 
-The option defaults are no file output and screen = yes.
+The option defaults are no file output, screen = yes, and universe = no.

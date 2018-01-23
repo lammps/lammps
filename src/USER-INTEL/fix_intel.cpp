@@ -32,6 +32,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+
+#ifdef LAMMPS_BIGBIG
+#error "The USER-INTEL package is not compatible with -DLAMMPS_BIGBIG"
+#endif
 
 #ifdef _LMP_INTEL_OFFLOAD
 #ifndef INTEL_OFFLOAD_NOAFFINITY
@@ -285,6 +290,7 @@ int FixIntel::setmask()
 {
   int mask = 0;
   mask |= PRE_REVERSE;
+  mask |= MIN_PRE_REVERSE;
   #ifdef _LMP_INTEL_OFFLOAD
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;

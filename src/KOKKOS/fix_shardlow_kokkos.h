@@ -93,17 +93,6 @@ class FixShardlowKokkos : public FixShardlow {
 #endif
   PairDPDfdtEnergyKokkos<DeviceType> *k_pairDPDE;
 
-  int maxRNG;
-#ifdef DPD_USE_RAN_MARS
-  class RanMars **pp_random;
-#elif defined(DPD_USE_Random_XorShift1024)
-  Kokkos::Random_XorShift1024_Pool<DeviceType> rand_pool;
-  typedef typename Kokkos::Random_XorShift1024_Pool<DeviceType>::generator_type rand_type;
-#else
-  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
-  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
-#endif
-
   Kokkos::DualView<params_ssa**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ssa**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
@@ -126,6 +115,10 @@ class FixShardlowKokkos : public FixShardlow {
   bool massPerI;
   typename AT::t_float_1d_randomread masses;
   typename AT::t_efloat_1d dpdTheta;
+
+  // Storage for the es_RNG state variables
+  typedef Kokkos::View<random_external_state::es_RNG_t*,DeviceType> es_RNGs_type;
+  es_RNGs_type d_rand_state;
 
   double dtsqrt; // = sqrt(update->dt);
   int ghostmax;

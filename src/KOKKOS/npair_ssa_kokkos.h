@@ -76,6 +76,7 @@ class NPairSSAKokkos : public NPair {
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
+  DAT::tdual_int_1d k_ex_mol_intra;
 
   // data from NBinSSA class
 
@@ -123,6 +124,7 @@ class NPairSSAKokkosExecute
   const int nex_mol;
   const typename AT::t_int_1d_const ex_mol_group;
   const typename AT::t_int_1d_const ex_mol_bit;
+  const typename AT::t_int_1d_const ex_mol_intra;
 
   // data from NBinSSA class
 
@@ -233,6 +235,7 @@ class NPairSSAKokkosExecute
         const int & _nex_mol,
         const typename AT::t_int_1d_const & _ex_mol_group,
         const typename AT::t_int_1d_const & _ex_mol_bit,
+        const typename AT::t_int_1d_const & _ex_mol_intra,
         const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half):
@@ -266,6 +269,7 @@ class NPairSSAKokkosExecute
     ex1_group(_ex1_group),ex2_group(_ex2_group),
     ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
     ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
+    ex_mol_intra(_ex_mol_intra),
     xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
     xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half) {
 

@@ -274,7 +274,7 @@ void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
    pack dihedral info for data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::pack_dihedral(tagint **buf)
+int AtomVec::pack_dihedral(tagint **buf)
 {
   tagint *tag = atom->tag;
   int *num_dihedral = atom->num_dihedral;
@@ -291,25 +291,31 @@ void AtomVec::pack_dihedral(tagint **buf)
   if (newton_bond) {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_dihedral[i]; j++) {
-        buf[m][0] = MAX(dihedral_type[i][j],-dihedral_type[i][j]);
-        buf[m][1] = dihedral_atom1[i][j];
-        buf[m][2] = dihedral_atom2[i][j];
-        buf[m][3] = dihedral_atom3[i][j];
-        buf[m][4] = dihedral_atom4[i][j];
+      	if (buf) {
+          buf[m][0] = MAX(dihedral_type[i][j],-dihedral_type[i][j]);
+          buf[m][1] = dihedral_atom1[i][j];
+          buf[m][2] = dihedral_atom2[i][j];
+          buf[m][3] = dihedral_atom3[i][j];
+          buf[m][4] = dihedral_atom4[i][j];
+        }
         m++;
       }
   } else {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_dihedral[i]; j++)
         if (tag[i] == dihedral_atom2[i][j]) {
-          buf[m][0] = MAX(dihedral_type[i][j],-dihedral_type[i][j]);
-          buf[m][1] = dihedral_atom1[i][j];
-          buf[m][2] = dihedral_atom2[i][j];
-          buf[m][3] = dihedral_atom3[i][j];
-          buf[m][4] = dihedral_atom4[i][j];
+          if (buf) {
+            buf[m][0] = MAX(dihedral_type[i][j],-dihedral_type[i][j]);
+            buf[m][1] = dihedral_atom1[i][j];
+            buf[m][2] = dihedral_atom2[i][j];
+            buf[m][3] = dihedral_atom3[i][j];
+            buf[m][4] = dihedral_atom4[i][j];
+          }
           m++;
         }
   }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -330,7 +336,7 @@ void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
    pack improper info for data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::pack_improper(tagint **buf)
+int AtomVec::pack_improper(tagint **buf)
 {
   tagint *tag = atom->tag;
   int *num_improper = atom->num_improper;
@@ -347,25 +353,31 @@ void AtomVec::pack_improper(tagint **buf)
   if (newton_bond) {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_improper[i]; j++) {
-        buf[m][0] = MAX(improper_type[i][j],-improper_type[i][j]);
-        buf[m][1] = improper_atom1[i][j];
-        buf[m][2] = improper_atom2[i][j];
-        buf[m][3] = improper_atom3[i][j];
-        buf[m][4] = improper_atom4[i][j];
+        if (buf) {
+          buf[m][0] = MAX(improper_type[i][j],-improper_type[i][j]);
+          buf[m][1] = improper_atom1[i][j];
+          buf[m][2] = improper_atom2[i][j];
+          buf[m][3] = improper_atom3[i][j];
+          buf[m][4] = improper_atom4[i][j];
+        }
         m++;
       }
   } else {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_improper[i]; j++)
         if (tag[i] == improper_atom2[i][j]) {
-          buf[m][0] = MAX(improper_type[i][j],-improper_type[i][j]);
-          buf[m][1] = improper_atom1[i][j];
-          buf[m][2] = improper_atom2[i][j];
-          buf[m][3] = improper_atom3[i][j];
-          buf[m][4] = improper_atom4[i][j];
+          if (buf) {
+            buf[m][0] = MAX(improper_type[i][j],-improper_type[i][j]);
+            buf[m][1] = improper_atom1[i][j];
+            buf[m][2] = improper_atom2[i][j];
+            buf[m][3] = improper_atom3[i][j];
+            buf[m][4] = improper_atom4[i][j];
+          }
           m++;
         }
   }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------

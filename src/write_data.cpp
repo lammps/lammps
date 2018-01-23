@@ -152,8 +152,8 @@ void WriteData::write(char *file)
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write data file");
 
-  // sum up bond,angle counts
-  // may be different than atom->nbonds,nangles if broken/turned-off
+  // sum up bond,angle,dihedral,improper counts
+  // may be different than atom->nbonds,nangles, etc. if broken/turned-off
 
   if (atom->molecular == 1 && (atom->nbonds || atom->nbondtypes)) {
     nbonds_local = atom->avec->pack_bond(NULL);
@@ -162,6 +162,16 @@ void WriteData::write(char *file)
   if (atom->molecular == 1 && (atom->nangles || atom->nangletypes)) {
     nangles_local = atom->avec->pack_angle(NULL);
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
+  if (atom->molecular == 1 && (atom->ndihedrals || atom->ndihedraltypes)) {
+    ndihedrals_local = atom->avec->pack_dihedral(NULL);
+    MPI_Allreduce(&ndihedrals_local,&ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
+  if (atom->molecular == 1 && (atom->nimpropers || atom->nimpropertypes)) {
+    nimpropers_local = atom->avec->pack_improper(NULL);
+    MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
   // open data file

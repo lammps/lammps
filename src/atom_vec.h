@@ -107,9 +107,9 @@ class AtomVec : protected Pointers {
   void write_bond(FILE *, int, tagint **, int);
   int pack_angle(tagint **);
   void write_angle(FILE *, int, tagint **, int);
-  int pack_dihedral(tagint **);
+  void pack_dihedral(tagint **);
   void write_dihedral(FILE *, int, tagint **, int);
-  int pack_improper(tagint **);
+  void pack_improper(tagint **);
   void write_improper(FILE *, int, tagint **, int);
 
   virtual int property_atom(char *) {return -1;}

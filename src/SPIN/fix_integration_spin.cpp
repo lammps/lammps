@@ -88,14 +88,14 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"yes") == 0) mech_flag = 1;
       else error->all(FLERR,"Illegal fix/integration/spin command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix langevin command");
+    } else error->all(FLERR,"Illegal fix/integration/spin command");
   }
 
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
 
-  if (mpi_flag == NONE)
-    error->all(FLERR,"Illegal fix/integration/spin command");
+  //if (mpi_flag == NONE)
+  //  error->all(FLERR,"Illegal fix/integration/spin command");
 
   magpair_flag = 0;
   exch_flag = 0;

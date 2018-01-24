@@ -87,7 +87,8 @@ neigh_modify every 10 check yes delay 20
 #fix 2 all langevin/spin 0.0 0.0 0.0 21
 
 #Magnetic integration fix
-fix 3 all integration/spin mpi
+#fix 3 all integration/spin mpi
+fix 3 all integration/spin serial lattice no
 
 #compute real time, total magnetization, magnetic energy, and spin temperature
 #Iteration | Time | Mx | My | Mz | |M| | Em | Tm

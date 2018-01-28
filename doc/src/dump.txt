@@ -45,7 +45,7 @@ args = list of arguments for a particular style :l
   {xyz/gz} args = none
   {xyz/mpiio} args = none :pre
 
-{custom} or {custom/gz} or {custom/mpiio} args = list of atom attributes :l
+{custom} or {custom/gz} or {custom/mpiio} or {netcdf} or {netcdf/mpiio} args = list of atom attributes :l
     possible attributes = id, mol, proc, procp1, type, element, mass,
                           x, y, z, xs, ys, zs, xu, yu, zu,
                           xsu, ysu, zsu, ix, iy, iz,

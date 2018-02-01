@@ -138,7 +138,7 @@ Package, Description, Doc page, Example, Library
 "USER-MESO"_#USER-MESO, mesoscale DPD models, "pair_style edpd"_pair_meso.html, USER/meso, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
-"USER-MOFFF"_#USER-MOFFF, styles for "MOF-FF"_MOF+ force field, "pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html, USER/mofff, -
+"USER-MOFFF"_#USER-MOFFF, styles for "MOF-FF"_MOFplus force field, "pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html, USER/mofff, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
 "USER-NETCDF"_#USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, -, ext
 "USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
@@ -2271,31 +2271,25 @@ to simulate MOFs and related porous framework materials, using spherical
 Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
 2013, 250, 1128-1141.
 For the usage of MOF-FF see the example in the example directory as 
-well as the "MOF+"_MOF+ website.
+well as the "MOF+"_MOFplus website.
 
-:link(MOF+,https://www.mofplus.org/content/show/MOF-FF)
+:link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
 
 [Author:] Hendrik Heenen (Technical U of Munich), 
 Rochus Schmid (Ruhr-University Bochum).
 
 [Install or un-install:]
 
-To install via make or Make.py:
-
 make yes-user-mofff
 make machine :pre
-
-Make.py -p user-mofff -a machine :pre
-
-To un-install via make or Make.py:
 
 make no-user-mofff
 make machine :pre
 
-Make.py -p ^user-mofff -a machine :pre
-
 [Supporting info:]
 
+src/USER-MOFFF: filenames -> commands
+src/USER-MOFFF/README
 "pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html
 "angle_style class2"_angle_class2.html
 "angle_style cosine/buck6d"_angle_cosine_buck6d.html

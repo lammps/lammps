@@ -17,6 +17,7 @@ Pair Styles :h1
    pair_brownian
    pair_buck
    pair_buck_long
+   pair_buck6d_coul_gauss
    pair_charmm
    pair_class2
    pair_colloid

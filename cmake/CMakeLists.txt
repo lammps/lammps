@@ -170,13 +170,6 @@ if(ENABLE_KSPACE)
   endif()
 endif()
 
-if(ENABLE_MISC)
-  option(LAMMPS_XDR "include XDR compatibility files for doing particle dumps in XTC format" OFF)
-  if(LAMMPS_XDR)
-    add_definitions(-DLAMMPS_XDR) # for liblammps
-  endif()
-endif()
-
 if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP OR ENABLE_LATTE)
   find_package(LAPACK)
   if(NOT LAPACK_FOUND)

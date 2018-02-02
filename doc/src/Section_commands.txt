@@ -1021,6 +1021,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "tip4p/cut (o)"_pair_coul.html,
 "tip4p/long (o)"_pair_coul.html,
 "tri/lj"_pair_tri_lj.html,
+"ufm (got)"_pair_ufm.html,
 "vashishta (ko)"_pair_vashishta.html,
 "vashishta/table (o)"_pair_vashishta.html,
 "yukawa (go)"_pair_yukawa.html,

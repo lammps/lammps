@@ -62,7 +62,7 @@ of a run:
 variable prefactor equal ramp(10,100)
 fix 1 all adapt 1 pair ufm epsilon * * v_prefactor :pre
 
-NOTE: The thermodynamic integration procedure can be performed with this potential using "fix adapt"_fix_adapt.html. This command will rescale the force on each atom by varying a scale variable, which always starts with value 1.0. The syntax is the same described above, however, changing epsilon to scale. A detailed explanation of how to use this command and perform nonequilibrium thermodynamic integration in LAMMPS is given in the paper by "(Freitas)"_#Freitas.
+NOTE: The thermodynamic integration procedure can be performed with this potential using "fix adapt"_fix_adapt.html. This command will rescale the force on each atom by varying a scale variable, which always starts with value 1.0. The syntax is the same described above, however, changing epsilon to scale. A detailed explanation of how to use this command and perform nonequilibrium thermodynamic integration in LAMMPS is given in the paper by "(Freitas)"_#Freitas2.
 
 :line
 
@@ -131,5 +131,5 @@ This pair style can only be used via the {pair} keyword of the
 [(Paula Leite2016)] Paula Leite , Freitas, Azevedo, and de Koning, J Chem Phys, 126,
 044509 (2016).
 
-:link(Freitas)
+:link(Freitas2)
 [(Freitas)] Freitas, Asta, and de Koning, Computational Materials Science, 112, 333 (2016).

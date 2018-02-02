@@ -1031,8 +1031,8 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
       error->one(FLERR,"Invalid atom ID in Bonds section of data file");
     if (itype <= 0 || itype > nbondtypes)
       error->one(FLERR,"Invalid bond type in Bonds section of data file");
@@ -1085,9 +1085,10 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
       error->one(FLERR,"Invalid atom ID in Angles section of data file");
     if (itype <= 0 || itype > nangletypes)
       error->one(FLERR,"Invalid angle type in Angles section of data file");
@@ -1156,10 +1157,12 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom4 <= 0) || (atom4 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
     if (itype <= 0 || itype > ndihedraltypes)
       error->one(FLERR,
@@ -1243,10 +1246,12 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom4 <= 0) || (atom4 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,"Invalid atom ID in Impropers section of data file");
     if (itype <= 0 || itype > nimpropertypes)
       error->one(FLERR,

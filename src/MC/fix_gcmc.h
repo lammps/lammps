@@ -64,10 +64,12 @@ class FixGCMC : public Fix {
   int exclusion_group,exclusion_group_bit;
   int ngcmc_type,nevery,seed;
   int ncycles,nexchanges,nmcmoves;
+  double patomtrans, pmoltrans, pmolrotate, pmctot;
   int ngas;                 // # of gas atoms on all procs
   int ngas_local;           // # of gas atoms on this proc
   int ngas_before;          // # of gas atoms on procs < this proc
-  int mode;                 // ATOM or MOLECULE
+  int exchmode;             // exchange ATOM or MOLECULE
+  int movemode;             // move ATOM or MOLECULE
   int regionflag;           // 0 = anywhere in box, 1 = specific region
   int iregion;              // gcmc region
   char *idregion;           // gcmc region id
@@ -75,7 +77,8 @@ class FixGCMC : public Fix {
   bool charge_flag;         // true if user specified atomic charge
   bool full_flag;           // true if doing full system energy calculations
 
-  int natoms_per_molecule;  // number of atoms in each gas molecule
+  int natoms_per_molecule;  // number of atoms in each inserted molecule
+  int nmaxmolcoords;        // number of atoms allocated for molcoords
 
   int groupbitall;          // group bitmask for inserted atoms
   int ngroups;              // number of group-ids for inserted atoms
@@ -110,7 +113,7 @@ class FixGCMC : public Fix {
   double *sublo,*subhi;
   int *local_gas_list;
   double **cutsq;
-  double **atom_coord;
+  double **molcoords;
   imageint imagezero;
   double overlap_cutoffsq; // square distance cutoff for overlap 
   int overlap_flag;
@@ -126,8 +129,6 @@ class FixGCMC : public Fix {
 
   class Molecule **onemols;
   int imol,nmol;
-  double **coords;
-  imageint *imageflags;
   class Fix *fixrigid, *fixshake;
   int rigidflag, shakeflag;
   char *idrigid, *idshake;

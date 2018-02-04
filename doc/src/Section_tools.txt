@@ -184,7 +184,7 @@ doxygen tool :h4,link(doxygen)
 
 The tools/doxygen directory contains a shell script called
 doxygen.sh which can generate a call graph and API lists using
-the "Doxygen"_http://doxygen.org software.
+the "Doxygen software"_http://doxygen.org.
 
 See the included README file for details.
 

@@ -25,20 +25,35 @@ Define a computation that calculates the magnetic quantities for a system
 of atoms having spins.
 
 This compute calculates 6 magnetic quantities.
-The three first ones are the x,y and z cooredinates of the total magnetization.
+
+The three first quantities are the x,y and z coordinates of the total magnetization.
+
 The fourth quantity is the norm of the total magnetization.
+
 The fifth one is referred to as the spin temperature, according
 to the work of "(Nurdin)"_#Nurdin1. 
   
 The sixth quantity is the magnetic energy. 
 
+The simplest way to output the results of the compute spin calculation
+is to define some of the quantities as variables, and to use the thermo and
+thermo_style commands, for example
+for example:
 
-A simple way to output the results of the compute spin
-calculation to a file is to use the "fix ave/time"_fix_ave_time.html
-command, for example:
+compute out_mag		all compute/spin :pre
 
-compute mag all compute/spin
-fix outmag all ave/time 1 1 50 c_mag[2] c_mag[3] c_mag[4] c_mag[7] file mag.dat
+variable mag_z      	equal c_out_mag\[4\]
+variable mag_norm	equal c_out_mag\[5\]
+variable temp_mag      	equal c_out_mag\[7\] :pre
+
+thermo          	10
+thermo_style    	custom step v_mag_z v_mag_norm v_temp_mag :pre
+
+This serie of commands evaluates the total magnetization along z, the norm of 
+the total magnetization, and the magnetic temperature. Three variables are 
+assigned to those quantities. The thermo and thermo_style commands print them 
+every 10 timesteps.
+
 
 [Output info:]
 
@@ -50,6 +65,7 @@ metal units ("units"_units.html).
 The {spin} compute is part of the SPIN package.
 This compute is only enabled if LAMMPS was built with this package.
 See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+The atom_style has to be "spin" for this compute to be valid.
 
 [Related commands:] none
 

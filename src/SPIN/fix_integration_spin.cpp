@@ -297,7 +297,6 @@ void FixIntegrationSpin::initial_integrate(int vflag)
     } else error->all(FLERR,"Illegal fix integration/spin command");
   }
 
-
   // update x for all particles
 
   if (mech_flag) {

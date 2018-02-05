@@ -43,7 +43,7 @@ set group all spin/random 31 1.72
 #set group single_spin spin/random 11 1.72
 
 #velocity all create 200 4928459 rot yes dist gaussian
-velocity all create 10 4928459 rot yes dist gaussian
+velocity all create 200 4928459 rot yes dist gaussian
 
 #Magneto-mechanic interactions for bulk fcc Cobalt
 #pair_style pair/spin/exchange 4.0
@@ -88,7 +88,7 @@ neigh_modify every 10 check yes delay 20
 
 #Magnetic integration fix
 #fix 3 all integration/spin mpi
-fix 3 all integration/spin serial lattice no
+fix 3 all integration/spin serial lattice yes
 
 #compute real time, total magnetization, magnetic energy, and spin temperature
 #Iteration | Time | Mx | My | Mz | |M| | Em | Tm

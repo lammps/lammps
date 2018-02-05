@@ -1,0 +1,82 @@
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+
+
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style pair/spin/exchange command :h3
+
+[Syntax:]
+
+pair_style pair/spin/exchange cutoff :pre
+
+cutoff = global cutoff pair (distance in metal units) :ulb,l
+
+:ule
+	
+[Examples:]
+
+pair_style pair/spin/exchange 4.0	
+pair_coeff * * exchange 4.0 0.0446928 0.003496 1.4885
+pair_coeff 1 2 exchange 6.0 -0.01575 0.0 1.965 :pre
+
+[Description:]
+
+Style {pair/spin/exchange} computes the exchange interaction between 
+pairs of magnetic spins. 
+
+:c,image(Eqs/pair_spin_exchange_interaction.pdf)
+
+where si and sj are two neighboring magnetic spins of two particles, 
+rij = ri - rj is the inter-atomic distance between the two particles,
+and J(rij) is a function defining the intensity and the sign of the exchange 
+interaction.  
+
+This function is defined as:
+
+:c,image(Eqs/pair_spin_exchange_function.pdf)
+
+where a, b and d are the three constants defined in the associated "pair_coeff"
+command.   
+
+More explanations the {pair/spin/exchange} and its parametrization are reported 
+in "(Tranchida)"_#Tranchida1.
+
+
+
+The {lj/cut} and {lj/cut/coul/long} pair styles support the use of the
+{inner}, {middle}, and {outer} keywords of the "run_style
+respa"_run_style.html command, meaning the pairwise forces can be
+
+:line
+
+[Restrictions:]
+
+All the {pair/spin} styles are part of the SPIN package. 
+These styles are only enabled if LAMMPS was built with this package, and
+if the atom_style "spin" was declared. 
+See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"eam"
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Tranchida1)
+[(Tranchida)]https://arxiv.org/abs/1801.10233
+

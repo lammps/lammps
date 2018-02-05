@@ -29,14 +29,18 @@ create_box	1 box
 pair_coeff	* * 1.0 1.0
 mass		* 1.0
 
+# we recommend setting up a dedicated group for gcmc
+
+group		gcmcgroup type 1
+
 # gcmc
 
-fix             mygcmc all gcmc 1 100 100 1 29494 ${temp} ${mu} ${disp}
+fix             mygcmc gcmcgroup gcmc 1 100 100 1 29494 ${temp} ${mu} ${disp}
 
 # atom count
 
 variable 	type1 atom "type==1"
-group 		type1 dynamic all var type1
+group 		type1 dynamic gcmcgroup var type1
 variable        n1 equal count(type1)
 
 # averaging

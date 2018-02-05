@@ -72,7 +72,8 @@ enum{MOVEATOM,MOVEMOL}; // movemode
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   idregion(NULL), full_flag(0), ngroups(0), groupstrings(NULL), ngrouptypes(0), grouptypestrings(NULL),
-  grouptypebits(NULL), grouptypes(NULL), local_gas_list(NULL), molcoords(NULL), random_equal(NULL), random_unequal(NULL),
+  grouptypebits(NULL), grouptypes(NULL), local_gas_list(NULL), molcoords(NULL), molq(NULL), molimage(NULL),
+  random_equal(NULL), random_unequal(NULL),
   fixrigid(NULL), fixshake(NULL), idrigid(NULL), idshake(NULL)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
@@ -199,8 +200,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   
   if (exchmode == EXCHATOM) natoms_per_molecule = 1;
   else natoms_per_molecule = onemols[imol]->natoms;
-  nmaxmolcoords = natoms_per_molecule;
-  memory->create(molcoords,nmaxmolcoords,3,"gcmc:molcoords");
+  nmaxmolatoms = natoms_per_molecule;
+  grow_molecule_arrays(nmaxmolatoms);
 
   // compute the number of MC cycles that occur nevery timesteps
 
@@ -513,7 +514,7 @@ void FixGCMC::init()
        "Fix gcmc cannot exchange individual atoms belonging to a molecule");
   }
 
-  // if molecules are exchanged are moves, check for unset mol IDs
+  // if molecules are exchanged or moved, check for unset mol IDs
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL) {
     tagint *molecule = atom->molecule;
@@ -683,6 +684,12 @@ void FixGCMC::init()
   imagezero = ((imageint) IMGMAX << IMG2BITS) |
              ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
+  // warning if group id is "all"
+
+  if (groupbit & 1)
+    error->warning(FLERR, "Fix gcmc is being applied "
+                   "to the default group all");
+    
   // construct group bitmask for all new atoms
   // aggregated over all group keywords
 
@@ -1153,10 +1160,8 @@ void FixGCMC::attempt_molecule_rotation()
     }
   }
 
-  if (nmolcoords > nmaxmolcoords) {
-    nmaxmolcoords = nmolcoords;
-    molcoords = memory->grow(molcoords,nmaxmolcoords,3,"gcmc:molcoords");
-  }
+  if (nmolcoords > nmaxmolatoms)
+    grow_molecule_arrays(nmolcoords);
   
   double com[3];
   com[0] = com[1] = com[2] = 0.0;
@@ -1816,10 +1821,8 @@ void FixGCMC::attempt_molecule_rotation_full()
     }
   }
 
-  if (nmolcoords > nmaxmolcoords) {
-    nmaxmolcoords = nmolcoords;
-    molcoords = memory->grow(molcoords,nmaxmolcoords,3,"gcmc:molcoords");
-  }
+  if (nmolcoords > nmaxmolatoms)
+    grow_molecule_arrays(nmolcoords);
   
   double com[3];
   com[0] = com[1] = com[2] = 0.0;
@@ -1844,14 +1847,14 @@ void FixGCMC::attempt_molecule_rotation_full()
 
   double **x = atom->x;
   imageint *image = atom->image;
-  imageint image_orig[natoms_per_molecule];
+  
   int n = 0;
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & molecule_group_bit) {
       molcoords[n][0] = x[i][0];
       molcoords[n][1] = x[i][1];
       molcoords[n][2] = x[i][2];
-      image_orig[n] = image[i];
+      molimage[n] = image[i];
       double xtmp[3];
       domain->unmap(x[i],image[i],xtmp);
       xtmp[0] -= com[0];
@@ -1884,7 +1887,7 @@ void FixGCMC::attempt_molecule_rotation_full()
         x[i][0] = molcoords[n][0];
         x[i][1] = molcoords[n][1];
         x[i][2] = molcoords[n][2];
-        image[i] = image_orig[n];
+        image[i] = molimage[n];
         n++;
       }
     }
@@ -1906,8 +1909,17 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   double energy_before = energy_stored;
 
+  // check nmolq, grow arrays if necessary
+
+  int nmolq = 0;
+  for (int i = 0; i < atom->nlocal; i++)
+    if (atom->molecule[i] == deletion_molecule)
+      if (atom->q_flag) nmolq++;
+  
+  if (nmolq > nmaxmolatoms)
+    grow_molecule_arrays(nmolq);
+  
   int m = 0;
-  double q_tmp[natoms_per_molecule];
   int tmpmask[atom->nlocal];
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == deletion_molecule) {
@@ -1915,7 +1927,7 @@ void FixGCMC::attempt_molecule_deletion_full()
       atom->mask[i] = exclusion_group_bit;
       toggle_intramolecular(i);
       if (atom->q_flag) {
-        q_tmp[m] = atom->q[i];
+        molq[m] = atom->q[i];
         m++;
         atom->q[i] = 0.0;
       }
@@ -1948,7 +1960,7 @@ void FixGCMC::attempt_molecule_deletion_full()
         atom->mask[i] = tmpmask[i];
         toggle_intramolecular(i);
         if (atom->q_flag) {
-          atom->q[i] = q_tmp[m];
+          atom->q[i] = molq[m];
           m++;
         }
       }
@@ -2520,4 +2532,11 @@ void FixGCMC::restart(char *buf)
   random_unequal->reset(seed);
 
   next_reneighbor = static_cast<int> (list[n++]);
+}
+
+void FixGCMC::grow_molecule_arrays(int nmolatoms) {
+    nmaxmolatoms = nmolatoms;
+    molcoords = memory->grow(molcoords,nmaxmolatoms,3,"gcmc:molcoords");
+    molq = memory->grow(molq,nmaxmolatoms,"gcmc:molq");
+    molimage = memory->grow(molimage,nmaxmolatoms,"gcmc:molimage");
 }

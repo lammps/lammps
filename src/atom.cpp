@@ -278,6 +278,10 @@ Atom::~Atom()
   memory->destroy(tri);
   memory->destroy(body);
 
+  memory->destroy(mumag);
+  memory->destroy(sp);
+  memory->destroy(fm);
+
   memory->destroy(vfrac);
   memory->destroy(s0);
   memory->destroy(x0);

@@ -73,16 +73,20 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
     extra = SPIN;
   } else error->all(FLERR,"Illegal fix integration/spin command");
   
-  int iarg = 3;
+  // defining mpi_flag 
 
+  int nprocs_tmp = comm->nprocs;
+  if (nprocs_tmp == 1) {
+    mpi_flag = 0;
+  } else if (nprocs_tmp >= 1) {
+    mpi_flag = 1;
+  } else error->all(FLERR,"Illegal fix/integration/spin command");
+
+  // defining mech_flag 
+
+  int iarg = 3;
   while (iarg < narg) { 
-    if (strcmp(arg[iarg],"serial") == 0){
-      mpi_flag = 0;
-      iarg += 1;
-    } else if (strcmp(arg[iarg],"mpi") == 0) {
-      mpi_flag = 1;
-      iarg += 1;
-    } else if (strcmp(arg[iarg],"lattice") == 0) {
+    if (strcmp(arg[iarg],"lattice") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix/integration/spin command");
       if (strcmp(arg[iarg+1],"no") == 0) mech_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) mech_flag = 1;
@@ -94,8 +98,8 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
 
-  //if (mpi_flag == NONE)
-  //  error->all(FLERR,"Illegal fix/integration/spin command");
+  if (mpi_flag == 0 && nprocs_tmp == 1)
+    error->all(FLERR,"Illegal fix/integration/spin command");
 
   magpair_flag = 0;
   exch_flag = 0;
@@ -134,6 +138,7 @@ int FixIntegrationSpin::setmask()
 
 void FixIntegrationSpin::init()
 {
+
   // set timesteps
 
   dtv = update->dt;
@@ -202,29 +207,20 @@ void FixIntegrationSpin::init()
    if (locklangevinspin->temp_flag == 1) temp_flag = 1;
   }
   
-
+  nsectors = 0;
   memory->create(rsec,3,"integration/spin:rsec");
   
   // perform the sectoring if mpi integration
 
-  if (mpi_flag) {
-    sectoring();
-    
-    // grow tables of stacking variables
-    
-    stack_head = memory->grow(stack_head,nsectors,"integration/spin:stack_head");
-    stack_foot = memory->grow(stack_foot,nsectors,"integration/spin:stack_foot");
-    forward_stacks = memory->grow(forward_stacks,atom->nmax,"integration/spin:forward_stacks");
-    backward_stacks = memory->grow(backward_stacks,atom->nmax,"integration/spin:backward_stacks");
-  }
+  if (mpi_flag) sectoring();
 
-  // grow tables of stacking variables
- /* 
+  // grow tables of stacking variables (mpi)
+  
   stack_head = memory->grow(stack_head,nsectors,"integration/spin:stack_head");
   stack_foot = memory->grow(stack_foot,nsectors,"integration/spin:stack_foot");
   forward_stacks = memory->grow(forward_stacks,atom->nmax,"integration/spin:forward_stacks");
   backward_stacks = memory->grow(backward_stacks,atom->nmax,"integration/spin:backward_stacks");
-*/
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -358,7 +354,7 @@ void FixIntegrationSpin::setup_pre_neighbor()
 }
 
 /* ---------------------------------------------------------------------- 
-   store in two linked lists the advance order of the spins
+   store in two linked lists the advance order of the spins (mpi)
 ---------------------------------------------------------------------- */
 
 void FixIntegrationSpin::pre_neighbor()
@@ -591,23 +587,9 @@ int FixIntegrationSpin::coords2sector(double *x)
     sublo[dim]=sublotmp[dim];
   }
 
-//#define M1
-#if defined M1
-  double rix = (x[0] - sublo[0])/rsec[0];
-  double riy = (x[1] - sublo[1])/rsec[1];
-  double riz = (x[2] - sublo[2])/rsec[2];
-
-  seci[0] = static_cast<int>(rix);
-  seci[1] = static_cast<int>(riy);
-  seci[2] = static_cast<int>(riz);
-#endif
-
-#define M2
-#if defined M2
   seci[0] = x[0] > (sublo[0] + rsec[0]);
   seci[1] = x[1] > (sublo[1] + rsec[1]);
   seci[2] = x[2] > (sublo[2] + rsec[2]);
-#endif
 
   nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
 

@@ -54,6 +54,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeSpin::~ComputeSpin()
 {
+  memory->destroy(vector);
 }
 
 /* ---------------------------------------------------------------------- */

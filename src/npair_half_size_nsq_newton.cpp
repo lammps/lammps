@@ -37,7 +37,7 @@ NPairHalfSizeNsqNewton::NPairHalfSizeNsqNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfSizeNsqNewton::build(NeighList *list)
 {
-  int i,j,m,n,nn,itag,jtag,bitmask;
+  int i,j,n,itag,jtag,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;

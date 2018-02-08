@@ -37,11 +37,9 @@ NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
 
 void NPairSkipSizeOff2onOneside::build(NeighList *list)
 {
-  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,flip,dnum,dnumbytes,tmp;
-  tagint jtag;
+  int i,j,ii,jj,n,itype,jnum,joriginal,flip,tmp;
   int *surf,*jlist;
 
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 

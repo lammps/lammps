@@ -85,8 +85,6 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-  if (includegroup) nlocal = atom->nfirst;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
@@ -168,7 +166,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     for (int subphase = 0; subphase < 4; subphase++) {
       int s_ybin = ybin + ((subphase & 0x2) ? ns_ssa->sy : 0);
       int s_xbin = xbin + ((subphase & 0x1) ? ns_ssa->sx : 0);
-      int ibin, ct;
+      int ibin;
 
       if ((s_ybin < lbinylo) || (s_ybin >= lbinyhi)) continue;
       if ((s_xbin < lbinxlo) || (s_xbin >= lbinxhi)) continue;

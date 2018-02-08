@@ -31,6 +31,7 @@ FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) 
   FixPropertyAtom(lmp, narg, arg)
 {
   atomKK = (AtomKokkos *) atom;
+  grow_arrays(atom->nmax);
 }
 
 /* ----------------------------------------------------------------------

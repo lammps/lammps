@@ -158,19 +158,24 @@ void PairTersoffMODC::read_file(char *file)
     params[nparams].c5 = atof(words[19]);
     params[nparams].c0 = atof(words[20]);
 
-    // currently only allow m exponent of 1
+    // currently only allow m exponent of 1 or 3
 
     params[nparams].powermint = int(params[nparams].powerm);
 
     if (
-	params[nparams].lam3 < 0.0 || params[nparams].powern < 0.0 ||
-	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
-	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
-	params[nparams].bigd < 0.0 ||
-                               params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
-	params[nparams].powerm - params[nparams].powermint != 0.0 ||
-    (params[nparams].powermint != 3 && params[nparams].powermint != 1))
+      params[nparams].powern < 0.0 ||
+      params[nparams].beta < 0.0 ||
+      params[nparams].lam2 < 0.0 ||
+      params[nparams].bigb < 0.0 ||
+      params[nparams].bigr < 0.0 ||
+      params[nparams].bigd < 0.0 ||
+      params[nparams].bigd > params[nparams].bigr ||
+      params[nparams].lam1 < 0.0 ||
+      params[nparams].biga < 0.0 ||
+      params[nparams].powerm - params[nparams].powermint != 0.0 ||
+      (params[nparams].powermint != 3 &&
+       params[nparams].powermint != 1)
+      )
       error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;

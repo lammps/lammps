@@ -34,7 +34,7 @@ by performing a nonequilibrium thermodynamic integration between the
 solid of interest and an Einstein crystal. A detailed explanation of
 how to use this command and choose its parameters for optimal
 performance and accuracy is given in the paper by
-"Freitas"_#Freitas. The paper also presents a short summary of the
+"Freitas"_#Freitas1. The paper also presents a short summary of the
 theory of nonequilibrium thermodynamic integrations.
 
 The thermodynamic integration procedure is performed by rescaling the
@@ -67,13 +67,13 @@ of lambda is kept equal to zero and the fix has no other effect on the
 dynamics of the system.
 
 The processes described above is known as nonequilibrium thermodynamic
-integration and is has been shown ("Freitas"_#Freitas) to present a
+integration and is has been shown ("Freitas"_#Freitas1) to present a
 much superior efficiency when compared to standard equilibrium
 methods. The reason why the switching it is made in both directions
 (potential to Einstein crystal and back) is to eliminate the
 dissipated heat due to the nonequilibrium process. Further details
 about nonequilibrium thermodynamic integration and its implementation
-in LAMMPS is available in "Freitas"_#Freitas.
+in LAMMPS is available in "Freitas"_#Freitas1.
 
 The {function} keyword allows the use of two different lambda
 paths. Option {1} results in a constant rate of change of lambda with
@@ -94,7 +94,7 @@ thermodynamic integration. The use of option {2} is recommended since
 it results in better accuracy and less dissipation without any
 increase in computational resources cost.
 
-NOTE: As described in "Freitas"_#Freitas, it is important to keep the
+NOTE: As described in "Freitas"_#Freitas1, it is important to keep the
 center-of-mass fixed during the thermodynamic integration. A nonzero
 total velocity will result in divergences during the integration due
 to the fact that the atoms are 'attached' to their equilibrium
@@ -156,7 +156,7 @@ The keyword default is function = 1.
 
 :line
 
-:link(Freitas)
+:link(Freitas1)
 [(Freitas)] Freitas, Asta, and de Koning, Computational Materials
 Science, 112, 333 (2016).
 

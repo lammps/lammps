@@ -1,0 +1,206 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix bond/react command :h3
+
+[Syntax:]
+
+fix ID group-ID bond/react common_keyword values ...
+  react react-ID react-group-ID Nevery Rmin template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  react react-ID react-group-ID Nevery Rmin template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  react react-ID react-group-ID Nevery Rmin template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command. Group-ID is ignored. :ulb,l
+bond/react = style name of this fix command :l
+zero or more common keyword/value pairs may be appended directly after 'bond/react' :l
+these apply to all reaction specifications (below) :l
+common_keyword = {stabilization}
+  {stabilization} values = group-ID xmax
+    group-ID = user-assigned ID of an internally-created dynamic group that excludes reacting atoms, and can be used by a subsequent time integration fix such as nvt, npt, or nve (cannot be 'all')
+  {xmax} value = distance
+    distance = xmax value that is used by an internally created "nve/limit"_nve_limit.html integrator
+react = mandatory argument indicating new reaction specification
+  react-ID = user-assigned name for the reaction
+  react-group-ID = only atoms in this group are available for the reaction
+  Nevery = attempt reaction every this many steps :l
+  Rmin = bonding pair atoms separated by less than Rmin can initiate reaction (distance units) :l
+  template-ID(pre-reacted) = ID of a molecule template containing pre-reaction topology :l
+  template-ID(post-reacted) = ID of a molecule template containing post-reaction topology :l
+  map_file = name of file specifying corresponding atomIDs in the pre- and post-reacted templates :l
+  zero or more individual keyword/value pairs may be appended to each react argument :l
+  individual_keyword = {prob} or {stabilize_steps} :l
+    {prob} values = fraction seed
+      fraction = initiate reaction with this probability if otherwise eligible
+      seed = random number seed (positive integer)
+    {stabilize_steps} value = timesteps
+      timesteps = number of timesteps to apply internally created nve/limit:pre
+:ule
+
+[Examples:]
+
+molecule mol1 pre_reacted_topology.txt
+molecule mol2 post_reacted_topology.txt
+fix 5 all bond/react stabilization no react myrxn1 all 1 3.25 mol1 mol2 map_file.txt
+
+molecule mol1 pre_reacted_rxn1.txt
+molecule mol2 post_reacted_rxn1.txt
+molecule mol3 pre_reacted_rxn2.txt
+molecule mol4 post_reacted_rxn2.txt
+fix 5 all bond/react stabilization yes nvt_grp .03 &
+  react myrxn1 all 1 3.25 mol1 mol2 map_file_rxn1.txt prob 0.50 12345 &
+  react myrxn2 all 1 2.75 mol3 mol4 map_file_rxn2.txt prob 0.25 12345
+fix 6 nvt_grp nvt temp 300 300 100 # system-wide thermostat must be defined after bond/react :pre
+
+[Description:]
+
+Initiate complex covalent bonding (topology) changes. These topology changes will be referred to as "reactions" throughout this documentation. Topology changes are defined in pre- and post-reaction molecule templates and can include creation and deletion of bonds, angles, dihedrals, impropers, bond-types, angle-types, dihedral-types, atom-types, or atomic charges.
+
+Fix bond/react does not use quantum mechanical (eg. fix qmmm) or pairwise bond-order potential (eg. Tersoff or AIREBO) methods to determine bonding changes a priori. Rather, it uses a distance-based probabilistic criteria to effect predetermined topology changes in simulations using standard force fields.
+
+This fix was created to facilitate the dynamic creation of polymeric, amorphous or highly-crosslinked systems. A suggested workflow for using this fix is: 1) identify a reaction to be simulated 2) build a molecule template of the reaction site before the reaction has occurred 3) build a molecule template of the reaction site after the reaction has occurred 4) create a map that relates the template-atom-IDs of each atom between pre- and post-reaction molecule templates 5) fill a simulation box with molecules and run a simulation with fix/bond react.
+
+Only one 'fix bond/react' command can be used at a time. Multiple reactions can be simultaneously applied by specifying multiple 'react' arguments to a single 'fix bond/react' command. This syntax is necessary because the ‘common keywords’ are applied to all reactions.
+
+The {stabilization} keyword enables reaction site stabilization. Reaction site stabilization is performed by including reacting atoms in an internally created fix "nve/limit"_fix_nve_limit.html time integrator for a set number of timesteps given by the {stabilize_steps} keyword. While reacting atoms are being time integrated by the internal nve/limit, they are prevented from being involved in any new reactions. The {xmax} value keyword should typically be set to the maximum distance that non-reacting atoms move during the simulation.
+
+The group-ID set using the {stabilization} keyword should be a previously unused group-ID. The fix bond/react command creates a "dynamic group"_group.html of this name that excludes reacting atoms. This dynamic group-ID should then be used by a subsequent system-wide time integrator, as shown in the second example above. It is necessary to place the time integration command after the fix bond/react command due to the internal dynamic grouping performed by fix bond/react.
+
+The following comments pertain to each 'react' argument:
+
+A check for possible new reaction sites is performed every Nevery timesteps.
+
+Two conditions must be met for a reaction to occur. First a bonding atom pair must be identified. Second, the topology surrounding the bonding atom pair must match the topology of the pre-reaction template. If both these conditions are met, the reaction site is modified to match the post-reaction template.
+
+A bonding atom pair will be identified if several conditions are met. First, a pair of atoms within the specified react-group-ID of type typei and typej must be within a distance Rmin of each other. The atom types typei and typej are specified in the pre- and post-reaction templates. The distance calculation uses the pair neighbor list, therefore bonded neighbor exclusions may prevent a reaction between 1st, 2nd or 3rd bonded neighbor atoms. If multiple bonding atom pairs are identified for an atom, the closest bonding atom partner is set as its "nearest" bonding partner. Then, if both an atomi and atomj have each other as their nearest bonding partners, these two atoms are identified as the bonding atom pair of the reaction site. Once this unique bonding atom pair is identified for each reaction, there could two or more reactions that involve a given atom on the same timestep. If this is the case, only one such reaction is permitted to occur. This reaction is chosen randomly from all potential reactions. This capability allows e.g. for different reaction pathways to proceed from identical reaction sites with user-specified probabilities.
+
+The pre-reacted molecule template is specified by a molecule command. This molecule template file contains a sample reaction site and its surrounding topology. As described below, the bonding atom pairs of the pre-reacted template are specified by atom ID in the map file. The pre-reacted molecule template should contain as few atoms as possible while still completely describing the topology of all atoms affected by the reaction. For example, if the force field contains dihedrals, the pre-reacted template should contain any atom within three bonds of reacting atoms.
+
+Some atoms in the pre-reacted template that are not reacting may have missing topology with respect to the simulation. For example, the pre-reacted template may contain an atom that would connect to the rest of a long polymer chain. These are referred to as edge atoms, and are also specified in the map file.
+
+Note that some care must be taken when a building a molecule template for a given simulation. All atom types in the pre-reacted template must be the same as those of a potential reaction site in the simulation. A detailed discussion of matching molecule template atom types with the simulation is provided on the "molecule"_molecule.html command page.
+
+The post-reacted molecule template contains a sample of the reaction site and its surrounding topology after the reaction has occurred. It must contain the same number of atoms as the pre-reacted template. A one-to-one correspondence between the atom IDs in the pre- and post-reacted templates is specified in the map file as described below. Note that during a reaction, an atom, bond, etc. type may change to one that was previously not present in the simulation. These new types must also be defined during the setup of a given simulation. A discussion of correctly handling this is also provided on the "molecule"_molecule.html command page.
+
+The map file is a text document with the following format:
+
+Format of the map file
+
+A map file has a header and a body. The header appears first. The first line of the header is always skipped; it typically contains a description of the file.  Lines can have a trailing comment starting with '#' that is ignored. If the line is blank (only whitespace after comment is deleted), it is skipped. If the line contains a header keyword, the corresponding value(s) is read from the line. If it doesn’t contain a header keyword, the line begins the body of the file.
+
+The header contains one mandatory keyword and one optional keyword. The mandatory keyword is 'equivalences' and the optional keyword is 'edgeIDs.' These specify the number of atoms in the pre- and post-reacted templates and the number of edge atoms in pre-reacted template, respectively.
+
+The body contains two mandatory sections and one optional section. The first section begins with the keyword 'BondingIDs' and lists the atom IDs of the bonding atom pair in the pre-reacted molecule template. The second mandatory section begins with the keyword 'Equivalences' and lists a one-to-one correspondence between atom IDs of the pre- and post-reacted templates. The optional section begins with the keyword 'EdgeIDs' and list the atom IDs of edge atoms in the pre-reacted molecule template.
+
+Format of the header of the map file
+
+These are the recognized header keywords. Header lines can come in any order. The value(s) are read from the beginning of the line. Thus the keyword 'equivalences' should be in a line like "25 equivalences."
+
+equivalences = # of atoms in the pre- and post-reacted molecule templates
+edgeIDs = # of edge atoms in the pre-reacted molecule template
+
+The edgeIDs keyword is optional.
+
+Format of the body of the map file
+
+These are the section keywords for the body of the file.
+
+BondingIDs, EdgeIDs = list of atom IDs of bonding and edge atoms in the pre-reacted molecule template
+
+Equivalences = a two column list where the first column is an atom ID of the pre-reacted
+molecule template, and the second column is the corresponding atom ID of the post-reacted
+molecule template
+
+The bondingIDs section will always contain two atom IDs, corresponding to the bonding atom pairs of the pre-reacted map file. The Equivalences section will contain as many rows as there are atoms in the pre- and post-reacted molecule templates. The edgeIDs section is optional, but would contain an atom ID for each edge atom in the pre-reacted molecule template.
+
+A sample map file is given below:
+
+---------------
+this is a map file
+
+2 edgeIDs
+7 equivalences
+
+BondingIDs
+
+3
+5
+
+EdgeIDs
+
+1
+7
+
+Equivalences
+
+1   1
+2   2
+3   3
+4   4
+5   5
+6   6
+7   7
+---------------
+
+Once a reaction site has been successfully identified, data structures within LAMMPS that store bond topology are updated to reflect the post-reacted molecule template. All force fields with fixed bonds, angles, dihedrals or impropers are supported.
+
+A few capabilities to note: 1) You may specify as many 'react' arguments as desired. For example, you could break down a complicated reaction mechanism into several reaction steps, each defined by a fix bond/react. 2) While typically a bond is formed between the bonding atom pairs specified in the pre-reacted molecule template, this is not required. 3) By reversing the order of the pre- and post-reacted molecule template in another fix bond/react command, you can allow for the possibility of one or more reverse reactions.
+
+The optional keywords deal with the probability of a given reaction occurring as well as the stable equilibration of each reaction site as it occurs.
+
+The {prob} keyword can affect whether an eligible reaction actually occurs. The fraction setting must be a value between 0.0 and 1.0. A uniform random number between 0.0 and 1.0 is generated and the eligible reaction only occurs if the random number is less than the fraction.
+
+The {stabilize_steps} keyword allows for the specification of how many timesteps a reaction site is stabilized before being returned to the overall system thermostat.
+
+In order to produce the most physical behavior, this 'reaction site equilibration time' should be tuned to be as small as possible while retaining stability for a given system or reaction step. After a limited number of case studies, this number has been set to a default of 60 timesteps. Ideally, it should be individually tuned for each fix bond/react. Note that in some situations, decreasing rather than increasing this parameter will result in an increase in stability.
+
+A few other considerations:
+
+It may be beneficial to ensure reacting atoms are at a certain temperature before being released to the overall thermostat. For this, you can use the internally-created dynamic group named "bond_react_MASTER_group." For example, adding the following command would thermostat the group of all atoms currently involved in a reaction:
+
+fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
+
+NOTE: This command must be added after the fix bond/react command, and will apply to all reaction specifications.
+
+Computationally, each timestep this fix operates, it loops over neighbor lists and computes distances between pairs of atoms in the list. It also communicates between neighboring processors to coordinate which bonds are created. All of these operations increase the cost of a timestep. Thus you should be cautious about invoking this fix too frequently.
+
+You can dump out snapshots of the current bond topology via the dump local command.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart files"_restart.html.  None of the "fix_modify"_fix_modify.html options are relevant to this fix.
+
+This fix computes one statistic for each 'react' argument that it stores in a global vector, of length 'number of react arguments', that can be accessed by various "output commands"_Section_howto.html#howto_15. The vector values calculated by this fix are "intensive".
+
+These is 1 quantity for each react argument:
+
+(1) cumulative # of reactions occurred :ul
+
+No parameter of this fix can be used with the {start/stop} keywords of the "run"_run.html command.  This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:]
+
+This fix is part of the MC package.  It is only enabled if LAMMPS was built with that package.  See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"fix bond/create"_fix_bond_create.html,
+"fix bond/break"_fix_bond_break.html, "fix
+bond/swap"_fix_bond_swap.html, "dump local"_dump.html,
+"special_bonds"_special_bonds.html
+
+[Default:]
+
+The option defaults are stabilization = no, stabilize_steps = 60
+
+:line
+
+:link(Gissinger)
+[(Gissinger)] Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).

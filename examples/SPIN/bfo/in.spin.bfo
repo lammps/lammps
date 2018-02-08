@@ -1,0 +1,55 @@
+# sc iron atoms in bismuth oxide 
+
+clear 
+units metal
+atom_style spin
+
+dimension 3
+boundary p p p 
+
+# check why?
+atom_modify map array 
+
+lattice sc 3.96
+region box block 0.0 34.0 0.0 34.0 0.0 5.0
+create_box 1 box
+create_atoms 1 box
+
+# setting mass, mag. moments, and interactions for bfo
+
+mass		1 1.0
+
+set group all spin/random 11 2.50
+
+pair_style hybrid/overlay pair/spin/exchange 6.0 pair/spin/me 4.5
+pair_coeff * * pair/spin/exchange exchange 6.0 -0.01575 0.0 1.965
+pair_coeff * * pair/spin/me me 4.5 0.000109 1.0 1.0 1.0
+
+neighbor 0.1 bin
+neigh_modify every 10 check yes delay 20
+
+fix 1 all force/spin anisotropy 0.0000035 0.0 0.0 1.0
+fix 2 all langevin/spin 0.0 0.1 0.0 21
+
+fix 3 all integration/spin lattice no
+
+timestep	0.0001
+
+compute out_mag    all compute/spin
+compute out_pe     all pe
+compute out_ke     all ke
+compute out_temp   all temp
+
+variable magz      equal c_out_mag[4]
+variable magnorm   equal c_out_mag[5]
+variable emag      equal c_out_mag[6]
+variable tmag      equal c_out_mag[7]
+variable mag_force equal f_1
+
+thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo          10
+
+#dump 1 all custom 100 dump_spin_BFO.lammpstrj type x y z spx spy spz
+
+run 10000
+

@@ -1,0 +1,55 @@
+# fcc cobalt in a 3d box
+
+clear 
+units metal
+atom_style spin
+
+dimension 3
+boundary p p f
+
+# check why?
+atom_modify map array 
+
+lattice fcc 3.54
+region box block 0.0 50.0 0.0 50.0 0.0 4.0
+create_box 1 box
+create_atoms 1 box
+
+# setting mass, mag. moments, and interactions for cobalt
+
+mass		1 58.93
+
+set group all spin/random 31 1.72
+
+#pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
+pair_style hybrid/overlay pair/spin/exchange 4.0 pair/spin/soc/dmi 2.6
+pair_coeff * * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885
+pair_coeff * * pair/spin/soc/dmi dmi 2.6 0.01 0.0 0.0 1.0 
+#pair_coeff * * pair/spin/soc/neel neel 4.0 0.003330282 0.864159 2.13731 
+
+neighbor 0.1 bin
+neigh_modify every 10 check yes delay 20
+
+fix 1 all force/spin anisotropy 0.0001 0.0 0.0 1.0
+fix 2 all langevin/spin 0.0 0.1 0.0 21
+
+fix 3 all integration/spin lattice no
+
+timestep	0.0002
+
+# define output and run
+
+compute out_mag    all compute/spin
+variable magz      equal c_out_mag[4]
+variable magnorm   equal c_out_mag[5]
+variable emag      equal c_out_mag[6]
+variable tmag      equal c_out_mag[7]
+variable mag_force equal f_1
+
+thermo_style    custom step time v_magnorm v_emag etotal
+thermo          50
+
+dump 1 all custom 50 dump_skyrmion.lammpstrj type x y z spx spy spz
+
+run 10000
+

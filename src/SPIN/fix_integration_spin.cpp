@@ -98,7 +98,7 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
   if (extra == SPIN && !atom->mumag_flag)
     error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
 
-  if (mpi_flag == 0 && nprocs_tmp == 1)
+  if (mpi_flag == 0 && nprocs_tmp > 1)
     error->all(FLERR,"Illegal fix/integration/spin command");
 
   magpair_flag = 0;

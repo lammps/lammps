@@ -26,16 +26,22 @@ fix 2 all langevin/spin 300.0 0.01 0.0 21 :pre
 
 [Description:]
 
-Apply a Langevin thermostat as described in "(Mayergoyz)"_#Mayergoyz1
-to the magnetic spins associated to the atoms. 
-Used with "fix integration spin"_fix_integration_spin.html, this 
-command performs Brownian dynamics (BD), apply a random torque 
-and a transverse dissipation to each spin: 
+Apply a Langevin thermostat as described in "(Mayergoyz)"_#Mayergoyz1 to the 
+magnetic spins associated to the atoms. 
+Used with "fix integration spin"_fix_integration_spin.html, this command performs 
+Brownian dynamics (BD). 
+A random torque and a transverse dissipation are applied to each spin i according to
+the following stochastic differential equation:
 
-Rand torque = 
-Transverse dmping = 
-D is proportional to sqrt(Kb T m / (hbar dt damp)) :pre
+:c,image(Eqs/fix_langevin_spin_sLLG.jpg)
 
+with lambda the transverse damping, and eta a random verctor.
+
+The components of eta are drawn from a Gaussian probability law. Their amplitude 
+is defined as a proportion of the temperature of the external thermostat T (in K 
+in metal units).
+
+More details about this implementation are reported in "(Tranchida)"_#Tranchida1.
 
 Note: The random # {seed} must be a positive integer.  A Marsaglia random
 number generator is used.  Each processor uses the input seed to
@@ -59,7 +65,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 The {langevin/spin} fix is part of the SPIN package.
-These styles are only enabled if LAMMPS was built with this package.
+This style is only enabled if LAMMPS was built with this package.
 See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 The numerical integration has to be performed with {fix/integration/spin} 
@@ -70,22 +76,13 @@ when {langevin/spin} is enabled.
 "fix integration spin"_fix_integration_spin.html, 
 "pair spin"_pair_spin.html
 
-[Default:]
-
-The option defaults are angmom = no, omega = no, scale = 1.0 for all
-types, tally = no, zero = no, gjf = no.
+[Default:] none
 
 :line
 
 :link(Mayergoyz1)
-Mayergoyz, Bertotti, and Serpico (2009). Elsevier (2009)
+[(Mayergoyz)] I.D. Mayergoyz, G. Bertotti, C. Serpico (2009). Elsevier (2009)
 
-
-
-:link(Schneider1)
-[(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
-
-:link(Gronbech-Jensen)
-[(Gronbech-Jensen)] Gronbech-Jensen and Farago, Mol Phys, 111, 983
-(2013); Gronbech-Jensen, Hayre, and Farago, Comp Phys Comm,
-185, 524 (2014)
+:link(Tranchida1)
+[(Tranchida)] J. Tranchida, S.J. Plimpton, P. Thibaudeau, A.P. Thompson. 
+arXiv preprint arXiv:1801.10233. (2018)

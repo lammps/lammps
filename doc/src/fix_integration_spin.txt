@@ -10,33 +10,38 @@ fix integration/spin command :h3
 
 [Syntax:]
 
-fix ID group-ID integration/spin style :pre
+fix ID group-ID integration/spin keyword values :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 integration/spin = style name of this fix command :l
-style = {serial} or {mpi} :l
-  {serial} value = factor
-    factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below :pre
-  {mpi} 
+keyword = {lattice} :l
+  {lattice} value = {no} or {yes} :pre
 :ule
 
 [Examples:]
 
-fix 3 all integration/spin serial
-fix 1 all integration/spin mpi
+fix 3 all integration/spin lattice yes
+fix 1 all integration/spin lattice no :pre
 
 [Description:]
 
-A Suzuki-Trotter decomposition is applied to the integration of the 
-spin-lattice system. 
+Perform a symplectic integration for the spin or spin-lattice system.
 
-:line
+The {lattice} keyword defines if the spins are integrated on a lattice 
+of fixed atoms (lattice = no), or if atoms are moving (lattice = yes).
 
-The {style} value defines if a serial of a parallel 
-algorithm has to be used for the integration. 
+By default (lattice = yes), a spin-lattice integration is performed.
 
-The parallel algorithm uses a sectoring method as 
-described in .
+The {integration/spin} fix applies a Suzuki-Trotter decomposition to 
+the equations of motion of the spin lattice system, following the scheme:
+
+:c,image(Eqs/fix_integration_spin_stdecomposition.jpg)
+
+according to the implementation reported in "(Omelyan)"_#Omelyan1.
+
+A sectoring enables this scheme for parallel calculations. 
+The implementation of this sectoring algorithm is reported in
+"(Tranchida)"_#Tranchida1. 
 
 :line
 
@@ -49,17 +54,16 @@ section for more info on packages.
 
 [Related commands:]
 
-"fix nve"_fix_nve.html, "pair spin"_pair_spin.html, 
-"compute spin"_compute_spin.html, "fix langevin spin"_fix_langevin_spin.html, 
-
+"atom_style spin"_atom_style.html, "fix nve"_fix_nve.html
 
 [Default:] none
 
 :line
 
-:link(Davidchack2)
-[(Davidchack)] R.L Davidchack, T.E. Ouldridge, M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
-:link(Miller2)
-[(Miller)] T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
-:link(Dunweg3)
-[(Dunweg)] B. Dunweg, W. Paul, Int. J. Mod. Phys. C, 2, 817-27 (1991).
+:link(Omelyan1)
+[(Omelyan)] I.P. Omelyan, I.M. Mryglod, R. Folk. Phys. Rev. Lett. 
+86(5), 898. (2001)
+
+:link(Tranchida1)
+[(Tranchida)] J. Tranchida, S.J. Plimpton, P. Thibaudeau, A.P. Thompson. 
+arXiv preprint arXiv:1801.10233. (2018)

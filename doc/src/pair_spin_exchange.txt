@@ -27,7 +27,7 @@ pair_coeff 1 2 exchange 6.0 -0.01575 0.0 1.965 :pre
 Style {pair/spin/exchange} computes the exchange interaction between 
 pairs of magnetic spins: 
 
-:c,image(Eqs/pair_spin_exchange_interaction.pdf)
+:c,image(Eqs/pair_spin_exchange_interaction.jpg)
 
 where si and sj are two neighboring magnetic spins of two particles, 
 rij = ri - rj is the inter-atomic distance between the two particles,
@@ -36,7 +36,7 @@ interaction.
 
 This function is defined as:
 
-:c,image(Eqs/pair_spin_exchange_function.pdf)
+:c,image(Eqs/pair_spin_exchange_function.jpg)
 
 where a, b and d are the three constant coefficients defined in the associated 
 "pair_coeff" command.   
@@ -44,8 +44,18 @@ where a, b and d are the three constant coefficients defined in the associated
 The coefficients a, b, and c need to be fitted so that the function above matches with 
 the value of the exchange interaction for the N neighbor shells taken into account.
 
-Examles and more explanations about this function and its parametrization are reported 
+Examples and more explanations about this function and its parametrization are reported 
 in "(Tranchida)"_#Tranchida1.
+
+From this exchange interaction, each spin i will be submitted to a magnetic torque
+omega and its associated atom to a force F, such as: 
+
+:c,image(Eqs/pair_spin_exchange_forces.jpg)
+
+with h the Planck constant (in metal units).
+
+More details about the derivation of these torques/forces are reported in
+"(Tranchida)"_#Tranchida1.
 
 :line
 

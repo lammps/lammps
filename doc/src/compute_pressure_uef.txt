@@ -25,15 +25,15 @@ compute 2 all pressure/uef my_temp_uef virial :pre
 
 [Description:]
 
-This command is used to compute the pressure tensor in  
+This command is used to compute the pressure tensor in
 the reference frame of the applied flow field when
-"fix nvt/uef"_fix_nh_uef.html" or 
-"fix npt/uef"_fix_nh_uef.html" is used. 
+"fix nvt/uef"_fix_nh_uef.html" or
+"fix npt/uef"_fix_nh_uef.html" is used.
 It is not necessary to use this command to compute the scalar
 value of the pressure. A "compute pressure"_compute_pressure.html
 may be used for that purpose.
 
-The keywords and output information are documented in 
+The keywords and output information are documented in
 "compute_pressure"_compute_pressure.html.
 
 [Restrictions:]
@@ -46,8 +46,8 @@ This command can only be used when "fix nvt/uef"_fix_nh_uef.html
 or "fix npt/uef"_fix_nh_uef.html is active.
 
 The kinetic contribution to the pressure tensor
-will be accurate only when 
-the compute specificed by {temp-ID} is a 
+will be accurate only when
+the compute specified by {temp-ID} is a
 "compute temp/uef"_compute_temp_uef.html.
 
 [Related commands:]

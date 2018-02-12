@@ -123,7 +123,7 @@ code directly from an input script:
 
 "python"_python.html
 "variable python"_variable.html
-"fix python"_fix_python.html
+"fix python/invoke"_fix_python_invoke.html
 "pair_style python"_pair_python.html :ul
 
 The "python"_python.html command which can be used to define and
@@ -165,7 +165,7 @@ doc page for its python-style variables for more info, including
 examples of Python code you can write for both pure Python operations
 and callbacks to LAMMPS.
 
-The "fix python"_fix_python.html command can execute
+The "fix python/invoke"_fix_python_invoke.html command can execute
 Python code at selected timesteps during a simulation run.
 
 The "pair_style python"_pair_python command allows you to define

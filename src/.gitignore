@@ -11,6 +11,7 @@
 /*_intel.h
 /*_intel.cpp
 /*_kokkos.h
+/*_kokkos_impl.h
 /*_kokkos.cpp
 /*_omp.h
 /*_omp.cpp
@@ -133,6 +134,10 @@
 /angle_charmm.h
 /angle_class2.cpp
 /angle_class2.h
+/angle_class2_p6.cpp
+/angle_class2_p6.h
+/angle_cosine_buck6d.cpp
+/angle_cosine_buck6d.h
 /angle_cosine.cpp
 /angle_cosine.h
 /angle_cosine_delta.cpp
@@ -603,6 +608,8 @@
 /improper_harmonic.h
 /improper_hybrid.cpp
 /improper_hybrid.h
+/improper_inversion_harmonic.cpp
+/improper_inversion_harmonic.h
 /improper_ring.cpp
 /improper_ring.h
 /improper_umbrella.cpp
@@ -648,6 +655,10 @@
 /pair_buck_coul.h
 /pair_buck_long_coul_long.cpp
 /pair_buck_long_coul_long.h
+/pair_buck6d_coul_gauss_dsf.cpp
+/pair_buck6d_coul_gauss_dsf.h
+/pair_buck6d_coul_gauss_long.cpp
+/pair_buck6d_coul_gauss_long.h
 /pair_cdeam.cpp
 /pair_cdeam.h
 /pair_cg_cmm.cpp
@@ -910,8 +921,10 @@
 /python_impl.cpp
 /python_impl.h
 /python_compat.h
-/fix_python.cpp
-/fix_python.h
+/fix_python_move.cpp
+/fix_python_move.h
+/fix_python_invoke.cpp
+/fix_python_invoke.h
 /pair_python.cpp
 /pair_python.h
 /reader_molfile.cpp

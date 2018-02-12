@@ -79,7 +79,7 @@ This section has the following sub-sections:
 
 Read this first :h5,link(start_2_1)
 
-If you want to avoid building LAMMPS yourself, read the preceeding
+If you want to avoid building LAMMPS yourself, read the preceding
 section about options available for downloading and installing
 executables.  Details are discussed on the "download"_download page.
 
@@ -252,14 +252,13 @@ re-compile, after typing "make clean" (which will describe different
 clean options).
 
 The LMP_INC variable is used to include options that turn on ifdefs
-within the LAMMPS code.  The options that are currently recogized are:
+within the LAMMPS code.  The options that are currently recognized are:
 
 -DLAMMPS_GZIP
 -DLAMMPS_JPEG
 -DLAMMPS_PNG
 -DLAMMPS_FFMPEG
 -DLAMMPS_MEMALIGN
--DLAMMPS_XDR
 -DLAMMPS_SMALLBIG
 -DLAMMPS_BIGBIG
 -DLAMMPS_SMALLSMALL
@@ -307,11 +306,6 @@ vector instructions of modern CPUS, since dynamically allocated memory
 has to be aligned on larger than default byte boundaries (e.g. 16
 bytes instead of 8 bytes on x86 type platforms) for optimal
 performance.
-
-If you use -DLAMMPS_XDR, the build will include XDR compatibility
-files for doing particle dumps in XTC format.  This is only necessary
-if your platform does have its own XDR files available.  See the
-Restrictions section of the "dump"_dump.html command for details.
 
 Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG,
 -DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG. These
@@ -363,7 +357,7 @@ installed on your platform.  If MPI is installed on your system in the
 usual place (under /usr/local), you also may not need to specify these
 3 variables, assuming /usr/local is in your path.  On some large
 parallel machines which use "modules" for their compile/link
-environements, you may simply need to include the correct module in
+environments, you may simply need to include the correct module in
 your build environment, before building LAMMPS.  Or the parallel
 machine may have a vendor-provided MPI which the compiler has no
 trouble finding.
@@ -431,7 +425,7 @@ use the KISS library described above.
 You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
 so the compiler and linker can find the needed FFT header and library
 files.  Note that on some large parallel machines which use "modules"
-for their compile/link environements, you may simply need to include
+for their compile/link environments, you may simply need to include
 the correct module in your build environment.  Or the parallel machine
 may have a vendor-provided FFT library which the compiler has no
 trouble finding.  See the src/MAKE/OPTIONS/Makefile.fftw file for an
@@ -470,7 +464,7 @@ precision.
 
 The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
 use single-precision FFTs with PPPM, which can speed-up long-range
-calulations, particularly in parallel or on GPUs.  Fourier transform
+calculations, particularly in parallel or on GPUs.  Fourier transform
 and related PPPM operations are somewhat insensitive to floating point
 truncation errors and thus do not always need to be performed in
 double precision.  Using the -DFFT_SINGLE setting trades off a little
@@ -483,7 +477,7 @@ with support for single-precision, as explained above.  For FFTW3 you
 also need to include -lfftw3f with the FFT_LIB setting, in addition to
 -lfftw3.  For FFTW2, you also need to specify -DFFT_SIZE with the
 FFT_INC setting and -lsfftw with the FFT_LIB setting (in place of
--lfftw).  Similarly, if FFTW2 has been preinstalled with an explicit
+-lfftw).  Similarly, if FFTW2 has been pre-installed with an explicit
 double-precision library (libdfftw.a and not the default libfftw.a),
 then you can specify -DFFT_SIZE (and not -DFFT_SINGLE), and specify
 -ldfftw to use double-precision FFTs.
@@ -714,7 +708,7 @@ list various make commands that can be used to manage packages.
 If you use a command in a LAMMPS input script that is part of a
 package, you must have built LAMMPS with that package, else you will
 get an error that the style is invalid or the command is unknown.
-Every command's doc page specfies if it is part of a package.  You can
+Every command's doc page specifies if it is part of a package.  You can
 type
 
 lmp_machine -h :pre
@@ -859,7 +853,7 @@ details for each package.
 [External libraries:]
 
 Packages in the tables "Section 4"_Section_packages.html with an "ext"
-in the last column link to exernal libraries whose source code is not
+in the last column link to external libraries whose source code is not
 included with LAMMPS.  You must first download and install the library
 before building LAMMPS with that package installed.  E.g. the voronoi
 package links to the freely available "Voro++ library"_voro_home2.  You
@@ -963,7 +957,7 @@ src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
 -fPIC flag which is required for inclusion in a shared library.  The
 build will create the file liblammps_foo.so which another application
-can link to dyamically.  It will also create a soft link liblammps.so,
+can link to dynamically.  It will also create a soft link liblammps.so,
 which will point to the most recently built shared library.  This is
 the file the Python wrapper loads by default.
 
@@ -1329,8 +1323,8 @@ LAMMPS is compiled with CUDA=yes.
 numa Nm :pre
 
 This option is only relevant when using pthreads with hwloc support.
-In this case Nm defines the number of NUMA regions (typicaly sockets)
-on a node which will be utilizied by a single MPI rank.  By default Nm
+In this case Nm defines the number of NUMA regions (typically sockets)
+on a node which will be utilized by a single MPI rank.  By default Nm
 = 1.  If this option is used the total number of worker-threads per
 MPI rank is threads*numa.  Currently it is always almost better to
 assign at least one MPI rank per NUMA region, and leave numa set to
@@ -1394,7 +1388,7 @@ replica runs on on one or a few processors.  Note that with MPI
 installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.
 
-To run multiple independent simulatoins from one input script, using
+To run multiple independent simulations from one input script, using
 multiple partitions, see "Section 6.4"_Section_howto.html#howto_4
 of the manual.  World- and universe-style "variables"_variable.html
 are useful in this context.
@@ -1673,7 +1667,7 @@ The first section provides a global loop timing summary. The {loop time}
 is the total wall time for the section.  The {Performance} line is
 provided for convenience to help predicting the number of loop
 continuations required and for comparing performance with other,
-similar MD codes.  The {CPU use} line provides the CPU utilzation per
+similar MD codes.  The {CPU use} line provides the CPU utilization per
 MPI task; it should be close to 100% times the number of OpenMP
 threads (or 1 of no OpenMP). Lower numbers correspond to delays due
 to file I/O or insufficient thread utilization.

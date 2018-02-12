@@ -6,14 +6,14 @@
 
 :line
 
-fix python command :h3
+fix python/invoke command :h3
 
 [Syntax:]
 
-fix ID group-ID python N callback function_name :pre
+fix ID group-ID python/invoke N callback function_name :pre
 
 ID, group-ID are ignored by this fix :ulb,l
-python = style name of this fix command :l
+python/invoke = style name of this fix command :l
 N = execute every N steps :l
 callback = {post_force} or {end_of_step} :l
   {post_force} = callback after force computations on atoms every N time steps
@@ -36,8 +36,8 @@ def end_of_step_callback(lammps_ptr):
     # access LAMMPS state using Python interface
 """ :pre
 
-fix pf  all python 50 post_force post_force_callback
-fix eos all python 50 end_of_step end_of_step_callback :pre
+fix pf  all python/invoke 50 post_force post_force_callback
+fix eos all python/invoke 50 end_of_step end_of_step_callback :pre
 
 [Description:]
 

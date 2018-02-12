@@ -11,11 +11,13 @@ Pair Styles :h1
    pair_awpmd
    pair_beck
    pair_body
+   pair_body_rounded_polygon
    pair_bop
    pair_born
    pair_brownian
    pair_buck
    pair_buck_long
+   pair_buck6d_coul_gauss
    pair_charmm
    pair_class2
    pair_colloid
@@ -101,6 +103,7 @@ Pair Styles :h1
    pair_tersoff_zbl
    pair_thole
    pair_tri_lj
+   pair_ufm
    pair_vashishta
    pair_yukawa
    pair_yukawa_colloid

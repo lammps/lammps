@@ -95,6 +95,7 @@ void WriteRestart::command(int narg, char **arg)
   if ((ptr = strchr(arg[0],'*'))) {
     *ptr = '\0';
     sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
+    *ptr = '*'; // must restore arg[0] so it can be correctly parsed below
   } else strcpy(file,arg[0]);
 
   // check for multiproc output and an MPI-IO filename

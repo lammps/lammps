@@ -141,8 +141,8 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     } else if (neighflag == N2) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,N2,false,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
-      if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
-      else Kokkos::parallel_for(nlocal,f);
+      if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
+      else Kokkos::parallel_for(list->inum,f);
     }
   } else {
     if (neighflag == FULL) {
@@ -163,8 +163,8 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     } else if (neighflag == N2) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,N2,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
-      if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
-      else Kokkos::parallel_for(nlocal,f);
+      if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
+      else Kokkos::parallel_for(list->inum,f);
     }
   }
 

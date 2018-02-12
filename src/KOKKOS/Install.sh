@@ -151,6 +151,10 @@ action neighbor_kokkos.cpp
 action neighbor_kokkos.h
 action npair_copy_kokkos.cpp
 action npair_copy_kokkos.h
+action npair_halffull_kokkos.cpp
+action npair_halffull_kokkos.h
+action npair_skip_kokkos.cpp
+action npair_skip_kokkos.h
 action npair_kokkos.cpp
 action npair_kokkos.h
 action npair_ssa_kokkos.cpp npair_half_bin_newton_ssa.cpp
@@ -228,6 +232,9 @@ action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
 action pair_multi_lucy_rx_kokkos.h pair_multi_lucy_rx.h
 action pair_reaxc_kokkos.cpp pair_reaxc.cpp
 action pair_reaxc_kokkos.h pair_reaxc.h
+action pair_snap_kokkos.cpp pair_snap.cpp
+action pair_snap_kokkos.h pair_snap.h
+action pair_snap_kokkos_impl.h pair_snap.cpp
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
 action pair_vashishta_kokkos.cpp pair_vashishta.cpp
@@ -244,12 +251,16 @@ action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
 action pair_yukawa_kokkos.cpp
 action pair_yukawa_kokkos.h
+action pair_zbl_kokkos.cpp
+action pair_zbl_kokkos.h
 action pppm_kokkos.cpp pppm.cpp
 action pppm_kokkos.h pppm.h
 action rand_pool_wrap_kokkos.cpp
 action rand_pool_wrap_kokkos.h
 action region_block_kokkos.cpp
 action region_block_kokkos.h
+action sna_kokkos.h sna.h
+action sna_kokkos_impl.h sna.cpp
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

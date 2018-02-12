@@ -115,9 +115,12 @@ PROGRAM f_driver
      CALL lammps_get_natoms(ptr,natoms)
      ALLOCATE(x(3*natoms))
 
-     CALL lammps_gather_atoms(ptr,'x',1,3,x);
-     x(1) = x(1) + epsilon
-     CALL lammps_scatter_atoms(ptr,'x',1,3,x);
+     ! these calls are commented out, b/c libfwrapper.c
+     ! needs to be updated to use gather_atoms and scatter_atoms
+
+     !CALL lammps_gather_atoms(ptr,'x',1,3,x);
+     !x(1) = x(1) + epsilon
+     !CALL lammps_scatter_atoms(ptr,'x',1,3,x);
 
      DEALLOCATE(x)
 

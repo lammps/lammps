@@ -13,21 +13,22 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(python,FixPython)
+FixStyle(python,FixPythonInvoke)
+FixStyle(python/invoke,FixPythonInvoke)
 
 #else
 
-#ifndef LMP_FIX_PYTHON_H
-#define LMP_FIX_PYTHON_H
+#ifndef LMP_FIX_PYTHON_INVOKE_H
+#define LMP_FIX_PYTHON_INVOKE_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixPython : public Fix {
+class FixPythonInvoke : public Fix {
  public:
-  FixPython(class LAMMPS *, int, char **);
-  virtual ~FixPython() {}
+  FixPythonInvoke(class LAMMPS *, int, char **);
+  virtual ~FixPythonInvoke() {}
   int setmask();
   virtual void end_of_step();
   virtual void post_force(int);

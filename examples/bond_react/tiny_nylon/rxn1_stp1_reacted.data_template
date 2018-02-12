@@ -1,10 +1,10 @@
-LAMMPS data file. msi2lmp v3.9.6 / 11 Sep 2014 / CGCMM for rxn1_stp1_reacted
+this is a molecule template for: initial nylon crosslink, post-reacting
 
-18 atoms           
-17 bonds           
-31 angles           
-39 dihedrals           
-20 impropers           
+18 atoms
+17 bonds
+31 angles
+39 dihedrals
+20 impropers
 
 Types
 

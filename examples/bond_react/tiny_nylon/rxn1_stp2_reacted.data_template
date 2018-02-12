@@ -1,10 +1,10 @@
-LAMMPS data file. msi2lmp v3.9.6 / 11 Sep 2014 / CGCMM for rxn1_stp2_reacted
+this is a molecule template for: water condensation, post-reacting
 
-15 atoms           
-13 bonds           
-19 angles           
-16 dihedrals           
-10 impropers           
+15 atoms
+13 bonds
+19 angles
+16 dihedrals
+10 impropers
 
 Types
 

@@ -1,10 +1,10 @@
-LAMMPS data file. msi2lmp v3.9.6 / 11 Sep 2014 / CGCMM for rxn1_stp1_unreacted
+this is a molecule template for: initial nylon crosslink, pre-reacting
 
-18 atoms           
-16 bonds           
-25 angles           
-23 dihedrals           
-14 impropers           
+18 atoms
+16 bonds
+25 angles
+23 dihedrals
+14 impropers
 
 Types
 

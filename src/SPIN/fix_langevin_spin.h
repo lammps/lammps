@@ -39,7 +39,7 @@ class FixLangevinSpin : public Fix {
 
  protected:
   double *spi, *fmi;
-  double alpha_t, alpha_l;	// transverse and longitudunal damping coeff. 
+  double alpha_t;		// transverse mag. damping
   double dts;        		// magnetic timestep
   double temp;       		// spin bath temperature
   double D,sigma;    		// bath intensity var.

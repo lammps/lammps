@@ -52,7 +52,7 @@ fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 
 #Fix Langevin spins (merging damping and temperature)
 #Temp | Alpha_trans | Alpha_long | Seed
-fix 2 all langevin/spin 0.0 0.0 0.0 21
+fix 2 all langevin/spin 0.0 0.0 21
 
 #Magnetic integration fix
 fix 3 all integration/spin serial

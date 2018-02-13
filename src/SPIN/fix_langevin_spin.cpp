@@ -51,7 +51,7 @@ using namespace MathConst;
 FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), id_temp(NULL), random(NULL)
 {
-  if (narg != 7) error->all(FLERR,"Illegal langevin/spin command");
+  if (narg != 6) error->all(FLERR,"Illegal langevin/spin command");
 
   dynamic_group_allow = 1;
   scalar_flag = 1;
@@ -61,8 +61,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
   temp = force->numeric(FLERR,arg[3]);
   alpha_t = force->numeric(FLERR,arg[4]);
-  alpha_l = force->numeric(FLERR,arg[5]);
-  seed = force->inumeric(FLERR,arg[6]);
+  seed = force->inumeric(FLERR,arg[5]);
 
   if (alpha_t < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");
@@ -72,14 +71,6 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
     tdamp_flag = 1;
   }
 
-  if (alpha_l < 0.0) {
-    error->all(FLERR,"Illegal langevin/spin command");
-  } else if (alpha_l == 0.0) {
-    ldamp_flag = 0;
-  } else {
-    ldamp_flag = 1;
-  }
-  
   if (temp < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");
   } else if (temp == 0.0) {
@@ -119,7 +110,8 @@ int FixLangevinSpin::setmask()
 
 void FixLangevinSpin::init()
 {
-  // warn if any fix comes after this one  
+  // fix_langevin_spin has to be the last defined fix
+  
   int after = 0;
   int flag_force = 0;
   int flag_lang = 0;

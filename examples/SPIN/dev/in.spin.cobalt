@@ -48,10 +48,10 @@ velocity all create 200 4928459 rot yes dist gaussian
 #Magneto-mechanic interactions for bulk fcc Cobalt
 #pair_style pair/spin/exchange 4.0
 #pair_style eam/alloy
-#pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
-pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0
+pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
+#pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0
 
-pair_coeff * * eam/alloy ../examples/SPIN/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff * * eam/alloy ../examples/SPIN/dev/Co_PurjaPun_2012.eam.alloy Co
 #pair_coeff * * ../Co_PurjaPun_2012.eam.alloy Co
 
 #pair_style pair/spin/exchange 4.0
@@ -67,7 +67,7 @@ pair_coeff * * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885
 #pair_coeff * * me 2.6 0.01 1.0 1.0 1.0
 
 #type i and j | interaction type | cutoff | K1 (eV) | K2 (adim) | K3 (Ang) (for SOC)
-#pair_coeff * * pair/spin/soc/neel neel 4.0 0.003330282 0.864159 2.13731 
+pair_coeff * * pair/spin/soc/neel neel 4.0 0.003330282 0.864159 2.13731 
 #pair_coeff * * pair/spin/soc/neel neel 4.0 0.0 0.864159 2.13731 
 
 #Define a skin distance, update neigh list every 
@@ -78,13 +78,13 @@ neigh_modify every 10 check yes delay 20
 
 #Magnetic field fix
 #Type | Intensity (T or eV) | Direction
-#fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
+fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 #fix 1 all force/spin anisotropy 0.01 0.0 0.0 1.0
 
 #Fix Langevin spins (merging damping and temperature)
 #Temp | Alpha_trans | Alpha_long | Seed
 #fix 2 all langevin/spin 0.0 0.1 0.0 21
-#fix 2 all langevin/spin 0.0 0.0 0.0 21
+fix 2 all langevin/spin 0.0 0.0 21
 
 #Magnetic integration fix
 fix 3 all integration/spin lattice yes
@@ -112,14 +112,15 @@ variable tmag      equal c_out_mag[7]
 variable mag_force equal f_1
 #variable test      equal etotal-0.5*c_out_mag[6]
 
-thermo          10
-thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo          50
+#thermo_style    custom step time v_magnorm v_tmag temp etotal
+thermo_style    custom step time pe ke v_emag etotal
 thermo_modify   format float %20.15g
 
 #Dump the positions and spin directions of magnetic particles (vmd format)
-dump 1 all custom 50 dump_cobalt.lammpstrj type x y z spx spy spz
+#dump 1 all custom 50 dump_cobalt.lammpstrj type x y z spx spy spz
 
 #Running the simulations for N timesteps
-run 10
-#run 1000
+#run 10
+run 200000
 

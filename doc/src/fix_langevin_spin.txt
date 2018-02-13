@@ -16,13 +16,12 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 langevin/spin = style name of this fix command :l
 T = desired temperature of the bath (temperature units, K in metal units) :l
 Tdamp = transverse magnetic damping parameter (adim) :l
-Ldamp = longitudinal magnetic damping parameter (adim) :l
 seed = random number seed to use for white noise (positive integer) :l
 :ule
 
 [Examples:]
 
-fix 2 all langevin/spin 300.0 0.01 0.0 21 :pre
+fix 2 all langevin/spin 300.0 0.01 21 :pre
 
 [Description:]
 
@@ -36,12 +35,24 @@ the following stochastic differential equation:
 :c,image(Eqs/fix_langevin_spin_sLLG.jpg)
 
 with lambda the transverse damping, and eta a random verctor.
+This equation is referred to as the stochastic Landau-Lifshitz-Gilbert (sLLG) 
+equation.
 
 The components of eta are drawn from a Gaussian probability law. Their amplitude 
 is defined as a proportion of the temperature of the external thermostat T (in K 
 in metal units).
 
 More details about this implementation are reported in "(Tranchida)"_#Tranchida1.
+
+Note: due to the form of the sLLG equation, this fix has to be the last defined 
+magnetic fix before the integration/spin fix. As an example:
+
+fix 1 all force/spin zeeman 0.01 0.0 0.0 1.0
+fix 2 all langevin/spin 300.0 0.01 21 
+fix 3 all integration/spin lattice yes :pre
+
+is correct, but defining a force/spin command after the langevin/spin command
+would send an error message. 
 
 Note: The random # {seed} must be a positive integer.  A Marsaglia random
 number generator is used.  Each processor uses the input seed to
@@ -70,6 +81,9 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 The numerical integration has to be performed with {fix/integration/spin} 
 when {langevin/spin} is enabled. 
+
+This fix has to be the last defined magnetic fix before the integration fix 
+("fix integration spin"_fix_integration_spin.html). 
 
 [Related commands:]
 

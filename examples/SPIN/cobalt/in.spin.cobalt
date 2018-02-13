@@ -44,10 +44,10 @@ compute out_pe     all pe
 compute out_ke     all ke
 compute out_temp   all temp
 
-variable magz      equal c_out_mag[4]
-variable magnorm   equal c_out_mag[5]
-variable emag      equal c_out_mag[6]
-variable tmag      equal c_out_mag[7]
+variable magz      equal c_out_mag[3]
+variable magnorm   equal c_out_mag[4]
+variable emag      equal c_out_mag[5]
+variable tmag      equal c_out_mag[6]
 variable mag_force equal f_1
 
 thermo_style    custom step time v_magnorm v_emag temp etotal

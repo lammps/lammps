@@ -39,7 +39,7 @@ magnetic field:
 :c,image(Eqs/force_spin_zeeman.jpg)
 
 with mu0 the vacuum permeability, muB the Bohr magneton (muB = 5.788 eV/T 
-in metal units), 
+in metal units). 
 
 Style {aniso} is used to simulate an easy axis or an easy plane 
 for the magnetic spins in the defined group: 

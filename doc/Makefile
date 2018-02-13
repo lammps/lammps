@@ -21,7 +21,7 @@ HAS_VIRTUALENV = YES
 endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
-SOURCES=$(wildcard src/*.txt)
+SOURCES=$(filter-out src/lammps_commands.txt,$(wildcard src/*.txt))
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
 .PHONY: help clean-all clean epub html pdf old venv spelling anchor_check

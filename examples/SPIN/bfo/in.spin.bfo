@@ -49,7 +49,7 @@ variable 	mag_force equal f_1
 thermo_style    custom step time v_magnorm v_emag temp etotal
 thermo          50
 
-dump 		1 all custom 100 dump_spin_BFO.lammpstrj type x y z spx spy spz
+dump 		1 all custom 50 dump_spin_BFO.lammpstrj type x y z spx spy spz
 
 run 		20000
 

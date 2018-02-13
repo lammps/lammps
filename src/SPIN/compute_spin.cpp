@@ -41,7 +41,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
   vector_flag = 1;
-  size_vector = 7;
+  size_vector = 6;
   extvector = 0;
 
   init();
@@ -133,13 +133,12 @@ void ComputeSpin::compute_vector()
   spintemperature = hbar*tempnumtot;    
   spintemperature /= (kb*tempdenomtot);
  
-  vector[0] = invoked_vector*update->dt;
-  vector[1] = magtot[0];
-  vector[2] = magtot[1];
-  vector[3] = magtot[2];
-  vector[4] = magtot[3];
-  vector[5] = magenergytot*hbar; 
-  vector[6] = spintemperature;
+  vector[0] = magtot[0];
+  vector[1] = magtot[1];
+  vector[2] = magtot[2];
+  vector[3] = magtot[3];
+  vector[4] = magenergytot*hbar; 
+  vector[5] = spintemperature;
  
 }
 
@@ -149,6 +148,6 @@ void ComputeSpin::compute_vector()
 
 void ComputeSpin::allocate()
 {
-  memory->create(vector,7,"compute/spin:vector");
+  memory->create(vector,6,"compute/spin:vector");
 }
 

@@ -24,6 +24,9 @@ pair_coeff 1 2 dmi 4.0 0.00109 0.0 0.0 1.0 :pre
 
 [Description:]
 
+Styles {pair/spin/soc} compute pair interactions arising from the spin-orbit 
+coupling (soc). 
+
 Style {pair/spin/soc/dmi} computes the Dzyaloshinskii-Moriya (DM) interaction
 between pairs of magnetic spins: 
 
@@ -41,7 +44,7 @@ This function is defined as:
 where a, b and d are the three constant coefficients defined in the associated 
 "pair_coeff" command.   
 
-The coefficients a, b, and c need to be fitted so that the function above matches with 
+The coefficients a, b, and d need to be fitted so that the function above matches with 
 the value of the DM interaction for the N neighbor shells taken 
 into account.
 

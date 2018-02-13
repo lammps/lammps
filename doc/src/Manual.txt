@@ -3,7 +3,7 @@
 <TITLE>LAMMPS Users Manual</TITLE>
 <META NAME="docnumber" CONTENT="17 Jan 2018 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
-<META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
+<META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation. This software and manual is distributed under the GNU General Public License.">
 </HEAD>
 
 <BODY>

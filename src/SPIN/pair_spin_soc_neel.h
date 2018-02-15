@@ -49,11 +49,15 @@ class PairSpinSocNeel : public Pair {
   double **cut_soc_neel;	// cutoff distance exchange
 
  protected:
-  //int newton_pair_spin; 
   double hbar;
 
-  double **K1, **K1_mech; 	// exchange coeffs Kij
-  double **K2, **K3; 		// K1 in eV, K2 adim, K3 in Ang
+  // pseudo-dipolar coeff.
+  double **g1, **g1_mech; 	// exchange coeffs gij
+  double **g2, **g3; 		// g1 in eV, g2 adim, g3 in Ang
+
+  // pseudo-quadrupolar coeff.
+  double **q1, **q1_mech; 	// exchange coeffs qij
+  double **q2, **q3; 		// q1 in eV, q2 adim, q3 in Ang
 
   void allocate();
 };

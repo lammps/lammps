@@ -55,5 +55,5 @@ thermo          10
 
 #dump 1 all custom 50 dump_cobalt.lammpstrj type x y z spx spy spz
 
-run 1000
+run 10
 

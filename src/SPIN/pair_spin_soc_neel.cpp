@@ -57,10 +57,16 @@ PairSpinSocNeel::~PairSpinSocNeel()
     memory->destroy(setflag);
     
     memory->destroy(cut_soc_neel);
-    memory->destroy(K1);
-    memory->destroy(K1_mech);
-    memory->destroy(K2);
-    memory->destroy(K3);  
+
+    memory->destroy(g1);
+    memory->destroy(g1_mech);
+    memory->destroy(g2);
+    memory->destroy(g3);  
+
+    memory->destroy(q1);
+    memory->destroy(q1_mech);
+    memory->destroy(q2);
+    memory->destroy(q3); 
 
     memory->destroy(cutsq);
   }
@@ -184,23 +190,63 @@ void PairSpinSocNeel::compute_soc_neel(int i, int j, double rsq, double eij[3], 
 {
   int *type = atom->type;  
   int itype, jtype;
-  double Kij, Kij_3, ra;
-  double scalar_i, scalar_j;
+  double gij, q1ij, q2ij, ra;
+  double pdx, pdy, pdz;
+  double pq1x, pq1y, pq1z;
+  double pq2x, pq2y, pq2z;
   itype = type[i];
-  jtype = type[j];
-          
-  ra = rsq/K3[itype][jtype]/K3[itype][jtype]; 
-  Kij = 4.0*K1[itype][jtype]*ra;
-  Kij *= (1.0-K2[itype][jtype]*ra);
-  Kij *= exp(-ra);
+  jtype = type[j];        
 
-  scalar_i = eij[0]*spj[0]+eij[1]*spj[1]+eij[2]*spj[2];
-  scalar_j = eij[0]*spi[0]+eij[1]*spi[1]+eij[2]*spi[2];
-  Kij_3 = Kij/3.0;
+  // pseudo-dipolar component
+  ra = rsq/g3[itype][jtype]/g3[itype][jtype]; 
+  gij = 4.0*g1[itype][jtype]*ra;
+  gij *= (1.0-g2[itype][jtype]*ra);
+  gij *= exp(-ra);
 
-  fmi[0] += Kij*scalar_i*eij[0] - Kij_3*spj[0];
-  fmi[1] += Kij*scalar_i*eij[1] - Kij_3*spj[1];
-  fmi[2] += Kij*scalar_i*eij[2] - Kij_3*spj[2];
+  double scalar_eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
+  double scalar_eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
+  double scalar_si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+
+  double gij_eij_sj = gij*scalar_eij_sj; 
+  double gij_3 = gij/3.0;
+  pdx = gij_eij_sj*eij[0] - gij_3*spj[0];
+  pdy = gij_eij_sj*eij[1] - gij_3*spj[1];
+  pdz = gij_eij_sj*eij[2] - gij_3*spj[2];
+
+  // pseudo-quadrupolar component
+  ra = rsq/q3[itype][jtype]/q3[itype][jtype];
+  q1ij = 4.0*q1[itype][jtype]*ra;
+  q1ij *= (1.0-q2[itype][jtype]*ra);
+  q1ij *= exp(-ra);
+  q2ij = (-2.0*q1ij/9.0);
+
+  pq1x = -(scalar_eij_si*scalar_eij_si - scalar_si_sj/3.0)*spj[0]/3.0;
+  pq1y = -(scalar_eij_si*scalar_eij_si - scalar_si_sj/3.0)*spj[1]/3.0;
+  pq1z = -(scalar_eij_si*scalar_eij_si - scalar_si_sj/3.0)*spj[2]/3.0;
+
+  double pqt1 = scalar_eij_sj*scalar_eij_sj-scalar_si_sj/3.0;
+  pq1x += pqt1*(2.0*scalar_eij_si*eij[0] - spj[0]/3.0);
+  pq1y += pqt1*(2.0*scalar_eij_si*eij[1] - spj[1]/3.0);
+  pq1z += pqt1*(2.0*scalar_eij_si*eij[2] - spj[2]/3.0);
+
+  pq1x *= q1ij;
+  pq1y *= q1ij;
+  pq1z *= q1ij;
+
+  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
+  double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
+  pq2x = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[0] + scalar_eij_sj_3*eij[0];
+  pq2y = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[1] + scalar_eij_sj_3*eij[1];
+  pq2z = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[2] + scalar_eij_sj_3*eij[2];
+
+  pq2x *= q2ij;
+  pq2y *= q2ij;
+  pq2z *= q2ij;
+
+  // summing three contributions
+  fmi[0] += (pdx + pq1x + pq2x);
+  fmi[1] += (pdy + pq1y + pq2y);
+  fmi[2] += (pdz + pq1z + pq2z);
 
 }
 
@@ -210,39 +256,108 @@ void PairSpinSocNeel::compute_soc_mech_neel(int i, int j, double rsq, double eij
 {
   int *type = atom->type;  
   int itype, jtype;
-  double scalar_si_sj, scalar_eij_si, scalar_eij_sj;
-  double K_mech, Kij, dKij, ra, rr, drij, iK3;
-  double t1, t2, t3;
+  double g_mech, gij, dgij;
+  double q_mech, q1ij, dq1ij;
+  double q2ij, dq2ij;
+  double pdx, pdy, pdz;
+  double pq1x, pq1y, pq1z;
+  double pq2x, pq2y, pq2z;
+  double ra, rr, drij, ig3, iq3;
   itype = type[i];
   jtype = type[j];
 
   drij = sqrt(rsq);
 
-  scalar_si_sj = spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2];
-  scalar_eij_si = eij[0]*spi[0]+eij[1]*spi[1]+eij[2]*spi[2];
-  scalar_eij_sj = eij[0]*spj[0]+eij[1]*spj[1]+eij[2]*spj[2];
+  double scalar_si_sj = spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2];
+  double scalar_eij_si = eij[0]*spi[0]+eij[1]*spi[1]+eij[2]*spi[2];
+  double scalar_eij_sj = eij[0]*spj[0]+eij[1]*spj[1]+eij[2]*spj[2];
 
-  K_mech = K1_mech[itype][jtype];        
-  iK3 = 1.0/(K3[itype][jtype]*K3[itype][jtype]);
+  // pseudo-dipolar component
+  g_mech = g1_mech[itype][jtype];        
+  ig3 = 1.0/(g3[itype][jtype]*g3[itype][jtype]);
 
-  ra = rsq*iK3; 
-  rr = drij*iK3;
+  ra = rsq*ig3; 
+  rr = drij*ig3;
 
-  Kij = 4.0*K_mech*ra;
-  Kij *= (1.0-K2[itype][jtype]*ra);
-  Kij *= exp(-ra);
+  gij = 4.0*g_mech*ra;
+  gij *= (1.0-g2[itype][jtype]*ra);
+  gij *= exp(-ra);
 
-  dKij = 1.0-ra-K2[itype][jtype]*ra*(2.0-ra);
-  dKij *= 8.0*K_mech*rr*exp(-ra);
+  dgij = 1.0-ra-g2[itype][jtype]*ra*(2.0-ra);
+  dgij *= 8.0*g_mech*rr*exp(-ra);
 
-  t1 = (dKij-2.0*Kij/drij)*scalar_eij_si*scalar_eij_sj;
-  t1 -= scalar_si_sj*dKij/3.0;
-  t2 = scalar_eij_sj*Kij/drij;
-  t3 = scalar_eij_si*Kij/drij;
+  // this 2.0*gij/drij is in Beaujouan calc. but not recovered yet
+  //double pdt1 = dgij*scalar_eij_si*scalar_eij_sj;
+  double pdt1 = (dgij-2.0*gij/drij)*scalar_eij_si*scalar_eij_sj;
+  pdt1 -= scalar_si_sj*dgij/3.0;
+  double pdt2 = scalar_eij_sj*gij/drij;
+  double pdt3 = scalar_eij_si*gij/drij;
+  pdx = -(pdt1*eij[0] + pdt2*spi[0] + pdt3*spj[0]);
+  pdy = -(pdt1*eij[1] + pdt2*spi[1] + pdt3*spj[1]);
+  pdz = -(pdt1*eij[2] + pdt2*spi[2] + pdt3*spj[2]);
 
-  fi[0] -= (t1*eij[0] + t2*spi[0] + t3*spj[0]);
-  fi[1] -= (t1*eij[1] + t2*spi[1] + t3*spj[1]);
-  fi[2] -= (t1*eij[2] + t2*spi[2] + t3*spj[2]);
+  // pseudo-quadrupolar component
+  q_mech = q1_mech[itype][jtype];        
+  iq3 = 1.0/(q3[itype][jtype]*q3[itype][jtype]);
+
+  ra = rsq*iq3; 
+  rr = drij*iq3;
+
+  q1ij = 4.0*q_mech*ra;
+  q1ij *= (1.0-q2[itype][jtype]*ra);
+  q1ij *= exp(-ra);
+  q2ij = -2.0*q1ij/9.0;
+
+  dq1ij = 1.0-ra-q2[itype][jtype]*ra*(2.0-ra);
+  dq1ij *= 8.0*q_mech*rr*exp(-ra);
+  dq2ij = -2.0*dq1ij/9.0;
+
+  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
+  double scalar_eij_sj_2 = scalar_eij_sj*scalar_eij_sj;
+  double pqt1 = scalar_eij_si_2 - scalar_si_sj/3.0;
+  double pqt2 = scalar_eij_sj_2 - scalar_si_sj/3.0;
+  pq1x = dq1ij * pqt1 * pqt2 * eij[0];
+  pq1y = dq1ij * pqt1 * pqt2 * eij[1];
+  pq1z = dq1ij * pqt1 * pqt2 * eij[2]; 
+
+  double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
+  double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
+  double scalar_si_sj_2 = scalar_si_sj*scalar_si_sj;
+  double pqt3 = 2.0*scalar_eij_si*scalar_eij_sj_3/drij; 
+  double pqt4 = 2.0*scalar_eij_sj*scalar_eij_si_3/drij; 
+  double pqt5 = -2.0*scalar_si_sj*scalar_eij_si/(3.0*drij);
+  double pqt6 = -2.0*scalar_si_sj*scalar_eij_sj/(3.0*drij);
+  pq1x += q1ij*(pqt3*spi[0]+pqt4*spj[0]+pqt5*spi[0]+pqt6*spi[0]);
+  pq1y += q1ij*(pqt3*spi[1]+pqt4*spj[1]+pqt5*spi[1]+pqt6*spj[1]);
+  pq1z += q1ij*(pqt3*spi[2]+pqt4*spj[2]+pqt5*spi[2]+pqt6*spj[2]);
+  double pqt7 = 4.0*scalar_eij_si_2*scalar_eij_sj_2/drij;
+  double pqt8 = 2.0*scalar_si_sj_2*scalar_eij_sj/(3.0*drij);
+  double pqt9 = 2.0*scalar_si_sj_2*scalar_eij_si/(3.0*drij);
+  pq1x -= q1ij*(pqt7 + pqt8 + pqt9)*eij[0];
+  pq1y -= q1ij*(pqt7 + pqt8 + pqt9)*eij[1];
+  pq1z -= q1ij*(pqt7 + pqt8 + pqt9)*eij[2];
+
+  double pqt10 = scalar_eij_sj*scalar_eij_si_3;
+  double pqt11 = scalar_eij_si*scalar_eij_sj_3;
+  pq2x = dq2ij*(pqt10 + pqt11)*eij[0];
+  pq2y = dq2ij*(pqt10 + pqt11)*eij[1];
+  pq2z = dq2ij*(pqt10 + pqt11)*eij[2];
+  double pqt12 = scalar_eij_si_3/drij;
+  double pqt13 = scalar_eij_sj_3/drij;
+  double pqt14 = 3.0*scalar_eij_sj*scalar_eij_si_2/drij;
+  double pqt15 = 3.0*scalar_eij_si*scalar_eij_sj_2/drij;
+  pq2x += q2ij*((pqt12+pqt15)*spj[0]+(pqt13+pqt14)*spi[0]);
+  pq2y += q2ij*((pqt12+pqt15)*spj[1]+(pqt13+pqt14)*spi[1]);
+  pq2z += q2ij*((pqt12+pqt15)*spj[2]+(pqt13+pqt14)*spi[2]);
+  double pqt16 = 4.0*scalar_eij_sj*scalar_eij_si_3/drij;
+  double pqt17 = 4.0*scalar_eij_si*scalar_eij_sj_3/drij;
+  pq2x -= q2ij*(pqt16 + pqt17)*eij[0];
+  pq2y -= q2ij*(pqt16 + pqt17)*eij[1];
+  pq2z -= q2ij*(pqt16 + pqt17)*eij[2];
+
+  fi[0] = pdx + pq1x + pq2x;
+  fi[2] = pdy + pq1y + pq2y;
+  fi[3] = pdz + pq1z + pq2z;
 
 }
 
@@ -261,10 +376,16 @@ void PairSpinSocNeel::allocate()
       setflag[i][j] = 0;
       
   memory->create(cut_soc_neel,n+1,n+1,"pair/spin/soc/neel:cut_soc_neel");
-  memory->create(K1,n+1,n+1,"pair/spin/soc/neel:K1");
-  memory->create(K1_mech,n+1,n+1,"pair/spin/soc/neel:K1_mech");
-  memory->create(K2,n+1,n+1,"pair/spin/soc/neel:K2");  
-  memory->create(K3,n+1,n+1,"pair/spin/soc/neel:K3");
+
+  memory->create(g1,n+1,n+1,"pair/spin/soc/neel:g1");
+  memory->create(g1_mech,n+1,n+1,"pair/spin/soc/neel:g1_mech");
+  memory->create(g2,n+1,n+1,"pair/spin/soc/neel:g2");  
+  memory->create(g3,n+1,n+1,"pair/spin/soc/neel:g3");
+
+  memory->create(q1,n+1,n+1,"pair/spin/soc/neel:q1");
+  memory->create(q1_mech,n+1,n+1,"pair/spin/soc/neel:q1_mech");
+  memory->create(q2,n+1,n+1,"pair/spin/soc/neel:q2");  
+  memory->create(q3,n+1,n+1,"pair/spin/soc/neel:q3");
  
   memory->create(cutsq,n+1,n+1,"pair/spin/soc/neel:cutsq");  
   
@@ -318,8 +439,8 @@ void PairSpinSocNeel::coeff(int narg, char **arg)
   } else error->all(FLERR,"Incorrect args in pair_style command");
 
 
-  if (strcmp(arg[2],"neel")==0){
-    if (narg != 7) error->all(FLERR,"Incorrect args in pair_style command");
+  if (strcmp(arg[2],"neel") == 0){
+    if (narg != 10) error->all(FLERR,"Incorrect args in pair_style command");
     soc_neel_flag = 1;    
     
     int ilo,ihi,jlo,jhi;
@@ -327,22 +448,29 @@ void PairSpinSocNeel::coeff(int narg, char **arg)
     force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
     
     const double rij = force->numeric(FLERR,arg[3]);
-    const double k1 = (force->numeric(FLERR,arg[4]));
+    const double k1 = force->numeric(FLERR,arg[4]);
     const double k2 = force->numeric(FLERR,arg[5]);  
     const double k3 = force->numeric(FLERR,arg[6]); 
+    const double l1 = force->numeric(FLERR,arg[7]);
+    const double l2 = force->numeric(FLERR,arg[8]);  
+    const double l3 = force->numeric(FLERR,arg[9]); 
   
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {
         cut_soc_neel[i][j] = rij;   
-        K1[i][j] = k1/hbar;
+        g1[i][j] = k1/hbar;
+        q1[i][j] = l1/hbar;
 	if (soc_mech_flag) {
-	  K1_mech[i][j] = k1;
+	  g1_mech[i][j] = k1;
+	  q1_mech[i][j] = l1;
 	} else {
-	  K1_mech[i][j] = 0.0;
+	  g1_mech[i][j] = 0.0;
 	}
-        K2[i][j] = k2;
-        K3[i][j] = k3;
+        g2[i][j] = k2;
+        g3[i][j] = k3;
+        q2[i][j] = l2;
+        q3[i][j] = l3;
         setflag[i][j] = 1;
         count++;
       }
@@ -396,10 +524,14 @@ void PairSpinSocNeel::write_restart(FILE *fp)
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
         if (soc_neel_flag){
-          fwrite(&K1[i][j],sizeof(double),1,fp);
-          fwrite(&K1_mech[i][j],sizeof(double),1,fp);
-          fwrite(&K2[i][j],sizeof(double),1,fp);
-          fwrite(&K3[i][j],sizeof(double),1,fp);
+          fwrite(&g1[i][j],sizeof(double),1,fp);
+          fwrite(&g1_mech[i][j],sizeof(double),1,fp);
+          fwrite(&g2[i][j],sizeof(double),1,fp);
+          fwrite(&g3[i][j],sizeof(double),1,fp);
+          fwrite(&q1[i][j],sizeof(double),1,fp);
+          fwrite(&q1_mech[i][j],sizeof(double),1,fp);
+          fwrite(&q2[i][j],sizeof(double),1,fp);
+          fwrite(&q3[i][j],sizeof(double),1,fp);
           fwrite(&cut_soc_neel[i][j],sizeof(double),1,fp);
         }
       }
@@ -424,16 +556,24 @@ void PairSpinSocNeel::read_restart(FILE *fp)
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&K1[i][j],sizeof(double),1,fp);
-          fread(&K1_mech[i][j],sizeof(double),1,fp);
-          fread(&K2[i][j],sizeof(double),1,fp);
-          fread(&K2[i][j],sizeof(double),1,fp);
+          fread(&g1[i][j],sizeof(double),1,fp);
+          fread(&g1_mech[i][j],sizeof(double),1,fp);
+          fread(&g2[i][j],sizeof(double),1,fp);
+          fread(&g2[i][j],sizeof(double),1,fp);
+          fread(&q1[i][j],sizeof(double),1,fp);
+          fread(&q1_mech[i][j],sizeof(double),1,fp);
+          fread(&q2[i][j],sizeof(double),1,fp);
+          fread(&q2[i][j],sizeof(double),1,fp);
           fread(&cut_soc_neel[i][j],sizeof(double),1,fp);
         }
-        MPI_Bcast(&K1[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&K1_mech[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&K2[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&K3[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&g1_mech[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&g2[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&g3[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&q1[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&q1_mech[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&q2[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&q3[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_soc_neel[i][j],1,MPI_DOUBLE,0,world);
       }
     }

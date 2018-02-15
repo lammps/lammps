@@ -38,6 +38,7 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  dynamic_group_allow = 1;
 
   xlimit = force->numeric(FLERR,arg[3]);
 

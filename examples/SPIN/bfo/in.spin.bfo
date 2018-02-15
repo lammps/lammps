@@ -51,5 +51,5 @@ thermo          50
 
 dump 		1 all custom 50 dump_spin_BFO.lammpstrj type x y z spx spy spz
 
-run 		20000
+run 		5000
 

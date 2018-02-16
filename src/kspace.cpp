@@ -315,9 +315,9 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   if (comm->me == 0) {
     char str[128];
     if (nctb)
-      sprintf(str,"Using %d-bit tables for long-range coulomb",nctb);
+      sprintf(str,"  using %d-bit tables for long-range coulomb",nctb);
     else
-      sprintf(str,"Using polynomial approximation for long-range coulomb");
+      sprintf(str,"  using polynomial approximation for long-range coulomb");
     error->message(FLERR,str);
   }
 

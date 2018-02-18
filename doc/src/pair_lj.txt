@@ -33,6 +33,7 @@ pair_style lj/cut/coul/msm command :h3
 pair_style lj/cut/coul/msm/gpu command :h3
 pair_style lj/cut/coul/msm/omp command :h3
 pair_style lj/cut/coul/wolf command :h3
+pair_style lj/cut/coul/wolf/omp command :h3
 pair_style lj/cut/tip4p/cut command :h3
 pair_style lj/cut/tip4p/cut/omp command :h3
 pair_style lj/cut/tip4p/long command :h3

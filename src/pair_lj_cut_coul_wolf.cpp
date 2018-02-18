@@ -29,7 +29,6 @@
 #include "update.h"
 #include "integrate.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
@@ -95,8 +94,8 @@ void PairLJCutCoulWolf::compute(int eflag, int vflag)
 
   e_self = v_sh = 0.0;
   e_shift = erfc(alf*cut_coul)/cut_coul;
-  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
-    cut_coul;
+  f_shift = -(e_shift+ 2.0*alf/MY_PIS
+              * exp(-alf*alf*cut_coul*cut_coul)) / cut_coul;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -167,6 +166,7 @@ void PairLJCutCoulWolf::compute(int eflag, int vflag)
                     offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
+
           if (rsq < cut_coulsq) {
             ecoul = v_sh;
           if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
@@ -310,11 +310,6 @@ double PairLJCutCoulWolf::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
-
-  // check interior rRESPA cutoff
-
-  if (cut_respa && cut_lj[i][j] < cut_respa[3])
-    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

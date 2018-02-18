@@ -28,8 +28,8 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "integrate.h"
-#include "respa.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
@@ -40,8 +40,7 @@ using namespace MathConst;
 
 PairLJCutCoulWolf::PairLJCutCoulWolf(LAMMPS *lmp) : Pair(lmp)
 {
-  single_enable = 0;        // NOTE: single() method is not implemented
-  respa_enable = 1;
+  single_enable = 0;
   writedata = 1;
 }
 
@@ -277,27 +276,7 @@ void PairLJCutCoulWolf::init_style()
   // request regular or rRESPA neighbor list
 
   int irequest;
-  int respa = 0;
-
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-  }
-
   irequest = neighbor->request(this,instance_me);
-
-  if (respa >= 1) {
-    neighbor->requests[irequest]->respaouter = 1;
-    neighbor->requests[irequest]->respainner = 1;
-  }
-  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
-
-  // set rRESPA cutoffs
-
-  if (strstr(update->integrate_style,"respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;
 }
 
 /* ----------------------------------------------------------------------

@@ -64,8 +64,6 @@ enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 Fix(lmp, narg, arg)
 {
-  setbuf(stdout, NULL);
-
   fix1 = NULL;
   fix2 = NULL;
   fix3 = NULL;

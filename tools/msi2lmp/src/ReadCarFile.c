@@ -285,6 +285,11 @@ void ReadCarFile(void)
       box[2][0] =  B * cos_gamma; /* This is xy SLTM */
       box[2][1] =  C * cos_beta;  /* This is xz SLTM */
       box[2][2] =  C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma; /* This is yz SLTM */
+       
+      // quick fix 
+      box[0][2] = -0.5*sqrt(sq_c - box[2][1]*box[2][1] - box[2][2]*box[2][2]) + center[2] + shift[2]; // low_z
+      box[1][2] =  0.5*sqrt(sq_c - box[2][1]*box[2][1] - box[2][2]*box[2][2]) + center[2] + shift[2]; // high_z
+
     }
   }
 

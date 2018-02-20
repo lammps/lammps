@@ -203,7 +203,10 @@ void lammps_file(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    lmp->input->file(str);
+    if (lmp->update->whichflag != 0)
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    else
+      lmp->input->file(str);
   }
   END_CAPTURE
 }
@@ -221,7 +224,10 @@ char *lammps_command(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    result = lmp->input->one(str);
+    if (lmp->update->whichflag != 0)
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    else
+      result = lmp->input->one(str);
   }
   END_CAPTURE
 
@@ -269,6 +275,13 @@ void lammps_commands_list(void *ptr, int ncmd, char **cmds)
 void lammps_commands_string(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    if (lmp->update->whichflag != 0)
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+  }
+  END_CAPTURE
 
   // make copy of str so can strtok() it
 

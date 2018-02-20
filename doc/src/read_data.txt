@@ -547,7 +547,7 @@ charge: atom-ID atom-type q x y z
 dipole: atom-ID atom-type q x y z mux muy muz
 dpd: atom-ID atom-type theta x y z
 edpd: atom-ID atom-type edpd_temp edpd_cv x y z 
-mdpd: atom-ID atom-type x y z
+mdpd: atom-ID atom-type rho x y z
 tdpd: atom-ID atom-type x y z cc1 cc2 ... ccNspecies
 electron: atom-ID atom-type q spin eradius x y z
 ellipsoid: atom-ID atom-type ellipsoidflag density x y z

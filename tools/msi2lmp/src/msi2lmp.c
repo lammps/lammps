@@ -76,15 +76,18 @@
 *                               2  - more verbose
 *                               3  - even more verbose
 *  -- -class
-*        # is the class of forcefield to use (I  or 1 = Class I e.g., CVFF, clayff)
-*                                            (II or 2 = Class II e.g., CFFx, COMPASS)
-*                                            (O  or 0 = OPLS-AA)
+*        # is the class of forcefield to use (I   or 1 = Class I e.g., CVFF, clayff)
+*                                            (II  or 2 = Class II e.g., CFFx, COMPASS)
+*                                            (O   or 0 = OPLS-AA)
 *     default is -class I
 *
 *  -- -ignore   - tells msi2lmp to ignore warnings and errors and keep going
 *
 *  -- -nocenter - tells msi2lmp to not center the box around the (geometrical)
 *                 center of the atoms, but around the origin
+*
+*  -- -reaxff   - tells msi2lmp to write out a data file as atom_type charge 
+*                 without information on bonds and molecules
 *
 *  -- -oldstyle - tells msi2lmp to write out a data file without style hints
 *                 (to be compatible with older LAMMPS versions)
@@ -160,6 +163,7 @@ double shift[3];
 int    periodic = 1;
 int    TriclinicFlag = 0;
 int    forcefield = 0;
+int    reaxflag = 0;
 int    centerflag = 1;
 int    hintflag = 1;
 int    ljtypeflag = 0;
@@ -234,7 +238,7 @@ int main (int argc, char *argv[])
   frc_dir_name = getenv("MSI2LMP_LIBRARY");
 
   if (argc < 2) {
-    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle]\n",argv[0]);
+    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle] [reaxff]\n",argv[0]);
     return 1;
   } else { /* rootname was supplied as first argument, copy to rootname */
     int len = strlen(argv[1]) + 1;
@@ -273,7 +277,10 @@ int main (int argc, char *argv[])
       shift[2] = atof(argv[++n]);
     } else if (strncmp(argv[n],"-i",2) == 0 ) {
       iflag = 1;
-    } else if (strncmp(argv[n],"-n",4) == 0 ) {
+    } else if (strncmp(argv[n],"-r",2) == 0 ) { 
+      reaxflag = 1;
+      iflag = 1;
+    } else if (strncmp(argv[n],"-n",2) == 0 ) {
       centerflag = 0;
     } else if (strncmp(argv[n],"-o",2) == 0 ) {
       hintflag = 0;
@@ -289,13 +296,14 @@ int main (int argc, char *argv[])
     n++;
   }
 
-  /* set defaults, if nothing else was given */
+  /* set defaults, if nothing else was given */    
   if (frc_dir_name == NULL)
 #if (_WIN32)
     frc_dir_name = "..\\frc_files";
 #else
   frc_dir_name = "../frc_files";
-#endif
+#endif  
+    
   if (frc_file_name == NULL)
     frc_file_name = "cvff.frc";
 
@@ -350,6 +358,7 @@ int main (int argc, char *argv[])
     if (forcefield & FF_TYPE_CLASS2) puts(" Forcefield: Class II");
     if (forcefield & FF_TYPE_OPLSAA) puts(" Forcefield: OPLS-AA");
     printf(" Forcefield file name: %s\n",FrcFileName);
+    if (reaxflag) puts(" Output is written as charge");
     if (centerflag) puts(" Output is recentered around geometrical center");
     if (hintflag) puts(" Output contains style flag hints");
     else puts(" Style flag hints disabled");
@@ -366,7 +375,7 @@ int main (int argc, char *argv[])
     if (strstr(FrcFileName,"pcff") != NULL) ++n;
     if (strstr(FrcFileName,"cff91") != NULL) ++n;
     if (strstr(FrcFileName,"compass") != NULL) ++n;
-  }
+  } 
 
   if (n == 0) {
     if (iflag > 0) fputs(" WARNING",stderr);
@@ -380,23 +389,19 @@ int main (int argc, char *argv[])
   ReadCarFile();
 
   /*Read in .mdf file */
-
   ReadMdfFile();
 
   /* Define bonds, angles, etc...*/
-
   if (pflag > 0)
     printf("\n Building internal coordinate lists \n");
   MakeLists();
 
   /* Read .frc file into memory */
-
   if (pflag > 0)
     printf("\n Reading forcefield file \n");
   ReadFrcFile();
 
   /* Get forcefield parameters */
-
   if (pflag > 0)
     printf("\n Get force field parameters for this system\n");
   GetParameters();

@@ -280,11 +280,15 @@ void ReadCarFile(void)
       box[1][0] =  0.5*A + center[0] + shift[0];
       box[0][1] = -0.5*B*sin_gamma + center[1] + shift[1];
       box[1][1] =  0.5*B*sin_gamma + center[1] + shift[1];
-      box[0][2] = -0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
-      box[1][2] =  0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
+      //box[0][2] = -0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
+      //box[1][2] =  0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
       box[2][0] =  B * cos_gamma; /* This is xy SLTM */
       box[2][1] =  C * cos_beta;  /* This is xz SLTM */
       box[2][2] =  C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma; /* This is yz SLTM */
+      
+      // quick and dirty fix
+      box[0][2] = -0.5*sqrt(sq_c - box[2][1]*box[2][1] - box[2][2]*box[2][2]) + center[2] + shift[2]; // low_z
+      box[1][2] =  0.5*sqrt(sq_c - box[2][1]*box[2][1] - box[2][2]*box[2][2]) + center[2] + shift[2]; // high_z
     }
   }
 

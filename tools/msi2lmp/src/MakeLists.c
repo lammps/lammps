@@ -29,12 +29,19 @@ static void bubble_sort(int, int *, int *);
 void MakeLists()
 {
 
-  total_no_bonds = count_bonds();
-  total_no_angles = count_angles();
-  total_no_dihedrals = count_dihedrals();
-  total_no_oops = count_oops();
-  total_no_angle_angles = count_angle_angles();
-
+  if (reaxflag) { 
+    total_no_bonds = 0;
+    total_no_angles = 0;
+    total_no_dihedrals = 0;
+    total_no_oops = 0;
+    total_no_angle_angles = 0;    
+  } else { 
+    total_no_bonds = count_bonds();
+    total_no_angles = count_angles();
+    total_no_dihedrals = count_dihedrals();
+    total_no_oops = count_oops();
+    total_no_angle_angles = count_angle_angles();
+  }
 
   atomtypes = (struct AtomTypeList *)calloc(MAX_ATOM_TYPES,
                                             sizeof(struct AtomTypeList));
@@ -44,7 +51,6 @@ void MakeLists()
   }
 
   build_atomtypes_list();
-
 
   if (total_no_bonds > 0) {
     bonds = (struct BondList *)calloc(total_no_bonds,sizeof(struct BondList));

@@ -78,7 +78,6 @@
 *  -- -class
 *        # is the class of forcefield to use (I   or 1 = Class I e.g., CVFF, clayff)
 *                                            (II  or 2 = Class II e.g., CFFx, COMPASS)
-*                                            (III or 3 = Force field without bonds e.g. ReaxFF, SW)
 *                                            (O   or 0 = OPLS-AA)
 *     default is -class I
 *
@@ -86,6 +85,9 @@
 *
 *  -- -nocenter - tells msi2lmp to not center the box around the (geometrical)
 *                 center of the atoms, but around the origin
+*
+*  -- -reaxff   - tells msi2lmp to write out a data file as atom_type charge 
+*                 without information on bonds and molecules
 *
 *  -- -oldstyle - tells msi2lmp to write out a data file without style hints
 *                 (to be compatible with older LAMMPS versions)
@@ -161,6 +163,7 @@ double shift[3];
 int    periodic = 1;
 int    TriclinicFlag = 0;
 int    forcefield = 0;
+int    reaxflag = 0;
 int    centerflag = 1;
 int    hintflag = 1;
 int    ljtypeflag = 0;
@@ -235,7 +238,7 @@ int main (int argc, char *argv[])
   frc_dir_name = getenv("MSI2LMP_LIBRARY");
 
   if (argc < 2) {
-    printf("usage: %s <rootname> [-class <I|1|II|2|III|3>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle]\n",argv[0]);
+    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle] [reaxff]\n",argv[0]);
     return 1;
   } else { /* rootname was supplied as first argument, copy to rootname */
     int len = strlen(argv[1]) + 1;
@@ -255,8 +258,6 @@ int main (int argc, char *argv[])
         forcefield = FF_TYPE_CLASS2 | FF_TYPE_COMMON;
       } else if ((strcmp(argv[n],"O") == 0) || (strcmp(argv[n],"0") == 0)) {
         forcefield = FF_TYPE_OPLSAA | FF_TYPE_COMMON;
-      } else if ((strcmp(argv[n],"III") == 0) || (strcmp(argv[n],"3") == 0)) {
-        forcefield = FF_TYPE_REAXFF | FF_TYPE_COMMON;
       } else {
         printf("Unrecognized Forcefield class: %s\n",argv[n]);
         return 3;
@@ -276,6 +277,9 @@ int main (int argc, char *argv[])
       shift[2] = atof(argv[++n]);
     } else if (strncmp(argv[n],"-i",2) == 0 ) {
       iflag = 1;
+    } else if (strncmp(argv[n],"-r",2) == 0 ) { 
+      reaxflag = 1;
+      iflg = 1;
     } else if (strncmp(argv[n],"-n",2) == 0 ) {
       centerflag = 0;
     } else if (strncmp(argv[n],"-o",2) == 0 ) {
@@ -292,23 +296,13 @@ int main (int argc, char *argv[])
     n++;
   }
 
-  /* set defaults, if nothing else was given */
-  if (frc_dir_name == NULL && forcefield & FF_TYPE_REAXFF) {
-      fputs("The directory for the ReaxFF forcefield has not been specified \n\n",stderr);
-      return(8);
-  }
-    
+  /* set defaults, if nothing else was given */    
   if (frc_dir_name == NULL)
 #if (_WIN32)
     frc_dir_name = "..\\frc_files";
 #else
   frc_dir_name = "../frc_files";
-#endif
-    
-  if (frc_file_name == NULL && forcefield & FF_TYPE_REAXFF) {
-      fputs("The directory for the ReaxFF forcefield has not been specified \n\n",stderr);
-      return(8);
-  }    
+#endif  
     
   if (frc_file_name == NULL)
     frc_file_name = "cvff.frc";
@@ -363,8 +357,8 @@ int main (int argc, char *argv[])
     if (forcefield & FF_TYPE_CLASS1) puts(" Forcefield: Class I");
     if (forcefield & FF_TYPE_CLASS2) puts(" Forcefield: Class II");
     if (forcefield & FF_TYPE_OPLSAA) puts(" Forcefield: OPLS-AA");
-    if (forcefield & FF_TYPE_REAXFF) puts(" Forcefield: ReaxFF");
     printf(" Forcefield file name: %s\n",FrcFileName);
+    if (reaxflag) puts(" Output is written as charge");
     if (centerflag) puts(" Output is recentered around geometrical center");
     if (hintflag) puts(" Output contains style flag hints");
     else puts(" Style flag hints disabled");
@@ -381,9 +375,7 @@ int main (int argc, char *argv[])
     if (strstr(FrcFileName,"pcff") != NULL) ++n;
     if (strstr(FrcFileName,"cff91") != NULL) ++n;
     if (strstr(FrcFileName,"compass") != NULL) ++n;
-  } else if (forcefield & FF_TYPE_REAXFF) {
-    if (strstr(FrcFileName,"reaxff") != NULL) ++n;
-  }
+  } 
 
   if (n == 0) {
     if (iflag > 0) fputs(" WARNING",stderr);

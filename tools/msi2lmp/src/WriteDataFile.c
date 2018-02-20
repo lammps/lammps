@@ -21,6 +21,7 @@ void WriteDataFile(char *nameroot)
     if (forcefield & FF_TYPE_CLASS1) puts(" for Class I force field");
     if (forcefield & FF_TYPE_CLASS2) puts(" for Class II force field");
     if (forcefield & FF_TYPE_OPLSAA) puts(" for OPLS-AA force field");
+    if (forcefield & FF_TYPE_REAXFF) puts(" for ReaxFF force field");
   }
 
   if ((DatF = fopen(line,"w")) == NULL ) {
@@ -28,17 +29,21 @@ void WriteDataFile(char *nameroot)
     exit(62);
   }
 
-  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) total_no_angle_angles = 0;
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA|FF_TYPE_REAXFF)) total_no_angle_angles = 0;
 
   if (hintflag) fprintf(DatF, "LAMMPS data file. msi2lmp " MSI2LMP_VERSION
                         " / CGCMM for %s\n\n", nameroot);
   else fprintf(DatF, "LAMMPS data file. msi2lmp " MSI2LMP_VERSION
                " for %s\n\n", nameroot);
   fprintf(DatF, " %6d atoms\n", total_no_atoms);
-  fprintf(DatF, " %6d bonds\n", total_no_bonds);
-  fprintf(DatF, " %6d angles\n",total_no_angles);
-  fprintf(DatF, " %6d dihedrals\n", total_no_dihedrals);
-  fprintf(DatF, " %6d impropers\n", total_no_oops+total_no_angle_angles);
+  if (total_no_bonds > 0)
+    fprintf(DatF, " %6d bonds\n", total_no_bonds);
+  if (total_no_angles > 0)
+    fprintf(DatF, " %6d angles\n",total_no_angles);
+  if (total_no_dihedrals > 0)
+    fprintf(DatF, " %6d dihedrals\n", total_no_dihedrals);
+  if (total_no_oops+total_no_angle_angles > 0)
+    fprintf(DatF, " %6d impropers\n", total_no_oops+total_no_angle_angles);
   fputs("\n",DatF);
 
 
@@ -86,22 +91,23 @@ void WriteDataFile(char *nameroot)
 
 
   /* COEFFICIENTS */
-
-  fputs("Pair Coeffs",DatF);
-  if (hintflag) {
+  if (~(forcefield & FF_TYPE_REAXFF)) { 
+   fputs("Pair Coeffs",DatF);
+   if (hintflag) {
     if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
       fputs(" # lj/cut/coul/long\n\n",DatF);
     else if (forcefield & FF_TYPE_CLASS2)
       fputs(" # lj/class2/coul/long\n\n",DatF);
-  } else fputs("\n\n",DatF);
+   } else fputs("\n\n",DatF);
 
-  for (i=0; i < no_atom_types; i++) {
+   for (i=0; i < no_atom_types; i++) {
     fprintf(DatF, " %3i ", i+1);
     for ( j = 0; j < 2; j++)
       fprintf(DatF, "%14.10f ",atomtypes[i].params[j]);
 
     if (hintflag) fprintf(DatF, "# %s\n",atomtypes[i].potential);
     else fputs("\n",DatF);
+   }
   }
   fputs("\n",DatF);
 
@@ -386,8 +392,27 @@ void WriteDataFile(char *nameroot)
 
   if (hintflag) fputs("Atoms # full\n\n",DatF);
   else fputs("Atoms\n\n",DatF);
+  
+  if (forcefield & FF_TYPE_REAXFF) {
 
-  for(k=0; k < total_no_atoms; k++) {
+   for(k=0; k < total_no_atoms; k++) {
+    int typ = atoms[k].type;
+    fprintf(DatF," %6i %3i %9.6f %15.9f %15.9f %15.9f %3i %3i %3i",
+            k+1,
+            typ+1,
+            atoms[k].q,
+            atoms[k].x[0],
+            atoms[k].x[1],
+            atoms[k].x[2],
+            atoms[k].image[0],
+            atoms[k].image[1],
+            atoms[k].image[2]);
+    if (hintflag) fprintf(DatF," # %s\n",atomtypes[typ].potential);
+    else fputs("\n",DatF);    
+    
+  } else {
+
+   for(k=0; k < total_no_atoms; k++) {
     int typ = atoms[k].type;
     fprintf(DatF," %6i %6i %3i %9.6f %15.9f %15.9f %15.9f %3i %3i %3i",
             k+1,
@@ -402,11 +427,11 @@ void WriteDataFile(char *nameroot)
             atoms[k].image[2]);
     if (hintflag) fprintf(DatF," # %s\n",atomtypes[typ].potential);
     else fputs("\n",DatF);
-  }
+   }
+  }  
   fputs("\n",DatF);
 
   /***** BONDS *****/
-
   if (total_no_bonds > 0) {
     fprintf(DatF, "Bonds\n\n");
     for(k=0; k < total_no_bonds; k++)
@@ -418,7 +443,6 @@ void WriteDataFile(char *nameroot)
   }
 
   /***** ANGLES *****/
-
   if (total_no_angles > 0) {
     fprintf(DatF, "Angles\n\n");
     for(k=0; k < total_no_angles; k++)
@@ -430,9 +454,7 @@ void WriteDataFile(char *nameroot)
     fputs("\n",DatF);
   }
 
-
   /***** TORSIONS *****/
-
   if (total_no_dihedrals > 0)   {
     fprintf(DatF,"Dihedrals\n\n");
     for(k=0; k < total_no_dihedrals; k++)
@@ -446,7 +468,6 @@ void WriteDataFile(char *nameroot)
   }
 
   /***** OUT-OF-PLANES *****/
-
   if (total_no_oops+total_no_angle_angles > 0) {
     fprintf(DatF,"Impropers\n\n");
     for (k=0; k < total_no_oops; k++)
@@ -475,4 +496,3 @@ void WriteDataFile(char *nameroot)
     exit(61);
   }
 }
-

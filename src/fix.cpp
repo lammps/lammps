@@ -350,7 +350,6 @@ void Fix::v_tally(int n, int *list, double total, double *v)
 
 void Fix::v_tally(int i, double *v)
 {
-
   if (vflag_global) {
     virial[0] += v[0];
     virial[1] += v[1];
@@ -384,7 +383,6 @@ void Fix::v_tally(int i, double *v)
 
 void Fix::v_tally(int n, int i, double vn)
 {
-
   if (vflag_global)
     virial[n] += vn;
 

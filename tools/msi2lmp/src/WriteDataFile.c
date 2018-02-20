@@ -21,7 +21,6 @@ void WriteDataFile(char *nameroot)
     if (forcefield & FF_TYPE_CLASS1) puts(" for Class I force field");
     if (forcefield & FF_TYPE_CLASS2) puts(" for Class II force field");
     if (forcefield & FF_TYPE_OPLSAA) puts(" for OPLS-AA force field");
-    if (forcefield & FF_TYPE_REAXFF) puts(" for ReaxFF force field");
   }
 
   if ((DatF = fopen(line,"w")) == NULL ) {
@@ -29,7 +28,7 @@ void WriteDataFile(char *nameroot)
     exit(62);
   }
 
-  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA|FF_TYPE_REAXFF)) total_no_angle_angles = 0;
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) total_no_angle_angles = 0;
 
   if (hintflag) fprintf(DatF, "LAMMPS data file. msi2lmp " MSI2LMP_VERSION
                         " / CGCMM for %s\n\n", nameroot);
@@ -91,7 +90,7 @@ void WriteDataFile(char *nameroot)
 
 
   /* COEFFICIENTS */
-  if (~(forcefield & FF_TYPE_REAXFF)) { 
+  if (!reaxflag)) { 
    fputs("Pair Coeffs",DatF);
    if (hintflag) {
     if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
@@ -393,7 +392,7 @@ void WriteDataFile(char *nameroot)
   if (hintflag) fputs("Atoms # full\n\n",DatF);
   else fputs("Atoms\n\n",DatF);
   
-  if (forcefield & FF_TYPE_REAXFF) {
+  if (reaxflag) {
 
    for(k=0; k < total_no_atoms; k++) {
     int typ = atoms[k].type;

@@ -90,7 +90,7 @@ void WriteDataFile(char *nameroot)
 
 
   /* COEFFICIENTS */
-  if (!reaxflag)) { 
+  if (!reaxflag) { 
    fputs("Pair Coeffs",DatF);
    if (hintflag) {
     if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))

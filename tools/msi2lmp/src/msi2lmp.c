@@ -76,9 +76,10 @@
 *                               2  - more verbose
 *                               3  - even more verbose
 *  -- -class
-*        # is the class of forcefield to use (I  or 1 = Class I e.g., CVFF, clayff)
-*                                            (II or 2 = Class II e.g., CFFx, COMPASS)
-*                                            (O  or 0 = OPLS-AA)
+*        # is the class of forcefield to use (I   or 1 = Class I e.g., CVFF, clayff)
+*                                            (II  or 2 = Class II e.g., CFFx, COMPASS)
+*                                            (III or 3 = Force field without bonds e.g. ReaxFF, SW)
+*                                            (O   or 0 = OPLS-AA)
 *     default is -class I
 *
 *  -- -ignore   - tells msi2lmp to ignore warnings and errors and keep going

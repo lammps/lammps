@@ -59,6 +59,7 @@
 #define FF_TYPE_CLASS1       1<<1
 #define FF_TYPE_CLASS2       1<<2
 #define FF_TYPE_OPLSAA       1<<3
+#define FF_TYPE_REAXFF       1<<4
 
 struct ResidueList {
   int start;

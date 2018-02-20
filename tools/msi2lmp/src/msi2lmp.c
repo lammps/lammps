@@ -279,7 +279,7 @@ int main (int argc, char *argv[])
       iflag = 1;
     } else if (strncmp(argv[n],"-r",2) == 0 ) { 
       reaxflag = 1;
-      iflg = 1;
+      iflag = 1;
     } else if (strncmp(argv[n],"-n",2) == 0 ) {
       centerflag = 0;
     } else if (strncmp(argv[n],"-o",2) == 0 ) {

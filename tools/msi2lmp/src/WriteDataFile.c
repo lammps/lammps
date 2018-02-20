@@ -408,7 +408,7 @@ void WriteDataFile(char *nameroot)
             atoms[k].image[2]);
     if (hintflag) fprintf(DatF," # %s\n",atomtypes[typ].potential);
     else fputs("\n",DatF);    
-    
+   } 
   } else {
 
    for(k=0; k < total_no_atoms; k++) {

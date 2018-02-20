@@ -29,7 +29,7 @@ static void bubble_sort(int, int *, int *);
 void MakeLists()
 {
 
-  if (forcefield & FF_TYPE_REAXFF) { 
+  if (reaxflag) { 
     total_no_bonds = 0;
     total_no_angles = 0;
     total_no_dihedrals = 0;

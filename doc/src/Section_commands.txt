@@ -683,6 +683,7 @@ package"_Section_start.html#start_3.
 "addtorque"_fix_addtorque.html,
 "atc"_fix_atc.html,
 "ave/correlate/long"_fix_ave_correlate_long.html,
+"bond/react"_fix_bond_react.html,
 "colvars"_fix_colvars.html,
 "dpd/energy (k)"_fix_dpd_energy.html,
 "drude"_fix_drude.html,

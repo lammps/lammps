@@ -39,7 +39,7 @@ react = mandatory argument indicating new reaction specification
       fraction = initiate reaction with this probability if otherwise eligible
       seed = random number seed (positive integer)
     {stabilize_steps} value = timesteps
-      timesteps = number of timesteps to apply internally created nve/limit :pre
+      timesteps = number of timesteps to apply internally created nve/limit.html :pre
 :ule
 
 [Examples:]
@@ -85,7 +85,7 @@ with fix/bond react.
 Only one 'fix bond/react' command can be used at a time. Multiple
 reactions can be simultaneously applied by specifying multiple 'react'
 arguments to a single 'fix bond/react' command. This syntax is
-necessary because the ‘common keywords’ are applied to all reactions.
+necessary because the 'common keywords' are applied to all reactions.
 
 The {stabilization} keyword enables reaction site stabilization.
 Reaction site stabilization is performed by including reacting atoms
@@ -178,7 +178,7 @@ description of the file.  Lines can have a trailing comment starting
 with '#' that is ignored. If the line is blank (only whitespace after
 comment is deleted), it is skipped. If the line contains a header
 keyword, the corresponding value(s) is read from the line. If it
-doesn’t contain a header keyword, the line begins the body of the
+doesn't contain a header keyword, the line begins the body of the
 file.
 
 The header contains one mandatory keyword and one optional keyword.
@@ -203,8 +203,7 @@ order. The value(s) are read from the beginning of the line. Thus the
 keyword 'equivalences' should be in a line like "25 equivalences."
 
 equivalences = # of atoms in the pre- and post-reacted molecule
-templates edgeIDs = # of edge atoms in the pre-reacted molecule
-template
+templates edgeIDs = # of edge atoms in the pre-reacted molecule template :pre
 
 The edgeIDs keyword is optional.
 
@@ -228,21 +227,22 @@ pre-reacted molecule template.
 
 A sample map file is given below:
 
----------------
-this is a map file
+:line
+
+# This is a map file :pre
 
 2 edgeIDs
-7 equivalences
+7 equivalences :pre
 
-BondingIDs
+BondingIDs :pre
 
-3 5
+3 5 :pre
 
-EdgeIDs
+EdgeIDs :pre
 
-1 7
+1 7 :pre
 
-Equivalences
+Equivalences :pre
 
 1   1
 2   2
@@ -250,8 +250,9 @@ Equivalences
 4   4
 5   5
 6   6
-7   7
----------------
+7   7 :pre
+
+:line  
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the

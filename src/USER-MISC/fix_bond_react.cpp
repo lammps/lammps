@@ -37,7 +37,6 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "error.h"
 #include "molecule.h"
 #include "group.h"
-#include "fix_nve_limit.h"
 #include <algorithm>
 
 using namespace LAMMPS_NS;
@@ -402,7 +401,7 @@ void FixBondReact::post_constructor()
       newarg[4] = (char *) "ghost";
       newarg[5] = (char *) "yes";
       modify->add_fix(6,newarg);
-      fix2 = (FixPropertyAtom *) modify->fix[modify->nfix-1];
+      fix2 = modify->fix[modify->nfix-1];
       delete [] newarg;
     }
 
@@ -445,7 +444,7 @@ void FixBondReact::post_constructor()
       newarg[4] = (char *) "ghost";
       newarg[5] = (char *) "yes";
       modify->add_fix(6,newarg);
-      fix3 = (FixPropertyAtom *) modify->fix[modify->nfix-1];
+      fix3 = modify->fix[modify->nfix-1];
       delete [] newarg;
     }
 
@@ -486,7 +485,7 @@ void FixBondReact::post_constructor()
         newarg[2] = (char *) "nve/limit";
         newarg[3] = nve_limit_xmax;
         modify->add_fix(4,newarg);
-        fix1 = (FixNVELimit *) modify->fix[modify->nfix-1];
+        fix1 = modify->fix[modify->nfix-1];
         delete [] newarg;
       }
 
@@ -509,7 +508,7 @@ void FixBondReact::post_constructor()
       newarg[4] = (char *) "ghost";
       newarg[5] = (char *) "yes";
       modify->add_fix(6,newarg);
-      fix4 = (FixPropertyAtom *) modify->fix[modify->nfix-1];
+      fix4 = modify->fix[modify->nfix-1];
       delete [] newarg;
     }
 

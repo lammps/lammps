@@ -85,6 +85,10 @@ Fix(lmp, narg, arg)
   // these group names are reserved for use exclusively by bond/react
   master_group = (char *) "bond_react_MASTER_group";
 
+  // by using fixed group names, only one instance of fix bond/react is allowed.
+  if (modify->find_fix_by_style("bond/react") != -1)
+    error->all(FLERR,"Only one instance of fix bond/react allowed at a time");
+
   // let's find number of reactions specified
   nreacts = 0;
   for (int i = 3; i < narg; i++) {

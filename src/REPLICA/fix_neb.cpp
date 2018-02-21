@@ -425,11 +425,11 @@ void FixNEB::min_post_force(int vflag)
             tangent[i][0] = vmax*delxn + vmin*delxp;
             tangent[i][1] = vmax*delyn + vmin*delyp;
             tangent[i][2] = vmax*delzn + vmin*delzp;
-          } else if(vnext < vprev) {
+          } else if (vnext < vprev) {
             tangent[i][0] = vmin*delxn + vmax*delxp;
             tangent[i][1] = vmin*delyn + vmax*delyp;
             tangent[i][2] = vmin*delzn + vmax*delzp;
-          } else { //AGNI "old-tangent" method
+          } else { // vnext == vprev, e.g. for potentials that do not compute an energy
             tangent[i][0] = delxn + delxp;
             tangent[i][1] = delyn + delyp;
             tangent[i][2] = delzn + delzp;

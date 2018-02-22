@@ -2250,7 +2250,7 @@ double FixGCMC::energy_full()
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
   int eflag = 1;
   int vflag = 0;
 

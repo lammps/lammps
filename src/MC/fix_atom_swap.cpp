@@ -316,7 +316,7 @@ void FixAtomSwap::pre_exchange()
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
 
   energy_stored = energy_full();
 
@@ -366,7 +366,7 @@ int FixAtomSwap::attempt_semi_grand()
     comm->borders();
     if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     if (modify->n_pre_neighbor) modify->pre_neighbor();
-    neighbor->build();
+    neighbor->build(1);
   } else {
     comm->forward_comm_fix(this);
   }
@@ -408,7 +408,7 @@ int FixAtomSwap::attempt_semi_grand()
       comm->borders();
       if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       if (modify->n_pre_neighbor) modify->pre_neighbor();
-      neighbor->build();
+      neighbor->build(1);
     } else {
       comm->forward_comm_fix(this);
     }
@@ -447,7 +447,7 @@ int FixAtomSwap::attempt_swap()
     comm->borders();
     if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     if (modify->n_pre_neighbor) modify->pre_neighbor();
-    neighbor->build();
+    neighbor->build(1);
   } else {
     comm->forward_comm_fix(this);
   }
@@ -489,7 +489,7 @@ int FixAtomSwap::attempt_swap()
       comm->borders();
       if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       if (modify->n_pre_neighbor) modify->pre_neighbor();
-      neighbor->build();
+      neighbor->build(1);
     } else {
       comm->forward_comm_fix(this);
     }

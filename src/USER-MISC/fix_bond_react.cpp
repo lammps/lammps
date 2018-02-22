@@ -63,8 +63,6 @@ Fix(lmp, narg, arg)
 {
   fix1 = NULL;
   fix2 = NULL;
-  fix3 = NULL;
-  fix4 = NULL;
 
   if (narg < 8) error->all(FLERR,"Illegal fix bond/react command 0.0");
 
@@ -284,9 +282,6 @@ Fix(lmp, narg, arg)
 
   id_fix1 = NULL;
   id_fix2 = NULL;
-  id_fix3 = NULL;
-  id_fix4 = NULL;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -354,12 +349,6 @@ FixBondReact::~FixBondReact()
   if (id_fix2 == NULL && modify->nfix) modify->delete_fix(id_fix2);
   delete [] id_fix2;
 
-  if (id_fix3 == NULL && modify->nfix) modify->delete_fix(id_fix3);
-  delete [] id_fix3;
-
-  if (id_fix4 == NULL && modify->nfix) modify->delete_fix(id_fix4);
-  delete [] id_fix4;
-
   delete [] guess_branch;
   delete [] pioneer_count;
 
@@ -385,139 +374,103 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 void FixBondReact::post_constructor()
 {
 
-    //let's add the limit_tags per-atom property fix
-    //these are recently reacted atoms being relaxed
-    int len = strlen("limit_tags") + 1;
-    id_fix2 = new char[len];
-    strcpy(id_fix2,"limit_tags"); //note: this is purposefully same as property 'name'
+  //let's add the limit_tags per-atom property fix
+  int len = strlen("per_atom_props") + 1;
+  id_fix2 = new char[len];
+  strcpy(id_fix2,"per_atom_props");
 
-    int ifix = modify->find_fix(id_fix2);
-    if (ifix == -1) {
-      char **newarg = new char*[6];
-      newarg[0] = (char *) "limit_tags";
-      newarg[1] = (char *) "all"; // group ID is ignored
-      newarg[2] = (char *) "property/atom";
-      newarg[3] = (char *) "i_limit_tags";
-      newarg[4] = (char *) "ghost";
-      newarg[5] = (char *) "yes";
-      modify->add_fix(6,newarg);
-      fix2 = modify->fix[modify->nfix-1];
-      delete [] newarg;
-    }
+  int ifix = modify->find_fix(id_fix2);
+  if (ifix == -1) {
+    char **newarg = new char*[8];
+    newarg[0] = (char *) "per_atom_props";
+    newarg[1] = (char *) "all"; // group ID is ignored
+    newarg[2] = (char *) "property/atom";
+    newarg[3] = (char *) "i_limit_tags";
+    newarg[4] = (char *) "i_statted_tags";
+    newarg[5] = (char *) "i_react_tags";
+    newarg[6] = (char *) "ghost";
+    newarg[7] = (char *) "yes";
+    modify->add_fix(8,newarg);
+    fix2 = modify->fix[modify->nfix-1];
+    delete [] newarg;
+  }
 
-    // per-atom properties already initialized to zero (not in group)
-    // let's do it anyway for clarity
-    int flag;
-    int index = atom->find_custom(id_fix2,flag);
-    int *i_limit_tags = atom->ivector[index];
+  // limit_tags: these are recently reacted atoms being relaxed
+  // per-atom properties already initialized to zero (not in group)
+  // let's do it anyway for clarity
+  int flag;
+  int index = atom->find_custom("limit_tags",flag); //here's where error would happen
+  int *i_limit_tags = atom->ivector[index];
 
-    for (int i = 0; i < atom->nlocal; i++)
-      i_limit_tags[i] = 0;
+  for (int i = 0; i < atom->nlocal; i++)
+    i_limit_tags[i] = 0;
 
-    // create master_group if not already existing
-    if (group->find(master_group) == -1) {
-      group->find_or_create(master_group);
+  // create master_group if not already existing
+  if (group->find(master_group) == -1) {
+    group->find_or_create(master_group);
+    char **newarg;
+    newarg = new char*[5];
+    newarg[0] = master_group;
+    newarg[1] = (char *) "dynamic";
+    newarg[2] = (char *) "all";
+    newarg[3] = (char *) "property";
+    newarg[4] = (char *) "limit_tags";
+    group->assign(5,newarg);
+    delete [] newarg;
+  }
+
+  // on to statted_tags (system-wide thermostat)
+  // intialize per-atom statted_flags to 1
+  index = atom->find_custom("statted_tags",flag);
+  int *i_statted_tags = atom->ivector[index];
+
+  for (int i = 0; i < atom->nlocal; i++)
+    i_statted_tags[i] = 1;
+
+  if (stabilization_flag == 1) {
+    // create exclude_group if not already existing
+    if (group->find(exclude_group) == -1) {
+      group->find_or_create(exclude_group);
       char **newarg;
       newarg = new char*[5];
-      newarg[0] = master_group;
+      newarg[0] = exclude_group;
       newarg[1] = (char *) "dynamic";
       newarg[2] = (char *) "all";
       newarg[3] = (char *) "property";
-      newarg[4] = (char *) "limit_tags";
+      newarg[4] = (char *) "statted_tags";
       group->assign(5,newarg);
       delete [] newarg;
     }
 
-    //let's add the statted_tags per-atom property fix
-    //this are atoms subjec to the system-wide thermostat
-    len = strlen("statted_tags") + 1;
-    id_fix3 = new char[len];
-    strcpy(id_fix3,"statted_tags"); //note: this is purposefully same as property 'name'
+    // let's create a new nve/limit fix to limit newly reacted atoms
+    len = strlen("bond_react_MASTER_nve_limit") + 1;
+    id_fix1 = new char[len];
+    strcpy(id_fix1,"bond_react_MASTER_nve_limit");
 
-    ifix = modify->find_fix(id_fix3);
+    ifix = modify->find_fix(id_fix1);
+
     if (ifix == -1) {
-      char **newarg = new char*[6];
-      newarg[0] = (char *) "statted_tags";
-      newarg[1] = (char *) "all"; // group ID is ignored
-      newarg[2] = (char *) "property/atom";
-      newarg[3] = (char *) "i_statted_tags";
-      newarg[4] = (char *) "ghost";
-      newarg[5] = (char *) "yes";
-      modify->add_fix(6,newarg);
-      fix3 = modify->fix[modify->nfix-1];
+      char **newarg = new char*[4];
+      newarg[0] = id_fix1;
+      newarg[1] = master_group;
+      newarg[2] = (char *) "nve/limit";
+      newarg[3] = nve_limit_xmax;
+      modify->add_fix(4,newarg);
+      fix1 = modify->fix[modify->nfix-1];
       delete [] newarg;
     }
 
-    //intialize per-atom statted_flags to 1
-    index = atom->find_custom(id_fix3,flag);
-    int *i_statted_tags = atom->ivector[index];
+  }
 
-    for (int i = 0; i < atom->nlocal; i++)
-      i_statted_tags[i] = 1;
+  //react_tags: this per-atom property is the ID of the 'react' argument which recently caused atom to react
+  //so that atoms which wander between processors may be released to global thermostat at the proper time
 
-    if (stabilization_flag == 1) {
+  //per-atom values initalized to 0
+  index = atom->find_custom("react_tags",flag);
+  int *i_react_tags = atom->ivector[index];
 
-      // create exclude_group if not already existing
-      if (group->find(exclude_group) == -1) {
-        group->find_or_create(exclude_group);
-        char **newarg;
-        newarg = new char*[5];
-        newarg[0] = exclude_group;
-        newarg[1] = (char *) "dynamic";
-        newarg[2] = (char *) "all";
-        newarg[3] = (char *) "property";
-        newarg[4] = (char *) "statted_tags";
-        group->assign(5,newarg);
-        delete [] newarg;
-      }
-
-      // let's create a new nve/limit fix to limit newly reacted atoms
-      len = strlen("bond_react_MASTER_nve_limit") + 1;
-      id_fix1 = new char[len];
-      strcpy(id_fix1,"bond_react_MASTER_nve_limit");
-
-      ifix = modify->find_fix(id_fix1);
-
-      if (ifix == -1) {
-        char **newarg = new char*[4];
-        newarg[0] = id_fix1;
-        newarg[1] = master_group;
-        newarg[2] = (char *) "nve/limit";
-        newarg[3] = nve_limit_xmax;
-        modify->add_fix(4,newarg);
-        fix1 = modify->fix[modify->nfix-1];
-        delete [] newarg;
-      }
-
-    }
-
-    //let's add the react_tags per-atom property fix
-    //this per-atom property is the ID of the 'react' argument which recently caused atom to react
-    //so that atoms which wander between processors may be released to global thermostat at the proper time
-    len = strlen("react_tags") + 1;
-    id_fix4 = new char[len];
-    strcpy(id_fix4,"react_tags"); //note: this is purposefully same as property 'name'
-
-    ifix = modify->find_fix(id_fix4);
-    if (ifix == -1) { //ifix
-      char **newarg = new char*[6];
-      newarg[0] = (char *) "react_tags";
-      newarg[1] = (char *) "all"; // group ID is ignored
-      newarg[2] = (char *) "property/atom";
-      newarg[3] = (char *) "i_react_tags";
-      newarg[4] = (char *) "ghost";
-      newarg[5] = (char *) "yes";
-      modify->add_fix(6,newarg);
-      fix4 = modify->fix[modify->nfix-1];
-      delete [] newarg;
-    }
-
-    //per-atom values initalized to 0
-    index = atom->find_custom(id_fix4,flag);
-    int *i_react_tags = atom->ivector[index];
-
-    for (int i = 0; i < atom->nlocal; i++)
-      i_react_tags[i] = 0;
+  for (int i = 0; i < atom->nlocal; i++)
+    i_react_tags[i] = 0;
 
   // currently must redefine dynamic groups so they are updated at proper time
   // -> should double check as to why
@@ -679,7 +632,7 @@ void FixBondReact::post_integrate()
 
   // per-atom property indicating if in bond/react master group
   int flag;
-  int index1 = atom->find_custom(id_fix2,flag);
+  int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
   int i,j;
@@ -1077,7 +1030,7 @@ void FixBondReact::make_a_guess()
 
   // per-atom property indicating if in bond/react master group
   int flag;
-  int index1 = atom->find_custom(id_fix2,flag);
+  int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
   if (status == GUESSFAIL && avail_guesses == 0) {
@@ -1696,13 +1649,13 @@ void FixBondReact::limit_bond(int limit_bond_mode)
   // this will be a new per-atom property!
 
   int flag;
-  int index1 = atom->find_custom(id_fix2,flag);
+  int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
-  int index2 = atom->find_custom(id_fix3,flag);
+  int index2 = atom->find_custom("statted_tags",flag);
   int *i_statted_tags = atom->ivector[index2];
 
-  int index3 = atom->find_custom(id_fix4,flag);
+  int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
 
   for (int i = 0; i < temp_limit_num; i++) {
@@ -1725,15 +1678,15 @@ void FixBondReact::unlimit_bond()
 {
   //let's now unlimit in terms of i_limit_tags
   //we just run through all nlocal, looking for > limit_duration
-  //then we return i_limit_tag to -1 (which removes from dynamic group)
+  //then we return i_limit_tag to 0 (which removes from dynamic group)
   int flag;
-  int index1 = atom->find_custom(id_fix2,flag);
+  int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
-  int index2 = atom->find_custom(id_fix3,flag); // statted_tags
+  int index2 = atom->find_custom("statted_tags",flag);
   int *i_statted_tags = atom->ivector[index2];
 
-  int index3 = atom->find_custom(id_fix4,flag); // statted_tags
+  int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
 
   int num2unlimit = 0;

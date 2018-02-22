@@ -75,10 +75,10 @@ class FixBondReact : public Fix {
 
   class Molecule *onemol; // pre-reacted molecule template
   class Molecule *twomol; // post-reacted molecule template
-  Fix *fix1;              // used to relax reaction sites
-  Fix *fix2;              // used to indicate relaxing atoms
-  Fix *fix3;              // used to indicate system-wide thermostat
-  Fix *fix4;              // indicates to which 'react' atom belongs
+  Fix *fix1;              // nve/limit used to relax reaction sites
+  Fix *fix2;              // properties/atom used to indicate 1) indicate relaxing atoms
+                          //                                  2) system-wide thermostat
+                          //                                  3) to which 'react' atom belongs
   class RanMars **random;
   class NeighList *list;
 
@@ -86,9 +86,7 @@ class FixBondReact : public Fix {
   int *limit_duration; // indicates how long to relax
   char *nve_limit_xmax; // indicates max distance allowed to move when relaxing
   char *id_fix1; // id of internally created fix nve/limit
-  char *id_fix2; // id of internally created fix per-atom property (recently reacted)
-  char *id_fix3; // id of internally created fix per-atom property (system-wide thermostat)
-  char *id_fix4; // id of internally created fix per-atom property (ID of 'react' argument)
+  char *id_fix2; // id of internally created fix per-atom properties
   char *master_group; // group containing relaxing atoms from all fix rxns
   char *exclude_group; // group for system-wide thermostat
 

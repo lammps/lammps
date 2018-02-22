@@ -344,7 +344,7 @@ void VerletSplit::run(int n)
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
         timer->stamp(Timer::COMM);
         if (n_pre_neighbor) modify->pre_neighbor();
-        neighbor->build();
+        neighbor->build(1);
         timer->stamp(Timer::NEIGH);
       }
     }

@@ -119,7 +119,7 @@ void VerletKokkos::setup(int flag)
 
   atomKK->modified(Host,ALL_MASK);
 
-  neighbor->build();
+  neighbor->build(1);
   neighbor->ncalls = 0;
 
   // compute all forces
@@ -222,7 +222,7 @@ void VerletKokkos::setup_minimal(int flag)
 
     atomKK->modified(Host,ALL_MASK);
 
-    neighbor->build();
+    neighbor->build(1);
     neighbor->ncalls = 0;
   }
 
@@ -378,7 +378,7 @@ void VerletKokkos::run(int n)
         modify->pre_neighbor();
         timer->stamp(Timer::MODIFY);
       }
-      neighbor->build();
+      neighbor->build(1);
       timer->stamp(Timer::NEIGH);
     }
 

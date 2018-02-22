@@ -264,7 +264,7 @@ void TAD::command(int narg, char **arg)
 
   update->whichflag = 1;
   lmp->init();
-  update->integrate->setup();
+  update->integrate->setup(1);
 
   // main loop: look for events until out of time
   // (1) dynamics, store state, quench, check event, restore state
@@ -342,7 +342,7 @@ void TAD::command(int narg, char **arg)
 
       update->whichflag = 1;
       lmp->init();
-      update->integrate->setup();
+      update->integrate->setup(1);
 
     // write restart file of hot coords
 
@@ -448,7 +448,7 @@ void TAD::dynamics()
   update->nsteps = t_event;
 
   lmp->init();
-  update->integrate->setup();
+  update->integrate->setup(1);
   // this may be needed if don't do full init
   //modify->addstep_compute_all(update->ntimestep);
   int ncalls = neighbor->ncalls;

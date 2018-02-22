@@ -239,13 +239,13 @@ void VerletSplit::init()
    servant partition only sets up KSpace calculation
 ------------------------------------------------------------------------- */
 
-void VerletSplit::setup()
+void VerletSplit::setup(int flag)
 {
   if (comm->me == 0 && screen)
     fprintf(screen,"Setting up Verlet/split run ...\n");
 
   if (!master) force->kspace->setup();
-  else Verlet::setup();
+  else Verlet::setup(flag);
 }
 
 /* ----------------------------------------------------------------------

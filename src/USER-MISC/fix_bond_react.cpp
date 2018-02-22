@@ -551,8 +551,7 @@ void FixBondReact::init_list(int id, NeighList *ptr)
 
 void FixBondReact::post_integrate()
 {
-
-  int inum,jnum,itype,jtype,n1,n2,n3,possible;
+  int inum,jnum,itype,jtype,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -617,8 +616,6 @@ void FixBondReact::post_integrate()
 
   double **x = atom->x;
   tagint *tag = atom->tag;
-  tagint **bond_atom = atom->bond_atom;
-  int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *mask = atom->mask;
@@ -758,9 +755,6 @@ void FixBondReact::post_integrate()
     //   and probability constraint is satisfied
     // if other atom is owned by another proc, it should do same thing
 
-    int **bond_type = atom->bond_type;
-    int newton_bond = force->newton_bond;
-
     int temp_ncreate = 0;
     for (int i = 0; i < nlocal; i++) {
       if (partner[i] == 0) {
@@ -881,10 +875,6 @@ void FixBondReact::superimpose_algorithm()
   // 'neigh' in the first neighbor index
   // 'trace' retraces the first nieghbors
   // trace: once you choose a first neighbor, you then check for other nieghbors of same type
-
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
-  int *type = atom->type;
 
   if (attempted_rxn == 1) {
     memory->destroy(restore_pt);
@@ -1021,11 +1011,9 @@ void FixBondReact::superimpose_algorithm()
 
 void FixBondReact::make_a_guess()
 {
-
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
-  int *mask = atom->mask;
   int nfirst_neighs = onemol->nspecial[pion][0];
 
   // per-atom property indicating if in bond/react master group
@@ -1124,19 +1112,14 @@ void FixBondReact::make_a_guess()
 
 void FixBondReact::neighbor_loop()
 {
-
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
-  int *type = atom->type;
-
   int nfirst_neighs = onemol->nspecial[pion][0];
 
   if (status == RESTORE) {
     check_a_neighbor();
     return;
-  } else neigh = 0;
+  }
 
-  for (neigh; neigh < nfirst_neighs; neigh++) {
+  for (neigh = 0; neigh < nfirst_neighs; neigh++) {
     if (glove[(int)onemol->special[pion][neigh]-1][0] == 0) {
       check_a_neighbor();
     }
@@ -1153,7 +1136,6 @@ void FixBondReact::neighbor_loop()
 
 void FixBondReact::check_a_neighbor()
 {
-
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
@@ -1266,18 +1248,14 @@ void FixBondReact::check_a_neighbor()
 
 void FixBondReact::crosscheck_the_neighbor()
 {
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
-  int *type = atom->type;
-
   int nfirst_neighs = onemol->nspecial[pion][0];
 
   if (status == RESTORE) {
     inner_crosscheck_loop();
     return;
-  } else trace = 0;
+  }
 
-  for (trace; trace < nfirst_neighs; trace++) {
+  for (trace = 0; trace < nfirst_neighs; trace++) {
     if (neigh!=trace && onemol->type[(int)onemol->special[pion][neigh]-1] == onemol->type[(int)onemol->special[pion][trace]-1] &&
         glove[onemol->special[pion][trace]-1][0] == 0) {
 
@@ -1314,7 +1292,6 @@ void FixBondReact::crosscheck_the_neighbor()
 
 void FixBondReact::inner_crosscheck_loop()
 {
-  int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
   // arbitrarily limited to 5 identical first neighbors
@@ -1689,7 +1666,6 @@ void FixBondReact::unlimit_bond()
   int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
 
-  int num2unlimit = 0;
   for (int i = 0; i < atom->nlocal; i++) {
     if (i_limit_tags[i] != 0 && (update->ntimestep + 1 - i_limit_tags[i]) > limit_duration[i_react_tags[i]]) {
       i_limit_tags[i] = 0;
@@ -1815,11 +1791,9 @@ update charges, types, special lists and all topology
 
 void FixBondReact::update_everything()
 {
-  tagint *tag = atom->tag;
   int *type = atom->type;
 
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
 
@@ -2280,7 +2254,6 @@ read superimpose file
 
 void FixBondReact::read(int myrxn)
 {
-  int i;
   char line[MAXLINE],keyword[MAXLINE];
   char *eof,*ptr;
 

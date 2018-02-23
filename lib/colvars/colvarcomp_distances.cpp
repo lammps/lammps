@@ -581,6 +581,12 @@ colvar::distance_inv::distance_inv(std::string const &conf)
     }
   }
 
+  if (is_enabled(f_cvc_debug_gradient)) {
+    cvm::log("Warning: debugGradients will not give correct results "
+             "for distanceInv, because its value and gradients are computed "
+             "simultaneously.\n");
+  }
+
   x.type(colvarvalue::type_scalar);
 }
 
@@ -601,11 +607,9 @@ void colvar::distance_inv::calc_value()
       for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
         cvm::rvector const dv = ai2->pos - ai1->pos;
         cvm::real const d2 = dv.norm2();
-        cvm::real dinv = 1.0;
-        for (int ne = 0; ne < exponent/2; ne++)
-          dinv *= 1.0/d2;
+        cvm::real const dinv = cvm::integer_power(d2, -1*(exponent/2));
         x.real_value += dinv;
-        cvm::rvector const dsumddv = -(cvm::real(exponent)) * dinv/d2 * dv;
+        cvm::rvector const dsumddv = -1.0*(exponent/2) * dinv/d2 * 2.0 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -615,11 +619,9 @@ void colvar::distance_inv::calc_value()
       for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
         cvm::rvector const dv = cvm::position_distance(ai1->pos, ai2->pos);
         cvm::real const d2 = dv.norm2();
-        cvm::real dinv = 1.0;
-        for (int ne = 0; ne < exponent/2; ne++)
-          dinv *= 1.0/d2;
+        cvm::real const dinv = cvm::integer_power(d2, -1*(exponent/2));
         x.real_value += dinv;
-        cvm::rvector const dsumddv = -(cvm::real(exponent)) * dinv/d2 * dv;
+        cvm::rvector const dsumddv = -1.0*(exponent/2) * dinv/d2 * 2.0 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -627,19 +629,22 @@ void colvar::distance_inv::calc_value()
   }
 
   x.real_value *= 1.0 / cvm::real(group1->size() * group2->size());
-  x.real_value = std::pow(x.real_value, -1.0/(cvm::real(exponent)));
-}
+  x.real_value = std::pow(x.real_value, -1.0/cvm::real(exponent));
 
-
-void colvar::distance_inv::calc_gradients()
-{
-  cvm::real const dxdsum = (-1.0/(cvm::real(exponent))) * std::pow(x.real_value, exponent+1) / cvm::real(group1->size() * group2->size());
+  cvm::real const dxdsum = (-1.0/(cvm::real(exponent))) *
+    cvm::integer_power(x.real_value, exponent+1) /
+    cvm::real(group1->size() * group2->size());
   for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++) {
     ai1->grad *= dxdsum;
   }
   for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
     ai2->grad *= dxdsum;
   }
+}
+
+
+void colvar::distance_inv::calc_gradients()
+{
 }
 
 

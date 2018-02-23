@@ -225,6 +225,8 @@ public:
     f_cvb_apply_force,
     /// \brief requires total forces
     f_cvb_get_total_force,
+    /// \brief whether this bias should record the accumulated work
+    f_cvb_output_acc_work,
     /// \brief depends on simulation history
     f_cvb_history_dependent,
     /// \brief depends on time

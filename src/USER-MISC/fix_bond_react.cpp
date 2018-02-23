@@ -59,7 +59,7 @@ enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 /* ---------------------------------------------------------------------- */
 
 FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
-Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg)
 {
   fix1 = NULL;
   fix2 = NULL;
@@ -179,10 +179,10 @@ Fix(lmp, narg, arg)
 
     unreacted_mol[rxn] = atom->find_molecule(arg[iarg++]);
     if (unreacted_mol[rxn] == -1) error->all(FLERR,"Unreacted molecule template ID for "
-    "fix bond/react does not exist");
+                                             "fix bond/react does not exist");
     reacted_mol[rxn] = atom->find_molecule(arg[iarg++]);
     if (reacted_mol[rxn] == -1) error->all(FLERR,"Reacted molecule template ID for "
-    "fix bond/react does not exist");
+                                           "fix bond/react does not exist");
 
     //read superimpose file
     files[rxn] = new char[strlen(arg[iarg])+1];
@@ -195,7 +195,7 @@ Fix(lmp, narg, arg)
         fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
         seed[rxn] = force->inumeric(FLERR,arg[iarg+2]);
         if (fraction[rxn] < 0.0 || fraction[rxn] > 1.0)
-        error->all(FLERR,"Illegal fix bond/react command");
+          error->all(FLERR,"Illegal fix bond/react command");
         if (seed[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command 0.7");
         iarg += 3;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
@@ -238,7 +238,7 @@ Fix(lmp, narg, arg)
   delete [] files;
 
   if (atom->molecular != 1)
-  error->all(FLERR,"Cannot use fix bond/react with non-molecular systems");
+    error->all(FLERR,"Cannot use fix bond/react with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -288,7 +288,6 @@ Fix(lmp, narg, arg)
 
 FixBondReact::~FixBondReact()
 {
-
   // unregister callbacks to this fix from Atom class
   atom->delete_callback(id,0);
 
@@ -351,7 +350,6 @@ FixBondReact::~FixBondReact()
 
   delete [] guess_branch;
   delete [] pioneer_count;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -373,7 +371,6 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 
 void FixBondReact::post_constructor()
 {
-
   //let's add the limit_tags per-atom property fix
   int len = strlen("per_atom_props") + 1;
   id_fix2 = new char[len];
@@ -519,12 +516,12 @@ void FixBondReact::init()
   if (count > 1 && comm->me == 0) error->warning(FLERR,"More than one fix bond/react");
 
   if (strstr(update->integrate_style,"respa"))
-  nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // check cutoff for iatomtype,jatomtype
   for (int i = 0; i < nreacts; i++) {
     if (force->pair == NULL || cutsq[i] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
-    error->all(FLERR,"Fix bond/react cutoff is longer than pairwise cutoff");
+      error->all(FLERR,"Fix bond/react cutoff is longer than pairwise cutoff");
   }
 
   // need a half neighbor list, built every Nevery steps
@@ -534,7 +531,6 @@ void FixBondReact::init()
   neighbor->requests[irequest]->occasional = 1;
 
   lastcheck = -1;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1001,7 +997,6 @@ void FixBondReact::superimpose_algorithm()
   limit_bond(0); // add reacting atoms to nve/limit
   limit_bond(1);
   update_everything(); // change topology
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1102,7 +1097,6 @@ void FixBondReact::make_a_guess()
 
   // okay everything seems to be in order. let's assign some ID pairs!!!
   neighbor_loop();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1124,9 +1118,7 @@ void FixBondReact::neighbor_loop()
       check_a_neighbor();
     }
   }
-
   // status should still = PROCEED
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1202,7 +1194,7 @@ void FixBondReact::check_a_neighbor()
     if (type[atom->map((int)special[(int)atom->map(glove[pion][1])][i])] == onemol->type[(int)onemol->special[pion][neigh]-1]) {
       int already_assigned = 0;
 
-    //check if a first neighbor of the pioneer is already assigned to pre-reacted template
+      //check if a first neighbor of the pioneer is already assigned to pre-reacted template
       for (int j = 0; j < onemol->natoms; j++) {
         if (glove[j][1] == special[atom->map(glove[pion][1])][i]) {
           already_assigned = 1;
@@ -1236,9 +1228,7 @@ void FixBondReact::check_a_neighbor()
       }
     }
   }
-
   // status is still 'PROCEED' if we are here!
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1280,9 +1270,7 @@ void FixBondReact::crosscheck_the_neighbor()
       return;
     }
   }
-
   // status is still 'PROCEED' if we are here!
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1347,7 +1335,6 @@ void FixBondReact::inner_crosscheck_loop()
     return;
   }
   status = CONTINUE;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1378,7 +1365,6 @@ void FixBondReact::ring_check()
       }
     }
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1406,7 +1392,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   if (force->angle && twomol->angleflag) nspecial_limit = 0;
 
   if ((force->dihedral && twomol->dihedralflag) ||
-     (force->improper && twomol->improperflag)) nspecial_limit = 1;
+      (force->improper && twomol->improperflag)) nspecial_limit = 1;
 
 
   if (nspecial_limit != -1) {
@@ -1428,7 +1414,6 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
     if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0)
       error->one(FLERR,"Atom affected by reaction too close to template edge");
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1571,7 +1556,6 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     }
     global_megasize = new_global_megasize;
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1599,7 +1583,7 @@ void FixBondReact::limit_bond(int limit_bond_mode)
       rxnID = local_mega_glove[0][j];
       onemol = atom->molecules[unreacted_mol[rxnID]];
       for (int i = 0; i < onemol->natoms; i++) {
-          temp_limit_glove[temp_limit_num++] = local_mega_glove[i+1][j];
+        temp_limit_glove[temp_limit_num++] = local_mega_glove[i+1][j];
       }
     }
 
@@ -1643,7 +1627,6 @@ void FixBondReact::limit_bond(int limit_bond_mode)
   }
 
   delete [] temp_limit_glove;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1676,7 +1659,6 @@ void FixBondReact::unlimit_bond()
 
   //really should only communicate this per-atom property, not entire reneighboring
   next_reneighbor = update->ntimestep;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1690,7 +1672,7 @@ void FixBondReact::glove_ghostcheck()
   // noteworthy: it's only relevant for parallel
 
   // here we add glove to either local_mega_glove or ghostly_mega_glove
-int ghostly = 0;
+  int ghostly = 0;
   for (int i = 0; i < onemol->natoms; i++) {
     if (atom->map(glove[i][1]) >= atom->nlocal) {
       ghostly = 1;
@@ -1713,7 +1695,6 @@ int ghostly = 0;
     }
     local_num_mega++;
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1739,7 +1720,7 @@ void FixBondReact::ghost_glovecast()
 
   int start = 0;
   for (int i = 0; i < me; i++) {
-   start += allncols[i];
+    start += allncols[i];
   }
   MPI_Allgather(&start, 1, MPI_INT, allstarts, 1, MPI_INT, world);
   MPI_Datatype columnunsized, column;
@@ -1747,7 +1728,7 @@ void FixBondReact::ghost_glovecast()
   int subsizes[2] = {max_natoms+1, 1};
   int starts[2]   = {0,0};
   MPI_Type_create_subarray (2, sizes, subsizes, starts, MPI_ORDER_C,
-  MPI_LMP_TAGINT, &columnunsized);
+                            MPI_LMP_TAGINT, &columnunsized);
   MPI_Type_create_resized (columnunsized, 0, sizeof(MPI_LMP_TAGINT), &column);
   MPI_Type_commit(&column);
 
@@ -1771,8 +1752,8 @@ void FixBondReact::ghost_glovecast()
   }
   // let's send to root, dedup, then broadcast
   MPI_Gatherv(&(global_mega_glove[0][start]), ghostly_num_mega, column,
-  &(global_mega_glove[0][0]), allncols, allstarts,
-  column, 0, world);
+              &(global_mega_glove[0][0]), allncols, allstarts,
+              column, 0, world);
 
   if (me == 0) dedup_mega_gloves(1); // global_mega_glove mode
   MPI_Bcast(&global_megasize,1,MPI_INT,0,world);
@@ -1782,7 +1763,6 @@ void FixBondReact::ghost_glovecast()
   delete [] allncols;
 
 #endif
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1851,11 +1831,11 @@ void FixBondReact::update_everything()
       }
     }
 
-  //maybe add check that all 1-3 neighbors of a local atoms are at least ghosts -> unneeded --jg
-  //okay, here goes:
-  for (int i = 0; i < update_num_mega; i++) {
-    rxnID = update_mega_glove[0][i];
-    twomol = atom->molecules[reacted_mol[rxnID]];
+    //maybe add check that all 1-3 neighbors of a local atoms are at least ghosts -> unneeded --jg
+    //okay, here goes:
+    for (int i = 0; i < update_num_mega; i++) {
+      rxnID = update_mega_glove[0][i];
+      twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
         if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
@@ -1863,12 +1843,12 @@ void FixBondReact::update_everything()
             for (int k = 0; k < nspecial[atom->map(update_mega_glove[jj+1][i])][2]; k++) {
               if (atom->map(special[atom->map(update_mega_glove[jj+1][i])][k]) < 0) {
                 error->all(FLERR,"Fix bond/react needs ghost atoms from further away - most likely too many processors");
+              }
             }
           }
         }
       }
     }
-  }
 
     int insert_num;
     // very nice and easy to completely overwrite special bond info for landlocked atoms
@@ -2015,8 +1995,8 @@ void FixBondReact::update_everything()
                   int nn = equivalences[n][1][rxnID]-1;
                   if (n!=j && landlocked_atoms[n][rxnID] == 1 &&
                       (angle_atom1[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        angle_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        angle_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
+                       angle_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
+                       angle_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
                     for (int m = p; m < num_angle[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
                       angle_atom1[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
                       angle_atom2[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
@@ -2090,9 +2070,9 @@ void FixBondReact::update_everything()
                   int nn = equivalences[n][1][rxnID]-1;
                   if (n!=j && landlocked_atoms[n][rxnID] == 1 &&
                       (dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
+                       dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
+                       dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
+                       dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
                     for (int m = p; m < num_dihedral[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
                       dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
                       dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
@@ -2170,9 +2150,9 @@ void FixBondReact::update_everything()
                   int nn = equivalences[n][1][rxnID]-1;
                   if (n!=j && landlocked_atoms[n][rxnID] == 1 &&
                       (improper_atom1[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        improper_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        improper_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                        improper_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
+                       improper_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
+                       improper_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
+                       improper_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
                     for (int m = p; m < num_improper[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
                       improper_atom1[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
                       improper_atom2[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
@@ -2244,8 +2224,6 @@ void FixBondReact::update_everything()
   int Tdelta_imprp;
   MPI_Allreduce(&delta_imprp,&Tdelta_imprp,1,MPI_LMP_BIGINT,MPI_SUM,world);
   atom->nimpropers += Tdelta_imprp;
-
-
 }
 
 /* ----------------------------------------------------------------------
@@ -2312,7 +2290,7 @@ void FixBondReact::read(int myrxn)
 
   // error check
   if (bondflag == 0 || equivflag == 0 || edgeflag == 0)
-  error->all(FLERR,"Superimpose file missing BondingIDs, EdgeIDs, or Equivalences section\n");
+    error->all(FLERR,"Superimpose file missing BondingIDs, EdgeIDs, or Equivalences section\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)
@@ -2402,7 +2380,7 @@ void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
   int start = strspn(line," \t\n\r");
   int stop = strlen(line) - 1;
   while (line[stop] == ' ' || line[stop] == '\t'
-  || line[stop] == '\n' || line[stop] == '\r') stop--;
+         || line[stop] == '\n' || line[stop] == '\r') stop--;
   line[stop+1] = '\0';
   strcpy(keyword,&line[start]);
 }
@@ -2447,9 +2425,8 @@ void FixBondReact::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
-int pbc_flag, int *pbc)
+                                    int pbc_flag, int *pbc)
 {
-
   int i,j,k,m,ns;
 
   m = 0;
@@ -2482,17 +2459,15 @@ int pbc_flag, int *pbc)
     ns = nspecial[j][0];
     buf[m++] = ubuf(ns).d;
     for (k = 0; k < ns; k++)
-    buf[m++] = ubuf(special[j][k]).d;
+      buf[m++] = ubuf(special[j][k]).d;
   }
   return m;
-
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
 {
-
   int i,j,m,ns,last;
 
   m = 0;
@@ -2500,7 +2475,7 @@ void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
 
   if (commflag == 1) {
     for (i = first; i < last; i++)
-    printf("hello you shouldn't be here\n");
+      printf("hello you shouldn't be here\n");
     // bondcount[i] = (int) ubuf(buf[m++]).i;
 
   } else if (commflag == 2) {
@@ -2520,10 +2495,9 @@ void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
       ns = (int) ubuf(buf[m++]).i;
       nspecial[i][0] = ns;
       for (j = 0; j < ns; j++)
-      special[i][j] = (tagint) ubuf(buf[m++]).i;
+        special[i][j] = (tagint) ubuf(buf[m++]).i;
     }
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

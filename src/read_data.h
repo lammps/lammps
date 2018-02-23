@@ -39,7 +39,7 @@ class ReadData : protected Pointers {
   int narg,maxarg;
   char argoffset1[8],argoffset2[8];
 
-  bigint id_offset;
+  bigint id_offset, mol_offset;
 
   int nlocal_previous;
   bigint natoms;

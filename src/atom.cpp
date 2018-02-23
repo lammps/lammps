@@ -822,8 +822,8 @@ void Atom::deallocate_topology()
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
-                      int shiftflag, double *shift)
+void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
+                      int type_offset, int shiftflag, double *shift)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -948,6 +948,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       avec->data_atom(xdata,imagedata,values);
       if (id_offset) tag[nlocal-1] += id_offset;
+      if (mol_offset) molecule[nlocal-1] += mol_offset;
       if (type_offset) {
         type[nlocal-1] += type_offset;
         if (type[nlocal-1] > ntypes)

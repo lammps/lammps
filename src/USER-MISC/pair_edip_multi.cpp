@@ -364,7 +364,7 @@ void PairEDIPMulti::edip_fc(double r, Param *param, double &f, double &fdr)
   double c = param->cutoffC;
   double alpha = param->alpha;
   double x;
-  double v1, v2, v3;
+  double v1, v2;
 
   if(r < c + 1E-6)
   {

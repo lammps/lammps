@@ -22,7 +22,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+  FixWall(lmp, narg, arg)
+{
+  dynamic_group_allow = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -696,7 +696,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 
   if (maxbytes == 0) return;
 
-  // sanity check 1
+  // sanity check
 
   if ((nbytes > 0) && inbuf == NULL)
     error->one(FLERR,"Cannot put data on ring from NULL pointer");
@@ -721,11 +721,6 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
     }
     if (self || loop < nprocs-1) callback(nbytes/nper,buf,ptr);
   }
-
-  // sanity check 2
-
-  if ((nbytes > 0) && outbuf == NULL)
-    error->one(FLERR,"Cannot put data from ring to NULL pointer");
 
   if (nbytes && outbuf) memcpy(outbuf,buf,nbytes);
 

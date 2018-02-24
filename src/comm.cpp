@@ -696,10 +696,15 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 
   if (maxbytes == 0) return;
 
+  // sanity check 1
+
+  if ((nbytes > 0) && inbuf == NULL)
+    error->one(FLERR,"Cannot put data on ring from NULL pointer");
+
   char *buf,*bufcopy;
   memory->create(buf,maxbytes,"comm:buf");
   memory->create(bufcopy,maxbytes,"comm:bufcopy");
-  memcpy(buf,inbuf,nbytes);
+  if (nbytes && inbuf) memcpy(buf,inbuf,nbytes);
 
   int next = me + 1;
   int prev = me - 1;
@@ -712,12 +717,17 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
       MPI_Send(buf,nbytes,MPI_CHAR,next,messtag,world);
       MPI_Wait(&request,&status);
       MPI_Get_count(&status,MPI_CHAR,&nbytes);
-      memcpy(buf,bufcopy,nbytes);
+      if (nbytes) memcpy(buf,bufcopy,nbytes);
     }
     if (self || loop < nprocs-1) callback(nbytes/nper,buf,ptr);
   }
 
-  if (outbuf) memcpy(outbuf,buf,nbytes);
+  // sanity check 2
+
+  if ((nbytes > 0) && outbuf == NULL)
+    error->one(FLERR,"Cannot put data from ring to NULL pointer");
+
+  if (nbytes && outbuf) memcpy(outbuf,buf,nbytes);
 
   memory->destroy(buf);
   memory->destroy(bufcopy);

@@ -188,6 +188,12 @@ void Group::assign(int narg, char **arg)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
         mask[i] |= bit;
 
+  // create an empty group
+
+  } else if (strcmp(arg[1],"empty") == 0) {
+
+    ; // nothing to do here
+
   // style = type, molecule, id
   // add to group if atom matches type/molecule/id or condition
 

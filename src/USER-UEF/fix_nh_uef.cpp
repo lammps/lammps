@@ -734,7 +734,7 @@ void FixNHUef::end_of_step()
     comm->borders();
     domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(Timer::COMM);
-    neighbor->build();
+    neighbor->build(1);
     timer->stamp(Timer::NEIGH);
   }
 }
@@ -754,7 +754,7 @@ void FixNHUef::post_run()
   comm->borders();
   domain->lamda2x(atom->nlocal+atom->nghost);
   timer->stamp(Timer::COMM);
-  neighbor->build();
+  neighbor->build(1);
   timer->stamp(Timer::NEIGH);
 }
 

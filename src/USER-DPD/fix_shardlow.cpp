@@ -529,7 +529,7 @@ while (ct-- > 0) {
 
 void FixShardlow::initial_integrate(int vflag)
 {
-  int i,ii,inum;
+  int ii;
   int *ilist;
 
   int nlocal = atom->nlocal;
@@ -592,9 +592,7 @@ void FixShardlow::initial_integrate(int vflag)
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
-  inum = list->inum;
   ilist = list->ilist;
-
   dtsqrt = sqrt(update->dt);
 
   // process neighbors in the local AIR

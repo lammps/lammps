@@ -61,6 +61,9 @@ int FixMvvDPD::setmask()
 
 void FixMvvDPD::init()
 {
+  if (!atom->vest_flag)
+    error->all(FLERR,"Fix mvv/dpd requires atom attribute vest");
+
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }

@@ -362,6 +362,7 @@ int FixQEq::CG( double *b, double *x )
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       d[i] = r[i] * Hdia_inv[i];
+    else d[i] = 0.0;
   }
 
   b_norm = parallel_norm( b, inum );
@@ -594,6 +595,7 @@ double FixQEq::parallel_norm( double *v, int n )
   ilist = list->ilist;
 
   my_sum = 0.0;
+  norm_sqr = 0.0;
   for( ii = 0; ii < n; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)

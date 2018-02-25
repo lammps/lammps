@@ -31,7 +31,7 @@ class VerletKokkos : public Verlet {
  public:
   VerletKokkos(class LAMMPS *, int, char **);
   ~VerletKokkos() {}
-  void setup(int flag=1);
+  void setup(int);
   void setup_minimal(int);
   void run(int);
 

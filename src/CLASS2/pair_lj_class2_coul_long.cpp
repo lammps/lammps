@@ -66,6 +66,7 @@ PairLJClass2CoulLong::~PairLJClass2CoulLong()
       memory->destroy(offset);
     }
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */

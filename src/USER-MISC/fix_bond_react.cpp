@@ -1707,16 +1707,19 @@ void FixBondReact::ghost_glovecast()
 
   global_megasize = 0;
 
-  int *allncols = new int[nprocs]();
+  int *allncols = new int[nprocs];
   for (int i = 0; i < nprocs; i++)
     allncols[i] = 0;
   MPI_Allgather(&ghostly_num_mega, 1, MPI_INT, allncols, 1, MPI_INT, world);
   for (int i = 0; i < nprocs; i++)
     global_megasize = global_megasize + allncols[i];
 
-  if (global_megasize == 0) return;
+  if (global_megasize == 0) {
+    delete [] allncols;
+    return;
+  }
 
-  int *allstarts = new int[nprocs]();
+  int *allstarts = new int[nprocs];
 
   int start = 0;
   for (int i = 0; i < me; i++) {

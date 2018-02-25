@@ -252,7 +252,7 @@ Equivalences :pre
 6   6
 7   7 :pre
 
-:line  
+:line
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the
@@ -338,7 +338,7 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the MC package.  It is only enabled if LAMMPS was
+This fix is part of the USER-MISC package.  It is only enabled if LAMMPS was
 built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 

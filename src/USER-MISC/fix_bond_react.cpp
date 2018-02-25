@@ -1751,9 +1751,15 @@ void FixBondReact::ghost_glovecast()
     }
   }
   // let's send to root, dedup, then broadcast
-  MPI_Gatherv(&(global_mega_glove[0][start]), ghostly_num_mega, column,
+  if (me == 0) {
+    MPI_Gatherv(MPI_IN_PLACE, ghostly_num_mega, column, // Note: some values ignored for MPI_IN_PLACE
               &(global_mega_glove[0][0]), allncols, allstarts,
               column, 0, world);
+  } else {
+    MPI_Gatherv(&(global_mega_glove[0][start]), ghostly_num_mega, column,
+              &(global_mega_glove[0][0]), allncols, allstarts,
+              column, 0, world);
+  }
 
   if (me == 0) dedup_mega_gloves(1); // global_mega_glove mode
   MPI_Bcast(&global_megasize,1,MPI_INT,0,world);

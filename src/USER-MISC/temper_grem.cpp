@@ -214,7 +214,7 @@ void TemperGrem::command(int narg, char **arg)
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up tempering ...\n");
 
-  update->integrate->setup();
+  update->integrate->setup(1);
 
   if (me_universe == 0) {
     if (universe->uscreen) {

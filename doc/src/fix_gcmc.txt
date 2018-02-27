@@ -95,14 +95,20 @@ which will result in roughly one MC move per atom or molecule
 per MC cycle.
 
 All inserted particles are always added to two groups: the default
-group "all" and the fix group specified in the fix command (which can
-also be "all"). In addition, particles are also added to any groups
+group "all" and the fix group specified in the fix command.
+In addition, particles are also added to any groups
 specified by the {group} and {grouptype} keywords.  If inserted
 particles are individual atoms, they are assigned the atom type given
 by the type argument.  If they are molecules, the type argument has no
 effect and must be set to zero. Instead, the type of each atom in the
 inserted molecule is specified in the file read by the
 "molecule"_molecule.html command.
+
+NOTE: Care should be taken to apply fix gcmc only to
+a group that contains only those atoms and molecules
+that you wish to manipulate using Monte Carlo.
+Hence it is generally not a good idea to specify
+the default group "all" in the fix command, although it is allowed.
 
 This fix cannot be used to perform GCMC insertions of gas atoms or
 molecules other than the exchanged type, but GCMC deletions,

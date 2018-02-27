@@ -209,7 +209,7 @@ void CreateBonds::many()
   comm->exchange();
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  neighbor->build();
+  neighbor->build(1);
 
   // build neighbor list this command needs based on earlier request
 

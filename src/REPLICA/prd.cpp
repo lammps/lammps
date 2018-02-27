@@ -293,7 +293,7 @@ void PRD::command(int narg, char **arg)
 
   update->whichflag = 1;
   lmp->init();
-  update->integrate->setup();
+  update->integrate->setup(1);
 
   if (temp_flag == 0) {
     if (universe->iworld == 0) temp_dephase = temperature->compute_scalar();
@@ -390,7 +390,7 @@ void PRD::command(int narg, char **arg)
 
     update->whichflag = 1;
     lmp->init();
-    update->integrate->setup();
+    update->integrate->setup(1);
 
     timer->barrier_start();
 
@@ -545,7 +545,7 @@ void PRD::dynamics(int nsteps, double &time_category)
   update->nsteps = nsteps;
 
   lmp->init();
-  update->integrate->setup();
+  update->integrate->setup(1);
   // this may be needed if don't do full init
   //modify->addstep_compute_all(update->ntimestep);
   bigint ncalls = neighbor->ncalls;

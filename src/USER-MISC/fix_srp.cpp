@@ -304,7 +304,7 @@ void FixSRP::setup_pre_force(int zz)
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
   neighbor->ncalls = 0;
 
   // new atom counts

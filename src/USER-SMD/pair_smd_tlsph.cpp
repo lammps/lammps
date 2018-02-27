@@ -775,9 +775,9 @@ void PairTlsph::AssembleStress() {
 
 				// compute a characteristic time over which to average the plastic strain
 				double tav = 1000 * radius[i] / (Lookup[SIGNAL_VELOCITY][itype]);
-				eff_plastic_strain_rate[i] -= eff_plastic_strain_rate[i] / tav;
-				eff_plastic_strain_rate[i] += (plastic_strain_increment / dt) / tav;
-				eff_plastic_strain_rate[i] = MAX(0.0, eff_plastic_strain_rate[i]);
+				eff_plastic_strain_rate[i] -= eff_plastic_strain_rate[i] * dt / tav;
+                                eff_plastic_strain_rate[i] += plastic_strain_increment / tav;
+                                eff_plastic_strain_rate[i] = MAX(0.0, eff_plastic_strain_rate[i]);
 
 				/*
 				 *  assemble total stress from pressure and deviatoric stress

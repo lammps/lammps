@@ -243,11 +243,11 @@ void WriteData::header()
       fprintf(fp,"%d angle types\n",atom->nangletypes);
     }
     if (atom->ndihedrals || atom->ndihedraltypes) {
-      fprintf(fp,BIGINT_FORMAT " dihedrals\n",atom->ndihedrals);
+      fprintf(fp,BIGINT_FORMAT " dihedrals\n",ndihedrals);
       fprintf(fp,"%d dihedral types\n",atom->ndihedraltypes);
     }
     if (atom->nimpropers || atom->nimpropertypes) {
-      fprintf(fp,BIGINT_FORMAT " impropers\n",atom->nimpropers);
+      fprintf(fp,BIGINT_FORMAT " impropers\n",nimpropers);
       fprintf(fp,"%d improper types\n",atom->nimpropertypes);
     }
   }

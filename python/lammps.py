@@ -406,7 +406,7 @@ class lammps(object):
   # returned data is a 1d vector - doc how it is ordered?
   # NOTE: how could we insure are converting to correct Python type
   #   e.g. for Python list or NumPy, etc
-  #   ditto for extact_atom() above
+  #   ditto for extract_atom() above
   
   def gather_atoms(self,name,type,count):
     if name: name = name.encode()

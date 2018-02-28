@@ -285,7 +285,6 @@ void lammps_commands_string(void *ptr, char *str)
   BEGIN_CAPTURE
   {
     if (lmp->update->whichflag != 0) {
-      delete [] copy;
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 

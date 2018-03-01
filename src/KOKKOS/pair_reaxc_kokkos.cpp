@@ -73,6 +73,14 @@ PairReaxCKokkos<DeviceType>::PairReaxCKokkos(LAMMPS *lmp) : PairReaxC(lmp)
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
   k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
+
+  static double t1 = 0.0;
+  static double t2 = 0.0;
+  static double t3 = 0.0;
+  static double t4 = 0.0;
+  static double t5 = 0.0;
+  static double t6 = 0.0;
+  static double t7 = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -674,6 +682,8 @@ void PairReaxCKokkos<DeviceType>::LR_vdW_Coulomb( int i, int j, double r_ij, LR_
 template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
+  Kokkos::Timer timer;
+
   copymode = 1;
 
   bocnt = hbcnt = 0;
@@ -808,6 +818,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     // zero
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZero>(0,nmax),*this);
+
 
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
@@ -2309,13 +2320,7 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
   auto a_CdDelta = dup_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //auto a_Cdbopi = dup_Cdbopi.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //auto a_Cdbopi2 = dup_Cdbopi2.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2714,10 +2719,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
 
       // Forces
 
-      a_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      a_Cdbo(j,i_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      a_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
-      a_Cdbo(k,i_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
+      d_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
+      d_Cdbo(j,i_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
+      d_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
+      d_Cdbo(k,i_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
 
       CdDelta_i += ((CEval3 + CEval7) + CEpen1 + CEcoa3);
       CdDelta_j += CEcoa4;
@@ -2732,7 +2737,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
         temp = temp_bo_jt * temp_bo_jt * temp_bo_jt;
         pBOjt7 = temp * temp * temp_bo_jt;
 
-        a_Cdbo(i,l_index) += (CEval6 * pBOjt7);
+        d_Cdbo(i,l_index) += (CEval6 * pBOjt7);
         d_Cdbopi(i,l_index) += CEval5;
         d_Cdbopi2(i,l_index) += CEval5;
       }
@@ -3085,9 +3090,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         CdDelta_i += CEtors3;
         CdDelta_j += CEtors3;
 
-        a_Cdbo(i,k_index) += CEtors4 + CEconj1;
-        a_Cdbo(i,j_index) += CEtors5 + CEconj2;
-        a_Cdbo(j,l_index) += CEtors6 + CEconj3; // trouble
+        d_Cdbo(i,k_index) += CEtors4 + CEconj1;
+        d_Cdbo(i,j_index) += CEtors5 + CEconj2;
+        d_Cdbo(j,l_index) += CEtors6 + CEconj3; // trouble
 
         // dcos_theta_ijk
         const F_FLOAT coeff74 = CEtors7 + CEconj4;
@@ -3340,9 +3345,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxUpdateBond<NEIGHFLAG>, cons
       }
 
       if (flag) {
-        a_Cdbo(j,k_index) += Cdbo_i;
-        a_Cdbopi(j,k_index) += Cdbopi_i;
-        a_Cdbopi2(j,k_index) += Cdbopi2_i;
+        d_Cdbo(j,k_index) += Cdbo_i;
+        d_Cdbopi(j,k_index) += Cdbopi_i;
+        d_Cdbopi2(j,k_index) += Cdbopi2_i;
       }
     }
   }

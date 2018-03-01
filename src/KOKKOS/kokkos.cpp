@@ -119,6 +119,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   Kokkos::Cuda::initialize(select_device);
 #else
   LMPHostType::initialize(num_threads,numa);
+
+#ifndef KOKKOS_HAVE_SERIAL
+  if (num_threads == 1)
+    error->warning(FLERR,"Using Kokkos Serial backend (i.e. Makefile.kokkos_mpi_only) performs better with 1 thread");
+#endif
+
 #endif
 
   // default settings for package kokkos command

@@ -61,7 +61,7 @@ struct AtomicF<HALFTHREAD> {
 };
 
 // Determine memory traits for force array
-// Do atomic trait when running HALFTHREAD neighbor list style
+// Do atomic trait when running HALFTHREAD neighbor list style with CUDA
 template<int NEIGHFLAG, class DeviceType>
 struct AtomicDup {
   enum {value = Kokkos::Experimental::ScatterNonAtomic};
@@ -73,6 +73,51 @@ struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
   enum {value = Kokkos::Experimental::ScatterAtomic};
 };
 #endif
+
+#ifdef LMP_KOKKOS_USE_ATOMICS
+
+#ifdef KOKKOS_ENABLE_OPENMP
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::OpenMP> {
+  enum {value = Kokkos::Experimental::ScatterAtomic};
+};
+#endif
+
+#ifdef KOKKOS_ENABLE_THREADS
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::Threads> {
+  enum {value = Kokkos::Experimental::ScatterAtomic};
+};
+#endif
+
+#endif
+
+
+// Determine duplication traits for force array
+// Use duplication when running threaded and not using atomics
+template<class DeviceType>
+struct DupF {
+  enum {value = Kokkos::Experimental::ScatterNonDuplicated};
+};
+
+#ifndef LMP_KOKKOS_USE_ATOMICS
+
+#ifdef KOKKOS_ENABLE_OPENMP
+template<>
+struct DupF<Kokkos::OpenMP> {
+  enum {value = Kokkos::Experimental::ScatterDuplicated};
+};
+#endif
+
+#ifdef KOKKOS_ENABLE_THREADS
+template<>
+struct DupF<Kokkos::Threads> {
+  enum {value = Kokkos::Experimental::ScatterDuplicated};
+};
+#endif
+
+#endif
+
 
 //Specialisation for Neighborlist types Half, HalfThread, Full
 template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, class Specialisation = void>

@@ -22,7 +22,6 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
 #ifndef LMP_FIX_QEQ_REAX_KOKKOS_H
 #define LMP_FIX_QEQ_REAX_KOKKOS_H
 
-#include <Kokkos_ScatterView.hpp>
 #include "fix_qeq_reax.h"
 #include "kokkos_type.h"
 #include "neigh_list.h"
@@ -193,7 +192,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
   HAT::t_ffloat_2d h_s_hist, h_t_hist;
   typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, DeviceType> red_o;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,DupF<DeviceType>::value> red_o;
 
   void init_shielding_k();
   void init_hist();

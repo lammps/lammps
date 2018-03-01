@@ -40,7 +40,6 @@
 #include "pair_spin_me.h"
 #include "pair_spin_soc_dmi.h"
 #include "pair_spin_soc_neel.h"
-#include "pair_spin_soc_landau.h"
 #include "respa.h"
 #include "update.h"
 

@@ -23,8 +23,7 @@ set 		group all spin/random 11 2.50
 
 pair_style 	hybrid/overlay pair/spin/exchange 6.0 pair/spin/me 4.5
 pair_coeff 	* * pair/spin/exchange exchange 6.0 -0.01575 0.0 1.965
-#pair_coeff 	* * pair/spin/me me 4.5 0.000109 1.0 1.0 1.0
-pair_coeff 	* * pair/spin/me me 4.5 0.00109 1.0 1.0 1.0
+pair_coeff 	* * pair/spin/me me 4.5 0.000109 1.0 1.0 1.0
 
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20

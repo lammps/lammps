@@ -220,11 +220,12 @@ void PairSpinSocNeel::compute_soc_neel(int i, int j, double rsq, double eij[3], 
   q1ij *= exp(-ra);
   q2ij = (-2.0*q1ij/9.0);
 
-  pq1x = -(scalar_eij_si*scalar_eij_si - scalar_si_sj/3.0)*spj[0]/3.0;
-  pq1y = -(scalar_eij_si*scalar_eij_si - scalar_si_sj/3.0)*spj[1]/3.0;
-  pq1z = -(scalar_eij_si*scalar_eij_si - scalar_si_sj/3.0)*spj[2]/3.0;
+  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
+  pq1x = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[0]/3.0;
+  pq1y = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[1]/3.0;
+  pq1z = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[2]/3.0;
 
-  double pqt1 = scalar_eij_sj*scalar_eij_sj-scalar_si_sj/3.0;
+  double pqt1 = (scalar_eij_sj*scalar_eij_sj-scalar_si_sj/3.0);
   pq1x += pqt1*(2.0*scalar_eij_si*eij[0] - spj[0]/3.0);
   pq1y += pqt1*(2.0*scalar_eij_si*eij[1] - spj[1]/3.0);
   pq1z += pqt1*(2.0*scalar_eij_si*eij[2] - spj[2]/3.0);
@@ -233,7 +234,6 @@ void PairSpinSocNeel::compute_soc_neel(int i, int j, double rsq, double eij[3], 
   pq1y *= q1ij;
   pq1z *= q1ij;
 
-  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
   double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
   pq2x = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[0] + scalar_eij_sj_3*eij[0];
   pq2y = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[1] + scalar_eij_sj_3*eij[1];
@@ -286,8 +286,6 @@ void PairSpinSocNeel::compute_soc_mech_neel(int i, int j, double rsq, double eij
   dgij = 1.0-ra-g2[itype][jtype]*ra*(2.0-ra);
   dgij *= 8.0*g_mech*rr*exp(-ra);
 
-  // this 2.0*gij/drij is in Beaujouan calc. but not recovered yet
-  //double pdt1 = dgij*scalar_eij_si*scalar_eij_sj;
   double pdt1 = (dgij-2.0*gij/drij)*scalar_eij_si*scalar_eij_sj;
   pdt1 -= scalar_si_sj*dgij/3.0;
   double pdt2 = scalar_eij_sj*gij/drij;
@@ -323,13 +321,20 @@ void PairSpinSocNeel::compute_soc_mech_neel(int i, int j, double rsq, double eij
   double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
   double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
   double scalar_si_sj_2 = scalar_si_sj*scalar_si_sj;
-  double pqt3 = 2.0*scalar_eij_si*scalar_eij_sj_3/drij; 
+/*  double pqt3 = 2.0*scalar_eij_si*scalar_eij_sj_3/drij; 
   double pqt4 = 2.0*scalar_eij_sj*scalar_eij_si_3/drij; 
   double pqt5 = -2.0*scalar_si_sj*scalar_eij_si/(3.0*drij);
   double pqt6 = -2.0*scalar_si_sj*scalar_eij_sj/(3.0*drij);
+//  pq1x += q1ij*(spi[0]*(pqt3+pqt6) + spj[0]*(pqt4+));
   pq1x += q1ij*(pqt3*spi[0]+pqt4*spj[0]+pqt5*spi[0]+pqt6*spi[0]);
   pq1y += q1ij*(pqt3*spi[1]+pqt4*spj[1]+pqt5*spi[1]+pqt6*spj[1]);
   pq1z += q1ij*(pqt3*spi[2]+pqt4*spj[2]+pqt5*spi[2]+pqt6*spj[2]);
+*/
+  double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
+  double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
+  pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
+  pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
+  pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
   double pqt7 = 4.0*scalar_eij_si_2*scalar_eij_sj_2/drij;
   double pqt8 = 2.0*scalar_si_sj_2*scalar_eij_sj/(3.0*drij);
   double pqt9 = 2.0*scalar_si_sj_2*scalar_eij_si/(3.0*drij);
@@ -337,11 +342,22 @@ void PairSpinSocNeel::compute_soc_mech_neel(int i, int j, double rsq, double eij
   pq1y -= q1ij*(pqt7 + pqt8 + pqt9)*eij[1];
   pq1z -= q1ij*(pqt7 + pqt8 + pqt9)*eij[2];
 
+/*
+  double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
+  double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
+  pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
+  pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
+  pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
+*/
+
+  //double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
+  //double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
   double pqt10 = scalar_eij_sj*scalar_eij_si_3;
   double pqt11 = scalar_eij_si*scalar_eij_sj_3;
   pq2x = dq2ij*(pqt10 + pqt11)*eij[0];
   pq2y = dq2ij*(pqt10 + pqt11)*eij[1];
   pq2z = dq2ij*(pqt10 + pqt11)*eij[2];
+
   double pqt12 = scalar_eij_si_3/drij;
   double pqt13 = scalar_eij_sj_3/drij;
   double pqt14 = 3.0*scalar_eij_sj*scalar_eij_si_2/drij;

@@ -803,6 +803,10 @@ currently installed. For those that are installed, it will list any
 files that are different in the src directory and package
 sub-directory.
 
+Typing "make package-installed" or "make pi" will list which packages are
+currently installed, without listing the status of packages that are not
+installed.
+
 Typing "make package-update" or "make pu" will overwrite src files
 with files from the package sub-directories if the package is
 installed.  It should be used after a patch has been applied, since

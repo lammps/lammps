@@ -1732,7 +1732,7 @@ void FixBondReact::ghost_glovecast()
   int starts[2]   = {0,0};
   MPI_Type_create_subarray (2, sizes, subsizes, starts, MPI_ORDER_C,
                             MPI_LMP_TAGINT, &columnunsized);
-  MPI_Type_create_resized (columnunsized, 0, sizeof(MPI_LMP_TAGINT), &column);
+  MPI_Type_create_resized (columnunsized, 0, sizeof(tagint), &column);
   MPI_Type_commit(&column);
 
   if (ghostcheck_flag == 1) memory->destroy(global_mega_glove);

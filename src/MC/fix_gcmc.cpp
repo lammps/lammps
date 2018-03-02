@@ -714,6 +714,12 @@ void FixGCMC::init()
     }
   }
 
+  // Current implementation is broken using
+  // full_flag on molecules on more than one processor.
+  // Print error if this is the current mode
+  if (full_flag && (exchmode == EXCHMOL || movemode == MOVEMOL) && comm->nprocs > 1)
+    error->all(FLERR,"fix gcmc does currently not support full_energy option with molecules on more than 1 MPI process.");
+
 }
 
 /* ----------------------------------------------------------------------

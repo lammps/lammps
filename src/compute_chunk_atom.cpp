@@ -1809,13 +1809,13 @@ void ComputeChunkAtom::atom2binsphere()
     }
     yremap = x[i][1];
     if (periodicity[1]) {
-      if (xremap < boxlo[1]) yremap += prd[1];
-      if (xremap >= boxhi[1]) yremap -= prd[1];
+      if (yremap < boxlo[1]) yremap += prd[1];
+      if (yremap >= boxhi[1]) yremap -= prd[1];
     }
     zremap = x[i][2];
     if (periodicity[2]) {
-      if (xremap < boxlo[2]) zremap += prd[2];
-      if (xremap >= boxhi[2]) zremap -= prd[2];
+      if (zremap < boxlo[2]) zremap += prd[2];
+      if (zremap >= boxhi[2]) zremap -= prd[2];
     }
 
     dx = xremap - sorigin[0];

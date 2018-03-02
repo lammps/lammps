@@ -195,7 +195,7 @@ int colvar::init(std::string const &conf)
   // - it is homogeneous
   // - all cvcs are periodic
   // - all cvcs have the same period
-  if (cvcs[0]->b_periodic) { // TODO make this a CVC feature
+  if (is_enabled(f_cv_homogeneous) && cvcs[0]->b_periodic) { // TODO make this a CVC feature
     bool b_periodic = true;
     period = cvcs[0]->period;
     for (i = 1; i < cvcs.size(); i++) {

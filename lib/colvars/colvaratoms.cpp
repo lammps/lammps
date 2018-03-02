@@ -8,8 +8,10 @@
 // Colvars repository at GitHub.
 
 #include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvarparse.h"
 #include "colvaratoms.h"
+
 
 cvm::atom::atom()
 {

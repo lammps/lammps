@@ -32,6 +32,8 @@ class ComputeFragmentAtom : public Compute {
   void compute_peratom();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
  private:

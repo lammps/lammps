@@ -16,6 +16,7 @@ file = name of data file to write out :ulb,l
 zero or more keyword/value pairs may be appended :l
 keyword = {pair} or {nocoeff} :l
   {nocoeff} = do not write out force field info
+  {noextra} = do not write out extra sections
   {pair} value = {ii} or {ij}
     {ii} = write one line of pair coefficient info per atom type
     {ij} = write one line of pair coefficient info per IJ atom type pair :pre
@@ -83,6 +84,10 @@ be written to the data file. This can be very helpful, if one wants
 to make significant changes to the force field or if the parameters
 are read in separately anyway, e.g. from an include file.
 
+The {noextra} keyword requests that no extra sections should be
+written to the data file. For example, this option excludes sections
+for user-created per-atom properties, which are included by default.
+
 The {pair} keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value
 is specified as {ii}, then one line per atom type is written, to
@@ -120,4 +125,3 @@ setup, atom masses initialized, etc).
 [Default:]
 
 The option defaults are pair = ii.
-

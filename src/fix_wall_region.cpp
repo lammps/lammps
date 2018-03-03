@@ -67,6 +67,8 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[4],"harmonic") == 0) style = HARMONIC;
   else error->all(FLERR,"Illegal fix wall/region command");
 
+  if (style != COLLOID) dynamic_group_allow = 1;
+
   epsilon = force->numeric(FLERR,arg[5]);
   sigma = force->numeric(FLERR,arg[6]);
   cutoff = force->numeric(FLERR,arg[7]);

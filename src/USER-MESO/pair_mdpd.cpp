@@ -282,6 +282,9 @@ void PairMDPD::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair mdpd requires ghost atoms store velocity");
 
+  if (!atom->rho_flag)
+    error->all(FLERR,"Pair style mdpd requires atom attribute rho");
+
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers
 

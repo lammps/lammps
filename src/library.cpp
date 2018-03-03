@@ -203,7 +203,10 @@ void lammps_file(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    lmp->input->file(str);
+    if (lmp->update->whichflag != 0)
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    else
+      lmp->input->file(str);
   }
   END_CAPTURE
 }
@@ -221,7 +224,10 @@ char *lammps_command(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    result = lmp->input->one(str);
+    if (lmp->update->whichflag != 0)
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    else
+      result = lmp->input->one(str);
   }
   END_CAPTURE
 
@@ -278,6 +284,10 @@ void lammps_commands_string(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
+    if (lmp->update->whichflag != 0) {
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    }
+
     char *ptr = copy;
     for (int i=0; i < n-1; ++i) {
 

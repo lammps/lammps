@@ -26,7 +26,10 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallLJ1043::FixWallLJ1043(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+  FixWall(lmp, narg, arg)
+{
+  dynamic_group_allow = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

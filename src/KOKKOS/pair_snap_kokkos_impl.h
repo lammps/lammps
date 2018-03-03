@@ -188,7 +188,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   int team_size_max = Kokkos::TeamPolicy<DeviceType>::team_size_max(*this);
   int vector_length = 8;
 #ifdef KOKKOS_ENABLE_CUDA
-  int team_size = 20;//max_neighs;
+  int team_size = 32;//max_neighs;
   if (team_size*vector_length > team_size_max)
     team_size = team_size_max/vector_length;
 #else

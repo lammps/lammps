@@ -34,7 +34,7 @@ NPairSkipSizeOff2on::NPairSkipSizeOff2on(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairSkipSizeOff2on::build(NeighList *list)
 {
-  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
+  int i,j,ii,jj,n,itype,jnum,joriginal;
   tagint itag,jtag;
   int *neighptr,*jlist;
 

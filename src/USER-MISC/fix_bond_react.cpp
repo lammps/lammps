@@ -335,7 +335,7 @@ FixBondReact::~FixBondReact()
     memory->destroy(ghostly_mega_glove);
   }
 
-  if (ghostcheck_flag == 1) memory->destroy(global_mega_glove);
+  memory->destroy(global_mega_glove);
 
   if (stabilization_flag == 1) {
     delete [] exclude_group;
@@ -1735,8 +1735,7 @@ void FixBondReact::ghost_glovecast()
   MPI_Type_create_resized (columnunsized, 0, sizeof(tagint), &column);
   MPI_Type_commit(&column);
 
-  if (ghostcheck_flag == 1) memory->destroy(global_mega_glove);
-
+  memory->destroy(global_mega_glove);
   memory->create(global_mega_glove,max_natoms+1,global_megasize,"bond/react:global_mega_glove");
 
   for (int i = 0; i < max_natoms+1; i++)
@@ -1771,6 +1770,8 @@ void FixBondReact::ghost_glovecast()
   delete [] allstarts;
   delete [] allncols;
 
+  MPI_Type_free(&column);
+  MPI_Type_free(&columnunsized);
 #endif
 }
 

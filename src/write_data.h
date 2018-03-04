@@ -35,7 +35,7 @@ class WriteData : protected Pointers {
   int me,nprocs;
   int pairflag;
   int coeffflag;
-  int extraflag;
+  int fixflag;
   FILE *fp;
   bigint nbonds_local,nbonds;
   bigint nangles_local,nangles;

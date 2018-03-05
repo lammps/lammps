@@ -32,7 +32,7 @@ PairStyle(kim,PairKIM)
 #define LMP_PAIR_KIM_H
 
 // includes from KIM & LAMMPS
-class KIM_API_model;
+//class KIM_API_model;
 #include "pair.h"
 
 
@@ -87,7 +87,7 @@ namespace LAMMPS_NS {
       unit_sys lmps_units;
 
       // values set in set_kim_model_has_flags(), called by kim_init()
-      KIM_API_model* pkim;
+      void * pkim;
       bool kim_model_has_energy;
       bool kim_model_has_forces;
       bool kim_model_has_particleEnergy;
@@ -148,6 +148,37 @@ namespace LAMMPS_NS {
       static int get_neigh(void** kimmdl, int* mode, int* request,
                            int* atom, int* numnei, int** nei1atom,
                            double** pRij);
+
+     bool setup_kim_api_library();
+     static bool kim_api_is_strictly_between_1_5_and_2_0;
+     // KIM symbols
+     static void* kim_api_library;
+     static int (*report_error)(int line, const char *, const char *, int);
+     static void (*kim_api_setm_compute_by_index)(void *, int *, ...);
+     static int (*kim_api_model_compute)(void *);
+     static int (*kim_api_model_init)(void *);
+     static int (*kim_api_model_reinit)(void *);
+     static void * (*kim_api_get_sim_buffer)(void *, int *);
+     static void * (*kim_api_get_data_by_index)(void *, int, int *);
+     static int (*kim_api_model_destroy)(void *);
+     static void (*kim_api_free)(void *, int *);
+     static int (*kim_api_string_init)(void *, const char *, const char *);
+     static int (*kim_api_is_half_neighbors)(void *, int *);
+     static int (*kim_api_get_NBC_method)(void *, const char **);
+     static int (*kim_api_get_index)(void *, const char *, int *);
+     static int (*kim_api_getm_index)(void *, int *, int, ...);
+     static int (*kim_api_get_species_code)(void *, const char *, int *);
+     static void (*kim_api_setm_data_by_index)(void *, int *, int, ...);
+     static int (*kim_api_set_method_by_index)(void *, int, intptr_t, void (*)());
+     static void (*kim_api_set_sim_buffer)(void *, void *, int *);
+     static int (*kim_api_set_data_by_index)(void *, int, intptr_t, void *);
+     static void (*kim_api_set_compute_by_index)(void *, int, int, int*);
+     static int (*kim_api_get_num_params)(void *, int *, int *);
+     static int (*kim_api_get_free_parameter)(void *, const int, const char **);
+     static void * (*kim_api_get_data)(void *, const char *, int *);
+     static intptr_t (*kim_api_get_rank)(void *, const char *, int *);
+     static intptr_t (*kim_api_get_shape)(void *, const char *, int *, int *);
+     static int (*kim_api_model_info)(void *, const char *);
    };
 }
 
@@ -161,6 +192,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: KIM API library cannot be found
+
+Self-explanatory.
 
 E: Unrecognized virial argument in pair_style command
 

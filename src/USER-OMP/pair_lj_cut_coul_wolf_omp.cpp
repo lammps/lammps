@@ -83,7 +83,7 @@ void PairLJCutCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,ii,jj,jnum,itype,jtype;
   double qitmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double prefactor,erfcc,erfcd,v_sh,dvdrr,e_self,qisq;
+  double prefactor,erfcc,erfcd,v_sh,dvdrr,e_self;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;

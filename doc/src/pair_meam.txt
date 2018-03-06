@@ -164,7 +164,14 @@ keyword(I) = value
 keyword(I,J) = value
 keyword(I,J,K) = value :pre
 
-The recognized keywords are as follows:
+The indices I, J, K correspond to the elements selected from the
+MEAM library file numbered in the order of how those elements were
+selected starting from 1. Thus for the example given below
+
+pair_coeff * * library.meam Si C sic.meam Si Si Si C :pre
+
+an index of 1 would refer to Si and an index of 2 to C. The recognized
+keywords for the parameter file are as follows:
 
 Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
 augt1, gsmooth_factor, re

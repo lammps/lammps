@@ -43,6 +43,7 @@ using namespace LAMMPS_NS;
 PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  restartinfo = 0;
 
   // initialize element to parameter maps
   nelements = 0;

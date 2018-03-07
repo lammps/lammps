@@ -943,7 +943,7 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
                         double aval[], int acol_ind[], int arow_ptr[],
                         double x[], double b[])
 {
-  double one, zero, rho, rho_old, alpha, beta, gamma;
+  double one, rho, rho_old, alpha, beta, gamma;
   int iter, maxiter;
   int n;
   double sumtmp;
@@ -963,7 +963,6 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
   n = nlocal+nghost+1;
 
   one = 1.0;
-  zero = 0.0;
   maxiter = 100;
 
   for (int i = 0; i < n; i++) w[i] = 0;

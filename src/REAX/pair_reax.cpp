@@ -172,10 +172,6 @@ void PairREAX::compute(int eflag, int vflag)
 
   FORTRAN(srtbon1, SRTBON1)(&iprune, &ihb, &hbcut, &ihbnew, &itripstaball);
 
-  // communicate with other processors for the atomic bond order calculations
-
-  FORTRAN(cbkabo, CBKABO).abo;
-
   // communicate local atomic bond order to ghost atomic bond order
 
   packflag = 0;

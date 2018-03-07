@@ -88,8 +88,6 @@ lmp.command("run 10");
 
 # uncomment if running in parallel via Pypar
 #print("Proc %d out of %d procs has" % (me,nprocs), lmp)
-#pypar.finalize()
 
 # uncomment if running in parallel via mpi4py
-#print "Proc %d out of %d procs has" % (me,nprocs), lmp
-#MPI.Finalize()
+#print("Proc %d out of %d procs has" % (me,nprocs), lmp)

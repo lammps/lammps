@@ -720,7 +720,7 @@ void PairREAX::taper_setup()
   swc3= 140.0e0*(swa3*swb+3.0e0*swa2*swb2+swa*swb3)/d7;
   swc2=-210.0e0*(swa3*swb2+swa2*swb3)/d7;
   swc1= 140.0e0*swa3*swb3/d7;
-  swc0=(-35.0e0*swa3*swb2*swb2+21.0e0*swa2*swb3*swb2+
+  swc0=(-35.0e0*swa3*swb2*swb2+21.0e0*swa2*swb3*swb2-
         7.0e0*swa*swb3*swb3+swb3*swb3*swb)/d7;
 }
 

@@ -428,7 +428,7 @@ void FixQEqReax::init_taper()
   Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7;
   Tap[2] =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   Tap[1] = 140.0 * swa3 * swb3 / d7;
-  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 +
+  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
             7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 

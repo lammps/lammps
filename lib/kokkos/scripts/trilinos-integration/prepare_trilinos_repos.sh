@@ -34,7 +34,7 @@ git reset --hard origin/$TRILINOS_UPDATE_BRANCH
 git pull
 cd ..
 
-python kokkos/config/snapshot.py ${KOKKOS_PATH} ${TRILINOS_UPDATED_PATH}/packages
+python kokkos/scripts/snapshot.py ${KOKKOS_PATH} ${TRILINOS_UPDATED_PATH}/packages
 
 cd ${TRILINOS_UPDATED_PATH}
 echo ""

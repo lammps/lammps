@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -361,7 +361,8 @@ struct SubviewExtents {
 private:
 
   // Cannot declare zero-length arrays
-  enum { InternalRangeRank = RangeRank ? RangeRank : 1u };
+  // '+' is used to silence GCC 7.2.0 -Wduplicated-branches warning when RangeRank=1
+  enum { InternalRangeRank = RangeRank ? RangeRank : +1u };
 
   size_t   m_begin[  DomainRank ];
   size_t   m_length[ InternalRangeRank ];
@@ -2825,23 +2826,26 @@ public:
                            , ( (Kokkos::Impl::ViewCtorProp<void,std::string>  const &) arg_prop ).value
                            , alloc_size );
 
-    //  Only set the the pointer and initialize if the allocation is non-zero.
-    //  May be zero if one of the dimensions is zero.
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     if ( alloc_size ) {
+#endif
+    m_handle = handle_type( reinterpret_cast< pointer_type >( record->data() ) );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    }
+#endif
 
-      m_handle = handle_type( reinterpret_cast< pointer_type >( record->data() ) );
+    //  Only initialize if the allocation is non-zero.
+    //  May be zero if one of the dimensions is zero.
+    if ( alloc_size && alloc_prop::initialize ) {
+      // Assume destruction is only required when construction is requested.
+      // The ViewValueFunctor has both value construction and destruction operators.
+      record->m_destroy = functor_type( ( (Kokkos::Impl::ViewCtorProp<void,execution_space> const &) arg_prop).value
+                                      , (value_type *) m_handle
+                                      , m_offset.span()
+                                      );
 
-      if ( alloc_prop::initialize ) {
-        // Assume destruction is only required when construction is requested.
-        // The ViewValueFunctor has both value construction and destruction operators.
-        record->m_destroy = functor_type( ( (Kokkos::Impl::ViewCtorProp<void,execution_space> const &) arg_prop).value
-                                        , (value_type *) m_handle
-                                        , m_offset.span()
-                                        );
-
-        // Construct values
-        record->m_destroy.construct_shared_allocation();
-      }
+      // Construct values
+      record->m_destroy.construct_shared_allocation();
     }
 
     return record ;
@@ -3191,10 +3195,8 @@ template< class MapType >
 struct OperatorBoundsErrorOnDevice< MapType, true > {
 KOKKOS_INLINE_FUNCTION
 static void run(MapType const& map) {
-  char const* const user_alloc_start = reinterpret_cast<char const*>(map.data());
-  char const* const header_start = user_alloc_start - sizeof(SharedAllocationHeader);
   SharedAllocationHeader const* const header =
-    reinterpret_cast<SharedAllocationHeader const*>(header_start);
+    SharedAllocationHeader::get_header((void*)(map.data()));
   char const* const label = header->label();
   enum { LEN = 128 };
   char msg[LEN];

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -80,7 +80,7 @@ struct BitsetCount
   size_type apply() const
   {
     size_type count = 0u;
-    parallel_reduce( m_bitset.m_blocks.dimension_0(), *this, count );
+    parallel_reduce( m_bitset.m_blocks.extent(0), *this, count );
     return count;
   }
 

@@ -3,7 +3,7 @@
 # BytesAndFlops
 cd build/bytes_and_flops
 
-USE_CUDA=`grep "_CUDA 1" KokkosCore_config.h | wc -l`
+USE_CUDA=`grep "_CUDA" KokkosCore_config.h | wc -l`
 
 if [[ ${USE_CUDA} > 0 ]]; then
   BAF_EXE=bytes_and_flops.cuda

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -367,11 +367,11 @@ Perf fenl(
         std::cout << "}" << std::endl ;
 
         std::cout << "ElemGraph {" << std::endl ;
-        for ( unsigned ielem = 0 ; ielem < mesh_to_graph.elem_graph.dimension_0() ; ++ielem ) {
+        for ( unsigned ielem = 0 ; ielem < mesh_to_graph.elem_graph.extent(0) ; ++ielem ) {
           std::cout << "  elem[" << ielem << "]{" ;
-          for ( unsigned irow = 0 ; irow < mesh_to_graph.elem_graph.dimension_1() ; ++irow ) {
+          for ( unsigned irow = 0 ; irow < mesh_to_graph.elem_graph.extent(1) ; ++irow ) {
             std::cout << " {" ;
-            for ( unsigned icol = 0 ; icol < mesh_to_graph.elem_graph.dimension_2() ; ++icol ) {
+            for ( unsigned icol = 0 ; icol < mesh_to_graph.elem_graph.extent(2) ; ++icol ) {
               std::cout << " " << mesh_to_graph.elem_graph(ielem,irow,icol);
             }
             std::cout << " }" ;

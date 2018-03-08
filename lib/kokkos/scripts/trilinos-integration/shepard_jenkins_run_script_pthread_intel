@@ -55,6 +55,6 @@ git checkout $KOKKOS_BRANCH
 git pull
 cd ..
 
-source ${KOKKOS_PATH}/config/trilinos-integration/prepare_trilinos_repos.sh $TRILINOS_UPDATE_BRANCH $TRILINOS_PRISTINE_BRANCH
+source ${KOKKOS_PATH}/scripts/trilinos-integration/prepare_trilinos_repos.sh $TRILINOS_UPDATE_BRANCH $TRILINOS_PRISTINE_BRANCH
 
 ${TRILINOS_UPDATED_PATH}/sampleScripts/Sandia-SEMS/run_repo_comparison_slurm ${TRILINOS_UPDATED_PATH} ${TRILINOS_PRISTINE_PATH} ${TRILINOS_UPDATED_PATH}/sampleScripts/Sandia-SEMS/configure-testbeds-jenkins-all TestCompare ${QUEUE}

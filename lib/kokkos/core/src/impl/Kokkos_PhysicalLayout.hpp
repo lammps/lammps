@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -53,7 +53,7 @@ struct PhysicalLayout {
   enum LayoutType {Left,Right,Scalar,Error};
   LayoutType layout_type;
   int rank;
-  long long int stride[8]; //distance between two neighboring elements in a given dimension
+  long long int stride[9]; //distance between two neighboring elements in a given dimension
 
   template< class T , class L , class D , class M >
   PhysicalLayout( const View<T,L,D,M> & view )
@@ -61,7 +61,7 @@ struct PhysicalLayout {
                    is_same< typename View<T,L,D,M>::array_layout , LayoutRight >::value ? Right : Error ))
     , rank( view.Rank )
     {
-      for(int i=0;i<8;i++) stride[i] = 0;
+      for(int i=0;i<9;i++) stride[i] = 0;
       view.stride( stride );
     }
 };

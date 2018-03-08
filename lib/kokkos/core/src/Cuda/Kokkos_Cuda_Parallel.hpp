@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -299,6 +299,32 @@ public:
   };
 
   typedef Kokkos::Impl::CudaTeamMember member_type ;
+
+protected:
+  /** \brief set chunk_size to a discrete value*/
+  inline TeamPolicyInternal internal_set_chunk_size(typename traits::index_type chunk_size_) {
+    m_chunk_size = chunk_size_;
+    return *this;
+  }
+
+  /** \brief set per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team) {
+    m_team_scratch_size[level] = per_team.value;
+    return *this;
+  };
+
+  /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerThreadValue& per_thread) {
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  };
+
+  /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) {
+    m_team_scratch_size[level] = per_team.value;
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  };
 };
 
 } // namspace Impl
@@ -364,7 +390,8 @@ public:
   void execute() const
     {
       const int nwork = m_policy.end() - m_policy.begin();
-      const dim3 block(  1 , CudaTraits::WarpSize * cuda_internal_maximum_warp_count(), 1);
+      const int block_size = Kokkos::Impl::cuda_get_opt_block_size< ParallelFor >( m_functor , 1, 0 , 0 );
+      const dim3 block(  1 , block_size , 1);
       const dim3 grid( std::min( ( nwork + block.y - 1 ) / block.y , cuda_internal_maximum_grid_count() ) , 1 , 1);
 
       CudaParallelLaunch< ParallelFor, LaunchBounds >( *this , grid , block , 0 );
@@ -544,15 +571,15 @@ public:
     if ( m_scratch_size[1]>0 ) {
       __shared__ int base_thread_id;
       if (threadIdx.x==0 && threadIdx.y==0 ) {
-        threadid = ((blockIdx.x*blockDim.z + threadIdx.z) * blockDim.x * blockDim.y) % Kokkos::Impl::g_device_cuda_lock_arrays.n;
-        threadid = ((threadid + blockDim.x * blockDim.y-1)/(blockDim.x * blockDim.y)) * blockDim.x * blockDim.y;
-        if(threadid > Kokkos::Impl::g_device_cuda_lock_arrays.n) threadid-=blockDim.x * blockDim.y;
+        threadid = (blockIdx.x*blockDim.z + threadIdx.z) %
+          (Kokkos::Impl::g_device_cuda_lock_arrays.n / (blockDim.x * blockDim.y));
+        threadid *= blockDim.x * blockDim.y;
         int done = 0;
         while (!done) {
           done = (0 == atomicCAS(&Kokkos::Impl::g_device_cuda_lock_arrays.scratch[threadid],0,1));
           if(!done) {
             threadid += blockDim.x * blockDim.y;
-            if(threadid > Kokkos::Impl::g_device_cuda_lock_arrays.n) threadid = 0;
+            if(threadid+blockDim.x * blockDim.y >= Kokkos::Impl::g_device_cuda_lock_arrays.n) threadid = 0;
           }
         }
         base_thread_id = threadid;
@@ -584,7 +611,7 @@ public:
   inline
   void execute() const
     {
-      const int shmem_size_total = m_shmem_begin + m_shmem_size ;
+      const int64_t shmem_size_total = m_shmem_begin + m_shmem_size ;
       const dim3 grid( int(m_league_size) , 1 , 1 );
       const dim3 block( int(m_vector_size) , int(m_team_size) , 1 );
 
@@ -836,7 +863,7 @@ public:
   : m_functor( arg_functor )
   , m_policy(  arg_policy )
   , m_reducer( InvalidType() )
-  , m_result_ptr( arg_result.ptr_on_device() )
+  , m_result_ptr( arg_result.data() )
   , m_scratch_space( 0 )
   , m_scratch_flags( 0 )
   , m_unified_space( 0 )
@@ -848,7 +875,7 @@ public:
   : m_functor( arg_functor )
   , m_policy(  arg_policy )
   , m_reducer( reducer )
-  , m_result_ptr( reducer.view().ptr_on_device() )
+  , m_result_ptr( reducer.view().data() )
   , m_scratch_space( 0 )
   , m_scratch_flags( 0 )
   , m_unified_space( 0 )
@@ -1062,7 +1089,7 @@ public:
   : m_functor( arg_functor )
   , m_policy(  arg_policy )
   , m_reducer( InvalidType() )
-  , m_result_ptr( arg_result.ptr_on_device() )
+  , m_result_ptr( arg_result.data() )
   , m_scratch_space( 0 )
   , m_scratch_flags( 0 )
   , m_unified_space( 0 )
@@ -1074,7 +1101,7 @@ public:
   : m_functor( arg_functor )
   , m_policy(  arg_policy )
   , m_reducer( reducer )
-  , m_result_ptr( reducer.view().ptr_on_device() )
+  , m_result_ptr( reducer.view().data() )
   , m_scratch_space( 0 )
   , m_scratch_flags( 0 )
   , m_unified_space( 0 )
@@ -1166,15 +1193,15 @@ public:
     if ( m_scratch_size[1]>0 ) {
       __shared__ int base_thread_id;
       if (threadIdx.x==0 && threadIdx.y==0 ) {
-        threadid = ((blockIdx.x*blockDim.z + threadIdx.z) * blockDim.x * blockDim.y) % Kokkos::Impl::g_device_cuda_lock_arrays.n;
-        threadid = ((threadid + blockDim.x * blockDim.y-1)/(blockDim.x * blockDim.y)) * blockDim.x * blockDim.y;
-        if(threadid > Kokkos::Impl::g_device_cuda_lock_arrays.n) threadid-=blockDim.x * blockDim.y;
+        threadid = (blockIdx.x*blockDim.z + threadIdx.z) %
+          (Kokkos::Impl::g_device_cuda_lock_arrays.n / (blockDim.x * blockDim.y));
+        threadid *= blockDim.x * blockDim.y;
         int done = 0;
         while (!done) {
           done = (0 == atomicCAS(&Kokkos::Impl::g_device_cuda_lock_arrays.scratch[threadid],0,1));
           if(!done) {
             threadid += blockDim.x * blockDim.y;
-            if(threadid > Kokkos::Impl::g_device_cuda_lock_arrays.n) threadid = 0;
+            if(threadid + blockDim.x * blockDim.y >= Kokkos::Impl::g_device_cuda_lock_arrays.n) threadid = 0;
           }
         }
         base_thread_id = threadid;
@@ -1316,7 +1343,7 @@ public:
                                 ,void*>::type = NULL)
   : m_functor( arg_functor )
   , m_reducer( InvalidType() )
-  , m_result_ptr( arg_result.ptr_on_device() )
+  , m_result_ptr( arg_result.data() )
   , m_scratch_space( 0 )
   , m_scratch_flags( 0 )
   , m_unified_space( 0 )
@@ -1343,7 +1370,7 @@ public:
   {
     // Return Init value if the number of worksets is zero
     if( arg_policy.league_size() == 0) {
-      ValueInit::init( ReducerConditional::select(m_functor , m_reducer) , arg_result.ptr_on_device() );
+      ValueInit::init( ReducerConditional::select(m_functor , m_reducer) , arg_result.data() );
       return ;
     }
 
@@ -1386,7 +1413,7 @@ public:
                 , const ReducerType & reducer)
   : m_functor( arg_functor )
   , m_reducer( reducer )
-  , m_result_ptr( reducer.view().ptr_on_device() )
+  , m_result_ptr( reducer.view().data() )
   , m_scratch_space( 0 )
   , m_scratch_flags( 0 )
   , m_unified_space( 0 )
@@ -2041,8 +2068,39 @@ namespace Impl {
     __device__ inline
     void operator() (typename ExecPolicy::work_tag, const typename ExecPolicy::member_type& i, ValueType& val) const {
       //Insert Static Assert with decltype on ValueType equals third argument type of FunctorType::operator()
-      f(typename ExecPolicy::work_tag(), i,val);
+      f(typename ExecPolicy::work_tag(), i, val);
     }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::work_tag, const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals third argument type of FunctorType::operator()
+      f(typename ExecPolicy::work_tag(), i, j, val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::work_tag, const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals third argument type of FunctorType::operator()
+      f(typename ExecPolicy::work_tag(), i, j, k, val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::work_tag, const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, const typename ExecPolicy::member_type& l, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals third argument type of FunctorType::operator()
+      f(typename ExecPolicy::work_tag(), i, j, k, l, val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::work_tag, const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, const typename ExecPolicy::member_type& l, const typename ExecPolicy::member_type& m, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals third argument type of FunctorType::operator()
+      f(typename ExecPolicy::work_tag(), i, j, k, l, m, val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::work_tag, const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, const typename ExecPolicy::member_type& l, const typename ExecPolicy::member_type& m, const typename ExecPolicy::member_type& n, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals third argument type of FunctorType::operator()
+      f(typename ExecPolicy::work_tag(), i, j, k, l, m, n, val);
+    }
+
   };
 
   template< class FunctorType, class ExecPolicy, class ValueType >
@@ -2056,10 +2114,72 @@ namespace Impl {
       //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
       f(i,val);
     }
+
+    __device__ inline
+    void operator() (const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,val);
+    }
+
+    __device__ inline
+    void operator() (const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,val);
+    }
+
+    __device__ inline
+    void operator() (const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, const typename ExecPolicy::member_type& l, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,l,val);
+    }
+
+    __device__ inline
+    void operator() (const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, const typename ExecPolicy::member_type& l, const typename ExecPolicy::member_type& m, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,l,m,val);
+    }
+
+    __device__ inline
+    void operator() (const typename ExecPolicy::member_type& i, const typename ExecPolicy::member_type& j, const typename ExecPolicy::member_type& k, const typename ExecPolicy::member_type& l, const typename ExecPolicy::member_type& m, const typename ExecPolicy::member_type& n, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,l,m,n,val);
+    }
+
+
     __device__ inline
     void operator() (typename ExecPolicy::member_type& i, ValueType& val) const {
       //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
       f(i,val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::member_type& i, typename ExecPolicy::member_type& j, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::member_type& i, typename ExecPolicy::member_type& j, typename ExecPolicy::member_type& k, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::member_type& i, typename ExecPolicy::member_type& j, typename ExecPolicy::member_type& k, typename ExecPolicy::member_type& l, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,l,val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::member_type& i, typename ExecPolicy::member_type& j, typename ExecPolicy::member_type& k, typename ExecPolicy::member_type& l, typename ExecPolicy::member_type& m, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,l,m,val);
+    }
+
+    __device__ inline
+    void operator() (typename ExecPolicy::member_type& i, typename ExecPolicy::member_type& j, typename ExecPolicy::member_type& k, typename ExecPolicy::member_type& l, typename ExecPolicy::member_type& m, typename ExecPolicy::member_type& n, ValueType& val) const {
+      //Insert Static Assert with decltype on ValueType equals second argument type of FunctorType::operator()
+      f(i,j,k,l,m,n,val);
     }
 
   };

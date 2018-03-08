@@ -11,4 +11,5 @@ tag:  2.03.13    date: 07:27:2017    master: da314444    develop: 29ccb58a
 tag:  2.04.00    date: 08:16:2017    master: 54eb75c0    develop: 32fb8ee1
 tag:  2.04.04    date: 09:11:2017    master: 2b7e9c20    develop: 51e7b25a
 tag:  2.04.11    date: 10:28:2017    master: 54a1330a    develop: ed36c017
-tag:  2.5.11     date: 12:15:2017    master: dfe685f4    develop: ec7ad6d8
+tag:  2.5.00     date: 12:15:2017    master: dfe685f4    develop: ec7ad6d8
+tag:  2.6.00     date: 03:07:2018    master: 62e760fa    develop: d1ba7d71

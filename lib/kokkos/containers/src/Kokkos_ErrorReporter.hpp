@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -69,7 +69,7 @@ public:
     clear();
   }
 
-  int getCapacity() const { return m_reports.h_view.dimension_0(); }
+  int getCapacity() const { return m_reports.h_view.extent(0); }
 
   int getNumReports();
 
@@ -90,7 +90,7 @@ public:
   {
     int idx = Kokkos::atomic_fetch_add(&m_numReportsAttempted(), 1);
 
-    if (idx >= 0 && (idx < static_cast<int>(m_reports.d_view.dimension_0()))) {
+    if (idx >= 0 && (idx < static_cast<int>(m_reports.d_view.extent(0)))) {
       m_reporters.d_view(idx) = reporter_id;
       m_reports.d_view(idx)   = report;
       return true;
@@ -118,8 +118,8 @@ inline int ErrorReporter<ReportType, DeviceType>::getNumReports()
 {
   int num_reports = 0;
   Kokkos::deep_copy(num_reports,m_numReportsAttempted);
-  if (num_reports > static_cast<int>(m_reports.h_view.dimension_0())) {
-    num_reports = m_reports.h_view.dimension_0();
+  if (num_reports > static_cast<int>(m_reports.h_view.extent(0))) {
+    num_reports = m_reports.h_view.extent(0);
   }
   return num_reports;
 }

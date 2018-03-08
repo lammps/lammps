@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
 # REAX potential for high energy CHON systems
 # .....
 
@@ -28,43 +29,53 @@ timestep	0.25
 
 run		3000
 Neighbor list info ...
-  2 neighbor list requests
   update every 10 steps, delay 0 steps, check no
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12
   ghost atom cutoff = 12
-  binsize = 6 -> bins = 5 5 5
-Memory usage per processor = 18.1116 Mbytes
+  binsize = 6, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 19 | 19 | 19 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -10197.932            0   -10197.932    38.347492 
-    3000    510.85923   -10091.694            0   -9933.3253    1668.5084 
-Loop time of 18.9088 on 1 procs for 3000 steps with 105 atoms
+    3000    510.63767   -10091.537            0   -9933.2374     1144.545 
+Loop time of 21.2931 on 1 procs for 3000 steps with 105 atoms
 
-Performance: 3.427 ns/day, 7.003 hours/ns, 158.657 timesteps/s
-99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 3.043 ns/day, 7.886 hours/ns, 140.891 timesteps/s
+97.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 17.724     | 17.724     | 17.724     |   0.0 | 93.73
-Neigh   | 0.27457    | 0.27457    | 0.27457    |   0.0 |  1.45
-Comm    | 0.015814   | 0.015814   | 0.015814   |   0.0 |  0.08
-Output  | 1.1921e-05 | 1.1921e-05 | 1.1921e-05 |   0.0 |  0.00
-Modify  | 0.89014    | 0.89014    | 0.89014    |   0.0 |  4.71
-Other   |            | 0.004246   |            |       |  0.02
+Pair    | 19.887     | 19.887     | 19.887     |   0.0 | 93.40
+Neigh   | 0.33143    | 0.33143    | 0.33143    |   0.0 |  1.56
+Comm    | 0.02079    | 0.02079    | 0.02079    |   0.0 |  0.10
+Output  | 2.5272e-05 | 2.5272e-05 | 2.5272e-05 |   0.0 |  0.00
+Modify  | 1.0478     | 1.0478     | 1.0478     |   0.0 |  4.92
+Other   |            | 0.006125   |            |       |  0.03
 
 Nlocal:    105 ave 105 max 105 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:    645 ave 645 max 645 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    3061 ave 3061 max 3061 min
+Neighs:    3063 ave 3063 max 3063 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 3061
-Ave neighs/atom = 29.1524
+Total # of neighbors = 3063
+Ave neighs/atom = 29.1714
 Neighbor list builds = 300
 Dangerous builds not checked
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:19
+Total wall time: 0:00:21

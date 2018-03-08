@@ -1,6 +1,12 @@
 # Pure HNS crystal, ReaxFF tests for benchmarking LAMMPS
 # See README for more info
 
+variable x index 2
+variable y index 2
+variable z index 2
+variable t index 100
+
+
 units             real
 atom_style        charge
 atom_modify sort  100 0.0 # optional
@@ -24,7 +30,7 @@ timestep          0.1
 
 thermo_style      custom step temp pe press evdwl ecoul vol
 thermo_modify     norm yes
-thermo            100
+thermo            10
 
 velocity          all create 300.0 41279 loop geom
 

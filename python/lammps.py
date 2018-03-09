@@ -110,7 +110,7 @@ class lammps(object):
       # allow for int (like MPICH) or void* (like OpenMPI)
 
       if comm:
-	if not lammps.has_mpi4py:
+        if not lammps.has_mpi4py:
           raise Exception('Python mpi4py version is not 2 or 3')
         if lammps.MPI._sizeof(lammps.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int

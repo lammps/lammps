@@ -50,6 +50,8 @@ class PairTersoff : public Pair {
     double c5,ca1,ca4;           // added for TersoffMOD
     double powern_del;
     double c0;                   // added for TersoffMODC
+    double powereta, Re;         //added for REBO1
+    double spl_a,spl_b,spl_c,spl_s,spl_ra,spl_rb;
   };
 
   Param *params;                // parameter set for an I-J-K interaction

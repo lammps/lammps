@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
 # REAX potential for AuO system
 # .....
 
@@ -28,30 +29,40 @@ timestep	0.25
 
 run		100
 Neighbor list info ...
-  2 neighbor list requests
   update every 10 steps, delay 0 steps, check no
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12
   ghost atom cutoff = 12
-  binsize = 6 -> bins = 5 4 5
-Memory usage per processor = 144.382 Mbytes
+  binsize = 6, bins = 5 4 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 157.6 | 157.6 | 157.6 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0            0   -72201.743            0   -72201.743    -166.1947 
-     100    69.043346    -72076.31            0   -71878.943    22702.308 
-Loop time of 17.7559 on 1 procs for 100 steps with 960 atoms
+       0            0   -72201.743            0   -72201.743   -166.19482 
+     100    69.043331   -72076.309            0   -71878.942     22702.89 
+Loop time of 18.4369 on 1 procs for 100 steps with 960 atoms
 
-Performance: 0.122 ns/day, 197.288 hours/ns, 5.632 timesteps/s
-99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 0.117 ns/day, 204.854 hours/ns, 5.424 timesteps/s
+98.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 15.102     | 15.102     | 15.102     |   0.0 | 85.05
-Neigh   | 0.49358    | 0.49358    | 0.49358    |   0.0 |  2.78
-Comm    | 0.0067561  | 0.0067561  | 0.0067561  |   0.0 |  0.04
-Output  | 1.502e-05  | 1.502e-05  | 1.502e-05  |   0.0 |  0.00
-Modify  | 2.1525     | 2.1525     | 2.1525     |   0.0 | 12.12
-Other   |            | 0.001267   |            |       |  0.01
+Pair    | 15.373     | 15.373     | 15.373     |   0.0 | 83.38
+Neigh   | 0.58774    | 0.58774    | 0.58774    |   0.0 |  3.19
+Comm    | 0.0079026  | 0.0079026  | 0.0079026  |   0.0 |  0.04
+Output  | 3.171e-05  | 3.171e-05  | 3.171e-05  |   0.0 |  0.00
+Modify  | 2.4665     | 2.4665     | 2.4665     |   0.0 | 13.38
+Other   |            | 0.001366   |            |       |  0.01
 
 Nlocal:    960 ave 960 max 960 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

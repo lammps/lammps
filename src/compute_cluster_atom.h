@@ -59,7 +59,7 @@ E: Cannot use compute cluster/atom unless atoms have IDs
 
 Atom IDs are used to identify clusters.
 
-E: Compute cluster/atom requires a pair style be defined
+E: Compute cluster/atom requires a pair style to be defined
 
 This is so that the pair style defines a cutoff distance which
 is used to find clusters.

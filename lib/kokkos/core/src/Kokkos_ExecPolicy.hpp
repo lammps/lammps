@@ -379,11 +379,13 @@ Impl::PerThreadValue PerThread(const int& arg);
  *  uses variadic templates. Each and any of the template arguments can
  *  be omitted.
  *
- *  Possible Template arguments and there default values:
+ *  Possible Template arguments and their default values:
  *    ExecutionSpace (DefaultExecutionSpace): where to execute code. Must be enabled.
  *    WorkTag (none): Tag which is used as the first argument for the functor operator.
  *    Schedule<Type> (Schedule<Static>): Scheduling Policy (Dynamic, or Static).
  *    IndexType<Type> (IndexType<ExecutionSpace::size_type>: Integer Index type used to iterate over the Index space.
+ *    LaunchBounds<unsigned,unsigned> Launch Bounds for CUDA compilation,
+ *    default of LaunchBounds<0,0> indicates no launch bounds specified.
  */
 template< class ... Properties>
 class TeamPolicy: public
@@ -560,6 +562,45 @@ template<typename iType, class TeamMemberType>
 KOKKOS_INLINE_FUNCTION
 Impl::ThreadVectorRangeBoundariesStruct<iType,TeamMemberType>
 ThreadVectorRange( const TeamMemberType&, const iType& count );
+
+#if defined(KOKKOS_ENABLE_PROFILING)
+namespace Impl {
+
+template<typename FunctorType, typename TagType,
+  bool HasTag = !std::is_same<TagType, void>::value >
+struct ParallelConstructName;
+
+template<typename FunctorType, typename TagType>
+struct ParallelConstructName<FunctorType, TagType, true> {
+  ParallelConstructName(std::string const& label):label_ref(label) {
+    if (label.empty()) {
+      default_name = std::string(typeid(FunctorType).name()) + "/" +
+        typeid(TagType).name();
+    }
+  }
+  std::string const& get() {
+    return (label_ref.empty()) ? default_name : label_ref;
+  }
+  std::string const& label_ref;
+  std::string default_name;
+};
+
+template<typename FunctorType, typename TagType>
+struct ParallelConstructName<FunctorType, TagType, false> {
+  ParallelConstructName(std::string const& label):label_ref(label) {
+    if (label.empty()) {
+      default_name = std::string(typeid(FunctorType).name());
+    }
+  }
+  std::string const& get() {
+    return (label_ref.empty()) ? default_name : label_ref;
+  }
+  std::string const& label_ref;
+  std::string default_name;
+};
+
+} // namespace Impl
+#endif /* defined KOKKOS_ENABLE_PROFILING */
 
 } // namespace Kokkos
 

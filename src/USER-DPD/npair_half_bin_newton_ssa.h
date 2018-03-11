@@ -15,7 +15,7 @@
 
 NPairStyle(half/bin/newton/ssa,
            NPairHalfBinNewtonSSA,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA)
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST)
 
 #else
 
@@ -28,9 +28,23 @@ namespace LAMMPS_NS {
 
 class NPairHalfBinNewtonSSA : public NPair {
  public:
+  // SSA Work plan data structures
+  int ssa_phaseCt;
+  int *ssa_phaseLen;
+  int **ssa_itemLoc;
+  int **ssa_itemLen;
+  int ssa_gphaseCt;
+  int *ssa_gphaseLen;
+  int **ssa_gitemLoc;
+  int **ssa_gitemLen;
+
+  int ssa_maxPhaseLen;
+
   NPairHalfBinNewtonSSA(class LAMMPS *);
-  ~NPairHalfBinNewtonSSA() {}
+  ~NPairHalfBinNewtonSSA();
   void build(class NeighList *);
+ private:
+  int ssa_maxPhaseCt;
 };
 
 }

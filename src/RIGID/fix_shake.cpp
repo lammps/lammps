@@ -60,6 +60,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
 
   virial_flag = 1;
+  thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
 

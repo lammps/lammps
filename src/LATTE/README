@@ -1,0 +1,23 @@
+This package provides a fix latte command which is a wrapper on the
+LATTE DFTB code, so that molecular dynamics can be run with LAMMPS
+using density-functional tight-binding quantum forces calculated by
+LATTE.  More information on LATTE can be found at this web site:
+https://github.com/lanl/LATTE.  Its authors are Marc Cawkwell and
+Anders Niklasson and Christian Negre from Los Alamos National
+Laboratory (LANL).  A brief technical description of LATTE is given
+on the fix_latte doc page.
+
+Using this package requires the LATTE code to first be downloaded and
+built as a library on your system.  This can be done in lib/latte or
+elsewhere on your system.  Details of the download and build process
+for LATTE are given in the lib/latte/README file and it can also be
+done via the make lib-latte command from the LAMMPS src directory.
+
+Once you have successfully built LAMMPS with this package and the
+LATTE library you can test it using an input file from the examples
+latte dir, e.g.
+
+lmp_serial -in lammps/examples/latte/in.latte.water
+
+This pair style was written in collaboration with the LATTE
+developers.

@@ -40,16 +40,18 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   ilist = NULL;
   numneigh = NULL;
   firstneigh = NULL;
-  firstdouble = NULL;
 
   // defaults, but may be reset by post_constructor()
 
   occasional = 0;
   ghost = 0;
   ssa = 0;
+  history = 0;
+  respaouter = 0;
+  respamiddle = 0;
+  respainner = 0;
   copy = 0;
   copymode = 0;
-  dnum = 0;
 
   // ptrs
 
@@ -60,17 +62,24 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   listskip = NULL;
   listfull = NULL;
 
-  listhistory = NULL;
-  fix_history = NULL;
-
-  respamiddle = 0;
-  listinner = NULL;
-  listmiddle = NULL;
-
   fix_bond = NULL;
 
   ipage = NULL;
-  dpage = NULL;
+
+  // extra rRESPA lists
+
+  inum_inner = gnum_inner = 0;
+  ilist_inner = NULL;
+  numneigh_inner = NULL;
+  firstneigh_inner = NULL;
+
+  inum_middle = gnum_middle = 0;
+  ilist_middle = NULL;
+  numneigh_middle = NULL;
+  firstneigh_middle = NULL;
+
+  ipage_inner = NULL;
+  ipage_middle = NULL;
 
   // Kokkos package
 
@@ -79,7 +88,7 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
 
   // USER-DPD package
 
-  ndxAIR_ssa = NULL;
+  np = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,18 +100,25 @@ NeighList::~NeighList()
     memory->destroy(ilist);
     memory->destroy(numneigh);
     memory->sfree(firstneigh);
-    memory->sfree(firstdouble);
-
     delete [] ipage;
-    delete [] dpage;
+  }
+
+  if (respainner) {
+    memory->destroy(ilist_inner);
+    memory->destroy(numneigh_inner);
+    memory->sfree(firstneigh_inner);
+    delete [] ipage_inner;
+  }
+
+  if (respamiddle) {
+    memory->destroy(ilist_middle);
+    memory->destroy(numneigh_middle);
+    memory->sfree(firstneigh_middle);
+    delete [] ipage_middle;
   }
 
   delete [] iskip;
   memory->destroy(ijskip);
-
-  if (ssa) {
-    memory->sfree(ndxAIR_ssa);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -111,8 +127,7 @@ NeighList::~NeighList()
    copy -> set listcopy for list to copy from
    skip -> set listskip for list to skip from, create copy of itype,ijtype
    halffull -> set listfull for full list to derive from
-   history -> set LH and FH ptrs in partner list that uses the history info
-   respaouter -> set listinner/listmiddle for other rRESPA lists
+   respaouter -> set all 3 outer/middle/inner flags
    bond -> set fix_bond to Fix that made the request
 ------------------------------------------------------------------------- */
 
@@ -123,8 +138,11 @@ void NeighList::post_constructor(NeighRequest *nq)
   occasional = nq->occasional;
   ghost = nq->ghost;
   ssa = nq->ssa;
+  history = nq->history;
+  respaouter = nq->respaouter;
+  respamiddle = nq->respamiddle;
+  respainner = nq->respainner;
   copy = nq->copy;
-  dnum = nq->dnum;
 
   if (nq->copy)
     listcopy = neighbor->lists[nq->copylist];
@@ -144,24 +162,6 @@ void NeighList::post_constructor(NeighRequest *nq)
   if (nq->halffull)
     listfull = neighbor->lists[nq->halffulllist];
 
-  if (nq->history) {
-    neighbor->lists[nq->historylist]->listhistory = this;
-    int tmp;
-    neighbor->lists[nq->historylist]->fix_history = 
-      (Fix *) ((Pair *) nq->requestor)->extract("history",tmp);
-  }
-  
-  if (nq->respaouter) {
-    if (nq->respamiddlelist < 0) {
-      respamiddle = 0;
-      listinner = neighbor->lists[nq->respainnerlist];
-    } else {
-      respamiddle = 1;
-      listmiddle = neighbor->lists[nq->respamiddlelist];
-      listinner = neighbor->lists[nq->respainnerlist];
-    }
-  }
-
   if (nq->bond) fix_bond = (Fix *) nq->requestor;
 }
 
@@ -177,40 +177,39 @@ void NeighList::setup_pages(int pgsize_caller, int oneatom_caller)
   for (int i = 0; i < nmypage; i++)
     ipage[i].init(oneatom,pgsize,PGDELTA);
 
-  if (dnum) {
-    dpage = new MyPage<double>[nmypage];
+  if (respainner) {
+    ipage_inner = new MyPage<int>[nmypage];
     for (int i = 0; i < nmypage; i++)
-      dpage[i].init(dnum*oneatom,dnum*pgsize,PGDELTA);
-  } else dpage = NULL;
+      ipage_inner[i].init(oneatom,pgsize,PGDELTA);
+  }
+
+  if (respamiddle) {
+    ipage_middle = new MyPage<int>[nmypage];
+    for (int i = 0; i < nmypage; i++)
+      ipage_middle[i].init(oneatom,pgsize,PGDELTA);
+  }
 }
 
 /* ----------------------------------------------------------------------
    grow per-atom data to allow for nlocal/nall atoms
-   for parent lists:
-     also trigger grow in child list(s) which are not built themselves
-     history calls grow() in listhistory
-     respaouter calls grow() in respainner, respamiddle
    triggered by neighbor list build
    not called if a copy list
 ------------------------------------------------------------------------- */
 
 void NeighList::grow(int nlocal, int nall)
 {
-  // trigger grow() in children before possible return
-
-  if (listhistory) listhistory->grow(nlocal,nall);
-  if (listinner) listinner->grow(nlocal,nall);
-  if (listmiddle) listmiddle->grow(nlocal,nall);
-
   // skip if data structs are already big enough
 
-  if (ghost) {
+  if (ssa) {
+    if ((nlocal * 3) + nall <= maxatom) return;
+  } else if (ghost) {
     if (nall <= maxatom) return;
   } else {
     if (nlocal <= maxatom) return;
   }
 
-  maxatom = atom->nmax;
+  if (ssa) maxatom = (nlocal * 3) + nall;
+  else maxatom = atom->nmax;
 
   memory->destroy(ilist);
   memory->destroy(numneigh);
@@ -219,16 +218,25 @@ void NeighList::grow(int nlocal, int nall)
   memory->create(numneigh,maxatom,"neighlist:numneigh");
   firstneigh = (int **) memory->smalloc(maxatom*sizeof(int *),
                                         "neighlist:firstneigh");
-  if (dnum) {
-    memory->sfree(firstdouble);
-    firstdouble = (double **) memory->smalloc(maxatom*sizeof(double *),
-                                              "neighlist:firstdouble");
+
+  if (respainner) {
+    memory->destroy(ilist_inner);
+    memory->destroy(numneigh_inner);
+    memory->sfree(firstneigh_inner);
+    memory->create(ilist_inner,maxatom,"neighlist:ilist_inner");
+    memory->create(numneigh_inner,maxatom,"neighlist:numneigh_inner");
+    firstneigh_inner = (int **) memory->smalloc(maxatom*sizeof(int *),
+                                                "neighlist:firstneigh_inner");
   }
 
-  if (ssa) {
-    if (ndxAIR_ssa) memory->sfree(ndxAIR_ssa);
-    ndxAIR_ssa = (uint16_t (*)[8]) memory->smalloc(sizeof(uint16_t)*8*maxatom,
-      "neighlist:ndxAIR_ssa");
+  if (respamiddle) {
+    memory->destroy(ilist_middle);
+    memory->destroy(numneigh_middle);
+    memory->sfree(firstneigh_middle);
+    memory->create(ilist_middle,maxatom,"neighlist:ilist_middle");
+    memory->create(numneigh_middle,maxatom,"neighlist:numneigh_middle");
+    firstneigh_middle = (int **) memory->smalloc(maxatom*sizeof(int *),
+                                                 "neighlist:firstneigh_middle");
   }
 }
 
@@ -260,22 +268,20 @@ void NeighList::print_attributes()
   printf("  %d = size\n",rq->size);
   printf("  %d = history\n",rq->history);
   printf("  %d = granonesided\n",rq->granonesided);
-  printf("  %d = respainner\n",rq->respainner);
-  printf("  %d = respamiddle\n",rq->respamiddle);
   printf("  %d = respaouter\n",rq->respaouter);
+  printf("  %d = respamiddle\n",rq->respamiddle);
+  printf("  %d = respainner\n",rq->respainner);
   printf("  %d = bond\n",rq->bond);
   printf("  %d = omp\n",rq->omp);
   printf("  %d = intel\n",rq->intel);
   printf("  %d = kokkos host\n",rq->kokkos_host);
   printf("  %d = kokkos device\n",rq->kokkos_device);
   printf("  %d = ssa flag\n",ssa);
-  printf("  %d = dnum\n",dnum);
   printf("\n");
   printf("  %d = skip flag\n",rq->skip);
   printf("  %d = off2on\n",rq->off2on);
   printf("  %d = copy flag\n",rq->copy);
   printf("  %d = half/full\n",rq->halffull);
-  printf("  %d = history/partner\n",rq->history_partner);
   printf("\n");
 }
 
@@ -299,14 +305,25 @@ bigint NeighList::memory_usage()
       bytes += ipage[i].size();
   }
 
-  if (dnum && dpage) {
-    for (int i = 0; i < nmypage; i++) {
-      bytes += maxatom * sizeof(double *);
-      bytes += dpage[i].size();
+  if (respainner) {
+    bytes += memory->usage(ilist_inner,maxatom);
+    bytes += memory->usage(numneigh_inner,maxatom);
+    bytes += maxatom * sizeof(int *);
+    if (ipage_inner) {
+      for (int i = 0; i < nmypage; i++)
+        bytes += ipage_inner[i].size();
     }
   }
 
-  if (ndxAIR_ssa) bytes += sizeof(uint16_t) * 8 * maxatom;
+  if (respamiddle) {
+    bytes += memory->usage(ilist_middle,maxatom);
+    bytes += memory->usage(numneigh_middle,maxatom);
+    bytes += maxatom * sizeof(int *);
+    if (ipage_middle) {
+      for (int i = 0; i < nmypage; i++)
+        bytes += ipage_middle[i].size();
+    }
+  }
 
   return bytes;
 }

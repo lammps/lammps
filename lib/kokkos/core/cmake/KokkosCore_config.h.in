@@ -1,15 +1,15 @@
-#if !defined(KOKKOS_MACROS_HPP) || defined(KOKKOS_CORE_CONFIG_H)
-#error "Don't include KokkosCore_config.h directly; include Kokkos_Macros.hpp instead."
-#else
-#define KOKKOS_CORE_CONFIG_H
-#endif
-
 /* The trivial 'src/build_common.sh' creates a config
  * that must stay in sync with this file.
  */
 #cmakedefine KOKKOS_FOR_SIERRA
 
-#ifndef KOKKOS_FOR_SIERRA
+#if !defined(KOKKOS_FOR_SIERRA)
+
+#if !defined(KOKKOS_MACROS_HPP) || defined(KOKKOS_CORE_CONFIG_H)
+#error "Don't include KokkosCore_config.h directly; include Kokkos_Macros.hpp instead."
+#else
+#define KOKKOS_CORE_CONFIG_H
+#endif
 
 #cmakedefine KOKKOS_HAVE_CUDA
 #cmakedefine KOKKOS_HAVE_OPENMP
@@ -93,12 +93,6 @@
 #cmakedefine KOKKOS_ARCH_PASCAL60 1
 #cmakedefine KOKKOS_ARCH_PASCAL61 1
 
-// Don't forbid users from defining this macro on the command line,
-// but still make sure that CMake logic can control its definition.
-#ifndef KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA
-#cmakedefine KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA 1
-#endif
-
 // TODO: These are currently not used in Kokkos.  Should they be removed?
 #cmakedefine KOKKOS_HAVE_MPI
 #cmakedefine KOKKOS_HAVE_CUSPARSE
@@ -107,4 +101,4 @@
 #cmakedefine KOKKOS_USING_DEPRECATED_VIEW
 #cmakedefine KOKKOS_HAVE_CXX11
 
-#endif // KOKKOS_FOR_SIERRA
+#endif // !defined(KOKKOS_FOR_SIERRA)

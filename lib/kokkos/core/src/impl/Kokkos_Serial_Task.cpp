@@ -62,7 +62,7 @@ void TaskQueueSpecialization< Kokkos::Serial >::execute
 {
   using execution_space = Kokkos::Serial ;
   using queue_type      = TaskQueue< execution_space > ;
-  using task_root_type  = TaskBase< execution_space , void , void > ;
+  using task_root_type  = TaskBase< void , void , void > ;
   using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
@@ -122,7 +122,7 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
 {
   using execution_space = Kokkos::Serial ;
   using queue_type      = TaskQueue< execution_space > ;
-  using task_root_type  = TaskBase< execution_space , void , void > ;
+  using task_root_type  = TaskBase< void , void , void > ;
   using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;

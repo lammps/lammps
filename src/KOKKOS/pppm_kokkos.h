@@ -24,6 +24,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 
 #include "pppm.h"
 #include "gridcomm_kokkos.h"
+#include "kokkos_base.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -86,7 +87,7 @@ struct TagPPPM_slabcorr4{};
 struct TagPPPM_timing_zero{};
 
 template<class DeviceType>
-class PPPMKokkos : public PPPM {
+class PPPMKokkos : public PPPM, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -379,10 +380,10 @@ class PPPMKokkos : public PPPM {
 
   // grid communication
 
-  virtual void pack_forward_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  virtual void unpack_forward_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  virtual void pack_reverse_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  virtual void unpack_reverse_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
+  void pack_forward_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
+  void unpack_forward_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
+  void pack_reverse_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
+  void unpack_reverse_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
 
   // triclinic
 

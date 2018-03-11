@@ -72,9 +72,21 @@ c     Complete the calculation of density
 
           if( rho0(i) .gt. 0.0 ) then
             if (ialloy.eq.1) then
-              t_ave(1,i) = t_ave(1,i)/tsq_ave(1,i)
-              t_ave(2,i) = t_ave(2,i)/tsq_ave(2,i)
-              t_ave(3,i) = t_ave(3,i)/tsq_ave(3,i)
+              if (tsq_ave(1,i) .ne. 0.0d0) then
+                t_ave(1,i) = t_ave(1,i)/tsq_ave(1,i)
+              else
+                t_ave(1,i) = 0.0d0
+              endif
+              if (tsq_ave(2,i) .ne. 0.0d0) then
+                t_ave(2,i) = t_ave(2,i)/tsq_ave(2,i)
+              else
+                t_ave(2,i) = 0.0d0
+              endif
+              if (tsq_ave(3,i) .ne. 0.0d0) then
+                t_ave(3,i) = t_ave(3,i)/tsq_ave(3,i)
+              else
+                t_ave(3,i) = 0.0d0
+              endif
             else if (ialloy.eq.2) then
               t_ave(1,i) = t1_meam(elti)
               t_ave(2,i) = t2_meam(elti)

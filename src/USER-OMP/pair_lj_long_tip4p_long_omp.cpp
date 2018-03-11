@@ -379,7 +379,7 @@ void PairLJLongTIP4PLongOMP::compute_inner()
   for (i = 0; i < nall; i++) hneigh_thr[i].t = 0;
 
   const int nthreads = comm->nthreads;
-  const int inum = listinner->inum;
+  const int inum = list->inum_inner;
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -403,7 +403,7 @@ void PairLJLongTIP4PLongOMP::compute_middle()
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  const int inum = listmiddle->inum;
+  const int inum = list->inum_middle;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -457,7 +457,7 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
   }
 
   const int nthreads = comm->nthreads;
-  const int inum = listouter->inum;
+  const int inum = list->inum;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -1126,9 +1126,9 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 
   double *lj1i, *lj2i;
 
-  ilist = listinner->ilist;
-  numneigh = listinner->numneigh;
-  firstneigh = listinner->firstneigh;
+  ilist = list->ilist_inner;
+  numneigh = list->numneigh_inner;
+  firstneigh = list->firstneigh_inner;
 
   // loop over neighbors of my atoms
 
@@ -1388,9 +1388,9 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
   int ni;
   double *lj1i, *lj2i;
 
-  ilist = listmiddle->ilist;
-  numneigh = listmiddle->numneigh;
-  firstneigh = listmiddle->firstneigh;
+  ilist = list->ilist_middle;
+  numneigh = list->numneigh_middle;
+  firstneigh = list->firstneigh_middle;
 
   // loop over neighbors of my atoms
 
@@ -1656,9 +1656,9 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 
   double fxtmp,fytmp,fztmp;
 
-  ilist = listouter->ilist;
-  numneigh = listouter->numneigh;
-  firstneigh = listouter->firstneigh;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
 
@@ -1700,6 +1700,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
     jnum = numneigh[i];
     offseti = offset[itype];
     lj1i = lj1[itype]; lj2i = lj2[itype]; lj3i = lj3[itype]; lj4i = lj4[itype];
+    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

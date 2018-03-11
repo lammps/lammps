@@ -131,6 +131,8 @@ action pair_zbl_gpu.cpp
 action pair_zbl_gpu.h
 action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
+action pair_ufm_gpu.cpp
+action pair_ufm_gpu.h
 
 # edit 2 Makefile.package files to include/exclude package info
 

@@ -1,0 +1,52 @@
+########################################################################
+#### 3D droplet oscilation using many-body DPD simulation            ###
+####                                                                 ### 
+#### Created  : Zhen Li (zhen_li@brown.edu)                          ### 
+####            Division of Applied Mathematics, Brown University.   ###
+####                                                                 ###
+#### mDPD parameters follow the choice of the publication:           ###
+#### Z. Li et al. "Three dimensional flow structures in a moving     ###
+#### droplet on substrate: a dissipative particle dynamics study"    ###
+#### Physics of Fluids, 2013, 25: 072103. DOI: 10.1063/1.4812366     ###
+########################################################################
+units 		        lj
+dimension	        3
+boundary	        p p p
+neighbor	        0.3 bin
+neigh_modify        every 1 delay 0 check yes
+
+atom_style	        mdpd
+
+region     mdpd     block -25 25 -10 10 -10 10 units box
+create_box          1 mdpd
+
+lattice             fcc 6 
+region     film     block -20 20 -7.5 7.5 -2.0 2.0 units box
+create_atoms        1 region film 
+
+pair_style          hybrid/overlay mdpd/rhosum mdpd 1.0 1.0 9872598 
+pair_coeff          1 1 mdpd/rhosum  0.75
+pair_coeff          1 1 mdpd         -40 25 18.0 1.0 0.75 
+mass                1 1.0
+
+compute             mythermo all temp
+thermo              100
+thermo_modify       temp mythermo
+thermo_modify       flush yes
+
+velocity            all create 1.0 38497 loop local dist gaussian
+
+fix         mvv     all mvv/dpd
+
+#dump        mydump  all atom 100 atom.lammpstrj
+
+#dump       jpg      all image 200 image.*.jpg type type zoom 5 adiam 0.5 &
+#                    view 90 90 box no 0 size 600 200
+#dump_modify         jpg pad 4
+
+#dump       avi      all movie 200 movie.avi type type zoom 5 adiam 0.5 &
+#                    view 90 90 box no 0 size 600 200
+#dump_modify         avi pad 4
+
+timestep            0.01
+run                 4000

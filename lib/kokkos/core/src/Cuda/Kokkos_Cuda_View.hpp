@@ -127,11 +127,11 @@ struct CudaTextureFetch {
   template< class CudaMemorySpace >
   inline explicit
   CudaTextureFetch( const ValueType * const arg_ptr
-                  , Kokkos::Experimental::Impl::SharedAllocationRecord< CudaMemorySpace , void > & record
+                  , Kokkos::Impl::SharedAllocationRecord< CudaMemorySpace , void > * record
                   )
-    : m_obj( record.template attach_texture_object< AliasType >() )
+    : m_obj( record->template attach_texture_object< AliasType >() )
     , m_ptr( arg_ptr )
-    , m_offset( record.attach_texture_object_offset( reinterpret_cast<const AliasType*>( arg_ptr ) ) )
+    , m_offset( record->attach_texture_object_offset( reinterpret_cast<const AliasType*>( arg_ptr ) ) )
     {}
 
   // Texture object spans the entire allocation.
@@ -199,8 +199,8 @@ struct CudaLDGFetch {
   template< class CudaMemorySpace >
   inline explicit
   CudaLDGFetch( const ValueType * const arg_ptr
-                  , Kokkos::Experimental::Impl::SharedAllocationRecord< CudaMemorySpace , void > const &
-                  )
+              , Kokkos::Impl::SharedAllocationRecord<CudaMemorySpace,void>*
+              )
     : m_ptr( arg_ptr )
     {}
 
@@ -221,7 +221,6 @@ struct CudaLDGFetch {
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 /** \brief  Replace Default ViewDataHandle with Cuda texture fetch specialization
@@ -286,7 +285,21 @@ public:
       // Assignment of texture = non-texture requires creation of a texture object
       // which can only occur on the host.  In addition, 'get_record' is only valid
       // if called in a host execution space
-      return handle_type( arg_data_ptr , arg_tracker.template get_record< typename Traits::memory_space >() );
+
+
+      typedef typename Traits::memory_space memory_space ;
+      typedef typename Impl::SharedAllocationRecord<memory_space,void> record ;
+
+      record * const r = arg_tracker.template get_record< memory_space >();
+
+#if ! defined( KOKKOS_ENABLE_CUDA_LDG_INTRINSIC )
+      if ( 0 == r ) {
+        Kokkos::abort("Cuda const random access View using Cuda texture memory requires Kokkos to allocate the View's memory");
+      }
+#endif
+
+      return handle_type( arg_data_ptr , r );
+
 #else
       Kokkos::Impl::cuda_abort("Cannot create Cuda texture object from within a Cuda kernel");
       return handle_type();
@@ -294,9 +307,8 @@ public:
     }
 };
 
-}
-}
-}
+} // namespace Impl
+} // namespace Kokkos
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

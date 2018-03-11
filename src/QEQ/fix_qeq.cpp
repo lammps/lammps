@@ -362,6 +362,7 @@ int FixQEq::CG( double *b, double *x )
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       d[i] = r[i] * Hdia_inv[i];
+    else d[i] = 0.0;
   }
 
   b_norm = parallel_norm( b, inum );
@@ -594,6 +595,7 @@ double FixQEq::parallel_norm( double *v, int n )
   ilist = list->ilist;
 
   my_sum = 0.0;
+  norm_sqr = 0.0;
   for( ii = 0; ii < n; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
@@ -692,11 +694,13 @@ void FixQEq::vector_add( double* dest, double c, double* v, int k )
 
 void FixQEq::read_file(char *file)
 {
-  int itype,ntypes;
+  int i;
   int params_per_line = 6;
   char **words = new char*[params_per_line+1];
 
-  ntypes = atom->ntypes;
+  int ntypes = atom->ntypes;
+  int *setflag = new int[ntypes+1];
+  for (i=0; i < params_per_line; ++i) setflag[i] = 0;
 
   memory->create(chi,ntypes+1,"qeq:chi");
   memory->create(eta,ntypes+1,"qeq:eta");
@@ -719,10 +723,10 @@ void FixQEq::read_file(char *file)
   // read each line out of file, skipping blank lines or leading '#'
   // store line of params if all 3 element tags are in element list
 
-  int n,nwords,ielement,eof;
+  int n,nwords,eof,nlo,nhi;
   char line[MAXLINE],*ptr;
 
-  eof = ielement = 0;
+  eof = 0;
 
   while (1) {
     if (comm->me == 0) {
@@ -737,28 +741,39 @@ void FixQEq::read_file(char *file)
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    ielement ++;
-    if (ielement > ntypes)
-      error->all(FLERR,"Invalid fix qeq parameter file");
-
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
-    // words = ptrs to all words in line
+    // must have 6 parameters per line.
 
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    if (nwords < 6)
+      error->all(FLERR,"Invalid fix qeq parameter file");
 
-    itype = atoi(words[0]);
-    chi[itype]   = atof(words[1]);
-    eta[itype]   = atof(words[2]);
-    gamma[itype] = atof(words[3]);
-    zeta[itype]  = atof(words[4]);
-    zcore[itype] = atof(words[5]);
+    // words = ptrs to first 6 words in line
+
+    for (n=0, words[n] = strtok(line," \t\n\r\f");
+         n < 6;
+         words[++n] = strtok(NULL," \t\n\r\f"));
+
+    force->bounds(FLERR,words[0],ntypes,nlo,nhi);
+    for (n=nlo; n <=nhi; ++n) {
+      chi[n]     = force->numeric(FLERR,words[1]);
+      eta[n]     = force->numeric(FLERR,words[2]);
+      gamma[n]   = force->numeric(FLERR,words[3]);
+      zeta[n]    = force->numeric(FLERR,words[4]);
+      zcore[n]   = force->numeric(FLERR,words[5]);
+      setflag[n] = 1;
+    }
   }
+
+  // check if all types are set
+  for (n=1; n <= ntypes; ++n)
+    if (setflag[n] == 0)
+      error->all(FLERR,"Invalid fix qeq parameter file");
+
   delete [] words;
+  delete [] setflag;
 }

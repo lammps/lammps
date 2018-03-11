@@ -26,7 +26,10 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallLJ1043::FixWallLJ1043(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+  FixWall(lmp, narg, arg)
+{
+  dynamic_group_allow = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,6 +55,7 @@ void FixWallLJ1043::precompute(int m)
 void FixWallLJ1043::wall_particle(int m, int which, double coord)
 {
   double delta,rinv,r2inv,r4inv,r10inv,fwall;
+  double vn;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -79,5 +83,11 @@ void FixWallLJ1043::wall_particle(int m, int which, double coord)
       ewall[0] += coeff1[m]*r10inv - coeff2[m]*r4inv -
 	coeff3[m]*pow(delta+coeff4[m],-3.0) - offset[m];
       ewall[m+1] += fwall;
+
+      if (evflag) {
+        if (side < 0) vn = -fwall*delta;
+        else vn = fwall*delta;
+        v_tally(dim, i, vn);
+      }
     }
 }

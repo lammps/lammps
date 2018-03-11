@@ -143,15 +143,6 @@ int Region::match(double x, double y, double z)
 }
 
 /* ----------------------------------------------------------------------
-   generate error if Kokkos function defaults to base class
-------------------------------------------------------------------------- */
-
-void Region::match_all_kokkos(int, DAT::t_int_1d)
-{
-  error->all(FLERR,"Can only use Kokkos supported regions with Kokkos package");
-}
-
-/* ----------------------------------------------------------------------
    generate list of contact points for interior or exterior regions
    if region has variable shape, invoke shape_update() once per timestep
    if region is dynamic:

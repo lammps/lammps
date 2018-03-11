@@ -93,7 +93,7 @@ intermediate replica with the previous and the next image:
 
 Fnudge_parallel = {Kspring} * (|Ri+1 - Ri| - |Ri - Ri-1|) :pre
 
-Note that in this case the specified {Kspring) is in force/distance
+Note that in this case the specified {Kspring} is in force/distance
 units.
 
 With a value of {ideal}, the spring force is computed as suggested in
@@ -105,7 +105,7 @@ where RD is the "reaction coordinate" see "neb"_neb.html section, and
 RDideal is the ideal RD for which all the images are equally spaced.
 I.e. RDideal = (I-1)*meanDist when the climbing replica is off, where
 I is the replica number).  The meanDist is the average distance
-between replicas.  Note that in this case the specified {Kspring) is
+between replicas.  Note that in this case the specified {Kspring} is
 in force units.
 
 Note that the {ideal} form of nudging can often be more effective at
@@ -113,9 +113,9 @@ keeping the replicas equally spaced.
 
 :line
 
-The keyword {perp} specifies if and how a perpendicual nudging force
+The keyword {perp} specifies if and how a perpendicular nudging force
 is computed.  It adds a spring force perpendicular to the path in
-order to prevent the path from becoming too kinky.  It can
+order to prevent the path from becoming too strongly kinked.  It can
 significantly improve the convergence of the NEB calculation when the
 resolution is poor.  I.e. when few replicas are used; see
 "(Maras)"_#Maras1 for details.
@@ -138,17 +138,17 @@ By default, no additional forces act on the first and last replicas
 during the NEB relaxation, so these replicas simply relax toward their
 respective local minima.  By using the key word {end}, additional
 forces can be applied to the first and/or last replicas, to enable
-them to relax toward a MEP while constraining their energy.
+them to relax toward a MEP while constraining their energy E to the
+target energy ETarget.
 
-The interatomic force Fi for the specified replica becomes:
+If ETarget>E, the interatomic force Fi for the specified replica becomes:
 
 Fi = -Grad(V) + (Grad(V) dot T' + (E-ETarget)*Kspring3) T',  {when} Grad(V) dot T' < 0
 Fi = -Grad(V) + (Grad(V) dot T' + (ETarget- E)*Kspring3) T', {when} Grad(V) dot T' > 0
 :pre
 
-where E is the current energy of the replica and ETarget is the target
-energy.  The "spring" constant on the difference in energies is the
-specified {Kspring3} value.
+The "spring" constant on the difference in energies is the specified
+{Kspring3} value.
 
 When {estyle} is specified as {first}, the force is applied to the
 first replica.  When {estyle} is specified as {last}, the force is
@@ -183,10 +183,9 @@ After converging a NEB calculation using an {estyle} of
 have a larger energy than the first replica. If this is not the case,
 the path is probably not a MEP.
 
-Finally, note that if the last replica converges toward a local
-minimum which has a larger energy than the energy of the first
-replica, a NEB calculation using an {estyle} of {last/efirst} or
-{last/efirst/middle} cannot reach final convergence.
+Finally, note that the last replica may never reach the target energy
+if it is stuck in a local minima which has a larger energy than the
+target energy.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

@@ -125,6 +125,123 @@ namespace Impl {
   };
 }
 
+/// \class GraphRowViewConst
+/// \brief View of a row of a sparse graph.
+/// \tparam GraphType Sparse graph type, such as (but not limited to) StaticCrsGraph.
+///
+/// This class provides a generic view of a row of a sparse graph.
+/// We intended this class to view a row of a StaticCrsGraph, but
+/// GraphType need not necessarily be CrsMatrix.
+///
+/// The row view is suited for computational kernels like sparse
+/// matrix-vector multiply, as well as for modifying entries in the
+/// sparse matrix.  The view is always const as it does not allow graph modification.
+///
+/// Here is an example loop over the entries in the row:
+/// \code
+/// typedef typename GraphRowViewConst<MatrixType>::ordinal_type ordinal_type;
+///
+/// GraphRowView<GraphType> G_i = ...;
+/// const ordinal_type numEntries = G_i.length;
+/// for (ordinal_type k = 0; k < numEntries; ++k) {
+///   ordinal_type j = G_i.colidx (k);
+///   // ... do something with A_ij and j ...
+/// }
+/// \endcode
+///
+/// GraphType must provide the \c data_type
+/// typedefs. In addition, it must make sense to use GraphRowViewConst to
+/// view a row of GraphType. In particular, column
+/// indices of a row must be accessible using the <tt>entries</tt>
+/// resp. <tt>colidx</tt> arrays given to the constructor of this
+/// class, with a constant <tt>stride</tt> between successive entries.
+/// The stride is one for the compressed sparse row storage format (as
+/// is used by CrsMatrix), but may be greater than one for other
+/// sparse matrix storage formats (e.g., ELLPACK or jagged diagonal).
+template<class GraphType>
+struct GraphRowViewConst {
+  //! The type of the column indices in the row.
+  typedef const typename GraphType::data_type ordinal_type;
+
+private:
+  //! Array of (local) column indices in the row.
+  ordinal_type* colidx_;
+  /// \brief Stride between successive entries in the row.
+  ///
+  /// For compressed sparse row (CSR) storage, this is always one.
+  /// This might be greater than one for storage formats like ELLPACK
+  /// or Jagged Diagonal.  Nevertheless, the stride can never be
+  /// greater than the number of rows or columns in the matrix.  Thus,
+  /// \c ordinal_type is the correct type.
+  const ordinal_type stride_;
+
+public:
+  /// \brief Constructor
+  ///
+  /// \param values [in] Array of the row's values.
+  /// \param colidx [in] Array of the row's column indices.
+  /// \param stride [in] (Constant) stride between matrix entries in
+  ///   each of the above arrays.
+  /// \param count [in] Number of entries in the row.
+  KOKKOS_INLINE_FUNCTION
+  GraphRowViewConst ( ordinal_type* const colidx_in,
+                      const ordinal_type& stride,
+                      const ordinal_type& count) :
+    colidx_ (colidx_in), stride_ (stride), length (count)
+  {}
+
+  /// \brief Constructor with offset into \c colidx array
+  ///
+  /// \param colidx [in] Array of the row's column indices.
+  /// \param stride [in] (Constant) stride between matrix entries in
+  ///   each of the above arrays.
+  /// \param count [in] Number of entries in the row.
+  /// \param idx [in] Start offset into \c colidx array
+  ///
+  /// \tparam OffsetType The type of \c idx (see above).  Must be a
+  ///   built-in integer type.  This may differ from ordinal_type.
+  ///   For example, the matrix may have dimensions that fit in int,
+  ///   but a number of entries that does not fit in int.
+  template<class OffsetType>
+  KOKKOS_INLINE_FUNCTION
+  GraphRowViewConst ( const typename GraphType::entries_type& colidx_in,
+                      const ordinal_type& stride,
+                      const ordinal_type& count,
+                      const OffsetType& idx,
+                      const typename std::enable_if<std::is_integral<OffsetType>::value, int>::type& = 0) :
+    colidx_ (&colidx_in(idx)), stride_ (stride), length (count)
+  {}
+
+  /// \brief Number of entries in the row.
+  ///
+  /// This is a public const field rather than a public const method,
+  /// in order to avoid possible overhead of a method call if the
+  /// compiler is unable to inline that method call.
+  ///
+  /// We assume that rows contain no duplicate entries (i.e., entries
+  /// with the same column index).  Thus, a row may have up to
+  /// A.numCols() entries.  This means that the correct type of
+  /// 'length' is ordinal_type.
+  const ordinal_type length;
+
+  /// \brief (Const) reference to the column index of entry i in this
+  ///   row of the sparse matrix.
+  ///
+  /// "Entry i" is not necessarily the entry with column index i, nor
+  /// does i necessarily correspond to the (local) row index.
+  KOKKOS_INLINE_FUNCTION
+  ordinal_type& colidx (const ordinal_type& i) const {
+    return colidx_[i*stride_];
+  }
+
+  /// \brief An alias for colidx
+  KOKKOS_INLINE_FUNCTION
+  ordinal_type& operator()(const ordinal_type& i) const {
+    return colidx(i);
+  }
+};
+
+
 /// \class StaticCrsGraph
 /// \brief Compressed row storage array.
 ///
@@ -216,6 +333,38 @@ public:
     return (row_map.dimension_0 () != 0) ?
       row_map.dimension_0 () - static_cast<size_type> (1) :
       static_cast<size_type> (0);
+  }
+
+  /// \brief Return a const view of row i of the graph.
+  ///
+  /// If row i does not belong to the graph, return an empty view.
+  ///
+  /// The returned object \c view implements the following interface:
+  /// <ul>
+  /// <li> \c view.length is the number of entries in the row </li>
+  /// <li> \c view.colidx(k) returns a const reference to the
+  ///      column index of the k-th entry in the row </li>
+  /// </ul>
+  /// k is not a column index; it just counts from 0 to
+  /// <tt>view.length - 1</tt>.
+  ///
+  /// Users should not rely on the return type of this method.  They
+  /// should instead assign to 'auto'.  That allows compile-time
+  /// polymorphism for different kinds of sparse matrix formats (e.g.,
+  /// ELLPACK or Jagged Diagonal) that we may wish to support in the
+  /// future.
+  KOKKOS_INLINE_FUNCTION
+  GraphRowViewConst<StaticCrsGraph> rowConst (const data_type i) const {
+    const size_type start = row_map(i);
+    // count is guaranteed to fit in ordinal_type, as long as no row
+    // has duplicate entries.
+    const data_type count = static_cast<data_type> (row_map(i+1) - start);
+
+    if (count == 0) {
+      return GraphRowViewConst<StaticCrsGraph> (NULL, 1, 0);
+    } else {
+      return GraphRowViewConst<StaticCrsGraph> (entries, 1, count, start);
+    }
   }
 
   /**  \brief  Create a row partitioning into a given number of blocks

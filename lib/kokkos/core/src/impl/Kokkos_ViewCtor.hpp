@@ -96,6 +96,29 @@ struct is_view_label< const char[N] > : public std::true_type {};
 template< typename ... P >
 struct ViewCtorProp ;
 
+// Forward declare
+template< typename Specialize , typename T >
+struct CommonViewAllocProp ;
+
+/* Common value_type stored as ViewCtorProp
+ */
+template< typename Specialize , typename T >
+struct ViewCtorProp< void , CommonViewAllocProp<Specialize,T> >
+{
+  ViewCtorProp() = default ;
+  ViewCtorProp( const ViewCtorProp & ) = default ;
+  ViewCtorProp & operator = ( const ViewCtorProp & ) = default ;
+
+  using type = CommonViewAllocProp<Specialize,T> ;
+
+  KOKKOS_INLINE_FUNCTION
+  ViewCtorProp( const type & arg ) : value( arg ) {}
+  KOKKOS_INLINE_FUNCTION
+  ViewCtorProp( type && arg ) : value( arg ) {}
+
+  type value ;
+};
+
 /*  std::integral_constant<unsigned,I> are dummy arguments
  *  that avoid duplicate base class errors
  */
@@ -107,6 +130,7 @@ struct ViewCtorProp< void , std::integral_constant<unsigned,I> >
   ViewCtorProp & operator = ( const ViewCtorProp & ) = default ;
 
   template< typename P >
+  KOKKOS_INLINE_FUNCTION
   ViewCtorProp( const P & ) {}
 };
 

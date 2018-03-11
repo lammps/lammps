@@ -15,7 +15,8 @@ endif
 
 CXXFLAGS = -O3
 LINK ?= $(CXX)
-LDFLAGS ?= -lpthread
+LDFLAGS ?=
+override LDFLAGS += -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
@@ -28,6 +29,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	OBJ_CUDA = TestCuda.o TestMain.o gtest-all.o
 	TARGETS += KokkosContainers_PerformanceTest_Cuda
 	TEST_TARGETS += test-cuda
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
+	OBJ_ROCM = TestROCm.o TestMain.o gtest-all.o
+	TARGETS += KokkosContainers_PerformanceTest_ROCm
+	TEST_TARGETS += test-rocm
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
@@ -45,6 +52,9 @@ endif
 KokkosContainers_PerformanceTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_PerformanceTest_Cuda
 
+KokkosContainers_PerformanceTest_ROCm: $(OBJ_ROCM) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_ROCM) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_PerformanceTest_ROCm
+
 KokkosContainers_PerformanceTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_THREADS) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_PerformanceTest_Threads
 
@@ -54,12 +64,14 @@ KokkosContainers_PerformanceTest_OpenMP: $(OBJ_OPENMP) $(KOKKOS_LINK_DEPENDS)
 test-cuda: KokkosContainers_PerformanceTest_Cuda
 	./KokkosContainers_PerformanceTest_Cuda
 
+test-rocm: KokkosContainers_PerformanceTest_ROCm
+	./KokkosContainers_PerformanceTest_ROCm
+
 test-threads: KokkosContainers_PerformanceTest_Threads
 	./KokkosContainers_PerformanceTest_Threads
 
 test-openmp: KokkosContainers_PerformanceTest_OpenMP
 	./KokkosContainers_PerformanceTest_OpenMP
-
 
 build_all: $(TARGETS)
 

@@ -33,7 +33,7 @@
 #include "compute.h"
 #include "input.h"
 #include "variable.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "reaxc_list.h"
 #include "atom_masks.h"
@@ -66,7 +66,7 @@ FixReaxCSpeciesKokkos::~FixReaxCSpeciesKokkos()
 
 void FixReaxCSpeciesKokkos::init()
 {
-  Pair* pair_kk = force->pair_match("reax/c/kk",1);
+  Pair* pair_kk = force->pair_match("reax/c/kk",0);
   if (pair_kk == NULL) error->all(FLERR,"Cannot use fix reax/c/species/kk without "
                   "pair_style reax/c/kk");
 

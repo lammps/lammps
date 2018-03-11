@@ -41,9 +41,17 @@
 //@HEADER
 */
 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+#include <xmmintrin.h>
+#endif
+
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_COMPARE_EXCHANGE_STRONG_HPP )
 #define KOKKOS_ATOMIC_COMPARE_EXCHANGE_STRONG_HPP
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#include<Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
+#endif
 
 namespace Kokkos {
 
@@ -99,7 +107,7 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -111,7 +119,7 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
         done = 1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 }
@@ -121,16 +129,27 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
 //----------------------------------------------------------------------------
 // GCC native CAS supports int, long, unsigned int, unsigned long.
 // Intel native CAS support int and long with the same interface as GCC.
+#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
 inline
 int atomic_compare_exchange( volatile int * const dest, const int compare, const int val)
-{ return __sync_val_compare_and_swap(dest,compare,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_val_compare_and_swap(dest,compare,val);
+}
 
 inline
 long atomic_compare_exchange( volatile long * const dest, const long compare, const long val )
-{ return __sync_val_compare_and_swap(dest,compare,val); }
+{ 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_val_compare_and_swap(dest,compare,val);
+}
 
 #if defined( KOKKOS_ENABLE_GNU_ATOMICS )
 
@@ -159,6 +178,10 @@ T atomic_compare_exchange( volatile T * const dest, const T & compare,
     KOKKOS_INLINE_FUNCTION U() {};
   } tmp ;
 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+
   tmp.i = __sync_val_compare_and_swap( (int*) dest , *((int*)&compare) , *((int*)&val) );
   return tmp.t ;
 }
@@ -174,6 +197,10 @@ T atomic_compare_exchange( volatile T * const dest, const T & compare,
     T t ;
     KOKKOS_INLINE_FUNCTION U() {};
   } tmp ;
+
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
 
   tmp.i = __sync_val_compare_and_swap( (long*) dest , *((long*)&compare) , *((long*)&val) );
   return tmp.t ;
@@ -193,6 +220,10 @@ T atomic_compare_exchange( volatile T * const dest, const T & compare,
     KOKKOS_INLINE_FUNCTION U() {};
   } tmp ;
 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+
   tmp.i = Impl::cas128( (Impl::cas128_t*) dest , *((Impl::cas128_t*)&compare) , *((Impl::cas128_t*)&val) );
   return tmp.t ;
 }
@@ -209,6 +240,10 @@ T atomic_compare_exchange( volatile T * const dest , const T compare ,
             #endif
              , const T >::type& val )
 {
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+
   while( !Impl::lock_address_host_space( (void*) dest ) );
   T return_val = *dest;
   if( return_val == compare ) {
@@ -250,6 +285,7 @@ T atomic_compare_exchange( volatile T * const dest, const T compare, const T val
 
 #endif
 #endif
+#endif // !defined ROCM_ATOMICS
 
 template <typename T>
 KOKKOS_INLINE_FUNCTION

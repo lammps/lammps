@@ -22,7 +22,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallHarmonic::FixWallHarmonic(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+  FixWall(lmp, narg, arg)
+{
+  dynamic_group_allow = 1;
+}
 
 /* ----------------------------------------------------------------------
    interaction of all particles in group with a wall
@@ -34,6 +37,7 @@ FixWallHarmonic::FixWallHarmonic(LAMMPS *lmp, int narg, char **arg) :
 void FixWallHarmonic::wall_particle(int m, int which, double coord)
 {
   double delta,dr,fwall;
+  double vn;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -60,6 +64,12 @@ void FixWallHarmonic::wall_particle(int m, int which, double coord)
       f[i][dim] -= fwall;
       ewall[0] += epsilon[m]*dr*dr;
       ewall[m+1] += fwall;
+
+      if (evflag) {
+        if (side < 0) vn = -fwall*delta;
+        else vn = fwall*delta;
+        v_tally(dim, i, vn);
+      }
     }
 
   if (onflag) error->one(FLERR,"Particle on or inside fix wall surface");

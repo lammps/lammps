@@ -1,0 +1,56 @@
+This directory contains links to the LATTE library which is required
+to use the LATTE package and its fix latte command in a LAMMPS input
+script.
+
+Information about the LATTE DFTB code can be found at:
+https://github.com/lanl/LATTE
+
+The LATTE development effort is led by Marc Cawkwell and
+Anders Niklasson at Los Alamos National Laboratory.
+
+You can type "make lib-latte" from the src directory to see help on
+how to download and build this library via make commands, or you can
+do the same thing by typing "python Install.py" from within this
+directory, or you can do it manually by following the instructions
+below.
+
+-----------------
+
+Instructions:
+
+1. Download or clone the LATTE source code from
+   https://github.com/lanl/LATTE.  If you download a zipfile
+   or tarball, unpack the tarball either in this /lib/latte
+   directory or somewhere else on your system.
+
+2. Modify the makefile.CHOICES according to your system architecture 
+   and compilers.  Check that the MAKELIB flag is ON in makefile.CHOICES
+   and finally, build the code via the make command
+   % make
+
+3. Create three symbolic links in this dir (lib/latte)
+   E.g if you built LATTE in this dir:
+      % ln -s ./LATTE-master/src includelink
+      % ln -s ./LATTE-master liblink
+      % ln -s ./LATTE-master/src/latte_c_bind.o filelink.o
+
+4. Choose a Makefile.lammps.* file appropriate for your compiler
+   (GNU gfortran with external BLAS, GNU gfortran with local liblinalg,
+   or Intel ifort with MKL) and copy it to Makefile.lammps.
+   Note that you may need to edit Makefile.lammps for paths
+   and compiler options appropriate to your system.
+
+-----------------
+
+When these steps are complete you can build LAMMPS
+with the LATTE package installed:
+
+% cd lammps/src
+% make yes-latte
+% make g++ (or whatever target you wish)
+
+Note that if you download and unpack a new LAMMPS tarball, the
+"includelink" and "liblink" and "filelink.o" symbolic links will be
+lost and you will need to re-create them (step 3).  If you built LATTE
+in this directory (as opposed to somewhere else on your system), you
+will also need to repeat steps 1,2,4.

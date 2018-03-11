@@ -1,4 +1,7 @@
-obj
-obj_ocl
-ocl_get_devices
-nvc_get_devices
+/obj
+/obj_ocl
+/ocl_get_devices
+/nvc_get_devices
+/*.cubin
+/*_cubin.h
+/*_cl.h

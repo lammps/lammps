@@ -92,7 +92,7 @@ int lje_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
 // ---------------------------------------------------------------------------
 // Copy updated coeffs from host to device
 // ---------------------------------------------------------------------------
-int lje_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+void lje_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                    double **host_lj2, double **host_lj3, double **host_lj4,
                    double **offset, double **shift) {
   int world_me=LJEMF.device->world_me();

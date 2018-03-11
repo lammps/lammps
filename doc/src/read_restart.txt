@@ -178,7 +178,7 @@ not the same and the current value is not the default.
 Note that some force field styles (pair, bond, angle, etc) do not
 store their coefficient info in restart files.  Typically these are
 many-body or tabulated potentials which read their parameters from
-separate files.  In these cases you will need to re-specify the "pair
+separate files.  In these cases you will need to re-specify the
 "pair_coeff"_pair_coeff.html, "bond_coeff"_bond_coeff.html, etc
 commands in your restart input script.  The doc pages for individual
 force field styles mention if this is the case.  This is also true of

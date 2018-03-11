@@ -755,6 +755,12 @@ namespace Kokkos {
       return Random_XorShift64<DeviceType>(state_(i),i);
     }
 
+    // NOTE: state_idx MUST be unique and less than num_states
+    KOKKOS_INLINE_FUNCTION
+    Random_XorShift64<DeviceType> get_state(const int state_idx) const {
+      return Random_XorShift64<DeviceType>(state_(state_idx),state_idx);
+    }
+
     KOKKOS_INLINE_FUNCTION
     void free_state(const Random_XorShift64<DeviceType>& state) const {
       state_(state.state_idx_) = state.state_;
@@ -1010,6 +1016,12 @@ namespace Kokkos {
       return Random_XorShift1024<DeviceType>(state_,p_(i),i);
     };
 
+    // NOTE: state_idx MUST be unique and less than num_states
+    KOKKOS_INLINE_FUNCTION
+    Random_XorShift1024<DeviceType> get_state(const int state_idx) const {
+      return Random_XorShift1024<DeviceType>(state_,p_(state_idx),state_idx);
+    }
+
     KOKKOS_INLINE_FUNCTION
     void free_state(const Random_XorShift1024<DeviceType>& state) const {
       for(int i = 0; i<16; i++)
@@ -1208,8 +1220,8 @@ Random_XorShift64<Kokkos::Cuda> Random_XorShift64_Pool<Kokkos::Cuda>::get_state(
 template<>
 KOKKOS_INLINE_FUNCTION
 void Random_XorShift64_Pool<Kokkos::Cuda>::free_state(const Random_XorShift64<Kokkos::Cuda> &state) const {
-#ifdef __CUDA_ARCH__
   state_(state.state_idx_) = state.state_;
+#ifdef __CUDA_ARCH__
   locks_(state.state_idx_) = 0;
   return;
 #endif
@@ -1244,7 +1256,244 @@ Random_XorShift1024<Kokkos::Cuda> Random_XorShift1024_Pool<Kokkos::Cuda>::get_st
 template<>
 KOKKOS_INLINE_FUNCTION
 void Random_XorShift1024_Pool<Kokkos::Cuda>::free_state(const Random_XorShift1024<Kokkos::Cuda> &state) const {
+  for(int i=0; i<16; i++)
+    state_(state.state_idx_,i) = state.state_[i];
 #ifdef __CUDA_ARCH__
+  locks_(state.state_idx_) = 0;
+  return;
+#endif
+}
+
+
+#endif
+
+#if defined(KOKKOS_ENABLE_ROCM) 
+
+  template<>
+  class Random_XorShift1024<Kokkos::Experimental::ROCm> {
+  private:
+    int p_;
+    const int state_idx_;
+    uint64_t* state_;
+    const int stride_;
+    friend class Random_XorShift1024_Pool<Kokkos::Experimental::ROCm>;
+  public:
+
+    typedef Kokkos::Experimental::ROCm device_type;
+    typedef Random_XorShift1024_Pool<device_type> pool_type;
+
+    enum {MAX_URAND = 0xffffffffU};
+    enum {MAX_URAND64 = 0xffffffffffffffffULL-1};
+    enum {MAX_RAND = static_cast<int>(0xffffffffU/2)};
+    enum {MAX_RAND64 = static_cast<int64_t>(0xffffffffffffffffULL/2-1)};
+
+    KOKKOS_INLINE_FUNCTION
+    Random_XorShift1024 (const typename pool_type::state_data_type& state, int p, int state_idx = 0):
+      p_(p),state_idx_(state_idx),state_(&state(state_idx,0)),stride_(state.stride_1()){
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    uint32_t urand() {
+      uint64_t state_0 = state_[ p_ * stride_ ];
+      uint64_t state_1 = state_[ (p_ = ( p_ + 1 ) & 15) * stride_ ];
+      state_1 ^= state_1 << 31;
+      state_1 ^= state_1 >> 11;
+      state_0 ^= state_0 >> 30;
+      uint64_t tmp = ( state_[ p_ * stride_ ] = state_0 ^ state_1 ) * 1181783497276652981ULL;
+      tmp = tmp>>16;
+      return static_cast<uint32_t>(tmp&MAX_URAND);
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    uint64_t urand64() {
+      uint64_t state_0 = state_[ p_ * stride_ ];
+      uint64_t state_1 = state_[ (p_ = ( p_ + 1 ) & 15) * stride_ ];
+      state_1 ^= state_1 << 31;
+      state_1 ^= state_1 >> 11;
+      state_0 ^= state_0 >> 30;
+      return (( state_[ p_ * stride_ ] = state_0 ^ state_1 ) * 1181783497276652981LL) - 1;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    uint32_t urand(const uint32_t& range) {
+      const uint32_t max_val = (MAX_URAND/range)*range;
+      uint32_t tmp = urand();
+      while(tmp>=max_val)
+        urand();
+      return tmp%range;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    uint32_t urand(const uint32_t& start, const uint32_t& end ) {
+      return urand(end-start)+start;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    uint64_t urand64(const uint64_t& range) {
+      const uint64_t max_val = (MAX_URAND64/range)*range;
+      uint64_t tmp = urand64();
+      while(tmp>=max_val)
+        urand64();
+      return tmp%range;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    uint64_t urand64(const uint64_t& start, const uint64_t& end ) {
+      return urand64(end-start)+start;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    int rand() {
+      return static_cast<int>(urand()/2);
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    int rand(const int& range) {
+      const int max_val = (MAX_RAND/range)*range;
+      int tmp = rand();
+      while(tmp>=max_val)
+        rand();
+      return tmp%range;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    int rand(const int& start, const int& end ) {
+      return rand(end-start)+start;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    int64_t rand64() {
+      return static_cast<int64_t>(urand64()/2);
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    int64_t rand64(const int64_t& range) {
+      const int64_t max_val = (MAX_RAND64/range)*range;
+      int64_t tmp = rand64();
+      while(tmp>=max_val)
+        rand64();
+      return tmp%range;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    int64_t rand64(const int64_t& start, const int64_t& end ) {
+      return rand64(end-start)+start;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    float frand() {
+      return 1.0f * urand64()/MAX_URAND64;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    float frand(const float& range) {
+      return range * urand64()/MAX_URAND64;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    float frand(const float& start, const float& end ) {
+      return frand(end-start)+start;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    double drand() {
+      return 1.0 * urand64()/MAX_URAND64;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    double drand(const double& range) {
+      return range * urand64()/MAX_URAND64;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    double drand(const double& start, const double& end ) {
+      return frand(end-start)+start;
+    }
+
+    //Marsaglia polar method for drawing a standard normal distributed random number
+    KOKKOS_INLINE_FUNCTION
+    double normal() {
+      double S = 2.0;
+      double U;
+      while(S>=1.0) {
+        U = 2.0*drand() - 1.0;
+        const double V = 2.0*drand() - 1.0;
+        S = U*U+V*V;
+      }
+      return U*std::sqrt(-2.0*log(S)/S);
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    double normal(const double& mean, const double& std_dev=1.0) {
+      return mean + normal()*std_dev;
+    }
+  };
+
+template<>
+inline
+Random_XorShift64_Pool<Kokkos::Experimental::ROCm>::Random_XorShift64_Pool(uint64_t seed) {
+  num_states_ = 0;
+  init(seed,4*32768);
+}
+
+template<>
+KOKKOS_INLINE_FUNCTION
+Random_XorShift64<Kokkos::Experimental::ROCm> Random_XorShift64_Pool<Kokkos::Experimental::ROCm>::get_state() const {
+#ifdef __HCC_ACCELERATOR__
+  const int i_offset = (threadIdx_x*blockDim_y + threadIdx_y)*blockDim_z+threadIdx_z;
+  int i = (((blockIdx_x*gridDim_y+blockIdx_y)*gridDim_z + blockIdx_z) *
+           blockDim_x*blockDim_y*blockDim_z + i_offset)%num_states_;
+  while(Kokkos::atomic_compare_exchange(&locks_(i),0,1)) {
+      i+=blockDim_x*blockDim_y*blockDim_z;
+      if(i>=num_states_) {i = i_offset;}
+  }
+
+  return Random_XorShift64<Kokkos::Experimental::ROCm>(state_(i),i);
+#else
+  return Random_XorShift64<Kokkos::Experimental::ROCm>(state_(0),0);
+#endif
+}
+
+template<>
+KOKKOS_INLINE_FUNCTION
+void Random_XorShift64_Pool<Kokkos::Experimental::ROCm>::free_state(const Random_XorShift64<Kokkos::Experimental::ROCm> &state) const {
+#ifdef __HCC_ACCELERATOR__
+  state_(state.state_idx_) = state.state_;
+  locks_(state.state_idx_) = 0;
+  return;
+#endif
+}
+
+
+template<>
+inline
+Random_XorShift1024_Pool<Kokkos::Experimental::ROCm>::Random_XorShift1024_Pool(uint64_t seed) {
+  num_states_ = 0;
+  init(seed,4*32768);
+}
+
+template<>
+KOKKOS_INLINE_FUNCTION
+Random_XorShift1024<Kokkos::Experimental::ROCm> Random_XorShift1024_Pool<Kokkos::Experimental::ROCm>::get_state() const {
+#ifdef __HCC_ACCELERATOR__
+  const int i_offset = (threadIdx_x*blockDim_y + threadIdx_y)*blockDim_z+threadIdx_z;
+  int i = (((blockIdx_x*gridDim_y+blockIdx_y)*gridDim_z + blockIdx_z) *
+           blockDim_x*blockDim_y*blockDim_z + i_offset)%num_states_;
+  while(Kokkos::atomic_compare_exchange(&locks_(i),0,1)) {
+      i+=blockDim_x*blockDim_y*blockDim_z;
+      if(i>=num_states_) {i = i_offset;}
+  }
+
+  return Random_XorShift1024<Kokkos::Experimental::ROCm>(state_, p_(i), i);
+#else
+  return Random_XorShift1024<Kokkos::Experimental::ROCm>(state_, p_(0), 0);
+#endif
+}
+
+template<>
+KOKKOS_INLINE_FUNCTION
+void Random_XorShift1024_Pool<Kokkos::Experimental::ROCm>::free_state(const Random_XorShift1024<Kokkos::Experimental::ROCm> &state) const {
+#ifdef __HCC_ACCELERATOR__
   for(int i=0; i<16; i++)
     state_(state.state_idx_,i) = state.state_[i];
   locks_(state.state_idx_) = 0;

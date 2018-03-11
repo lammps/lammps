@@ -7,3 +7,8 @@ tag:  2.02.07    date: 12:16:2016    master: 4b4cc4ba    develop: 382c0966
 tag:  2.02.15    date: 02:10:2017    master: 8c64cd93    develop: 28dea8b6
 tag:  2.03.00    date: 04:25:2017    master: 120d9ce7    develop: 015ba641
 tag:  2.03.05    date: 05:27:2017    master: 36b92f43    develop: 79073186
+tag:  2.03.13    date: 07:27:2017    master: da314444    develop: 29ccb58a
+tag:  2.04.00    date: 08:16:2017    master: 54eb75c0    develop: 32fb8ee1
+tag:  2.04.04    date: 09:11:2017    master: 2b7e9c20    develop: 51e7b25a
+tag:  2.04.11    date: 10:28:2017    master: 54a1330a    develop: ed36c017
+tag:  2.5.11     date: 12:15:2017    master: dfe685f4    develop: ec7ad6d8

@@ -28,6 +28,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "modify.h"
 
 #include <map>
 
@@ -310,7 +311,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   comm->exchange();
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  neighbor->build();
+  neighbor->build(1);
 
   // build neighbor list this command needs based on earlier request
 

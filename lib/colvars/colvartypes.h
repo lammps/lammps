@@ -705,7 +705,7 @@ public:
   {
     std::stringstream stream(s);
     size_t i = 0;
-    while ((stream >> data[i]) && (i < data.size())) {
+    while ((i < data.size()) && (stream >> data[i])) {
       i++;
     }
     if (i < data.size()) {
@@ -1018,16 +1018,6 @@ inline cvm::rvector operator * (cvm::rmatrix const &m,
                       m.yx()*r.x + m.yy()*r.y + m.yz()*r.z,
                       m.zx()*r.x + m.zy()*r.y + m.zz()*r.z);
 }
-
-
-/// Numerical recipes diagonalization
-void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
-
-/// Eigenvector sort
-void eigsrt(cvm::real *d, cvm::real **v);
-
-/// Transpose the matrix
-void transpose(cvm::real **v);
 
 
 

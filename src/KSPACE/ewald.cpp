@@ -154,6 +154,8 @@ void Ewald::init()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
+    if (q2 == 0.0)
+      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
@@ -340,6 +342,7 @@ void Ewald::setup()
 
 double Ewald::rms(int km, double prd, bigint natoms, double q2)
 {
+  if (natoms == 0) natoms = 1;   // avoid division by zero
   double value = 2.0*q2*g_ewald/prd *
     sqrt(1.0/(MY_PI*km*natoms)) *
     exp(-MY_PI*MY_PI*km*km/(g_ewald*g_ewald*prd*prd));

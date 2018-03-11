@@ -230,18 +230,6 @@ void CudaHostPinnedSpace::deallocate( void * const arg_alloc_ptr , const size_t 
   } catch(...) {}
 }
 
-constexpr const char* CudaSpace::name() {
-  return m_name;
-}
-
-constexpr const char* CudaUVMSpace::name() {
-  return m_name;
-}
-
-constexpr const char* CudaHostPinnedSpace::name() {
-  return m_name;
-}
-
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -378,7 +366,7 @@ SharedAllocationRecord< Kokkos::CudaSpace , void >::
   if(Kokkos::Profiling::profileLibraryLoaded()) {
 
     SharedAllocationHeader header ;
-    Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>::DeepCopy( & header , RecordBase::m_alloc_ptr , sizeof(SharedAllocationHeader) );
+    Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( & header , RecordBase::m_alloc_ptr , sizeof(SharedAllocationHeader) );
 
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::CudaSpace::name()),header.m_label,
@@ -458,7 +446,7 @@ SharedAllocationRecord( const Kokkos::CudaSpace & arg_space
           );
 
   // Copy to device memory
-  Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>::DeepCopy( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
+  Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
 }
 
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
@@ -655,18 +643,19 @@ reallocate_tracked( void * const arg_alloc_ptr
 SharedAllocationRecord< Kokkos::CudaSpace , void > *
 SharedAllocationRecord< Kokkos::CudaSpace , void >::get_record( void * alloc_ptr )
 {
-  using Header     = SharedAllocationHeader ;
   using RecordBase = SharedAllocationRecord< void , void > ;
   using RecordCuda = SharedAllocationRecord< Kokkos::CudaSpace , void > ;
 
 #if 0
+  using Header     = SharedAllocationHeader ;
+
   // Copy the header from the allocation
   Header head ;
 
   Header const * const head_cuda = alloc_ptr ? Header::get_header( alloc_ptr ) : (Header*) 0 ;
 
   if ( alloc_ptr ) {
-    Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , head_cuda , sizeof(SharedAllocationHeader) );
+    Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , head_cuda , sizeof(SharedAllocationHeader) );
   }
 
   RecordCuda * const record = alloc_ptr ? static_cast< RecordCuda * >( head.m_record ) : (RecordCuda *) 0 ;
@@ -724,7 +713,7 @@ SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::get_record( void *
 // Iterate records to print orphaned memory ...
 void
 SharedAllocationRecord< Kokkos::CudaSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaSpace & , bool detail )
 {
   SharedAllocationRecord< void , void > * r = & s_root_record ;
 
@@ -735,7 +724,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
   if ( detail ) {
     do {
       if ( r->m_alloc_ptr ) {
-        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
+        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
       }
       else {
         head.m_label[0] = 0 ;
@@ -762,7 +751,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
               , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , head.m_label
               );
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
@@ -770,7 +759,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
     do {
       if ( r->m_alloc_ptr ) {
 
-        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
+        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
 
         //Formatting dependent on sizeof(uintptr_t)
         const char * format_string;
@@ -792,7 +781,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
       else {
         snprintf( buffer , 256 , "Cuda [ 0 + 0 ]\n" );
       }
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
@@ -800,93 +789,16 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
 
 void
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaUVMSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaUVMSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaUVM" , & s_root_record , detail );
 }
 
 void
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaHostPinnedSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaHostPinnedSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaHostPinned" , & s_root_record , detail );
-}
-
-} // namespace Impl
-} // namespace Kokkos
-
-/*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-namespace {
-  __global__ void init_lock_array_kernel_atomic() {
-    unsigned i = blockIdx.x*blockDim.x + threadIdx.x;
-
-    if(i<CUDA_SPACE_ATOMIC_MASK+1)
-      kokkos_impl_cuda_lock_arrays.atomic[i] = 0;
-  }
-
-  __global__ void init_lock_array_kernel_scratch_threadid(int N) {
-    unsigned i = blockIdx.x*blockDim.x + threadIdx.x;
-
-    if(i<N) {
-      kokkos_impl_cuda_lock_arrays.scratch[i] = 0;
-      kokkos_impl_cuda_lock_arrays.threadid[i] = 0;
-    }
-  }
-}
-
-
-namespace Impl {
-int* atomic_lock_array_cuda_space_ptr(bool deallocate) {
-  static int* ptr = NULL;
-  if(deallocate) {
-    cudaFree(ptr);
-    ptr = NULL;
-  }
-
-  if(ptr==NULL && !deallocate)
-    cudaMalloc(&ptr,sizeof(int)*(CUDA_SPACE_ATOMIC_MASK+1));
-  return ptr;
-}
-
-int* scratch_lock_array_cuda_space_ptr(bool deallocate) {
-  static int* ptr = NULL;
-  if(deallocate) {
-    cudaFree(ptr);
-    ptr = NULL;
-  }
-
-  if(ptr==NULL && !deallocate)
-    cudaMalloc(&ptr,sizeof(int)*(Cuda::concurrency()));
-  return ptr;
-}
-
-int* threadid_lock_array_cuda_space_ptr(bool deallocate) {
-  static int* ptr = NULL;
-  if(deallocate) {
-    cudaFree(ptr);
-    ptr = NULL;
-  }
-
-  if(ptr==NULL && !deallocate)
-    cudaMalloc(&ptr,sizeof(int)*(Cuda::concurrency()));
-  return ptr;
-}
-
-void init_lock_arrays_cuda_space() {
-  static int is_initialized = 0;
-  if(! is_initialized) {
-    Kokkos::Impl::CudaLockArraysStruct locks;
-    locks.atomic = atomic_lock_array_cuda_space_ptr(false);
-    locks.scratch = scratch_lock_array_cuda_space_ptr(false);
-    locks.threadid = threadid_lock_array_cuda_space_ptr(false);
-    locks.n = Kokkos::Cuda::concurrency();
-    cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
-    init_lock_array_kernel_atomic<<<(CUDA_SPACE_ATOMIC_MASK+255)/256,256>>>();
-    init_lock_array_kernel_scratch_threadid<<<(Kokkos::Cuda::concurrency()+255)/256,256>>>(Kokkos::Cuda::concurrency());
-  }
 }
 
 void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
@@ -908,8 +820,8 @@ void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
   return ptr;
 }
 
-}
-}
+} // namespace Impl
+} // namespace Kokkos
 #else
 void KOKKOS_CORE_SRC_CUDA_CUDASPACE_PREVENT_LINK_ERROR() {}
 #endif // KOKKOS_ENABLE_CUDA

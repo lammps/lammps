@@ -18,10 +18,8 @@ OBJ =   $(SRC:.f=.o)
 # ------ SETTINGS ------
 
 FC =           gfortran
-FFLAGS =      -O3 -fPIC -march=native -mpc64  \
-         -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized -fno-second-underscore
-FFLAGS0 =      -O0 -fPIC -march=native -mpc64  \
-         -Wall -W -Wno-uninitialized -fno-second-underscore
+FFLAGS =      -O3 -fPIC -ffast-math -fstrict-aliasing -fno-second-underscore
+FFLAGS0 =     -O0 -fPIC -fno-second-underscore
 ARCHIVE =	ar
 AR =	ar
 ARCHFLAG =	-rcs
@@ -47,7 +45,7 @@ dlamch.o: dlamch.f
 # ------ CLEAN ------
 
 clean:
-	-rm *.o *.mod *~ $(LIB)
+	-rm -f *.o *.mod *~ $(LIB)
 
 tar:
 	-tar -czvf ../linalg.tar.gz $(FILES)

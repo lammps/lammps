@@ -130,6 +130,63 @@ texture<int4> sw3_tex;
 
 #endif
 
+__kernel void k_sw_short_nbor(const __global numtyp4 *restrict x_,
+                           const __global numtyp4 *restrict sw3,
+                           const __global int *restrict map,
+                           const __global int *restrict elem2param,
+                           const int nelements,
+                           const __global int * dev_nbor,
+                           const __global int * dev_packed,
+                           __global int * dev_short_nbor,
+                           const int inum, const int nbor_pitch, const int t_per_atom) {
+  __local int n_stride;
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  if (ii<inum) {
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    int itype=ix.w;
+    itype=map[itype];
+
+    int ncount = 0;
+    int m = nbor;
+    dev_short_nbor[m] = 0;
+    int nbor_short = nbor+n_stride;
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int j=dev_packed[nbor];
+      int nj = j;
+      j &= NEIGHMASK;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      int jtype=jx.w;
+      jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<sw3[ijparam].y) { // sw_cutsq = sw3[ijparam].y
+        dev_short_nbor[nbor_short] = nj;
+        nbor_short += n_stride;
+        ncount++;
+      }
+    } // for nbor
+
+    // store the number of neighbors for each thread
+    dev_short_nbor[m] = ncount;
+
+  } // if ii
+}
 
 __kernel void k_sw(const __global numtyp4 *restrict x_,
                    const __global numtyp4 *restrict sw1,
@@ -140,6 +197,7 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
                    const int nelements,
                    const __global int * dev_nbor,
                    const __global int * dev_packed,
+                   const __global int * dev_short_nbor,
                    __global acctyp4 *restrict ans,
                    __global acctyp *restrict engv,
                    const int eflag, const int vflag, const int inum,
@@ -158,8 +216,8 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   __syncthreads();
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int nbor, nbor_end, i, numj;
+    const __global int* nbor_mem = dev_packed;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -167,9 +225,17 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int j=dev_packed[nbor];
+      int j=nbor_mem[nbor];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -337,6 +403,7 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
                                 const int nelements,
                                 const __global int * dev_nbor,
                                 const __global int * dev_packed,
+                                const __global int * dev_short_nbor,
                                 __global acctyp4 *restrict ans,
                                 __global acctyp *restrict engv,
                                 const int eflag, const int vflag,
@@ -361,7 +428,7 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end;
-
+    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -371,9 +438,18 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+    int nborj_start = nbor_j;
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -395,13 +471,22 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
       sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_ijparam.x;
 
-      int nbor_k=nbor_j-offset_j+offset_k;
-      if (nbor_k<=nbor_j)
-        nbor_k+=n_stride;
+      int nbor_k,k_end;
+      if (dev_packed==dev_nbor) {
+        nbor_k=nborj_start-offset_j+offset_k;
+        int numk = dev_short_nbor[nbor_k-n_stride];
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      } else {
+        nbor_k = nbor_j-offset_j+offset_k;
+        if (nbor_k<=nbor_j) nbor_k += n_stride;
+        k_end = nbor_end;
+      }
 
-      for ( ; nbor_k<nbor_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+      for ( ; nbor_k<k_end; nbor_k+=n_stride) {
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
+
+        if (dev_packed==dev_nbor && k <= j) continue;
 
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
@@ -460,6 +545,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
                              const __global int * dev_acc,
+                             const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
@@ -484,7 +570,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -494,8 +580,16 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -534,8 +628,15 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         nbor_k+=offset_k;
       }
 
+      // recalculate numk and k_end for the use of short neighbor list
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
+
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;
@@ -598,6 +699,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
                              const __global int * dev_acc,
+                             const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
@@ -622,7 +724,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-
+    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
@@ -632,8 +734,16 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     itype=map[itype];
 
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor_j];
+      nbor_j += n_stride;
+      nbor_end = nbor_j+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=dev_packed[nbor_j];
+      int j=nbor_mem[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -672,8 +782,15 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         nbor_k+=offset_k;
       }
 
+      // recalculate numk and k_end for the use of short neighbor list
+      if (dev_packed==dev_nbor) {
+        numk = dev_short_nbor[nbor_k];
+        nbor_k += n_stride;
+        k_end = nbor_k+fast_mul(numk,n_stride);
+      }
+
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=dev_packed[nbor_k];
+        int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;

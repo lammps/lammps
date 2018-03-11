@@ -36,16 +36,18 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
+
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MESO_E,MESO_CV,MESO_RHO,SMD_MASS_DENSITY,SMD_CONTACT_RADIUS,DPDTHETA,
-     INAME,DNAME};
+     MESO_E,MESO_CV,MESO_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
+     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME};
 
 #define BIG INT_MAX
 
@@ -419,6 +421,46 @@ void Set::command(int narg, char **arg)
       set(MESO_RHO);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"edpd/temp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) dvalue = -1.0;
+      else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else {
+        dvalue = force->numeric(FLERR,arg[iarg+1]);
+        if (dvalue < 0.0) error->all(FLERR,"Illegal set command");
+      }
+      if (!atom->edpd_flag)
+        error->all(FLERR,"Cannot set edpd/temp for this atom style");
+      set(EDPD_TEMP);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"edpd/cv") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) dvalue = -1.0;
+      else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else {
+        dvalue = force->numeric(FLERR,arg[iarg+1]);
+        if (dvalue < 0.0) error->all(FLERR,"Illegal set command");
+      }
+      if (!atom->edpd_flag)
+        error->all(FLERR,"Cannot set edpd/cv for this atom style");
+      set(EDPD_CV);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"cc") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal set command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) dvalue = -1.0;
+      else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else {
+        cc_index = force->inumeric(FLERR,arg[iarg+1]);
+        dvalue = force->numeric(FLERR,arg[iarg+2]);
+        if (cc_index < 1) error->all(FLERR,"Illegal set command");
+      }
+      if (!atom->tdpd_flag)
+        error->all(FLERR,"Cannot set cc for this atom style");
+      set(CC);
+      iarg += 3;
+
     } else if (strcmp(arg[iarg],"smd/mass/density") == 0) {
           if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
           if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
@@ -476,14 +518,28 @@ void Set::command(int narg, char **arg)
     } else error->all(FLERR,"Illegal set command");
 
     // statistics
+    // for CC option, include species index
 
     MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
 
     if (comm->me == 0) {
-      if (screen) fprintf(screen,"  %d settings made for %s\n",
-                          allcount,arg[origarg]);
-      if (logfile) fprintf(logfile,"  %d settings made for %s\n",
-                           allcount,arg[origarg]);
+
+      if (screen) {
+        if (strcmp(arg[origarg],"cc") == 0) 
+          fprintf(screen,"  %d settings made for %s index %s\n",
+                  allcount,arg[origarg],arg[origarg+1]);
+        else
+          fprintf(screen,"  %d settings made for %s\n",
+                  allcount,arg[origarg]);
+      }
+      if (logfile) {
+        if (strcmp(arg[origarg],"cc") == 0) 
+          fprintf(logfile,"  %d settings made for %s index %s\n",
+                  allcount,arg[origarg],arg[origarg+1]);
+        else
+          fprintf(logfile,"  %d settings made for %s\n",
+                  allcount,arg[origarg]);
+      }
     }
   }
 
@@ -663,6 +719,11 @@ void Set::set(int keyword)
     else if (keyword == MESO_E) atom->e[i] = dvalue;
     else if (keyword == MESO_CV) atom->cv[i] = dvalue;
     else if (keyword == MESO_RHO) atom->rho[i] = dvalue;
+
+    else if (keyword == EDPD_TEMP) atom->edpd_temp[i] = dvalue;
+    else if (keyword == EDPD_CV) atom->edpd_cv[i] = dvalue;
+    else if (keyword == CC) atom->cc[i][cc_index-1] = dvalue;
+
     else if (keyword == SMD_MASS_DENSITY) { 
       // set mass from volume and supplied mass density
       atom->rmass[i] = atom->vfrac[i] * dvalue;

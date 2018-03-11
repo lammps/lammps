@@ -775,9 +775,9 @@ void PairTlsph::AssembleStress() {
 
 				// compute a characteristic time over which to average the plastic strain
 				double tav = 1000 * radius[i] / (Lookup[SIGNAL_VELOCITY][itype]);
-				eff_plastic_strain_rate[i] -= eff_plastic_strain_rate[i] / tav;
-				eff_plastic_strain_rate[i] += (plastic_strain_increment / dt) / tav;
-				eff_plastic_strain_rate[i] = MAX(0.0, eff_plastic_strain_rate[i]);
+				eff_plastic_strain_rate[i] -= eff_plastic_strain_rate[i] * dt / tav;
+                                eff_plastic_strain_rate[i] += plastic_strain_increment / tav;
+                                eff_plastic_strain_rate[i] = MAX(0.0, eff_plastic_strain_rate[i]);
 
 				/*
 				 *  assemble total stress from pressure and deviatoric stress
@@ -1066,7 +1066,7 @@ void PairTlsph::coeff(int narg, char **arg) {
 	Lookup[HEAT_CAPACITY][itype] = force->numeric(FLERR, arg[ioffset + 7]);
 
 	Lookup[LAME_LAMBDA][itype] = Lookup[YOUNGS_MODULUS][itype] * Lookup[POISSON_RATIO][itype]
-			/ ((1.0 + Lookup[POISSON_RATIO][itype] * (1.0 - 2.0 * Lookup[POISSON_RATIO][itype])));
+			/ ((1.0 + Lookup[POISSON_RATIO][itype]) * (1.0 - 2.0 * Lookup[POISSON_RATIO][itype]));
 	Lookup[SHEAR_MODULUS][itype] = Lookup[YOUNGS_MODULUS][itype] / (2.0 * (1.0 + Lookup[POISSON_RATIO][itype]));
 	Lookup[M_MODULUS][itype] = Lookup[LAME_LAMBDA][itype] + 2.0 * Lookup[SHEAR_MODULUS][itype];
 	Lookup[SIGNAL_VELOCITY][itype] = sqrt(

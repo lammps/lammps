@@ -30,6 +30,9 @@ IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
   _off_map_listlocal = 0;
   _ccachex = 0;
   _ncache_alloc = 0;
+  _ncachetag = 0;
+  _cutneighsq = 0;
+  _cutneighghostsq = 0;
   #ifdef _LMP_INTEL_OFFLOAD
   _separate_buffers = 0;
   _off_f = 0;
@@ -406,6 +409,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
   IP_PRE_get_stride(_ccache_stride3, nsize * 3, sizeof(acc_t), 0);
   lmp->memory->create(_ccachef, _ccache_stride3 * nt, "_ccachef");
   #endif
+  memset(_ccachei, 0, vsize * sizeof(int));
   memset(_ccachej, 0, vsize * sizeof(int));
 
   #ifdef _LMP_INTEL_OFFLOAD
@@ -422,7 +426,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ccachex,ccachey:length(vsize) alloc_if(1) free_if(0)) \
         nocopy(ccachez,ccachew:length(vsize) alloc_if(1) free_if(0)) \
-        nocopy(ccachei:length(vsize) alloc_if(1) free_if(0)) \
+        in(ccachei:length(vsize) alloc_if(1) free_if(0)) \
         in(ccachej:length(vsize) alloc_if(1) free_if(0))
     }
     #ifdef LMP_USE_AVXCD
@@ -447,12 +451,17 @@ void IntelBuffers<flt_t, acc_t>::free_ncache()
     flt_t *ncachez = _ncachez;
     int *ncachej = _ncachej;
     int *ncachejtype = _ncachejtype;
+    int *ncachetag = _ncachetag;
 
     #ifdef _LMP_INTEL_OFFLOAD
     if (_off_ncache) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ncachex,ncachey,ncachez,ncachej:alloc_if(0) free_if(1)) \
         nocopy(ncachejtype:alloc_if(0) free_if(1))
+      if (ncachetag) {
+        #pragma offload_transfer target(mic:_cop) \
+          nocopy(ncachetag:alloc_if(0) free_if(1))
+      }
     }
     _off_ncache = 0;
     #endif
@@ -462,8 +471,10 @@ void IntelBuffers<flt_t, acc_t>::free_ncache()
     lmp->memory->destroy(ncachez);
     lmp->memory->destroy(ncachej);
     lmp->memory->destroy(ncachejtype);
-
+    if (ncachetag)
+      lmp->memory->destroy(ncachetag);
     _ncache_alloc = 0;
+    _ncachetag = 0;
   }
 }
 
@@ -480,7 +491,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
   const int vsize = _ncache_stride * nt;
 
   if (_ncache_alloc) {
-    if (vsize > _ncache_alloc)
+    if (vsize > _ncache_alloc || (need_tag() && _ncachetag == 0))
       free_ncache();
     #ifdef _LMP_INTEL_OFFLOAD
     else if (off_flag && _off_ncache == 0)
@@ -495,6 +506,8 @@ void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
   lmp->memory->create(_ncachez, vsize, "_ncachez");
   lmp->memory->create(_ncachej, vsize, "_ncachej");
   lmp->memory->create(_ncachejtype, vsize, "_ncachejtype");
+  if (need_tag())
+    lmp->memory->create(_ncachetag, vsize, "_ncachetag");
 
   _ncache_alloc = vsize;
 
@@ -513,6 +526,14 @@ void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
         nocopy(ncachez,ncachej:length(vsize) alloc_if(1) free_if(0)) \
         nocopy(ncachejtype:length(vsize) alloc_if(1) free_if(0))
     }
+    int tsize = vsize;
+    if (!need_tag()) {
+      tsize = 16;
+      lmp->memory->create(_ncachetag, tsize, "_ncachetag");
+    }
+    int *ncachetag = _ncachetag;
+    #pragma offload_transfer target(mic:_cop)			\
+      nocopy(ncachetag:length(tsize) alloc_if(1) free_if(0))
     _off_ncache = 1;
   }
   #endif
@@ -548,7 +569,8 @@ void IntelBuffers<flt_t, acc_t>::fdotr_reduce(const int nall,
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes)
+void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes, 
+					    const int use_ghost_cut)
 {
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
@@ -558,16 +580,34 @@ void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes)
         #pragma offload_transfer target(mic:_cop) \
           nocopy(cutneighsqo:alloc_if(0) free_if(1))
       }
+      flt_t * cutneighghostsqo;
+      if (_cutneighghostsq && _off_threads > 0 && cutneighghostsqo != 0) {
+	cutneighghostsqo = _cutneighghostsq[0];
+        #pragma offload_transfer target(mic:_cop) \
+          nocopy(cutneighghostsqo:alloc_if(0) free_if(1))
+      }
       #endif
       lmp->memory->destroy(_cutneighsq);
+      if (_cutneighghostsq != 0) lmp->memory->destroy(_cutneighghostsq);
     }
     if (ntypes > 0) {
       lmp->memory->create(_cutneighsq, ntypes, ntypes, "_cutneighsq");
+      if (use_ghost_cut)
+	lmp->memory->create(_cutneighghostsq, ntypes, ntypes, 
+			    "_cutneighghostsq");
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * cutneighsqo = _cutneighsq[0];
+      const int ntypes2 = ntypes * ntypes;
       if (_off_threads > 0 && cutneighsqo != NULL) {
         #pragma offload_transfer target(mic:_cop) \
-          nocopy(cutneighsqo:length(ntypes * ntypes) alloc_if(1) free_if(0))
+          nocopy(cutneighsqo:length(ntypes2) alloc_if(1) free_if(0))
+      }
+      if (use_ghost_cut) {
+        flt_t * cutneighghostsqo = _cutneighghostsq[0];
+        if (_off_threads > 0 && cutneighghostsqo != NULL) {
+          #pragma offload_transfer target(mic:_cop) \
+            nocopy(cutneighghostsqo:length(ntypes2) alloc_if(1) free_if(0))
+        }
       }
       #endif
     }

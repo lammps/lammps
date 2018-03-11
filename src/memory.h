@@ -16,9 +16,6 @@
 
 #include "lmptype.h"
 #include "pointers.h"
-#ifdef LMP_KOKKOS
-#include "kokkos_type.h"
-#endif
 
 namespace LAMMPS_NS {
 
@@ -30,16 +27,6 @@ class Memory : protected Pointers {
   void *srealloc(void *, bigint n, const char *);
   void sfree(void *);
   void fail(const char *);
-
-  // Kokkos memory allocation functions
-  // provide a dummy prototpye for any Kokkos memory function
-  //   called in main LAMMPS even when not built with KOKKOS package
-
-#ifdef LMP_KOKKOS
-#include "memory_kokkos.h"
-#else
-  void grow_kokkos(tagint **, tagint **, int, int, const char*) {}
-#endif
 
 /* ----------------------------------------------------------------------
    create/grow/destroy vecs and multidim arrays with contiguous memory blocks

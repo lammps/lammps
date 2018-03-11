@@ -32,12 +32,13 @@
 #include "respa.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "reaxc_defs.h"
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
+#include "modify.h"
 
 
 #define TEAMSIZE 128
@@ -81,12 +82,12 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 {
   if (copymode) return;
 
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
-  memory->destroy_kokkos(k_tmpid,tmpid);
+  memoryKK->destroy_kokkos(k_tmpid,tmpid);
   tmpid = NULL;
-  memory->destroy_kokkos(k_tmpbo,tmpbo);
+  memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
   tmpbo = NULL;
 }
 
@@ -99,26 +100,26 @@ void PairReaxCKokkos<DeviceType>::allocate()
 
   k_params_sing = Kokkos::DualView<params_sing*,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_sing",n+1);
-  paramssing = k_params_sing.d_view;
+  paramssing = k_params_sing.template view<DeviceType>();
 
   k_params_twbp = Kokkos::DualView<params_twbp**,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_twbp",n+1,n+1);
-  paramstwbp = k_params_twbp.d_view;
+  paramstwbp = k_params_twbp.template view<DeviceType>();
 
   k_params_thbp = Kokkos::DualView<params_thbp***,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_thbp",n+1,n+1,n+1);
-  paramsthbp = k_params_thbp.d_view;
+  paramsthbp = k_params_thbp.template view<DeviceType>();
 
   k_params_fbp = Kokkos::DualView<params_fbp****,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_fbp",n+1,n+1,n+1,n+1);
-  paramsfbp = k_params_fbp.d_view;
+  paramsfbp = k_params_fbp.template view<DeviceType>();
 
   k_params_hbp = Kokkos::DualView<params_hbp***,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_hbp",n+1,n+1,n+1);
-  paramshbp = k_params_hbp.d_view;
+  paramshbp = k_params_hbp.template view<DeviceType>();
 
   k_tap = DAT::tdual_ffloat_1d("pair:tap",8);
-  d_tap = k_tap.d_view;
+  d_tap = k_tap.template view<DeviceType>();
   h_tap = k_tap.h_view;
 
 }
@@ -131,6 +132,8 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
+  if (fix_reax) modify->delete_fix("REAXC"); // not needed in the Kokkos version
+  fix_reax = NULL;
 
   // irequest = neigh request made by parent class
 
@@ -355,7 +358,7 @@ void PairReaxCKokkos<DeviceType>::init_md()
   k_tap.h_view(3) = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3 ) / d7;
   k_tap.h_view(2) =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   k_tap.h_view(1) = 140.0 * swa3 * swb3 / d7;
-  k_tap.h_view(0) = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 +
+  k_tap.h_view(0) = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
                      7.0*swa*swb3*swb3 + swb3*swb3*swb ) / d7;
 
   k_tap.template modify<LMPHostType>();
@@ -367,7 +370,7 @@ void PairReaxCKokkos<DeviceType>::init_md()
 
     Init_Lookup_Tables();
     k_LR = tdual_LR_lookup_table_kk_2d("lookup:LR",ntypes+1,ntypes+1);
-    d_LR = k_LR.d_view;
+    d_LR = k_LR.template view<DeviceType>();
 
     for (int i = 1; i <= ntypes; ++i) {
       for (int j = i; j <= ntypes; ++j) {
@@ -382,19 +385,19 @@ void PairReaxCKokkos<DeviceType>::init_md()
         k_LR.h_view(i,j).m      = LR[i][j].m;
         k_LR.h_view(i,j).c      = LR[i][j].c;
 
-        tdual_LR_data_1d           k_y      = tdual_LR_data_1d("lookup:LR[i,j].y",n);
-        tdual_cubic_spline_coef_1d k_H      = tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
-        tdual_cubic_spline_coef_1d k_vdW    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
-        tdual_cubic_spline_coef_1d k_CEvd   = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
-        tdual_cubic_spline_coef_1d k_ele    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
-        tdual_cubic_spline_coef_1d k_CEclmb = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_LR_data_1d           k_y      = typename LR_lookup_table_kk<DeviceType>::tdual_LR_data_1d("lookup:LR[i,j].y",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_H      = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_vdW    = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEvd   = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_ele    = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEclmb = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
     
-        k_LR.h_view(i,j).d_y      = k_y.d_view;
-        k_LR.h_view(i,j).d_H      = k_H.d_view;
-        k_LR.h_view(i,j).d_vdW    = k_vdW.d_view;
-        k_LR.h_view(i,j).d_CEvd   = k_CEvd.d_view;
-        k_LR.h_view(i,j).d_ele    = k_ele.d_view;
-        k_LR.h_view(i,j).d_CEclmb = k_CEclmb.d_view;
+        k_LR.h_view(i,j).d_y      = k_y.template view<DeviceType>();
+        k_LR.h_view(i,j).d_H      = k_H.template view<DeviceType>();
+        k_LR.h_view(i,j).d_vdW    = k_vdW.template view<DeviceType>();
+        k_LR.h_view(i,j).d_CEvd   = k_CEvd.template view<DeviceType>();
+        k_LR.h_view(i,j).d_ele    = k_ele.template view<DeviceType>();
+        k_LR.h_view(i,j).d_CEclmb = k_CEclmb.template view<DeviceType>();
     
         for (int k = 0; k < n; k++) {
           k_y.h_view(k)      = LR[i][j].y[k];
@@ -555,8 +558,8 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 
   ntypes = atom->ntypes;
 
-  for( i = 0; i < ntypes; ++i ) {
-    for( j = i; j < ntypes; ++j )
+  for( i = 0; i <= ntypes; ++i ) {
+    for( j = i; j <= ntypes; ++j )
       if( LR[i][j].n ) {
         sfree( LR[i][j].y, "LR[i,j].y" );
         sfree( LR[i][j].H, "LR[i,j].H" );
@@ -1213,7 +1216,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
 
     const int tmin  = MIN( itype, jtype );
     const int tmax  = MAX( itype, jtype );
-    const LR_lookup_table_kk t = d_LR(tmin,tmax);
+    const LR_lookup_table_kk<DeviceType> t = d_LR(tmin,tmax);
 
 
     /* Cubic Spline Interpolation */
@@ -1337,10 +1340,10 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
 
   // FixReaxCSpecies
   if (fixspecies_flag) {
-    memory->destroy_kokkos(k_tmpid,tmpid);
-    memory->destroy_kokkos(k_tmpbo,tmpbo);
-    memory->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
-    memory->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+    memoryKK->destroy_kokkos(k_tmpid,tmpid);
+    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
+    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
   }
 
   // FixReaxCBonds
@@ -1445,6 +1448,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsFull, const int &
         hb_index++;
       }
     }
+
+    if (rsq > cut_bosq) continue;
 
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
@@ -1632,6 +1637,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
         d_hb_list[i_index] = i;
       }
     }
+
+    if (rsq > cut_bosq) continue;
 
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
@@ -1853,6 +1860,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
         d_hb_list[i_index] = i;
       }
     }
+
+    if (rsq > cut_bosq) continue;
 
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
@@ -3903,14 +3912,14 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     v_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     v_vatom = k_vatom.view<DeviceType>();
   }
 

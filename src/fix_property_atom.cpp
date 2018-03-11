@@ -134,7 +134,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   nmax_old = 0;
-  grow_arrays(atom->nmax);
+  if (!lmp->kokkos)
+    grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
   if (border) atom->add_callback(2);

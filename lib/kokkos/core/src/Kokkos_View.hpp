@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -54,11 +54,14 @@
 #include <Kokkos_MemoryTraits.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 
+#if defined(KOKKOS_ENABLE_PROFILING)
+#include <impl/Kokkos_Profiling_Interface.hpp>
+#endif
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 template< class DataType >
@@ -72,16 +75,6 @@ struct ViewDataAnalysis ;
 
 template< class , class ... >
 class ViewMapping { public: enum { is_assignable = false }; };
-
-} /* namespace Impl */
-} /* namespace Experimental */
-} /* namespace Kokkos */
-
-namespace Kokkos {
-namespace Impl {
-
-using Kokkos::Experimental::Impl::ViewMapping ;
-using Kokkos::Experimental::Impl::ViewDataAnalysis ;
 
 } /* namespace Impl */
 } /* namespace Kokkos */
@@ -415,7 +408,7 @@ view_alloc( Args const & ... args )
 }
 
 template< class ... Args >
-inline
+KOKKOS_INLINE_FUNCTION
 Impl::ViewCtorProp< typename Impl::ViewCtorProp< void , Args >::type ... >
 view_wrap( Args const & ... args )
 {
@@ -1223,6 +1216,13 @@ public:
       m_track.assign_allocated_record_to_uninitialized( record );
     }
 
+  KOKKOS_INLINE_FUNCTION
+  void assign_data( pointer_type arg_data )
+    {
+      m_track.clear();
+      m_map.assign_data( arg_data );
+    }
+
   // Wrap memory according to properties and array layout
   template< class ... P >
   explicit KOKKOS_INLINE_FUNCTION
@@ -1563,12 +1563,12 @@ namespace Kokkos {
 namespace Impl {
 
 inline
-void shared_allocation_tracking_claim_and_disable()
-{ Kokkos::Impl::SharedAllocationRecord<void,void>::tracking_claim_and_disable(); }
+void shared_allocation_tracking_disable()
+{ Kokkos::Impl::SharedAllocationRecord<void,void>::tracking_disable(); }
 
 inline
-void shared_allocation_tracking_release_and_enable()
-{ Kokkos::Impl::SharedAllocationRecord<void,void>::tracking_release_and_enable(); }
+void shared_allocation_tracking_enable()
+{ Kokkos::Impl::SharedAllocationRecord<void,void>::tracking_enable(); }
 
 } /* namespace Impl */
 } /* namespace Kokkos */
@@ -1795,6 +1795,20 @@ void deep_copy
 
   if ( (void *) dst.data() != (void*) src.data() ) {
 
+#if defined(KOKKOS_ENABLE_PROFILING)
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      const size_t nbytes = sizeof(typename dst_type::value_type) * dst.span();
+      Kokkos::Profiling::beginDeepCopy(
+          Kokkos::Profiling::SpaceHandle(dst_memory_space::name()),
+          dst.label(),
+          dst.data(),
+          Kokkos::Profiling::SpaceHandle(src_memory_space::name()),
+          src.label(),
+          src.data(),
+          nbytes);
+    }
+#endif
+
     // Concern: If overlapping views then a parallel copy will be erroneous.
     // ...
 
@@ -1882,7 +1896,14 @@ void deep_copy
     else {
       Kokkos::Impl::throw_runtime_exception("deep_copy given views that would require a temporary allocation");
     }
-  }
+
+#if defined(KOKKOS_ENABLE_PROFILING)
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::endDeepCopy();
+    }
+#endif
+
+  } // ( (void *) dst.data() != (void*) src.data() )
 }
 
 } /* namespace Kokkos */
@@ -2221,6 +2242,29 @@ create_mirror_view(const Space& , const Kokkos::View<T,P...> & src
   return typename Impl::MirrorViewType<Space,T,P ...>::view_type(src.label(),src.layout());
 }
 
+// Create a mirror view and deep_copy in a new space (specialization for same space)
+template<class Space, class T, class ... P>
+typename Impl::MirrorViewType<Space,T,P ...>::view_type
+create_mirror_view_and_copy(const Space& , const Kokkos::View<T,P...> & src
+  , std::string const& name = ""
+  , typename std::enable_if<Impl::MirrorViewType<Space,T,P ...>::is_same_memspace>::type* = 0 ) {
+  (void)name;
+  return src;
+}
+
+// Create a mirror view and deep_copy in a new space (specialization for different space)
+template<class Space, class T, class ... P>
+typename Impl::MirrorViewType<Space,T,P ...>::view_type
+create_mirror_view_and_copy(const Space& , const Kokkos::View<T,P...> & src
+  , std::string const& name = ""
+  , typename std::enable_if<!Impl::MirrorViewType<Space,T,P ...>::is_same_memspace>::type* = 0 ) {
+  using Mirror = typename Impl::MirrorViewType<Space,T,P ...>::view_type;
+  std::string label = name.empty() ? src.label() : name;
+  auto mirror = Mirror(ViewAllocateWithoutInitializing(label), src.layout());
+  deep_copy(mirror, src);
+  return mirror;
+}
+
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
@@ -2248,6 +2292,82 @@ resize( Kokkos::View<T,P...> & v ,
   typedef Kokkos::View<T,P...>  view_type ;
 
   static_assert( Kokkos::ViewTraits<T,P...>::is_managed , "Can only resize managed views" );
+
+  // Fix #904 by checking dimensions before actually resizing.
+  //
+  // Rank is known at compile time, so hopefully the compiler will
+  // remove branches that are compile-time false.  The upcoming "if
+  // constexpr" language feature would make this certain.
+  if (view_type::Rank == 1 &&
+      n0 == static_cast<size_t> (v.extent(0))) {
+    return;
+  }
+  if (view_type::Rank == 2 &&
+      n0 == static_cast<size_t> (v.extent(0)) &&
+      n1 == static_cast<size_t> (v.extent(1))) {
+    return;
+  }
+  if (view_type::Rank == 3 &&
+      n0 == static_cast<size_t> (v.extent(0)) &&
+      n1 == static_cast<size_t> (v.extent(1)) &&
+      n2 == static_cast<size_t> (v.extent(2))) {
+    return;
+  }
+  if (view_type::Rank == 4 &&
+      n0 == static_cast<size_t> (v.extent(0)) &&
+      n1 == static_cast<size_t> (v.extent(1)) &&
+      n2 == static_cast<size_t> (v.extent(2)) &&
+      n3 == static_cast<size_t> (v.extent(3))) {
+    return;
+  }
+  if (view_type::Rank == 5 &&
+      n0 == static_cast<size_t> (v.extent(0)) &&
+      n1 == static_cast<size_t> (v.extent(1)) &&
+      n2 == static_cast<size_t> (v.extent(2)) &&
+      n3 == static_cast<size_t> (v.extent(3)) &&
+      n4 == static_cast<size_t> (v.extent(4))) {
+    return;
+  }
+  if (view_type::Rank == 6 &&
+      n0 == static_cast<size_t> (v.extent(0)) &&
+      n1 == static_cast<size_t> (v.extent(1)) &&
+      n2 == static_cast<size_t> (v.extent(2)) &&
+      n3 == static_cast<size_t> (v.extent(3)) &&
+      n4 == static_cast<size_t> (v.extent(4)) &&
+      n5 == static_cast<size_t> (v.extent(5))) {
+    return;
+  }
+  if (view_type::Rank == 7 &&
+      n0 == static_cast<size_t> (v.extent(0)) &&
+      n1 == static_cast<size_t> (v.extent(1)) &&
+      n2 == static_cast<size_t> (v.extent(2)) &&
+      n3 == static_cast<size_t> (v.extent(3)) &&
+      n4 == static_cast<size_t> (v.extent(4)) &&
+      n5 == static_cast<size_t> (v.extent(5)) &&
+      n6 == static_cast<size_t> (v.extent(6))) {
+    return;
+  }
+  if (view_type::Rank == 8 &&
+      n0 == static_cast<size_t> (v.extent(0)) &&
+      n1 == static_cast<size_t> (v.extent(1)) &&
+      n2 == static_cast<size_t> (v.extent(2)) &&
+      n3 == static_cast<size_t> (v.extent(3)) &&
+      n4 == static_cast<size_t> (v.extent(4)) &&
+      n5 == static_cast<size_t> (v.extent(5)) &&
+      n6 == static_cast<size_t> (v.extent(6)) &&
+      n7 == static_cast<size_t> (v.extent(7))) {
+    return;
+  }
+  // If Kokkos ever supports Views of rank > 8, the above code won't
+  // be incorrect, because avoiding reallocation in resize() is just
+  // an optimization.
+
+  // TODO (mfh 27 Jun 2017) If the old View has enough space but just
+  // different dimensions (e.g., if the product of the dimensions,
+  // including extra space for alignment, will not change), then
+  // consider just reusing storage.  For now, Kokkos always
+  // reallocates if any of the dimensions change, even if the old View
+  // has enough space.
 
   view_type v_resized( v.label(), n0, n1, n2, n3, n4, n5, n6, n7 );
 
@@ -2319,6 +2439,109 @@ void realloc(      Kokkos::View<T,P...> & v ,
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+namespace Kokkos { namespace Impl {
+
+template < class Specialize, typename A, typename B >
+struct CommonViewValueType;
+
+template < typename A, typename B >
+struct CommonViewValueType< void, A, B >
+{
+  using value_type = typename std::common_type< A , B >::type;
+};
+
+
+template < class Specialize, class ValueType >
+struct CommonViewAllocProp;
+
+template < class ValueType >
+struct CommonViewAllocProp< void, ValueType >
+{
+  using value_type = ValueType;
+  using scalar_array_type = ValueType;
+
+  template < class ... Views >
+  KOKKOS_INLINE_FUNCTION
+  CommonViewAllocProp( const Views & ... ) {}
+};
+
+
+template < class ... Views >
+struct DeduceCommonViewAllocProp;
+
+// Base case must provide types for:
+// 1. specialize  2. value_type  3. is_view  4. prop_type
+template < class FirstView >
+struct DeduceCommonViewAllocProp< FirstView >
+{
+  using specialize = typename FirstView::traits::specialize;
+
+  using value_type = typename FirstView::traits::value_type;
+
+  enum : bool { is_view = is_view< FirstView >::value };
+
+  using prop_type = CommonViewAllocProp< specialize, value_type >;
+};
+
+
+template < class FirstView, class ... NextViews >
+struct DeduceCommonViewAllocProp< FirstView, NextViews... >
+{
+  using NextTraits = DeduceCommonViewAllocProp< NextViews... >;
+
+  using first_specialize = typename FirstView::traits::specialize;
+  using first_value_type = typename FirstView::traits::value_type;
+
+  enum : bool { first_is_view = is_view< FirstView >::value };
+
+  using next_specialize = typename NextTraits::specialize;
+  using next_value_type = typename NextTraits::value_type;
+
+  enum : bool { next_is_view = NextTraits::is_view };
+
+  // common types
+
+  // determine specialize type
+  // if first and next specialize differ, but are not the same specialize, error out
+  static_assert( !(!std::is_same< first_specialize, next_specialize >::value && !std::is_same< first_specialize, void>::value && !std::is_same< void, next_specialize >::value)  , "Kokkos DeduceCommonViewAllocProp ERROR: Only one non-void specialize trait allowed" );
+
+  // otherwise choose non-void specialize if either/both are non-void
+  using specialize = typename std::conditional< std::is_same< first_specialize, next_specialize >::value
+                                              , first_specialize
+                                              , typename std::conditional< ( std::is_same< first_specialize, void >::value
+                                                                             && !std::is_same< next_specialize, void >::value)
+                                                                           , next_specialize
+                                                                           , first_specialize
+                                                                         >::type
+                                               >::type;
+
+  using value_type = typename CommonViewValueType< specialize, first_value_type, next_value_type >::value_type;
+
+  enum : bool { is_view = (first_is_view && next_is_view) };
+
+  using prop_type = CommonViewAllocProp< specialize, value_type >;
+};
+
+} // end namespace Impl
+
+template < class ... Views >
+using DeducedCommonPropsType = typename Impl::DeduceCommonViewAllocProp<Views...>::prop_type ;
+
+// User function
+template < class ... Views >
+KOKKOS_INLINE_FUNCTION
+DeducedCommonPropsType<Views...> 
+common_view_alloc_prop( Views const & ... views )
+{
+  return DeducedCommonPropsType<Views...>( views... );
+}
+
+} // namespace Kokkos
+
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // For backward compatibility:
 
 namespace Kokkos {
@@ -2350,6 +2573,9 @@ using Kokkos::Impl::WithoutInitializing_t ;
 using Kokkos::Impl::AllowPadding_t ;
 using Kokkos::Impl::SharedAllocationRecord ;
 using Kokkos::Impl::SharedAllocationTracker ;
+using Kokkos::Impl::ViewMapping ;
+using Kokkos::Impl::ViewDataAnalysis ;
+
 
 } /* namespace Impl */
 } /* namespace Experimental */

@@ -150,8 +150,8 @@ void colvar::alpha_angles::calc_value()
       (theta[i])->calc_value();
 
       cvm::real const t = ((theta[i])->value().real_value-theta_ref)/theta_tol;
-      cvm::real const f = ( (1.0 - std::pow(t, (int) 2)) /
-                            (1.0 - std::pow(t, (int) 4)) );
+      cvm::real const f = ( (1.0 - (t*t)) /
+                            (1.0 - (t*t*t*t)) );
 
       x.real_value += theta_norm * f;
 
@@ -202,12 +202,12 @@ void colvar::alpha_angles::apply_force(colvarvalue const &force)
     for (size_t i = 0; i < theta.size(); i++) {
 
       cvm::real const t = ((theta[i])->value().real_value-theta_ref)/theta_tol;
-      cvm::real const f = ( (1.0 - std::pow(t, (int) 2)) /
-                            (1.0 - std::pow(t, (int) 4)) );
+      cvm::real const f = ( (1.0 - (t*t)) /
+                            (1.0 - (t*t*t*t)) );
 
       cvm::real const dfdt =
-        1.0/(1.0 - std::pow(t, (int) 4)) *
-        ( (-2.0 * t) + (-1.0*f)*(-4.0 * std::pow(t, (int) 3)) );
+        1.0/(1.0 - (t*t*t*t)) *
+        ( (-2.0 * t) + (-1.0*f)*(-4.0 * (t*t*t)) );
 
       (theta[i])->apply_force(theta_norm *
                                dfdt * (1.0/theta_tol) *

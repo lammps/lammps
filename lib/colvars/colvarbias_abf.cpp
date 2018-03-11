@@ -8,23 +8,28 @@
 // Colvars repository at GitHub.
 
 #include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvar.h"
 #include "colvarbias_abf.h"
 
 
 colvarbias_abf::colvarbias_abf(char const *key)
   : colvarbias(key),
+    b_UI_estimator(false),
+    b_CZAR_estimator(false),
     system_force(NULL),
     gradients(NULL),
+    pmf(NULL),
     samples(NULL),
     z_gradients(NULL),
     z_samples(NULL),
     czar_gradients(NULL),
+    czar_pmf(NULL),
     last_gradients(NULL),
-    last_samples(NULL)
+    last_samples(NULL),
+    pabf_freq(0)
 {
 }
-
 
 int colvarbias_abf::init(std::string const &conf)
 {
@@ -89,7 +94,7 @@ int colvarbias_abf::init(std::string const &conf)
 
   // ************* checking the associated colvars *******************
 
-  if (colvars.size() == 0) {
+  if (num_variables() == 0) {
     cvm::error("Error: no collective variables specified for the ABF bias.\n");
     return COLVARS_ERROR;
   }
@@ -100,7 +105,8 @@ int colvarbias_abf::init(std::string const &conf)
   }
 
   bool b_extended = false;
-  for (size_t i = 0; i < colvars.size(); i++) {
+  size_t i;
+  for (i = 0; i < num_variables(); i++) {
 
     if (colvars[i]->value().type() != colvarvalue::type_scalar) {
       cvm::error("Error: ABF bias can only use scalar-type variables.\n");
@@ -130,10 +136,10 @@ int colvarbias_abf::init(std::string const &conf)
   }
 
   if (get_keyval(conf, "maxForce", max_force)) {
-    if (max_force.size() != colvars.size()) {
+    if (max_force.size() != num_variables()) {
       cvm::error("Error: Number of parameters to maxForce does not match number of colvars.");
     }
-    for (size_t i = 0; i < colvars.size(); i++) {
+    for (i = 0; i < num_variables(); i++) {
       if (max_force[i] < 0.0) {
         cvm::error("Error: maxForce should be non-negative.");
       }
@@ -143,9 +149,9 @@ int colvarbias_abf::init(std::string const &conf)
     cap_force = false;
   }
 
-  bin.assign(colvars.size(), 0);
-  force_bin.assign(colvars.size(), 0);
-  system_force = new cvm::real [colvars.size()];
+  bin.assign(num_variables(), 0);
+  force_bin.assign(num_variables(), 0);
+  system_force = new cvm::real [num_variables()];
 
   // Construct empty grids based on the colvars
   if (cvm::debug()) {
@@ -157,13 +163,14 @@ int colvarbias_abf::init(std::string const &conf)
   gradients->samples = samples;
   samples->has_parent_data = true;
 
-  // Data for eABF z-based estimator
-  if (b_extended) {
+  // Data for eAB F z-based estimator
+  if ( b_extended ) {
+    get_keyval(conf, "CZARestimator", b_CZAR_estimator, true);
     // CZAR output files for stratified eABF
     get_keyval(conf, "writeCZARwindowFile", b_czar_window_file, false,
                colvarparse::parse_silent);
 
-    z_bin.assign(colvars.size(), 0);
+    z_bin.assign(num_variables(), 0);
     z_samples   = new colvar_grid_count(colvars);
     z_samples->request_actual_value();
     z_gradients = new colvar_grid_gradient(colvars);
@@ -171,6 +178,27 @@ int colvarbias_abf::init(std::string const &conf)
     z_gradients->samples = z_samples;
     z_samples->has_parent_data = true;
     czar_gradients = new colvar_grid_gradient(colvars);
+  }
+
+  // For now, we integrate on-the-fly iff the grid is < 3D
+  if ( num_variables() <= 3 ) {
+    pmf = new integrate_potential(colvars, gradients);
+    if ( b_CZAR_estimator ) {
+      czar_pmf = new integrate_potential(colvars, czar_gradients);
+    }
+    get_keyval(conf, "integrate", b_integrate, true); // Integrate for output
+    if ( num_variables() > 1 ) {
+      // Projected ABF
+      get_keyval(conf, "pABFintegrateFreq", pabf_freq, 0);
+      // Parameters for integrating initial (and final) gradient data
+      get_keyval(conf, "integrateInitSteps", integrate_initial_steps, 1e4);
+      get_keyval(conf, "integrateInitTol", integrate_initial_tol, 1e-6);
+      // for updating the integrated PMF on the fly
+      get_keyval(conf, "integrateSteps", integrate_steps, 100);
+      get_keyval(conf, "integrateTol", integrate_tol, 1e-4);
+    }
+  } else {
+    b_integrate = false;
   }
 
   // For shared ABF, we store a second set of grids.
@@ -185,10 +213,42 @@ int colvarbias_abf::init(std::string const &conf)
   // If custom grids are provided, read them
   if ( input_prefix.size() > 0 ) {
     read_gradients_samples();
+    // Update divergence to account for input data
+    pmf->set_div();
+  }
+
+  // if extendedLangrangian is on, then call UI estimator
+  if (b_extended) {
+    get_keyval(conf, "UIestimator", b_UI_estimator, false);
+
+    if (b_UI_estimator) {
+    std::vector<double> UI_lowerboundary;
+    std::vector<double> UI_upperboundary;
+    std::vector<double> UI_width;
+    std::vector<double> UI_krestr;
+
+    bool UI_restart = (input_prefix.size() > 0);
+
+    for (i = 0; i < num_variables(); i++)
+    {
+      UI_lowerboundary.push_back(colvars[i]->lower_boundary);
+      UI_upperboundary.push_back(colvars[i]->upper_boundary);
+      UI_width.push_back(colvars[i]->width);
+      UI_krestr.push_back(colvars[i]->force_constant());
+    }
+      eabf_UI = UIestimator::UIestimator(UI_lowerboundary,
+                                         UI_upperboundary,
+                                         UI_width,
+                                         UI_krestr,                // force constant in eABF
+                                         output_prefix,              // the prefix of output files
+                                         cvm::restart_out_freq,
+                                         UI_restart,                    // whether restart from a .count and a .grad file
+                                         input_prefix,   // the prefixes of input files
+                                         cvm::temperature());
+    }
   }
 
   cvm::log("Finished ABF setup.\n");
-
   return COLVARS_OK;
 }
 
@@ -205,6 +265,11 @@ colvarbias_abf::~colvarbias_abf()
     gradients = NULL;
   }
 
+  if (pmf) {
+    delete pmf;
+    pmf = NULL;
+  }
+
   if (z_samples) {
     delete z_samples;
     z_samples = NULL;
@@ -218,6 +283,11 @@ colvarbias_abf::~colvarbias_abf()
   if (czar_gradients) {
     delete czar_gradients;
     czar_gradients = NULL;
+  }
+
+  if (czar_pmf) {
+    delete czar_pmf;
+    czar_pmf = NULL;
   }
 
   // shared ABF
@@ -245,40 +315,48 @@ colvarbias_abf::~colvarbias_abf()
 
 int colvarbias_abf::update()
 {
+  int       iter;
+
   if (cvm::debug()) cvm::log("Updating ABF bias " + this->name);
 
-  if (cvm::step_relative() == 0) {
+  size_t i;
+  for (i = 0; i < num_variables(); i++) {
+    bin[i] = samples->current_bin_scalar(i);
+  }
+  if (cvm::proxy->total_forces_same_step()) {
+    // e.g. in LAMMPS, total forces are current
+    force_bin = bin;
+  }
 
-    // At first timestep, do only:
-    // initialization stuff (file operations relying on n_abf_biases
-    // compute current value of colvars
+  if (cvm::step_relative() > 0 || cvm::proxy->total_forces_same_step()) {
 
-    for (size_t i = 0; i < colvars.size(); i++) {
-      bin[i] = samples->current_bin_scalar(i);
-    }
+    if (update_bias) {
+//       if (b_adiabatic_reweighting) {
+//         // Update gradients non-locally based on conditional distribution of
+//         // fictitious variable TODO
+//
+//       } else
+      if (samples->index_ok(force_bin)) {
+        // Only if requested and within bounds of the grid...
 
-  } else {
-
-    for (size_t i = 0; i < colvars.size(); i++) {
-      bin[i] = samples->current_bin_scalar(i);
-    }
-
-    if ( update_bias && samples->index_ok(force_bin) ) {
-      // Only if requested and within bounds of the grid...
-
-      for (size_t i = 0; i < colvars.size(); i++) {
-        // get total forces (lagging by 1 timestep) from colvars
-        // and subtract previous ABF force if necessary
-        update_system_force(i);
+        for (i = 0; i < num_variables(); i++) {
+          // get total forces (lagging by 1 timestep) from colvars
+          // and subtract previous ABF force if necessary
+          update_system_force(i);
+        }
+        gradients->acc_force(force_bin, system_force);
+        if ( b_integrate ) {
+          pmf->update_div_neighbors(force_bin);
+        }
       }
-      gradients->acc_force(force_bin, system_force);
     }
+
     if ( z_gradients && update_bias ) {
-      for (size_t i = 0; i < colvars.size(); i++) {
+      for (i = 0; i < num_variables(); i++) {
         z_bin[i] = z_samples->current_bin_scalar(i);
       }
       if ( z_samples->index_ok(z_bin) ) {
-        for (size_t i = 0; i < colvars.size(); i++) {
+        for (i = 0; i < num_variables(); i++) {
           // If we are outside the range of xi, the force has not been obtained above
           // the function is just an accessor, so cheap to call again anyway
           update_system_force(i);
@@ -286,20 +364,31 @@ int colvarbias_abf::update()
         z_gradients->acc_force(z_bin, system_force);
       }
     }
+
+    if ( b_integrate ) {
+      if ( pabf_freq && cvm::step_relative() % pabf_freq == 0 ) {
+        cvm::real err;
+        iter = pmf->integrate(integrate_steps, integrate_tol, err);
+        pmf->set_zero_minimum(); // TODO: do this only when necessary
+      }
+    }
   }
 
-  // save bin for next timestep
-  force_bin = bin;
+  if (!cvm::proxy->total_forces_same_step()) {
+    // e.g. in NAMD, total forces will be available for next timestep
+    // hence we store the current colvar bin
+    force_bin = bin;
+  }
 
   // Reset biasing forces from previous timestep
-  for (size_t i = 0; i < colvars.size(); i++) {
+  for (i = 0; i < num_variables(); i++) {
     colvar_forces[i].reset();
   }
 
   // Compute and apply the new bias, if applicable
   if (is_enabled(f_cvb_apply_force) && samples->index_ok(bin)) {
 
-    size_t count = samples->value(bin);
+    cvm::real count = samples->value(bin);
     cvm::real fact = 1.0;
 
     // Factor that ensures smooth introduction of the force
@@ -308,21 +397,34 @@ int colvarbias_abf::update()
         (cvm::real(count - min_samples)) / (cvm::real(full_samples - min_samples));
     }
 
-    const cvm::real * grad  = &(gradients->value(bin));
+    std::vector<cvm::real>  grad(num_variables());
 
+    if ( pabf_freq ) {
+      // In projected ABF, the force is the PMF gradient estimate
+      pmf->vector_gradient_finite_diff(bin, grad);
+    } else {
+      // Normal ABF
+      gradients->vector_value(bin, grad);
+    }
+
+//     if ( b_adiabatic_reweighting) {
+//       // Average of force according to conditional distribution of fictitious variable
+//       // need freshly integrated PMF, gradient TODO
+//     } else
     if ( fact != 0.0 ) {
-      if ( (colvars.size() == 1) && colvars[0]->periodic_boundaries() ) {
+      if ( (num_variables() == 1) && colvars[0]->periodic_boundaries() ) {
         // Enforce a zero-mean bias on periodic, 1D coordinates
         // in other words: boundary condition is that the biasing potential is periodic
-        colvar_forces[0].real_value = fact * (grad[0] / cvm::real(count) - gradients->average());
+        // This is enforced naturally if using integrated PMF
+        colvar_forces[0].real_value = fact * (grad[0] - gradients->average ());
       } else {
-        for (size_t i = 0; i < colvars.size(); i++) {
+        for (size_t i = 0; i < num_variables(); i++) {
           // subtracting the mean force (opposite of the FE gradient) means adding the gradient
-          colvar_forces[i].real_value = fact * grad[i] / cvm::real(count);
+          colvar_forces[i].real_value = fact * grad[i];
         }
       }
       if (cap_force) {
-        for (size_t i = 0; i < colvars.size(); i++) {
+        for (size_t i = 0; i < num_variables(); i++) {
           if ( colvar_forces[i].real_value * colvar_forces[i].real_value > max_force[i] * max_force[i] ) {
             colvar_forces[i].real_value = (colvar_forces[i].real_value > 0 ? max_force[i] : -1.0 * max_force[i]);
           }
@@ -332,7 +434,7 @@ int colvarbias_abf::update()
   }
 
   // update the output prefix; TODO: move later to setup_output() function
-  if (cvm::num_biases_feature(colvardeps::f_cvb_calc_pmf) == 1) {
+  if (cvm::main()->num_biases_feature(colvardeps::f_cvb_calc_pmf) == 1) {
     // This is the only bias computing PMFs
     output_prefix = cvm::output_prefix();
   } else {
@@ -362,6 +464,20 @@ int colvarbias_abf::update()
     last_samples->copy_grid(*samples);
     shared_last_step = cvm::step_absolute();
     cvm::log("Prepared sample and gradient buffers at step "+cvm::to_str(cvm::step_absolute())+".");
+  }
+
+  // update UI estimator every step
+  if (b_UI_estimator)
+  {
+    std::vector<double> x(num_variables(),0);
+    std::vector<double> y(num_variables(),0);
+    for (size_t i = 0; i < num_variables(); i++)
+    {
+      x[i] = colvars[i]->actual_value();
+      y[i] = colvars[i]->value();
+    }
+    eabf_UI.update_output_filename(output_prefix);
+    eabf_UI.update(cvm::step_absolute(), x, y);
   }
 
   return COLVARS_OK;
@@ -455,32 +571,66 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
     cvm::proxy->output_stream(samples_out_name, mode);
   if (!samples_os) {
     cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
+    return;
   }
   samples->write_multicol(*samples_os);
   cvm::proxy->close_output_stream(samples_out_name);
+
+  // In dimension higher than 2, dx is easier to handle and visualize
+  if (num_variables() > 2) {
+    std::string  samples_dx_out_name = prefix + ".count.dx";
+    std::ostream *samples_dx_os = cvm::proxy->output_stream(samples_dx_out_name, mode);
+    if (!samples_os) {
+      cvm::error("Error opening samples file " + samples_dx_out_name + " for writing");
+      return;
+    }
+    samples->write_opendx(*samples_dx_os);
+    *samples_dx_os << std::endl;
+    cvm::proxy->close_output_stream(samples_dx_out_name);
+  }
 
   std::ostream *gradients_os =
     cvm::proxy->output_stream(gradients_out_name, mode);
   if (!gradients_os) {
     cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
+    return;
   }
   gradients->write_multicol(*gradients_os);
   cvm::proxy->close_output_stream(gradients_out_name);
 
-  if (colvars.size() == 1) {
-    // Do numerical integration and output a PMF
+  if (b_integrate) {
+    // Do numerical integration (to high precision) and output a PMF
+    cvm::real err;
+    pmf->integrate(integrate_initial_steps, integrate_initial_tol, err);
+    pmf->set_zero_minimum();
+
     std::string  pmf_out_name = prefix + ".pmf";
     std::ostream *pmf_os = cvm::proxy->output_stream(pmf_out_name, mode);
     if (!pmf_os) {
       cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
+      return;
     }
-    gradients->write_1D_integral(*pmf_os);
+    pmf->write_multicol(*pmf_os);
+
+    // In dimension higher than 2, dx is easier to handle and visualize
+    if (num_variables() > 2) {
+      std::string  pmf_dx_out_name = prefix + ".pmf.dx";
+      std::ostream *pmf_dx_os = cvm::proxy->output_stream(pmf_dx_out_name, mode);
+      if (!pmf_dx_os) {
+        cvm::error("Error opening pmf file " + pmf_dx_out_name + " for writing");
+        return;
+      }
+      pmf->write_opendx(*pmf_dx_os);
+      *pmf_dx_os << std::endl;
+      cvm::proxy->close_output_stream(pmf_dx_out_name);
+    }
+
     *pmf_os << std::endl;
     cvm::proxy->close_output_stream(pmf_out_name);
   }
 
-  if (z_gradients) {
-    // Write eABF-related quantities
+  if (b_CZAR_estimator) {
+    // Write eABF CZAR-related quantities
 
     std::string  z_samples_out_name = prefix + ".zcount";
 
@@ -488,6 +638,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
       cvm::proxy->output_stream(z_samples_out_name, mode);
     if (!z_samples_os) {
       cvm::error("Error opening eABF z-histogram file " + z_samples_out_name + " for writing");
+      return;
     }
     z_samples->write_multicol(*z_samples_os);
     cvm::proxy->close_output_stream(z_samples_out_name);
@@ -499,6 +650,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
         cvm::proxy->output_stream(z_gradients_out_name, mode);
       if (!z_gradients_os) {
         cvm::error("Error opening eABF z-gradient file " + z_gradients_out_name + " for writing");
+        return;
       }
       z_gradients->write_multicol(*z_gradients_os);
       cvm::proxy->close_output_stream(z_gradients_out_name);
@@ -509,8 +661,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
           czar_gradients->index_ok(ix); czar_gradients->incr(ix)) {
       for (size_t n = 0; n < czar_gradients->multiplicity(); n++) {
         czar_gradients->set_value(ix, z_gradients->value_output(ix, n)
-            - cvm::temperature() * cvm::boltzmann() * z_samples->log_gradient_finite_diff(ix, n),
-            n);
+          - cvm::temperature() * cvm::boltzmann() * z_samples->log_gradient_finite_diff(ix, n), n);
       }
     }
 
@@ -520,17 +671,39 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
       cvm::proxy->output_stream(czar_gradients_out_name, mode);
     if (!czar_gradients_os) {
       cvm::error("Error opening CZAR gradient file " + czar_gradients_out_name + " for writing");
+      return;
     }
     czar_gradients->write_multicol(*czar_gradients_os);
     cvm::proxy->close_output_stream(czar_gradients_out_name);
 
-    if (colvars.size() == 1) {
-      // Do numerical integration and output a PMF
+    if (b_integrate) {
+      // Do numerical integration (to high precision) and output a PMF
+      cvm::real err;
+      czar_pmf->set_div();
+      czar_pmf->integrate(integrate_initial_steps, integrate_initial_tol, err);
+      czar_pmf->set_zero_minimum();
+
       std::string  czar_pmf_out_name = prefix + ".czar.pmf";
-      std::ostream *czar_pmf_os =
-        cvm::proxy->output_stream(czar_pmf_out_name, mode);
-      if (!czar_pmf_os)  cvm::error("Error opening CZAR pmf file " + czar_pmf_out_name + " for writing");
-      czar_gradients->write_1D_integral(*czar_pmf_os);
+      std::ostream *czar_pmf_os = cvm::proxy->output_stream(czar_pmf_out_name, mode);
+      if (!czar_pmf_os) {
+        cvm::error("Error opening CZAR pmf file " + czar_pmf_out_name + " for writing");
+        return;
+      }
+      czar_pmf->write_multicol(*czar_pmf_os);
+
+      // In dimension higher than 2, dx is easier to handle and visualize
+      if (num_variables() > 2) {
+        std::string  czar_pmf_dx_out_name = prefix + ".czar.pmf.dx";
+        std::ostream *czar_pmf_dx_os = cvm::proxy->output_stream(czar_pmf_dx_out_name, mode);
+        if (!czar_pmf_dx_os) {
+          cvm::error("Error opening CZAR pmf file " + czar_pmf_dx_out_name + " for writing");
+          return;
+        }
+        czar_pmf->write_opendx(*czar_pmf_dx_os);
+        *czar_pmf_dx_os << std::endl;
+        cvm::proxy->close_output_stream(czar_pmf_dx_out_name);
+      }
+
       *czar_pmf_os << std::endl;
       cvm::proxy->close_output_stream(czar_pmf_out_name);
     }
@@ -588,7 +761,7 @@ void colvarbias_abf::read_gradients_samples()
       is.close();
     }
 
-    if (z_gradients) {
+    if (b_CZAR_estimator) {
       // Read eABF z-averaged data for CZAR
       cvm::log("Reading z-histogram from " + z_samples_in_name + " and z-gradient from " + z_gradients_in_name);
 
@@ -621,7 +794,7 @@ std::ostream & colvarbias_abf::write_state_data(std::ostream& os)
   os << "\ngradient\n";
   gradients->write_raw(os, 8);
 
-  if (z_gradients) {
+  if (b_CZAR_estimator) {
     os.setf(std::ios::fmtflags(0), std::ios::floatfield); // default floating-point format
     os << "\nz_samples\n";
     z_samples->write_raw(os, 8);
@@ -654,8 +827,12 @@ std::istream & colvarbias_abf::read_state_data(std::istream& is)
   if (! gradients->read_raw(is)) {
     return is;
   }
+  if (b_integrate) {
+    // Update divergence to account for restart data
+    pmf->set_div();
+  }
 
-  if (z_gradients) {
+  if (b_CZAR_estimator) {
 
     if (! read_state_data_key(is, "z_samples")) {
       return is;

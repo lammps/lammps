@@ -50,7 +50,7 @@
 #include <cstdio>
 
 #include <utility>
-#include <impl/Kokkos_spinwait.hpp>
+#include <impl/Kokkos_Spinwait.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
 
@@ -107,13 +107,13 @@ public:
 
       // Wait for fan-in threads
       for ( n = 1 ; ( ! ( m_team_rank_rev & n ) ) && ( ( j = m_team_rank_rev + n ) < m_team_size ) ; n <<= 1 ) {
-        Impl::spinwait_while_equal( m_team_base[j]->state() , ThreadsExec::Active );
+        Impl::spinwait_while_equal<int>( m_team_base[j]->state() , ThreadsExec::Active );
       }
 
       // If not root then wait for release
       if ( m_team_rank_rev ) {
         m_exec->state() = ThreadsExec::Rendezvous ;
-        Impl::spinwait_while_equal( m_exec->state() , ThreadsExec::Rendezvous );
+        Impl::spinwait_while_equal<int>( m_exec->state() , ThreadsExec::Rendezvous );
       }
 
       return ! m_team_rank_rev ;
@@ -482,6 +482,8 @@ public:
   void next_static()
     {
       if ( m_league_rank < m_league_end ) {
+        // Make sure all stores are complete before entering the barrier
+        memory_fence();
         team_barrier();
         set_team_shared();
       }
@@ -518,6 +520,8 @@ public:
       return;
 
     if ( m_league_rank < m_league_chunk_end ) {
+      // Make sure all stores are complete before entering the barrier
+      memory_fence();
       team_barrier();
       set_team_shared();
     }

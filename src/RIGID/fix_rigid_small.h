@@ -79,6 +79,7 @@ class FixRigidSmall : public Fix {
   char *infile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
   int commflag;             // various modes of forward/reverse comm
+  int customflag;           // 1 if custom property/variable define bodies
   int nbody;                // total # of rigid bodies
   int nlinear;              // total # of linear rigid bodies
   tagint maxmol;            // max mol-ID
@@ -187,7 +188,7 @@ class FixRigidSmall : public Fix {
   void image_shift();
   void set_xv();
   void set_v();
-  void create_bodies();
+  void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void readfile(int, double **, int *);

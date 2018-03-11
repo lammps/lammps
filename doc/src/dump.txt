@@ -45,7 +45,7 @@ args = list of arguments for a particular style :l
   {xyz/gz} args = none
   {xyz/mpiio} args = none :pre
 
-{custom} or {custom/gz} or {custom/mpiio} args = list of atom attributes :l
+{custom} or {custom/gz} or {custom/mpiio} or {netcdf} or {netcdf/mpiio} args = list of atom attributes :l
     possible attributes = id, mol, proc, procp1, type, element, mass,
                           x, y, z, xs, ys, zs, xu, yu, zu,
                           xsu, ysu, zsu, ix, iy, iz,
@@ -649,20 +649,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 The {xtc} style is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.  This is
-because some machines may not support the low-level XDR data format
-that XTC files are written with, which will result in a compile-time
-error when a low-level include file is not found.  Putting this style
-in a package makes it easy to exclude from a LAMMPS build for those
-machines.  However, the MISC package also includes two compatibility
-header files and associated functions, which should be a suitable
-substitute on machines that do not have the appropriate native header
-files.  This option can be invoked at build time by adding
--DLAMMPS_XDR to the CCFLAGS variable in the appropriate low-level
-Makefile, e.g. src/MAKE/Makefile.foo.  This compatibility mode has
-been tested successfully on Cray XT3/XT4/XT5 and IBM BlueGene/L
-machines and should also work on IBM BG/P, and Windows XP/Vista/7
-machines.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

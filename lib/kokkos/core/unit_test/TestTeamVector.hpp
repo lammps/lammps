@@ -46,6 +46,7 @@
 #include <impl/Kokkos_Timer.hpp>
 #include <iostream>
 #include <cstdlib>
+#include <cstdint>
 
 namespace TestTeamVector {
 
@@ -838,6 +839,19 @@ public:
     }, result );
 
     const ScalarType solution = (ScalarType) nrows * (ScalarType) ncols;
+
+    if ( int64_t(solution) != int64_t(result) ) {
+      printf( "  TestTripleNestedReduce failed solution(%" PRId64 ") != result(%" PRId64 "),"
+              " nrows(%" PRId32 ") ncols(%" PRId32 ") league_size(%" PRId32 ") team_size(%" PRId32 ")\n"
+            , int64_t(solution)
+            , int64_t(result)
+            , int32_t(nrows)
+            , int32_t(ncols)
+            , int32_t(nrows/chunk_size)
+            , int32_t(team_size)
+            );
+    }
+
     ASSERT_EQ( solution, result );
   }
 };

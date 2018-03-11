@@ -103,7 +103,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   uCond = uMech = uChem = uCG = uCGnew = NULL;
   duChem = NULL;
   dpdTheta = NULL;
-  ssaAIR = NULL;
+
+  // USER-MESO
+
+  cc = cc_flux = NULL;
+  edpd_temp = edpd_flux = edpd_cv = NULL;
 
   // USER-SMD
 
@@ -169,7 +173,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
   rho_flag = e_flag = cv_flag = vest_flag = 0;
-  dpd_flag = 0;
+  dpd_flag = edpd_flag = tdpd_flag = 0;
 
   // USER-SMD
 
@@ -300,7 +304,12 @@ Atom::~Atom()
   memory->destroy(uCG);
   memory->destroy(uCGnew);
   memory->destroy(duChem);
-  memory->destroy(ssaAIR);
+
+  memory->destroy(cc);
+  memory->destroy(cc_flux);
+  memory->destroy(edpd_temp);
+  memory->destroy(edpd_flux);
+  memory->destroy(edpd_cv);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -335,9 +344,11 @@ Atom::~Atom()
     delete [] iname[i];
     memory->destroy(ivector[i]);
   }
-  for (int i = 0; i < ndvector; i++) {
-    delete [] dname[i];
-    memory->destroy(dvector[i]);
+  if (dvector != NULL) {
+    for (int i = 0; i < ndvector; i++) {
+      delete [] dname[i];
+      memory->destroy(dvector[i]);
+    }
   }
 
   memory->sfree(iname);
@@ -442,12 +453,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   // if molecular system:
   // atom IDs must be defined
   // force atom map to be created
-  // map style may be reset by map_init() and its call to map_style_set()
+  // map style will be reset to array vs hash to by map_init()
 
   molecular = avec->molecular;
   if (molecular && tag_enable == 0)
     error->all(FLERR,"Atom IDs must be used for molecular systems");
-  if (molecular) map_style = 1;
+  if (molecular) map_style = 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -582,6 +593,7 @@ void Atom::modify_params(int narg, char **arg)
                    "Atom_modify map command after simulation box is defined");
       if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
+      else if (strcmp(arg[iarg+1],"yes") == 0) map_user = 3;
       else error->all(FLERR,"Illegal atom_modify command");
       map_style = map_user;
       iarg += 2;
@@ -810,8 +822,8 @@ void Atom::deallocate_topology()
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
-                      int shiftflag, double *shift)
+void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
+                      int type_offset, int shiftflag, double *shift)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -936,6 +948,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       avec->data_atom(xdata,imagedata,values);
       if (id_offset) tag[nlocal-1] += id_offset;
+      if (mol_offset) molecule[nlocal-1] += mol_offset;
       if (type_offset) {
         type[nlocal-1] += type_offset;
         if (type[nlocal-1] > ntypes)
@@ -1019,8 +1032,8 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
       error->one(FLERR,"Invalid atom ID in Bonds section of data file");
     if (itype <= 0 || itype > nbondtypes)
       error->one(FLERR,"Invalid bond type in Bonds section of data file");
@@ -1073,9 +1086,10 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
       error->one(FLERR,"Invalid atom ID in Angles section of data file");
     if (itype <= 0 || itype > nangletypes)
       error->one(FLERR,"Invalid angle type in Angles section of data file");
@@ -1144,10 +1158,12 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom4 <= 0) || (atom4 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
     if (itype <= 0 || itype > ndihedraltypes)
       error->one(FLERR,
@@ -1231,10 +1247,12 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom4 <= 0) || (atom4 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,"Invalid atom ID in Impropers section of data file");
     if (itype <= 0 || itype > nimpropertypes)
       error->one(FLERR,
@@ -2194,6 +2212,7 @@ void *Atom::extract(char *name)
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
+  if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
   return NULL;
 }

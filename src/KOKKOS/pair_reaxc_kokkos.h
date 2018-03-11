@@ -39,14 +39,15 @@ PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-typedef Kokkos::DualView<LR_data*,Kokkos::LayoutRight,LMPDeviceType> tdual_LR_data_1d;
-typedef typename tdual_LR_data_1d::t_dev t_LR_data_1d;
-
-typedef Kokkos::DualView<cubic_spline_coef*,Kokkos::LayoutRight,LMPDeviceType> tdual_cubic_spline_coef_1d;
-typedef typename tdual_cubic_spline_coef_1d::t_dev t_cubic_spline_coef_1d;
-
+template<class DeviceType>
 struct LR_lookup_table_kk
 {
+  typedef Kokkos::DualView<LR_data*,Kokkos::LayoutRight,DeviceType> tdual_LR_data_1d;
+  typedef typename tdual_LR_data_1d::t_dev t_LR_data_1d;
+
+  typedef Kokkos::DualView<cubic_spline_coef*,Kokkos::LayoutRight,DeviceType> tdual_cubic_spline_coef_1d;
+  typedef typename tdual_cubic_spline_coef_1d::t_dev t_cubic_spline_coef_1d;
+
   double xmin, xmax;
   int n;
   double dx, inv_dx;
@@ -397,7 +398,7 @@ class PairReaxCKokkos : public PairReaxC {
   HAT::t_virial_array h_vatom;
 
   DAT::tdual_float_1d k_tap;
-  DAT::t_float_1d d_tap;
+  typename AT::t_float_1d d_tap;
   HAT::t_float_1d h_tap;
 
   typename AT::t_float_1d d_bo_rij, d_hb_rsq, d_Deltap, d_Deltap_boc, d_total_bo;
@@ -438,7 +439,9 @@ class PairReaxCKokkos : public PairReaxC {
 
   int bocnt,hbcnt;
 
-  typedef Kokkos::DualView<LR_lookup_table_kk**,LMPDeviceType::array_layout,DeviceType> tdual_LR_lookup_table_kk_2d;
+  typedef LR_lookup_table_kk<DeviceType> LR_lookup_table_kk_DT;
+
+  typedef Kokkos::DualView<LR_lookup_table_kk_DT**,LMPDeviceType::array_layout,DeviceType> tdual_LR_lookup_table_kk_2d;
   typedef typename tdual_LR_lookup_table_kk_2d::t_dev t_LR_lookup_table_kk_2d;
 
   tdual_LR_lookup_table_kk_2d k_LR;

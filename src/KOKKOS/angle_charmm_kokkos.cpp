@@ -24,7 +24,7 @@
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -51,8 +51,8 @@ template<class DeviceType>
 AngleCharmmKokkos<DeviceType>::~AngleCharmmKokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
   }
 }
 
@@ -71,15 +71,15 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     //if(k_eatom.dimension_0()<maxeatom) { // won't work without adding zero functor
-      memory->destroy_kokkos(k_eatom,eatom);
-      memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
+      memoryKK->destroy_kokkos(k_eatom,eatom);
+      memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
       d_eatom = k_eatom.template view<DeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.dimension_0()<maxvatom) { // won't work without adding zero functor
-      memory->destroy_kokkos(k_vatom,vatom);
-      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      memoryKK->destroy_kokkos(k_vatom,vatom);
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
     //}
   }
@@ -271,10 +271,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
   Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
 
-  d_k = k_k.d_view;
-  d_theta0 = k_theta0.d_view;
-  d_k_ub = k_k_ub.d_view;
-  d_r_ub = k_r_ub.d_view;
+  d_k = k_k.template view<DeviceType>();
+  d_theta0 = k_theta0.template view<DeviceType>();
+  d_k_ub = k_k_ub.template view<DeviceType>();
+  d_r_ub = k_r_ub.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];

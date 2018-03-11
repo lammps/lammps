@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixPropertyAtom : public Fix {
  public:
   FixPropertyAtom(class LAMMPS *, int, char **);
-  ~FixPropertyAtom();
+  virtual ~FixPropertyAtom();
   int setmask();
   void init();
 
@@ -38,7 +38,7 @@ class FixPropertyAtom : public Fix {
   void write_data_section_keyword(int, FILE *);
   void write_data_section(int, FILE *, int, double **, int);
 
-  void grow_arrays(int);
+  virtual void grow_arrays(int);
   void copy_arrays(int, int, int);
   int pack_border(int, int *, double *);
   int unpack_border(int, int, double *);
@@ -50,7 +50,7 @@ class FixPropertyAtom : public Fix {
   int maxsize_restart();
   double memory_usage();
 
- private:
+ protected:
   int nvalue,border;
   int molecule_flag,q_flag,rmass_flag;
   int *style,*index;

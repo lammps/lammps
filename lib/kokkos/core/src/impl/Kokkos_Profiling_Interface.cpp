@@ -50,51 +50,77 @@
 namespace Kokkos {
 namespace Profiling {
 
+static initFunction initProfileLibrary = nullptr;
+static finalizeFunction finalizeProfileLibrary = nullptr;
+
+static beginFunction beginForCallee = nullptr;
+static beginFunction beginScanCallee = nullptr;
+static beginFunction beginReduceCallee = nullptr;
+static endFunction endForCallee = nullptr;
+static endFunction endScanCallee = nullptr;
+static endFunction endReduceCallee = nullptr;
+
+static pushFunction pushRegionCallee = nullptr;
+static popFunction popRegionCallee = nullptr;
+
+static allocateDataFunction allocateDataCallee = nullptr;
+static deallocateDataFunction deallocateDataCallee = nullptr;
+
+static beginDeepCopyFunction beginDeepCopyCallee = nullptr;
+static endDeepCopyFunction endDeepCopyCallee = nullptr;
+
+static createProfileSectionFunction createSectionCallee = nullptr;
+static startProfileSectionFunction startSectionCallee = nullptr;
+static stopProfileSectionFunction stopSectionCallee = nullptr;
+static destroyProfileSectionFunction destroySectionCallee = nullptr;
+
+static profileEventFunction profileEventCallee = nullptr;
+
 SpaceHandle::SpaceHandle(const char* space_name) {
   strncpy(name,space_name,64);
 }
 
 bool profileLibraryLoaded() {
-  return (NULL != initProfileLibrary);
+  return (nullptr != initProfileLibrary);
 }
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID, uint64_t* kernelID) {
-  if(NULL != beginForCallee) {
+  if(nullptr != beginForCallee) {
     Kokkos::fence();
     (*beginForCallee)(kernelPrefix.c_str(), devID, kernelID);
   }
 }
 
 void endParallelFor(const uint64_t kernelID) {
-  if(NULL != endForCallee) {
+  if(nullptr != endForCallee) {
     Kokkos::fence();
     (*endForCallee)(kernelID);
   }
 }
 
 void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID, uint64_t* kernelID) {
-  if(NULL != beginScanCallee) {
+  if(nullptr != beginScanCallee) {
     Kokkos::fence();
     (*beginScanCallee)(kernelPrefix.c_str(), devID, kernelID);
   }
 }
 
 void endParallelScan(const uint64_t kernelID) {
-  if(NULL != endScanCallee) {
+  if(nullptr != endScanCallee) {
     Kokkos::fence();
     (*endScanCallee)(kernelID);
   }
 }
 
 void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID, uint64_t* kernelID) {
-  if(NULL != beginReduceCallee) {
+  if(nullptr != beginReduceCallee) {
     Kokkos::fence();
     (*beginReduceCallee)(kernelPrefix.c_str(), devID, kernelID);
   }
 }
 
 void endParallelReduce(const uint64_t kernelID) {
-  if(NULL != endReduceCallee) {
+  if(nullptr != endReduceCallee) {
     Kokkos::fence();
     (*endReduceCallee)(kernelID);
   }
@@ -102,29 +128,76 @@ void endParallelReduce(const uint64_t kernelID) {
 
 
 void pushRegion(const std::string& kName) {
-  if( NULL != pushRegionCallee ) {
+  if( nullptr != pushRegionCallee ) {
     Kokkos::fence();
     (*pushRegionCallee)(kName.c_str());
   }
 }
 
 void popRegion() {
-  if( NULL != popRegionCallee ) {
+  if( nullptr != popRegionCallee ) {
     Kokkos::fence();
     (*popRegionCallee)();
   }
 }
 
 void allocateData(const SpaceHandle space, const std::string label, const void* ptr, const uint64_t size) {
-  if(NULL != allocateDataCallee) {
+  if(nullptr != allocateDataCallee) {
     (*allocateDataCallee)(space,label.c_str(),ptr,size);
   }
 }
 
 void deallocateData(const SpaceHandle space, const std::string label, const void* ptr, const uint64_t size) {
-  if(NULL != allocateDataCallee) {
+  if(nullptr != deallocateDataCallee) {
     (*deallocateDataCallee)(space,label.c_str(),ptr,size);
   }
+}
+
+void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label, const void* dst_ptr,
+    const SpaceHandle src_space, const std::string src_label, const void* src_ptr,
+    const uint64_t size) {
+  if(nullptr != beginDeepCopyCallee) {
+    (*beginDeepCopyCallee)(dst_space, dst_label.c_str(), dst_ptr,
+                      src_space, src_label.c_str(), src_ptr,
+                      size);
+  }
+}
+
+void endDeepCopy() {
+  if(nullptr != endDeepCopyCallee) {
+    (*endDeepCopyCallee)();
+  }
+}
+
+void createProfileSection(const std::string& sectionName, uint32_t* secID) {
+
+	if(nullptr != createSectionCallee) {
+		(*createSectionCallee)(sectionName.c_str(), secID);
+	}
+}
+
+void startSection(const uint32_t secID) {
+	if(nullptr != startSectionCallee) {
+		(*startSectionCallee)(secID);
+	}
+}
+
+void stopSection(const uint32_t secID) {
+	if(nullptr != stopSectionCallee) {
+		(*stopSectionCallee)(secID);
+	}
+}
+
+void destroyProfileSection(const uint32_t secID) {
+	if(nullptr != destroySectionCallee) {
+		(*destroySectionCallee)(secID);
+	}
+}
+
+void markEvent(const std::string& eventName) {
+	if(nullptr != profileEventCallee) {
+		(*profileEventCallee)(eventName.c_str());
+	}
 }
 
 void initialize() {
@@ -140,7 +213,7 @@ void initialize() {
 
   // If we do not find a profiling library in the environment then exit
   // early.
-  if( NULL == envProfileLibrary ) {
+  if( nullptr == envProfileLibrary ) {
     return ;
   }
 
@@ -149,10 +222,10 @@ void initialize() {
 
   char* profileLibraryName = strtok(envProfileCopy, ";");
 
-  if( (NULL != profileLibraryName) && (strcmp(profileLibraryName, "") != 0) ) {
+  if( (nullptr != profileLibraryName) && (strcmp(profileLibraryName, "") != 0) ) {
     firstProfileLibrary = dlopen(profileLibraryName, RTLD_NOW | RTLD_GLOBAL);
 
-    if(NULL == firstProfileLibrary) {
+    if(nullptr == firstProfileLibrary) {
       std::cerr << "Error: Unable to load KokkosP library: " <<
         profileLibraryName << std::endl;
     } else {
@@ -191,14 +264,30 @@ void initialize() {
       auto p12 = dlsym(firstProfileLibrary, "kokkosp_deallocate_data");
       deallocateDataCallee = *((deallocateDataFunction*) &p12);
 
+      auto p13 = dlsym(firstProfileLibrary, "kokkosp_begin_deep_copy");
+      beginDeepCopyCallee = *((beginDeepCopyFunction*) &p13);
+      auto p14 = dlsym(firstProfileLibrary, "kokkosp_end_deep_copy");
+      endDeepCopyCallee = *((endDeepCopyFunction*) &p14);
+      
+      auto p15 = dlsym(firstProfileLibrary, "kokkosp_create_profile_section");
+      createSectionCallee = *((createProfileSectionFunction*) &p15);
+      auto p16 = dlsym(firstProfileLibrary, "kokkosp_start_profile_section");
+      startSectionCallee = *((startProfileSectionFunction*) &p16);
+      auto p17 = dlsym(firstProfileLibrary, "kokkosp_stop_profile_section");
+      stopSectionCallee = *((stopProfileSectionFunction*) &p17);      
+      auto p18 = dlsym(firstProfileLibrary, "kokkosp_destroy_profile_section");
+      destroySectionCallee = *((destroyProfileSectionFunction*) &p18);
+      
+      auto p19 = dlsym(firstProfileLibrary, "kokkosp_profile_event");
+      profileEventCallee = *((profileEventFunction*) &p19);
     }
   }
 
-  if(NULL != initProfileLibrary) {
+  if(nullptr != initProfileLibrary) {
     (*initProfileLibrary)(0,
         (uint64_t) KOKKOSP_INTERFACE_VERSION,
         (uint32_t) 0,
-        NULL);
+        nullptr);
   }
 
   free(envProfileCopy);
@@ -210,28 +299,37 @@ void finalize() {
   if(is_finalized) return;
   is_finalized = 1;
 
-  if(NULL != finalizeProfileLibrary) {
+  if(nullptr != finalizeProfileLibrary) {
     (*finalizeProfileLibrary)();
 
-    // Set all profile hooks to NULL to prevent
+    // Set all profile hooks to nullptr to prevent
     // any additional calls. Once we are told to
     // finalize, we mean it
-    initProfileLibrary = NULL;
-    finalizeProfileLibrary = NULL;
+    initProfileLibrary = nullptr;
+    finalizeProfileLibrary = nullptr;
 
-    beginForCallee = NULL;
-    beginScanCallee = NULL;
-    beginReduceCallee = NULL;
-    endScanCallee = NULL;
-    endForCallee = NULL;
-    endReduceCallee = NULL;
+    beginForCallee = nullptr;
+    beginScanCallee = nullptr;
+    beginReduceCallee = nullptr;
+    endScanCallee = nullptr;
+    endForCallee = nullptr;
+    endReduceCallee = nullptr;
 
-    pushRegionCallee = NULL;
-    popRegionCallee = NULL;
+    pushRegionCallee = nullptr;
+    popRegionCallee = nullptr;
 
-    allocateDataCallee = NULL;
-    deallocateDataCallee = NULL;
+    allocateDataCallee = nullptr;
+    deallocateDataCallee = nullptr;
 
+    beginDeepCopyCallee = nullptr;
+    endDeepCopyCallee = nullptr;
+    
+    createSectionCallee = nullptr;
+	startSectionCallee = nullptr;
+	stopSectionCallee = nullptr;
+	destroySectionCallee = nullptr;
+
+	profileEventCallee = nullptr;
   }
 }
 }

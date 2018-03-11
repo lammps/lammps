@@ -31,8 +31,11 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
-    'sphinxcontrib.images',
 ]
+# 2017-12-07: commented out, since this package is broken with Sphinx 16.x
+#             yet we can no longer use Sphinx 15.x, since that breaks with
+#             newer version of the multiprocessor module.
+#    'sphinxcontrib.images',
 
 images_config = {
   'default_image_width' : '25%',

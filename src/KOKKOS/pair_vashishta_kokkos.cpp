@@ -27,10 +27,10 @@
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "math_const.h"
@@ -62,8 +62,8 @@ template<class DeviceType>
 PairVashishtaKokkos<DeviceType>::~PairVashishtaKokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
     eatom = NULL;
     vatom = NULL;
   }
@@ -85,13 +85,13 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -573,7 +573,7 @@ void PairVashishtaKokkos<DeviceType>::coeff(int narg, char **arg)
   k_map.template modify<LMPHostType>();
   k_map.template sync<DeviceType>();
 
-  d_map = k_map.d_view;
+  d_map = k_map.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -638,8 +638,8 @@ void PairVashishtaKokkos<DeviceType>::setup_params()
   k_params.template modify<LMPHostType>();
   k_params.template sync<DeviceType>();
 
-  d_elem2param = k_elem2param.d_view;
-  d_params = k_params.d_view;
+  d_elem2param = k_elem2param.template view<DeviceType>();
+  d_params = k_params.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

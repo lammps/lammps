@@ -58,7 +58,7 @@ These are the sample problems and their output in the various
 sub-directories:
 
 accelerate: use of all the various accelerator packages
-airebo:   example for using AIREBO and AIREBO-M
+airebo:   polyethylene with AIREBO potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
@@ -79,6 +79,7 @@ granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
+latte:    use of LATTE density-functional tight-binding quantum code
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers

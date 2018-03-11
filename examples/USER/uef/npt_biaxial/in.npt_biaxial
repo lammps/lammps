@@ -1,0 +1,31 @@
+# biaxial NPT deformation of WCA fluid
+
+units		lj
+atom_style	atomic
+
+
+pair_style	lj/cut 1.122562
+read_data       data.wca
+pair_coeff	1 1 1.0 1.0
+pair_modify     shift yes
+
+neighbor	0.5 bin
+neigh_modify	delay 0
+
+change_box      all triclinic
+
+# these commads show the different methods that may be used to impose
+# a constant stress through isotropic or anisotropic coupling
+fix		1 all npt/uef temp 0.722 0.722 0.5 iso 10 10 5 erate 0.5 0.5 ext z
+#fix		1 all npt/uef temp 0.722 0.722 0.5 z 10 10 5  erate 0.5 0.5 ext xyz
+
+fix             2 all momentum 100 linear 1 1 1
+
+#dump		1 all atom 25 dump.lammpstrj
+
+#dump		2 all cfg/uef 25 dump.*.cfg mass type xs ys zs
+
+thermo_style    custom step c_1_press[1] c_1_press[2] c_1_press[3]
+
+thermo		50
+run		10000

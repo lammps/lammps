@@ -326,6 +326,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
   pValue = PyObject_CallObject(pFunc,pArgs);
 
   if (!pValue) {
+    PyErr_Print();
     PyGILState_Release(gstate);
     error->one(FLERR,"Python function evaluation failed");
   }

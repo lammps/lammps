@@ -31,7 +31,7 @@ int Fix::instance_total = 0;
 
 /* ---------------------------------------------------------------------- */
 
-Fix::Fix(LAMMPS *lmp, int narg, char **arg) : 
+Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
   Pointers(lmp),
   id(NULL), style(NULL), extlist(NULL), vector_atom(NULL), array_atom(NULL),
   vector_local(NULL), array_local(NULL), eatom(NULL), vatom(NULL)
@@ -61,6 +61,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
   force_reneighbor = 0;
   box_change_size = box_change_shape = box_change_domain = 0;
   thermo_energy = 0;
+  thermo_virial = 0;
   rigid_flag = 0;
   peatom_flag = 0;
   virial_flag = 0;
@@ -140,8 +141,20 @@ void Fix::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) thermo_energy = 1;
-      else error->all(FLERR,"Illegal fix_modify command");
+      else if (strcmp(arg[iarg+1],"yes") == 0) {
+        if (!(THERMO_ENERGY & setmask()))
+          error->all(FLERR,"Illegal fix_modify command");
+        thermo_energy = 1;
+      } else error->all(FLERR,"Illegal fix_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"virial") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
+      if (strcmp(arg[iarg+1],"no") == 0) thermo_virial = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) {
+        if (virial_flag == 0)
+          error->all(FLERR,"Illegal fix_modify command");
+        thermo_virial = 1;
+      } else error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"respa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
@@ -214,14 +227,21 @@ void Fix::ev_setup(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   setup for virial computation
-   see integrate::ev_set() for values of vflag (0-6)
-   fixes call this if use v_tally()
+   if thermo_virial is on:
+     setup for virial computation
+     see integrate::ev_set() for values of vflag (0-6)
+     fixes call this if use v_tally()
+   else: set evflag=0
 ------------------------------------------------------------------------- */
 
 void Fix::v_setup(int vflag)
 {
   int i,n;
+
+  if (!thermo_virial) {
+    evflag = 0;
+    return;
+  }
 
   evflag = 1;
 
@@ -315,4 +335,57 @@ void Fix::v_tally(int n, int *list, double total, double *v)
       vatom[m][5] += fraction*v[5];
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into global and per-atom accumulators
+   i = local index of atom
+   v = total virial for the interaction
+   increment global virial by v
+   increment per-atom virial by v
+   this method can be used when fix computes forces in post_force()
+   and the force depends on a distance to some external object
+     e.g. fix wall/lj93: compute virial only on owned atoms
+------------------------------------------------------------------------- */
+
+void Fix::v_tally(int i, double *v)
+{
+  if (vflag_global) {
+    virial[0] += v[0];
+    virial[1] += v[1];
+    virial[2] += v[2];
+    virial[3] += v[3];
+    virial[4] += v[4];
+    virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    vatom[i][0] += v[0];
+    vatom[i][1] += v[1];
+    vatom[i][2] += v[2];
+    vatom[i][3] += v[3];
+    vatom[i][4] += v[4];
+    vatom[i][5] += v[5];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally virial component into global and per-atom accumulators
+   n = index of virial component (0-5)
+   i = local index of atom
+   vn = nth component of virial for the interaction
+   increment nth component of global virial by vn
+   increment nth component of per-atom virial by vn
+   this method can be used when fix computes forces in post_force()
+   and the force depends on a distance to some external object
+     e.g. fix wall/lj93: compute virial only on owned atoms
+------------------------------------------------------------------------- */
+
+void Fix::v_tally(int n, int i, double vn)
+{
+  if (vflag_global)
+    virial[n] += vn;
+
+  if (vflag_atom)
+    vatom[i][n] += vn;
 }

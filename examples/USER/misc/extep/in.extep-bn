@@ -1,0 +1,29 @@
+# Initialization
+units           metal
+boundary        p p p
+atom_style      atomic
+processors      * * 1
+
+# System and atom definition
+read_data       BN.data     # read lammps data file
+
+# Neighbor update settings 
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+# Potential
+pair_style      extep
+pair_coeff      * * ../../../../potentials/BN.extep B N
+
+# Output 
+thermo          10
+thermo_style    custom step time etotal pe temp lx ly lz pxx pyy pzz
+thermo_modify   line one format float %14.8g
+
+# Setup NPT MD run
+timestep        0.0001 # ps
+velocity        all create 300.0 12345
+fix             thermos all npt temp 300 300 1.0 x 0 0 1.0 y 0 0 1.0
+run 1000

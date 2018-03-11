@@ -71,6 +71,9 @@ public:
   KOKKOS_INLINE_FUNCTION static
   const SharedAllocationHeader * get_header( void * alloc_ptr )
     { return reinterpret_cast<SharedAllocationHeader*>( reinterpret_cast<char*>(alloc_ptr) - sizeof(SharedAllocationHeader) ); }
+
+  KOKKOS_INLINE_FUNCTION
+  const char* label() const { return m_label; }
 };
 
 template<>
@@ -82,8 +85,6 @@ protected:
   template< class , class > friend class SharedAllocationRecord ;
 
   typedef void (* function_type )( SharedAllocationRecord<void,void> * );
-
-  static int s_tracking_enabled ;
 
   SharedAllocationHeader * const m_alloc_ptr ;
   size_t                   const m_alloc_size ;
@@ -110,17 +111,17 @@ protected:
 public:
   inline std::string get_label() const { return std::string("Unmanaged"); }
 
-  static int tracking_enabled() { return s_tracking_enabled ; }
+  static int tracking_enabled();
 
   /**\brief A host process thread claims and disables the
    *        shared allocation tracking flag.
    */
-  static void tracking_claim_and_disable();
+  static void tracking_disable();
 
   /**\brief A host process thread releases and enables the
    *        shared allocation tracking flag.
    */
-  static void tracking_release_and_enable();
+  static void tracking_enable();
 
   ~SharedAllocationRecord() = default ;
 
@@ -293,9 +294,13 @@ public:
 
   template< class MemorySpace >
   constexpr
-  SharedAllocationRecord< MemorySpace , void > &
-  get_record() const
-    { return * static_cast< SharedAllocationRecord< MemorySpace , void > * >( m_record ); }
+  SharedAllocationRecord< MemorySpace , void > *
+  get_record() const noexcept
+    {
+      return ( m_record_bits & DO_NOT_DEREF_FLAG )
+             ? (SharedAllocationRecord< MemorySpace,void>*) 0
+             : static_cast<SharedAllocationRecord<MemorySpace,void>*>(m_record);
+    }
 
   template< class MemorySpace >
   std::string get_label() const
@@ -317,6 +322,21 @@ public:
 #endif
     }
 
+  KOKKOS_INLINE_FUNCTION
+  bool has_record() const {
+    return (m_record_bits & (~DO_NOT_DEREF_FLAG)) != 0;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  void clear()
+    {
+      // If this is tracking then must decrement
+      KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT
+      // Reset to default constructed value.
+      m_record_bits = DO_NOT_DEREF_FLAG ;
+    }
+
+  // Copy:
   KOKKOS_FORCEINLINE_FUNCTION
   ~SharedAllocationTracker()
     { KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT }

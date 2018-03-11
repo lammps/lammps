@@ -107,62 +107,6 @@
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace {
-
-static const int QUERY_SPACE_IN_PARALLEL_MAX = 16 ;
-
-typedef int (* QuerySpaceInParallelPtr )();
-
-QuerySpaceInParallelPtr s_in_parallel_query[ QUERY_SPACE_IN_PARALLEL_MAX ] ;
-int s_in_parallel_query_count = 0 ;
-
-} // namespace <empty>
-
-void HostSpace::register_in_parallel( int (*device_in_parallel)() )
-{
-  if ( 0 == device_in_parallel ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::register_in_parallel ERROR : given NULL" ) );
-  }
-
-  int i = -1 ;
-
-  if ( ! (device_in_parallel)() ) {
-    for ( i = 0 ; i < s_in_parallel_query_count && ! (*(s_in_parallel_query[i]))() ; ++i );
-  }
-
-  if ( i < s_in_parallel_query_count ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::register_in_parallel_query ERROR : called in_parallel" ) );
-
-  }
-
-  if ( QUERY_SPACE_IN_PARALLEL_MAX <= i ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::register_in_parallel_query ERROR : exceeded maximum" ) );
-
-  }
-
-  for ( i = 0 ; i < s_in_parallel_query_count && s_in_parallel_query[i] != device_in_parallel ; ++i );
-
-  if ( i == s_in_parallel_query_count ) {
-    s_in_parallel_query[s_in_parallel_query_count++] = device_in_parallel ;
-  }
-}
-
-int HostSpace::in_parallel()
-{
-  const int n = s_in_parallel_query_count ;
-
-  int i = 0 ;
-
-  while ( i < n && ! (*(s_in_parallel_query[i]))() ) { ++i ; }
-
-  return i < n ;
-}
-
-} // namespace Kokkos
-
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
 
 /* Default allocation mechanism */
 HostSpace::HostSpace()
@@ -310,7 +254,12 @@ void * HostSpace::allocate( const size_t arg_alloc_size ) const
 }
 
 
-void HostSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_size ) const
+void HostSpace::deallocate( void * const arg_alloc_ptr
+    , const size_t
+#if defined( KOKKOS_IMPL_POSIX_MMAP_FLAGS )
+    arg_alloc_size
+#endif
+    ) const
 {
   if ( arg_alloc_ptr ) {
 
@@ -340,9 +289,6 @@ void HostSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_
   }
 }
 
-constexpr const char* HostSpace::name() {
-  return m_name;
-}
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -468,7 +414,7 @@ SharedAllocationRecord< Kokkos::HostSpace , void >::get_record( void * alloc_ptr
 
 // Iterate records to print orphaned memory ...
 void SharedAllocationRecord< Kokkos::HostSpace , void >::
-print_records( std::ostream & s , const Kokkos::HostSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::HostSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "HostSpace" , & s_root_record , detail );
 }

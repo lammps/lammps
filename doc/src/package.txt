@@ -62,7 +62,7 @@ args = arguments specific to the style :l
       {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = {neigh} or {neigh/qeq} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward}
+    keywords = {neigh} or {neigh/qeq} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse}
       {neigh} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
@@ -75,9 +75,10 @@ args = arguments specific to the style :l
       {binsize} value = size
         size = bin size for neighbor list construction (distance units)
       {comm} value = {no} or {host} or {device}
-        use value for both comm/exchange and comm/forward
+        use value for comm/exchange and comm/forward and comm/reverse
       {comm/exchange} value = {no} or {host} or {device}
       {comm/forward} value = {no} or {host} or {device}
+      {comm/reverse} value = {no} or {host} or {device}
         no = perform communication pack/unpack in non-KOKKOS mode
         host = perform pack/unpack on host (e.g. with OpenMP threading)
         device = perform pack/unpack on device (e.g. on GPU)
@@ -335,7 +336,8 @@ from the USER-INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the "run_style"_run_style.html with the {verlet/lrt/intel} style that
 is identical to the default {verlet} style aside from supporting the
-LRT feature.
+LRT feature. This feature requires setting the preprocessor flag
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
 The {balance} keyword sets the fraction of "pair
 style"_pair_style.html work offloaded to the coprocessor for split
@@ -428,17 +430,18 @@ Coulombic solver"_kspace_style.html because the GPU is faster at
 performing pairwise interactions, then this rule of thumb may give too
 large a binsize.
 
-The {comm} and {comm/exchange} and {comm/forward} keywords determine
+The {comm} and {comm/exchange} and {comm/forward} and {comm/reverse} keywords determine
 whether the host or device performs the packing and unpacking of data
 when communicating per-atom data between processors.  "Exchange"
 communication happens only on timesteps that neighbor lists are
 rebuilt.  The data is only for atoms that migrate to new processors.
-"Forward" communication happens every timestep.  The data is for atom
+"Forward" communication happens every timestep. "Reverse" communication
+happens every timestep if the {newton} option is on.  The data is for atom
 coordinates and any other atom properties that needs to be updated for
 ghost atoms owned by each processor.
 
 The {comm} keyword is simply a short-cut to set the same value
-for both the {comm/exchange} and {comm/forward} keywords.
+for both the {comm/exchange} and {comm/forward} and {comm/reverse} keywords.
 
 The value options for all 3 keywords are {no} or {host} or {device}.
 A value of {no} means to use the standard non-KOKKOS method of

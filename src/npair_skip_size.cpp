@@ -17,9 +17,6 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
-#include "fix_shear_history.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -32,29 +29,14 @@ NPairSkipSize::NPairSkipSize(LAMMPS *lmp) : NPair(lmp) {}
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
    iskip and ijskip flag which atom types and type pairs to skip
-   if list requests it, preserve shear history via fix shear/history
 ------------------------------------------------------------------------- */
 
 void NPairSkipSize::build(NeighList *list)
 {
-  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
-  tagint jtag;
-  int *neighptr,*jlist,*touchptr;
-  double *shearptr;
+  int i,j,ii,jj,n,itype,jnum,joriginal;
+  int *neighptr,*jlist;
 
-  int *npartner;
-  tagint **partner;
-  double **shearpartner;
-  int **firsttouch;
-  double **firstshear;
-  MyPage<int> *ipage_touch;
-  MyPage<double> *dpage_shear;
-  NeighList *listhistory;
-
-  tagint *tag = atom->tag;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
@@ -68,28 +50,8 @@ void NPairSkipSize::build(NeighList *list)
   int *iskip = list->iskip;
   int **ijskip = list->ijskip;
 
-  FixShearHistory *fix_history = (FixShearHistory *) list->fix_history;
-  if (fix_history) {
-    fix_history->nlocal_neigh = nlocal;
-    fix_history->nall_neigh = nlocal + atom->nghost;
-    npartner = fix_history->npartner;
-    partner = fix_history->partner;
-    shearpartner = fix_history->shearpartner;
-    listhistory = list->listhistory;
-    firsttouch = listhistory->firstneigh;
-    firstshear = listhistory->firstdouble;
-    ipage_touch = listhistory->ipage;
-    dpage_shear = listhistory->dpage;
-    dnum = listhistory->dnum;
-    dnumbytes = dnum * sizeof(double);
-  }
-
   int inum = 0;
   ipage->reset();
-  if (fix_history) {
-    ipage_touch->reset();
-    dpage_shear->reset();
-  }
 
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
@@ -102,13 +64,8 @@ void NPairSkipSize::build(NeighList *list)
 
     n = 0;
     neighptr = ipage->vget();
-    if (fix_history) {
-      nn = 0;
-      touchptr = ipage_touch->vget();
-      shearptr = dpage_shear->vget();
-    }
 
-    // loop over parent non-skip size list and optionally its history info
+    // loop over parent non-skip size list
 
     jlist = firstneigh_skip[i];
     jnum = numneigh_skip[i];
@@ -117,29 +74,7 @@ void NPairSkipSize::build(NeighList *list)
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
-      neighptr[n] = joriginal;
-
-      // no numeric test for current touch
-      // just use FSH partner list to infer it
-      // would require distance calculation for spheres
-      // more complex calculation for surfs
-
-      if (fix_history) {
-        jtag = tag[j];
-        for (m = 0; m < npartner[i]; m++)
-          if (partner[i][m] == jtag) break;
-        if (m < npartner[i]) {
-          touchptr[n] = 1;
-          memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
-          nn += dnum;
-        } else {
-          touchptr[n] = 0;
-          memcpy(&shearptr[nn],zeroes,dnumbytes);
-          nn += dnum;
-        }
-      }
-
-      n++;
+      neighptr[n++] = joriginal;
     }
 
     ilist[inum++] = i;
@@ -148,13 +83,6 @@ void NPairSkipSize::build(NeighList *list)
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
-
-    if (fix_history) {
-      firsttouch[i] = touchptr;
-      firstshear[i] = shearptr;
-      ipage_touch->vgot(n);
-      dpage_shear->vgot(nn);
-    }
   }
 
   list->inum = inum;

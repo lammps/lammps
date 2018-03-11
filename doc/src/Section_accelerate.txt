@@ -233,8 +233,8 @@ set any needed options for the package via "-pk" "command-line switch"_Section_s
 use accelerated styles in your input via "-sf" "command-line switch"_Section_start.html#start_6 or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
 :tb(c=2,s=|)
 
-Note that the first 4 steps can be done as a single command, using the
-src/Make.py tool.  This tool is discussed in "Section
+Note that the first 4 steps can be done as a single command with
+suitable make command invocations. This is discussed in "Section
 4"_Section_packages.html of the manual, and its use is
 illustrated in the individual accelerator sections.  Typically these
 steps only need to be done once, to create an executable that uses one

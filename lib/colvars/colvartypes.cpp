@@ -19,6 +19,17 @@ bool      colvarmodule::rotation::monitor_crossings = false;
 cvm::real colvarmodule::rotation::crossing_threshold = 1.0E-02;
 
 
+/// Numerical recipes diagonalization
+static int jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
+
+/// Eigenvector sort
+static int eigsrt(cvm::real *d, cvm::real **v);
+
+/// Transpose the matrix
+static int transpose(cvm::real **v);
+
+
+
 std::string cvm::rvector::to_simple_string() const
 {
   std::ostringstream os;
@@ -286,7 +297,12 @@ void colvarmodule::rotation::diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
 
   // diagonalize
   int jac_nrot = 0;
-  jacobi(S.c_array(), S_eigval.c_array(), S_eigvec.c_array(), &jac_nrot);
+  if (jacobi(S.c_array(), S_eigval.c_array(), S_eigvec.c_array(), &jac_nrot) !=
+      COLVARS_OK) {
+    cvm::error("Too many iterations in routine jacobi.\n"
+               "This is usually the result of an ill-defined set of atoms for "
+               "rotational alignment (RMSD, rotateReference, etc).\n");
+  }
   eigsrt(S_eigval.c_array(), S_eigvec.c_array());
   // jacobi saves eigenvectors by columns
   transpose(S_eigvec.c_array());
@@ -296,7 +312,7 @@ void colvarmodule::rotation::diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
     cvm::real norm2 = 0.0;
     size_t i;
     for (i = 0; i < 4; i++) {
-      norm2 += std::pow(S_eigvec[ie][i], int(2));
+      norm2 += S_eigvec[ie][i] * S_eigvec[ie][i];
     }
     cvm::real const norm = std::sqrt(norm2);
     for (i = 0; i < 4; i++) {
@@ -528,7 +544,7 @@ void colvarmodule::rotation::calc_optimal_rotation(std::vector<cvm::atom_pos> co
 
 #define n 4
 
-void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot)
+int jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot)
 {
   int j,iq,ip,i;
   cvm::real tresh,theta,tau,t,sm,s,h,g,c;
@@ -554,7 +570,7 @@ void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot)
         sm += std::fabs(a[ip][iq]);
     }
     if (sm == 0.0) {
-      return;
+      return COLVARS_OK;
     }
     if (i < 4)
       tresh=0.2*sm/(n*n);
@@ -606,10 +622,11 @@ void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot)
       z[ip]=0.0;
     }
   }
-  cvm::error("Too many iterations in routine jacobi.\n");
+  return COLVARS_ERROR;
 }
 
-void eigsrt(cvm::real *d, cvm::real **v)
+
+int eigsrt(cvm::real *d, cvm::real **v)
 {
   int k,j,i;
   cvm::real p;
@@ -628,9 +645,11 @@ void eigsrt(cvm::real *d, cvm::real **v)
       }
     }
   }
+  return COLVARS_OK;
 }
 
-void transpose(cvm::real **v)
+
+int transpose(cvm::real **v)
 {
   cvm::real p;
   int i,j;
@@ -641,6 +660,7 @@ void transpose(cvm::real **v)
       v[j][i]=p;
     }
   }
+  return COLVARS_OK;
 }
 
 #undef n

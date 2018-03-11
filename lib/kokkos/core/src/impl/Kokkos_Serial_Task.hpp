@@ -65,7 +65,7 @@ public:
   using execution_space = Kokkos::Serial ;
   using memory_space    = Kokkos::HostSpace ;
   using queue_type      = Kokkos::Impl::TaskQueue< execution_space > ;
-  using task_base_type  = Kokkos::Impl::TaskBase< execution_space , void , void > ;
+  using task_base_type  = Kokkos::Impl::TaskBase< void , void , void > ;
   using member_type     = Kokkos::Impl::HostThreadTeamMember< execution_space > ;
 
   static

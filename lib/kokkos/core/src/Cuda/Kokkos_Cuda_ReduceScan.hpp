@@ -69,7 +69,7 @@ void cuda_shfl( T & out , T const & in , int lane ,
   typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
 {
   *reinterpret_cast<int*>(&out) =
-    __shfl( *reinterpret_cast<int const *>(&in) , lane , width );
+    KOKKOS_IMPL_CUDA_SHFL( *reinterpret_cast<int const *>(&in) , lane , width );
 }
 
 template< typename T >
@@ -83,7 +83,7 @@ void cuda_shfl( T & out , T const & in , int lane ,
 
   for ( int i = 0 ; i < N ; ++i ) {
     reinterpret_cast<int*>(&out)[i] =
-      __shfl( reinterpret_cast<int const *>(&in)[i] , lane , width );
+      KOKKOS_IMPL_CUDA_SHFL( reinterpret_cast<int const *>(&in)[i] , lane , width );
   }
 }
 
@@ -95,7 +95,7 @@ void cuda_shfl_down( T & out , T const & in , int delta ,
   typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
 {
   *reinterpret_cast<int*>(&out) =
-    __shfl_down( *reinterpret_cast<int const *>(&in) , delta , width );
+    KOKKOS_IMPL_CUDA_SHFL_DOWN( *reinterpret_cast<int const *>(&in) , delta , width );
 }
 
 template< typename T >
@@ -109,7 +109,7 @@ void cuda_shfl_down( T & out , T const & in , int delta ,
 
   for ( int i = 0 ; i < N ; ++i ) {
     reinterpret_cast<int*>(&out)[i] =
-      __shfl_down( reinterpret_cast<int const *>(&in)[i] , delta , width );
+      KOKKOS_IMPL_CUDA_SHFL_DOWN( reinterpret_cast<int const *>(&in)[i] , delta , width );
   }
 }
 
@@ -121,7 +121,7 @@ void cuda_shfl_up( T & out , T const & in , int delta ,
   typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
 {
   *reinterpret_cast<int*>(&out) =
-    __shfl_up( *reinterpret_cast<int const *>(&in) , delta , width );
+    KOKKOS_IMPL_CUDA_SHFL_UP( *reinterpret_cast<int const *>(&in) , delta , width );
 }
 
 template< typename T >
@@ -135,7 +135,7 @@ void cuda_shfl_up( T & out , T const & in , int delta ,
 
   for ( int i = 0 ; i < N ; ++i ) {
     reinterpret_cast<int*>(&out)[i] =
-      __shfl_up( reinterpret_cast<int const *>(&in)[i] , delta , width );
+      KOKKOS_IMPL_CUDA_SHFL_UP( reinterpret_cast<int const *>(&in)[i] , delta , width );
   }
 }
 
@@ -151,7 +151,7 @@ template< class ValueType , class JoinOp>
 __device__
 inline void cuda_intra_warp_reduction( ValueType& result,
                                        const JoinOp& join,
-                                       const int max_active_thread = blockDim.y) {
+                                       const uint32_t max_active_thread = blockDim.y) {
 
   unsigned int shift = 1;
 
@@ -268,29 +268,33 @@ bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , ArgT
         if( id + 1 < int(gridDim.x) )
           join(value, tmp);
       }
+      int active = KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2,32);
         if( id + 2 < int(gridDim.x) )
           join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4,32);
         if( id + 4 < int(gridDim.x) )
           join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8,32);
         if( id + 8 < int(gridDim.x) )
           join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16,32);
         if( id + 16 < int(gridDim.x) )
           join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
     }
   }
-
   //The last block has in its thread=0 the global reduction value through "value"
   return last_block;
 #else
@@ -302,7 +306,7 @@ template< class ReducerType >
 __device__ inline
 typename std::enable_if< Kokkos::is_reducer<ReducerType>::value >::type
 cuda_intra_warp_reduction( const ReducerType& reducer,
-                           const int max_active_thread = blockDim.y) {
+                           const uint32_t max_active_thread = blockDim.y) {
 
   typedef typename ReducerType::value_type ValueType;
 
@@ -428,26 +432,31 @@ cuda_inter_block_reduction( const ReducerType& reducer,
         if( id + 1 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
+      int active = KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2,32);
         if( id + 2 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4,32);
         if( id + 4 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8,32);
         if( id + 8 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16,32);
         if( id + 16 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
     }
   }
 
@@ -594,7 +603,7 @@ bool cuda_single_inter_block_reduce_scan( const FunctorType     & functor ,
   typedef FunctorValueOps<    FunctorType , ArgTag >  ValueOps ;
 
   typedef typename ValueTraits::pointer_type    pointer_type ;
-  typedef typename ValueTraits::reference_type  reference_type ;
+  //typedef typename ValueTraits::reference_type  reference_type ;
 
   // '__ffs' = position of the least significant bit set to 1.
   // 'blockDim.y' is guaranteed to be a power of two so this
@@ -637,7 +646,7 @@ bool cuda_single_inter_block_reduce_scan( const FunctorType     & functor ,
 
     {
       void * const shared_ptr = shared_data + word_count.value * threadIdx.y ;
-      reference_type shared_value = ValueInit::init( functor , shared_ptr );
+      /* reference_type shared_value = */ ValueInit::init( functor , shared_ptr );
 
       for ( size_type i = b ; i < e ; ++i ) {
         ValueJoin::join( functor , shared_ptr , global_data + word_count.value * i );

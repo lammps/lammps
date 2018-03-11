@@ -39,6 +39,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
 
+  dynamic_group_allow = 1;
+
   // parse args
 
   nwall = 0;

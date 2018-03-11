@@ -1,0 +1,96 @@
+# CDlipid is a lipid model from:
+# "Tunable generic model for fluid bilayer membranes"
+# Cooke IR, Kremer K, Deserno M, Physical Review E, 2005
+# (Author: David Stelter, BU)
+# 3-bead model of COOKE, KREMER, DESERNO
+#
+# In this example, there are two types of identical lipids "A" and "B".
+# The attractive interaction between the tail beads of different lipids (AB)
+# is weaker than it is for lipids of the same type (as it was in the paper).
+# (Wc = 1.3σ, instead of Wc = 1.5σ)
+
+
+CDlipids {
+  # Settings common to both lipids ("LipidA" and "LipidB")
+  write_once("In Init") {
+    units           lj
+    atom_style      full
+
+    bond_style      hybrid fene
+    angle_style     hybrid harmonic
+    pair_style      hybrid table linear 600
+    pair_modify     shift yes
+    special_bonds   lj 0.0 1.0 1.0
+
+    neigh_modify    every 1 delay 1
+    neighbor        0.3 bin
+  }
+  write_once("In Settings") {
+    pair_coeff  @atom:H @atom:H table tabulated_potential.dat HEAD_HEAD
+    bond_coeff  @bond:Bond    fene      30.0 1.5 1.0 1.0
+    angle_coeff @angle:An  harmonic  10.0 180
+  }
+  write_once("Data Masses") {
+    @atom:H  1.0 ## Head Bead
+  }
+
+
+  A {
+    write_once("In Settings") {
+      pair_coeff  @atom:../H @atom:T table tabulated_potential.dat HEAD_TAIL
+          # (Note: The "HEAD_TAIL" table is the same as the "HEAD_HEAD" table.)
+      pair_coeff  @atom:T @atom:T table tabulated_potential.dat TAIL_TAIL_Wc_1.5
+    }
+    write("Data Atoms") {
+      $atom:1  $mol:. @atom:../H  0.0   0.00   0.00   2.46
+      $atom:2  $mol:. @atom:T     0.0   0.00   0.00   1.51
+      $atom:3  $mol:. @atom:T     0.0   0.00   0.00   0.56
+    }
+    write("Data Bonds") {
+      $bond:b1    @bond:../Bond   $atom:1  $atom:2
+      $bond:b2    @bond:../Bond   $atom:2  $atom:3
+    }
+    write("Data Angles") {
+      $angle:a1   @angle:../An  $atom:1   $atom:2   $atom:3
+    }
+    write_once("Data Masses") {
+      @atom:T  1.0  ## Tail Bead
+    }
+  } # lipid "A"
+
+
+  B {
+    write_once("In Settings") {
+      pair_coeff  @atom:../H @atom:T table tabulated_potential.dat HEAD_TAIL
+          # (Note: The "HEAD_TAIL" table is the same as the "HEAD_HEAD" table.)
+      pair_coeff  @atom:T @atom:T table tabulated_potential.dat TAIL_TAIL_Wc_1.5
+    }
+    write("Data Atoms") {
+      $atom:1  $mol:. @atom:../H  0.0   0.00   0.00   2.46
+      $atom:2  $mol:. @atom:T     0.0   0.00   0.00   1.51
+      $atom:3  $mol:. @atom:T     0.0   0.00   0.00   0.56
+    }
+    write("Data Bonds") {
+      $bond:b1    @bond:../Bond   $atom:1  $atom:2
+      $bond:b2    @bond:../Bond   $atom:2  $atom:3
+    }
+    write("Data Angles") {
+      $angle:a1   @angle:../An  $atom:1   $atom:2   $atom:3
+    }
+    write_once("Data Masses") {
+      @atom:T  1.0  ## Tail Bead
+    }
+  } # lipid "B"
+
+
+
+  # Finally, weaken the interaction between the tail beads 
+  # belonging to different types of lipids (ie "A" and "B").
+  
+  write_once("In Settings") {
+   pair_coeff @atom:A/T @atom:B/T table tabulated_potential.dat TAIL_TAIL_Wc_1.3
+  }
+
+
+}  # CDlipids
+

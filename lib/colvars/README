@@ -32,7 +32,7 @@ where Makefile.g++ uses the GNU C++ compiler and is a good template to start.
 
 **Optional**: if you use the Install.py script provided in this folder, you
 can give the machine name as the '-m' argument.  This can be the suffix of one
-of the files from either this folder, or from src/MAKE.
+of the files from either this folder, or from src/MAKE/MACHINES.
 *This is only supported by the Install.py within the lib/colvars folder*.
 
 When you are done building this library, two files should
@@ -47,16 +47,20 @@ correct for your system, else the LAMMPS build will likely fail.
 If you want to set a debug flag recognized by the library, the
 settings in Makefile.common should work.
 
+Note: some Colvars functions use the Lepton mathematical expression parser,
+which is here included (no additional steps required).  For more details, see:
+  https://simtk.org/projects/lepton
+
 
 ## Documentation
 
 For the reference manual see:
   http://colvars.github.io/colvars-refman-lammps
 
-A copy of reference manual is also in:
+A copy of the reference manual is also in:
   doc/PDF/colvars-refman-lammps.pdf
 
-Also included is a Doxygen-based developer documentation:
+Also available is a Doxygen-based developer documentation:
   http://colvars.github.io/doxygen/html/
 
 The reference article is:

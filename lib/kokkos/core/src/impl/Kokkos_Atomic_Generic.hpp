@@ -46,6 +46,10 @@
 #define KOKKOS_ATOMIC_GENERIC_HPP
 #include <Kokkos_Macros.hpp>
 
+#if defined(KOKKOS_ENABLE_CUDA)
+#include<Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
+#endif
+
 // Combination operands to be used in an Compare and Exchange based atomic operation
 namespace Kokkos {
 namespace Impl {
@@ -238,11 +242,11 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   *dest = Oper::apply(return_val, val);
   Impl::unlock_address_host_space( (void*) dest );
   return return_val;
-#else
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
   // This is a way to (hopefully) avoid dead lock in a warp
   T return_val;
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -253,7 +257,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
         done=1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 #endif
@@ -277,11 +281,11 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   *dest = return_val;
   Impl::unlock_address_host_space( (void*) dest );
   return return_val;
-#else
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -292,7 +296,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
         done=1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 #endif

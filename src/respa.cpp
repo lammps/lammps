@@ -441,7 +441,8 @@ void Respa::setup(int flag)
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
+  modify->setup_post_neighbor();
   neighbor->ncalls = 0;
 
   // compute all forces
@@ -516,7 +517,8 @@ void Respa::setup_minimal(int flag)
     domain->image_check();
     domain->box_too_small_check();
     modify->setup_pre_neighbor();
-    neighbor->build();
+    neighbor->build(1);
+    modify->setup_post_neighbor();
     neighbor->ncalls = 0;
   }
 
@@ -666,8 +668,13 @@ void Respa::recurse(int ilevel)
           modify->pre_neighbor();
           timer->stamp(Timer::MODIFY);
         }
-        neighbor->build();
+        neighbor->build(1);
         timer->stamp(Timer::NEIGH);
+        if (modify->n_post_neighbor) {
+          modify->post_neighbor();
+          timer->stamp(Timer::MODIFY);
+        }
+
       } else if (ilevel == 0) {
         timer->stamp();
         comm->forward_comm();

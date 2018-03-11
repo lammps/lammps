@@ -36,13 +36,13 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
   half = 1;
   full = 0;
-  
+
   // attribute flags, mutiple can be set to 1
   // default is every reneighboring, not occasional
   // default is use newton_pair setting in force
   // default is no neighbors of ghosts
   // default is use cutoffs, not size of particles
-  // default is no additional neighbor history info
+  // default is no associated neighbor history info in FixNeighHistory
   // default is no one-sided sphere/surface interactions (when size = 1)
   // default is neighbors of atoms, not bonds
   // default is no multilevel rRESPA neighbors
@@ -68,10 +68,8 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   cut = 0;
   cutoff = 0.0;
 
-  dnum = 0;
-
   // skip info, default is no skipping
-  
+
   skip = 0;
   iskip = NULL;
   ijskip = NULL;
@@ -88,11 +86,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   copylist = -1;
   halffull = 0;
   halffulllist = -1;
-  history_partner = 0;
-  historylist = -1;
-  respaouterlist = -1;
-  respamiddlelist = -1;
-  respainnerlist = -1;
   unique = 0;
 
   // internal settings
@@ -130,7 +123,7 @@ int NeighRequest::identical(NeighRequest *other)
 
   // only compare settings made by requestors
   // not settings made later by Neighbor class
-  
+
   if (pair != other->pair) same = 0;
   if (fix != other->fix) same = 0;
   if (compute != other->compute) same = 0;
@@ -158,10 +151,8 @@ int NeighRequest::identical(NeighRequest *other)
   if (copy != other->copy) same = 0;
   if (cutoff != other->cutoff) same = 0;
 
-  if (dnum != other->dnum) same = 0;
-
   if (skip != other->skip) same = 0;
-  if (skip) same = same_skip(other);
+  if (same && skip && other->skip) same = same_skip(other);
 
   return same;
 }
@@ -225,8 +216,6 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   ssa = other->ssa;
   cut = other->cut;
   cutoff = other->cutoff;
-
-  dnum = other->dnum;
 
   iskip = NULL;
   ijskip = NULL;

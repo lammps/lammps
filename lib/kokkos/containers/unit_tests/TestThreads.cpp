@@ -70,6 +70,8 @@
 #include <Kokkos_ErrorReporter.hpp>
 #include <TestErrorReporter.hpp>
 
+#include <TestViewCtorPropEmbeddedDim.hpp>
+
 namespace Test {
 
 class threads : public ::testing::Test {
@@ -101,6 +103,10 @@ protected:
 
 TEST_F( threads , dyn_view_api) {
   TestDynViewAPI< double , Kokkos::Threads >();
+}
+
+TEST_F( threads, viewctorprop_embedded_dim ) {
+  TestViewCtorProp_EmbeddedDim< Kokkos::Threads >::test_vcpt( 2, 3 );
 }
 
 TEST_F( threads , staticcrsgraph )

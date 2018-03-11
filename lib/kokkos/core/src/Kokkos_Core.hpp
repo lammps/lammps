@@ -74,6 +74,10 @@
 #include <Kokkos_Cuda.hpp>
 #endif
 
+#if defined( KOKKOS_ENABLE_ROCM )
+#include <Kokkos_ROCm.hpp>
+#endif
+
 #include <Kokkos_Pair.hpp>
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
@@ -95,17 +99,27 @@ struct InitArguments {
   int num_threads;
   int num_numa;
   int device_id;
+  bool disable_warnings;
 
-  InitArguments() {
-    num_threads = -1;
-    num_numa = -1;
-    device_id = -1;
-  }
+  InitArguments( int nt = -1
+               , int nn = -1
+               , int dv = -1
+               , bool dw = false
+               )
+    : num_threads{ nt }
+    , num_numa{ nn }
+    , device_id{ dv }
+    , disable_warnings{ dw }
+  {}
 };
 
 void initialize(int& narg, char* arg[]);
 
 void initialize(const InitArguments& args = InitArguments());
+
+bool is_initialized() noexcept;
+
+bool show_warnings() noexcept;
 
 /** \brief  Finalize the spaces that were initialized via Kokkos::initialize */
 void finalize();
@@ -167,6 +181,9 @@ void * kokkos_realloc( void * arg_alloc , const size_t arg_alloc_size )
 }
 
 } // namespace Kokkos
+
+#include <Kokkos_Crs.hpp>
+#include <Kokkos_WorkGraphPolicy.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

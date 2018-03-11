@@ -79,6 +79,21 @@ struct IndexType
   using type = T;
 };
 
+/**\brief Specify Launch Bounds for CUDA execution.
+ *
+ *  If no launch bounds specified then do not set launch bounds.
+ */
+template< unsigned int maxT = 0 /* Max threads per block */
+        , unsigned int minB = 0 /* Min blocks per SM */
+        >
+struct LaunchBounds
+{
+  using launch_bounds = LaunchBounds;
+  using type = LaunchBounds<maxT,minB>;
+  static unsigned int constexpr maxTperB {maxT};
+  static unsigned int constexpr minBperSM {minB};
+};
+
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -119,6 +134,7 @@ using Kokkos::is_array_layout ;
 KOKKOS_IMPL_IS_CONCEPT( iteration_pattern )
 KOKKOS_IMPL_IS_CONCEPT( schedule_type )
 KOKKOS_IMPL_IS_CONCEPT( index_type )
+KOKKOS_IMPL_IS_CONCEPT( launch_bounds )
 
 }
 
@@ -264,6 +280,9 @@ struct MemorySpaceAccess {
   enum { deepcopy = assignable };
 };
 
+}} // namespace Kokkos::Impl
+
+namespace Kokkos {
 
 /**\brief  Can AccessSpace access MemorySpace ?
  *
@@ -341,6 +360,13 @@ public:
     , Kokkos::Device< typename AccessSpace::execution_space , MemorySpace >
     >::type  space ;
 };
+
+} // namespace Kokkos
+
+namespace Kokkos {
+namespace Impl {
+
+using Kokkos::SpaceAccessibility ; // For backward compatibility
 
 }} // namespace Kokkos::Impl
 

@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "g++ (GCC) 6.3.1 20161221 (Red Hat 6.3.1-1)"
+echo "Copyright (C) 2016 Free Software Foundation, Inc."
+echo "This is free software; see the source for copying conditions.  There is NO"
+echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."

@@ -8,8 +8,10 @@
 // Colvars repository at GitHub.
 
 #include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvarparse.h"
 #include "colvaratoms.h"
+
 
 cvm::atom::atom()
 {
@@ -814,6 +816,18 @@ int cvm::atom_group::create_sorted_ids(void)
     id_i++;
   }
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+}
+
+
+int cvm::atom_group::overlap(const atom_group &g1, const atom_group &g2){
+  for (cvm::atom_const_iter ai1 = g1.begin(); ai1 != g1.end(); ai1++) {
+    for (cvm::atom_const_iter ai2 = g2.begin(); ai2 != g2.end(); ai2++) {
+      if (ai1->id == ai2->id) {
+        return (ai1->id + 1); // 1-based index to allow boolean usage
+      }
+    }
+  }
+  return 0;
 }
 
 

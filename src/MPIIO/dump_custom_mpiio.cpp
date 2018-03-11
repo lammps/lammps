@@ -542,8 +542,8 @@ void DumpCustomMPIIO::write_string(int n, double *mybuf)
 
 #if defined(_OPENMP)
     int nthreads = omp_get_max_threads();
-    if (nthreads > 1)
-      nsme = convert_string_omp(n,mybuf);
+    if ((nthreads > 1) && !(lmp->kokkos))
+      nsme = convert_string_omp(n,mybuf); // not (yet) compatible with Kokkos
     else
       nsme = convert_string(n,mybuf);
 #else

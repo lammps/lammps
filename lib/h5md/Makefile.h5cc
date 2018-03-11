@@ -9,12 +9,14 @@ HDF5_PATH=/usr
 INC=-I include
 AR=ar
 ARFLAGS=rc
-LIB=libch5md.a
+# need to build two libraries to not break compatibility and to support Install.py
+LIB=libh5md.a libch5md.a
 
 all: lib Makefile.lammps
 
 build:
 	mkdir -p build
+
 build/ch5md.o: src/ch5md.c | build
 	$(CC) $(INC) $(CFLAGS) -c $< -o $@
 
@@ -23,8 +25,11 @@ Makefile.lammps:
 
 .PHONY: all lib clean
 
-$(LIB): build/ch5md.o
-	$(AR) $(ARFLAGS) $(LIB) build/ch5md.o
+libch5md.a : build/ch5md.o
+	$(AR) $(ARFLAGS) $@ build/ch5md.o
+
+libh5md.a : build/ch5md.o
+	$(AR) $(ARFLAGS) $@ build/ch5md.o
 
 lib: $(LIB)
 

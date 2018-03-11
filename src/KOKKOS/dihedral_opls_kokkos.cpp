@@ -24,7 +24,7 @@
 #include "domain.h"
 #include "force.h"
 #include "update.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -56,8 +56,8 @@ template<class DeviceType>
 DihedralOPLSKokkos<DeviceType>::~DihedralOPLSKokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
   }
 }
 
@@ -75,13 +75,13 @@ void DihedralOPLSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -348,10 +348,10 @@ void DihedralOPLSKokkos<DeviceType>::allocate()
   k_k3 = DAT::tdual_ffloat_1d("DihedralOPLS::k3",n+1);
   k_k4 = DAT::tdual_ffloat_1d("DihedralOPLS::k4",n+1);
 
-  d_k1 = k_k1.d_view;
-  d_k2 = k_k2.d_view;
-  d_k3 = k_k3.d_view;
-  d_k4 = k_k4.d_view;
+  d_k1 = k_k1.template view<DeviceType>();
+  d_k2 = k_k2.template view<DeviceType>();
+  d_k3 = k_k3.template view<DeviceType>();
+  d_k4 = k_k4.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

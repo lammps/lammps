@@ -20,52 +20,48 @@
 // simple_scalar_dist_functions (derived_class)
 
 
-#include <fstream>
-#include <cmath>
-
-
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvaratoms.h"
 
 
-/// \brief Colvar component (base class); most implementations of
-/// \link cvc \endlink utilize one or more \link
-/// colvarmodule::atom \endlink or \link colvarmodule::atom_group
-/// \endlink objects to access atoms.
+/// \brief Colvar component (base class for collective variables)
 ///
 /// A \link cvc \endlink object (or an object of a
-/// cvc-derived class) specifies how to calculate a collective
-/// variable, its gradients and other related physical quantities
-/// which do not depend only on the numeric value (the \link colvar
-/// \endlink class already serves this purpose).
+/// cvc-derived class) implements the calculation of a collective
+/// variable, its gradients and any other related physical quantities
+/// that depend on microscopic degrees of freedom.
 ///
-/// No restriction is set to what kind of calculation a \link
-/// cvc \endlink object performs (usually calculate an
-/// analytical function of atomic coordinates).  The only constraint
-/// is that the value calculated is implemented as a \link colvarvalue
-/// \endlink object.  This serves to provide a unique way to calculate
-/// scalar and non-scalar collective variables, and specify if and how
-/// they can be combined together by the parent \link colvar \endlink
-/// object.
+/// No restriction is set to what kind of calculation a \link cvc \endlink
+/// object performs (usually an analytical function of atomic coordinates).
+/// The only constraints are that: \par
+///
+/// - The value is calculated by the \link calc_value() \endlink
+///   method, and is an object of \link colvarvalue \endlink class.  This
+///   provides a transparent way to treat scalar and non-scalar variables
+///   alike, and allows an automatic selection of the applicable algorithms.
+///
+/// - The object provides an implementation \link apply_force() \endlink to
+///   apply forces to atoms.  Typically, one or more \link cvm::atom_group
+///   \endlink objects are used, but this is not a requirement for as long as
+///   the \link cvc \endlink object communicates with the simulation program.
 ///
 /// <b> If you wish to implement a new collective variable component, you
 /// should write your own class by inheriting directly from \link
-/// cvc \endlink, or one of its derived classes (for instance,
-/// \link distance \endlink is frequently used, because it provides
+/// colvar::cvc \endlink, or one of its derived classes (for instance,
+/// \link colvar::distance \endlink is frequently used, because it provides
 /// useful data and function members for any colvar based on two
-/// atom groups).  The steps are: \par
-/// 1. add the name of this class under colvar.h \par
-/// 2. add a call to the parser in colvar.C, within the function colvar::colvar() \par
-/// 3. declare the class in colvarcomp.h \par
-/// 4. implement the class in one of the files colvarcomp_*.C
+/// atom groups).</b>
 ///
-/// </b>
-/// The cvm::atom and cvm::atom_group classes are available to
-/// transparently communicate with the simulation program.  However,
-/// they are not strictly needed, as long as all the degrees of
-/// freedom associated to the cvc are properly evolved by a simple
-/// call to e.g. apply_force().
+/// The steps are: \par
+/// 1. Declare the new class as a derivative of \link colvar::cvc \endlink
+///    in the file \link colvarcomp.h \endlink
+/// 2. Implement the new class in a file named colvarcomp_<something>.cpp
+/// 3. Declare the name of the new class inside the \link colvar \endlink class
+///    in \link colvar.h \endlink (see "list of available components")
+/// 4. Add a call for the new class in colvar::init_components()
+////   (file: colvar.cpp)
+///
 
 class colvar::cvc
   : public colvarparse, public colvardeps
@@ -132,8 +128,19 @@ public:
   static std::vector<feature *> cvc_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual std::vector<feature *> &features() {
+  virtual const std::vector<feature *> &features()
+  {
     return cvc_features;
+  }
+  virtual std::vector<feature *> &modify_features()
+  {
+    return cvc_features;
+  }
+  static void delete_features() {
+    for (size_t i=0; i < cvc_features.size(); i++) {
+      delete cvc_features[i];
+    }
+    cvc_features.clear();
   }
 
   /// \brief Obtain data needed for the calculation for the backend
@@ -144,7 +151,7 @@ public:
 
   /// \brief Calculate the atomic gradients, to be reused later in
   /// order to apply forces
-  virtual void calc_gradients() = 0;
+  virtual void calc_gradients() {}
 
   /// \brief Calculate the atomic fit gradients
   void calc_fit_gradients();

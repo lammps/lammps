@@ -14,18 +14,20 @@ INC = $(wildcard *.h)
 LIB = libatc.a
 OBJ =   $(SRC:.cpp=.o)
 
+default: lib
+
 # ------ SETTINGS ------
+
+.PHONY: clean lib depend
 
 # include any MPI settings needed for the ATC library to build with
 # must be the same MPI library that LAMMPS is built with
 
 CC =	        g++
-CCFLAGS =       -O -g -fPIC -I../../src -I../../src/STUBS
+CCFLAGS =       -O3 -g -fPIC
+CPPFLAGS = -I../../src -I../../src/STUBS
 ARCHIVE =	ar
 ARCHFLAG =	-rc
-DEPFLAGS =      -M
-LINK =         	$(CC)
-LINKFLAGS =	-O
 # ------ MAKE PROCEDURE ------
 
 lib: 	$(OBJ)
@@ -35,17 +37,19 @@ lib: 	$(OBJ)
 # ------ COMPILE RULES ------
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
-%.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@		
+	$(CC) $(CPPFLAGS) $(CCFLAGS) -c $<
 
 # ------ DEPENDENCIES ------
 
-DEPENDS = $(OBJ:.o=.d)
+depend .depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(INCFLAGS) -- $^ > .depend || exit 1
+
+fastdep.exe: ../../src/DEPEND/fastdep.c
+	@cc -O -o $@ $<
 
 # ------ CLEAN ------
 
 clean:
-	-rm *.o *.d *~ $(LIB)
+	-rm -f *.o *~ .depend $(LIB) fastdep.exe
 
-sinclude $(DEPENDS)
+sinclude .depend

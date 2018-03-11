@@ -32,7 +32,6 @@ class PairGranHookeHistory : public Pair {
   virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();
-  void init_list(int, class NeighList *);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -43,7 +42,6 @@ class PairGranHookeHistory : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
-  void *extract(const char *, int &);
 
  protected:
   double kn,kt,gamman,gammat,xmu;
@@ -56,7 +54,7 @@ class PairGranHookeHistory : public Pair {
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;
 
-  class FixShearHistory *fix_history;
+  class FixNeighHistory *fix_history;
 
   // storage of rigid body masses for use in granular interactions
 

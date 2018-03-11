@@ -1,0 +1,49 @@
+# ------------------------------- Initialization Section --------------------
+
+include         system.in.init
+
+# ------------------------------- Atom Definition Section -------------------
+
+
+# To run this simulation, you should first equilibrate the system at constant
+# pressure and temperature beforehand.  If you run lammps with "run.in.npt",
+# it will generate a data file "system_after_npt.data" with reasonable
+# coordinates at that temperature and pressure.  Then we could load it now:
+
+read_data    system_after_npt.data
+
+# ------------------------------- Settings Section --------------------------
+
+include         system.in.settings
+
+# ------------------------------- Run Section -------------------------------
+
+
+timestep      0.01
+dump          1 all custom 50000 traj_nvt.lammpstrj id mol type x y z ix iy iz
+
+
+thermo_style  custom step temp pe etotal vol epair ebond eangle
+thermo        1000  # time interval for printing out "thermo" data
+
+velocity all create 1.1 12345
+
+fix fxlan all langevin  1.1  1.1  500.0   48279
+fix fxnve all nve
+
+# Note: The temperature is 1.1*ε
+#       (ε = "epsilon" used by the coarse-grained lipid)
+# Note: The langevin damping parameter is "500.0" in units of time
+#       (which are (m/(ε*σ^2))^(1/2) because we are using "units lj"
+#        This is grossly underdamped compared to the real system, 
+#        but it leads to more efficient sampling.)
+
+
+# optional (not sure if this helps):
+# balance x uniform y uniform
+
+
+run           20000000
+
+write_data system_after_nvt.data
+

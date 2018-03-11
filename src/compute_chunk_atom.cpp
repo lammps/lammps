@@ -218,10 +218,10 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
       if (limit) {
-        if (iarg+1 > narg)
+        if (iarg > narg)
           error->all(FLERR,"Illegal compute chunk/atom command");
-        if (strcmp(arg[iarg+1],"max") == 0) limitstyle = LIMITMAX;
-        else if (strcmp(arg[iarg+1],"exact") == 0) limitstyle = LIMITEXACT;
+        if (strcmp(arg[iarg],"max") == 0) limitstyle = LIMITMAX;
+        else if (strcmp(arg[iarg],"exact") == 0) limitstyle = LIMITEXACT;
         else error->all(FLERR,"Illegal compute chunk/atom command");
         iarg++;
       }
@@ -712,13 +712,14 @@ void ComputeChunkAtom::compute_ichunk()
     return;
   }
 
-  invoked_ichunk = update->ntimestep;
-
   // assign chunk IDs to atoms
   // will exclude atoms not in group or in optional region
   // already invoked if this is same timestep as last setup_chunks()
+  // however, when between runs or using rerun, we need it again.
 
-  if (update->ntimestep > invoked_setup) assign_chunk_ids();
+  if ((update->ntimestep > invoked_setup) || (invoked_ichunk < 0)) assign_chunk_ids();
+
+  invoked_ichunk = update->ntimestep;
 
   // compress chunk IDs via hash of the original uncompressed IDs
   // also apply discard rule except for binning styles which already did
@@ -1808,13 +1809,13 @@ void ComputeChunkAtom::atom2binsphere()
     }
     yremap = x[i][1];
     if (periodicity[1]) {
-      if (xremap < boxlo[1]) yremap += prd[1];
-      if (xremap >= boxhi[1]) yremap -= prd[1];
+      if (yremap < boxlo[1]) yremap += prd[1];
+      if (yremap >= boxhi[1]) yremap -= prd[1];
     }
     zremap = x[i][2];
     if (periodicity[2]) {
-      if (xremap < boxlo[2]) zremap += prd[2];
-      if (xremap >= boxhi[2]) zremap -= prd[2];
+      if (zremap < boxlo[2]) zremap += prd[2];
+      if (zremap >= boxhi[2]) zremap -= prd[2];
     }
 
     dx = xremap - sorigin[0];

@@ -21,6 +21,7 @@ PairStyle(polymorphic,PairPolymorphic)
 #define LMP_PAIR_POLYMORPHIC_H
 
 #include "pair.h"
+#include <math.h>
 
 namespace LAMMPS_NS {
 

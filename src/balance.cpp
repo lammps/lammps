@@ -782,7 +782,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 
 int Balance::shift()
 {
-  int i,j,k,m,np,max;
+  int i,j,k,m,np;
   double mycost,totalcost;
   double *split;
 

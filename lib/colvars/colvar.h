@@ -11,8 +11,6 @@
 #define COLVAR_H
 
 #include <iostream>
-#include <iomanip>
-#include <cmath>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -61,6 +59,12 @@ public:
   /// \brief Current actual value (not extended DOF)
   colvarvalue const & actual_value() const;
 
+  /// \brief Current running average (if calculated as set by analysis flag)
+  colvarvalue const & run_ave() const;
+
+  /// \brief Force constant of the spring
+  cvm::real const & force_constant() const;
+
   /// \brief Current velocity (previously set by calc() or by read_traj())
   colvarvalue const & velocity() const;
 
@@ -88,8 +92,19 @@ public:
   static std::vector<feature *> cv_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  std::vector<feature *> &features() {
+  virtual const std::vector<feature *> &features()
+  {
     return cv_features;
+  }
+  virtual std::vector<feature *> &modify_features()
+  {
+    return cv_features;
+  }
+  static void delete_features() {
+    for (size_t i=0; i < cv_features.size(); i++) {
+      delete cv_features[i];
+    }
+    cv_features.clear();
   }
 
   /// Implements possible actions to be carried out
@@ -502,7 +517,7 @@ public:
   // collective variable component base class
   class cvc;
 
-  // currently available collective variable components
+  // list of available collective variable components
 
   // scalar colvar components
   class distance;
@@ -587,18 +602,25 @@ public:
   }
 };
 
+inline cvm::real const & colvar::force_constant() const
+{
+  return ext_force_k;
+}
 
 inline colvarvalue const & colvar::value() const
 {
   return x_reported;
 }
 
-
 inline colvarvalue const & colvar::actual_value() const
 {
   return x;
 }
 
+inline colvarvalue const & colvar::run_ave() const
+{
+  return runave;
+}
 
 inline colvarvalue const & colvar::velocity() const
 {

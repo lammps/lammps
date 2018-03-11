@@ -1004,6 +1004,8 @@ void PPPM::set_grid_global()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
+    if (q2 == 0.0)
+      error->all(FLERR,"Must use kspace_modify gewald for uncharged system");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
@@ -1268,6 +1270,7 @@ double PPPM::compute_qopt()
 double PPPM::estimate_ik_error(double h, double prd, bigint natoms)
 {
   double sum = 0.0;
+  if (natoms == 0) return 0.0;
   for (int m = 0; m < order; m++)
     sum += acons[order][m] * pow(h*g_ewald,2.0*m);
   double value = q2 * pow(h*g_ewald,(double)order) *
@@ -1345,6 +1348,7 @@ double PPPM::final_accuracy()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
   bigint natoms = atom->natoms;
+  if (natoms == 0) natoms = 1; // avoid division by zero
 
   double df_kspace = compute_df_kspace();
   double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd);

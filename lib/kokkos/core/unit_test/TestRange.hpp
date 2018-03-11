@@ -72,7 +72,32 @@ struct TestRange {
     typename view_type::HostMirror host_flags = Kokkos::create_mirror_view( m_flags );
 
     Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), *this );
+
+#if defined(KOKKOS_ENABLE_PROFILING)
+    {
+      typedef TestRange< ExecSpace, ScheduleType > ThisType;
+      std::string label("parallel_for");
+      Kokkos::Impl::ParallelConstructName< ThisType, void> pcn(label);
+      ASSERT_EQ( pcn.get(), label );
+      std::string empty_label("");
+      Kokkos::Impl::ParallelConstructName< ThisType, void> empty_pcn(empty_label);
+      ASSERT_EQ( empty_pcn.get(), typeid(ThisType).name() );
+    }
+#endif
+
     Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType, VerifyInitTag >( 0, N ), *this );
+
+#if defined(KOKKOS_ENABLE_PROFILING)
+    {
+      typedef TestRange< ExecSpace, ScheduleType > ThisType;
+      std::string label("parallel_for");
+      Kokkos::Impl::ParallelConstructName< ThisType, VerifyInitTag> pcn(label);
+      ASSERT_EQ( pcn.get(), label );
+      std::string empty_label("");
+      Kokkos::Impl::ParallelConstructName< ThisType, VerifyInitTag> empty_pcn(empty_label);
+      ASSERT_EQ( empty_pcn.get(), std::string(typeid(ThisType).name()) + "/" + typeid(VerifyInitTag).name() );
+    }
+#endif
 
     Kokkos::deep_copy( host_flags, m_flags );
 
@@ -276,19 +301,19 @@ TEST_F( TEST_CATEGORY, range_scan )
 {
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(0); f.test_scan(); }
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(0); f.test_scan(); }
-#ifndef KOKKOS_ENABLE_CUDA
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_ROCM)
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(0); f.test_dynamic_policy(); }
 #endif
 
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(2); f.test_scan(); }
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(3); f.test_scan(); }
-#ifndef KOKKOS_ENABLE_CUDA
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_ROCM)
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(3); f.test_dynamic_policy(); }
 #endif
 
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >f(1000); f.test_scan(); }
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(1001); f.test_scan(); }
-#ifndef KOKKOS_ENABLE_CUDA
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_ROCM)
   { TestRange< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >f(1001); f.test_dynamic_policy(); }
 #endif
 }

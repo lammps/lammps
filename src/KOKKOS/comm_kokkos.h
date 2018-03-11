@@ -25,15 +25,17 @@ class CommKokkos : public CommBrick {
 
   bool exchange_comm_classic;
   bool forward_comm_classic;
+  bool reverse_comm_classic;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
+  bool reverse_comm_on_host;
 
   CommKokkos(class LAMMPS *);
   ~CommKokkos();
   void init();
 
   void forward_comm(int dummy = 0);    // forward comm of atom coords
-  void reverse_comm();              // reverse comm of atom coords
+  void reverse_comm();                 // reverse comm of atom coords
   void exchange();                     // move atoms to new procs
   void borders();                      // setup list of atoms to comm
 
@@ -47,15 +49,17 @@ class CommKokkos : public CommBrick {
   void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
   template<class DeviceType> void forward_comm_device(int dummy);
+  template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_pair_device(Pair *pair);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
  protected:
   DAT::tdual_int_2d k_sendlist;
+  DAT::tdual_int_scalar k_total_send;
   DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_sendflag;
-  DAT::tdual_int_1d k_count;
+  DAT::tdual_int_scalar k_count;
   //double *buf_send;                 // send buffer for all comm
   //double *buf_recv;                 // recv buffer for all comm
 
@@ -82,9 +86,14 @@ E: Ghost velocity forward comm not yet implemented with Kokkos
 
 This is a current restriction.
 
-W: Fixes cannot send data in Kokkos communication, switching to classic communication
+W: Fixes cannot yet send data in Kokkos communication, switching to classic communication
 
-This is current restriction with Kokkos.
+This is a current restriction with Kokkos.
+
+W: Required border comm not yet implemented in Kokkos communication, switching to classic communication
+
+There are various limitations in the communication options supported
+by Kokkos.
 
 E: Required border comm not yet implemented with Kokkos
 

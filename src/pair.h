@@ -15,7 +15,6 @@
 #define LMP_PAIR_H
 
 #include "pointers.h"
-#include "accelerator_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -92,10 +91,6 @@ class Pair : protected Pointers {
   class NeighList *list;         // standard neighbor list used by most pairs
   class NeighList *listhalf;     // half list used by some pairs
   class NeighList *listfull;     // full list used by some pairs
-  class NeighList *listhistory;  // neighbor history list used by some pairs
-  class NeighList *listinner;    // rRESPA lists used by some pairs
-  class NeighList *listmiddle;
-  class NeighList *listouter;
 
   int allocated;                 // 0/1 = whether arrays are allocated
                                  //       public so external driver can check
@@ -169,10 +164,6 @@ class Pair : protected Pointers {
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_forward_comm(int, int, double *) {}
-  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, 
-                                       int, DAT::tdual_xfloat_1d &, 
-                                       int, int *) {return 0;};
-  virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {}
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
   virtual double memory_usage();
@@ -211,10 +202,12 @@ class Pair : protected Pointers {
   double tabinner;                     // inner cutoff for Coulomb table
   double tabinner_disp;                 // inner cutoff for dispersion table
 
+ public:
   // custom data type for accessing Coulomb tables
 
   typedef union {int i; float f;} union_int_float_t;
 
+ protected:
   int vflag_fdotr;
   int maxeatom,maxvatom;
 

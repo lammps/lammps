@@ -33,7 +33,7 @@
 #include "update.h"
 #include "respa.h"
 #include "domain_kokkos.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
@@ -80,7 +80,7 @@ void FixNHKokkos<DeviceType>::init()
   FixNH::init();
 
   atomKK->k_mass.modify<LMPHostType>();
-  atomKK->k_mass.sync<LMPDeviceType>();
+  atomKK->k_mass.sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

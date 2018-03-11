@@ -53,18 +53,19 @@ endif
 # PACKEXT    = subset that require an external (downloaded) library
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace manybody mc meam misc molecule \
-	  mpiio mscg opt peri poems \
+	  granular kim kokkos kspace latte manybody mc meam misc \
+	  molecule mpiio mscg opt peri poems \
 	  python qeq reax replica rigid shock snap srd voronoi
 
 PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mgpt user-misc user-molfile \
+	   user-intel user-lb user-manifold user-meamc user-meso \
+	   user-mgpt user-misc user-molfile \
 	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
-	   user-vtk
+	   user-uef user-vtk
 
-PACKLIB = compress gpu kim kokkos meam mpiio mscg poems \
+PACKLIB = compress gpu kim kokkos latte meam mpiio mscg poems \
 	  python reax voronoi \
 	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-qmmm user-quip user-smd user-vtk
@@ -99,6 +100,7 @@ help:
 	@echo ''
 	@echo 'make package                 list available packages and their dependencies'
 	@echo 'make package-status (ps)     status of all packages'
+	@echo 'make package-installed (pi)  list of installed packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
@@ -116,7 +118,8 @@ help:
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo ''
-	@echo 'make lib-package         download/build/install a package library'
+	@echo 'make lib-package         help for download/build/install a package library'
+	@echo 'make lib-package args="..."    download/build/install a package library'
 	@echo 'make purge               purge obsolete copies of source files'
 	@echo ''
 	@echo 'make machine             build LAMMPS for machine'
@@ -223,7 +226,7 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to 
+# include python package settings to
 #   automatically adapt name of python interpreter
 
 sinclude ../lib/python/Makefile.lammps
@@ -258,6 +261,7 @@ package:
 	@echo 'make package                 list available packages'
 	@echo 'make package                 list available packages'
 	@echo 'make package-status (ps)     status of all packages'
+	@echo 'make package-installed (pi)  list of installed packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
@@ -338,19 +342,21 @@ no-%:
         fi;
 
 # download/build/install a package library
+# update the timestamp on main.cpp to trigger a relink with "make machine"
 
 lib-%:
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
-	  cd ../lib/$(LIBDIR); python Install.py $(args); \
+	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
 	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-user-%=%)"; \
-	  cd ../lib/$(LIBUSERDIR); python Install.py $(args); \
+	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
-	fi;
+	fi; touch main.cpp
 
 # status = list src files that differ from package files
+# installed = list of installed packages
 # update = replace src files with newer package files
 # overwrite = overwrite package files with newer src files
 # diff = show differences between src and package files
@@ -361,12 +367,16 @@ package-status ps:
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
 
-package-update pu:
+package-installed pi:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p installed; done
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p installed; done
+
+package-update pu: purge
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
 
-package-overwrite:
+package-overwrite: purge
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done

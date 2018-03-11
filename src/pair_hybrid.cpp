@@ -36,12 +36,9 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
   map(NULL), special_lj(NULL), special_coul(NULL), compute_tally(NULL)
 {
   nstyles = 0;
-  
+
   outerflag = 0;
   respaflag = 0;
-
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -382,6 +379,9 @@ void PairHybrid::coeff(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
+  if (lmp->kokkos)
+    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
+
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
@@ -490,7 +490,7 @@ void PairHybrid::init_style()
         if (((force->special_lj[i] == 0.0) || (force->special_lj[i] == 1.0))
             && (force->special_lj[i] != special_lj[istyle][i]))
           error->all(FLERR,"Pair_modify special setting for pair hybrid "
-		     "incompatible with global special_bonds setting");
+                     "incompatible with global special_bonds setting");
       }
     }
 
@@ -500,7 +500,7 @@ void PairHybrid::init_style()
              || (force->special_coul[i] == 1.0))
             && (force->special_coul[i] != special_coul[istyle][i]))
           error->all(FLERR,"Pair_modify special setting for pair hybrid "
-		     "incompatible with global special_bonds setting");
+                     "incompatible with global special_bonds setting");
       }
     }
   }
@@ -832,6 +832,12 @@ void PairHybrid::modify_params(int narg, char **arg)
     Pair::modify_params(narg,arg);
     for (int m = 0; m < nstyles; m++) styles[m]->modify_params(narg,arg);
   }
+
+  // reset global compute_flag since there may have been changes
+  // to any of the substyles
+  compute_flag = 0;
+  for (int m = 0; m < nstyles; m++)
+    if (styles[m]->compute_flag) compute_flag = 1;
 }
 
 /* ----------------------------------------------------------------------

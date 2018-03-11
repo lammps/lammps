@@ -32,12 +32,16 @@ NPair::NPair(LAMMPS *lmp)
   last_build = -1;
   mycutneighsq = NULL;
   molecular = atom->molecular;
+  copymode = 0;
+  execution_space = Host;
 }
 
 /* ---------------------------------------------------------------------- */
 
 NPair::~NPair()
 {
+  if (copymode) return;
+
   memory->destroy(mycutneighsq);
 }
 
@@ -66,7 +70,6 @@ void NPair::copy_neighbor_info()
   cut_inner_sq = neighbor->cut_inner_sq;
   cut_middle_sq = neighbor->cut_middle_sq;
   cut_middle_inside_sq = neighbor->cut_middle_inside_sq;
-  zeroes = neighbor->zeroes;
   bboxlo = neighbor->bboxlo;
   bboxhi = neighbor->bboxhi;
 

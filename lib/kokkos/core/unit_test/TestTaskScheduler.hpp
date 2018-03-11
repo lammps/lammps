@@ -141,13 +141,13 @@ struct TestFib
 
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type root_sched( memory_space()
                          , MemoryCapacity
                          , MinBlockSize
-                         , MaxBlockSize
-                         , SuperBlockSize );
+                         , std::min(size_t(MaxBlockSize),MemoryCapacity)
+                         , std::min(size_t(SuperBlockSize),MemoryCapacity) );
 
     future_type f = Kokkos::host_spawn( Kokkos::TaskSingle( root_sched )
                                       , TestFib( root_sched, i ) );
@@ -205,11 +205,10 @@ struct TestTaskSpawn {
   {
     typedef typename sched_type::memory_space memory_space;
 
-    // enum { MemoryCapacity = 4000 }; // Triggers infinite loop in memory pool.
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type sched( memory_space()
                     , MemoryCapacity
@@ -250,20 +249,23 @@ struct TestTaskDependence {
     const int n = CHUNK < m_count ? CHUNK : m_count;
 
     if ( 1 < m_count ) {
-      future_type f[ CHUNK ];
 
-      const int inc = ( m_count + n - 1 ) / n;
+      const int increment = ( m_count + n - 1 ) / n;
 
-      for ( int i = 0; i < n; ++i ) {
-        long begin = i * inc;
-        long count = begin + inc < m_count ? inc : m_count - begin;
-        f[i] = Kokkos::task_spawn( Kokkos::TaskSingle( m_sched )
-                                 , TestTaskDependence( count, m_sched, m_accum ) );
-      }
+      future_type f =
+        m_sched.when_all( n , [this,increment]( int i ) {
+          const long inc   = increment ;
+          const long begin = i * inc ;
+          const long count = begin + inc < m_count ? inc : m_count - begin ;
+
+          return Kokkos::task_spawn
+            ( Kokkos::TaskSingle( m_sched )
+            , TestTaskDependence( count, m_sched, m_accum ) );
+        });
 
       m_count = 0;
 
-      Kokkos::respawn( this, Kokkos::when_all( f, n ) );
+      Kokkos::respawn( this, f );
     }
     else if ( 1 == m_count ) {
       Kokkos::atomic_increment( & m_accum() );
@@ -274,11 +276,10 @@ struct TestTaskDependence {
   {
     typedef typename sched_type::memory_space memory_space;
 
-    // enum { MemoryCapacity = 4000 }; // Triggers infinite loop in memory pool.
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type sched( memory_space()
                     , MemoryCapacity
@@ -358,7 +359,9 @@ struct TestTaskTeam {
                                                  , begin - 1 )
                                    );
 
+        #ifndef __HCC_ACCELERATOR__
         assert( !future.is_null() );
+        #endif
 
         Kokkos::respawn( this, future );
       }
@@ -466,13 +469,11 @@ struct TestTaskTeam {
 
   static void run( long n )
   {
-    //const unsigned memory_capacity = 10000; // Causes memory pool infinite loop.
-    //const unsigned memory_capacity = 100000; // Fails with SPAN=1 for serial and OMP.
     const unsigned memory_capacity = 400000;
 
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type root_sched( typename sched_type::memory_space()
                          , memory_capacity
@@ -595,12 +596,11 @@ struct TestTaskTeamValue {
 
   static void run( long n )
   {
-    //const unsigned memory_capacity = 10000; // Causes memory pool infinite loop.
     const unsigned memory_capacity = 100000;
 
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type root_sched( typename sched_type::memory_space()
                          , memory_capacity
@@ -641,18 +641,11 @@ namespace Test {
 
 TEST_F( TEST_CATEGORY, task_fib )
 {
-  const int N = 24 ; // 25 triggers tbd bug on Cuda/Pascal
+  const int N = 27 ;
   for ( int i = 0; i < N; ++i ) {
-    TestTaskScheduler::TestFib< TEST_EXECSPACE >::run( i , ( i + 1 ) * ( i + 1 ) * 10000 );
+    TestTaskScheduler::TestFib< TEST_EXECSPACE >::run( i , ( i + 1 ) * ( i + 1 ) * 2000 );
   }
 }
-
-#if defined(KOKKOS_ARCH_MAXWELL) || defined(KOKKOS_ARCH_PASCAL)
-  // TODO: Resolve bug in task DAG for Pascal
-  #define KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-#endif
-
-#ifndef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
 
 TEST_F( TEST_CATEGORY, task_depend )
 {
@@ -667,11 +660,8 @@ TEST_F( TEST_CATEGORY, task_team )
   //TestTaskScheduler::TestTaskTeamValue< TEST_EXECSPACE >::run( 1000 ); // Put back after testing.
 }
 
-#else //ndef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-#undef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-#endif //ndef KOKKOS_IMPL_DISABLE_UNIT_TEST_TASK_DAG_PASCAL
-
 }
+
 #endif // #if defined( KOKKOS_ENABLE_TASKDAG )
 #endif // #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP
 

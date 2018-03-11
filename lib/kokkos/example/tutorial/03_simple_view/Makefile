@@ -10,7 +10,7 @@ ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 CXXFLAGS = -O3
 LINK = ${CXX}
-LINKFLAGS = 
+LDFLAGS = 
 EXE = 03_simple_view.cuda
 KOKKOS_DEVICES = "Cuda,OpenMP"
 KOKKOS_ARCH = "SNB,Kepler35"
@@ -18,11 +18,21 @@ else
 CXX = g++
 CXXFLAGS = -O3
 LINK = ${CXX}
-LINKFLAGS =  
+LDFLAGS =  
 EXE = 03_simple_view.host
 KOKKOS_DEVICES = "OpenMP"
 KOKKOS_ARCH = "SNB"
 endif
+ifneq (,$(findstring ROCm,$(KOKKOS_DEVICES)))
+CXX = /opt/rocm/hcc/bin/clang++
+CXXFLAGS = -O3
+LINK = ${CXX}
+LDFLAGS =
+EXE = 03_simple_view.rocm
+KOKKOS_DEVICES = "ROCm"
+KOKKOS_ARCH = "Fiji"
+endif
+
 
 DEPFLAGS = -M
 
@@ -33,14 +43,15 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 
 build: $(EXE)
 
+#for unit testing only, for best preformance with OpenMP 4.0 or better
 test: $(EXE)
 	./$(EXE)
 
 $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
+	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
 
 clean: kokkos-clean 
-	rm -f *.o *.cuda *.host
+	rm -f *.o *.cuda *.host *.rocm
 
 # Compilation rules
 

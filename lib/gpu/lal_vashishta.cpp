@@ -59,7 +59,7 @@ int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const i
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,vashishta,"k_vashishta","k_vashishta_three_center",
-                           "k_vashishta_three_end");
+                           "k_vashishta_three_end","k_vashishta_short_nbor");
   if (success!=0)
     return success;
 
@@ -128,14 +128,17 @@ int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const i
 
   param4.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
+  double r0sqmax = 0;
   for (int i=0; i<nparams; i++) {
-    double r0sq = r0[i]*r0[i]-1e-4; // TODO: should we have the 1e-4?
-
+    double r0sq = r0[i]*r0[i]; // TODO: should we have the 1e-4?
+    if (r0sqmax < r0sq) r0sqmax = r0sq;
     dview[i].x=static_cast<numtyp>(r0sq);
     dview[i].y=static_cast<numtyp>(gamma[i]);
     dview[i].z=static_cast<numtyp>(cutsq[i]);
     dview[i].w=static_cast<numtyp>(r0[i]);
   }
+
+  _cutshortsq = static_cast<numtyp>(r0sqmax);
 
   ucl_copy(param4,dview,false);
   param4_tex.get_texture(*(this->pair_program),"param4_tex");
@@ -223,15 +226,28 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   else
     vflag=0;
 
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+  // build the short neighbor list
+  int ainum=this->_ainum;
+  int nbor_pitch=this->nbor->nbor_pitch();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
                                (BX/this->_threads_per_atom)));
+
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &param4, &map,
+                 &elem2param, &_nelements, &_nparams,
+                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                 &this->dev_short_nbor, &ainum,
+                 &nbor_pitch, &this->_threads_per_atom);
 
   // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa > 1
   // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1 or tpa == 1
-  int ainum=this->ans->inum();
-  int nbor_pitch=this->nbor->nbor_pitch();
+  ainum=this->ans->inum();
+  nbor_pitch=this->nbor->nbor_pitch();
+  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
   this->time_pair.start();
 
+  // note that k_pair does not run with the short neighbor list
   this->k_pair.set_size(GX,BX);
   this->k_pair.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
                    &map, &elem2param, &_nelements,
@@ -248,6 +264,7 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   this->k_three_center.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
                            &map, &elem2param, &_nelements,
                            &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                           &this->dev_short_nbor,
                            &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
                            &nbor_pitch, &this->_threads_per_atom, &evatom);
   Answer<numtyp,acctyp> *end_ans;
@@ -257,21 +274,19 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   end_ans=this->ans;
   #endif
   if (evatom!=0) {
-    
     this->k_three_end_vatom.set_size(GX,BX);
     this->k_three_end_vatom.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
                           &map, &elem2param, &_nelements,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   } else {
-    
     this->k_three_end.set_size(GX,BX);
     this->k_three_end.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
                           &map, &elem2param, &_nelements,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc,
+                          &this->nbor->dev_acc, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   }

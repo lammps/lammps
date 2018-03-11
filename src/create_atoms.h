@@ -43,7 +43,7 @@ class CreateAtoms : protected Pointers {
   class Molecule *onemol;
   class RanMars *ranmol;
   class RanMars *ranbox;
-  
+
   int triclinic;
   double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
 
@@ -54,7 +54,7 @@ class CreateAtoms : protected Pointers {
   void add_molecule(double *, double * = NULL);
   int nlattpts;                // number of eligible lattice points
   int *Nmask;                  // used to insert N number of particles on lattice
-  int created_Nmask,nbox,nboxflag; 
+  int ninsert,insertflag;
   int vartest(double *);       // evaluate a variable with new atom position
 };
 

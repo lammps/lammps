@@ -889,7 +889,6 @@ void CreateAtoms::lattice_mask()
 
     // probably faster to have individual processors 're-choose' their random points
     // Nmask will be used to indicate which lattice points to insert
-    if (nlattpts < nboxme) printf("WHOAA\n"); //debug
     Nmask = new int[nlattpts];
     for (int i = 0; i < nlattpts; i++)
       Nmask[i] = 1;

@@ -77,7 +77,7 @@ See the "pair_coeff"_pair_coeff.html doc page for alternate ways
 to specify the path for the potential files.
 
 As an example, the potentials/library.meam file has generic MEAM
-settings for a variety of elements.  The potentials/sic.meam file has
+settings for a variety of elements.  The potentials/SiC.meam file has
 specific parameter settings for a Si and C alloy system.  If your
 LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
 and the 4th to be C, you would use the following pair_coeff command:
@@ -104,6 +104,15 @@ If a mapping value is specified as NULL, the mapping is not performed.
 This can be used when a {meam} potential is used as part of the
 {hybrid} pair style.  The NULL values are placeholders for atom types
 that will be used with other potentials.
+
+NOTE: If the 2nd filename is NULL, the element names between the two
+filenames can appear in any order, e.g. "Si C" or "C Si" in the
+example above.  However, if the 2nd filename is not NULL (as in the
+example above), it contains settings that are Fortran-indexed for the
+elements that preceed it.  Thus you need to insure you list the
+elements between the filenames in an order consistent with how the
+values in the 2nd filename are indexed.  See details below on the
+syntax for settings in the 2nd file.
 
 The MEAM library file provided with LAMMPS has the name
 potentials/library.meam.  It is the "meamf" file used by other MD
@@ -164,7 +173,15 @@ keyword(I) = value
 keyword(I,J) = value
 keyword(I,J,K) = value :pre
 
-The recognized keywords are as follows:
+The indices I, J, K correspond to the elements selected from the
+MEAM library file numbered in the order of how those elements were
+selected starting from 1. Thus for the example given below
+
+pair_coeff * * library.meam Si C sic.meam Si Si Si C :pre
+
+an index of 1 would refer to Si and an index of 2 to C. 
+
+The recognized keywords for the parameter file are as follows:
 
 Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
 augt1, gsmooth_factor, re

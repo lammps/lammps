@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
 # ReaxFF potential for TATB system
 
 units		real
@@ -12,7 +13,7 @@ read_data	data.tatb
 
 #     reax args: hbcut hbnewflag tripflag precision
 pair_style	reax 6.0 1 1 1.0e-6
-WARNING: The pair_style reax command will be deprecated soon - users should switch to pair_style reax/c (../pair_reax.cpp:49)
+WARNING: The pair_style reax command is unsupported. Please switch to pair_style reax/c instead (../pair_reax.cpp:49)
 pair_coeff	* * ffield.reax 1 2 3 4
 
 compute reax all pair reax
@@ -54,34 +55,39 @@ fix 		2 all reax/bonds 25 bonds.reax.tatb
 
 run		25
 Neighbor list info ...
-  1 neighbor list requests
   update every 5 steps, delay 0 steps, check no
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12.5
   ghost atom cutoff = 12.5
-  binsize = 6.25 -> bins = 5 4 3
-Memory usage per processor = 6.61277 Mbytes
+  binsize = 6.25, bins = 5 4 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair reax, perpetual
+      attributes: half, newton off
+      pair build: half/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.764 | 7.764 | 7.764 Mbytes
 Step Temp E_pair TotEng Press v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa v_ehb v_et v_eco v_ew v_ep v_efi v_eqeq 
        0            0    -44767.08    -44767.08    7294.6353   -61120.591     486.4378    4.7236377            0     1568.024    20.788929   -279.51642   -1556.4696    252.57147   -655.84699    18862.412   -8740.6378            0    6391.0231 
-       5   0.63682807   -44767.737    -44767.01    8391.5966   -61118.763    486.82916     4.723415            0     1567.835    20.768662   -278.20804   -1557.6962    252.64683   -655.74117    18859.328   -8738.2727            0    6388.8127 
-      10    2.4306957    -44769.41   -44766.635    11717.369   -61113.142    487.89093    4.7227063            0    1567.2936    20.705084   -274.37509   -1560.8546    252.87219   -655.43578     18850.19   -8731.0713            0    6381.7946 
-      15    5.0590478    -44772.63   -44766.854    17125.033    -61103.34    489.28007    4.7214008            0    1566.4744    20.590604   -268.28963   -1566.5961    252.97781   -654.93836    18835.335   -8719.3112            0    6370.4665 
-      20    8.0678579   -44775.923   -44766.713    24620.824   -61088.791    490.42346    4.7193467            0    1565.5541    20.415031   -260.38512   -1574.1001    253.39805   -654.26837    18815.312   -8703.3104            0    6355.1097 
-      25    10.975539   -44777.231   -44764.701    34381.278   -61068.889    490.53149    4.7164093            0    1566.5715    20.169755    -251.2311   -1582.8552    253.88696   -653.46042    18790.855   -8683.8362            0    6336.3099 
-Loop time of 7.48375 on 1 procs for 25 steps with 384 atoms
+       5   0.63682806   -44767.737    -44767.01    8391.5964   -61118.763    486.82916     4.723415            0     1567.835    20.768662   -278.20804   -1557.6962    252.64683   -655.74117    18859.328   -8738.2728            0    6388.8127 
+      10    2.4306958   -44769.409   -44766.634    11717.376   -61113.142    487.89093    4.7227063            0    1567.2936    20.705084   -274.37509   -1560.8546    252.87219   -655.43578     18850.19   -8731.0693            0    6381.7942 
+      15    5.0590493   -44772.631   -44766.855    17125.067    -61103.34    489.28007    4.7214008            0    1566.4744    20.590604   -268.28962   -1566.5961    252.97781   -654.93836    18835.335   -8719.3013            0    6370.4551 
+      20     8.067859   -44775.936   -44766.725    24620.627   -61088.791    490.42346    4.7193467            0    1565.5541    20.415031   -260.38512   -1574.1001    253.39805   -654.26837    18815.312   -8703.3748            0    6355.1614 
+      25    10.975538   -44777.233   -44764.702    34381.173   -61068.889    490.53149    4.7164093            0    1566.5715    20.169755   -251.23109   -1582.8552    253.88696   -653.46042    18790.855   -8683.8691            0    6336.3409 
+Loop time of 7.80129 on 1 procs for 25 steps with 384 atoms
 
-Performance: 0.018 ns/day, 1330.444 hours/ns, 3.341 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 0.017 ns/day, 1386.896 hours/ns, 3.205 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 7.4284     | 7.4284     | 7.4284     |   0.0 | 99.26
-Neigh   | 0.051549   | 0.051549   | 0.051549   |   0.0 |  0.69
-Comm    | 0.0021887  | 0.0021887  | 0.0021887  |   0.0 |  0.03
-Output  | 0.00025821 | 0.00025821 | 0.00025821 |   0.0 |  0.00
-Modify  | 0.00099206 | 0.00099206 | 0.00099206 |   0.0 |  0.01
-Other   |            | 0.0003154  |            |       |  0.00
+Pair    | 7.7384     | 7.7384     | 7.7384     |   0.0 | 99.19
+Neigh   | 0.058615   | 0.058615   | 0.058615   |   0.0 |  0.75
+Comm    | 0.0022428  | 0.0022428  | 0.0022428  |   0.0 |  0.03
+Output  | 0.00033212 | 0.00033212 | 0.00033212 |   0.0 |  0.00
+Modify  | 0.0013618  | 0.0013618  | 0.0013618  |   0.0 |  0.02
+Other   |            | 0.0003309  |            |       |  0.00
 
 Nlocal:    384 ave 384 max 384 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -94,4 +100,4 @@ Total # of neighbors = 286828
 Ave neighs/atom = 746.948
 Neighbor list builds = 5
 Dangerous builds not checked
-Total wall time: 0:00:07
+Total wall time: 0:00:08

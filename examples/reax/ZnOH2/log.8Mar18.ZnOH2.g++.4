@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
 # REAX potential for ZnOH2 system
 # .....
 
@@ -28,40 +29,50 @@ timestep	0.25
 
 run		3000
 Neighbor list info ...
-  2 neighbor list requests
   update every 10 steps, delay 0 steps, check no
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12
   ghost atom cutoff = 12
-  binsize = 6 -> bins = 5 5 5
-Memory usage per processor = 12.0066 Mbytes
+  binsize = 6, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 11.28 | 12.77 | 14.21 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -7900.2668            0   -7900.2668    60.076093 
-    3000     536.8256   -7935.1437            0   -7768.7255   -479.27959 
-Loop time of 3.77632 on 4 procs for 3000 steps with 105 atoms
+    3000    538.25796   -7935.6159            0   -7768.7536   -525.47078 
+Loop time of 4.48824 on 4 procs for 3000 steps with 105 atoms
 
-Performance: 17.160 ns/day, 1.399 hours/ns, 794.423 timesteps/s
-99.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 14.438 ns/day, 1.662 hours/ns, 668.414 timesteps/s
+97.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.7337     | 2.7808     | 2.8316     |   2.5 | 73.64
-Neigh   | 0.13455    | 0.16558    | 0.19493    |   5.3 |  4.38
-Comm    | 0.046741   | 0.099375   | 0.14663    |  13.6 |  2.63
-Output  | 1.7881e-05 | 2.0027e-05 | 2.408e-05  |   0.1 |  0.00
-Modify  | 0.69792    | 0.7275     | 0.75887    |   2.5 | 19.26
-Other   |            | 0.003084   |            |       |  0.08
+Pair    | 3.1031     | 3.1698     | 3.2378     |   3.3 | 70.62
+Neigh   | 0.16642    | 0.20502    | 0.25003    |   6.6 |  4.57
+Comm    | 0.074932   | 0.14224    | 0.21025    |  15.6 |  3.17
+Output  | 0.00011349 | 0.00011736 | 0.00012231 |   0.0 |  0.00
+Modify  | 0.92089    | 0.96736    | 1.0083     |   3.2 | 21.55
+Other   |            | 0.003731   |            |       |  0.08
 
 Nlocal:    26.25 ave 45 max 15 min
 Histogram: 1 0 2 0 0 0 0 0 0 1
 Nghost:    399 ave 509 max 295 min
 Histogram: 1 0 0 0 2 0 0 0 0 1
-Neighs:    1150 ave 2061 max 701 min
+Neighs:    1151.5 ave 2066 max 701 min
 Histogram: 1 2 0 0 0 0 0 0 0 1
 
-Total # of neighbors = 4600
-Ave neighs/atom = 43.8095
+Total # of neighbors = 4606
+Ave neighs/atom = 43.8667
 Neighbor list builds = 300
 Dangerous builds not checked
 

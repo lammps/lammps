@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
 # REAX potential for CHO system
 # .....
 
@@ -28,30 +29,40 @@ timestep	0.25
 
 run		3000
 Neighbor list info ...
-  2 neighbor list requests
   update every 10 steps, delay 0 steps, check no
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12
   ghost atom cutoff = 12
-  binsize = 6 -> bins = 5 5 5
-Memory usage per processor = 12.9938 Mbytes
+  binsize = 6, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 11.75 | 12.85 | 13.81 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0            0   -10226.557            0   -10226.557    -106.0974 
-    3000    547.91377   -10170.194            0   -10000.338    61.118402 
-Loop time of 6.51546 on 4 procs for 3000 steps with 105 atoms
+       0            0   -10226.557            0   -10226.557   -106.09745 
+    3000    548.30567   -10170.323            0   -10000.346    47.794514 
+Loop time of 7.42367 on 4 procs for 3000 steps with 105 atoms
 
-Performance: 9.946 ns/day, 2.413 hours/ns, 460.443 timesteps/s
-99.1% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 8.729 ns/day, 2.750 hours/ns, 404.113 timesteps/s
+97.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.9869     | 5.0615     | 5.1246     |   2.3 | 77.68
-Neigh   | 0.12213    | 0.14723    | 0.17304    |   5.5 |  2.26
-Comm    | 0.05189    | 0.11582    | 0.18932    |  15.4 |  1.78
-Output  | 1.812e-05  | 2.0564e-05 | 2.5988e-05 |   0.1 |  0.00
-Modify  | 1.1626     | 1.1878     | 1.2122     |   1.9 | 18.23
-Other   |            | 0.003059   |            |       |  0.05
+Pair    | 5.3058     | 5.4086     | 5.4922     |   3.1 | 72.86
+Neigh   | 0.14791    | 0.17866    | 0.2106     |   6.5 |  2.41
+Comm    | 0.080185   | 0.16666    | 0.26933    |  17.7 |  2.24
+Output  | 2.5988e-05 | 2.8491e-05 | 3.4571e-05 |   0.0 |  0.00
+Modify  | 1.6364     | 1.6658     | 1.6941     |   2.0 | 22.44
+Other   |            | 0.003964   |            |       |  0.05
 
 Nlocal:    26.25 ave 45 max 6 min
 Histogram: 1 0 1 0 0 0 0 0 1 1
@@ -67,4 +78,4 @@ Dangerous builds not checked
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:06
+Total wall time: 0:00:07

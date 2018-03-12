@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -119,12 +119,17 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 1 >
   KOKKOS_INLINE_FUNCTION
   void operator()( const size_type, value_type & update ) const
   {
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       // Below checks that values match, but unable to check the references.
       // Should this be able to be checked?
-      if ( left( i0 )  != left( i0, 0, 0, 0, 0, 0, 0, 0 ) )  { update |= 3; }
-      if ( right( i0 ) != right( i0, 0, 0, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+        if ( left( i0 )  != left( i0, 0, 0, 0, 0, 0, 0, 0 ) )  { update |= 3; }
+        if ( right( i0 ) != right( i0, 0, 0, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#else
+        if ( left( i0 )  != left.access( i0, 0, 0, 0, 0, 0, 0, 0 ) )  { update |= 3; }
+        if ( right( i0 ) != right.access( i0, 0, 0, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#endif
       if ( left( i0 )  != left_stride( i0 ) ) { update |= 4; }
       if ( right( i0 ) != right_stride( i0 ) ) { update |= 8; }
 /*
@@ -228,7 +233,7 @@ public:
     ASSERT_EQ( ax.use_count(), size_t( 3 ) );
 
     aView4_unmanaged unmanaged_ax_from_ptr_dx =
-      aView4_unmanaged( dx.data(), dx.dimension_0(), dx.dimension_1(), dx.dimension_2(), dx.dimension_3() );
+      aView4_unmanaged( dx.data(), dx.extent(0), dx.extent(1), dx.extent(2), dx.extent(3) );
     ASSERT_EQ( ax.use_count(), size_t( 3 ) );
 
     const_aView4 const_ax = ax;
@@ -244,17 +249,17 @@ public:
 //    Above test results in following runtime error from gtest:
 //    Expected: (ax) != (ay), actual: 32-byte object <30-01 D0-A0 D8-7F 00-00 00-31 44-0C 01-00 00-00 E8-03 00-00 00-00 00-00 69-00 00-00 00-00 00-00> vs 32-byte object <80-01 D0-A0 D8-7F 00-00 00-A1 4A-0C 01-00 00-00 E8-03 00-00 00-00 00-00 69-00 00-00 00-00 00-00>
 
-    ASSERT_EQ( ax.dimension_0(), unsigned( N0 ) );
-    ASSERT_EQ( ax.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( ax.dimension_2(), unsigned( N2 ) );
-    ASSERT_EQ( ax.dimension_3(), unsigned( N3 ) );
+    ASSERT_EQ( ax.extent(0), unsigned( N0 ) );
+    ASSERT_EQ( ax.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( ax.extent(2), unsigned( N2 ) );
+    ASSERT_EQ( ax.extent(3), unsigned( N3 ) );
 
-    ASSERT_EQ( ay.dimension_0(), unsigned( N0 ) );
-    ASSERT_EQ( ay.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( ay.dimension_2(), unsigned( N2 ) );
-    ASSERT_EQ( ay.dimension_3(), unsigned( N3 ) );
+    ASSERT_EQ( ay.extent(0), unsigned( N0 ) );
+    ASSERT_EQ( ay.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( ay.extent(2), unsigned( N2 ) );
+    ASSERT_EQ( ay.extent(3), unsigned( N3 ) );
 
-    ASSERT_EQ( unmanaged_ax_from_ptr_dx.capacity(), unsigned( N0 ) * unsigned( N1 ) * unsigned( N2 ) * unsigned( N3 ) );
+    ASSERT_EQ( unmanaged_ax_from_ptr_dx.span(), unsigned( N0 ) * unsigned( N1 ) * unsigned( N2 ) * unsigned( N3 ) );
   }
 
   typedef T DataType[2];

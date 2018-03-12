@@ -171,6 +171,16 @@ IF(Kokkos_ENABLE_OpenMP)
     FAIL_REGULAR_EXPRESSION "  FAILED  "
     TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
   )
+  TRIBITS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_OpenMPInterOp
+    SOURCES
+      UnitTestMain.cpp
+      openmp/TestOpenMP_InterOp.cpp
+    COMM serial mpi
+    NUM_MPI_PROCS 1
+    FAIL_REGULAR_EXPRESSION "  FAILED  "
+    TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
+  )
 ENDIF()
 
 IF(Kokkos_ENABLE_Qthreads)
@@ -266,6 +276,16 @@ IF(Kokkos_ENABLE_Cuda)
     FAIL_REGULAR_EXPRESSION "  FAILED  "
     TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
   )
+  TRIBITS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_CudaInterOp
+    SOURCES
+      UnitTestMain.cpp
+      cuda/TestCuda_InterOp.cpp
+    COMM serial mpi
+    NUM_MPI_PROCS 1
+    FAIL_REGULAR_EXPRESSION "  FAILED  "
+    TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
+  )
 ENDIF()
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
@@ -282,6 +302,35 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   NUM_MPI_PROCS 1
   FAIL_REGULAR_EXPRESSION "  FAILED  "
     TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
+)
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_PushFinalizeHook
+  SOURCES
+    UnitTest_PushFinalizeHook.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "FAILED"
+    TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
+)
+
+# This test is special, because it passes exactly when it prints the
+# message "PASSED: I am the custom std::terminate handler.", AND calls
+# std::terminate.  This means that we can't use
+# TRIBITS_ADD_EXECUTABLE_AND_TEST.  See GitHub issue #2147.
+
+TRIBITS_ADD_EXECUTABLE( push_finalize_hook_terminate
+  SOURCES UnitTest_PushFinalizeHook_terminate.cpp
+  TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
+)
+
+TRIBITS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
+  TEST_0
+    EXEC push_finalize_hook_terminate
+    NUM_MPI_PROCS 1
+    PASS_REGULAR_EXPRESSION
+      "PASSED: I am the custom std::terminate handler."
+    ALWAYS_FAIL_ON_ZERO_RETURN
 )
 
 foreach(INITTESTS_NUM RANGE 1 16)

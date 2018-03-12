@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -258,12 +258,12 @@ public:
 
   //--------------------------------------------------------------------------
 
-  MemoryPool( MemoryPool && ) = default ;
-  MemoryPool( const MemoryPool & ) = default ;
-  MemoryPool & operator = ( MemoryPool && ) = default ;
-  MemoryPool & operator = ( const MemoryPool & ) = default ;
+  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool( MemoryPool && ) = default ;
+  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool( const MemoryPool & ) = default ;
+  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool & operator = ( MemoryPool && ) = default ;
+  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool & operator = ( const MemoryPool & ) = default ;
 
-  MemoryPool()
+  KOKKOS_INLINE_FUNCTION MemoryPool()
     : m_tracker()
     , m_sb_state_array(0)
     , m_sb_state_size(0)

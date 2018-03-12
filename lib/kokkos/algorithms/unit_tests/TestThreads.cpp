@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -63,25 +63,10 @@ protected:
   static void SetUpTestCase()
   {
     std::cout << std::setprecision(5) << std::scientific;
-
-    unsigned num_threads = 4;
-
-    if (Kokkos::hwloc::available()) {
-      num_threads = Kokkos::hwloc::get_available_numa_count()
-                    * Kokkos::hwloc::get_available_cores_per_numa()
-                 // * Kokkos::hwloc::get_available_threads_per_core()
-                    ;
-
-    }
-
-    std::cout << "Threads: " << num_threads << std::endl;
-
-    Kokkos::Threads::initialize( num_threads );
   }
 
   static void TearDownTestCase()
   {
-    Kokkos::Threads::finalize();
   }
 };
 

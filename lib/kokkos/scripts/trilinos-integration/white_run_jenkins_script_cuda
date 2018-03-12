@@ -22,13 +22,13 @@ fi
 
 module load devpack/openmpi/1.10.4/gcc/5.4.0/cuda/8.0.44
 export OMP_NUM_THREADS=8
-export JENKINS_DO_CUDA=OFF
-export JENKINS_DO_OPENMP=ON
+export JENKINS_DO_CUDA=ON
+export JENKINS_DO_OPENMP=OFF
 export JENKINS_DO_PTHREAD=OFF
-export JENKINS_DO_SERIAL=OFF
+export JENKINS_DO_SERIAL=ON
 export JENKINS_DO_COMPLEX=OFF
 
-export JENKINS_ARCH_CXX_FLAG="-mcpu=power8"
+export JENKINS_ARCH_CXX_FLAG="-mcpu=power8 -arch=sm_37"
 export JENKINS_ARCH_C_FLAG="-mcpu=power8"
 export BLAS_LIBRARIES="${BLAS_ROOT}/lib/libblas.a;gfortran;gomp"
 export LAPACK_LIBRARIES="${LAPACK_ROOT}/lib/liblapack.a;gfortran;gomp"
@@ -47,12 +47,17 @@ if [ ! -d "${KOKKOS_PATH}" ]; then
   git clone https://github.com/kokkos/kokkos ${KOKKOS_PATH}
 fi
 
+export OMPI_CXX=${KOKKOS_PATH}/bin/nvcc_wrapper
+
 cd ${KOKKOS_PATH}
 git checkout $KOKKOS_BRANCH
 git pull
 cd ..
 
-source ${KOKKOS_PATH}/config/trilinos-integration/prepare_trilinos_repos.sh $TRILINOS_UPDATE_BRANCH $TRILINOS_PRISTINE_BRANCH
+export CUDA_LAUNCH_BLOCKING=1
+export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+
+source ${KOKKOS_PATH}/scripts/trilinos-integration/prepare_trilinos_repos.sh $TRILINOS_UPDATE_BRANCH $TRILINOS_PRISTINE_BRANCH
 
 ${TRILINOS_UPDATED_PATH}/sampleScripts/Sandia-SEMS/run_repo_comparison_lsf ${TRILINOS_UPDATED_PATH} ${TRILINOS_PRISTINE_PATH} ${TRILINOS_UPDATED_PATH}/sampleScripts/Sandia-SEMS/configure-testbeds-jenkins-all TestCompare ${QUEUE}
 

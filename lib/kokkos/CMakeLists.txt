@@ -7,7 +7,7 @@ ELSE()
 ENDIF()
 
 IF(NOT KOKKOS_HAS_TRILINOS)
-  cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+  cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
   # Define Project Name if this is a standalone build
   IF(NOT DEFINED ${PROJECT_NAME})
@@ -37,9 +37,19 @@ IF(NOT KOKKOS_HAS_TRILINOS)
     COMMAND ${KOKKOS_SETTINGS} make -f ${KOKKOS_SRC_PATH}/cmake/Makefile.generate_cmake_settings CXX=${CMAKE_CXX_COMPILER} generate_build_settings
     WORKING_DIRECTORY "${Kokkos_BINARY_DIR}"
     OUTPUT_FILE ${Kokkos_BINARY_DIR}/core_src_make.out
-    RESULT_VARIABLE res
+    RESULT_VARIABLE GEN_SETTINGS_RESULT
   )
+  if (GEN_SETTINGS_RESULT)
+    message(FATAL_ERROR "Kokkos settings generation failed:\n"
+        "${KOKKOS_SETTINGS} make -f ${KOKKOS_SRC_PATH}/cmake/Makefile.generate_cmake_settings CXX=${CMAKE_CXX_COMPILER} generate_build_settings")
+  endif()
   include(${Kokkos_BINARY_DIR}/kokkos_generated_settings.cmake)
+  string(REPLACE " " ";" KOKKOS_TPL_INCLUDE_DIRS "${KOKKOS_GMAKE_TPL_INCLUDE_DIRS}")
+  string(REPLACE " " ";" KOKKOS_TPL_LIBRARY_DIRS "${KOKKOS_GMAKE_TPL_LIBRARY_DIRS}")
+  string(REPLACE " " ";" KOKKOS_TPL_LIBRARY_NAMES "${KOKKOS_GMAKE_TPL_LIBRARY_NAMES}")
+  list(REMOVE_ITEM KOKKOS_TPL_INCLUDE_DIRS "")
+  list(REMOVE_ITEM KOKKOS_TPL_LIBRARY_DIRS "")
+  list(REMOVE_ITEM KOKKOS_TPL_LIBRARY_NAMES "")
   set_kokkos_srcs(KOKKOS_SRC ${KOKKOS_SRC})
 
   #------------ NOW BUILD ------------------------------------------------------

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -71,45 +71,64 @@ void host_thread_yield( const uint32_t i , const WaitMode mode )
 
   const int c = Kokkos::Impl::bit_scan_reverse(i);
 
-  if ( sleep_limit < i ) {
+  if ( WaitMode::ROOT != mode ) {
+    if ( sleep_limit < i ) {
 
-    // Attempt to put the thread to sleep for 'c' milliseconds
+      // Attempt to put the thread to sleep for 'c' milliseconds
 
-    #if defined( KOKKOS_ENABLE_STDTHREAD ) || defined( _WIN32 )
-      auto start = std::chrono::high_resolution_clock::now();
-      std::this_thread::yield();
-      std::this_thread::sleep_until( start + std::chrono::nanoseconds( c * 1000 ) );
-    #else
-      timespec req ;
-      req.tv_sec  = 0 ;
-      req.tv_nsec = 1000 * c ;
-      nanosleep( &req, nullptr );
-    #endif
+      #if defined( KOKKOS_ENABLE_STDTHREAD ) || defined( _WIN32 )
+        auto start = std::chrono::high_resolution_clock::now();
+        std::this_thread::yield();
+        std::this_thread::sleep_until( start + std::chrono::nanoseconds( c * 1000 ) );
+      #else
+        timespec req ;
+        req.tv_sec  = 0 ;
+        req.tv_nsec = 1000 * c ;
+        nanosleep( &req, nullptr );
+      #endif
+    }
+
+    else if ( mode == WaitMode::PASSIVE || yield_limit < i ) {
+
+      // Attempt to yield thread resources to runtime
+
+      #if defined( KOKKOS_ENABLE_STDTHREAD ) || defined( _WIN32 )
+        std::this_thread::yield();
+      #else
+        sched_yield();
+      #endif
+    }
+
+    #if defined( KOKKOS_ENABLE_ASM )
+
+    else if ( (1u<<4) < i ) {
+
+      // Insert a few no-ops to quiet the thread:
+
+      for ( int k = 0 ; k < c ; ++k ) {
+        #if defined( __amd64 ) || defined( __amd64__ ) || \
+              defined( __x86_64 ) || defined( __x86_64__ )
+          #if !defined( _WIN32 ) /* IS NOT Microsoft Windows */
+            asm volatile( "nop\n" );
+          #else
+            __asm__ __volatile__( "nop\n" );
+          #endif
+        #elif defined(__PPC64__)
+            asm volatile( "nop\n" );
+        #endif
+      }
+    }
+    #endif /* defined( KOKKOS_ENABLE_ASM ) */
   }
-
-  else if ( mode == WaitMode::PASSIVE || yield_limit < i ) {
-
-    // Attempt to yield thread resources to runtime
-
-    #if defined( KOKKOS_ENABLE_STDTHREAD ) || defined( _WIN32 )
-      std::this_thread::yield();
-    #else
-      sched_yield();
-    #endif
-  }
-
   #if defined( KOKKOS_ENABLE_ASM )
-
-  else if ( (1u<<4) < i ) {
-
-    // Insert a few no-ops to quiet the thread:
-
+  else if ( (1u<<3) < i ) {
+    // no-ops for root thread
     for ( int k = 0 ; k < c ; ++k ) {
       #if defined( __amd64 ) || defined( __amd64__ ) || \
-       	    defined( __x86_64 ) || defined( __x86_64__ )
-    	  #if !defined( _WIN32 ) /* IS NOT Microsoft Windows */
+            defined( __x86_64 ) || defined( __x86_64__ )
+        #if !defined( _WIN32 ) /* IS NOT Microsoft Windows */
           asm volatile( "nop\n" );
-	      #else
+        #else
           __asm__ __volatile__( "nop\n" );
         #endif
       #elif defined(__PPC64__)

@@ -39,10 +39,11 @@ class PairPython : public Pair {
   PairPython(class LAMMPS *);
   virtual ~PairPython();
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **);
+  virtual void init_style();
+  virtual double init_one(int, int);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
   double cut_global;

@@ -405,6 +405,10 @@ void PairKIM::init_style()
    // This is called for each "run ...", "minimize ...", etc. read from input
    ++init_style_call_count;
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style KIM");
+
    if (domain->dimension != 3)
       error->all(FLERR,"PairKIM only works with 3D problems");
 

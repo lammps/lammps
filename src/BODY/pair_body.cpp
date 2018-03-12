@@ -423,6 +423,10 @@ void PairBody::init_style()
     error->all(FLERR,"Pair body requires body style nparticle");
   bptr = (BodyNparticle *) avec->bptr;
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style body");
+
   neighbor->request(this,instance_me);
 }
 

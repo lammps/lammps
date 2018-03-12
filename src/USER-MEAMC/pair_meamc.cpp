@@ -285,7 +285,11 @@ void PairMEAMC::coeff(int narg, char **arg)
 void PairMEAMC::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style MEAM requires newton pair on");
+    error->all(FLERR,"Pair style MEAM/C requires newton pair on");
+
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style MEAM/C");
 
   // need full and half neighbor list
 

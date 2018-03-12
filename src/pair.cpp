@@ -66,6 +66,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   no_virial_fdotr_compute = 0;
   writedata = 0;
   ghostneigh = 0;
+  did_dummy_restart = 0;
 
   nextra = 0;
   pvector = NULL;
@@ -231,6 +232,15 @@ void Pair::init()
 
   init_style();
 
+  // print a warning (but only once), if we have read a restart for a pair
+  // style without read_restart() and have not created a new instance.
+
+  if (did_dummy_restart && (comm->me == 0)) {
+    did_dummy_restart = 0;
+    error->warning(FLERR,"Restarting a pair style without restart support. "
+                   "May need to specify 'pair_style' command again.");
+  }
+
   // call init_one() for each I,J
   // set cutsq for each I,J, used to neighbor
   // cutforce = max of all I,J cutoffs
@@ -304,6 +314,17 @@ void Pair::init_style()
 void Pair::init_list(int which, NeighList *ptr)
 {
   list = ptr;
+}
+
+/* ----------------------------------------------------------------------
+   trigger a warning message in Pair::init() when reading a restart
+   file for a pair style without restart support and without a new
+   pair_style command after the restart has been read.
+------------------------------------------------------------------------- */
+
+void Pair::read_restart(FILE *)
+{
+  did_dummy_restart = 1;
 }
 
 /* ----------------------------------------------------------------------

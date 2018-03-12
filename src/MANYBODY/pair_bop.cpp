@@ -643,6 +643,10 @@ void PairBOP::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style BOP requires newton pair on");
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style BOP");
+
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
   if (comm->cutghostuser < 3.0*cutmax - EPSILON) {

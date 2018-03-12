@@ -417,6 +417,10 @@ void PairMEAM::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style MEAM requires newton pair on");
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style MEAM");
+
   // need full and half neighbor list
 
   int irequest_full = neighbor->request(this,instance_me);

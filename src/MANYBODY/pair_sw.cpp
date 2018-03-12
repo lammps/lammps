@@ -327,6 +327,10 @@ void PairSW::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style Stillinger-Weber requires newton pair on");
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style Stillinger-Weber");
+
   // need a full neighbor list
 
   int irequest = neighbor->request(this,instance_me);

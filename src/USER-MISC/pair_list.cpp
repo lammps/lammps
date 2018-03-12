@@ -376,6 +376,10 @@ void PairList::init_style()
   if (atom->map_style == 0)
     error->all(FLERR,"Pair style list requires an atom map");
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style list");
+
   if (offset_flag) {
     for (int n=0; n < npairs; ++n) {
       list_parm_t &par = params[n];

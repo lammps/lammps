@@ -25,6 +25,7 @@
 #include "force.h"
 #include "memory.h"
 #include "update.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "python.h"
 #include "error.h"
@@ -390,6 +391,17 @@ void PairPython::coeff(int narg, char **arg)
   }
   Py_DECREF(py_map_args);
   PyGILState_Release(gstate);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairPython::init_style()
+{
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style python");
+
+  neighbor->request(this,instance_me);
 }
 
 /* ---------------------------------------------------------------------- */

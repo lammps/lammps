@@ -509,6 +509,10 @@ void PairADP::coeff(int narg, char **arg)
 
 void PairADP::init_style()
 {
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style ADP");
+
   // convert read-in file(s) to arrays and spline them
 
   file2array();

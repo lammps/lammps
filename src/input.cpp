@@ -1811,6 +1811,9 @@ void Input::pair_style()
     }
     if (match) {
       force->pair->settings(narg-1,&arg[1]);
+      // reset flag that triggers a warning when restarting a pair style
+      // without restart functions and not re-issuing the pair_style command
+      force->pair->did_dummy_restart = 0;
       return;
     }
   }

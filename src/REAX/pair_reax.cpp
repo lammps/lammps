@@ -562,6 +562,10 @@ void PairREAX::init_style()
   if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
     error->warning(FLERR,"Not using real units with pair reax");
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style reax");
+
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->newton = 2;
 

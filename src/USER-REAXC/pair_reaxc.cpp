@@ -357,6 +357,10 @@ void PairReaxC::init_style( )
   if (!atom->q_flag)
     error->all(FLERR,"Pair style reax/c requires atom attribute q");
 
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style reax/c");
+
   // firstwarn = 1;
 
   int iqeq;

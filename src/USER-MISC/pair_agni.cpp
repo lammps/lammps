@@ -329,6 +329,10 @@ void PairAGNI::coeff(int narg, char **arg)
 
 void PairAGNI::init_style()
 {
+  if (did_dummy_restart)
+    error->all(FLERR,"Must specify 'pair_style' command after "
+               "'read_restart' for pair style AGNI");
+
   // need a full neighbor list
 
   int irequest = neighbor->request(this,instance_me);

@@ -26,10 +26,14 @@
    - Each layer must have different atom types
    - Pair interaction is inter-layer, i.e. between different layers:
        pair_coeff  1*2 3*4  ilp  ILP.par.2017  B N B N
-   - Each atom must have exactly three INTRA-layer neighbors within a cutoff of sqrt(2.5).
-   - The three intra-layer neighbors of each atom must be static: no melting!
+   - Each atom must have one to three INTRA-layer neighbors within a cutoff of sqrt(2.5).
+   - The intra-layer neighbors of each atom must be static: no melting!
    - The normal vector of atom i is defined by the normalized cross product (a-b)^(a-c),
      where a-b and a-c are the bond vectors among the three nearest neighbors of i.
+     If i has only two intra-neighbors, the cross product is (i-a)^(i-b).
+     if i it has just one intra-neighbor j, then j is expected to have three neighbors and
+     the normal vector of j will be used instead.
+   - Coulomb interaction among partial charges is currently not implemented.
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -119,12 +123,12 @@ void PairILP::init_style()
 void PairILP::compute(int eflag, int vflag)
 {
   #define ILP_d 15.0
-  int i,j,ii,jj,a,b,c,iparam_ij;
+  int i,j,ii,jj,ll,kk,a,b,c,iparam_ij;
   double xtmp,ytmp,ztmp,tmp,delx,dely,delz,evdwl;
-  double r,rsq,r3,r4,r6,asimp,bsimp,csimp,dsimp,esimp;
+  double r,rsq,r3,r4,r6,aasimp,asimp,bsimp,csimp,dsimp,esimp;
   double ndotr_ij,ndotr_ji,rho2_ij,rho2_ji;
   double temp_b,temp_c,sumCfrho,dsimp_ij,dsimp_ji;
-  static int once=1,*intra_maxneigh,*intra_numneigh,**intra_neigh;
+  static int once=1,*intra_numneigh,**intra_neigh;
   static double *nx=NULL,*ny=NULL,*nz=NULL,*nnorm=NULL,**bx=NULL,**by=NULL,**bz=NULL; //https://stackoverflow.com/questions/12134315/realloc-on-null-valued-or-undefined-pointer
   // consider using: static double[2] *bx=NULL,*by=NULL,*bz=NULL; https://stackoverflow.com/questions/49014310
   static double TAP_A,TAP_B,TAP_C,TAP_D,dTAP_A,dTAP_B,dTAP_C,dTAP_D;
@@ -198,7 +202,7 @@ void PairILP::compute(int eflag, int vflag)
     if( (tt=(int    *)calloc(natoms,sizeof(int)   )) == NULL ) { error->all(FLERR,"allocation error."); }
     if( (mm=(int    *)calloc(natoms,sizeof(int)   )) == NULL ) { error->all(FLERR,"allocation error."); }
 
-    if (comm->me ==0) cout << "  1) memory allocated" << endl;
+    if (comm->me == 0) cout << "  1) memory allocated" << endl;
 
     /**************NOTE: mostly copied from WriteData::atoms() in write_data.cpp **************/
 
@@ -270,12 +274,9 @@ void PairILP::compute(int eflag, int vflag)
     // now that we have ALL the atom coordinates, we
     // allocate the intra-neighbor list...
     intra_numneigh=(int *)calloc(natoms+1,sizeof(int));
-    intra_maxneigh=(int *)calloc(natoms+1,sizeof(int));
     intra_neigh=(int **)malloc((natoms+1)*sizeof(int*));
     for (ii = 0; ii < (natoms+1); ii++) {
       intra_neigh[ii]=(int *)malloc(3*sizeof(int));
-      intra_maxneigh[ii]=3;
-      intra_numneigh[ii]=0;
     }
 
     // ...and we fill it
@@ -298,9 +299,9 @@ void PairILP::compute(int eflag, int vflag)
         // sqrt(2.5)=1.58 should be ok for both bulk graphene and h-BN
         if (rsq < 2.5) {
 
-          if(comm->me==0 && intra_numneigh[i+1]==intra_maxneigh[i+1]){
-            cout << "atom " << i+1 << " has more than three intra-neighbors" << endl;
-            error->all(FLERR,"all atoms must have exactly three intra-layer neighbors (cutoff^2=2.5)");
+          if(comm->me==0 && intra_numneigh[i+1]==3){
+            cout << "atom " << i+1 << " has more than three intra-layer neighbors" << endl;
+            error->all(FLERR,"all atoms must have 1..3 intra-layer neighbors (cutoff^2=2.5)");
           }
           intra_neigh[i+1][intra_numneigh[i+1]]=j+1;
           intra_numneigh[i+1]++;
@@ -311,7 +312,7 @@ void PairILP::compute(int eflag, int vflag)
      MPI_Barrier(world);
     if (comm->me==0) cout << "  4) neighbors list built" << endl;
 
-    // we check that the number of intra-neighbors is always 3
+    // we check that the number of intra-neighbors is 1..3
     imin=3;imax=0;
     for (i = 0; i < natoms; i++) {
       itype = tt[i];
@@ -320,10 +321,10 @@ void PairILP::compute(int eflag, int vflag)
       if(intra_numneigh[i+1]<imin) imin=intra_numneigh[i+1];
       if(intra_numneigh[i+1]>imax) imax=intra_numneigh[i+1];
     }
-    //if(comm->me == 0) cout << "ILP: min-max " << imin << "-" << imax << " intra-neighbors found." << endl;
-    if(imin!=3 || imax!=3)
-      error->all(FLERR,"all atoms must have exactly three intra-layer neighbors [cutoff=sqrt(2.5)]");
-    if(comm->me==0) cout << "Kolmogorov-Crespi RDP1: init done." << endl;
+    if(comm->me == 0) cout << "ILP: min-max " << imin << "-" << imax << " intra-neighbors found." << endl;
+    if(imin<1 || imax>3)
+      error->all(FLERR,"all atoms must have 1..3 intra-layer neighbors [cutoff=sqrt(2.5)]");
+    if(comm->me==0) cout << "ILP: init done." << endl;
 
     // freeing temporary arrays
     free(xx);free(yy);free(zz);free(tt);free(mm);
@@ -358,15 +359,30 @@ void PairILP::compute(int eflag, int vflag)
     itype=type[i];
     if( itype==0 || map[itype] == -1 ) continue; // atoms not belonging to this pair_potential
 
-    // a,b,c are the three local neighbors of i, mapped from the global (static) neighbors
-    a=atom->map( intra_neigh[ atom->tag[i] ][0] );
-    b=atom->map( intra_neigh[ atom->tag[i] ][1] );
-    c=atom->map( intra_neigh[ atom->tag[i] ][2] );
+    ll=atom->tag[i];
+    if(intra_numneigh[ll]==3){
+      // a,b,c are the three local neighbors of i, mapped from the global (static) neighbors
+      a=atom->map( intra_neigh[ll][0] );
+      b=atom->map( intra_neigh[ll][1] );
+      c=atom->map( intra_neigh[ll][2] );
+    }
+    else if(intra_numneigh[ll]==2){
+      a=atom->map( intra_neigh[ll][0] );
+      b=atom->map( intra_neigh[ll][1] );
+      c=i;
+    }
+    else{ // only one intra-neighbor: it must have three intra-neighbors
+      kk=intra_neigh[ll][0];
+      if(intra_numneigh[kk]!=3) error->all(FLERR,"cannot determine normal vector of atom chain.");
+      a=atom->map( intra_neigh[kk][0] );
+      b=atom->map( intra_neigh[kk][1] );
+      c=atom->map( intra_neigh[kk][2] );
+    }
 
     if(a==-1 || b==-1 || c==-1) continue; //edge neighbors may not belong to this proc
 
     // the two bonds are a-b and a-c
-    bx[i][0]=x[a][0]-x[b][0]; bx[i][0] -= round(bx[i][0]/PBCx)*PBCx;
+    bx[i][0]=x[a][0]-x[b][0]; bx[i][0] -= round(bx[i][0]/PBCx)*PBCx; //TODO TEST wrapping needed?
     by[i][0]=x[a][1]-x[b][1]; by[i][0] -= round(by[i][0]/PBCy)*PBCy;
     bz[i][0]=x[a][2]-x[b][2]; bz[i][0] -= round(bz[i][0]/PBCz)*PBCz;
     bx[i][1]=x[a][0]-x[c][0]; bx[i][1] -= round(bx[i][1]/PBCx)*PBCx;
@@ -403,9 +419,9 @@ void PairILP::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtype = type[j];
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      delx = xtmp - x[j][0]; //delx -= round(delx/PBCx)*PBCx;
+      dely = ytmp - x[j][1]; //dely -= round(dely/PBCy)*PBCy;
+      delz = ztmp - x[j][2]; //delz -= round(delz/PBCz)*PBCz;
 
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq > cutsq[itype][jtype]) continue;
@@ -418,14 +434,14 @@ void PairILP::compute(int eflag, int vflag)
       iparam_ij = elem2param[map[itype]][map[jtype]];
       Param& p = params[iparam_ij];
 
-      asimp= exp(-ILP_d*( (r/(p.sR*p.reff)) - 1.));
+      aasimp= exp(-ILP_d*( (r/(p.sR*p.reff)) - 1.));
       bsimp= r4*(   TAP_A*r3 -  TAP_B*rsq +  TAP_C*r -  TAP_D ) + 1.; //Tapering function
       csimp= rsq*( dTAP_A*r3 - dTAP_B*rsq + dTAP_C*r - dTAP_D );      //Tapering derivative (already divided by r)
-
       dsimp= p.C6/r6;
-      esimp= csimp/(1.+asimp)*dsimp;                                      //dispersive term 1
-      esimp+= bsimp*dsimp*( 1./pow(1.+asimp,2)*asimp*ILP_d/(p.sR*p.reff)  //dispersive term 2
-                           -1./(1.+asimp)*6./r
+
+      esimp= csimp/(1.+aasimp)*dsimp;                                      //dispersive term 1
+      esimp+= bsimp*dsimp*( 1./pow(1.+aasimp,2)*aasimp*ILP_d/(p.sR*p.reff)  //dispersive term 2
+                           -1./(1.+aasimp)*6./r
                           )/r;
       tmp=esimp*delx;
       f[i][0] += tmp;
@@ -455,10 +471,24 @@ void PairILP::compute(int eflag, int vflag)
 
 
       // evaluate and apply the forces on i neighbors due to its normal vector variation
-      // a,b,c are the three local neighbors of i
-      a=atom->map( intra_neigh[ atom->tag[i] ][0] );
-      b=atom->map( intra_neigh[ atom->tag[i] ][1] );
-      c=atom->map( intra_neigh[ atom->tag[i] ][2] );
+      ll=atom->tag[i];
+      if(intra_numneigh[ll]==3){
+        // a,b,c are the three local neighbors of i, mapped from the global (static) neighbors
+        a=atom->map( intra_neigh[ll][0] );
+        b=atom->map( intra_neigh[ll][1] );
+        c=atom->map( intra_neigh[ll][2] );
+      }
+      else if(intra_numneigh[ll]==2){
+        a=atom->map( intra_neigh[ll][0] );
+        b=atom->map( intra_neigh[ll][1] );
+        c=i;
+      }
+      else{ // only one intra-neighbor: it must have three intra-neighbors
+        kk=intra_neigh[ll][0];
+        a=atom->map( intra_neigh[kk][0] );
+        b=atom->map( intra_neigh[kk][1] );
+        c=atom->map( intra_neigh[kk][2] );
+      }
 
       if(a==-1 || b==-1 || c==-1) error->all(FLERR,"negative id mapping, try to increase the skin");
 
@@ -484,7 +514,7 @@ void PairILP::compute(int eflag, int vflag)
       //JI
       ndotr_ji=(nx[j]*delx + ny[j]*dely + nz[j]*delz);
       rho2_ji = rsq - ndotr_ji*ndotr_ji;
-      dsimp_ji= exp( -rho2_ji/p.gamma2);
+      dsimp_ji= exp( -rho2_ji/p.gamma2 );
       esimp= bsimp*asimp*p.C*dsimp_ji*2./p.gamma2;                         //repulsive term 3  (ji)
 
       tmp=esimp*(delx-ndotr_ji*nx[i]);
@@ -498,11 +528,24 @@ void PairILP::compute(int eflag, int vflag)
       f[j][2] -= tmp;
 
       // evaluate and apply the forces on j neighbors due to its normal vector variation
-      // a,b,c are the three local neighbors of j
-      a=atom->map( intra_neigh[ atom->tag[j] ][0] );
-      b=atom->map( intra_neigh[ atom->tag[j] ][1] );
-      c=atom->map( intra_neigh[ atom->tag[j] ][2] );
-
+      ll=atom->tag[j];
+      if(intra_numneigh[ll]==3){
+        // a,b,c are the three local neighbors of i, mapped from the global (static) neighbors
+        a=atom->map( intra_neigh[ll][0] );
+        b=atom->map( intra_neigh[ll][1] );
+        c=atom->map( intra_neigh[ll][2] );
+      }
+      else if(intra_numneigh[ll]==2){
+        a=atom->map( intra_neigh[ll][0] );
+        b=atom->map( intra_neigh[ll][1] );
+        c=i;
+      }
+      else{ // only one intra-neighbor: it must have three intra-neighbors
+        kk=intra_neigh[ll][0];
+        a=atom->map( intra_neigh[kk][0] );
+        b=atom->map( intra_neigh[kk][1] );
+        c=atom->map( intra_neigh[kk][2] );
+      }
       if(a==-1 || b==-1 || c==-1) error->all(FLERR,"negative id mapping, try to increase the skin");
 
       temp_b = esimp*(-ndotr_ji)*( dely*bz[j][1] - delz*by[j][1] - ndotr_ji*( ny[j]*bz[j][1] - nz[j]*by[j][1]) )/nnorm[j];
@@ -538,20 +581,21 @@ void PairILP::compute(int eflag, int vflag)
 
 
       if (eflag) {
-      	//DISPERSIVE TERM
-      	evdwl = bsimp*(-p.C6/(1.+asimp)/r6);
-      	//REPULSIVE TERM
-      	evdwl+= bsimp*exp(p.alpha*(1.-r/p.beta))
+        //DISPERSIVE TERM
+        evdwl = bsimp*(-p.C6/(1.+aasimp)/r6);
+        //REPULSIVE TERM
+        evdwl+= bsimp*exp(p.alpha*(1.-r/p.beta))
 		*( p.epsilon + p.C*(
 				    exp(-rho2_ij/p.gamma2)
 				  + exp(-rho2_ji/p.gamma2)
 				    )
-		   );
+		);
       }
-
       if (evflag){
         ev_tally(i,j,nlocal,force->newton_pair,evdwl,0.,0.,delx,dely,delz);
       }
+
+
     }//END LOOP ON jj
   }//END LOOP ON ii
 
@@ -799,8 +843,6 @@ void PairILP::read_file(char *filename)
 
     params[nparams].C6       *= kcalmol2eV;
     params[nparams].epsilon  *= kcalmol2eV;
-    //params[nparams].csi    *= 1;
-    //params[nparams].eta    *= 1;
     params[nparams].C        *= kcalmol2eV;
 
     // precompute some quantities

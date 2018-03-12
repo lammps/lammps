@@ -2073,11 +2073,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) 
       d_C1dbo(i,j_index) = 1.0;
       d_C2dbo(i,j_index) = 0.0;
       d_C3dbo(i,j_index) = 0.0;
-      d_C1dbopi(i,j_index) = d_BO_pi(i,j_index);
+      d_C1dbopi(i,j_index) = 1.0;
       d_C2dbopi(i,j_index) = 0.0;
       d_C3dbopi(i,j_index) = 0.0;
       d_C4dbopi(i,j_index) = 0.0;
-      d_C1dbopi2(i,j_index) = d_BO_pi(i,j_index);
+      d_C1dbopi2(i,j_index) = 1.0;
       d_C2dbopi2(i,j_index) = 0.0;
       d_C3dbopi2(i,j_index) = 0.0;
       d_C4dbopi2(i,j_index) = 0.0;

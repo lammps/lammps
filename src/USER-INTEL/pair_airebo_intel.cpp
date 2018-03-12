@@ -32,7 +32,9 @@
 #pragma offload_attribute(pop)
 #endif
 
+#if defined(_OPENMP)
 #include <omp.h>
+#endif
 #include <string.h>
 #include "pair_airebo_intel.h"
 #include "atom.h"

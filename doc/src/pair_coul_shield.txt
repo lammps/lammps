@@ -1,0 +1,83 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style coul/shield command :h3
+
+[Syntax:]
+
+pair_style coul/shield cutoff tap_flag :pre
+
+cutoff = global cutoff (distance units)
+tap_flag = 0/1 to turn off/on the Tapper function
+
+[Examples:]
+
+pair_style coul/shield 16.0 1
+pair_coeff 1 2 0.70 :pre
+
+
+[Description:]
+
+Style {coul/shield} computes a Coulomb interaction for boron and nitrigon
+atoms locate in different layers of hexagonal boron nitride. This potential must
+be used in combination with the potential "pair_style pair_ilp_gr_hBN"_pair_ilp_gr_hBN.html
+
+NOTE: This potential is intended for electrostatic interactions between two different
+layers of hexagonal boron nitride. Therefore, to avoid interaction within the same layers,
+each layer should have a separate molecule id and is recommended to use
+"full" atom style in the data file.
+
+:c,image(Eqs/pair_coul_shield.jpg)
+
+Where Tap(r_ij) is the tapper function which provides a continuous cutoff (up to third derivative)
+for interatomic separations larger than r_c "(Maaravi)"_#Maaravi. Here \lambda is the shielding
+parameter that eliminates the short-range sigularity of the classical monopolar electrostatic
+interaction expression "(Maaravi)"_#Maaravi.
+
+The shielding parameter \lambda (1/distance units) must be defined for each pair of atom
+types via the "pair_coeff"_pair_coeff.html command as in the example
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+The global cutoff (r_c) specified in the pair_style command is used.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This pair style does not support parameter mixing. Coefficients must be given explicitly for each type of particle pairs.
+
+The "pair_modify"_pair_modify.html table option is not relevant
+for this pair style.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+[Restrictions:]
+
+This style is part of the "user-misc" package.  It is only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_2_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+"pair_style pair_ilp_gr_hBN"_pair_ilp_gr_hBN.html
+
+[Default:] tap_flag = 1
+
+:line
+
+:link(Maaravi)
+[(Maaravi)] T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).

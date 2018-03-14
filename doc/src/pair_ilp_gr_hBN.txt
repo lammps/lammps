@@ -58,6 +58,13 @@ NOTE: The parameters presented in the parameter file (e.g. BNCH.ILP), are
 fitted with tapper function by setting the cutoff equal to 16.0 Angstrom.
 Using different cutoff or tapper function should be careful.
 
+NOTE: Two parameter files (BNCH.ILP and BNCH-old.ILP) are presented, BNCH-old.ILP
+contains the paramters published in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi, which
+is only suitable for long-range interaction. The paramters in BNCH.ILP provides
+a good description both for short- and long-range interaction. This is useful for
+simulations in the high pressure (small interlayer distances) regime. The comparison of
+two sets of paramters can be found in "(Ouyang)"_#Ouyang.
+
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
 
@@ -104,3 +111,6 @@ coefficients listed in the appropriate units, if your simulation doesnâ€™t use â
 
 :link(Kolmogorov)
 [(Kolmogorov)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
+
+:link(Ouyang)
+[(Ouyang)] W. Ouyang, D. Mandelli, O. Hod, M. Urbakh, In preparation.

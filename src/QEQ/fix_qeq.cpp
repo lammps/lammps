@@ -700,7 +700,7 @@ void FixQEq::read_file(char *file)
 
   int ntypes = atom->ntypes;
   int *setflag = new int[ntypes+1];
-  for (i=0; i < params_per_line; ++i) setflag[i] = 0;
+  for (i=0; i <= ntypes; ++i) setflag[i] = 0;
 
   memory->create(chi,ntypes+1,"qeq:chi");
   memory->create(eta,ntypes+1,"qeq:eta");

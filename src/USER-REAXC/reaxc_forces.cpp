@@ -178,7 +178,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   int i, j, pj;
   int start_i, end_i;
   int type_i, type_j;
-  int btop_i, btop_j, num_bonds, num_hbonds;
+  int btop_i, num_bonds, num_hbonds;
   int ihb, jhb, ihb_top, jhb_top;
   int local, flag, renbr;
   double cutoff;
@@ -200,7 +200,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
 
   num_bonds = 0;
   num_hbonds = 0;
-  btop_i = btop_j = 0;
+  btop_i = 0;
   renbr = (data->step-data->prev_steps) % control->reneighbor == 0;
 
   for( i = 0; i < system->N; ++i ) {

@@ -102,8 +102,8 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
 
   KOKKOS_INLINE_FUNCTION
   double bondorder(const int &i, const int &j, const int &k,
-	      const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
-	      const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const;
+        const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
+        const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const;
 
   KOKKOS_INLINE_FUNCTION
   double ters_gijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const;
@@ -113,21 +113,21 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
 
   KOKKOS_INLINE_FUNCTION
   void ters_dthb(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
-	      const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
-	      const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
-	      F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk) const;
+        const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
+        const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
+        F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk) const;
 
   KOKKOS_INLINE_FUNCTION
   void ters_dthbj(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
-	      const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
-	      const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
-	      F_FLOAT *fj, F_FLOAT *fk) const;
+        const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
+        const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
+        F_FLOAT *fj, F_FLOAT *fk) const;
 
   KOKKOS_INLINE_FUNCTION
   void ters_dthbk(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
-	      const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
-	      const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
-	      F_FLOAT *fk) const;
+        const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
+        const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
+        F_FLOAT *fk) const;
 
   KOKKOS_INLINE_FUNCTION
   double vec3_dot(const F_FLOAT x[3], const double y[3]) const {
@@ -153,12 +153,14 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   int sbmask(const int& j) const;
 
   struct params_ters{
+    KOKKOS_INLINE_FUNCTION
     params_ters(){powerm=0;lam3=0;h=0;powern=0;beta=0;lam2=0;bigb=0;bigr=0;bigd=0;
-	    lam1=0;biga=0;powern_del=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;c5=0;ca1=0;ca4=0;};
+      lam1=0;biga=0;powern_del=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;c5=0;ca1=0;ca4=0;};
+    KOKKOS_INLINE_FUNCTION
     params_ters(int i){powerm=0;lam3=0;h=0;powern=0;beta=0;lam2=0;bigb=0;bigr=0;bigd=0;
-	    lam1=0;biga=0;powern_del=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;c5=0;ca1=0;ca4=0;};
+      lam1=0;biga=0;powern_del=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;c5=0;ca1=0;ca4=0;};
     F_FLOAT powerm, lam3, h, powern, beta, lam2, bigb, bigr, bigd,
-	    lam1, biga, powern_del, cutsq, c1, c2, c3, c4, c5, ca1, ca4;
+      lam1, biga, powern_del, cutsq, c1, c2, c3, c4, c5, ca1, ca4;
   };
 
   template<int NEIGHFLAG>
@@ -170,11 +172,11 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void v_tally3(EV_FLOAT &ev, const int &i, const int &j, const int &k,
-		F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const;
+    F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const;
 
   KOKKOS_INLINE_FUNCTION
   void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
-		F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
+    F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
   void allocate();
   void setup_params();

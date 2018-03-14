@@ -3894,7 +3894,7 @@ void *PairReaxCKokkos<DeviceType>::extract(const char *str, int &dim)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
+void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
 {
   int i;
 

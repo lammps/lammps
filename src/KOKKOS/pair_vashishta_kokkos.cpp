@@ -477,7 +477,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
 
   F_FLOAT delr1[3],delr2[3],fj[3],fk[3];
   F_FLOAT evdwl = 0.0;
-  F_FLOAT fpair = 0.0;
 
   const int i = d_ilist[ii];
 
@@ -735,9 +734,9 @@ void PairVashishtaKokkos<DeviceType>::threebodyj(const Param& paramij, const Par
                        const F_FLOAT& rsq1, const F_FLOAT& rsq2, F_FLOAT *delr1, F_FLOAT *delr2, F_FLOAT *fj) const
 {
   F_FLOAT r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
-  F_FLOAT r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
-  F_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2,pcsinv,pcsinvsq,pcs;
-  F_FLOAT facang,facang12,csfacang,csfac1,csfac2;
+  F_FLOAT r2,rainv2,gsrainv2,expgsrainv2;
+  F_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1,pcsinv,pcsinvsq,pcs;
+  F_FLOAT facang,facang12,csfacang,csfac1;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -747,10 +746,8 @@ void PairVashishtaKokkos<DeviceType>::threebodyj(const Param& paramij, const Par
   expgsrainv1 = exp(gsrainv1);
 
   r2 = sqrt(rsq2);
-  rinvsq2 = 1.0/rsq2;
   rainv2 = 1.0/(r2 - paramik.r0);
   gsrainv2 = paramik.gamma * rainv2;
-  gsrainvsq2 = gsrainv2*rainv2/r2;
   expgsrainv2 = exp(gsrainv2);
 
   rinv12 = 1.0/(r1*r2);
@@ -765,7 +762,6 @@ void PairVashishtaKokkos<DeviceType>::threebodyj(const Param& paramij, const Par
 
   facrad = paramijk.bigb * facexp * pcs;
   frad1 = facrad*gsrainvsq1;
-  frad2 = facrad*gsrainvsq2;
   facang = paramijk.big2b * facexp * delcs/pcsinvsq;
   facang12 = rinv12*facang;
   csfacang = cs*facang;

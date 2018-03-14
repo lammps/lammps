@@ -124,7 +124,7 @@ void PairILP::compute(int eflag, int vflag)
 {
   #define ILP_d 15.0
   int i,j,ii,jj,ll,kk,a,b,c,iparam_ij;
-  double xtmp,ytmp,ztmp,tmp,delx,dely,delz,evdwl;
+  double xtmp,ytmp,ztmp,tmp,delx,dely,delz,evdwl,ecoul,factor_coul;
   double r,rsq,r3,r4,r6,aasimp,asimp,bsimp,csimp,dsimp,esimp;
   double ndotr_ij,ndotr_ji,rho2_ij,rho2_ji;
   double temp_b,temp_c,sumCfrho,dsimp_ij,dsimp_ji;
@@ -138,12 +138,14 @@ void PairILP::compute(int eflag, int vflag)
   PBCy = domain->boxhi[1] - domain->boxlo[1];
   PBCz = domain->boxhi[2] - domain->boxlo[2];
 
-  evdwl = 0.;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
+  double *q = atom->q;
+  double *special_coul = force->special_coul;
+  double qqrd2e = force->qqrd2e;
   int *type  = atom->type;
   int nlocal = atom->nlocal; // number of atoms in this thread
   int nghost = atom->nghost; // number of ghost atoms in this thread
@@ -317,7 +319,6 @@ void PairILP::compute(int eflag, int vflag)
     for (i = 0; i < natoms; i++) {
       itype = tt[i];
       if( itype==0 || map[itype]==-1 ) continue; // atoms not belonging to this pair_potential
-      if(comm->me==0 && intra_numneigh[i+1]<3) cout << "atom " << i+1 << " has " << intra_numneigh[i+1] << " intra-neighbors" << endl;
       if(intra_numneigh[i+1]<imin) imin=intra_numneigh[i+1];
       if(intra_numneigh[i+1]>imax) imax=intra_numneigh[i+1];
     }
@@ -337,7 +338,6 @@ void PairILP::compute(int eflag, int vflag)
 
 
   //BEGIN update normal vectors
-  // TODO: allocate with memory->create(bx,ntotal,2,"pair:ilp");
   if(ntotal>ntotal0){ //realloc if ntotal grows upon reneighboring
     if( (  nx=(double *)realloc(nx,ntotal*sizeof(double ))) == NULL ) { error->all(FLERR,"allocation error."); }
     if( (  ny=(double *)realloc(ny,ntotal*sizeof(double ))) == NULL ) { error->all(FLERR,"allocation error."); }
@@ -382,7 +382,7 @@ void PairILP::compute(int eflag, int vflag)
     if(a==-1 || b==-1 || c==-1) continue; //edge neighbors may not belong to this proc
 
     // the two bonds are a-b and a-c
-    bx[i][0]=x[a][0]-x[b][0]; bx[i][0] -= round(bx[i][0]/PBCx)*PBCx; //TODO TEST wrapping needed?
+    bx[i][0]=x[a][0]-x[b][0]; bx[i][0] -= round(bx[i][0]/PBCx)*PBCx; //PBC wrapping
     by[i][0]=x[a][1]-x[b][1]; by[i][0] -= round(by[i][0]/PBCy)*PBCy;
     bz[i][0]=x[a][2]-x[b][2]; bz[i][0] -= round(bz[i][0]/PBCz)*PBCz;
     bx[i][1]=x[a][0]-x[c][0]; bx[i][1] -= round(bx[i][1]/PBCx)*PBCx;
@@ -416,12 +416,13 @@ void PairILP::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
 
       j = jlist[jj];
+      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
       jtype = type[j];
 
-      delx = xtmp - x[j][0]; //delx -= round(delx/PBCx)*PBCx;
-      dely = ytmp - x[j][1]; //dely -= round(dely/PBCy)*PBCy;
-      delz = ztmp - x[j][2]; //delz -= round(delz/PBCz)*PBCz;
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
 
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq > cutsq[itype][jtype]) continue;
@@ -432,14 +433,14 @@ void PairILP::compute(int eflag, int vflag)
       r6 = r3*r3;
 
       iparam_ij = elem2param[map[itype]][map[jtype]];
-      Param& p = params[iparam_ij];
+      Param &p  = params[iparam_ij];
 
       aasimp= exp(-ILP_d*( (r/(p.sR*p.reff)) - 1.));
       bsimp= r4*(   TAP_A*r3 -  TAP_B*rsq +  TAP_C*r -  TAP_D ) + 1.; //Tapering function
       csimp= rsq*( dTAP_A*r3 - dTAP_B*rsq + dTAP_C*r - dTAP_D );      //Tapering derivative (already divided by r)
       dsimp= p.C6/r6;
 
-      esimp= csimp/(1.+aasimp)*dsimp;                                      //dispersive term 1
+      esimp = csimp/(1.+aasimp)*dsimp;                                      //dispersive term 1
       esimp+= bsimp*dsimp*( 1./pow(1.+aasimp,2)*aasimp*ILP_d/(p.sR*p.reff)  //dispersive term 2
                            -1./(1.+aasimp)*6./r
                           )/r;
@@ -579,6 +580,18 @@ void PairILP::compute(int eflag, int vflag)
       f[j][1] -= dely*esimp;
       f[j][2] -= delz*esimp;
 
+      //ELECTROSTATIC TERM
+      asimp= qqrd2e*factor_coul*q[i]*q[j]; // qqrd2e = 14.4 eV*Ang/e^2
+      dsimp= cbrt( r3 + p.oolambda3 );
+      esimp= -csimp*asimp/dsimp                        //electrostatic term 1 (already divided by r)
+             +bsimp*asimp*r/pow(dsimp,4);              //electrostatic term 2 (already divided by r)
+
+      f[i][0] += delx*esimp;
+      f[i][1] += dely*esimp;
+      f[i][2] += delz*esimp;
+      f[j][0] -= delx*esimp;
+      f[j][1] -= dely*esimp;
+      f[j][2] -= delz*esimp;
 
       if (eflag) {
         //DISPERSIVE TERM
@@ -590,16 +603,19 @@ void PairILP::compute(int eflag, int vflag)
 				  + exp(-rho2_ji/p.gamma2)
 				    )
 		);
+        //ELECTROSTATIC TERM
+        ecoul = bsimp*asimp/dsimp;
       }
       if (evflag){
-        ev_tally(i,j,nlocal,force->newton_pair,evdwl,0.,0.,delx,dely,delz);
+        ev_tally(i,j,nlocal,force->newton_pair,evdwl,ecoul,0.,delx,dely,delz); // f_pair not defined since force is applied also to intra-neighbors a,b,c
       }
 
+      if(comm->me == 0) printf("%.10g %d %d %.10g\n",r,i,j,ecoul);
 
     }//END LOOP ON jj
   }//END LOOP ON ii
 
-  if (vflag_fdotr) virial_fdotr_compute();      //NOTE: virial not implemented!
+  if (vflag_fdotr) virial_fdotr_compute();      //NOTE: virial not implemented: f_pair not defined
 
 }
 
@@ -846,8 +862,8 @@ void PairILP::read_file(char *filename)
     params[nparams].C        *= kcalmol2eV;
 
     // precompute some quantities
-    params[nparams].gamma2    = pow(params[nparams].gamma,2);
-    params[nparams].oolambda3 = 1./pow(params[nparams].lambda,3);
+    params[nparams].gamma2    = pow(params[nparams].gamma , 2.);
+    params[nparams].oolambda3 = pow(params[nparams].lambda,-3.);
 
     nparams++;
     //if(nparams >= pow(atom->ntypes,3)) break;

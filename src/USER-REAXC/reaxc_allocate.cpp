@@ -327,14 +327,14 @@ static void Reallocate_Neighbor_List( reax_list *far_nbrs, int n,
 static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
                                    MPI_Comm comm )
 {
-  int i, id, total_hbonds;
+  int i, total_hbonds;
 
   int mincap = system->mincap;
   double saferzone = system->saferzone;
 
   total_hbonds = 0;
   for( i = 0; i < system->n; ++i )
-    if( (id = system->my_atoms[i].Hindex) >= 0 ) {
+    if( (system->my_atoms[i].Hindex) >= 0 ) {
       total_hbonds += system->my_atoms[i].num_hbonds;
     }
   total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));

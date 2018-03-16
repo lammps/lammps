@@ -541,7 +541,8 @@ double MathSpecial::fm_exp(double x)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return exp2_x86(FM_DOUBLE_LOG2OFE * x);
 #endif
-#endif
+#else
     return ::exp(x);
+#endif
 }
 

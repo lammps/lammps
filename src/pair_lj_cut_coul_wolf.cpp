@@ -275,8 +275,7 @@ void PairLJCutCoulWolf::init_style()
 
   // request regular or rRESPA neighbor list
 
-  int irequest;
-  irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

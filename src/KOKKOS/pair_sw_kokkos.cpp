@@ -472,7 +472,6 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
 
   F_FLOAT delr1[3],delr2[3],fj[3],fk[3];
   F_FLOAT evdwl = 0.0;
-  F_FLOAT fpair = 0.0;
 
   const int i = d_ilist[ii];
 

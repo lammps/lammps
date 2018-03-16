@@ -400,7 +400,7 @@ void PairBuck6dCoulGaussDSF::write_restart(FILE *fp)
         fwrite(&buck6d4[i][j],sizeof(double),1,fp);
         fwrite(&alpha_ij[i][j],sizeof(double),1,fp);
         fwrite(&cut_lj[i][j],sizeof(double),1,fp);
-	    }
+            }
     }
 }
 

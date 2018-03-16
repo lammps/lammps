@@ -113,7 +113,7 @@ void PairTable::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         tb = &tables[tabindex[itype][jtype]];
         if (rsq < tb->innersq) {
-          sprintf(estr,"Pair distance < table inner cutoff: " 
+          sprintf(estr,"Pair distance < table inner cutoff: "
                   "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
           error->one(FLERR,estr);
         }
@@ -121,7 +121,7 @@ void PairTable::compute(int eflag, int vflag)
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: " 
+            sprintf(estr,"Pair distance > table outer cutoff: "
                     "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
             error->one(FLERR,estr);
           }
@@ -129,7 +129,7 @@ void PairTable::compute(int eflag, int vflag)
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: " 
+            sprintf(estr,"Pair distance > table outer cutoff: "
                     "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
             error->one(FLERR,estr);
           }
@@ -139,7 +139,7 @@ void PairTable::compute(int eflag, int vflag)
         } else if (tabstyle == SPLINE) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: " 
+            sprintf(estr,"Pair distance > table outer cutoff: "
                     "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
             error->one(FLERR,estr);
           }

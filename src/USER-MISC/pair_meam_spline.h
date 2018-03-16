@@ -139,7 +139,7 @@ protected:
         double a = (Xs[khi] - x)/h;
         double b = 1.0 - a; // = (x - X[klo])/h
         return a * Y[klo] + b * Y[khi] +
-	  ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi])*(h*h)/6.0;
+          ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi])*(h*h)/6.0;
 #else
         // For a spline with regular grid, we directly calculate the interval X is in.
         int klo = (int)(x / h);
@@ -147,7 +147,7 @@ protected:
         double a = Xs[khi] - x;
         double b = h - a;
         return Y[khi] - a * Ydelta[klo] +
-	  ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
+          ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
 #endif
       }
     }
@@ -179,11 +179,11 @@ protected:
         double a = (Xs[khi] - x)/h;
         double b = 1.0 - a; // = (x - X[klo])/h
         deriv = (Y[khi] - Y[klo]) / h +
-	  ((3.0*b*b - 1.0) * Y2[khi] -
-	   (3.0*a*a - 1.0) * Y2[klo]) * h / 6.0;
+          ((3.0*b*b - 1.0) * Y2[khi] -
+           (3.0*a*a - 1.0) * Y2[klo]) * h / 6.0;
         return a * Y[klo] + b * Y[khi] +
-	  ((a*a*a - a) * Y2[klo] +
-	   (b*b*b - b) * Y2[khi]) * (h*h) / 6.0;
+          ((a*a*a - a) * Y2[klo] +
+           (b*b*b - b) * Y2[khi]) * (h*h) / 6.0;
 #else
         // For a spline with regular grid, we directly calculate the interval X is in.
         int klo = (int)(x / h);
@@ -191,9 +191,9 @@ protected:
         double a = Xs[khi] - x;
         double b = h - a;
         deriv = Ydelta[klo] + ((3.0*b*b - hsq) * Y2[khi]
-			       - (3.0*a*a - hsq) * Y2[klo]);
+                               - (3.0*a*a - hsq) * Y2[klo]);
         return Y[khi] - a * Ydelta[klo] +
-	  ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
+          ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
 #endif
       }
     }

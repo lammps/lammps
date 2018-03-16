@@ -33,7 +33,7 @@ enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,FX,FY,FZ,IX,IY,IZ,
 /* ---------------------------------------------------------------------- */
 
 ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), 
+  Compute(lmp, narg, arg),
   rstyle(NULL), idrigid(NULL), fixrigid(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute rigid/local command");
@@ -194,11 +194,11 @@ int ComputeRigidLocal::compute_rigid(int flag)
           ptr[n] = body->xcm[2];
           break;
         case XU:
-          ptr[n] = body->xcm[0] + 
+          ptr[n] = body->xcm[0] +
             ((body->image & IMGMASK) - IMGMAX) * xprd;
           break;
         case YU:
-          ptr[n] = body->xcm[1] + 
+          ptr[n] = body->xcm[1] +
             ((body->image >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
           break;
         case ZU:

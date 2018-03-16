@@ -46,7 +46,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   global_freq = nevery;
   comm_reverse = 3;
-  
+
   // core temperature
   tstr_core = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {

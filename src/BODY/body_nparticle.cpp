@@ -196,7 +196,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
 ------------------------------------------------------------------------- */
 
 double BodyNparticle::radius_body(int ninteger, int ndouble,
-				  int *ifile, double *dfile)
+                                  int *ifile, double *dfile)
 {
   int nsub = ifile[0];
   if (nsub < 1)
@@ -212,8 +212,8 @@ double BodyNparticle::radius_body(int ninteger, int ndouble,
   double onerad;
   double maxrad = 0.0;
   double delta[3];
-  
-  int offset = 6;          
+
+  int offset = 6;
   for (int i = 0; i < nsub; i++) {
     delta[0] = dfile[offset];
     delta[1] = dfile[offset+1];

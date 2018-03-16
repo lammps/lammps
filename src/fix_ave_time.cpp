@@ -43,9 +43,9 @@ enum{SCALAR,VECTOR};
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
   offcol(NULL), varlen(NULL), ids(NULL),
-  fp(NULL), offlist(NULL), format(NULL), format_user(NULL), 
+  fp(NULL), offlist(NULL), format(NULL), format_user(NULL),
   vector(NULL), vector_total(NULL), vector_list(NULL),
   column(NULL), array(NULL), array_total(NULL), array_list(NULL)
 {
@@ -115,7 +115,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       argindex[i] = atoi(ptr+1);
       *ptr = '\0';
     } else argindex[i] = 0;
-    
+
     n = strlen(suffix) + 1;
     ids[i] = new char[n];
     strcpy(ids[i],suffix);
@@ -809,7 +809,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     } else if (which[j] == VARIABLE) {
       double *varvec;
       int nvec = input->variable->compute_vector(m,&varvec);
-      if (nvec != nrows) 
+      if (nvec != nrows)
         error->all(FLERR,"Fix ave/time vector-style variable changed length");
       for (i = 0; i < nrows; i++)
         column[i] = varvec[i];
@@ -938,7 +938,7 @@ int FixAveTime::column_length(int dynamic)
         else lengthone = modify->fix[ifix]->size_array_rows;
       } else if (which[i] == VARIABLE) {
         // variables are always varlen = 1, so dynamic
-      } 
+      }
       if (length == 0) length = lengthone;
       else if (lengthone != length)
         error->all(FLERR,"Fix ave/time columns are inconsistent lengths");

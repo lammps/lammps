@@ -44,7 +44,7 @@ enum{FIRST,MULTI};
 /* ---------------------------------------------------------------------- */
 
 FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ids(NULL), fp(NULL), vector(NULL), 
+  Fix(lmp, narg, arg), ids(NULL), fp(NULL), vector(NULL),
   vector_total(NULL), vector_list(NULL), compute_saed(NULL), filename(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix saed/vtk command");

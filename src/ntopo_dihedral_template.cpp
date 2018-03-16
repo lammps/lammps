@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NTopoDihedralTemplate::NTopoDihedralTemplate(LAMMPS *lmp) : 
+NTopoDihedralTemplate::NTopoDihedralTemplate(LAMMPS *lmp) :
   NTopo(lmp)
 {
   allocate_dihedral();

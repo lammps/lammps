@@ -743,8 +743,8 @@ int Comm::read_lines_from_file(FILE *fp, int nlines, int maxline, char *buf)
     m = 0;
     for (int i = 0; i < nlines; i++) {
       if (!fgets(&buf[m],maxline,fp)) {
-	m = 0;
-	break;
+        m = 0;
+        break;
       }
       m += strlen(&buf[m]);
     }
@@ -779,8 +779,8 @@ int Comm::read_lines_from_file_universe(FILE *fp, int nlines, int maxline,
     m = 0;
     for (int i = 0; i < nlines; i++) {
       if (!fgets(&buf[m],maxline,fp)) {
-	m = 0;
-	break;
+        m = 0;
+        break;
       }
       m += strlen(&buf[m]);
     }

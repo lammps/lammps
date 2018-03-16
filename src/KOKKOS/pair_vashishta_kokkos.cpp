@@ -128,7 +128,7 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (d_numneigh_short_2body.dimension_0()!=ignum) {
     d_numneigh_short_2body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_2body",ignum);
   }
-  
+
   if ((d_neighbors_short_3body.dimension_1() != max_neighs) ||
      (d_neighbors_short_3body.dimension_0() != ignum)) {
     d_neighbors_short_3body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_3body",ignum,max_neighs);
@@ -212,7 +212,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeShortNei
       j &= NEIGHMASK;
       const int jtype = d_map[type[j]];
       const int ijparam = d_elem2param(itype,jtype,jtype);
-      
+
       const X_FLOAT delx = xtmp - x(j,0);
       const X_FLOAT dely = ytmp - x(j,1);
       const X_FLOAT delz = ztmp - x(j,2);
@@ -283,7 +283,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     const int ijparam = d_elem2param(itype,jtype,jtype);
-    
+
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
     fxtmpi += delx*fpair;
@@ -310,7 +310,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-    
+
     F_FLOAT fxtmpj = 0.0;
     F_FLOAT fytmpj = 0.0;
     F_FLOAT fztmpj = 0.0;

@@ -219,7 +219,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
 
   // create instance of Irregular class
   irregular = new Irregular(lmp);
-  
+
   // yet, we have not assigned a socket
   socketflag = 0;
 }
@@ -252,7 +252,7 @@ void FixIPI::init()
 {
   //only opens socket on master process
   if (master) {
-	if (!socketflag) open_socket(ipisock, inet, port, host, error);
+        if (!socketflag) open_socket(ipisock, inet, port, host, error);
   } else ipisock=0;
   //! should check for success in socket opening -- but the current open_socket routine dies brutally if unsuccessful
   // tell lammps we have assigned a socket

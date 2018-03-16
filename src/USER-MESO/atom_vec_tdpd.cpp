@@ -46,9 +46,9 @@ AtomVecTDPD::AtomVecTDPD(LAMMPS *lmp) : AtomVec(lmp)
   size_forward = 3 + cc_species + 3; //vest[3]
   size_reverse = 3 + cc_species;
   size_border = 6 + cc_species + 3;  //vest[3]
-  size_velocity = 3;  
+  size_velocity = 3;
   // for data_atom, we read id + type + xyz[3] + cc[i] where i=1,cc_species
-  size_data_atom = 5 + cc_species; 
+  size_data_atom = 5 + cc_species;
   size_data_vel = 4;
   xcol_data = 3;
 
@@ -73,7 +73,7 @@ void AtomVecTDPD::process_args(int narg, char **arg)
   size_forward = 3 + cc_species + 3;
   size_reverse = 3 + cc_species;
   size_border = 6 + cc_species + 3;
-  size_data_atom = 5 + cc_species; 
+  size_data_atom = 5 + cc_species;
 }
 
 /* ----------------------------------------------------------------------
@@ -171,7 +171,7 @@ int AtomVecTDPD::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-     
+
       for(k = 0; k < cc_species; k++)
         buf[m++] = cc[j][k];
 
@@ -194,7 +194,7 @@ int AtomVecTDPD::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-       
+
       for(k = 0; k < cc_species; k++)
         buf[m++] = cc[j][k];
 
@@ -224,7 +224,7 @@ int AtomVecTDPD::pack_comm_vel(int n, int *list, double *buf,
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
-      
+
       for(k = 0; k < cc_species; k++)
         buf[m++] = cc[j][k];
 
@@ -328,7 +328,7 @@ void AtomVecTDPD::unpack_comm_vel(int n, int first, double *buf)
     v[i][2] = buf[m++];
     for(int k = 0; k < cc_species; k++)
         cc[i][k] = buf[m++];
-    
+
     vest[i][0] = buf[m++];
     vest[i][1] = buf[m++];
     vest[i][2] = buf[m++];
@@ -415,7 +415,7 @@ int AtomVecTDPD::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(mask[j]).d;
       for(int k = 0; k < cc_species; k++)
         buf[m++] = cc[j][k];
-  
+
       buf[m++] = vest[j][0];
       buf[m++] = vest[j][1];
       buf[m++] = vest[j][2];

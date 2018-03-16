@@ -32,9 +32,9 @@
 #include "reaxc_types.h"
 
 void vdW_Coulomb_Energy_OMP( reax_system*, control_params*, simulation_data*,
-			    storage*, reax_list**, output_controls* );
+                            storage*, reax_list**, output_controls* );
 
 void Tabulated_vdW_Coulomb_Energy_OMP( reax_system*, control_params*,
-				       simulation_data*, storage*,
-				       reax_list**, output_controls* );
+                                       simulation_data*, storage*,
+                                       reax_list**, output_controls* );
 #endif

@@ -37,63 +37,63 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDRho::ComputeSMDRho(LAMMPS *lmp, int narg, char **arg) :
-		Compute(lmp, narg, arg) {
-	if (narg != 3)
-		error->all(FLERR, "Illegal compute smd/rho command");
-	if (atom->vfrac_flag != 1)
-		error->all(FLERR, "compute smd/rho command requires atom_style with volume (e.g. smd)");
+                Compute(lmp, narg, arg) {
+        if (narg != 3)
+                error->all(FLERR, "Illegal compute smd/rho command");
+        if (atom->vfrac_flag != 1)
+                error->all(FLERR, "compute smd/rho command requires atom_style with volume (e.g. smd)");
 
-	peratom_flag = 1;
-	size_peratom_cols = 0;
+        peratom_flag = 1;
+        size_peratom_cols = 0;
 
-	nmax = 0;
-	rhoVector = NULL;
+        nmax = 0;
+        rhoVector = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDRho::~ComputeSMDRho() {
-	memory->sfree(rhoVector);
+        memory->sfree(rhoVector);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeSMDRho::init() {
 
-	int count = 0;
-	for (int i = 0; i < modify->ncompute; i++)
-		if (strcmp(modify->compute[i]->style, "smd/rho") == 0)
-			count++;
-	if (count > 1 && comm->me == 0)
-		error->warning(FLERR, "More than one compute smd/rho");
+        int count = 0;
+        for (int i = 0; i < modify->ncompute; i++)
+                if (strcmp(modify->compute[i]->style, "smd/rho") == 0)
+                        count++;
+        if (count > 1 && comm->me == 0)
+                error->warning(FLERR, "More than one compute smd/rho");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeSMDRho::compute_peratom() {
-	invoked_peratom = update->ntimestep;
+        invoked_peratom = update->ntimestep;
 
-	// grow rhoVector array if necessary
+        // grow rhoVector array if necessary
 
-	if (atom->nmax > nmax) {
-		memory->sfree(rhoVector);
-		nmax = atom->nmax;
-		rhoVector = (double *) memory->smalloc(nmax * sizeof(double), "atom:rhoVector");
-		vector_atom = rhoVector;
-	}
+        if (atom->nmax > nmax) {
+                memory->sfree(rhoVector);
+                nmax = atom->nmax;
+                rhoVector = (double *) memory->smalloc(nmax * sizeof(double), "atom:rhoVector");
+                vector_atom = rhoVector;
+        }
 
-	double *vfrac = atom->vfrac;
-	double *rmass = atom->rmass;
-	int *mask = atom->mask;
-	int nlocal = atom->nlocal;
+        double *vfrac = atom->vfrac;
+        double *rmass = atom->rmass;
+        int *mask = atom->mask;
+        int nlocal = atom->nlocal;
 
-	for (int i = 0; i < nlocal; i++) {
-		if (mask[i] & groupbit) {
-			rhoVector[i] = rmass[i] / vfrac[i];
-		} else {
-			rhoVector[i] = 0.0;
-		}
-	}
+        for (int i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit) {
+                        rhoVector[i] = rmass[i] / vfrac[i];
+                } else {
+                        rhoVector[i] = 0.0;
+                }
+        }
 
 }
 
@@ -102,6 +102,6 @@ void ComputeSMDRho::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDRho::memory_usage() {
-	double bytes = nmax * sizeof(double);
-	return bytes;
+        double bytes = nmax * sizeof(double);
+        return bytes;
 }

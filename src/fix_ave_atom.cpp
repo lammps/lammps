@@ -36,7 +36,7 @@ enum{X,V,F,COMPUTE,FIX,VARIABLE};
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
   ids(NULL), array(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");

@@ -125,7 +125,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       size_one+=1;
     } else if (strcmp(arg[iarg], "charge")==0) {
       if (!atom->q_flag)
-	error->all(FLERR, "Requesting non-allocated quantity q in dump_h5md");
+        error->all(FLERR, "Requesting non-allocated quantity q in dump_h5md");
       every_charge = default_every;
       iarg+=1;
       n_parsed = element_args(narg-iarg, &arg[iarg], &every_charge);
@@ -137,10 +137,10 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
       if (box_is_set||create_group_is_set)
-	error->all(FLERR, "Cannot set file_from in dump h5md after box or create_group");
+        error->all(FLERR, "Cannot set file_from in dump h5md after box or create_group");
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
-	if (strcmp(arg[iarg+1],output->dump[idump]->id) == 0) break;
+        if (strcmp(arg[iarg+1],output->dump[idump]->id) == 0) break;
       if (idump == output->ndump) error->all(FLERR,"Cound not find dump_modify ID");
       datafile_from_dump = idump;
       do_box=false;
@@ -152,11 +152,11 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       }
       box_is_set = true;
       if (strcmp(arg[iarg+1], "yes")==0)
-	do_box=true;
+        do_box=true;
       else if (strcmp(arg[iarg+1], "no")==0)
-	do_box=false;
+        do_box=false;
       else
-	error->all(FLERR, "Illegal dump h5md command");
+        error->all(FLERR, "Illegal dump h5md command");
       iarg+=2;
     } else  if (strcmp(arg[iarg], "create_group")==0) {
       if (iarg+1>=narg) {
@@ -164,22 +164,22 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       }
       create_group_is_set = true;
       if (strcmp(arg[iarg+1], "yes")==0)
-	create_group=true;
+        create_group=true;
       else if (strcmp(arg[iarg+1], "no")==0) {
-	create_group=false;
+        create_group=false;
       }
       else
-	error->all(FLERR, "Illegal dump h5md command");
+        error->all(FLERR, "Illegal dump h5md command");
       iarg+=2;
     } else if (strcmp(arg[iarg], "author")==0) {
       if (iarg+1>=narg) {
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
       if (author_name==NULL) {
-	author_name = new char[strlen(arg[iarg])+1];
-	strcpy(author_name, arg[iarg+1]);
+        author_name = new char[strlen(arg[iarg])+1];
+        strcpy(author_name, arg[iarg+1]);
       } else {
-	error->all(FLERR, "Illegal dump h5md command: author argument repeated");
+        error->all(FLERR, "Illegal dump h5md command: author argument repeated");
       }
       iarg+=2;
     } else {
@@ -218,7 +218,7 @@ DumpH5MD::~DumpH5MD()
     if (me==0) {
       h5md_close_element(particles_data.position);
       if (do_box)
-	h5md_close_element(particles_data.box_edges);
+        h5md_close_element(particles_data.box_edges);
     }
   }
   if (every_image>=0) {
@@ -272,36 +272,36 @@ void DumpH5MD::openfile()
   if (me == 0) {
     if (datafile_from_dump<0) {
       if (author_name==NULL) {
-	datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
+        datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
       } else {
-	datafile = h5md_create_file(filename, author_name, NULL, "lammps", LAMMPS_VERSION);
+        datafile = h5md_create_file(filename, author_name, NULL, "lammps", LAMMPS_VERSION);
       }
       group_name_length = strlen(group->names[igroup])+1;
       group_name = new char[group_name_length];
       strcpy(group_name, group->names[igroup]);
       if (create_group) {
-	particles_data = h5md_create_particles_group(datafile, group_name);
+        particles_data = h5md_create_particles_group(datafile, group_name);
       } else {
-	particles_data.group = h5md_open_particles_group(datafile.particles, group_name);
+        particles_data.group = h5md_open_particles_group(datafile.particles, group_name);
       }
       delete [] group_name;
       dims[0] = natoms;
       dims[1] = domain->dimension;
       if (every_position>0) {
-	particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
-	h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
+        particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
       }
       if (every_image>0)
-	particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
+        particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
       if (every_velocity>0)
-	particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
       if (every_force>0)
-	particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
       if (every_species>0)
-	particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
+        particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
       if (every_charge>0) {
-	particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
-	h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
+        particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
+        h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
       }
     } else {
       DumpH5MD* other_dump;
@@ -311,27 +311,27 @@ void DumpH5MD::openfile()
       group_name = new char[group_name_length];
       strcpy(group_name, group->names[igroup]);
       if (create_group) {
-	particles_data = h5md_create_particles_group(datafile, group_name);
+        particles_data = h5md_create_particles_group(datafile, group_name);
       } else {
-	particles_data = other_dump->particles_data;
+        particles_data = other_dump->particles_data;
       }
       dims[0] = natoms;
       dims[1] = domain->dimension;
       if (every_position>0) {
-	particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
-	h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
+        particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
       }
       if (every_image>0)
-	particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
+        particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
       if (every_velocity>0)
-	particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
       if (every_force>0)
-	particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
       if (every_species>0)
-	particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
+        particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
       if (every_charge>0) {
-	particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
-	h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
+        particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
+        h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
       }
 
     }
@@ -376,38 +376,38 @@ void DumpH5MD::pack(tagint *ids)
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (every_position>=0) {
-	int ix = (image[i] & IMGMASK) - IMGMAX;
-	int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-	int iz = (image[i] >> IMG2BITS) - IMGMAX;
-	if (unwrap_flag == 1) {
-	  buf[m++] = (x[i][0] + ix * xprd);
-	  buf[m++] = (x[i][1] + iy * yprd);
-	  if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
-	} else {
-	  buf[m++] = x[i][0];
-	  buf[m++] = x[i][1];
-	  if (dim>2) buf[m++] = x[i][2];
-	}
-	if (every_image>=0) {
-	  buf[m++] = ix;
-	  buf[m++] = iy;
-	  if (dim>2) buf[m++] = iz;
-	}
+        int ix = (image[i] & IMGMASK) - IMGMAX;
+        int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        int iz = (image[i] >> IMG2BITS) - IMGMAX;
+        if (unwrap_flag == 1) {
+          buf[m++] = (x[i][0] + ix * xprd);
+          buf[m++] = (x[i][1] + iy * yprd);
+          if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
+        } else {
+          buf[m++] = x[i][0];
+          buf[m++] = x[i][1];
+          if (dim>2) buf[m++] = x[i][2];
+        }
+        if (every_image>=0) {
+          buf[m++] = ix;
+          buf[m++] = iy;
+          if (dim>2) buf[m++] = iz;
+        }
       }
       if (every_velocity>=0) {
-	buf[m++] = v[i][0];
-	buf[m++] = v[i][1];
-	if (dim>2) buf[m++] = v[i][2];
+        buf[m++] = v[i][0];
+        buf[m++] = v[i][1];
+        if (dim>2) buf[m++] = v[i][2];
       }
       if (every_force>=0) {
-	buf[m++] = f[i][0];
-	buf[m++] = f[i][1];
-	if (dim>2) buf[m++] = f[i][2];
+        buf[m++] = f[i][0];
+        buf[m++] = f[i][1];
+        if (dim>2) buf[m++] = f[i][2];
       }
       if (every_species>=0)
-	buf[m++] = species[i];
+        buf[m++] = species[i];
       if (every_charge>=0)
-	buf[m++] = q[i];
+        buf[m++] = q[i];
       ids[n++] = tag[i];
     }
 }
@@ -429,20 +429,20 @@ void DumpH5MD::write_data(int n, double *mybuf)
   for (int i = 0; i < n; i++) {
     if (every_position>=0) {
       for (int j=0; j<dim; j++) {
-	dump_position[k++] = mybuf[m++];
+        dump_position[k++] = mybuf[m++];
       }
       if (every_image>=0)
-	for (int j=0; j<dim; j++) {
-	  dump_image[k_image++] = mybuf[m++];
-	}
+        for (int j=0; j<dim; j++) {
+          dump_image[k_image++] = mybuf[m++];
+        }
     }
     if (every_velocity>=0)
       for (int j=0; j<dim; j++) {
-	dump_velocity[k_velocity++] = mybuf[m++];
+        dump_velocity[k_velocity++] = mybuf[m++];
       }
     if (every_force>=0)
       for (int j=0; j<dim; j++) {
-	dump_force[k_force++] = mybuf[m++];
+        dump_force[k_force++] = mybuf[m++];
       }
     if (every_species>=0)
       dump_species[k_species++] = mybuf[m++];
@@ -494,7 +494,7 @@ void DumpH5MD::write_frame()
       h5md_append(particles_data.position, dump_position, local_step, local_time);
       h5md_append(particles_data.box_edges, edges, local_step, local_time);
       if (every_image>0)
-	h5md_append(particles_data.image, dump_image, local_step, local_time);
+        h5md_append(particles_data.image, dump_image, local_step, local_time);
     }
   } else {
     if (do_box) h5md_append(particles_data.box_edges, edges, local_step, local_time);

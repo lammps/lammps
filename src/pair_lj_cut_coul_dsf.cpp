@@ -360,7 +360,7 @@ void PairLJCutCoulDSF::write_restart(FILE *fp)
         fwrite(&epsilon[i][j],sizeof(double),1,fp);
         fwrite(&sigma[i][j],sizeof(double),1,fp);
         fwrite(&cut_lj[i][j],sizeof(double),1,fp);
-	    }
+            }
     }
 }
 

@@ -152,7 +152,7 @@ void FixRxKokkos<DeviceType>::init()
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
- 
+
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
@@ -1493,10 +1493,10 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   // ...
 
   // Local references to the atomKK objects.
-  //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   //typename ArrayTypes<DeviceType>::t_float_2d  d_dvector  = atomKK->k_dvector.view<DeviceType>();
   //typename ArrayTypes<DeviceType>::t_int_1d    d_mask     = atomKK->k_mask.view<DeviceType>();
-  this->d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  this->d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   this->d_dvector  = atomKK->k_dvector.view<DeviceType>();
   this->d_mask     = atomKK->k_mask.view<DeviceType>();
 
@@ -1920,7 +1920,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
   double i_sumWeights    = 0.0;
 
   const int i = d_ilist(ii);
- 
+
   const double xtmp = d_x(i,0);
   const double ytmp = d_x(i,1);
   const double ztmp = d_x(i,2);
@@ -2000,10 +2000,10 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 {
   //typename ArrayTypes<DeviceType>::t_x_array_randomread d_x        = atomKK->k_x.view<DeviceType>();
   //typename ArrayTypes<DeviceType>::t_int_1d_randomread  d_type     = atomKK->k_type.view<DeviceType>();
-  //typename ArrayTypes<DeviceType>::t_efloat_1d          d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  //typename ArrayTypes<DeviceType>::t_efloat_1d          d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   d_x        = atomKK->k_x.view<DeviceType>();
   d_type     = atomKK->k_type.view<DeviceType>();
-  d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
 
   atomKK->sync(execution_space, X_MASK | TYPE_MASK | DPDTHETA_MASK );
 
@@ -2096,7 +2096,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
           double i_sumWeights    = 0.0;
 
           const int i = d_ilist(ii);
- 
+
           const double xtmp = d_x(i,0);
           const double ytmp = d_x(i,1);
           const double ztmp = d_x(i,2);

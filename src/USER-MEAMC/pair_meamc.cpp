@@ -121,7 +121,7 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   n = 0;
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
-  
+
   meam_inst->meam_dens_setup(atom->nmax, nall, n);
 
   double **x = atom->x;
@@ -567,7 +567,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     // map lattce_meam value to an integer
 
-    if (which == 4) {	
+    if (which == 4) {
       if (strcmp(params[nparams-1],"fcc") == 0) value = FCC;
       else if (strcmp(params[nparams-1],"bcc") == 0) value = BCC;
       else if (strcmp(params[nparams-1],"hcp") == 0) value = HCP;

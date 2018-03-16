@@ -14,8 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
    Modification for bcc provided by: Tegar Wicaksono (UBC)
-   For a tutorial, please see "Order parameters of crystals in LAMMPS" 
-   			(https://dx.doi.org/10.6084/m9.figshare.1488628.v1
+   For a tutorial, please see "Order parameters of crystals in LAMMPS"
+            (https://dx.doi.org/10.6084/m9.figshare.1488628.v1
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -57,7 +57,7 @@ static const char cite_fix_orient_bcc[] =
 /* ---------------------------------------------------------------------- */
 
 FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), 
+  Fix(lmp, narg, arg),
   xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL), sort(NULL), list(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_bcc);

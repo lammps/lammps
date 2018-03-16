@@ -607,7 +607,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   if (dimension == 2) {
     for (int i = 0; i < nfield; i++)
-      if (fieldtype[i] == Z || fieldtype[i] == VZ || 
+      if (fieldtype[i] == Z || fieldtype[i] == VZ ||
           fieldtype[i] == IZ || fieldtype[i] == FZ)
         error->all(FLERR,"Illegal read_dump command");
   }
@@ -923,7 +923,7 @@ void ReadDump::process_atoms(int n)
   }
 
   // init per-atom fix/compute/variable values for created atoms
-  
+
   atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 }
 

@@ -147,7 +147,7 @@ int AtomVecKokkos::pack_comm_kokkos(const int &n,
     }
   }
 
-	return n*size_forward;
+        return n*size_forward;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,7 +261,7 @@ int AtomVecKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, c
       }
     }
   }
-	return n*3;
+        return n*3;
 }
 
 /* ---------------------------------------------------------------------- */

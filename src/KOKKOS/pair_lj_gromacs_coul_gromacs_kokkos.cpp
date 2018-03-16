@@ -206,8 +206,8 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
     const F_FLOAT r = sqrt(rsq);
     const F_FLOAT tlj = r - cut_lj_inner;
     const F_FLOAT fswitch = r*tlj*tlj*
-	    ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) +
-	     (STACKPARAMS?m_params[itype][jtype].ljsw2:params(itype,jtype).ljsw2)*tlj);
+            ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) +
+             (STACKPARAMS?m_params[itype][jtype].ljsw2:params(itype,jtype).ljsw2)*tlj);
     forcelj += fswitch;
   }
   return forcelj*r2inv;
@@ -234,8 +234,8 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
     const F_FLOAT r = sqrt(rsq);
     const F_FLOAT tlj = r - cut_lj_inner;
     const F_FLOAT eswitch = tlj*tlj*tlj *
-	    ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) +
-	     (STACKPARAMS?m_params[itype][jtype].ljsw4:params(itype,jtype).ljsw4)*tlj);
+            ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) +
+             (STACKPARAMS?m_params[itype][jtype].ljsw4:params(itype,jtype).ljsw4)*tlj);
     englj += eswitch;
   }
   return englj;

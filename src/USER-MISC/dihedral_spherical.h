@@ -31,7 +31,7 @@ class DihedralSpherical : public Dihedral {
   virtual ~DihedralSpherical();
   virtual void compute(int, int);
   double CalcGeneralizedForces(int, double, double, double,
-			       double*, double*, double*);
+                               double*, double*, double*);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);

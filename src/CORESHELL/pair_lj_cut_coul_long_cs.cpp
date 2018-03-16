@@ -458,7 +458,7 @@ void PairLJCutCoulLongCS::compute_outer(int eflag, int vflag)
             grij = g_ewald * r;
             expm2 = exp(-grij*grij);
             t = 1.0 / (1.0 + EWALD_P*grij);
-	        u = 1. - t;
+                u = 1. - t;
             erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
             //erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;

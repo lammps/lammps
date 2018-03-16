@@ -305,7 +305,7 @@ void Info::command(int narg, char **arg)
             ut.sysname, ut.release, ut.machine);
 #endif
   }
-  
+
   if (flags & MEMORY) {
 
     fprintf(out,"\nMemory allocation information (MPI rank 0):\n\n");

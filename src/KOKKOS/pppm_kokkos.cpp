@@ -162,7 +162,7 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
   if (peratom_allocate_flag) deallocate_peratom();
   //memory->destroy(part2grid);
   //memory->destroy(acons);
-  
+
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
   eatom = NULL;

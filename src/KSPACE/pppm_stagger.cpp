@@ -52,7 +52,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMStagger::PPPMStagger(LAMMPS *lmp, int narg, char **arg) :
-  PPPM(lmp, narg, arg), 
+  PPPM(lmp, narg, arg),
   gf_b2(NULL)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/stagger command");

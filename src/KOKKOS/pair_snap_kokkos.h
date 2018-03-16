@@ -44,7 +44,7 @@ public:
 
   PairSNAPKokkos(class LAMMPS *);
   ~PairSNAPKokkos();
-  
+
   void coeff(int, char**);
   void init_style();
   double init_one(int, int);

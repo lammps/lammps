@@ -28,10 +28,10 @@ template<class DeviceType>
 inline
 SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
          int twojmax_in, int diagonalstyle_in, int use_shared_arrays_in,
-         double rmin0_in, int switch_flag_in, int bzero_flag_in) 
+         double rmin0_in, int switch_flag_in, int bzero_flag_in)
 {
   wself = 1.0;
-  
+
   use_shared_arrays = use_shared_arrays_in;
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
@@ -46,7 +46,7 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
   //create_twojmax_arrays();
 
   nmax = 0;
-  
+
   build_indexlist();
 
   int jdim = twojmax + 1;
@@ -1000,7 +1000,7 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
   dsfac *= wj;
 
   for (int j = 0; j <= twojmax; j++)
-    for (int mb = 0; mb <= j; mb++) 
+    for (int mb = 0; mb <= j; mb++)
       for (int ma = 0; ma <= j; ma++) {
         duarray_r(j,mb,ma,0) = dsfac * uarray_r(j,ma,mb) * ux +
                                   sfac * duarray_r(j,mb,ma,0);

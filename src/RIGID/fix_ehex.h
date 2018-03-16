@@ -52,7 +52,7 @@ class FixEHEX : public Fix {
   double scale;
   char *idregion;
   int me;
- 
+
   double **x;              // coordinates
   double **f;              // forces
   double **v;              // velocities
@@ -64,7 +64,7 @@ class FixEHEX : public Fix {
   int constraints;          // constraints (0/1)
   int cluster;              // rescaling entire clusters (0/1)
   int hex;                  // HEX mode (0/1)
-  bool *scalingmask;       // scalingmask[i] determines whether 
+  bool *scalingmask;       // scalingmask[i] determines whether
                             // the velocity of atom i is to be rescaled
 };
 
@@ -75,7 +75,7 @@ class FixEHEX : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal fix ehex command: wrong number of parameters 
+E: Illegal fix ehex command: wrong number of parameters
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a

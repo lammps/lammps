@@ -58,7 +58,7 @@ class FixGCMC : public Fix {
   void write_restart(FILE *);
   void restart(char *);
   void grow_molecule_arrays(int);
-  
+
  private:
   int molecule_group,molecule_group_bit;
   int molecule_group_inversebit;
@@ -118,9 +118,9 @@ class FixGCMC : public Fix {
   double *molq;
   imageint *molimage;
   imageint imagezero;
-  double overlap_cutoffsq; // square distance cutoff for overlap 
+  double overlap_cutoffsq; // square distance cutoff for overlap
   int overlap_flag;
-  
+
   double energy_intra;
 
   class Pair *pair;
@@ -219,12 +219,12 @@ W: Fix gcmc using full_energy option
 Fix gcmc has automatically turned on the full_energy option since it
 is required for systems like the one specified by the user. User input
 included one or more of the following: kspace, a hybrid
-pair style, an eam pair style, tail correction, 
+pair style, an eam pair style, tail correction,
 or no "single" function for the pair style.
 
-W: Energy of old configuration in fix gcmc is > MAXENERGYTEST. 
+W: Energy of old configuration in fix gcmc is > MAXENERGYTEST.
 
-This probably means that a pair of atoms are closer than the 
+This probably means that a pair of atoms are closer than the
 overlap cutoff distance for keyword overlap_cutoff.
 
 W: Fix gcmc is being applied to the default group all

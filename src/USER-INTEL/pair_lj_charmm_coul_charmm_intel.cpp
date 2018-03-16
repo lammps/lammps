@@ -303,7 +303,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
             const flt_t ccr = cut_coulsq - rsq;
             const flt_t switch1 = ccr * ccr * inv_denom_coul *
               (cut_coulsq + (flt_t)2.0 * rsq - (flt_t)3.0 * cut_coul_innersq);
-            forcecoul *= switch1; 
+            forcecoul *= switch1;
           }
 
           #ifdef INTEL_VMASK

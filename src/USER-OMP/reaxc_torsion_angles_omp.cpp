@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
@@ -159,7 +159,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
       if (system->my_atoms[j].orig_id < system->my_atoms[k].orig_id &&
           bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs)) {
         pj = pbond_jk->sym_index; // pj points to j on k's list
-        
+
         /* do the same check as above:
            are there any 3-body interactions involving k&j
            where k is the central atom */
@@ -167,27 +167,27 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
           type_k = system->my_atoms[k].type;
           Delta_k = workspace->Delta_boc[k];
           r_jk = pbond_jk->d;
-        
+
           start_pk = Start_Index(pk, thb_intrs );
           end_pk = End_Index(pk, thb_intrs );
           start_pj = Start_Index(pj, thb_intrs );
           end_pj = End_Index(pj, thb_intrs );
-        
+
           exp_tor2_jk = exp( -p_tor2 * BOA_jk );
           exp_cot2_jk = exp( -p_cot2 * SQR(BOA_jk - 1.5) );
           exp_tor3_DjDk = exp( -p_tor3 * (Delta_j + Delta_k) );
           exp_tor4_DjDk = exp( p_tor4  * (Delta_j + Delta_k) );
           exp_tor34_inv = 1.0 / (1.0 + exp_tor3_DjDk + exp_tor4_DjDk);
           f11_DjDk = (2.0 + exp_tor3_DjDk) * exp_tor34_inv;
-        
-        
+
+
           /* pick i up from j-k interaction where j is the central atom */
           for (pi = start_pk; pi < end_pk; ++pi) {
             p_ijk = &( thb_intrs->select.three_body_list[pi] );
             pij = p_ijk->pthb; // pij is pointer to i on j's bond_list
             pbond_ij = &( bonds->select.bond_list[pij] );
             bo_ij = &( pbond_ij->bo_data );
-        
+
             if (bo_ij->BO > control->thb_cut/*0*/) {
               i = p_ijk->thb;
               type_i = system->my_atoms[i].type;
@@ -232,7 +232,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
 
                   r_kl = pbond_kl->d;
                   BOA_kl = bo_kl->BO - control->thb_cut;
-                
+
                   theta_jkl = p_jkl->theta;
                   sin_jkl = sin( theta_jkl );
                   cos_jkl = cos( theta_jkl );
@@ -242,12 +242,12 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE )
                     tan_jkl_i = cos_jkl / -MIN_SINE;
                   else tan_jkl_i = cos_jkl /sin_jkl;
-                
+
                   rvec_ScaledSum( dvec_li, 1., system->my_atoms[i].x,
                                   -1., system->my_atoms[l].x );
                   r_li = rvec_Norm( dvec_li );
-                
-                
+
+
                   /* omega and its derivative */
                   omega = Calculate_Omega( pbond_ij->dvec, r_ij,
                                            pbond_jk->dvec, r_jk,
@@ -262,7 +262,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   cos2omega = cos( 2. * omega );
                   cos3omega = cos( 3. * omega );
                   /* end omega calculations */
-                
+
                   /* torsion energy */
                   exp_tor1 = exp( fbp->p_tor1 *
                                   SQR(2.0 - bo_jk->BO_pi - f11_DjDk) );
@@ -367,35 +367,35 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   }
                   else {
                     ivec_Sum(rel_box_jl, pbond_jk->rel_box, pbond_kl->rel_box);
-                
+
                     /* dcos_theta_ijk */
                     rvec_Scale( force, CEtors7 + CEconj4, p_ijk->dcos_dk );
                     rvec_Add( workspace->forceReduction[reductionOffset+i], force );
                     rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
                     rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
-                
+
                     rvec_ScaledAdd( workspace->f[j],
                                     CEtors7 + CEconj4, p_ijk->dcos_dj );
-                
+
                     rvec_Scale( force, CEtors7 + CEconj4, p_ijk->dcos_di );
                     rvec_Add( workspace->forceReduction[reductionOffset+k], force );
                     rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
                     rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
-                
+
                     /* dcos_theta_jkl */
                     rvec_ScaledAdd( workspace->f[j],
                                     CEtors8 + CEconj5, p_jkl->dcos_di );
-                
+
                     rvec_Scale( force, CEtors8 + CEconj5, p_jkl->dcos_dj );
                     rvec_Add( workspace->forceReduction[reductionOffset+k], force );
                     rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
                     rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
-                
+
                     rvec_Scale( force, CEtors8 + CEconj5, p_jkl->dcos_dk );
                     rvec_Add( workspace->forceReduction[reductionOffset+l], force );
                     rvec_iMultiply( ext_press, rel_box_jl, force );
                     rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
-                
+
                     /* dcos_omega */
                     rvec_Scale( force, CEtors9 + CEconj6, dcos_omega_di );
                     rvec_Add( workspace->forceReduction[reductionOffset+i], force );
@@ -418,7 +418,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
 
                   /* tally into per-atom virials */
                   if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
-                
+
                     // acquire vectors
                     rvec_ScaledSum( delil, 1., system->my_atoms[l].x,
                                           -1., system->my_atoms[i].x );
@@ -430,19 +430,19 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                     rvec_Scale( fi_tmp, CEtors7 + CEconj4, p_ijk->dcos_dk );
                     rvec_Scale( fj_tmp, CEtors7 + CEconj4, p_ijk->dcos_dj );
                     rvec_Scale( fk_tmp, CEtors7 + CEconj4, p_ijk->dcos_di );
-                
+
                     // dcos_theta_jkl
                     rvec_ScaledAdd( fj_tmp, CEtors8 + CEconj5, p_jkl->dcos_di );
                     rvec_ScaledAdd( fk_tmp, CEtors8 + CEconj5, p_jkl->dcos_dj );
-                
+
                     // dcos_omega
                     rvec_ScaledAdd( fi_tmp, CEtors9 + CEconj6, dcos_omega_di );
                     rvec_ScaledAdd( fj_tmp, CEtors9 + CEconj6, dcos_omega_dj );
                     rvec_ScaledAdd( fk_tmp, CEtors9 + CEconj6, dcos_omega_dk );
-                
+
                     // tally
                     eng_tmp = e_tor + e_con;
-                
+
                     if (system->pair_ptr->evflag)
                       pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, j, k, system->n, 1,
                                                         eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
@@ -452,7 +452,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                       system->pair_ptr->v_tally4(i, j, k, l, fi_tmp, fj_tmp, fk_tmp,
                                                  delil, deljl, delkl );
                   }
-                
+
                 } // pl check ends
               } // pl loop ends
             } // pi check ends

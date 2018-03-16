@@ -855,7 +855,7 @@ void PairOxdna2Coaxstk::read_restart(FILE *fp)
           fread(&dtheta_cxst1_ast[i][j],sizeof(double),1,fp);
           fread(&b_cxst1[i][j],sizeof(double),1,fp);
           fread(&dtheta_cxst1_c[i][j],sizeof(double),1,fp);
-    
+
           fread(&a_cxst4[i][j],sizeof(double),1,fp);
           fread(&theta_cxst4_0[i][j],sizeof(double),1,fp);
           fread(&dtheta_cxst4_ast[i][j],sizeof(double),1,fp);

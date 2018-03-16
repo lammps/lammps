@@ -1384,7 +1384,7 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 
     ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
     ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    
+
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
         delete [] ivalues;
@@ -1396,14 +1396,14 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
         maxdouble = ndouble;
         dvalues = new double[maxdouble];
       }
-      
+
       for (j = 0; j < ninteger; j++)
         ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
       for (j = 0; j < ndouble; j++)
         dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
-      
+
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
-      
+
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
       for (j = 0; j < nvalues; j++)
@@ -1540,7 +1540,7 @@ void Atom::check_mass(const char *file, int line)
   if (mass == NULL) return;
   if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
-    if (mass_setflag[itype] == 0) 
+    if (mass_setflag[itype] == 0)
       error->all(file,line,"Not all per-type masses are set");
 }
 
@@ -1676,7 +1676,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
                                  onemol->ibodyparams,onemol->dbodyparams);
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
-  
+
   if (molecular != 1) return;
 
   // add bond topology info

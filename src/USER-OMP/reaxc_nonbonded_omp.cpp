@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
@@ -121,11 +121,11 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
       }
 
       if (flag) {
-        
+
         r_ij = nbr_pj->d;
         twbp = &(system->reax_param.tbp[ system->my_atoms[i].type ]
                  [ system->my_atoms[j].type ]);
-        
+
         /* Calculate Taper and its derivative */
         // Tap = nbr_pj->Tap;   -- precomputed during compte_H
         Tap = workspace->Tap[7] * r_ij + workspace->Tap[6];
@@ -135,27 +135,27 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
         Tap = Tap * r_ij + workspace->Tap[2];
         Tap = Tap * r_ij + workspace->Tap[1];
         Tap = Tap * r_ij + workspace->Tap[0];
-        
+
         dTap = 7*workspace->Tap[7] * r_ij + 6*workspace->Tap[6];
         dTap = dTap * r_ij + 5*workspace->Tap[5];
         dTap = dTap * r_ij + 4*workspace->Tap[4];
         dTap = dTap * r_ij + 3*workspace->Tap[3];
         dTap = dTap * r_ij + 2*workspace->Tap[2];
         dTap += workspace->Tap[1]/r_ij;
-        
+
         /*vdWaals Calculations*/
         if(system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
           { // shielding
             powr_vdW1 = pow(r_ij, p_vdW1);
             powgi_vdW1 = pow( 1.0 / twbp->gamma_w, p_vdW1);
-        
+
             fn13 = pow( powr_vdW1 + powgi_vdW1, p_vdW1i );
             exp1 = exp( twbp->alpha * (1.0 - fn13 / twbp->r_vdW) );
             exp2 = exp( 0.5 * twbp->alpha * (1.0 - fn13 / twbp->r_vdW) );
-        
+
             e_vdW = twbp->D * (exp1 - 2.0 * exp2);
             total_EvdW += Tap * e_vdW;
-        
+
             dfn13 = pow( powr_vdW1 + powgi_vdW1, p_vdW1i - 1.0) *
               pow(r_ij, p_vdW1 - 2.0);
 
@@ -165,48 +165,48 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
         else{ // no shielding
           exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
           exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
-        
+
           e_vdW = twbp->D * (exp1 - 2.0 * exp2);
           total_EvdW += Tap * e_vdW;
-        
+
           CEvd = dTap * e_vdW -
               Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
         }
-        
+
         if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
           { // innner wall
             e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
             total_EvdW += Tap * e_core;
-        
+
             de_core = -(twbp->acore/twbp->rcore) * e_core;
             CEvd += dTap * e_core + Tap * de_core / r_ij;
-        
+
             //  lg correction, only if lgvdw is yes
             if (control->lgflag) {
               r_ij5 = pow( r_ij, 5.0 );
               r_ij6 = pow( r_ij, 6.0 );
               re6 = pow( twbp->lgre, 6.0 );
-        
+
               e_lg = -(twbp->lgcij/( r_ij6 + re6 ));
               total_EvdW += Tap * e_lg;
-        
+
               de_lg = -6.0 * e_lg *  r_ij5 / ( r_ij6 + re6 ) ;
               CEvd += dTap * e_lg + Tap * de_lg / r_ij;
             }
-        
+
           }
-        
+
         /*Coulomb Calculations*/
         dr3gamij_1 = ( r_ij * r_ij * r_ij + twbp->gamma );
         dr3gamij_3 = pow( dr3gamij_1 , 0.33333333333333 );
-        
+
         tmp = Tap / dr3gamij_3;
         total_Eele += e_ele =
           C_ele * system->my_atoms[i].q * system->my_atoms[j].q * tmp;
-        
+
         CEclmb = C_ele * system->my_atoms[i].q * system->my_atoms[j].q *
           ( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
-        
+
         /* tally into per-atom energy */
         if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
           pe_vdw = Tap * (e_vdW + e_core + e_lg);
@@ -217,7 +217,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
                                              1, pe_vdw, e_ele, f_tmp,
                                              delij[0], delij[1], delij[2], thr);
         }
-        
+
         if( control->virial == 0 ) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[reductionOffset+j],
@@ -226,13 +226,13 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
         else { /* NPT, iNPT or sNPT */
           /* for pressure coupling, terms not related to bond order
              derivatives are added directly into pressure vector/tensor */
-        
+
           rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
           rvec_ScaledAdd( workspace->f[reductionOffset+i], -1., temp );
           rvec_Add( workspace->forceReduction[reductionOffset+j], temp);
-        
+
           rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
-        
+
           rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
         }
         }
@@ -320,35 +320,35 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
       }
 
       if (flag) {
-        
+
         r_ij   = nbr_pj->d;
         tmin  = MIN( type_i, type_j );
         tmax  = MAX( type_i, type_j );
         t = &( LR[tmin][tmax] );
-        
+
         /* Cubic Spline Interpolation */
         r = (int)(r_ij * t->inv_dx);
         if( r == 0 )  ++r;
         base = (double)(r+1) * t->dx;
         dif = r_ij - base;
-        
+
         e_vdW = ((t->vdW[r].d*dif + t->vdW[r].c)*dif + t->vdW[r].b)*dif +
           t->vdW[r].a;
-        
+
         e_ele = ((t->ele[r].d*dif + t->ele[r].c)*dif + t->ele[r].b)*dif +
           t->ele[r].a;
         e_ele *= system->my_atoms[i].q * system->my_atoms[j].q;
-        
+
         total_EvdW += e_vdW;
         total_Eele += e_ele;
-        
+
         CEvd = ((t->CEvd[r].d*dif + t->CEvd[r].c)*dif + t->CEvd[r].b)*dif +
           t->CEvd[r].a;
-        
+
         CEclmb = ((t->CEclmb[r].d*dif+t->CEclmb[r].c)*dif+t->CEclmb[r].b)*dif +
           t->CEclmb[r].a;
         CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
-        
+
         /* tally into per-atom energy */
         if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
           rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
@@ -357,7 +357,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
           pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms, 1, e_vdW, e_ele,
                                             f_tmp, delij[0], delij[1], delij[2], thr);
         }
-        
+
         if( control->virial == 0 ) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[froffset+j],
@@ -367,10 +367,10 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
           /* for pressure coupling, terms not related to bond order derivatives
              are added directly into pressure vector/tensor */
           rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
-        
+
           rvec_ScaledAdd( workspace->f[i], -1., temp );
           rvec_Add( workspace->forceReduction[froffset+j], temp );
-        
+
           rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
           rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
         }

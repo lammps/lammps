@@ -30,7 +30,7 @@
 using namespace LAMMPS_NS;
 
 ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snad(NULL), 
+  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snad(NULL),
   radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
@@ -50,9 +50,9 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
-  
+
   // process required arguments
-  
+
   memory->create(radelem,ntypes+1,"sna/atom:radelem"); // offset by 1 to match up with types
   memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
   rcutfac = atof(arg[3]);
@@ -288,7 +288,7 @@ void ComputeSNADAtom::compute_peratom()
         snaptr[tid]->compute_bi();
         snaptr[tid]->copy_bi2bvec();
       }
-      
+
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr[tid]->inside[jj];
         snaptr[tid]->compute_duidrj(snaptr[tid]->rij[jj],
@@ -322,7 +322,7 @@ void ComputeSNADAtom::compute_peratom()
             double biz = snaptr[tid]->dbvec[icoeff][2];
 
             // upper-triangular elements of quadratic matrix
-          
+
             for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++) {
               double dbxtmp = bi*snaptr[tid]->dbvec[jcoeff][0]
                 + bix*snaptr[tid]->bvec[jcoeff];

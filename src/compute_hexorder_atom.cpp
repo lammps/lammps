@@ -65,7 +65,7 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"nnn") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
-      if (strcmp(arg[iarg+1],"NULL") == 0) 
+      if (strcmp(arg[iarg+1],"NULL") == 0)
         nnn = 0;
       else {
         nnn = force->numeric(FLERR,arg[iarg+1]);
@@ -179,7 +179,7 @@ void ComputeHexOrderAtom::compute_peratom()
       ztmp = x[i][2];
       jlist = firstneigh[i];
       jnum = numneigh[i];
-      
+
       // insure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
@@ -225,11 +225,11 @@ void ComputeHexOrderAtom::compute_peratom()
 
       double usum = 0.0;
       double vsum = 0.0;
-      
+
       for (jj = 0; jj < ncount; jj++) {
         j = nearest[jj];
         j &= NEIGHMASK;
-        
+
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         double u, v;
@@ -339,8 +339,8 @@ void ComputeHexOrderAtom::select2(int k, int n, double *arr, int *iarr)
 double ComputeHexOrderAtom::memory_usage()
 {
   double bytes = ncol*nmax * sizeof(double);
-  bytes += maxneigh * sizeof(double); 
-  bytes += maxneigh * sizeof(int); 
+  bytes += maxneigh * sizeof(double);
+  bytes += maxneigh * sizeof(int);
 
   return bytes;
 }

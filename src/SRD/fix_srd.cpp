@@ -80,11 +80,11 @@ static const char cite_fix_srd[] =
 /* ---------------------------------------------------------------------- */
 
 FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  wallfix(NULL), wallwhich(NULL), xwall(NULL), xwallhold(NULL), 
-  vwall(NULL), fwall(NULL), avec_ellipsoid(NULL), avec_line(NULL), 
-  avec_tri(NULL), random(NULL), randomshift(NULL), flocal(NULL), 
-  tlocal(NULL), biglist(NULL), binhead(NULL), binnext(NULL), sbuf1(NULL), 
-  sbuf2(NULL), rbuf1(NULL), rbuf2(NULL), nbinbig(NULL), binbig(NULL), 
+  wallfix(NULL), wallwhich(NULL), xwall(NULL), xwallhold(NULL),
+  vwall(NULL), fwall(NULL), avec_ellipsoid(NULL), avec_line(NULL),
+  avec_tri(NULL), random(NULL), randomshift(NULL), flocal(NULL),
+  tlocal(NULL), biglist(NULL), binhead(NULL), binnext(NULL), sbuf1(NULL),
+  sbuf2(NULL), rbuf1(NULL), rbuf2(NULL), nbinbig(NULL), binbig(NULL),
   binsrd(NULL), stencil(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_srd);

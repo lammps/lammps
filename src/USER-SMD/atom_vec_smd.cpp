@@ -1143,7 +1143,7 @@ void AtomVecSMD::pack_data(double **buf) {
                 buf[i][7] = x[i][0];
                 buf[i][8] = x[i][1];
                 buf[i][9] = x[i][2];
-                
+
                 buf[i][10] = x0[i][0];
                 buf[i][11] = x0[i][1];
                 buf[i][12] = x0[i][2];

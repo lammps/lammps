@@ -65,7 +65,7 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
 PairVashishta::~PairVashishta()
 {
   if (copymode) return;
-  
+
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;

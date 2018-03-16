@@ -53,7 +53,7 @@ static const char cite_pair_mdpd[] =
 PairMDPD::PairMDPD(LAMMPS *lmp) : Pair(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_mdpd);
-  
+
   writedata = 1;
   random = NULL;
 }
@@ -139,7 +139,7 @@ void PairMDPD::compute(int eflag, int vflag)
         delvy = vytmp - v[j][1];
         delvz = vztmp - v[j][2];
         dot = delx*delvx + dely*delvy + delz*delvz;
- 
+
         wc = 1.0 - r/cut[itype][jtype];
         wc_r = 1.0 - r/cut_r[itype][jtype];
         wc_r = MAX(wc_r,0.0);

@@ -266,10 +266,10 @@ void PairDPDIntel::eval(const int offload, const int vflag,
         if (rngi + jnum > rng_size) {
           #ifdef LMP_USE_MKL_RNG
           if (sizeof(flt_t) == sizeof(float))
-            vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
+            vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi,
                           (float*)my_rand_buffer, (float)0.0, (float)1.0 );
           else
-            vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
+            vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi,
                           (double*)my_rand_buffer, 0.0, 1.0 );
           #else
           for (int jj = 0; jj < rngi; jj++)
@@ -440,7 +440,7 @@ void PairDPDIntel::settings(int narg, char **arg) {
   #pragma omp parallel
   {
     int tid = omp_get_thread_num();
-    vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
+    vslNewStream(&random_thread[tid], LMP_MKL_RNG,
                  seed + comm->me + comm->nprocs * tid );
   }
   #endif
@@ -557,7 +557,7 @@ void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     if (ntypes > 0) {
       _cop = cop;
       memory->create(param,ntypes,ntypes,"fc.param");
-      memory->create(rand_buffer_thread, nthreads, max_nbors, 
+      memory->create(rand_buffer_thread, nthreads, max_nbors,
                      "fc.rand_buffer_thread");
       memory->create(rngi,nthreads,"fc.param");
       for (int i = 0; i < nthreads; i++) rngi[i] = max_nbors;
@@ -595,7 +595,7 @@ void PairDPDIntel::read_restart_settings(FILE *fp)
   #pragma omp parallel
   {
     int tid = omp_get_thread_num();
-    vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
+    vslNewStream(&random_thread[tid], LMP_MKL_RNG,
                  seed + comm->me + comm->nprocs * tid );
   }
   #endif

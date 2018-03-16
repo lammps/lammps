@@ -59,11 +59,11 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
     if (arg[iarg][0] == 'c') whichref = COMPUTE;
     else if (arg[iarg][0] == 'f') whichref = FIX;
     else if (arg[iarg][0] == 'v') whichref = VARIABLE;
-    
+
     int n = strlen(arg[iarg]);
     char *suffix = new char[n];
     strcpy(suffix,&arg[iarg][2]);
-    
+
     char *ptr = strchr(suffix,'[');
     if (ptr) {
       if (suffix[strlen(suffix)-1] != ']')
@@ -71,7 +71,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
       indexref = atoi(ptr+1);
       *ptr = '\0';
     } else indexref = 0;
-    
+
     n = strlen(suffix) + 1;
     idref = new char[n];
     strcpy(idref,suffix);
@@ -157,7 +157,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
     if (indexref && indexref > modify->compute[icompute]->size_peratom_cols)
       error->all(FLERR,
                  "Compute global/atom compute array is accessed out-of-range");
-    
+
   } else if (whichref == FIX) {
     int ifix = modify->find_fix(idref);
     if (ifix < 0)
@@ -286,7 +286,7 @@ void ComputeGlobalAtom::init()
       error->all(FLERR,"Variable name for compute global/atom does not exist");
     ref2index = ivariable;
   }
-  
+
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
@@ -332,17 +332,17 @@ void ComputeGlobalAtom::compute_peratom()
       memory->create(array_atom,nmax,nvalues,"global/atom:array_atom");
     }
   }
-  
+
   // setup current peratom indices
   // integer indices are rounded down from double values
   // indices are decremented from 1 to N -> 0 to N-1
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   if (whichref == COMPUTE) {
     Compute *compute = modify->compute[ref2index];
-    
+
     if (!(compute->invoked_flag & INVOKED_PERATOM)) {
       compute->compute_peratom();
       compute->invoked_flag |= INVOKED_PERATOM;
@@ -351,42 +351,42 @@ void ComputeGlobalAtom::compute_peratom()
     if (indexref == 0) {
       double *compute_vector = compute->vector_atom;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) 
+        if (mask[i] & groupbit)
           indices[i] = static_cast<int> (compute_vector[i]) - 1;
     } else {
       double **compute_array = compute->array_atom;
       int im1 = indexref - 1;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) 
+        if (mask[i] & groupbit)
           indices[i] = static_cast<int> (compute_array[i][im1]) - 1;
     }
-  
+
   } else if (whichref == FIX) {
     if (update->ntimestep % modify->fix[ref2index]->peratom_freq)
       error->all(FLERR,"Fix used in compute global/atom not "
                  "computed at compatible time");
     Fix *fix = modify->fix[ref2index];
-    
+
     if (indexref == 0) {
       double *fix_vector = fix->vector_atom;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) 
+        if (mask[i] & groupbit)
           indices[i] = static_cast<int> (fix_vector[i]) - 1;
     } else {
       double **fix_array = fix->array_atom;
       int im1 = indexref - 1;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) 
+        if (mask[i] & groupbit)
           indices[i] = static_cast<int> (fix_array[i][im1]) - 1;
     }
-    
+
   } else if (whichref == VARIABLE) {
     if (atom->nmax > nmax) {
       nmax = atom->nmax;
       memory->destroy(varatom);
       memory->create(varatom,nmax,"global/atom:varatom");
     }
-      
+
     input->variable->compute_atom(ref2index,igroup,varatom,1,0);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
@@ -410,7 +410,7 @@ void ComputeGlobalAtom::compute_peratom()
           compute->compute_vector();
           compute->invoked_flag |= INVOKED_VECTOR;
         }
-        
+
         source = compute->vector;
         vmax = compute->size_vector;
 
@@ -468,7 +468,7 @@ void ComputeGlobalAtom::compute_peratom()
           compute->compute_array();
           compute->invoked_flag |= INVOKED_ARRAY;
         }
-          
+
         double **compute_array = compute->array;
         vmax = compute->size_array_rows;
 

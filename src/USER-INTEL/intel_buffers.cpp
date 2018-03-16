@@ -569,7 +569,7 @@ void IntelBuffers<flt_t, acc_t>::fdotr_reduce(const int nall,
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes, 
+void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes,
                                             const int use_ghost_cut)
 {
   if (ntypes != _ntypes) {
@@ -593,7 +593,7 @@ void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes,
     if (ntypes > 0) {
       lmp->memory->create(_cutneighsq, ntypes, ntypes, "_cutneighsq");
       if (use_ghost_cut)
-        lmp->memory->create(_cutneighghostsq, ntypes, ntypes, 
+        lmp->memory->create(_cutneighghostsq, ntypes, ntypes,
                             "_cutneighghostsq");
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * cutneighsqo = _cutneighsq[0];

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -44,7 +44,7 @@ using namespace MathConst;
 
 ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) : Improper(lmp)
 {
-  writedata = 1;    
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,7 +79,7 @@ void ImproperInversionHarmonic::compute(int eflag, int vflag)
     i3 = improperlist[n][2];
     i4 = improperlist[n][3];
     type = improperlist[n][4];
-    
+
     // 1st bond - IJ
 
     vb1x = x[i2][0] - x[i1][0];
@@ -103,16 +103,16 @@ void ImproperInversionHarmonic::compute(int eflag, int vflag)
     vb3z = x[i4][2] - x[i1][2];
     rrvb3 = 1.0/sqrt(vb3x*vb3x+vb3y*vb3y+vb3z*vb3z);
     rr2vb3 = rrvb3*rrvb3;
-    
+
     // compute all three inversion angles
     invang(i1,i2,i3,i4, type,evflag,eflag,
-           vb3x, vb3y, vb3z, rrvb3, rr2vb3, 
+           vb3x, vb3y, vb3z, rrvb3, rr2vb3,
            vb2x, vb2y, vb2z, rrvb2, rr2vb2,
            vb1x, vb1y, vb1z, rrvb1, rr2vb1);
     invang(i1,i3,i4,i2, type,evflag,eflag,
            vb1x, vb1y, vb1z, rrvb1, rr2vb1,
            vb3x, vb3y, vb3z, rrvb3, rr2vb3,
-           vb2x, vb2y, vb2z, rrvb2, rr2vb2); 
+           vb2x, vb2y, vb2z, rrvb2, rr2vb2);
     invang(i1,i4,i2,i3, type,evflag,eflag,
            vb2x, vb2y, vb2z, rrvb2, rr2vb2,
            vb1x, vb1y, vb1z, rrvb1, rr2vb1,
@@ -127,11 +127,11 @@ void ImproperInversionHarmonic::compute(int eflag, int vflag)
 void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
           const int &i3,const int &i4,
           const int &type,const int &evflag,const int &eflag,
-          const double &vb1x, const double &vb1y, const double &vb1z, 
+          const double &vb1x, const double &vb1y, const double &vb1z,
           const double &rrvb1, const double &rr2vb1,
-          const double &vb2x, const double &vb2y, const double &vb2z, 
+          const double &vb2x, const double &vb2y, const double &vb2z,
           const double &rrvb2, const double &rr2vb2,
-          const double &vb3x, const double &vb3y, const double &vb3z, 
+          const double &vb3x, const double &vb3y, const double &vb3z,
           const double &rrvb3, const double &rr2vb3)
 {
   double eimproper,f1[3],f2[3],f3[3],f4[3];
@@ -145,8 +145,8 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
   int newton_bond = force->newton_bond;
 
   eimproper = 0.0;
-  
-  // scalar products of IJ*IK and IJ*IL 
+
+  // scalar products of IJ*IK and IJ*IL
   rjk=vb3x*vb2x+vb3y*vb2y+vb3z*vb2z;
   rjl=vb1x*vb3x+vb1y*vb3y+vb1z*vb3z;
 
@@ -159,7 +159,7 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
   upy=upy*upn;
   upz=upz*upn;
   rup=vb3x*upx+vb3y*upy+vb3z*upz;
-  
+
   // unit-vector: IK-IL
   umx=vb2x*rrvb2-vb1x*rrvb1;
   umy=vb2y*rrvb2-vb1y*rrvb1;
@@ -195,29 +195,29 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
   rupupn = rup*upn;
   rumumn = rum*umn;
 
-  // force contributions of angle 
-  f2[0]=gomega*(-cosomega*vb3x*rr2vb3+rrvb3*(rup*upx+rum*umx)/wwr); 
+  // force contributions of angle
+  f2[0]=gomega*(-cosomega*vb3x*rr2vb3+rrvb3*(rup*upx+rum*umx)/wwr);
   f2[1]=gomega*(-cosomega*vb3y*rr2vb3+rrvb3*(rup*upy+rum*umy)/wwr);
   f2[2]=gomega*(-cosomega*vb3z*rr2vb3+rrvb3*(rup*upz+rum*umz)/wwr);
 
-  f3[0]=gomega*rrvb3*(rupupn*rrvb2*(vb3x-rup*upx-rucb*vb2x*rr2vb2) + 
+  f3[0]=gomega*rrvb3*(rupupn*rrvb2*(vb3x-rup*upx-rucb*vb2x*rr2vb2) +
         rumumn*rrvb2*(vb3x-rum*umx-rvcb*vb2x*rr2vb2))/wwr;
-  f3[1]=gomega*rrvb3*(rupupn*rrvb2*(vb3y-rup*upy-rucb*vb2y*rr2vb2) + 
+  f3[1]=gomega*rrvb3*(rupupn*rrvb2*(vb3y-rup*upy-rucb*vb2y*rr2vb2) +
         rumumn*rrvb2*(vb3y-rum*umy-rvcb*vb2y*rr2vb2))/wwr;
-  f3[2]=gomega*rrvb3*(rupupn*rrvb2*(vb3z-rup*upz-rucb*vb2z*rr2vb2) + 
+  f3[2]=gomega*rrvb3*(rupupn*rrvb2*(vb3z-rup*upz-rucb*vb2z*rr2vb2) +
         rumumn*rrvb2*(vb3z-rum*umz-rvcb*vb2z*rr2vb2))/wwr;
 
-  f4[0]=gomega*rrvb3*(rupupn*rrvb1*(vb3x-rup*upx-rudb*vb1x*rr2vb1) - 
+  f4[0]=gomega*rrvb3*(rupupn*rrvb1*(vb3x-rup*upx-rudb*vb1x*rr2vb1) -
         rumumn*rrvb1*(vb3x-rum*umx-rvdb*vb1x*rr2vb1))/wwr;
-  f4[1]=gomega*rrvb3*(rupupn*rrvb1*(vb3y-rup*upy-rudb*vb1y*rr2vb1) - 
+  f4[1]=gomega*rrvb3*(rupupn*rrvb1*(vb3y-rup*upy-rudb*vb1y*rr2vb1) -
         rumumn*rrvb1*(vb3y-rum*umy-rvdb*vb1y*rr2vb1))/wwr;
-  f4[2]=gomega*rrvb3*(rupupn*rrvb1*(vb3z-rup*upz-rudb*vb1z*rr2vb1) - 
+  f4[2]=gomega*rrvb3*(rupupn*rrvb1*(vb3z-rup*upz-rudb*vb1z*rr2vb1) -
         rumumn*rrvb1*(vb3z-rum*umz-rvdb*vb1z*rr2vb1))/wwr;
 
   f1[0] = -(f2[0] + f3[0] + f4[0]);
   f1[1] = -(f2[1] + f3[1] + f4[1]);
   f1[2] = -(f2[2] + f3[2] + f4[2]);
-  
+
   if (newton_bond || i1 < nlocal) {
     f[i1][0] += f1[0];
     f[i1][1] += f1[1];
@@ -241,10 +241,10 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
     f[i4][1] += f4[1];
     f[i4][2] += f4[2];
   }
-  
+
   double rb1x, rb1y, rb1z, rb2x, rb2y, rb2z, rb3x, rb3y, rb3z;
   if (evflag)
-    
+
     rb3x = vb1x - vb2x;
     rb3y = vb1y - vb2y;
     rb3z = vb1z - vb2z;
@@ -299,7 +299,7 @@ void ImproperInversionHarmonic::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void ImproperInversionHarmonic::write_restart(FILE *fp)
@@ -309,7 +309,7 @@ void ImproperInversionHarmonic::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void ImproperInversionHarmonic::read_restart(FILE *fp)

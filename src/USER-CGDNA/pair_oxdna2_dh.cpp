@@ -168,7 +168,7 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
 
         if (r <= cut_dh_ast[atype][btype]) {
 
-          fpair = qeff_dh_pf[atype][btype] * exp(-kappa_dh[atype][btype] * r) * 
+          fpair = qeff_dh_pf[atype][btype] * exp(-kappa_dh[atype][btype] * r) *
                   (kappa_dh[atype][btype] + rinv) * rinv * rinv;
 
           if (eflag) {
@@ -186,7 +186,7 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
 
         }
 
-        // knock out nearest-neighbour interaction between adjacent backbone sites 
+        // knock out nearest-neighbour interaction between adjacent backbone sites
         fpair *= factor_lj;
         evdwl *= factor_lj;
 
@@ -298,31 +298,31 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   // Debye length and inverse Debye length
 
   /*
-  NOTE: 
-    The numerical factor is the Debye length in s.u. 
-    lambda(T = 300 K = 0.1) = 
+  NOTE:
+    The numerical factor is the Debye length in s.u.
+    lambda(T = 300 K = 0.1) =
     sqrt(eps_0 * eps_r * k_B * T/(2 * N_A * e^2 * 1000 mol/m^3))
           * 1/oxDNA_energy_unit
     (see B. Snodin et al., J. Chem. Phys. 142, 234901 (2015).)
 
-  We use 
+  We use
     eps_0 = vacuum permittivity = 8.854187817e-12 F/m
     eps_r = relative permittivity of water = 80
     k_B = Boltzmann constant = 1.3806485279e-23 J/K
     T = absolute temperature = 300 K
     N_A = Avogadro constant = 6.02214085774e23 / mol
     e = elementary charge = 1.6021766208e-19 C
-    oxDNA_length_unit = 8.518e-10 m 
+    oxDNA_length_unit = 8.518e-10 m
   */
 
   lambda_dh_one = 0.3616455075438555*sqrt(T/0.1/rhos_dh_one);
   kappa_dh_one = 1.0/lambda_dh_one;
- 
+
   // prefactor in DH interaction containing qeff^2
 
   /*
-    NOTE: 
-      The numerical factor is 
+    NOTE:
+      The numerical factor is
       qeff_dh_pf = e^2/(4 * pi * eps_0 * eps_r)
                     * 1/(oxDNA_energy_unit * oxDNA_length_unit)
       (see B. Snodin et al., J. Chem. Phys. 142, 234901 (2015).)
@@ -335,14 +335,14 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
 
   // smoothing parameters - determined through continuity and differentiability
 
-  cut_dh_ast_one = 3.0*lambda_dh_one; 
+  cut_dh_ast_one = 3.0*lambda_dh_one;
 
   b_dh_one = -(exp(-cut_dh_ast_one/lambda_dh_one) * qeff_dh_pf_one * qeff_dh_pf_one *
       (cut_dh_ast_one + lambda_dh_one) * (cut_dh_ast_one + lambda_dh_one))/
-      (-4.0 * cut_dh_ast_one * cut_dh_ast_one * cut_dh_ast_one * 
+      (-4.0 * cut_dh_ast_one * cut_dh_ast_one * cut_dh_ast_one *
       lambda_dh_one * lambda_dh_one * qeff_dh_pf_one);
 
-  cut_dh_c_one =  cut_dh_ast_one * (qeff_dh_pf_one*cut_dh_ast_one + 
+  cut_dh_c_one =  cut_dh_ast_one * (qeff_dh_pf_one*cut_dh_ast_one +
       3.0*qeff_dh_pf_one * lambda_dh_one)/
       (qeff_dh_pf_one * (cut_dh_ast_one+lambda_dh_one));
 
@@ -517,7 +517,7 @@ void PairOxdna2Dh::write_data(FILE *fp)
          %g %g\
          %g %g %g\
          \n",i,
-        kappa_dh[i][i],qeff_dh_pf[i][i], 
+        kappa_dh[i][i],qeff_dh_pf[i][i],
         b_dh[i][i],cut_dh_ast[i][i],cut_dh_c[i][i]);
 }
 
@@ -533,7 +533,7 @@ void PairOxdna2Dh::write_data_all(FILE *fp)
          %g %g\
          %g %g %g\
          \n",i,j,
-        kappa_dh[i][j],qeff_dh_pf[i][j], 
+        kappa_dh[i][j],qeff_dh_pf[i][j],
         b_dh[i][j],cut_dh_ast[i][j],cut_dh_c[i][j]);
 }
 

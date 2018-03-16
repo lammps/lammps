@@ -1139,7 +1139,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
     ytmp = x[i].y;
     ztmp = x[i].z;
     itype = type[i];
- 
+
     // if atom I = water O, set x1 = offset charge site
     // else x1 = x of atom I
     // NOTE: to make this part thread safe, we need to
@@ -1634,7 +1634,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
   const int vflag = vflag_atom || vflag_global;
-  
+
   int i,j,ii,jj,jnum,itype,jtype;
   int n,vlist[6];
   int key;

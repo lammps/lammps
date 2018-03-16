@@ -236,7 +236,7 @@ void DihedralFourierIntel::eval(const int vflag,
       flt_t deng;
       flt_t df = (flt_t)0.0;
       if (EFLAG) deng = (flt_t)0.0;
-      
+
       for (int j = 0; j < nterms[type]; j++) {
         const flt_t tcos_shift = fc.bp[j][type].cos_shift;
         const flt_t tsin_shift = fc.bp[j][type].sin_shift;
@@ -257,7 +257,7 @@ void DihedralFourierIntel::eval(const int vflag,
         df1 = df1*tcos_shift - ddf1*tsin_shift;
         df1 *= -m;
         p += (flt_t)1.0;
-        
+
         if (m == 0) {
           p = (flt_t)1.0 + tcos_shift;
           df1 = (flt_t)0.0;

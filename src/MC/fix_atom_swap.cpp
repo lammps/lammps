@@ -57,9 +57,9 @@ using namespace MathConst;
 
 FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), type_list(NULL), mu(NULL), qtype(NULL), 
-  sqrt_mass_ratio(NULL), local_swap_iatom_list(NULL), 
-  local_swap_jatom_list(NULL), local_swap_atom_list(NULL), 
+  idregion(NULL), type_list(NULL), mu(NULL), qtype(NULL),
+  sqrt_mass_ratio(NULL), local_swap_iatom_list(NULL),
+  local_swap_jatom_list(NULL), local_swap_atom_list(NULL),
   random_equal(NULL), random_unequal(NULL), c_pe(NULL)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix atom/swap command");
@@ -72,7 +72,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   restart_global = 1;
   time_depend = 1;
-  
+
   // required args
 
   nevery = force->inumeric(FLERR,arg[3]);

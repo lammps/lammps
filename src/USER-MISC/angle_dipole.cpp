@@ -97,14 +97,14 @@ void AngleDipole::compute(int eflag, int vflag)
     delTx = tangle * (dely*mu[iDip][2] - delz*mu[iDip][1]);
     delTy = tangle * (delz*mu[iDip][0] - delx*mu[iDip][2]);
     delTz = tangle * (delx*mu[iDip][1] - dely*mu[iDip][0]);
-    
+
     torque[iDip][0] += delTx;
     torque[iDip][1] += delTy;
     torque[iDip][2] += delTz;
-        
+
     // Force couple that counterbalances dipolar torque
     fx = dely*delTz - delz*delTy; // direction (fi): - r x (-T)
-    fy = delz*delTx - delx*delTz; 
+    fy = delz*delTx - delx*delTz;
     fz = delx*delTy - dely*delTx;
 
     fmod = sqrt(delTx*delTx + delTy*delTy + delTz*delTz) / r; // magnitude
@@ -117,11 +117,11 @@ void AngleDipole::compute(int eflag, int vflag)
     fj[0] = -fi[0];
     fj[1] = -fi[1];
     fj[2] = -fi[2];
-    
+
     f[iDip][0] += fj[0];
     f[iDip][1] += fj[1];
     f[iDip][2] += fj[2];
-    
+
     f[iRef][0] += fi[0];
     f[iRef][1] += fi[1];
     f[iRef][2] += fi[2];

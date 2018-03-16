@@ -254,14 +254,14 @@ void PairLJLongCoulLong::init_style()
   if (force->kspace->neighrequest_flag) {
     int irequest;
     int respa = 0;
-    
+
     if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
       if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
       if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
     }
-    
+
     irequest = neighbor->request(this,instance_me);
-    
+
     if (respa >= 1) {
       neighbor->requests[irequest]->respaouter = 1;
       neighbor->requests[irequest]->respainner = 1;

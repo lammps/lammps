@@ -52,7 +52,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   quadraticflag = 0;
 
   // process required arguments
-  
+
   memory->create(radelem,ntypes+1,"sna/atom:radelem"); // offset by 1 to match up with types
   memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
   rcutfac = atof(arg[3]);
@@ -332,7 +332,7 @@ void ComputeSNAVAtom::compute_peratom()
             double biz = snaptr[tid]->dbvec[icoeff][2];
 
             // upper-triangular elements of quadratic matrix
-          
+
             for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++) {
               double dbxtmp = bi*snaptr[tid]->dbvec[jcoeff][0]
                 + bix*snaptr[tid]->bvec[jcoeff];

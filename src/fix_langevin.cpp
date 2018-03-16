@@ -149,7 +149,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   energy = 0.0;
 
   // flangevin is unallocated until first call to setup()
-  // compute_scalar checks for this and returns 0.0 
+  // compute_scalar checks for this and returns 0.0
   // if flangevin_allocated is not set
 
   flangevin = NULL;

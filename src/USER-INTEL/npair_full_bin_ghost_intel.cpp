@@ -67,8 +67,8 @@ void NPairFullBinGhostIntel::build(NeighList *list)
 /* ---------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t>
-void NPairFullBinGhostIntel::fbi(NeighList * list, 
-                                 IntelBuffers<flt_t,acc_t> * buffers) 
+void NPairFullBinGhostIntel::fbi(NeighList * list,
+                                 IntelBuffers<flt_t,acc_t> * buffers)
 {
   const int nlocal = atom->nlocal;
   const int nall = atom->nlocal + atom->nghost;
@@ -106,7 +106,7 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
 /* ---------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int need_ic>
-void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list, 
+void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
                                  IntelBuffers<flt_t,acc_t> * buffers,
                                  const int pstart, const int pend) {
   if (pend-pstart == 0) return;
@@ -146,7 +146,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   const int nstencil = this->nstencil;
   const int * _noalias const stencil = this->stencil;
   const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
-  const flt_t * _noalias const cutneighghostsq = 
+  const flt_t * _noalias const cutneighghostsq =
     buffers->get_cutneighghostsq()[0];
   const int ntypes = atom->ntypes + 1;
   const int nlocal = atom->nlocal;
@@ -162,8 +162,8 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   int moltemplate;
   if (molecular == 2) moltemplate = 1;
   else moltemplate = 0;
-  if (moltemplate) 
-    error->all(FLERR, 
+  if (moltemplate)
+    error->all(FLERR,
                "Can't use moltemplate with npair style full/bin/ghost/intel.");
 
   int tnum;
@@ -511,7 +511,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
 
       if (molecular) {
         int ito_m = ito;
-        if (ito >= nlocal) ito_m = nlocal; 
+        if (ito >= nlocal) ito_m = nlocal;
         for (int i = ifrom; i < ito_m; ++i) {
           int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];

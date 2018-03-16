@@ -793,7 +793,7 @@ void FixAveChunk::end_of_step()
   // if normflag = SAMPLE, one = value/count, accumulate one to many
   //   count is MPI summed here, value is MPI summed below across samples
   //   exception is TEMPERATURE: normalize by DOF
-  //   exception is DENSITY_NUMBER: 
+  //   exception is DENSITY_NUMBER:
   //     normalize by bin volume, not by atom count
   //   exception is DENSITY_MASS:
   //     scale by mv2d, normalize by bin volume, not by atom count
@@ -868,11 +868,11 @@ void FixAveChunk::end_of_step()
   // time average across samples
   // if normflag = ALL, final is total value / total count
   //   exception is TEMPERATURE: normalize by DOF for total count
-  //   exception is DENSITY_NUMBER: 
+  //   exception is DENSITY_NUMBER:
   //     normalize by final bin_volume and repeat, not by total count
   //   exception is DENSITY_MASS:
   //     scale by mv2d, normalize by bin volume and repeat, not by total count
-  //   exception is scaleflag == NOSCALE: 
+  //   exception is scaleflag == NOSCALE:
   //     normalize by repeat, not by total count
   //     check last so other options can take precedence
   // if normflag = SAMPLE, final is sum of ave / repeat

@@ -391,14 +391,14 @@ void PairReaxCKokkos<DeviceType>::init_md()
         typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEvd   = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
         typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_ele    = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
         typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEclmb = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
-    
+
         k_LR.h_view(i,j).d_y      = k_y.template view<DeviceType>();
         k_LR.h_view(i,j).d_H      = k_H.template view<DeviceType>();
         k_LR.h_view(i,j).d_vdW    = k_vdW.template view<DeviceType>();
         k_LR.h_view(i,j).d_CEvd   = k_CEvd.template view<DeviceType>();
         k_LR.h_view(i,j).d_ele    = k_ele.template view<DeviceType>();
         k_LR.h_view(i,j).d_CEclmb = k_CEclmb.template view<DeviceType>();
-    
+
         for (int k = 0; k < n; k++) {
           k_y.h_view(k)      = LR[i][j].y[k];
           k_H.h_view(k)      = LR[i][j].H[k];
@@ -407,14 +407,14 @@ void PairReaxCKokkos<DeviceType>::init_md()
           k_ele.h_view(k)    = LR[i][j].ele[k];
           k_CEclmb.h_view(k) = LR[i][j].CEclmb[k];
         }
-    
+
         k_y.template modify<LMPHostType>();
         k_H.template modify<LMPHostType>();
         k_vdW.template modify<LMPHostType>();
         k_CEvd.template modify<LMPHostType>();
         k_ele.template modify<LMPHostType>();
         k_CEclmb.template modify<LMPHostType>();
-    
+
         k_y.template sync<DeviceType>();
         k_H.template sync<DeviceType>();
         k_vdW.template sync<DeviceType>();
@@ -3191,15 +3191,15 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
       for (int d = 0; d < 3; d++) fi_tmp[d] = CEhb2 * dcos_theta_di[d];
       for (int d = 0; d < 3; d++) fj_tmp[d] = CEhb2 * dcos_theta_dj[d];
       for (int d = 0; d < 3; d++) fk_tmp[d] = CEhb2 * dcos_theta_dk[d];
-      
+
       // dr terms
       for (int d = 0; d < 3; d++) fi_tmp[d] -= CEhb3/rik * delik[d];
       for (int d = 0; d < 3; d++) fk_tmp[d] += CEhb3/rik * delik[d];
-      
+
       for (int d = 0; d < 3; d++) fitmp[d] -= fi_tmp[d];
       for (int d = 0; d < 3; d++) a_f(j,d) -= fj_tmp[d];
       for (int d = 0; d < 3; d++) a_f(k,d) -= fk_tmp[d];
-      
+
       for (int d = 0; d < 3; d++) delki[d] = -1.0 * delik[d];
       for (int d = 0; d < 3; d++) delji[d] = -1.0 * delij[d];
       if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,e_hb);
@@ -4153,9 +4153,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
     j &= NEIGHMASK;
     if (j < i) continue;
     const int j_index = jj - j_start;
-  
+
     double bo_tmp = d_BO(i,j_index);
-  
+
     if (bo_tmp >= 0.10 ) { // Why is this a hardcoded value?
       k_tmpid.view<DeviceType>()(i,nj) = j;
       k_tmpbo.view<DeviceType>()(i,nj) = bo_tmp;

@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
@@ -468,7 +468,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
 #if defined(_OPENMP)
 #pragma omp barrier
 #endif
-    
+
     /* Corrected Bond Order calculations */
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
@@ -496,23 +496,23 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
             bo_ij->C1dbo = 1.000000;
             bo_ij->C2dbo = 0.000000;
             bo_ij->C3dbo = 0.000000;
-        
+
             bo_ij->C1dbopi = 1.000000;
             bo_ij->C2dbopi = 0.000000;
             bo_ij->C3dbopi = 0.000000;
             bo_ij->C4dbopi = 0.000000;
-        
+
             bo_ij->C1dbopi2 = 1.000000;
             bo_ij->C2dbopi2 = 0.000000;
             bo_ij->C3dbopi2 = 0.000000;
             bo_ij->C4dbopi2 = 0.000000;
-        
+
           }
           else {
             val_j = system->reax_param.sbp[type_j].valency;
             Deltap_j = workspace->Deltap[j];
             Deltap_boc_j = workspace->Deltap_boc[j];
-        
+
             /* on page 1 */
             if( twbp->ovc >= 0.001 ) {
               /* Correction for overcoordination */
@@ -520,12 +520,12 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
               exp_p2i = exp( -p_boc2 * Deltap_i );
               exp_p1j = exp( -p_boc1 * Deltap_j );
               exp_p2j = exp( -p_boc2 * Deltap_j );
-        
+
               f2 = exp_p1i + exp_p1j;
               f3 = -1.0 / p_boc2 * log( 0.5 * ( exp_p2i  + exp_p2j ) );
               f1 = 0.5 * ( ( val_i + f2 )/( val_i + f2 + f3 ) +
                            ( val_j + f2 )/( val_j + f2 + f3 ) );
-        
+
               /* Now come the derivates */
               /* Bond Order pages 5-7, derivative of f1 */
               temp = f2 + f3;
@@ -535,7 +535,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
                                     1.0 / SQR( u1_ji ));
               Cf1B_ij = -0.5 * (( u1_ij - f3 ) / SQR( u1_ij ) +
                                 ( u1_ji - f3 ) / SQR( u1_ji ));
-        
+
               Cf1_ij = 0.50 * ( -p_boc1 * exp_p1i / u1_ij -
                                 ((val_i+f2) / SQR(u1_ij)) *
                                 ( -p_boc1 * exp_p1i +
@@ -544,8 +544,8 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
                                 ((val_j+f2) / SQR(u1_ji)) *
                                 ( -p_boc1 * exp_p1i +
                                   exp_p2i / ( exp_p2i + exp_p2j ) ));
-        
-        
+
+
               Cf1_ji = -Cf1A_ij * p_boc1 * exp_p1j +
                 Cf1B_ij * exp_p2j / ( exp_p2i + exp_p2j );
             }
@@ -561,11 +561,11 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
                             Deltap_boc_i) * twbp->p_boc3 + twbp->p_boc5);
               exp_f5 =exp(-(twbp->p_boc4 * SQR( bo_ij->BO ) -
                             Deltap_boc_j) * twbp->p_boc3 + twbp->p_boc5);
-        
+
               f4 = 1. / (1. + exp_f4);
               f5 = 1. / (1. + exp_f5);
               f4f5 = f4 * f5;
-        
+
               /* Bond Order pages 8-9, derivative of f4 and f5 */
               Cf45_ij = -f4 * exp_f4;
               Cf45_ji = -f5 * exp_f5;
@@ -574,7 +574,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
               f4 = f5 = f4f5 = 1.0;
               Cf45_ij = Cf45_ji = 0.0;
             }
-        
+
             /* Bond Order page 10, derivative of total bond order */
             A0_ij = f1 * f4f5;
             A1_ij = -2 * twbp->p_boc3 * twbp->p_boc4 * bo_ij->BO *
@@ -583,28 +583,28 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
             A2_ji = Cf1_ji / f1 + twbp->p_boc3 * Cf45_ji;
             A3_ij = A2_ij + Cf1_ij / f1;
             A3_ji = A2_ji + Cf1_ji / f1;
-        
+
             /* find corrected bond orders and their derivative coef */
             bo_ij->BO    = bo_ij->BO    * A0_ij;
             bo_ij->BO_pi = bo_ij->BO_pi * A0_ij *f1;
             bo_ij->BO_pi2= bo_ij->BO_pi2* A0_ij *f1;
             bo_ij->BO_s  = bo_ij->BO - ( bo_ij->BO_pi + bo_ij->BO_pi2 );
-        
+
             bo_ij->C1dbo = A0_ij + bo_ij->BO * A1_ij;
             bo_ij->C2dbo = bo_ij->BO * A2_ij;
             bo_ij->C3dbo = bo_ij->BO * A2_ji;
-        
+
             bo_ij->C1dbopi = f1*f1*f4*f5;
             bo_ij->C2dbopi = bo_ij->BO_pi * A1_ij;
             bo_ij->C3dbopi = bo_ij->BO_pi * A3_ij;
             bo_ij->C4dbopi = bo_ij->BO_pi * A3_ji;
-        
+
             bo_ij->C1dbopi2 = f1*f1*f4*f5;
             bo_ij->C2dbopi2 = bo_ij->BO_pi2 * A1_ij;
             bo_ij->C3dbopi2 = bo_ij->BO_pi2 * A3_ij;
             bo_ij->C4dbopi2 = bo_ij->BO_pi2 * A3_ji;
           }
-        
+
           /* neglect bonds that are < 1e-10 */
           if( bo_ij->BO < 1e-10 )
             bo_ij->BO = 0.0;
@@ -614,7 +614,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
             bo_ij->BO_pi = 0.0;
           if( bo_ij->BO_pi2 < 1e-10 )
             bo_ij->BO_pi2 = 0.0;
-        
+
           workspace->total_bond_order[i] += bo_ij->BO; //now keeps total_BO
         }
         // else {
@@ -626,7 +626,7 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
         //   bo_ij->BO_s = bo_ji->BO_s;
         //   bo_ij->BO_pi = bo_ji->BO_pi;
         //   bo_ij->BO_pi2 = bo_ji->BO_pi2;
-        
+
         //   workspace->total_bond_order[i] += bo_ij->BO;// now keeps total_BO
         // }
       }
@@ -659,14 +659,14 @@ void BOOMP( reax_system *system, control_params *control, simulation_data *data,
           /* We only need to update bond orders from bo_ji
              everything else is set in uncorrected_bo calculations */
           sym_index = bonds->select.bond_list[pj].sym_index;
-        
+
           bo_ij = &( bonds->select.bond_list[pj].bo_data );
           bo_ji = &(bonds->select.bond_list[ sym_index ].bo_data);
           bo_ij->BO = bo_ji->BO;
           bo_ij->BO_s = bo_ji->BO_s;
           bo_ij->BO_pi = bo_ji->BO_pi;
           bo_ij->BO_pi2 = bo_ji->BO_pi2;
-        
+
           workspace->total_bond_order[i] += bo_ij->BO;// now keeps total_BO
         }
       }

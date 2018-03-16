@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
@@ -73,7 +73,7 @@ void BondsOMP( reax_system *system, control_params *control,
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;
   bond_order_data *bo_ij;
-  
+
 #if defined(_OPENMP)
   int tid = omp_get_thread_num();
 #else
@@ -151,22 +151,22 @@ void BondsOMP( reax_system *system, control_params *control,
           exphub1 = exp(-gp3 * (workspace->total_bond_order[j]-bo_ij->BO));
           exphuov = exp(gp4 * (workspace->Delta[i] + workspace->Delta[j]));
           hulpov = 1.0 / (1.0 + 25.0 * exphuov);
-        
+
           estriph = gp10 * exphu * hulpov * (exphua1 + exphub1);
           total_Ebond += estriph;
-        
+
           decobdbo = gp10 * exphu * hulpov * (exphua1 + exphub1) *
             ( gp3 - 2.0 * gp7 * (bo_ij->BO-2.50) );
           decobdboua = -gp10 * exphu * hulpov *
             (gp3*exphua1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
           decobdboub = -gp10 * exphu * hulpov *
             (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
-        
+
           /* tally into per-atom energy */
           if (system->pair_ptr->evflag)
             pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms, 1,
                                               estriph, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
-        
+
           bo_ij->Cdbo += decobdbo;
           workspace->CdDelta[i] += decobdboua;
           workspace->CdDeltaReduction[reductionOffset+j] += decobdboub;

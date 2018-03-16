@@ -42,9 +42,9 @@ using namespace voro;
 /* ---------------------------------------------------------------------- */
 
 ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), con_mono(NULL), con_poly(NULL), 
-  radstr(NULL), voro(NULL), edge(NULL), sendvector(NULL), 
-  rfield(NULL), tags(NULL), occvec(NULL), sendocc(NULL), 
+  Compute(lmp, narg, arg), con_mono(NULL), con_poly(NULL),
+  radstr(NULL), voro(NULL), edge(NULL), sendvector(NULL),
+  rfield(NULL), tags(NULL), occvec(NULL), sendocc(NULL),
   lroot(NULL), lnext(NULL), faces(NULL)
 {
   int sgroup;
@@ -608,7 +608,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
           nfaces++;
         }
     }
-      
+
 
   } else if (i < atom->nlocal) voro[i][0] = voro[i][1] = 0.0;
 }

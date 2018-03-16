@@ -13,9 +13,9 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Paul Crozier (SNL)
-     The force-shifted sections were provided by Robert Meissner 
+     The force-shifted sections were provided by Robert Meissner
      and Lucio Colombi Ciacchi of Bremen University, Bremen, Germany,
-     with additional assistance from Robert A. Latour, Clemson University 
+     with additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -279,7 +279,7 @@ void DihedralCharmmfsw::compute(int eflag, int vflag)
       r2inv = 1.0/rsq;
       r6inv = r2inv*r2inv*r2inv;
 
-      // modifying coul and LJ force and energies to apply 
+      // modifying coul and LJ force and energies to apply
       //   force_shift and force_switch as in CHARMM pairwise
       // LJ interactions between 1-4 atoms should usually be
       //   for r < cut_inner, so switching not applied
@@ -287,7 +287,7 @@ void DihedralCharmmfsw::compute(int eflag, int vflag)
       r = sqrt(rsq);
       if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
       else if (dihedflag) forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
-      else forcecoul = qqrd2e * q[i1]*q[i4]*(sqrt(r2inv) - 
+      else forcecoul = qqrd2e * q[i1]*q[i4]*(sqrt(r2inv) -
                                              r*cut_coulinv14*cut_coulinv14);
       forcelj = r6inv * (lj14_1[itype][jtype]*r6inv - lj14_2[itype][jtype]);
       fpair = weight[type] * (forcelj+forcecoul)*r2inv;
@@ -295,11 +295,11 @@ void DihedralCharmmfsw::compute(int eflag, int vflag)
       if (eflag) {
         if (dihedflag) ecoul = weight[type] * forcecoul;
         else ecoul = weight[type] * qqrd2e * q[i1]*q[i4] *
-               (sqrt(r2inv) + r*cut_coulinv14*cut_coulinv14 - 
+               (sqrt(r2inv) + r*cut_coulinv14*cut_coulinv14 -
                 2.0*cut_coulinv14);
-        evdwl14_12 = r6inv*lj14_3[itype][jtype]*r6inv - 
+        evdwl14_12 = r6inv*lj14_3[itype][jtype]*r6inv -
           lj14_3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-        evdwl14_6 = -lj14_4[itype][jtype]*r6inv + 
+        evdwl14_6 = -lj14_4[itype][jtype]*r6inv +
           lj14_4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
         evdwl = evdwl14_12 + evdwl14_6;
         evdwl *= weight[type];
@@ -429,18 +429,18 @@ void DihedralCharmmfsw::init_style()
   double *p_cutljinner = (double *) force->pair->extract("cut_lj_inner",itmp);
   double *p_cutlj = (double *) force->pair->extract("cut_lj",itmp);
   double *p_cutcoul = (double *) force->pair->extract("cut_coul",itmp);
-  
-  if (p_cutcoul == NULL || p_cutljinner == NULL || 
+
+  if (p_cutcoul == NULL || p_cutljinner == NULL ||
       p_cutlj == NULL || p_dihedflag == NULL)
     error->all(FLERR,"Dihedral charmmfsw is incompatible with Pair style");
-  
+
   dihedflag = *p_dihedflag;
   cut_coul14 = *p_cutcoul;
   cut_lj_inner14 = *p_cutljinner;
   cut_lj14 = *p_cutlj;
 
   cut_coulinv14 = 1/cut_coul14;
-  cut_lj_inner3inv = (1/cut_lj_inner14) * (1/cut_lj_inner14) * 
+  cut_lj_inner3inv = (1/cut_lj_inner14) * (1/cut_lj_inner14) *
     (1/cut_lj_inner14);
   cut_lj_inner6inv = cut_lj_inner3inv * cut_lj_inner3inv;
   cut_lj3inv = (1/cut_lj14) * (1/cut_lj14) * (1/cut_lj14);

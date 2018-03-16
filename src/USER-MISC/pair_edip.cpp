@@ -800,7 +800,7 @@ void PairEDIP::coeff(int narg, char **arg)
 
   if (nelements != 1)
     error->all(FLERR,"Pair style edip only supports single element potentials");
-  
+
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);

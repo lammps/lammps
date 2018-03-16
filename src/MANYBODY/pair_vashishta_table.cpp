@@ -200,7 +200,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishtaTable::twobody_table(const Param &param, double rsq, 
+void PairVashishtaTable::twobody_table(const Param &param, double rsq,
                                        double &fforce, int eflag, double &eng)
 {
   // use analytic form if rsq is inside inner cutoff
@@ -212,15 +212,15 @@ void PairVashishtaTable::twobody_table(const Param &param, double rsq,
   }
 
   // double -> int will only keep the 0.xxxx part
-  
+
   const int tableIndex = (rsq - tabinnersq)*oneOverDeltaR2;
   const double fraction = (rsq - tabinnersq)*oneOverDeltaR2 - tableIndex;
-  
+
   // force/energy are linearly interpolated between two adjacent values
 
   double force0 = forceTable[param.ielement][param.jelement][tableIndex];
   double force1 = forceTable[param.ielement][param.jelement][tableIndex+1];
-  fforce = (1.0 - fraction)*force0 + fraction*force1; 
+  fforce = (1.0 - fraction)*force0 + fraction*force1;
 
   if (evflag) {
     double energy0 = potentialTable[param.ielement][param.jelement][tableIndex];

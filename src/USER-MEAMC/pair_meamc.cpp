@@ -121,7 +121,7 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   n = 0;
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
-  
+
   meam_inst->meam_dens_setup(atom->nmax, nall, n);
 
   double **x = atom->x;

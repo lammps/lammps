@@ -775,7 +775,7 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 
   // extend size of per-atom arrays if necessary
   // part2grid needs to be allocated
- 
+
   if (atom->nmax > nmax || part2grid == NULL) {
     memory->destroy(part2grid);
     nmax = atom->nmax;

@@ -292,7 +292,7 @@ void CommKokkos::reverse_comm_device()
   MPI_Request request;
   AtomVecKokkos *avec = (AtomVecKokkos *) atom->avec;
   double *buf;
-  
+
   // exchange data with another proc
   // if other proc is self, just copy
   // if comm_f_only set, exchange or copy directly from f, don't pack
@@ -309,7 +309,7 @@ void CommKokkos::reverse_comm_device()
         if (size_reverse_send[iswap]) {
           buf = atomKK->k_f.view<DeviceType>().ptr_on_device() +
             firstrecv[iswap]*atomKK->k_f.view<DeviceType>().dimension_1();
-  
+
           MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
                    recvproc[iswap],0,world);
         }
@@ -718,7 +718,7 @@ void CommKokkos::borders()
       exchange_comm_classic = true;
     }
   }
-  
+
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) borders_device<LMPHostType>();
     else borders_device<LMPDeviceType>();

@@ -345,7 +345,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
       sprintf(result,"%.15g",PyFloat_AsDouble(pValue));
     } else if (otype == STRING) {
       char *pystr = PY_STRING_AS_STRING(pValue);
-      if (pfuncs[ifunc].longstr) 
+      if (pfuncs[ifunc].longstr)
         strncpy(pfuncs[ifunc].longstr,pystr,pfuncs[ifunc].length_longstr);
       else strncpy(result,pystr,VALUELENGTH-1);
     }
@@ -478,7 +478,7 @@ int PythonImpl::create_entry(char *name)
   else error->all(FLERR,"Invalid python command");
 
   if (length_longstr) {
-    if (pfuncs[ifunc].otype != STRING) 
+    if (pfuncs[ifunc].otype != STRING)
       error->all(FLERR,"Python command length keyword "
                  "cannot be used unless output is a string");
     pfuncs[ifunc].length_longstr = length_longstr;

@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NTopoImproperPartial::NTopoImproperPartial(LAMMPS *lmp) : 
+NTopoImproperPartial::NTopoImproperPartial(LAMMPS *lmp) :
   NTopo(lmp)
 {
   allocate_improper();

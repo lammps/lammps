@@ -219,7 +219,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
 
   // create instance of Irregular class
   irregular = new Irregular(lmp);
-  
+
   // yet, we have not assigned a socket
   socketflag = 0;
 }

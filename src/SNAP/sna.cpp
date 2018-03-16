@@ -118,7 +118,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in) : Pointers(lmp)
 {
   wself = 1.0;
-  
+
   use_shared_arrays = use_shared_arrays_in;
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
@@ -148,7 +148,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
     for(int j = 0; j <= twojmax; j++)
       bzero[j] = www*(j+1);
   }
-  
+
 #ifdef TIMING_INFO
   timers = new double[20];
   for(int i = 0; i < 20; i++) timers[i] = 0;
@@ -158,7 +158,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
 
   build_indexlist();
 
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1524,7 +1524,7 @@ void SNA::create_twojmax_arrays()
     memory->create(bzero, jdim,"sna:bzero");
   else
     bzero = NULL;
-  
+
 
   if(!use_shared_arrays) {
     memory->create(uarraytot_r, jdim, jdim, jdim,

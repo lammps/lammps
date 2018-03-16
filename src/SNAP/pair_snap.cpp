@@ -262,7 +262,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       fij[2] = 0.0;
 
       // linear contributions
-      
+
       for (int k = 1; k <= ncoeff; k++) {
         double bgb = coeffi[k];
         fij[0] += bgb*snaptr->dbvec[k-1][0];
@@ -271,7 +271,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       }
 
       // quadratic contributions
-      
+
       if (quadraticflag) {
         int k = ncoeff+1;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
@@ -302,7 +302,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      
+
       if (vflag)
         ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
                      fij[0],fij[1],fij[2],
@@ -321,7 +321,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
         snaptr->compute_bi();
         snaptr->copy_bi2bvec();
       }
-      
+
       // E = beta.B + 0.5*B^t.alpha.B
       // coeff[k] = beta[k-1] or
       // coeff[k] = alpha_ii or
@@ -632,7 +632,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
         }
 
       // quadratic contributions
-        
+
       if (quadraticflag) {
         int k = ncoeff+1;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
@@ -694,12 +694,12 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
         // coeff[k] = alpha_ij = alpha_ji, j != i
 
         // linear contributions
-        
+
         for (int k = 1; k <= ncoeff; k++)
           evdwl += coeffi[k]*sna[tid]->bvec[k-1];
 
         // quadratic contributions
-        
+
         if (quadraticflag) {
           int k = ncoeff+1;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
@@ -710,7 +710,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
             }
           }
         }
-        
+
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -1465,8 +1465,8 @@ void PairSNAP::coeff(int narg, char **arg)
 
     // ncoeffall should be (ncoeff+2)*(ncoeff+1)/2
     // so, ncoeff = floor(sqrt(2*ncoeffall))-1
-    
-    ncoeff = sqrt(2*ncoeffall)-1; 
+
+    ncoeff = sqrt(2*ncoeffall)-1;
     ncoeffq = (ncoeff*(ncoeff+1))/2;
     int ntmp = 1+ncoeff+ncoeffq;
     if (ntmp != ncoeffall) {
@@ -1632,7 +1632,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   int nelemfile = atoi(words[0]);
   ncoeffall = atoi(words[1]);
-  
+
   // Set up element lists
 
   memory->create(radelem,nelements,"pair:radelem");
@@ -1748,7 +1748,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
-  
+
   // open SNAP parameter file on proc 0
 
   FILE *fpparam;

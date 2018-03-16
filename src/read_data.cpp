@@ -757,7 +757,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // init per-atom fix/compute/variable values for created atoms
-  
+
   atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 
   // assign atoms added by this data file to specified group
@@ -886,7 +886,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // restore old styles, when reading with nocoeff flag given
-  
+
   if (coeffflag == 0) {
     if (force->pair) delete force->pair;
     force->pair = saved_pair;
@@ -1650,7 +1650,7 @@ void ReadData::bodies(int firstpass)
           m += strlen(&buffer[m]);
           onebody++;
         }
-        if (nword > ninteger) 
+        if (nword > ninteger)
           error->one(FLERR,"Too many values in body lines in data file");
 
         nword = 0;
@@ -1664,7 +1664,7 @@ void ReadData::bodies(int firstpass)
           m += strlen(&buffer[m]);
           onebody++;
         }
-        if (nword > ndouble) 
+        if (nword > ndouble)
           error->one(FLERR,"Too many values in body lines in data file");
 
         if (onebody+1 > MAXBODY)

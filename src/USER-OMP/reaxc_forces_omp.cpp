@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
@@ -407,9 +407,9 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 //             btop_i++;
 //             Set_End_Index(i, btop_i, bonds);
 //        }
-        
+
 //      }
-        
+
         // Trying to minimize time spent in critical section by moving initial part of BOp()
         // outside of critical section.
 
@@ -423,26 +423,26 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
           BO_s = (1.0 + bo_cut) * exp( C12 );
         }
         else BO_s = C12 = 0.0;
-        
+
         if( sbp_i->r_pi > 0.0 && sbp_j->r_pi > 0.0 ) {
           C34 = twbp->p_bo3 * pow( nbr_pj->d / twbp->r_p, twbp->p_bo4 );
           BO_pi = exp( C34 );
         }
         else BO_pi = C34 = 0.0;
-        
+
         if( sbp_i->r_pi_pi > 0.0 && sbp_j->r_pi_pi > 0.0 ) {
           C56 = twbp->p_bo5 * pow( nbr_pj->d / twbp->r_pp, twbp->p_bo6 );
           BO_pi2= exp( C56 );
         }
         else BO_pi2 = C56 = 0.0;
-        
+
         /* Initially BO values are the uncorrected ones, page 1 */
         BO = BO_s + BO_pi + BO_pi2;
         // End top portion of BOp()
-        
+
         if(BO >= bo_cut) {
           int btop_j;
-        
+
           // Update indices in critical section
 #if defined(_OPENMP)
 #pragma omp critical
@@ -453,28 +453,28 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
             Set_End_Index( j, btop_j+1, bonds );
             Set_End_Index( i, btop_i+1, bonds );
           } // omp critical
-        
+
           // Finish remaining BOp() work
           BOp_OMP(workspace, bonds, bo_cut,
                   i , btop_i, nbr_pj, sbp_i, sbp_j, twbp, btop_j,
                   C12, C34, C56, BO, BO_s, BO_pi, BO_pi2);
-        
+
           bond_data * ibond = &(bonds->select.bond_list[btop_i]);
           bond_order_data * bo_ij = &(ibond->bo_data);
-        
+
           bond_data * jbond = &(bonds->select.bond_list[btop_j]);
           bond_order_data * bo_ji = &(jbond->bo_data);
-        
+
           workspace->total_bond_order[i]      += bo_ij->BO;
           tmp_bond_order[reductionOffset + j] += bo_ji->BO;
-        
+
           rvec_Add(workspace->dDeltap_self[i],      bo_ij->dBOp);
           rvec_Add(tmp_ddelta[reductionOffset + j], bo_ji->dBOp);
-        
+
           btop_i++;
           num_bonds++;
         } // if(BO>=bo_cut)
-        
+
       } // if(cutoff)
 
     } // for(pj)
@@ -518,7 +518,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
        if (ihb == 1 || ihb == 2) {
          start_i = Start_Index(i, far_nbrs);
          end_i   = End_Index(i, far_nbrs);
-        
+
          for (pj = start_i; pj < end_i; ++pj) {
            nbr_pj = &( far_nbrs->select.far_nbr_list[pj] );
            j = nbr_pj->nbr;
@@ -531,10 +531,10 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
            if (nbr_pj->d <= control->hbond_cut) {
              int iflag = 0;
              int jflag = 0;
-        
+
              if(ihb==1 && jhb==2) iflag = 1;
              else if(j<system->n && ihb == 2 && jhb == 1) jflag = 1;
-        
+
              if(iflag || jflag) {
                  if(iflag) {
                    ihb_top = End_Index(atom_i->Hindex, hbonds);
@@ -553,7 +553,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
                  hbonds->select.hbond_list[jhb_top].scl = -1;
                  hbonds->select.hbond_list[jhb_top].ptr = nbr_pj;
                }
-        
+
                num_hbonds++;
              } // if(iflag || jflag)
 

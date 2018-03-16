@@ -368,7 +368,7 @@ struct AtomVecDPDKokkos_PackCommSelf {
       _dpdTheta(dpdTheta.view<DeviceType>()),
       _uCond(uCond.view<DeviceType>()),
       _uMech(uMech.view<DeviceType>()),
-      _uChem(uChem.view<DeviceType>()),      
+      _uChem(uChem.view<DeviceType>()),
       _nfirst(nfirst),_list(list.view<DeviceType>()),_iswap(iswap),
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
@@ -397,7 +397,7 @@ struct AtomVecDPDKokkos_PackCommSelf {
       _dpdTheta(i+_nfirst) = _dpdTheta(j);
       _uCond(i+_nfirst) = _uCond(j);
       _uMech(i+_nfirst) = _uMech(j);
-      _uChem(i+_nfirst) = _uChem(j); 
+      _uChem(i+_nfirst) = _uChem(j);
   }
 };
 
@@ -656,7 +656,7 @@ int AtomVecDPDKokkos::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = h_dpdTheta(j);
         buf[m++] = h_uCond(j);
         buf[m++] = h_uMech(j);
-        buf[m++] = h_uChem(j); 
+        buf[m++] = h_uChem(j);
       }
     }
   }

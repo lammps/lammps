@@ -207,7 +207,7 @@ void ComputeCentroAtom::compute_peratom()
       // check whether to include local crystal symmetry axes
 
       if (!axes_flag) {
-        
+
         // if not nnn neighbors, centro = 0.0
 
         if (n < nnn) {
@@ -234,9 +234,9 @@ void ComputeCentroAtom::compute_peratom()
 
           }
         }
-        
+
       } else {
-        
+
         // calculate local crystal symmetry axes
 
         // rsq1, rsq2 are two smallest values of R^2
@@ -248,7 +248,7 @@ void ComputeCentroAtom::compute_peratom()
         double* r1 = &array_atom[i][1];
         double* r2 = &array_atom[i][4];
         double* r3 = &array_atom[i][7];
-        
+
         if (n < nnn) {
           centro[i] = 0.0;
           MathExtra::zero3(r1);
@@ -272,7 +272,7 @@ void ComputeCentroAtom::compute_peratom()
             delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
             double rsq = delx*delx + dely*dely + delz*delz;
             pairs[n++] = rsq;
-        
+
             if (rsq < rsq2) {
               if (rsq < rsq1) {
                 rsq2 = rsq1;

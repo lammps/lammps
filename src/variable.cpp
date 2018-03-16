@@ -590,7 +590,7 @@ int Variable::next(int narg, char **arg)
 
   int istyle = style[find(arg[0])];
   if (istyle == STRING || istyle == EQUAL || istyle == WORLD ||
-      istyle == GETENV || istyle == ATOM || istyle == VECTOR || 
+      istyle == GETENV || istyle == ATOM || istyle == VECTOR ||
       istyle == FORMAT || istyle == PYTHON || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
@@ -890,7 +890,7 @@ char *Variable::retrieve(char *name)
     str = data[ivar][0];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
              style[ivar] == VECTOR) return NULL;
-  
+
   eval_in_progress[ivar] = 0;
 
   return str;
@@ -1279,7 +1279,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           print_var_error(FLERR,"Variable evaluation before "
                           "simulation box is defined",ivar);
 
-        // uppercase used to force access of 
+        // uppercase used to force access of
         // global vector vs global scalar, and global array vs global vector
 
         int lowercase = 1;
@@ -1396,7 +1396,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           } else argstack[nargstack++] = value1;
 
         // c_ID = vector from global vector, lowercase or uppercase
-        
+
         } else if (nbracket == 0 && compute->vector_flag) {
 
           if (tree == NULL)
@@ -1405,7 +1405,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (treetype == ATOM)
             print_var_error(FLERR,"Compute global vector in "
                             "atom-style variable formula",ivar);
-          if (compute->size_vector == 0) 
+          if (compute->size_vector == 0)
             print_var_error(FLERR,"Variable formula compute "
                             "vector is zero length",ivar);
           if (update->whichflag == 0) {
@@ -1428,7 +1428,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           treestack[ntreestack++] = newtree;
 
         // c_ID[i] = vector from global array, lowercase or uppercase
-        
+
         } else if (nbracket == 1 && compute->array_flag) {
 
           if (tree == NULL)
@@ -1437,7 +1437,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (treetype == ATOM)
             print_var_error(FLERR,"Compute global vector in "
                             "atom-style variable formula",ivar);
-          if (compute->size_array_rows == 0) 
+          if (compute->size_array_rows == 0)
             print_var_error(FLERR,"Variable formula compute array "
                             "is zero length",ivar);
           if (update->whichflag == 0) {
@@ -1576,7 +1576,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (domain->box_exist == 0)
           print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
 
-        // uppercase used to force access of 
+        // uppercase used to force access of
         // global vector vs global scalar, and global array vs global vector
 
         int lowercase = 1;
@@ -1683,7 +1683,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Fix global vector in ""equal-style variable formula",ivar);
           if (treetype == ATOM)
             print_var_error(FLERR,"Fix global vector in ""atom-style variable formula",ivar);
-          if (fix->size_vector == 0) 
+          if (fix->size_vector == 0)
             print_var_error(FLERR,"Variable formula fix vector is zero length",ivar);
 
           int nvec = fix->size_vector;
@@ -1863,7 +1863,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         // v_name = scalar from non atom/atomfile & non vector-style variable
         // access value via retrieve()
 
-        } else if (nbracket == 0 && style[ivar] != ATOM && 
+        } else if (nbracket == 0 && style[ivar] != ATOM &&
                    style[ivar] != ATOMFILE && style[ivar] != VECTOR) {
 
           char *var = retrieve(word+2);
@@ -2216,7 +2216,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (value1 != 0.0 || value2 != 0.0) argstack[nargstack++] = 1.0;
             else argstack[nargstack++] = 0.0;
           } else if (opprevious == XOR) {
-            if ((value1 == 0.0 && value2 != 0.0) || 
+            if ((value1 == 0.0 && value2 != 0.0) ||
                 (value1 != 0.0 && value2 == 0.0)) argstack[nargstack++] = 1.0;
             else argstack[nargstack++] = 0.0;
           }
@@ -2862,7 +2862,7 @@ double Variable::eval_tree(Tree *tree, int i)
     else return 0.0;
   }
   if (tree->type == XOR) {
-    if ((eval_tree(tree->first,i) == 0.0 && eval_tree(tree->second,i) != 0.0) 
+    if ((eval_tree(tree->first,i) == 0.0 && eval_tree(tree->second,i) != 0.0)
         ||
         (eval_tree(tree->first,i) != 0.0 && eval_tree(tree->second,i) == 0.0))
       return 1.0;
@@ -3128,7 +3128,7 @@ int Variable::size_tree_vector(Tree *tree)
   if (tree->second) nsize = compare_tree_vector(nsize,
                                                 size_tree_vector(tree->second));
   if (tree->nextra) {
-    for (int i = 0; i < tree->nextra; i++) 
+    for (int i = 0; i < tree->nextra; i++)
       nsize = compare_tree_vector(nsize,size_tree_vector(tree->extra[i]));
   }
   return nsize;
@@ -4037,15 +4037,15 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         *ptr1 = '\0';
       } else index = 0;
 
-      if (index) 
+      if (index)
         print_var_error(FLERR,"Invalid special function in variable formula",ivar);
       ivar = find(&args[0][2]);
-      if (ivar < 0) 
+      if (ivar < 0)
         print_var_error(FLERR,"Invalid special function in variable formula",ivar);
-      if (style[ivar] != VECTOR) 
+      if (style[ivar] != VECTOR)
         print_var_error(FLERR,"Mis-matched special function variable "
                         "in variable formula",ivar);
-      if (eval_in_progress[ivar]) 
+      if (eval_in_progress[ivar])
         print_var_error(FLERR,"Variable has circular dependency",ivar);
 
       double *vec;

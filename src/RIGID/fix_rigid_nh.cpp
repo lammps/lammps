@@ -47,11 +47,11 @@ enum{ISO,ANISO,TRICLINIC};   // same as in FixRigid
 /* ---------------------------------------------------------------------- */
 
 FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg), conjqm(NULL), w(NULL), 
-  wdti1(NULL), wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL), 
-  eta_t(NULL), eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL), 
-  f_eta_t(NULL), f_eta_r(NULL), q_b(NULL), eta_b(NULL), 
-  eta_dot_b(NULL), f_eta_b(NULL), rfix(NULL), id_temp(NULL), 
+  FixRigid(lmp, narg, arg), conjqm(NULL), w(NULL),
+  wdti1(NULL), wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL),
+  eta_t(NULL), eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL),
+  f_eta_t(NULL), f_eta_r(NULL), q_b(NULL), eta_b(NULL),
+  eta_dot_b(NULL), f_eta_b(NULL), rfix(NULL), id_temp(NULL),
   id_press(NULL), temperature(NULL), pressure(NULL)
 {
   // error checks: could be moved up to FixRigid

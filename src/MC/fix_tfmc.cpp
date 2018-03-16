@@ -235,7 +235,7 @@ void FixTFMC::initial_integrate(int vflag)
       xcm_dall[1] /= masstotal;
       xcm_dall[2] /= masstotal;
     } else xcm_dall[0] = xcm_dall[1] = xcm_dall[2] = 0.0;
-    
+
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (xflag) x[i][0] -= xcm_dall[0];

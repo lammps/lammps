@@ -1025,12 +1025,12 @@ int DumpCustom::count()
       } else if (thresh_op[ithresh] == XOR) {
         if (lastflag) {
           for (i = 0; i < nlocal; i++, ptr += nstride)
-            if (choose[i] && (*ptr == 0.0 && values[i] == 0.0) || 
+            if (choose[i] && (*ptr == 0.0 && values[i] == 0.0) ||
                 (*ptr != 0.0 && values[i] != 0.0))
               choose[i] = 0;
         } else {
           for (i = 0; i < nlocal; i++, ptr += nstride)
-            if (choose[i] && (*ptr == 0.0 && value == 0.0) || 
+            if (choose[i] && (*ptr == 0.0 && value == 0.0) ||
                 (*ptr != 0.0 && value != 0.0))
               choose[i] = 0;
         }
@@ -1704,7 +1704,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     memory->grow(thresh_op,(nthresh+1),"dump:thresh_op");
     memory->grow(thresh_value,(nthresh+1),"dump:thresh_value");
     memory->grow(thresh_last,(nthresh+1),"dump:thresh_last");
-    
+
     // set attribute type of threshold
     // customize by adding to if statement
 
@@ -1949,7 +1949,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_value[nthresh] = force->numeric(FLERR,arg[3]);
       thresh_last[nthresh] = -1;
     } else {
-      thresh_fix = (FixStore **) 
+      thresh_fix = (FixStore **)
         memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),
                          "dump:thresh_fix");
       thresh_fixID = (char **)

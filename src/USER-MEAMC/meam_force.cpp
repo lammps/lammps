@@ -351,12 +351,12 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
             if (!iszero(tsq_ave[j][2]))
               a3j = rhoa0i / tsq_ave[j][2];
 
-            dt1ds1 = a1i * (t1mj - t1i * pow(t1mj, 2));
-            dt1ds2 = a1j * (t1mi - t1j * pow(t1mi, 2));
-            dt2ds1 = a2i * (t2mj - t2i * pow(t2mj, 2));
-            dt2ds2 = a2j * (t2mi - t2j * pow(t2mi, 2));
-            dt3ds1 = a3i * (t3mj - t3i * pow(t3mj, 2));
-            dt3ds2 = a3j * (t3mi - t3j * pow(t3mi, 2));
+            dt1ds1 = a1i * (t1mj - t1i * MathSpecial::square(t1mj));
+            dt1ds2 = a1j * (t1mi - t1j * MathSpecial::square(t1mi));
+            dt2ds1 = a2i * (t2mj - t2i * MathSpecial::square(t2mj));
+            dt2ds2 = a2j * (t2mi - t2j * MathSpecial::square(t2mi));
+            dt3ds1 = a3i * (t3mj - t3i * MathSpecial::square(t3mj));
+            dt3ds2 = a3j * (t3mi - t3j * MathSpecial::square(t3mi));
 
           } else if (this->ialloy == 2) {
 

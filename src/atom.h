@@ -98,7 +98,7 @@ class Atom : protected Pointers {
 
   double **cc, **cc_flux;        // cc = chemical concentration
   double *edpd_temp,*edpd_flux;  // temperature and heat flux
-  double *edpd_cv;               // heat capacity 
+  double *edpd_cv;               // heat capacity
   int cc_species;
 
   // molecular info
@@ -238,7 +238,7 @@ class Atom : protected Pointers {
   void data_bonus(int, char *, class AtomVec *, tagint);
   void data_bodies(int, char *, class AtomVecBody *, tagint);
   void data_fix_compute_variable(int, int);
-  
+
   virtual void allocate_type_arrays();
   void set_mass(const char *, int, const char *, int);
   void set_mass(const char *, int, int, double);

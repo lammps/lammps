@@ -342,8 +342,8 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   const F_FLOAT dphi3 = 3.0*phi - d_phi3[type];
 
   if (eflag) edihedral = d_k1[type]*(1.0 - cos(dphi1)) +
-                 	 d_k2[type]*(1.0 - cos(dphi2)) +
-                 	 d_k3[type]*(1.0 - cos(dphi3));
+                     d_k2[type]*(1.0 - cos(dphi2)) +
+                     d_k3[type]*(1.0 - cos(dphi3));
 
   const F_FLOAT de_dihedral = d_k1[type]*sin(dphi1) + 2.0*d_k2[type]*sin(dphi2) +
       3.0*d_k3[type]*sin(dphi3);
@@ -430,11 +430,11 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   dthetadr[1][1][2] = sc2 * ((t2 * vb2z) + (vb3z * r12c2));
 
   dthetadr[1][2][0] = sc2 * ((-t2 * vb2x) - (vb3x * r12c2) +
-                 	      (t4 * vb3x) + (vb2x * r12c2));
+                          (t4 * vb3x) + (vb2x * r12c2));
   dthetadr[1][2][1] = sc2 * ((-t2 * vb2y) - (vb3y * r12c2) +
-                 	      (t4 * vb3y) + (vb2y * r12c2));
+                          (t4 * vb3y) + (vb2y * r12c2));
   dthetadr[1][2][2] = sc2 * ((-t2 * vb2z) - (vb3z * r12c2) +
-                 	      (t4 * vb3z) + (vb2z * r12c2));
+                          (t4 * vb3z) + (vb2z * r12c2));
 
   dthetadr[1][3][0] = -sc2 * ((t4 * vb3x) + (vb2x * r12c2));
   dthetadr[1][3][1] = -sc2 * ((t4 * vb3y) + (vb2y * r12c2));
@@ -961,4 +961,3 @@ template class DihedralClass2Kokkos<LMPDeviceType>;
 template class DihedralClass2Kokkos<LMPHostType>;
 #endif
 }
-

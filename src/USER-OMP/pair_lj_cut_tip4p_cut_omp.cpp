@@ -424,7 +424,7 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           }
 
           if (EFLAG) {
-        	ecoul = qqrd2e * qtmp * q[j] / r;
+            ecoul = qqrd2e * qtmp * q[j] / r;
             ecoul *= factor_coul;
           } else ecoul = 0.0;
 

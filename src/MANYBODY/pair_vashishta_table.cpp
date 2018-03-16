@@ -141,7 +141,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-      			   evdwl,0.0,fpair,delx,dely,delz);
+                   evdwl,0.0,fpair,delx,dely,delz);
     }
 
     jnumm1 = numshort - 1;

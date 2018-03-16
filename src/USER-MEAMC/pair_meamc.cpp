@@ -567,7 +567,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     // map lattce_meam value to an integer
 
-    if (which == 4) {	
+    if (which == 4) {
       if (strcmp(params[nparams-1],"fcc") == 0) value = FCC;
       else if (strcmp(params[nparams-1],"bcc") == 0) value = BCC;
       else if (strcmp(params[nparams-1],"hcp") == 0) value = HCP;

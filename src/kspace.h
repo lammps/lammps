@@ -68,7 +68,7 @@ class KSpace : protected Pointers {
                                     // dispersion solver (force units)
   double accuracy_kspace_6;         // reciprocal space accuracy for
                                     // dispersion solver (force units)
-  int auto_disp_flag;		    // use automatic parameter generation for pppm/disp
+  int auto_disp_flag;           // use automatic parameter generation for pppm/disp
   double two_charge_force;          // force in user units of two point
                                     // charges separated by 1 Angstrom
 

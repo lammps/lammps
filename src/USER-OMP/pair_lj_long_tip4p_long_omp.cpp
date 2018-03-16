@@ -808,9 +808,9 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype]) {			// lj
+      if (rsq < cut_ljsq[itype][jtype]) {           // lj
         r2inv = 1.0/rsq;
-       	if (ORDER6) {					// long-range lj
+        if (ORDER6) {                   // long-range lj
           if (!LJTABLE || rsq <= tabinnerdispsq) {
             register double rn = r2inv*r2inv*r2inv;
             register double x2 = g2*rsq, a2 = 1.0/x2;
@@ -821,7 +821,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               if (EFLAG)
                 evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
@@ -839,20 +839,20 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype];
               if (EFLAG) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype];
               if (EFLAG) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
             }
           }
         }
-        else {						// cut lj
+        else {                      // cut lj
           register double rn = r2inv*r2inv*r2inv;
           if (ni == 0) {
             forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
             if (EFLAG) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
           }
-          else {					// special case
+          else {                    // special case
             register double f = special_lj[ni];
             forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
             if (EFLAG)
@@ -942,7 +942,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           cforce = forcecoul * r2inv;
 
           //if (evflag) ev_tally(i,j,nlocal,newton_pair,
-          //		       evdwl,0.0,cforce,delx,dely,delz);
+          //               evdwl,0.0,cforce,delx,dely,delz);
 
           // if i,j are not O atoms, force is applied directly
           // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -1193,7 +1193,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
         r2inv = 1.0/rsq;
         register double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-        else {					// special case
+        else {                  // special case
           register double f = special_lj[ni];
           forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
         }
@@ -1267,7 +1267,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
           cforce = forcecoul * r2inv;
 
           //if (evflag) ev_tally(i,j,nlocal,newton_pair,
-          //		       evdwl,0.0,cforce,delx,dely,delz);
+          //               evdwl,0.0,cforce,delx,dely,delz);
 
           // if i,j are not O atoms, force is applied directly
           // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -1447,7 +1447,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
         r2inv = 1.0/rsq;
         register double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-        else {					// special case
+        else {                  // special case
           register double f = special_lj[ni];
           forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
         }
@@ -1529,7 +1529,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
           cforce = forcecoul * r2inv;
 
           //if (evflag) ev_tally(i,j,nlocal,newton_pair,
-          //		       evdwl,0.0,cforce,delx,dely,delz);
+          //               evdwl,0.0,cforce,delx,dely,delz);
 
           // if i,j are not O atoms, force is applied directly
           // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -1715,7 +1715,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 
       respa_coul = 0;
       respa_lj = 0;
-      if (rsq < cut_ljsq[itype][jtype]) {			// lj
+      if (rsq < cut_ljsq[itype][jtype]) {           // lj
         frespa = 1.0;                                       // check whether and how to compute respa corrections
         respa_flag = rsq < cut_in_on_sq ? 1 : 0;
         if (respa_flag && (rsq > cut_in_off_sq)) {
@@ -1745,7 +1745,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
                 evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
             }
           }
-          else {						// table real space
+          else {                        // table real space
             register union_int_float_t disp_t;
             disp_t.f = rsq;
             register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -1754,7 +1754,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
               forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]-respa_lj;
               if (EFLAG) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype]-respa_lj;
               if (EFLAG) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];

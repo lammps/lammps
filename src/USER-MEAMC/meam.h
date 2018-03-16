@@ -248,5 +248,13 @@ static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
         arr[i][j][k] = v;
 }
 
+// Helper functions
+
+static inline double fdiv_zero(const double n, const double d) {
+  if (iszero(d))
+    return 0.0;
+  return n / d;
+}
+
 };
 #endif

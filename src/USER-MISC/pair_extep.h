@@ -140,8 +140,8 @@ class PairExTeP : public Pair {
   }
 
   // splines parameters
-  // F[Ni=0-1, 1-2, 2-3, 
-  //   Nj=..., 
+  // F[Ni=0-1, 1-2, 2-3,
+  //   Nj=...,
   struct TF_corr_param {
     double
         f_00,
@@ -156,7 +156,7 @@ class PairExTeP : public Pair {
         f_y_01,
         f_y_10,
         f_y_11;
-  } F_corr_param[MAXTYPES][MAXTYPES][NSPLINE][NSPLINE]; 
+  } F_corr_param[MAXTYPES][MAXTYPES][NSPLINE][NSPLINE];
 
   double F_corr_data[MAXTYPES][MAXTYPES][NSPLINE][NSPLINE][3];
 

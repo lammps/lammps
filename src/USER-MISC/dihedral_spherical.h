@@ -36,7 +36,7 @@ class DihedralSpherical : public Dihedral {
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
-  
+
  protected:
   int    *nterms;
   double **Ccoeff;

@@ -189,7 +189,7 @@ class PairTersoffKokkos : public PairTersoff {
   // hardwired to space for 12 atom types
   //params_ters m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  int inum; 
+  int inum;
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;

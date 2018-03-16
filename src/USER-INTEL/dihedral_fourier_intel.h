@@ -57,7 +57,7 @@ class DihedralFourierIntel : public DihedralFourier {
   template <class flt_t>
   class ForceConst {
    public:
-    typedef struct { flt_t cos_shift, sin_shift, k; 
+    typedef struct { flt_t cos_shift, sin_shift, k;
       int multiplicity; } fc_packed1;
 
     fc_packed1 **bp;
@@ -65,7 +65,7 @@ class DihedralFourierIntel : public DihedralFourier {
     ForceConst() : _nbondtypes(0)  {}
     ~ForceConst() { set_ntypes(0, NULL, NULL, NULL); }
 
-    void set_ntypes(const int nbondtypes, int *setflag, int *nterms, 
+    void set_ntypes(const int nbondtypes, int *setflag, int *nterms,
 		    Memory *memory);
 
    private:
